@@ -22098,13 +22098,47 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - `cargo +stable build -p qshield-cli --locked` passed.
 - `cargo +stable test -p qshield-cli --locked -- --test-threads=1` passed.
 - Non-fatal warning: parallel cargo validation printed package-cache and artifact-directory lock waiting messages before completing successfully.
+- Packet C PR: qsl-protocol #1084.
+- Packet C head SHA: `bd441feab633`.
+- Packet C merge SHA: `a50ec96508b5`.
+- Packet C required checks completed green by bounded REST polling at iteration 9/180.
+- Packet C post-merge checks and public-safety completed success by bounded REST polling at iteration 10/180.
 
 ## Packet C Recovered Failures
 
 - Failing command: combined Packet C qwork revalidation script containing `bash -lc 'command -v qwork && qwork NA-0409 qsl-protocol'` and qstart/qresume smoke while the worktree was on `na-0409-qwork-director-facing-startup-hardening`. Classification: recoverable proof-shape mistake because qwork and qstart/qresume are required to reject non-main branches, and the live success proofs had already passed from clean `main` during Packet B. Corrective action: did not bypass the guard or use stash/reset; retained Packet B clean-main proof files as the valid behavior evidence and treated the branch-context failures as expected fail-closed behavior. Final result: Packet C validation uses the Packet B proof root plus governance, dependency, qsc, formal, and qshield validations.
+- Failing command: Packet C PR #1084 bounded REST polling command at iterations 7 and 8. Classification: recoverable transient `gh`/network/API issue within the directive's two-retry budget. Corrective action: continued bounded REST polling in place. Final result: iteration 9 recovered and reported all PR checks green.
+
+## Packet D Closeout Patch
+
+- Closeout branch: `na-0409-closeout-restore-na0410`.
+- Closeout allowed paths: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0409_closeout_restore_na0410_backup_manifest_status_testplan.md`.
+- Queue transition in draft: NA-0409 DONE; `NA-0410 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan` restored as the sole READY item.
+- Closeout decision in draft: D-0804.
+- Closeout boundary: no NA-0410 implementation, no backup execution, no restore execution, no qsl-backup/source-list/status/plan mutation, no durable Director State Index output, no runtime/protocol/crypto/dependency/workflow/public-doc/website/README/START_HERE/sibling-repo/secret/local-history/response-archive mutation, and no public-claim expansion.
+- Same-host continuity remains caveated; no off-host, restore, backup-complete, public-readiness, privacy, assurance, or public technical paper claim is made.
+
+## Packet D Validation Notes
+
+- Queue helper reported READY_COUNT 1, READY NA-0410 backup manifest/status lane, and NA-0409 DONE.
+- Decision helper reported latest D-0804, D-0802 once, D-0803 once, D-0804 once, and duplicate count zero.
+- `git diff --check` passed.
+- helper link-check reported `TOTAL_MISSING 0`.
+- helper leak scan over added content reported `SECRET_FINDING_COUNT 0`.
+- PR-body preflight passed with `Goals: G4`, required metadata fields, and no prohibited overclaim phrases.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- `cargo fmt --check` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
+- `python3 formal/run_model_checks.py` passed.
+- Non-fatal warning: parallel cargo validation printed package-cache lock waiting messages before completing successfully.
+
+## Packet D Recovered Failures
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py pr-body --body-file /tmp/na0409_closeout_pr_body.md`. Classification: recoverable command-shape mistake because the repo helper uses `pr-body-preflight`. Corrective action: checked the helper usage and reran `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file /tmp/na0409_closeout_pr_body.md --scan-overclaims`. Final result: `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
 
 ## Next-Watch Items
 
-- D-0804 must remain absent until closeout.
-- Packet C evidence PR must merge before NA-0409 closeout restores NA-0410.
-- Backup manifest/status work must remain deferred and preserved as NA-0410.
+- NA-0410 must remain implementation-pending after closeout.
+- Backup manifest/status work must begin only under the restored NA-0410 READY lane.

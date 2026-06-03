@@ -20910,7 +20910,7 @@ Closeout:
 ---
 
 ### NA-0409 — QSL Local Ops qwork Director-Facing Startup Availability / tmux Safety Hardening
-Status: READY
+Status: DONE
 Goals: G4
 Objective:
 - Make qwork available as a reliable Director-facing command in fresh shells and
@@ -20967,11 +20967,47 @@ Reprioritization:
 - The previously READY backup manifest/status lane is preserved as NA-0410,
   not discarded.
 - D-0802 records the reroute. D-0803 must record qwork hardening evidence.
+Closeout:
+- Packet A governance reroute PR: #1083.
+- Packet A head SHA: `0bfc3e0c6528`.
+- Packet A merge SHA: `9b00233895de`.
+- Packet A post-merge public-safety on `9b00233895de`: success.
+- Packet C implementation evidence PR: #1084.
+- Packet C head SHA: `bd441feab633`.
+- Packet C merge SHA: `a50ec96508b5`.
+- Packet C post-merge public-safety on `a50ec96508b5`: success.
+- Packet A decision: D-0802.
+- Packet C implementation decision: D-0803.
+- Packet D closeout decision: D-0804.
+- qwork wrapper path: `/srv/qbuild/tools/qwork`.
+- qwork core path: `/srv/qbuild/tools/qwork.sh`.
+- qshell wrapper path: `/srv/qbuild/tools/qshell.sh`.
+- user-local qwork path: `/home/victor/.local/bin/qwork`.
+- interactive shell integration path: `/home/victor/.bashrc`.
+- qwork hardening proof root:
+  `/srv/qbuild/tmp/NA0409_qwork_director_facing_hardening_20260603T130919-0500`.
+- qwork live JSON proof:
+  `/srv/qbuild/logs/NA-0409/startup.qsl-protocol.json`.
+- Bare fresh-shell qwork, interactive qshell success, interactive set-e
+  fail-closed survival, automation nonzero fail-closed behavior, qstart/qresume
+  compatibility, forbidden-command scan, `.bashrc` idempotence, rollback-file
+  proof, qsl-backup non-mutation, qsc, formal, dependency, and qshield-cli
+  validations passed.
+- No qsl-protocol runtime, protocol, crypto, dependency, workflow, public docs,
+  website, README, START_HERE, docs/public, qsl-server, qsl-attachments,
+  qshield runtime, qsc-desktop, backup script/timer/fstab/source-list/status/
+  plan, durable Director State Index, response archive, local history, or
+  secret-handling path was mutated by qsl-protocol closeout.
+- No backup or restore operation was run.
+- Same-host continuity remains caveated; no off-host, restore, backup-complete,
+  public-readiness, privacy, assurance, or public technical paper claim is made.
+- Selected successor:
+  `NA-0410 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan`.
 
 ---
 
 ### NA-0410 — QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan
-Status: BACKLOG
+Status: READY
 Goals: G4
 Objective:
 - Verify whether current qsl-backup manifest/log/status evidence independently
@@ -21013,6 +21049,9 @@ Acceptance:
 Preservation:
 - NA-0410 is the exact preserved successor formerly READY as NA-0409.
 - NA-0410 is not implemented by the NA-0409 qwork reroute PR.
+Restoration:
+- NA-0410 is restored as READY by NA-0409 closeout and D-0804.
+- NA-0410 is not implemented by the NA-0409 closeout PR.
 
 ---
 

@@ -21910,6 +21910,39 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - `python3 formal/run_model_checks.py` passed.
 - `cargo +stable build -p qshield-cli --locked` passed.
 - `cargo +stable test -p qshield-cli --locked -- --test-threads=1` passed.
+- Packet C PR: qsl-protocol #1081.
+- Packet C head SHA: `21d09055470f`.
+- Packet C merge SHA: `6411f84a5bbf`.
+- Packet C required checks completed green by bounded REST polling at iteration 7/180.
+- Packet C post-merge public-safety completed success by bounded REST polling at iteration 10/180.
+
+# QSL-DIR-2026-06-03-238 / NA-0408 Closeout and NA-0409 Restoration Rolling Journal
+
+## Closeout Patch
+
+- Closeout branch: `na-0408-closeout-restore-na0409`.
+- Closeout allowed paths: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0408_closeout_restore_na0409_backup_manifest_status_testplan.md`.
+- Queue transition in draft: NA-0408 DONE; `NA-0409 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan` restored as the sole READY item.
+- Closeout decision in draft: D-0801.
+- Closeout boundary: no NA-0409 implementation, no backup execution, no restore execution, no qsl-backup/source-list/status/plan mutation, no durable Director State Index output, no runtime/protocol/crypto/dependency/workflow/public-doc/website/README/START_HERE/sibling-repo/secret/local-history/response-archive mutation, and no public-claim expansion.
+- Same-host continuity remains caveated; no off-host, restore, backup-complete, public-readiness, privacy, assurance, or public technical paper claim is made.
+
+## Closeout Validation Notes
+
+- Closeout local queue helper: READY_COUNT 1; READY NA-0409 backup manifest/status lane.
+- Closeout local decision helper: latest D-0801; duplicate count zero.
+- Structural decision counts: D-0799 once; D-0800 once; D-0801 once.
+- Draft changed path set: exactly `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0408_closeout_restore_na0409_backup_manifest_status_testplan.md`.
+- `git diff --check` passed.
+- helper link-check reported `TOTAL_MISSING 0`.
+- helper added-line leak scan reported `SECRET_FINDING_COUNT 0`.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- `cargo fmt --check` passed.
+- `python3 formal/run_model_checks.py` passed.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed, 3 tests.
+- Pending: scope guard after commit, PR checks, merge, and post-merge public-safety.
 
 ## Next-Watch Items
 

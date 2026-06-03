@@ -53,7 +53,9 @@ Last-Updated: 2026-06-03
 - Packet C merge: `1e24888fa116`
 - Packet C post-merge public-safety: success.
 - Packet D branch: `na-0410-closeout-restore-na0411`
-- Packet D PR/merge: pending
+- Packet D PR: #1088
+- Packet D initial head SHA: `e58aca265a0c`
+- Packet D merge: pending
 
 ## qwork CWD Bug Reproduction
 
@@ -146,7 +148,8 @@ Last-Updated: 2026-06-03
 - Packet D `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
 - Packet D `python3 formal/run_model_checks.py`: passed.
 - Packet D qsl-backup non-mutation proof passed with source inclusion count `1`.
-- Packet D PR creation, required checks, merge, and post-merge public-safety remain pending.
+- Packet D PR #1088 opened.
+- Packet D required checks, merge, and post-merge public-safety remain pending.
 
 ## Disk Watermark
 

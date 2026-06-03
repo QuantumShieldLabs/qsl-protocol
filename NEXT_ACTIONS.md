@@ -21006,8 +21006,77 @@ Closeout:
 
 ---
 
-### NA-0410 — QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan
+### NA-0410 — QSL Local Ops qwork CWD-Independent Queue Verification Bugfix
 Status: READY
+Goals: G4
+Objective:
+- Fix qwork queue verification so it evaluates `NEXT_ACTIONS.md` in the target
+  checkout, not in the caller's current directory, and classify queue helper
+  failures separately from real READY-lane mismatches.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation.
+- no secret handling.
+- no sudo, apply, rollback, backup, restore, key handling, credential handling,
+  passphrase handling, off-host target setup, or qsl-backup mutation.
+- no backup source-list, backup status, backup plan, backup manifest/status
+  lane implementation, or durable Director State Index output.
+- no public, readiness, privacy, assurance, backup-complete, restore-proof,
+  off-host-backup, or public technical paper claim.
+- no README/START_HERE/docs-public/website update.
+- no qsl-server or qsl-attachments mutation.
+- no destructive dirty-worktree recovery; qwork must fail closed instead of
+  stashing, hard-resetting, deleting, force-pushing, mutating queue state, or
+  mutating GitHub state.
+- underlying `/srv/qbuild/tools/qwork.sh` must continue to return nonzero for
+  automation on unsafe input.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0410 with the exact qwork CWD-independent queue verification
+   bugfix title.
+3) NA-0409 qwork Director-facing startup hardening is DONE.
+4) D-0802 exists once.
+5) D-0803 exists once.
+6) D-0804 exists once.
+7) D-0805 exists once after the reprioritization PR.
+8) D-0806 is absent until qwork bugfix implementation evidence.
+9) D-0807 is absent until NA-0410 closeout.
+10) The preserved backup manifest/status lane exists as NA-0411 and is not
+   READY until NA-0410 closeout.
+11) `qwork NA-0410 qsl-protocol` succeeds from the qsl-protocol checkout and
+   from arbitrary non-checkout current directories.
+12) qwork reports helper execution/read failures as `queue-helper-failed` or
+   `queue-read-failed`, not `queue-lane-mismatch`.
+13) qwork reports `multiple-ready` only after successfully reading queue state
+   with READY_COUNT greater than 1.
+14) qwork reports `queue-lane-mismatch` only after successfully reading queue
+   state whose sole READY lane differs from the requested lane.
+15) Interactive `set -e` qshell wrapper failure preserves the shell.
+16) `/srv/qbuild/tools/qwork.sh` still fails closed with nonzero status for
+   automation on invalid lanes.
+17) qstart/qresume compatibility is preserved.
+18) No backup/restore, durable index, qsl-backup mutation, backup source-list
+   mutation, backup status update, backup plan update, runtime change, workflow
+   change, public docs change, website change, response archive mutation, local
+   history mutation, qsl-server mutation, qsl-attachments mutation, qshield
+   runtime mutation, or secret-handling path mutation is performed.
+19) public-safety remains required and green.
+Reprioritization:
+- The operator supplied a diagnostic showing qwork can falsely report
+  `queue-lane-mismatch` when invoked from outside the qsl-protocol checkout.
+- The reproduced failure from `/home/victor` returned
+  `reason=queue-lane-mismatch` for `qwork NA-0410 qsl-protocol`, even though
+  the target checkout queue was READY NA-0410.
+- Root cause is cwd-dependent queue helper invocation: qwork runs the queue
+  helper without pinning it to the target checkout, so the helper reads or
+  fails to read `NEXT_ACTIONS.md` relative to the caller's current directory.
+- The previously READY backup manifest/status lane is preserved as NA-0411,
+  not discarded.
+- D-0805 records the reroute. D-0806 must record qwork bugfix evidence.
+
+---
+
+### NA-0411 — QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan
+Status: BACKLOG
 Goals: G4
 Objective:
 - Verify whether current qsl-backup manifest/log/status evidence independently
@@ -21016,7 +21085,7 @@ Objective:
   update, or later durable Director State Index storage step is justified.
 Must protect:
 - no runtime/service/protocol/crypto/dependency/workflow implementation unless
-  future NA-0410 live scope explicitly authorizes exact files.
+  future NA-0411 live scope explicitly authorizes exact files.
 - no secret handling.
 - no sudo, apply, rollback, backup, restore, key handling, credential handling,
   passphrase handling, off-host target setup, or qsl-backup mutation unless
@@ -21028,30 +21097,34 @@ Must protect:
   review authorize it after manifest/status evidence.
 - no backup status or backup plan update unless future exact scope authorizes
   it and the evidence boundary remains explicit.
-- no NA-0410 implementation by NA-0409 qwork reprioritization,
+- no NA-0411 implementation by NA-0409 qwork reprioritization,
+  implementation, closeout, NA-0410 qwork cwd bugfix reprioritization,
   implementation, or closeout.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0410 with the exact selected manifest verification / status update
-   plan title after NA-0409 closeout.
-3) NA-0409 qwork Director-facing startup hardening is DONE.
+2) READY NA-0411 with the exact selected manifest verification / status update
+   plan title after NA-0410 closeout.
+3) NA-0410 qwork CWD-independent queue verification bugfix is DONE.
 4) D-0802 exists once after the reprioritization PR.
 5) D-0803 exists once after the qwork hardening evidence PR.
 6) D-0804 exists once after NA-0409 closeout.
-7) Same-host continuity remains caveated.
-8) No backup/restore, durable index, qsl-backup mutation, backup source-list
+7) D-0805 exists once after the NA-0410 qwork cwd bugfix reprioritization PR.
+8) D-0806 exists once after the qwork cwd bugfix evidence PR.
+9) D-0807 exists once after NA-0410 closeout.
+10) Same-host continuity remains caveated.
+11) No backup/restore, durable index, qsl-backup mutation, backup source-list
    mutation, backup status update, backup plan update, runtime change, workflow
    change, public docs change, website change, response archive mutation, local
    history mutation, qsl-server mutation, qsl-attachments mutation, qshield
    runtime mutation, or secret-handling path mutation is performed by the
-   NA-0409 qwork lane.
-9) public-safety remains required and green.
+   NA-0409 or NA-0410 qwork lanes.
+12) public-safety remains required and green.
 Preservation:
-- NA-0410 is the exact preserved successor formerly READY as NA-0409.
-- NA-0410 is not implemented by the NA-0409 qwork reroute PR.
+- NA-0411 is the exact preserved successor formerly READY as NA-0410.
+- NA-0411 is not implemented by the NA-0410 qwork cwd bugfix reroute PR.
 Restoration:
-- NA-0410 is restored as READY by NA-0409 closeout and D-0804.
-- NA-0410 is not implemented by the NA-0409 closeout PR.
+- NA-0411 must be restored as READY by NA-0410 closeout and D-0807.
+- NA-0411 is not implemented by the NA-0410 closeout PR.
 
 ---
 

@@ -19151,3 +19151,49 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - updating backup status or backup plan before future manifest/status evidence
     - writing durable Director State Index output during NA-0407
   - **References:** NA-0407; NA-0406; D-0795; D-0796; D233 operator packet `/srv/qbuild/tmp/NA0407_qsl_backup_root_action_20260602T232945-0500`; D234 response `/home/victor/work/qsl/codex/responses/NA0407_20260603T091100-0500_D234.md`; D236 recovery proof root `/srv/qbuild/tmp/NA0407_recover_d234_and_complete_20260603T093523-0500`; D237 proof root `/srv/qbuild/tmp/NA0407_complete_after_d236_20260603T100508-0500`; D237 fixture output `/srv/qbuild/tmp/NA0403_director_state_index_NA0407_d237_fixture_check`; `docs/governance/evidence/NA-0407_qsl_codex_ops_backup_source_list_implementation_harness.md`; `tests/NA-0407_qsl_codex_ops_backup_source_list_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0798
+  - **Title:** NA-0407 closeout and NA-0408 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-03
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0407 delivered Codex ops qsl-backup source-list implementation validation, and NA-0408 is restored as the exact successor for manifest/status verification and any future status-update decision.
+  - **Selected successor:** NA-0408 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan
+  - **Closeout result:** NA-0407 is DONE after qsl-protocol PR #1078 merged at `cf0341324ab3` from head `81c746a80756`; post-merge public-safety on `cf0341324ab3` completed success.
+  - **Backup-impact classification:** SOURCE_LIST_UPDATED_NOT_MANIFEST_PROVEN; no backup status or backup plan update is authorized by NA-0407 closeout, and NA-0408 must verify manifest/status evidence before any coverage statement, status update, or durable Director State Index storage work.
+  - **Protected:**
+    - no NA-0408 implementation is authorized by this closeout
+    - no backup execution
+    - no restore execution
+    - no sudo, apply, rollback, qsl-backup mutation, backup status update, or backup plan update by Codex
+    - no durable Director State Index file
+    - no helper mutation
+    - no fixture mutation
+    - no runtime change
+    - no protocol change
+    - no crypto change
+    - no dependency change
+    - no workflow change
+    - no public-doc/website/README/START_HERE change
+    - no public claim expansion
+    - no public technical paper
+    - no response archive mutation by this PR
+    - no local history mutation by Codex
+    - no secret handling
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0408
+    - NA-0407 DONE
+    - D-0797 once
+    - D-0798 once
+    - required CI green
+    - public-safety remains required
+    - future NA-0408 work must preserve same-host caveat and verify manifest/status evidence before any backup status update
+  - **Must never happen:**
+    - closeout is presented as implementing NA-0408
+    - closeout creates durable Director State Index output
+    - closeout mutates backup source lists, backup status, or backup plans
+    - closeout runs backup or restore operations
+    - closeout treats same-host continuity as broader recovery evidence
+    - closeout expands prohibited public, privacy, external-review, backup/restore/key, or assurance claims
+  - **References:** NA-0407; NA-0408; D-0795; D-0796; D-0797; qsl-protocol PR #1078; PR #1078 head `81c746a80756`; PR #1078 merge `cf0341324ab3`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0407_closeout_restore_na0408_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

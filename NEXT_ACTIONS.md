@@ -20757,7 +20757,7 @@ Closeout:
 ---
 
 ### NA-0407 — QSL Codex Ops Backup Coverage / Source-List Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Implement the future Codex ops backup coverage / source-list implementation
@@ -20793,6 +20793,74 @@ Acceptance:
    history, durable index, helper, fixture, or secret-bearing path is mutated
    by NA-0406 closeout.
 8) public-safety remains required and green.
+Closeout:
+- Packet E PR: #1078.
+- Packet E head SHA: `81c746a80756`.
+- Packet E merge SHA: `cf0341324ab3`.
+- Packet E post-merge public-safety on `cf0341324ab3`: success.
+- Packet E decision: D-0797.
+- Packet F closeout decision: D-0798.
+- Selected successor:
+  `NA-0408 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan`.
+- NA-0407 validated the human-operator-applied qsl-backup source-list update
+  that includes Codex ops exactly once.
+- Codex did not run sudo, apply, rollback, backup, or restore.
+- qsl-backup checksum prefix changed from `c82ee76fa357` to `e9ecff3d22ed`
+  by human-operator action reviewed under D233/D234/D236/D237 evidence.
+- Classification remains SOURCE_LIST_UPDATED_NOT_MANIFEST_PROVEN; source-list
+  inclusion alone does not establish completed coverage and future NA-0408 must verify
+  manifest/status evidence before any backup status update or durable index
+  storage work.
+- No durable Director State Index output was created.
+- No backup script/timer/fstab/source-list/status/plan, helper, fixture,
+  runtime, dependency, workflow, public docs, website, README, START_HERE,
+  docs/public, response archive, local history, qsl-server, qsl-attachments,
+  qshield runtime, qsc-desktop, or secret-handling path was mutated by this
+  closeout.
+- No backup or restore operation was run.
+- Same-host continuity remains caveated; no off-host or restore claim is made.
+
+---
+
+### NA-0408 — QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Verify whether current qsl-backup manifest/log/status evidence independently
+  supports Codex ops backup coverage after the human-operator-applied
+  source-list update, then decide whether any backup status update, backup plan
+  update, or later durable Director State Index storage step is justified.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation unless
+  future NA-0408 live scope explicitly authorizes exact files.
+- no secret handling.
+- no sudo, apply, rollback, backup, restore, key handling, credential handling,
+  passphrase handling, off-host target setup, or qsl-backup mutation unless
+  future exact scope explicitly authorizes it.
+- no public, readiness, or privacy overclaim.
+- no README/START_HERE/docs-public/website update unless future exact scope
+  authorizes.
+- no durable Director State Index output unless future exact scope and backup
+  review authorize it after manifest/status evidence.
+- no backup status or backup plan update unless future exact scope authorizes
+  it and the evidence boundary remains explicit.
+- no NA-0408 implementation by NA-0407 closeout.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0408 with the exact selected manifest verification / status update
+   plan title.
+3) NA-0407 DONE.
+4) D-0797 exists once.
+5) D-0798 exists once.
+6) No NA-0408 implementation is authorized by NA-0407 closeout.
+7) Same-host continuity remains caveated.
+8) No backup/restore, durable index, qsl-backup mutation, backup status update,
+   backup plan update, helper mutation, fixture mutation, runtime change,
+   workflow change, public docs change, website change, response archive
+   mutation, local history mutation, qsl-server mutation, qsl-attachments
+   mutation, qshield runtime mutation, or secret-handling path mutation is
+   performed by NA-0407 closeout.
+9) public-safety remains required and green.
 
 ---
 

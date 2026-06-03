@@ -19564,3 +19564,61 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
     - public readiness, public technical paper, backup-complete, restore-proof, off-host-backup, privacy, or assurance overclaims are introduced
   - **References:** NA-0410; NA-0411; D-0802; D-0803; D-0804; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0410_qwork_cwd_queue_bugfix_reprioritization_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0806
+  - **Title:** NA-0410 qwork cwd-independent queue verification bugfix
+  - **Status:** Accepted
+  - **Date:** 2026-06-03
+  - **Goals:** G4
+  - **Decision:** QSL implemented and validated a local qwork queue-verification bugfix after Packet A merged and post-merge public-safety completed success. qwork now evaluates qsl-protocol queue state against the target checkout's `NEXT_ACTIONS.md` instead of the caller's current directory, and it separates helper/read failures from real READY-lane mismatches.
+  - **Implementation result:** `/srv/qbuild/tools/qwork.sh` now calls the qsl-protocol queue helper with `queue --file "$path/NEXT_ACTIONS.md"` after checking the target helper and queue file. Helper execution failure is reported as `queue-helper-failed`; unreadable or unparsable queue output is reported as `queue-read-failed`; `multiple-ready` remains reserved for successfully read queues with READY_COUNT greater than 1; `queue-lane-mismatch` remains reserved for successfully read queues whose READY lane does not match the requested lane.
+  - **Local tool paths:** qwork core `/srv/qbuild/tools/qwork.sh`; qshell wrapper `/srv/qbuild/tools/qshell.sh` unchanged.
+  - **Evidence:** qwork cwd bugfix proof root `/srv/qbuild/tmp/NA0410_qwork_cwd_queue_bugfix_20260603T151931-0500`; qwork checksum prefix changed `1f648cafba35` to `e8f6dc0a5ed4`; qshell checksum prefix remained `6ad0dfff5fa4`; qsl-backup checksum prefix remained `e9ecff3d22ed`.
+  - **Validation summary:** qwork succeeded for READY NA-0410 from `/home/victor`, `/tmp`, an unrelated temp cwd, and the qsl-protocol checkout. Wrong-lane `NA-0411` returned `queue-lane-mismatch`. Controlled helper fixtures returned `queue-helper-failed`, `queue-read-failed`, and `multiple-ready` for the intended cases. Interactive `set -e` qshell failure printed `shell-survived`; direct automation failure remained nonzero. qstart/qresume compatibility smoke passed. qsl-backup was not mutated and no backup or restore ran.
+  - **Selected successor remains:** NA-0411 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan
+  - **Protected:**
+    - no qsl-protocol runtime implementation
+    - no protocol implementation
+    - no crypto implementation
+    - no dependency changes
+    - no Cargo.toml/Cargo.lock changes
+    - no workflow mutation
+    - no backup execution
+    - no restore execution
+    - no qsl-backup mutation
+    - no backup source-list mutation
+    - no backup status update
+    - no backup plan update
+    - no durable Director State Index file
+    - no public-doc/website/README/START_HERE change
+    - no public claim expansion
+    - no public technical paper
+    - no response archive mutation by this PR
+    - no local history mutation by Codex
+    - no qsl-server mutation
+    - no qsl-attachments mutation
+    - no secret handling
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0410 qwork cwd bugfix lane remains pending closeout
+    - NA-0411 preserved but not READY
+    - D-0805 once
+    - D-0806 once
+    - D-0807 absent until closeout
+    - required CI green
+    - public-safety remains required and green
+    - `qwork NA-0410 qsl-protocol` succeeds from arbitrary current directories
+    - helper/read failure classifications do not collapse into `queue-lane-mismatch`
+    - wrong-lane queue mismatch remains fail-closed and nonzero
+    - qshell set-e safety, qstart/qresume compatibility, and qwork automation nonzero behavior remain preserved
+  - **Must never happen:**
+    - this implementation evidence closes NA-0410 or implements NA-0411
+    - helper execution/read failures are reported as `queue-lane-mismatch`
+    - wrong-lane queue mismatches stop returning `queue-lane-mismatch`
+    - qwork depends on the caller's current directory for queue verification
+    - qwork uses hard reset, stash, untracked deletion, force push, normal push, forced checkout, non-fast-forward merge, queue mutation, or GitHub mutation as recovery
+    - backup or restore operations are run
+    - qsl-backup, backup source lists, backup status, or backup plans are mutated
+    - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
+    - public readiness, public technical paper, backup-complete, restore-proof, off-host-backup, privacy, or assurance overclaims are introduced
+  - **References:** NA-0410; NA-0411; D-0805; `/srv/qbuild/tools/qwork.sh`; `/srv/qbuild/tools/qshell.sh`; `docs/governance/evidence/NA-0410_qsl_local_ops_qwork_cwd_queue_bugfix.md`; `tests/NA-0410_qsl_local_ops_qwork_cwd_queue_bugfix_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -21788,3 +21788,76 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 ## Recovered Failures / Operational Notes
 
 - Failing command: post-merge polling loop optional public-safety formatter for PR #1074 merge SHA. Classification: command-shape issue in evidence display only; total/in-progress/failure counts still completed green. Corrective action: verified public-safety with `python3 scripts/ci/qsl_evidence_helper.py public-safety-status --repo QuantumShieldLabs/qsl-protocol --sha 6ccf51542dab3bd7b2e5970f6c27660a40993281` and PR-head required checks with `checks-summary` on `c904470fe1ba`. Final result: public-safety success on merge SHA and REQUIRED_CONTEXT_FAILURE_COUNT 0 on PR head.
+
+# QSL-DIR-2026-06-03-238 / NA-0408 qwork Startup Hardening Reroute Rolling Journal
+
+## Directive / Clock / Repo Identity
+
+- Directive: QSL-DIR-2026-06-03-238.
+- Target: reprioritize NA-0408 to qwork startup hardening, then preserve the backup manifest/status lane as NA-0409.
+- Director-declared begin timestamp: 2026-06-03T11:04:30-05:00 / 2026-06-03T16:04:30Z.
+- Host start timestamp evidence: 2026-06-03T11:15:01-05:00 / 2026-06-03T16:15:01+00:00.
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0408/qsl-protocol`.
+- qsl-protocol branch: `na-0408-qwork-startup-reprioritization`.
+- qsl-protocol startup `HEAD`: `0c4bb3fc2d58`.
+- qsl-protocol startup `origin/main`: `0c4bb3fc2d58`.
+- qsl-protocol startup `mirror/main`: `2abcee236e23`.
+- qsl-protocol local `main` was clean but tracked `mirror/main`; this is recorded as startup friction evidence, not changed by Packet A.
+- qsl-server local checkout under this NA worktree: not present; no mutation.
+- qsl-attachments local checkout under this NA worktree: not present; no mutation.
+- Disk watermark: `/srv/qbuild` 468G total, 172G used, 272G free, 39% used.
+
+## Startup Authority Proof
+
+- Worktree was clean before tracked edits: no tracked diff and no untracked files.
+- `origin/main` full SHA began with required prefix `0c4bb3fc2d58`.
+- Startup queue proof: READY_COUNT 1; READY NA-0408 `QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan`.
+- Startup decision proof: latest D-0798; D-0797 once; D-0798 once; D-0799 absent; D-0800 absent; D-0801 absent; duplicate count zero.
+- Branch protection requires `public-safety` on main.
+- Startup public-safety on `0c4bb3fc2d58`: completed success.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- `/usr/local/sbin/qsl-backup` checksum was `e9ecff3d22ed...`; Codex ops source inclusion count was 1.
+- No backup or restore operation was run.
+
+## Packet A Reroute Patch
+
+- Allowed paths: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0408_qwork_startup_reprioritization_testplan.md`.
+- Queue transition in draft: `NA-0408 -- QSL Local Ops qwork Unified Startup Command Implementation Harness` promoted to READY.
+- Preserved successor in draft: `NA-0409 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan`, not READY.
+- Decision in draft: D-0799 `NA-0408 qwork startup hardening reprioritization`.
+- Traceability row added for D-0799 and the preserved NA-0409 successor.
+- Testplan added for reroute queue, decision, scope, link/leak, dependency, and public-safety proof.
+- No qwork implementation is included in Packet A.
+
+## Failures / Recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py goal-lint`.
+  Classification: recoverable command-shape mistake because the helper exposes
+  `pr-body-preflight`, not `goal-lint`, for the local PR-body gate. Corrective
+  action: reran with `python3 scripts/ci/qsl_evidence_helper.py
+  pr-body-preflight --file <process-substitution> --scan-overclaims`. Final
+  result: `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+
+## Validation / CI Notes
+
+- Packet A local queue helper: READY_COUNT 1; READY NA-0408 qwork lane.
+- Packet A local decision helper: latest D-0799; duplicate count zero.
+- Structural decision counts: D-0797 once; D-0798 once; D-0799 once; D-0800 absent; D-0801 absent.
+- Draft changed path set: exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0408_qwork_startup_reprioritization_testplan.md`.
+- `git diff --check` passed.
+- Manual markdown link check reported `TOTAL_MISSING 0`.
+- Added-line leak scan over Packet A paths reported no high-confidence findings.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
+- `python3 formal/run_model_checks.py` passed.
+- PR-body preflight passed after command-shape correction.
+- Pending: helper scope/link/leak checks after commit, PR checks, merge, and post-merge public-safety.
+
+## Next-Watch Items
+
+- D-0800 must remain absent until the qwork implementation evidence PR.
+- Packet A must merge before any `/srv/qbuild/tools/qwork.sh` or `/srv/qbuild/tools/qshell.sh` mutation.
+- Backup manifest/status work must remain deferred and preserved as NA-0409.

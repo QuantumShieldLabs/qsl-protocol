@@ -20822,8 +20822,63 @@ Closeout:
 
 ---
 
-### NA-0408 — QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan
+### NA-0408 — QSL Local Ops qwork Unified Startup Command Implementation Harness
 Status: READY
+Goals: G1, G2, G3, G4, G5
+Objective:
+- Implement and validate a single deterministic Director-facing startup command,
+  `qwork <lane> <repo1> [repo2 ...]`, after this reroute PR merges and
+  public-safety is green. The command must create or reuse safe checkouts,
+  align clean `main` checkouts to authoritative `origin/main`, normalize
+  upstream to `origin/main`, verify queue state, verify clean state, and print
+  stable key-value proof.
+Must protect:
+- no runtime/service/protocol/crypto/dependency/workflow implementation.
+- no secret handling.
+- no sudo, apply, rollback, backup, restore, key handling, credential handling,
+  passphrase handling, off-host target setup, or qsl-backup mutation.
+- no public, readiness, or privacy overclaim.
+- no README/START_HERE/docs-public/website update.
+- no durable Director State Index output unless future exact scope and backup
+  review authorize it after manifest/status evidence.
+- no backup status or backup plan update.
+- no backup manifest/status lane implementation by this qwork lane.
+- no destructive dirty-worktree recovery; qwork must fail closed instead of
+  stashing, hard-resetting, deleting, force-pushing, mutating queue state, or
+  mutating GitHub state.
+Acceptance:
+1) READY_COUNT 1.
+2) READY NA-0408 with the exact qwork unified startup command implementation
+   harness title.
+3) NA-0407 DONE.
+4) D-0797 exists once.
+5) D-0798 exists once.
+6) D-0799 exists once after the reprioritization PR.
+7) D-0800 remains absent until the qwork implementation evidence PR.
+8) The preserved backup manifest/status lane exists as NA-0409 and is not READY
+   until NA-0408 qwork closeout.
+9) No qwork implementation is included in the reprioritization PR.
+10) Same-host continuity remains caveated.
+11) No backup/restore, durable index, qsl-backup mutation, backup status
+    update, backup plan update, helper mutation, fixture mutation, runtime
+    change, workflow change, public docs change, website change, response
+    archive mutation, local history mutation, qsl-server mutation,
+    qsl-attachments mutation, qshield runtime mutation, or secret-handling path
+    mutation is performed by the reprioritization PR.
+12) public-safety remains required and green.
+Reprioritization:
+- This lane was promoted because repeated qstart/qresume startup brittleness is
+  now a blocker to safe directive execution.
+- The Director requested the qwork fix before the next project directive.
+- The previously READY backup manifest/status lane is preserved as NA-0409,
+  not discarded.
+- D-0799 records the reroute. D-0800 must remain absent until qwork
+  implementation evidence is created.
+
+---
+
+### NA-0409 — QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan
+Status: BACKLOG
 Goals: G1, G2, G3, G4, G5
 Objective:
 - Verify whether current qsl-backup manifest/log/status evidence independently
@@ -20832,7 +20887,7 @@ Objective:
   update, or later durable Director State Index storage step is justified.
 Must protect:
 - no runtime/service/protocol/crypto/dependency/workflow implementation unless
-  future NA-0408 live scope explicitly authorizes exact files.
+  future NA-0409 live scope explicitly authorizes exact files.
 - no secret handling.
 - no sudo, apply, rollback, backup, restore, key handling, credential handling,
   passphrase handling, off-host target setup, or qsl-backup mutation unless
@@ -20844,23 +20899,28 @@ Must protect:
   review authorize it after manifest/status evidence.
 - no backup status or backup plan update unless future exact scope authorizes
   it and the evidence boundary remains explicit.
-- no NA-0408 implementation by NA-0407 closeout.
+- no NA-0409 implementation by NA-0408 qwork reprioritization or
+  implementation.
 Acceptance:
 1) READY_COUNT 1.
-2) READY NA-0408 with the exact selected manifest verification / status update
-   plan title.
+2) NA-0409 is preserved but not READY during NA-0408 qwork implementation.
 3) NA-0407 DONE.
 4) D-0797 exists once.
 5) D-0798 exists once.
-6) No NA-0408 implementation is authorized by NA-0407 closeout.
-7) Same-host continuity remains caveated.
-8) No backup/restore, durable index, qsl-backup mutation, backup status update,
+6) D-0799 exists once after the reprioritization PR.
+7) D-0800 exists once after the qwork implementation evidence PR.
+8) Same-host continuity remains caveated.
+9) No backup/restore, durable index, qsl-backup mutation, backup status update,
    backup plan update, helper mutation, fixture mutation, runtime change,
    workflow change, public docs change, website change, response archive
    mutation, local history mutation, qsl-server mutation, qsl-attachments
    mutation, qshield runtime mutation, or secret-handling path mutation is
-   performed by NA-0407 closeout.
-9) public-safety remains required and green.
+   performed by the NA-0408 qwork lane.
+10) public-safety remains required and green.
+Restoration:
+- NA-0409 must become READY only after NA-0408 qwork implementation is closed
+  out and D-0801 records restoration.
+- NA-0409 must not be implemented by the NA-0408 closeout PR.
 
 ---
 

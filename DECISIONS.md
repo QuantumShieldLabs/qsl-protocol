@@ -19197,3 +19197,56 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - closeout treats same-host continuity as broader recovery evidence
     - closeout expands prohibited public, privacy, external-review, backup/restore/key, or assurance claims
   - **References:** NA-0407; NA-0408; D-0795; D-0796; D-0797; qsl-protocol PR #1078; PR #1078 head `81c746a80756`; PR #1078 merge `cf0341324ab3`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0407_closeout_restore_na0408_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0799
+  - **Title:** NA-0408 qwork startup hardening reprioritization
+  - **Status:** Accepted
+  - **Date:** 2026-06-03
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** QSL reprioritizes the queue so NA-0408 becomes the qwork unified startup command implementation harness, while the previously READY backup manifest/status lane is preserved as NA-0409 for restoration after qwork closeout.
+  - **Reroute result:** READY_COUNT remains 1; READY NA-0408 now names `QSL Local Ops qwork Unified Startup Command Implementation Harness`; `NA-0409 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan` is preserved but not READY.
+  - **Reason:** The Director requested the qwork fix before the next project directive because repeated qstart/qresume startup brittleness is now a blocker to safe directive execution. The startup failure pattern includes unavailable qstart until qshell is sourced, brittle qresume-first guidance, stale `mirror/main` tracking that can mislead status output, and repeated manual path/HEAD/origin/main/queue/worktree checks.
+  - **Accepted recommendation:** Replace Director-facing conditional qstart/qresume startup text with one deterministic command, `qwork <lane> <repo1> [repo2 ...]`, while retaining qstart/qresume compatibility temporarily.
+  - **Backup lane preservation:** The backup manifest/status lane is deferred, not discarded. NA-0409 must be restored as the next READY item after NA-0408 qwork implementation closeout; NA-0409 is not implemented by this reprioritization.
+  - **Protected:**
+    - no qwork implementation in this reprioritization PR
+    - no backup execution
+    - no restore execution
+    - no sudo, apply, rollback, qsl-backup mutation, backup status update, or backup plan update by Codex
+    - no durable Director State Index file
+    - no helper mutation
+    - no fixture mutation
+    - no runtime change
+    - no protocol change
+    - no crypto change
+    - no dependency change
+    - no workflow change
+    - no public-doc/website/README/START_HERE change
+    - no public claim expansion
+    - no public technical paper
+    - no response archive mutation by this PR
+    - no local history mutation by Codex
+    - no qsl-server mutation
+    - no qsl-attachments mutation
+    - no secret handling
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0408 qwork lane
+    - NA-0407 DONE
+    - NA-0409 preserved but not READY
+    - D-0797 once
+    - D-0798 once
+    - D-0799 once
+    - D-0800 absent until qwork implementation evidence
+    - required CI green
+    - public-safety remains required and green
+    - future qwork implementation must fail closed on unsafe lane, unknown repo, lane lock held, invalid checkout, missing origin, wrong origin URL, missing origin/main, dirty worktree, dirty index, untracked files, non-main branch, local ahead, local divergence, queue-lane mismatch, multiple READY items, and missing helper
+  - **Must never happen:**
+    - this reprioritization is presented as implementing qwork
+    - the backup manifest/status lane is silently skipped or discarded
+    - qwork uses hard reset, stash, untracked deletion, force push, queue mutation, or GitHub mutation as dirty-state recovery
+    - backup or restore operations are run
+    - qsl-backup, backup source lists, backup status, or backup plans are mutated
+    - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
+    - public readiness, public technical paper, backup-complete, restore-proof, off-host-backup, privacy, or assurance overclaims are introduced
+  - **References:** NA-0408; NA-0409; D-0797; D-0798; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0408_qwork_startup_reprioritization_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

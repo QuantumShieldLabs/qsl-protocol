@@ -8,6 +8,102 @@ Last-Updated: 2026-06-03
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-03-246 -- Close Out NA-0411 and Restore Explicit NA-0412 Backup Status / Plan Authorization Block
+- Begin timestamp (America/Chicago): 2026-06-03T16:34:30-05:00
+- Begin timestamp (UTC): 2026-06-03T21:34:30Z
+- Host clock at startup (America/Chicago): 2026-06-03T18:44:29-05:00
+- Host clock at startup (UTC): 2026-06-03T23:44:29+00:00
+- End timestamp (America/Chicago): pending final response
+- End timestamp (UTC): pending final response
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0411/qsl-protocol`
+- qsl-protocol closeout branch: `na-0411-closeout-restore-na0412`
+- qsl-protocol HEAD at startup: `709543586bdf`
+- qsl-protocol main at startup: `709543586bdf`
+- qsl-protocol origin/main at startup: `709543586bdf`
+- qsl-protocol mirror/main at startup: `2abcee236e23`
+- PR #1089 merge prefix: `709543586bdf`
+
+## READY Proof
+
+- qwork startup: `startup_result=OK`, lane `NA-0411`, repo `qsl-protocol`, `head_equals_origin_main=yes`, worktree/index/untracked clean, READY_COUNT `1`, queue top READY `NA-0411`, and requested lane status `READY`.
+- qwork JSON proof: `/srv/qbuild/logs/NA-0411/startup.qsl-protocol.json`.
+- Queue helper at start: READY_COUNT `1`; READY `NA-0411 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan`; NA-0410 DONE.
+- Decision helper at start: latest D-0808; duplicate count zero; D-0809 absent.
+- PR #1089 verification: merged at `2026-06-03T21:19:47Z`, merge commit `709543586bdf`, and `origin/main` descends from that merge.
+- PR #1089 public-safety: completed success on the merge commit.
+
+## Worktree / Branch / PR
+
+- Start state: clean `main...origin/main`; no tracked diff; no untracked files.
+- Closeout branch created: `na-0411-closeout-restore-na0412`.
+- Allowed closeout paths: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0411_closeout_restore_na0412_testplan.md`.
+- Draft queue transition: NA-0411 DONE; `NA-0412 -- QSL Codex Ops Backup Status / Plan Update Authorization Plan` restored as sole READY.
+- Draft closeout decision: D-0809.
+- PR: pending.
+- Merge commit: pending.
+
+## Backup Boundary Proof
+
+- `/usr/local/sbin/qsl-backup` checksum: `e9ecff3d22ed`.
+- Exact Codex ops source inclusion count in qsl-backup: `1`.
+- No backup or restore operation was run.
+- No qsl-backup, backup source-list, backup status, backup plan, systemd, timer, or fstab mutation was performed.
+- Prior response file exists: `/home/victor/work/qsl/codex/responses/NA0411_20260603T162408-0500_D245.md`.
+
+## Failures / Recoveries
+
+- Failing command: `git -C /srv/qbuild/work/NA-0411/qsl-server rev-parse --short=12 main origin/main mirror/main` and the analogous `qsl-attachments` command. Classification: recoverable read-only proof-shape mistake because the NA-0411 qwork lane contains only the qsl-protocol checkout and no file mutation had occurred. Corrective action: inspected `/srv/qbuild/work/NA-0411`, confirmed it contains only `qsl-protocol`, and continued with qsl-protocol scope guard as the sibling-repo mutation proof. Final result: no qsl-server or qsl-attachments checkout under the active lane and no sibling-repo mutation performed.
+- Failing command: first custom overclaim scan over the full changed files. Classification: recoverable proof-shape mistake because the scan matched required negative/caveat wording such as `restore-proven` in no-claim lists rather than affirmative claims. Corrective action: reran an affirmative-only added-content scan and retained helper PR-body overclaim preflight. Final result: `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0` and PR-body preflight reported prohibited phrase count `0`.
+
+## Validation / CI Notes
+
+- Pre-patch dependency health: `cargo audit --deny warnings` passed.
+- Pre-patch dependency tree: `rustls-webpki v0.103.13`.
+- Local validation:
+  - queue helper reported READY_COUNT `1`, READY NA-0412, and NA-0411 DONE.
+  - decision helper reported latest D-0809, D-0808 once, D-0809 once, D-0810 absent, and duplicate count zero.
+  - manual scope guard over tracked plus untracked changes reported exactly the five allowed closeout paths and zero forbidden paths.
+  - `git diff --check` passed.
+  - helper link-check reported `TOTAL_MISSING 0`.
+  - PR-body preflight reported missing field count `0` and prohibited phrase count `0`.
+  - corrected affirmative overclaim scan reported `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0`.
+  - `cargo audit --deny warnings` passed.
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+  - `cargo fmt --check` passed.
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed, 3 tests.
+  - `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
+  - `python3 formal/run_model_checks.py` passed.
+  - qsl-backup checksum remained `e9ecff3d22ed`; Codex ops source inclusion count remained `1`.
+  - Backup status/plan files were inspected with `stat`; no mutation command was run.
+  - Local qwork smoke for NA-0412 was not forced before merge because qwork requires a clean main checkout and this unmerged patch is on a dirty feature branch; queue helper validated the draft queue state instead. Post-merge qwork smoke remains required.
+  - Post-commit diff-based scope guard over `origin/main...HEAD` reported five changed paths and `FORBIDDEN_COUNT 0`.
+  - Post-commit added-line leak scan reported `SECRET_FINDING_COUNT 0`.
+  - Post-commit link-check still reported `TOTAL_MISSING 0`.
+  - Synthetic-event goal-lint against `origin/main` and the committed branch head reported `OK: goal compliance checks passed.`
+  - CI scope classifier reported `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, and `scope_class=docs_only`.
+  - Current `origin/main` public-safety status for PR #1089 merge `709543586bdf` reported completed success, with no red or ambiguous public-safety state.
+- Protected checks: pending PR.
+- Retry notes: none yet.
+
+## Disk Watermark
+
+- Filesystem: `/dev/nvme0n1p2`
+- Total GiB: `468G`
+- Used GiB: `182G`
+- Free GiB: `263G`
+- Used %: `41%`
+
+## Next-Watch Items
+
+- NA-0412 must remain authorization-plan work only until live scope explicitly authorizes exact files and wording.
+- Latest scheduled backup log code 23 caveat must remain visible.
+- Same-host manifest presence must not be described as disaster recovery, off-host backup, restore proof, backup completion, public readiness, or external review.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-03-245 -- Execute NA-0411 QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan, Optional Closeout to NA-0412
 - Begin timestamp (America/Chicago): 2026-06-03T14:14:30-05:00
 - Begin timestamp (UTC): 2026-06-03T19:14:30Z

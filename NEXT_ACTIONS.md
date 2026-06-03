@@ -21109,7 +21109,7 @@ Closeout:
 ---
 
 ### NA-0411 — QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan
-Status: READY
+Status: DONE
 Goals: G4
 Objective:
 - Verify whether current qsl-backup manifest/log/status evidence independently
@@ -21158,6 +21158,82 @@ Preservation:
 Restoration:
 - NA-0411 must be restored as READY by NA-0410 closeout and D-0807.
 - NA-0411 is not implemented by the NA-0410 closeout PR.
+
+Closeout result:
+- PR #1089 merged and recorded NA-0411 evidence for D-0808.
+- D-0808 accepted classification
+  `CODEX_OPS_MANIFEST_PRESENT_SAME_HOST`.
+- The latest scheduled same-host manifest includes Codex ops exactly once.
+- The latest scheduled log code 23 caveat remains mandatory; it came from a
+  permission-denied NA-0407 temp rollback subtree.
+- Local backup status and plan files are stale relative to the live source-list
+  and manifest evidence, and remained read-only in NA-0411.
+- No backup or restore operation was run.
+- qsl-backup and backup source lists were not mutated.
+- Same-host continuity remains a mandatory caveat and is not disaster recovery,
+  off-host backup, restore proof, backup completion, public readiness, or
+  external-review evidence.
+- D-0809 closes NA-0411 and restores the explicit NA-0412 authorization plan as
+  the sole READY successor.
+
+---
+
+### NA-0412 — QSL Codex Ops Backup Status / Plan Update Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the next bounded local-ops governance lane for updating Codex backup status and/or backup plan documentation after NA-0411 verified that Codex ops is present in the same-host backup manifest, while preserving the log code 23 caveat and avoiding any backup execution, restore execution, off-host claim, disaster-recovery claim, or public-readiness claim.
+
+Protects:
+- The accuracy of backup status and backup plan records.
+- The distinction between source-list inclusion, manifest evidence, same-host continuity, and complete disaster recovery.
+- The evidence boundary that Codex ops manifest presence is same-host local continuity only.
+- The log code 23 caveat from the latest scheduled backup log.
+- The no-backup/no-restore/no-secret boundary.
+- The one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence and testplan paths for NA-0412.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- Read-only inspection of:
+  - `/home/victor/work/qsl/codex/ops/backup/QSL_BACKUP_STATUS.md`
+  - `/home/victor/work/qsl/codex/QSL_BACKUP_PLAN.md`
+  - `/backup/qsl/manifests`
+  - `/backup/qsl/logs`
+  - `/usr/local/sbin/qsl-backup`
+- Future local status/plan mutation only if the NA-0412 live scope explicitly authorizes exact files and exact wording.
+
+Forbidden scope:
+- Running backup.
+- Running restore.
+- Mutating `/usr/local/sbin/qsl-backup`.
+- Mutating systemd units, timers, fstab, backup target mounts, source lists, retention, or backup scripts.
+- Creating durable Director State Index output.
+- Mutating qwork/qstart/qresume/qshell.
+- Mutating runtime, crypto, dependency, workflow, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE paths.
+- Creating public technical paper content.
+- Creating or implying off-host backup completion, disaster recovery completion, restore proof, backup completion, production readiness, public-internet readiness, external-review completion, metadata-free behavior, anonymity, untraceability, bug-free status, vulnerability-free status, or perfect-crypto claims.
+- Secret material handling.
+
+Deliverables:
+- NA-0412 evidence doc or blocker evidence, depending on live scope.
+- NA-0412 testplan.
+- D-0810 or next sequential decision for NA-0412 planning, unless live decisions require a different exact ID.
+- TRACEABILITY update.
+- Rolling journal update.
+- Exact recommendation for whether status/plan docs may be updated in a later implementation lane.
+
+Acceptance criteria:
+- The current manifest evidence from NA-0411 is cited accurately.
+- The log code 23 caveat is preserved.
+- Same-host continuity is not described as disaster recovery.
+- No backup or restore operation is run.
+- No public-readiness or backup-complete overclaim is introduced.
+- Exactly one READY item remains.
+- public-safety is green before merge and after merge.
 
 ---
 

@@ -19511,3 +19511,56 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - closeout mutates runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths
     - closeout expands public readiness, public technical paper, backup-complete, restore-proof, off-host-backup, privacy, or assurance claims
   - **References:** NA-0409; NA-0410; D-0802; D-0803; qsl-protocol PR #1083; qsl-protocol PR #1084; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0409_closeout_restore_na0410_backup_manifest_status_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0805
+  - **Title:** NA-0410 qwork cwd-independent queue verification bugfix reprioritization
+  - **Status:** Accepted
+  - **Date:** 2026-06-03
+  - **Goals:** G4
+  - **Decision:** QSL reprioritizes the queue so NA-0410 becomes the qwork cwd-independent queue verification bugfix lane, while the previously READY backup manifest/status lane is preserved as NA-0411 for restoration after qwork cwd bugfix closeout.
+  - **Reroute result:** READY_COUNT remains 1; READY NA-0410 now names `QSL Local Ops qwork CWD-Independent Queue Verification Bugfix`; `NA-0411 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan` is preserved but not READY.
+  - **Reason:** The operator supplied a read-only diagnostic, and Codex reproduced from `/home/victor`, that qwork can falsely report `reason=queue-lane-mismatch` for `qwork NA-0410 qsl-protocol` when the caller's current directory is outside the qsl-protocol checkout. The root cause is cwd-dependent queue helper invocation: qwork invokes the qsl-protocol queue helper without pinning execution or the queue file to the target checkout, so helper execution/read failure is misclassified as a READY-lane mismatch.
+  - **Backup lane preservation:** The backup manifest/status lane is deferred, not discarded. NA-0411 must be restored as the next READY item after NA-0410 qwork cwd bugfix closeout; NA-0411 is not implemented by this reprioritization.
+  - **Protected:**
+    - no qwork implementation in this reprioritization PR
+    - no backup execution
+    - no restore execution
+    - no sudo, apply, rollback, qsl-backup mutation, backup source-list mutation, backup status update, or backup plan update by Codex
+    - no durable Director State Index file
+    - no runtime change
+    - no protocol change
+    - no crypto change
+    - no dependency change
+    - no workflow change
+    - no public-doc/website/README/START_HERE change
+    - no public claim expansion
+    - no public technical paper
+    - no response archive mutation by this PR
+    - no local history mutation by Codex
+    - no qsl-server mutation
+    - no qsl-attachments mutation
+    - no secret handling
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0410 qwork cwd-independent queue verification bugfix lane
+    - NA-0409 DONE
+    - NA-0411 preserved but not READY
+    - D-0802 once
+    - D-0803 once
+    - D-0804 once
+    - D-0805 once
+    - D-0806 absent until qwork cwd bugfix evidence
+    - D-0807 absent until closeout
+    - required CI green
+    - public-safety remains required and green
+    - future qwork bugfix must evaluate queue state against the target checkout path, not caller cwd
+    - future qwork bugfix must report helper execution/read failure as `queue-helper-failed` or `queue-read-failed`, reserve `multiple-ready` for successfully read queues with READY_COUNT greater than 1, and reserve `queue-lane-mismatch` for successfully read queues whose READY lane differs from the requested lane
+  - **Must never happen:**
+    - this reprioritization is presented as implementing qwork cwd bugfix
+    - the backup manifest/status lane is silently skipped or discarded
+    - qwork uses hard reset, stash, untracked deletion, force push, queue mutation, or GitHub mutation as dirty-state recovery
+    - backup or restore operations are run
+    - qsl-backup, backup source lists, backup status, or backup plans are mutated
+    - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
+    - public readiness, public technical paper, backup-complete, restore-proof, off-host-backup, privacy, or assurance overclaims are introduced
+  - **References:** NA-0410; NA-0411; D-0802; D-0803; D-0804; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0410_qwork_cwd_queue_bugfix_reprioritization_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

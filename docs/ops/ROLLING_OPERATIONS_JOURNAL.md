@@ -8,6 +8,90 @@ Last-Updated: 2026-06-03
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-03-244 -- Reprioritize NA-0410 for qwork CWD-Independent Queue Verification Bugfix, Then Restore Backup Manifest Lane
+- Begin timestamp (America/Chicago): 2026-06-03T15:34:30-05:00
+- Begin timestamp (UTC): 2026-06-03T20:34:30Z
+- Host clock at startup (America/Chicago): 2026-06-03T15:06:57-05:00
+- Host clock at startup (UTC): 2026-06-03T20:06:57+00:00
+- End timestamp (America/Chicago): pending final response
+- End timestamp (UTC): pending final response
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0410/qsl-protocol`
+- qsl-protocol Packet A branch: `na-0410-qwork-cwd-queue-bugfix-reprioritization`
+- qsl-protocol HEAD at hard start: `9fef1a934d4e`
+- qsl-protocol origin/main at hard start: `9fef1a934d4e`
+- qsl-protocol mirror/main at hard start: pending read-only refresh
+- qsl-server main/origin/mirror: pending read-only boundary audit
+- qsl-attachments main/origin/mirror: pending read-only boundary audit
+
+## READY Proof
+
+- Origin/main READY_COUNT: `1`
+- Origin/main READY item: `NA-0410 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan`
+- Origin/main decisions: D-0802 once, D-0803 once, D-0804 once, D-0805 absent, D-0806 absent, D-0807 absent, duplicate count zero
+- Startup public-safety on `origin/main` `9fef1a934d4e`: required and completed success.
+
+## Worktree / Branch / PR
+
+- Start state: clean `main...origin/main`; no tracked diff; no untracked files.
+- Packet A branch: `na-0410-qwork-cwd-queue-bugfix-reprioritization`
+- Packet A PR: #1086
+- Packet A initial head SHA: `4e16688f3c6b`
+- Packet A merge: pending
+- Packet C branch/PR/merge: pending Packet A merge and post-merge public-safety
+- Packet D branch/PR/merge: pending Packet C merge and post-merge public-safety
+
+## qwork CWD Bug Reproduction
+
+- Reproduction command from `/home/victor`: `qwork NA-0410 qsl-protocol`
+- Result before fix: `startup_result=FAIL`, `reason=queue-lane-mismatch`, `path=/srv/qbuild/work/NA-0410/qsl-protocol`, exit status `2`.
+- Classification: valid bug reproduction. The target checkout queue was READY NA-0410, so the non-checkout cwd failure must not be classified as a real lane mismatch.
+- Root cause recorded for Packet A: cwd-dependent queue helper invocation; qwork runs the queue helper without pinning it to the target checkout or passing the target `NEXT_ACTIONS.md`.
+
+## qsl-backup Boundary
+
+- `/usr/local/sbin/qsl-backup` SHA-256: `e9ecff3d22eda21ceb0e889e4dd5d6f4e270e09349c77a1f4872bfc0052f6232`.
+- Codex ops source occurrence count in qsl-backup: `1`.
+- Codex has not run backup or restore.
+- Packet A does not mutate qwork, qsl-backup, backup source lists, backup status, or backup plans.
+
+## Failures / Recoveries
+
+- None yet.
+
+## Validation / CI Notes
+
+- Hard-start clean worktree proof passed.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- qsl-backup unchanged proof passed.
+- Packet A queue helper: READY_COUNT `1`; READY `NA-0410 -- QSL Local Ops qwork CWD-Independent Queue Verification Bugfix`; NA-0411 preserved as BACKLOG.
+- Packet A decision helper: latest D-0805; D-0802 once; D-0803 once; D-0804 once; D-0805 once; D-0806 absent; D-0807 absent; duplicate count zero.
+- Packet A changed paths are exactly the five allowed governance/testplan paths; forbidden count `0`.
+- `git diff --check`: passed.
+- Link-check: `TOTAL_MISSING 0`.
+- Added-line leak scan: `SECRET_FINDING_COUNT 0`.
+- `cargo fmt --check`: passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
+- `python3 formal/run_model_checks.py`: passed.
+- Packet A PR #1086 opened; PR body preflight reports missing field count `0` and prohibited phrase count `0`.
+- Packet A required checks, merge, and post-merge public-safety remain pending.
+
+## Disk Watermark
+
+- `/srv/qbuild`: total `468G`, used `177G`, available `267G`, used `40%`.
+
+## Next-Watch Items
+
+- Complete Packet A validation, PR creation, required-check polling, merge, and post-merge public-safety proof.
+- After Packet A merge, implement qwork cwd-independent queue verification only in `/srv/qbuild/tools/qwork.sh` unless wrapper compatibility proves necessary.
+- Preserve NA-0411 backup manifest/status lane without implementing it.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-03-237 -- Recover D236 Director State Index Fixture Output Scope Conflict, Complete NA-0407 Evidence, Optional Closeout to NA-0408
 - Begin timestamp (America/Chicago): 2026-06-03T10:34:30-05:00
 - Begin timestamp (UTC): 2026-06-03T15:34:30Z

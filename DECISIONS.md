@@ -19104,3 +19104,50 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - closeout treats same-host continuity as disaster recovery
     - closeout expands prohibited public-readiness, privacy-readiness, external-review, backup/restore/key, or assurance claims
   - **References:** NA-0406; NA-0407; D-0795; qsl-protocol PR #1076; PR #1076 head `0d5a5026b9e`; PR #1076 merge `213afc580989`; post-merge public-safety success; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0406_closeout_restore_na0407_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0797
+  - **Title:** NA-0407 codex ops backup source list implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-06-03
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** QSL validated the human-operator-applied qsl-backup source-list update that includes Codex ops, without Codex running sudo, backup, or restore, and selected NA-0408 for manifest/status verification.
+  - **Source-list result:** `/usr/local/sbin/qsl-backup` now includes `/home/victor/work/qsl/codex/ops` exactly once, with checksum prefix `e9ecff3d22ed`; the pre-operator checksum prefix was `c82ee76fa357`.
+  - **Recovery result:** D236 preserved the D234 dirty qsl-protocol draft diff and untracked testplan under the approved recovery proof root, moved the D234 stray cargo metadata proof artifact out of `/tmp` into that proof root, and reset qsl-protocol to clean `origin/main` before recreating this patch. D236 then stopped on the Director State Index fixture output scope conflict; D237 recovered by authorizing the helper-required temp-output path `/srv/qbuild/tmp/NA0403_director_state_index_NA0407_d237_fixture_check` for validation only.
+  - **Backup-impact classification:** SOURCE_LIST_UPDATED_NOT_MANIFEST_PROVEN; no backup status or backup plan update is authorized by NA-0407, and future manifest/status verification is required before any manifest-backed coverage statement.
+  - **Selected successor:** NA-0408 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan
+  - **Protected:**
+    - no backup execution
+    - no restore execution
+    - no sudo, apply, or rollback execution by Codex
+    - no qsl-backup mutation by Codex
+    - no durable Director State Index file
+    - no helper mutation
+    - no fixture mutation
+    - no runtime change
+    - no protocol change
+    - no crypto change
+    - no dependency change
+    - no workflow change
+    - no public-doc/website/README/START_HERE change
+    - no public claim expansion
+    - no public technical paper
+    - no response archive mutation by this PR
+    - no local history mutation by Codex
+    - no secret handling
+  - **Must never happen:**
+    - same-host continuity is called disaster recovery
+    - source-list inclusion is treated as manifest-backed coverage before manifest evidence
+    - durable index is written before manifest/status proof and separate exact authorization
+    - backup/restore operation is run without exact authorization
+    - no public-readiness, off-host-backup, restore-proof, backup-completion, or source-of-truth index claims are introduced
+  - **Required behavior:**
+    - future successor must verify manifest/status evidence before any backup status update or durable index storage work
+    - future durable index must remain advisory and stale-rejected
+    - same-host caveat must remain explicit
+    - live repo/GitHub/CI remains authoritative over any generated local-ops evidence
+  - **Rejected alternatives:**
+    - selecting `NA-0408 -- QSL Codex Ops Backup Coverage Source-List Implementation Conflict Resolution` after source-list validation succeeded
+    - selecting `NA-0408 -- QSL Codex Ops Backup Coverage Source-List Rollback / Retry Plan` when rollback was not required
+    - updating backup status or backup plan before future manifest/status evidence
+    - writing durable Director State Index output during NA-0407
+  - **References:** NA-0407; NA-0406; D-0795; D-0796; D233 operator packet `/srv/qbuild/tmp/NA0407_qsl_backup_root_action_20260602T232945-0500`; D234 response `/home/victor/work/qsl/codex/responses/NA0407_20260603T091100-0500_D234.md`; D236 recovery proof root `/srv/qbuild/tmp/NA0407_recover_d234_and_complete_20260603T093523-0500`; D237 proof root `/srv/qbuild/tmp/NA0407_complete_after_d236_20260603T100508-0500`; D237 fixture output `/srv/qbuild/tmp/NA0403_director_state_index_NA0407_d237_fixture_check`; `docs/governance/evidence/NA-0407_qsl_codex_ops_backup_source_list_implementation_harness.md`; `tests/NA-0407_qsl_codex_ops_backup_source_list_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

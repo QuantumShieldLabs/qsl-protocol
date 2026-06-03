@@ -19716,3 +19716,50 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - durable Director State Index output is created
     - qsl-backup, backup source lists, systemd, timers, fstab, qwork helpers, runtime, workflows, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
   - **References:** NA-0411; NA-0412; D-0797; D-0798; D-0805; D-0806; D-0807; proof root `/srv/qbuild/tmp/NA0411_codex_ops_manifest_status_20260603T160508-0500`; `docs/governance/evidence/NA-0411_qsl_codex_ops_backup_coverage_manifest_verification_status_update_plan.md`; `tests/NA-0411_qsl_codex_ops_backup_coverage_manifest_verification_status_update_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0809
+  - **Title:** NA-0411 closeout and NA-0412 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-03
+  - **Goals:** G4
+  - **Decision:** NA-0411 is closed after verifying Codex ops same-host manifest presence and selecting NA-0412 as the backup status / plan update authorization plan. NA-0412 is restored as the sole READY successor and is not implemented by this closeout.
+  - **Classification:** CODEX_OPS_MANIFEST_PRESENT_SAME_HOST
+  - **Closeout result:** qsl-protocol PR #1089 merged the NA-0411 evidence as `709543586bdf`. D-0808 accepted the same-host manifest classification, and this closeout records only the queue restoration to NA-0412.
+  - **Restored successor:** NA-0412 -- QSL Codex Ops Backup Status / Plan Update Authorization Plan
+  - **Protected:**
+    - same-host continuity remains a mandatory caveat
+    - latest scheduled backup log code 23 caveat remains mandatory
+    - no backup execution
+    - no restore execution
+    - no qsl-backup mutation
+    - no backup source-list mutation
+    - no backup status mutation
+    - no backup plan mutation
+    - no durable Director State Index output
+    - no qwork, qstart, qresume, or qshell mutation
+    - no runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments mutation
+    - no NA-0412 implementation
+    - no public-readiness or disaster-recovery claim
+    - no off-host backup, restore-proof, backup-complete, production-readiness, public-internet-readiness, external-review, public technical paper, metadata-free, anonymity, untraceability, bug-free, vulnerability-free, or perfect-crypto claim
+    - no secret handling
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0412 backup status / plan update authorization plan
+    - NA-0411 DONE
+    - D-0808 once
+    - D-0809 once
+    - D-0810 absent until NA-0412 live work
+    - the current manifest evidence from NA-0411 is cited accurately
+    - the log code 23 caveat is preserved
+    - same-host continuity is not described as disaster recovery
+    - required checks green before merge
+    - public-safety green before merge and after merge
+  - **Must never happen:**
+    - this closeout implements NA-0412
+    - a backup or restore operation is run
+    - qsl-backup, backup source lists, systemd, timers, fstab, backup status, or backup plan files are mutated
+    - the latest log code 23 caveat is hidden or converted into a backup-complete claim
+    - same-host continuity is described as disaster recovery, off-host backup, restore proof, backup completion, public readiness, or external review evidence
+    - durable Director State Index output is created
+    - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
+  - **References:** NA-0411; NA-0412; D-0808; qsl-protocol PR #1089; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0411_qsl_codex_ops_backup_coverage_manifest_verification_status_update_testplan.md`; `tests/NA-0411_closeout_restore_na0412_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

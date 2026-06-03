@@ -19674,3 +19674,45 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - closeout mutates runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths
     - closeout expands public readiness, public technical paper, backup-complete, restore-proof, off-host-backup, privacy, or assurance claims
   - **References:** NA-0410; NA-0411; D-0805; D-0806; qsl-protocol PR #1086; qsl-protocol PR #1087; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0410_closeout_restore_na0411_backup_manifest_status_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0808
+  - **Title:** NA-0411 codex ops backup manifest verification status update plan
+  - **Status:** Accepted
+  - **Date:** 2026-06-03
+  - **Goals:** G4
+  - **Decision:** NA-0411 records read-only scheduled same-host backup manifest/status evidence after the NA-0407 operator-applied qsl-backup source-list update. The latest post-source-list scheduled manifest includes Codex ops in the qsl-backup daily source list, so the classification is `CODEX_OPS_MANIFEST_PRESENT_SAME_HOST`.
+  - **Classification:** CODEX_OPS_MANIFEST_PRESENT_SAME_HOST
+  - **Evidence result:** qsl-backup checksum prefix remained `e9ecff3d22ed`, syntax check passed, and exact Codex ops source-list count remained `1`. The latest scheduled manifest inspected was `daily-20260603T023518-0500.manifest.txt`, created after the qsl-backup source-list change, and it includes Codex ops exactly once. The latest scheduled log does not enumerate every source path and includes an rsync code 23 caveat from a permission-denied temp rollback subtree, so no backup-complete, restore-proof, off-host, or disaster-recovery claim is made.
+  - **Backup status/plan result:** Local backup status and plan files were inspected read-only and are stale relative to the live source-list and manifest evidence. They were not mutated by NA-0411; a future exact-scope NA-0412 may authorize local status/plan update work.
+  - **Selected successor:** NA-0412 -- QSL Codex Ops Backup Status / Plan Update Authorization Plan
+  - **Protected:**
+    - no backup execution
+    - no restore execution
+    - no qsl-backup mutation
+    - no backup source-list mutation
+    - no backup status update
+    - no backup plan update
+    - no systemd, timer, or fstab mutation
+    - no durable Director State Index output
+    - no qwork, qstart, qresume, or qshell mutation
+    - no runtime, protocol, crypto, dependency, workflow, public docs, website, README, or START_HERE mutation
+    - no qsl-server or qsl-attachments mutation
+    - no public readiness, disaster recovery, off-host backup, restore-proof, backup-complete, external-review, or public technical paper claim
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0411 remains pending optional closeout
+    - D-0808 exists once
+    - D-0809 absent until optional closeout
+    - qsl-backup source-list includes Codex ops exactly once
+    - scheduled post-source-list manifest includes Codex ops
+    - same-host continuity caveat remains explicit
+    - local backup status and plan files remain read-only in NA-0411
+    - required CI green
+    - public-safety remains required and green
+  - **Must never happen:**
+    - NA-0411 is presented as backup execution, restore execution, off-host backup completion, disaster recovery, production readiness, public-internet readiness, external review, or public technical paper work
+    - local backup status or backup plan files are mutated by NA-0411
+    - the latest log rsync code 23 caveat is hidden or converted into a backup-complete claim
+    - durable Director State Index output is created
+    - qsl-backup, backup source lists, systemd, timers, fstab, qwork helpers, runtime, workflows, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
+  - **References:** NA-0411; NA-0412; D-0797; D-0798; D-0805; D-0806; D-0807; proof root `/srv/qbuild/tmp/NA0411_codex_ops_manifest_status_20260603T160508-0500`; `docs/governance/evidence/NA-0411_qsl_codex_ops_backup_coverage_manifest_verification_status_update_plan.md`; `tests/NA-0411_qsl_codex_ops_backup_coverage_manifest_verification_status_update_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

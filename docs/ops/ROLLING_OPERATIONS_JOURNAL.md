@@ -20,8 +20,10 @@ Last-Updated: 2026-06-03
 
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0410/qsl-protocol`
 - qsl-protocol Packet A branch: `na-0410-qwork-cwd-queue-bugfix-reprioritization`
+- qsl-protocol Packet C branch: `na-0410-qwork-cwd-queue-bugfix`
 - qsl-protocol HEAD at hard start: `9fef1a934d4e`
 - qsl-protocol origin/main at hard start: `9fef1a934d4e`
+- qsl-protocol origin/main after Packet A merge: `2905ca4203ce`
 - qsl-protocol mirror/main at hard start: pending read-only refresh
 - qsl-server main/origin/mirror: pending read-only boundary audit
 - qsl-attachments main/origin/mirror: pending read-only boundary audit
@@ -39,8 +41,11 @@ Last-Updated: 2026-06-03
 - Packet A branch: `na-0410-qwork-cwd-queue-bugfix-reprioritization`
 - Packet A PR: #1086
 - Packet A initial head SHA: `4e16688f3c6b`
-- Packet A merge: pending
-- Packet C branch/PR/merge: pending Packet A merge and post-merge public-safety
+- Packet A final head SHA: `b83e1cec5e3a`
+- Packet A merge: `2905ca4203ce`
+- Packet A post-merge public-safety: success.
+- Packet C branch: `na-0410-qwork-cwd-queue-bugfix`
+- Packet C PR/merge: pending
 - Packet D branch/PR/merge: pending Packet C merge and post-merge public-safety
 
 ## qwork CWD Bug Reproduction
@@ -50,16 +55,33 @@ Last-Updated: 2026-06-03
 - Classification: valid bug reproduction. The target checkout queue was READY NA-0410, so the non-checkout cwd failure must not be classified as a real lane mismatch.
 - Root cause recorded for Packet A: cwd-dependent queue helper invocation; qwork runs the queue helper without pinning it to the target checkout or passing the target `NEXT_ACTIONS.md`.
 
+## Packet B qwork Bugfix
+
+- Proof root: `/srv/qbuild/tmp/NA0410_qwork_cwd_queue_bugfix_20260603T151931-0500`.
+- Rollback copies: `rollback/qwork.sh.pre`; `rollback/qshell.sh.pre`.
+- qwork checksum prefix: `1f648cafba35` before, `e8f6dc0a5ed4` after.
+- qshell checksum prefix: `6ad0dfff5fa4` before and after.
+- Implemented only `/srv/qbuild/tools/qwork.sh`.
+- qwork now invokes `queue --file "$path/NEXT_ACTIONS.md"` and classifies target queue helper/read failures before lane comparison.
+- READY qwork success passed from `/home/victor`, `/tmp`, an unrelated temp cwd, and the qsl-protocol checkout.
+- Bare qwork success passed from `/home/victor`, `/tmp`, and the unrelated temp cwd.
+- Wrong-lane `NA-0411` returned `queue-lane-mismatch`.
+- Fixture tests returned `queue-helper-failed`, `queue-read-failed`, and `multiple-ready`.
+- Interactive set-e qshell survival, automation nonzero, and qstart/qresume compatibility passed.
+
 ## qsl-backup Boundary
 
-- `/usr/local/sbin/qsl-backup` SHA-256: `e9ecff3d22eda21ceb0e889e4dd5d6f4e270e09349c77a1f4872bfc0052f6232`.
+- `/usr/local/sbin/qsl-backup` checksum prefix remained `e9ecff3d22ed`.
 - Codex ops source occurrence count in qsl-backup: `1`.
 - Codex has not run backup or restore.
-- Packet A does not mutate qwork, qsl-backup, backup source lists, backup status, or backup plans.
+- Packet A/C do not mutate qsl-backup, backup source lists, backup status, or backup plans.
 
 ## Failures / Recoveries
 
-- None yet.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py checks-summary --pr 1086`. Classification: recoverable in-progress CI state because all completed checks were green and CodeQL was still queued. Corrective action: bounded REST polling for PR #1086 checks. Final result: all check-runs attached and green.
+- Failing condition: post-merge public-safety initially missing on Packet A merge `2905ca4203ce`. Classification: recoverable delayed CI attachment because other merge-SHA checks were present and non-failing. Corrective action: bounded REST polling for public-safety on the merge SHA. Final result: public-safety completed success.
+- Failing commands: initial parallel qwork cwd success tests from `/tmp`, unrelated temp cwd, and checkout. Classification: recoverable test-shape error because qwork correctly enforces a per-lane lock and the parallel invocations collided with `lane-lock-held`. Corrective action: reran the cwd success tests sequentially. Final result: all cwd success tests passed.
+- Failing command: Packet C branch-local `/srv/qbuild/tools/qwork.sh NA-0410 qsl-protocol` smoke. Classification: recoverable validation-shape error because qwork correctly rejects non-main qsl-protocol worktrees and Packet C was on branch `na-0410-qwork-cwd-queue-bugfix`. Corrective action: kept the Packet B main-branch qwork proof as the implementation evidence and will rerun qwork after Packet C merges back to main. Final result: no qwork behavior change required.
 
 ## Validation / CI Notes
 
@@ -78,7 +100,28 @@ Last-Updated: 2026-06-03
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
 - `python3 formal/run_model_checks.py`: passed.
 - Packet A PR #1086 opened; PR body preflight reports missing field count `0` and prohibited phrase count `0`.
-- Packet A required checks, merge, and post-merge public-safety remain pending.
+- Packet A PR #1086 required checks: attached and green after bounded polling.
+- Packet A PR #1086 merged at `2905ca4203ce`; post-merge public-safety completed success.
+- Packet B `bash -n /srv/qbuild/tools/qwork.sh /srv/qbuild/tools/qshell.sh`: passed.
+- Packet B qwork cwd-independent success, wrong-lane, helper/read failure, multiple-ready, qshell set-e survival, automation nonzero, qstart/qresume compatibility, forbidden-command scan, qsl-backup non-mutation, and qsl-protocol clean-state checks passed.
+- Packet C queue helper: READY_COUNT `1`; READY `NA-0410 -- QSL Local Ops qwork CWD-Independent Queue Verification Bugfix`; NA-0411 preserved as BACKLOG.
+- Packet C decision helper: latest D-0806; D-0805 once; D-0806 once; D-0807 absent; duplicate count zero.
+- Packet C changed paths are exactly the five allowed evidence/governance/testplan paths; forbidden count `0`.
+- Packet C evidence doc is in an ignored evidence directory and must be force-added before commit.
+- Packet C `git diff --check`: passed.
+- Packet C link-check: `TOTAL_MISSING 0`.
+- Packet C added-line leak scan: `SECRET_FINDING_COUNT 0`.
+- Packet C added-line long-hex scan: zero new matches.
+- Packet C `cargo audit --deny warnings`: passed.
+- Packet C `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- Packet C `cargo fmt --check`: passed.
+- Packet C `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
+- Packet C `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
+- Packet C `python3 formal/run_model_checks.py`: passed.
+- Packet C `cargo +stable build -p qshield-cli --locked`: passed.
+- Packet C `cargo +stable test -p qshield-cli --locked -- --test-threads=1`: passed.
+- Packet C qsl-server/qsl-attachments boundary proof: no sibling worktrees exist under `/srv/qbuild/work/NA-0410`.
+- Packet C PR creation, required checks, merge, and post-merge public-safety remain pending.
 
 ## Disk Watermark
 
@@ -87,7 +130,8 @@ Last-Updated: 2026-06-03
 ## Next-Watch Items
 
 - Complete Packet A validation, PR creation, required-check polling, merge, and post-merge public-safety proof.
-- After Packet A merge, implement qwork cwd-independent queue verification only in `/srv/qbuild/tools/qwork.sh` unless wrapper compatibility proves necessary.
+- Complete Packet C validation, PR creation, required-check polling, merge, and post-merge public-safety proof.
+- After Packet C merge, run optional closeout to restore NA-0411 if post-merge public-safety is green.
 - Preserve NA-0411 backup manifest/status lane without implementing it.
 
 # Rolling Operations Journal Entry

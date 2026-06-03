@@ -21,9 +21,11 @@ Last-Updated: 2026-06-03
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0410/qsl-protocol`
 - qsl-protocol Packet A branch: `na-0410-qwork-cwd-queue-bugfix-reprioritization`
 - qsl-protocol Packet C branch: `na-0410-qwork-cwd-queue-bugfix`
+- qsl-protocol Packet D branch: `na-0410-closeout-restore-na0411`
 - qsl-protocol HEAD at hard start: `9fef1a934d4e`
 - qsl-protocol origin/main at hard start: `9fef1a934d4e`
 - qsl-protocol origin/main after Packet A merge: `2905ca4203ce`
+- qsl-protocol origin/main after Packet C merge: `1e24888fa116`
 - qsl-protocol mirror/main at hard start: pending read-only refresh
 - qsl-server main/origin/mirror: pending read-only boundary audit
 - qsl-attachments main/origin/mirror: pending read-only boundary audit
@@ -47,8 +49,11 @@ Last-Updated: 2026-06-03
 - Packet C branch: `na-0410-qwork-cwd-queue-bugfix`
 - Packet C PR: #1087
 - Packet C initial head SHA: `eb4be9c12b54`
-- Packet C merge: pending
-- Packet D branch/PR/merge: pending Packet C merge and post-merge public-safety
+- Packet C final head SHA: `51de37e97858`
+- Packet C merge: `1e24888fa116`
+- Packet C post-merge public-safety: success.
+- Packet D branch: `na-0410-closeout-restore-na0411`
+- Packet D PR/merge: pending
 
 ## qwork CWD Bug Reproduction
 
@@ -123,8 +128,25 @@ Last-Updated: 2026-06-03
 - Packet C `cargo +stable build -p qshield-cli --locked`: passed.
 - Packet C `cargo +stable test -p qshield-cli --locked -- --test-threads=1`: passed.
 - Packet C qsl-server/qsl-attachments boundary proof: no sibling worktrees exist under `/srv/qbuild/work/NA-0410`.
-- Packet C PR #1087 opened.
-- Packet C required checks, merge, and post-merge public-safety remain pending.
+- Packet C PR #1087 opened; final head `51de37e97858`.
+- Packet C PR #1087 required checks: attached and green after bounded polling.
+- Packet C PR #1087 merged at `1e24888fa116`; post-merge public-safety completed success.
+- Post-Packet-C main qwork smoke passed on `1e24888fa116` with READY NA-0410.
+- Packet D closeout patch in progress; local validation, PR creation, required checks, merge, and post-merge public-safety remain pending.
+- Packet D queue helper: READY_COUNT `1`; READY `NA-0411 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan`; NA-0410 DONE.
+- Packet D decision helper: latest D-0807; D-0805 once; D-0806 once; D-0807 once; duplicate count zero.
+- Packet D changed paths are exactly the five allowed governance/testplan paths; forbidden count `0`.
+- Packet D `git diff --check`: passed.
+- Packet D link-check: `TOTAL_MISSING 0`.
+- Packet D added-line leak scan: `SECRET_FINDING_COUNT 0`.
+- Packet D `cargo audit --deny warnings`: passed.
+- Packet D `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- Packet D `cargo fmt --check`: passed.
+- Packet D `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
+- Packet D `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
+- Packet D `python3 formal/run_model_checks.py`: passed.
+- Packet D qsl-backup non-mutation proof passed with source inclusion count `1`.
+- Packet D PR creation, required checks, merge, and post-merge public-safety remain pending.
 
 ## Disk Watermark
 
@@ -133,8 +155,7 @@ Last-Updated: 2026-06-03
 ## Next-Watch Items
 
 - Complete Packet A validation, PR creation, required-check polling, merge, and post-merge public-safety proof.
-- Complete Packet C validation, PR creation, required-check polling, merge, and post-merge public-safety proof.
-- After Packet C merge, run optional closeout to restore NA-0411 if post-merge public-safety is green.
+- Complete Packet D validation, PR creation, required-check polling, merge, and post-merge public-safety proof.
 - Preserve NA-0411 backup manifest/status lane without implementing it.
 
 # Rolling Operations Journal Entry

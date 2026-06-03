@@ -19622,3 +19622,55 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
     - public readiness, public technical paper, backup-complete, restore-proof, off-host-backup, privacy, or assurance overclaims are introduced
   - **References:** NA-0410; NA-0411; D-0805; `/srv/qbuild/tools/qwork.sh`; `/srv/qbuild/tools/qshell.sh`; `docs/governance/evidence/NA-0410_qsl_local_ops_qwork_cwd_queue_bugfix.md`; `tests/NA-0410_qsl_local_ops_qwork_cwd_queue_bugfix_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0807
+  - **Title:** NA-0410 closeout and NA-0411 backup manifest status restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-03
+  - **Goals:** G4
+  - **Decision:** NA-0410 is closed after the qwork cwd-independent queue verification reroute and implementation evidence merged with required checks and post-merge public-safety green. The preserved backup manifest/status lane is restored as the sole READY successor, `NA-0411 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan`.
+  - **Closeout result:** Packet A PR #1086 merged at `2905ca4203ce` from head `b83e1cec5e3a`; Packet C PR #1087 merged at `1e24888fa116` from head `51de37e97858`; post-merge public-safety completed success for both merge commits.
+  - **Restored successor:** NA-0411 -- QSL Codex Ops Backup Coverage Manifest Verification / Status Update Plan
+  - **Protected:**
+    - no NA-0411 implementation is authorized by this closeout
+    - no qsl-protocol runtime implementation
+    - no protocol implementation
+    - no crypto implementation
+    - no dependency changes
+    - no Cargo.toml/Cargo.lock changes
+    - no workflow mutation
+    - no backup execution
+    - no restore execution
+    - no qsl-backup mutation
+    - no backup source-list mutation
+    - no backup status update
+    - no backup plan update
+    - no durable Director State Index file
+    - no public-doc/website/README/START_HERE change
+    - no public claim expansion
+    - no public technical paper
+    - no response archive mutation by this PR
+    - no local history mutation by Codex
+    - no qsl-server mutation
+    - no qsl-attachments mutation
+    - no secret handling
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0411 backup manifest/status lane
+    - NA-0410 DONE
+    - D-0805 once
+    - D-0806 once
+    - D-0807 once
+    - required CI green
+    - public-safety remains required and green
+    - qwork cwd-independent queue verification remains proven on refreshed main
+    - qshell tmux/set-e fail-closed safety remains proven
+    - same-host continuity remains caveated
+  - **Must never happen:**
+    - closeout is presented as implementing NA-0411
+    - closeout runs backup or restore operations
+    - closeout mutates qsl-backup, backup source lists, backup status, or backup plans
+    - closeout creates durable Director State Index output
+    - closeout mutates runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths
+    - closeout expands public readiness, public technical paper, backup-complete, restore-proof, off-host-backup, privacy, or assurance claims
+  - **References:** NA-0410; NA-0411; D-0805; D-0806; qsl-protocol PR #1086; qsl-protocol PR #1087; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0410_closeout_restore_na0411_backup_manifest_status_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

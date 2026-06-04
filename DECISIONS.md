@@ -19811,3 +19811,57 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - same-host continuity is described as disaster recovery, off-host backup, restore proof, backup completion, public readiness, or external review evidence
     - public-readiness, backup-complete, restore-proof, off-host-backup, vulnerability-free, bug-free, or perfect-crypto claims are introduced
   - **References:** NA-0412; NA-0413; D-0808; D-0809; qsl-protocol PR #1090; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0412_qwork_startup_proof_file_reprioritization_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0811
+  - **Title:** NA-0412 qwork startup proof file handoff implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-06-04
+  - **Goals:** G4
+  - **Decision:** qwork now writes stable lane workspace startup proof files on successful startup so future non-qwork directives can read a Codex-readable proof file and verify live repo/queue state directly without requiring operator-pasted qwork output.
+  - **Implementation result:** `/srv/qbuild/tools/qwork.sh` writes `/srv/qbuild/work/<lane>/.qwork/startup.<repo>.kv` and `/srv/qbuild/work/<lane>/.qwork/startup.<repo>.json` atomically on success while preserving the existing `/srv/qbuild/logs/<lane>/startup.<repo>.json` proof. `/srv/qbuild/tools/qshell.sh` was inspected and did not require mutation.
+  - **Proof result:** For NA-0412, qwork from both `/tmp` and the repo checkout wrote proof files under `/srv/qbuild/work/NA-0412/.qwork/`. The KV, workspace JSON, and existing log JSON contained all required fields and matched key values. The qsl-protocol worktree remained tracked-clean and untracked-clean, proving proof files were not written inside the repo.
+  - **Future directive rule:** For non-qwork directives, the operator may run qwork once; Codex must read `/srv/qbuild/work/<NA>/.qwork/startup.qsl-protocol.kv` plus direct repo checks; Codex must not rerun qwork unless the directive is specifically a qwork test/fix lane; and Codex must stop if the proof file is stale or disagrees with live repo/queue checks.
+  - **Validation summary:** Future-directive simulation read the KV proof, verified `startup_result=OK`, changed directory to the proof `cd` path, ran queue/decision helpers directly, matched live READY state to the proof, and completed without invoking qwork. qshell invalid-lane `set -e` smoke printed `shell-survived`; wrong-lane qwork returned nonzero with `queue-lane-mismatch`; qstart and qresume compatibility smokes passed. qsl-backup checksum prefix remained `e9ecff3d22ed`, and no backup or restore ran.
+  - **Selected successor remains:** NA-0413 -- QSL Codex Ops Backup Status / Plan Update Authorization Plan
+  - **Protected:**
+    - no qshell mutation was required
+    - no qsl-protocol runtime implementation
+    - no protocol implementation
+    - no crypto implementation
+    - no dependency changes
+    - no Cargo.toml/Cargo.lock changes
+    - no workflow mutation
+    - no backup execution
+    - no restore execution
+    - no qsl-backup mutation
+    - no backup source-list mutation
+    - no backup status mutation
+    - no backup plan mutation
+    - no systemd, timer, fstab, or backup target mutation
+    - no durable Director State Index output
+    - no public docs, website, README, or START_HERE mutation
+    - no qsl-server or qsl-attachments mutation
+    - no public technical paper work
+    - no secret handling
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0412 remains pending closeout
+    - NA-0413 backup status / plan authorization lane remains preserved but not READY
+    - D-0810 once
+    - D-0811 once
+    - D-0812 absent until closeout
+    - qwork proof files are outside the qsl-protocol worktree
+    - qwork proof generation is idempotent and does not accumulate stale files
+    - future non-qwork directives can verify startup without rerunning qwork
+    - qshell set-e survival, qstart/qresume compatibility, and wrong-lane qwork fail-closed behavior remain preserved
+    - public-safety remains required and green
+  - **Must never happen:**
+    - qwork writes proof files inside `/srv/qbuild/work/<lane>/qsl-protocol/`
+    - qwork hides startup failures or returns success for failed startup
+    - non-qwork directives require operator-pasted qwork output after this lane
+    - this implementation closes NA-0412 or implements NA-0413
+    - backup or restore operations are run
+    - qsl-backup, backup source lists, backup status files, or backup plan files are mutated
+    - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
+    - public-readiness, backup-complete, restore-proof, off-host-backup, vulnerability-free, bug-free, or perfect-crypto claims are introduced
+  - **References:** NA-0412; NA-0413; D-0810; `/srv/qbuild/tools/qwork.sh`; `/srv/qbuild/tools/qshell.sh`; `docs/governance/evidence/NA-0412_qsl_local_ops_qwork_startup_proof_file_handoff.md`; `tests/NA-0412_qsl_local_ops_qwork_startup_proof_file_handoff_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

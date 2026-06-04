@@ -47,7 +47,11 @@ Last-Updated: 2026-06-03
 - Packet A queue transition in draft: promote `NA-0412 -- QSL Local Ops qwork Startup Proof File Handoff Implementation Harness` as sole READY; preserve `NA-0413 -- QSL Codex Ops Backup Status / Plan Update Authorization Plan` as not READY.
 - Packet A decision in draft: D-0810.
 - Packet A PR: qsl-protocol #1091.
-- Packet A merge commit: pending.
+- Packet A head: `42bbc71eb1d`.
+- Packet A merge commit: `23243ea53fba`.
+- Packet C branch: `na-0412-qwork-startup-proof-file-handoff`.
+- Packet C allowed paths: `docs/governance/evidence/NA-0412_qsl_local_ops_qwork_startup_proof_file_handoff.md`; `tests/NA-0412_qsl_local_ops_qwork_startup_proof_file_handoff_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- Packet C decision in draft: D-0811.
 
 ## Backup Boundary Proof
 
@@ -61,6 +65,10 @@ Last-Updated: 2026-06-03
 
 - Failing command: `python3 scripts/ci/qsl_evidence_helper.py goal-lint --base origin/main --head HEAD`. Classification: recoverable command-shape mistake because `qsl_evidence_helper.py` text mentions goal-lint but does not expose a `goal-lint` subcommand. Corrective action: inspected the workflow/helper usage and moved to the actual workflow linter command. Final result: synthetic-event goal-lint passed with `python3 tools/goal_lint.py`.
 - Failing command: `python tools/goal_lint.py`. Classification: recoverable local interpreter invocation issue during the same goal-lint correction because this host has `python3` but no `python` executable, while CI installs `python`. Corrective action: used `python3` with a synthetic pull-request event payload. Final result: `OK: goal compliance checks passed.`
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py checks-summary --repo QuantumShieldLabs/qsl-protocol --ref 42bbc71eb1d44924339fe6e509e24448a5e68726`. Classification: recoverable helper command-shape mistake because `checks-summary` requires `--pr` or `--sha`, not `--ref`. Corrective action: reran with `--sha`. Final result: required context failure count `0`.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py public-safety-status --repo QuantumShieldLabs/qsl-protocol --sha 23243ea53fba59069509fc1f3c3ebc480724c577` immediately after Packet A merge. Classification: recoverable CI attach latency because post-merge checks were still attaching and public-safety was missing, not red. Corrective action: bounded REST polling of the merge commit. Final result: iteration 9/180 reported public-safety `completed:success` and all attached checks green.
+- Failing command: parallel qwork cwd/idempotence smoke that ran `qwork NA-0412 qsl-protocol` from `/tmp` and the repo checkout at the same time. Classification: recoverable test sequencing mistake because qwork correctly rejected the second simultaneous invocation with `reason=lane-lock-held`. Corrective action: reran the repo-checkout qwork smoke serially. Final result: qwork succeeded and rewrote the same stable proof files.
+- Failing command: `git add -N docs/governance/evidence/NA-0412_qsl_local_ops_qwork_startup_proof_file_handoff.md tests/NA-0412_qsl_local_ops_qwork_startup_proof_file_handoff_testplan.md`. Classification: recoverable evidence-path staging issue because `docs/governance/evidence/` is intentionally ignored by default and the evidence file is an allowed Packet C path. Corrective action: force-added only the allowed evidence path with `git add -N -f` and intent-added the testplan normally. Final result: draft changed path set showed exactly the five Packet C allowed paths.
 
 ## Validation / CI Notes
 
@@ -82,7 +90,42 @@ Last-Updated: 2026-06-03
 - `python3 formal/run_model_checks.py`: passed.
 - synthetic-event goal-lint with `python3 tools/goal_lint.py`: passed.
 - Packet A PR body preflight stayed green after PR creation.
-- Protected checks: pending PR #1091.
+- Packet A PR #1091 checks: bounded REST polling completed all green at iteration 6/180; `public-safety` completed success on head `42bbc71eb1d`.
+- Packet A merge: PR #1091 merged at `2026-06-04T01:03:29Z` as `23243ea53fba`.
+- Packet A post-merge public-safety: bounded REST polling completed at iteration 9/180 with `public-safety=completed:success`.
+- Packet B pre-mutation qwork checksum: `e8f6dc0a5ed4`; qshell checksum: `6ad0dfff5fa`.
+- Packet B rollback copies: `/srv/qbuild/tmp/NA0412_qwork_startup_proof_file_handoff_20260603T200730-0500/qwork.sh.rollback` and `qshell.sh.rollback`.
+- Packet B implementation changed `/srv/qbuild/tools/qwork.sh` only; `/srv/qbuild/tools/qshell.sh` remained unchanged.
+- Packet B post-mutation qwork checksum: `438b81623d3a`; qshell checksum remained `6ad0dfff5fa`.
+- `bash -n /srv/qbuild/tools/qwork.sh`: passed.
+- qwork from repo checkout: passed and wrote `/srv/qbuild/work/NA-0412/.qwork/startup.qsl-protocol.kv` plus `/srv/qbuild/work/NA-0412/.qwork/startup.qsl-protocol.json`.
+- qwork from `/tmp`: passed and wrote the same stable proof files.
+- qwork idempotence: after repeated runs, `.qwork` contained exactly two files, `startup.qsl-protocol.kv` and `startup.qsl-protocol.json`.
+- proof field validation: KV, workspace JSON, and existing log JSON contained all required fields; KV and workspace JSON had no required-value mismatches; proof files were not world-writable.
+- future-directive simulation without qwork: passed with `SIM_WITHOUT_QWORK=PASS`.
+- qshell invalid-lane `set -e` smoke: passed and printed `shell-survived`.
+- wrong-lane qwork smoke: `qwork NA-0411 qsl-protocol` returned status `2` with `reason=queue-lane-mismatch`.
+- qstart and qresume compatibility smokes: passed and landed in `/srv/qbuild/work/NA-0412/qsl-protocol`.
+- qsl-protocol worktree after Packet B: clean `main...origin/main`, no tracked diff, no untracked files.
+- qsl-backup checksum remained `e9ecff3d22ed`; Codex ops source inclusion count remained `1`.
+- Packet C queue helper: READY_COUNT `1`; READY NA-0412 qwork proof-file lane; NA-0413 preserved as BACKLOG.
+- Packet C decision helper: latest D-0811; D-0810 once; D-0811 once; D-0812 absent; duplicate count zero.
+- Packet C changed path set in draft: exactly the five allowed Packet C paths.
+- `git diff --check`: passed.
+- helper link-check: `TOTAL_MISSING 0`.
+- helper added-line leak scan: `SECRET_FINDING_COUNT 0`.
+- PR-body preflight: `MISSING_FIELD_COUNT 0`; `PROHIBITED_PHRASE_COUNT 0`.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- `cargo fmt --check`: passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
+- `python3 formal/run_model_checks.py`: passed.
+- `cargo +stable build -p qshield-cli --locked`: passed.
+- `cargo +stable test -p qshield-cli --locked -- --test-threads=1`: passed.
+- future-directive simulation after D-0811: passed with `SIM2_WITHOUT_QWORK=PASS`.
+- Non-fatal warning: parallel cargo validation printed package-cache and artifact-directory lock waiting messages before completing successfully.
+- Protected checks: pending Packet C PR.
 - Retry notes: none yet.
 
 ## Disk Watermark

@@ -8,6 +8,99 @@ Last-Updated: 2026-06-03
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-04-249 -- Execute NA-0413 QSL Codex Ops Backup Status / Plan Update Authorization Plan, Optional Closeout to NA-0414
+- Begin timestamp from directive (America/Chicago): 2026-06-04T01:04:30-05:00
+- Begin timestamp from directive (UTC): 2026-06-04T06:04:30Z
+- Host clock at startup (America/Chicago): 2026-06-03T20:50:28-05:00
+- Host clock at startup (UTC): 2026-06-04T01:50:28+00:00
+- End timestamp (America/Chicago): pending final response
+- End timestamp (UTC): pending final response
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0413/qsl-protocol`
+- qsl-protocol evidence branch: `na-0413-backup-status-plan-update-authorization`
+- qsl-protocol HEAD at startup: `82ebae4dc12c`
+- qsl-protocol main at startup: `82ebae4dc12c`
+- qsl-protocol origin/main at startup: `82ebae4dc12c`
+- qsl-server: not present under this worktree; no mutation
+- qsl-attachments: not present under this worktree; no mutation
+
+## READY Proof
+
+- qwork proof files existed under `/srv/qbuild/work/NA-0413/.qwork/` and were copied to `/srv/qbuild/tmp/NA0413_backup_status_plan_authorization_20260603T205143-0500/qwork/`.
+- qwork proof: `startup_result=OK`, lane `NA-0413`, repo `qsl-protocol`, `head_equals_origin_main=yes`, worktree/index/untracked clean, READY_COUNT `1`, queue top READY `NA-0413`, and requested lane status `READY`.
+- Codex did not run qwork, qstart, or qresume.
+- Live fetch did not advance `origin/main`; live `HEAD` and `origin/main` remained `82ebae4dc12c`, matching qwork proof.
+- PR #1093 verification: MERGED, merge commit `82ebae4dc12c`.
+- Queue helper at start: READY_COUNT `1`; READY `NA-0413 -- QSL Codex Ops Backup Status / Plan Update Authorization Plan`.
+- Decision helper at start: latest D-0812; duplicate count zero.
+- Public-safety on current main: completed success.
+
+## Backup Status / Plan Read-Only Review
+
+- `/home/victor/work/qsl/codex/ops/backup/QSL_BACKUP_STATUS.md`: exists, size `8087`, mode `664`, owner/group `victor/victor`, mtime `2026-05-17 15:39:12.683816083 -0500`.
+- Status findings: stale relative to NA-0411, no latest manifest mention, no rsync code 23 caveat, no explicit Codex ops same-host manifest caveat, older qsl-backup checksum, and daily source-list block omits Codex ops.
+- `/home/victor/work/qsl/codex/QSL_BACKUP_PLAN.md`: exists, size `17510`, mode `664`, owner/group `victor/victor`, mtime `2026-05-17 15:39:26.476121981 -0500`.
+- Plan findings: stale relative to NA-0411, daily scope and verification targets omit Codex ops, and it does not mention the latest manifest or rsync code 23 caveat.
+- NA-0413 did not mutate either local file.
+
+## Manifest / Log / Ops Safety Evidence
+
+- `/usr/local/sbin/qsl-backup` checksum: `e9ecff3d22ed`.
+- Exact Codex ops source inclusion count in qsl-backup: `1`.
+- Latest manifest: `/backup/qsl/manifests/daily-20260603T023518-0500.manifest.txt`; Codex ops path count `1`.
+- Latest log: `/backup/qsl/logs/daily-20260603T023518-0500.log`; rsync code 23 caveat still present; permission-denied count `1`.
+- Codex ops scan: file count `8`, total size `32723`, symlink count `0`, symlink escape count `0`, binary candidate count `0`, secret path finding count `0`, secret content finding count `0`, durable Director State Index path exists `false`.
+
+## Authorization Decision
+
+- Classification: `STATUS_PLAN_UPDATE_IMPLEMENTATION_AUTHORIZED_SAME_HOST_CAVEATED`.
+- Selected successor: `NA-0414 -- QSL Codex Ops Backup Status / Plan Update Implementation Harness`.
+- Candidate future local mutable files: `/home/victor/work/qsl/codex/ops/backup/QSL_BACKUP_STATUS.md` and `/home/victor/work/qsl/codex/QSL_BACKUP_PLAN.md`.
+- Both files should be updated together in the future lane because updating only one would leave inconsistent local operational guidance.
+- Future scope must preserve same-host continuity, latest log rsync code 23 caveat, no-backup/no-restore, no-qsl-backup-mutation, no-durable-index, no-secret, and no-public-overclaim boundaries.
+
+## Failures / Recoveries
+
+- Failing command: `rg -n "public-safety|public_safety|goal-lint|goal_lint|overclaim|classifier|leak|formal|qsc send_commit|send_commit|rustls-webpki|cargo audit" scripts .github Makefile justfile Cargo.toml docs tests -g '!target'`. Classification: recoverable command-shape mistake because `justfile` does not exist. Corrective action: reran discovery with existing paths only. Final result: helper and validation command discovery succeeded.
+
+## Validation Notes
+
+- Hard-start `cargo audit --deny warnings`: passed.
+- Hard-start `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- Draft changed path set: exactly the five allowed NA-0413 qsl-protocol paths.
+- D-0813 in draft records selected successor and candidate future mutable files.
+- `git diff --check`: passed.
+- helper link-check: `TOTAL_MISSING 0`.
+- helper added-line leak scan: `SECRET_FINDING_COUNT 0`.
+- PR-body preflight: `MISSING_FIELD_COUNT 0`; `PROHIBITED_PHRASE_COUNT 0`.
+- Queue helper after draft patch: READY_COUNT `1`; READY NA-0413.
+- Decision helper after draft patch: latest D-0813; duplicate count zero.
+- Custom exact path guard over `git diff --name-only`: changed path count `5`; forbidden changed path count `0`.
+- Added-line overclaim scan: finding count `0`.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- `cargo fmt --check`: passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
+- `python3 formal/run_model_checks.py`: passed.
+- Pending: commit, post-commit helper scope guard, synthetic-event goal-lint, PR creation, required checks, merge, post-merge public-safety, and optional closeout.
+
+## Disk Watermark
+
+- `/srv/qbuild`: total `468G`, used `185G`, available `259G`, used `42%`.
+- `/backup/qsl`: total `916G`, used `26G`, available `882G`, used `3%`.
+
+## Next-Watch Items
+
+- NA-0414 must not start until NA-0413 merges and closeout restores NA-0414 as the sole READY item.
+- NA-0414 must preserve the latest log rsync code 23 caveat and same-host continuity caveat.
+- The future local update may touch only the exact local status/plan files selected by NA-0413 if the NA-0414 directive authorizes them.
+- Off-host coverage, restore/key custody, durable Director State Index output, public paper prerequisites, external review, public claim readiness, and D132 cleanup remain separate residuals.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-04-248 -- Reprioritize NA-0412 for qwork Startup Proof File Handoff, Then Restore Backup Status / Plan Lane
 - Begin timestamp from directive (America/Chicago): 2026-06-04T00:54:30-05:00
 - Begin timestamp from directive (UTC): 2026-06-04T05:54:30Z

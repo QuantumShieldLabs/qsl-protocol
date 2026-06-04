@@ -95,7 +95,12 @@ Last-Updated: 2026-06-04
 - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
 - `python3 formal/run_model_checks.py`: passed.
-- Pending: commit, post-commit scope guard, goal-lint, PR creation, required checks, merge, post-merge public-safety, and optional closeout.
+- Packet J initial commit: `73dc98687536`.
+- Post-commit helper scope guard: changed path count `5`; forbidden count `0`.
+- Synthetic-event goal-lint: passed with base `ebf66f0f3d25` and head `73dc98687536`.
+- Packet J branch pushed to origin.
+- Packet J PR: qsl-protocol #1100.
+- Pending: journal follow-up commit, required checks, merge, post-merge public-safety, and optional closeout.
 
 ## Next-Watch Items
 

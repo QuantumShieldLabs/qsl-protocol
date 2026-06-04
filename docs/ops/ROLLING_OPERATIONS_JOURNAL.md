@@ -46,7 +46,7 @@ Last-Updated: 2026-06-03
 - Packet A allowed paths: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0412_qwork_startup_proof_file_reprioritization_testplan.md`.
 - Packet A queue transition in draft: promote `NA-0412 -- QSL Local Ops qwork Startup Proof File Handoff Implementation Harness` as sole READY; preserve `NA-0413 -- QSL Codex Ops Backup Status / Plan Update Authorization Plan` as not READY.
 - Packet A decision in draft: D-0810.
-- Packet A PR: pending.
+- Packet A PR: qsl-protocol #1091.
 - Packet A merge commit: pending.
 
 ## Backup Boundary Proof
@@ -81,7 +81,8 @@ Last-Updated: 2026-06-03
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
 - `python3 formal/run_model_checks.py`: passed.
 - synthetic-event goal-lint with `python3 tools/goal_lint.py`: passed.
-- Protected checks: pending PR.
+- Packet A PR body preflight stayed green after PR creation.
+- Protected checks: pending PR #1091.
 - Retry notes: none yet.
 
 ## Disk Watermark

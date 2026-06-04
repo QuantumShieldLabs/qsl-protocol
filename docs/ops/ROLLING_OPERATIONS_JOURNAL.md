@@ -52,6 +52,7 @@ Last-Updated: 2026-06-03
 - Packet C branch: `na-0412-qwork-startup-proof-file-handoff`.
 - Packet C allowed paths: `docs/governance/evidence/NA-0412_qsl_local_ops_qwork_startup_proof_file_handoff.md`; `tests/NA-0412_qsl_local_ops_qwork_startup_proof_file_handoff_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
 - Packet C decision in draft: D-0811.
+- Packet C PR: qsl-protocol #1092.
 
 ## Backup Boundary Proof
 

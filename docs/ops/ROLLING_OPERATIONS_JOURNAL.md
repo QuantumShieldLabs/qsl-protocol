@@ -8,6 +8,124 @@ Last-Updated: 2026-06-04
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-04-251 -- Execute NA-0415 QSL Backup Log Code 23 Permission-Denied Temp Rollback Subtree Review Plan, Optional Closeout to NA-0416
+- Begin timestamp from directive (America/Chicago): 2026-06-04T02:04:30-05:00
+- Begin timestamp from directive (UTC): 2026-06-04T07:04:30Z
+- Host clock at startup (America/Chicago): 2026-06-04T05:15:28-05:00
+- Host clock at startup (UTC): 2026-06-04T10:15:28+00:00
+- End timestamp (America/Chicago): pending final response
+- End timestamp (UTC): pending final response
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0415/qsl-protocol`
+- qsl-protocol evidence branch: `na-0415-backup-log-code23-temp-rollback-review`
+- qsl-protocol closeout branch: pending optional closeout
+- qsl-protocol HEAD at startup: `68ab384961c1`
+- qsl-protocol main at startup: `68ab384961c1`
+- qsl-protocol origin/main at startup: `68ab384961c1`
+- qsl-protocol mirror/main at startup: pending final audit
+- qsl-server: not present under this worktree; no mutation
+- qsl-attachments: not present under this worktree; no mutation
+
+## READY Proof
+
+- qwork proof files existed under `/srv/qbuild/work/NA-0415/.qwork/` and were copied to `/srv/qbuild/tmp/NA0415_backup_log_code23_review_20260604T051642-0500/qwork/`.
+- qwork proof: `startup_result=OK`, lane `NA-0415`, repo `qsl-protocol`, `head_equals_origin_main=yes`, worktree/index/untracked clean, READY_COUNT `1`, queue top READY `NA-0415`, and requested lane status `READY`.
+- Codex did not run qwork, qstart, or qresume.
+- Live fetch did not advance `origin/main`; live `HEAD` and `origin/main` remained `68ab384961c1`, matching qwork proof.
+- PR #1097 verification: MERGED, merge commit `68ab384961c1`.
+- Queue helper at start: READY_COUNT `1`; READY `NA-0415 -- QSL Backup Log Code 23 Permission-Denied Temp Rollback Subtree Review Plan`; NA-0414 DONE.
+- Decision helper at start: latest D-0816; duplicate count zero; D-0815 once; D-0816 once; D-0817 absent.
+- Public-safety on current main: completed success.
+
+## Log / Manifest Review
+
+- Latest scheduled log: `/backup/qsl/logs/daily-20260604T023542-0500.log`.
+- Latest scheduled manifest: `/backup/qsl/manifests/daily-20260604T023542-0500.manifest.txt`.
+- The latest pair advanced from NA-0414's 2026-06-03 pair, but the code 23 source stayed the same.
+- Log counts: `rsync error=1`, `code 23=1`, `Permission denied=1`, `NA0407=1`, `rollback=1`, `qsl-backup.preimage=0`, exact rollback directory reference `1`.
+- Manifest Codex ops path count: `1`.
+- Manifest rollback path count: `0`.
+- Classification: `CODE23_SOURCE_CONFIRMED_NA0407_ROLLBACK_SUBTREE`.
+- No other latest-log rsync failure source was found.
+
+## Temp Rollback Subtree Review
+
+- Packet path exists as directory `victor:victor` mode `2755`.
+- Rollback path exists as directory `root:root` mode `2700`.
+- Visible packet entries: `10`.
+- Visible rollback entries: `0`.
+- Packet accessible `du -sb`: `19017` bytes, with rollback permission denied.
+- Rollback `du -sb`: permission denied; content size not proved.
+- Rollback checksum attempt: permission denied; rollback copy checksum not proved without privilege.
+- Readable packet metadata identifies `/usr/local/sbin/qsl-backup` as target and records preimage checksum prefix `c82ee76fa357`.
+- Visible secret-looking top-level packet filename count: `0`.
+- NA-0415 did not run sudo, chmod, chown, delete, move, backup, restore, or rsync.
+
+## Status / Plan Review
+
+- `/home/victor/work/qsl/codex/ops/backup/QSL_BACKUP_STATUS.md` SHA prefix remained `036b608b75c6`; no mutation.
+- `/home/victor/work/qsl/codex/QSL_BACKUP_PLAN.md` SHA prefix remained `bba5e4ebad6a`; no mutation.
+- Both docs still preserve the NA-0414 code 23 caveat and same-host-only boundary.
+- The docs cite the 2026-06-03 pair as reviewed by NA-0414, which remains accurate, but a later refresh may be needed after NA-0416 decides cleanup/remediation authorization.
+
+## Successor Selection
+
+- Selected successor: `NA-0416 -- QSL Backup Log Code 23 Temp Rollback Subtree Cleanup / Permission Remediation Authorization Plan`.
+- Rationale: the source is confirmed, the warning remains active on the latest scheduled log, and rollback evidence preservation must be decided before any path mutation.
+- NA-0415 does not implement NA-0416.
+
+## Failures / Recoveries
+
+- First packet file-count proof command suppressed the permission-denied error summary because it chained the count to `&&` and removed the temp stderr file afterward. Classification: recoverable proof-shape issue. Corrective action: reran with `bash -o pipefail` and stderr files under the NA-0415 proof root. Final result: packet visible count `10`, rollback visible count `0`, rollback permission denied recorded.
+- Nonzero read-only proof command: `find` under the packet path returned status `1` because the rollback directory is not readable by `victor`. Classification: valid permission-boundary evidence. Corrective action: recorded visible count plus stderr and made no permission change. Final result: rollback directory remains unmodified.
+- Nonzero read-only proof command: `du -sb` on the rollback directory returned status `1` because contents are not readable by `victor`. Classification: valid permission-boundary evidence. Corrective action: recorded stat metadata and did not use privilege. Final result: rollback content size remains unproved without privilege.
+- Nonzero read-only proof command: `sha256sum` on the expected rollback preimage path returned permission denied. Classification: valid permission-boundary evidence. Corrective action: relied only on readable packet metadata and did not bypass permissions. Final result: rollback copy checksum remains unproved by NA-0415.
+- Non-fatal warning: `gh run list` showed several scheduled remote/UI workflows failed on the same main SHA. Direct check-run proof showed protected `public-safety` and current main push checks were successful; the scheduled runs are not the required NA-0415 public-safety gate.
+- Failing command: `git add -N docs/governance/evidence/NA-0415_qsl_backup_log_code_23_permission_denied_temp_rollback_subtree_review_plan.md tests/NA-0415_qsl_backup_log_code_23_permission_denied_temp_rollback_subtree_review_testplan.md`. Classification: recoverable staging/proof-shape issue because the evidence directory is ignored and the exact new paths are allowed by NA-0415. Corrective action: reran with `git add -N -f` for the exact allowed new paths. Final result: `git diff --name-only` showed the full five-path allowed set.
+- First added-line overclaim scan was context-free and flagged negative boundary text as positive overclaims. Classification: recoverable proof-shape false positive. Corrective action: reran with context-aware logic and tightened wrapped negative lines so the negating word appears locally. Final result: contextual positive overclaim count `0`.
+
+## Validation Notes
+
+- Hard-start `cargo audit --deny warnings`: passed.
+- Hard-start `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- Draft changed path set: exactly the five allowed NA-0415 qsl-protocol paths.
+- D-0817 in draft records code 23 classification, selected NA-0416 successor, no backup/restore, no qsl-backup mutation, no temp subtree mutation, no status/plan mutation, same-host caveat, and no public overclaim.
+- `git diff --check`: passed.
+- Custom exact changed-path guard: changed path count `5`; forbidden count `0`.
+- Helper link-check: `TOTAL_MISSING 0`.
+- Helper added-line leak scan: `SECRET_FINDING_COUNT 0`.
+- PR-body preflight: `MISSING_FIELD_COUNT 0`; `PROHIBITED_PHRASE_COUNT 0`.
+- Contextual overclaim scan: positive overclaim count `0`.
+- Classifier proof with exact changed paths: `docs_only=true`, `workflow_security=false`, `runtime_critical=false`.
+- Queue helper after draft patch: READY_COUNT `1`; READY NA-0415.
+- Decision helper after draft patch: latest D-0817; duplicate count zero.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- `cargo fmt --check`: passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
+- `python3 formal/run_model_checks.py`: passed.
+- Packet J initial commit: `45a6c2c`.
+- Post-commit helper scope guard: changed path count `5`; forbidden count `0`.
+- Synthetic-event goal-lint: passed with base `68ab384961c1` and head `45a6c2cfde79`.
+- Governance preflight: clean tree, one READY line, exact five-path name-only diff.
+- Pending: PR creation, required checks, merge, post-merge public-safety, optional closeout, final forward audit, and response file.
+
+## Disk Watermark
+
+- `/srv/qbuild`: pending final audit.
+- `/backup/qsl`: pending final audit.
+
+## Next-Watch Items
+
+- NA-0416 should preserve rollback evidence while deciding whether exact-path cleanup or permission remediation may be authorized.
+- Same-host manifest evidence remains local continuity only.
+- Not off-host backup, not restore/key custody, not durable Director State Index output, not public paper prerequisites, not external review, not public claim readiness, and not D132 cleanup; those remain separate residuals.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-04-250 -- Execute NA-0414 QSL Codex Ops Backup Status / Plan Update Implementation Harness, Optional Closeout to NA-0415
 - Begin timestamp from directive (America/Chicago): 2026-06-04T01:34:30-05:00
 - Begin timestamp from directive (UTC): 2026-06-04T06:34:30Z

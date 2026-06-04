@@ -94,6 +94,9 @@ Last-Updated: 2026-06-04
 - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
 - `python3 formal/run_model_checks.py`: passed.
+- Evidence commit: `01fd77ee6161`.
+- Post-commit helper scope guard: changed path count `5`; forbidden count `0`.
+- Synthetic-event goal-lint: passed with base `3bf432f123f1` and head `01fd77ee6161`.
 
 ## Next-Watch Items
 

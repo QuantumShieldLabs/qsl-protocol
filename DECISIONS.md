@@ -19910,3 +19910,49 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
     - public-readiness, backup-complete, restore-proof, off-host-backup, vulnerability-free, bug-free, or perfect-crypto claims are introduced
   - **References:** NA-0412; NA-0413; D-0810; D-0811; qsl-protocol PR #1091; qsl-protocol PR #1092; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0412_closeout_restore_na0413_backup_status_plan_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0813
+  - **Title:** NA-0413 codex ops backup status plan update authorization
+  - **Status:** Accepted
+  - **Date:** 2026-06-04
+  - **Goals:** G4
+  - **Decision:** NA-0413 authorizes a future exact-scope implementation lane to update the local Codex backup status and backup plan documentation after read-only review confirmed both files are stale relative to NA-0411 same-host manifest evidence.
+  - **Classification:** STATUS_PLAN_UPDATE_IMPLEMENTATION_AUTHORIZED_SAME_HOST_CAVEATED
+  - **Selected successor:** NA-0414 -- QSL Codex Ops Backup Status / Plan Update Implementation Harness
+  - **Candidate future mutable files:**
+    - `/home/victor/work/qsl/codex/ops/backup/QSL_BACKUP_STATUS.md`
+    - `/home/victor/work/qsl/codex/QSL_BACKUP_PLAN.md`
+  - **Evidence result:** The NA-0413 qwork proof files were read from `/srv/qbuild/work/NA-0413/.qwork/` and matched live `HEAD` and `origin/main` at `82ebae4dc12c`. PR #1093 was merged at that commit. Queue proof reported READY_COUNT 1 and READY NA-0413; decision proof reported latest D-0812 before this decision and duplicate count zero.
+  - **Backup status / plan result:** The status file and plan file exist but predate the NA-0407 source-list change and NA-0411 manifest proof. The status file omits the Codex ops source in its current source-list block and does not mention the latest manifest or rsync code 23 caveat. The plan file omits Codex ops from daily live continuity scope and verification targets and does not mention the latest manifest or rsync code 23 caveat. Both should be updated together in the future lane.
+  - **Manifest/log result:** The latest scheduled same-host manifest remains `/backup/qsl/manifests/daily-20260603T023518-0500.manifest.txt` and includes `/home/victor/work/qsl/codex/ops` exactly once. The latest scheduled log remains `/backup/qsl/logs/daily-20260603T023518-0500.log` and still records the rsync code 23 permission-denied rollback-subtree caveat.
+  - **Same-host caveat:** The manifest evidence is same-host local continuity evidence only. It is not off-host coverage, disaster recovery, restore proof, backup completion, production readiness, public-internet readiness, external review, or public technical paper evidence.
+  - **Protected:**
+    - no qwork rerun by Codex
+    - no backup execution
+    - no restore execution
+    - no qsl-backup mutation
+    - no backup source-list mutation
+    - no backup status mutation in NA-0413
+    - no backup plan mutation in NA-0413
+    - no systemd, timer, fstab, backup target, retention, or backup script mutation
+    - no durable Director State Index output
+    - no qwork, qstart, qresume, or qshell mutation
+    - no runtime, protocol, crypto, dependency, workflow, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE mutation
+    - no public overclaim
+    - no secret handling
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0413 remains pending optional closeout
+    - D-0813 exists once
+    - D-0814 absent until optional closeout
+    - qsl-backup source-list includes Codex ops exactly once
+    - future NA-0414 block preserves same-host continuity, rsync code 23, no-backup, no-restore, no-qsl-backup-mutation, no-durable-index, no-secret, and no-public-overclaim caveats
+    - required CI green before merge
+    - public-safety remains required and green
+  - **Must never happen:**
+    - NA-0413 directly updates the local backup status or backup plan files
+    - NA-0413 runs backup or restore operations
+    - the latest log rsync code 23 caveat is hidden or converted into a stronger backup claim
+    - same-host continuity is described as off-host coverage, disaster recovery, restore proof, backup completion, production readiness, public-internet readiness, external review, or public technical paper evidence
+    - qsl-backup, backup source lists, systemd, timers, fstab, runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
+  - **References:** NA-0413; NA-0414; D-0812; D-0811; D-0810; D-0808; `docs/governance/evidence/NA-0413_qsl_codex_ops_backup_status_plan_update_authorization_plan.md`; `tests/NA-0413_qsl_codex_ops_backup_status_plan_update_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

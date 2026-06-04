@@ -20,7 +20,7 @@ Last-Updated: 2026-06-04
 
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0414/qsl-protocol`
 - qsl-protocol evidence branch: `na-0414-backup-status-plan-update-implementation`
-- qsl-protocol closeout branch: pending
+- qsl-protocol closeout branch: `na-0414-closeout-restore-na0415`
 - qsl-protocol HEAD at startup: `2c4c2f2ebd58`
 - qsl-protocol main at startup: `2c4c2f2ebd58`
 - qsl-protocol origin/main at startup: `2c4c2f2ebd58`
@@ -90,7 +90,35 @@ Last-Updated: 2026-06-04
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
 - `python3 formal/run_model_checks.py`: passed.
 - Classifier proof with exact changed paths: docs-only.
-- Pending: commit, post-commit scope guard, goal-lint, PR creation, required checks, merge, post-merge public-safety, and optional closeout.
+- Packet J commit: `c63ae8e5aaf2`.
+- Packet J PR: qsl-protocol #1096.
+- Packet J merge commit: `41bf9ba5fcf7`.
+- Packet J required checks completed green by bounded REST polling at iteration 6/180.
+- Packet J post-merge public-safety completed success on `41bf9ba5fcf7` by bounded REST polling at iteration 9/180.
+
+## Packet K Closeout Patch
+
+- Closeout branch: `na-0414-closeout-restore-na0415`.
+- Closeout allowed paths: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0414_closeout_restore_na0415_testplan.md`.
+- Queue transition in draft: NA-0414 DONE; `NA-0415 -- QSL Backup Log Code 23 Permission-Denied Temp Rollback Subtree Review Plan` restored as the sole READY item.
+- Closeout decision in draft: D-0816.
+- Closeout boundary: no NA-0415 implementation, no backup execution, no restore execution, no qsl-backup/source-list/status/plan/temp-subtree mutation, no durable Director State Index output, no helper mutation, no runtime/protocol/crypto/dependency/workflow/public-doc/website/README/START_HERE/qsl-server/qsl-attachments mutation, no secret handling, and no public-claim expansion.
+- Same-host continuity and latest log rsync code 23 caveat remain mandatory for NA-0415.
+- Closeout queue helper: READY_COUNT `1`; READY `NA-0415 -- QSL Backup Log Code 23 Permission-Denied Temp Rollback Subtree Review Plan`; NA-0414 DONE.
+- Closeout decision helper: latest D-0816; duplicate count zero.
+- Draft changed path set: exactly the five allowed closeout paths.
+- `git diff --check`: passed.
+- helper link-check: `TOTAL_MISSING 0`.
+- helper added-line leak scan: `SECRET_FINDING_COUNT 0`.
+- PR-body preflight: `MISSING_FIELD_COUNT 0`; `PROHIBITED_PHRASE_COUNT 0`.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- `cargo fmt --check`: passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
+- `python3 formal/run_model_checks.py`: passed.
+- Classifier proof with exact changed paths: docs-only.
+- Pending: commit, post-commit scope guard, goal-lint, PR creation, required checks, merge, post-merge public-safety, final forward audit, and response file.
 
 ## Disk Watermark
 

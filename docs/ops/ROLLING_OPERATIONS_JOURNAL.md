@@ -128,8 +128,11 @@ Last-Updated: 2026-06-04
   passed, 3 tests.
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
 - `python3 formal/run_model_checks.py`: passed.
-- Pending commit, post-commit scope guard, goal-lint, PR, merge, and post-merge
-  evidence.
+- Evidence commit: `61940ce7b9c6`.
+- Post-commit helper scope guard: changed path count `5`; forbidden count `0`.
+- Synthetic-event goal-lint: passed with base `72ccd9a7cd68` and head
+  `61940ce7b9c6`.
+- Pending journal validation commit, PR, merge, and post-merge evidence.
 
 ## Next-Watch Items
 

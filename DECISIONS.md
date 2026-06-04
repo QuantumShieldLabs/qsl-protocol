@@ -20254,3 +20254,47 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - durable Director State Index output is created
     - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
   - **References:** NA-0416; NA-0417; D-0819; D-0818; qsl-protocol PR #1100; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0416_closeout_restore_na0417_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0821
+  - **Title:** NA-0417 backup log code 23 root operator packet plan
+  - **Status:** Accepted
+  - **Date:** 2026-06-04
+  - **Goals:** G4
+  - **Decision:** NA-0417 classifies the latest scheduled same-host qsl-backup warning as `CODE23_STILL_ACTIVE_NA0407_ROLLBACK_SUBTREE` and selects `NA-0418 -- QSL Backup Log Code 23 Root Operator Evidence Preservation / Permission Remediation Packet Generation Harness` as the successor. The recommended direction is a future no-secret packet generation harness that preserves rollback evidence first and then prepares permission remediation under exact root-owned path scope, not deletion as the first implementation path.
+  - **Evidence result:** The operator-provided qwork proof files were read from `/srv/qbuild/work/NA-0417/.qwork/`, parsed successfully, and matched live `HEAD` and `origin/main` at `3bf432f123f1`. PR #1101 was merged at that commit. Queue proof reported READY_COUNT 1 and READY NA-0417; decision proof reported latest D-0820 before this decision and duplicate count zero.
+  - **Current code 23 status:** The latest scheduled pair reviewed by NA-0417 is the 2026-06-04 daily log/manifest. The log has exactly one `rsync error`, exactly one `code 23`, exactly one `Permission denied`, and exactly one exact NA-0407 rollback directory reference. The matching manifest includes Codex ops exactly once. No other latest-log rsync failure source was found.
+  - **Recommended packet generation direction:** Future NA-0418 should generate a bounded root-operator packet under `/srv/qbuild/tmp/NA0418_code23_root_operator_packet_<timestamp>/` with preflight, evidence preservation, remediation selection, validation, and rollback stages. The packet must verify the exact rollback path, expected `root:root` mode `2700` pre-action state, and qsl-backup SHA `e9ecff3d22eda21ceb0e889e4dd5d6f4e270e09349c77a1f4872bfc0052f6232`; preserve rollback metadata and checksum evidence without printing file content; and default toward evidence-preservation plus permission remediation.
+  - **Authorization boundary:** NA-0417 generates no packet files, runs no sudo, runs no backup, runs no restore, mutates no `/usr/local/sbin/qsl-backup`, mutates no temp rollback subtree, mutates no backup status or plan files, and creates no durable Director State Index output.
+  - **Rollback evidence preservation requirement:** Any future permission remediation, move, or deletion must preserve rollback metadata and root-readable rollback file checksum evidence first. Delete-after-preservation remains a later/further-gated option unless a future exact directive authorizes destructive cleanup after preservation is complete.
+  - **Same-host caveat:** This is internal same-host continuity evidence only. Manifest presence is not off-host backup, not disaster recovery, not restore proof, not backup completion, not production readiness, not public-internet readiness, not external review, and not public technical paper evidence.
+  - **Protected:**
+    - no qwork rerun by Codex
+    - no executable operator packet generation in NA-0417
+    - no sudo
+    - no backup execution
+    - no restore execution
+    - no qsl-backup mutation
+    - no temp rollback subtree mutation
+    - no backup status mutation
+    - no backup plan mutation
+    - no systemd, timer, fstab, backup target, retention, source-list, or backup script mutation
+    - no durable Director State Index output
+    - no qwork, qstart, qresume, or qshell mutation
+    - no runtime, protocol, crypto, dependency, workflow, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE mutation
+    - no public technical paper work
+    - no public overclaim
+    - no secret handling
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0417 remains pending optional closeout
+    - D-0821 exists once
+    - D-0822 absent until optional closeout
+    - selected NA-0418 successor must include root-operator packet generation, rollback evidence preservation, exact path scope, no Codex sudo, same-host/code-23/no-backup/no-restore/no-qsl-backup-mutation/no-temp-mutation/no-secret/no-public-overclaim caveats
+    - public-safety remains required and green
+  - **Must never happen:**
+    - NA-0417 generates executable operator packet files
+    - NA-0417 runs sudo, backup, or restore
+    - qsl-backup, backup source lists, backup status files, backup plan files, temp rollback subtrees, systemd, timers, fstab, runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
+    - the latest log rsync code 23 caveat is hidden or converted into a stronger backup claim
+    - same-host continuity is not described as off-host coverage, disaster recovery, restore proof, backup completion, public readiness, external review, or public technical paper evidence
+  - **References:** NA-0417; NA-0418; D-0820; D-0819; `docs/governance/evidence/NA-0417_qsl_backup_log_code_23_root_operator_cleanup_permission_remediation_packet_plan.md`; `tests/NA-0417_qsl_backup_log_code_23_root_operator_cleanup_permission_remediation_packet_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -69,6 +69,8 @@ Last-Updated: 2026-06-03
 - Failing command: `python3 scripts/ci/qsl_evidence_helper.py public-safety-status --repo QuantumShieldLabs/qsl-protocol --sha 23243ea53fba59069509fc1f3c3ebc480724c577` immediately after Packet A merge. Classification: recoverable CI attach latency because post-merge checks were still attaching and public-safety was missing, not red. Corrective action: bounded REST polling of the merge commit. Final result: iteration 9/180 reported public-safety `completed:success` and all attached checks green.
 - Failing command: parallel qwork cwd/idempotence smoke that ran `qwork NA-0412 qsl-protocol` from `/tmp` and the repo checkout at the same time. Classification: recoverable test sequencing mistake because qwork correctly rejected the second simultaneous invocation with `reason=lane-lock-held`. Corrective action: reran the repo-checkout qwork smoke serially. Final result: qwork succeeded and rewrote the same stable proof files.
 - Failing command: `git add -N docs/governance/evidence/NA-0412_qsl_local_ops_qwork_startup_proof_file_handoff.md tests/NA-0412_qsl_local_ops_qwork_startup_proof_file_handoff_testplan.md`. Classification: recoverable evidence-path staging issue because `docs/governance/evidence/` is intentionally ignored by default and the evidence file is an allowed Packet C path. Corrective action: force-added only the allowed evidence path with `git add -N -f` and intent-added the testplan normally. Final result: draft changed path set showed exactly the five Packet C allowed paths.
+- Failing command: synthetic-event goal-lint command that generated `/tmp/na0412_packet_c_goal_lint_event.json` with shell `printf`. Classification: recoverable validation-shape mistake because the generated JSON contained raw control characters inside the PR body string. Corrective action: rewrote the synthetic event JSON with escaped newlines. Final result: goal-lint progressed to git diff validation.
+- Failing command: `GITHUB_EVENT_PATH=/tmp/na0412_packet_c_goal_lint_event.json python3 tools/goal_lint.py` with an incorrect head SHA in the synthetic event. Classification: recoverable validation-shape mistake because the local commit SHA in the event file did not match `git rev-parse HEAD`. Corrective action: replaced the head SHA with the actual committed head. Final result: `OK: goal compliance checks passed.`
 
 ## Validation / CI Notes
 
@@ -124,6 +126,7 @@ Last-Updated: 2026-06-03
 - `cargo +stable build -p qshield-cli --locked`: passed.
 - `cargo +stable test -p qshield-cli --locked -- --test-threads=1`: passed.
 - future-directive simulation after D-0811: passed with `SIM2_WITHOUT_QWORK=PASS`.
+- synthetic-event goal-lint with `python3 tools/goal_lint.py`: passed.
 - Non-fatal warning: parallel cargo validation printed package-cache and artifact-directory lock waiting messages before completing successfully.
 - Protected checks: pending Packet C PR.
 - Retry notes: none yet.

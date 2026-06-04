@@ -21179,7 +21179,7 @@ Closeout result:
 ---
 
 ### NA-0412 — QSL Local Ops qwork Startup Proof File Handoff Implementation Harness
-Status: READY
+Status: DONE
 Goals: G4
 
 Objective:
@@ -21277,10 +21277,25 @@ Acceptance criteria:
 - No public-readiness or backup-complete overclaim is introduced.
 - public-safety is green before merge and after merge.
 
+Closeout result:
+- Packet A PR #1091 merged the governance reroute as `23243ea53fba`.
+- Packet C PR #1092 merged the qwork startup proof-file handoff evidence as
+  `ac902b3541a4`.
+- D-0810 recorded the reprioritization and preserved the backup status / plan
+  authorization lane as NA-0413.
+- D-0811 recorded qwork proof-file implementation evidence.
+- qwork now writes stable lane workspace proof files outside the tracked
+  qsl-protocol worktree.
+- Future non-qwork directives should read the qwork proof file plus direct repo
+  checks and should not rerun qwork unless the directive is a qwork test/fix
+  lane.
+- D-0812 closes NA-0412 and restores NA-0413 as the sole READY successor.
+- NA-0413 is not implemented by NA-0412 closeout.
+
 ---
 
 ### NA-0413 — QSL Codex Ops Backup Status / Plan Update Authorization Plan
-Status: BACKLOG
+Status: READY
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -21294,6 +21309,8 @@ Preservation:
 - NA-0413 must not be implemented by NA-0412.
 - NA-0413 must be restored as the sole READY successor only by NA-0412
   closeout and D-0812.
+- D-0812 restores NA-0413 as READY after NA-0412 qwork proof-file handoff
+  implementation evidence merged with public-safety green.
 
 Protects:
 - The accuracy of backup status and backup plan records.

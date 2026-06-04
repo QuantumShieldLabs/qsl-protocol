@@ -19865,3 +19865,48 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
     - public-readiness, backup-complete, restore-proof, off-host-backup, vulnerability-free, bug-free, or perfect-crypto claims are introduced
   - **References:** NA-0412; NA-0413; D-0810; `/srv/qbuild/tools/qwork.sh`; `/srv/qbuild/tools/qshell.sh`; `docs/governance/evidence/NA-0412_qsl_local_ops_qwork_startup_proof_file_handoff.md`; `tests/NA-0412_qsl_local_ops_qwork_startup_proof_file_handoff_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0812
+  - **Title:** NA-0412 closeout and NA-0413 backup status plan restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-04
+  - **Goals:** G4
+  - **Decision:** NA-0412 is closed after qwork startup proof-file handoff implementation evidence merged with required checks and post-merge public-safety green. The preserved backup status / plan authorization lane is restored as the sole READY successor, `NA-0413 -- QSL Codex Ops Backup Status / Plan Update Authorization Plan`.
+  - **Closeout result:** Packet A PR #1091 merged at `23243ea53fba`; Packet C PR #1092 merged at `ac902b3541a4`; post-merge public-safety completed success for both merge commits. qwork proof was refreshed after Packet C merge and now points at `ac902b3541a4`.
+  - **Restored successor:** NA-0413 -- QSL Codex Ops Backup Status / Plan Update Authorization Plan
+  - **Protected:**
+    - no NA-0413 implementation is authorized by this closeout
+    - no backup execution
+    - no restore execution
+    - no qsl-backup mutation
+    - no backup source-list mutation
+    - no backup status mutation
+    - no backup plan mutation
+    - no systemd, timer, fstab, or backup target mutation
+    - no durable Director State Index output
+    - no qwork, qshell, qstart, or qresume mutation
+    - no runtime, protocol, crypto, dependency, or workflow mutation
+    - no public docs, website, README, or START_HERE mutation
+    - no qsl-server or qsl-attachments mutation
+    - no public technical paper work
+    - no secret handling
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0413 backup status / plan authorization lane
+    - NA-0412 DONE
+    - D-0810 once
+    - D-0811 once
+    - D-0812 once
+    - qwork proof files remain available outside the qsl-protocol worktree
+    - future non-qwork directives can verify qwork startup proof from file plus direct repo checks
+    - public-safety remains required and green
+  - **Must never happen:**
+    - this closeout implements NA-0413 backup status / plan update work
+    - backup or restore operations are run
+    - qsl-backup, backup source lists, backup status files, or backup plan files are mutated
+    - the latest log code 23 caveat is hidden or converted into a backup-complete claim
+    - same-host continuity is described as disaster recovery, off-host backup, restore proof, backup completion, public readiness, or external review evidence
+    - durable Director State Index output is created
+    - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
+    - public-readiness, backup-complete, restore-proof, off-host-backup, vulnerability-free, bug-free, or perfect-crypto claims are introduced
+  - **References:** NA-0412; NA-0413; D-0810; D-0811; qsl-protocol PR #1091; qsl-protocol PR #1092; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0412_closeout_restore_na0413_backup_status_plan_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -8,6 +8,110 @@ Last-Updated: 2026-06-04
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-04-253 -- Execute NA-0417 QSL Backup Log Code 23 Root Operator Cleanup / Permission Remediation Packet Plan, Optional Closeout to NA-0418
+- Begin timestamp from directive (America/Chicago): 2026-06-04T08:04:30-05:00
+- Begin timestamp from directive (UTC): 2026-06-04T13:04:30Z
+- Host clock at startup (America/Chicago): 2026-06-04T08:04:01-05:00
+- Host clock at startup (UTC): 2026-06-04T13:04:01+00:00
+- End timestamp (America/Chicago): pending final response
+- End timestamp (UTC): pending final response
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0417/qsl-protocol`
+- qsl-protocol evidence branch: `na-0417-root-operator-packet-plan`
+- qsl-protocol closeout branch: pending optional closeout
+- qsl-protocol HEAD at startup: `3bf432f123f1`
+- qsl-protocol main at startup: `3bf432f123f1`
+- qsl-protocol origin/main at startup: `3bf432f123f1`
+- qsl-protocol mirror/main at startup: pending final audit
+- qsl-server: not present under this worktree; no mutation
+- qsl-attachments: not present under this worktree; no mutation
+- Disk watermark: `/dev/nvme0n1p2` 468G total, 189G used, 255G free, 43% used
+
+## READY Proof
+
+- qwork proof files existed under `/srv/qbuild/work/NA-0417/.qwork/` and were copied to `/srv/qbuild/tmp/NA0417_root_operator_packet_plan_20260604T080548-0500/qwork/`.
+- qwork proof: `startup_result=OK`, lane `NA-0417`, repo `qsl-protocol`, `head_equals_origin_main=yes`, worktree/index/untracked clean, READY_COUNT `1`, queue top READY `NA-0417`, and requested lane status `READY`.
+- Codex did not run qwork, qstart, or qresume.
+- Live fetch did not advance `origin/main`; live `HEAD` and `origin/main` remained `3bf432f123f1`, matching qwork proof.
+- PR #1101 verification: MERGED, merge commit `3bf432f123f1`.
+- Queue helper at start: READY_COUNT `1`; READY `NA-0417 -- QSL Backup Log Code 23 Root Operator Cleanup / Permission Remediation Packet Plan`; NA-0416 DONE.
+- Decision helper at start: latest D-0820; duplicate count zero; D-0819 once; D-0820 once; D-0821 absent.
+- Public-safety on current main: required and completed success.
+
+## Log / Manifest Review
+
+- Latest scheduled log: `/backup/qsl/logs/daily-20260604T023542-0500.log`.
+- Latest scheduled manifest: `/backup/qsl/manifests/daily-20260604T023542-0500.manifest.txt`.
+- Log counts: `rsync error=1`, `code 23=1`, `Permission denied=1`, `NA0407=1`, `rollback=1`, `qsl-backup.preimage=0`, exact rollback directory reference `1`.
+- Manifest Codex ops path count: `1`.
+- Manifest NA-0407/rollback counts: `0` and `0`.
+- Classification: `CODE23_STILL_ACTIVE_NA0407_ROLLBACK_SUBTREE`.
+- No other latest-log rsync failure source was found.
+
+## Root Operator Packet Plan
+
+- Selected successor: `NA-0418 -- QSL Backup Log Code 23 Root Operator Evidence Preservation / Permission Remediation Packet Generation Harness`.
+- Recommended packet path pattern: `/srv/qbuild/tmp/NA0418_code23_root_operator_packet_<timestamp>/`.
+- Recommended direction: generate a no-secret future root-operator packet harness that preserves rollback evidence first and prepares permission remediation under exact path scope.
+- Deletion is not the first implementation path; delete-after-preservation remains later/further-gated.
+- NA-0417 generates no executable packet files and executes no root action.
+
+## Status / Plan Review
+
+- Local backup status and plan docs cite NA-0414, not NA-0415/NA-0416/NA-0417.
+- Both already preserve the same-host continuity caveat and the code 23 caveat.
+- Status/plan docs remain unchanged until actual remediation, retain-as-is, or clean-log evidence exists under a later exact-scope directive.
+
+## Failures / Recoveries
+
+- Failing command: `python3 scripts/ci/public_safety_gate.py check-main-public-safety --repo QuantumShieldLabs/qsl-protocol --branch main --expected-active-ready-na NA-0417`. Classification: recoverable verification-tool environment issue because the helper requires `GH_TOKEN` or `GITHUB_TOKEN`, while authenticated `gh` read-only API was available. Corrective action: used `gh api` to inspect branch protection and check-runs without printing or exporting token material. Final result: branch protection lists `public-safety` as required and the current main `public-safety` check-run completed success.
+- Failing command: first contextual added-line overclaim scan. Classification: recoverable scan-shape false positive because the scanner flagged explicit negative boundary text such as `not restore proof` and `no backup completion` as positive claims. Corrective action: reran with context-aware sentence handling. Final result: corrected scan reported positive candidate count `0`.
+- Failing command: second contextual added-line overclaim scan. Classification: recoverable scan-shape false positive because wrapped negative claim lists and section headings still exceeded the scanner's local negation window. Corrective action: reran at sentence level, excluding headings and code fences, and requiring no nearby negation before flagging. Final result: corrected scan reported positive candidate count `0`.
+- Evidence-path staging note: the new governance evidence doc is ignored by `**/evidence/`; intent-to-add and force-add intent were limited to the exact allowed NA-0417 evidence path and matching testplan path so draft scope proof could see all five paths.
+
+## Validation Notes
+
+- Hard-start `cargo audit --deny warnings`: passed.
+- Hard-start `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- D-0821 in draft records current code 23 status, selected NA-0418 successor, packet generation direction, no packet generation in NA-0417, no sudo, no backup/restore, no qsl-backup mutation, no temp subtree mutation, rollback evidence preservation requirement, same-host caveat, and no public overclaim.
+- Draft changed path set by direct working-tree proof: exactly the five allowed NA-0417 paths.
+- Direct scope proof: changed path count `5`; forbidden count `0`; missing allowed count `0`.
+- Working-tree helper scope guard before commit reported changed path count `0` because it compares committed refs; rerun after commit is required.
+- `git diff --check`: passed.
+- Queue helper after draft patch: READY_COUNT `1`; READY NA-0417.
+- Decision helper after draft patch: latest D-0821; duplicate count zero.
+- Structural decision counts: D-0819 once; D-0820 once; D-0821 once; D-0822 absent.
+- Helper link-check: `TOTAL_MISSING 0`.
+- Helper added-line leak scan: `SECRET_FINDING_COUNT 0`.
+- PR-body preflight: `MISSING_FIELD_COUNT 0`; `PROHIBITED_PHRASE_COUNT 0`.
+- Contextual added-line overclaim scan: positive candidate count `0`.
+- Classifier proof with exact changed paths: `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, `scope_class=docs_only`.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- `cargo fmt --check`: passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
+- `python3 formal/run_model_checks.py`: passed.
+- Evidence commit: `01fd77ee6161`.
+- Post-commit helper scope guard: changed path count `5`; forbidden count `0`.
+- Synthetic-event goal-lint: passed with base `3bf432f123f1` and head `01fd77ee6161`.
+- Journal validation commit: `6cf3d0d32dfc`.
+- Post-journal-commit helper scope guard: changed path count `5`; forbidden count `0`.
+- Synthetic-event goal-lint after journal commit: passed with base `3bf432f123f1` and head `6cf3d0d32dfc`.
+- Packet J branch pushed to origin.
+- Packet J PR: qsl-protocol #1102.
+- Initial PR merge state: `BLOCKED` while required checks attach and run.
+
+## Next-Watch Items
+
+- NA-0418 must generate only a future operator packet harness and must not execute generated scripts by Codex.
+- The root-owned rollback subtree must remain unmodified until exact future authorization and operator action.
+- Local backup status/plan docs may need a future exact-scope refresh only after actual remediation or retain-as-is decision changes the caveat state.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-04-252 -- Execute NA-0416 QSL Backup Log Code 23 Temp Rollback Subtree Cleanup / Permission Remediation Authorization Plan, Optional Closeout to NA-0417
 - Begin timestamp from directive (America/Chicago): 2026-06-04T06:34:30-05:00
 - Begin timestamp from directive (UTC): 2026-06-04T11:34:30Z

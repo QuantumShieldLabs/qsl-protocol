@@ -2,9 +2,106 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-06-03
+Last-Updated: 2026-06-04
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-06-04-250 -- Execute NA-0414 QSL Codex Ops Backup Status / Plan Update Implementation Harness, Optional Closeout to NA-0415
+- Begin timestamp from directive (America/Chicago): 2026-06-04T01:34:30-05:00
+- Begin timestamp from directive (UTC): 2026-06-04T06:34:30Z
+- Host clock at startup (America/Chicago): 2026-06-03T21:37:00-05:00
+- Host clock at startup (UTC): 2026-06-04T02:37:00+00:00
+- End timestamp (America/Chicago): pending final response
+- End timestamp (UTC): pending final response
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0414/qsl-protocol`
+- qsl-protocol evidence branch: `na-0414-backup-status-plan-update-implementation`
+- qsl-protocol closeout branch: pending
+- qsl-protocol HEAD at startup: `2c4c2f2ebd58`
+- qsl-protocol main at startup: `2c4c2f2ebd58`
+- qsl-protocol origin/main at startup: `2c4c2f2ebd58`
+- qsl-protocol mirror/main at startup: `2abcee236e23`
+- qsl-server: not present under this worktree; no mutation
+- qsl-attachments: not present under this worktree; no mutation
+
+## READY Proof
+
+- qwork proof files existed under `/srv/qbuild/work/NA-0414/.qwork/` and were copied to `/srv/qbuild/tmp/NA0414_backup_status_plan_update_20260603T213830-0500/qwork/`.
+- qwork proof: `startup_result=OK`, lane `NA-0414`, repo `qsl-protocol`, `head_equals_origin_main=yes`, worktree/index/untracked clean, READY_COUNT `1`, queue top READY `NA-0414`, and requested lane status `READY`.
+- Codex did not run qwork, qstart, or qresume.
+- Live fetch did not advance `origin/main`; live `HEAD` and `origin/main` remained `2c4c2f2ebd58`, matching qwork proof.
+- PR #1095 verification: MERGED, merge commit `2c4c2f2ebd58`.
+- Queue helper at start: READY_COUNT `1`; READY `NA-0414 -- QSL Codex Ops Backup Status / Plan Update Implementation Harness`.
+- Decision helper at start: latest D-0814; duplicate count zero; D-0813 once; D-0814 once; D-0815 absent.
+- Public-safety on current main: completed success.
+
+## Local Status / Plan Patch
+
+- Proof root: `/srv/qbuild/tmp/NA0414_backup_status_plan_update_20260603T213830-0500`.
+- Status file before: SHA `6250478cf90c`, size `8087`, mode `664`, owner/group `victor/victor`, mtime `2026-05-17 15:39:12.683816083 -0500`.
+- Plan file before: SHA `fdb69eca65e6`, size `17510`, mode `664`, owner/group `victor/victor`, mtime `2026-05-17 15:39:26.476121981 -0500`.
+- Rollback copies created under the proof root and matched the pre-mutation SHAs.
+- Latest manifest: `/backup/qsl/manifests/daily-20260603T023518-0500.manifest.txt`; Codex ops path count `1`.
+- Latest log: `/backup/qsl/logs/daily-20260603T023518-0500.log`; permission-denied rollback subtree and rsync code 23 caveat still present.
+- Proposed local patch saved to `local_patch/proposed_local_docs.patch`.
+- Proposed local patch scan: high-confidence secret match count `0`; prohibited positive overclaim phrase count `0`.
+- Applied local patch changed exactly the two authorized local docs.
+- Status file after: SHA `036b608b75c6`, size `9958`, mode `664`, owner/group `victor/victor`.
+- Plan file after: SHA `bba5e4ebad6a`, size `20379`, mode `664`, owner/group `victor/victor`.
+- Post-patch local scan: high-confidence secret match count `0`; prohibited positive overclaim phrase count `0`.
+- Post-patch local caveats present: same-host continuity, latest log code 23, no backup, no restore, no qsl-backup mutation, durable Director State Index absent/not authorized.
+
+## qsl-backup / Backup Boundary Proof
+
+- `/usr/local/sbin/qsl-backup` checksum: `e9ecff3d22ed`.
+- Exact Codex ops source inclusion count in qsl-backup: `1`.
+- No backup mode was run.
+- No restore mode was run.
+- No qsl-backup, systemd, timer, fstab, source-list, retention, backup script, or backup target mutation was performed.
+- Latest log/manifest filenames remained `daily-20260603T023518-0500.log` and `daily-20260603T023518-0500.manifest.txt`.
+
+## Failures / Recoveries
+
+- Failing command: `rg -n -i "(api[_-]?key|...)" <local-docs>` returned 1. Classification: valid zero-match discovery/proof outcome, because no high-confidence secret pattern matched. Corrective action: reran a zero-failure-safe count scan. Final result: `HIGH_CONFIDENCE_SECRET_MATCH_COUNT 0`.
+- Failing command: proposed-patch validation `rg` secret scan without `-e` for a pattern beginning with `-----BEGIN`. Classification: recoverable command-shape mistake. Corrective action: reran with `rg -e` and safe quoting. Final result: `SECRET_MATCH_COUNT 0`.
+- Failing command: proposed-patch validation caveat scan used a double-quoted pattern containing backticks around `/usr/local/sbin/qsl-backup`, which invoked qsl-backup with no arguments and printed usage text. Classification: recoverable command-shape mistake; no backup or restore mode was supplied and no mutation occurred. Corrective action: reran with single-quoted patterns and `rg -e`; verified qsl-backup checksum and latest log/manifest names were unchanged. Final result: required caveat scan passed, qsl-backup SHA remained `e9ecff3d22ed`, and latest log/manifest remained unchanged.
+- Nonzero read-only proof command: `ls -ld /backup/qsl/snapshots/daily/daily-20260603T023518-0500 /backup/qsl/snapshots/daily/latest` returned 2 because the code-23-caveated scheduled snapshot directory did not exist while `latest` pointed to the prior daily snapshot. Classification: valid caveat evidence, not a mutation failure. Corrective action: preserved the code 23 caveat and did not claim comprehensive backup coverage. Final result: manifest/log evidence remains same-host source-presence only.
+- Failing command: `sh scripts/ci/classify_ci_scope.sh`. Classification: recoverable command-shape mistake because the script uses bash `pipefail`. Corrective action: reran with `bash`. Final result: script executed.
+- First classifier result: `bash scripts/ci/classify_ci_scope.sh` with no path arguments outside a PR event reported `runtime_critical=true`. Classification: recoverable proof-shape mistake because the classifier requires explicit paths outside pull_request event context. Corrective action: reran with the exact changed path set. Final result: `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, `scope_class=docs_only`.
+
+## Validation Notes
+
+- Hard-start `cargo audit --deny warnings`: passed.
+- Hard-start `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- Draft changed path set after intent-adding ignored evidence path: exactly the five allowed NA-0414 qsl-protocol paths.
+- D-0815 in draft records both local docs updated, same-host/code-23 caveats preserved, no backup/restore, qsl-backup unchanged, no public overclaim, and selected NA-0415 successor.
+- `git diff --check`: passed.
+- helper link-check: `TOTAL_MISSING 0`.
+- helper added-line leak scan: `SECRET_FINDING_COUNT 0`.
+- PR-body preflight: `MISSING_FIELD_COUNT 0`; `PROHIBITED_PHRASE_COUNT 0`.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- `cargo fmt --check`: passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
+- `python3 formal/run_model_checks.py`: passed.
+- Classifier proof with exact changed paths: docs-only.
+- Pending: commit, post-commit scope guard, goal-lint, PR creation, required checks, merge, post-merge public-safety, and optional closeout.
+
+## Disk Watermark
+
+- `/srv/qbuild`: total `468G`, used `185G`, available `259G`, used `42%`.
+- `/backup/qsl`: total `916G`, used `26G`, available `882G`, used `3%`.
+
+## Next-Watch Items
+
+- NA-0415 should review the active rsync code 23 permission-denied caveat without mutating the temp rollback subtree unless a future directive explicitly authorizes exact remediation scope.
+- Same-host manifest evidence remains local continuity only.
+- Off-host backup, restore/key custody, durable Director State Index output, public paper prerequisites, external review, public claim readiness, and D132 cleanup remain separate residuals.
 
 # Rolling Operations Journal Entry
 

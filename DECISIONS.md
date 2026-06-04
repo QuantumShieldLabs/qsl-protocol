@@ -19999,3 +19999,43 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - durable Director State Index output is created
     - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
   - **References:** NA-0413; NA-0414; D-0813; D-0812; qsl-protocol PR #1094; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0413_closeout_restore_na0414_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0815
+  - **Title:** NA-0414 codex ops backup status plan update implementation harness
+  - **Status:** Accepted
+  - **Date:** 2026-06-04
+  - **Goals:** G4
+  - **Decision:** NA-0414 updates both local backup docs selected by NA-0413: `/home/victor/work/qsl/codex/ops/backup/QSL_BACKUP_STATUS.md` and `/home/victor/work/qsl/codex/QSL_BACKUP_PLAN.md`.
+  - **Classification:** STATUS_PLAN_UPDATED_SAME_HOST_CAVEATED_CODE23_ACTIVE
+  - **Selected successor:** NA-0415 -- QSL Backup Log Code 23 Permission-Denied Temp Rollback Subtree Review Plan
+  - **Evidence result:** The NA-0414 qwork proof files were read from `/srv/qbuild/work/NA-0414/.qwork/` and matched live `HEAD` and `origin/main` at `2c4c2f2ebd58`. PR #1095 was merged at that commit. Queue proof reported READY_COUNT 1 and READY NA-0414; decision proof reported latest D-0814 before this decision and duplicate count zero.
+  - **Local doc result:** The status file SHA changed from `6250478cf90c` to `036b608b75c6`. The backup plan SHA changed from `fdb69eca65e6` to `bba5e4ebad6a`. Both now record Codex ops in the same-host daily source list, the latest scheduled manifest including Codex ops exactly once, and the latest scheduled log rsync code 23 caveat.
+  - **Manifest/log result:** The latest scheduled same-host manifest remains `/backup/qsl/manifests/daily-20260603T023518-0500.manifest.txt` and includes `/home/victor/work/qsl/codex/ops` exactly once. The latest scheduled log remains `/backup/qsl/logs/daily-20260603T023518-0500.log` and still records the rsync code 23 permission-denied rollback-subtree caveat.
+  - **Same-host caveat:** The local docs preserve that the manifest evidence is same-host local continuity evidence only. It is not off-host coverage, disaster recovery, restore validation, comprehensive backup coverage proof, production readiness, public-internet readiness, external review, or public technical paper evidence.
+  - **Protected:**
+    - no qwork rerun by Codex
+    - no backup execution
+    - no restore execution
+    - no qsl-backup mutation
+    - no backup source-list mutation
+    - no systemd, timer, fstab, backup target, retention, or backup script mutation
+    - no durable Director State Index output
+    - no qwork, qstart, qresume, or qshell mutation
+    - no runtime, protocol, crypto, dependency, workflow, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE mutation
+    - no public overclaim
+    - no secret handling
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0414 remains pending optional closeout
+    - D-0815 exists once
+    - D-0816 absent until optional closeout
+    - qsl-backup source-list includes Codex ops exactly once
+    - latest log rsync code 23 caveat remains visible and becomes the selected NA-0415 successor focus
+    - required CI green before merge
+    - public-safety remains required and green
+  - **Must never happen:**
+    - NA-0414 runs backup or restore operations
+    - qsl-backup, backup source lists, systemd, timers, fstab, runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
+    - the latest log rsync code 23 caveat is hidden or converted into a stronger backup claim
+    - same-host continuity is described as off-host coverage, disaster recovery, restore validation, comprehensive backup coverage, public readiness, external review, or public technical paper evidence
+  - **References:** NA-0414; NA-0415; D-0814; D-0813; `docs/governance/evidence/NA-0414_qsl_codex_ops_backup_status_plan_update_implementation_harness.md`; `tests/NA-0414_qsl_codex_ops_backup_status_plan_update_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

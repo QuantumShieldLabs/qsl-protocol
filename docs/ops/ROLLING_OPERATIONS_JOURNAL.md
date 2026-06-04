@@ -107,7 +107,11 @@ Last-Updated: 2026-06-04
 - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
 - `python3 formal/run_model_checks.py`: passed.
-- Pending: commit, post-commit helper scope guard, goal-lint, PR creation, required checks, merge, post-merge public-safety, optional closeout, final forward audit, and response file.
+- Packet J initial commit: `45a6c2c`.
+- Post-commit helper scope guard: changed path count `5`; forbidden count `0`.
+- Synthetic-event goal-lint: passed with base `68ab384961c1` and head `45a6c2cfde79`.
+- Governance preflight: clean tree, one READY line, exact five-path name-only diff.
+- Pending: PR creation, required checks, merge, post-merge public-safety, optional closeout, final forward audit, and response file.
 
 ## Disk Watermark
 

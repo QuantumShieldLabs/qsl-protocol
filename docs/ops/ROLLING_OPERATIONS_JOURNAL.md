@@ -20,6 +20,7 @@ Last-Updated: 2026-06-03
 
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0413/qsl-protocol`
 - qsl-protocol evidence branch: `na-0413-backup-status-plan-update-authorization`
+- qsl-protocol closeout branch: `na-0413-closeout-restore-na0414`
 - qsl-protocol HEAD at startup: `82ebae4dc12c`
 - qsl-protocol main at startup: `82ebae4dc12c`
 - qsl-protocol origin/main at startup: `82ebae4dc12c`
@@ -86,6 +87,37 @@ Last-Updated: 2026-06-03
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
 - `python3 formal/run_model_checks.py`: passed.
 - Pending: commit, post-commit helper scope guard, synthetic-event goal-lint, PR creation, required checks, merge, post-merge public-safety, and optional closeout.
+- Packet J commit: `a4991c3a8c1e`.
+- Packet J PR: qsl-protocol #1094.
+- Packet J merge commit: `5d0569df52d2`.
+- Packet J required checks completed green by bounded REST polling at iteration 6/180.
+- Packet J post-merge checks completed green by bounded REST polling at iteration 13/180.
+- Packet J post-merge public-safety completed success on `5d0569df52d2`.
+- Nonzero post-merge command: `python3 scripts/ci/qsl_evidence_helper.py checks-summary --repo QuantumShieldLabs/qsl-protocol --sha 5d0569df52d26bc71aaa706dfd497b4b3f02337f --allow-codeql-neutral`. Classification: recoverable proof-context issue because the main push summary lacked pull-request-only `goal-lint` and CodeQL contexts while bounded REST polling showed all attached post-merge checks green and the required Packet K gate is post-merge public-safety. Corrective action: reran checks-summary with `--report-only` and verified `public-safety` completed success on the merge commit. Final result: Packet K eligibility established from merged PR plus post-merge public-safety success.
+
+## Packet K Closeout Patch
+
+- Closeout branch: `na-0413-closeout-restore-na0414`.
+- Closeout allowed paths: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0413_closeout_restore_na0414_testplan.md`.
+- Queue transition in draft: NA-0413 DONE; `NA-0414 -- QSL Codex Ops Backup Status / Plan Update Implementation Harness` restored as the sole READY item.
+- Closeout decision in draft: D-0814.
+- Closeout boundary: no NA-0414 implementation, no backup execution, no restore execution, no qsl-backup/source-list/status/plan mutation, no durable Director State Index output, no helper mutation, no runtime/protocol/crypto/dependency/workflow/public-doc/website/README/START_HERE/qsl-server/qsl-attachments mutation, no secret handling, and no public-claim expansion.
+- Same-host continuity and latest log rsync code 23 caveat remain mandatory for NA-0414.
+- Closeout queue helper: READY_COUNT `1`; READY `NA-0414 -- QSL Codex Ops Backup Status / Plan Update Implementation Harness`; NA-0413 DONE.
+- Closeout decision helper: latest D-0814; duplicate count zero.
+- Structural decision counts: D-0813 once; D-0814 once; D-0815 absent.
+- Draft changed path set after intent-adding the testplan: exactly the five allowed closeout paths.
+- `git diff --check`: passed.
+- helper link-check: `TOTAL_MISSING 0`.
+- helper added-line leak scan: `SECRET_FINDING_COUNT 0`.
+- PR-body preflight: `MISSING_FIELD_COUNT 0`; `PROHIBITED_PHRASE_COUNT 0`.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- `cargo fmt --check`: passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
+- `python3 formal/run_model_checks.py`: passed.
+- Closeout recovered failure: the first custom exact path guard over `git diff --name-only` missed `tests/NA-0413_closeout_restore_na0414_testplan.md` because the new testplan was still untracked. Classification: recoverable staging/proof-shape issue. Corrective action: intent-added the testplan with `git add -N` and reran the path guard. Final result: changed path count `5`; forbidden changed path count `0`.
 
 ## Disk Watermark
 

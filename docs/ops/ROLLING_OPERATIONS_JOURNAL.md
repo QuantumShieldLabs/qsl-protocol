@@ -20,7 +20,7 @@ Last-Updated: 2026-06-04
 
 - qsl-protocol worktree path: `/srv/qbuild/work/NA-0416/qsl-protocol`
 - qsl-protocol evidence branch: `na-0416-code23-cleanup-permission-authorization`
-- qsl-protocol closeout branch: pending optional closeout
+- qsl-protocol closeout branch: `na-0416-closeout-restore-na0417`
 - qsl-protocol HEAD at startup: `ebf66f0f3d25`
 - qsl-protocol main at startup: `ebf66f0f3d25`
 - qsl-protocol origin/main at startup: `ebf66f0f3d25`
@@ -100,7 +100,33 @@ Last-Updated: 2026-06-04
 - Synthetic-event goal-lint: passed with base `ebf66f0f3d25` and head `73dc98687536`.
 - Packet J branch pushed to origin.
 - Packet J PR: qsl-protocol #1100.
-- Pending: journal follow-up commit, required checks, merge, post-merge public-safety, and optional closeout.
+- Packet J journal follow-up commit: `ab177bf02a01`.
+- Packet J required checks completed green after bounded REST polling; CodeQL aggregate was temporarily neutral while Analyze (rust) was still in progress, then completed success.
+- Packet J PR #1100 merged as `015631bf54f1`.
+- Packet J post-merge public-safety completed success on `015631bf54f1` after bounded polling iteration 9/180.
+- Closeout branch: `na-0416-closeout-restore-na0417`.
+- Closeout queue transition in draft: NA-0416 DONE; `NA-0417 -- QSL Backup Log Code 23 Root Operator Cleanup / Permission Remediation Packet Plan` restored as the sole READY item.
+- Closeout decision in draft: D-0820.
+- Closeout boundary: no NA-0417 implementation, no sudo, no backup execution, no restore execution, no qsl-backup/source-list/status/plan/temp-subtree mutation, no durable Director State Index output, no runtime/protocol/crypto/dependency/workflow/public-doc/website/README/START_HERE/sibling-repo/secret mutation, and no public-claim expansion.
+- Closeout local queue helper: READY_COUNT `1`; READY NA-0417 root-operator packet plan; NA-0416 DONE.
+- Closeout local decision helper: latest D-0820; duplicate count zero.
+- Structural decision counts: D-0819 once; D-0820 once; D-0821 absent.
+- Draft changed path set: exactly `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0416_closeout_restore_na0417_testplan.md`.
+- `git diff --check`: passed.
+- Direct closeout scope proof: changed path count `5`; forbidden count `0`; missing allowed count `0`.
+- Helper link-check: `TOTAL_MISSING 0`.
+- Helper added-line leak scan: `SECRET_FINDING_COUNT 0`.
+- PR-body preflight: `MISSING_FIELD_COUNT 0`; `PROHIBITED_PHRASE_COUNT 0`.
+- Contextual added-line overclaim scan: positive overclaim candidate count `0`.
+- Classifier proof with exact changed paths: `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, `scope_class=docs_only`.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- `cargo fmt --check`: passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
+- `python3 formal/run_model_checks.py`: passed.
+- Non-fatal warning: parallel Cargo validation printed package-cache/advisory-db lock waiting messages before completing successfully.
+- Pending: closeout commit, post-commit scope guard, goal-lint, PR creation, required checks, merge, post-merge public-safety, and final response.
 
 ## Next-Watch Items
 

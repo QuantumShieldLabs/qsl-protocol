@@ -126,7 +126,12 @@ Last-Updated: 2026-06-04
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
 - `python3 formal/run_model_checks.py`: passed.
 - Non-fatal warning: parallel Cargo validation printed package-cache/advisory-db lock waiting messages before completing successfully.
-- Pending: closeout commit, post-commit scope guard, goal-lint, PR creation, required checks, merge, post-merge public-safety, and final response.
+- Closeout initial commit: `501955da7e4f`.
+- Post-commit helper scope guard: changed path count `5`; forbidden count `0`.
+- Synthetic-event goal-lint: passed with base `015631bf54f1` and head `501955da7e4f`.
+- Closeout branch pushed to origin.
+- Closeout PR: qsl-protocol #1101.
+- Pending: journal follow-up commit, required checks, merge, post-merge public-safety, and final response.
 
 ## Next-Watch Items
 

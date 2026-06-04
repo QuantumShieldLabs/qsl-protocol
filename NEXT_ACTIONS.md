@@ -21531,7 +21531,7 @@ Acceptance criteria:
 ---
 
 ### NA-0416 — QSL Backup Log Code 23 Temp Rollback Subtree Cleanup / Permission Remediation Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -21596,6 +21596,83 @@ Acceptance criteria:
 - No qsl-backup mutation occurs.
 - No temp subtree mutation occurs unless a later implementation directive
   authorizes it.
+- No public-readiness or backup-complete overclaim is introduced.
+- Exactly one READY item remains.
+- public-safety is green before merge and after merge.
+
+---
+
+### NA-0417 — QSL Backup Log Code 23 Root Operator Cleanup / Permission Remediation Packet Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Plan an exact, evidence-preserving root-operator packet for resolving the
+scheduled same-host backup log code 23 warning caused by the NA-0407 rollback
+subtree, while preserving rollback evidence, avoiding Codex sudo, and avoiding
+any backup, restore, qsl-backup mutation, no-public-readiness claim, or
+no-backup-complete claim.
+
+Protects:
+- Rollback evidence needed for qsl-backup source-list recovery.
+- Backup log accuracy.
+- Same-host continuity caveats.
+- The distinction that manifest evidence is not backup completion.
+- The no-backup/no-restore/no-sudo boundary.
+- The one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0417.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- Read-only inspection of `/backup/qsl/logs`, `/backup/qsl/manifests`,
+  `/srv/qbuild/tmp/NA0407_qsl_backup_root_action_20260602T232945-0500`,
+  and `/usr/local/sbin/qsl-backup`.
+- Planning a future operator packet only if exact future scope authorizes
+  generated files and no execution.
+
+Forbidden scope:
+- Running sudo.
+- Running backup.
+- Running restore.
+- Mutating `/usr/local/sbin/qsl-backup`.
+- Deleting, moving, chmod/chowning, or otherwise mutating temp rollback subtree
+  paths.
+- Generating executable operator packet files unless explicitly authorized by
+  live NA-0417 scope.
+- Mutating systemd units, timers, fstab, backup target mounts, source lists,
+  retention, or backup scripts.
+- Creating durable Director State Index output.
+- Mutating qwork/qstart/qresume/qshell.
+- Mutating runtime, crypto, dependency, workflow, qsl-server, qsl-attachments,
+  qshield runtime, website, public docs, README, or START_HERE paths.
+- Creating public technical paper content.
+- Creating or implying any public overclaim:
+  no off-host backup completion claim, no disaster recovery completion claim,
+  no restore proof claim, no backup completion claim, no production readiness
+  claim, no public-internet readiness claim, no external-review completion
+  claim, no metadata-free behavior claim, no anonymity claim, no untraceability
+  claim, no bug-free status claim, no vulnerability-free status claim, and
+  no perfect-crypto claim.
+- Secret material handling.
+
+Deliverables:
+- NA-0417 evidence doc.
+- NA-0417 testplan.
+- D-0821 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- Exact recommendation for whether an operator-action implementation packet
+  should be generated in a later lane.
+
+Acceptance criteria:
+- Rollback evidence preservation requirements are explicit.
+- No root action is executed.
+- Same-host continuity caveat is preserved.
+- No backup or restore operation is run.
+- No qsl-backup mutation occurs.
+- No temp subtree mutation occurs.
 - No public-readiness or backup-complete overclaim is introduced.
 - Exactly one READY item remains.
 - public-safety is green before merge and after merge.

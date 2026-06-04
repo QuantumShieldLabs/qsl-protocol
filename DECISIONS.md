@@ -20208,3 +20208,49 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - the latest log rsync code 23 caveat is hidden or converted into a stronger backup claim
     - same-host continuity is not described as off-host coverage, disaster recovery, restore proof, backup completion, public readiness, external review, or public technical paper evidence
   - **References:** NA-0416; NA-0417; D-0818; D-0817; `docs/governance/evidence/NA-0416_qsl_backup_log_code_23_temp_rollback_subtree_cleanup_permission_remediation_authorization_plan.md`; `tests/NA-0416_qsl_backup_log_code_23_temp_rollback_subtree_cleanup_permission_remediation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0820
+  - **Title:** NA-0416 closeout and NA-0417 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-04
+  - **Goals:** G4
+  - **Decision:** NA-0416 is closed after the code 23 cleanup / permission remediation authorization evidence merged with required checks and post-merge public-safety green. The selected successor is restored as the sole READY item: `NA-0417 -- QSL Backup Log Code 23 Root Operator Cleanup / Permission Remediation Packet Plan`.
+  - **Closeout result:** qsl-protocol PR #1100 merged at `015631bf54f1` from validated head `ab177bf02a01`; post-merge public-safety completed success on `015631bf54f1`.
+  - **Restored successor:** NA-0417 -- QSL Backup Log Code 23 Root Operator Cleanup / Permission Remediation Packet Plan
+  - **Protected:**
+    - no NA-0417 implementation is authorized by this closeout
+    - same-host continuity remains a mandatory caveat
+    - latest scheduled backup log code 23 source classification remains mandatory
+    - rollback evidence preservation remains mandatory before future path mutation
+    - no Codex sudo
+    - no backup execution
+    - no restore execution
+    - no qsl-backup mutation
+    - no backup source-list mutation
+    - no backup status mutation by closeout
+    - no backup plan mutation by closeout
+    - no temp rollback subtree mutation by closeout
+    - no durable Director State Index output
+    - no qwork, qstart, qresume, or qshell mutation
+    - no runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments mutation
+    - no public technical paper work
+    - no public overclaim
+    - no secret handling
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0417 root-operator cleanup / permission remediation packet plan
+    - NA-0416 DONE
+    - D-0819 once
+    - D-0820 once
+    - D-0821 absent until NA-0417 live work
+    - selected NA-0417 block includes rollback evidence preservation, same-host continuity, active code 23 source, no Codex sudo, no-backup, no-restore, no-qsl-backup-mutation, no-temp-subtree-mutation, no-durable-index, no-secret, and no-public-overclaim caveats
+    - public-safety remains required and green
+  - **Must never happen:**
+    - this closeout implements NA-0417 cleanup/remediation packet planning work
+    - sudo, backup, or restore operations are run
+    - qsl-backup, backup source lists, backup status files, backup plan files, temp rollback subtrees, or backup scripts are mutated by closeout
+    - the latest log rsync code 23 caveat is hidden or converted into a stronger backup claim
+    - same-host continuity is not described as off-host coverage, disaster recovery, restore proof, backup completion, public readiness, external review, or public technical paper evidence
+    - durable Director State Index output is created
+    - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
+  - **References:** NA-0416; NA-0417; D-0819; D-0818; qsl-protocol PR #1100; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0416_closeout_restore_na0417_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -21295,7 +21295,7 @@ Closeout result:
 ---
 
 ### NA-0413 — QSL Codex Ops Backup Status / Plan Update Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -21358,6 +21358,91 @@ Acceptance criteria:
 - The log code 23 caveat is preserved.
 - Same-host continuity is not described as disaster recovery.
 - No backup or restore operation is run.
+- No public-readiness or backup-complete overclaim is introduced.
+- Exactly one READY item remains.
+- public-safety is green before merge and after merge.
+
+Closeout evidence:
+- qsl-protocol PR #1094 merged the NA-0413 authorization evidence as
+  `5d0569df52d2` from validated head `a4991c3a8c1e`.
+- Post-merge `public-safety` completed success on `5d0569df52d2`.
+- D-0813 records the selected successor and the future candidate local mutable
+  files.
+- D-0814 records this closeout and NA-0414 restoration.
+- Selected successor: NA-0414 -- QSL Codex Ops Backup Status / Plan Update
+  Implementation Harness.
+- No NA-0414 implementation is authorized by this closeout.
+- No backup execution, restore execution, qsl-backup mutation, backup status
+  mutation, backup plan mutation, durable Director State Index output, runtime
+  change, workflow change, public docs/website/README/START_HERE change,
+  qsl-server mutation, qsl-attachments mutation, or public overclaim is made by
+  this closeout.
+- Same-host continuity and the latest log rsync code 23 caveat remain mandatory
+  for NA-0414.
+
+---
+
+### NA-0414 — QSL Codex Ops Backup Status / Plan Update Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the exact local backup status and/or backup plan documentation
+updates authorized by NA-0413, preserving NA-0411 same-host manifest evidence,
+the log code 23 caveat, the same-host continuity caveat, and all
+no-backup/no-restore/no-public-overclaim boundaries.
+
+Protects:
+- Accuracy of local backup status and plan records.
+- The distinction between same-host continuity and complete disaster recovery.
+- The distinction between manifest evidence and backup completion.
+- The log code 23 caveat.
+- The no-backup/no-restore boundary.
+- The one-READY queue invariant.
+
+Allowed scope:
+- The exact local status/plan paths authorized by NA-0413:
+  - `/home/victor/work/qsl/codex/ops/backup/QSL_BACKUP_STATUS.md`
+  - `/home/victor/work/qsl/codex/QSL_BACKUP_PLAN.md`
+- qsl-protocol governance evidence/testplan paths for NA-0414.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- Read-only inspection of `/backup/qsl/manifests`, `/backup/qsl/logs`, and
+  `/usr/local/sbin/qsl-backup`.
+
+Forbidden scope:
+- Running backup.
+- Running restore.
+- Mutating `/usr/local/sbin/qsl-backup`.
+- Mutating systemd units, timers, fstab, backup target mounts, source lists,
+  retention, or backup scripts.
+- Creating durable Director State Index output.
+- Mutating qwork/qstart/qresume/qshell.
+- Mutating runtime, crypto, dependency, workflow, qsl-server, qsl-attachments,
+  qshield runtime, website, public docs, README, or START_HERE paths.
+- Creating public technical paper content.
+- Creating or implying off-host backup completion, disaster recovery completion,
+  restore proof, backup completion, production readiness, public-internet
+  readiness, external-review completion, metadata-free behavior, anonymity,
+  untraceability, bug-free status, vulnerability-free status, or perfect-crypto
+  claims.
+- Secret material handling.
+
+Deliverables:
+- Exact local status/plan patch if authorized by NA-0413.
+- NA-0414 evidence doc.
+- NA-0414 testplan.
+- D-0815 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+
+Acceptance criteria:
+- Only authorized local status/plan files are changed.
+- Same-host continuity caveat is preserved.
+- Log code 23 caveat is preserved.
+- No backup or restore operation is run.
+- No qsl-backup mutation occurs.
 - No public-readiness or backup-complete overclaim is introduced.
 - Exactly one READY item remains.
 - public-safety is green before merge and after merge.

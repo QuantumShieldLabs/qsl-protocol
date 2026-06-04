@@ -19956,3 +19956,46 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - same-host continuity is described as off-host coverage, disaster recovery, restore proof, backup completion, production readiness, public-internet readiness, external review, or public technical paper evidence
     - qsl-backup, backup source lists, systemd, timers, fstab, runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
   - **References:** NA-0413; NA-0414; D-0812; D-0811; D-0810; D-0808; `docs/governance/evidence/NA-0413_qsl_codex_ops_backup_status_plan_update_authorization_plan.md`; `tests/NA-0413_qsl_codex_ops_backup_status_plan_update_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0814
+  - **Title:** NA-0413 closeout and NA-0414 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-04
+  - **Goals:** G4
+  - **Decision:** NA-0413 is closed after the backup status / plan update authorization evidence merged with required checks and post-merge public-safety green. The selected successor is restored as the sole READY item: `NA-0414 -- QSL Codex Ops Backup Status / Plan Update Implementation Harness`.
+  - **Closeout result:** qsl-protocol PR #1094 merged at `5d0569df52d2` from validated head `a4991c3a8c1e`; post-merge public-safety completed success on `5d0569df52d2`.
+  - **Restored successor:** NA-0414 -- QSL Codex Ops Backup Status / Plan Update Implementation Harness
+  - **Protected:**
+    - no NA-0414 implementation is authorized by this closeout
+    - same-host continuity remains a mandatory caveat
+    - latest scheduled backup log rsync code 23 caveat remains mandatory
+    - no backup execution
+    - no restore execution
+    - no qsl-backup mutation
+    - no backup source-list mutation
+    - no backup status mutation by closeout
+    - no backup plan mutation by closeout
+    - no durable Director State Index output
+    - no qwork, qstart, qresume, or qshell mutation
+    - no runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments mutation
+    - no public technical paper work
+    - no public overclaim
+    - no secret handling
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0414 implementation harness
+    - NA-0413 DONE
+    - D-0813 once
+    - D-0814 once
+    - D-0815 absent until NA-0414 live work
+    - selected NA-0414 block includes same-host continuity, rsync code 23, no-backup, no-restore, no-qsl-backup-mutation, no-durable-index, no-secret, and no-public-overclaim caveats
+    - public-safety remains required and green
+  - **Must never happen:**
+    - this closeout implements NA-0414 local status/plan updates
+    - backup or restore operations are run
+    - qsl-backup, backup source lists, backup status files, or backup plan files are mutated by closeout
+    - the latest log rsync code 23 caveat is hidden or converted into a stronger backup claim
+    - same-host continuity is described as off-host coverage, disaster recovery, restore proof, backup completion, public readiness, external review, or public technical paper evidence
+    - durable Director State Index output is created
+    - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
+  - **References:** NA-0413; NA-0414; D-0813; D-0812; qsl-protocol PR #1094; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0413_closeout_restore_na0414_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

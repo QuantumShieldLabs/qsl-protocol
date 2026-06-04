@@ -53,6 +53,13 @@ Last-Updated: 2026-06-03
 - Packet C allowed paths: `docs/governance/evidence/NA-0412_qsl_local_ops_qwork_startup_proof_file_handoff.md`; `tests/NA-0412_qsl_local_ops_qwork_startup_proof_file_handoff_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
 - Packet C decision in draft: D-0811.
 - Packet C PR: qsl-protocol #1092.
+- Packet C head: `8f21593a7638`.
+- Packet C merge commit: `ac902b3541a4`.
+- Packet D branch: `na-0412-closeout-restore-na0413`.
+- Packet D allowed paths: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0412_closeout_restore_na0413_backup_status_plan_testplan.md`.
+- Packet D queue transition in draft: NA-0412 DONE; `NA-0413 -- QSL Codex Ops Backup Status / Plan Update Authorization Plan` restored as the sole READY item.
+- Packet D decision in draft: D-0812.
+- Packet D PR: qsl-protocol #1093.
 
 ## Backup Boundary Proof
 
@@ -129,7 +136,25 @@ Last-Updated: 2026-06-03
 - future-directive simulation after D-0811: passed with `SIM2_WITHOUT_QWORK=PASS`.
 - synthetic-event goal-lint with `python3 tools/goal_lint.py`: passed.
 - Non-fatal warning: parallel cargo validation printed package-cache and artifact-directory lock waiting messages before completing successfully.
-- Protected checks: pending Packet C PR.
+- Packet C PR #1092 checks: bounded REST polling completed all green at iteration 6/180; `public-safety` completed success on head `8f21593a7638`.
+- Packet C merge: PR #1092 merged at `2026-06-04T01:20:36Z` as `ac902b3541a4`.
+- Packet C post-merge public-safety: bounded REST polling completed at iteration 10/180 with `public-safety=completed:success`.
+- Post-Packet-C qwork refresh: `qwork NA-0412 qsl-protocol` passed and rewrote proof files with `head=ac902b3541a4`.
+- Packet D queue helper: READY_COUNT `1`; READY `NA-0413 -- QSL Codex Ops Backup Status / Plan Update Authorization Plan`; NA-0412 DONE.
+- Packet D decision helper: latest D-0812; D-0810 once; D-0811 once; D-0812 once; duplicate count zero.
+- Packet D qwork proof availability: NA-0412 `.qwork` KV and JSON files exist; KV proof shows `startup_result=OK`, `head=ac902b3541a4`, and pre-closeout `queue_top_ready=NA-0412`.
+- Packet D changed path set in draft: exactly the five allowed closeout paths.
+- `git diff --check`: passed.
+- helper link-check: `TOTAL_MISSING 0`.
+- helper added-line leak scan: `SECRET_FINDING_COUNT 0`.
+- PR-body preflight: `MISSING_FIELD_COUNT 0`; `PROHIBITED_PHRASE_COUNT 0`.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- `cargo fmt --check`: passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
+- `python3 formal/run_model_checks.py`: passed.
+- Protected checks: pending Packet D PR.
 - Retry notes: none yet.
 
 ## Disk Watermark

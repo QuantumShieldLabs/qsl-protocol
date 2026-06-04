@@ -59,6 +59,7 @@ Last-Updated: 2026-06-03
 - Packet D allowed paths: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0412_closeout_restore_na0413_backup_status_plan_testplan.md`.
 - Packet D queue transition in draft: NA-0412 DONE; `NA-0413 -- QSL Codex Ops Backup Status / Plan Update Authorization Plan` restored as the sole READY item.
 - Packet D decision in draft: D-0812.
+- Packet D PR: qsl-protocol #1093.
 
 ## Backup Boundary Proof
 

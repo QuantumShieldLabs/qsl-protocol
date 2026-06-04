@@ -21687,53 +21687,61 @@ Acceptance criteria:
 
 ---
 
-### NA-0418 — QSL Backup Log Code 23 Root Operator Evidence Preservation / Permission Remediation Packet Generation Harness
+### NA-0418 — QSL RustSec pqcrypto Dependency Health Blocker Triage / Remediation
 Status: READY
 Goals: G1, G2, G3, G4, G5
 
 Objective:
-Generate a bounded, no-secret, root-operator action packet that can preserve
-NA-0407 rollback evidence and prepare permission remediation for the root-owned
-rollback subtree causing scheduled same-host backup log code 23 warnings,
-without Codex running sudo and without executing backup, restore, cleanup, or
-qsl-backup mutation.
+Triage and remediate the cargo-audit dependency-health blocker inherited from
+D256, where `cargo audit --deny warnings` denied RustSec unmaintained warnings
+for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`, while
+preserving the interrupted operator-packet verification lane as NA-0419.
 
 Protects:
-- Root-owned rollback evidence.
-- Backup log accuracy.
-- Same-host continuity caveats.
-- The distinction between manifest evidence and backup completion.
-- The no-backup/no-restore/no-sudo boundary.
+- cargo audit as a fail-closed release gate.
+- supported runtime PQ/provider boundary ownership.
+- protocol/wire/state-machine semantics.
+- the interrupted operator-packet verification evidence.
+- no audit waiver for runtime/security-critical pqcrypto reachability.
+- the no-backup/no-restore/no-sudo/no-generated-packet-execution boundary.
 - The one-READY queue invariant.
 
 Allowed scope:
-- qsl-protocol governance evidence/testplan paths for NA-0418.
+- `Cargo.toml`.
+- `Cargo.lock`.
+- exact qsl-protocol source/test/reference paths proven by cargo tree and rg to
+  be necessary for replacing or removing `pqcrypto-mlkem`,
+  `pqcrypto-traits`, and `pqcrypto-internals`.
+- `docs/governance/evidence/NA-0418_qsl_rustsec_pqcrypto_dependency_health_blocker_triage_remediation.md`.
+- `tests/NA-0418_qsl_rustsec_pqcrypto_dependency_health_blocker_triage_remediation_testplan.md`.
+- `NEXT_ACTIONS.md`.
 - `DECISIONS.md`.
 - `TRACEABILITY.md`.
 - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
-- temp packet output under
-  `/srv/qbuild/tmp/NA0418_code23_root_operator_packet_<timestamp>/`.
-- generated operator README/manifest/apply/verify/rollback scripts if they are
-  no-secret, static, validation-only until run by the operator, and do not
-  execute during NA-0418.
-- read-only inspection of `/backup/qsl/logs`, `/backup/qsl/manifests`,
-  `/srv/qbuild/tmp/NA0407_qsl_backup_root_action_20260602T232945-0500`, and
-  `/usr/local/sbin/qsl-backup`.
+- read-only inspection of the existing NA-0418 operator packet and
+  `operator_result` paths only to preserve NA-0419 handoff state.
+- proof output under
+  `/srv/qbuild/tmp/NA0418_rustsec_pqcrypto_dependency_blocker_<timestamp>/`.
 
 Forbidden scope:
+- Running qwork, qstart, or qresume by Codex.
 - Running sudo.
 - Running generated operator scripts.
 - Running backup.
 - Running restore.
 - Mutating `/usr/local/sbin/qsl-backup`.
+- Mutating `/backup/qsl`.
 - Deleting, moving, chmod/chowning, or otherwise mutating temp rollback subtree
   paths.
+- Mutating backup status or backup plan files.
 - Mutating systemd units, timers, fstab, backup target mounts, source lists,
   retention, or backup scripts.
 - Creating durable Director State Index output.
 - Mutating qwork/qstart/qresume/qshell.
-- Mutating runtime, crypto, dependency, workflow, qsl-server, qsl-attachments,
-  qshield runtime, website, public docs, README, or START_HERE paths.
+- Mutating qsl-server, qsl-attachments, qshield runtime, website, public docs,
+  README, or START_HERE paths.
+- Changing protocol, wire, auth, negotiation, or state-machine semantics.
+- Adding an audit waiver for runtime/security-critical reachability.
 - Creating public technical paper content.
 - Creating or implying off-host backup completion, disaster recovery
   completion, restore proof, backup completion, production readiness,
@@ -21743,28 +21751,114 @@ Forbidden scope:
 - Secret material handling.
 
 Deliverables:
-- operator action packet under
-  `/srv/qbuild/tmp/NA0418_code23_root_operator_packet_<timestamp>/`.
-- packet manifest and checksums.
-- qsl-protocol evidence doc.
-- qsl-protocol testplan.
-- D-0823 or next sequential decision.
+- RustSec pqcrypto dependency-health evidence doc.
+- RustSec pqcrypto dependency-health testplan.
+- minimal dependency/provider remediation if safe.
+- D-0824 or next sequential decision.
 - TRACEABILITY update.
 - Rolling journal update.
-- explicit USER ACTION REQUIRED instructions for operator execution if packet is
-  generated successfully.
+- NA-0419 preserved as the interrupted operator-packet verification resume
+  lane.
 
 Acceptance criteria:
-- packet generation only; no packet execution.
-- rollback evidence preservation is explicit.
-- exact root-owned paths are pinned.
+- `cargo audit --deny warnings` passes without an audit waiver unless waiver
+  conditions are explicitly proven and non-runtime.
+- `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits
+  --locked`, and `cargo tree -i pqcrypto-internals --locked` show the crates
+  absent, or a compliant explicit waiver proves non-runtime reachability.
+- `cargo tree -i rustls-webpki --locked` remains on `v0.103.13` or newer.
+- affected pqcrypto reachability is classified truthfully.
+- runtime/security-critical dependency remediation preserves the owned provider
+  boundary and does not weaken crypto behavior.
 - no backup or restore operation is run.
 - no qsl-backup mutation occurs.
 - no temp subtree mutation occurs by Codex.
 - same-host continuity caveat is preserved.
-- no public-readiness or backup-complete overclaim is introduced.
+- no public-readiness, backup-complete, vulnerability-free, bug-free, or
+  perfect-crypto overclaim is introduced.
 - exactly one READY item remains.
 - public-safety is green before merge.
+- NA-0418 remains READY until a separate closeout restores NA-0419.
+
+---
+
+### NA-0419 — QSL Backup Log Code 23 Operator Packet Execution Verification Resume
+Status: BACKLOG
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Resume the interrupted operator-packet execution verification after NA-0418
+restores cargo-audit dependency health, verify the human operator apply/verify
+output from the NA-0418 root-operator packet, record the post-operator rollback
+directory state, and decide whether a later scheduled-backup verification lane
+is needed.
+
+Protects:
+- Operator action evidence.
+- qsl-backup non-mutation proof.
+- Rollback evidence preservation.
+- Backup log accuracy.
+- Same-host continuity caveats.
+- The distinction between permission remediation and scheduled backup proof.
+- The no-backup/no-restore/no-sudo-by-Codex boundary.
+- The one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0419.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- read-only inspection of:
+  - `/srv/qbuild/tmp/NA0418_code23_root_operator_packet_20260604T092447-05-00/operator_result`
+  - `/srv/qbuild/tmp/NA0407_qsl_backup_root_action_20260602T232945-0500/rollback`
+  - `/backup/qsl/logs`
+  - `/backup/qsl/manifests`
+  - `/usr/local/sbin/qsl-backup`
+
+Forbidden scope:
+- Running qwork, qstart, or qresume by Codex.
+- Running sudo by Codex.
+- Running generated packet scripts by Codex.
+- Running backup.
+- Running restore.
+- Mutating `/usr/local/sbin/qsl-backup`.
+- Mutating rollback subtree paths.
+- Mutating systemd units, timers, fstab, backup target mounts, source lists,
+  retention, or backup scripts.
+- Mutating backup status or backup plan files unless a later directive
+  explicitly authorizes exact files and wording.
+- Creating durable Director State Index output.
+- Mutating qwork/qstart/qresume/qshell.
+- Mutating runtime, crypto, dependency, workflow, qsl-server, qsl-attachments,
+  qshield runtime, website, public docs, README, or START_HERE paths.
+- Creating public technical paper content.
+- Creating or implying off-host backup completion, disaster recovery
+  completion, restore proof, backup completion, production readiness,
+  public-internet readiness, external-review completion, metadata-free
+  behavior, anonymity, untraceable behavior, bug-free status, vulnerability-free
+  status, or perfect-crypto claims.
+- Secret material handling.
+
+Deliverables:
+- NA-0419 evidence doc.
+- NA-0419 testplan.
+- next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- Exact recommendation based on operator result and scheduled log/manifest
+  timing.
+
+Acceptance criteria:
+- Operator apply/verify markers are accepted only if supported by live state.
+- qsl-backup unchanged proof is recorded.
+- Rollback directory post-action state is recorded.
+- Same-host continuity caveat is preserved.
+- No backup or restore operation is run by Codex.
+- No qsl-backup mutation occurs.
+- No rollback subtree mutation occurs by Codex.
+- No public-readiness or backup-complete overclaim is introduced.
+- Exactly one READY item remains.
+- public-safety is green before merge and after merge.
 
 ---
 

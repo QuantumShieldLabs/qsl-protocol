@@ -8,8 +8,8 @@ description = "QuantumShield (QSP/QSE) reference implementation skeleton (audit-
 [features]
 default = ["stdcrypto", "pqkem"]
 stdcrypto = ["dep:sha2", "dep:tiny-keccak", "dep:aes-gcm", "dep:x25519-dalek", "dep:ed25519-dalek", "dep:rand_core", "dep:zeroize"]
-pqkem = ["dep:pqcrypto-mlkem", "dep:pqcrypto-traits"] # ML-KEM-768 (PQ KEM) implementation
-pqcrypto = ["pqkem", "dep:ml-dsa"] # optional integration; verify algorithm mappings before production
+pqkem = ["dep:ml-kem"] # ML-KEM-768 (PQ KEM) implementation
+pqcrypto = ["pqkem", "dep:ml-dsa"] # historical optional integration feature name; verify mappings before production
 vectors = ["dep:serde", "dep:serde_json", "dep:hex"]
 
 [dependencies]
@@ -23,8 +23,7 @@ ed25519-dalek = { version = "2", features = ["rand_core"], optional = true }
 rand_core = { version = "0.6", features = ["getrandom"], optional = true }
 zeroize = { version = "1", features = ["zeroize_derive"], optional = true }
 
-pqcrypto-mlkem = { version = "0.1.1", optional = true }
-pqcrypto-traits = { version = "0.3", optional = true }
+ml-kem = { version = "0.2.1", features = ["zeroize"], optional = true }
 ml-dsa = { version = "0.1.0-rc.7", optional = true }
 
 serde = { version = "1", features = ["derive"], optional = true }

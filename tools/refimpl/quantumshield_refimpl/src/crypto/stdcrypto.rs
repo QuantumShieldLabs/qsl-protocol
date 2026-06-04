@@ -14,6 +14,28 @@ use tiny_keccak::{Hasher, Kmac as KeccakKmac};
 
 pub struct StdCrypto;
 
+#[cfg(feature = "pqkem")]
+type MlKem768Dk = ml_kem::kem::DecapsulationKey<ml_kem::MlKem768Params>;
+#[cfg(feature = "pqkem")]
+type MlKem768Ek = ml_kem::kem::EncapsulationKey<ml_kem::MlKem768Params>;
+
+#[cfg(feature = "pqkem")]
+fn ml_kem768_dk_from_bytes(privk: &[u8]) -> Result<MlKem768Dk, CryptoError> {
+    use ml_kem::EncodedSizeUser as _;
+
+    let enc =
+        ml_kem::Encoded::<MlKem768Dk>::try_from(privk).map_err(|_| CryptoError::InvalidKey)?;
+    Ok(MlKem768Dk::from_bytes(&enc))
+}
+
+#[cfg(feature = "pqkem")]
+fn ml_kem768_ek_from_bytes(pubk: &[u8]) -> Result<MlKem768Ek, CryptoError> {
+    use ml_kem::EncodedSizeUser as _;
+
+    let enc = ml_kem::Encoded::<MlKem768Ek>::try_from(pubk).map_err(|_| CryptoError::InvalidKey)?;
+    Ok(MlKem768Ek::from_bytes(&enc))
+}
+
 impl StdCrypto {
     fn seal_inner(
         &self,
@@ -38,26 +60,36 @@ impl StdCrypto {
 // third-party provider crates directly.
 #[cfg(feature = "pqkem")]
 pub fn runtime_pq_kem_public_key_bytes() -> usize {
-    pqcrypto_mlkem::mlkem768::public_key_bytes()
+    use ml_kem::array::typenum::Unsigned as _;
+
+    <MlKem768Ek as ml_kem::EncodedSizeUser>::EncodedSize::USIZE
 }
 
 #[cfg(feature = "pqkem")]
 pub fn runtime_pq_kem_ciphertext_bytes() -> usize {
-    pqcrypto_mlkem::mlkem768::ciphertext_bytes()
+    use ml_kem::array::typenum::Unsigned as _;
+
+    <ml_kem::MlKem768 as ml_kem::KemCore>::CiphertextSize::USIZE
 }
 
 #[cfg(feature = "pqkem")]
 pub fn runtime_pq_kem_secret_key_bytes() -> usize {
-    pqcrypto_mlkem::mlkem768::secret_key_bytes()
+    use ml_kem::array::typenum::Unsigned as _;
+
+    <MlKem768Dk as ml_kem::EncodedSizeUser>::EncodedSize::USIZE
 }
 
 #[cfg(feature = "pqkem")]
 pub fn runtime_pq_kem_keypair() -> (Vec<u8>, Vec<u8>) {
-    use pqcrypto_mlkem::mlkem768;
-    use pqcrypto_traits::kem::{PublicKey as _, SecretKey as _};
+    use ml_kem::EncodedSizeUser as _;
+    use ml_kem::KemCore as _;
 
-    let (pk, sk) = mlkem768::keypair();
-    (pk.as_bytes().to_vec(), sk.as_bytes().to_vec())
+    let (sk, pk) = ml_kem::MlKem768::generate(&mut OsRng);
+    let pk = pk.as_bytes();
+    let sk = sk.as_bytes();
+    let pk_bytes: &[u8] = pk.as_ref();
+    let sk_bytes: &[u8] = sk.as_ref();
+    (pk_bytes.to_vec(), sk_bytes.to_vec())
 }
 
 #[cfg(feature = "pqcrypto")]
@@ -153,20 +185,24 @@ impl X25519Dh for StdCrypto {
 #[cfg(feature = "pqkem")]
 impl PqKem768 for StdCrypto {
     fn encap(&self, pubk: &[u8]) -> Result<(Vec<u8>, Vec<u8>), CryptoError> {
-        use pqcrypto_mlkem::mlkem768;
-        use pqcrypto_traits::kem::{Ciphertext as _, PublicKey as _, SharedSecret as _};
-        let pk = mlkem768::PublicKey::from_bytes(pubk).map_err(|_| CryptoError::InvalidKey)?;
-        let (ss, ct) = mlkem768::encapsulate(&pk);
-        Ok((ct.as_bytes().to_vec(), ss.as_bytes().to_vec()))
+        use ml_kem::kem::Encapsulate as _;
+
+        let pk = ml_kem768_ek_from_bytes(pubk)?;
+        let (ct, ss) = pk
+            .encapsulate(&mut OsRng)
+            .map_err(|_| CryptoError::InvalidKey)?;
+        let ct_bytes: &[u8] = ct.as_ref();
+        Ok((ct_bytes.to_vec(), ss.as_slice().to_vec()))
     }
 
     fn decap(&self, privk: &[u8], ct: &[u8]) -> Result<Vec<u8>, CryptoError> {
-        use pqcrypto_mlkem::mlkem768;
-        use pqcrypto_traits::kem::{Ciphertext as _, SecretKey as _, SharedSecret as _};
-        let sk = mlkem768::SecretKey::from_bytes(privk).map_err(|_| CryptoError::InvalidKey)?;
-        let ct = mlkem768::Ciphertext::from_bytes(ct).map_err(|_| CryptoError::InvalidKey)?;
-        let ss = mlkem768::decapsulate(&ct, &sk);
-        Ok(ss.as_bytes().to_vec())
+        use ml_kem::kem::Decapsulate as _;
+
+        let sk = ml_kem768_dk_from_bytes(privk)?;
+        let ct = ml_kem::Ciphertext::<ml_kem::MlKem768>::try_from(ct)
+            .map_err(|_| CryptoError::InvalidKey)?;
+        let ss = sk.decapsulate(&ct).map_err(|_| CryptoError::AuthFail)?;
+        Ok(ss.as_slice().to_vec())
     }
 }
 
@@ -305,35 +341,34 @@ mod tests {
     #[cfg(feature = "pqkem")]
     #[test]
     fn pqkem768_roundtrip_and_lengths() {
-        use super::PqKem768;
-        use pqcrypto_mlkem::mlkem768;
-        use pqcrypto_traits::kem::{PublicKey as _, SecretKey as _};
+        use super::{
+            runtime_pq_kem_ciphertext_bytes, runtime_pq_kem_keypair,
+            runtime_pq_kem_public_key_bytes, runtime_pq_kem_secret_key_bytes, PqKem768,
+        };
 
         let c = StdCrypto;
-        let (pk, sk) = mlkem768::keypair();
-        let (ct, ss1) = c.encap(pk.as_bytes()).unwrap();
-        let ss2 = c.decap(sk.as_bytes(), &ct).unwrap();
+        let (pk, sk) = runtime_pq_kem_keypair();
+        let (ct, ss1) = c.encap(&pk).unwrap();
+        let ss2 = c.decap(&sk, &ct).unwrap();
         assert_eq!(ss1, ss2);
-        assert_eq!(pk.as_bytes().len(), mlkem768::public_key_bytes());
-        assert_eq!(sk.as_bytes().len(), mlkem768::secret_key_bytes());
-        assert_eq!(ct.len(), mlkem768::ciphertext_bytes());
-        assert_eq!(ss1.len(), mlkem768::shared_secret_bytes());
+        assert_eq!(pk.len(), runtime_pq_kem_public_key_bytes());
+        assert_eq!(sk.len(), runtime_pq_kem_secret_key_bytes());
+        assert_eq!(ct.len(), runtime_pq_kem_ciphertext_bytes());
+        assert_eq!(ss1.len(), 32);
     }
 
     #[cfg(feature = "pqkem")]
     #[test]
     fn pqkem768_tamper_changes_secret() {
-        use super::PqKem768;
-        use pqcrypto_mlkem::mlkem768;
-        use pqcrypto_traits::kem::{PublicKey as _, SecretKey as _};
+        use super::{runtime_pq_kem_keypair, PqKem768};
 
         let c = StdCrypto;
-        let (pk, sk) = mlkem768::keypair();
-        let (mut ct, ss1) = c.encap(pk.as_bytes()).unwrap();
+        let (pk, sk) = runtime_pq_kem_keypair();
+        let (mut ct, ss1) = c.encap(&pk).unwrap();
         if let Some(b) = ct.get_mut(0) {
             *b ^= 0x01;
         }
-        let ss2 = c.decap(sk.as_bytes(), &ct).unwrap();
+        let ss2 = c.decap(&sk, &ct).unwrap();
         assert_ne!(ss1, ss2);
     }
 
@@ -378,10 +413,7 @@ mod tests {
 
         assert_eq!(kem_pk.len(), runtime_pq_kem_public_key_bytes());
         assert_eq!(kem_sk.len(), runtime_pq_kem_secret_key_bytes());
-        assert_eq!(
-            runtime_pq_kem_ciphertext_bytes(),
-            pqcrypto_mlkem::mlkem768::ciphertext_bytes()
-        );
+        assert_eq!(runtime_pq_kem_ciphertext_bytes(), 1088);
         assert_eq!(sig_pk.len(), runtime_pq_sig_public_key_bytes());
         assert_eq!(sig_sk.len(), runtime_pq_sig_secret_key_bytes());
         assert_eq!(

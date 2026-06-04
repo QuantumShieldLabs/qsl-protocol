@@ -8,6 +8,103 @@ Last-Updated: 2026-06-04
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-04-252 -- Execute NA-0416 QSL Backup Log Code 23 Temp Rollback Subtree Cleanup / Permission Remediation Authorization Plan, Optional Closeout to NA-0417
+- Begin timestamp from directive (America/Chicago): 2026-06-04T06:34:30-05:00
+- Begin timestamp from directive (UTC): 2026-06-04T11:34:30Z
+- Host clock at startup (America/Chicago): 2026-06-04T07:08:29-05:00
+- Host clock at startup (UTC): 2026-06-04T12:08:29+00:00
+- End timestamp (America/Chicago): pending final response
+- End timestamp (UTC): pending final response
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0416/qsl-protocol`
+- qsl-protocol evidence branch: `na-0416-code23-cleanup-permission-authorization`
+- qsl-protocol closeout branch: pending optional closeout
+- qsl-protocol HEAD at startup: `ebf66f0f3d25`
+- qsl-protocol main at startup: `ebf66f0f3d25`
+- qsl-protocol origin/main at startup: `ebf66f0f3d25`
+- qsl-protocol mirror/main at startup: `2abcee236e23`
+- qsl-server: not present under this worktree; no mutation
+- qsl-attachments: not present under this worktree; no mutation
+- Disk watermark: `/dev/nvme0n1p2` 468G total, 188G used, 257G free, 43% used
+
+## READY Proof
+
+- qwork proof files existed under `/srv/qbuild/work/NA-0416/.qwork/` and were copied to `/srv/qbuild/tmp/NA0416_code23_cleanup_authorization_20260604T070944--0500/qwork/`.
+- qwork proof: `startup_result=OK`, lane `NA-0416`, repo `qsl-protocol`, `head_equals_origin_main=yes`, worktree/index/untracked clean, READY_COUNT `1`, queue top READY `NA-0416`, and requested lane status `READY`.
+- Codex did not run qwork, qstart, or qresume.
+- Live fetch did not advance `origin/main`; live `HEAD` and `origin/main` remained `ebf66f0f3d25`, matching qwork proof.
+- PR #1099 verification: MERGED, merge commit `ebf66f0f3d25`.
+- Queue helper at start: READY_COUNT `1`; READY `NA-0416 -- QSL Backup Log Code 23 Temp Rollback Subtree Cleanup / Permission Remediation Authorization Plan`; NA-0415 DONE.
+- Decision helper at start: latest D-0818; duplicate count zero; D-0817 once; D-0818 once; D-0819 absent.
+- Public-safety on current main: completed success.
+
+## Log / Manifest Review
+
+- Latest scheduled log: `/backup/qsl/logs/daily-20260604T023542-0500.log`.
+- Latest scheduled manifest: `/backup/qsl/manifests/daily-20260604T023542-0500.manifest.txt`.
+- Log counts: `rsync error=1`, `code 23=1`, `Permission denied=1`, `NA0407=1`, `rollback=1`, `qsl-backup.preimage=0`, exact rollback directory reference `1`.
+- Manifest Codex ops path count: `1`.
+- Manifest NA-0407/rollback counts: `0` and `0`.
+- Classification: `CODE23_STILL_ACTIVE_NA0407_ROLLBACK_SUBTREE`.
+- No other latest-log rsync failure source was found.
+
+## Rollback Evidence Review
+
+- Parent temp root exists as directory `victor:victor` mode `2775`.
+- Packet path exists as directory `victor:victor` mode `2755`.
+- Rollback path exists as directory `root:root` mode `2700`.
+- Rollback path is not readable or searchable by Codex.
+- Readable packet metadata identifies `/usr/local/sbin/qsl-backup` as target, Codex ops as added path, and the rollback copy filename pattern with preimage checksum prefix `c82ee76fa357`.
+- Metadata can be preserved without privilege; rollback file content inspection/archive requires future operator/root action.
+
+## Successor Selection
+
+- Selected successor: `NA-0417 -- QSL Backup Log Code 23 Root Operator Cleanup / Permission Remediation Packet Plan`.
+- Recommended option: plan a future evidence-preserving root-operator packet centered first on permission remediation after rollback evidence preservation.
+- NA-0416 does not implement NA-0417 and does not authorize sudo, backup, restore, qsl-backup mutation, temp subtree mutation, status/plan mutation, or public-claim expansion.
+
+## Failures / Recoveries
+
+- Nonzero read-only proof command: broad `rg` over the NA-0407 packet returned status `2` because the root-owned rollback directory is permission denied. Classification: valid permission-boundary evidence and recoverable proof-shape issue. Corrective action: reran a targeted zero-safe `rg` over readable packet files only. Final result: expected rollback filename pattern and root-required metadata were recorded without changing permissions.
+- Nonzero read-only proof command: `find` under the rollback directory returned status `1` because contents are not readable by Codex. Classification: valid permission-boundary evidence. Corrective action: recorded stat metadata and `test -r` / `test -x` results; no permission change was attempted. Final result: rollback content remains uninspected and unmodified.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py classify ...`. Classification: recoverable command-shape mistake because the helper has no `classify` subcommand; the repo classifier is `scripts/ci/classify_ci_scope.sh`. Corrective action: reran `bash scripts/ci/classify_ci_scope.sh ...` over the exact changed paths. Final result: `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, `scope_class=docs_only`.
+- Failing command: `python3 tools/goal_lint.py --help`. Classification: recoverable command-shape probe mistake because the script has no help mode and expects `GITHUB_EVENT_PATH`. Corrective action: inspected the script entrypoint and deferred goal-lint execution to a synthetic PR event after commit. Final result: usage requirement understood; no repo state changed.
+- Evidence-path staging note: the new governance evidence doc is ignored by `**/evidence/`; force-added intent/staging was limited to the exact allowed NA-0416 evidence path and matching testplan path.
+
+## Validation Notes
+
+- Hard-start `cargo audit --deny warnings`: passed.
+- Hard-start `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- D-0819 in draft records active code 23 status, selected NA-0417 root-operator packet successor, no backup/restore/sudo, no qsl-backup mutation, no temp subtree mutation, rollback evidence preservation requirement, same-host caveat, and no public overclaim.
+- Draft changed path set: exactly the five allowed NA-0416 qsl-protocol paths.
+- D-0817 once; D-0818 once; D-0819 once; D-0820 absent.
+- `git diff --check`: passed.
+- Queue helper after draft patch: READY_COUNT `1`; READY NA-0416.
+- Decision helper after draft patch: latest D-0819; duplicate count zero.
+- Direct scope proof: changed path count `5`; forbidden count `0`; missing allowed count `0`.
+- Helper link-check: `TOTAL_MISSING 0`.
+- Helper added-line leak scan: `SECRET_FINDING_COUNT 0`.
+- PR-body preflight: `MISSING_FIELD_COUNT 0`; `PROHIBITED_PHRASE_COUNT 0`.
+- Contextual added-line overclaim scan: positive overclaim candidate count `0`.
+- Classifier proof with exact changed paths: `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, `scope_class=docs_only`.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- `cargo fmt --check`: passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
+- `python3 formal/run_model_checks.py`: passed.
+- Pending: commit, post-commit scope guard, goal-lint, PR creation, required checks, merge, post-merge public-safety, and optional closeout.
+
+## Next-Watch Items
+
+- NA-0417 must remain unimplemented by NA-0416 evidence work.
+- The root-owned rollback subtree must remain unmodified until an exact future directive authorizes preservation and action.
+- Local backup status/plan docs may need a future exact-scope refresh only after actual remediation changes the code 23 caveat state.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-04-251 -- Execute NA-0415 QSL Backup Log Code 23 Permission-Denied Temp Rollback Subtree Review Plan, Optional Closeout to NA-0416
 - Begin timestamp from directive (America/Chicago): 2026-06-04T02:04:30-05:00
 - Begin timestamp from directive (UTC): 2026-06-04T07:04:30Z

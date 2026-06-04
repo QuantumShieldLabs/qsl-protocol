@@ -21603,7 +21603,15 @@ Acceptance criteria:
 ---
 
 ### NA-0417 — QSL Backup Log Code 23 Root Operator Cleanup / Permission Remediation Packet Plan
-Status: READY
+Status: DONE
+Implementation note:
+- NA-0417 completed as a planning-only governance lane in qsl-protocol PR
+  `#1102`, merged as `5f34ecb9c75e`, with post-merge public-safety green. It
+  selected NA-0418 as the root-operator evidence preservation / permission
+  remediation packet generation harness and did not generate packet files, run
+  sudo, run backup, run restore, mutate qsl-backup, mutate `/backup/qsl`,
+  mutate the NA-0407 rollback subtree, mutate local status/plan docs, or make
+  any public overclaim.
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -21676,6 +21684,87 @@ Acceptance criteria:
 - No public-readiness or backup-complete overclaim is introduced.
 - Exactly one READY item remains.
 - public-safety is green before merge and after merge.
+
+---
+
+### NA-0418 — QSL Backup Log Code 23 Root Operator Evidence Preservation / Permission Remediation Packet Generation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Generate a bounded, no-secret, root-operator action packet that can preserve
+NA-0407 rollback evidence and prepare permission remediation for the root-owned
+rollback subtree causing scheduled same-host backup log code 23 warnings,
+without Codex running sudo and without executing backup, restore, cleanup, or
+qsl-backup mutation.
+
+Protects:
+- Root-owned rollback evidence.
+- Backup log accuracy.
+- Same-host continuity caveats.
+- The distinction between manifest evidence and backup completion.
+- The no-backup/no-restore/no-sudo boundary.
+- The one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0418.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- temp packet output under
+  `/srv/qbuild/tmp/NA0418_code23_root_operator_packet_<timestamp>/`.
+- generated operator README/manifest/apply/verify/rollback scripts if they are
+  no-secret, static, validation-only until run by the operator, and do not
+  execute during NA-0418.
+- read-only inspection of `/backup/qsl/logs`, `/backup/qsl/manifests`,
+  `/srv/qbuild/tmp/NA0407_qsl_backup_root_action_20260602T232945-0500`, and
+  `/usr/local/sbin/qsl-backup`.
+
+Forbidden scope:
+- Running sudo.
+- Running generated operator scripts.
+- Running backup.
+- Running restore.
+- Mutating `/usr/local/sbin/qsl-backup`.
+- Deleting, moving, chmod/chowning, or otherwise mutating temp rollback subtree
+  paths.
+- Mutating systemd units, timers, fstab, backup target mounts, source lists,
+  retention, or backup scripts.
+- Creating durable Director State Index output.
+- Mutating qwork/qstart/qresume/qshell.
+- Mutating runtime, crypto, dependency, workflow, qsl-server, qsl-attachments,
+  qshield runtime, website, public docs, README, or START_HERE paths.
+- Creating public technical paper content.
+- Creating or implying off-host backup completion, disaster recovery
+  completion, restore proof, backup completion, production readiness,
+  public-internet readiness, external-review completion, metadata-free
+  behavior, anonymity, untraceability, bug-free status, vulnerability-free
+  status, or perfect-crypto claims.
+- Secret material handling.
+
+Deliverables:
+- operator action packet under
+  `/srv/qbuild/tmp/NA0418_code23_root_operator_packet_<timestamp>/`.
+- packet manifest and checksums.
+- qsl-protocol evidence doc.
+- qsl-protocol testplan.
+- D-0823 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- explicit USER ACTION REQUIRED instructions for operator execution if packet is
+  generated successfully.
+
+Acceptance criteria:
+- packet generation only; no packet execution.
+- rollback evidence preservation is explicit.
+- exact root-owned paths are pinned.
+- no backup or restore operation is run.
+- no qsl-backup mutation occurs.
+- no temp subtree mutation occurs by Codex.
+- same-host continuity caveat is preserved.
+- no public-readiness or backup-complete overclaim is introduced.
+- exactly one READY item remains.
+- public-safety is green before merge.
 
 ---
 

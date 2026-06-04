@@ -103,6 +103,60 @@ Last-Updated: 2026-06-04
 - Packet J branch pushed to origin.
 - Packet J PR: qsl-protocol #1102.
 - Initial PR merge state: `BLOCKED` while required checks attach and run.
+- Packet J final branch head: `3176b6ecd62d`.
+- Packet J required checks completed green after bounded REST polling; total
+  check-runs `38`, failed count `0`.
+- Packet J PR #1102 merged as `5f34ecb9c75e`.
+- Packet J post-merge public-safety completed success on `5f34ecb9c75e` after
+  bounded polling iteration 9/180.
+- Closeout branch: `na-0417-closeout-restore-na0418`.
+- Closeout queue transition in draft: NA-0417 DONE; `NA-0418 -- QSL Backup Log
+  Code 23 Root Operator Evidence Preservation / Permission Remediation Packet
+  Generation Harness` restored as the sole READY item.
+- Closeout decision in draft: D-0822.
+- Closeout boundary: no NA-0418 implementation, no packet generation, no sudo,
+  no generated script execution, no backup execution, no restore execution, no
+  qsl-backup/source-list/status/plan/temp-subtree mutation, no durable Director
+  State Index output, no runtime/protocol/crypto/dependency/workflow/public-doc
+  website/README/START_HERE/sibling-repo/secret mutation, and no public-claim
+  expansion.
+- Closeout recovery: first contextual overclaim scan flagged closeout
+  Forbidden-scope and boundary phrases as positive claims. Classification:
+  recoverable scan-shape false positive. Corrective action: reran with
+  section/boundary allowlisting for `creating or implying` and manifest-vs-
+  completion boundary text. Final result: positive candidate count `0`.
+- Closeout local queue helper: READY_COUNT `1`; READY NA-0418 root-operator
+  evidence preservation / permission remediation packet generation harness;
+  NA-0417 DONE.
+- Closeout local decision helper: latest D-0822; duplicate count zero.
+- Structural decision counts: D-0821 once; D-0822 once; D-0823 absent.
+- Draft changed path set: exactly `NEXT_ACTIONS.md`, `DECISIONS.md`,
+  `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and
+  `tests/NA-0417_closeout_restore_na0418_testplan.md`.
+- `git diff --check`: passed.
+- Direct closeout scope proof: changed path count `5`; forbidden count `0`;
+  missing allowed count `0`.
+- Helper link-check: `TOTAL_MISSING 0`.
+- Helper added-line leak scan: `SECRET_FINDING_COUNT 0`.
+- PR-body preflight: `MISSING_FIELD_COUNT 0`; `PROHIBITED_PHRASE_COUNT 0`.
+- Contextual added-line overclaim scan: positive candidate count `0`.
+- Classifier proof with exact changed paths: `docs_only=true`,
+  `workflow_security=false`, `runtime_critical=false`, `scope_class=docs_only`.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- `cargo fmt --check`: passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`:
+  passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
+- `python3 formal/run_model_checks.py`: passed.
+- Closeout initial commit: `876290f91fc4`.
+- Post-commit helper scope guard: changed path count `5`; forbidden count `0`.
+- Synthetic-event goal-lint: passed with base `5f34ecb9c75e` and head
+  `876290f91fc4`.
+- Closeout branch pushed to origin.
+- Closeout PR: qsl-protocol #1103.
+- Initial closeout PR merge state: `BLOCKED` while required checks attach and
+  run.
 
 ## Next-Watch Items
 

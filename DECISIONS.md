@@ -20298,3 +20298,51 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - the latest log rsync code 23 caveat is hidden or converted into a stronger backup claim
     - same-host continuity is not described as off-host coverage, disaster recovery, restore proof, backup completion, public readiness, external review, or public technical paper evidence
   - **References:** NA-0417; NA-0418; D-0820; D-0819; `docs/governance/evidence/NA-0417_qsl_backup_log_code_23_root_operator_cleanup_permission_remediation_packet_plan.md`; `tests/NA-0417_qsl_backup_log_code_23_root_operator_cleanup_permission_remediation_packet_plan_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0822
+  - **Title:** NA-0417 closeout and NA-0418 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-04
+  - **Goals:** G4
+  - **Decision:** NA-0417 is closed after the root-operator packet plan evidence merged with required checks and post-merge public-safety green. The selected successor is restored as the sole READY item: `NA-0418 -- QSL Backup Log Code 23 Root Operator Evidence Preservation / Permission Remediation Packet Generation Harness`.
+  - **Closeout result:** qsl-protocol PR #1102 merged at `5f34ecb9c75e` from validated head `3176b6ecd62d`; post-merge public-safety completed success on `5f34ecb9c75e`.
+  - **Restored successor:** NA-0418 -- QSL Backup Log Code 23 Root Operator Evidence Preservation / Permission Remediation Packet Generation Harness
+  - **Protected:**
+    - no NA-0418 implementation is authorized by this closeout
+    - same-host continuity remains a mandatory caveat
+    - latest scheduled backup log code 23 source classification remains mandatory
+    - rollback evidence preservation remains mandatory before future path mutation
+    - no Codex sudo
+    - no generated operator script execution
+    - no backup execution
+    - no restore execution
+    - no qsl-backup mutation
+    - no backup source-list mutation
+    - no backup status mutation by closeout
+    - no backup plan mutation by closeout
+    - no temp rollback subtree mutation by closeout
+    - no durable Director State Index output
+    - no qwork, qstart, qresume, or qshell mutation
+    - no runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments mutation
+    - no public technical paper work
+    - no public overclaim
+    - no secret handling
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0418 root-operator evidence preservation / permission remediation packet generation harness
+    - NA-0417 DONE
+    - D-0821 once
+    - D-0822 once
+    - D-0823 absent until NA-0418 live work
+    - selected NA-0418 block includes rollback evidence preservation, exact root-owned path scope, same-host continuity, active code 23 source, no Codex sudo, no-backup, no-restore, no-qsl-backup-mutation, no-temp-subtree-mutation by Codex, no-secret, and no-public-overclaim caveats
+    - public-safety remains required and green
+  - **Must never happen:**
+    - this closeout implements NA-0418 packet generation work
+    - this closeout creates operator packet files or temp packet output
+    - sudo, backup, restore, generated script execution, or root action is run
+    - qsl-backup, backup source lists, backup status files, backup plan files, temp rollback subtrees, or backup scripts are mutated by closeout
+    - the latest log rsync code 23 caveat is hidden or converted into a stronger backup claim
+    - same-host continuity is not described as off-host coverage, disaster recovery, restore proof, backup completion, public readiness, external review, or public technical paper evidence
+    - durable Director State Index output is created
+    - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
+  - **References:** NA-0417; NA-0418; D-0821; D-0820; qsl-protocol PR #1102; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0417_closeout_restore_na0418_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

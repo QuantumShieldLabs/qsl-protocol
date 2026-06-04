@@ -66,14 +66,11 @@ pub(super) fn draw_tui(f: &mut Frame, state: &mut TuiState) {
 
     let rows = Layout::default()
         .direction(Direction::Vertical)
-        .constraints(
-            [
-                Constraint::Min(1),
-                Constraint::Length(1),
-                Constraint::Length(1),
-            ]
-            .as_ref(),
-        )
+        .constraints([
+            Constraint::Min(1),
+            Constraint::Length(1),
+            Constraint::Length(1),
+        ])
         .split(inner);
     let content_area = rows[0];
     let h_divider_area = rows[1];
@@ -83,14 +80,11 @@ pub(super) fn draw_tui(f: &mut Frame, state: &mut TuiState) {
     let nav_width = nav_width.clamp(1, content_area.width.saturating_sub(2));
     let cols = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints(
-            [
-                Constraint::Length(nav_width),
-                Constraint::Length(1),
-                Constraint::Min(1),
-            ]
-            .as_ref(),
-        )
+        .constraints([
+            Constraint::Length(nav_width),
+            Constraint::Length(1),
+            Constraint::Min(1),
+        ])
         .split(content_area);
     render_unified_nav(f, cols[0], state);
     if content_area.height >= 2 {
@@ -157,7 +151,7 @@ pub(super) fn draw_tui(f: &mut Frame, state: &mut TuiState) {
 fn draw_help_mode(f: &mut Frame, area: Rect, state: &TuiState) {
     let cols = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(40), Constraint::Percentage(60)].as_ref())
+        .constraints([Constraint::Percentage(40), Constraint::Percentage(60)])
         .split(area);
 
     let items = tui_help_items();

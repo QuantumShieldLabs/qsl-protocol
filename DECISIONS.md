@@ -20391,3 +20391,45 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - NA-0419 is restored before operator output review
     - backup, restore, sudo, generated script execution, qsl-backup mutation, rollback subtree mutation by Codex, status/plan mutation, or public-claim expansion is hidden inside this lane
   - **References:** NA-0418; D-0822; D-0821; `docs/governance/evidence/NA-0418_qsl_backup_log_code_23_root_operator_evidence_preservation_permission_remediation_packet_generation_harness.md`; `tests/NA-0418_qsl_backup_log_code_23_root_operator_evidence_preservation_permission_remediation_packet_generation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0824
+  - **Title:** NA-0418 rustsec pqcrypto dependency health blocker triage remediation
+  - **Status:** Accepted
+  - **Date:** 2026-06-04
+  - **Goals:** G4
+  - **Decision:** NA-0418 reprioritizes the active lane from operator-packet verification to the D256 dependency-health blocker because `cargo audit --deny warnings` failed on `RUSTSEC-2026-0161` (`pqcrypto-mlkem 0.1.1`), `RUSTSEC-2026-0162` (`pqcrypto-traits 0.3.5`), and `RUSTSEC-2026-0163` (`pqcrypto-internals 0.2.11`). Reachability review classified the affected crates as `RUNTIME_SECURITY_CRITICAL_REACHABLE` through the `qsc -> quantumshield_refimpl(features=["pqcrypto"]) -> StdCrypto/PqKem768` runtime provider boundary, so no audit waiver was eligible or used. The selected remediation replaces the unmaintained pqcrypto KEM provider with the already-present RustCrypto `ml-kem 0.2.1` provider while preserving the existing `PqKem768` trait and runtime helper API. After remediation, `cargo audit --deny warnings` passes and inverse cargo trees prove `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals` are absent from the root workspace.
+  - **Selected successor:** NA-0419 -- QSL Backup Log Code 23 Operator Packet Execution Verification Resume
+  - **Operator-lane preservation:** The D256 operator-packet verification lane is preserved as NA-0419 and is not implemented by this remediation PR. NA-0419 must resume only after NA-0418 is closed by a separate closeout with dependency health and public-safety green.
+  - **Evidence result:** The operator-provided qwork proof files were read from `/srv/qbuild/work/NA-0418/.qwork/`, parsed successfully, and matched live `HEAD` and `origin/main` at `4f6cc35fec89`. PR #1104 was merged at that commit. Queue proof before the patch reported READY_COUNT 1 and READY NA-0418; decision proof reported latest D-0823, D-0821 once, D-0822 once, D-0823 once, D-0824 absent, and duplicate count zero.
+  - **Dependency result:** Initial `cargo audit --deny warnings` exited 1 with exactly the three pqcrypto RustSec denied warnings. After remediation, `cargo audit --deny warnings` exited 0; `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked` each reported the package ID absent; `cargo tree -i rustls-webpki --locked` still reported `rustls-webpki v0.103.13`.
+  - **Provider boundary:** The historical `pqcrypto` feature name remains for downstream compatibility, but the KEM provider under `pqkem` now uses `ml-kem 0.2.1` with `zeroize`. The qsc manifest did not need direct provider churn; `qsc` continues to consume the owned `quantumshield_refimpl` boundary.
+  - **Validation result:** Focused provider validation passed: `cargo check -p quantumshield_refimpl --features pqcrypto`, `cargo test -p quantumshield_refimpl --features pqcrypto --locked`, and `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768`. The provider regression suite covers roundtrip, valid-length tamper producing a different shared secret, and wrong-length public key, secret key, and ciphertext fail-closed behavior.
+  - **Backup/operator boundary:** Codex did not run qwork, qstart, qresume, sudo, generated operator packet scripts, backup, or restore. Codex did not mutate `/usr/local/sbin/qsl-backup`, `/backup/qsl`, the rollback subtree, backup status files, backup plan files, qwork/qstart/qresume/qshell, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE. qsl-backup SHA remained `e9ecff3d22ed...f6232`, and the Codex ops source inclusion count remained 1.
+  - **Public claim boundary:** This decision records one dependency-health remediation and does not claim production readiness, public-internet readiness, external-review completion, complete absence of vulnerabilities, bug absence, perfect crypto, off-host backup, disaster-recovery completion, restore proof, or backup completion.
+  - **Protected:**
+    - cargo audit remains a fail-closed release gate
+    - no audit waiver for runtime/security-critical pqcrypto reachability
+    - no protocol, wire, auth, negotiation, or state-machine semantic change
+    - no qsl-server or qsl-attachments mutation
+    - no qshield runtime mutation
+    - no qwork, qstart, qresume, or qshell mutation
+    - no qsl-backup mutation
+    - no backup or restore execution
+    - no generated packet script execution by Codex
+    - no rollback subtree mutation by Codex
+    - no backup status or plan mutation
+    - no public overclaim
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0418 remains pending dependency-health closeout
+    - NA-0419 is preserved but not implemented
+    - D-0824 exists once
+    - D-0825 absent until optional closeout
+    - cargo audit green
+    - public-safety remains required and green
+  - **Must never happen:**
+    - the pqcrypto Runtime/security-critical advisory chain is hidden with an audit waiver
+    - operator-packet execution verification resumes inside this remediation PR
+    - NA-0419 is restored before dependency-health remediation is merged and checked
+    - backup, restore, sudo, generated script execution, qsl-backup mutation, rollback subtree mutation by Codex, status/plan mutation, or public-claim expansion is hidden inside this lane
+  - **References:** NA-0418; NA-0419; D-0823; D-0822; D-0821; `docs/governance/evidence/NA-0418_qsl_rustsec_pqcrypto_dependency_health_blocker_triage_remediation.md`; `tests/NA-0418_qsl_rustsec_pqcrypto_dependency_health_blocker_triage_remediation_testplan.md`; `Cargo.lock`; `tools/refimpl/quantumshield_refimpl/Cargo.toml`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tools/refimpl/quantumshield_refimpl/tests/pqkem768.rs`; `qsl/qsl-client/qsc/src/tui/controller/render.rs`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

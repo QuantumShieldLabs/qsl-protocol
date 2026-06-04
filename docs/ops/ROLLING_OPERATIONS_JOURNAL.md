@@ -8,6 +8,94 @@ Last-Updated: 2026-06-04
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-04-257 -- Reprioritize NA-0418 for RustSec pqcrypto Dependency Health Blocker Triage / Remediation, Then Restore Operator Packet Verification Lane
+- Begin timestamp from directive (America/Chicago): 2026-06-04T12:34:30-05:00
+- Begin timestamp from directive (UTC): 2026-06-04T17:34:30Z
+- Host clock at startup (America/Chicago): 2026-06-04T13:42:16-05:00
+- Host clock at startup (UTC): 2026-06-04T18:42:16+00:00
+- End timestamp (America/Chicago): pending final response
+- End timestamp (UTC): pending final response
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0418/qsl-protocol`
+- qsl-protocol branch: `main` during triage; remediation branch pending
+- qsl-protocol HEAD at startup: `4f6cc35fec89`
+- qsl-protocol origin/main after fetch: `4f6cc35fec89`
+- qsl-protocol mirror/main observed: `2abcee236e23` (not governing this directive)
+- qsl-server: not present under this worktree; no mutation
+- qsl-attachments: not present under this worktree; no mutation
+
+## READY Proof
+
+- qwork proof files existed under `/srv/qbuild/work/NA-0418/.qwork/` and were copied to `/srv/qbuild/tmp/NA0418_rustsec_pqcrypto_dependency_blocker_20260604T134216-0500/qwork/`.
+- qwork proof: `startup_result=OK`, lane `NA-0418`, repo `qsl-protocol`, path `/srv/qbuild/work/NA-0418/qsl-protocol`, `head_equals_origin_main=yes`, worktree/index/untracked clean, READY_COUNT `1`, queue top READY `NA-0418`, and requested lane status `READY`.
+- Codex did not run qwork, qstart, or qresume.
+- Live fetch did not advance `origin/main`; live `HEAD` and `origin/main` remained `4f6cc35fec89`, matching qwork proof.
+- PR #1104 verification: MERGED, merge commit `4f6cc35fec89`.
+- Queue helper at start: READY_COUNT `1`; READY `NA-0418 -- QSL Backup Log Code 23 Root Operator Evidence Preservation / Permission Remediation Packet Generation Harness`; NA-0417 DONE.
+- Decision helper at start: latest D-0823; duplicate count zero; D-0821 once; D-0822 once; D-0823 once; D-0824 absent.
+- Public-safety on current main: completed success.
+- `/usr/local/sbin/qsl-backup` checksum remained `e9ecff3d22ed...f6232`; exact Codex ops source inclusion count remained 1.
+
+## Dependency-Health Triage
+
+- Initial `cargo audit --deny warnings` exited 1 with denied warnings for `RUSTSEC-2026-0161` (`pqcrypto-mlkem 0.1.1`), `RUSTSEC-2026-0162` (`pqcrypto-traits 0.3.5`), and `RUSTSEC-2026-0163` (`pqcrypto-internals 0.2.11`).
+- Classification: `RUSTSEC_PQCRYPTO_BLOCKER_CONFIRMED`.
+- Reachability classification: `RUNTIME_SECURITY_CRITICAL_REACHABLE`, because `qsc` enables `quantumshield_refimpl` with `features = ["pqcrypto"]`, and `StdCrypto` implemented `PqKem768` using `pqcrypto-mlkem`.
+- Waiver decision: no audit waiver; runtime/security-critical reachability makes waiver ineligible.
+- Selected remediation: replace the KEM provider inside `quantumshield_refimpl` with RustCrypto `ml-kem 0.2.1`, preserving `PqKem768` and runtime helper APIs.
+
+## Remediation Notes
+
+- Changed paths so far: `Cargo.lock`; `tools/refimpl/quantumshield_refimpl/Cargo.toml`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tools/refimpl/quantumshield_refimpl/tests/pqkem768.rs`; `qsl/qsl-client/qsc/src/tui/controller/render.rs`; `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `docs/governance/evidence/NA-0418_qsl_rustsec_pqcrypto_dependency_health_blocker_triage_remediation.md`; `tests/NA-0418_qsl_rustsec_pqcrypto_dependency_health_blocker_triage_remediation_testplan.md`.
+- `cargo audit --deny warnings` after remediation exited 0.
+- `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked` each reported package ID not found.
+- `cargo tree -i rustls-webpki --locked` still reported `rustls-webpki v0.103.13`.
+- `cargo tree -p quantumshield_refimpl --features pqcrypto --locked` showed `ml-kem v0.2.1` and no pqcrypto KEM crates.
+- Focused provider validation passed: `cargo check -p quantumshield_refimpl --features pqcrypto`; `cargo test -p quantumshield_refimpl --features pqcrypto --locked`; `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768`.
+
+## Operator-Packet Preservation
+
+- Operator packet path exists: `/srv/qbuild/tmp/NA0418_code23_root_operator_packet_20260604T092447-05-00/`.
+- Operator result path exists: `/srv/qbuild/tmp/NA0418_code23_root_operator_packet_20260604T092447-05-00/operator_result/`.
+- Operator result observed as `root:victor` mode `2755`.
+- NA-0407 rollback directory observed as `root:root` mode `2755`.
+- Codex did not run generated packet scripts, sudo, backup, or restore.
+- Codex did not mutate qsl-backup, `/backup/qsl`, the rollback subtree, backup status files, or backup plan files.
+- NA-0419 is preserved as the operator-packet verification resume lane and is not implemented by this remediation PR.
+
+## Failures / Recoveries
+
+- Failing command: `cargo check -p quantumshield_refimpl --features pqcrypto` after the first provider patch. Classification: recoverable in-scope implementation error with understood cause. Root cause: ambiguous `hybrid_array::Array` `as_ref()` conversions after switching providers. Corrective action: added explicit slice bindings for encoded keys and ciphertext. Final result: rerun passed.
+- Failing command: `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768` after adding wrong-length input coverage. Classification: recoverable in-scope test import error with understood cause. Root cause: `CryptoError` was imported from the crate root instead of `crypto::traits`. Corrective action: corrected the import. Final result: rerun passed with 3 tests.
+- Failing command: `git rev-parse --short=12 HEAD origin/main mirror/main`. Classification: recoverable command-shape mistake. Corrective action: resolved refs one at a time. Final result: `HEAD` and `origin/main` both reported `4f6cc35fec89`; `mirror/main` reported `2abcee236e23`.
+- Failing command: initial `cargo fmt --check` after provider replacement. Classification: recoverable mechanical formatting validation failure with understood cause. Corrective action: ran `cargo fmt` without changing semantics. Final result: `cargo fmt --check` passed.
+- Failing command: `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` after provider replacement. Classification: recoverable in-scope build/test failure with understood cause. Root cause: introducing `ml-kem` brought `hybrid_array` into the qsc dependency graph, making three Ratatui constraint-array `.as_ref()` calls ambiguous. Corrective action: changed only `qsl/qsl-client/qsc/src/tui/controller/render.rs` to pass constraint arrays directly. Final result: rerun passed with 3 tests.
+
+## Validation / CI Notes
+
+- Local validation completed so far: focused provider compile/tests, cargo audit green, pqcrypto inverse-tree removal proof, rustls-webpki proof, `cargo fmt --check`, qsc send_commit, formal model checks, qshield-cli build, and qshield-cli tests.
+- Branch, PR, CI, merge, and optional closeout are pending.
+- Non-fatal warnings: parallel cargo commands printed package-cache/advisory-db lock waiting messages before completing; no STOP condition.
+
+## Disk Watermark
+
+- Filesystem: `/dev/nvme0n1p2`
+- Total: `468G`
+- Used: `192G`
+- Free: `252G`
+- Used %: `44%`
+
+## Next-Watch Items
+
+- Run full validation bundle before PR.
+- Confirm scope guard includes only allowed governance plus exact provider remediation paths.
+- Confirm D-0824 exists once and D-0825 remains absent before optional closeout.
+- Do not resume NA-0419 operator-packet verification inside the dependency-health remediation PR.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-04-255 -- Execute NA-0418 QSL Backup Log Code 23 Root Operator Evidence Preservation / Permission Remediation Packet Generation Harness
 - Begin timestamp from directive (America/Chicago): 2026-06-04T09:04:30-05:00
 - Begin timestamp from directive (UTC): 2026-06-04T14:04:30Z

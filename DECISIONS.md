@@ -20078,7 +20078,7 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - backup or restore operations are run
     - qsl-backup, backup source lists, backup status files, backup plan files, temp rollback subtrees, or backup scripts are mutated by closeout
     - the latest log rsync code 23 caveat is hidden or converted into a stronger backup claim
-    - same-host continuity is described as off-host coverage, disaster recovery, restore proof, backup completion, public readiness, external review, or public technical paper evidence
+    - same-host continuity is not described as off-host coverage, disaster recovery, restore proof, backup completion, public readiness, external review, or public technical paper evidence
     - durable Director State Index output is created
     - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
   - **References:** NA-0414; NA-0415; D-0815; D-0814; qsl-protocol PR #1096; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0414_closeout_restore_na0415_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
@@ -20167,3 +20167,44 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - durable Director State Index output is created
     - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
   - **References:** NA-0415; NA-0416; D-0817; D-0816; qsl-protocol PR #1098; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0415_closeout_restore_na0416_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0819
+  - **Title:** NA-0416 backup log code 23 cleanup permission remediation authorization plan
+  - **Status:** Accepted
+  - **Date:** 2026-06-04
+  - **Goals:** G4
+  - **Decision:** NA-0416 classifies the latest scheduled same-host qsl-backup warning as `CODE23_STILL_ACTIVE_NA0407_ROLLBACK_SUBTREE` and selects `NA-0417 -- QSL Backup Log Code 23 Root Operator Cleanup / Permission Remediation Packet Plan` as the successor. The recommended option is an evidence-preserving root-operator packet plan centered first on permission remediation after rollback evidence preservation, not deletion, relocation, qsl-backup exclusion, backup execution, or restore execution.
+  - **Evidence result:** The operator-provided qwork proof files were read from `/srv/qbuild/work/NA-0416/.qwork/`, parsed successfully, and matched live `HEAD` and `origin/main` at `ebf66f0f3d25`. PR #1099 was merged at that commit. Queue proof reported READY_COUNT 1 and READY NA-0416; decision proof reported latest D-0818 before this decision and duplicate count zero.
+  - **Log/manifest result:** The latest scheduled pair reviewed by NA-0416 is the 2026-06-04 daily log/manifest. The log has exactly one `rsync error`, exactly one `code 23`, exactly one `Permission denied`, and exactly one exact NA-0407 rollback directory reference. The matching manifest includes Codex ops exactly once. No other latest-log rsync failure source was found.
+  - **Rollback preservation result:** The NA-0407 packet path remains visible as `victor:victor` mode `2755`; the rollback directory remains `root:root` mode `2700` and is not readable or searchable by Codex. Readable packet metadata identifies `/usr/local/sbin/qsl-backup` as the target, records the expected preimage checksum prefix, and identifies the rollback copy filename pattern. Rollback metadata can be preserved without privilege, but rollback file content inspection or archival requires future operator/root action.
+  - **Authorization boundary:** NA-0416 does not run backup, does not run restore, does not run sudo, does not mutate `/usr/local/sbin/qsl-backup`, does not mutate any temp rollback subtree, does not mutate backup status or plan files, and does not create durable Director State Index output.
+  - **Same-host caveat:** This is internal same-host continuity evidence only. Manifest presence is not off-host backup, not disaster recovery, not restore proof, not backup completion, not production readiness, not public-internet readiness, not external review, and not public technical paper evidence.
+  - **Protected:**
+    - no qwork rerun by Codex
+    - no backup execution
+    - no restore execution
+    - no sudo
+    - no qsl-backup mutation
+    - no temp rollback subtree mutation
+    - no backup status mutation
+    - no backup plan mutation
+    - no systemd, timer, fstab, backup target, retention, source-list, or backup script mutation
+    - no durable Director State Index output
+    - no qwork, qstart, qresume, or qshell mutation
+    - no runtime, protocol, crypto, dependency, workflow, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE mutation
+    - no public technical paper work
+    - no public overclaim
+    - no secret handling
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0416 remains pending optional closeout
+    - D-0819 exists once
+    - D-0820 absent until optional closeout
+    - selected NA-0417 successor must include root-operator packet planning, rollback evidence preservation, exact path scope, no Codex sudo, same-host/code-23/no-backup/no-restore/no-qsl-backup-mutation/no-temp-mutation/no-public-overclaim caveats
+    - public-safety remains required and green
+  - **Must never happen:**
+    - NA-0416 runs backup, restore, or sudo
+    - qsl-backup, backup source lists, backup status files, backup plan files, temp rollback subtrees, systemd, timers, fstab, runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
+    - the latest log rsync code 23 caveat is hidden or converted into a stronger backup claim
+    - same-host continuity is not described as off-host coverage, disaster recovery, restore proof, backup completion, public readiness, external review, or public technical paper evidence
+  - **References:** NA-0416; NA-0417; D-0818; D-0817; `docs/governance/evidence/NA-0416_qsl_backup_log_code_23_temp_rollback_subtree_cleanup_permission_remediation_authorization_plan.md`; `tests/NA-0416_qsl_backup_log_code_23_temp_rollback_subtree_cleanup_permission_remediation_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -149,6 +149,14 @@ Last-Updated: 2026-06-04
   passed, 3 tests.
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
 - `python3 formal/run_model_checks.py`: passed.
+- Closeout initial commit: `876290f91fc4`.
+- Post-commit helper scope guard: changed path count `5`; forbidden count `0`.
+- Synthetic-event goal-lint: passed with base `5f34ecb9c75e` and head
+  `876290f91fc4`.
+- Closeout branch pushed to origin.
+- Closeout PR: qsl-protocol #1103.
+- Initial closeout PR merge state: `BLOCKED` while required checks attach and
+  run.
 
 ## Next-Watch Items
 

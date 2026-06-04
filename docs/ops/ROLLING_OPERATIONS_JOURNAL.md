@@ -97,6 +97,12 @@ Last-Updated: 2026-06-04
 - Evidence commit: `01fd77ee6161`.
 - Post-commit helper scope guard: changed path count `5`; forbidden count `0`.
 - Synthetic-event goal-lint: passed with base `3bf432f123f1` and head `01fd77ee6161`.
+- Journal validation commit: `6cf3d0d32dfc`.
+- Post-journal-commit helper scope guard: changed path count `5`; forbidden count `0`.
+- Synthetic-event goal-lint after journal commit: passed with base `3bf432f123f1` and head `6cf3d0d32dfc`.
+- Packet J branch pushed to origin.
+- Packet J PR: qsl-protocol #1102.
+- Initial PR merge state: `BLOCKED` while required checks attach and run.
 
 ## Next-Watch Items
 

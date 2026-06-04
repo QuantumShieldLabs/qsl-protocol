@@ -21178,12 +21178,122 @@ Closeout result:
 
 ---
 
-### NA-0412 — QSL Codex Ops Backup Status / Plan Update Authorization Plan
+### NA-0412 — QSL Local Ops qwork Startup Proof File Handoff Implementation Harness
 Status: READY
+Goals: G4
+
+Objective:
+Implement and document a stable qwork startup proof-file handoff so future
+non-qwork directives can verify startup by reading
+`/srv/qbuild/work/<NA>/.qwork/startup.qsl-protocol.kv` plus direct repo checks
+instead of requiring the operator to paste qwork output into the directive.
+
+Protects:
+- qwork fail-closed startup and automation nonzero behavior.
+- qshell interactive `set -e` shell-survival behavior.
+- qstart/qresume compatibility with the qwork startup contract.
+- The qsl-protocol tracked worktree clean-state boundary; qwork proof files
+  must be written outside `/srv/qbuild/work/<NA>/qsl-protocol/`.
+- The preserved backup status / plan authorization lane now held as NA-0413.
+- The no-backup/no-restore/no-qsl-backup-mutation boundary.
+- The one-READY queue invariant.
+
+Allowed scope:
+- Packet A governance reroute paths:
+  - `NEXT_ACTIONS.md`
+  - `DECISIONS.md`
+  - `TRACEABILITY.md`
+  - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+  - `tests/NA-0412_qwork_startup_proof_file_reprioritization_testplan.md`
+- Packet B local qwork implementation paths:
+  - `/srv/qbuild/tools/qwork.sh`
+  - `/srv/qbuild/tools/qshell.sh` only if required to keep wrapper behavior
+    aligned.
+- Packet C evidence paths:
+  - `docs/governance/evidence/NA-0412_qsl_local_ops_qwork_startup_proof_file_handoff.md`
+  - `tests/NA-0412_qsl_local_ops_qwork_startup_proof_file_handoff_testplan.md`
+  - `DECISIONS.md`
+  - `TRACEABILITY.md`
+  - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+- Packet D closeout paths:
+  - `NEXT_ACTIONS.md`
+  - `DECISIONS.md`
+  - `TRACEABILITY.md`
+  - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+  - `tests/NA-0412_closeout_restore_na0413_backup_status_plan_testplan.md`
+
+Forbidden scope:
+- Running backup.
+- Running restore.
+- Mutating `/usr/local/sbin/qsl-backup`.
+- Mutating backup source lists, backup status files, backup plan files,
+  systemd units, timers, fstab, backup target mounts, retention, or backup
+  scripts.
+- Creating durable Director State Index output.
+- Mutating qwork implementation files in Packet A.
+- Mutating runtime, crypto, dependency, workflow, qsl-server,
+  qsl-attachments, qshield runtime, website, public docs, README, or
+  START_HERE paths.
+- Creating public technical paper content.
+- Creating or implying off-host backup completion, disaster recovery
+  completion, restore proof, backup completion, production readiness,
+  public-internet readiness, external-review completion, metadata-free
+  behavior, anonymity, untraceability, bug-free status, vulnerability-free
+  status, or perfect-crypto claims.
+- Secret material handling.
+
+Deliverables:
+- qwork writes at least these successful-startup proof files outside the
+  tracked qsl-protocol worktree:
+  - `/srv/qbuild/work/<NA>/.qwork/startup.<repo>.kv`
+  - `/srv/qbuild/work/<NA>/.qwork/startup.<repo>.json`
+- The proof files include startup result, lane, repo, repo path, branch,
+  upstream, HEAD/origin/main/main SHAs, clean-tree fields, qsl-protocol queue
+  fields, existing log JSON proof path, lane workspace proof paths, qwork
+  version/checksum, and proof timestamp.
+- D-0810 for the reprioritization.
+- D-0811 for the implementation evidence.
+- D-0812 for closeout and NA-0413 restoration.
+- NA-0412 evidence and testplans for each Packet.
+- TRACEABILITY update.
+- Rolling journal update.
+- Future directive rule: non-qwork directives may rely on the qwork proof file
+  and direct repo checks, must not rerun qwork unless the directive is a qwork
+  test/fix lane, and must stop if proof is stale or disagrees with live checks.
+
+Acceptance criteria:
+- READY_COUNT remains exactly one through each Packet.
+- NA-0413 preserves the prior backup status / plan update authorization plan
+  and is restored as READY only by NA-0412 closeout.
+- qwork proof files are never written inside the qsl-protocol worktree.
+- qsl-protocol remains worktree-clean and untracked-clean after proof writes.
+- Future-directive simulation can read the proof file, cd to the proof path,
+  verify queue/decision state directly, and complete without rerunning qwork.
+- qshell `set -e` shell survival remains preserved.
+- qstart/qresume compatibility remains preserved.
+- No backup or restore operation is run.
+- No qsl-backup, backup source-list, backup status, or backup plan mutation is
+  performed by NA-0412.
+- No public-readiness or backup-complete overclaim is introduced.
+- public-safety is green before merge and after merge.
+
+---
+
+### NA-0413 — QSL Codex Ops Backup Status / Plan Update Authorization Plan
+Status: BACKLOG
 Goals: G1, G2, G3, G4, G5
 
 Objective:
 Authorize the next bounded local-ops governance lane for updating Codex backup status and/or backup plan documentation after NA-0411 verified that Codex ops is present in the same-host backup manifest, while preserving the log code 23 caveat and avoiding any backup execution, restore execution, off-host claim, disaster-recovery claim, or public-readiness claim.
+
+Preservation:
+- This is the exact backup status / plan authorization lane that was READY as
+  NA-0412 after D-0809.
+- D-0810 preserves it as NA-0413 while NA-0412 is temporarily reprioritized to
+  implement the qwork startup proof-file handoff.
+- NA-0413 must not be implemented by NA-0412.
+- NA-0413 must be restored as the sole READY successor only by NA-0412
+  closeout and D-0812.
 
 Protects:
 - The accuracy of backup status and backup plan records.
@@ -21194,7 +21304,7 @@ Protects:
 - The one-READY queue invariant.
 
 Allowed scope:
-- qsl-protocol governance evidence and testplan paths for NA-0412.
+- qsl-protocol governance evidence and testplan paths for NA-0413.
 - `DECISIONS.md`.
 - `TRACEABILITY.md`.
 - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
@@ -21204,7 +21314,7 @@ Allowed scope:
   - `/backup/qsl/manifests`
   - `/backup/qsl/logs`
   - `/usr/local/sbin/qsl-backup`
-- Future local status/plan mutation only if the NA-0412 live scope explicitly authorizes exact files and exact wording.
+- Future local status/plan mutation only if the NA-0413 live scope explicitly authorizes exact files and exact wording.
 
 Forbidden scope:
 - Running backup.
@@ -21219,9 +21329,9 @@ Forbidden scope:
 - Secret material handling.
 
 Deliverables:
-- NA-0412 evidence doc or blocker evidence, depending on live scope.
-- NA-0412 testplan.
-- D-0810 or next sequential decision for NA-0412 planning, unless live decisions require a different exact ID.
+- NA-0413 evidence doc or blocker evidence, depending on live scope.
+- NA-0413 testplan.
+- D-0813 or next sequential decision for NA-0413 planning, unless live decisions require a different exact ID.
 - TRACEABILITY update.
 - Rolling journal update.
 - Exact recommendation for whether status/plan docs may be updated in a later implementation lane.

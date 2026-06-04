@@ -19763,3 +19763,51 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - durable Director State Index output is created
     - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
   - **References:** NA-0411; NA-0412; D-0808; qsl-protocol PR #1089; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0411_qsl_codex_ops_backup_coverage_manifest_verification_status_update_testplan.md`; `tests/NA-0411_closeout_restore_na0412_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0810
+  - **Title:** NA-0412 qwork startup proof file handoff reprioritization
+  - **Status:** Accepted
+  - **Date:** 2026-06-04
+  - **Goals:** G4
+  - **Decision:** QSL reprioritizes the queue so NA-0412 becomes the qwork startup proof-file handoff implementation lane, while the previously READY backup status / plan update authorization lane is preserved as NA-0413 for restoration after NA-0412 closeout.
+  - **Trigger:** D247 stopped because the directive required the operator to paste qwork output into the directive body. The user requested a file-based qwork handoff so future non-qwork directives can read stable qwork startup proof files and direct repo checks instead of asking the operator to edit directives with transient terminal output.
+  - **Reroute result:** READY_COUNT remains 1; READY NA-0412 now names `QSL Local Ops qwork Startup Proof File Handoff Implementation Harness`; `NA-0413 -- QSL Codex Ops Backup Status / Plan Update Authorization Plan` is preserved but not READY.
+  - **Backup lane preservation:** The backup status / plan lane is deferred, not discarded. NA-0413 must be restored as the next READY item after NA-0412 qwork proof-file handoff closeout; NA-0413 is not implemented by this reprioritization.
+  - **Protected:**
+    - no qwork implementation in this reprioritization PR
+    - no qshell implementation in this reprioritization PR
+    - no NA-0413 backup status / plan implementation
+    - no backup execution
+    - no restore execution
+    - no qsl-backup mutation
+    - no backup source-list mutation
+    - no backup status mutation
+    - no backup plan mutation
+    - no systemd, timer, fstab, or backup target mutation
+    - no durable Director State Index output
+    - no runtime, protocol, crypto, dependency, or workflow mutation
+    - no public docs, website, README, or START_HERE mutation
+    - no qsl-server or qsl-attachments mutation
+    - no public technical paper work
+    - no response archive mutation by this PR
+    - no secret handling
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0412 qwork proof-file handoff implementation lane
+    - NA-0413 backup status / plan authorization lane preserved but not READY
+    - NA-0411 DONE
+    - D-0808 once
+    - D-0809 once
+    - D-0810 once
+    - D-0811 absent until qwork implementation evidence
+    - D-0812 absent until closeout
+    - public-safety remains required and green
+  - **Must never happen:**
+    - this reprioritization implements qwork proof-file writing
+    - this reprioritization implements NA-0413 backup status / plan work
+    - backup or restore operations are run
+    - qsl-backup, backup source lists, backup status files, or backup plan files are mutated
+    - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
+    - same-host continuity is described as disaster recovery, off-host backup, restore proof, backup completion, public readiness, or external review evidence
+    - public-readiness, backup-complete, restore-proof, off-host-backup, vulnerability-free, bug-free, or perfect-crypto claims are introduced
+  - **References:** NA-0412; NA-0413; D-0808; D-0809; qsl-protocol PR #1090; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0412_qwork_startup_proof_file_reprioritization_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

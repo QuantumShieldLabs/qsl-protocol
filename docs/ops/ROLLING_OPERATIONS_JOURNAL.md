@@ -8,6 +8,139 @@ Last-Updated: 2026-06-04
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-04-255 -- Execute NA-0418 QSL Backup Log Code 23 Root Operator Evidence Preservation / Permission Remediation Packet Generation Harness
+- Begin timestamp from directive (America/Chicago): 2026-06-04T09:04:30-05:00
+- Begin timestamp from directive (UTC): 2026-06-04T14:04:30Z
+- Host clock at startup (America/Chicago): 2026-06-04T09:23:20-05:00
+- Host clock at startup (UTC): 2026-06-04T14:23:20+00:00
+- End timestamp (America/Chicago): pending final response
+- End timestamp (UTC): pending final response
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0418/qsl-protocol`
+- qsl-protocol evidence branch: `na-0418-code23-root-operator-packet-generation`
+- qsl-protocol HEAD at startup: `72ccd9a7cd68`
+- qsl-protocol origin/main at startup: `72ccd9a7cd68`
+- qsl-protocol origin/main after fetch: `72ccd9a7cd68`
+- qsl-server: not present under this worktree; no mutation
+- qsl-attachments: not present under this worktree; no mutation
+
+## READY Proof
+
+- qwork proof files existed under `/srv/qbuild/work/NA-0418/.qwork/` and were copied to `/srv/qbuild/tmp/NA0418_packet_generation_proof_20260604T092447-05-00/qwork/`.
+- qwork proof: `startup_result=OK`, lane `NA-0418`, repo `qsl-protocol`, `head_equals_origin_main=yes`, worktree/index/untracked clean, READY_COUNT `1`, queue top READY `NA-0418`, and requested lane status `READY`.
+- Codex did not run qwork, qstart, or qresume.
+- Live fetch did not advance `origin/main`; live `HEAD` and `origin/main` remained `72ccd9a7cd68`, matching qwork proof.
+- PR #1103 verification: MERGED, merge commit `72ccd9a7cd68`.
+- Queue helper at start: READY_COUNT `1`; READY `NA-0418 -- QSL Backup Log Code 23 Root Operator Evidence Preservation / Permission Remediation Packet Generation Harness`; NA-0417 DONE.
+- Decision helper at start: latest D-0822; duplicate count zero; D-0821 once; D-0822 once; D-0823 absent.
+- Public-safety on current main: required and completed success.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- `/usr/local/sbin/qsl-backup` checksum prefix remained `e9ecff3d22ed`; exact Codex ops source inclusion count remained 1.
+
+## Log / Manifest Review
+
+- Latest scheduled log: `/backup/qsl/logs/daily-20260604T023542-0500.log`.
+- Latest scheduled manifest: `/backup/qsl/manifests/daily-20260604T023542-0500.manifest.txt`.
+- Log counts: `rsync error=1`, `code 23=1`, `Permission denied=1`, `NA0407=1`, `rollback=1`, `qsl-backup.preimage=0`, exact rollback directory reference `1`.
+- Manifest Codex ops path count: `1`.
+- Manifest NA-0407/rollback counts: `0` and `0`.
+- Classification: `CODE23_STILL_ACTIVE_NA0407_ROLLBACK_SUBTREE`.
+- No other latest-log backup failure source was found.
+
+## Packet Preimage Review
+
+- NA-0407 packet path exists and remains `victor:victor` mode `2755`.
+- NA-0407 rollback path exists and remains `root:root` mode `2700`.
+- Rollback path read/search access by Codex: false.
+- Readable NA-0407 packet metadata identifies the rollback file path pattern as `rollback/qsl-backup.preimage.<expected-preimage-sha>`.
+- Backup status and plan docs were inspected read-only; their hashes remained `036b608b75c6` and `bba5e4ebad6a`.
+
+## Operator Packet Generation
+
+- Packet root: `/srv/qbuild/tmp/NA0418_code23_root_operator_packet_20260604T092447-05-00/`.
+- Generated files: `README_OPERATOR_ACTION.md`, `operator_packet_manifest.json`, `checksums_before.txt`, `preflight_report.txt`, `expected_actions.txt`, `apply_code23_permission_remediation.sh`, `verify_after_operator_action.sh`, `rollback_after_operator_action.sh`, and optional `expected_patch_or_mode_change.txt`.
+- Script modes are executable.
+- Apply script design: requires root, verifies exact rollback path, verifies `root:root` mode `2700`, verifies qsl-backup checksum prefix `e9ecff3d22ed`, preserves rollback metadata/checksum proof under packet-local `operator_result/`, changes only rollback directory mode to `2755`, and prints explicit NA0418 success/no-backup/no-restore/qsl-backup-unchanged/evidence-preserved markers.
+- Verify script design: does not require root, verifies rollback directory post-action `root:root` mode `2755`, verifies qsl-backup unchanged, and prints `NA0418_OPERATOR_PACKET_VERIFY_OK`.
+- Rollback script design: requires root, verifies qsl-backup unchanged, restores only rollback directory mode to `2700`, does not delete evidence, and prints `NA0418_OPERATOR_PACKET_ROLLBACK_OK`.
+
+## Packet Validation Notes
+
+- `bash -n` passed for all packet scripts.
+- Manifest JSON parsed with `python3 -m json.tool`.
+- Packet file count: 9; missing count 0; extra count 0.
+- Packet file checksums recorded during static validation.
+- Forbidden-command scan passed for backup, restore, cleanup, push, merge, dependency-update, and direct sudo-in-script strings.
+- Root/static proof passed: apply and rollback require root; verify does not require root; all scripts contain the exact qsl-backup SHA and rollback path; expected modes are present; no qsl-backup mutation terms were found; no rollback file content-dump tools were found.
+- Packet secret scan: `SECRET_FINDING_COUNT 0`.
+- Codex did not execute generated packet scripts.
+
+## Evidence Patch
+
+- Allowed qsl-protocol paths: `docs/governance/evidence/NA-0418_qsl_backup_log_code_23_root_operator_evidence_preservation_permission_remediation_packet_generation_harness.md`; `tests/NA-0418_qsl_backup_log_code_23_root_operator_evidence_preservation_permission_remediation_packet_generation_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- Decision in draft: D-0823.
+- Queue state in draft: READY NA-0418 remains pending operator output review; NA-0419 is not restored.
+- Boundary: no sudo by Codex, no generated script execution, no backup execution, no restore execution, no qsl-backup/source-list/status/plan/temp-subtree mutation by Codex, no durable Director State Index output, no runtime/protocol/crypto/dependency/workflow/public-doc/website/README/START_HERE/sibling-repo/secret mutation, and no public-claim expansion.
+
+## Failures / Recoveries
+
+- Failing command: first contextual added-line overclaim scan. Classification:
+  recoverable scan-shape false positive because the scanner flagged wrapped
+  negative caveat text and a section heading as positive claims. Corrective
+  action: reran a sentence-aware scan that joins wrapped prose and ignores
+  headings while preserving the negative claim boundary. Final result:
+  `OVERCLAIM_POSITIVE_CANDIDATE_COUNT 0`.
+- Failing command: `git diff --cached --check` after the initial evidence
+  patch. Classification: recoverable in-scope formatting validation failure
+  with understood cause because two new markdown files ended with trailing
+  blank lines. Corrective action: removed only the trailing EOF blank lines and
+  restaged the exact allowed files. Final result: `git diff --cached --check`
+  passed.
+- Non-fatal note: the packet/proof timestamp path includes the literal host
+  offset form `-05-00`; it remains under the directive-allowed `<timestamp>`
+  packet and proof root patterns.
+
+## Validation Notes
+
+- Draft direct staged path proof: exactly the five allowed NA-0418 paths.
+- Pre-commit helper scope guard reported changed path count `0` because it
+  compares committed refs; direct staged path proof was used before commit and
+  helper scope guard will be rerun after commit.
+- `git diff --check`: passed.
+- Queue helper after draft patch: READY_COUNT `1`; READY NA-0418.
+- Decision helper after draft patch: latest D-0823; duplicate count zero.
+- Structural decision counts: D-0821 once; D-0822 once; D-0823 once; D-0824
+  absent.
+- Helper link-check: `TOTAL_MISSING 0`.
+- Helper added-line leak scan: `SECRET_FINDING_COUNT 0`.
+- PR-body preflight: `MISSING_FIELD_COUNT 0`; `PROHIBITED_PHRASE_COUNT 0`.
+- Contextual added-line overclaim scan: positive candidate count `0` after one
+  scan-shape correction.
+- Classifier proof with exact staged paths: `docs_only=true`,
+  `workflow_security=false`, `runtime_critical=false`, `scope_class=docs_only`.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- `cargo fmt --check`: passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`:
+  passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
+- `python3 formal/run_model_checks.py`: passed.
+- Pending commit, post-commit scope guard, goal-lint, PR, merge, and post-merge
+  evidence.
+
+## Next-Watch Items
+
+- Human operator must inspect and execute the packet before Codex resumes.
+- NA-0418 must remain READY until operator apply/verify output is reviewed.
+- NA-0419 must not be restored until operator output review is complete.
+- The root-owned rollback subtree must remain unmodified by Codex.
+- Local backup status/plan docs may need a future exact-scope refresh only after actual remediation and follow-up evidence are reviewed.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-04-253 -- Execute NA-0417 QSL Backup Log Code 23 Root Operator Cleanup / Permission Remediation Packet Plan, Optional Closeout to NA-0418
 - Begin timestamp from directive (America/Chicago): 2026-06-04T08:04:30-05:00
 - Begin timestamp from directive (UTC): 2026-06-04T13:04:30Z

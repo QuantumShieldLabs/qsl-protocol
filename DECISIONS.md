@@ -20346,3 +20346,48 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - durable Director State Index output is created
     - runtime, protocol, crypto, dependency, workflow, public docs, website, README, START_HERE, qsl-server, or qsl-attachments paths are mutated
   - **References:** NA-0417; NA-0418; D-0821; D-0820; qsl-protocol PR #1102; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `tests/NA-0417_closeout_restore_na0418_testplan.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0823
+  - **Title:** NA-0418 backup log code 23 root operator packet generation harness
+  - **Status:** Accepted
+  - **Date:** 2026-06-04
+  - **Goals:** G4
+  - **Decision:** NA-0418 generated a bounded, no-secret root-operator packet at `/srv/qbuild/tmp/NA0418_code23_root_operator_packet_20260604T092447-05-00/` for preserving rollback evidence and remediating the active scheduled same-host backup log code 23 warning tied to the NA-0407 rollback directory. Codex generated and statically validated the packet only. Codex did not execute the packet, did not run sudo, did not run backup or restore modes, did not mutate `/usr/local/sbin/qsl-backup`, did not mutate `/backup/qsl`, did not mutate the rollback subtree, did not mutate backup status or plan files, and did not create durable Director State Index output.
+  - **Packet result:** Generated files are `README_OPERATOR_ACTION.md`, `operator_packet_manifest.json`, `checksums_before.txt`, `preflight_report.txt`, `expected_actions.txt`, `apply_code23_permission_remediation.sh`, `verify_after_operator_action.sh`, `rollback_after_operator_action.sh`, and optional `expected_patch_or_mode_change.txt`. Static validation passed: shell syntax, manifest JSON parse, generated-file inventory, checksums, forbidden-command scan, root-check proof, exact qsl-backup SHA/path proof, no content-dump proof, and secret scan.
+  - **Rollback evidence preservation plan:** The apply script requires root, verifies the exact rollback path still exists as `root:root` mode `2700`, verifies qsl-backup checksum prefix `e9ecff3d22ed`, records rollback metadata and root-readable file checksums under packet-local `operator_result/`, and then changes only the rollback directory mode to `2755`. The script does not print rollback file content, does not delete or move rollback files, and does not modify qsl-backup. The optional rollback script restores only the rollback directory mode to `2700`.
+  - **Current log classification:** `CODE23_STILL_ACTIVE_NA0407_ROLLBACK_SUBTREE`. The latest scheduled log/manifest pair remains the 2026-06-04 daily pair; the log still has exactly one code 23 / permission-denied source naming the NA-0407 rollback directory, and the manifest still includes Codex ops exactly once. No other latest-log backup failure source was found.
+  - **Same-host caveat:** This is same-host scheduled log remediation evidence only. It is not off-host backup, not disaster recovery, not restore proof, not backup completion, not production readiness, not public-internet readiness, not external review, and not public technical paper evidence.
+  - **USER ACTION REQUIRED:** The human operator must inspect the packet, run apply as root, run verify, and paste apply/verify output back to the Director before Codex resumes. NA-0418 remains READY until that operator output is reviewed; NA-0419 is not restored by this directive.
+  - **Protected:**
+    - no qwork rerun by Codex
+    - no packet execution by Codex
+    - no sudo by Codex
+    - no backup execution
+    - no restore execution
+    - no qsl-backup mutation
+    - no `/backup/qsl` mutation
+    - no rollback subtree mutation by Codex
+    - no backup status mutation
+    - no backup plan mutation
+    - no systemd, timer, fstab, source-list, retention, or backup script mutation
+    - no durable Director State Index output
+    - no qwork, qstart, qresume, or qshell mutation
+    - no runtime, protocol, crypto, dependency, workflow, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE mutation
+    - no public technical paper work
+    - no public overclaim
+    - no secret handling
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0418 remains pending operator output review
+    - NA-0417 DONE
+    - D-0821 once
+    - D-0822 once
+    - D-0823 once
+    - D-0824 absent until later exact-scope work
+    - public-safety remains required and green
+  - **Must never happen:**
+    - this packet is treated as already executed
+    - NA-0418 is closed before operator output review
+    - NA-0419 is restored before operator output review
+    - backup, restore, sudo, generated script execution, qsl-backup mutation, rollback subtree mutation by Codex, status/plan mutation, or public-claim expansion is hidden inside this lane
+  - **References:** NA-0418; D-0822; D-0821; `docs/governance/evidence/NA-0418_qsl_backup_log_code_23_root_operator_evidence_preservation_permission_remediation_packet_generation_harness.md`; `tests/NA-0418_qsl_backup_log_code_23_root_operator_evidence_preservation_permission_remediation_packet_generation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

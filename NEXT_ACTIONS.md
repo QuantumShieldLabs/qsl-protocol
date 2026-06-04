@@ -21462,8 +21462,24 @@ Acceptance criteria:
 ---
 
 ### NA-0415 — QSL Backup Log Code 23 Permission-Denied Temp Rollback Subtree Review Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
+Implementation note:
+- qsl-protocol PR #1098 merged the NA-0415 read-only code 23 review as
+  `a90b4974c022`.
+- D-0817 records classification:
+  `CODE23_SOURCE_CONFIRMED_NA0407_ROLLBACK_SUBTREE`.
+- The latest scheduled same-host log reviewed by NA-0415 was the 2026-06-04
+  daily log. It still had exactly one rsync code 23 / permission-denied source,
+  and that source was the NA-0407 temp rollback subtree.
+- The latest scheduled same-host manifest reviewed by NA-0415 included Codex
+  ops exactly once.
+- No backup, restore, qsl-backup mutation, temp rollback subtree mutation,
+  backup status/plan mutation, durable Director State Index output, public
+  docs, website, README, START_HERE, qsl-server, qsl-attachments, runtime,
+  protocol, crypto, dependency, or workflow mutation was performed.
+- Selected successor: NA-0416 -- QSL Backup Log Code 23 Temp Rollback Subtree
+  Cleanup / Permission Remediation Authorization Plan.
 
 Objective:
 Review the scheduled same-host backup log code 23 caveat caused by the NA-0407 temp rollback subtree permission-denied path, determine whether cleanup or permission remediation is needed, and preserve no-backup/no-restore/no-public-overclaim boundaries before any future durable-state or public-readiness work.
@@ -21508,6 +21524,78 @@ Acceptance criteria:
 - Same-host continuity caveat is preserved.
 - No backup or restore operation is run.
 - No qsl-backup mutation occurs.
+- No public-readiness or backup-complete overclaim is introduced.
+- Exactly one READY item remains.
+- public-safety is green before merge and after merge.
+
+---
+
+### NA-0416 — QSL Backup Log Code 23 Temp Rollback Subtree Cleanup / Permission Remediation Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize a bounded plan for resolving the scheduled same-host backup log code
+23 warning caused by the NA-0407 temp rollback subtree, without running backup
+or restore, and without deleting, chmodding, chowning, or moving any temp
+subtree path until exact future scope and rollback evidence are approved.
+
+Protects:
+- Backup log accuracy.
+- Rollback evidence preservation.
+- Same-host continuity caveats.
+- The rule that manifest evidence is not backup completion.
+- The no-backup/no-restore boundary.
+- The one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0416.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- Read-only inspection of `/backup/qsl/logs`, `/backup/qsl/manifests`,
+  `/srv/qbuild/tmp`,
+  `/srv/qbuild/tmp/NA0407_qsl_backup_root_action_20260602T232945-0500`,
+  and `/usr/local/sbin/qsl-backup`.
+
+Forbidden scope:
+- Running backup.
+- Running restore.
+- Mutating `/usr/local/sbin/qsl-backup`.
+- Deleting, moving, chmod/chowning, or otherwise mutating temp rollback subtree
+  paths unless a later directive explicitly authorizes exact paths, rollback,
+  and validation.
+- Mutating systemd units, timers, fstab, backup target mounts, source lists,
+  retention, or backup scripts.
+- Creating durable Director State Index output.
+- Mutating qwork/qstart/qresume/qshell.
+- Mutating runtime, crypto, dependency, workflow, qsl-server, qsl-attachments,
+  qshield runtime, website, public docs, README, or START_HERE paths.
+- Creating public technical paper content.
+- Creating or implying off-host backup completion, disaster recovery
+  completion, restore proof, backup completion, production readiness,
+  public-internet readiness, external-review completion, metadata-free
+  behavior, anonymity, untraceability, bug-free status, vulnerability-free
+  status, or perfect-crypto claims.
+- Secret material handling.
+
+Deliverables:
+- NA-0416 evidence doc or blocker evidence.
+- NA-0416 testplan.
+- D-0819 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- Exact recommendation for whether cleanup/remediation implementation should
+  proceed.
+
+Acceptance criteria:
+- Exact code 23 source is preserved.
+- Rollback evidence preservation is addressed.
+- Same-host continuity caveat is preserved.
+- No backup or restore operation is run.
+- No qsl-backup mutation occurs.
+- No temp subtree mutation occurs unless a later implementation directive
+  authorizes it.
 - No public-readiness or backup-complete overclaim is introduced.
 - Exactly one READY item remains.
 - public-safety is green before merge and after merge.

@@ -85,6 +85,7 @@ Last-Updated: 2026-06-04
 - Non-fatal warning: `gh run list` showed several scheduled remote/UI workflows failed on the same main SHA. Direct check-run proof showed protected `public-safety` and current main push checks were successful; the scheduled runs are not the required NA-0415 public-safety gate.
 - Failing command: `git add -N docs/governance/evidence/NA-0415_qsl_backup_log_code_23_permission_denied_temp_rollback_subtree_review_plan.md tests/NA-0415_qsl_backup_log_code_23_permission_denied_temp_rollback_subtree_review_testplan.md`. Classification: recoverable staging/proof-shape issue because the evidence directory is ignored and the exact new paths are allowed by NA-0415. Corrective action: reran with `git add -N -f` for the exact allowed new paths. Final result: `git diff --name-only` showed the full five-path allowed set.
 - First added-line overclaim scan was context-free and flagged negative boundary text as positive overclaims. Classification: recoverable proof-shape false positive. Corrective action: reran with context-aware logic and tightened wrapped negative lines so the negating word appears locally. Final result: contextual positive overclaim count `0`.
+- Closeout contextual overclaim scan flagged the NA-0416 protected invariant "manifest evidence and backup completion" as a positive overclaim. Classification: recoverable proof-shape false positive caused by wording that lacked local negation. Corrective action: rewrote the invariant as "manifest evidence is not backup completion." Final result: contextual positive overclaim count `0`.
 
 ## Validation Notes
 
@@ -111,7 +112,40 @@ Last-Updated: 2026-06-04
 - Post-commit helper scope guard: changed path count `5`; forbidden count `0`.
 - Synthetic-event goal-lint: passed with base `68ab384961c1` and head `45a6c2cfde79`.
 - Governance preflight: clean tree, one READY line, exact five-path name-only diff.
-- Pending: PR creation, required checks, merge, post-merge public-safety, optional closeout, final forward audit, and response file.
+- Packet J PR: qsl-protocol #1098.
+- Packet J final head before merge: `8eb72edb565a`.
+- Packet J required checks completed green by bounded REST polling at iteration 7/180.
+- Packet J PR-side goal-lint passed.
+- Packet J required-check summary had failure count `0`.
+- Packet J merge commit: `a90b4974c022`.
+- Packet J post-merge public-safety completed success on `a90b4974c022` by bounded REST polling at iteration 9/180.
+
+## Packet K Closeout Patch
+
+- Closeout branch: `na-0415-closeout-restore-na0416`.
+- Closeout allowed paths: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0415_closeout_restore_na0416_testplan.md`.
+- Queue transition in draft: NA-0415 DONE; `NA-0416 -- QSL Backup Log Code 23 Temp Rollback Subtree Cleanup / Permission Remediation Authorization Plan` restored as the sole READY item.
+- Closeout decision in draft: D-0818.
+- Closeout boundary: no NA-0416 implementation, no backup execution, no restore execution, no qsl-backup/source-list/status/plan/temp-subtree mutation, no durable Director State Index output, no helper mutation, no runtime/protocol/crypto/dependency/workflow/public-doc/website/README/START_HERE/qsl-server/qsl-attachments mutation, no secret handling, and no public-claim expansion.
+- Same-host continuity, code 23 source classification, and rollback evidence preservation remain mandatory for NA-0416.
+- Closeout queue helper: READY_COUNT `1`; READY `NA-0416 -- QSL Backup Log Code 23 Temp Rollback Subtree Cleanup / Permission Remediation Authorization Plan`; NA-0415 DONE.
+- Closeout decision helper: latest D-0818; duplicate count zero.
+- Structural decision counts: D-0817 once; D-0818 once; D-0819 absent.
+- Draft changed path set after intent-adding the testplan: exactly the five allowed closeout paths.
+- `git diff --check`: passed.
+- Custom exact changed-path guard: changed path count `5`; forbidden count `0`.
+- Helper link-check: `TOTAL_MISSING 0`.
+- Helper added-line leak scan: `SECRET_FINDING_COUNT 0`.
+- PR-body preflight: `MISSING_FIELD_COUNT 0`; `PROHIBITED_PHRASE_COUNT 0`.
+- Contextual overclaim scan: positive overclaim count `0`.
+- Classifier proof with exact changed paths: `docs_only=true`, `workflow_security=false`, `runtime_critical=false`.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- `cargo fmt --check`: passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
+- `python3 formal/run_model_checks.py`: passed.
+- Pending: commit, post-commit scope guard, goal-lint, PR creation, required checks, merge, post-merge public-safety, final forward audit, and response file.
 
 ## Disk Watermark
 

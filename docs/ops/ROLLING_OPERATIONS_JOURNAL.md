@@ -8,6 +8,97 @@ Last-Updated: 2026-06-03
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-04-248 -- Reprioritize NA-0412 for qwork Startup Proof File Handoff, Then Restore Backup Status / Plan Lane
+- Begin timestamp from directive (America/Chicago): 2026-06-04T00:54:30-05:00
+- Begin timestamp from directive (UTC): 2026-06-04T05:54:30Z
+- Host clock at startup (America/Chicago): 2026-06-03T19:52:20-05:00
+- Host clock at startup (UTC): 2026-06-04T00:52:20+00:00
+- End timestamp (America/Chicago): pending final response
+- End timestamp (UTC): pending final response
+
+## Repo SHAs
+
+- qsl-protocol worktree path: `/srv/qbuild/work/NA-0412/qsl-protocol`
+- qsl-protocol Packet A branch: `na-0412-qwork-proof-file-reprioritization`
+- qsl-protocol Packet C branch: pending
+- qsl-protocol Packet D branch: pending
+- qsl-protocol HEAD at hard start: `a41982f34839`
+- qsl-protocol main at hard start: `a41982f34839`
+- qsl-protocol origin/main at hard start: `a41982f34839`
+- qsl-protocol mirror/main at hard start: `2abcee236e23`
+- PR #1090 merge prefix: `a41982f34839`
+- qsl-server main/origin/mirror: pending read-only boundary audit
+- qsl-attachments main/origin/mirror: pending read-only boundary audit
+
+## READY Proof
+
+- qwork startup: `startup_result=OK`, lane `NA-0412`, repo `qsl-protocol`, `head_equals_origin_main=yes`, worktree/index/untracked clean, READY_COUNT `1`, queue top READY `NA-0412`, and requested lane status `READY`.
+- qwork JSON proof: `/srv/qbuild/logs/NA-0412/startup.qsl-protocol.json`.
+- Queue helper at start: READY_COUNT `1`; READY `NA-0412 -- QSL Codex Ops Backup Status / Plan Update Authorization Plan`; NA-0411 DONE.
+- Decision helper at start: latest D-0809; D-0808 once; D-0809 once; D-0810 absent; duplicate count zero.
+- PR #1090 verification: merged at `2026-06-03T23:56:39Z`, merge commit `a41982f34839`, and `origin/main` equals that merge.
+- PR #1090 public-safety: completed success on the merge commit.
+
+## Worktree / Branch / PR
+
+- Start state: clean `main...origin/main`; no tracked diff; no untracked files.
+- Packet A branch created: `na-0412-qwork-proof-file-reprioritization`.
+- Packet A allowed paths: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0412_qwork_startup_proof_file_reprioritization_testplan.md`.
+- Packet A queue transition in draft: promote `NA-0412 -- QSL Local Ops qwork Startup Proof File Handoff Implementation Harness` as sole READY; preserve `NA-0413 -- QSL Codex Ops Backup Status / Plan Update Authorization Plan` as not READY.
+- Packet A decision in draft: D-0810.
+- Packet A PR: pending.
+- Packet A merge commit: pending.
+
+## Backup Boundary Proof
+
+- `/usr/local/sbin/qsl-backup` checksum: `e9ecff3d22ed`.
+- Exact Codex ops source inclusion count in qsl-backup: `1`.
+- No backup or restore operation was run.
+- No qsl-backup, backup source-list, backup status, backup plan, systemd, timer, fstab, or source-list mutation was performed.
+- Prior response file exists: `/home/victor/work/qsl/codex/responses/NA0411_20260603T190218-0500_D246.md`.
+
+## Failures / Recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py goal-lint --base origin/main --head HEAD`. Classification: recoverable command-shape mistake because `qsl_evidence_helper.py` text mentions goal-lint but does not expose a `goal-lint` subcommand. Corrective action: inspected the workflow/helper usage and moved to the actual workflow linter command. Final result: synthetic-event goal-lint passed with `python3 tools/goal_lint.py`.
+- Failing command: `python tools/goal_lint.py`. Classification: recoverable local interpreter invocation issue during the same goal-lint correction because this host has `python3` but no `python` executable, while CI installs `python`. Corrective action: used `python3` with a synthetic pull-request event payload. Final result: `OK: goal compliance checks passed.`
+
+## Validation / CI Notes
+
+- Hard-start `cargo audit --deny warnings`: passed.
+- Hard-start `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- Packet A queue helper: READY_COUNT `1`; READY `NA-0412 -- QSL Local Ops qwork Startup Proof File Handoff Implementation Harness`; NA-0411 DONE; NA-0413 BACKLOG backup status / plan authorization lane.
+- Packet A decision helper: latest D-0810; D-0808 once; D-0809 once; D-0810 once; D-0811 absent; D-0812 absent; duplicate count zero.
+- Packet A changed path set after commit: exactly the five allowed paths.
+- Packet A scope guard over `origin/main...HEAD`: `CHANGED_PATH_COUNT 5`, `FORBIDDEN_COUNT 0`.
+- `git diff --check`: passed.
+- helper link-check: `TOTAL_MISSING 0`.
+- helper added-line leak scan: `SECRET_FINDING_COUNT 0`.
+- PR-body preflight: `MISSING_FIELD_COUNT 0`; `PROHIBITED_PHRASE_COUNT 0`.
+- `cargo audit --deny warnings`: passed.
+- `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- `cargo fmt --check`: passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
+- `python3 formal/run_model_checks.py`: passed.
+- synthetic-event goal-lint with `python3 tools/goal_lint.py`: passed.
+- Protected checks: pending PR.
+- Retry notes: none yet.
+
+## Disk Watermark
+
+- `/srv/qbuild`: total `468G`, used `182G`, available `263G`, used `41%`.
+- `/backup/qsl`: total `916G`, used `26G`, available `882G`, used `3%`.
+
+## Next-Watch Items
+
+- Packet A must not implement qwork or NA-0413.
+- Packet B must write lane workspace proof files under `/srv/qbuild/work/NA-0412/.qwork/`, not inside the qsl-protocol worktree.
+- Future non-qwork directives should read qwork proof files plus direct repo checks and should not require operator-pasted qwork output.
+- NA-0413 must be restored after NA-0412 closeout without implementing backup status / plan updates.
+- Latest scheduled backup log code 23 caveat and same-host continuity caveat must remain visible.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-03-246 -- Close Out NA-0411 and Restore Explicit NA-0412 Backup Status / Plan Authorization Block
 - Begin timestamp (America/Chicago): 2026-06-03T16:34:30-05:00
 - Begin timestamp (UTC): 2026-06-03T21:34:30Z

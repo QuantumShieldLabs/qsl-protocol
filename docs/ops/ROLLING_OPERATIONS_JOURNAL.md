@@ -2,9 +2,79 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-06-04
+Last-Updated: 2026-06-05
 
 # Rolling Operations Journal
+
+# Rolling Operations Journal Entry
+
+- Directive: QSL-DIR-2026-06-05-261 -- Retry NA-0420 QSL Backup Log Code 23 Post-Remediation Scheduled Backup Verification After Scheduled Pair Exists
+- Begin timestamp from directive (America/Chicago): 2026-06-05T06:34:30-05:00
+- Begin timestamp from directive (UTC): 2026-06-05T11:34:30Z
+- Host clock during NA-0420 evidence collection (America/Chicago): 2026-06-05T08:33:17-05:00
+- Host clock during NA-0420 evidence collection (UTC): 2026-06-05T13:33:17+00:00
+- Proof root: `/srv/qbuild/tmp/NA0420_post_remediation_scheduled_backup_verification_retry_20260605T083900-0500/`
+
+## READY and qwork Proof
+
+- qwork proof files existed under `/srv/qbuild/work/NA-0420/.qwork/`, parsed successfully, and were copied to the proof root.
+- Codex did not run qwork, qstart, or qresume.
+- qwork proof and live repo matched at `d56f2643e87d`; fetch did not advance `origin/main`.
+- PR #1108 is MERGED with merge commit `d56f2643e87d`.
+- Queue helper at start: READY_COUNT `1`; READY `NA-0420 -- QSL Backup Log Code 23 Post-Remediation Scheduled Backup Verification Plan`; NA-0419 DONE.
+- Decision helper at start: latest D-0827; duplicate count zero; D-0826 once; D-0827 once; D-0828 absent.
+- Public-safety on `d56f2643e87d` completed success.
+
+## Operator Remediation Reconfirmation
+
+- `operator_result` exists with `pre_action_metadata.txt`, `post_action_metadata.txt`, `rollback_tree_metadata_before.txt`, and `rollback_file_checksums_before.txt`.
+- Live rollback directory is `root:root` mode `2755`.
+- The rollback file is readable without privilege and its checksum matches inherited evidence.
+- `/usr/local/sbin/qsl-backup` checksum matched the inherited expected value; exact Codex ops source inclusion count remained 1.
+- Codex did not run sudo, generated packet scripts, backup, or restore.
+- Codex did not mutate qsl-backup, `/backup/qsl`, the NA-0407 rollback subtree, local backup status/plan files, qwork/qstart/qresume/qshell, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE.
+
+## Log / Manifest Classification
+
+- Operator action time from operator-result metadata/mtimes: `2026-06-04T16:23:29+00:00`.
+- One scheduled log/manifest pair newer than operator action was found: `daily-20260605T023308-0500`.
+- Reviewed log counts: rsync error 0; code 23 0; Permission denied 0; NA0407 0; rollback 0; exact rollback directory reference 0; qsl-backup.preimage 0; nonzero-exit marker 0.
+- Reviewed manifest counts: Codex ops source 1; NA0407 0; rollback 0; exact rollback directory reference 0; qsl-backup.preimage 0.
+- Classification: `CODE23_REMEDIATION_VERIFIED_CLEAN_SCHEDULED_LOG`.
+- Selected successor: `NA-0421 -- QSL Backup Log Code 23 Clean Follow-Up / Status Refresh Authorization Plan`.
+
+## Dependency / Validation Notes
+
+- `cargo audit --deny warnings` exited 0.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked` reported package ID not found, which is the expected absence proof after remediation.
+- Fast governance validation passed: `git diff --check`, queue helper, decision helper, link-check, added-line leak scan, PR-body preflight, exact staged scope guard, and changed-line overclaim scan.
+- `cargo fmt --check` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed with 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
+- `python3 formal/run_model_checks.py` passed.
+- Backup status and backup plan files were inspected read-only and still carry the older NA-0414 code 23 caveat; a future NA-0421 status/plan refresh authorization lane is warranted.
+
+## Recoveries / Non-Fatal Notes
+
+- Failing command: `git add` over the full NA-0420 path list exited nonzero because the required new evidence file lives under a repo-ignored evidence directory. Classification: recoverable command-shape issue for an explicitly allowed tracked evidence path. Corrective action: staged tracked files normally and force-added only the required NA-0420 evidence file, including after follow-up wording edits. Final result: staged path set exactly matched the five allowed qsl-protocol paths.
+- Failing commands: first `cargo tree -i pqcrypto-* --locked` probes were run without the directive's `|| true` wrapper and exited 101 with package-not-found messages. Classification: recoverable zero-match proof plus command-shape issue. Corrective action: reran the same probes in the required zero-failure-safe form. Final result: commands exited 0 while preserving the package-not-found absence proof.
+- Failing command: first changed-line overclaim scan exited nonzero after flagging required negative caveat text where the local line did not carry the negation. Classification: recoverable scan-shape/wrapping issue. Corrective action: tightened the caveat wording so each sensitive phrase is locally negated, then reran the scan. Final result: positive overclaim candidate count 0.
+- Non-fatal warnings: parallel cargo commands printed package-cache/advisory-db lock waiting messages before completing.
+
+## Disk Watermark
+
+- Filesystem: `/`
+- Total: `468G`
+- Used: `195G`
+- Free: `249G`
+- Used percent: `44%`
+
+## Next-Watch Items
+
+- NA-0420 remains READY until the evidence PR merges and closeout restores NA-0421.
+- NA-0421 should authorize a bounded status/plan refresh only if exact future scope permits local status/plan file edits and exact wording.
+- Same-host continuity, no-backup/no-restore, no-qsl-backup-mutation, no-rollback-mutation, and no-public-overclaim caveats must remain explicit.
 
 # Rolling Operations Journal Entry
 

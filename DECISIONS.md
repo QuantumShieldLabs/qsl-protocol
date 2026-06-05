@@ -20540,3 +20540,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - backup, restore, sudo, generated script execution, qsl-backup mutation, rollback subtree mutation by Codex, status/plan mutation, qwork/qstart/qresume execution, or public-claim expansion is hidden inside this closeout
     - more than one READY item remains
   - **References:** NA-0419; NA-0420; D-0826; D-0825; qsl-protocol PR #1107; `docs/governance/evidence/NA-0419_qsl_backup_log_code_23_operator_packet_execution_verification_resume.md`; `tests/NA-0419_qsl_backup_log_code_23_operator_packet_execution_verification_resume_testplan.md`; `tests/NA-0419_closeout_restore_na0420_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0828
+  - **Title:** NA-0420 post-remediation scheduled backup verification
+  - **Status:** Accepted
+  - **Date:** 2026-06-05
+  - **Goals:** G4
+  - **Decision:** NA-0420 reviewed the first and latest scheduled same-host backup pair after the NA-0418 operator permission remediation: `daily-20260605T023308-0500`. The reviewed log contains zero code 23, zero permission-denied, zero rsync-error, and zero nonzero-exit markers. The matching manifest contains `/home/victor/work/qsl/codex/ops` exactly once. Therefore the code 23 classification is `CODE23_REMEDIATION_VERIFIED_CLEAN_SCHEDULED_LOG`.
+  - **Selected successor:** NA-0421 -- QSL Backup Log Code 23 Clean Follow-Up / Status Refresh Authorization Plan.
+  - **Backup/operator boundary:** Codex did not run qwork, qstart, qresume, sudo, generated operator packet scripts, backup, or restore. Codex did not mutate `/usr/local/sbin/qsl-backup`, `/backup/qsl`, the NA-0407 rollback subtree, backup status files, backup plan files, qwork/qstart/qresume/qshell, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE.
+  - **Same-host caveat:** This is same-host scheduled-log remediation evidence only. It is not off-host backup completion, disaster recovery completion, restore proof, backup completion, production readiness, public-internet readiness, external-review completion, metadata-free behavior, anonymity, untraceable behavior, bug-free status, vulnerability-free status, or perfect-crypto status.
+  - **Protected:**
+    - scheduled pair reviewed after operator action
+    - code 23 cleared in the reviewed scheduled log
+    - Codex ops manifest count exactly 1
+    - qsl-backup unchanged
+    - no backup or restore execution by Codex
+    - no sudo by Codex
+    - no generated packet script execution by Codex
+    - no qsl-backup mutation
+    - no rollback subtree mutation by Codex
+    - no backup status or plan mutation
+    - same-host caveat preserved
+    - no public overclaim
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0420 remains pending closeout
+    - D-0828 exists once
+    - D-0829 absent until optional closeout
+    - selected NA-0421 successor preserves same-host, no-backup/no-restore, no-qsl-backup-mutation, no-rollback-mutation, no-status/plan-mutation-without-future-scope, and no-public-overclaim caveats
+  - **Must never happen:**
+    - status/plan files are mutated by NA-0420
+    - clean same-host scheduled log evidence is not treated as proof that is off-host, restore-proven, backup-complete, public-ready, vulnerability-free, bug-free, or perfect-crypto
+    - backup, restore, sudo, generated script execution, qsl-backup mutation, rollback subtree mutation by Codex, status/plan mutation, qwork/qstart/qresume execution, or public-claim expansion is hidden inside this lane
+    - more than one READY item remains
+  - **References:** NA-0420; NA-0419; D-0827; D-0826; `docs/governance/evidence/NA-0420_qsl_backup_log_code_23_post_remediation_scheduled_backup_verification_plan.md`; `tests/NA-0420_qsl_backup_log_code_23_post_remediation_scheduled_backup_verification_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

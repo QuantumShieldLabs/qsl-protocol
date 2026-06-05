@@ -21141,3 +21141,46 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, dependency, Cargo, lockfile, workflow, test, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-claim mutation is hidden inside this closeout
     - more than one READY item remains
   - **References:** NA-0427; NA-0428; D-0843; D-0842; D-0841; qsl-protocol PR #1123; `docs/governance/evidence/NA-0427_qsl_crypto_api_provider_boundary_findings_triage_remediation_authorization_plan.md`; `tests/NA-0427_qsl_crypto_api_provider_boundary_findings_triage_remediation_authorization_testplan.md`; `tests/NA-0427_closeout_restore_na0428_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0844
+  - **Title:** NA-0428 qsc fuzz lock pqcrypto residual dependency blocker authorization
+  - **Status:** Accepted
+  - **Date:** 2026-06-05
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0428 confirms that the pqcrypto residual is confined to the separate nested qsc cargo-fuzz lock context and that the root workspace remains audit-green with root `rustls-webpki v0.103.13`, active root `ml-kem`, and root `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals` package IDs absent from the locked graph. The nested qsc fuzz lock blocker remains active because the separate committed fuzz lock is audit-red and the fuzz workspace is used by qsc adversarial tooling. A proof-root lock refresh simulation removed the pqcrypto packages and produced a green nested lock audit without any manifest, workflow, runtime, crypto, harness, test, vector, or root dependency change.
+  - **Authorization classification:** `FUZZ_LOCK_REMEDIATION_AUTHORIZED_LOCKFILE_ONLY`.
+  - **Selected successor:** `NA-0429 -- QSL qsc Fuzz Lock pqcrypto Residual Lockfile Cleanup Implementation Harness`.
+  - **Boundary:** NA-0428 is governance evidence and authorization planning only. It makes no runtime, crypto, dependency, Cargo manifest, lockfile, workflow, fuzz target, test, vector, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, `/backup/qsl`, or branch-protection mutation.
+  - **Future authorized mutable scope:** The future NA-0429 remediation may mutate only `qsl/qsl-client/qsc/fuzz/Cargo.lock` plus NA-0429 governance evidence/testplan, DECISIONS, TRACEABILITY, and rolling journal paths unless a later exact directive expands scope.
+  - **Stewardship:** The NA-0424 stewardship template was used. Crypto / Protocol, CI / Dependency / Release Health, Public Claims / External Review, Product / Demo / Service Boundary, and Local Ops / Backup / Restore summaries are recorded in the NA-0428 evidence doc. Stewards remain advisory only and the Lead Director remains final authority.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No side-channel-free claim is made. No metadata-free claim is made. No anonymity claim is made. No untraceability claim is made. No off-host-backup-complete claim is made. No disaster-recovery-complete claim is made. No restore-proven claim is made. No backup-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not mutate qsl-backup, `/backup/qsl`, backup status files, backup plan files, rollback subtree paths, systemd, timers, fstab, source lists, retention, or backup scripts.
+  - **Protected:**
+    - qwork proof files were read and verified without rerunning qwork
+    - PR #1124 verified merged at `311a93ea9a47`
+    - READY_COUNT 1
+    - READY NA-0428
+    - NA-0427 DONE
+    - D-0842 exists once
+    - D-0843 exists once
+    - D-0844 exists once after this lane
+    - D-0845 absent until optional closeout
+    - nested qsc fuzz lock blocker confirmed
+    - exact lockfile-only remediation scope authorized for NA-0429
+    - no runtime/crypto/dependency/Cargo/workflow/fuzz-target/test/vector/public/service/backup mutation
+    - no public crypto-complete claim
+    - no vulnerability-free or perfect-crypto claim
+  - **Required behavior:**
+    - READY_COUNT remains 1
+    - READY remains NA-0428 until optional closeout
+    - selected NA-0429 block must preserve no-runtime, no-crypto, no-root-dependency, no-workflow, no-test/vector, no-public-overclaim, no-backup/no-restore, and no-secret boundaries
+    - future NA-0429 must prove root cargo audit green, nested fuzz lock audit green, pqcrypto residual removed or explained, qsc adversarial intent preserved, and public-safety green
+    - exactly one READY item remains mandatory
+  - **Must never happen:**
+    - NA-0429 is implemented by NA-0428
+    - nested fuzz-lock findings are treated as remediated by authorization alone
+    - root cargo audit green is treated as no-vulnerability proof
+    - internal fuzz-lock evidence is treated as external review
+    - runtime, crypto, dependency, Cargo manifest, workflow, fuzz target, test, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-claim mutation is hidden inside this lane
+    - more than one READY item remains
+  - **References:** NA-0428; NA-0427; NA-0429; D-0844; D-0843; D-0842; qsl-protocol PR #1124; `docs/governance/evidence/NA-0428_qsl_qsc_fuzz_lock_pqcrypto_residual_dependency_blocker_authorization_plan.md`; `tests/NA-0428_qsl_qsc_fuzz_lock_pqcrypto_residual_dependency_blocker_authorization_testplan.md`; `qsl/qsl-client/qsc/fuzz/Cargo.lock`; `qsl/qsl-client/qsc/fuzz/Cargo.toml`; `scripts/ci/qsc_adversarial.sh`; `.github/workflows/qsc-adversarial.yml`; `Cargo.toml`; `Cargo.lock`; `qsl/qsl-client/qsc/Cargo.toml`; `tools/refimpl/quantumshield_refimpl/Cargo.toml`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

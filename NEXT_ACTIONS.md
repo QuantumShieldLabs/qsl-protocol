@@ -21855,11 +21855,19 @@ Forbidden scope:
 - Mutating runtime, crypto, dependency, workflow, qsl-server, qsl-attachments,
   qshield runtime, website, public docs, README, or START_HERE paths.
 - Creating public technical paper content.
-- Creating or implying off-host backup completion, disaster recovery
-  completion, restore proof, backup completion, production readiness,
-  public-internet readiness, external-review completion, metadata-free
-  behavior, anonymity, untraceable behavior, bug-free status, vulnerability-free
-  status, or perfect-crypto claims.
+- Forbidden: creating or implying off-host backup completion.
+- Forbidden: creating or implying disaster recovery completion.
+- Forbidden: creating or implying restore proof.
+- Forbidden: creating or implying backup completion.
+- Forbidden: creating or implying production readiness.
+- Forbidden: creating or implying public-internet readiness.
+- Forbidden: creating or implying external-review completion.
+- Forbidden: creating or implying metadata-free behavior.
+- Forbidden: creating or implying anonymity.
+- Forbidden: creating or implying untraceable behavior.
+- Forbidden: creating or implying bug-free status.
+- Forbidden: creating or implying vulnerability-free status.
+- Forbidden: creating or implying perfect-crypto claims.
 - Secret material handling.
 
 Deliverables:
@@ -21886,7 +21894,35 @@ Acceptance criteria:
 ---
 
 ### NA-0420 — QSL Backup Log Code 23 Post-Remediation Scheduled Backup Verification Plan
-Status: READY
+Status: DONE
+Implementation note:
+- Completed in qsl-protocol PR `#1109`, merged as `c146806d711d`.
+- NA-0420 inspected the first scheduled same-host backup pair after the
+  operator action: `daily-20260605T023308-0500`.
+- Classification:
+  `CODE23_REMEDIATION_VERIFIED_CLEAN_SCHEDULED_LOG`.
+- The reviewed scheduled log contained zero code 23, permission-denied,
+  rsync-error, and nonzero-exit markers.
+- The reviewed manifest contained `/home/victor/work/qsl/codex/ops` exactly
+  once.
+- Selected successor:
+  `NA-0421 -- QSL Backup Log Code 23 Clean Follow-Up / Status Refresh Authorization Plan`.
+- NA-0420 did not run qwork, qstart, qresume, sudo, generated packet scripts,
+  backup, or restore.
+- NA-0420 did not mutate `/usr/local/sbin/qsl-backup`, `/backup/qsl`, rollback
+  subtree paths, backup status files, backup plan files, qwork/qstart/qresume/
+  qshell, runtime, crypto, dependency, workflow, qsl-server, qsl-attachments,
+  qshield runtime, website, public docs, README, or START_HERE.
+- This is same-host scheduled-log evidence only:
+  - not off-host backup;
+  - not disaster recovery;
+  - not restore proof;
+  - not backup completion;
+  - not production readiness;
+  - not public-internet readiness;
+  - not external-review completion;
+  - not public technical paper evidence;
+  - not defect-free or perfect-crypto proof.
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -21926,11 +21962,19 @@ Forbidden scope:
 - Mutating runtime, crypto, dependency, workflow, qsl-server, qsl-attachments,
   qshield runtime, website, public docs, README, or START_HERE paths.
 - Creating public technical paper content.
-- Creating or implying off-host backup completion, disaster recovery
-  completion, restore proof, backup completion, production readiness,
-  public-internet readiness, external-review completion, metadata-free
-  behavior, anonymity, untraceable behavior, bug-free status, vulnerability-free
-  status, or perfect-crypto claims.
+- Forbidden: creating or implying off-host backup completion.
+- Forbidden: creating or implying disaster recovery completion.
+- Forbidden: creating or implying restore proof.
+- Forbidden: creating or implying backup completion.
+- Forbidden: creating or implying production readiness.
+- Forbidden: creating or implying public-internet readiness.
+- Forbidden: creating or implying external-review completion.
+- Forbidden: creating or implying metadata-free behavior.
+- Forbidden: creating or implying anonymity.
+- Forbidden: creating or implying untraceable behavior.
+- Forbidden: creating or implying bug-free status.
+- Forbidden: creating or implying vulnerability-free status.
+- Forbidden: creating or implying perfect-crypto claims.
 - Secret material handling.
 
 Deliverables:
@@ -21943,6 +21987,86 @@ Deliverables:
 
 Acceptance criteria:
 - A scheduled log/manifest after operator remediation is inspected.
+- Same-host continuity caveat is preserved.
+- No backup or restore operation is run.
+- No qsl-backup mutation occurs.
+- No rollback subtree mutation occurs.
+- No public-readiness or backup-complete overclaim is introduced.
+- Exactly one READY item remains.
+- public-safety is green before merge and after merge.
+
+---
+
+### NA-0421 — QSL Backup Log Code 23 Clean Follow-Up / Status Refresh Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize a bounded local-ops status/plan refresh after NA-0420 verified that
+the scheduled same-host backup log after operator remediation no longer
+contains the NA-0407 rollback-subtree code 23 warning, while preserving
+same-host continuity, no-backup/no-restore, and no public-overclaim boundaries.
+
+Protects:
+- Backup status accuracy.
+- Backup plan accuracy.
+- Same-host continuity caveats.
+- The distinction between clean same-host scheduled log evidence and backup
+  completion.
+- The no-backup/no-restore boundary.
+- The one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0421.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of `/backup/qsl/logs`, `/backup/qsl/manifests`,
+  `/srv/qbuild/tmp/NA0418_code23_root_operator_packet_20260604T092447-05-00/operator_result`,
+  and `/usr/local/sbin/qsl-backup`.
+- future local status/plan mutation only if the NA-0421 live scope explicitly
+  authorizes exact files and exact wording.
+
+Forbidden scope:
+- Running backup.
+- Running restore.
+- Mutating `/usr/local/sbin/qsl-backup`.
+- Mutating rollback subtree paths.
+- Mutating systemd units, timers, fstab, backup target mounts, source lists,
+  retention, or backup scripts.
+- Mutating backup status or backup plan files unless the NA-0421
+  implementation scope explicitly authorizes exact files and wording.
+- Creating durable Director State Index output.
+- Mutating qwork/qstart/qresume/qshell.
+- Mutating runtime, crypto, dependency, workflow, qsl-server, qsl-attachments,
+  qshield runtime, website, public docs, README, or START_HERE paths.
+- Creating public technical paper content.
+- Forbidden: creating or implying off-host backup completion.
+- Forbidden: creating or implying disaster recovery completion.
+- Forbidden: creating or implying restore proof.
+- Forbidden: creating or implying backup completion.
+- Forbidden: creating or implying production readiness.
+- Forbidden: creating or implying public-internet readiness.
+- Forbidden: creating or implying external-review completion.
+- Forbidden: creating or implying metadata-free behavior.
+- Forbidden: creating or implying anonymity.
+- Forbidden: creating or implying untraceable behavior.
+- Forbidden: creating or implying bug-free status.
+- Forbidden: creating or implying vulnerability-free status.
+- Forbidden: creating or implying perfect-crypto claims.
+- Secret material handling.
+
+Deliverables:
+- NA-0421 evidence doc.
+- NA-0421 testplan.
+- D-0830 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- Exact recommendation for whether status/plan docs may be updated in a later
+  implementation lane.
+
+Acceptance criteria:
+- Clean scheduled log evidence is cited accurately.
 - Same-host continuity caveat is preserved.
 - No backup or restore operation is run.
 - No qsl-backup mutation occurs.

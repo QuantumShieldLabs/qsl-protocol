@@ -20575,3 +20575,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - backup, restore, sudo, generated script execution, qsl-backup mutation, rollback subtree mutation by Codex, status/plan mutation, qwork/qstart/qresume execution, or public-claim expansion is hidden inside this lane
     - more than one READY item remains
   - **References:** NA-0420; NA-0419; D-0827; D-0826; `docs/governance/evidence/NA-0420_qsl_backup_log_code_23_post_remediation_scheduled_backup_verification_plan.md`; `tests/NA-0420_qsl_backup_log_code_23_post_remediation_scheduled_backup_verification_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0829
+  - **Title:** NA-0420 closeout and NA-0421 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-05
+  - **Goals:** G4
+  - **Decision:** NA-0420 is closed after qsl-protocol PR #1109 merged at `c146806d711d`, D-0828 classified the reviewed scheduled same-host log as `CODE23_REMEDIATION_VERIFIED_CLEAN_SCHEDULED_LOG`, and post-merge public-safety completed success on the merge commit. Because D-0828 selected the clean follow-up path, the exact sole READY successor is restored as `NA-0421 -- QSL Backup Log Code 23 Clean Follow-Up / Status Refresh Authorization Plan`.
+  - **Closeout boundary:** This closeout does not implement NA-0421 and does not run qwork, qstart, qresume, sudo, generated packet scripts, backup, or restore. It does not mutate `/usr/local/sbin/qsl-backup`, `/backup/qsl`, rollback subtree paths, backup status files, backup plan files, qwork/qstart/qresume/qshell, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE.
+  - **NA-0421 scope:** NA-0421 is limited to qsl-protocol governance evidence/testplan paths plus read-only inspection of scheduled backup logs/manifests, packet-local operator_result, and qsl-backup, unless its live scope explicitly authorizes exact local status/plan files and exact wording.
+  - **Same-host caveat:** NA-0421 must preserve that clean same-host scheduled log evidence is not off-host backup, disaster recovery, restore proof, or backup completion. Status/plan updates remain future-gated by exact scope.
+  - **Public claim boundary:** This decision does not claim off-host backup completion, disaster recovery completion, restore proof, backup completion, production readiness, public-internet readiness, external-review completion, metadata-free behavior, anonymity, untraceable behavior, bug-free status, vulnerability-free status, or perfect-crypto status.
+  - **Protected:**
+    - PR #1109 merged before closeout
+    - post-merge public-safety green on `c146806d711d`
+    - D-0828 exists once before D-0829
+    - NA-0420 DONE
+    - READY NA-0421 as the exact successor
+    - no NA-0421 implementation by closeout
+    - no backup or restore execution by Codex
+    - no qsl-backup mutation
+    - no rollback subtree mutation by Codex
+    - no backup status or plan mutation by closeout
+    - no public overclaim
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0421
+    - D-0829 exists once
+    - D-0830 absent until NA-0421 live work
+    - selected NA-0421 block includes same-host, no-backup/no-restore, no-qsl-backup-mutation, no-rollback-mutation, no-status/plan-mutation-without-future-scope, and no-public-overclaim caveats
+  - **Must never happen:**
+    - NA-0421 is implemented by this closeout
+    - clean same-host scheduled log evidence is not treated as proof that is off-host, restore-proven, backup-complete, public-ready, vulnerability-free, bug-free, or perfect-crypto
+    - backup, restore, sudo, generated script execution, qsl-backup mutation, rollback subtree mutation by Codex, status/plan mutation, qwork/qstart/qresume execution, or public-claim expansion is hidden inside this closeout
+    - more than one READY item remains
+  - **References:** NA-0420; NA-0421; D-0828; D-0827; qsl-protocol PR #1109; `docs/governance/evidence/NA-0420_qsl_backup_log_code_23_post_remediation_scheduled_backup_verification_plan.md`; `tests/NA-0420_qsl_backup_log_code_23_post_remediation_scheduled_backup_verification_testplan.md`; `tests/NA-0420_closeout_restore_na0421_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -8,6 +8,59 @@ Last-Updated: 2026-06-05
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-05-261 -- Packet K Optional Closeout to NA-0421
+- Host clock during closeout patch (America/Chicago): 2026-06-05T09:02:00-05:00
+- Host clock during closeout patch (UTC): 2026-06-05T14:02:00+00:00
+- NA-0420 evidence PR: #1109
+- NA-0420 evidence merge SHA: `c146806d711d`
+
+## Closeout Proof
+
+- PR #1109 is MERGED.
+- Post-merge public-safety on `c146806d711d` completed success after bounded polling at iteration 9/180.
+- Queue before closeout: READY_COUNT `1`; READY `NA-0420 -- QSL Backup Log Code 23 Post-Remediation Scheduled Backup Verification Plan`.
+- Decision state before closeout: latest D-0828; duplicate count zero; D-0829 absent.
+- D-0828 classification: `CODE23_REMEDIATION_VERIFIED_CLEAN_SCHEDULED_LOG`.
+- Selected successor: `NA-0421 -- QSL Backup Log Code 23 Clean Follow-Up / Status Refresh Authorization Plan`.
+
+## Closeout Patch
+
+- NA-0420 is marked DONE.
+- D-0829 records NA-0420 closeout and NA-0421 restoration.
+- NA-0421 is restored as the sole READY successor.
+- New closeout testplan: `tests/NA-0420_closeout_restore_na0421_testplan.md`.
+
+## Validation / CI Notes
+
+- Fast governance validation passed: `git diff --check`, queue helper, decision helper, link-check, added-line leak scan, PR-body preflight, exact staged scope guard, and changed-line overclaim scan.
+- `cargo audit --deny warnings` exited 0.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked` reported package ID not found in zero-failure-safe form.
+- `cargo fmt --check` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed with 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
+- `python3 formal/run_model_checks.py` passed.
+
+## Boundary
+
+- Closeout does not implement NA-0421.
+- Codex did not run qwork, qstart, qresume, sudo, generated packet scripts, backup, or restore.
+- Codex did not mutate qsl-backup, `/backup/qsl`, rollback subtree paths, backup status files, backup plan files, qwork/qstart/qresume/qshell, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE.
+- Same-host continuity caveats and no-public-overclaim boundaries are preserved.
+
+## Recoveries / Non-Fatal Notes
+
+- Non-fatal note: after PR #1109 merge, `git fetch --all --prune` reported the remote PR branch as deleted. Codex did not pass a branch-deletion flag to the merge command.
+- Failing command: first changed-line overclaim scan for closeout exited nonzero after flagging required negative/forbidden claim-boundary text. Classification: recoverable scan-shape/wrapping issue. Corrective action: tightened the NA-0420/NA-0421 caveat and forbidden-scope wording so each sensitive phrase is locally negated or marked `Forbidden:`. Final result: positive overclaim candidate count 0.
+
+## Next-Watch Items
+
+- NA-0421 must remain unimplemented by closeout.
+- NA-0421 should authorize status/plan refresh only with exact future file and wording scope.
+- Same-host continuity, no-backup/no-restore, no-qsl-backup-mutation, no-rollback-mutation, and no-public-overclaim caveats must remain explicit.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-05-261 -- Retry NA-0420 QSL Backup Log Code 23 Post-Remediation Scheduled Backup Verification After Scheduled Pair Exists
 - Begin timestamp from directive (America/Chicago): 2026-06-05T06:34:30-05:00
 - Begin timestamp from directive (UTC): 2026-06-05T11:34:30Z

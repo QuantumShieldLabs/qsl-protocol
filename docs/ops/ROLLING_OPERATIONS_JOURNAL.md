@@ -8,6 +8,122 @@ Last-Updated: 2026-06-05
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-05-266 -- NA-0425 QSL Code / Crypto Audit Follow-Up Resumption Plan
+- Directive begin timestamp (America/Chicago): 2026-06-05T14:04:30-05:00
+- Directive begin timestamp (UTC): 2026-06-05T19:04:30Z
+- Host timestamp note: local host `date --iso-8601=seconds` reported `2026-06-05T13:38:38-05:00` and UTC `2026-06-05T18:38:38+00:00` during startup capture, earlier than the embedded directive begin time; recorded as operational friction, not used as authority over qwork proof files or live repo state.
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0425/qsl-protocol`
+- qsl-protocol branch at start: `main`
+- qsl-protocol evidence branch: `na-0425-code-crypto-audit-resumption`
+- qsl-protocol HEAD at start: `cd88811051a7`
+- qsl-protocol main at start: `cd88811051a7`
+- qsl-protocol origin/main at start: `cd88811051a7`
+- qsl-server main: not touched; no mutation
+- qsl-server origin/main: not touched; no mutation
+- qsl-attachments main: not touched; no mutation
+- qsl-attachments origin/main: not touched; no mutation
+- Disk watermark: `/dev/nvme0n1p2` 468G total, 202G used, 243G free, 46% used
+
+## READY Proof
+
+- qwork proof files existed under `/srv/qbuild/work/NA-0425/.qwork/` and reported `startup_result=OK`, lane `NA-0425`, repo `qsl-protocol`, clean worktree/index/untracked fields, READY_COUNT `1`, queue top READY `NA-0425`, requested lane status `READY`, and qwork-reported path `/srv/qbuild/work/NA-0425/qsl-protocol`.
+- qwork proof JSON parsed successfully and mirrored the required `.kv` proof fields.
+- Codex did not run qwork, qstart, or qresume.
+- Live `HEAD` and `origin/main` matched the qwork proof at `cd88811051a7` after fetch.
+- PR #1118 was verified MERGED with merge commit `cd88811051a7`.
+- Public-safety on `cd88811051a7` completed success.
+- Queue before patch: READY_COUNT `1`; READY `NA-0425 -- QSL Code / Crypto Audit Follow-Up Resumption Plan`.
+- Decision state before patch: latest D-0837; duplicate count zero; D-0836 once; D-0837 once; D-0838 absent as a decision ID.
+
+## Protection / Boundary Proof
+
+- Proof root: `/srv/qbuild/tmp/NA0425_code_crypto_audit_resumption_20260605T134025-0500`.
+- qwork proof files were copied to the proof root under `qwork/`.
+- qsl-backup SHA matched the directive-required value.
+- qsl-backup source inclusion count for the Codex ops source path is exactly `1`.
+- Codex did not run sudo, backup, restore, generated packet scripts, qwork, qstart, or qresume.
+- Codex did not mutate qsl-backup, `/backup/qsl`, backup status files, backup plan files, rollback subtree paths, qwork/qstart/qresume/qshell, runtime, crypto, dependencies, workflows, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE.
+
+## Evidence Patch
+
+- Added NA-0425 evidence doc: `docs/governance/evidence/NA-0425_qsl_code_crypto_audit_follow_up_resumption_plan.md`.
+- Added NA-0425 testplan: `tests/NA-0425_qsl_code_crypto_audit_follow_up_resumption_testplan.md`.
+- Added D-0838 to record code/crypto audit stream resumption.
+- Updated TRACEABILITY with the NA-0425 planning/read-only inventory row.
+- Applied the NA-0424 stewardship canon as advisory structure.
+- Selected successor: `NA-0426 -- QSL Crypto API / Provider Boundary Read-Only Audit Plan`.
+
+## Read-Only Inventory Notes
+
+- Inventory scanned `qsl`, `tools/refimpl`, `apps`, `formal`, `inputs`, `tests`, and `docs/governance/evidence`.
+- Requested top-level roots `qsp` and `qsc` were absent in this checkout; `qsc` content was scanned through `qsl/qsl-client/qsc`.
+- Inventory proof files were written under the proof root in `code_inventory/`.
+- Search counts are planning signals, not bug findings.
+- Crypto API/provider terms: 1935 matches across 352 files; top clusters were `docs/governance/evidence`, `qsl/qsl-client/qsc`, and `tools/refimpl`.
+- Nonce/key/RNG/transcript terms: 4139 matches across 641 files; top clusters were `docs/governance/evidence`, `qsl/qsl-client/qsc`, and `tools/refimpl`.
+- Panic/fail-closed terms: 7643 matches across 595 files; top clusters were `qsl/qsl-client/qsc`, `docs/governance/evidence`, and `apps/qshield-cli`.
+- Unsafe/memory/FFI terms: 434 matches across 116 files; most matches were governance/testplan references with smaller `apps`, `qsl`, and `tools/refimpl` code clusters.
+- Formal/fuzz/vector terms: 4005 matches across 557 files; top clusters were `docs/governance/evidence`, `inputs/suite2`, and `tools/refimpl`.
+- Side-channel/timing terms: 1274 matches across 234 files; matches were mainly governance and metadata timing evidence, while `constant_time` and `ct_eq` returned zero matches.
+- `cargo tree -d --locked` duplicate-family proof was saved under the proof root in `cargo_tree/`.
+
+## Validation / CI Notes
+
+- Pre-patch public-safety on `cd88811051a7` reported completed success.
+- Initial dependency proof before patch: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`; pqcrypto inverse trees were absent in zero-failure-safe reruns.
+- `git diff --check` and staged `git diff --cached --check` passed.
+- Queue helper reported READY_COUNT `1` and READY NA-0425.
+- Decision helper reported latest D-0838 and duplicate count zero; structural ID scan showed D-0836 once, D-0837 once, D-0838 once, and D-0839 absent.
+- Exact staged path guard reported five changed paths, all allowed, with missing allowed count zero and forbidden count zero.
+- Helper link-check reported `TOTAL_MISSING 0`.
+- Helper added-line leak scan reported `SECRET_FINDING_COUNT 0`.
+- PR body preflight reported `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- Added-line affirmative overclaim scan reported `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0`.
+- Classifier reported `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, and `scope_class=docs_only` when run with the exact staged path list.
+- Dependency validation passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`; pqcrypto inverse-tree probes were absent through zero-failure-safe command shape.
+- `cargo fmt --check` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed with 3 tests.
+- Formal validation passed: `python3 formal/model_qsc_handshake_suite_id_bounded.py`; `python3 formal/run_model_checks.py`.
+- Pending: commit, committed-diff scope guard, PR creation, PR-number goal-lint wrapper, required checks, merge, and post-merge public-safety.
+
+## Failures / Recoveries
+
+- Failing commands: `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked` were first run without the directive's `|| true` wrapper and exited 101 with package-ID absence.
+- Classification: recoverable zero-match proof/command-shape issue because absence is the required proof and the directive explicitly uses `|| true`.
+- Corrective action: reran all three commands with `|| true`.
+- Final result: each rerun exited 0 while preserving package-ID absence output.
+- Operational recovery: the new evidence doc path is ignored by repo ignore rules because `docs/governance/evidence/` is ignored by default.
+- Classification: recoverable staging-shape issue for an exact allowed evidence path.
+- Corrective action: staged the exact evidence file with `git add -f`.
+- Final result: staged path guard showed all five expected paths and no forbidden paths.
+- Failing command: `python tools/goal_lint.py` exited 127 because the host has `python3` but no `python` executable.
+- Classification: recoverable command-shape issue.
+- Corrective action: reran with `python3 tools/goal_lint.py`.
+- Final result: the direct tool invocation reached the linter but reported missing `GITHUB_EVENT_PATH`, proving the tool expects a PR event payload.
+- Failing command: `python3 tools/goal_lint.py` exited 1 with `GITHUB_EVENT_PATH missing`.
+- Classification: recoverable local invocation-shape issue because the repo provides `scripts/audit/run_goal_lint_pr.sh` to synthesize the event payload after PR creation.
+- Corrective action: defer goal-lint final proof to the PR-number wrapper after PR creation.
+- Final result: pending PR-number wrapper run after PR creation.
+- Failing command: first staged affirmative overclaim scan reported wrapped no-claim continuation lines for external-review, crypto-complete, side-channel, vulnerability, backup, restore, metadata, and public-claim terms.
+- Classification: recoverable content-hardening issue in required no-claim wording; the flagged lines were negative boundaries, but continuation lines lacked local negative context.
+- Corrective action: rewrote the no-claim lists and steward-impact lines so each sensitive phrase carries local `no` or equivalent boundary context.
+- Final result: rerun reported `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0`; PR body preflight continued to report prohibited phrase count `0`.
+
+## Next-Watch Items
+
+- D-0838 must exist once before evidence PR merge.
+- D-0839 must remain absent until optional closeout.
+- NA-0425 must remain the sole READY item until optional closeout.
+- Optional closeout may restore exactly `NA-0426 -- QSL Crypto API / Provider Boundary Read-Only Audit Plan` only after the NA-0425 evidence PR merges and post-merge public-safety is green.
+- NA-0426 must remain read-only and must not mutate runtime, crypto, dependency, workflow, public, service, backup, qwork/qstart/qresume/qshell, qsl-backup, status/plan, rollback, README, START_HERE, or website paths unless future exact scope authorizes otherwise.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-05-265 -- Packet K Optional Closeout to NA-0425
 - Begin timestamp (America/Chicago): 2026-06-05T13:15:54-05:00
 - Begin timestamp (UTC): 2026-06-05T18:15:54Z

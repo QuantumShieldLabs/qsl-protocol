@@ -20906,3 +20906,45 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, dependency, workflow, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-claim mutation is hidden inside this closeout
     - closeout text is used as forbidden public-readiness, production-readiness, external-review-complete, metadata-free, anonymity, untraceability, off-host-backup-complete, disaster-recovery-complete, restore-proven, backup-complete, vulnerability-free, bug-free, or perfect-crypto proof
   - **References:** NA-0424; NA-0425; D-0837; D-0836; D-0835; qsl-protocol PR #1117; `docs/governance/DOMAIN_STEWARDSHIP_AND_DIRECTOR_WORKFLOW.md`; `docs/governance/evidence/NA-0424_qsl_domain_stewardship_operating_model_canon_implementation_harness.md`; `tests/NA-0424_qsl_domain_stewardship_operating_model_canon_implementation_testplan.md`; `tests/NA-0424_closeout_restore_na0425_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0838
+  - **Title:** NA-0425 code crypto audit follow-up resumption plan
+  - **Status:** Accepted
+  - **Date:** 2026-06-05
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0425 resumes the deferred QSL code/crypto audit follow-up stream after the backup/log-code chain completed through NA-0422 and the advisory domain stewardship canon was implemented through NA-0424. The NA-0424 stewardship canon was used as advisory structure for the planning lane, with Crypto / Protocol, CI / Dependency / Release Health, Public Claims / External Review, Product / Demo / Service Boundary, and Local Ops / Backup / Restore concerns applied to the audit domain matrix and successor selection.
+  - **Selected first audit domain:** Crypto API / provider boundary, with emphasis on the `PqKem768` abstraction, `StdCrypto`, the `ml-kem` provider replacement after the pqcrypto remediation, provider misuse risks, fail-closed reject behavior, and existing test/vector/formal evidence.
+  - **Selected successor:** `NA-0426 -- QSL Crypto API / Provider Boundary Read-Only Audit Plan`.
+  - **Boundary:** NA-0425 is planning/read-only inventory only. It does not mutate runtime, crypto, dependency, Cargo, workflow, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status files, backup plan files, rollback subtree paths, `/backup/qsl`, branch protection, or public-claim surfaces.
+  - **Dependency health:** `cargo audit --deny warnings` is green, `rustls-webpki v0.103.13` remains active, and the pqcrypto RustSec blocker packages remain absent from the locked graph. This is dependency-health evidence only and is no vulnerability-free, bug-free, or perfect-crypto proof.
+  - **Public claim boundary:** This decision makes no public-readiness claim, no production-readiness claim, no public-internet-readiness claim, no external-review-complete claim, no crypto-complete claim, no side-channel-free claim, no metadata-free claim, no anonymity claim, no untraceability claim, no off-host-backup-complete claim, no disaster-recovery-complete claim, no restore-proven claim, no backup-complete claim, no vulnerability-free claim, no bug-free claim, and no perfect-crypto claim.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not mutate qsl-backup, `/backup/qsl`, backup status files, backup plan files, rollback subtree paths, systemd, timers, fstab, source lists, retention, or backup scripts.
+  - **Protected:**
+    - qwork proof files were read and verified without rerunning qwork
+    - PR #1118 verified merged at `cd88811051a7`
+    - READY_COUNT 1
+    - READY NA-0425
+    - NA-0424 DONE
+    - D-0836 exists once
+    - D-0837 exists once
+    - D-0838 exists once after this lane
+    - D-0839 absent until optional closeout
+    - stewardship canon used as advisory structure
+    - code/crypto audit domains A through J are scoped
+    - normal NA-0426 provider-boundary read-only audit successor selected
+    - no runtime/crypto/dependency/workflow/public/service/backup mutation
+    - no public crypto-complete or public overclaim
+  - **Required behavior:**
+    - READY_COUNT remains 1
+    - READY remains NA-0425 until optional closeout
+    - selected NA-0426 block must include no-runtime, no-crypto, no-dependency, no-workflow, no-public-overclaim, no-backup/no-restore, and no-secret boundaries
+    - future NA-0426 must remain read-only unless later exact scope authorizes implementation
+  - **Must never happen:**
+    - NA-0426 is implemented by NA-0425
+    - search hits are treated as bug findings
+    - cargo audit green is treated as no-vulnerability proof
+    - bounded formal checks are treated as full implementation proof
+    - internal audit planning is treated as external review
+    - runtime, crypto, dependency, workflow, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-claim mutation is hidden inside this lane
+    - more than one READY item remains
+  - **References:** NA-0425; NA-0424; NA-0426; D-0838; D-0837; D-0836; D-0835; `docs/governance/DOMAIN_STEWARDSHIP_AND_DIRECTOR_WORKFLOW.md`; `docs/governance/evidence/NA-0425_qsl_code_crypto_audit_follow_up_resumption_plan.md`; `tests/NA-0425_qsl_code_crypto_audit_follow_up_resumption_testplan.md`; `docs/governance/evidence/NA-0397_qsl_code_crypto_research_watch_audit_follow_up_plan.md`; `docs/governance/evidence/NA-0418_qsl_rustsec_pqcrypto_dependency_health_blocker_triage_remediation.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

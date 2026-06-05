@@ -21998,8 +21998,29 @@ Acceptance criteria:
 ---
 
 ### NA-0421 — QSL Backup Log Code 23 Clean Follow-Up / Status Refresh Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
+Implementation note:
+- qsl-protocol PR #1111 merged at `3c1cec80219e`.
+- D-0830 records classification
+  `STATUS_REFRESH_AUTHORIZED_CLEAN_SAME_HOST_CODE23_CLEARED`.
+- NA-0421 reconfirmed the clean scheduled same-host log and manifest:
+  `/backup/qsl/logs/daily-20260605T023308-0500.log` and
+  `/backup/qsl/manifests/daily-20260605T023308-0500.manifest.txt`.
+- Both local files are selected as future mutable candidates:
+  `/home/victor/work/qsl/codex/ops/backup/QSL_BACKUP_STATUS.md` and
+  `/home/victor/work/qsl/codex/QSL_BACKUP_PLAN.md`.
+- NA-0421 did not mutate either local file.
+- NA-0421 did not run qwork, qstart, qresume, sudo, generated packet scripts,
+  backup, or restore.
+- NA-0421 did not mutate `/usr/local/sbin/qsl-backup`, `/backup/qsl`,
+  rollback subtree paths, backup status files, backup plan files, qwork,
+  qstart, qresume, qshell, qsl-server, qsl-attachments, qshield runtime,
+  website, public docs, README, or START_HERE.
+- Same-host continuity remains caveated. NA-0421 makes no off-host backup
+  claim, no disaster recovery claim, no restore proof claim, no backup
+  completion claim, no public readiness claim, no external-review claim, no
+  vulnerability-free claim, no bug-free claim, and no perfect-crypto claim.
 
 Objective:
 Authorize a bounded local-ops status/plan refresh after NA-0420 verified that
@@ -22064,6 +22085,83 @@ Deliverables:
 - Rolling journal update.
 - Exact recommendation for whether status/plan docs may be updated in a later
   implementation lane.
+
+Acceptance criteria:
+- Clean scheduled log evidence is cited accurately.
+- Same-host continuity caveat is preserved.
+- No backup or restore operation is run.
+- No qsl-backup mutation occurs.
+- No rollback subtree mutation occurs.
+- No public-readiness or backup-complete overclaim is introduced.
+- Exactly one READY item remains.
+- public-safety is green before merge and after merge.
+
+### NA-0422 — QSL Backup Log Code 23 Clean Status / Plan Refresh Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Update the exact local backup status and backup plan files authorized by
+NA-0421 to reflect the clean scheduled same-host backup log and manifest after
+NA-0418 operator remediation, while preserving same-host-only,
+no-backup/no-restore, no-off-host, no-disaster-recovery, no-restore-proof,
+no-backup-complete, and no-public-readiness boundaries.
+
+Protects:
+- Backup status accuracy.
+- Backup plan accuracy.
+- Same-host continuity caveats.
+- The distinction between clean same-host scheduled log evidence and backup
+  completion.
+- The no-backup/no-restore boundary.
+- The one-READY queue invariant.
+
+Allowed scope:
+- the exact local status/plan files authorized by NA-0421.
+- qsl-protocol governance evidence/testplan paths for NA-0422.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of `/backup/qsl/logs`, `/backup/qsl/manifests`,
+  `/srv/qbuild/tmp/NA0418_code23_root_operator_packet_20260604T092447-05-00/operator_result`,
+  and `/usr/local/sbin/qsl-backup`.
+
+Forbidden scope:
+- Running backup.
+- Running restore.
+- Mutating `/usr/local/sbin/qsl-backup`.
+- Mutating rollback subtree paths.
+- Mutating systemd units, timers, fstab, backup target mounts, source lists,
+  retention, or backup scripts.
+- Creating durable Director State Index output.
+- Mutating qwork/qstart/qresume/qshell.
+- Mutating runtime, crypto, dependency, workflow, qsl-server, qsl-attachments,
+  qshield runtime, website, public docs, README, or START_HERE paths.
+- Creating public technical paper content.
+- Creating or implying off-host backup completion.
+- Creating or implying disaster recovery completion.
+- Creating or implying restore proof.
+- Creating or implying backup completion.
+- Creating or implying production readiness.
+- Creating or implying public-internet readiness.
+- Creating or implying external-review completion.
+- Creating or implying metadata-free behavior.
+- Creating or implying anonymity.
+- Creating or implying untraceable behavior.
+- Creating or implying bug-free status.
+- Creating or implying vulnerability-free status.
+- Creating or implying perfect-crypto claims.
+- Secret material handling.
+
+Deliverables:
+- updated local status/plan files only if authorized by NA-0421.
+- rollback copies for any local file updated.
+- NA-0422 evidence doc.
+- NA-0422 testplan.
+- D-0832 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- Exact recommendation for next backup/local-ops lane.
 
 Acceptance criteria:
 - Clean scheduled log evidence is cited accurately.

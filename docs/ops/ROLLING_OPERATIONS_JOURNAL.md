@@ -8,6 +8,121 @@ Last-Updated: 2026-06-05
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-05-267 -- NA-0426 QSL Crypto API / Provider Boundary Read-Only Audit Plan
+- Directive begin timestamp (America/Chicago): 2026-06-05T14:34:30-05:00
+- Directive begin timestamp (UTC): 2026-06-05T19:34:30Z
+- Host timestamp during startup capture (America/Chicago): 2026-06-05T15:02:11-05:00
+- Host timestamp during startup capture (UTC): 2026-06-05T20:02:11+00:00
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0426/qsl-protocol`
+- qsl-protocol branch at start: `main`
+- qsl-protocol evidence branch: `na-0426-crypto-api-provider-boundary-audit`
+- qsl-protocol HEAD at start: `36b342c4e71e`
+- qsl-protocol main at start: `36b342c4e71e`
+- qsl-protocol origin/main at start: `36b342c4e71e`
+- qsl-server main: not touched; no mutation
+- qsl-server origin/main: not touched; no mutation
+- qsl-attachments main: not touched; no mutation
+- qsl-attachments origin/main: not touched; no mutation
+
+## READY Proof
+
+- qwork proof files existed under `/srv/qbuild/work/NA-0426/.qwork/` and reported `startup_result=OK`, lane `NA-0426`, repo `qsl-protocol`, clean worktree/index/untracked fields, READY_COUNT `1`, queue top READY `NA-0426`, requested lane status `READY`, and qwork-reported path `/srv/qbuild/work/NA-0426/qsl-protocol`.
+- qwork proof JSON parsed successfully and mirrored the required `.kv` proof fields.
+- Codex did not run qwork, qstart, or qresume.
+- Live `HEAD` and `origin/main` matched the qwork proof at `36b342c4e71e` after fetch.
+- PR #1120 was verified MERGED with merge commit `36b342c4e71e`.
+- Public-safety on `36b342c4e71e` completed success.
+- Queue before patch: READY_COUNT `1`; READY `NA-0426 -- QSL Crypto API / Provider Boundary Read-Only Audit Plan`; NA-0425 DONE.
+- Decision state before patch: latest D-0839; duplicate count zero; D-0838 once; D-0839 once; D-0840 absent.
+
+## Protection / Boundary Proof
+
+- Proof root: `/srv/qbuild/tmp/NA0426_crypto_api_provider_boundary_audit_20260605T150323-0500`.
+- qwork proof files were copied to the proof root under `qwork/`.
+- qsl-backup SHA matched the directive-required value.
+- qsl-backup source inclusion count for the Codex ops source path is exactly `1`.
+- Codex did not run sudo, backup, restore, qwork, qstart, or qresume.
+- Codex did not mutate qsl-backup, `/backup/qsl`, backup status files, backup plan files, rollback subtree paths, qwork/qstart/qresume/qshell, runtime, crypto, dependencies, workflows, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE.
+
+## Read-Only Audit Notes
+
+- `PqKem768` remains defined in `tools/refimpl/quantumshield_refimpl/src/crypto/traits.rs`.
+- `StdCrypto` implements `PqKem768` through RustCrypto `ml-kem` in `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`.
+- Provider tests in `tools/refimpl/quantumshield_refimpl/tests/pqkem768.rs` cover roundtrip, tamper, and wrong-length fail-closed behavior.
+- qsc depends on `quantumshield_refimpl` with the historical `pqcrypto` feature, which currently maps to `pqkem` plus `ml-dsa`.
+- Root `Cargo.lock` and root metadata show pqcrypto RustSec blocker packages absent.
+- Separate nested `qsl/qsl-client/qsc/fuzz/Cargo.lock` still contains pqcrypto package entries; this is recorded as future triage evidence, not root locked-graph proof.
+- Formal models remain bounded and crypto-agnostic; vector roots include ML-KEM-768 categories but do not directly prove provider implementation alignment.
+- No BLOCKER or HIGH runtime issue was found; selected successor is `NA-0427 -- QSL Crypto API / Provider Boundary Findings Triage and Remediation Authorization Plan`.
+
+## Evidence Patch
+
+- Added NA-0426 evidence doc: `docs/governance/evidence/NA-0426_qsl_crypto_api_provider_boundary_read_only_audit_plan.md`.
+- Added NA-0426 testplan: `tests/NA-0426_qsl_crypto_api_provider_boundary_read_only_audit_testplan.md`.
+- Added D-0840 to record the read-only provider boundary audit.
+- Updated TRACEABILITY with the NA-0426 audit row.
+- Applied the NA-0424 stewardship canon as advisory structure.
+- Selected successor: `NA-0427 -- QSL Crypto API / Provider Boundary Findings Triage and Remediation Authorization Plan`.
+
+## Validation / CI Notes
+
+- Initial dependency proof before patch: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`; pqcrypto inverse trees were absent in zero-failure-safe reruns.
+- Local validation before evidence PR staging:
+  - `git diff --check` passed.
+  - Exact path guard reported exactly five allowed NA-0426 evidence paths and zero extra paths.
+  - Queue helper reported READY_COUNT `1` and READY `NA-0426`.
+  - Decision helper reported latest D-0840 and duplicate count zero; structural scan showed D-0838 once, D-0839 once, D-0840 once, and D-0841 absent.
+  - Link-check reported `TOTAL_MISSING 0`.
+  - Leak-scan reported `SECRET_FINDING_COUNT 0`.
+  - Added-line overclaim scan reported `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0`.
+  - PR body preflight reported missing field count `0` and prohibited phrase count `0`.
+  - CI classifier reported `scope_class=docs_only`.
+  - `cargo audit --deny warnings` passed.
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+  - `cargo tree -i ml-kem --locked` reported `ml-kem v0.2.1`.
+  - Root inverse tree checks for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals` returned package-ID absence under `|| true`.
+  - `cargo metadata --locked --format-version=1` was captured under the proof root.
+  - `cargo fmt --check` passed.
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed, 3 tests.
+  - `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768` passed, 3 tests.
+  - `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
+  - `python3 formal/run_model_checks.py` passed.
+- Pending: commit, committed-diff scope guard, goal-lint, PR creation, required checks, merge, and post-merge public-safety.
+
+## Failures / Recoveries
+
+- Failing commands: `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked` were first run without the directive's `|| true` wrapper and exited 101 with package-ID absence.
+- Classification: recoverable zero-match proof/command-shape issue because absence is the required proof and the directive explicitly uses `|| true`.
+- Corrective action: reran all three commands with `|| true`.
+- Final result: each rerun exited 0 while preserving package-ID absence output.
+- Failing command: direct `rg` root lockfile/Cargo search for pqcrypto package names exited 1 because it found zero matches.
+- Classification: recoverable zero-match proof outcome because no root Cargo or root lockfile pqcrypto matches are the expected result.
+- Corrective action: preserved the zero-match result as absence evidence and used explicit nested fuzz-lock search separately.
+- Final result: root pqcrypto package names remain absent; nested qsc fuzz lock entries are recorded as a future triage finding.
+- Failing check: custom added-line overclaim scan initially flagged a TRACEABILITY row because sensitive claim-boundary labels were listed too far from the local negation context.
+- Classification: recoverable wording-hardening issue within allowed governance evidence paths; no behavior or scope change was required.
+- Corrective action: rewrote the TRACEABILITY note to avoid enumerating sensitive claim labels and state the internal evidence boundary more compactly.
+- Final result: added-line overclaim scan reported `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0`.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py goal-lint --help` exited 2 because `goal-lint` is not a subcommand of that helper.
+- Classification: recoverable command-shape issue; the repository exposes goal-lint through the PR audit script after a PR exists.
+- Corrective action: keep PR body preflight as the pre-PR local check and run the repo goal-lint script after PR creation.
+- Final result: PR body preflight passed; goal-lint remains pending until PR creation.
+
+## Next-Watch Items
+
+- D-0840 must exist once before evidence PR merge.
+- D-0841 must remain absent until optional closeout.
+- NA-0426 must remain the sole READY item until optional closeout.
+- Optional closeout may restore exactly `NA-0427 -- QSL Crypto API / Provider Boundary Findings Triage and Remediation Authorization Plan` only after the NA-0426 evidence PR merges and post-merge public-safety is green.
+- NA-0427 must triage findings before authorizing any runtime, crypto, dependency, Cargo, workflow, service, public, backup, qwork/qstart/qresume/qshell, qsl-backup, status/plan, rollback, README, START_HERE, or website mutation.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-05-266 -- Packet L Optional Closeout to NA-0426
 - Begin timestamp (America/Chicago): 2026-06-05T14:03:01-05:00
 - Begin timestamp (UTC): 2026-06-05T19:03:01+00:00

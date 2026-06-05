@@ -21184,3 +21184,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, dependency, Cargo manifest, workflow, fuzz target, test, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-claim mutation is hidden inside this lane
     - more than one READY item remains
   - **References:** NA-0428; NA-0427; NA-0429; D-0844; D-0843; D-0842; qsl-protocol PR #1124; `docs/governance/evidence/NA-0428_qsl_qsc_fuzz_lock_pqcrypto_residual_dependency_blocker_authorization_plan.md`; `tests/NA-0428_qsl_qsc_fuzz_lock_pqcrypto_residual_dependency_blocker_authorization_testplan.md`; `qsl/qsl-client/qsc/fuzz/Cargo.lock`; `qsl/qsl-client/qsc/fuzz/Cargo.toml`; `scripts/ci/qsc_adversarial.sh`; `.github/workflows/qsc-adversarial.yml`; `Cargo.toml`; `Cargo.lock`; `qsl/qsl-client/qsc/Cargo.toml`; `tools/refimpl/quantumshield_refimpl/Cargo.toml`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0845
+  - **Title:** NA-0428 closeout and NA-0429 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-05
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0428 is closed after qsl-protocol PR #1125 merged at `0929deb8ddc7`, D-0844 authorized `FUZZ_LOCK_REMEDIATION_AUTHORIZED_LOCKFILE_ONLY`, and post-merge public-safety completed success on the merge commit. Because D-0844 selected the lockfile-only qsc fuzz-lock cleanup successor, the exact sole READY successor is restored as `NA-0429 -- QSL qsc Fuzz Lock pqcrypto Residual Lockfile Cleanup Implementation Harness`.
+  - **Selected successor:** `NA-0429 -- QSL qsc Fuzz Lock pqcrypto Residual Lockfile Cleanup Implementation Harness`.
+  - **Closeout boundary:** This closeout does not implement NA-0429 and does not remediate the nested qsc fuzz lock. It marks NA-0428 DONE, restores NA-0429 READY, adds this decision, updates TRACEABILITY and the rolling journal, and adds the NA-0428 closeout testplan only.
+  - **Protected:**
+    - PR #1125 is MERGED at `0929deb8ddc7`
+    - post-merge public-safety is green on `0929deb8ddc7`
+    - READY_COUNT 1
+    - READY NA-0429
+    - NA-0428 DONE
+    - D-0844 exists once
+    - D-0845 exists once after this closeout
+    - no NA-0429 implementation by closeout
+    - no runtime/crypto/dependency/Cargo/lockfile/workflow/fuzz-target/test/vector/public/service/backup mutation
+    - no backup or restore
+    - no qsl-backup/status/plan mutation
+    - no public overclaim
+  - **Required behavior:**
+    - NA-0429 must remain limited to the NA-0428-authorized lockfile-only implementation scope unless a later exact directive authorizes otherwise
+    - NA-0429 must preserve no-runtime, no-crypto, no-root-dependency, no-workflow, no-test/vector, no-public-overclaim, no-backup/no-restore, and no-secret boundaries
+    - future NA-0429 must prove root cargo audit green, nested fuzz lock audit green or residual explicitly classified, pqcrypto residual removed or explained, qsc adversarial intent preserved, and public-safety green
+    - exactly one READY item remains mandatory
+  - **Must never happen:**
+    - NA-0429 is implemented by this closeout
+    - nested fuzz-lock findings are treated as remediated by closeout
+    - runtime, crypto, root dependency, Cargo lockfile, workflow, fuzz target, test, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-claim mutation is hidden inside this closeout
+    - more than one READY item remains
+  - **References:** NA-0428; NA-0429; D-0845; D-0844; D-0843; qsl-protocol PR #1125; `docs/governance/evidence/NA-0428_qsl_qsc_fuzz_lock_pqcrypto_residual_dependency_blocker_authorization_plan.md`; `tests/NA-0428_qsl_qsc_fuzz_lock_pqcrypto_residual_dependency_blocker_authorization_testplan.md`; `tests/NA-0428_closeout_restore_na0429_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

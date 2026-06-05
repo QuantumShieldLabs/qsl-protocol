@@ -133,9 +133,55 @@ Last-Updated: 2026-06-05
 
 ## Next Watch Items
 
-- Evidence PR must merge with required checks and public-safety green.
-- After evidence PR merge and post-merge public-safety green, optional closeout may mark NA-0428 DONE and restore the selected lockfile-only NA-0429 successor.
-- NA-0429 must not implement runtime, crypto, root dependency, workflow, script, fuzz target, test/vector, service, public, backup, qwork, qsl-backup, status/plan, or public-claim changes outside the exact lockfile-only scope.
+- Evidence PR #1125 merged at `0929deb8ddc7`.
+- Post-merge checks for `0929deb8ddc7` completed under bounded REST polling at iteration 9/180 with public-safety completed success and no failing check conclusions.
+- Optional closeout is authorized because the evidence PR merged and post-merge public-safety completed success.
+
+## Closeout Patch
+
+- Closeout branch: `na-0428-closeout-restore-na0429`.
+- Closeout allowed paths: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0428_closeout_restore_na0429_testplan.md`.
+- Queue transition in draft: NA-0428 DONE; `NA-0429 -- QSL qsc Fuzz Lock pqcrypto Residual Lockfile Cleanup Implementation Harness` restored as the sole READY item.
+- Closeout decision in draft: D-0845.
+- Closeout boundary: no NA-0429 implementation, no nested fuzz-lock remediation, no runtime/crypto/root-dependency/Cargo/lockfile/workflow/fuzz-target/test/vector/public/service/backup mutation, no backup or restore execution, no qsl-backup/source-list/status/plan mutation, no qwork/qstart/qresume/qshell mutation, no public technical paper content, and no public overclaim.
+
+## Closeout Validation Notes
+
+- `git diff --check` passed.
+- Exact changed-path guard reported exactly five allowed closeout paths and zero extra paths.
+- Queue helper reported READY_COUNT `1` and READY `NA-0429`.
+- Decision helper reported latest D-0845 and duplicate count zero; structural scan showed D-0844 once, D-0845 once, and D-0846 absent.
+- Link-check reported `TOTAL_MISSING 0`.
+- Leak-scan reported `SECRET_FINDING_COUNT 0`.
+- CI classifier reported `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, and `scope_class=docs_only`.
+- PR body preflight reported missing field count `0` and prohibited phrase count `0`.
+- Added-line overclaim scan reported `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0` after tightening one NA-0429 forbidden-scope line to repeated no-claim wording.
+- Root `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- Root inverse-tree checks for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals` reported package-ID absence under `|| true`.
+- `cargo fmt --check` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
+- `python3 formal/run_model_checks.py` passed.
+
+## Closeout Recovered / Classified Non-Zero Commands
+
+- Failing command: first closeout added-line overclaim scan.
+  - Classification: recoverable in-scope documentation validation failure because one NA-0429 forbidden-scope line used a positive gerund list for required no-claim boundaries.
+  - Corrective action: changed the line to repeated explicit no-claim wording.
+  - Final result: `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0`.
+- Failing command: closeout root inverse-tree probes for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+  - Classification: recoverable zero-match dependency proof; package-ID absence is the required root locked-graph outcome.
+  - Corrective action: recorded package-ID absence and kept root cargo audit as the root dependency-health gate.
+  - Final result: root pqcrypto package IDs are absent.
+
+## Closeout Next Watch Items
+
+- Verify D-0844 exists once, D-0845 exists once, and D-0846 remains absent.
+- Verify READY_COUNT 1, READY NA-0429, and NA-0428 DONE.
+- Verify only the five allowed closeout paths changed.
+- Verify root cargo audit remains green.
+- Verify public-safety green before merge and after merge.
 
 ---
 

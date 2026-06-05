@@ -21,9 +21,11 @@ Last-Updated: 2026-06-05
 - qsl-protocol worktree: `/srv/qbuild/work/NA-0426/qsl-protocol`
 - qsl-protocol branch at start: `main`
 - qsl-protocol evidence branch: `na-0426-crypto-api-provider-boundary-audit`
+- qsl-protocol closeout branch: `na-0426-closeout-restore-na0427`
 - qsl-protocol HEAD at start: `36b342c4e71e`
 - qsl-protocol main at start: `36b342c4e71e`
 - qsl-protocol origin/main at start: `36b342c4e71e`
+- qsl-protocol evidence PR #1121 merge commit: `c29131a754b4`
 - qsl-server main: not touched; no mutation
 - qsl-server origin/main: not touched; no mutation
 - qsl-attachments main: not touched; no mutation
@@ -69,6 +71,27 @@ Last-Updated: 2026-06-05
 - Applied the NA-0424 stewardship canon as advisory structure.
 - Selected successor: `NA-0427 -- QSL Crypto API / Provider Boundary Findings Triage and Remediation Authorization Plan`.
 
+## Evidence PR Merge Proof
+
+- Evidence commit: `a07ba892d48a`.
+- Evidence PR: qsl-protocol PR #1121, `NA-0426: audit crypto provider boundary`.
+- PR #1121 required checks attached and completed with zero failures under bounded REST polling; public-safety completed success on the PR head.
+- PR #1121 merged at `c29131a754b4` on 2026-06-05T20:24:04Z.
+- Post-merge public-safety attached to `c29131a754b4` and completed success; all merge-commit check-runs completed with zero failures under bounded REST polling.
+- Local main fast-forwarded to `c29131a754b4` before closeout.
+- Post-merge queue after PR #1121: READY_COUNT `1`, READY `NA-0426`.
+- Post-merge decisions after PR #1121: latest D-0840, duplicate count zero.
+
+## Closeout Patch
+
+- NA-0426 is marked DONE.
+- NA-0427 is restored as the sole READY successor:
+  `NA-0427 -- QSL Crypto API / Provider Boundary Findings Triage and Remediation Authorization Plan`.
+- D-0841 records NA-0426 closeout and NA-0427 restoration.
+- New closeout testplan: `tests/NA-0426_closeout_restore_na0427_testplan.md`.
+- Closeout does not implement NA-0427.
+- Closeout preserves exactly-one-READY discipline, no runtime/crypto/dependency/Cargo/workflow mutation, no backup mutation, and no public overclaim.
+
 ## Validation / CI Notes
 
 - Initial dependency proof before patch: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`; pqcrypto inverse trees were absent in zero-failure-safe reruns.
@@ -92,7 +115,29 @@ Last-Updated: 2026-06-05
   - `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768` passed, 3 tests.
   - `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
   - `python3 formal/run_model_checks.py` passed.
-- Pending: commit, committed-diff scope guard, goal-lint, PR creation, required checks, merge, and post-merge public-safety.
+- Evidence PR validation:
+  - Committed diff after `a07ba892d48a` changed exactly five allowed NA-0426 evidence paths.
+  - Repo-local goal-lint script passed for PR #1121.
+  - Required checks attached and completed green before merge.
+  - Post-merge public-safety completed success on `c29131a754b4`.
+- Closeout validation before closeout PR staging:
+  - `git diff --check` passed.
+  - Exact path guard reported exactly five allowed closeout paths and zero extra paths.
+  - Queue helper reported READY_COUNT `1` and READY `NA-0427`.
+  - Decision helper reported latest D-0841 and duplicate count zero; structural scan showed D-0840 once, D-0841 once, and D-0842 absent.
+  - Link-check reported `TOTAL_MISSING 0`.
+  - Leak-scan reported `SECRET_FINDING_COUNT 0`.
+  - Added-line overclaim scan reported `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0`.
+  - PR body preflight reported missing field count `0` and prohibited phrase count `0`.
+  - CI classifier reported `scope_class=docs_only`.
+  - `cargo audit --deny warnings` passed.
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+  - Root inverse tree checks for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals` returned package-ID absence under `|| true`.
+  - `cargo fmt --check` passed.
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed, 3 tests.
+  - `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
+  - `python3 formal/run_model_checks.py` passed.
+- Pending: closeout commit, committed-diff scope guard, goal-lint, PR creation, required checks, merge, and post-merge public-safety for the closeout branch.
 
 ## Failures / Recoveries
 
@@ -112,13 +157,16 @@ Last-Updated: 2026-06-05
 - Classification: recoverable command-shape issue; the repository exposes goal-lint through the PR audit script after a PR exists.
 - Corrective action: keep PR body preflight as the pre-PR local check and run the repo goal-lint script after PR creation.
 - Final result: PR body preflight passed; goal-lint remains pending until PR creation.
+- Failing check: closeout added-line overclaim scan initially flagged a long forbidden-claim line in the NA-0427 block and closeout testplan because some sensitive labels were too far from the local negation context.
+- Classification: recoverable wording-hardening issue within allowed closeout governance/testplan paths; no behavior or scope change was required.
+- Corrective action: split the line into shorter locally negated claim-boundary bullets and avoided prohibited labels where broader descriptive wording was sufficient.
+- Final result: closeout added-line overclaim scan reported `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0`.
 
 ## Next-Watch Items
 
-- D-0840 must exist once before evidence PR merge.
-- D-0841 must remain absent until optional closeout.
-- NA-0426 must remain the sole READY item until optional closeout.
-- Optional closeout may restore exactly `NA-0427 -- QSL Crypto API / Provider Boundary Findings Triage and Remediation Authorization Plan` only after the NA-0426 evidence PR merges and post-merge public-safety is green.
+- D-0840 must exist once after evidence PR merge.
+- D-0841 must exist once after optional closeout.
+- NA-0427 must become the sole READY item after optional closeout.
 - NA-0427 must triage findings before authorizing any runtime, crypto, dependency, Cargo, workflow, service, public, backup, qwork/qstart/qresume/qshell, qsl-backup, status/plan, rollback, README, START_HERE, or website mutation.
 
 # Rolling Operations Journal Entry

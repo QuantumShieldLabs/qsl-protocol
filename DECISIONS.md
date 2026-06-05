@@ -20948,3 +20948,44 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, dependency, workflow, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-claim mutation is hidden inside this lane
     - more than one READY item remains
   - **References:** NA-0425; NA-0424; NA-0426; D-0838; D-0837; D-0836; D-0835; `docs/governance/DOMAIN_STEWARDSHIP_AND_DIRECTOR_WORKFLOW.md`; `docs/governance/evidence/NA-0425_qsl_code_crypto_audit_follow_up_resumption_plan.md`; `tests/NA-0425_qsl_code_crypto_audit_follow_up_resumption_testplan.md`; `docs/governance/evidence/NA-0397_qsl_code_crypto_research_watch_audit_follow_up_plan.md`; `docs/governance/evidence/NA-0418_qsl_rustsec_pqcrypto_dependency_health_blocker_triage_remediation.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0839
+  - **Title:** NA-0425 closeout and NA-0426 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-05
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0425 is closed after qsl-protocol PR #1119 merged at `23b53b723ebc`, D-0838 resumed the code/crypto audit follow-up stream, and post-merge public-safety completed success on the merge commit. Because D-0838 selected the normal first audit domain, the exact sole READY successor is restored as `NA-0426 -- QSL Crypto API / Provider Boundary Read-Only Audit Plan`.
+  - **Selected first audit domain:** Crypto API / provider boundary, with emphasis on the `PqKem768` abstraction, the `ml-kem` provider replacement, fail-closed reject behavior, provider misuse risks, and validation/evidence alignment.
+  - **Closeout boundary:** This closeout does not implement NA-0426. It does not run qwork, qstart, qresume, sudo, backup, or restore. It does not mutate `/usr/local/sbin/qsl-backup`, `/backup/qsl`, rollback subtree paths, backup status files, backup plan files, qwork/qstart/qresume/qshell, runtime, crypto, dependency, Cargo, workflow, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE.
+  - **NA-0426 scope:** NA-0426 is a bounded read-only crypto API / provider boundary audit plan. It may inspect the scoped crypto/provider, qsc, qsp, formal, vector, dependency-tree, test, and evidence roots, but it must not mutate runtime, crypto, dependency, workflow, public, service, backup, qwork/qstart/qresume/qshell, qsl-backup, status/plan, rollback, README, START_HERE, or website paths unless future exact scope authorizes them.
+  - **Public claim boundary:** This decision makes no public-readiness claim, no production-readiness claim, no public-internet-readiness claim, no external-review-complete claim, no crypto-complete claim, no side-channel-free claim, no metadata-free claim, no anonymity claim, no untraceability claim, no off-host-backup-complete claim, no disaster-recovery-complete claim, no restore-proven claim, no backup-complete claim, no vulnerability-free claim, no bug-free claim, and no perfect-crypto claim.
+  - **Protected:**
+    - PR #1119 merged before closeout
+    - post-merge public-safety green on `23b53b723ebc`
+    - D-0838 exists once before D-0839
+    - D-0839 exists once after this closeout
+    - NA-0425 DONE
+    - READY NA-0426 as the exact successor
+    - no NA-0426 implementation by closeout
+    - Lead Director final authority preserved
+    - stewards advisory only
+    - exactly one READY item remains
+    - no runtime/crypto/dependency/workflow/public/service mutation
+    - no backup or restore execution by Codex
+    - no qsl-backup mutation
+    - no backup status or plan mutation
+    - no public overclaim
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0426
+    - NA-0425 DONE
+    - D-0838 exists once
+    - D-0839 exists once
+    - D-0840 absent until NA-0426 live work
+    - selected NA-0426 block includes no-runtime/no-crypto/no-dependency/no-workflow/no-public-overclaim boundaries
+  - **Must never happen:**
+    - NA-0426 is implemented by this closeout
+    - more than one READY item remains
+    - runtime, crypto, dependency, workflow, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-claim mutation is hidden inside this closeout
+    - closeout text is used as forbidden public-readiness, production-readiness, external-review-complete, crypto-complete, side-channel-free, metadata-free, anonymity, untraceability, off-host-backup-complete, disaster-recovery-complete, restore-proven, backup-complete, vulnerability-free, bug-free, or perfect-crypto proof
+  - **References:** NA-0425; NA-0426; D-0839; D-0838; D-0837; qsl-protocol PR #1119; `docs/governance/evidence/NA-0425_qsl_code_crypto_audit_follow_up_resumption_plan.md`; `tests/NA-0425_qsl_code_crypto_audit_follow_up_resumption_testplan.md`; `tests/NA-0425_closeout_restore_na0426_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

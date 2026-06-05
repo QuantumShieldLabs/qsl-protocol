@@ -22352,7 +22352,7 @@ Acceptance criteria:
 ---
 
 ### NA-0425 — QSL Code / Crypto Audit Follow-Up Resumption Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -22404,6 +22404,74 @@ Acceptance criteria:
 - Audit domains are explicitly scoped.
 - No runtime/crypto/dependency mutation occurs.
 - No public claim expansion occurs.
+- Cargo audit remains green.
+- Public-safety is green before merge and after merge.
+- Exactly one READY item remains.
+
+### NA-0426 — QSL Crypto API / Provider Boundary Read-Only Audit Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Perform a bounded read-only audit of QSL crypto API and provider boundaries, with emphasis on the PqKem768 abstraction, the ml-kem provider replacement, fail-closed reject behavior, provider misuse risks, test/vector/formal coverage, and public-claim caveats, without changing runtime code or dependencies.
+
+Protects:
+- Crypto API boundary correctness.
+- Provider boundary clarity.
+- Fail-closed reject behavior.
+- Dependency remediation confidence after pqcrypto removal.
+- Test/formal evidence alignment.
+- Public-claim conservatism.
+- The one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0426.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- Read-only inspection of:
+  - tools/refimpl/quantumshield_refimpl/src/crypto/
+  - tools/refimpl/quantumshield_refimpl/tests/
+  - qsl/qsl-client/qsc/
+  - qsp/
+  - qsc/
+  - formal/
+  - inputs/
+  - Cargo.toml
+  - Cargo.lock
+  - relevant evidence docs
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, workflow, qsl-server, qsl-attachments,
+  qshield runtime, website, public docs, README, or START_HERE paths.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No creating or implying production readiness or public-internet readiness.
+- No creating or implying external-review completion or metadata-free behavior.
+- No creating or implying anonymity or untraceability.
+- No creating or implying off-host backup completion or disaster recovery completion.
+- No creating or implying restore proof or backup completion.
+- No creating or implying bug-free or vulnerability-free status.
+- No creating or implying perfect-crypto, side-channel-free, or crypto-complete status.
+- Secret material handling.
+
+Deliverables:
+- NA-0426 evidence doc.
+- NA-0426 testplan.
+- D-0840 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- Recommended next code/crypto audit or remediation lane.
+
+Acceptance criteria:
+- Crypto/provider boundary audit is read-only.
+- Fail-closed behavior is assessed as evidence, not overclaimed.
+- Public-claim caveats are explicit.
+- No runtime/crypto/dependency mutation occurs.
 - Cargo audit remains green.
 - Public-safety is green before merge and after merge.
 - Exactly one READY item remains.

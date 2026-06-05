@@ -21032,3 +21032,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, dependency, workflow, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-claim mutation is hidden inside this lane
     - more than one READY item remains
   - **References:** NA-0426; NA-0425; NA-0427; D-0840; D-0839; D-0838; `docs/governance/evidence/NA-0426_qsl_crypto_api_provider_boundary_read_only_audit_plan.md`; `tests/NA-0426_qsl_crypto_api_provider_boundary_read_only_audit_testplan.md`; `docs/governance/evidence/NA-0418_qsl_rustsec_pqcrypto_dependency_health_blocker_triage_remediation.md`; `tools/refimpl/quantumshield_refimpl/src/crypto/traits.rs`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tools/refimpl/quantumshield_refimpl/tests/pqkem768.rs`; `qsl/qsl-client/qsc/Cargo.toml`; `qsl/qsl-client/qsc/fuzz/Cargo.lock`; `formal/`; `inputs/suite2/`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0841
+  - **Title:** NA-0426 closeout and NA-0427 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-05
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0426 is closed after qsl-protocol PR #1121 merged at `c29131a754b4`, D-0840 completed the read-only crypto API / provider boundary audit, and post-merge public-safety completed success on the merge commit. Because D-0840 selected the normal provider-boundary findings triage successor, the exact sole READY successor is restored as `NA-0427 -- QSL Crypto API / Provider Boundary Findings Triage and Remediation Authorization Plan`.
+  - **Selected successor:** `NA-0427 -- QSL Crypto API / Provider Boundary Findings Triage and Remediation Authorization Plan`.
+  - **Closeout boundary:** This closeout does not implement NA-0427. It marks NA-0426 DONE, restores NA-0427 READY, adds this decision, updates TRACEABILITY and the rolling journal, and adds the NA-0426 closeout testplan only.
+  - **Protected:**
+    - PR #1121 is MERGED at `c29131a754b4`
+    - post-merge public-safety is green on `c29131a754b4`
+    - READY_COUNT 1
+    - READY NA-0427
+    - NA-0426 DONE
+    - D-0840 exists once
+    - D-0841 exists once after this closeout
+    - no NA-0427 implementation by closeout
+    - no runtime/crypto/dependency/Cargo/workflow/public/service/backup mutation
+    - no backup or restore
+    - no qsl-backup/status/plan mutation
+    - no public overclaim
+  - **Required behavior:**
+    - NA-0427 must consume the NA-0426 findings matrix before any remediation or follow-up lane is authorized
+    - NA-0427 must preserve no-runtime, no-crypto, no-dependency, no-workflow, no-public-overclaim, no-backup/no-restore, and no-secret boundaries unless a later exact directive changes scope
+    - exactly one READY item remains mandatory
+  - **Must never happen:**
+    - NA-0427 is implemented by this closeout
+    - NA-0426 findings are treated as remediated by closeout
+    - runtime, crypto, dependency, Cargo, workflow, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-claim mutation is hidden inside this closeout
+    - more than one READY item remains
+  - **References:** NA-0426; NA-0427; D-0841; D-0840; D-0839; qsl-protocol PR #1121; `docs/governance/evidence/NA-0426_qsl_crypto_api_provider_boundary_read_only_audit_plan.md`; `tests/NA-0426_qsl_crypto_api_provider_boundary_read_only_audit_testplan.md`; `tests/NA-0426_closeout_restore_na0427_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

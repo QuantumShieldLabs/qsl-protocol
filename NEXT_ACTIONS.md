@@ -22409,7 +22409,7 @@ Acceptance criteria:
 - Exactly one READY item remains.
 
 ### NA-0426 — QSL Crypto API / Provider Boundary Read-Only Audit Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -22470,6 +22470,65 @@ Deliverables:
 Acceptance criteria:
 - Crypto/provider boundary audit is read-only.
 - Fail-closed behavior is assessed as evidence, not overclaimed.
+- Public-claim caveats are explicit.
+- No runtime/crypto/dependency mutation occurs.
+- Cargo audit remains green.
+- Public-safety is green before merge and after merge.
+- Exactly one READY item remains.
+
+### NA-0427 — QSL Crypto API / Provider Boundary Findings Triage and Remediation Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Triage the NA-0426 crypto API / provider boundary findings matrix, decide whether any remediation, feature-name clarification, property/fuzz/differential coverage, formal/vector alignment, or claim-boundary follow-up lane is required, and select the next exact queue item without changing runtime code or dependencies.
+
+Protects:
+- Crypto API boundary correctness.
+- Provider boundary clarity.
+- Fail-closed behavior.
+- Dependency remediation confidence after pqcrypto removal.
+- Test/formal evidence alignment.
+- Public-claim conservatism.
+- The one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0427.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- Read-only review of NA-0426 evidence, provider-boundary files, dependency trees, tests, formal roots, and relevant evidence docs.
+
+Forbidden scope:
+- No runtime mutation.
+- No crypto implementation mutation.
+- No dependency or Cargo mutation.
+- No workflow mutation.
+- No qsl-server mutation.
+- No qsl-attachments mutation.
+- No qshield runtime mutation.
+- No website, public docs, README, or START_HERE mutation.
+- No backup or restore execution.
+- No qsl-backup mutation.
+- No backup status or backup plan mutation.
+- No qwork/qstart/qresume/qshell mutation.
+- No public technical paper content.
+- No unsupported public, security, readiness, privacy, backup, or restore claim.
+- No unsupported external-review or cryptographic-completeness claim.
+- No unsupported side-channel assurance, defect-absence, vulnerability-absence, or absolute-crypto-assurance claim.
+- No secret material handling.
+
+Deliverables:
+- NA-0427 evidence doc.
+- NA-0427 testplan.
+- D-0842 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- Recommended next code/crypto audit or remediation lane.
+
+Acceptance criteria:
+- Findings matrix is consumed.
+- Remediation or follow-up need is classified.
 - Public-claim caveats are explicit.
 - No runtime/crypto/dependency mutation occurs.
 - Cargo audit remains green.

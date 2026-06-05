@@ -8,6 +8,91 @@ Last-Updated: 2026-06-05
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-05-263 -- NA-0422 QSL Backup Log Code 23 Clean Status / Plan Refresh Implementation Harness
+- Begin timestamp (America/Chicago): 2026-06-05T10:34:30-05:00
+- Begin timestamp (UTC): 2026-06-05T15:34:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0422/qsl-protocol`
+- qsl-protocol branch at start: `main`
+- qsl-protocol evidence branch: `na-0422-clean-status-plan-refresh`
+- qsl-protocol HEAD at start: `e7328d8fb3cf`
+- qsl-protocol main at start: `e7328d8fb3cf`
+- qsl-protocol origin/main at start: `e7328d8fb3cf`
+- qsl-server main: not touched; no mutation
+- qsl-server origin/main: not touched; no mutation
+- qsl-attachments main: not touched; no mutation
+- qsl-attachments origin/main: not touched; no mutation
+- Disk watermark: `/dev/nvme0n1p2` 468G total, 199G used, 245G free, 45% used
+
+## READY Proof
+
+- qwork proof files existed under `/srv/qbuild/work/NA-0422/.qwork/` and reported `startup_result=OK`, lane `NA-0422`, repo `qsl-protocol`, clean worktree/index/untracked fields, READY_COUNT `1`, queue top READY `NA-0422`, and requested lane status `READY`.
+- Live `HEAD` and `origin/main` matched the qwork proof at `e7328d8fb3cf` after fetch.
+- PR #1112 was MERGED with merge commit `e7328d8fb3cf`.
+- Public-safety on `e7328d8fb3cf` completed success.
+- Queue before patch: READY_COUNT `1`; READY `NA-0422 -- QSL Backup Log Code 23 Clean Status / Plan Refresh Implementation Harness`.
+- Decision state before patch: latest D-0831; duplicate count zero; D-0830 once; D-0831 once; D-0832 absent.
+- Codex did not run qwork, qstart, qresume, sudo, generated packet scripts, backup, or restore.
+
+## Local Status / Plan Refresh
+
+- Proof root: `/srv/qbuild/tmp/NA0422_clean_status_plan_refresh_20260605T110903-0500`.
+- Clean scheduled same-host pair remained latest:
+  - log `/backup/qsl/logs/daily-20260605T023308-0500.log`
+  - manifest `/backup/qsl/manifests/daily-20260605T023308-0500.manifest.txt`
+- Log counts: rsync error `0`; code 23 `0`; permission denied `0`; NA0407 `0`; rollback `0`; exact rollback directory reference `0`; qsl-backup.preimage `0`; nonzero exit-code marker `0`.
+- Manifest counts: `/home/victor/work/qsl/codex/ops` `1`; NA0407 `0`; rollback `0`; exact rollback directory reference `0`; qsl-backup.preimage `0`.
+- Rollback copies created:
+  - `/srv/qbuild/tmp/NA0422_clean_status_plan_refresh_20260605T110903-0500/rollback/QSL_BACKUP_STATUS.md.rollback`
+  - `/srv/qbuild/tmp/NA0422_clean_status_plan_refresh_20260605T110903-0500/rollback/QSL_BACKUP_PLAN.md.rollback`
+- Status file SHA256 prefix changed from `036b608b75c6` to `ed0f7d1be99b`.
+- Plan file SHA256 prefix changed from `bba5e4ebad6` to `fc9ff1d85544`.
+- Proposed local patch saved to `/srv/qbuild/tmp/NA0422_clean_status_plan_refresh_20260605T110903-0500/local_patch/proposed_local_docs.patch`.
+- Applied local diff saved to `/srv/qbuild/tmp/NA0422_clean_status_plan_refresh_20260605T110903-0500/status_plan/applied_local_docs.diff`.
+- Local scans found required clean log/manifest references, same-host caveats, no high-confidence secret markers, and no positive public-overclaim markers.
+- `/usr/local/sbin/qsl-backup` remained at SHA256 prefix `e9ecff3d22ed`; exact Codex ops source inclusion count remained `1`.
+- Feasible local mtime scan also observed the active Codex session log updating under the Codex log directory, separate from the manual two-file local doc patch.
+
+## Evidence Patch
+
+- Evidence branch: `na-0422-clean-status-plan-refresh`.
+- Allowed evidence paths: `docs/governance/evidence/NA-0422_qsl_backup_log_code_23_clean_status_plan_refresh_implementation_harness.md`; `tests/NA-0422_qsl_backup_log_code_23_clean_status_plan_refresh_implementation_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- D-0832 records NA-0422 clean backup status plan refresh implementation.
+- Selected successor: `NA-0423 -- QSL Domain Stewardship / Director Workflow Governance Authorization Plan`.
+- This evidence patch does not implement NA-0423.
+
+## Validation / CI Notes
+
+- Pre-branch dependency health passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`; pqcrypto inverse-tree probes were absent through zero-failure-safe command shape.
+- Staged path guard passed: exactly `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0422_qsl_backup_log_code_23_clean_status_plan_refresh_implementation_harness.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0422_qsl_backup_log_code_23_clean_status_plan_refresh_implementation_testplan.md`.
+- `git diff --cached --check` passed.
+- helper link-check reported `TOTAL_MISSING 0`.
+- staged leak/overclaim scan reported `STAGED_SECRET_FINDING_COUNT 0` and `STAGED_OVERCLAIM_TERM_COUNT 0`.
+- Queue helper reported READY_COUNT `1` and READY NA-0422.
+- Decision helper reported latest D-0832 and duplicate count zero; structural counts showed D-0830 once, D-0831 once, D-0832 once, and D-0833 absent.
+- Dependency validation passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`; pqcrypto inverse-tree probes were absent through zero-failure-safe command shape.
+- `cargo fmt --check` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed with 3 tests.
+- Formal validation passed: `python3 formal/model_qsc_handshake_suite_id_bounded.py`; `python3 formal/run_model_checks.py`.
+- Pending: commit, committed-diff scope guard, helper leak-scan against `origin/main`, classifier, PR body preflight, goal-lint, PR creation, PR checks, merge, and post-merge public-safety.
+
+## Failures / Recoveries
+
+- No recovered failures yet for NA-0422. Non-fatal cargo lock-wait warnings occurred during dependency reads and final results were green.
+
+## Next-Watch Items
+
+- D-0832 must exist once before evidence PR merge.
+- D-0833 must remain absent until optional closeout.
+- NA-0422 must remain READY until the evidence PR merges and optional closeout restores NA-0423.
+- NA-0423 successor must preserve one-READY, Lead Director final authority, no runtime/workflow/public/backup mutation, and no public-claim expansion.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-05-262 -- Packet K Optional Closeout to NA-0422
 - Begin timestamp (America/Chicago): 2026-06-05T09:47:19-05:00
 - Begin timestamp (UTC): 2026-06-05T14:47:19Z

@@ -8,6 +8,49 @@ Last-Updated: 2026-06-04
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-05-259 -- Packet L Optional Closeout to NA-0420
+- Host clock during closeout patch (America/Chicago): 2026-06-04T20:39:00-05:00
+- Host clock during closeout patch (UTC): 2026-06-05T01:39:00+00:00
+- NA-0419 evidence PR: #1107
+- NA-0419 evidence merge SHA: `9f376ef20fc9`
+
+## Closeout Proof
+
+- PR #1107 is MERGED.
+- Post-merge public-safety on `9f376ef20fc9` completed success after bounded polling at iteration 8/180.
+- Queue before closeout: READY_COUNT `1`; READY `NA-0419 -- QSL Backup Log Code 23 Operator Packet Execution Verification Resume`.
+- Decision state before closeout: latest D-0826; duplicate count zero; D-0827 absent.
+- D-0826 classification: `CODE23_REMEDIATION_APPLIED_PENDING_SCHEDULED_BACKUP_PROOF`.
+- Selected successor: `NA-0420 -- QSL Backup Log Code 23 Post-Remediation Scheduled Backup Verification Plan`.
+
+## Closeout Patch
+
+- NA-0419 is marked DONE.
+- D-0827 records NA-0419 closeout and NA-0420 restoration.
+- NA-0420 is restored as the sole READY successor.
+- New closeout testplan: `tests/NA-0419_closeout_restore_na0420_testplan.md`.
+
+## Boundary
+
+- Closeout does not implement NA-0420.
+- Codex did not run qwork, qstart, qresume, sudo, generated packet scripts, backup, or restore.
+- Codex did not mutate qsl-backup, `/backup/qsl`, rollback subtree paths, backup status files, backup plan files, qwork/qstart/qresume/qshell, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE.
+- Same-host continuity caveats and no-public-overclaim boundaries are preserved.
+
+## Recoveries / Non-Fatal Notes
+
+- Failing command: first PR #1107 bounded checks loop. Classification: recoverable polling-condition mistake because the helper's aggregate failure count briefly treated accepted-neutral CodeQL as incomplete while listed required checks were otherwise successful or still converging. Corrective action: stopped only the polling shell and switched to merge-state plus check-run/public-safety proof. Final result: PR #1107 reached `mergeStateStatus=CLEAN`, all required check-runs completed successfully, and post-merge public-safety later completed success.
+- Non-fatal termination proof: `kill 2951905 && sleep 1 && ps -p 2951905 -o pid,stat,cmd` exited nonzero only because the targeted polling shell had already terminated. The process table confirmed no long-running polling shell remained.
+- Failing command: first closeout staged overclaim scan. Classification: recoverable scan-shape false positive because the line-oriented context scanner flagged a required distinction/caveat line and a forbidden-scope clause as affirmative claims. Corrective action: reran with those guard phrases handled as negative/forbidden context. Final result: positive overclaim candidate count 0.
+
+## Next-Watch Items
+
+- NA-0420 must remain implementation-pending after closeout.
+- NA-0420 must inspect scheduled log/manifest evidence after operator remediation without running backup or restore.
+- Status/plan mutation remains forbidden unless a later directive explicitly authorizes exact local files and wording.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-05-259 -- Execute NA-0419 QSL Backup Log Code 23 Operator Packet Execution Verification Resume, Optional Closeout to NA-0420
 - Begin timestamp from directive (America/Chicago): 2026-06-05T00:34:30-05:00
 - Begin timestamp from directive (UTC): 2026-06-05T05:34:30Z

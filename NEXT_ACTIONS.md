@@ -21793,7 +21793,20 @@ Acceptance criteria:
 ---
 
 ### NA-0419 — QSL Backup Log Code 23 Operator Packet Execution Verification Resume
-Status: READY
+Status: DONE
+Implementation note:
+- NA-0419 completed in qsl-protocol PR `#1107`, merged as
+  `9f376ef20fc9`, after verifying the NA-0418 operator apply/verify markers
+  against packet-local `operator_result` files and live read-only state.
+  Classification was
+  `CODE23_REMEDIATION_APPLIED_PENDING_SCHEDULED_BACKUP_PROOF` because no
+  scheduled log or manifest newer than the operator action existed yet.
+  NA-0419 did not run qwork, qstart, qresume, sudo, generated packet scripts,
+  backup, or restore; did not mutate qsl-backup, `/backup/qsl`, rollback
+  subtree paths, backup status files, backup plan files, qsl-server,
+  qsl-attachments, qshield runtime, website, public docs, README, or
+  START_HERE; and made no public overclaim. The exact selected successor is
+  restored below as NA-0420.
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -21866,6 +21879,74 @@ Acceptance criteria:
 - No backup or restore operation is run by Codex.
 - No qsl-backup mutation occurs.
 - No rollback subtree mutation occurs by Codex.
+- No public-readiness or backup-complete overclaim is introduced.
+- Exactly one READY item remains.
+- public-safety is green before merge and after merge.
+
+---
+
+### NA-0420 — QSL Backup Log Code 23 Post-Remediation Scheduled Backup Verification Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Verify the next scheduled same-host backup log and manifest after the NA-0418
+operator permission remediation, determine whether the code 23 warning cleared,
+and select the next status/plan or remediation lane without running backup or
+restore.
+
+Protects:
+- Backup log accuracy.
+- Same-host continuity caveats.
+- The distinction between permission remediation and scheduled backup proof.
+- The distinction between manifest evidence and backup completion.
+- The no-backup/no-restore boundary.
+- The one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0420.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of `/backup/qsl/logs`, `/backup/qsl/manifests`,
+  `/srv/qbuild/tmp/NA0418_code23_root_operator_packet_20260604T092447-05-00/operator_result`,
+  and `/usr/local/sbin/qsl-backup`.
+
+Forbidden scope:
+- Running backup.
+- Running restore.
+- Mutating `/usr/local/sbin/qsl-backup`.
+- Mutating rollback subtree paths.
+- Mutating systemd units, timers, fstab, backup target mounts, source lists,
+  retention, or backup scripts.
+- Mutating backup status or backup plan files unless a later directive
+  explicitly authorizes exact files and wording.
+- Creating durable Director State Index output.
+- Mutating qwork/qstart/qresume/qshell.
+- Mutating runtime, crypto, dependency, workflow, qsl-server, qsl-attachments,
+  qshield runtime, website, public docs, README, or START_HERE paths.
+- Creating public technical paper content.
+- Creating or implying off-host backup completion, disaster recovery
+  completion, restore proof, backup completion, production readiness,
+  public-internet readiness, external-review completion, metadata-free
+  behavior, anonymity, untraceable behavior, bug-free status, vulnerability-free
+  status, or perfect-crypto claims.
+- Secret material handling.
+
+Deliverables:
+- NA-0420 evidence doc.
+- NA-0420 testplan.
+- D-0828 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- Exact recommendation based on the scheduled log/manifest result.
+
+Acceptance criteria:
+- A scheduled log/manifest after operator remediation is inspected.
+- Same-host continuity caveat is preserved.
+- No backup or restore operation is run.
+- No qsl-backup mutation occurs.
+- No rollback subtree mutation occurs.
 - No public-readiness or backup-complete overclaim is introduced.
 - Exactly one READY item remains.
 - public-safety is green before merge and after merge.

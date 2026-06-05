@@ -8,6 +8,99 @@ Last-Updated: 2026-06-05
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-05-264 -- NA-0423 QSL Domain Stewardship / Director Workflow Governance Authorization Plan
+- Begin timestamp (America/Chicago): 2026-06-05T12:04:30-05:00
+- Begin timestamp (UTC): 2026-06-05T17:04:30Z
+- Host timestamp note: local host `date --iso-8601=seconds` reported `2026-06-05T12:02:12-05:00` and UTC `2026-06-05T17:02:12+00:00` during startup capture, earlier than the embedded directive begin time; recorded as operational friction, not used as authority over qwork proof files.
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0423/qsl-protocol`
+- qsl-protocol branch at start: `main`
+- qsl-protocol evidence branch: `na-0423-domain-stewardship-governance-authorization`
+- qsl-protocol HEAD at start: `f0e96ae7e0b1`
+- qsl-protocol main at start: `f0e96ae7e0b1`
+- qsl-protocol origin/main at start: `f0e96ae7e0b1`
+- qsl-server main: not touched; no mutation
+- qsl-server origin/main: not touched; no mutation
+- qsl-attachments main: not touched; no mutation
+- qsl-attachments origin/main: not touched; no mutation
+- Disk watermark: `/dev/nvme0n1p2` 468G total, 199G used, 245G free, 45% used
+
+## READY Proof
+
+- qwork proof files existed under `/srv/qbuild/work/NA-0423/.qwork/` and reported `startup_result=OK`, lane `NA-0423`, repo `qsl-protocol`, clean worktree/index/untracked fields, READY_COUNT `1`, queue top READY `NA-0423`, requested lane status `READY`, and qwork-reported path `/srv/qbuild/work/NA-0423/qsl-protocol`.
+- qwork proof JSON parsed successfully and mirrored the required `.kv` proof fields.
+- Codex did not run qwork, qstart, or qresume.
+- Live `HEAD` and `origin/main` matched the qwork proof at `f0e96ae7e0b1` after fetch.
+- PR #1114 was verified MERGED with merge commit `f0e96ae7e0b1`.
+- Public-safety on `f0e96ae7e0b1` completed success.
+- Queue before patch: READY_COUNT `1`; READY `NA-0423 -- QSL Domain Stewardship / Director Workflow Governance Authorization Plan`.
+- Decision state before patch: latest D-0833; duplicate count zero; D-0832 once; D-0833 once; D-0834 absent.
+
+## Protection / Boundary Proof
+
+- Proof root: `/srv/qbuild/tmp/NA0423_domain_stewardship_governance_20260605T120329-0500`.
+- qwork proofs copied into the proof root under `qwork/`.
+- `/usr/local/sbin/qsl-backup` SHA256 matched `e9ecff3d22ed`; Codex ops source inclusion count was exactly `1`.
+- Codex did not run backup, restore, sudo, generated packet scripts, qwork, qstart, or qresume.
+- Codex did not mutate `/usr/local/sbin/qsl-backup`, `/backup/qsl`, rollback subtree paths, backup status files, backup plan files, qwork/qstart/qresume/qshell, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE.
+
+## Evidence Patch
+
+- Allowed evidence paths: `docs/governance/evidence/NA-0423_qsl_domain_stewardship_director_workflow_governance_authorization_plan.md`; `tests/NA-0423_qsl_domain_stewardship_director_workflow_governance_authorization_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- D-0834 records NA-0423 domain stewardship director workflow governance authorization.
+- Selected successor: `NA-0424 -- QSL Domain Stewardship Operating Model Canon Implementation Harness`.
+- Recommended future canon artifact: `docs/governance/DOMAIN_STEWARDSHIP_AND_DIRECTOR_WORKFLOW.md`.
+- Stewards remain advisory only; Lead Director final authority and exactly-one-READY discipline remain controlling.
+- This evidence patch does not implement NA-0424.
+
+## Validation / CI Notes
+
+- Pre-patch dependency health passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`; pqcrypto inverse-tree probes were absent through the directive's zero-failure-safe command shape.
+- Exact staged path guard reported five changed paths, all allowed.
+- `git diff --cached --check` passed.
+- Helper link-check reported `TOTAL_MISSING 0`.
+- Helper added-line leak scan reported `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan reported `POSITIVE_OVERCLAIM_COUNT 0`.
+- Classifier reported `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, and `scope_class=docs_only`.
+- PR body preflight reported `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- Queue helper reported READY_COUNT `1` and READY NA-0423.
+- Decision helper reported latest D-0834 and duplicate count zero; structural counts showed D-0832 once, D-0833 once, D-0834 once, and D-0835 absent.
+- Dependency validation passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`; pqcrypto inverse-tree probes were absent through zero-failure-safe command shape.
+- `cargo fmt --check` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed with 3 tests.
+- Formal validation passed: `python3 formal/model_qsc_handshake_suite_id_bounded.py`; `python3 formal/run_model_checks.py`.
+- Committed-diff scope guard passed against `origin/main`: five changed paths, all allowed, forbidden count 0.
+- Local goal-lint passed with a synthetic PR event containing `Goals: G1, G2, G3, G4, G5`.
+- Pending: refreshed commit, PR creation, required checks, merge, and post-merge public-safety.
+
+## Failures / Recoveries
+
+- Failing command: `rg -n "NA-0401|project goal|operating principles|QSL_PROJECT_GOAL" docs/governance/evidence/NA-0401* tests/NA-0401*`.
+- Classification: recoverable command-shape/context-path mistake. NA-0401 created the canon at `docs/governance/PROJECT_GOAL_AND_OPERATING_PRINCIPLES.md`, not under `docs/governance/evidence/NA-0401*`.
+- Corrective action: reran targeted search against `docs/governance/PROJECT_GOAL_AND_OPERATING_PRINCIPLES.md` and the NA-0401 testplans.
+- Final result: corrected command exited 0 and confirmed relevant project-goal, one-READY, public-claim, Director/Codex/human role, backup/restore/key honesty, and no-secret markers.
+- Failing command: first changed-content overclaim scan was run against whole changed files and reported historical terms already present on `main`.
+- Classification: recoverable scan-shape issue because the required check is the added PR payload, not historical baseline content.
+- Corrective action: reran against added lines only, then tightened new negative/no-go wording where line wrapping left claim terms without a local negative guard.
+- Final result: `POSITIVE_OVERCLAIM_COUNT 0`.
+- Failing command: `GITHUB_EVENT_PATH=/proc/self/fd/3 python tools/goal_lint.py ...`.
+- Classification: recoverable CLI command-shape mistake because the local host provides `python3`, not `python`.
+- Corrective action: reran the same synthetic PR event with `python3`.
+- Final result: goal-lint reported `OK: goal compliance checks passed.`
+
+## Next-Watch Items
+
+- D-0834 must exist once before evidence PR merge.
+- D-0835 must remain absent until optional closeout.
+- NA-0423 must remain READY until evidence PR merge and optional closeout.
+- NA-0424 successor must preserve Lead Director final authority, advisory-only stewards, exactly one READY item, no independent Directors, public-claim boundaries, no runtime/dependency/workflow mutation, no backup mutation, and no public-readiness overclaim.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-05-263 -- Packet K Optional Closeout to NA-0423
 - Begin timestamp (America/Chicago): 2026-06-05T11:34:00-05:00
 - Begin timestamp (UTC): 2026-06-05T16:34:00Z

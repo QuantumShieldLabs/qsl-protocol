@@ -20433,3 +20433,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - NA-0419 is restored before dependency-health remediation is merged and checked
     - backup, restore, sudo, generated script execution, qsl-backup mutation, rollback subtree mutation by Codex, status/plan mutation, or public-claim expansion is hidden inside this lane
   - **References:** NA-0418; NA-0419; D-0823; D-0822; D-0821; `docs/governance/evidence/NA-0418_qsl_rustsec_pqcrypto_dependency_health_blocker_triage_remediation.md`; `tests/NA-0418_qsl_rustsec_pqcrypto_dependency_health_blocker_triage_remediation_testplan.md`; `Cargo.lock`; `tools/refimpl/quantumshield_refimpl/Cargo.toml`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tools/refimpl/quantumshield_refimpl/tests/pqkem768.rs`; `qsl/qsl-client/qsc/src/tui/controller/render.rs`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0825
+  - **Title:** NA-0418 closeout and NA-0419 operator packet verification restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-04
+  - **Goals:** G4
+  - **Decision:** NA-0418 is closed after qsl-protocol PR #1105 merged at `ee0fd66447a8`, D-0824 accepted the runtime/security-critical pqcrypto reachability classification, `cargo audit --deny warnings` passed on merged main, `public-safety` completed success on the remediation merge commit, and inverse cargo trees proved the former pqcrypto unmaintained package IDs absent from the root workspace. The operator-packet verification lane remains pending and is restored as the sole READY successor: `NA-0419 -- QSL Backup Log Code 23 Operator Packet Execution Verification Resume`.
+  - **Dependency-health result:** The pqcrypto unmaintained dependency blocker is remediated without an audit waiver. `rustls-webpki` remains `v0.103.13`; `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals` are absent from the root workspace tree; and cargo audit remains a fail-closed release gate.
+  - **Operator-lane restoration:** NA-0419 must verify the human operator apply/verify output and live rollback state in its own lane. This closeout does not accept the operator result into governance, does not run the generated packet scripts, and does not decide the later scheduled-backup verification residual.
+  - **Backup/operator boundary:** Codex did not run qwork, qstart, qresume, sudo, generated operator packet scripts, backup, or restore. Codex did not mutate `/usr/local/sbin/qsl-backup`, `/backup/qsl`, the NA-0407 rollback subtree, backup status files, backup plan files, qwork/qstart/qresume/qshell, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE. qsl-backup SHA remained `e9ecff3d22ed...f6232`, and the Codex ops source inclusion count remained 1.
+  - **Public claim boundary:** This decision records dependency-health closeout and queue restoration only. It does not claim broader release readiness, public service readiness, external-review completion, off-host backup, disaster recovery, restore completion, backup completion, or universal absence of defects.
+  - **Protected:**
+    - PR #1105 merged before closeout
+    - D-0824 accepted before D-0825
+    - cargo audit green on merged main
+    - public-safety green on the remediation merge commit
+    - former pqcrypto unmaintained package IDs absent from the root workspace
+    - READY_COUNT 1
+    - NA-0418 DONE
+    - READY NA-0419 as the exact successor
+    - no backup or restore execution by Codex
+    - no qsl-backup mutation
+    - no generated packet script execution by Codex
+    - no rollback subtree mutation by Codex
+    - no public overclaim
+  - **Required behavior:**
+    - NA-0419 resumes operator-packet execution verification only after this closeout
+    - operator apply/verify markers are accepted only if supported by live state in NA-0419
+    - same-host continuity caveats remain explicit
+    - D-0825 exists once
+    - D-0826 remains absent until NA-0419 live work
+    - duplicate decision count remains zero
+  - **Must never happen:**
+    - operator-packet execution verification is treated as completed by this closeout
+    - backup, restore, sudo, generated script execution, qsl-backup mutation, rollback subtree mutation by Codex, status/plan mutation, qwork/qstart/qresume execution, or public-claim expansion is hidden inside this closeout
+    - more than one READY item remains
+  - **References:** NA-0418; NA-0419; D-0824; D-0823; qsl-protocol PR #1105; `docs/governance/evidence/NA-0418_qsl_rustsec_pqcrypto_dependency_health_blocker_triage_remediation.md`; `tests/NA-0418_qsl_rustsec_pqcrypto_dependency_health_blocker_triage_remediation_testplan.md`; `tests/NA-0418_closeout_restore_na0419_operator_packet_verification_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -8,6 +8,43 @@ Last-Updated: 2026-06-04
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-04-258 -- Close Out NA-0418 After RustSec pqcrypto Remediation Public-Safety Completion and Restore NA-0419 Operator Packet Verification
+- Begin timestamp from directive (America/Chicago): 2026-06-04T15:34:30-05:00
+- Begin timestamp from directive (UTC): 2026-06-04T20:34:30Z
+- Host clock during closeout patch (America/Chicago): 2026-06-04T19:51:41-05:00
+- Host clock during closeout patch (UTC): 2026-06-05T00:51:41+00:00
+- Proof root: `/srv/qbuild/tmp/NA0418_rustsec_remediation_closeout_20260604T194855-0500/`
+
+## Closeout Proof
+
+- qwork proof files existed under `/srv/qbuild/work/NA-0418/.qwork/`, parsed successfully, and were copied to the closeout proof root.
+- qwork proof and live repo matched at `ee0fd66447a8`; fetch did not advance `origin/main`.
+- PR #1105 is MERGED with merge commit `ee0fd66447a8`.
+- Queue helper at start: READY_COUNT `1`; READY `NA-0418 -- QSL RustSec pqcrypto Dependency Health Blocker Triage / Remediation`.
+- Decision helper at start: latest D-0824; duplicate count zero; D-0825 absent.
+- Public-safety on `ee0fd66447a8` completed success.
+- `cargo audit --deny warnings` completed successfully on merged main.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked` reported package ID not found, which is the expected absence proof after remediation.
+- `/usr/local/sbin/qsl-backup` checksum remained `e9ecff3d22ed...f6232`; exact Codex ops source inclusion count remained 1.
+- Operator result path exists; rollback directory current state observed as `root:root` mode `2755`.
+- Codex did not run qwork, qstart, qresume, sudo, generated packet scripts, backup, or restore.
+- Codex did not mutate qsl-backup, `/backup/qsl`, the NA-0407 rollback subtree, local backup status/plan files, qwork/qstart/qresume/qshell, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE.
+
+## Closeout Patch
+
+- NA-0418 is marked DONE.
+- D-0825 records closeout and restoration of NA-0419.
+- NA-0419 is restored as the sole READY successor for operator-packet execution verification.
+- New closeout testplan: `tests/NA-0418_closeout_restore_na0419_operator_packet_verification_testplan.md`.
+
+## Recoveries / Non-Fatal Notes
+
+- Valid zero-result proof: the three pqcrypto inverse-tree commands returned Cargo package-ID-not-found output. Classification: valid absence proof, not a remediation failure. Corrective action: preserve `cargo audit --deny warnings` green plus the inverse-tree output as final dependency-health evidence.
+- Non-fatal warnings: parallel cargo tree commands waited on the package-cache lock before completing.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-04-257 -- Reprioritize NA-0418 for RustSec pqcrypto Dependency Health Blocker Triage / Remediation, Then Restore Operator Packet Verification Lane
 - Begin timestamp from directive (America/Chicago): 2026-06-04T12:34:30-05:00
 - Begin timestamp from directive (UTC): 2026-06-04T17:34:30Z

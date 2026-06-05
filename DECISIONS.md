@@ -20828,3 +20828,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - more than one READY item remains
     - runtime, crypto, dependency, workflow, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-claim mutation is hidden inside this closeout
   - **References:** NA-0423; NA-0424; D-0834; D-0833; qsl-protocol PR #1115; `docs/governance/evidence/NA-0423_qsl_domain_stewardship_director_workflow_governance_authorization_plan.md`; `tests/NA-0423_qsl_domain_stewardship_director_workflow_governance_authorization_testplan.md`; `tests/NA-0423_closeout_restore_na0424_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0836
+  - **Title:** NA-0424 domain stewardship operating model canon implementation
+  - **Status:** Accepted
+  - **Date:** 2026-06-05
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0424 implements the internal governance canon for QSL advisory domain stewardship and Director workflow at `docs/governance/DOMAIN_STEWARDSHIP_AND_DIRECTOR_WORKFLOW.md`. The canon preserves Lead Director final authority, keeps stewards advisory only, keeps exactly one READY item mandatory, forbids independent autonomous Directors, implements the five stewardship domains authorized by D-0834, and keeps steward recommendations subordinate to live queue state, public-safety, branch protection, DECISIONS, TRACEABILITY, and scope guards.
+  - **Canon artifact path:** `docs/governance/DOMAIN_STEWARDSHIP_AND_DIRECTOR_WORKFLOW.md`.
+  - **Five stewardship domains implemented:** Crypto / Protocol Steward; Local Ops / Backup / Restore Steward; Public Claims / External Review Steward; CI / Dependency / Release Health Steward; Product / Demo / Service Boundary Steward.
+  - **Selected successor:** NA-0425 -- QSL Code / Crypto Audit Follow-Up Resumption Plan.
+  - **Authority boundary:** The Lead Director remains final authority for directive issuance, READY promotion, queue order, PR merge recommendation, public-claim boundary, conflict resolution, and stop/retry decisions. Stewards may provide bounded evidence-backed recommendations only and may not independently promote READY items, issue final Codex directives, merge PRs, create public claims, authorize secrets or privileged actions, or bypass public-safety, branch protection, governance spine files, or scope guards.
+  - **Scope boundary:** NA-0424 does not mutate runtime, crypto, dependency, workflow, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, START_HERE, qwork, qstart, qresume, qshell, qsl-backup, backup status, backup plan, rollback subtree, `/backup/qsl`, systemd, timer, fstab, or branch protection paths.
+  - **Public claim boundary:** This decision makes no production-readiness claim, no public-internet-readiness claim, no external-review-complete claim, no metadata-free claim, no anonymity claim, no untraceability claim, no off-host-backup-complete claim, no disaster-recovery-complete claim, no restore-proven claim, no backup-complete claim, no bug-free claim, no vulnerability-free claim, and no perfect-crypto claim.
+  - **Protected:**
+    - canon artifact exists at the selected internal governance path
+    - Lead Director final authority preserved
+    - stewards advisory only
+    - exactly one READY item remains mandatory
+    - no independent autonomous Directors
+    - five stewardship domains implemented
+    - review template and risk classifications implemented
+    - conflict/escalation rules implemented
+    - public-claim and external-review boundaries preserved
+    - no runtime/dependency/workflow/backup/public mutation
+    - no public overclaim
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0424 remains pending closeout
+    - D-0836 exists once
+    - D-0837 absent until optional closeout
+    - selected NA-0425 successor preserves no-runtime/no-crypto/no-dependency/no-workflow/no-public-overclaim boundaries until future exact scope authorizes otherwise
+  - **Must never happen:**
+    - stewards are treated as autonomous Directors
+    - more than one READY item is allowed
+    - steward recommendations override live queue, public-safety, branch protection, DECISIONS, TRACEABILITY, or scope guards
+    - any forbidden use of internal governance canon text as public-readiness, production-readiness, external-review-complete, metadata-free, anonymity, untraceability, off-host-backup-complete, disaster-recovery-complete, restore-proven, backup-complete, vulnerability-free, bug-free, or perfect-crypto proof
+    - runtime, crypto, dependency, workflow, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, or branch-protection mutation is hidden inside this lane
+  - **References:** NA-0424; NA-0423; NA-0425; D-0835; D-0834; `docs/governance/DOMAIN_STEWARDSHIP_AND_DIRECTOR_WORKFLOW.md`; `docs/governance/evidence/NA-0424_qsl_domain_stewardship_operating_model_canon_implementation_harness.md`; `tests/NA-0424_qsl_domain_stewardship_operating_model_canon_implementation_testplan.md`; `docs/governance/PROJECT_GOAL_AND_OPERATING_PRINCIPLES.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

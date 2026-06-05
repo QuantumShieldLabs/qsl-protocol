@@ -8,6 +8,119 @@ Last-Updated: 2026-06-05
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-05-268 -- NA-0427 QSL Crypto API / Provider Boundary Findings Triage and Remediation Authorization Plan
+- Directive begin timestamp (America/Chicago): 2026-06-05T16:04:30-05:00
+- Directive begin timestamp (UTC): 2026-06-05T21:04:30Z
+- Host timestamp during startup proof verification (America/Chicago): 2026-06-05T15:59:28-05:00
+- Host timestamp during startup proof verification (UTC): 2026-06-05T20:59:28+00:00
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0427/qsl-protocol`
+- qsl-protocol branch at start: `main`
+- qsl-protocol evidence branch: `na-0427-provider-boundary-findings-triage`
+- qsl-protocol HEAD at start: `d3daaad926c6`
+- qsl-protocol main at start: `d3daaad926c6`
+- qsl-protocol origin/main at start: `d3daaad926c6`
+- qsl-server main: not touched; no mutation
+- qsl-server origin/main: not touched; no mutation
+- qsl-attachments main: not touched; no mutation
+- qsl-attachments origin/main: not touched; no mutation
+
+## READY Proof
+
+- qwork proof files existed under `/srv/qbuild/work/NA-0427/.qwork/` and reported `startup_result=OK`, lane `NA-0427`, repo `qsl-protocol`, clean worktree/index/untracked fields, READY_COUNT `1`, queue top READY `NA-0427`, requested lane status `READY`, and qwork-reported path `/srv/qbuild/work/NA-0427/qsl-protocol`.
+- qwork proof JSON parsed successfully and mirrored the required `.kv` proof fields.
+- Codex did not run qwork, qstart, or qresume.
+- Live `HEAD` and `origin/main` matched the qwork proof at `d3daaad926c6` after fetch.
+- PR #1122 was verified MERGED with merge commit `d3daaad926c6`.
+- Public-safety on `d3daaad926c6` completed success.
+- Queue before patch: READY_COUNT `1`; READY `NA-0427 -- QSL Crypto API / Provider Boundary Findings Triage and Remediation Authorization Plan`; NA-0426 DONE.
+- Decision state before patch: latest D-0841; duplicate count zero; D-0840 once; D-0841 once; D-0842 absent.
+
+## Protection / Boundary Proof
+
+- Proof root: `/srv/qbuild/tmp/NA0427_provider_boundary_findings_triage_20260605T160131-0500`.
+- qwork proof files were copied to the proof root under `qwork/`.
+- qsl-backup checksum matched the directive-required SHA256.
+- qsl-backup source inclusion count for the Codex ops source path is exactly `1`.
+- Disk watermark: root filesystem `47%` used; backup mount `4%` used.
+- Codex did not run sudo, backup, restore, qwork, qstart, or qresume.
+- Codex did not mutate qsl-backup, `/backup/qsl`, backup status files, backup plan files, rollback subtree paths, qwork/qstart/qresume/qshell, runtime, crypto, dependencies, Cargo files, workflows, tests, vectors, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE.
+
+## Triage Notes
+
+- F-0426-01 accepted as provider-boundary baseline after ml-kem remediation.
+- F-0426-02 remains qsc provider-error/no-mutation `NEXT_CANDIDATE` and `EVIDENCE_GAP`; qsc marker paths exist for `pq_encap_failed` and `pq_decap_failed`, but exact marker/no-mutation tests were not found.
+- F-0426-03 remains `CLAIM_BOUNDARY_ONLY`; historical feature name `pqcrypto` maps to `pqkem` plus `ml-dsa` in root provider config.
+- F-0426-04 is classified `BLOCKER_CANDIDATE` with dependency/fuzz-lock status `FUZZ_LOCK_ACTIVE_SECURITY_BLOCKER`.
+- F-0426-05 and F-0426-06 remain formal/vector/property/fuzz `EVIDENCE_GAP` items and should not outrank the active fuzz-lock dependency blocker.
+- F-0426-07 remains a key-material lifecycle backlog candidate.
+- F-0426-08 and F-0426-09 remain public-claim/service-boundary caveats.
+- Selected successor: `NA-0428 -- QSL qsc Fuzz Lock pqcrypto Residual Dependency Blocker Authorization Plan`.
+
+## Recovered / Classified Non-Zero Commands
+
+- Failing command: `cargo tree -i pqcrypto-mlkem --locked`, plus equivalent root inverse-tree probes for `pqcrypto-traits` and `pqcrypto-internals`.
+  - Classification: recoverable zero-match dependency proof; package-ID absence is the required root locked-graph outcome.
+  - Corrective action: recorded package-ID absence and kept root `cargo audit --deny warnings` as the authoritative root dependency-health gate.
+  - Final result: root pqcrypto package IDs are absent.
+- Failing command: `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`.
+  - Classification: recoverable triage signal; the directive requested this nested audit under a non-stopping command shape when supported.
+  - Corrective action: treated the nonzero nested-lock audit as F-0426-04 evidence, not as a root cargo-audit failure.
+  - Final result: F-0426-04 classified `FUZZ_LOCK_ACTIVE_SECURITY_BLOCKER`.
+- Failing command: `rg -n "pq_encap_failed|pq_decap_failed" qsl/qsl-client/qsc/tests tools/refimpl/quantumshield_refimpl/tests`.
+  - Classification: recoverable zero-match discovery proof; absence of exact marker tests is the expected F-0426-02 evidence-gap signal.
+  - Corrective action: recorded the zero-match result as qsc provider-error/no-mutation evidence.
+  - Final result: F-0426-02 remains `NEXT_CANDIDATE` and `EVIDENCE_GAP`.
+
+## Evidence Patch
+
+- Added NA-0427 evidence doc: `docs/governance/evidence/NA-0427_qsl_crypto_api_provider_boundary_findings_triage_remediation_authorization_plan.md`.
+- Added NA-0427 testplan: `tests/NA-0427_qsl_crypto_api_provider_boundary_findings_triage_remediation_authorization_testplan.md`.
+- Added D-0842 to record the findings triage and selected NA-0428 dependency-blocker authorization successor.
+- Updated TRACEABILITY with the NA-0427 triage row.
+- Applied the NA-0424 stewardship canon as advisory structure.
+- Selected successor: `NA-0428 -- QSL qsc Fuzz Lock pqcrypto Residual Dependency Blocker Authorization Plan`.
+
+## Validation / CI Notes
+
+- Initial dependency proof before patch: root `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`; root pqcrypto inverse-tree package IDs were absent.
+- Nested fuzz-lock proof before patch: separate `qsl/qsl-client/qsc/fuzz/Cargo.lock` audit reported denied findings and the lock still records pqcrypto packages.
+- Local validation before evidence PR commit:
+  - `git diff --cached --check` passed.
+  - Staged path guard reported exactly five allowed NA-0427 paths and zero extra paths.
+  - Queue helper reported READY_COUNT `1` and READY `NA-0427`.
+  - Decision helper reported latest D-0842 and duplicate count zero; structural scan showed D-0840 once, D-0841 once, D-0842 once, and D-0843 absent.
+  - Link-check reported `TOTAL_MISSING 0`.
+  - Leak-scan reported `SECRET_FINDING_COUNT 0`.
+  - Added-line overclaim scan reported `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0` after tightening one negated external-review boundary line.
+  - PR body preflight reported missing field count `0` and prohibited phrase count `0`.
+  - CI classifier reported `runtime_critical` because the governance testplan path is under `tests/`.
+  - Root `cargo audit --deny warnings` passed.
+  - `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+  - `cargo tree -i ml-kem --locked` reported `ml-kem v0.2.1`.
+  - Root inverse tree checks for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals` returned package-ID absence under `|| true`.
+  - `cargo fmt --check` passed.
+  - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed, 3 tests.
+  - `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768` passed, 3 tests.
+  - `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
+  - `python3 formal/run_model_checks.py` passed.
+
+## Next Watch Items
+
+- Verify D-0842 exists once and D-0843 remains absent before optional closeout.
+- Verify only the five allowed NA-0427 paths changed.
+- Verify root cargo audit remains green.
+- Verify public-safety green before merge and after merge.
+- If evidence PR merges and post-merge public-safety is green, run optional closeout to mark NA-0427 DONE and restore the selected NA-0428 blocker authorization plan.
+
+---
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-05-267 -- NA-0426 QSL Crypto API / Provider Boundary Read-Only Audit Plan
 - Directive begin timestamp (America/Chicago): 2026-06-05T14:34:30-05:00
 - Directive begin timestamp (UTC): 2026-06-05T19:34:30Z

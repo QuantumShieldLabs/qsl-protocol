@@ -21688,7 +21688,17 @@ Acceptance criteria:
 ---
 
 ### NA-0418 — QSL RustSec pqcrypto Dependency Health Blocker Triage / Remediation
-Status: READY
+Status: DONE
+Implementation note:
+- NA-0418 completed in qsl-protocol PR `#1105`, merged as
+  `ee0fd66447a8`, after D-0824 accepted the runtime/security-critical
+  pqcrypto reachability classification, rejected an audit waiver, and merged
+  the ML-KEM provider replacement plus qsc render compile-disambiguation fix.
+  Closeout proof verified `cargo audit --deny warnings` green on merged main,
+  `rustls-webpki v0.103.13`, the former pqcrypto package IDs absent from the
+  root workspace tree, and `public-safety` green on the remediation merge
+  commit. NA-0418 did not perform operator-packet execution verification; that
+  residual is restored below as the exact NA-0419 successor.
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -21783,12 +21793,12 @@ Acceptance criteria:
 ---
 
 ### NA-0419 — QSL Backup Log Code 23 Operator Packet Execution Verification Resume
-Status: BACKLOG
+Status: READY
 Goals: G1, G2, G3, G4, G5
 
 Objective:
 Resume the interrupted operator-packet execution verification after NA-0418
-restores cargo-audit dependency health, verify the human operator apply/verify
+restored cargo-audit dependency health, verify the human operator apply/verify
 output from the NA-0418 root-operator packet, record the post-operator rollback
 directory state, and decide whether a later scheduled-backup verification lane
 is needed.
@@ -21842,7 +21852,7 @@ Forbidden scope:
 Deliverables:
 - NA-0419 evidence doc.
 - NA-0419 testplan.
-- next sequential decision.
+- D-0826 or next sequential decision.
 - TRACEABILITY update.
 - Rolling journal update.
 - Exact recommendation based on operator result and scheduled log/manifest

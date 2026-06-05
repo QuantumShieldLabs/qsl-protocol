@@ -20683,3 +20683,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - backup, restore, sudo, generated script execution, qsl-backup mutation, rollback subtree mutation by Codex, qwork/qstart/qresume execution, or public-claim expansion is hidden inside this closeout
     - more than one READY item remains
   - **References:** NA-0421; NA-0422; D-0830; D-0829; qsl-protocol PR #1111; `docs/governance/evidence/NA-0421_qsl_backup_log_code_23_clean_follow_up_status_refresh_authorization_plan.md`; `tests/NA-0421_qsl_backup_log_code_23_clean_follow_up_status_refresh_authorization_testplan.md`; `tests/NA-0421_closeout_restore_na0422_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0832
+  - **Title:** NA-0422 clean backup status plan refresh implementation
+  - **Status:** Accepted
+  - **Date:** 2026-06-05
+  - **Goals:** G4
+  - **Decision:** NA-0422 implemented the exact local status/plan refresh authorized by D-0830 and restored by D-0831. Codex updated `/home/victor/work/qsl/codex/ops/backup/QSL_BACKUP_STATUS.md` and `/home/victor/work/qsl/codex/QSL_BACKUP_PLAN.md` to cite the clean scheduled same-host log `/backup/qsl/logs/daily-20260605T023308-0500.log` and manifest `/backup/qsl/manifests/daily-20260605T023308-0500.manifest.txt`, state that the prior NA-0414/NA-0407 code 23 warning was cleared in the reviewed scheduled log, and state that Codex ops remained manifest-present exactly once.
+  - **Local file proof:** Rollback copies were created under `/srv/qbuild/tmp/NA0422_clean_status_plan_refresh_20260605T110903-0500/rollback/` before mutation. Status file SHA256 prefix changed from `036b608b75c6` to `ed0f7d1be99b`; plan file SHA256 prefix changed from `bba5e4ebad6` to `fc9ff1d85544`.
+  - **Boundary:** Codex did not run qwork, qstart, qresume, sudo, generated operator packet scripts, backup, or restore. Codex did not mutate `/usr/local/sbin/qsl-backup`, `/backup/qsl`, the NA-0407 rollback subtree, qwork/qstart/qresume/qshell, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE. Codex did not change backup architecture, source lists, retention, timers, mounts, backup scripts, or restore procedures.
+  - **Same-host caveat:** The updated status/plan wording preserves that clean scheduled same-host log evidence is not off-host backup evidence, not disaster recovery evidence, not restore proof, not backup completion evidence, not production readiness, not public internet readiness, not external review, and not public technical paper evidence.
+  - **Selected successor:** NA-0423 -- QSL Domain Stewardship / Director Workflow Governance Authorization Plan.
+  - **Protected:**
+    - exact local status/plan files only
+    - clean scheduled log and manifest cited accurately
+    - code 23 cleared caveated wording
+    - same-host caveat preserved
+    - no backup or restore execution by Codex
+    - no qsl-backup mutation
+    - no rollback subtree mutation by Codex
+    - no backup architecture or source-list mutation
+    - no public overclaim
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0422 remains pending closeout
+    - D-0832 exists once
+    - D-0833 absent until optional closeout
+    - selected NA-0423 successor must preserve one-READY, Lead Director final authority, no-runtime/no-backup/no-public-claim caveats, and no public technical paper work
+  - **Must never happen:**
+    - clean same-host scheduled log evidence is treated as off-host backup, restore-proven, backup-complete, public-ready, vulnerability-free, bug-free, or perfect-crypto proof
+    - backup, restore, sudo, generated script execution, qsl-backup mutation, rollback subtree mutation by Codex, qwork/qstart/qresume execution, or public-claim expansion is hidden inside this lane
+    - NA-0423 is implemented by this evidence PR
+    - more than one READY item remains
+  - **References:** NA-0422; NA-0421; D-0831; D-0830; `docs/governance/evidence/NA-0422_qsl_backup_log_code_23_clean_status_plan_refresh_implementation_harness.md`; `tests/NA-0422_qsl_backup_log_code_23_clean_status_plan_refresh_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

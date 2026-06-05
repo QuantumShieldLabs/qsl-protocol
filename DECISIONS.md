@@ -20647,3 +20647,39 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - backup, restore, sudo, generated script execution, qsl-backup mutation, rollback subtree mutation by Codex, qwork/qstart/qresume execution, or public-claim expansion is hidden inside this lane
     - more than one READY item remains
   - **References:** NA-0421; NA-0420; D-0829; D-0828; `docs/governance/evidence/NA-0421_qsl_backup_log_code_23_clean_follow_up_status_refresh_authorization_plan.md`; `tests/NA-0421_qsl_backup_log_code_23_clean_follow_up_status_refresh_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0831
+  - **Title:** NA-0421 closeout and NA-0422 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-05
+  - **Goals:** G4
+  - **Decision:** NA-0421 is closed after qsl-protocol PR #1111 merged at `3c1cec80219e`, D-0830 authorized status/plan refresh with classification `STATUS_REFRESH_AUTHORIZED_CLEAN_SAME_HOST_CODE23_CLEARED`, and post-merge public-safety completed success on the merge commit. Because D-0830 selected the implementation path, the exact sole READY successor is restored as `NA-0422 -- QSL Backup Log Code 23 Clean Status / Plan Refresh Implementation Harness`.
+  - **Closeout boundary:** This closeout does not implement NA-0422 and does not run qwork, qstart, qresume, sudo, generated packet scripts, backup, or restore. It does not mutate `/usr/local/sbin/qsl-backup`, `/backup/qsl`, rollback subtree paths, backup status files, backup plan files, qwork/qstart/qresume/qshell, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE.
+  - **NA-0422 scope:** NA-0422 is limited to the exact local status/plan files authorized by NA-0421, qsl-protocol governance evidence/testplan paths, DECISIONS.md, TRACEABILITY.md, the rolling journal, and read-only inspection of the clean backup artifacts, packet-local operator result, and qsl-backup. NA-0422 must not run backup or restore, mutate qsl-backup, mutate rollback subtree paths, mutate systemd/timer/fstab/source-list/retention/backup-script state, or expand public claims.
+  - **Same-host caveat:** NA-0422 must preserve that clean same-host scheduled log evidence is not off-host backup, not disaster recovery, not restore proof, not backup completion, not production readiness, not public-internet readiness, not external review, and not public technical paper evidence.
+  - **Public claim boundary:** This decision makes no off-host backup completion claim, no disaster recovery completion claim, no restore proof claim, no backup completion claim, no production readiness claim, no public-internet readiness claim, no external-review completion claim, no metadata-free behavior claim, no anonymity claim, no untraceable behavior claim, no bug-free claim, no vulnerability-free claim, and no perfect-crypto claim.
+  - **Protected:**
+    - PR #1111 merged before closeout
+    - post-merge public-safety green on `3c1cec80219e`
+    - D-0830 exists once before D-0831
+    - NA-0421 DONE
+    - READY NA-0422 as the exact successor
+    - no NA-0422 implementation by closeout
+    - no backup or restore execution by Codex
+    - no qsl-backup mutation
+    - no rollback subtree mutation by Codex
+    - no backup status or plan mutation by closeout
+    - no public overclaim
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0422
+    - D-0831 exists once
+    - D-0832 absent until NA-0422 live work
+    - selected NA-0422 block includes same-host, no-backup/no-restore, no-qsl-backup-mutation, no-rollback-mutation, and no-public-overclaim caveats
+  - **Must never happen:**
+    - NA-0422 is implemented by this closeout
+    - status/plan files are mutated by this closeout
+    - clean same-host scheduled log evidence is not treated as off-host backup, restore-proven, backup-complete, public-ready, vulnerability-free, bug-free, or perfect-crypto proof
+    - backup, restore, sudo, generated script execution, qsl-backup mutation, rollback subtree mutation by Codex, qwork/qstart/qresume execution, or public-claim expansion is hidden inside this closeout
+    - more than one READY item remains
+  - **References:** NA-0421; NA-0422; D-0830; D-0829; qsl-protocol PR #1111; `docs/governance/evidence/NA-0421_qsl_backup_log_code_23_clean_follow_up_status_refresh_authorization_plan.md`; `tests/NA-0421_qsl_backup_log_code_23_clean_follow_up_status_refresh_authorization_testplan.md`; `tests/NA-0421_closeout_restore_na0422_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -8,6 +8,67 @@ Last-Updated: 2026-06-05
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-05-262 -- Packet K Optional Closeout to NA-0422
+- Begin timestamp (America/Chicago): 2026-06-05T09:47:19-05:00
+- Begin timestamp (UTC): 2026-06-05T14:47:19Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0421/qsl-protocol`
+- qsl-protocol branch at closeout start: `main`
+- qsl-protocol closeout branch: `na-0421-closeout-restore-na0422`
+- qsl-protocol HEAD at closeout start: `3c1cec80219e`
+- qsl-protocol main at closeout start: `3c1cec80219e`
+- qsl-protocol origin/main at closeout start: `3c1cec80219e`
+- qsl-server main: not touched; no mutation
+- qsl-server origin/main: not touched; no mutation
+- qsl-attachments main: not touched; no mutation
+- qsl-attachments origin/main: not touched; no mutation
+- Disk watermark: `/dev/nvme0n1p2` 468G total, 197G used, 248G free, 45% used
+
+## READY Proof
+
+- PR #1111 is MERGED at `3c1cec80219e`.
+- Post-merge public-safety on `3c1cec80219e` completed success after bounded polling at iteration 10/180.
+- Queue before closeout: READY_COUNT `1`; READY `NA-0421 -- QSL Backup Log Code 23 Clean Follow-Up / Status Refresh Authorization Plan`.
+- Decision state before closeout: latest D-0830; duplicate count zero; D-0831 absent.
+- D-0830 classification: `STATUS_REFRESH_AUTHORIZED_CLEAN_SAME_HOST_CODE23_CLEARED`.
+- Selected successor: `NA-0422 -- QSL Backup Log Code 23 Clean Status / Plan Refresh Implementation Harness`.
+- Codex did not run qwork, qstart, qresume, sudo, generated packet scripts, backup, or restore.
+
+## Closeout Patch
+
+- NA-0421 is marked DONE.
+- D-0831 records NA-0421 closeout and NA-0422 restoration.
+- NA-0422 is restored as the sole READY successor.
+- New closeout testplan: `tests/NA-0421_closeout_restore_na0422_testplan.md`.
+- Closeout does not implement NA-0422 and does not mutate local status/plan files.
+
+## Validation / CI Notes
+
+- Local validation passed before commit: `git diff --check`; queue helper reported READY_COUNT `1` and READY NA-0422; decision helper reported latest D-0831 and duplicate count zero; structural counts showed D-0830 once, D-0831 once, and D-0832 absent; helper link-check reported `TOTAL_MISSING 0`; helper added-line leak scan reported `SECRET_FINDING_COUNT 0`; changed-line overclaim scan reported `POSITIVE_OVERCLAIM_COUNT 0`; classifier reported `docs_only=true`, `workflow_security=false`, `runtime_critical=false`; PR body preflight reported `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`; exact changed-path guard reported only the five allowed closeout paths.
+- Dependency and Rust validation passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`; pqcrypto inverse trees were absent in zero-failure-safe reruns; `cargo fmt --check`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed with 3 tests.
+- Formal validation passed: `python3 formal/model_qsc_handshake_suite_id_bounded.py`; `python3 formal/run_model_checks.py`.
+- Closeout commit created with message `NA-0421 closeout and restore NA-0422`.
+- Committed-branch scope guard passed against `origin/main`: five changed paths, all allowed, forbidden count 0.
+- Local goal-lint passed with synthetic PR event and body containing `Goals: G4`.
+- Pending: PR creation, PR checks, merge, and post-merge public-safety.
+
+## Failures / Recoveries
+
+- Failing command: first closeout changed-line overclaim scan. Classification: recoverable scan-shape/content-hardening issue because the scan flagged two closeout lines where negative boundary wording wrapped without local negation. Corrective action: rewrote the NA-0421 implementation note and D-0831 must-never-happen line with local `no` or `not` wording. Final result: rerun reported `POSITIVE_OVERCLAIM_COUNT 0`.
+
+## Next-Watch Items
+
+- D-0831 must exist once after closeout.
+- D-0832 must remain absent until NA-0422 live work.
+- NA-0422 must remain implementation-pending after closeout.
+- NA-0422 must update only the exact local status/plan files authorized by NA-0421 and must preserve same-host/no-backup/no-restore/no-qsl-backup-mutation/no-rollback-mutation/no-public-overclaim caveats.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-05-262 -- NA-0421 QSL Backup Log Code 23 Clean Follow-Up / Status Refresh Authorization Plan
 - Begin timestamp (America/Chicago): 2026-06-05T09:34:30-05:00
 - Begin timestamp (UTC): 2026-06-05T14:34:30Z

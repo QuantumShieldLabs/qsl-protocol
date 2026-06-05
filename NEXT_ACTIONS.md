@@ -22097,8 +22097,37 @@ Acceptance criteria:
 - public-safety is green before merge and after merge.
 
 ### NA-0422 — QSL Backup Log Code 23 Clean Status / Plan Refresh Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
+Implementation note:
+- qsl-protocol PR #1113 merged at `445652f3b48e`.
+- D-0832 records the clean backup status/plan refresh implementation.
+- The exact local status/plan files updated by NA-0422 were:
+  `/home/victor/work/qsl/codex/ops/backup/QSL_BACKUP_STATUS.md` and
+  `/home/victor/work/qsl/codex/QSL_BACKUP_PLAN.md`.
+- The status file SHA256 prefix changed from `036b608b75c6` to
+  `ed0f7d1be99b`; the plan file SHA256 prefix changed from
+  `bba5e4ebad6` to `fc9ff1d85544`.
+- Rollback copies were preserved under
+  `/srv/qbuild/tmp/NA0422_clean_status_plan_refresh_20260605T110903-0500/rollback/`.
+- The updated local docs cite the clean scheduled same-host log and manifest:
+  `/backup/qsl/logs/daily-20260605T023308-0500.log` and
+  `/backup/qsl/manifests/daily-20260605T023308-0500.manifest.txt`.
+- The prior NA-0414/NA-0407 rsync code 23 warning is recorded as cleared in
+  the reviewed scheduled same-host log, with Codex ops manifest-present exactly
+  once.
+- NA-0422 did not run qwork, qstart, qresume, sudo, generated packet scripts,
+  backup, or restore.
+- NA-0422 did not mutate `/usr/local/sbin/qsl-backup`, `/backup/qsl`,
+  rollback subtree paths, qwork/qstart/qresume/qshell, qsl-server,
+  qsl-attachments, qshield runtime, website, public docs, README, or
+  START_HERE.
+- Same-host continuity remains caveated. NA-0422 makes no off-host backup
+  claim, no disaster recovery claim, no restore proof claim, no backup
+  completion claim, no public readiness claim, no external-review claim, no
+  vulnerability-free claim, no bug-free claim, and no perfect-crypto claim.
+- Selected successor:
+  `NA-0423 -- QSL Domain Stewardship / Director Workflow Governance Authorization Plan`.
 
 Objective:
 Update the exact local backup status and backup plan files authorized by
@@ -22171,6 +22200,68 @@ Acceptance criteria:
 - No rollback subtree mutation occurs.
 - No public-readiness or backup-complete overclaim is introduced.
 - Exactly one READY item remains.
+- public-safety is green before merge and after merge.
+
+### NA-0423 — QSL Domain Stewardship / Director Workflow Governance Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize a governance model for advisory domain stewardship as QSL grows,
+defining steward roles, boundaries, workflow, escalation, and evidence
+expectations while preserving the Lead Director's final queue authority, the
+exactly-one-READY invariant, public-claim discipline, and fail-closed scope
+control.
+
+Protects:
+- One-READY queue discipline.
+- Lead Director final directive authority.
+- DECISIONS and TRACEABILITY consistency.
+- Public-claim boundaries.
+- Cross-domain dependency visibility.
+- Security-before-speed project goal.
+- No-scope-creep governance.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0423.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- Read-only inspection of the Project Goal canon, NEXT_ACTIONS, DECISIONS,
+  TRACEABILITY, and recent local-ops evidence.
+
+Forbidden scope:
+- Creating multiple independent autonomous Directors.
+- Allowing more than one READY item.
+- Changing branch protection.
+- Mutating runtime, crypto, dependency, workflow, qsl-server, qsl-attachments,
+  qshield runtime, website, public docs, README, or START_HERE paths.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- Creating or implying production readiness, public-internet readiness, or
+  creating or implying external-review completion, metadata-free behavior,
+  or creating or implying anonymity, untraceability, off-host backup
+  completion, disaster recovery completion, restore proof, backup completion,
+  bug-free status, vulnerability-free status, or perfect-crypto claims.
+- Secret material handling.
+
+Deliverables:
+- NA-0423 evidence doc.
+- NA-0423 testplan.
+- D-0834 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- Recommended stewardship model and next queue candidate.
+
+Acceptance criteria:
+- Steward roles are advisory unless explicitly authorized otherwise.
+- Lead Director remains final authority for directives and READY promotion.
+- Exactly one READY item remains.
+- Public-claim and scope boundaries are preserved.
+- No runtime/dependency/workflow/public/backup mutation occurs.
 - public-safety is green before merge and after merge.
 
 ---

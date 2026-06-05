@@ -21,6 +21,7 @@ Last-Updated: 2026-06-05
 - qsl-protocol worktree: `/srv/qbuild/work/NA-0427/qsl-protocol`
 - qsl-protocol branch at start: `main`
 - qsl-protocol evidence branch: `na-0427-provider-boundary-findings-triage`
+- qsl-protocol closeout branch: `na-0427-closeout-restore-na0428`
 - qsl-protocol HEAD at start: `d3daaad926c6`
 - qsl-protocol main at start: `d3daaad926c6`
 - qsl-protocol origin/main at start: `d3daaad926c6`
@@ -111,11 +112,25 @@ Last-Updated: 2026-06-05
 
 ## Next Watch Items
 
-- Verify D-0842 exists once and D-0843 remains absent before optional closeout.
-- Verify only the five allowed NA-0427 paths changed.
+- Evidence PR #1123 merged at `10ce286142f5`.
+- Post-merge checks for `10ce286142f5` completed under bounded REST polling at iteration 3/180 with public-safety completed success and no failing check conclusions.
+- Optional closeout is authorized because the evidence PR merged and post-merge public-safety completed success.
+
+## Closeout Patch
+
+- Closeout branch: `na-0427-closeout-restore-na0428`.
+- Closeout allowed paths: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0427_closeout_restore_na0428_testplan.md`.
+- Queue transition in draft: NA-0427 DONE; `NA-0428 -- QSL qsc Fuzz Lock pqcrypto Residual Dependency Blocker Authorization Plan` restored as the sole READY item.
+- Closeout decision in draft: D-0843.
+- Closeout boundary: no NA-0428 implementation, no nested fuzz-lock remediation, no runtime/crypto/dependency/Cargo/lockfile/workflow/test/vector/public/service/backup mutation, no backup or restore execution, no qsl-backup/source-list/status/plan mutation, no qwork/qstart/qresume/qshell mutation, no public technical paper content, and no public overclaim.
+
+## Closeout Next Watch Items
+
+- Verify D-0842 exists once, D-0843 exists once, and D-0844 remains absent.
+- Verify READY_COUNT 1, READY NA-0428, and NA-0427 DONE.
+- Verify only the five allowed closeout paths changed.
 - Verify root cargo audit remains green.
 - Verify public-safety green before merge and after merge.
-- If evidence PR merges and post-merge public-safety is green, run optional closeout to mark NA-0427 DONE and restore the selected NA-0428 blocker authorization plan.
 
 ---
 

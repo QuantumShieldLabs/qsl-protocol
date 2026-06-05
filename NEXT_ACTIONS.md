@@ -22477,7 +22477,7 @@ Acceptance criteria:
 - Exactly one READY item remains.
 
 ### NA-0427 — QSL Crypto API / Provider Boundary Findings Triage and Remediation Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -22532,6 +22532,98 @@ Acceptance criteria:
 - Public-claim caveats are explicit.
 - No runtime/crypto/dependency mutation occurs.
 - Cargo audit remains green.
+- Public-safety is green before merge and after merge.
+- Exactly one READY item remains.
+
+Closeout evidence:
+- qsl-protocol evidence PR: #1123 https://github.com/QuantumShieldLabs/qsl-protocol/pull/1123
+- qsl-protocol evidence merge SHA: `10ce286142f5`
+- selected successor:
+  `NA-0428 -- QSL qsc Fuzz Lock pqcrypto Residual Dependency Blocker Authorization Plan`
+- exact outcome:
+  - NA-0426 findings F-0426-01 through F-0426-09 were consumed.
+  - F-0426-04 was classified as an active qsc fuzz-lock pqcrypto residual dependency blocker candidate.
+  - NA-0427 did not remediate the nested fuzz lock or mutate Cargo, dependency, lockfile, workflow, test, vector, runtime, crypto, service, public, backup, qwork, qsl-backup, README, START_HERE, or website paths.
+  - Post-merge public-safety completed success on `10ce286142f5`.
+
+### NA-0428 — QSL qsc Fuzz Lock pqcrypto Residual Dependency Blocker Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Perform a bounded governance-only authorization plan for the active qsc
+cargo-fuzz nested-lock pqcrypto residual dependency blocker, confirming exact
+remediation scope, risk priority, and required validation before any future
+lockfile, manifest, workflow, test, vector, runtime, or crypto mutation is
+authorized.
+
+Protects:
+- Root dependency health after pqcrypto remediation.
+- qsc adversarial/fuzz dependency integrity.
+- Fail-closed CI/dependency posture.
+- Provider-boundary follow-up sequencing.
+- Public-claim conservatism.
+- The one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0428.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- Read-only inspection of:
+  - qsl/qsl-client/qsc/fuzz/Cargo.toml
+  - qsl/qsl-client/qsc/fuzz/Cargo.lock
+  - qsl/qsl-client/qsc/fuzz/fuzz_targets/
+  - scripts/ci/qsc_adversarial.sh
+  - .github/workflows/qsc-adversarial.yml
+  - Cargo.toml
+  - Cargo.lock
+  - qsl/qsl-client/qsc/Cargo.toml
+  - tools/refimpl/quantumshield_refimpl/Cargo.toml
+  - relevant evidence docs.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, Cargo, lockfile, workflow, qsl-server,
+  qsl-attachments, qshield runtime, website, public docs, README, or
+  START_HERE paths.
+- Mutating tests or vectors.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No production readiness claim.
+- No public-internet readiness claim.
+- No external-review completion claim.
+- No metadata-free behavior claim.
+- No anonymity claim.
+- No untraceability claim.
+- No off-host backup completion claim.
+- No disaster recovery completion claim.
+- No restore proof claim.
+- No backup completion claim.
+- No bug-free status claim.
+- No vulnerability-free status claim.
+- No perfect-crypto status claim.
+- No side-channel-free status claim.
+- No crypto-complete status claim.
+- Secret material handling.
+
+Deliverables:
+- NA-0428 evidence doc.
+- NA-0428 testplan.
+- D-0844 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- Recommended exact dependency remediation or audit lane.
+
+Acceptance criteria:
+- qsc fuzz-lock pqcrypto residual dependency blocker is classified using current evidence.
+- Exact future remediation authorization scope is selected or explicitly deferred.
+- Public-claim caveats are explicit.
+- No runtime/crypto/dependency/Cargo/workflow/test/vector mutation occurs.
+- Root cargo audit remains green.
 - Public-safety is green before merge and after merge.
 - Exactly one READY item remains.
 

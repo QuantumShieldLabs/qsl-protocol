@@ -21108,3 +21108,36 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, dependency, Cargo, workflow, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-claim mutation is hidden inside this lane
     - more than one READY item remains
   - **References:** NA-0427; NA-0426; NA-0428; D-0842; D-0841; D-0840; `docs/governance/evidence/NA-0427_qsl_crypto_api_provider_boundary_findings_triage_remediation_authorization_plan.md`; `tests/NA-0427_qsl_crypto_api_provider_boundary_findings_triage_remediation_authorization_testplan.md`; `docs/governance/evidence/NA-0426_qsl_crypto_api_provider_boundary_read_only_audit_plan.md`; `tests/NA-0426_qsl_crypto_api_provider_boundary_read_only_audit_testplan.md`; `qsl/qsl-client/qsc/fuzz/Cargo.lock`; `qsl/qsl-client/qsc/fuzz/Cargo.toml`; `scripts/ci/qsc_adversarial.sh`; `.github/workflows/qsc-adversarial.yml`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `tools/refimpl/quantumshield_refimpl/tests/pqkem768.rs`; `formal/`; `inputs/suite2/`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0843
+  - **Title:** NA-0427 closeout and NA-0428 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-05
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0427 is closed after qsl-protocol PR #1123 merged at `10ce286142f5`, D-0842 consumed the NA-0426 provider-boundary findings matrix, and post-merge public-safety completed success on the merge commit. Because D-0842 selected the qsc fuzz-lock pqcrypto residual dependency blocker authorization successor, the exact sole READY successor is restored as `NA-0428 -- QSL qsc Fuzz Lock pqcrypto Residual Dependency Blocker Authorization Plan`.
+  - **Selected successor:** `NA-0428 -- QSL qsc Fuzz Lock pqcrypto Residual Dependency Blocker Authorization Plan`.
+  - **Closeout boundary:** This closeout does not implement NA-0428 and does not remediate the nested qsc fuzz lock. It marks NA-0427 DONE, restores NA-0428 READY, adds this decision, updates TRACEABILITY and the rolling journal, and adds the NA-0427 closeout testplan only.
+  - **Protected:**
+    - PR #1123 is MERGED at `10ce286142f5`
+    - post-merge public-safety is green on `10ce286142f5`
+    - READY_COUNT 1
+    - READY NA-0428
+    - NA-0427 DONE
+    - D-0842 exists once
+    - D-0843 exists once after this closeout
+    - no NA-0428 implementation by closeout
+    - no runtime/crypto/dependency/Cargo/lockfile/workflow/test/vector/public/service/backup mutation
+    - no backup or restore
+    - no qsl-backup/status/plan mutation
+    - no public overclaim
+  - **Required behavior:**
+    - NA-0428 must remain governance-only authorization planning unless a later exact directive authorizes otherwise
+    - NA-0428 must preserve no-runtime, no-crypto, no-dependency, no-Cargo, no-lockfile, no-workflow, no-test-mutation, no-vector-mutation, no-public-overclaim, no-backup/no-restore, and no-secret boundaries
+    - future dependency or fuzz-lock remediation must be authorized by exact scope before any Cargo, dependency, lockfile, workflow, test, vector, runtime, or crypto change occurs
+    - exactly one READY item remains mandatory
+  - **Must never happen:**
+    - NA-0428 is implemented by this closeout
+    - nested fuzz-lock findings are treated as remediated by closeout
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, test, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-claim mutation is hidden inside this closeout
+    - more than one READY item remains
+  - **References:** NA-0427; NA-0428; D-0843; D-0842; D-0841; qsl-protocol PR #1123; `docs/governance/evidence/NA-0427_qsl_crypto_api_provider_boundary_findings_triage_remediation_authorization_plan.md`; `tests/NA-0427_qsl_crypto_api_provider_boundary_findings_triage_remediation_authorization_testplan.md`; `tests/NA-0427_closeout_restore_na0428_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

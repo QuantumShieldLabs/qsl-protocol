@@ -20470,3 +20470,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - backup, restore, sudo, generated script execution, qsl-backup mutation, rollback subtree mutation by Codex, status/plan mutation, qwork/qstart/qresume execution, or public-claim expansion is hidden inside this closeout
     - more than one READY item remains
   - **References:** NA-0418; NA-0419; D-0824; D-0823; qsl-protocol PR #1105; `docs/governance/evidence/NA-0418_qsl_rustsec_pqcrypto_dependency_health_blocker_triage_remediation.md`; `tests/NA-0418_qsl_rustsec_pqcrypto_dependency_health_blocker_triage_remediation_testplan.md`; `tests/NA-0418_closeout_restore_na0419_operator_packet_verification_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0826
+  - **Title:** NA-0419 operator packet execution verification resume
+  - **Status:** Accepted
+  - **Date:** 2026-06-05
+  - **Goals:** G4
+  - **Decision:** NA-0419 accepts the NA-0418 operator packet apply/verify markers only because the packet-local result files and live read-only state support them. The operator result records qsl-backup unchanged, rollback metadata/checksum preservation, and a rollback directory change from `root:root` mode `2700` before operator action to `root:root` mode `2755` after operator action. Live read-only state now shows the rollback directory as `root:root` mode `2755`, the rollback file checksum readable without privilege and matching the operator-result checksum, qsl-backup unchanged, and the qsl-backup Codex ops source inclusion count still exactly `1`.
+  - **Classification:** `CODE23_REMEDIATION_APPLIED_PENDING_SCHEDULED_BACKUP_PROOF`. No scheduled log or manifest newer than the operator action exists yet, so code 23 is not called cleared by this decision.
+  - **Selected successor:** NA-0420 -- QSL Backup Log Code 23 Post-Remediation Scheduled Backup Verification Plan.
+  - **Backup/operator boundary:** Codex did not run qwork, qstart, qresume, sudo, generated operator packet scripts, backup, or restore. Codex did not mutate `/usr/local/sbin/qsl-backup`, `/backup/qsl`, the NA-0407 rollback subtree, backup status files, backup plan files, qwork/qstart/qresume/qshell, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE. Codex made no further rollback subtree mutation.
+  - **Dependency-health result:** `cargo audit --deny warnings` passed on current main; `rustls-webpki` remains `v0.103.13`; and `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals` remain absent from the root workspace tree.
+  - **Same-host caveat:** This is same-host operator-packet execution verification and permission-remediation evidence only. Scheduled-backup proof remains pending until a later scheduled log and manifest after operator action are inspected.
+  - **Public claim boundary:** This decision does not claim off-host backup completion, disaster recovery completion, restore proof, backup completion, production readiness, public-internet readiness, external-review completion, metadata-free behavior, anonymity, untraceable behavior, bug-free status, vulnerability-free status, or perfect-crypto status.
+  - **Protected:**
+    - operator markers require live-state support
+    - qsl-backup unchanged
+    - no backup or restore execution by Codex
+    - no sudo by Codex
+    - no generated packet script execution by Codex
+    - no qsl-backup mutation
+    - no further rollback subtree mutation by Codex
+    - no backup status or plan mutation
+    - same-host caveat preserved
+    - no public overclaim
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0419 remains pending closeout
+    - D-0826 exists once
+    - D-0827 absent until optional closeout
+    - selected NA-0420 successor preserves scheduled-backup verification, no-backup/no-restore, no-qsl-backup-mutation, no-rollback-mutation, same-host, and no-public-overclaim caveats
+  - **Must never happen:**
+    - code 23 is treated as cleared without a newer scheduled log proving it
+    - backup, restore, sudo, generated script execution, qsl-backup mutation, rollback subtree mutation by Codex, status/plan mutation, qwork/qstart/qresume execution, or public-claim expansion is hidden inside this lane
+    - more than one READY item remains
+  - **References:** NA-0419; NA-0418; D-0825; D-0824; D-0823; `docs/governance/evidence/NA-0419_qsl_backup_log_code_23_operator_packet_execution_verification_resume.md`; `tests/NA-0419_qsl_backup_log_code_23_operator_packet_execution_verification_resume_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

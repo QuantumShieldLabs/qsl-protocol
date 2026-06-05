@@ -20866,3 +20866,43 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - any forbidden use of internal governance canon text as public-readiness, production-readiness, external-review-complete, metadata-free, anonymity, untraceability, off-host-backup-complete, disaster-recovery-complete, restore-proven, backup-complete, vulnerability-free, bug-free, or perfect-crypto proof
     - runtime, crypto, dependency, workflow, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, or branch-protection mutation is hidden inside this lane
   - **References:** NA-0424; NA-0423; NA-0425; D-0835; D-0834; `docs/governance/DOMAIN_STEWARDSHIP_AND_DIRECTOR_WORKFLOW.md`; `docs/governance/evidence/NA-0424_qsl_domain_stewardship_operating_model_canon_implementation_harness.md`; `tests/NA-0424_qsl_domain_stewardship_operating_model_canon_implementation_testplan.md`; `docs/governance/PROJECT_GOAL_AND_OPERATING_PRINCIPLES.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0837
+  - **Title:** NA-0424 closeout and NA-0425 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-05
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0424 is closed after qsl-protocol PR #1117 merged at `d72243588499`, D-0836 implemented the internal domain stewardship canon, and post-merge public-safety completed success on the merge commit. Because D-0836 selected the normal code/crypto audit follow-up path, the exact sole READY successor is restored as `NA-0425 -- QSL Code / Crypto Audit Follow-Up Resumption Plan`.
+  - **Closeout boundary:** This closeout does not implement NA-0425. It does not run qwork, qstart, qresume, sudo, backup, or restore. It does not mutate `/usr/local/sbin/qsl-backup`, `/backup/qsl`, rollback subtree paths, backup status files, backup plan files, qwork/qstart/qresume/qshell, runtime, crypto, dependency, workflow, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE.
+  - **NA-0425 scope:** NA-0425 is a bounded planning lane for read-only code/search, dependency, test, and evidence inventory plus qsl-protocol governance evidence/testplan paths, DECISIONS.md, TRACEABILITY.md, and the rolling journal. It may not implement runtime, crypto, dependency, workflow, public, service, or backup changes unless future exact scope authorizes them.
+  - **Public claim boundary:** This decision makes no production-readiness claim, no public-internet-readiness claim, no external-review-complete claim, no metadata-free claim, no anonymity claim, no untraceability claim, no off-host-backup-complete claim, no disaster-recovery-complete claim, no restore-proven claim, no backup-complete claim, no bug-free claim, no vulnerability-free claim, and no perfect-crypto claim.
+  - **Protected:**
+    - PR #1117 merged before closeout
+    - post-merge public-safety green on `d72243588499`
+    - D-0836 exists once before D-0837
+    - NA-0424 DONE
+    - READY NA-0425 as the exact successor
+    - no NA-0425 implementation by closeout
+    - Lead Director final authority preserved
+    - stewards advisory only
+    - exactly one READY item remains
+    - no independent autonomous Directors
+    - no backup or restore execution by Codex
+    - no qsl-backup mutation
+    - no backup status or plan mutation
+    - no runtime/dependency/workflow/public/service mutation
+    - no public overclaim
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0425
+    - NA-0424 DONE
+    - D-0837 exists once
+    - D-0838 absent until NA-0425 live work
+    - selected NA-0425 block includes no-runtime/no-crypto/no-dependency/no-workflow/no-public-overclaim boundaries
+  - **Must never happen:**
+    - NA-0425 is implemented by this closeout
+    - more than one READY item remains
+    - independent autonomous Directors are created
+    - runtime, crypto, dependency, workflow, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-claim mutation is hidden inside this closeout
+    - closeout text is used as forbidden public-readiness, production-readiness, external-review-complete, metadata-free, anonymity, untraceability, off-host-backup-complete, disaster-recovery-complete, restore-proven, backup-complete, vulnerability-free, bug-free, or perfect-crypto proof
+  - **References:** NA-0424; NA-0425; D-0837; D-0836; D-0835; qsl-protocol PR #1117; `docs/governance/DOMAIN_STEWARDSHIP_AND_DIRECTOR_WORKFLOW.md`; `docs/governance/evidence/NA-0424_qsl_domain_stewardship_operating_model_canon_implementation_harness.md`; `tests/NA-0424_qsl_domain_stewardship_operating_model_canon_implementation_testplan.md`; `tests/NA-0424_closeout_restore_na0425_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

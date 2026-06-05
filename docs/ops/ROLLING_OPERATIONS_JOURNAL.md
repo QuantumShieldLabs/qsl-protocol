@@ -8,6 +8,69 @@ Last-Updated: 2026-06-04
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-05-259 -- Execute NA-0419 QSL Backup Log Code 23 Operator Packet Execution Verification Resume, Optional Closeout to NA-0420
+- Begin timestamp from directive (America/Chicago): 2026-06-05T00:34:30-05:00
+- Begin timestamp from directive (UTC): 2026-06-05T05:34:30Z
+- Host clock during NA-0419 evidence collection (America/Chicago): 2026-06-04T20:18:38-05:00
+- Host clock during NA-0419 evidence collection (UTC): 2026-06-05T01:18:38+00:00
+- Proof root: `/srv/qbuild/tmp/NA0419_operator_packet_verification_20260604T202016-05-00/`
+
+## READY and qwork Proof
+
+- qwork proof files existed under `/srv/qbuild/work/NA-0419/.qwork/`, parsed successfully, and were copied to the proof root.
+- Codex did not run qwork, qstart, or qresume.
+- qwork proof and live repo matched at `5cc99eaa4a0b`; fetch did not advance `origin/main`.
+- PR #1106 is MERGED with merge commit `5cc99eaa4a0b`.
+- Queue helper at start: READY_COUNT `1`; READY `NA-0419 -- QSL Backup Log Code 23 Operator Packet Execution Verification Resume`; NA-0418 DONE.
+- Decision helper at start: latest D-0825; duplicate count zero; D-0824 once; D-0825 once; D-0826 absent.
+- Public-safety on `5cc99eaa4a0b` completed success and branch protection includes `public-safety`.
+
+## Operator Packet Verification
+
+- Prior D256 response history included all six required operator markers.
+- `operator_result` exists with `pre_action_metadata.txt`, `post_action_metadata.txt`, `rollback_tree_metadata_before.txt`, and `rollback_file_checksums_before.txt`.
+- Pre-action metadata records qsl-backup checksum matching expected value and rollback directory `root:root` mode `2700`.
+- Post-action metadata records qsl-backup unchanged and rollback directory `root:root` mode `2755`.
+- Live rollback directory is `root:root` mode `2755`.
+- The rollback file is now readable without privilege and its checksum matches the operator-result checksum.
+- `/usr/local/sbin/qsl-backup` checksum remained `e9ecff3d22ed...f6232`; exact Codex ops source inclusion count remained 1.
+- Codex did not run sudo, generated packet scripts, backup, or restore.
+- Codex did not mutate qsl-backup, `/backup/qsl`, the NA-0407 rollback subtree, local backup status/plan files, qwork/qstart/qresume/qshell, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE.
+
+## Log / Manifest Classification
+
+- Operator action time from operator-result metadata/mtimes: `2026-06-04T16:23:29+00:00`.
+- Latest scheduled log remains `daily-20260604T023542-0500.log`, mtime before operator action.
+- Latest scheduled manifest remains `daily-20260604T023542-0500.manifest.txt`, mtime before operator action.
+- No log or manifest newer than the operator action was found.
+- Latest pre-operator log counts: rsync error 1; code 23 1; Permission denied 1; NA0407 1; rollback 1; exact rollback directory reference 1.
+- Latest pre-operator manifest Codex ops source count: 1.
+- Classification: `CODE23_REMEDIATION_APPLIED_PENDING_SCHEDULED_BACKUP_PROOF`.
+- Selected successor: `NA-0420 -- QSL Backup Log Code 23 Post-Remediation Scheduled Backup Verification Plan`.
+
+## Dependency / Validation Notes
+
+- `cargo audit --deny warnings` exited 0.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked` reported package ID not found, which is the expected absence proof after remediation.
+- Backup status and backup plan files were inspected read-only and still truthfully carry the NA-0414 code 23 caveat; no status/plan update is warranted until scheduled proof exists.
+
+## Recoveries / Non-Fatal Notes
+
+- Failing command: `ls` over guessed D255-D257 response filenames. Classification: recoverable read-only command-shape issue because the timestamps were guessed. Corrective action: inventoried actual response filenames. Final result: D255, D256, D257, and D258 response files were found.
+- Failing command: `pgrep -af 'apply_code23_permission_remediation|verify_after_operator_action|rollback_after_operator_action|qsl-backup|rsync.*backup|restore'`. Classification: valid zero-match process proof. Corrective action: none needed. Final result: no matching packet script, qsl-backup, backup, or restore process was running.
+- Failing command: first Python log/manifest count helper. Classification: recoverable read-only command-shape issue caused by a string/int concatenation error after partial log counts printed. Corrective action: reran the helper with corrected formatting. Final result: log and manifest counts completed successfully.
+- Failing command: first staged overclaim scan. Classification: recoverable scan-shape false positive because line-oriented matching flagged wrapped negative caveat text and a required heading as affirmative claims. Corrective action: tightened one wrapped sentence and reran context-aware added-line scanning. Final result: positive overclaim candidate count 0.
+- Non-fatal warnings: parallel cargo commands printed package-cache/advisory-db lock waiting messages before completing.
+
+## Next-Watch Items
+
+- NA-0419 remains READY until the evidence PR merges and closeout restores NA-0420.
+- NA-0420 must inspect a scheduled log/manifest after operator remediation without running backup or restore.
+- Same-host continuity, no-backup/no-restore, no-qsl-backup-mutation, no-rollback-mutation, and no-public-overclaim caveats must remain explicit.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-04-258 -- Close Out NA-0418 After RustSec pqcrypto Remediation Public-Safety Completion and Restore NA-0419 Operator Packet Verification
 - Begin timestamp from directive (America/Chicago): 2026-06-04T15:34:30-05:00
 - Begin timestamp from directive (UTC): 2026-06-04T20:34:30Z

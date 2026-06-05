@@ -8,6 +8,81 @@ Last-Updated: 2026-06-05
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-05-265 -- Packet K Optional Closeout to NA-0425
+- Begin timestamp (America/Chicago): 2026-06-05T13:15:54-05:00
+- Begin timestamp (UTC): 2026-06-05T18:15:54Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0424/qsl-protocol`
+- qsl-protocol branch at closeout start: `main`
+- qsl-protocol closeout branch: `na-0424-closeout-restore-na0425`
+- qsl-protocol HEAD at closeout start: `d72243588499`
+- qsl-protocol main at closeout start: `d72243588499`
+- qsl-protocol origin/main at closeout start: `d72243588499`
+- qsl-server main: not touched; no mutation
+- qsl-server origin/main: not touched; no mutation
+- qsl-attachments main: not touched; no mutation
+- qsl-attachments origin/main: not touched; no mutation
+- Disk watermark: `/dev/nvme0n1p2` 468G total, 201G used, 244G free, 46% used
+
+## READY Proof
+
+- PR #1117 is MERGED at `d72243588499`.
+- Post-merge public-safety on `d72243588499` completed success after bounded polling at iteration 10/180.
+- Queue before closeout: READY_COUNT `1`; READY `NA-0424 -- QSL Domain Stewardship Operating Model Canon Implementation Harness`.
+- Decision state before closeout: latest D-0836; duplicate count zero; D-0836 once; D-0837 absent.
+- D-0836 selected `NA-0425 -- QSL Code / Crypto Audit Follow-Up Resumption Plan`.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Closeout Patch
+
+- NA-0424 is marked DONE.
+- D-0837 records NA-0424 closeout and NA-0425 restoration.
+- NA-0425 is restored as the sole READY successor.
+- New closeout testplan: `tests/NA-0424_closeout_restore_na0425_testplan.md`.
+- Closeout does not implement NA-0425.
+- Closeout preserves Lead Director final authority, advisory-only stewards, exactly one READY item, no independent Directors, public-claim boundaries, no runtime/crypto/dependency/workflow mutation, no backup mutation, and no public overclaim.
+
+## Validation / CI Notes
+
+- Exact staged path guard reported five changed paths, all allowed, with missing allowed count zero and forbidden count zero.
+- `git diff --cached --check` passed.
+- Queue helper reported READY_COUNT `1` and READY NA-0425.
+- Decision helper reported latest D-0837 and duplicate count zero; structural ID scan showed D-0836 once, D-0837 once, and D-0838 absent.
+- Helper link-check reported `TOTAL_MISSING 0`.
+- Helper added-line leak scan reported `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan reported `POSITIVE_OVERCLAIM_COUNT 0`.
+- Classifier reported `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, and `scope_class=docs_only`.
+- PR body preflight reported `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- Dependency validation passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`; pqcrypto inverse-tree probes were absent through zero-failure-safe command shape.
+- `cargo fmt --check` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed with 3 tests.
+- Formal validation passed: `python3 formal/model_qsc_handshake_suite_id_bounded.py`; `python3 formal/run_model_checks.py`.
+- Pending: commit, committed-diff scope guard, goal-lint, PR creation, required checks, merge, and post-merge public-safety.
+
+## Failures / Recoveries
+
+- Failing command: closeout preflight `gh pr checks 1117 --repo QuantumShieldLabs/qsl-protocol` exited with code 8 because it included non-required pending/skipping CodeQL analysis sub-jobs even though required checks and GitHub mergeability were clean.
+- Classification: recoverable diagnostic-shape issue; not a required-check failure because `gh pr checks --required` showed required checks pass/skipping and `gh pr view` reported `mergeStateStatus=CLEAN` and `mergeable=MERGEABLE`.
+- Corrective action: used required-check-only output plus GitHub mergeability state before merging PR #1117.
+- Final result: PR #1117 merged with a merge commit and post-merge public-safety completed success.
+- Failing command: first closeout added-line overclaim scan reported the NA-0425 forbidden-scope claim list where continuation lines lacked same-line negative context.
+- Classification: recoverable content-hardening issue in required forbidden-scope wording.
+- Corrective action: rewrote the claim list so every sensitive claim term carries local `no`, `forbidden`, `creating`, or `implying` context.
+- Final result: rerun reported `POSITIVE_OVERCLAIM_COUNT 0`.
+
+## Next-Watch Items
+
+- D-0837 must exist once before closeout PR merge.
+- D-0838 must remain absent until NA-0425 live work.
+- NA-0425 must become the sole READY item after closeout.
+- NA-0425 must remain planning-only and must not mutate runtime, crypto, dependency, workflow, public, service, backup, qwork/qstart/qresume/qshell, qsl-backup, status/plan, rollback, README, START_HERE, or website paths unless future exact scope authorizes otherwise.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-05-265 -- NA-0424 QSL Domain Stewardship Operating Model Canon Implementation Harness
 - Begin timestamp (America/Chicago): 2026-06-05T13:04:30-05:00
 - Begin timestamp (UTC): 2026-06-05T18:04:30Z

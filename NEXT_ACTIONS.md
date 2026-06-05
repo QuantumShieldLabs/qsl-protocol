@@ -22275,7 +22275,7 @@ Acceptance criteria:
 ---
 
 ### NA-0424 — QSL Domain Stewardship Operating Model Canon Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -22348,6 +22348,65 @@ Acceptance criteria:
 - Conflict/escalation rules are explicit.
 - No runtime/dependency/workflow/public/backup mutation occurs.
 - public-safety is green before merge and after merge.
+
+---
+
+### NA-0425 — QSL Code / Crypto Audit Follow-Up Resumption Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Resume the deferred code/crypto audit follow-up planning after completion of the backup/log-code chain and implementation of the domain stewardship canon, producing a bounded audit resumption plan for crypto API misuse, nonce/key/RNG lifecycle, KEM/signature/key schedule/transcript binding, panic/unwrap/fail-closed behavior, unsafe/memory safety, side-channel caveats, fuzz/property/differential/vector testing, formal model alignment, dependency family review, and demo/refimpl/service boundaries.
+
+Protects:
+- Crypto/protocol implementation quality.
+- Fail-closed behavior.
+- Test and formal evidence alignment.
+- Dependency/advisory health.
+- Public-claim conservatism.
+- The one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0425.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- Read-only code/search inventory of qsl-protocol paths.
+- Read-only dependency and test inventory.
+- Read-only review of NA-0397 and later related evidence.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, workflow, qsl-server, qsl-attachments,
+  qshield runtime, website, public docs, README, or START_HERE paths.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- Creating or implying unsupported claims. The forbidden claims include no
+  production readiness, no public-internet readiness, no external-review
+  completion, no metadata-free behavior, no anonymity, no untraceability, no
+  off-host backup completion, no disaster recovery completion, no restore
+  proof, no backup completion, no bug-free status, no vulnerability-free status,
+  and no perfect-crypto claims.
+- Secret material handling.
+
+Deliverables:
+- NA-0425 evidence doc.
+- NA-0425 testplan.
+- D-0838 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- Recommended next code/crypto audit lane.
+
+Acceptance criteria:
+- Audit domains are explicitly scoped.
+- No runtime/crypto/dependency mutation occurs.
+- No public claim expansion occurs.
+- Cargo audit remains green.
+- Public-safety is green before merge and after merge.
+- Exactly one READY item remains.
 
 ---
 

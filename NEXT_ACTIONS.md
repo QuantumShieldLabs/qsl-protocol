@@ -22547,7 +22547,7 @@ Closeout evidence:
   - Post-merge public-safety completed success on `10ce286142f5`.
 
 ### NA-0428 — QSL qsc Fuzz Lock pqcrypto Residual Dependency Blocker Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -22624,6 +22624,70 @@ Acceptance criteria:
 - Public-claim caveats are explicit.
 - No runtime/crypto/dependency/Cargo/workflow/test/vector mutation occurs.
 - Root cargo audit remains green.
+- Public-safety is green before merge and after merge.
+- Exactly one READY item remains.
+
+Closeout evidence:
+- qsl-protocol evidence PR: #1125 https://github.com/QuantumShieldLabs/qsl-protocol/pull/1125
+- qsl-protocol evidence merge SHA: `0929deb8ddc7`
+- selected successor:
+  `NA-0429 -- QSL qsc Fuzz Lock pqcrypto Residual Lockfile Cleanup Implementation Harness`
+- exact outcome:
+  - NA-0428 classified the nested qsc fuzz lock blocker as `FUZZ_LOCK_REMEDIATION_AUTHORIZED_LOCKFILE_ONLY`.
+  - Future mutable implementation scope is limited to `qsl/qsl-client/qsc/fuzz/Cargo.lock` plus NA-0429 governance evidence/testplan, DECISIONS, TRACEABILITY, and rolling journal paths unless a later exact directive expands scope.
+  - NA-0428 did not remediate the nested fuzz lock or mutate Cargo, dependency, lockfile, workflow, fuzz target, test, vector, runtime, crypto, service, public, backup, qwork, qsl-backup, README, START_HERE, or website paths.
+  - Post-merge public-safety completed success on `0929deb8ddc7`.
+
+### NA-0429 — QSL qsc Fuzz Lock pqcrypto Residual Lockfile Cleanup Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Perform the exact NA-0428-authorized nested qsc fuzz lockfile cleanup to remove or resolve pqcrypto residual dependency warnings in qsl/qsl-client/qsc/fuzz/Cargo.lock while preserving root cargo audit health, qsc adversarial/fuzz intent, no runtime code mutation, and public-claim conservatism.
+
+Protects:
+- qsc fuzz/adversarial dependency health.
+- Root workspace dependency health.
+- pqcrypto remediation confidence after ml-kem provider replacement.
+- CI/adversarial tooling integrity.
+- Public-claim conservatism.
+- The one-READY queue invariant.
+
+Allowed scope:
+- qsl/qsl-client/qsc/fuzz/Cargo.lock.
+- qsl-protocol governance evidence/testplan paths for NA-0429.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- Read-only inspection of qsl/qsl-client/qsc/fuzz/Cargo.toml, scripts/ci/qsc_adversarial.sh, .github/workflows/qsc-adversarial.yml, root Cargo.toml, root Cargo.lock, and relevant evidence docs.
+
+Forbidden scope:
+- Mutating runtime, crypto, root dependency files, workflow, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE paths.
+- Mutating tests, fuzz target source, or vectors unless a future directive expands exact scope.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No production readiness claim, no public-internet readiness claim, no external-review completion claim, no metadata-free behavior claim, no anonymity claim, no untraceability claim, no off-host backup completion claim, no disaster recovery completion claim, no restore proof claim, no backup completion claim, no bug-free status claim, no vulnerability-free status claim, no perfect-crypto status claim, no side-channel-free status claim, and no crypto-complete status claim.
+- Secret material handling.
+
+Deliverables:
+- Updated nested qsc fuzz Cargo.lock if authorized by NA-0428.
+- NA-0429 evidence doc.
+- NA-0429 testplan.
+- D-0846 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- Recommended next code/crypto audit or remediation lane.
+
+Acceptance criteria:
+- Root cargo audit remains green.
+- Nested qsc fuzz lock audit is green or residual is explicitly classified.
+- pqcrypto residual is removed or explained under exact evidence.
+- No runtime/crypto/root dependency/workflow mutation occurs.
+- Public-claim caveats are explicit.
 - Public-safety is green before merge and after merge.
 - Exactly one READY item remains.
 

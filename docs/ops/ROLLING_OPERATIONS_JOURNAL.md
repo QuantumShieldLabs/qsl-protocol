@@ -8,6 +8,97 @@ Last-Updated: 2026-06-05
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-05-262 -- NA-0421 QSL Backup Log Code 23 Clean Follow-Up / Status Refresh Authorization Plan
+- Begin timestamp (America/Chicago): 2026-06-05T09:34:30-05:00
+- Begin timestamp (UTC): 2026-06-05T14:34:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0421/qsl-protocol`
+- qsl-protocol branch at start: `main`
+- qsl-protocol branch for evidence PR: `na-0421-clean-followup-status-refresh-authorization`
+- qsl-protocol HEAD at start: `4b520529256c`
+- qsl-protocol main at start: `4b520529256c`
+- qsl-protocol origin/main at start: `4b520529256c`
+- qsl-protocol mirror/main at start: not checked
+- qsl-server main: not touched; no mutation
+- qsl-server origin/main: not touched; no mutation
+- qsl-server mirror/main: not touched; no mutation
+- qsl-attachments main: not touched; no mutation
+- qsl-attachments origin/main: not touched; no mutation
+- qsl-attachments mirror/main: not touched; no mutation
+- Disk watermark: `/dev/nvme0n1p2` 468G total, 197G used, 248G free, 45% used
+
+## READY Proof
+
+- qwork proof files existed under `/srv/qbuild/work/NA-0421/.qwork/`.
+- qwork `.kv` proof reported `startup_result=OK`, lane `NA-0421`, repo `qsl-protocol`, path `/srv/qbuild/work/NA-0421/qsl-protocol`, clean worktree/index/untracked state, READY_COUNT `1`, queue top READY `NA-0421`, requested lane status `READY`, and head/origin_main `4b520529256c`.
+- qwork JSON proof parsed and mirrored the required `.kv` fields.
+- Codex did not run qwork, qstart, or qresume.
+- After `git fetch --all --prune`, live `HEAD` and `origin/main` still matched the qwork proof at `4b520529256c`.
+- PR #1110 was MERGED with merge commit `4b520529256c`.
+- Queue helper reported READY_COUNT `1`, READY `NA-0421 -- QSL Backup Log Code 23 Clean Follow-Up / Status Refresh Authorization Plan`, and NA-0420 DONE.
+- Decision proof reported latest D-0829; D-0828 once; D-0829 once; D-0830 absent; duplicate decision count zero.
+- public-safety on `4b520529256c` completed success.
+- `/usr/local/sbin/qsl-backup` checksum matched `e9ecff3d22ed...f6232`; exact Codex ops source inclusion count was 1.
+- No backup or restore operation was run.
+
+## Clean Evidence and Status/Plan Review
+
+- Proof root: `/srv/qbuild/tmp/NA0421_clean_followup_status_refresh_authorization_20260605T092806-0500`.
+- Latest scheduled log remained `/backup/qsl/logs/daily-20260605T023308-0500.log`.
+- Latest scheduled manifest remained `/backup/qsl/manifests/daily-20260605T023308-0500.manifest.txt`.
+- Log SHA256 matched NA-0420 evidence: `2e82582cc6a0215d07c074194cebd9e3ce18d9f7470b2dfbc6174f142bc8c0f4`.
+- Manifest SHA256 matched NA-0420 evidence: `4331d00be68fe5d8ea4fba678db7a38d3c79b4cdd1318d7eb689741b070c9d23`.
+- Log counts were zero for rsync error, code 23, Permission denied, NA0407, rollback, exact rollback directory reference, qsl-backup.preimage, and nonzero exit-code marker.
+- Manifest counts: Codex ops source path exactly 1; NA0407, rollback, exact rollback directory reference, and qsl-backup.preimage all zero.
+- Status file metadata: `victor:victor` mode 664, mtime `2026-06-03 21:44:18.951416552 -0500`, SHA256 `036b608b75c6...afd9dea`.
+- Plan file metadata: `victor:victor` mode 664, mtime `2026-06-03 21:44:18.952416565 -0500`, SHA256 `bba5e4ebad6...84e220`.
+- Both local files still mention NA-0414 code-23 caveat wording and omit NA-0420 clean proof plus the clean log/manifest paths.
+- Classification selected: `STATUS_REFRESH_AUTHORIZED_CLEAN_SAME_HOST_CODE23_CLEARED`.
+- Future mutable local candidates selected: both the backup status file and backup plan file.
+- Successor selected: `NA-0422 -- QSL Backup Log Code 23 Clean Status / Plan Refresh Implementation Harness`.
+- NA-0421 did not mutate either local file.
+
+## Failures / Recoveries
+
+- Failing commands: `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked` were first run without the directive's `|| true` wrapper and exited 101 with package-ID absence. Classification: recoverable zero-match proof/command-shape issue because absence is the required proof and the directive explicitly uses `|| true`. Corrective action: reran all three commands with `|| true`. Final result: each rerun exited 0 while preserving package-ID absence output.
+- Non-fatal warning: cargo tree commands printed package-cache lock waiting messages before completing. This did not affect the dependency proof.
+- Failing command: first custom changed-line overclaim scan. Classification: recoverable scan-shape/content-hardening issue because the scan flagged explicit negative boundary text where high-risk phrases wrapped onto continuation lines without local negation. Corrective action: rewrote NA-0421 evidence/testplan/decision wording so each high-risk phrase carries local `no` or `not` wording, then reran the scan. Final result: rerun reported `POSITIVE_OVERCLAIM_COUNT 0`.
+
+## Evidence Patch
+
+- Evidence branch: `na-0421-clean-followup-status-refresh-authorization`.
+- Allowed paths: `docs/governance/evidence/NA-0421_qsl_backup_log_code_23_clean_follow_up_status_refresh_authorization_plan.md`; `tests/NA-0421_qsl_backup_log_code_23_clean_follow_up_status_refresh_authorization_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- Decision in draft: D-0830.
+- Traceability row added for NA-0421 authorization and selected NA-0422 successor.
+- Queue state in draft remains READY NA-0421 pending closeout; NA-0422 is selected but not implemented.
+- Pending: local validation, PR, CI, merge, post-merge proof, and optional closeout.
+
+## Validation / CI Notes
+
+- Initial dependency proof before patch: `cargo audit --deny warnings` passed; `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`; pqcrypto inverse trees were absent in zero-failure-safe reruns.
+- Local validation passed before commit: `git diff --check`; exact changed-path guard reported only the five allowed NA-0421 paths; helper link-check reported `TOTAL_MISSING 0`; helper added-line leak scan reported `SECRET_FINDING_COUNT 0`; changed-line overclaim scan reported `POSITIVE_OVERCLAIM_COUNT 0`; classifier reported `docs_only=true`, `workflow_security=false`, `runtime_critical=false`; PR body preflight reported `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- Queue helper reported READY_COUNT `1` and READY NA-0421. Decision helper reported latest D-0830 and duplicate count zero. Structural decision counts: D-0828 once; D-0829 once; D-0830 once; D-0831 absent.
+- Dependency and Rust validation passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`; pqcrypto inverse trees were absent in zero-failure-safe reruns; `cargo fmt --check`; `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed with 3 tests.
+- Formal validation passed: `python3 formal/model_qsc_handshake_suite_id_bounded.py`; `python3 formal/run_model_checks.py`.
+- Evidence commit created with message `NA-0421 authorize clean status plan refresh`.
+- Committed-branch scope guard passed against `origin/main`: five changed paths, all allowed, forbidden count 0.
+- Local goal-lint passed with synthetic PR event and body containing `Goals: G4`.
+- Pending: PR creation, PR checks, merge, post-merge public-safety, and optional closeout.
+
+## Next-Watch Items
+
+- D-0830 must exist once before evidence PR merge.
+- D-0831 must remain absent until optional closeout.
+- NA-0422 must remain unimplemented until restored by closeout.
+- Local status/plan mutation must remain deferred to the selected NA-0422 exact-scope lane.
+- Same-host caveat, no-backup/no-restore, no-qsl-backup-mutation, no-rollback-mutation, and no-public-overclaim boundaries must remain explicit.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-05-261 -- Packet K Optional Closeout to NA-0421
 - Host clock during closeout patch (America/Chicago): 2026-06-05T09:02:00-05:00
 - Host clock during closeout patch (UTC): 2026-06-05T14:02:00+00:00

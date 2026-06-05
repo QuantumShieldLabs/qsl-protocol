@@ -20610,3 +20610,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - backup, restore, sudo, generated script execution, qsl-backup mutation, rollback subtree mutation by Codex, status/plan mutation, qwork/qstart/qresume execution, or public-claim expansion is hidden inside this closeout
     - more than one READY item remains
   - **References:** NA-0420; NA-0421; D-0828; D-0827; qsl-protocol PR #1109; `docs/governance/evidence/NA-0420_qsl_backup_log_code_23_post_remediation_scheduled_backup_verification_plan.md`; `tests/NA-0420_qsl_backup_log_code_23_post_remediation_scheduled_backup_verification_testplan.md`; `tests/NA-0420_closeout_restore_na0421_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0830
+  - **Title:** NA-0421 backup log code 23 clean follow-up status refresh authorization
+  - **Status:** Accepted
+  - **Date:** 2026-06-05
+  - **Goals:** G4
+  - **Decision:** NA-0421 reconfirmed that the current/latest scheduled same-host backup evidence remains the clean NA-0420 pair: log `/backup/qsl/logs/daily-20260605T023308-0500.log` and manifest `/backup/qsl/manifests/daily-20260605T023308-0500.manifest.txt`. The log has zero code 23, zero permission-denied, zero rsync-error, zero nonzero-exit, zero NA-0407 rollback, and zero exact rollback-directory markers; the manifest contains `/home/victor/work/qsl/codex/ops` exactly once. Because both local status/plan files still carry NA-0414 code-23 caveat wording and neither cites the clean NA-0420 proof, the status refresh decision is `STATUS_REFRESH_AUTHORIZED_CLEAN_SAME_HOST_CODE23_CLEARED`.
+  - **Future mutable candidates:** Both `/home/victor/work/qsl/codex/ops/backup/QSL_BACKUP_STATUS.md` and `/home/victor/work/qsl/codex/QSL_BACKUP_PLAN.md` are selected as future mutable candidates for NA-0422 exact-scope implementation. NA-0421 did not mutate either file.
+  - **Selected successor:** NA-0422 -- QSL Backup Log Code 23 Clean Status / Plan Refresh Implementation Harness.
+  - **Required future wording:** NA-0422 must cite the clean scheduled same-host log and manifest paths, state that code 23 was cleared in the reviewed scheduled log, state that Codex ops remained manifest-present exactly once, preserve same-host continuity caveats, preserve no off-host backup claim, no disaster recovery claim, no restore proof claim, no backup-complete claim, no public-readiness claim, and record that Codex ran no backup or restore in NA-0420 or NA-0421.
+  - **Backup/operator boundary:** Codex did not run qwork, qstart, qresume, sudo, generated operator packet scripts, backup, or restore. Codex did not mutate `/usr/local/sbin/qsl-backup`, `/backup/qsl`, the NA-0407 rollback subtree, backup status files, backup plan files, qwork/qstart/qresume/qshell, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE.
+  - **Same-host caveat:** This is same-host scheduled-log remediation and status-refresh authorization evidence only. It makes no off-host backup completion claim, no disaster recovery completion claim, no restore proof claim, no backup completion claim, no production readiness claim, no public-internet readiness claim, no external-review completion claim, no metadata-free behavior claim, no anonymity claim, no untraceable behavior claim, no bug-free claim, no vulnerability-free claim, and no perfect-crypto claim.
+  - **Protected:**
+    - clean scheduled proof remains current
+    - status/plan refresh is authorized but not implemented by NA-0421
+    - both exact local status/plan files are selected for future scope
+    - no backup or restore execution by Codex
+    - no sudo by Codex
+    - no generated packet script execution by Codex
+    - no qsl-backup mutation
+    - no rollback subtree mutation by Codex
+    - no backup status or plan mutation by NA-0421
+    - same-host caveat preserved
+    - no public overclaim
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0421 remains pending closeout
+    - D-0830 exists once
+    - D-0831 absent until optional closeout
+    - selected NA-0422 block must include same-host, no-backup/no-restore, no-qsl-backup-mutation, no-rollback-mutation, and no-public-overclaim caveats
+  - **Must never happen:**
+    - status/plan files are mutated by NA-0421
+    - NA-0422 is implemented by this authorization PR
+    - clean same-host scheduled log evidence is not treated as proof that is off-host, restore-proven, backup-complete, public-ready, vulnerability-free, bug-free, or perfect-crypto
+    - backup, restore, sudo, generated script execution, qsl-backup mutation, rollback subtree mutation by Codex, qwork/qstart/qresume execution, or public-claim expansion is hidden inside this lane
+    - more than one READY item remains
+  - **References:** NA-0421; NA-0420; D-0829; D-0828; `docs/governance/evidence/NA-0421_qsl_backup_log_code_23_clean_follow_up_status_refresh_authorization_plan.md`; `tests/NA-0421_qsl_backup_log_code_23_clean_follow_up_status_refresh_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

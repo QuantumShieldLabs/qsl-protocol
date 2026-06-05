@@ -8,6 +8,82 @@ Last-Updated: 2026-06-05
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-05-264 -- Packet N Optional Closeout to NA-0424
+- Begin timestamp (America/Chicago): 2026-06-05T12:24:00-05:00
+- Begin timestamp (UTC): 2026-06-05T17:24:00Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0423/qsl-protocol`
+- qsl-protocol branch at closeout start: `main`
+- qsl-protocol closeout branch: `na-0423-closeout-restore-na0424`
+- qsl-protocol HEAD at closeout start: `de1741e05657`
+- qsl-protocol main at closeout start: `de1741e05657`
+- qsl-protocol origin/main at closeout start: `de1741e05657`
+- qsl-server main: not touched; no mutation
+- qsl-server origin/main: not touched; no mutation
+- qsl-attachments main: not touched; no mutation
+- qsl-attachments origin/main: not touched; no mutation
+- Disk watermark: `/dev/nvme0n1p2` 468G total, 199G used, 245G free, 45% used
+
+## READY Proof
+
+- PR #1115 is MERGED at `de1741e05657`.
+- Post-merge public-safety on `de1741e05657` completed success after bounded polling at iteration 10/180.
+- Queue before closeout: READY_COUNT `1`; READY `NA-0423 -- QSL Domain Stewardship / Director Workflow Governance Authorization Plan`.
+- Decision state before closeout: latest D-0834; duplicate count zero; D-0834 once; D-0835 absent.
+- D-0834 selected `NA-0424 -- QSL Domain Stewardship Operating Model Canon Implementation Harness`.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+- GitHub pruned the remote evidence branch after PR #1115 merge even though Codex did not pass a branch-deletion flag.
+
+## Closeout Patch
+
+- NA-0423 is marked DONE.
+- D-0835 records NA-0423 closeout and NA-0424 restoration.
+- NA-0424 is restored as the sole READY successor.
+- New closeout testplan: `tests/NA-0423_closeout_restore_na0424_testplan.md`.
+- Closeout does not implement NA-0424 and does not create `docs/governance/DOMAIN_STEWARDSHIP_AND_DIRECTOR_WORKFLOW.md`.
+- Closeout preserves Lead Director final authority, advisory-only stewards, exactly one READY item, no independent Directors, public-claim boundaries, no runtime/dependency/workflow mutation, no backup mutation, and no public-readiness overclaim.
+
+## Validation / CI Notes
+
+- Exact staged path guard reported five changed paths, all allowed.
+- `git diff --cached --check` passed.
+- Queue helper reported READY_COUNT `1` and READY NA-0424.
+- Decision helper reported latest D-0835 and duplicate count zero; structural counts showed D-0834 once, D-0835 once, and D-0836 absent.
+- Helper link-check reported `TOTAL_MISSING 0`.
+- Helper added-line leak scan reported `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan reported `POSITIVE_OVERCLAIM_COUNT 0`.
+- Classifier reported `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, and `scope_class=docs_only`.
+- PR body preflight reported `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- Dependency validation passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`; pqcrypto inverse-tree probes were absent through zero-failure-safe command shape.
+- `cargo fmt --check` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed with 3 tests.
+- Formal validation passed: `python3 formal/model_qsc_handshake_suite_id_bounded.py`; `python3 formal/run_model_checks.py`.
+- Pending: closeout commit, committed-diff scope guard, goal-lint, PR creation, required checks, merge, and post-merge public-safety.
+
+## Failures / Recoveries
+
+- Failing command: first closeout exact path guard was run before staging the new closeout testplan, so it reported four changed paths and one missing allowed path.
+- Classification: recoverable staging/scan-shape issue; the new testplan was an intended allowed path.
+- Corrective action: staged `tests/NA-0423_closeout_restore_na0424_testplan.md` with the other closeout paths and reran the exact path guard.
+- Final result: staged path guard reported five changed paths, all allowed, missing allowed count zero, forbidden count zero.
+- Failing command: first closeout added-line overclaim scan reported the NA-0424 forbidden-scope line where quality/security claim terms were grouped without a local negative guard.
+- Classification: recoverable content-hardening issue in an explicitly negative forbidden-scope list.
+- Corrective action: rewrote the line so the local `creating or implying` guard also covers those terms.
+- Final result: rerun reported `POSITIVE_OVERCLAIM_COUNT 0`.
+
+## Next-Watch Items
+
+- D-0835 must exist once before closeout PR merge.
+- D-0836 must remain absent until NA-0424 live work.
+- NA-0424 must remain the sole READY item after closeout.
+- NA-0424 must implement only the internal governance canon and must not create independent Directors, allow multiple READY items, mutate runtime/dependency/workflow/public/service/backup surfaces, or expand public claims.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-05-264 -- NA-0423 QSL Domain Stewardship / Director Workflow Governance Authorization Plan
 - Begin timestamp (America/Chicago): 2026-06-05T12:04:30-05:00
 - Begin timestamp (UTC): 2026-06-05T17:04:30Z

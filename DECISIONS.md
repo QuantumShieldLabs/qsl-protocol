@@ -20788,3 +20788,43 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - public claims are created from internal stewardship governance
     - runtime, crypto, dependency, workflow, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, or branch-protection mutation is hidden inside this lane
   - **References:** NA-0423; NA-0422; D-0833; D-0832; `docs/governance/evidence/NA-0423_qsl_domain_stewardship_director_workflow_governance_authorization_plan.md`; `tests/NA-0423_qsl_domain_stewardship_director_workflow_governance_authorization_testplan.md`; `docs/governance/PROJECT_GOAL_AND_OPERATING_PRINCIPLES.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0835
+  - **Title:** NA-0423 closeout and NA-0424 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-05
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0423 is closed after qsl-protocol PR #1115 merged at `de1741e05657`, D-0834 authorized the advisory domain stewardship Director workflow governance model, and post-merge public-safety completed success on the merge commit. Because D-0834 selected the normal canon implementation path, the exact sole READY successor is restored as `NA-0424 -- QSL Domain Stewardship Operating Model Canon Implementation Harness`.
+  - **Closeout boundary:** This closeout does not implement NA-0424 and does not create `docs/governance/DOMAIN_STEWARDSHIP_AND_DIRECTOR_WORKFLOW.md`, the NA-0424 evidence doc, or the NA-0424 testplan. It does not run qwork, qstart, qresume, sudo, backup, or restore. It does not mutate `/usr/local/sbin/qsl-backup`, `/backup/qsl`, rollback subtree paths, backup status files, backup plan files, qwork/qstart/qresume/qshell, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE.
+  - **NA-0424 scope:** NA-0424 is limited to the internal stewardship canon artifact, NA-0424 governance evidence/testplan paths, DECISIONS.md, TRACEABILITY.md, the rolling journal, and read-only inspection of Project Goal canon, NEXT_ACTIONS, DECISIONS, TRACEABILITY, and recent evidence docs.
+  - **Authority boundary:** NA-0424 must preserve Lead Director final authority, advisory-only stewards, exactly one READY item, no independent autonomous Directors, public-claim boundaries, no runtime/dependency/workflow mutation, no backup mutation, and no public-readiness overclaim.
+  - **Public claim boundary:** This decision makes no production readiness claim, no public-internet readiness claim, no external-review completion claim, no metadata-free behavior claim, no anonymity claim, no untraceable behavior claim, no off-host backup completion claim, no disaster recovery completion claim, no restore proof claim, no backup completion claim, no bug-free claim, no vulnerability-free claim, and no perfect-crypto claim.
+  - **Protected:**
+    - PR #1115 merged before closeout
+    - post-merge public-safety green on `de1741e05657`
+    - D-0834 exists once before D-0835
+    - NA-0423 DONE
+    - READY NA-0424 as the exact successor
+    - no NA-0424 implementation by closeout
+    - Lead Director final authority preserved
+    - stewards advisory only
+    - exactly one READY item remains
+    - no independent autonomous Directors
+    - no backup or restore execution by Codex
+    - no qsl-backup mutation
+    - no backup status or plan mutation
+    - no runtime/dependency/workflow/public mutation
+    - no public overclaim
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0424
+    - NA-0423 DONE
+    - D-0835 exists once
+    - D-0836 absent until NA-0424 live work
+    - selected NA-0424 block includes Lead Director final authority, advisory-only stewards, exactly one READY item, no independent Directors, public-claim boundaries, no runtime/dependency/workflow mutation, no backup mutation, and no public-readiness overclaim
+  - **Must never happen:**
+    - NA-0424 is implemented by this closeout
+    - independent autonomous Directors are created
+    - more than one READY item remains
+    - runtime, crypto, dependency, workflow, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-claim mutation is hidden inside this closeout
+  - **References:** NA-0423; NA-0424; D-0834; D-0833; qsl-protocol PR #1115; `docs/governance/evidence/NA-0423_qsl_domain_stewardship_director_workflow_governance_authorization_plan.md`; `tests/NA-0423_qsl_domain_stewardship_director_workflow_governance_authorization_testplan.md`; `tests/NA-0423_closeout_restore_na0424_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

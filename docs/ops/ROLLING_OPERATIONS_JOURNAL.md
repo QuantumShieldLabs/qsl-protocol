@@ -8,12 +8,86 @@ Last-Updated: 2026-06-05
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-05-266 -- Packet L Optional Closeout to NA-0426
+- Begin timestamp (America/Chicago): 2026-06-05T14:03:01-05:00
+- Begin timestamp (UTC): 2026-06-05T19:03:01+00:00
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0425/qsl-protocol`
+- qsl-protocol branch at closeout start: `na-0425-closeout-restore-na0426`
+- qsl-protocol closeout branch: `na-0425-closeout-restore-na0426`
+- qsl-protocol HEAD at closeout start: `23b53b723ebc`
+- qsl-protocol main at closeout start: `23b53b723ebc`
+- qsl-protocol origin/main at closeout start: `23b53b723ebc`
+- qsl-server main: not touched; no mutation
+- qsl-server origin/main: not touched; no mutation
+- qsl-attachments main: not touched; no mutation
+- qsl-attachments origin/main: not touched; no mutation
+
+## READY Proof
+
+- PR #1119 is MERGED at `23b53b723ebc`.
+- Post-merge public-safety on `23b53b723ebc` completed success after bounded polling at iteration 9/180.
+- Queue before closeout: READY_COUNT `1`; READY `NA-0425 -- QSL Code / Crypto Audit Follow-Up Resumption Plan`.
+- Decision state before closeout: latest D-0838; duplicate count zero; D-0838 once; D-0839 absent.
+- D-0838 selected `NA-0426 -- QSL Crypto API / Provider Boundary Read-Only Audit Plan`.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Closeout Patch
+
+- NA-0425 is marked DONE.
+- D-0839 records NA-0425 closeout and NA-0426 restoration.
+- NA-0426 is restored as the sole READY successor.
+- New closeout testplan: `tests/NA-0425_closeout_restore_na0426_testplan.md`.
+- Closeout does not implement NA-0426.
+- Closeout preserves advisory-only stewardship inheritance, exactly one READY item, no runtime/crypto/dependency/workflow mutation, no backup mutation, and no public overclaim.
+
+## Validation / CI Notes
+
+- Exact staged path guard reported five changed paths, all allowed, with missing allowed count zero and forbidden count zero.
+- `git diff --cached --check` passed.
+- Queue helper reported READY_COUNT `1` and READY NA-0426.
+- Decision helper reported latest D-0839 and duplicate count zero; structural ID scan showed D-0838 once, D-0839 once, and D-0840 absent.
+- Helper link-check reported `TOTAL_MISSING 0`.
+- Helper added-line leak scan reported `SECRET_FINDING_COUNT 0`.
+- PR body preflight reported `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- Added-line affirmative overclaim scan reported `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0`.
+- Classifier reported `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, and `scope_class=docs_only`.
+- Dependency validation passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`; pqcrypto inverse-tree probes were absent through zero-failure-safe command shape.
+- Cargo tree emitted benign package-cache lock wait messages during parallel read-only probes; those messages were non-fatal and did not change the results.
+- `cargo fmt --check` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed with 3 tests.
+- Formal validation passed: `python3 formal/model_qsc_handshake_suite_id_bounded.py`; `python3 formal/run_model_checks.py`.
+- Pending: commit, committed-diff scope guard, goal-lint, PR creation, required checks, merge, and post-merge public-safety.
+
+## Failures / Recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py classifier --paths ...` exited 2 because this checkout's evidence helper does not expose a `classifier` subcommand.
+- Classification: recoverable command-shape issue because the repo provides the supported classifier at `scripts/ci/classify_ci_scope.sh`.
+- Corrective action: reran classification with `scripts/ci/classify_ci_scope.sh` and the exact staged path list.
+- Final result: classifier reported `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, and `scope_class=docs_only`.
+- Failing command: first staged affirmative overclaim scan reported wrapped no-claim continuation lines for anonymity, untraceability, restore proof, backup completion, side-channel-free, crypto-complete, external-review, bug-free, vulnerability-free, and perfect-crypto terms.
+- Classification: recoverable content-hardening issue in required no-claim wording; the flagged lines were negative boundaries, but continuation lines lacked local negative context.
+- Corrective action: rewrote the NA-0426 forbidden-claim bullets and closeout testplan forbidden-claim bullets so each sensitive phrase carries local `no` or equivalent boundary context.
+- Final result: rerun reported `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0`.
+
+## Next-Watch Items
+
+- D-0839 must exist once before closeout PR merge.
+- D-0840 must remain absent until NA-0426 live work.
+- NA-0426 must remain read-only and must not mutate runtime, crypto, dependency, workflow, public, service, backup, qwork/qstart/qresume/qshell, qsl-backup, status/plan, rollback, README, START_HERE, or website paths unless future exact scope authorizes otherwise.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-05-266 -- NA-0425 QSL Code / Crypto Audit Follow-Up Resumption Plan
 - Directive begin timestamp (America/Chicago): 2026-06-05T14:04:30-05:00
 - Directive begin timestamp (UTC): 2026-06-05T19:04:30Z
 - Host timestamp note: local host `date --iso-8601=seconds` reported `2026-06-05T13:38:38-05:00` and UTC `2026-06-05T18:38:38+00:00` during startup capture, earlier than the embedded directive begin time; recorded as operational friction, not used as authority over qwork proof files or live repo state.
-- End timestamp (America/Chicago): pending
-- End timestamp (UTC): pending
+- End timestamp (America/Chicago): 2026-06-05T14:03:01-05:00
+- End timestamp (UTC): 2026-06-05T19:03:01+00:00
 
 ## Repo SHAs
 
@@ -89,7 +163,14 @@ Last-Updated: 2026-06-05
 - `cargo fmt --check` passed.
 - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed with 3 tests.
 - Formal validation passed: `python3 formal/model_qsc_handshake_suite_id_bounded.py`; `python3 formal/run_model_checks.py`.
-- Pending: commit, committed-diff scope guard, PR creation, PR-number goal-lint wrapper, required checks, merge, and post-merge public-safety.
+- Evidence commit `c716d6aca826` created branch `na-0425-code-crypto-audit-resumption`.
+- Committed-diff scope guard passed for the five allowed NA-0425 paths.
+- PR #1119 was opened as `NA-0425: resume code crypto audit follow-up`.
+- PR-number goal-lint wrapper passed for PR #1119.
+- Required checks passed or were neutral/skipped as allowed by the repo gate; public-safety was green before merge.
+- PR #1119 merged with merge commit `23b53b723ebc`.
+- Post-merge public-safety on `23b53b723ebc` completed success after bounded polling at iteration 9/180.
+- Queue after evidence merge: READY_COUNT `1`; READY NA-0425; latest decision D-0838; D-0839 absent until optional closeout.
 
 ## Failures / Recoveries
 
@@ -107,8 +188,8 @@ Last-Updated: 2026-06-05
 - Final result: the direct tool invocation reached the linter but reported missing `GITHUB_EVENT_PATH`, proving the tool expects a PR event payload.
 - Failing command: `python3 tools/goal_lint.py` exited 1 with `GITHUB_EVENT_PATH missing`.
 - Classification: recoverable local invocation-shape issue because the repo provides `scripts/audit/run_goal_lint_pr.sh` to synthesize the event payload after PR creation.
-- Corrective action: defer goal-lint final proof to the PR-number wrapper after PR creation.
-- Final result: pending PR-number wrapper run after PR creation.
+- Corrective action: deferred goal-lint final proof to the PR-number wrapper after PR creation.
+- Final result: `scripts/audit/run_goal_lint_pr.sh 1119` passed.
 - Failing command: first staged affirmative overclaim scan reported wrapped no-claim continuation lines for external-review, crypto-complete, side-channel, vulnerability, backup, restore, metadata, and public-claim terms.
 - Classification: recoverable content-hardening issue in required no-claim wording; the flagged lines were negative boundaries, but continuation lines lacked local negative context.
 - Corrective action: rewrote the no-claim lists and steward-impact lines so each sensitive phrase carries local `no` or equivalent boundary context.

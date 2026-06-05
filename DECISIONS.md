@@ -20716,3 +20716,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - NA-0423 is implemented by this evidence PR
     - more than one READY item remains
   - **References:** NA-0422; NA-0421; D-0831; D-0830; `docs/governance/evidence/NA-0422_qsl_backup_log_code_23_clean_status_plan_refresh_implementation_harness.md`; `tests/NA-0422_qsl_backup_log_code_23_clean_status_plan_refresh_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0833
+  - **Title:** NA-0422 closeout and NA-0423 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-05
+  - **Goals:** G4
+  - **Decision:** NA-0422 is closed after qsl-protocol PR #1113 merged at `445652f3b48e`, D-0832 recorded the exact local status/plan refresh implementation, and post-merge public-safety completed success on the merge commit. Because D-0832 selected the stewardship governance path, the exact sole READY successor is restored as `NA-0423 -- QSL Domain Stewardship / Director Workflow Governance Authorization Plan`.
+  - **Closeout boundary:** This closeout does not implement NA-0423 and does not run qwork, qstart, qresume, sudo, generated packet scripts, backup, or restore. It does not mutate `/usr/local/sbin/qsl-backup`, `/backup/qsl`, rollback subtree paths, backup status files, backup plan files, qwork/qstart/qresume/qshell, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE.
+  - **NA-0423 scope:** NA-0423 is limited to qsl-protocol governance evidence/testplan paths, DECISIONS.md, TRACEABILITY.md, the rolling journal, and read-only inspection of governance canon plus recent local-ops evidence. It must define advisory steward roles and escalation without changing the exactly-one-READY invariant or Lead Director final authority.
+  - **Public claim boundary:** This decision makes no off-host backup completion claim, no disaster recovery completion claim, no restore proof claim, no backup completion claim, no production readiness claim, no public internet readiness claim, no external-review completion claim, no bug-free claim, no vulnerability-free claim, and no perfect-crypto claim.
+  - **Protected:**
+    - PR #1113 merged before closeout
+    - post-merge public-safety green on `445652f3b48e`
+    - D-0832 exists once before D-0833
+    - NA-0422 DONE
+    - READY NA-0423 as the exact successor
+    - no NA-0423 implementation by closeout
+    - Lead Director final authority preserved
+    - exactly one READY item remains
+    - no backup or restore execution by Codex
+    - no qsl-backup mutation
+    - no rollback subtree mutation by Codex
+    - no backup status or plan mutation by closeout
+    - no public overclaim
+  - **Required behavior:**
+    - READY_COUNT 1
+    - READY NA-0423
+    - D-0833 exists once
+    - selected NA-0423 block includes one-READY, Lead Director final authority, public-claim, no-runtime, no-workflow, no-public-doc, no-backup, no-restore, and no-qsl-backup-mutation caveats
+  - **Must never happen:**
+    - NA-0423 is implemented by this closeout
+    - steward roles are made autonomous Directors by this closeout
+    - more than one READY item remains
+    - backup, restore, sudo, generated script execution, qsl-backup mutation, rollback subtree mutation by Codex, qwork/qstart/qresume execution, runtime/dependency/workflow/public mutation, branch-protection change, or public-claim expansion is hidden inside this closeout
+  - **References:** NA-0422; NA-0423; D-0832; D-0831; qsl-protocol PR #1113; `docs/governance/evidence/NA-0422_qsl_backup_log_code_23_clean_status_plan_refresh_implementation_harness.md`; `tests/NA-0422_qsl_backup_log_code_23_clean_status_plan_refresh_implementation_testplan.md`; `tests/NA-0422_closeout_restore_na0423_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

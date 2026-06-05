@@ -8,6 +8,76 @@ Last-Updated: 2026-06-05
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-05-263 -- Packet K Optional Closeout to NA-0423
+- Begin timestamp (America/Chicago): 2026-06-05T11:34:00-05:00
+- Begin timestamp (UTC): 2026-06-05T16:34:00Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0422/qsl-protocol`
+- qsl-protocol branch at closeout start: `main`
+- qsl-protocol closeout branch: `na-0422-closeout-restore-na0423`
+- qsl-protocol HEAD at closeout start: `445652f3b48e`
+- qsl-protocol main at closeout start: `445652f3b48e`
+- qsl-protocol origin/main at closeout start: `445652f3b48e`
+- qsl-server main: not touched; no mutation
+- qsl-server origin/main: not touched; no mutation
+- qsl-attachments main: not touched; no mutation
+- qsl-attachments origin/main: not touched; no mutation
+- Disk watermark: `/dev/nvme0n1p2` 468G total, 199G used, 245G free, 45% used
+
+## READY Proof
+
+- PR #1113 is MERGED at `445652f3b48e`.
+- Post-merge public-safety on `445652f3b48e` completed success after bounded polling at iteration 10/180.
+- Queue before closeout: READY_COUNT `1`; READY `NA-0422 -- QSL Backup Log Code 23 Clean Status / Plan Refresh Implementation Harness`.
+- Decision state before closeout: latest D-0832; duplicate count zero; D-0833 absent.
+- D-0832 selected `NA-0423 -- QSL Domain Stewardship / Director Workflow Governance Authorization Plan`.
+- Codex did not run qwork, qstart, qresume, sudo, generated packet scripts, backup, or restore.
+
+## Closeout Patch
+
+- NA-0422 is marked DONE.
+- D-0833 records NA-0422 closeout and NA-0423 restoration.
+- NA-0423 is restored as the sole READY successor.
+- New closeout testplan: `tests/NA-0422_closeout_restore_na0423_testplan.md`.
+- Closeout does not implement NA-0423 and does not mutate local status/plan files.
+- Closeout preserves one-READY and Lead Director final directive authority.
+
+## Validation / CI Notes
+
+- Queue helper reported READY_COUNT `1` and READY NA-0423.
+- Decision helper reported latest D-0833 and duplicate count zero; structural counts showed D-0831 once, D-0832 once, D-0833 once, and D-0834 absent.
+- Staged path guard passed: exactly `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0422_closeout_restore_na0423_testplan.md`.
+- `git diff --cached --check` passed.
+- helper link-check reported `TOTAL_MISSING 0`.
+- staged leak/overclaim scan reported `STAGED_SECRET_FINDING_COUNT 0` and `STAGED_POSITIVE_OVERCLAIM_COUNT 0`.
+- Dependency validation passed: `cargo audit --deny warnings`; `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`; pqcrypto inverse-tree probes were absent through zero-failure-safe command shape.
+- `cargo fmt --check` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed with 3 tests.
+- Formal validation passed: `python3 formal/model_qsc_handshake_suite_id_bounded.py`; `python3 formal/run_model_checks.py`.
+- Pending: commit, committed-diff scope guard, helper leak-scan against `origin/main`, classifier, PR body preflight, goal-lint, PR creation, PR checks, merge, and post-merge public-safety.
+
+## Failures / Recoveries
+
+- Failing command: first closeout staged positive-overclaim scan. Classification:
+  recoverable scan-shape/content-hardening issue because the selected NA-0423
+  forbidden-scope block wrapped privacy-overclaim terms onto lines without a
+  local `creating or implying` guard. Corrective action: rewrote the wrapped
+  NEXT_ACTIONS wording so the negative guard appears on each local line and
+  removed unguarded literal terms from this recovery note. Final result: rerun
+  reported `STAGED_POSITIVE_OVERCLAIM_COUNT 0`.
+
+## Next-Watch Items
+
+- D-0833 must exist once after closeout.
+- NA-0423 must remain implementation-pending after closeout.
+- NA-0423 must define advisory stewardship without changing the one-READY invariant, Lead Director authority, runtime/dependency/workflow/public/backup surfaces, or public-claim boundaries.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-05-263 -- NA-0422 QSL Backup Log Code 23 Clean Status / Plan Refresh Implementation Harness
 - Begin timestamp (America/Chicago): 2026-06-05T10:34:30-05:00
 - Begin timestamp (UTC): 2026-06-05T15:34:30Z
@@ -78,7 +148,17 @@ Last-Updated: 2026-06-05
 - `cargo fmt --check` passed.
 - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed with 3 tests.
 - Formal validation passed: `python3 formal/model_qsc_handshake_suite_id_bounded.py`; `python3 formal/run_model_checks.py`.
-- Pending: commit, committed-diff scope guard, helper leak-scan against `origin/main`, classifier, PR body preflight, goal-lint, PR creation, PR checks, merge, and post-merge public-safety.
+- Evidence commit: `5aaf197865ef`.
+- Evidence PR: qsl-protocol #1113.
+- Evidence merge SHA: `445652f3b48e`.
+- Committed-diff scope guard passed against `origin/main`: five changed paths, all allowed, forbidden count 0.
+- Helper added-line leak scan reported `SECRET_FINDING_COUNT 0`.
+- Changed-line positive-overclaim scan reported `POSITIVE_OVERCLAIM_COUNT 0`.
+- Classifier reported docs-only, no workflow security, no runtime-critical, and no qsc-adversarial trigger.
+- PR body preflight reported `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- Local goal-lint passed with synthetic PR event and body containing `Goals: G4`.
+- PR #1113 required checks completed green by bounded REST polling at iteration 5/180.
+- PR #1113 post-merge public-safety completed success by bounded polling at iteration 10/180.
 
 ## Failures / Recoveries
 

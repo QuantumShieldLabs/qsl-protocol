@@ -20989,3 +20989,46 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, dependency, workflow, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-claim mutation is hidden inside this closeout
     - closeout text is used as forbidden public-readiness, production-readiness, external-review-complete, crypto-complete, side-channel-free, metadata-free, anonymity, untraceability, off-host-backup-complete, disaster-recovery-complete, restore-proven, backup-complete, vulnerability-free, bug-free, or perfect-crypto proof
   - **References:** NA-0425; NA-0426; D-0839; D-0838; D-0837; qsl-protocol PR #1119; `docs/governance/evidence/NA-0425_qsl_code_crypto_audit_follow_up_resumption_plan.md`; `tests/NA-0425_qsl_code_crypto_audit_follow_up_resumption_testplan.md`; `tests/NA-0425_closeout_restore_na0426_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0840
+  - **Title:** NA-0426 crypto API provider boundary read-only audit
+  - **Status:** Accepted
+  - **Date:** 2026-06-05
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0426 completed the bounded read-only QSL crypto API / provider boundary audit after the NA-0418 pqcrypto remediation. The audit reviewed `PqKem768`, `StdCrypto`, the RustCrypto `ml-kem` provider replacement, qsc runtime boundary usage, fail-closed reject behavior, provider tests, dependency/feature boundaries, formal/vector alignment, demo/service boundaries, local-ops boundaries, and public-claim caveats.
+  - **Findings matrix:** A findings matrix was created with IDs F-0426-01 through F-0426-09. No BLOCKER or HIGH runtime issue was found. The matrix records follow-up items for qsc provider-error-path test proof, historical `pqcrypto` feature naming, nested qsc fuzz-lock pqcrypto dependency evidence, formal/vector provider alignment, property/fuzz/differential coverage, KEM secret-material memory-hygiene classification, side-channel/timing caveats, and service/demo/public-claim boundaries.
+  - **Selected successor:** `NA-0427 -- QSL Crypto API / Provider Boundary Findings Triage and Remediation Authorization Plan`.
+  - **Boundary:** NA-0426 is read-only audit/governance evidence only. It does not mutate runtime, crypto, dependency, Cargo, workflow, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status files, backup plan files, rollback subtree paths, `/backup/qsl`, branch protection, or public-claim surfaces.
+  - **Stewardship:** The NA-0424 stewardship template was used as advisory structure. Crypto / Protocol, CI / Dependency / Release Health, Public Claims / External Review, Product / Demo / Service Boundary, and Local Ops / Backup / Restore summaries were recorded in the NA-0426 evidence doc. Lead Director final authority and exactly-one-READY discipline remain mandatory.
+  - **Dependency health:** `cargo audit --deny warnings` is green, `rustls-webpki v0.103.13` remains active, root `ml-kem v0.2.1` remains the active KEM provider dependency through `quantumshield_refimpl`, and the pqcrypto RustSec blocker packages are absent from the root locked graph. A nested qsc fuzz lock still records pqcrypto package entries and is classified as future triage evidence, not a root locked-graph blocker. Cargo audit green is dependency-health evidence only and is no vulnerability-free, bug-free, or perfect-crypto proof.
+  - **Public claim boundary:** This decision makes no public-readiness claim, no production-readiness claim, no public-internet-readiness claim, no external-review-complete claim, no crypto-complete claim, no side-channel-free claim, no metadata-free claim, no anonymity claim, no untraceability claim, no off-host-backup-complete claim, no disaster-recovery-complete claim, no restore-proven claim, no backup-complete claim, no vulnerability-free claim, no bug-free claim, and no perfect-crypto claim.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not mutate qsl-backup, `/backup/qsl`, backup status files, backup plan files, rollback subtree paths, systemd, timers, fstab, source lists, retention, or backup scripts.
+  - **Protected:**
+    - qwork proof files were read and verified without rerunning qwork
+    - PR #1120 verified merged at `36b342c4e71e`
+    - READY_COUNT 1
+    - READY NA-0426
+    - NA-0425 DONE
+    - D-0838 exists once
+    - D-0839 exists once
+    - D-0840 exists once after this lane
+    - D-0841 absent until optional closeout
+    - findings matrix created
+    - normal NA-0427 provider-boundary findings triage successor selected
+    - no runtime/crypto/dependency/workflow/public/service/backup mutation
+    - no public crypto-complete claim
+    - no vulnerability-free or perfect-crypto claim
+  - **Required behavior:**
+    - READY_COUNT remains 1
+    - READY remains NA-0426 until optional closeout
+    - selected NA-0427 block must include no-runtime, no-crypto, no-dependency, no-workflow, no-public-overclaim, no-backup/no-restore, and no-secret boundaries
+    - future NA-0427 must triage findings before any implementation or dependency remediation lane is authorized
+  - **Must never happen:**
+    - NA-0427 is implemented by NA-0426
+    - findings are silently treated as remediated by audit evidence
+    - cargo audit green is treated as no-vulnerability proof
+    - bounded formal/vector evidence is treated as full provider proof
+    - internal audit evidence is treated as external review
+    - runtime, crypto, dependency, workflow, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-claim mutation is hidden inside this lane
+    - more than one READY item remains
+  - **References:** NA-0426; NA-0425; NA-0427; D-0840; D-0839; D-0838; `docs/governance/evidence/NA-0426_qsl_crypto_api_provider_boundary_read_only_audit_plan.md`; `tests/NA-0426_qsl_crypto_api_provider_boundary_read_only_audit_testplan.md`; `docs/governance/evidence/NA-0418_qsl_rustsec_pqcrypto_dependency_health_blocker_triage_remediation.md`; `tools/refimpl/quantumshield_refimpl/src/crypto/traits.rs`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tools/refimpl/quantumshield_refimpl/tests/pqkem768.rs`; `qsl/qsl-client/qsc/Cargo.toml`; `qsl/qsl-client/qsc/fuzz/Cargo.lock`; `formal/`; `inputs/suite2/`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -22203,7 +22203,7 @@ Acceptance criteria:
 - public-safety is green before merge and after merge.
 
 ### NA-0423 — QSL Domain Stewardship / Director Workflow Governance Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -22241,11 +22241,19 @@ Forbidden scope:
 - Mutating qsl-backup.
 - Mutating qwork/qstart/qresume/qshell.
 - Creating public technical paper content.
-- Creating or implying production readiness, public-internet readiness, or
-  creating or implying external-review completion, metadata-free behavior,
-  or creating or implying anonymity, untraceability, off-host backup
-  completion, disaster recovery completion, restore proof, backup completion,
-  bug-free status, vulnerability-free status, or perfect-crypto claims.
+- Creating or implying production readiness.
+- Creating or implying public-internet readiness.
+- Creating or implying external-review completion.
+- Creating or implying metadata-free behavior.
+- Creating or implying anonymity.
+- Creating or implying untraceability.
+- Creating or implying off-host backup completion.
+- Creating or implying disaster recovery completion.
+- Creating or implying restore proof.
+- Creating or implying backup completion.
+- Creating or implying bug-free status.
+- Creating or implying vulnerability-free status.
+- Creating or implying perfect-crypto claims.
 - Secret material handling.
 
 Deliverables:
@@ -22261,6 +22269,83 @@ Acceptance criteria:
 - Lead Director remains final authority for directives and READY promotion.
 - Exactly one READY item remains.
 - Public-claim and scope boundaries are preserved.
+- No runtime/dependency/workflow/public/backup mutation occurs.
+- public-safety is green before merge and after merge.
+
+---
+
+### NA-0424 — QSL Domain Stewardship Operating Model Canon Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the internal governance canon for QSL advisory domain stewardship and
+Director workflow, defining steward domains, advisory boundaries,
+handoff/review template, escalation rules, and Lead Director final authority
+while preserving exactly-one-READY queue discipline and public-claim
+conservatism.
+
+Protects:
+- Lead Director final authority.
+- One-READY queue discipline.
+- Scope control.
+- Public-claim boundaries.
+- Cross-domain traceability.
+- Security-before-speed project goal.
+- Evidence-backed governance.
+
+Allowed scope:
+- docs/governance/DOMAIN_STEWARDSHIP_AND_DIRECTOR_WORKFLOW.md.
+- docs/governance/evidence/NA-0424_qsl_domain_stewardship_operating_model_canon_implementation_harness.md.
+- tests/NA-0424_qsl_domain_stewardship_operating_model_canon_implementation_testplan.md.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- Read-only inspection of Project Goal canon, NEXT_ACTIONS, DECISIONS,
+  TRACEABILITY, and recent evidence docs.
+
+Forbidden scope:
+- Creating independent autonomous Directors.
+- Allowing more than one READY item.
+- Changing branch protection.
+- Mutating runtime, crypto, dependency, workflow, qsl-server, qsl-attachments,
+  qshield runtime, website, public docs, README, or START_HERE paths.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- Creating or implying production readiness.
+- Creating or implying public-internet readiness.
+- Creating or implying external-review completion.
+- Creating or implying metadata-free behavior.
+- Creating or implying anonymity.
+- Creating or implying untraceability.
+- Creating or implying off-host backup completion.
+- Creating or implying disaster recovery completion.
+- Creating or implying restore proof.
+- Creating or implying backup completion.
+- Creating or implying bug-free status.
+- Creating or implying vulnerability-free status.
+- Creating or implying perfect-crypto claims.
+- Secret material handling.
+
+Deliverables:
+- Domain stewardship canon artifact.
+- NA-0424 evidence doc.
+- NA-0424 testplan.
+- D-0836 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- Recommended next queue candidate after stewardship canon.
+
+Acceptance criteria:
+- Lead Director remains final authority for directives and READY promotion.
+- Stewards are advisory only.
+- Exactly one READY item remains.
+- Steward domains and review template are explicit.
+- Conflict/escalation rules are explicit.
 - No runtime/dependency/workflow/public/backup mutation occurs.
 - public-safety is green before merge and after merge.
 

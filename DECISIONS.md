@@ -21217,3 +21217,46 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, root dependency, Cargo lockfile, workflow, fuzz target, test, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-claim mutation is hidden inside this closeout
     - more than one READY item remains
   - **References:** NA-0428; NA-0429; D-0845; D-0844; D-0843; qsl-protocol PR #1125; `docs/governance/evidence/NA-0428_qsl_qsc_fuzz_lock_pqcrypto_residual_dependency_blocker_authorization_plan.md`; `tests/NA-0428_qsl_qsc_fuzz_lock_pqcrypto_residual_dependency_blocker_authorization_testplan.md`; `tests/NA-0428_closeout_restore_na0429_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0846
+  - **Title:** NA-0429 qsc fuzz lock pqcrypto residual lockfile cleanup implementation
+  - **Status:** Accepted
+  - **Date:** 2026-06-05
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0429 updates exactly `qsl/qsl-client/qsc/fuzz/Cargo.lock` under the D-0844 `FUZZ_LOCK_REMEDIATION_AUTHORIZED_LOCKFILE_ONLY` authorization. The nested qsc fuzz lock audit is green after the refresh, root `cargo audit --deny warnings` remains green, nested `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals` are removed, nested `rustls-webpki` is `0.103.13`, and nested `ml-kem` is present. `qsl/qsl-client/qsc/fuzz/Cargo.toml`, root `Cargo.toml`, root `Cargo.lock`, and `qsl/qsl-client/qsc/Cargo.toml` are unchanged. No runtime, crypto, workflow, script, fuzz target, test, vector, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, `/backup/qsl`, qwork/qstart/qresume/qshell, or branch-protection mutation is made.
+  - **Selected successor:** `NA-0430 -- QSL qsc Provider Error Path / No-Mutation Read-Only Audit Plan`.
+  - **Boundary:** NA-0429 is a nested fuzz lock dependency-health cleanup plus internal governance evidence. It is not runtime remediation beyond the committed fuzz lock and does not change protocol, wire, crypto, auth, state-machine, workflow, test, vector, public, service, or backup semantics.
+  - **qsc adversarial result:** Stable qsc adversarial tests passed through `sh scripts/ci/qsc_adversarial.sh`: `adversarial_properties` 8 passed and `adversarial_miri` 6 passed. The cargo-fuzz target smoke was locally unavailable because `cargo +nightly fuzz` reported `error: no such command: fuzz`; Codex did not install cargo-fuzz and did not change script permissions. This is recorded as a local environment/tooling limitation, not a lockfile regression.
+  - **Public claim boundary:** No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No side-channel-free claim is made. No metadata-free claim is made. No anonymity claim is made. No untraceability claim is made. No off-host-backup-complete claim is made. No disaster-recovery completion claim is made. No restore-proven claim is made. No backup-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, `/backup/qsl`, backup logs, backup manifests, backup status files, backup plan files, rollback subtree paths, systemd, timers, fstab, source lists, retention, or backup scripts.
+  - **Protected:**
+    - qwork proof files were read and verified without rerunning qwork
+    - PR #1126 verified merged at `c621ff09df61`
+    - READY_COUNT 1
+    - READY NA-0429
+    - NA-0428 DONE
+    - D-0844 exists once
+    - D-0845 exists once
+    - D-0846 exists once after this lane
+    - D-0847 absent until optional closeout
+    - exact lockfile path updated: `qsl/qsl-client/qsc/fuzz/Cargo.lock`
+    - nested fuzz lock audit green
+    - root cargo audit green
+    - pqcrypto residual removed from the nested fuzz lock
+    - `qsl/qsl-client/qsc/fuzz/Cargo.toml` unchanged
+    - root `Cargo.toml` and root `Cargo.lock` unchanged
+    - no runtime/crypto/workflow/test/vector mutation
+    - no backup or restore
+    - no public crypto-complete claim
+    - no vulnerability-free or perfect-crypto claim
+  - **Required behavior:**
+    - READY_COUNT remains 1
+    - READY remains NA-0429 until optional closeout
+    - selected NA-0430 block must preserve no-runtime, no-crypto, no-dependency, no-test/vector, no-workflow, no-public-overclaim, no-backup/no-restore, and no-secret boundaries
+    - exactly one READY item remains mandatory
+  - **Must never happen:**
+    - runtime, crypto, root dependency, Cargo manifest, workflow, script, fuzz target, test, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-claim mutation is hidden inside this lane
+    - root or nested cargo audit green is treated as no-vulnerability proof
+    - internal fuzz-lock cleanup is treated as external review
+    - more than one READY item remains
+  - **References:** NA-0429; NA-0428; NA-0430; D-0846; D-0845; D-0844; `docs/governance/evidence/NA-0429_qsl_qsc_fuzz_lock_pqcrypto_residual_lockfile_cleanup_implementation_harness.md`; `tests/NA-0429_qsl_qsc_fuzz_lock_pqcrypto_residual_lockfile_cleanup_implementation_testplan.md`; `qsl/qsl-client/qsc/fuzz/Cargo.lock`; `qsl/qsl-client/qsc/fuzz/Cargo.toml`; `Cargo.toml`; `Cargo.lock`; `qsl/qsl-client/qsc/Cargo.toml`; `scripts/ci/qsc_adversarial.sh`; `.github/workflows/qsc-adversarial.yml`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

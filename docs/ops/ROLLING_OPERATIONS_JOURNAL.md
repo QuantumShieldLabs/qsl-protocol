@@ -8,6 +8,127 @@ Last-Updated: 2026-06-05
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-05-270 -- NA-0429 QSL qsc Fuzz Lock pqcrypto Residual Lockfile Cleanup Implementation Harness
+- Directive begin timestamp (America/Chicago): 2026-06-05T17:34:30-05:00
+- Directive begin timestamp (UTC): 2026-06-05T22:34:30Z
+- Host timestamp during startup proof verification (America/Chicago): 2026-06-05T18:51:57-05:00
+- Host timestamp during startup proof verification (UTC): 2026-06-05T23:51:57+00:00
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0429/qsl-protocol`
+- qsl-protocol branch at start: `main`
+- qsl-protocol implementation branch: `na-0429-qsc-fuzz-lock-pqcrypto-cleanup`
+- qsl-protocol HEAD at start: `c621ff09df61`
+- qsl-protocol main at start: `c621ff09df61`
+- qsl-protocol origin/main at start: `c621ff09df61`
+- qsl-server main: not touched; no mutation
+- qsl-server origin/main: not touched; no mutation
+- qsl-attachments main: not touched; no mutation
+- qsl-attachments origin/main: not touched; no mutation
+
+## READY Proof
+
+- qwork proof files existed under `/srv/qbuild/work/NA-0429/.qwork/` and reported `startup_result=OK`, lane `NA-0429`, repo `qsl-protocol`, clean worktree/index/untracked fields, READY_COUNT `1`, queue top READY `NA-0429`, requested lane status `READY`, and qwork-reported path `/srv/qbuild/work/NA-0429/qsl-protocol`.
+- qwork proof JSON parsed successfully and mirrored the required `.kv` proof fields.
+- Codex did not run qwork, qstart, or qresume.
+- Live `HEAD` and `origin/main` matched the qwork proof at `c621ff09df61` after fetch.
+- PR #1126 was verified MERGED with merge commit `c621ff09df61`.
+- Public-safety on `c621ff09df61` completed success and is a required branch-protection context.
+- Queue before patch: READY_COUNT `1`; READY `NA-0429 -- QSL qsc Fuzz Lock pqcrypto Residual Lockfile Cleanup Implementation Harness`; NA-0428 DONE.
+- Decision state before patch: latest D-0845; duplicate count zero; D-0844 once; D-0845 once; D-0846 absent.
+
+## Protection / Boundary Proof
+
+- Proof root: `/srv/qbuild/tmp/NA0429_qsc_fuzz_lock_pqcrypto_cleanup_20260605T185313-0500`.
+- qwork proof files were copied to the proof root under `qwork/`.
+- qsl-backup checksum matched the directive-required SHA256.
+- qsl-backup source inclusion count for the Codex ops source path is exactly `1`.
+- Codex did not run sudo, backup, restore, qwork, qstart, or qresume.
+- Allowed implementation mutation path is only `qsl/qsl-client/qsc/fuzz/Cargo.lock`.
+- Allowed governance/evidence paths are the NA-0429 evidence doc, NA-0429 testplan, DECISIONS.md, TRACEABILITY.md, and this rolling journal.
+
+## Dependency / Fuzz-Lock Notes
+
+- Root `cargo audit --deny warnings` passed before mutation.
+- Root `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- Root `cargo tree -i ml-kem --locked` reported `ml-kem v0.2.1`.
+- Root inverse-tree probes for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals` reported package-ID absence.
+- NA-0428 authorization inherited classification: `FUZZ_LOCK_REMEDIATION_AUTHORIZED_LOCKFILE_ONLY`.
+- Next pre-mutation step is rollback copy creation for `qsl/qsl-client/qsc/fuzz/Cargo.lock`.
+
+## Recovered / Classified Non-Zero Commands
+
+- Failing commands: first root inverse-tree probes for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals` were run without the directive's zero-failure-safe wrapper and exited 101 with package-ID absence.
+  - Classification: recoverable zero-match proof plus command-shape issue because absence is the required root locked-graph outcome and the directive explicitly treats these probes as `|| true`.
+  - Corrective action: reran all three probes in zero-failure-safe form and preserved the package-ID absence output.
+  - Final result: root pqcrypto package IDs are absent.
+- Failing command: direct `scripts/ci/qsc_adversarial.sh`.
+  - Classification: recoverable command-shape/local file-mode issue because the script is not executable in this worktree.
+  - Corrective action: reran with `sh scripts/ci/qsc_adversarial.sh` without changing script permissions.
+  - Final result: the script reached the stable adversarial tests and fuzz phase.
+- Failing command: `cargo +nightly fuzz` during `sh scripts/ci/qsc_adversarial.sh`.
+  - Classification: recoverable local tooling availability issue because the `cargo-fuzz` subcommand is not installed locally and root audit, nested audit, qsc send_commit, refimpl provider test, and formal checks passed.
+  - Corrective action: recorded `CARGO_FUZZ_AVAILABILITY_RC=101`; did not install cargo-fuzz and did not change workflow/script semantics.
+  - Final result: stable adversarial tests passed; cargo-fuzz smoke not locally feasible.
+
+## Preimage / Rollback Proof
+
+- Fuzz manifest SHA before mutation: `815110f12fa6443285bb2997b8c8c01ac221f487dfb8c0e0fd3b907f878b5db6`.
+- Fuzz lock preimage SHA: `a4a3378781b7ce88a556fad897ec53c90c870e095b6353b57c0a2de990e6770a`.
+- Root `Cargo.toml` SHA before mutation: `72627c3442cadadf585e65fd83cc26e23db71fd256606a20410a6984318d4532`.
+- Root `Cargo.lock` SHA before mutation: `9348e3d309db252444afbf3155761f978fd28c4f0671556cd97d479add8202bd`.
+- qsc `Cargo.toml` SHA before mutation: `e7b74760ee685961ff16a4dd0c80a02d4b9025ad1046d66be528e8770c98c21f`.
+- Rollback copy: `/srv/qbuild/tmp/NA0429_qsc_fuzz_lock_pqcrypto_cleanup_20260605T185313-0500/rollback/qsc-fuzz-Cargo.lock.preimage`.
+- Rollback copy SHA matched the preimage SHA and was readable before mutation.
+- Preimage nested lock entries: `pqcrypto-mlkem 0.1.1`; `pqcrypto-traits 0.3.5`; `pqcrypto-internals 0.2.11`; `rustls-webpki 0.103.10`; no `ml-kem`.
+- Pre-mutation nested audit was red with denied rustls-webpki, pqcrypto, and rand findings; root audit was green.
+
+## Lockfile Implementation Notes
+
+- Implementation command: `cargo update` from `qsl/qsl-client/qsc/fuzz`.
+- Immediate changed-path proof after refresh: only `qsl/qsl-client/qsc/fuzz/Cargo.lock` plus this allowed rolling journal path.
+- Saved lockfile diff: `/srv/qbuild/tmp/NA0429_qsc_fuzz_lock_pqcrypto_cleanup_20260605T185313-0500/diffs/qsc-fuzz-Cargo.lock.diff`.
+- Lockfile diff summary: `1 file changed, 309 insertions(+), 1009 deletions(-)`.
+- After SHA for `qsl/qsl-client/qsc/fuzz/Cargo.lock`: `fd7cfd20f9d912004f7ee90750abed785fc518df066adb17f85ea781c9a5a0d5`.
+- TOML-parsed after-state: `pqcrypto-mlkem` absent; `pqcrypto-traits` absent; `pqcrypto-internals` absent; `rustls-webpki 0.103.13`; `ml-kem 0.2.3`; `rand 0.9.4`.
+- Nested `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock` passed.
+- Root `cargo audit --deny warnings` passed.
+- Root `Cargo.toml`, root `Cargo.lock`, `qsl/qsl-client/qsc/Cargo.toml`, and `qsl/qsl-client/qsc/fuzz/Cargo.toml` retained their preimage SHAs.
+- Diff check over `scripts/ci/qsc_adversarial.sh` and `.github/workflows/qsc-adversarial.yml` was empty.
+
+## Validation Notes
+
+- Staged path guard reported exactly six allowed NA-0429 paths and zero extra paths.
+- `git diff --cached --check` passed.
+- Link-check reported `TOTAL_MISSING 0`.
+- Leak-scan reported `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan reported `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0`.
+- Classifier reported `runtime_critical` because the nested fuzz lock changed; workflow and script scope remained false.
+- PR body preflight reported `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- Queue helper reported READY_COUNT `1` and READY `NA-0429`.
+- Decision helper reported latest D-0846 and duplicate count zero; structural scan showed D-0844 once, D-0845 once, D-0846 once, and D-0847 absent.
+- Final light dependency validation passed: root audit, nested fuzz lock audit, root rustls-webpki tree, root ml-kem tree, root pqcrypto absence probes, nested pqcrypto absence grep, and `cargo fmt --check`.
+- `cargo fmt --check` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed, 3 tests.
+- `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768` passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed with `NA0309_QSC_HANDSHAKE_SUITE_ID_FORMAL_MODEL_OK`.
+- `python3 formal/run_model_checks.py` passed SCKA, negotiation, and qsc suite-id model checks.
+- `sh scripts/ci/qsc_adversarial.sh` passed stable adversarial tests: `adversarial_properties` 8 tests and `adversarial_miri` 6 tests.
+- qsc cargo-fuzz smoke was attempted but not locally feasible because `cargo +nightly fuzz` reported no `fuzz` subcommand.
+
+## Evidence Patch
+
+- Added NA-0429 evidence doc: `docs/governance/evidence/NA-0429_qsl_qsc_fuzz_lock_pqcrypto_residual_lockfile_cleanup_implementation_harness.md`.
+- Added NA-0429 testplan: `tests/NA-0429_qsl_qsc_fuzz_lock_pqcrypto_residual_lockfile_cleanup_implementation_testplan.md`.
+- Added D-0846 to record the lockfile-only cleanup result and selected NA-0430 successor.
+- Updated TRACEABILITY with the NA-0429 implementation row.
+- Selected successor: `NA-0430 -- QSL qsc Provider Error Path / No-Mutation Read-Only Audit Plan`.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-05-269 -- NA-0428 QSL qsc Fuzz Lock pqcrypto Residual Dependency Blocker Authorization Plan
 - Directive begin timestamp (America/Chicago): 2026-06-05T17:04:30-05:00
 - Directive begin timestamp (UTC): 2026-06-05T22:04:30Z

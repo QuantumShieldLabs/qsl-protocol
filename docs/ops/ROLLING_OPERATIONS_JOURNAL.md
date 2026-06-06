@@ -25401,3 +25401,81 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Recovered closeout helper invocation issue: stale standalone PR-body/leak helper paths were invoked even though the current repo exposes those checks through `scripts/ci/qsl_evidence_helper.py`. Classification: recoverable helper path command-shape issue. Corrective action: reran PR body preflight and leak scan through `qsl_evidence_helper.py`. Final result: `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`, and `SECRET_FINDING_COUNT 0`.
 - PR checks pending.
 - Merge pending.
+
+# QSL-DIR-2026-06-06-273 / NA-0430 tmp proof artifact scope-breach recovery rolling journal
+
+- Directive: QSL-DIR-2026-06-06-273 -- Recover NA-0430 Post-Merge /tmp Proof Artifact Scope Breach, Preserve Evidence, and Keep NA-0431 Ready
+- Begin timestamp (America/Chicago): 2026-06-06T09:34:30-05:00
+- Begin timestamp (UTC): 2026-06-06T14:34:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0430/qsl-protocol`
+- qsl-protocol branch at recovery start: `main`
+- qsl-protocol recovery branch: `na-0430-tmp-artifact-scope-breach-recovery`
+- qsl-protocol HEAD at recovery start: `9d22e3062c47`
+- qsl-protocol main at recovery start: `9d22e3062c47`
+- qsl-protocol origin/main at recovery start: `9d22e3062c47`
+- qsl-server main/origin/main/mirror/main: not present under this NA worktree; no mutation
+- qsl-attachments main/origin/main/mirror/main: not present under this NA worktree; no mutation
+- Disk watermark: `/dev/nvme0n1p2` 468G total, 214G used, 231G free, 49% used
+
+## READY Proof
+
+- Queue helper reported READY_COUNT 1.
+- Sole READY item: `NA-0431 -- QSL qsc Fuzz Lock Precise-Version pqcrypto Cleanup Retry Implementation Harness`.
+- Direct queue proof showed NA-0430 DONE and NA-0429 BLOCKED.
+- Decision helper before recovery patch reported latest D-0848 and duplicate count zero.
+- D-0847 existed once, D-0848 existed once, and D-0849 was absent before the recovery patch.
+
+## D272 Stop Reason
+
+- D272 completed NA-0430 evidence and closeout, merged PR #1129 and PR #1130, and restored NA-0431 READY.
+- D272 stopped after reporting a post-merge proof-output boundary breach involving `/tmp/na0430_*`.
+- D272 response exists at `/home/victor/work/qsl/codex/responses/NA0430_20260605T214500-0500_D272.md`.
+
+## Temp Artifact Handling
+
+- Discovery found six current-user regular files matching `/tmp/na0430_*`.
+- Candidate safety checks passed: exact prefix, regular file, non-symlink, current-user owner, size under 10 MB, and high-confidence secret scan count zero.
+- All six files were moved with exact `mv --` source paths into `/srv/qbuild/tmp/NA0430_tmp_artifact_recovery_20260606T114326Z/stray_tmp/`.
+- Post-move checks verified original paths absent, destination files present, checksums matched, and zero current-user `/tmp/na0430_*` files remained.
+- Recovery classification: `NA0430_TMP_PROOF_ARTIFACT_SCOPE_BREACH_RECOVERED`.
+
+## Failures / Recoveries
+
+- Failing command: broad read-only source-count probe `rg -n --fixed-strings '/home/victor/work/qsl/codex/ops' /usr/local/sbin/qsl-backup /etc /home/victor/work/qsl/codex`. Classification: recoverable command-shape mistake because the directive required the qsl-backup source-list count and the probe started scanning unrelated local logs. Corrective action: terminated only the exact broad probe process and reran `grep -F -c '/home/victor/work/qsl/codex/ops' /usr/local/sbin/qsl-backup`. Final result: source count 1 and qsl-backup SHA matched the required value.
+- Failing command: post-move `find /tmp ... | tee "$PROOF_DIR/after/tmp_candidates_after.txt"`. Classification: recoverable proof-directory shape mistake after successful exact-file moves; the `after/` directory had not been created. Corrective action: created the missing proof subdirectory and reran only the post-move candidate listing. Final result: candidate-after count 0.
+
+## Validation / CI Notes
+
+- Public-safety on `9d22e3062c47` reported success with no red or ambiguous state.
+- Root `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked` reported root `ml-kem v0.2.1`.
+- Root pqcrypto inverse-tree probes reported package-ID absence.
+- D-0849 recovery patch staged exactly five allowed governance/recovery paths.
+- `git diff --check` and `git diff --cached --check` passed.
+- Exact staged path guard and forbidden-path guard passed.
+- Link-check reported `TOTAL_MISSING 0`.
+- Leak scan over changed paths reported `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan reported zero findings.
+- Corrected classifier reported docs/governance-only scope.
+- PR body preflight reported required fields present and prohibited helper phrase count zero.
+- Queue helper reported READY_COUNT 1 and READY NA-0431.
+- Decision helper reported latest D-0849, D-0847 once, D-0848 once, D-0849 once, D-0850 absent, and duplicate count zero.
+- `cargo fmt --check` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed, 3 tests.
+- `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768` passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
+- `python3 formal/run_model_checks.py` passed.
+- PR checks pending.
+
+## Next-Watch Items
+
+- D-0849 must exist exactly once after this recovery.
+- NA-0431 must remain the sole READY item.
+- Recovery PR must change exactly the five allowed governance/recovery paths.
+- This recovery must not start NA-0431.

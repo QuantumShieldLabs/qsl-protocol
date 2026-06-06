@@ -21423,3 +21423,45 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, root dependency, qsc manifest, fuzz manifest, workflow, script, fuzz target, executable test, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside NA-0431
     - more than one READY item remains
   - **References:** NA-0431; NA-0432; D-0850; D-0849; D-0848; D-0847; qsl-protocol PR #1127; `qsl/qsl-client/qsc/fuzz/Cargo.lock`; `docs/governance/evidence/NA-0431_qsl_qsc_fuzz_lock_precise_version_pqcrypto_cleanup_retry_implementation_harness.md`; `tests/NA-0431_qsl_qsc_fuzz_lock_precise_version_pqcrypto_cleanup_retry_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0851
+  - **Title:** NA-0431 closeout and NA-0432 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-06
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0431 is closed after qsl-protocol PR #1132 merged at `77df962590e4`, post-merge public-safety completed success on that merge commit, `qsc-adversarial-smoke` completed success on the PR head and merge commit, the nested qsc fuzz lock audit was green, and root `cargo audit --deny warnings` was green. NA-0431 is marked DONE and `NA-0432 -- QSL qsc Provider Error Path / No-Mutation Read-Only Audit Plan` is restored as the sole READY successor.
+  - **Selected successor:** `NA-0432 -- QSL qsc Provider Error Path / No-Mutation Read-Only Audit Plan`.
+  - **Closeout boundary:** This closeout makes no additional runtime, crypto, dependency, Cargo manifest, lockfile, workflow, script, executable test, fuzz target, vector, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, `/backup/qsl`, branch-protection, or public-surface mutation.
+  - **D274 inheritance:** D274 merged PR #1132 and stopped only because post-merge public-safety on `77df962590e4` was still in progress after the bounded wait. D275 verifies that public-safety later completed success and therefore performs only closeout governance.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review completion claim is made. No crypto-complete claim is made. No vulnerability-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. No bug-free claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, `/backup/qsl`, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, or backup scripts.
+  - **Protected:**
+    - PR #1132 is MERGED at `77df962590e4`
+    - post-merge public-safety is green on `77df962590e4`
+    - PR-head and merge-commit `qsc-adversarial-smoke` are green
+    - nested qsc fuzz lock audit is green
+    - root cargo audit is green
+    - READY_COUNT 1
+    - NA-0431 DONE
+    - READY NA-0432
+    - NA-0430 DONE
+    - NA-0429 BLOCKED
+    - D-0850 exists once
+    - D-0851 exists once after this closeout
+    - D-0852 remains absent until future NA-0432 work
+    - no duplicate decision IDs
+    - no additional runtime/crypto/dependency/workflow/test/vector mutation in this closeout
+    - no backup or restore
+    - no public crypto-complete, vulnerability-free, perfect-crypto, public-readiness, production-readiness, external-review, bug-free, or side-channel-free claim
+    - exactly one READY remains mandatory
+  - **Required behavior:**
+    - NA-0432 must be read-only unless a later exact directive authorizes mutation
+    - NA-0432 must assess qsc provider-error paths and no-mutation-on-reject evidence without overclaiming evidence strength
+    - future NA-0432 must not mutate runtime, crypto, dependency, Cargo, workflow, tests, vectors, public surfaces, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, qsl-server, or qsl-attachments paths without later exact scope
+    - exactly one READY item remains mandatory
+  - **Must never happen:**
+    - NA-0432 implementation is started by this closeout
+    - cargo audit output must not be used as public-readiness, production-readiness, external-review, crypto-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, script, executable test, fuzz target, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside this closeout
+    - more than one READY item remains
+  - **References:** NA-0431; NA-0432; D-0851; D-0850; qsl-protocol PR #1132; D274 response `/home/victor/work/qsl/codex/responses/NA0431_20260606T103439-0500_D274.md`; `tests/NA-0431_closeout_restore_na0432_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

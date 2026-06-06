@@ -21254,3 +21254,49 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - root cargo audit green is treated as a no-defects or no-vulnerabilities proof
     - more than one READY item remains
   - **References:** NA-0429; NA-0430; D-0846; D-0845; D-0844; qsl-protocol PR #1127; `docs/governance/evidence/NA-0429_qsl_qsc_fuzz_lock_pqcrypto_cleanup_failed_attempt_recovery.md`; `tests/NA-0429_failed_cleanup_recovery_restore_na0430_testplan.md`; `/home/victor/work/qsl/codex/responses/NA0429_20260605T191513-0500_D270.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0847
+  - **Title:** NA-0430 qsc adversarial fuzz validation blocker triage
+  - **Status:** Accepted
+  - **Date:** 2026-06-06
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0430 consumes the failed PR #1127 lockfile-only cleanup attempt and classifies the `qsc-adversarial-smoke` failure as a dependency/lockfile/fuzz-tooling build blocker. PR #1127 made the nested qsc fuzz lock audit green, but its broad lock refresh moved `ml-dsa 0.1.0-rc.7` from the previously building `pkcs8 0.11.0-rc.11` compatibility chain to `pkcs8 0.11.0`, producing Rust `E0277` conversion errors before fuzz execution. Proof-root simulations show a precise lockfile-only retry can remove the pqcrypto residual, update nested `rustls-webpki` and `rand` advisory blockers, preserve the `ml-dsa` release-candidate compatibility chain, pass nested audit, and build all qsc fuzz bins without manifest, source, workflow, test, vector, runtime, or crypto mutation.
+  - **qsc-adversarial-smoke failure classification:** dependency/lockfile/fuzz-tooling build blocker before fuzz execution, not a protocol, runtime, crypto, workflow, harness, test, vector, service, public-surface, backup, or local-ops semantic change.
+  - **Authorization classification:** `FUZZ_BLOCKER_LOCKFILE_PRECISE_VERSION_RETRY_AUTHORIZED`.
+  - **Selected successor:** `NA-0431 -- QSL qsc Fuzz Lock Precise-Version pqcrypto Cleanup Retry Implementation Harness`.
+  - **Future authorized mutable scope:** `qsl/qsl-client/qsc/fuzz/Cargo.lock`; `docs/governance/evidence/NA-0431_qsl_qsc_fuzz_lock_precise_version_pqcrypto_cleanup_retry_implementation_harness.md`; `tests/NA-0431_qsl_qsc_fuzz_lock_precise_version_pqcrypto_cleanup_retry_implementation_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+  - **Future required validation:** root `cargo audit --deny warnings`; nested fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`; qsc fuzz-bin build preflight if local cargo-fuzz remains unavailable; GitHub `qsc-adversarial-smoke` success before merge; qsc send_commit; provider pqkem768; formal model checks; public-safety before merge and after merge; no public overclaim.
+  - **PR #1127 branch retention recommendation:** retain `na-0429-qsc-fuzz-lock-pqcrypto-cleanup` until NA-0431 has captured and merged enough retry evidence that the failed-attempt branch is no longer needed for comparison.
+  - **Boundary:** NA-0430 is governance/read-only triage plus proof-root simulation. It makes no runtime, crypto, dependency, Cargo manifest, lockfile, workflow, script, fuzz target, executable test, vector, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, `/backup/qsl`, or branch-protection mutation.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review completion claim is made. No crypto-complete claim is made. No vulnerability-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. No bug-free claim is made. Root and nested cargo audit green are dependency-health evidence only.
+  - **Stewardship:** The stewardship review template was used. Crypto / Protocol, CI / Dependency / Release Health, Public Claims / External Review, Product / Demo / Service Boundary, and Local Ops / Backup / Restore summaries are recorded in the NA-0430 evidence doc. Stewards remain advisory only and the Lead Director remains final authority.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, `/backup/qsl`, backup status files, backup plan files, rollback subtree paths, systemd, timers, fstab, source lists, retention, or backup scripts.
+  - **Protected:**
+    - PR #1127 failure consumed
+    - PR #1127 remains closed and unmerged
+    - PR #1127 branch retention recommended
+    - READY_COUNT 1
+    - READY NA-0430 until optional closeout
+    - NA-0429 BLOCKED, not DONE
+    - D-0844 exists once
+    - D-0845 exists once
+    - D-0846 exists once
+    - D-0847 exists once after this lane
+    - D-0848 absent until optional closeout
+    - no duplicate decision IDs
+    - no runtime/crypto/dependency/workflow/test/vector mutation
+    - no backup or restore
+    - no public crypto-complete, vulnerability-free, perfect-crypto, or public-readiness claim
+    - exactly one READY remains mandatory
+  - **Required behavior:**
+    - future NA-0431 must implement only the selected precise-version lockfile retry unless a later exact directive changes scope
+    - future NA-0431 must not mutate fuzz `Cargo.toml`, runtime/crypto source, workflows/scripts, executable tests, fuzz targets, vectors, qsl-server, qsl-attachments, public surfaces, backup/local-ops state, qwork tools, qsl-backup, or public claims
+    - future NA-0431 must prove qsc adversarial smoke success before merge or stop under fail-closed rules
+    - exactly one READY item remains mandatory
+  - **Must never happen:**
+    - PR #1127 is merged as-is or treated as completed remediation
+    - the precise-version retry is accepted without qsc adversarial smoke success or exact stop classification
+    - a lockfile audit pass is treated as no-vulnerability, no-bug, perfect-crypto, crypto-complete, public-readiness, or external-review proof
+    - runtime, crypto, root dependency, workflow, script, fuzz target, executable test, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside NA-0431
+    - more than one READY item remains
+  - **References:** NA-0430; NA-0431; NA-0429; D-0847; D-0846; D-0845; D-0844; qsl-protocol PR #1127; qsl-protocol PR #1128; `docs/governance/evidence/NA-0430_qsl_qsc_adversarial_fuzz_validation_blocker_triage_plan.md`; `tests/NA-0430_qsl_qsc_adversarial_fuzz_validation_blocker_triage_testplan.md`; `qsl/qsl-client/qsc/fuzz/Cargo.toml`; `qsl/qsl-client/qsc/fuzz/Cargo.lock`; `scripts/ci/qsc_adversarial.sh`; `.github/workflows/qsc-adversarial.yml`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

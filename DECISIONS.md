@@ -21300,3 +21300,44 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, root dependency, workflow, script, fuzz target, executable test, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside NA-0431
     - more than one READY item remains
   - **References:** NA-0430; NA-0431; NA-0429; D-0847; D-0846; D-0845; D-0844; qsl-protocol PR #1127; qsl-protocol PR #1128; `docs/governance/evidence/NA-0430_qsl_qsc_adversarial_fuzz_validation_blocker_triage_plan.md`; `tests/NA-0430_qsl_qsc_adversarial_fuzz_validation_blocker_triage_testplan.md`; `qsl/qsl-client/qsc/fuzz/Cargo.toml`; `qsl/qsl-client/qsc/fuzz/Cargo.lock`; `scripts/ci/qsc_adversarial.sh`; `.github/workflows/qsc-adversarial.yml`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0848
+  - **Title:** NA-0430 closeout and NA-0431 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-06
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0430 is closed after qsl-protocol PR #1129 merged at `19c4624dfe8b`, D-0847 classified the PR #1127 blocker as `FUZZ_BLOCKER_LOCKFILE_PRECISE_VERSION_RETRY_AUTHORIZED`, and post-merge public-safety completed success on the merge commit. Because D-0847 selected the precise-version lockfile-only qsc fuzz-lock retry successor, the exact sole READY successor is restored as `NA-0431 -- QSL qsc Fuzz Lock Precise-Version pqcrypto Cleanup Retry Implementation Harness`.
+  - **Selected successor:** `NA-0431 -- QSL qsc Fuzz Lock Precise-Version pqcrypto Cleanup Retry Implementation Harness`.
+  - **Closeout boundary:** This closeout does not implement NA-0431 and does not remediate the nested qsc fuzz lock. It marks NA-0430 DONE, restores NA-0431 READY, adds this decision, updates TRACEABILITY and the rolling journal, and adds the NA-0430 closeout testplan only.
+  - **Future authorized mutable scope:** The future NA-0431 remediation may mutate only `qsl/qsl-client/qsc/fuzz/Cargo.lock` plus `docs/governance/evidence/NA-0431_qsl_qsc_fuzz_lock_precise_version_pqcrypto_cleanup_retry_implementation_harness.md`, `tests/NA-0431_qsl_qsc_fuzz_lock_precise_version_pqcrypto_cleanup_retry_implementation_testplan.md`, DECISIONS.md, TRACEABILITY.md, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` unless a later exact directive expands scope.
+  - **Future required validation:** root `cargo audit --deny warnings`; nested fuzz lock audit; qsc adversarial smoke success or exact fail-closed classification; qsc send_commit; provider pqkem768; formal model checks; public-safety before merge and after merge; exact no-runtime/no-crypto/no-root-dependency/no-workflow/no-script/no-manifest/no-source/no-test/no-vector/no-public-overclaim proof.
+  - **Boundary:** This closeout makes no runtime, crypto, dependency, Cargo, lockfile, workflow, script, fuzz target, executable test, vector, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, `/backup/qsl`, or branch-protection mutation.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review completion claim is made. No crypto-complete claim is made. No vulnerability-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. No bug-free claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, `/backup/qsl`, backup status files, backup plan files, rollback subtree paths, systemd, timers, fstab, source lists, retention, or backup scripts.
+  - **Protected:**
+    - PR #1129 is MERGED at `19c4624dfe8b`
+    - post-merge public-safety is green on `19c4624dfe8b`
+    - READY_COUNT 1
+    - NA-0430 DONE
+    - READY NA-0431
+    - NA-0429 BLOCKED, not DONE
+    - D-0847 exists once
+    - D-0848 exists once after this closeout
+    - no NA-0431 implementation by closeout
+    - PR #1127 remains closed and unmerged
+    - no runtime/crypto/dependency/Cargo/lockfile/workflow/script/fuzz-target/test/vector/public/service/backup mutation
+    - no backup or restore
+    - no qsl-backup/status/plan mutation
+    - no public crypto-complete, vulnerability-free, perfect-crypto, or public-readiness claim
+  - **Required behavior:**
+    - NA-0431 must remain limited to the D-0847-authorized precise-version lockfile-only implementation scope unless a later exact directive authorizes otherwise
+    - NA-0431 must preserve no-runtime, no-crypto, no-root-dependency, no-workflow, no-script, no-manifest, no-source, no-test/vector, no-public-overclaim, no-backup/no-restore, and no-secret boundaries
+    - future NA-0431 must prove root cargo audit green, nested fuzz lock audit green or residual explicitly classified, qsc adversarial intent preserved, cargo-fuzz build compatibility, and public-safety green
+    - exactly one READY item remains mandatory
+  - **Must never happen:**
+    - NA-0431 is implemented by this closeout
+    - nested fuzz-lock findings are treated as remediated by closeout
+    - PR #1127 is merged as-is or treated as completed remediation
+    - runtime, crypto, root dependency, Cargo lockfile, workflow, script, fuzz target, executable test, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside this closeout
+    - more than one READY item remains
+  - **References:** NA-0430; NA-0431; D-0848; D-0847; D-0846; qsl-protocol PR #1129; `docs/governance/evidence/NA-0430_qsl_qsc_adversarial_fuzz_validation_blocker_triage_plan.md`; `tests/NA-0430_qsl_qsc_adversarial_fuzz_validation_blocker_triage_testplan.md`; `tests/NA-0430_closeout_restore_na0431_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

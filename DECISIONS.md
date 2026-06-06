@@ -21217,3 +21217,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, root dependency, Cargo lockfile, workflow, fuzz target, test, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-claim mutation is hidden inside this closeout
     - more than one READY item remains
   - **References:** NA-0428; NA-0429; D-0845; D-0844; D-0843; qsl-protocol PR #1125; `docs/governance/evidence/NA-0428_qsl_qsc_fuzz_lock_pqcrypto_residual_dependency_blocker_authorization_plan.md`; `tests/NA-0428_qsl_qsc_fuzz_lock_pqcrypto_residual_dependency_blocker_authorization_testplan.md`; `tests/NA-0428_closeout_restore_na0429_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0846
+  - **Title:** NA-0429 failed qsc fuzz lock cleanup recovery and NA-0430 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-05
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0429 implementation attempt PR #1127 failed `qsc-adversarial-smoke` and was closed unmerged. NA-0429 is BLOCKED, not DONE. The lockfile-only cleanup attempt made the nested qsc fuzz lock audit green but failed the active fuzz build path, so the failed attempt is not accepted as remediation and no D-0846 implementation decision from PR #1127 is accepted on main.
+  - **Recovery classification:** `NA0429_LOCKFILE_ONLY_CLEANUP_FAILED_CI_FUZZ_TOOLING_BLOCKER`.
+  - **Failure summary:** The CI failure was dependency/lockfile/fuzz-tooling related: the refreshed nested fuzz lock selected `ml-dsa 0.1.0-rc.7` with `pkcs8 0.11.0`, and the cargo-fuzz build failed in the qsc adversarial smoke path.
+  - **Selected successor:** `NA-0430 -- QSL qsc Adversarial Fuzz Validation Blocker Triage Plan`.
+  - **Boundary:** This recovery PR mutates only queue/governance/evidence/testplan/traceability/journal paths. It makes no runtime, crypto, dependency, Cargo manifest, lockfile, workflow, fuzz target, test source, vector, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, `/backup/qsl`, or branch-protection mutation.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review completion claim is made. No crypto-complete claim is made. No vulnerability-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. No bug-free claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not mutate qsl-backup, `/backup/qsl`, backup status files, backup plan files, rollback subtree paths, systemd, timers, fstab, source lists, retention, or backup scripts.
+  - **Protected:**
+    - PR #1127 is closed and unmerged
+    - PR #1127 branch is intentionally not deleted
+    - READY_COUNT 1
+    - NA-0429 BLOCKED, not DONE
+    - READY NA-0430
+    - D-0844 exists once
+    - D-0845 exists once
+    - D-0846 exists once after this recovery
+    - D-0847 absent until a future NA-0430 lane
+    - no duplicate decision IDs
+    - no lockfile or source mutation by this recovery PR
+    - no public crypto-complete, vulnerability-free, or perfect-crypto claim
+  - **Required behavior:**
+    - NA-0430 must analyze PR #1127 failure before authorizing any retry or remediation scope
+    - NA-0430 must preserve no runtime, crypto, dependency, Cargo, lockfile, workflow, test, vector, public, service, backup, qwork/qstart/qresume/qshell, qsl-backup, status/plan, rollback, and secret-material boundaries unless a later exact directive authorizes otherwise
+    - exactly one READY item remains mandatory
+  - **Must never happen:**
+    - the failed PR #1127 attempt is merged or treated as completed remediation
+    - NA-0429 is marked DONE despite failed acceptance criteria
+    - NA-0430 mutates runtime, crypto, dependency, Cargo, lockfile, workflow, test, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, README, START_HERE, or website paths without a later exact directive
+    - root cargo audit green is treated as a no-defects or no-vulnerabilities proof
+    - more than one READY item remains
+  - **References:** NA-0429; NA-0430; D-0846; D-0845; D-0844; qsl-protocol PR #1127; `docs/governance/evidence/NA-0429_qsl_qsc_fuzz_lock_pqcrypto_cleanup_failed_attempt_recovery.md`; `tests/NA-0429_failed_cleanup_recovery_restore_na0430_testplan.md`; `/home/victor/work/qsl/codex/responses/NA0429_20260605T191513-0500_D270.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -8,6 +8,64 @@ Last-Updated: 2026-06-05
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-06-271 -- Recover NA-0429 Failed qsc Fuzz Lock Cleanup Attempt, Close Unsafe PR #1127, and Restore NA-0430 qsc Adversarial Fuzz Validation Blocker Triage
+- Directive begin timestamp (America/Chicago): 2026-06-06T09:04:30-05:00
+- Directive begin timestamp (UTC): 2026-06-06T14:04:30Z
+- Host timestamp during recovery start (America/Chicago): 2026-06-05T20:15:35-05:00
+- Host timestamp during recovery start (UTC): 2026-06-06T01:15:35+00:00
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0429/qsl-protocol`
+- stopped branch before reset: `na-0429-qsc-fuzz-lock-pqcrypto-cleanup`
+- stopped branch head: `967c95c37fea`
+- clean origin/main before recovery patch: `c621ff09df61`
+- recovery branch: `na-0429-failed-cleanup-recovery-restore-na0430`
+- qsl-server: not touched; no mutation
+- qsl-attachments: not touched; no mutation
+
+## READY Proof
+
+- Codex did not run qwork, qstart, or qresume.
+- Stopped worktree state was preserved under `/srv/qbuild/tmp/NA0429_failed_cleanup_recovery_20260605T201535-0500` before reset.
+- PR #1127 was verified open, unmerged, and unstable before recovery closure.
+- PR #1127 failed `qsc-adversarial-smoke`; failed job evidence was captured at the proof root.
+- PR #1127 was commented, closed, and verified closed/unmerged; the branch was intentionally not deleted.
+- Clean `origin/main` before recovery patch: READY_COUNT `1`; READY `NA-0429`; NA-0428 DONE; latest decision D-0845; D-0844 once; D-0845 once; D-0846 absent; duplicate decision count zero.
+
+## Recovery Patch State
+
+- NA-0429 is marked BLOCKED, not DONE.
+- NA-0430 -- QSL qsc Adversarial Fuzz Validation Blocker Triage Plan is restored as the sole READY successor.
+- D-0846 records `NA0429_LOCKFILE_ONLY_CLEANUP_FAILED_CI_FUZZ_TOOLING_BLOCKER`.
+- Changed paths are intended to remain limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0429_qsl_qsc_fuzz_lock_pqcrypto_cleanup_failed_attempt_recovery.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0429_failed_cleanup_recovery_restore_na0430_testplan.md`.
+- No lockfile, runtime, crypto, dependency, workflow, script, fuzz target, test source, vector, service, public, backup, qwork, qsl-backup, status, plan, rollback, README, START_HERE, or website path is in scope for mutation.
+
+## Validation Notes
+
+- Pre-patch public-safety on `c621ff09df61` completed success.
+- Pre-patch root `cargo audit --deny warnings` passed.
+- Pre-patch `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- Pre-patch root pqcrypto inverse-tree checks reported the root pqcrypto package IDs absent.
+- Recovery local validation passed: `git diff --check`, `git diff --cached --check`, exact six-path scope guard, link-check `TOTAL_MISSING 0`, leak-scan `SECRET_FINDING_COUNT 0`, classifier `docs_only=true`, PR-body preflight `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`, queue READY_COUNT `1` / READY NA-0430, decision helper latest D-0846 with D-0846 once and D-0847 absent, root `cargo audit --deny warnings`, rustls-webpki inverse tree `v0.103.13`, root pqcrypto inverse-tree absence checks, `cargo fmt --check`, qsc `send_commit`, refimpl `pqkem768`, and both formal model checks.
+- Recovery overclaim scan found only negative boundary / no-claim context matches and no affirmative public-readiness or assurance claim.
+- Recovery PR checks and post-merge public-safety: pending.
+
+## Recovered Failures
+
+- Failing command: `gh pr view 1127 --repo QuantumShieldLabs/qsl-protocol --json ... checks ...`. Classification: recoverable command-shape failure because `checks` is not a supported `gh pr view` JSON field. Corrective action: used `statusCheckRollup` and `gh pr checks` to capture PR and check state. Final result: PR #1127 metadata, failed-check URL, and job-log excerpt were preserved.
+- Failing command: `git checkout -B main origin/main`. Classification: recoverable reset-shape failure because the stopped branch still had the preserved local fuzz lock diff that D271 required Codex to preserve before cleanup. Corrective action: used the forced checkout form to perform the directive-required reset to clean `origin/main`. Final result: branch `main` matched `origin/main` and the worktree was clean before recovery edits.
+
+## Next-Watch Items
+
+- Recovery PR must merge only after required checks and public-safety pass.
+- NA-0430 must not implement remediation; it must triage PR #1127 failure and authorize exact future scope.
+- PR #1127 must remain closed and unmerged.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-05-269 -- NA-0428 QSL qsc Fuzz Lock pqcrypto Residual Dependency Blocker Authorization Plan
 - Directive begin timestamp (America/Chicago): 2026-06-05T17:04:30-05:00
 - Directive begin timestamp (UTC): 2026-06-05T22:04:30Z

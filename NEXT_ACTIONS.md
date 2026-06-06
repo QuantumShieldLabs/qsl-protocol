@@ -22639,7 +22639,7 @@ Closeout evidence:
   - Post-merge public-safety completed success on `0929deb8ddc7`.
 
 ### NA-0429 — QSL qsc Fuzz Lock pqcrypto Residual Lockfile Cleanup Implementation Harness
-Status: READY
+Status: BLOCKED
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -22688,6 +22688,69 @@ Acceptance criteria:
 - pqcrypto residual is removed or explained under exact evidence.
 - No runtime/crypto/root dependency/workflow mutation occurs.
 - Public-claim caveats are explicit.
+- Public-safety is green before merge and after merge.
+- Exactly one READY item remains.
+
+Blocked recovery evidence:
+- PR #1127 attempted the NA-0428-authorized lockfile-only cleanup but failed qsc-adversarial-smoke in CI.
+- PR #1127 was closed unmerged and its branch was intentionally not deleted.
+- No D-0846 implementation decision from PR #1127 was accepted on main.
+- The attempted lockfile-only cleanup made the nested fuzz lock audit green but selected a dependency combination that failed the cargo-fuzz build path.
+- The blocker is classified as fuzz/adversarial dependency/tooling compatibility, not completed remediation.
+- NA-0429 acceptance criteria were not satisfied, so NA-0429 is BLOCKED and not DONE.
+- Recovery successor:
+  `NA-0430 -- QSL qsc Adversarial Fuzz Validation Blocker Triage Plan`
+
+### NA-0430 — QSL qsc Adversarial Fuzz Validation Blocker Triage Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Triage the qsc adversarial fuzz validation blocker exposed by the failed NA-0429 lockfile-only cleanup attempt, determine why the audit-green nested fuzz lock selected a dependency combination that failed the cargo-fuzz build, and authorize the next exact remediation or retry lane without changing runtime code, crypto code, root dependency files, workflows, tests, vectors, or public surfaces.
+
+Protects:
+- qsc adversarial/fuzz validation integrity.
+- nested qsc fuzz dependency health.
+- root cargo audit health.
+- pqcrypto remediation confidence after ml-kem provider replacement.
+- no runtime/crypto/root dependency mutation without exact scope.
+- no public crypto-complete or vulnerability-free overclaim.
+- one-READY queue discipline.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0430.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of PR #1127 evidence, qsl/qsl-client/qsc/fuzz/Cargo.toml, qsl/qsl-client/qsc/fuzz/Cargo.lock, scripts/ci/qsc_adversarial.sh, .github/workflows/qsc-adversarial.yml, root Cargo.toml, root Cargo.lock, qsl/qsl-client/qsc/Cargo.toml, and relevant evidence docs.
+- proof-root simulations under /srv/qbuild/tmp if needed, with no source-tree mutation.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, Cargo, lockfile, workflow, test, fuzz target, vector, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE paths.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- Creating or implying production readiness, public-internet readiness, external-review completion, metadata-free behavior, anonymity, untraceability, off-host backup completion, disaster recovery completion, restore proof, backup completion, bug-free status, vulnerability-free status, perfect-crypto status, side-channel-free status, or crypto-complete status.
+- Secret material handling.
+
+Deliverables:
+- NA-0430 evidence doc.
+- NA-0430 testplan.
+- D-0847 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- Recommended next exact remediation or retry lane.
+
+Acceptance criteria:
+- PR #1127 failure is analyzed.
+- Failed qsc-adversarial-smoke job is cited.
+- Lockfile/fuzz-tooling blocker is classified.
+- Any future remediation scope is exact.
+- No runtime/crypto/dependency/source mutation occurs.
+- Cargo audit remains green on root main.
 - Public-safety is green before merge and after merge.
 - Exactly one READY item remains.
 

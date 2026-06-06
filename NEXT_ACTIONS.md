@@ -22702,7 +22702,7 @@ Blocked recovery evidence:
   `NA-0430 -- QSL qsc Adversarial Fuzz Validation Blocker Triage Plan`
 
 ### NA-0430 — QSL qsc Adversarial Fuzz Validation Blocker Triage Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -22733,7 +22733,21 @@ Forbidden scope:
 - Mutating backup status or backup plan files.
 - Mutating qwork/qstart/qresume/qshell.
 - Creating public technical paper content.
-- Creating or implying production readiness, public-internet readiness, external-review completion, metadata-free behavior, anonymity, untraceability, off-host backup completion, disaster recovery completion, restore proof, backup completion, bug-free status, vulnerability-free status, perfect-crypto status, side-channel-free status, or crypto-complete status.
+- No production readiness claim.
+- No public-internet readiness claim.
+- No external-review completion claim.
+- No metadata-free behavior claim.
+- No anonymity claim.
+- No untraceability claim.
+- No off-host backup completion claim.
+- No disaster recovery completion claim.
+- No restore proof claim.
+- No backup completion claim.
+- No bug-free status claim.
+- No vulnerability-free status claim.
+- No perfect-crypto status claim.
+- No side-channel-free status claim.
+- No crypto-complete status claim.
 - Secret material handling.
 
 Deliverables:
@@ -22751,6 +22765,96 @@ Acceptance criteria:
 - Any future remediation scope is exact.
 - No runtime/crypto/dependency/source mutation occurs.
 - Cargo audit remains green on root main.
+- Public-safety is green before merge and after merge.
+- Exactly one READY item remains.
+
+Closeout evidence:
+- qsl-protocol evidence PR: #1129 https://github.com/QuantumShieldLabs/qsl-protocol/pull/1129
+- qsl-protocol evidence merge SHA: `19c4624dfe8b`
+- selected successor:
+  `NA-0431 -- QSL qsc Fuzz Lock Precise-Version pqcrypto Cleanup Retry Implementation Harness`
+- exact outcome:
+  - NA-0430 classified the failed PR #1127 qsc adversarial fuzz blocker as `FUZZ_BLOCKER_LOCKFILE_PRECISE_VERSION_RETRY_AUTHORIZED`.
+  - PR #1127 remains closed and unmerged; branch retention is recommended until NA-0431 evidence no longer needs failed-attempt comparison.
+  - Future mutable implementation scope is limited to `qsl/qsl-client/qsc/fuzz/Cargo.lock` plus NA-0431 governance evidence/testplan, DECISIONS, TRACEABILITY, and rolling journal paths unless a later exact directive expands scope.
+  - NA-0430 did not remediate the nested fuzz lock or mutate Cargo, dependency, lockfile, workflow, script, fuzz target, executable test, vector, runtime, crypto, service, public, backup, qwork, qsl-backup, README, START_HERE, or website paths.
+  - Post-merge public-safety completed success on `19c4624dfe8b`.
+
+### NA-0431 — QSL qsc Fuzz Lock Precise-Version pqcrypto Cleanup Retry Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Retry qsc nested fuzz lock cleanup using the exact NA-0430-authorized
+precise-version lockfile strategy to remove or resolve pqcrypto residual
+dependency warnings while preserving cargo-fuzz build compatibility, root cargo
+audit health, qsc adversarial/fuzz intent, no runtime code mutation, no
+workflow mutation, no manifest mutation, and public-claim conservatism.
+
+Protects:
+- qsc adversarial/fuzz validation integrity.
+- nested qsc fuzz dependency health.
+- root workspace dependency health.
+- pqcrypto remediation confidence after ml-kem provider replacement.
+- CI/adversarial tooling integrity.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- `qsl/qsl-client/qsc/fuzz/Cargo.lock`.
+- `docs/governance/evidence/NA-0431_qsl_qsc_fuzz_lock_precise_version_pqcrypto_cleanup_retry_implementation_harness.md`.
+- `tests/NA-0431_qsl_qsc_fuzz_lock_precise_version_pqcrypto_cleanup_retry_implementation_testplan.md`.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of `qsl/qsl-client/qsc/fuzz/Cargo.toml`, `scripts/ci/qsc_adversarial.sh`, `.github/workflows/qsc-adversarial.yml`, root `Cargo.toml`, root `Cargo.lock`, `qsl/qsl-client/qsc/Cargo.toml`, PR #1127 evidence, NA-0430 evidence, and relevant governance docs.
+
+Forbidden scope:
+- Mutating runtime, crypto, root dependency files, root Cargo files, workflow, scripts, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE paths.
+- Mutating `qsl/qsl-client/qsc/fuzz/Cargo.toml` unless a later exact directive explicitly authorizes it.
+- Mutating executable tests, fuzz target source, or vectors unless a later exact directive explicitly authorizes it.
+- Mutating qsl/qsl-client/qsc runtime source or provider source unless a later exact directive explicitly authorizes it.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No production readiness claim.
+- No public-internet readiness claim.
+- No external-review completion claim.
+- No metadata-free behavior claim.
+- No anonymity claim.
+- No untraceability claim.
+- No off-host backup completion claim.
+- No disaster recovery completion claim.
+- No restore proof claim.
+- No backup completion claim.
+- No bug-free status claim.
+- No vulnerability-free status claim.
+- No perfect-crypto status claim.
+- No side-channel-free status claim.
+- No crypto-complete status claim.
+- Secret material handling.
+
+Deliverables:
+- Updated nested qsc fuzz Cargo.lock using the NA-0430-authorized precise-version strategy.
+- Rollback copy for the lockfile under the directive proof root.
+- NA-0431 evidence doc.
+- NA-0431 testplan.
+- D-0849 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- Recommended next code/crypto audit or remediation lane.
+
+Acceptance criteria:
+- Root cargo audit remains green.
+- Nested qsc fuzz lock audit is green or residual is explicitly classified.
+- qsc-adversarial-smoke passes, or any non-pass is classified and handled under fail-closed rules before merge.
+- pqcrypto residual is removed or explained under exact evidence.
+- `ml-dsa 0.1.0-rc.7` remains on a cargo-fuzz build-compatible transitive chain or any deviation is proven safe before merge.
+- No runtime/crypto/root dependency/workflow/script/manifest/source/test/vector mutation occurs.
+- Public-claim caveats are explicit.
 - Public-safety is green before merge and after merge.
 - Exactly one READY item remains.
 

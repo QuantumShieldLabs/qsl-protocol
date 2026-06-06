@@ -25353,3 +25353,51 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Evidence PR must change exactly the five NA-0430 allowed paths.
 - Future NA-0431 must not implement more than the precise lockfile-only retry without a new exact directive.
 - Future NA-0431 must require GitHub `qsc-adversarial-smoke` success before merge.
+
+## Packet M Evidence PR Outcome
+
+- Evidence branch: `na-0430-qsc-adversarial-fuzz-blocker-triage`.
+- Evidence commit: `254dcaefd700`.
+- Evidence PR: #1129 `https://github.com/QuantumShieldLabs/qsl-protocol/pull/1129`.
+- Evidence PR checks completed green by bounded REST polling at iteration 5/180.
+- PR #1129 `public-safety` completed success before merge.
+- PR #1129 `goal-lint` completed success before merge.
+- PR #1129 `qsc-adversarial-smoke` was skipped because the evidence PR was governance/docs-only; this is acceptable for Packet M because no Cargo/lockfile/source/workflow/test/vector path changed.
+- Evidence merge method: merge commit.
+- Evidence merge SHA: `19c4624dfe8b`.
+- Post-merge public-safety on `19c4624dfe8b` completed success by bounded REST polling at iteration 9/180.
+- After evidence merge, main queue helper reported READY_COUNT 1 and READY NA-0430.
+- After evidence merge, decision proof reported D-0847 once, D-0848 absent, latest decision D-0847, and duplicate count zero.
+- GitHub removed the evidence branch after merge by repository behavior despite no branch-deletion flag from Codex; PR #1127 branch retention recommendation remains unchanged.
+
+## Packet N Closeout Patch
+
+- Closeout branch: `na-0430-closeout-restore-na0431`.
+- Closeout allowed paths: `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0430_closeout_restore_na0431_testplan.md`.
+- Queue transition in draft: NA-0430 DONE; `NA-0431 -- QSL qsc Fuzz Lock Precise-Version pqcrypto Cleanup Retry Implementation Harness` restored as the sole READY item.
+- Closeout decision in draft: D-0848.
+- Closeout boundary: no NA-0431 implementation, no nested fuzz lock remediation, no Cargo/lockfile/dependency/manifest/source/workflow/script/test/vector/runtime/crypto/service/public mutation, no backup execution, no restore execution, no qsl-backup/source-list/status/plan mutation, no qwork/qstart/qresume/qshell mutation, and no public-claim expansion.
+- Closeout staged path set is exactly the five allowed closeout paths.
+- `git diff --cached --check` passed.
+- Closeout scope guard reported changed count 5 and forbidden count 0.
+- Queue helper reported READY_COUNT 1 and READY NA-0431.
+- Decision helper reported latest D-0848 and duplicate count zero.
+- Explicit decision proof reported D-0847 once, D-0848 once, D-0849 absent, and latest decision D-0848.
+- Link check reported `TOTAL_MISSING 0`.
+- Closeout PR body preflight reported `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- Leak scan reported `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan reported `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0`.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked` reported root `ml-kem v0.2.1`.
+- Root `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals` inverse-tree probes reported package-ID absence.
+- `cargo fmt --check` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed, 3 tests.
+- `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768` passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
+- `python3 formal/run_model_checks.py` passed.
+- Recovered closeout validation friction: the first strict added-line overclaim scan flagged a negative caveat line where the denial context was separated from a sensitive phrase. Classification: recoverable documentation wording issue, not a governance overclaim. Corrective action: rewrote the affected NA-0430/NA-0431 forbidden-scope lines so each sensitive phrase carries explicit `No` denial context. Final result: PR body preflight and strict added-line overclaim scan both passed.
+- Recovered closeout command-shape issue: the first explicit D-0847/D-0848 count script counted textual references rather than decision ID entries. Classification: recoverable local proof command shape. Corrective action: reran the proof against `- **ID:**` decision entry lines. Final result: D-0847 once, D-0848 once, D-0849 absent, latest decision D-0848, and duplicate decision entries absent.
+- Recovered closeout helper invocation issue: stale standalone PR-body/leak helper paths were invoked even though the current repo exposes those checks through `scripts/ci/qsl_evidence_helper.py`. Classification: recoverable helper path command-shape issue. Corrective action: reran PR body preflight and leak scan through `qsl_evidence_helper.py`. Final result: `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`, and `SECRET_FINDING_COUNT 0`.
+- PR checks pending.
+- Merge pending.

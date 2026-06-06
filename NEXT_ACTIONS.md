@@ -22872,7 +22872,7 @@ Closeout evidence:
   - Cargo audit green remains dependency-health evidence only and is not public-readiness, production-readiness, external-review, crypto-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
 
 ### NA-0432 — QSL qsc Provider Error Path / No-Mutation Read-Only Audit Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -22924,6 +22924,71 @@ Deliverables:
 Acceptance criteria:
 - qsc provider-error path audit is read-only.
 - no-mutation-on-reject evidence is assessed as evidence, not overclaimed.
+- public-claim caveats are explicit.
+- no runtime/crypto/dependency/test mutation occurs.
+- cargo audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+Closeout evidence:
+- qsl-protocol audit PR: #1134 https://github.com/QuantumShieldLabs/qsl-protocol/pull/1134
+- qsl-protocol audit merge SHA: `1e8036473f6c`
+- selected successor:
+  `NA-0433 -- QSL qsc Provider Error Path / No-Mutation Findings Triage Authorization Plan`
+- exact outcome:
+  - PR #1134 merged after required checks completed with public-safety success.
+  - Post-merge public-safety completed success on `1e8036473f6c`.
+  - Post-merge qsc-adversarial-smoke completed success on `1e8036473f6c`.
+  - NA-0432 is DONE after the read-only qsc provider-error/no-mutation audit.
+  - This closeout does not implement NA-0433.
+  - This closeout did not mutate runtime code, crypto code, dependencies, Cargo manifests, lockfiles, workflows, scripts, executable tests, fuzz targets, vectors, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback subtree, or `/backup/qsl`.
+  - Cargo audit green remains dependency-health evidence only and is not public-readiness, production-readiness, external-review, crypto-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
+
+### NA-0433 — QSL qsc Provider Error Path / No-Mutation Findings Triage Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Triage the NA-0432 qsc provider-error/no-mutation findings matrix and decide whether future qsc no-mutation tests, provider-error marker documentation, formal/model alignment, or remediation authorization is required, without changing runtime code, dependencies, tests, vectors, workflows, or public surfaces.
+
+Protects:
+- qsc provider-error handling clarity.
+- fail-closed reject behavior.
+- no-mutation-on-reject evidence quality.
+- provider boundary confidence after ml-kem replacement and nested fuzz lock cleanup.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0433.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only review of NA-0432 evidence, qsc provider-error paths, provider tests, formal roots, fuzz roots, and relevant evidence docs.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, Cargo, lockfile, workflow, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE paths.
+- Mutating tests, fuzz target source, or vectors.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- Creating or implying production readiness, public-internet readiness, external-review completion, metadata-free behavior, anonymity, untraceability, off-host backup completion, disaster recovery completion, restore proof, backup completion, bug-free status, vulnerability-free status, perfect-crypto status, side-channel-free status, or crypto-complete status.
+- Secret material handling.
+
+Deliverables:
+- NA-0433 evidence doc.
+- NA-0433 testplan.
+- D-0854 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- recommended next code/crypto audit or remediation lane.
+
+Acceptance criteria:
+- NA-0432 findings matrix is consumed.
+- no-mutation-on-reject evidence status is classified.
 - public-claim caveats are explicit.
 - no runtime/crypto/dependency/test mutation occurs.
 - cargo audit remains green.

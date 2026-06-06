@@ -25702,3 +25702,48 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Relay queue effects should remain distinct from local qsc durable-state no-mutation unless future exact scope includes them.
 - Root and nested dependency health are green after NA-0431 and NA-0432 prechecks.
 - No public readiness, production readiness, external-review, crypto-complete, side-channel-free, bug-free, vulnerability-free, or perfect-crypto claim is made.
+
+# QSL-DIR-2026-06-06-276 / NA-0432 closeout and NA-0433 restoration rolling journal
+
+- Directive: QSL-DIR-2026-06-06-276 -- Optional closeout to NA-0433 after NA-0432 evidence PR merge and post-merge public-safety success
+- Closeout started after PR #1134 merged and post-merge public-safety completed success on `1e8036473f6c`.
+- Selected successor: `NA-0433 -- QSL qsc Provider Error Path / No-Mutation Findings Triage Authorization Plan`.
+
+## Closeout Preconditions
+
+- PR #1134 merged at `1e8036473f6c`.
+- PR #1134 head was `b4e05845c3f`.
+- Post-merge public-safety completed success on `1e8036473f6c`.
+- Post-merge `qsc-adversarial-smoke` completed success on `1e8036473f6c`.
+- Queue before closeout: READY_COUNT 1, READY NA-0432; NA-0431 DONE; NA-0430 DONE; NA-0429 BLOCKED.
+- Decisions before closeout: D-0851 once, D-0852 once, D-0853 absent, duplicate count zero.
+- Codex did not run qwork, qstart, or qresume post-merge.
+
+## Closeout Scope
+
+- Allowed closeout mutation paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0432_closeout_restore_na0433_testplan.md`.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, script, executable test, fuzz target, vector, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, qsl-backup, status, plan, rollback, or `/backup/qsl` path was mutated.
+- No backup or restore was run.
+- No public readiness, production readiness, external-review, crypto-complete, side-channel-free, bug-free, vulnerability-free, or perfect-crypto claim is made.
+
+## Closeout Queue / Decision Outcome
+
+- NA-0432 is marked DONE.
+- NA-0433 is restored as the sole READY item.
+- D-0853 records NA-0432 closeout and NA-0433 restoration.
+- NA-0433 is not implemented by this closeout.
+
+## Closeout Validation Notes
+
+- Closeout validation must prove READY_COUNT 1 and READY NA-0433.
+- Closeout validation must prove D-0853 exists once, D-0854 absent, and duplicate decision IDs absent.
+- Closeout validation must prove changed paths are limited to the five allowed closeout paths.
+- Non-fatal warning: the nested qsc fuzz lock audit briefly waited on the shared advisory database lock. Final result: root and nested cargo audits passed.
+- Recovered validation wording issue: the first contextual overclaim scan flagged split denial wording in the closeout testplan. Classification: recoverable documentation wording issue, not a public claim. Corrective action: rewrote the testplan public-claim boundary so each sensitive phrase carries same-line denial context. Final result: rerun passed with zero unsafe overclaim lines.
+- Public-safety must pass on the closeout PR and after merge before any future directive continues.
+
+## Forward Watch
+
+- NA-0433 should consume F-0432 findings and classify whether qsc provider-error no-mutation test authorization, provider-error marker documentation, formal/model alignment, or fuzz/adversarial provider-error coverage is needed.
+- The qsc provider-error/no-mutation residual remains bounded internal governance evidence.
+- Public claim caveats remain active for public readiness, production readiness, external review, crypto completeness, side-channel freedom, bug-free status, vulnerability-free status, and perfect-crypto status.

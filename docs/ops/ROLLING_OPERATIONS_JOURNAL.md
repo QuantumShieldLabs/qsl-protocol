@@ -25234,3 +25234,122 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 - NA-0410 must remain implementation-pending after closeout.
 - Backup manifest/status work must begin only under the restored NA-0410 READY lane.
+
+# QSL-DIR-2026-06-06-272 / NA-0430 qsc Adversarial Fuzz Validation Blocker Triage Rolling Journal
+
+- Directive: QSL-DIR-2026-06-06-272 -- Execute NA-0430 QSL qsc Adversarial Fuzz Validation Blocker Triage Plan, Optional Closeout to NA-0431
+- Begin timestamp (America/Chicago): 2026-06-06T09:34:30-05:00
+- Begin timestamp (UTC): 2026-06-06T14:34:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0430/qsl-protocol`
+- qsl-protocol branch at start: `main`
+- qsl-protocol evidence branch: `na-0430-qsc-adversarial-fuzz-blocker-triage`
+- qsl-protocol HEAD at start: `3a529a9912cb`
+- qsl-protocol main at start: `3a529a9912cb`
+- qsl-protocol origin/main at start: `3a529a9912cb`
+- qsl-protocol mirror/main at start: `2abcee236e23`
+- qsl-server main: not present under this NA worktree; no mutation
+- qsl-server origin/main: not present under this NA worktree; no mutation
+- qsl-server mirror/main: not present under this NA worktree; no mutation
+- qsl-attachments main: not present under this NA worktree; no mutation
+- qsl-attachments origin/main: not present under this NA worktree; no mutation
+- qsl-attachments mirror/main: not present under this NA worktree; no mutation
+- Disk watermark: `/dev/nvme0n1p2` 468G total, 212G used, 232G free, 48% used
+
+## READY Proof
+
+- qwork proof files existed and parsed without rerunning qwork.
+- qwork proof: startup_result OK; lane NA-0430; repo qsl-protocol; path `/srv/qbuild/work/NA-0430/qsl-protocol`; clean worktree/index/untracked; READY_COUNT 1; queue_top_ready NA-0430; requested_lane_status READY.
+- After `git fetch --all --prune`, live HEAD and origin/main still matched qwork proof at `3a529a9912cb`.
+- PR #1128 verified MERGED with merge commit `3a529a9912cb`.
+- PR #1127 verified CLOSED and unmerged; branch `na-0429-qsc-fuzz-lock-pqcrypto-cleanup` retained at `967c95c37fea`.
+- Queue helper: READY_COUNT 1; READY NA-0430; NA-0429 BLOCKED; NA-0428 DONE.
+- Decision helper: latest D-0846; duplicate count zero; D-0844 once; D-0845 once; D-0846 once; D-0847 absent at start.
+- Public-safety on current origin/main completed success.
+- Root `cargo audit --deny warnings` passed.
+- Root `rustls-webpki` reported `v0.103.13`.
+- Root `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals` package-ID probes were absent.
+- qsl-backup checksum was `e9ecff3d22ed...`; exact Codex ops source-list inclusion count was 1.
+- No backup or restore operation was run.
+
+## Worktree / Branch / PR
+
+- Evidence branch: `na-0430-qsc-adversarial-fuzz-blocker-triage`.
+- Evidence PR: pending.
+- Evidence merge commit: pending.
+- Optional closeout branch: pending.
+- Optional closeout PR: pending.
+- Optional closeout merge commit: pending.
+- Proof root: `/srv/qbuild/tmp/NA0430_qsc_adversarial_fuzz_blocker_triage_20260606T020200Z`.
+
+## Triage Evidence
+
+- PR #1127 failed `qsc-adversarial-smoke` job `79833893300`.
+- Failed job URL: `https://github.com/QuantumShieldLabs/qsl-protocol/actions/runs/27046664839/job/79833893300`.
+- Failure phase: cargo-fuzz target build before fuzz execution.
+- Failed package/dependency combination: `ml-dsa 0.1.0-rc.7` with `pkcs8 0.11.0`, `spki 0.8.0`, and `signature 3.0.0`.
+- Error class: Rust `E0277` conversion errors in `ml-dsa` `pkcs8.rs`.
+- Lock diff: broad PR #1127 refresh removed pqcrypto packages and made nested audit green, but also moved `ml-dsa` off the previously building `pkcs8 0.11.0-rc.11` compatibility chain.
+- qsc fuzz `Cargo.toml` directly pins `ml-dsa = "=0.1.0-rc.7"` and does not directly pin `pkcs8`, `spki`, `signature`, pqcrypto packages, `rustls-webpki`, `rand`, or `ml-kem`.
+
+## Proof-Root Simulations
+
+- Archived origin/main into proof root under `simulations/repo_main`.
+- Simulation `selective_qsc_refimpl`: `cargo update -p qsc -p quantumshield_refimpl` removed nested pqcrypto packages and introduced `ml-kem 0.2.3` while preserving `pkcs8 0.11.0-rc.11`, but nested audit still failed on `rustls-webpki 0.103.10` and `rand 0.9.2`.
+- Simulation `selective_qsc_refimpl_plus_precise`: added `cargo update -p rustls-webpki --precise 0.103.13` and `cargo update -p rand@0.9.2 --precise 0.9.4`; result removed pqcrypto packages, set nested `rustls-webpki 0.103.13`, set nested `rand 0.9.4`, kept `ml-dsa 0.1.0-rc.7` on `pkcs8 0.11.0-rc.11`, passed nested `cargo audit --deny warnings --file`, and built all qsc fuzz bins with `cargo +nightly build --locked --bins`.
+- Simulation `pr1127_lock_build_repro`: copied PR #1127 lock into proof-root repo and reproduced the same `ml-dsa` / `pkcs8 0.11.0` `E0277` build failure with `cargo +nightly build --locked --bins`.
+
+## Failures / Recoveries
+
+- Failing command: proof-root `cargo audit --deny warnings --file .../selective_qsc_refimpl/qsl/qsl-client/qsc/fuzz/Cargo.lock`. Classification: recoverable in-scope proof simulation with understood cause. Root cause: path-package-only update removed pqcrypto but left `rustls-webpki 0.103.10` and `rand 0.9.2` advisory blockers. Corrective action: ran precise updates for `rustls-webpki 0.103.13` and `rand 0.9.4` in a separate proof-root copy. Final result: nested audit passed and fuzz bins built.
+- Failing command: proof-root `cargo +nightly build --manifest-path .../pr1127_lock_build_repro/qsl/qsl-client/qsc/fuzz/Cargo.toml --locked --bins`. Classification: expected reproduction of PR #1127's known CI failure inside proof root, not a source-checkout failure. Corrective action: none for source; used result as evidence and compared with successful precise-version proof build. Final result: PR #1127 lock reproduced `E0277`; precise-version lock built successfully.
+- Failing command: custom staged overclaim scan after first draft. Classification: recoverable in-scope validation/content-shape issue because the project helper reported no prohibited phrases, but the stricter ad hoc scan flagged line-wrapped negative caveats and a literal term list inside the testplan's own example scanner. Corrective action: rewrote line-wrapped caveats so every continuation carries `no` or `not`, and replaced the redundant custom testplan overclaim scanner with the repo helper invocation. Final result: repo helper and stricter staged scan passed.
+- Failing command: `git add docs/governance/evidence/NA-0430_qsl_qsc_adversarial_fuzz_validation_blocker_triage_plan.md`. Classification: recoverable git ignore-rule issue because the exact evidence file is authorized and the repository ignores the evidence directory by default. Corrective action: reran `git add -f` for only that evidence file. Final result: staged path set is exactly the five allowed paths.
+- Failing command: first ad hoc decision-count assertion script. Classification: recoverable command-shape mistake because the script printed the expected decision counts but exited non-zero due to assertion expression shape. Corrective action: reran with explicit boolean checks. Final result: D-0844, D-0845, D-0846, and D-0847 each exist once; D-0848 is absent; latest decision is D-0847; duplicate count is zero.
+- Non-fatal warning/friction: cargo package-cache lock waiting appeared during parallel dependency probes. Classification: benign cargo serialization. Final result: commands completed and source worktree remained clean.
+- Tooling limitation: local cargo-fuzz subcommand is unavailable. Codex did not install cargo-fuzz. Proof-root `cargo +nightly build --locked --bins` was used as local compiler preflight; GitHub `qsc-adversarial-smoke` remains required for future acceptance.
+
+## Authorization Outcome
+
+- Classification: `FUZZ_BLOCKER_LOCKFILE_PRECISE_VERSION_RETRY_AUTHORIZED`.
+- Selected successor: `NA-0431 -- QSL qsc Fuzz Lock Precise-Version pqcrypto Cleanup Retry Implementation Harness`.
+- Future mutable path recommendation: `qsl/qsl-client/qsc/fuzz/Cargo.lock` plus NA-0431 governance evidence/testplan, DECISIONS, TRACEABILITY, and rolling journal.
+- PR #1127 branch retention recommendation: retain until NA-0431 evidence no longer needs failed-attempt comparison.
+- No runtime, crypto, dependency manifest, source, workflow, test, fuzz target, vector, service, public, qwork, backup, restore, qsl-backup, status, plan, rollback, README, START_HERE, or website mutation authorized.
+
+## Validation / CI Notes
+
+- Evidence patch in progress: D-0847, TRACEABILITY row, NA-0430 evidence doc, NA-0430 testplan, rolling journal entry.
+- Staged path set: exactly `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0430_qsl_qsc_adversarial_fuzz_validation_blocker_triage_plan.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0430_qsl_qsc_adversarial_fuzz_validation_blocker_triage_testplan.md`.
+- `git diff --cached --check` passed.
+- Manual link check and helper link-check reported `TOTAL_MISSING 0`.
+- PR body preflight reported `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- Leak scan reported `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan reported `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0`.
+- Queue helper reported READY_COUNT 1 and READY NA-0430.
+- Decision helper reported latest D-0847 and duplicate count zero.
+- Explicit decision proof: D-0844 once; D-0845 once; D-0846 once; D-0847 once; D-0848 absent.
+- `cargo audit --deny warnings` passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked` reported root `ml-kem v0.2.1`.
+- Root `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals` inverse-tree probes reported package-ID absence.
+- `cargo fmt --check` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed, 3 tests.
+- `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768` passed, 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
+- `python3 formal/run_model_checks.py` passed.
+- PR checks pending.
+- Merge pending.
+- Optional closeout pending and must run only after Packet M merge and post-merge public-safety green.
+
+## Next-Watch Items
+
+- D-0847 must exist once before PR.
+- D-0848 must remain absent until optional closeout.
+- Evidence PR must change exactly the five NA-0430 allowed paths.
+- Future NA-0431 must not implement more than the precise lockfile-only retry without a new exact directive.
+- Future NA-0431 must require GitHub `qsc-adversarial-smoke` success before merge.

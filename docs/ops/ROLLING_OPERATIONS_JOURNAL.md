@@ -25688,6 +25688,7 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Non-fatal warning: parallel read-only cargo tree probes briefly waited on the package cache lock. Final result: dependency probes completed and root/nested audits passed.
 - Nonzero absence proof: root `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked` reported package-ID absence under the directive's `|| true` pattern. Final result: root pqcrypto package IDs remained absent.
 - Failing command: local `scripts/ci/qsc_adversarial.sh`. Classification: recoverable local cargo-fuzz availability caveat because `adversarial_properties` passed 8/8 and `adversarial_miri` passed 6/6 before `cargo` reported `error: no such command: fuzz`. Corrective action: no local install or toolchain mutation; preserve PR CI `qsc-adversarial-smoke` as the required fuzz-stage gate. Final result: qsc Rust adversarial phases passed locally; fuzz-stage proof deferred to PR CI.
+- Recovered PR check polling command shape: the first bounded polling loop used `checks-summary --report-only` without the helper's CodeQL-neutral classifier, so it continued after `public-safety` was already success. Classification: recoverable read-only polling/classifier issue; no repo or CI state changed. Corrective action: stopped the local polling shell and reran `checks-summary --report-only --allow-codeql-neutral`. Final result: required context failure count was 0.
 
 ## Queue / Decision Outcome
 

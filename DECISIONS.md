@@ -21465,3 +21465,46 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, dependency, Cargo, lockfile, workflow, script, executable test, fuzz target, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside this closeout
     - more than one READY item remains
   - **References:** NA-0431; NA-0432; D-0851; D-0850; qsl-protocol PR #1132; D274 response `/home/victor/work/qsl/codex/responses/NA0431_20260606T103439-0500_D274.md`; `tests/NA-0431_closeout_restore_na0432_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0852
+  - **Title:** NA-0432 qsc provider error path no-mutation read-only audit
+  - **Status:** Accepted
+  - **Date:** 2026-06-06
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0432 completes a read-only qsc provider-error/no-mutation audit after the `ml-kem` provider replacement, provider-boundary triage, and NA-0431 nested qsc fuzz lock cleanup. The audit records that qsc has sanitized `pq_encap_failed` and `pq_decap_failed` marker paths, provider-level wrong-length KEM rejects are tested, and qsc has broader reject/no-mutation evidence, but direct qsc provider-error no-mutation snapshots for those exact marker paths remain incomplete. The findings matrix selects `NA-0433 -- QSL qsc Provider Error Path / No-Mutation Findings Triage Authorization Plan`.
+  - **Evidence classification:** `NO_MUTATION_PROOF_QSC_LEVEL_PARTIAL`.
+  - **Selected successor:** `NA-0433 -- QSL qsc Provider Error Path / No-Mutation Findings Triage Authorization Plan`.
+  - **Boundary:** NA-0432 makes no runtime, crypto, dependency, Cargo manifest, lockfile, workflow, script, executable test, fuzz target, vector, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, `/backup/qsl`, branch-protection, or public-surface mutation.
+  - **Public claim boundary:** No public readiness claim is made. No production readiness claim is made. No public-internet readiness claim is made. No external-review completion claim is made. No crypto-complete claim is made. No vulnerability-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. No bug-free claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, `/backup/qsl`, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, or backup scripts.
+  - **Stewardship:** The advisory stewardship template was applied for Crypto / Protocol, CI / Dependency / Release Health, Public Claims / External Review, Product / Demo / Service Boundary, and Local Ops / Backup / Restore.
+  - **Protected:**
+    - READY_COUNT 1
+    - READY NA-0432 until optional closeout
+    - NA-0431 DONE
+    - NA-0430 DONE
+    - NA-0429 BLOCKED
+    - D-0850 exists once
+    - D-0851 exists once
+    - D-0852 exists once after this lane
+    - D-0853 remains absent until optional closeout
+    - no duplicate decision IDs
+    - root cargo audit green
+    - nested qsc fuzz lock audit green
+    - nested pqcrypto residual package IDs absent
+    - no runtime/crypto/dependency/Cargo/lockfile/workflow/test/vector mutation
+    - no backup or restore
+    - no public crypto-complete, vulnerability-free, perfect-crypto, public readiness, production readiness, external-review, bug-free, or side-channel-free claim
+    - exactly one READY remains mandatory
+  - **Required behavior:**
+    - this audit PR must not merge unless required PR checks, including public-safety, pass
+    - optional closeout may restore NA-0433 only after this audit PR merges and post-merge public-safety is green
+    - NA-0433 must consume F-0432 findings and decide whether future qsc no-mutation tests, provider-error marker documentation, formal/model alignment, or fuzz/adversarial coverage authorization is required
+    - NA-0433 must not implement runtime, crypto, dependency, test, vector, workflow, service, backup, or public-surface changes unless a future exact directive authorizes them
+    - exactly one READY item remains mandatory
+  - **Must never happen:**
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, script, executable test, fuzz target, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside NA-0432
+    - cargo audit output must not be used as public readiness, production readiness, external-review, crypto-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof
+    - exact provider-error no-mutation evidence is overstated as complete
+    - more than one READY item remains
+  - **References:** NA-0432; NA-0433; D-0852; D-0851; D-0850; `docs/governance/evidence/NA-0432_qsl_qsc_provider_error_path_no_mutation_read_only_audit_plan.md`; `tests/NA-0432_qsl_qsc_provider_error_path_no_mutation_read_only_audit_testplan.md`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tools/refimpl/quantumshield_refimpl/tests/pqkem768.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

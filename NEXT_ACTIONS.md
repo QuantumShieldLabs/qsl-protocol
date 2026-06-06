@@ -22781,7 +22781,7 @@ Closeout evidence:
   - Post-merge public-safety completed success on `19c4624dfe8b`.
 
 ### NA-0431 — QSL qsc Fuzz Lock Precise-Version pqcrypto Cleanup Retry Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -22857,6 +22857,78 @@ Acceptance criteria:
 - Public-claim caveats are explicit.
 - Public-safety is green before merge and after merge.
 - Exactly one READY item remains.
+
+Closeout evidence:
+- qsl-protocol implementation PR: #1132 https://github.com/QuantumShieldLabs/qsl-protocol/pull/1132
+- qsl-protocol implementation merge SHA: `77df962590e4`
+- selected successor:
+  `NA-0432 -- QSL qsc Provider Error Path / No-Mutation Read-Only Audit Plan`
+- exact outcome:
+  - PR #1132 merged with `qsc-adversarial-smoke` success on both PR head and merge commit.
+  - Post-merge public-safety completed success on `77df962590e4`.
+  - Nested qsc fuzz lock audit and root cargo audit were green during closeout verification.
+  - NA-0431 is DONE after the precise-version nested fuzz lock cleanup merged.
+  - This closeout did not mutate lockfiles, manifests, runtime code, crypto code, workflows, scripts, executable tests, fuzz targets, vectors, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback subtree, or `/backup/qsl`.
+  - Cargo audit green remains dependency-health evidence only and is not public-readiness, production-readiness, external-review, crypto-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
+
+### NA-0432 — QSL qsc Provider Error Path / No-Mutation Read-Only Audit Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Perform a bounded read-only audit of qsc provider-error paths and no-mutation-on-reject evidence after the ml-kem provider replacement and nested qsc fuzz lock precise-version cleanup, determining how malformed provider inputs and provider errors propagate through qsc boundaries and whether future fail-closed or no-mutation test/remediation lanes are required, without changing runtime code, dependencies, tests, vectors, workflows, or public surfaces.
+
+Protects:
+- qsc crypto provider error handling.
+- fail-closed reject behavior.
+- no-mutation-on-reject evidence quality.
+- provider boundary confidence after pqcrypto removal.
+- fuzz/adversarial dependency hygiene after nested lock cleanup.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0432.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of:
+  - qsl/qsl-client/qsc/
+  - tools/refimpl/quantumshield_refimpl/src/crypto/
+  - tools/refimpl/quantumshield_refimpl/tests/
+  - qsl/qsl-client/qsc/fuzz/
+  - formal/
+  - inputs/
+  - relevant evidence docs.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, Cargo, workflow, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE paths.
+- Mutating tests, fuzz target source, or vectors.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- Creating or implying production readiness, public-internet readiness, external-review completion, metadata-free behavior, anonymity, untraceability, off-host backup completion, disaster recovery completion, restore proof, backup completion, bug-free status, vulnerability-free status, perfect-crypto status, side-channel-free status, or crypto-complete status.
+- Secret material handling.
+
+Deliverables:
+- NA-0432 evidence doc.
+- NA-0432 testplan.
+- D-0852 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- recommended next code/crypto audit or remediation lane.
+
+Acceptance criteria:
+- qsc provider-error path audit is read-only.
+- no-mutation-on-reject evidence is assessed as evidence, not overclaimed.
+- public-claim caveats are explicit.
+- no runtime/crypto/dependency/test mutation occurs.
+- cargo audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
 
 ---
 

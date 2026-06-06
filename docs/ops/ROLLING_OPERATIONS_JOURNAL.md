@@ -25586,3 +25586,53 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Implementation PR must change exactly the six allowed paths.
 - PR public-safety and qsc-adversarial-smoke must pass before merge.
 - If qsc-adversarial-smoke fails because of the lockfile/dependency/fuzz build change, do not merge; restore local fuzz lock from rollback and stop.
+
+# QSL-DIR-2026-06-06-275 / NA-0431 closeout and NA-0432 restoration rolling journal
+
+- Directive: QSL-DIR-2026-06-06-275 -- Close Out NA-0431 After Precise Fuzz Lock Cleanup Public-Safety Completion and Restore NA-0432 qsc Provider Error Path / No-Mutation Audit
+- Begin timestamp (America/Chicago): 2026-06-06T10:34:30-05:00
+- Begin timestamp (UTC): 2026-06-06T15:34:30Z
+- Proof root: `/srv/qbuild/tmp/NA0431_closeout_restore_na0432_20260606T171207Z`
+
+## D274 Inheritance
+
+- D274 merged NA-0431 implementation PR #1132 at `77df962590e4`.
+- D274 stopped only because post-merge public-safety on `77df962590e4` remained in progress after the bounded wait.
+- D274 response path: `/home/victor/work/qsl/codex/responses/NA0431_20260606T103439-0500_D274.md`.
+- D274 selected `NA-0432 -- QSL qsc Provider Error Path / No-Mutation Read-Only Audit Plan` as the successor, gated on post-merge public-safety completion.
+
+## Closeout Proof
+
+- PR #1132 remained MERGED at `77df962590e4`.
+- Post-merge public-safety completed success on `77df962590e4` at 2026-06-06T16:07:33Z.
+- `qsc-adversarial-smoke` completed success on PR #1132 head `cc8013479437` and merge commit `77df962590e4`.
+- `qsc-linux-full-suite` and `macos-qsc-full-serial` also completed success on the merge commit.
+- Root `cargo audit --deny warnings` passed.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock` passed.
+- Nested fuzz lock pqcrypto residual scan returned zero matches.
+- qsl-backup SHA matched `e9ecff3d22ed`; narrowed qsl-backup source-list count for `/home/victor/work/qsl/codex/ops` was 1.
+
+## Failures / Recoveries
+
+- Failing command: broad read-only grep count over `/usr/local/sbin/qsl-backup`, `/etc/systemd/system`, and `/home/victor/work/qsl` for `/home/victor/work/qsl/codex/ops`. Classification: recoverable command-shape mistake because it counted historical responses/logs instead of the qsl-backup source-list reference required by the directive. Corrective action: preserved the broad scan output and reran a narrow `grep -c` against `/usr/local/sbin/qsl-backup`. Final result: source-list count 1 and the qsl-backup SHA matched the required value.
+- Failing command: precommit scope guard using `git diff --name-only origin/main...HEAD`. Classification: recoverable validation command-shape mistake because the committed range ignored uncommitted worktree changes. Corrective action: reran a worktree-aware guard using `git diff --name-only` plus `git ls-files --others --exclude-standard`. Final result: exactly five allowed closeout paths and zero forbidden paths.
+- Failing command: first added-line overclaim scan. Classification: recoverable documentation wording issue because one D-0851 denial relied on the `Must never happen` section header instead of same-line denial wording. Corrective action: rewrote the cargo-audit caveat to say the output `must not be used` as the listed proof. Final result: rerun reported zero affirmative overclaim findings.
+- Non-fatal warning: parallel cargo-audit reads briefly waited on the shared advisory database lock. Final result: root and nested cargo audits passed.
+- Nonzero absence proof: root `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked` reported package-ID absence under the directive's `|| true` pattern. Final result: root pqcrypto package IDs remained absent.
+
+## Queue / Decision Outcome
+
+- NA-0431 is marked DONE by this closeout.
+- NA-0432 is restored as the sole READY item.
+- NA-0430 remains DONE.
+- NA-0429 remains BLOCKED.
+- D-0851 records the closeout and NA-0432 restoration.
+- D-0852 remains absent for future NA-0432 work.
+- This closeout does not implement NA-0432.
+
+## Forward Watch
+
+- NA-0432 residual: read-only qsc provider-error path and no-mutation-on-reject evidence audit.
+- PR #1127 branch retention remains useful until failed-attempt comparison is no longer needed.
+- Root and nested dependency health remain green at closeout.
+- Public claim boundary remains unchanged: no public-readiness, production-readiness, external-review, crypto-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free claim is made.

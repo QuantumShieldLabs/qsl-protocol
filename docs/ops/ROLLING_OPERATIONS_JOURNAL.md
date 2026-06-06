@@ -25479,3 +25479,110 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - NA-0431 must remain the sole READY item.
 - Recovery PR must change exactly the five allowed governance/recovery paths.
 - This recovery must not start NA-0431.
+
+# QSL-DIR-2026-06-06-274 / NA-0431 qsc fuzz lock precise-version cleanup rolling journal
+
+- Directive: QSL-DIR-2026-06-06-274 -- Execute NA-0431 QSL qsc Fuzz Lock Precise-Version pqcrypto Cleanup Retry Implementation Harness, Optional Closeout to NA-0432
+- Begin timestamp (America/Chicago): 2026-06-06T10:04:30-05:00
+- Begin timestamp (UTC): 2026-06-06T15:04:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0431/qsl-protocol`
+- qsl-protocol branch at start: `main`
+- qsl-protocol implementation branch: `na-0431-qsc-fuzz-lock-precise-version-cleanup`
+- qsl-protocol HEAD at start: `f63626eed77a`
+- qsl-protocol origin/main at start: `f63626eed77a`
+- PR #1131 merge commit verified: `f63626eed77a`
+- PR #1127 retained branch head verified: `967c95c37fea`
+- Proof root: `/srv/qbuild/tmp/NA0431_qsc_fuzz_lock_precise_version_cleanup_20260606T140549Z`
+
+## READY Proof
+
+- qwork proof files existed and parsed without rerunning qwork.
+- qwork proof: startup_result OK; lane NA-0431; repo qsl-protocol; path `/srv/qbuild/work/NA-0431/qsl-protocol`; clean worktree/index/untracked; READY_COUNT 1; queue_top_ready NA-0431; requested_lane_status READY.
+- After `git fetch --all --prune`, live HEAD and origin/main still matched qwork proof at `f63626eed77a`.
+- Queue helper reported READY_COUNT 1 and READY NA-0431.
+- NA-0430 was DONE and NA-0429 was BLOCKED.
+- Decision helper reported latest D-0849 and duplicate count zero.
+- D-0847, D-0848, and D-0849 existed once; D-0850 was absent at start.
+- Current-main public-safety and qsc-adversarial-smoke were green on `f63626eed77a`.
+- Root `cargo audit --deny warnings` passed.
+- Root `rustls-webpki` reported `v0.103.13`; root pqcrypto package-ID probes reported absence.
+- qsl-backup checksum matched the required value and the Codex ops source-list inclusion count was 1.
+- No backup or restore operation was run.
+
+## Preimage / Rollback
+
+- Fuzz `Cargo.toml` SHA-256 prefix: `815110f12fa6`.
+- Fuzz `Cargo.lock` preimage SHA-256 prefix: `a4a3378781b7`.
+- Root `Cargo.toml` SHA-256 prefix: `72627c3442ca`.
+- Root `Cargo.lock` SHA-256 prefix: `9348e3d309db`.
+- qsc `Cargo.toml` SHA-256 prefix: `e7b74760ee68`.
+- qsc adversarial script SHA-256 prefix: `562933d06325`.
+- qsc adversarial workflow SHA-256 prefix: `cf44378ae8d5`.
+- Rollback copy path: `/srv/qbuild/tmp/NA0431_qsc_fuzz_lock_precise_version_cleanup_20260606T140549Z/rollback/qsc-fuzz-Cargo.lock.preimage`.
+- Rollback copy matched preimage SHA-256 prefix `a4a3378781b7`.
+- Pre-mutation nested audit exited nonzero as expected for the inherited red nested lock.
+
+## Implementation
+
+- Ran from `qsl/qsl-client/qsc/fuzz`: `cargo update -p qsc -p quantumshield_refimpl`.
+- Changed paths after command 1: only `qsl/qsl-client/qsc/fuzz/Cargo.lock`.
+- Ran from `qsl/qsl-client/qsc/fuzz`: `cargo update -p rustls-webpki --precise 0.103.13`.
+- Changed paths after command 2: only `qsl/qsl-client/qsc/fuzz/Cargo.lock`.
+- Ran from `qsl/qsl-client/qsc/fuzz`: `cargo update -p rand@0.9.2 --precise 0.9.4`.
+- Changed paths after command 3: only `qsl/qsl-client/qsc/fuzz/Cargo.lock`.
+- After-update fuzz lock SHA-256 prefix: `fd4d49f52107`.
+- Diffstat: `qsl/qsl-client/qsc/fuzz/Cargo.lock | 953 ++++---------------------------------`; 99 insertions, 854 deletions.
+- After-update nested lock: `rustls-webpki 0.103.13`; `rand 0.9.4`; `ml-kem 0.2.3`; `ml-dsa 0.1.0-rc.7` with `pkcs8 0.11.0-rc.11`, `spki 0.8.0-rc.4`, and `signature 3.0.0-rc.10`.
+- After-update pqcrypto residual search in the nested lock returned zero matches.
+
+## Failures / Recoveries
+
+- Failing command: pre-mutation `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`. Classification: expected inherited baseline failure for the red nested qsc fuzz lock, not a source-checkout regression. Corrective action: ran the D-0847-authorized precise-version lockfile cleanup only. Final result: nested fuzz lock audit passed after the cleanup.
+- Nonzero proof commands: root `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked` exited 101 because those package IDs were absent from the root locked graph. Classification: valid absence proof outcome. Corrective action: none required. Final result: root pqcrypto unmaintained blockers remain absent.
+- Failing command: local `scripts/ci/qsc_adversarial.sh`. Classification: local tooling availability caveat because the qsc adversarial Rust test phases passed and the script stopped only at missing local `cargo-fuzz` (`cargo` reported no `fuzz` subcommand). Corrective action: no local install or toolchain mutation; preserved PR CI `qsc-adversarial-smoke` as a required merge gate. Final result: root audit, nested audit, qsc fuzz-bin build, qsc `send_commit`, provider `pqkem768`, and formal checks passed locally.
+- Failing command: first staged affirmative overclaim scan. Classification: recoverable documentation wording issue because the scan found wrapped negative caveat lines where denial context was separated from later sensitive phrases, while helper PR-body preflight already reported zero prohibited phrases. Corrective action: rewrote the new NA-0431 no-claim caveats so each sensitive phrase has explicit same-line denial wording. Final result: rerun reported `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0`.
+
+## Validation / CI Notes
+
+- `cargo audit --deny warnings`: passed.
+- `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: passed.
+- Root `cargo tree -i rustls-webpki --locked`: `rustls-webpki v0.103.13`.
+- Root `cargo tree -i ml-kem --locked`: `ml-kem v0.2.1`.
+- Nested pqcrypto residual search: zero matches.
+- Proof-root qsc fuzz-bin build: passed.
+- `cargo fmt --check`: passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: passed.
+- `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768`: passed.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: passed.
+- `python3 formal/run_model_checks.py`: passed.
+- Local qsc adversarial script: Rust phases passed; local cargo-fuzz unavailable.
+- D-0850 evidence patch staged exactly the six allowed NA-0431 paths.
+- `git diff --cached --check` passed.
+- Exact staged scope guard reported changed path count 6 and forbidden path count 0.
+- Link-check reported `TOTAL_MISSING 0`.
+- Leak scan reported `SECRET_FINDING_COUNT 0`.
+- PR body preflight reported `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- Added-line overclaim scan reported `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0`.
+- Post-patch `cargo audit --deny warnings`: passed.
+- Post-patch nested fuzz lock audit: passed.
+- Post-patch proof-root qsc fuzz-bin build: passed.
+- Post-patch `cargo fmt --check`: passed.
+- Post-patch qsc `send_commit`: passed.
+- Post-patch provider `pqkem768`: passed.
+- Post-patch formal model checks: passed.
+- Post-patch local qsc adversarial script: Rust phases passed; local cargo-fuzz unavailable.
+- PR checks pending.
+- Merge pending.
+
+## Next-Watch Items
+
+- D-0850 must exist exactly once before implementation PR merge.
+- D-0851 must remain absent until optional closeout.
+- Implementation PR must change exactly the six allowed paths.
+- PR public-safety and qsc-adversarial-smoke must pass before merge.
+- If qsc-adversarial-smoke fails because of the lockfile/dependency/fuzz build change, do not merge; restore local fuzz lock from rollback and stop.

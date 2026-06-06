@@ -21341,3 +21341,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, root dependency, Cargo lockfile, workflow, script, fuzz target, executable test, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside this closeout
     - more than one READY item remains
   - **References:** NA-0430; NA-0431; D-0848; D-0847; D-0846; qsl-protocol PR #1129; `docs/governance/evidence/NA-0430_qsl_qsc_adversarial_fuzz_validation_blocker_triage_plan.md`; `tests/NA-0430_qsl_qsc_adversarial_fuzz_validation_blocker_triage_testplan.md`; `tests/NA-0430_closeout_restore_na0431_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0849
+  - **Title:** NA-0430 temporary proof artifact scope-breach recovery
+  - **Status:** Accepted
+  - **Date:** 2026-06-06
+  - **Goals:** G4
+  - **Decision:** D272 completed NA-0430 evidence and closeout, merged PR #1129 and PR #1130, marked NA-0430 DONE, and restored `NA-0431 -- QSL qsc Fuzz Lock Precise-Version pqcrypto Cleanup Retry Implementation Harness` as the sole READY successor. D272 then reported a post-merge proof-output boundary breach involving `/tmp/na0430_*`. This recovery located six exact safe candidate files, confirmed they were regular current-user files below the size cap with no high-confidence secret findings, moved them into authorized proof root `/srv/qbuild/tmp/NA0430_tmp_artifact_recovery_20260606T114326Z/stray_tmp/`, verified checksums, and verified no remaining current-user `/tmp/na0430_*` files. No qsl-protocol runtime/source/dependency/workflow/executable-test/vector files were changed. No qsl-backup, backup status, backup plan, rollback subtree, qwork/qstart/qresume/qshell, qsl-server, or qsl-attachments mutation occurred. NA-0431 remains sole READY. This recovery does not implement NA-0431 and makes no public claim expansion.
+  - **Recovery classification:** `NA0430_TMP_PROOF_ARTIFACT_SCOPE_BREACH_RECOVERED`.
+  - **Boundary:** This recovery PR mutates only `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0430_tmp_artifact_scope_breach_recovery.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0430_tmp_artifact_scope_breach_recovery_testplan.md`.
+  - **Protected:**
+    - PR #1129 is MERGED at `19c4624dfe8b`
+    - PR #1130 is MERGED at `9d22e3062c47`
+    - READY_COUNT 1
+    - READY NA-0431
+    - NA-0430 DONE
+    - NA-0429 BLOCKED
+    - D-0847 exists once
+    - D-0848 exists once
+    - D-0849 exists once after this recovery
+    - D-0850 remains absent
+    - no duplicate decision IDs
+    - no runtime/source/dependency/Cargo/lockfile/workflow/script/executable-test/fuzz-target/vector/public/service mutation
+    - no qsl-backup, backup status, backup plan, rollback subtree, qwork/qstart/qresume/qshell, qsl-server, or qsl-attachments mutation
+  - **Required behavior:**
+    - NA-0431 must remain limited to the D-0847/D-0848 precise-version lockfile-only successor scope unless a later exact directive changes scope
+    - future work must keep temp proof output under authorized proof roots
+    - exactly one READY item remains mandatory
+  - **Must never happen:**
+    - NA-0431 is implemented by this recovery
+    - D272's proof-output boundary breach is ignored or treated as repo/source mutation
+    - unsafe `/tmp/na0430_*` candidates are moved without explicit operator action
+    - qsl-protocol runtime, dependency, workflow, executable-test, vector, service, public, qwork, backup, qsl-backup, status/plan, rollback, or sibling-repo mutation is hidden inside this recovery
+    - more than one READY item remains
+  - **References:** D272 response `/home/victor/work/qsl/codex/responses/NA0430_20260605T214500-0500_D272.md`; D-0849; D-0848; D-0847; NA-0430; NA-0431; qsl-protocol PR #1129; qsl-protocol PR #1130; `docs/governance/evidence/NA-0430_tmp_artifact_scope_breach_recovery.md`; `tests/NA-0430_tmp_artifact_scope_breach_recovery_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

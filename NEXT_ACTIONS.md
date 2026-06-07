@@ -23087,7 +23087,7 @@ Blocked recovery evidence:
   `NA-0435 -- QSL qsc Provider Error Path Test Hook / Defensive Branch Authorization Plan`
 
 ### NA-0435 — QSL qsc Provider Error Path Test Hook / Defensive Branch Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -23170,6 +23170,89 @@ Acceptance criteria:
 - runtime hook/test seam need is accepted or rejected.
 - public-claim caveats are explicit.
 - no implementation mutation occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+Closeout evidence:
+- qsl-protocol authorization PR: #1139 https://github.com/QuantumShieldLabs/qsl-protocol/pull/1139
+- qsl-protocol authorization merge SHA: `0f2c841d2707`
+- selected strategy:
+  `NARROW_DECAP_ONLY_TEST_AUTHORIZATION_READY`
+- selected successor:
+  `NA-0436 -- QSL qsc pq_decap_failed No-Mutation Test Implementation Harness`
+- exact outcome:
+  - PR #1139 merged after required checks completed with public-safety success.
+  - Post-merge public-safety completed success on `0f2c841d2707`.
+  - Post-merge `qsc-adversarial-smoke` completed success on `0f2c841d2707`.
+  - NA-0435 consumed D278/D279 stop evidence and selected a narrowed
+    `pq_decap_failed` implementation harness successor.
+  - NA-0435 did not implement NA-0436 and did not mutate runtime code, crypto
+    code, dependencies, Cargo manifests, lockfiles, workflows, scripts,
+    executable tests, fuzz targets, vectors, qsl-server, qsl-attachments,
+    qshield runtime, website, public docs, README, START_HERE,
+    qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan,
+    rollback subtree, or `/backup/qsl`.
+  - Cargo audit green remains dependency-health evidence only and is not
+    public-readiness, production-readiness, external-review, crypto-complete,
+    vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
+
+### NA-0436 — QSL qsc pq_decap_failed No-Mutation Test Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the exact NA-0435-authorized narrowed `pq_decap_failed` no-mutation
+test through existing qsc APIs, preserving the `pq_encap_failed`
+defensive-branch caveat and avoiding any runtime code, crypto code, dependency,
+workflow, fuzz target, vector, public surface, or backup/local-ops mutation.
+
+Protects:
+- qsc decapsulation provider-error handling clarity.
+- fail-closed reject behavior.
+- bounded no-mutation evidence quality.
+- honest caveating of `pq_encap_failed`.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs
+- qsl-protocol governance evidence/testplan paths for NA-0436.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, Cargo, lockfile, workflow, qsl-server,
+  qsl-attachments, qshield runtime, website, public docs, README, or START_HERE
+  paths.
+- Mutating fuzz target source or vectors.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- Creating or implying production readiness, public-internet readiness,
+  external-review completion, metadata-free behavior, anonymity,
+  untraceability, off-host backup completion, disaster recovery completion,
+  restore proof, backup completion, bug-free status, vulnerability-free status,
+  perfect-crypto status, side-channel-free status, or crypto-complete status.
+- Secret material handling.
+
+Deliverables:
+- narrowed `pq_decap_failed` no-mutation test.
+- NA-0436 evidence doc.
+- NA-0436 testplan.
+- D-0859 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+
+Acceptance criteria:
+- exact narrowed test passes.
+- `pq_encap_failed` caveat is preserved.
+- no runtime/crypto/dependency mutation occurs.
 - cargo audit remains green.
 - nested fuzz lock audit remains green.
 - public-safety is green before merge and after merge.

@@ -23293,7 +23293,7 @@ Closeout evidence:
   - Cargo audit green remains dependency-health evidence only.
 
 ### NA-0437 — QSL qsc pq_encap_failed Defensive Branch Documentation / Evidence Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -23359,6 +23359,108 @@ Acceptance criteria:
 - `pq_encap_failed` defensive-branch status is documented from D278 evidence.
 - `pq_decap_failed` test evidence from NA-0436 is referenced without overclaim.
 - no executable coverage overclaim is made for `pq_encap_failed`.
+- no implementation mutation occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+Completion notes:
+- NA-0437 completed in PR #1143, merged at `64d3488513d2`.
+- D-0861 documents `pq_encap_failed` as
+  `PQ_ENCAP_FAILED_DEFENSIVE_BRANCH_DOCUMENTED` under current active provider
+  and qsc external API behavior.
+- No executable coverage claim is made for `pq_encap_failed`.
+- NA-0436 `pq_decap_failed` no-mutation test evidence is referenced only as
+  bounded decap-path evidence.
+- Post-merge public-safety on `64d3488513d2` completed success.
+- Workflow-dispatched qsc-adversarial-smoke and qsc-adversarial-miri completed
+  success on the PR #1143 head after local cargo-fuzz was unavailable.
+- This closeout did not mutate runtime code, crypto code, dependencies, Cargo
+  manifests, lockfiles, workflows, scripts, executable tests, fuzz targets,
+  vectors, qsl-server, qsl-attachments, qshield runtime, website, public docs,
+  README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status,
+  backup plan, rollback subtree, or `/backup/qsl`.
+- No backup or restore was run.
+- Cargo audit green remains dependency-health evidence only.
+
+### NA-0438 — QSL qsc Provider Error Path Fuzz / Adversarial Coverage Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the next bounded fuzz/adversarial coverage step for qsc provider-error
+paths after deterministic `pq_decap_failed` no-mutation testing and
+`pq_encap_failed` defensive-branch documentation, deciding whether future fuzz
+target or adversarial harness changes are warranted without changing runtime
+code, dependencies, workflows, public surfaces, or backup/local-ops state.
+
+Protects:
+- qsc provider-error fuzz/adversarial evidence quality.
+- fail-closed reject behavior.
+- no-mutation-on-reject evidence quality.
+- honest caveating of defensive branches.
+- provider boundary confidence after ml-kem replacement and nested fuzz lock
+  cleanup.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0438.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of:
+  - qsl/qsl-client/qsc/fuzz/
+  - scripts/ci/qsc_adversarial.sh
+  - .github/workflows/qsc-adversarial.yml
+  - qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs
+  - qsc provider-error paths
+  - formal/
+  - inputs/
+  - relevant evidence docs.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, Cargo, lockfile, workflow, qsl-server,
+  qsl-attachments, qshield runtime, website, public docs, README, or START_HERE
+  paths.
+- Mutating tests, fuzz target source, or vectors.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- No public technical paper content.
+- No production readiness claim.
+- No public-internet readiness claim.
+- No external-review completion claim.
+- No metadata-free behavior claim.
+- No anonymity claim.
+- No untraceability claim.
+- No off-host backup completion claim.
+- No disaster recovery completion claim.
+- No restore proof claim.
+- No backup completion claim.
+- No bug-free status claim.
+- No vulnerability-free status claim.
+- No perfect-crypto status claim.
+- No side-channel-free status claim.
+- No crypto-complete status claim.
+- Secret material handling.
+
+Deliverables:
+- NA-0438 evidence doc.
+- NA-0438 testplan.
+- D-0863 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- recommended next code/crypto audit or remediation lane.
+
+Acceptance criteria:
+- fuzz/adversarial coverage need is classified.
+- exact future mutable paths, if any, are future-gated.
+- `pq_encap_failed` defensive branch caveat is preserved.
+- `pq_decap_failed` test evidence is consumed without overclaim.
 - no implementation mutation occurs.
 - cargo audit remains green.
 - nested fuzz lock audit remains green.

@@ -26288,3 +26288,109 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - After merge, verify READY NA-0437, NA-0436 DONE, NA-0434 BLOCKED, D-0860 on main, and post-merge public-safety on the closeout merge commit.
 - Forward-audit residual: scheduled non-required `relay-ui-integration` failed with a local relay API 404 on main and should be triaged in a separate exact-scope lane if it recurs.
 - NA-0437 must document the `pq_encap_failed` defensive branch without executable coverage overclaim and without runtime, crypto, dependency, workflow, test, vector, public, service, or backup mutation.
+
+# QSL-DIR-2026-06-07-283 / NA-0437 pq_encap_failed defensive branch documentation rolling journal
+
+- Directive: QSL-DIR-2026-06-07-283 -- execute NA-0437 qsc `pq_encap_failed` defensive branch documentation and evidence plan.
+- Directive begin timestamp supplied by Director: 2026-06-07T02:34:30-05:00 / 2026-06-07T07:34:30Z.
+- Local evidence timestamp at branch creation: 2026-06-07T10:00:22-05:00 / 2026-06-07T15:00:22Z.
+- Proof root: `/srv/qbuild/tmp/NA0437_pq_encap_failed_defensive_branch_doc_20260607T150152Z`.
+- Worktree path: `/srv/qbuild/work/NA-0437/qsl-protocol`.
+- Branch: `na-0437-pq-encap-failed-defensive-branch-doc`.
+- PR: pending.
+- Merge commit: pending.
+
+## Repo SHAs
+
+- qsl-protocol branch HEAD at NA-0437 start: `a896e335191d`.
+- qsl-protocol HEAD after fetch: `a896e335191d`.
+- qsl-protocol origin/main after fetch: `a896e335191d`.
+- PR #1142 verified MERGED at `a896e335191d`.
+- qsl-server and qsl-attachments are not mutated by this directive.
+
+## READY Proof
+
+- qwork proof files were read from `/srv/qbuild/work/NA-0437/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- qwork `.kv` markers passed: startup OK, lane NA-0437, repo qsl-protocol, path `/srv/qbuild/work/NA-0437/qsl-protocol`, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0437, requested lane status READY.
+- qwork JSON parsed successfully and mirrored the `.kv` proof.
+- Live proof after fetch matched qwork proof: HEAD and origin/main both `a896e335191d`.
+- Start queue proof: READY_COUNT 1, READY NA-0437; NA-0436 DONE; NA-0435 DONE; NA-0434 BLOCKED; NA-0433 DONE; NA-0432 DONE; NA-0431 DONE; NA-0430 DONE; NA-0429 BLOCKED.
+- Start decision proof: latest D-0860; D-0859 once; D-0860 once; D-0861 absent; duplicate decision count zero.
+- Public-safety on `a896e335191d` completed success.
+
+## Source / Evidence Review Notes
+
+- D278, D279, D280, D281, and D282 responses were present and copied into the proof root.
+- D278 evidence recorded `encap zero: None`, `encap ff: None`, `encap a5: None`, and `encap inc: None` for correct-length malformed public-key probes.
+- D278/D279 evidence recorded that wrong-length A1 KEM public keys fail qsc frame decode before provider encapsulation.
+- Source review found `pq_encap_failed` in `qsl/qsl-client/qsc/src/handshake/mod.rs` responder A1 processing after exact-length frame decode and identity-pin checks, when `StdCrypto.encap(&init.kem_pk)` returns an error.
+- Source review found `pq_decap_failed` in the initiator B1 pending path when `StdCrypto.decap(&pending.kem_sk, &resp.kem_ct)` returns an error.
+- NA-0436 test evidence remains bounded to `pq_decap_failed`; markers include `NA0436_PQ_DECAP_FAILED_MARKER_OK`, `NA0436_NO_SESSION_MUTATION_ON_DECAP_REJECT_OK`, `NA0436_PENDING_STORE_NO_MUTATION_ON_DECAP_REJECT_OK`, `NA0436_PQ_ENCAP_FAILED_CAVEAT_PRESERVED_OK`, and `NA0436_NO_RUNTIME_HOOK_USED_OK`.
+
+## Dependency / Backup Boundary
+
+- Start public-safety proof: PASS on `a896e335191d`.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- qsl-backup SHA matched `e9ecff3d22ed`; codex ops source-list count was exactly 1.
+- No backup or restore was run.
+
+## Recovered Failures / Notes
+
+- `cargo tree -i pqcrypto-mlkem --locked` exited nonzero because the package ID was absent. Classification: valid zero-match dependency proof under the directive's expected `|| true` probes. Corrective action: record as absence proof. Final result: root pqcrypto blocker remained absent.
+- `cargo tree -i pqcrypto-traits --locked` and `cargo tree -i pqcrypto-internals --locked` were rerun with the directive's `|| true` shape and reported package-ID absence. Classification: valid zero-match dependency proof. Corrective action: record as absence proof. Final result: root pqcrypto package IDs remained absent.
+- `rg -n "pqcrypto-mlkem|pqcrypto-traits|pqcrypto-internals" qsl/qsl-client/qsc/fuzz/Cargo.lock` exited 1 with zero output. Classification: valid zero-match residual scan. Corrective action: record as absence proof. Final result: nested qsc fuzz lock pqcrypto residual package IDs remained absent.
+- Cargo audit/tree commands emitted benign package-cache/advisory lock-wait warnings during parallel local validation. Final result: audits and dependency-health probes passed and no lockfile mutation occurred.
+
+## Patch Notes
+
+- `pq_encap_failed` is documented as `PQ_ENCAP_FAILED_DEFENSIVE_BRANCH_DOCUMENTED` under current active provider and qsc external API behavior.
+- No executable coverage is claimed for `pq_encap_failed`.
+- NA-0436 `pq_decap_failed` test evidence is referenced as bounded decap-path no-mutation evidence only.
+- Selected successor: `NA-0438 -- QSL qsc Provider Error Path Fuzz / Adversarial Coverage Authorization Plan`.
+- D-0861 records the defensive branch documentation decision.
+- TRACEABILITY records NA-0437 evidence and successor selection.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, script, executable test, fuzz target, vector, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, qsl-backup, status, plan, rollback, or `/backup/qsl` path is intentionally mutated.
+
+## Validation Watch
+
+- Validation must prove READY_COUNT 1 and READY NA-0437.
+- Validation must prove D-0861 exists once, D-0862 absent, and duplicate decision IDs absent.
+- Scope guard must report exactly the five allowed NA-0437 governance paths.
+- Validation must prove no executable coverage overclaim for `pq_encap_failed`.
+- PR checks, including public-safety, must pass before merge.
+- Optional closeout to NA-0438 is allowed only after the NA-0437 PR merges and post-merge public-safety is green.
+
+## NA-0437 Local Validation Results
+
+- `git diff --check`: PASS.
+- Manual working-tree path guard: PASS, exactly `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0437_qsl_qsc_pq_encap_failed_defensive_branch_documentation_evidence_plan.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0437_qsl_qsc_pq_encap_failed_defensive_branch_documentation_testplan.md`.
+- Queue helper: PASS, READY_COUNT 1 and READY NA-0437.
+- Decision helper: PASS, latest D-0861 and duplicate decision count zero.
+- Exact decision proof: PASS, D-0859 once, D-0860 once, D-0861 once, D-0862 absent.
+- Manual markdown link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan final pass: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS, 1 test, required NA-0436 markers emitted.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: PASS, 3 tests.
+- `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768`: PASS, 3 tests.
+- `cargo fmt --check`: PASS.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: PASS.
+- `python3 formal/run_model_checks.py`: PASS.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- Root pqcrypto inverse probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+- Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
+- Local qsc adversarial script passed Rust adversarial tests: 8 tests.
+- Local qsc adversarial script passed miri-style adversarial tests: 6 tests.
+
+## Additional Recovered Failures / Notes
+
+- The first helper scope-guard run reported zero changed committed paths because the branch had not been committed yet. Classification: validation-order issue, not a scope failure. Corrective action: used manual working-tree path guard before commit and will rerun helper scope-guard after commit. Final result before commit: exact five-path working-tree guard passed.
+- The new evidence doc is under an ignored `**/evidence/` path. Classification: repository ignore-shape issue for governance evidence docs. Corrective action: mark it intent-to-add and force-add it at staging. Final result: the intended evidence doc appears in `git diff --name-only origin/main`.
+- First added-line overclaim scan exited nonzero because wrapped public-claim continuation lines carried sensitive terms without same-line negation. Classification: recoverable validation-shape issue. Corrective action: reworded the evidence doc so each sensitive term line carries explicit negation. Final result: `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Local qsc adversarial script exited 101 after passing Rust and miri-style phases because `cargo fuzz` is unavailable locally (`error: no such command: fuzz`). Classification: recoverable local tooling limitation explicitly allowed by the directive. Corrective action: record exact output and require PR CI `qsc-adversarial-smoke` as authoritative fuzz-backed smoke proof. Final result: local Rust phases passed; cargo-fuzz remains unavailable locally.

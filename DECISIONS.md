@@ -21965,3 +21965,67 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - cargo audit output must not be used as public-readiness, production-readiness, external-review, crypto-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof
     - more than one READY item remains
   - **References:** NA-0437; NA-0438; NA-0436; NA-0435; NA-0434; D-0862; D-0861; qsl-protocol PR #1143; qsc-adversarial workflow-dispatch run `27096472686`; `docs/governance/evidence/NA-0437_qsl_qsc_pq_encap_failed_defensive_branch_documentation_evidence_plan.md`; `tests/NA-0437_closeout_restore_na0438_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0863
+  - **Title:** NA-0438 qsc provider error path fuzz adversarial coverage authorization
+  - **Status:** Accepted
+  - **Date:** 2026-06-07
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0438 consumes NA-0437 `pq_encap_failed` defensive branch documentation and NA-0436 `pq_decap_failed` no-mutation test evidence. The selected authorization classification is `PROVIDER_ERROR_ADVERSARIAL_COVERAGE_IMPLEMENTATION_AUTHORIZED`. NA-0439 is selected as `QSL qsc Provider Error Path Adversarial Coverage Implementation Harness`, with future implementation limited to adding the existing `handshake_provider_error_no_mutation` test to the qsc adversarial script plus governance evidence/testplan, D/traceability, and rolling journal updates.
+  - **Selected successor:** `NA-0439 -- QSL qsc Provider Error Path Adversarial Coverage Implementation Harness`.
+  - **Future mutable paths authorized for NA-0439:** `scripts/ci/qsc_adversarial.sh`; `docs/governance/evidence/NA-0439_qsl_qsc_provider_error_path_adversarial_coverage_implementation_harness.md`; `tests/NA-0439_qsl_qsc_provider_error_path_adversarial_coverage_implementation_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+  - **Scope-authorization rationale:** Direct fuzz target implementation is deferred because current qsc fuzz targets do not instantiate handshake provider-error state. The existing deterministic `pq_decap_failed` test can be consumed by qsc-adversarial smoke through a narrow script-only implementation lane. `pq_encap_failed` remains blocked as executable coverage by defensive-branch/provider-behavior caveats and would require a separately authorized test seam/provider fake or equivalent strategy.
+  - **Stewardship rollout:** Level-1 stewardship rollout is active in applicable evidence docs through concise embedded `Applicable Stewardship Review` summaries. Level 2 and Level 3 remain future-gated. No separate Directors are created. No independent READY promotion is created. No independent merge authority is created. The Lead Director remains final authority and stewards remain advisory only.
+  - **Boundary:** NA-0438 makes no runtime, crypto, dependency, Cargo manifest, lockfile, workflow, script, executable test, fuzz target, vector, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, backup tree, branch-protection, or public-surface mutation.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No vulnerability-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. No bug-free claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Protected:**
+    - NA-0437 `pq_encap_failed` defensive branch documentation consumed
+    - NA-0436 `pq_decap_failed` no-mutation test evidence consumed
+    - Level-1 stewardship rollout active in applicable evidence docs
+    - selected classification `PROVIDER_ERROR_ADVERSARIAL_COVERAGE_IMPLEMENTATION_AUTHORIZED`
+    - selected successor NA-0439 adversarial coverage implementation harness
+    - exact future script path `scripts/ci/qsc_adversarial.sh` future-gated
+    - no executable coverage claim for `pq_encap_failed`
+    - no runtime/crypto/dependency/Cargo/lockfile/workflow/test/fuzz/vector mutation in this directive
+    - no backup or restore
+    - no public crypto-complete claim
+    - no vulnerability-free claim
+    - no bug-free claim
+    - no perfect-crypto claim
+    - no side-channel-free claim
+    - no public-readiness claim
+    - no production-readiness claim
+    - no public-internet-readiness claim
+    - no external-review-complete claim
+    - steward template used
+    - READY_COUNT 1
+    - READY NA-0438 until optional closeout
+    - D-0861 exists once
+    - D-0862 exists once
+    - D-0863 exists once after this lane
+    - D-0864 remains absent until optional closeout
+    - no duplicate decision IDs
+    - exactly one READY remains mandatory
+  - **Required behavior:**
+    - NA-0439 must not implement anything until restored as the sole READY item by a separate closeout
+    - NA-0439 must preserve `pq_encap_failed` as defensive-branch documentation only unless separate exact authorization changes that status
+    - NA-0439 must use POSIX-compatible shell changes for `scripts/ci/qsc_adversarial.sh`
+    - NA-0439 must not mutate runtime, crypto, dependencies, Cargo files, lockfiles, workflows, executable tests, fuzz targets, vectors, public surfaces, services, backup/local-ops paths, qwork/qstart/qresume/qshell, README, or START_HERE
+    - cargo audit output must remain dependency-health evidence only
+    - exactly one READY item remains mandatory
+  - **Must never happen:**
+    - `pq_encap_failed` is represented as executable-covered by NA-0438
+    - `pq_decap_failed` no-mutation evidence is overclaimed beyond the existing decap marker path
+    - a fuzz target implementation is hidden inside NA-0438
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, script, executable test, fuzz target, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside NA-0438
+    - cargo audit output must not be used as public-readiness proof
+    - cargo audit output must not be used as production-readiness proof
+    - cargo audit output must not be used as external-review-complete proof
+    - cargo audit output must not be used as crypto-complete proof
+    - cargo audit output must not be used as vulnerability-free proof
+    - cargo audit output must not be used as bug-free proof
+    - cargo audit output must not be used as perfect-crypto proof
+    - cargo audit output must not be used as side-channel-free proof
+    - more than one READY item remains
+  - **References:** NA-0438; NA-0439; NA-0437; NA-0436; NA-0435; NA-0434; D-0863; D-0862; D-0861; qsl-protocol PR #1144; qsc-adversarial workflow-dispatch run `27096472686`; `docs/governance/evidence/NA-0438_qsl_qsc_provider_error_path_fuzz_adversarial_coverage_authorization_plan.md`; `tests/NA-0438_qsl_qsc_provider_error_path_fuzz_adversarial_coverage_authorization_testplan.md`; `qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs`; `scripts/ci/qsc_adversarial.sh`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

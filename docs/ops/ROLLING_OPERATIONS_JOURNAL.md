@@ -26646,11 +26646,18 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Root pqcrypto inverse probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
 - Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
 - `cargo fmt --check`: PASS.
+- Post-commit helper scope guard: PASS, `CHANGED_PATH_COUNT 5`, all paths allowed, `FORBIDDEN_COUNT 0`.
+- Post-commit CI classifier: PASS, `scope_class=runtime_critical` due the closeout testplan path; no implementation path was changed.
+- Post-commit PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- Post-commit synthetic goal-lint: PASS, `OK: goal compliance checks passed.`
 
 ## Closeout Recovered Failures / Notes
 
 - The helper scope-guard run before commit reported `CHANGED_PATH_COUNT 0` because the helper compares committed refs and this branch had not been committed yet. Classification: validation-order issue, not a scope failure. Corrective action: used manual working-tree path guard before commit and will rerun helper scope-guard after commit. Final result before commit: exact five-path working-tree guard passed.
 - Synthetic goal-lint before commit reported no file changes detected because head still equaled origin/main for the commit-based diff. Classification: validation-order issue. Corrective action: PR body preflight passed before commit and synthetic goal-lint will be rerun after commit. Final result before commit: PR body metadata passed.
 - A closeout custom overclaim pass initially flagged explicit no-claim boundary text. Classification: recoverable scanner-shape false positive because each finding was a negated claim boundary, not an affirmative public claim. Corrective action: reran a negation-aware added-line scan that flags only affirmative sensitive phrases. Final result: `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- A post-commit helper scope-guard command used ambiguous `--allow` flags and exited with usage code 2. Classification: recoverable command-shape issue. Corrective action: reran with the documented `--allowed` flags. Final result: helper scope guard passed with five allowed paths and zero forbidden paths.
+- A post-commit goal-lint attempt used a nonexistent `qsl_evidence_helper.py goal-lint` subcommand and exited with usage code 2. Classification: recoverable command-shape issue. Corrective action: located `tools/goal_lint.py`, synthesized the required event payload from the closeout PR body and base/head SHAs, and reran goal-lint directly. Final result: goal compliance checks passed.
+- A PR body preflight attempt used unsupported `--body` syntax and exited with usage code 2. Classification: recoverable command-shape issue. Corrective action: reran `pr-body-preflight` with `--file` and the closeout PR body path. Final result: missing field count zero and prohibited phrase count zero.
 - Root pqcrypto inverse-tree probes returned package-ID absence. Classification: valid zero-match dependency proof under expected probes. Corrective action: record as absence proof. Final result: root pqcrypto package IDs remained absent.
 - Nested qsc fuzz lock pqcrypto residual scan returned zero matches. Classification: valid zero-match residual proof. Corrective action: record as absence proof. Final result: nested pqcrypto residual package IDs remained absent.

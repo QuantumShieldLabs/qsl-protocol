@@ -21681,3 +21681,51 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - cargo audit output must not be used as public-readiness, production-readiness, external-review, crypto-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof
     - more than one READY item remains
   - **References:** NA-0434; NA-0435; D-0856; D-0855; D-0854; D278 response `/home/victor/work/qsl/codex/responses/NA0434_20260607T013227Z_D278.md`; `docs/governance/evidence/NA-0434_qsl_qsc_provider_error_no_mutation_test_implementation_stop_recovery.md`; `tests/NA-0434_provider_error_no_mutation_stop_recovery_restore_na0435_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0857
+  - **Title:** NA-0435 qsc provider error path test hook defensive branch authorization
+  - **Status:** Accepted
+  - **Date:** 2026-06-06
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0435 consumes D278/D279 stop and recovery evidence and selects `NA-0436 -- QSL qsc pq_decap_failed No-Mutation Test Implementation Harness` as the exact successor. `pq_encap_failed` is classified as `ENCAP_FAILED_DEFENSIVE_BRANCH_DOCUMENTATION_CANDIDATE` with secondary classification `ENCAP_FAILED_TEST_ONLY_SEAM_REQUIRES_RUNTIME_CHANGE`; it is not currently externally triggerable through qsc external APIs with the active provider, and no existing test-only provider seam was found. `pq_decap_failed` is classified as `DECAP_ONLY_TEST_IMPLEMENTATION_READY` with secondary classification `DECAP_ONLY_TEST_SCOPE_NEEDS_AUTHORIZATION`, because D278 showed malformed pending KEM secret feasibility and existing qsc test fixture patterns can support a narrowed future test without runtime hooks.
+  - **Selected strategy:** `NARROW_DECAP_ONLY_TEST_AUTHORIZATION_READY`.
+  - **Selected successor:** `NA-0436 -- QSL qsc pq_decap_failed No-Mutation Test Implementation Harness`.
+  - **Exact future mutable paths if implementation is restored:** `qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs`; `docs/governance/evidence/NA-0436_qsl_qsc_pq_decap_failed_no_mutation_test_implementation_harness.md`; `tests/NA-0436_qsl_qsc_pq_decap_failed_no_mutation_test_implementation_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+  - **Current-lane boundary:** NA-0435 makes no runtime, crypto, dependency, Cargo manifest, lockfile, workflow, script, executable test, fuzz target, vector, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, `/backup/qsl`, branch-protection, or public-surface mutation.
+  - **Future boundary:** NA-0436 may implement only the narrowed `pq_decap_failed` test and governance evidence. Runtime hooks, provider fakes, trait-level provider injection, crypto/provider behavior changes, dependency changes, Cargo or lockfile changes, workflow changes, fuzz target changes, vector changes, public-surface changes, service changes, backup/restore changes, and qwork-tool changes remain forbidden unless a future exact authorization lane explicitly permits them.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review completion claim is made. No crypto-complete claim is made. No vulnerability-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. No bug-free claim is made. Cargo audit green remains dependency-health evidence only. Future no-mutation evidence remains bounded qsc-path evidence, not full correctness proof.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, `/backup/qsl`, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, or backup scripts.
+  - **Stewardship:** The advisory stewardship template was applied for Crypto / Protocol, CI / Dependency / Release Health, Public Claims / External Review, Product / Demo / Service Boundary, and Local Ops / Backup / Restore.
+  - **Protected:**
+    - D278/D279 stop evidence consumed
+    - READY_COUNT 1
+    - READY NA-0435 until optional closeout
+    - NA-0434 BLOCKED
+    - NA-0433 DONE
+    - NA-0432 DONE
+    - NA-0431 DONE
+    - NA-0430 DONE
+    - NA-0429 BLOCKED
+    - D-0854 exists once
+    - D-0855 exists once
+    - D-0856 exists once
+    - D-0857 exists once after this lane
+    - D-0858 remains absent until optional closeout
+    - no duplicate decision IDs
+    - no runtime/crypto/dependency/Cargo/lockfile/workflow/executable-test/vector mutation in NA-0435
+    - no backup or restore
+    - no public crypto-complete, vulnerability-free, perfect-crypto, public-readiness, production-readiness, external-review, bug-free, or side-channel-free claim
+    - exactly one READY remains mandatory
+  - **Required behavior:**
+    - optional closeout may restore NA-0436 only after this authorization PR merges and post-merge public-safety is green
+    - NA-0436 must preserve the `pq_encap_failed` caveat and must not claim executable coverage for that branch
+    - any future provider hook, provider fake, or trait-injection strategy must require a separate exact authorization lane before mutation
+    - cargo audit output must remain dependency-health evidence only
+    - exactly one READY item remains mandatory
+  - **Must never happen:**
+    - NA-0435 implements hooks, fakes, runtime wiring, defensive docs, or narrowed executable tests
+    - `pq_encap_failed` is represented as executable-covered by the narrowed decap-only successor
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, script, executable test, fuzz target, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside NA-0435
+    - cargo audit output must not be used as public-readiness, production-readiness, external-review, crypto-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof
+    - more than one READY item remains
+  - **References:** NA-0435; NA-0436; NA-0434; D-0857; D-0856; D-0855; D-0854; D278 response `/home/victor/work/qsl/codex/responses/NA0434_20260607T013227Z_D278.md`; D279 response `/home/victor/work/qsl/codex/responses/NA0434_20260607T023903Z_D279.md`; `docs/governance/evidence/NA-0435_qsl_qsc_provider_error_path_test_hook_defensive_branch_authorization_plan.md`; `tests/NA-0435_qsl_qsc_provider_error_path_test_hook_defensive_branch_authorization_testplan.md`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `qsl/qsl-client/qsc/tests/trust_model_v2_phase_a_na0177.rs`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -22092,3 +22092,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - cargo audit output must not be used as side-channel-free proof
     - more than one READY item remains
   - **References:** NA-0438; NA-0439; D-0864; D-0863; qsl-protocol PR #1145; qsc-adversarial workflow-dispatch run `27097806119`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0438_closeout_restore_na0439_testplan.md`
+
+- **ID:** D-0865
+  - **Title:** NA-0439 qsc provider error path adversarial coverage implementation
+  - **Status:** Accepted
+  - **Date:** 2026-06-07
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0439 updates exactly `scripts/ci/qsc_adversarial.sh` to run the existing provider-error no-mutation test command `cargo +stable test --manifest-path qsl/qsl-client/qsc/Cargo.toml --locked --test handshake_provider_error_no_mutation -- --test-threads=1` after the existing stable qsc adversarial Rust test phases and before cargo-fuzz phases. The script emits `NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP` before the command. This integrates bounded `pq_decap_failed` no-mutation evidence into qsc-adversarial smoke while preserving the `pq_encap_failed` defensive-branch caveat.
+  - **Local validation status:** `sh -n` and `bash -n` passed; direct `handshake_provider_error_no_mutation` passed with required NA-0436 markers; qsc `send_commit` passed; provider `pqkem768` passed; root cargo audit passed; nested qsc fuzz lock audit passed; cargo fmt passed; formal model checks passed; local `sh scripts/ci/qsc_adversarial.sh` ran the new provider-error test successfully before stopping at local cargo-fuzz unavailability.
+  - **PR CI qsc-adversarial-smoke status:** required before merge; pending until the NA-0439 PR executes. The PR must not merge unless `qsc-adversarial-smoke` completes success and public-safety completes success.
+  - **Scope boundary:** No runtime, crypto, dependency, Cargo manifest, lockfile, workflow, executable test, fuzz target, vector, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, backup tree, branch-protection, or public-surface mutation is authorized or made by this decision.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Selected successor:** `NA-0440 -- QSL qsc Provider Error Path Formal / Model Alignment Authorization Plan`.
+  - **Required behavior:** NA-0439 may close out only after the implementation PR merges, post-merge public-safety is green, and qsc-adversarial-smoke is green. The closeout must restore exactly one READY item. NA-0440 must not implement runtime, crypto, dependency, Cargo, lockfile, workflow, executable-test, fuzz-target, vector, public, service, or backup changes unless future exact scope authorizes them.
+  - **Must never happen:**
+    - `pq_encap_failed` is represented as executable-covered by NA-0439.
+    - `pq_decap_failed` no-mutation evidence is overclaimed beyond the existing decap marker path.
+    - a fuzz target implementation is hidden inside NA-0439.
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside NA-0439.
+    - No cargo audit output is used as public-readiness proof.
+    - No cargo audit output is used as production-readiness proof.
+    - No cargo audit output is used as external-review-complete proof.
+    - No cargo audit output is used as crypto-complete proof.
+    - No cargo audit output is used as vulnerability-free proof.
+    - No cargo audit output is used as bug-free proof.
+    - No cargo audit output is used as perfect-crypto proof.
+    - No cargo audit output is used as side-channel-free proof.
+    - more than one READY item remains.
+  - **References:** NA-0439; NA-0440; NA-0438; NA-0437; NA-0436; D-0865; D-0864; D-0863; `scripts/ci/qsc_adversarial.sh`; `docs/governance/evidence/NA-0439_qsl_qsc_provider_error_path_adversarial_coverage_implementation_harness.md`; `tests/NA-0439_qsl_qsc_provider_error_path_adversarial_coverage_implementation_testplan.md`; `qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

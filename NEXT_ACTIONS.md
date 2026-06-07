@@ -23013,7 +23013,7 @@ Closeout evidence:
 ---
 
 ### NA-0434 — QSL qsc Provider Error Path / No-Mutation Test Implementation Harness
-Status: READY
+Status: BLOCKED
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -23064,6 +23064,115 @@ Acceptance criteria:
 - nested fuzz lock audit remains green.
 - public-safety is green before merge and after merge.
 - public-claim caveats remain explicit.
+- exactly one READY item remains.
+
+Blocked recovery evidence:
+- D278 stopped before repository mutation with classification
+  `PROVIDER_ERROR_NO_MUTATION_RUNTIME_HOOK_NEEDED`.
+- The authorized test file remained absent:
+  `qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs`.
+- `pq_decap_failed` appears feasible through malformed pending KEM secret
+  evidence, including provider probe marker `decap short sk: Some(InvalidKey)`.
+- `pq_encap_failed` is not reachable through current qsc external APIs with the
+  active provider: qsc frame decode rejects wrong-length A1 KEM public keys
+  before provider encapsulation, and correct-length malformed public-key byte
+  patterns did not make `StdCrypto.encap` fail.
+- D278 provider probe evidence reported `encap zero: None`, `encap ff: None`,
+  `encap a5: None`, and `encap inc: None`.
+- Runtime hooks, provider mocks, crypto changes, dependency changes, and broader
+  test-scope changes were not authorized by NA-0434.
+- NA-0434 cannot be marked DONE because its acceptance criteria required both
+  exact provider-error markers.
+- Recovery successor:
+  `NA-0435 -- QSL qsc Provider Error Path Test Hook / Defensive Branch Authorization Plan`
+
+### NA-0435 — QSL qsc Provider Error Path Test Hook / Defensive Branch Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the next exact strategy for qsc provider-error no-mutation evidence
+after NA-0434 showed that `pq_encap_failed` is not externally triggerable
+through current qsc APIs with the active provider, deciding whether QSL should
+add a test-only provider failure hook, provider fake, trait-level test seam,
+defensive-branch documentation, or a narrowed no-mutation test scope without
+changing runtime behavior or public claims.
+
+Protects:
+- qsc provider-error handling clarity.
+- fail-closed reject behavior.
+- no-mutation-on-reject evidence quality.
+- provider boundary confidence after ml-kem replacement and nested fuzz lock
+  cleanup.
+- scope control before any runtime/test seam changes.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0435.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of:
+  - D278 response and proof root
+  - qsl/qsl-client/qsc/src/handshake/mod.rs
+  - qsl/qsl-client/qsc/tests/
+  - tools/refimpl/quantumshield_refimpl/src/crypto/
+  - tools/refimpl/quantumshield_refimpl/tests/
+  - formal/
+  - inputs/
+  - relevant evidence docs.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, Cargo, lockfile, workflow, qsl-server,
+  qsl-attachments, qshield runtime, website, public docs, README, or START_HERE
+  paths.
+- Mutating tests, fuzz target source, or vectors.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No production readiness claim.
+- No public-internet readiness claim.
+- No external-review completion claim.
+- No metadata-free behavior claim.
+- No anonymity claim.
+- No untraceability claim.
+- No off-host backup completion claim.
+- No disaster recovery completion claim.
+- No restore proof claim.
+- No backup completion claim.
+- No bug-free status claim.
+- No vulnerability-free status claim.
+- No perfect-crypto status claim.
+- No side-channel-free status claim.
+- No crypto-complete status claim.
+- Secret material handling.
+
+Deliverables:
+- NA-0435 evidence doc.
+- NA-0435 testplan.
+- D-0857 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- exact successor recommendation:
+  - test-only provider hook implementation harness;
+  - provider fake/test seam authorization;
+  - defensive branch documentation/finding;
+  - narrowed pq_decap_failed-only no-mutation test implementation;
+  - or alternative with exact scope.
+
+Acceptance criteria:
+- D278 stop evidence is consumed.
+- `pq_encap_failed` reachability is classified.
+- runtime hook/test seam need is accepted or rejected.
+- public-claim caveats are explicit.
+- no implementation mutation occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
 - exactly one READY item remains.
 
 ---

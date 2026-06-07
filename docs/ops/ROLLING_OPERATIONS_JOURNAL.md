@@ -8,6 +8,81 @@ Last-Updated: 2026-06-05
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-06-279 -- Recover NA-0434 Provider Error No-Mutation Test Implementation Stop and Restore NA-0435 Reachability / Test Strategy Authorization
+- Directive begin timestamp (America/Chicago): 2026-06-06T21:04:30-05:00
+- Directive begin timestamp (UTC): 2026-06-07T02:04:30Z
+- Host timestamp during recovery start (America/Chicago): 2026-06-06T21:12:44-05:00
+- Host timestamp during recovery start (UTC): 2026-06-07T02:12:49+00:00
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0434/qsl-protocol`
+- clean origin/main before recovery patch: `e4a73c2322`
+- recovery branch: `na-0434-provider-error-test-stop-recovery-restore-na0435`
+- D278 proof root: `/srv/qbuild/tmp/NA0434_provider_error_no_mutation_test_impl_20260607T012707Z`
+- D279 proof root: `/srv/qbuild/tmp/NA0434_provider_error_stop_recovery_20260607T021249Z`
+- qsl-server: not touched; no mutation
+- qsl-attachments: not touched; no mutation
+
+## READY Proof
+
+- Codex did not run qwork, qstart, or qresume.
+- PR #1137 was verified MERGED at `e4a73c2322`.
+- Clean `origin/main` before recovery patch: READY_COUNT `1`; READY `NA-0434`; NA-0433 DONE; NA-0432 DONE; NA-0431 DONE; NA-0430 DONE; NA-0429 BLOCKED; latest decision D-0855; D-0854 once; D-0855 once; D-0856 absent; duplicate decision count zero.
+- Public-safety on `e4a73c2322` completed success before recovery patch.
+- Root cargo audit and nested qsc fuzz lock audit completed success before recovery patch.
+- qsl-backup SHA matched `e9ecff3d22ed`; `/home/victor/work/qsl/codex/ops` appeared exactly once in the installed qsl-backup source list.
+
+## D278 Stop / Recovery Patch State
+
+- D278 response exists at `/home/victor/work/qsl/codex/responses/NA0434_20260607T013227Z_D278.md`.
+- D278 stopped before repository mutation with classification `PROVIDER_ERROR_NO_MUTATION_RUNTIME_HOOK_NEEDED`.
+- D278 provider probe evidence: `encap zero: None`, `encap ff: None`, `encap a5: None`, `encap inc: None`, and `decap short sk: Some(InvalidKey)`.
+- `pq_encap_failed` is not reachable through current qsc external APIs with the active provider because wrong-length A1 KEM public keys are rejected before provider encapsulation and correct-length malformed byte patterns did not make `StdCrypto.encap` fail.
+- `pq_decap_failed` remains partial feasibility only; it was not implemented because NA-0434 required both markers.
+- NA-0434 is marked BLOCKED, not DONE.
+- NA-0435 -- QSL qsc Provider Error Path Test Hook / Defensive Branch Authorization Plan is restored as the sole READY successor.
+- D-0856 records `NA0434_PROVIDER_ERROR_NO_MUTATION_TEST_IMPLEMENTATION_BLOCKED_RUNTIME_HOOK_NEEDED`.
+- Changed paths are intended to remain limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0434_qsl_qsc_provider_error_no_mutation_test_implementation_stop_recovery.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0434_provider_error_no_mutation_stop_recovery_restore_na0435_testplan.md`.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, script, executable test, fuzz target, vector, service, public, backup, qwork, qsl-backup, status, plan, rollback, README, START_HERE, website, qsl-server, or qsl-attachments path is in scope for mutation.
+
+## Recovered / Classified Non-Zero Commands
+
+- Failing command: `sed -n '1,220p' docs/ops/TEMPLATE_Rolling_Operations_JOURNAL_v0.1.0.md`.
+  - Classification: recoverable command-shape error because the filename capitalization was wrong.
+  - Corrective action: read the correctly cased `docs/ops/TEMPLATE_Rolling_Operations_Journal_v0.1.0.md`.
+  - Final result: rolling journal template instructions were read.
+- Failing commands: root inverse-tree probes for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+  - Classification: recoverable zero-match dependency proof because package-ID absence is the required root locked-graph outcome.
+  - Corrective action: record package-ID absence and keep root cargo audit as the root dependency-health gate.
+  - Final result: root pqcrypto package IDs are absent.
+- Failing command: added-line overclaim scan over the staged recovery diff.
+  - Classification: recoverable in-scope documentation validation failure because one required no-claim phrase wrapped the restricted phrase away from its local negation.
+  - Corrective action: tightened the affected testplan wording so the recovery keeps local negative wording and avoids the restricted affirmative phrase.
+  - Final result: `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0`.
+
+## Validation / CI Notes
+
+- Local validation passed: `git diff --check`; `git diff --cached --check`; exact six-path scope guard; link-check `TOTAL_MISSING 0`; PR body preflight `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`; classifier `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, `scope_class=docs_only`; queue READY_COUNT `1` / READY NA-0435; decision helper latest D-0856 with D-0854 once, D-0855 once, D-0856 once, D-0857 absent, and duplicate count zero; added-line overclaim scan `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0`; root `cargo audit --deny warnings`; nested fuzz lock `cargo audit --deny warnings --file`; root `rustls-webpki v0.103.13`; root `ml-kem v0.2.1`; root pqcrypto package-ID absence checks; nested fuzz pqcrypto residual scan zero lines; `cargo fmt --check`; qsc `send_commit`; refimpl `pqkem768`; `formal/model_qsc_handshake_suite_id_bounded.py`; and `formal/run_model_checks.py`.
+- Protected checks: pending.
+- Retry notes: none yet.
+
+## Disk watermark
+
+- Filesystem: `/dev/nvme0n1p2` mounted at `/`.
+- Total: `468G`; used: `221G`; available: `224G`; use: `50%`.
+- Watermark proof: `/srv/qbuild/tmp/NA0434_provider_error_stop_recovery_20260607T021249Z/startup/disk_watermark_start.txt`.
+
+## Next-Watch Items
+
+- Recovery PR must merge only after required checks and public-safety pass.
+- NA-0435 must not implement runtime hooks, provider fakes, test seams, defensive documentation, or narrowed executable tests; it must authorize the next exact strategy only.
+- D278's `pq_encap_failed` reachability residual and `pq_decap_failed` partial feasibility residual remain the primary follow-up facts.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-06-271 -- Recover NA-0429 Failed qsc Fuzz Lock Cleanup Attempt, Close Unsafe PR #1127, and Restore NA-0430 qsc Adversarial Fuzz Validation Blocker Triage
 - Directive begin timestamp (America/Chicago): 2026-06-06T09:04:30-05:00
 - Directive begin timestamp (UTC): 2026-06-06T14:04:30Z

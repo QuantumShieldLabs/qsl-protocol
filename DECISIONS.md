@@ -21729,3 +21729,51 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - cargo audit output must not be used as public-readiness, production-readiness, external-review, crypto-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof
     - more than one READY item remains
   - **References:** NA-0435; NA-0436; NA-0434; D-0857; D-0856; D-0855; D-0854; D278 response `/home/victor/work/qsl/codex/responses/NA0434_20260607T013227Z_D278.md`; D279 response `/home/victor/work/qsl/codex/responses/NA0434_20260607T023903Z_D279.md`; `docs/governance/evidence/NA-0435_qsl_qsc_provider_error_path_test_hook_defensive_branch_authorization_plan.md`; `tests/NA-0435_qsl_qsc_provider_error_path_test_hook_defensive_branch_authorization_testplan.md`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/tests/handshake_mvp.rs`; `qsl/qsl-client/qsc/tests/trust_model_v2_phase_a_na0177.rs`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0858
+  - **Title:** NA-0435 closeout and NA-0436 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-06
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0435 is closed after qsl-protocol PR #1139 merged at `0f2c841d2707`, post-merge public-safety completed success on that merge commit, and post-merge `qsc-adversarial-smoke` completed success. NA-0435 is marked DONE and `NA-0436 -- QSL qsc pq_decap_failed No-Mutation Test Implementation Harness` is restored as the sole READY successor. NA-0434 remains BLOCKED.
+  - **Selected strategy:** `NARROW_DECAP_ONLY_TEST_AUTHORIZATION_READY`.
+  - **Selected successor:** `NA-0436 -- QSL qsc pq_decap_failed No-Mutation Test Implementation Harness`.
+  - **Exact future mutable paths:** `qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs`; qsl-protocol governance evidence/testplan paths for NA-0436; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+  - **Closeout boundary:** This closeout makes no runtime, crypto, dependency, Cargo manifest, lockfile, workflow, script, executable test, fuzz target, vector, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, `/backup/qsl`, branch-protection, or public-surface mutation.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review completion claim is made. No crypto-complete claim is made. No vulnerability-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. No bug-free claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, `/backup/qsl`, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, or backup scripts.
+  - **Protected:**
+    - PR #1139 is MERGED at `0f2c841d2707`
+    - post-merge public-safety is green on `0f2c841d2707`
+    - post-merge `qsc-adversarial-smoke` is green on `0f2c841d2707`
+    - READY_COUNT 1
+    - NA-0435 DONE
+    - READY NA-0436
+    - NA-0434 BLOCKED
+    - NA-0433 DONE
+    - NA-0432 DONE
+    - NA-0431 DONE
+    - NA-0430 DONE
+    - NA-0429 BLOCKED
+    - D-0856 exists once
+    - D-0857 exists once
+    - D-0858 exists once after this closeout
+    - D-0859 remains absent until future NA-0436 work
+    - no duplicate decision IDs
+    - no runtime/crypto/dependency/workflow/test/vector mutation in this closeout
+    - no backup or restore
+    - no public crypto-complete, vulnerability-free, perfect-crypto, public-readiness, production-readiness, external-review, bug-free, or side-channel-free claim
+    - exactly one READY remains mandatory
+  - **Required behavior:**
+    - NA-0436 may add or modify only `qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs` plus NA-0436 governance evidence/testplan, DECISIONS, TRACEABILITY, and rolling journal paths
+    - NA-0436 must preserve the `pq_encap_failed` caveat and must not claim executable coverage for that branch
+    - NA-0436 must stop rather than broaden scope if exact narrowed tests require runtime, crypto, dependency, Cargo, lockfile, workflow, fuzz target, vector, service, backup, or public-surface changes
+    - cargo audit output must remain dependency-health evidence only
+    - exactly one READY item remains mandatory
+  - **Must never happen:**
+    - NA-0436 implementation starts inside this closeout
+    - NA-0434 BLOCKED history is rewritten
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, script, executable test, fuzz target, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside this closeout
+    - cargo audit output must not be used as public-readiness, production-readiness, external-review, crypto-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof
+    - more than one READY item remains
+  - **References:** NA-0435; NA-0436; NA-0434; D-0858; D-0857; qsl-protocol PR #1139; `docs/governance/evidence/NA-0435_qsl_qsc_provider_error_path_test_hook_defensive_branch_authorization_plan.md`; `tests/NA-0435_closeout_restore_na0436_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

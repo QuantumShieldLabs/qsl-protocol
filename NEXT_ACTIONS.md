@@ -23385,7 +23385,7 @@ Completion notes:
 - Cargo audit green remains dependency-health evidence only.
 
 ### NA-0438 — QSL qsc Provider Error Path Fuzz / Adversarial Coverage Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -23464,6 +23464,98 @@ Acceptance criteria:
 - no implementation mutation occurs.
 - cargo audit remains green.
 - nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+---
+
+### NA-0439 — QSL qsc Provider Error Path Adversarial Coverage Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the NA-0438-authorized bounded qsc adversarial harness coverage step
+by adding the existing `handshake_provider_error_no_mutation` integration test
+to the qsc adversarial script, so qsc-adversarial smoke consumes
+`pq_decap_failed` provider-error no-mutation evidence without changing runtime
+code, crypto code, dependencies, workflows, executable tests, fuzz targets,
+vectors, public surfaces, services, or backup/local-ops state.
+
+Protects:
+- qsc provider-error adversarial evidence quality.
+- fail-closed reject behavior.
+- no-mutation-on-reject evidence quality.
+- honest caveating of defensive branches.
+- `pq_encap_failed` defensive-branch documentation boundary.
+- provider boundary confidence after ml-kem replacement and nested fuzz lock
+  cleanup.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- `scripts/ci/qsc_adversarial.sh`.
+- qsl-protocol governance evidence/testplan paths for NA-0439.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of:
+  - qsl/qsl-client/qsc/fuzz/
+  - scripts/ci/qsc_adversarial.sh
+  - .github/workflows/qsc-adversarial.yml
+  - qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs
+  - qsc provider-error paths
+  - formal/
+  - inputs/
+  - relevant evidence docs.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, Cargo, lockfile, workflow, qsl-server,
+  qsl-attachments, qshield runtime, website, public docs, README, or START_HERE
+  paths.
+- Mutating executable tests, fuzz target source, or vectors.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- No public technical paper content.
+- No public-readiness claim.
+- No production-readiness claim.
+- No public-internet-readiness claim.
+- No external-review-complete claim.
+- No metadata-free behavior claim.
+- No anonymity claim.
+- No untraceability claim.
+- No off-host backup completion claim.
+- No disaster recovery completion claim.
+- No restore proof claim.
+- No backup completion claim.
+- No bug-free status claim.
+- No vulnerability-free status claim.
+- No perfect-crypto status claim.
+- No side-channel-free status claim.
+- No crypto-complete status claim.
+- Secret material handling.
+
+Deliverables:
+- NA-0439 evidence doc.
+- NA-0439 testplan.
+- D-0865 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- Exact qsc adversarial script implementation that runs the existing
+  `handshake_provider_error_no_mutation` test.
+
+Acceptance criteria:
+- adversarial harness scope is implemented only in `scripts/ci/qsc_adversarial.sh`.
+- `pq_encap_failed` defensive branch caveat is preserved.
+- `pq_decap_failed` test evidence is consumed without overclaim.
+- no runtime, crypto, dependency, Cargo, lockfile, workflow, executable test,
+  fuzz target, vector, public-surface, service, or backup/local-ops mutation
+  occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- qsc-adversarial-smoke is green before merge and after merge.
 - public-safety is green before merge and after merge.
 - exactly one READY item remains.
 

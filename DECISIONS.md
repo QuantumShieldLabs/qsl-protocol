@@ -22029,3 +22029,66 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - cargo audit output must not be used as side-channel-free proof
     - more than one READY item remains
   - **References:** NA-0438; NA-0439; NA-0437; NA-0436; NA-0435; NA-0434; D-0863; D-0862; D-0861; qsl-protocol PR #1144; qsc-adversarial workflow-dispatch run `27096472686`; `docs/governance/evidence/NA-0438_qsl_qsc_provider_error_path_fuzz_adversarial_coverage_authorization_plan.md`; `tests/NA-0438_qsl_qsc_provider_error_path_fuzz_adversarial_coverage_authorization_testplan.md`; `qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs`; `scripts/ci/qsc_adversarial.sh`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0864
+  - **Title:** NA-0438 closeout and NA-0439 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-07
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0438 is closed after qsl-protocol PR #1145 merged at `ea522b4024dd`, post-merge public-safety completed success on that merge commit, main-push qsc-adversarial-smoke completed success on that merge commit, and workflow-dispatched qsc-adversarial-smoke and qsc-adversarial-miri completed success on the PR #1145 head after local cargo-fuzz was unavailable. NA-0438 is marked DONE and `NA-0439 -- QSL qsc Provider Error Path Adversarial Coverage Implementation Harness` is restored as the sole READY successor.
+  - **Selected successor:** `NA-0439 -- QSL qsc Provider Error Path Adversarial Coverage Implementation Harness`.
+  - **Closeout boundary:** This closeout makes no additional runtime, crypto, dependency, Cargo manifest, lockfile, workflow, script implementation, executable test, fuzz target, vector, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, backup tree, branch-protection, or public-surface mutation.
+  - **NA-0439 future boundary:** Future NA-0439 may mutate `scripts/ci/qsc_adversarial.sh` plus its governance evidence/testplan, DECISIONS, TRACEABILITY, and rolling journal paths only. Future NA-0439 must not mutate runtime, crypto, dependencies, Cargo files, lockfiles, workflows, executable tests, fuzz targets, vectors, public surfaces, services, backup/local-ops paths, qwork/qstart/qresume/qshell, README, or START_HERE.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No vulnerability-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. No bug-free claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Protected:**
+    - PR #1145 is MERGED at `ea522b4024dd`
+    - post-merge public-safety is green on `ea522b4024dd`
+    - post-merge qsc-adversarial-smoke is green on `ea522b4024dd`
+    - workflow-dispatched qsc-adversarial-smoke and qsc-adversarial-miri are green on PR #1145 head
+    - NA-0438 authorization selected adversarial implementation successor
+    - no executable coverage claim for `pq_encap_failed`
+    - `pq_decap_failed` test evidence remains bounded to that marker
+    - READY_COUNT 1
+    - NA-0438 DONE
+    - READY NA-0439
+    - NA-0437 DONE
+    - NA-0436 DONE
+    - NA-0435 DONE
+    - NA-0434 BLOCKED
+    - D-0863 exists once
+    - D-0864 exists once after this closeout
+    - D-0865 remains absent until future NA-0439 work
+    - no duplicate decision IDs
+    - no runtime/crypto/dependency/workflow/test/fuzz/vector mutation in this closeout
+    - no backup or restore
+    - no public crypto-complete claim
+    - no vulnerability-free claim
+    - no bug-free claim
+    - no perfect-crypto claim
+    - no side-channel-free claim
+    - no public-readiness claim
+    - no production-readiness claim
+    - no public-internet-readiness claim
+    - no external-review-complete claim
+    - exactly one READY remains mandatory
+  - **Required behavior:**
+    - NA-0439 must implement only the script-scoped adversarial harness change authorized by D-0863 unless future exact authorization changes scope
+    - NA-0439 must preserve `pq_encap_failed` as defensive-branch documentation only unless separate exact authorization changes that status
+    - NA-0439 must consume `pq_decap_failed` test evidence without overclaim
+    - cargo audit output must remain dependency-health evidence only
+    - exactly one READY item remains mandatory
+  - **Must never happen:**
+    - NA-0439 implementation starts inside this closeout
+    - `pq_encap_failed` is represented as executable-covered by NA-0438 or this closeout
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside this closeout
+    - cargo audit output must not be used as public-readiness proof
+    - cargo audit output must not be used as production-readiness proof
+    - cargo audit output must not be used as external-review-complete proof
+    - cargo audit output must not be used as crypto-complete proof
+    - cargo audit output must not be used as vulnerability-free proof
+    - cargo audit output must not be used as bug-free proof
+    - cargo audit output must not be used as perfect-crypto proof
+    - cargo audit output must not be used as side-channel-free proof
+    - more than one READY item remains
+  - **References:** NA-0438; NA-0439; D-0864; D-0863; qsl-protocol PR #1145; qsc-adversarial workflow-dispatch run `27097806119`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0438_closeout_restore_na0439_testplan.md`

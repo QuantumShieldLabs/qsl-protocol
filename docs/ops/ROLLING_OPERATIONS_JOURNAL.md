@@ -26579,3 +26579,78 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - The helper scope-guard run before commit reported `CHANGED_PATH_COUNT 0` because the helper compares committed refs and this branch had not been committed yet. Classification: validation-order issue, not a scope failure. Corrective action: used the manual working-tree path guard before commit and will rerun helper scope-guard after commit. Final result before commit: exact five-path working-tree guard passed.
 - First added-line overclaim scan exited nonzero because wrapped no-claim continuation lines carried sensitive terms without same-line negation. Classification: recoverable validation-shape issue. Corrective action: reworded claim-boundary lines so each sensitive phrase carries explicit same-line negation. Final result: `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
 - Local qsc adversarial script exited 101 after passing Rust adversarial phases because local `cargo fuzz` is unavailable (`error: no such command: fuzz`). Classification: recoverable local tooling limitation explicitly anticipated by the testplan. Corrective action: recorded exact output and require PR CI qsc-adversarial-smoke as the authoritative cargo-fuzz-backed smoke proof. Final result: local Rust phases passed; local cargo-fuzz remains unavailable.
+
+## NA-0438 PR / Merge Results
+
+- Evidence PR #1145: `NA-0438: authorize provider error fuzz adversarial coverage`.
+- Evidence PR head: `e3348f4a8706`.
+- Evidence PR merge commit: `ea522b4024dd`.
+- Required PR checks completed success or accepted neutral: ci-4a, ci-4b, ci-4c, ci-4d, ci-4d-dur, demo-cli-build, demo-cli-smoke, formal-scka-model, goal-lint, metadata-conformance-smoke, suite2-vectors, CodeQL neutral, macos-qsc-qshield-build, public-safety.
+- PR qsc-adversarial jobs were skipped by the PR workflow classifier, so Codex dispatched qsc-adversarial workflow run `27097806119` on the PR branch.
+- Workflow-dispatched qsc-adversarial run `27097806119` completed success: classify, qsc-adversarial-smoke, and qsc-adversarial-miri all success.
+- PR #1145 merged with a merge commit and matched expected head `e3348f4a8706`.
+- Post-merge main-push qsc-adversarial-smoke completed success on `ea522b4024dd`.
+- Post-merge public-safety completed success on `ea522b4024dd`.
+
+# QSL-DIR-2026-06-07-285 / NA-0438 closeout and NA-0439 restoration rolling journal
+
+- Directive: QSL-DIR-2026-06-07-285 optional closeout -- close out NA-0438 after PR #1145 post-merge public-safety completion and restore NA-0439.
+- Closeout branch: `na-0438-closeout-restore-na0439`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Closeout READY Proof
+
+- Main before closeout branch: `ea522b4024dd`.
+- Queue proof before closeout patch: READY_COUNT 1, READY NA-0438.
+- Decision proof before closeout patch: latest D-0863; D-0863 once; D-0864 absent; duplicate decision count zero.
+- Post-merge public-safety on `ea522b4024dd`: PASS.
+- Post-merge qsc-adversarial-smoke on `ea522b4024dd`: PASS.
+
+## Closeout Patch Notes
+
+- NA-0438 is marked DONE.
+- NA-0439 is restored as the sole READY item.
+- D-0864 records NA-0438 closeout and NA-0439 restoration.
+- TRACEABILITY records PR #1145, post-merge public-safety, post-merge qsc-adversarial-smoke, workflow-dispatched qsc-adversarial evidence, and the NA-0439 script-scoped successor.
+- Closeout testplan path: `tests/NA-0438_closeout_restore_na0439_testplan.md`.
+- No NA-0439 implementation is performed.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, script implementation, executable test, fuzz target, vector, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, qsl-backup, status, plan, rollback, or backup tree path is intentionally mutated.
+- No backup or restore was run.
+
+## Closeout Validation Watch
+
+- Closeout validation must prove READY_COUNT 1 and READY NA-0439.
+- Closeout validation must prove NA-0438 DONE, D-0864 exists once, D-0865 absent, and duplicate decision IDs absent.
+- Closeout scope guard must report exactly the five allowed closeout paths.
+- Closeout PR checks, including public-safety, must pass before merge.
+
+## Closeout Local Validation Results
+
+- `git diff --check`: PASS.
+- Queue helper: PASS, READY_COUNT 1 and READY NA-0439.
+- Decision helper: PASS, latest D-0864 and duplicate decision count zero.
+- Exact status proof: PASS, NA-0439 READY, NA-0438 DONE, NA-0437 DONE, NA-0436 DONE, NA-0435 DONE, NA-0434 BLOCKED, NA-0429 BLOCKED.
+- Exact decision proof: PASS, D-0863 once, D-0864 once, D-0865 absent.
+- Manual working-tree path guard: PASS, exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0438_closeout_restore_na0439_testplan.md`.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS, 1 test, required NA-0436 markers emitted.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- Root pqcrypto inverse probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+- Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
+- `cargo fmt --check`: PASS.
+
+## Closeout Recovered Failures / Notes
+
+- The helper scope-guard run before commit reported `CHANGED_PATH_COUNT 0` because the helper compares committed refs and this branch had not been committed yet. Classification: validation-order issue, not a scope failure. Corrective action: used manual working-tree path guard before commit and will rerun helper scope-guard after commit. Final result before commit: exact five-path working-tree guard passed.
+- Synthetic goal-lint before commit reported no file changes detected because head still equaled origin/main for the commit-based diff. Classification: validation-order issue. Corrective action: PR body preflight passed before commit and synthetic goal-lint will be rerun after commit. Final result before commit: PR body metadata passed.
+- A closeout custom overclaim pass initially flagged explicit no-claim boundary text. Classification: recoverable scanner-shape false positive because each finding was a negated claim boundary, not an affirmative public claim. Corrective action: reran a negation-aware added-line scan that flags only affirmative sensitive phrases. Final result: `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Root pqcrypto inverse-tree probes returned package-ID absence. Classification: valid zero-match dependency proof under expected probes. Corrective action: record as absence proof. Final result: root pqcrypto package IDs remained absent.
+- Nested qsc fuzz lock pqcrypto residual scan returned zero matches. Classification: valid zero-match residual proof. Corrective action: record as absence proof. Final result: nested pqcrypto residual package IDs remained absent.

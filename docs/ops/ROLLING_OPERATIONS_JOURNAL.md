@@ -25747,3 +25747,86 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - NA-0433 should consume F-0432 findings and classify whether qsc provider-error no-mutation test authorization, provider-error marker documentation, formal/model alignment, or fuzz/adversarial provider-error coverage is needed.
 - The qsc provider-error/no-mutation residual remains bounded internal governance evidence.
 - Public claim caveats remain active for public readiness, production readiness, external review, crypto completeness, side-channel freedom, bug-free status, vulnerability-free status, and perfect-crypto status.
+
+# QSL-DIR-2026-06-06-277 / NA-0433 provider-error no-mutation findings triage rolling journal
+
+- Directive: QSL-DIR-2026-06-06-277 -- Execute NA-0433 QSL qsc Provider Error Path / No-Mutation Findings Triage Authorization Plan, Optional Closeout to NA-0434
+- Begin timestamp (America/Chicago): 2026-06-06T19:34:30-05:00
+- Begin timestamp (UTC): 2026-06-07T00:34:30Z
+- Execution timestamp captured locally: 2026-06-06T19:36:33-05:00 / 2026-06-07T00:36:33+00:00
+- Proof root: `/srv/qbuild/tmp/NA0433_provider_error_no_mutation_findings_triage_20260607T003732Z`
+
+## Startup / qwork proof
+
+- qwork proof files existed under `/srv/qbuild/work/NA-0433/.qwork/`.
+- `.kv` reported startup OK, lane NA-0433, repo qsl-protocol, expected path, clean worktree/index/untracked, READY count 1, queue top READY NA-0433, and requested lane status READY.
+- JSON proof parsed and mirrored the required `.kv` fields.
+- Codex did not run qwork, qstart, or qresume.
+- After `git fetch --all --prune`, live `HEAD` and `origin/main` still matched qwork proof at `5b5221b2d62d`.
+- PR #1135 was verified MERGED at `5b5221b2d62d`.
+
+## Preconditions
+
+- Queue helper reported READY_COUNT 1 and READY NA-0433.
+- NA-0432 DONE, NA-0431 DONE, NA-0430 DONE, and NA-0429 BLOCKED were verified.
+- Decision helper reported latest decision D-0853, D-0852 once, D-0853 once, D-0854 absent at start, and duplicate count zero.
+- Current main public-safety on `5b5221b2d62d` completed success.
+- Root `cargo audit --deny warnings` passed.
+- Nested qsc fuzz lock audit passed.
+- Root `rustls-webpki` was `v0.103.13`; root `ml-kem` was present through the intended provider path.
+- Root pqcrypto package-ID probes reported absence.
+- Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
+- qsl-backup SHA matched `e9ecff3d22ed`; narrowed qsl-backup source-list count for `/home/victor/work/qsl/codex/ops` was 1.
+- Prior D276 response file was present.
+
+## Findings triage
+
+- NA-0432 findings F-0432-01 through F-0432-08 were consumed.
+- qsc runtime contains sanitized provider-error marker paths for `pq_encap_failed` and `pq_decap_failed`.
+- Existing qsc tests contain broader no-mutation evidence but no exact executable qsc tests for those marker names.
+- qsc integration tests already have mock relay, frame tamper, session path, and test-local vault inspection patterns.
+- Future exact test path selected: `qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs`.
+- Formal/model status: supporting-only for now because current models are crypto-agnostic and do not model provider byte conversion or provider-error labels.
+- Fuzz/adversarial status: backlog after deterministic qsc tests; current fuzz targets cover route, payload, and vault parsing, not handshake provider-error encap/decap paths.
+- Dependency status: green/no action.
+- Public claim status: internal governance evidence only; no public claim expansion.
+
+## Authorization outcome
+
+- Primary classification: `PROVIDER_ERROR_NO_MUTATION_TEST_IMPLEMENTATION_AUTHORIZED`.
+- Selected successor: `NA-0434 -- QSL qsc Provider Error Path / No-Mutation Test Implementation Harness`.
+- Future NA-0434 may add only the exact qsc test path plus NA-0434 governance evidence/testplan, DECISIONS, TRACEABILITY, and rolling journal paths.
+- NA-0433 itself does not implement NA-0434 and does not mutate executable tests.
+
+## Failures / Recoveries
+
+- Nonzero absence proof: nested fuzz lock scan `rg -n "pqcrypto-mlkem|pqcrypto-traits|pqcrypto-internals" qsl/qsl-client/qsc/fuzz/Cargo.lock` returned exit 1 with zero output. Classification: valid zero-match discovery/proof outcome. Corrective action: record as absence proof. Final result: nested pqcrypto residual package IDs remained absent.
+- Nonzero absence proof: root `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked` reported package-ID absence. Classification: expected absence under the directive's `|| true` pattern. Corrective action: record as absence proof. Final result: root pqcrypto package IDs remained absent.
+- Non-fatal warning: parallel cargo audit/tree reads briefly waited on shared cargo advisory/package cache locks. Final result: root and nested cargo audits passed and dependency probes completed.
+- Local qsc adversarial script recovery: `scripts/ci/qsc_adversarial.sh` passed Rust adversarial and miri-style phases, then exited 101 at `cargo fuzz` with `error: no such command: fuzz`. Classification: recoverable local tooling limitation explicitly allowed by the directive. Corrective action: record exact local output and require PR CI `qsc-adversarial-smoke` as the authoritative fuzz-backed smoke proof. Final result: local Rust phases passed; cargo-fuzz remains unavailable locally.
+
+## Validation Notes
+
+- Staged scope guard reported exactly five allowed NA-0433 paths and zero extra paths.
+- `git diff --cached --check` passed.
+- Queue helper after patch reported READY_COUNT 1 and READY NA-0433.
+- Decision helper after patch reported latest D-0854, D-0852 once, D-0853 once, D-0854 once, D-0855 absent, and duplicate count zero.
+- Link check reported `TOTAL_MISSING 0`.
+- Added-line leak scan reported `SECRET_FINDING_COUNT 0`.
+- PR body preflight reported all required fields present and zero prohibited phrases.
+- Root `cargo audit --deny warnings` and nested qsc fuzz lock audit both passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`; `cargo tree -i ml-kem --locked` reported `ml-kem v0.2.1`.
+- `cargo fmt --check` passed.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` passed: 3 tests.
+- `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768` passed: 3 tests.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py` passed.
+- `python3 formal/run_model_checks.py` passed.
+- Current-main public-safety on `5b5221b2d62d` remained completed success before PR creation.
+
+## Forward Watch
+
+- NA-0434 should implement exact qsc provider-error no-mutation tests for `pq_encap_failed` and `pq_decap_failed` without runtime hooks.
+- If NA-0434 cannot implement the tests without runtime, crypto, dependency, Cargo, lockfile, workflow, fuzz target, vector, public, service, backup, or qwork-tool mutation, it must stop rather than broaden scope.
+- Formal/model provider-error alignment remains a backlog candidate after exact qsc tests.
+- Provider-error fuzz/adversarial coverage remains a backlog candidate after exact qsc tests.
+- Public claim caveats remain active for public readiness, production readiness, external review, crypto completeness, side-channel freedom, bug-free status, vulnerability-free status, and perfect-crypto status.

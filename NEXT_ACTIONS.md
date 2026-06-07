@@ -23199,7 +23199,7 @@ Closeout evidence:
     vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
 
 ### NA-0436 — QSL qsc pq_decap_failed No-Mutation Test Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -23234,11 +23234,12 @@ Forbidden scope:
 - Mutating backup status or backup plan files.
 - Mutating qwork/qstart/qresume/qshell.
 - Creating public technical paper content.
-- Creating or implying production readiness, public-internet readiness,
-  external-review completion, metadata-free behavior, anonymity,
-  untraceability, off-host backup completion, disaster recovery completion,
-  restore proof, backup completion, bug-free status, vulnerability-free status,
-  perfect-crypto status, side-channel-free status, or crypto-complete status.
+- No production readiness, public-internet readiness, external-review completion,
+  metadata-free behavior, anonymity, or untraceability claim or implication.
+- No off-host backup completion, disaster recovery completion, restore proof,
+  backup completion, bug-free status, vulnerability-free status,
+  perfect-crypto status, side-channel-free status, or crypto-complete status
+  claim or implication.
 - Secret material handling.
 
 Deliverables:
@@ -23253,6 +23254,112 @@ Acceptance criteria:
 - exact narrowed test passes.
 - `pq_encap_failed` caveat is preserved.
 - no runtime/crypto/dependency mutation occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+Closeout evidence:
+- qsl-protocol implementation PR: #1141 https://github.com/QuantumShieldLabs/qsl-protocol/pull/1141
+- qsl-protocol implementation merge SHA: `37362dc82fce`
+- qsl-protocol implementation head SHA: `9cd911f39fae`
+- exact test implemented:
+  `qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs`
+- exact test:
+  `pq_decap_failed_reject_does_not_mutate_sessions_or_pending_state`
+- exact outcome:
+  - PR #1141 merged after required checks completed with public-safety success.
+  - Post-merge public-safety completed success on `37362dc82fce`.
+  - Post-merge qsc-adversarial-smoke completed success on `37362dc82fce`.
+  - Post-merge qsc-adversarial-miri completed success on `37362dc82fce`.
+  - Post-merge qsc-linux-full-suite completed success on `37362dc82fce`.
+  - Post-merge macos-qsc-full-serial completed success on `37362dc82fce`.
+  - The narrowed `pq_decap_failed` no-mutation test passed and emitted the
+    required NA-0436 markers.
+  - The `pq_encap_failed` caveat was preserved; no executable coverage claim is
+    made for that defensive branch.
+  - Root cargo audit remained green.
+  - Nested qsc fuzz lock audit remained green.
+  - NA-0436 is now closed and NA-0437 is restored as the sole READY successor.
+  - This closeout did not mutate runtime code, crypto code, dependencies, Cargo
+    manifests, lockfiles, workflows, scripts, executable tests, fuzz targets,
+    vectors, qsl-server, qsl-attachments, qshield runtime, website, public docs,
+    README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status,
+    backup plan, rollback subtree, or `/backup/qsl`.
+  - No backup or restore was run.
+  - No public-readiness, production-readiness, external-review-completion,
+    crypto-complete, vulnerability-free, bug-free, perfect-crypto, or
+    side-channel-free claim is made.
+  - Cargo audit green remains dependency-health evidence only.
+
+### NA-0437 — QSL qsc pq_encap_failed Defensive Branch Documentation / Evidence Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Document and govern the `pq_encap_failed` qsc provider-error branch as a
+defensive branch under the current active provider and qsc external API
+behavior, preserving D278 evidence that it was not externally triggerable while
+avoiding executable coverage overclaims and without changing runtime code,
+tests, dependencies, workflows, public surfaces, or backup/local-ops state.
+
+Protects:
+- qsc provider-error handling clarity.
+- fail-closed reject behavior.
+- no-mutation evidence honesty.
+- public-claim conservatism.
+- scope control before any future provider fake or test seam.
+- the one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0437.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of:
+  - D278 response and proof root
+  - D279 recovery evidence
+  - D280 strategy authorization evidence
+  - D281 / NA-0436 decap-only test evidence
+  - qsl/qsl-client/qsc/src/handshake/mod.rs
+  - qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs
+  - tools/refimpl/quantumshield_refimpl/src/crypto/
+  - provider tests
+  - formal/
+  - relevant evidence docs.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, Cargo, lockfile, workflow, qsl-server,
+  qsl-attachments, qshield runtime, website, public docs, README, or START_HERE
+  paths.
+- Mutating tests, fuzz target source, or vectors.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No production readiness, public-internet readiness, external-review completion,
+  metadata-free behavior, anonymity, or untraceability claim or implication.
+- No off-host backup completion, disaster recovery completion, restore proof,
+  backup completion, bug-free status, vulnerability-free status,
+  perfect-crypto status, side-channel-free status, or crypto-complete status
+  claim or implication.
+- Secret material handling.
+
+Deliverables:
+- NA-0437 evidence doc.
+- NA-0437 testplan.
+- D-0861 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- recommended next code/crypto audit or remediation lane.
+
+Acceptance criteria:
+- `pq_encap_failed` defensive-branch status is documented from D278 evidence.
+- `pq_decap_failed` test evidence from NA-0436 is referenced without overclaim.
+- no executable coverage overclaim is made for `pq_encap_failed`.
+- no implementation mutation occurs.
 - cargo audit remains green.
 - nested fuzz lock audit remains green.
 - public-safety is green before merge and after merge.

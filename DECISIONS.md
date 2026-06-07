@@ -21824,3 +21824,49 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - cargo audit output must not be used as public-readiness, production-readiness, external-review, crypto-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof
     - more than one READY item remains
   - **References:** NA-0436; NA-0437; NA-0435; NA-0434; D-0859; D-0858; D-0857; `qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs`; `docs/governance/evidence/NA-0436_qsl_qsc_pq_decap_failed_no_mutation_test_implementation_harness.md`; `tests/NA-0436_qsl_qsc_pq_decap_failed_no_mutation_test_implementation_testplan.md`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0860
+  - **Title:** NA-0436 closeout and NA-0437 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-07
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0436 is closed after qsl-protocol PR #1141 merged at `37362dc82fce`, post-merge public-safety completed success on that merge commit, post-merge qsc-adversarial-smoke completed success, and post-merge qsc-adversarial-miri completed success. The narrowed `pq_decap_failed` no-mutation test passed, preserved the `pq_encap_failed` caveat, and made no executable coverage claim for `pq_encap_failed`. Root cargo audit and nested qsc fuzz lock audit remained green. NA-0436 is marked DONE and `NA-0437 -- QSL qsc pq_encap_failed Defensive Branch Documentation / Evidence Plan` is restored as the sole READY successor.
+  - **Classification:** `NA0436_PQ_DECAP_FAILED_TEST_MERGED_PUBLIC_SAFETY_GREEN`.
+  - **Selected successor:** `NA-0437 -- QSL qsc pq_encap_failed Defensive Branch Documentation / Evidence Plan`.
+  - **Closeout boundary:** This closeout makes no additional runtime, crypto, dependency, Cargo manifest, lockfile, workflow, script, executable test, fuzz target, vector, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, `/backup/qsl`, branch-protection, or public-surface mutation.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review completion claim is made. No crypto-complete claim is made. No vulnerability-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. No bug-free claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, `/backup/qsl`, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, or backup scripts.
+  - **Protected:**
+    - PR #1141 is MERGED at `37362dc82fce`
+    - post-merge public-safety is green on `37362dc82fce`
+    - post-merge qsc-adversarial-smoke is green on `37362dc82fce`
+    - post-merge qsc-adversarial-miri is green on `37362dc82fce`
+    - `pq_decap_failed` no-mutation test passed
+    - `pq_encap_failed` caveat is preserved
+    - root cargo audit is green
+    - nested qsc fuzz lock audit is green
+    - READY_COUNT 1
+    - NA-0436 DONE
+    - READY NA-0437
+    - NA-0434 BLOCKED
+    - D-0859 exists once
+    - D-0860 exists once after this closeout
+    - D-0861 remains absent until future NA-0437 work
+    - no duplicate decision IDs
+    - no runtime/crypto/dependency/workflow/test/vector mutation in this closeout
+    - no backup or restore
+    - no public crypto-complete, vulnerability-free, perfect-crypto, public-readiness, production-readiness, external-review, bug-free, or side-channel-free claim
+    - exactly one READY remains mandatory
+  - **Required behavior:**
+    - NA-0437 must document `pq_encap_failed` as a defensive branch under current active provider and qsc external API behavior unless future exact evidence changes that status
+    - NA-0437 must reference NA-0436 `pq_decap_failed` test evidence without claiming executable `pq_encap_failed` coverage
+    - any future provider hook, provider fake, runtime seam, crypto behavior change, dependency change, Cargo/lockfile change, workflow change, fuzz target change, vector change, public-surface change, service change, or backup/local-ops change requires separate exact authorization
+    - cargo audit output must remain dependency-health evidence only
+    - exactly one READY item remains mandatory
+  - **Must never happen:**
+    - NA-0437 implementation starts inside this closeout
+    - `pq_encap_failed` is represented as executable-covered by the NA-0436 decap-only test
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, script, executable test, fuzz target, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside this closeout
+    - cargo audit output must not be used as public-readiness, production-readiness, external-review, crypto-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof
+    - more than one READY item remains
+  - **References:** NA-0436; NA-0437; NA-0435; NA-0434; D-0860; D-0859; D-0858; D-0857; qsl-protocol PR #1141; D281 response `/home/victor/work/qsl/codex/responses/NA0436_20260607T062003Z_D281.md`; `qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs`; `docs/governance/evidence/NA-0436_qsl_qsc_pq_decap_failed_no_mutation_test_implementation_harness.md`; `tests/NA-0436_closeout_restore_na0437_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

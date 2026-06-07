@@ -26463,6 +26463,88 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Root pqcrypto inverse-tree probes returned package-ID absence. Classification: valid zero-match dependency proof under expected `|| true` probes. Corrective action: record as absence proof. Final result: root pqcrypto package IDs remained absent.
 - Nested qsc fuzz lock pqcrypto residual scan returned zero matches. Classification: valid zero-match residual proof. Corrective action: record as absence proof. Final result: nested pqcrypto residual package IDs remained absent.
 
+# QSL-DIR-2026-06-07-286 / NA-0439 provider-error adversarial integration rolling journal
+
+- Directive: QSL-DIR-2026-06-07-286 -- execute NA-0439 qsc provider-error adversarial coverage implementation harness.
+- Directive begin timestamp: 2026-06-07T12:04:30-05:00 / 2026-06-07T17:04:30Z.
+- Proof root: `/srv/qbuild/tmp/NA0439_provider_error_adversarial_impl_20260607T170013Z`.
+- Branch: `na-0439-provider-error-adversarial-integration`.
+- PR: pending.
+- Merge commit: pending.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## NA-0439 READY Proof
+
+- qwork `.kv` proof markers passed: startup OK, lane NA-0439, repo qsl-protocol, expected path, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0439, requested lane status READY.
+- qwork JSON proof was valid and mirrored the `.kv` proof for lane, repo, path, HEAD, origin/main, clean-state fields, ready count, queue top READY, and requested lane status.
+- Live `HEAD` and `origin/main` matched proof SHA `c930e8eff627`.
+- `origin/main` equals or descends from PR #1146 merge commit `c930e8eff627`.
+- PR #1146 is MERGED and its merge commit is `c930e8eff627`.
+- Queue helper reported READY_COUNT 1 and READY NA-0439.
+- Exact queue proof: NA-0439 READY; NA-0438 DONE; NA-0437 DONE; NA-0436 DONE; NA-0435 DONE; NA-0434 BLOCKED; NA-0433 DONE; NA-0432 DONE; NA-0431 DONE; NA-0430 DONE; NA-0429 BLOCKED.
+- Decision helper reported latest D-0864 and duplicate decision count zero.
+- Exact decision proof before patch: D-0863 once, D-0864 once, D-0865 absent.
+- Current-main public-safety completed success on `c930e8eff627`.
+
+## NA-0439 Pre-Mutation Review
+
+- Authorized implementation path: `scripts/ci/qsc_adversarial.sh`.
+- Existing provider-error test command to integrate: `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1`.
+- Script preimage SHA256: `562933d06325c0146e05d9e5ecf062e2a1a0f5c7871409679ff3bda019584655`.
+- Script mode: `664`; executable: no; shebang: `#!/bin/sh`.
+- Existing script phases: stable `adversarial_properties`, stable `adversarial_miri`, then cargo-fuzz targets `qsc_route_http`, `qsc_payload_boundaries`, and `qsc_vault_envelope`.
+- Rollback copy created at `$PROOF_DIR/rollback/qsc_adversarial.sh.preimage`; rollback SHA matched the script preimage SHA.
+- Placement decision: add the provider-error test after stable qsc Rust adversarial phases and before cargo-fuzz so local cargo-fuzz unavailability cannot stop the new test from running.
+
+## NA-0439 Patch Notes
+
+- Added `NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP` to `scripts/ci/qsc_adversarial.sh`.
+- Added `cargo +stable test --manifest-path qsl/qsl-client/qsc/Cargo.toml --locked --test handshake_provider_error_no_mutation -- --test-threads=1`.
+- The command uses the script's existing stable cargo manifest-path convention.
+- No cargo-fuzz target, workflow, Cargo file, lockfile, runtime file, crypto file, executable-test source, or vector was changed.
+- D-0865 records the NA-0439 implementation and selects `NA-0440 -- QSL qsc Provider Error Path Formal / Model Alignment Authorization Plan`.
+- Evidence doc added for NA-0439 implementation.
+- Testplan added for NA-0439 validation.
+- TRACEABILITY records the script integration, bounded `pq_decap_failed` evidence, and `pq_encap_failed` caveat preservation.
+
+## NA-0439 Local Validation Results
+
+- `sh -n scripts/ci/qsc_adversarial.sh`: PASS.
+- `bash -n scripts/ci/qsc_adversarial.sh`: PASS.
+- `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS, 1 test, required NA-0436 markers emitted.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: PASS, 3 tests.
+- `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768`: PASS, 3 tests.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- Root pqcrypto inverse probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+- Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
+- `cargo fmt --check`: PASS.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: PASS.
+- `python3 formal/run_model_checks.py`: PASS.
+- Local qsc adversarial script passed stable Rust adversarial properties: 8 tests.
+- Local qsc adversarial script passed stable Rust miri-style adversarial tests: 6 tests.
+- Local qsc adversarial script emitted `NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP` once.
+- Local qsc adversarial script ran `handshake_provider_error_no_mutation` and it passed before cargo-fuzz.
+- Final pre-PR local qsc adversarial rerun repeated the same proof: marker count 1, provider-error test count 1, and local cargo-fuzz absence only after the new test passed.
+
+## NA-0439 Recovered Failures / Notes
+
+- Failing command: `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked`. Classification: valid zero-match dependency proof for absent root pqcrypto package IDs. Corrective action: record package-ID absence as the expected proof outcome. Final result: root pqcrypto package IDs remained absent.
+- Failing command: nested qsc fuzz lock residual scan for `pqcrypto-mlkem|pqcrypto-traits|pqcrypto-internals`. Classification: valid zero-match residual proof. Corrective action: record zero matches as the expected proof outcome. Final result: nested pqcrypto residual package IDs remained absent.
+- Failing command: local `sh scripts/ci/qsc_adversarial.sh`. Classification: recoverable local cargo-fuzz availability caveat because the script passed `adversarial_properties`, `adversarial_miri`, and the new `handshake_provider_error_no_mutation` step before `cargo` reported `error: no such command: fuzz`. Corrective action: no local install or toolchain/dependency mutation; preserve PR CI `qsc-adversarial-smoke` as the required cargo-fuzz-backed proof before merge. Final result: new provider-error no-mutation test ran and passed before local cargo-fuzz unavailability.
+- Failing command: custom added-line overclaim scan using `git diff --U0 origin/main`. Classification: recoverable command-shape mistake because `--U0` is not a valid `git diff` option. Corrective action: reran immediately with `git diff -U0 origin/main`. Final result: the corrected scan executed.
+- Corrected overclaim scan initially flagged wrapped continuation lines in the NA-0439 testplan where the negation appeared on the previous line. Classification: recoverable validation-shape issue, not an affirmative claim. Corrective action: rewrote each sensitive public-claim phrase onto its own same-line negated bullet. Final result: `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+
+## NA-0439 Validation Watch
+
+- Scope guard must report exactly `scripts/ci/qsc_adversarial.sh`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0439_qsl_qsc_provider_error_path_adversarial_coverage_implementation_harness.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0439_qsl_qsc_provider_error_path_adversarial_coverage_implementation_testplan.md`.
+- Decision proof must report D-0865 exists once, D-0866 absent, and duplicate decision IDs absent.
+- Queue proof must report READY_COUNT 1 and READY NA-0439 until optional closeout.
+- PR checks must include public-safety success and qsc-adversarial-smoke success before merge.
+- Optional closeout to NA-0440 is allowed only after the NA-0439 PR merges and post-merge public-safety plus qsc-adversarial evidence are green.
+
 # QSL-DIR-2026-06-07-285 / NA-0438 provider-error fuzz-adversarial authorization rolling journal
 
 - Directive: QSL-DIR-2026-06-07-285 -- Execute NA-0438 QSL qsc Provider Error Path Fuzz / Adversarial Coverage Authorization Plan, Optional Closeout to NA-0439.

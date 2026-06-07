@@ -25830,3 +25830,60 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Formal/model provider-error alignment remains a backlog candidate after exact qsc tests.
 - Provider-error fuzz/adversarial coverage remains a backlog candidate after exact qsc tests.
 - Public claim caveats remain active for public readiness, production readiness, external review, crypto completeness, side-channel freedom, bug-free status, vulnerability-free status, and perfect-crypto status.
+
+# QSL-DIR-2026-06-06-277 / NA-0433 closeout and NA-0434 restoration rolling journal
+
+- Directive: QSL-DIR-2026-06-06-277 -- Optional closeout to NA-0434 after NA-0433 evidence PR merge and post-merge public-safety success.
+- Closeout started after PR #1136 merged and post-merge public-safety completed success on `55383fa9a953`.
+- Selected successor: `NA-0434 -- QSL qsc Provider Error Path / No-Mutation Test Implementation Harness`.
+- Exact future test path: `qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs`.
+
+## Closeout Preconditions
+
+- PR #1136 merged at `55383fa9a953`.
+- PR #1136 head was `1386415f54a7`.
+- Post-merge public-safety completed success on `55383fa9a953`.
+- Post-merge `qsc-adversarial-smoke` completed success on `55383fa9a953`.
+- Queue before closeout: READY_COUNT 1, READY NA-0433; NA-0432 DONE; NA-0431 DONE; NA-0430 DONE; NA-0429 BLOCKED.
+- Decisions before closeout: D-0853 once, D-0854 once, D-0855 absent, duplicate count zero.
+- Codex did not run qwork, qstart, or qresume post-merge.
+
+## Closeout Scope
+
+- Allowed closeout mutation paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0433_closeout_restore_na0434_testplan.md`.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, script, executable test, fuzz target, vector, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, qsl-backup, status, plan, rollback, or `/backup/qsl` path was mutated.
+- No backup or restore was run.
+- No public readiness, production readiness, external-review, crypto-complete, side-channel-free, bug-free, vulnerability-free, or perfect-crypto claim is made.
+
+## Closeout Queue / Decision Outcome
+
+- NA-0433 is marked DONE.
+- NA-0434 is restored as the sole READY item.
+- D-0855 records NA-0433 closeout and NA-0434 restoration.
+- NA-0434 is not implemented by this closeout.
+
+## Closeout Validation Notes
+
+- Closeout validation must prove READY_COUNT 1 and READY NA-0434.
+- Closeout validation must prove D-0855 exists once, D-0856 absent, and duplicate decision IDs absent.
+- Closeout validation must prove changed paths are limited to the five allowed closeout paths.
+- Staged scope guard reported exactly five allowed closeout paths and zero extra paths.
+- `git diff --cached --check` passed.
+- Queue helper after patch reported READY_COUNT 1, READY NA-0434, NA-0433 DONE, NA-0432 DONE, NA-0431 DONE, NA-0430 DONE, and NA-0429 BLOCKED.
+- Decision helper after patch reported latest D-0855, D-0853 once, D-0854 once, D-0855 once, D-0856 absent, and duplicate count zero.
+- Link check reported `TOTAL_MISSING 0`.
+- Added-line leak scan reported `SECRET_FINDING_COUNT 0`.
+- PR body preflight reported all required fields present and zero prohibited phrases.
+- Root `cargo audit --deny warnings` and nested qsc fuzz lock audit both passed.
+- `cargo tree -i rustls-webpki --locked` reported `rustls-webpki v0.103.13`; `cargo tree -i ml-kem --locked` reported `ml-kem v0.2.1`.
+- Expected absence proofs: `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked` reported package-ID absence.
+- Non-fatal warning: parallel cargo tree reads briefly waited on shared package cache locks. Final result: dependency probes completed.
+- `cargo fmt --check` passed.
+- Public-safety must pass on the closeout PR and after merge before any future directive continues.
+
+## Forward Watch
+
+- NA-0434 should implement only the exact authorized qsc integration test path plus governance evidence/testplan updates.
+- If NA-0434 needs runtime hooks, provider mocks, dependency changes, workflow changes, fuzz target changes, or vector changes, it must stop rather than broaden scope.
+- Formal/model provider-error alignment and provider-error fuzz/adversarial coverage remain later candidates after deterministic qsc tests.
+- Public claim caveats remain active for public readiness, production readiness, external review, crypto completeness, side-channel freedom, bug-free status, vulnerability-free status, and perfect-crypto status.

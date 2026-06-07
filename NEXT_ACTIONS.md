@@ -22945,7 +22945,7 @@ Closeout evidence:
   - Cargo audit green remains dependency-health evidence only and is not public-readiness, production-readiness, external-review, crypto-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
 
 ### NA-0433 — QSL qsc Provider Error Path / No-Mutation Findings Triage Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -22993,6 +22993,77 @@ Acceptance criteria:
 - no runtime/crypto/dependency/test mutation occurs.
 - cargo audit remains green.
 - public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+Closeout evidence:
+- qsl-protocol triage PR: #1136 https://github.com/QuantumShieldLabs/qsl-protocol/pull/1136
+- qsl-protocol triage merge SHA: `55383fa9a953`
+- selected successor:
+  `NA-0434 -- QSL qsc Provider Error Path / No-Mutation Test Implementation Harness`
+- exact authorized future test path:
+  `qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs`
+- exact outcome:
+  - PR #1136 merged after required checks completed with public-safety success.
+  - Post-merge public-safety completed success on `55383fa9a953`.
+  - Post-merge qsc-adversarial-smoke completed success on `55383fa9a953`.
+  - NA-0433 consumed findings F-0432-01 through F-0432-08 and selected NA-0434 as the exact implementation successor.
+  - NA-0433 did not implement NA-0434 and did not mutate runtime code, crypto code, dependencies, Cargo manifests, lockfiles, workflows, scripts, executable tests, fuzz targets, vectors, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback subtree, or `/backup/qsl`.
+  - Cargo audit green remains dependency-health evidence only and is not public-readiness, production-readiness, external-review, crypto-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
+
+---
+
+### NA-0434 — QSL qsc Provider Error Path / No-Mutation Test Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the exact NA-0433-authorized qsc provider-error no-mutation tests for `pq_encap_failed` and `pq_decap_failed`, proving bounded qsc-level pre/post state behavior for provider-error reject paths without changing runtime code, crypto code, dependencies, workflows, fuzz targets, vectors, public surfaces, or backup/local-ops state.
+
+Protects:
+- qsc provider-error handling clarity.
+- fail-closed reject behavior.
+- no-mutation-on-reject evidence quality.
+- provider boundary confidence after ml-kem replacement and nested fuzz lock cleanup.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- exact test path named in NA-0433 evidence:
+  `qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs`.
+- qsl-protocol governance evidence/testplan paths for NA-0434.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of qsc provider-error paths, provider tests, formal roots, fuzz roots, and relevant evidence docs.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, Cargo, lockfile, workflow, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE paths.
+- Mutating fuzz target source or vectors.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- Creating or implying production readiness, public-internet readiness, external-review completion, metadata-free behavior, anonymity, untraceability, off-host backup completion, disaster recovery completion, restore proof, backup completion, bug-free status, vulnerability-free status, perfect-crypto status, side-channel-free status, or crypto-complete status.
+- Secret material handling.
+
+Deliverables:
+- exact qsc provider-error no-mutation tests in `qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs`.
+- NA-0434 evidence doc.
+- NA-0434 testplan.
+- D-0856 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- recommended next code/crypto audit or remediation lane.
+
+Acceptance criteria:
+- exact authorized tests pass.
+- no runtime/crypto/dependency/source mutation occurs outside exact test scope.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- public-claim caveats remain explicit.
 - exactly one READY item remains.
 
 ---

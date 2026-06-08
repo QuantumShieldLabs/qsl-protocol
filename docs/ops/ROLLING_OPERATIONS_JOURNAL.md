@@ -26227,6 +26227,10 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
   Classification: recoverable command-shape mistakes; each was corrected immediately after checking the local helper interface.
   Corrective action: reran PR-body preflight with `--file`, created a minimal synthetic pull-request event under the temp proof root and reran goal-lint with `GITHUB_EVENT_PATH`, then reran leak-scan as `--mode added --base origin/main`.
   Final result: PR-body preflight reported `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`; synthetic goal-lint reported `OK: goal compliance checks passed`; leak-scan reported `SECRET_FINDING_COUNT 0`.
+- Failing command: pre-PR `ci-admission-preflight` invocation used base/head arguments before a PR number existed.
+  Classification: recoverable helper invocation timing issue; the command requires `--pr` and is only usable after PR creation.
+  Corrective action: took no validation credit from the failed invocation and deferred CI-admission preflight to the PR phase using the PR number.
+  Final result before PR creation: local scope, queue, decision, link, leak, PR-body, and goal-lint validations remained green; PR-number CI-admission check remained pending until after PR creation.
 
 ## Closeout local validation results
 

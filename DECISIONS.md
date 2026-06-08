@@ -22733,3 +22733,58 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, dependency, Cargo, lockfile, workflow, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside this closeout.
     - more than one READY item remains.
   - **References:** NA-0445; NA-0446; D-0878; D-0877; qsl-protocol PR #1159; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0445_closeout_restore_na0446_testplan.md`
+
+- **ID:** D-0879
+  - **Title:** NA-0446 qsc key lifecycle secret cleanup zeroization test implementation
+  - **Status:** Accepted
+  - **Date:** 2026-06-08
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0446 implements the exact qsc test path authorized by NA-0445: `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`. The test file adds bounded internal evidence for observable pending-handshake cleanup, selected reject no-mutation boundaries, session-store insertion only after successful session storage, session/vault encrypted-at-rest boundaries, and redaction/passphrase sentinel boundaries through existing qsc APIs and test helpers. This is bounded evidence only: no direct memory zeroization claim is made, no secret-material-complete claim is made, qshield-cli remains demo-local boundary evidence only, refimpl cleanup/zeroization remains deferred, and cargo audit green remains dependency-health evidence only. NA-0446 selects `NA-0447 -- QSL RNG Failure Behavior Scope Authorization Plan` as the successor while preserving exactly one READY item as mandatory until optional closeout.
+  - **Exact implemented test path:** `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`.
+  - **Implemented test names:** `pending_handshake_secret_cleanup_success_and_reject_boundaries`; `session_secret_store_inserted_only_after_success_and_encrypted_at_rest`; `key_lifecycle_output_redaction_sentinel_scan`; `reject_paths_preserve_pending_session_vault_state`; `session_and_vault_encrypted_at_rest_boundaries`; optional `vault_passphrase_redaction_and_no_plaintext_boundary`.
+  - **Implemented markers:** `NA0446_KEY_LIFECYCLE_TEST_IMPLEMENTATION_OK`; `NA0446_PENDING_SECRET_CLEANUP_SUCCESS_BOUNDARY_OK`; `NA0446_REJECT_NO_MUTATION_BOUNDARY_OK`; `NA0446_SESSION_SECRET_STORE_BOUNDARY_OK`; `NA0446_ENCRYPTED_AT_REST_BOUNDARY_OK`; `NA0446_REDACTION_SENTINEL_BOUNDARY_OK`; `NA0446_NO_RUNTIME_HOOK_USED_OK`; `NA0446_DIRECT_MEMORY_ZEROIZATION_NOT_CLAIMED_OK`; `NA0446_NO_SECRET_MATERIAL_COMPLETE_CLAIM_OK`; `NA0446_QSHIELD_CLI_DEMO_BOUNDARY_PRESERVED_OK`; `NA0446_REFIMPL_SCOPE_DEFERRED_OK`.
+  - **Bounded evidence scope:** The tests assert observable cleanup, absence, no-mutation, encrypted-at-rest, and output redaction boundaries only. They do not assert direct runtime memory overwrite, allocator behavior, `Drop` behavior, side-channel behavior, or all key-material coverage.
+  - **Implementation boundary:** NA-0446 mutates no runtime code, crypto code, dependencies, Cargo manifests, lockfiles, workflows, fuzz target source, vectors, formal models, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status files, backup plan files, rollback subtree paths, branch protection, or public-surface paths.
+  - **Validation summary:** The new `key_lifecycle_zeroization` qsc test passed with 6 tests and emitted the required markers. Inherited `handshake_provider_error_no_mutation`, qsc `send_commit`, refimpl `pqkem768`, root cargo audit, nested qsc fuzz lock audit, formatting, and formal checks passed. `rustls-webpki v0.103.13` remains present. Root pqcrypto inverse probes and nested qsc fuzz lock pqcrypto scan remain expected zero-match evidence. Local qsc adversarial script stable phases and provider-error step passed; local cargo-fuzz was unavailable, so PR CI `qsc-adversarial-smoke` remains required.
+  - **Selected successor:** `NA-0447 -- QSL RNG Failure Behavior Scope Authorization Plan`.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No secret-material-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Protected:**
+    - exact qsc test path implemented.
+    - required NA-0446 markers present in test output or source.
+    - bounded observable cleanup/no-mutation/encrypted-at-rest/redaction evidence added.
+    - direct runtime memory zeroization is not claimed.
+    - secret-material-complete coverage is not claimed.
+    - qshield-cli demo boundary is preserved.
+    - refimpl cleanup/zeroization scope is deferred.
+    - no runtime, crypto, dependency, Cargo, lockfile, workflow, fuzz target, vector, formal, public, service, backup, qwork, qsl-backup, status, plan, rollback, or branch-protection mutation occurs.
+    - root cargo audit green.
+    - nested qsc fuzz lock audit green.
+    - selected NA-0447 successor is RNG failure behavior scope authorization.
+    - exactly one READY remains mandatory.
+  - **Required behavior:**
+    - Optional closeout may mark NA-0446 DONE and restore selected NA-0447 READY only after the implementation PR merges and post-merge public-safety is green.
+    - NA-0447 must preserve no runtime, crypto, dependency, Cargo, lockfile, workflow, public-claim, or backup expansion unless a later exact directive authorizes it.
+    - Future runtime-hook work for direct memory zeroization remains forbidden unless a later exact directive authorizes precise hooks or runtime/test APIs.
+    - Cargo audit output must remain dependency-health evidence only.
+    - Exactly one READY item remains mandatory.
+  - **Must never happen:**
+    - API-level tests are represented as direct runtime memory overwrite proof.
+    - API-level tests are represented as allocator overwrite proof.
+    - API-level tests are represented as `Drop` proof.
+    - API-level tests are represented as side-channel proof.
+    - API-level tests are represented as all-key-material coverage.
+    - qshield-cli demo-local evidence is represented as qsc runtime cleanup or service-readiness evidence.
+    - refimpl evidence is represented as qsc runtime cleanup proof.
+    - No cargo audit output is used as public-readiness proof.
+    - No cargo audit output is used as production-readiness proof.
+    - No cargo audit output is used as external-review-complete proof.
+    - No cargo audit output is used as crypto-complete proof.
+    - No cargo audit output is used as secret-material-complete proof.
+    - No cargo audit output is used as vulnerability-free proof.
+    - No cargo audit output is used as bug-free proof.
+    - No cargo audit output is used as perfect-crypto proof.
+    - No cargo audit output is used as side-channel-free proof.
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside NA-0446.
+    - more than one READY item remains.
+  - **References:** NA-0446; NA-0447; NA-0445; D-0879; D-0878; D-0877; `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`; `docs/governance/evidence/NA-0446_qsl_qsc_key_lifecycle_secret_cleanup_zeroization_test_implementation_harness.md`; `tests/NA-0446_qsl_qsc_key_lifecycle_secret_cleanup_zeroization_test_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

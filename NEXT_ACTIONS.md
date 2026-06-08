@@ -23832,19 +23832,41 @@ Completion note:
 ---
 
 ### NA-0443 — QSL Key Lifecycle Secret Cleanup / Zeroization Scope Authorization Plan
+Status: DONE
+Implementation note:
+- NA-0443 completed in qsl-protocol PR #1155, merged at `087346b44b40`.
+- NA-0443 consumed NA-0441/NA-0442 findings, selected
+  `KEY_LIFECYCLE_SECRET_CLEANUP_EVIDENCE_POLICY_NEXT`, and selected
+  `NA-0444 -- QSL Key Lifecycle Secret Cleanup / Zeroization Evidence Policy Authorization Plan`.
+- NA-0443 did not implement NA-0444 and did not mutate runtime, crypto,
+  dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector,
+  formal model, qsl-server, qsl-attachments, qshield runtime, website, public
+  docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup
+  status, backup plan, rollback, or backup tree paths.
+- No public-readiness claim, no production-readiness claim, no
+  public-internet-readiness claim, no external-review-complete claim, no
+  crypto-complete claim, no secret-material-complete claim, no side-channel-free
+  claim, no vulnerability-free claim, no bug-free claim, and no perfect-crypto
+  claim is made.
+
+---
+
+### NA-0444 — QSL Key Lifecycle Secret Cleanup / Zeroization Evidence Policy Authorization Plan
 Status: READY
 Goals: G1, G2, G3, G4, G5
 
 Objective:
-Authorize the exact future scope for investigating and, if justified later,
-improving key-material cleanup and zeroization evidence across
-qsc/refimpl/qshield-cli surfaces, consuming NA-0441 and NA-0442 findings while
-preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries unless
-a later directive authorizes precise implementation.
+Authorize a bounded internal evidence policy for key-material cleanup and
+zeroization expectations across qsc/refimpl/qshield-cli surfaces, consuming
+NA-0441 through NA-0443 findings while preserving no-runtime/no-crypto/
+no-dependency/no-public-claim boundaries unless a later directive authorizes
+precise implementation.
 
 Protects:
 - key lifecycle evidence quality.
 - secret-material cleanup/zeroization expectations.
+- clear separation between qsc runtime, refimpl, and qshield-cli demo-local
+  boundaries.
 - fail-closed handling around pending/session/shared-secret material.
 - provider boundary confidence after ml-kem replacement and provider-error
   audit work.
@@ -23852,7 +23874,7 @@ Protects:
 - the one-READY queue invariant.
 
 Allowed scope:
-- qsl-protocol governance evidence/testplan paths for NA-0443.
+- qsl-protocol governance evidence/testplan paths for NA-0444.
 - DECISIONS.md.
 - TRACEABILITY.md.
 - docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
@@ -23901,16 +23923,17 @@ Forbidden scope:
 - Secret material handling outside read-only source/evidence inspection.
 
 Deliverables:
-- NA-0443 evidence doc.
-- NA-0443 testplan.
-- D-0873 or next sequential decision.
+- NA-0444 evidence doc.
+- NA-0444 testplan.
+- D-0875 or next sequential decision.
 - TRACEABILITY update.
 - Rolling journal update.
 - selected exact successor or no-action rationale.
 
 Acceptance criteria:
-- NA-0441/NA-0442 key lifecycle findings are consumed.
-- exact future scope is selected from evidence.
+- NA-0441/NA-0442/NA-0443 findings are consumed.
+- evidence policy scope is selected.
+- qsc/refimpl/qshield-cli boundaries are explicit.
 - no implementation mutation occurs.
 - cargo audit remains green.
 - nested fuzz lock audit remains green.

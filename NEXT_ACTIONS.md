@@ -23562,7 +23562,7 @@ Acceptance criteria:
 ---
 
 ### NA-0440 — QSL qsc Provider Error Path Formal / Model Alignment Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -23637,6 +23637,89 @@ Acceptance criteria:
 - `pq_encap_failed` defensive branch caveat is preserved.
 - `pq_decap_failed` test and adversarial evidence is consumed without
   overclaim.
+- no implementation mutation occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+---
+
+### NA-0441 — QSL Nonce / Key / RNG Lifecycle Read-Only Audit Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Begin the next bounded code/crypto audit domain by reviewing nonce, key, and
+RNG lifecycle evidence across qsl/qsc/refimpl/formal/test surfaces, producing
+an internal read-only findings matrix without changing runtime code, crypto
+code, dependencies, workflows, tests, vectors, public surfaces, or
+backup/local-ops state.
+
+Protects:
+- nonce/key/RNG lifecycle correctness evidence.
+- fail-closed handling around key and randomness boundaries.
+- provider boundary confidence after ml-kem replacement and provider-error
+  audit work.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0441.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of:
+  - qsl/
+  - tools/refimpl/
+  - formal/
+  - inputs/
+  - tests/
+  - docs/governance/evidence/
+  - Cargo.toml
+  - Cargo.lock
+  - qsl/qsl-client/qsc/fuzz/
+  - relevant scripts/workflows read-only.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, Cargo, lockfile, workflow, qsl-server,
+  qsl-attachments, qshield runtime, website, public docs, README, or START_HERE
+  paths.
+- Mutating tests, fuzz target source, or vectors.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No production readiness claim.
+- No public-internet readiness claim.
+- No external-review completion claim.
+- No metadata-free behavior claim.
+- No anonymity claim.
+- No untraceability claim.
+- No off-host backup completion claim.
+- No disaster recovery completion claim.
+- No restore proof claim.
+- No backup completion claim.
+- No bug-free status claim.
+- No vulnerability-free status claim.
+- No perfect-crypto status claim.
+- No side-channel-free status claim.
+- No crypto-complete status claim.
+- Secret material handling.
+
+Deliverables:
+- NA-0441 evidence doc.
+- NA-0441 testplan.
+- D-0869 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- findings matrix and recommended successor.
+
+Acceptance criteria:
+- nonce/key/RNG lifecycle surfaces are inventoried read-only.
+- findings are classified without implementation.
 - no implementation mutation occurs.
 - cargo audit remains green.
 - nested fuzz lock audit remains green.

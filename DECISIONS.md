@@ -22428,3 +22428,49 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - cargo audit output must not be used as side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0442; NA-0443; D-0872; D-0871; qsl-protocol PR #1153; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0442_closeout_restore_na0443_testplan.md`
+
+- **ID:** D-0873
+  - **Title:** NA-0443 key lifecycle secret cleanup zeroization scope authorization
+  - **Status:** Accepted
+  - **Date:** 2026-06-08
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0443 consumes NA-0441 and NA-0442 key lifecycle findings, selects F-0441-02 secret cleanup / zeroization as the current scope focus, classifies qsc/refimpl/qshield-cli surfaces separately, and chooses `KEY_LIFECYCLE_SECRET_CLEANUP_EVIDENCE_POLICY_NEXT` as the primary classification. qsc runtime material is classified as `QSC_SECRET_CLEANUP_EVIDENCE_POLICY_NEEDED`; refimpl secret cleanup is included in evidence-policy scope only as `REFIMPL_SECRET_CLEANUP_SCOPE_INCLUDED`; qshield-cli demo material is classified as `QSHIELD_DEMO_KEY_MATERIAL_CLAIM_BOUNDARY_ONLY`. The selected successor is `NA-0444 -- QSL Key Lifecycle Secret Cleanup / Zeroization Evidence Policy Authorization Plan`.
+  - **Selected successor:** `NA-0444 -- QSL Key Lifecycle Secret Cleanup / Zeroization Evidence Policy Authorization Plan`.
+  - **Scope boundary:** No implementation mutation is authorized or made by NA-0443. No runtime, crypto, dependency, Cargo manifest, lockfile, workflow, executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, backup tree, branch-protection, or public-surface mutation is authorized or made by this decision.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No secret-material-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. Cargo audit green remains dependency-health evidence only, and NA-0443 remains scope authorization only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Stewardship:** Level-1 steward template was used. Crypto / Protocol, CI / Dependency / Release Health, Public Claims / External Review, Product / Demo / Service Boundary, and Local Ops / Backup / Restore summaries remain advisory only. Level 2 and Level 3 remain future-gated. No separate Director, independent READY promotion, or independent merge authority is created.
+  - **Protected:**
+    - NA-0441/NA-0442 key lifecycle findings consumed.
+    - F-0441-02 scope selected.
+    - qsc/refimpl/qshield-cli surfaces classified.
+    - primary classification `KEY_LIFECYCLE_SECRET_CLEANUP_EVIDENCE_POLICY_NEXT` selected.
+    - selected NA-0444 successor recorded.
+    - no implementation mutation in this directive.
+    - no runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, or formal mutation.
+    - no backup or restore.
+    - no public crypto-complete claim.
+    - no vulnerability-free claim.
+    - no bug-free claim.
+    - no perfect-crypto claim.
+    - no side-channel-free claim.
+    - no secret-material-complete claim.
+    - steward template used.
+    - exactly one READY remains mandatory.
+  - **Required behavior:** Exactly one READY item remains mandatory. NA-0443 may close out only after this evidence PR merges and post-merge public-safety is green. The closeout must restore exactly the selected NA-0444 successor and must not implement NA-0444.
+  - **Must never happen:**
+    - No production-readiness claim may be inferred from NA-0443.
+    - No public-readiness claim may be inferred from NA-0443.
+    - No public-internet-readiness claim may be inferred from NA-0443.
+    - No external-review-complete claim may be inferred from NA-0443.
+    - No crypto-complete claim may be inferred from NA-0443.
+    - No secret-material-complete claim may be inferred from NA-0443.
+    - No side-channel-free claim may be inferred from NA-0443.
+    - No vulnerability-free claim may be inferred from NA-0443.
+    - No bug-free claim may be inferred from NA-0443.
+    - No perfect-crypto claim may be inferred from NA-0443.
+    - F-0441-02 is represented as runtime remediation completed by NA-0443.
+    - qshield-cli demo-local evidence is represented as qsc runtime cleanup or service-readiness evidence.
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside NA-0443.
+    - more than one READY item remains.
+  - **References:** NA-0443; NA-0444; NA-0442; NA-0441; D-0873; D-0872; D-0871; D-0869; `docs/governance/evidence/NA-0443_qsl_key_lifecycle_secret_cleanup_zeroization_scope_authorization_plan.md`; `tests/NA-0443_qsl_key_lifecycle_secret_cleanup_zeroization_scope_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

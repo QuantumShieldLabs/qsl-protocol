@@ -26291,6 +26291,89 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Nested qsc fuzz lock residual pqcrypto scan: PASS, zero matches.
 - `cargo fmt --check`: PASS.
 
+# QSL-DIR-2026-06-08-295 / NA-0445 closeout and NA-0446 restoration rolling journal
+
+- Directive: QSL-DIR-2026-06-08-295 optional closeout -- close out NA-0445 after PR #1159 post-merge public-safety completion and restore NA-0446.
+- Begin timestamp (America/Chicago): 2026-06-08T12:59:16-05:00
+- Begin timestamp (UTC): 2026-06-08T17:59:16Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Closeout repo SHAs
+
+- qsl-protocol main before closeout branch: `9c38ed24001a`.
+- qsl-protocol origin/main before closeout branch: `9c38ed24001a`.
+- Evidence PR #1159 head: `18cff97e72bf`.
+- Evidence PR #1159 merge: `9c38ed24001a`.
+- Closeout branch: `na-0445-closeout-restore-na0446`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
+
+## Closeout READY proof
+
+- Queue proof before closeout patch: READY_COUNT 1, READY NA-0445.
+- Decision proof before closeout patch: D-0877 exists once, D-0878 absent, duplicate decision count zero.
+- Evidence PR #1159: MERGED at `9c38ed24001a`.
+- Post-merge public-safety on `9c38ed24001a`: PASS after bounded polling.
+
+## Closeout patch notes
+
+- NA-0445 is marked DONE.
+- NA-0446 is restored as the sole READY item.
+- D-0878 records NA-0445 closeout and NA-0446 restoration.
+- TRACEABILITY records PR #1159, post-merge public-safety, and the exact NA-0446 implementation successor.
+- Closeout testplan path: `tests/NA-0445_closeout_restore_na0446_testplan.md`.
+- No NA-0446 implementation is performed.
+- Exact future NA-0446 test path remains `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, qsl-backup, status, plan, rollback, or backup tree path is intentionally mutated.
+- No backup or restore was run.
+
+## Closeout validation watch
+
+- Closeout validation must prove READY_COUNT 1 and READY NA-0446.
+- Closeout validation must prove NA-0445 DONE, D-0878 exists once, D-0879 absent, and duplicate decision IDs absent.
+- Closeout scope guard must report exactly the five allowed closeout paths.
+- Closeout PR checks, including public-safety, must pass before merge.
+
+## Closeout failures / recoveries
+
+- Failing command: first closeout queue/decision proof parser that combined helper output with a Python here-document through stdin.
+  Classification: recoverable command-shape issue because the helper commands themselves were healthy, but the shell construction fed the script source where parsed helper output was expected.
+  Corrective action: reran the proofs with direct helper output inspection and repository text parsers for the exact lane and decision statuses.
+  Final result: PASS, READY_COUNT 1, READY NA-0446, NA-0445 DONE, D-0877 once, D-0878 once, D-0879 absent, and duplicate decision count zero.
+- Failing command: second closeout queue/decision proof parser using exact line equality for READY status and an incomplete helper decision-count assumption.
+  Classification: recoverable command-shape issue because the queue helper includes READY titles and the decision helper's compact output is not a raw ID list.
+  Corrective action: reran prefix-aware helper checks and direct `NEXT_ACTIONS.md` / `DECISIONS.md` parsers for exact statuses and IDs.
+  Final result: PASS, READY_COUNT 1, READY NA-0446, NA-0445 DONE, D-0877 once, D-0878 once, D-0879 absent, latest D-0878, and duplicate decision count zero.
+- Failing command: first synthetic-event goal-lint invocation used `python tools/goal_lint.py`.
+  Classification: recoverable local command-shape issue because this environment exposes `python3` and the linter script itself was unchanged.
+  Corrective action: reran the same synthetic-event goal-lint with `python3 tools/goal_lint.py`.
+  Final result: PASS, `OK: goal compliance checks passed.`
+
+## Closeout local validation results
+
+- Working-tree path guard: PASS, exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0445_closeout_restore_na0446_testplan.md`.
+- `git diff --check`: PASS.
+- Queue helper: PASS, READY_COUNT 1 and READY NA-0446.
+- Exact status proof: PASS, NA-0446 READY, NA-0445 DONE, NA-0444 DONE, NA-0443 DONE, NA-0442 DONE, NA-0441 DONE, NA-0440 DONE, NA-0439 DONE, NA-0438 DONE, NA-0437 DONE, NA-0436 DONE, NA-0435 DONE, NA-0434 BLOCKED, NA-0429 BLOCKED.
+- Decision proof: PASS, D-0877 once, D-0878 once, D-0879 absent, duplicate decision count zero.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- Synthetic-event goal-lint: PASS, `OK: goal compliance checks passed.`
+- CI scope classifier: PASS, `docs_only=true`, `scope_class=docs_only`.
+- `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS, required NA-0436 markers emitted.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS after a non-fatal advisory database lock-wait warning.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- Root pqcrypto inverse probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+- Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
+- Post-merge public-safety for evidence PR #1159 merge `9c38ed24001a`: PASS; qsc-adversarial-smoke also completed success.
+- Pending closeout validation: PR creation, required-check polling, merge if green, post-merge public-safety proof, then read-only forward audit and final response file.
+
 # QSL-DIR-2026-06-08-295 / NA-0445 qsc key lifecycle zeroization test scope rolling journal
 
 - Directive: QSL-DIR-2026-06-08-295 -- execute NA-0445 qsc key lifecycle cleanup / zeroization test-scope authorization.

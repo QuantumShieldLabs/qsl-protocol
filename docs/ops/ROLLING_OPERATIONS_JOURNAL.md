@@ -22,6 +22,9 @@ Last-Updated: 2026-06-05
 - qwork proof HEAD and origin/main: `fd5d0583e836`
 - clean origin/main before evidence patch: `fd5d0583e836`
 - evidence branch: `na-0444-key-lifecycle-zeroization-evidence-policy`
+- evidence commit: `5538b908c8f`
+- evidence PR: #1157, merged at `dbb44fcdfecb`
+- closeout branch: `na-0444-closeout-restore-na0445`
 - D294 proof root: `/srv/qbuild/tmp/NA0444_key_lifecycle_zeroization_evidence_policy_20260608T131711Z`
 - qsl-server: not touched; no mutation
 - qsl-attachments: not touched; no mutation
@@ -36,6 +39,8 @@ Last-Updated: 2026-06-05
 - Start queue proof: READY_COUNT `1`; READY `NA-0444`; NA-0443 through NA-0435 DONE; NA-0434 and NA-0429 BLOCKED.
 - Start decision proof: latest decision D-0874; D-0873 exists once; D-0874 exists once; D-0875 absent; duplicate decision count zero.
 - Public-safety was green on `fd5d0583e836`.
+- Evidence PR #1157 post-merge public-safety completed success on `dbb44fcdfecb`.
+- Evidence PR #1157 post-merge qsc-adversarial-smoke completed success on `dbb44fcdfecb`.
 
 ## Evidence Patch State
 
@@ -44,6 +49,14 @@ Last-Updated: 2026-06-05
 - Selected successor: `NA-0445 -- QSL qsc Key Lifecycle Secret Cleanup / Zeroization Test Scope Authorization Plan`.
 - The evidence policy matrix separates qsc runtime, refimpl/reference, qshield-cli demo-local, and formal/tests/inputs supporting-evidence buckets.
 - Changed paths are intended to remain limited to `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0444_qsl_key_lifecycle_secret_cleanup_zeroization_evidence_policy_authorization_plan.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0444_qsl_key_lifecycle_secret_cleanup_zeroization_evidence_policy_authorization_testplan.md`.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, service, public, backup, qwork, qsl-backup, status, plan, rollback, README, START_HERE, website, qsl-server, or qsl-attachments path is in scope for mutation.
+
+## Closeout Patch State
+
+- NA-0444 is marked DONE.
+- NA-0445 -- QSL qsc Key Lifecycle Secret Cleanup / Zeroization Test Scope Authorization Plan is restored as the sole READY successor.
+- D-0876 records NA-0444 closeout and NA-0445 restoration.
+- Changed paths are intended to remain limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0444_closeout_restore_na0445_testplan.md`.
 - No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, service, public, backup, qwork, qsl-backup, status, plan, rollback, README, START_HERE, website, qsl-server, or qsl-attachments path is in scope for mutation.
 
 ## Recovered / Classified Non-Zero Commands
@@ -87,12 +100,12 @@ Last-Updated: 2026-06-05
 - `scripts/ci/qsc_adversarial.sh` contains the NA-0439 marker and provider-error command.
 - `sh scripts/ci/qsc_adversarial.sh` local pre-fuzz phases passed, then stopped at local `cargo fuzz` unavailability.
 - qsl-backup SHA matched `e9ecff3d22ed`; `/home/victor/work/qsl/codex/ops` appeared exactly once in the installed qsl-backup source list.
-- Full evidence validation and PR checks: pending.
+- Full evidence validation and PR checks: PASS for PR #1157.
+- Closeout validation and PR checks: pending.
 
 ## Next-Watch Items
 
-- Evidence PR must merge only after required checks and public-safety pass.
-- Optional closeout may run only after evidence PR merge and post-merge public-safety green.
+- Closeout PR must merge only after required checks and public-safety pass.
 - NA-0445 must stay qsc test-scope authorization only and must not implement runtime, crypto, dependency, workflow, executable-test, fuzz, vector, public, service, or backup changes.
 - F-0441-03 RNG failure behavior remains a residual candidate after qsc cleanup/zeroization test-scope authorization.
 - qshield-cli remains demo-local claim-boundary evidence.

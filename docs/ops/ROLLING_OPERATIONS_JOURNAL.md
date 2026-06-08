@@ -26585,7 +26585,7 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - qsl-protocol live origin/main after fetch: `50e4387e8379`
 - qsl-protocol mirror/main observed: `2abcee236e23`
 - qsl-protocol PR #1160 merge: `50e4387e8379`
-- Evidence PR: pending
+- Evidence PR: #1161 (`https://github.com/QuantumShieldLabs/qsl-protocol/pull/1161`)
 - Evidence merge commit: pending
 - Optional closeout PR: pending
 - Optional closeout merge commit: pending
@@ -26603,8 +26603,8 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 - Initial branch: `main`.
 - Evidence branch: `na-0446-qsc-key-lifecycle-zeroization-test`.
-- Evidence PR: pending.
-- Evidence commit: pending.
+- Evidence PR: #1161.
+- Evidence commit: `3c1d6e8dab14` plus journal PR-number follow-up commit.
 - Optional closeout branch: pending.
 - Optional closeout PR: pending.
 
@@ -26679,7 +26679,7 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py`: PASS.
 - `python3 formal/run_model_checks.py`: PASS.
 - Local qsc adversarial script: stable Rust phases and provider-error step passed; local cargo-fuzz unavailable.
-- PR checks: pending.
+- PR #1161 checks: pending.
 
 ## Disk watermark
 

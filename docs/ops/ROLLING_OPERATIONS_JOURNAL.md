@@ -26288,8 +26288,10 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - live HEAD after fetch: `ada372a1998b`.
 - live origin/main after fetch: `ada372a1998b`.
 - PR #1154 merge: `ada372a1998b`.
-- Evidence PR: pending.
-- Evidence merge commit: pending.
+- Evidence PR: #1155.
+- Evidence PR head: `58ae007dabd9`.
+- Evidence merge commit: `087346b44b40`.
+- Closeout branch: `na-0443-closeout-restore-na0444`.
 - Closeout PR: pending.
 - Closeout merge commit: pending.
 
@@ -26381,6 +26383,18 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
   Classification: recoverable command-shape mistake because the parser matched the wrong DECISIONS.md heading format and then cross-reference text instead of `- **ID:** D-xxxx` decision entry lines.
   Corrective action: corrected the parser to count only `- **ID:** D-xxxx` lines.
   Final result: D-0871 count 1, D-0872 count 1, D-0873 count 1, D-0874 count 0, duplicate decision count 0.
+- Failing command: first post-merge `public-safety-status` helper on merge commit `087346b44b40`.
+  Classification: recoverable transient check-attachment state because public-safety was not attached yet and qsc-adversarial-smoke was still in progress immediately after merge.
+  Corrective action: used bounded REST polling on merge commit check-runs.
+  Final result: post-merge public-safety completed success and qsc-adversarial-smoke completed success on `087346b44b40`.
+- Failing command: post-merge `checks-summary --sha 087346b44b40`.
+  Classification: recoverable helper/context-shape mismatch because the merge-commit push context did not expose PR-only `goal-lint` and consolidated `CodeQL` names through the helper's required-context list, while explicit public-safety and run-list proof showed the required post-merge safety checks green.
+  Corrective action: used explicit `public-safety-status` plus GitHub run-list evidence for the merge commit.
+  Final result: public-safety completed success, qsc-adversarial-smoke completed success, and merge-commit workflows completed success.
+- Tool invocation issue: first journal read after closeout branch creation omitted the required `cmd` field.
+  Classification: recoverable command-shape mistake before any repo mutation was made by that command.
+  Corrective action: reran the journal read with a valid `cmd`.
+  Final result: journal context was read successfully.
 
 ## NA-0443 local validation results
 
@@ -26411,6 +26425,48 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py`: PASS.
 - `python3 formal/run_model_checks.py`: PASS.
 - `scripts/ci/qsc_adversarial.sh`: local pre-fuzz Rust blocks PASS; cargo-fuzz portion unavailable locally with `error: no such command: fuzz`; PR CI `qsc-adversarial-smoke` remains required before merge.
+
+## NA-0443 PR and post-merge proof
+
+- PR #1155 opened with title `NA-0443: authorize key lifecycle secret cleanup scope`.
+- PR #1155 admission preflight: PASS, changed file count 5, `SCOPE_CLASS docs_only`, `HELPER_PR_CAN_LIKELY_PASS_REQUIRED_CHECKS yes`.
+- PR #1155 required checks summary before merge: PASS, `REQUIRED_CONTEXT_FAILURE_COUNT 0`.
+- PR #1155 merged at `087346b44b40` using a merge commit.
+- No branch deletion flag was passed by Codex; the remote evidence branch disappeared during post-merge fetch under repository/GitHub cleanup behavior.
+- Post-merge queue proof after evidence PR: READY_COUNT 1 and READY NA-0443.
+- Post-merge decision proof after evidence PR: latest D-0873 and duplicate decision count zero.
+- Post-merge public-safety on `087346b44b40`: PASS.
+- Post-merge qsc-adversarial-smoke on `087346b44b40`: PASS.
+
+## NA-0443 closeout patch notes
+
+- NA-0443 is marked DONE.
+- NA-0444 is restored as the sole READY item.
+- Selected NA-0444 title: `QSL Key Lifecycle Secret Cleanup / Zeroization Evidence Policy Authorization Plan`.
+- Added D-0874.
+- Added closeout TRACEABILITY row.
+- Added closeout testplan: `tests/NA-0443_closeout_restore_na0444_testplan.md`.
+- No NA-0444 implementation is performed.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, qsl-backup, status, plan, rollback, or backup tree path is intentionally mutated.
+- No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No secret-material-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made.
+
+## NA-0443 closeout local validation results
+
+- Closeout PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- `git diff --check`: PASS.
+- Queue helper: PASS, READY_COUNT 1 and READY NA-0444.
+- Decision helper: PASS, latest D-0874 and duplicate decision count zero.
+- Exact queue proof: PASS, NA-0444 READY, NA-0443 DONE, NA-0442 DONE, NA-0441 DONE, NA-0440 DONE, NA-0439 DONE, NA-0438 DONE, NA-0437 DONE, NA-0436 DONE, NA-0435 DONE, NA-0434 BLOCKED, NA-0429 BLOCKED.
+- Exact decision proof: PASS, D-0873 once, D-0874 once, D-0875 absent, duplicate decision count zero.
+- Manual working-tree path guard: PASS, exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0443_closeout_restore_na0444_testplan.md`.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan: PASS, `OVERCLAIM_FINDING_COUNT 0`.
+- CI scope classifier: PASS, `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, `scope_class=docs_only`.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS, required NA-0436 markers emitted.
+- qsl-backup checksum remained `e9ecff3d22ed`.
 
 # QSL-DIR-2026-06-08-292 / NA-0442 nonce key RNG lifecycle findings triage rolling journal
 

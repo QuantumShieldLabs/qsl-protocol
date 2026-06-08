@@ -26821,3 +26821,118 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - A PR body preflight attempt used unsupported `--body` syntax and exited with usage code 2. Classification: recoverable command-shape issue. Corrective action: reran `pr-body-preflight` with `--file` and the closeout PR body path. Final result: missing field count zero and prohibited phrase count zero.
 - Root pqcrypto inverse-tree probes returned package-ID absence. Classification: valid zero-match dependency proof under expected probes. Corrective action: record as absence proof. Final result: root pqcrypto package IDs remained absent.
 - Nested qsc fuzz lock pqcrypto residual scan returned zero matches. Classification: valid zero-match residual proof. Corrective action: record as absence proof. Final result: nested pqcrypto residual package IDs remained absent.
+# QSL-DIR-2026-06-07-290 / NA-0440 provider-error formal/model alignment authorization rolling journal
+
+- Directive: QSL-DIR-2026-06-07-290 -- Execute NA-0440 QSL qsc Provider Error Path Formal / Model Alignment Authorization Plan, Optional Closeout to NA-0441.
+- Begin timestamp (America/Chicago): 2026-06-07T19:34:30-05:00
+- Begin timestamp (UTC): 2026-06-08T00:34:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0440/qsl-protocol`
+- qsl-protocol branch: `na-0440-provider-error-formal-model-auth`
+- qsl-protocol qwork HEAD: `336831c84118`
+- qsl-protocol qwork origin/main: `336831c84118`
+- qsl-protocol live origin/main after fetch: `336831c84118`
+- qsl-protocol PR #1148 merge: `336831c84118`
+- Evidence PR: pending
+- Evidence merge commit: pending
+- Closeout PR: pending
+- Closeout merge commit: pending
+
+## READY proof
+
+- qwork proof: startup OK, lane NA-0440, repo qsl-protocol, clean worktree/index/untracked, READY_COUNT 1, queue_top_ready NA-0440.
+- Live queue helper: READY_COUNT 1; READY NA-0440.
+- Required inherited queue state: NA-0439 DONE, NA-0438 DONE, NA-0437 DONE, NA-0436 DONE, NA-0435 DONE, NA-0434 BLOCKED, NA-0429 BLOCKED.
+- Decision helper before patch: latest D-0866, D-0865 once, D-0866 once, D-0867 absent, duplicate decision count zero.
+
+## Worktree / branch / PR
+
+- Initial branch: `main`.
+- Evidence branch: `na-0440-provider-error-formal-model-auth`.
+- Evidence PR: pending.
+- Evidence commit: created before PR; branch HEAD is authoritative after the local journal update is folded in.
+- Optional closeout branch: pending.
+- Optional closeout PR: pending.
+
+## qwork proof-file verification
+
+- Read `/srv/qbuild/work/NA-0440/.qwork/startup.qsl-protocol.kv`.
+- Read `/srv/qbuild/work/NA-0440/.qwork/startup.qsl-protocol.json`.
+- JSON parsed and mirrored `.kv` for lane, repo, path, HEAD, origin/main, clean-state fields, READY count, queue top, and requested lane status.
+- Live `HEAD` and `origin/main` matched qwork proof before fetch.
+- `git fetch --all --prune` did not advance origin/main from qwork proof.
+- PR #1148 was verified MERGED with merge commit `336831c84118`.
+- Proof root: `/srv/qbuild/tmp/NA0440_provider_error_formal_model_auth_20260608T024038Z`.
+
+## Formal/model alignment notes
+
+- Formal files inventoried: `formal/README.md`, `formal/model_scka_bounded.py`, `formal/model_suite2_negotiation_bounded.py`, `formal/model_qsc_handshake_suite_id_bounded.py`, `formal/run_model_checks.py`, `formal/__init__.py`.
+- Existing formal/model checks are crypto-agnostic and model fail-closed/no-mutation discipline for SCKA, Suite-2 negotiation, and qsc suite-id admission.
+- Existing formal/model checks do not directly model qsc KEM provider failures, `pq_decap_failed`, `pq_encap_failed`, qsc pending store state, qsc session store state, or exact `StdCrypto` encap/decap semantics.
+- Selected classification: `PROVIDER_ERROR_FORMAL_MODEL_SUPPORTING_ONLY_NO_ACTION`.
+- Selected successor: `NA-0441 -- QSL Nonce / Key / RNG Lifecycle Read-Only Audit Plan`.
+
+## Failures / recoveries
+
+- Failing command: `grep -c '^/home/victor/work/qsl/codex/ops$' /backup/qsl/manifests/daily-20260607T023712-0500.manifest.txt`.
+  Classification: recoverable command-shape mismatch because the manifest indents source paths and the directive required a source inclusion count, not a literal zero-indentation line proof.
+  Corrective action: reran a whitespace-aware source-line count with `grep -c '^[[:space:]]*/home/victor/work/qsl/codex/ops$' ...`.
+  Final result: count exactly 1.
+- Failing command: first added-line overclaim scan.
+  Classification: recoverable scanner-shape issue because wrapped no-claim continuation lines carried sensitive terms without same-line negation.
+  Corrective action: reworded claim-boundary lines so each sensitive phrase carries explicit same-line negation.
+  Final result: `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: local qsc adversarial script (`sh scripts/ci/qsc_adversarial.sh` via executable fallback logic).
+  Classification: recoverable local tooling limitation because stable Rust adversarial phases passed and the NA-0439 provider-error step ran successfully before local cargo-fuzz availability stopped the script.
+  Corrective action: no toolchain or dependency mutation; require PR CI qsc-adversarial-smoke as cargo-fuzz-backed proof before merge if attached/required.
+  Final result: pre-fuzz phases passed; local output ended with `error: no such command: fuzz`.
+
+## Validation / CI notes
+
+- Public-safety required contexts include `public-safety`; current main `336831c84118` has public-safety completed success.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- Root pqcrypto inverse probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+- Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
+- `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS, required NA-0436 markers emitted.
+- `scripts/ci/qsc_adversarial.sh` contains `NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP` and the provider-error no-mutation command before cargo-fuzz phases.
+- `sh -n scripts/ci/qsc_adversarial.sh`: PASS.
+- `bash -n scripts/ci/qsc_adversarial.sh`: PASS.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: PASS, 3 tests.
+- `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768`: PASS, 3 tests.
+- `cargo fmt --check`: PASS.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: PASS.
+- `python3 formal/run_model_checks.py`: PASS.
+- Local qsc adversarial script: stable Rust phases and provider-error step passed before local cargo-fuzz unavailability.
+- `git diff --check`: PASS.
+- Manual working-tree path guard before commit: PASS, exact five allowed paths.
+- Post-commit helper scope guard: PASS, five allowed paths, forbidden count zero.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan final pass: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- Synthetic goal-lint: PASS, `OK: goal compliance checks passed.`
+- CI scope classifier: PASS, `scope_class=docs_only`.
+- PR checks: pending.
+
+## Disk watermark
+
+- Filesystem: `/dev/nvme0n1p2` mounted at `/`.
+- Total: 468G.
+- Used: 233G.
+- Free: 212G.
+- Used percent: 53%.
+
+## Next-watch items
+
+- Complete exact five-path scope guard after patch.
+- Run link, leak, overclaim, classifier, PR body preflight, goal-lint, Rust, audit, fmt, formal, and qsc adversarial validations.
+- Merge only after required checks pass.
+- Optional closeout to NA-0441 only after evidence PR merges and post-merge public-safety is green.

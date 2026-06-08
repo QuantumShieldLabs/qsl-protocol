@@ -26936,3 +26936,77 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Run link, leak, overclaim, classifier, PR body preflight, goal-lint, Rust, audit, fmt, formal, and qsc adversarial validations.
 - Merge only after required checks pass.
 - Optional closeout to NA-0441 only after evidence PR merges and post-merge public-safety is green.
+
+# QSL-DIR-2026-06-07-290 / NA-0440 closeout and NA-0441 restoration rolling journal
+
+- Directive: QSL-DIR-2026-06-07-290 optional closeout -- close out NA-0440 after PR #1149 post-merge public-safety completion and restore NA-0441.
+- Begin timestamp (America/Chicago): 2026-06-07T21:59:00-05:00
+- Begin timestamp (UTC): 2026-06-08T02:59:00Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Closeout repo SHAs
+
+- qsl-protocol main before closeout branch: `ef895637c5fc`.
+- qsl-protocol origin/main before closeout branch: `ef895637c5fc`.
+- Evidence PR #1149 head: `2b47c4fd3d69`.
+- Evidence PR #1149 merge: `ef895637c5fc`.
+- Closeout branch: `na-0440-closeout-restore-na0441`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
+
+## Closeout READY proof
+
+- Queue proof before closeout patch: READY_COUNT 1, READY NA-0440.
+- Decision proof before closeout patch: latest D-0867, D-0867 once, D-0868 absent, duplicate decision count zero.
+- Evidence PR #1149: MERGED at `ef895637c5fc`.
+- Post-merge public-safety on `ef895637c5fc`: PASS.
+- Post-merge attached checks on `ef895637c5fc`: completed with zero failures after bounded REST polling.
+
+## Closeout patch notes
+
+- NA-0440 is marked DONE.
+- NA-0441 is restored as the sole READY item.
+- D-0868 records NA-0440 closeout and NA-0441 restoration.
+- TRACEABILITY records PR #1149, post-merge public-safety, and the NA-0441 read-only audit successor.
+- Closeout testplan path: `tests/NA-0440_closeout_restore_na0441_testplan.md`.
+- No NA-0441 implementation is performed.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, qsl-backup, status, plan, rollback, or backup tree path is intentionally mutated.
+- No backup or restore was run.
+
+## Closeout validation watch
+
+- Closeout validation must prove READY_COUNT 1 and READY NA-0441.
+- Closeout validation must prove NA-0440 DONE, D-0868 exists once, D-0869 absent, and duplicate decision IDs absent.
+- Closeout scope guard must report exactly the five allowed closeout paths.
+- Closeout PR checks, including public-safety, must pass before merge.
+
+## Closeout failures / recoveries
+
+- Failing command: first closeout added-line overclaim scan.
+  Classification: recoverable scanner-shape issue because wrapped NA-0441 forbidden-claim continuation lines carried sensitive terms without same-line negation.
+  Corrective action: reworded the NA-0441 forbidden claim boundary so each sensitive phrase carries explicit same-line negation.
+  Final result: `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+
+## Closeout local validation results
+
+- `git diff --check`: PASS.
+- Queue helper: PASS, READY_COUNT 1 and READY NA-0441.
+- Decision helper: PASS, latest D-0868 and duplicate decision count zero.
+- Exact status proof: PASS, NA-0441 READY, NA-0440 DONE, NA-0439 DONE, NA-0438 DONE, NA-0437 DONE, NA-0436 DONE, NA-0435 DONE, NA-0434 BLOCKED, NA-0429 BLOCKED.
+- Exact decision proof: PASS, D-0867 once, D-0868 once, D-0869 absent.
+- Manual working-tree path guard: PASS, exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0440_closeout_restore_na0441_testplan.md`.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan final pass: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- CI scope classifier: PASS, `scope_class=docs_only`.
+- `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS, required NA-0436 markers emitted.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- Root pqcrypto inverse probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+- Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
+- `cargo fmt --check`: PASS.

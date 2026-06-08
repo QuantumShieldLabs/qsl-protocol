@@ -22213,3 +22213,52 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - No cargo audit output is used as side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0440; NA-0441; NA-0439; NA-0437; NA-0436; D-0867; D-0866; D-0865; `formal/model_qsc_handshake_suite_id_bounded.py`; `formal/run_model_checks.py`; `qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs`; `scripts/ci/qsc_adversarial.sh`; `docs/governance/evidence/NA-0440_qsl_qsc_provider_error_path_formal_model_alignment_authorization_plan.md`; `tests/NA-0440_qsl_qsc_provider_error_path_formal_model_alignment_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0868
+  - **Title:** NA-0440 closeout and NA-0441 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-07
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0440 is closed after qsl-protocol PR #1149 merged at `ef895637c5fc`, required PR checks completed success, and post-merge public-safety completed success on the merge commit. D-0867 classified provider-error formal/model alignment as `PROVIDER_ERROR_FORMAL_MODEL_SUPPORTING_ONLY_NO_ACTION`, preserved the `pq_encap_failed` defensive branch caveat, consumed `pq_decap_failed` deterministic test and qsc adversarial-script evidence, and selected `NA-0441 -- QSL Nonce / Key / RNG Lifecycle Read-Only Audit Plan`. This closeout marks NA-0440 DONE and restores NA-0441 as the sole READY successor without implementing NA-0441.
+  - **Selected successor:** `NA-0441 -- QSL Nonce / Key / RNG Lifecycle Read-Only Audit Plan`.
+  - **Closeout boundary:** This closeout makes no runtime, crypto, dependency, Cargo manifest, lockfile, workflow, executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, backup tree, branch-protection, or public-surface mutation.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. Cargo audit green remains dependency-health evidence only, and formal/model checks remain bounded supporting evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Protected:**
+    - PR #1149 is MERGED at `ef895637c5fc`.
+    - post-merge public-safety is green on `ef895637c5fc`.
+    - NA-0440 DONE.
+    - READY NA-0441.
+    - D-0867 exists once.
+    - D-0868 exists once after this closeout.
+    - D-0869 remains absent until future NA-0441 work.
+    - no duplicate decision IDs.
+    - no implementation mutation in this closeout.
+    - no backup or restore.
+    - no public crypto-complete claim.
+    - no vulnerability-free claim.
+    - no bug-free claim.
+    - no perfect-crypto claim.
+    - no side-channel-free claim.
+    - exactly one READY remains mandatory.
+  - **Required behavior:**
+    - NA-0441 must be read-only audit planning and findings classification unless a future exact directive authorizes mutation.
+    - NA-0441 must preserve NA-0440 provider-error evidence boundaries.
+    - NA-0441 must not mutate runtime, crypto, dependencies, Cargo files, lockfiles, workflows, executable tests, fuzz targets, vectors, public surfaces, services, backup/local-ops paths, qwork/qstart/qresume/qshell, README, or START_HERE.
+    - cargo audit output must remain dependency-health evidence only.
+    - exactly one READY item remains mandatory.
+  - **Must never happen:**
+    - NA-0441 implementation starts inside this closeout.
+    - `pq_encap_failed` is represented as executable-covered by NA-0440 or this closeout.
+    - formal/model checks are represented as direct provider-error implementation proof.
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside this closeout.
+    - cargo audit output must not be used as public-readiness proof.
+    - cargo audit output must not be used as production-readiness proof.
+    - cargo audit output must not be used as external-review-complete proof.
+    - cargo audit output must not be used as crypto-complete proof.
+    - cargo audit output must not be used as vulnerability-free proof.
+    - cargo audit output must not be used as bug-free proof.
+    - cargo audit output must not be used as perfect-crypto proof.
+    - cargo audit output must not be used as side-channel-free proof.
+    - more than one READY item remains.
+  - **References:** NA-0440; NA-0441; D-0868; D-0867; qsl-protocol PR #1149; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0440_closeout_restore_na0441_testplan.md`

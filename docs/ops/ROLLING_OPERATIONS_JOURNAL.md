@@ -26270,6 +26270,148 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
 - `cargo fmt --check`: PASS.
 
+# QSL-DIR-2026-06-08-293 / NA-0443 key lifecycle secret cleanup zeroization scope authorization rolling journal
+
+- Directive: QSL-DIR-2026-06-08-293 -- Execute NA-0443 QSL Key Lifecycle Secret Cleanup / Zeroization Scope Authorization Plan, Optional Closeout to NA-0444.
+- Begin timestamp (America/Chicago): 2026-06-08T06:34:30-05:00.
+- Begin timestamp (UTC): 2026-06-08T11:34:30Z.
+- Codex local proof timestamp: 2026-06-08T07:16:17-05:00 / 2026-06-08T12:16:17+00:00.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## NA-0443 repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0443/qsl-protocol`.
+- qsl-protocol initial branch: `main`.
+- qsl-protocol evidence branch: `na-0443-key-lifecycle-secret-cleanup-scope`.
+- qwork HEAD: `ada372a1998b`.
+- qwork origin/main: `ada372a1998b`.
+- live HEAD after fetch: `ada372a1998b`.
+- live origin/main after fetch: `ada372a1998b`.
+- PR #1154 merge: `ada372a1998b`.
+- Evidence PR: pending.
+- Evidence merge commit: pending.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
+
+## NA-0443 READY proof
+
+- qwork `.kv` proof markers passed: startup OK, lane NA-0443, repo qsl-protocol, expected path, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0443, requested lane status READY.
+- qwork JSON parsed and mirrored `.kv` for lane, repo, path, HEAD, origin/main, clean-state fields, READY count, queue top, and requested lane status.
+- `git fetch --all --prune` did not advance origin/main from qwork proof.
+- PR #1154 verified MERGED with merge commit `ada372a1998b`.
+- Queue helper: READY_COUNT 1 and READY NA-0443.
+- Exact queue proof: NA-0443 READY; NA-0442 DONE; NA-0441 DONE; NA-0440 DONE; NA-0439 DONE; NA-0438 DONE; NA-0437 DONE; NA-0436 DONE; NA-0435 DONE; NA-0434 BLOCKED; NA-0429 BLOCKED.
+- Decision proof before patch: latest D-0872; D-0871 once; D-0872 once; D-0873 absent; duplicate decision count zero.
+- Public-safety on `ada372a1998b`: PASS.
+
+## NA-0443 proof root and boundary proof
+
+- Proof root: `/srv/qbuild/tmp/NA0443_key_lifecycle_secret_cleanup_scope_20260608T121739Z`.
+- qwork proof files copied under the proof root `qwork/` directory.
+- qsl-backup checksum matched expected boundary value.
+- Latest backup manifests showed the Codex ops source-list inclusion count exactly one.
+- Prior response files for D289, D290, D291, and D292 were present.
+- No backup or restore was run.
+- qsl-backup, backup status, backup plan, rollback, and backup tree paths were not mutated.
+
+## NA-0443 surface inventory notes
+
+- qsc pending/session/vault surfaces inspected read-only:
+  - `qsl/qsl-client/qsc/src/handshake/mod.rs`
+  - `qsl/qsl-client/qsc/src/protocol_state/mod.rs`
+  - `qsl/qsl-client/qsc/src/vault/mod.rs`
+  - qsc tests covering no-mutation, redaction, vault, and session evidence.
+- refimpl surfaces inspected read-only:
+  - `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`
+  - `tools/refimpl/quantumshield_refimpl/src/crypto/traits.rs`
+  - `tools/refimpl/quantumshield_refimpl/src/qsp/**`
+  - `tools/refimpl/quantumshield_refimpl/src/suite2/**`
+  - refimpl tests.
+- qshield-cli demo-local surfaces inspected read-only:
+  - `apps/qshield-cli/src/store.rs`
+  - `apps/qshield-cli/src/commands/establish.rs`
+  - qshield-cli tests and README boundary evidence.
+- formal and input evidence inspected read-only:
+  - `formal/*.py`
+  - `formal/README.md`
+  - `inputs/suite2/**`
+  - local-ops no-secret fixtures as boundary background.
+
+## NA-0443 classification notes
+
+- qsc runtime classification: `QSC_SECRET_CLEANUP_EVIDENCE_POLICY_NEEDED`.
+- refimpl classification: `REFIMPL_SECRET_CLEANUP_SCOPE_INCLUDED` for evidence-policy scope only.
+- qshield-cli classification: `QSHIELD_DEMO_KEY_MATERIAL_CLAIM_BOUNDARY_ONLY`.
+- Primary classification: `KEY_LIFECYCLE_SECRET_CLEANUP_EVIDENCE_POLICY_NEXT`.
+- Selected successor: `NA-0444 -- QSL Key Lifecycle Secret Cleanup / Zeroization Evidence Policy Authorization Plan`.
+- F-0441-03 RNG failure behavior remains next candidate after this evidence-policy lane.
+- Provider-error chain remains background and is not reopened.
+
+## NA-0443 patch notes
+
+- Added NA-0443 evidence doc for scope authorization.
+- Added NA-0443 testplan.
+- Added D-0873.
+- Added TRACEABILITY row for NA-0443 evidence-policy successor selection.
+- Updated this rolling journal.
+- No implementation mutation is performed.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, qsl-backup, status, plan, rollback, or backup tree path is intentionally mutated.
+
+## NA-0443 validation watch
+
+- Validation must prove READY_COUNT 1 and READY NA-0443.
+- Validation must prove D-0873 exists once, D-0874 absent, and duplicate decision count zero.
+- Scope guard must report exactly the five allowed NA-0443 paths.
+- Link check, leak scan, overclaim scan, classifier, PR body preflight, and goal-lint must pass.
+- Rust, audit, dependency, adversarial syntax, qsc provider-error, qsc send_commit, refimpl pqkem768, fmt, and formal checks must pass or be recorded under bounded recovery rules.
+- Merge only after required checks pass.
+- Optional closeout to NA-0444 is allowed only after the evidence PR merges and post-merge public-safety is green.
+
+## NA-0443 failures / recoveries
+
+- Failing command: first added-line overclaim scan.
+  Classification: recoverable wording-shape issue because a wrapped Product / Demo / Service Boundary steward no-claim sentence put `public-readiness` and `production-readiness` terms on continuation lines without same-line negation.
+  Corrective action: reworded the steward caveat so each sensitive public-readiness and production-readiness phrase carries same-line explicit negation.
+  Final result: added-line overclaim scan passed with `OVERCLAIM_FINDING_COUNT 0`.
+- Failing command: `scripts/ci/qsc_adversarial.sh` local smoke.
+  Classification: recoverable local tooling limitation because the script passed `adversarial_properties`, `adversarial_miri`, and the NA-0439 provider-error no-mutation step, then exited when local Cargo reported `error: no such command: fuzz`.
+  Corrective action: recorded the exact local limitation and preserved reliance on PR CI `qsc-adversarial-smoke` for the cargo-fuzz portion.
+  Final result: local pre-fuzz adversarial evidence passed; cargo-fuzz portion remains PR-CI-bound.
+- Failing command: first custom exact decision-count parser.
+  Classification: recoverable command-shape mistake because the parser matched the wrong DECISIONS.md heading format and then cross-reference text instead of `- **ID:** D-xxxx` decision entry lines.
+  Corrective action: corrected the parser to count only `- **ID:** D-xxxx` lines.
+  Final result: D-0871 count 1, D-0872 count 1, D-0873 count 1, D-0874 count 0, duplicate decision count 0.
+
+## NA-0443 local validation results
+
+- PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- `git diff --check`: PASS.
+- Queue helper: PASS, READY_COUNT 1 and READY NA-0443.
+- Decision helper: PASS, latest D-0873 and duplicate decision count zero.
+- Exact decision proof: PASS, D-0871 once, D-0872 once, D-0873 once, D-0874 absent, duplicate decision count zero.
+- Manual working-tree path guard: PASS, exactly `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0443_qsl_key_lifecycle_secret_cleanup_zeroization_scope_authorization_plan.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0443_qsl_key_lifecycle_secret_cleanup_zeroization_scope_authorization_testplan.md`.
+- Post-commit helper scope guard: PASS, five changed paths allowed and `FORBIDDEN_COUNT 0`.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan final pass: PASS, `OVERCLAIM_FINDING_COUNT 0`.
+- `sh -n scripts/ci/qsc_adversarial.sh`: PASS.
+- `bash -n scripts/ci/qsc_adversarial.sh`: PASS.
+- CI scope classifier: PASS, `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, `scope_class=docs_only`.
+- Local goal-lint with synthesized PR event: PASS.
+- `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS, required NA-0436 markers emitted.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: PASS, 3 tests passed.
+- `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768`: PASS, 3 tests passed.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- Root pqcrypto inverse probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+- Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
+- `cargo fmt --check`: PASS.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: PASS.
+- `python3 formal/run_model_checks.py`: PASS.
+- `scripts/ci/qsc_adversarial.sh`: local pre-fuzz Rust blocks PASS; cargo-fuzz portion unavailable locally with `error: no such command: fuzz`; PR CI `qsc-adversarial-smoke` remains required before merge.
+
 # QSL-DIR-2026-06-08-292 / NA-0442 nonce key RNG lifecycle findings triage rolling journal
 
 - Directive: QSL-DIR-2026-06-08-292 -- execute NA-0442 findings triage authorization and optionally close out to NA-0443.

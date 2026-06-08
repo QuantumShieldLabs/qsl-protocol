@@ -22184,3 +22184,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - cargo audit output must not be used as side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0439; NA-0440; D-0866; D-0865; D-0864; qsl-protocol PR #1147; macOS rerun job `79997092974`; public-safety aggregate rerun job `80002570830`; D286 response `/home/victor/work/qsl/codex/responses/NA0439_20260607T182228Z_D286.md`; D287 response `/home/victor/work/qsl/codex/responses/NA0439_20260607T215318Z_D287.md`; D288 response `/home/victor/work/qsl/codex/responses/NA0439_20260607T233200Z_D288.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0439_closeout_restore_na0440_testplan.md`
+
+- **ID:** D-0867
+  - **Title:** NA-0440 qsc provider error path formal model alignment authorization
+  - **Status:** Accepted
+  - **Date:** 2026-06-07
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0440 consumes NA-0439 adversarial integration evidence, NA-0437 `pq_encap_failed` defensive branch documentation, and NA-0436 `pq_decap_failed` deterministic no-mutation test evidence. The selected formal/model alignment classification is `PROVIDER_ERROR_FORMAL_MODEL_SUPPORTING_ONLY_NO_ACTION`: current formal/model checks support fail-closed and no-mutation discipline, but do not directly model qsc KEM provider failures, `pq_decap_failed`, `pq_encap_failed`, qsc pending store state, qsc session store state, or exact `StdCrypto` encap/decap semantics.
+  - **Selected successor:** `NA-0441 -- QSL Nonce / Key / RNG Lifecycle Read-Only Audit Plan`.
+  - **Formal/model boundary:** Existing model evidence is supporting-only. No formal model implementation is authorized. Exact future mutable implementation paths authorized by this decision: none. A future formal/model scope or implementation lane may be proposed only through a separate exact READY item if later evidence makes it higher priority than the next audit domain.
+  - **Scope boundary:** No runtime, crypto, dependency, Cargo manifest, lockfile, workflow, executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, backup tree, branch-protection, or public-surface mutation is authorized or made by this decision.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. Cargo audit green remains dependency-health evidence only, and model checks passing remains bounded supporting evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Stewardship:** Level-1 stewardship template was used. Crypto / Protocol, CI / Dependency / Release Health, Public Claims / External Review, Product / Demo / Service Boundary, and Local Ops / Backup / Restore summaries remain advisory only. No separate Director, independent READY promotion, or independent merge authority is created.
+  - **Required behavior:** Exactly one READY item remains mandatory. NA-0440 may close out only after the authorization PR merges and post-merge public-safety is green. The closeout must restore exactly the selected NA-0441 successor and must not implement NA-0441.
+  - **Must never happen:**
+    - `pq_encap_failed` is represented as executable-covered by NA-0440.
+    - `pq_decap_failed` no-mutation evidence is overclaimed beyond the existing deterministic test and qsc adversarial-script integration.
+    - formal/model checks are represented as direct provider-error implementation proof.
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside NA-0440.
+    - No cargo audit output is used as public-readiness proof.
+    - No cargo audit output is used as production-readiness proof.
+    - No cargo audit output is used as external-review-complete proof.
+    - No cargo audit output is used as crypto-complete proof.
+    - No cargo audit output is used as vulnerability-free proof.
+    - No cargo audit output is used as bug-free proof.
+    - No cargo audit output is used as perfect-crypto proof.
+    - No cargo audit output is used as side-channel-free proof.
+    - more than one READY item remains.
+  - **References:** NA-0440; NA-0441; NA-0439; NA-0437; NA-0436; D-0867; D-0866; D-0865; `formal/model_qsc_handshake_suite_id_bounded.py`; `formal/run_model_checks.py`; `qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs`; `scripts/ci/qsc_adversarial.sh`; `docs/governance/evidence/NA-0440_qsl_qsc_provider_error_path_formal_model_alignment_authorization_plan.md`; `tests/NA-0440_qsl_qsc_provider_error_path_formal_model_alignment_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

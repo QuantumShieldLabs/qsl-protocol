@@ -26172,6 +26172,89 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Nested qsc fuzz lock residual pqcrypto scan: PASS, zero matches.
 - `cargo fmt --check`: PASS.
 
+# QSL-DIR-2026-06-08-291 / NA-0441 closeout and NA-0442 restoration rolling journal
+
+- Directive: QSL-DIR-2026-06-08-291 optional closeout -- close out NA-0441 after PR #1151 post-merge public-safety completion and restore NA-0442.
+- Begin timestamp (America/Chicago): 2026-06-07T23:25:00-05:00
+- Begin timestamp (UTC): 2026-06-08T04:25:00Z
+- End timestamp (America/Chicago): pending.
+- End timestamp (UTC): pending.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Closeout repo SHAs
+
+- qsl-protocol main before closeout branch: `4ce2c601e9eb`.
+- qsl-protocol origin/main before closeout branch: `4ce2c601e9eb`.
+- Evidence PR #1151 head: `946eb05452ee`.
+- Evidence PR #1151 merge: `4ce2c601e9eb`.
+- Closeout branch: `na-0441-closeout-restore-na0442`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
+
+## Closeout READY proof
+
+- Queue proof before closeout patch: READY_COUNT 1, READY NA-0441.
+- Decision proof before closeout patch: latest D-0869, D-0869 once, D-0870 absent, D-0871 absent, duplicate decision count zero.
+- Evidence PR #1151: MERGED at `4ce2c601e9eb`.
+- Post-merge public-safety on `4ce2c601e9eb`: PASS.
+- Post-merge attached checks on `4ce2c601e9eb`: completed with zero failures after bounded REST polling.
+
+## Closeout patch notes
+
+- NA-0441 is marked DONE.
+- NA-0442 is restored as the sole READY item.
+- D-0870 records NA-0441 closeout and NA-0442 restoration.
+- TRACEABILITY records PR #1151, post-merge public-safety, and the NA-0442 findings-triage successor.
+- Closeout testplan path: `tests/NA-0441_closeout_restore_na0442_testplan.md`.
+- No NA-0442 implementation is performed.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, qsl-backup, status, plan, rollback, or backup tree path is intentionally mutated.
+- No backup or restore was run.
+
+## Closeout validation watch
+
+- Closeout validation must prove READY_COUNT 1 and READY NA-0442.
+- Closeout validation must prove NA-0441 DONE, D-0870 exists once, D-0871 absent, and duplicate decision IDs absent.
+- Closeout scope guard must report exactly the five allowed closeout paths.
+- Closeout PR checks, including public-safety, must pass before merge.
+
+## Closeout warnings / recoveries
+
+- Non-fatal warning: parallel Cargo metadata/tree/audit commands emitted package-cache lock wait messages.
+  Classification: non-fatal tool concurrency warning because the commands completed with the expected dependency-health results.
+  Corrective action: recorded the warning and continued with final command conclusions.
+  Final result: root and nested audits passed; `rustls-webpki` and `ml-kem` inverse-tree evidence matched expectations; qsc fuzz lock pqcrypto residual scan returned zero matches.
+- Failing commands: first closeout PR-body preflight invocation omitted the required `--file` flag; first synthetic goal-lint probe invoked `tools/goal_lint.py --help` without a `GITHUB_EVENT_PATH`; first post-journal leak-scan rerun used unsupported `--head HEAD`.
+  Classification: recoverable command-shape mistakes; each was corrected immediately after checking the local helper interface.
+  Corrective action: reran PR-body preflight with `--file`, created a minimal synthetic pull-request event under the temp proof root and reran goal-lint with `GITHUB_EVENT_PATH`, then reran leak-scan as `--mode added --base origin/main`.
+  Final result: PR-body preflight reported `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`; synthetic goal-lint reported `OK: goal compliance checks passed`; leak-scan reported `SECRET_FINDING_COUNT 0`.
+- Failing command: pre-PR `ci-admission-preflight` invocation used base/head arguments before a PR number existed.
+  Classification: recoverable helper invocation timing issue; the command requires `--pr` and is only usable after PR creation.
+  Corrective action: took no validation credit from the failed invocation and deferred CI-admission preflight to the PR phase using the PR number.
+  Final result before PR creation: local scope, queue, decision, link, leak, PR-body, and goal-lint validations remained green; PR-number CI-admission check remained pending until after PR creation.
+
+## Closeout local validation results
+
+- `git diff --cached --check`: PASS.
+- Queue helper: PASS, READY_COUNT 1 and READY NA-0442.
+- Decision helper: PASS, latest D-0870 and duplicate decision count zero.
+- Exact status proof: PASS, NA-0442 READY, NA-0441 DONE, NA-0440 DONE, NA-0439 DONE, NA-0438 DONE, NA-0437 DONE, NA-0436 DONE, NA-0435 DONE, NA-0434 BLOCKED, NA-0429 BLOCKED.
+- Exact decision proof: PASS, D-0869 once, D-0870 once, D-0871 absent.
+- Manual staged-path guard: PASS, exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0441_closeout_restore_na0442_testplan.md`.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- Synthetic goal-lint: PASS.
+- CI scope classifier: PASS, `scope_class=docs_only`.
+- `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS, required NA-0436 markers emitted.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- Root pqcrypto inverse probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+- Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
+- `cargo fmt --check`: PASS.
+
 # QSL-DIR-2026-06-06-281 / NA-0436 pq_decap_failed no-mutation test implementation rolling journal
 
 - Directive: QSL-DIR-2026-06-06-281 -- execute NA-0436 qsc `pq_decap_failed` no-mutation test implementation harness.

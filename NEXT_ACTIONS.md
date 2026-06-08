@@ -23646,7 +23646,7 @@ Acceptance criteria:
 ---
 
 ### NA-0441 — QSL Nonce / Key / RNG Lifecycle Read-Only Audit Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -23720,6 +23720,92 @@ Deliverables:
 Acceptance criteria:
 - nonce/key/RNG lifecycle surfaces are inventoried read-only.
 - findings are classified without implementation.
+- no implementation mutation occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+Closeout evidence:
+- Evidence PR #1151 merged at `4ce2c601e9eb`.
+- D-0869 classified NA-0441 as `NONCE_KEY_RNG_EVIDENCE_GAPS_FOUND`.
+- Findings F-0441-01 through F-0441-06 were recorded.
+- Selected successor: `NA-0442 -- QSL Nonce / Key / RNG Lifecycle Findings Triage Authorization Plan`.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test,
+  fuzz target, vector, formal model, public-surface, service, qwork, backup,
+  restore, qsl-backup, status, plan, rollback, or backup tree mutation occurred.
+- No public-readiness claim, no production-readiness claim, no
+  external-review-complete claim, no crypto-complete claim, no side-channel-free
+  claim, no vulnerability-free claim, no bug-free claim, and no perfect-crypto
+  claim is made.
+
+---
+
+### NA-0442 — QSL Nonce / Key / RNG Lifecycle Findings Triage Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Triage the findings from the NA-0441 nonce/key/RNG lifecycle read-only audit,
+selecting the highest-priority exact follow-up while preserving
+no-runtime/no-crypto/no-dependency/no-public-claim boundaries unless a later
+directive authorizes precise implementation scope.
+
+Protects:
+- nonce/key/RNG lifecycle evidence quality.
+- fail-closed handling around key and randomness boundaries.
+- provider boundary confidence after ml-kem replacement and provider-error
+  audit work.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0442.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of NA-0441 evidence and relevant qsl/qsc/refimpl/formal/test surfaces.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, Cargo, lockfile, workflow, qsl-server,
+  qsl-attachments, qshield runtime, website, public docs, README, or START_HERE
+  paths.
+- Mutating tests, fuzz target source, vectors, or formal models.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No production-readiness claim.
+- No public-readiness claim.
+- No public-internet-readiness claim.
+- No external-review-complete claim.
+- No metadata-free behavior claim.
+- No anonymity claim.
+- No untraceability claim.
+- No off-host backup completion claim.
+- No disaster recovery completion claim.
+- No restore proof claim.
+- No backup completion claim.
+- No bug-free status claim.
+- No vulnerability-free status claim.
+- No perfect-crypto status claim.
+- No side-channel-free status claim.
+- No crypto-complete status claim.
+- Secret material handling.
+
+Deliverables:
+- NA-0442 evidence doc.
+- NA-0442 testplan.
+- D-0871 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- selected exact successor.
+
+Acceptance criteria:
+- NA-0441 findings are consumed.
+- successor is selected from evidence.
 - no implementation mutation occurs.
 - cargo audit remains green.
 - nested fuzz lock audit remains green.

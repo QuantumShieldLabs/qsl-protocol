@@ -26566,6 +26566,136 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
 - `cargo fmt --check`: PASS.
 
+# QSL-DIR-2026-06-08-296 / NA-0446 qsc key lifecycle zeroization test implementation rolling journal
+
+- Directive: QSL-DIR-2026-06-08-296 -- Execute NA-0446 QSL qsc Key Lifecycle Secret Cleanup / Zeroization Test Implementation Harness, Optional Closeout to NA-0447.
+- Begin timestamp (America/Chicago): 2026-06-08T13:34:30-05:00
+- Begin timestamp (UTC): 2026-06-08T18:34:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0446/qsl-protocol`
+- qsl-protocol branch: `na-0446-qsc-key-lifecycle-zeroization-test`
+- qsl-protocol qwork HEAD: `50e4387e8379`
+- qsl-protocol qwork origin/main: `50e4387e8379`
+- qsl-protocol live HEAD before branch: `50e4387e8379`
+- qsl-protocol live origin/main after fetch: `50e4387e8379`
+- qsl-protocol mirror/main observed: `2abcee236e23`
+- qsl-protocol PR #1160 merge: `50e4387e8379`
+- Evidence PR: pending
+- Evidence merge commit: pending
+- Optional closeout PR: pending
+- Optional closeout merge commit: pending
+
+## READY proof
+
+- qwork proof: startup OK, lane NA-0446, repo qsl-protocol, clean worktree/index/untracked, READY_COUNT 1, queue_top_ready NA-0446.
+- qwork JSON proof parsed and mirrored `.kv` for lane, repo, path, HEAD, origin/main, clean-state fields, READY count, queue top, and requested lane status.
+- Live queue helper before patch: READY_COUNT 1; READY NA-0446.
+- Required inherited queue state before patch: NA-0445 DONE, NA-0444 DONE, NA-0443 DONE, NA-0442 DONE, NA-0441 DONE, NA-0440 DONE, NA-0439 DONE, NA-0438 DONE, NA-0437 DONE, NA-0436 DONE, NA-0435 DONE, NA-0434 BLOCKED, NA-0429 BLOCKED.
+- Decision helper before patch: latest D-0878, duplicate decision count zero, D-0877 once, D-0878 once, D-0879 absent.
+- Public-safety before patch: `main sha=50e4387e8379 check=public-safety status=completed conclusion=success`.
+
+## Worktree / branch / PR
+
+- Initial branch: `main`.
+- Evidence branch: `na-0446-qsc-key-lifecycle-zeroization-test`.
+- Evidence PR: pending.
+- Evidence commit: pending.
+- Optional closeout branch: pending.
+- Optional closeout PR: pending.
+
+## qwork proof-file verification
+
+- Read `/srv/qbuild/work/NA-0446/.qwork/startup.qsl-protocol.kv`.
+- Read `/srv/qbuild/work/NA-0446/.qwork/startup.qsl-protocol.json`.
+- Required qwork `.kv` markers passed: startup OK, lane NA-0446, repo qsl-protocol, reported path `/srv/qbuild/work/NA-0446/qsl-protocol`, clean worktree/index/untracked, READY_COUNT 1, queue_top_ready NA-0446, requested_lane_status READY.
+- JSON parsed and mirrored `.kv` for lane, repo, path, HEAD, origin/main, clean-state fields, READY count, queue top, and requested lane status.
+- `git fetch --all --prune` did not advance `origin/main` beyond qwork proof.
+- PR #1160 was verified MERGED with merge commit `50e4387e8379`.
+- Proof root: `/srv/qbuild/tmp/NA0446_qsc_key_lifecycle_zeroization_test_impl_20260608T212113Z`.
+
+## NA-0445 authorization inheritance
+
+- NA-0445 selected `QSC_ZEROIZATION_TEST_SCOPE_IMPLEMENTATION_READY`.
+- Exact authorized test path: `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`.
+- Direct runtime memory overwrite, allocator behavior, `Drop` behavior, side-channel behavior, all-material coverage, qshield-cli runtime/demo expansion, refimpl cleanup/zeroization, RNG failure implementation, and public claims remain out of scope.
+- Selected successor after successful NA-0446 implementation: `NA-0447 -- QSL RNG Failure Behavior Scope Authorization Plan`.
+
+## Implementation notes
+
+- Authorized test path was absent before mutation; rollback marker created at `$PROOF_DIR/rollback/key_lifecycle_zeroization.rs.absent`.
+- Added `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`.
+- Implemented tests: `pending_handshake_secret_cleanup_success_and_reject_boundaries`, `session_secret_store_inserted_only_after_success_and_encrypted_at_rest`, `key_lifecycle_output_redaction_sentinel_scan`, `reject_paths_preserve_pending_session_vault_state`, `session_and_vault_encrypted_at_rest_boundaries`, and optional `vault_passphrase_redaction_and_no_plaintext_boundary`.
+- Required NA-0446 markers emitted by the exact test run.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, qsl-backup, status, plan, rollback, or backup tree mutation was intentionally made.
+
+## Failures / recoveries
+
+- Failing command: `python3 scripts/ci/public_safety_gate.py check-main-public-safety --owner-repo QuantumShieldLabs/qsl-protocol --branch main --check-name public-safety`.
+  Classification: recoverable command-shape issue because the helper expects `--repo`.
+  Corrective action: reran with `--repo`.
+  Final result: command advanced to authentication setup.
+- Failing command: `python3 scripts/ci/public_safety_gate.py check-main-public-safety --repo QuantumShieldLabs/qsl-protocol --branch main --check-name public-safety`.
+  Classification: recoverable local tool-environment issue because `gh` was authenticated but the helper requires `GH_TOKEN`.
+  Corrective action: reran with `GH_TOKEN` populated from `gh auth token` without printing the token.
+  Final result: public-safety verified green on `50e4387e8379`.
+- Failing command: `rustfmt qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`.
+  Classification: recoverable command-shape issue because standalone rustfmt parsed the test module tree without crate edition.
+  Corrective action: reran `rustfmt --edition 2021` on the exact authorized test file.
+  Final result: formatting succeeded and `cargo fmt --check` passed.
+- Failing command: local qsc adversarial script under `pipefail`.
+  Classification: recoverable local tooling limitation because stable Rust adversarial phases and the NA-0439 provider-error step passed before local cargo-fuzz availability stopped execution.
+  Corrective action: no toolchain, dependency, workflow, or source mutation; require PR CI `qsc-adversarial-smoke`.
+  Final result: local output ended with `error: no such command: fuzz`.
+- Non-fatal warnings: parallel read-only cargo audit/tree probes printed package-cache/advisory-db lock wait messages.
+  Classification: benign contention warnings.
+  Final result: audits and dependency probes completed.
+- Valid zero-match proof: root pqcrypto inverse probes reported package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+  Classification: expected absence proof.
+  Final result: root pqcrypto package IDs remained absent.
+- Valid zero-match proof: nested qsc fuzz lock pqcrypto residual scan returned zero matches.
+  Classification: expected absence proof.
+  Final result: nested pqcrypto residual package IDs remained absent.
+
+## Validation / CI notes
+
+- `cargo test -p qsc --locked --test key_lifecycle_zeroization -- --test-threads=1 --nocapture`: PASS, 6 tests, required NA-0446 markers emitted.
+- `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS, required NA-0436 markers emitted.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: PASS, 3 tests.
+- `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768`: PASS, 3 tests.
+- `sh -n scripts/ci/qsc_adversarial.sh`: PASS.
+- `bash -n scripts/ci/qsc_adversarial.sh`: PASS.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- Root pqcrypto inverse probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+- Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
+- `cargo fmt --check`: PASS.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: PASS.
+- `python3 formal/run_model_checks.py`: PASS.
+- Local qsc adversarial script: stable Rust phases and provider-error step passed; local cargo-fuzz unavailable.
+- PR checks: pending.
+
+## Disk watermark
+
+- Filesystem: `/dev/nvme0n1p2` mounted at `/`.
+- Total: 468G.
+- Used: 243G.
+- Free: 202G.
+- Used percent: 55%.
+
+## Next-watch items
+
+- Complete scope guard after all NA-0446 governance patching.
+- Run link, leak, overclaim, classifier, PR body preflight, goal-lint, exact qsc test, inherited Rust/audit/formal validations as needed before PR.
+- Merge only after required PR checks pass, with PR CI `qsc-adversarial-smoke` green or accepted check shape.
+- Optional closeout to NA-0447 only after implementation PR merges and post-merge public-safety is green.
+
 # QSL-DIR-2026-06-08-293 / NA-0443 key lifecycle secret cleanup zeroization scope authorization rolling journal
 
 - Directive: QSL-DIR-2026-06-08-293 -- Execute NA-0443 QSL Key Lifecycle Secret Cleanup / Zeroization Scope Authorization Plan, Optional Closeout to NA-0444.

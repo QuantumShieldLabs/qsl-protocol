@@ -23873,8 +23873,25 @@ Implementation note:
 ---
 
 ### NA-0445 — QSL qsc Key Lifecycle Secret Cleanup / Zeroization Test Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
+
+Implementation note:
+- D-0877 selected `QSC_ZEROIZATION_TEST_SCOPE_IMPLEMENTATION_READY`, consumed
+  the NA-0444 evidence policy, classified qsc pending/session/vault/redaction
+  surfaces, selected exact future qsc test path
+  `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`, and selected
+  `NA-0446 -- QSL qsc Key Lifecycle Secret Cleanup / Zeroization Test Implementation Harness`.
+- NA-0445 did not implement tests and did not mutate runtime, crypto,
+  dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector,
+  formal model, qsl-server, qsl-attachments, qshield runtime, qshield-cli,
+  website, public docs, README, START_HERE, qwork/qstart/qresume/qshell,
+  qsl-backup, backup status, backup plan, rollback, or backup tree paths.
+- No public-readiness claim, no production-readiness claim, no
+  public-internet-readiness claim, no external-review-complete claim, no
+  crypto-complete claim, no secret-material-complete claim, no side-channel-free
+  claim, no vulnerability-free claim, no bug-free claim, and no perfect-crypto
+  claim is made.
 
 Objective:
 Authorize the exact future test scope for qsc key-material cleanup and
@@ -23949,6 +23966,86 @@ Acceptance criteria:
 - exact future mutable test paths are identified if implementation is later
   authorized.
 - no implementation mutation occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+---
+
+### NA-0446 — QSL qsc Key Lifecycle Secret Cleanup / Zeroization Test Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the exact qsc key-lifecycle cleanup / zeroization tests authorized by
+NA-0445, using only the explicitly listed future test path, proving bounded
+internal evidence for selected cleanup/zeroization expectations without
+changing runtime code, crypto code, dependencies, workflows, fuzz targets,
+vectors, public surfaces, or backup/local-ops state.
+
+Protects:
+- qsc key lifecycle evidence quality.
+- secret-material cleanup/zeroization expectations.
+- fail-closed handling around pending/session/shared-secret material.
+- provider boundary confidence after ml-kem replacement and provider-error
+  audit work.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`.
+- `docs/governance/evidence/NA-0446_qsl_qsc_key_lifecycle_secret_cleanup_zeroization_test_implementation_harness.md`.
+- `tests/NA-0446_qsl_qsc_key_lifecycle_secret_cleanup_zeroization_test_implementation_testplan.md`.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, Cargo, lockfile, workflow, qsl-server,
+  qsl-attachments, qshield runtime, website, public docs, README, or START_HERE
+  paths.
+- Mutating tests outside `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`.
+- Mutating fuzz target source, vectors, or formal models.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No production-readiness claim.
+- No public-readiness claim.
+- No public-internet-readiness claim.
+- No external-review-complete claim.
+- No metadata-free behavior claim.
+- No anonymity claim.
+- No untraceability claim.
+- No off-host backup completion claim.
+- No disaster recovery completion claim.
+- No restore proof claim.
+- No backup completion claim.
+- No bug-free status claim.
+- No vulnerability-free status claim.
+- No perfect-crypto status claim.
+- No side-channel-free status claim.
+- No secret-material-complete status claim.
+- No crypto-complete status claim.
+- Secret material handling outside bounded test fixtures and source/evidence
+  inspection.
+
+Deliverables:
+- exact authorized qsc test implementation in
+  `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`.
+- NA-0446 evidence doc.
+- NA-0446 testplan.
+- D-0879 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+
+Acceptance criteria:
+- exact test passes.
+- test evidence is bounded and does not claim secret-material completeness.
+- no runtime/crypto/dependency mutation occurs.
 - cargo audit remains green.
 - nested fuzz lock audit remains green.
 - public-safety is green before merge and after merge.

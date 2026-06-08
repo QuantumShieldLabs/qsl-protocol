@@ -22678,3 +22678,58 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, dependency, Cargo, lockfile, workflow, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside NA-0445.
     - more than one READY item remains.
   - **References:** NA-0445; NA-0446; NA-0444; NA-0443; NA-0442; NA-0441; D-0877; D-0876; D-0875; D-0873; D-0871; D-0869; `docs/governance/evidence/NA-0445_qsl_qsc_key_lifecycle_secret_cleanup_zeroization_test_scope_authorization_plan.md`; `tests/NA-0445_qsl_qsc_key_lifecycle_secret_cleanup_zeroization_test_scope_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0878
+  - **Title:** NA-0445 closeout and NA-0446 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-08
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0445 is closed after qsl-protocol PR #1159 merged at `9c38ed24001a`, post-merge public-safety completed success on the merge commit, and D-0877 selected `QSC_ZEROIZATION_TEST_SCOPE_IMPLEMENTATION_READY`. D-0877 consumed the NA-0444 evidence policy, classified qsc pending/session/vault/redaction/no-mutation testable surfaces, selected exact future test path `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`, and selected `NA-0446 -- QSL qsc Key Lifecycle Secret Cleanup / Zeroization Test Implementation Harness`. This closeout marks NA-0445 DONE and restores NA-0446 as the sole READY successor without implementing NA-0446.
+  - **Selected successor:** `NA-0446 -- QSL qsc Key Lifecycle Secret Cleanup / Zeroization Test Implementation Harness`.
+  - **Exact future test path:** `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`.
+  - **Closeout boundary:** This closeout makes no runtime, crypto, dependency, Cargo manifest, lockfile, workflow, executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, backup tree, branch-protection, or public-surface mutation.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No secret-material-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. Cargo audit green remains dependency-health evidence only, and NA-0446 remains bounded qsc test implementation scope only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Protected:**
+    - PR #1159 is MERGED at `9c38ed24001a`.
+    - post-merge public-safety is green on `9c38ed24001a`.
+    - NA-0445 DONE.
+    - READY NA-0446.
+    - D-0877 exists once.
+    - D-0878 exists once after this closeout.
+    - D-0879 remains absent until future NA-0446 work.
+    - exact future qsc test path is preserved.
+    - no duplicate decision IDs.
+    - no NA-0446 implementation in this closeout.
+    - no backup or restore.
+    - no public crypto-complete claim.
+    - no secret-material-complete claim.
+    - no vulnerability-free claim.
+    - no bug-free claim.
+    - no perfect-crypto claim.
+    - no side-channel-free claim.
+    - exactly one READY remains mandatory.
+  - **Required behavior:**
+    - NA-0446 may implement only `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs` plus NA-0446 governance evidence/testplan, DECISIONS, TRACEABILITY, and rolling journal paths.
+    - NA-0446 must preserve no runtime, crypto, dependency, Cargo, lockfile, workflow, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, backup, restore, qsl-backup, status/plan, rollback, branch-protection, or public-surface mutation unless a later exact directive authorizes it.
+    - NA-0446 must keep direct runtime memory overwrite, allocator behavior, side-channel behavior, all-material coverage, refimpl coverage, qshield-cli demo-local coverage, RNG failure behavior, and public claims out of scope unless a later exact directive authorizes them.
+    - Cargo audit output must remain dependency-health evidence only.
+    - Exactly one READY item remains mandatory.
+  - **Must never happen:**
+    - NA-0446 implementation starts inside this closeout.
+    - NA-0446 mutates tests outside `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`.
+    - NA-0446 claims direct runtime memory overwrite or side-channel proof from API-level tests.
+    - qshield-cli demo-local evidence is represented as qsc runtime cleanup or service-readiness evidence.
+    - refimpl evidence is represented as qsc runtime assurance.
+    - No cargo audit output is used as public-readiness proof.
+    - No cargo audit output is used as production-readiness proof.
+    - No cargo audit output is used as external-review-complete proof.
+    - No cargo audit output is used as crypto-complete proof.
+    - No cargo audit output is used as secret-material-complete proof.
+    - No cargo audit output is used as vulnerability-free proof.
+    - No cargo audit output is used as bug-free proof.
+    - No cargo audit output is used as perfect-crypto proof.
+    - No cargo audit output is used as side-channel-free proof.
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside this closeout.
+    - more than one READY item remains.
+  - **References:** NA-0445; NA-0446; D-0878; D-0877; qsl-protocol PR #1159; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0445_closeout_restore_na0446_testplan.md`

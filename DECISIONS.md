@@ -22625,3 +22625,56 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - cargo audit output must not be used as side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0444; NA-0445; D-0876; D-0875; qsl-protocol PR #1157; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0444_closeout_restore_na0445_testplan.md`
+
+- **ID:** D-0877
+  - **Title:** NA-0445 qsc key lifecycle secret cleanup zeroization test scope authorization
+  - **Status:** Accepted
+  - **Date:** 2026-06-08
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0445 consumes the NA-0444 evidence policy, classifies qsc testable surfaces, and selects `QSC_ZEROIZATION_TEST_SCOPE_IMPLEMENTATION_READY` for bounded observable qsc test implementation through existing APIs. The exact future qsc test path is `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`. NA-0445 selects `NA-0446 -- QSL qsc Key Lifecycle Secret Cleanup / Zeroization Test Implementation Harness` as the sole successor. This directive performs no implementation mutation.
+  - **Scope classification:** Pending handshake material is implementation-ready for bounded store cleanup/no-mutation assertions. Session/shared-secret store material is implementation-ready for insertion/absence/encrypted-at-rest and peer-bound AAD assertions. Vault/passphrase/runtime key material is partial: redaction, encrypted-at-rest, reject no-mutation, and destroy boundaries are testable through existing APIs, but direct runtime key/passphrase memory overwrite and `Drop` proof require runtime hooks and remain out of scope. Redaction/logging is implementation-ready for bounded output sentinel assertions.
+  - **Exact future test path:** `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`.
+  - **Selected successor:** `NA-0446 -- QSL qsc Key Lifecycle Secret Cleanup / Zeroization Test Implementation Harness`.
+  - **Implementation boundary:** No implementation mutation occurs in NA-0445. NA-0445 does not mutate runtime, crypto, dependency, Cargo manifest, lockfile, workflow, executable test source, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, backup tree, branch-protection, or public-surface paths.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No secret-material-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. Cargo audit green remains dependency-health evidence only, and future qsc tests must be described as bounded internal evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Stewardship:** Level-1 stewardship template was used. Level 2 and Level 3 remain future-gated. Stewards remain advisory only; no separate Directors, independent READY promotion, or independent merge authority is created.
+  - **Protected:**
+    - NA-0444 evidence policy is consumed.
+    - qsc testable surfaces are classified.
+    - exact future test path is selected.
+    - selected successor is NA-0446 implementation harness.
+    - no implementation mutation occurs in NA-0445.
+    - no runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, or formal mutation occurs.
+    - no backup or restore occurs.
+    - no public crypto-complete claim.
+    - no vulnerability-free claim.
+    - no bug-free claim.
+    - no perfect-crypto claim.
+    - no side-channel-free claim.
+    - no secret-material-complete claim.
+    - steward template used.
+    - exactly one READY remains mandatory.
+  - **Required behavior:**
+    - NA-0446 may implement only the exact qsc test file `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs` plus NA-0446 governance evidence/testplan, DECISIONS, TRACEABILITY, and rolling journal paths.
+    - NA-0446 must keep direct runtime memory zeroization, allocator overwrite behavior, side-channel behavior, all-material coverage, refimpl coverage, qshield-cli demo-local coverage, RNG failure behavior, runtime/crypto/dependency/workflow/vector/formal/public/service/backup mutation, and public claims out of scope unless a later exact directive authorizes them.
+    - Cargo audit output must remain dependency-health evidence only.
+    - Exactly one READY item remains mandatory.
+  - **Must never happen:**
+    - NA-0445 implementation is hidden inside this authorization.
+    - Future NA-0446 claims direct runtime memory overwrite or side-channel proof from API-level tests.
+    - Future NA-0446 mutates tests outside `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`.
+    - qshield-cli demo-local evidence is represented as qsc runtime cleanup or service-readiness evidence.
+    - refimpl evidence is represented as qsc runtime assurance.
+    - No cargo audit output is used as public-readiness proof.
+    - No cargo audit output is used as production-readiness proof.
+    - No cargo audit output is used as external-review-complete proof.
+    - No cargo audit output is used as crypto-complete proof.
+    - No cargo audit output is used as secret-material-complete proof.
+    - No cargo audit output is used as vulnerability-free proof.
+    - No cargo audit output is used as bug-free proof.
+    - No cargo audit output is used as perfect-crypto proof.
+    - No cargo audit output is used as side-channel-free proof.
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside NA-0445.
+    - more than one READY item remains.
+  - **References:** NA-0445; NA-0446; NA-0444; NA-0443; NA-0442; NA-0441; D-0877; D-0876; D-0875; D-0873; D-0871; D-0869; `docs/governance/evidence/NA-0445_qsl_qsc_key_lifecycle_secret_cleanup_zeroization_test_scope_authorization_plan.md`; `tests/NA-0445_qsl_qsc_key_lifecycle_secret_cleanup_zeroization_test_scope_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

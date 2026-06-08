@@ -26291,6 +26291,115 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Nested qsc fuzz lock residual pqcrypto scan: PASS, zero matches.
 - `cargo fmt --check`: PASS.
 
+# QSL-DIR-2026-06-08-295 / NA-0445 qsc key lifecycle zeroization test scope rolling journal
+
+- Directive: QSL-DIR-2026-06-08-295 -- execute NA-0445 qsc key lifecycle cleanup / zeroization test-scope authorization.
+- Begin timestamp (America/Chicago): 2026-06-08T09:04:30-05:00
+- Begin timestamp (UTC): 2026-06-08T14:04:30Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Repo SHAs
+
+- qsl-protocol HEAD at qwork proof: `dc0adc8aebd6`.
+- qsl-protocol origin/main at qwork proof: `dc0adc8aebd6`.
+- qsl-protocol HEAD after fetch: `dc0adc8aebd6`.
+- qsl-protocol origin/main after fetch: `dc0adc8aebd6`.
+- Evidence branch: `na-0445-qsc-key-lifecycle-zeroization-test-scope`.
+- Evidence PR: pending.
+- Evidence merge commit: pending.
+
+## READY proof
+
+- qwork proof files existed and parsed successfully:
+  - `/srv/qbuild/work/NA-0445/.qwork/startup.qsl-protocol.kv`
+  - `/srv/qbuild/work/NA-0445/.qwork/startup.qsl-protocol.json`
+- qwork proof markers passed: startup OK, lane NA-0445, repo qsl-protocol, path correct, clean worktree/index/untracked, READY_COUNT 1, queue top READY NA-0445.
+- Live repo after fetch matched qwork proof; origin/main did not advance beyond the proof SHA.
+- PR #1158 was MERGED with merge commit `dc0adc8aebd6`.
+- Queue proof before patch: READY_COUNT 1, READY NA-0445.
+- Decision proof before patch: latest D-0876, D-0875 once, D-0876 once, D-0877 absent, duplicate decision count zero.
+
+## Proof root
+
+- Proof root: `/srv/qbuild/tmp/NA0445_qsc_key_lifecycle_zeroization_test_scope_20260608T174211Z`.
+- qwork proof files were copied into the proof root.
+
+## Scope and classification notes
+
+- NA-0444 policy consumed: selected `KEY_LIFECYCLE_ZEROIZATION_POLICY_TEST_SCOPE_NEXT`.
+- qsc pending handshake material classification: `PENDING_SECRET_TEST_SCOPE_READY` for bounded store cleanup/no-mutation through existing APIs; runtime memory overwrite remains hook-only residual.
+- qsc session/shared-secret store classification: `SESSION_SECRET_TEST_SCOPE_READY` for insertion/absence/encrypted-at-rest and peer-bound AAD through existing APIs; in-memory cleanup remains residual.
+- qsc vault/passphrase/runtime key classification: `VAULT_SECRET_TEST_SCOPE_PARTIAL`; redaction/no-mutation/encrypted-at-rest/destroy boundaries are API-testable, direct `Drop`/memory overwrite proof requires runtime hooks.
+- qsc redaction/logging classification: `REDACTION_TEST_SCOPE_READY`.
+- Selected NA-0445 primary classification: `QSC_ZEROIZATION_TEST_SCOPE_IMPLEMENTATION_READY`.
+- Selected successor: `NA-0446 -- QSL qsc Key Lifecycle Secret Cleanup / Zeroization Test Implementation Harness`.
+- Exact future qsc test path selected: `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, current executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup, qsl-backup, status, plan, rollback, or backup tree mutation is authorized by NA-0445.
+
+## Validation / CI notes
+
+- Current main public-safety: PASS on `dc0adc8aebd6`.
+- Current main qsc-adversarial-smoke: PASS on `dc0adc8aebd6`.
+- qsl-backup checksum matched the required boundary value.
+- qsl-backup script Codex ops source-list inclusion count: 1.
+- Prior response files D291 through D294 were present.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- Root pqcrypto inverse probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+- Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
+- `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS, required NA-0436 markers emitted.
+- `scripts/ci/qsc_adversarial.sh` contains `NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP` and the provider-error no-mutation command.
+- `sh -n scripts/ci/qsc_adversarial.sh`: PASS.
+- `bash -n scripts/ci/qsc_adversarial.sh`: PASS.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: PASS, 3 tests.
+- `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768`: PASS, 3 tests.
+- `cargo fmt --check`: PASS.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: PASS.
+- `python3 formal/run_model_checks.py`: PASS.
+- Local qsc adversarial script: pre-fuzz Rust phases and NA-0439 provider-error step passed before local cargo-fuzz unavailability.
+- `git diff --check`: PASS.
+- Manual exact path scope guard: PASS, exact five allowed NA-0445 paths.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan final pass: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- CI scope classifier: PASS, `scope_class=docs_only`.
+- Queue helper: PASS, READY_COUNT 1 and READY NA-0445.
+- Exact queue parse: PASS, NA-0445 READY; NA-0444, NA-0443, NA-0442, NA-0441, NA-0440, NA-0439, NA-0438, NA-0437, NA-0436, and NA-0435 DONE; NA-0434 and NA-0429 BLOCKED.
+- Decision helper/manual count: PASS, latest D-0877 after patch, D-0875 once, D-0876 once, D-0877 once, D-0878 absent, duplicate decision count zero.
+- Local goal-lint after commit: PASS, `OK: goal compliance checks passed.`
+- Full post-patch validation still pending PR checks.
+
+## Failures / recoveries
+
+- Parallel Cargo tree commands briefly printed package-cache file-lock wait messages.
+  Classification: non-fatal transient metadata lock wait during read-only Cargo dependency inspection.
+  Corrective action: no retry required; commands completed successfully or returned expected zero-match absence under `|| true` where directed.
+  Final result: dependency-health evidence remained green.
+- Failing command: first post-patch scope guard using `git diff --name-only origin/main` plus `git ls-files --others --exclude-standard`.
+  Classification: recoverable generated-file visibility issue because the new NA-0445 governance evidence and testplan files were ignored until forced intent-to-add, while the changed tracked paths were correct.
+  Corrective action: ran `git add -N -f` for the two new allowed NA-0445 files so the diff/scope guard can see them before the final commit.
+  Final result: rerun scope guard passed with exactly the five allowed NA-0445 paths.
+- Failing command: first added-line overclaim scan.
+  Classification: recoverable wording/line-wrap issue because several caveat continuation lines carried sensitive claim phrases without same-line negation.
+  Corrective action: rewrapped the caveat text so every sensitive phrase carries explicit same-line negation.
+  Final result: rerun added-line overclaim scan passed with `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: `scripts/ci/qsc_adversarial.sh` local run.
+  Classification: recoverable local tooling issue because the script passed the pre-fuzz Rust phases and NA-0439 provider-error step, then stopped at local cargo-fuzz unavailability.
+  Corrective action: recorded the exact local stop and will rely on PR CI qsc-adversarial-smoke for cargo-fuzz-backed proof.
+  Final result: local output ended with `error: no such command: fuzz`; pre-fuzz checks passed.
+
+## Next-watch items
+
+- Complete exact five-path scope guard after patch.
+- Run link, leak, overclaim, classifier, PR body preflight, goal-lint, Rust, audit, fmt, formal, and qsc adversarial validations.
+- Open PR # pending and merge only after required checks pass.
+- Optional closeout to NA-0446 only after evidence PR merges and post-merge public-safety is green.
+
 # QSL-DIR-2026-06-08-291 / NA-0441 closeout and NA-0442 restoration rolling journal
 
 - Directive: QSL-DIR-2026-06-08-291 optional closeout -- close out NA-0441 after PR #1151 post-merge public-safety completion and restore NA-0442.

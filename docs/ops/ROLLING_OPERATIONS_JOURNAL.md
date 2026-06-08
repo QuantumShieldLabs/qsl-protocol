@@ -26468,7 +26468,7 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Failing command: `python3 scripts/ci/qsl_evidence_helper.py scope-guard --base origin/main ...` before the evidence commit.
   Classification: recoverable command-shape issue because the helper compares committed refs with `origin/main...HEAD`; before the first commit, staged changes are not in `HEAD`.
   Corrective action: used manual staged/unstaged/untracked path guard before commit and planned helper scope guard after commit.
-  Final result: manual guard passed with exactly five allowed paths; helper rerun remains post-commit.
+  Final result: manual guard passed with exactly five allowed paths; post-commit helper scope guard reported five allowed paths and `FORBIDDEN_COUNT 0`.
 - Failing command: local qsc adversarial script via executable fallback.
   Classification: recoverable local tooling limitation because stable adversarial tests, miri-like adversarial tests, and the NA-0439 provider-error no-mutation step all passed before the script reached local cargo-fuzz execution.
   Corrective action: no toolchain or dependency mutation; require PR CI qsc-adversarial-smoke as cargo-fuzz-backed proof before merge if attached/required.
@@ -26477,6 +26477,13 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
   Classification: benign stderr while cargo serialized package-cache access.
   Corrective action: no retry needed because every dependency probe returned the expected result.
   Final result: dependency-health proof remained green.
+
+## Post-commit validation
+
+- Evidence commit prefix: `c3ea3e4f3924`.
+- Post-commit helper scope guard: PASS, five changed paths and `FORBIDDEN_COUNT 0`.
+- Synthetic-event goal-lint: PASS, `OK: goal compliance checks passed.`
+- Working tree after commit: clean.
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py`: PASS.
 - `python3 formal/run_model_checks.py`: PASS.
 

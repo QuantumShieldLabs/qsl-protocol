@@ -26223,6 +26223,10 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
   Classification: non-fatal tool concurrency warning because the commands completed with the expected dependency-health results.
   Corrective action: recorded the warning and continued with final command conclusions.
   Final result: root and nested audits passed; `rustls-webpki` and `ml-kem` inverse-tree evidence matched expectations; qsc fuzz lock pqcrypto residual scan returned zero matches.
+- Failing commands: first closeout PR-body preflight invocation omitted the required `--file` flag; first synthetic goal-lint probe invoked `tools/goal_lint.py --help` without a `GITHUB_EVENT_PATH`; first post-journal leak-scan rerun used unsupported `--head HEAD`.
+  Classification: recoverable command-shape mistakes; each was corrected immediately after checking the local helper interface.
+  Corrective action: reran PR-body preflight with `--file`, created a minimal synthetic pull-request event under the temp proof root and reran goal-lint with `GITHUB_EVENT_PATH`, then reran leak-scan as `--mode added --base origin/main`.
+  Final result: PR-body preflight reported `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`; synthetic goal-lint reported `OK: goal compliance checks passed`; leak-scan reported `SECRET_FINDING_COUNT 0`.
 
 ## Closeout local validation results
 
@@ -26236,6 +26240,7 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
 - Added-line overclaim scan: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
 - PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- Synthetic goal-lint: PASS.
 - CI scope classifier: PASS, `scope_class=docs_only`.
 - `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS, required NA-0436 markers emitted.
 - Root `cargo audit --deny warnings`: PASS.

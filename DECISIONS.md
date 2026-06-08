@@ -22262,3 +22262,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - cargo audit output must not be used as side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0440; NA-0441; D-0868; D-0867; qsl-protocol PR #1149; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0440_closeout_restore_na0441_testplan.md`
+
+- **ID:** D-0869
+  - **Title:** NA-0441 nonce key rng lifecycle read-only audit
+  - **Status:** Accepted
+  - **Date:** 2026-06-08
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0441 consumes the completed provider-error chain as background, including NA-0436 bounded `pq_decap_failed` no-mutation testing, NA-0437 `pq_encap_failed` defensive-branch documentation without executable coverage claim, NA-0439 qsc adversarial-script integration, and NA-0440 supporting-only formal/model classification. The selected nonce/key/RNG lifecycle classification is `NONCE_KEY_RNG_EVIDENCE_GAPS_FOUND`. No active blocker and no high runtime risk was identified by the read-only audit, but meaningful evidence gaps remain around comprehensive secret-material zeroization/wipe expectations, RNG failure modeling, and qshield demo-boundary handling of deterministic establishment material.
+  - **Findings matrix:** F-0441-01 through F-0441-06 classify nonce evidence as LOW / EVIDENCE_INCOMPLETE, key lifecycle and RNG lifecycle as MEDIUM / EVIDENCE_INCOMPLETE, transcript/session binding as COVERED / SUPPORTING_ONLY, formal/vector/fuzz/test lifecycle mapping as EVIDENCE_GAP, and qshield deterministic demo state as CLAIM_BOUNDARY_ONLY / BACKLOG_CANDIDATE.
+  - **Selected successor:** `NA-0442 -- QSL Nonce / Key / RNG Lifecycle Findings Triage Authorization Plan`.
+  - **Scope boundary:** No implementation mutation is authorized or made by NA-0441. No runtime, crypto, dependency, Cargo manifest, lockfile, workflow, executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, backup tree, branch-protection, or public-surface mutation is authorized or made by this decision.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. Cargo audit green remains dependency-health evidence only, and lifecycle evidence remains internal governance evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Stewardship:** Level-1 stewardship template was used. Crypto / Protocol, CI / Dependency / Release Health, Public Claims / External Review, Product / Demo / Service Boundary, and Local Ops / Backup / Restore summaries remain advisory only. Level 2 and Level 3 remain future-gated. No separate Director, independent READY promotion, or independent merge authority is created.
+  - **Required behavior:** Exactly one READY item remains mandatory. NA-0441 may close out only after the audit PR merges and post-merge public-safety is green. The closeout must restore exactly the selected NA-0442 successor and must not implement NA-0442.
+  - **Must never happen:**
+    - No production-readiness claim may be inferred from NA-0441 findings.
+    - No public-readiness claim may be inferred from NA-0441 findings.
+    - No public-internet-readiness claim may be inferred from NA-0441 findings.
+    - No external-review-complete claim may be inferred from NA-0441 findings.
+    - No crypto-complete claim may be inferred from NA-0441 findings.
+    - No side-channel-free claim may be inferred from NA-0441 findings.
+    - No vulnerability-free claim may be inferred from NA-0441 findings.
+    - No bug-free claim may be inferred from NA-0441 findings.
+    - No perfect-crypto claim may be inferred from NA-0441 findings.
+    - `pq_encap_failed` is represented as executable-covered by NA-0441.
+    - `pq_decap_failed` no-mutation evidence is overclaimed beyond the existing deterministic test and qsc adversarial-script integration.
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside NA-0441.
+    - more than one READY item remains.
+  - **References:** NA-0441; NA-0442; NA-0440; NA-0439; NA-0437; NA-0436; D-0869; D-0868; D-0867; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/src/vault/mod.rs`; `qsl/qsl-client/qsc/src/protocol_state/mod.rs`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`; `apps/qshield-cli/src/store.rs`; `formal/run_model_checks.py`; `docs/governance/evidence/NA-0441_qsl_nonce_key_rng_lifecycle_read_only_audit_plan.md`; `tests/NA-0441_qsl_nonce_key_rng_lifecycle_read_only_audit_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

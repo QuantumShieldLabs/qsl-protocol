@@ -26390,12 +26390,14 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Decision helper: PASS, latest D-0873 and duplicate decision count zero.
 - Exact decision proof: PASS, D-0871 once, D-0872 once, D-0873 once, D-0874 absent, duplicate decision count zero.
 - Manual working-tree path guard: PASS, exactly `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0443_qsl_key_lifecycle_secret_cleanup_zeroization_scope_authorization_plan.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0443_qsl_key_lifecycle_secret_cleanup_zeroization_scope_authorization_testplan.md`.
+- Post-commit helper scope guard: PASS, five changed paths allowed and `FORBIDDEN_COUNT 0`.
 - Link check: PASS, `TOTAL_MISSING 0`.
 - Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
 - Added-line overclaim scan final pass: PASS, `OVERCLAIM_FINDING_COUNT 0`.
 - `sh -n scripts/ci/qsc_adversarial.sh`: PASS.
 - `bash -n scripts/ci/qsc_adversarial.sh`: PASS.
 - CI scope classifier: PASS, `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, `scope_class=docs_only`.
+- Local goal-lint with synthesized PR event: PASS.
 - `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS, required NA-0436 markers emitted.
 - `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: PASS, 3 tests passed.
 - `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768`: PASS, 3 tests passed.

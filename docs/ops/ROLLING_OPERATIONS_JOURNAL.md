@@ -8,6 +8,97 @@ Last-Updated: 2026-06-05
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-08-294 -- Execute NA-0444 QSL Key Lifecycle Secret Cleanup / Zeroization Evidence Policy Authorization Plan, Optional Closeout to NA-0445
+- Directive begin timestamp (America/Chicago): 2026-06-08T08:04:30-05:00
+- Directive begin timestamp (UTC): 2026-06-08T13:04:30Z
+- Host timestamp during evidence start (America/Chicago): 2026-06-08T08:15:33-05:00
+- Host timestamp during evidence start (UTC): 2026-06-08T13:15:33+00:00
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0444/qsl-protocol`
+- qwork proof HEAD and origin/main: `fd5d0583e836`
+- clean origin/main before evidence patch: `fd5d0583e836`
+- evidence branch: `na-0444-key-lifecycle-zeroization-evidence-policy`
+- D294 proof root: `/srv/qbuild/tmp/NA0444_key_lifecycle_zeroization_evidence_policy_20260608T131711Z`
+- qsl-server: not touched; no mutation
+- qsl-attachments: not touched; no mutation
+
+## READY Proof
+
+- Codex did not run qwork, qstart, or qresume.
+- qwork proof files were read from `/srv/qbuild/work/NA-0444/.qwork/` and copied into the D294 proof root.
+- qwork proof markers passed: startup OK; lane `NA-0444`; repo `qsl-protocol`; path `/srv/qbuild/work/NA-0444/qsl-protocol`; clean worktree/index/untracked; READY_COUNT `1`; READY `NA-0444`.
+- Live `HEAD` and `origin/main` matched qwork proof at `fd5d0583e836` before and after `git fetch --all --prune`.
+- PR #1156 was verified MERGED at `fd5d0583e836`.
+- Start queue proof: READY_COUNT `1`; READY `NA-0444`; NA-0443 through NA-0435 DONE; NA-0434 and NA-0429 BLOCKED.
+- Start decision proof: latest decision D-0874; D-0873 exists once; D-0874 exists once; D-0875 absent; duplicate decision count zero.
+- Public-safety was green on `fd5d0583e836`.
+
+## Evidence Patch State
+
+- NA-0444 consumes NA-0441, NA-0442, and NA-0443 findings.
+- Selected classification: `KEY_LIFECYCLE_ZEROIZATION_POLICY_TEST_SCOPE_NEXT`.
+- Selected successor: `NA-0445 -- QSL qsc Key Lifecycle Secret Cleanup / Zeroization Test Scope Authorization Plan`.
+- The evidence policy matrix separates qsc runtime, refimpl/reference, qshield-cli demo-local, and formal/tests/inputs supporting-evidence buckets.
+- Changed paths are intended to remain limited to `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0444_qsl_key_lifecycle_secret_cleanup_zeroization_evidence_policy_authorization_plan.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0444_qsl_key_lifecycle_secret_cleanup_zeroization_evidence_policy_authorization_testplan.md`.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, service, public, backup, qwork, qsl-backup, status, plan, rollback, README, START_HERE, website, qsl-server, or qsl-attachments path is in scope for mutation.
+
+## Recovered / Classified Non-Zero Commands
+
+- Failing command: `cargo tree -i pqcrypto-mlkem --locked`.
+  - Classification: recoverable valid zero-match discovery/proof outcome; the package ID was absent, which is the required root pqcrypto residual result.
+  - Corrective action: recorded absence and will use the directive's `|| true` form in validation.
+  - Final result: root pqcrypto-mlkem package ID absent.
+- Failing command: `cargo tree -i pqcrypto-traits --locked`.
+  - Classification: recoverable valid zero-match discovery/proof outcome; the package ID was absent, which is the required root pqcrypto residual result.
+  - Corrective action: recorded absence and will use the directive's `|| true` form in validation.
+  - Final result: root pqcrypto-traits package ID absent.
+- Failing command: `cargo tree -i pqcrypto-internals --locked`.
+  - Classification: recoverable valid zero-match discovery/proof outcome; the package ID was absent, which is the required root pqcrypto residual result.
+  - Corrective action: recorded absence and will use the directive's `|| true` form in validation.
+  - Final result: root pqcrypto-internals package ID absent.
+- Failing command: `rg -n "pqcrypto-mlkem|pqcrypto-traits|pqcrypto-internals" qsl/qsl-client/qsc/fuzz/Cargo.lock`.
+  - Classification: recoverable valid zero-match discovery/proof outcome; zero matches are the required nested fuzz lock residual result.
+  - Corrective action: recorded the zero result and will use the directive's `|| true` form in validation.
+  - Final result: nested qsc fuzz lock pqcrypto residual package IDs absent.
+- Failing command: added-line public overclaim scan over the evidence diff.
+  - Classification: recoverable in-scope documentation validation failure because wrapped caveat wording separated prohibited phrases from their local negation.
+  - Corrective action: rewrote the affected evidence text so each prohibited phrase is directly negated on its own line without changing policy meaning.
+  - Final result: overclaim scan rerun is required before PR creation and must report zero affirmative findings.
+- Failing command: `scripts/ci/qsc_adversarial.sh`.
+  - Classification: recoverable command-shape mistake; the script is not executable in this checkout and the directive explicitly permits `sh scripts/ci/qsc_adversarial.sh` otherwise.
+  - Corrective action: reran with `sh scripts/ci/qsc_adversarial.sh`.
+  - Final result: fallback invocation started and completed pre-fuzz phases.
+- Failing command: `sh scripts/ci/qsc_adversarial.sh`.
+  - Classification: recoverable local tool availability limit after pre-fuzz phases passed; local Cargo reported `error: no such command: fuzz`.
+  - Corrective action: recorded exact output and will rely on PR CI `qsc-adversarial-smoke` for cargo-fuzz-backed proof.
+  - Final result: adversarial properties, adversarial_miri, and provider-error no-mutation phases passed locally; local fuzz targets were not run because `cargo fuzz` is unavailable.
+
+## Validation / CI Notes
+
+- Pre-patch root `cargo audit --deny warnings`: PASS.
+- Pre-patch nested qsc fuzz lock audit: PASS.
+- `rustls-webpki v0.103.13` verified.
+- `ml-kem v0.2.1` verified.
+- Provider-error no-mutation test passed and emitted inherited NA-0436 markers.
+- `scripts/ci/qsc_adversarial.sh` contains the NA-0439 marker and provider-error command.
+- `sh scripts/ci/qsc_adversarial.sh` local pre-fuzz phases passed, then stopped at local `cargo fuzz` unavailability.
+- qsl-backup SHA matched `e9ecff3d22ed`; `/home/victor/work/qsl/codex/ops` appeared exactly once in the installed qsl-backup source list.
+- Full evidence validation and PR checks: pending.
+
+## Next-Watch Items
+
+- Evidence PR must merge only after required checks and public-safety pass.
+- Optional closeout may run only after evidence PR merge and post-merge public-safety green.
+- NA-0445 must stay qsc test-scope authorization only and must not implement runtime, crypto, dependency, workflow, executable-test, fuzz, vector, public, service, or backup changes.
+- F-0441-03 RNG failure behavior remains a residual candidate after qsc cleanup/zeroization test-scope authorization.
+- qshield-cli remains demo-local claim-boundary evidence.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-07-289 -- Resolve NA-0439 macOS Rerun / Public-Safety Status and Close Out to NA-0440 Only If Green
 - Directive begin timestamp (America/Chicago): 2026-06-07T18:34:30-05:00
 - Directive begin timestamp (UTC): 2026-06-07T23:34:30Z

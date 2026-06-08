@@ -22121,3 +22121,66 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - No cargo audit output is used as side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0439; NA-0440; NA-0438; NA-0437; NA-0436; D-0865; D-0864; D-0863; `scripts/ci/qsc_adversarial.sh`; `docs/governance/evidence/NA-0439_qsl_qsc_provider_error_path_adversarial_coverage_implementation_harness.md`; `tests/NA-0439_qsl_qsc_provider_error_path_adversarial_coverage_implementation_testplan.md`; `qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0866
+  - **Title:** NA-0439 closeout and NA-0440 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-07
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0439 is closed after qsl-protocol PR #1147 merged at `07f4c0ab79f5`, the authorized macOS rerun job `79997092974` completed success, and the stale public-safety aggregate was rerun once as the minimum recomputation gate with successful public-safety job `80002570830`. Post-merge public-safety completed success, qsc-adversarial-smoke completed success, and qsc-adversarial-miri completed success on the PR #1147 merge commit. The provider-error no-mutation test is integrated into `scripts/ci/qsc_adversarial.sh` before cargo-fuzz phases, the `pq_encap_failed` caveat remains defensive-branch documentation only, root cargo audit and nested qsc fuzz lock audit are green, NA-0439 is marked DONE, and `NA-0440 -- QSL qsc Provider Error Path Formal / Model Alignment Authorization Plan` is restored as the sole READY successor.
+  - **Selected successor:** `NA-0440 -- QSL qsc Provider Error Path Formal / Model Alignment Authorization Plan`.
+  - **Closeout boundary:** This closeout makes no additional runtime, crypto, dependency, Cargo manifest, lockfile, workflow, executable test, fuzz target, vector, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, backup tree, branch-protection, or public-surface mutation.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No vulnerability-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. No bug-free claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Protected:**
+    - PR #1147 is MERGED at `07f4c0ab79f5`.
+    - macOS rerun job `79997092974` completed success.
+    - public-safety aggregate job `80002570830` completed success after exactly one aggregate rerun.
+    - post-merge public-safety is green on `07f4c0ab79f5`.
+    - qsc-adversarial-smoke is green on `07f4c0ab79f5`.
+    - qsc-adversarial-miri is green on `07f4c0ab79f5`.
+    - provider-error no-mutation test is integrated into qsc adversarial script before cargo-fuzz phases.
+    - no executable coverage claim is made for `pq_encap_failed`.
+    - `pq_decap_failed` no-mutation evidence remains bounded to that marker.
+    - root cargo audit is green.
+    - nested qsc fuzz lock audit is green.
+    - READY_COUNT 1.
+    - NA-0439 DONE.
+    - READY NA-0440.
+    - NA-0438 DONE.
+    - NA-0437 DONE.
+    - NA-0436 DONE.
+    - NA-0435 DONE.
+    - NA-0434 BLOCKED.
+    - D-0865 exists once.
+    - D-0866 exists once after this closeout.
+    - D-0867 remains absent until future NA-0440 work.
+    - no duplicate decision IDs.
+    - no additional runtime/crypto/dependency/workflow/test/vector mutation in this closeout.
+    - no backup or restore.
+    - no public crypto-complete claim.
+    - no vulnerability-free claim.
+    - no bug-free claim.
+    - no perfect-crypto claim.
+    - no side-channel-free claim.
+    - exactly one READY remains mandatory.
+  - **Required behavior:**
+    - NA-0440 must classify provider-error formal/model alignment need before any implementation mutation.
+    - NA-0440 must preserve the `pq_encap_failed` defensive-branch caveat and consume `pq_decap_failed` test/adversarial evidence without overclaim.
+    - NA-0440 must not mutate runtime, crypto, dependencies, Cargo files, lockfiles, workflows, executable tests, fuzz targets, vectors, public surfaces, services, backup/local-ops paths, qwork/qstart/qresume/qshell, README, or START_HERE.
+    - cargo audit output must remain dependency-health evidence only.
+    - exactly one READY item remains mandatory.
+  - **Must never happen:**
+    - NA-0440 implementation starts inside this closeout.
+    - `pq_encap_failed` is represented as executable-covered by NA-0439 or this closeout.
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside this closeout.
+    - cargo audit output must not be used as public-readiness proof.
+    - cargo audit output must not be used as production-readiness proof.
+    - cargo audit output must not be used as external-review-complete proof.
+    - cargo audit output must not be used as crypto-complete proof.
+    - cargo audit output must not be used as vulnerability-free proof.
+    - cargo audit output must not be used as bug-free proof.
+    - cargo audit output must not be used as perfect-crypto proof.
+    - cargo audit output must not be used as side-channel-free proof.
+    - more than one READY item remains.
+  - **References:** NA-0439; NA-0440; D-0866; D-0865; D-0864; qsl-protocol PR #1147; macOS rerun job `79997092974`; public-safety aggregate rerun job `80002570830`; D286 response `/home/victor/work/qsl/codex/responses/NA0439_20260607T182228Z_D286.md`; D287 response `/home/victor/work/qsl/codex/responses/NA0439_20260607T215318Z_D287.md`; D288 response `/home/victor/work/qsl/codex/responses/NA0439_20260607T233200Z_D288.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0439_closeout_restore_na0440_testplan.md`

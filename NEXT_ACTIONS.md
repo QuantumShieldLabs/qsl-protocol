@@ -23470,7 +23470,7 @@ Acceptance criteria:
 ---
 
 ### NA-0439 — QSL qsc Provider Error Path Adversarial Coverage Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -23556,6 +23556,90 @@ Acceptance criteria:
 - cargo audit remains green.
 - nested fuzz lock audit remains green.
 - qsc-adversarial-smoke is green before merge and after merge.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+---
+
+### NA-0440 — QSL qsc Provider Error Path Formal / Model Alignment Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the next bounded formal/model alignment review for qsc provider-error
+paths after deterministic `pq_decap_failed` no-mutation testing,
+`pq_encap_failed` defensive-branch documentation, and qsc adversarial script
+integration, deciding whether formal/model evidence should be aligned,
+caveated, or extended without changing runtime code, dependencies, workflows,
+tests, vectors, public surfaces, or backup/local-ops state.
+
+Protects:
+- qsc provider-error formal/model evidence quality.
+- fail-closed reject behavior.
+- no-mutation-on-reject evidence quality.
+- honest caveating of defensive branches.
+- provider boundary confidence after ml-kem replacement and nested fuzz lock
+  cleanup.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0440.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of:
+  - formal/
+  - qsl/qsl-client/qsc/tests/handshake_provider_error_no_mutation.rs
+  - qsl/qsl-client/qsc/src/handshake/mod.rs
+  - qsl/qsl-client/qsc/fuzz/
+  - scripts/ci/qsc_adversarial.sh
+  - relevant evidence docs.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, Cargo, lockfile, workflow, qsl-server,
+  qsl-attachments, qshield runtime, website, public docs, README, or START_HERE
+  paths.
+- Mutating tests, fuzz target source, or vectors.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No production-readiness claim.
+- No public-internet-readiness claim.
+- No external-review-complete claim.
+- No metadata-free behavior claim.
+- No anonymity claim.
+- No untraceability claim.
+- No off-host backup completion claim.
+- No disaster recovery completion claim.
+- No restore proof claim.
+- No backup completion claim.
+- No bug-free status claim.
+- No vulnerability-free status claim.
+- No perfect-crypto status claim.
+- No side-channel-free status claim.
+- No crypto-complete status claim.
+- Secret material handling.
+
+Deliverables:
+- NA-0440 evidence doc.
+- NA-0440 testplan.
+- D-0867 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- recommended next code/crypto audit or remediation lane.
+
+Acceptance criteria:
+- provider-error formal/model alignment need is classified.
+- `pq_encap_failed` defensive branch caveat is preserved.
+- `pq_decap_failed` test and adversarial evidence is consumed without
+  overclaim.
+- no implementation mutation occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
 - public-safety is green before merge and after merge.
 - exactly one READY item remains.
 

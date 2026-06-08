@@ -8,6 +8,84 @@ Last-Updated: 2026-06-05
 
 # Rolling Operations Journal Entry
 
+- Directive: QSL-DIR-2026-06-07-289 -- Resolve NA-0439 macOS Rerun / Public-Safety Status and Close Out to NA-0440 Only If Green
+- Directive begin timestamp (America/Chicago): 2026-06-07T18:34:30-05:00
+- Directive begin timestamp (UTC): 2026-06-07T23:34:30Z
+- Host timestamp during closeout start (America/Chicago): 2026-06-07T18:58:52-05:00
+- Host timestamp during closeout start (UTC): 2026-06-07T23:58:52+00:00
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0439/qsl-protocol`
+- clean origin/main before closeout patch: `07f4c0ab79f5`
+- closeout branch: `na-0439-closeout-restore-na0440`
+- D289 proof root: `/srv/qbuild/tmp/NA0439_post_rerun_public_safety_closeout_20260607T235835Z`
+- qsl-server: not touched; no mutation
+- qsl-attachments: not touched; no mutation
+
+## READY Proof
+
+- Codex did not run qwork, qstart, or qresume.
+- PR #1147 was verified MERGED at `07f4c0ab79f5`.
+- Clean `origin/main` before closeout patch: READY_COUNT `1`; READY `NA-0439`; NA-0438 DONE; NA-0437 DONE; NA-0436 DONE; NA-0435 DONE; NA-0434 BLOCKED; NA-0429 BLOCKED; latest decision D-0865; D-0866 absent; duplicate decision count zero.
+- D286 response exists at `/home/victor/work/qsl/codex/responses/NA0439_20260607T182228Z_D286.md`.
+- D287 response exists at `/home/victor/work/qsl/codex/responses/NA0439_20260607T215318Z_D287.md`.
+- D288 response exists at `/home/victor/work/qsl/codex/responses/NA0439_20260607T233200Z_D288.md`.
+
+## Public-Safety Recovery
+
+- D286 implemented NA-0439 through PR #1147 and integrated `handshake_provider_error_no_mutation` into `scripts/ci/qsc_adversarial.sh`.
+- D287 captured post-merge public-safety failure on `07f4c0ab79f5`.
+- D288 diagnosed the failure as most consistent with the macOS relay-test transient already in evidence, requested exactly one rerun of macOS job `79997092974`, and stopped while it remained in progress.
+- D289 verified macOS rerun job `79997092974` completed success.
+- D289 verified public-safety was still red only because the stale aggregate failed before the macOS rerun succeeded.
+- D289 issued exactly one minimum aggregate rerun for public-safety job `79977590349`; rerun attempt job `80002570830` completed success.
+- Public-safety, qsc-adversarial-smoke, and qsc-adversarial-miri are green on `07f4c0ab79f5`.
+
+## Closeout Patch State
+
+- NA-0439 is marked DONE.
+- NA-0440 -- QSL qsc Provider Error Path Formal / Model Alignment Authorization Plan is restored as the sole READY successor.
+- D-0866 records NA-0439 closeout and NA-0440 restoration.
+- Changed paths are intended to remain limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0439_closeout_restore_na0440_testplan.md`.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, script, executable test, fuzz target, vector, service, public, backup, qwork, qsl-backup, status, plan, rollback, README, START_HERE, website, qsl-server, or qsl-attachments path is in scope for mutation.
+
+## Recovered / Classified Non-Zero Commands
+
+- Failing command: PR summary creation after `gh pr view 1147`.
+  - Classification: recoverable command-shape/output-redirection mistake; the PR JSON capture itself succeeded.
+  - Corrective action: recreated `pr1147_summary.txt` from captured PR JSON.
+  - Final result: PR #1147 summary captured successfully.
+- Failing command: first bounded public-safety rerun polling script.
+  - Classification: recoverable polling-shape mistake; the script kept checking old failed job `79977590349` after GitHub created new successful rerun job `80002570830`.
+  - Corrective action: captured helper-proven green public-safety status and new job metadata/logs without issuing another rerun.
+  - Final result: public-safety helper reported success on job `80002570830`; no extra rerun was issued.
+- Optional inverse-tree probes for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals` returned package-ID absence.
+  - Classification: expected optional dependency absence under the directive's `|| true` probes.
+  - Corrective action: recorded absence and kept root cargo audit plus nested fuzz lock audit as dependency-health gates.
+  - Final result: root pqcrypto package IDs remain absent.
+- Failing command: added-line public overclaim scan over the closeout diff.
+  - Classification: recoverable in-scope documentation validation failure because wrapped forbidden-scope wording and a dense traceability note separated restricted phrases from their local negation.
+  - Corrective action: tightened the affected wording to direct `No ... claim` / `no ... proof` phrasing without changing closeout meaning.
+  - Final result: overclaim scan rerun is required before PR creation and must report zero affirmative findings.
+
+## Validation / CI Notes
+
+- Pre-patch validation passed: script integration marker/order check; `sh -n` and `bash -n` for `scripts/ci/qsc_adversarial.sh`; direct `handshake_provider_error_no_mutation`; qsc `send_commit`; provider `pqkem768`; root `cargo audit --deny warnings`; nested qsc fuzz lock `cargo audit --deny warnings --file`; `cargo tree -i rustls-webpki --locked`; `cargo tree -i ml-kem --locked`; cargo fmt; and both formal model checks.
+- qsl-backup SHA matched `e9ecff3d22ed`; `/home/victor/work/qsl/codex/ops` appeared exactly once in the installed qsl-backup source list.
+- Closeout validation and PR checks: pending.
+
+## Next-Watch Items
+
+- Closeout PR must merge only after required checks and public-safety pass.
+- NA-0440 must stay authorization-only and must not implement runtime, crypto, dependency, workflow, test, vector, public, service, or backup changes.
+- `pq_encap_failed` remains defensive-branch documentation only.
+- `pq_decap_failed` test and adversarial evidence remains bounded and must not be overclaimed.
+
+# Rolling Operations Journal Entry
+
 - Directive: QSL-DIR-2026-06-06-279 -- Recover NA-0434 Provider Error No-Mutation Test Implementation Stop and Restore NA-0435 Reachability / Test Strategy Authorization
 - Directive begin timestamp (America/Chicago): 2026-06-06T21:04:30-05:00
 - Directive begin timestamp (UTC): 2026-06-07T02:04:30Z

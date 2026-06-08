@@ -23742,7 +23742,7 @@ Closeout evidence:
 ---
 
 ### NA-0442 — QSL Nonce / Key / RNG Lifecycle Findings Triage Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -23806,6 +23806,111 @@ Deliverables:
 Acceptance criteria:
 - NA-0441 findings are consumed.
 - successor is selected from evidence.
+- no implementation mutation occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+Completion note:
+- NA-0442 completed in qsl-protocol PR #1153, merged at `f34760d9f0ee`.
+- Selected classification:
+  `NONCE_KEY_RNG_TRIAGE_SECRET_CLEANUP_SCOPE_NEXT`.
+- Selected successor:
+  `NA-0443 -- QSL Key Lifecycle Secret Cleanup / Zeroization Scope Authorization Plan`.
+- NA-0442 did not implement NA-0443 and did not mutate runtime, crypto,
+  dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector,
+  formal model, qsl-server, qsl-attachments, qshield runtime, website, public
+  docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup
+  status, backup plan, rollback, or backup tree paths.
+- No public-readiness claim, no production-readiness claim, no
+  public-internet-readiness claim, no external-review-complete claim, no
+  crypto-complete claim, no secret-material-complete claim, no side-channel-free
+  claim, no vulnerability-free claim, no bug-free claim, and no perfect-crypto
+  claim is made.
+
+---
+
+### NA-0443 — QSL Key Lifecycle Secret Cleanup / Zeroization Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the exact future scope for investigating and, if justified later,
+improving key-material cleanup and zeroization evidence across
+qsc/refimpl/qshield-cli surfaces, consuming NA-0441 and NA-0442 findings while
+preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries unless
+a later directive authorizes precise implementation.
+
+Protects:
+- key lifecycle evidence quality.
+- secret-material cleanup/zeroization expectations.
+- fail-closed handling around pending/session/shared-secret material.
+- provider boundary confidence after ml-kem replacement and provider-error
+  audit work.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0443.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of:
+  - qsl/qsl-client/qsc/src/
+  - qsl/qsl-client/qsc/tests/
+  - tools/refimpl/quantumshield_refimpl/src/
+  - tools/refimpl/quantumshield_refimpl/tests/
+  - apps/qshield-cli/
+  - formal/
+  - inputs/
+  - docs/governance/evidence/
+  - Cargo.toml
+  - Cargo.lock
+  - qsl/qsl-client/qsc/fuzz/
+  - relevant scripts/workflows read-only.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, Cargo, lockfile, workflow, qsl-server,
+  qsl-attachments, qshield runtime, website, public docs, README, or START_HERE
+  paths.
+- Mutating tests, fuzz target source, vectors, or formal models.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No production-readiness claim.
+- No public-readiness claim.
+- No public-internet-readiness claim.
+- No external-review-complete claim.
+- No metadata-free behavior claim.
+- No anonymity claim.
+- No untraceability claim.
+- No off-host backup completion claim.
+- No disaster recovery completion claim.
+- No restore proof claim.
+- No backup completion claim.
+- No bug-free status claim.
+- No vulnerability-free status claim.
+- No perfect-crypto status claim.
+- No side-channel-free status claim.
+- No secret-material-complete status claim.
+- No crypto-complete status claim.
+- Secret material handling outside read-only source/evidence inspection.
+
+Deliverables:
+- NA-0443 evidence doc.
+- NA-0443 testplan.
+- D-0873 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- selected exact successor or no-action rationale.
+
+Acceptance criteria:
+- NA-0441/NA-0442 key lifecycle findings are consumed.
+- exact future scope is selected from evidence.
 - no implementation mutation occurs.
 - cargo audit remains green.
 - nested fuzz lock audit remains green.

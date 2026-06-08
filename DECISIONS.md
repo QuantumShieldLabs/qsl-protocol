@@ -22291,3 +22291,51 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside NA-0441.
     - more than one READY item remains.
   - **References:** NA-0441; NA-0442; NA-0440; NA-0439; NA-0437; NA-0436; D-0869; D-0868; D-0867; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/src/vault/mod.rs`; `qsl/qsl-client/qsc/src/protocol_state/mod.rs`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`; `apps/qshield-cli/src/store.rs`; `formal/run_model_checks.py`; `docs/governance/evidence/NA-0441_qsl_nonce_key_rng_lifecycle_read_only_audit_plan.md`; `tests/NA-0441_qsl_nonce_key_rng_lifecycle_read_only_audit_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0870
+  - **Title:** NA-0441 closeout and NA-0442 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-08
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0441 is closed after qsl-protocol PR #1151 merged at `4ce2c601e9eb`, required PR checks completed success, and post-merge public-safety completed success on the merge commit. D-0869 classified the nonce/key/RNG lifecycle audit as `NONCE_KEY_RNG_EVIDENCE_GAPS_FOUND`, recorded findings F-0441-01 through F-0441-06, preserved provider-error caveats as background, and selected `NA-0442 -- QSL Nonce / Key / RNG Lifecycle Findings Triage Authorization Plan`. This closeout marks NA-0441 DONE and restores NA-0442 as the sole READY successor without implementing NA-0442.
+  - **Selected successor:** `NA-0442 -- QSL Nonce / Key / RNG Lifecycle Findings Triage Authorization Plan`.
+  - **Closeout boundary:** This closeout makes no runtime, crypto, dependency, Cargo manifest, lockfile, workflow, executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, backup tree, branch-protection, or public-surface mutation.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. Cargo audit green remains dependency-health evidence only, and NA-0442 remains findings-triage authorization only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Protected:**
+    - PR #1151 is MERGED at `4ce2c601e9eb`.
+    - post-merge public-safety is green on `4ce2c601e9eb`.
+    - NA-0441 DONE.
+    - READY NA-0442.
+    - D-0869 exists once.
+    - D-0870 exists once after this closeout.
+    - D-0871 remains absent until future NA-0442 work.
+    - no duplicate decision IDs.
+    - no implementation mutation in this closeout.
+    - no backup or restore.
+    - no public crypto-complete claim.
+    - no vulnerability-free claim.
+    - no bug-free claim.
+    - no perfect-crypto claim.
+    - no side-channel-free claim.
+    - exactly one READY remains mandatory.
+  - **Required behavior:**
+    - NA-0442 must consume NA-0441 findings as governance evidence and select an exact successor.
+    - NA-0442 must not implement runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, README, START_HERE, website, or public-claim changes unless a later exact directive authorizes them.
+    - cargo audit output must remain dependency-health evidence only.
+    - exactly one READY item remains mandatory.
+  - **Must never happen:**
+    - NA-0442 implementation starts inside this closeout.
+    - `pq_encap_failed` is represented as executable-covered by NA-0441 or this closeout.
+    - NA-0441 findings are represented as direct formal proof.
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside this closeout.
+    - cargo audit output must not be used as public-readiness proof.
+    - cargo audit output must not be used as production-readiness proof.
+    - cargo audit output must not be used as external-review-complete proof.
+    - cargo audit output must not be used as crypto-complete proof.
+    - cargo audit output must not be used as vulnerability-free proof.
+    - cargo audit output must not be used as bug-free proof.
+    - cargo audit output must not be used as perfect-crypto proof.
+    - cargo audit output must not be used as side-channel-free proof.
+    - more than one READY item remains.
+  - **References:** NA-0441; NA-0442; D-0870; D-0869; qsl-protocol PR #1151; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0441_closeout_restore_na0442_testplan.md`

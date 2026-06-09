@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 use super::{
     cmd::HandshakeSuiteMode, config_dir, emit_marker, enforce_peer_not_blocked,
     enforce_safe_parents, fs, hex_encode, identity_fingerprint_from_pk, identity_marker_display,
@@ -595,6 +597,26 @@ fn emit_peer_mismatch(peer: &str, pinned_fp: &str, seen_fp: &str) {
     emit_marker("error", Some("peer_mismatch"), &[("peer", peer)]);
 }
 
+#[cfg(qsc_rng_failure_test_seam)]
+fn hs_rng_failure_forced(label: &str) -> bool {
+    std::env::var("QSC_RNG_FAILURE_TEST_SEAM")
+        .ok()
+        .map(|v| v == label || v == "all")
+        .unwrap_or(false)
+}
+
+#[cfg(qsc_rng_failure_test_seam)]
+fn hs_rand_bytes(label: &str, len: usize) -> Result<Vec<u8>, &'static str> {
+    if hs_rng_failure_forced(label) {
+        return Err("rng_failure_forced");
+    }
+    let mut out = vec![0u8; len];
+    let mut rng = OsRng;
+    rng.fill_bytes(&mut out);
+    Ok(out)
+}
+
+#[cfg(not(qsc_rng_failure_test_seam))]
 fn hs_rand_bytes(_label: &str, len: usize) -> Vec<u8> {
     let mut out = vec![0u8; len];
     let mut rng = OsRng;
@@ -602,6 +624,15 @@ fn hs_rand_bytes(_label: &str, len: usize) -> Vec<u8> {
     out
 }
 
+#[cfg(qsc_rng_failure_test_seam)]
+fn hs_session_id(label: &str) -> Result<[u8; 16], &'static str> {
+    let bytes = hs_rand_bytes(label, 16)?;
+    let mut sid = [0u8; 16];
+    sid.copy_from_slice(&bytes[..16]);
+    Ok(sid)
+}
+
+#[cfg(not(qsc_rng_failure_test_seam))]
 fn hs_session_id(label: &str) -> [u8; 16] {
     let bytes = hs_rand_bytes(label, 16);
     let mut sid = [0u8; 16];
@@ -1097,6 +1128,9 @@ fn perform_handshake_init_with_route(
         sig_pk,
         sig_sk: _,
     } = identity_self_kem_keypair(self_label).map_err(|e| e.as_str())?;
+    #[cfg(qsc_rng_failure_test_seam)]
+    let sid = hs_session_id("QSC.HS.SID")?;
+    #[cfg(not(qsc_rng_failure_test_seam))]
     let sid = hs_session_id("QSC.HS.SID");
     let (dh_sk, dh_pub) = hs_ephemeral_keypair();
     let suite_context = hs_suite_context_for_mode(suite_mode);

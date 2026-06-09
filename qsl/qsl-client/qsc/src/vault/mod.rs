@@ -8,6 +8,8 @@
 //
 // This module intentionally prints only deterministic markers (no secrets).
 
+#![allow(unexpected_cfgs)]
+
 use std::collections::BTreeMap;
 use std::fs;
 use std::io::{IsTerminal, Read, Write};
@@ -16,7 +18,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Mutex, OnceLock};
 
 use argon2::{Algorithm, Argon2, Params, Version};
-use chacha20poly1305::aead::{Aead, AeadCore, KeyInit};
+use chacha20poly1305::aead::{Aead, KeyInit};
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use clap::{Args, Subcommand};
 #[cfg(feature = "keychain")]
@@ -31,6 +33,23 @@ const KDF_T: u32 = 2;
 const KDF_P: u32 = 1;
 const RELAY_INBOX_TOKEN_SECRET_KEY: &str = "tui.relay.inbox_token";
 const DESKTOP_PASS_ENV_KEY: &str = "QSC_DESKTOP_SESSION_PASSPHRASE";
+
+#[cfg(qsc_rng_failure_test_seam)]
+fn vault_rng_failure_forced(label: &str) -> bool {
+    std::env::var("QSC_RNG_FAILURE_TEST_SEAM")
+        .ok()
+        .map(|v| v == label || v == "all")
+        .unwrap_or(false)
+}
+
+#[cfg(qsc_rng_failure_test_seam)]
+fn vault_rng_fill(label: &str, out: &mut [u8]) -> Result<(), &'static str> {
+    if vault_rng_failure_forced(label) {
+        return Err("rng_failure_forced");
+    }
+    OsRng.fill_bytes(out);
+    Ok(())
+}
 
 #[cfg(feature = "keychain")]
 const VAULT_KEYCHAIN_SERVICE: &str = "qsc";
@@ -213,11 +232,16 @@ pub fn secret_set(name: &str, value: &str) -> Result<(), &'static str> {
     payload.secrets.insert(name.to_string(), value.to_string());
     let plaintext = serde_json::to_vec(&payload).map_err(|_| "vault_payload_serialize_failed")?;
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&env.key));
-    let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
+    let mut nonce_bytes = [0u8; 12];
+    #[cfg(qsc_rng_failure_test_seam)]
+    vault_rng_fill("QSC.VAULT.SECRET_SET.NONCE", &mut nonce_bytes)?;
+    #[cfg(not(qsc_rng_failure_test_seam))]
+    OsRng.fill_bytes(&mut nonce_bytes);
+    let nonce = Nonce::from_slice(&nonce_bytes);
     let ciphertext = cipher
-        .encrypt(&nonce, plaintext.as_ref())
+        .encrypt(nonce, plaintext.as_ref())
         .map_err(|_| "encrypt_failed")?;
-    let bytes = encode_envelope(&env, nonce.as_slice(), &ciphertext);
+    let bytes = encode_envelope(&env, &nonce_bytes, &ciphertext);
     write_vault_atomic(&vault_path, &bytes)?;
     VAULT_WRITE_EPOCH.fetch_add(1, Ordering::Relaxed);
     env.key.zeroize();
@@ -240,11 +264,19 @@ pub fn secret_set_with_passphrase(
     payload.secrets.insert(name.to_string(), value.to_string());
     let plaintext = serde_json::to_vec(&payload).map_err(|_| "vault_payload_serialize_failed")?;
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&env.key));
-    let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
+    let mut nonce_bytes = [0u8; 12];
+    #[cfg(qsc_rng_failure_test_seam)]
+    vault_rng_fill(
+        "QSC.VAULT.SECRET_SET_WITH_PASSPHRASE.NONCE",
+        &mut nonce_bytes,
+    )?;
+    #[cfg(not(qsc_rng_failure_test_seam))]
+    OsRng.fill_bytes(&mut nonce_bytes);
+    let nonce = Nonce::from_slice(&nonce_bytes);
     let ciphertext = cipher
-        .encrypt(&nonce, plaintext.as_ref())
+        .encrypt(nonce, plaintext.as_ref())
         .map_err(|_| "encrypt_failed")?;
-    let bytes = encode_envelope(&env, nonce.as_slice(), &ciphertext);
+    let bytes = encode_envelope(&env, &nonce_bytes, &ciphertext);
     write_vault_atomic(&vault_path, &bytes)?;
     VAULT_WRITE_EPOCH.fetch_add(1, Ordering::Relaxed);
     env.key.zeroize();
@@ -324,16 +356,21 @@ fn persist_session(session: &mut VaultSession) -> Result<(), &'static str> {
     let plaintext =
         serde_json::to_vec(&session.payload).map_err(|_| "vault_payload_serialize_failed")?;
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&session.key));
-    let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
+    let mut nonce_bytes = [0u8; 12];
+    #[cfg(qsc_rng_failure_test_seam)]
+    vault_rng_fill("QSC.VAULT.SESSION_PERSIST.NONCE", &mut nonce_bytes)?;
+    #[cfg(not(qsc_rng_failure_test_seam))]
+    OsRng.fill_bytes(&mut nonce_bytes);
+    let nonce = Nonce::from_slice(&nonce_bytes);
     let ciphertext = cipher
-        .encrypt(&nonce, plaintext.as_ref())
+        .encrypt(nonce, plaintext.as_ref())
         .map_err(|_| "encrypt_failed")?;
     let bytes = encode_envelope(
         &VaultRuntime {
             envelope: session.envelope.clone(),
             key: session.key,
         },
-        nonce.as_slice(),
+        &nonce_bytes,
         &ciphertext,
     );
     write_vault_atomic(&session.vault_path, &bytes)?;
@@ -391,10 +428,15 @@ fn vault_init(args: VaultInitArgs) {
         None => Vec::new(),
     };
 
+    let mut key_bytes = [0u8; 32];
     let mut salt = [0u8; 16];
+    #[cfg(qsc_rng_failure_test_seam)]
+    if let Err(code) = vault_rng_fill("QSC.VAULT.INIT.SALT", &mut salt) {
+        fail_with_marker_buffers(code, &mut pass_bytes, &mut key_bytes);
+    }
+    #[cfg(not(qsc_rng_failure_test_seam))]
     rand_core::OsRng.fill_bytes(&mut salt);
 
-    let mut key_bytes = [0u8; 32];
     if let Err(err) = derive_key(
         key_source,
         &argon2,
@@ -410,13 +452,26 @@ fn vault_init(args: VaultInitArgs) {
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key_bytes));
 
     let mut nonce_bytes = [0u8; 12];
+    #[cfg(qsc_rng_failure_test_seam)]
+    if let Err(code) = vault_rng_fill("QSC.VAULT.INIT.NONCE", &mut nonce_bytes) {
+        fail_with_marker_buffers(code, &mut pass_bytes, &mut key_bytes);
+    }
+    #[cfg(not(qsc_rng_failure_test_seam))]
     rand_core::OsRng.fill_bytes(&mut nonce_bytes);
     let nonce = Nonce::from_slice(&nonce_bytes);
+
+    #[cfg(qsc_rng_failure_test_seam)]
+    let default_route_token = match generate_default_route_token() {
+        Ok(token) => token,
+        Err(code) => fail_with_marker_buffers(code, &mut pass_bytes, &mut key_bytes),
+    };
+    #[cfg(not(qsc_rng_failure_test_seam))]
+    let default_route_token = generate_default_route_token();
 
     let mut payload = VaultPayload::empty();
     payload.secrets.insert(
         RELAY_INBOX_TOKEN_SECRET_KEY.to_string(),
-        generate_default_route_token(),
+        default_route_token,
     );
     let plaintext = match serde_json::to_vec(&payload) {
         Ok(v) => v,
@@ -528,6 +583,18 @@ fn vault_init(args: VaultInitArgs) {
     crate::print_marker("vault_init", &[("path", "redacted")]);
 }
 
+#[cfg(qsc_rng_failure_test_seam)]
+fn generate_default_route_token() -> Result<String, &'static str> {
+    let mut bytes = [0u8; 16];
+    vault_rng_fill("QSC.VAULT.INIT.DEFAULT_ROUTE_TOKEN", &mut bytes)?;
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for b in bytes {
+        out.push_str(format!("{:02x}", b).as_str());
+    }
+    Ok(out)
+}
+
+#[cfg(not(qsc_rng_failure_test_seam))]
 fn generate_default_route_token() -> String {
     let mut bytes = [0u8; 16];
     OsRng.fill_bytes(&mut bytes);

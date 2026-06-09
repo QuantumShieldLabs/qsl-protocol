@@ -6,6 +6,140 @@ Last-Updated: 2026-06-09
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-09-300 / NA-0449 qsc RNG failure test seam implementation rolling journal
+
+- Directive: QSL-DIR-2026-06-09-300 -- Execute NA-0449 QSL qsc RNG Failure Test Seam Implementation Harness, Optional Closeout to NA-0450.
+- Directive begin timestamp (America/Chicago): 2026-06-08T23:04:30-05:00.
+- Directive begin timestamp (UTC): 2026-06-09T04:04:30Z.
+- Host timestamp during evidence start (America/Chicago): 2026-06-08T23:05:58-05:00.
+- Host timestamp during evidence start (UTC): 2026-06-09T04:05:58+00:00.
+- End timestamp (America/Chicago): pending.
+- End timestamp (UTC): pending.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## NA-0449 repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0449/qsl-protocol`.
+- qwork proof HEAD and origin/main: `e4eb7f4fcf6`.
+- qsl-protocol main before evidence branch: `e4eb7f4fcf6`.
+- qsl-protocol origin/main after fetch: `e4eb7f4fcf6`.
+- PR #1166 closeout merge: `e4eb7f4fcf6`.
+- Evidence branch: `na-0449-qsc-rng-failure-test-seam`.
+- Evidence PR: pending.
+- Evidence merge commit: pending.
+- Optional closeout branch: pending.
+- Optional closeout merge commit: pending.
+
+## NA-0449 READY proof
+
+- qwork proof files existed under the NA-0449 workspace `.qwork` directory.
+- qwork `.kv` proof markers passed: startup OK, lane NA-0449, repo qsl-protocol, expected path, clean worktree/index/untracked state, head equals origin/main, READY_COUNT 1, queue top READY NA-0449, and requested lane status READY.
+- qwork JSON parsed successfully and mirrored the `.kv` proof for lane, repo, path, HEAD, origin/main, clean-state fields, READY count, top READY item, and requested lane status.
+- Codex did not run qwork, qstart, or qresume.
+- Queue helper before patch: READY_COUNT 1 and READY NA-0449.
+- Exact queue proof before patch: NA-0449 READY; NA-0448 DONE; NA-0447 DONE; NA-0446 DONE; NA-0445 DONE; NA-0444 DONE; NA-0443 DONE; NA-0442 DONE; NA-0441 DONE; NA-0440 DONE; NA-0439 DONE; NA-0438 DONE; NA-0437 DONE; NA-0436 DONE; NA-0435 DONE; NA-0434 BLOCKED; NA-0429 BLOCKED.
+- Decision proof before patch: latest D-0884; D-0883 exists once as an ID entry; D-0884 exists once as an ID entry; D-0885 ID entry absent; duplicate decision ID count zero.
+- PR #1166 verified MERGED at `e4eb7f4fcf6`.
+
+## NA-0449 proof root and rollback setup
+
+- Proof root: `/srv/qbuild/tmp/NA0449_qsc_rng_failure_test_seam_impl_20260609T040744Z`.
+- qwork proof files were copied into the proof root.
+- Preimage SHA256 values:
+  - `qsl/qsl-client/qsc/src/handshake/mod.rs`: `8517723afa16026a040d01e2346e5580095ec8b1aeb99bc941cc1144cdca3d41`.
+  - `qsl/qsl-client/qsc/src/protocol_state/mod.rs`: `6f69b20722a1de2e3737c8a4caad3274359015d29e460f6fc96b728014b46c59`.
+  - `qsl/qsl-client/qsc/src/vault/mod.rs`: `7c7aa20574c609f919ce928fa1836005107d742262de12e32fd43356f2c165d6`.
+- Preimage modes/owners recorded as mode 664, owner `victor:victor` for the three source files.
+- `qsl/qsl-client/qsc/tests/rng_failure_behavior.rs` was absent before patching and an absent marker was written under the proof root rollback directory.
+- Initial `git diff --name-only` before mutation was empty.
+
+## NA-0449 implementation notes
+
+- Consumed D-0883 / NA-0448 authorization for exact paths:
+  - `qsl/qsl-client/qsc/tests/rng_failure_behavior.rs`.
+  - `qsl/qsl-client/qsc/src/handshake/mod.rs`.
+  - `qsl/qsl-client/qsc/src/protocol_state/mod.rs`.
+  - `qsl/qsl-client/qsc/src/vault/mod.rs`.
+- Added only a `qsc_rng_failure_test_seam` cfg seam in the selected qsc source files.
+- Normal builds keep the direct `OsRng` paths compiled and do not read `QSC_RNG_FAILURE_TEST_SEAM`.
+- Under the custom cfg only, `QSC_RNG_FAILURE_TEST_SEAM` can force selected labels:
+  - `QSC.HS.SID`.
+  - `QSC.VAULT.INIT.SALT`.
+  - `QSC.VAULT.INIT.NONCE`.
+  - `QSC.VAULT.INIT.DEFAULT_ROUTE_TOKEN`.
+  - `QSC.QSP.SESSION_STORE_KEY`.
+  - `QSC.QSP.SESSION_BLOB_NONCE`.
+  - selected vault write nonce labels for existing vault mutation paths.
+- Added integration tests that prove forced failure aborts before selected pending/session/vault writes.
+- No Cargo manifest, lockfile, dependency, workflow, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, qshield-cli, public-doc, website, README, START_HERE, backup, restore, qsl-backup, qwork/qstart/qresume/qshell, status, plan, rollback subtree, or backup tree mutation is intentionally performed.
+
+## NA-0449 focused validation notes
+
+- `cargo test -p qsc --locked --test rng_failure_behavior -- --test-threads=1 --nocapture`: PASS after formatting cleanup, 1 normal-build test, marker `NA0449_PRODUCTION_SEMANTICS_UNCHANGED_OK`.
+- `RUSTFLAGS='--cfg qsc_rng_failure_test_seam' cargo test -p qsc --locked --test rng_failure_behavior -- --test-threads=1 --nocapture`: PASS, 4 tests, required NA-0449 common and surface markers emitted.
+- `cargo fmt --check`: PASS after running `cargo fmt`.
+- `git diff --cached --check`: PASS after governance patch.
+- Exact staged path scope guard: PASS, 9 changed paths and 0 forbidden paths.
+- `python3 scripts/ci/qsl_evidence_helper.py link-check`: PASS, `TOTAL_MISSING 0`.
+- `python3 scripts/ci/qsl_evidence_helper.py leak-scan --mode added --base origin/main`: PASS, `SECRET_FINDING_COUNT 0`.
+- Staged added-line overclaim scan: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0` after same-line caveat wording cleanup.
+- PR body preflight against local draft: PASS, required fields present and prohibited phrase count 0.
+- CI classifier for staged paths: `runtime_critical`.
+- Queue helper after D-0885 patch: READY_COUNT 1 and READY NA-0449.
+- Decision helper after D-0885 patch: latest decision D-0885 and duplicate decision count zero.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: PASS, 3 tests.
+- `cargo test -p qsc --locked --test key_lifecycle_zeroization -- --test-threads=1 --nocapture`: PASS, 6 tests.
+- `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS, 1 test.
+- `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768`: PASS, 3 tests.
+- `sh -n scripts/ci/qsc_adversarial.sh`: PASS.
+- `bash -n scripts/ci/qsc_adversarial.sh`: PASS.
+- `cargo audit --deny warnings`: PASS.
+- `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- Root pqcrypto inverse probes returned expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+- Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: PASS.
+- `python3 formal/run_model_checks.py`: PASS.
+- Local qsc adversarial script stable phases and provider-error step passed, then local script stopped at unavailable `cargo fuzz`; PR CI qsc-adversarial-smoke remains the cargo-fuzz-backed evidence gate.
+
+## NA-0449 failures / recoveries
+
+- Failing command: broad grep count for `/home/victor/work/qsl/codex/ops` across the installed script plus status/plan prose returned 14.
+  Classification: recoverable command-shape mistake because the directive requires the qsl-backup source-list inclusion count, not prose references.
+  Corrective action: reran the grep count against `/usr/local/sbin/qsl-backup` source list only.
+  Final result: source-list inclusion count exactly 1 and qsl-backup SHA matched `e9ecff3d22ed`.
+- Failing command: `rg ... qsl/qsl-client/qsc/src/cmd.rs ...` returned code 2 because the current command module is `qsl/qsl-client/qsc/src/cmd/mod.rs`.
+  Classification: recoverable read-only command-shape mistake.
+  Corrective action: reran discovery against `qsl/qsl-client/qsc/src/cmd/` and `qsl/qsl-client/qsc/src/main.rs`.
+  Final result: command/suite-mode surface discovery succeeded.
+- Failing command: first `cargo fmt --check` after adding the new test file.
+  Classification: recoverable in-scope formatting failure with understood cause.
+  Corrective action: ran `cargo fmt`.
+  Final result: `cargo fmt --check` passed.
+- Failing command: first staged added-line overclaim scan.
+  Classification: recoverable wording/screening issue because several no-claim caveats were wrapped or the scan window did not include the same-line negation for cargo-audit caveats.
+  Corrective action: rewrote NA-0449 evidence/testplan caveats so each prohibited phrase has same-line negation and reran the scan with a wider same-line negation window.
+  Final result: staged added-line overclaim scan passed with `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: local qsc adversarial script.
+  Classification: recoverable local tooling unavailability because stable adversarial properties, miri-shaped tests, and the provider-error no-mutation step passed before cargo reported `no such command: fuzz`.
+  Corrective action: recorded exact local cargo-fuzz unavailability and preserved PR CI qsc-adversarial-smoke as the required cargo-fuzz-backed evidence gate.
+  Final result: stable local phases passed; fuzz-backed evidence remains PR CI gated.
+- Note: parallel cargo audit/tree preflight produced cache-lock wait warnings.
+  Classification: non-fatal benign tool contention warning.
+  Corrective action: allowed read-only checks to complete.
+  Final result: root and nested cargo audit passed; tree probes returned expected dependency evidence.
+
+## NA-0449 validation watch
+
+- Pre-commit validation proved READY_COUNT 1 and READY NA-0449.
+- Pre-commit validation proved latest D-0885 and duplicate decision count zero; D-0886 remains absent before closeout.
+- Scope guard reported only the four exact implementation paths plus five allowed NA-0449 governance paths.
+- Link, leak, overclaim, classifier, PR body preflight, Rust, audit, fmt, formal, and qsc adversarial stable-phase validations passed locally.
+- Goal-lint remains pending until after the evidence commit with a synthetic local PR event payload or the live PR.
+- Merge only after required PR checks pass, including public-safety.
+- Optional closeout to NA-0450 is allowed only after evidence PR merges and post-merge public-safety is green.
+
 # QSL-DIR-2026-06-09-298 / NA-0447 RNG failure behavior scope authorization rolling journal
 
 - Directive: QSL-DIR-2026-06-09-298 -- Execute NA-0447 QSL RNG Failure Behavior Scope Authorization Plan, Optional Closeout to NA-0448.

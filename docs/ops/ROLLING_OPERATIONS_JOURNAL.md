@@ -6,6 +6,98 @@ Last-Updated: 2026-06-09
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-09-304 / NA-0451 qsc route contact attachment RNG failure scope authorization rolling journal
+
+- Directive: QSL-DIR-2026-06-09-304 -- Execute NA-0451 QSL qsc Route / Contact / Attachment RNG Failure Scope Authorization Plan, Optional Closeout to NA-0452.
+- Directive begin timestamp (America/Chicago): 2026-06-09T11:04:30-05:00.
+- Directive begin timestamp (UTC): 2026-06-09T16:04:30Z.
+- Host timestamp during evidence start (America/Chicago): 2026-06-09T11:23:07-05:00.
+- Host timestamp during evidence start (UTC): 2026-06-09T16:23:07+00:00.
+- End timestamp (America/Chicago): pending.
+- End timestamp (UTC): pending.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## NA-0451 repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0451/qsl-protocol`.
+- qwork proof HEAD and origin/main: `5b15748c0aec`.
+- qsl-protocol main before evidence branch: `5b15748c0aec`.
+- qsl-protocol origin/main after fetch: `5b15748c0aec`.
+- PR #1170 closeout merge: `5b15748c0aec`.
+- Evidence branch: `na-0451-route-contact-attachment-rng-scope`.
+- Evidence PR: pending.
+- Evidence merge commit: pending.
+- Optional closeout branch: pending.
+- Optional closeout merge commit: pending.
+
+## NA-0451 READY proof
+
+- qwork proof files existed under the NA-0451 workspace `.qwork` directory.
+- qwork `.kv` proof markers passed: startup OK, lane NA-0451, repo qsl-protocol, expected path, clean worktree/index/untracked state, head equals origin/main, READY_COUNT 1, queue top READY NA-0451, and requested lane status READY.
+- qwork JSON parsed successfully and mirrored the `.kv` proof for lane, repo, path, HEAD, origin/main, clean-state fields, READY count, top READY item, and requested lane status.
+- Codex did not run qwork, qstart, or qresume.
+- Proof HEAD and proof `origin/main` matched live local refs before fetch.
+- Fetch did not advance `origin/main` beyond the qwork proof.
+- PR #1170 was verified MERGED at `5b15748c0aec`.
+- Queue helper before patch: READY_COUNT 1 and READY NA-0451.
+- Decision helper before patch: latest D-0888; D-0887 exists once; D-0888 exists once; D-0889 absent; duplicate decision ID count zero.
+- Public-safety on current main completed success; qsc-adversarial-smoke completed success.
+
+## NA-0451 proof root
+
+- Proof root: `/srv/qbuild/tmp/NA0451_qsc_route_contact_attachment_rng_scope_20260609T162307Z`.
+- qwork proof files were copied into the proof root.
+- Prior response files from NA-0450, NA-0449, and NA-0448 were present.
+
+## NA-0451 inherited validation notes
+
+- Root `cargo audit --deny warnings`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- Root pqcrypto inverse probes returned expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+- Nested qsc fuzz lock audit: PASS.
+- Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
+- `RUSTFLAGS='--cfg qsc_rng_failure_test_seam' cargo test -p qsc --locked --test rng_failure_behavior -- --test-threads=1 --nocapture`: PASS.
+- `cargo test -p qsc --locked --test rng_failure_behavior -- --test-threads=1 --nocapture`: PASS.
+- `cargo test -p qsc --locked --test key_lifecycle_zeroization -- --test-threads=1 --nocapture`: PASS.
+- `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS.
+- qsc adversarial script marker scan found the NA-0439 provider-error step.
+- qsl-backup SHA matched `e9ecff3d22ed`; Codex ops source-list inclusion count was exactly one.
+
+## NA-0451 source triage notes
+
+- `qsl/qsl-client/qsc/src/vault/mod.rs` already has cfg-gated label `QSC.VAULT.INIT.DEFAULT_ROUTE_TOKEN`; NA-0449 did not provide an executable proof for that label.
+- `qsl/qsl-client/qsc/src/contacts/mod.rs` has generated contact route tokens through `generate_route_token()`, currently without a forced-failure label.
+- `qsl/qsl-client/qsc/src/tui/controller/commands/contacts.rs` uses generated route tokens for TUI contact-add without explicit route token.
+- `qsl/qsl-client/qsc/src/tui/controller/commands/locked.rs` uses generated route token for TUI relay inbox setup; the account verification seed in the same function remains deferred because it occurs after earlier account-default writes.
+- `qsl/qsl-client/qsc/src/attachments/mod.rs` generates attachment ID, CEK, and nonce prefix before staging/journal/send effects.
+- Selected classification: `ROUTE_CONTACT_ATTACHMENT_RNG_IMPLEMENTATION_READY`.
+- Selected successor: `NA-0452 -- QSL qsc Route / Contact / Attachment RNG Failure Test Seam Implementation Harness`.
+
+## NA-0451 governance patch notes
+
+- Added NA-0451 evidence doc.
+- Added NA-0451 testplan.
+- Added D-0889.
+- Added TRACEABILITY row.
+- Added this rolling journal entry.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, backup tree, or public-surface mutation is intentionally performed.
+
+## NA-0451 validation watch
+
+- Pending: `git diff --check`, scope guard, link-check, leak-scan, overclaim scan, classifier, PR body preflight, goal-lint after commit, Rust/qsc/refimpl checks, audit checks, fmt, formal checks, qsc adversarial local smoke if feasible, PR creation, required checks, merge, post-merge public-safety, optional closeout, and final response file.
+
+## NA-0451 failures / recoveries
+
+- Failing command: staged added-line overclaim scan during fast validation.
+  Classification: recoverable wording/screening issue because one `RNG-failure-complete` caveat wrapped onto a line without its same-line negation.
+  Corrective action: rewrote the sentence so `No RNG-failure-complete claim is made` stays on one line.
+  Final result: staged added-line overclaim scan passed with `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: local `scripts/ci/qsc_adversarial.sh`.
+  Classification: recoverable local tooling limitation because adversarial properties, miri-shaped tests, and the NA-0439 provider-error no-mutation step passed before cargo reported `error: no such command: fuzz`.
+  Corrective action: captured exact local output under the NA-0451 proof root and kept PR CI `qsc-adversarial-smoke` as the required fuzz-backed evidence gate.
+  Final result: local stable phases passed; fuzz-backed evidence remains PR CI gated.
+
 # QSL-DIR-2026-06-09-300 / NA-0449 qsc RNG failure test seam implementation rolling journal
 
 - Directive: QSL-DIR-2026-06-09-300 -- Execute NA-0449 QSL qsc RNG Failure Test Seam Implementation Harness, Optional Closeout to NA-0450.

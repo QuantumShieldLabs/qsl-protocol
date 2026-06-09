@@ -164,6 +164,97 @@ Last-Updated: 2026-06-09
 - Root pqcrypto inverse probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
 - Nested qsc fuzz lock pqcrypto scan: PASS, zero residual package ID matches.
 - `cargo fmt --check`: PASS.
+
+# QSL-DIR-2026-06-09-299 / NA-0448 qsc RNG failure test seam authorization rolling journal
+
+- Directive: QSL-DIR-2026-06-09-299 -- execute NA-0448 QSL qsc RNG Failure Test Seam Authorization Plan, optional closeout to NA-0449.
+- Begin timestamp (America/Chicago): 2026-06-09T00:34:30-05:00 from directive.
+- Begin timestamp (UTC): 2026-06-09T05:34:30Z from directive.
+- Codex observed local timestamp during proof verification: `2026-06-08T22:01:37-05:00`.
+- Codex observed UTC timestamp during proof verification: `2026-06-09T03:01:37+00:00`.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## NA-0448 repo SHAs
+
+- qwork proof HEAD: `a5f93b100d00`.
+- qwork proof origin/main: `a5f93b100d00`.
+- Live HEAD after fetch: `a5f93b100d00`.
+- Live origin/main after fetch: `a5f93b100d00`.
+- PR #1164: MERGED at `a5f93b100d00`.
+- Evidence branch: `na-0448-qsc-rng-failure-test-seam-auth`.
+- Evidence PR: pending.
+- Evidence merge: pending.
+- Optional closeout branch: pending.
+- Optional closeout PR: pending.
+
+## NA-0448 READY proof
+
+- qwork proof files existed and parsed:
+  - `/srv/qbuild/work/NA-0448/.qwork/startup.qsl-protocol.kv`
+  - `/srv/qbuild/work/NA-0448/.qwork/startup.qsl-protocol.json`
+- qwork `.kv` required markers passed: startup OK, lane NA-0448, repo qsl-protocol, expected path, clean worktree/index/untracked state, head equals origin/main, READY_COUNT 1, queue top READY NA-0448, and requested lane status READY.
+- qwork JSON mirrored `.kv` for lane, repo, path, HEAD, origin/main, clean-state fields, READY count, top READY item, and requested lane status.
+- Proof root created: `/srv/qbuild/tmp/NA0448_qsc_rng_failure_test_seam_auth_20260609T030252Z`.
+- Queue proof before patch: READY_COUNT 1, READY NA-0448.
+- Status proof before patch: NA-0447 through NA-0435 DONE, NA-0434 BLOCKED, NA-0429 BLOCKED.
+- Decision proof before patch: latest D-0882, D-0881 once, D-0882 once, D-0883 absent, duplicate decision count zero.
+- public-safety was required and completed success on current origin/main.
+
+## NA-0448 authorization notes
+
+- F-0441-03 and NA-0447 were consumed as evidence gaps and scope inputs.
+- Existing qsc public APIs and integration-test helpers cannot force private `OsRng` call-site failure.
+- Selected primary classification: `QSC_RNG_TEST_SEAM_IMPLEMENTATION_READY`.
+- Selected successor: `NA-0449 -- QSL qsc RNG Failure Test Seam Implementation Harness`.
+- Exact future implementation paths selected:
+  - `qsl/qsl-client/qsc/tests/rng_failure_behavior.rs`
+  - `qsl/qsl-client/qsc/src/handshake/mod.rs`
+  - `qsl/qsl-client/qsc/src/protocol_state/mod.rs`
+  - `qsl/qsl-client/qsc/src/vault/mod.rs`
+- Future seam must be custom cfg/test-only, normal builds must be unchanged, and forced failures must abort without selected pending/session/vault mutation.
+- Route/contact/attachment token and ID generation, identity/key/provider-dependent generation, refimpl/provider RNG failure, qshield-cli demo RNG boundaries, formal/model RNG behavior, fuzz, and vectors remain residual/backlog unless later exact directives authorize them.
+- No NA-0448 implementation mutation is performed.
+
+## NA-0448 validation notes
+
+- Root cargo audit before patch: PASS.
+- Nested qsc fuzz lock audit before patch: PASS. Advisory database lock/wait messages were benign tool serialization warnings, not STOP conditions.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- Root pqcrypto inverse probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+- Nested qsc fuzz lock pqcrypto scan returned zero matches.
+- qsl-backup checksum matched the expected directive value; Codex ops source-list inclusion count was exactly one.
+- Prior response files D295 through D298 were present.
+- `cargo test -p qsc --locked --test key_lifecycle_zeroization -- --test-threads=1 --nocapture`: PASS, 6 tests.
+- `scripts/ci/qsc_adversarial.sh` contains `NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP` and the provider-error no-mutation command.
+
+## NA-0448 failures / recoveries
+
+- Recovered zero-match evidence: `cargo tree -i pqcrypto-mlkem --locked || true`, `cargo tree -i pqcrypto-traits --locked || true`, and `cargo tree -i pqcrypto-internals --locked || true` reported expected package-ID absence. Classification: valid zero-match dependency proof. Corrective action: no code or dependency change; record absence as evidence. Final result: absence preserved.
+- Recovered zero-match evidence: `rg -n "pqcrypto-mlkem|pqcrypto-traits|pqcrypto-internals" qsl/qsl-client/qsc/fuzz/Cargo.lock || true` returned no matches. Classification: valid zero-match nested fuzz lock proof. Corrective action: no code or dependency change; record absence as evidence. Final result: zero residual matches.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py scope-guard --base origin/main --allowed DECISIONS.md TRACEABILITY.md ...`.
+  Classification: recoverable CLI argument-shape mistake because `--allowed`
+  is repeatable and accepts one value at a time. Corrective action: reran with
+  repeated `--allowed` arguments and corrected the NA-0448 testplan command.
+  Final result: corrected invocation accepted by the helper with
+  `FORBIDDEN_COUNT 0`; post-commit scope guard remains a next-watch item so
+  changed-path count is measured against committed HEAD.
+- Failing command: local `scripts/ci/qsc_adversarial.sh`.
+  Classification: recoverable local tooling limitation because stable qsc
+  adversarial phases passed, the NA0439 provider-error step passed, and the
+  script then stopped at unavailable local `cargo fuzz` tooling.
+  Corrective action: no toolchain, dependency, Cargo, lockfile, or workflow
+  mutation; rely on PR CI `qsc-adversarial-smoke` if attached/required.
+  Final result: local stable phases passed before `error: no such command:
+  fuzz`.
+
+## NA-0448 next-watch items
+
+- Complete exact five-path scope guard after patch.
+- Run link-check, leak-scan, overclaim scan, classifier, PR body preflight, goal-lint, Rust, audit, fmt, formal, and qsc adversarial validations.
+- Open evidence PR only after local validation passes.
+- Merge only after required checks pass.
+- Optional closeout to NA-0449 only after evidence PR merges and post-merge public-safety is green.
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py`: PASS.
 - `python3 formal/run_model_checks.py`: PASS.
 - `scripts/ci/qsc_adversarial.sh`: stable adversarial tests and provider-error step PASS; local cargo-fuzz unavailable, so PR CI `qsc-adversarial-smoke` remains required.

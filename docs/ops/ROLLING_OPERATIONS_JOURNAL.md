@@ -413,7 +413,7 @@ Last-Updated: 2026-06-09
 - Post-merge public-safety on `4ef871952a28`: completed success.
 - Optional closeout to NA-0451 is active after Packet N merge and post-merge public-safety success.
 - Closeout branch: `na-0450-closeout-restore-na0451`.
-- Closeout PR: pending.
+- Closeout PR: #1170.
 - Closeout merge commit: pending.
 - Closeout validation must prove READY_COUNT 1 and READY NA-0451.
 - Closeout validation must prove NA-0450 DONE, D-0888 once, D-0889 absent, and duplicate decision IDs absent.

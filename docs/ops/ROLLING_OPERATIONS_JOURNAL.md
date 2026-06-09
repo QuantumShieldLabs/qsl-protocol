@@ -133,7 +133,7 @@ Last-Updated: 2026-06-09
 ## NA-0451 optional closeout notes
 
 - Closeout branch: `na-0451-closeout-restore-na0452`.
-- Closeout PR: pending.
+- Closeout PR: #1172.
 - Closeout merge commit: pending.
 - Closeout decision: D-0890.
 - Queue change: NA-0451 DONE; NA-0452 READY.

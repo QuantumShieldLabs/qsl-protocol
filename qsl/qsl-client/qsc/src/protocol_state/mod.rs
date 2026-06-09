@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 use chacha20poly1305::aead::{Aead, KeyInit, Payload};
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
@@ -23,6 +25,23 @@ use crate::vault;
 use crate::{channel_label_ok, env_bool, hex_decode, hex_encode};
 
 pub(crate) const QSP_STATUS_FILE_NAME: &str = "qsp_status.json";
+
+#[cfg(qsc_rng_failure_test_seam)]
+fn qsp_rng_failure_forced(label: &str) -> bool {
+    env::var("QSC_RNG_FAILURE_TEST_SEAM")
+        .ok()
+        .map(|v| v == label || v == "all")
+        .unwrap_or(false)
+}
+
+#[cfg(qsc_rng_failure_test_seam)]
+fn qsp_rng_fill(label: &str, out: &mut [u8]) -> Result<(), ErrorCode> {
+    if qsp_rng_failure_forced(label) {
+        return Err(ErrorCode::IdentitySecretUnavailable);
+    }
+    OsRng.fill_bytes(out);
+    Ok(())
+}
 
 pub(crate) fn qsp_status_parts(value: &str) -> (&str, &str) {
     value.split_once(" reason=").unwrap_or((value, "unknown"))
@@ -183,6 +202,9 @@ fn qsp_session_store_key_get_or_create(peer: &str) -> Result<[u8; 32], ErrorCode
         Ok(Some(v)) => qsp_session_decode_key(&v),
         Ok(None) => {
             let mut key = [0u8; 32];
+            #[cfg(qsc_rng_failure_test_seam)]
+            qsp_rng_fill("QSC.QSP.SESSION_STORE_KEY", &mut key)?;
+            #[cfg(not(qsc_rng_failure_test_seam))]
             OsRng.fill_bytes(&mut key);
             let secret = hex_encode(&key);
             match vault::secret_set(QSP_SESSION_STORE_KEY_SECRET, &secret) {
@@ -212,6 +234,9 @@ fn qsp_session_encrypt_blob(peer: &str, plaintext: &[u8]) -> Result<Vec<u8>, Err
     let key = qsp_session_store_key_get_or_create(peer)?;
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key));
     let mut nonce_bytes = [0u8; 12];
+    #[cfg(qsc_rng_failure_test_seam)]
+    qsp_rng_fill("QSC.QSP.SESSION_BLOB_NONCE", &mut nonce_bytes)?;
+    #[cfg(not(qsc_rng_failure_test_seam))]
     OsRng.fill_bytes(&mut nonce_bytes);
     let nonce = Nonce::from_slice(&nonce_bytes);
     let aad = qsp_session_aad(peer);

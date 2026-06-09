@@ -85,7 +85,10 @@ Last-Updated: 2026-06-09
 
 ## NA-0451 validation watch
 
-- Pending: `git diff --check`, scope guard, link-check, leak-scan, overclaim scan, classifier, PR body preflight, goal-lint after commit, Rust/qsc/refimpl checks, audit checks, fmt, formal checks, qsc adversarial local smoke if feasible, PR creation, required checks, merge, post-merge public-safety, optional closeout, and final response file.
+- Fast staged validation passed: `git diff --cached --check`, worktree `git diff --check`, exact staged scope guard, link-check, staged leak scan, staged overclaim scan, and docs-only classifier.
+- Postpatch validation passed: PR body preflight, `sh -n` and `bash -n` for `scripts/ci/qsc_adversarial.sh`, cfg and normal qsc `rng_failure_behavior`, `key_lifecycle_zeroization`, `handshake_provider_error_no_mutation`, qsc `send_commit`, refimpl `pqkem768`, root cargo audit, nested qsc fuzz lock audit, dependency tree probes, `cargo fmt --check`, `formal/model_qsc_handshake_suite_id_bounded.py`, and `formal/run_model_checks.py`.
+- Postcommit validation passed: helper scope guard against `origin/main...HEAD`, helper link-check, helper added-line leak-scan, PR body preflight, queue parser, decision parser, added-line overclaim scan, docs-only classifier, and synthetic-event goal-lint.
+- Pending: PR creation, required checks, merge, post-merge public-safety, optional closeout, and final response file.
 
 ## NA-0451 failures / recoveries
 
@@ -97,6 +100,10 @@ Last-Updated: 2026-06-09
   Classification: recoverable local tooling limitation because adversarial properties, miri-shaped tests, and the NA-0439 provider-error no-mutation step passed before cargo reported `error: no such command: fuzz`.
   Corrective action: captured exact local output under the NA-0451 proof root and kept PR CI `qsc-adversarial-smoke` as the required fuzz-backed evidence gate.
   Final result: local stable phases passed; fuzz-backed evidence remains PR CI gated.
+- Failing command: synthetic goal-lint event creation inside the postcommit validation script.
+  Classification: recoverable command-shape mistake because the Python event writer referenced `PROOF_DIR` without the shell exporting it.
+  Corrective action: exported `PROOF_DIR`, rewrote the synthetic event with base `5b15748c0aec` and head `58b22b386187`, and reran goal-lint.
+  Final result: `tools/goal_lint.py` passed with `OK: goal compliance checks passed.`
 
 # QSL-DIR-2026-06-09-300 / NA-0449 qsc RNG failure test seam implementation rolling journal
 

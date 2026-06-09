@@ -785,6 +785,77 @@ Last-Updated: 2026-06-09
 - `python3 formal/run_model_checks.py`: PASS.
 - Local qsc adversarial script: stable Rust phases and provider-error step passed before local cargo-fuzz unavailability.
 
+# QSL-DIR-2026-06-09-309 / NA-0453 closeout and NA-0454 restoration rolling journal
+
+- Directive: QSL-DIR-2026-06-09-309 optional closeout -- close out NA-0453 after PR #1175 post-merge public-safety completion and restore NA-0454.
+- Begin timestamp (America/Chicago): 2026-06-09T18:24:00-05:00.
+- Begin timestamp (UTC): 2026-06-09T23:24:00Z.
+- End timestamp (America/Chicago): pending.
+- End timestamp (UTC): pending.
+- Codex did not run qwork, qstart, qresume, sudo, backup, restore, cargo update, cargo generate-lockfile, or dependency remediation commands.
+
+## Closeout repo SHAs
+
+- qsl-protocol main before closeout branch: `7d48c4903f14`.
+- qsl-protocol origin/main before closeout branch: `7d48c4903f14`.
+- Evidence PR #1175 head: `8f6f020600c`.
+- Evidence PR #1175 merge: `7d48c4903f14`.
+- Closeout branch: `na-0453-closeout-restore-na0454`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
+
+## Closeout READY proof
+
+- Queue proof before closeout patch: READY_COUNT 1, READY NA-0453.
+- Decision proof before closeout patch: latest D-0893, D-0893 once, D-0894 absent, duplicate decision count zero.
+- Evidence PR #1175: MERGED at `7d48c4903f14`.
+- Post-merge public-safety on `7d48c4903f14`: PASS.
+- Post-merge attached checks on `7d48c4903f14`: completed with zero failures after REST polling.
+
+## Closeout patch notes
+
+- NA-0453 is marked DONE.
+- NA-0454 is restored as the sole READY item.
+- D-0894 records NA-0453 closeout and NA-0454 restoration.
+- TRACEABILITY records PR #1175, post-merge public-safety, and the NA-0454 fake/test-seam strategy successor.
+- Closeout testplan path: `tests/NA-0453_closeout_restore_na0454_testplan.md`.
+- No NA-0454 implementation is performed.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test source, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, qsl-backup, status, plan, rollback, or backup tree path is intentionally mutated.
+- No backup or restore was run.
+
+## Closeout validation watch
+
+- Closeout validation must prove READY_COUNT 1 and READY NA-0454.
+- Closeout validation must prove NA-0453 DONE, D-0894 exists once, D-0895 absent, and duplicate decision IDs absent.
+- Closeout scope guard must report exactly the five allowed closeout paths.
+- Link check, leak scan, overclaim scan, PR body preflight, goal-lint, root cargo audit, and nested qsc fuzz lock audit must pass before PR.
+- Closeout PR checks, including public-safety, must pass before merge.
+- After merge, READY NA-0454, NA-0453 DONE, D-0894 on main, and public-safety green on the closeout merge commit must be verified.
+
+## Closeout failures / recoveries
+
+- Failing command: first closeout added-line leak scan.
+  Classification: recoverable wording/scanner hygiene issue because the
+  closeout testplan embedded a full merge SHA in a helper command.
+  Corrective action: replaced the helper command argument with the short
+  `7d48c4903f14` merge SHA used in narrative evidence.
+  Final result: leak scan rerun required and must report zero findings before
+  closeout commit.
+
+## Closeout local validation results
+
+- `git diff --cached --check`: PASS.
+- Exact five-path closeout scope guard: PASS.
+- Queue helper: PASS, READY_COUNT 1 and READY NA-0454.
+- Decision helper: PASS, latest D-0894 and duplicate decision count zero.
+- Exact decision proof: PASS, D-0893 once, D-0894 once, D-0895 absent.
+- Helper link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan after wording recovery: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+
 # QSL-DIR-2026-06-09-308 / NA-0452 closeout and NA-0453 restoration rolling journal
 
 - Directive: QSL-DIR-2026-06-09-308 -- recover after macOS qsc relay-auth rerun completion, close out NA-0452 only if public-safety is green, and restore NA-0453.

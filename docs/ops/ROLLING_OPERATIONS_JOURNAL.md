@@ -371,6 +371,10 @@ Last-Updated: 2026-06-09
   Classification: recoverable local tooling limitation because the stable Rust adversarial property suite, miri-shaped suite, and NA-0439 provider-error step passed before the local environment stopped at unavailable `cargo fuzz`.
   Corrective action: no toolchain, dependency, Cargo, lockfile, workflow, or fuzz-target mutation; require PR CI `qsc-adversarial-smoke` if attached/required for cargo-fuzz-backed evidence.
   Final result: stable phases passed; local output ended with `error: no such command: fuzz`.
+- Failing command: first REST polling loop for PR #1169 checks.
+  Classification: recoverable command-shape mistake because the shell combined a Python here-doc and JSON stdin redirection, causing JSON `null` to be interpreted as Python source.
+  Corrective action: stopped only the bad local polling shell process and reran check polling with corrected input handling.
+  Final result: pending corrected REST polling.
 
 ## NA-0450 local validation results
 

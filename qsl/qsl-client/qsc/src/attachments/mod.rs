@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 use super::*;
 
 type FileConfirmPayload = adversarial::payload::FileConfirmPayload;
@@ -214,12 +216,51 @@ fn attachment_merkle_root(mut level: Vec<[u8; 64]>) -> Option<String> {
     Some(hex_encode(&level[0]))
 }
 
+#[cfg(qsc_rng_failure_test_seam)]
+fn attachment_rng_failure_forced(label: &str) -> bool {
+    std::env::var("QSC_RNG_FAILURE_TEST_SEAM")
+        .ok()
+        .map(|v| v == label || v == "all")
+        .unwrap_or(false)
+}
+
+#[cfg(qsc_rng_failure_test_seam)]
+fn attachment_rng_fill(label: &str, out: &mut [u8]) -> Result<(), &'static str> {
+    if attachment_rng_failure_forced(label) {
+        return Err("rng_failure_forced");
+    }
+    OsRng.fill_bytes(out);
+    Ok(())
+}
+
+#[cfg(qsc_rng_failure_test_seam)]
+fn attachment_generate_id() -> Result<String, &'static str> {
+    let mut bytes = [0u8; 32];
+    attachment_rng_fill("QSC.ATTACHMENT.ID", &mut bytes)?;
+    Ok(hex_encode(&bytes))
+}
+
+#[cfg(not(qsc_rng_failure_test_seam))]
 fn attachment_generate_id() -> String {
     let mut bytes = [0u8; 32];
     OsRng.fill_bytes(&mut bytes);
     hex_encode(&bytes)
 }
 
+#[cfg(qsc_rng_failure_test_seam)]
+fn attachment_build_enc_ctx() -> Result<(String, [u8; 32], [u8; 8]), &'static str> {
+    let mut cek = [0u8; 32];
+    let mut prefix = [0u8; 8];
+    attachment_rng_fill("QSC.ATTACHMENT.CEK", &mut cek)?;
+    attachment_rng_fill("QSC.ATTACHMENT.NONCE_PREFIX", &mut prefix)?;
+    let mut raw = [0u8; ATTACHMENT_CONTEXT_PACKAGE_LEN];
+    raw[0] = 0x01;
+    raw[1..33].copy_from_slice(&cek);
+    raw[33..].copy_from_slice(&prefix);
+    Ok((URL_SAFE_NO_PAD.encode(raw), cek, prefix))
+}
+
+#[cfg(not(qsc_rng_failure_test_seam))]
 fn attachment_build_enc_ctx() -> (String, [u8; 32], [u8; 8]) {
     let mut cek = [0u8; 32];
     let mut prefix = [0u8; 8];
@@ -564,12 +605,18 @@ fn attachment_build_outbound_record(
         .and_then(|v| v.to_str())
         .map(attachment_validate_filename_hint)
         .transpose()?;
+    #[cfg(qsc_rng_failure_test_seam)]
+    let attachment_id = attachment_generate_id()?;
+    #[cfg(not(qsc_rng_failure_test_seam))]
     let attachment_id = attachment_generate_id();
     let part_size_class = choose_attachment_part_size_class(plaintext_len).to_string();
     let part_count = attachment_part_count_for_plaintext(plaintext_len, &part_size_class)
         .ok_or("attachment_shape_invalid")?;
     let ciphertext_len = attachment_ciphertext_len_for_plaintext(plaintext_len, part_count)
         .ok_or("attachment_shape_invalid")?;
+    #[cfg(qsc_rng_failure_test_seam)]
+    let (enc_ctx_b64u, cek, nonce_prefix) = attachment_build_enc_ctx()?;
+    #[cfg(not(qsc_rng_failure_test_seam))]
     let (enc_ctx_b64u, cek, nonce_prefix) = attachment_build_enc_ctx();
     let (cfg_dir, _) = config_dir().map_err(|_| "attachment_stage_unavailable")?;
     let stage_dir = attachment_staging_dir(&cfg_dir, "outbound")?;

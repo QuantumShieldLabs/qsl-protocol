@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 use super::*;
 
 fn locked_cmd_input_value(input: &str, command: &str) -> String {
@@ -564,6 +566,9 @@ fn init_account_defaults_with_passphrase(passphrase: &str) -> Result<(), &'stati
     )?;
     vault::secret_set_with_passphrase(TUI_RELAY_ENDPOINT_SECRET_KEY, "", passphrase)?;
     vault::secret_set_with_passphrase(TUI_RELAY_TOKEN_SECRET_KEY, "", passphrase)?;
+    #[cfg(qsc_rng_failure_test_seam)]
+    let inbox_token = generate_route_token_with_label("QSC.TUI.RELAY_INBOX_ROUTE_TOKEN")?;
+    #[cfg(not(qsc_rng_failure_test_seam))]
     let inbox_token = generate_route_token();
     vault::secret_set_with_passphrase(
         TUI_RELAY_INBOX_TOKEN_SECRET_KEY,

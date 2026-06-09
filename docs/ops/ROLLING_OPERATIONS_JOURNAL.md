@@ -6,6 +6,124 @@ Last-Updated: 2026-06-05
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-09-297 / NA-0446 closeout and NA-0447 restoration rolling journal
+
+- Directive: QSL-DIR-2026-06-09-297 -- close out NA-0446 after PR #1161 post-merge public-safety completion using progress-aware wait policy and restore NA-0447.
+- Directive begin timestamp (America/Chicago): 2026-06-09T00:04:30-05:00.
+- Directive begin timestamp (UTC): 2026-06-09T05:04:30Z.
+- Host timestamp during closeout start (America/Chicago): 2026-06-08T19:36:40-05:00.
+- Host timestamp during closeout start (UTC): 2026-06-09T00:36:40+00:00.
+- End timestamp (America/Chicago): pending.
+- End timestamp (UTC): pending.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Closeout repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0446/qsl-protocol`.
+- qsl-protocol main before closeout branch: `19761797425f`.
+- qsl-protocol origin/main before closeout branch: `19761797425f`.
+- Implementation PR #1161 head: `8fa24ed279e`.
+- Implementation PR #1161 merge: `19761797425f`.
+- Closeout branch: `na-0446-closeout-restore-na0447`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
+
+## Closeout READY proof
+
+- Queue proof before closeout patch: READY_COUNT 1, READY NA-0446.
+- Nearby status proof: NA-0445 DONE, NA-0444 DONE, NA-0443 DONE, NA-0442 DONE, NA-0441 DONE, NA-0440 DONE, NA-0439 DONE, NA-0438 DONE, NA-0437 DONE, NA-0436 DONE, NA-0435 DONE, NA-0434 BLOCKED, NA-0429 BLOCKED.
+- Decision proof before closeout patch: latest D-0879, D-0879 exists once, D-0880 absent, duplicate decision count zero.
+- D296 response archive exists for NA-0446 implementation.
+- PR #1161 was verified MERGED at `19761797425f`.
+
+## Progress-aware public-safety proof
+
+- D296 implemented NA-0446 in PR #1161 and stopped because post-merge checks were still in progress after the old fixed wait cap.
+- D297 used REST polling with a progress-aware policy for `19761797425f`.
+- Post-merge public-safety completed success.
+- `macos-qsc-full-serial`, `qsc-linux-full-suite`, `qsc-adversarial-smoke`, and attached `qsc-adversarial-miri` completed success.
+- No required check failure, stale state, missing public-safety state, backup, restore, or generated operator-script execution occurred.
+
+## Closeout patch notes
+
+- NA-0446 is marked DONE.
+- NA-0447 -- QSL RNG Failure Behavior Scope Authorization Plan is restored as the sole READY successor.
+- D-0880 records NA-0446 closeout and NA-0447 restoration.
+- TRACEABILITY records PR #1161 implementation, this closeout, D296 response inheritance, progress-aware public-safety proof, NA-0447 successor, no backup impact, and no public claim expansion.
+- Closeout testplan path: `tests/NA-0446_closeout_restore_na0447_testplan.md`.
+- No NA-0447 implementation is performed.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, qsl-backup, status, plan, rollback, or backup tree path is intentionally mutated.
+
+## Failures / recoveries
+
+- Failing command: `cargo tree -i pqcrypto-mlkem --locked`.
+  Classification: recoverable valid zero-match discovery/proof outcome because the package ID is absent from the root dependency graph.
+  Corrective action: recorded absence using the directive's optional inverse-probe form.
+  Final result: expected package-ID absence recorded.
+- Failing command: `cargo tree -i pqcrypto-traits --locked`.
+  Classification: recoverable valid zero-match discovery/proof outcome because the package ID is absent from the root dependency graph.
+  Corrective action: recorded absence using the directive's optional inverse-probe form.
+  Final result: expected package-ID absence recorded.
+- Failing command: `cargo tree -i pqcrypto-internals --locked`.
+  Classification: recoverable valid zero-match discovery/proof outcome because the package ID is absent from the root dependency graph.
+  Corrective action: recorded absence using the directive's optional inverse-probe form.
+  Final result: expected package-ID absence recorded.
+- Failing command: `python tools/goal_lint.py`.
+  Classification: recoverable command-shape mistake because this host exposes Python as `python3`, not `python`.
+  Corrective action: reran goal-lint with `python3`.
+  Final result: the command reached the local goal-lint tool and exposed the next required event-context precondition.
+- Failing command: `python3 tools/goal_lint.py`.
+  Classification: recoverable local CI-context issue because goal-lint requires `GITHUB_EVENT_PATH` with PR base/head metadata and cannot truthfully lint uncommitted worktree changes.
+  Corrective action: defer local goal-lint until after the closeout commit exists, then run it with a synthetic local PR event payload pointing from `origin/main` to the closeout commit.
+  Final result: PASS after closeout commit with synthetic local PR event payload.
+
+## Validation / CI notes
+
+- `cargo test -p qsc --locked --test key_lifecycle_zeroization -- --test-threads=1 --nocapture`: PASS, 6 tests, required NA-0446 markers emitted.
+- `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS, inherited provider-error markers emitted.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: PASS, 3 tests.
+- `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768`: PASS, 3 tests.
+- `sh -n scripts/ci/qsc_adversarial.sh`: PASS.
+- `bash -n scripts/ci/qsc_adversarial.sh`: PASS.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- Root pqcrypto inverse probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+- `cargo fmt --check`: PASS.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: PASS.
+- `python3 formal/run_model_checks.py`: PASS.
+- qsl-backup SHA matched the expected value and the local ops source count remained exactly 1.
+- `git diff --check`: PASS.
+- Manual working-tree path guard: PASS, exact five allowed paths.
+- Helper scope guard: PASS, forbidden count zero.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- CI scope classifier: PASS, `scope_class=docs_only`.
+- Queue helper after patch: PASS, READY_COUNT 1 and READY NA-0447.
+- Decision helper after patch: PASS, latest D-0880 and duplicate decision count zero.
+- Exact status proof after patch: PASS, NA-0447 READY, NA-0446 DONE, NA-0434 BLOCKED, NA-0429 BLOCKED.
+- Exact decision proof after patch: PASS, D-0879 once, D-0880 once, D-0881 absent.
+- Local goal-lint with synthetic event: PASS.
+- Closeout PR checks: pending.
+
+## Disk watermark
+
+- Filesystem: `/dev/nvme0n1p2` mounted at `/`.
+- Total: 468G.
+- Used: 243G.
+- Free: 202G.
+- Used percent: 55%.
+
+## Next-watch items
+
+- Complete exact five-path scope guard after patch.
+- Run link, leak, overclaim, classifier, PR body preflight, goal-lint, Rust, audit, fmt, formal, and qsc adversarial syntax validations.
+- Merge only after required checks and public-safety pass on the closeout PR.
+- After merge, verify READY NA-0447, NA-0446 DONE, D-0880 on main, and public-safety green on the closeout merge commit.
+
 # Rolling Operations Journal Entry
 
 - Directive: QSL-DIR-2026-06-08-294 -- Execute NA-0444 QSL Key Lifecycle Secret Cleanup / Zeroization Evidence Policy Authorization Plan, Optional Closeout to NA-0445

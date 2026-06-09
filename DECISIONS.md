@@ -22788,3 +22788,66 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, dependency, Cargo, lockfile, workflow, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside NA-0446.
     - more than one READY item remains.
   - **References:** NA-0446; NA-0447; NA-0445; D-0879; D-0878; D-0877; `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`; `docs/governance/evidence/NA-0446_qsl_qsc_key_lifecycle_secret_cleanup_zeroization_test_implementation_harness.md`; `tests/NA-0446_qsl_qsc_key_lifecycle_secret_cleanup_zeroization_test_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0880
+  - **Title:** NA-0446 closeout and NA-0447 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-09
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0446 is closed after qsl-protocol PR #1161 merged at `19761797425f`, post-merge public-safety completed success under a progress-aware wait policy, and the implemented qsc key lifecycle zeroization tests passed locally. D-0879 implemented the exact qsc test path `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`, preserved bounded internal evidence only, and selected `NA-0447 -- QSL RNG Failure Behavior Scope Authorization Plan` as the successor. This closeout marks NA-0446 DONE and restores NA-0447 as the sole READY successor without implementing NA-0447.
+  - **Selected successor:** `NA-0447 -- QSL RNG Failure Behavior Scope Authorization Plan`.
+  - **Progress-aware wait proof:** Post-merge `public-safety`, `macos-qsc-full-serial`, `qsc-linux-full-suite`, `qsc-adversarial-smoke`, and attached `qsc-adversarial-miri` completed success on `19761797425f`. The closeout used REST polling and did not stop at a fixed 180-iteration cap while normal progress was allowed.
+  - **Test evidence:** `cargo test -p qsc --locked --test key_lifecycle_zeroization -- --test-threads=1 --nocapture` passed with 6 tests and emitted the required NA-0446 markers. Direct memory zeroization is not claimed. Secret-material-complete coverage is not claimed. qshield-cli demo boundary is preserved. refimpl cleanup/zeroization remains deferred.
+  - **Validation summary:** Inherited `handshake_provider_error_no_mutation`, qsc `send_commit`, refimpl `pqkem768`, root cargo audit, nested qsc fuzz lock audit, formatting, formal model checks, and qsc adversarial script syntax checks passed. Root pqcrypto inverse probes for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals` remain expected package-ID absence evidence.
+  - **Closeout boundary:** This closeout makes no runtime, crypto, dependency, Cargo manifest, lockfile, workflow, executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback subtree, backup tree, branch-protection, or public-surface mutation.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No secret-material-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. No side-channel-free claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Protected:**
+    - PR #1161 is MERGED at `19761797425f`.
+    - post-merge public-safety is green on `19761797425f`.
+    - qsc key lifecycle zeroization tests are implemented and pass.
+    - direct memory zeroization is not claimed.
+    - secret-material-complete coverage is not claimed.
+    - qshield-cli demo boundary is preserved.
+    - refimpl cleanup/zeroization remains deferred.
+    - root cargo audit is green.
+    - nested qsc fuzz lock audit is green.
+    - NA-0446 DONE.
+    - READY NA-0447.
+    - D-0880 exists once after this closeout.
+    - D-0881 remains absent until future NA-0447 work.
+    - no duplicate decision IDs.
+    - no additional runtime, crypto, dependency, workflow, executable test, vector, or formal mutation in this closeout.
+    - no backup or restore.
+    - no public crypto-complete claim.
+    - no vulnerability-free claim.
+    - no bug-free claim.
+    - no perfect-crypto claim.
+    - exactly one READY remains mandatory.
+  - **Required behavior:**
+    - NA-0447 must consume F-0441-03 RNG failure behavior evidence and authorize or reject exact future scope without implementation mutation unless a later exact directive authorizes it.
+    - NA-0447 must preserve no runtime, crypto, dependency, Cargo, lockfile, workflow, public-claim, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, backup, restore, qsl-backup, status/plan, rollback, or branch-protection expansion unless a later exact directive authorizes it.
+    - Cargo audit output must remain dependency-health evidence only.
+    - Exactly one READY item remains mandatory.
+  - **Must never happen:**
+    - NA-0447 implementation starts inside this closeout.
+    - API-level NA-0446 tests are represented as direct runtime memory overwrite proof.
+    - API-level NA-0446 tests are represented as allocator overwrite proof.
+    - API-level NA-0446 tests are represented as `Drop` proof.
+    - API-level NA-0446 tests are represented as side-channel proof.
+    - API-level NA-0446 tests are represented as all-key-material coverage.
+    - F-0441-03 is represented as RNG failure testing completed by this closeout.
+    - qshield-cli demo-local evidence is represented as qsc runtime cleanup or service-readiness evidence.
+    - refimpl evidence is represented as qsc runtime cleanup proof.
+    - No cargo audit output is used as public-readiness proof.
+    - No cargo audit output is used as production-readiness proof.
+    - No cargo audit output is used as external-review-complete proof.
+    - No cargo audit output is used as crypto-complete proof.
+    - No cargo audit output is used as secret-material-complete proof.
+    - No cargo audit output is used as vulnerability-free proof.
+    - No cargo audit output is used as bug-free proof.
+    - No cargo audit output is used as perfect-crypto proof.
+    - No cargo audit output is used as side-channel-free proof.
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside this closeout.
+    - more than one READY item remains.
+  - **References:** NA-0446; NA-0447; D-0880; D-0879; D-0878; qsl-protocol PR #1161; `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization.rs`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0446_closeout_restore_na0447_testplan.md`

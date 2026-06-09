@@ -736,6 +736,14 @@ Last-Updated: 2026-06-09
   Classification: recoverable PR-body wording issue because the no-claim list used terms that the preflight treats as prohibited regardless of negation.
   Corrective action: remove those terms from the PR body and keep the concise `no public overclaim` statement.
   Final result: rerun reported `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- Failing command: first PR #1174 REST polling loop.
+  Classification: recoverable polling command-shape issue because the loop intentionally used a non-zero in-progress sentinel under `set -euo pipefail`, causing the shell to abort after the first healthy in-progress snapshot.
+  Corrective action: rerun the polling loop with explicit non-fatal in-progress handling.
+  Final result: rerun required and must continue until public-safety and required checks are complete and green or an actual failure appears.
+- Failing command: first follow-up origin-range added-line overclaim scan.
+  Classification: recoverable wording/scanner hygiene issue because the closeout testplan heading and a wrapped assertion placed a sensitive no-claim phrase too far from local negation.
+  Corrective action: renamed the heading with same-line `No` wording and kept the assertion's `not represented as RNG-failure-complete proof` wording on one line.
+  Final result: rerun required and must report zero affirmative overclaim findings before pushing the follow-up commit.
 
 ## Closeout local validation results
 

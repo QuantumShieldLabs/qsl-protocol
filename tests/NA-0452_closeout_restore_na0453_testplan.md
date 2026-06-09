@@ -130,11 +130,10 @@ sole READY successor.
 - Required result: provider-dependent qsc RNG and refimpl/provider RNG remain
   future authorization-plan scope.
 
-## RNG-failure-complete caveat check
+## No RNG-failure-complete claim caveat check
 
 - Verify `NA0452_NO_RNG_FAILURE_COMPLETE_CLAIM_OK`.
-- Required result: route/contact/attachment evidence is not represented as
-  RNG-failure-complete proof.
+- Required result: route/contact/attachment evidence is not represented as RNG-failure-complete proof.
 
 ## root cargo audit green check
 

@@ -465,7 +465,9 @@ Last-Updated: 2026-06-09
 - Root `cargo audit --deny warnings`: PASS.
 - Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
 - `cargo fmt --check`: PASS.
-- Goal-lint remains pending until after the closeout commit/PR body is available.
+- Post-commit helper scope guard: PASS, five allowed paths, forbidden count zero.
+- Synthetic local goal-lint: PASS, `OK: goal compliance checks passed.`
+- Post-commit CI scope classifier: PASS, `scope_class=docs_only`.
 - Merge closeout PR only after required checks pass and public-safety is green.
 
 # QSL-DIR-2026-06-09-302 / NA-0449 closeout recovery and NA-0450 restoration rolling journal

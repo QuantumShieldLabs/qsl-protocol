@@ -23096,3 +23096,42 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside this closeout.
     - more than one READY item remains.
   - **References:** NA-0449; NA-0450; D-0886; D-0885; D-0884; D-0883; qsl-protocol PR #1167; D300 response archive `NA0449_20260609T055149Z_D300.md`; D301 stale qwork stop response archive `NA0449_20260609T135209Z_D301.md`; D302 fresh qwork closeout response archive `NA0449_20260609T141024Z_D302.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0449_closeout_restore_na0450_testplan.md`
+
+- **ID:** D-0887
+  - **Title:** NA-0450 qsc rng failure residual surface triage authorization
+  - **Status:** Accepted
+  - **Date:** 2026-06-09
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0450 consumes the NA-0447 through NA-0449 RNG failure evidence chain and the NA-0449 implementation evidence, classifies the remaining qsc RNG failure surfaces, and selects `RNG_RESIDUAL_TRIAGE_ROUTE_CONTACT_ATTACHMENT_NEXT` as the primary classification. Route/default-route/relay token RNG, contact route-token/account-bootstrap RNG, and attachment ID/CEK/nonce-prefix RNG are selected for a future scope-authorization successor. qsc provider-dependent RNG, refimpl/provider RNG, qshield-cli demo RNG, formal/model RNG, fuzz RNG, and vector RNG remain residual/backlog unless later exact scope authorizes them.
+  - **Selected successor:** `NA-0451 -- QSL qsc Route / Contact / Attachment RNG Failure Scope Authorization Plan`.
+  - **No implementation mutation:** NA-0450 does not implement tests, test seams, runtime behavior, crypto behavior, dependency changes, Cargo manifest changes, lockfile changes, workflow changes, executable test source changes, fuzz target changes, vector changes, formal model changes, qsl-server changes, qsl-attachments changes, qshield runtime changes, qshield-cli changes, website changes, public-doc changes, README changes, START_HERE changes, backup/restore/local-ops changes, qsl-backup changes, or qwork tooling changes.
+  - **Provider boundary:** Provider-dependent generation remains separate because ML-KEM, ML-DSA, X25519, KEM encapsulation, and refimpl `Rng12` failure behavior may require provider-boundary or runtime propagation authorization rather than a qsc-only route/contact/attachment test seam.
+  - **Route/contact/attachment boundary:** The selected NA-0451 successor is authorization-only. It may decide exact future labels, exact no-partial-state assertions, and whether a later implementation lane should use the existing cfg seam pattern or a narrower route/contact/attachment seam. NA-0451 itself must not implement runtime behavior or executable tests.
+  - **Future NA-0451 mutation scope:** `docs/governance/evidence/NA-0451_qsl_qsc_route_contact_attachment_rng_failure_scope_authorization_plan.md`; `tests/NA-0451_qsl_qsc_route_contact_attachment_rng_failure_scope_authorization_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+  - **Steward template:** Level 1 stewardship review was used. Level 2 and Level 3 remain future-gated. No separate Directors are created. No independent READY promotion is authorized. No independent merge authority is authorized. Lead Director final authority is preserved.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No public crypto-complete claim is made. No RNG-failure-complete claim is made. No secret-material-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. No public technical paper content is created. Cargo audit green remains dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Required behavior:**
+    - Exactly one READY item remains mandatory.
+    - NA-0450 must not be represented as RNG failure implementation.
+    - NA-0450 must not represent NA-0449 as RNG-failure-complete proof.
+    - The selected NA-0451 successor must preserve no-runtime/no-crypto/no-dependency/no-workflow/no-public-overclaim boundaries.
+    - Any later implementation must be separately authorized with exact paths and tests.
+  - **Must never happen:**
+    - NA-0450 implementation starts inside this triage lane.
+    - NA-0451 implementation starts inside this triage lane.
+    - Route/contact/attachment RNG triage is represented as route/contact/attachment executable proof.
+    - Provider-dependent RNG backlog is represented as completed provider RNG failure proof.
+    - No cargo audit output is used as public-readiness proof.
+    - No cargo audit output is used as production-readiness proof.
+    - No cargo audit output is used as public-internet-readiness proof.
+    - No cargo audit output is used as external-review-complete proof.
+    - No cargo audit output is used as crypto-complete proof.
+    - No cargo audit output is used as RNG-failure-complete proof.
+    - No cargo audit output is used as vulnerability-free proof.
+    - No cargo audit output is used as bug-free proof.
+    - No cargo audit output is used as perfect-crypto proof.
+    - No cargo audit output is used as side-channel-free proof.
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside NA-0450.
+    - more than one READY item remains.
+  - **References:** NA-0450; NA-0451; D-0887; D-0886; D-0885; D-0884; D-0883; `docs/governance/evidence/NA-0450_qsl_qsc_rng_failure_residual_surface_triage_authorization_plan.md`; `tests/NA-0450_qsl_qsc_rng_failure_residual_surface_triage_authorization_testplan.md`; `docs/governance/evidence/NA-0449_qsl_qsc_rng_failure_test_seam_implementation_harness.md`; `tests/NA-0449_qsl_qsc_rng_failure_test_seam_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

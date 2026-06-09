@@ -25,8 +25,11 @@ Last-Updated: 2026-06-09
 - qsl-protocol origin/main before evidence branch: `cbea6fc1b75d`.
 - PR #1162 closeout merge: `cbea6fc1b75d`.
 - Evidence branch: `na-0447-rng-failure-behavior-scope`.
-- Evidence PR: pending.
-- Evidence merge commit: pending.
+- Evidence PR: #1163.
+- Evidence merge commit: `db2aaa7a831`.
+- Closeout branch: `na-0447-closeout-restore-na0448`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
 
 ## NA-0447 READY proof
 
@@ -165,6 +168,76 @@ Last-Updated: 2026-06-09
 - `python3 formal/run_model_checks.py`: PASS.
 - `scripts/ci/qsc_adversarial.sh`: stable adversarial tests and provider-error step PASS; local cargo-fuzz unavailable, so PR CI `qsc-adversarial-smoke` remains required.
 
+## NA-0447 evidence PR merge and post-merge proof
+
+- Evidence PR #1163 merged at `db2aaa7a831`.
+- Post-merge public-safety on `db2aaa7a831`: PASS.
+- Post-merge queue before closeout: READY_COUNT 1 and READY NA-0447.
+- Post-merge decision proof before closeout: D-0881 exists once; D-0882 absent; duplicate decision count zero.
+- Codex did not run qwork after merge.
+
+## NA-0447 closeout patch notes
+
+- Closeout marks NA-0447 DONE.
+- Closeout restores `NA-0448 -- QSL qsc RNG Failure Test Seam Authorization Plan` as the sole READY successor.
+- Added D-0882 for NA-0447 closeout and NA-0448 restoration.
+- Added closeout TRACEABILITY row.
+- Added `tests/NA-0447_closeout_restore_na0448_testplan.md`.
+- No NA-0448 implementation is performed.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status, plan, rollback, branch-protection, or public-claim mutation is intentionally performed.
+
+## NA-0447 closeout validation watch
+
+- Validation must prove READY_COUNT 1 and READY NA-0448.
+- Validation must prove NA-0447 DONE and NA-0446 DONE.
+- Validation must prove D-0881 exists once, D-0882 exists once, D-0883 absent, and duplicate decision count zero.
+- Scope guard must report exactly the five allowed NA-0447 closeout paths.
+- Link, leak, overclaim, classifier, PR body preflight, goal-lint, audit, and selected inherited health checks must pass before closeout PR creation.
+- Closeout PR must merge only after required checks and public-safety pass.
+- Post-merge public-safety must be green after closeout merge.
+
+## NA-0447 closeout local validation results
+
+- Closeout commit message: `NA-0447 closeout and restore NA-0448`.
+- `git diff --cached --check`: PASS before commit.
+- Manual staged path guard: PASS, exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0447_closeout_restore_na0448_testplan.md`.
+- Helper scope guard after commit: PASS, `CHANGED_PATH_COUNT 5` and `FORBIDDEN_COUNT 0`.
+- Queue helper after patch: PASS, READY_COUNT 1 and READY NA-0448.
+- Exact queue proof after patch: PASS, NA-0448 READY; NA-0447 DONE; NA-0446 DONE; NA-0445 DONE; NA-0444 DONE; NA-0443 DONE; NA-0442 DONE; NA-0441 DONE; NA-0440 DONE; NA-0439 DONE; NA-0438 DONE; NA-0437 DONE; NA-0436 DONE; NA-0435 DONE; NA-0434 BLOCKED; NA-0429 BLOCKED.
+- Decision helper after patch: PASS, latest D-0882 and duplicate decision count zero.
+- Exact decision proof after patch: PASS, D-0881 once, D-0882 once, D-0883 absent, duplicate decision count zero.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan after wording recovery: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- CI scope classifier: PASS, `scope_class=docs_only`.
+- Local goal-lint with synthetic event after commit: PASS.
+- `sh -n scripts/ci/qsc_adversarial.sh`: PASS.
+- `bash -n scripts/ci/qsc_adversarial.sh`: PASS.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- Root pqcrypto inverse probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+- Nested qsc fuzz lock pqcrypto scan: PASS, zero residual package ID matches.
+- `cargo test -p qsc --locked --test key_lifecycle_zeroization -- --test-threads=1 --nocapture`: PASS, 6 tests.
+- `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS, 1 test.
+
+## NA-0447 closeout failures / recoveries
+
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py scope-guard --base origin/main --allowed NEXT_ACTIONS.md DECISIONS.md TRACEABILITY.md docs/ops/ROLLING_OPERATIONS_JOURNAL.md tests/NA-0447_closeout_restore_na0448_testplan.md`.
+  Classification: recoverable command-shape mistake because `--allowed` is repeatable and the helper rejected bare positional paths.
+  Corrective action: reran with each allowed path passed under its own `--allowed` flag.
+  Final result: pre-commit helper still reported zero changed paths because it compares refs, manual staged path guard passed, and post-commit helper scope guard passed with five allowed paths and zero forbidden paths.
+- Failing command: staged added-line overclaim scan over the closeout patch.
+  Classification: recoverable wording issue because one wrapped forbidden-command line carried `public technical paper` without same-line negation.
+  Corrective action: reworded the testplan to use a same-line `No public technical paper work is in scope` caveat.
+  Final result: added-line overclaim scan passed with `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: local goal-lint with a synthetic PR event payload missing base/head SHAs.
+  Classification: recoverable local CI-context issue because the PR metadata was present but the synthetic event did not yet mirror the CI event shape.
+  Corrective action: added `pull_request.base.sha` and `pull_request.head.sha` to the synthetic event payload.
+  Final result: goal-lint passed.
+
 ## NA-0447 disk watermark
 
 - Filesystem: `/dev/nvme0n1p2` mounted at `/`.
@@ -175,9 +248,10 @@ Last-Updated: 2026-06-09
 
 ## NA-0447 next-watch items
 
-- Complete local validation bundle.
-- Open evidence PR on branch `na-0447-rng-failure-behavior-scope`.
-- Merge only after required checks and public-safety pass.
+- Complete closeout local validation bundle.
+- Open closeout PR on branch `na-0447-closeout-restore-na0448`.
+- Merge closeout only after required checks and public-safety pass.
+- Verify main restores READY NA-0448 after closeout merge.
 - After merge, verify READY NA-0447, D-0881 on main, and public-safety green on the merge commit.
 
 # QSL-DIR-2026-06-09-297 / NA-0446 closeout and NA-0447 restoration rolling journal

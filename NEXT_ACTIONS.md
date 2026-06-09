@@ -24054,7 +24054,7 @@ Acceptance criteria:
 ---
 
 ### NA-0447 — QSL RNG Failure Behavior Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -24129,6 +24129,88 @@ Deliverables:
 Acceptance criteria:
 - F-0441-03 RNG failure behavior finding is consumed.
 - exact future scope is selected from evidence.
+- no implementation mutation occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+---
+
+### NA-0448 — QSL qsc RNG Failure Test Seam Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the exact future scope for a qsc test seam or equivalent bounded test
+strategy that can exercise RNG failure behavior while preserving production
+semantics and making no RNG-failure-complete claim.
+
+Protects:
+- RNG failure behavior evidence quality.
+- fail-closed handling around randomness-dependent operations.
+- provider and qsc boundary confidence after key lifecycle and provider-error
+  audit work.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0448.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of:
+  - qsl/qsl-client/qsc/src/
+  - qsl/qsl-client/qsc/tests/
+  - docs/governance/evidence/
+  - qsl/qsl-client/qsc/fuzz/
+  - formal/
+  - inputs/
+  - relevant scripts/workflows read-only.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, Cargo, lockfile, workflow, qsl-server,
+  qsl-attachments, qshield runtime, website, public docs, README, or START_HERE
+  paths.
+- Mutating tests, fuzz target source, vectors, or formal models unless a later
+  implementation directive authorizes exact paths.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- No public technical paper content.
+- No production-readiness claim.
+- No public-readiness claim.
+- No public-internet-readiness claim.
+- No external-review-complete claim.
+- No metadata-free behavior claim.
+- No anonymity claim.
+- No untraceability claim.
+- No off-host backup completion claim.
+- No disaster recovery completion claim.
+- No restore proof claim.
+- No backup completion claim.
+- No bug-free status claim.
+- No vulnerability-free status claim.
+- No perfect-crypto status claim.
+- No side-channel-free status claim.
+- No RNG-failure-complete status claim.
+- No secret-material-complete status claim.
+- No crypto-complete status claim.
+- Secret material handling outside read-only source/evidence inspection.
+
+Deliverables:
+- NA-0448 evidence doc.
+- NA-0448 testplan.
+- D-0883 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- selected exact successor or no-action rationale.
+
+Acceptance criteria:
+- F-0441-03 RNG failure behavior finding is consumed.
+- qsc test-seam need is accepted, rejected, or refined from evidence.
 - no implementation mutation occurs.
 - cargo audit remains green.
 - nested fuzz lock audit remains green.

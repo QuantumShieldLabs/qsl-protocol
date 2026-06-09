@@ -306,6 +306,125 @@ Last-Updated: 2026-06-09
 - Nested qsc fuzz lock pqcrypto scan: PASS, zero residual package ID matches.
 - `cargo fmt --check`: PASS.
 
+# QSL-DIR-2026-06-09-302 / NA-0449 closeout recovery and NA-0450 restoration rolling journal
+
+- Directive: QSL-DIR-2026-06-09-302 closeout recovery -- verify fresh qwork proof after D301 stale-proof stop, verify PR #1167 post-merge public-safety, close out NA-0449, and restore NA-0450.
+- Begin timestamp (America/Chicago): 2026-06-09T09:04:30-05:00.
+- Begin timestamp (UTC): 2026-06-09T14:04:30Z.
+- Codex start proof timestamp (America/Chicago): 2026-06-09T09:10:24-05:00.
+- Codex start proof timestamp (UTC): 2026-06-09T14:10:24Z.
+- End timestamp (America/Chicago): pending.
+- End timestamp (UTC): pending.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## D300 / D301 recovery
+
+- D300 implemented the NA-0449 cfg-gated qsc RNG failure test seam and selected `NA-0450 -- QSL qsc RNG Failure Residual Surface Triage Authorization Plan`.
+- D300 response archive exists: `NA0449_20260609T055149Z_D300.md`.
+- D301 stopped correctly because qwork proof head/origin_main was stale against live local refs.
+- D301 response archive exists: `NA0449_20260609T135209Z_D301.md`.
+- D302 consumed fresh qwork proof instead of rerunning qwork.
+
+## Fresh qwork proof-file verification
+
+- qwork `.kv` proof: startup OK, lane NA-0449, repo qsl-protocol, clean worktree/index/untracked, READY_COUNT 1, queue_top_ready NA-0449, requested lane status READY.
+- qwork JSON proof parsed and mirrored `.kv` for lane, repo, path, HEAD, origin/main, clean-state fields, READY count, queue top, and requested lane status.
+- Proof head and origin/main: `0a0c834b1514`.
+- Live local HEAD and origin/main matched qwork proof before fetch.
+- `git fetch --all --prune` did not advance origin/main beyond qwork proof.
+- Closeout branch: `na-0449-closeout-restore-na0450`.
+- Proof root: `/srv/qbuild/tmp/NA0449_closeout_restore_na0450_fresh_qwork_20260609T141024Z`.
+
+## Public-safety completion proof
+
+- PR #1167: MERGED at `0a0c834b1514`.
+- Merge-commit public-safety: completed success.
+- Watched checks on merge commit completed success: `public-safety`, `qsc-adversarial-smoke`, `qsc-adversarial-miri`, `qsc-linux-full-suite`, and `macos-qsc-full-serial`.
+- Required branch-protection contexts were checked. Non-required remote/demo failures observed on the merge commit were classified as non-required and did not affect public-safety or branch-protection proof.
+
+## Closeout patch notes
+
+- NA-0449 is marked DONE.
+- NA-0450 is restored as the sole READY item.
+- D-0886 records NA-0449 closeout and NA-0450 restoration.
+- TRACEABILITY records PR #1167, D300, D301 stale qwork stop, D302 fresh qwork proof, public-safety proof, NA-0450 successor, backup impact none, and no public claim expansion.
+- Closeout testplan path: `tests/NA-0449_closeout_restore_na0450_testplan.md`.
+- No NA-0450 implementation is performed.
+- No additional runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, qsl-backup, status, plan, rollback, backup tree, branch-protection, or public-surface mutation is intentionally made by closeout.
+
+## Validation / CI notes
+
+- `RUSTFLAGS='--cfg qsc_rng_failure_test_seam' cargo test -p qsc --locked --test rng_failure_behavior -- --test-threads=1 --nocapture`: PASS, required NA-0449 forced-failure markers emitted.
+- Normal `cargo test -p qsc --locked --test rng_failure_behavior -- --test-threads=1 --nocapture`: PASS, production-semantics marker emitted.
+- `cargo test -p qsc --locked --test key_lifecycle_zeroization -- --test-threads=1 --nocapture`: PASS.
+- `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: PASS.
+- `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768`: PASS.
+- `sh -n scripts/ci/qsc_adversarial.sh`: PASS.
+- `bash -n scripts/ci/qsc_adversarial.sh`: PASS.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- Optional pqcrypto inverse-tree probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`; recorded as directive-allowed zero-match evidence.
+- `cargo fmt --check`: PASS.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: PASS.
+- `python3 formal/run_model_checks.py`: PASS.
+- qsl-backup SHA matched expected `e9ecff3d22ed`; qsl-backup source-list ops path count was exactly 1.
+
+## Closeout failures / recoveries
+
+- Failing command: optional `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked` probes.
+  Classification: recoverable valid zero-match discovery/proof outcome because the directive explicitly allows those probes with `|| true`.
+  Corrective action: no dependency or lockfile mutation; preserved command logs and treated absence as expected dependency-health evidence.
+  Final result: optional probes completed with recorded zero-match output; required `rustls-webpki` probe succeeded and `ml-kem` probe resolved.
+- Failing command: direct `python3 tools/goal_lint.py --help` discovery probe.
+  Classification: recoverable command-shape discovery because `tools/goal_lint.py` expects `GITHUB_EVENT_PATH` even for this invocation.
+  Corrective action: run goal-lint with a synthetic pull_request event payload after commit.
+  Final result: synthetic goal-lint execution passed with `OK: goal compliance checks passed.`
+- Failing command: first added-content overclaim scan.
+  Classification: recoverable scanner-shape issue because wrapped no-claim continuation lines and one must-never-happen line lacked same-line negation for sensitive terms.
+  Corrective action: reworded claim-boundary lines so each sensitive phrase carries explicit same-line negation.
+  Final result: precommit added-content overclaim scan passed with `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+
+## Closeout local validation results
+
+- `git diff --check origin/main...HEAD`: PASS.
+- Exact changed-path guard: PASS, exactly five allowed closeout paths.
+- Helper scope guard after commit: PASS, `CHANGED_PATH_COUNT 5` and `FORBIDDEN_COUNT 0`.
+- Queue helper: PASS, READY_COUNT 1 and READY NA-0450.
+- Exact status proof: PASS, NA-0450 READY, NA-0449 DONE, NA-0434 BLOCKED, and NA-0429 BLOCKED.
+- Decision helper: PASS, latest D-0886 and duplicate decision count zero.
+- Exact decision proof: PASS, D-0885 once, D-0886 once, and D-0887 absent.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- CI scope classifier: PASS, `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, `scope_class=docs_only`.
+- PR body preflight: PASS, `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- Synthetic goal-lint: PASS, `OK: goal compliance checks passed.`
+- PR #1167 merge-commit public-safety helper: PASS, public-safety and watched qsc/macOS checks completed success with no red or ambiguous aggregate.
+- `RUSTFLAGS='--cfg qsc_rng_failure_test_seam' cargo test -p qsc --locked --test rng_failure_behavior -- --test-threads=1 --nocapture`: PASS.
+- Normal `cargo test -p qsc --locked --test rng_failure_behavior -- --test-threads=1 --nocapture`: PASS.
+- `cargo test -p qsc --locked --test key_lifecycle_zeroization -- --test-threads=1 --nocapture`: PASS.
+- `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: PASS.
+- `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768`: PASS.
+- `cargo audit --deny warnings`: PASS.
+- `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- `cargo fmt --check`: PASS.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: PASS.
+- `python3 formal/run_model_checks.py`: PASS.
+- `sh -n scripts/ci/qsc_adversarial.sh`: PASS.
+- `bash -n scripts/ci/qsc_adversarial.sh`: PASS.
+
+## Next-watch items
+
+- Open closeout PR #pending from `na-0449-closeout-restore-na0450`.
+- Merge closeout PR only after required checks pass.
+- After closeout merge, verify READY NA-0450, NA-0449 DONE, NA-0434 BLOCKED, D-0886 on main, and public-safety green on the closeout merge commit without running qwork.
+
 # QSL-DIR-2026-06-09-299 / NA-0448 qsc RNG failure test seam authorization rolling journal
 
 - Directive: QSL-DIR-2026-06-09-299 -- execute NA-0448 QSL qsc RNG Failure Test Seam Authorization Plan, optional closeout to NA-0449.

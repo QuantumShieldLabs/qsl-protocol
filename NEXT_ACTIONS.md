@@ -24404,7 +24404,7 @@ Acceptance criteria:
 ---
 
 ### NA-0451 — QSL qsc Route / Contact / Attachment RNG Failure Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -24481,6 +24481,99 @@ Acceptance criteria:
 - selected qsc residual RNG failure surfaces are consumed.
 - exact future scope is selected from evidence.
 - no implementation mutation occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+---
+
+### NA-0452 — QSL qsc Route / Contact / Attachment RNG Failure Test Seam Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the exact qsc route/contact/attachment RNG failure test seam strategy
+authorized by NA-0451, proving bounded fail-closed behavior for selected route,
+contact, and attachment randomness-dependent qsc operations while preserving
+production semantics and no public RNG-failure-complete claim.
+
+Protects:
+- residual qsc RNG failure behavior evidence quality.
+- fail-closed handling around selected route/contact/attachment
+  randomness-dependent operations.
+- production semantic stability.
+- key lifecycle and provider boundary confidence after ml-kem replacement,
+  provider-error audit work, qsc zeroization tests, and initial RNG failure
+  seam work.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- exact D-0889 qsc implementation paths:
+  - qsl/qsl-client/qsc/tests/rng_failure_residual_surfaces.rs
+  - qsl/qsl-client/qsc/src/vault/mod.rs
+  - qsl/qsl-client/qsc/src/contacts/mod.rs
+  - qsl/qsl-client/qsc/src/tui/controller/commands/contacts.rs
+  - qsl/qsl-client/qsc/src/tui/controller/commands/locked.rs
+  - qsl/qsl-client/qsc/src/attachments/mod.rs
+- qsl-protocol governance evidence/testplan paths for NA-0452:
+  - docs/governance/evidence/NA-0452_qsl_qsc_route_contact_attachment_rng_failure_test_seam_implementation_harness.md
+  - tests/NA-0452_qsl_qsc_route_contact_attachment_rng_failure_test_seam_implementation_testplan.md
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+
+Forbidden scope:
+- Mutating runtime or crypto paths outside the exact D-0889 qsc implementation
+  paths.
+- Mutating dependency, Cargo, lockfile, workflow, qsl-server,
+  qsl-attachments, qshield runtime, website, public docs, README, or
+  START_HERE paths.
+- Mutating tests outside the exact D-0889 executable test path.
+- Mutating fuzz target source, vectors, or formal models.
+- Pulling the deferred TUI account verification seed into NA-0452 unless a
+  later exact directive authorizes transactional account-bootstrap behavior or
+  a narrower invariant.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No creating or implying production readiness.
+- No creating or implying public-internet readiness.
+- No creating or implying external-review completion.
+- No creating or implying metadata-free behavior.
+- No creating or implying anonymity.
+- No creating or implying untraceability.
+- No creating or implying off-host backup completion.
+- No creating or implying disaster recovery completion.
+- No creating or implying restore proof.
+- No creating or implying backup completion.
+- No creating or implying bug-free status.
+- No creating or implying vulnerability-free status.
+- No creating or implying perfect-crypto status.
+- No creating or implying side-channel-free status.
+- No creating or implying RNG-failure-complete status.
+- No creating or implying secret-material-complete status.
+- No creating or implying crypto-complete status.
+- Secret material handling outside bounded tests and source/evidence
+  inspection.
+
+Deliverables:
+- exact authorized implementation.
+- NA-0452 evidence doc.
+- NA-0452 testplan.
+- D-0891 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- selected exact successor or no-action rationale.
+
+Acceptance criteria:
+- authorized residual RNG failure behavior can be forced in bounded tests.
+- production semantics unchanged.
+- no implementation mutation outside exact D-0889 scope.
 - cargo audit remains green.
 - nested fuzz lock audit remains green.
 - public-safety is green before merge and after merge.

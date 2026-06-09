@@ -23214,3 +23214,43 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside NA-0451.
     - more than one READY item remains.
   - **References:** NA-0451; NA-0452; D-0889; D-0888; D-0887; D-0886; D-0885; `docs/governance/evidence/NA-0451_qsl_qsc_route_contact_attachment_rng_failure_scope_authorization_plan.md`; `tests/NA-0451_qsl_qsc_route_contact_attachment_rng_failure_scope_authorization_testplan.md`; `docs/governance/evidence/NA-0450_qsl_qsc_rng_failure_residual_surface_triage_authorization_plan.md`; `tests/NA-0450_qsl_qsc_rng_failure_residual_surface_triage_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0890
+  - **Title:** NA-0451 closeout and NA-0452 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-09
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0451 is closed after qsl-protocol PR #1171 merged at `eeb04a62589d`, post-merge public-safety completed success, and D-0889 selected `ROUTE_CONTACT_ATTACHMENT_RNG_IMPLEMENTATION_READY`. This closeout marks NA-0451 DONE and restores `NA-0452 -- QSL qsc Route / Contact / Attachment RNG Failure Test Seam Implementation Harness` as the sole READY successor.
+  - **Selected successor:** `NA-0452 -- QSL qsc Route / Contact / Attachment RNG Failure Test Seam Implementation Harness`.
+  - **Closeout proof:** PR #1171 is MERGED at `eeb04a62589d`; merge-commit public-safety completed success; merge-commit qsc adversarial smoke completed success; D-0889 exists once; D-0890 exists once after this closeout; D-0891 remains absent until future NA-0452 work; duplicate decision count remains zero.
+  - **Closeout-only scope:** This closeout updates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0451_closeout_restore_na0452_testplan.md`.
+  - **No NA-0452 implementation mutation:** This closeout does not implement NA-0452, tests, test seams, runtime behavior, crypto behavior, dependency changes, Cargo manifest changes, lockfile changes, workflow changes, executable test source changes, fuzz target changes, vector changes, formal model changes, qsl-server changes, qsl-attachments changes, qshield runtime changes, qshield-cli changes, website changes, public-doc changes, README changes, START_HERE changes, backup/restore/local-ops changes, qsl-backup changes, or qwork tooling changes.
+  - **Exact future implementation paths:** NA-0452 may mutate only the D-0889 implementation paths `qsl/qsl-client/qsc/tests/rng_failure_residual_surfaces.rs`; `qsl/qsl-client/qsc/src/vault/mod.rs`; `qsl/qsl-client/qsc/src/contacts/mod.rs`; `qsl/qsl-client/qsc/src/tui/controller/commands/contacts.rs`; `qsl/qsl-client/qsc/src/tui/controller/commands/locked.rs`; and `qsl/qsl-client/qsc/src/attachments/mod.rs`, plus the D-0889 governance paths `docs/governance/evidence/NA-0452_qsl_qsc_route_contact_attachment_rng_failure_test_seam_implementation_harness.md`; `tests/NA-0452_qsl_qsc_route_contact_attachment_rng_failure_test_seam_implementation_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+  - **Future implementation boundary:** NA-0452 must preserve production semantics, keep any RNG failure seam cfg-gated and test-only, prove no selected route/contact/attachment partial state write or output on forced failure, and stop if it needs runtime or crypto paths outside the exact D-0889 paths, dependency/Cargo/lockfile/workflow changes, fuzz/vector/formal changes, service/public-surface changes, backup/restore changes, or public claim expansion.
+  - **Deferred residuals:** The TUI account verification seed remains deferred as an account-bootstrap residual. Provider-dependent qsc RNG, refimpl/provider RNG, qshield-cli demo RNG, formal/model RNG, fuzz RNG, and vector RNG remain residual/backlog unless later exact scope authorizes them.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No public crypto-complete claim is made. No RNG-failure-complete claim is made. No secret-material-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. No public technical paper content is created. Cargo audit green remains dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Required behavior:**
+    - Exactly one READY item remains mandatory.
+    - NA-0452 must treat NA-0451 as bounded internal governance evidence only.
+    - NA-0452 must implement only exact D-0889 paths and markers.
+    - NA-0452 must preserve no-dependency/no-Cargo/no-lockfile/no-workflow/no-public-overclaim boundaries.
+    - NA-0452 must not silently include the deferred TUI account verification seed.
+    - Cargo audit output must remain dependency-health evidence only.
+  - **Must never happen:**
+    - NA-0452 implementation starts inside this closeout.
+    - The deferred TUI account verification seed is silently pulled into NA-0452.
+    - Provider-dependent qsc RNG, refimpl/provider RNG, qshield-cli demo RNG, formal/model RNG, fuzz RNG, or vector RNG is represented as completed by this closeout.
+    - No cargo audit output is used as public-readiness proof.
+    - No cargo audit output is used as production-readiness proof.
+    - No cargo audit output is used as public-internet-readiness proof.
+    - No cargo audit output is used as external-review-complete proof.
+    - No cargo audit output is used as crypto-complete proof.
+    - No cargo audit output is used as RNG-failure-complete proof.
+    - No cargo audit output is used as vulnerability-free proof.
+    - No cargo audit output is used as bug-free proof.
+    - No cargo audit output is used as perfect-crypto proof.
+    - No cargo audit output is used as side-channel-free proof.
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside this closeout.
+    - more than one READY item remains.
+  - **References:** NA-0451; NA-0452; D-0890; D-0889; D-0888; D-0887; qsl-protocol PR #1171; `docs/governance/evidence/NA-0451_qsl_qsc_route_contact_attachment_rng_failure_scope_authorization_plan.md`; `tests/NA-0451_qsl_qsc_route_contact_attachment_rng_failure_scope_authorization_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0451_closeout_restore_na0452_testplan.md`

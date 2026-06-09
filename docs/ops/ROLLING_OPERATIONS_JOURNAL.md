@@ -25,9 +25,9 @@ Last-Updated: 2026-06-09
 - qsl-protocol origin/main after fetch: `5b15748c0aec`.
 - PR #1170 closeout merge: `5b15748c0aec`.
 - Evidence branch: `na-0451-route-contact-attachment-rng-scope`.
-- Evidence PR: pending.
-- Evidence merge commit: pending.
-- Optional closeout branch: pending.
+- Evidence PR: #1171.
+- Evidence merge commit: `eeb04a62589d`.
+- Optional closeout branch: `na-0451-closeout-restore-na0452`.
 - Optional closeout merge commit: pending.
 
 ## NA-0451 READY proof
@@ -90,7 +90,10 @@ Last-Updated: 2026-06-09
 - Postcommit validation passed: helper scope guard against `origin/main...HEAD`, helper link-check, helper added-line leak-scan, PR body preflight, queue parser, decision parser, added-line overclaim scan, docs-only classifier, and synthetic-event goal-lint.
 - Evidence PR #1171 was opened for branch `na-0451-route-contact-attachment-rng-scope`.
 - PR #1171 first completed check polling on head `1d1dd4094f50`: public-safety success, goal-lint success, no failing attached checks, and docs-only qsc adversarial checks skipped by classifier policy.
-- Pending: updated journal-only commit checks, merge, post-merge public-safety, optional closeout, and final response file.
+- PR #1171 final pre-merge polling on head `73d0a79b9cd3`: public-safety success, goal-lint success, no failing attached checks, and docs-only qsc adversarial checks skipped by classifier policy.
+- PR #1171 merged at `eeb04a62589d`.
+- PR #1171 post-merge REST polling on `eeb04a62589d`: public-safety completed success and qsc-adversarial-smoke completed success.
+- Optional closeout branch `na-0451-closeout-restore-na0452` restores the selected D-0889 successor without implementing NA-0452.
 
 ## NA-0451 failures / recoveries
 
@@ -114,6 +117,43 @@ Last-Updated: 2026-06-09
   Classification: recoverable command-shape mistake in the one-line Python formatter, because shell quoting around f-string expressions produced a syntax error before any check status was consumed.
   Corrective action: replaced the one-line parser with a file-based JSON parser using heredoc Python code that reads a JSON file path.
   Final result: REST polling succeeded on PR #1171 head `1d1dd4094f50`; public-safety completed success, no failing attached checks existed, and all attached checks were success or accepted skipped/neutral.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py public-safety-status --sha eeb04a62589d4c01470d2f306436ce562ef9391f` immediately after the PR #1171 merge.
+  Classification: recoverable progress/attachment state because merge-commit checks were still attached and running, and the directive allowed progress-aware REST polling.
+  Corrective action: used bounded REST polling on the merge commit without watch mode.
+  Final result: merge-commit public-safety completed success; qsc-adversarial-smoke completed success; no failing attached checks remained.
+- Failing commands: closeout validation helper calls using unsupported `classifier` and `overclaim-scan` subcommands, plus an incorrect `leak-scan --head` argument shape.
+  Classification: recoverable command-shape mistakes because the repository helper in this tree exposes `scope-guard`, `link-check`, `leak-scan`, and `pr-body-preflight`, but not standalone classifier or overclaim subcommands.
+  Corrective action: reran `leak-scan` with supported arguments and used small deterministic read-only Python checks for closeout scope and added-line overclaim screening.
+  Final result: supported leak scan reported `SECRET_FINDING_COUNT 0`; deterministic added-line overclaim scan reported zero findings; closeout scope remained limited to the five allowed governance/testplan paths.
+- Failing commands: `python3 tools/goal_lint.py --help` and the first synthetic closeout goal-lint event creation.
+  Classification: recoverable command-shape mistakes because `tools/goal_lint.py` expects `GITHUB_EVENT_PATH` and the first event writer referenced unexported base/head environment values.
+  Corrective action: wrote a synthetic pull-request event under the proof root with explicit `origin/main` base, closeout branch head, and the closeout PR body draft, then invoked `tools/goal_lint.py` with `GITHUB_EVENT_PATH`.
+  Final result: goal-lint passed with `OK: goal compliance checks passed.`
+
+## NA-0451 optional closeout notes
+
+- Closeout branch: `na-0451-closeout-restore-na0452`.
+- Closeout PR: #1172.
+- Closeout merge commit: pending.
+- Closeout decision: D-0890.
+- Queue change: NA-0451 DONE; NA-0452 READY.
+- Selected successor: `NA-0452 -- QSL qsc Route / Contact / Attachment RNG Failure Test Seam Implementation Harness`.
+- Exact future D-0889 qsc implementation paths preserved:
+  - `qsl/qsl-client/qsc/tests/rng_failure_residual_surfaces.rs`
+  - `qsl/qsl-client/qsc/src/vault/mod.rs`
+  - `qsl/qsl-client/qsc/src/contacts/mod.rs`
+  - `qsl/qsl-client/qsc/src/tui/controller/commands/contacts.rs`
+  - `qsl/qsl-client/qsc/src/tui/controller/commands/locked.rs`
+  - `qsl/qsl-client/qsc/src/attachments/mod.rs`
+- Exact future D-0889 governance paths preserved:
+  - `docs/governance/evidence/NA-0452_qsl_qsc_route_contact_attachment_rng_failure_test_seam_implementation_harness.md`
+  - `tests/NA-0452_qsl_qsc_route_contact_attachment_rng_failure_test_seam_implementation_testplan.md`
+  - `DECISIONS.md`
+  - `TRACEABILITY.md`
+  - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+- The deferred TUI account verification seed remains an account-bootstrap residual and is not pulled into NA-0452 by closeout.
+- Closeout mutation is limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0451_closeout_restore_na0452_testplan.md`.
+- No NA-0452 implementation, runtime behavior, crypto behavior, dependency, Cargo, lockfile, workflow, executable test source, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup/restore/local-ops, qsl-backup, backup status, backup plan, rollback, backup tree, branch-protection, or public-surface mutation is intentionally performed.
 
 # QSL-DIR-2026-06-09-300 / NA-0449 qsc RNG failure test seam implementation rolling journal
 

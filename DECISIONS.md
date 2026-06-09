@@ -23254,3 +23254,31 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside this closeout.
     - more than one READY item remains.
   - **References:** NA-0451; NA-0452; D-0890; D-0889; D-0888; D-0887; qsl-protocol PR #1171; `docs/governance/evidence/NA-0451_qsl_qsc_route_contact_attachment_rng_failure_scope_authorization_plan.md`; `tests/NA-0451_qsl_qsc_route_contact_attachment_rng_failure_scope_authorization_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0451_closeout_restore_na0452_testplan.md`
+
+- **ID:** D-0891
+  - **Title:** NA-0452 qsc route contact attachment rng failure test seam implementation
+  - **Status:** Accepted
+  - **Date:** 2026-06-09
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0452 implements the exact D-0889 qsc route/contact/attachment RNG failure test-only seam. The implementation reuses `QSC.VAULT.INIT.DEFAULT_ROUTE_TOKEN`, adds cfg-only labels for `QSC.CONTACT.ROUTE_TOKEN`, `QSC.TUI.CONTACT.ROUTE_TOKEN`, `QSC.TUI.RELAY_INBOX_ROUTE_TOKEN`, `QSC.ATTACHMENT.ID`, `QSC.ATTACHMENT.CEK`, and `QSC.ATTACHMENT.NONCE_PREFIX`, and adds the executable test path `qsl/qsl-client/qsc/tests/rng_failure_residual_surfaces.rs`.
+  - **Exact implementation paths:** `qsl/qsl-client/qsc/tests/rng_failure_residual_surfaces.rs`; `qsl/qsl-client/qsc/src/vault/mod.rs`; `qsl/qsl-client/qsc/src/contacts/mod.rs`; `qsl/qsl-client/qsc/src/tui/controller/commands/contacts.rs`; `qsl/qsl-client/qsc/src/tui/controller/commands/locked.rs`; `qsl/qsl-client/qsc/src/attachments/mod.rs`.
+  - **Cfg-gated seam:** The seam uses only `qsc_rng_failure_test_seam` and `QSC_RNG_FAILURE_TEST_SEAM`. Normal builds without the cfg keep production `OsRng` behavior and ignore the selector.
+  - **Test proof:** `RUSTFLAGS='--cfg qsc_rng_failure_test_seam' cargo test -p qsc --locked --test rng_failure_residual_surfaces -- --test-threads=1 --nocapture` passed and emitted the NA-0452 route/contact/attachment forced-failure and no-partial-state markers. The no-cfg residual-surface test passed and emitted `NA0452_PRODUCTION_SEMANTICS_UNCHANGED_OK`.
+  - **Deferred sub-scope:** The TUI account verification seed remains deferred and unlabeled. Provider-dependent qsc RNG, refimpl/provider RNG, qshield-cli demo RNG, formal/model RNG, fuzz RNG, and vector RNG remain residual/backlog unless later exact scope authorizes them.
+  - **No dependency / workflow mutation:** NA-0452 does not change dependencies, Cargo manifests, lockfiles, workflows, fuzz targets, vectors, formal models, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback subtree, or `/backup/qsl`.
+  - **No public overclaim:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No RNG-failure-complete claim is made. No secret-material-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Selected successor:** `NA-0453 -- QSL refimpl / qsc Provider RNG Failure Boundary Authorization Plan`.
+  - **Required behavior:**
+    - Exactly one READY item remains mandatory.
+    - NA-0452 is bounded internal route/contact/attachment RNG failure evidence only.
+    - NA-0452 must not be represented as provider RNG failure proof.
+    - NA-0452 must not be represented as RNG-failure-complete proof.
+    - Optional closeout may restore NA-0453 only with no-runtime/no-crypto/no-dependency/no-workflow/no-public-overclaim boundaries.
+  - **Must never happen:**
+    - The deferred TUI account verification seed is represented as implemented.
+    - Provider-dependent qsc RNG, refimpl/provider RNG, qshield-cli demo RNG, formal/model RNG, fuzz RNG, or vector RNG is represented as completed by NA-0452.
+    - Cargo audit output must not be used as public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, RNG-failure-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden outside exact NA-0452 scope.
+    - more than one READY item remains.
+  - **References:** NA-0452; NA-0453; D-0891; D-0890; D-0889; `docs/governance/evidence/NA-0452_qsl_qsc_route_contact_attachment_rng_failure_test_seam_implementation_harness.md`; `tests/NA-0452_qsl_qsc_route_contact_attachment_rng_failure_test_seam_implementation_testplan.md`; `qsl/qsl-client/qsc/tests/rng_failure_residual_surfaces.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

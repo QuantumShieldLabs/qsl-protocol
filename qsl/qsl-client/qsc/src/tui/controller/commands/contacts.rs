@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 use super::*;
 
 pub(super) fn dispatch_contacts_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
@@ -765,7 +767,27 @@ fn handle_contacts_command(cmd: &TuiParsedCmd, state: &mut TuiState) -> bool {
                         return false;
                     }
                 },
-                None => Some(generate_route_token()),
+                None => {
+                    #[cfg(qsc_rng_failure_test_seam)]
+                    {
+                        match generate_route_token_with_label("QSC.TUI.CONTACT.ROUTE_TOKEN") {
+                            Ok(token) => Some(token),
+                            Err(code) => {
+                                state.set_command_error(format!("contacts: {}", code));
+                                emit_marker(
+                                    "tui_contacts_add",
+                                    Some(code),
+                                    &[("label", label), ("ok", "false")],
+                                );
+                                return false;
+                            }
+                        }
+                    }
+                    #[cfg(not(qsc_rng_failure_test_seam))]
+                    {
+                        Some(generate_route_token())
+                    }
+                }
             };
             let rec = ContactRecord {
                 fp: code.to_ascii_uppercase(),

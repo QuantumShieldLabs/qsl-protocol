@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 use super::*;
 
 pub(super) fn route_token_hash8(token: &str) -> String {
@@ -54,6 +56,18 @@ pub(super) fn generate_route_token() -> String {
     let mut bytes = [0u8; 32];
     OsRng.fill_bytes(&mut bytes);
     hex_encode(&bytes)
+}
+
+#[cfg(qsc_rng_failure_test_seam)]
+pub(super) fn generate_route_token_with_label(label: &str) -> Result<String, &'static str> {
+    if std::env::var("QSC_RNG_FAILURE_TEST_SEAM")
+        .ok()
+        .map(|v| v == label || v == "all")
+        .unwrap_or(false)
+    {
+        return Err("rng_failure_forced");
+    }
+    Ok(generate_route_token())
 }
 
 pub(super) fn relay_self_inbox_route_token() -> Result<String, &'static str> {
@@ -1011,7 +1025,19 @@ pub(super) fn contacts_add(label: &str, fp: &str, route_token: Option<&str>, ver
         Some(raw) => {
             Some(normalize_route_token(raw).unwrap_or_else(|code| print_error_marker(code)))
         }
-        None => Some(generate_route_token()),
+        None => {
+            #[cfg(qsc_rng_failure_test_seam)]
+            {
+                Some(
+                    generate_route_token_with_label("QSC.CONTACT.ROUTE_TOKEN")
+                        .unwrap_or_else(|code| print_error_marker(code)),
+                )
+            }
+            #[cfg(not(qsc_rng_failure_test_seam))]
+            {
+                Some(generate_route_token())
+            }
+        }
     };
     let rec = ContactRecord {
         fp: fp.to_string(),

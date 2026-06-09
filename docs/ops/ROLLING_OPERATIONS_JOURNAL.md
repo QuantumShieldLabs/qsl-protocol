@@ -736,6 +736,22 @@ Last-Updated: 2026-06-09
   `scope-guard`, not `classify-ci-scope`.
   Corrective action: reran `python3 scripts/ci/qsl_evidence_helper.py scope-guard --help`.
   Final result: corrected helper command printed usage successfully.
+- Failing command: first PR #1175 REST polling loop for commit `29987c454da9`.
+  Classification: recoverable polling command-shape issue because the shell
+  combined a heredoc script with stdin JSON redirection, causing Python to parse
+  JSON as script text and report `NameError: name 'null' is not defined`.
+  Corrective action: stopped only the broken polling shell process and reran
+  polling with a corrected parser shape.
+  Final result: broken loop terminated; no CI rerun or repo mutation was caused
+  by the polling mistake.
+- Failing command: second PR #1175 REST polling loop for commit `29987c454da9`.
+  Classification: recoverable polling command-shape issue because passing the
+  large check-run JSON through an environment variable exceeded shell argument
+  limits.
+  Corrective action: stopped only the broken polling shell process and reran
+  polling with the check-run JSON written under the NA-0453 proof root.
+  Final result: corrected REST polling reported attached checks complete with
+  zero failures and `public-safety` completed success on the first PR head.
 
 ## NA-0453 local validation results
 

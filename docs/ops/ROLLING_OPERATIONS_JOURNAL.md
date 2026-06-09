@@ -409,11 +409,64 @@ Last-Updated: 2026-06-09
 
 ## NA-0450 next-watch items
 
-- Run exact five-path scope guard after patch.
-- Run link, leak, overclaim, classifier, PR body preflight, goal-lint, Rust, audit, fmt, formal, and qsc adversarial validations.
-- Open PR `na-0450-qsc-rng-residual-surface-triage`.
-- Merge only after required checks pass.
-- Optional closeout to NA-0451 only after evidence PR merges and post-merge public-safety is green.
+- Evidence PR #1169 merged at `4ef871952a28`.
+- Post-merge public-safety on `4ef871952a28`: completed success.
+- Optional closeout to NA-0451 is active after Packet N merge and post-merge public-safety success.
+- Closeout branch: `na-0450-closeout-restore-na0451`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
+- Closeout validation must prove READY_COUNT 1 and READY NA-0451.
+- Closeout validation must prove NA-0450 DONE, D-0888 once, D-0889 absent, and duplicate decision IDs absent.
+- Closeout scope guard must report exactly the five allowed closeout paths.
+- Closeout PR checks, including public-safety, must pass before merge.
+
+## NA-0450 closeout proof
+
+- PR #1169: MERGED at `4ef871952a28`.
+- PR #1169 title: `NA-0450: triage qsc rng residual surfaces`.
+- PR #1169 post-merge public-safety on `4ef871952a28`: PASS.
+- PR #1169 post-merge qsc-adversarial-smoke on `4ef871952a28`: PASS.
+- Post-merge queue before closeout patch: READY_COUNT 1, READY NA-0450.
+- Post-merge decision proof before closeout patch: latest D-0887, D-0887 once, D-0888 absent, duplicate decision count zero.
+- Closeout patch marks NA-0450 DONE.
+- Closeout patch restores `NA-0451 -- QSL qsc Route / Contact / Attachment RNG Failure Scope Authorization Plan` as the sole READY item.
+- Closeout patch adds D-0888.
+- Closeout testplan path: `tests/NA-0450_closeout_restore_na0451_testplan.md`.
+- No NA-0451 implementation is performed.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status, plan, rollback, backup tree, branch-protection, or public-surface mutation is intentionally made by closeout.
+
+## NA-0450 closeout recovered failures
+
+- Failing command: first merge-commit REST polling loop after PR #1169 merge.
+  Classification: recoverable command-shape mistake because `rg -c` produced a blank shell counter when public-safety was not yet attached.
+  Corrective action: stopped only the faulty local polling shell process and reran polling with a numeric `PS_OK` value emitted by Python.
+  Final result: corrected REST polling completed successfully with public-safety success, zero failing checks, and no in-progress checks on merge commit `4ef871952a28`.
+- Failing command: first closeout PR-body preflight command used unsupported `--body-file /dev/stdin`.
+  Classification: recoverable command-shape mistake because the helper supports `--file` or stdin, not `--body-file`.
+  Corrective action: reran `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight` with the draft body on stdin.
+  Final result: `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- Note: parallel root and nested cargo audit emitted advisory database lock-wait warnings.
+  Classification: non-fatal benign tool contention warning.
+  Corrective action: allowed the read-only audits to complete.
+  Final result: root and nested cargo audit completed successfully.
+
+## NA-0450 closeout validation watch
+
+- `git diff --cached --check`: PASS.
+- Queue helper after closeout patch: READY_COUNT 1 and READY NA-0451.
+- Decision helper after closeout patch: latest D-0888 and duplicate decision count zero.
+- Exact status proof: PASS, NA-0451 READY, NA-0450 DONE, NA-0449 DONE, NA-0435 DONE, NA-0434 BLOCKED, and NA-0429 BLOCKED.
+- Exact closeout path guard: PASS, exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0450_closeout_restore_na0451_testplan.md`.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- CI scope classifier: PASS, `scope_class=docs_only`.
+- PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo fmt --check`: PASS.
+- Goal-lint remains pending until after the closeout commit/PR body is available.
+- Merge closeout PR only after required checks pass and public-safety is green.
 
 # QSL-DIR-2026-06-09-302 / NA-0449 closeout recovery and NA-0450 restoration rolling journal
 

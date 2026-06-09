@@ -125,6 +125,10 @@ Last-Updated: 2026-06-09
   Classification: recoverable command-shape mistakes because the repository helper in this tree exposes `scope-guard`, `link-check`, `leak-scan`, and `pr-body-preflight`, but not standalone classifier or overclaim subcommands.
   Corrective action: reran `leak-scan` with supported arguments and used small deterministic read-only Python checks for closeout scope and added-line overclaim screening.
   Final result: supported leak scan reported `SECRET_FINDING_COUNT 0`; deterministic added-line overclaim scan reported zero findings; closeout scope remained limited to the five allowed governance/testplan paths.
+- Failing commands: `python3 tools/goal_lint.py --help` and the first synthetic closeout goal-lint event creation.
+  Classification: recoverable command-shape mistakes because `tools/goal_lint.py` expects `GITHUB_EVENT_PATH` and the first event writer referenced unexported base/head environment values.
+  Corrective action: wrote a synthetic pull-request event under the proof root with explicit `origin/main` base, closeout branch head, and the closeout PR body draft, then invoked `tools/goal_lint.py` with `GITHUB_EVENT_PATH`.
+  Final result: goal-lint passed with `OK: goal compliance checks passed.`
 
 ## NA-0451 optional closeout notes
 

@@ -354,6 +354,12 @@ Broader validation completed before final governance scan:
   tests, and provider-error no-mutation step passed; local script then stopped
   at unavailable `cargo fuzz`. PR CI qsc-adversarial-smoke remains required for
   cargo-fuzz-backed evidence.
+- PR #1167 first CI run reported CodeQL hard-coded cryptographic value alerts
+  in the allowed `vault/mod.rs` seam changes. The corrective commit restored
+  `ChaCha20Poly1305::generate_nonce` for selected vault nonce paths and moved
+  the cfg-only failure check into a fail-before-generate helper. Post-fix local
+  `cargo fmt --check`, cfg seam test, normal seam test, key lifecycle test, and
+  provider-error no-mutation test passed.
 
 ## Public claim/external review/website boundary
 

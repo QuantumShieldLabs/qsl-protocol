@@ -102,6 +102,9 @@ Last-Updated: 2026-06-09
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py`: PASS.
 - `python3 formal/run_model_checks.py`: PASS.
 - Local qsc adversarial script stable phases and provider-error step passed, then local script stopped at unavailable `cargo fuzz`; PR CI qsc-adversarial-smoke remains the cargo-fuzz-backed evidence gate.
+- PR #1167 first CI run reported CodeQL failure with three hard-coded cryptographic value annotations in allowed path `qsl/qsl-client/qsc/src/vault/mod.rs`.
+- Corrective commit restored `ChaCha20Poly1305::generate_nonce` for selected vault nonce-producing paths and kept the cfg-only seam as a fail-before-generate helper.
+- Post-CodeQL-fix local validation passed: `cargo fmt --check`; cfg `rng_failure_behavior`; normal `rng_failure_behavior`; `key_lifecycle_zeroization`; `handshake_provider_error_no_mutation`.
 
 ## NA-0449 failures / recoveries
 
@@ -125,6 +128,10 @@ Last-Updated: 2026-06-09
   Classification: recoverable local tooling unavailability because stable adversarial properties, miri-shaped tests, and the provider-error no-mutation step passed before cargo reported `no such command: fuzz`.
   Corrective action: recorded exact local cargo-fuzz unavailability and preserved PR CI qsc-adversarial-smoke as the required cargo-fuzz-backed evidence gate.
   Final result: stable local phases passed; fuzz-backed evidence remains PR CI gated.
+- Failing check: PR #1167 CodeQL check run `80250010134`.
+  Classification: recoverable in-scope CI failure with clear root cause because all annotations were confined to allowed `qsl/qsl-client/qsc/src/vault/mod.rs` seam changes and identified hard-coded nonce-shape alerts.
+  Corrective action: changed cfg-only vault write nonce seam shape to fail before `ChaCha20Poly1305::generate_nonce`, restoring the previous nonce-generation API shape for normal and successful cfg paths.
+  Final result: post-fix local fmt, cfg seam, normal seam, key lifecycle, and provider-error tests passed; PR CI rerun/replacement check remains required before merge.
 - Note: parallel cargo audit/tree preflight produced cache-lock wait warnings.
   Classification: non-fatal benign tool contention warning.
   Corrective action: allowed read-only checks to complete.

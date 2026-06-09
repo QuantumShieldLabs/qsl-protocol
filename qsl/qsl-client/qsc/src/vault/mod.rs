@@ -18,7 +18,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Mutex, OnceLock};
 
 use argon2::{Algorithm, Argon2, Params, Version};
-use chacha20poly1305::aead::{Aead, KeyInit};
+use chacha20poly1305::aead::{Aead, AeadCore, KeyInit};
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use clap::{Args, Subcommand};
 #[cfg(feature = "keychain")]
@@ -49,6 +49,14 @@ fn vault_rng_fill(label: &str, out: &mut [u8]) -> Result<(), &'static str> {
     }
     OsRng.fill_bytes(out);
     Ok(())
+}
+
+#[cfg(qsc_rng_failure_test_seam)]
+fn vault_rng_nonce(label: &str) -> Result<Nonce, &'static str> {
+    if vault_rng_failure_forced(label) {
+        return Err("rng_failure_forced");
+    }
+    Ok(ChaCha20Poly1305::generate_nonce(&mut OsRng))
 }
 
 #[cfg(feature = "keychain")]
@@ -232,16 +240,14 @@ pub fn secret_set(name: &str, value: &str) -> Result<(), &'static str> {
     payload.secrets.insert(name.to_string(), value.to_string());
     let plaintext = serde_json::to_vec(&payload).map_err(|_| "vault_payload_serialize_failed")?;
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&env.key));
-    let mut nonce_bytes = [0u8; 12];
     #[cfg(qsc_rng_failure_test_seam)]
-    vault_rng_fill("QSC.VAULT.SECRET_SET.NONCE", &mut nonce_bytes)?;
+    let nonce = vault_rng_nonce("QSC.VAULT.SECRET_SET.NONCE")?;
     #[cfg(not(qsc_rng_failure_test_seam))]
-    OsRng.fill_bytes(&mut nonce_bytes);
-    let nonce = Nonce::from_slice(&nonce_bytes);
+    let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
     let ciphertext = cipher
-        .encrypt(nonce, plaintext.as_ref())
+        .encrypt(&nonce, plaintext.as_ref())
         .map_err(|_| "encrypt_failed")?;
-    let bytes = encode_envelope(&env, &nonce_bytes, &ciphertext);
+    let bytes = encode_envelope(&env, nonce.as_slice(), &ciphertext);
     write_vault_atomic(&vault_path, &bytes)?;
     VAULT_WRITE_EPOCH.fetch_add(1, Ordering::Relaxed);
     env.key.zeroize();
@@ -264,19 +270,14 @@ pub fn secret_set_with_passphrase(
     payload.secrets.insert(name.to_string(), value.to_string());
     let plaintext = serde_json::to_vec(&payload).map_err(|_| "vault_payload_serialize_failed")?;
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&env.key));
-    let mut nonce_bytes = [0u8; 12];
     #[cfg(qsc_rng_failure_test_seam)]
-    vault_rng_fill(
-        "QSC.VAULT.SECRET_SET_WITH_PASSPHRASE.NONCE",
-        &mut nonce_bytes,
-    )?;
+    let nonce = vault_rng_nonce("QSC.VAULT.SECRET_SET_WITH_PASSPHRASE.NONCE")?;
     #[cfg(not(qsc_rng_failure_test_seam))]
-    OsRng.fill_bytes(&mut nonce_bytes);
-    let nonce = Nonce::from_slice(&nonce_bytes);
+    let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
     let ciphertext = cipher
-        .encrypt(nonce, plaintext.as_ref())
+        .encrypt(&nonce, plaintext.as_ref())
         .map_err(|_| "encrypt_failed")?;
-    let bytes = encode_envelope(&env, &nonce_bytes, &ciphertext);
+    let bytes = encode_envelope(&env, nonce.as_slice(), &ciphertext);
     write_vault_atomic(&vault_path, &bytes)?;
     VAULT_WRITE_EPOCH.fetch_add(1, Ordering::Relaxed);
     env.key.zeroize();
@@ -356,21 +357,19 @@ fn persist_session(session: &mut VaultSession) -> Result<(), &'static str> {
     let plaintext =
         serde_json::to_vec(&session.payload).map_err(|_| "vault_payload_serialize_failed")?;
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&session.key));
-    let mut nonce_bytes = [0u8; 12];
     #[cfg(qsc_rng_failure_test_seam)]
-    vault_rng_fill("QSC.VAULT.SESSION_PERSIST.NONCE", &mut nonce_bytes)?;
+    let nonce = vault_rng_nonce("QSC.VAULT.SESSION_PERSIST.NONCE")?;
     #[cfg(not(qsc_rng_failure_test_seam))]
-    OsRng.fill_bytes(&mut nonce_bytes);
-    let nonce = Nonce::from_slice(&nonce_bytes);
+    let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
     let ciphertext = cipher
-        .encrypt(nonce, plaintext.as_ref())
+        .encrypt(&nonce, plaintext.as_ref())
         .map_err(|_| "encrypt_failed")?;
     let bytes = encode_envelope(
         &VaultRuntime {
             envelope: session.envelope.clone(),
             key: session.key,
         },
-        &nonce_bytes,
+        nonce.as_slice(),
         &ciphertext,
     );
     write_vault_atomic(&session.vault_path, &bytes)?;

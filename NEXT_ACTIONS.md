@@ -24311,8 +24311,16 @@ Acceptance criteria:
 ---
 
 ### NA-0450 — QSL qsc RNG Failure Residual Surface Triage Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
+
+Implementation note:
+- NA-0450 consumed the NA-0447 through NA-0449 RNG failure evidence chain,
+  classified residual qsc RNG surfaces, selected
+  `RNG_RESIDUAL_TRIAGE_ROUTE_CONTACT_ATTACHMENT_NEXT`, and restored
+  `NA-0451 -- QSL qsc Route / Contact / Attachment RNG Failure Scope
+  Authorization Plan` as the sole READY successor after PR #1169 merged and
+  post-merge public-safety completed success.
 
 Objective:
 Triage the remaining qsc RNG failure surfaces not selected for NA-0449,
@@ -24386,6 +24394,91 @@ Deliverables:
 
 Acceptance criteria:
 - residual qsc RNG failure surfaces are consumed.
+- exact future scope is selected from evidence.
+- no implementation mutation occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+---
+
+### NA-0451 — QSL qsc Route / Contact / Attachment RNG Failure Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the exact future scope for selected qsc route, contact, and
+attachment RNG failure behavior after the initial qsc RNG failure seam work,
+preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries unless
+a later directive authorizes precise implementation.
+
+Protects:
+- residual qsc RNG failure behavior evidence quality.
+- fail-closed handling around route/contact/attachment randomness-dependent
+  operations.
+- production semantic stability.
+- key lifecycle and provider boundary confidence after ml-kem replacement,
+  provider-error audit work, qsc zeroization tests, and initial RNG failure
+  seam work.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0451.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of:
+  - qsl/qsl-client/qsc/src/
+  - qsl/qsl-client/qsc/tests/
+  - docs/governance/evidence/
+  - qsl/qsl-client/qsc/fuzz/
+  - formal/
+  - inputs/
+  - relevant scripts/workflows read-only.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, Cargo, lockfile, workflow, qsl-server,
+  qsl-attachments, qshield runtime, website, public docs, README, or START_HERE
+  paths.
+- Mutating tests, fuzz target source, vectors, or formal models unless a later
+  implementation directive authorizes exact paths.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No creating or implying production readiness.
+- No creating or implying public-internet readiness.
+- No creating or implying external-review completion.
+- No creating or implying metadata-free behavior.
+- No creating or implying anonymity.
+- No creating or implying untraceability.
+- No creating or implying off-host backup completion.
+- No creating or implying disaster recovery completion.
+- No creating or implying restore proof.
+- No creating or implying backup completion.
+- No creating or implying bug-free status.
+- No creating or implying vulnerability-free status.
+- No creating or implying perfect-crypto status.
+- No creating or implying side-channel-free status.
+- No creating or implying RNG-failure-complete status.
+- No creating or implying secret-material-complete status.
+- No creating or implying crypto-complete status.
+- Secret material handling outside read-only source/evidence inspection.
+
+Deliverables:
+- NA-0451 evidence doc.
+- NA-0451 testplan.
+- D-0889 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- selected exact successor or no-action rationale.
+
+Acceptance criteria:
+- selected qsc residual RNG failure surfaces are consumed.
 - exact future scope is selected from evidence.
 - no implementation mutation occurs.
 - cargo audit remains green.

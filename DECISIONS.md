@@ -23135,3 +23135,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside NA-0450.
     - more than one READY item remains.
   - **References:** NA-0450; NA-0451; D-0887; D-0886; D-0885; D-0884; D-0883; `docs/governance/evidence/NA-0450_qsl_qsc_rng_failure_residual_surface_triage_authorization_plan.md`; `tests/NA-0450_qsl_qsc_rng_failure_residual_surface_triage_authorization_testplan.md`; `docs/governance/evidence/NA-0449_qsl_qsc_rng_failure_test_seam_implementation_harness.md`; `tests/NA-0449_qsl_qsc_rng_failure_test_seam_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0888
+  - **Title:** NA-0450 closeout and NA-0451 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-09
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0450 is closed after qsl-protocol PR #1169 merged at `4ef871952a28`, post-merge public-safety completed success, and the residual qsc RNG surface triage selected `RNG_RESIDUAL_TRIAGE_ROUTE_CONTACT_ATTACHMENT_NEXT`. This closeout marks NA-0450 DONE and restores `NA-0451 -- QSL qsc Route / Contact / Attachment RNG Failure Scope Authorization Plan` as the sole READY successor.
+  - **Selected successor:** `NA-0451 -- QSL qsc Route / Contact / Attachment RNG Failure Scope Authorization Plan`.
+  - **Closeout proof:** PR #1169 is MERGED at `4ef871952a28`; merge-commit public-safety completed success; merge-commit qsc adversarial smoke completed success; D-0887 exists once; D-0888 exists once after this closeout; D-0889 remains absent until future NA-0451 work; duplicate decision count remains zero.
+  - **Closeout-only scope:** This closeout updates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0450_closeout_restore_na0451_testplan.md`.
+  - **No implementation mutation:** This closeout does not implement NA-0451, tests, test seams, runtime behavior, crypto behavior, dependency changes, Cargo manifest changes, lockfile changes, workflow changes, executable test source changes, fuzz target changes, vector changes, formal model changes, qsl-server changes, qsl-attachments changes, qshield runtime changes, qshield-cli changes, website changes, public-doc changes, README changes, START_HERE changes, backup/restore/local-ops changes, qsl-backup changes, or qwork tooling changes.
+  - **Successor boundary:** NA-0451 is authorization-only for selected route/default-route/relay token RNG, contact RNG, and attachment ID/CEK/nonce-prefix RNG surfaces. NA-0451 may select exact future proof labels, no-partial-state assertions, and later implementation scope, but NA-0451 itself must not implement runtime behavior or executable tests unless a later directive authorizes exact paths.
+  - **Residuals:** RNG-failure-complete is not claimed. Provider-dependent qsc RNG, refimpl/provider RNG, qshield-cli demo RNG, formal/model RNG, fuzz RNG, and vector RNG remain residual/backlog unless later exact scope authorizes them.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No public crypto-complete claim is made. No RNG-failure-complete claim is made. No secret-material-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. No public technical paper content is created. Cargo audit green remains dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Required behavior:**
+    - Exactly one READY item remains mandatory.
+    - NA-0451 must treat NA-0450 as bounded internal governance evidence only.
+    - NA-0451 must preserve no-runtime/no-crypto/no-dependency/no-workflow/no-public-overclaim boundaries.
+    - Any later route/contact/attachment implementation must be separately authorized with exact paths and tests.
+    - Cargo audit output must remain dependency-health evidence only.
+  - **Must never happen:**
+    - NA-0451 implementation starts inside this closeout.
+    - Route/contact/attachment RNG triage is represented as executable proof.
+    - Provider-dependent RNG backlog is represented as completed provider RNG failure proof.
+    - No cargo audit output is used as public-readiness proof.
+    - No cargo audit output is used as production-readiness proof.
+    - No cargo audit output is used as public-internet-readiness proof.
+    - No cargo audit output is used as external-review-complete proof.
+    - No cargo audit output is used as crypto-complete proof.
+    - No cargo audit output is used as RNG-failure-complete proof.
+    - No cargo audit output is used as vulnerability-free proof.
+    - No cargo audit output is used as bug-free proof.
+    - No cargo audit output is used as perfect-crypto proof.
+    - No cargo audit output is used as side-channel-free proof.
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside this closeout.
+    - more than one READY item remains.
+  - **References:** NA-0450; NA-0451; D-0888; D-0887; D-0886; D-0885; qsl-protocol PR #1169; `docs/governance/evidence/NA-0450_qsl_qsc_rng_failure_residual_surface_triage_authorization_plan.md`; `tests/NA-0450_qsl_qsc_rng_failure_residual_surface_triage_authorization_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0450_closeout_restore_na0451_testplan.md`

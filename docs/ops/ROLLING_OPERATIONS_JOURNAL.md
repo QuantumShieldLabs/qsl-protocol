@@ -664,6 +664,120 @@ Last-Updated: 2026-06-09
 - Root pqcrypto inverse probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
 - Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
 - `cargo fmt --check`: PASS.
+
+# QSL-DIR-2026-06-09-308 / NA-0452 closeout and NA-0453 restoration rolling journal
+
+- Directive: QSL-DIR-2026-06-09-308 -- recover after macOS qsc relay-auth rerun completion, close out NA-0452 only if public-safety is green, and restore NA-0453.
+- Begin timestamp (America/Chicago): 2026-06-09T16:34:30-05:00.
+- Begin timestamp (UTC): 2026-06-09T21:34:30Z.
+- End timestamp (America/Chicago): pending.
+- End timestamp (UTC): pending.
+- Codex did not run qwork, qstart, qresume, sudo, backup, restore, cargo update, cargo generate-lockfile, or dependency remediation commands.
+
+## D308 startup proof
+
+- qwork proof files were read from `/srv/qbuild/work/NA-0452/.qwork/` and copied into the D308 proof root.
+- qwork proof HEAD and origin/main both matched live pre-fetch `50b89b1e8e32`.
+- Fetch did not advance origin/main beyond the proof SHA.
+- PR #1173 was verified MERGED at `50b89b1e8e32`.
+- Queue proof before closeout patch: READY_COUNT 1, READY NA-0452.
+- Decision proof before closeout patch: latest D-0891, D-0891 once, D-0892 absent, duplicate decision count zero.
+- Required inherited responses D305, D306, and D307 were present.
+
+## D305 / D306 / D307 inheritance
+
+- D305 implemented the exact D-0889 cfg-gated route/contact/attachment RNG failure seam and merged PR #1173.
+- D306 stopped before closeout because post-merge public-safety failed due to `macos-qsc-full-serial`.
+- D307 classified the failure as existing macOS qsc relay-auth instability, reran exactly the failed macOS job once, and stopped while the rerun remained in the long `Test qsc full serial suite (locked)` step.
+- D308 applies the corrected evidence-based CI waiting policy: an attached `in_progress` job in a known long-running step is normal progress unless GitHub reports a concrete fault signal.
+
+## Public-safety recovery
+
+- D307 rerun job `80416944384` for `macos-qsc-full-serial` completed success.
+- The long serial step ran from `2026-06-09T20:12:08Z` to `2026-06-09T21:28:48Z` and completed success.
+- Prerequisites were green: qsc-linux-full-suite, macos-qsc-full-serial, qsc-adversarial-smoke, qsc-adversarial-miri, CodeQL/Analyze, and attached supporting checks.
+- The stale public-safety aggregate was rerun exactly once as job `80432383338`; it completed success on merge commit `50b89b1e8e32`.
+
+## Closeout patch notes
+
+- NA-0452 is marked DONE.
+- NA-0453 is restored as the sole READY item.
+- D-0892 records NA-0452 closeout, D306/D307 recovery, D308 public-safety completion, and NA-0453 restoration.
+- TRACEABILITY records PR #1173, the closeout PR, D305/D306/D307/D308 responses, public-safety proof, NA-0453 successor, backup impact none, and public claim boundary.
+- Closeout testplan path: `tests/NA-0452_closeout_restore_na0453_testplan.md`.
+- No NA-0453 implementation is performed.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test source, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, qsl-backup, status, plan, rollback, or backup tree path is intentionally mutated.
+- No backup or restore was run.
+
+## Closeout validation watch
+
+- Closeout validation must prove READY_COUNT 1 and READY NA-0453.
+- Closeout validation must prove NA-0452 DONE, NA-0434 BLOCKED, D-0892 exists once, D-0893 absent, and duplicate decision IDs absent.
+- Closeout scope guard must report exactly the five allowed closeout paths.
+- Link check, leak scan, overclaim scan, classifier, PR body preflight, goal-lint, Rust tests, audits, formatting, formal checks, and qsc adversarial script syntax must pass before PR.
+- Closeout PR checks, including public-safety, must pass before merge.
+- After merge, READY NA-0453, NA-0452 DONE, NA-0434 BLOCKED, D-0892 on main, and public-safety green on the closeout merge commit must be verified.
+
+## Closeout failures / recoveries
+
+- Failing command: first targeted queue status scan using a naive substring search in `NEXT_ACTIONS.md`.
+  Classification: recoverable command-shape/parser issue because it matched historical NA mentions in prose rather than active queue blocks.
+  Corrective action: replaced it with a block-anchored parser over markdown headings and Status lines.
+  Final result: corrected parser passed, proving READY_COUNT 1, READY NA-0452, required previous NA statuses, D-0891 once, D-0892 absent, D-0893 absent, and duplicate decision count zero.
+- Failing command: first precommit added-line overclaim scan.
+  Classification: recoverable wording/scanner hygiene issue because long negated lines listed sensitive claim-boundary phrases too far from the local negation window, and the restored NA-0453 forbidden-scope list used wrapped `Creating or implying` wording.
+  Corrective action: split sensitive claim-boundary wording into same-line `No ...` or `must not ...` statements and shortened the TRACEABILITY row to point to D-0892 for the detailed no-claim list.
+  Final result: rerun reported `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: first precommit CI classifier wrapper.
+  Classification: recoverable command-shape issue because `$paths` expanded in the parent shell under `set -u` before the nested classifier command ran.
+  Corrective action: rerun the classifier with an array-safe shell invocation.
+  Final result: rerun reported `scope_class=docs_only`.
+- Failing command: first PR body preflight over the draft closeout PR body.
+  Classification: recoverable PR-body wording issue because the no-claim list used terms that the preflight treats as prohibited regardless of negation.
+  Corrective action: remove those terms from the PR body and keep the concise `no public overclaim` statement.
+  Final result: rerun reported `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- Failing command: first PR #1174 REST polling loop.
+  Classification: recoverable polling command-shape issue because the loop intentionally used a non-zero in-progress sentinel under `set -euo pipefail`, causing the shell to abort after the first healthy in-progress snapshot.
+  Corrective action: rerun the polling loop with explicit non-fatal in-progress handling.
+  Final result: rerun required and must continue until public-safety and required checks are complete and green or an actual failure appears.
+- Failing command: first follow-up origin-range added-line overclaim scan.
+  Classification: recoverable wording/scanner hygiene issue because the closeout testplan heading and a wrapped assertion placed a sensitive no-claim phrase too far from local negation.
+  Corrective action: renamed the heading with same-line `No` wording and kept the assertion's `not represented as RNG-failure-complete proof` wording on one line.
+  Final result: rerun required and must report zero affirmative overclaim findings before pushing the follow-up commit.
+
+## Closeout local validation results
+
+- Packet D validation before closeout patch: PASS.
+- qsl-backup boundary: `/usr/local/sbin/qsl-backup` SHA `e9ecff3d22ed`, codex-ops source count 1.
+- `git diff --check`: PASS.
+- Exact five-path scope guard: PASS.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan after wording recovery: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- CI scope classifier after command-shape recovery: PASS, `scope_class=docs_only`.
+- PR body preflight after wording recovery: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- Queue helper: PASS, READY_COUNT 1 and READY NA-0453.
+- Decision helper: PASS, latest D-0892 and duplicate decision count zero.
+- Exact status proof: PASS, NA-0453 READY, NA-0452 DONE, NA-0434 BLOCKED, NA-0429 BLOCKED.
+- Exact decision proof: PASS, D-0891 once, D-0892 once, D-0893 absent.
+- `RUSTFLAGS='--cfg qsc_rng_failure_test_seam' cargo test -p qsc --locked --test rng_failure_residual_surfaces -- --test-threads=1 --nocapture`: PASS.
+- `cargo test -p qsc --locked --test rng_failure_residual_surfaces -- --test-threads=1 --nocapture`: PASS.
+- `RUSTFLAGS='--cfg qsc_rng_failure_test_seam' cargo test -p qsc --locked --test rng_failure_behavior -- --test-threads=1 --nocapture`: PASS.
+- `cargo test -p qsc --locked --test rng_failure_behavior -- --test-threads=1 --nocapture`: PASS.
+- `cargo test -p qsc --locked --test key_lifecycle_zeroization -- --test-threads=1 --nocapture`: PASS.
+- `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS.
+- `cargo +stable test -p qsc --locked --test relay_auth_header relay_auth_uses_account_token_file_when_env_missing -- --test-threads=1 --nocapture`: PASS.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: PASS.
+- `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768`: PASS.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS.
+- `cargo tree -i ml-kem --locked || true`: PASS.
+- `cargo fmt --check`: PASS.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: PASS.
+- `python3 formal/run_model_checks.py`: PASS.
+- `sh -n scripts/ci/qsc_adversarial.sh`: PASS.
+- `bash -n scripts/ci/qsc_adversarial.sh`: PASS.
 - `python3 formal/model_qsc_handshake_suite_id_bounded.py`: PASS.
 - `python3 formal/run_model_checks.py`: PASS.
 - Local qsc adversarial script: stable Rust phases and provider-error step passed before local cargo-fuzz unavailability.

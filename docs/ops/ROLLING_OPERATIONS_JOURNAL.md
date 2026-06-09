@@ -88,7 +88,9 @@ Last-Updated: 2026-06-09
 - Fast staged validation passed: `git diff --cached --check`, worktree `git diff --check`, exact staged scope guard, link-check, staged leak scan, staged overclaim scan, and docs-only classifier.
 - Postpatch validation passed: PR body preflight, `sh -n` and `bash -n` for `scripts/ci/qsc_adversarial.sh`, cfg and normal qsc `rng_failure_behavior`, `key_lifecycle_zeroization`, `handshake_provider_error_no_mutation`, qsc `send_commit`, refimpl `pqkem768`, root cargo audit, nested qsc fuzz lock audit, dependency tree probes, `cargo fmt --check`, `formal/model_qsc_handshake_suite_id_bounded.py`, and `formal/run_model_checks.py`.
 - Postcommit validation passed: helper scope guard against `origin/main...HEAD`, helper link-check, helper added-line leak-scan, PR body preflight, queue parser, decision parser, added-line overclaim scan, docs-only classifier, and synthetic-event goal-lint.
-- Pending: PR creation, required checks, merge, post-merge public-safety, optional closeout, and final response file.
+- Evidence PR #1171 was opened for branch `na-0451-route-contact-attachment-rng-scope`.
+- PR #1171 first completed check polling on head `1d1dd4094f50`: public-safety success, goal-lint success, no failing attached checks, and docs-only qsc adversarial checks skipped by classifier policy.
+- Pending: updated journal-only commit checks, merge, post-merge public-safety, optional closeout, and final response file.
 
 ## NA-0451 failures / recoveries
 
@@ -104,6 +106,14 @@ Last-Updated: 2026-06-09
   Classification: recoverable command-shape mistake because the Python event writer referenced `PROOF_DIR` without the shell exporting it.
   Corrective action: exported `PROOF_DIR`, rewrote the synthetic event with base `5b15748c0aec` and head `58b22b386187`, and reran goal-lint.
   Final result: `tools/goal_lint.py` passed with `OK: goal compliance checks passed.`
+- Failing command: first PR #1171 REST polling loop.
+  Classification: recoverable command-shape mistake because the shell combined a Python heredoc with a JSON stdin here-string, causing Python to parse JSON as code before any check status was consumed.
+  Corrective action: reran the polling loop with `python3 -c` JSON parsing.
+  Final result: that correction exposed a second formatter quoting issue before status consumption.
+- Failing command: second PR #1171 REST polling loop.
+  Classification: recoverable command-shape mistake in the one-line Python formatter, because shell quoting around f-string expressions produced a syntax error before any check status was consumed.
+  Corrective action: replaced the one-line parser with a file-based JSON parser using heredoc Python code that reads a JSON file path.
+  Final result: REST polling succeeded on PR #1171 head `1d1dd4094f50`; public-safety completed success, no failing attached checks existed, and all attached checks were success or accepted skipped/neutral.
 
 # QSL-DIR-2026-06-09-300 / NA-0449 qsc RNG failure test seam implementation rolling journal
 

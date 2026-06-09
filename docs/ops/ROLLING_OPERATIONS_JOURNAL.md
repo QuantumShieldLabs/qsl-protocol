@@ -374,7 +374,7 @@ Last-Updated: 2026-06-09
 - Failing command: first REST polling loop for PR #1169 checks.
   Classification: recoverable command-shape mistake because the shell combined a Python here-doc and JSON stdin redirection, causing JSON `null` to be interpreted as Python source.
   Corrective action: stopped only the bad local polling shell process and reran check polling with corrected input handling.
-  Final result: pending corrected REST polling.
+  Final result: corrected REST polling completed successfully for PR #1169 with public-safety success, zero failing checks, and all check-runs acceptable on head `46a41303b84`.
 
 ## NA-0450 local validation results
 

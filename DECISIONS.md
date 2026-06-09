@@ -22890,3 +22890,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside NA-0447.
     - more than one READY item remains.
   - **References:** NA-0447; NA-0448; D-0881; D-0880; D-0879; D-0871; D-0869; `docs/governance/evidence/NA-0447_qsl_rng_failure_behavior_scope_authorization_plan.md`; `tests/NA-0447_qsl_rng_failure_behavior_scope_authorization_testplan.md`; `docs/governance/evidence/NA-0441_qsl_nonce_key_rng_lifecycle_read_only_audit_plan.md`; `docs/governance/evidence/NA-0446_qsl_qsc_key_lifecycle_secret_cleanup_zeroization_test_implementation_harness.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0882
+  - **Title:** NA-0447 closeout and NA-0448 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-09
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0447 is closed after qsl-protocol PR #1163 merged at `db2aaa7a831`, post-merge public-safety completed success, and D-0881 selected `RNG_FAILURE_SCOPE_QSC_TEST_SEAM_NEXT` with `NA-0448 -- QSL qsc RNG Failure Test Seam Authorization Plan` as the successor. This closeout marks NA-0447 DONE and restores NA-0448 as the sole READY successor without implementing NA-0448.
+  - **Selected successor:** `NA-0448 -- QSL qsc RNG Failure Test Seam Authorization Plan`.
+  - **Closeout proof:** PR #1163 is merged at `db2aaa7a831`; post-merge public-safety completed success; D-0881 exists once; D-0882 exists once after this closeout; D-0883 remains absent until future NA-0448 work; duplicate decision count remains zero.
+  - **NA-0448 future scope:** NA-0448 is authorization-only. It may mutate qsl-protocol governance evidence/testplan paths for NA-0448, `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; it may inspect qsc source/tests, qsc fuzz, formal, inputs, governance evidence, and relevant scripts/workflows read-only.
+  - **No implementation mutation:** This closeout does not implement RNG failure tests, test seams, fake RNG providers, runtime behavior, crypto behavior, dependency changes, Cargo manifest changes, lockfile changes, workflow changes, executable test source changes, fuzz target changes, vector changes, or formal model changes.
+  - **Protected:** F-0441-03 remains consumed by NA-0447 as a scoped evidence gap, not as completed RNG failure testing. NA-0448 must accept, reject, or refine the qsc test-seam need from evidence before any later implementation can be authorized. Exactly one READY item remains mandatory.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No RNG-failure-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. No public technical paper content is created. Cargo audit green remains dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Required behavior:**
+    - NA-0448 must preserve no runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, backup, qwork, qsl-backup, status, plan, rollback, or branch-protection mutation unless a later exact directive authorizes it.
+    - NA-0448 must preserve the public-claim boundary: no public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, RNG-failure-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
+    - Cargo audit output must remain dependency-health evidence only.
+    - Exactly one READY item remains mandatory.
+  - **Must never happen:**
+    - NA-0448 implementation starts inside this closeout.
+    - F-0441-03 is represented as RNG failure testing completed by this closeout.
+    - qsc test-seam authorization is represented as runtime error propagation implementation.
+    - refimpl provider-boundary backlog is represented as qsc runtime RNG failure proof.
+    - qshield-cli demo-local evidence is represented as qsc runtime RNG failure proof.
+    - No cargo audit output is used as public-readiness proof.
+    - No cargo audit output is used as production-readiness proof.
+    - No cargo audit output is used as public-internet-readiness proof.
+    - No cargo audit output is used as external-review-complete proof.
+    - No cargo audit output is used as crypto-complete proof.
+    - No cargo audit output is used as RNG-failure-complete proof.
+    - No cargo audit output is used as vulnerability-free proof.
+    - No cargo audit output is used as bug-free proof.
+    - No cargo audit output is used as perfect-crypto proof.
+    - No cargo audit output is used as side-channel-free proof.
+    - runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, branch-protection, README, START_HERE, website, or public-claim mutation is hidden inside this closeout.
+    - more than one READY item remains.
+  - **References:** NA-0447; NA-0448; D-0882; D-0881; D-0880; qsl-protocol PR #1163; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0447_closeout_restore_na0448_testplan.md`

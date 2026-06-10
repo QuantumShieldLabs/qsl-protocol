@@ -11,8 +11,8 @@ Last-Updated: 2026-06-10
 - Directive: QSL-DIR-2026-06-10-311 -- Execute NA-0455 QSL Provider RNG Failure Fake / Test Seam Split-Scope Authorization Plan, Optional Closeout to NA-0456.
 - Host timestamp during evidence start (America/Chicago): 2026-06-10T10:24:03-05:00.
 - Host timestamp during evidence start (UTC): 2026-06-10T15:24:03+00:00.
-- Latest journal update timestamp (America/Chicago): 2026-06-10T10:24:03-05:00.
-- Latest journal update timestamp (UTC): 2026-06-10T15:24:03+00:00.
+- Latest journal update timestamp (America/Chicago): 2026-06-10T11:06:28-05:00.
+- Latest journal update timestamp (UTC): 2026-06-10T16:06:28+00:00.
 - Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
 
 ## NA-0455 repo SHAs
@@ -23,9 +23,10 @@ Last-Updated: 2026-06-10
 - qsl-protocol origin/main after fetch: `c6dca3e2415`.
 - PR #1178 closeout merge: `c6dca3e2415`.
 - Evidence branch: `na-0455-provider-rng-split-scope`.
-- Evidence PR: pending.
-- Evidence merge commit: pending.
-- Closeout branch: pending.
+- Evidence PR: qsl-protocol PR #1179.
+- Evidence merge commit: `a9287b30634f`.
+- Evidence head commit: `ee47d958bc67`.
+- Closeout branch: `na-0455-closeout-restore-na0456`.
 - Closeout PR: pending.
 - Closeout merge commit: pending.
 
@@ -106,6 +107,14 @@ Last-Updated: 2026-06-10
   Classification: recoverable local tooling limitation because adversarial properties, miri-shaped adversarial tests, and the NA-0439 provider-error no-mutation step passed before local cargo-fuzz availability stopped the script.
   Corrective action: no toolchain, dependency, Cargo, lockfile, or workflow mutation; record exact output and require PR CI qsc-adversarial-smoke if attached or required.
   Final result: stable local script phases passed; local cargo-fuzz remains unavailable with `error: no such command: fuzz`.
+- Failing command: GitHub CLI and GraphQL operations during PR creation/check capture.
+  Classification: recoverable transient/external authentication instability because `gh auth status` showed the expected account/scopes while selected REST endpoints continued to work and selected GraphQL/user endpoints returned HTTP 401.
+  Corrective action: no credential mutation; user verified `gh auth status`; used REST endpoints and the GitHub connector where available.
+  Final result: PR #1179 was created and merged through REST with expected head SHA `ee47d958bc67`.
+- Failing command: `gh run rerun <CodeQL run> --failed` for the failed lower-level CodeQL analyzer jobs on PR #1179.
+  Classification: non-required CI advisory failure recovery attempt; the failed analyzer logs showed GitHub code-scanning authentication/upload errors, not source/test failures, while the branch-protection required aggregate `CodeQL` context was neutral/skipping and public-safety completed success.
+  Corrective action: attempted the allowed bounded retry once per affected CodeQL run; GitHub rejected both with `This workflow run cannot be retried`.
+  Final result: required checks and public-safety were accepted by repo policy; optional lower-level CodeQL analyzer upload failures were recorded as operational friction.
 
 ## NA-0455 governance patch notes
 
@@ -139,8 +148,18 @@ Last-Updated: 2026-06-10
 - `cargo fmt --check`: PASS.
 - Formal model checks: PASS.
 - Local qsc adversarial script: stable Rust phases and provider-error step passed before local cargo-fuzz unavailability.
-- Evidence PR pending.
-- Optional closeout may restore `NA-0456 -- QSL qsc Provider RNG Failure No-Mutation Scope Authorization Plan` only after evidence PR merge and post-merge public-safety success.
+- Evidence PR #1179 merged with merge commit `a9287b30634f`.
+- Post-merge public-safety on `a9287b30634f`: PASS.
+- Optional closeout started after evidence PR merge and post-merge public-safety success.
+
+## NA-0455 closeout patch notes
+
+- Marked NA-0455 DONE.
+- Restored `NA-0456 -- QSL qsc Provider RNG Failure No-Mutation Scope Authorization Plan` as READY.
+- Added D-0898.
+- Added closeout TRACEABILITY row.
+- Added closeout testplan.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, backup tree, or public-surface mutation is intentionally performed.
 
 # QSL-DIR-2026-06-10-310 / NA-0454 provider RNG fake seam strategy authorization rolling journal
 

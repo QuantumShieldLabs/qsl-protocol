@@ -24861,7 +24861,7 @@ Closeout evidence:
 ---
 
 ### NA-0456 — QSL qsc Provider RNG Failure No-Mutation Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -24940,6 +24940,110 @@ Deliverables:
 Acceptance criteria:
 - qsc provider-dependent RNG failure no-mutation scope is selected or rejected
   with evidence.
+- exact future scope is selected from evidence.
+- no implementation mutation occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+Closeout evidence:
+- qsl-protocol evidence PR: #1181.
+- qsl-protocol evidence merge SHA: `9bf5e002657c`.
+- Evidence head SHA: `e153ceab27ac`.
+- Selected classification:
+  `QSC_PROVIDER_RNG_NO_MUTATION_REQUIRES_FAKE_SEAM_STRATEGY`.
+- Selected successor:
+  `NA-0457 -- QSL qsc Provider RNG Failure Fake / Test Seam Strategy Authorization Plan`.
+- Post-merge public-safety completed success on `9bf5e002657c`.
+- This closeout does not implement NA-0457, does not mutate runtime code,
+  crypto code, dependencies, Cargo manifests, lockfiles, workflows,
+  executable tests, fuzz targets, vectors, formal models, qsl-server,
+  qsl-attachments, qshield runtime, qshield-cli, website, public docs,
+  README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status,
+  backup plan, rollback, backup tree, or public-claim surfaces.
+
+---
+
+### NA-0457 — QSL qsc Provider RNG Failure Fake / Test Seam Strategy Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the exact future qsc fake/test-seam strategy for provider-dependent
+RNG failure no-mutation evidence after NA-0456 qsc scope review, preserving
+no-runtime/no-crypto/no-dependency/no-public-claim boundaries unless a later
+directive authorizes precise implementation.
+
+Protects:
+- qsc provider-dependent RNG failure no-mutation evidence quality.
+- qsc/refimpl boundary clarity.
+- fail-closed handling around randomness-dependent provider operations.
+- production semantic stability.
+- key lifecycle and provider boundary confidence after ml-kem replacement,
+  provider-error audit work, qsc zeroization tests, initial RNG failure seam
+  work, route/contact/attachment RNG seam work, provider RNG strategy review,
+  split-scope review, and qsc-first no-mutation scope review.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0457.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of:
+  - qsl/qsl-client/qsc/src/
+  - qsl/qsl-client/qsc/tests/
+  - tools/refimpl/
+  - docs/governance/evidence/
+  - qsl/qsl-client/qsc/fuzz/
+  - formal/
+  - inputs/
+  - relevant scripts/workflows read-only.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, Cargo, lockfile, workflow, qsl-server,
+  qsl-attachments, qshield runtime, website, public docs, README, or START_HERE
+  paths.
+- Mutating tests, fuzz target source, vectors, or formal models unless a later
+  implementation directive authorizes exact paths.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- No creating public technical paper content.
+- No creating or implying production readiness.
+- No creating or implying public-internet readiness.
+- No creating or implying external-review completion.
+- No creating or implying metadata-free behavior.
+- No creating or implying anonymity.
+- No creating or implying untraceability.
+- No creating or implying off-host backup completion.
+- No creating or implying disaster recovery completion.
+- No creating or implying restore proof.
+- No creating or implying backup completion.
+- No creating or implying bug-free status.
+- No creating or implying vulnerability-free status.
+- No creating or implying perfect-crypto status.
+- No creating or implying side-channel-free status.
+- No creating or implying RNG-failure-complete status.
+- No creating or implying provider-RNG-complete status.
+- No creating or implying secret-material-complete status.
+- No creating or implying crypto-complete status.
+- Secret material handling outside read-only source/evidence inspection.
+
+Deliverables:
+- NA-0457 evidence doc.
+- NA-0457 testplan.
+- D-0901 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- selected exact successor or no-action rationale.
+
+Acceptance criteria:
+- qsc provider RNG fake/seam strategy is selected or rejected with evidence.
 - exact future scope is selected from evidence.
 - no implementation mutation occurs.
 - cargo audit remains green.

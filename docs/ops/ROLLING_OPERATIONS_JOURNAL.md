@@ -11,8 +11,8 @@ Last-Updated: 2026-06-10
 - Directive: QSL-DIR-2026-06-10-313 -- Execute NA-0456 QSL qsc Provider RNG Failure No-Mutation Scope Authorization Plan, Optional Closeout to NA-0457.
 - Host timestamp during evidence start (America/Chicago): 2026-06-10T12:40:46-05:00.
 - Host timestamp during evidence start (UTC): 2026-06-10T17:40:46+00:00.
-- Latest journal update timestamp (America/Chicago): 2026-06-10T13:00:49-05:00.
-- Latest journal update timestamp (UTC): 2026-06-10T18:00:49+00:00.
+- Latest journal update timestamp (America/Chicago): 2026-06-10T13:20:38-05:00.
+- Latest journal update timestamp (UTC): 2026-06-10T18:20:38+00:00.
 - Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
 
 ## NA-0456 repo SHAs
@@ -23,10 +23,10 @@ Last-Updated: 2026-06-10
 - qsl-protocol origin/main after fetch: `e9671c244a5f`.
 - PR #1180 closeout merge: `e9671c244a5f`.
 - Evidence branch: `na-0456-qsc-provider-rng-no-mutation-scope`.
-- Evidence PR: pending.
-- Evidence merge commit: pending.
-- Evidence head commit: pending.
-- Closeout branch: pending.
+- Evidence PR: qsl-protocol PR #1181.
+- Evidence merge commit: `9bf5e002657c`.
+- Evidence head commit: `e153ceab27ac`.
+- Closeout branch: `na-0456-closeout-restore-na0457`.
 - Closeout PR: pending.
 - Closeout merge commit: pending.
 
@@ -78,6 +78,14 @@ Last-Updated: 2026-06-10
 
 ## NA-0456 failures / recoveries
 
+- Failing command: first PR #1181 REST check polling script.
+  Classification: recoverable command-shape issue because JSON was accidentally fed to Python as source.
+  Corrective action: corrected the polling script once.
+  Final result: the first correction exposed a different local argument-size limit; file-based REST polling then completed successfully.
+- Failing command: second PR #1181 REST check polling script.
+  Classification: recoverable command-shape issue with a different root cause because the check-runs JSON was too large for environment-variable transfer.
+  Corrective action: wrote check-runs JSON to a proof-root temp file and parsed that file.
+  Final result: PASS, PR #1181 checks attached and completed non-failing.
 - Failing command: `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked` under the directive's `|| true` inventory shape.
   Classification: recoverable valid zero-match discovery outcome because those packages are expected to be absent from the locked graph.
   Corrective action: record the nonzero exits as inventory evidence without treating them as hard failures.
@@ -121,6 +129,43 @@ Last-Updated: 2026-06-10
 - `cargo fmt --check`: PASS.
 - Formal model checks: PASS.
 - Local qsc adversarial smoke: stable local phases PASS; local cargo-fuzz unavailable recorded.
+
+## NA-0456 evidence PR / merge notes
+
+- PR #1181 opened with title `NA-0456: authorize qsc provider rng no mutation scope`.
+- PR #1181 body carried the required standalone `Goals: G1, G2, G3, G4, G5` line.
+- PR-level goal-lint wrapper: PASS.
+- CI admission preflight classified PR #1181 as docs-only with no circular dependency risk.
+- PR #1181 REST polling completed with all attached checks non-failing; public-safety completed success and CodeQL completed success.
+- PR #1181 merged as merge commit `9bf5e002657c`.
+- The remote evidence branch disappeared after merge even though Codex did not pass a branch-deletion flag; recorded as operational friction.
+- Immediate post-merge public-safety helper returned missing/ambiguous while qsc-adversarial-smoke was still in progress.
+  Classification: recoverable post-merge CI attachment latency.
+  Corrective action: used REST polling for merge commit `9bf5e002657c`.
+  Final result: post-merge public-safety attached and completed success.
+
+## NA-0456 closeout notes
+
+- Added D-0900 for NA-0456 closeout and NA-0457 restoration.
+- Marked NA-0456 DONE.
+- Restored `NA-0457 -- QSL qsc Provider RNG Failure Fake / Test Seam Strategy Authorization Plan` as READY.
+- Added `tests/NA-0456_closeout_restore_na0457_testplan.md`.
+- This closeout does not implement NA-0457 and does not mutate runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback, or backup tree paths.
+
+## NA-0456 closeout failures / recoveries
+
+- Failing command: closeout added-line overclaim scans.
+  Classification: recoverable documentation wording issue because forbidden-claim lines, including a public technical paper content line, carried sensitive phrases without same-line denial context.
+  Corrective action: reworded the NA-0457 forbidden-scope lines so each sensitive phrase carries explicit same-line `No` denial context.
+  Final result: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: first closeout PR body preflight invocation.
+  Classification: recoverable local command-shape/setup issue because the proof-root PR body file had not yet been created.
+  Corrective action: created the closeout PR body file in the proof root and reran the preflight.
+  Final result: PASS, `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- Failing command: first exact closeout decision-count proof script.
+  Classification: recoverable command-shape issue because the parser matched the wrong Markdown decision-ID heading shape.
+  Corrective action: corrected the decision-ID pattern to the existing `- **ID:** D-####` shape and reran the post-commit local gate.
+  Final result: PASS, D-0899 exists once, D-0900 exists once, D-0901 is absent, and duplicate decision count is zero.
 
 # QSL-DIR-2026-06-10-311 / NA-0455 provider RNG split-scope authorization rolling journal
 

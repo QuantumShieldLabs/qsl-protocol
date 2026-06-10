@@ -11,8 +11,8 @@ Last-Updated: 2026-06-10
 - Directive: QSL-DIR-2026-06-10-310 -- Execute NA-0454 QSL Provider RNG Failure Fake / Test Seam Strategy Authorization Plan, Optional Closeout to NA-0455.
 - Host timestamp during evidence start (America/Chicago): 2026-06-10T09:15:56-05:00.
 - Host timestamp during evidence start (UTC): 2026-06-10T14:15:56+00:00.
-- Latest journal update timestamp (America/Chicago): 2026-06-10T10:02:15-05:00.
-- Latest journal update timestamp (UTC): 2026-06-10T15:02:15+00:00.
+- Latest journal update timestamp (America/Chicago): 2026-06-10T09:48:05-05:00.
+- Latest journal update timestamp (UTC): 2026-06-10T14:48:05+00:00.
 - Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
 
 ## NA-0454 repo SHAs
@@ -22,9 +22,12 @@ Last-Updated: 2026-06-10
 - qsl-protocol main before evidence branch: `7009a0c29f0d`.
 - qsl-protocol origin/main after fetch: `7009a0c29f0d`.
 - PR #1176 closeout merge: `7009a0c29f0d`.
-- Evidence branch: pending.
-- Evidence PR: pending.
-- Evidence merge commit: pending.
+- Evidence branch: `na-0454-provider-rng-fake-seam-strategy`.
+- Evidence PR: qsl-protocol PR #1177.
+- Evidence merge commit: `390fce0d5d8c`.
+- Closeout branch: `na-0454-closeout-restore-na0455`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
 
 ## NA-0454 READY proof
 
@@ -88,6 +91,10 @@ Last-Updated: 2026-06-10
   Classification: recoverable local tooling limitation because stable adversarial properties, miri-shaped adversarial tests, and the NA-0439 provider-error no-mutation step passed before local cargo-fuzz availability stopped the script.
   Corrective action: no toolchain, dependency, Cargo, lockfile, or workflow mutation; record exact output and require PR CI qsc-adversarial-smoke if attached or required.
   Final result: stable local script phases passed; local cargo-fuzz remains unavailable with `error: no such command: fuzz`.
+- Failing command: first post-merge public-safety polling loop for PR #1177 stopped when `PUBLIC_SAFETY_AMBIGUOUS yes` was reported while qsc-adversarial-smoke was still in progress.
+  Classification: recoverable polling command-shape issue under the evidence-based post-merge wait policy because checks were attached, non-failing, and showing normal progress.
+  Corrective action: reran REST polling under Packet O, stopping only on failure or public-safety success.
+  Final result: PASS, public-safety completed success on `390fce0d5d8c` and qsc-adversarial-smoke completed success.
 
 ## NA-0454 governance patch notes
 
@@ -122,8 +129,21 @@ Last-Updated: 2026-06-10
 - `cargo fmt --check`: PASS.
 - Formal model checks: PASS.
 - Local qsc adversarial script: stable Rust phases and provider-error step passed before local cargo-fuzz unavailability.
-- Evidence PR remains pending.
-- Optional closeout may restore `NA-0455 -- QSL Provider RNG Failure Fake / Test Seam Split-Scope Authorization Plan` only after evidence PR merge and post-merge public-safety success.
+- Evidence PR #1177 merged at `390fce0d5d8c`.
+- Post-merge public-safety on `390fce0d5d8c`: PASS.
+- qsc-adversarial-smoke on `390fce0d5d8c`: PASS.
+- Optional closeout is active after evidence PR merge and post-merge public-safety success.
+
+## NA-0454 closeout notes
+
+- Closeout branch: `na-0454-closeout-restore-na0455`.
+- Closeout scope is limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0454_closeout_restore_na0455_testplan.md`.
+- Added D-0896 for NA-0454 closeout and NA-0455 restoration.
+- Marked NA-0454 DONE.
+- Restored `NA-0455 -- QSL Provider RNG Failure Fake / Test Seam Split-Scope Authorization Plan` as READY.
+- NA-0455 remains split-scope authorization only and does not implement fake providers, test seams, executable tests, runtime behavior, crypto behavior, dependency changes, Cargo or lockfile changes, workflow changes, fuzz targets, vectors, formal models, service paths, public surfaces, qwork tooling, backup/restore paths, qsl-backup, backup status, or backup plan files.
+- Provider-dependent qsc RNG and refimpl/provider RNG remain residual gaps.
+- No public-readiness, production-readiness, external-review-complete, crypto-complete, RNG-failure-complete, provider-RNG-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim is made.
 
 # QSL-DIR-2026-06-09-305 / NA-0452 qsc route contact attachment RNG failure seam rolling journal
 

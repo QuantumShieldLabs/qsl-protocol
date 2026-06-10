@@ -22165,7 +22165,21 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
 
 ## Failures / recoveries
 
-- None so far.
+- Failing command: staged added-line affirmative overclaim scan.
+  Classification: recoverable wording-shape issue because one future-forbidden
+  claim list wrapped prohibited phrases onto continuation lines without
+  same-line negation.
+  Corrective action: rewrote the future forbidden-scope caveat so each
+  prohibited claim phrase carries same-line `no` wording.
+  Final result: `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: `scripts/ci/qsc_adversarial.sh` local smoke.
+  Classification: recoverable local-tooling limitation anticipated by the
+  directive because the script's Rust test phases passed and the command then
+  stopped at unavailable local `cargo fuzz` subcommand.
+  Corrective action: recorded exact output in the proof root and preserved PR
+  CI qsc-adversarial-smoke as the required cargo-fuzz-backed evidence.
+  Final result: local Rust phases PASS; local cargo-fuzz unavailable; PR CI
+  proof pending.
 
 ## Validation / CI notes
 
@@ -30005,6 +30019,104 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Run link, leak, overclaim, classifier, PR body preflight, goal-lint, Rust, audit, fmt, formal, and qsc adversarial validations.
 - Merge only after required checks pass.
 - Optional closeout to NA-0441 only after evidence PR merges and post-merge public-safety is green.
+
+# QSL-DIR-2026-06-10-314 / NA-0457 qsc provider RNG fake/test-seam strategy rolling journal
+
+- Directive: QSL-DIR-2026-06-10-314 -- Execute NA-0457 QSL qsc Provider RNG Failure Fake / Test Seam Strategy Authorization Plan, Optional Closeout to NA-0458.
+- Begin timestamp (America/Chicago): 2026-06-10T18:18:44-05:00
+- Begin timestamp (UTC): 2026-06-10T23:18:44+00:00
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0457-qsc-provider-rng-fake-seam-strategy`
+- qsl-protocol HEAD before patch: `7b04809fac1d`
+- qsl-protocol main before patch: `7b04809fac1d`
+- qsl-protocol origin/main before patch: `7b04809fac1d`
+- qsl-protocol mirror/main: not refreshed by this directive.
+
+## READY proof
+
+- qwork proof: startup OK for lane NA-0457, repo qsl-protocol, clean worktree/index/untracked state, proof HEAD and proof origin/main both `7b04809fac1d`.
+- Pre-fetch live proof: HEAD and origin/main matched qwork proof at `7b04809fac1d`.
+- Fetch result: origin/main did not advance.
+- PR #1182 proof: MERGED at `7b04809fac1d`.
+- Queue proof before patch: READY_COUNT 1, READY NA-0457.
+- Decision proof before patch: latest D-0900, D-0899 once, D-0900 once, D-0901 absent, duplicate decision count zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0457/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0457_qsc_provider_rng_fake_seam_strategy_20260610T231832Z`.
+- Evidence branch: `na-0457-qsc-provider-rng-fake-seam-strategy`.
+- Evidence PR: pending.
+- Evidence merge commit: pending.
+
+## Strategy notes
+
+- Selected primary classification: `QSC_PROVIDER_RNG_KEM_FAKE_SEAM_IMPLEMENTATION_READY`.
+- Selected successor: `NA-0458 -- QSL qsc KEM Provider RNG Failure Fake / Test Seam Implementation Harness`.
+- Selected future mechanism: qsc cfg-only KEM provider RNG failure labels at qsc-visible KEM keypair and responder KEM encap boundaries.
+- Exact future source/test paths: `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/tests/kem_provider_rng_failure.rs`.
+- Signature/identity and X25519 remain residual; refimpl provider RNG remains deferred.
+- No implementation mutation in NA-0457.
+
+## Failures / recoveries
+
+- None so far.
+
+## Non-fatal warnings / zero-match notes
+
+- Nested qsc fuzz lock cargo audit emitted an advisory-db lock wait warning, then completed successfully.
+- Root pqcrypto inverse probes reported package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`; these were expected zero-match inventory results under the directive's `|| true` probes.
+
+## Validation / CI notes
+
+- Public-safety on current main `7b04809fac1d`: PASS; qsc-adversarial-smoke PASS; full-suite checks accepted skipped by repo policy.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- qsc cfg `rng_failure_residual_surfaces`: PASS.
+- qsc normal `rng_failure_residual_surfaces`: PASS.
+- qsc cfg `rng_failure_behavior`: PASS.
+- qsc normal `rng_failure_behavior`: PASS.
+- qsc `key_lifecycle_zeroization`: PASS.
+- qsc `handshake_provider_error_no_mutation`: PASS.
+- qsc adversarial script marker present.
+- qsc adversarial local smoke: Rust phases PASS; local cargo-fuzz unavailable,
+  PR CI proof pending.
+- qsl-backup SHA matched required boundary value; script-local ops source inclusion count was 1.
+- Post-patch governance validation: `git diff --check` PASS; cached diff check
+  PASS; staged path guard PASS with exactly five allowed paths; link-check
+  PASS; leak-scan PASS; overclaim scan PASS; PR body preflight PASS; queue and
+  decision helpers PASS; qsc adversarial script syntax PASS.
+- Post-patch Rust validation: cfg/no-cfg `rng_failure_residual_surfaces` PASS;
+  cfg/no-cfg `rng_failure_behavior` PASS; `key_lifecycle_zeroization` PASS;
+  `handshake_provider_error_no_mutation` PASS; stable `send_commit` PASS;
+  refimpl `pqkem768` PASS.
+- Post-patch dependency/format/formal validation: root cargo audit PASS; nested
+  qsc fuzz lock audit PASS; `rustls-webpki` and `ml-kem` inverse trees PASS;
+  pqcrypto inverse probes remain expected zero-match inventory; `cargo fmt
+  --check` PASS; formal model checks PASS.
+- Full post-patch validation: PASS except local qsc adversarial cargo-fuzz phase
+  unavailable as recorded above; PR CI qsc-adversarial-smoke remains required.
+- Protected checks: pending PR.
+
+## Disk watermark
+
+- Filesystem: `/`.
+- Total GiB: 468.
+- Used GiB: 275.
+- Free GiB: 169.
+- Used %: 62%.
+
+## Next-watch items
+
+- Complete exact five-path scope guard after patch.
+- Run link-check, leak-scan, overclaim scan, classifier, PR body preflight, goal-lint, Rust, audit, fmt, formal, and qsc adversarial validations.
+- Merge only after required checks pass.
+- Optional closeout to NA-0458 only after evidence PR merges and post-merge public-safety is green.
 
 # QSL-DIR-2026-06-07-290 / NA-0440 closeout and NA-0441 restoration rolling journal
 

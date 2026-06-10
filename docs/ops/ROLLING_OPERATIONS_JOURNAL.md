@@ -1991,8 +1991,8 @@ Last-Updated: 2026-06-10
 - Directive begin timestamp (UTC): 2026-06-08T13:04:30Z
 - Host timestamp during evidence start (America/Chicago): 2026-06-08T08:15:33-05:00
 - Host timestamp during evidence start (UTC): 2026-06-08T13:15:33+00:00
-- End timestamp (America/Chicago): pending
-- End timestamp (UTC): pending
+- End timestamp (America/Chicago): pending closeout merge
+- End timestamp (UTC): pending closeout merge
 
 ## Repo SHAs
 
@@ -22178,8 +22178,16 @@ Repo: qsl-protocol plus sibling qsl-server docs repair
   stopped at unavailable local `cargo fuzz` subcommand.
   Corrective action: recorded exact output in the proof root and preserved PR
   CI qsc-adversarial-smoke as the required cargo-fuzz-backed evidence.
-  Final result: local Rust phases PASS; local cargo-fuzz unavailable; PR CI
-  proof pending.
+  Final result: local Rust phases PASS; local cargo-fuzz unavailable; PR #1183
+  qsc-adversarial-smoke completed success.
+- Failing command: first post-merge public-safety helper check on PR #1183 merge
+  commit.
+  Classification: recoverable post-merge check propagation state because
+  public-safety was missing while qsc-adversarial-smoke was still in progress
+  and no check had failed.
+  Corrective action: used bounded REST polling per directive policy.
+  Final result: public-safety completed success on `82d99b26a50d` with zero
+  post-merge check failures.
 
 ## Validation / CI notes
 
@@ -28382,8 +28390,12 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - qsl-protocol HEAD after fetch: `dc0adc8aebd6`.
 - qsl-protocol origin/main after fetch: `dc0adc8aebd6`.
 - Evidence branch: `na-0445-qsc-key-lifecycle-zeroization-test-scope`.
-- Evidence PR: pending.
-- Evidence merge commit: pending.
+- Evidence PR: #1183.
+- Evidence head commit: `0afe4cf65279`.
+- Evidence merge commit: `82d99b26a50d`.
+- Closeout branch: `na-0457-closeout-restore-na0458`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
 
 ## READY proof
 
@@ -30065,7 +30077,13 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 ## Failures / recoveries
 
-- None so far.
+- Failing command: staged helper scope guard using `--head :`.
+  Classification: recoverable command-shape issue because the helper compares
+  commits/refs and does not accept the staged index as a `--head` object.
+  Corrective action: reran the staged path guard with `git diff --cached
+  --name-only` and exact allowed-path comparison.
+  Final result: staged path guard PASS with exactly the five allowed closeout
+  paths and zero extra or missing paths.
 
 ## Non-fatal warnings / zero-match notes
 
@@ -30084,8 +30102,8 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - qsc `key_lifecycle_zeroization`: PASS.
 - qsc `handshake_provider_error_no_mutation`: PASS.
 - qsc adversarial script marker present.
-- qsc adversarial local smoke: Rust phases PASS; local cargo-fuzz unavailable,
-  PR CI proof pending.
+- qsc adversarial local smoke: Rust phases PASS; local cargo-fuzz unavailable;
+  PR #1183 CI qsc-adversarial-smoke completed success after merge.
 - qsl-backup SHA matched required boundary value; script-local ops source inclusion count was 1.
 - Post-patch governance validation: `git diff --check` PASS; cached diff check
   PASS; staged path guard PASS with exactly five allowed paths; link-check
@@ -30100,8 +30118,15 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
   pqcrypto inverse probes remain expected zero-match inventory; `cargo fmt
   --check` PASS; formal model checks PASS.
 - Full post-patch validation: PASS except local qsc adversarial cargo-fuzz phase
-  unavailable as recorded above; PR CI qsc-adversarial-smoke remains required.
-- Protected checks: pending PR.
+  unavailable as recorded above; PR CI supplied qsc-adversarial-smoke proof.
+- Evidence PR checks: PR #1183 completed with zero failures before merge.
+- Evidence post-merge checks: public-safety completed success on `82d99b26a50d`
+  after bounded REST polling; qsc-adversarial-smoke completed success.
+- Closeout validation: staged five-path scope guard PASS; link-check PASS;
+  leak-scan PASS; overclaim scan PASS; queue proof READY NA-0458 PASS;
+  decision proof D-0902 once and D-0903 absent PASS; PR body preflight PASS;
+  root cargo audit PASS; nested qsc fuzz lock audit PASS.
+- Closeout protected checks: pending PR.
 
 ## Disk watermark
 
@@ -30113,10 +30138,9 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 ## Next-watch items
 
-- Complete exact five-path scope guard after patch.
-- Run link-check, leak-scan, overclaim scan, classifier, PR body preflight, goal-lint, Rust, audit, fmt, formal, and qsc adversarial validations.
-- Merge only after required checks pass.
-- Optional closeout to NA-0458 only after evidence PR merges and post-merge public-safety is green.
+- Create closeout PR and wait for required checks.
+- Merge closeout only after required checks pass and public-safety is green.
+- Do not implement NA-0458 inside closeout.
 
 # QSL-DIR-2026-06-07-290 / NA-0440 closeout and NA-0441 restoration rolling journal
 

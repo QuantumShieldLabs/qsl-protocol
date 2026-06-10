@@ -23530,3 +23530,53 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output must not be used as side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0454; NA-0455; D-0896; D-0895; qsl-protocol PR #1177; `docs/governance/evidence/NA-0454_qsl_provider_rng_failure_fake_test_seam_strategy_authorization_plan.md`; `tests/NA-0454_qsl_provider_rng_failure_fake_test_seam_strategy_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0454_closeout_restore_na0455_testplan.md`
+
+- **ID:** D-0897
+  - **Title:** NA-0455 provider rng failure fake test seam split scope authorization
+  - **Status:** Accepted
+  - **Date:** 2026-06-10
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0455 consumes NA-0454 and classifies provider RNG split-scope strategy as `PROVIDER_RNG_SPLIT_QSC_FIRST`. qsc state/no-mutation call sites are exact enough for the next authorization lane; refimpl/provider boundary proof remains important but needs separate trait/helper/cfg shape decisions before it can safely come first.
+  - **Selected successor:** `NA-0456 -- QSL qsc Provider RNG Failure No-Mutation Scope Authorization Plan`.
+  - **Future NA-0456 governance paths:** `docs/governance/evidence/NA-0456_qsl_qsc_provider_rng_failure_no_mutation_scope_authorization_plan.md`; `tests/NA-0456_qsl_qsc_provider_rng_failure_no_mutation_scope_authorization_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+  - **Future candidate qsc implementation paths, not authorized by NA-0455:** `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/src/identity/mod.rs`; one exact future qsc test path under `qsl/qsl-client/qsc/tests/`.
+  - **Exact future scope:** NA-0456 is qsc no-mutation scope authorization only. It may inspect qsc/refimpl/provider RNG surfaces read-only and must select, further split, or reject exact qsc-side implementation scope before any implementation lane.
+  - **No implementation mutation:** NA-0455 does not implement tests, test seams, fake providers, runtime behavior, crypto behavior, dependency changes, Cargo manifest changes, lockfile changes, workflow changes, executable test source changes, fuzz target changes, vector changes, formal model changes, qsl-server changes, qsl-attachments changes, qshield runtime changes, qshield-cli changes, website changes, public-doc changes, README changes, START_HERE changes, backup/restore/local-ops changes, qsl-backup changes, or qwork tooling changes.
+  - **Stewardship:** The Level 1 stewardship template was used. Level 2 and Level 3 remain future-gated. Lead Director final authority is preserved. No separate Directors, independent READY promotion, or independent merge authority is introduced.
+  - **Public claim boundary:**
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No public crypto-complete claim is made.
+    - No RNG-failure-complete claim is made.
+    - No provider-RNG-complete claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No perfect-crypto claim is made.
+    - Cargo audit green remains dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Required behavior:**
+    - Exactly one READY item remains mandatory.
+    - NA-0456 must preserve no-runtime/no-crypto/no-dependency/no-workflow/no-public-overclaim boundaries unless a later exact implementation directive changes scope.
+    - qsc-first evidence must remain bounded qsc no-mutation evidence and must not be represented as refimpl provider-boundary completion.
+    - Provider RNG evidence gaps remain gaps and must not be converted into security guarantees.
+  - **Must never happen:**
+    - NA-0456 implementation starts inside NA-0455.
+    - A future lane mutates runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, README, START_HERE, website, or public-claim scope without exact authorization.
+    - Provider-dependent qsc RNG or refimpl/provider RNG is represented as completed by NA-0455.
+    - Cargo audit output must not be used as public-readiness proof.
+    - Cargo audit output must not be used as production-readiness proof.
+    - Cargo audit output must not be used as public-internet-readiness proof.
+    - Cargo audit output must not be used as external-review-complete proof.
+    - Cargo audit output must not be used as crypto-complete proof.
+    - Cargo audit output must not be used as RNG-failure-complete proof.
+    - Cargo audit output must not be used as provider-RNG-complete proof.
+    - Cargo audit output must not be used as vulnerability-free proof.
+    - Cargo audit output must not be used as bug-free proof.
+    - Cargo audit output must not be used as perfect-crypto proof.
+    - Cargo audit output must not be used as side-channel-free proof.
+    - more than one READY item remains.
+  - **References:** NA-0455; NA-0456; D-0897; D-0896; D-0895; `docs/governance/evidence/NA-0455_qsl_provider_rng_failure_fake_test_seam_split_scope_authorization_plan.md`; `tests/NA-0455_qsl_provider_rng_failure_fake_test_seam_split_scope_authorization_testplan.md`; `docs/governance/evidence/NA-0454_qsl_provider_rng_failure_fake_test_seam_strategy_authorization_plan.md`; `tests/NA-0454_qsl_provider_rng_failure_fake_test_seam_strategy_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

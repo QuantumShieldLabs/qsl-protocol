@@ -6,6 +6,142 @@ Last-Updated: 2026-06-10
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-10-311 / NA-0455 provider RNG split-scope authorization rolling journal
+
+- Directive: QSL-DIR-2026-06-10-311 -- Execute NA-0455 QSL Provider RNG Failure Fake / Test Seam Split-Scope Authorization Plan, Optional Closeout to NA-0456.
+- Host timestamp during evidence start (America/Chicago): 2026-06-10T10:24:03-05:00.
+- Host timestamp during evidence start (UTC): 2026-06-10T15:24:03+00:00.
+- Latest journal update timestamp (America/Chicago): 2026-06-10T10:24:03-05:00.
+- Latest journal update timestamp (UTC): 2026-06-10T15:24:03+00:00.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## NA-0455 repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0455/qsl-protocol`.
+- qwork proof HEAD and origin/main: `c6dca3e2415`.
+- qsl-protocol main before evidence branch: `c6dca3e2415`.
+- qsl-protocol origin/main after fetch: `c6dca3e2415`.
+- PR #1178 closeout merge: `c6dca3e2415`.
+- Evidence branch: `na-0455-provider-rng-split-scope`.
+- Evidence PR: pending.
+- Evidence merge commit: pending.
+- Closeout branch: pending.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
+
+## NA-0455 READY proof
+
+- qwork proof files existed under the NA-0455 workspace `.qwork` directory.
+- qwork `.kv` proof markers passed: startup OK, lane NA-0455, repo qsl-protocol, expected path, clean worktree/index/untracked state, head equals origin/main, READY_COUNT 1, queue top READY NA-0455, and requested lane status READY.
+- qwork JSON parsed successfully and mirrored the `.kv` proof for lane, repo, path, HEAD, origin/main, clean-state fields, READY count, top READY item, and requested lane status.
+- Codex did not run qwork, qstart, or qresume.
+- Proof HEAD and proof `origin/main` matched live local refs before fetch.
+- Fetch did not advance `origin/main` beyond the qwork proof.
+- PR #1178 was verified merged at `c6dca3e2415` through the GitHub connector after `gh pr view` hit a repeat GraphQL authentication error.
+- Queue helper before patch: READY_COUNT 1 and READY NA-0455.
+- Decision helper before patch: latest D-0896 and duplicate decision count zero.
+- Public-safety on current main completed success.
+
+## NA-0455 proof root
+
+- Proof root: `/srv/qbuild/tmp/NA0455_provider_rng_fake_seam_split_scope_20260610T152352Z`.
+- qwork proof files were copied into the proof root.
+- Prior response files from NA-0454, NA-0453, and NA-0452 were present.
+
+## NA-0455 inherited validation notes
+
+- Root `cargo audit --deny warnings`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- Root pqcrypto inverse probes returned expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+- Nested qsc fuzz lock audit: PASS.
+- Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
+- `RUSTFLAGS='--cfg qsc_rng_failure_test_seam' cargo test -p qsc --locked --test rng_failure_residual_surfaces -- --test-threads=1 --nocapture`: PASS.
+- `cargo test -p qsc --locked --test rng_failure_residual_surfaces -- --test-threads=1 --nocapture`: PASS.
+- `RUSTFLAGS='--cfg qsc_rng_failure_test_seam' cargo test -p qsc --locked --test rng_failure_behavior -- --test-threads=1 --nocapture`: PASS.
+- `cargo test -p qsc --locked --test rng_failure_behavior -- --test-threads=1 --nocapture`: PASS.
+- `cargo test -p qsc --locked --test key_lifecycle_zeroization -- --test-threads=1 --nocapture`: PASS.
+- `cargo test -p qsc --locked --test handshake_provider_error_no_mutation -- --test-threads=1 --nocapture`: PASS.
+- `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`: PASS.
+- `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768`: PASS.
+- qsc adversarial script marker scan found the NA-0439 provider-error step.
+- qsc adversarial script syntax checks passed under `sh -n` and `bash -n`.
+- Formal model checks passed.
+- qsl-backup SHA matched the expected full hash; Codex ops source-list inclusion count was exactly one.
+
+## NA-0455 split-scope notes
+
+- NA-0454 selected `PROVIDER_RNG_FAKE_SEAM_SPLIT_SCOPE_NEEDED`.
+- qsc owns exact visible no-mutation call sites in `qsl/qsl-client/qsc/src/handshake/mod.rs` and `qsl/qsl-client/qsc/src/identity/mod.rs`.
+- Existing qsc cfg RNG seams do not reach provider internals.
+- Existing qsc provider-error no-mutation proof covers generic `pq_decap_failed`, not concrete provider RNG failure.
+- refimpl provider RNG surfaces in `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs` and `tools/refimpl/quantumshield_refimpl/src/crypto/traits.rs` remain broader because keypair and random helper surfaces are infallible from the caller perspective.
+- Selected classification: `PROVIDER_RNG_SPLIT_QSC_FIRST`.
+- Selected successor: `NA-0456 -- QSL qsc Provider RNG Failure No-Mutation Scope Authorization Plan`.
+- NA-0455 does not authorize implementation paths.
+
+## NA-0455 failures / recoveries
+
+- Failing command: `gh pr view 1178 --repo QuantumShieldLabs/qsl-protocol --json number,state,mergedAt,mergeCommit,headRefOid,title,url,statusCheckRollup`.
+  Classification: recoverable GitHub CLI authentication failure because `gh auth status` reported a logged-in account but GraphQL returned HTTP 401 twice.
+  Corrective action: no credential or repo mutation; verified PR #1178 through the GitHub connector instead.
+  Final result: PASS, PR #1178 was verified merged with merge commit `c6dca3e2415`.
+- Failing command: `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked` without `|| true`.
+  Classification: recoverable valid zero-match discovery outcome because those packages are expected to be absent from the locked graph.
+  Corrective action: rerun/record the inverse probes with the directive's `|| true` shape.
+  Final result: PASS, absence is expected dependency inventory evidence.
+- Failing command: `rg -n "pqcrypto-mlkem|pqcrypto-traits|pqcrypto-internals" qsl/qsl-client/qsc/fuzz/Cargo.lock`.
+  Classification: recoverable valid zero-match discovery outcome because the nested qsc fuzz lock is expected not to contain those packages.
+  Corrective action: reran with `|| true`.
+  Final result: PASS, zero matches recorded.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py classify --base origin/main`.
+  Classification: recoverable command-shape issue because this repository version exposes `scope-guard`, not a `classify` subcommand.
+  Corrective action: used `scripts/ci/classify_ci_scope.sh` and the helper `scope-guard` command instead.
+  Final result: PASS, classifier returned `scope_class=runtime_critical`; exact staged scope guard passed with five allowed paths and zero extras.
+- Failing command: local added-line overclaim scan.
+  Classification: recoverable wording/screening issue because two caveat phrases wrapped onto source lines without same-line negation.
+  Corrective action: rewrote the caveats to keep `no RNG-failure-complete` and `no provider-RNG-complete` wording on the same source lines.
+  Final result: PASS, added affirmative overclaim count zero.
+- Failing command: local `scripts/ci/qsc_adversarial.sh`.
+  Classification: recoverable local tooling limitation because adversarial properties, miri-shaped adversarial tests, and the NA-0439 provider-error no-mutation step passed before local cargo-fuzz availability stopped the script.
+  Corrective action: no toolchain, dependency, Cargo, lockfile, or workflow mutation; record exact output and require PR CI qsc-adversarial-smoke if attached or required.
+  Final result: stable local script phases passed; local cargo-fuzz remains unavailable with `error: no such command: fuzz`.
+
+## NA-0455 governance patch notes
+
+- Added NA-0455 evidence doc.
+- Added NA-0455 testplan.
+- Added D-0897.
+- Added TRACEABILITY row.
+- Added this rolling journal entry.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, backup tree, or public-surface mutation is intentionally performed.
+
+## NA-0455 validation watch
+
+- Staged `git diff --check`: PASS.
+- Exact staged scope guard: PASS, five changed paths and zero extra paths.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- PR body preflight: PASS, missing field count zero and prohibited phrase count zero.
+- Classifier: `scope_class=runtime_critical`.
+- Shell syntax checks for qsc adversarial script: PASS under `sh -n` and `bash -n`.
+- Postpatch queue/decision proof: PASS, READY_COUNT 1, READY NA-0455, D-0897 exists once, D-0898 absent, duplicate decision count zero.
+- Postpatch cfg/no-cfg `rng_failure_residual_surfaces`: PASS.
+- Postpatch cfg/no-cfg `rng_failure_behavior`: PASS.
+- Postpatch `key_lifecycle_zeroization`: PASS.
+- Postpatch `handshake_provider_error_no_mutation`: PASS.
+- Stable `send_commit`: PASS.
+- Refimpl `pqkem768`: PASS.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock audit: PASS.
+- Dependency inverse probes: `rustls-webpki` and `ml-kem` present as expected; pqcrypto inverse probes returned expected not-present results.
+- `cargo fmt --check`: PASS.
+- Formal model checks: PASS.
+- Local qsc adversarial script: stable Rust phases and provider-error step passed before local cargo-fuzz unavailability.
+- Evidence PR pending.
+- Optional closeout may restore `NA-0456 -- QSL qsc Provider RNG Failure No-Mutation Scope Authorization Plan` only after evidence PR merge and post-merge public-safety success.
+
 # QSL-DIR-2026-06-10-310 / NA-0454 provider RNG fake seam strategy authorization rolling journal
 
 - Directive: QSL-DIR-2026-06-10-310 -- Execute NA-0454 QSL Provider RNG Failure Fake / Test Seam Strategy Authorization Plan, Optional Closeout to NA-0455.

@@ -23430,3 +23430,54 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output must not be used as side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0453; NA-0454; D-0894; D-0893; D-0892; qsl-protocol PR #1175; `docs/governance/evidence/NA-0453_qsl_refimpl_qsc_provider_rng_failure_boundary_authorization_plan.md`; `tests/NA-0453_qsl_refimpl_qsc_provider_rng_failure_boundary_authorization_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0453_closeout_restore_na0454_testplan.md`
+
+- **ID:** D-0895
+  - **Title:** NA-0454 provider rng failure fake test seam strategy authorization
+  - **Status:** Accepted
+  - **Date:** 2026-06-10
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0454 consumes NA-0453 and classifies the provider RNG fake/test-seam strategy as `PROVIDER_RNG_FAKE_SEAM_SPLIT_SCOPE_NEEDED`. Existing qsc cfg seams prove qsc-local RNG failure behavior only, existing qsc/refimpl fakes prove generic provider-error behavior only, and concrete provider RNG failure remains hidden behind `OsRng` or infallible trait/helper methods.
+  - **Selected successor:** `NA-0455 -- QSL Provider RNG Failure Fake / Test Seam Split-Scope Authorization Plan`.
+  - **Future NA-0455 governance paths:** `docs/governance/evidence/NA-0455_qsl_provider_rng_failure_fake_test_seam_split_scope_authorization_plan.md`; `tests/NA-0455_qsl_provider_rng_failure_fake_test_seam_split_scope_authorization_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+  - **Strategy outcome:** qsc and refimpl provider RNG failure strategy should be designed together at the planning level, but qsc no-mutation proof and refimpl provider-boundary proof should be split before implementation. A future combined implementation remains only a candidate until exact source and test paths are authorized.
+  - **Existing fake/seam sufficiency:** Existing provider fakes are insufficient for concrete provider RNG failure. Existing qsc cfg-only seams are useful precedent but do not reach provider internals. A cfg-only provider RNG seam may be needed later, but only after exact labels and paths are selected.
+  - **Trait/API impact:** Some future surfaces may require trait/API changes or exact cfg-only seams because `X25519Dh::keypair`, `Rng12::random_nonce12`, and provider keypair helpers are currently infallible from qsc/refimpl perspective. NA-0454 does not authorize those changes.
+  - **No implementation mutation:** NA-0454 does not implement tests, test seams, fake providers, runtime behavior, crypto behavior, dependency changes, Cargo manifest changes, lockfile changes, workflow changes, executable test source changes, fuzz target changes, vector changes, formal model changes, qsl-server changes, qsl-attachments changes, qshield runtime changes, qshield-cli changes, website changes, public-doc changes, README changes, START_HERE changes, backup/restore/local-ops changes, qsl-backup changes, or qwork tooling changes.
+  - **Stewardship:** The Level 1 stewardship template was used. Level 2 and Level 3 remain future-gated. Lead Director final authority is preserved. No separate Directors, independent READY promotion, or independent merge authority is introduced.
+  - **Public claim boundary:**
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No public crypto-complete claim is made.
+    - No RNG-failure-complete claim is made.
+    - No provider-RNG-complete claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No perfect-crypto claim is made.
+    - Cargo audit green remains dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Required behavior:**
+    - Exactly one READY item remains mandatory.
+    - NA-0455 must remain split-scope authorization only unless a later directive authorizes exact implementation paths.
+    - NA-0455 must preserve no-runtime/no-crypto/no-dependency/no-workflow/no-public-overclaim boundaries unless a later exact implementation directive changes scope.
+    - Provider RNG evidence gaps remain gaps and must not be converted into security guarantees.
+  - **Must never happen:**
+    - NA-0455 implementation starts inside NA-0454.
+    - A future lane mutates runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, README, START_HERE, website, or public-claim scope without exact authorization.
+    - Provider-dependent qsc RNG or refimpl/provider RNG is represented as completed by NA-0454.
+    - Cargo audit output must not be used as public-readiness proof.
+    - Cargo audit output must not be used as production-readiness proof.
+    - Cargo audit output must not be used as public-internet-readiness proof.
+    - Cargo audit output must not be used as external-review-complete proof.
+    - Cargo audit output must not be used as crypto-complete proof.
+    - Cargo audit output must not be used as RNG-failure-complete proof.
+    - Cargo audit output must not be used as provider-RNG-complete proof.
+    - Cargo audit output must not be used as vulnerability-free proof.
+    - Cargo audit output must not be used as bug-free proof.
+    - Cargo audit output must not be used as perfect-crypto proof.
+    - Cargo audit output must not be used as side-channel-free proof.
+    - more than one READY item remains.
+  - **References:** NA-0454; NA-0455; D-0895; D-0894; D-0893; D-0892; `docs/governance/evidence/NA-0454_qsl_provider_rng_failure_fake_test_seam_strategy_authorization_plan.md`; `tests/NA-0454_qsl_provider_rng_failure_fake_test_seam_strategy_authorization_testplan.md`; `docs/governance/evidence/NA-0453_qsl_refimpl_qsc_provider_rng_failure_boundary_authorization_plan.md`; `tests/NA-0453_qsl_refimpl_qsc_provider_rng_failure_boundary_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

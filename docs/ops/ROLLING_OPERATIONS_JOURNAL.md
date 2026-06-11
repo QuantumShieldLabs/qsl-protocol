@@ -11,8 +11,8 @@ Last-Updated: 2026-06-11
 - Directive: QSL-DIR-2026-06-11-315 -- Execute NA-0458 QSL qsc KEM Provider RNG Failure Fake / Test Seam Implementation Harness, Optional Closeout to NA-0459.
 - Begin timestamp (America/Chicago): 2026-06-10T19:49:07-05:00.
 - Begin timestamp (UTC): 2026-06-11T00:49:07+00:00.
-- Latest journal update timestamp (America/Chicago): 2026-06-10T20:20:16-05:00.
-- Latest journal update timestamp (UTC): 2026-06-11T01:20:16+00:00.
+- Latest journal update timestamp (America/Chicago): 2026-06-10T20:22:11-05:00.
+- Latest journal update timestamp (UTC): 2026-06-11T01:22:11+00:00.
 - Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
 
 ## NA-0458 repo SHAs
@@ -96,6 +96,18 @@ Last-Updated: 2026-06-11
   Classification: recoverable staging-shape issue because the allowed evidence path is ignored by the repository's broad evidence ignore rule.
   Corrective action: force-add only the explicitly allowed NA-0458 evidence path with the other allowed governance/testplan paths.
   Final result: staged path set contains only the allowed NA-0458 evidence, journal, and implementation testplan paths.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py link-check --base origin/main --head HEAD`.
+  Classification: recoverable command-shape issue because this repository helper's `link-check` subcommand accepts `--root`, not base/head arguments.
+  Corrective action: checked helper usage and reran `python3 scripts/ci/qsl_evidence_helper.py link-check --root .`.
+  Final result: `TOTAL_MISSING 0`.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py leak-scan --base origin/main --head HEAD`.
+  Classification: recoverable command-shape issue because this repository helper's `leak-scan` subcommand accepts `--mode`, `--base`, and optional `--paths`, not a `--head` argument.
+  Corrective action: checked helper usage and reran added-mode leak scan with the exact eight allowed changed paths.
+  Final result: `SECRET_FINDING_COUNT 0`.
+- Failing command: `python3 tools/goal_lint.py -h`.
+  Classification: recoverable local command-shape issue because the linter is event-driven and requires `GITHUB_EVENT_PATH` even for this invocation.
+  Corrective action: created a minimal proof-root pull-request event payload with the NA-0458 PR body and branch base/head SHAs, then reran with `GITHUB_EVENT_PATH` set.
+  Final result: goal compliance checks passed.
 
 ## NA-0458 non-fatal warnings / zero-match notes
 
@@ -125,6 +137,13 @@ Last-Updated: 2026-06-11
 - `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
 - Formal model checks: PASS.
 - Local qsc adversarial script: Rust phases and provider-error step PASS; local cargo-fuzz unavailable.
+- Branch scope guard after postcommit cleanup: PASS, exactly eight allowed paths and zero forbidden paths.
+- Link check after command-shape recovery: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan after command-shape recovery: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan after wording recovery: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- CI scope classifier: PASS, `scope_class=runtime_critical`.
+- PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- Goal-lint synthetic-event preflight: PASS.
 
 ## NA-0458 disk watermark
 

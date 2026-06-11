@@ -24015,3 +24015,31 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output must not be used as side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0459; NA-0460; D-0906; D-0905; qsl-protocol PR #1187; `docs/governance/evidence/NA-0459_qsl_qsc_signature_identity_provider_rng_failure_scope_authorization_plan.md`; `tests/NA-0459_qsl_qsc_signature_identity_provider_rng_failure_scope_authorization_testplan.md`; `tests/NA-0459_closeout_restore_na0460_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0907
+  - **Title:** NA-0460 qsc signature identity provider rng failure split scope authorization
+  - **Status:** Accepted
+  - **Date:** 2026-06-11
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0460 consumes NA-0459 and classifies the qsc signature / identity provider RNG failure split scope as `SIGNATURE_IDENTITY_SPLIT_B1_SIGNING_NEXT`. B1 responder signing is selected as the first implementation successor because the qsc source ordering places `StdCrypto::sign()` and the sanitized `sig_sign_failed` path before responder pending/session storage and before B1 output. A2 signing remains separate because it occurs after initiator session storage and pending clear, and identity generation remains split by path because lazy identity, legacy/public-record upgrade, CLI rotation, and TUI account bootstrap have different state timing and partial-write surfaces.
+  - **Selected successor:** `NA-0461 -- QSL qsc B1 Signature Provider RNG Failure Test Seam Implementation Harness`.
+  - **Exact future scope:** If restored, NA-0461 may mutate only `qsl/qsl-client/qsc/src/handshake/mod.rs`, `qsl/qsl-client/qsc/tests/b1_signature_provider_rng_failure.rs`, `docs/governance/evidence/NA-0461_qsl_qsc_b1_signature_provider_rng_failure_test_seam_implementation_harness.md`, `tests/NA-0461_qsl_qsc_b1_signature_provider_rng_failure_test_seam_implementation_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, unless a later exact directive narrows or changes that scope.
+  - **No implementation mutation:** This directive does not implement NA-0461 and does not mutate runtime behavior, crypto behavior, dependencies, Cargo manifests, lockfiles, workflows, executable test source, fuzz targets, vectors, formal models, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup/restore/local-ops paths, qsl-backup, backup status files, backup plan files, rollback subtree paths, or backup tree paths.
+  - **Public claim boundary:**
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No crypto-complete claim is made.
+    - No signature-complete claim is made.
+    - No identity-complete claim is made.
+    - No RNG-failure-complete claim is made.
+    - No provider-RNG-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No perfect-crypto claim is made.
+    - Cargo audit green is dependency-health evidence only.
+  - **Stewardship:** Level 1 stewardship template was used. Level 2 and Level 3 remain future-gated. There are no separate Directors, no independent READY promotion, and no independent merge authority. Lead Director final authority is preserved.
+  - **Exactly one READY remains mandatory:** NA-0460 remains the sole READY item until closeout restores NA-0461 after this evidence PR merges and post-merge public-safety is green.
+  - **References:** NA-0460; NA-0459; NA-0458; NA-0461; D-0907; D-0906; D-0905; `docs/governance/evidence/NA-0460_qsl_qsc_signature_identity_provider_rng_failure_split_scope_authorization_plan.md`; `tests/NA-0460_qsl_qsc_signature_identity_provider_rng_failure_split_scope_authorization_testplan.md`; `docs/governance/evidence/NA-0459_qsl_qsc_signature_identity_provider_rng_failure_scope_authorization_plan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

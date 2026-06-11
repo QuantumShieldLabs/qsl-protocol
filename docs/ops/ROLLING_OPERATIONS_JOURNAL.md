@@ -74,6 +74,10 @@ Last-Updated: 2026-06-11
   Classification: recoverable command-shape issue because this helper subcommand requires an existing `--pr` number.
   Corrective action: created PR #1189 and reran `ci-admission-preflight --pr 1189 --repo QuantumShieldLabs/qsl-protocol --report-only`.
   Final result: PR #1189 classified `SCOPE_CLASS docs_only`, `RUNTIME_CRITICAL no`, `WORKFLOW_SECURITY no`, `QSC_ADVERSARIAL_TRIGGERED no`, `HELPER_PR_CAN_LIKELY_PASS_REQUIRED_CHECKS yes`.
+- Failing command: first closeout added-line leak-scan wrapper after commit.
+  Classification: recoverable command-shape issue because the inline Python had an indentation typo before scanning any evidence content.
+  Corrective action: reran the same added-line leak-scan wrapper with the indentation fixed.
+  Final result: `SECRET_FINDING_COUNT 0`.
 
 ## Non-fatal warnings / zero-match notes
 

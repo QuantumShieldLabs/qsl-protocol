@@ -78,6 +78,10 @@ Last-Updated: 2026-06-11
   Classification: recoverable command-shape issue because the inline Python had an indentation typo before scanning any evidence content.
   Corrective action: reran the same added-line leak-scan wrapper with the indentation fixed.
   Final result: `SECRET_FINDING_COUNT 0`.
+- Failing command: first closeout PR #1190 REST polling loop.
+  Classification: recoverable command-shape issue because `set -e` treated the intentional "checks still in progress" Python status as fatal before the shell could branch on it.
+  Corrective action: recorded the recovery and will rerun the REST polling loop with `set +e` around the Python status parser.
+  Final result: corrected polling loop rerun before merge and required to complete with no failing checks.
 
 ## Non-fatal warnings / zero-match notes
 

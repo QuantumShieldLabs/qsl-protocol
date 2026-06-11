@@ -40,7 +40,7 @@ Last-Updated: 2026-06-11
 - Evidence PR: #1189.
 - Evidence merge commit: `ed9a28e3c216`.
 - Closeout branch: `na-0460-closeout-restore-na0461`.
-- Closeout PR: pending.
+- Closeout PR: #1190.
 - Closeout merge commit: pending.
 
 ## Split-scope notes
@@ -127,6 +127,8 @@ Last-Updated: 2026-06-11
 - Closeout root `cargo audit --deny warnings`: PASS.
 - Closeout nested qsc fuzz lock audit: PASS; advisory-db lock wait warning was non-fatal.
 - Closeout `cargo fmt --check`: PASS.
+- Closeout PR #1190 admission preflight: PASS; `SCOPE_CLASS docs_only`, `RUNTIME_CRITICAL no`, `WORKFLOW_SECURITY no`, `QSC_ADVERSARIAL_TRIGGERED no`, `HELPER_PR_CAN_LIKELY_PASS_REQUIRED_CHECKS yes`.
+- Closeout PR #1190 goal-lint: PASS.
 
 ## Disk watermark
 

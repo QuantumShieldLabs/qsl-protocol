@@ -11,8 +11,8 @@ Last-Updated: 2026-06-11
 - Directive: QSL-DIR-2026-06-11-315 -- Execute NA-0458 QSL qsc KEM Provider RNG Failure Fake / Test Seam Implementation Harness, Optional Closeout to NA-0459.
 - Begin timestamp (America/Chicago): 2026-06-10T19:49:07-05:00.
 - Begin timestamp (UTC): 2026-06-11T00:49:07+00:00.
-- Latest journal update timestamp (America/Chicago): 2026-06-10T20:14:35-05:00.
-- Latest journal update timestamp (UTC): 2026-06-11T01:14:35+00:00.
+- Latest journal update timestamp (America/Chicago): 2026-06-10T20:20:16-05:00.
+- Latest journal update timestamp (UTC): 2026-06-11T01:20:16+00:00.
 - Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
 
 ## NA-0458 repo SHAs
@@ -88,6 +88,14 @@ Last-Updated: 2026-06-11
   force-add it during staging.
   Final result: allowed evidence file present; final staged scope guard remains
   pending.
+- Failing command: first postcommit added-line overclaim scan.
+  Classification: recoverable wording/screening issue because a wrapped no-claim boundary line carried `provider-RNG-complete` without same-line negation.
+  Corrective action: rewrapped NA-0458 evidence and testplan claim-boundary lines so each sensitive phrase carries same-line denial wording.
+  Final result: `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: `git add docs/governance/evidence/NA-0458_qsl_qsc_kem_provider_rng_failure_fake_test_seam_implementation_harness.md docs/ops/ROLLING_OPERATIONS_JOURNAL.md tests/NA-0458_qsl_qsc_kem_provider_rng_failure_fake_test_seam_implementation_testplan.md`.
+  Classification: recoverable staging-shape issue because the allowed evidence path is ignored by the repository's broad evidence ignore rule.
+  Corrective action: force-add only the explicitly allowed NA-0458 evidence path with the other allowed governance/testplan paths.
+  Final result: staged path set contains only the allowed NA-0458 evidence, journal, and implementation testplan paths.
 
 ## NA-0458 non-fatal warnings / zero-match notes
 

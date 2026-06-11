@@ -28,11 +28,10 @@ public surface work. `pq_decap_failed` remains background generic provider-error
 no-mutation evidence. `pq_encap_failed` remains a defensive branch caveat under
 normal provider behavior; NA-0458 only proves bounded forced-seam behavior.
 
-No public-readiness claim is made. No production-readiness claim is made. No
-external-review-complete claim is made. No crypto-complete claim is made. No
-KEM-complete claim is made. No RNG-failure-complete claim is made. No
-provider-RNG-complete claim is made. Cargo audit green remains dependency-health
-evidence only.
+No public-readiness claim is made. No production-readiness claim is made.
+No external-review-complete claim is made. No crypto-complete claim is made.
+No KEM-complete claim is made. No RNG-failure-complete claim is made.
+No provider-RNG-complete claim is made. Cargo audit green remains dependency-health evidence only.
 
 Required markers:
 
@@ -310,12 +309,12 @@ Markers:
 
 NA-0458 is bounded internal qsc evidence only.
 
-No public-readiness claim is made. No production-readiness claim is made. No
-public-internet-readiness claim is made. No external-review-complete claim is
-made. No crypto-complete claim is made. No KEM-complete claim is made. No
-RNG-failure-complete claim is made. No provider-RNG-complete claim is made. No
-side-channel-free claim is made. No vulnerability-free claim is made. No
-bug-free claim is made. No perfect-crypto claim is made.
+No public-readiness claim is made. No production-readiness claim is made.
+No public-internet-readiness claim is made. No external-review-complete claim is made.
+No crypto-complete claim is made. No KEM-complete claim is made.
+No RNG-failure-complete claim is made. No provider-RNG-complete claim is made.
+No side-channel-free claim is made. No vulnerability-free claim is made.
+No bug-free claim is made. No perfect-crypto claim is made.
 
 ## validation
 

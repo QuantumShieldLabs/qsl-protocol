@@ -201,11 +201,11 @@ Changed paths before optional closeout must be exactly:
 NA-0458 is bounded internal qsc evidence only.
 
 No public-readiness claim is allowed. No production-readiness claim is allowed.
-No external-review-complete claim is allowed. No crypto-complete claim is
-allowed. No KEM-complete claim is allowed. No RNG-failure-complete claim is
-allowed. No provider-RNG-complete claim is allowed. No side-channel-free claim
-is allowed. No vulnerability-free claim is allowed. No bug-free claim is
-allowed. No perfect-crypto claim is allowed.
+No external-review-complete claim is allowed. No crypto-complete claim is allowed.
+No KEM-complete claim is allowed. No RNG-failure-complete claim is allowed.
+No provider-RNG-complete claim is allowed. No side-channel-free claim is allowed.
+No vulnerability-free claim is allowed. No bug-free claim is allowed.
+No perfect-crypto claim is allowed.
 
 ## closeout prerequisites
 

@@ -25378,7 +25378,7 @@ Acceptance criteria:
 ---
 
 ### NA-0462 — QSL qsc A2 Signature Provider RNG Failure Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -25419,7 +25419,7 @@ Forbidden scope:
 - Mutating backup status or backup plan files.
 - Mutating qwork/qstart/qresume/qshell.
 - Creating public technical paper content.
-- Creating or implying production readiness, public-internet readiness, external-review completion, metadata-free behavior, anonymity, untraceability, off-host backup completion, disaster recovery completion, restore proof, backup completion, bug-free status, vulnerability-free status, perfect-crypto status, side-channel-free status, RNG-failure-complete status, provider-RNG-complete status, secret-material-complete status, KEM-complete status, signature-complete status, identity-complete status, or crypto-complete status.
+- No creating or implying production readiness, public-internet readiness, external-review completion, metadata-free behavior, anonymity, untraceability, off-host backup completion, disaster recovery completion, restore proof, backup completion, bug-free status, vulnerability-free status, perfect-crypto status, side-channel-free status, RNG-failure-complete status, provider-RNG-complete status, secret-material-complete status, KEM-complete status, signature-complete status, identity-complete status, or crypto-complete status.
 - Secret material handling outside read-only source/evidence inspection.
 
 Deliverables:
@@ -25434,6 +25434,66 @@ Acceptance criteria:
 - qsc A2 signature provider RNG failure scope is selected or rejected with evidence.
 - truthful A2 post-mutation invariant is defined if future implementation remains selected.
 - no implementation mutation occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+---
+
+### NA-0463 — QSL qsc A2 Signature Provider RNG Failure No-Output Test Seam Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the exact qsc A2 signature provider RNG failure no-output test-seam scope selected by NA-0462, preserving production semantics when the test seam is inactive and proving bounded no-A2-output behavior without falsely claiming pre-mutation no-mutation.
+
+Protects:
+- qsc A2 signature provider-dependent RNG failure evidence quality.
+- truthful state-invariant discipline for A2, which occurs after initiator session storage and pending clear.
+- fail-closed handling around initiator A2 signing failure.
+- production semantic stability.
+- key lifecycle and provider boundary confidence after ml-kem replacement, provider-error audit work, qsc zeroization tests, qsc RNG seam work, provider RNG strategy review, split-scope review, qsc no-mutation scope review, qsc fake/seam strategy review, KEM-only implementation, signature/identity split-scope review, and B1 signing implementation.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- `qsl/qsl-client/qsc/src/handshake/mod.rs`.
+- `qsl/qsl-client/qsc/tests/a2_signature_provider_rng_failure.rs`.
+- `docs/governance/evidence/NA-0463_qsl_qsc_a2_signature_provider_rng_failure_no_output_test_seam_implementation_harness.md`.
+- `tests/NA-0463_qsl_qsc_a2_signature_provider_rng_failure_no_output_test_seam_implementation_testplan.md`.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+
+Forbidden scope:
+- Mutating dependencies, Cargo, lockfiles, workflows, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE paths.
+- Mutating unrelated qsc/runtime/crypto paths outside exact NA-0462 selected scope.
+- Mutating refimpl unless exact later scope authorizes it, which should be avoided by default.
+- Mutating fuzz target source, vectors, or formal models unless exact later scope authorizes them.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No creating or implying production readiness, public-internet readiness, external-review completion, metadata-free behavior, anonymity, untraceability, off-host backup completion, disaster recovery completion, restore proof, backup completion, bug-free status, vulnerability-free status, perfect-crypto status, side-channel-free status, RNG-failure-complete status, provider-RNG-complete status, secret-material-complete status, KEM-complete status, signature-complete status, identity-complete status, or crypto-complete status.
+- Secret material handling outside exact test/evidence scope.
+- Claiming A2 pre-mutation no-mutation.
+
+Deliverables:
+- NA-0463 implementation.
+- NA-0463 evidence doc.
+- NA-0463 testplan.
+- D-0913 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+
+Acceptance criteria:
+- exact selected A2 signature provider failure seam is implemented.
+- production semantics unchanged when seam inactive.
+- selected no-A2-output invariant is tested.
+- no false pre-mutation no-mutation claim is introduced.
 - cargo audit remains green.
 - nested fuzz lock audit remains green.
 - public-safety is green before merge and after merge.

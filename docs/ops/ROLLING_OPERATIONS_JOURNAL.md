@@ -19,9 +19,11 @@ Last-Updated: 2026-06-11
 
 - qsl-protocol branch before evidence branch creation: `main`.
 - qsl-protocol evidence branch: `na-0462-a2-signature-provider-rng-scope`.
+- qsl-protocol closeout branch: `na-0462-closeout-restore-na0463`.
 - qsl-protocol HEAD before patch: `14f930a4dca`.
 - qsl-protocol origin/main before patch: `14f930a4dca`.
 - qsl-protocol mirror/main: fetched by `git fetch --all --prune`; origin/main did not advance.
+- qsl-protocol evidence merge commit: `3e4a1bab743d`.
 
 ## READY proof
 
@@ -37,9 +39,9 @@ Last-Updated: 2026-06-11
 - Worktree path: `/srv/qbuild/work/NA-0462/qsl-protocol`.
 - Proof root: `/srv/qbuild/tmp/NA0462_qsc_a2_signature_scope_20260611T171611Z`.
 - Evidence branch: `na-0462-a2-signature-provider-rng-scope`.
-- Evidence PR: pending.
-- Evidence merge commit: pending.
-- Optional closeout branch: pending.
+- Evidence PR: #1193, merged.
+- Evidence merge commit: `3e4a1bab743d`.
+- Optional closeout branch: `na-0462-closeout-restore-na0463`.
 - Optional closeout PR: pending.
 
 ## Authorization notes
@@ -74,6 +76,19 @@ Last-Updated: 2026-06-11
   Final result: local script returned 101 only at the missing cargo-fuzz phase;
   prior Rust phases and `NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP`
   passed.
+- Failing command: GitHub connector PR creation for NA-0462 evidence branch.
+  Classification: recoverable connector permission issue because the connector
+  returned 403 while the authenticated CLI had repository permission.
+  Corrective action: created PR #1193 with `gh pr create` using the same branch,
+  title, and body.
+  Final result: PR #1193 opened, checked, and merged with a merge commit.
+- Failing command: first post-merge public-safety polling wrapper under `set -e`.
+  Classification: recoverable command-shape issue because the helper returns
+  nonzero while public-safety is still ambiguous and the wrapper exited before
+  completing the bounded REST poll.
+  Corrective action: reran the REST poll with explicit helper return-code
+  handling.
+  Final result: public-safety completed success on `3e4a1bab743d`.
 
 ## Validation / CI notes
 
@@ -108,6 +123,10 @@ Last-Updated: 2026-06-11
 - `cargo fmt --check`: PASS.
 - Formal model checks: PASS.
 - Local qsc adversarial script: Rust phases PASS; provider-error no-mutation step PASS; cargo-fuzz phase unavailable locally as recorded above.
+- Evidence PR #1193 checks: PASS before merge; public-safety completed success on PR head `09cb1d0dee14` with required contexts green or policy-skipped/neutral.
+- Evidence PR #1193 merge: PASS, merged with merge commit `3e4a1bab743d`.
+- Evidence PR #1193 post-merge public-safety: PASS on `3e4a1bab743d`.
+- Closeout patch scope: pending validation.
 
 ## Disk watermark
 
@@ -119,10 +138,9 @@ Last-Updated: 2026-06-11
 
 ## Next-watch items
 
-- Complete NA-0462 post-patch validation.
-- Open evidence PR only after exact five-path scope guard passes.
-- Merge evidence PR only after required checks pass and public-safety is green.
-- Optional closeout may restore NA-0463 only after evidence PR merge and post-merge public-safety success.
+- Complete NA-0462 closeout validation.
+- Open closeout PR only after exact closeout path guard passes.
+- Merge closeout PR only after required checks pass and public-safety is green.
 - Do not implement NA-0463 inside NA-0462 closeout.
 
 # QSL-DIR-2026-06-11-318 / NA-0461 qsc B1 signature provider RNG seam implementation rolling journal

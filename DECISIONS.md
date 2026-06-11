@@ -23964,3 +23964,54 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Stewardship:** Level 1 stewardship template was used. Level 2 and Level 3 remain future-gated. There are no separate Directors, no independent READY promotion, and no independent merge authority. Lead Director final authority is preserved.
   - **Exactly one READY remains mandatory:** NA-0459 remains the sole READY item until closeout restores NA-0460 after this evidence PR merges and post-merge public-safety is green.
   - **References:** NA-0459; NA-0458; NA-0460; D-0905; D-0904; D-0903; `docs/governance/evidence/NA-0459_qsl_qsc_signature_identity_provider_rng_failure_scope_authorization_plan.md`; `tests/NA-0459_qsl_qsc_signature_identity_provider_rng_failure_scope_authorization_testplan.md`; `docs/governance/evidence/NA-0458_qsl_qsc_kem_provider_rng_failure_fake_test_seam_implementation_harness.md`; `tests/NA-0458_qsl_qsc_kem_provider_rng_failure_fake_test_seam_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0906
+  - **Title:** NA-0459 closeout and NA-0460 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-11
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0459 is closed after qsl-protocol PR #1187 merged at `9a188af32831` and post-merge public-safety completed success on that merge commit. D-0905 selected `NA-0460 -- QSL qsc Signature / Identity Provider RNG Failure Split-Scope Authorization Plan`, so this closeout marks NA-0459 DONE and restores NA-0460 as the sole READY successor.
+  - **Selected successor:** `NA-0460 -- QSL qsc Signature / Identity Provider RNG Failure Split-Scope Authorization Plan`.
+  - **Closeout-only mutable paths:** `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0459_closeout_restore_na0460_testplan.md`.
+  - **Future NA-0460 scope:** NA-0460 is authorization-only and may mutate NA-0460 governance evidence/testplan paths, `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`. It may inspect qsc source/tests, refimpl, prior evidence, qsc fuzz, formal, inputs, and relevant scripts/workflows read-only to split exact signature and identity provider RNG failure candidates.
+  - **No NA-0460 implementation mutation:** This closeout does not implement NA-0460 and does not mutate qsc source, executable test source, runtime behavior, crypto behavior, dependencies, Cargo manifests, lockfiles, workflows, fuzz targets, vectors, formal models, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup/restore/local-ops paths, qsl-backup, backup status files, backup plan files, rollback subtree paths, or backup tree paths.
+  - **Public claim boundary:**
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No crypto-complete claim is made.
+    - No signature-complete claim is made.
+    - No identity-complete claim is made.
+    - No RNG-failure-complete claim is made.
+    - No provider-RNG-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No perfect-crypto claim is made.
+    - Cargo audit green is dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Required behavior:**
+    - Exactly one READY item remains mandatory.
+    - NA-0460 must remain qsc signature / identity provider RNG failure split-scope authorization only unless a later exact directive authorizes implementation.
+    - NA-0459 evidence remains bounded internal governance evidence and not public-readiness or crypto-complete proof.
+    - Signature provider RNG, identity provider RNG, X25519 provider RNG, qshield-cli RNG, formal/model RNG, fuzz/vector RNG, and refimpl provider RNG remain residual unless a later exact directive authorizes them.
+  - **Must never happen:**
+    - NA-0460 implementation starts inside this closeout.
+    - A future lane mutates runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, README, START_HERE, website, or public-claim scope outside exact authorization.
+    - NA-0459 evidence is represented as signature completion, identity completion, RNG-failure completion, provider-RNG completion, or crypto completion.
+    - Cargo audit output must not be used as public-readiness proof.
+    - Cargo audit output must not be used as production-readiness proof.
+    - Cargo audit output must not be used as public-internet-readiness proof.
+    - Cargo audit output must not be used as external-review-complete proof.
+    - Cargo audit output must not be used as crypto-complete proof.
+    - Cargo audit output must not be used as signature-complete proof.
+    - Cargo audit output must not be used as identity-complete proof.
+    - Cargo audit output must not be used as RNG-failure-complete proof.
+    - Cargo audit output must not be used as provider-RNG-complete proof.
+    - Cargo audit output must not be used as vulnerability-free proof.
+    - Cargo audit output must not be used as bug-free proof.
+    - Cargo audit output must not be used as perfect-crypto proof.
+    - Cargo audit output must not be used as side-channel-free proof.
+    - more than one READY item remains.
+  - **References:** NA-0459; NA-0460; D-0906; D-0905; qsl-protocol PR #1187; `docs/governance/evidence/NA-0459_qsl_qsc_signature_identity_provider_rng_failure_scope_authorization_plan.md`; `tests/NA-0459_qsl_qsc_signature_identity_provider_rng_failure_scope_authorization_testplan.md`; `tests/NA-0459_closeout_restore_na0460_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

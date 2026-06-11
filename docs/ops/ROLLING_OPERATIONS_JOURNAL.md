@@ -30256,8 +30256,11 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Worktree path: `/srv/qbuild/work/NA-0459/qsl-protocol`.
 - Proof root: `/srv/qbuild/tmp/NA0459_qsc_signature_identity_provider_rng_scope_20260611T035633Z`.
 - Evidence branch: `na-0459-signature-identity-provider-rng-scope`.
-- Evidence PR: pending.
-- Evidence merge commit: pending.
+- Evidence PR: #1187.
+- Evidence merge commit: `9a188af32831`.
+- Closeout branch: `na-0459-closeout-restore-na0460`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
 
 ## Scope notes
 
@@ -30295,6 +30298,10 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
   Classification: recoverable proof-shape issue; the repository decision helper already reported latest D-0905 and duplicate count zero.
   Corrective action: reran the exact count against the `- **ID:** D-####` format used by `DECISIONS.md`.
   Final result: D-0903 once, D-0904 once, D-0905 once, D-0906 absent, duplicate decision ID count zero.
+- Failing command: first closeout precommit scope guard used `git diff --name-only origin/main...HEAD` before the closeout commit existed.
+  Classification: recoverable command-shape issue because the command did not include uncommitted working-tree edits.
+  Corrective action: reran the scope guard with `git diff --name-only` plus `git ls-files --others --exclude-standard`.
+  Final result: closeout scope guard PASS with zero extra paths and zero missing paths.
 
 ## Validation / CI notes
 
@@ -30326,7 +30333,22 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Formal model checks: PASS.
 - qsc adversarial script marker present.
 - Local qsc adversarial script: Rust phases and provider-error no-mutation step PASS; local cargo-fuzz unavailable.
-- Evidence PR checks: pending.
+- Synthetic-event goal-lint after commit: PASS.
+- Evidence PR #1187 required checks: PASS; public-safety success; CodeQL neutral accepted by repository helper.
+- Evidence PR #1187 merged at `9a188af32831`.
+- Post-merge public-safety on `9a188af32831`: PASS.
+- Post-merge qsc Linux full suite and macOS qsc full serial: skipped by docs-only scope.
+- Post-merge qsc-adversarial-smoke was attached and in progress when public-safety completed success.
+- Closeout scope guard before commit: PASS, exactly five allowed closeout paths.
+- Closeout queue helper before commit: READY_COUNT 1 and READY NA-0460.
+- Closeout decision helper before commit: latest D-0906, D-0905 once, D-0906 once, D-0907 absent, duplicate decision count zero.
+- Closeout link check: PASS, `TOTAL_MISSING 0`.
+- Closeout added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Closeout added-line overclaim scan: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Closeout root `cargo audit --deny warnings`: PASS.
+- Closeout nested qsc fuzz lock audit: PASS.
+- Closeout `cargo fmt --check`: PASS.
+- Closeout PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
 
 ## Disk watermark
 
@@ -30338,9 +30360,16 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 ## Next-watch items
 
-- Run synthetic-event goal-lint after commit and before PR creation.
-- Merge evidence PR only after required checks pass and public-safety is green.
-- Optional closeout to NA-0460 only after evidence PR merges and post-merge public-safety is green.
+- Complete NA-0459 closeout validation and PR.
+- Merge closeout PR only after required checks pass and public-safety is green.
+- Verify NA-0460 is the sole READY item after closeout merge.
+
+## Closeout notes
+
+- NA-0459 closeout is in progress because PR #1187 merged and post-merge public-safety completed success.
+- Selected successor restored by closeout: `NA-0460 -- QSL qsc Signature / Identity Provider RNG Failure Split-Scope Authorization Plan`.
+- Closeout scope is limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0459_closeout_restore_na0460_testplan.md`.
+- Closeout does not implement NA-0460 and does not mutate runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, service, public-surface, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback, or backup tree paths.
 
 # QSL-DIR-2026-06-10-314 / NA-0457 qsc provider RNG fake/test-seam strategy rolling journal
 

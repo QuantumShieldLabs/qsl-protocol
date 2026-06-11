@@ -38,7 +38,10 @@ Last-Updated: 2026-06-11
 - Proof root: `/srv/qbuild/tmp/NA0460_qsc_signature_identity_split_scope_20260611T102442Z`.
 - Evidence branch: `na-0460-signature-identity-split-scope`.
 - Evidence PR: #1189.
-- Evidence merge commit: pending.
+- Evidence merge commit: `ed9a28e3c216`.
+- Closeout branch: `na-0460-closeout-restore-na0461`.
+- Closeout PR: #1190.
+- Closeout merge commit: pending.
 
 ## Split-scope notes
 
@@ -71,6 +74,14 @@ Last-Updated: 2026-06-11
   Classification: recoverable command-shape issue because this helper subcommand requires an existing `--pr` number.
   Corrective action: created PR #1189 and reran `ci-admission-preflight --pr 1189 --repo QuantumShieldLabs/qsl-protocol --report-only`.
   Final result: PR #1189 classified `SCOPE_CLASS docs_only`, `RUNTIME_CRITICAL no`, `WORKFLOW_SECURITY no`, `QSC_ADVERSARIAL_TRIGGERED no`, `HELPER_PR_CAN_LIKELY_PASS_REQUIRED_CHECKS yes`.
+- Failing command: first closeout added-line leak-scan wrapper after commit.
+  Classification: recoverable command-shape issue because the inline Python had an indentation typo before scanning any evidence content.
+  Corrective action: reran the same added-line leak-scan wrapper with the indentation fixed.
+  Final result: `SECRET_FINDING_COUNT 0`.
+- Failing command: first closeout PR #1190 REST polling loop.
+  Classification: recoverable command-shape issue because `set -e` treated the intentional "checks still in progress" Python status as fatal before the shell could branch on it.
+  Corrective action: recorded the recovery and will rerun the REST polling loop with `set +e` around the Python status parser.
+  Final result: corrected polling loop rerun before merge and required to complete with no failing checks.
 
 ## Non-fatal warnings / zero-match notes
 
@@ -103,6 +114,25 @@ Last-Updated: 2026-06-11
 - Post-patch decision helper: PASS, latest D-0907 and duplicate decision count zero.
 - Post-patch `cargo fmt --check`: PASS.
 - Post-patch formal model checks: PASS.
+- Evidence PR #1189 protected checks: PASS; public-safety success; docs-only qsc full-suite checks accepted skipped by repository policy.
+- Evidence PR #1189 merged at `ed9a28e3c216`.
+- Post-merge public-safety on `ed9a28e3c216`: PASS.
+- Post-merge qsc-adversarial-smoke was attached and in progress when public-safety completed success, with no failing checks; accepted under this directive's evidence-based wait policy.
+- Closeout branch created from `ed9a28e3c216`.
+- Closeout validation before commit: `git diff --check` PASS.
+- Closeout queue helper before commit: READY_COUNT 1 and READY NA-0461.
+- Closeout decision helper before commit: latest D-0908 and duplicate decision count zero.
+- Closeout direct queue proof before commit: NA-0461 READY, NA-0460 through NA-0435 DONE, NA-0434 BLOCKED, and NA-0429 BLOCKED.
+- Closeout direct decision proof before commit: D-0907 once, D-0908 once, D-0909 absent.
+- Closeout scope guard before commit: PASS, exactly five allowed closeout paths.
+- Closeout link check: PASS, `TOTAL_MISSING 0`.
+- Closeout added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Closeout added-line overclaim scan: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Closeout root `cargo audit --deny warnings`: PASS.
+- Closeout nested qsc fuzz lock audit: PASS; advisory-db lock wait warning was non-fatal.
+- Closeout `cargo fmt --check`: PASS.
+- Closeout PR #1190 admission preflight: PASS; `SCOPE_CLASS docs_only`, `RUNTIME_CRITICAL no`, `WORKFLOW_SECURITY no`, `QSC_ADVERSARIAL_TRIGGERED no`, `HELPER_PR_CAN_LIKELY_PASS_REQUIRED_CHECKS yes`.
+- Closeout PR #1190 goal-lint: PASS.
 
 ## Disk watermark
 
@@ -114,10 +144,16 @@ Last-Updated: 2026-06-11
 
 ## Next-watch items
 
-- Complete NA-0460 evidence patch validation.
-- Create evidence PR and wait for required checks.
-- Merge evidence PR only after required checks pass and public-safety is green.
-- If evidence PR merges and post-merge public-safety is green, close out NA-0460 and restore NA-0461 without implementing NA-0461.
+- Complete NA-0460 closeout validation and PR.
+- Merge closeout PR only after required checks pass and public-safety is green.
+- Verify NA-0461 is the sole READY item after closeout merge.
+
+## Closeout notes
+
+- NA-0460 closeout is in progress because PR #1189 merged and post-merge public-safety completed success.
+- Selected successor restored by closeout: `NA-0461 -- QSL qsc B1 Signature Provider RNG Failure Test Seam Implementation Harness`.
+- Closeout scope is limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0460_closeout_restore_na0461_testplan.md`.
+- Closeout does not implement NA-0461 and does not mutate runtime, crypto, dependency, Cargo, lockfile, workflow, executable test source, fuzz target, vector, formal model, service, public-surface, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback, or backup tree paths.
 
 # QSL-DIR-2026-06-11-315 / NA-0458 qsc KEM provider RNG seam implementation rolling journal
 

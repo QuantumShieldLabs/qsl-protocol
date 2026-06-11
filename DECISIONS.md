@@ -24043,3 +24043,54 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Stewardship:** Level 1 stewardship template was used. Level 2 and Level 3 remain future-gated. There are no separate Directors, no independent READY promotion, and no independent merge authority. Lead Director final authority is preserved.
   - **Exactly one READY remains mandatory:** NA-0460 remains the sole READY item until closeout restores NA-0461 after this evidence PR merges and post-merge public-safety is green.
   - **References:** NA-0460; NA-0459; NA-0458; NA-0461; D-0907; D-0906; D-0905; `docs/governance/evidence/NA-0460_qsl_qsc_signature_identity_provider_rng_failure_split_scope_authorization_plan.md`; `tests/NA-0460_qsl_qsc_signature_identity_provider_rng_failure_split_scope_authorization_testplan.md`; `docs/governance/evidence/NA-0459_qsl_qsc_signature_identity_provider_rng_failure_scope_authorization_plan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0908
+  - **Title:** NA-0460 closeout and NA-0461 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-11
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0460 is closed after qsl-protocol PR #1189 merged at `ed9a28e3c216` and post-merge public-safety completed success on that merge commit. D-0907 selected `NA-0461 -- QSL qsc B1 Signature Provider RNG Failure Test Seam Implementation Harness`, so this closeout marks NA-0460 DONE and restores NA-0461 as the sole READY successor.
+  - **Selected successor:** `NA-0461 -- QSL qsc B1 Signature Provider RNG Failure Test Seam Implementation Harness`.
+  - **Closeout-only mutable paths:** `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0460_closeout_restore_na0461_testplan.md`.
+  - **Future NA-0461 scope:** NA-0461 may mutate only `qsl/qsl-client/qsc/src/handshake/mod.rs`, `qsl/qsl-client/qsc/tests/b1_signature_provider_rng_failure.rs`, `docs/governance/evidence/NA-0461_qsl_qsc_b1_signature_provider_rng_failure_test_seam_implementation_harness.md`, `tests/NA-0461_qsl_qsc_b1_signature_provider_rng_failure_test_seam_implementation_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, unless a later exact directive narrows or changes that scope.
+  - **No NA-0461 implementation mutation:** This closeout does not implement NA-0461 and does not mutate qsc source, executable test source, runtime behavior, crypto behavior, dependencies, Cargo manifests, lockfiles, workflows, fuzz targets, vectors, formal models, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup/restore/local-ops paths, qsl-backup, backup status files, backup plan files, rollback subtree paths, or backup tree paths.
+  - **Public claim boundary:**
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No crypto-complete claim is made.
+    - No signature-complete claim is made.
+    - No identity-complete claim is made.
+    - No RNG-failure-complete claim is made.
+    - No provider-RNG-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No perfect-crypto claim is made.
+    - Cargo audit green is dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Required behavior:**
+    - Exactly one READY item remains mandatory.
+    - NA-0461 must remain the exact qsc B1 signature provider RNG failure test-seam implementation harness selected by NA-0460 unless a later exact directive narrows or changes that scope.
+    - NA-0460 evidence remains bounded internal governance evidence and not public-readiness or crypto-complete proof.
+    - A2 signing, identity generation, verification / `sig_invalid`, X25519 / ephemeral generation, qshield-cli RNG, formal/model RNG, fuzz/vector RNG, and refimpl provider RNG remain residual unless a later exact directive authorizes them.
+  - **Must never happen:**
+    - NA-0461 implementation starts inside this closeout.
+    - A future lane mutates runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, README, START_HERE, website, or public-claim scope outside exact authorization.
+    - NA-0460 evidence is represented as signature completion, identity completion, RNG-failure completion, provider-RNG completion, or crypto completion.
+    - Cargo audit output must not be used as public-readiness proof.
+    - Cargo audit output must not be used as production-readiness proof.
+    - Cargo audit output must not be used as public-internet-readiness proof.
+    - Cargo audit output must not be used as external-review-complete proof.
+    - Cargo audit output must not be used as crypto-complete proof.
+    - Cargo audit output must not be used as signature-complete proof.
+    - Cargo audit output must not be used as identity-complete proof.
+    - Cargo audit output must not be used as RNG-failure-complete proof.
+    - Cargo audit output must not be used as provider-RNG-complete proof.
+    - Cargo audit output must not be used as vulnerability-free proof.
+    - Cargo audit output must not be used as bug-free proof.
+    - Cargo audit output must not be used as perfect-crypto proof.
+    - Cargo audit output must not be used as side-channel-free proof.
+    - more than one READY item remains.
+  - **References:** NA-0460; NA-0461; D-0908; D-0907; qsl-protocol PR #1189; `docs/governance/evidence/NA-0460_qsl_qsc_signature_identity_provider_rng_failure_split_scope_authorization_plan.md`; `tests/NA-0460_qsl_qsc_signature_identity_provider_rng_failure_split_scope_authorization_testplan.md`; `tests/NA-0460_closeout_restore_na0461_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -11,8 +11,8 @@ Last-Updated: 2026-06-11
 - Directive: QSL-DIR-2026-06-11-315 -- Execute NA-0458 QSL qsc KEM Provider RNG Failure Fake / Test Seam Implementation Harness, Optional Closeout to NA-0459.
 - Begin timestamp (America/Chicago): 2026-06-10T19:49:07-05:00.
 - Begin timestamp (UTC): 2026-06-11T00:49:07+00:00.
-- Latest journal update timestamp (America/Chicago): 2026-06-10T22:00:36-05:00.
-- Latest journal update timestamp (UTC): 2026-06-11T03:00:36+00:00.
+- Latest journal update timestamp (America/Chicago): 2026-06-10T22:06:08-05:00.
+- Latest journal update timestamp (UTC): 2026-06-11T03:06:08+00:00.
 - Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
 
 ## NA-0458 repo SHAs
@@ -26,7 +26,7 @@ Last-Updated: 2026-06-11
 - Evidence PR: #1185.
 - Evidence merge commit: `614923e9cb2e`.
 - Closeout branch: `na-0458-closeout-restore-na0459`.
-- Closeout PR: pending.
+- Closeout PR: #1186.
 - Closeout merge commit: pending.
 
 ## NA-0458 READY proof
@@ -120,6 +120,7 @@ Last-Updated: 2026-06-11
 
 - Root pqcrypto inverse probes reported package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`; these were expected zero-match inventory results under the directive's `|| true` probes.
 - Local qsc adversarial script Rust phases and provider-error step passed, then the local environment reported `cargo fuzz` unavailable. PR CI `qsc-adversarial-smoke` remains the cargo-fuzz-backed authority.
+- Closeout nested qsc fuzz lock audit emitted local advisory-db lock-wait warnings while concurrent audit commands finished; this was non-fatal and the nested audit completed successfully.
 
 ## NA-0458 validation / CI notes
 
@@ -158,6 +159,20 @@ Last-Updated: 2026-06-11
 - Post-merge public-safety on `614923e9cb2e`: PASS after progress-aware REST polling.
 - Post-merge qsc Linux full suite on `614923e9cb2e`: PASS.
 - Post-merge macOS qsc full serial on `614923e9cb2e`: PASS.
+- Closeout staged scope guard before commit: PASS, exactly five allowed closeout paths.
+- Closeout `git diff --check`: PASS.
+- Closeout queue helper: READY_COUNT 1 and READY NA-0459.
+- Closeout decision helper: latest D-0904, D-0903 once, D-0904 once, D-0905 absent, duplicate decision count zero.
+- Closeout link check: PASS, `TOTAL_MISSING 0`.
+- Closeout scope guard after commit: PASS, exactly five allowed paths and zero forbidden paths.
+- Closeout added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Closeout PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- Closeout added-line overclaim scan: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Closeout root cargo audit: PASS.
+- Closeout nested qsc fuzz lock audit: PASS.
+- Closeout goal-lint synthetic-event preflight: PASS.
+- Closeout `cargo fmt --check`: PASS.
+- Public-safety on implementation merge `614923e9cb2e`: PASS before opening closeout PR.
 
 ## NA-0458 closeout notes
 
@@ -180,7 +195,7 @@ Last-Updated: 2026-06-11
 
 - Pre-PR exact eight-path scope guard, link-check, leak-scan, overclaim scan, classifier, PR body preflight, goal-lint, and final validation bundle completed locally.
 - Implementation PR #1185 merged and post-merge public-safety is green.
-- Closeout PR is pending for branch `na-0458-closeout-restore-na0459`.
+- Closeout PR #1186 is open for branch `na-0458-closeout-restore-na0459`.
 - Wait for closeout required checks through REST polling.
 - Merge closeout only after required checks and public-safety pass.
 - Do not implement NA-0459 inside NA-0458 closeout.

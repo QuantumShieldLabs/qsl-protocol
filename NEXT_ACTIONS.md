@@ -25140,7 +25140,7 @@ Acceptance criteria:
 ---
 
 ### NA-0459 — QSL qsc Signature / Identity Provider RNG Failure Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -25210,6 +25210,88 @@ Deliverables:
 
 Acceptance criteria:
 - qsc signature / identity provider RNG failure scope is selected or rejected with evidence.
+- exact future scope is selected from evidence.
+- no implementation mutation occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+---
+
+### NA-0460 — QSL qsc Signature / Identity Provider RNG Failure Split-Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Split qsc signature and identity provider RNG failure work into the least invasive exact future scope after NA-0459, preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries unless a later directive authorizes precise implementation.
+
+Protects:
+- qsc signature and identity provider-dependent RNG failure evidence quality.
+- qsc/refimpl boundary clarity.
+- fail-closed handling around signing, identity bootstrap, and provider-dependent generation.
+- production semantic stability.
+- key lifecycle and provider boundary confidence after ml-kem replacement, provider-error audit work, qsc zeroization tests, qsc RNG seam work, provider RNG strategy review, split-scope review, qsc no-mutation scope review, qsc fake/seam strategy review, and KEM-only implementation.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0460.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- read-only inspection of:
+  - `qsl/qsl-client/qsc/src/`.
+  - `qsl/qsl-client/qsc/tests/`.
+  - `tools/refimpl/`.
+  - `docs/governance/evidence/`.
+  - `qsl/qsl-client/qsc/fuzz/`.
+  - `formal/`.
+  - `inputs/`.
+  - relevant scripts/workflows read-only.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, Cargo, lockfile, workflow, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE paths.
+- Mutating tests, fuzz target source, vectors, or formal models unless a later implementation directive authorizes exact paths.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No production-readiness claim is allowed.
+- No public-internet-readiness claim is allowed.
+- No external-review-complete claim is allowed.
+- No metadata-free claim is allowed.
+- No anonymity claim is allowed.
+- No untraceable claim is allowed.
+- No off-host-backup-complete claim is allowed.
+- No disaster-recovery-complete claim is allowed.
+- No restore-proven claim is allowed.
+- No backup-complete claim is allowed.
+- No bug-free claim is allowed.
+- No vulnerability-free claim is allowed.
+- No perfect-crypto claim is allowed.
+- No side-channel-free claim is allowed.
+- No RNG-failure-complete claim is allowed.
+- No provider-RNG-complete claim is allowed.
+- No secret-material-complete claim is allowed.
+- No KEM-complete claim is allowed.
+- No signature-complete claim is allowed.
+- No identity-complete claim is allowed.
+- No crypto-complete claim is allowed.
+- Secret material handling outside read-only source/evidence inspection.
+
+Deliverables:
+- NA-0460 evidence doc.
+- NA-0460 testplan.
+- D-0907 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- selected exact successor or no-action rationale.
+
+Acceptance criteria:
+- qsc signature/identity provider RNG failure split scope is selected or rejected with evidence.
 - exact future scope is selected from evidence.
 - no implementation mutation occurs.
 - cargo audit remains green.

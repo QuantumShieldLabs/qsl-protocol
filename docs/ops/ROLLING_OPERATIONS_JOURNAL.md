@@ -37,9 +37,10 @@ Last-Updated: 2026-06-11
 - Worktree path: `/srv/qbuild/work/NA-0461/qsl-protocol`.
 - Proof root: `/srv/qbuild/tmp/NA0461_qsc_b1_signature_provider_rng_seam_impl_20260611T122247Z`.
 - Evidence branch: `na-0461-qsc-b1-signature-provider-rng-seam`.
-- Evidence PR: pending.
-- Evidence merge commit: pending.
-- Closeout branch: pending.
+- Evidence PR: #1191.
+- Evidence merge commit: `37a540983595`.
+- Evidence post-merge public-safety: completed success after extended REST polling.
+- Closeout branch: `na-0461-closeout-restore-na0462`.
 - Closeout PR: pending.
 - Closeout merge commit: pending.
 
@@ -85,6 +86,25 @@ Last-Updated: 2026-06-11
   bundle.
   Final result: Rust adversarial phases PASS locally; fuzz phase deferred to PR
   CI qsc-adversarial-smoke.
+- Failing command: initial post-merge REST polling loop for PR #1191 merge
+  commit `37a540983595`.
+  Classification: recoverable bounded-wait cap because iteration 180 ended
+  while public-safety, qsc Linux full suite, and macOS full serial suite were
+  still attached and non-failing; Packet J explicitly forbids treating lack of
+  intra-step updates in known long-running jobs as stale by itself.
+  Corrective action: continued REST polling in an extension loop and recorded
+  running-job samples.
+  Final result: macOS full serial completed success, qsc Linux full suite
+  completed success, and public-safety completed success with zero failed
+  check runs.
+- Failing command: closeout PR-body preflight with overclaim scan.
+  Classification: recoverable PR-body wording issue because the helper treats
+  certain forbidden public-claim terms as prohibited even when negated in the
+  PR body.
+  Corrective action: removed those exact terms from the PR body's public-claim
+  boundary wording while preserving the no-overclaim statement.
+  Final result: PR-body preflight rerun passed with zero missing fields and
+  zero prohibited phrases.
 
 ## Non-fatal warnings / zero-match notes
 
@@ -130,6 +150,13 @@ Last-Updated: 2026-06-11
   `pqkem768`, root cargo audit, nested qsc fuzz lock audit, dependency probes,
   and formal model checks.
 - qsl-backup SHA matched required boundary value; script-local Codex ops source inclusion count was 1.
+- PR #1191 checks before merge: 38 attached checks completed with zero failures;
+  36 success and 2 accepted skipped checks.
+- PR #1191 merge commit `37a540983595` post-merge checks: public-safety
+  completed success after qsc Linux full suite and macOS full serial suite
+  completed success.
+- Closeout pre-patch public-safety prerequisite: PASS on `37a540983595`.
+- Closeout branch created from clean `main` at `37a540983595`.
 
 ## Disk watermark
 

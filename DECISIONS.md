@@ -24134,3 +24134,38 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output must not be used as side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0461; NA-0460; NA-0462; D-0909; D-0908; D-0907; `docs/governance/evidence/NA-0461_qsl_qsc_b1_signature_provider_rng_failure_test_seam_implementation_harness.md`; `tests/NA-0461_qsl_qsc_b1_signature_provider_rng_failure_test_seam_implementation_testplan.md`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/tests/b1_signature_provider_rng_failure.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0910
+  - **Title:** NA-0461 closeout and NA-0462 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-11
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0461 is closed after qsl-protocol PR #1191 merged at `37a540983595` and post-merge public-safety completed success on that merge commit. D-0909 selected `NA-0462 -- QSL qsc A2 Signature Provider RNG Failure Scope Authorization Plan`, so this closeout marks NA-0461 DONE and restores NA-0462 as the sole READY successor.
+  - **NA-0461 implementation status:** B1 responder signature provider RNG forced-failure evidence is implemented and merged. The cfg-only seam label remains `QSC.SIG.B1`, forced failure takes the sanitized `sig_sign_failed` path, and tests prove no selected responder pending/session mutation and no B1 relay output.
+  - **NA-0462 restored scope:** NA-0462 is authorization-only. It may inspect qsc source/tests, refimpl, evidence, qsc fuzz metadata, formal models, inputs, and relevant scripts/workflows read-only, and may mutate only NA-0462 governance evidence/testplan plus `DECISIONS.md`, `TRACEABILITY.md`, and the rolling journal unless a later directive authorizes exact implementation paths.
+  - **Residuals preserved:** A2 signing remains unimplemented by this closeout and requires a truthful post-mutation invariant because it occurs after initiator session storage and pending clear. Identity provider RNG, X25519 provider RNG, qshield-cli RNG, formal/model RNG, fuzz/vector RNG, and refimpl provider RNG remain residual unless a later exact directive authorizes them.
+  - **No implementation mutation by closeout:** This closeout does not mutate qsc source, executable qsc tests from the implementation lane, refimpl, dependencies, Cargo manifests, lockfiles, workflows, fuzz targets, vectors, formal models, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup/restore/local-ops paths, qsl-backup, backup status files, backup plan files, rollback subtree paths, or backup tree paths.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No RNG-failure-complete claim is made. No provider-RNG-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Required behavior:**
+    - Exactly one READY item remains mandatory.
+    - NA-0462 must not implement runtime, crypto, dependency, workflow, test, fuzz, vector, formal, service, public-surface, backup, qwork, or refimpl changes unless a later exact directive authorizes those paths.
+    - NA-0461 B1 signing evidence remains bounded internal qsc forced-seam evidence and must not be represented as broader signature, provider RNG, RNG-failure, identity, or crypto completion.
+  - **Must never happen:**
+    - NA-0462 is treated as implementation authorization before its scope evidence is produced and accepted.
+    - A2 signing, identity provider RNG, X25519 provider RNG, refimpl provider RNG, qshield-cli RNG, formal/model RNG, or fuzz/vector RNG residuals are claimed complete from NA-0461 evidence.
+    - Cargo audit output must not be used as public-readiness proof.
+    - Cargo audit output must not be used as production-readiness proof.
+    - Cargo audit output must not be used as public-internet-readiness proof.
+    - Cargo audit output must not be used as external-review-complete proof.
+    - Cargo audit output must not be used as crypto-complete proof.
+    - Cargo audit output must not be used as signature-complete proof.
+    - Cargo audit output must not be used as identity-complete proof.
+    - Cargo audit output must not be used as RNG-failure-complete proof.
+    - Cargo audit output must not be used as provider-RNG-complete proof.
+    - Cargo audit output must not be used as vulnerability-free proof.
+    - Cargo audit output must not be used as bug-free proof.
+    - Cargo audit output must not be used as perfect-crypto proof.
+    - Cargo audit output must not be used as side-channel-free proof.
+    - more than one READY item remains.
+  - **References:** NA-0461; NA-0462; D-0910; D-0909; qsl-protocol PR #1191; `docs/governance/evidence/NA-0461_qsl_qsc_b1_signature_provider_rng_failure_test_seam_implementation_harness.md`; `tests/NA-0461_qsl_qsc_b1_signature_provider_rng_failure_test_seam_implementation_testplan.md`; `tests/NA-0461_closeout_restore_na0462_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

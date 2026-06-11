@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 use super::*;
 
 #[derive(Serialize, Deserialize)]
@@ -316,6 +318,20 @@ pub(super) fn identity_self_kem_keypair(self_label: &str) -> Result<IdentityKeyp
         }
         return Err(ErrorCode::ParseFailed);
     }
+    #[cfg(qsc_rng_failure_test_seam)]
+    let (kem_pk, kem_sk) =
+        match crate::handshake::hs_kem_keypair_with_failure_label("QSC.KEM.KEYPAIR") {
+            Ok(v) => v,
+            Err(e) => {
+                emit_marker(
+                    "identity_secret_unavailable",
+                    Some(e),
+                    &[("reason", "rng_failure_forced")],
+                );
+                return Err(ErrorCode::IdentitySecretUnavailable);
+            }
+        };
+    #[cfg(not(qsc_rng_failure_test_seam))]
     let (kem_pk, kem_sk) = hs_kem_keypair();
     let (sig_pk, sig_sk) = hs_sig_keypair();
     identity_secret_store(self_label, &kem_sk)?;

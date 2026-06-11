@@ -126,7 +126,16 @@ Last-Updated: 2026-06-11
 - Evidence PR #1193 checks: PASS before merge; public-safety completed success on PR head `09cb1d0dee14` with required contexts green or policy-skipped/neutral.
 - Evidence PR #1193 merge: PASS, merged with merge commit `3e4a1bab743d`.
 - Evidence PR #1193 post-merge public-safety: PASS on `3e4a1bab743d`.
-- Closeout patch scope: pending validation.
+- Closeout patch exact path guard: PASS, exactly five allowed closeout paths and zero extra paths.
+- Closeout queue proof: READY_COUNT 1 and READY NA-0463.
+- Closeout decision proof: latest D-0912; D-0911 once; D-0912 once; D-0913 absent by direct search; duplicate decision count zero.
+- Closeout link check: PASS, `TOTAL_MISSING 0`.
+- Closeout added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Closeout overclaim scan: PASS, `OVERCLAIM_CANDIDATE_COUNT 0`.
+- Closeout PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- Closeout goal-lint: PASS.
+- Closeout `git diff --check`: PASS.
+- Closeout `cargo fmt --check`: PASS.
 
 ## Disk watermark
 
@@ -138,8 +147,7 @@ Last-Updated: 2026-06-11
 
 ## Next-watch items
 
-- Complete NA-0462 closeout validation.
-- Open closeout PR only after exact closeout path guard passes.
+- Open closeout PR after exact closeout path guard passed.
 - Merge closeout PR only after required checks pass and public-safety is green.
 - Do not implement NA-0463 inside NA-0462 closeout.
 

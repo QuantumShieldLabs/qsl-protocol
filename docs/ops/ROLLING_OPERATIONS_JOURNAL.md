@@ -6,6 +6,115 @@ Last-Updated: 2026-06-11
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-11-317 / NA-0460 qsc signature identity provider RNG split-scope rolling journal
+
+- Directive: QSL-DIR-2026-06-11-317 -- Execute NA-0460 QSL qsc Signature / Identity Provider RNG Failure Split-Scope Authorization Plan, Optional Closeout to NA-0461.
+- Begin timestamp (America/Chicago): 2026-06-11T05:24:42-05:00
+- Begin timestamp (UTC): 2026-06-11T10:24:42+00:00
+- End timestamp (America/Chicago): pending.
+- End timestamp (UTC): pending.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Repo SHAs
+
+- qsl-protocol branch: `na-0460-signature-identity-split-scope`
+- qsl-protocol HEAD before patch: `a89221dc8983`
+- qsl-protocol main before patch: `a89221dc8983`
+- qsl-protocol origin/main before patch: `a89221dc8983`
+- qsl-protocol mirror/main: fetched by `git fetch --all --prune`; origin/main did not advance.
+
+## READY proof
+
+- qwork proof: startup OK for lane NA-0460, repo qsl-protocol, clean worktree/index/untracked state, proof HEAD and proof origin/main both `a89221dc8983`.
+- Pre-fetch live proof: HEAD and origin/main matched qwork proof at `a89221dc8983`.
+- Fetch result: origin/main did not advance.
+- PR #1188 proof: MERGED at `a89221dc8983`.
+- Queue proof before patch: READY_COUNT 1, READY NA-0460.
+- Decision proof before patch: latest D-0906, D-0905 once, D-0906 once, D-0907 absent, duplicate decision count zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0460/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0460_qsc_signature_identity_split_scope_20260611T102442Z`.
+- Evidence branch: `na-0460-signature-identity-split-scope`.
+- Evidence PR: pending.
+- Evidence merge commit: pending.
+
+## Split-scope notes
+
+- Selected primary classification: `SIGNATURE_IDENTITY_SPLIT_B1_SIGNING_NEXT`.
+- Selected successor: `NA-0461 -- QSL qsc B1 Signature Provider RNG Failure Test Seam Implementation Harness`.
+- Selected future implementation paths: `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/tests/b1_signature_provider_rng_failure.rs`; NA-0461 evidence/testplan; `DECISIONS.md`; `TRACEABILITY.md`; rolling journal.
+- B1 signing is selected because `sig_sign_failed` occurs before responder pending/session state storage and before B1 output.
+- A2 signing remains deferred because it occurs after initiator session storage and pending clear.
+- Identity generation remains split by path: lazy identity, legacy/public-record upgrade, CLI rotation, and TUI account bootstrap.
+- Verification / `sig_invalid` remains background only and not RNG-relevant.
+- X25519 / ephemeral generation remains separate backlog.
+- Refimpl provider RNG remains deferred.
+- No implementation mutation in NA-0460.
+
+## Failures / recoveries
+
+- Failing command: auxiliary queue/decision inline check over compact `qsl_evidence_helper` stdout.
+  Classification: recoverable command-shape issue because the helper queue output is compact and not a full NA-04xx proof listing.
+  Corrective action: inspected `NEXT_ACTIONS.md` and `DECISIONS.md` directly with deterministic searches and canonical ID-field counting.
+  Final result: queue direct proof PASS for READY NA-0460, NA-0459 through NA-0436 DONE, NA-0434/NA-0429 BLOCKED, D-0905 once, D-0906 once, D-0907 absent, duplicate decision count zero.
+- Failing command: first qsl-backup source inclusion grep counted supporting plan/status prose as well as the script.
+  Classification: recoverable proof-target issue; SHA proof was correct and no backup/restore/mutation occurred.
+  Corrective action: counted the source-list token in `/usr/local/sbin/qsl-backup` only.
+  Final result: script-local source inclusion count was 1 and qsl-backup SHA matched the required boundary value.
+- Failing command: first added-line overclaim scan after NA-0460 evidence patch.
+  Classification: recoverable wording/screening issue because wrapped no-claim caveat lines carried sensitive terms without same-line negation.
+  Corrective action: rewrapped the affected NA-0460 evidence caveats so each sensitive phrase carries same-line denial wording.
+  Final result: `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+
+## Non-fatal warnings / zero-match notes
+
+- Root pqcrypto inverse probes reported package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`; these were expected zero-match inventory results under the directive's `|| true` probes.
+
+## Validation / CI notes
+
+- Public-safety on current main `a89221dc8983`: PASS; qsc-adversarial-smoke PASS; qsc Linux full suite and macOS qsc full serial accepted skipped by repo policy.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- qsc cfg `kem_provider_rng_failure`: PASS.
+- qsc normal `kem_provider_rng_failure`: PASS.
+- qsc cfg `rng_failure_residual_surfaces`: PASS.
+- qsc normal `rng_failure_residual_surfaces`: PASS.
+- qsc cfg `rng_failure_behavior`: PASS.
+- qsc normal `rng_failure_behavior`: PASS.
+- qsc `key_lifecycle_zeroization`: PASS.
+- qsc `handshake_provider_error_no_mutation`: PASS.
+- qsc stable `send_commit`: PASS.
+- refimpl `pqkem768`: PASS.
+- qsc adversarial script marker present.
+- Local qsc adversarial script: Rust property suite PASS, miri-shaped suite PASS, provider-error step PASS, then local `cargo fuzz` unavailable with `error: no such command: fuzz`; PR CI qsc-adversarial-smoke remains required for cargo-fuzz-backed evidence.
+- Post-patch staged scope guard: PASS, exactly five allowed NA-0460 paths.
+- Post-patch `git diff --cached --check`: PASS.
+- Post-patch link check: PASS, `TOTAL_MISSING 0`.
+- Post-patch added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Post-patch added-line overclaim scan: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Post-patch PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- Post-patch queue helper: PASS, READY_COUNT 1 and READY NA-0460.
+- Post-patch decision helper: PASS, latest D-0907 and duplicate decision count zero.
+- Post-patch `cargo fmt --check`: PASS.
+- Post-patch formal model checks: PASS.
+
+## Disk watermark
+
+- Filesystem: `/`.
+- Total GiB: 468.
+- Used GiB: 286.
+- Free GiB: 158.
+- Used %: 65%.
+
+## Next-watch items
+
+- Complete NA-0460 evidence patch validation.
+- Create evidence PR and wait for required checks.
+- Merge evidence PR only after required checks pass and public-safety is green.
+- If evidence PR merges and post-merge public-safety is green, close out NA-0460 and restore NA-0461 without implementing NA-0461.
+
 # QSL-DIR-2026-06-11-315 / NA-0458 qsc KEM provider RNG seam implementation rolling journal
 
 - Directive: QSL-DIR-2026-06-11-315 -- Execute NA-0458 QSL qsc KEM Provider RNG Failure Fake / Test Seam Implementation Harness, Optional Closeout to NA-0459.

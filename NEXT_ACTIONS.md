@@ -24966,7 +24966,7 @@ Closeout evidence:
 ---
 
 ### NA-0457 — QSL qsc Provider RNG Failure Fake / Test Seam Strategy Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -25046,6 +25046,91 @@ Acceptance criteria:
 - qsc provider RNG fake/seam strategy is selected or rejected with evidence.
 - exact future scope is selected from evidence.
 - no implementation mutation occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+---
+
+### NA-0458 — QSL qsc KEM Provider RNG Failure Fake / Test Seam Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the exact qsc KEM-provider RNG failure fake/test-seam strategy
+selected by NA-0457, preserving production semantics when the test seam is
+inactive and proving bounded no-mutation behavior for selected qsc KEM provider
+RNG failure paths.
+
+Protects:
+- qsc KEM provider-dependent RNG failure no-mutation evidence quality.
+- qsc/refimpl boundary clarity.
+- fail-closed handling around randomness-dependent provider operations.
+- production semantic stability.
+- key lifecycle and provider boundary confidence after ml-kem replacement,
+  provider-error audit work, qsc zeroization tests, qsc RNG seam work,
+  provider RNG strategy review, split-scope review, qsc no-mutation scope
+  review, and qsc fake/seam strategy review.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- `qsl/qsl-client/qsc/src/handshake/mod.rs`.
+- `qsl/qsl-client/qsc/src/identity/mod.rs`.
+- `qsl/qsl-client/qsc/tests/kem_provider_rng_failure.rs`.
+- `docs/governance/evidence/NA-0458_qsl_qsc_kem_provider_rng_failure_fake_test_seam_implementation_harness.md`.
+- `tests/NA-0458_qsl_qsc_kem_provider_rng_failure_fake_test_seam_implementation_testplan.md`.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+
+Forbidden scope:
+- Mutating dependencies, Cargo, lockfiles, workflows, qsl-server,
+  qsl-attachments, qshield runtime, website, public docs, README, or START_HERE
+  paths.
+- Mutating unrelated qsc/runtime/crypto paths outside exact NA-0457 KEM scope.
+- Mutating signature/identity signing seams, X25519 seams, refimpl provider RNG
+  fakes, fuzz target source, vectors, or formal models unless a later exact
+  directive authorizes them.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No production-readiness claim is allowed.
+- No public-internet-readiness claim is allowed.
+- No external-review-complete claim is allowed.
+- No metadata-free claim is allowed.
+- No anonymity claim is allowed.
+- No untraceable claim is allowed.
+- No off-host-backup-complete claim is allowed.
+- No disaster-recovery-complete claim is allowed.
+- No restore-proven claim is allowed.
+- No backup-complete claim is allowed.
+- No bug-free claim is allowed.
+- No vulnerability-free claim is allowed.
+- No perfect-crypto claim is allowed.
+- No side-channel-free claim is allowed.
+- No RNG-failure-complete claim is allowed.
+- No provider-RNG-complete claim is allowed.
+- No secret-material-complete claim is allowed.
+- No crypto-complete claim is allowed.
+- Secret material handling outside exact test/evidence scope.
+
+Deliverables:
+- NA-0458 KEM-only qsc implementation.
+- NA-0458 evidence doc.
+- NA-0458 testplan.
+- D-0903 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+
+Acceptance criteria:
+- exact selected qsc KEM fake/seam behavior is implemented.
+- production semantics are unchanged when the seam is inactive.
+- selected KEM no-mutation invariant is tested.
 - cargo audit remains green.
 - nested fuzz lock audit remains green.
 - public-safety is green before merge and after merge.

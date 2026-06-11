@@ -23884,3 +23884,55 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output must not be used as side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0458; NA-0459; D-0903; D-0902; D-0901; `docs/governance/evidence/NA-0458_qsl_qsc_kem_provider_rng_failure_fake_test_seam_implementation_harness.md`; `tests/NA-0458_qsl_qsc_kem_provider_rng_failure_fake_test_seam_implementation_testplan.md`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/tests/kem_provider_rng_failure.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0904
+  - **Title:** NA-0458 closeout and NA-0459 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-11
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0458 is closed after qsl-protocol PR #1185 merged at `614923e9cb2e` and post-merge public-safety completed success on that merge commit. D-0903 selected `NA-0459 -- QSL qsc Signature / Identity Provider RNG Failure Scope Authorization Plan`, so this closeout marks NA-0458 DONE and restores NA-0459 as the sole READY successor.
+  - **Selected successor:** `NA-0459 -- QSL qsc Signature / Identity Provider RNG Failure Scope Authorization Plan`.
+  - **Closeout-only mutable paths:** `NEXT_ACTIONS.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0458_closeout_restore_na0459_testplan.md`.
+  - **Future NA-0459 scope:** NA-0459 is authorization-only unless a later exact directive authorizes implementation. It may mutate NA-0459 governance evidence/testplan paths, `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and may inspect qsc source/tests, refimpl, prior evidence, qsc fuzz, formal, inputs, and relevant scripts/workflows read-only.
+  - **No NA-0459 implementation mutation:** This closeout does not implement NA-0459 and does not mutate qsc source, executable test source, runtime behavior, crypto behavior, dependencies, Cargo manifests, lockfiles, workflows, fuzz targets, vectors, formal models, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup/restore/local-ops paths, qsl-backup, backup status files, backup plan files, rollback subtree paths, or backup tree paths.
+  - **Public claim boundary:**
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No public crypto-complete claim is made.
+    - No KEM-complete claim is made.
+    - No RNG-failure-complete claim is made.
+    - No provider-RNG-complete claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No perfect-crypto claim is made.
+    - Cargo audit green remains dependency-health evidence only.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Required behavior:**
+    - Exactly one READY item remains mandatory.
+    - NA-0459 must remain qsc signature / identity provider RNG failure scope authorization only unless a later exact directive authorizes implementation.
+    - NA-0458 KEM forced-seam evidence remains bounded internal qsc evidence.
+    - `pq_decap_failed` remains generic provider-error background evidence.
+    - `pq_encap_failed` forced-seam evidence remains caveated and is not an external triggerability claim under the active provider.
+    - Signature/identity provider RNG, X25519 provider RNG, qshield-cli RNG, formal/model RNG, fuzz/vector RNG, and refimpl provider RNG remain residual unless a later exact directive authorizes them.
+  - **Must never happen:**
+    - NA-0459 implementation starts inside this closeout.
+    - A future lane mutates runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, public, service, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status/plan, rollback, README, START_HERE, website, or public-claim scope outside exact authorization.
+    - NA-0458 evidence is represented as qsc provider RNG completion, refimpl provider-boundary completion, RNG-failure completion, KEM completion, or crypto completion.
+    - Cargo audit output must not be used as public-readiness proof.
+    - Cargo audit output must not be used as production-readiness proof.
+    - Cargo audit output must not be used as public-internet-readiness proof.
+    - Cargo audit output must not be used as external-review-complete proof.
+    - Cargo audit output must not be used as crypto-complete proof.
+    - Cargo audit output must not be used as KEM-complete proof.
+    - Cargo audit output must not be used as RNG-failure-complete proof.
+    - Cargo audit output must not be used as provider-RNG-complete proof.
+    - Cargo audit output must not be used as vulnerability-free proof.
+    - Cargo audit output must not be used as bug-free proof.
+    - Cargo audit output must not be used as perfect-crypto proof.
+    - Cargo audit output must not be used as side-channel-free proof.
+    - more than one READY item remains.
+  - **References:** NA-0458; NA-0459; D-0904; D-0903; qsl-protocol PR #1185; `docs/governance/evidence/NA-0458_qsl_qsc_kem_provider_rng_failure_fake_test_seam_implementation_harness.md`; `tests/NA-0458_qsl_qsc_kem_provider_rng_failure_fake_test_seam_implementation_testplan.md`; `tests/NA-0458_closeout_restore_na0459_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

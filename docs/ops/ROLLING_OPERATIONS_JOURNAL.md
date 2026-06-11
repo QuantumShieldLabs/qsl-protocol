@@ -11,8 +11,8 @@ Last-Updated: 2026-06-11
 - Directive: QSL-DIR-2026-06-11-315 -- Execute NA-0458 QSL qsc KEM Provider RNG Failure Fake / Test Seam Implementation Harness, Optional Closeout to NA-0459.
 - Begin timestamp (America/Chicago): 2026-06-10T19:49:07-05:00.
 - Begin timestamp (UTC): 2026-06-11T00:49:07+00:00.
-- Latest journal update timestamp (America/Chicago): 2026-06-10T20:29:35-05:00.
-- Latest journal update timestamp (UTC): 2026-06-11T01:29:35+00:00.
+- Latest journal update timestamp (America/Chicago): 2026-06-10T22:00:36-05:00.
+- Latest journal update timestamp (UTC): 2026-06-11T03:00:36+00:00.
 - Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
 
 ## NA-0458 repo SHAs
@@ -24,7 +24,10 @@ Last-Updated: 2026-06-11
 - PR #1184 closeout merge: `4cacba333820`.
 - Evidence branch: `na-0458-qsc-kem-provider-rng-seam`.
 - Evidence PR: #1185.
-- Evidence merge commit: pending.
+- Evidence merge commit: `614923e9cb2e`.
+- Closeout branch: `na-0458-closeout-restore-na0459`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
 
 ## NA-0458 READY proof
 
@@ -108,6 +111,10 @@ Last-Updated: 2026-06-11
   Classification: recoverable local command-shape issue because the linter is event-driven and requires `GITHUB_EVENT_PATH` even for this invocation.
   Corrective action: created a minimal proof-root pull-request event payload with the NA-0458 PR body and branch base/head SHAs, then reran with `GITHUB_EVENT_PATH` set.
   Final result: goal compliance checks passed.
+- Failing command: first post-merge Python REST poller for merge commit `614923e9cb2e` with a hard 180-iteration cap.
+  Classification: recoverable polling-shape and policy mismatch because the directive's evidence-based post-merge wait policy says not to impose a hard 180-iteration stop while attached checks are healthy, non-failing, and progressing.
+  Corrective action: restarted a progress-aware REST poller that continued while public-safety prerequisites and long-running qsc full-suite checks remained attached and non-failing.
+  Final result: public-safety, qsc Linux full suite, and macOS qsc full serial completed success on `614923e9cb2e`.
 
 ## NA-0458 non-fatal warnings / zero-match notes
 
@@ -144,6 +151,22 @@ Last-Updated: 2026-06-11
 - CI scope classifier: PASS, `scope_class=runtime_critical`.
 - PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
 - Goal-lint synthetic-event preflight: PASS.
+- PR #1185 required/attached checks: PASS, 38 attached checks, zero failures.
+- PR #1185 public-safety before merge: PASS.
+- PR #1185 qsc-adversarial-smoke before merge: PASS.
+- PR #1185 merged at `614923e9cb2e`.
+- Post-merge public-safety on `614923e9cb2e`: PASS after progress-aware REST polling.
+- Post-merge qsc Linux full suite on `614923e9cb2e`: PASS.
+- Post-merge macOS qsc full serial on `614923e9cb2e`: PASS.
+
+## NA-0458 closeout notes
+
+- NA-0458 is marked DONE in `NEXT_ACTIONS.md`.
+- NA-0459 is restored as the sole READY item with the title `QSL qsc Signature / Identity Provider RNG Failure Scope Authorization Plan`.
+- D-0904 records NA-0458 closeout and NA-0459 restoration.
+- `tests/NA-0458_closeout_restore_na0459_testplan.md` records the closeout validation plan.
+- NA-0459 is not implemented by this closeout.
+- No qsc source/test, refimpl, dependency, Cargo, lockfile, workflow, fuzz, vector, formal, qsl-server, qsl-attachments, qshield runtime, qshield-cli, public doc, README, START_HERE, backup, restore, qsl-backup, status, plan, rollback, qwork, qstart, qresume, or qshell mutation is introduced by closeout.
 
 ## NA-0458 disk watermark
 
@@ -156,10 +179,11 @@ Last-Updated: 2026-06-11
 ## NA-0458 next-watch items
 
 - Pre-PR exact eight-path scope guard, link-check, leak-scan, overclaim scan, classifier, PR body preflight, goal-lint, and final validation bundle completed locally.
-- Implementation PR #1185 is open; wait for required checks through REST polling.
-- Merge only after required checks pass.
-- Optional closeout to NA-0459 only after implementation PR merges and post-merge public-safety is green.
-- Do not implement NA-0459 inside NA-0458.
+- Implementation PR #1185 merged and post-merge public-safety is green.
+- Closeout PR is pending for branch `na-0458-closeout-restore-na0459`.
+- Wait for closeout required checks through REST polling.
+- Merge closeout only after required checks and public-safety pass.
+- Do not implement NA-0459 inside NA-0458 closeout.
 
 # QSL-DIR-2026-06-10-313 / NA-0456 qsc provider RNG no-mutation scope authorization rolling journal
 

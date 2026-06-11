@@ -2,9 +2,138 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-06-10
+Last-Updated: 2026-06-11
 
 # Rolling Operations Journal
+
+# QSL-DIR-2026-06-11-315 / NA-0458 qsc KEM provider RNG seam implementation rolling journal
+
+- Directive: QSL-DIR-2026-06-11-315 -- Execute NA-0458 QSL qsc KEM Provider RNG Failure Fake / Test Seam Implementation Harness, Optional Closeout to NA-0459.
+- Begin timestamp (America/Chicago): 2026-06-10T19:49:07-05:00.
+- Begin timestamp (UTC): 2026-06-11T00:49:07+00:00.
+- Latest journal update timestamp (America/Chicago): 2026-06-10T20:14:35-05:00.
+- Latest journal update timestamp (UTC): 2026-06-11T01:14:35+00:00.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## NA-0458 repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0458/qsl-protocol`.
+- qwork proof HEAD and origin/main: `4cacba333820`.
+- qsl-protocol main before patch: `4cacba333820`.
+- qsl-protocol origin/main after fetch: `4cacba333820`.
+- PR #1184 closeout merge: `4cacba333820`.
+- Evidence branch: `na-0458-qsc-kem-provider-rng-seam`.
+- Evidence PR: pending.
+- Evidence merge commit: pending.
+
+## NA-0458 READY proof
+
+- qwork proof files existed under the NA-0458 workspace `.qwork` directory.
+- qwork `.kv` proof markers passed: startup OK, lane NA-0458, repo qsl-protocol, expected path, clean worktree/index/untracked state, head equals origin/main, READY_COUNT 1, queue top READY NA-0458, and requested lane status READY.
+- qwork JSON parsed successfully and mirrored the `.kv` proof for lane, repo, path, HEAD, origin/main, clean-state fields, READY count, top READY item, and requested lane status.
+- Codex did not run qwork, qstart, or qresume.
+- Proof HEAD and proof `origin/main` matched live local refs before fetch.
+- Fetch did not advance `origin/main` beyond the qwork proof.
+- PR #1184 was verified merged at `4cacba333820`.
+- Queue helper before patch: READY_COUNT 1 and READY NA-0458.
+- Decision helper before patch: latest D-0902 and duplicate decision count zero.
+- D-0901 existed once, D-0902 existed once, and D-0903 was absent before patch.
+- Public-safety on current main completed success.
+
+## NA-0458 proof root
+
+- Proof root: `/srv/qbuild/tmp/NA0458_qsc_kem_provider_rng_seam_impl_20260611T004907Z`.
+- qwork proof files were copied into the proof root.
+- Prior response files from NA-0457, NA-0456, NA-0455, and NA-0454 were present.
+
+## NA-0458 implementation notes
+
+- Implemented cfg-only KEM provider RNG failure labels:
+  - `QSC.KEM.KEYPAIR`
+  - `QSC.KEM.ENCAP`
+- Changed source/test paths:
+  - `qsl/qsl-client/qsc/src/handshake/mod.rs`
+  - `qsl/qsl-client/qsc/src/identity/mod.rs`
+  - `qsl/qsl-client/qsc/tests/kem_provider_rng_failure.rs`
+- `QSC.KEM.KEYPAIR` forces lazy identity KEM keypair generation to fail before selected identity, vault, pending, session, or A1 output mutation.
+- `QSC.KEM.ENCAP` forces responder KEM encap to take the existing sanitized `pq_encap_failed` reject path before selected responder pending, session, or B1 output mutation.
+- Normal no-cfg builds ignore `QSC_RNG_FAILURE_TEST_SEAM` and produce normal A1/B1 output in the new test.
+- Existing `hs_kem_keypair()` signature is unchanged; no provider trait/API change was introduced.
+- Signature/identity provider RNG, X25519 provider RNG, refimpl provider RNG, qshield-cli RNG, formal/model RNG, fuzz/vector RNG, and public surface work remain residual.
+
+## NA-0458 failures / recoveries
+
+- Failing command: `rg -n "identity rotate|identity_self_kem_keypair|identity_rotate|identity" qsl/qsl-client/qsc/src/main.rs qsl/qsl-client/qsc/src/cmd.rs qsl/qsl-client/qsc/src/tui/controller/commands -g '*.rs'`.
+  Classification: recoverable command-shape issue because `qsl/qsl-client/qsc/src/cmd.rs` does not exist and this was read-only call-site discovery.
+  Corrective action: inspected the relevant existing `main.rs` and TUI command source paths directly.
+  Final result: call-site discovery completed; no mutation followed from the failed path argument.
+- Failing command: first `cargo fmt --check` after adding `kem_provider_rng_failure.rs`.
+  Classification: recoverable formatting issue limited to the new Rust test file.
+  Corrective action: ran `cargo fmt` once and reran `cargo fmt --check`.
+  Final result: `cargo fmt --check` PASS.
+- Failing command: first cfg `kem_provider_rng_failure` compile.
+  Classification: recoverable in-scope implementation issue because `identity/mod.rs` could not resolve the new helper through existing imports.
+  Corrective action: changed the call to `crate::handshake::hs_kem_keypair_with_failure_label` and added the existing custom-cfg warning suppression to the identity module.
+  Final result: cfg `kem_provider_rng_failure` PASS, 3 tests.
+- Failing command: `cargo fmt --check` after the helper visibility fix.
+  Classification: recoverable formatting issue limited to `identity/mod.rs`.
+  Corrective action: ran `cargo fmt` once and reran `cargo fmt --check`.
+  Final result: `cargo fmt --check` PASS.
+- Failing command: first working-tree scope guard after governance patch.
+  Classification: recoverable proof-shape issue because the new
+  `docs/governance/evidence/NA-0458_qsl_qsc_kem_provider_rng_failure_fake_test_seam_implementation_harness.md`
+  file exists but is ignored by the repository's broad `**/evidence/` ignore
+  rule until force-added.
+  Corrective action: verified the file exists at the allowed path and will
+  force-add it during staging.
+  Final result: allowed evidence file present; final staged scope guard remains
+  pending.
+
+## NA-0458 non-fatal warnings / zero-match notes
+
+- Root pqcrypto inverse probes reported package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`; these were expected zero-match inventory results under the directive's `|| true` probes.
+- Local qsc adversarial script Rust phases and provider-error step passed, then the local environment reported `cargo fuzz` unavailable. PR CI `qsc-adversarial-smoke` remains the cargo-fuzz-backed authority.
+
+## NA-0458 validation / CI notes
+
+- Public-safety on current main `4cacba333820`: PASS; qsc-adversarial-smoke PASS; full-suite checks accepted skipped by repo policy.
+- qsl-backup SHA matched required boundary value; script-local Codex ops source inclusion count was 1.
+- `cargo fmt --check`: PASS.
+- cfg `kem_provider_rng_failure`: PASS, 3 tests and all forced-failure markers emitted.
+- normal no-cfg `kem_provider_rng_failure`: PASS, production-semantics marker emitted.
+- cfg `rng_failure_residual_surfaces`: PASS.
+- normal `rng_failure_residual_surfaces`: PASS.
+- cfg `rng_failure_behavior`: PASS.
+- normal `rng_failure_behavior`: PASS.
+- `key_lifecycle_zeroization`: PASS.
+- `handshake_provider_error_no_mutation`: PASS.
+- stable `send_commit`: PASS.
+- refimpl `pqkem768`: PASS.
+- `sh -n scripts/ci/qsc_adversarial.sh`: PASS.
+- `bash -n scripts/ci/qsc_adversarial.sh`: PASS.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock audit: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- Formal model checks: PASS.
+- Local qsc adversarial script: Rust phases and provider-error step PASS; local cargo-fuzz unavailable.
+
+## NA-0458 disk watermark
+
+- Filesystem: `/`.
+- Total GiB: 468.
+- Used GiB: 279.
+- Free GiB: 165.
+- Used %: 63%.
+
+## NA-0458 next-watch items
+
+- Run exact eight-path scope guard after governance patch.
+- Run link-check, leak-scan, overclaim scan, classifier, PR body preflight, goal-lint, and final validation bundle.
+- Create implementation PR # pending and wait for required checks.
+- Merge only after required checks pass.
+- Optional closeout to NA-0459 only after implementation PR merges and post-merge public-safety is green.
+- Do not implement NA-0459 inside NA-0458.
 
 # QSL-DIR-2026-06-10-313 / NA-0456 qsc provider RNG no-mutation scope authorization rolling journal
 

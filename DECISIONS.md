@@ -23832,3 +23832,55 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output must not be used as side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0457; NA-0458; D-0902; D-0901; qsl-protocol PR #1183; `docs/governance/evidence/NA-0457_qsl_qsc_provider_rng_failure_fake_test_seam_strategy_authorization_plan.md`; `tests/NA-0457_qsl_qsc_provider_rng_failure_fake_test_seam_strategy_authorization_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0457_closeout_restore_na0458_testplan.md`
+
+- **ID:** D-0903
+  - **Title:** NA-0458 qsc KEM provider RNG failure fake test seam implementation
+  - **Status:** Accepted
+  - **Date:** 2026-06-11
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0458 consumes NA-0457 and implements the selected KEM-only qsc cfg seam. The seam is compiled only under `--cfg qsc_rng_failure_test_seam`, uses labels `QSC.KEM.KEYPAIR` and `QSC.KEM.ENCAP`, and leaves normal no-cfg production semantics unchanged.
+  - **Exact changed implementation paths:** `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/src/identity/mod.rs`.
+  - **Exact test file:** `qsl/qsl-client/qsc/tests/kem_provider_rng_failure.rs`.
+  - **KEM keypair evidence:** Forced `QSC.KEM.KEYPAIR` returns deterministic sanitized qsc error output before selected public identity, KEM identity secret, signature identity secret, vault-byte, pending, session, or A1 output mutation. Test marker: `NA0458_KEM_KEYPAIR_RNG_FAILURE_NO_PARTIAL_STATE_OK`.
+  - **KEM encap evidence:** Forced `QSC.KEM.ENCAP` takes the sanitized `pq_encap_failed` reject path before selected responder vault-byte, pending, session, or B1 output mutation. Test markers: `NA0458_KEM_ENCAP_RNG_FAILURE_NO_RESPONDER_STATE_OK` and `NA0458_KEM_ENCAP_RNG_FAILURE_NO_B1_OUTPUT_OK`.
+  - **Production semantics unchanged:** The no-cfg integration test sets `QSC_RNG_FAILURE_TEST_SEAM` for both labels and proves normal A1/B1 handshake output still occurs; marker `NA0458_PRODUCTION_SEMANTICS_UNCHANGED_OK` is emitted.
+  - **Background preservation:** Existing `pq_decap_failed` generic provider-error no-mutation coverage remains green and remains background evidence only. Existing `pq_encap_failed` caveat is preserved; NA-0458 forced-seam evidence is not an external triggerability claim under the active provider.
+  - **No refimpl/dependency/workflow mutation:** NA-0458 does not mutate refimpl, dependencies, Cargo manifests, lockfiles, workflows, fuzz targets, vectors, formal models, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup/restore/local-ops paths, qsl-backup, backup status files, backup plan files, rollback subtree paths, or backup tree paths.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Public claim boundary:**
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No public crypto-complete claim is made.
+    - No KEM-complete claim is made.
+    - No RNG-failure-complete claim is made.
+    - No provider-RNG-complete claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No perfect-crypto claim is made.
+    - Cargo audit green remains dependency-health evidence only.
+  - **Selected successor:** `NA-0459 -- QSL qsc Signature / Identity Provider RNG Failure Scope Authorization Plan`.
+  - **Required behavior:**
+    - Exactly one READY item remains mandatory.
+    - NA-0458 KEM evidence must remain bounded qsc forced-seam evidence.
+    - Signature/identity provider RNG, X25519 provider RNG, qshield-cli RNG, formal/model RNG, fuzz/vector RNG, and refimpl provider RNG remain residual unless a later exact directive authorizes them.
+    - NA-0459 must be authorization-only unless a later exact implementation directive changes scope.
+  - **Must never happen:**
+    - NA-0458 evidence is represented as qsc provider RNG completion, refimpl provider-boundary completion, RNG-failure completion, KEM completion, or crypto completion.
+    - Cargo audit output must not be used as public-readiness proof.
+    - Cargo audit output must not be used as production-readiness proof.
+    - Cargo audit output must not be used as public-internet-readiness proof.
+    - Cargo audit output must not be used as external-review-complete proof.
+    - Cargo audit output must not be used as crypto-complete proof.
+    - Cargo audit output must not be used as KEM-complete proof.
+    - Cargo audit output must not be used as RNG-failure-complete proof.
+    - Cargo audit output must not be used as provider-RNG-complete proof.
+    - Cargo audit output must not be used as vulnerability-free proof.
+    - Cargo audit output must not be used as bug-free proof.
+    - Cargo audit output must not be used as perfect-crypto proof.
+    - Cargo audit output must not be used as side-channel-free proof.
+    - more than one READY item remains.
+  - **References:** NA-0458; NA-0459; D-0903; D-0902; D-0901; `docs/governance/evidence/NA-0458_qsl_qsc_kem_provider_rng_failure_fake_test_seam_implementation_harness.md`; `tests/NA-0458_qsl_qsc_kem_provider_rng_failure_fake_test_seam_implementation_testplan.md`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/tests/kem_provider_rng_failure.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

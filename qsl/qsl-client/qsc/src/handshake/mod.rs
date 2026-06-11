@@ -41,6 +41,16 @@ pub(crate) fn hs_kem_keypair() -> (Vec<u8>, Vec<u8>) {
     runtime_pq_kem_keypair()
 }
 
+#[cfg(qsc_rng_failure_test_seam)]
+pub(crate) fn hs_kem_keypair_with_failure_label(
+    label: &str,
+) -> Result<(Vec<u8>, Vec<u8>), &'static str> {
+    if hs_rng_failure_forced(label) {
+        return Err("rng_failure_forced");
+    }
+    Ok(runtime_pq_kem_keypair())
+}
+
 fn hs_sig_pk_len() -> usize {
     runtime_pq_sig_public_key_bytes()
 }
@@ -1704,6 +1714,11 @@ fn perform_handshake_poll_with_tokens(
                     continue;
                 }
                 let c = StdCrypto;
+                #[cfg(qsc_rng_failure_test_seam)]
+                if hs_rng_failure_forced("QSC.KEM.ENCAP") {
+                    emit_marker("handshake_reject", None, &[("reason", "pq_encap_failed")]);
+                    continue;
+                }
                 let (kem_ct, ss_pq) = match c.encap(&init.kem_pk) {
                     Ok(v) => v,
                     Err(_) => {

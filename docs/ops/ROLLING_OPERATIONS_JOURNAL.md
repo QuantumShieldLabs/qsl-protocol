@@ -11,8 +11,8 @@ Last-Updated: 2026-06-11
 - Directive: QSL-DIR-2026-06-11-315 -- Execute NA-0458 QSL qsc KEM Provider RNG Failure Fake / Test Seam Implementation Harness, Optional Closeout to NA-0459.
 - Begin timestamp (America/Chicago): 2026-06-10T19:49:07-05:00.
 - Begin timestamp (UTC): 2026-06-11T00:49:07+00:00.
-- Latest journal update timestamp (America/Chicago): 2026-06-10T20:22:11-05:00.
-- Latest journal update timestamp (UTC): 2026-06-11T01:22:11+00:00.
+- Latest journal update timestamp (America/Chicago): 2026-06-10T20:29:35-05:00.
+- Latest journal update timestamp (UTC): 2026-06-11T01:29:35+00:00.
 - Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
 
 ## NA-0458 repo SHAs
@@ -23,7 +23,7 @@ Last-Updated: 2026-06-11
 - qsl-protocol origin/main after fetch: `4cacba333820`.
 - PR #1184 closeout merge: `4cacba333820`.
 - Evidence branch: `na-0458-qsc-kem-provider-rng-seam`.
-- Evidence PR: pending.
+- Evidence PR: #1185.
 - Evidence merge commit: pending.
 
 ## NA-0458 READY proof
@@ -155,9 +155,8 @@ Last-Updated: 2026-06-11
 
 ## NA-0458 next-watch items
 
-- Run exact eight-path scope guard after governance patch.
-- Run link-check, leak-scan, overclaim scan, classifier, PR body preflight, goal-lint, and final validation bundle.
-- Create implementation PR # pending and wait for required checks.
+- Pre-PR exact eight-path scope guard, link-check, leak-scan, overclaim scan, classifier, PR body preflight, goal-lint, and final validation bundle completed locally.
+- Implementation PR #1185 is open; wait for required checks through REST polling.
 - Merge only after required checks pass.
 - Optional closeout to NA-0459 only after implementation PR merges and post-merge public-safety is green.
 - Do not implement NA-0459 inside NA-0458.

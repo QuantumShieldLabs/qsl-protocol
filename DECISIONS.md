@@ -24169,3 +24169,21 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output must not be used as side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0461; NA-0462; D-0910; D-0909; qsl-protocol PR #1191; `docs/governance/evidence/NA-0461_qsl_qsc_b1_signature_provider_rng_failure_test_seam_implementation_harness.md`; `tests/NA-0461_qsl_qsc_b1_signature_provider_rng_failure_test_seam_implementation_testplan.md`; `tests/NA-0461_closeout_restore_na0462_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0911
+  - **Title:** NA-0462 qsc A2 signature provider RNG failure scope authorization
+  - **Status:** Accepted
+  - **Date:** 2026-06-11
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0462 consumes NA-0461 and authorizes the future qsc A2 signature provider RNG failure no-output implementation scope. The qsc source classifies A2 signing as post-mutation/pre-output: initiator session storage and pending clear occur before A2 signing, and A2 output occurs only after successful signing.
+  - **A2 state timing classification:** `A2_STATE_TIMING_POST_MUTATION_PRE_OUTPUT`.
+  - **A2 invariant classification:** no A2 output plus sanitized fail-closed `sig_sign_failed`; no A2 pre-mutation no-mutation invariant is authorized.
+  - **Primary classification selected:** `A2_SIGNATURE_PROVIDER_RNG_NO_OUTPUT_IMPLEMENTATION_READY`.
+  - **Selected NA-0463 successor:** `NA-0463 -- QSL qsc A2 Signature Provider RNG Failure No-Output Test Seam Implementation Harness`.
+  - **Exact future scope if restored:** `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/tests/a2_signature_provider_rng_failure.rs`; `docs/governance/evidence/NA-0463_qsl_qsc_a2_signature_provider_rng_failure_no_output_test_seam_implementation_harness.md`; `tests/NA-0463_qsl_qsc_a2_signature_provider_rng_failure_no_output_test_seam_implementation_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+  - **No implementation mutation:** This directive does not implement NA-0463 and does not mutate runtime behavior, crypto behavior, dependencies, Cargo manifests, lockfiles, workflows, executable test source, fuzz targets, vectors, formal models, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup/restore/local-ops paths, qsl-backup, backup status files, backup plan files, rollback subtree paths, or backup tree paths.
+  - **No false no-mutation claim:** A2 signing failure must not be described as pre-mutation no-mutation because session storage and pending clear precede the A2 signing call. Future NA-0463 tests must prove no A2 output and must preserve this caveat.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No public crypto-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No RNG-failure-complete claim is made. No provider-RNG-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Stewardship:** Level 1 stewardship template was used. Level 2 and Level 3 remain future-gated. There are no separate Directors, no independent READY promotion, and no independent merge authority. Lead Director final authority is preserved.
+  - **Exactly one READY remains mandatory:** NA-0462 remains the sole READY item until closeout restores NA-0463 after this evidence PR merges and post-merge public-safety is green.
+  - **References:** NA-0462; NA-0461; NA-0463; D-0911; D-0910; D-0909; `docs/governance/evidence/NA-0462_qsl_qsc_a2_signature_provider_rng_failure_scope_authorization_plan.md`; `tests/NA-0462_qsl_qsc_a2_signature_provider_rng_failure_scope_authorization_testplan.md`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

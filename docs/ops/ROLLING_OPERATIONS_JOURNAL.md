@@ -37,7 +37,7 @@ Last-Updated: 2026-06-11
 - Worktree path: `/srv/qbuild/work/NA-0460/qsl-protocol`.
 - Proof root: `/srv/qbuild/tmp/NA0460_qsc_signature_identity_split_scope_20260611T102442Z`.
 - Evidence branch: `na-0460-signature-identity-split-scope`.
-- Evidence PR: pending.
+- Evidence PR: #1189.
 - Evidence merge commit: pending.
 
 ## Split-scope notes
@@ -67,6 +67,10 @@ Last-Updated: 2026-06-11
   Classification: recoverable wording/screening issue because wrapped no-claim caveat lines carried sensitive terms without same-line negation.
   Corrective action: rewrapped the affected NA-0460 evidence caveats so each sensitive phrase carries same-line denial wording.
   Final result: `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: pre-PR `ci-admission-preflight` invocation with `--base origin/main --head HEAD`.
+  Classification: recoverable command-shape issue because this helper subcommand requires an existing `--pr` number.
+  Corrective action: created PR #1189 and reran `ci-admission-preflight --pr 1189 --repo QuantumShieldLabs/qsl-protocol --report-only`.
+  Final result: PR #1189 classified `SCOPE_CLASS docs_only`, `RUNTIME_CRITICAL no`, `WORKFLOW_SECURITY no`, `QSC_ADVERSARIAL_TRIGGERED no`, `HELPER_PR_CAN_LIKELY_PASS_REQUIRED_CHECKS yes`.
 
 ## Non-fatal warnings / zero-match notes
 

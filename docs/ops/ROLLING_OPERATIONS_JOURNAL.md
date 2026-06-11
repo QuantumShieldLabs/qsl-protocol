@@ -30226,6 +30226,122 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Merge only after required checks pass.
 - Optional closeout to NA-0441 only after evidence PR merges and post-merge public-safety is green.
 
+# QSL-DIR-2026-06-11-316 / NA-0459 qsc signature identity provider RNG scope rolling journal
+
+- Directive: QSL-DIR-2026-06-11-316 -- Execute NA-0459 QSL qsc Signature / Identity Provider RNG Failure Scope Authorization Plan, Optional Closeout to NA-0460.
+- Begin timestamp (America/Chicago): 2026-06-10T22:56:33-05:00
+- Begin timestamp (UTC): 2026-06-11T03:56:33+00:00
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Repo SHAs
+
+- qsl-protocol branch before patch: `main`.
+- qsl-protocol HEAD before patch: `a2712d05b1e2`.
+- qsl-protocol origin/main before patch: `a2712d05b1e2`.
+- qsl-protocol mirror/main: not refreshed by this directive.
+
+## READY proof
+
+- qwork proof: startup OK for lane NA-0459, repo qsl-protocol, clean worktree/index/untracked state, proof HEAD and proof origin/main both `a2712d05b1e2`.
+- Pre-fetch live proof: HEAD and origin/main matched qwork proof at `a2712d05b1e2`.
+- Fetch result: origin/main did not advance.
+- PR #1186 proof: MERGED at `a2712d05b1e2`.
+- Queue proof before patch: READY_COUNT 1, READY NA-0459.
+- Decision proof before patch: latest D-0904, D-0903 once, D-0904 once, D-0905 absent, duplicate decision count zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0459/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0459_qsc_signature_identity_provider_rng_scope_20260611T035633Z`.
+- Evidence branch: `na-0459-signature-identity-provider-rng-scope`.
+- Evidence PR: pending.
+- Evidence merge commit: pending.
+
+## Scope notes
+
+- Primary classification selected: `QSC_SIGNATURE_IDENTITY_SPLIT_FURTHER_NEEDED`.
+- Selected successor: `NA-0460 -- QSL qsc Signature / Identity Provider RNG Failure Split-Scope Authorization Plan`.
+- Combined signature/identity implementation rejected because B1 signing, A2 signing, identity bootstrap, verification, and X25519 have different state timing and RNG relevance.
+- Signature verification / `sig_invalid` classified as background only and not RNG-relevant.
+- X25519/ephemeral generation classified as separate backlog.
+- No implementation mutation in NA-0459.
+
+## Failures / recoveries
+
+- Root pqcrypto inverse probes reported package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`; this was expected zero-match inventory under the directive's `|| true` probes.
+- Nested qsc fuzz lock pqcrypto reference search produced zero matches; this was expected because those packages are absent from the nested fuzz lock.
+- Failing command: added-line overclaim scan after the first NA-0459 patch.
+  Classification: recoverable documentation scanner-shape issue because two
+  caveat lines wrapped the negation onto the previous line while leaving
+  sensitive public-claim phrases on continuation lines.
+  Corrective action: reworded the affected caveats so each sensitive phrase has
+  same-line negation.
+  Final result: rerun PASS with `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: `sh scripts/ci/qsc_adversarial.sh`.
+  Classification: non-fatal local-tooling limitation anticipated by the directive because the script's Rust adversarial phases and provider-error no-mutation step passed, then the local host reported `cargo fuzz` unavailable.
+  Corrective action: recorded exact output in the proof directory and rely on PR CI `qsc-adversarial-smoke` for the cargo-fuzz-backed lane.
+  Final result: local non-fuzz phases PASS; cargo-fuzz-backed evidence pending PR CI.
+- Failing command: combined final validation rerun with a Python scope-guard heredoc that read a literal `$PROOF_DIR` path.
+  Classification: recoverable command-shape issue in proof capture; no repository mutation was caused by the failed read.
+  Corrective action: reran the scope guard with `PROOF_DIR` passed through the environment.
+  Final result: scope guard PASS with zero extra paths and zero missing paths.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py classify --base origin/main --head HEAD`.
+  Classification: recoverable command-shape issue because the helper has no `classify` subcommand.
+  Corrective action: reran classification through the repository's `scripts/ci/classify_ci_scope.sh` over the staged path set.
+  Final result: `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, `scope_class=docs_only`.
+- Failing command: first custom exact decision-count proof used a heading parser that did not match the decision file format.
+  Classification: recoverable proof-shape issue; the repository decision helper already reported latest D-0905 and duplicate count zero.
+  Corrective action: reran the exact count against the `- **ID:** D-####` format used by `DECISIONS.md`.
+  Final result: D-0903 once, D-0904 once, D-0905 once, D-0906 absent, duplicate decision ID count zero.
+
+## Validation / CI notes
+
+- Public-safety on current main `a2712d05b1e2`: PASS; qsc-adversarial-smoke PASS; full-suite checks accepted skipped by repo policy.
+- qsl-backup SHA matched required boundary value; script-local ops source inclusion count was 1.
+- `git diff --check`: PASS.
+- Staged scope guard: PASS, exactly five allowed NA-0459 paths.
+- Queue helper after patch: READY_COUNT 1 and READY NA-0459.
+- Decision helper after patch: latest D-0905, D-0903 once, D-0904 once, D-0905 once, D-0906 absent, duplicate decision count zero.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan after recovery: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Classifier: PASS, `scope_class=docs_only`.
+- PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- `sh -n scripts/ci/qsc_adversarial.sh`: PASS.
+- `bash -n scripts/ci/qsc_adversarial.sh`: PASS.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS.
+- `cargo tree -i ml-kem --locked`: PASS.
+- qsc cfg/no-cfg `kem_provider_rng_failure`: PASS.
+- qsc cfg/no-cfg `rng_failure_residual_surfaces`: PASS.
+- qsc cfg/no-cfg `rng_failure_behavior`: PASS.
+- qsc `key_lifecycle_zeroization`: PASS.
+- qsc `handshake_provider_error_no_mutation`: PASS.
+- qsc stable `send_commit`: PASS.
+- refimpl `pqkem768`: PASS.
+- `cargo fmt --check`: PASS.
+- Formal model checks: PASS.
+- qsc adversarial script marker present.
+- Local qsc adversarial script: Rust phases and provider-error no-mutation step PASS; local cargo-fuzz unavailable.
+- Evidence PR checks: pending.
+
+## Disk watermark
+
+- Filesystem: `/dev/nvme0n1p2`.
+- Total GiB: 468.
+- Used GiB: 283.
+- Free GiB: 162.
+- Used %: 64%.
+
+## Next-watch items
+
+- Run synthetic-event goal-lint after commit and before PR creation.
+- Merge evidence PR only after required checks pass and public-safety is green.
+- Optional closeout to NA-0460 only after evidence PR merges and post-merge public-safety is green.
+
 # QSL-DIR-2026-06-10-314 / NA-0457 qsc provider RNG fake/test-seam strategy rolling journal
 
 - Directive: QSL-DIR-2026-06-10-314 -- Execute NA-0457 QSL qsc Provider RNG Failure Fake / Test Seam Strategy Authorization Plan, Optional Closeout to NA-0458.

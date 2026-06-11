@@ -42,7 +42,7 @@ Last-Updated: 2026-06-11
 - Evidence PR: #1193, merged.
 - Evidence merge commit: `3e4a1bab743d`.
 - Optional closeout branch: `na-0462-closeout-restore-na0463`.
-- Optional closeout PR: pending.
+- Optional closeout PR: #1194, open.
 
 ## Authorization notes
 
@@ -89,6 +89,12 @@ Last-Updated: 2026-06-11
   Corrective action: reran the REST poll with explicit helper return-code
   handling.
   Final result: public-safety completed success on `3e4a1bab743d`.
+- Failing command: GitHub connector PR creation for NA-0462 closeout branch.
+  Classification: recoverable connector permission issue because the connector
+  returned 403 while the authenticated CLI had repository permission.
+  Corrective action: created PR #1194 with `gh pr create` using the same branch,
+  title, and body.
+  Final result: PR #1194 opened for closeout.
 
 ## Validation / CI notes
 
@@ -147,8 +153,7 @@ Last-Updated: 2026-06-11
 
 ## Next-watch items
 
-- Open closeout PR after exact closeout path guard passed.
-- Merge closeout PR only after required checks pass and public-safety is green.
+- Merge closeout PR #1194 only after required checks pass and public-safety is green.
 - Do not implement NA-0463 inside NA-0462 closeout.
 
 # QSL-DIR-2026-06-11-318 / NA-0461 qsc B1 signature provider RNG seam implementation rolling journal

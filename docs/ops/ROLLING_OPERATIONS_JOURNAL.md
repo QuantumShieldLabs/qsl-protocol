@@ -6,6 +6,147 @@ Last-Updated: 2026-06-11
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-11-318 / NA-0461 qsc B1 signature provider RNG seam implementation rolling journal
+
+- Directive: QSL-DIR-2026-06-11-318 -- Execute NA-0461 QSL qsc B1 Signature Provider RNG Failure Test Seam Implementation Harness, Optional Closeout to NA-0462.
+- Begin timestamp (America/Chicago): 2026-06-11T07:22:47-05:00
+- Begin timestamp (UTC): 2026-06-11T12:22:47+00:00
+- End timestamp (America/Chicago): pending.
+- End timestamp (UTC): pending.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Repo SHAs
+
+- qsl-protocol branch: `main` before implementation branch creation; planned branch `na-0461-qsc-b1-signature-provider-rng-seam`.
+- qsl-protocol HEAD before patch: `7b4c9b109c7`.
+- qsl-protocol main before patch: `7b4c9b109c7`.
+- qsl-protocol origin/main before patch: `7b4c9b109c7`.
+- qsl-protocol mirror/main: fetched by `git fetch --all --prune`; origin/main did not advance.
+
+## READY proof
+
+- qwork proof: startup OK for lane NA-0461, repo qsl-protocol, clean worktree/index/untracked state, proof HEAD and proof origin/main both `7b4c9b109c7`.
+- Pre-fetch live proof: HEAD and origin/main matched qwork proof at `7b4c9b109c7`.
+- Fetch result: origin/main did not advance.
+- PR #1190 proof: MERGED at `7b4c9b109c7`.
+- Queue proof before patch: READY_COUNT 1, READY NA-0461.
+- Decision proof before patch: latest D-0908, D-0907 once, D-0908 once, D-0909 absent, duplicate decision count zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0461/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0461_qsc_b1_signature_provider_rng_seam_impl_20260611T122247Z`.
+- Evidence branch: `na-0461-qsc-b1-signature-provider-rng-seam`.
+- Evidence PR: pending.
+- Evidence merge commit: pending.
+- Closeout branch: pending.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
+
+## Implementation notes
+
+- Implemented cfg-only qsc seam label: `QSC.SIG.B1`.
+- Changed implementation path: `qsl/qsl-client/qsc/src/handshake/mod.rs`.
+- Added test path: `qsl/qsl-client/qsc/tests/b1_signature_provider_rng_failure.rs`.
+- Forced B1 signing failure returns sanitized `sig_sign_failed`.
+- Forced B1 signing failure occurs before selected responder pending/session storage.
+- Forced B1 signing failure emits no B1 output.
+- Normal no-cfg build ignores `QSC_RNG_FAILURE_TEST_SEAM=QSC.SIG.B1`.
+- A2 signing remains deferred because it needs a different post-mutation invariant.
+- Identity provider RNG, X25519 / ephemeral, and refimpl provider RNG remain deferred.
+- qsc KEM provider RNG evidence remains background preserved only.
+
+## Failures / recoveries
+
+- Failing command: first exact scope guard wrapper after governance patch.
+  Classification: recoverable command-shape issue because the shell here-doc
+  was piped incorrectly before evaluating the actual path set.
+  Corrective action: reran the scope guard with a standalone Python here-doc and
+  explicit output capture.
+  Final result: the corrected guard ran and exposed the evidence-doc ignore
+  visibility issue below.
+- Failing command: corrected exact scope guard using only normal untracked-file
+  discovery.
+  Classification: recoverable proof-tooling issue because
+  `docs/governance/evidence/**` is intentionally ignored by `.gitignore`, so a
+  new in-scope evidence doc exists on disk but is not reported by
+  `git ls-files --others --exclude-standard` until force-added.
+  Corrective action: reran the guard with an explicit existence check for the
+  expected ignored evidence path and planned force-add staging for that path.
+  Final result: exact scope guard PASS with seven allowed NA-0461 paths and zero
+  extra or missing paths.
+- Failing command: local `scripts/ci/qsc_adversarial.sh`.
+  Classification: recoverable local-tooling issue because the script's Rust
+  adversarial phases and provider-error step passed, then local `cargo fuzz`
+  was unavailable with `no such command: fuzz`; the directive permits recording
+  exact output and relying on PR CI qsc-adversarial-smoke when local cargo-fuzz
+  is unavailable.
+  Corrective action: recorded the script output and exit code 101 in the proof
+  bundle.
+  Final result: Rust adversarial phases PASS locally; fuzz phase deferred to PR
+  CI qsc-adversarial-smoke.
+
+## Non-fatal warnings / zero-match notes
+
+- Root pqcrypto inverse probes reported package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`; these are expected zero-match inventory results under the directive's `|| true` probes.
+
+## Validation / CI notes
+
+- Current main public-safety on `7b4c9b109c7`: PASS.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- Startup inherited cfg/no-cfg `kem_provider_rng_failure`: PASS.
+- Startup inherited cfg/no-cfg `rng_failure_residual_surfaces`: PASS.
+- Startup inherited cfg/no-cfg `rng_failure_behavior`: PASS.
+- Startup inherited `key_lifecycle_zeroization`: PASS.
+- Startup inherited `handshake_provider_error_no_mutation`: PASS.
+- Post-implementation `cargo fmt --check`: PASS.
+- Post-implementation cfg/no-cfg `b1_signature_provider_rng_failure`: PASS.
+- Post-implementation cfg/no-cfg `kem_provider_rng_failure`: PASS.
+- Post-implementation cfg/no-cfg `rng_failure_residual_surfaces`: PASS.
+- Post-implementation cfg/no-cfg `rng_failure_behavior`: PASS.
+- Post-implementation `key_lifecycle_zeroization`: PASS.
+- Post-implementation `handshake_provider_error_no_mutation`: PASS.
+- Post-implementation stable `send_commit`: PASS.
+- Post-implementation refimpl `pqkem768`: PASS.
+- Post-implementation qsc adversarial script syntax: PASS.
+- Post-implementation root cargo audit: PASS.
+- Post-implementation nested qsc fuzz lock audit: PASS.
+- Post-implementation formal model checks: PASS.
+- Pre-PR CI scope classifier: `runtime_critical`.
+- Local qsc adversarial script: Rust phases PASS; local cargo-fuzz unavailable,
+  exit 101; PR CI qsc-adversarial-smoke required for final evidence.
+- Final pre-PR staged scope guard: PASS, exactly seven allowed NA-0461 paths.
+- Final pre-PR link check: PASS, `TOTAL_MISSING 0`.
+- Final pre-PR added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Final pre-PR PR-body preflight: PASS, `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- Final pre-PR queue helper: PASS, READY_COUNT 1 and READY NA-0461.
+- Final pre-PR decision helper: PASS, latest D-0909 and duplicate decision count zero.
+- Final pre-PR full validation bundle: PASS for `cargo fmt --check`, cfg/no-cfg
+  `b1_signature_provider_rng_failure`, cfg/no-cfg `kem_provider_rng_failure`,
+  cfg/no-cfg `rng_failure_residual_surfaces`, cfg/no-cfg
+  `rng_failure_behavior`, `key_lifecycle_zeroization`,
+  `handshake_provider_error_no_mutation`, stable `send_commit`, refimpl
+  `pqkem768`, root cargo audit, nested qsc fuzz lock audit, dependency probes,
+  and formal model checks.
+- qsl-backup SHA matched required boundary value; script-local Codex ops source inclusion count was 1.
+
+## Disk watermark
+
+- Filesystem: `/dev/nvme0n1p2`.
+- Total GiB: 468.
+- Used GiB: 290.
+- Free GiB: 155.
+- Used %: 66%.
+
+## Next-watch items
+
+- Complete governance patch validation.
+- Create implementation PR only after exact scope guard and public-claim scans pass.
+- Merge implementation PR only after required checks pass and public-safety is green.
+- Run optional closeout to NA-0462 only after post-merge public-safety is green.
+- Do not implement NA-0462 inside closeout.
+
 # QSL-DIR-2026-06-11-317 / NA-0460 qsc signature identity provider RNG split-scope rolling journal
 
 - Directive: QSL-DIR-2026-06-11-317 -- Execute NA-0460 QSL qsc Signature / Identity Provider RNG Failure Split-Scope Authorization Plan, Optional Closeout to NA-0461.

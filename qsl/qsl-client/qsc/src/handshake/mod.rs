@@ -1776,7 +1776,15 @@ fn perform_handshake_poll_with_tokens(
                 let mac = hs_transcript_mac(&pq_init_ss, &a1, &b1_no_auth);
                 let th = hs_transcript_hash(&pq_init_ss, &a1, &b1_no_auth);
                 let sig_msg = hs_sig_msg_b1(&init.session_id, &th);
-                let sig = match c.sign(&self_sig_sk, &sig_msg) {
+                #[cfg(qsc_rng_failure_test_seam)]
+                let sig_result = if hs_rng_failure_forced("QSC.SIG.B1") {
+                    Err(())
+                } else {
+                    c.sign(&self_sig_sk, &sig_msg).map_err(|_| ())
+                };
+                #[cfg(not(qsc_rng_failure_test_seam))]
+                let sig_result = c.sign(&self_sig_sk, &sig_msg).map_err(|_| ());
+                let sig = match sig_result {
                     Ok(v) => v,
                     Err(_) => {
                         emit_marker("handshake_reject", None, &[("reason", "sig_sign_failed")]);

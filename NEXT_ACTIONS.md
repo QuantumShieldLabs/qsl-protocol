@@ -25220,7 +25220,7 @@ Acceptance criteria:
 ---
 
 ### NA-0460 — QSL qsc Signature / Identity Provider RNG Failure Split-Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -25294,6 +25294,82 @@ Acceptance criteria:
 - qsc signature/identity provider RNG failure split scope is selected or rejected with evidence.
 - exact future scope is selected from evidence.
 - no implementation mutation occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+---
+
+### NA-0461 — QSL qsc B1 Signature Provider RNG Failure Test Seam Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the exact qsc B1 signature provider RNG failure test-seam scope selected by NA-0460, preserving production semantics when the test seam is inactive and proving bounded no-mutation / no-B1-output behavior for selected qsc B1 signing provider RNG failure path.
+
+Protects:
+- qsc B1 signature provider-dependent RNG failure no-mutation evidence quality.
+- qsc/refimpl boundary clarity.
+- fail-closed handling around responder B1 signing failure.
+- production semantic stability.
+- key lifecycle and provider boundary confidence after ml-kem replacement, provider-error audit work, qsc zeroization tests, qsc RNG seam work, provider RNG strategy review, split-scope review, qsc no-mutation scope review, qsc fake/seam strategy review, KEM-only implementation, and signature/identity split-scope review.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- exact qsl-protocol source/test paths selected by NA-0460.
+- NA-0461 evidence/testplan.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+
+Forbidden scope:
+- Mutating dependencies, Cargo, lockfiles, workflows, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE paths.
+- Mutating unrelated qsc/runtime/crypto paths outside exact NA-0460 scope.
+- Mutating refimpl unless exact NA-0460 scope authorizes, which should be avoided by default.
+- Mutating fuzz target source, vectors, or formal models unless exact NA-0460 scope authorizes.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No production-readiness claim is allowed.
+- No public-internet-readiness claim is allowed.
+- No external-review-complete claim is allowed.
+- No metadata-free claim is allowed.
+- No anonymity claim is allowed.
+- No untraceable claim is allowed.
+- No off-host-backup-complete claim is allowed.
+- No disaster-recovery-complete claim is allowed.
+- No restore-proven claim is allowed.
+- No backup-complete claim is allowed.
+- No bug-free claim is allowed.
+- No vulnerability-free claim is allowed.
+- No perfect-crypto claim is allowed.
+- No side-channel-free claim is allowed.
+- No RNG-failure-complete claim is allowed.
+- No provider-RNG-complete claim is allowed.
+- No secret-material-complete claim is allowed.
+- No KEM-complete claim is allowed.
+- No signature-complete claim is allowed.
+- No identity-complete claim is allowed.
+- No crypto-complete claim is allowed.
+- Secret material handling outside exact test/evidence scope.
+
+Deliverables:
+- NA-0461 implementation.
+- NA-0461 evidence doc.
+- NA-0461 testplan.
+- D-0909 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+
+Acceptance criteria:
+- exact selected B1 signature provider failure seam is implemented.
+- production semantics unchanged when seam inactive.
+- selected no-mutation / no-B1-output invariant is tested.
 - cargo audit remains green.
 - nested fuzz lock audit remains green.
 - public-safety is green before merge and after merge.

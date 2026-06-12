@@ -11,8 +11,8 @@ Last-Updated: 2026-06-12
 - Directive: QSL-DIR-2026-06-12-323 -- Execute NA-0466 QSL qsc Legacy Identity Public-Record Provider RNG Failure Scope Authorization Plan, Optional Closeout to NA-0467.
 - Begin timestamp (America/Chicago): 2026-06-12T08:15:32-05:00.
 - Begin timestamp (UTC): 2026-06-12T13:15:32+00:00.
-- End timestamp (America/Chicago): pending evidence PR.
-- End timestamp (UTC): pending evidence PR.
+- End timestamp (America/Chicago): pending closeout merge.
+- End timestamp (UTC): pending closeout merge.
 - Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
 
 ## Repo SHAs
@@ -23,7 +23,7 @@ Last-Updated: 2026-06-12
 - qsl-protocol origin/main before patch: `c6addc0ce436`.
 - qsl-protocol mirror/main: fetched by `git fetch --all --prune`; origin/main did not advance beyond qwork proof.
 - qsl-protocol initial evidence branch head: `dbea4bc7acb3`.
-- qsl-protocol evidence merge commit: pending.
+- qsl-protocol evidence merge commit: `230c24e61221`.
 - qsl-server refs: not refreshed by this directive.
 - qsl-attachments refs: not refreshed by this directive.
 
@@ -43,9 +43,10 @@ Last-Updated: 2026-06-12
 - Proof root: `/srv/qbuild/tmp/NA0466_qsc_legacy_identity_public_record_scope_20260612T131532Z`.
 - Evidence branch: `na-0466-legacy-identity-public-record-scope`.
 - Evidence PR: #1201.
-- Evidence merge commit: pending.
-- Optional closeout branch: pending.
-- Optional closeout PR: pending.
+- Evidence merge commit: `230c24e61221`.
+- Optional closeout branch: `na-0466-closeout-restore-na0467`.
+- Optional closeout initial commit: `78aca10ee409`.
+- Optional closeout PR: #1202.
 - Optional closeout merge commit: pending.
 
 ## Strategy notes
@@ -73,6 +74,18 @@ Last-Updated: 2026-06-12
   Classification: recoverable publish-tool permission issue because the local branch had pushed successfully and authenticated `gh` was available for the same PR creation operation.
   Corrective action: created the PR with `gh pr create --repo QuantumShieldLabs/qsl-protocol --base main --head na-0466-legacy-identity-public-record-scope`.
   Final result: PR #1201 opened successfully.
+- Failing command: first closeout added-line overclaim scan over the staged diff.
+  Classification: recoverable in-scope governance validation failure because the restored NA-0467 forbidden-scope bullets and one D-0920 must-never-happen bullet used sensitive claim terms without same-line negation.
+  Corrective action: reworded the NA-0467 forbidden-scope bullets to `No creating or implying ...` and the D-0920 cargo-audit caveat to `must not be used ...`.
+  Final result: closeout added-line overclaim scan PASS with `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: first `set -e` closeout validation bundle with the stricter added-line overclaim scan.
+  Classification: recoverable in-scope governance wording issue because the grouped D-0920 cargo-audit caveat and spaced backup/restore phrases still looked affirmative to the stricter scanner.
+  Corrective action: narrowed D-0920 cargo-audit wording to dependency-health-only evidence and changed the restored NA-0467 backup/restore forbidden lines to explicit hyphenated no-claim wording.
+  Final result: rerun validation PASS with `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing proof check: review of `git diff --cached -- NEXT_ACTIONS.md` after early corrective patches.
+  Classification: recoverable patch-context issue because the queue contains repeated forbidden-scope text across adjacent historical NA blocks and the first broad patches temporarily altered prior NA blocks.
+  Corrective action: restored the prior NA block hunks and reapplied the NA-0467 wording using NA-specific heading/deliverable context.
+  Final result: staged `NEXT_ACTIONS.md` diff contains only NA-0466 DONE and the selected NA-0467 READY block.
 
 ## Non-fatal warnings / zero-match notes
 
@@ -100,8 +113,13 @@ Last-Updated: 2026-06-12
 - Post-patch Rust validation: cfg/no-cfg `lazy_identity_provider_rng_failure` PASS; cfg/no-cfg `a2_signature_provider_rng_failure` PASS; cfg/no-cfg `b1_signature_provider_rng_failure` PASS; cfg/no-cfg `kem_provider_rng_failure` PASS; cfg/no-cfg `rng_failure_residual_surfaces` PASS; cfg/no-cfg `rng_failure_behavior` PASS; `key_lifecycle_zeroization` PASS; `handshake_provider_error_no_mutation` PASS; stable `send_commit` PASS; refimpl `pqkem768` PASS.
 - Post-patch dependency validation: root cargo audit PASS; nested qsc fuzz lock audit PASS; `rustls-webpki` inverse tree PASS; cargo tree probes for `ml-kem` and pqcrypto package IDs recorded; nested qsc fuzz lock pqcrypto scan returned zero matches. Root/nested audit calls emitted advisory-db lock-wait warnings due parallel local audit execution, then completed successfully.
 - Local qsc adversarial smoke: stable `adversarial_properties` PASS; stable `adversarial_miri` PASS; provider-error no-mutation step PASS; local cargo-fuzz phase unavailable with `error: no such command: fuzz`; PR CI qsc-adversarial-smoke remains required for fuzz-phase proof.
-- Evidence PR checks: pending for PR #1201.
-- Evidence post-merge public-safety: pending.
+- Evidence PR #1201 checks: PASS with required context failure count zero before merge.
+- Evidence PR #1201 merge: MERGED at `230c24e61221`.
+- Evidence post-merge public-safety: PASS on `230c24e61221`. Public-safety was initially missing while qsc-adversarial-smoke was in progress; a non-required `ci-4d-dur-evidence` job reported failure, but required contexts remained non-red and public-safety completed success.
+- Closeout validation: PASS. PR body preflight PASS; staged path guard PASS with exactly five allowed closeout paths; cached and worktree diff checks PASS; link-check PASS with `TOTAL_MISSING 0`; leak-scan PASS with `SECRET_FINDING_COUNT 0`; added-line overclaim scan PASS with `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`; classifier PASS with `scope_class=docs_only`; root cargo audit PASS; nested qsc fuzz lock audit PASS; `cargo fmt --check` PASS; queue helper PASS with READY NA-0467; decision helper PASS with latest D-0920, D-0919 once, D-0920 once, D-0921 absent, and duplicate count zero.
+- Closeout committed-diff validation: helper scope guard PASS with five allowed paths and zero forbidden paths; synthetic-event goal-lint PASS on base `230c24e61221` and head `78aca10ee409`.
+- Closeout PR #1202 opened with validated PR body.
+- Closeout PR checks: pending.
 
 ## Disk watermark
 
@@ -113,9 +131,7 @@ Last-Updated: 2026-06-12
 
 ## Next-watch items
 
-- Run post-patch governance, Rust, dependency, formal, and qsc-adversarial validation.
-- Open evidence PR and merge only after required checks and public-safety are green.
-- Optional closeout may restore NA-0467 only after evidence PR merge and post-merge public-safety green.
+- Wait for PR #1202 required checks and merge only after required checks and public-safety are green.
 - Do not implement NA-0467 inside NA-0466 evidence or closeout.
 
 # QSL-DIR-2026-06-12-322 / NA-0465 qsc lazy identity provider RNG failure implementation rolling journal

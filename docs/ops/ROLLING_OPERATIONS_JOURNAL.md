@@ -6,6 +6,144 @@ Last-Updated: 2026-06-12
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-12-322 / NA-0465 qsc lazy identity provider RNG failure implementation rolling journal
+
+- Directive: QSL-DIR-2026-06-12-322 -- Execute NA-0465 QSL qsc Lazy Identity Provider RNG Failure Test Seam Implementation Harness, Optional Closeout to NA-0466.
+- Begin timestamp (America/Chicago): 2026-06-12T05:04:36-05:00.
+- Begin timestamp (UTC): 2026-06-12T10:04:36+00:00.
+- End timestamp (America/Chicago): pending.
+- End timestamp (UTC): pending.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Repo SHAs
+
+- qsl-protocol branch before implementation branch creation: `main`.
+- qsl-protocol implementation branch: pending.
+- qsl-protocol HEAD before patch: `6b8774c6b190`.
+- qsl-protocol origin/main before patch: `6b8774c6b190`.
+- qsl-protocol mirror/main: fetched by `git fetch --all --prune`; origin/main did not advance beyond qwork proof.
+- qsl-protocol implementation branch head: pending.
+- qsl-protocol implementation merge commit: pending.
+- qsl-server refs: not refreshed by this directive.
+- qsl-attachments refs: not refreshed by this directive.
+
+## READY proof
+
+- qwork proof: startup OK for lane NA-0465, repo qsl-protocol, clean worktree/index/untracked state, proof HEAD and proof origin/main both `6b8774c6b190`.
+- Pre-fetch live proof: HEAD and origin/main matched qwork proof at `6b8774c6b190`.
+- Fetch result: origin/main did not advance.
+- PR #1198 proof: MERGED at `6b8774c6b190`.
+- Queue proof before patch: READY_COUNT 1, READY NA-0465.
+- Status proof before patch: NA-0464 through NA-0435 DONE; NA-0434 and NA-0429 BLOCKED.
+- Decision proof before patch: latest D-0916, D-0915 once, D-0916 once, D-0917 absent, duplicate decision count zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0465/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0465_qsc_lazy_identity_provider_rng_impl_20260612T100436Z`.
+- Implementation branch: pending.
+- Implementation PR: pending.
+- Implementation merge commit: pending.
+- Optional closeout branch: pending.
+- Optional closeout PR: pending.
+- Optional closeout merge commit: pending.
+
+## Implementation notes
+
+- Implemented cfg-only lazy identity KEM label `QSC.IDENTITY.LAZY.KEM_KEYPAIR`.
+- Implemented cfg-only lazy identity signature label `QSC.IDENTITY.LAZY.SIG_KEYPAIR`.
+- Preserved inherited generic KEM selector `QSC.KEM.KEYPAIR` for NA-0458 background tests.
+- Forced lazy KEM failure returns sanitized `identity_secret_unavailable` / `rng_failure_forced` before identity secret, self public-record, selected identity, pending handshake, session, or relay output writes.
+- Forced lazy signature failure returns sanitized `identity_secret_unavailable` / `rng_failure_forced` after in-memory lazy KEM generation but before identity secret, self public-record, selected identity, pending handshake, session, or relay output writes.
+- Normal no-cfg build ignores the lazy identity selector and still performs lazy identity plus A1 handshake output.
+- Legacy/public-record upgrade, CLI identity rotation, TUI account bootstrap identity generation, X25519 / ephemeral generation, qshield-cli demo RNG, formal/model RNG, fuzz/vector RNG, and refimpl provider RNG remain residual.
+- A2, B1, and KEM provider RNG evidence remains bounded background evidence only.
+
+## Failures / recoveries
+
+- Failing command: startup inherited-test helper's read-only qsc adversarial marker scan attempted to tee to `$PROOF_DIR/startup/startup/qsc_adversarial_marker.log`, but the nested proof directory did not exist.
+  Classification: recoverable command-shape/log-path issue after `handshake_provider_error_no_mutation` had already passed.
+  Corrective action: reran only `rg -n 'NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP|handshake_provider_error_no_mutation' scripts/ci/qsc_adversarial.sh` with an existing proof log path.
+  Final result: corrected marker scan exited 0 and found the required marker reference.
+- Failing command: manual staged scope guard in the pre-PR governance script.
+  Classification: recoverable local proof-script command-shape issue; a
+  single-quoted heredoc passed a literal proof-file variable into Python.
+  Corrective action: reran the manual scope guard, exact queue/decision checks,
+  and added-line overclaim scan with a literal proof path.
+  Final result: corrected staged scope guard and exact queue/decision checks
+  exited 0.
+- Failing command: added-line overclaim scan over the staged diff.
+  Classification: recoverable in-scope governance validation failure; wrapped
+  testplan claim-boundary continuation lines carried sensitive claim terms
+  without same-line negation.
+  Corrective action: reworded the NA-0465 testplan public-claim boundary into
+  one negated bullet per sensitive claim term.
+  Final result: added-line overclaim rerun exited 0.
+- Failing command: direct `scripts/ci/qsc_adversarial.sh` invocation.
+  Classification: recoverable invocation-shape issue; the script was not
+  executable and the directive specifies using `sh` when not executable.
+  Corrective action: reran as `sh scripts/ci/qsc_adversarial.sh`.
+  Final result: Rust adversarial phases passed; local cargo-fuzz command was
+  unavailable and PR CI qsc-adversarial-smoke remains required evidence.
+
+## Non-fatal warnings / zero-match notes
+
+- Root pqcrypto inverse probes reported package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`; these were expected zero-match inventory results under the directive's `|| true` probes.
+- Nested qsc fuzz lock pqcrypto scan returned zero matches.
+
+## Validation / CI notes
+
+- Current main public-safety before patch: PASS on `6b8774c6b190`; qsc-adversarial-smoke PASS; full-suite checks accepted skipped by repo policy.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- Startup inherited qsc cfg/no-cfg A2 signature provider RNG tests: PASS.
+- Startup inherited qsc cfg/no-cfg B1 signature provider RNG tests: PASS.
+- Startup inherited qsc cfg/no-cfg KEM provider RNG tests: PASS.
+- Startup inherited qsc cfg/no-cfg residual RNG tests: PASS.
+- Startup key lifecycle and provider-error tests: PASS.
+- qsl-backup SHA matched required boundary value; script-local ops source inclusion count was 1.
+- Post-implementation `cargo fmt --check`: PASS.
+- Post-implementation cfg/no-cfg `lazy_identity_provider_rng_failure`: PASS.
+- Post-implementation cfg/no-cfg A2/B1/KEM provider RNG tests: PASS.
+- Post-implementation cfg/no-cfg residual RNG tests: PASS.
+- Post-implementation `key_lifecycle_zeroization`: PASS.
+- Post-implementation `handshake_provider_error_no_mutation`: PASS.
+- Post-implementation stable `send_commit`: PASS.
+- Post-implementation refimpl `pqkem768`: PASS.
+- qsc adversarial script syntax: PASS.
+- Post-implementation root cargo audit: PASS.
+- Post-implementation nested qsc fuzz lock audit: PASS.
+- Post-implementation dependency probes: `rustls-webpki` and `ml-kem` inverse trees PASS; pqcrypto inverse probes expected zero-match inventory.
+- Post-implementation formal checks: PASS.
+- Governance validation: staged diff check PASS; link-check PASS; full-path
+  leak scan PASS; PR body preflight PASS; exact staged scope guard PASS; exact
+  queue/decision checks PASS; added-line overclaim scan PASS after wording
+  recovery.
+- Pre-PR full validation: cfg/no-cfg lazy identity PASS; inherited cfg/no-cfg
+  A2/B1/KEM provider RNG tests PASS; inherited cfg/no-cfg residual RNG tests
+  PASS; key lifecycle PASS; provider-error PASS; stable send_commit PASS;
+  refimpl pqkem768 PASS; root audit PASS; nested fuzz lock audit PASS; formal
+  checks PASS.
+- Local qsc adversarial smoke: Rust adversarial phases PASS; local cargo-fuzz
+  command unavailable.
+- Implementation PR checks: pending.
+
+## Disk watermark
+
+- Filesystem: pending.
+- Total GiB: pending.
+- Used GiB: pending.
+- Free GiB: pending.
+- Used %: pending.
+
+## Next-watch items
+
+- Run governance validation and exact scope guard.
+- Open implementation PR only after local validation is green.
+- Merge implementation PR only after required checks and public-safety pass.
+- Close out to NA-0466 only after implementation PR merges and post-merge public-safety is green.
+- Do not implement NA-0466 inside NA-0465 closeout.
+
 # QSL-DIR-2026-06-12-321 / NA-0464 qsc identity provider RNG split-scope authorization rolling journal
 
 - Directive: QSL-DIR-2026-06-12-321 -- Execute NA-0464 QSL qsc Identity Provider RNG Failure Split-Scope Authorization Plan, Optional Closeout to NA-0465.

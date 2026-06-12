@@ -24325,3 +24325,42 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output must not be used as public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, signature-complete, identity-complete, RNG-failure-complete, provider-RNG-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0464; NA-0465; D-0916; D-0915; qsl-protocol PR #1197; `docs/governance/evidence/NA-0464_qsl_qsc_identity_provider_rng_failure_split_scope_authorization_plan.md`; `tests/NA-0464_qsl_qsc_identity_provider_rng_failure_split_scope_authorization_testplan.md`; `tests/NA-0464_closeout_restore_na0465_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0917
+  - **Title:** NA-0465 qsc lazy identity provider RNG failure test seam implementation
+  - **Status:** Accepted
+  - **Date:** 2026-06-12
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0465 consumes NA-0464 and implements the bounded qsc lazy identity provider RNG failure cfg seam selected by D-0915. The seam is compiled only under `--cfg qsc_rng_failure_test_seam`, uses lazy identity labels `QSC.IDENTITY.LAZY.KEM_KEYPAIR` and `QSC.IDENTITY.LAZY.SIG_KEYPAIR`, preserves the inherited generic KEM selector `QSC.KEM.KEYPAIR`, and leaves normal no-cfg production semantics unchanged.
+  - **Exact changed implementation path:** `qsl/qsl-client/qsc/src/identity/mod.rs`.
+  - **Exact test file:** `qsl/qsl-client/qsc/tests/lazy_identity_provider_rng_failure.rs`.
+  - **Forced lazy identity KEM provider failure evidence:** Forced `QSC.IDENTITY.LAZY.KEM_KEYPAIR` takes the sanitized `identity_secret_unavailable` / `rng_failure_forced` path before identity secret, public-record, selected identity, pending handshake, session, or relay output writes. Markers: `NA0465_LAZY_IDENTITY_KEM_RNG_FAILURE_FORCED_OK` and `NA0465_LAZY_IDENTITY_KEM_RNG_FAILURE_NO_PARTIAL_IDENTITY_STATE_OK`.
+  - **Forced lazy identity signature provider failure evidence:** Forced `QSC.IDENTITY.LAZY.SIG_KEYPAIR` takes the sanitized `identity_secret_unavailable` / `rng_failure_forced` path after in-memory lazy KEM generation but before identity secret, public-record, selected identity, pending handshake, session, or relay output writes. Markers: `NA0465_LAZY_IDENTITY_SIG_RNG_FAILURE_FORCED_OK` and `NA0465_LAZY_IDENTITY_SIG_RNG_FAILURE_NO_PARTIAL_IDENTITY_STATE_OK`.
+  - **No partial identity-state evidence:** The cfg tests prove Alice vault bytes are unchanged, Alice self public record is absent, Alice identity KEM secret is absent, Alice identity signature secret is absent, Alice pending handshake secret is absent, Alice legacy pending file is absent, Alice session blob for Bob is absent, and Bob relay output is empty.
+  - **No identity KEM secret write evidence:** The cfg tests decrypt the mock vault and assert `identity.kem_sk.alice` is absent after forced lazy KEM and signature failures. Marker: `NA0465_LAZY_IDENTITY_NO_IDENTITY_KEM_SECRET_WRITE_OK`.
+  - **No identity signature secret write evidence:** The cfg tests decrypt the mock vault and assert `identity.sig_sk.alice` is absent after forced lazy KEM and signature failures. Marker: `NA0465_LAZY_IDENTITY_NO_IDENTITY_SIG_SECRET_WRITE_OK`.
+  - **No self public-record write evidence:** The cfg tests assert `identities/self_alice.json` is absent after forced lazy KEM and signature failures. Marker: `NA0465_LAZY_IDENTITY_NO_SELF_PUBLIC_RECORD_WRITE_OK`.
+  - **No selected identity write evidence:** The selected lazy identity trigger path has no separate selected-identity state before the self public record; the tests prove no self public record, no identity secrets, unchanged vault bytes, and no `identity_fp=` output. Marker: `NA0465_LAZY_IDENTITY_NO_SELECTED_IDENTITY_WRITE_OK`.
+  - **No dependent handshake state/output evidence:** The cfg tests prove no pending handshake secret, no legacy pending file, no session blob, no `handshake_send`, no `handshake_complete`, and no relay output. Marker: `NA0465_LAZY_IDENTITY_NO_DEPENDENT_HANDSHAKE_OUTPUT_OK`.
+  - **Production semantics unchanged without cfg:** The no-cfg integration test sets `QSC_RNG_FAILURE_TEST_SEAM=QSC.IDENTITY.LAZY.KEM_KEYPAIR` and proves normal lazy identity public-record write, identity KEM secret write, identity signature secret write, pending handshake state, and A1 relay output still occur. Marker: `NA0465_PRODUCTION_SEMANTICS_UNCHANGED_OK`.
+  - **Legacy/public-record upgrade deferred:** Legacy/public-record identity upgrade remains separate because it starts from existing identity/public-record state and has a different migration/update boundary.
+  - **CLI identity rotation deferred:** CLI identity rotation remains a separate explicit identity state transition outside the lazy identity trigger path.
+  - **TUI account bootstrap deferred:** TUI account bootstrap identity generation remains a separate account bootstrap path.
+  - **X25519 deferred:** X25519 / ephemeral generation remains residual and handshake source is not mutated by NA-0465.
+  - **refimpl provider RNG deferred:** refimpl provider RNG remains residual and refimpl is not mutated by NA-0465.
+  - **A2/B1/KEM background preserved:** cfg/no-cfg A2 signature, B1 signature, and KEM provider RNG tests remain green. These remain bounded background checks only.
+  - **No refimpl/dependency/workflow mutation:** NA-0465 does not mutate refimpl, dependencies, Cargo manifests, lockfiles, workflows, fuzz targets, vectors, formal models, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup/restore/local-ops paths, qsl-backup, backup status files, backup plan files, rollback subtree paths, or backup tree paths.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths. qsl-backup proof was checked read-only.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No public crypto-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No RNG-failure-complete claim is made. No provider-RNG-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Selected successor:** `NA-0466 -- QSL qsc Legacy Identity Public-Record Provider RNG Failure Scope Authorization Plan`.
+  - **Required behavior:**
+    - NA-0465 evidence must remain lazy-identity-only evidence.
+    - Legacy/public-record upgrade, CLI identity rotation, TUI account bootstrap identity generation, X25519 / ephemeral generation, qshield-cli demo RNG, formal/model RNG, fuzz/vector RNG, and refimpl provider RNG remain residual unless a later exact directive authorizes them.
+    - NA-0466 must be authorization-only unless a later exact implementation directive changes scope.
+    - Exactly one READY item remains mandatory.
+  - **Must never happen:**
+    - NA-0465 evidence is represented as all identity-provider RNG coverage.
+    - NA-0465 evidence is represented as identity completion, signature completion, RNG-failure completion, provider-RNG completion, or crypto completion.
+    - Cargo audit output must not be used as public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, signature-complete, identity-complete, RNG-failure-complete, provider-RNG-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
+    - more than one READY item remains.
+  - **References:** NA-0465; NA-0464; NA-0466; D-0917; D-0916; D-0915; `docs/governance/evidence/NA-0465_qsl_qsc_lazy_identity_provider_rng_failure_test_seam_implementation_harness.md`; `tests/NA-0465_qsl_qsc_lazy_identity_provider_rng_failure_test_seam_implementation_testplan.md`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/tests/lazy_identity_provider_rng_failure.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

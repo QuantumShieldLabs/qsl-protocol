@@ -19,11 +19,12 @@ Last-Updated: 2026-06-12
 
 - qsl-protocol branch before evidence branch creation: `main`.
 - qsl-protocol evidence branch: `na-0464-identity-provider-rng-split-scope`.
-- qsl-protocol closeout branch: pending.
+- qsl-protocol closeout branch: `na-0464-closeout-restore-na0465`.
 - qsl-protocol HEAD before patch: `51de5511e055`.
 - qsl-protocol origin/main before patch: `51de5511e055`.
 - qsl-protocol mirror/main: fetched by `git fetch --all --prune`; origin/main did not advance beyond qwork proof.
-- qsl-protocol evidence merge commit: pending.
+- qsl-protocol evidence branch head: `643638c39d33`.
+- qsl-protocol evidence merge commit: `578d0cb0a49c`.
 - qsl-server refs: not refreshed by this directive.
 - qsl-attachments refs: not refreshed by this directive.
 
@@ -42,9 +43,9 @@ Last-Updated: 2026-06-12
 - Worktree path: `/srv/qbuild/work/NA-0464/qsl-protocol`.
 - Proof root: `/srv/qbuild/tmp/NA0464_qsc_identity_provider_rng_split_scope_20260612T031907Z`.
 - Evidence branch: `na-0464-identity-provider-rng-split-scope`.
-- Evidence PR: pending.
-- Evidence merge commit: pending.
-- Optional closeout branch: pending.
+- Evidence PR: #1197.
+- Evidence merge commit: `578d0cb0a49c`.
+- Optional closeout branch: `na-0464-closeout-restore-na0465`.
 - Optional closeout PR: pending.
 - Optional closeout merge commit: pending.
 
@@ -56,6 +57,11 @@ Last-Updated: 2026-06-12
 - Legacy/public-record upgrade, CLI identity rotation, and TUI account bootstrap have different state/write timing and should remain separate residual paths unless later exact scope authorizes them.
 - KEM provider RNG evidence from NA-0458, B1 signing evidence from NA-0461, and A2 no-output evidence from NA-0463 remain bounded background evidence only.
 - Identity provider RNG, X25519 / ephemeral generation, qshield-cli demo RNG, formal/model RNG, fuzz/vector RNG, and refimpl provider RNG remain residual unless a later exact directive authorizes them.
+- Evidence PR #1197 merged at `578d0cb0a49c`; post-merge public-safety
+  completed success on that merge commit.
+- Optional closeout marks NA-0464 DONE and restores
+  `NA-0465 -- QSL qsc Lazy Identity Provider RNG Failure Test Seam Implementation Harness`
+  as the sole READY successor without implementing NA-0465.
 
 ## Failures / recoveries
 
@@ -105,6 +111,26 @@ Last-Updated: 2026-06-12
   Corrective action: regenerated the synthetic event with exported base/head
   variables and reran goal-lint.
   Final result: post-commit goal-lint PASS.
+- Failing tool call: GitHub connector create-pull-request for PR #1197.
+  Classification: recoverable GitHub integration permission issue because the
+  connector returned `Resource not accessible by integration` while the branch
+  was already pushed and `gh` was available.
+  Corrective action: created PR #1197 with `gh pr create` using the same
+  validated PR body.
+  Final result: PR #1197 opened successfully.
+- Failing command: first PR check REST polling loop for PR #1197.
+  Classification: recoverable command-shape issue because the shell mixed a
+  heredoc and here-string and sent JSON to Python as code.
+  Corrective action: identified and killed only the stale local polling shell,
+  then reran polling with a Python loop that calls `gh api` directly.
+  Final result: PR #1197 checks completed with zero failures.
+- Non-fatal post-merge wait condition: initial public-safety status on merge
+  commit `578d0cb0a49c` was missing while other checks were still running.
+  Classification: normal attached-check progress under the evidence-based
+  post-merge wait policy.
+  Corrective action: continued REST polling until public-safety attached and
+  completed.
+  Final result: post-merge public-safety completed success on `578d0cb0a49c`.
 - Root pqcrypto inverse probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`; these are valid zero-match inventory results under the directive's `|| true` probes.
 
 ## Validation / CI notes
@@ -148,10 +174,19 @@ Last-Updated: 2026-06-12
 - Post-commit policy validation: goal-lint PASS with synthetic PR event using
   actual base/head SHAs; helper scope guard PASS for `origin/main...HEAD` with
   exactly the five allowed NA-0464 paths and `FORBIDDEN_COUNT 0`.
-- Evidence PR validation: pending PR classifier and protected checks.
-- Evidence protected checks: pending.
-- Evidence post-merge public-safety: pending.
-- Optional closeout validation: pending.
+- Evidence PR classifier: docs-only, qsc adversarial not triggered, helper
+  predicts required checks can pass.
+- Evidence protected checks: PR #1197 completed with zero failures; public-safety
+  completed success on PR head `643638c39d33`.
+- Evidence post-merge public-safety: completed success on merge commit
+  `578d0cb0a49c`.
+- Optional closeout local validation: staged path guard PASS with exactly five
+  closeout paths; queue helper PASS with READY_COUNT 1 and READY NA-0465;
+  decision helper PASS with latest D-0916; D-0915 once; D-0916 once; D-0917
+  absent; duplicate decision count zero; link-check PASS; leak-scan PASS;
+  added-line overclaim scan PASS; PR body preflight PASS; root cargo audit PASS;
+  nested qsc fuzz lock audit PASS.
+- Optional closeout protected checks: pending PR.
 
 ## Disk watermark
 

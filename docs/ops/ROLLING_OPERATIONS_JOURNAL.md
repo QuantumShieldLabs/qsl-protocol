@@ -22,7 +22,7 @@ Last-Updated: 2026-06-12
 - qsl-protocol HEAD before patch: `c6addc0ce436`.
 - qsl-protocol origin/main before patch: `c6addc0ce436`.
 - qsl-protocol mirror/main: fetched by `git fetch --all --prune`; origin/main did not advance beyond qwork proof.
-- qsl-protocol evidence branch head: pending.
+- qsl-protocol initial evidence branch head: `dbea4bc7acb3`.
 - qsl-protocol evidence merge commit: pending.
 - qsl-server refs: not refreshed by this directive.
 - qsl-attachments refs: not refreshed by this directive.
@@ -42,7 +42,7 @@ Last-Updated: 2026-06-12
 - Worktree path: `/srv/qbuild/work/NA-0466/qsl-protocol`.
 - Proof root: `/srv/qbuild/tmp/NA0466_qsc_legacy_identity_public_record_scope_20260612T131532Z`.
 - Evidence branch: `na-0466-legacy-identity-public-record-scope`.
-- Evidence PR: pending.
+- Evidence PR: #1201.
 - Evidence merge commit: pending.
 - Optional closeout branch: pending.
 - Optional closeout PR: pending.
@@ -69,6 +69,10 @@ Last-Updated: 2026-06-12
   Classification: recoverable in-scope governance validation failure because wrapped continuation lines contained sensitive claim terms without same-line negation.
   Corrective action: reworded the NA-0466 evidence so each sensitive claim phrase carries explicit same-line negation.
   Final result: added-line overclaim scan PASS with `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing tool call: GitHub app connector `_create_pull_request`.
+  Classification: recoverable publish-tool permission issue because the local branch had pushed successfully and authenticated `gh` was available for the same PR creation operation.
+  Corrective action: created the PR with `gh pr create --repo QuantumShieldLabs/qsl-protocol --base main --head na-0466-legacy-identity-public-record-scope`.
+  Final result: PR #1201 opened successfully.
 
 ## Non-fatal warnings / zero-match notes
 
@@ -96,7 +100,7 @@ Last-Updated: 2026-06-12
 - Post-patch Rust validation: cfg/no-cfg `lazy_identity_provider_rng_failure` PASS; cfg/no-cfg `a2_signature_provider_rng_failure` PASS; cfg/no-cfg `b1_signature_provider_rng_failure` PASS; cfg/no-cfg `kem_provider_rng_failure` PASS; cfg/no-cfg `rng_failure_residual_surfaces` PASS; cfg/no-cfg `rng_failure_behavior` PASS; `key_lifecycle_zeroization` PASS; `handshake_provider_error_no_mutation` PASS; stable `send_commit` PASS; refimpl `pqkem768` PASS.
 - Post-patch dependency validation: root cargo audit PASS; nested qsc fuzz lock audit PASS; `rustls-webpki` inverse tree PASS; cargo tree probes for `ml-kem` and pqcrypto package IDs recorded; nested qsc fuzz lock pqcrypto scan returned zero matches. Root/nested audit calls emitted advisory-db lock-wait warnings due parallel local audit execution, then completed successfully.
 - Local qsc adversarial smoke: stable `adversarial_properties` PASS; stable `adversarial_miri` PASS; provider-error no-mutation step PASS; local cargo-fuzz phase unavailable with `error: no such command: fuzz`; PR CI qsc-adversarial-smoke remains required for fuzz-phase proof.
-- Evidence PR checks: pending.
+- Evidence PR checks: pending for PR #1201.
 - Evidence post-merge public-safety: pending.
 
 ## Disk watermark

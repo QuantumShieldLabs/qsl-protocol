@@ -24212,3 +24212,39 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output must not be used as public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, signature-complete, identity-complete, RNG-failure-complete, provider-RNG-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0462; NA-0463; D-0912; D-0911; qsl-protocol PR #1193; `docs/governance/evidence/NA-0462_qsl_qsc_a2_signature_provider_rng_failure_scope_authorization_plan.md`; `tests/NA-0462_qsl_qsc_a2_signature_provider_rng_failure_scope_authorization_testplan.md`; `tests/NA-0462_closeout_restore_na0463_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0913
+  - **Title:** NA-0463 qsc A2 signature provider RNG failure no-output test seam implementation
+  - **Status:** Accepted
+  - **Date:** 2026-06-11
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0463 consumes NA-0462 and implements the qsc A2 signature provider RNG failure no-output cfg seam selected by D-0911. The seam is compiled only under `--cfg qsc_rng_failure_test_seam`, uses selector `QSC.SIG.A2`, and forces the existing sanitized `sig_sign_failed` path after initiator session storage and pending clear but before A2 output and relay emission. Normal no-cfg builds do not compile the A2 selector branch and preserve production semantics even when `QSC_RNG_FAILURE_TEST_SEAM=QSC.SIG.A2` is set.
+  - **Exact changed implementation path:** `qsl/qsl-client/qsc/src/handshake/mod.rs`.
+  - **Exact test file:** `qsl/qsl-client/qsc/tests/a2_signature_provider_rng_failure.rs`.
+  - **Forced A2 signing failure evidence:** cfg test `a2_signature_rng_failure_emits_no_a2_output` forces `QSC.SIG.A2` and emits `NA0463_A2_SIGNATURE_PROVIDER_RNG_FAILURE_FORCED_OK`.
+  - **sig_sign_failed evidence:** forced A2 signing failure emits `handshake_reject reason=sig_sign_failed` without provider-internal error detail and emits `NA0463_A2_SIGNATURE_PROVIDER_RNG_FAILURE_SIG_SIGN_FAILED_OK`.
+  - **No A2 output evidence:** forced A2 signing failure emits no `reason=a2_sign`, no `handshake_send`, no `msg=A2`, and no initiator `handshake_complete`; marker `NA0463_A2_SIGNATURE_PROVIDER_RNG_FAILURE_NO_A2_OUTPUT_OK`.
+  - **No relay A2 evidence:** forced A2 signing failure leaves Bob's relay channel empty after A2 processing; marker `NA0463_A2_SIGNATURE_PROVIDER_RNG_FAILURE_NO_RELAY_A2_OK`.
+  - **No false no-mutation claim:** NA-0463 explicitly preserves the A2 post-mutation caveat. The forced cfg test requires Alice's session blob for Bob to exist after forced A2 signing failure and requires effective pending clear after forced A2 signing failure. This is not an A2 pre-mutation no-mutation proof. Markers: `NA0463_A2_SIGNATURE_PROVIDER_RNG_FAILURE_NO_FALSE_NO_MUTATION_CLAIM_OK` and `NA0463_A2_SIGNATURE_PROVIDER_RNG_FAILURE_POST_MUTATION_TIMING_ACKNOWLEDGED_OK`.
+  - **Production semantics unchanged:** no-cfg test `a2_signature_rng_failure_seam_inactive_without_cfg` sets `QSC_RNG_FAILURE_TEST_SEAM=QSC.SIG.A2` and proves normal A2 signing, A2 output, relay A2, and handshake completion still occur; marker `NA0463_PRODUCTION_SEMANTICS_UNCHANGED_OK`.
+  - **B1 signing background preserved:** cfg/no-cfg `b1_signature_provider_rng_failure` remains green. B1 signing evidence remains bounded background evidence only.
+  - **Identity provider RNG deferred:** lazy identity, legacy/public-record upgrade, CLI rotation, and TUI account bootstrap identity provider RNG paths remain deferred.
+  - **X25519 deferred:** X25519 / ephemeral RNG failure coverage remains deferred.
+  - **refimpl provider RNG deferred:** refimpl provider RNG failure coverage remains deferred and refimpl is not mutated.
+  - **KEM background preserved:** cfg/no-cfg `kem_provider_rng_failure` remains green. KEM provider RNG evidence remains bounded background evidence only.
+  - **No refimpl/dependency/workflow mutation:** NA-0463 does not mutate refimpl, dependencies, Cargo manifests, lockfiles, workflows, fuzz targets, vectors, formal models, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup/restore/local-ops paths, qsl-backup, backup status files, backup plan files, rollback subtree paths, or backup tree paths.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths. qsl-backup SHA and source-list inclusion were checked read-only.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No public crypto-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No RNG-failure-complete claim is made. No provider-RNG-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Selected successor:** `NA-0464 -- QSL qsc Identity Provider RNG Failure Split-Scope Authorization Plan`.
+  - **Required behavior:**
+    - Exactly one READY item remains mandatory.
+    - NA-0463 A2 evidence must remain bounded internal qsc forced-seam evidence.
+    - A2 forced failure must continue to be described as no-output only, not pre-mutation no-mutation.
+    - Identity provider RNG, X25519 / ephemeral generation, qshield-cli RNG, formal/model RNG, fuzz/vector RNG, and refimpl provider RNG remain residual unless a later exact directive authorizes them.
+    - NA-0464 must be split-scope authorization only unless a later exact implementation directive changes scope.
+  - **Must never happen:**
+    - A2 signing failure is described as pre-mutation no-mutation.
+    - NA-0463 evidence is represented as signature completion, identity completion, RNG-failure completion, provider-RNG completion, or crypto completion.
+    - Cargo audit output must not be used as public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, signature-complete, identity-complete, RNG-failure-complete, provider-RNG-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
+    - more than one READY item remains.
+  - **References:** NA-0463; NA-0462; NA-0464; D-0913; D-0912; D-0911; `docs/governance/evidence/NA-0463_qsl_qsc_a2_signature_provider_rng_failure_no_output_test_seam_implementation_harness.md`; `tests/NA-0463_qsl_qsc_a2_signature_provider_rng_failure_no_output_test_seam_implementation_testplan.md`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/tests/a2_signature_provider_rng_failure.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

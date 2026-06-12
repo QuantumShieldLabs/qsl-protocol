@@ -1781,6 +1781,109 @@ Last-Updated: 2026-06-11
 - Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
 - `cargo fmt --check`: PASS.
 
+# QSL-DIR-2026-06-11-320 / NA-0463 qsc A2 signature provider RNG failure no-output seam rolling journal
+
+- Directive: QSL-DIR-2026-06-11-320 -- Execute NA-0463 QSL qsc A2 Signature Provider RNG Failure No-Output Test Seam Implementation Harness, Optional Closeout to NA-0464.
+- Begin timestamp (America/Chicago): 2026-06-11T19:19:27-05:00.
+- Begin timestamp (UTC): 2026-06-12T00:19:27+00:00.
+- End timestamp (America/Chicago): pending.
+- End timestamp (UTC): pending.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Repo SHAs
+
+- qsl-protocol branch before patch: `main`.
+- qsl-protocol implementation branch: `na-0463-qsc-a2-signature-no-output-seam`.
+- qsl-protocol HEAD before patch: `428322bb8094`.
+- qsl-protocol origin/main before patch: `428322bb8094`.
+- qsl-protocol origin/main after fetch: `428322bb8094`.
+- PR #1194 merge: `428322bb8094`.
+
+## READY proof
+
+- qwork proof files were read from the lane workspace and copied to proof root.
+- qwork `.kv` proof markers passed: startup OK, lane NA-0463, repo qsl-protocol, path correct, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0463, requested lane status READY.
+- qwork JSON proof parsed and mirrored `.kv` for lane, repo, path, HEAD, origin/main, READY count, queue top, requested lane status, and clean-state fields.
+- Proof HEAD and proof origin/main matched live local refs before fetch at `428322bb8094`.
+- Fetch did not advance origin/main.
+- PR #1194 was verified MERGED at `428322bb8094`.
+- Queue helper before patch: READY_COUNT 1 and READY NA-0463.
+- Exact queue proof before patch: NA-0463 READY; NA-0462 through NA-0435 DONE; NA-0434 and NA-0429 BLOCKED.
+- Decision proof before patch: latest D-0912, D-0911 once, D-0912 once, D-0913 absent, duplicate decision count zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0463/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0463_qsc_a2_signature_no_output_impl_20260612T001912Z`.
+- Implementation branch: `na-0463-qsc-a2-signature-no-output-seam`.
+- Implementation PR: pending.
+- Implementation merge commit: pending.
+
+## Implementation notes
+
+- Implemented cfg-only A2 signature provider failure selector `QSC.SIG.A2` in `qsl/qsl-client/qsc/src/handshake/mod.rs`.
+- Added integration test `qsl/qsl-client/qsc/tests/a2_signature_provider_rng_failure.rs`.
+- Forced cfg failure returns sanitized `sig_sign_failed`.
+- Forced cfg failure emits no A2 `handshake_send` and no relay A2.
+- Test explicitly preserves A2 post-mutation timing by asserting Alice session storage exists after forced A2 signing failure and effective pending clear has occurred.
+- Normal no-cfg test sets `QSC_RNG_FAILURE_TEST_SEAM=QSC.SIG.A2` and proves A2 output/relay still occur.
+- This is no-output-only A2 evidence, not an A2 pre-mutation no-mutation proof.
+- B1 signing and KEM provider RNG evidence remain background only.
+- Identity provider RNG, X25519 / ephemeral RNG, qshield-cli RNG, formal/model RNG, fuzz/vector RNG, and refimpl provider RNG remain residual.
+- Selected successor: `NA-0464 -- QSL qsc Identity Provider RNG Failure Split-Scope Authorization Plan`.
+
+## Failures / recoveries
+
+- Failing command: broad qsl-backup boundary grep over qsl-backup script/status/plan for the Codex ops source path.
+  Classification: recoverable command-shape issue because it counted prose references instead of the source-list inclusion entry.
+  Corrective action: inspected the installed qsl-backup source list directly.
+  Final result: PASS; qsl-backup SHA matched expected value and script source inclusion count was 1.
+- Failing command: `RUSTFLAGS='--cfg qsc_rng_failure_test_seam' cargo test -p qsc --locked --test a2_signature_provider_rng_failure -- --test-threads=1 --nocapture`.
+  Classification: recoverable in-scope validation failure with understood test assertion cause; B1 verification emits `sig_status` before forced A2 signing failure.
+  Corrective action: narrowed the assertion to forbid `reason=a2_sign` while preserving no A2 output and no relay A2 checks.
+  Final result: PASS on rerun after the second assertion correction below.
+- Failing command: `RUSTFLAGS='--cfg qsc_rng_failure_test_seam' cargo test -p qsc --locked --test a2_signature_provider_rng_failure -- --test-threads=1 --nocapture`.
+  Classification: recoverable in-scope validation failure with understood test assertion cause; `hs_pending_clear` stores an empty vault value and `hs_pending_load` treats empty as no pending.
+  Corrective action: asserted non-empty pending before A2 and empty-or-absent pending after forced A2 signing failure.
+  Final result: PASS.
+- Failing command: first added-line overclaim scan.
+  Classification: recoverable wording/scan shape issue because wrapped claim-boundary continuation lines carried sensitive terms without same-line negation.
+  Corrective action: rewrapped claim-boundary text so each sensitive phrase carries same-line negation.
+  Final result: PASS.
+
+## Non-fatal warnings / zero-match notes
+
+- Root pqcrypto inverse probes reported package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`; these are expected zero-match inventory results under the directive's `|| true` probes.
+- Latest-manifest exact top-level source-path count returned zero because content manifests list backed-up contents, not the qsl-backup source list; this was recorded as a valid zero-match for that different question, not a source-list regression.
+
+## Validation / CI notes
+
+- Public-safety on current main `428322bb8094`: PASS; qsc-adversarial-smoke PASS; full-suite checks accepted skipped by repo policy.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- qsc adversarial script marker present.
+- qsl-backup SHA matched required boundary value; installed script source inclusion count was 1.
+- Pre-mutation inherited validation: cfg/no-cfg B1 provider RNG PASS; cfg/no-cfg KEM provider RNG PASS; cfg/no-cfg RNG residual surfaces PASS; cfg/no-cfg RNG behavior PASS; `key_lifecycle_zeroization` PASS; `handshake_provider_error_no_mutation` PASS.
+- Post-implementation validation: `cargo fmt --check` PASS; cfg/no-cfg `a2_signature_provider_rng_failure` PASS; cfg/no-cfg `b1_signature_provider_rng_failure` PASS; cfg/no-cfg `kem_provider_rng_failure` PASS; cfg/no-cfg `rng_failure_residual_surfaces` PASS; cfg/no-cfg `rng_failure_behavior` PASS; `key_lifecycle_zeroization` PASS; `handshake_provider_error_no_mutation` PASS; stable `send_commit` PASS; refimpl `pqkem768` PASS; qsc adversarial script syntax PASS; qsc adversarial local stable phases PASS with local cargo-fuzz unavailable; root cargo audit PASS; nested qsc fuzz lock audit PASS; dependency probes PASS with expected pqcrypto zero matches; formal checks PASS.
+- Governance validation: pending.
+- Implementation PR checks: pending.
+- Post-merge public-safety: pending.
+
+## Disk watermark
+
+- Filesystem: pending.
+- Total GiB: pending.
+- Used GiB: pending.
+- Free GiB: pending.
+- Used %: pending.
+
+## Next-watch items
+
+- Run post-governance scope guard, link check, leak scan, overclaim scan, classifier, PR body preflight, goal-lint, and required validation reruns.
+- Open implementation PR #pending from `na-0463-qsc-a2-signature-no-output-seam`.
+- Merge only after required checks and public-safety are green.
+- If implementation PR merges and post-merge public-safety is green, optionally close out NA-0463 and restore NA-0464 as the sole READY item without implementing NA-0464.
+
 # QSL-DIR-2026-06-09-309 / NA-0453 provider RNG boundary authorization rolling journal
 
 - Directive: QSL-DIR-2026-06-09-309 -- Execute NA-0453 QSL refimpl / qsc Provider RNG Failure Boundary Authorization Plan, optional closeout to NA-0454.

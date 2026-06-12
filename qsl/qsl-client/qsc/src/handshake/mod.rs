@@ -1450,7 +1450,15 @@ fn perform_handshake_poll_with_tokens(
                             .map_err(|e| e.as_str())?
                             .sig_sk;
                         let a2_sig_msg = hs_sig_msg_a2(&resp.session_id, &th, &cmac);
-                        let a2_sig = match c.sign(&sig_sk, &a2_sig_msg) {
+                        #[cfg(qsc_rng_failure_test_seam)]
+                        let a2_sig_result = if hs_rng_failure_forced("QSC.SIG.A2") {
+                            Err(())
+                        } else {
+                            c.sign(&sig_sk, &a2_sig_msg).map_err(|_| ())
+                        };
+                        #[cfg(not(qsc_rng_failure_test_seam))]
+                        let a2_sig_result = c.sign(&sig_sk, &a2_sig_msg).map_err(|_| ());
+                        let a2_sig = match a2_sig_result {
                             Ok(v) => v,
                             Err(_) => {
                                 emit_marker(

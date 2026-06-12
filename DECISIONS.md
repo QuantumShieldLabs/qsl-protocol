@@ -24443,3 +24443,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output must remain dependency-health evidence only.
     - more than one READY item remains.
   - **References:** NA-0466; NA-0467; D-0920; D-0919; qsl-protocol PR #1201; `docs/governance/evidence/NA-0466_qsl_qsc_legacy_identity_public_record_provider_rng_failure_scope_authorization_plan.md`; `tests/NA-0466_qsl_qsc_legacy_identity_public_record_provider_rng_failure_scope_authorization_testplan.md`; `tests/NA-0466_closeout_restore_na0467_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0921
+  - **Title:** NA-0467 qsc legacy identity public-record provider RNG failure test seam implementation
+  - **Status:** Accepted
+  - **Date:** 2026-06-12
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0467 consumes NA-0466 and implements the bounded qsc legacy/public-record identity provider RNG failure cfg seam selected by D-0919 and restored by D-0920. The seam is compiled only under `--cfg qsc_rng_failure_test_seam`, uses separate labels `QSC.IDENTITY.LEGACY_MIGRATE.SIG_KEYPAIR` and `QSC.IDENTITY.PUBLIC_RECORD_UPGRADE.SIG_KEYPAIR`, and leaves normal no-cfg production semantics unchanged.
+  - **Exact changed implementation path:** `qsl/qsl-client/qsc/src/identity/mod.rs`.
+  - **Exact test file:** `qsl/qsl-client/qsc/tests/legacy_identity_public_record_provider_rng_failure.rs`.
+  - **Forced legacy migration signature provider failure evidence:** Forced `QSC.IDENTITY.LEGACY_MIGRATE.SIG_KEYPAIR` returns sanitized `identity_secret_unavailable` / `rng_failure_forced` before legacy migration writes. Markers: `NA0467_LEGACY_MIGRATE_SIG_RNG_FAILURE_FORCED_OK` and `NA0467_LEGACY_MIGRATE_SIG_RNG_FAILURE_NO_PARTIAL_UPGRADE_STATE_OK`.
+  - **Forced public-record upgrade signature provider failure evidence:** Forced `QSC.IDENTITY.PUBLIC_RECORD_UPGRADE.SIG_KEYPAIR` returns sanitized `identity_secret_unavailable` / `rng_failure_forced` before signature-secret and self public-record upgrade writes. Markers: `NA0467_PUBLIC_RECORD_UPGRADE_SIG_RNG_FAILURE_FORCED_OK` and `NA0467_PUBLIC_RECORD_UPGRADE_SIG_RNG_FAILURE_NO_PARTIAL_UPGRADE_STATE_OK`.
+  - **Existing identity state stability evidence:** The cfg tests prove selected identity file bytes, mock vault bytes, and selected identity fingerprint remain stable after forced failure. Marker: `NA0467_EXISTING_IDENTITY_STATE_STABLE_OK`.
+  - **No new signature secret write evidence:** The cfg tests decrypt the temporary mock vault and prove `identity.sig_sk.alice` remains absent after forced failure. Marker: `NA0467_NO_NEW_SIGNATURE_SECRET_WRITE_OK`.
+  - **No partial self public-record write/update evidence:** The cfg tests prove `identities/self_alice.json` remains byte-for-byte unchanged after forced failure. Marker: `NA0467_NO_PARTIAL_SELF_PUBLIC_RECORD_WRITE_OK`.
+  - **No selected identity change evidence:** The cfg tests prove the selected Alice identity fingerprint remains unchanged after forced failure. Marker: `NA0467_NO_SELECTED_IDENTITY_CHANGE_OK`.
+  - **No dependent handshake state/output evidence:** The cfg tests prove no pending handshake vault secret, no legacy pending file, no session blob, no `handshake_send`, no `handshake_complete`, and no relay A1 output after forced failure. Marker: `NA0467_NO_DEPENDENT_HANDSHAKE_OUTPUT_OK`.
+  - **Production semantics unchanged without cfg:** The no-cfg test sets `QSC_RNG_FAILURE_TEST_SEAM=QSC.IDENTITY.PUBLIC_RECORD_UPGRADE.SIG_KEYPAIR` and proves normal public-record upgrade plus A1 handshake output still occur. Marker: `NA0467_PRODUCTION_SEMANTICS_UNCHANGED_OK`.
+  - **Lazy identity background preserved:** cfg/no-cfg `lazy_identity_provider_rng_failure` remains green. Lazy identity labels remain lazy-only background evidence.
+  - **CLI identity rotation deferred:** CLI identity rotation remains a separate explicit identity state transition outside NA-0467.
+  - **TUI account bootstrap deferred:** TUI account bootstrap identity generation remains separate and outside NA-0467.
+  - **X25519 deferred:** X25519 / ephemeral generation remains residual and handshake source is not mutated by NA-0467.
+  - **refimpl provider RNG deferred:** refimpl provider RNG remains residual and refimpl is not mutated by NA-0467.
+  - **A2/B1/KEM background preserved:** cfg/no-cfg A2 signature, B1 signature, and KEM provider RNG tests remain green. These remain bounded background checks only.
+  - **No refimpl/dependency/Cargo/lockfile/workflow mutation:** NA-0467 does not mutate refimpl, dependencies, Cargo manifests, lockfiles, workflows, fuzz targets, vectors, formal models, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup/restore/local-ops paths, qsl-backup, backup status files, backup plan files, rollback subtree paths, or backup tree paths.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths. qsl-backup proof was checked read-only.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No public crypto-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No RNG-failure-complete claim is made. No provider-RNG-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Selected successor:** `NA-0468 -- QSL qsc CLI Identity Rotation Provider RNG Failure Scope Authorization Plan`.
+  - **Required behavior:**
+    - NA-0467 evidence must remain legacy/public-record-only evidence.
+    - CLI identity rotation, TUI account bootstrap identity generation, X25519 / ephemeral generation, refimpl provider RNG, qshield-cli demo RNG, formal/model RNG, and fuzz/vector RNG remain residual unless a later exact directive authorizes them.
+    - Optional closeout must not implement NA-0468.
+    - Exactly one READY item remains mandatory.
+  - **Must never happen:**
+    - NA-0467 evidence is represented as all identity-provider RNG coverage.
+    - NA-0467 evidence is represented as identity completion, signature completion, RNG-failure completion, provider-RNG completion, or crypto completion.
+    - Cargo audit output must not be used as public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, identity-complete, RNG-failure-complete, provider-RNG-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
+    - more than one READY item remains.
+  - **References:** NA-0467; NA-0466; NA-0468; D-0921; D-0920; D-0919; `docs/governance/evidence/NA-0467_qsl_qsc_legacy_identity_public_record_provider_rng_failure_test_seam_implementation_harness.md`; `tests/NA-0467_qsl_qsc_legacy_identity_public_record_provider_rng_failure_test_seam_implementation_testplan.md`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/tests/legacy_identity_public_record_provider_rng_failure.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -31,6 +31,12 @@ pub(super) const IDENTITY_FP_PREFIX: &str = "QSCFP-";
 const IDENTITY_LAZY_KEM_KEYPAIR_FAILURE_LABELS: &[&str] = &["QSC.IDENTITY.LAZY.KEM_KEYPAIR"];
 #[cfg(qsc_rng_failure_test_seam)]
 const IDENTITY_LAZY_SIG_KEYPAIR_FAILURE_LABELS: &[&str] = &["QSC.IDENTITY.LAZY.SIG_KEYPAIR"];
+#[cfg(qsc_rng_failure_test_seam)]
+const IDENTITY_LEGACY_MIGRATE_SIG_KEYPAIR_FAILURE_LABELS: &[&str] =
+    &["QSC.IDENTITY.LEGACY_MIGRATE.SIG_KEYPAIR"];
+#[cfg(qsc_rng_failure_test_seam)]
+const IDENTITY_PUBLIC_RECORD_UPGRADE_SIG_KEYPAIR_FAILURE_LABELS: &[&str] =
+    &["QSC.IDENTITY.PUBLIC_RECORD_UPGRADE.SIG_KEYPAIR"];
 
 #[cfg(qsc_rng_failure_test_seam)]
 fn identity_rng_failure_forced(labels: &[&str]) -> bool {
@@ -51,6 +57,22 @@ fn identity_lazy_kem_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
 #[cfg(qsc_rng_failure_test_seam)]
 fn identity_lazy_sig_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
     if identity_rng_failure_forced(IDENTITY_LAZY_SIG_KEYPAIR_FAILURE_LABELS) {
+        return Err("rng_failure_forced");
+    }
+    Ok(hs_sig_keypair())
+}
+
+#[cfg(qsc_rng_failure_test_seam)]
+fn identity_legacy_migrate_sig_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
+    if identity_rng_failure_forced(IDENTITY_LEGACY_MIGRATE_SIG_KEYPAIR_FAILURE_LABELS) {
+        return Err("rng_failure_forced");
+    }
+    Ok(hs_sig_keypair())
+}
+
+#[cfg(qsc_rng_failure_test_seam)]
+fn identity_public_record_upgrade_sig_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
+    if identity_rng_failure_forced(IDENTITY_PUBLIC_RECORD_UPGRADE_SIG_KEYPAIR_FAILURE_LABELS) {
         return Err("rng_failure_forced");
     }
     Ok(hs_sig_keypair())
@@ -220,6 +242,19 @@ fn identity_migrate_legacy(
     path: &Path,
     legacy: IdentityLegacyRecord,
 ) -> Result<IdentityKeypair, ErrorCode> {
+    #[cfg(qsc_rng_failure_test_seam)]
+    let (sig_pk, sig_sk) = match identity_legacy_migrate_sig_keypair() {
+        Ok(v) => v,
+        Err(e) => {
+            emit_marker(
+                "identity_secret_unavailable",
+                Some(e),
+                &[("reason", "rng_failure_forced")],
+            );
+            return Err(ErrorCode::IdentitySecretUnavailable);
+        }
+    };
+    #[cfg(not(qsc_rng_failure_test_seam))]
     let (sig_pk, sig_sk) = hs_sig_keypair();
     if let Err(e) = identity_secret_store(self_label, &legacy.kem_sk) {
         emit_marker(
@@ -284,6 +319,19 @@ fn identity_read_self_kem_keypair(self_label: &str) -> Result<Option<IdentityKey
     if let Ok(rec) = serde_json::from_slice::<IdentityPublicRecord>(&bytes) {
         let kem_sk = identity_secret_load(self_label)?;
         let (sig_pk, sig_sk) = if rec.sig_pk.is_empty() {
+            #[cfg(qsc_rng_failure_test_seam)]
+            let (sig_pk, sig_sk) = match identity_public_record_upgrade_sig_keypair() {
+                Ok(v) => v,
+                Err(e) => {
+                    emit_marker(
+                        "identity_secret_unavailable",
+                        Some(e),
+                        &[("reason", "rng_failure_forced")],
+                    );
+                    return Err(ErrorCode::IdentitySecretUnavailable);
+                }
+            };
+            #[cfg(not(qsc_rng_failure_test_seam))]
             let (sig_pk, sig_sk) = hs_sig_keypair();
             identity_sig_secret_store(self_label, &sig_sk)?;
             identity_write_public_record(self_label, &rec.kem_pk, &sig_pk)?;

@@ -27,6 +27,35 @@ struct IdentityLegacyRecord {
 const IDENTITY_DIR: &str = "identities";
 pub(super) const IDENTITY_FP_PREFIX: &str = "QSCFP-";
 
+#[cfg(qsc_rng_failure_test_seam)]
+const IDENTITY_LAZY_KEM_KEYPAIR_FAILURE_LABELS: &[&str] = &["QSC.IDENTITY.LAZY.KEM_KEYPAIR"];
+#[cfg(qsc_rng_failure_test_seam)]
+const IDENTITY_LAZY_SIG_KEYPAIR_FAILURE_LABELS: &[&str] = &["QSC.IDENTITY.LAZY.SIG_KEYPAIR"];
+
+#[cfg(qsc_rng_failure_test_seam)]
+fn identity_rng_failure_forced(labels: &[&str]) -> bool {
+    std::env::var("QSC_RNG_FAILURE_TEST_SEAM")
+        .ok()
+        .map(|v| v == "all" || labels.iter().any(|label| v == *label))
+        .unwrap_or(false)
+}
+
+#[cfg(qsc_rng_failure_test_seam)]
+fn identity_lazy_kem_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
+    if identity_rng_failure_forced(IDENTITY_LAZY_KEM_KEYPAIR_FAILURE_LABELS) {
+        return Err("rng_failure_forced");
+    }
+    crate::handshake::hs_kem_keypair_with_failure_label("QSC.KEM.KEYPAIR")
+}
+
+#[cfg(qsc_rng_failure_test_seam)]
+fn identity_lazy_sig_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
+    if identity_rng_failure_forced(IDENTITY_LAZY_SIG_KEYPAIR_FAILURE_LABELS) {
+        return Err("rng_failure_forced");
+    }
+    Ok(hs_sig_keypair())
+}
+
 pub(super) fn identities_dir(dir: &Path) -> PathBuf {
     dir.join(IDENTITY_DIR)
 }
@@ -319,20 +348,32 @@ pub(super) fn identity_self_kem_keypair(self_label: &str) -> Result<IdentityKeyp
         return Err(ErrorCode::ParseFailed);
     }
     #[cfg(qsc_rng_failure_test_seam)]
-    let (kem_pk, kem_sk) =
-        match crate::handshake::hs_kem_keypair_with_failure_label("QSC.KEM.KEYPAIR") {
-            Ok(v) => v,
-            Err(e) => {
-                emit_marker(
-                    "identity_secret_unavailable",
-                    Some(e),
-                    &[("reason", "rng_failure_forced")],
-                );
-                return Err(ErrorCode::IdentitySecretUnavailable);
-            }
-        };
+    let (kem_pk, kem_sk) = match identity_lazy_kem_keypair() {
+        Ok(v) => v,
+        Err(e) => {
+            emit_marker(
+                "identity_secret_unavailable",
+                Some(e),
+                &[("reason", "rng_failure_forced")],
+            );
+            return Err(ErrorCode::IdentitySecretUnavailable);
+        }
+    };
     #[cfg(not(qsc_rng_failure_test_seam))]
     let (kem_pk, kem_sk) = hs_kem_keypair();
+    #[cfg(qsc_rng_failure_test_seam)]
+    let (sig_pk, sig_sk) = match identity_lazy_sig_keypair() {
+        Ok(v) => v,
+        Err(e) => {
+            emit_marker(
+                "identity_secret_unavailable",
+                Some(e),
+                &[("reason", "rng_failure_forced")],
+            );
+            return Err(ErrorCode::IdentitySecretUnavailable);
+        }
+    };
+    #[cfg(not(qsc_rng_failure_test_seam))]
     let (sig_pk, sig_sk) = hs_sig_keypair();
     identity_secret_store(self_label, &kem_sk)?;
     identity_sig_secret_store(self_label, &sig_sk)?;

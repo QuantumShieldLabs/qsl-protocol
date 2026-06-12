@@ -11,19 +11,19 @@ Last-Updated: 2026-06-12
 - Directive: QSL-DIR-2026-06-12-322 -- Execute NA-0465 QSL qsc Lazy Identity Provider RNG Failure Test Seam Implementation Harness, Optional Closeout to NA-0466.
 - Begin timestamp (America/Chicago): 2026-06-12T05:04:36-05:00.
 - Begin timestamp (UTC): 2026-06-12T10:04:36+00:00.
-- End timestamp (America/Chicago): pending.
-- End timestamp (UTC): pending.
+- End timestamp (America/Chicago): pending closeout merge.
+- End timestamp (UTC): pending closeout merge.
 - Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
 
 ## Repo SHAs
 
 - qsl-protocol branch before implementation branch creation: `main`.
-- qsl-protocol implementation branch: pending.
+- qsl-protocol implementation branch: `na-0465-qsc-lazy-identity-provider-rng-seam`.
 - qsl-protocol HEAD before patch: `6b8774c6b190`.
 - qsl-protocol origin/main before patch: `6b8774c6b190`.
 - qsl-protocol mirror/main: fetched by `git fetch --all --prune`; origin/main did not advance beyond qwork proof.
-- qsl-protocol implementation branch head: pending.
-- qsl-protocol implementation merge commit: pending.
+- qsl-protocol implementation branch head: `5e2b0fbaa9ea`.
+- qsl-protocol implementation merge commit: `d180b3265aa5`.
 - qsl-server refs: not refreshed by this directive.
 - qsl-attachments refs: not refreshed by this directive.
 
@@ -41,10 +41,10 @@ Last-Updated: 2026-06-12
 
 - Worktree path: `/srv/qbuild/work/NA-0465/qsl-protocol`.
 - Proof root: `/srv/qbuild/tmp/NA0465_qsc_lazy_identity_provider_rng_impl_20260612T100436Z`.
-- Implementation branch: pending.
-- Implementation PR: pending.
-- Implementation merge commit: pending.
-- Optional closeout branch: pending.
+- Implementation branch: `na-0465-qsc-lazy-identity-provider-rng-seam`.
+- Implementation PR: #1199.
+- Implementation merge commit: `d180b3265aa5`.
+- Optional closeout branch: `na-0465-closeout-restore-na0466`.
 - Optional closeout PR: pending.
 - Optional closeout merge commit: pending.
 
@@ -85,6 +85,16 @@ Last-Updated: 2026-06-12
   Corrective action: reran as `sh scripts/ci/qsc_adversarial.sh`.
   Final result: Rust adversarial phases passed; local cargo-fuzz command was
   unavailable and PR CI qsc-adversarial-smoke remains required evidence.
+- Failing command: initial post-merge public-safety REST poll for `d180b3265aa5`
+  reached its original 180-iteration cap with three attached checks still
+  in progress and zero failures.
+  Classification: recoverable post-merge wait cap condition under Packet J
+  because checks were attached, non-failing, and in known long-running
+  full-suite/public-safety steps.
+  Corrective action: continued bounded REST polling and recorded remaining
+  job names and step status.
+  Final result: continued poll completed with 36 total checks, 36 successes,
+  zero in progress, and zero failures.
 
 ## Non-fatal warnings / zero-match notes
 
@@ -126,22 +136,26 @@ Last-Updated: 2026-06-12
   checks PASS.
 - Local qsc adversarial smoke: Rust adversarial phases PASS; local cargo-fuzz
   command unavailable.
-- Implementation PR checks: pending.
+- Implementation PR #1199 checks: PASS before merge.
+- Implementation PR #1199 merged at `d180b3265aa5`.
+- Post-merge public-safety on `d180b3265aa5`: PASS after extended REST polling.
+- Post-merge qsc Linux full suite and macOS qsc full serial: PASS.
+- Optional closeout precondition: satisfied; NA-0465 may close out to NA-0466.
 
 ## Disk watermark
 
-- Filesystem: pending.
-- Total GiB: pending.
-- Used GiB: pending.
-- Free GiB: pending.
-- Used %: pending.
+- Filesystem: `/dev/nvme0n1p2`.
+- Total GiB: 468.
+- Used GiB: 305.
+- Free GiB: 139.
+- Used %: 69%.
 
 ## Next-watch items
 
-- Run governance validation and exact scope guard.
-- Open implementation PR only after local validation is green.
-- Merge implementation PR only after required checks and public-safety pass.
-- Close out to NA-0466 only after implementation PR merges and post-merge public-safety is green.
+- Complete closeout governance validation and exact scope guard.
+- Open closeout PR only after validation is green.
+- Merge closeout PR only after required checks and public-safety pass.
+- Verify NA-0466 is the sole READY item after closeout merge.
 - Do not implement NA-0466 inside NA-0465 closeout.
 
 # QSL-DIR-2026-06-12-321 / NA-0464 qsc identity provider RNG split-scope authorization rolling journal

@@ -1781,6 +1781,82 @@ Last-Updated: 2026-06-11
 - Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
 - `cargo fmt --check`: PASS.
 
+# QSL-DIR-2026-06-11-320 / NA-0463 closeout and NA-0464 restoration rolling journal
+
+- Directive: QSL-DIR-2026-06-11-320 optional closeout -- close out NA-0463 after PR #1195 post-merge public-safety completion and restore NA-0464.
+- Begin timestamp (America/Chicago): 2026-06-11T21:45:28-05:00
+- Begin timestamp (UTC): 2026-06-12T02:45:28Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Closeout repo SHAs
+
+- qsl-protocol main before closeout branch: `346fde8991a4`.
+- qsl-protocol origin/main before closeout branch: `346fde8991a4`.
+- Evidence PR #1195 head: `6bdd74cddaf6`.
+- Evidence PR #1195 merge: `346fde8991a4`.
+- Closeout branch: `na-0463-closeout-restore-na0464`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
+
+## Closeout READY proof
+
+- Queue proof before closeout patch: READY_COUNT 1, READY NA-0463.
+- Decision proof before closeout patch: latest D-0913, D-0913 once, D-0914 absent, duplicate decision count zero.
+- Evidence PR #1195: MERGED at `346fde8991a4`.
+- Post-merge public-safety on `346fde8991a4`: PASS after corrected continuation REST polling.
+- Post-merge attached checks on `346fde8991a4`: public-safety PASS; qsc-linux-full-suite PASS; macos-qsc-full-serial PASS; qsc-adversarial-smoke PASS.
+
+## Closeout patch notes
+
+- NA-0463 is marked DONE.
+- NA-0464 is restored as the sole READY item.
+- D-0914 records NA-0463 closeout and NA-0464 restoration.
+- TRACEABILITY records PR #1195, post-merge public-safety, and the NA-0464 authorization-only successor.
+- Closeout testplan path: `tests/NA-0463_closeout_restore_na0464_testplan.md`.
+- No NA-0464 implementation is performed.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, qsl-backup, status, plan, rollback, or backup tree path is intentionally mutated.
+- No backup or restore was run.
+
+## Closeout validation watch
+
+- Closeout validation must prove READY_COUNT 1 and READY NA-0464.
+- Closeout validation must prove NA-0463 DONE, D-0914 exists once, D-0915 absent, and duplicate decision IDs absent.
+- Closeout scope guard must report exactly the five allowed closeout paths.
+- Closeout PR checks, including public-safety, must pass before merge.
+
+## Closeout failures / recoveries
+
+- Failing command: first post-merge public-safety polling helper for PR #1195 merge commit.
+  Classification: recoverable post-merge wait-policy cap because GitHub still reported attached, non-failing long-running qsc jobs and no red public-safety signal.
+  Corrective action: continued REST polling under Packet J and captured step-level evidence.
+  Final result: public-safety completed success on `346fde8991a4`.
+- Failing command: first continuation poll pipeline.
+  Classification: recoverable command-shape issue because the pipeline returned `tee` status instead of preserving the helper's ambiguous status.
+  Corrective action: reran the continuation poll with `set -o pipefail`.
+  Final result: corrected continuation poll completed with public-safety success on `346fde8991a4`.
+- Failing command: first closeout path guard.
+  Classification: recoverable command-shape issue because it inspected tracked diff paths but omitted the new untracked closeout testplan.
+  Corrective action: reran the path guard with both tracked diff paths and untracked files.
+  Final result: exactly five allowed closeout paths were present and no extra paths were present.
+
+## Closeout local validation results
+
+- `git diff --check`: PASS.
+- Queue helper: PASS, READY_COUNT 1 and READY NA-0464.
+- Decision helper: PASS, latest D-0914 and duplicate decision count zero.
+- Exact status proof: PASS, NA-0464 READY and NA-0463 DONE.
+- Manual working-tree path guard: PASS, exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0463_closeout_restore_na0464_testplan.md`.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- PR body preflight: PASS, `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- `cargo fmt --check`: PASS.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- Closeout protected checks: pending PR.
+
 # QSL-DIR-2026-06-11-320 / NA-0463 qsc A2 signature provider RNG failure no-output seam rolling journal
 
 - Directive: QSL-DIR-2026-06-11-320 -- Execute NA-0463 QSL qsc A2 Signature Provider RNG Failure No-Output Test Seam Implementation Harness, Optional Closeout to NA-0464.

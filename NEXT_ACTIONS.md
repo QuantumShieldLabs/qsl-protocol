@@ -25502,11 +25502,17 @@ Acceptance criteria:
 ---
 
 ### NA-0464 — QSL qsc Identity Provider RNG Failure Split-Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
 Split qsc identity provider RNG failure work into the least invasive exact future scope after KEM, B1 signing, and A2 signing provider failure test-seam implementation, preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries unless a later directive authorizes precise implementation.
+
+Closeout note:
+- Completed by qsl-protocol PR #1197 at merge commit `578d0cb0a49c`.
+- Selected classification: `IDENTITY_SPLIT_LAZY_IDENTITY_NEXT`.
+- Selected successor: `NA-0465 -- QSL qsc Lazy Identity Provider RNG Failure Test Seam Implementation Harness`.
+- NA-0464 did not implement NA-0465 and did not mutate runtime, crypto, dependencies, Cargo manifests, lockfiles, workflows, executable tests, fuzz targets, vectors, formal models, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback, or backup tree paths.
 
 Protects:
 - qsc identity provider-dependent RNG failure evidence quality.
@@ -25557,6 +25563,98 @@ Acceptance criteria:
 - qsc identity provider RNG failure split scope is selected or rejected with evidence.
 - exact future scope is selected from evidence.
 - no implementation mutation occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+---
+
+### NA-0465 — QSL qsc Lazy Identity Provider RNG Failure Test Seam Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the exact qsc lazy identity provider RNG failure test-seam scope selected by NA-0464, preserving production semantics when the test seam is inactive and proving bounded no-partial-identity-state behavior for the selected lazy identity path.
+
+Protects:
+- qsc lazy identity provider-dependent RNG failure evidence quality.
+- truthful no-partial-write behavior around identity secret, public record, and selected identity state for the selected path.
+- qsc/refimpl boundary clarity.
+- production semantic stability.
+- key lifecycle and provider boundary confidence after ml-kem replacement, provider-error audit work, qsc zeroization tests, qsc RNG seam work, provider RNG strategy review, split-scope review, qsc no-mutation scope review, qsc fake/seam strategy review, KEM-only implementation, B1 signing implementation, A2 signing no-output implementation, and identity split-scope review.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- `qsl/qsl-client/qsc/src/identity/mod.rs`.
+- `qsl/qsl-client/qsc/tests/lazy_identity_provider_rng_failure.rs`.
+- `docs/governance/evidence/NA-0465_qsl_qsc_lazy_identity_provider_rng_failure_test_seam_implementation_harness.md`.
+- `tests/NA-0465_qsl_qsc_lazy_identity_provider_rng_failure_test_seam_implementation_testplan.md`.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+
+Forbidden scope:
+- Must not mutate dependencies.
+- Must not mutate Cargo manifests.
+- Must not mutate lockfiles.
+- Must not mutate workflows.
+- Must not mutate qsl-server.
+- Must not mutate qsl-attachments.
+- Must not mutate qshield runtime.
+- Must not mutate website paths.
+- Must not mutate public docs.
+- Must not mutate README.
+- Must not mutate START_HERE.
+- Must not mutate unrelated qsc/runtime/crypto paths outside exact NA-0464 scope.
+- Must not mutate refimpl unless later exact scope authorizes it, which should be avoided by default.
+- Must not mutate fuzz target source.
+- Must not mutate vectors.
+- Must not mutate formal models.
+- Must not run backup.
+- Must not run restore.
+- Must not mutate qsl-backup.
+- Must not mutate backup status files.
+- Must not mutate backup plan files.
+- Must not mutate qwork/qstart/qresume/qshell.
+- Must not create public technical paper content.
+- Must not create or imply production readiness.
+- Must not create or imply public-internet readiness.
+- Must not create or imply external-review completion.
+- Must not create or imply metadata-free behavior.
+- Must not create or imply anonymity.
+- Must not create or imply untraceability.
+- Must not create or imply off-host backup completion.
+- Must not create or imply disaster recovery completion.
+- Must not create or imply restore proof.
+- Must not create or imply backup completion.
+- Must not create or imply bug-free status.
+- Must not create or imply vulnerability-free status.
+- Must not create or imply perfect-crypto status.
+- Must not create or imply side-channel-free status.
+- Must not create or imply RNG-failure-complete status.
+- Must not create or imply provider-RNG-complete status.
+- Must not create or imply secret-material-complete status.
+- Must not create or imply KEM-complete status.
+- Must not create or imply signature-complete status.
+- Must not create or imply identity-complete status.
+- Must not create or imply crypto-complete status.
+- Must not handle secret material outside exact test/evidence scope.
+
+Deliverables:
+- NA-0465 implementation.
+- NA-0465 evidence doc.
+- NA-0465 testplan.
+- D-0917 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+
+Acceptance criteria:
+- exact selected lazy identity provider failure seam is implemented.
+- production semantics unchanged when seam inactive.
+- selected no-partial-identity-state invariant is tested.
+- no combined identity-complete claim is introduced.
 - cargo audit remains green.
 - nested fuzz lock audit remains green.
 - public-safety is green before merge and after merge.

@@ -24301,3 +24301,27 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output must not be used as public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, signature-complete, identity-complete, RNG-failure-complete, provider-RNG-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0464; NA-0463; NA-0465; D-0915; D-0914; D-0913; `docs/governance/evidence/NA-0464_qsl_qsc_identity_provider_rng_failure_split_scope_authorization_plan.md`; `tests/NA-0464_qsl_qsc_identity_provider_rng_failure_split_scope_authorization_testplan.md`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/tui/controller/commands/locked.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0916
+  - **Title:** NA-0464 closeout and NA-0465 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-12
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0464 is closed after qsl-protocol PR #1197 merged at `578d0cb0a49c` and post-merge public-safety completed success on that merge commit. D-0915 selected `NA-0465 -- QSL qsc Lazy Identity Provider RNG Failure Test Seam Implementation Harness`, so this closeout marks NA-0464 DONE and restores NA-0465 as the sole READY successor.
+  - **NA-0464 authorization status:** NA-0464 consumed NA-0463, classified qsc identity provider RNG failure split scope as `IDENTITY_SPLIT_LAZY_IDENTITY_NEXT`, and selected lazy identity as the smallest exact implementation successor. NA-0464 did not implement the lazy identity seam.
+  - **NA-0465 restored scope:** NA-0465 may mutate only `qsl/qsl-client/qsc/src/identity/mod.rs`, `qsl/qsl-client/qsc/tests/lazy_identity_provider_rng_failure.rs`, NA-0465 evidence/testplan paths, `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+  - **Residuals preserved:** Legacy/public-record upgrade, CLI identity rotation, TUI account bootstrap identity generation, X25519 / ephemeral generation, qshield-cli demo RNG, formal/model RNG, fuzz/vector RNG, and refimpl provider RNG remain residual unless later exact scope authorizes them. KEM, B1 signing, and A2 signing provider RNG evidence remains bounded background evidence only.
+  - **No implementation mutation by closeout:** This closeout does not mutate qsc source, runtime behavior, crypto behavior, dependencies, Cargo manifests, lockfiles, workflows, executable implementation tests, fuzz targets, vectors, formal models, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup/restore/local-ops paths, qsl-backup, backup status files, backup plan files, rollback subtree paths, or backup tree paths.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No RNG-failure-complete claim is made. No provider-RNG-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Required behavior:**
+    - Exactly one READY item remains mandatory.
+    - NA-0465 must stay inside the exact lazy identity source/test/governance scope selected by NA-0464.
+    - Future NA-0465 evidence must not describe lazy identity evidence as all identity-provider RNG coverage.
+    - Legacy/public-record upgrade, CLI identity rotation, TUI account bootstrap identity generation, X25519 / ephemeral generation, qshield-cli demo RNG, formal/model RNG, fuzz/vector RNG, and refimpl provider RNG remain residual unless a later exact directive authorizes them.
+  - **Must never happen:**
+    - NA-0465 must not be treated as combined identity-provider RNG completion.
+    - Lazy identity implementation evidence must not be represented as identity completion, signature completion, RNG-failure completion, provider-RNG completion, or crypto completion.
+    - Cargo audit output must not be used as public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, signature-complete, identity-complete, RNG-failure-complete, provider-RNG-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
+    - more than one READY item remains.
+  - **References:** NA-0464; NA-0465; D-0916; D-0915; qsl-protocol PR #1197; `docs/governance/evidence/NA-0464_qsl_qsc_identity_provider_rng_failure_split_scope_authorization_plan.md`; `tests/NA-0464_qsl_qsc_identity_provider_rng_failure_split_scope_authorization_testplan.md`; `tests/NA-0464_closeout_restore_na0465_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

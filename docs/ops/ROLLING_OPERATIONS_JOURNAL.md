@@ -45,7 +45,8 @@ Last-Updated: 2026-06-12
 - Evidence PR: #1201.
 - Evidence merge commit: `230c24e61221`.
 - Optional closeout branch: `na-0466-closeout-restore-na0467`.
-- Optional closeout PR: pending.
+- Optional closeout initial commit: `78aca10ee409`.
+- Optional closeout PR: #1202.
 - Optional closeout merge commit: pending.
 
 ## Strategy notes
@@ -116,6 +117,8 @@ Last-Updated: 2026-06-12
 - Evidence PR #1201 merge: MERGED at `230c24e61221`.
 - Evidence post-merge public-safety: PASS on `230c24e61221`. Public-safety was initially missing while qsc-adversarial-smoke was in progress; a non-required `ci-4d-dur-evidence` job reported failure, but required contexts remained non-red and public-safety completed success.
 - Closeout validation: PASS. PR body preflight PASS; staged path guard PASS with exactly five allowed closeout paths; cached and worktree diff checks PASS; link-check PASS with `TOTAL_MISSING 0`; leak-scan PASS with `SECRET_FINDING_COUNT 0`; added-line overclaim scan PASS with `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`; classifier PASS with `scope_class=docs_only`; root cargo audit PASS; nested qsc fuzz lock audit PASS; `cargo fmt --check` PASS; queue helper PASS with READY NA-0467; decision helper PASS with latest D-0920, D-0919 once, D-0920 once, D-0921 absent, and duplicate count zero.
+- Closeout committed-diff validation: helper scope guard PASS with five allowed paths and zero forbidden paths; synthetic-event goal-lint PASS on base `230c24e61221` and head `78aca10ee409`.
+- Closeout PR #1202 opened with validated PR body.
 - Closeout PR checks: pending.
 
 ## Disk watermark
@@ -128,7 +131,7 @@ Last-Updated: 2026-06-12
 
 ## Next-watch items
 
-- Open closeout PR and merge only after required checks and public-safety are green.
+- Wait for PR #1202 required checks and merge only after required checks and public-safety are green.
 - Do not implement NA-0467 inside NA-0466 evidence or closeout.
 
 # QSL-DIR-2026-06-12-322 / NA-0465 qsc lazy identity provider RNG failure implementation rolling journal

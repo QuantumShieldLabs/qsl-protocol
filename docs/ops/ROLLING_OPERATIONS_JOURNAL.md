@@ -2,9 +2,172 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-06-11
+Last-Updated: 2026-06-12
 
 # Rolling Operations Journal
+
+# QSL-DIR-2026-06-12-321 / NA-0464 qsc identity provider RNG split-scope authorization rolling journal
+
+- Directive: QSL-DIR-2026-06-12-321 -- Execute NA-0464 QSL qsc Identity Provider RNG Failure Split-Scope Authorization Plan, Optional Closeout to NA-0465.
+- Begin timestamp (America/Chicago): 2026-06-11T22:19:07-05:00.
+- Begin timestamp (UTC): 2026-06-12T03:19:07+00:00.
+- End timestamp (America/Chicago): pending.
+- End timestamp (UTC): pending.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Repo SHAs
+
+- qsl-protocol branch before evidence branch creation: `main`.
+- qsl-protocol evidence branch: `na-0464-identity-provider-rng-split-scope`.
+- qsl-protocol closeout branch: pending.
+- qsl-protocol HEAD before patch: `51de5511e055`.
+- qsl-protocol origin/main before patch: `51de5511e055`.
+- qsl-protocol mirror/main: fetched by `git fetch --all --prune`; origin/main did not advance beyond qwork proof.
+- qsl-protocol evidence merge commit: pending.
+- qsl-server refs: not refreshed by this directive.
+- qsl-attachments refs: not refreshed by this directive.
+
+## READY proof
+
+- qwork proof: startup OK for lane NA-0464, repo qsl-protocol, clean worktree/index/untracked state, proof HEAD and proof origin/main both `51de5511e055`.
+- Pre-fetch live proof: HEAD and origin/main matched qwork proof at `51de5511e055`.
+- Fetch result: origin/main did not advance.
+- PR #1196 proof: MERGED at `51de5511e055`.
+- Queue proof before patch: READY_COUNT 1, READY NA-0464.
+- Status proof before patch: NA-0463 through NA-0435 DONE; NA-0434 and NA-0429 BLOCKED.
+- Decision proof before patch: latest D-0914, D-0913 once, D-0914 once, D-0915 absent, D-0916 absent, duplicate decision count zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0464/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0464_qsc_identity_provider_rng_split_scope_20260612T031907Z`.
+- Evidence branch: `na-0464-identity-provider-rng-split-scope`.
+- Evidence PR: pending.
+- Evidence merge commit: pending.
+- Optional closeout branch: pending.
+- Optional closeout PR: pending.
+- Optional closeout merge commit: pending.
+
+## Authorization notes
+
+- NA-0464 is authorization-only and does not implement identity provider RNG work.
+- Source inventory found distinct qsc identity provider RNG/write surfaces: lazy identity in `qsl/qsl-client/qsc/src/identity/mod.rs`; legacy/public-record upgrade in the same file; CLI rotation in `qsl/qsl-client/qsc/src/main.rs`; and TUI account bootstrap in `qsl/qsl-client/qsc/src/tui/controller/commands/locked.rs`.
+- The lazy identity path has the smallest clear future implementation scope around `identity_self_kem_keypair`, identity vault secrets, public record writes, and no selected-identity state write.
+- Legacy/public-record upgrade, CLI identity rotation, and TUI account bootstrap have different state/write timing and should remain separate residual paths unless later exact scope authorizes them.
+- KEM provider RNG evidence from NA-0458, B1 signing evidence from NA-0461, and A2 no-output evidence from NA-0463 remain bounded background evidence only.
+- Identity provider RNG, X25519 / ephemeral generation, qshield-cli demo RNG, formal/model RNG, fuzz/vector RNG, and refimpl provider RNG remain residual unless a later exact directive authorizes them.
+
+## Failures / recoveries
+
+- Command-shape correction: first custom decision-count probe used a regex word-boundary pattern that undercounted decision IDs containing hyphens and reported D-0913/D-0914 counts as zero.
+  Classification: recoverable command-shape issue in local evidence collection; the command exited zero but the output shape was visibly wrong against the latest decision value.
+  Corrective action: reran the proof using the repository decision-entry pattern and direct text counts.
+  Final result: D-0913 entry count 1, D-0914 entry count 1, D-0915 entry count 0, D-0916 entry count 0, duplicate decision IDs 0, latest D-0914.
+- Failing command: first staging refresh used `git add` without `-f` for the new
+  ignored `docs/governance/evidence/**` evidence path.
+  Classification: recoverable command-shape issue because the evidence path is
+  explicitly allowed by NA-0464 and the repository ignore rule requires forced
+  staging for new evidence files.
+  Corrective action: reran staging with `git add -f` for the allowed NA-0464
+  evidence path only.
+  Final result: staged path guard reports exactly the five allowed NA-0464 paths.
+- Failing command: first added-line overclaim scan after patch.
+  Classification: recoverable wording/scanner-shape issue because several
+  cautionary continuation lines carried public-claim phrases without same-line
+  negation.
+  Corrective action: reworded the affected NA-0464 evidence, testplan, and
+  D-0915 lines so each sensitive phrase carries same-line negation.
+  Final result: `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: `python3 scripts/ci/qsl_evidence_helper.py leak-scan --scan-mode full --root .`.
+  Classification: recoverable command-shape issue because the helper expects
+  `--mode full` and optional `--paths`, not `--scan-mode` / `--root`.
+  Corrective action: reran leak-scan with `--mode full --paths` over the five
+  NA-0464 mutation paths.
+  Final result: full-path leak scan PASS with `SECRET_FINDING_COUNT 0`.
+- Failing command: `scripts/ci/qsc_adversarial.sh`.
+  Classification: recoverable local tooling issue explicitly covered by NA-0464:
+  the script completed Rust adversarial phases and provider-error no-mutation
+  validation, then exited because local Cargo does not have the `fuzz`
+  subcommand installed.
+  Corrective action: recorded the exact local output and will rely on PR CI
+  `qsc-adversarial-smoke` for the cargo-fuzz-backed phase.
+  Final result: local Rust adversarial phases PASS; local cargo-fuzz phase
+  unavailable with `error: no such command: fuzz`.
+- Failing command: `tools/goal_lint.py -h`.
+  Classification: recoverable command-shape discovery because this repository's
+  goal-lint script has no help mode and requires `GITHUB_EVENT_PATH`.
+  Corrective action: inspected the script directly and prepared a synthetic PR
+  event payload with actual base/head SHAs for the post-commit goal-lint run.
+  Final result: post-commit goal-lint PASS.
+- Failing command: first post-commit synthetic goal-lint event generation.
+  Classification: recoverable command-shape issue because the shell variables
+  used by the Python event writer were not exported into the subprocess.
+  Corrective action: regenerated the synthetic event with exported base/head
+  variables and reran goal-lint.
+  Final result: post-commit goal-lint PASS.
+- Root pqcrypto inverse probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`; these are valid zero-match inventory results under the directive's `|| true` probes.
+
+## Validation / CI notes
+
+- Public-safety on current main `51de5511e055`: PASS; public-safety completed success, qsc-adversarial-smoke completed success, full-suite checks accepted skipped by repo policy.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS.
+- `cargo tree -i ml-kem --locked`: PASS.
+- qsc fuzz lock pqcrypto residual scan returned zero matches.
+- qsc adversarial script marker present.
+- qsl-backup SHA matched required boundary value; script-local ops source inclusion count was 1.
+- Inherited cfg/no-cfg `a2_signature_provider_rng_failure`: PASS.
+- Inherited cfg/no-cfg `b1_signature_provider_rng_failure`: PASS.
+- Inherited cfg/no-cfg `kem_provider_rng_failure`: PASS.
+- Inherited cfg/no-cfg `rng_failure_residual_surfaces`: PASS.
+- Inherited cfg/no-cfg `rng_failure_behavior`: PASS.
+- Inherited `key_lifecycle_zeroization`: PASS.
+- Inherited `handshake_provider_error_no_mutation`: PASS.
+- Post-patch governance validation: `git diff --check` PASS; cached diff check
+  PASS; staged path guard PASS with exactly five allowed paths; link-check PASS;
+  leak-scan PASS; added-line overclaim scan PASS.
+- Post-patch qsc validation: cfg/no-cfg `a2_signature_provider_rng_failure`
+  PASS; cfg/no-cfg `b1_signature_provider_rng_failure` PASS; cfg/no-cfg
+  `kem_provider_rng_failure` PASS; cfg/no-cfg `rng_failure_residual_surfaces`
+  PASS; cfg/no-cfg `rng_failure_behavior` PASS; `key_lifecycle_zeroization`
+  PASS; `handshake_provider_error_no_mutation` PASS; stable `send_commit` PASS.
+- Post-patch refimpl/dependency/format/formal validation: refimpl `pqkem768`
+  PASS; root cargo audit PASS; nested qsc fuzz lock audit PASS; `rustls-webpki`
+  and `ml-kem` inverse trees PASS; pqcrypto inverse probes remain expected
+  zero-match inventory; qsc fuzz lock pqcrypto residual scan returned zero
+  matches; `cargo fmt --check` PASS; formal model checks PASS.
+- Local qsc adversarial smoke: Rust phases PASS; local cargo-fuzz phase
+  unavailable as recorded in recoveries; PR CI qsc-adversarial-smoke remains
+  required before merge.
+- Evidence PR body preflight: PASS with required Goals, Impact, No-regression,
+  and Tests/Vectors fields.
+- Queue/decision proof after patch: READY_COUNT 1, READY NA-0464; latest D-0915;
+  D-0913 once; D-0914 once; D-0915 once; D-0916 absent; duplicate decision count
+  zero.
+- Post-commit policy validation: goal-lint PASS with synthetic PR event using
+  actual base/head SHAs; helper scope guard PASS for `origin/main...HEAD` with
+  exactly the five allowed NA-0464 paths and `FORBIDDEN_COUNT 0`.
+- Evidence PR validation: pending PR classifier and protected checks.
+- Evidence protected checks: pending.
+- Evidence post-merge public-safety: pending.
+- Optional closeout validation: pending.
+
+## Disk watermark
+
+- Filesystem: `/dev/nvme0n1p2`.
+- Total GiB: 468.
+- Used GiB: 301.
+- Free GiB: 144.
+- Used %: 68%.
+
+## Next-watch items
+
+- Complete NA-0464 evidence/testplan/D-0915/TRACEABILITY patch.
+- Create evidence PR only after exact five-path scope guard and validation pass.
+- Merge evidence PR only after required checks pass and public-safety is green.
+- Optional closeout may restore exactly one NA-0465 successor only after evidence PR merge and post-merge public-safety success.
+- Do not implement NA-0465 inside NA-0464.
 
 # QSL-DIR-2026-06-11-319 / NA-0462 qsc A2 signature provider RNG scope authorization rolling journal
 

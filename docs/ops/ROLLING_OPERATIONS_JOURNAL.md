@@ -6,6 +6,120 @@ Last-Updated: 2026-06-12
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-12-324 / NA-0467 qsc legacy identity public-record provider RNG failure test seam implementation rolling journal
+
+- Directive: QSL-DIR-2026-06-12-324 -- Execute NA-0467 QSL qsc Legacy Identity Public-Record Provider RNG Failure Test Seam Implementation Harness, Optional Closeout to NA-0468.
+- Begin timestamp (America/Chicago): 2026-06-12T12:51:45-05:00.
+- Begin timestamp (UTC): 2026-06-12T17:51:45+00:00.
+- End timestamp (America/Chicago): pending implementation merge.
+- End timestamp (UTC): pending implementation merge.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Repo SHAs
+
+- qsl-protocol branch before implementation branch creation: `main`.
+- qsl-protocol HEAD before patch: `b986504368ec`.
+- qsl-protocol origin/main before patch: `b986504368ec`.
+- qsl-protocol mirror/main: fetched by `git fetch --all --prune`; origin/main did not advance beyond qwork proof.
+- qsl-protocol implementation branch: pending.
+- qsl-protocol implementation commit: pending.
+- qsl-protocol implementation PR: pending.
+- qsl-protocol implementation merge commit: pending.
+- qsl-server refs: not refreshed by this directive.
+- qsl-attachments refs: not refreshed by this directive.
+
+## READY proof
+
+- qwork proof: startup OK for lane NA-0467, repo qsl-protocol, clean worktree/index/untracked state, proof HEAD and proof origin/main both `b986504368ec`.
+- Pre-fetch live proof: HEAD and origin/main matched qwork proof at `b986504368ec`.
+- Fetch result: origin/main did not advance.
+- PR #1202 proof: MERGED at `b986504368ec`.
+- Queue proof before patch: READY_COUNT 1, READY NA-0467.
+- Status proof before patch: NA-0466 through NA-0435 DONE; NA-0434 and NA-0429 BLOCKED.
+- Decision proof before patch: latest D-0920, D-0919 once, D-0920 once, D-0921 absent, duplicate decision count zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0467/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0467_qsc_legacy_identity_public_record_impl_20260612T175145Z`.
+- Preimage source hash recorded for `qsl/qsl-client/qsc/src/identity/mod.rs`.
+- New test file was absent before patch and recorded as absent in preimage proof.
+- Implementation branch: pending.
+- Implementation PR: pending.
+- Optional closeout branch: pending, only after implementation merge and post-merge public-safety green.
+
+## Strategy notes
+
+- Implemented cfg-only labels: `QSC.IDENTITY.LEGACY_MIGRATE.SIG_KEYPAIR` and `QSC.IDENTITY.PUBLIC_RECORD_UPGRADE.SIG_KEYPAIR`.
+- Legacy migration forced failure is inserted before migration writes.
+- Public-record upgrade forced failure is inserted before signature-secret and self public-record update writes.
+- Cfg tests prove sanitized error, existing identity state stability, no signature secret write, no partial self public-record write, no selected identity change, and no dependent handshake output for selected paths.
+- Normal no-cfg test proves the selector is ignored and production semantics are unchanged for the selected public-record upgrade fixture.
+- Lazy identity remains completed background evidence only.
+- CLI identity rotation remains the selected successor authorization target.
+- TUI account bootstrap identity generation, X25519 / ephemeral generation, refimpl provider RNG, qshield-cli demo RNG, formal/model RNG, and fuzz/vector RNG remain residual.
+
+## Failures / recoveries
+
+- Failing command: initial start-state assertion script checked all NA status lines against `qsl_evidence_helper.py queue` output.
+  Classification: recoverable command-shape/output-assumption issue because the helper output did not include the full NA range needed for direct status assertions.
+  Corrective action: reran the proof against `NEXT_ACTIONS.md` for exact NA statuses while retaining helper proof for READY_COUNT and READY item.
+  Final result: `START_QUEUE_DECISION_ASSERTIONS_OK`.
+- Failing command: initial `cargo fmt --check` after adding the NA-0467 test file.
+  Classification: recoverable formatting failure caused by rustfmt drift in the new Rust test file.
+  Corrective action: ran `cargo fmt` once and reran `cargo fmt --check`.
+  Final result: formatting check PASS.
+- Failing command: first cfg `legacy_identity_public_record_provider_rng_failure` test compile.
+  Classification: recoverable in-scope test implementation issue with clear root cause: the test referenced an undeclared `hex` crate while dependency mutation is forbidden.
+  Corrective action: replaced the crate use with a local test-only hex decoder inside the allowed test file.
+  Final result: cfg test retry PASS.
+
+## Non-fatal warnings / zero-match notes
+
+- Root cargo audit emitted advisory-db lock wait warnings during startup dependency health, then completed successfully.
+- Root pqcrypto inverse probes reported package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`; these were expected zero-match inventory results under the directive's `|| true` probes.
+- Nested qsc fuzz lock pqcrypto scan returned zero matches.
+
+## Validation / CI notes
+
+- Public-safety on current main `b986504368ec`: PASS; qsc-adversarial-smoke PASS; full-suite checks accepted skipped by repo policy.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- qsl-backup SHA matched required boundary value; script-local ops source inclusion count was 1.
+- Inherited pre-implementation qsc cfg/no-cfg lazy identity, A2, B1, KEM, residual, base RNG, key lifecycle, and provider-error tests: PASS.
+- Post-implementation `cargo fmt --check`: PASS after formatting recovery.
+- New cfg `legacy_identity_public_record_provider_rng_failure`: PASS with required NA0467 forced-failure markers.
+- New no-cfg `legacy_identity_public_record_provider_rng_failure`: PASS with `NA0467_PRODUCTION_SEMANTICS_UNCHANGED_OK`.
+- Inherited post-implementation cfg/no-cfg lazy identity, A2, B1, KEM, residual, and base RNG tests: PASS.
+- Post-implementation `key_lifecycle_zeroization`: PASS.
+- Post-implementation `handshake_provider_error_no_mutation`: PASS.
+- Post-implementation stable `send_commit`: PASS.
+- Post-implementation refimpl `pqkem768`: PASS.
+- qsc adversarial script shell syntax checks: PASS.
+- qsc adversarial local smoke: Rust phases PASS; local cargo-fuzz command unavailable, so PR CI qsc-adversarial-smoke remains required evidence.
+- Root and nested audits after implementation: PASS.
+- `rustls-webpki` and `ml-kem` inverse trees: PASS; pqcrypto inverse probes remain expected zero-match inventory.
+- Formal model checks: PASS.
+- Pre-PR validation repeated after governance patch: PASS.
+- Pre-PR link-check, leak-scan, overclaim scan, PR body preflight, and staged scope guard: PASS.
+- PR CI: pending.
+
+## Disk watermark
+
+- Filesystem: pending final proof.
+- Total GiB: pending final proof.
+- Used GiB: pending final proof.
+- Free GiB: pending final proof.
+- Used %: pending final proof.
+
+## Next-watch items
+
+- Run governance/scope/link/leak/overclaim/preflight validation.
+- Create implementation branch and PR only if validation remains green.
+- Merge implementation PR only after required checks and public-safety pass.
+- Optional closeout to NA-0468 only after implementation merge and post-merge public-safety green.
+- Do not implement NA-0468 in this directive unless a later exact directive authorizes it.
+
 # QSL-DIR-2026-06-12-323 / NA-0466 qsc legacy identity public-record provider RNG failure scope authorization rolling journal
 
 - Directive: QSL-DIR-2026-06-12-323 -- Execute NA-0466 QSL qsc Legacy Identity Public-Record Provider RNG Failure Scope Authorization Plan, Optional Closeout to NA-0467.

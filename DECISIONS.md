@@ -24481,3 +24481,28 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output must not be used as public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, identity-complete, RNG-failure-complete, provider-RNG-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0467; NA-0466; NA-0468; D-0921; D-0920; D-0919; `docs/governance/evidence/NA-0467_qsl_qsc_legacy_identity_public_record_provider_rng_failure_test_seam_implementation_harness.md`; `tests/NA-0467_qsl_qsc_legacy_identity_public_record_provider_rng_failure_test_seam_implementation_testplan.md`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/tests/legacy_identity_public_record_provider_rng_failure.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0922
+  - **Title:** NA-0467 closeout and NA-0468 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-13
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0467 is closed after qsl-protocol PR #1203 merged at `79c35061cc74` and post-merge public-safety completed success on that merge commit. D-0921 exists and records the bounded legacy/public-record provider RNG seam implementation, so this closeout accepts that implementation as bounded internal qsc evidence, marks NA-0467 DONE, and restores `NA-0468 -- QSL qsc CLI Identity Rotation Provider RNG Failure Scope Authorization Plan` as the sole READY successor.
+  - **Implementation acceptance boundary:** The PR #1203 evidence is legacy/public-record-only internal qsc evidence for cfg-only labels `QSC.IDENTITY.LEGACY_MIGRATE.SIG_KEYPAIR` and `QSC.IDENTITY.PUBLIC_RECORD_UPGRADE.SIG_KEYPAIR`. It proves the selected forced-failure markers and no-cfg production-semantics marker recorded in D-0921, but it does not settle CLI identity rotation, TUI account bootstrap identity generation, X25519 / ephemeral generation, refimpl provider RNG, qshield-cli demo RNG, formal/model RNG, or fuzz/vector RNG residuals.
+  - **Post-merge safety proof:** On `79c35061cc74`, `public-safety`, `qsc-adversarial-smoke`, `qsc-linux-full-suite`, and `macos-qsc-full-serial` completed success with no required attached check failure recorded.
+  - **NA-0468 restored scope:** NA-0468 is authorization-only. It may mutate only qsl-protocol governance evidence/testplan paths for NA-0468, `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` unless a later exact directive authorizes implementation paths. It must not implement identity rotation in this closeout.
+  - **No implementation mutation by closeout:** This closeout does not mutate qsc source, executable qsc tests, runtime behavior, crypto behavior, dependencies, Cargo manifests, lockfiles, workflows, fuzz targets, vectors, formal models, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup/restore/local-ops paths, qsl-backup, backup status files, backup plan files, rollback subtree paths, or backup tree paths.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Public claim boundary:** No identity-complete claim is made. No provider-RNG-complete claim is made. No RNG-failure-complete claim is made. No crypto-complete claim is made. No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No secret-material-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Required behavior:**
+    - Exactly one READY item remains mandatory.
+    - NA-0467 remains DONE.
+    - NA-0468 remains READY and authorization-only until a later exact directive.
+    - Legacy/public-record evidence must remain bounded to PR #1203 and D-0921.
+  - **Must never happen:**
+    - NA-0468 is implemented by this closeout.
+    - Closeout evidence is represented as identity rotation evidence.
+    - Legacy/public-record evidence is represented as identity completion, signature completion, RNG-failure completion, provider-RNG completion, or crypto completion.
+    - Cargo audit output must not be represented as public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
+    - more than one READY item remains.
+  - **References:** NA-0467; NA-0468; D-0922; D-0921; D-0920; D-0919; qsl-protocol PR #1203; qsl-protocol closeout PR #1204; D324 response `/home/victor/work/qsl/codex/responses/NA0467_20260612T194611Z_D324.md`; `docs/governance/evidence/NA-0467_qsl_qsc_legacy_identity_public_record_provider_rng_failure_test_seam_implementation_harness.md`; `tests/NA-0467_qsl_qsc_legacy_identity_public_record_provider_rng_failure_test_seam_implementation_testplan.md`; `tests/NA-0467_closeout_restore_na0468_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

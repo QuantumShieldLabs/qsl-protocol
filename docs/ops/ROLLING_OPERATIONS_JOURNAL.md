@@ -6,6 +6,123 @@ Last-Updated: 2026-06-13
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-13-331 / NA-0471 TUI bootstrap transactionality design rolling journal
+
+- Directive: QSL-DIR-2026-06-13-331 -- Execute NA-0471 QSL qsc TUI Account Bootstrap Transactionality Design Authorization Plan, Optional Closeout to NA-0472.
+- Begin timestamp (America/Chicago): 2026-06-13T09:41:18-05:00.
+- Begin timestamp (UTC): 2026-06-13T14:41:18+00:00.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Repo SHAs
+
+- qsl-protocol HEAD before fetch: `cace1ea0b693`.
+- qsl-protocol origin/main before fetch: `cace1ea0b693`.
+- qsl-protocol origin/main after fetch: `cace1ea0b693`.
+- PR #1211 merge commit verified: `cace1ea0b693`.
+- Evidence branch: `na-0471-tui-bootstrap-transactionality-design`.
+- Evidence PR: pending.
+- Evidence merge commit: pending.
+- Optional closeout branch: pending.
+- Optional closeout PR: pending.
+- Optional closeout merge commit: pending.
+
+## READY Proof
+
+- qwork proof: startup OK for lane NA-0471, repo qsl-protocol, clean worktree/index/untracked state, proof HEAD and proof origin/main both `cace1ea0b693`.
+- Pre-fetch live proof: HEAD and origin/main matched qwork proof at `cace1ea0b693`.
+- Fetch result: origin/main did not advance.
+- Queue proof before patch: READY_COUNT 1 and READY NA-0471.
+- Status proof before patch: NA-0470 DONE and NA-0471 READY.
+- Decision proof before patch: D-0927 once, D-0928 once, D-0929 once, D-0930 absent, duplicate decision count zero.
+- Public-safety on current main `cace1ea0b693`: PASS.
+
+## Recovered failure evidence
+
+- Failing command: `bash "$PROOF_DIR/startup/run_inherited_qsc_tests.sh"`.
+  Classification: recoverable command-shape mistake because the generated runner used `set -u` and referenced `PROOF_DIR` without exporting it into the child script environment.
+  Corrective action: exported `PROOF_DIR` and reran the same generated inherited qsc test runner.
+  Final result: PASS; all inherited qsc startup tests completed with rc=0.
+- Failing command: first overclaim scan over full `DECISIONS.md` and full historical rolling journal.
+  Classification: recoverable scanner-shape issue because it scanned old pre-existing governance history instead of the NA-0471 added lines.
+  Corrective action: reran as an added-line scan and fixed the real wrapped no-claim continuation lines it found in the NA-0471 patch.
+  Final result: PASS; `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: local `scripts/ci/qsc_adversarial.sh`.
+  Classification: recoverable local tool availability issue because the script passed its Rust adversarial phases and then stopped when local Cargo reported no installed `cargo fuzz` subcommand; the directive allows recording this output and relying on PR CI qsc-adversarial-smoke when local cargo-fuzz is unavailable.
+  Corrective action: recorded the exact local output in the proof root and kept PR CI qsc-adversarial-smoke as required evidence before merge.
+  Final result: Rust adversarial phases PASS locally; cargo-fuzz phase not available locally; PR CI qsc-adversarial-smoke pending.
+- Failing command: `git commit -m "NA-0471 authorize TUI bootstrap transactionality design"` while still on local `main`.
+  Classification: recoverable branch-shape mistake because the commit was unpublished, the requested branch did not yet exist, and no remote or PR state had been mutated.
+  Corrective action: created `na-0471-tui-bootstrap-transactionality-design` at the evidence commit and amended the local unpublished commit only to include this journal recovery note before PR creation.
+  Final result: requested evidence branch contains the evidence commit; local `main` was not pushed.
+
+## Non-fatal warnings / zero-match notes
+
+- Parallel cargo audit/tree inventory commands reported shared advisory/package-cache lock waits. Classification: benign non-fatal warning because the commands completed successfully and did not change dependency state.
+- Root pqcrypto inverse probes reported package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`; these were expected zero-match inventory results under the directive's `|| true` probes.
+
+## TUI bootstrap transactionality design finding
+
+- NA-0470 and D-0927 context consumed.
+- Read-only source inventory found `/init` and init wizard call `tui_try_vault_init(passphrase)`, then `initialize_account_after_init(alias, passphrase)`, then success output.
+- `initialize_account_after_init` writes `profile_alias`, calls `init_account_defaults_with_passphrase`, and only then calls `init_identity_with_passphrase`.
+- `init_account_defaults_with_passphrase` writes autolock, poll settings, receipt/file settings, verification seed, relay endpoint/token fields, and TUI relay inbox token state before identity generation.
+- `init_identity_with_passphrase` generates KEM and signature identity keypairs, writes KEM/signature identity secrets, and writes the self public record.
+- Selected primary classification: `TUI_BOOTSTRAP_PREGENERATION_IMPLEMENTATION_READY`.
+- Selected successor: `NA-0472 -- QSL qsc TUI Account Bootstrap Pre-Generation Transactionality Implementation Harness`.
+- Assurance gap trigger classification: `HIGHER_PRIORITY_RESIDUAL_SUPERSEDES_ASSURANCE_REVIEW`.
+- Pre-generation is selected over rollback, staged commit, identity-only invariant, path-specific split, documentation-only, and immediate Assurance Gap Review.
+- Future implementation scope should be bounded to `qsl/qsl-client/qsc/src/tui/controller/commands/locked.rs`, `qsl/qsl-client/qsc/src/identity/mod.rs`, `qsl/qsl-client/qsc/tests/tui_account_bootstrap_transactionality.rs`, NA-0472 evidence/testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this rolling journal.
+
+## Validation / CI notes
+
+- Root cargo audit during startup: PASS.
+- Nested qsc fuzz lock audit during startup: PASS.
+- Current main public-safety: PASS.
+- qsl-backup SHA matched required boundary value and script-local `/home/victor/work/qsl/codex/ops` source inclusion count remained 1.
+- Inherited qsc startup tests passed for cfg/no-cfg CLI rotation, legacy/public-record, lazy identity, A2, B1, and KEM provider RNG tests, plus key lifecycle zeroization and provider-error no-mutation.
+- Evidence patch is governance-only and must remain limited to the five allowed NA-0471 paths.
+- Post-patch `git diff --check`: PASS.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Full changed-file leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan after wording correction: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- CI scope classifier: PASS, `scope_class=docs_only`.
+- qsc adversarial script syntax: PASS for `sh -n` and `bash -n`.
+- Post-patch qsc cfg/no-cfg `cli_identity_rotation_provider_rng_failure`: PASS.
+- Post-patch qsc cfg/no-cfg `legacy_identity_public_record_provider_rng_failure`: PASS.
+- Post-patch qsc cfg/no-cfg `lazy_identity_provider_rng_failure`: PASS.
+- Post-patch qsc cfg/no-cfg `a2_signature_provider_rng_failure`: PASS.
+- Post-patch qsc cfg/no-cfg `b1_signature_provider_rng_failure`: PASS.
+- Post-patch qsc cfg/no-cfg `kem_provider_rng_failure`: PASS.
+- Post-patch qsc `key_lifecycle_zeroization`: PASS.
+- Post-patch qsc `handshake_provider_error_no_mutation`: PASS.
+- Post-patch qsc stable `send_commit`: PASS.
+- Post-patch refimpl `pqkem768`: PASS.
+- Post-patch root cargo audit: PASS.
+- Post-patch nested qsc fuzz lock cargo audit: PASS.
+- Post-patch `cargo fmt --check`: PASS.
+- Post-patch formal model checks: PASS.
+- Post-patch dependency inventory: `rustls-webpki v0.103.13`, `ml-kem v0.2.1`, expected zero-match pqcrypto inverse probes, and zero nested qsc fuzz-lock pqcrypto matches.
+- Local qsc adversarial smoke: Rust phases PASS; local cargo-fuzz unavailable as recorded above; PR CI qsc-adversarial-smoke pending.
+- Evidence PR checks: pending.
+- Post-merge public-safety: pending.
+
+## Disk watermark
+
+- Filesystem: `/`.
+- Total GiB: 468.
+- Used GiB: 333.
+- Free GiB: 112.
+- Used %: 75%.
+
+## Next-watch items
+
+- Complete local validation.
+- Open evidence PR from `na-0471-tui-bootstrap-transactionality-design`.
+- Merge only after required checks pass and public-safety is green.
+- After evidence merge, verify READY remains NA-0471 and D-0930 is on main.
+- If post-merge public-safety is green, run optional closeout to restore NA-0472.
+- Do not implement NA-0472 in this directive.
+
 # QSL-DIR-2026-06-13-330 / NA-0470 TUI bootstrap identity provider RNG scope rolling journal
 
 - Directive: QSL-DIR-2026-06-13-330 -- Execute NA-0470 QSL qsc TUI Account Bootstrap Identity Provider RNG Failure Scope Authorization Plan, Optional Closeout to NA-0471.

@@ -148,9 +148,24 @@ fn handle_locked_prompt_submit(state: &mut TuiState) -> bool {
                 state.cmd_input_clear();
                 return false;
             }
+            let mut bootstrap_identity = match crate::identity::identity_tui_bootstrap_keypair() {
+                Ok(identity) => identity,
+                Err(code) => {
+                    emit_marker(
+                        "tui_init_reject",
+                        Some(code.as_str()),
+                        &[("ok", "false"), ("reason", "identity_init_failed")],
+                    );
+                    state.locked_flow = LockedFlow::InitAlias;
+                    state.locked_set_error("failed to initialize account");
+                    emit_marker("tui_init_wizard", None, &[("step", "alias")]);
+                    return false;
+                }
+            };
             match tui_try_vault_init(passphrase.as_str()) {
                 Ok(()) => {}
                 Err(code) => {
+                    bootstrap_identity.zeroize_secrets();
                     state.locked_set_error("vault init failed");
                     emit_marker(
                         "tui_init_reject",
@@ -162,7 +177,11 @@ fn handle_locked_prompt_submit(state: &mut TuiState) -> bool {
                     return false;
                 }
             }
-            if let Err(code) = initialize_account_after_init(alias.as_str(), passphrase.as_str()) {
+            if let Err(code) = initialize_account_after_init(
+                alias.as_str(),
+                passphrase.as_str(),
+                bootstrap_identity,
+            ) {
                 emit_marker(
                     "tui_init_reject",
                     Some(code.as_str()),
@@ -578,46 +597,63 @@ fn init_account_defaults_with_passphrase(passphrase: &str) -> Result<(), &'stati
     Ok(())
 }
 
-fn init_identity_with_passphrase(passphrase: &str) -> Result<(), ErrorCode> {
+fn init_identity_with_passphrase(
+    passphrase: &str,
+    mut identity: IdentityKeypair,
+) -> Result<(), ErrorCode> {
     let self_label = "self";
-    if !channel_label_ok(self_label) {
-        return Err(ErrorCode::ParseFailed);
-    }
-    let (dir, source) = config_dir()?;
-    let identities = identities_dir(&dir);
-    ensure_dir_secure(&identities, source)?;
-    let path = identity_self_path(&dir, self_label);
-    if path.exists() {
-        enforce_safe_parents(&path, source)?;
-        if identity_read_self_public(self_label)?.is_some() {
-            return Ok(());
+    let result = (|| {
+        if !channel_label_ok(self_label) {
+            return Err(ErrorCode::ParseFailed);
         }
-    }
-    let (kem_pk, kem_sk) = hs_kem_keypair();
-    let (sig_pk, sig_sk) = hs_sig_keypair();
-    vault::secret_set_with_passphrase(
-        identity_secret_name(self_label).as_str(),
-        hex_encode(&kem_sk).as_str(),
-        passphrase,
-    )
-    .map_err(|_| ErrorCode::IoWriteFailed)?;
-    vault::secret_set_with_passphrase(
-        identity_sig_secret_name(self_label).as_str(),
-        hex_encode(&sig_sk).as_str(),
-        passphrase,
-    )
-    .map_err(|_| ErrorCode::IoWriteFailed)?;
-    identity_write_public_record(self_label, &kem_pk, &sig_pk)?;
-    Ok(())
+        let (dir, source) = config_dir()?;
+        let identities = identities_dir(&dir);
+        ensure_dir_secure(&identities, source)?;
+        let path = identity_self_path(&dir, self_label);
+        if path.exists() {
+            enforce_safe_parents(&path, source)?;
+            if identity_read_self_public(self_label)?.is_some() {
+                return Ok(());
+            }
+        }
+        let mut kem_secret = hex_encode(&identity.kem_sk);
+        let kem_store = vault::secret_set_with_passphrase(
+            identity_secret_name(self_label).as_str(),
+            kem_secret.as_str(),
+            passphrase,
+        );
+        kem_secret.zeroize();
+        kem_store.map_err(|_| ErrorCode::IoWriteFailed)?;
+        let mut sig_secret = hex_encode(&identity.sig_sk);
+        let sig_store = vault::secret_set_with_passphrase(
+            identity_sig_secret_name(self_label).as_str(),
+            sig_secret.as_str(),
+            passphrase,
+        );
+        sig_secret.zeroize();
+        sig_store.map_err(|_| ErrorCode::IoWriteFailed)?;
+        identity_write_public_record(self_label, &identity.kem_pk, &identity.sig_pk)?;
+        Ok(())
+    })();
+    identity.zeroize_secrets();
+    result
 }
 
-fn initialize_account_after_init(alias: &str, passphrase: &str) -> Result<(), String> {
+fn initialize_account_after_init(
+    alias: &str,
+    passphrase: &str,
+    mut identity: IdentityKeypair,
+) -> Result<(), String> {
     if vault::secret_set_with_passphrase("profile_alias", alias, passphrase).is_err() {
+        identity.zeroize_secrets();
         return Err("alias_store_failed".to_string());
     }
-    init_account_defaults_with_passphrase(passphrase)
-        .map_err(|_| "settings_init_failed".to_string())?;
-    init_identity_with_passphrase(passphrase).map_err(|_| "identity_init_failed".to_string())?;
+    if init_account_defaults_with_passphrase(passphrase).is_err() {
+        identity.zeroize_secrets();
+        return Err("settings_init_failed".to_string());
+    }
+    init_identity_with_passphrase(passphrase, identity)
+        .map_err(|_| "identity_init_failed".to_string())?;
     Ok(())
 }
 
@@ -728,9 +764,22 @@ pub(super) fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState
                 state.start_init_prompt();
                 return Some(false);
             }
+            let mut bootstrap_identity = match crate::identity::identity_tui_bootstrap_keypair() {
+                Ok(identity) => identity,
+                Err(code) => {
+                    emit_marker(
+                        "tui_init_reject",
+                        Some(code.as_str()),
+                        &[("ok", "false"), ("reason", "identity_init_failed")],
+                    );
+                    state.start_init_prompt();
+                    return Some(false);
+                }
+            };
             match tui_try_vault_init(passphrase) {
                 Ok(()) => {}
                 Err(code) => {
+                    bootstrap_identity.zeroize_secrets();
                     emit_marker(
                         "tui_init_reject",
                         Some(code.as_str()),
@@ -740,7 +789,8 @@ pub(super) fn handle_tui_locked_command(cmd: &TuiParsedCmd, state: &mut TuiState
                     return Some(false);
                 }
             }
-            if let Err(code) = initialize_account_after_init(alias, passphrase) {
+            if let Err(code) = initialize_account_after_init(alias, passphrase, bootstrap_identity)
+            {
                 emit_marker(
                     "tui_init_reject",
                     Some(code.as_str()),

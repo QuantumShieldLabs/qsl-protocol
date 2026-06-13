@@ -32633,6 +32633,10 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
   Classification: recoverable command-shape issue because the Python heredoc consumed stdin and caused the upstream `git diff` producer to hit SIGPIPE.
   Corrective action: wrote the cached diff to a proof file and reran the Python scanner against that file.
   Final result: `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: GitHub connector PR creation for closeout branch `na-0472-closeout-restore-na0473`.
+  Classification: recoverable GitHub integration permission issue because the connector returned HTTP 403 `Resource not accessible by integration`, while authenticated `gh` had repo access and the branch had already been pushed.
+  Corrective action: fell back to `gh pr create` with the preflighted PR body.
+  Final result: qsl-protocol closeout PR #1215 was created.
 
 ## Validation / CI notes
 
@@ -32734,7 +32738,7 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Evidence PR #1149 head: `2b47c4fd3d69`.
 - Evidence PR #1149 merge: `ef895637c5fc`.
 - Closeout branch: `na-0440-closeout-restore-na0441`.
-- Closeout PR: pending.
+- Closeout PR: #1215.
 - Closeout merge commit: pending.
 
 ## Closeout READY proof

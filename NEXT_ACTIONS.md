@@ -25754,7 +25754,7 @@ Acceptance criteria:
 ---
 
 ### NA-0467 — QSL qsc Legacy Identity Public-Record Provider RNG Failure Test Seam Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -25825,6 +25825,116 @@ Acceptance criteria:
 - production semantics unchanged when seam inactive.
 - selected no-partial-upgrade-state invariant is tested.
 - no identity-complete claim is introduced.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+Closeout evidence:
+- qsl-protocol implementation PR: #1203
+  (https://github.com/QuantumShieldLabs/qsl-protocol/pull/1203)
+  merged as `79c35061cc74` from head `aa5fe84c7d2f`.
+- Decision evidence: D-0921 records the bounded legacy/public-record provider
+  RNG failure seam implementation.
+- Post-merge public-safety on `79c35061cc74` completed success.
+- qsc-adversarial-smoke, qsc-linux-full-suite, and macos-qsc-full-serial
+  completed success on `79c35061cc74`.
+- Closeout decision: D-0922 restores NA-0468.
+- Closeout PR: #1204.
+- NA-0467 is DONE and NA-0468 is READY.
+- This closeout changed only governance/testplan/journal paths and did not
+  mutate qsc source, executable tests, runtime behavior, crypto behavior,
+  dependencies, Cargo manifests, lockfiles, workflows, fuzz targets, vectors,
+  formal models, refimpl, qsl-server, qsl-attachments, qshield runtime,
+  qshield-cli, website, public docs, README, START_HERE,
+  qwork/qstart/qresume/qshell, backup/restore/local-ops paths, qsl-backup,
+  backup status files, backup plan files, rollback subtree paths, or backup
+  tree paths.
+- No public-readiness claim is made. No production-readiness claim is made. No
+  external-review-complete claim is made. No crypto-complete claim is made. No
+  signature-complete claim is made. No identity-complete claim is made. No
+  RNG-failure-complete claim is made. No provider-RNG-complete claim is made.
+  No side-channel-free claim is made. No vulnerability-free claim is made. No
+  bug-free claim is made. No perfect-crypto claim is made.
+
+---
+
+### NA-0468 — QSL qsc CLI Identity Rotation Provider RNG Failure Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the exact future qsc CLI identity rotation provider RNG failure scope after lazy identity and legacy/public-record identity provider RNG failure test-seam implementation, preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries unless a later directive authorizes precise implementation.
+
+Protects:
+- qsc CLI identity rotation provider-dependent RNG failure evidence quality.
+- truthful no-partial-rotation behavior around selected identity, vault, public-record, and optional peer-reset surfaces.
+- qsc/refimpl boundary clarity.
+- production semantic stability.
+- key lifecycle and provider boundary confidence after ml-kem replacement, provider-error audit work, qsc zeroization tests, qsc RNG seam work, provider RNG strategy review, split-scope review, qsc no-mutation scope review, qsc fake/seam strategy review, KEM-only implementation, B1 signing implementation, A2 signing no-output implementation, identity split-scope review, lazy identity implementation, and legacy/public-record implementation.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- qsl-protocol governance evidence/testplan paths for NA-0468.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of:
+  - qsl/qsl-client/qsc/src/
+  - qsl/qsl-client/qsc/tests/
+  - tools/refimpl/
+  - docs/governance/evidence/
+  - qsl/qsl-client/qsc/fuzz/
+  - formal/
+  - inputs/
+  - relevant scripts/workflows read-only.
+
+Forbidden scope:
+- Mutating runtime, crypto, dependency, Cargo, lockfile, workflow, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE paths.
+- Mutating tests, fuzz target source, vectors, or formal models unless a later implementation directive authorizes exact paths.
+- Mutating refimpl unless a later exact directive authorizes, which should be avoided by default.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No creating or implying production readiness.
+- No creating or implying public-internet readiness.
+- No creating or implying external-review completion.
+- No creating or implying metadata-free behavior.
+- No creating or implying anonymity.
+- No creating or implying untraceability.
+- No creating or implying off-host backup completion.
+- No creating or implying disaster recovery completion.
+- No creating or implying restore proof.
+- No creating or implying backup completion.
+- No creating or implying bug-free status.
+- No creating or implying vulnerability-free status.
+- No creating or implying perfect-crypto status.
+- No creating or implying side-channel-free status.
+- No creating or implying RNG-failure-complete status.
+- No creating or implying provider-RNG-complete status.
+- No creating or implying secret-material-complete status.
+- No creating or implying KEM-complete status.
+- No creating or implying signature-complete status.
+- No creating or implying identity-complete status.
+- No creating or implying crypto-complete status.
+- Secret material handling outside read-only source/evidence inspection.
+
+Deliverables:
+- NA-0468 evidence doc.
+- NA-0468 testplan.
+- D-0923 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- selected exact successor or no-action rationale.
+
+Acceptance criteria:
+- qsc CLI identity rotation provider RNG failure scope is selected or rejected with evidence.
+- exact future scope is selected from evidence.
+- no implementation mutation occurs.
 - cargo audit remains green.
 - nested fuzz lock audit remains green.
 - public-safety is green before merge and after merge.

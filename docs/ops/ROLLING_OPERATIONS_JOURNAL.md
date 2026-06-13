@@ -2,9 +2,117 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-06-12
+Last-Updated: 2026-06-13
 
 # Rolling Operations Journal
+
+# QSL-DIR-2026-06-13-325 / NA-0467 closeout and NA-0468 restoration rolling journal
+
+- Directive: QSL-DIR-2026-06-13-325 -- Close Out NA-0467 After Legacy Identity Public-Record Provider RNG Seam Public-Safety Completion and Restore NA-0468.
+- Begin timestamp (America/Chicago): 2026-06-12T19:41:03-05:00.
+- Begin timestamp (UTC): 2026-06-13T00:41:03+00:00.
+- End timestamp (America/Chicago): pending closeout merge.
+- End timestamp (UTC): pending closeout merge.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Repo SHAs
+
+- qsl-protocol branch before closeout branch creation: `main`.
+- qsl-protocol HEAD before fetch: `79c35061cc74`.
+- qsl-protocol origin/main before fetch: `79c35061cc74`.
+- qsl-protocol mirror/main: fetched by `git fetch --all --prune`; origin/main did not advance beyond qwork proof.
+- qsl-protocol implementation PR #1203 merge commit: `79c35061cc74`.
+- qsl-protocol implementation PR #1203 head: `aa5fe84c7d2f`.
+- qsl-protocol closeout branch: `na-0467-closeout-restore-na0468`.
+- qsl-protocol closeout PR: #1204 pending.
+- qsl-protocol closeout merge commit: pending.
+- qsl-server refs: not refreshed by this directive.
+- qsl-attachments refs: not refreshed by this directive.
+
+## READY proof
+
+- qwork proof: startup OK for lane NA-0467, repo qsl-protocol, clean worktree/index/untracked state, proof HEAD and proof origin/main both `79c35061cc74`.
+- Pre-fetch live proof: HEAD and origin/main matched qwork proof at `79c35061cc74`.
+- Fetch result: origin/main did not advance.
+- PR #1203 proof: MERGED at `79c35061cc74`.
+- Queue proof before patch: READY_COUNT 1, READY NA-0467.
+- Status proof before patch: NA-0466 through NA-0435 DONE; NA-0434 and NA-0429 BLOCKED.
+- Decision proof before patch: D-0921 exists once, D-0922 absent, D-0923 absent, duplicate decision count zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0467/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0467_closeout_restore_na0468_20260613T004103Z`.
+- Closeout branch: `na-0467-closeout-restore-na0468`.
+- Closeout PR: #1204 pending.
+- Closeout merge commit: pending.
+
+## Strategy notes
+
+- NA-0467 implementation PR #1203 changed exactly the expected implementation/evidence paths.
+- D-0921 exists and records the bounded legacy/public-record provider RNG seam implementation.
+- The implemented cfg-only labels are `QSC.IDENTITY.LEGACY_MIGRATE.SIG_KEYPAIR` and `QSC.IDENTITY.PUBLIC_RECORD_UPGRADE.SIG_KEYPAIR`.
+- PR #1203 post-merge public-safety on `79c35061cc74` completed success.
+- qsc-adversarial-smoke, qsc-linux-full-suite, and macos-qsc-full-serial completed success on `79c35061cc74`.
+- NA-0467 is marked DONE only after the post-merge safety gate was green.
+- NA-0468 is restored as authorization-only READY and is not implemented by this closeout.
+- CLI identity rotation, TUI account bootstrap identity generation, X25519 / ephemeral generation, refimpl provider RNG, qshield-cli demo RNG, formal/model RNG, and fuzz/vector RNG remain residual.
+
+## Failures / recoveries
+
+- Failing command: initial queue/decision assertion Python script.
+  Classification: recoverable command-shape issue because `range(0435,0467)` used an invalid leading-zero integer literal.
+  Corrective action: reran the assertion with `range(435,467)`.
+  Final result: initial queue/decision assertions PASS.
+- Failing command: PR #1203 changed-path Python check.
+  Classification: recoverable command-shape issue because the script argument was placed after the here-doc terminator.
+  Corrective action: reran the check with the argument before the here-doc redirection.
+  Final result: PR #1203 changed paths matched the expected seven paths.
+
+## Non-fatal warnings / zero-match notes
+
+- `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked` returned package-ID absence under the directive-authorized `|| true` probes and remain inventory/zero-match notes.
+
+## Validation / CI notes
+
+- PR #1203 post-merge public-safety on `79c35061cc74`: PASS.
+- PR #1203 post-merge qsc-adversarial-smoke: PASS.
+- PR #1203 post-merge qsc-linux-full-suite: PASS.
+- PR #1203 post-merge macos-qsc-full-serial: PASS.
+- Closeout local `cargo fmt --check`: PASS.
+- Closeout local cfg/no-cfg `legacy_identity_public_record_provider_rng_failure`: PASS.
+- Closeout local cfg/no-cfg `lazy_identity_provider_rng_failure`: PASS.
+- Closeout local cfg/no-cfg `a2_signature_provider_rng_failure`: PASS.
+- Closeout local cfg/no-cfg `b1_signature_provider_rng_failure`: PASS.
+- Closeout local cfg/no-cfg `kem_provider_rng_failure`: PASS.
+- Closeout local `key_lifecycle_zeroization`: PASS.
+- Closeout local `handshake_provider_error_no_mutation`: PASS.
+- Closeout local stable `send_commit`: PASS.
+- Closeout local refimpl `pqkem768`: PASS.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS.
+- `cargo tree -i ml-kem --locked`: PASS.
+- Formal model checks: PASS.
+- qsc adversarial shell syntax checks: PASS.
+- Closeout staged scope, link, leak, added-line overclaim, classifier, and PR body preflight validation: PASS.
+- Closeout goal-lint validation: pending synthetic event after closeout commit.
+- Closeout PR CI: pending.
+
+## Disk watermark
+
+- Filesystem: `/dev/nvme0n1p2`.
+- Total: 468G.
+- Used: 317G.
+- Free: 128G.
+- Used %: 72%.
+
+## Next-watch items
+
+- Run governance/scope/link/leak/overclaim/classifier/PR body/goal-lint validation.
+- Create and merge closeout PR only if required checks pass.
+- Verify post-closeout public-safety green on the closeout merge commit.
+- Do not implement NA-0468 in this directive.
 
 # QSL-DIR-2026-06-12-324 / NA-0467 qsc legacy identity public-record provider RNG failure test seam implementation rolling journal
 

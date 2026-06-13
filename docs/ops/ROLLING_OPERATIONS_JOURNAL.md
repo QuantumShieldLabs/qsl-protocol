@@ -3087,6 +3087,11 @@ Last-Updated: 2026-06-13
   Corrective action: created PR #1216 with `gh pr create` using the same branch, title, and preflighted body.
   Final result: PR #1216 open.
 
+- Failing command: first custom REST polling wrapper for PR #1216 checks.
+  Classification: recoverable command-shape mistake because the wrapper combined a Python heredoc with a here-string and caused JSON to be parsed as Python source.
+  Corrective action: terminated only the faulty local polling shell and reran with JSON passed to Python through a safe command shape.
+  Final result: corrected poll pending.
+
 ## Startup validation results
 
 - PR #1215 view: MERGED at `3765cdfc7d05`.

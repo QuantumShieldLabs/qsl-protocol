@@ -32545,6 +32545,125 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Run post-closeout public-safety proof.
 - Do not implement NA-0469 in this directive.
 
+# QSL-DIR-2026-06-13-332 / NA-0472 TUI bootstrap pre-generation transactionality rolling journal
+
+- Directive: QSL-DIR-2026-06-13-332 -- execute NA-0472 qsc TUI Account Bootstrap Pre-Generation Transactionality Implementation Harness, optional closeout to NA-0473.
+- Begin timestamp (America/Chicago): 2026-06-13T12:01:12-05:00.
+- Begin timestamp (UTC): 2026-06-13T17:01:12Z.
+- End timestamp (America/Chicago): pending.
+- End timestamp (UTC): pending.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Repo SHAs
+
+- qsl-protocol branch: `main` before implementation branch.
+- qsl-protocol HEAD: `eb93fc18c3cd`.
+- qsl-protocol main: `eb93fc18c3cd`.
+- qsl-protocol origin/main: `eb93fc18c3cd`.
+- qsl-protocol mirror/main: `2abcee236e23` observed; not governing this lane.
+- qsl-server main: not inspected yet.
+- qsl-server origin/main: not inspected yet.
+- qsl-server mirror/main: not inspected yet.
+- qsl-attachments main: not inspected yet.
+- qsl-attachments origin/main: not inspected yet.
+- qsl-attachments mirror/main: not inspected yet.
+
+## READY proof
+
+- READY_COUNT: 1.
+- Sole READY item: NA-0472 -- QSL qsc TUI Account Bootstrap Pre-Generation Transactionality Implementation Harness.
+- Proof source: qwork proof files under the NA-0472 lane workspace, live git state before fetch, `NEXT_ACTIONS.md`, and `scripts/ci/qsl_evidence_helper.py queue`.
+- qwork proof files were present and matched live `HEAD` / `origin/main` before fetch.
+- Fetch did not advance `origin/main`; local `main` was reset to verified `origin/main`.
+- PR #1213 was verified merged at `eb93fc18c3cd`.
+- Public-safety on current `origin/main` completed success.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0472/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0472_qsc_tui_account_bootstrap_pregen_impl_20260613T170112Z`.
+- Branch: `na-0472-tui-bootstrap-pregen-transactionality`.
+- PR: pending.
+- Merge commit: pending.
+- Preimage metadata captured for `qsl/qsl-client/qsc/src/tui/controller/commands/locked.rs` and `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/tests/tui_account_bootstrap_transactionality.rs` was absent before this lane.
+- Implementation path preimage hashes: `locked.rs` `f849e91deea7`; `identity/mod.rs` `362e8f8e3158`.
+
+## Failures / recoveries
+
+- Failing command: startup queue/decision required-state check using `rg`/`grep` against the compact `qsl_evidence_helper.py decisions` output.
+  Classification: recoverable command-shape assumption because the helper's duplicate report does not enumerate every high-numbered decision ID.
+  Corrective action: switched D-0930/D-0931/D-0932 proof to direct bounded `DECISIONS.md` counting while retaining helper latest/duplicate evidence.
+  Final result: direct D-0930 and D-0931 counts were 1 each, D-0932 count was 0, latest decision was D-0931, duplicate count was 0.
+- Failing command: zero-match `rg -c` count for absent D-0932 under `set -e`.
+  Classification: valid zero-match proof outcome because D-0932 absence at startup is required.
+  Corrective action: used zero-safe `awk` counters.
+  Final result: D-0932 absence proved with numeric count 0.
+- Failing command: source-layout read of `qsl/qsl-client/qsc/src/tui/controller/commands/mod.rs`.
+  Classification: recoverable discovery command-shape issue because the module file is `qsl/qsl-client/qsc/src/tui/controller/commands.rs`.
+  Corrective action: used `rg --files qsl/qsl-client/qsc/src/tui` and reopened the correct module path.
+  Final result: TUI command module layout was inspected without source mutation.
+- Failing command: initial `cargo fmt --check`.
+  Classification: recoverable in-scope formatting failure in edited Rust files.
+  Corrective action: ran `cargo fmt` once and reran `cargo fmt --check`.
+  Final result: formatting check passed.
+- Failing command: initial cfg NA-0472 `cargo test -p qsc --locked --test tui_account_bootstrap_transactionality`.
+  Classification: recoverable in-scope test-harness assertion failure with understood cause. TUI startup created an empty `identities/` directory, while the selected invariant is no self public record and no identity secret/default/account state after forced identity RNG failure.
+  Corrective action: changed the assertion to require the identities directory to be absent or empty while preserving no vault, no default config, no identity secret, and no self public record assertions.
+  Final result: cfg NA-0472 test passed and emitted the required forced KEM/signature and no-partial markers.
+- Failing command: first added-line overclaim scan after D-0932 patch.
+  Classification: recoverable governance wording issue because the added D-0932 line referenced dependency-health evidence with an overclaim-sensitive phrase without same-line negation.
+  Corrective action: reworded the D-0932 sentence to state that Cargo audit output must not be represented as public-safety or completeness evidence.
+  Final result: added-line overclaim scan passed with `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: local `sh scripts/ci/qsc_adversarial.sh`.
+  Classification: recoverable local tool availability issue because the script's stable adversarial Rust phases and provider-error step passed, then local Cargo reported that the `cargo fuzz` subcommand is not installed; the directive allows recording this output and relying on PR CI qsc-adversarial-smoke when local cargo-fuzz is unavailable.
+  Corrective action: recorded stdout/stderr and exit code 101 in the proof root and kept PR CI qsc-adversarial-smoke as required evidence before merge.
+  Final result: local stable adversarial phases PASS; local fuzz phase unavailable; PR CI qsc-adversarial-smoke pending.
+- Failing command: first final lightweight guard decision-count probe.
+  Classification: recoverable command-shape issue because the probe expected markdown heading-style decision IDs while `DECISIONS.md` stores decisions as `- **ID:** D-####` records.
+  Corrective action: reran the counter against the repository's actual decision-record format.
+  Final result: D-0932 count was 1, D-0933 count was 0, and the full lightweight guard passed.
+
+## Validation / CI notes
+
+- Startup public-safety: PASS on `eb93fc18c3cd`.
+- qsl-backup read-only boundary: SHA matched the expected value; script-local ops source inclusion count was 1.
+- qsc adversarial marker: `NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP` and `handshake_provider_error_no_mutation` were present.
+- Startup root `cargo audit --deny warnings`: PASS.
+- Startup nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- Startup inherited qsc cfg/no-cfg provider RNG, key lifecycle, and provider-error tests: PASS.
+- NA-0472 cfg `tui_account_bootstrap_transactionality`: PASS after test assertion recovery.
+- NA-0472 no-cfg `tui_account_bootstrap_transactionality`: PASS; seam selector ignored and normal TUI bootstrap wrote expected vault/default/identity state.
+- Post-implementation inherited qsc cfg/no-cfg CLI rotation, legacy/public-record, lazy identity, A2, B1, KEM provider RNG tests: PASS.
+- Post-implementation qsc `key_lifecycle_zeroization`: PASS.
+- Post-implementation qsc `handshake_provider_error_no_mutation`: PASS.
+- Post-implementation qsc stable `send_commit`: PASS.
+- Post-implementation refimpl `pqkem768`: PASS.
+- Post-implementation qsc adversarial script syntax: PASS for `sh -n` and `bash -n`.
+- Post-implementation root cargo audit: PASS.
+- Post-implementation nested qsc fuzz lock cargo audit: PASS.
+- Dependency probes: `rustls-webpki` and `ml-kem` present; pqcrypto inverse probes returned expected package-ID absence.
+- Formal checks: `formal/model_qsc_handshake_suite_id_bounded.py` PASS; `formal/run_model_checks.py` PASS.
+- Governance evidence/testplan patch: complete for the NA-0472 implementation harness.
+- Static pre-PR guards: PASS for `git diff --check`, exact allowed-path scope guard, manual link check (`TOTAL_MISSING 0`), added-line leak scan (`SECRET_FINDING_COUNT 0`), `v1-path pattern count: 0`, `hex32plus pattern count: 0`, added-line overclaim scan (`ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`), queue proof, decision proof, runtime-critical classifier, and PR body preflight.
+- Full pre-PR validation rerun: PASS for formatting, new NA-0472 cfg/no-cfg tests, inherited qsc provider RNG suites, key lifecycle, provider-error, stable `send_commit`, refimpl `pqkem768`, root audit, nested fuzz-lock audit, dependency probes, and formal model checks.
+- Local qsc adversarial smoke: stable Rust phases PASS; local cargo-fuzz unavailable as recorded above; PR CI qsc-adversarial-smoke pending.
+
+## Disk watermark
+
+- Filesystem: `/`.
+- Total GiB: 468.
+- Used GiB: 333.
+- Free GiB: 111.
+- Used %: 76%.
+
+## Next-watch items
+
+- Stage and commit only the eight allowed NA-0472 implementation/governance paths.
+- Open implementation PR from `na-0472-tui-bootstrap-pregen-transactionality`.
+- Merge only after required checks pass and public-safety is green.
+- After implementation merge, verify READY remains NA-0472 and D-0932 is on main.
+- If post-merge public-safety is green, run optional closeout to restore NA-0473.
+
 # QSL-DIR-2026-06-07-290 / NA-0440 closeout and NA-0441 restoration rolling journal
 
 - Directive: QSL-DIR-2026-06-07-290 optional closeout -- close out NA-0440 after PR #1149 post-merge public-safety completion and restore NA-0441.

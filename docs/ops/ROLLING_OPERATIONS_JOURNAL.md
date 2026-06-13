@@ -58,6 +58,10 @@ Last-Updated: 2026-06-13
   Classification: recoverable connector permission issue because the GitHub app returned `403 Resource not accessible by integration` after the branch was pushed successfully, while the authenticated `gh` CLI path was available.
   Corrective action: created the PR with `gh pr create` using the same requested branch, base, title, and PR body.
   Final result: evidence PR #1212 created.
+- Failing command: first REST check poller creation/invocation for PR #1212.
+  Classification: recoverable command-shape issue because the shell here-doc handoff left a stuck shell before the Python poller started and did not mutate repo or PR state.
+  Corrective action: terminated only the stuck local poller shell, wrote the poller as a normal proof-root Python file, and reran REST polling.
+  Final result: corrected REST polling completed successfully for PR #1212.
 
 ## Non-fatal warnings / zero-match notes
 
@@ -107,7 +111,8 @@ Last-Updated: 2026-06-13
 - Post-patch formal model checks: PASS.
 - Post-patch dependency inventory: `rustls-webpki v0.103.13`, `ml-kem v0.2.1`, expected zero-match pqcrypto inverse probes, and zero nested qsc fuzz-lock pqcrypto matches.
 - Local qsc adversarial smoke: Rust phases PASS; local cargo-fuzz unavailable as recorded above; PR CI qsc-adversarial-smoke pending.
-- Evidence PR #1212 checks: pending.
+- Evidence PR #1212 checks before journal-only follow-up: PASS, 38 checks attached, 29 success, 9 skipped, zero failures, public-safety success.
+- Evidence PR #1212 checks after journal-only follow-up: pending.
 - Post-merge public-safety: pending.
 
 ## Disk watermark

@@ -26269,8 +26269,15 @@ Acceptance criteria:
 ---
 
 ### NA-0472 — QSL qsc TUI Account Bootstrap Pre-Generation Transactionality Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
+
+Implementation note:
+- D-0932 implemented the qsc TUI account bootstrap pre-generation transactionality invariant selected by NA-0471.
+- Implementation PR `#1214` merged at `0eb8ceb3229c`.
+- Post-merge public-safety completed success on `0eb8ceb3229c`.
+- Closeout restores `NA-0473 -- QSL Identity / Provider RNG Assurance Gap Review Plan` as the sole READY successor.
+- This closeout does not implement NA-0473.
 
 Objective:
 Implement the exact qsc TUI account bootstrap pre-generation transactionality scope selected by NA-0471, preserving production semantics and proving bounded no-partial-account/bootstrap behavior when identity provider RNG failure is forced before durable account/default writes.
@@ -26346,6 +26353,61 @@ Acceptance criteria:
 - cargo audit remains green.
 - nested fuzz lock audit remains green.
 - public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+---
+
+### NA-0473 — QSL Identity / Provider RNG Assurance Gap Review Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Review the completed identity/provider RNG evidence chain, including KEM, B1 signing, A2 no-output, lazy identity, legacy/public-record, CLI rotation, TUI bootstrap pre-generation transactionality, route/contact/attachment RNG, key lifecycle, provider-error, formal/model, side-channel, external-review readiness, and release-claim boundaries.
+
+Protects:
+- assurance quality after provider RNG chain progress.
+- formal/model residual tracking.
+- side-channel and secret-material caveat tracking.
+- hostile cryptographer review.
+- red-team review.
+- production SRE review.
+- external-review readiness.
+- release-claim boundaries.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0473.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of qsc, refimpl, formal, fuzz, vector, evidence, and CI surfaces.
+
+Forbidden scope:
+- implementation mutation.
+- runtime/crypto/dependency/Cargo/lockfile/workflow mutation.
+- executable test/fuzz/vector/formal mutation.
+- service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- No public-readiness claim and no crypto-complete claim.
+
+Deliverables:
+- assurance gap review evidence doc.
+- assurance gap review testplan.
+- D-0934 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- selected next evidence domain or implementation residual.
+
+Acceptance criteria:
+- hostile cryptographer review complete.
+- red-team review complete.
+- production SRE review complete.
+- side-channel caveat reviewed.
+- formal-model mapping residual reviewed.
+- external-review readiness reviewed.
+- release-claim boundary reviewed.
+- no public overclaim.
 - exactly one READY item remains.
 
 ---

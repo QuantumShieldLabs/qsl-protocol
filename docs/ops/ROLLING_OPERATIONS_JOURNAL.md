@@ -32582,9 +32582,12 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 - Worktree path: `/srv/qbuild/work/NA-0472/qsl-protocol`.
 - Proof root: `/srv/qbuild/tmp/NA0472_qsc_tui_account_bootstrap_pregen_impl_20260613T170112Z`.
-- Branch: `na-0472-tui-bootstrap-pregen-transactionality`.
-- PR: pending.
-- Merge commit: pending.
+- Implementation branch: `na-0472-tui-bootstrap-pregen-transactionality`.
+- Implementation PR: #1214.
+- Implementation merge commit: `0eb8ceb3229c`.
+- Closeout branch: `na-0472-closeout-restore-na0473`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
 - Preimage metadata captured for `qsl/qsl-client/qsc/src/tui/controller/commands/locked.rs` and `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/tests/tui_account_bootstrap_transactionality.rs` was absent before this lane.
 - Implementation path preimage hashes: `locked.rs` `f849e91deea7`; `identity/mod.rs` `362e8f8e3158`.
 
@@ -32622,6 +32625,18 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
   Classification: recoverable command-shape issue because the probe expected markdown heading-style decision IDs while `DECISIONS.md` stores decisions as `- **ID:** D-####` records.
   Corrective action: reran the counter against the repository's actual decision-record format.
   Final result: D-0932 count was 1, D-0933 count was 0, and the full lightweight guard passed.
+- Failing command: closeout local classifier probe `python3 scripts/ci/qsl_evidence_helper.py classifier --help`.
+  Classification: recoverable command-shape issue because the current helper exposes PR admission preflight but not a local `classifier` subcommand.
+  Corrective action: switched to the repository's actual local classifier script, `scripts/ci/classify_ci_scope.sh`, with the five staged closeout paths.
+  Final result: classifier output reported `docs_only=true`, `runtime_critical=false`, and `scope_class=docs_only`.
+- Failing command: first closeout added-line overclaim scan using `git diff --cached --unified=0 | python3 - <<'PY'`.
+  Classification: recoverable command-shape issue because the Python heredoc consumed stdin and caused the upstream `git diff` producer to hit SIGPIPE.
+  Corrective action: wrote the cached diff to a proof file and reran the Python scanner against that file.
+  Final result: `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: GitHub connector PR creation for closeout branch `na-0472-closeout-restore-na0473`.
+  Classification: recoverable GitHub integration permission issue because the connector returned HTTP 403 `Resource not accessible by integration`, while authenticated `gh` had repo access and the branch had already been pushed.
+  Corrective action: fell back to `gh pr create` with the preflighted PR body.
+  Final result: qsl-protocol closeout PR #1215 was created.
 
 ## Validation / CI notes
 
@@ -32648,6 +32663,49 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Full pre-PR validation rerun: PASS for formatting, new NA-0472 cfg/no-cfg tests, inherited qsc provider RNG suites, key lifecycle, provider-error, stable `send_commit`, refimpl `pqkem768`, root audit, nested fuzz-lock audit, dependency probes, and formal model checks.
 - Local qsc adversarial smoke: stable Rust phases PASS; local cargo-fuzz unavailable as recorded above; PR CI qsc-adversarial-smoke pending.
 
+## Implementation PR / CI completion
+
+- Implementation commit: `9d67a0dcdbf`.
+- Implementation PR #1214: merged.
+- Implementation merge commit: `0eb8ceb3229c`.
+- PR #1214 checks before merge: PASS; required checks completed success.
+- PR #1214 qsc-adversarial-smoke: PASS.
+- PR #1214 public-safety: PASS.
+- Post-merge queue proof on `0eb8ceb3229c`: READY_COUNT 1, READY NA-0472.
+- Post-merge decision proof on `0eb8ceb3229c`: D-0932 exists once, D-0933 absent, duplicate decision count zero.
+- Post-merge public-safety on `0eb8ceb3229c`: PASS after evidence-based REST polling. The first bounded poll reached its nominal iteration cap while public-safety remained attached and in progress behind known long-running full-suite jobs; Packet J permitted continued polling because no concrete fault signal was present. The second poll completed with public-safety success.
+- Post-merge qsc-linux-full-suite on `0eb8ceb3229c`: PASS.
+- Post-merge macos-qsc-full-serial on `0eb8ceb3229c`: PASS.
+- Post-merge qsc-adversarial-smoke on `0eb8ceb3229c`: PASS.
+
+## Optional closeout patch notes
+
+- Optional closeout started because implementation PR #1214 merged and post-merge public-safety is green on `0eb8ceb3229c`.
+- NA-0472 is marked DONE.
+- NA-0473 is restored as the sole READY successor.
+- D-0933 records NA-0472 closeout and NA-0473 restoration.
+- TRACEABILITY records PR #1214, post-merge public-safety, and the NA-0473 assurance-gap review successor.
+- Closeout testplan path: `tests/NA-0472_closeout_restore_na0473_testplan.md`.
+- This closeout does not implement NA-0473.
+- This closeout changes only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0472_closeout_restore_na0473_testplan.md`.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, qsl-backup, status, plan, rollback, or backup tree path is intentionally mutated.
+- No backup or restore was run.
+
+## Closeout local validation results
+
+- Closeout exact path guard before commit: PASS, exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0472_closeout_restore_na0473_testplan.md`.
+- `git diff --cached --check`: PASS.
+- Queue helper: PASS, READY_COUNT 1 and READY NA-0473; NA-0472 DONE; NA-0471 DONE; NA-0434 BLOCKED; NA-0429 BLOCKED.
+- Decision helper: PASS, latest D-0933; D-0932 once; D-0933 once; D-0934 absent; duplicate decision count zero.
+- Docs-only classifier: PASS, `scope_class=docs_only`.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Full changed-file leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- `cargo fmt --check`: PASS.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+
 ## Disk watermark
 
 - Filesystem: `/`.
@@ -32658,11 +32716,11 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 ## Next-watch items
 
-- Stage and commit only the eight allowed NA-0472 implementation/governance paths.
-- Open implementation PR from `na-0472-tui-bootstrap-pregen-transactionality`.
-- Merge only after required checks pass and public-safety is green.
-- After implementation merge, verify READY remains NA-0472 and D-0932 is on main.
-- If post-merge public-safety is green, run optional closeout to restore NA-0473.
+- Complete optional closeout validation.
+- Open closeout PR from `na-0472-closeout-restore-na0473`.
+- Merge closeout PR only after required checks pass and public-safety is green.
+- After closeout merge, verify READY NA-0473, NA-0472 DONE, D-0933 on main, and post-merge public-safety on the closeout merge commit.
+- Do not implement NA-0473 in this directive.
 
 # QSL-DIR-2026-06-07-290 / NA-0440 closeout and NA-0441 restoration rolling journal
 
@@ -32680,7 +32738,7 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Evidence PR #1149 head: `2b47c4fd3d69`.
 - Evidence PR #1149 merge: `ef895637c5fc`.
 - Closeout branch: `na-0440-closeout-restore-na0441`.
-- Closeout PR: pending.
+- Closeout PR: #1215.
 - Closeout merge commit: pending.
 
 ## Closeout READY proof

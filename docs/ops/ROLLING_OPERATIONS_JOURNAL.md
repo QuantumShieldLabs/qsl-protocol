@@ -31857,7 +31857,7 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Worktree path: `/srv/qbuild/work/NA-0468/qsl-protocol`.
 - Proof root: `/srv/qbuild/tmp/NA0468_qsc_cli_identity_rotation_scope_20260613T012330Z`.
 - Evidence branch: pending.
-- Evidence PR: pending.
+- Evidence PR: #1205.
 - Evidence merge commit: pending.
 - Optional closeout branch: pending.
 - Optional closeout PR: pending.
@@ -31903,6 +31903,13 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
   PR CI qsc-adversarial-smoke as required evidence before merge.
   Final result: Rust adversarial phases PASS locally; cargo-fuzz phase not
   available locally; PR CI qsc-adversarial-smoke pending.
+- Failing command: GitHub connector `create_pull_request`.
+  Classification: recoverable connector permission issue because the GitHub app
+  returned `403 Resource not accessible by integration` after the branch was
+  pushed successfully, while the authenticated `gh` CLI path was available.
+  Corrective action: created the PR with `gh pr create` using the same requested
+  branch, base, title, and PR body.
+  Final result: evidence PR #1205 created.
 
 ## Non-fatal warnings / zero-match notes
 

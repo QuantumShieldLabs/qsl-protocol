@@ -24535,3 +24535,30 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output must not be used as public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, identity-complete, RNG-failure-complete, provider-RNG-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0468; NA-0467; NA-0469; D-0923; D-0922; D-0921; `docs/governance/evidence/NA-0468_qsl_qsc_cli_identity_rotation_provider_rng_failure_scope_authorization_plan.md`; `tests/NA-0468_qsl_qsc_cli_identity_rotation_provider_rng_failure_scope_authorization_testplan.md`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0924
+  - **Title:** NA-0468 closeout and NA-0469 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-13
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0468 is closed after qsl-protocol evidence PR #1205 merged at `5d6ede567296` and post-merge public-safety completed success on that merge commit. D-0923 exists and records the bounded qsc CLI identity rotation provider RNG failure scope authorization, so this closeout marks NA-0468 DONE and restores `NA-0469 -- QSL qsc CLI Identity Rotation Provider RNG Failure Test Seam Implementation Harness` as the sole READY successor.
+  - **Implementation acceptance boundary:** The PR #1205 evidence is internal governance authorization only. It classifies CLI rotation as `CLI_ROTATE_IMPLEMENTATION_READY`, identifies provider-RNG relevance for both KEM and signature keypair generation, selects recommended future labels `QSC.IDENTITY.ROTATE.KEM_KEYPAIR` and `QSC.IDENTITY.ROTATE.SIG_KEYPAIR`, and selects the future no-partial-rotation invariant. It does not implement NA-0469.
+  - **Post-merge safety proof:** On `5d6ede567296`, `public-safety` completed success and `qsc-adversarial-smoke` completed success. `qsc-linux-full-suite` and `macos-qsc-full-serial` were accepted skipped by repo policy for the docs-only evidence scope.
+  - **NA-0469 restored scope:** NA-0469 may mutate only `qsl/qsl-client/qsc/src/main.rs`, `qsl/qsl-client/qsc/src/identity/mod.rs`, `qsl/qsl-client/qsc/tests/cli_identity_rotation_provider_rng_failure.rs`, `docs/governance/evidence/NA-0469_qsl_qsc_cli_identity_rotation_provider_rng_failure_test_seam_implementation_harness.md`, `tests/NA-0469_qsl_qsc_cli_identity_rotation_provider_rng_failure_test_seam_implementation_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` unless a later exact directive changes scope.
+  - **No implementation mutation by closeout:** This closeout does not mutate qsc source, executable qsc tests, runtime behavior, crypto behavior, dependencies, Cargo manifests, lockfiles, workflows, fuzz targets, vectors, formal models, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup/restore/local-ops paths, qsl-backup, backup status files, backup plan files, rollback subtree paths, or backup tree paths.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or backup tree paths.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No public crypto-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No RNG-failure-complete claim is made. No provider-RNG-complete claim is made. No secret-material-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Required behavior:**
+    - Exactly one READY item remains mandatory.
+    - NA-0468 remains DONE.
+    - NA-0469 remains READY until a later exact directive implements or closes it.
+    - NA-0469 must stay inside the exact qsc CLI rotation source/test/governance scope selected by NA-0468 unless a later exact directive changes scope.
+    - CLI rotation implementation evidence must not be represented as all identity-provider RNG coverage.
+    - TUI account bootstrap identity generation, X25519 / ephemeral generation, refimpl provider RNG, qshield-cli demo RNG, formal/model RNG, and fuzz/vector RNG remain residual unless a later exact directive authorizes them.
+  - **Must never happen:**
+    - NA-0469 is implemented by this closeout.
+    - Closeout evidence is represented as CLI rotation implementation evidence.
+    - Future CLI rotation evidence is represented as identity completion, signature completion, RNG-failure completion, provider-RNG completion, or crypto completion.
+    - Cargo audit output must not be used as public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, identity-complete, RNG-failure-complete, provider-RNG-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
+    - more than one READY item remains.
+  - **References:** NA-0468; NA-0469; D-0924; D-0923; qsl-protocol PR #1205; `docs/governance/evidence/NA-0468_qsl_qsc_cli_identity_rotation_provider_rng_failure_scope_authorization_plan.md`; `tests/NA-0468_qsl_qsc_cli_identity_rotation_provider_rng_failure_scope_authorization_testplan.md`; `tests/NA-0468_closeout_restore_na0469_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -31860,7 +31860,7 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Evidence PR: #1205.
 - Evidence merge commit: `5d6ede567296`.
 - Optional closeout branch: `na-0468-closeout-restore-na0469`.
-- Optional closeout PR: pending.
+- Optional closeout PR: #1206.
 - Optional closeout merge commit: pending.
 
 ## Strategy notes

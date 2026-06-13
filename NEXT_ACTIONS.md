@@ -25965,7 +25965,7 @@ Closeout evidence:
   - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
 - Post-merge public-safety on `5d6ede567296` completed success.
 - qsc-adversarial-smoke completed success on `5d6ede567296`; qsc-linux-full-suite and macos-qsc-full-serial were accepted skipped by repo policy for the docs-only evidence scope.
-- Closeout PR: this D-0924 closeout PR.
+- Closeout PR: #1206.
 - NA-0468 is DONE and NA-0469 is READY.
 - This closeout changed only governance/testplan/journal paths and did not mutate qsc source, executable tests, runtime behavior, crypto behavior, dependencies, Cargo manifests, lockfiles, workflows, fuzz targets, vectors, formal models, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup/restore/local-ops paths, qsl-backup, backup status files, backup plan files, rollback subtree paths, or backup tree paths.
 - No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No RNG-failure-complete claim is made. No provider-RNG-complete claim is made. No secret-material-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made.

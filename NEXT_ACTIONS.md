@@ -25860,8 +25860,15 @@ Closeout evidence:
 ---
 
 ### NA-0468 — QSL qsc CLI Identity Rotation Provider RNG Failure Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
+
+Closeout note:
+- qsl-protocol evidence PR #1205 merged at `5d6ede567296`.
+- Post-merge public-safety completed success on `5d6ede567296`; qsc-adversarial-smoke completed success, and full-suite checks were accepted skipped by repo policy for the docs-only evidence scope.
+- Decision D-0923 selected `CLI_ROTATE_IMPLEMENTATION_READY` and restored `NA-0469 -- QSL qsc CLI Identity Rotation Provider RNG Failure Test Seam Implementation Harness` as the exact successor.
+- D-0924 closes NA-0468 and restores NA-0469 as the sole READY successor.
+- This closeout does not implement NA-0469.
 
 Objective:
 Authorize the exact future qsc CLI identity rotation provider RNG failure scope after lazy identity and legacy/public-record identity provider RNG failure test-seam implementation, preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries unless a later directive authorizes precise implementation.
@@ -25935,6 +25942,110 @@ Acceptance criteria:
 - qsc CLI identity rotation provider RNG failure scope is selected or rejected with evidence.
 - exact future scope is selected from evidence.
 - no implementation mutation occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+Closeout evidence:
+- qsl-protocol evidence PR: #1205
+  (https://github.com/QuantumShieldLabs/qsl-protocol/pull/1205)
+  merged as `5d6ede567296`.
+- Decision evidence: D-0923 records the bounded qsc CLI identity rotation provider RNG failure scope authorization.
+- Selected classification: `CLI_ROTATE_IMPLEMENTATION_READY`.
+- Selected successor: `NA-0469 -- QSL qsc CLI Identity Rotation Provider RNG Failure Test Seam Implementation Harness`.
+- Future exact implementation scope selected by D-0923:
+  - `qsl/qsl-client/qsc/src/main.rs`
+  - `qsl/qsl-client/qsc/src/identity/mod.rs`
+  - `qsl/qsl-client/qsc/tests/cli_identity_rotation_provider_rng_failure.rs`
+  - `docs/governance/evidence/NA-0469_qsl_qsc_cli_identity_rotation_provider_rng_failure_test_seam_implementation_harness.md`
+  - `tests/NA-0469_qsl_qsc_cli_identity_rotation_provider_rng_failure_test_seam_implementation_testplan.md`
+  - `DECISIONS.md`
+  - `TRACEABILITY.md`
+  - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+- Post-merge public-safety on `5d6ede567296` completed success.
+- qsc-adversarial-smoke completed success on `5d6ede567296`; qsc-linux-full-suite and macos-qsc-full-serial were accepted skipped by repo policy for the docs-only evidence scope.
+- Closeout PR: this D-0924 closeout PR.
+- NA-0468 is DONE and NA-0469 is READY.
+- This closeout changed only governance/testplan/journal paths and did not mutate qsc source, executable tests, runtime behavior, crypto behavior, dependencies, Cargo manifests, lockfiles, workflows, fuzz targets, vectors, formal models, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup/restore/local-ops paths, qsl-backup, backup status files, backup plan files, rollback subtree paths, or backup tree paths.
+- No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No RNG-failure-complete claim is made. No provider-RNG-complete claim is made. No secret-material-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made.
+
+---
+
+### NA-0469 — QSL qsc CLI Identity Rotation Provider RNG Failure Test Seam Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the exact qsc CLI identity rotation provider RNG failure test-seam scope selected by NA-0468, preserving production semantics when the test seam is inactive and proving bounded no-partial-rotation-state behavior for selected identity, vault, public-record, and peer-reset surfaces.
+
+Protects:
+- qsc CLI identity rotation provider-dependent RNG failure evidence quality.
+- truthful no-partial-rotation behavior around selected identity, vault, public-record, and optional peer-reset surfaces.
+- qsc/refimpl boundary clarity.
+- production semantic stability.
+- key lifecycle and provider boundary confidence after ml-kem replacement, provider-error audit work, qsc zeroization tests, qsc RNG seam work, provider RNG strategy review, split-scope review, qsc no-mutation scope review, qsc fake/seam strategy review, KEM-only implementation, B1 signing implementation, A2 signing no-output implementation, identity split-scope review, lazy identity implementation, legacy/public-record implementation, and CLI rotation authorization.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- `qsl/qsl-client/qsc/src/main.rs`
+- `qsl/qsl-client/qsc/src/identity/mod.rs`
+- `qsl/qsl-client/qsc/tests/cli_identity_rotation_provider_rng_failure.rs`
+- `docs/governance/evidence/NA-0469_qsl_qsc_cli_identity_rotation_provider_rng_failure_test_seam_implementation_harness.md`
+- `tests/NA-0469_qsl_qsc_cli_identity_rotation_provider_rng_failure_test_seam_implementation_testplan.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+Forbidden scope:
+- Mutating dependencies, Cargo manifests, lockfiles, workflows, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, or START_HERE paths.
+- Mutating unrelated qsc/runtime/crypto paths outside exact NA-0468 selected scope.
+- Mutating qshield-cli unless explicitly reauthorized by a later exact directive; NA-0468 did not select qshield-cli.
+- Mutating refimpl unless explicitly reauthorized by a later exact directive; NA-0468 did not select refimpl.
+- Mutating fuzz target source, vectors, or formal models unless explicitly reauthorized by a later exact directive; NA-0468 did not select those paths.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No creating or implying production readiness.
+- No creating or implying public-internet readiness.
+- No creating or implying external-review completion.
+- No creating or implying metadata-free behavior.
+- No creating or implying anonymity.
+- No creating or implying untraceability.
+- No creating or implying off-host backup completion.
+- No creating or implying disaster recovery completion.
+- No creating or implying restore proof.
+- No creating or implying backup completion.
+- No creating or implying bug-free status.
+- No creating or implying vulnerability-free status.
+- No creating or implying perfect-crypto status.
+- No creating or implying side-channel-free status.
+- No creating or implying RNG-failure-complete status.
+- No creating or implying provider-RNG-complete status.
+- No creating or implying secret-material-complete status.
+- No creating or implying KEM-complete status.
+- No creating or implying signature-complete status.
+- No creating or implying identity-complete status.
+- No creating or implying crypto-complete status.
+- Secret material handling outside exact test/evidence scope.
+
+Deliverables:
+- NA-0469 implementation.
+- NA-0469 evidence doc.
+- NA-0469 testplan.
+- D-0925 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+
+Acceptance criteria:
+- exact selected CLI identity rotation provider failure seam is implemented.
+- production semantics unchanged when seam inactive.
+- selected no-partial-rotation-state invariant is tested.
+- no identity-complete claim is introduced.
 - cargo audit remains green.
 - nested fuzz lock audit remains green.
 - public-safety is green before merge and after merge.

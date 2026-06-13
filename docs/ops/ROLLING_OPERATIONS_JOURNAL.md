@@ -31858,8 +31858,8 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Proof root: `/srv/qbuild/tmp/NA0468_qsc_cli_identity_rotation_scope_20260613T012330Z`.
 - Evidence branch: pending.
 - Evidence PR: #1205.
-- Evidence merge commit: pending.
-- Optional closeout branch: pending.
+- Evidence merge commit: `5d6ede567296`.
+- Optional closeout branch: `na-0468-closeout-restore-na0469`.
 - Optional closeout PR: pending.
 - Optional closeout merge commit: pending.
 
@@ -31910,6 +31910,25 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
   Corrective action: created the PR with `gh pr create` using the same requested
   branch, base, title, and PR body.
   Final result: evidence PR #1205 created.
+- Failing command: initial REST check polling JSON handoff for PR #1205.
+  Classification: recoverable command-shape issue because the first shell/Python
+  handoff parsed JSON as Python source instead of stdin.
+  Corrective action: rewrote the poller to pass JSON through a file.
+  Final result: REST check polling succeeded for PR #1205.
+- Failing command: second REST check polling attempt using a large environment
+  variable for PR #1205 status JSON.
+  Classification: recoverable command-shape/data-size issue because the JSON
+  payload exceeded the local argument/environment size limit.
+  Corrective action: changed the poller to read the REST response from a temp
+  file rather than an environment variable.
+  Final result: REST check polling succeeded for PR #1205.
+- Failing command: closeout `python3 scripts/ci/preflight_governance.py || scripts/ci/preflight_governance.sh`.
+  Classification: recoverable command-shape/timing issue because there is no
+  Python preflight wrapper and the shell preflight enforces a clean tree, while
+  the intended closeout patch was staged for pre-commit validation.
+  Corrective action: record the dirty-tree refusal and rerun
+  `scripts/ci/preflight_governance.sh` after committing the closeout patch.
+  Final result: post-commit clean-tree preflight PASS.
 
 ## Non-fatal warnings / zero-match notes
 
@@ -31960,6 +31979,17 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Post-patch formal model checks: PASS.
 - Local qsc adversarial smoke: Rust phases PASS; local cargo-fuzz unavailable as
   recorded above; PR CI qsc-adversarial-smoke pending.
+- Evidence PR #1205 REST checks before merge: PASS, 38 checks attached and all
+  completed with accepted conclusions; no failing check recorded.
+- Evidence PR #1205 merged with a merge commit at `5d6ede567296`.
+- Post-merge public-safety on `5d6ede567296`: PASS.
+- Post-merge qsc-adversarial-smoke on `5d6ede567296`: PASS.
+- Post-merge qsc-linux-full-suite and macos-qsc-full-serial on
+  `5d6ede567296`: accepted skipped by repo policy for docs-only evidence scope.
+- Queue after evidence merge and before closeout patch: READY_COUNT 1, READY
+  NA-0468.
+- Decision proof after evidence merge and before closeout patch: latest D-0923,
+  duplicate decision count zero.
 
 ## Disk watermark
 
@@ -31971,11 +32001,11 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 ## Next-watch items
 
-- Complete NA-0468 governance patch validation.
-- Open evidence PR and wait for required checks.
-- Merge evidence PR only after required checks pass.
-- Run post-merge public-safety proof.
-- If green, optionally close out NA-0468 and restore NA-0469 without implementing NA-0469.
+- Complete optional closeout validation.
+- Open closeout PR and wait for required checks.
+- Merge closeout PR only after required checks pass.
+- Run post-closeout public-safety proof.
+- Do not implement NA-0469 in this directive.
 
 # QSL-DIR-2026-06-07-290 / NA-0440 closeout and NA-0441 restoration rolling journal
 

@@ -27,7 +27,7 @@ Last-Updated: 2026-06-13
 - NA-0469 implementation PR: #1207.
 - NA-0469 implementation merge commit: `94c0695a194a`.
 - NA-0469 closeout branch: `na-0469-closeout-restore-na0470`.
-- NA-0469 closeout PR: pending.
+- NA-0469 closeout PR: #1208.
 - NA-0469 closeout merge commit: pending.
 - qsl-server refs: not refreshed by this directive.
 - qsl-attachments refs: not refreshed by this directive.

@@ -31827,6 +31827,149 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Merge closeout only after required checks pass and public-safety is green.
 - Do not implement NA-0458 inside closeout.
 
+# QSL-DIR-2026-06-13-326 / NA-0468 CLI identity rotation provider RNG scope rolling journal
+
+- Directive: QSL-DIR-2026-06-13-326 -- execute NA-0468 QSL qsc CLI Identity Rotation Provider RNG Failure Scope Authorization Plan, optional closeout to NA-0469.
+- Begin timestamp (America/Chicago): 2026-06-12T20:23:30-05:00
+- Begin timestamp (UTC): 2026-06-13T01:23:30+00:00
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Repo SHAs
+
+- qsl-protocol branch before patch: `main`.
+- qsl-protocol HEAD before patch: `a557440e8ab2`.
+- qsl-protocol origin/main before patch: `a557440e8ab2`.
+- qsl-protocol origin/main after fetch: `a557440e8ab2`.
+- PR #1204 merge proof: MERGED at `a557440e8ab2`.
+
+## READY proof
+
+- qwork proof: startup OK for lane NA-0468, repo qsl-protocol, clean worktree/index/untracked state, proof HEAD and proof origin/main both `a557440e8ab2`.
+- Pre-fetch live proof: HEAD and origin/main matched qwork proof at `a557440e8ab2`.
+- Fetch result: origin/main did not advance.
+- Queue proof before patch: READY_COUNT 1, READY NA-0468.
+- Decision proof before patch: latest D-0922, D-0921 once, D-0922 once, D-0923 absent, duplicate decision count zero.
+
+## Worktree / branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0468/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0468_qsc_cli_identity_rotation_scope_20260613T012330Z`.
+- Evidence branch: pending.
+- Evidence PR: pending.
+- Evidence merge commit: pending.
+- Optional closeout branch: pending.
+- Optional closeout PR: pending.
+- Optional closeout merge commit: pending.
+
+## Strategy notes
+
+- Selected primary classification: `CLI_ROTATE_IMPLEMENTATION_READY`.
+- Selected successor: `NA-0469 -- QSL qsc CLI Identity Rotation Provider RNG Failure Test Seam Implementation Harness`.
+- CLI rotation is provider-RNG relevant for both KEM and signature keypair generation.
+- Exact future source/test paths: `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/tests/cli_identity_rotation_provider_rng_failure.rs`.
+- Future invariant: forced provider RNG failure leaves selected identity/public-record state stable, writes no KEM or signature identity secret, performs no partial public-record write/update, leaves peer-reset/contact state unchanged, and emits no dependent handshake/session success output.
+- Recommended future labels: `QSC.IDENTITY.ROTATE.KEM_KEYPAIR` and `QSC.IDENTITY.ROTATE.SIG_KEYPAIR`.
+- TUI account bootstrap, X25519 / ephemeral, refimpl provider RNG, qshield-cli demo RNG, formal/model RNG, and fuzz/vector RNG remain residual.
+- No implementation mutation in NA-0468.
+
+## Failures / recoveries
+
+- Failing command: pre-stage scope guard using `git ls-files --others --exclude-standard`.
+  Classification: recoverable command-shape issue because the allowed
+  `docs/governance/evidence/NA-0468...` path is ignored by `.gitignore`, so
+  standard untracked discovery omitted an allowed evidence file that exists on
+  disk.
+  Corrective action: force-add only the allowed ignored evidence path during
+  staging and use staged path guards for final scope proof.
+- Final result: staged path guard PASS with exactly the five allowed NA-0468
+  paths.
+- Failing command: first added-line overclaim scan.
+  Classification: recoverable wording/scan-shape issue because wrapped negative
+  claim-boundary continuation lines carried sensitive terms without same-line
+  negation.
+  Corrective action: rewrote the affected new evidence/testplan lines so each
+  sensitive claim phrase carries explicit same-line negation.
+  Final result: added-line overclaim scan PASS with
+  `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: `scripts/ci/qsc_adversarial.sh`.
+  Classification: recoverable local tool availability issue because the script
+  passed its Rust test phases and then stopped when local Cargo reported no
+  installed `cargo fuzz` subcommand; the directive explicitly allows recording
+  this output and relying on PR CI qsc-adversarial-smoke when local cargo-fuzz
+  is unavailable.
+  Corrective action: recorded the exact local output in the proof root and kept
+  PR CI qsc-adversarial-smoke as required evidence before merge.
+  Final result: Rust adversarial phases PASS locally; cargo-fuzz phase not
+  available locally; PR CI qsc-adversarial-smoke pending.
+
+## Non-fatal warnings / zero-match notes
+
+- Root pqcrypto inverse probes reported package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`; these were expected zero-match inventory results under the directive's `|| true` probes.
+
+## Validation / CI notes
+
+- Public-safety on current main `a557440e8ab2`: PASS; qsc-adversarial-smoke PASS; full-suite checks accepted skipped by repo policy.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- qsc cfg/no-cfg `legacy_identity_public_record_provider_rng_failure`: PASS.
+- qsc cfg/no-cfg `lazy_identity_provider_rng_failure`: PASS.
+- qsc cfg/no-cfg `a2_signature_provider_rng_failure`: PASS.
+- qsc cfg/no-cfg `b1_signature_provider_rng_failure`: PASS.
+- qsc cfg/no-cfg `kem_provider_rng_failure`: PASS.
+- qsc cfg/no-cfg `rng_failure_residual_surfaces`: PASS.
+- qsc cfg/no-cfg `rng_failure_behavior`: PASS.
+- qsc `key_lifecycle_zeroization`: PASS.
+- qsc `handshake_provider_error_no_mutation`: PASS.
+- qsc adversarial script marker present.
+- qsl-backup SHA matched required boundary value; script-local ops source inclusion count was 1.
+- Post-patch staged scope guard: PASS with exactly five allowed NA-0468 paths.
+- Post-patch `git diff --check` and cached diff check: PASS.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan after wording correction: PASS,
+  `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- CI scope classifier: PASS, `scope_class=docs_only`.
+- PR body preflight: PASS, Goals/Impact/No-regression/Tests-Vectors present.
+- Queue helper after patch: PASS, READY_COUNT 1 and READY NA-0468.
+- Decision helper after patch: PASS, latest D-0923 and duplicate decision count
+  zero.
+- qsc adversarial script syntax: PASS for `sh -n` and `bash -n`.
+- Post-patch qsc cfg/no-cfg `legacy_identity_public_record_provider_rng_failure`: PASS.
+- Post-patch qsc cfg/no-cfg `lazy_identity_provider_rng_failure`: PASS.
+- Post-patch qsc cfg/no-cfg `a2_signature_provider_rng_failure`: PASS.
+- Post-patch qsc cfg/no-cfg `b1_signature_provider_rng_failure`: PASS.
+- Post-patch qsc cfg/no-cfg `kem_provider_rng_failure`: PASS.
+- Post-patch qsc cfg/no-cfg `rng_failure_residual_surfaces`: PASS.
+- Post-patch qsc cfg/no-cfg `rng_failure_behavior`: PASS.
+- Post-patch qsc `key_lifecycle_zeroization`: PASS.
+- Post-patch qsc `handshake_provider_error_no_mutation`: PASS.
+- Post-patch qsc stable `send_commit`: PASS.
+- Post-patch refimpl `pqkem768`: PASS.
+- Post-patch root cargo audit: PASS.
+- Post-patch nested qsc fuzz lock cargo audit: PASS.
+- Post-patch `cargo fmt --check`: PASS.
+- Post-patch formal model checks: PASS.
+- Local qsc adversarial smoke: Rust phases PASS; local cargo-fuzz unavailable as
+  recorded above; PR CI qsc-adversarial-smoke pending.
+
+## Disk watermark
+
+- Filesystem: `/`.
+- Total GiB: 468.
+- Used GiB: 321.
+- Free GiB: 124.
+- Used %: 73%.
+
+## Next-watch items
+
+- Complete NA-0468 governance patch validation.
+- Open evidence PR and wait for required checks.
+- Merge evidence PR only after required checks pass.
+- Run post-merge public-safety proof.
+- If green, optionally close out NA-0468 and restore NA-0469 without implementing NA-0469.
+
 # QSL-DIR-2026-06-07-290 / NA-0440 closeout and NA-0441 restoration rolling journal
 
 - Directive: QSL-DIR-2026-06-07-290 optional closeout -- close out NA-0440 after PR #1149 post-merge public-safety completion and restore NA-0441.

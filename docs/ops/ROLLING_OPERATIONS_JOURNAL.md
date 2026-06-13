@@ -20,6 +20,8 @@ Last-Updated: 2026-06-13
 - qsl-protocol origin/main after fetch: `4f1d334826b4`.
 - PR #1209 merge commit verified: `4f1d334826b4`.
 - Evidence branch: `na-0470-tui-account-bootstrap-identity-scope`.
+- Evidence PR #1210 merge commit: `95feccd041a5`.
+- Closeout branch: `na-0470-closeout-restore-na0471`.
 
 ## READY Proof
 
@@ -55,14 +57,22 @@ Last-Updated: 2026-06-13
 - Root cargo audit and nested qsc fuzz lock audit passed during startup.
 - qsl-backup SHA proof matched expected value and `/home/victor/work/qsl/codex/ops` source inclusion count remained 1.
 - Inherited qsc/refimpl tests were started before the governance patch and captured in the directive proof root.
-- NA-0470 patch is governance-only and must remain limited to the five allowed paths.
+- NA-0470 evidence patch was governance-only and limited to the five allowed Packet O paths.
+- qsl-protocol evidence PR #1210 merged at `95feccd041a5`.
+- Post-merge public-safety completed success on `95feccd041a5`.
+- Immediate post-merge public-safety helper returned missing/ambiguous while checks were still attaching. Classification: recoverable post-merge timing state. Corrective action: REST-polled check runs until public-safety attached and completed success. Final result: PASS.
+- Closeout patch is governance-only and must remain limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0470_closeout_restore_na0471_testplan.md`.
+- Closeout restores `NA-0471 -- QSL qsc TUI Account Bootstrap Transactionality Design Authorization Plan` as the sole READY successor.
+- Closeout does not implement NA-0471 and does not mutate runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz, vector, formal, refimpl, qsl-server, qsl-attachments, qshield, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status, plan, rollback, or backup tree paths.
+- Closeout staged validation passed: cached/worktree diff checks, exact five-path scope guard, link-check, leak-scan, added-line overclaim scan, queue proof, decision proof, docs-only classifier, PR body preflight, root cargo audit, nested qsc fuzz lock audit, cargo fmt check, and qsl-backup read-only boundary proof.
+- Non-fatal warning: parallel cargo-audit commands waited on the shared advisory database lock. Classification: benign non-fatal warning because both audit commands completed successfully. Corrective action: none required beyond recording. Final result: root audit PASS and nested qsc fuzz lock audit PASS.
 
 ## Next-watch items
 
-- Complete inherited test batch and pre-PR validation.
-- Open Packet O PR from `na-0470-tui-account-bootstrap-identity-scope`.
-- Merge only after required checks pass.
-- If Packet O merges and post-merge public-safety is green, optional closeout should restore the selected NA-0471 transactionality design authorization lane.
+- Complete closeout validation.
+- Open Packet P PR from `na-0470-closeout-restore-na0471`.
+- Merge only after required checks pass and public-safety is green.
+- After closeout merge, verify NA-0470 DONE, NA-0471 READY, D-0929 on main, and public-safety green.
 
 # QSL-DIR-2026-06-13-329 / NA-0469 assurance addendum recovery rolling journal
 

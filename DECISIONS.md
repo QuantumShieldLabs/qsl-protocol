@@ -24673,3 +24673,29 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - TUI bootstrap authorization must not be represented as any prohibited completion, readiness, freedom, or public assurance claim listed above.
     - more than one READY item remains.
   - **References:** NA-0470; NA-0471; NA-0469; D-0928; D-0927; D-0926; D-0925; `docs/governance/evidence/NA-0470_qsl_qsc_tui_account_bootstrap_identity_provider_rng_failure_scope_authorization_plan.md`; `tests/NA-0470_qsl_qsc_tui_account_bootstrap_identity_provider_rng_failure_scope_authorization_testplan.md`; `qsl/qsl-client/qsc/src/tui/controller/commands/locked.rs`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/src/vault/mod.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0929
+  - **Title:** NA-0470 closeout and NA-0471 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-13
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0470 is closed after qsl-protocol evidence PR #1210 merged at `95feccd041a5` and post-merge public-safety completed success on that merge commit. D-0928 records the bounded qsc TUI account bootstrap identity provider RNG failure scope authorization, so this closeout marks NA-0470 DONE and restores `NA-0471 -- QSL qsc TUI Account Bootstrap Transactionality Design Authorization Plan` as the sole READY successor.
+  - **Authorization acceptance boundary:** The PR #1210 evidence is internal governance authorization only. It classifies TUI account bootstrap as `TUI_BOOTSTRAP_REQUIRES_DESIGN_CHANGE` because current bootstrap ordering writes vault/account/default/verification/relay state before KEM and signature identity keypair generation. It does not implement a TUI bootstrap seam.
+  - **NA-0471 restored scope:** NA-0471 is governance-only transactionality design authorization. It may mutate only `docs/governance/evidence/NA-0471_qsl_qsc_tui_account_bootstrap_transactionality_design_authorization_plan.md`, `tests/NA-0471_qsl_qsc_tui_account_bootstrap_transactionality_design_authorization_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, with read-only inspection of `qsl/qsl-client/qsc/src/tui/controller/commands/locked.rs`, `qsl/qsl-client/qsc/src/identity/mod.rs`, `qsl/qsl-client/qsc/src/vault/mod.rs`, qsc tests, and NA-0470 evidence.
+  - **Design questions for NA-0471:** NA-0471 must decide whether future bootstrap behavior should pre-generate identity material before durable account/default writes, roll back durable bootstrap state after identity provider failure, narrow future evidence to identity/public-record-only invariants, or defer TUI bootstrap implementation to Assurance Gap Review.
+  - **Assurance gap trigger status:** D-0928 classified the trigger as `HIGHER_PRIORITY_RESIDUAL_SUPERSEDES_ASSURANCE_REVIEW`. Assurance Gap Review remains required after this direct residual chain unless a later directive proves another higher-priority residual.
+  - **No implementation mutation by closeout:** This closeout does not mutate qsc source, executable qsc tests, runtime behavior, crypto behavior, dependencies, Cargo manifests, lockfiles, workflows, fuzz targets, vectors, formal models, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup/restore/local-ops paths, qsl-backup, backup status files, backup plan files, rollback subtree paths, or backup tree paths.
+  - **Backup / restore boundary:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or `/backup/qsl`.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No RNG-failure-complete claim is made. No provider-RNG-complete claim is made. No secret-material-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Required behavior:**
+    - Exactly one READY item remains mandatory.
+    - NA-0470 remains DONE.
+    - NA-0471 remains READY until a later exact directive executes or closes it.
+    - NA-0471 must stay governance-only unless a later exact directive authorizes implementation.
+    - TUI bootstrap authorization must not be represented as implementation evidence.
+  - **Must never happen:**
+    - NA-0471 is implemented by this closeout.
+    - Closeout evidence is represented as TUI bootstrap implementation evidence.
+    - TUI bootstrap authorization or closeout is represented as public readiness, production readiness, external review completion, crypto completion, KEM completion, signature completion, identity completion, RNG failure completion, provider RNG completion, side-channel freedom, vulnerability freedom, bug freedom, or perfect crypto.
+    - more than one READY item remains.
+  - **References:** NA-0470; NA-0471; D-0929; D-0928; qsl-protocol PR #1210; `docs/governance/evidence/NA-0470_qsl_qsc_tui_account_bootstrap_identity_provider_rng_failure_scope_authorization_plan.md`; `tests/NA-0470_qsl_qsc_tui_account_bootstrap_identity_provider_rng_failure_scope_authorization_testplan.md`; `tests/NA-0470_closeout_restore_na0471_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

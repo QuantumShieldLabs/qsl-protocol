@@ -11,8 +11,8 @@ Last-Updated: 2026-06-13
 - Directive: QSL-DIR-2026-06-13-327 -- Execute NA-0469 QSL qsc CLI Identity Rotation Provider RNG Failure Test Seam Implementation Harness, Optional Closeout to NA-0470.
 - Begin timestamp (America/Chicago): 2026-06-12T21:40:02-05:00.
 - Begin timestamp (UTC): 2026-06-13T02:40:02+00:00.
-- End timestamp (America/Chicago): pending implementation merge.
-- End timestamp (UTC): pending implementation merge.
+- End timestamp (America/Chicago): pending closeout merge.
+- End timestamp (UTC): pending closeout merge.
 - Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
 
 ## Repo SHAs
@@ -25,7 +25,10 @@ Last-Updated: 2026-06-13
 - NA-0469 implementation branch: `na-0469-qsc-cli-identity-rotation-seam`.
 - NA-0469 implementation head: recorded in the directive proof root.
 - NA-0469 implementation PR: #1207.
-- NA-0469 implementation merge commit: pending.
+- NA-0469 implementation merge commit: `94c0695a194a`.
+- NA-0469 closeout branch: `na-0469-closeout-restore-na0470`.
+- NA-0469 closeout PR: #1208.
+- NA-0469 closeout merge commit: pending.
 - qsl-server refs: not refreshed by this directive.
 - qsl-attachments refs: not refreshed by this directive.
 
@@ -39,6 +42,10 @@ Last-Updated: 2026-06-13
 - Status proof before patch: NA-0468 through NA-0435 DONE; NA-0434 and NA-0429 BLOCKED.
 - Decision proof before patch: D-0923 once, D-0924 once, D-0925 absent, duplicate decision count zero.
 - Public-safety on current main `b96e220baec0`: PASS.
+- Queue proof after implementation merge and before closeout patch: READY_COUNT
+  1, READY NA-0469.
+- Decision proof after implementation merge and before closeout patch: latest
+  D-0925 and duplicate decision count zero.
 
 ## Worktree / Branch / PR
 
@@ -102,6 +109,28 @@ Last-Updated: 2026-06-13
   Corrective action: created the PR with `gh pr create` using the same requested
   branch, base, title, and PR body.
   Final result: implementation PR #1207 created.
+- Failing command: initial post-merge REST polling loop for PR #1207 merge
+  commit `94c0695a194a`.
+  Classification: recoverable poller-shape issue because the fixed 180-iteration
+  helper reached its scripted cap while GitHub still reported attached,
+  in-progress, non-failing full-suite and public-safety jobs.
+  Corrective action: continued with the directive's evidence-based post-merge
+  policy, recording active job status until checks completed.
+  Final result: post-merge public-safety and all merge-commit checks completed
+  success at policy iteration 230.
+- Failing command: first closeout scope guard.
+  Classification: recoverable guard-shape issue because `git diff --name-only`
+  did not include the new untracked closeout testplan.
+  Corrective action: reran the path inventory with `git ls-files --others
+  --exclude-standard` included.
+  Final result: closeout scope guard PASS with exactly five allowed paths.
+- Failing command: first closeout added-line overclaim scan.
+  Classification: recoverable wording issue because a D-0926 "Must never
+  happen" bullet relied on section context instead of same-line negation.
+  Corrective action: reworded the line to say Cargo audit output must not be
+  represented as the listed public/security completion claims.
+  Final result: closeout added-line overclaim scan PASS,
+  `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
 
 ## Non-fatal Warnings / Zero-Match Notes
 
@@ -166,8 +195,32 @@ Last-Updated: 2026-06-13
 - Pre-PR formal model checks: PASS.
 - Pre-PR goal-lint: PASS against a synthesized PR event for
   `origin/main...HEAD`.
-- Implementation PR checks: pending.
-- Implementation post-merge public-safety: pending.
+- Implementation PR #1207 checks before merge: PASS, 38 checks attached and all
+  completed with accepted conclusions; no failing check recorded.
+- Implementation PR #1207 merged with a merge commit at `94c0695a194a`.
+- Post-merge public-safety on `94c0695a194a`: PASS.
+- Post-merge qsc-adversarial-smoke on `94c0695a194a`: PASS.
+- Post-merge qsc-linux-full-suite on `94c0695a194a`: PASS.
+- Post-merge macos-qsc-full-serial on `94c0695a194a`: PASS.
+- Closeout scope guard: PASS with exactly five allowed paths.
+- Closeout `git diff --check` and cached diff check: PASS.
+- Closeout link check: PASS, `TOTAL_MISSING 0`.
+- Closeout leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Closeout added-line overclaim scan: PASS,
+  `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Closeout CI scope classifier: PASS, `scope_class=docs_only`.
+- Closeout PR body preflight: PASS, Goals/Impact/No-regression/Tests-Vectors
+  present and prohibited phrase count zero.
+- Closeout queue proof: READY_COUNT 1 and READY NA-0470.
+- Closeout exact queue proof: NA-0469 DONE and NA-0470 READY.
+- Closeout decision proof: latest D-0926, D-0926 latest, D-0927 absent, and
+  duplicate decision count zero.
+- Closeout pre-merge public-safety on `94c0695a194a`: PASS.
+- Closeout root cargo audit: PASS.
+- Closeout nested qsc fuzz lock cargo audit: PASS.
+- Closeout `cargo fmt --check`: PASS.
+- Closeout goal-lint: PASS against a synthesized PR event for
+  `origin/main...HEAD`.
 
 ## Disk Watermark
 
@@ -179,11 +232,10 @@ Last-Updated: 2026-06-13
 
 ## Next-Watch Items
 
-- Run pre-PR guard set after governance patch.
-- Open implementation PR on `na-0469-qsc-cli-identity-rotation-seam`.
-- Merge implementation PR only after required checks pass.
-- Verify post-merge public-safety on the merge commit.
-- If post-merge public-safety is green, optionally close out NA-0469 and restore NA-0470.
+- Run closeout validation.
+- Open closeout PR on `na-0469-closeout-restore-na0470`.
+- Merge closeout PR only after required checks pass.
+- Verify post-closeout public-safety on the merge commit.
 - Do not implement NA-0470 in this directive.
 
 # QSL-DIR-2026-06-13-325 / NA-0467 closeout and NA-0468 restoration rolling journal

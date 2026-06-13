@@ -6,6 +6,64 @@ Last-Updated: 2026-06-13
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-13-330 / NA-0470 TUI bootstrap identity provider RNG scope rolling journal
+
+- Directive: QSL-DIR-2026-06-13-330 -- Execute NA-0470 QSL qsc TUI Account Bootstrap Identity Provider RNG Failure Scope Authorization Plan, Optional Closeout to NA-0471.
+- Begin timestamp (America/Chicago): 2026-06-13T07:06:13-05:00.
+- Begin timestamp (UTC): 2026-06-13T12:06:13+00:00.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Repo SHAs
+
+- qsl-protocol HEAD before fetch: `4f1d334826b4`.
+- qsl-protocol origin/main before fetch: `4f1d334826b4`.
+- qsl-protocol origin/main after fetch: `4f1d334826b4`.
+- PR #1209 merge commit verified: `4f1d334826b4`.
+- Evidence branch: `na-0470-tui-account-bootstrap-identity-scope`.
+
+## READY Proof
+
+- qwork proof: startup OK for lane NA-0470, repo qsl-protocol, clean worktree/index/untracked state, proof HEAD and proof origin/main both `4f1d334826b4`.
+- Pre-fetch live proof: HEAD and origin/main matched qwork proof at `4f1d334826b4`.
+- Fetch result: origin/main did not advance.
+- Queue proof before patch: READY_COUNT 1 and READY NA-0470.
+- Status proof before patch: NA-0469 DONE and NA-0470 READY.
+- Decision proof before patch: D-0925 once, D-0926 once, D-0927 once, D-0928 absent, duplicate decision count zero.
+- Public-safety on current main `4f1d334826b4`: PASS.
+
+## Recovered failure evidence
+
+- Failing command: a direct Python queue-status probe using a multiline regex to count READY blocks.
+- Classification: recoverable command-shape mistake. The command confirmed the named NA statuses but over-captured an older heading while computing the READY list.
+- Corrective action: reran immediately with block-based parsing keyed by `### NA-....` headings.
+- Final result: PASS, READY_COUNT 1 and READY NA-0470; D-0925, D-0926, and D-0927 each exist once; D-0928 and D-0929 absent; duplicate decision IDs zero.
+
+## TUI bootstrap scope finding
+
+- D-0927 consumed before NA-0470 execution.
+- NA-0469 consumed as bounded CLI rotation background only.
+- Read-only source inventory found TUI `/init` in `qsl/qsl-client/qsc/src/tui/controller/commands/locked.rs`.
+- `init_identity_with_passphrase` generates both KEM and signature identity keypairs, then writes KEM/signature identity secrets and the self public record.
+- Bootstrap identity generation occurs after `tui_try_vault_init`, `profile_alias`, default settings, account verification seed, relay endpoint/token fields, and TUI relay inbox token state writes.
+- A simple cfg-only identity provider RNG seam could prove no partial identity/public-record write, but cannot prove no partial account/bootstrap state under current ordering.
+- Primary classification: `TUI_BOOTSTRAP_REQUIRES_DESIGN_CHANGE`.
+- Selected successor: `NA-0471 -- QSL qsc TUI Account Bootstrap Transactionality Design Authorization Plan`.
+- Assurance gap trigger classification: `HIGHER_PRIORITY_RESIDUAL_SUPERSEDES_ASSURANCE_REVIEW`.
+
+## Validation notes
+
+- Root cargo audit and nested qsc fuzz lock audit passed during startup.
+- qsl-backup SHA proof matched expected value and `/home/victor/work/qsl/codex/ops` source inclusion count remained 1.
+- Inherited qsc/refimpl tests were started before the governance patch and captured in the directive proof root.
+- NA-0470 patch is governance-only and must remain limited to the five allowed paths.
+
+## Next-watch items
+
+- Complete inherited test batch and pre-PR validation.
+- Open Packet O PR from `na-0470-tui-account-bootstrap-identity-scope`.
+- Merge only after required checks pass.
+- If Packet O merges and post-merge public-safety is green, optional closeout should restore the selected NA-0471 transactionality design authorization lane.
+
 # QSL-DIR-2026-06-13-329 / NA-0469 assurance addendum recovery rolling journal
 
 - Directive: QSL-DIR-2026-06-13-329 -- Recover NA-0469 Assurance Addendum Evidence Before Starting NA-0470.

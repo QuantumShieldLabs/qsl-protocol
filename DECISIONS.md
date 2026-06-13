@@ -24846,6 +24846,27 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Exactly one READY remains mandatory.
   - **Must never happen:**
     - No future evidence may represent NA-0473 as public readiness, production readiness, public-internet readiness, external review completion, crypto completion, KEM completion, signature completion, identity completion, RNG failure completion, provider RNG completion, secret-material completion, side-channel freedom, vulnerability freedom, bug freedom, metadata freedom, anonymity, untraceability, backup completion, restore proof, or perfect crypto.
-    - Cargo audit output is represented as anything stronger than dependency-health evidence.
-    - more than one READY item remains.
+    - Cargo audit output must not be represented as anything stronger than dependency-health evidence.
+    - More than one READY item must not remain.
   - **References:** NA-0473; NA-0472; NA-0474; D-0934; D-0933; D-0932; `docs/governance/evidence/NA-0473_qsl_identity_provider_rng_assurance_gap_review_plan.md`; `tests/NA-0473_qsl_identity_provider_rng_assurance_gap_review_testplan.md`; `docs/governance/evidence/NA-0472_qsl_qsc_tui_account_bootstrap_pre_generation_transactionality_implementation_harness.md`; `tests/NA-0472_qsl_qsc_tui_account_bootstrap_pre_generation_transactionality_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0935
+  - **Title:** NA-0473 closeout and NA-0474 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-13
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0473 is closed after qsl-protocol evidence PR #1216 merged at `91e05e7b089b` and post-merge public-safety completed success on that merge commit. D-0934 records the bounded governance-only identity/provider RNG assurance gap review and selects `NA-0474 -- QSL KEM / Signature / Transcript Binding Read-Only Audit Plan` as the successor. This closeout marks NA-0473 DONE and restores NA-0474 as the sole READY item.
+  - **Selected NA-0474 successor restored:** NA-0474 is a read-only audit plan for qsc and refimpl KEM, signature, transcript, identity, suite binding, downgrade, replay, stale public-record, and state-transition evidence. It does not authorize implementation mutation.
+  - **Evidence consumed:** NA-0473 evidence doc, NA-0473 testplan, D-0934, TRACEABILITY, rolling journal, PR #1216 checks, post-merge public-safety, and post-merge qsc-adversarial-smoke are accepted as closeout evidence.
+  - **No implementation mutation:** This closeout does not implement NA-0474 and does not mutate runtime behavior.
+  - **No runtime/crypto/dependency/Cargo/lockfile/workflow/test/fuzz/vector/formal mutation:** This closeout does not mutate runtime code, crypto code, dependencies, Cargo manifests, lockfiles, workflows, executable tests, fuzz targets, vectors, formal models, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status files, backup plan files, rollback subtree paths, `/backup/qsl`, durable Director State Index output, or public technical paper content.
+  - **No backup/restore:** Codex did not run backup or restore and did not mutate qsl-backup or backup plan/status files.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No RNG-failure-complete claim is made. No provider-RNG-complete claim is made. No secret-material-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. No metadata-free claim is made. No anonymity claim is made. No untraceability claim is made. No backup-complete claim is made. No restore-proof claim is made. Cargo audit green is dependency-health evidence only.
+  - **Required behavior:**
+    - NA-0474 remains read-only until a later exact directive authorizes any implementation work.
+    - Exactly one READY remains mandatory.
+  - **Must never happen:**
+    - No future evidence may represent NA-0473 closeout or NA-0474 restoration as public readiness, production readiness, public-internet readiness, external review completion, crypto completion, KEM completion, signature completion, identity completion, RNG failure completion, provider RNG completion, secret-material completion, side-channel freedom, vulnerability freedom, bug freedom, metadata freedom, anonymity, untraceability, backup completion, restore proof, or perfect crypto.
+    - Cargo audit output must not be represented as anything stronger than dependency-health evidence.
+    - More than one READY item remains.
+  - **References:** NA-0473; NA-0474; D-0935; D-0934; PR #1216; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0473_closeout_restore_na0474_testplan.md`

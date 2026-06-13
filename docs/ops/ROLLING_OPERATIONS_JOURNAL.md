@@ -6,6 +6,186 @@ Last-Updated: 2026-06-13
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-13-327 / NA-0469 CLI identity rotation provider RNG seam rolling journal
+
+- Directive: QSL-DIR-2026-06-13-327 -- Execute NA-0469 QSL qsc CLI Identity Rotation Provider RNG Failure Test Seam Implementation Harness, Optional Closeout to NA-0470.
+- Begin timestamp (America/Chicago): 2026-06-12T21:40:02-05:00.
+- Begin timestamp (UTC): 2026-06-13T02:40:02+00:00.
+- End timestamp (America/Chicago): pending implementation merge.
+- End timestamp (UTC): pending implementation merge.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Repo SHAs
+
+- qsl-protocol branch before implementation branch creation: `main`.
+- qsl-protocol HEAD before fetch: `b96e220baec0`.
+- qsl-protocol origin/main before fetch: `b96e220baec0`.
+- qsl-protocol origin/main after fetch: `b96e220baec0`.
+- qsl-protocol PR #1206 merge commit: `b96e220baec0`.
+- NA-0469 implementation branch: `na-0469-qsc-cli-identity-rotation-seam`.
+- NA-0469 implementation head: recorded in the directive proof root.
+- NA-0469 implementation PR: #1207.
+- NA-0469 implementation merge commit: pending.
+- qsl-server refs: not refreshed by this directive.
+- qsl-attachments refs: not refreshed by this directive.
+
+## READY Proof
+
+- qwork proof: startup OK for lane NA-0469, repo qsl-protocol, clean worktree/index/untracked state, proof HEAD and proof origin/main both `b96e220baec0`.
+- Pre-fetch live proof: HEAD and origin/main matched qwork proof at `b96e220baec0`.
+- Fetch result: origin/main did not advance.
+- PR #1206 proof: MERGED at `b96e220baec0`.
+- Queue proof before patch: READY_COUNT 1, READY NA-0469.
+- Status proof before patch: NA-0468 through NA-0435 DONE; NA-0434 and NA-0429 BLOCKED.
+- Decision proof before patch: D-0923 once, D-0924 once, D-0925 absent, duplicate decision count zero.
+- Public-safety on current main `b96e220baec0`: PASS.
+
+## Worktree / Branch / PR
+
+- Worktree path: `/srv/qbuild/work/NA-0469/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0469_qsc_cli_identity_rotation_provider_rng_impl_20260613T023954Z`.
+- Allowed implementation paths touched: `qsl/qsl-client/qsc/src/main.rs`, `qsl/qsl-client/qsc/src/identity/mod.rs`, and `qsl/qsl-client/qsc/tests/cli_identity_rotation_provider_rng_failure.rs`.
+- Allowed governance paths touched: NA-0469 evidence doc, NA-0469 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this rolling journal.
+- Implementation PR: pending.
+
+## Strategy Notes
+
+- NA-0469 consumes D-0923/D-0924 and implements CLI rotation only.
+- Implemented cfg-only labels: `QSC.IDENTITY.ROTATE.KEM_KEYPAIR` and `QSC.IDENTITY.ROTATE.SIG_KEYPAIR`.
+- `identity_rotate_kem_keypair()` and `identity_rotate_sig_keypair()` are cfg-aware wrappers in `identity/mod.rs`.
+- `identity rotate` in `main.rs` now exits through sanitized `identity_secret_unavailable` / `rng_failure_forced` before vault, public-record, or peer-reset writes when the cfg seam forces either rotation label.
+- Normal no-cfg builds do not read or honor `QSC_RNG_FAILURE_TEST_SEAM`.
+- Lazy identity and legacy/public-record evidence remain bounded background checks.
+- TUI account bootstrap identity generation, X25519 / ephemeral generation, refimpl provider RNG, qshield-cli demo RNG, formal/model RNG, and fuzz/vector RNG remain residual.
+- Selected successor after merge: `NA-0470 -- QSL qsc TUI Account Bootstrap Identity Provider RNG Failure Scope Authorization Plan`.
+
+## Failures / Recoveries
+
+- Failing command: startup inherited cfg tests invoked as `env RUSTFLAGS=--cfg qsc_rng_failure_test_seam ...`.
+  Classification: recoverable command-shape quoting issue because the intended single `RUSTFLAGS` value was split by the shell.
+  Corrective action: reran cfg inherited tests as `env "RUSTFLAGS=--cfg qsc_rng_failure_test_seam" ...`.
+  Final result: corrected cfg inherited tests PASS.
+- Failing command: read-only search included stale path `qsl/qsl-client/qsc/src/contacts.rs`.
+  Classification: recoverable command-shape/path issue because contacts is a module directory.
+  Corrective action: reran the search against `qsl/qsl-client/qsc/src/contacts`.
+  Final result: corrected search succeeded.
+- Failing command: initial `cargo fmt --check`.
+  Classification: recoverable formatting issue limited to new NA-0469 edits.
+  Corrective action: ran `cargo fmt` once and reran `cargo fmt --check`.
+  Final result: formatting check PASS.
+- Failing command: first cfg `cli_identity_rotation_provider_rng_failure` compile.
+  Classification: recoverable in-scope compile issue because removing `hs_kem_keypair` / `hs_sig_keypair` imports from `main.rs` also removed names consumed by child modules through `use super::*`.
+  Corrective action: restored the parent imports while keeping `identity_rotate` on the new wrappers.
+  Final result: cfg NA-0469 test PASS.
+- Failing command: local `sh scripts/ci/qsc_adversarial.sh`.
+  Classification: local tooling limitation after successful Rust adversarial, Miri-style, and provider-error phases; `cargo fuzz` is not installed locally.
+  Corrective action: recorded exact output and will rely on PR CI `qsc-adversarial-smoke`.
+  Final result: local Rust adversarial phases PASS; fuzz-smoke pending CI.
+- Failing command: first manual link-check wrapper.
+  Classification: recoverable command-shape issue because the here-doc
+  terminator was combined with a pipe, causing Python to parse `PY` after the
+  zero-missing result.
+  Corrective action: reran the link check with Python output redirected to a
+  proof file and then printed the proof file.
+  Final result: link check PASS, `TOTAL_MISSING 0`.
+- Failing command: first added-line overclaim scan after governance patch.
+  Classification: recoverable wording issue because wrapped continuation lines
+  carried high-risk phrases without same-line negation.
+  Corrective action: reworded evidence and testplan text so each high-risk
+  phrase carries local negative claim wording.
+  Final result: added-line overclaim scan PASS,
+  `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: GitHub connector `create_pull_request`.
+  Classification: recoverable connector permission issue because the GitHub app
+  returned `403 Resource not accessible by integration` after the branch was
+  pushed successfully, while the authenticated `gh` CLI path was available.
+  Corrective action: created the PR with `gh pr create` using the same requested
+  branch, base, title, and PR body.
+  Final result: implementation PR #1207 created.
+
+## Non-fatal Warnings / Zero-Match Notes
+
+- `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked` returned package-ID absence under directive-authorized `|| true` probes and remain expected zero-match inventory notes.
+- First exact-line backup source-list grep returned zero because the manifest source entry is whitespace-indented; the corrected whitespace-tolerant count returned 1.
+
+## Validation / CI Notes
+
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- qsc cfg `cli_identity_rotation_provider_rng_failure`: PASS.
+- qsc no-cfg `cli_identity_rotation_provider_rng_failure`: PASS.
+- qsc cfg/no-cfg `legacy_identity_public_record_provider_rng_failure`: PASS.
+- qsc cfg/no-cfg `lazy_identity_provider_rng_failure`: PASS.
+- qsc cfg/no-cfg `a2_signature_provider_rng_failure`: PASS.
+- qsc cfg/no-cfg `b1_signature_provider_rng_failure`: PASS.
+- qsc cfg/no-cfg `kem_provider_rng_failure`: PASS.
+- qsc cfg/no-cfg `rng_failure_residual_surfaces`: PASS.
+- qsc cfg/no-cfg `rng_failure_behavior`: PASS.
+- qsc `key_lifecycle_zeroization`: PASS.
+- qsc `handshake_provider_error_no_mutation`: PASS.
+- qsc stable `send_commit`: PASS.
+- refimpl `pqkem768`: PASS.
+- qsc adversarial script syntax: PASS for `sh -n` and `bash -n`.
+- qsc adversarial local Rust phases: PASS; local cargo-fuzz unavailable.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- Formal model checks: PASS.
+- qsl-backup SHA matched required boundary value; latest same-host manifest source-list count for Codex ops was 1.
+- Post-governance staged path guard: PASS with exactly eight allowed NA-0469
+  paths.
+- Post-governance `git diff --check` and cached diff check: PASS.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan after wording correction: PASS,
+  `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- CI scope classifier: PASS, `scope_class=runtime_critical`.
+- Queue helper after governance patch: PASS, READY_COUNT 1 and READY NA-0469.
+- Decision helper after governance patch: PASS, latest D-0925 and duplicate
+  decision count zero.
+- PR body preflight: PASS, Goals/Impact/No-regression/Tests-Vectors present
+  and prohibited phrase count zero.
+- Pre-PR `cargo fmt --check`: PASS.
+- Pre-PR qsc cfg/no-cfg `cli_identity_rotation_provider_rng_failure`: PASS.
+- Pre-PR qsc cfg/no-cfg `legacy_identity_public_record_provider_rng_failure`:
+  PASS.
+- Pre-PR qsc cfg/no-cfg `lazy_identity_provider_rng_failure`: PASS.
+- Pre-PR qsc cfg/no-cfg `a2_signature_provider_rng_failure`: PASS.
+- Pre-PR qsc cfg/no-cfg `b1_signature_provider_rng_failure`: PASS.
+- Pre-PR qsc cfg/no-cfg `kem_provider_rng_failure`: PASS.
+- Pre-PR qsc cfg/no-cfg `rng_failure_residual_surfaces`: PASS.
+- Pre-PR qsc cfg/no-cfg `rng_failure_behavior`: PASS.
+- Pre-PR qsc `key_lifecycle_zeroization`: PASS.
+- Pre-PR qsc `handshake_provider_error_no_mutation`: PASS.
+- Pre-PR qsc stable `send_commit`: PASS.
+- Pre-PR refimpl `pqkem768`: PASS.
+- Pre-PR qsc adversarial syntax checks: PASS for `sh -n` and `bash -n`.
+- Pre-PR root cargo audit: PASS.
+- Pre-PR nested qsc fuzz lock cargo audit: PASS.
+- Pre-PR dependency probes: `rustls-webpki v0.103.13`, `ml-kem v0.2.1`,
+  and expected pqcrypto package-ID absence notes.
+- Pre-PR formal model checks: PASS.
+- Pre-PR goal-lint: PASS against a synthesized PR event for
+  `origin/main...HEAD`.
+- Implementation PR checks: pending.
+- Implementation post-merge public-safety: pending.
+
+## Disk Watermark
+
+- Filesystem: pending final watermark.
+- Total GiB: pending.
+- Used GiB: pending.
+- Free GiB: pending.
+- Used %: pending.
+
+## Next-Watch Items
+
+- Run pre-PR guard set after governance patch.
+- Open implementation PR on `na-0469-qsc-cli-identity-rotation-seam`.
+- Merge implementation PR only after required checks pass.
+- Verify post-merge public-safety on the merge commit.
+- If post-merge public-safety is green, optionally close out NA-0469 and restore NA-0470.
+- Do not implement NA-0470 in this directive.
+
 # QSL-DIR-2026-06-13-325 / NA-0467 closeout and NA-0468 restoration rolling journal
 
 - Directive: QSL-DIR-2026-06-13-325 -- Close Out NA-0467 After Legacy Identity Public-Record Provider RNG Seam Public-Safety Completion and Restore NA-0468.

@@ -24562,3 +24562,44 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output must not be used as public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, identity-complete, RNG-failure-complete, provider-RNG-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0468; NA-0469; D-0924; D-0923; qsl-protocol PR #1205; `docs/governance/evidence/NA-0468_qsl_qsc_cli_identity_rotation_provider_rng_failure_scope_authorization_plan.md`; `tests/NA-0468_qsl_qsc_cli_identity_rotation_provider_rng_failure_scope_authorization_testplan.md`; `tests/NA-0468_closeout_restore_na0469_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0925
+  - **Title:** NA-0469 qsc CLI identity rotation provider RNG failure test seam implementation
+  - **Status:** Accepted
+  - **Date:** 2026-06-13
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0469 consumes NA-0468 and implements the bounded qsc CLI identity rotation provider RNG failure test seam selected by D-0923 and restored by D-0924. The seam is compiled only under `--cfg qsc_rng_failure_test_seam`, uses separate labels `QSC.IDENTITY.ROTATE.KEM_KEYPAIR` and `QSC.IDENTITY.ROTATE.SIG_KEYPAIR`, and leaves normal no-cfg production semantics unchanged.
+  - **Exact changed implementation paths:** `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/identity/mod.rs`.
+  - **Exact test file:** `qsl/qsl-client/qsc/tests/cli_identity_rotation_provider_rng_failure.rs`.
+  - **Forced CLI rotation KEM provider failure evidence:** Forced `QSC.IDENTITY.ROTATE.KEM_KEYPAIR` returns sanitized `identity_secret_unavailable` / `rng_failure_forced` before any durable CLI rotation write. Markers: `NA0469_CLI_ROTATE_KEM_RNG_FAILURE_FORCED_OK` and `NA0469_CLI_ROTATE_KEM_RNG_FAILURE_NO_PARTIAL_ROTATION_STATE_OK`.
+  - **Forced CLI rotation signature provider failure evidence:** Forced `QSC.IDENTITY.ROTATE.SIG_KEYPAIR` returns sanitized `identity_secret_unavailable` / `rng_failure_forced` after KEM generation but before vault, public-record, or peer-reset writes. Markers: `NA0469_CLI_ROTATE_SIG_RNG_FAILURE_FORCED_OK` and `NA0469_CLI_ROTATE_SIG_RNG_FAILURE_NO_PARTIAL_ROTATION_STATE_OK`.
+  - **Selected identity stability evidence:** The cfg tests prove the selected Alice identity fingerprint and `identities/self_alice.json` remain byte-for-byte unchanged after forced failure. Marker: `NA0469_CLI_ROTATE_SELECTED_IDENTITY_STABLE_OK`.
+  - **No new or partial KEM/signature identity secret write evidence:** The cfg tests decrypt the temporary mock vault and prove `identity.kem_sk.alice`, `identity.sig_sk.alice`, and `vault.qsv` remain unchanged after forced KEM and signature failures. Markers: `NA0469_CLI_ROTATE_NO_PARTIAL_KEM_SECRET_WRITE_OK` and `NA0469_CLI_ROTATE_NO_PARTIAL_SIG_SECRET_WRITE_OK`.
+  - **No partial self public-record write/update evidence:** The cfg tests prove `identities/self_alice.json` remains byte-for-byte unchanged after forced failures. Marker: `NA0469_CLI_ROTATE_NO_PARTIAL_PUBLIC_RECORD_WRITE_OK`.
+  - **Peer-reset/contact state unchanged evidence:** The cfg tests invoke CLI rotation with `--reset-peers` and prove contact list output plus a seeded legacy `peer_bob.fp` file remain unchanged, so the peer-reset/contact cleanup path is not reached. Marker: `NA0469_CLI_ROTATE_PEER_RESET_STATE_UNCHANGED_OK`.
+  - **No dependent handshake/session output evidence:** The cfg tests prove no `handshake_send`, no `handshake_complete`, no `qsp_session_store`, no pending handshake vault secret, no legacy pending file, and no session blob are produced. Marker: `NA0469_CLI_ROTATE_NO_DEPENDENT_HANDSHAKE_OUTPUT_OK`.
+  - **Production semantics unchanged without cfg:** The no-cfg test sets `QSC_RNG_FAILURE_TEST_SEAM=QSC.IDENTITY.ROTATE.KEM_KEYPAIR` and proves normal CLI identity rotation succeeds, writes identity public record and KEM/signature identity secrets, emits `identity_fp=...`, and does not emit forced-failure output. Marker: `NA0469_PRODUCTION_SEMANTICS_UNCHANGED_OK`.
+  - **Lazy identity background preserved:** cfg/no-cfg `lazy_identity_provider_rng_failure` remains green. Lazy identity evidence remains bounded background only.
+  - **Legacy/public-record background preserved:** cfg/no-cfg `legacy_identity_public_record_provider_rng_failure` remains green. Legacy/public-record evidence remains bounded background only.
+  - **TUI account bootstrap deferred:** TUI account bootstrap identity generation remains separate and outside NA-0469.
+  - **X25519 deferred:** X25519 / ephemeral generation remains residual and handshake source is not mutated by NA-0469.
+  - **refimpl provider RNG deferred:** refimpl provider RNG remains residual and refimpl is not mutated by NA-0469.
+  - **A2/B1/KEM background preserved:** cfg/no-cfg A2 signature, B1 signature, and KEM provider RNG tests remain green. These are bounded background checks only.
+  - **No qshield-cli mutation:** qshield-cli remains a demo-local residual and is not mutated by NA-0469.
+  - **No refimpl mutation:** refimpl source is not mutated by NA-0469.
+  - **No dependency/Cargo/lockfile/workflow mutation:** NA-0469 does not mutate dependencies, Cargo manifests, lockfiles, workflows, fuzz targets, vectors, formal models, qsl-server, qsl-attachments, qshield runtime, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup/restore/local-ops paths, qsl-backup, backup status files, backup plan files, rollback subtree paths, or backup tree paths.
+  - **No backup/restore:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or `/backup/qsl`.
+  - **Public claim boundary:** No public crypto-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No RNG-failure-complete claim is made. No provider-RNG-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Selected successor:** `NA-0470 -- QSL qsc TUI Account Bootstrap Identity Provider RNG Failure Scope Authorization Plan`.
+  - **Required behavior:**
+    - NA-0469 evidence must remain CLI-rotation-only internal qsc evidence.
+    - Lazy identity, legacy/public-record, A2, B1, KEM, route/contact/attachment, base RNG seam, key lifecycle, and provider-error evidence remain bounded background checks only.
+    - TUI account bootstrap identity generation, X25519 / ephemeral generation, refimpl provider RNG, qshield-cli demo RNG, formal/model RNG, and fuzz/vector RNG remain residual unless a later exact directive authorizes them.
+    - Optional closeout must not implement NA-0470.
+    - Exactly one READY item remains mandatory.
+  - **Must never happen:**
+    - NA-0469 evidence is represented as all identity-provider RNG coverage.
+    - NA-0469 evidence is represented as identity completion, signature completion, RNG-failure completion, provider-RNG completion, or crypto completion.
+    - Cargo audit output must not be used as public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, identity-complete, RNG-failure-complete, provider-RNG-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
+    - more than one READY item remains.
+  - **References:** NA-0469; NA-0468; NA-0470; D-0925; D-0924; D-0923; `docs/governance/evidence/NA-0469_qsl_qsc_cli_identity_rotation_provider_rng_failure_test_seam_implementation_harness.md`; `tests/NA-0469_qsl_qsc_cli_identity_rotation_provider_rng_failure_test_seam_implementation_testplan.md`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/tests/cli_identity_rotation_provider_rng_failure.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

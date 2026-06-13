@@ -37,6 +37,10 @@ const IDENTITY_LEGACY_MIGRATE_SIG_KEYPAIR_FAILURE_LABELS: &[&str] =
 #[cfg(qsc_rng_failure_test_seam)]
 const IDENTITY_PUBLIC_RECORD_UPGRADE_SIG_KEYPAIR_FAILURE_LABELS: &[&str] =
     &["QSC.IDENTITY.PUBLIC_RECORD_UPGRADE.SIG_KEYPAIR"];
+#[cfg(qsc_rng_failure_test_seam)]
+const IDENTITY_ROTATE_KEM_KEYPAIR_FAILURE_LABELS: &[&str] = &["QSC.IDENTITY.ROTATE.KEM_KEYPAIR"];
+#[cfg(qsc_rng_failure_test_seam)]
+const IDENTITY_ROTATE_SIG_KEYPAIR_FAILURE_LABELS: &[&str] = &["QSC.IDENTITY.ROTATE.SIG_KEYPAIR"];
 
 #[cfg(qsc_rng_failure_test_seam)]
 fn identity_rng_failure_forced(labels: &[&str]) -> bool {
@@ -75,6 +79,32 @@ fn identity_public_record_upgrade_sig_keypair() -> Result<(Vec<u8>, Vec<u8>), &'
     if identity_rng_failure_forced(IDENTITY_PUBLIC_RECORD_UPGRADE_SIG_KEYPAIR_FAILURE_LABELS) {
         return Err("rng_failure_forced");
     }
+    Ok(hs_sig_keypair())
+}
+
+#[cfg(qsc_rng_failure_test_seam)]
+pub(super) fn identity_rotate_kem_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
+    if identity_rng_failure_forced(IDENTITY_ROTATE_KEM_KEYPAIR_FAILURE_LABELS) {
+        return Err("rng_failure_forced");
+    }
+    Ok(hs_kem_keypair())
+}
+
+#[cfg(not(qsc_rng_failure_test_seam))]
+pub(super) fn identity_rotate_kem_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
+    Ok(hs_kem_keypair())
+}
+
+#[cfg(qsc_rng_failure_test_seam)]
+pub(super) fn identity_rotate_sig_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
+    if identity_rng_failure_forced(IDENTITY_ROTATE_SIG_KEYPAIR_FAILURE_LABELS) {
+        return Err("rng_failure_forced");
+    }
+    Ok(hs_sig_keypair())
+}
+
+#[cfg(not(qsc_rng_failure_test_seam))]
+pub(super) fn identity_rotate_sig_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
     Ok(hs_sig_keypair())
 }
 

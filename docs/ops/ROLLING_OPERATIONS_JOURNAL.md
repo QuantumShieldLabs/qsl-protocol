@@ -6,6 +6,60 @@ Last-Updated: 2026-06-13
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-13-329 / NA-0469 assurance addendum recovery rolling journal
+
+- Directive: QSL-DIR-2026-06-13-329 -- Recover NA-0469 Assurance Addendum Evidence Before Starting NA-0470.
+- Begin timestamp (America/Chicago): 2026-06-13T00:30:32-05:00.
+- Begin timestamp (UTC): 2026-06-13T05:30:32+00:00.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Repo SHAs
+
+- qsl-protocol HEAD before fetch: `94e5f5b8d144`.
+- qsl-protocol origin/main before fetch: `94e5f5b8d144`.
+- qsl-protocol origin/main after fetch: `94e5f5b8d144`.
+- PR #1208 merge commit verified: `94e5f5b8d144`.
+- Recovery branch: `na-0469-assurance-addendum-recovery`.
+
+## READY Proof
+
+- qwork proof: startup OK for lane NA-0470, repo qsl-protocol, clean worktree/index/untracked state, proof HEAD and proof origin/main both `94e5f5b8d144`.
+- Pre-fetch live proof: HEAD and origin/main matched qwork proof at `94e5f5b8d144`.
+- Fetch result: origin/main did not advance.
+- Queue proof before patch: READY_COUNT 1 and READY NA-0470.
+- Status proof before patch: NA-0469 DONE and NA-0470 READY.
+- Decision proof before patch: D-0925 once, D-0926 once, D-0927 absent, duplicate decision count zero.
+- Public-safety on current main `94e5f5b8d144`: PASS.
+
+## D328 Assurance Recovery Audit
+
+- Classification: `NA0469_ASSURANCE_ADDENDUM_RECOVERY_REQUIRED`.
+- Recovery was needed because the D327 response and merged NA-0469 evidence recorded implementation/closeout proof but did not include D328's explicit assurance sections for best-known-method review, hostile cryptographer review, red-team review, production SRE review, side-channel caveat, formal-model mapping residual, external-review readiness, release-claim boundary, and assurance gap review trigger.
+- Files patched: NA-0469 evidence doc, NA-0469 implementation testplan, `DECISIONS.md`, `TRACEABILITY.md`, this rolling journal, and a single NA-0470 consumption note in `NEXT_ACTIONS.md`.
+- Assurance classifications: `BEST_KNOWN_METHOD_FOR_SCOPE`, `FORMAL_MODEL_MAPPING_RESIDUAL_ACTIVE`, `EXTERNAL_REVIEW_READINESS_INCREMENTAL`, and `ASSURANCE_GAP_REVIEW_REQUIRED_AFTER_CURRENT_CHAIN`.
+- Queue preserved: NA-0470 remains READY and this recovery does not execute NA-0470.
+- No source, executable test, runtime, crypto, dependency, Cargo, lockfile, workflow, fuzz, vector, formal, refimpl, qsl-server, qsl-attachments, qshield, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, backup status, backup plan, rollback, or backup tree mutation.
+- No public-readiness claim. No production-readiness claim. No external-review-complete claim. No crypto-complete claim. No identity-complete claim. No provider-RNG-complete claim. No RNG-failure-complete claim. No side-channel-free claim. No vulnerability-free claim. No perfect-crypto claim. Cargo audit remains dependency-health evidence only.
+
+## D329 Recoveries / Non-Fatal Warnings
+
+- Failing command: `GITHUB_EVENT_PATH=... python3 tools/goal_lint.py` with a synthetic event missing base/head SHAs.
+  Classification: recoverable command-shape issue because PR-body preflight had passed and the local event payload was incomplete rather than evidence of a governance defect.
+  Corrective action: rerun goal-lint after committing with a synthetic event containing base/head SHAs.
+  Final result: corrected post-commit goal-lint PASS.
+- Failing command: first added-line overclaim scan over the D329 diff.
+  Classification: recoverable in-scope wording issue because two D328 concern lines used a prohibited completion phrase inside overclaim-risk prose, and the required evidence meaning could be preserved with safer wording.
+  Corrective action: rewrote those lines to "overclaiming bounded identity evidence as complete coverage" while preserving the hostile-cryptographer concern.
+  Final result: rerun added-line overclaim scan reported `OVERCLAIM_AFFIRMATIVE_FINDING_COUNT 0`.
+- Non-fatal warning: parallel root and nested cargo-audit commands briefly waited on the shared advisory database lock.
+  Classification: non-fatal warning, not a STOP condition.
+  Corrective action: allowed the commands to complete.
+  Final result: both cargo-audit commands exited successfully.
+- Non-fatal warning: `git add` emitted an ignored-path warning for the tracked governance evidence path.
+  Classification: non-fatal warning because the commit file list showed exactly the six allowed recovery files, including the evidence file, and the post-commit worktree was clean.
+  Corrective action: verified `git show --name-only HEAD`, `git status --porcelain=v1 --branch`, and `git diff --name-only origin/main...HEAD`.
+  Final result: committed scope remained exactly the allowed six files.
+
 # QSL-DIR-2026-06-13-327 / NA-0469 CLI identity rotation provider RNG seam rolling journal
 
 - Directive: QSL-DIR-2026-06-13-327 -- Execute NA-0469 QSL qsc CLI Identity Rotation Provider RNG Failure Test Seam Implementation Harness, Optional Closeout to NA-0470.

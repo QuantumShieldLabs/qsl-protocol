@@ -24626,3 +24626,24 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output must not be represented as public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, identity-complete, RNG-failure-complete, provider-RNG-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0469; NA-0470; D-0926; D-0925; qsl-protocol PR #1207; `docs/governance/evidence/NA-0469_qsl_qsc_cli_identity_rotation_provider_rng_failure_test_seam_implementation_harness.md`; `tests/NA-0469_qsl_qsc_cli_identity_rotation_provider_rng_failure_test_seam_implementation_testplan.md`; `tests/NA-0469_closeout_restore_na0470_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0927
+  - **Title:** NA-0469 assurance addendum recovery before NA-0470
+  - **Status:** Accepted
+  - **Date:** 2026-06-13
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** D328's assurance addendum was issued after the D327 NA-0469 response, after NA-0469 implementation PR #1207 had merged at `94c0695a194a`, and after NA-0469 closeout PR #1208 had merged at `94e5f5b8d144`. D-0927 recovers the missing assurance-evidence sections in-tree before NA-0470 execution. NA-0470 remains READY and is not executed by this recovery.
+  - **Best-known-method classification:** `BEST_KNOWN_METHOD_FOR_SCOPE`. The cfg-only CLI rotation seam was least invasive for NA-0469, required no dependency/provider trait/workflow/runtime change, and preserved production semantics when cfg is absent.
+  - **Formal-model mapping residual classification:** `FORMAL_MODEL_MAPPING_RESIDUAL_ACTIVE`. Existing formal models are supporting evidence only; CLI identity rotation provider RNG failure is not directly modeled by this recovery.
+  - **External-review readiness classification:** `EXTERNAL_REVIEW_READINESS_INCREMENTAL`. This is not external-review-complete, and a future review package still needs protocol spec, threat model, positive vectors, negative vectors, state-machine mapping, and claim boundaries.
+  - **Assurance gap review trigger classification:** `ASSURANCE_GAP_REVIEW_REQUIRED_AFTER_CURRENT_CHAIN`. After NA-0470 closes, the default next lane should be an Assurance Gap Review unless NA-0470 proves a higher-priority residual.
+  - **No runtime/source/test/dependency/workflow mutation:** This recovery mutates only allowed governance/evidence/testplan/traceability/journal/queue-note paths. It does not mutate runtime code, source code, executable tests, dependencies, Cargo manifests, lockfiles, workflows, fuzz targets, vectors, formal models, refimpl, qsl-server, qsl-attachments, qshield, qshield-cli, website, public docs, README, or START_HERE.
+  - **No backup/restore:** Codex did not run backup or restore and did not mutate qsl-backup, backup status, backup plan, rollback subtree, backup tree, timers, fstab, source lists, retention, or backup scripts.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No identity-complete claim is made. No provider-RNG-complete claim is made. No RNG-failure-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No perfect-crypto claim is made. Cargo audit remains dependency-health evidence only.
+  - **Required behavior:**
+    - NA-0470 remains the sole READY item.
+    - NA-0470 must consume D-0927 before execution.
+    - Exactly one READY remains mandatory.
+    - The recovered assurance sections do not widen NA-0469 beyond bounded CLI rotation evidence.
+    - The recovered assurance sections do not create public, production, crypto-complete, identity-complete, provider-RNG-complete, RNG-failure-complete, side-channel-free, vulnerability-free, or perfect-crypto claims.
+  - **References:** NA-0469; NA-0470; D-0927; D-0926; D-0925; D328 assurance addendum; D327 response `/home/victor/work/qsl/codex/responses/NA0469_20260613T051340Z_D327.md`; D329 response `/home/victor/work/qsl/codex/responses/NA0469_assurance_recovery_20260613T053032Z_D329.md`; qsl-protocol PR #1207; qsl-protocol PR #1208; `docs/governance/evidence/NA-0469_qsl_qsc_cli_identity_rotation_provider_rng_failure_test_seam_implementation_harness.md`; `tests/NA-0469_qsl_qsc_cli_identity_rotation_provider_rng_failure_test_seam_implementation_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

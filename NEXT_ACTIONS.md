@@ -26075,6 +26075,8 @@ Goals: G1, G2, G3, G4, G5
 Objective:
 Authorize the exact future qsc TUI account bootstrap identity provider RNG failure scope after lazy identity, legacy/public-record identity, and CLI identity rotation provider RNG failure test-seam implementation, preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries unless a later directive authorizes precise implementation.
 
+Must consume NA-0469 assurance addendum recovery D-0927 before execution.
+
 Protects:
 - qsc TUI account bootstrap identity provider-dependent RNG failure evidence quality.
 - truthful no-partial-account/bootstrap behavior around account-state, default route/account config, identity material, selected identity, and user-visible setup outputs.

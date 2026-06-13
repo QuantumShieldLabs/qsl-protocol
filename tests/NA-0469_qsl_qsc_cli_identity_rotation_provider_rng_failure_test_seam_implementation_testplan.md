@@ -42,6 +42,104 @@ production semantics, and avoid public overclaim.
 - No bug-free claim is introduced.
 - No perfect-crypto claim is introduced.
 
+## D328 Assurance Addendum Recovery Checks
+
+The D329 governance recovery must verify and preserve these assurance sections
+in the NA-0469 evidence trail without mutating runtime, source, executable test,
+dependency, workflow, Cargo, lockfile, fuzz, vector, formal, refimpl,
+qsl-server, qsl-attachments, qshield, qshield-cli, website, or public
+documentation paths.
+
+### Best-known-method review
+
+Required:
+
+- classification `BEST_KNOWN_METHOD_FOR_SCOPE`;
+- cfg-only seam recorded as least invasive for NA-0469;
+- no dependency, provider trait, workflow, or runtime change needed;
+- production semantics unchanged when cfg absent;
+- bounded CLI rotation evidence only;
+- stronger evidence needed for public or production claims.
+
+### Hostile cryptographer review
+
+Required:
+
+- top three concerns recorded;
+- each concern classified as in-scope, out-of-scope, or future evidence;
+- concerns include risk of overclaiming bounded identity evidence as complete
+  coverage, qsc/refimpl provider boundary risk, and transcript,
+  identity-binding, and formal mapping residual.
+
+### Red-team review
+
+Required:
+
+- top three concerns recorded;
+- concerns include rotation failure under active attacker or stale public
+  record, relay/server observation of partial identity changes, and
+  rollback/replay/peer-reset confusion.
+
+### Production SRE review
+
+Required:
+
+- top three concerns recorded;
+- concerns include operational incident from identity rotation failure,
+  logs/diagnostics and user confusion, and missing rollback/recovery playbook
+  before release claims.
+
+### Side-channel caveat
+
+Required same-line denial wording:
+
+- No side-channel-free claim. No constant-time proof. No memory-erasure completeness proof. No all secret-material lifecycle proof.
+
+### Formal-model mapping residual
+
+Required:
+
+- existing formal models are supporting evidence only;
+- CLI identity rotation provider RNG failure is not directly modeled unless an
+  exact model mapping is found;
+- absent exact mapping, classification `FORMAL_MODEL_MAPPING_RESIDUAL_ACTIVE`.
+
+### External-review readiness
+
+Required:
+
+- classification `EXTERNAL_REVIEW_READINESS_INCREMENTAL`;
+- not external-review-complete;
+- future package needs protocol spec, threat model, positive test vectors,
+  negative vectors, state-machine mapping, and claim boundaries.
+
+### Release-claim boundary
+
+Required same-line denial wording:
+
+- No public-readiness claim. No production-readiness claim. No crypto-complete claim. No identity-complete claim. No provider-RNG-complete claim. No RNG-failure-complete claim. No side-channel-free claim. No vulnerability-free claim. No perfect-crypto claim. Cargo audit is dependency-health evidence only.
+
+### Assurance Gap Review trigger
+
+Required:
+
+- classification `ASSURANCE_GAP_REVIEW_REQUIRED_AFTER_CURRENT_CHAIN`;
+- NA-0470 remains a high-priority direct residual;
+- after NA-0470 closes, default next lane should be an Assurance Gap Review
+  unless NA-0470 proves a higher-priority residual;
+- answer the question: "What would a hostile cryptographer, a red-team
+  engineer, and a production SRE attack next?"
+
+### Successor-selection assurance check
+
+Required:
+
+- NA-0470 remains READY and is not executed by the recovery;
+- NA-0470 consumes D-0927 before execution;
+- exactly one READY item remains;
+- D-0927 exists once;
+- D-0928 remains absent.
+
 ## Allowed Scope
 
 - `qsl/qsl-client/qsc/src/main.rs`

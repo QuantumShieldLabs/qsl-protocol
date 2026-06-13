@@ -26069,8 +26069,38 @@ Closeout evidence:
 ---
 
 ### NA-0470 — QSL qsc TUI Account Bootstrap Identity Provider RNG Failure Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
+
+Closeout evidence:
+- qsl-protocol evidence PR: #1210
+  (https://github.com/QuantumShieldLabs/qsl-protocol/pull/1210)
+  merged as `95feccd041a5`.
+- Decision evidence: D-0928 records the bounded qsc TUI account bootstrap identity provider RNG failure scope authorization.
+- D-0927 assurance recovery and NA-0469 CLI identity rotation provider RNG evidence were consumed.
+- Primary classification: `TUI_BOOTSTRAP_REQUIRES_DESIGN_CHANGE`.
+- Selected successor: `NA-0471 -- QSL qsc TUI Account Bootstrap Transactionality Design Authorization Plan`.
+- Assurance gap trigger classification: `HIGHER_PRIORITY_RESIDUAL_SUPERSEDES_ASSURANCE_REVIEW`.
+- TUI bootstrap implementation was not selected because current bootstrap ordering writes vault/account/default/verification/relay state before KEM and signature identity keypair generation.
+- Post-merge public-safety on `95feccd041a5` completed success.
+- Closeout restores NA-0471 as the sole READY successor.
+- This closeout does not implement NA-0471.
+- This closeout changes only governance/testplan/journal paths and does not mutate runtime behavior, crypto behavior, dependencies, Cargo manifests, lockfiles, workflows, qsl-server, qsl-attachments, qshield runtime, qshield-cli, refimpl, qsc source, executable tests, fuzz targets, vectors, formal models, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, backup/restore/local-ops paths, qsl-backup, backup status files, backup plan files, rollback subtree paths, or backup tree paths.
+- No public-readiness claim is introduced.
+- No production-readiness claim is introduced.
+- No public-internet-readiness claim is introduced.
+- No external-review-complete claim is introduced.
+- No crypto-complete claim is introduced.
+- No KEM-complete claim is introduced.
+- No signature-complete claim is introduced.
+- No identity-complete claim is introduced.
+- No RNG-failure-complete claim is introduced.
+- No provider-RNG-complete claim is introduced.
+- No secret-material-complete claim is introduced.
+- No side-channel-free claim is introduced.
+- No vulnerability-free claim is introduced.
+- No bug-free claim is introduced.
+- No perfect-crypto claim is introduced.
 
 Objective:
 Authorize the exact future qsc TUI account bootstrap identity provider RNG failure scope after lazy identity, legacy/public-record identity, and CLI identity rotation provider RNG failure test-seam implementation, preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries unless a later directive authorizes precise implementation.
@@ -26148,6 +26178,85 @@ Acceptance criteria:
 - no implementation mutation occurs.
 - cargo audit remains green.
 - nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+---
+
+### NA-0471 — QSL qsc TUI Account Bootstrap Transactionality Design Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the transactionality semantics required before any qsc TUI account bootstrap identity provider RNG failure implementation, consuming NA-0470 evidence and deciding whether future bootstrap behavior should pre-generate identity material before durable account/default writes, roll back durable bootstrap state after identity provider failure, narrow the future invariant to identity-only evidence, or defer TUI bootstrap implementation to Assurance Gap Review.
+
+Protects:
+- truthful no-partial-account/bootstrap evidence.
+- account-state, default route/account config, verification seed, identity material, selected identity, public-record, and user-visible setup output boundaries.
+- qsc/refimpl boundary clarity.
+- production semantic stability before implementation.
+- assurance-gap review readiness.
+- public-claim conservatism.
+- the one-READY queue invariant.
+
+Allowed scope:
+- docs/governance/evidence/NA-0471_qsl_qsc_tui_account_bootstrap_transactionality_design_authorization_plan.md.
+- tests/NA-0471_qsl_qsc_tui_account_bootstrap_transactionality_design_authorization_testplan.md.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of qsl/qsl-client/qsc/src/tui/controller/commands/locked.rs.
+- read-only inspection of qsl/qsl-client/qsc/src/identity/mod.rs.
+- read-only inspection of qsl/qsl-client/qsc/src/vault/mod.rs.
+- read-only inspection of qsl/qsl-client/qsc/tests/.
+- read-only inspection of NA-0470 evidence.
+
+Forbidden scope:
+- implementation mutation.
+- runtime mutation.
+- crypto mutation.
+- dependency mutation.
+- Cargo manifest mutation.
+- lockfile mutation.
+- workflow mutation.
+- executable test mutation.
+- fuzz target mutation.
+- vector mutation.
+- formal model mutation.
+- service/public/qshield/qshield-cli/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup/status/plan/rollback mutation.
+- qwork/qstart/qresume/qshell mutation.
+- public technical paper content.
+- No public-readiness claim.
+- No production-readiness claim.
+- No public-internet-readiness claim.
+- No external-review-complete claim.
+- No crypto-complete claim.
+- No KEM-complete claim.
+- No signature-complete claim.
+- No identity-complete claim.
+- No RNG-failure-complete claim.
+- No provider-RNG-complete claim.
+- No secret-material-complete claim.
+- No side-channel-free claim.
+- No vulnerability-free claim.
+- No bug-free claim.
+- No perfect-crypto claim.
+
+Deliverables:
+- NA-0471 transactionality design authorization evidence doc.
+- NA-0471 testplan.
+- next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- selected future implementation scope, narrowed-invariant scope, Assurance Gap Review, or no-action rationale.
+
+Acceptance criteria:
+- NA-0470 evidence is consumed.
+- TUI bootstrap write order and transactionality options are reviewed.
+- future implementation path is selected or rejected with exact scope.
+- no implementation mutation occurs.
+- no public overclaim.
 - public-safety is green before merge and after merge.
 - exactly one READY item remains.
 

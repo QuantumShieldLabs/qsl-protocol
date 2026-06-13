@@ -39,6 +39,111 @@ This is CLI-rotation-only internal qsc evidence. It is not identity-complete pro
 It is not signature-complete proof. It is not RNG-failure-complete proof.
 It is not provider-RNG-complete proof. It is not crypto-complete proof.
 
+## D328 Assurance Addendum Recovery
+
+Classification: `NA0469_ASSURANCE_ADDENDUM_RECOVERY_REQUIRED`.
+
+This D329 recovery records the D328 assurance addendum in-tree after NA-0469
+implementation PR #1207 and closeout PR #1208 were already merged. It changes
+governance evidence only. It does not execute NA-0470, and it does not mutate
+runtime, source, executable test, dependency, workflow, lockfile, fuzz, vector,
+formal, refimpl, qsl-server, qsl-attachments, qshield, qshield-cli, website, or
+public documentation paths.
+
+### Best-Known-Method Review
+
+Classification: `BEST_KNOWN_METHOD_FOR_SCOPE`.
+
+The cfg-only seam was the least invasive method for NA-0469 because CLI
+identity rotation already had precise KEM and signature keypair call sites and
+could be forced before durable rotation writes without changing provider APIs.
+No dependency, provider trait, workflow, or runtime behavior change was needed.
+Production semantics remain unchanged when `--cfg qsc_rng_failure_test_seam` is
+absent; normal builds do not read or honor `QSC_RNG_FAILURE_TEST_SEAM`.
+
+This is bounded CLI rotation evidence only. Stronger evidence is still needed
+before any public, production, all-identity, all-provider-RNG, or
+release-readiness claim.
+
+### Hostile Cryptographer Review
+
+Top concerns:
+
+- overclaiming bounded identity evidence as complete coverage: in scope for
+  claim control. NA-0469 proves CLI rotation only and must not be represented as
+  all identity-provider RNG coverage.
+- qsc/refimpl provider boundary risk: future evidence. NA-0469 does not mutate
+  refimpl or provider traits, so refimpl provider RNG behavior remains residual.
+- transcript/identity-binding/formal mapping residual: future evidence. NA-0469
+  preserves dependent handshake/session absence, but it does not directly prove
+  transcript binding or a formal identity-rotation model.
+
+### Red-Team Review
+
+Top concerns:
+
+- rotation failure under active attacker or stale public record: in scope for
+  NA-0469 CLI evidence; forced failures leave the selected identity and self
+  public record unchanged.
+- relay/server observation of partial identity changes: future evidence. NA-0469
+  proves no dependent handshake/session output locally, but does not model or
+  exercise relay observation beyond the bounded CLI path.
+- rollback/replay/peer-reset confusion: in scope for the selected peer-reset
+  boundary; forced failures with `--reset-peers` leave contacts and seeded peer
+  reset state unchanged. Broader rollback/replay assurance remains residual.
+
+### Production SRE Review
+
+Top concerns:
+
+- operational incident from identity rotation failure: in scope for the bounded
+  failure mode. The CLI returns sanitized `identity_secret_unavailable` /
+  `rng_failure_forced` instead of writing partial state.
+- logs/diagnostics and user confusion: future evidence. NA-0469 proves sanitized
+  command output, but does not add production diagnostics, telemetry, or
+  operator runbook coverage.
+- missing rollback/recovery playbook before release claims: future evidence. A
+  release claim would need a documented recovery playbook and operational drill
+  beyond this cfg-only test seam.
+
+### Side-Channel Caveat
+
+No side-channel-free claim. No constant-time proof. No memory-erasure completeness proof. No all secret-material lifecycle proof.
+
+### Formal-Model Mapping Residual
+
+Existing formal models are supporting evidence only. CLI identity rotation
+provider RNG failure is not directly modeled in the current formal evidence.
+
+Classification: `FORMAL_MODEL_MAPPING_RESIDUAL_ACTIVE`.
+
+### External-Review Readiness
+
+Classification: `EXTERNAL_REVIEW_READINESS_INCREMENTAL`.
+
+NA-0469 improves the internal evidence package for one CLI rotation failure
+boundary. It is not external-review-complete. A future external-review package
+would still need the protocol specification, threat model, positive test
+vectors, negative vectors, state-machine mapping, and explicit claim boundaries.
+
+### Release-Claim Boundary
+
+No public-readiness claim. No production-readiness claim. No crypto-complete claim. No identity-complete claim. No provider-RNG-complete claim. No RNG-failure-complete claim. No side-channel-free claim. No vulnerability-free claim. No perfect-crypto claim. Cargo audit is dependency-health evidence only.
+
+### Assurance Gap Review Trigger
+
+Classification: `ASSURANCE_GAP_REVIEW_REQUIRED_AFTER_CURRENT_CHAIN`.
+
+NA-0470 remains a high-priority direct residual and stays the sole READY item.
+After NA-0470 closes, the default next lane should be an Assurance Gap Review
+unless NA-0470 proves a higher-priority residual.
+
+Question answered: "What would a hostile cryptographer, a red-team engineer,
+and a production SRE attack next?" They would attack overclaiming from bounded
+CLI evidence, incomplete qsc/refimpl/provider and formal mappings, active
+attacker behavior around stale identity records, relay-visible partial-change
+surfaces, rollback/replay/peer-reset confusion, and operational recovery gaps.
+
 ## Live NA-0469 Scope
 
 Startup proof showed:

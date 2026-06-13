@@ -117,8 +117,10 @@ Last-Updated: 2026-06-13
 - Local qsc adversarial smoke: Rust phases PASS; local cargo-fuzz unavailable as recorded above; PR CI qsc-adversarial-smoke pending.
 - Evidence PR #1212 checks before journal-only follow-up: PASS, 38 checks attached, 29 success, 9 skipped, zero failures, public-safety success.
 - Evidence PR #1212 checks after journal-only follow-up: PASS, 38 checks attached, 29 success, 9 skipped, zero failures, public-safety success.
-- Evidence PR #1212 checks after merge-recovery journal update: pending.
-- Post-merge public-safety: pending.
+- Evidence PR #1212 checks after merge-recovery journal update: PASS, 38 checks attached, 29 success, 9 skipped, zero failures, public-safety success.
+- Evidence PR #1212 merge commit: `af5c8649bcb5`.
+- Post-merge public-safety: PASS on `af5c8649bcb5`.
+- Post-merge qsc-adversarial-smoke: PASS on `af5c8649bcb5`.
 
 ## Disk watermark
 
@@ -136,6 +138,57 @@ Last-Updated: 2026-06-13
 - After evidence merge, verify READY remains NA-0471 and D-0930 is on main.
 - If post-merge public-safety is green, run optional closeout to restore NA-0472.
 - Do not implement NA-0472 in this directive.
+
+## Evidence merge proof
+
+- Evidence PR #1212 merged with a merge commit at `af5c8649bcb5`.
+- Post-merge public-safety on `af5c8649bcb5`: PASS.
+- Post-merge qsc-adversarial-smoke on `af5c8649bcb5`: PASS.
+- Post-merge attached checks on `af5c8649bcb5`: completed with zero failures after bounded REST polling.
+
+## Optional closeout proof
+
+- Closeout begin timestamp (America/Chicago): 2026-06-13T10:31:28-05:00.
+- Closeout begin timestamp (UTC): 2026-06-13T15:31:28+00:00.
+- qsl-protocol main before closeout branch: `af5c8649bcb5`.
+- qsl-protocol origin/main before closeout branch: `af5c8649bcb5`.
+- Evidence PR #1212 head: `9571eb1dfba2`.
+- Evidence PR #1212 merge: `af5c8649bcb5`.
+- Closeout branch: `na-0471-closeout-restore-na0472`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
+- Queue proof before closeout patch: READY_COUNT 1, READY NA-0471.
+- Decision proof before closeout patch: latest D-0930, D-0930 once, D-0931 absent, duplicate decision count zero.
+- NA-0471 is marked DONE.
+- NA-0472 is restored as the sole READY item.
+- D-0931 records NA-0471 closeout and NA-0472 restoration.
+- TRACEABILITY records PR #1212, post-merge public-safety, and the NA-0472 pre-generation implementation successor.
+- Closeout testplan path: `tests/NA-0471_closeout_restore_na0472_testplan.md`.
+- No NA-0472 implementation is performed.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, qshield-cli runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, qsl-backup, status, plan, rollback, or backup tree path is intentionally mutated.
+- No backup or restore was run.
+
+## Optional closeout validation watch
+
+- Closeout validation must prove READY_COUNT 1 and READY NA-0472.
+- Closeout validation must prove NA-0471 DONE, D-0931 exists once, D-0932 absent, and duplicate decision IDs absent.
+- Closeout scope guard must report exactly the five allowed closeout paths.
+- Closeout PR checks, including public-safety, must pass before merge.
+- Closeout recovered failure: first local closeout CI scope classifier invocation used `sh scripts/ci/classify_ci_scope.sh`, which is a command-shape mistake because the script is Bash-only and uses `pipefail`.
+- Closeout corrective action: reran the classifier with `bash scripts/ci/classify_ci_scope.sh`.
+- Closeout final result: classifier PASS, `scope_class=docs_only`.
+- Closeout `git diff --check`: PASS.
+- Closeout queue helper: PASS, READY_COUNT 1 and READY NA-0472.
+- Closeout decision helper: PASS, latest D-0931 and duplicate decision count zero.
+- Closeout targeted status proof: PASS, NA-0470 DONE, NA-0471 DONE, NA-0472 READY, D-0930 once, D-0931 once, D-0932 absent.
+- Closeout exact path guard: PASS, exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0471_closeout_restore_na0472_testplan.md`.
+- Closeout link check: PASS, `TOTAL_MISSING 0`.
+- Closeout leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Closeout added-line overclaim scan: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Closeout PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- Closeout root cargo audit: PASS.
+- Closeout nested qsc fuzz lock cargo audit: PASS.
+- Closeout pre-PR public-safety on `af5c8649bcb5`: PASS.
 
 # QSL-DIR-2026-06-13-330 / NA-0470 TUI bootstrap identity provider RNG scope rolling journal
 

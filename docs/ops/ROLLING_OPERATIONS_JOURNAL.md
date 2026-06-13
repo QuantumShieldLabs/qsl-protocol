@@ -3037,8 +3037,8 @@ Last-Updated: 2026-06-13
 - Live origin/main before fetch: `3765cdfc7d05`.
 - origin/main after fetch: `3765cdfc7d05`.
 - PR #1215: MERGED, merge commit `3765cdfc7d05`.
-- Evidence branch: pending.
-- Evidence PR: pending.
+- Evidence branch: `na-0473-identity-provider-rng-assurance-gap-review`.
+- Evidence PR: #1216.
 - Evidence merge commit: pending.
 
 ## READY proof
@@ -3081,6 +3081,11 @@ Last-Updated: 2026-06-13
   Classification: recoverable local tooling caveat permitted by the directive because the Rust adversarial, miri, and provider-error tests passed before local Cargo reported that the `fuzz` subcommand is unavailable.
   Corrective action: recorded the exact local output in the proof root and will rely on PR CI `qsc-adversarial-smoke` for the cargo-fuzz-backed path.
   Final result: local Rust portions passed; local cargo-fuzz unavailable.
+
+- Failing tool call: GitHub app `_create_pull_request`.
+  Classification: recoverable tool-permission fallback because the connector returned HTTP 403 after the branch was pushed and PR body preflight had passed.
+  Corrective action: created PR #1216 with `gh pr create` using the same branch, title, and preflighted body.
+  Final result: PR #1216 open.
 
 ## Startup validation results
 
@@ -3127,8 +3132,8 @@ Last-Updated: 2026-06-13
 ## Next-watch items
 
 - Complete NA-0473 post-patch validation.
-- Open evidence PR from `na-0473-identity-provider-rng-assurance-gap-review`.
-- Merge only after required checks and public-safety pass.
+- Evidence PR #1216 is open from `na-0473-identity-provider-rng-assurance-gap-review`.
+- Merge PR #1216 only after required checks and public-safety pass.
 - After merge, verify READY remains NA-0473, D-0934 on main, and public-safety green on the merge commit.
 - If post-merge public-safety is green, execute optional closeout to restore NA-0474 with the selected read-only KEM/signature/transcript binding audit plan.
 

@@ -3019,6 +3019,129 @@ Last-Updated: 2026-06-13
 - Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
 - `cargo fmt --check`: PASS.
 
+# QSL-DIR-2026-06-13-333 / NA-0473 identity provider RNG assurance gap review rolling journal
+
+- Directive: QSL-DIR-2026-06-13-333 -- execute NA-0473 QSL Identity / Provider RNG Assurance Gap Review Plan, optional closeout to NA-0474.
+- Begin timestamp (America/Chicago): 2026-06-13T15:24:09-05:00
+- Begin timestamp (UTC): 2026-06-13T20:24:09Z
+- End timestamp (America/Chicago): pending
+- End timestamp (UTC): pending
+- Proof root: `/srv/qbuild/tmp/NA0473_identity_provider_rng_assurance_gap_review_20260613T202409Z`.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Startup repo SHAs
+
+- qwork proof HEAD: `3765cdfc7d05`.
+- qwork proof origin/main: `3765cdfc7d05`.
+- Live HEAD before fetch: `3765cdfc7d05`.
+- Live origin/main before fetch: `3765cdfc7d05`.
+- origin/main after fetch: `3765cdfc7d05`.
+- PR #1215: MERGED, merge commit `3765cdfc7d05`.
+- Evidence branch: `na-0473-identity-provider-rng-assurance-gap-review`.
+- Evidence PR: #1216.
+- Evidence merge commit: pending.
+
+## READY proof
+
+- qwork proof: startup OK, lane NA-0473, repo qsl-protocol, clean worktree, READY_COUNT 1, queue top READY NA-0473.
+- Queue helper at startup: READY_COUNT 1, READY NA-0473.
+- NA-0472: DONE.
+- NA-0471: DONE.
+- NA-0470 through NA-0466: DONE.
+- NA-0434: BLOCKED.
+- NA-0429: BLOCKED.
+- Decision helper at startup: latest D-0933, duplicate decision count zero.
+- D-0932 exists once.
+- D-0933 exists once.
+- D-0934 absent at startup.
+
+## Patch notes
+
+- Added `docs/governance/evidence/NA-0473_qsl_identity_provider_rng_assurance_gap_review_plan.md`.
+- Added `tests/NA-0473_qsl_identity_provider_rng_assurance_gap_review_testplan.md`.
+- Added D-0934 to `DECISIONS.md`.
+- Added NA-0473 traceability row.
+- Added this rolling journal entry.
+- Selected successor: `NA-0474 -- QSL KEM / Signature / Transcript Binding Read-Only Audit Plan`.
+- No implementation, runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status, plan, rollback, durable Director State Index, public technical paper, or backup tree path is intentionally mutated.
+
+## Failures / recoveries
+
+- Failing command: broad recursive grep count for `/home/victor/work/qsl/codex/ops` across qsl-backup, backup status, and backup plan.
+  Classification: recoverable command-shape mistake because it counted prose/status references rather than the script source-list entry required by the directive.
+  Corrective action: counted only the literal indented source-list entry in `/usr/local/sbin/qsl-backup`.
+  Final result: source-list count exactly 1; qsl-backup SHA matched expected value.
+
+- Failing command: first staged added-line overclaim scan after the NA-0473 governance patch.
+  Classification: recoverable scanner-shape issue with one wording improvement because the first scan flagged required same-line denial wording as if it were affirmative, and exposed one `completion boundary` phrase that could be read too strongly.
+  Corrective action: reworded the DECISIONS must-never line as explicit same-line denial wording, replaced the evidence-row phrase with bounded completed-evidence-chain wording, and reran a denial-aware scan under pipefail.
+  Final result: `OVERCLAIM_FINDING_COUNT 0`.
+
+- Failing command: local `scripts/ci/qsc_adversarial.sh` validation.
+  Classification: recoverable local tooling caveat permitted by the directive because the Rust adversarial, miri, and provider-error tests passed before local Cargo reported that the `fuzz` subcommand is unavailable.
+  Corrective action: recorded the exact local output in the proof root and will rely on PR CI `qsc-adversarial-smoke` for the cargo-fuzz-backed path.
+  Final result: local Rust portions passed; local cargo-fuzz unavailable.
+
+- Failing tool call: GitHub app `_create_pull_request`.
+  Classification: recoverable tool-permission fallback because the connector returned HTTP 403 after the branch was pushed and PR body preflight had passed.
+  Corrective action: created PR #1216 with `gh pr create` using the same branch, title, and preflighted body.
+  Final result: PR #1216 open.
+
+- Failing command: first custom REST polling wrapper for PR #1216 checks.
+  Classification: recoverable command-shape mistake because the wrapper combined a Python heredoc with a here-string and caused JSON to be parsed as Python source.
+  Corrective action: terminated only the faulty local polling shell and reran with JSON passed to Python through a safe command shape.
+  Final result: corrected poll pending.
+
+## Startup validation results
+
+- PR #1215 view: MERGED at `3765cdfc7d05`.
+- Current main public-safety on `3765cdfc7d05`: PASS.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock audit: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS, `rustls-webpki v0.103.13`.
+- `cargo tree -i ml-kem --locked`: PASS, `ml-kem v0.2.1`.
+- Root pqcrypto inverse probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+- Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
+- qsc inherited cfg/no-cfg tests: PASS for TUI bootstrap, CLI rotation, legacy/public-record, lazy identity, A2 signature, B1 signature, KEM provider RNG, key lifecycle zeroization, and provider-error no-mutation.
+- qsc adversarial script marker scan: PASS.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: PASS.
+- `python3 formal/run_model_checks.py`: PASS.
+- qsl-backup SHA: expected `e9ecff3d22ed` prefix and full expected hash in proof file.
+- qsl-backup codex ops source-list entry count: 1.
+
+## Post-patch validation results
+
+- `git diff --check` and `git diff --cached --check`: PASS.
+- Exact allowed-path scope guard: PASS for the five NA-0473 governance paths only.
+- Helper link-check: PASS, `TOTAL_MISSING 0`.
+- Helper full leak-scan over changed files: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan final pass: PASS, `OVERCLAIM_FINDING_COUNT 0`.
+- Local classifier: PASS, `governance_only_na0473`, no executable test mutation.
+- PR body preflight: PASS, `MISSING_FIELD_COUNT 0`, `PROHIBITED_PHRASE_COUNT 0`.
+- Queue helper after patch: PASS, READY_COUNT 1 and READY NA-0473.
+- Decision helper after patch: PASS, latest D-0934 and duplicate decision count zero.
+- `sh -n scripts/ci/qsc_adversarial.sh`: PASS.
+- `bash -n scripts/ci/qsc_adversarial.sh`: PASS.
+- `cargo fmt --check`: PASS.
+- `python3 formal/model_qsc_handshake_suite_id_bounded.py`: PASS.
+- `python3 formal/run_model_checks.py`: PASS.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock audit: PASS.
+- `cargo tree -i rustls-webpki --locked`: PASS.
+- `cargo tree -i ml-kem --locked`: PASS.
+- Root pqcrypto inverse probes reported expected package-ID absence for `pqcrypto-mlkem`, `pqcrypto-traits`, and `pqcrypto-internals`.
+- `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768`: PASS.
+- qsc inherited cfg/no-cfg validation: PASS for TUI bootstrap, CLI rotation, legacy/public-record, lazy identity, A2 signature, B1 signature, KEM provider RNG, key lifecycle zeroization, provider-error no-mutation, and stable `send_commit`.
+- Local qsc adversarial smoke: Rust adversarial, miri, and provider-error portions PASS; local cargo-fuzz subcommand unavailable, so PR CI qsc-adversarial-smoke remains the required cargo-fuzz-backed proof.
+
+## Next-watch items
+
+- Complete NA-0473 post-patch validation.
+- Evidence PR #1216 is open from `na-0473-identity-provider-rng-assurance-gap-review`.
+- Merge PR #1216 only after required checks and public-safety pass.
+- After merge, verify READY remains NA-0473, D-0934 on main, and public-safety green on the merge commit.
+- If post-merge public-safety is green, execute optional closeout to restore NA-0474 with the selected read-only KEM/signature/transcript binding audit plan.
+
 # QSL-DIR-2026-06-11-320 / NA-0463 closeout and NA-0464 restoration rolling journal
 
 - Directive: QSL-DIR-2026-06-11-320 optional closeout -- close out NA-0463 after PR #1195 post-merge public-safety completion and restore NA-0464.

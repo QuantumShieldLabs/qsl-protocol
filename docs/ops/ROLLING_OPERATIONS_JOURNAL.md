@@ -24,7 +24,7 @@ Last-Updated: 2026-06-13
 - qsl-protocol PR #1206 merge commit: `b96e220baec0`.
 - NA-0469 implementation branch: `na-0469-qsc-cli-identity-rotation-seam`.
 - NA-0469 implementation head: recorded in the directive proof root.
-- NA-0469 implementation PR: pending.
+- NA-0469 implementation PR: #1207.
 - NA-0469 implementation merge commit: pending.
 - qsl-server refs: not refreshed by this directive.
 - qsl-attachments refs: not refreshed by this directive.
@@ -95,6 +95,13 @@ Last-Updated: 2026-06-13
   phrase carries local negative claim wording.
   Final result: added-line overclaim scan PASS,
   `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: GitHub connector `create_pull_request`.
+  Classification: recoverable connector permission issue because the GitHub app
+  returned `403 Resource not accessible by integration` after the branch was
+  pushed successfully, while the authenticated `gh` CLI path was available.
+  Corrective action: created the PR with `gh pr create` using the same requested
+  branch, base, title, and PR body.
+  Final result: implementation PR #1207 created.
 
 ## Non-fatal Warnings / Zero-Match Notes
 

@@ -26358,26 +26358,43 @@ Acceptance criteria:
 ---
 
 ### NA-0473 — QSL Identity / Provider RNG Assurance Gap Review Plan
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+
+Closeout evidence:
+- Evidence PR: #1216 https://github.com/QuantumShieldLabs/qsl-protocol/pull/1216
+- Evidence PR merge SHA: `91e05e7b089b`
+- D-0934 records the identity/provider RNG assurance gap review.
+- D-0935 records this closeout and NA-0474 restoration.
+- Evidence doc: `docs/governance/evidence/NA-0473_qsl_identity_provider_rng_assurance_gap_review_plan.md`
+- Testplan: `tests/NA-0473_qsl_identity_provider_rng_assurance_gap_review_testplan.md`
+- Closeout testplan: `tests/NA-0473_closeout_restore_na0474_testplan.md`
+- Post-merge public-safety on `91e05e7b089b`: success.
+- Post-merge qsc-adversarial-smoke on `91e05e7b089b`: success.
+- Selected successor: `NA-0474 -- QSL KEM / Signature / Transcript Binding Read-Only Audit Plan`.
+- No implementation, runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, service, qshield, qsl-server, qsl-attachments, backup, restore, or public-doc mutation is introduced by the closeout.
+- No public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, KEM-complete, signature-complete, identity-complete, RNG-failure-complete, provider-RNG-complete, secret-material-complete, side-channel-free, vulnerability-free, bug-free, perfect-crypto, metadata-free, anonymity, untraceability, backup-complete, or restore-proof claim is introduced.
+
+---
+
+### NA-0474 — QSL KEM / Signature / Transcript Binding Read-Only Audit Plan
 Status: READY
 Goals: G1, G2, G3, G4, G5
 
 Objective:
-Review the completed identity/provider RNG evidence chain, including KEM, B1 signing, A2 no-output, lazy identity, legacy/public-record, CLI rotation, TUI bootstrap pre-generation transactionality, route/contact/attachment RNG, key lifecycle, provider-error, formal/model, side-channel, external-review readiness, and release-claim boundaries.
+Audit qsc and refimpl KEM, signature, transcript, identity, suite binding, and state-transition evidence after the identity/provider RNG chain, without implementation mutation, to determine whether protocol binding, downgrade, replay, stale public-record, or signature/transcript gaps require exact follow-up scope.
 
 Protects:
-- assurance quality after provider RNG chain progress.
-- formal/model residual tracking.
-- side-channel and secret-material caveat tracking.
-- hostile cryptographer review.
-- red-team review.
-- production SRE review.
-- external-review readiness.
-- release-claim boundaries.
+- protocol binding correctness.
+- signature/KEM transcript integrity.
+- identity/public-record binding clarity.
+- downgrade/replay/stale-record risk tracking.
+- formal-model mapping readiness.
 - public-claim conservatism.
-- the one-READY queue invariant.
+- one-READY invariant.
 
 Allowed scope:
-- governance evidence/testplan paths for NA-0473.
+- governance evidence/testplan paths for NA-0474.
 - DECISIONS.md.
 - TRACEABILITY.md.
 - docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
@@ -26392,21 +26409,20 @@ Forbidden scope:
 - No public-readiness claim and no crypto-complete claim.
 
 Deliverables:
-- assurance gap review evidence doc.
-- assurance gap review testplan.
-- D-0934 or next sequential decision.
+- KEM/signature/transcript binding audit evidence doc.
+- testplan.
+- D-0936 or next sequential decision.
 - TRACEABILITY update.
 - Rolling journal update.
-- selected next evidence domain or implementation residual.
+- selected next exact evidence/implementation residual.
 
 Acceptance criteria:
-- hostile cryptographer review complete.
-- red-team review complete.
-- production SRE review complete.
-- side-channel caveat reviewed.
-- formal-model mapping residual reviewed.
-- external-review readiness reviewed.
-- release-claim boundary reviewed.
+- KEM binding review complete.
+- signature binding review complete.
+- transcript binding review complete.
+- identity/public-record binding review complete.
+- downgrade/replay/stale-record review complete.
+- formal mapping residual reviewed.
 - no public overclaim.
 - exactly one READY item remains.
 

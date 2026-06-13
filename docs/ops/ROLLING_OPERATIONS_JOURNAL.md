@@ -3039,7 +3039,10 @@ Last-Updated: 2026-06-13
 - PR #1215: MERGED, merge commit `3765cdfc7d05`.
 - Evidence branch: `na-0473-identity-provider-rng-assurance-gap-review`.
 - Evidence PR: #1216.
-- Evidence merge commit: pending.
+- Evidence merge commit: `91e05e7b089b`.
+- Closeout branch: `na-0473-closeout-restore-na0474`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
 
 ## READY proof
 
@@ -3090,7 +3093,17 @@ Last-Updated: 2026-06-13
 - Failing command: first custom REST polling wrapper for PR #1216 checks.
   Classification: recoverable command-shape mistake because the wrapper combined a Python heredoc with a here-string and caused JSON to be parsed as Python source.
   Corrective action: terminated only the faulty local polling shell and reran with JSON passed to Python through a safe command shape.
-  Final result: corrected poll pending.
+  Final result: superseded by the temp-file REST polling wrapper.
+
+- Failing command: second custom REST polling wrapper for PR #1216 checks.
+  Classification: recoverable command-shape/data-size issue because passing the full GitHub check-runs JSON through an environment variable exceeded local argument/environment limits.
+  Corrective action: terminated only the faulty local polling shell and reran with the GitHub JSON written to proof-root files that Python read by path.
+  Final result: temp-file polling completed; PR #1216 checks were green, public-safety completed success, and post-merge public-safety plus qsc-adversarial-smoke completed success on `91e05e7b089b`.
+
+- Failing command: first closeout exact assertion and overclaim scan bundle.
+  Classification: recoverable validation-shape/wording issue because the exact assertion relied on the queue helper's limited DONE output instead of parsing `NEXT_ACTIONS.md` directly, and the overclaim scan found one NA-0474 forbidden-scope line without same-line no-claim wording.
+  Corrective action: reworded the NA-0474 claim boundary to explicit no-claim wording and reran exact assertions with direct status parsing.
+  Final result: rerun passed; direct status parser proved NA-0473 DONE and NA-0474 READY, and overclaim scan reported zero findings.
 
 ## Startup validation results
 
@@ -3134,13 +3147,48 @@ Last-Updated: 2026-06-13
 - qsc inherited cfg/no-cfg validation: PASS for TUI bootstrap, CLI rotation, legacy/public-record, lazy identity, A2 signature, B1 signature, KEM provider RNG, key lifecycle zeroization, provider-error no-mutation, and stable `send_commit`.
 - Local qsc adversarial smoke: Rust adversarial, miri, and provider-error portions PASS; local cargo-fuzz subcommand unavailable, so PR CI qsc-adversarial-smoke remains the required cargo-fuzz-backed proof.
 
+## Evidence PR merge proof
+
+- PR #1216 merged at `91e05e7b089b`.
+- PR #1216 head was `27367c1e0d62`.
+- PR #1216 pre-merge checks: all required contexts success, including public-safety and CodeQL.
+- Post-merge public-safety on `91e05e7b089b`: PASS.
+- Post-merge qsc-adversarial-smoke on `91e05e7b089b`: PASS.
+- Queue after evidence merge: READY_COUNT 1 and READY NA-0473.
+- Decision after evidence merge: D-0934 present on main.
+
+## Optional closeout patch notes
+
+- NA-0473 is marked DONE.
+- NA-0474 is restored as the sole READY successor.
+- Selected successor: `NA-0474 -- QSL KEM / Signature / Transcript Binding Read-Only Audit Plan`.
+- D-0935 records NA-0473 closeout and NA-0474 restoration.
+- TRACEABILITY records PR #1216, post-merge public-safety, post-merge qsc-adversarial-smoke, and the NA-0474 read-only audit successor.
+- Closeout testplan path: `tests/NA-0473_closeout_restore_na0474_testplan.md`.
+- No NA-0474 implementation is performed.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, qshield-cli runtime, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status, plan, rollback, durable Director State Index, public technical paper, or backup tree path is intentionally mutated.
+
+## Optional closeout validation results
+
+- `git diff --check` and `git diff --cached --check`: PASS.
+- Exact allowed-path scope guard: PASS for the five closeout governance paths only.
+- Queue proof: PASS, READY_COUNT 1 and READY NA-0474.
+- Direct NEXT_ACTIONS status proof: PASS, NA-0473 DONE and NA-0474 READY.
+- Decision proof: PASS, latest D-0935, D-0934 once, D-0935 once, D-0936 absent, duplicate decision count zero.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Full leak scan over closeout paths: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan: PASS, `OVERCLAIM_FINDING_COUNT 0`.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock audit: PASS.
+- `cargo fmt --check`: PASS.
+
 ## Next-watch items
 
-- Complete NA-0473 post-patch validation.
-- Evidence PR #1216 is open from `na-0473-identity-provider-rng-assurance-gap-review`.
-- Merge PR #1216 only after required checks and public-safety pass.
-- After merge, verify READY remains NA-0473, D-0934 on main, and public-safety green on the merge commit.
-- If post-merge public-safety is green, execute optional closeout to restore NA-0474 with the selected read-only KEM/signature/transcript binding audit plan.
+- Complete optional closeout validation.
+- Open closeout PR from `na-0473-closeout-restore-na0474`.
+- Merge closeout PR only after required checks and public-safety pass.
+- After closeout merge, verify READY NA-0474, NA-0473 DONE, D-0935 on main, and post-merge public-safety on the closeout merge commit.
+- Do not implement NA-0474 in this directive.
 
 # QSL-DIR-2026-06-11-320 / NA-0463 closeout and NA-0464 restoration rolling journal
 

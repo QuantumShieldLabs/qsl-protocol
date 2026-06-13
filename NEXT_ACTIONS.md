@@ -26184,8 +26184,14 @@ Acceptance criteria:
 ---
 
 ### NA-0471 — QSL qsc TUI Account Bootstrap Transactionality Design Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
+
+Implementation note:
+- D-0930 selected `TUI_BOOTSTRAP_PREGENERATION_IMPLEMENTATION_READY`.
+- Evidence PR `#1212` merged at `af5c8649bcb5`.
+- Closeout restores `NA-0472 -- QSL qsc TUI Account Bootstrap Pre-Generation Transactionality Implementation Harness` as the sole READY successor.
+- This closeout does not implement NA-0472.
 
 Objective:
 Authorize the transactionality semantics required before any qsc TUI account bootstrap identity provider RNG failure implementation, consuming NA-0470 evidence and deciding whether future bootstrap behavior should pre-generate identity material before durable account/default writes, roll back durable bootstrap state after identity provider failure, narrow the future invariant to identity-only evidence, or defer TUI bootstrap implementation to Assurance Gap Review.
@@ -26257,6 +26263,88 @@ Acceptance criteria:
 - future implementation path is selected or rejected with exact scope.
 - no implementation mutation occurs.
 - no public overclaim.
+- public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+---
+
+### NA-0472 — QSL qsc TUI Account Bootstrap Pre-Generation Transactionality Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the exact qsc TUI account bootstrap pre-generation transactionality scope selected by NA-0471, preserving production semantics and proving bounded no-partial-account/bootstrap behavior when identity provider RNG failure is forced before durable account/default writes.
+
+Protects:
+- truthful no-partial-account/bootstrap evidence for qsc TUI account bootstrap identity provider RNG failure.
+- qsc TUI `/init` command and init wizard setup-output boundaries.
+- profile alias, account defaults, verification seed, relay endpoint/token fields, TUI relay inbox token state, identity secrets, and self public-record write ordering.
+- production semantic stability when the cfg-only failure seam is inactive.
+- public-claim conservatism and external-review boundary clarity.
+- the one-READY queue invariant.
+
+Allowed scope:
+- qsl/qsl-client/qsc/src/tui/controller/commands/locked.rs.
+- qsl/qsl-client/qsc/src/identity/mod.rs.
+- qsl/qsl-client/qsc/tests/tui_account_bootstrap_transactionality.rs.
+- docs/governance/evidence/NA-0472_qsl_qsc_tui_account_bootstrap_pre_generation_transactionality_implementation_harness.md.
+- tests/NA-0472_qsl_qsc_tui_account_bootstrap_pre_generation_transactionality_implementation_testplan.md.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+
+Forbidden scope:
+- Mutating dependencies, Cargo manifests, lockfiles, workflows, qsl-server, qsl-attachments, qshield runtime, qshield-cli runtime, website, public docs, README, or START_HERE paths.
+- Mutating unrelated qsc/runtime/crypto paths outside exact NA-0471 selected scope.
+- Mutating refimpl unless a later exact directive authorizes it; this successor should avoid refimpl mutation by default.
+- Mutating fuzz target source, vectors, or formal models unless a later exact directive authorizes it.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No production-readiness claim.
+- No public-internet-readiness claim.
+- No external-review-complete claim.
+- No metadata-free claim.
+- No anonymity claim.
+- No untraceable claim.
+- No off-host backup completion claim.
+- No disaster recovery completion claim.
+- No restore proof claim.
+- No backup completion claim.
+- No bug-free claim.
+- No vulnerability-free claim.
+- No perfect-crypto claim.
+- No side-channel-free claim.
+- No RNG-failure-complete claim.
+- No provider-RNG-complete claim.
+- No secret-material-complete claim.
+- No KEM-complete claim.
+- No signature-complete claim.
+- No identity-complete claim.
+- No crypto-complete claim.
+
+Deliverables:
+- exact selected TUI pre-generation behavior in the qsc source paths listed above.
+- cfg-only identity provider RNG failure forcing for TUI bootstrap if needed to prove the selected invariant.
+- qsc TUI bootstrap transactionality test at the exact selected test path.
+- NA-0472 evidence doc and testplan.
+- D-0932 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+
+Acceptance criteria:
+- exact selected TUI pre-generation behavior is implemented.
+- production semantics are unchanged when the seam is inactive.
+- selected no-partial-account/bootstrap invariant is tested.
+- no partial account/default/verification/relay/identity state is left after forced identity provider RNG failure.
+- no misleading setup-success output is emitted after forced identity provider RNG failure.
+- assurance sections are present.
+- no identity-complete claim is introduced.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
 - public-safety is green before merge and after merge.
 - exactly one READY item remains.
 

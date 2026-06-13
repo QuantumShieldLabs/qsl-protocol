@@ -20,7 +20,7 @@ Last-Updated: 2026-06-13
 - qsl-protocol origin/main after fetch: `cace1ea0b693`.
 - PR #1211 merge commit verified: `cace1ea0b693`.
 - Evidence branch: `na-0471-tui-bootstrap-transactionality-design`.
-- Evidence PR: pending.
+- Evidence PR: #1212.
 - Evidence merge commit: pending.
 - Optional closeout branch: pending.
 - Optional closeout PR: pending.
@@ -54,6 +54,10 @@ Last-Updated: 2026-06-13
   Classification: recoverable branch-shape mistake because the commit was unpublished, the requested branch did not yet exist, and no remote or PR state had been mutated.
   Corrective action: created `na-0471-tui-bootstrap-transactionality-design` at the evidence commit and amended the local unpublished commit only to include this journal recovery note before PR creation.
   Final result: requested evidence branch contains the evidence commit; local `main` was not pushed.
+- Failing command: GitHub connector `create_pull_request`.
+  Classification: recoverable connector permission issue because the GitHub app returned `403 Resource not accessible by integration` after the branch was pushed successfully, while the authenticated `gh` CLI path was available.
+  Corrective action: created the PR with `gh pr create` using the same requested branch, base, title, and PR body.
+  Final result: evidence PR #1212 created.
 
 ## Non-fatal warnings / zero-match notes
 
@@ -103,7 +107,7 @@ Last-Updated: 2026-06-13
 - Post-patch formal model checks: PASS.
 - Post-patch dependency inventory: `rustls-webpki v0.103.13`, `ml-kem v0.2.1`, expected zero-match pqcrypto inverse probes, and zero nested qsc fuzz-lock pqcrypto matches.
 - Local qsc adversarial smoke: Rust phases PASS; local cargo-fuzz unavailable as recorded above; PR CI qsc-adversarial-smoke pending.
-- Evidence PR checks: pending.
+- Evidence PR #1212 checks: pending.
 - Post-merge public-safety: pending.
 
 ## Disk watermark

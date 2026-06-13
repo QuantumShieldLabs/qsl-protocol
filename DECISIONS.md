@@ -24603,3 +24603,26 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output must not be used as public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, identity-complete, RNG-failure-complete, provider-RNG-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
     - more than one READY item remains.
   - **References:** NA-0469; NA-0468; NA-0470; D-0925; D-0924; D-0923; `docs/governance/evidence/NA-0469_qsl_qsc_cli_identity_rotation_provider_rng_failure_test_seam_implementation_harness.md`; `tests/NA-0469_qsl_qsc_cli_identity_rotation_provider_rng_failure_test_seam_implementation_testplan.md`; `qsl/qsl-client/qsc/src/main.rs`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `qsl/qsl-client/qsc/tests/cli_identity_rotation_provider_rng_failure.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0926
+  - **Title:** NA-0469 closeout and NA-0470 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-13
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0469 is closed after qsl-protocol implementation PR #1207 merged at `94c0695a194a` and post-merge public-safety completed success on that merge commit. D-0925 records the bounded qsc CLI identity rotation provider RNG failure test-seam implementation, so this closeout marks NA-0469 DONE and restores `NA-0470 -- QSL qsc TUI Account Bootstrap Identity Provider RNG Failure Scope Authorization Plan` as the sole READY successor.
+  - **Implementation acceptance boundary:** The PR #1207 evidence is internal qsc CLI rotation evidence only. It implements cfg-only labels `QSC.IDENTITY.ROTATE.KEM_KEYPAIR` and `QSC.IDENTITY.ROTATE.SIG_KEYPAIR`, proves forced KEM and signature failures return sanitized `identity_secret_unavailable` / `rng_failure_forced` before durable rotation writes, and proves selected identity, KEM/signature identity secrets, self public record, contact/peer-reset state, dependent handshake/session absence, and no-cfg production semantics remain inside the NA-0469 invariant.
+  - **NA-0470 restored scope:** NA-0470 is authorization-only for qsc TUI account bootstrap identity provider RNG failure scope selection. It may mutate only its future governance evidence/testplan paths, `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` unless a later exact directive changes scope.
+  - **Deferred boundaries:** NA-0470 must not implement TUI account bootstrap runtime changes. Runtime behavior, crypto behavior, dependencies, Cargo manifests, lockfiles, workflows, qsl-server, qsl-attachments, qshield runtime, qshield-cli runtime, website, public docs, README, START_HERE, executable tests, fuzz targets, vectors, formal models, and refimpl remain out of scope unless later exact scope authorizes them.
+  - **No backup/restore:** Codex did not run backup or restore. Codex did not run sudo. Codex did not mutate qsl-backup, backup status files, backup plan files, rollback subtree paths, timers, fstab, source lists, retention, backup scripts, or `/backup/qsl`.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No RNG-failure-complete claim is made. No provider-RNG-complete claim is made. No secret-material-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Required behavior:**
+    - NA-0469 remains DONE and its evidence remains CLI-rotation-only internal qsc evidence.
+    - NA-0470 is the sole READY item and must stay authorization-only until a later exact directive authorizes implementation.
+    - NA-0470 must preserve no-runtime/no-crypto/no-dependency/no-workflow/no-public-overclaim boundaries.
+    - Exactly one READY item remains mandatory.
+  - **Must never happen:**
+    - NA-0470 is represented as implemented by this closeout.
+    - NA-0469 evidence is represented as identity completion, signature completion, RNG-failure completion, provider-RNG completion, or crypto completion.
+    - Cargo audit output must not be represented as public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, identity-complete, RNG-failure-complete, provider-RNG-complete, vulnerability-free, bug-free, perfect-crypto, or side-channel-free proof.
+    - more than one READY item remains.
+  - **References:** NA-0469; NA-0470; D-0926; D-0925; qsl-protocol PR #1207; `docs/governance/evidence/NA-0469_qsl_qsc_cli_identity_rotation_provider_rng_failure_test_seam_implementation_harness.md`; `tests/NA-0469_qsl_qsc_cli_identity_rotation_provider_rng_failure_test_seam_implementation_testplan.md`; `tests/NA-0469_closeout_restore_na0470_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

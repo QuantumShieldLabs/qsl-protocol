@@ -131,7 +131,8 @@ use handshake::{
 use identity::{
     format_verification_code_from_fingerprint, identities_dir, identity_fingerprint_from_pk,
     identity_marker_display, identity_pin_matches_seen, identity_read_pin,
-    identity_read_self_public, identity_read_sig_pin, identity_secret_name, identity_secret_store,
+    identity_read_self_public, identity_read_sig_pin, identity_rotate_kem_keypair,
+    identity_rotate_sig_keypair, identity_secret_name, identity_secret_store,
     identity_self_fingerprint, identity_self_kem_keypair, identity_self_path,
     identity_sig_secret_name, identity_sig_secret_store, identity_write_public_record,
     IdentityKeypair, IDENTITY_FP_PREFIX,
@@ -986,8 +987,28 @@ fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
         );
         print_error_marker("identity_rotate_confirm_required");
     }
-    let (kem_pk, kem_sk) = hs_kem_keypair();
-    let (sig_pk, sig_sk) = hs_sig_keypair();
+    let (kem_pk, kem_sk) = match identity_rotate_kem_keypair() {
+        Ok(v) => v,
+        Err(e) => {
+            emit_marker(
+                "identity_secret_unavailable",
+                Some(e),
+                &[("reason", "rng_failure_forced")],
+            );
+            print_error_marker("identity_secret_unavailable");
+        }
+    };
+    let (sig_pk, sig_sk) = match identity_rotate_sig_keypair() {
+        Ok(v) => v,
+        Err(e) => {
+            emit_marker(
+                "identity_secret_unavailable",
+                Some(e),
+                &[("reason", "rng_failure_forced")],
+            );
+            print_error_marker("identity_secret_unavailable");
+        }
+    };
     if identity_secret_store(self_label, &kem_sk).is_err() {
         emit_marker(
             "identity_secret_unavailable",

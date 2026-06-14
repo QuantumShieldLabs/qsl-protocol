@@ -33674,3 +33674,20 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Merge only after required checks and public-safety pass.
 - If implementation PR post-merge public-safety is green, optionally close NA-0478 and restore selected NA-0479.
 - Do not implement NA-0479 in NA-0478.
+
+## Closeout update
+
+- Implementation PR #1226 merged at `f3d0797de8c1`.
+- Post-merge public-safety on `f3d0797de8c1`: success.
+- qsc-adversarial-smoke on `f3d0797de8c1`: success.
+- qsc-linux-full-suite on `f3d0797de8c1`: success.
+- macos-qsc-full-serial on `f3d0797de8c1`: success.
+- Closeout branch: `na-0478-closeout-restore-na0479`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
+- D-0945 records NA-0478 closeout and NA-0479 restoration.
+- NA-0478 is marked DONE.
+- NA-0479 qsc/refimpl KEM / Signature Binding Mapping Authorization Plan is restored as the sole READY successor.
+- No NA-0479 implementation is performed.
+- No qsc runtime/source, qsc executable test, crypto, dependency, Cargo, lockfile, workflow, fuzz target, vector, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status, plan, rollback, durable Director State Index, public technical paper, or backup tree mutation is introduced by closeout.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No crypto-complete claim is introduced. No KEM-complete claim is introduced. No signature-complete claim is introduced. No identity-complete claim is introduced. No transcript-complete claim is introduced. No downgrade-proof claim is introduced. No replay-proof claim is introduced. No formal-proof-complete claim is introduced. No side-channel-free claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-crypto claim is introduced.

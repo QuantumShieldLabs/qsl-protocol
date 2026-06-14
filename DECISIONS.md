@@ -25124,3 +25124,28 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output is represented as anything stronger than dependency-health evidence.
     - More than one READY item remains.
   - **References:** NA-0478; NA-0477; D-0944; D-0943; D-0942; D-0941; D-0940; `formal/model_qsc_kem_signature_transcript_binding_bounded.py`; `formal/run_model_checks.py`; `docs/governance/evidence/NA-0478_qsl_qsc_kem_signature_transcript_binding_formal_model_implementation_harness.md`; `tests/NA-0478_qsl_qsc_kem_signature_transcript_binding_formal_model_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0945
+  - **Title:** NA-0478 closeout and NA-0479 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-14
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0478 is closed after implementation PR #1226 merged at `f3d0797de8c1` and post-merge public-safety completed success on that merge commit. D-0944 records the bounded qsc KEM/signature/transcript binding formal model implementation and selects `NA-0479 -- QSL qsc/refimpl KEM / Signature Binding Mapping Authorization Plan` as the successor. This closeout marks NA-0478 DONE and restores NA-0479 as the sole READY item.
+  - **Selected NA-0479 successor restored:** NA-0479 is a governance authorization plan to authorize exact read-only qsc/refimpl KEM and signature binding mapping scope after the qsc binding negative tests and formal model, preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries.
+  - **Evidence consumed:** NA-0478 formal model, NA-0478 runner integration, NA-0478 evidence doc, NA-0478 testplan, D-0944, TRACEABILITY, rolling journal, PR #1226 checks, post-merge public-safety, qsc-adversarial-smoke, qsc-linux-full-suite, and macos-qsc-full-serial evidence are accepted as closeout evidence.
+  - **No NA-0479 implementation mutation:** This closeout does not implement NA-0479 and does not mutate runtime behavior.
+  - **NA-0479 allowed scope:** Future NA-0479 may create governance evidence/testplan paths for NA-0479 and update `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; it may perform read-only inspection of qsc, refimpl, formal, fuzz, vector, evidence, and CI surfaces.
+  - **NA-0479 forbidden scope:** Future NA-0479 must not mutate implementation, runtime code, crypto code, dependencies, Cargo manifests, lockfiles, workflows, executable tests, fuzz targets, vectors, formal models, services, public docs, qshield, qsl-server, qsl-attachments, qwork/qstart/qresume/qshell, qsl-backup, backup status files, backup plan files, rollback paths, backup tree paths, durable Director State Index output, or public technical paper content unless a later exact directive authorizes a narrower exception.
+  - **No backup/restore:** Codex did not run backup or restore and did not mutate qsl-backup, backup status, backup plan, rollback, or backup tree paths.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No transcript-complete claim is made. No downgrade-proof claim is made. No replay-proof claim is made. No formal-proof-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Required behavior:**
+    - NA-0479 remains authorization scoped until a later exact directive authorizes any implementation work.
+    - NA-0479 must consume the qsc binding negative tests and formal model evidence without expanding public claims.
+    - Exactly one READY remains mandatory.
+  - **Must never happen:**
+    - NA-0478 closeout is represented as NA-0479 implementation evidence.
+    - Future NA-0479 evidence is represented as runtime/source, crypto, dependency, workflow, refimpl, executable-test, vector, fuzz, formal model, service, public-doc, website, backup, restore, or qsl-backup authorization beyond its read-only authorization-plan scope.
+    - No future evidence may represent NA-0478 closeout or NA-0479 restoration as public readiness, production readiness, public-internet readiness, external review completion, crypto completion, KEM completion, signature completion, identity completion, transcript completion, downgrade proof, replay proof, formal-proof completion, side-channel freedom, vulnerability freedom, bug freedom, backup completion, restore proof, or perfect crypto.
+    - Cargo audit output must not be represented as anything stronger than dependency-health evidence.
+    - More than one READY item remains.
+  - **References:** NA-0478; NA-0479; D-0945; D-0944; D-0943; D-0942; D-0941; D-0940; PR #1226; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0478_closeout_restore_na0479_testplan.md`

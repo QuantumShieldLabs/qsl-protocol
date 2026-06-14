@@ -26498,7 +26498,7 @@ Completion note:
 ---
 
 ### NA-0476 — QSL qsc KEM / Signature / Transcript Binding Negative Test Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -26573,6 +26573,66 @@ Acceptance criteria:
 - cargo audit remains green.
 - nested fuzz lock audit remains green.
 - public-safety is green before merge and after merge.
+- exactly one READY item remains.
+
+Completion note:
+- Implementation PR #1222 merged at `e86797ed939d`.
+- Post-merge public-safety on `e86797ed939d`: success.
+- D-0940 records the bounded qsc KEM / Signature / Transcript Binding Negative Test implementation.
+- Selected successor: `NA-0477 -- QSL KEM / Signature / Transcript Formal Model Mapping Authorization Plan`.
+- No qsc runtime/source mutation outside the exact selected test file was introduced.
+- No crypto, dependency, Cargo, lockfile, workflow, refimpl, fuzz target, vector, formal model, service, qshield, qshield-cli, qsl-server, qsl-attachments, backup, restore, qsl-backup, public-doc, website, README, START_HERE, qwork/qstart/qresume/qshell, status, plan, rollback, durable Director State Index, public technical paper, or backup tree mutation was introduced.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No crypto-complete claim is introduced. No KEM-complete claim is introduced. No signature-complete claim is introduced. No identity-complete claim is introduced. No transcript-complete claim is introduced. No downgrade-proof claim is introduced. No replay-proof claim is introduced. No RNG-failure-complete claim is introduced. No provider-RNG-complete claim is introduced. No secret-material-complete claim is introduced. No side-channel-free claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-crypto claim is introduced. No backup-complete claim is introduced. No restore-proof claim is introduced.
+
+---
+
+### NA-0477 — QSL KEM / Signature / Transcript Formal Model Mapping Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize exact formal-model mapping scope for KEM, signature, transcript, identity, suite, replay, downgrade, and stale public-record binding evidence after the qsc negative-test implementation, preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries.
+
+Protects:
+- formal assurance quality.
+- mapping between implementation state transitions and bounded formal models.
+- transcript/KDF/confirm binding reasoning.
+- identity/public-record binding reasoning.
+- downgrade/replay/suite-confusion reasoning.
+- external-review readiness.
+- public-claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0477.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of qsc, refimpl, formal, fuzz, vector, evidence, and CI surfaces.
+
+Forbidden scope:
+- implementation mutation.
+- runtime/crypto/dependency/Cargo/lockfile/workflow mutation.
+- executable test/fuzz/vector/formal mutation unless later exact implementation directive authorizes.
+- service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- No public-readiness or crypto-complete claims.
+
+Deliverables:
+- formal mapping authorization evidence doc.
+- testplan.
+- D-0942 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- selected exact formal model mapping implementation scope or no-action rationale.
+
+Acceptance criteria:
+- KEM formal mapping scope selected or rejected.
+- signature formal mapping scope selected or rejected.
+- transcript/KDF/confirm formal mapping scope selected or rejected.
+- identity/public-record formal mapping scope selected or rejected.
+- downgrade/replay/suite-confusion formal mapping scope selected or rejected.
+- no public overclaim.
 - exactly one READY item remains.
 
 ---

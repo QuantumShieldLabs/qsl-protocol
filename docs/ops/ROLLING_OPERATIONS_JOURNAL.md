@@ -21,9 +21,9 @@ Last-Updated: 2026-06-13
 - PR #1221 merge commit verified: `15504bca439c`.
 - Implementation branch: `na-0476-binding-negative-test-implementation`.
 - Implementation PR: #1222.
-- Implementation merge commit: pending.
-- Optional closeout branch: pending.
-- Optional closeout PR: pending.
+- Implementation merge commit: `e86797ed939d`.
+- Optional closeout branch: `na-0476-closeout-restore-na0477`.
+- Optional closeout PR: #1223.
 - Optional closeout merge commit: pending.
 
 ## READY proof
@@ -93,6 +93,15 @@ Last-Updated: 2026-06-13
   adversarial tests plus `NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP`,
   then stopped at missing local `cargo fuzz`; PR CI `qsc-adversarial-smoke`
   remains required for full adversarial smoke proof.
+- Implementation PR #1222 pre-merge required checks: PASS; public-safety success; qsc-adversarial-smoke success.
+- Implementation PR #1222 merged at `e86797ed939d`.
+- Post-merge queue proof before closeout: READY_COUNT 1 and READY NA-0476.
+- Post-merge decision proof before closeout: D-0940 once, D-0941 absent, latest D-0940, duplicate decision count zero.
+- Post-merge public-safety on `e86797ed939d`: PASS.
+- Non-required `relay-ui-integration` reported a red check run on `e86797ed939d`; required public-safety and required qsc checks stayed green and this was not treated as a required-check failure.
+- Optional closeout patch target: mark NA-0476 DONE and restore exactly one READY NA-0477 formal model mapping authorization successor without implementing NA-0477.
+- Closeout local validation before PR: queue proof PASS with READY_COUNT 1 and READY NA-0477; decision proof PASS with latest D-0941, D-0940 once, D-0941 once, D-0942 absent, and duplicate decision count zero; staged scope guard PASS with five allowed paths; link-check PASS; leak-scan PASS; added-line overclaim scan PASS; PR body preflight PASS; goal-lint PASS; root cargo audit PASS; nested qsc fuzz lock audit PASS.
+- Closeout PR #1223 opened from `na-0476-closeout-restore-na0477`.
 
 ## Implementation notes
 
@@ -112,11 +121,10 @@ Last-Updated: 2026-06-13
 
 ## Next-watch items
 
-- Complete NA-0476 full local validation.
-- Open implementation PR from `na-0476-binding-negative-test-implementation`.
-- Merge implementation PR only after required checks pass and public-safety is green.
-- After implementation merge, verify READY remains NA-0476, D-0940 exists on main, and post-merge public-safety is green.
-- If post-merge public-safety is green, optionally close out NA-0476 and restore exactly one READY NA-0477 successor without implementing NA-0477.
+- Validate closeout queue proof: READY_COUNT 1 and READY NA-0477.
+- Validate closeout decision proof: D-0940 once, D-0941 once, D-0942 absent, duplicate decision count zero.
+- Merge closeout PR #1223 only after required checks pass and public-safety is green.
+- After closeout merge, verify READY NA-0477, NA-0476 DONE, D-0941 on main, and post-merge public-safety on the closeout merge commit.
 
 # QSL-DIR-2026-06-14-335 / NA-0475 binding negative-test scope authorization rolling journal
 

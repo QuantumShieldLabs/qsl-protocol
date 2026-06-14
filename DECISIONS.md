@@ -25010,3 +25010,26 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output is represented as anything stronger than dependency-health evidence.
     - More than one READY item remains.
   - **References:** NA-0476; NA-0475; D-0940; D-0939; D-0938; `qsl/qsl-client/qsc/tests/kem_signature_transcript_binding_negative.rs`; `docs/governance/evidence/NA-0476_qsl_qsc_kem_signature_transcript_binding_negative_test_implementation_harness.md`; `tests/NA-0476_qsl_qsc_kem_signature_transcript_binding_negative_test_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0941
+  - **Title:** NA-0476 closeout and NA-0477 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-14
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0476 is closed after qsl-protocol implementation PR #1222 merged at `e86797ed939d` and post-merge public-safety completed success on that merge commit. D-0940 records the bounded qsc KEM/signature/transcript binding negative-test implementation and selects `NA-0477 -- QSL KEM / Signature / Transcript Formal Model Mapping Authorization Plan` as the successor. This closeout marks NA-0476 DONE and restores NA-0477 as the sole READY item.
+  - **Selected NA-0477 successor restored:** NA-0477 is a governance authorization plan to select exact formal-model mapping scope for KEM, signature, transcript, identity, suite, replay, downgrade, and stale public-record binding evidence after the qsc negative-test implementation. It does not implement NA-0477 and does not authorize runtime/source, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, service, public-doc, website, backup, restore, or qsl-backup mutation unless a later exact directive authorizes a narrower exception.
+  - **Evidence consumed:** NA-0476 test file, NA-0476 evidence doc, NA-0476 testplan, D-0940, TRACEABILITY, rolling journal, PR #1222 checks, post-merge public-safety, and qsc-adversarial-smoke evidence are accepted as closeout evidence.
+  - **No NA-0477 implementation mutation:** This closeout does not implement NA-0477 and does not mutate runtime behavior.
+  - **No runtime/crypto/dependency/Cargo/lockfile/workflow/test/fuzz/vector/formal mutation:** This closeout does not mutate runtime code, crypto code, dependencies, Cargo manifests, lockfiles, workflows, executable tests, fuzz targets, vectors, formal models, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status files, backup plan files, rollback subtree paths, backup tree paths, durable Director State Index output, or public technical paper content.
+  - **No backup/restore:** Codex did not run backup or restore and did not mutate qsl-backup or backup plan/status files.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No transcript-complete claim is made. No downgrade-proof claim is made. No replay-proof claim is made. No RNG-failure-complete claim is made. No provider-RNG-complete claim is made. No secret-material-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. No backup-complete claim is made. No restore-proof claim is made. Cargo audit green is dependency-health evidence only.
+  - **Required behavior:**
+    - NA-0477 remains authorization scoped until a later exact directive authorizes any implementation work.
+    - Exactly one READY remains mandatory.
+  - **Must never happen:**
+    - NA-0476 closeout is represented as NA-0477 implementation evidence.
+    - Future NA-0477 evidence is represented as qsc runtime/source, crypto, dependency, workflow, refimpl, executable test, vector, fuzz, formal, public-doc, website, service, backup, restore, or qsl-backup authorization beyond its authorization-plan scope.
+    - No future evidence may represent NA-0476 closeout or NA-0477 restoration as public readiness, production readiness, public-internet readiness, external review completion, crypto completion, KEM completion, signature completion, identity completion, transcript completion, downgrade proof, replay proof, RNG failure completion, provider RNG completion, secret-material completion, side-channel freedom, vulnerability freedom, bug freedom, backup completion, restore proof, or perfect crypto.
+    - Cargo audit output must not be represented as anything stronger than dependency-health evidence.
+    - More than one READY item remains.
+  - **References:** NA-0476; NA-0477; D-0941; D-0940; PR #1222; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0476_closeout_restore_na0477_testplan.md`

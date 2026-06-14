@@ -20,9 +20,9 @@ Last-Updated: 2026-06-13
 - qsl-protocol origin/main after fetch: `ea5b650502e8`.
 - PR #1219 merge commit verified: `ea5b650502e8`.
 - Evidence branch: `na-0475-binding-negative-test-scope`.
-- Evidence PR: pending.
-- Evidence merge commit: pending.
-- Optional closeout branch: pending.
+- Evidence PR: #1220.
+- Evidence merge commit: `f00854935793`.
+- Optional closeout branch: `na-0475-closeout-restore-na0476`.
 - Optional closeout PR: pending.
 - Optional closeout merge commit: pending.
 
@@ -95,6 +95,40 @@ Last-Updated: 2026-06-13
 - Merge evidence PR only after required checks pass and public-safety is green.
 - After evidence merge, verify READY remains NA-0475, D-0938 exists on main, and post-merge public-safety is green.
 - If post-merge public-safety is green, optionally close out NA-0475 and restore exactly one READY NA-0476 successor without implementing NA-0476.
+
+## Evidence merge proof
+
+- Evidence PR #1220 merged at `f00854935793`.
+- PR #1220 pre-merge checks: PASS, 38 checks attached, 29 success, 9 skipped, zero failures, public-safety success.
+- PR #1220 post-merge checks on `f00854935793`: PASS, 36 checks attached, 34 success, 2 skipped, zero failures, public-safety success.
+- Post-merge qsc-adversarial-smoke on `f00854935793`: success.
+- Post-merge queue proof before closeout: READY_COUNT 1 and READY NA-0475.
+- Post-merge decision proof before closeout: D-0938 once, D-0939 absent, latest D-0938, duplicate decision count zero.
+
+# QSL-DIR-2026-06-14-335 / NA-0475 closeout and NA-0476 restoration rolling journal
+
+- Directive: QSL-DIR-2026-06-14-335 optional closeout -- close out NA-0475 after PR #1220 post-merge public-safety completion and restore NA-0476.
+- Closeout branch: `na-0475-closeout-restore-na0476`.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Closeout proof
+
+- NA-0475 is marked DONE.
+- NA-0476 is restored as the sole READY successor.
+- Selected successor: `NA-0476 -- QSL qsc KEM / Signature / Transcript Binding Negative Test Implementation Harness`.
+- Exact future qsc test path remains `qsl/qsl-client/qsc/tests/kem_signature_transcript_binding_negative.rs`.
+- D-0939 records NA-0475 closeout and NA-0476 restoration.
+- TRACEABILITY records PR #1220, post-merge public-safety, post-merge qsc-adversarial-smoke, and the NA-0476 implementation successor.
+- No NA-0476 implementation is performed.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, refimpl, service, qshield, qshield-cli, qsl-server, qsl-attachments, backup, restore, public-doc, website, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, status, plan, rollback, durable Director State Index, public technical paper, or backup tree mutation is introduced by this closeout.
+- No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No transcript-complete claim is made. No downgrade-proof claim is made. No replay-proof claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. No backup-complete claim is made. No restore-proof claim is made.
+
+## Recovered closeout failure evidence
+
+- Failing command: first closeout added-line overclaim scan.
+  Classification: recoverable wording/scan-hygiene issue because the NA-0476 forbidden-scope queue bullet listed prohibited claims as "creating or implying" rather than using explicit no-claim wording.
+  Corrective action: rewrote the forbidden-scope claim boundary as individual `No ... claim` bullets.
+  Final result: PASS; closeout added-line overclaim scan reported zero affirmative overclaim findings.
 
 # QSL-DIR-2026-06-13-331 / NA-0471 TUI bootstrap transactionality design rolling journal
 

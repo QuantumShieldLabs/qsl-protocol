@@ -33547,3 +33547,130 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Merge only after required checks and public-safety pass.
 - If evidence PR post-merge public-safety is green, optionally close NA-0477 and restore selected NA-0478.
 - Do not implement NA-0478 in NA-0477.
+
+# QSL-DIR-2026-06-14-338 / NA-0478 qsc binding formal model implementation rolling journal
+
+- Directive: QSL-DIR-2026-06-14-338 -- Execute NA-0478 QSL qsc KEM / Signature / Transcript Binding Formal Model Implementation Harness, Optional Closeout to NA-0479.
+- Begin timestamp (America/Chicago): 2026-06-14T11:54:27-05:00.
+- Begin timestamp (UTC): 2026-06-14T16:54:27+00:00.
+- Current patch timestamp (America/Chicago): 2026-06-14T12:13:47-05:00.
+- Current patch timestamp (UTC): 2026-06-14T17:13:47+00:00.
+- End timestamp (America/Chicago): pending.
+- End timestamp (UTC): pending.
+- Codex did not run qwork, qstart, qresume, sudo, backup, restore, cargo update, or cargo generate-lockfile.
+
+## Repo SHAs
+
+- qsl-protocol worktree: `/srv/qbuild/work/NA-0478/qsl-protocol`.
+- qsl-protocol main before patch: `bd00c82be608`.
+- qsl-protocol origin/main before patch: `bd00c82be608`.
+- qwork proof HEAD: `bd00c82be608`.
+- qwork proof origin/main: `bd00c82be608`.
+- PR #1225 merge commit: `bd00c82be608`.
+
+## READY proof
+
+- qwork proof: `READY_COUNT 1`, `queue_top_ready=NA-0478`, requested lane status READY.
+- Helper proof: `READY_COUNT 1`, `READY NA-0478 QSL qsc KEM / Signature / Transcript Binding Formal Model Implementation Harness`.
+- Direct queue proof: NA-0478 READY; NA-0477 through NA-0435 DONE; NA-0434 BLOCKED; NA-0429 BLOCKED.
+- Decision proof before patch: latest D-0943; D-0942 once; D-0943 once; D-0944 absent; duplicate count zero.
+
+## Worktree / branch / PR
+
+- Branch before patch: `main`.
+- Implementation branch: pending.
+- Implementation PR: pending.
+- Implementation merge commit: pending.
+- Optional closeout branch: pending.
+- Optional closeout PR: pending.
+- Optional closeout merge commit: pending.
+
+## Startup proof
+
+- qwork proof files existed and were copied into `/srv/qbuild/tmp/NA0478_qsc_binding_formal_model_impl_20260614T165427Z/qwork/`.
+- qwork proof HEAD and origin/main matched live HEAD and live origin/main before fetch.
+- Fetch did not advance origin/main.
+- Main was checked out clean from origin/main.
+- PR #1225 was verified MERGED at `bd00c82be608`.
+- Public-safety on `bd00c82be608` completed success.
+- qsl-backup SHA matched expected value.
+- Current Codex ops source-list inclusion count was exactly one.
+- No backup or restore was run.
+
+## Failures / recoveries
+
+- Failing command: `ls -l docs/governance/evidence/NA-0478_qsl_qsc_kem_signature_transcript_binding_formal_model_implementation_harness.md tests/NA-0478_qsl_qsc_kem_signature_transcript_binding_formal_model_implementation_testplan.md`.
+  Classification: recoverable absent-preimage proof because both NA-0478 governance files were expected not to exist before this directive.
+  Corrective action: recorded the absence and created the two files within allowed NA-0478 governance scope.
+  Final result: files added by the NA-0478 governance patch.
+- Optional command exits: root `cargo tree -i pqcrypto-mlkem --locked`, `cargo tree -i pqcrypto-traits --locked`, and `cargo tree -i pqcrypto-internals --locked` returned package-ID absence under the directive-approved `|| true` command shape.
+  Classification: valid zero-match discovery/proof outcome.
+  Corrective action: recorded exits and continued.
+  Final result: root cargo audit passed, `ml-kem` tree resolved, and pqcrypto inverse probes did not block validation.
+- Optional command exit: qsc fuzz lock pqcrypto residual scan returned no matches under the directive-approved `|| true` command shape.
+  Classification: valid zero-match discovery/proof outcome.
+  Corrective action: recorded zero-match exit and continued.
+  Final result: nested qsc fuzz lock audit passed and pqcrypto residual scan had zero matches.
+- Failing command: first added-line overclaim scan after the governance patch.
+  Classification: recoverable governance wording issue because wrapped no-claim
+  text separated sensitive phrases from same-line negation.
+  Corrective action: rewrote the release-claim boundary section in the NA-0478
+  evidence doc so each sensitive phrase has an explicit same-line no-claim
+  statement.
+  Final result: overclaim scan rerun reported `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command shape: first local qsc-adversarial log classification used a
+  shell pattern with unescaped backticks and printed a harmless command
+  substitution error while classifying the cargo-fuzz absence.
+  Classification: recoverable command-shape mistake; the underlying
+  adversarial script output was already captured and unchanged.
+  Corrective action: reran log classification with a single-quoted pattern.
+  Final result: clean classification recorded
+  `QSC_ADVERSARIAL_LOCAL_CLASSIFICATION cargo_fuzz_unavailable_rely_on_pr_ci`.
+- Failing command: `sh scripts/ci/qsc_adversarial.sh`.
+  Classification: recoverable local tool-availability limitation because the
+  adversarial cargo test phases and provider-error no-mutation test passed
+  before local `cargo fuzz` was reported unavailable.
+  Corrective action: recorded exact tail output and retained PR CI
+  `qsc-adversarial-smoke` as required validation.
+  Final result: local script exit 101 classified as cargo-fuzz unavailable, not
+  as a qsc adversarial property failure.
+
+## Implementation notes
+
+- Added `formal/model_qsc_kem_signature_transcript_binding_bounded.py`.
+- Updated `formal/run_model_checks.py` to run the NA-0478 model after existing qsc suite-id checks.
+- The model uses opaque tokens only and explicitly states bounded/no-cryptographic/no-side-channel/no-completion/no-qsc-refimpl-equivalence boundaries.
+- Valid baseline trace reaches completed-session state for initiator and responder roles.
+- Invalid traces model wrong KEM public key, stale KEM/public-record tokens, wrong KEM ciphertext, wrong signature identity, cross-message signature context replay, transcript mutation, replay, suite confusion, and stale public-record rejection.
+- Rejected traces assert no completed-session mutation and no success output.
+
+## Validation / CI notes
+
+- Startup root cargo audit: PASS.
+- Startup nested qsc fuzz lock audit: PASS.
+- Startup inherited qsc binding negative test: PASS.
+- Startup inherited qsc cfg/no-cfg provider RNG, key lifecycle, and provider-error tests: PASS.
+- Startup existing formal model checks: PASS.
+- Standalone NA-0478 model first run: PASS.
+- Existing qsc suite-id model after implementation: PASS.
+- Formal runner after implementation: PASS, including NA-0478 model.
+- Governance patch validation: PASS for exact seven-path scope guard, link
+  check, leak scan, added-line overclaim scan, and `git diff --check`.
+- Local implementation validation: PASS for cargo fmt, standalone NA-0478 model,
+  formal runner, inherited qsc tests, stable qsc `send_commit`, refimpl
+  `pqkem768`, root cargo audit, nested qsc fuzz lock audit, dependency probes,
+  qsc adversarial syntax, and local qsc adversarial cargo-test phases before the
+  expected cargo-fuzz local-tool absence.
+- Implementation PR checks: pending.
+
+## Disk watermark
+
+- `/` and `/srv/qbuild/tmp`: 468G size, 362G used, 82G available, 82% used.
+
+## Next-watch items
+
+- Run local validation and exact scope guard after the governance patch.
+- Open implementation PR from `na-0478-qsc-binding-formal-model`.
+- Merge only after required checks and public-safety pass.
+- If implementation PR post-merge public-safety is green, optionally close NA-0478 and restore selected NA-0479.
+- Do not implement NA-0479 in NA-0478.

@@ -25083,3 +25083,44 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - NA-0478 must not be represented as public readiness, production readiness, public-internet readiness, external-review completion, crypto completeness, KEM completeness, signature completeness, identity completeness, transcript completeness, downgrade proof, replay proof, formal-proof completeness, side-channel freedom, vulnerability freedom, bug freedom, perfect crypto, backup completion, or restore proof.
     - Cargo audit output is represented as anything stronger than dependency-health evidence.
   - **References:** NA-0477; NA-0478; D-0943; D-0942; D-0941; D-0940; PR #1224; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0477_closeout_restore_na0478_testplan.md`
+
+- **ID:** D-0944
+  - **Title:** NA-0478 qsc KEM signature transcript binding formal model implementation
+  - **Status:** Accepted
+  - **Date:** 2026-06-14
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0478 consumes NA-0477 and implements the selected bounded qsc KEM/signature/transcript binding formal model at `formal/model_qsc_kem_signature_transcript_binding_bounded.py`, with runner integration in `formal/run_model_checks.py`.
+  - **NA-0477 consumed:** D-0942 selected `FORMAL_MAPPING_QSC_BINDING_MODEL_IMPLEMENTATION_READY`; D-0943 restored NA-0478 as the sole READY implementation successor. NA-0478 consumes that authorization and does not expand it.
+  - **Opaque-token abstraction used:** The model treats KEM public keys, KEM ciphertexts, signature identities, signature public keys, signature message contexts, transcript tokens, confirmation tokens, suite tokens, session tokens, public-record/trusted-pin tokens, replay state, pending state, completed-session state, and output flags as opaque tokens. It does not model cryptographic internals.
+  - **Valid trace modeled:** The model accepts one valid A1/B1/A2 baseline and records completed-session state for initiator and responder roles.
+  - **Wrong KEM reject modeled:** The model rejects an A1 with a wrong KEM public-key token and emits `NA0478_BINDING_MODEL_WRONG_KEM_REJECT_OK`.
+  - **Stale KEM/public-record reject modeled:** The model rejects stale KEM public-record and trusted-pin tokens and emits `NA0478_BINDING_MODEL_STALE_KEM_PUBLIC_RECORD_REJECT_OK`.
+  - **Wrong ciphertext reject modeled:** The model rejects a wrong B1 KEM ciphertext token and emits `NA0478_BINDING_MODEL_WRONG_CIPHERTEXT_REJECT_OK`.
+  - **Wrong signature reject modeled:** The model rejects wrong signature identity/public-key tokens and emits `NA0478_BINDING_MODEL_WRONG_SIGNATURE_REJECT_OK`.
+  - **Cross-message signature replay modeled:** The model rejects a signature message-context token copied from another message type and emits `NA0478_BINDING_MODEL_CROSS_MESSAGE_SIGNATURE_REPLAY_REJECT_OK`.
+  - **Transcript mutation reject modeled:** The model rejects a mutated transcript token and emits `NA0478_BINDING_MODEL_TRANSCRIPT_MUTATION_REJECT_OK`.
+  - **Replay reject modeled:** The model rejects replayed transcript/session state and emits `NA0478_BINDING_MODEL_REPLAY_REJECT_OK`.
+  - **Suite confusion reject modeled:** The model rejects a wrong suite token and emits `NA0478_BINDING_MODEL_SUITE_CONFUSION_REJECT_OK`.
+  - **Stale public-record reject modeled:** The model rejects stale public-record/trusted-pin tokens and emits `NA0478_BINDING_MODEL_STALE_PUBLIC_RECORD_REJECT_OK`.
+  - **No session mutation modeled:** Each selected rejected trace preserves the completed-session set and emits `NA0478_BINDING_MODEL_NO_SESSION_MUTATION_OK`.
+  - **No success output on reject modeled:** Each selected rejected trace emits no success output and emits `NA0478_BINDING_MODEL_NO_SUCCESS_OUTPUT_ON_REJECT_OK`.
+  - **Bounded formal evidence only:** The model is bounded internal assurance evidence only. It is not cryptographic analysis, not side-channel analysis, not qsc/refimpl equivalence, not vector coverage, not fuzz coverage, and not public/release readiness evidence.
+  - **No qsc runtime/source mutation:** No qsc runtime/source file under `qsl/qsl-client/qsc/src/**` is modified.
+  - **No qsc executable test mutation:** No qsc executable test is modified.
+  - **No dependency/Cargo/lockfile/workflow mutation:** Dependencies, Cargo manifests, lockfiles, and workflows are unchanged.
+  - **No refimpl mutation:** refimpl source and tests are unchanged.
+  - **No fuzz/vector mutation:** fuzz targets and vectors are unchanged.
+  - **No service/public/qshield mutation:** qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, and START_HERE are unchanged.
+  - **No backup/restore:** Codex did not run backup or restore and did not mutate qsl-backup, backup status, backup plan, rollback, or backup tree paths.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No transcript-complete claim is made. No downgrade-proof claim is made. No replay-proof claim is made. No formal-proof-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. Cargo audit green is dependency-health evidence only.
+  - **Selected successor:** `NA-0479 -- QSL qsc/refimpl KEM / Signature Binding Mapping Authorization Plan` is selected as the default successor after successful merge and green post-merge public-safety. NA-0478 does not implement NA-0479.
+  - **Required behavior:**
+    - NA-0478 evidence remains bounded internal formal-model evidence.
+    - Optional closeout may restore exactly one READY NA-0479 only after the implementation PR is merged and post-merge public-safety is green.
+    - Exactly one READY remains mandatory.
+  - **Must never happen:**
+    - NA-0478 is represented as qsc runtime/source, crypto, dependency, workflow, refimpl, executable-test, vector, fuzz, service, public-doc, website, backup, restore, or qsl-backup authorization beyond the selected formal-model scope.
+    - NA-0478 evidence must not be represented as public readiness, production readiness, public-internet readiness, external review completion, crypto completion, KEM completion, signature completion, identity completion, transcript completion, downgrade proof, replay proof, formal-proof completion, side-channel freedom, vulnerability freedom, bug freedom, backup completion, restore proof, or perfect crypto.
+    - Cargo audit output is represented as anything stronger than dependency-health evidence.
+    - More than one READY item remains.
+  - **References:** NA-0478; NA-0477; D-0944; D-0943; D-0942; D-0941; D-0940; `formal/model_qsc_kem_signature_transcript_binding_bounded.py`; `formal/run_model_checks.py`; `docs/governance/evidence/NA-0478_qsl_qsc_kem_signature_transcript_binding_formal_model_implementation_harness.md`; `tests/NA-0478_qsl_qsc_kem_signature_transcript_binding_formal_model_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

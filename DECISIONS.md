@@ -24979,3 +24979,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output must not be represented as anything stronger than dependency-health evidence.
     - More than one READY item remains.
   - **References:** NA-0475; NA-0476; D-0939; D-0938; PR #1220; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0475_closeout_restore_na0476_testplan.md`
+
+- **ID:** D-0940
+  - **Title:** NA-0476 qsc KEM signature transcript binding negative test implementation
+  - **Status:** Accepted
+  - **Date:** 2026-06-14
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0476 consumes NA-0475 and implements the exact qsc test-only binding negative-test scope selected by D-0938. The executable test file added is `qsl/qsl-client/qsc/tests/kem_signature_transcript_binding_negative.rs`.
+  - **NA-0475 consumed:** D-0938 selected `BINDING_NEGATIVE_TEST_COMBINED_SCOPE_READY`; D-0939 restored NA-0476 as the sole READY implementation successor. NA-0476 consumes that authorization and does not expand it.
+  - **KEM negative binding tests implemented:** The harness rejects wrong peer KEM public key, stale KEM public record / stale trusted public record, and corrupted B1 KEM ciphertext cases through existing qsc CLI, mock relay, and temp-root behavior. Markers include `NA0476_KEM_WRONG_PUBLIC_KEY_REJECT_OK`, `NA0476_KEM_STALE_PUBLIC_RECORD_REJECT_OK`, and `NA0476_KEM_WRONG_CIPHERTEXT_REJECT_OK`.
+  - **Signature negative binding tests implemented:** The harness rejects wrong signature public-record state and cross-message signature replay by setting a wrong temp-root signature pin and by replaying an A2 signature in a B1 signature field. Markers include `NA0476_SIGNATURE_WRONG_IDENTITY_REJECT_OK` and `NA0476_SIGNATURE_CROSS_MESSAGE_REPLAY_REJECT_OK`.
+  - **Transcript/replay/suite negative binding tests implemented:** The harness rejects B1 transcript mutation, A1 replay, and downgrade-style wrong-suite parameter blocks in suite-required mode. Markers include `NA0476_TRANSCRIPT_MUTATION_REJECT_OK`, `NA0476_TRANSCRIPT_REPLAY_REJECT_OK`, and `NA0476_SUITE_CONFUSION_REJECT_OK`.
+  - **Stale public-record / identity rollback negative tests implemented:** The harness completes a valid session, rotates Alice identity while Bob retains a stale trusted public record, verifies Bob rejects the new A1, and verifies Bob's existing session bytes remain unchanged. Marker: `NA0476_STALE_PUBLIC_RECORD_REJECT_OK`.
+  - **No session mutation evidence:** Pre-session negative cases assert no completed `qsp_sessions/*.qsv` session appears for the affected peer, no B1/A2 output is emitted after rejection, and no handshake completion or qsp plaintext marker is emitted. The stale public-record case captures and compares existing Bob session bytes before and after rejection. Marker: `NA0476_NEGATIVE_TESTS_NO_SESSION_MUTATION_OK`.
+  - **No runtime/source mutation outside exact test file:** No qsc runtime/source file under `qsl/qsl-client/qsc/src/**` is modified. The only qsc implementation-side change is the selected integration test file.
+  - **No dependency/Cargo/lockfile/workflow mutation:** Dependencies, Cargo manifests, lockfiles, and workflows are unchanged.
+  - **No refimpl mutation:** refimpl source and tests are unchanged.
+  - **No fuzz/vector/formal mutation:** fuzz targets, vectors, and formal models are unchanged.
+  - **No service/public/qshield-cli mutation:** qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, and START_HERE are unchanged.
+  - **No backup/restore:** Codex did not run backup or restore and did not mutate qsl-backup, backup status, backup plan, rollback, or backup tree paths.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No transcript-complete claim is made. No downgrade-proof claim is made. No replay-proof claim is made. No RNG-failure-complete claim is made. No provider-RNG-complete claim is made. No secret-material-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. Cargo audit green is dependency-health evidence only.
+  - **Selected successor:** `NA-0477 -- QSL KEM / Signature / Transcript Formal Model Mapping Authorization Plan` is selected as the default successor after successful merge and green post-merge public-safety. NA-0476 does not implement NA-0477.
+  - **Required behavior:**
+    - NA-0476 evidence remains bounded internal qsc negative-test implementation evidence.
+    - Optional closeout may restore exactly one READY NA-0477 only after the implementation PR is merged and post-merge public-safety is green.
+    - Exactly one READY remains mandatory.
+  - **Must never happen:**
+    - NA-0476 is represented as qsc runtime/source, crypto, dependency, workflow, refimpl, formal, vector, fuzz, public-doc, website, service, backup, restore, or qsl-backup authorization beyond the selected test-only scope.
+    - NA-0476 evidence must not be represented as public readiness, production readiness, public-internet readiness, external review completion, crypto completion, KEM completion, signature completion, identity completion, transcript completion, downgrade proof, replay proof, RNG failure completion, provider RNG completion, secret-material completion, side-channel freedom, vulnerability freedom, bug freedom, backup completion, restore proof, or perfect crypto.
+    - Cargo audit output is represented as anything stronger than dependency-health evidence.
+    - More than one READY item remains.
+  - **References:** NA-0476; NA-0475; D-0940; D-0939; D-0938; `qsl/qsl-client/qsc/tests/kem_signature_transcript_binding_negative.rs`; `docs/governance/evidence/NA-0476_qsl_qsc_kem_signature_transcript_binding_negative_test_implementation_harness.md`; `tests/NA-0476_qsl_qsc_kem_signature_transcript_binding_negative_test_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

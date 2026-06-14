@@ -6,6 +6,118 @@ Last-Updated: 2026-06-13
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-14-336 / NA-0476 binding negative-test implementation rolling journal
+
+- Directive: QSL-DIR-2026-06-14-336 -- Execute NA-0476 QSL qsc KEM / Signature / Transcript Binding Negative Test Implementation Harness, Optional Closeout to NA-0477.
+- Begin timestamp (America/Chicago): 2026-06-13T23:54:54-05:00.
+- Begin timestamp (UTC): 2026-06-14T04:54:54+00:00.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Repo SHAs
+
+- qsl-protocol HEAD before fetch: `15504bca439c`.
+- qsl-protocol origin/main before fetch: `15504bca439c`.
+- qsl-protocol origin/main after fetch: `15504bca439c`.
+- PR #1221 merge commit verified: `15504bca439c`.
+- Implementation branch: `na-0476-binding-negative-test-implementation`.
+- Implementation PR: #1222.
+- Implementation merge commit: pending.
+- Optional closeout branch: pending.
+- Optional closeout PR: pending.
+- Optional closeout merge commit: pending.
+
+## READY proof
+
+- qwork proof: startup OK for lane NA-0476, repo qsl-protocol, clean worktree/index/untracked state, proof HEAD and proof origin/main both `15504bca439c`.
+- Pre-fetch live proof: HEAD and origin/main matched qwork proof at `15504bca439c`.
+- Fetch result: origin/main did not advance.
+- Queue proof before patch: READY_COUNT 1 and READY NA-0476.
+- Decision proof before patch: latest D-0939, D-0938 once, D-0939 once, D-0940 absent, duplicate decision count zero.
+- Public-safety on current main `15504bca439c`: PASS.
+
+## Recovered failure evidence
+
+- Failing command: `cargo fmt --check` after adding `qsl/qsl-client/qsc/tests/kem_signature_transcript_binding_negative.rs`.
+  Classification: recoverable in-scope formatting failure isolated to the newly added allowed test file.
+  Corrective action: ran `cargo fmt` once and reran `cargo fmt --check`.
+  Final result: PASS.
+- Failing command: first pre-PR staged scope/link wrapper using `printf '---\n'`.
+  Classification: recoverable command-shape mistake in the validation wrapper.
+  Corrective action: reran the same staged proof with `printf '%s\n' '---'`.
+  Final result: PASS; staged scope guard reported six allowed paths, zero forbidden paths, and link-check reported zero missing links.
+- Failing command: first staged added-line overclaim scan.
+  Classification: recoverable governance wording/scan-hygiene issue; matches were no-claim boundaries or testplan prohibition text, but wrapped lines separated sensitive phrases from local no-claim wording.
+  Corrective action: rewrote the affected allowed governance text so each sensitive phrase is locally attached to `No` or `must not`.
+  A subsequent rerun caught a literal token in this recovery note; that note was rewritten.
+  Final result: PASS; affirmative overclaim count zero.
+- Failing command: first PR-body preflight over the draft PR body.
+  Classification: recoverable PR-body wording issue; the draft no-claim line used a helper-prohibited readiness token.
+  Corrective action: rewrote the draft PR body to use the repo-standard readiness no-claim wording.
+  A subsequent staged overclaim rerun caught this recovery note's literal token; that note was rewritten.
+  Final result: PASS on rerun; required fields present and prohibited phrase count zero.
+- Failing command: GitHub app PR creation call for the implementation branch.
+  Classification: recoverable connector permission limitation; the app returned GitHub 403 `Resource not accessible by integration`, while local `gh` authentication was already verified.
+  Corrective action: created the PR with `gh pr create` using the same title, branch, base, and prepared PR body.
+  Final result: PASS; implementation PR #1222 opened.
+
+## Validation / CI notes
+
+- Startup public-safety: PASS on `15504bca439c`.
+- qsl-backup read-only boundary: SHA matched the expected value; script-local ops source inclusion count was 1.
+- qsc adversarial marker: `NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP` and `handshake_provider_error_no_mutation` were present.
+- Startup root `cargo audit --deny warnings`: PASS.
+- Startup nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- Dependency probes: `rustls-webpki` and `ml-kem` present; root pqcrypto inverse probes returned expected package-ID absence; nested qsc fuzz lock pqcrypto scan returned zero matches.
+- Startup inherited qsc cfg/no-cfg provider RNG, key lifecycle, and provider-error tests: PASS.
+- New qsc NA-0476 test target: PASS, 5 tests passed, required markers emitted.
+- Implementation validation inherited qsc cfg/no-cfg provider RNG tests: PASS.
+- Implementation validation `key_lifecycle_zeroization`: PASS.
+- Implementation validation `handshake_provider_error_no_mutation`: PASS.
+- Implementation validation `send_commit` on stable: PASS.
+- Implementation validation refimpl `pqkem768`: PASS.
+- Implementation validation formal suite-id bounded model: PASS.
+- Implementation validation formal model checks: PASS.
+- Implementation validation root cargo audit: PASS.
+- Implementation validation nested qsc fuzz lock audit: PASS.
+- Implementation validation dependency probes: `rustls-webpki` and `ml-kem`
+  present; pqcrypto inverse probes returned package-ID absence.
+- Implementation validation qsc adversarial syntax checks: PASS.
+- Manual staged scope guard: PASS, six allowed paths, zero forbidden paths.
+- `git diff --cached --check`: PASS.
+- Link-check: PASS, zero missing links.
+- Staged added-line overclaim scan: PASS after wording recovery; affirmative
+  overclaim count zero.
+- PR body preflight: PASS after draft wording recovery; required fields present
+  and prohibited phrase count zero.
+- Local `sh scripts/ci/qsc_adversarial.sh` reached and passed the qsc
+  adversarial tests plus `NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP`,
+  then stopped at missing local `cargo fuzz`; PR CI `qsc-adversarial-smoke`
+  remains required for full adversarial smoke proof.
+
+## Implementation notes
+
+- Added the exact selected test file `qsl/qsl-client/qsc/tests/kem_signature_transcript_binding_negative.rs`.
+- KEM cases implemented: wrong peer KEM public key, stale trusted public record after identity rotation, and corrupted B1 KEM ciphertext.
+- Signature cases implemented: wrong signature public record via temp-root contact signature pin and cross-message signature replay by splicing an A2 signature into a B1 signature field.
+- Transcript/replay/suite cases implemented: B1 transcript field mutation, replayed A1, and downgrade-style wrong-suite parameter block in suite-required mode.
+- Stale public-record case verifies the pre-existing Bob session bytes remain unchanged.
+- No qsc runtime/source hook, crypto change, refimpl change, dependency change, Cargo/lockfile change, workflow change, fuzz target change, vector change, formal model change, service change, public-doc change, website change, backup, restore, or qsl-backup mutation is introduced by the implementation.
+- qsc/refimpl mapping, formal mapping, negative vectors, fuzz binding, side-channel, external-review readiness, release-claim, supply-chain/provenance, backup/restore, off-host backup, restore/key custody, durable Director State Index, and D132 cleanup remain residuals.
+- No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No transcript-complete claim is made. No downgrade-proof claim is made. No replay-proof claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. No backup-complete claim is made. No restore-proof claim is made.
+
+## Disk watermark
+
+- `/` disk watermark at implementation validation: 468G total, 354G used, 91G
+  available, 80% used.
+
+## Next-watch items
+
+- Complete NA-0476 full local validation.
+- Open implementation PR from `na-0476-binding-negative-test-implementation`.
+- Merge implementation PR only after required checks pass and public-safety is green.
+- After implementation merge, verify READY remains NA-0476, D-0940 exists on main, and post-merge public-safety is green.
+- If post-merge public-safety is green, optionally close out NA-0476 and restore exactly one READY NA-0477 successor without implementing NA-0477.
+
 # QSL-DIR-2026-06-14-335 / NA-0475 binding negative-test scope authorization rolling journal
 
 - Directive: QSL-DIR-2026-06-14-335 -- Execute NA-0475 QSL qsc KEM / Signature / Transcript Binding Negative Test Scope Authorization Plan, Optional Closeout to NA-0476.

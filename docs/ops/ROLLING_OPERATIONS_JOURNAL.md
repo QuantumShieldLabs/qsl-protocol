@@ -3121,6 +3121,90 @@ Last-Updated: 2026-06-13
 - After evidence merge, verify READY remains NA-0474, D-0936 on main, and post-merge public-safety on the merge commit.
 - If post-merge public-safety remains green, optionally close out NA-0474 and restore the selected NA-0475 successor without implementing NA-0475.
 
+# QSL-DIR-2026-06-13-334 / NA-0474 closeout and NA-0475 restoration rolling journal
+
+- Directive: QSL-DIR-2026-06-13-334 optional closeout -- close out NA-0474 after PR #1218 post-merge public-safety completion and restore NA-0475.
+- Begin timestamp (America/Chicago): 2026-06-13T20:26:07-05:00.
+- Begin timestamp (UTC): 2026-06-14T01:26:07Z.
+- Current update timestamp (America/Chicago): 2026-06-13T20:26:07-05:00.
+- Current update timestamp (UTC): 2026-06-14T01:26:07Z.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Closeout repo SHAs
+
+- qsl-protocol main before closeout branch: `6b09aca1a06e`.
+- qsl-protocol origin/main before closeout branch: `6b09aca1a06e`.
+- Evidence PR #1218 head: `893b69f7ca77`.
+- Evidence PR #1218 merge: `6b09aca1a06e`.
+- Closeout branch: `na-0474-closeout-restore-na0475`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
+
+## Closeout READY proof
+
+- Queue proof before closeout patch: READY_COUNT 1 and READY NA-0474.
+- Decision proof before closeout patch: latest D-0936, D-0936 once, D-0937 absent, duplicate decision count zero.
+- Evidence PR #1218: MERGED at `6b09aca1a06e`.
+- Post-merge public-safety on `6b09aca1a06e`: PASS.
+- Post-merge qsc-adversarial-smoke on `6b09aca1a06e`: PASS.
+
+## Closeout patch notes
+
+- NA-0474 is marked DONE.
+- NA-0475 is restored as the sole READY successor.
+- Selected successor: `NA-0475 -- QSL qsc KEM / Signature / Transcript Binding Negative Test Scope Authorization Plan`.
+- D-0937 records NA-0474 closeout and NA-0475 restoration.
+- TRACEABILITY records PR #1218, post-merge public-safety, post-merge qsc-adversarial-smoke, and the NA-0475 authorization successor.
+- Closeout testplan path: `tests/NA-0474_closeout_restore_na0475_testplan.md`.
+- No NA-0475 implementation is performed.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, qsl-backup, status, plan, rollback, durable Director State Index, public technical paper, or backup tree path is intentionally mutated.
+- No backup or restore was run.
+
+## Closeout failures / recoveries
+
+- Failing command: first evidence PR check-poll command used incompatible shell redirection around a Python heredoc and JSON here-string.
+  Classification: recoverable command-shape issue.
+  Corrective action: reran the REST polling command with `python3 -c` and stdin JSON.
+  Final result: PR #1218 checks attached and completed non-failing.
+- Failing command: GitHub connector PR creation and merge operations returned 403.
+  Classification: recoverable connector-permission issue because authenticated `gh` fallback was available and no repo files were affected.
+  Corrective action: created and merged PR #1218 with `gh`.
+  Final result: PR #1218 merged with merge commit `6b09aca1a06e`.
+- Failing command: immediate post-merge public-safety status query returned missing/ambiguous while qsc-adversarial-smoke was still in progress.
+  Classification: recoverable post-merge CI attachment/progress lag.
+  Corrective action: bounded REST/status polling continued without watch mode.
+  Final result: public-safety completed success and qsc-adversarial-smoke completed success on `6b09aca1a06e`.
+
+## Closeout validation watch
+
+- Closeout validation must prove READY_COUNT 1 and READY NA-0475.
+- Closeout validation must prove NA-0474 DONE, D-0937 exists once, D-0938 absent, and duplicate decision IDs absent.
+- Closeout scope guard must report exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0474_closeout_restore_na0475_testplan.md`.
+- Closeout PR checks, including public-safety, must pass before merge.
+
+## Closeout local validation results
+
+- Closeout exact path guard before commit: PASS, exactly `DECISIONS.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0474_closeout_restore_na0475_testplan.md`.
+- `git diff --cached --check`: PASS.
+- Queue helper: PASS, READY_COUNT 1 and READY NA-0475.
+- Decision helper: PASS, latest D-0937 and duplicate decision count zero.
+- Direct status proof: PASS, NA-0475 READY, NA-0474 DONE, NA-0473 DONE, NA-0434 BLOCKED, and NA-0429 BLOCKED.
+- Direct decision proof: PASS, D-0936 once, D-0937 once, D-0938 absent.
+- Link check: PASS, `TOTAL_MISSING 0`.
+- Added-line leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Added-line overclaim scan: PASS, `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- CI scope classifier: PASS, `scope_class=docs_only`.
+- Root `cargo audit --deny warnings`: PASS.
+- Nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- `cargo fmt --check`: PASS.
+
+## Next-watch items
+
+- Open closeout PR from `na-0474-closeout-restore-na0475`.
+- Merge closeout PR only after required checks pass and public-safety is green.
+- After closeout merge, verify READY NA-0475, NA-0474 DONE, D-0937 on main, and post-merge public-safety on the closeout merge commit.
+- Do not implement NA-0475 in this directive.
+
 # QSL-DIR-2026-06-13-333 / NA-0473 identity provider RNG assurance gap review rolling journal
 
 - Directive: QSL-DIR-2026-06-13-333 -- execute NA-0473 QSL Identity / Provider RNG Assurance Gap Review Plan, optional closeout to NA-0474.

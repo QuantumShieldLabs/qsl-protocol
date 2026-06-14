@@ -24902,3 +24902,24 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output must not be represented as anything stronger than dependency-health evidence.
     - More than one READY item must not remain.
   - **References:** NA-0474; NA-0473; NA-0475; D-0936; D-0935; D-0934; `docs/governance/evidence/NA-0474_qsl_kem_signature_transcript_binding_read_only_audit_plan.md`; `tests/NA-0474_qsl_kem_signature_transcript_binding_read_only_audit_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0937
+  - **Title:** NA-0474 closeout and NA-0475 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-13
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0474 is closed after qsl-protocol evidence PR #1218 merged at `6b09aca1a06e` and post-merge public-safety completed success on that merge commit. D-0936 records the bounded governance-only KEM/signature/transcript binding read-only audit and selects `NA-0475 -- QSL qsc KEM / Signature / Transcript Binding Negative Test Scope Authorization Plan` as the successor. This closeout marks NA-0474 DONE and restores NA-0475 as the sole READY item.
+  - **Selected NA-0475 successor restored:** NA-0475 is a governance authorization plan for exact future qsc negative-test scope covering KEM, signature, transcript, identity, stale public-record, replay, downgrade, and suite-confusion binding gaps identified by NA-0474. It does not authorize implementation mutation in this closeout.
+  - **Evidence consumed:** NA-0474 evidence doc, NA-0474 testplan, D-0936, TRACEABILITY, rolling journal, PR #1218 checks, post-merge public-safety, and post-merge qsc-adversarial-smoke are accepted as closeout evidence.
+  - **No implementation mutation:** This closeout does not implement NA-0475 and does not mutate runtime behavior.
+  - **No runtime/crypto/dependency/Cargo/lockfile/workflow/test/fuzz/vector/formal mutation:** This closeout does not mutate runtime code, crypto code, dependencies, Cargo manifests, lockfiles, workflows, executable tests, fuzz targets, vectors, formal models, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status files, backup plan files, rollback subtree paths, `/backup/qsl`, durable Director State Index output, or public technical paper content.
+  - **No backup/restore:** Codex did not run backup or restore and did not mutate qsl-backup or backup plan/status files.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No transcript-complete claim is made. No downgrade-proof claim is made. No replay-proof claim is made. No RNG-failure-complete claim is made. No provider-RNG-complete claim is made. No secret-material-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. No backup-complete claim is made. No restore-proof claim is made. Cargo audit green is dependency-health evidence only.
+  - **Required behavior:**
+    - NA-0475 remains authorization scoped until a later exact directive authorizes any implementation work.
+    - Exactly one READY remains mandatory.
+  - **Must never happen:**
+    - No future evidence may represent NA-0474 closeout or NA-0475 restoration as public readiness, production readiness, public-internet readiness, external review completion, crypto completion, KEM completion, signature completion, identity completion, transcript completion, downgrade proof, replay proof, RNG failure completion, provider RNG completion, secret-material completion, side-channel freedom, vulnerability freedom, bug freedom, backup completion, restore proof, or perfect crypto.
+    - Cargo audit output must not be represented as anything stronger than dependency-health evidence.
+    - More than one READY item remains.
+  - **References:** NA-0474; NA-0475; D-0937; D-0936; PR #1218; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0474_closeout_restore_na0475_testplan.md`

@@ -3019,6 +3019,108 @@ Last-Updated: 2026-06-13
 - Nested qsc fuzz lock pqcrypto residual scan returned zero matches.
 - `cargo fmt --check`: PASS.
 
+# QSL-DIR-2026-06-13-334 / NA-0474 KEM signature transcript binding read-only audit rolling journal
+
+- Directive: QSL-DIR-2026-06-13-334 -- execute NA-0474 QSL KEM / Signature / Transcript Binding Read-Only Audit Plan, optional closeout to NA-0475.
+- Begin timestamp (America/Chicago): 2026-06-13T19:59:34-05:00.
+- Begin timestamp (UTC): 2026-06-14T00:59:34Z.
+- Current update timestamp (America/Chicago): 2026-06-13T20:11:49-05:00.
+- Current update timestamp (UTC): 2026-06-14T01:11:49Z.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Startup repo SHAs
+
+- qsl-protocol proof HEAD: `e5c1cc2ec455`.
+- qsl-protocol proof origin/main: `e5c1cc2ec455`.
+- qsl-protocol live HEAD before fetch: `e5c1cc2ec455`.
+- qsl-protocol live origin/main before fetch: `e5c1cc2ec455`.
+- qsl-protocol origin/main after fetch: `e5c1cc2ec455`.
+- Evidence branch: `na-0474-kem-signature-transcript-binding-audit`.
+- Evidence PR: pending.
+- Evidence merge commit: pending.
+
+## READY proof
+
+- qwork proof files were present and parsed from the NA-0474 qwork proof directory.
+- qwork proof classified startup as OK for lane NA-0474, repo qsl-protocol, clean worktree/index/untracked state, READY_COUNT 1, and sole READY NA-0474.
+- qwork proof HEAD and origin/main matched live HEAD and origin/main before fetch.
+- PR #1217 was verified MERGED at `e5c1cc2ec455`.
+- Queue helper before patch: READY_COUNT 1 and READY NA-0474.
+- Decision helper before patch: latest D-0935 and duplicate decision count zero.
+- Direct decision proof before patch: D-0934 once, D-0935 once, D-0936 absent.
+
+## Audit patch notes
+
+- NA-0473 evidence, testplan, closeout testplan, D-0934, D-0935, TRACEABILITY, and rolling journal were consumed.
+- KEM, signature, transcript/KDF/confirmation, identity/public-record/stale-record, downgrade/replay/suite-confusion, qsc/refimpl mapping, formal/vector/fuzz, and threat scenario surfaces were reviewed read-only.
+- Primary classification selected: `BINDING_NEGATIVE_TEST_SCOPE_NEXT`.
+- Selected successor: `NA-0475 -- QSL qsc KEM / Signature / Transcript Binding Negative Test Scope Authorization Plan`.
+- D-0936 records the NA-0474 read-only audit.
+- Evidence doc path: `docs/governance/evidence/NA-0474_qsl_kem_signature_transcript_binding_read_only_audit_plan.md`.
+- Testplan path: `tests/NA-0474_qsl_kem_signature_transcript_binding_read_only_audit_testplan.md`.
+- TRACEABILITY records the NA-0474 audit and selected NA-0475 successor.
+- No implementation, runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, qsl-backup, status, plan, rollback, durable Director State Index, public technical paper, or backup tree path is intentionally mutated.
+- No backup or restore was run.
+
+## Startup validation results
+
+- Current main public-safety on `e5c1cc2ec455`: PASS.
+- Root cargo audit: PASS.
+- Nested qsc fuzz lock cargo audit: PASS.
+- qsc adversarial marker inventory: PASS.
+- qsl-backup SHA proof: PASS.
+- qsl-backup source-list inclusion count for the Codex ops path: PASS, exactly 1.
+- Inherited cfg/no-cfg qsc identity/provider RNG test bundle: PASS.
+- qsc `send_commit`: PASS.
+- refimpl `pqkem768`: PASS.
+- `cargo fmt --check`: PASS.
+- Formal qsc suite-id model: PASS.
+- Formal aggregate model checks: PASS.
+- qsc adversarial local smoke: PARTIAL, adversarial Rust tests and provider-error no-mutation step passed, then local `cargo fuzz` command was unavailable.
+
+## Recoveries / noteworthy operations
+
+- Failing command: initial direct decision-count proof used a pattern that did not match the decision log formatting and returned zero counts for D-0934 and D-0935.
+  Classification: recoverable command-shape issue.
+  Corrective action: reran direct substring and nearby-context checks against `DECISIONS.md`.
+  Final result: D-0934 once, D-0935 once, D-0936 absent before patch.
+- Failing command: parallel cargo audit capture produced empty tee files and advisory database lock warnings because audit wrote through stderr while another audit process was active.
+  Classification: recoverable tool-invocation/capture issue; the underlying audits were rerunnable and in scope.
+  Corrective action: reran root and nested cargo audits sequentially with stderr captured.
+  Final result: root cargo audit PASS; nested qsc fuzz lock cargo audit PASS.
+- Failing command: first backup source-list grep counted narrative status/plan mentions and returned 14.
+  Classification: recoverable command-shape issue because the directive required qsl-backup source inclusion, not narrative-doc mention count.
+  Corrective action: counted the source-list inclusion inside `/usr/local/sbin/qsl-backup` only.
+  Final result: source-list inclusion count exactly 1.
+- Zero-match proof: pqcrypto inverse cargo-tree probes and nested fuzz-lock pqcrypto residual scan returned no package/path matches.
+  Classification: valid zero-match discovery outcome under the directive's `|| true` probes.
+  Corrective action: recorded zero result as inventory evidence.
+  Final result: no root pqcrypto package IDs and no nested qsc fuzz lock pqcrypto residual matches.
+- Failing command: added-line overclaim scan on first NA-0474 patch.
+  Classification: recoverable wording issue because several lines wrapped public-claim-sensitive terms away from their same-line negation.
+  Corrective action: reworded evidence lines so each sensitive claim phrase carries explicit same-line negation.
+  Final result: rerun reported `ADDED_AFFIRMATIVE_OVERCLAIM_COUNT 0`.
+- Failing command: `scripts/ci/qsc_adversarial.sh`.
+  Classification: recoverable local-tool availability issue because the script completed qsc adversarial Rust tests and provider-error no-mutation before stopping at unavailable local `cargo fuzz`, and the directive allows recording exact output and relying on qsc-adversarial-smoke CI when local cargo-fuzz is unavailable.
+  Corrective action: recorded the exact local output and did not install tools or mutate repo/dependencies.
+  Final result: local qsc adversarial syntax passed; local adversarial Rust tests and provider-error step passed; cargo-fuzz portion remains CI-dependent.
+
+## Disk watermark
+
+- Filesystem: `/`.
+- Total GiB: 468.
+- Used GiB: 342.
+- Free GiB: 103.
+- Used %: 77%.
+
+## Next-watch items
+
+- Run final NA-0474 validation reruns after journal update, including scope guard, link check, leak scan, overclaim scan, classifier, PR body preflight, and goal-lint.
+- Open evidence PR from `na-0474-kem-signature-transcript-binding-audit`.
+- Merge evidence PR only after required checks pass and public-safety is green.
+- After evidence merge, verify READY remains NA-0474, D-0936 on main, and post-merge public-safety on the merge commit.
+- If post-merge public-safety remains green, optionally close out NA-0474 and restore the selected NA-0475 successor without implementing NA-0475.
+
 # QSL-DIR-2026-06-13-333 / NA-0473 identity provider RNG assurance gap review rolling journal
 
 - Directive: QSL-DIR-2026-06-13-333 -- execute NA-0473 QSL Identity / Provider RNG Assurance Gap Review Plan, optional closeout to NA-0474.

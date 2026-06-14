@@ -23,7 +23,7 @@ Last-Updated: 2026-06-13
 - Implementation PR: #1222.
 - Implementation merge commit: `e86797ed939d`.
 - Optional closeout branch: `na-0476-closeout-restore-na0477`.
-- Optional closeout PR: pending.
+- Optional closeout PR: #1223.
 - Optional closeout merge commit: pending.
 
 ## READY proof
@@ -100,6 +100,8 @@ Last-Updated: 2026-06-13
 - Post-merge public-safety on `e86797ed939d`: PASS.
 - Non-required `relay-ui-integration` reported a red check run on `e86797ed939d`; required public-safety and required qsc checks stayed green and this was not treated as a required-check failure.
 - Optional closeout patch target: mark NA-0476 DONE and restore exactly one READY NA-0477 formal model mapping authorization successor without implementing NA-0477.
+- Closeout local validation before PR: queue proof PASS with READY_COUNT 1 and READY NA-0477; decision proof PASS with latest D-0941, D-0940 once, D-0941 once, D-0942 absent, and duplicate decision count zero; staged scope guard PASS with five allowed paths; link-check PASS; leak-scan PASS; added-line overclaim scan PASS; PR body preflight PASS; goal-lint PASS; root cargo audit PASS; nested qsc fuzz lock audit PASS.
+- Closeout PR #1223 opened from `na-0476-closeout-restore-na0477`.
 
 ## Implementation notes
 
@@ -121,8 +123,7 @@ Last-Updated: 2026-06-13
 
 - Validate closeout queue proof: READY_COUNT 1 and READY NA-0477.
 - Validate closeout decision proof: D-0940 once, D-0941 once, D-0942 absent, duplicate decision count zero.
-- Open closeout PR from `na-0476-closeout-restore-na0477`.
-- Merge closeout PR only after required checks pass and public-safety is green.
+- Merge closeout PR #1223 only after required checks pass and public-safety is green.
 - After closeout merge, verify READY NA-0477, NA-0476 DONE, D-0941 on main, and post-merge public-safety on the closeout merge commit.
 
 # QSL-DIR-2026-06-14-335 / NA-0475 binding negative-test scope authorization rolling journal

@@ -26649,7 +26649,7 @@ Completion note:
 ---
 
 ### NA-0478 — QSL qsc KEM / Signature / Transcript Binding Formal Model Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -26697,6 +26697,66 @@ Acceptance criteria:
 - selected model runs locally.
 - `formal/run_model_checks.py` includes selected model if authorized.
 - modeled invariants are explicitly bounded.
+- no public overclaim.
+- exactly one READY item remains.
+
+Completion note:
+- Implementation PR #1226 merged at `f3d0797de8c1`.
+- Post-merge public-safety on `f3d0797de8c1`: success.
+- D-0944 records the qsc KEM / signature / transcript binding formal model implementation.
+- Added `formal/model_qsc_kem_signature_transcript_binding_bounded.py`.
+- Updated `formal/run_model_checks.py` to include the new model.
+- The model uses opaque tokens and bounded A1/B1/A2 state transitions.
+- Valid trace, wrong KEM, stale KEM/public-record, wrong ciphertext, wrong signature, cross-message signature replay, transcript mutation, replay, suite confusion, stale public-record, no session mutation, and no success output on reject were modeled.
+- No qsc runtime/source, qsc executable test, crypto, dependency, Cargo, lockfile, workflow, fuzz target, vector, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status, plan, rollback, durable Director State Index, public technical paper, or backup tree mutation was introduced.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No crypto-complete claim is introduced. No KEM-complete claim is introduced. No signature-complete claim is introduced. No identity-complete claim is introduced. No transcript-complete claim is introduced. No downgrade-proof claim is introduced. No replay-proof claim is introduced. No formal-proof-complete claim is introduced. No side-channel-free claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-crypto claim is introduced.
+- Selected successor: `NA-0479 -- QSL qsc/refimpl KEM / Signature Binding Mapping Authorization Plan`.
+
+---
+
+### NA-0479 — QSL qsc/refimpl KEM / Signature Binding Mapping Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize exact read-only qsc/refimpl KEM and signature binding mapping scope after the qsc binding negative tests and formal model, preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries.
+
+Protects:
+- qsc/refimpl semantic mapping quality.
+- provider operation assumption clarity.
+- KEM/signature public-key and signature-domain mapping.
+- external-review readiness.
+- public-claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0479.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of qsc, refimpl, formal, fuzz, vector, evidence, and CI surfaces.
+
+Forbidden scope:
+- implementation mutation.
+- runtime/crypto/dependency/Cargo/lockfile/workflow mutation.
+- executable test/fuzz/vector/formal mutation unless later exact implementation directive authorizes.
+- service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- no public readiness or crypto completion claims.
+
+Deliverables:
+- qsc/refimpl mapping authorization evidence doc.
+- testplan.
+- D-0946 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- selected exact mapping implementation/audit scope or no-action rationale.
+
+Acceptance criteria:
+- qsc KEM/refimpl mapping scope selected or rejected.
+- qsc signature/refimpl mapping scope selected or rejected.
+- provider RNG boundary mapping reviewed.
+- qsc formal model mapping consumed.
 - no public overclaim.
 - exactly one READY item remains.
 

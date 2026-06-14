@@ -6,6 +6,96 @@ Last-Updated: 2026-06-13
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-14-335 / NA-0475 binding negative-test scope authorization rolling journal
+
+- Directive: QSL-DIR-2026-06-14-335 -- Execute NA-0475 QSL qsc KEM / Signature / Transcript Binding Negative Test Scope Authorization Plan, Optional Closeout to NA-0476.
+- Begin timestamp (America/Chicago): 2026-06-13T21:24:06-05:00.
+- Begin timestamp (UTC): 2026-06-14T02:24:06+00:00.
+- Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
+
+## Repo SHAs
+
+- qsl-protocol HEAD before fetch: `ea5b650502e8`.
+- qsl-protocol origin/main before fetch: `ea5b650502e8`.
+- qsl-protocol origin/main after fetch: `ea5b650502e8`.
+- PR #1219 merge commit verified: `ea5b650502e8`.
+- Evidence branch: `na-0475-binding-negative-test-scope`.
+- Evidence PR: pending.
+- Evidence merge commit: pending.
+- Optional closeout branch: pending.
+- Optional closeout PR: pending.
+- Optional closeout merge commit: pending.
+
+## READY proof
+
+- qwork proof: startup OK for lane NA-0475, repo qsl-protocol, clean worktree/index/untracked state, proof HEAD and proof origin/main both `ea5b650502e8`.
+- Pre-fetch live proof: HEAD and origin/main matched qwork proof at `ea5b650502e8`.
+- Fetch result: origin/main did not advance.
+- Queue proof before patch: READY_COUNT 1 and READY NA-0475.
+- Status proof before patch: NA-0474 through NA-0435 DONE; NA-0434 and NA-0429 BLOCKED.
+- Decision proof before patch: D-0936 once, D-0937 once, D-0938 absent, latest D-0937, duplicate decision count zero.
+- Public-safety on current main `ea5b650502e8`: PASS.
+
+## Recovered failure evidence
+
+- Failing command: inline queue/decision checker over compact helper output.
+  Classification: recoverable command-shape/proof-script assumption because the queue helper output is not an all-item historical inventory.
+  Corrective action: switched to a direct bounded parser over `NEXT_ACTIONS.md` and `DECISIONS.md`.
+  Final result: PASS; direct parser proved READY_COUNT 1, READY NA-0475, NA-0474 through NA-0435 DONE, NA-0434 and NA-0429 BLOCKED, D-0936 once, D-0937 once, D-0938 absent, and duplicate decision count zero.
+- Failing command: first staged scope guard using only `git diff --name-only`.
+  Classification: recoverable command-shape issue because it did not prove staged ignored evidence files or untracked paths.
+  Corrective action: used an explicit staged-path allowlist plus untracked-file proof and forced staging for the ignored evidence path.
+  Final result: PASS; staged paths were exactly the five NA-0475 allowed governance files.
+- Failing command: direct decision parser using heading-only decision detection after D-0938 was added.
+  Classification: recoverable parser-shape issue because current decisions use `- **ID:**` records for recent entries.
+  Corrective action: switched the direct parser to the current decision ID record shape.
+  Final result: PASS; latest decision D-0938, D-0936/D-0937/D-0938 each once, D-0939 absent, duplicate decision count zero.
+- Failing command: first added-line overclaim scan after the governance patch.
+  Classification: recoverable wording/scan-hygiene issue because the matches were explicit no-claim boundaries or wrapped no-claim lines, not affirmative public claims.
+  Corrective action: rewrote the new evidence and journal no-claim wording so each sensitive term has an explicit local no-claim sentence, then reran an added-line overclaim scan.
+  Final result: PASS; added affirmative overclaim count zero.
+- Failing command: local PR-body goal-lint preflight with a synthetic event missing pull-request base/head SHAs.
+  Classification: recoverable command-shape issue; PR body text itself passed required field and wording checks, while goal-lint needs a committed head.
+  Corrective action: record PR-body text preflight before commit and rerun goal-lint after commit/PR with real base/head context.
+  Final result: PR-body text preflight PASS; post-commit/PR goal-lint remains a required validation step.
+- Failing command: local `scripts/ci/qsc_adversarial.sh`.
+  Classification: recoverable local tool availability issue under the directive allowance for local cargo-fuzz absence.
+  Corrective action: recorded exact local output and preserved PR CI `qsc-adversarial-smoke` as required external validation.
+  Final result: stable adversarial tests passed locally, including `NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP` and `handshake_provider_error_no_mutation`; local fuzz step stopped at missing `cargo fuzz`.
+
+## Validation / CI notes
+
+- Startup public-safety: PASS on `ea5b650502e8`.
+- qsl-backup read-only boundary: SHA matched the expected value; script-local ops source inclusion count was 1.
+- qsc adversarial marker: `NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP` and `handshake_provider_error_no_mutation` were present.
+- Startup root `cargo audit --deny warnings`: PASS.
+- Startup nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`: PASS.
+- Dependency probes: `rustls-webpki` and `ml-kem` present; root pqcrypto inverse probes returned expected package-ID absence; nested qsc fuzz lock pqcrypto scan returned zero matches.
+- Startup inherited qsc cfg/no-cfg provider RNG, key lifecycle, and provider-error tests: PASS.
+
+## Scope authorization notes
+
+- NA-0474 is consumed.
+- Primary classification selected: `BINDING_NEGATIVE_TEST_COMBINED_SCOPE_READY`.
+- Selected successor: `NA-0476 -- QSL qsc KEM / Signature / Transcript Binding Negative Test Implementation Harness`.
+- Exact future qsc test path selected: `qsl/qsl-client/qsc/tests/kem_signature_transcript_binding_negative.rs`.
+- Future implementation can be test-only through qsc CLI/mock-relay/temp-config helper code.
+- No qsc runtime/source hook, crypto change, refimpl change, dependency change, Cargo/lockfile change, workflow change, fuzz target change, vector change, formal model change, service change, public-doc change, website change, backup, restore, or qsl-backup mutation is authorized by NA-0475.
+- qsc/refimpl mapping, formal mapping, negative vectors, fuzz binding, side-channel, external-review readiness, release-claim, supply-chain/provenance, backup/restore, off-host backup, restore/key custody, durable Director State Index, and D132 cleanup remain residuals.
+- No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No transcript-complete claim is made. No downgrade-proof claim is made. No replay-proof claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. No backup-complete claim is made. No restore-proof claim is made. No off-host-backup-complete claim is made. No disaster-recovery-complete claim is made.
+
+## Disk watermark
+
+- Pending capture before final response.
+
+## Next-watch items
+
+- Complete NA-0475 local validation.
+- Open evidence PR from `na-0475-binding-negative-test-scope`.
+- Merge evidence PR only after required checks pass and public-safety is green.
+- After evidence merge, verify READY remains NA-0475, D-0938 exists on main, and post-merge public-safety is green.
+- If post-merge public-safety is green, optionally close out NA-0475 and restore exactly one READY NA-0476 successor without implementing NA-0476.
+
 # QSL-DIR-2026-06-13-331 / NA-0471 TUI bootstrap transactionality design rolling journal
 
 - Directive: QSL-DIR-2026-06-13-331 -- Execute NA-0471 QSL qsc TUI Account Bootstrap Transactionality Design Authorization Plan, Optional Closeout to NA-0472.

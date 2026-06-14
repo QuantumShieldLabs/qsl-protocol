@@ -20,7 +20,7 @@ Last-Updated: 2026-06-13
 - qsl-protocol origin/main after fetch: `15504bca439c`.
 - PR #1221 merge commit verified: `15504bca439c`.
 - Implementation branch: `na-0476-binding-negative-test-implementation`.
-- Implementation PR: pending.
+- Implementation PR: #1222.
 - Implementation merge commit: pending.
 - Optional closeout branch: pending.
 - Optional closeout PR: pending.
@@ -55,6 +55,10 @@ Last-Updated: 2026-06-13
   Corrective action: rewrote the draft PR body to use the repo-standard readiness no-claim wording.
   A subsequent staged overclaim rerun caught this recovery note's literal token; that note was rewritten.
   Final result: PASS on rerun; required fields present and prohibited phrase count zero.
+- Failing command: GitHub app PR creation call for the implementation branch.
+  Classification: recoverable connector permission limitation; the app returned GitHub 403 `Resource not accessible by integration`, while local `gh` authentication was already verified.
+  Corrective action: created the PR with `gh pr create` using the same title, branch, base, and prepared PR body.
+  Final result: PASS; implementation PR #1222 opened.
 
 ## Validation / CI notes
 

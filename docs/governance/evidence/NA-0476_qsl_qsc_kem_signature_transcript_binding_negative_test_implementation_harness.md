@@ -146,6 +146,13 @@ Recovered startup/implementation failures:
   token; that note was rewritten.
   Final result: PASS on rerun; required fields present and prohibited phrase
   count zero.
+- Failing command: GitHub app PR creation call for the implementation branch.
+  Classification: recoverable connector permission limitation; the app returned
+  GitHub 403 `Resource not accessible by integration`, while local `gh`
+  authentication was already verified.
+  Corrective action: created the PR with `gh pr create` using the same title,
+  branch, base, and prepared PR body.
+  Final result: PASS; implementation PR #1222 opened.
 
 ## NA-0475 inheritance
 
@@ -411,6 +418,10 @@ Implementation validation completed:
 
 Full CI validation and post-merge validation are recorded in the response
 evidence bundle and rolling journal.
+
+Implementation PR:
+
+- PR #1222: `NA-0476: implement binding negative tests`
 
 ## Scope guard
 

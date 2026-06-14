@@ -25061,3 +25061,25 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output is represented as anything stronger than dependency-health evidence.
     - More than one READY item remains.
   - **References:** NA-0477; NA-0476; D-0942; D-0941; D-0940; `formal/README.md`; `formal/model_scka_bounded.py`; `formal/model_suite2_negotiation_bounded.py`; `formal/model_qsc_handshake_suite_id_bounded.py`; `formal/run_model_checks.py`; `qsl/qsl-client/qsc/tests/kem_signature_transcript_binding_negative.rs`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `docs/governance/evidence/NA-0477_qsl_kem_signature_transcript_formal_model_mapping_authorization_plan.md`; `tests/NA-0477_qsl_kem_signature_transcript_formal_model_mapping_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0943
+  - **Title:** NA-0477 closeout and NA-0478 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-14
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0477 is closed after PR #1224 merged at `8719ef7e` with post-merge public-safety success, and `NA-0478 -- QSL qsc KEM / Signature / Transcript Binding Formal Model Implementation Harness` is restored as the sole READY successor.
+  - **Authorization consumed:** D-0942 selected `FORMAL_MAPPING_QSC_BINDING_MODEL_IMPLEMENTATION_READY`, selected a new bounded opaque-token qsc binding model, and selected future paths `formal/model_qsc_kem_signature_transcript_binding_bounded.py`, `formal/run_model_checks.py`, NA-0478 evidence/testplan, `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+  - **NA-0478 restored scope:** NA-0478 may implement only the exact bounded formal model mapping scope selected by NA-0477 for qsc KEM, signature, transcript, identity, suite, replay, stale-public-record, and selected no-session-mutation binding behavior using opaque tokens and bounded state transitions.
+  - **Closeout scope:** This closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0477_closeout_restore_na0478_testplan.md`.
+  - **No implementation mutation in this closeout:** This closeout does not mutate formal model files, qsc runtime/source, crypto code, dependencies, Cargo manifests, lockfiles, workflows, executable tests, fuzz targets, vectors, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback paths, backup tree paths, durable Director State Index output, or public technical paper content.
+  - **No backup/restore:** Codex did not run backup or restore and did not mutate qsl-backup.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No identity-complete claim is made. No transcript-complete claim is made. No downgrade-proof claim is made. No replay-proof claim is made. No formal-proof-complete claim is made. No RNG-failure-complete claim is made. No provider-RNG-complete claim is made. No secret-material-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Required behavior:**
+    - NA-0478 remains exactly one READY item after this closeout.
+    - NA-0478 must keep crypto operations opaque and bounded unless a later exact directive changes that boundary.
+    - NA-0478 must not implement runtime/source, dependency, workflow, refimpl, vector, fuzz, service, public-doc, website, backup, restore, or qsl-backup changes.
+  - **Must never happen:**
+    - More than one READY item remains.
+    - NA-0478 must not be represented as public readiness, production readiness, public-internet readiness, external-review completion, crypto completeness, KEM completeness, signature completeness, identity completeness, transcript completeness, downgrade proof, replay proof, formal-proof completeness, side-channel freedom, vulnerability freedom, bug freedom, perfect crypto, backup completion, or restore proof.
+    - Cargo audit output is represented as anything stronger than dependency-health evidence.
+  - **References:** NA-0477; NA-0478; D-0943; D-0942; D-0941; D-0940; PR #1224; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0477_closeout_restore_na0478_testplan.md`

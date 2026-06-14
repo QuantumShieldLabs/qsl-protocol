@@ -1295,6 +1295,9 @@ Last-Updated: 2026-06-13
 - Directive: QSL-DIR-2026-06-12-321 -- Execute NA-0464 QSL qsc Identity Provider RNG Failure Split-Scope Authorization Plan, Optional Closeout to NA-0465.
 - Begin timestamp (America/Chicago): 2026-06-11T22:19:07-05:00.
 - Begin timestamp (UTC): 2026-06-12T03:19:07+00:00.
+- Evidence PR merge timestamp (UTC): 2026-06-14T16:24:46+00:00.
+- Closeout branch timestamp (America/Chicago): 2026-06-14T11:30:33-05:00.
+- Closeout branch timestamp (UTC): 2026-06-14T16:30:33+00:00.
 - End timestamp (America/Chicago): pending.
 - End timestamp (UTC): pending.
 - Codex did not run qwork, qstart, qresume, sudo, backup, or restore.
@@ -33425,9 +33428,9 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 
 - Branch before patch: `main`.
 - Evidence branch: pending.
-- Evidence PR: pending.
-- Evidence merge commit: pending.
-- Optional closeout branch: pending.
+- Evidence PR: #1224.
+- Evidence merge commit: `8719ef7e`.
+- Optional closeout branch: `na-0477-closeout-restore-na0478`.
 - Optional closeout PR: pending.
 - Optional closeout merge commit: pending.
 
@@ -33439,6 +33442,9 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Main was checked out clean from origin/main.
 - PR #1223 was verified MERGED at `fcf434b1746b`.
 - Public-safety on `fcf434b1746b` completed success.
+- Evidence PR #1224 merged at `8719ef7e`.
+- Post-merge public-safety on `8719ef7e` completed success.
+- Raw REST-visible merge-commit checks included public-safety success, qsc-adversarial-smoke success, CodeQL analyze job success, suite2-vectors success, formal-scka-model success, and no failing check run.
 - qsl-backup SHA matched expected value.
 - Latest scheduled same-host manifest included `/home/victor/work/qsl/codex/ops` exactly once.
 - No backup or restore was run.
@@ -33461,6 +33467,14 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
   Classification: recoverable local tool-availability limitation because the script completed adversarial cargo test phases and provider-error validation, then exited with `error: no such command: fuzz`.
   Corrective action: recorded the cargo-fuzz absence and retained PR CI `qsc-adversarial-smoke` as the authoritative adversarial smoke validation.
   Final result: local adversarial properties, miri-shaped adversarial tests, and provider-error no-mutation test passed before the local cargo-fuzz command exited 101 due to missing cargo-fuzz.
+- Failing tool action: GitHub connector PR creation for evidence PR.
+  Classification: recoverable app permission limitation because the connector returned GitHub API 403 `Resource not accessible by integration`.
+  Corrective action: used authenticated `gh pr create` with the same preflighted PR body.
+  Final result: evidence PR #1224 opened successfully.
+- Interrupted command: post-merge helper polling loop.
+  Classification: recoverable polling-shape issue because post-merge public-safety had already completed success while helper-required aggregate contexts remained missing even though raw check-runs showed healthy progress.
+  Corrective action: stopped only the local polling helper and verified raw REST-visible check-runs directly.
+  Final result: public-safety success and no failing raw check-runs on merge commit `8719ef7e`.
 
 ## Mapping notes
 
@@ -33482,6 +33496,22 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - qsc adversarial local script: cargo test phases PASS; local cargo-fuzz unavailable; PR CI qsc-adversarial-smoke required.
 - Evidence patch validation: PASS.
 - Evidence PR checks: pending.
+- Evidence PR checks before merge: PASS; required context failure count zero, public-safety success, CodeQL neutral accepted by policy.
+- Evidence post-merge public-safety: PASS on `8719ef7e`.
+- Closeout patch validation: PASS.
+- Closeout `git diff --check`: PASS.
+- Closeout exact staged path guard: PASS, five allowed closeout governance paths only.
+- Closeout link check: PASS, `TOTAL_MISSING 0`.
+- Closeout leak scan: PASS, `SECRET_FINDING_COUNT 0`.
+- Closeout overclaim scan: PASS, `TOTAL_OVERCLAIM_FINDINGS 0`.
+- Closeout classifier: PASS, `scope_class=docs_only`.
+- Closeout PR body preflight: PASS, missing field count zero and prohibited phrase count zero.
+- Closeout queue proof: PASS, READY_COUNT 1 and READY NA-0478.
+- Closeout decision proof: PASS, D-0942 once, D-0943 once, D-0944 absent, duplicate count zero.
+- Closeout root cargo audit: PASS.
+- Closeout nested qsc fuzz lock audit: PASS.
+- Closeout formal runner: PASS.
+- Closeout `cargo fmt --check`: PASS.
 - `git diff --check`: PASS.
 - Exact staged path guard: PASS, five allowed NA-0477 governance paths only.
 - Link check: PASS, `TOTAL_MISSING 0`.

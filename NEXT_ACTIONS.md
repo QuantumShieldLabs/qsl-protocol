@@ -26587,7 +26587,7 @@ Completion note:
 ---
 
 ### NA-0477 — QSL KEM / Signature / Transcript Formal Model Mapping Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -26632,6 +26632,71 @@ Acceptance criteria:
 - transcript/KDF/confirm formal mapping scope selected or rejected.
 - identity/public-record formal mapping scope selected or rejected.
 - downgrade/replay/suite-confusion formal mapping scope selected or rejected.
+- no public overclaim.
+- exactly one READY item remains.
+
+Completion note:
+- Authorization PR #1224 merged at `8719ef7e`.
+- Post-merge public-safety on `8719ef7e`: success.
+- D-0942 records the KEM / signature / transcript formal model mapping authorization.
+- Selected classification: `FORMAL_MAPPING_QSC_BINDING_MODEL_IMPLEMENTATION_READY`.
+- Selected successor: `NA-0478 -- QSL qsc KEM / Signature / Transcript Binding Formal Model Implementation Harness`.
+- Selected future model path: `formal/model_qsc_kem_signature_transcript_binding_bounded.py`.
+- Selected future runner path: `formal/run_model_checks.py`.
+- No formal model, runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status, plan, rollback, durable Director State Index, public technical paper, or backup tree mutation was introduced.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No crypto-complete claim is introduced. No KEM-complete claim is introduced. No signature-complete claim is introduced. No identity-complete claim is introduced. No transcript-complete claim is introduced. No downgrade-proof claim is introduced. No replay-proof claim is introduced. No formal-proof-complete claim is introduced. No side-channel-free claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-crypto claim is introduced.
+
+---
+
+### NA-0478 — QSL qsc KEM / Signature / Transcript Binding Formal Model Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the exact bounded formal model mapping scope selected by NA-0477 for qsc KEM, signature, transcript, identity, suite, replay, stale-public-record, and no-session-mutation binding behavior using opaque tokens and bounded state transitions, preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries.
+
+Protects:
+- formal assurance quality.
+- mapping between qsc negative tests and bounded formal abstractions.
+- transcript/KDF/confirm binding reasoning.
+- identity/public-record binding reasoning.
+- downgrade/replay/suite-confusion reasoning.
+- external-review readiness.
+- public-claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- `formal/model_qsc_kem_signature_transcript_binding_bounded.py`.
+- `formal/run_model_checks.py`.
+- `docs/governance/evidence/NA-0478_qsl_qsc_kem_signature_transcript_binding_formal_model_implementation_harness.md`.
+- `tests/NA-0478_qsl_qsc_kem_signature_transcript_binding_formal_model_implementation_testplan.md`.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+
+Forbidden scope:
+- qsc runtime/source mutation.
+- qsc executable test mutation.
+- dependency/Cargo/lockfile/workflow mutation.
+- fuzz target/vector mutation.
+- refimpl mutation.
+- service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- no public readiness or crypto completion claims.
+
+Deliverables:
+- formal model implementation.
+- formal runner integration if selected.
+- evidence doc.
+- testplan.
+- D-0944 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+
+Acceptance criteria:
+- selected model runs locally.
+- `formal/run_model_checks.py` includes selected model if authorized.
+- modeled invariants are explicitly bounded.
 - no public overclaim.
 - exactly one READY item remains.
 

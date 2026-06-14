@@ -25,6 +25,9 @@ from formal.model_scka_bounded import explore  # noqa: E402
 from formal.model_qsc_handshake_suite_id_bounded import (  # noqa: E402
     emit_qsc_handshake_suite_id_model_report,
 )
+from formal.model_qsc_kem_signature_transcript_binding_bounded import (  # noqa: E402
+    emit_qsc_kem_signature_transcript_binding_model_report,
+)
 from formal.model_suite2_negotiation_bounded import (  # noqa: E402
     check_suite2_negotiation_model,
 )
@@ -58,6 +61,12 @@ def main() -> int:
     print(f"QSC suite-id scenarios: {qsc_suite_id_stats['scenarios']}")
     print(f"QSC suite-id accepts: {qsc_suite_id_stats['accepted']}")
     print(f"QSC suite-id rejects: {qsc_suite_id_stats['rejected']}")
+    print("NA-0478 qsc KEM/signature/transcript binding bounded model checks")
+    qsc_binding_stats = emit_qsc_kem_signature_transcript_binding_model_report()
+    print("OK: qsc KEM/signature/transcript binding formal model checks passed")
+    print(f"QSC binding scenarios: {qsc_binding_stats['scenarios']}")
+    print(f"QSC binding accepted traces: {qsc_binding_stats['accepted_traces']}")
+    print(f"QSC binding rejected traces: {qsc_binding_stats['rejected_traces']}")
     return 0
 
 

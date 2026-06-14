@@ -26438,7 +26438,7 @@ Completion note:
 ---
 
 ### NA-0475 — QSL qsc KEM / Signature / Transcript Binding Negative Test Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -26484,6 +26484,95 @@ Acceptance criteria:
 - exact transcript negative-test scope selected or rejected.
 - stale-public-record/replay/downgrade scope selected or rejected.
 - no public overclaim.
+- exactly one READY item remains.
+
+Completion note:
+- Evidence PR #1220 merged at `f00854935793`.
+- Post-merge public-safety on `f00854935793`: success.
+- Post-merge qsc-adversarial-smoke on `f00854935793`: success.
+- D-0938 records the combined qsc KEM / Signature / Transcript Binding Negative Test scope authorization.
+- Selected successor: `NA-0476 -- QSL qsc KEM / Signature / Transcript Binding Negative Test Implementation Harness`.
+- No implementation, runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, refimpl, service, qshield, qshield-cli, qsl-server, qsl-attachments, backup, restore, public-doc, website, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, status, plan, rollback, durable Director State Index, public technical paper, or backup tree mutation is introduced by this closeout.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No crypto-complete claim is introduced. No KEM-complete claim is introduced. No signature-complete claim is introduced. No identity-complete claim is introduced. No transcript-complete claim is introduced. No downgrade-proof claim is introduced. No replay-proof claim is introduced. No RNG-failure-complete claim is introduced. No provider-RNG-complete claim is introduced. No secret-material-complete claim is introduced. No side-channel-free claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-crypto claim is introduced. No backup-complete claim is introduced. No restore-proof claim is introduced.
+
+---
+
+### NA-0476 — QSL qsc KEM / Signature / Transcript Binding Negative Test Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the exact qsc negative-test scope selected by NA-0475 for KEM, signature, transcript, identity, stale public-record, replay, downgrade, and suite-confusion binding gaps, preserving production semantics and public-claim boundaries.
+
+Protects:
+- KEM binding correctness.
+- signature binding correctness.
+- transcript/KDF/confirm binding correctness.
+- identity/public-record stale-record handling.
+- downgrade/replay/suite-confusion risk tracking.
+- qsc/refimpl mapping clarity.
+- public-claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- qsl/qsl-client/qsc/tests/kem_signature_transcript_binding_negative.rs.
+- docs/governance/evidence/NA-0476_qsl_qsc_kem_signature_transcript_binding_negative_test_implementation_harness.md.
+- tests/NA-0476_qsl_qsc_kem_signature_transcript_binding_negative_test_implementation_testplan.md.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+
+Forbidden scope:
+- Mutating runtime/source paths unless a later exact directive explicitly authorizes.
+- Mutating dependencies, Cargo, lockfiles, workflows, qsl-server, qsl-attachments, qshield runtime, qshield-cli runtime, website, public docs, README, or START_HERE paths.
+- Mutating refimpl unless a later exact directive authorizes, which should be avoided by default.
+- Mutating fuzz target source, vectors, or formal models unless a later exact directive authorizes.
+- Running backup.
+- Running restore.
+- Mutating qsl-backup.
+- Mutating backup status or backup plan files.
+- Mutating qwork/qstart/qresume/qshell.
+- Creating public technical paper content.
+- No production-readiness claim.
+- No public-internet-readiness claim.
+- No external-review-complete claim.
+- No metadata-free claim.
+- No anonymity claim.
+- No untraceability claim.
+- No off-host-backup-complete claim.
+- No disaster-recovery-complete claim.
+- No restore-proof claim.
+- No backup-complete claim.
+- No bug-free claim.
+- No vulnerability-free claim.
+- No perfect-crypto claim.
+- No side-channel-free claim.
+- No RNG-failure-complete claim.
+- No provider-RNG-complete claim.
+- No secret-material-complete claim.
+- No KEM-complete claim.
+- No signature-complete claim.
+- No identity-complete claim.
+- No transcript-complete claim.
+- No downgrade-proof claim.
+- No replay-proof claim.
+- No crypto-complete claim.
+
+Deliverables:
+- NA-0476 implementation.
+- NA-0476 evidence doc.
+- NA-0476 testplan.
+- D-0940 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+
+Acceptance criteria:
+- exact selected negative tests are implemented.
+- no false completion claim is introduced.
+- no unintended runtime/source mutation occurs.
+- cargo audit remains green.
+- nested fuzz lock audit remains green.
+- public-safety is green before merge and after merge.
 - exactly one READY item remains.
 
 ---

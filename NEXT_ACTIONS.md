@@ -26378,7 +26378,7 @@ Closeout evidence:
 ---
 
 ### NA-0474 — QSL KEM / Signature / Transcript Binding Read-Only Audit Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -26423,6 +26423,66 @@ Acceptance criteria:
 - identity/public-record binding review complete.
 - downgrade/replay/stale-record review complete.
 - formal mapping residual reviewed.
+- no public overclaim.
+- exactly one READY item remains.
+
+Completion note:
+- Evidence PR #1218 merged at `6b09aca1a06e`.
+- Post-merge public-safety on `6b09aca1a06e`: success.
+- Post-merge qsc-adversarial-smoke on `6b09aca1a06e`: success.
+- D-0936 records the KEM/signature/transcript binding read-only audit.
+- Selected successor: `NA-0475 -- QSL qsc KEM / Signature / Transcript Binding Negative Test Scope Authorization Plan`.
+- No implementation, runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, refimpl, service, qshield, qshield-cli, qsl-server, qsl-attachments, backup, restore, public-doc, website, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, status, plan, rollback, durable Director State Index, public technical paper, or backup tree mutation is introduced by this closeout.
+- No public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, KEM-complete, signature-complete, identity-complete, transcript-complete, downgrade-proof, replay-proof, RNG-failure-complete, provider-RNG-complete, secret-material-complete, side-channel-free, vulnerability-free, bug-free, perfect-crypto, backup-complete, or restore-proof claim is introduced.
+
+---
+
+### NA-0475 — QSL qsc KEM / Signature / Transcript Binding Negative Test Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize exact future qsc negative-test scope for KEM, signature, transcript, identity, stale public-record, replay, downgrade, and suite-confusion binding gaps identified by NA-0474, preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries unless a later directive authorizes exact implementation.
+
+Protects:
+- KEM binding correctness.
+- signature binding correctness.
+- transcript/KDF/confirm binding correctness.
+- identity/public-record stale-record handling.
+- downgrade/replay/suite-confusion risk tracking.
+- qsc/refimpl mapping clarity.
+- formal-model mapping readiness.
+- public-claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0475.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of qsc, refimpl, formal, fuzz, vector, evidence, and CI surfaces.
+
+Forbidden scope:
+- implementation mutation.
+- runtime/crypto/dependency/Cargo/lockfile/workflow mutation.
+- executable test/fuzz/vector/formal mutation unless later exact implementation directive authorizes.
+- service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- No public-readiness or crypto-complete claims.
+
+Deliverables:
+- binding negative-test scope evidence doc.
+- testplan.
+- D-0938 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- selected exact negative-test implementation scope or no-action rationale.
+
+Acceptance criteria:
+- exact KEM negative-test scope selected or rejected.
+- exact signature negative-test scope selected or rejected.
+- exact transcript negative-test scope selected or rejected.
+- stale-public-record/replay/downgrade scope selected or rejected.
 - no public overclaim.
 - exactly one READY item remains.
 

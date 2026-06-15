@@ -33798,7 +33798,9 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Recovered staging issue: first `git add` rejected the new evidence doc because `docs/governance/evidence` is ignored for new files. Corrective action: staged the exact allowed evidence path with `git add -f` and staged the other four allowed paths explicitly. Final result: staged path set limited to the five allowed NA-0480 paths.
 - Recovered wording issue: first added-line overclaim scan flagged two evidence lines whose negation was only in surrounding context. Corrective action: rewrote both lines with same-line `no` wording. Final result: added-line overclaim scan count zero.
 - Evidence branch: `na-0480-refimpl-provider-boundary-scope`.
-- Evidence PR: pending.
+- Evidence PR: #1230, `https://github.com/QuantumShieldLabs/qsl-protocol/pull/1230`.
 - Evidence merge commit: pending.
 - Post-commit PR body preflight: PASS.
 - Post-commit goal-lint with synthetic pull-request event and real base/head SHAs: PASS.
+- PR creation recovery: GitHub connector PR creation returned 403 `Resource not accessible by integration`. Classification: recoverable connector permission limitation. Corrective action: used `gh pr create` fallback. Final result: PR #1230 opened.
+- PR creation recovery: first `gh pr create` fallback used unsupported `--json` flag on the installed gh CLI. Classification: recoverable command-shape mistake. Corrective action: reran `gh pr create` with supported flags and queried the PR with `gh pr view --json`. Final result: PR #1230 open with head `12ec5732ff10`.

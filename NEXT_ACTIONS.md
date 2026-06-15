@@ -26909,7 +26909,7 @@ Forbidden scope:
 - executable test/fuzz/vector/formal mutation unless later exact implementation directive authorizes.
 - service/public/qshield/qsl-server/qsl-attachments mutation.
 - backup/restore/qsl-backup mutation.
-- public readiness or crypto completion claims.
+- no public-readiness claim and no crypto-complete claim.
 
 Deliverables:
 - binding negative vector suite authorization evidence doc.
@@ -26983,7 +26983,9 @@ Acceptance criteria:
 ---
 
 ### NA-0484 — QSL Fuzz Binding Coverage Scope Authorization Plan
-Status: READY
+Status: DONE
+Implementation note:
+- NA-0484 evidence PR #1238 merged at `a024a3afaa96` and post-merge public-safety completed success. D-0956 selected `NA-0485 -- QSL Fuzz Binding Coverage Split-Scope Authorization Plan` as the exact successor. This closeout restores NA-0485 as the sole READY item and does not implement NA-0485.
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -27023,6 +27025,67 @@ Acceptance criteria:
 - exact fuzz target/scope selected or rejected.
 - binding surfaces mapped to existing fuzz coverage.
 - vector/formal/qsc/refimpl evidence consumed.
+- no public overclaim.
+- exactly one READY item remains.
+
+---
+
+### NA-0485 — QSL Fuzz Binding Coverage Split-Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the exact next fuzz binding implementation shape after NA-0484 found
+that current qsc fuzzing is parser-only for binding purposes and that direct
+semantic binding fuzz requires a decision on helper/API, Cargo metadata,
+qsc-adversarial script/CI, and corpus boundaries before implementation.
+
+Protects:
+- parser/binding/replay/downgrade/stale-record fuzz assurance.
+- qsc/refimpl/formal/vector evidence traceability.
+- external-review readiness.
+- release-claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- `docs/governance/evidence/NA-0485_qsl_fuzz_binding_coverage_split_scope_authorization_plan.md`.
+- `tests/NA-0485_qsl_fuzz_binding_coverage_split_scope_authorization_testplan.md`.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- read-only inspection of qsc fuzz targets, qsc fuzz Cargo metadata/lock,
+  `scripts/ci/qsc_adversarial.sh`, qsc-adversarial workflow, qsc adversarial
+  source, qsc handshake source, NA-0476 binding negative tests, NA-0483
+  internal vectors, formal model, and refimpl provider-boundary tests.
+
+Forbidden scope:
+- fuzz implementation mutation.
+- qsc runtime/source mutation.
+- qsc executable test mutation.
+- dependency/Cargo/lockfile/workflow/script mutation unless a later exact
+  implementation directive authorizes it.
+- fuzz target or corpus mutation.
+- vector/input mutation.
+- refimpl source/test mutation.
+- formal model mutation.
+- service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- no public-readiness claim and no crypto-complete claim.
+
+Deliverables:
+- split-scope authorization evidence doc.
+- testplan.
+- D-0958 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- selected exact implementation successor or no-action rationale.
+
+Acceptance criteria:
+- exact qsc binding fuzz implementation path is selected or rejected.
+- exact helper/API/process-harness decision is recorded.
+- exact qsc fuzz Cargo/script/CI impact is recorded.
+- exact corpus/no-corpus and secret-material boundary is recorded.
+- no implementation mutation.
 - no public overclaim.
 - exactly one READY item remains.
 

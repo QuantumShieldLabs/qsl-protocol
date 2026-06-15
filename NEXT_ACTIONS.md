@@ -26715,7 +26715,7 @@ Completion note:
 ---
 
 ### NA-0479 — QSL qsc/refimpl KEM / Signature Binding Mapping Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -26757,6 +26757,70 @@ Acceptance criteria:
 - qsc signature/refimpl mapping scope selected or rejected.
 - provider RNG boundary mapping reviewed.
 - qsc formal model mapping consumed.
+- no public overclaim.
+- exactly one READY item remains.
+
+Completion note:
+- Evidence PR #1228 merged at `27e649c5d5cf`.
+- Post-merge public-safety on `27e649c5d5cf`: success.
+- D-0946 records the read-only qsc/refimpl KEM / signature binding mapping authorization.
+- qsc KEM/signature assumptions were inventoried.
+- refimpl KEM and signature surfaces were reviewed.
+- qsc/refimpl error semantics and NA-0478 formal/refimpl mapping were reviewed.
+- Primary classification: `QSC_REFIMPL_MAPPING_ACCEPTED_SUPPORTING_ONLY_WITH_PROVIDER_BOUNDARY_TEST_SCOPE_NEXT`.
+- Selected successor: `NA-0480 -- QSL refimpl KEM / Signature Provider Boundary Test Scope Authorization Plan`.
+- No implementation, runtime, crypto, dependency, Cargo, lockfile, workflow, executable-test, fuzz-target, vector, formal-model, qsc source, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status, plan, rollback, durable Director State Index, public technical paper, or backup tree mutation was introduced.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No crypto-complete claim is introduced. No KEM-complete claim is introduced. No signature-complete claim is introduced. No qsc/refimpl-equivalence-complete claim is introduced. No formal-proof-complete claim is introduced. No side-channel-free claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-crypto claim is introduced.
+
+---
+
+### NA-0480 — QSL refimpl KEM / Signature Provider Boundary Test Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize exact refimpl KEM and signature provider-boundary test scope after qsc binding negative tests, NA-0478 formal model evidence, and NA-0479 qsc/refimpl KEM/signature mapping evidence, preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries.
+
+Protects:
+- refimpl provider boundary clarity.
+- qsc/refimpl error-semantics traceability.
+- KEM and signature wrong-length, tamper, wrong-key, and malformed-key fail-closed evidence quality.
+- provider RNG boundary honesty.
+- external-review readiness.
+- release-claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0480 provider-boundary test-scope authorization.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of `tools/refimpl/quantumshield_refimpl/src/crypto/`.
+- read-only inspection of `tools/refimpl/quantumshield_refimpl/tests/`.
+- read-only inspection of qsc source/tests, formal models, and evidence docs.
+
+Forbidden scope:
+- implementation mutation.
+- runtime/crypto/dependency/Cargo/lockfile/workflow mutation.
+- executable test/fuzz/vector/formal mutation unless a later exact implementation directive authorizes exact paths.
+- service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- public readiness or crypto completion claims.
+
+Deliverables:
+- provider-boundary test-scope authorization evidence doc.
+- testplan.
+- D-0948 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- selected exact provider-boundary implementation scope or no-action rationale.
+
+Acceptance criteria:
+- exact KEM provider-boundary test scope selected or rejected.
+- exact signature provider-boundary test scope selected or rejected.
+- wrong-length, tamper, wrong-key, malformed signing-key, and error-classification evidence scope selected or rejected.
+- qsc/refimpl/formal mapping evidence consumed.
+- provider RNG boundary residual preserved or explicitly scoped.
 - no public overclaim.
 - exactly one READY item remains.
 

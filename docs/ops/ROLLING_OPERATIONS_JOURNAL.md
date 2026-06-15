@@ -33722,3 +33722,19 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No implementation mutation performed.
 - No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, qsc source, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, durable Director State Index, public technical paper, or backup tree mutation introduced.
 - No backup or restore run.
+
+## NA-0479 closeout update
+
+- Evidence PR #1228 merged at `27e649c5d5cf`.
+- Post-merge public-safety on `27e649c5d5cf`: success.
+- Post-merge qsc-adversarial-smoke on `27e649c5d5cf`: success.
+- Closeout branch: `na-0479-closeout-restore-na0480`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
+- D-0947 records NA-0479 closeout and NA-0480 restoration.
+- NA-0479 is marked DONE.
+- NA-0480 refimpl KEM / Signature Provider Boundary Test Scope Authorization Plan is restored as the sole READY successor.
+- No NA-0480 implementation is performed.
+- No implementation, runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, durable Director State Index, public technical paper, or backup tree mutation is introduced by closeout.
+- No backup or restore run.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No crypto-complete claim is introduced. No KEM-complete claim is introduced. No signature-complete claim is introduced. No qsc/refimpl-equivalence-complete claim is introduced. No formal-proof-complete claim is introduced. No side-channel-free claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-crypto claim is introduced.

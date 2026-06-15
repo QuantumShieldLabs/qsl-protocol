@@ -26931,7 +26931,9 @@ Acceptance criteria:
 ---
 
 ### NA-0483 — QSL Binding Negative Vector Suite Implementation Harness
-Status: READY
+Status: DONE
+Implementation note:
+- NA-0483 implementation PR #1236 merged at `caeaea28c25b` and post-merge public-safety completed success. D-0954 selected `NA-0484 -- QSL Fuzz Binding Coverage Scope Authorization Plan` as the exact successor. This closeout restores NA-0484 as the sole READY item and does not implement NA-0484.
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -26975,6 +26977,52 @@ Acceptance criteria:
 - selected vector suite exists.
 - vector files contain no secret/private material.
 - vector metadata links to qsc/refimpl/formal evidence.
+- no public overclaim.
+- exactly one READY item remains.
+
+---
+
+### NA-0484 — QSL Fuzz Binding Coverage Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize exact fuzz binding coverage scope after qsc negative tests, formal model, qsc/refimpl mapping, refimpl signature boundary tests, and internal negative vectors, while preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries.
+
+Protects:
+- parser/binding/replay/downgrade/stale-record assurance.
+- qsc/refimpl/formal/vector evidence traceability.
+- external-review readiness.
+- release-claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0484.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of qsc, fuzz, refimpl, formal, vectors, evidence, and CI surfaces.
+
+Forbidden scope:
+- implementation mutation.
+- runtime/crypto/dependency/Cargo/lockfile/workflow mutation.
+- executable test/fuzz/vector/formal mutation unless later exact implementation directive authorizes.
+- service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- public readiness or crypto completion claims.
+
+Deliverables:
+- fuzz binding coverage authorization evidence doc.
+- testplan.
+- D-0956 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- selected exact fuzz implementation scope or no-action rationale.
+
+Acceptance criteria:
+- exact fuzz target/scope selected or rejected.
+- binding surfaces mapped to existing fuzz coverage.
+- vector/formal/qsc/refimpl evidence consumed.
 - no public overclaim.
 - exactly one READY item remains.
 

@@ -21,10 +21,10 @@ Last-Updated: 2026-06-15
 - qsl-protocol origin/main before fetch: `9174881e578d`.
 - qsl-protocol origin/main after fetch: `9174881e578d`.
 - PR #1235 merge commit verified: `9174881e578d`.
-- Implementation branch: pending.
-- Implementation PR: pending.
-- Implementation merge commit: pending.
-- Optional closeout branch: pending.
+- Implementation branch: `na-0483-binding-negative-vector-suite`.
+- Implementation PR: #1236.
+- Implementation merge commit: `caeaea28c25b`.
+- Optional closeout branch: `na-0483-closeout-restore-na0484`.
 - Optional closeout PR: pending.
 - Optional closeout merge commit: pending.
 
@@ -120,11 +120,29 @@ Last-Updated: 2026-06-15
 
 ## Next-watch items
 
-- Stage exactly the seven allowed NA-0483 paths; force-add only the ignored allowed evidence doc.
-- Open implementation PR only after PR body preflight and goal-lint pass.
-- Merge implementation PR only after required PR checks pass.
-- After implementation merge, verify READY remains NA-0483, D-0954 exists on main, and post-merge public-safety is green.
-- Optional closeout may restore NA-0484 only after post-merge public-safety is green.
+- Open closeout PR only after exact closeout scope guard, queue proof, decision proof, link-check, leak-scan, overclaim scan, PR body preflight, and goal-lint pass.
+- Merge closeout PR only after required PR checks pass and public-safety is green.
+- After closeout merge, verify READY remains NA-0484, D-0955 exists on main, and post-merge public-safety is green.
+
+## NA-0483 closeout update
+
+- Implementation PR #1236 merged at `caeaea28c25b`.
+- Post-merge public-safety on `caeaea28c25b`: success.
+- Post-merge qsc-adversarial-smoke on `caeaea28c25b`: success.
+- Post-merge qsc-linux-full-suite on `caeaea28c25b`: success.
+- Post-merge macos-qsc-full-serial on `caeaea28c25b`: success.
+- Closeout branch: `na-0483-closeout-restore-na0484`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
+- D-0955 records NA-0483 closeout and NA-0484 restoration.
+- NA-0483 is marked DONE.
+- NA-0484 Fuzz Binding Coverage Scope Authorization Plan is restored as the sole READY successor.
+- No NA-0484 implementation is performed.
+- Closeout validation so far: PASS for exact scope guard, `git diff --check`, queue proof, decision proof, link-check, leak-scan, added-line overclaim scan, `cargo fmt --check`, formal runner, root cargo audit, and nested qsc fuzz lock audit.
+- Recovered closeout PR-body issue: first proof-root PR body used markdown headers instead of the helper-required literal `Impact:`, `No-regression:`, and `Tests/Vectors:` labels. Classification: recoverable PR body shape issue. Corrective action: rewrote only the proof-root PR body with literal labels and reran preflight. Final result: PASS with zero missing fields and zero prohibited phrases.
+- No implementation, runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, qsc source/test, refimpl source/test, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, durable Director State Index, public technical paper, or backup tree mutation is introduced by closeout.
+- No backup or restore run.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No crypto-complete claim is introduced. No vector-complete claim is introduced. No KEM-complete claim is introduced. No signature-complete claim is introduced. No identity-complete claim is introduced. No transcript-complete claim is introduced. No qsc/refimpl-equivalence-complete claim is introduced. No provider-boundary-complete claim is introduced. No provider-RNG-complete claim is introduced. No formal-proof-complete claim is introduced. No replay-proof claim is introduced. No downgrade-proof claim is introduced. No side-channel-free claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-crypto claim is introduced.
 
 # QSL-DIR-2026-06-15-342 / NA-0482 binding negative vector authorization rolling journal
 

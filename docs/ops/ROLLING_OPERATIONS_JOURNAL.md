@@ -33691,3 +33691,34 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No NA-0479 implementation is performed.
 - No qsc runtime/source, qsc executable test, crypto, dependency, Cargo, lockfile, workflow, fuzz target, vector, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, backup, restore, qsl-backup, status, plan, rollback, durable Director State Index, public technical paper, or backup tree mutation is introduced by closeout.
 - No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No crypto-complete claim is introduced. No KEM-complete claim is introduced. No signature-complete claim is introduced. No identity-complete claim is introduced. No transcript-complete claim is introduced. No downgrade-proof claim is introduced. No replay-proof claim is introduced. No formal-proof-complete claim is introduced. No side-channel-free claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-crypto claim is introduced.
+
+## NA-0479 update
+
+- Directive: QSL-DIR-2026-06-14-339.
+- Directive title: Execute NA-0479 QSL qsc/refimpl KEM / Signature Binding Mapping Authorization Plan, Optional Closeout to NA-0480.
+- Local start timestamp: 2026-06-14T18:34:40-05:00.
+- UTC start timestamp: 2026-06-14T23:34:40+00:00.
+- Repo path: `/srv/qbuild/work/NA-0479/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0479_qsc_refimpl_kem_signature_mapping_20260614T233440Z`.
+- qwork proof files read and copied; Codex did not run qwork, qstart, or qresume.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `76db00307d10`.
+- Fetch did not advance origin/main; main checked out clean at `76db00307d10`.
+- PR #1227 verified merged at `76db00307d10`.
+- Startup queue: `READY_COUNT 1`; READY NA-0479.
+- Startup latest decision: D-0945; D-0944 exists once; D-0945 exists once; D-0946 absent; duplicate decision count 0.
+- Startup public-safety on `76db00307d10`: success.
+- Startup root cargo audit: PASS.
+- Startup nested qsc fuzz lock audit: PASS.
+- Startup formal checks: PASS for NA-0478 standalone model, qsc suite-id model, and formal runner.
+- Startup inherited qsc binding/provider-RNG/key-lifecycle/provider-error tests: PASS.
+- qsl-backup SHA read-only proof: `e9ecff3d22ed`; codex ops source inclusion count: 1.
+- qsc assumptions inventoried from handshake and identity code plus binding/provider-error tests.
+- refimpl KEM surface reviewed from traits, `StdCrypto`, and `pqkem768` tests.
+- refimpl signature surface reviewed from traits, `StdCrypto`, and ML-DSA unit coverage.
+- Formal/refimpl mapping reviewed against NA-0478 opaque-token model.
+- Selected classification: `QSC_REFIMPL_MAPPING_ACCEPTED_SUPPORTING_ONLY_WITH_PROVIDER_BOUNDARY_TEST_SCOPE_NEXT`.
+- Selected successor: `NA-0480 -- QSL refimpl KEM / Signature Provider Boundary Test Scope Authorization Plan`.
+- Governance patch paths: NA-0479 evidence doc, NA-0479 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- No implementation mutation performed.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, qsc source, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, durable Director State Index, public technical paper, or backup tree mutation introduced.
+- No backup or restore run.

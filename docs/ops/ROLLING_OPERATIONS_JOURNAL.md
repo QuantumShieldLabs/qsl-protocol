@@ -33738,3 +33738,69 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No implementation, runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, durable Director State Index, public technical paper, or backup tree mutation is introduced by closeout.
 - No backup or restore run.
 - No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No crypto-complete claim is introduced. No KEM-complete claim is introduced. No signature-complete claim is introduced. No qsc/refimpl-equivalence-complete claim is introduced. No formal-proof-complete claim is introduced. No side-channel-free claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-crypto claim is introduced.
+
+## NA-0480 update
+
+- Directive: QSL-DIR-2026-06-15-340.
+- Directive title: Execute NA-0480 QSL refimpl KEM / Signature Provider Boundary Test Scope Authorization Plan, Optional Closeout to NA-0481.
+- Local start timestamp: 2026-06-14T19:59:43-05:00.
+- UTC start timestamp: 2026-06-15T00:59:43+00:00.
+- Repo path: `/srv/qbuild/work/NA-0480/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0480_refimpl_provider_boundary_scope_20260615T005943Z`.
+- qwork proof files read and copied; Codex did not run qwork, qstart, or qresume.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `c0ae3e08e799`.
+- Fetch did not advance origin/main; main checked out clean at `c0ae3e08e799`.
+- PR #1229 verified merged at `c0ae3e08e799`.
+- Startup queue: `READY_COUNT 1`; READY NA-0480.
+- Direct queue proof: NA-0480 READY; NA-0479 through NA-0466 DONE; NA-0434 BLOCKED; NA-0429 BLOCKED.
+- Startup latest decision: D-0947; D-0946 exists once; D-0947 exists once; D-0948 absent; duplicate decision count 0.
+- Startup public-safety on `c0ae3e08e799`: success.
+- Disk watermark: `/` 468G size, 367G used, 78G available, 83% used.
+- Work branch: pending.
+- Evidence PR: pending.
+- Evidence merge commit: pending.
+- Optional closeout branch: pending.
+- Optional closeout PR: pending.
+- Optional closeout merge commit: pending.
+- Failures/recoveries: first baseline queue/decision verification script exited non-zero because the parser expected `qsl_evidence_helper.py queue` to enumerate historical NA-0479 through NA-0429 states. Classification: recoverable command-shape/evidence-parser mistake. Corrective action: verified required queue and decision state directly from `NEXT_ACTIONS.md` and `DECISIONS.md` with a deterministic parser. Final result: PASS.
+- Validation notes: startup qwork proof, PR #1229, queue/decision, response-file, and public-safety proofs complete; dependency, inherited test, mapping, and governance evidence work pending.
+- Next-watch items: complete startup dependency/test proof, inventory refimpl KEM/signature provider-boundary candidates, select exact NA-0481 successor, patch only allowed NA-0480 governance paths, and merge only after required checks/public-safety pass.
+- No backup or restore run.
+
+## NA-0480 validation and authorization update
+
+- Startup root cargo audit: PASS.
+- Startup root dependency tree probes: PASS for `rustls-webpki` and `ml-kem`; pqcrypto inverse probes completed under directive-approved `|| true` shape.
+- Startup nested qsc fuzz lock audit: PASS; pqcrypto residual scan completed under directive-approved `|| true` shape.
+- Startup formal checks: PASS for NA-0478 standalone model and formal runner.
+- Startup inherited qsc binding/provider-RNG/key-lifecycle/provider-error tests: PASS.
+- Startup stable qsc `send_commit`: PASS.
+- Startup refimpl `pqkem768`: PASS.
+- qsc adversarial marker proof: PASS for `NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP` / `handshake_provider_error_no_mutation`.
+- qsl-backup SHA read-only proof: `e9ecff3d22ed`.
+- qsl-backup source-list proof: codex ops source appears exactly once in the installed daily source list, the reviewed daily manifest, and the latest daily manifest.
+- Additional recovered proof-shape issue: first qsl-backup source count was too broad and counted narrative references across the plan/status/script; the corrected source-list and manifest-specific count passed. A follow-on exact manifest check initially missed the source-list indentation; the corrected exact-line check passed. No backup or restore was run.
+- KEM provider-boundary classification selected: `REFIMPL_KEM_PROVIDER_BOUNDARY_SUPPORTING_ONLY`.
+- Signature provider-boundary classification selected: `REFIMPL_SIGNATURE_PROVIDER_BOUNDARY_SCOPE_READY`.
+- Combined versus split decision: split; signature-only future implementation first.
+- Primary classification selected: `REFIMPL_SIGNATURE_PROVIDER_BOUNDARY_TEST_SCOPE_READY`.
+- Selected successor: `NA-0481 -- QSL refimpl Signature Provider Boundary Test Implementation Harness`.
+- Selected future implementation path: `tools/refimpl/quantumshield_refimpl/tests/signature_provider_boundary.rs`.
+- Governance patch paths: NA-0480 evidence doc, NA-0480 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- No implementation mutation performed.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, qsc source, refimpl source/test, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, durable Director State Index, public technical paper, or backup tree mutation introduced.
+- Current validation timestamp (America/Chicago): 2026-06-14T20:36:16-05:00.
+- Current validation timestamp (UTC): 2026-06-15T01:36:16+00:00.
+- Fast governance validation after staging: PASS for `git diff --check`, cached diff check, exact scope guard, link-check, leak-scan, classifier, queue proof, decision proof, direct queue/decision parser, PR body preflight, and added-line overclaim scan.
+- Full post-patch validation: PASS for adversarial script syntax, formal model, formal runner, inherited qsc binding/provider-RNG/key-lifecycle/provider-error tests, stable qsc `send_commit`, refimpl `pqkem768`, root cargo audit, nested qsc fuzz lock audit, dependency tree probes, and `cargo fmt --check`.
+- Local qsc adversarial script: cargo-test phases PASS, provider-error no-mutation adversarial step PASS, local exit classified as `cargo_fuzz_unavailable_rely_on_pr_ci`; PR CI qsc-adversarial-smoke remains required.
+- Recovered proof-shape issue: local `tools/goal_lint.py` without `GITHUB_EVENT_PATH` failed before commit because it requires pull-request metadata. Corrective action: defer goal-lint until after the NA-0480 commit using a synthetic pull_request event with real base/head SHAs. Final result: pending after commit.
+- Recovered staging issue: first `git add` rejected the new evidence doc because `docs/governance/evidence` is ignored for new files. Corrective action: staged the exact allowed evidence path with `git add -f` and staged the other four allowed paths explicitly. Final result: staged path set limited to the five allowed NA-0480 paths.
+- Recovered wording issue: first added-line overclaim scan flagged two evidence lines whose negation was only in surrounding context. Corrective action: rewrote both lines with same-line `no` wording. Final result: added-line overclaim scan count zero.
+- Evidence branch: `na-0480-refimpl-provider-boundary-scope`.
+- Evidence PR: #1230, `https://github.com/QuantumShieldLabs/qsl-protocol/pull/1230`.
+- Evidence merge commit: pending.
+- Post-commit PR body preflight: PASS.
+- Post-commit goal-lint with synthetic pull-request event and real base/head SHAs: PASS.
+- PR creation recovery: GitHub connector PR creation returned 403 `Resource not accessible by integration`. Classification: recoverable connector permission limitation. Corrective action: used `gh pr create` fallback. Final result: PR #1230 opened.
+- PR creation recovery: first `gh pr create` fallback used unsupported `--json` flag on the installed gh CLI. Classification: recoverable command-shape mistake. Corrective action: reran `gh pr create` with supported flags and queried the PR with `gh pr view --json`. Final result: PR #1230 open with head `12ec5732ff10`.

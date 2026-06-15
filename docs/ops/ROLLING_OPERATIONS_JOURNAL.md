@@ -33804,3 +33804,19 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Post-commit goal-lint with synthetic pull-request event and real base/head SHAs: PASS.
 - PR creation recovery: GitHub connector PR creation returned 403 `Resource not accessible by integration`. Classification: recoverable connector permission limitation. Corrective action: used `gh pr create` fallback. Final result: PR #1230 opened.
 - PR creation recovery: first `gh pr create` fallback used unsupported `--json` flag on the installed gh CLI. Classification: recoverable command-shape mistake. Corrective action: reran `gh pr create` with supported flags and queried the PR with `gh pr view --json`. Final result: PR #1230 open with head `12ec5732ff10`.
+
+## NA-0480 closeout update
+
+- Evidence PR #1230 merged at `e8ac76bbba94`.
+- Post-merge public-safety on `e8ac76bbba94`: success.
+- Post-merge checks on `e8ac76bbba94`: success/skipped/neutral with no failures after REST polling.
+- Closeout branch: `na-0480-closeout-restore-na0481`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
+- D-0949 records NA-0480 closeout and NA-0481 restoration.
+- NA-0480 is marked DONE.
+- NA-0481 refimpl Signature Provider Boundary Test Implementation Harness is restored as the sole READY successor.
+- No NA-0481 implementation is performed.
+- No implementation, runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, refimpl source/test, qsc source/test, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, durable Director State Index, public technical paper, or backup tree mutation is introduced by closeout.
+- No backup or restore run.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No crypto-complete claim is introduced. No KEM-complete claim is introduced. No signature-complete claim is introduced. No qsc/refimpl-equivalence-complete claim is introduced. No provider-boundary-complete claim is introduced. No provider-RNG-complete claim is introduced. No formal-proof-complete claim is introduced. No side-channel-free claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-crypto claim is introduced.

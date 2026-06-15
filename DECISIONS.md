@@ -25229,3 +25229,27 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output is represented as anything stronger than dependency-health evidence.
     - More than one READY item remains.
   - **References:** NA-0480; NA-0479; NA-0481; D-0948; D-0947; D-0946; `docs/governance/evidence/NA-0480_qsl_refimpl_kem_signature_provider_boundary_test_scope_authorization_plan.md`; `tests/NA-0480_qsl_refimpl_kem_signature_provider_boundary_test_scope_authorization_testplan.md`; `tools/refimpl/quantumshield_refimpl/src/crypto/traits.rs`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tools/refimpl/quantumshield_refimpl/tests/pqkem768.rs`; `qsl/qsl-client/qsc/src/handshake/mod.rs`; `qsl/qsl-client/qsc/src/identity/mod.rs`; `formal/model_qsc_kem_signature_transcript_binding_bounded.py`; `formal/run_model_checks.py`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0949
+  - **Title:** NA-0480 closeout and NA-0481 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-15
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0480 is closed after evidence PR #1230 merged at `e8ac76bbba94` and post-merge public-safety completed success on that merge commit. D-0948 records the refimpl KEM/signature provider-boundary test-scope authorization and selects `NA-0481 -- QSL refimpl Signature Provider Boundary Test Implementation Harness` as the successor. This closeout marks NA-0480 DONE and restores NA-0481 as the sole READY item.
+  - **Selected NA-0481 successor restored:** NA-0481 is an implementation harness to add only the selected refimpl signature provider-boundary tests at `tools/refimpl/quantumshield_refimpl/tests/signature_provider_boundary.rs`, with NA-0481 governance evidence/testplan, DECISIONS, TRACEABILITY, and rolling journal updates.
+  - **Evidence consumed:** NA-0480 evidence doc, NA-0480 testplan, D-0948, TRACEABILITY, rolling journal, PR #1230 checks, post-merge public-safety, root cargo audit, nested qsc fuzz lock audit, formal checks, inherited qsc tests, local qsc adversarial script cargo-test phases, and refimpl `pqkem768` evidence are accepted as closeout evidence.
+  - **No NA-0481 implementation mutation:** This closeout does not implement NA-0481 and does not mutate runtime behavior.
+  - **NA-0481 allowed scope:** Future NA-0481 may add `tools/refimpl/quantumshield_refimpl/tests/signature_provider_boundary.rs`, create `docs/governance/evidence/NA-0481_qsl_refimpl_signature_provider_boundary_test_implementation_harness.md`, create `tests/NA-0481_qsl_refimpl_signature_provider_boundary_test_implementation_testplan.md`, and update `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+  - **NA-0481 forbidden scope:** Future NA-0481 must not mutate refimpl source, qsc source, qsc executable tests, runtime code, crypto code, dependencies, Cargo manifests, lockfiles, workflows, fuzz targets, vectors, formal models, services, public docs, website, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status files, backup plan files, rollback paths, backup tree paths, durable Director State Index output, or public technical paper content unless a later exact directive authorizes a narrower exception.
+  - **No backup/restore:** Codex did not run backup or restore and did not mutate qsl-backup, backup status, backup plan, rollback, or backup tree paths.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No qsc/refimpl-equivalence-complete claim is made. No provider-boundary-complete claim is made. No provider-RNG-complete claim is made. No formal-proof-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Required behavior:**
+    - NA-0481 implements only the selected signature provider-boundary test scope unless a later exact directive narrows or changes it.
+    - NA-0481 must keep qsc sanitized error mapping supporting-only unless exact qsc test scope is separately authorized.
+    - Exactly one READY remains mandatory.
+  - **Must never happen:**
+    - NA-0480 closeout is represented as NA-0481 implementation evidence.
+    - Future NA-0481 must not be represented as public readiness, production readiness, public-internet readiness, external review completion, crypto completion, KEM completion, signature completion, qsc/refimpl equivalence completion, provider-boundary completion, provider RNG completion, formal-proof completion, side-channel freedom, vulnerability freedom, bug freedom, backup completion, restore proof, or perfect crypto.
+    - Cargo audit output must not be represented as anything stronger than dependency-health evidence.
+    - More than one READY item remains.
+  - **References:** NA-0480; NA-0481; D-0949; D-0948; D-0947; D-0946; PR #1230; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0480_closeout_restore_na0481_testplan.md`

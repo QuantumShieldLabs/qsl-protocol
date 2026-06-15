@@ -45,6 +45,14 @@ Last-Updated: 2026-06-13
   Classification: recoverable local tool availability issue under the directive allowance for local cargo-fuzz absence. The stable adversarial qsc tests and `NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP` provider-error step passed before the missing `cargo fuzz` subcommand.
   Corrective action: recorded exact local output under the proof root and preserved PR CI `qsc-adversarial-smoke` as required external validation.
   Final result: local script exited nonzero only at missing `cargo fuzz`; PR CI smoke remains required.
+- Failing command: GitHub connector PR creation call for `na-0482-binding-negative-vector-scope`.
+  Classification: recoverable connector permission limitation; the app returned GitHub 403 `Resource not accessible by integration`, while local `gh` authentication was verified.
+  Corrective action: created the PR with `gh pr create` using the same title, branch, base, and prepared PR body.
+  Final result: PASS; evidence PR #1234 opened.
+- Failing command: `gh pr view --repo QuantumShieldLabs/qsl-protocol --json ...` without specifying the PR number.
+  Classification: recoverable command-shape mistake.
+  Corrective action: reran as `gh pr view 1234 --repo QuantumShieldLabs/qsl-protocol --json ...`.
+  Final result: PASS; PR metadata captured under the proof root.
 
 ## Validation / CI notes
 
@@ -2721,7 +2729,7 @@ Last-Updated: 2026-06-13
 - qsl-protocol origin/main after fetch: `58e2377296d6`.
 - PR #1172 closeout merge: `58e2377296d6`.
 - Evidence branch: `na-0452-route-contact-attachment-rng-seam`.
-- Evidence PR: pending.
+- Evidence PR: #1234.
 - Evidence merge commit: pending.
 
 ## NA-0452 READY proof

@@ -54,6 +54,8 @@ Required test file:
 
 `tools/refimpl/quantumshield_refimpl/tests/signature_provider_boundary.rs`
 
+The test crate must remain gated with `#![cfg(feature = "pqcrypto")]`, because the public refimpl ML-DSA provider APIs exercised by this suite are available only under the `pqcrypto` feature. The no-feature target should compile with zero tests; the feature-enabled target must run the marker-bearing tests.
+
 Required cases:
 
 - wrong public-key length returns `Err(CryptoError::InvalidKey)`;

@@ -166,6 +166,8 @@ The tests use:
 - `runtime_pq_sig_signature_bytes`;
 - the public `PqSigMldsa65` trait.
 
+The integration test crate is gated with `#![cfg(feature = "pqcrypto")]` because the exercised ML-DSA provider APIs are exposed only when the refimpl `pqcrypto` feature is enabled. No-feature builds compile the target with zero tests; the feature-enabled validation runs the seven NA-0481 tests and emits the required markers.
+
 No refimpl source, qsc source/test, dependency, Cargo, lockfile, workflow, fuzz target, vector, formal model, service, public-doc, website, backup, qsl-backup, or qwork tooling path was mutated.
 
 ## Wrong public-key length proof
@@ -382,6 +384,13 @@ Initial new-test validation:
 - classification: recoverable in-scope local test-code validation failure with clear cause;
 - corrective action: changed only the new test file to unwrap well-shaped invalid verification results and assert `false`;
 - final result: new integration test passed with 7 tests and all NA0481 markers emitted.
+
+PR CI recovery:
+
+- first PR #1232 CI attempt failed in `demo-cli-build` and `demo-cli-smoke` because those no-feature jobs compiled the new integration test while the exercised ML-DSA provider APIs are `pqcrypto` feature-gated;
+- classification: recoverable in-scope test-file feature-gating issue with clear cause;
+- corrective action: changed only `tools/refimpl/quantumshield_refimpl/tests/signature_provider_boundary.rs` to add `#![cfg(feature = "pqcrypto")]`;
+- final local result: no-feature `cargo test -p quantumshield_refimpl --locked --test signature_provider_boundary` compiled and ran zero tests; feature-enabled `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test signature_provider_boundary -- --test-threads=1 --nocapture` passed 7 tests and emitted all required NA0481 markers; existing `pqkem768` refimpl test passed.
 
 Required post-patch validation is recorded in the proof root and PR evidence.
 

@@ -1,3 +1,5 @@
+#![cfg(feature = "pqcrypto")]
+
 use quantumshield_refimpl::crypto::stdcrypto::{
     runtime_pq_sig_keypair, runtime_pq_sig_public_key_bytes, runtime_pq_sig_secret_key_bytes,
     runtime_pq_sig_signature_bytes, StdCrypto,

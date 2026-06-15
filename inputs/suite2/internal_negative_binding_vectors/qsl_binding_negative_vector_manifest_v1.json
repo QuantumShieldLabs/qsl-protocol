@@ -1,0 +1,1426 @@
+{
+  "schema_version": "1",
+  "suite": "qsl-internal-negative-binding",
+  "status": "internal-negative-evidence-only",
+  "title": "QSL Internal Negative Binding Vector Manifest v1",
+  "metadata": {
+    "created_for": "NA-0483",
+    "created_date": "2026-06-15",
+    "classification": "bounded internal negative binding evidence",
+    "validation_status": "metadata_only_pending_future_test_consumption",
+    "markers": [
+      "NA0483_VECTOR_SCOPE_CONSUMED_OK",
+      "NA0483_NO_SECRET_MATERIAL_IN_VECTORS_OK",
+      "NA0483_VECTOR_KEM_WRONG_PUBLIC_KEY_CASE_OK",
+      "NA0483_VECTOR_KEM_WRONG_CIPHERTEXT_CASE_OK",
+      "NA0483_VECTOR_SIGNATURE_WRONG_IDENTITY_CASE_OK",
+      "NA0483_VECTOR_SIGNATURE_CROSS_MESSAGE_REPLAY_CASE_OK",
+      "NA0483_VECTOR_TRANSCRIPT_MUTATION_CASE_OK",
+      "NA0483_VECTOR_REPLAY_CASE_OK",
+      "NA0483_VECTOR_SUITE_CONFUSION_CASE_OK",
+      "NA0483_VECTOR_STALE_PUBLIC_RECORD_CASE_OK",
+      "NA0483_VECTOR_REFIMPL_SIGNATURE_BOUNDARY_CASE_OK",
+      "NA0483_VECTOR_FORMAL_TOKEN_MAPPING_CASE_OK",
+      "NA0483_NO_RUNTIME_CHANGE_OK",
+      "NA0483_NO_DEPENDENCY_CHANGE_OK",
+      "NA0483_NO_WORKFLOW_CHANGE_OK",
+      "NA0483_NO_PUBLIC_READINESS_CLAIM_OK",
+      "NA0483_NO_CRYPTO_COMPLETE_CLAIM_OK",
+      "NA0483_NO_KEM_COMPLETE_CLAIM_OK",
+      "NA0483_NO_SIGNATURE_COMPLETE_CLAIM_OK",
+      "NA0483_NO_IDENTITY_COMPLETE_CLAIM_OK",
+      "NA0483_NO_TRANSCRIPT_COMPLETE_CLAIM_OK",
+      "NA0483_NO_VECTOR_COMPLETE_CLAIM_OK",
+      "NA0483_NO_REPLAY_PROOF_CLAIM_OK",
+      "NA0483_NO_DOWNGRADE_PROOF_CLAIM_OK",
+      "NA0483_ONE_READY_INVARIANT_OK"
+    ]
+  },
+  "public_claim_boundary": {
+    "internal_only": true,
+    "not_public_vectors": true,
+    "not_conformance_vectors": true,
+    "not_interoperability_vectors": true,
+    "not_completion_evidence": true,
+    "statement": "This manifest is bounded internal negative evidence only and makes no public-readiness, crypto-complete, vector-complete, KEM-complete, signature-complete, identity-complete, transcript-complete, replay-proof, downgrade-proof, side-channel-free, vulnerability-free, bug-free, perfect-crypto, or external-review-complete claim."
+  },
+  "secret_material_policy": {
+    "checked_in_material": "metadata, formal tokens, public-message descriptions, expected reject outcomes, and no-mutation expectations only",
+    "forbidden_material_types": [
+      "private keys",
+      "KEM secret keys",
+      "signing keys",
+      "passphrases",
+      "runtime keys",
+      "backup keys",
+      "operator data",
+      "user data",
+      "live service data",
+      "private production endpoint data"
+    ],
+    "ephemeral_generation_required_for_sensitive_validation": true,
+    "no_checked_in_secret_material_marker": "NA0483_NO_SECRET_MATERIAL_IN_VECTORS_OK"
+  },
+  "traceability": {
+    "goals": [
+      "G1",
+      "G2",
+      "G3",
+      "G4",
+      "G5"
+    ],
+    "evidence": {
+      "NA-0476": "docs/governance/evidence/NA-0476_qsl_qsc_kem_signature_transcript_binding_negative_test_implementation_harness.md",
+      "NA-0478": "docs/governance/evidence/NA-0478_qsl_qsc_kem_signature_transcript_binding_formal_model_implementation_harness.md",
+      "NA-0479": "docs/governance/evidence/NA-0479_qsl_qsc_refimpl_kem_signature_binding_mapping_authorization_plan.md",
+      "NA-0481": "docs/governance/evidence/NA-0481_qsl_refimpl_signature_provider_boundary_test_implementation_harness.md",
+      "NA-0482": "docs/governance/evidence/NA-0482_qsl_binding_negative_vector_suite_authorization_plan.md"
+    },
+    "decisions": [
+      "D-0944",
+      "D-0946",
+      "D-0950",
+      "D-0952",
+      "D-0953"
+    ],
+    "notes": "Traceability is supporting-only and does not assert qsc/refimpl equivalence or formal-proof completion."
+  },
+  "sections": [
+    {
+      "id": "qsc_binding",
+      "layer": "qsc_frame",
+      "description": "qsc KEM, signature, transcript, replay, suite, stale identity, and rollback negative binding metadata."
+    },
+    {
+      "id": "refimpl_signature_provider_boundary",
+      "layer": "refimpl_signature_provider_boundary",
+      "description": "Refimpl ML-DSA signature provider-boundary negative metadata and Err versus false classification cases."
+    },
+    {
+      "id": "formal_token_mapping",
+      "layer": "formal_token_mapping",
+      "description": "Opaque formal-token mappings corresponding to NA-0478 bounded model scenarios."
+    }
+  ],
+  "vectors": [
+    {
+      "id": "kem_wrong_peer_public_key",
+      "group": "kem_binding",
+      "layer": "qsc_frame",
+      "title": "Wrong peer KEM public key rejects",
+      "description": "A1 carries a KEM public-key binding that does not match the authenticated peer public record.",
+      "source_evidence": [
+        "NA-0476 wrong public key qsc negative test",
+        "NA-0478 wrong_kem_public_key formal scenario"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "qsc_a1_public_record_metadata",
+      "mutation_kind": "wrong_peer_kem_public_key_binding",
+      "safe_public_material": {
+        "storage": "metadata_only",
+        "tokens": [
+          "A1.kem_public_key",
+          "peer_public_record.kem_public_key"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "peer_mismatch"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0476_KEM_WRONG_PUBLIC_KEY_REJECT_OK",
+        "NA0478_BINDING_MODEL_WRONG_KEM_REJECT_OK",
+        "NA0483_VECTOR_KEM_WRONG_PUBLIC_KEY_CASE_OK"
+      ]
+    },
+    {
+      "id": "kem_stale_public_record",
+      "group": "kem_binding",
+      "layer": "qsc_frame",
+      "title": "Stale KEM public record rejects",
+      "description": "A stale peer public record is replayed after identity rotation and must not replace existing trusted session state.",
+      "source_evidence": [
+        "NA-0476 stale public-record qsc negative test",
+        "NA-0478 stale_kem_public_record formal scenario"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "qsc_public_record_metadata",
+      "mutation_kind": "stale_kem_public_record_replay",
+      "safe_public_material": {
+        "storage": "metadata_only",
+        "tokens": [
+          "public-record:alice:stale",
+          "kem-pk:alice:stale"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "peer_mismatch"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0476_KEM_STALE_PUBLIC_RECORD_REJECT_OK",
+        "NA0478_BINDING_MODEL_STALE_KEM_PUBLIC_RECORD_REJECT_OK",
+        "NA0483_VECTOR_STALE_PUBLIC_RECORD_CASE_OK"
+      ]
+    },
+    {
+      "id": "kem_wrong_ciphertext",
+      "group": "kem_binding",
+      "layer": "qsc_frame",
+      "title": "Wrong KEM ciphertext rejects",
+      "description": "B1 carries a mutated KEM ciphertext token that must fail closed before A2 or session completion.",
+      "source_evidence": [
+        "NA-0476 wrong ciphertext qsc negative test",
+        "NA-0479 KEM decapsulation mapping"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "qsc_b1_public_frame_metadata",
+      "mutation_kind": "kem_ciphertext_bit_flip",
+      "safe_public_material": {
+        "storage": "metadata_only",
+        "tokens": [
+          "B1.kem_ct",
+          "kem-ct:mutated"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "pq_decap_failed_or_transcript_context"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0476_KEM_WRONG_CIPHERTEXT_REJECT_OK",
+        "NA0478_BINDING_MODEL_WRONG_CIPHERTEXT_REJECT_OK",
+        "NA0483_VECTOR_KEM_WRONG_CIPHERTEXT_CASE_OK"
+      ]
+    },
+    {
+      "id": "kem_wrong_key_ciphertext_pair",
+      "group": "kem_binding",
+      "layer": "qsc_frame",
+      "title": "Wrong KEM key and ciphertext pairing rejects",
+      "description": "A generated test pairs public KEM metadata and ciphertext metadata from incompatible sessions.",
+      "source_evidence": [
+        "NA-0479 KEM mapping gap matrix",
+        "refimpl pqkem768 tamper evidence"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "generated_qsc_kem_pairing_metadata",
+      "mutation_kind": "wrong_kem_key_ciphertext_pairing",
+      "safe_public_material": {
+        "storage": "generation_recipe_only",
+        "tokens": [
+          "kem-pk:session-a",
+          "kem-ct:session-b"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "shared_secret_mismatch_or_transcript_context"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0483_VECTOR_KEM_WRONG_CIPHERTEXT_CASE_OK",
+        "NA0483_NO_SECRET_MATERIAL_IN_VECTORS_OK"
+      ]
+    },
+    {
+      "id": "signature_wrong_identity_public_record",
+      "group": "signature_binding",
+      "layer": "qsc_frame",
+      "title": "Wrong signature identity public record rejects",
+      "description": "Signature public-record material does not match the authenticated identity binding.",
+      "source_evidence": [
+        "NA-0476 wrong signature public-record qsc negative test",
+        "NA-0478 wrong_signature_identity formal scenario"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "qsc_public_record_signature_metadata",
+      "mutation_kind": "wrong_identity_signature_public_record",
+      "safe_public_material": {
+        "storage": "metadata_only",
+        "tokens": [
+          "public-record:alice:wrong-signature",
+          "sig-pk:alice:wrong"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "peer_mismatch"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0476_SIGNATURE_WRONG_IDENTITY_REJECT_OK",
+        "NA0478_BINDING_MODEL_WRONG_SIGNATURE_REJECT_OK",
+        "NA0483_VECTOR_SIGNATURE_WRONG_IDENTITY_CASE_OK"
+      ]
+    },
+    {
+      "id": "signature_cross_message_replay_b1_as_a2",
+      "group": "signature_binding",
+      "layer": "qsc_frame",
+      "title": "Cross-message signature replay rejects",
+      "description": "A signature captured from an A2 context is replayed into a B1 context and must not validate.",
+      "source_evidence": [
+        "NA-0476 cross-message signature replay qsc negative test",
+        "NA-0478 cross_message_signature_replay formal scenario"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "qsc_signature_context_metadata",
+      "mutation_kind": "a2_signature_replayed_as_b1_signature",
+      "safe_public_material": {
+        "storage": "metadata_only",
+        "tokens": [
+          "signature:A2",
+          "context:B1"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "sig_invalid"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0476_SIGNATURE_CROSS_MESSAGE_REPLAY_REJECT_OK",
+        "NA0478_BINDING_MODEL_CROSS_MESSAGE_SIGNATURE_REPLAY_REJECT_OK",
+        "NA0483_VECTOR_SIGNATURE_CROSS_MESSAGE_REPLAY_CASE_OK"
+      ]
+    },
+    {
+      "id": "signature_wrong_message_context",
+      "group": "signature_binding",
+      "layer": "qsc_frame",
+      "title": "Wrong signature message context rejects",
+      "description": "Signature metadata is valid only for a different message context and must fail binding validation.",
+      "source_evidence": [
+        "NA-0478 signature context token model",
+        "NA-0476 cross-message replay qsc negative test"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "qsc_signature_context_metadata",
+      "mutation_kind": "wrong_signature_message_context",
+      "safe_public_material": {
+        "storage": "metadata_only",
+        "tokens": [
+          "context:A2",
+          "context:B1"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "sig_invalid"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0476_SIGNATURE_CROSS_MESSAGE_REPLAY_REJECT_OK",
+        "NA0483_VECTOR_SIGNATURE_CROSS_MESSAGE_REPLAY_CASE_OK"
+      ]
+    },
+    {
+      "id": "signature_tampered_signature",
+      "group": "signature_binding",
+      "layer": "qsc_frame",
+      "title": "Tampered signature rejects",
+      "description": "A well-shaped signature token is mutated and must not validate as a successful binding.",
+      "source_evidence": [
+        "NA-0481 tampered signature invalid false test",
+        "NA-0479 signature verification mapping"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "signature_public_bytes_metadata",
+      "mutation_kind": "signature_bit_flip",
+      "safe_public_material": {
+        "storage": "metadata_only",
+        "tokens": [
+          "signature:well-shaped",
+          "signature:tampered"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "sig_invalid_or_false"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0481_REFIMPL_SIGNATURE_TAMPERED_SIGNATURE_INVALID_OK",
+        "NA0483_VECTOR_REFIMPL_SIGNATURE_BOUNDARY_CASE_OK"
+      ]
+    },
+    {
+      "id": "signature_wrong_public_key",
+      "group": "signature_binding",
+      "layer": "qsc_frame",
+      "title": "Wrong signature public key rejects",
+      "description": "A well-shaped signature is verified against the wrong signature public-key metadata.",
+      "source_evidence": [
+        "NA-0481 wrong public key invalid false test",
+        "NA-0479 public record signature mapping"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "signature_public_key_metadata",
+      "mutation_kind": "wrong_signature_public_key",
+      "safe_public_material": {
+        "storage": "metadata_only",
+        "tokens": [
+          "sig-pk:expected",
+          "sig-pk:wrong"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "sig_invalid_or_false"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0481_REFIMPL_SIGNATURE_WRONG_PUBLIC_KEY_INVALID_OK",
+        "NA0483_VECTOR_REFIMPL_SIGNATURE_BOUNDARY_CASE_OK"
+      ]
+    },
+    {
+      "id": "transcript_mutation",
+      "group": "transcript_replay_suite",
+      "layer": "qsc_frame",
+      "title": "Transcript mutation rejects",
+      "description": "A public transcript-bound field is changed after B1 construction and must reject before A2 or session completion.",
+      "source_evidence": [
+        "NA-0476 transcript mutation qsc negative test",
+        "NA-0478 transcript_mutation formal scenario"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "qsc_transcript_public_frame_metadata",
+      "mutation_kind": "transcript_field_mutation",
+      "safe_public_material": {
+        "storage": "metadata_only",
+        "tokens": [
+          "transcript:B1:expected",
+          "transcript:mutated"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "transcript_context"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0476_TRANSCRIPT_MUTATION_REJECT_OK",
+        "NA0478_BINDING_MODEL_TRANSCRIPT_MUTATION_REJECT_OK",
+        "NA0483_VECTOR_TRANSCRIPT_MUTATION_CASE_OK"
+      ]
+    },
+    {
+      "id": "transcript_truncation",
+      "group": "transcript_replay_suite",
+      "layer": "qsc_frame",
+      "title": "Transcript truncation rejects",
+      "description": "A public frame or transcript-bound section is truncated and must fail closed at parse or binding validation.",
+      "source_evidence": [
+        "NA-0476 frame mutation helpers",
+        "existing Suite-2 parse vector conventions"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "qsc_public_frame_metadata",
+      "mutation_kind": "transcript_or_frame_truncation",
+      "safe_public_material": {
+        "storage": "metadata_only",
+        "tokens": [
+          "frame:truncated"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "malformed_frame_or_transcript_context"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0483_VECTOR_TRANSCRIPT_MUTATION_CASE_OK",
+        "NA0483_NO_SECRET_MATERIAL_IN_VECTORS_OK"
+      ]
+    },
+    {
+      "id": "replayed_a1",
+      "group": "transcript_replay_suite",
+      "layer": "qsc_frame",
+      "title": "Replayed A1 rejects",
+      "description": "A1 replay after first observation must not emit another B1 or create duplicate state.",
+      "source_evidence": [
+        "NA-0476 replay qsc negative test",
+        "NA-0478 replay formal scenario"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "qsc_a1_public_frame_metadata",
+      "mutation_kind": "a1_replay",
+      "safe_public_material": {
+        "storage": "metadata_only",
+        "tokens": [
+          "A1:seen",
+          "A1:replayed"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "replay_or_no_duplicate_output"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0476_TRANSCRIPT_REPLAY_REJECT_OK",
+        "NA0478_BINDING_MODEL_REPLAY_REJECT_OK",
+        "NA0483_VECTOR_REPLAY_CASE_OK"
+      ]
+    },
+    {
+      "id": "replayed_b1",
+      "group": "transcript_replay_suite",
+      "layer": "qsc_frame",
+      "title": "Replayed B1 rejects",
+      "description": "B1 replay after pending or completed handling must not create duplicate A2 output or mutate a completed session.",
+      "source_evidence": [
+        "NA-0478 replay formal scenario",
+        "NA-0476 transcript/replay qsc evidence"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "qsc_b1_public_frame_metadata",
+      "mutation_kind": "b1_replay",
+      "safe_public_material": {
+        "storage": "metadata_only",
+        "tokens": [
+          "B1:seen",
+          "B1:replayed"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "replay_or_transcript_context"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0478_BINDING_MODEL_REPLAY_REJECT_OK",
+        "NA0483_VECTOR_REPLAY_CASE_OK"
+      ]
+    },
+    {
+      "id": "replayed_a2",
+      "group": "transcript_replay_suite",
+      "layer": "qsc_frame",
+      "title": "Replayed A2 rejects",
+      "description": "A2 replay must not convert a prior completed session into another success or mutate completed state unexpectedly.",
+      "source_evidence": [
+        "NA-0478 replay formal scenario",
+        "NA-0476 qsc no-session/no-output reject expectations"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "qsc_a2_public_frame_metadata",
+      "mutation_kind": "a2_replay",
+      "safe_public_material": {
+        "storage": "metadata_only",
+        "tokens": [
+          "A2:seen",
+          "A2:replayed"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "replay_or_no_success_output"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0478_BINDING_MODEL_REPLAY_REJECT_OK",
+        "NA0483_VECTOR_REPLAY_CASE_OK"
+      ]
+    },
+    {
+      "id": "wrong_role_replay",
+      "group": "transcript_replay_suite",
+      "layer": "qsc_frame",
+      "title": "Wrong-role replay rejects",
+      "description": "A message valid for one handshake role is replayed into the opposite role context and must not succeed.",
+      "source_evidence": [
+        "NA-0478 role and replay token mapping",
+        "qsc role transition evidence from NA-0476"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": false
+      },
+      "input_kind": "role_context_token_metadata",
+      "mutation_kind": "wrong_role_replay",
+      "safe_public_material": {
+        "storage": "formal_and_metadata_tokens_only",
+        "tokens": [
+          "role:initiator",
+          "role:responder",
+          "message:wrong-role"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "wrong_role_or_transcript_context"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0483_VECTOR_REPLAY_CASE_OK",
+        "NA0483_NO_SECRET_MATERIAL_IN_VECTORS_OK"
+      ]
+    },
+    {
+      "id": "suite_confusion_wrong_suite_token",
+      "group": "transcript_replay_suite",
+      "layer": "qsc_frame",
+      "title": "Wrong suite token rejects",
+      "description": "A Suite-2 required handshake sees a wrong suite token and must reject without silent fallback.",
+      "source_evidence": [
+        "NA-0476 suite confusion qsc negative test",
+        "NA-0478 suite_confusion formal scenario"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": false
+      },
+      "input_kind": "qsc_suite_block_metadata",
+      "mutation_kind": "wrong_suite_token",
+      "safe_public_material": {
+        "storage": "metadata_only",
+        "tokens": [
+          "suite:qsc-v5-suite2",
+          "suite:qsc-v4-suite1"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "suite_required_reject"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0476_SUITE_CONFUSION_REJECT_OK",
+        "NA0478_BINDING_MODEL_SUITE_CONFUSION_REJECT_OK",
+        "NA0483_VECTOR_SUITE_CONFUSION_CASE_OK"
+      ]
+    },
+    {
+      "id": "downgrade_wrong_suite_block",
+      "group": "transcript_replay_suite",
+      "layer": "qsc_frame",
+      "title": "Downgrade-style wrong suite block rejects",
+      "description": "The public suite parameter block is replaced with a lower or incompatible suite token and must not silently fall back.",
+      "source_evidence": [
+        "NA-0476 suite block replacement qsc negative test",
+        "Suite-2 downgrade vector conventions"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": false
+      },
+      "input_kind": "qsc_suite_parameter_block_metadata",
+      "mutation_kind": "downgrade_style_suite_block_replacement",
+      "safe_public_material": {
+        "storage": "metadata_only",
+        "tokens": [
+          "suite-block:expected",
+          "suite-block:wrong"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "suite_required_reject"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0476_SUITE_CONFUSION_REJECT_OK",
+        "NA0483_VECTOR_SUITE_CONFUSION_CASE_OK",
+        "NA0483_NO_DOWNGRADE_PROOF_CLAIM_OK"
+      ]
+    },
+    {
+      "id": "stale_public_record_replay",
+      "group": "stale_identity_rollback",
+      "layer": "qsc_frame",
+      "title": "Stale public-record replay rejects",
+      "description": "An older public record is replayed after a newer trusted record exists and must preserve existing session bytes.",
+      "source_evidence": [
+        "NA-0476 stale public-record qsc negative test",
+        "NA-0478 stale_public_record formal scenario"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "qsc_public_record_metadata",
+      "mutation_kind": "stale_public_record_replay",
+      "safe_public_material": {
+        "storage": "metadata_only",
+        "tokens": [
+          "public-record:current",
+          "public-record:stale"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "peer_mismatch"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0476_STALE_PUBLIC_RECORD_REJECT_OK",
+        "NA0478_BINDING_MODEL_STALE_PUBLIC_RECORD_REJECT_OK",
+        "NA0483_VECTOR_STALE_PUBLIC_RECORD_CASE_OK"
+      ]
+    },
+    {
+      "id": "public_record_rollback",
+      "group": "stale_identity_rollback",
+      "layer": "qsc_frame",
+      "title": "Public-record rollback rejects",
+      "description": "A public record is rolled back to older metadata after identity state advanced.",
+      "source_evidence": [
+        "NA-0476 stale public-record qsc evidence",
+        "NA-0479 public record signature mapping"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "qsc_public_record_generation_recipe",
+      "mutation_kind": "public_record_rollback",
+      "safe_public_material": {
+        "storage": "generation_recipe_only",
+        "tokens": [
+          "public-record:generation-n",
+          "public-record:generation-n-minus-1"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "stale_or_peer_mismatch"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0483_VECTOR_STALE_PUBLIC_RECORD_CASE_OK",
+        "NA0483_NO_SECRET_MATERIAL_IN_VECTORS_OK"
+      ]
+    },
+    {
+      "id": "identity_rotation_stale_peer_state",
+      "group": "stale_identity_rollback",
+      "layer": "qsc_frame",
+      "title": "Identity rotation stale peer state rejects",
+      "description": "A peer retains stale identity state after rotation and must not accept a mismatched binding.",
+      "source_evidence": [
+        "NA-0469 identity rotation evidence",
+        "NA-0476 stale identity/public-record qsc evidence"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "qsc_identity_rotation_metadata",
+      "mutation_kind": "stale_peer_state_after_rotation",
+      "safe_public_material": {
+        "storage": "metadata_only",
+        "tokens": [
+          "identity:rotated",
+          "peer-state:stale"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "peer_mismatch_or_stale_identity"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0483_VECTOR_STALE_PUBLIC_RECORD_CASE_OK",
+        "NA0483_NO_IDENTITY_COMPLETE_CLAIM_OK"
+      ]
+    },
+    {
+      "id": "stale_trusted_pin_mismatch",
+      "group": "stale_identity_rollback",
+      "layer": "qsc_frame",
+      "title": "Stale trusted pin mismatch rejects",
+      "description": "Trusted signature pin metadata no longer matches the peer public record and must reject.",
+      "source_evidence": [
+        "NA-0476 contact signature pin mutation evidence",
+        "NA-0478 stale trusted-pin token"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "qsc_trusted_pin_metadata",
+      "mutation_kind": "stale_trusted_pin_mismatch",
+      "safe_public_material": {
+        "storage": "metadata_only",
+        "tokens": [
+          "trusted-pin:expected",
+          "trusted-pin:stale"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "trusted_pin_mismatch"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal negative metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0483_VECTOR_STALE_PUBLIC_RECORD_CASE_OK",
+        "NA0483_NO_IDENTITY_COMPLETE_CLAIM_OK"
+      ]
+    },
+    {
+      "id": "refimpl_signature_wrong_public_key_length",
+      "group": "refimpl_signature_provider_boundary",
+      "layer": "refimpl_signature_provider_boundary",
+      "title": "Wrong public-key length returns error",
+      "description": "Refimpl signature verification rejects malformed public-key length with an error classification.",
+      "source_evidence": [
+        "NA-0481 wrong public-key length provider-boundary test"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": false
+      },
+      "input_kind": "refimpl_signature_length_metadata",
+      "mutation_kind": "public_key_length_minus_one",
+      "safe_public_material": {
+        "storage": "length_metadata_only",
+        "tokens": [
+          "sig-pk:length-invalid"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": false,
+        "no_success_output": true,
+        "expected_error_class": "CryptoError::InvalidKey"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal provider-boundary metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0481_REFIMPL_SIGNATURE_WRONG_PUBLIC_KEY_LENGTH_REJECT_OK",
+        "NA0483_VECTOR_REFIMPL_SIGNATURE_BOUNDARY_CASE_OK"
+      ]
+    },
+    {
+      "id": "refimpl_signature_wrong_signature_length",
+      "group": "refimpl_signature_provider_boundary",
+      "layer": "refimpl_signature_provider_boundary",
+      "title": "Wrong signature length returns error",
+      "description": "Refimpl signature verification rejects malformed signature length with an error classification.",
+      "source_evidence": [
+        "NA-0481 wrong signature length provider-boundary test"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": false
+      },
+      "input_kind": "refimpl_signature_length_metadata",
+      "mutation_kind": "signature_length_minus_one",
+      "safe_public_material": {
+        "storage": "length_metadata_only",
+        "tokens": [
+          "signature:length-invalid"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": false,
+        "no_success_output": true,
+        "expected_error_class": "CryptoError::InvalidKey"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal provider-boundary metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0481_REFIMPL_SIGNATURE_WRONG_SIGNATURE_LENGTH_REJECT_OK",
+        "NA0483_VECTOR_REFIMPL_SIGNATURE_BOUNDARY_CASE_OK"
+      ]
+    },
+    {
+      "id": "refimpl_signature_malformed_signing_key",
+      "group": "refimpl_signature_provider_boundary",
+      "layer": "refimpl_signature_provider_boundary",
+      "title": "Malformed signing key returns error",
+      "description": "Refimpl signing rejects malformed signing-key length with an error classification; the manifest stores no signing-key bytes.",
+      "source_evidence": [
+        "NA-0481 malformed signing-key provider-boundary test"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": false
+      },
+      "input_kind": "refimpl_signing_key_length_metadata",
+      "mutation_kind": "signing_key_length_minus_one",
+      "safe_public_material": {
+        "storage": "length_metadata_only",
+        "tokens": [
+          "signing-key:length-invalid"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": false,
+        "no_success_output": true,
+        "expected_error_class": "CryptoError::InvalidKey"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal provider-boundary metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0481_REFIMPL_SIGNATURE_MALFORMED_SIGNING_KEY_REJECT_OK",
+        "NA0483_VECTOR_REFIMPL_SIGNATURE_BOUNDARY_CASE_OK"
+      ]
+    },
+    {
+      "id": "refimpl_signature_tampered_signature_invalid",
+      "group": "refimpl_signature_provider_boundary",
+      "layer": "refimpl_signature_provider_boundary",
+      "title": "Tampered signature returns invalid false",
+      "description": "Refimpl verification treats a well-shaped tampered signature as invalid false, not success.",
+      "source_evidence": [
+        "NA-0481 tampered signature invalid provider-boundary test"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "refimpl_signature_invalid_metadata",
+      "mutation_kind": "tampered_signature_byte",
+      "safe_public_material": {
+        "storage": "metadata_only",
+        "tokens": [
+          "signature:well-shaped",
+          "signature:tampered"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": false,
+        "no_success_output": true,
+        "expected_reject_class": "Ok(false)"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal provider-boundary metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0481_REFIMPL_SIGNATURE_TAMPERED_SIGNATURE_INVALID_OK",
+        "NA0483_VECTOR_REFIMPL_SIGNATURE_BOUNDARY_CASE_OK"
+      ]
+    },
+    {
+      "id": "refimpl_signature_wrong_public_key_invalid",
+      "group": "refimpl_signature_provider_boundary",
+      "layer": "refimpl_signature_provider_boundary",
+      "title": "Wrong public key returns invalid false",
+      "description": "Refimpl verification treats a well-shaped wrong public key as invalid false, not success.",
+      "source_evidence": [
+        "NA-0481 wrong public key invalid provider-boundary test"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "refimpl_signature_public_key_metadata",
+      "mutation_kind": "wrong_public_key",
+      "safe_public_material": {
+        "storage": "metadata_only",
+        "tokens": [
+          "sig-pk:expected",
+          "sig-pk:wrong"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": false,
+        "no_success_output": true,
+        "expected_reject_class": "Ok(false)"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal provider-boundary metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0481_REFIMPL_SIGNATURE_WRONG_PUBLIC_KEY_INVALID_OK",
+        "NA0483_VECTOR_REFIMPL_SIGNATURE_BOUNDARY_CASE_OK"
+      ]
+    },
+    {
+      "id": "refimpl_signature_err_vs_false_classification",
+      "group": "refimpl_signature_provider_boundary",
+      "layer": "refimpl_signature_provider_boundary",
+      "title": "Err versus false classification remains distinct",
+      "description": "Malformed inputs are error classifications while well-shaped invalid signature inputs return false.",
+      "source_evidence": [
+        "NA-0481 Err versus false classification provider-boundary test"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": true
+      },
+      "input_kind": "refimpl_signature_classification_metadata",
+      "mutation_kind": "malformed_vs_well_shaped_invalid_matrix",
+      "safe_public_material": {
+        "storage": "classification_metadata_only",
+        "tokens": [
+          "malformed:Err",
+          "well-shaped-invalid:Ok(false)"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": false,
+        "no_success_output": true,
+        "expected_reject_class": "Err_or_Ok_false_by_shape"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Internal provider-boundary metadata only; not public or conformance evidence and not a completion claim.",
+      "related_markers": [
+        "NA0481_REFIMPL_SIGNATURE_ERR_VS_FALSE_CLASSIFICATION_OK",
+        "NA0483_VECTOR_REFIMPL_SIGNATURE_BOUNDARY_CASE_OK"
+      ]
+    },
+    {
+      "id": "formal_wrong_kem_token",
+      "group": "formal_token_mapping",
+      "layer": "formal_token_mapping",
+      "title": "Wrong KEM token maps to reject",
+      "description": "Opaque formal wrong KEM token maps to a fail-closed reject with no completed-session mutation.",
+      "source_evidence": [
+        "NA-0478 wrong_kem_public_key formal scenario"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": false
+      },
+      "input_kind": "formal_opaque_token",
+      "mutation_kind": "wrong_kem_token",
+      "safe_public_material": {
+        "storage": "formal_tokens_only",
+        "tokens": [
+          "kem-pk:alice:wrong"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "REJECT_QSC_BINDING_WRONG_KEM"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Formal-token mapping only; not provider-internal proof or completion evidence.",
+      "related_markers": [
+        "NA0478_BINDING_MODEL_WRONG_KEM_REJECT_OK",
+        "NA0483_VECTOR_FORMAL_TOKEN_MAPPING_CASE_OK"
+      ]
+    },
+    {
+      "id": "formal_wrong_signature_token",
+      "group": "formal_token_mapping",
+      "layer": "formal_token_mapping",
+      "title": "Wrong signature token maps to reject",
+      "description": "Opaque formal wrong signature or wrong signature context token maps to fail-closed reject behavior.",
+      "source_evidence": [
+        "NA-0478 wrong_signature_identity formal scenario",
+        "NA-0478 cross_message_signature_replay formal scenario"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": false
+      },
+      "input_kind": "formal_opaque_token",
+      "mutation_kind": "wrong_signature_token",
+      "safe_public_material": {
+        "storage": "formal_tokens_only",
+        "tokens": [
+          "sig-pk:alice:wrong",
+          "context:A2-as-B1"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "REJECT_QSC_BINDING_WRONG_SIGNATURE"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Formal-token mapping only; not provider-internal proof or completion evidence.",
+      "related_markers": [
+        "NA0478_BINDING_MODEL_WRONG_SIGNATURE_REJECT_OK",
+        "NA0478_BINDING_MODEL_CROSS_MESSAGE_SIGNATURE_REPLAY_REJECT_OK",
+        "NA0483_VECTOR_FORMAL_TOKEN_MAPPING_CASE_OK"
+      ]
+    },
+    {
+      "id": "formal_transcript_mutation",
+      "group": "formal_token_mapping",
+      "layer": "formal_token_mapping",
+      "title": "Transcript mutation token maps to reject",
+      "description": "Opaque formal transcript mutation token maps to fail-closed reject behavior.",
+      "source_evidence": [
+        "NA-0478 transcript_mutation formal scenario"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": false
+      },
+      "input_kind": "formal_opaque_token",
+      "mutation_kind": "transcript_mutation_token",
+      "safe_public_material": {
+        "storage": "formal_tokens_only",
+        "tokens": [
+          "transcript:mutated"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "REJECT_QSC_HS_TRANSCRIPT_CONTEXT"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Formal-token mapping only; not provider-internal proof or completion evidence.",
+      "related_markers": [
+        "NA0478_BINDING_MODEL_TRANSCRIPT_MUTATION_REJECT_OK",
+        "NA0483_VECTOR_FORMAL_TOKEN_MAPPING_CASE_OK"
+      ]
+    },
+    {
+      "id": "formal_replay",
+      "group": "formal_token_mapping",
+      "layer": "formal_token_mapping",
+      "title": "Replay token maps to reject",
+      "description": "Opaque formal replay token maps to fail-closed reject behavior and no duplicate success output.",
+      "source_evidence": [
+        "NA-0478 transcript_replay formal scenario"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": false
+      },
+      "input_kind": "formal_opaque_token",
+      "mutation_kind": "replay_token",
+      "safe_public_material": {
+        "storage": "formal_tokens_only",
+        "tokens": [
+          "session:na0478-replay"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "REJECT_QSC_BINDING_REPLAY"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Formal-token mapping only; not provider-internal proof or completion evidence.",
+      "related_markers": [
+        "NA0478_BINDING_MODEL_REPLAY_REJECT_OK",
+        "NA0483_VECTOR_FORMAL_TOKEN_MAPPING_CASE_OK"
+      ]
+    },
+    {
+      "id": "formal_suite_confusion",
+      "group": "formal_token_mapping",
+      "layer": "formal_token_mapping",
+      "title": "Suite confusion token maps to reject",
+      "description": "Opaque formal wrong suite token maps to fail-closed reject behavior without fallback.",
+      "source_evidence": [
+        "NA-0478 suite_confusion formal scenario"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": false
+      },
+      "input_kind": "formal_opaque_token",
+      "mutation_kind": "suite_confusion_token",
+      "safe_public_material": {
+        "storage": "formal_tokens_only",
+        "tokens": [
+          "suite:qsc-v4-suite1"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "REJECT_QSC_BINDING_WRONG_SUITE"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Formal-token mapping only; not provider-internal proof or completion evidence.",
+      "related_markers": [
+        "NA0478_BINDING_MODEL_SUITE_CONFUSION_REJECT_OK",
+        "NA0483_VECTOR_FORMAL_TOKEN_MAPPING_CASE_OK"
+      ]
+    },
+    {
+      "id": "formal_stale_public_record",
+      "group": "formal_token_mapping",
+      "layer": "formal_token_mapping",
+      "title": "Stale public-record token maps to reject",
+      "description": "Opaque formal stale public-record token maps to fail-closed reject behavior.",
+      "source_evidence": [
+        "NA-0478 stale_public_record formal scenario"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": false
+      },
+      "input_kind": "formal_opaque_token",
+      "mutation_kind": "stale_public_record_token",
+      "safe_public_material": {
+        "storage": "formal_tokens_only",
+        "tokens": [
+          "public-record:alice:stale"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "REJECT_QSC_BINDING_STALE_RECORD"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Formal-token mapping only; not provider-internal proof or completion evidence.",
+      "related_markers": [
+        "NA0478_BINDING_MODEL_STALE_PUBLIC_RECORD_REJECT_OK",
+        "NA0483_VECTOR_FORMAL_TOKEN_MAPPING_CASE_OK"
+      ]
+    },
+    {
+      "id": "formal_no_session_mutation_on_reject",
+      "group": "formal_token_mapping",
+      "layer": "formal_token_mapping",
+      "title": "No completed-session mutation on reject",
+      "description": "Opaque formal reject paths preserve completed-session state and produce no success output.",
+      "source_evidence": [
+        "NA-0478 no completed-session mutation assertions",
+        "NA-0478 no success output on reject assertions"
+      ],
+      "material_policy": {
+        "contains_secret_material": false,
+        "contains_private_key": false,
+        "contains_passphrase": false,
+        "contains_user_data": false,
+        "generated_ephemerally_if_needed": false
+      },
+      "input_kind": "formal_invariant_token",
+      "mutation_kind": "reject_invariant_assertion",
+      "safe_public_material": {
+        "storage": "formal_tokens_only",
+        "tokens": [
+          "invariant:no-completed-session-mutation",
+          "invariant:no-success-output"
+        ]
+      },
+      "expected_result": {
+        "reject": true,
+        "no_completed_session_mutation": true,
+        "no_success_output": true,
+        "expected_reject_class": "reject_invariant_preserved"
+      },
+      "validation_status": "metadata_only_pending_future_test_consumption",
+      "public_claim_caveat": "Formal-token mapping only; not provider-internal proof or completion evidence.",
+      "related_markers": [
+        "NA0478_BINDING_MODEL_NO_SESSION_MUTATION_OK",
+        "NA0478_BINDING_MODEL_NO_SUCCESS_OUTPUT_ON_REJECT_OK",
+        "NA0483_VECTOR_FORMAL_TOKEN_MAPPING_CASE_OK"
+      ]
+    }
+  ]
+}

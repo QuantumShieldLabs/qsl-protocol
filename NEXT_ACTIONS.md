@@ -26775,8 +26775,11 @@ Completion note:
 ---
 
 ### NA-0480 — QSL refimpl KEM / Signature Provider Boundary Test Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
+
+Implementation note:
+- NA-0480 evidence PR #1230 merged at `e8ac76bbba94` and post-merge public-safety completed success. D-0948 selected `NA-0481 -- QSL refimpl Signature Provider Boundary Test Implementation Harness` as the exact successor. This closeout restores NA-0481 as the sole READY item and does not implement NA-0481.
 
 Objective:
 Authorize exact refimpl KEM and signature provider-boundary test scope after qsc binding negative tests, NA-0478 formal model evidence, and NA-0479 qsc/refimpl KEM/signature mapping evidence, preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries.
@@ -26805,7 +26808,7 @@ Forbidden scope:
 - executable test/fuzz/vector/formal mutation unless a later exact implementation directive authorizes exact paths.
 - service/public/qshield/qsl-server/qsl-attachments mutation.
 - backup/restore/qsl-backup mutation.
-- public readiness or crypto completion claims.
+- no public readiness or crypto completion claims.
 
 Deliverables:
 - provider-boundary test-scope authorization evidence doc.
@@ -26821,6 +26824,54 @@ Acceptance criteria:
 - wrong-length, tamper, wrong-key, malformed signing-key, and error-classification evidence scope selected or rejected.
 - qsc/refimpl/formal mapping evidence consumed.
 - provider RNG boundary residual preserved or explicitly scoped.
+- no public overclaim.
+- exactly one READY item remains.
+
+---
+
+### NA-0481 — QSL refimpl Signature Provider Boundary Test Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the exact refimpl signature provider-boundary tests selected by NA-0480, covering malformed keys/signatures, wrong public keys, tampered signatures, and Err versus `Ok(false)` classification, while preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries.
+
+Protects:
+- signature provider-boundary clarity.
+- qsc/refimpl error mapping confidence.
+- provider-boundary claim discipline.
+- external-review readiness.
+- public-claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- `tools/refimpl/quantumshield_refimpl/tests/signature_provider_boundary.rs`.
+- `docs/governance/evidence/NA-0481_qsl_refimpl_signature_provider_boundary_test_implementation_harness.md`.
+- `tests/NA-0481_qsl_refimpl_signature_provider_boundary_test_implementation_testplan.md`.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+
+Forbidden scope:
+- refimpl source mutation unless explicitly selected by a later directive.
+- qsc source/test mutation.
+- dependency/Cargo/lockfile/workflow mutation.
+- formal/fuzz/vector mutation.
+- service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- no public readiness or crypto completion claims.
+
+Deliverables:
+- refimpl signature provider-boundary test implementation.
+- evidence doc.
+- testplan.
+- D-0950 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+
+Acceptance criteria:
+- selected signature provider-boundary tests pass.
+- wrong length, malformed key, tamper, wrong public key, and Err versus false semantics are documented.
 - no public overclaim.
 - exactly one READY item remains.
 

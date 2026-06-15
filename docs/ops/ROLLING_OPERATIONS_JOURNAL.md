@@ -34162,3 +34162,48 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No implementation, runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, refimpl source/test, qsc source/test, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, durable Director State Index, public technical paper, or backup tree mutation is introduced by closeout.
 - No backup or restore run.
 - No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No crypto-complete claim is introduced. No KEM-complete claim is introduced. No signature-complete claim is introduced. No qsc/refimpl-equivalence-complete claim is introduced. No provider-boundary-complete claim is introduced. No provider-RNG-complete claim is introduced. No formal-proof-complete claim is introduced. No side-channel-free claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-crypto claim is introduced.
+## NA-0484 update
+
+- Directive: QSL-DIR-2026-06-15-344.
+- Directive title: Execute NA-0484 QSL Fuzz Binding Coverage Scope Authorization Plan, Optional Closeout to NA-0485.
+- Local start timestamp: 2026-06-15T15:07:30-05:00.
+- UTC start timestamp: 2026-06-15T20:07:30+00:00.
+- Repo path: `/srv/qbuild/work/NA-0484/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0484_fuzz_binding_scope_20260615T200730Z`.
+- qwork proof files read and copied; Codex did not run qwork, qstart, or qresume.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `8aa9ae192764`.
+- Fetch did not advance origin/main; main checked out clean at `8aa9ae192764`.
+- PR #1237 verified merged at `8aa9ae192764`.
+- Startup queue: `READY_COUNT 1`; READY NA-0484.
+- Startup latest decision: D-0955; D-0954 exists once; D-0955 exists once; D-0956 absent; duplicate decision count 0.
+- Startup public-safety on `8aa9ae192764`: success.
+- Startup root cargo audit: PASS.
+- Startup nested qsc fuzz lock audit: PASS.
+- Startup root dependency tree probes: PASS for `rustls-webpki` and `ml-kem`; pqcrypto inverse-tree probes completed under directive-approved `|| true` shape with no active dependency tree.
+- Startup qsc fuzz lock pqcrypto residual scan completed under directive-approved `|| true` shape with zero matches.
+- Startup internal negative binding vector manifest JSON validation: PASS.
+- Startup formal checks: PASS for NA-0478 standalone model and formal runner.
+- Startup inherited qsc binding/provider-RNG/key-lifecycle/provider-error tests: PASS.
+- Startup stable qsc `send_commit`: PASS.
+- Startup refimpl `signature_provider_boundary` and `pqkem768`: PASS.
+- qsc adversarial marker/syntax proof: PASS for `NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP`, `handshake_provider_error_no_mutation`, `sh -n`, and `bash -n`.
+- qsl-backup SHA read-only proof: `e9ecff3d22ed`.
+- qsl-backup source-list proof: codex ops source appears exactly once in the installed source list.
+- Recovered/benign proof observation: a read-only process-state probe during the long qsc binding negative test returned no matching process rows because the test had just exited successfully. Classification: valid timing/zero-match proof outcome. Corrective action: relied on the per-test log and final cargo test result. Final result: PASS.
+- Current qsc fuzz inventory: `qsc_route_http`, `qsc_payload_boundaries`, and `qsc_vault_envelope`.
+- Current fuzz classification: `FUZZ_BINDING_CURRENTLY_PARSER_ONLY`.
+- Cargo/workflow/CI impact classification: `FUZZ_IMPLEMENTATION_SPLIT_NEEDED`.
+- Secret/corpus risk classification: `FUZZ_CORPUS_GENERATED_EPHEMERAL_ONLY`.
+- Primary authorization classification: `FUZZ_BINDING_SPLIT_SCOPE_NEEDED`.
+- Selected successor: `NA-0485 -- QSL Fuzz Binding Coverage Split-Scope Authorization Plan`.
+- Governance patch paths: NA-0484 evidence doc, NA-0484 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Recovered command-shape issue: first PR body preflight used unsupported `--body-file`; helper expected `--file`. Classification: recoverable command-shape mistake. Corrective action: reran `python3 scripts/ci/qsl_evidence_helper.py pr-body-preflight --file "$PROOF_DIR/pr/pr_body_na0484.md" --scan-overclaims`. Final result: PASS with `MISSING_FIELD_COUNT 0` and `PROHIBITED_PHRASE_COUNT 0`.
+- Recovered goal-lint proof-shape issue: first synthetic pull_request event for local goal-lint omitted `pull_request.body`, so `tools/goal_lint.py` reported the PR body Goals line missing. Classification: recoverable proof-shape mistake. Corrective action: regenerated the synthetic event with the actual proof-root PR body plus real base/head SHAs. Final result: `OK: goal compliance checks passed.`
+- Local qsc adversarial smoke: stable adversarial property tests PASS, stable adversarial miri-contract test PASS, and provider-error no-mutation adversarial step PASS; local cargo-fuzz stage stopped with `error: no such command: fuzz`. Classification: recoverable local cargo-fuzz availability caveat. Corrective action: recorded exact output and relied on PR CI `qsc-adversarial-smoke` for cargo-fuzz-backed proof. Final result: local non-fuzz adversarial phases PASS; PR CI required for fuzz phases.
+- Full post-patch validation: PASS for `git diff --check`, cached diff check, exact staged scope guard, link-check, leak-scan, added-line overclaim scan, PR body preflight, adversarial script syntax, internal vector manifest JSON validation, formal model, formal runner, inherited qsc binding/provider-RNG/key-lifecycle/provider-error tests, stable qsc `send_commit`, refimpl `signature_provider_boundary`, refimpl `pqkem768`, root cargo audit, nested qsc fuzz lock audit, dependency tree probes, and `cargo fmt --check`.
+- PR creation recovery: GitHub connector PR creation returned 403 `Resource not accessible by integration`. Classification: recoverable connector permission limitation. Corrective action: used `gh pr create` fallback with the same prepared PR body. Final result: PR #1238 opened.
+- PR view recovery: first `gh pr view` follow-up used `--repo` without passing PR number, which this gh CLI rejects. Classification: recoverable command-shape mistake. Corrective action: reran `gh pr view 1238 --repo QuantumShieldLabs/qsl-protocol --json ...`. Final result: PR #1238 open with head `342c92c17e96`.
+- No implementation mutation performed.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, fuzz corpus, vector/input, formal model, qsc source/test, refimpl source/test, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, durable Director State Index, public technical paper, or backup tree mutation introduced.
+- No backup or restore run.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No crypto-complete claim is introduced. No fuzz-complete claim is introduced. No vector-complete claim is introduced. No KEM-complete claim is introduced. No signature-complete claim is introduced. No identity-complete claim is introduced. No transcript-complete claim is introduced. No qsc/refimpl-equivalence-complete claim is introduced. No provider-boundary-complete claim is introduced. No provider-RNG-complete claim is introduced. No formal-proof-complete claim is introduced. No replay-proof claim is introduced. No downgrade-proof claim is introduced. No side-channel-free claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-crypto claim is introduced.

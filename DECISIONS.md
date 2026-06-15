@@ -25342,3 +25342,28 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Future NA-0483 places internal binding negative vectors directly under the authoritative `inputs/suite2/vectors/` directory unless a later exact directive authorizes and caveats that public/conformance surface.
     - More than one READY item remains.
   - **References:** NA-0482; NA-0481; NA-0479; NA-0478; NA-0476; D-0952; D-0951; D-0950; D-0948; D-0946; D-0944; D-0940; `docs/governance/evidence/NA-0482_qsl_binding_negative_vector_suite_authorization_plan.md`; `tests/NA-0482_qsl_binding_negative_vector_suite_authorization_testplan.md`; `qsl/qsl-client/qsc/tests/kem_signature_transcript_binding_negative.rs`; `formal/model_qsc_kem_signature_transcript_binding_bounded.py`; `tools/refimpl/quantumshield_refimpl/tests/signature_provider_boundary.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0953
+  - **Title:** NA-0482 closeout and NA-0483 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-15
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0482 is closed after evidence PR #1234 merged at `280179428e5a` and post-merge public-safety completed success on that merge commit. D-0952 records the binding negative vector suite authorization and selects `NA-0483 -- QSL Binding Negative Vector Suite Implementation Harness` as the successor. This closeout marks NA-0482 DONE and restores NA-0483 as the sole READY item.
+  - **Selected NA-0483 successor restored:** NA-0483 is an implementation harness for the exact internal binding negative vector suite selected by NA-0482, preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries and avoiding secret/private material in checked-in vectors.
+  - **Selected NA-0483 input paths:** `inputs/suite2/internal_negative_binding_vectors/README.md` and `inputs/suite2/internal_negative_binding_vectors/qsl_binding_negative_vector_manifest_v1.json`.
+  - **Selected NA-0483 governance paths:** `docs/governance/evidence/NA-0483_qsl_binding_negative_vector_suite_implementation_harness.md`, `tests/NA-0483_qsl_binding_negative_vector_suite_implementation_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+  - **Evidence consumed:** NA-0482 evidence doc, NA-0482 testplan, D-0952, TRACEABILITY, rolling journal, PR #1234 checks, post-merge public-safety, root cargo audit, nested qsc fuzz lock audit, formal checks, inherited qsc/refimpl tests, and qsc adversarial-smoke evidence are accepted as closeout evidence.
+  - **No NA-0483 implementation mutation:** This closeout does not implement NA-0483, does not create vectors, and does not mutate inputs.
+  - **No runtime/crypto/dependency/Cargo/lockfile/workflow/test/fuzz/formal/refimpl mutation:** This closeout changes only the authorized closeout governance/testplan paths.
+  - **No backup/restore:** Codex did not run backup or restore and did not mutate qsl-backup, backup status, backup plan, rollback, or backup tree paths.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No vector-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No qsc/refimpl-equivalence-complete claim is made. No provider-boundary-complete claim is made. No provider-RNG-complete claim is made. No formal-proof-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Required behavior:**
+    - NA-0483 may implement only the selected internal negative vector README/manifest plus governance evidence/testplan/decision/traceability/journal updates unless a later exact directive changes scope.
+    - NA-0483 must not store private keys, signing keys, KEM secret keys, passphrases, runtime keys, backup keys, operator data, user data, or live service data in checked-in vectors.
+    - Exactly one READY remains mandatory.
+  - **Must never happen:**
+    - NA-0482 closeout is represented as NA-0483 implementation evidence.
+    - NA-0483 vector work is represented as public readiness, production readiness, public-internet readiness, external review completion, crypto completion, vector completion, KEM completion, signature completion, qsc/refimpl equivalence completion, provider-boundary completion, formal-proof completion, side-channel freedom, vulnerability freedom, bug freedom, backup completion, restore proof, or perfect crypto.
+    - Cargo audit output is represented as anything stronger than dependency-health evidence.
+    - More than one READY item remains.
+  - **References:** NA-0482; NA-0483; D-0953; D-0952; D-0951; D-0950; PR #1234; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0482_closeout_restore_na0483_testplan.md`

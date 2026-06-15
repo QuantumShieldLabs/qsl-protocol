@@ -20,9 +20,9 @@ Last-Updated: 2026-06-13
 - qsl-protocol origin/main after fetch: `9c2c490a055c`.
 - PR #1233 merge commit verified: `9c2c490a055c`.
 - Evidence branch: `na-0482-binding-negative-vector-scope`.
-- Evidence PR: pending.
-- Evidence merge commit: pending.
-- Optional closeout branch: pending.
+- Evidence PR: #1234.
+- Evidence merge commit: `280179428e5a`.
+- Optional closeout branch: `na-0482-closeout-restore-na0483`.
 - Optional closeout PR: pending.
 - Optional closeout merge commit: pending.
 
@@ -108,6 +108,22 @@ Last-Updated: 2026-06-13
 - Merge evidence PR only after required checks pass and public-safety is green.
 - After evidence merge, verify READY remains NA-0482, D-0952 exists on main, and post-merge public-safety is green.
 - If post-merge public-safety is green, optionally close out NA-0482 and restore exactly one READY NA-0483 successor without implementing NA-0483.
+
+## Evidence merge proof
+
+- Evidence PR #1234 merged at `280179428e5a`.
+- Post-merge queue proof before closeout: READY_COUNT 1 and READY NA-0482.
+- Post-merge decision proof before closeout: D-0952 once, D-0953 absent, latest D-0952, duplicate decision count zero.
+- Initial post-merge public-safety helper returned ambiguous while checks were still attached/in progress; this was classified as a recoverable wait state.
+- Post-merge REST polling completed with public-safety success and all attached checks non-failing.
+
+## Closeout notes
+
+- Closeout restores `NA-0483 -- QSL Binding Negative Vector Suite Implementation Harness` as the sole READY successor.
+- This closeout does not implement NA-0483 and does not create or mutate input/vector files.
+- NA-0483 selected future input paths remain:
+  - `inputs/suite2/internal_negative_binding_vectors/README.md`
+  - `inputs/suite2/internal_negative_binding_vectors/qsl_binding_negative_vector_manifest_v1.json`
 
 # QSL-DIR-2026-06-14-336 / NA-0476 binding negative-test implementation rolling journal
 

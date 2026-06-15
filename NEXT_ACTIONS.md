@@ -26881,7 +26881,9 @@ Acceptance criteria:
 ---
 
 ### NA-0482 — QSL Binding Negative Vector Suite Authorization Plan
-Status: READY
+Status: DONE
+Implementation note:
+- NA-0482 evidence PR #1234 merged at `280179428e5a` and post-merge public-safety completed success. D-0952 selected `NA-0483 -- QSL Binding Negative Vector Suite Implementation Harness` as the exact successor. This closeout restores NA-0483 as the sole READY item and does not implement NA-0483.
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -26923,6 +26925,56 @@ Acceptance criteria:
 - exact transcript/replay/suite negative vector scope selected or rejected.
 - stale public-record vector scope selected or rejected.
 - qsc/refimpl/formal mapping consumed.
+- no public overclaim.
+- exactly one READY item remains.
+
+---
+
+### NA-0483 — QSL Binding Negative Vector Suite Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the exact binding negative vector suite selected by NA-0482, preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries and avoiding secret/private material in checked-in vectors.
+
+Protects:
+- durable negative binding examples.
+- qsc/refimpl/formal evidence traceability.
+- external-review readiness.
+- release-claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- `inputs/suite2/internal_negative_binding_vectors/README.md`.
+- `inputs/suite2/internal_negative_binding_vectors/qsl_binding_negative_vector_manifest_v1.json`.
+- `docs/governance/evidence/NA-0483_qsl_binding_negative_vector_suite_implementation_harness.md`.
+- `tests/NA-0483_qsl_binding_negative_vector_suite_implementation_testplan.md`.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+
+Forbidden scope:
+- runtime/crypto/source mutation unless selected by a later exact directive, which should be avoided by default.
+- dependency/Cargo/lockfile/workflow mutation.
+- refimpl source mutation.
+- qsc source mutation.
+- formal/fuzz mutation.
+- service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- public readiness or crypto completion claims.
+
+Deliverables:
+- selected negative vector files/manifests.
+- evidence doc.
+- testplan.
+- D-0954 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+
+Acceptance criteria:
+- selected vector suite exists.
+- vector files contain no secret/private material.
+- vector metadata links to qsc/refimpl/formal evidence.
 - no public overclaim.
 - exactly one READY item remains.
 

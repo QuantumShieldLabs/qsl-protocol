@@ -25253,3 +25253,39 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output must not be represented as anything stronger than dependency-health evidence.
     - More than one READY item remains.
   - **References:** NA-0480; NA-0481; D-0949; D-0948; D-0947; D-0946; PR #1230; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0480_closeout_restore_na0481_testplan.md`
+
+- **ID:** D-0950
+  - **Title:** NA-0481 refimpl signature provider boundary test implementation
+  - **Status:** Accepted
+  - **Date:** 2026-06-15
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0481 consumes NA-0480 and implements the selected refimpl signature provider-boundary integration tests in `tools/refimpl/quantumshield_refimpl/tests/signature_provider_boundary.rs`, with NA-0481 evidence/testplan, TRACEABILITY, and rolling journal updates. The test-only implementation covers wrong public-key length, wrong signature length, malformed signing-key length, tampered signature, wrong public key, and Err versus `Ok(false)` classification through current public refimpl APIs only.
+  - **NA-0480 consumed:** D-0948 selected `REFIMPL_SIGNATURE_PROVIDER_BOUNDARY_TEST_SCOPE_READY`; D-0949 restored NA-0481 as the sole READY item. NA-0481 consumes that scope without expanding into runtime, crypto, dependency, workflow, qsc, KEM, provider RNG, external review, or public readiness claims.
+  - **Exact refimpl test file added:** `tools/refimpl/quantumshield_refimpl/tests/signature_provider_boundary.rs`.
+  - **Wrong public-key length test implemented:** truncated ML-DSA public-key bytes return `Err(CryptoError::InvalidKey)` and emit `NA0481_REFIMPL_SIGNATURE_WRONG_PUBLIC_KEY_LENGTH_REJECT_OK`.
+  - **Wrong signature length test implemented:** truncated ML-DSA signature bytes return `Err(CryptoError::InvalidKey)` and emit `NA0481_REFIMPL_SIGNATURE_WRONG_SIGNATURE_LENGTH_REJECT_OK`.
+  - **Malformed signing-key test implemented:** truncated expanded signing-key bytes return `Err(CryptoError::InvalidKey)` and emit `NA0481_REFIMPL_SIGNATURE_MALFORMED_SIGNING_KEY_REJECT_OK`.
+  - **Tampered signature invalid test implemented:** length-valid tampered signature bytes return `Ok(false)` and emit `NA0481_REFIMPL_SIGNATURE_TAMPERED_SIGNATURE_INVALID_OK`.
+  - **Wrong public key invalid test implemented:** length-valid signature checked against a different generated public key returns `Ok(false)` and emits `NA0481_REFIMPL_SIGNATURE_WRONG_PUBLIC_KEY_INVALID_OK`.
+  - **Err versus `Ok(false)` classification evidence implemented:** malformed length inputs return Err while well-shaped invalid verification inputs return `Ok(false)`, and the test emits `NA0481_REFIMPL_SIGNATURE_ERR_VS_FALSE_CLASSIFICATION_OK`.
+  - **API caveat:** Verify exposes both Err and `Ok(false)` directly. Sign exposes Err but not a false classification because signing returns bytes or error. Length-valid corrupted expanded signing-key semantics are not generalized beyond the tested malformed-length rejection because doing so would require provider-internal assumptions or source/runtime mutation outside this lane.
+  - **Provider RNG caveat preserved:** Concrete provider RNG failure remains unforceable through current refimpl helpers without a test seam or source/runtime mutation. No provider-RNG-complete claim is made.
+  - **qsc sanitized error mapping remains supporting-only:** NA-0481 does not mutate qsc source or executable tests. qsc mapping of provider signature Err and `Ok(false)` remains supporting-only and is not represented as qsc/refimpl equivalence.
+  - **KEM remains supporting-only for this lane:** NA-0481 adds no KEM tests. Existing refimpl `pqkem768` evidence remains supporting-only, with no KEM-complete claim.
+  - **Bounded refimpl provider-boundary evidence only:** The implementation is internal test evidence for selected refimpl signature cases only and does not complete provider-boundary assurance.
+  - **No refimpl source mutation:** Only a refimpl integration test file is added; refimpl source is unchanged.
+  - **No qsc mutation:** No qsc source or executable test path is changed.
+  - **No dependency/Cargo/lockfile/workflow mutation:** No dependency, Cargo manifest, lockfile, workflow, fuzz target, vector, or formal model path is changed.
+  - **No backup/restore:** Codex did not run backup or restore and did not mutate qsl-backup, backup status, backup plan, rollback, or backup tree paths.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No qsc/refimpl-equivalence-complete claim is made. No provider-boundary-complete claim is made. No provider-RNG-complete claim is made. No formal-proof-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Selected successor:** `NA-0482 -- QSL Binding Negative Vector Suite Authorization Plan`, subject to post-merge public-safety and optional closeout. NA-0481 does not implement NA-0482.
+  - **Required behavior:**
+    - NA-0481 remains a test-only refimpl integration lane until merged.
+    - Optional closeout may restore NA-0482 only after post-merge public-safety is green.
+    - Exactly one READY remains mandatory.
+  - **Must never happen:**
+    - NA-0481 evidence is represented as refimpl source, qsc, runtime/source, crypto, dependency, workflow, fuzz, vector, formal model, service, public-doc, website, backup, restore, qsl-backup, or qwork/qstart/qresume/qshell authorization beyond this exact test-only implementation scope.
+    - NA-0481 evidence must not be represented as public readiness, production readiness, public-internet readiness, external review completion, crypto completion, KEM completion, signature completion, qsc/refimpl equivalence completion, provider-boundary completion, provider RNG completion, formal-proof completion, side-channel freedom, vulnerability freedom, bug freedom, backup completion, restore proof, or perfect crypto.
+    - Cargo audit output is represented as anything stronger than dependency-health evidence.
+    - More than one READY item remains.
+  - **References:** NA-0481; NA-0480; NA-0482; D-0950; D-0949; D-0948; `tools/refimpl/quantumshield_refimpl/tests/signature_provider_boundary.rs`; `docs/governance/evidence/NA-0481_qsl_refimpl_signature_provider_boundary_test_implementation_harness.md`; `tests/NA-0481_qsl_refimpl_signature_provider_boundary_test_implementation_testplan.md`; `tools/refimpl/quantumshield_refimpl/src/crypto/traits.rs`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tools/refimpl/quantumshield_refimpl/tests/pqkem768.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

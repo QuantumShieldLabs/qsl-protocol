@@ -34207,6 +34207,22 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, fuzz corpus, vector/input, formal model, qsc source/test, refimpl source/test, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, durable Director State Index, public technical paper, or backup tree mutation introduced.
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no vector-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no transcript-complete claim is introduced. no qsc/refimpl-equivalence-complete claim is introduced. no provider-boundary-complete claim is introduced. no provider-RNG-complete claim is introduced. no formal-proof-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0485 closeout update
+
+- Evidence PR #1240 merged at `1635a97e781`.
+- Post-merge public-safety on `1635a97e781`: success.
+- Post-merge qsc-adversarial-smoke on `1635a97e781`: success.
+- Closeout branch: `na-0485-closeout-restore-na0486`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
+- D-0959 records NA-0485 closeout and NA-0486 restoration.
+- NA-0485 is marked DONE.
+- NA-0486 qsc Binding Fuzz Helper / API Design Authorization Plan is restored as the sole READY successor.
+- No NA-0486 implementation is performed.
+- No implementation, runtime, crypto, dependency, Cargo, lockfile, workflow, script, executable test, fuzz target, corpus, vector/input, formal model, qsc source/test, refimpl source/test, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, durable Director State Index, public technical paper, or backup tree mutation is introduced by closeout.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no vector-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no transcript-complete claim is introduced. no qsc/refimpl-equivalence-complete claim is introduced. no provider-boundary-complete claim is introduced. no provider-RNG-complete claim is introduced. no formal-proof-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 - Recovered closeout overclaim-scan wording issue: first closeout added-line scan flagged denial text that used capitalized `No` or relied on wrapping/context. Classification: recoverable in-scope documentation wording issue. Corrective action: rewrote closeout-added caveats so each restricted claim phrase carries same-line lowercase `no`. Final result: overclaim scan PASS with zero findings.
 - Recovered closeout REST polling command-shape issue: first PR #1239 polling loop exited after iteration 1 because `pipefail` propagated the intentional "checks still running" status from the Python summarizer. Classification: recoverable command-shape mistake. Corrective action: reran REST polling with explicit status capture before the pipeline was evaluated. Final result: corrected poll reached attached checks complete with 38 total, 29 success, 9 skipped, 0 in progress, and 0 failures for head `20fe8fb5`.
 

@@ -25290,3 +25290,28 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - Cargo audit output is represented as anything stronger than dependency-health evidence.
     - More than one READY item remains.
   - **References:** NA-0481; NA-0480; NA-0482; D-0950; D-0949; D-0948; `tools/refimpl/quantumshield_refimpl/tests/signature_provider_boundary.rs`; `docs/governance/evidence/NA-0481_qsl_refimpl_signature_provider_boundary_test_implementation_harness.md`; `tests/NA-0481_qsl_refimpl_signature_provider_boundary_test_implementation_testplan.md`; `tools/refimpl/quantumshield_refimpl/src/crypto/traits.rs`; `tools/refimpl/quantumshield_refimpl/src/crypto/stdcrypto.rs`; `tools/refimpl/quantumshield_refimpl/tests/pqkem768.rs`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-0951
+  - **Title:** NA-0481 closeout and NA-0482 restoration
+  - **Status:** Accepted
+  - **Date:** 2026-06-15
+  - **Goals:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0481 is closed after implementation PR #1232 merged at `9e216cabb1e2` and post-merge public-safety completed success on that merge commit. D-0950 records the bounded refimpl signature provider-boundary test implementation and selects `NA-0482 -- QSL Binding Negative Vector Suite Authorization Plan` as the successor. This closeout marks NA-0481 DONE and restores NA-0482 as the sole READY item.
+  - **Selected NA-0482 successor restored:** NA-0482 is a governance authorization plan to authorize exact binding negative vector suite scope after qsc binding negative tests, qsc formal model, qsc/refimpl mapping, and refimpl signature provider-boundary evidence, preserving no-runtime/no-crypto/no-dependency/no-workflow/no-public-claim boundaries.
+  - **Evidence consumed:** NA-0481 signature provider-boundary test implementation, NA-0481 evidence doc, NA-0481 testplan, D-0950, TRACEABILITY, rolling journal, PR #1232 checks, post-merge public-safety, root cargo audit, nested qsc fuzz lock audit, formal checks, inherited qsc tests, qsc adversarial-smoke, and refimpl `pqkem768` evidence are accepted as closeout evidence.
+  - **No NA-0482 implementation mutation:** This closeout does not implement NA-0482 and does not mutate runtime behavior.
+  - **NA-0482 allowed scope:** Future NA-0482 may create governance evidence/testplan paths for NA-0482 and update `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; it may perform read-only inspection of qsc, refimpl, formal, fuzz, vector, evidence, and CI surfaces.
+  - **NA-0482 forbidden scope:** Future NA-0482 must not mutate implementation, runtime code, crypto code, dependencies, Cargo manifests, lockfiles, workflows, executable tests, fuzz targets, vectors, formal models, services, public docs, qshield, qsl-server, qsl-attachments, qwork/qstart/qresume/qshell, qsl-backup, backup status files, backup plan files, rollback paths, backup tree paths, durable Director State Index output, or public technical paper content unless a later exact directive authorizes a narrower exception.
+  - **No backup/restore:** Codex did not run backup or restore and did not mutate qsl-backup, backup status, backup plan, rollback, or backup tree paths.
+  - **Public claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No crypto-complete claim is made. No KEM-complete claim is made. No signature-complete claim is made. No qsc/refimpl-equivalence-complete claim is made. No provider-boundary-complete claim is made. No provider-RNG-complete claim is made. No formal-proof-complete claim is made. No side-channel-free claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-crypto claim is made. Cargo audit green remains dependency-health evidence only.
+  - **Required behavior:**
+    - NA-0482 remains authorization scoped until a later exact directive authorizes any implementation work.
+    - NA-0482 must consume qsc binding negative tests, qsc formal model, qsc/refimpl mapping, and refimpl signature provider-boundary evidence without expanding public claims.
+    - Exactly one READY remains mandatory.
+  - **Must never happen:**
+    - NA-0481 closeout must not be represented as NA-0482 implementation evidence.
+    - Future NA-0482 evidence must not be represented as runtime/source, crypto, dependency, workflow, refimpl, executable-test, vector, fuzz, formal model, service, public-doc, website, backup, restore, or qsl-backup authorization beyond its read-only authorization-plan scope.
+    - No future evidence may represent NA-0481 closeout or NA-0482 restoration as public readiness, production readiness, public-internet readiness, external review completion, crypto completion, KEM completion, signature completion, qsc/refimpl equivalence completion, provider-boundary completion, provider RNG completion, formal-proof completion, side-channel freedom, vulnerability freedom, bug freedom, backup completion, restore proof, or perfect crypto.
+    - Cargo audit output must not be represented as anything stronger than dependency-health evidence.
+    - More than one READY item remains.
+  - **References:** NA-0481; NA-0482; D-0951; D-0950; D-0949; D-0948; PR #1232; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0481_closeout_restore_na0482_testplan.md`

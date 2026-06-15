@@ -33820,6 +33820,8 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No implementation, runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, refimpl source/test, qsc source/test, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, durable Director State Index, public technical paper, or backup tree mutation is introduced by closeout.
 - No backup or restore run.
 - No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No crypto-complete claim is introduced. No KEM-complete claim is introduced. No signature-complete claim is introduced. No qsc/refimpl-equivalence-complete claim is introduced. No provider-boundary-complete claim is introduced. No provider-RNG-complete claim is introduced. No formal-proof-complete claim is introduced. No side-channel-free claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-crypto claim is introduced.
+- Closeout validation so far: PASS for queue proof, decision proof, exact changed-path scope guard, `git diff --check`, manual markdown link-integrity check, leak scan, added-line overclaim scan, `cargo fmt --check`, formal runner, root cargo audit, and nested qsc fuzz lock audit.
+- Non-fatal warning recorded: the nested qsc fuzz lock audit briefly waited on the local cargo advisory database lock because the root audit was running concurrently. Both audit commands exited successfully.
 
 ## NA-0481 update
 
@@ -33875,3 +33877,21 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Recovered local validation command-shape issue: `python3 scripts/ci/qsl_evidence_helper.py classify` exited non-zero because this checkout's helper has no `classify` subcommand. Classification: recoverable command-shape mistake. Corrective action: used supported helper subcommands (`scope-guard`, `leak-scan`, `pr-body-preflight`) and ran `scripts/ci/classify_ci_scope.sh` directly with the NA-0481 changed-path list. Final result: helper scope guard PASS with 6 allowed paths and 0 forbidden paths; leak scan PASS with 0 findings; PR body preflight PASS; classifier output `scope_class=runtime_critical`.
 - Recovered staging command-shape issue: `git add` with the ignored `docs/governance/evidence/...` path returned non-zero even though the tracked file was part of the branch. Classification: recoverable staging command-shape issue. Corrective action: recorded the issue and used update-only staging for the tracked NA-0481 recovery files. Final result: exact five recovery files staged for the second normal commit.
 - No refimpl source, qsc, dependency, Cargo, lockfile, workflow, fuzz target, vector, formal model, service, public-doc, website, backup, qsl-backup, qwork, qstart, qresume, or qshell path was changed by the recovery.
+
+## NA-0481 closeout update
+
+- Implementation PR #1232 merged at `9e216cabb1e2`.
+- Post-merge public-safety on `9e216cabb1e2`: success.
+- Post-merge qsc-adversarial-smoke on `9e216cabb1e2`: success.
+- Post-merge qsc-linux-full-suite on `9e216cabb1e2`: success.
+- Post-merge macos-qsc-full-serial on `9e216cabb1e2`: success.
+- Closeout branch: `na-0481-closeout-restore-na0482`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
+- D-0951 records NA-0481 closeout and NA-0482 restoration.
+- NA-0481 is marked DONE.
+- NA-0482 Binding Negative Vector Suite Authorization Plan is restored as the sole READY successor.
+- No NA-0482 implementation is performed.
+- No implementation, runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, refimpl source/test, qsc source/test, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, durable Director State Index, public technical paper, or backup tree mutation is introduced by closeout.
+- No backup or restore run.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No crypto-complete claim is introduced. No KEM-complete claim is introduced. No signature-complete claim is introduced. No qsc/refimpl-equivalence-complete claim is introduced. No provider-boundary-complete claim is introduced. No provider-RNG-complete claim is introduced. No formal-proof-complete claim is introduced. No side-channel-free claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-crypto claim is introduced.

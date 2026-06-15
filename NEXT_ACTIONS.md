@@ -26830,8 +26830,11 @@ Acceptance criteria:
 ---
 
 ### NA-0481 — QSL refimpl Signature Provider Boundary Test Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
+
+Implementation note:
+- NA-0481 implementation PR #1232 merged at `9e216cabb1e2` and post-merge public-safety completed success. D-0950 selected `NA-0482 -- QSL Binding Negative Vector Suite Authorization Plan` as the exact successor. This closeout restores NA-0482 as the sole READY item and does not implement NA-0482.
 
 Objective:
 Implement the exact refimpl signature provider-boundary tests selected by NA-0480, covering malformed keys/signatures, wrong public keys, tampered signatures, and Err versus `Ok(false)` classification, while preserving no-runtime/no-crypto/no-dependency/no-public-claim boundaries.
@@ -26872,6 +26875,54 @@ Deliverables:
 Acceptance criteria:
 - selected signature provider-boundary tests pass.
 - wrong length, malformed key, tamper, wrong public key, and Err versus false semantics are documented.
+- no public overclaim.
+- exactly one READY item remains.
+
+---
+
+### NA-0482 — QSL Binding Negative Vector Suite Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize exact binding negative vector suite scope after qsc binding negative tests, qsc formal model, qsc/refimpl mapping, and refimpl signature provider-boundary evidence, preserving no-runtime/no-crypto/no-dependency/no-workflow/no-public-claim boundaries.
+
+Protects:
+- durable negative binding examples.
+- qsc/refimpl/formal evidence traceability.
+- external-review readiness.
+- release-claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0482.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of qsc, refimpl, formal, fuzz, vector, evidence, and CI surfaces.
+
+Forbidden scope:
+- implementation mutation.
+- runtime/crypto/dependency/Cargo/lockfile/workflow mutation.
+- executable test/fuzz/vector/formal mutation unless later exact implementation directive authorizes.
+- service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- public readiness or crypto completion claims.
+
+Deliverables:
+- binding negative vector suite authorization evidence doc.
+- testplan.
+- D-0952 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- selected exact vector implementation scope or no-action rationale.
+
+Acceptance criteria:
+- exact KEM negative vector scope selected or rejected.
+- exact signature negative vector scope selected or rejected.
+- exact transcript/replay/suite negative vector scope selected or rejected.
+- stale public-record vector scope selected or rejected.
+- qsc/refimpl/formal mapping consumed.
 - no public overclaim.
 - exactly one READY item remains.
 

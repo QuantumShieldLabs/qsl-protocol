@@ -33820,3 +33820,58 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No implementation, runtime, crypto, dependency, Cargo, lockfile, workflow, executable test, fuzz target, vector, formal model, refimpl source/test, qsc source/test, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, durable Director State Index, public technical paper, or backup tree mutation is introduced by closeout.
 - No backup or restore run.
 - No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No crypto-complete claim is introduced. No KEM-complete claim is introduced. No signature-complete claim is introduced. No qsc/refimpl-equivalence-complete claim is introduced. No provider-boundary-complete claim is introduced. No provider-RNG-complete claim is introduced. No formal-proof-complete claim is introduced. No side-channel-free claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-crypto claim is introduced.
+
+## NA-0481 update
+
+- Directive: QSL-DIR-2026-06-15-341.
+- Directive title: Execute NA-0481 QSL refimpl Signature Provider Boundary Test Implementation Harness, Optional Closeout to NA-0482.
+- Local start timestamp: 2026-06-14T21:31:52-05:00.
+- UTC start timestamp: 2026-06-15T02:31:52+00:00.
+- Repo path: `/srv/qbuild/work/NA-0481/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0481_refimpl_signature_provider_boundary_impl_20260615T023152Z`.
+- qwork proof files read and copied; Codex did not run qwork, qstart, or qresume.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `d00e8d6d6f96`.
+- Fetch did not advance origin/main; main checked out clean at `d00e8d6d6f96`.
+- PR #1231 verified merged at `d00e8d6d6f96`.
+- Startup queue: `READY_COUNT 1`; READY NA-0481.
+- Direct queue proof: NA-0481 READY; NA-0480 through NA-0466 DONE; NA-0434 BLOCKED; NA-0429 BLOCKED.
+- Startup latest decision: D-0949; D-0948 exists once; D-0949 exists once; D-0950 absent; duplicate decision count 0.
+- Startup public-safety on `d00e8d6d6f96`: success.
+- Startup root cargo audit: PASS.
+- Startup nested qsc fuzz lock audit: PASS.
+- Startup root dependency tree probes: PASS for `rustls-webpki` and `ml-kem`; pqcrypto inverse probes completed under directive-approved `|| true` shape.
+- Startup qsc fuzz lock pqcrypto residual scan completed under directive-approved `|| true` shape.
+- Startup formal checks: PASS for NA-0478 standalone model and formal runner.
+- Startup inherited qsc binding/provider-RNG/key-lifecycle/provider-error tests: PASS.
+- Startup stable qsc `send_commit`: PASS.
+- Startup refimpl `pqkem768`: PASS.
+- qsc adversarial marker proof: PASS for `NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP` / `handshake_provider_error_no_mutation`.
+- qsl-backup SHA read-only proof: `e9ecff3d22ed`.
+- qsl-backup source-list proof: codex ops source appears exactly once in the installed daily source list and latest daily manifest.
+- Recovered proof-shape issue: first qsl-backup source count was too broad and counted narrative/history references across plan/status/log/manifest files. Classification: recoverable command-shape/evidence-selector mistake. Corrective action: checked the installed script source list and latest daily manifest exact source-list lines. Final result: PASS with count 1 for each.
+- Preimage: `tools/refimpl/quantumshield_refimpl/tests/signature_provider_boundary.rs` absent.
+- Work branch: `na-0481-refimpl-signature-provider-boundary`.
+- New implementation file: `tools/refimpl/quantumshield_refimpl/tests/signature_provider_boundary.rs`.
+- New tests cover wrong public-key length, wrong signature length, malformed signing-key length, tampered signature, wrong public key, and Err versus `Ok(false)` classification.
+- Initial new-test validation failure: compile error because the new test used `assert_eq!` on `Result<bool, CryptoError>` while `CryptoError` does not implement `PartialEq`. Classification: recoverable in-scope local test-code validation failure with clear cause. Corrective action: changed only the new test file to unwrap well-shaped invalid verification results and assert false. Final result: PASS.
+- New refimpl signature provider-boundary test after correction: PASS, 7 tests, all required NA0481 markers emitted.
+- D-0950 records NA-0481 implementation and selects NA-0482 binding negative vector suite authorization as the successor, subject to post-merge public-safety and optional closeout.
+- Governance patch paths: NA-0481 evidence doc, NA-0481 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- No refimpl source mutation introduced.
+- No qsc source or executable-test mutation introduced.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, fuzz target, vector, formal model, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, durable Director State Index, public technical paper, or backup tree mutation introduced.
+- No backup or restore run.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No crypto-complete claim is introduced. No KEM-complete claim is introduced. No signature-complete claim is introduced. No qsc/refimpl-equivalence-complete claim is introduced. No provider-boundary-complete claim is introduced. No provider-RNG-complete claim is introduced. No formal-proof-complete claim is introduced. No side-channel-free claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-crypto claim is introduced.
+
+## NA-0481 PR CI recovery update
+
+- Local timestamp: 2026-06-14T22:14:19-05:00.
+- UTC timestamp: 2026-06-15T03:14:19+00:00.
+- PR #1232 first CI attempt failed `demo-cli-build` and `demo-cli-smoke`.
+- Failing command context: CI compiled the new `tools/refimpl/quantumshield_refimpl/tests/signature_provider_boundary.rs` integration test through no-feature demo CLI jobs.
+- Classification: recoverable in-scope test-file feature-gating issue with clear cause; the exercised refimpl ML-DSA provider APIs are available only under the `pqcrypto` feature.
+- Corrective action: changed only `tools/refimpl/quantumshield_refimpl/tests/signature_provider_boundary.rs` to add `#![cfg(feature = "pqcrypto")]`; updated NA-0481 evidence, testplan, D-0950, and this journal to record the feature boundary and recovery.
+- Final local result after correction: `cargo fmt --check` PASS; no-feature `cargo test -p quantumshield_refimpl --locked --test signature_provider_boundary` PASS with zero tests; feature-enabled `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test signature_provider_boundary -- --test-threads=1 --nocapture` PASS with 7 tests and all NA0481 markers emitted; `cargo test -p quantumshield_refimpl --features pqcrypto --locked --test pqkem768` PASS.
+- Recovered local validation command-shape issue: `python3 scripts/ci/qsl_evidence_helper.py classify` exited non-zero because this checkout's helper has no `classify` subcommand. Classification: recoverable command-shape mistake. Corrective action: used supported helper subcommands (`scope-guard`, `leak-scan`, `pr-body-preflight`) and ran `scripts/ci/classify_ci_scope.sh` directly with the NA-0481 changed-path list. Final result: helper scope guard PASS with 6 allowed paths and 0 forbidden paths; leak scan PASS with 0 findings; PR body preflight PASS; classifier output `scope_class=runtime_critical`.
+- Recovered staging command-shape issue: `git add` with the ignored `docs/governance/evidence/...` path returned non-zero even though the tracked file was part of the branch. Classification: recoverable staging command-shape issue. Corrective action: recorded the issue and used update-only staging for the tracked NA-0481 recovery files. Final result: exact five recovery files staged for the second normal commit.
+- No refimpl source, qsc, dependency, Cargo, lockfile, workflow, fuzz target, vector, formal model, service, public-doc, website, backup, qsl-backup, qwork, qstart, qresume, or qshell path was changed by the recovery.

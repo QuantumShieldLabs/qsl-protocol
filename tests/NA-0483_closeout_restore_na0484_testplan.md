@@ -28,7 +28,10 @@ Verify NA-0483 can be closed after the implementation PR merged and post-merge p
 - Runtime, crypto, dependency, Cargo, lockfile, or workflow mutation.
 - Executable test, fuzz target, vector, or formal model mutation.
 - qsc source/test, refimpl source/test, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork, qstart, qresume, qshell, qsl-backup, backup status, backup plan, rollback, durable Director State Index, public technical paper, or backup tree mutation.
-- Public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, vector-complete, KEM-complete, signature-complete, identity-complete, transcript-complete, qsc/refimpl-equivalence-complete, provider-boundary-complete, provider-RNG-complete, formal-proof-complete, replay-proof, downgrade-proof, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claims.
+- No public-readiness, production-readiness, public-internet-readiness, external-review-complete, or crypto-complete claims.
+- No vector-complete, KEM-complete, signature-complete, identity-complete, or transcript-complete claims.
+- No qsc/refimpl-equivalence-complete, provider-boundary-complete, provider-RNG-complete, or formal-proof-complete claims.
+- No replay-proof, downgrade-proof, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claims.
 
 ## Preconditions
 

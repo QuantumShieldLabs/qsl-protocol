@@ -22,9 +22,9 @@ Last-Updated: 2026-06-15
 - qsl-protocol origin/main after fetch: `6264f37bf0db`.
 - PR #1241 merge commit verified: `6264f37bf0db`.
 - Evidence branch: `na-0486-binding-fuzz-helper-api-design`.
-- Evidence PR: pending.
-- Evidence merge commit: pending.
-- Optional closeout branch: pending.
+- Evidence PR: #1242.
+- Evidence merge commit: `c0d19a933d37`.
+- Optional closeout branch: `na-0486-closeout-restore-na0487`.
 - Optional closeout PR: pending.
 - Optional closeout merge commit: pending.
 
@@ -37,6 +37,9 @@ Last-Updated: 2026-06-15
 - Direct queue proof before patch: NA-0486 READY; NA-0485 through NA-0435 DONE as expected; NA-0434 and NA-0429 BLOCKED; READY_COUNT_DIRECT 1.
 - Decision proof before patch: latest D-0959, D-0958 once, D-0959 once, D-0960 absent, duplicate decision count zero.
 - Public-safety on current main `6264f37bf0db`: PASS.
+- Evidence PR #1242 merged at `c0d19a933d37`.
+- Post-evidence public-safety on `c0d19a933d37`: PASS.
+- Closeout branch created from `c0d19a933d37`.
 
 ## Recovered failure evidence
 
@@ -46,6 +49,11 @@ Last-Updated: 2026-06-15
   negation. Corrective action: rewrote the backup-impact caveat so every
   restricted phrase has same-line `no` wording. Final result: PASS; the
   rerun added-line overclaim scan reported zero affirmative findings.
+- Failing tool action: GitHub connector `_create_pull_request` for evidence PR.
+  Classification: recoverable GitHub app permission limitation because the
+  connector returned FORBIDDEN while local branch and PR body evidence were
+  valid. Corrective action: used `gh pr create` with the same base, head, title,
+  and preflighted PR body. Final result: PR #1242 opened successfully.
 
 ## Validation / CI notes
 
@@ -97,6 +105,20 @@ Last-Updated: 2026-06-15
 - Open evidence PR #TBD and merge only after required checks pass.
 - Optional closeout to NA-0487 only after evidence PR post-merge public-safety is green.
 - Future NA-0487 must prove the helper is inactive in no-cfg builds, emits no secret material, and calls real qsc reject paths.
+- Closeout mutation paths: `NEXT_ACTIONS.md`, `DECISIONS.md`,
+  `TRACEABILITY.md`, this journal, and
+  `tests/NA-0486_closeout_restore_na0487_testplan.md`.
+- Closeout selected successor: `NA-0487 -- QSL qsc Binding Fuzz Helper and
+  Target Implementation Harness`.
+- Closeout exact future paths: `qsl/qsl-client/qsc/src/adversarial/binding_fuzz.rs`,
+  `qsl/qsl-client/qsc/src/adversarial/mod.rs`,
+  `qsl/qsl-client/qsc/fuzz/fuzz_targets/qsc_binding_semantics.rs`,
+  `qsl/qsl-client/qsc/fuzz/Cargo.toml`,
+  `scripts/ci/qsc_adversarial.sh`, and the NA-0487 governance paths.
+- Closeout still performs no NA-0487 implementation and no qsc source/fuzz,
+  dependency, lockfile, workflow, vector, corpus, formal, refimpl, service,
+  public-doc, backup, qsl-backup, qwork/qstart/qresume/qshell, or runtime
+  mutation.
 
 # QSL-DIR-2026-06-15-343 / NA-0483 binding negative vector implementation rolling journal
 

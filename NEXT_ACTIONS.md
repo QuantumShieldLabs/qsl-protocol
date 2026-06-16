@@ -27256,7 +27256,7 @@ Acceptance criteria:
 ---
 
 ### NA-0488 — QSL Binding Fuzz Corpus / Seed Strategy Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -27303,6 +27303,69 @@ Acceptance criteria:
 - no secret/private material.
 - no public overclaim.
 - exactly one READY item remains.
+
+---
+
+### NA-0489 — QSL Binding Fuzz Ephemeral Seed Strategy Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement deterministic ephemeral seed recipes inside the existing
+`qsc_binding_semantics` fuzz target without adding checked-in corpus files,
+runtime manifest consumption, dependency changes, lockfile changes, workflow
+changes, or public-claim expansion.
+
+Protects:
+- no checked-in binding fuzz corpus.
+- no vector/input mutation.
+- manifest traceability-only boundary.
+- qsc binding fuzz target determinism.
+- one-READY invariant.
+
+Allowed scope:
+- `qsl/qsl-client/qsc/fuzz/fuzz_targets/qsc_binding_semantics.rs`.
+- `docs/governance/evidence/NA-0489_qsl_binding_fuzz_ephemeral_seed_strategy_implementation_harness.md`.
+- `tests/NA-0489_qsl_binding_fuzz_ephemeral_seed_strategy_implementation_testplan.md`.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+
+Forbidden scope unless later exact scope authorizes:
+- checked-in corpus files.
+- vector/input mutation.
+- qsc source/helper mutation outside the fuzz target.
+- qsc fuzz Cargo mutation.
+- qsc-adversarial script mutation.
+- workflow mutation.
+- dependency mutation.
+- lockfile mutation.
+- runtime/crypto behavior mutation outside selected fuzz-target recipe code.
+- refimpl mutation.
+- formal mutation.
+- service/public/backup mutation.
+- public readiness or crypto completion claims.
+
+Deliverables:
+- target-only deterministic ephemeral seed recipe implementation.
+- no checked-in corpus proof.
+- manifest traceability-only proof.
+- evidence doc.
+- testplan.
+- D-0967 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+
+Acceptance criteria:
+- NA-0488 corpus strategy consumed.
+- deterministic ephemeral seed generation implemented in target-only scope.
+- no checked-in corpus.
+- no vector/input mutation.
+- no runtime manifest JSON consumption.
+- no qsc source/helper, Cargo, script, workflow, dependency, or lockfile
+  mutation.
+- no public overclaim.
+- exactly one READY item remains until closeout.
 
 ---
 

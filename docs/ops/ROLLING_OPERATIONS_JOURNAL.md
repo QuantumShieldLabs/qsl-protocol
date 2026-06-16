@@ -34629,3 +34629,21 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No qsc source, qsc fuzz target, qsc fuzz Cargo, qsc-adversarial script, workflow, dependency, lockfile, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, or backup tree mutation is introduced.
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no transcript-complete claim is introduced. no qsc/refimpl-equivalence-complete claim is introduced. no provider-boundary-complete claim is introduced. no provider-RNG-complete claim is introduced. no formal-proof-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0488 closeout update
+
+- Evidence PR #1247 merged at `84dae09ba17e`.
+- Post-merge public-safety on `84dae09ba17e`: success.
+- Post-merge qsc-adversarial-smoke on `84dae09ba17e`: success.
+- Closeout branch: `na-0488-closeout-restore-na0489`.
+- Closeout PR: pending.
+- Closeout merge commit: pending.
+- D-0966 records NA-0488 closeout and NA-0489 restoration.
+- NA-0488 is marked DONE.
+- NA-0489 Binding Fuzz Ephemeral Seed Strategy Implementation Harness is restored as the sole READY successor.
+- Closeout local validation after patch: PASS for `git diff --check`, exact five-path staged scope guard, queue proof, decision proof, link-check, leak-scan, added-line overclaim scan, classifier, PR body preflight, internal vector manifest JSON validation, cargo fmt, root cargo audit, and nested qsc fuzz lock audit.
+- Non-fatal tooling friction: nested qsc fuzz lock audit waited briefly on the local advisory database lock. Final result: audit exited successfully.
+- No NA-0489 implementation is performed.
+- No implementation, runtime, crypto, dependency, Cargo, lockfile, workflow, qsc source, qsc fuzz target, qsc-adversarial script, corpus, vector/input, formal model, refimpl source/test, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, or backup tree mutation is introduced by closeout.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

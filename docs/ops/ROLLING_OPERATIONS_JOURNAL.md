@@ -6,6 +6,98 @@ Last-Updated: 2026-06-15
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-16-348 / NA-0487 qsc binding fuzz source-boundary recovery rolling journal
+
+- Directive: QSL-DIR-2026-06-16-348 -- Recover NA-0487 qsc Binding Fuzz Source-Boundary Authorization After Real-Reject-Path Stop.
+- Begin timestamp (America/Chicago): 2026-06-15T21:26:06-05:00.
+- Begin timestamp (UTC): 2026-06-16T02:26:06+00:00.
+- End timestamp (America/Chicago): pending.
+- End timestamp (UTC): pending.
+- Repo path: `/srv/qbuild/work/NA-0487/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0487_source_boundary_recovery_20260616T022143Z`.
+- Codex did not run qwork, qstart, qresume, qshell, sudo, backup, restore, cargo update, or cargo generate-lockfile.
+
+## Repo SHAs
+
+- qsl-protocol HEAD before fetch: `9a321cee5924`.
+- qsl-protocol origin/main before fetch: `9a321cee5924`.
+- qsl-protocol origin/main after fetch: `9a321cee5924`.
+- PR #1243 merge commit verified: `9a321cee5924`.
+- Recovery branch: `na-0487-source-boundary-recovery`.
+- Recovery PR: #1244.
+- Recovery merge commit: pending.
+
+## READY proof
+
+- qwork proof: startup OK for lane NA-0487, repo qsl-protocol, clean worktree/index/untracked state, proof HEAD and proof origin/main both `9a321cee5924`.
+- Pre-fetch live proof: HEAD and origin/main matched qwork proof at `9a321cee5924`.
+- Fetch result: origin/main did not advance.
+- Queue proof before patch: READY_COUNT 1 and READY NA-0487.
+- Direct queue proof before patch: NA-0486 DONE; NA-0487 READY; NA-0488 absent.
+- Decision proof before patch: D-0960 once, D-0961 once, D-0962 absent, duplicate decision count zero.
+- Public-safety on current main `9a321cee5924`: PASS.
+- D347 response was present at `/home/victor/work/qsl/codex/responses/NA0487_20260616T020314Z_D347.md`.
+
+## Recovered failure evidence
+
+- Failing command: read-only source-boundary probes against `qsl/qsl-client/qsc/src/cmd.rs`, `qsl/qsl-client/qsc/src/transport.rs`, and `qsl/qsl-client/qsc/src/relay.rs`.
+  Classification: recoverable command-shape/module-path mistake; qsc uses directory modules for those paths.
+  Corrective action: reran the probes against `qsl/qsl-client/qsc/src/cmd/mod.rs`, `qsl/qsl-client/qsc/src/transport/mod.rs`, and `qsl/qsl-client/qsc/src/relay/mod.rs`.
+  Final result: corrected read-only probes completed successfully.
+- Failing command: staged added-line overclaim scan.
+  Classification: recoverable in-scope documentation wording issue; restricted
+  public-claim phrases appeared on wrapped continuation lines without same-line
+  negation.
+  Corrective action: rewrote no-claim wording so each restricted phrase carries
+  same-line `no` / `No` wording.
+  Final result: rerun added-line overclaim scan reported zero findings.
+- Failing tool action: GitHub connector `_create_pull_request` for recovery PR.
+  Classification: recoverable GitHub app permission limitation; connector
+  returned FORBIDDEN while the local branch, commit, and preflighted PR body
+  were valid.
+  Corrective action: used `gh pr create` with the same base, head, title, and
+  preflighted body.
+  Final result: PR #1244 opened successfully.
+
+## Validation / CI notes
+
+- Startup public-safety: PASS on `9a321cee5924`.
+- Startup root cargo audit: PASS.
+- Startup nested qsc fuzz lock audit: PASS.
+- Startup dependency probes: `rustls-webpki` and `ml-kem` present.
+- qsl-backup read-only boundary: installed helper SHA matched expected short SHA `e9ecff3d22ed`; latest scheduled same-host manifest included the Codex ops source path exactly once.
+- D347 stop analysis: complete. D347 stopped before mutation because helper-only scope could not reach real qsc semantic reject paths.
+- Current qsc source-boundary inventory: complete. qsc library exports only `adversarial` and `envelope`; real semantic reject paths are behind qsc binary/internal `handshake` and `identity` boundaries.
+- Recovery option review: complete. Selected `SOURCE_BOUNDARY_RECOVERY_MINIMAL_READY`.
+- Revised NA-0487 scope: future implementation adds exact `lib.rs`, `handshake/mod.rs`, and conditional `identity/mod.rs` source-boundary paths to the prior helper/target/Cargo/script bundle.
+- Governance patch paths: NA-0487 recovery evidence doc, NA-0487 recovery testplan, `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Local validation before PR: PASS for exact scope guard, `git diff --check`,
+  link-check, leak-scan, added-line overclaim scan, classifier, PR body
+  preflight, local goal-lint, internal vector manifest JSON validation, formal
+  model checks, qsc binding negative test, refimpl signature provider-boundary
+  test, inherited qsc provider-RNG/key-lifecycle/provider-error tests, stable
+  qsc `send_commit`, refimpl `pqkem768`, root cargo audit, nested qsc fuzz lock
+  audit, `cargo fmt --check`, and qsc-adversarial script syntax.
+- No implementation mutation performed.
+- No qsc source/fuzz/Cargo/script/workflow, dependency, lockfile, vector/input/corpus, formal, refimpl, service, public-doc, backup, qsl-backup, qwork/qstart/qresume/qshell, or runtime mutation introduced.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no vector-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no qsc-refimpl-equivalence-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## Disk watermark
+
+- Filesystem: `/`.
+- Total: 468G.
+- Used: 401G.
+- Available: 43G.
+- Used percent: 91%.
+
+## Next-watch items
+
+- Complete local validation bundle and exact scope guard.
+- Open recovery PR after validation passes.
+- Merge only after required checks pass.
+- Post-merge verify public-safety green, D-0962 on main, and exactly one READY item: NA-0487.
+- Future NA-0487 must prove helper cfg gating, no-cfg production behavior unchanged, real reject-path reachability, no fake oracle, no secret output, and no checked-in corpus.
+
 # QSL-DIR-2026-06-15-346 / NA-0486 qsc binding fuzz helper API design rolling journal
 
 - Directive: QSL-DIR-2026-06-15-346 -- Execute NA-0486 QSL qsc Binding Fuzz Helper / API Design Authorization Plan, Optional Closeout to NA-0487.

@@ -27164,20 +27164,27 @@ Goals: G1, G2, G3, G4, G5
 
 Objective:
 Implement the exact qsc binding fuzz helper plus target scope selected by
-NA-0486, preserving production behavior, no-secret-output boundaries, and no
-public-claim expansion.
+NA-0486 and recovered by D-0962 after D347 stopped on a real source-boundary
+blocker. The implementation must use a narrow cfg-gated qsc library/source
+boundary so the helper reaches real qsc semantic reject paths without changing
+normal production behavior, emitting secrets, or expanding public claims.
 
 Protects:
 - semantic binding fuzz reachability.
 - fail-closed binding behavior.
 - qsc/refimpl/formal/vector evidence traceability.
 - no production behavior drift.
+- no fake-oracle helper evidence.
 - release-claim conservatism.
 - one-READY invariant.
 
 Allowed scope:
+- `qsl/qsl-client/qsc/src/lib.rs`.
 - `qsl/qsl-client/qsc/src/adversarial/binding_fuzz.rs`.
 - `qsl/qsl-client/qsc/src/adversarial/mod.rs`.
+- `qsl/qsl-client/qsc/src/handshake/mod.rs`.
+- `qsl/qsl-client/qsc/src/identity/mod.rs` only if required for exact
+  stale-public-record/trusted-pin reachability.
 - `qsl/qsl-client/qsc/fuzz/fuzz_targets/qsc_binding_semantics.rs`.
 - `qsl/qsl-client/qsc/fuzz/Cargo.toml`.
 - `scripts/ci/qsc_adversarial.sh`.
@@ -27188,8 +27195,9 @@ Allowed scope:
 - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
 
 Forbidden scope:
-- runtime/production behavior mutation outside the exact selected helper/API
-  scope.
+- runtime/production behavior mutation outside the exact cfg-gated
+  `qsc_binding_fuzz_helper` helper/source-boundary scope.
+- helper-local duplicated protocol semantics used as a fake oracle.
 - no dependency, lockfile, or workflow mutation.
 - no refimpl mutation.
 - no vector, corpus, or formal mutation unless a later exact directive
@@ -27198,29 +27206,48 @@ Forbidden scope:
   website, or public-doc mutation.
 - no backup, restore, qsl-backup, rollback, backup status, or backup plan
   mutation.
-- no public-readiness claim and no crypto-complete claim.
+- no public-readiness claim.
+- no production-readiness claim.
+- no external-review-complete claim.
+- no crypto-complete claim.
+- no fuzz-complete claim.
+- no vector-complete claim.
+- no KEM-complete claim.
+- no signature-complete claim.
+- no replay-proof claim.
+- no downgrade-proof claim.
+- no side-channel-free claim.
+- no vulnerability-free claim.
+- no bug-free claim.
+- no perfect-crypto claim.
 
 Deliverables:
-- selected helper/API implementation.
-- selected semantic qsc binding fuzz target.
-- qsc fuzz Cargo metadata for the selected target.
-- qsc-adversarial script inclusion for the selected target.
+- source-boundary implementation under exact cfg `qsc_binding_fuzz_helper`.
+- selected helper/API implementation that routes through real qsc reject paths.
+- selected semantic qsc binding fuzz target using the helper.
+- qsc fuzz Cargo metadata for the selected target, without dependency or
+  lockfile changes.
+- qsc-adversarial script inclusion for the selected target, without workflow
+  changes.
 - evidence doc.
 - testplan.
-- D-0962 or next sequential decision.
+- D-0963 or next sequential decision.
 - TRACEABILITY update.
 - Rolling journal update.
 
 Acceptance criteria:
-- helper/API compiles only under the selected test/fuzz/adversarial cfg.
+- helper/API compiles only under exact cfg `qsc_binding_fuzz_helper`.
 - normal no-cfg builds do not expose the helper or change qsc public runtime
   behavior.
 - no secret material is emitted in fuzz outputs, logs, corpus, or evidence.
-- selected helper calls real qsc reject paths.
+- selected helper calls real qsc reject paths and does not duplicate protocol
+  semantics as a helper-local oracle.
 - selected target covers A1, B1, A2, suite-confusion, replay, and stale
   public-record/trusted-pin mutation classes.
 - qsc fuzz Cargo and qsc-adversarial script changes are limited to the selected
   target.
+- no dependency, lockfile, workflow, vector/input, formal, refimpl, service,
+  public-doc, backup, restore, qsl-backup, or corpus mutation occurs.
 - selected validation commands pass.
 - public-safety is green.
 - no public overclaim.

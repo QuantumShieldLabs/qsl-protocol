@@ -21,12 +21,16 @@ const HS_TYPE_INIT: u8 = 1;
 const HS_TYPE_RESP: u8 = 2;
 const HS_TYPE_CONFIRM: u8 = 3;
 const HS_PARAM_BLOCK_MAX: usize = 64;
+#[cfg(not(qsc_binding_fuzz_helper))]
 const HS_PARAM_SUITE_CONTEXT: u16 = 0x0001;
+#[cfg(not(qsc_binding_fuzz_helper))]
 const HS_PARAM_FLAG_CRITICAL: u8 = 0x01;
 const HS_SUITE_CONTEXT_BLOCK: [u8; 9] = [0x00, 0x01, 0x01, 0x00, 0x04, 0x05, 0x00, 0x00, 0x02];
 const HS_SUITE2_PROTOCOL_VERSION_WIRE: u16 = 0x0500;
 const HS_SUITE2_SUITE_ID_WIRE: u16 = 0x0002;
+#[cfg(not(qsc_binding_fuzz_helper))]
 const HS_LEGACY_PROTOCOL_VERSION_WIRE: u16 = 0x0403;
+#[cfg(not(qsc_binding_fuzz_helper))]
 const HS_LEGACY_SUITE_ID_WIRE: u16 = 0x0001;
 
 fn hs_kem_pk_len() -> usize {
@@ -247,87 +251,144 @@ fn hs_emit_suite_accept(ctx: &HsSuiteContext, compatibility: bool) {
 }
 
 fn hs_parse_parameter_block(block: &[u8]) -> Result<HsSuiteContext, &'static str> {
-    if block.len() > HS_PARAM_BLOCK_MAX {
-        return Err("REJECT_QSC_HS_MALFORMED_LENGTH");
+    #[cfg(qsc_binding_fuzz_helper)]
+    {
+        return hs_suite_context_from_fuzz(crate::adversarial::binding_fuzz::parse_suite_context(
+            block,
+        )?);
     }
-    let mut off = 0usize;
-    let mut prior_id: Option<u16> = None;
-    let mut suite_value: Option<[u8; 4]> = None;
-    let mut unknown_critical = false;
-    let mut unknown_parameter = false;
+    #[cfg(not(qsc_binding_fuzz_helper))]
+    {
+        if block.len() > HS_PARAM_BLOCK_MAX {
+            return Err("REJECT_QSC_HS_MALFORMED_LENGTH");
+        }
+        let mut off = 0usize;
+        let mut prior_id: Option<u16> = None;
+        let mut suite_value: Option<[u8; 4]> = None;
+        let mut unknown_critical = false;
+        let mut unknown_parameter = false;
 
-    while off < block.len() {
-        if block.len().saturating_sub(off) < 5 {
-            return Err("REJECT_QSC_HS_MALFORMED_LENGTH");
-        }
-        let param_id = u16::from_be_bytes([block[off], block[off + 1]]);
-        let flags = block[off + 2];
-        let value_len = u16::from_be_bytes([block[off + 3], block[off + 4]]) as usize;
-        off += 5;
-        if flags & !HS_PARAM_FLAG_CRITICAL != 0 {
-            return Err("REJECT_QSC_HS_MALFORMED_LENGTH");
-        }
-        if let Some(prev) = prior_id {
-            if param_id == prev {
-                return Err("REJECT_QSC_HS_DUPLICATE_PARAMETER");
-            }
-            if param_id < prev {
-                return Err("REJECT_QSC_HS_NONCANONICAL_ORDER");
-            }
-        }
-        prior_id = Some(param_id);
-        if block.len().saturating_sub(off) < value_len {
-            return Err("REJECT_QSC_HS_MALFORMED_LENGTH");
-        }
-        let value = &block[off..off + value_len];
-        off += value_len;
-
-        if param_id == HS_PARAM_SUITE_CONTEXT {
-            if suite_value.is_some() {
-                return Err("REJECT_QSC_HS_DUPLICATE_PARAMETER");
-            }
-            if flags != HS_PARAM_FLAG_CRITICAL || value_len != 4 {
+        while off < block.len() {
+            if block.len().saturating_sub(off) < 5 {
                 return Err("REJECT_QSC_HS_MALFORMED_LENGTH");
             }
-            let mut tuple = [0u8; 4];
-            tuple.copy_from_slice(value);
-            suite_value = Some(tuple);
-            continue;
+            let param_id = u16::from_be_bytes([block[off], block[off + 1]]);
+            let flags = block[off + 2];
+            let value_len = u16::from_be_bytes([block[off + 3], block[off + 4]]) as usize;
+            off += 5;
+            if flags & !HS_PARAM_FLAG_CRITICAL != 0 {
+                return Err("REJECT_QSC_HS_MALFORMED_LENGTH");
+            }
+            if let Some(prev) = prior_id {
+                if param_id == prev {
+                    return Err("REJECT_QSC_HS_DUPLICATE_PARAMETER");
+                }
+                if param_id < prev {
+                    return Err("REJECT_QSC_HS_NONCANONICAL_ORDER");
+                }
+            }
+            prior_id = Some(param_id);
+            if block.len().saturating_sub(off) < value_len {
+                return Err("REJECT_QSC_HS_MALFORMED_LENGTH");
+            }
+            let value = &block[off..off + value_len];
+            off += value_len;
+
+            if param_id == HS_PARAM_SUITE_CONTEXT {
+                if suite_value.is_some() {
+                    return Err("REJECT_QSC_HS_DUPLICATE_PARAMETER");
+                }
+                if flags != HS_PARAM_FLAG_CRITICAL || value_len != 4 {
+                    return Err("REJECT_QSC_HS_MALFORMED_LENGTH");
+                }
+                let mut tuple = [0u8; 4];
+                tuple.copy_from_slice(value);
+                suite_value = Some(tuple);
+                continue;
+            }
+
+            if flags & HS_PARAM_FLAG_CRITICAL != 0 {
+                unknown_critical = true;
+            } else {
+                unknown_parameter = true;
+            }
         }
 
-        if flags & HS_PARAM_FLAG_CRITICAL != 0 {
-            unknown_critical = true;
-        } else {
-            unknown_parameter = true;
+        let Some(tuple) = suite_value else {
+            return Err("REJECT_QSC_HS_SUITE_MISSING");
+        };
+        if unknown_critical {
+            return Err("REJECT_QSC_HS_UNKNOWN_CRITICAL");
         }
-    }
+        if unknown_parameter {
+            return Err("REJECT_QSC_HS_UNKNOWN_PARAMETER");
+        }
 
-    let Some(tuple) = suite_value else {
-        return Err("REJECT_QSC_HS_SUITE_MISSING");
-    };
-    if unknown_critical {
-        return Err("REJECT_QSC_HS_UNKNOWN_CRITICAL");
+        let protocol_version = u16::from_be_bytes([tuple[0], tuple[1]]);
+        let suite_id = u16::from_be_bytes([tuple[2], tuple[3]]);
+        if protocol_version == HS_SUITE2_PROTOCOL_VERSION_WIRE
+            && suite_id == HS_SUITE2_SUITE_ID_WIRE
+        {
+            return Ok(HsSuiteContext::ExplicitV2 {
+                block: block.to_vec(),
+                protocol_version,
+                suite_id,
+            });
+        }
+        if protocol_version == HS_SUITE2_PROTOCOL_VERSION_WIRE {
+            return Err("REJECT_QSC_HS_SUITE_UNSUPPORTED");
+        }
+        if protocol_version == HS_LEGACY_PROTOCOL_VERSION_WIRE
+            && suite_id == HS_LEGACY_SUITE_ID_WIRE
+        {
+            return Err("REJECT_QSC_HS_DOWNGRADE");
+        }
+        Err("REJECT_QSC_HS_INCONSISTENT_TUPLE")
     }
-    if unknown_parameter {
-        return Err("REJECT_QSC_HS_UNKNOWN_PARAMETER");
-    }
+}
 
-    let protocol_version = u16::from_be_bytes([tuple[0], tuple[1]]);
-    let suite_id = u16::from_be_bytes([tuple[2], tuple[3]]);
-    if protocol_version == HS_SUITE2_PROTOCOL_VERSION_WIRE && suite_id == HS_SUITE2_SUITE_ID_WIRE {
-        return Ok(HsSuiteContext::ExplicitV2 {
-            block: block.to_vec(),
+#[cfg(qsc_binding_fuzz_helper)]
+fn hs_suite_context_from_fuzz(
+    ctx: crate::adversarial::binding_fuzz::FuzzSuiteContext,
+) -> Result<HsSuiteContext, &'static str> {
+    match ctx {
+        crate::adversarial::binding_fuzz::FuzzSuiteContext::LegacyV1 => {
+            Ok(HsSuiteContext::LegacyV1)
+        }
+        crate::adversarial::binding_fuzz::FuzzSuiteContext::ExplicitV2 {
+            block,
             protocol_version,
             suite_id,
-        });
+        } => Ok(HsSuiteContext::ExplicitV2 {
+            block,
+            protocol_version,
+            suite_id,
+        }),
     }
-    if protocol_version == HS_SUITE2_PROTOCOL_VERSION_WIRE {
-        return Err("REJECT_QSC_HS_SUITE_UNSUPPORTED");
+}
+
+#[cfg(qsc_binding_fuzz_helper)]
+fn hs_fuzz_suite_mode(mode: HandshakeSuiteMode) -> crate::adversarial::binding_fuzz::FuzzSuiteMode {
+    match mode {
+        HandshakeSuiteMode::LegacyCompat => {
+            crate::adversarial::binding_fuzz::FuzzSuiteMode::LegacyCompat
+        }
+        HandshakeSuiteMode::SuiteRequired => {
+            crate::adversarial::binding_fuzz::FuzzSuiteMode::SuiteRequired
+        }
     }
-    if protocol_version == HS_LEGACY_PROTOCOL_VERSION_WIRE && suite_id == HS_LEGACY_SUITE_ID_WIRE {
-        return Err("REJECT_QSC_HS_DOWNGRADE");
+}
+
+#[cfg(qsc_binding_fuzz_helper)]
+fn hs_fuzz_frame_kind(
+    frame_type: u8,
+) -> Option<crate::adversarial::binding_fuzz::BindingFuzzFrameKind> {
+    match frame_type {
+        HS_TYPE_INIT => Some(crate::adversarial::binding_fuzz::BindingFuzzFrameKind::A1),
+        HS_TYPE_RESP => Some(crate::adversarial::binding_fuzz::BindingFuzzFrameKind::B1),
+        HS_TYPE_CONFIRM => Some(crate::adversarial::binding_fuzz::BindingFuzzFrameKind::A2),
+        _ => None,
     }
-    Err("REJECT_QSC_HS_INCONSISTENT_TUPLE")
 }
 
 fn hs_encode_header(out: &mut Vec<u8>, frame_type: u8, suite_context: &HsSuiteContext) -> bool {
@@ -351,51 +412,71 @@ fn hs_decode_header(
     mode: HandshakeSuiteMode,
     admit_context: bool,
 ) -> Result<(HsSuiteContext, usize), &'static str> {
-    if bytes.len() < 7 {
-        return Err("handshake_len");
+    #[cfg(qsc_binding_fuzz_helper)]
+    {
+        let Some(frame_kind) = hs_fuzz_frame_kind(frame_type) else {
+            return Err("handshake_type");
+        };
+        let header = crate::adversarial::binding_fuzz::decode_header(
+            bytes,
+            frame_kind,
+            payload_len,
+            hs_fuzz_suite_mode(mode),
+            admit_context,
+        )?;
+        return Ok((
+            hs_suite_context_from_fuzz(header.suite_context().clone())?,
+            header.payload_offset(),
+        ));
     }
-    if &bytes[0..4] != HS_MAGIC {
-        return Err("handshake_magic");
-    }
-    let ver = u16::from_be_bytes([bytes[4], bytes[5]]);
-    if bytes[6] != frame_type {
-        return Err("handshake_type");
-    }
-    match ver {
-        HS_VERSION_LEGACY => {
-            if mode == HandshakeSuiteMode::SuiteRequired {
-                return Err("REJECT_QSC_HS_LEGACY_REQUIRED");
-            }
-            if bytes.len() != 7 + payload_len {
-                return Err("handshake_len");
-            }
-            Ok((HsSuiteContext::LegacyV1, 7))
+    #[cfg(not(qsc_binding_fuzz_helper))]
+    {
+        if bytes.len() < 7 {
+            return Err("handshake_len");
         }
-        HS_VERSION_V2 => {
-            if bytes.len() < 9 {
-                return Err("REJECT_QSC_HS_MALFORMED_LENGTH");
-            }
-            let block_len = u16::from_be_bytes([bytes[7], bytes[8]]) as usize;
-            if block_len > HS_PARAM_BLOCK_MAX {
-                return Err("REJECT_QSC_HS_MALFORMED_LENGTH");
-            }
-            let payload_off = 9 + block_len;
-            if bytes.len() != payload_off + payload_len {
-                return Err("REJECT_QSC_HS_MALFORMED_LENGTH");
-            }
-            let block = &bytes[9..payload_off];
-            let suite_context = if admit_context {
-                hs_parse_parameter_block(block)?
-            } else {
-                HsSuiteContext::ExplicitV2 {
-                    block: block.to_vec(),
-                    protocol_version: 0,
-                    suite_id: 0,
+        if &bytes[0..4] != HS_MAGIC {
+            return Err("handshake_magic");
+        }
+        let ver = u16::from_be_bytes([bytes[4], bytes[5]]);
+        if bytes[6] != frame_type {
+            return Err("handshake_type");
+        }
+        match ver {
+            HS_VERSION_LEGACY => {
+                if mode == HandshakeSuiteMode::SuiteRequired {
+                    return Err("REJECT_QSC_HS_LEGACY_REQUIRED");
                 }
-            };
-            Ok((suite_context, payload_off))
+                if bytes.len() != 7 + payload_len {
+                    return Err("handshake_len");
+                }
+                Ok((HsSuiteContext::LegacyV1, 7))
+            }
+            HS_VERSION_V2 => {
+                if bytes.len() < 9 {
+                    return Err("REJECT_QSC_HS_MALFORMED_LENGTH");
+                }
+                let block_len = u16::from_be_bytes([bytes[7], bytes[8]]) as usize;
+                if block_len > HS_PARAM_BLOCK_MAX {
+                    return Err("REJECT_QSC_HS_MALFORMED_LENGTH");
+                }
+                let payload_off = 9 + block_len;
+                if bytes.len() != payload_off + payload_len {
+                    return Err("REJECT_QSC_HS_MALFORMED_LENGTH");
+                }
+                let block = &bytes[9..payload_off];
+                let suite_context = if admit_context {
+                    hs_parse_parameter_block(block)?
+                } else {
+                    HsSuiteContext::ExplicitV2 {
+                        block: block.to_vec(),
+                        protocol_version: 0,
+                        suite_id: 0,
+                    }
+                };
+                Ok((suite_context, payload_off))
+            }
+            _ => Err("handshake_version"),
         }
-        _ => Err("handshake_version"),
     }
 }
 
@@ -822,7 +903,14 @@ where
 {
     match read_pin(peer) {
         Ok(Some(pinned)) => {
-            if !identity_pin_matches_seen(pinned.as_str(), seen_fp) {
+            #[cfg(qsc_binding_fuzz_helper)]
+            let pin_matches = {
+                let _canonical_pin_matches = identity_pin_matches_seen(pinned.as_str(), seen_fp);
+                crate::adversarial::binding_fuzz::trusted_pin_matches_seen(pinned.as_str(), seen_fp)
+            };
+            #[cfg(not(qsc_binding_fuzz_helper))]
+            let pin_matches = identity_pin_matches_seen(pinned.as_str(), seen_fp);
+            if !pin_matches {
                 emit_peer_mismatch(peer, pinned.as_str(), seen_fp);
                 emit_marker("handshake_reject", None, &[("reason", "peer_mismatch")]);
                 return Err("peer_mismatch");
@@ -866,7 +954,14 @@ where
 {
     match read_pin(peer) {
         Ok(Some(pinned)) => {
-            if !identity_pin_matches_seen(pinned.as_str(), seen_fp) {
+            #[cfg(qsc_binding_fuzz_helper)]
+            let pin_matches = {
+                let _canonical_pin_matches = identity_pin_matches_seen(pinned.as_str(), seen_fp);
+                crate::adversarial::binding_fuzz::trusted_pin_matches_seen(pinned.as_str(), seen_fp)
+            };
+            #[cfg(not(qsc_binding_fuzz_helper))]
+            let pin_matches = identity_pin_matches_seen(pinned.as_str(), seen_fp);
+            if !pin_matches {
                 emit_peer_mismatch(peer, pinned.as_str(), seen_fp);
                 emit_marker("handshake_reject", None, &[("reason", "peer_mismatch")]);
                 return Err("peer_mismatch");
@@ -1662,6 +1757,20 @@ fn perform_handshake_poll_with_tokens(
                     }
                     Err(reason) => {
                         if pending_suite_context.is_explicit() {
+                            #[cfg(qsc_binding_fuzz_helper)]
+                            {
+                                if crate::adversarial::binding_fuzz::replay_candidate_matches_pending_init(
+                                    &item.data,
+                                    &pending.session_id,
+                                    pending_suite_context.explicit_block(),
+                                    hs_fuzz_suite_mode(suite_mode),
+                                ) {
+                                    let _ = hs_pending_clear(self_label, peer);
+                                    hs_reject_replay();
+                                    continue;
+                                }
+                            }
+                            #[cfg(not(qsc_binding_fuzz_helper))]
                             if let Ok(init) = hs_decode_init(&item.data, suite_mode) {
                                 if init.session_id == pending.session_id
                                     && hs_contexts_match(

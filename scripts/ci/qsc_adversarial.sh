@@ -15,10 +15,18 @@ run_fuzz_target() {
   seed_dir="${FUZZ_DIR}/corpus/${target_name}"
   run_dir="$(mktemp -d)"
   TMP_DIRS="${TMP_DIRS} ${run_dir}"
-  cp -R "${seed_dir}/." "${run_dir}/"
+  if [ -d "${seed_dir}" ]; then
+    cp -R "${seed_dir}/." "${run_dir}/"
+  fi
   (
     cd "${FUZZ_DIR}"
-    cargo +nightly fuzz run "${target_name}" "${run_dir}" -- -max_total_time=10
+    if [ "${target_name}" = "qsc_binding_semantics" ]; then
+      target_rustflags="${RUSTFLAGS:-}"
+      target_rustflags="${target_rustflags:+${target_rustflags} }--cfg qsc_binding_fuzz_helper"
+      RUSTFLAGS="${target_rustflags}" cargo +nightly fuzz run "${target_name}" "${run_dir}" -- -max_total_time=10
+    else
+      cargo +nightly fuzz run "${target_name}" "${run_dir}" -- -max_total_time=10
+    fi
   )
 }
 
@@ -33,3 +41,5 @@ cargo +stable test --manifest-path qsl/qsl-client/qsc/Cargo.toml --locked --test
 run_fuzz_target qsc_route_http
 run_fuzz_target qsc_payload_boundaries
 run_fuzz_target qsc_vault_envelope
+echo "NA0487_FUZZ_CI_ADVERSARIAL_TARGET_INCLUDED_OK"
+run_fuzz_target qsc_binding_semantics

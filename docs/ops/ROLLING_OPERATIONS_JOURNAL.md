@@ -191,23 +191,73 @@ Last-Updated: 2026-06-15
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no vector-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no transcript-complete claim is introduced. no qsc/refimpl-equivalence-complete claim is introduced. no provider-boundary-complete claim is introduced. no provider-RNG-complete claim is introduced. no formal-proof-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0487 implementation update
+
+- Directive: QSL-DIR-2026-06-16-349.
+- Directive title: Execute Recovered NA-0487 QSL qsc Binding Fuzz Helper and Target Implementation Harness, Optional Closeout to NA-0488.
+- UTC start timestamp: 2026-06-16T14:33:35Z.
+- Repo path: `/srv/qbuild/work/NA-0487/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0487_binding_fuzz_recovered_impl_20260616T143630Z`.
+- qwork proof files read and copied; Codex did not run qwork, qstart, or qresume.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `4f0f56df1f55`.
+- Fetch did not advance origin/main; main checked out clean at `4f0f56df1f55`.
+- PR #1244 verified merged at `4f0f56df1f55`.
+- Startup queue: `READY_COUNT 1`; READY NA-0487; NA-0485 DONE; NA-0486 DONE; NA-0488 not READY.
+- Startup decision proof: D-0960 exists once by ID entry; D-0961 exists once by ID entry; D-0962 exists once by ID entry; D-0963 absent; duplicate decision count 0.
+- Startup public-safety on `4f0f56df1f55`: success.
+- Startup qsc-adversarial-smoke on `4f0f56df1f55`: success.
+- Startup root cargo audit: PASS.
+- Startup nested qsc fuzz lock audit: PASS.
+- Startup dependency tree probes: PASS for `rustls-webpki` and `ml-kem`; optional pqcrypto inverse probes completed under directive-approved `|| true` shape with no active package match.
+- qsl-backup SHA read-only proof: installed `/usr/local/sbin/qsl-backup` matched `e9ecff3d22ed`.
+- qsl-backup source-list proof: codex ops source appears exactly once in the installed source list.
+- Recovered discovery issue: broad qsl-backup candidate search exited non-zero because the bounded `find | sed` discovery command was too broad for the output pipe. Classification: recoverable command-shape/discovery issue. Corrective action: used targeted read-only artifact inspection. Final result: installed qsl-backup digest/source-list proof PASS.
+- Recovered qsl-backup digest path issue: first targeted digest check used the user-local helper script path, while the status file records `/usr/local/sbin/qsl-backup` as the installed digest authority. Classification: recoverable path-assumption issue. Corrective action: verified the installed path read-only. Final result: expected digest and source-list count PASS.
+- D347/D348 recovery consumed: D347 stopped before mutation because helper-only scope could not reach real qsc semantic reject paths; D348 selected `SOURCE_BOUNDARY_RECOVERY_MINIMAL_READY` and authorized cfg-gated source-boundary expansion.
+- Implementation branch: `na-0487-binding-fuzz-helper-target`.
+- Implementation status: cfg-gated helper/API added under exact cfg `qsc_binding_fuzz_helper`; helper module added at `qsl/qsl-client/qsc/src/adversarial/binding_fuzz.rs`; adversarial export gated; lib source-boundary marker added; handshake cfg-on parse/header/replay/trusted-pin paths route through the helper; identity touched only for stale-public-record/trusted-pin warning cleanup.
+- Fuzz target status: `qsl/qsl-client/qsc/fuzz/fuzz_targets/qsc_binding_semantics.rs` added; target derives category from input bytes and calls the helper without manifest JSON or filesystem-heavy process harnessing.
+- qsc fuzz Cargo status: exactly one `[[bin]]` entry added for `qsc_binding_semantics`; no dependency change; no lockfile change.
+- qsc-adversarial script status: `qsc_binding_semantics` included with `RUSTFLAGS='--cfg qsc_binding_fuzz_helper'`; existing targets and provider-error no-mutation step preserved; missing seed corpus directories are handled with ephemeral empty run dirs.
+- Local validation so far: PASS for `cargo fmt --check`, normal no-cfg `cargo test -p qsc --locked --test kem_signature_transcript_binding_negative -- --test-threads=1 --nocapture`, cfg-on `RUSTFLAGS='--cfg qsc_binding_fuzz_helper' cargo test -p qsc --locked --test kem_signature_transcript_binding_negative -- --test-threads=1 --nocapture`, cfg-on `cargo check -p qsc --locked`, cfg-on fuzz-manifest `cargo check --manifest-path qsl/qsl-client/qsc/fuzz/Cargo.toml --locked --bin qsc_binding_semantics`, `sh -n scripts/ci/qsc_adversarial.sh`, and `bash -n scripts/ci/qsc_adversarial.sh`.
+- Recovered formatting issue: first `cargo fmt --check` failed only on allowed NA-0487 files. Classification: recoverable formatting-only validation failure. Corrective action: ran `cargo fmt` once and reran `cargo fmt --check`. Final result: PASS.
+- Local cargo-fuzz availability: unavailable with `error: no such command: fuzz`. Classification: local tool availability caveat. Corrective action: recorded exact output and require PR CI qsc-adversarial-smoke for cargo-fuzz-backed proof.
+- Current mutation scope remains limited to allowed NA-0487 implementation/governance paths. No dependency, lockfile, workflow, vector/input, corpus, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, public-doc, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, or backup tree mutation introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no vector-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no transcript-complete claim is introduced. no qsc/refimpl-equivalence-complete claim is introduced. no provider-boundary-complete claim is introduced. no provider-RNG-complete claim is introduced. no formal-proof-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## Next-watch items
 
-- Complete post-patch validation and scope guard.
-- Open evidence PR #TBD and merge only after required checks pass.
-- Optional closeout to NA-0487 only after evidence PR post-merge public-safety is green.
-- Future NA-0487 must prove the helper is inactive in no-cfg builds, emits no secret material, and calls real qsc reject paths.
-- Closeout mutation paths: `NEXT_ACTIONS.md`, `DECISIONS.md`,
+- Full post-patch validation completed for implementation pre-PR:
+  `git diff --check`, exact local scope guard, link-check, leak-scan,
+  added-line overclaim scan, PR body preflight, qsc-adversarial script syntax,
+  vector manifest JSON validation, formal model, formal runner, normal and
+  cfg-on binding negative tests, inherited qsc provider/RNG chain, key
+  lifecycle zeroization, provider-error no-mutation, stable qsc `send_commit`,
+  refimpl `signature_provider_boundary`, refimpl `pqkem768`, root cargo audit,
+  nested qsc fuzz lock audit, dependency probes, classifier, and
+  `cargo fmt --check`: PASS.
+- Recovered staging issue: first `git add` including the allowed evidence doc
+  failed because `docs/governance/evidence/**` is ignored. Classification:
+  recoverable command-shape issue for an ignored but authorized governance
+  deliverable. Corrective action: used `git add -f` for the exact allowed
+  evidence file and normal `git add` for the other allowed paths. Final result:
+  staged scope guard PASS.
+- Recovered restaging issue: after wording cleanup, a combined `git add`
+  again hit the ignored evidence rule. Classification: same recoverable
+  command-shape issue. Corrective action: force-added only the exact allowed
+  evidence path and normally added the testplan. Final result: final
+  added-line overclaim scan PASS.
+- Implementation PR #TBD must merge only after required PR checks pass,
+  including public-safety and qsc-adversarial-smoke.
+- Optional closeout to NA-0488 is allowed only after implementation merge
+  post-merge public-safety and qsc-adversarial-smoke are green.
+- Closeout selected successor: `NA-0488 -- QSL Binding Fuzz Corpus / Seed
+  Strategy Authorization Plan`.
+- Closeout mutation paths, if executed: `NEXT_ACTIONS.md`, `DECISIONS.md`,
   `TRACEABILITY.md`, this journal, and
-  `tests/NA-0486_closeout_restore_na0487_testplan.md`.
-- Closeout selected successor: `NA-0487 -- QSL qsc Binding Fuzz Helper and
-  Target Implementation Harness`.
-- Closeout exact future paths: `qsl/qsl-client/qsc/src/adversarial/binding_fuzz.rs`,
-  `qsl/qsl-client/qsc/src/adversarial/mod.rs`,
-  `qsl/qsl-client/qsc/fuzz/fuzz_targets/qsc_binding_semantics.rs`,
-  `qsl/qsl-client/qsc/fuzz/Cargo.toml`,
-  `scripts/ci/qsc_adversarial.sh`, and the NA-0487 governance paths.
-- Closeout still performs no NA-0487 implementation and no qsc source/fuzz,
+  `tests/NA-0487_closeout_restore_na0488_testplan.md`.
+- Closeout still performs no NA-0488 implementation and no qsc source/fuzz,
   dependency, lockfile, workflow, vector, corpus, formal, refimpl, service,
   public-doc, backup, qsl-backup, qwork/qstart/qresume/qshell, or runtime
   mutation.

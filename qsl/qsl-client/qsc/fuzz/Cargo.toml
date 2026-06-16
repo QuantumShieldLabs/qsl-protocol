@@ -34,3 +34,11 @@ path = "fuzz_targets/qsc_vault_envelope.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+# NA0487_EXACT_FUZZ_CARGO_SCOPE_AUTHORIZED_OK
+name = "qsc_binding_semantics"
+path = "fuzz_targets/qsc_binding_semantics.rs"
+test = false
+doc = false
+bench = false

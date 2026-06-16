@@ -576,6 +576,7 @@ pub(super) fn identity_marker_display(fp: &str) -> String {
     }
 }
 
+#[allow(dead_code)]
 pub(super) fn identity_pin_matches_seen(pinned: &str, seen_fp: &str) -> bool {
     let pinned = pinned.trim();
     if pinned.is_empty() {

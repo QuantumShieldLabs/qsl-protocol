@@ -27099,7 +27099,7 @@ Acceptance criteria:
 ---
 
 ### NA-0486 — QSL qsc Binding Fuzz Helper / API Design Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -27153,6 +27153,76 @@ Acceptance criteria:
 - helper/API/process-harness design is selected or rejected.
 - exact future implementation scope is recorded if implementation becomes ready.
 - no implementation mutation.
+- no public overclaim.
+- exactly one READY item remains.
+
+---
+
+### NA-0487 — QSL qsc Binding Fuzz Helper and Target Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the exact qsc binding fuzz helper plus target scope selected by
+NA-0486, preserving production behavior, no-secret-output boundaries, and no
+public-claim expansion.
+
+Protects:
+- semantic binding fuzz reachability.
+- fail-closed binding behavior.
+- qsc/refimpl/formal/vector evidence traceability.
+- no production behavior drift.
+- release-claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- `qsl/qsl-client/qsc/src/adversarial/binding_fuzz.rs`.
+- `qsl/qsl-client/qsc/src/adversarial/mod.rs`.
+- `qsl/qsl-client/qsc/fuzz/fuzz_targets/qsc_binding_semantics.rs`.
+- `qsl/qsl-client/qsc/fuzz/Cargo.toml`.
+- `scripts/ci/qsc_adversarial.sh`.
+- `docs/governance/evidence/NA-0487_qsl_qsc_binding_fuzz_helper_and_target_implementation_harness.md`.
+- `tests/NA-0487_qsl_qsc_binding_fuzz_helper_and_target_implementation_testplan.md`.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+
+Forbidden scope:
+- runtime/production behavior mutation outside the exact selected helper/API
+  scope.
+- no dependency, lockfile, or workflow mutation.
+- no refimpl mutation.
+- no vector, corpus, or formal mutation unless a later exact directive
+  authorizes narrower scope.
+- no qsl-server, qsl-attachments, qshield runtime, qshield-cli, service,
+  website, or public-doc mutation.
+- no backup, restore, qsl-backup, rollback, backup status, or backup plan
+  mutation.
+- no public-readiness claim and no crypto-complete claim.
+
+Deliverables:
+- selected helper/API implementation.
+- selected semantic qsc binding fuzz target.
+- qsc fuzz Cargo metadata for the selected target.
+- qsc-adversarial script inclusion for the selected target.
+- evidence doc.
+- testplan.
+- D-0962 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+
+Acceptance criteria:
+- helper/API compiles only under the selected test/fuzz/adversarial cfg.
+- normal no-cfg builds do not expose the helper or change qsc public runtime
+  behavior.
+- no secret material is emitted in fuzz outputs, logs, corpus, or evidence.
+- selected helper calls real qsc reject paths.
+- selected target covers A1, B1, A2, suite-confusion, replay, and stale
+  public-record/trusted-pin mutation classes.
+- qsc fuzz Cargo and qsc-adversarial script changes are limited to the selected
+  target.
+- selected validation commands pass.
+- public-safety is green.
 - no public overclaim.
 - exactly one READY item remains.
 

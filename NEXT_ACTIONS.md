@@ -27159,7 +27159,7 @@ Acceptance criteria:
 ---
 
 ### NA-0487 — QSL qsc Binding Fuzz Helper and Target Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -27250,6 +27250,57 @@ Acceptance criteria:
   public-doc, backup, restore, qsl-backup, or corpus mutation occurs.
 - selected validation commands pass.
 - public-safety is green.
+- no public overclaim.
+- exactly one READY item remains.
+
+---
+
+### NA-0488 — QSL Binding Fuzz Corpus / Seed Strategy Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize exact binding fuzz corpus/seed strategy after qsc binding fuzz helper
+and target implementation, preserving no-secret-material, no-public-claim,
+no-dependency, and one-READY boundaries.
+
+Protects:
+- fuzz input safety.
+- no checked-in secret/private material.
+- qsc/refimpl/formal/vector/fuzz traceability.
+- release-claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0488.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- read-only inspection of qsc fuzz target, qsc fuzz corpus layout, internal
+  negative vector manifest, qsc-adversarial script, and CI evidence.
+
+Forbidden scope:
+- implementation mutation.
+- runtime/crypto/dependency/Cargo/lockfile/workflow mutation.
+- fuzz target/corpus/vector/formal mutation unless later exact implementation
+  directive authorizes.
+- refimpl/service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- public readiness or crypto completion claims.
+
+Deliverables:
+- corpus/seed strategy authorization evidence doc.
+- testplan.
+- D-0965 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- selected exact corpus/seed implementation scope or no-action rationale.
+
+Acceptance criteria:
+- checked-in corpus selected or rejected.
+- ephemeral seed generation selected or rejected.
+- NA-0483 manifest usage selected or rejected.
+- no secret/private material.
 - no public overclaim.
 - exactly one READY item remains.
 

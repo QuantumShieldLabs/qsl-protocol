@@ -34574,3 +34574,54 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No qsc source, qsc fuzz target, qsc fuzz Cargo, qsc-adversarial script, dependency, lockfile, workflow, vector/input, corpus, formal, refimpl, service, public-doc, backup, qsl-backup, qwork/qstart/qresume/qshell, status, plan, rollback, or backup tree mutation is introduced by closeout.
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0488 update
+
+- Directive: QSL-DIR-2026-06-16-351 -- Execute NA-0488 QSL Binding Fuzz Corpus / Seed Strategy Authorization Plan, Optional Closeout to NA-0489.
+- Begin timestamp (America/Chicago): 2026-06-16T13:24:56-05:00.
+- Begin timestamp (UTC): 2026-06-16T18:24:56+00:00.
+- End timestamp (America/Chicago): pending.
+- End timestamp (UTC): pending.
+- Repo path: `/srv/qbuild/work/NA-0488/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0488_binding_fuzz_corpus_seed_strategy_20260616T182456Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, force-push, amend, rebase, squash, branch deletion, cargo update, or cargo generate-lockfile.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0488/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `d78d163535ff`.
+- Fetch did not advance origin/main; main checked out clean at `d78d163535ff`.
+- PR #1246 verified merged at `d78d163535ff`.
+- Startup queue proof: `READY_COUNT 1`; READY NA-0488; NA-0487 DONE; NA-0486 DONE; NA-0434 BLOCKED; NA-0429 BLOCKED.
+- Startup decision proof: D-0963 once, D-0964 once, D-0965 absent, D-0966 absent, duplicate decision count zero.
+- Startup public-safety on `d78d163535ff`: success.
+- Startup qsc-adversarial-smoke on `d78d163535ff`: success.
+- Startup root cargo audit: PASS.
+- Startup nested qsc fuzz lock audit: PASS.
+- Startup dependency tree probes: PASS for `rustls-webpki` and `ml-kem`; pqcrypto inverse probes completed under directive-approved failure-tolerant shape with absent-package output.
+- qsl-backup SHA read-only proof: installed helper matched expected digest `e9ecff3d22ed`.
+- qsl-backup source-list proof: Codex ops source appears exactly once in the installed helper source list.
+- Disk watermark: `/` 468G size, 404G used, 41G available, 91% used.
+- D350 response consumed from `/home/victor/work/qsl/codex/responses/NA0487_closeout_restore_na0488_20260616T165533Z_D350.md`.
+- D349 response consumed from `/home/victor/work/qsl/codex/responses/NA0487_20260616T163857Z_D349.md`.
+- NA-0487 evidence/testplan, D-0963, D-0964, and NA-0488 `NEXT_ACTIONS.md` block consumed.
+- Current fuzz target inventory: `qsc_route_http`, `qsc_payload_boundaries`, `qsc_vault_envelope`, and `qsc_binding_semantics`.
+- Current corpus inventory: checked-in corpus exists for older parser/format targets only; `qsc_binding_semantics` has no corpus directory and zero corpus files.
+- Current corpus classifications: `FUZZ_CORPUS_EXISTING_PARSER_TARGETS_ONLY` and `FUZZ_CORPUS_BINDING_TARGET_NONE`.
+- Corrected inventory proof issue: first Cargo.toml parser counted the package name as a target. Classification: recoverable proof-shape parser issue; corrective action: reran the parser so only `[[bin]]` entries count as targets; final result: four targets and no binding corpus.
+- Internal vector manifest review: manifest validates as internal negative evidence, has 34 entries, records zero secret/private material flags, and requires ephemeral generation for sensitive validation.
+- Vector manifest classifications selected: `VECTOR_MANIFEST_TRACEABILITY_ONLY_SELECTED` and `VECTOR_MANIFEST_STATIC_CATEGORY_MAPPING_READY`.
+- Secret/private material classification selected: `CORPUS_SECRET_MATERIAL_EPHEMERAL_ONLY`; future checked-in corpus requires validator-first proof.
+- CI/Cargo/workflow classifications selected: `CORPUS_NO_CARGO_SCRIPT_WORKFLOW_IMPACT` and `CORPUS_FUZZ_TARGET_CHANGE_NEEDED` for the no-corpus ephemeral strategy.
+- Primary authorization classification selected: `BINDING_FUZZ_EPHEMERAL_SEED_STRATEGY_READY`.
+- Supporting classifications selected: `BINDING_FUZZ_NO_CHECKED_IN_CORPUS_READY` and `BINDING_FUZZ_METADATA_ONLY_SEED_STRATEGY_READY`.
+- Selected successor: `NA-0489 -- QSL Binding Fuzz Ephemeral Seed Strategy Implementation Harness`.
+- Future target-only scope selected for NA-0489: `qsl/qsl-client/qsc/fuzz/fuzz_targets/qsc_binding_semantics.rs` plus governance evidence/testplan/decision/traceability/journal paths.
+- Checked-in binding corpus is rejected for now; runtime JSON manifest consumption is rejected; vector-consumer tests, checked-in corpus, validator-first corpus work, fuzz stabilization, and side-channel assurance remain later candidates or residuals.
+- Governance patch paths: NA-0488 evidence doc, NA-0488 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Recovered wording issue: first added-line overclaim scan flagged wrapped no-claim lists whose negation appeared only on a prior line. Classification: recoverable in-scope documentation wording issue. Corrective action: rewrote the affected evidence/testplan lines so each restricted claim phrase carries same-line `no` wording. Final result: overclaim scan PASS with zero findings.
+- Local validation after patch: PASS for cached `git diff --check`, exact five-path staged scope guard, link-check, leak-scan, added-line overclaim scan, classifier, PR body preflight, qwork proof verification, queue proof, decision proof, internal vector manifest JSON validation, formal binding model, formal runner, no-cfg qsc binding negative test, cfg-on qsc binding negative test, refimpl signature provider-boundary test, refimpl `pqkem768`, inherited qsc KEM provider-RNG cfg/no-cfg tests, qsc key lifecycle zeroization, qsc provider-error no-mutation, stable qsc `send_commit`, root cargo audit, nested qsc fuzz lock audit, dependency tree probes, cargo fmt, and qsc-adversarial shell syntax.
+- Local qsc-adversarial full script: stable adversarial property tests PASS, stable adversarial miri-contract tests PASS, provider-error no-mutation step PASS, then local cargo-fuzz stage stopped with `error: no such command: fuzz`. Classification: recoverable local cargo-fuzz availability caveat. Corrective action: record exact output and require PR CI `qsc-adversarial-smoke` for cargo-fuzz-backed proof. Final result: local non-fuzz adversarial phases PASS; PR CI required for fuzz phases.
+- Non-fatal tooling friction: concurrent cargo commands emitted file-lock wait warnings on package cache, advisory DB, or artifact directory. Final result: affected cargo test/audit/tree commands exited successfully except the accepted local cargo-fuzz availability stop above.
+- No implementation mutation is performed.
+- No corpus/vector/input mutation is performed.
+- No qsc source, qsc fuzz target, qsc fuzz Cargo, qsc-adversarial script, workflow, dependency, lockfile, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, or backup tree mutation is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no transcript-complete claim is introduced. no qsc/refimpl-equivalence-complete claim is introduced. no provider-boundary-complete claim is introduced. no provider-RNG-complete claim is introduced. no formal-proof-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

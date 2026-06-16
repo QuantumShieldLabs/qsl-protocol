@@ -6,6 +6,98 @@ Last-Updated: 2026-06-15
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-15-346 / NA-0486 qsc binding fuzz helper API design rolling journal
+
+- Directive: QSL-DIR-2026-06-15-346 -- Execute NA-0486 QSL qsc Binding Fuzz Helper / API Design Authorization Plan, Optional Closeout to NA-0487.
+- Begin timestamp (America/Chicago): 2026-06-15T18:44:04-05:00.
+- Begin timestamp (UTC): 2026-06-15T23:44:04+00:00.
+- Repo path: `/srv/qbuild/work/NA-0486/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0486_qsc_binding_fuzz_helper_api_design_20260615T234404Z`.
+- Codex did not run qwork, qstart, qresume, qshell, sudo, backup, restore, cargo update, or cargo generate-lockfile.
+
+## Repo SHAs
+
+- qsl-protocol HEAD before fetch: `6264f37bf0db`.
+- qsl-protocol origin/main before fetch: `6264f37bf0db`.
+- qsl-protocol origin/main after fetch: `6264f37bf0db`.
+- PR #1241 merge commit verified: `6264f37bf0db`.
+- Evidence branch: `na-0486-binding-fuzz-helper-api-design`.
+- Evidence PR: pending.
+- Evidence merge commit: pending.
+- Optional closeout branch: pending.
+- Optional closeout PR: pending.
+- Optional closeout merge commit: pending.
+
+## READY proof
+
+- qwork proof: startup OK for lane NA-0486, repo qsl-protocol, clean worktree/index/untracked state, proof HEAD and proof origin/main both `6264f37bf0db`.
+- Pre-fetch live proof: HEAD and origin/main matched qwork proof at `6264f37bf0db`.
+- Fetch result: origin/main did not advance.
+- Queue proof before patch: READY_COUNT 1 and READY NA-0486.
+- Direct queue proof before patch: NA-0486 READY; NA-0485 through NA-0435 DONE as expected; NA-0434 and NA-0429 BLOCKED; READY_COUNT_DIRECT 1.
+- Decision proof before patch: latest D-0959, D-0958 once, D-0959 once, D-0960 absent, duplicate decision count zero.
+- Public-safety on current main `6264f37bf0db`: PASS.
+
+## Recovered failure evidence
+
+- Failing command: added-line overclaim scan during fast validation.
+  Classification: recoverable in-scope documentation wording issue; the
+  phrase `disaster-recovery-complete` wrapped onto a line without same-line
+  negation. Corrective action: rewrote the backup-impact caveat so every
+  restricted phrase has same-line `no` wording. Final result: PASS; the
+  rerun added-line overclaim scan reported zero affirmative findings.
+
+## Validation / CI notes
+
+- Startup PR #1241 proof: PASS, merged at `6264f37bf0db`.
+- Startup root cargo audit: PASS.
+- Startup root dependency tree probes: PASS for `rustls-webpki` and `ml-kem`; pqcrypto inverse-tree probes completed under directive-approved `|| true` shape with no active dependency tree.
+- Startup nested qsc fuzz lock audit: PASS.
+- Startup qsc fuzz lock pqcrypto residual scan completed under directive-approved `|| true` shape with zero matches.
+- Startup internal negative binding vector manifest JSON validation: PASS.
+- Startup formal checks: PASS for NA-0478 standalone model and formal runner.
+- Startup qsc binding negative tests: PASS.
+- Startup refimpl signature provider-boundary test: PASS.
+- Startup inherited qsc provider-RNG/key-lifecycle/provider-error tests: PASS.
+- Post-patch local validation: PASS for static scope/link/leak/overclaim
+  guards, queue/decision proof, qsc-adversarial script syntax, vector
+  manifest JSON validation, formal model checks, inherited qsc/refimpl tests,
+  root cargo audit, nested qsc fuzz lock audit, dependency tree probes, and
+  `cargo fmt --check`.
+- Feasible local `sh scripts/ci/qsc_adversarial.sh` run: Rust adversarial
+  tests and provider-error step passed, then local execution stopped at
+  `cargo fuzz` because this host does not have the cargo-fuzz subcommand.
+  Classification: directive-allowed local tooling caveat, not an evidence
+  failure for the docs-only authorization PR. Corrective action: recorded the
+  exact output under the proof root and will rely on PR CI
+  qsc-adversarial-smoke for fuzz-run evidence. Final result: accepted local
+  caveat pending PR CI.
+- Startup stable qsc `send_commit`: PASS.
+- Startup refimpl `pqkem768`: PASS.
+- qsc adversarial marker proof: PASS for `NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP` / `handshake_provider_error_no_mutation`.
+- qsl-backup SHA read-only proof: `e9ecff3d22ed`.
+- qsl-backup source-list proof: codex ops source appears exactly once in the installed source list.
+- Disk watermark: `/` 468G size, 397G used, 47G available, 90% used.
+- Helper/API candidate inventory: complete.
+- Process-harness vs in-process review: complete.
+- Cargo/script/CI exact scope decision: selected helper plus target plus qsc fuzz Cargo plus qsc-adversarial script; no workflow, dependency, lockfile, or corpus scope selected.
+- Helper safety classification: `HELPER_DESIGN_SAFE_TEST_FUZZ_ONLY`.
+- Corpus/seed strategy: no checked-in corpus first, ephemeral generation only, manifest traceability only, corpus separate future lane.
+- Implementation readiness classification: `QSC_BINDING_FUZZ_HELPER_PLUS_TARGET_PLUS_CARGO_PLUS_SCRIPT_IMPLEMENTATION_READY`.
+- Selected successor: `NA-0487 -- QSL qsc Binding Fuzz Helper and Target Implementation Harness`.
+- Governance patch paths: NA-0486 evidence doc, NA-0486 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- No implementation mutation performed.
+- No runtime, crypto, dependency, Cargo, lockfile, workflow, script, executable test, fuzz target, fuzz corpus, vector/input, formal model, qsc source/test, refimpl source/test, qsl-server, qsl-attachments, qshield runtime, qshield-cli, website, public docs, README, START_HERE, qwork/qstart/qresume/qshell, qsl-backup, backup status, backup plan, rollback, durable Director State Index, public technical paper, or backup tree mutation introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no vector-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no transcript-complete claim is introduced. no qsc/refimpl-equivalence-complete claim is introduced. no provider-boundary-complete claim is introduced. no provider-RNG-complete claim is introduced. no formal-proof-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## Next-watch items
+
+- Complete post-patch validation and scope guard.
+- Open evidence PR #TBD and merge only after required checks pass.
+- Optional closeout to NA-0487 only after evidence PR post-merge public-safety is green.
+- Future NA-0487 must prove the helper is inactive in no-cfg builds, emits no secret material, and calls real qsc reject paths.
+
 # QSL-DIR-2026-06-15-343 / NA-0483 binding negative vector implementation rolling journal
 
 - Directive: QSL-DIR-2026-06-15-343 -- Execute NA-0483 QSL Binding Negative Vector Suite Implementation Harness, Optional Closeout to NA-0484.

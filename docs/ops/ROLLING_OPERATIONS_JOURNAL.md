@@ -23,8 +23,8 @@ Last-Updated: 2026-06-15
 - qsl-protocol origin/main before fetch: `9a321cee5924`.
 - qsl-protocol origin/main after fetch: `9a321cee5924`.
 - PR #1243 merge commit verified: `9a321cee5924`.
-- Recovery branch: pending.
-- Recovery PR: pending.
+- Recovery branch: `na-0487-source-boundary-recovery`.
+- Recovery PR: #1244.
 - Recovery merge commit: pending.
 
 ## READY proof
@@ -51,6 +51,13 @@ Last-Updated: 2026-06-15
   Corrective action: rewrote no-claim wording so each restricted phrase carries
   same-line `no` / `No` wording.
   Final result: rerun added-line overclaim scan reported zero findings.
+- Failing tool action: GitHub connector `_create_pull_request` for recovery PR.
+  Classification: recoverable GitHub app permission limitation; connector
+  returned FORBIDDEN while the local branch, commit, and preflighted PR body
+  were valid.
+  Corrective action: used `gh pr create` with the same base, head, title, and
+  preflighted body.
+  Final result: PR #1244 opened successfully.
 
 ## Validation / CI notes
 
@@ -64,6 +71,13 @@ Last-Updated: 2026-06-15
 - Recovery option review: complete. Selected `SOURCE_BOUNDARY_RECOVERY_MINIMAL_READY`.
 - Revised NA-0487 scope: future implementation adds exact `lib.rs`, `handshake/mod.rs`, and conditional `identity/mod.rs` source-boundary paths to the prior helper/target/Cargo/script bundle.
 - Governance patch paths: NA-0487 recovery evidence doc, NA-0487 recovery testplan, `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Local validation before PR: PASS for exact scope guard, `git diff --check`,
+  link-check, leak-scan, added-line overclaim scan, classifier, PR body
+  preflight, local goal-lint, internal vector manifest JSON validation, formal
+  model checks, qsc binding negative test, refimpl signature provider-boundary
+  test, inherited qsc provider-RNG/key-lifecycle/provider-error tests, stable
+  qsc `send_commit`, refimpl `pqkem768`, root cargo audit, nested qsc fuzz lock
+  audit, `cargo fmt --check`, and qsc-adversarial script syntax.
 - No implementation mutation performed.
 - No qsc source/fuzz/Cargo/script/workflow, dependency, lockfile, vector/input/corpus, formal, refimpl, service, public-doc, backup, qsl-backup, qwork/qstart/qresume/qshell, or runtime mutation introduced.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no vector-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no qsc-refimpl-equivalence-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

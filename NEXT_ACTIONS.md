@@ -27370,7 +27370,7 @@ Acceptance criteria:
 ---
 
 ### NA-0490 — QSL Binding Fuzz Corpus Secret-Material Validator Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -27416,6 +27416,81 @@ Acceptance criteria:
 - no checked-in corpus before validator decision.
 - no public overclaim.
 - exactly one READY item remains.
+
+Closeout:
+- Evidence PR #1251 merged at `4db040faa71c`.
+- Post-merge public-safety on `4db040faa71c`: success.
+- D-0969 records `BINDING_FUZZ_CORPUS_VALIDATOR_SCRIPT_READY`.
+- Selected successor: `NA-0491 -- QSL Binding Fuzz Corpus Secret-Material Validator Implementation Harness`.
+- No implementation mutation, corpus/vector/input mutation, qsc source/fuzz/Cargo/script/workflow mutation, dependency/lockfile mutation, formal/refimpl/service/public/backup mutation, or public overclaim.
+
+---
+
+### NA-0491 — QSL Binding Fuzz Corpus Secret-Material Validator Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the dependency-free repo-local secret-material validator authorized by
+NA-0490 before any future checked-in binding fuzz corpus.
+
+Protects:
+- future qsc fuzz corpus safety.
+- no checked-in private/secret material.
+- deterministic local validation before corpus lanes.
+- no dependency, workflow, Cargo, lockfile, or public-claim expansion.
+- one-READY invariant.
+
+Allowed scope:
+- `scripts/audit/validate_binding_fuzz_corpus_no_secrets.py`.
+- `tests/NA-0491_qsl_binding_fuzz_corpus_secret_material_validator_implementation_testplan.md`.
+- `docs/governance/evidence/NA-0491_qsl_binding_fuzz_corpus_secret_material_validator_implementation_harness.md`.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+
+Read-only scope:
+- `qsl/qsl-client/qsc/fuzz/corpus/`.
+- `qsl/qsl-client/qsc/fuzz/fuzz_targets/qsc_binding_semantics.rs`.
+- `inputs/suite2/internal_negative_binding_vectors/`.
+- `scripts/ci/qsl_evidence_helper.py`.
+- existing validation, leak-scan, PR body, goal-lint, and public-safety tooling.
+
+Forbidden scope:
+- checked-in corpus mutation.
+- vector/input mutation.
+- qsc source mutation.
+- qsc fuzz target mutation.
+- qsc fuzz Cargo or lockfile mutation.
+- qsc-adversarial script mutation.
+- workflow mutation.
+- dependency or lockfile mutation.
+- formal/refimpl/service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- qwork/qstart/qresume/qshell mutation.
+- file move/archive/delete.
+- no public-readiness claim and no crypto-complete claim.
+
+Deliverables:
+- dependency-free Python validator script.
+- deterministic JSON report option.
+- self-tests or equivalent proof fixtures generated in temp/proof space only.
+- evidence doc.
+- implementation testplan.
+- D-0971 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+
+Acceptance criteria:
+- rejects private-key markers.
+- rejects secret labels.
+- rejects high-entropy unallowlisted material.
+- allows clearly synthetic public bytes.
+- reports deterministic redacted JSON.
+- no corpus/vector/input mutation.
+- no dependency/workflow/Cargo/lockfile mutation.
+- no public overclaim.
+- exactly one READY item remains until closeout.
 
 ---
 

@@ -34770,3 +34770,26 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No qsc source, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, qsc-adversarial script, workflow, dependency, lockfile, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced.
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0490 closeout and NA-0491 restoration update
+
+- Directive: QSL-DIR-2026-06-17-356 -- optional closeout after NA-0490 evidence PR merge.
+- Evidence PR #1251 merged at `4db040faa71c`.
+- Post-merge public-safety on `4db040faa71c`: success.
+- Post-merge qsc-adversarial-smoke on `4db040faa71c`: success.
+- Closeout branch: `na-0490-closeout-restore-na0491`.
+- Closeout PR title: `NA-0490: closeout and restore NA-0491`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0490_closeout_restore_na0491_testplan.md`.
+- D-0970 records NA-0490 closeout and NA-0491 restoration.
+- NA-0490 is marked DONE.
+- NA-0491 Binding Fuzz Corpus Secret-Material Validator Implementation Harness is restored as the sole READY successor.
+- Future NA-0491 exact implementation path: `scripts/audit/validate_binding_fuzz_corpus_no_secrets.py` plus governance evidence/testplan/decision/traceability/journal paths.
+- Future checked-in binding corpus remains blocked until validator implementation passes.
+- Recovered closeout overclaim-scan issue: first closeout added-line overclaim scan found the NA-0491 forbidden-scope bullet `public-readiness claim and crypto-complete claim` without same-line negation. Classification: recoverable in-scope queue wording issue because the bullet was intended as a prohibition. Corrective action: rewrote the bullet as `no public-readiness claim and no crypto-complete claim`. Final result: rerun closeout overclaim scan PASS with zero affirmative findings.
+- Non-fatal warning: parallel root and nested cargo-audit commands briefly contended on the local advisory DB lock. Classification: non-fatal warning, not a STOP condition. Corrective action: allowed both commands to complete. Final result: root audit and nested qsc fuzz lock audit exited successfully.
+- No NA-0491 implementation is performed by closeout.
+- No validator script, corpus/vector/input, qsc source, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, qsc-adversarial script, workflow, dependency, lockfile, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced by closeout.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

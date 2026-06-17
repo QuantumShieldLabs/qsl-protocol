@@ -27307,7 +27307,7 @@ Acceptance criteria:
 ---
 
 ### NA-0489 — QSL Binding Fuzz Ephemeral Seed Strategy Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -27366,6 +27366,56 @@ Acceptance criteria:
   mutation.
 - no public overclaim.
 - exactly one READY item remains until closeout.
+
+---
+
+### NA-0490 — QSL Binding Fuzz Corpus Secret-Material Validator Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize whether and how to build a secret-material validator before any
+future checked-in binding fuzz corpus, preserving no-secret-material,
+no-public-claim, no-dependency, and one-READY boundaries.
+
+Protects:
+- future corpus safety.
+- no checked-in private/secret material.
+- qsc/refimpl/formal/vector/fuzz traceability.
+- release-claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0490.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- read-only inspection of qsc fuzz target, corpus layout, internal vector
+  manifest, validation scripts, leak scanners, and CI evidence.
+
+Forbidden scope:
+- implementation mutation.
+- corpus/vector/input mutation.
+- runtime/crypto/dependency/Cargo/lockfile/workflow mutation.
+- fuzz target/formal/refimpl/service/public/qshield/qsl-server/qsl-attachments
+  mutation.
+- backup/restore/qsl-backup mutation.
+- no public-readiness claim and no crypto-complete claim.
+
+Deliverables:
+- validator authorization evidence doc.
+- testplan.
+- D-0969 or next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- selected exact validator implementation scope or no-action rationale.
+
+Acceptance criteria:
+- validator strategy selected or rejected.
+- secret-material patterns defined.
+- no checked-in corpus before validator decision.
+- no public overclaim.
+- exactly one READY item remains.
 
 ---
 

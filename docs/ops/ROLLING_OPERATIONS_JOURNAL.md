@@ -34692,3 +34692,43 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No qsc source/helper, qsc fuzz Cargo, qsc fuzz lockfile, root lockfile, qsc-adversarial script, workflow, dependency, corpus, vector/input, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, or backup tree mutation is introduced.
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0489 closeout and NA-0490 restoration update
+
+- Directive: QSL-DIR-2026-06-16-355 -- Close Out NA-0489 After Disk-Pressure Recovery and Restore NA-0490.
+- Begin timestamp (UTC): 2026-06-17T00:04:17Z.
+- Repo path: `/srv/qbuild/work/NA-0489/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0489_closeout_restore_na0490_after_disk_recovery_20260617T000417Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, sudo, force-push, amend, rebase, squash, branch deletion, cargo update, or cargo generate-lockfile.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0489/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `6e1004e86b55`.
+- Fetch performed only after proof/live ref match; main was already up to date with `origin/main`.
+- PR #1249 verified merged at `6e1004e86b55`.
+- Startup queue proof after corrected parser: `READY_COUNT 1`; READY NA-0489; NA-0488 DONE; NA-0487 DONE; NA-0490 absent before closeout.
+- Startup decision proof after corrected parser: D-0965 once, D-0966 once, D-0967 once, D-0968 absent, D-0969 absent, duplicate decision count zero.
+- Recovered proof parser issue: first queue parser assumed `## NA-` headings and reported missing NA blocks while still counting one READY line. Classification: recoverable proof-shape parser issue. Corrective action: reran with the actual `### NA-` queue heading grammar and decision entry-count pattern. Final result: READY NA-0489, NA-0487/NA-0488 DONE, D-0967 once, D-0968 absent, duplicate decision count zero.
+- Disk verification after D354: `/` 468G size, 389G used, 56G available, 88% used; `/backup/qsl` 916G size, 87G used, 821G available, 10% used; inode use healthy.
+- D354 archive verification: archive root `/backup/qsl/qbuild-archives/20260616_D354` exists; archived worktrees NA-0380, NA-0467, NA-0468, NA-0469, NA-0470, NA-0471, and NA-0472 exist under the archive root and are absent from `/srv/qbuild/work`; archive indexes exist at `/srv/qbuild/work/ARCHIVED_PATHS_D354.md` and `/srv/qbuild/tmp/ARCHIVED_PATHS_D354.md`.
+- D352 inheritance consumed: implementation PR #1249 merged; D352 stopped before closeout because post-merge public-safety remained in progress while qsc-adversarial-smoke was already green.
+- D353 inheritance consumed: PR #1249 post-merge public-safety, qsc-adversarial-smoke, qsc-linux-full-suite, and macos-qsc-full-serial completed success; D353 stopped because `/` reached 95% and because unsafe response writing invoked prohibited startup commands. No D353 closeout files were edited.
+- D354 inheritance consumed: D354 reduced `/` from 96% to 88%, preserved active NA-0489 worktree/qwork proof and response files, did not mutate qsl-protocol, did not run qwork/qstart/qresume/backup/restore, used safe response writing, and did not close out NA-0489.
+- D352, D353, and D354 response files exist under `/home/victor/work/qsl/codex/responses/`.
+- PR #1249 post-merge check proof on `6e1004e86b55`: public-safety success, qsc-adversarial-smoke success, qsc-linux-full-suite success, macos-qsc-full-serial success, no red checks, no in-progress checks.
+- PR #1249 changed-path proof: exactly `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0489_qsl_binding_fuzz_ephemeral_seed_strategy_implementation_harness.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, `qsl/qsl-client/qsc/fuzz/fuzz_targets/qsc_binding_semantics.rs`, and `tests/NA-0489_qsl_binding_fuzz_ephemeral_seed_strategy_implementation_testplan.md`.
+- Implementation marker proof: all required NA-0489 corpus-strategy, ephemeral-seed, no-checked-in-corpus, vector-manifest traceability-only, no-secret-material, and no unsupported-claim markers are present.
+- Pre-closeout local validation before mutation: PASS for clean diff, exact no-diff scope guard, link-check, leak-scan, added-line overclaim scan, classifier for expected closeout paths, PR body preflight, goal-lint, cargo fmt, internal vector manifest JSON validation, formal binding model, formal runner, qsc binding negative tests with and without `qsc_binding_fuzz_helper`, refimpl signature provider-boundary test, inherited qsc provider-RNG tests in cfg and no-cfg variants, qsc key lifecycle zeroization, qsc provider-error no-mutation, refimpl `pqkem768`, root cargo audit, nested qsc fuzz lock audit, `rustls-webpki` tree, `ml-kem` tree, and qsc-adversarial shell syntax checks.
+- Optional dependency probes: `cargo tree -i pqcrypto-kyber --locked` and `cargo tree -i pqcrypto-dilithium --locked` returned non-zero because those package names are absent; classified as directive-approved optional inverse probes under `|| true` shape. Final result: optional non-zero accepted and required dependency probes passed.
+- Local long-command wait accounting recorded no-cfg qsc binding negative test 3.76 minutes, cfg-on qsc binding negative test 3.74 minutes, and key lifecycle zeroization 2.29 minutes.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0489_closeout_restore_na0490_testplan.md`.
+- D-0968 records NA-0489 closeout and NA-0490 restoration.
+- NA-0489 is marked DONE.
+- NA-0490 Binding Fuzz Corpus Secret-Material Validator Authorization Plan is restored as the sole READY successor.
+- Closeout branch: `na-0489-closeout-restore-na0490`.
+- Closeout PR title: `NA-0489: closeout and restore NA-0490`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Final queue proof expected after patch: `READY_COUNT 1`; READY NA-0490; NA-0489 DONE; D-0968 once; D-0969 absent; duplicate decision count zero.
+- No implementation mutation is performed by closeout.
+- No qsc source, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, qsc-adversarial script, workflow, dependency, lockfile, corpus, vector/input, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, or backup tree mutation is introduced by closeout.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

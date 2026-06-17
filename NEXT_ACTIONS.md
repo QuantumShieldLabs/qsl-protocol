@@ -27427,7 +27427,7 @@ Closeout:
 ---
 
 ### NA-0491 — QSL Binding Fuzz Corpus Secret-Material Validator Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -27491,6 +27491,78 @@ Acceptance criteria:
 - no dependency/workflow/Cargo/lockfile mutation.
 - no public overclaim.
 - exactly one READY item remains until closeout.
+
+---
+
+Closeout:
+- Implementation PR #1253 merged at `f03f897c6681`.
+- Post-merge public-safety on `f03f897c6681`: success.
+- Post-merge qsc-adversarial-smoke on `f03f897c6681`: success.
+- Post-merge qsc-linux-full-suite on `f03f897c6681`: success.
+- Post-merge macos-qsc-full-serial on `f03f897c6681`: success.
+- D-0971 exists once and records the validator implementation evidence.
+- D-0972 records NA-0491 closeout and NA-0492 restoration.
+- NA-0491 is DONE.
+- Selected successor: `NA-0492 -- QSL Binding Fuzz Checked-In Corpus Scope Authorization Plan`.
+- No implementation mutation in closeout.
+- No validator script, corpus, vector, input, qsc source, qsc fuzz target,
+  qsc fuzz Cargo, qsc-adversarial script, workflow, dependency, lockfile,
+  formal, refimpl, service, public, backup, restore, or qsl-backup mutation in
+  closeout.
+- no public-readiness claim, no crypto-complete claim, no fuzz-complete claim,
+  no corpus-complete claim, no vector-complete claim, no replay-proof claim, no
+  downgrade-proof claim, no side-channel-free claim, no vulnerability-free
+  claim, no bug-free claim, and no perfect-crypto claim.
+
+---
+
+### NA-0492 — QSL Binding Fuzz Checked-In Corpus Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize exact checked-in binding fuzz corpus scope after validator
+implementation, preserving no-secret-material, validator-gated corpus
+ingestion, no-public-claim, no-dependency, and one-READY boundaries.
+
+Protects:
+- future corpus safety.
+- validator-gated no-secret corpus ingestion.
+- qsc binding fuzz target traceability.
+- release-claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0492.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- read-only inspection of qsc binding fuzz target, corpus layout, validator
+  script, internal vector manifest, qsc-adversarial script, and CI evidence.
+
+Forbidden scope:
+- implementation mutation.
+- corpus/vector/input mutation.
+- runtime/crypto/dependency/Cargo/lockfile/workflow mutation.
+- fuzz target/formal/refimpl/service/public/qshield/qsl-server/qsl-attachments
+  mutation.
+- backup/restore/qsl-backup mutation.
+- no public-readiness claim and no crypto-complete claim.
+
+Deliverables:
+- corpus scope authorization evidence doc.
+- testplan.
+- next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+- selected exact corpus implementation scope or no-action rationale.
+
+Acceptance criteria:
+- exact corpus path selected or rejected.
+- exact seed files/classes selected or rejected.
+- validator required before corpus PR.
+- no public overclaim.
+- exactly one READY item remains.
 
 ---
 

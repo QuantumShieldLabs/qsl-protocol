@@ -34732,3 +34732,41 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No qsc source, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, qsc-adversarial script, workflow, dependency, lockfile, corpus, vector/input, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, or backup tree mutation is introduced by closeout.
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0490 update
+
+- Directive: QSL-DIR-2026-06-17-356 -- Execute NA-0490 QSL Binding Fuzz Corpus Secret-Material Validator Authorization Plan, Optional Closeout to NA-0491.
+- Begin timestamp (UTC): 2026-06-17T02:17:05Z.
+- Repo path: `/srv/qbuild/work/NA-0490/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0490_corpus_secret_material_validator_authorization_20260617T021705Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, or cargo generate-lockfile.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0490/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `feae11ac6c64`.
+- Fetch performed only after proof/live ref match; local main fast-forward check completed against `origin/main`.
+- Startup queue proof: `READY_COUNT 1`; READY NA-0490; NA-0489 DONE; NA-0488 DONE; NA-0487 DONE.
+- Startup decision proof: D-0967 once, D-0968 once, D-0969 absent before patch, D-0970 absent before patch, duplicate decision count zero.
+- D355 response found at `/home/victor/work/qsl/codex/responses/NA0489_closeout_restore_na0490_20260617T004737Z_D355.md`.
+- Startup public-safety on `feae11ac6c64`: success.
+- Startup qsc-adversarial-smoke on `feae11ac6c64`: success.
+- Disk watermark: `/` 468G size, 389G used, 56G available, 88% used; `/backup/qsl` 916G size, 87G used, 821G available, 10% used. STOP threshold 95% was not hit.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- NA-0489/D355 inheritance consumed: PR #1249 implemented deterministic target-local ephemeral seeds with no checked-in corpus; D353 disk stop and response-writing breach were handled by D354/D355; D355 closed NA-0489 and restored NA-0490; no public claim expansion was made.
+- Current qsc fuzz corpus inventory: existing corpus dirs are `qsc_payload_boundaries` with 5 files, `qsc_route_http` with 3 files, and `qsc_vault_envelope` with 2 files. `qsc_binding_semantics` target exists, but `qsl/qsl-client/qsc/fuzz/corpus/qsc_binding_semantics/` is absent.
+- Existing validator surface inventory: `scripts/ci/qsl_evidence_helper.py leak-scan` supports added/full path scans and catches common private-key/token patterns, but does not provide passphrase rules, qsc secret-label rules, KEM/signature/identity secret-key naming rules, high-entropy allowlist policy, or deterministic corpus validator JSON output.
+- Secret-material pattern matrix classification selected: `SECRET_PATTERN_MATRIX_READY`.
+- CI/workflow/dependency impact classifications selected: `VALIDATOR_NO_DEPENDENCY_NO_WORKFLOW_READY` and `VALIDATOR_WORKFLOW_INTEGRATION_LATER`.
+- Primary classification selected: `BINDING_FUZZ_CORPUS_VALIDATOR_SCRIPT_READY`.
+- Selected successor: `NA-0491 -- QSL Binding Fuzz Corpus Secret-Material Validator Implementation Harness`.
+- Future implementation path selected: `scripts/audit/validate_binding_fuzz_corpus_no_secrets.py` plus NA-0491 governance evidence/testplan/decision/traceability/journal paths.
+- Future validator should inspect all qsc fuzz corpus directories by default, treat future `qsc_binding_semantics` corpus as the immediate blocker, reject private/secret markers and high-entropy unallowlisted material, permit clearly synthetic public/mutated material, and emit deterministic redacted JSON when requested.
+- Governance patch paths: NA-0490 evidence doc, NA-0490 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-0969 records NA-0490 binding fuzz corpus secret-material validator authorization.
+- Recovered scope-proof issue: first exact scope proof used tracked diff plus normal untracked inventory, but the new evidence doc is ignored by `**/evidence/` and the new testplan is ignored by `*secret*`, so the proof reported the two new files as missing. Classification: recoverable proof-shape issue because the files were present and within allowed scope. Corrective action: reran the exact scope proof with explicit allowed ignored paths and later staged those paths with `git add -f`. Final result: exact five-path scope proof PASS with no extra or missing paths.
+- Recovered overclaim-scan issue: first post-commit added-line overclaim scan found wrapped no-claim lists where restricted phrases appeared on continuation lines without same-line negation. Classification: recoverable in-scope documentation wording issue because the intended meaning was already no-claim boundary language. Corrective action: rewrote the affected evidence/testplan lines so each restricted phrase carries same-line `no` wording. Final result: rerun added-line overclaim scan PASS with zero affirmative findings.
+- Recovered staging command issue: first post-overclaim-fix amend staging used plain `git add` on the ignored evidence/testplan paths and Git rejected the ignored evidence directory. Classification: recoverable command-shape issue because the paths were explicitly authorized and already part of the existing commit. Corrective action: reran staging with `git add -f` for the ignored evidence/testplan paths. Final result: amend succeeded with exact five-path commit scope.
+- Local validation after patch: PASS for `git diff --check`, exact five-path scope proof with explicit ignored files, queue/decision proof, link-check, full-path leak-scan over intended paths, added-line overclaim scan, docs-only classifier, internal vector manifest JSON validation, formal binding model, formal runner, qsc binding negative tests with and without `qsc_binding_fuzz_helper`, refimpl signature provider-boundary test, refimpl `pqkem768`, inherited qsc provider-RNG tests in cfg and no-cfg variants, qsc key lifecycle zeroization, qsc provider-error no-mutation, root cargo audit, nested qsc fuzz lock audit, cargo fmt, and qsc-adversarial shell syntax.
+- No validator implementation is performed.
+- No corpus/vector/input mutation is performed.
+- No qsc source, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, qsc-adversarial script, workflow, dependency, lockfile, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

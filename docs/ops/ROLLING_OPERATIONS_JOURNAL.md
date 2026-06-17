@@ -34912,3 +34912,25 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No qsc source, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, qsc-adversarial script, workflow, dependency, lockfile, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced.
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0492 closeout and NA-0493 restoration update
+
+- Directive: QSL-DIR-2026-06-17-360 -- optional closeout after NA-0492 evidence PR merge.
+- Evidence PR #1255 merged at `644ecec3795c`.
+- Post-merge public-safety on `644ecec3795c`: success.
+- Post-merge qsc-adversarial-smoke on `644ecec3795c`: success.
+- Closeout branch: `na-0492-closeout-restore-na0493`.
+- Closeout PR title: `NA-0492: closeout and restore NA-0493`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0492_closeout_restore_na0493_testplan.md`.
+- D-0974 records NA-0492 closeout and NA-0493 restoration.
+- NA-0492 is marked DONE.
+- NA-0493 Binding Fuzz Checked-In Corpus Implementation Harness is restored as the sole READY successor.
+- Future NA-0493 exact corpus path: `qsl/qsl-client/qsc/fuzz/corpus/qsc_binding_semantics/`.
+- Future NA-0493 exact seed files: `seed_00_a1_mutation.bin`, `seed_01_b1_mutation.bin`, `seed_02_a2_mutation.bin`, `seed_03_suite_confusion.bin`, `seed_04_replay.bin`, `seed_05_stale_public_record.bin`, and `seed_ff_vector_traceability.bin`; exactly seven files, each at most 64 bytes, raw binary selector/synthetic bytes only, validator-gated.
+- No NA-0493 implementation is performed by closeout.
+- No corpus/vector/input mutation is performed by closeout.
+- No qsc source, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, qsc-adversarial script, workflow, dependency, lockfile, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced by closeout.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

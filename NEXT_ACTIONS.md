@@ -27517,7 +27517,7 @@ Closeout:
 ---
 
 ### NA-0492 — QSL Binding Fuzz Checked-In Corpus Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -27561,6 +27561,92 @@ Acceptance criteria:
 - exact corpus path selected or rejected.
 - exact seed files/classes selected or rejected.
 - validator required before corpus PR.
+- no public overclaim.
+- exactly one READY item remains.
+
+Closeout:
+- Evidence PR #1255 merged at `644ecec3795c`.
+- Post-merge public-safety on `644ecec3795c`: success.
+- Post-merge qsc-adversarial-smoke on `644ecec3795c`: success.
+- D-0973 records `BINDING_FUZZ_MINIMAL_CORPUS_IMPLEMENTATION_READY`.
+- Selected successor: `NA-0493 -- QSL Binding Fuzz Checked-In Corpus Implementation Harness`.
+- No implementation mutation, corpus/vector/input mutation, qsc source/fuzz target/Cargo/script/workflow mutation, dependency/lockfile mutation, formal/refimpl/service/public/backup mutation, or public overclaim occurred in NA-0492.
+
+---
+
+### NA-0493 — QSL Binding Fuzz Checked-In Corpus Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the minimal checked-in `qsc_binding_semantics` fuzz corpus authorized
+by NA-0492/D-0973, preserving validator-gated no-secret-material ingestion,
+data-only corpus scope, no qsc source/fuzz target/Cargo/script/workflow changes,
+no dependency changes, and one-READY discipline.
+
+Protects:
+- deterministic libFuzzer starting coverage for binding categories.
+- no checked-in private/secret material.
+- validator-gated corpus ingestion.
+- qsc binding fuzz target traceability.
+- release-claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- `qsl/qsl-client/qsc/fuzz/corpus/qsc_binding_semantics/seed_00_a1_mutation.bin`
+- `qsl/qsl-client/qsc/fuzz/corpus/qsc_binding_semantics/seed_01_b1_mutation.bin`
+- `qsl/qsl-client/qsc/fuzz/corpus/qsc_binding_semantics/seed_02_a2_mutation.bin`
+- `qsl/qsl-client/qsc/fuzz/corpus/qsc_binding_semantics/seed_03_suite_confusion.bin`
+- `qsl/qsl-client/qsc/fuzz/corpus/qsc_binding_semantics/seed_04_replay.bin`
+- `qsl/qsl-client/qsc/fuzz/corpus/qsc_binding_semantics/seed_05_stale_public_record.bin`
+- `qsl/qsl-client/qsc/fuzz/corpus/qsc_binding_semantics/seed_ff_vector_traceability.bin`
+- `docs/governance/evidence/NA-0493_qsl_binding_fuzz_checked_in_corpus_implementation_harness.md`
+- `tests/NA-0493_qsl_binding_fuzz_checked_in_corpus_implementation_testplan.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+Required corpus constraints:
+- exactly seven raw binary seed files.
+- maximum 64 bytes per file.
+- selector/category bytes plus short synthetic bytes only.
+- no corpus README or metadata file.
+- traceability belongs in governance evidence/testplan, not corpus metadata.
+- validator JSON proof must be recorded before commit.
+
+Forbidden scope:
+- qsc source mutation.
+- qsc fuzz target mutation.
+- qsc fuzz Cargo or lockfile mutation.
+- root Cargo or lockfile mutation.
+- qsc-adversarial script mutation.
+- workflow mutation.
+- dependency mutation.
+- vector/input mutation.
+- formal/refimpl/service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- qwork/qstart/qresume/qshell mutation.
+- file move/archive/delete outside the exact future seed creation scope.
+- no public-readiness claim and no crypto-complete claim.
+- no fuzz-complete claim, no corpus-complete claim, no vector-complete claim,
+  no replay-proof claim, no downgrade-proof claim, no side-channel-free claim,
+  no vulnerability-free claim, no bug-free claim, and no perfect-crypto claim.
+
+Deliverables:
+- exactly seven validator-gated raw corpus seed files.
+- corpus implementation evidence doc.
+- implementation testplan.
+- next sequential decision.
+- TRACEABILITY update.
+- Rolling journal update.
+
+Acceptance criteria:
+- exact seven seed files exist and no extra corpus files are introduced.
+- every seed file is at most 64 bytes.
+- validator current binding corpus scan passes.
+- no secret/private material findings.
+- no qsc source/fuzz target/Cargo/script/workflow mutation.
+- no dependency or lockfile mutation.
 - no public overclaim.
 - exactly one READY item remains.
 

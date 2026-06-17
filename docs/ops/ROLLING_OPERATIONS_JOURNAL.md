@@ -34793,3 +34793,44 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No validator script, corpus/vector/input, qsc source, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, qsc-adversarial script, workflow, dependency, lockfile, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced by closeout.
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0491 update
+
+- Directive: QSL-DIR-2026-06-17-357 -- Execute NA-0491 QSL Binding Fuzz Corpus Secret-Material Validator Implementation Harness, Optional Closeout to NA-0492.
+- Begin timestamp (UTC): 2026-06-17T10:21:38Z.
+- Repo path: `/srv/qbuild/work/NA-0491/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0491_corpus_secret_material_validator_impl_20260617T102138Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, or cargo generate-lockfile.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0491/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `08f54515306b`.
+- Fetch performed only after proof/live ref match; local main was checked against `origin/main`.
+- Startup queue proof: `READY_COUNT 1`; READY NA-0491; NA-0490 DONE; NA-0489 DONE; NA-0488 DONE; NA-0487 DONE.
+- Startup decision proof: D-0969 once, D-0970 once, D-0971 absent before patch, duplicate decision count zero.
+- D356 response found at `/home/victor/work/qsl/codex/responses/NA0490_20260617T031514Z_D356.md`.
+- Startup public-safety on `08f54515306b`: success.
+- Startup qsc-adversarial-smoke on `08f54515306b`: success.
+- Disk watermark: `/` 468G size, 394G used, 51G available, 89% used; `/backup/qsl` 916G size, 99G used, 808G available, 11% used. STOP threshold 95% was not hit.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- NA-0490/D356 inheritance consumed: `BINDING_FUZZ_CORPUS_VALIDATOR_SCRIPT_READY`, `SECRET_PATTERN_MATRIX_READY`, `VALIDATOR_NO_DEPENDENCY_NO_WORKFLOW_READY`, and `VALIDATOR_WORKFLOW_INTEGRATION_LATER`.
+- Preimage proof: `scripts/audit/validate_binding_fuzz_corpus_no_secrets.py` was absent; existing qsc corpus dirs were `qsc_payload_boundaries`, `qsc_route_http`, and `qsc_vault_envelope`; no checked-in `qsc_binding_semantics` corpus existed.
+- Implemented `scripts/audit/validate_binding_fuzz_corpus_no_secrets.py` as dependency-free Python using only the standard library.
+- Validator behavior: recursive deterministic scan, default qsc corpus path, repeated `--path`, `--paths`, JSON/text output, explicit `--allow-missing`, symlink non-following, redacted findings, deterministic JSON, and fail-closed exit on findings.
+- Proof-root fixtures created only under `/srv/qbuild/tmp/NA0491_corpus_secret_material_validator_impl_20260617T102138Z/fixtures/`.
+- Safe fixture result: exit 0, zero findings.
+- Private-marker fixture result: expected exit 2, redacted `private_key_marker` finding.
+- Secret-label fixture result: expected exit 2, redacted findings for passphrase, KEM secret-key, signature secret-key, identity secret-key, backup/recovery key, runtime/service secret, private endpoint, operator/user data, and qsc secret filename/path labels.
+- High-entropy fixture result: expected exit 2, redacted high-entropy encoded span finding.
+- Existing qsc fuzz corpus scan result: exit 0, 10 files scanned, 1182 bytes scanned, zero findings.
+- Missing binding corpus with `--allow-missing`: exit 0 and `missing_allowed`.
+- Missing binding corpus without `--allow-missing`: expected exit 2.
+- Deterministic JSON compare: exit 0.
+- Governance patch paths: validator script, NA-0491 evidence doc, NA-0491 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-0971 records NA-0491 binding fuzz corpus secret-material validator implementation.
+- Selected successor: `NA-0492 -- QSL Binding Fuzz Checked-In Corpus Scope Authorization Plan`.
+- Recovered local command issue: first full qsc-adversarial local command invoked `scripts/ci/qsc_adversarial.sh` directly and returned permission denied because the script is not executable. Classification: recoverable command-shape issue. Corrective action: reran with `sh scripts/ci/qsc_adversarial.sh`. Final result: adversarial Rust prerequisite tests passed and the run reached the expected local `cargo fuzz` unavailable boundary.
+- Local validation before PR: PASS for validator help, py_compile with pycache outside repo, safe/reject fixtures, redaction proof, deterministic JSON compare, existing corpus scan, missing-corpus allow-missing proof, internal vector manifest JSON validation, formal binding model, formal runner, qsc binding negative tests with and without `qsc_binding_fuzz_helper`, refimpl signature provider-boundary, refimpl `pqkem768`, qsc key lifecycle zeroization, qsc provider-error no-mutation, root cargo audit, nested qsc fuzz lock audit, cargo fmt, qsc-adversarial shell syntax, and qsc-adversarial local prerequisite Rust tests before local cargo-fuzz unavailable boundary.
+- Local long-command wait accounting recorded no-cfg qsc binding negative test about 3.72 minutes, cfg-on qsc binding negative test about 3.71 minutes, and key lifecycle zeroization about 2.28 minutes.
+- No checked-in corpus/vector/input mutation is performed.
+- No qsc source, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, qsc-adversarial script, workflow, dependency, lockfile, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

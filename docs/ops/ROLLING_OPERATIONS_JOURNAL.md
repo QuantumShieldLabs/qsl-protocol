@@ -34874,3 +34874,41 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No validator script, corpus/vector/input, qsc source, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, qsc-adversarial script, workflow, dependency, lockfile, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced by closeout.
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no validator-complete claim beyond bounded NA-0491 implementation evidence is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0492 update
+
+- Directive: QSL-DIR-2026-06-17-360 -- Recover NA-0492 After Proof-Output Path Stop and Execute Checked-In Corpus Scope Authorization Plan, Optional Closeout to NA-0493.
+- Begin timestamp (UTC): 2026-06-17T14:02:21Z.
+- Repo path: `/srv/qbuild/work/NA-0492/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0492_checked_in_corpus_scope_authorization_recovery_20260617T140221Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, or cargo generate-lockfile.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0492/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `229091f7c0ec`.
+- Fetch performed only after proof/live ref match; local main was checked against `origin/main`.
+- Recovered startup parser issue: first queue/decision parser counted historical queue mentions and decision cross-references instead of live `### NA-` blocks and `- **ID:**` records. Classification: recoverable command-shape/proof-shape issue. Corrective action: reran with the actual queue and decision-entry grammar. Final result: `READY_COUNT 1`, READY NA-0492, NA-0490 DONE, NA-0491 DONE, D-0971 once, D-0972 once, D-0973 absent, duplicate decision count zero.
+- Startup public-safety on `229091f7c0ec`: success. qsc-adversarial-smoke on `229091f7c0ec`: success.
+- Disk watermark: `/` usage about 85.44%; `/backup/qsl` checked read-only. STOP threshold 95% was not hit.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- D359 stop recovery: `/tmp/na0492_cargo_fuzz_version.out` existed. Codex recorded `ls -l` and SHA-256, copied it into the D360 proof root, summarized it without trusting it as proof, deleted exactly that path, and verified it absent. No other `/tmp` path was deleted or modified.
+- D359 partial observations are not authorization decisions.
+- NA-0491/D358 inheritance consumed: validator script implemented; deterministic JSON/text behavior recorded; private-marker, secret-label, and high-entropy rejections inherited; safe synthetic fixture acceptance inherited; current corpus pass inherited; missing binding corpus requires explicit `--allow-missing`; NA-0492 restored as authorization-only.
+- Current qsc fuzz corpus inventory: `qsc_payload_boundaries` has 5 files, `qsc_route_http` has 3 files, `qsc_vault_envelope` has 2 files, and `qsc_binding_semantics` corpus is absent.
+- Binding target inventory: `qsc_binding_semantics` exists and covers A1 mutation, B1 mutation, A2 mutation, suite-confusion, replay, stale public-record, and vector-manifest traceability via target-local deterministic ephemeral seeds.
+- qsc-adversarial inclusion: `scripts/ci/qsc_adversarial.sh` includes `qsc_binding_semantics` and applies `--cfg qsc_binding_fuzz_helper` for that target.
+- Local cargo-fuzz availability: unavailable in this environment, exit 101, recorded under the D360 proof root as local availability evidence only.
+- Validator gate proof: current qsc fuzz corpus scan passed with zero findings; missing `qsc_binding_semantics` passed with explicit `--allow-missing`; missing without allow-missing exited nonzero.
+- Primary classification selected: `BINDING_FUZZ_MINIMAL_CORPUS_IMPLEMENTATION_READY`.
+- Selected successor: `NA-0493 -- QSL Binding Fuzz Checked-In Corpus Implementation Harness`.
+- Future NA-0493 exact corpus path: `qsl/qsl-client/qsc/fuzz/corpus/qsc_binding_semantics/`.
+- Future NA-0493 exact seed files: `seed_00_a1_mutation.bin`, `seed_01_b1_mutation.bin`, `seed_02_a2_mutation.bin`, `seed_03_suite_confusion.bin`, `seed_04_replay.bin`, `seed_05_stale_public_record.bin`, and `seed_ff_vector_traceability.bin`; exactly seven files, each at most 64 bytes, raw binary selector/synthetic bytes only, validator-gated.
+- Governance patch paths: NA-0492 evidence doc, NA-0492 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-0973 records NA-0492 binding fuzz checked-in corpus scope authorization.
+- Evidence PR branch: `na-0492-binding-fuzz-corpus-scope`.
+- Evidence PR title: `NA-0492: authorize binding fuzz checked-in corpus scope`.
+- Evidence PR: pending at journal authoring.
+- Evidence PR merge commit: pending at journal authoring.
+- No implementation mutation is performed.
+- No corpus/vector/input mutation is performed.
+- No qsc source, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, qsc-adversarial script, workflow, dependency, lockfile, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

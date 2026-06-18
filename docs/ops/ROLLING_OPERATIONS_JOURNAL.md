@@ -35072,6 +35072,45 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no validator-complete claim beyond bounded NA-0491 implementation evidence is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0496 update
+
+- Directive: QSL-DIR-2026-06-18-368 -- Execute NA-0496 QSL Binding Negative Vector Consumer Test Scope Authorization Plan, Optional Closeout to NA-0497.
+- Begin timestamp (UTC): 2026-06-18T15:02:31Z.
+- Repo path: `/srv/qbuild/work/NA-0496/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0496_binding_negative_vector_consumer_scope_20260618T150231Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, or cargo generate-lockfile.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0496/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `1170a9189707`.
+- Fetch performed only after proof/live ref match; local main was checked against `origin/main`.
+- Startup queue proof: READY_COUNT 1; READY NA-0496; NA-0495 DONE; NA-0494 DONE; NA-0493 DONE.
+- Startup decision proof: D-0979 once, D-0980 once, D-0981 absent before patch, D-0982 absent before patch, duplicate decision record count zero.
+- D367 response found at `/home/victor/work/qsl/codex/responses/NA0495_closeout_restore_na0496_20260618T135642Z_D367.md`.
+- Startup public-safety on `1170a9189707`: success. Startup qsc-adversarial-smoke on `1170a9189707`: success.
+- Disk watermark: `/` usage 94%; `/backup/qsl` checked read-only. STOP threshold 95% was not hit.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- Recovered startup parser issue: initial startup gate parser expected JSON from `qsl_evidence_helper.py public-safety-status` and counted broad decision-ID references instead of decision records. Classification: recoverable command/proof-shape issue. Corrective action: reran with text-aware public-safety parsing and `- **ID:**` decision-record counts. Final result: startup gates passed.
+- Recovered ignored-path scope proof issue: initial changed-path inspection via `git diff --name-only` did not list the new evidence doc and testplan because repository ignore rules hide those paths before staging. Classification: recoverable proof-shape issue because both files were present and explicitly allowed. Corrective action: used exact scope guard with tracked diff plus explicit allowed ignored-path existence checks, then staged the files with `git add -f`. Final result: staged exact five-path scope guard passed.
+- Recovered overclaim-scan issue: first custom overclaim scan covered full historical governance files and one new evidence bullet lacked same-line negation for public/conformance vector publication. Classification: recoverable proof-shape plus in-scope wording issue. Corrective action: rewrote the new bullet as no public/conformance vector publication and reran an added-line/new-file overclaim scan. Final result: added-line overclaim scan passed.
+- NA-0495/D367 inheritance consumed: qsc-adversarial validator integration implemented and closed; validator scans checked-in binding corpus and all qsc fuzz corpus; qsc-adversarial does not use `--allow-missing`; checked-in binding corpus has seven 8-byte public/synthetic seeds; validator passes binding corpus and all qsc fuzz corpus; qsc-adversarial-smoke and public-safety were green; internal negative vector manifest remains internal-only; no public/completion/proof claim is inherited.
+- Manifest inventory: internal negative binding vector manifest has schema keys `schema_version`, `suite`, `status`, `title`, `metadata`, `public_claim_boundary`, `secret_material_policy`, `traceability`, `sections`, and `vectors`; sections are `qsc_binding`, `refimpl_signature_provider_boundary`, and `formal_token_mapping`; actual vector count is 34 with 21 qsc-frame, 6 refimpl signature-provider-boundary, and 7 formal token-mapping vectors.
+- Manifest material policy: all 34 vectors record no checked-in secret material, private key, passphrase, or user data; manifest scan found zero hex32plus pattern occurrences.
+- Consumer surface inventory: qsc crate already depends on `serde_json`; a future qsc integration test can parse the manifest without Cargo, dependency, lockfile, workflow, qsc source, qsc fuzz, corpus, vector, input, script, formal, refimpl, service, public, or backup mutation.
+- Primary classification selected: `BINDING_NEGATIVE_VECTOR_SCHEMA_MAPPING_TEST_READY`.
+- Selected successor: `NA-0497 -- QSL Binding Negative Vector Consumer Test Implementation Harness`.
+- Future NA-0497 exact implementation path: `qsl/qsl-client/qsc/tests/binding_negative_vector_consumer.rs` plus NA-0497 governance evidence/testplan/decision/traceability/journal paths.
+- Future NA-0497 semantics: new qsc integration test reads/parses the internal manifest, validates schema/mapping/no-secret/public-claim metadata for all 34 vectors, treats refimpl and formal-token sections as supporting-only, and does not generate dynamic qsc handshake assertions from manifest metadata.
+- Governance patch paths: NA-0496 evidence doc, NA-0496 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-0981 records NA-0496 binding negative vector consumer test scope authorization.
+- Evidence PR branch: `na-0496-vector-consumer-scope-authorization`.
+- Evidence PR title: `NA-0496: authorize binding vector consumer test scope`.
+- Evidence PR: pending at journal authoring.
+- Evidence PR merge commit: pending at journal authoring.
+- No implementation mutation is performed.
+- No corpus/vector/input mutation is performed.
+- No qsc source, qsc test, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, root Cargo, dependency, lockfile, workflow, script, helper, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no public/conformance vector claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0492 update
 
 - Directive: QSL-DIR-2026-06-17-360 -- Recover NA-0492 After Proof-Output Path Stop and Execute Checked-In Corpus Scope Authorization Plan, Optional Closeout to NA-0493.

@@ -27849,7 +27849,7 @@ Completion:
 ---
 
 ### NA-0496 — QSL Binding Negative Vector Consumer Test Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -27894,6 +27894,64 @@ Acceptance criteria:
 - exact future test path selected if ready.
 - public/conformance claim boundary preserved.
 - exactly one READY item remains.
+
+---
+
+### NA-0497 — QSL Binding Negative Vector Consumer Test Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the selected qsc integration test that consumes the internal negative
+binding vector manifest and validates schema, category, layer, and mapping
+coverage while making no public/conformance vector claim, no vector-complete
+claim, no replay-proof claim, no downgrade-proof claim, no public-readiness
+claim, and no crypto-complete claim.
+
+Protects:
+- deterministic manifest-to-test traceability.
+- internal-only vector boundary.
+- qsc-frame subset mapping.
+- refimpl/formal supporting-only boundaries.
+- no public/conformance vector overclaim.
+- one-READY invariant.
+
+Allowed scope:
+- qsl/qsl-client/qsc/tests/binding_negative_vector_consumer.rs
+- docs/governance/evidence/NA-0497_qsl_binding_negative_vector_consumer_test_implementation_harness.md
+- tests/NA-0497_qsl_binding_negative_vector_consumer_test_implementation_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+
+Forbidden scope:
+- qsc source mutation.
+- qsc fuzz target/Cargo mutation.
+- corpus/vector/input mutation.
+- workflow/script/helper mutation.
+- dependency/lockfile mutation.
+- formal/refimpl/service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- no public-readiness claim.
+- no crypto-complete claim.
+- no vector-complete claim.
+- no replay-proof claim.
+- no downgrade-proof claim.
+
+Deliverables:
+- qsc integration test.
+- implementation evidence doc.
+- implementation testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+
+Acceptance criteria:
+- manifest schema/category/layer/mapping checks pass.
+- qsc-frame vectors mapped to qsc-facing evidence classes.
+- refimpl/formal token sections treated supporting-only.
+- no public/conformance vector claim.
+- exactly one READY item remains after closeout.
 
 ---
 

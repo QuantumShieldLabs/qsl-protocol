@@ -35112,6 +35112,52 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no public/conformance vector claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0496 closeout and NA-0497 restoration update
+
+- Directive: QSL-DIR-2026-06-18-372 -- Close Out NA-0496 After Disk Recovery and Binding Negative Vector Consumer Scope Public-Safety Completion, Restore NA-0497.
+- Begin timestamp (UTC): 2026-06-18T18:46:41Z.
+- Repo path: `/srv/qbuild/work/NA-0496/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0496_closeout_restore_na0497_20260618T184641Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, cargo generate-lockfile, archive, move, or delete actions.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0496/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `ba839e2d8f33`.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main was checked against `origin/main`.
+- Startup queue proof: READY_COUNT 1; READY NA-0496; NA-0495 DONE; NA-0494 DONE; NA-0493 DONE.
+- Startup decision proof: D-0979 once, D-0980 once, D-0981 once, D-0982 absent before patch, duplicate decision record count zero.
+- D368 response found at `/home/victor/work/qsl/codex/responses/NA0496_20260618T150231Z_D368.md`.
+- D369 response found at `/home/victor/work/qsl/codex/responses/NA0496_closeout_restore_na0497_20260618T155231Z_D369.md`.
+- D370 response found at `/home/victor/work/qsl/codex/responses/NA0496_disk_pressure_recovery_20260618T160717Z_D370.md`.
+- D371 response found at `/home/victor/work/qsl/codex/responses/NA0496_deep_disk_archive_20260618T165641Z_D371.md`.
+- Disk recovery inheritance consumed: D369 stopped before closeout at `/` usage 95%; D370 reduced `/` usage to 89%; D371 reduced `/` usage to 74.92% exact and 74% by `df`; this directive verified `/` at 74% and `/backup/qsl` at 23% before closeout.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- PR #1263 merge proof: qsl-protocol PR #1263 is merged at `ba839e2d8f33`.
+- PR #1263 scope proof: changed paths are exactly `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0496_qsl_binding_negative_vector_consumer_test_scope_authorization_plan.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0496_qsl_binding_negative_vector_consumer_test_scope_authorization_testplan.md`.
+- D368 inheritance consumed: selected `BINDING_NEGATIVE_VECTOR_SCHEMA_MAPPING_TEST_READY`; selected successor NA-0497; selected future path `qsl/qsl-client/qsc/tests/binding_negative_vector_consumer.rs`; selected semantics are manifest parsing plus schema/category/layer/mapping coverage, no dynamic crypto execution claim, qsc-frame vectors as qsc-facing subset, and refimpl/formal sections supporting-only.
+- PR #1263 post-merge public-safety proof on `ba839e2d8f33`: public-safety completed success; qsc-adversarial-smoke completed success; qsc-linux-full-suite completed skipped by docs/governance-only policy; macos-qsc-full-serial completed skipped by docs/governance-only policy; no completed check failure; PUBLIC_SAFETY_RED no; PUBLIC_SAFETY_AMBIGUOUS no.
+- Pre-closeout validation passed: git diff check; binding corpus validator JSON; all qsc fuzz corpus validator JSON; internal manifest JSON validation; formal binding model; formal runner; qsc binding negative test with and without `qsc_binding_fuzz_helper`; refimpl signature provider-boundary test; refimpl `pqkem768`; root cargo audit; nested qsc fuzz lock audit; cargo fmt; qsc-adversarial shell syntax.
+- Optional local qsc-adversarial full script reached the local missing cargo-fuzz boundary after passing stable adversarial tests, provider-error no-mutation, and validator steps. Classification: recoverable optional local tooling boundary. Corrective action: recorded exact output and relied on PR #1263 qsc-adversarial-smoke success. Final result: accepted optional limitation.
+- Local long-command wait accounting recorded the two qsc binding negative cargo test runs as local validation wait intervals; no CI wait interval over 60 seconds occurred before closeout patch.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0496_closeout_restore_na0497_testplan.md`.
+- D-0982 records NA-0496 closeout and NA-0497 restoration.
+- NA-0496 is marked DONE.
+- NA-0497 Binding Negative Vector Consumer Test Implementation Harness is restored as the sole READY successor.
+- Future NA-0497 exact implementation path: `qsl/qsl-client/qsc/tests/binding_negative_vector_consumer.rs` plus NA-0497 governance evidence/testplan/decision/traceability/journal paths.
+- Future NA-0497 must parse the internal manifest and validate schema/category/layer/mapping coverage, map qsc-frame vectors to qsc-facing evidence classes, and treat refimpl/formal token sections as supporting-only.
+- Closeout branch: `na-0496-closeout-restore-na0497`.
+- Closeout PR title: `NA-0496: closeout and restore NA-0497`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- No implementation mutation is performed by closeout.
+- No qsc test/source/fuzz/Cargo mutation is performed by closeout.
+- No corpus/vector/input mutation is performed by closeout.
+- No workflow/script/helper/dependency/lockfile mutation is performed by closeout.
+- No formal/refimpl/service/public/qshield/qsl-server/qsl-attachments mutation is performed by closeout.
+- No backup/restore/qsl-backup mutation is performed by closeout.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no public/conformance vector claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+---
+
 ## NA-0492 update
 
 - Directive: QSL-DIR-2026-06-17-360 -- Recover NA-0492 After Proof-Output Path Stop and Execute Checked-In Corpus Scope Authorization Plan, Optional Closeout to NA-0493.

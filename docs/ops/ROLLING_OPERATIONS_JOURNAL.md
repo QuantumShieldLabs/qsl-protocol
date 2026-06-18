@@ -11,8 +11,8 @@ Last-Updated: 2026-06-15
 - Directive: QSL-DIR-2026-06-18-365 -- Execute NA-0494 QSL Binding Fuzz Corpus Validator CI Integration Authorization Plan, Optional Closeout to NA-0495.
 - Begin timestamp (America/Chicago): 2026-06-17T22:07:15-05:00.
 - Begin timestamp (UTC): 2026-06-18T03:07:15+00:00.
-- End timestamp (America/Chicago): pending.
-- End timestamp (UTC): pending.
+- End timestamp (America/Chicago): pending closeout.
+- End timestamp (UTC): pending closeout.
 - Repo path: `/srv/qbuild/work/NA-0494/qsl-protocol`.
 - Proof root: `/srv/qbuild/tmp/NA0494_validator_ci_integration_authorization_20260618T030715Z`.
 - Codex did not run qwork, qstart, qresume, qshell, sudo, backup, restore, cargo update, or cargo generate-lockfile.
@@ -22,10 +22,10 @@ Last-Updated: 2026-06-15
 - qsl-protocol HEAD before fetch: `1c4fb02158e2`.
 - qsl-protocol origin/main before fetch: `1c4fb02158e2`.
 - qsl-protocol origin/main after fetch: `1c4fb02158e2`.
-- Evidence branch: pending.
-- Evidence PR: pending.
-- Evidence merge commit: pending.
-- Optional closeout branch: pending.
+- Evidence branch: `na-0494-validator-ci-integration-authorization`.
+- Evidence PR: #1259.
+- Evidence merge commit: `8221f6cceb2a`.
+- Optional closeout branch: `na-0494-closeout-restore-na0495`.
 - Optional closeout PR: pending.
 - Optional closeout merge commit: pending.
 
@@ -54,6 +54,10 @@ Last-Updated: 2026-06-15
 - Authorization selected: `BINDING_FUZZ_VALIDATOR_QSC_ADVERSARIAL_INTEGRATION_READY`.
 - Selected successor: `NA-0495 -- QSL Binding Fuzz Corpus Validator qsc-Adversarial Integration Implementation Harness`.
 - Future implementation scope: add fail-closed validator invocations to `scripts/ci/qsc_adversarial.sh`, scan both the exact binding corpus and the full qsc fuzz corpus, use existing validator unchanged, reject missing binding corpus, emit text log output, and avoid workflow/helper/dependency/lockfile/qsc source/qsc fuzz target/corpus mutation.
+- Evidence PR #1259 merged at `8221f6cceb2a`.
+- Post-evidence public-safety on `8221f6cceb2a`: PASS.
+- Optional closeout started after post-evidence public-safety completed success.
+- Closeout patch marks NA-0494 DONE and restores NA-0495 as sole READY without implementing NA-0495.
 - No implementation mutation performed by NA-0494.
 - No workflow/script/helper/validator/corpus/vector/input/qsc source/qsc fuzz target/Cargo/dependency/lockfile/formal/refimpl/service/public/backup/qsl-backup/qwork/qstart/qresume/qshell mutation introduced.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no validator-complete claim beyond bounded internal evidence is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

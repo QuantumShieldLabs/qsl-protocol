@@ -6,6 +6,60 @@ Last-Updated: 2026-06-15
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-18-373 / NA-0497 binding negative vector consumer test implementation rolling journal
+
+- Directive: QSL-DIR-2026-06-18-373 -- Execute NA-0497 QSL Binding Negative Vector Consumer Test Implementation Harness, Optional Closeout to NA-0498.
+- Begin timestamp (UTC): 2026-06-18T19:38:17Z qwork proof time; Codex proof root created 2026-06-18T19:39:49Z.
+- Repo path: `/srv/qbuild/work/NA-0497/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0497_binding_negative_vector_consumer_impl_20260618T193949Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, or cargo generate-lockfile.
+
+## Repo SHAs
+
+- qsl-protocol HEAD before fetch: `c4f6e3bb8f30`.
+- qsl-protocol origin/main before fetch: `c4f6e3bb8f30`.
+- qsl-protocol origin/main after fetch: `c4f6e3bb8f30`.
+- Implementation branch: `na-0497-binding-negative-vector-consumer-test`.
+- Implementation PR: pending at journal authoring.
+- Implementation merge commit: pending at journal authoring.
+
+## READY Proof
+
+- qwork proof: startup OK for lane NA-0497, repo qsl-protocol, clean worktree/index/untracked state, proof HEAD and proof origin/main both `c4f6e3bb8f30`.
+- Pre-fetch live proof: HEAD and origin/main matched qwork proof at `c4f6e3bb8f30`.
+- Fetch performed only after proof/live ref match and disk gate.
+- Queue proof before patch: READY_COUNT 1 and READY NA-0497.
+- Direct queue proof before patch: NA-0494 DONE; NA-0495 DONE; NA-0496 DONE; NA-0497 READY.
+- Decision proof before patch: D-0981 once, D-0982 once, D-0983 absent, duplicate decision count zero.
+- D372 response found at `/home/victor/work/qsl/codex/responses/NA0496_closeout_restore_na0497_20260618T191907Z_D372.md`.
+
+## Recovered Failure Evidence
+
+- Recovered startup parser issue: first queue/decision parser counted broad decision references and then used a heading grammar not used by `DECISIONS.md`. Classification: recoverable command/proof-shape issue; no repo file had been changed. Corrective action: reran with actual `- **ID:** D-####` decision-entry grammar. Final result: queue and decision gates passed.
+
+## Validation / CI Notes
+
+- Disk watermark before fetch: `/` below the 95% stop threshold; `/backup/qsl` checked read-only.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- NA-0496/D372 inheritance consumed: NA-0496 closed; NA-0497 restored READY; selected future test path `qsl/qsl-client/qsc/tests/binding_negative_vector_consumer.rs`; selected semantics are manifest schema/category/layer/mapping coverage; no dynamic crypto execution claim; qsc-frame subset is qsc-facing; refimpl/formal sections are supporting-only; no public/conformance vector claim; no vector-complete claim; no replay-proof claim; no downgrade-proof claim.
+- Pre-mutation selected test file state: absent.
+- Manifest inventory: schema version `1`; status `internal-negative-evidence-only`; 3 sections; 34 vectors; 21 qsc-frame vectors; 6 refimpl signature-provider-boundary vectors; 7 formal token-mapping vectors.
+- Implemented exactly one qsc integration test file: `qsl/qsl-client/qsc/tests/binding_negative_vector_consumer.rs`.
+- qsc integration test reads the internal manifest via `env!("CARGO_MANIFEST_DIR")` and existing `serde_json`.
+- qsc integration test is schema/mapping-only and does not execute dynamic handshakes from manifest data.
+- Primary qsc vector consumer test passed and emitted NA-0497 markers.
+- Manifest JSON validation passed.
+- Binding corpus validator scan passed with zero findings.
+- All qsc fuzz corpus validator scan passed with zero findings.
+- Governance patch paths: NA-0497 evidence doc, NA-0497 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-0983 records NA-0497 binding negative vector consumer test implementation.
+- Selected successor: `NA-0498 -- QSL Core Assurance Checkpoint and Next Highest-Risk Security Lane Authorization Plan`.
+- No qsc source, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, root Cargo lockfile, qsc-adversarial script, workflow, dependency, corpus/vector/input, manifest, validator, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no public/conformance vector claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+---
+
 # QSL-DIR-2026-06-18-365 / NA-0494 validator CI integration authorization rolling journal
 
 - Directive: QSL-DIR-2026-06-18-365 -- Execute NA-0494 QSL Binding Fuzz Corpus Validator CI Integration Authorization Plan, Optional Closeout to NA-0495.

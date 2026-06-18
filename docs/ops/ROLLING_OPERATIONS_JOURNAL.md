@@ -34764,6 +34764,45 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no validator-complete claim beyond bounded internal evidence is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0495 closeout and NA-0496 restoration update
+
+- Directive: QSL-DIR-2026-06-18-367 -- Close Out NA-0495 After qsc-Adversarial Validator Integration Post-Merge Public-Safety Completion and Restore NA-0496.
+- Begin timestamp (UTC): 2026-06-18T13:55:00Z.
+- Repo path: `/srv/qbuild/work/NA-0495/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0495_closeout_restore_na0496_20260618T135642Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, cargo generate-lockfile, or CI watcher/tooling implementation.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0495/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `399fe6c2f61b`.
+- Fetch performed only after proof/live ref match; local main matched `origin/main`.
+- Startup queue proof: `READY_COUNT 1`; READY NA-0495; NA-0494 DONE; NA-0493 DONE.
+- Startup decision proof: D-0977 once, D-0978 once, D-0979 once, D-0980 absent, duplicate decision count zero.
+- Disk watermark: `/` usage below the 95% STOP threshold; `/backup/qsl` checked read-only.
+- qsl-backup read-only proof: installed helper matched expected digest prefix `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- D366 inheritance consumed: implementation PR #1261 merged; implementation commit `7e3eb28abbc8`; merge commit `399fe6c2f61b`; qsc-adversarial integrates the existing validator, scans the binding corpus and all qsc fuzz corpus, does not use `--allow-missing`, fails closed under `set -eu`, and preserves stable adversarial tests, provider-error no-mutation, target order, and `qsc_binding_semantics` cfg behavior.
+- D366 stop reason preserved: closeout was not performed because post-merge public-safety, qsc-linux-full-suite, and macos-qsc-full-serial were still in progress after bounded polling; qsc-adversarial-smoke was already green; NA-0495 remained READY until this closeout.
+- PR #1261 changed-path proof matched exactly `scripts/ci/qsc_adversarial.sh`, NA-0495 evidence doc, NA-0495 implementation testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal. No workflow, helper, validator, corpus/vector/input, qsc source/fuzz target/Cargo, dependency, lockfile, formal, refimpl, service, public, backup, qsl-backup, qwork/qstart/qresume/qshell, move, archive, or delete path was changed by PR #1261.
+- PR #1261 post-merge protection proof for `399fe6c2f61b`: public-safety success; qsc-adversarial-smoke success; qsc-linux-full-suite success; macos-qsc-full-serial success. Branch-protection required contexts had no red required failure. Later optional remote/demo-style check runs attached to the same SHA were not branch-protection required contexts and were not used as closeout blockers.
+- Recovered command-shape issue: first status rollup GraphQL proof queried `isRequired` without PR context and returned an API usage error. Classification: recoverable command-shape issue. Corrective action: used REST branch-protection `required_status_checks` plus saved check-run JSON. Final result: required contexts had no red failures and core post-merge checks were success.
+- Recovered proof-string issue: first compact marker proof expected a provider-error test-name string rather than the preserved qsc-adversarial marker. Classification: recoverable proof-shape issue. Corrective action: checked `NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP` and `handshake_provider_error_no_mutation`. Final result: marker/path proof passed.
+- Pre-closeout local validation before mutation: PASS for `git diff --check`, validator binding corpus JSON scan, validator all qsc fuzz corpus JSON scan, internal negative vector manifest JSON validation, formal binding model, formal runner, qsc binding negative tests with and without `qsc_binding_fuzz_helper`, refimpl signature provider-boundary test, refimpl `pqkem768`, root cargo audit, nested qsc fuzz lock audit, cargo fmt, and qsc-adversarial shell syntax.
+- Optional local qsc-adversarial execution passed stable adversarial tests, provider-error no-mutation, and both validator scans, then reached the expected local `cargo fuzz` unavailable boundary. Green PR/main qsc-adversarial-smoke remains the cargo-fuzz-backed evidence.
+- Non-fatal warning: parallel cargo audits briefly waited on the local advisory database lock and then completed success.
+- D366 CI wait-waste recommendation consumed: implementation directives should use short post-merge attach/early-failure polling; long 180-iteration polling should be reserved for explicit closeout/evidence directives; a low-cost non-Codex watcher is a future local-ops/tooling residual. No watcher/tooling was implemented in this closeout.
+- Wait-time accounting so far: PR #1261 post-merge evidence was already green at D367 startup, so no CI wait interval over 60 seconds occurred before closeout mutation. Local long-command wait before closeout mutation was about 7.52 minutes across the two qsc binding negative test runs.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0495_closeout_restore_na0496_testplan.md`.
+- D-0980 records NA-0495 closeout and NA-0496 restoration.
+- NA-0495 is marked DONE.
+- NA-0496 Binding Negative Vector Consumer Test Scope Authorization Plan is restored as the sole READY successor.
+- Closeout branch: `na-0495-closeout-restore-na0496`.
+- Closeout PR title: `NA-0495: closeout and restore NA-0496`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Final queue proof expected after patch: `READY_COUNT 1`; READY NA-0496; NA-0495 DONE; D-0980 once; D-0981 absent; duplicate decision count zero.
+- No implementation mutation is performed by closeout.
+- No qsc-adversarial script, workflow, helper, validator script, corpus/vector/input, qsc source, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, root lockfile, dependency, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced by closeout.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no validator-complete claim beyond bounded NA-0495 implementation evidence is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0493 closeout and NA-0494 restoration update
 
 - Directive: QSL-DIR-2026-06-18-364 -- Recover NA-0493 D363 Pointer-File Scope Stop, Complete ci-4d/Public-Safety Recovery, and Close Out to NA-0494.

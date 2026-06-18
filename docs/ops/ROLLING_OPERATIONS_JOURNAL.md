@@ -6,6 +6,71 @@ Last-Updated: 2026-06-15
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-18-365 / NA-0494 validator CI integration authorization rolling journal
+
+- Directive: QSL-DIR-2026-06-18-365 -- Execute NA-0494 QSL Binding Fuzz Corpus Validator CI Integration Authorization Plan, Optional Closeout to NA-0495.
+- Begin timestamp (America/Chicago): 2026-06-17T22:07:15-05:00.
+- Begin timestamp (UTC): 2026-06-18T03:07:15+00:00.
+- End timestamp (America/Chicago): pending.
+- End timestamp (UTC): pending.
+- Repo path: `/srv/qbuild/work/NA-0494/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0494_validator_ci_integration_authorization_20260618T030715Z`.
+- Codex did not run qwork, qstart, qresume, qshell, sudo, backup, restore, cargo update, or cargo generate-lockfile.
+
+## Repo SHAs
+
+- qsl-protocol HEAD before fetch: `1c4fb02158e2`.
+- qsl-protocol origin/main before fetch: `1c4fb02158e2`.
+- qsl-protocol origin/main after fetch: `1c4fb02158e2`.
+- Evidence branch: pending.
+- Evidence PR: pending.
+- Evidence merge commit: pending.
+- Optional closeout branch: pending.
+- Optional closeout PR: pending.
+- Optional closeout merge commit: pending.
+
+## READY proof
+
+- qwork proof: startup OK for lane NA-0494, repo qsl-protocol, clean worktree/index/untracked state, proof HEAD and proof origin/main both `1c4fb02158e2`.
+- Pre-fetch live proof: HEAD and origin/main matched qwork proof at `1c4fb02158e2`.
+- Fetch result: origin/main did not advance.
+- Queue proof before patch: READY_COUNT 1 and READY NA-0494.
+- Direct queue proof before patch: NA-0491 DONE; NA-0492 DONE; NA-0493 DONE; NA-0494 READY.
+- Decision proof before patch: D-0975 once, D-0976 once, D-0977 absent, duplicate decision count zero.
+- D364 response present at `/home/victor/work/qsl/codex/responses/NA0493_pointer_ci4d_recovery_closeout_20260618T012028Z_D364.md`.
+- Startup public-safety on current main `1c4fb02158e2`: PASS.
+- qsc-adversarial-smoke on current main `1c4fb02158e2`: PASS.
+
+## Recovered failure evidence
+
+- None yet.
+
+## Validation / CI notes
+
+- D364 inheritance consumed: PR #1257 merged at `b5f140e5bd3a`; PR #1258 merged at `1c4fb02158e2`; D363 pointer-file stop recovered; transient `ci-4d-evidence` `aead` registry fetch failure rerun green.
+- Binding corpus inventory: exactly seven `qsc_binding_semantics` seed files, every seed 8 bytes.
+- Validator current proof: binding corpus scan PASS with 7 files and finding count 0; all qsc fuzz corpus scan PASS with 17 files and finding count 0.
+- CI surface inventory: validator is not currently invoked by workflows, `scripts/ci/qsc_adversarial.sh`, `scripts/ci/qsl_evidence_helper.py`, goal-lint, or qshield 4D scripts. Current classification: `VALIDATOR_LOCAL_ONLY`.
+- Authorization selected: `BINDING_FUZZ_VALIDATOR_QSC_ADVERSARIAL_INTEGRATION_READY`.
+- Selected successor: `NA-0495 -- QSL Binding Fuzz Corpus Validator qsc-Adversarial Integration Implementation Harness`.
+- Future implementation scope: add fail-closed validator invocations to `scripts/ci/qsc_adversarial.sh`, scan both the exact binding corpus and the full qsc fuzz corpus, use existing validator unchanged, reject missing binding corpus, emit text log output, and avoid workflow/helper/dependency/lockfile/qsc source/qsc fuzz target/corpus mutation.
+- No implementation mutation performed by NA-0494.
+- No workflow/script/helper/validator/corpus/vector/input/qsc source/qsc fuzz target/Cargo/dependency/lockfile/formal/refimpl/service/public/backup/qsl-backup/qwork/qstart/qresume/qshell mutation introduced.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no validator-complete claim beyond bounded internal evidence is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## Disk watermark
+
+- Filesystem `/`: 468G total, 410G used, 34G available, 93% used.
+- Filesystem `/backup/qsl`: 916G total, 99G used, 808G available, 11% used.
+
+## Next-watch items
+
+- Complete local validation bundle and exact five-path scope guard.
+- Open evidence PR after validation passes.
+- Merge only after required checks pass.
+- Post-merge verify D-0977 on main, public-safety green, and exactly one READY item: NA-0494.
+- If post-merge public-safety is green, optional closeout may mark NA-0494 DONE and restore NA-0495 as the sole READY successor without implementing NA-0495.
+
 # QSL-DIR-2026-06-16-348 / NA-0487 qsc binding fuzz source-boundary recovery rolling journal
 
 - Directive: QSL-DIR-2026-06-16-348 -- Recover NA-0487 qsc Binding Fuzz Source-Boundary Authorization After Real-Reject-Path Stop.

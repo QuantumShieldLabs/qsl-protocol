@@ -34717,6 +34717,53 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0495 validation update
+
+- Branch: `na-0495-validator-qsc-adversarial-integration`.
+- Staged paths: `scripts/ci/qsc_adversarial.sh`, NA-0495 evidence doc, NA-0495 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Local validation before PR: PASS for exact scope guard, `git diff --check`, staged `git diff --check`, link-check, leak-scan, added-line overclaim scan, classifier, PR body preflight, validator binding corpus JSON scan, validator all qsc fuzz corpus JSON scan, internal negative vector manifest JSON validation, formal binding model, formal runner, qsc binding negative tests with and without `qsc_binding_fuzz_helper`, refimpl signature provider-boundary, refimpl `pqkem768`, root cargo audit, nested qsc fuzz lock audit, cargo fmt, and qsc-adversarial shell syntax.
+- Local qsc-adversarial execution passed stable adversarial tests, provider-error no-mutation, and the new validator step, then reached the expected local `cargo fuzz` unavailable boundary. PR qsc-adversarial-smoke remains required before merge.
+- Recovered staged overclaim-scan issue: one evidence sentence split `no` from `perfect-crypto claim` across a line break. Classification: recoverable scan-safe governance wording issue. Corrective action: rewrote the sentence so the no-claim boundary appears on one line. Final result: staged added-line overclaim scan PASS with zero findings.
+- Local long-command wait accounting: no-cfg qsc binding negative test took 225 seconds; cfg-on qsc binding negative test took 252 seconds. Both are recorded in the proof-root wait accounting file as local long-command wait.
+- No workflow, helper, validator script, corpus/vector/input, qsc source, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, root lockfile, dependency, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no validator-complete claim beyond bounded internal evidence is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0495 update
+
+- Directive: QSL-DIR-2026-06-18-366 -- Execute NA-0495 QSL Binding Fuzz Corpus Validator qsc-Adversarial Integration Implementation Harness, Optional Closeout to NA-0496.
+- Begin timestamp (UTC): 2026-06-18T04:13:46Z.
+- Repo path: `/srv/qbuild/work/NA-0495/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0495_validator_qsc_adversarial_integration_impl_20260618T041346Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, or cargo generate-lockfile.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0495/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `ba7791206e9c`.
+- Fetch performed only after proof/live ref match; local main matched `origin/main`.
+- Startup queue proof: `READY_COUNT 1`; READY NA-0495; NA-0494 DONE; NA-0493 DONE; NA-0492 DONE.
+- Startup decision proof: D-0977 once, D-0978 once, D-0979 absent before patch, duplicate decision count zero.
+- D365 response found at `/home/victor/work/qsl/codex/responses/NA0494_20260618T035326Z_D365.md`.
+- Startup public-safety on `ba7791206e9c`: success. Startup qsc-adversarial-smoke on `ba7791206e9c`: success.
+- Disk watermark: `/` usage 94%; `/backup/qsl` usage 11%. STOP threshold 95% was not hit.
+- qsl-backup read-only proof: installed helper matched expected digest prefix `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- Recovered command-shape issue: initial Phase 0 proof setup placed Python arguments after a quoted heredoc terminator, causing Python syntax failure before fetch or mutation. Classification: recoverable command-shape issue. Corrective action: reran freshness check with arguments before the quoted heredoc. Final result: qwork proof/live freshness passed.
+- Recovered proof-parser issue: first queue/decision parser counted historical prose references instead of section-local queue status and anchored decision IDs. Classification: recoverable proof-shape issue. Corrective action: reran with `### NA-` section parsing and `- **ID:**` decision parsing. Final result: `READY_COUNT 1`, READY NA-0495, D-0977 once, D-0978 once, D-0979 absent.
+- NA-0494/D365 inheritance consumed: qsc-adversarial integration selected; local/testplan-only, public-safety/helper/workflow first integration, standalone job, and JSON artifact upload rejected or deferred for first integration; future NA-0495 path limited to `scripts/ci/qsc_adversarial.sh`; binding corpus and full qsc fuzz corpus scans required; findings and missing binding corpus must fail closed.
+- Pre-mutation qsc-adversarial review: no validator integration existed; no `--allow-missing` existed; stable adversarial tests, provider-error no-mutation step, `qsc_route_http`, `qsc_payload_boundaries`, `qsc_vault_envelope`, and `qsc_binding_semantics` targets were present.
+- Pre-mutation validator proof: binding corpus scan passed with 7 files, 56 bytes, zero findings; full qsc fuzz corpus scan passed with 17 files, 1238 bytes, zero findings.
+- Implemented `scripts/ci/qsc_adversarial.sh` validator step using existing `scripts/audit/validate_binding_fuzz_corpus_no_secrets.py` unchanged.
+- Script now scans `qsl/qsl-client/qsc/fuzz/corpus/qsc_binding_semantics` and `qsl/qsl-client/qsc/fuzz/corpus` before cargo-fuzz targets run.
+- Script does not use `--allow-missing`; missing binding corpus remains fail-closed.
+- Required NA-0495 markers added to qsc-adversarial output after successful validator scans.
+- Recovered fail-closed fixture issue: first proof-root fixture used text that did not match a configured validator rule. Classification: recoverable proof fixture issue with understood cause. Corrective action: replaced the proof-root-only fixture with a configured disallowed label marker and reran direct validator proof. Final result: validator text and JSON scans exited 2 with a redacted finding.
+- Missing corpus proof: direct validator scan against a proof-root missing path without `--allow-missing` exited 2 with a redacted `missing_path` finding.
+- Local qsc-adversarial execution: stable adversarial tests passed, provider-error no-mutation test passed, validator step passed and printed all NA-0495 markers, then local run reached `cargo fuzz` unavailable boundary. PR qsc-adversarial-smoke remains required cargo-fuzz-backed evidence before merge.
+- Governance patch paths: `scripts/ci/qsc_adversarial.sh`, NA-0495 evidence doc, NA-0495 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-0979 records NA-0495 binding fuzz corpus validator qsc-adversarial integration implementation.
+- Selected successor: `NA-0496 -- QSL Binding Negative Vector Consumer Test Scope Authorization Plan`.
+- No workflow, helper, validator script, corpus/vector/input, qsc source, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, root lockfile, dependency, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no validator-complete claim beyond bounded internal evidence is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0493 closeout and NA-0494 restoration update
 
 - Directive: QSL-DIR-2026-06-18-364 -- Recover NA-0493 D363 Pointer-File Scope Stop, Complete ci-4d/Public-Safety Recovery, and Close Out to NA-0494.

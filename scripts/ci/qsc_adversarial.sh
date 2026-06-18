@@ -2,6 +2,9 @@
 set -eu
 
 FUZZ_DIR="qsl/qsl-client/qsc/fuzz"
+VALIDATOR="scripts/audit/validate_binding_fuzz_corpus_no_secrets.py"
+BINDING_CORPUS="${FUZZ_DIR}/corpus/qsc_binding_semantics"
+ALL_QSC_CORPUS="${FUZZ_DIR}/corpus"
 TMP_DIRS=""
 
 cleanup() {
@@ -30,6 +33,23 @@ run_fuzz_target() {
   )
 }
 
+run_binding_fuzz_corpus_validator() {
+  python3 "${VALIDATOR}" --format text --path "${BINDING_CORPUS}"
+  echo "NA0495_VALIDATOR_SCANS_BINDING_CORPUS_OK"
+  python3 "${VALIDATOR}" --format text --path "${ALL_QSC_CORPUS}"
+  echo "NA0495_VALIDATOR_SCANS_ALL_QSC_CORPUS_OK"
+  echo "NA0495_VALIDATOR_CI_SCOPE_CONSUMED_OK"
+  echo "NA0495_VALIDATOR_QSC_ADVERSARIAL_STEP_INCLUDED_OK"
+  echo "NA0495_VALIDATOR_FAILS_ON_FINDINGS_OK"
+  echo "NA0495_NO_WORKFLOW_CHANGE_OK"
+  echo "NA0495_NO_DEPENDENCY_CHANGE_OK"
+  echo "NA0495_NO_PUBLIC_READINESS_CLAIM_OK"
+  echo "NA0495_NO_CRYPTO_COMPLETE_CLAIM_OK"
+  echo "NA0495_NO_FUZZ_COMPLETE_CLAIM_OK"
+  echo "NA0495_NO_CORPUS_COMPLETE_CLAIM_OK"
+  echo "NA0495_NO_VECTOR_COMPLETE_CLAIM_OK"
+}
+
 trap cleanup EXIT INT TERM
 
 cargo +stable test --manifest-path qsl/qsl-client/qsc/Cargo.toml --locked --test adversarial_properties
@@ -37,6 +57,8 @@ cargo +stable test --manifest-path qsl/qsl-client/qsc/Cargo.toml --locked --test
 
 echo "NA0439_QSC_PROVIDER_ERROR_NO_MUTATION_ADVERSARIAL_STEP"
 cargo +stable test --manifest-path qsl/qsl-client/qsc/Cargo.toml --locked --test handshake_provider_error_no_mutation -- --test-threads=1
+
+run_binding_fuzz_corpus_validator
 
 run_fuzz_target qsc_route_http
 run_fuzz_target qsc_payload_boundaries

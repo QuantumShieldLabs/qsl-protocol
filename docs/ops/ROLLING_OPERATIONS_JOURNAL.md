@@ -34648,6 +34648,48 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0493 closeout and NA-0494 restoration update
+
+- Directive: QSL-DIR-2026-06-18-364 -- Recover NA-0493 D363 Pointer-File Scope Stop, Complete ci-4d/Public-Safety Recovery, and Close Out to NA-0494.
+- Begin timestamp (UTC): 2026-06-18T01:20:28Z.
+- Repo path: `/srv/qbuild/work/NA-0493/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0493_pointer_ci4d_recovery_closeout_20260618T012028Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, or cargo generate-lockfile.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0493/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `b5f140e5bd3a`.
+- Fetch performed only after proof/live ref match; local main was checked against `origin/main`.
+- Startup queue proof: `READY_COUNT 1`; READY NA-0493; NA-0492 DONE; NA-0491 DONE.
+- Startup decision proof: D-0973 once, D-0974 once, D-0975 once, D-0976 absent before patch, duplicate decision count zero.
+- Disk watermark: `/` usage below the 95% STOP threshold; `/backup/qsl` checked read-only.
+- qsl-backup read-only proof: installed helper matched expected digest prefix `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- D363 pointer-file recovery: `/srv/qbuild/tmp/NA0493_d363_latest_proof_dir.txt` existed. Codex recorded stat and SHA-256 under the D364 proof root, copied the file into the proof root, summarized the contents, deleted exactly that path, and verified it absent. No other `/srv/qbuild/tmp` file was removed or modified.
+- D361/D362/D363 inheritance consumed: PR #1257 merged; exactly seven 8-byte `qsc_binding_semantics` seeds were added; validator passed in D361 and D362; D362 diagnosed `ci-4d-evidence` as transient Cargo registry fetch failure for `aead`; D363 stopped because of the out-of-proof-root helper pointer and made no repo mutation or CI inspection.
+- PR #1257 verified merged at `b5f140e5bd3a`.
+- PR #1257 changed-path proof showed no qsc source, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, qsc-adversarial script, workflow, dependency, lockfile, formal, refimpl, service, public, or backup mutation.
+- Initial current target CI state: public-safety success, qsc-adversarial-smoke success, qsc-linux-full-suite success, macos-qsc-full-serial success, and ci-4d-evidence failure.
+- ci-4d log proof matched the known transient Cargo registry fetch failure for `aead`.
+- Rerun command: `gh run rerun --repo QuantumShieldLabs/qsl-protocol --job 81954128862`; exit 0.
+- Rerun result: ci-4d-evidence job `82036661453` completed success on `b5f140e5bd3a`; all attached target check-runs completed success/neutral/skipped with zero failures.
+- Final protection proof before closeout mutation: public-safety success, qsc-adversarial-smoke success, qsc-linux-full-suite success, macos-qsc-full-serial success, and ci-4d-evidence success.
+- Pre-closeout local validation before mutation: PASS for `git diff --check`, validator on the binding corpus, validator on all qsc fuzz corpus, internal negative vector manifest JSON validation, formal binding model, formal runner, qsc binding negative tests with and without `qsc_binding_fuzz_helper`, refimpl signature provider-boundary test, refimpl `pqkem768`, root cargo audit, nested qsc fuzz lock audit, cargo fmt, and qsc-adversarial shell syntax checks.
+- Local validation output was isolated under the D364 proof root with `CARGO_HOME`, `CARGO_TARGET_DIR`, `TMPDIR`, and Python bytecode controls.
+- Recovered command-shape issue: initial Phase 0 proof script had a Python f-string quoting syntax error before repo mutation. Classification: recoverable command-shape issue. Corrective action: rewrote the f-string expression and reran once. Final result: PASS.
+- Recovered proof script issue: initial inheritance collection script had a `PosixPath` plus string concatenation error after proof-root-only writes. Classification: recoverable command-shape issue. Corrective action: rewrote the output path construction and reran once. Final result: PASS.
+- Wait-time accounting: CI rerun wait was under 60 seconds and did not create a long idle interval; local pre-closeout validation wait was about 9.19 minutes and was used for proof-log monitoring and evidence preparation.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0493_closeout_restore_na0494_testplan.md`.
+- D-0976 records NA-0493 closeout and NA-0494 restoration.
+- NA-0493 is marked DONE.
+- NA-0494 Binding Fuzz Corpus Validator CI Integration Authorization Plan is restored as the sole READY successor.
+- Closeout branch: `na-0493-closeout-restore-na0494`.
+- Closeout PR title: `NA-0493: closeout and restore NA-0494`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Final queue proof expected after patch: `READY_COUNT 1`; READY NA-0494; NA-0493 DONE; D-0976 once; D-0977 absent; duplicate decision count zero.
+- No implementation mutation is performed by closeout.
+- No corpus/vector/input, qsc source, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, qsc-adversarial script, workflow, dependency, lockfile, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced by closeout.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0489 update
 
 - Directive: QSL-DIR-2026-06-16-352 -- Execute NA-0489 QSL Binding Fuzz Ephemeral Seed Strategy Implementation Harness, Optional Closeout to NA-0490.

@@ -27575,7 +27575,7 @@ Closeout:
 ---
 
 ### NA-0493 — QSL Binding Fuzz Checked-In Corpus Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -27647,6 +27647,76 @@ Acceptance criteria:
 - no secret/private material findings.
 - no qsc source/fuzz target/Cargo/script/workflow mutation.
 - no dependency or lockfile mutation.
+- no public overclaim.
+- exactly one READY item remains.
+
+Closeout evidence:
+- PR #1257 merged at `b5f140e5bd3a`.
+- D363 pointer-file stop was recovered by hashing, copying, and removing only
+  `/srv/qbuild/tmp/NA0493_d363_latest_proof_dir.txt`.
+- `ci-4d-evidence` rerun completed success after the known transient Cargo
+  registry fetch failure for `aead`.
+- Final target checks: public-safety success, qsc-adversarial-smoke success,
+  qsc-linux-full-suite success, macos-qsc-full-serial success, and
+  ci-4d-evidence success.
+- Corpus validator passed for the new binding corpus and all qsc fuzz corpus.
+- No implementation, corpus, vector/input, qsc source/fuzz target/Cargo/script,
+  workflow, dependency, lockfile, formal, refimpl, service, public, backup,
+  qsl-backup, qwork/qstart/qresume/qshell, or public-claim mutation is
+  introduced by closeout.
+- Selected successor restored: `NA-0494 -- QSL Binding Fuzz Corpus Validator CI
+  Integration Authorization Plan`.
+
+---
+
+### NA-0494 — QSL Binding Fuzz Corpus Validator CI Integration Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize whether and how to integrate the binding fuzz corpus secret-material
+validator into CI/public-safety or qsc-adversarial workflows after the
+checked-in corpus implementation, preserving no-secret-material,
+no-public-claim, no-dependency, no-workflow-change unless explicitly
+authorized, and one-READY boundaries.
+
+Protects:
+- future corpus safety.
+- validator-gated checked-in corpus.
+- CI evidence reliability.
+- release-claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0494.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of validator script, qsc fuzz corpus, qsc-adversarial
+  script, public-safety helper, workflows, and CI evidence.
+
+Forbidden scope:
+- implementation mutation.
+- workflow mutation.
+- qsc-adversarial script mutation.
+- dependency/lockfile mutation.
+- corpus/vector/input mutation.
+- runtime/crypto/source mutation.
+- refimpl/formal/service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- no public-readiness claim and no crypto-complete claim.
+
+Deliverables:
+- validator CI integration authorization evidence doc.
+- testplan.
+- next sequential decision.
+- TRACEABILITY update.
+- rolling journal update.
+- selected exact integration scope or no-action rationale.
+
+Acceptance criteria:
+- CI integration selected or rejected.
+- exact future integration path selected if ready.
 - no public overclaim.
 - exactly one READY item remains.
 

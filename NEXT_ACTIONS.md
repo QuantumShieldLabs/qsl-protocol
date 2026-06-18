@@ -27670,7 +27670,7 @@ Closeout evidence:
 ---
 
 ### NA-0494 — QSL Binding Fuzz Corpus Validator CI Integration Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -27719,6 +27719,102 @@ Acceptance criteria:
 - exact future integration path selected if ready.
 - no public overclaim.
 - exactly one READY item remains.
+
+Completion:
+- Evidence PR #1259 merged at `8221f6cceb2a`.
+- D-0977 selected `BINDING_FUZZ_VALIDATOR_QSC_ADVERSARIAL_INTEGRATION_READY`.
+- NA-0495 is restored below as the sole READY successor.
+- NA-0494 performed no implementation, workflow, script, helper, validator,
+  corpus, vector/input, qsc source/fuzz/Cargo, dependency/lockfile, formal,
+  refimpl, service, public, backup, qsl-backup, qwork, qstart, or qresume
+  mutation.
+
+---
+
+### NA-0495 — QSL Binding Fuzz Corpus Validator qsc-Adversarial Integration Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the NA-0494 authorization by adding the existing binding fuzz corpus
+secret-material validator to `scripts/ci/qsc_adversarial.sh`, preserving
+fail-closed corpus scanning without workflow, helper, dependency, lockfile, qsc
+source, qsc fuzz target, corpus, vector/input, formal, refimpl, service,
+public-doc, backup, or qwork mutation.
+
+Protects:
+- checked-in binding fuzz corpus secret-material boundary.
+- qsc fuzz corpus safety.
+- fail-closed CI behavior on validator findings.
+- missing-binding-corpus rejection now that NA-0493 checked in the corpus.
+- no-workflow-change and no-dependency-change boundary for first integration.
+- one-READY invariant.
+
+Allowed scope:
+- `scripts/ci/qsc_adversarial.sh`.
+- `docs/governance/evidence/NA-0495_qsl_binding_fuzz_corpus_validator_qsc_adversarial_integration_implementation_harness.md`.
+- `tests/NA-0495_qsl_binding_fuzz_corpus_validator_qsc_adversarial_integration_implementation_testplan.md`.
+- `DECISIONS.md`.
+- `TRACEABILITY.md`.
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+
+Required implementation behavior:
+- Use `scripts/audit/validate_binding_fuzz_corpus_no_secrets.py` unchanged.
+- Scan `qsl/qsl-client/qsc/fuzz/corpus/qsc_binding_semantics`.
+- Scan `qsl/qsl-client/qsc/fuzz/corpus`.
+- Do not use `--allow-missing` for the binding corpus.
+- Fail PRs on validator findings.
+- Emit text log output in qsc-adversarial CI.
+- Keep JSON proof in local validation/testplan evidence unless a later workflow
+  lane authorizes artifact upload.
+
+Forbidden scope:
+- workflow mutation.
+- `qsl_evidence_helper.py` mutation.
+- validator script mutation.
+- corpus/vector/input mutation.
+- qsc source/fuzz target/Cargo/lockfile mutation.
+- dependency mutation.
+- formal/refimpl/service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- qwork/qstart/qresume/qshell mutation.
+- Do not make a public-readiness claim.
+- Do not make a production-readiness claim.
+- Do not make a public-internet-readiness claim.
+- Do not make an external-review-complete claim.
+- Do not make a crypto-complete claim.
+- Do not make a fuzz-complete claim.
+- Do not make a corpus-complete claim.
+- Do not make a vector-complete claim.
+- Do not make a replay-proof claim.
+- Do not make a downgrade-proof claim.
+- Do not make a side-channel-free claim.
+- Do not make a vulnerability-free claim.
+- Do not make a bug-free claim.
+- Do not make a perfect-crypto claim.
+
+Deliverables:
+- qsc-adversarial script integration.
+- implementation evidence doc.
+- implementation testplan.
+- next sequential decision.
+- TRACEABILITY update.
+- rolling journal update.
+
+Acceptance criteria:
+- `NA0495_VALIDATOR_CI_SCOPE_CONSUMED_OK`.
+- `NA0495_VALIDATOR_QSC_ADVERSARIAL_STEP_INCLUDED_OK`.
+- `NA0495_VALIDATOR_FAILS_ON_FINDINGS_OK`.
+- `NA0495_VALIDATOR_SCANS_BINDING_CORPUS_OK`.
+- `NA0495_VALIDATOR_SCANS_ALL_QSC_CORPUS_OK`.
+- `NA0495_NO_WORKFLOW_CHANGE_OK`.
+- `NA0495_NO_DEPENDENCY_CHANGE_OK`.
+- `NA0495_NO_PUBLIC_READINESS_CLAIM_OK`.
+- `NA0495_NO_CRYPTO_COMPLETE_CLAIM_OK`.
+- `NA0495_NO_FUZZ_COMPLETE_CLAIM_OK`.
+- `NA0495_NO_CORPUS_COMPLETE_CLAIM_OK`.
+- `NA0495_NO_VECTOR_COMPLETE_CLAIM_OK`.
+- `NA0495_ONE_READY_INVARIANT_OK`.
 
 ---
 

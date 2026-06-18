@@ -27732,7 +27732,7 @@ Completion:
 ---
 
 ### NA-0495 — QSL Binding Fuzz Corpus Validator qsc-Adversarial Integration Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -27815,6 +27815,85 @@ Acceptance criteria:
 - `NA0495_NO_CORPUS_COMPLETE_CLAIM_OK`.
 - `NA0495_NO_VECTOR_COMPLETE_CLAIM_OK`.
 - `NA0495_ONE_READY_INVARIANT_OK`.
+
+Completion:
+- Implementation PR #1261 merged at `399fe6c2f61b`.
+- D-0979 records the NA-0495 implementation evidence.
+- D366 response `/home/victor/work/qsl/codex/responses/NA0495_20260618T054854Z_D366.md`
+  recorded that closeout was deferred only because post-merge public-safety,
+  qsc-linux-full-suite, and macos-qsc-full-serial were still in progress after
+  bounded polling.
+- D367 verified post-merge public-safety, qsc-adversarial-smoke,
+  qsc-linux-full-suite, and macos-qsc-full-serial completed success for
+  `399fe6c2f61b`.
+- D367 consumed the CI wait-waste lesson: implementation directives should use
+  short post-merge attach/early-failure polling, while long polling belongs in
+  explicit closeout/evidence directives; no watcher/tooling was implemented.
+- No implementation mutation was performed by closeout.
+- No qsc-adversarial script, workflow, helper, validator, corpus/vector/input,
+  qsc source/fuzz target/Cargo/dependency/lockfile, formal, refimpl, service,
+  public, backup, qsl-backup, qwork, qstart, qresume, or qshell mutation was
+  performed by closeout.
+- NA-0496 is restored below as the sole READY successor.
+- No public-readiness claim is introduced. no production-readiness claim is
+  introduced. no public-internet-readiness claim is introduced. no
+  external-review-complete claim is introduced. no crypto-complete claim is
+  introduced. no fuzz-complete claim is introduced. no corpus-complete claim is
+  introduced. no validator-complete claim beyond bounded NA-0495 implementation
+  evidence is introduced. no vector-complete claim is introduced. no
+  replay-proof claim is introduced. no downgrade-proof claim is introduced. no
+  side-channel-free claim is introduced. no vulnerability-free claim is
+  introduced. no bug-free claim is introduced. no perfect-crypto claim is
+  introduced.
+
+---
+
+### NA-0496 — QSL Binding Negative Vector Consumer Test Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize exact scope for deterministic tests that consume or map the internal
+negative binding vector manifest after qsc binding fuzz target, corpus seeds,
+corpus validator, and qsc-adversarial validator integration are in place.
+
+Protects:
+- deterministic negative binding evidence.
+- manifest-to-test traceability.
+- no public/conformance vector overclaim.
+- no replay-proof or downgrade-proof overclaim.
+- one-READY invariant.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0496.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of internal negative binding vector manifest, qsc
+  binding negative tests, qsc binding fuzz corpus, validator script,
+  qsc-adversarial integration, formal model, and CI evidence.
+
+Forbidden scope:
+- implementation mutation.
+- corpus/vector/input mutation.
+- qsc source/fuzz target/Cargo/workflow/dependency/lockfile mutation.
+- refimpl/formal/service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- no public-readiness or crypto-complete claim expansion.
+
+Deliverables:
+- vector consumer test scope authorization evidence doc.
+- testplan.
+- next sequential decision.
+- TRACEABILITY update.
+- rolling journal update.
+- selected exact implementation scope or no-action rationale.
+
+Acceptance criteria:
+- vector-consumer test strategy selected or rejected.
+- exact future test path selected if ready.
+- public/conformance claim boundary preserved.
+- exactly one READY item remains.
 
 ---
 

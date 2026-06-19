@@ -34771,6 +34771,49 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0497 closeout and NA-0498 restoration update
+
+- Directive: QSL-DIR-2026-06-18-375 -- Close Out NA-0497 After Binding Negative Vector Consumer Test Public-Safety Completion and Restore NA-0498.
+- Begin timestamp (UTC): 2026-06-19T00:21:33Z.
+- Repo path: `/srv/qbuild/work/NA-0497/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0497_closeout_restore_na0498_20260619T002133Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, cargo generate-lockfile, archive, move, or delete actions.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0497/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `28afc4cc8085`.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main was checked against `origin/main`.
+- Startup queue proof: READY_COUNT 1; READY NA-0497; NA-0496 DONE; NA-0495 DONE; NA-0494 DONE.
+- Startup decision proof: D-0981 once, D-0982 once, D-0983 once, D-0984 absent before patch, duplicate decision record count zero.
+- D373 response found at `/home/victor/work/qsl/codex/responses/NA0497_20260618T202029Z_D373.md`.
+- D374 response found at `/home/victor/work/qsl/codex/responses/NA0497_closeout_restore_na0498_20260618T203529Z_D374.md`.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- PR #1265 merge proof: qsl-protocol PR #1265 is merged at `28afc4cc8085`.
+- PR #1265 scope proof: changed paths are exactly `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0497_qsl_binding_negative_vector_consumer_test_implementation_harness.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, `qsl/qsl-client/qsc/tests/binding_negative_vector_consumer.rs`, and `tests/NA-0497_qsl_binding_negative_vector_consumer_test_implementation_testplan.md`.
+- D373 inheritance consumed: implementation PR #1265 merged; the qsc integration test path is `qsl/qsl-client/qsc/tests/binding_negative_vector_consumer.rs`; D373 stopped because post-merge public-safety had not attached or completed green during the short window and no red result was observed.
+- D374 inheritance consumed: bounded closeout poll reached cap while public-safety and qsc-linux-full-suite were still in progress and no completed failures were observed.
+- D-0983 inheritance consumed: manifest consumer test parses the internal manifest, validates schema/counts, unique IDs, qsc-frame/refimpl/formal layer grouping, qsc-frame mapping, refimpl supporting-only boundaries, formal-token supporting-only boundaries, no-secret policy, and no public/conformance/completion/proof overclaim caveats.
+- PR #1265 post-merge proof on `28afc4cc8085`: public-safety completed success; qsc-adversarial-smoke completed success; qsc-linux-full-suite completed success; macos-qsc-full-serial completed success; no required check completed failure.
+- Pre-closeout validation passed: git diff check; qsc binding negative vector consumer test; internal manifest JSON validation; binding corpus validator JSON; all qsc fuzz corpus validator JSON; formal runner; root cargo audit; nested qsc fuzz lock audit; cargo fmt; qsc-adversarial shell syntax.
+- Wait-time accounting: the first post-merge check query found all required PR #1265 checks already green, so no 15-minute eligibility poll was needed. No CI wait interval over 60 seconds occurred before closeout patch. No local validation command exceeded 60 seconds.
+- Recovered added-line overclaim scan issue: first post-commit scan flagged the NA-0498 forbidden-scope bullet `public readiness or crypto completion claims` because it lacked same-line no-claim wording. Classification: recoverable scan-safe governance wording issue. Corrective action: rewrote the bullet as `no public-readiness or crypto-complete claim expansion` and reran committed-diff validation before PR creation. Final result: added-line overclaim scan passed.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0497_closeout_restore_na0498_testplan.md`.
+- D-0984 records NA-0497 closeout and NA-0498 restoration.
+- NA-0497 is marked DONE.
+- NA-0498 Core Assurance Checkpoint and Next Highest-Risk Security Lane Authorization Plan is restored as the sole READY successor.
+- NA-0498 is planned specifically to prevent process drift by forcing a core assurance checkpoint and selecting the next highest-value security/assurance lane by real risk reduction.
+- Closeout branch: `na-0497-closeout-restore-na0498`.
+- Closeout PR title: `NA-0497: closeout and restore NA-0498`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Final queue proof expected after patch: READY_COUNT 1; READY NA-0498; NA-0497 DONE; D-0984 once; D-0985 absent; duplicate decision count zero.
+- No implementation mutation is performed by closeout.
+- No qsc test/source/fuzz/Cargo mutation is performed by closeout.
+- No corpus/vector/input/manifest mutation is performed by closeout.
+- No workflow/script/helper/dependency/lockfile mutation is performed by closeout.
+- No formal/refimpl/service/public/qshield/qsl-server/qsl-attachments mutation is performed by closeout.
+- No backup/restore/qsl-backup mutation is performed by closeout.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no public/conformance vector claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0495 validation update
 
 - Branch: `na-0495-validator-qsc-adversarial-integration`.

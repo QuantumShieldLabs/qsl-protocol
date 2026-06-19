@@ -6,6 +6,47 @@ Last-Updated: 2026-06-19
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-19-384 / NA-0500 closeout and NA-0501 restoration rolling journal
+
+- Directive: QSL-DIR-2026-06-19-384 -- Close Out NA-0500 with Full Required-CI Wait and Restore NA-0501.
+- Begin timestamp (UTC): 2026-06-19T17:38:27Z proof root creation.
+- Repo path: `/srv/qbuild/work/NA-0500/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0500_closeout_restore_na0501_20260619T173827Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, cargo generate-lockfile, archive, move, or delete actions.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0500/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `2a8bf9729fc9`.
+- Fetch was performed only after proof/live ref match and disk gate.
+- Disk watermark before fetch: `/` usage below the 95% stop threshold; `/backup/qsl` checked read-only.
+- qsl-backup read-only proof: installed helper matched expected SHA-256 `e9ecff3d22ed...0052f6232`; Codex ops source appears exactly once in the installed helper source list.
+- Startup queue proof after corrected parser: `READY_COUNT 1`; READY NA-0500; NA-0499 DONE; NA-0498 DONE; NA-0497 DONE; NA-0501 absent or not READY.
+- Startup decision proof after corrected parser: D-0987 once, D-0988 once, D-0989 once, D-0990 absent, duplicate decision entry count zero.
+- Recovered local proof-script issue: initial queue/decision parser incorrectly required a pre-existing NA-0501 block, then counted broad textual decision references instead of repository-native `- **ID:** D-####` decision entries. Classification: recoverable local proof-script error. Corrective action: reran with NA-0501 absent-or-not-READY accepted and decision ID-entry parsing. Final result: startup queue and decision gates passed.
+- Recovered local proof-script issue: initial PR #1271 merged-state proof compared the PR head against an incorrect full SHA although the directive supplied short implementation SHA `f09a029c4886`. Classification: recoverable local proof-script expectation error. Corrective action: verified implementation commit by short-SHA prefix and PR commits endpoint. Final result: PR #1271 merged-state proof passed.
+- D380/D381/D382 inheritance consumed: PR #1271 is merged; implementation commit is `f09a029c4886`; merge commit is `2a8bf9729fc9`; test path is `qsl/qsl-client/qsc/tests/secret_material_diagnostic_boundary.rs`; real qsc surfaces include invalid policy-profile, util-sanitize usage, and handshake `identity_unknown` / `handshake_reject`; no-secret output scanner proof and synthetic marker fail proof exist; no qsc source/Cargo/dependency/corpus/vector/input/workflow/script/helper/formal/refimpl/service/public/backup mutation occurred.
+- D381/D382 stop reason consumed: post-merge public-safety, qsc-linux-full-suite, and macos-qsc-full-serial remained in progress through bounded polls; qsc-adversarial-smoke completed success; zero failures were observed; NA-0500 remained READY until this closeout.
+- PR #1271 post-merge proof on `2a8bf9729fc9`: public-safety completed success; qsc-adversarial-smoke completed success; qsc-linux-full-suite completed success; macos-qsc-full-serial completed success; no required check completed failure; PUBLIC_SAFETY_RED no; PUBLIC_SAFETY_AMBIGUOUS no.
+- PR #1271 exact changed paths: `qsl/qsl-client/qsc/tests/secret_material_diagnostic_boundary.rs`, `docs/governance/evidence/NA-0500_qsl_qsc_secret_material_diagnostic_no_output_boundary_test_implementation_harness.md`, `tests/NA-0500_qsl_qsc_secret_material_diagnostic_no_output_boundary_test_implementation_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- Required NA-0500 markers are present in implementation/evidence/testplan, including no-secret-output, reject-path, marker-absence, no source/dependency/workflow mutation, no public/crypto/secret-material/zeroization/memory-erasure/side-channel claim, and one-READY markers.
+- Pre-closeout validation passed: git diff check; qsc secret-material diagnostic boundary test; binding corpus validator JSON; all qsc fuzz corpus validator JSON; formal runner; root cargo audit; nested qsc fuzz lock audit; cargo fmt; qsc-adversarial shell syntax under sh and bash.
+- CI wait accounting before closeout patch: first PR #1271 post-merge poll found required checks already green, so no CI wait interval over 60 seconds occurred. Local validation waited about 0.65 minutes, primarily for the qsc diagnostic boundary test.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0500_closeout_restore_na0501_testplan.md`.
+- D-0990 records NA-0500 closeout and NA-0501 restoration.
+- NA-0500 is marked DONE.
+- NA-0501 Key Lifecycle / Zeroization Expansion Scope Authorization Plan is restored as the sole READY successor.
+- Future NA-0501 must inventory current key lifecycle evidence, review expansion options, select exact future implementation or split/no-action scope, and preserve no secret-material-complete, no zeroization-complete, no memory-erasure-complete, and no side-channel-free claim boundaries.
+- Closeout branch: `na-0500-closeout-restore-na0501`.
+- Closeout PR title: `NA-0500: closeout and restore NA-0501`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- No implementation mutation is performed by closeout.
+- No qsc source/test/fuzz/Cargo mutation is performed by closeout.
+- No corpus/vector/input mutation is performed by closeout.
+- No workflow/script/helper/dependency/lockfile mutation is performed by closeout.
+- No formal/refimpl/service/public/qshield/qsl-server/qsl-attachments mutation is performed by closeout.
+- No backup/restore/qsl-backup mutation is performed by closeout.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no provider-RNG-complete claim is introduced. no secret-material-complete claim is introduced. no zeroization-complete claim is introduced. no memory-erasure-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 # QSL-DIR-2026-06-19-380 / NA-0500 qsc secret-material diagnostic boundary implementation rolling journal
 
 - Directive: QSL-DIR-2026-06-19-380 -- Execute NA-0500 QSL qsc Secret-Material Diagnostic / No-Output Boundary Test Implementation Harness, Optional Closeout to NA-0501.

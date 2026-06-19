@@ -27898,7 +27898,7 @@ Acceptance criteria:
 ---
 
 ### NA-0497 — QSL Binding Negative Vector Consumer Test Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -27952,6 +27952,57 @@ Acceptance criteria:
 - refimpl/formal token sections treated supporting-only.
 - no public/conformance vector claim.
 - exactly one READY item remains after closeout.
+
+---
+
+### NA-0498 — QSL Core Assurance Checkpoint and Next Highest-Risk Security Lane Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Run a deliberate core assurance checkpoint after the identity/provider RNG,
+KEM/signature/transcript binding, fuzz/corpus, validator, qsc-adversarial, and
+vector-consumer evidence chain. Select the next highest-value
+security/assurance lane based on real risk reduction, not process momentum.
+
+Protects:
+- project focus on core security work.
+- identity/provider RNG assurance boundaries.
+- KEM/signature/transcript/replay/downgrade binding evidence.
+- secret-material and side-channel caveats.
+- qsc/refimpl/formal mapping boundaries.
+- external-review readiness.
+- public-claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0498.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of recent evidence/docs/tests/formal/models/qsc/refimpl/fuzz/corpus/validator/CI evidence.
+
+Forbidden scope:
+- implementation mutation.
+- runtime/crypto/qsc/refimpl/formal/fuzz/vector/corpus mutation.
+- workflow/script/helper/dependency/lockfile mutation.
+- service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- no public-readiness or crypto-complete claim expansion.
+
+Deliverables:
+- core assurance checkpoint evidence doc.
+- testplan.
+- next sequential decision.
+- TRACEABILITY update.
+- rolling journal update.
+- selected exact next highest-risk lane or explicit no-action rationale.
+
+Acceptance criteria:
+- highest-value next risk-reduction lane selected.
+- process/tooling lanes rejected unless blocking core assurance.
+- public/completion/proof claim boundaries preserved.
+- exactly one READY item remains.
 
 ---
 

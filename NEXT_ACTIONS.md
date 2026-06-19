@@ -28249,7 +28249,7 @@ Acceptance criteria:
 ---
 
 ### NA-0502 — QSL qsc Key Lifecycle Zeroization Expansion Test Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -28325,6 +28325,93 @@ Recommended selected future test surfaces:
 Stop if any selected surface cannot be tested without qsc source, dependency,
 Cargo, workflow, script, helper, corpus/vector/input, formal/refimpl/service,
 public, backup, or qsl-backup mutation.
+
+Closeout evidence:
+- PR #1276 merged at `2e39de1cccef`.
+- PR #1276 post-merge public-safety completed success on `2e39de1cccef`.
+- PR #1276 qsc-adversarial-smoke completed success.
+- PR #1276 qsc-linux-full-suite completed success.
+- PR #1276 macos-qsc-full-serial completed success.
+- D-0993 exists once and records NA-0502 implementation evidence.
+- D-0994 records NA-0502 closeout and NA-0503 restoration.
+- NA-0502 is DONE.
+- NA-0503 is restored as the sole READY successor.
+- no implementation mutation is performed by closeout.
+- no qsc source/test/fuzz/Cargo mutation is performed by closeout.
+- no corpus/vector/input mutation is performed by closeout.
+- no workflow/script/helper/dependency/formal/refimpl/service/public/backup mutation is performed by closeout.
+- no public-readiness claim is introduced.
+- no production-readiness claim is introduced.
+- no external-review-complete claim is introduced.
+- no crypto-complete claim is introduced.
+- no secret-material-complete claim is introduced.
+- no zeroization-complete claim is introduced.
+- no memory-erasure-complete claim is introduced.
+- no side-channel-free claim is introduced.
+- exactly one READY item remains.
+
+---
+
+### NA-0503 — QSL qsc Same-Host Client-to-Client End-to-End Test Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the exact scope for a same-host client-to-client qsc end-to-end test
+using two independent client roots and realistic send/receive/reply behavior,
+while preserving no public-readiness claim, no production-readiness claim,
+no crypto-complete claim, no replay-proof claim, no downgrade-proof claim,
+no secret-material-complete claim, no zeroization-complete claim,
+no memory-erasure-complete claim, and no side-channel-free claim.
+
+Protects:
+- real client-to-client behavior evidence.
+- two-client state isolation.
+- send/receive/reply correctness boundaries.
+- reject/no-mutation boundaries for at least one negative case.
+- no public-readiness claim.
+- no production-readiness claim.
+- one-READY invariant.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0503.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of qsc CLI/send/receive/identity tests, temp-root patterns, mock/local relay patterns, diagnostic/no-output tests, key lifecycle tests, binding negative tests, and public-claim boundaries.
+
+Forbidden scope:
+- implementation mutation.
+- remote SSH or two-machine setup.
+- qsc source mutation.
+- dependency/workflow/script/helper mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- no public-readiness claim.
+- no production-readiness claim.
+- no crypto-complete claim.
+- no replay-proof claim.
+- no downgrade-proof claim.
+- no secret-material-complete claim.
+- no zeroization-complete claim.
+- no memory-erasure-complete claim.
+- no side-channel-free claim.
+
+Deliverables:
+- client-to-client E2E scope authorization evidence doc.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- selected exact future implementation scope or split/no-action rationale.
+
+Acceptance criteria:
+- exact same-host E2E scope selected.
+- realistic Alice/Bob behavior inventoried.
+- no remote SSH scope.
+- no production-readiness claim.
+- no public-readiness claim.
+- exactly one READY item remains.
 
 ---
 

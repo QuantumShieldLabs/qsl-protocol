@@ -6,6 +6,39 @@ Last-Updated: 2026-06-19
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-19-387 / NA-0502 key lifecycle zeroization expansion implementation rolling journal
+
+- Directive: QSL-DIR-2026-06-19-387 -- Execute NA-0502 QSL qsc Key Lifecycle Zeroization Expansion Test Implementation Harness, Optional Closeout to NA-0503.
+- Begin timestamp (UTC): 2026-06-19T20:55:49Z proof root creation.
+- Repo path: `/srv/qbuild/work/NA-0502/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0502_key_lifecycle_zeroization_expansion_impl_20260619T205549Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, cargo generate-lockfile, archive, move, or delete actions.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0502/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `5c893b83c283`.
+- Fetch was performed only after proof/live ref match and disk gate.
+- Disk watermark before fetch: `/` usage 79%; `/backup/qsl` usage 24%; STOP threshold 95% was not hit.
+- qsl-backup read-only proof: installed helper matched expected digest prefix `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- Startup queue proof: `READY_COUNT 1`; READY NA-0502; NA-0501 DONE; NA-0500 DONE; NA-0499 DONE.
+- Startup decision proof: D-0991 once, D-0992 once, D-0993 absent, duplicate decision entry count zero.
+- Startup main health on `5c893b83c283`: public-safety success; qsc-adversarial-smoke success; qsc-linux-full-suite skipped by accepted policy; macos-qsc-full-serial skipped by accepted policy; no red checks observed.
+- D386 inheritance consumed: NA-0501 completed; NA-0502 restored READY; selected classification `KEY_LIFECYCLE_ZEROIZATION_EXPANSION_TEST_READY`; selected future path `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization_expansion.rs`; new-file test preferred over modifying `key_lifecycle_zeroization.rs`; same-host client-to-client E2E remains near-term but deferred by NA-0501 because lifecycle gaps were narrower and directly aligned; no source/dependency/workflow/corpus/formal/refimpl mutation selected; no secret-material-complete, zeroization-complete, memory-erasure-complete, or side-channel-free claim selected.
+- Pre-mutation selected test file state: absent.
+- Lifecycle surface selection completed. Selected feasible direct qsc surfaces: identity KEM/signing secret rotation and public-record artifact boundary; responder pending-confirm reject and session artifact boundary. Supporting/deferred surfaces: existing KEM/signature/transcript binding rejects, passphrase/output redaction, public/trusted-pin lifecycle, and X25519/ephemeral lifetime without source instrumentation.
+- Implemented exactly one qsc integration test file: `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization_expansion.rs`.
+- The test uses existing qsc integration-test helpers, synthetic test roots, mock vault inspection, and the existing inbox test server; no new dependencies.
+- The test checks identity rotation replacement/absence boundaries and responder pending-confirm reject/no-session-artifact boundaries.
+- Recovered local validation failure: initial targeted test run failed before reaching the selected surface because synthetic route-token constants were rejected by existing qsc validation. Classification: recoverable in-scope local validation failure with understood cause. Corrective action: changed only the new test constants to the valid route-token shape used by existing qsc integration tests. Final result: targeted rerun passed and emitted all NA-0502 markers.
+- Targeted qsc key lifecycle zeroization expansion test passed.
+- Recovered validation wrapper issue: first full-validation wrapper used `exit` inside a redirected command group and stopped after `git diff --check`. Classification: recoverable command-shape issue. Corrective action: reran with rc capture that did not exit the outer shell. Final result: validation proceeded.
+- Recovered formatting issue: `cargo fmt --check` failed on the new qsc integration test formatting. Classification: recoverable in-scope formatting failure. Corrective action: ran `cargo fmt -p qsc`, verified tracked changed paths did not expand beyond allowed files, reran `cargo fmt --check`, and reran the NA-0502 test. Final result: both passed.
+- Full local validation passed: git diff check; NA-0502 qsc key lifecycle zeroization expansion test; inherited qsc key lifecycle zeroization test; secret material diagnostic boundary test; handshake provider-error no-mutation test; binding negative vector consumer test; binding corpus validator; all qsc fuzz corpus validator; formal model runner; root cargo audit; nested qsc fuzz lock audit; cargo fmt; qsc-adversarial shell syntax under sh and bash.
+- Governance patch paths: NA-0502 evidence doc, NA-0502 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-0993 records NA-0502 qsc key lifecycle zeroization expansion test implementation.
+- Selected successor: `NA-0503 -- QSL qsc Same-Host Client-to-Client End-to-End Test Scope Authorization Plan`.
+- No qsc source, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, root Cargo lockfile, qsc-adversarial script, workflow, dependency, corpus/vector/input, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no provider-RNG-complete claim is introduced. no secret-material-complete claim is introduced. no zeroization-complete claim is introduced. no memory-erasure-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 # QSL-DIR-2026-06-19-384 / NA-0500 closeout and NA-0501 restoration rolling journal
 
 - Directive: QSL-DIR-2026-06-19-384 -- Close Out NA-0500 with Full Required-CI Wait and Restore NA-0501.

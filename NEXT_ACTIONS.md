@@ -28183,7 +28183,7 @@ Acceptance criteria:
 ---
 
 ### NA-0501 — QSL qsc Key Lifecycle / Zeroization Expansion Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -28245,6 +28245,86 @@ Acceptance criteria:
 - no memory-erasure-complete claim.
 - no side-channel-free claim.
 - exactly one READY item remains.
+
+---
+
+### NA-0502 — QSL qsc Key Lifecycle Zeroization Expansion Test Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement a bounded qsc integration test that expands direct key lifecycle /
+cleanup / zeroization evidence beyond the current `key_lifecycle_zeroization.rs`
+coverage, with explicit caveats:
+- no secret-material-complete claim.
+- no zeroization-complete claim.
+- no memory-erasure-complete claim.
+- no side-channel-free claim.
+
+Protects:
+- selected key lifecycle evidence boundaries.
+- selected cleanup and artifact boundaries.
+- existing NA-0446 key lifecycle evidence.
+- NA-0500 diagnostic/no-output evidence.
+- no public-readiness claim.
+- no crypto-complete claim.
+- no secret-material-complete claim.
+- no zeroization-complete claim.
+- no memory-erasure-complete claim.
+- no side-channel-free claim.
+- one-READY invariant.
+
+Allowed scope:
+- qsl/qsl-client/qsc/tests/key_lifecycle_zeroization_expansion.rs
+- docs/governance/evidence/NA-0502_qsl_qsc_key_lifecycle_zeroization_expansion_test_implementation_harness.md
+- tests/NA-0502_qsl_qsc_key_lifecycle_zeroization_expansion_test_implementation_testplan.md
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+
+Forbidden scope:
+- qsc source mutation.
+- qsc fuzz target/Cargo mutation.
+- corpus/vector/input mutation.
+- workflow/script/helper mutation.
+- dependency/lockfile mutation.
+- refimpl/formal/service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- no public-readiness claim may be introduced.
+- no crypto-complete claim may be introduced.
+- no secret-material-complete claim may be introduced.
+- no zeroization-complete claim may be introduced.
+- no memory-erasure-complete claim may be introduced.
+- no side-channel-free claim may be introduced.
+
+Deliverables:
+- qsc integration test.
+- evidence doc.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+
+Acceptance criteria:
+- selected lifecycle/cleanup surfaces tested.
+- existing key lifecycle evidence preserved.
+- no qsc source/dependency/workflow mutation.
+- no secret-material-complete claim.
+- no zeroization-complete claim.
+- no memory-erasure-complete claim.
+- no side-channel-free claim.
+- exactly one READY item remains after closeout.
+
+Recommended selected future test surfaces:
+- identity KEM/signing key artifact and diagnostic boundaries.
+- selected responder pending cleanup or no-mutation boundaries for
+  confirm/transcript/pending-session material.
+- selected session-store/temp-root artifact checks after identity, handshake,
+  and session operations.
+
+Stop if any selected surface cannot be tested without qsc source, dependency,
+Cargo, workflow, script, helper, corpus/vector/input, formal/refimpl/service,
+public, backup, or qsl-backup mutation.
 
 ---
 

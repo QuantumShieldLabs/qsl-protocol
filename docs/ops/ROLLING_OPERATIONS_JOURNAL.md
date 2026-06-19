@@ -47,6 +47,30 @@ Last-Updated: 2026-06-19
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no provider-RNG-complete claim is introduced. no secret-material-complete claim is introduced. no zeroization-complete claim is introduced. no memory-erasure-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0501 closeout and NA-0502 restoration update
+
+- Directive: QSL-DIR-2026-06-19-386 -- optional closeout after NA-0501 evidence PR merge.
+- Evidence PR #1274 merged at `06d34faf5019`.
+- Post-merge public-safety on `06d34faf5019`: success.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0501_closeout_restore_na0502_testplan.md`.
+- D-0992 records NA-0501 closeout and NA-0502 restoration.
+- NA-0501 is marked DONE.
+- NA-0502 QSL qsc Key Lifecycle Zeroization Expansion Test Implementation Harness is restored as the sole READY successor.
+- Future NA-0502 exact implementation path: `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization_expansion.rs` plus NA-0502 governance evidence/testplan/decision/traceability/journal paths.
+- Future NA-0502 must preserve no qsc source mutation, no dependency/workflow mutation, no corpus/vector/input mutation, no public-readiness claim, no secret-material-complete claim, no zeroization-complete claim, no memory-erasure-complete claim, and no side-channel-free claim.
+- Closeout branch: `na-0501-closeout-restore-na0502`.
+- Closeout PR title: `NA-0501: closeout and restore NA-0502`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- No NA-0502 implementation is performed by closeout.
+- No qsc source/test/fuzz/Cargo mutation is performed by closeout.
+- No corpus/vector/input mutation is performed by closeout.
+- No workflow/script/helper/dependency/lockfile mutation is performed by closeout.
+- No formal/refimpl/service/public/qshield/qsl-server/qsl-attachments mutation is performed by closeout.
+- No backup/restore/qsl-backup mutation is performed by closeout.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no provider-RNG-complete claim is introduced. no secret-material-complete claim is introduced. no zeroization-complete claim is introduced. no memory-erasure-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 # QSL-DIR-2026-06-19-380 / NA-0500 qsc secret-material diagnostic boundary implementation rolling journal
 
 - Directive: QSL-DIR-2026-06-19-380 -- Execute NA-0500 QSL qsc Secret-Material Diagnostic / No-Output Boundary Test Implementation Harness, Optional Closeout to NA-0501.

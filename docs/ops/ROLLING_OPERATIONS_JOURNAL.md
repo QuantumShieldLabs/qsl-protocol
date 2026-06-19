@@ -34882,6 +34882,44 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0501 update
+
+- Directive: QSL-DIR-2026-06-19-386 -- Execute NA-0501 QSL qsc Key Lifecycle / Zeroization Expansion Scope Authorization Plan, Optional Closeout to NA-0502.
+- Begin timestamp (UTC): 2026-06-19T19:09:06Z.
+- Repo path: `/srv/qbuild/work/NA-0501/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0501_key_lifecycle_zeroization_scope_20260619T190906Z`.
+- Codex did not run qwork, qstart, qresume, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, or cargo generate-lockfile.
+- qwork proof files were read from `/srv/qbuild/work/NA-0501/.qwork/` and copied into the proof root.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `80a9bccdc99d`.
+- Fetch was performed only after proof/live ref match and disk usage was below the 95 percent stop threshold.
+- Startup queue proof: READY_COUNT 1; READY NA-0501; NA-0498 DONE; NA-0499 DONE; NA-0500 DONE.
+- Startup decision proof: D-0989 once, D-0990 once, D-0991 absent before patch, closeout decision absent before patch, duplicate decision count zero.
+- D384 response exists at `/home/victor/work/qsl/codex/responses/NA0500_closeout_restore_na0501_20260619T173827Z_D384.md`.
+- PR #1273 merged as a formatting-only queue-heading repair that changed only `NEXT_ACTIONS.md`.
+- Startup public-safety on `80a9bccdc99d`: success. qsc-adversarial-smoke on `80a9bccdc99d`: success.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- Recovered startup command issue: first helper command placed a pipeline after a heredoc terminator and produced a Python syntax error. Classification: recoverable command-shape mistake. Corrective action: reran the parser with corrected command structure and proof-root output. Final result: startup queue/decision verification passed.
+- NA-0500/D384 inheritance consumed: secret-material diagnostic/no-output boundary test implemented, selected qsc diagnostic surfaces tested, no source/dependency/workflow/corpus mutation inherited, and no public/completion/free claim expansion inherited.
+- Current qsc lifecycle inventory completed across identity KEM/signing keys, KEM pending secret, KEM shared secret, transcript/confirm/session material, X25519/ephemeral material, vault/passphrase data, public-record/trusted-pin artifacts, provider-error no-mutation evidence, diagnostic/no-output evidence, corpus/vector validator evidence, refimpl support, formal bounded evidence, side-channel caveats, and memory-erasure caveats.
+- Same-host client-to-client E2E was compared as a near-term core assurance candidate. It is deferred because the current key lifecycle gaps are narrower, directly aligned to NA-0501, and feasible without qsc source/dependency/workflow mutation.
+- Primary classification selected: `KEY_LIFECYCLE_ZEROIZATION_EXPANSION_TEST_READY`.
+- Selected successor: `NA-0502 -- QSL qsc Key Lifecycle Zeroization Expansion Test Implementation Harness`.
+- Future NA-0502 exact implementation path: `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization_expansion.rs` plus NA-0502 governance evidence/testplan/decision/traceability/journal paths.
+- Governance patch paths: NA-0501 evidence doc, NA-0501 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-0991 records NA-0501 qsc key lifecycle zeroization expansion scope authorization.
+- Evidence PR branch: `na-0501-key-lifecycle-zeroization-scope`.
+- Evidence PR title: `NA-0501: authorize key lifecycle zeroization expansion scope`.
+- Evidence PR: pending at journal authoring.
+- Evidence PR merge commit: pending at journal authoring.
+- No implementation mutation is performed.
+- No qsc source/test/fuzz/Cargo mutation is performed.
+- No corpus/vector/input mutation is performed.
+- No workflow/script/helper/dependency/lockfile mutation is performed.
+- No formal/refimpl/service/public/qshield/qsl-server/qsl-attachments mutation is performed.
+- No backup/restore/qsl-backup mutation is performed.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no provider-RNG-complete claim is introduced. no secret-material-complete claim is introduced. no zeroization-complete claim is introduced. no memory-erasure-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0499 closeout and NA-0500 restoration update
 
 - Directive: QSL-DIR-2026-06-19-379 -- Close Out NA-0499 After Side-Channel / Secret-Material Lifecycle Authorization Public-Safety Completion and Restore NA-0500.

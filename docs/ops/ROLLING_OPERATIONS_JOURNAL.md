@@ -6,6 +6,49 @@ Last-Updated: 2026-06-19
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-19-388 / NA-0502 closeout and NA-0503 restoration rolling journal
+
+- Directive: QSL-DIR-2026-06-19-388 -- Close Out NA-0502 with Full Required-CI Wait and Restore NA-0503.
+- Begin timestamp (UTC): 2026-06-19T21:53:18Z proof root creation.
+- Repo path: `/srv/qbuild/work/NA-0502/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0502_closeout_restore_na0503_20260619T215318Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, cargo generate-lockfile, archive, move, or delete actions.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0502/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `2e39de1cccef`.
+- Fetch was performed only after proof/live ref match and disk gate.
+- Disk watermark before fetch: `/` usage 77%; STOP threshold 95% was not hit.
+- qsl-backup read-only proof: installed helper matched expected digest prefix `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- Startup queue proof: `READY_COUNT 1`; READY NA-0502; NA-0501 DONE; NA-0500 DONE; NA-0499 DONE.
+- Startup decision proof: D-0991 once, D-0992 once, D-0993 once, D-0994 absent, duplicate decision entry count zero.
+- D387 inheritance consumed: PR #1276 merged; implementation commit prefix `54b58277d469`; merge commit `2e39de1cccef`; new qsc integration test path `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization_expansion.rs`; selected lifecycle surfaces were identity rotation replacement and public-record boundary plus malformed responder confirmation reject and session artifact boundary; D387 stopped because post-merge public-safety and required long checks were healthy but incomplete inside the short attach/early-failure window.
+- Recovered local proof-script issue: the first PR #1276 metadata verification compared the PR head to an assumed full SHA even though the directive supplied short implementation SHA `54b58277d469`. Classification: recoverable command-shape / verification assumption mistake. Corrective action: reran verification requiring the actual full head SHA to start with the directive short SHA and rechecked the exact changed-path set. Final result: PR #1276 merged/path proof passed.
+- PR #1276 exact changed paths: `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization_expansion.rs`, `docs/governance/evidence/NA-0502_qsl_qsc_key_lifecycle_zeroization_expansion_test_implementation_harness.md`, `tests/NA-0502_qsl_qsc_key_lifecycle_zeroization_expansion_test_implementation_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- Required NA-0502 markers are present in implementation/evidence/testplan, including key lifecycle scope consumed, zeroization expansion implemented, selected lifecycle surfaces checked, reject/artifact boundary checked, no qsc source/dependency/workflow mutation, no public/crypto/secret-material/zeroization/memory-erasure/side-channel claim, and one-READY markers.
+- PR #1276 post-merge wait proof on `2e39de1cccef`: first poll at 2026-06-19T21:55:22Z found public-safety, qsc-linux-full-suite, and macos-qsc-full-serial attached/in progress; qsc-adversarial-smoke completed success; zero failures were observed.
+- PR #1276 post-merge final proof on `2e39de1cccef`: public-safety completed success; qsc-adversarial-smoke completed success; qsc-linux-full-suite completed success; macos-qsc-full-serial completed success; final green observed at 2026-06-19T23:14:22Z; no required check completed failure, cancellation, disappearance, runner-loss, or visibility fault was observed.
+- CI wait accounting before closeout patch: 79.00 minutes from first PR #1276 post-merge poll to final green across 77 REST iterations. Productive wait-work included proof-root check JSON/job visibility capture, poll logs, closeout readiness notes, hardening review draft, and forward audit skeleton; most remaining time was idle polling because NA-0503 work was forbidden before closeout.
+- Pre-closeout local validation passed: git diff check; NA-0502 qsc key lifecycle zeroization expansion test; inherited qsc key lifecycle zeroization test; secret-material diagnostic boundary test; handshake provider-error no-mutation test; binding negative vector consumer test; binding corpus validator; all qsc fuzz corpus validator; formal model runner; root cargo audit; nested qsc fuzz lock audit; cargo fmt; qsc-adversarial shell syntax under sh and bash.
+- Recovered closeout scope-guard proof issue: the first exact five-path guard after patch used only tracked `git diff --name-only`, so it missed the new untracked closeout testplan before staging. Classification: recoverable proof-shape issue. Corrective action: reran the guard with tracked diff plus `git ls-files --others --exclude-standard`. Final result: exact five-path proof passed.
+- Recovered added-line overclaim wording issue: the first post-commit added-line overclaim scan flagged a combined `production/public-readiness` acceptance criterion. Classification: recoverable in-scope documentation validation failure with understood cause. Corrective action: split the criterion into separate `no production-readiness claim` and `no public-readiness claim` lines before PR creation. Final result: final rerun passed with zero added-line overclaim findings.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0502_closeout_restore_na0503_testplan.md`.
+- D-0994 records NA-0502 closeout and NA-0503 restoration.
+- NA-0502 is marked DONE.
+- NA-0503 QSL qsc Same-Host Client-to-Client End-to-End Test Scope Authorization Plan is restored as the sole READY successor.
+- NA-0503 is authorization-only for exact same-host client-to-client E2E scope selection using two independent client roots and realistic send/receive/reply behavior; this closeout performs no NA-0503 implementation.
+- Closeout branch: `na-0502-closeout-restore-na0503`.
+- Closeout PR title: `NA-0502: closeout and restore NA-0503`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Final queue proof expected after patch: `READY_COUNT 1`; READY NA-0503; NA-0502 DONE; D-0994 once; D-0995 absent; duplicate decision count zero.
+- No implementation mutation is performed by closeout.
+- No qsc source/test/fuzz/Cargo mutation is performed by closeout.
+- No corpus/vector/input mutation is performed by closeout.
+- No workflow/script/helper/dependency/lockfile mutation is performed by closeout.
+- No formal/refimpl/service/public/qshield/qsl-server/qsl-attachments mutation is performed by closeout.
+- No backup/restore/qsl-backup mutation is performed by closeout.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no provider-RNG-complete claim is introduced. no secret-material-complete claim is introduced. no zeroization-complete claim is introduced. no memory-erasure-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 # QSL-DIR-2026-06-19-387 / NA-0502 key lifecycle zeroization expansion implementation rolling journal
 
 - Directive: QSL-DIR-2026-06-19-387 -- Execute NA-0502 QSL qsc Key Lifecycle Zeroization Expansion Test Implementation Harness, Optional Closeout to NA-0503.

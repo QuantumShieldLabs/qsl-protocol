@@ -28124,7 +28124,7 @@ Completion:
 ---
 
 ### NA-0500 — QSL qsc Secret-Material Diagnostic / No-Output Boundary Test Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -28179,6 +28179,72 @@ Acceptance criteria:
 - no source/dependency/workflow mutation.
 - no secret-material-complete or side-channel-free claim.
 - exactly one READY item remains after closeout.
+
+---
+
+### NA-0501 -- QSL qsc Key Lifecycle / Zeroization Expansion Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the next exact qsc key lifecycle and zeroization assurance lane after
+NA-0500 adds diagnostic/no-output evidence, with explicit caveats:
+- no secret-material-complete claim.
+- no zeroization-complete claim.
+- no memory-erasure-complete claim.
+- no side-channel-free claim.
+
+Protects:
+- key lifecycle evidence boundaries.
+- zeroization evidence boundaries.
+- memory-lifetime caveats.
+- no secret-material-complete claim.
+- no zeroization-complete claim.
+- no memory-erasure-complete claim.
+- no side-channel-free claim.
+- one-READY invariant.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0501.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of qsc key lifecycle tests, qsc identity/key files,
+  qsc/refimpl crypto helpers, provider-error evidence, side-channel/secret-
+  material evidence, and public-claim boundaries.
+
+Forbidden scope:
+- implementation mutation.
+- qsc/refimpl/crypto/source mutation.
+- dependency/workflow/script/helper mutation.
+- corpus/vector/input mutation.
+- formal model mutation.
+- service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- no public-readiness claim.
+- no crypto-complete claim.
+- no secret-material-complete claim.
+- no zeroization-complete claim.
+- no memory-erasure-complete claim.
+- no side-channel-free claim.
+
+Deliverables:
+- key lifecycle / zeroization expansion scope authorization evidence doc.
+- testplan.
+- next sequential decision.
+- TRACEABILITY update.
+- rolling journal update.
+- selected exact implementation scope or split/no-action rationale.
+
+Acceptance criteria:
+- current key lifecycle evidence inventoried.
+- expansion options reviewed.
+- exact future implementation or split-scope selected.
+- no secret-material-complete claim.
+- no zeroization-complete claim.
+- no memory-erasure-complete claim.
+- no side-channel-free claim.
+- exactly one READY item remains.
 
 ---
 

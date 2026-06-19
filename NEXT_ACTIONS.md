@@ -27956,7 +27956,7 @@ Acceptance criteria:
 ---
 
 ### NA-0498 — QSL Core Assurance Checkpoint and Next Highest-Risk Security Lane Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -28002,6 +28002,93 @@ Acceptance criteria:
 - highest-value next risk-reduction lane selected.
 - process/tooling lanes rejected unless blocking core assurance.
 - public/completion/proof claim boundaries preserved.
+- exactly one READY item remains.
+
+Completion:
+- Evidence PR #1267 merged at `5cc59ddf26ba`.
+- D-0985 records the NA-0498 core assurance checkpoint and next highest-risk
+  security lane authorization.
+- D377 verified post-merge public-safety completed success for
+  `5cc59ddf26ba`.
+- D377 accepted qsc-adversarial-smoke success and accepted the documented
+  docs/governance-only full-suite skip policy for qsc-linux-full-suite and
+  macos-qsc-full-serial on the PR #1267 merge commit.
+- D-0986 records NA-0498 closeout and NA-0499 restoration.
+- NA-0499 is restored below as the sole READY successor.
+- No implementation mutation was performed by closeout.
+- No qsc source/test/fuzz/Cargo mutation was performed by closeout.
+- No corpus/vector/input mutation was performed by closeout.
+- No workflow/script/helper/dependency/lockfile mutation was performed by
+  closeout.
+- No formal/refimpl/service/public/qshield/qsl-server/qsl-attachments mutation
+  was performed by closeout.
+- No backup/restore/qsl-backup mutation was performed by closeout.
+- No public-readiness claim is introduced. no production-readiness claim is
+  introduced. no external-review-complete claim is introduced. no
+  crypto-complete claim is introduced. no KEM-complete claim is introduced. no
+  signature-complete claim is introduced. no identity-complete claim is
+  introduced. no provider-RNG-complete claim is introduced. no
+  secret-material-complete claim is introduced. no side-channel-free claim is
+  introduced. no replay-proof claim is introduced. no downgrade-proof claim is
+  introduced. no vulnerability-free claim is introduced. no bug-free claim is
+  introduced. no perfect-crypto claim is introduced.
+
+---
+
+### NA-0499 — QSL Side-Channel / Secret-Material Lifecycle Assurance Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the next exact assurance lane for QSL secret-material lifecycle,
+including in-memory lifetime caveats, zeroization evidence boundaries,
+secret-output discipline, diagnostic/logging boundaries, crash/test-artifact
+boundaries, and side-channel non-claim preservation.
+
+Protects:
+- secret-material lifecycle discipline.
+- no secret-output and no diagnostic leakage boundaries.
+- zeroization evidence boundaries.
+- side-channel caveat clarity.
+- external-review readiness.
+- public-claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0499.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of qsc identity/key lifecycle tests, key-lifecycle
+  zeroization evidence, TUI bootstrap pre-generation evidence, provider-error
+  no-mutation evidence, qsc/refimpl crypto helpers, validator/corpus evidence,
+  formal evidence, CI evidence, and public-claim boundaries.
+
+Forbidden scope:
+- implementation mutation.
+- qsc/refimpl/crypto/source mutation.
+- dependency/workflow/script/helper mutation.
+- corpus/vector/input mutation.
+- formal model mutation.
+- service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- no public-readiness claim.
+- no crypto-complete claim.
+- no secret-material-complete claim.
+- no side-channel-free claim.
+
+Deliverables:
+- side-channel / secret-material lifecycle authorization evidence doc.
+- testplan.
+- next sequential decision.
+- TRACEABILITY update.
+- rolling journal update.
+- selected exact implementation/audit scope or no-action rationale.
+
+Acceptance criteria:
+- lifecycle and side-channel assurance surfaces inventoried.
+- exact next highest-value lifecycle/side-channel lane selected.
+- no side-channel-free or secret-material-complete claim.
 - exactly one READY item remains.
 
 ---

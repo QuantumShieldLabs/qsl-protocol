@@ -28036,7 +28036,7 @@ Completion:
 ---
 
 ### NA-0499 — QSL Side-Channel / Secret-Material Lifecycle Assurance Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -28090,6 +28090,95 @@ Acceptance criteria:
 - exact next highest-value lifecycle/side-channel lane selected.
 - no side-channel-free or secret-material-complete claim.
 - exactly one READY item remains.
+
+Completion:
+- Evidence PR #1269 merged at `c06e20a66283`.
+- D-0987 records the NA-0499 side-channel / secret-material lifecycle
+  assurance scope authorization.
+- D379 verified post-merge public-safety completed success for
+  `c06e20a66283`.
+- D379 accepted qsc-adversarial-smoke success and accepted the documented
+  docs/governance-only full-suite skip policy for qsc-linux-full-suite and
+  macos-qsc-full-serial on the PR #1269 merge commit.
+- D-0988 records NA-0499 closeout and NA-0500 restoration.
+- NA-0500 is restored below as the sole READY successor.
+- No implementation mutation was performed by closeout.
+- No qsc source/test/fuzz/Cargo mutation was performed by closeout.
+- No corpus/vector/input mutation was performed by closeout.
+- No workflow/script/helper/dependency/lockfile mutation was performed by
+  closeout.
+- No formal/refimpl/service/public/qshield/qsl-server/qsl-attachments mutation
+  was performed by closeout.
+- No backup/restore/qsl-backup mutation was performed by closeout.
+- No public-readiness claim is introduced. no production-readiness claim is
+  introduced. no external-review-complete claim is introduced. no
+  crypto-complete claim is introduced. no KEM-complete claim is introduced. no
+  signature-complete claim is introduced. no identity-complete claim is
+  introduced. no provider-RNG-complete claim is introduced. no
+  secret-material-complete claim is introduced. no zeroization-complete claim
+  is introduced. no memory-erasure-complete claim is introduced. no
+  side-channel-free claim is introduced. no vulnerability-free claim is
+  introduced. no bug-free claim is introduced. no perfect-crypto claim is
+  introduced.
+
+---
+
+### NA-0500 — QSL qsc Secret-Material Diagnostic / No-Output Boundary Test Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement a bounded qsc integration test that exercises selected
+reject/error/diagnostic paths and asserts stdout/stderr/error text/test-visible
+diagnostics do not expose secret-shaped material, private-key markers,
+passphrases, shared-secret labels, signing-key labels, KEM secret labels,
+production-like private endpoints, or user/operator data markers.
+
+Protects:
+- secret-material output discipline.
+- diagnostic/logging boundaries.
+- reject/error path confidentiality.
+- no secret-material-complete claim.
+- no side-channel-free claim.
+- one-READY invariant.
+
+Allowed scope:
+- qsl/qsl-client/qsc/tests/secret_material_diagnostic_boundary.rs
+- docs/governance/evidence/NA-0500_qsl_qsc_secret_material_diagnostic_no_output_boundary_test_implementation_harness.md
+- tests/NA-0500_qsl_qsc_secret_material_diagnostic_no_output_boundary_test_implementation_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+
+Forbidden scope:
+- qsc source mutation.
+- qsc fuzz target/Cargo mutation.
+- corpus/vector/input mutation.
+- workflow/script/helper mutation.
+- dependency/lockfile mutation.
+- refimpl/formal/service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- no public-readiness claim.
+- no crypto-complete claim.
+- no secret-material-complete claim.
+- no zeroization-complete claim.
+- no memory-erasure-complete claim.
+- no side-channel-free claim.
+
+Deliverables:
+- qsc integration test.
+- evidence doc.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+
+Acceptance criteria:
+- selected reject/error/diagnostic paths tested.
+- output scrub checks fail on secret-like markers.
+- no source/dependency/workflow mutation.
+- no secret-material-complete or side-channel-free claim.
+- exactly one READY item remains after closeout.
 
 ---
 

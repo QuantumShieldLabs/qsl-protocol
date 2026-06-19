@@ -2,9 +2,43 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-06-15
+Last-Updated: 2026-06-19
 
 # Rolling Operations Journal
+
+# QSL-DIR-2026-06-19-376 / NA-0498 core assurance checkpoint rolling journal
+
+- Directive: QSL-DIR-2026-06-19-376 -- Execute NA-0498 QSL Core Assurance Checkpoint and Next Highest-Risk Security Lane Authorization Plan, Optional Closeout to NA-0499.
+- Begin timestamp (UTC): 2026-06-19T01:09:46Z proof root creation.
+- Repo path: `/srv/qbuild/work/NA-0498/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0498_core_assurance_checkpoint_20260619T010946Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, or cargo generate-lockfile.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0498/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `ea3c24d99a7e`.
+- Fetch was performed only after proof/live ref match and disk gate.
+- Disk watermark before fetch: `/` usage 76%; `/backup/qsl` usage 23%; STOP threshold 95% was not hit.
+- qsl-backup read-only proof: installed helper matched expected SHA-256 `e9ecff3d22ed...0052f6232`; Codex ops source appears exactly once in the installed helper source list.
+- Startup public-safety on `ea3c24d99a7e`: success. Startup qsc-adversarial-smoke on `ea3c24d99a7e`: success.
+- Startup queue proof after corrected parser: `READY_COUNT 1`; READY NA-0498; NA-0497 DONE; NA-0496 DONE; NA-0495 DONE.
+- Startup decision proof after corrected parser: D-0983 once, D-0984 once, D-0985 absent as a decision entry, D-0986 absent, duplicate decision entry count zero.
+- Recovered startup parser issue: first parser counted broad textual decision references and then used markdown heading grammar not used by `DECISIONS.md`. Classification: recoverable command/proof-shape issue and valid format-discovery issue. Corrective action: reran with line-oriented queue parsing and repository-native `- **ID:** D-####` decision-entry parsing. Final result: queue and decision gates passed.
+- Allowed read-only boundary discovery: `qsl-server`, `qsl-attachments`, `qshield`, and `qshield-cli` paths were absent in this checkout. Classification: valid path-absence proof; existing allowed paths were inventoried separately.
+- NA-0497/D375 inheritance consumed: NA-0497 is DONE; NA-0498 is READY; vector manifest consumer test exists; internal-only/no-public-conformance-vector boundary is preserved; qsc-adversarial validator integration is green; disk pressure is below hard stop.
+- Core evidence inventory completed across identity/provider RNG, KEM/signature/transcript binding, replay/downgrade/stale/rollback behavior, secret-material lifecycle, qsc/refimpl/formal mapping, fuzz/corpus/vector quality, external-review readiness, public-claim boundary, CI/local ops, and backup/off-host/restore/key-custody residuals.
+- Primary classification selected: `CORE_ASSURANCE_SIDE_CHANNEL_SECRET_MATERIAL_NEXT`.
+- Selected successor: `NA-0499 -- QSL Side-Channel / Secret-Material Lifecycle Assurance Scope Authorization Plan`.
+- Future NA-0499 is authorization-only for secret-material lifecycle, in-memory lifetime caveats, zeroization evidence boundaries, secret-output discipline, diagnostic/logging boundaries, and side-channel non-claim preservation.
+- Rejected next lanes: X25519/ephemeral provider RNG, qsc/refimpl/formal mapping, stale identity / replay / rollback deeper tests, external-review package, local cargo-fuzz parity, CI watcher tooling, disk/archive routine, backup/off-host/restore/key-custody, public technical paper timing, and D132 cleanup.
+- Governance patch paths: NA-0498 evidence doc, NA-0498 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-0985 records NA-0498 core assurance checkpoint and next highest-risk security lane authorization.
+- No implementation mutation is performed.
+- No qsc source/test/fuzz/Cargo mutation is performed.
+- No corpus/vector/input/internal-manifest mutation is performed.
+- No workflow/script/helper/validator/dependency/lockfile mutation is performed.
+- No formal/refimpl/service/public/qshield/qsl-server/qsl-attachments mutation is performed.
+- No backup/restore/qsl-backup mutation is performed.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no provider-RNG-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
 # QSL-DIR-2026-06-18-373 / NA-0497 binding negative vector consumer test implementation rolling journal
 

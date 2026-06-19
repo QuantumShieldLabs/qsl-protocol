@@ -34805,6 +34805,47 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0499 closeout and NA-0500 restoration update
+
+- Directive: QSL-DIR-2026-06-19-379 -- Close Out NA-0499 After Side-Channel / Secret-Material Lifecycle Authorization Public-Safety Completion and Restore NA-0500.
+- Begin timestamp (UTC): 2026-06-19T14:42:13Z.
+- Repo path: `/srv/qbuild/work/NA-0499/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0499_closeout_restore_na0500_20260619T144213Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, or cargo generate-lockfile.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0499/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `c06e20a66283`.
+- Fetch performed only after proof/live ref match; local main remained equal to `origin/main`.
+- Startup queue proof: `READY_COUNT 1`; READY NA-0499; NA-0498 DONE; NA-0497 DONE; NA-0496 DONE; NA-0500 absent.
+- Startup decision proof: D-0985 once, D-0986 once, D-0987 once, D-0988 absent before patch, duplicate decision count zero.
+- D378 response found at `/home/victor/work/qsl/codex/responses/NA0499_20260619T142930Z_D378.md`.
+- Disk watermark before fetch: `/` usage 77%; `/backup/qsl` usage 24%; STOP threshold 95% was not hit.
+- qsl-backup read-only proof: installed helper matched expected digest prefix `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list. No backup or restore was run.
+- PR #1269 merged at `c06e20a66283`; evidence commit `c3c4621b57b0`; changed paths were exactly `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0499_qsl_side_channel_secret_material_lifecycle_assurance_scope_authorization_plan.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0499_qsl_side_channel_secret_material_lifecycle_assurance_scope_authorization_testplan.md`.
+- PR #1269 post-merge public-safety on `c06e20a66283`: success.
+- PR #1269 qsc-adversarial-smoke on `c06e20a66283`: success.
+- PR #1269 qsc-linux-full-suite and macos-qsc-full-serial completed skipped and are accepted under the documented docs/governance-only main-push policy; no required check completed failure was observed.
+- D378 inheritance consumed: PR #1269 merged; NA-0499 consumed NA-0498/D377; lifecycle inventory completed; evidence classification completed; option review completed; hostile cryptographer/red-team/SRE/release-claim reviews completed; prioritization matrix completed.
+- Primary classification selected: `SECRET_MATERIAL_DIAGNOSTIC_NO_OUTPUT_TEST_READY`.
+- Selected successor: `NA-0500 -- QSL qsc Secret-Material Diagnostic / No-Output Boundary Test Implementation Harness`.
+- Future NA-0500 implementation path: `qsl/qsl-client/qsc/tests/secret_material_diagnostic_boundary.rs`.
+- Future NA-0500 must test selected qsc reject/error/diagnostic paths for absence of secret-like markers, private-key markers, passphrases, shared-secret labels, signing-key labels, KEM secret labels, production-like private endpoints, and user/operator data markers.
+- Wait-time accounting: no CI wait was needed because PR #1269 post-merge checks were already green at the first query; one local long-command wait occurred for `cargo test -p qsc --locked --test key_lifecycle_zeroization`, lasting 137 seconds.
+- Pre-closeout validation passed: git diff check, validator binding corpus scan, validator all qsc corpus scan, qsc binding negative vector consumer test, qsc key lifecycle zeroization test, qsc provider-error no-mutation test, formal model checks, root cargo audit, nested qsc fuzz lock audit, cargo fmt, and qsc-adversarial shell syntax.
+- Recovered parser proof issue: first queue/decision parser expected a different markdown shape and produced unusable decision counts. Classification: recoverable command-shape/parser issue. Corrective action: reran a format-aware parser for `### NA-####` headings and `- **ID:** D-####` decision lines. Final result: queue/decision proof passed.
+- Recovered audit/fmt wrapper issue: the first audit/fmt helper exited after the root audit and skipped later commands. Classification: recoverable command-shape issue. Corrective action: reran missing nested fuzz-lock audit and cargo fmt directly. Final result: nested audit and cargo fmt passed.
+- Closeout branch: `na-0499-closeout-restore-na0500`.
+- Closeout PR title: `NA-0499: closeout and restore NA-0500`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0499_closeout_restore_na0500_testplan.md`.
+- D-0988 records NA-0499 closeout and NA-0500 restoration.
+- NA-0499 is marked DONE.
+- NA-0500 qsc secret-material diagnostic / no-output boundary test implementation harness is restored as the sole READY successor.
+- No NA-0500 implementation is performed by closeout.
+- No qsc source, qsc test, qsc fuzz target, qsc fuzz Cargo, root Cargo, dependency, lockfile, workflow, script, helper, validator, corpus/vector/input, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced by closeout.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no provider-RNG-complete claim is introduced. no secret-material-complete claim is introduced. no zeroization-complete claim is introduced. no memory-erasure-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0499 update
 
 - Directive: QSL-DIR-2026-06-19-378 -- Execute NA-0499 QSL Side-Channel / Secret-Material Lifecycle Assurance Scope Authorization Plan, Optional Closeout to NA-0500.

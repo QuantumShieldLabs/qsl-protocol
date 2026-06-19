@@ -6,6 +6,42 @@ Last-Updated: 2026-06-19
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-19-380 / NA-0500 qsc secret-material diagnostic boundary implementation rolling journal
+
+- Directive: QSL-DIR-2026-06-19-380 -- Execute NA-0500 QSL qsc Secret-Material Diagnostic / No-Output Boundary Test Implementation Harness, Optional Closeout to NA-0501.
+- Begin timestamp (UTC): 2026-06-19T15:27:42Z proof root creation.
+- Repo path: `/srv/qbuild/work/NA-0500/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0500_secret_material_diagnostic_boundary_impl_20260619T152742Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, or cargo generate-lockfile.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0500/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `87dd24ef1219`.
+- Fetch was performed only after proof/live ref match and disk gate.
+- Disk watermark before fetch: `/` usage 77%; `/backup/qsl` usage 24%; STOP threshold 95% was not hit.
+- qsl-backup read-only proof: installed helper matched expected SHA-256 `e9ecff3d22ed...0052f6232`; Codex ops source appears exactly once in the installed helper source list.
+- Startup public-safety on `87dd24ef1219`: success. Startup qsc-adversarial-smoke on `87dd24ef1219`: success.
+- Startup queue proof after corrected parser: `READY_COUNT 1`; READY NA-0500; NA-0499 DONE; NA-0498 DONE; NA-0497 DONE.
+- Startup decision proof after corrected parser: D-0987 once, D-0988 once, D-0989 absent, duplicate decision entry count zero.
+- Recovered startup parser issue: first parser expected `--` in NA headings while `NEXT_ACTIONS.md` uses an em-dash separator. Classification: recoverable command-shape/parser issue. Corrective action: reran verifier with heading parser accepting the repository's current heading shape. Final result: queue and decision gates passed.
+- D379 inheritance consumed: NA-0499 closed; NA-0500 restored READY; selected classification `SECRET_MATERIAL_DIAGNOSTIC_NO_OUTPUT_TEST_READY`; selected future path `qsl/qsl-client/qsc/tests/secret_material_diagnostic_boundary.rs`; no source/dependency/workflow mutation and no public/crypto/secret-material/zeroization/memory-erasure/side-channel claim selected.
+- Pre-mutation selected test file state: absent.
+- Diagnostic surface inventory completed. Selected feasible direct qsc surfaces: invalid policy-profile CLI error, util-sanitize usage stdout/stderr error, and handshake `identity_unknown` / `handshake_reject` diagnostic path. Supporting-only inherited surfaces: provider decap failure no-mutation and binding negative transcript/replay tests. Rejected surfaces: panic/crash instrumentation requiring qsc source mutation, fuzz-helper-only paths requiring forbidden mutation, and full process-heavy fuzzing.
+- Implemented exactly one qsc integration test file: `qsl/qsl-client/qsc/tests/secret_material_diagnostic_boundary.rs`.
+- The test uses existing qsc integration-test helpers, synthetic temp roots, synthetic marker labels only, and no new dependencies.
+- Real qsc diagnostics exercised: `event=error code=invalid_policy_profile`, `event=util_sanitize code=usage` plus stderr usage, and `event=identity_unknown` / `event=handshake_reject reason=identity_unknown` / `event=error code=identity_unknown`.
+- No-secret-output scanner proof implemented for synthetic private-key, passphrase, KEM secret, signature secret, shared secret, backup/recovery key, runtime/service secret, private endpoint, operator/user data, route-token marker, qsp session-store key, pending-handshake secret, identity-signing secret, and high-entropy-looking token surfaces.
+- Synthetic marker fail proof implemented with synthetic labels only and no real secret values.
+- Targeted qsc diagnostic boundary test passed and emitted all NA-0500 required markers.
+- Inherited qsc key lifecycle zeroization test passed.
+- Inherited qsc provider-error no-mutation test passed.
+- Binding corpus validator scan passed with zero findings.
+- All qsc fuzz corpus validator scan passed with zero findings.
+- Governance patch paths: NA-0500 evidence doc, NA-0500 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-0989 records NA-0500 qsc secret-material diagnostic no-output boundary test implementation.
+- Selected successor: `NA-0501 -- QSL qsc Key Lifecycle / Zeroization Expansion Scope Authorization Plan`.
+- No qsc source, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, root Cargo lockfile, dependency, workflow, script, helper, validator, qsc-adversarial script, corpus, vector, input, formal, refimpl, qsl-server, qsl-attachments, qshield, qshield-cli, public docs, website, README, START_HERE, backup, qsl-backup, backup status/plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no provider-RNG-complete claim is introduced. no secret-material-complete claim is introduced. no zeroization-complete claim is introduced. no memory-erasure-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 # QSL-DIR-2026-06-19-376 / NA-0498 core assurance checkpoint rolling journal
 
 - Directive: QSL-DIR-2026-06-19-376 -- Execute NA-0498 QSL Core Assurance Checkpoint and Next Highest-Risk Security Lane Authorization Plan, Optional Closeout to NA-0499.

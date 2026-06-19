@@ -34805,6 +34805,52 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+---
+
+## NA-0498 closeout and NA-0499 restoration update
+
+- Directive: QSL-DIR-2026-06-19-377 -- Close Out NA-0498 After Core Assurance Checkpoint Public-Safety Completion and Restore NA-0499.
+- Repo path: `/srv/qbuild/work/NA-0498/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0498_closeout_restore_na0499_20260619T020813Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, or cargo generate-lockfile.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0498/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `5cc59ddf26ba`.
+- Fetch performed only after proof/live ref match; local main remained equal to `origin/main` at `5cc59ddf26ba`.
+- Disk watermark before fetch: `/` usage 77%; `/backup/qsl` usage 23%. STOP threshold 95% was not hit.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- Startup queue proof: `READY_COUNT 1`; READY NA-0498; NA-0497 DONE; NA-0496 DONE; NA-0495 DONE; NA-0499 not READY.
+- Startup decision proof: D-0983 once, D-0984 once, D-0985 once, D-0986 absent, duplicate decision count zero.
+- Recovered startup parser issue: first queue/decision parser expected ASCII `--` headings and missed the current em-dash queue headings. Classification: recoverable parser/command-shape issue. Corrective action: reran with the actual `### NA-` heading grammar accepting dash variants. Final result: `READY_COUNT 1`, READY NA-0498, NA-0497/NA-0496/NA-0495 DONE, D-0983/D-0984/D-0985 once, D-0986 absent, duplicate decision count zero.
+- D376 response found at `/home/victor/work/qsl/codex/responses/NA0498_20260619T013406Z_D376.md`.
+- D376 inheritance consumed: PR #1267 merged, evidence commit and merge SHA `5cc59ddf26ba`, NA-0498 consumed NA-0497/D375, core evidence inventory completed, highest-risk residual review completed, hostile cryptographer/red-team/SRE/release-claim reviews completed, prioritization matrix completed, and primary classification `CORE_ASSURANCE_SIDE_CHANNEL_SECRET_MATERIAL_NEXT` selected.
+- D376 selected successor: `NA-0499 -- QSL Side-Channel / Secret-Material Lifecycle Assurance Scope Authorization Plan`.
+- D376 stop reason consumed: post-merge public-safety did not attach or complete green inside the short attach/early-failure window; no completed failures were observed. NA-0498 remained READY until this closeout.
+- PR #1267 changed exactly the expected evidence/testplan/decision/traceability/journal paths and no implementation, qsc source/test/fuzz/Cargo, workflow/script/helper, corpus/vector/input, dependency/lockfile, formal/refimpl/service/public/backup paths.
+- PR #1267 post-merge check proof on `5cc59ddf26ba`: public-safety completed success; qsc-adversarial-smoke completed success; qsc-linux-full-suite completed skipped and was accepted under the docs/governance-only main-push policy; macos-qsc-full-serial completed skipped and was accepted under the same policy; no completed check failure; no in-progress check.
+- PR #1267 post-merge wait-time accounting: immediate check-state query found green/accepted state; no D377 CI poll wait over 60 seconds was needed for PR #1267.
+- Pre-closeout local validation passed: git diff check; binding corpus validator JSON; all qsc fuzz corpus validator JSON; qsc binding negative vector consumer test; internal manifest JSON validation; formal runner; root cargo audit; nested qsc fuzz lock audit; cargo fmt; qsc-adversarial shell syntax.
+- Recovered overclaim-scan proof issues: initial proof scripts scanned unrelated historical DECISIONS entries or matched explicit negative sentences as affirmative claims. Classification: recoverable proof-script false positives; no repo mutation occurred. Corrective action: reran scoped, sentence-aware D-0985/NA-0498 evidence scans requiring explicit negative claim wording and no sentence-aware affirmative claim. Final result: PASS.
+- Recovered added-line overclaim wording issue: the new NA-0499 forbidden-scope line initially listed restricted claim phrases without same-line `no` wording. Classification: recoverable in-scope governance wording issue. Corrective action: rewrote the line as explicit no-claim bullets. Final result: added-line overclaim scan PASS.
+- Recovered queue-helper heading issue: the new NA-0499 heading initially used ASCII `--` from the directive text, while the repo queue helper recognizes the existing em-dash heading grammar. Classification: recoverable in-scope queue-format alignment issue. Corrective action: changed only the NA-0499 heading separator to the repo-standard em dash. Final result: queue helper and exact parser both identify READY NA-0499.
+- Local long-command wait accounting: isolated cargo test validation took about 1.1 minutes; audit/fmt validation completed without requiring CI wait. Proof artifacts were written under the directive proof root.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0498_closeout_restore_na0499_testplan.md`.
+- D-0986 records NA-0498 closeout and NA-0499 restoration.
+- NA-0498 is marked DONE.
+- NA-0499 Side-Channel / Secret-Material Lifecycle Assurance Scope Authorization Plan is restored as the sole READY successor.
+- NA-0499 is the chosen core security lane after the core assurance checkpoint because it targets secret-material lifecycle discipline, in-memory lifetime caveats, zeroization evidence boundaries, secret-output and diagnostic/logging boundaries, crash/test-artifact boundaries, and side-channel non-claim preservation.
+- Closeout branch: `na-0498-closeout-restore-na0499`.
+- Closeout PR title: `NA-0498: closeout and restore NA-0499`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- No implementation mutation is performed by closeout.
+- No qsc source/test/fuzz/Cargo mutation is performed by closeout.
+- No corpus/vector/input mutation is performed by closeout.
+- No workflow/script/helper/dependency/lockfile mutation is performed by closeout.
+- No formal/refimpl/service/public/qshield/qsl-server/qsl-attachments mutation is performed by closeout.
+- No backup/restore/qsl-backup mutation is performed by closeout.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no provider-RNG-complete claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0497 closeout and NA-0498 restoration update
 
 - Directive: QSL-DIR-2026-06-18-375 -- Close Out NA-0497 After Binding Negative Vector Consumer Test Public-Safety Completion and Restore NA-0498.

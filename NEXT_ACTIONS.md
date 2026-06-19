@@ -28182,7 +28182,7 @@ Acceptance criteria:
 
 ---
 
-### NA-0501 -- QSL qsc Key Lifecycle / Zeroization Expansion Scope Authorization Plan
+### NA-0501 — QSL qsc Key Lifecycle / Zeroization Expansion Scope Authorization Plan
 Status: READY
 Goals: G1, G2, G3, G4, G5
 

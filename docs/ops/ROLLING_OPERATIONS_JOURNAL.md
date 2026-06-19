@@ -34805,6 +34805,43 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0499 update
+
+- Directive: QSL-DIR-2026-06-19-378 -- Execute NA-0499 QSL Side-Channel / Secret-Material Lifecycle Assurance Scope Authorization Plan, Optional Closeout to NA-0500.
+- Begin timestamp (UTC): 2026-06-19T14:02:30Z.
+- Repo path: `/srv/qbuild/work/NA-0499/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0499_side_channel_secret_material_scope_20260619T140230Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, or cargo generate-lockfile.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0499/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `89a50cfa5ecb`.
+- Fetch performed only after proof/live ref match and disk below the stop threshold; local main was fast-forward checked against `origin/main`.
+- Startup queue proof: `READY_COUNT 1`; READY NA-0499; NA-0498 DONE; NA-0497 DONE; NA-0496 DONE.
+- Startup decision proof: D-0985 once, D-0986 once, D-0987 absent before patch, D-0988 absent before patch, duplicate decision count zero.
+- D377 response found at `/home/victor/work/qsl/codex/responses/NA0498_closeout_restore_na0499_20260619T020813Z_D377.md`.
+- Startup public-safety on `89a50cfa5ecb`: success. Startup qsc-adversarial-smoke on `89a50cfa5ecb`: success.
+- Disk watermark: `/` usage 77%; `/backup/qsl` usage 24%; STOP threshold 95% was not hit.
+- qsl-backup read-only proof: installed helper matched expected digest prefix `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- NA-0498/D377 inheritance consumed: primary classification `CORE_ASSURANCE_SIDE_CHANNEL_SECRET_MATERIAL_NEXT`; inherited direct evidence includes key lifecycle zeroization, provider-error no-mutation, qsc binding negative tests, vector consumer, corpus validator, and qsc-adversarial validator integration; inherited supporting-only evidence includes bounded formal model, refimpl provider-boundary evidence, and governance/no-claim evidence.
+- Secret-material lifecycle inventory completed across qsc identity KEM/signature material, pending handshake KEM/DH/confirm/transcript material, KEM shared secrets, X25519/ephemeral residuals, session-store keys, vault passphrases/operator data, diagnostic/log/output paths, TUI bootstrap pre-generation, stored public-record/trusted-pin/session/temp-root artifacts, refimpl KEM/signature surfaces, corpus/vector/validator surfaces, formal model limits, qsc/refimpl/formal mapping limits, and backup/off-host/restore/key-custody governance residuals.
+- Evidence classification completed: direct selected zeroization/cleanup evidence, direct selected no-mutation evidence, direct qsc reject evidence, direct validator evidence, direct refimpl provider-boundary evidence, formal bounded evidence, supporting-only diagnostic/TUI/refimpl/formal evidence, governance-only side-channel and backup residuals, no secret-material-complete claim, and no memory-erasure-complete claim.
+- Option review completed for diagnostic/no-output tests, zeroization expansion, TUI bootstrap lifetime, refimpl boundary, side-channel caveat package, X25519/ephemeral RNG boundary, qsc/refimpl/formal mapping, and process/tooling. Process/tooling rejected as drift because it does not currently block lifecycle assurance.
+- Hostile cryptographer, red-team, production SRE, and release-claim reviews completed.
+- Primary classification selected: `SECRET_MATERIAL_DIAGNOSTIC_NO_OUTPUT_TEST_READY`.
+- Selected successor: `NA-0500 -- QSL qsc Secret-Material Diagnostic / No-Output Boundary Test Implementation Harness`.
+- Future NA-0500 exact qsc test path: `qsl/qsl-client/qsc/tests/secret_material_diagnostic_boundary.rs`.
+- Future NA-0500 governance paths: `docs/governance/evidence/NA-0500_qsl_qsc_secret_material_diagnostic_no_output_boundary_test_implementation_harness.md`, `tests/NA-0500_qsl_qsc_secret_material_diagnostic_no_output_boundary_test_implementation_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Future NA-0500 must test selected qsc reject/error/diagnostic output and assert absence of secret-like markers, private-key markers, passphrases, shared-secret labels, signing-key labels, KEM secret labels, production-like private endpoints, and user/operator data markers.
+- Governance patch paths: NA-0499 evidence doc, NA-0499 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-0987 records NA-0499 side-channel and secret-material lifecycle assurance scope authorization.
+- Evidence PR branch: `na-0499-side-channel-secret-material-scope`.
+- Evidence PR title: `NA-0499: authorize side-channel secret-material lifecycle scope`.
+- Evidence PR: pending at journal authoring.
+- Evidence PR merge commit: pending at journal authoring.
+- No implementation mutation is performed.
+- No qsc source, qsc test, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, root Cargo lockfile, qsc-adversarial script, validator script, workflow, dependency, corpus, vector, input, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no provider-RNG-complete claim is introduced. no secret-material-complete claim is introduced. no zeroization-complete claim is introduced. no memory-erasure-complete claim is introduced. no side-channel-free claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ---
 
 ## NA-0498 closeout and NA-0499 restoration update

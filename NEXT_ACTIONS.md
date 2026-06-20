@@ -28353,7 +28353,7 @@ Closeout evidence:
 ---
 
 ### NA-0503 — QSL qsc Same-Host Client-to-Client End-to-End Test Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -28412,6 +28412,96 @@ Acceptance criteria:
 - no production-readiness claim.
 - no public-readiness claim.
 - exactly one READY item remains.
+
+---
+
+### NA-0504 — QSL qsc Same-Host Client-to-Client End-to-End Test Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement a bounded same-host qsc client-to-client E2E integration test using
+two independent temp client roots and realistic Alice/Bob behavior, including
+identity setup, public-record/trusted-pin exchange, message exchange, reply,
+and at least one negative reject/no-mutation boundary, while preserving no
+public-readiness claim, no production-readiness claim, no crypto-complete
+claim, no replay-proof claim, no downgrade-proof claim, no
+secret-material-complete claim, no zeroization-complete claim, no
+memory-erasure-complete claim, and no side-channel-free claim.
+
+Protects:
+- real client-to-client behavior evidence.
+- two independent client-root isolation.
+- identity setup and public-record/trusted-pin exchange boundaries.
+- send/receive/reply correctness boundaries.
+- at least one negative reject/no-mutation boundary.
+- no remote SSH or two-machine scope.
+- no public-readiness claim.
+- no production-readiness claim.
+- one-READY invariant.
+
+Allowed scope:
+- qsl/qsl-client/qsc/tests/same_host_client_to_client_e2e.rs
+- docs/governance/evidence/NA-0504_qsl_qsc_same_host_client_to_client_e2e_test_implementation_harness.md
+- tests/NA-0504_qsl_qsc_same_host_client_to_client_e2e_test_implementation_testplan.md
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+
+Forbidden scope:
+- remote SSH or two-machine setup.
+- qsc source mutation.
+- qsc fuzz target/Cargo mutation.
+- corpus/vector/input mutation.
+- workflow/script/helper mutation.
+- dependency/lockfile mutation.
+- refimpl/formal/service/public/qshield/qsl-server/qsl-attachments mutation.
+- backup/restore/qsl-backup mutation.
+- no public-readiness claim, no production-readiness claim, no crypto-complete
+  claim, and no replay-proof claim.
+- no downgrade-proof claim, no secret-material-complete claim, and no zeroization-complete
+  claim.
+- no memory-erasure-complete claim and no side-channel-free claim.
+
+Deliverables:
+- qsc integration test.
+- evidence doc.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+
+Acceptance criteria:
+- two independent client roots are used.
+- realistic Alice/Bob identity setup and public-record/trusted-pin exchange are tested.
+- send/receive flow is tested.
+- reply flow is tested.
+- at least one negative reject/no-mutation boundary is tested or explicitly
+  justified as a separate successor.
+- no qsc source/dependency/workflow mutation is performed.
+- no remote SSH or two-machine setup is performed.
+- no public-readiness or production-readiness claim is introduced.
+- exactly one READY item remains after closeout.
+
+Markers:
+- NA0504_CLIENT_TO_CLIENT_SCOPE_CONSUMED_OK
+- NA0504_TWO_INDEPENDENT_CLIENT_ROOTS_OK
+- NA0504_ALICE_BOB_IDENTITY_SETUP_OK
+- NA0504_PUBLIC_RECORD_TRUST_EXCHANGE_OK
+- NA0504_SEND_RECEIVE_FLOW_OK
+- NA0504_REPLY_FLOW_OK
+- NA0504_NEGATIVE_REJECT_NO_MUTATION_OK
+- NA0504_STDOUT_STDERR_NO_SECRET_OUTPUT_OK
+- NA0504_NO_REMOTE_SSH_SCOPE_OK
+- NA0504_NO_QSC_SOURCE_CHANGE_OK
+- NA0504_NO_DEPENDENCY_CHANGE_OK
+- NA0504_NO_WORKFLOW_CHANGE_OK
+- NA0504_NO_PUBLIC_READINESS_CLAIM_OK
+- NA0504_NO_PRODUCTION_READINESS_CLAIM_OK
+- NA0504_NO_CRYPTO_COMPLETE_CLAIM_OK
+- NA0504_NO_REPLAY_PROOF_CLAIM_OK
+- NA0504_NO_DOWNGRADE_PROOF_CLAIM_OK
+- NA0504_ONE_READY_INVARIANT_OK
 
 ---
 

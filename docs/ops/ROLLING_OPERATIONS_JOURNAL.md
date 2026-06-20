@@ -35939,3 +35939,37 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No remote action is performed by closeout.
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0506 update
+
+- Directive: QSL-DIR-2026-06-20-394 -- Execute NA-0506 QSL Remote Test Account / SSH Operator Setup Runbook Implementation Harness, Optional Closeout to NA-0507.
+- Begin timestamp (UTC): 2026-06-20T14:55:45Z.
+- Repo path: `/srv/qbuild/work/NA-0506/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0506_remote_test_account_ssh_operator_runbook_impl_20260620T145545Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, cargo generate-lockfile, archive, move, delete, SSH, scp, sftp, rsync, ssh-keygen, ssh-keyscan, remote account creation, SSH key installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, remote test execution, or qsl-backup mutation.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0506/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `2163963c6bab`.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main checked out from `origin/main`.
+- Disk watermark before fetch was below the 95% stop threshold for `/`; `/backup/qsl` was checked read-only.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- Startup queue proof after corrected parser: READY_COUNT 1; READY NA-0506; NA-0505 DONE; NA-0504 DONE; NA-0503 DONE.
+- Startup decision proof after corrected parser: D-0999 once, D-1000 once, D-1001 absent before patch, D-1002 absent before patch, duplicate decision record count zero.
+- Recovered startup parser proof issue: first parser counted broad historical decision references and missed the repository's `- **ID:** D-....` decision-record format. Classification: recoverable command-shape/proof parser issue. Corrective action: reran with live `### NA-...` block parsing and `- **ID:**` decision-record counting. Final result: corrected queue/decision proof passed.
+- Startup main health on `2163963c6bab`: public-safety success, qsc-adversarial-smoke success, qsc-linux-full-suite skipped by docs/governance policy, macos-qsc-full-serial skipped by docs/governance policy, and no completed red checks in the retrieved check-run set.
+- NA-0505/D393 inheritance consumed: NA-0505 completed, NA-0506 restored READY, primary classification `REMOTE_SSH_OPERATOR_RUNBOOK_IMPLEMENTATION_READY`, dedicated non-root remote test user/no sudo model selected, dedicated operator-owned per-project SSH key/no personal key reuse model selected, default alias `qsl-remote-test` selected, optional `remote` only after collision check and explicit operator approval.
+- Inheritance preserved no remote action, no SSH execution, no account creation, no SSH key generation or installation, no SSH config mutation, no remote host mutation, no qwork/qsl-backup remote execution, and no public/security/completion claim expansion.
+- Implemented `docs/governance/evidence/NA-0506_qsl_remote_test_account_ssh_operator_setup_runbook.md`.
+- Implemented `tests/NA-0506_qsl_remote_test_account_ssh_operator_setup_testplan.md`.
+- Runbook covers account model, SSH key model, host alias model, local operator responsibilities, Codex restrictions, remote host restrictions, remote directory model, proof checklist, cleanup/revocation checklist, failure handling, paste-back boundaries, claim boundaries, stewardship reviews, future lane sequence, and required markers.
+- D-1001 records NA-0506 remote test account SSH operator setup runbook implementation.
+- TRACEABILITY updated with NA-0505/D393/D-0999/D-1000 inheritance, NA-0506 runbook path, NA-0506 testplan path, D-1001, no-remote-action proof, public-safety proof, and selected successor.
+- Selected successor: `NA-0507 -- QSL Remote Test Account / SSH Operator Setup Readiness and Manual Action Authorization Plan`, authorization/manual-action-readiness only; not remote probe and not remote E2E.
+- Branch: pending at journal authoring.
+- PR title: `NA-0506: implement remote test account SSH operator runbook`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0506_remote_test_account_ssh_operator_runbook_impl_20260620T145545Z/wait_accounting.tsv`.
+- Recovered failures are recorded in the proof root as they occur.
+- No remote action, SSH execution, account creation, SSH key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

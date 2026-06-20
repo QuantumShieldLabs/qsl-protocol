@@ -28829,7 +28829,7 @@ Completion:
 ---
 
 ### NA-0509 — QSL Remote Host Capability Probe Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -28875,6 +28875,93 @@ Acceptance criteria:
 - no private key/passphrase/token material included.
 - no public-readiness claim is made.
 - no production-readiness claim is made.
+- exactly one READY item remains after closeout.
+
+Completion:
+- PR #1290 merged at `ae2dc156c0fe`.
+- PR #1290 post-merge public-safety completed success for `ae2dc156c0fe` inside the corrected short attach/early-failure window.
+- D-1007 exists once and records NA-0509 remote host capability probe scope authorization.
+- D-1008 closes NA-0509 and restores NA-0510 as the sole READY successor.
+- NA-0509 selected `REMOTE_READ_ONLY_CAPABILITY_PROBE_IMPLEMENTATION_READY`.
+- NA-0509 authorized no remote action, no SSH execution, no scp/sftp/rsync execution, no ssh-keygen, no ssh-keyscan, no account creation, no SSH key generation or installation, no local/system SSH config mutation, no known_hosts mutation, no authorized_keys mutation, no remote host mutation, no sudo/admin action, no qwork/qstart/qresume mutation, no qsl-backup execution, no qsc source/test/fuzz/Cargo mutation, no workflow/script/helper/dependency mutation, no corpus/vector/input mutation, no formal/refimpl/service/public/backup mutation, and no public/security/completion claim expansion.
+
+---
+
+### NA-0510 — QSL Remote Host Read-Only Capability Probe Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Execute a single bounded read-only SSH capability probe against the approved `inspiron` / `qslcodex` remote test account to verify account identity, no sudo/admin access, workdir existence/writability, no backup exposure, no remote qwork/qsl-backup presence, and no alias/host drift, without remote E2E, without remote source checkout/build, without file writes, and without public/production readiness claims.
+
+Allowed scope:
+- docs/governance/evidence/NA-0510_qsl_remote_host_read_only_capability_probe_implementation_harness.md
+- tests/NA-0510_qsl_remote_host_read_only_capability_probe_implementation_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-local capture of the exact future SSH command output.
+- one bounded SSH command to `inspiron` as `qslcodex` using the preconfigured local alias, if and only if qwork proof and lane scope authorize it.
+
+Allowed future remote command family:
+- one non-interactive SSH invocation:
+  `ssh -o BatchMode=yes -o PasswordAuthentication=no -o ConnectTimeout=10 inspiron 'bash -s'`
+- remote script limited to read-only identity/boundary commands:
+  - hostname
+  - id -un
+  - id -u
+  - id -Gn
+  - pwd
+  - printf of HOME
+  - test -d "$HOME/qsl-remote-test"
+  - test -w "$HOME/qsl-remote-test"
+  - sudo -n true as negative capability check only
+  - test -e /backup/qsl
+  - test -r /backup/qsl
+  - command -v qwork
+  - command -v qsl-backup
+  - printf fixed markers
+
+Forbidden scope:
+- remote E2E.
+- qsc protocol execution remotely.
+- remote source checkout/build.
+- remote file creation/write/delete.
+- remote package install.
+- sudo/admin action other than negative `sudo -n true` probe.
+- key generation or installation.
+- SSH config mutation.
+- known_hosts mutation.
+- remote host mutation.
+- qwork/qstart/qresume mutation.
+- qsl-backup execution.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- no public-readiness claim and no production-readiness claim.
+
+Deliverables:
+- remote capability probe implementation evidence.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- selected future remote write-probe or remote E2E authorization scope, or remediation/no-action rationale.
+
+Acceptance criteria:
+- qwork proof fresh.
+- exact remote command captured.
+- redaction rules applied.
+- account identity qslcodex verified.
+- non-root verified.
+- no sudo/admin verified.
+- workdir exists and writable verified.
+- no backup exposure verified.
+- no qwork/qsl-backup presence verified.
+- no remote file writes.
+- no remote E2E.
+- no key material included.
 - exactly one READY item remains after closeout.
 
 ---

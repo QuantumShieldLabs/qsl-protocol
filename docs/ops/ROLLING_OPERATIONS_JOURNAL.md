@@ -36112,3 +36112,24 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No remote action, SSH execution, account creation, SSH key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0508 closeout and NA-0509 restoration update
+
+- Directive: QSL-DIR-2026-06-20-397 -- optional closeout after NA-0508 proof-review PR merge.
+- Evidence PR #1288 merged at `b7328760b45d`.
+- Evidence PR head was `51afdeb9500e`.
+- Post-merge public-safety on `b7328760b45d`: success inside the short attach/early-failure window.
+- Closeout branch: `na-0508-closeout-restore-na0509`.
+- Closeout PR title: `NA-0508: closeout and restore NA-0509`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0508_closeout_restore_na0509_testplan.md`.
+- D-1006 records NA-0508 closeout and NA-0509 restoration.
+- NA-0508 is marked DONE.
+- NA-0509 Remote Host Capability Probe Scope Authorization Plan is restored as the sole READY successor.
+- Future NA-0509 exact paths: `docs/governance/evidence/NA-0509_qsl_remote_host_capability_probe_scope_authorization_plan.md`, `tests/NA-0509_qsl_remote_host_capability_probe_scope_authorization_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Future NA-0509 must select exact future capability probe commands or stop/no-action rationale; it must not run SSH or remote commands in the authorization lane and must not perform remote E2E.
+- Closeout performs no NA-0509 implementation.
+- No remote action, SSH execution, account creation, SSH key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

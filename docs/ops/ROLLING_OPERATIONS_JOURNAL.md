@@ -49,6 +49,57 @@ Last-Updated: 2026-06-19
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no provider-RNG-complete claim is introduced. no secret-material-complete claim is introduced. no zeroization-complete claim is introduced. no memory-erasure-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0504 closeout and NA-0505 restoration update
+
+- Directive: QSL-DIR-2026-06-20-391 -- Close Out NA-0504 with Full Required-CI Wait and Restore NA-0505.
+- Begin timestamp (UTC): 2026-06-20T02:45:11Z.
+- Repo path: `/srv/qbuild/work/NA-0504/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0504_closeout_restore_na0505_20260620T024511Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, cargo generate-lockfile, archive, move, delete, SSH, remote account creation, SSH key generation, SSH key installation, local SSH config mutation, remote host mutation, two-machine testing, or LAN testing.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0504/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `865da9f3e529`.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main checked out from `origin/main`.
+- Disk watermark before fetch: `/` usage 78%; `/backup/qsl` checked read-only. STOP threshold 95% was not hit.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- Startup queue proof after corrected parser: READY_COUNT 1; READY NA-0504; NA-0503 DONE; NA-0502 DONE; NA-0501 DONE; NA-0505 absent.
+- Startup decision proof after corrected parser: D-0995 once, D-0996 once, D-0997 once, D-0998 absent before patch, duplicate decision record count zero.
+- D390 response found at `/home/victor/work/qsl/codex/responses/NA0504_20260620T022950Z_D390.md`.
+- Recovered proof read issue: first rolling-journal template read used the wrong filename case. Classification: recoverable command-shape issue. Corrective action: reran with `docs/ops/TEMPLATE_Rolling_Operations_Journal_v0.1.0.md`. Final result: success.
+- Recovered queue/decision proof issue: first parser counted broad historical decision references instead of `- **ID:**` records. Classification: recoverable proof-shape issue. Corrective action: reran with live `### NA-...` block parsing and decision-record counting. Final result: corrected queue/decision proof passed.
+- Recovered closeout patch issue: first combined patch used stale TRACEABILITY row context. Classification: recoverable patch-context mismatch before any file mutation. Corrective action: reapplied smaller current-context hunks. Final result: closeout patch applied to the five allowed files.
+- Recovered helper-policy issue: `qsl_evidence_helper.py checks-summary --sha 865da9f3...` reported missing default contexts (`goal-lint` and CodeQL) that are not the Packet B required post-merge checks for PR #1280. Classification: recoverable helper-policy mismatch. Corrective action: reran helper in report-only mode and retained final REST check-run JSON as controlling proof. Final result: Packet B proof passed.
+- D390 inheritance consumed: PR #1280 merged; implementation commit `1cb1363f03d8`; merge commit `865da9f3e529`; new test path `qsl/qsl-client/qsc/tests/same_host_client_to_client_e2e.rs`; selected same-host E2E surfaces include two independent roots, Alice/Bob identity setup, public-record/trust exchange, send/receive, reply, wrong-mailbox reject/no-mutation, and stdout/stderr no-secret-output boundary.
+- D390 stop reason consumed: post-merge required checks were attached/running with no failures but incomplete inside the short attach/early-failure window; this directive performed the full required wait.
+- PR #1280 path proof: changed paths are exactly `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0504_qsl_qsc_same_host_client_to_client_e2e_test_implementation_harness.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, `qsl/qsl-client/qsc/tests/same_host_client_to_client_e2e.rs`, and `tests/NA-0504_qsl_qsc_same_host_client_to_client_e2e_test_implementation_testplan.md`.
+- PR #1280 post-merge required checks on `865da9f3e529`: public-safety success; qsc-adversarial-smoke success; qsc-linux-full-suite success; macos-qsc-full-serial success; no required check completed failure, cancelled, disappeared, or became inaccessible; `PUBLIC_SAFETY_RED no`; `PUBLIC_SAFETY_AMBIGUOUS no`.
+- PR #1280 CI wait accounting: first poll at 2026-06-20T02:47:07Z; terminal green observed at poll 067 after public-safety completed at 2026-06-20T04:07:42Z and qsc-linux-full-suite completed at 2026-06-20T04:07:24Z; macos-qsc-full-serial completed at 2026-06-20T03:42:32Z.
+- Pre-closeout validation passed: git diff check; same_host_client_to_client_e2e; receive_e2e; key_lifecycle_zeroization_expansion; secret_material_diagnostic_boundary; handshake_provider_error_no_mutation; binding_negative_vector_consumer; binding corpus validator; all qsc fuzz corpus validator; formal runner; root cargo audit; nested qsc fuzz lock audit; cargo fmt; qsc-adversarial shell syntax under sh and bash.
+- Recovered closeout validation command-shape issue: first post-patch classifier probe used unsupported `qsl_evidence_helper.py classify`. Classification: recoverable command-shape issue. Corrective action: used the repository-supported `scripts/ci/classify_ci_scope.sh` with the exact five changed paths. Final result: classifier reported `docs_only=true`, `workflow_security=false`, `runtime_critical=false`, and `scope_class=docs_only`.
+- Recovered closeout wording issue: added-line overclaim scan flagged D-0998 public/production readiness wording in a prohibited-list sentence. Classification: recoverable in-scope validation failure with clear wording cause. Corrective action: rewrote the D-0998 line to use direct public-readiness, production-readiness, and public-internet-readiness claim wording. Final result: overclaim scan passed with zero findings.
+- Recovered PR-body proof issue: the PR body carried the required no-mutation/no-remote boundaries semantically but not as exact lowercase substrings for the local preflight. Classification: recoverable proof-body wording issue. Corrective action: added an explicit required-boundary-phrases list to the PR body proof file. Final result: PR body preflight passed.
+- Recovered exact proof parser issue: first post-patch decision parser expected heading-style `### D-...` records, while this repository uses `- **ID:** D-...` decision records. Classification: recoverable proof parser issue. Corrective action: reran against the actual decision-record shape. Final result: exact queue/decision proof passed with READY_COUNT 1, READY NA-0505, NA-0504 DONE, D-0997 once, D-0998 once, D-0999 absent, and duplicate decision count zero.
+- Recovered wait-accounting logging issue: the first heavy validation logger used a malformed `printf` format after a passing same-host test. Classification: recoverable logging command-shape issue. Corrective action: verified same-host test output passed, recorded the wait interval with corrected formatting, and resumed the remaining validation bundle. Final result: remaining validation passed.
+- Post-patch static validation passed: exact five-path scope guard; git diff check; link-check; added-line leak scan; docs-only classifier; added-line overclaim scan; PR body preflight; queue helper; decision helper; exact queue/decision proof.
+- Post-patch required local validation passed: same_host_client_to_client_e2e; receive_e2e; key_lifecycle_zeroization_expansion; secret_material_diagnostic_boundary; handshake_provider_error_no_mutation; binding_negative_vector_consumer; binding corpus validator; all qsc fuzz corpus validator; formal runner; root cargo audit; nested qsc fuzz lock audit; cargo fmt; qsc-adversarial shell syntax under sh and bash.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0504_closeout_restore_na0505_testplan.md`.
+- D-0998 records NA-0504 closeout and NA-0505 restoration.
+- NA-0504 is marked DONE.
+- NA-0505 Remote Client-to-Client Test Account / SSH Boundary Scope Authorization Plan is restored as the sole READY successor.
+- Future NA-0505 is authorization-only and must not create remote accounts, generate or install SSH keys, run SSH, mutate local SSH config, mutate remote hosts, perform remote/LAN/two-machine tests, or make public/production readiness claims.
+- Closeout branch: `na-0504-closeout-restore-na0505`.
+- Closeout PR title: `NA-0504: closeout and restore NA-0505`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- No implementation mutation is performed by closeout.
+- No qsc source/test/fuzz/Cargo mutation is performed by closeout.
+- No corpus/vector/input mutation is performed by closeout.
+- No workflow/script/helper/dependency/lockfile mutation is performed by closeout.
+- No formal/refimpl/service/public/qshield/qsl-server/qsl-attachments mutation is performed by closeout.
+- No backup/restore/qsl-backup mutation is performed by closeout.
+- No remote SSH setup, remote account creation, SSH key generation or installation, local SSH config mutation, remote host mutation, two-machine testing, or LAN testing is performed by closeout.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no provider-RNG-complete claim is introduced. no secret-material-complete claim is introduced. no zeroization-complete claim is introduced. no memory-erasure-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 # QSL-DIR-2026-06-19-387 / NA-0502 key lifecycle zeroization expansion implementation rolling journal
 
 - Directive: QSL-DIR-2026-06-19-387 -- Execute NA-0502 QSL qsc Key Lifecycle Zeroization Expansion Test Implementation Harness, Optional Closeout to NA-0503.

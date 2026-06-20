@@ -35915,3 +35915,27 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No remote action, SSH execution, account creation, SSH key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0505 closeout and NA-0506 restoration update
+
+- Directive: QSL-DIR-2026-06-20-393 -- optional closeout after NA-0505 evidence PR merge.
+- Evidence PR #1282 merged at `ebe1c14286f0`.
+- Evidence PR head was `46ada56984ff`.
+- Post-merge public-safety on `ebe1c14286f0`: success inside the short attach/early-failure window.
+- Post-merge short poll observed no completed check failure before closeout.
+- Closeout branch: `na-0505-closeout-restore-na0506`.
+- Closeout PR title: `NA-0505: closeout and restore NA-0506`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0505_closeout_restore_na0506_testplan.md`.
+- D-1000 records NA-0505 closeout and NA-0506 restoration.
+- NA-0505 is marked DONE.
+- NA-0506 Remote Test Account / SSH Operator Setup Runbook Implementation Harness is restored as the sole READY successor.
+- Future NA-0506 exact paths: `docs/governance/evidence/NA-0506_qsl_remote_test_account_ssh_operator_setup_runbook.md`, `tests/NA-0506_qsl_remote_test_account_ssh_operator_setup_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Future NA-0506 must write an operator setup runbook and proof checklist only; it must not perform remote action, SSH execution, remote account creation, SSH key generation or installation, local SSH config mutation, remote host mutation, sudo/admin action, qwork/qstart/qresume mutation, qsl-backup execution, qsc source/test/fuzz/Cargo mutation, workflow/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, or public/production readiness claim expansion.
+- Recovered closeout wording issue: added-line overclaim scan flagged a forbidden-scope line that listed public/production readiness phrases without same-line no-claim wording. Classification: recoverable in-scope documentation wording issue. Corrective action: rewrote the line to `no public-readiness claim and no production-readiness claim`. Final result: added-line overclaim scan passed with zero findings.
+- Closeout validation passed: git diff check, exact five-path scope guard, link-check, added-line leak scan, added-line overclaim scan, docs-only classifier, PR body preflight, queue/decision proof, and D-1000/D-1001 decision count proof.
+- No NA-0506 implementation is performed by closeout.
+- No remote action is performed by closeout.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

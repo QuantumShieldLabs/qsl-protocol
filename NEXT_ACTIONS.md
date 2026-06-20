@@ -28544,7 +28544,7 @@ Closeout evidence:
 ---
 
 ### NA-0505 — QSL Remote Client-to-Client Test Account / SSH Boundary Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -28601,6 +28601,90 @@ Acceptance criteria:
 - no sudo/admin/backup exposure authorized.
 - exact future operator steps or split-scope selected.
 - exactly one READY item remains.
+
+---
+
+Closeout evidence:
+- PR #1282 merged at `ebe1c14286f0`.
+- D-0999 records NA-0505 remote client-to-client test account SSH boundary
+  scope authorization.
+- Post-merge public-safety completed success on `ebe1c14286f0` inside the
+  short attach/early-failure window.
+- Selected successor: `NA-0506 -- QSL Remote Test Account / SSH Operator Setup
+  Runbook Implementation Harness`.
+- No NA-0506 implementation is performed by closeout.
+- no remote action is performed by closeout.
+- no SSH execution is performed by closeout.
+- no remote account creation is performed by closeout.
+- no SSH key generation or installation is performed by closeout.
+- no local SSH config mutation is performed by closeout.
+- no remote host mutation is performed by closeout.
+- no qsc source/test/fuzz/Cargo mutation is performed by closeout.
+- no workflow/script/helper/dependency mutation is performed by closeout.
+- no corpus/vector/input mutation is performed by closeout.
+- no formal/refimpl/service/public/backup mutation is performed by closeout.
+- no public-readiness claim is introduced.
+- no production-readiness claim is introduced.
+- no public-internet-readiness claim is introduced.
+- no crypto-complete claim is introduced.
+- no replay-proof claim is introduced.
+- no downgrade-proof claim is introduced.
+- no side-channel-free claim is introduced.
+- exactly one READY item remains.
+
+---
+
+### NA-0506 — QSL Remote Test Account / SSH Operator Setup Runbook Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Create an in-repo operator runbook and proof checklist for setting up a
+least-privilege remote test account and SSH boundary for future remote
+client-to-client testing, without Codex creating accounts, generating keys,
+installing keys, running SSH, mutating SSH config, mutating remote hosts, or
+running remote tests.
+
+Allowed scope:
+- docs/governance/evidence/NA-0506_qsl_remote_test_account_ssh_operator_setup_runbook.md
+- tests/NA-0506_qsl_remote_test_account_ssh_operator_setup_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+
+Forbidden scope:
+- creating remote users.
+- generating or installing SSH keys.
+- running SSH/scp/sftp/rsync to remote.
+- mutating local SSH config.
+- mutating system SSH config.
+- mutating known_hosts.
+- mutating remote hosts.
+- sudo/admin action.
+- qwork/qstart/qresume mutation.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- no public-readiness claim and no production-readiness claim.
+
+Deliverables:
+- operator setup runbook.
+- proof checklist.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+
+Acceptance criteria:
+- remote account model documented.
+- SSH key model documented.
+- host alias model documented.
+- future operator steps documented.
+- proof checklist documented.
+- no remote action performed.
+- no key material included.
+- no sudo/admin/backup exposure authorized.
+- exactly one READY item remains after closeout.
 
 ---
 

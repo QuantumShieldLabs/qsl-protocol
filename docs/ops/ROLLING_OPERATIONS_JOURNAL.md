@@ -35916,6 +35916,31 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0509 closeout and NA-0510 restoration update
+
+- Directive: QSL-DIR-2026-06-20-398 -- optional closeout after NA-0509 authorization PR merge.
+- Evidence PR #1290 merged at `ae2dc156c0fe`.
+- Evidence PR head was `f960ca6136cf`.
+- Post-merge public-safety on `ae2dc156c0fe`: success inside the corrected short attach/early-failure window.
+- Recovered PR creation issue: GitHub connector PR creation returned a permission error. Classification: recoverable tool-coverage issue. Corrective action: used `gh pr create` with the same validated PR body. Final result: PR #1290 created.
+- Recovered PR check-poll display issue: the first PR #1290 poller used a malformed Python f-string for optional named-check display. Classification: recoverable command-shape/logging issue. Corrective action: verified named checks from final saved JSON. Final result: public-safety success, goal-lint success, qsc-adversarial-smoke skipped under docs scope, qsc full suites skipped under docs scope, and no red checks.
+- Recovered PR wait-accounting row issue: the PR #1290 poller wrote a newline inside the wait-accounting productive-work field. Classification: recoverable command-shape/logging issue. Corrective action: rewrote `wait_accounting.tsv` with tab-safe rows. Final result: wait accounting is parseable.
+- Recovered post-merge poll issue: the first post-merge short poll piped JSON into a Python heredoc incorrectly and could not detect public-safety. Classification: recoverable command-shape/logging issue. Corrective action: reran with JSON saved to files and parsed by file path. Final result: corrected poll observed public-safety completed success.
+- Closeout branch: `na-0509-closeout-restore-na0510`.
+- Closeout PR title: `NA-0509: closeout and restore NA-0510`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0509_closeout_restore_na0510_testplan.md`.
+- D-1008 records NA-0509 closeout and NA-0510 restoration.
+- NA-0509 is marked DONE.
+- NA-0510 Remote Host Read-Only Capability Probe Implementation Harness is restored as the sole READY successor.
+- Future NA-0510 exact paths: `docs/governance/evidence/NA-0510_qsl_remote_host_read_only_capability_probe_implementation_harness.md`, `tests/NA-0510_qsl_remote_host_read_only_capability_probe_implementation_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal, plus proof-root-local capture of authorized read-only SSH command output.
+- Future NA-0510 may run one bounded read-only SSH invocation only after fresh qwork proof and directive scope authorize it. It must not run remote E2E, remote file writes, remote source checkout/build, package installation, key generation/installation, SSH config mutation, known_hosts mutation, remote host mutation, qwork/qstart/qresume mutation, qsl-backup execution, qsc source/test/fuzz/Cargo mutation, workflow/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, or public/production readiness claim expansion.
+- No NA-0510 implementation is performed by closeout.
+- No remote action is performed by closeout.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0507 closeout and NA-0508 restoration update
 
 - Directive: QSL-DIR-2026-06-20-396 -- Close Out NA-0507 After Remote SSH Operator Manual Action Authorization Public-Safety Completion and Restore NA-0508.

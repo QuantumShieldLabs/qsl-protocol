@@ -35908,7 +35908,7 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Recovered wording issue: added-line overclaim scan flagged restricted phrases where line wrapping separated them from same-line no-claim wording. Classification: recoverable in-scope documentation wording issue. Corrective action: rewrote the affected evidence/decision lines so restricted phrases carry explicit same-line no-claim wording or use generic forbidden-claim wording. Final result: added-line overclaim scan passed with zero findings.
 - Static validation passed: git diff check, exact five-path scope guard, link-check, added-line leak scan, added-line overclaim scan, docs-only classifier, PR body preflight, qsl helper queue proof, qsl helper decisions proof, and exact queue/decision proof.
 - Required local validation passed: same_host_client_to_client_e2e, key_lifecycle_zeroization_expansion, secret_material_diagnostic_boundary, handshake_provider_error_no_mutation, binding corpus validator, all qsc fuzz corpus validator, formal runner, root cargo audit, nested qsc fuzz lock audit, cargo fmt, and qsc-adversarial shell syntax under sh and bash.
-- Branch: pending at journal authoring.
+- Branch: `na-0509-remote-host-capability-probe-scope`.
 - PR title: `NA-0505: authorize remote test account SSH boundary`.
 - PR: pending at journal authoring.
 - PR merge commit: pending at journal authoring.
@@ -36130,6 +36130,44 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Future NA-0509 exact paths: `docs/governance/evidence/NA-0509_qsl_remote_host_capability_probe_scope_authorization_plan.md`, `tests/NA-0509_qsl_remote_host_capability_probe_scope_authorization_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
 - Future NA-0509 must select exact future capability probe commands or stop/no-action rationale; it must not run SSH or remote commands in the authorization lane and must not perform remote E2E.
 - Closeout performs no NA-0509 implementation.
+- No remote action, SSH execution, account creation, SSH key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0509 update
+
+- Directive: QSL-DIR-2026-06-20-398 -- Execute NA-0509 QSL Remote Host Capability Probe Scope Authorization Plan, Optional Closeout to NA-0510.
+- Begin timestamp (UTC): 2026-06-20T22:00:33Z.
+- Repo path: `/srv/qbuild/work/NA-0509/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0509_remote_host_capability_probe_scope_authorization_20260620T220033Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, cargo generate-lockfile, archive, move, delete, SSH, scp, sftp, rsync, ssh-keygen, ssh-keyscan, remote account creation, SSH key installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, remote test execution, or qsl-backup mutation.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0509/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `f6d142035911`.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main was up to date with `origin/main`.
+- Disk watermark before fetch: `/` usage 80%; `/backup/qsl` checked read-only. STOP threshold 95% was not hit.
+- Startup main health on `f6d142035911`: public-safety success, qsc-adversarial-smoke success, qsc-linux-full-suite skipped by docs/governance policy, macos-qsc-full-serial skipped by docs/governance policy, and no completed red checks in the retrieved check-run set.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- Startup queue proof: READY_COUNT 1; READY NA-0509; NA-0508 DONE; NA-0507 DONE; NA-0506 DONE.
+- Startup decision proof: D-1005 once, D-1006 once, D-1007 absent before patch, D-1008 absent before patch, duplicate decision record count zero.
+- D397 response found at `/home/victor/work/qsl/codex/responses/NA0508_20260620T211615Z_D397.md`.
+- NA-0508/D397 inheritance consumed: NA-0508 completed, NA-0509 restored READY, operator setup proof accepted as bounded setup/account proof only, proof not remote E2E evidence, remote alias `inspiron`, remote account `qslcodex`, optional alias `remote` not approved/configured, qslcodex non-root/no-sudo/no-privileged-groups, workdir exists and writable, qwork absent remotely, qsl-backup absent remotely, `/backup/qsl` absent or not readable remotely, host key fingerprint match accepted, public key fingerprint match accepted, and no private key/passphrase/token/password/production endpoint/backup material included.
+- Remote capability probe scope designed: future NA-0510 should run redacted local `ssh -G inspiron` and optional `ssh -G remote` proofs, then exactly one bounded read-only SSH invocation to `inspiron` with `BatchMode=yes`, `PasswordAuthentication=no`, and `ConnectTimeout=10`.
+- Future remote script selected: identity, UID, groups, `pwd`, `HOME`, workdir existence, workdir writability, negative `sudo -n true`, `/backup/qsl` existence/readability, `command -v qwork`, `command -v qsl-backup`, and fixed markers only.
+- Option review completed; primary classification selected: `REMOTE_READ_ONLY_CAPABILITY_PROBE_IMPLEMENTATION_READY`.
+- Remote write-marker probe deferred; remote E2E deferred.
+- Selected successor: `NA-0510 -- QSL Remote Host Read-Only Capability Probe Implementation Harness`.
+- Governance patch paths: NA-0509 evidence doc, NA-0509 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1007 records NA-0509 remote host capability probe scope authorization.
+- Recovered scope-guard proof issue: the first exact five-path guard used tracked diff plus `git ls-files --others --exclude-standard`, which missed the new allowed evidence path because `docs/governance/evidence/` is ignored. Classification: recoverable proof-shape issue. Corrective action: reran the guard with explicit existence checks for allowed ignored paths. Final result: exact five-path proof passed.
+- Recovered private-material scan-scope issue: the first broad scan over full `DECISIONS.md` flagged a pre-existing historical bearer auth-header phrase. Classification: recoverable proof-scope issue because it was not an added NA-0509 evidence line. Corrective action: reran the scan against added diff lines and new NA-0509 files. Final result: zero findings.
+- Recovered wait-accounting logging issue: the validation wrapper referenced an unset variable while appending the long-wait row after the same-host qsc test passed. Classification: recoverable command-shape/logging issue because the validation command succeeded and per-command metadata was intact. Corrective action: reconstructed wait rows from validation `.meta` files. Final result: wait accounting records one 2.53 minute local long-command interval for `cargo_same_host`.
+- Static validation passed: git diff check, exact five-path scope guard including ignored evidence path, link-check, helper leak-scan, added-line overclaim scan, docs/governance classifier, PR body preflight, goal-lint preflight, marker proof, private-material scans, queue/decision proof, and qsl-backup boundary proof.
+- Required local validation passed: same_host_client_to_client_e2e, key_lifecycle_zeroization_expansion, secret_material_diagnostic_boundary, handshake_provider_error_no_mutation, binding corpus validator, all qsc fuzz corpus validator, formal runner, root cargo audit, nested qsc fuzz lock audit, cargo fmt, and qsc-adversarial shell syntax under sh and bash.
+- Branch: pending at journal authoring.
+- PR title: `NA-0509: authorize remote host capability probe scope`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0509_remote_host_capability_probe_scope_authorization_20260620T220033Z/wait_accounting.tsv`.
 - No remote action, SSH execution, account creation, SSH key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

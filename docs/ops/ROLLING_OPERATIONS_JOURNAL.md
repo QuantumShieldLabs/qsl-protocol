@@ -35973,3 +35973,26 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No remote action, SSH execution, account creation, SSH key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0506 closeout and NA-0507 restoration update
+
+- Directive: QSL-DIR-2026-06-20-394 -- optional closeout after NA-0506 implementation PR merge.
+- Implementation PR #1284 merged at `3392033a7573`.
+- Implementation PR head was `cfb3c49791b5`.
+- Post-merge public-safety on `3392033a7573`: success inside the short attach/early-failure window.
+- Post-merge short poll observed no completed check failure before closeout.
+- Closeout branch: `na-0506-closeout-restore-na0507`.
+- Closeout PR title: `NA-0506: closeout and restore NA-0507`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0506_closeout_restore_na0507_testplan.md`.
+- D-1002 records NA-0506 closeout and NA-0507 restoration.
+- NA-0506 is marked DONE.
+- NA-0507 Remote Test Account / SSH Operator Setup Readiness and Manual Action Authorization Plan is restored as the sole READY successor.
+- Future NA-0507 must review the NA-0506 runbook, select exact operator-owned manual setup steps, select exact proof outputs, and remain manual-action-readiness only.
+- Future NA-0507 must not perform remote action by Codex, generate keys by Codex, install keys by Codex, run SSH/scp/sftp/rsync by Codex, mutate SSH config, mutate known_hosts, mutate remote hosts, perform remote tests, use sudo/admin, expose backup paths, or expand public/security claims.
+- Closeout validation passed: git diff check, exact five-path scope guard, link-check, added-line leak scan, added-line overclaim scan, docs/governance classifier, PR body preflight, goal-lint, and queue/decision proof.
+- No NA-0507 implementation is performed by closeout.
+- No remote action is performed by closeout.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

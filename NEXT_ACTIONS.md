@@ -28635,7 +28635,7 @@ Closeout evidence:
 ---
 
 ### NA-0506 — QSL Remote Test Account / SSH Operator Setup Runbook Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -28685,6 +28685,66 @@ Acceptance criteria:
 - no key material included.
 - no sudo/admin/backup exposure authorized.
 - exactly one READY item remains after closeout.
+
+---
+
+### NA-0507 — QSL Remote Test Account / SSH Operator Setup Readiness and Manual Action Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Review the NA-0506 operator runbook and authorize exact operator-owned manual setup steps for a least-privilege remote test account and SSH boundary, without Codex creating accounts, generating keys, installing keys, mutating SSH config, running SSH, mutating remote hosts, or performing remote tests.
+
+Protects:
+- operator-owned remote setup boundary.
+- no Codex remote action.
+- no private key disclosure.
+- no sudo/admin exposure.
+- no backup exposure.
+- no production/user data exposure.
+- no public-readiness claim.
+- one-READY invariant.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0507.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of the NA-0506 runbook, proof checklist, qsl-backup boundary, public-claim boundaries, and same-host E2E evidence.
+
+Forbidden scope:
+- creating remote users.
+- generating or installing SSH keys.
+- running SSH/scp/sftp/rsync to remote.
+- mutating local SSH config.
+- mutating system SSH config.
+- mutating known_hosts.
+- mutating remote hosts.
+- sudo/admin action.
+- qwork/qstart/qresume mutation.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- no public-readiness claim and no production-readiness claim.
+
+Deliverables:
+- setup readiness authorization evidence doc.
+- testplan.
+- exact operator action checklist.
+- exact proof outputs the operator should collect.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+
+Acceptance criteria:
+- runbook consumed.
+- operator action checklist selected.
+- proof checklist selected.
+- no remote action performed by Codex.
+- no key material included.
+- no sudo/admin/backup exposure authorized.
+- exactly one READY item remains.
 
 ---
 

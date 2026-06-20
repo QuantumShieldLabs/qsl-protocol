@@ -35787,3 +35787,41 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No qsc source, qsc fuzz target, qsc fuzz Cargo, qsc fuzz lockfile, root Cargo lockfile, qsc-adversarial script, workflow, dependency, vector/input outside exact corpus path, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced.
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0504 update
+
+- Directive: QSL-DIR-2026-06-20-390 -- Execute NA-0504 QSL qsc Same-Host Client-to-Client End-to-End Test Implementation Harness, Optional Closeout to NA-0505.
+- Begin timestamp (UTC): 2026-06-20T01:48:54Z.
+- Repo path: `/srv/qbuild/work/NA-0504/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0504_same_host_client_to_client_e2e_impl_20260620T014854Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, cargo generate-lockfile, archive, move, or delete actions.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0504/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `bcc5825a661a`.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main checked out from `origin/main`.
+- Disk watermark before fetch: `/` usage 73.24%; `/backup/qsl` checked read-only. STOP threshold 95% was not hit.
+- Startup main health on `bcc5825a661a`: `public-safety` success, `qsc-adversarial-smoke` success, `qsc-linux-full-suite` skipped by policy, `macos-qsc-full-serial` skipped by policy, and no completed red checks.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- Startup queue proof after corrected parser: READY_COUNT 1; READY NA-0504; NA-0503 DONE; NA-0502 DONE; NA-0501 DONE.
+- Startup decision proof after corrected parser: D-0995 once, D-0996 once, D-0997 absent before patch, D-0998 absent before patch, duplicate decision record count zero.
+- Recovered startup parser proof issue: first parser counted broad historical decision references and matched a stale READY-like block. Classification: recoverable proof-shape issue. Corrective action: reran with live `### NA-...` block parsing and DECISIONS `- **ID:**` decision-record counting. Final result: corrected queue/decision proof passed.
+- NA-0503/D389 inheritance consumed: selected classification `SAME_HOST_CLIENT_TO_CLIENT_E2E_IMPLEMENTATION_READY`; selected implementation path `qsl/qsl-client/qsc/tests/same_host_client_to_client_e2e.rs`; D389 response found at `/home/victor/work/qsl/codex/responses/NA0503_20260620T013404Z_D389.md`.
+- Pre-mutation selected test path was absent.
+- Read-only surface review covered `common/mod.rs`, `receive_e2e.rs`, handshake, identity, trust onboarding, mock relay, provider-error no-mutation, diagnostic/no-output, key lifecycle, binding negative, corpus validator, qsc-adversarial, and formal supporting evidence.
+- Implemented `qsl/qsl-client/qsc/tests/same_host_client_to_client_e2e.rs`.
+- The new test uses two independent `TestIsolation` roots and distinct qsc config roots for Alice and Bob.
+- The new test initializes Alice and Bob identities, exchanges public fingerprints through trusted contact/device records, completes local relay-backed handshake setup, sends Alice to Bob, receives on Bob, sends Bob's reply to Alice, and receives on Alice.
+- The new test includes a wrong-mailbox reject/no-mutation boundary that verifies no receive artifact is created, the selected Bob session artifact is unchanged, and the valid queued message remains receivable afterward.
+- The new test captures selected stdout/stderr/diagnostics and scans them for synthetic secret-shaped markers and high-entropy-looking material.
+- Recovered implementation test failure: first focused run failed because the new test passed local self labels to qsc `receive --from`, while qsc receive uses that argument as the peer/channel selector for qsp unpack. Classification: recoverable in-scope command/test-shape failure. Corrective action: patched only the new test file to use Bob receives from `alice` and Alice receives from `bob`. Final result: focused NA-0504 test rerun passed.
+- Focused NA-0504 validation passed and emitted all required markers, including `NA0504_CLIENT_TO_CLIENT_SCOPE_CONSUMED_OK`, `NA0504_TWO_INDEPENDENT_CLIENT_ROOTS_OK`, `NA0504_ALICE_BOB_IDENTITY_SETUP_OK`, `NA0504_PUBLIC_RECORD_TRUST_EXCHANGE_OK`, `NA0504_SEND_RECEIVE_FLOW_OK`, `NA0504_REPLY_FLOW_OK`, `NA0504_NEGATIVE_REJECT_NO_MUTATION_OK`, and `NA0504_STDOUT_STDERR_NO_SECRET_OUTPUT_OK`.
+- Inherited validation passed before governance authoring: `receive_e2e`, `key_lifecycle_zeroization_expansion`, `secret_material_diagnostic_boundary`, `handshake_provider_error_no_mutation`, binding corpus validator, and all qsc fuzz corpus validator.
+- Governance patch paths: NA-0504 evidence doc, NA-0504 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-0997 records NA-0504 qsc same-host client-to-client E2E test implementation.
+- Selected successor: `NA-0505 -- QSL Remote Client-to-Client Test Account / SSH Boundary Scope Authorization Plan`, authorization-only and no remote action.
+- Branch: `na-0504-same-host-client-to-client-e2e`.
+- PR title: `NA-0504: implement qsc same-host client-to-client E2E test`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No qsc source, existing qsc test, qsc fuzz target/Cargo, root Cargo/lockfile, workflow, script, helper, validator, qsc-adversarial script, dependency, corpus/vector/input, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, remote SSH, remote host, archive, move, or delete mutation is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no provider-RNG-complete claim is introduced. no secret-material-complete claim is introduced. no zeroization-complete claim is introduced. no memory-erasure-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

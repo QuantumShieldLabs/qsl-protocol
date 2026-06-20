@@ -35706,6 +35706,29 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0503 closeout and NA-0504 restoration update
+
+- Directive: QSL-DIR-2026-06-20-389 -- optional closeout after NA-0503 evidence PR merge.
+- Evidence PR #1278 merged at `5c39ddba4991`.
+- Evidence PR head was `eaf0680537d2`.
+- Post-merge public-safety on `5c39ddba4991`: success inside the short attach/early-failure window.
+- Post-merge short poll observed no completed check failure before closeout.
+- Closeout branch: `na-0503-closeout-restore-na0504`.
+- Closeout PR title: `NA-0503: closeout and restore NA-0504`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0503_closeout_restore_na0504_testplan.md`.
+- D-0996 records NA-0503 closeout and NA-0504 restoration.
+- NA-0503 is marked DONE.
+- NA-0504 Same-Host Client-to-Client End-to-End Test Implementation Harness is restored as the sole READY successor.
+- Future NA-0504 exact implementation path: `qsl/qsl-client/qsc/tests/same_host_client_to_client_e2e.rs`.
+- Future NA-0504 governance paths: `docs/governance/evidence/NA-0504_qsl_qsc_same_host_client_to_client_e2e_test_implementation_harness.md`, `tests/NA-0504_qsl_qsc_same_host_client_to_client_e2e_test_implementation_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Future NA-0504 must use two independent temp client roots, realistic Alice/Bob identity setup, public-record/trusted-pin exchange, send/receive, reply, and at least one negative reject/no-mutation boundary using existing qsc CLI/test-visible patterns.
+- No NA-0504 implementation is performed by closeout.
+- No qsc source, qsc test, qsc fuzz, qsc Cargo, root Cargo, workflow, script, helper, dependency, lockfile, corpus/vector/input, formal, refimpl, qsl-server, qsl-attachments, qshield runtime, qshield-cli, service, public-doc, website, README, START_HERE, backup, qsl-backup, status, plan, rollback, qwork/qstart/qresume/qshell, archive, move, or delete mutation is introduced by closeout.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no provider-RNG-complete claim is introduced. no secret-material-complete claim is introduced. no zeroization-complete claim is introduced. no memory-erasure-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0492 closeout and NA-0493 restoration update
 
 - Directive: QSL-DIR-2026-06-17-360 -- optional closeout after NA-0492 evidence PR merge.

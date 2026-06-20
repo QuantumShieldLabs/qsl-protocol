@@ -34982,6 +34982,46 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no fuzz-complete claim is introduced. no corpus-complete claim is introduced. no vector-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0503 update
+
+- Directive: QSL-DIR-2026-06-20-389 -- Execute NA-0503 QSL qsc Same-Host Client-to-Client End-to-End Test Scope Authorization Plan, Optional Closeout to NA-0504.
+- Begin timestamp (UTC): 2026-06-20T01:00:16Z.
+- Repo path: `/srv/qbuild/work/NA-0503/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0503_same_host_client_to_client_e2e_scope_20260620T010016Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, or cargo generate-lockfile.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0503/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `11f57c90a12e`.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main was checked against `origin/main`.
+- Startup queue proof: READY_COUNT 1; READY NA-0503; NA-0502 DONE; NA-0501 DONE; NA-0500 DONE.
+- Startup decision proof: D-0993 once, D-0994 once, D-0995 absent before patch, D-0996 absent before patch, duplicate decision record count zero.
+- D388 response found at `/home/victor/work/qsl/codex/responses/NA0502_closeout_restore_na0503_20260619T215318Z_D388.md`.
+- Startup public-safety on `11f57c90a12e`: success. Startup qsc-adversarial-smoke on `11f57c90a12e`: success. qsc-linux-full-suite and macos-qsc-full-serial were completed skipped on the docs/governance closeout main commit and accepted under the existing docs/governance-only policy evidence; no completed red check was observed.
+- Disk watermark: `/` usage 77%; `/backup/qsl` usage 24%. STOP threshold 95% was not hit.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- Recovered startup proof issue: a queue/decision probe used a bare `rg` command for expected-absent D-0995, and `rg` exited nonzero on zero matches. Classification: recoverable zero-match discovery/proof outcome. Corrective action: reran with zero-match-safe guards and the repository decision-record grammar. Final result: READY_COUNT 1, READY NA-0503, D-0993 once, D-0994 once, D-0995 absent before patch, D-0996 absent before patch, duplicate decision count zero.
+- NA-0502/D388 inheritance consumed: NA-0502 implemented and closed `qsl/qsl-client/qsc/tests/key_lifecycle_zeroization_expansion.rs`, checked selected identity key lifecycle/public-record boundaries and responder pending-confirm reject/session-artifact boundaries, introduced no source/dependency/workflow/corpus/formal/refimpl/service/public/backup mutation, and selected same-host client-to-client E2E as the next broad user-realistic assurance lane.
+- Current qsc E2E surface inventory completed: `qsl/qsl-client/qsc/tests/common/mod.rs`, `receive_e2e.rs`, `handshake_mvp.rs`, `identity_binding.rs`, `identity_ux.rs`, `trust_onboarding_mainstream_flow_na0187.rs`, mock relay/local inbox tests, send/receive no-mutation tests, `handshake_provider_error_no_mutation.rs`, `kem_signature_transcript_binding_negative.rs`, `secret_material_diagnostic_boundary.rs`, key lifecycle tests, corpus validator, qsc-adversarial script, and bounded formal model evidence were inspected read-only.
+- Inventory result: current qsc CLI/test-visible surfaces can support deterministic same-host Alice/Bob E2E with two independent temp roots, identity setup, public-record/trusted-pin exchange, send, receive, reply, local inbox relay, output capture, and at least one negative reject/no-mutation boundary without qsc source/helper/dependency/workflow/corpus/formal/refimpl/service/public/backup mutation.
+- Primary classification selected: `SAME_HOST_CLIENT_TO_CLIENT_E2E_IMPLEMENTATION_READY`.
+- Selected successor: `NA-0504 -- QSL qsc Same-Host Client-to-Client End-to-End Test Implementation Harness`.
+- Future NA-0504 exact implementation path: `qsl/qsl-client/qsc/tests/same_host_client_to_client_e2e.rs` plus NA-0504 governance evidence/testplan/decision/traceability/journal paths.
+- Future NA-0504 must use two independent temp client roots, realistic Alice/Bob identity setup, public-record/trusted-pin exchange, message exchange, reply, and at least one negative reject/no-mutation boundary using existing qsc CLI/test-visible patterns.
+- Remote SSH, two-machine, LAN, public-internet, and production relay scope are deferred to separately authorized future lanes.
+- Governance patch paths: NA-0503 evidence doc, NA-0503 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-0995 records NA-0503 same-host client-to-client E2E scope authorization.
+- Evidence PR branch: `na-0503-same-host-client-to-client-e2e-scope`.
+- Evidence PR title: `NA-0503: authorize same-host client-to-client E2E scope`.
+- Evidence PR: pending at journal authoring.
+- Evidence PR merge commit: pending at journal authoring.
+- No implementation mutation is performed.
+- No qsc source/test/fuzz/Cargo mutation is performed.
+- No corpus/vector/input mutation is performed.
+- No workflow/script/helper/dependency/lockfile mutation is performed.
+- No formal/refimpl/service/public/qshield/qsl-server/qsl-attachments mutation is performed.
+- No backup/restore/qsl-backup mutation is performed.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no KEM-complete claim is introduced. no signature-complete claim is introduced. no identity-complete claim is introduced. no provider-RNG-complete claim is introduced. no secret-material-complete claim is introduced. no zeroization-complete claim is introduced. no memory-erasure-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0501 update
 
 - Directive: QSL-DIR-2026-06-19-386 -- Execute NA-0501 QSL qsc Key Lifecycle / Zeroization Expansion Scope Authorization Plan, Optional Closeout to NA-0502.

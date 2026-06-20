@@ -28689,7 +28689,7 @@ Acceptance criteria:
 ---
 
 ### NA-0507 — QSL Remote Test Account / SSH Operator Setup Readiness and Manual Action Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -28745,6 +28745,78 @@ Acceptance criteria:
 - no key material included.
 - no sudo/admin/backup exposure authorized.
 - exactly one READY item remains.
+
+Completion:
+- PR #1286 merged at `198a01a031c0`.
+- PR #1286 post-merge public-safety completed success for `198a01a031c0`.
+- D-1003 exists once and records NA-0507 authorization evidence.
+- D-1004 closes NA-0507 and restores NA-0508 as the sole READY successor.
+- NA-0507 performed no remote action, SSH execution, account creation, SSH key generation or installation, SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, or public/security/completion overclaim.
+
+---
+
+### NA-0508 — QSL Remote Test Account / SSH Operator Manual Setup Proof Review Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Review operator-provided redacted proof that the remote test account and SSH boundary were set up according to the NA-0506/NA-0507 runbook, without Codex generating keys, installing keys, running SSH, mutating SSH config, mutating remote hosts, or running remote tests.
+
+Protects:
+- redacted proof-only review.
+- private-key non-disclosure.
+- passphrase/token non-disclosure.
+- no Codex remote action.
+- no sudo/admin exposure.
+- no backup exposure.
+- no public-readiness claim.
+- no production-readiness claim.
+- one-READY invariant.
+
+Allowed scope:
+- docs/governance/evidence/NA-0508_qsl_remote_test_account_ssh_operator_setup_proof_review.md
+- tests/NA-0508_qsl_remote_test_account_ssh_operator_setup_proof_review_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only review of operator-provided redacted proof pasted by user.
+
+Forbidden scope:
+- creating remote users.
+- generating or installing SSH keys.
+- running SSH/scp/sftp/rsync to remote.
+- mutating local SSH config.
+- mutating system SSH config.
+- mutating known_hosts.
+- mutating remote hosts.
+- sudo/admin action.
+- qwork/qstart/qresume mutation.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- no public-readiness claim and no production-readiness claim.
+
+Deliverables:
+- proof review evidence.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- selected future capability-probe authorization scope or stop/no-action rationale.
+
+Acceptance criteria:
+- operator proof consumed and checked for redaction.
+- private key/passphrase/token absence verified.
+- no sudo/admin proof reviewed.
+- no backup exposure proof reviewed.
+- alias collision proof reviewed.
+- no remote action performed by Codex.
+- no key material included.
+- exactly one READY item remains after closeout.
+
+Manual action note:
+After this closeout, the Director should step the operator through the approved manual setup checklist outside Codex execution and collect redacted proof. NA-0508 should not proceed until proof is available.
 
 ---
 

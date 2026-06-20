@@ -35916,6 +35916,44 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0507 closeout and NA-0508 restoration update
+
+- Directive: QSL-DIR-2026-06-20-396 -- Close Out NA-0507 After Remote SSH Operator Manual Action Authorization Public-Safety Completion and Restore NA-0508.
+- Begin timestamp (UTC): 2026-06-20T16:15:58Z.
+- Repo path: `/srv/qbuild/work/NA-0507/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0507_closeout_restore_na0508_20260620T161558Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, cargo generate-lockfile, archive, move, delete, SSH, scp, sftp, rsync, ssh-keygen, ssh-keyscan, remote account creation, SSH key installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, remote test execution, or qsl-backup mutation.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0507/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `198a01a031c0`.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main checked out from `origin/main`.
+- Disk watermark before fetch was below the 95% stop threshold for `/`; `/backup/qsl` was checked read-only.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- Startup queue proof: READY_COUNT 1; READY NA-0507; NA-0506 DONE; NA-0505 DONE; NA-0504 DONE.
+- Startup decision proof: D-1001 once, D-1002 once, D-1003 once, D-1004 absent before patch, duplicate decision record count zero.
+- D395 response found at `/home/victor/work/qsl/codex/responses/NA0507_20260620T160001Z_D395.md`.
+- D395 inheritance consumed: PR #1286 merged at `198a01a031c0`; NA-0507 authorized operator-owned manual setup only; approved proof outputs, forbidden paste-back material, alias policy, no remote action, no SSH execution, no account creation, no key/config/known_hosts/remote-host mutation, no public/security/completion claim expansion, and selected NA-0508 proof-review successor were verified.
+- D395 stop reason consumed: post-merge public-safety proof command-shape failures occurred before optional closeout; NA-0507 remained READY until this closeout.
+- PR #1286 post-merge public-safety proof: saved REST check-runs payload for `198a01a031c0` showed `public-safety` completed success, `qsc-adversarial-smoke` completed success, `qsc-linux-full-suite` skipped under docs/governance classifier evidence, `macos-qsc-full-serial` skipped under docs/governance classifier evidence, and no red/nonterminal check runs.
+- PR #1286 path proof: exact five changed paths were the NA-0507 evidence doc, NA-0507 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Recovered command-shape issue: one read-only inheritance `rg` probe used unescaped Markdown backticks. Classification: recoverable command-shape quoting mistake. Corrective action: reran the same probe with a single-quoted pattern. Final result: corrected probe exited 0 and the recovery is recorded in the proof root.
+- Required local validation passed before closeout mutation: git diff check, same_host_client_to_client_e2e, key_lifecycle_zeroization_expansion, secret_material_diagnostic_boundary, handshake_provider_error_no_mutation, binding corpus validator, all qsc fuzz corpus validator, formal runner, root cargo audit, nested qsc fuzz lock audit, cargo fmt, and qsc-adversarial shell syntax under sh and bash.
+- Wait accounting: PR #1286 public-safety required no poll sleep in this directive. The first cargo test used fresh proof-root build artifacts and took 153 seconds; it is recorded as local long-command wait. No CI idle wait was incurred before closeout mutation.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0507_closeout_restore_na0508_testplan.md`.
+- D-1004 records NA-0507 closeout and NA-0508 restoration.
+- NA-0507 is marked DONE.
+- NA-0508 Remote Test Account / SSH Operator Manual Setup Proof Review Harness is restored as the sole READY successor.
+- NA-0508 must not run until operator-provided approved redacted proof is available.
+- Future NA-0508 exact paths: `docs/governance/evidence/NA-0508_qsl_remote_test_account_ssh_operator_setup_proof_review.md`, `tests/NA-0508_qsl_remote_test_account_ssh_operator_setup_proof_review_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal, plus read-only review of operator-provided redacted proof pasted by the user.
+- Future NA-0508 must review proof only; it must not perform remote action, SSH execution, scp/sftp/rsync execution, remote account creation, SSH key generation or installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, qwork/qstart/qresume mutation, qsl-backup execution, qsc source/test/fuzz/Cargo mutation, workflow/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, or public/production readiness claim expansion.
+- Closeout branch: `na-0507-closeout-restore-na0508`.
+- Closeout PR title: `NA-0507: closeout and restore NA-0508`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- No NA-0508 execution is performed by closeout.
+- No remote action is performed by closeout.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0505 closeout and NA-0506 restoration update
 
 - Directive: QSL-DIR-2026-06-20-393 -- optional closeout after NA-0505 evidence PR merge.

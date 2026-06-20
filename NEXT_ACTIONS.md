@@ -28756,7 +28756,7 @@ Completion:
 ---
 
 ### NA-0508 — QSL Remote Test Account / SSH Operator Manual Setup Proof Review Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -28817,6 +28817,65 @@ Acceptance criteria:
 
 Manual action note:
 After this closeout, the Director should step the operator through the approved manual setup checklist outside Codex execution and collect redacted proof. NA-0508 should not proceed until proof is available.
+
+Completion:
+- PR #1288 merged at `b7328760b45d`.
+- PR #1288 post-merge public-safety completed success for `b7328760b45d` inside the short attach/early-failure window.
+- D-1005 exists once and records NA-0508 operator proof review evidence.
+- D-1006 closes NA-0508 and restores NA-0509 as the sole READY successor.
+- NA-0508 accepted the operator-provided redacted proof as `OPERATOR_REMOTE_SETUP_PROOF_ACCEPTED`.
+- NA-0508 performed no remote action, SSH execution, account creation, SSH key generation or installation, SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, or public/security/completion overclaim.
+
+---
+
+### NA-0509 — QSL Remote Host Capability Probe Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the exact future remote capability probe scope for the `inspiron` / `qslcodex` test account after redacted operator setup proof review, without running SSH or remote commands in this lane and without performing remote E2E.
+
+Allowed scope:
+- docs/governance/evidence/NA-0509_qsl_remote_host_capability_probe_scope_authorization_plan.md
+- tests/NA-0509_qsl_remote_host_capability_probe_scope_authorization_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only review of NA-0508 proof-review evidence and prior setup proof.
+
+Forbidden scope:
+- running SSH/scp/sftp/rsync to remote.
+- generating or installing SSH keys.
+- mutating local SSH config.
+- mutating known_hosts.
+- mutating remote hosts.
+- creating remote users.
+- sudo/admin action.
+- qwork/qstart/qresume mutation.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- remote E2E.
+- no public-readiness claim and no production-readiness claim.
+
+Deliverables:
+- capability probe scope authorization evidence.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- exact future probe command list or stop/no-action rationale.
+
+Acceptance criteria:
+- prior proof accepted or remediation selected.
+- exact future remote commands selected.
+- no remote commands run in this lane.
+- no remote mutation authorized beyond bounded probe if future lane executes.
+- no private key/passphrase/token material included.
+- no public-readiness claim is made.
+- no production-readiness claim is made.
+- exactly one READY item remains after closeout.
 
 ---
 

@@ -28416,7 +28416,7 @@ Acceptance criteria:
 ---
 
 ### NA-0504 — QSL qsc Same-Host Client-to-Client End-to-End Test Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -28502,6 +28502,105 @@ Markers:
 - NA0504_NO_REPLAY_PROOF_CLAIM_OK
 - NA0504_NO_DOWNGRADE_PROOF_CLAIM_OK
 - NA0504_ONE_READY_INVARIANT_OK
+
+Closeout evidence:
+- PR #1280 merged at `865da9f3e529`.
+- PR #1280 post-merge public-safety completed success on `865da9f3e529`.
+- PR #1280 qsc-adversarial-smoke completed success.
+- PR #1280 qsc-linux-full-suite completed success.
+- PR #1280 macos-qsc-full-serial completed success.
+- D-0997 exists once and records NA-0504 implementation evidence.
+- NA-0504 implementation evidence is in-tree.
+- NA-0504 is DONE.
+- NA-0505 is restored as the sole READY successor.
+- no implementation mutation is performed by closeout.
+- no qsc source/test/fuzz/Cargo mutation is performed by closeout.
+- no corpus/vector/input mutation is performed by closeout.
+- no workflow/script/helper/dependency/formal/refimpl/service/public/backup
+  mutation is performed by closeout.
+- no remote SSH setup, no remote account creation, no SSH key generation or
+  installation, no local SSH config mutation, and no remote host mutation are
+  performed by closeout.
+- no public-readiness claim is introduced.
+- no production-readiness claim is introduced.
+- no public-internet-readiness claim is introduced.
+- no external-review-complete claim is introduced.
+- no crypto-complete claim is introduced.
+- no KEM-complete claim is introduced.
+- no signature-complete claim is introduced.
+- no identity-complete claim is introduced.
+- no provider-RNG-complete claim is introduced.
+- no secret-material-complete claim is introduced.
+- no zeroization-complete claim is introduced.
+- no memory-erasure-complete claim is introduced.
+- no replay-proof claim is introduced.
+- no downgrade-proof claim is introduced.
+- no side-channel-free claim is introduced.
+- no vulnerability-free claim is introduced.
+- no bug-free claim is introduced.
+- no perfect-crypto claim is introduced.
+- exactly one READY item remains.
+
+---
+
+### NA-0505 — QSL Remote Client-to-Client Test Account / SSH Boundary Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the exact least-privilege remote test account and SSH boundary for
+future remote/LAN client-to-client testing after same-host E2E evidence,
+without creating accounts, generating keys, modifying remote hosts, running SSH,
+or performing remote tests in this lane.
+
+Protects:
+- remote account least privilege.
+- SSH key boundary.
+- no sudo/admin access.
+- no backup/restore/key-custody exposure.
+- no production/user data exposure.
+- no public-readiness claim.
+- no production-readiness claim.
+- one-READY invariant.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0505.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of same-host E2E evidence, remote-test requirements,
+  SSH boundary recommendations, qwork/qbuild boundaries, qsl-backup boundaries,
+  and public-claim boundaries.
+
+Forbidden scope:
+- creating remote users.
+- generating or installing SSH keys.
+- running SSH.
+- mutating remote hosts.
+- modifying system SSH config.
+- modifying local SSH config.
+- qwork/qstart/qresume mutation.
+- qsc source mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- no public-readiness claim and no production-readiness claim.
+
+Deliverables:
+- remote test account / SSH boundary scope authorization evidence doc.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- selected exact future setup scope or no-action rationale.
+
+Acceptance criteria:
+- remote account model selected.
+- SSH key and host boundary selected.
+- no remote action performed.
+- no sudo/admin/backup exposure authorized.
+- exact future operator steps or split-scope selected.
+- exactly one READY item remains.
 
 ---
 

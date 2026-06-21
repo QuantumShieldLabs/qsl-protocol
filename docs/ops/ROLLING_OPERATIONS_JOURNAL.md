@@ -2,7 +2,7 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-06-20
+Last-Updated: 2026-06-21
 
 # Rolling Operations Journal
 
@@ -51,6 +51,27 @@ Last-Updated: 2026-06-20
 - Wait accounting file: `/srv/qbuild/tmp/NA0511_remote_read_write_marker_toolchain_disk_scope_authorization_20260621T023806Z/wait_accounting.tsv`.
 - Next-watch items: PR #1294 checks, merge, and optional closeout only if post-merge public-safety is green in the short attach/early-failure window.
 - No remote action, SSH execution, marker write/read/delete, remote toolchain command, remote E2E, account creation, SSH key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0513 closeout and NA-0514 restoration update
+
+- Directive: QSL-DIR-2026-06-21-406 -- optional closeout after NA-0513 authorization PR merge.
+- Authorization PR #1298 merged at `b1c5502100d0`.
+- Authorization PR head was `f95c3cccc20d`.
+- Post-merge public-safety on `b1c5502100d0`: success inside the short attach/early-failure window.
+- Closeout branch: `na-0513-closeout-restore-na0514`.
+- Closeout PR title: `NA-0513: closeout and restore NA-0514`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0513_closeout_restore_na0514_testplan.md`.
+- D-1016 records NA-0513 closeout and NA-0514 restoration.
+- NA-0513 is marked DONE.
+- NA-0514 Remote qsc Prebuilt Binary Staging and Smoke Implementation Harness is restored as the sole READY successor.
+- Future NA-0514 exact paths: governance evidence/testplan paths for NA-0514, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Future NA-0514 is staging/smoke only: local qsc binary provenance, one bounded transfer under `$HOME/qsl-remote-test/bin/qsc`, remote hash verification, non-protocol `qsc --help` or `--version` smoke, retention/cleanup proof, and no remote E2E.
+- Closeout performs no NA-0514 implementation.
+- No remote action, SSH execution, scp/sftp/rsync, binary transfer, remote E2E, remote qsc execution, account creation, SSH key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 

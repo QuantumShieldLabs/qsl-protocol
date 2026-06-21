@@ -29031,7 +29031,7 @@ Forbidden scope:
 - workflow/dependency mutation.
 - corpus/vector/input mutation.
 - formal/refimpl/service/public/backup mutation.
-- public-readiness or production-readiness claims.
+- no public-readiness claim and no production-readiness claim.
 
 Deliverables:
 - read/write marker and toolchain/disk capability scope authorization evidence.
@@ -29160,7 +29160,7 @@ Closeout:
 ---
 
 ### NA-0513 — QSL Remote qsc Staging Strategy Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -29207,6 +29207,82 @@ Acceptance criteria:
 - no public-readiness claim.
 - no production-readiness claim.
 - exactly one READY item remains.
+
+Closeout:
+- PR #1298 merged at `b1c5502100d0`.
+- D-1015 accepted classification `REMOTE_PREBUILT_QSC_BINARY_STAGING_SMOKE_READY`.
+- D404 red remote checks were triaged and classified as non-required remote residuals, not ignored or treated as passing.
+- D404 closeout public-safety was green.
+- NA-0512/D404 inheritance was consumed.
+- No remote action occurred in NA-0513.
+- No SSH execution occurred in NA-0513.
+- No binary transfer occurred in NA-0513.
+- No remote E2E occurred in NA-0513.
+- Selected successor is `NA-0514 -- QSL Remote qsc Prebuilt Binary Staging and Smoke Implementation Harness`.
+- No public-readiness claim.
+- No production-readiness claim.
+
+---
+
+### NA-0514 — QSL Remote qsc Prebuilt Binary Staging and Smoke Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Stage a locally built qsc binary from the current qsl-protocol checkout to the approved `inspiron` / `qslcodex` remote test account under `$HOME/qsl-remote-test/bin/qsc`, verify provenance and sha256, run a bounded non-protocol qsc smoke command, and decide whether the binary is safely retained for near-term remote E2E, without package installation, remote source checkout/build, qsc send/receive, remote E2E, sudo/admin action, backup exposure, or public/production readiness claims.
+
+Allowed scope:
+- docs/governance/evidence/NA-0514_qsl_remote_qsc_prebuilt_binary_staging_smoke_implementation_harness.md
+- tests/NA-0514_qsl_remote_qsc_prebuilt_binary_staging_smoke_implementation_testplan.md
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- proof-root-local capture of local build/smoke, transfer, remote hash, and remote smoke output.
+- local qsc binary build from clean current checkout, if needed.
+- one bounded remote transfer to `$HOME/qsl-remote-test/bin/qsc`.
+- bounded remote directory creation only under `$HOME/qsl-remote-test/bin` if needed.
+- bounded remote qsc `--help` or `--version` smoke only.
+- retain staged binary under qsl-remote-test if hash/provenance/smoke pass and cleanup plan is documented.
+
+Forbidden scope:
+- remote E2E.
+- qsc send/receive remotely.
+- remote source checkout/build.
+- package installation.
+- sudo/admin action other than negative `sudo -n true` probe if included.
+- key generation or installation.
+- SSH config mutation.
+- known_hosts mutation.
+- remote host mutation outside staged qsc artifact.
+- qwork/qstart/qresume mutation.
+- qsl-backup execution.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- no public-readiness claim and no production-readiness claim.
+- writes outside `$HOME/qsl-remote-test`.
+
+Deliverables:
+- staging/smoke implementation evidence.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- selected future remote E2E authorization scope, remote smoke expansion, or remediation/no-action rationale.
+
+Acceptance criteria:
+- qwork proof fresh.
+- local source commit recorded.
+- local qsc binary hash recorded.
+- remote staged binary hash matches local hash.
+- remote qsc smoke passes.
+- no remote E2E.
+- no package installation.
+- no source checkout/build on remote.
+- no key material included.
+- cleanup/retention plan recorded.
+- exactly one READY item remains after closeout.
 
 ---
 

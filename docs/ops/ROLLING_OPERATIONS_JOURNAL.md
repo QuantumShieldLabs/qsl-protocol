@@ -2,9 +2,52 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-06-19
+Last-Updated: 2026-06-20
 
 # Rolling Operations Journal
+
+# QSL-DIR-2026-06-20-401 / NA-0510 closeout and NA-0511 restoration rolling journal
+
+- Directive: QSL-DIR-2026-06-20-401 -- Close Out NA-0510 After Remote Read-Only Capability Probe Public-Safety Completion and Restore NA-0511.
+- Begin timestamp (UTC): 2026-06-21T00:47:43Z proof root creation.
+- Repo path: `/srv/qbuild/work/NA-0510/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0510_closeout_restore_na0511_20260621T004743Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, scp, sftp, rsync, SSH, ssh-keygen, ssh-keyscan, package installation, force-push, amend, rebase, squash, branch deletion, cargo update, cargo generate-lockfile, archive, move, or delete actions.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0510/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `bff96ccc1fe7`.
+- Fetch was performed only after proof/live ref match and disk proof below threshold; local main was up to date with `origin/main`.
+- Disk watermark before fetch: `/` usage 80%; STOP threshold 95% was not hit.
+- qsl-backup read-only proof: installed helper matched the required digest; Codex ops source appears exactly once in the installed helper source list.
+- Startup queue proof: READY_COUNT 1; READY NA-0510; NA-0509 DONE; NA-0508 DONE.
+- Startup decision proof: D-1007 once, D-1008 once, D-1009 once, D-1010 absent, duplicate decision record count zero.
+- Recovered queue parser command-shape issue: the first inline Python proof command was quoted incorrectly. Classification: recoverable command-shape/quoting mistake. Corrective action: reran with a single-quoted heredoc and file-based output. Final result: queue/decision start proof passed.
+- D400 inheritance consumed: PR #1292 merged at `bff96ccc1fe7`; probe classification `REMOTE_READ_ONLY_PROBE_PASS`; exactly one bounded SSH invocation occurred in NA-0510 implementation; account `qslcodex`, non-root, no-sudo, workdir, backup exposure, qwork absence, and qsl-backup absence proofs passed; no remote E2E, no remote file write, no marker write/read/delete, and no remote qsc/git/cargo/rustc/toolchain probe occurred.
+- D400 stop reason consumed: implementation merged but optional closeout stopped because post-merge public-safety did not attach inside the short attach/early-failure window; NA-0510 remained READY until this closeout.
+- Recovered D400 proof parser issue: the first inheritance parser looked for one literal no-remote-file-write phrase, while D400 used equivalent wording. Classification: recoverable proof-parser wording mismatch. Corrective action: reran with accepted phrase variants tied to the D400 text. Final result: D400 inheritance proof passed.
+- PR #1292 post-merge proof on `bff96ccc1fe7`: public-safety completed success; qsc-adversarial-smoke completed success; qsc-linux-full-suite skipped by accepted docs/governance policy; macos-qsc-full-serial skipped by accepted docs/governance policy; no completed red checks observed.
+- PR #1292 path proof: changed paths are exactly `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0510_qsl_remote_host_read_only_capability_probe_implementation_harness.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0510_qsl_remote_host_read_only_capability_probe_implementation_testplan.md`.
+- Pre-closeout validation passed: git diff check; same_host_client_to_client_e2e; key_lifecycle_zeroization_expansion; secret_material_diagnostic_boundary; handshake_provider_error_no_mutation; binding corpus validator; all qsc fuzz corpus validator; formal model runner; root cargo audit; nested qsc fuzz lock audit; cargo fmt; qsc-adversarial shell syntax under sh and bash.
+- Wait-time accounting before closeout patch: one local validation interval longer than 60 seconds, 2.53 minutes for same_host_client_to_client_e2e. No CI wait longer than 60 seconds before patch because PR #1292 post-merge checks were already terminal at first query.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0510_closeout_restore_na0511_testplan.md`.
+- Recovered added-line overclaim scanner issue: the first post-patch scan flagged explicit `no ... claim is made` lines because the scanner only allowed lines beginning with `no`. Classification: recoverable proof-scanner false positive on negated claim wording. Corrective action: reran the scanner allowing explicit negated claim wording anywhere in the added line. Final result: overclaim scan passed with zero findings.
+- D-1010 records NA-0510 closeout and NA-0511 restoration.
+- NA-0510 is marked DONE.
+- NA-0511 QSL Remote Host Read/Write Marker and Toolchain/Disk Capability Probe Scope Authorization Plan is restored as the sole READY successor.
+- NA-0511 is authorization-only and must not run SSH, remote E2E, remote qsc protocol execution, source checkout/build, package installation, sudo/admin action, key/config/host mutation, qwork/qsl-backup, or public/production claim work.
+- Closeout branch: `na-0510-closeout-restore-na0511`.
+- Closeout PR title: `NA-0510: closeout and restore NA-0511`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Final queue proof expected after patch: READY_COUNT 1; READY NA-0511; NA-0510 DONE; D-1009 once; D-1010 once; D-1011 absent; duplicate decision count zero.
+- No implementation mutation is performed by closeout.
+- No remote action or SSH execution is performed by closeout.
+- No remote file write is performed by closeout.
+- No qsc source/test/fuzz/Cargo mutation is performed by closeout.
+- No corpus/vector/input mutation is performed by closeout.
+- No workflow/script/helper/dependency/lockfile mutation is performed by closeout.
+- No formal/refimpl/service/public/qshield/qsl-server/qsl-attachments mutation is performed by closeout.
+- No backup/restore/qsl-backup mutation is performed by closeout.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
 # QSL-DIR-2026-06-20-400 / NA-0510 remote host read-only capability probe implementation rolling journal
 

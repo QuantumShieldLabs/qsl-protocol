@@ -27,6 +27,35 @@ Last-Updated: 2026-06-21
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0515 Build-to-Inspiron remote qsc client-to-client E2EE scope authorization
+
+- Directive: QSL-DIR-2026-06-21-408, NA-0515, QSL Build-to-Inspiron Remote qsc Client-to-Client E2EE Scope Authorization Plan.
+- Start timestamp: 2026-06-21T15:42:39Z.
+- Repo: `/srv/qbuild/work/NA-0515/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0515_remote_build_to_inspiron_e2ee_scope_authorization_20260621T154239Z`.
+- qwork proof files were read and copied into the proof root; Codex did not run qwork, qstart, or qresume.
+- qwork proof values passed: `startup_result=OK`, `lane=NA-0515`, `repo=qsl-protocol`, `head_equals_origin_main=yes`, `worktree_clean=yes`, `index_clean=yes`, `untracked_clean=yes`, `ready_count=1`, `queue_top_ready=NA-0515`, and `requested_lane_status=READY`.
+- Before fetch, live `HEAD` and live `origin/main` matched the proof commit `6e12e1849737`; disk usage was below the stop threshold.
+- Startup queue proof: READY_COUNT 1; READY NA-0515; NA-0514 DONE; NA-0513 DONE; NA-0512 DONE.
+- Startup decision proof: D-1017 once, D-1018 once, D-1019 absent before patch, D-1020 absent before patch, duplicate decision record count zero.
+- qsl-backup boundary remained read-only; `/usr/local/sbin/qsl-backup` sha256 matched `e9ecff3d22ed...`, and source inclusion count for `/home/victor/work/qsl/codex/ops` was exactly 1.
+- D407 response found at `/home/victor/work/qsl/codex/responses/NA0514_20260621T152257Z_D407.md`.
+- NA-0514/D407 inheritance consumed: classification `REMOTE_PREBUILT_QSC_STAGING_SMOKE_PASS_RETAINED`; implementation PR #1300 merged at `9567f845c1c5`; closeout PR #1301 merged at `6e12e1849737`; local source commit `6e0796de79c9abb4d3c5e18b46b004b5bd585167`; retained qsc sha256 `6f12ab5eec2468a4146012dfc247cef15be2337cb8e8e99cefa96a8c258d91ea`; path `qsl-remote-test/bin/qsc`; owner `qslcodex`; `--help` smoke exit 0; cleanup command recorded.
+- Current qsc same-host tests and command surfaces were inspected read-only to identify future command family: vault init, identity rotate/show, contacts add/list/trust, relay inbox-set/serve, handshake init/poll, send, receive, and wrong-mailbox no-mutation pattern.
+- Option review selected `REMOTE_BUILD_TO_INSPIRON_E2EE_IMPLEMENTATION_READY` because the retained binary exists and the host may be time-limited. Identity/trust-only, retained-binary re-smoke, relay/transport diagnostic, same-host negative expansion, cleanup/remediation, and CI/tooling are deferred or conditional; operator toolchain setup and NA-0515 E2EE implementation are rejected.
+- Selected successor: `NA-0516 -- QSL Build-to-Inspiron Remote qsc Client-to-Client E2EE Implementation Harness`.
+- Future NA-0516 scope includes fresh qwork proof, remote boundary rechecks, retained qsc hash/path/owner/provenance recheck, local qsc provenance, isolated Build and Inspiron qsc roots, synthetic messages only, bounded SSH and synthetic-artifact transfer, optional bounded loopback-only relay tunnel if needed, one send/receive/reply flow, one negative/no-mutation boundary if feasible, and cleanup/retention proof.
+- Governance patch paths: NA-0515 evidence doc, NA-0515 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1019 records NA-0515 Build-to-Inspiron remote qsc client-to-client E2EE scope authorization.
+- Branch: pending at journal authoring.
+- PR title: `NA-0515: authorize Build-to-Inspiron remote E2EE scope`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0515_remote_build_to_inspiron_e2ee_scope_authorization_20260621T154239Z/wait_accounting.tsv`.
+- No remote action, SSH execution, scp/sftp/rsync, qsc send/receive, remote E2EE, binary transfer, package installation, remote source checkout/build, sudo/admin action, SSH key generation or installation, ssh-keygen, ssh-keyscan, local SSH config mutation, known_hosts mutation, remote host mutation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
+- No backup or restore run.
+- no public-readiness claim is made. no production-readiness claim is made. no public-internet-readiness claim is made. no external-review-complete claim is made. no crypto-complete claim is made. no replay-proof claim is made. no downgrade-proof claim is made. no secret-material-complete claim is made. no side-channel-free claim is made. no vulnerability-free claim is made. no bug-free claim is made. no perfect-crypto claim is made.
+
 ## NA-0514 update
 
 - Directive: QSL-DIR-2026-06-21-407 -- Execute NA-0514 QSL Remote qsc Prebuilt Binary Staging and Smoke Implementation Harness, Optional Closeout to NA-0515.

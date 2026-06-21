@@ -27,6 +27,27 @@ Last-Updated: 2026-06-21
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0517 closeout and NA-0518 restoration update
+
+- Directive: QSL-DIR-2026-06-21-411 -- optional closeout after NA-0517 authorization PR merge.
+- Authorization PR #1306 merged at `e58caf381b5a`.
+- Authorization PR final head was `7ad9c25dee4a`.
+- Post-merge public-safety on `e58caf381b5a`: success inside the short attach/early-failure window.
+- Closeout branch: `na-0517-closeout-restore-na0518`.
+- Closeout PR title: `NA-0517: closeout and restore NA-0518`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0517_closeout_restore_na0518_testplan.md`.
+- D-1024 records NA-0517 closeout and NA-0518 restoration.
+- NA-0517 is marked DONE.
+- NA-0518 Remote qsc E2EE SSH Forwarding Operator Action Authorization Plan is restored as the sole READY successor.
+- Future NA-0518 exact paths: governance evidence/testplan paths for NA-0518, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Future NA-0518 is operator-action authorization only: it must not run SSH by Codex, edit authorized_keys by Codex, generate/install keys by Codex, read private keys, mutate SSH config or known_hosts, mutate the remote host, run qsc send/receive, run remote E2EE, use qsl-server/qsl-attachments, install packages, use sudo/admin, run qwork/qstart/qresume, run qsl-backup, or expand public/security/completion claims.
+- Closeout performs no NA-0518 implementation.
+- No remote action, SSH execution, authorized_keys mutation, key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, remote host mutation, sudo/admin action, package installation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0517 update
 
 - Directive: QSL-DIR-2026-06-21-411 -- Execute NA-0517 QSL Remote qsc E2EE Transport Remediation Scope Authorization Plan, Optional Closeout to NA-0518.

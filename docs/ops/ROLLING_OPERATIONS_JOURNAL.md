@@ -6,6 +6,54 @@ Last-Updated: 2026-06-20
 
 # Rolling Operations Journal
 
+# QSL-DIR-2026-06-21-402 / NA-0511 remote marker toolchain disk scope authorization rolling journal
+
+- Directive: QSL-DIR-2026-06-21-402 -- Execute NA-0511 QSL Remote Host Read/Write Marker and Toolchain/Disk Capability Probe Scope Authorization Plan, Optional Closeout to NA-0512.
+- Begin timestamp (America/Chicago): 2026-06-20T21:38:06-05:00.
+- Begin timestamp (UTC): 2026-06-21T02:38:06Z.
+- Repo path: `/srv/qbuild/work/NA-0511/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0511_remote_read_write_marker_toolchain_disk_scope_authorization_20260621T023806Z`.
+- qsl-protocol branch: `na-0511-remote-marker-toolchain-disk-scope`.
+- qsl-protocol HEAD at branch creation: `451d596e8f94`.
+- qsl-protocol main: `451d596e8f94`.
+- qsl-protocol origin/main: `451d596e8f94`.
+- qsl-protocol mirror/main: n/a in this worktree.
+- qsl-server and qsl-attachments: read-only boundary only; no mutation in this directive.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0511/.qwork/`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, cargo generate-lockfile, archive, move, delete, SSH, scp, sftp, rsync, ssh-keygen, ssh-keyscan, remote account creation, SSH key installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, remote marker write/read/delete, remote toolchain command, remote test execution, or qsl-backup mutation.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `451d596e8f94`.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main was up to date with `origin/main`.
+- Disk watermark before fetch: `/` usage 81%; `/backup/qsl` usage 25%. STOP threshold 95% was not hit.
+- Startup main health on `451d596e8f94`: public-safety success, qsc-adversarial-smoke success, qsc-linux-full-suite skipped by docs/governance policy, macos-qsc-full-serial skipped by docs/governance policy, and no completed red checks in the retrieved check-run set.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- Startup queue proof: READY_COUNT 1; READY NA-0511; NA-0510 DONE; NA-0509 DONE; NA-0508 DONE.
+- Startup decision proof: D-1009 once, D-1010 once, D-1011 absent, D-1012 absent, duplicate decision record count zero.
+- D400 response found at `/home/victor/work/qsl/codex/responses/NA0510_20260620T232319Z_D400.md`.
+- D401 response found at `/home/victor/work/qsl/codex/responses/NA0510_closeout_restore_na0511_20260621T004743Z_D401.md`.
+- D401 inheritance consumed: NA-0510 completed; NA-0511 restored READY; PR #1292 merged at `bff96ccc1fe7`; closeout PR #1293 merged at `451d596e8f94`; classification `REMOTE_READ_ONLY_PROBE_PASS`; exactly one bounded SSH invocation occurred in NA-0510 implementation; no SSH invocation occurred in D401 closeout; account `qslcodex`, non-root, no-sudo, workdir, backup exposure, qwork absence, and qsl-backup absence proofs passed; no remote E2E, no remote file write, no marker write/read/delete, and no remote qsc/git/cargo/rustc/toolchain probe occurred.
+- Time-sensitive remote assurance review completed: process/tooling lanes are deferred unless blocking; remote E2E remains deferred; next useful lane should gather short-lived marker write/read/delete plus toolchain/disk data; no public or production readiness claim follows from this evidence.
+- Marker write/read/delete future scope selected for NA-0512 only: one synthetic marker under `$HOME/qsl-remote-test`, marker string `QSL_REMOTE_MARKER_SYNTHETIC_NA0512`, unique proof suffix path, exact readback, deletion, and absent-after-delete proof.
+- Toolchain/disk future scope selected for NA-0512 only: read-only presence/version/capacity commands for git/cargo/rustc/qsc presence, uname, and `df`; toolchain absence is non-fatal and guides successor selection.
+- Exact future command family selected: future NA-0512 may parse safe `ssh -G inspiron` fields locally, prove optional alias `remote` remains absent unless later approved, then run one bounded SSH invocation only after fresh authorization.
+- Option review completed; primary classification selected: `REMOTE_MARKER_TOOLCHAIN_DISK_PROBE_IMPLEMENTATION_READY`.
+- Selected successor: `NA-0512 -- QSL Remote Host Read/Write Marker and Toolchain/Disk Capability Probe Implementation Harness`.
+- Governance patch paths: `docs/governance/evidence/NA-0511_qsl_remote_host_read_write_marker_toolchain_disk_capability_probe_scope_authorization_plan.md`, `tests/NA-0511_qsl_remote_host_read_write_marker_toolchain_disk_capability_probe_scope_authorization_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1011 records NA-0511 remote read/write marker and toolchain disk capability probe scope authorization.
+- Branch: `na-0511-remote-marker-toolchain-disk-scope`.
+- PR title: `NA-0511: authorize remote marker toolchain disk scope`.
+- PR: #1294 (`NA-0511: authorize remote marker toolchain disk scope`).
+- PR merge commit: pending at journal authoring.
+- Validation/CI notes: static validation passed after one wording recovery; targeted qsc tests, corpus validators, formal model checks, root cargo audit, nested qsc fuzz lock audit, cargo fmt, and qsc-adversarial shell syntax passed locally. Branch pushed and PR #1294 opened.
+- Failures/recoveries: gh auth status emitted only a CLI-masked token placeholder; the saved proof artifact was redacted to `REDACTED_MASKED_BY_GH`. Classification: proof-output hygiene correction, not secret exposure. Corrective action: redacted the proof artifact and recorded the redaction note. Final result: proof artifact contains no token value.
+- Recovered overclaim scan wording issue: initial static scan flagged one future forbidden-scope line and split claim-boundary wording where restricted claim labels lacked same-line no-claim wording. Classification: recoverable in-scope documentation wording issue. Corrective action: rewrote the affected lines to same-line `no ... claim` wording. Final result: rerun passed with zero overclaim findings.
+- Recovered precommit assertion issue: final scope/queue proof printed absent D-1012 as 0 but asserted without a default and exited non-zero. Classification: recoverable command-shape assertion bug. Corrective action: reran with an explicit default for absent D-1012. Final result: exact five-path scope, READY NA-0511, D-1011 once, D-1012 absent, and duplicate decision count zero.
+- Local validation wait accounting: same_host_client_to_client_e2e took 152 seconds and was recorded as local long-command wait; subsequent focused validation commands completed below the long-wait threshold.
+- Wait accounting file: `/srv/qbuild/tmp/NA0511_remote_read_write_marker_toolchain_disk_scope_authorization_20260621T023806Z/wait_accounting.tsv`.
+- Next-watch items: PR #1294 checks, merge, and optional closeout only if post-merge public-safety is green in the short attach/early-failure window.
+- No remote action, SSH execution, marker write/read/delete, remote toolchain command, remote E2E, account creation, SSH key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 # QSL-DIR-2026-06-20-401 / NA-0510 closeout and NA-0511 restoration rolling journal
 
 - Directive: QSL-DIR-2026-06-20-401 -- Close Out NA-0510 After Remote Read-Only Capability Probe Public-Safety Completion and Restore NA-0511.

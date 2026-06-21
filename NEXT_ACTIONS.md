@@ -28990,7 +28990,7 @@ Completion:
 ---
 
 ### NA-0511 — QSL Remote Host Read/Write Marker and Toolchain/Disk Capability Probe Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -29048,6 +29048,105 @@ Acceptance criteria:
 - no remote command run in this authorization lane.
 - no public/production readiness claim.
 - exactly one READY item remains.
+
+Completion:
+- PR #1294 merged at `5f27d289e088`.
+- PR #1294 post-merge public-safety completed success for `5f27d289e088`.
+- D-1011 exists once and records NA-0511 remote read/write marker and toolchain/disk capability probe scope authorization.
+- NA-0511 authorization evidence is in-tree at `docs/governance/evidence/NA-0511_qsl_remote_host_read_write_marker_toolchain_disk_capability_probe_scope_authorization_plan.md`.
+- D-1012 closes NA-0511 and restores NA-0512 as the sole READY successor.
+- Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0511_closeout_restore_na0512_testplan.md`.
+- Closeout performs no NA-0512 implementation, no remote action, no SSH execution, no marker write/read/delete, no remote toolchain command, and no remote E2E.
+- Closeout changes no qsc source/test/fuzz/Cargo, workflow/script/helper/dependency, corpus/vector/input, formal/refimpl/service/public/backup, qsl-server, qsl-attachments, qshield, qshield-cli, qsl-backup, backup status, backup plan, rollback, archive, move, or delete path.
+- No public-readiness claim is made.
+- No production-readiness claim is made.
+- No public-internet-readiness claim is made.
+- No external-review-complete claim is made.
+- No crypto-complete claim is made.
+- No replay-proof claim is made.
+- No downgrade-proof claim is made.
+- No secret-material-complete claim is made.
+- No side-channel-free claim is made.
+- No vulnerability-free claim is made.
+- No bug-free claim is made.
+- No perfect-crypto claim is made.
+- Exactly one READY item remains mandatory.
+
+---
+
+### NA-0512 — QSL Remote Host Read/Write Marker and Toolchain/Disk Capability Probe Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Execute one bounded SSH capability probe against the approved `inspiron` / `qslcodex` remote test account to reverify account identity, no sudo/admin access, workdir existence/writability, short-lived marker-file write/read/delete, no backup exposure, no remote qwork/qsl-backup presence, toolchain/disk capability, and no alias/host drift, without remote E2E, without remote source checkout/build, without package installs, and without public/production readiness claims.
+
+Protects:
+- remote write/read/delete capability boundary.
+- marker cleanup proof.
+- toolchain/disk capability clarity.
+- no remote E2E before staging authorization.
+- no sudo/admin exposure.
+- no backup exposure.
+- no qwork/qsl-backup remote execution.
+- no public-readiness claim.
+- no production-readiness claim.
+- one-READY invariant.
+
+Allowed scope:
+- docs/governance/evidence/NA-0512_qsl_remote_host_read_write_marker_toolchain_disk_capability_probe_implementation_harness.md
+- tests/NA-0512_qsl_remote_host_read_write_marker_toolchain_disk_capability_probe_implementation_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-local capture of the exact SSH command output.
+- one bounded SSH command to `inspiron` as `qslcodex` using the preconfigured local alias, if and only if qwork proof and lane scope authorize it.
+- one short-lived synthetic marker-file write/read/delete under `$HOME/qsl-remote-test`.
+
+Forbidden scope:
+- remote E2E.
+- qsc protocol execution remotely.
+- remote source checkout/build.
+- remote package install.
+- sudo/admin action other than negative `sudo -n true` probe.
+- key generation or installation.
+- SSH config mutation.
+- known_hosts mutation.
+- remote host mutation.
+- qwork/qstart/qresume mutation.
+- qsl-backup execution.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- public-readiness or production-readiness claims.
+- long-lived remote artifacts.
+- writes outside `$HOME/qsl-remote-test`.
+
+Deliverables:
+- remote capability probe implementation evidence.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- selected future remote staging/build/smoke authorization scope, remote E2E authorization scope, or remediation/no-action rationale.
+
+Acceptance criteria:
+- qwork proof fresh.
+- exact remote command captured.
+- redaction rules applied.
+- account identity qslcodex verified.
+- non-root verified.
+- no sudo/admin verified.
+- workdir exists and writable verified.
+- marker write/read/delete verified.
+- marker deletion verified.
+- no backup exposure verified.
+- no qwork/qsl-backup presence verified.
+- toolchain/disk capability captured.
+- no remote E2E.
+- no key material included.
+- exactly one READY item remains after closeout.
 
 ---
 

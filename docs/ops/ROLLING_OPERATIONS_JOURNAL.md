@@ -54,6 +54,45 @@ Last-Updated: 2026-06-20
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0511 CI attach recovery, merge, closeout, and NA-0512 restoration update
+
+- Directive: QSL-DIR-2026-06-21-403 -- recover missing PR #1294 required check contexts, merge authorization PR, and close out to NA-0512.
+- Repo path: `/srv/qbuild/work/NA-0511/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0511_ci_attach_recovery_merge_closeout_20260621T033901Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, cargo generate-lockfile, archive, move, delete, SSH, scp, sftp, rsync, ssh-keygen, ssh-keyscan, remote account creation, SSH key installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, remote test execution, marker write/read/delete, remote toolchain command, or qsl-backup mutation.
+- qwork proof files were read from `/srv/qbuild/work/NA-0511/.qwork/` and copied into the proof root.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `451d596e8f94`.
+- Fetch performed only after proof/live ref match and disk proof below threshold; `/` usage was below the 95% STOP threshold and `/backup/qsl` was checked read-only.
+- Startup queue proof before PR recovery: READY_COUNT 1; READY NA-0511; NA-0510 DONE; NA-0509 DONE.
+- Startup decision proof before PR recovery: D-1009 once, D-1010 once, D-1011 absent from main, D-1012 absent, duplicate decision record count zero.
+- D402 response found at `/home/victor/work/qsl/codex/responses/NA0511_20260621T030342Z_D402.md`.
+- D402 inheritance consumed: NA-0511 evidence patch was completed locally by D402; PR #1294 opened from branch `na-0511-remote-marker-toolchain-disk-scope`; D402 head was `598aa73e9208`; D-1011 existed once on the PR branch; D402 stopped because branch protection was blocked by missing required PR check contexts, not because of a red check.
+- PR #1294 exact path proof passed: `DECISIONS.md`, `TRACEABILITY.md`, `docs/governance/evidence/NA-0511_qsl_remote_host_read_write_marker_toolchain_disk_capability_probe_scope_authorization_plan.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0511_qsl_remote_host_read_write_marker_toolchain_disk_capability_probe_scope_authorization_testplan.md`.
+- PR #1294 initial diagnostic after D403 startup still showed missing required contexts: ci-4a, ci-4b, ci-4c, ci-4d, ci-4d-dur, demo-cli-build, demo-cli-smoke, formal-scka-model, goal-lint, metadata-conformance-smoke, suite2-vectors, and macos-qsc-qshield-build.
+- Initial 10-minute attach wait completed with the same required contexts missing and no red checks.
+- Authorized recovery step 1 performed one close/reopen cycle with comment `Recovery: close/reopen once to retrigger missing required pull_request check contexts. No content change.`.
+- Close/reopen preserved PR head `598aa73e9208`; auto-merge was re-enabled if needed; required contexts attached after close/reopen and completed green/accepted.
+- Authorized recovery step 2 was not used: no empty retrigger commit was created, no content changed, no force-push occurred, and the PR diff remained exactly the five NA-0511 evidence paths.
+- PR #1294 merged with a merge commit at `5f27d289e088`.
+- Post-merge queue proof after PR #1294: READY_COUNT 1; READY NA-0511; D-1011 once; D-1012 absent.
+- PR #1294 post-merge public-safety on `5f27d289e088` completed success; qsc-adversarial-smoke completed success; qsc-linux-full-suite and macos-qsc-full-serial were accepted as skipped under docs/governance scope; no completed red check was observed.
+- Closeout validation before mutation passed: git diff check, same_host_client_to_client_e2e, key_lifecycle_zeroization_expansion, secret_material_diagnostic_boundary, handshake_provider_error_no_mutation, binding corpus validator, all qsc fuzz corpus validator, formal runner, root cargo audit, nested qsc fuzz lock audit, cargo fmt, and qsc-adversarial shell syntax under sh and bash.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0511_closeout_restore_na0512_testplan.md`.
+- D-1012 records NA-0511 closeout and NA-0512 restoration.
+- NA-0511 is marked DONE.
+- NA-0512 Remote Host Read/Write Marker and Toolchain/Disk Capability Probe Implementation Harness is restored as the sole READY successor.
+- Future NA-0512 may run exactly one bounded SSH command only after fresh qwork proof and a directive that explicitly authorizes it.
+- Future NA-0512 must not run remote E2E, remote qsc protocol execution, remote source checkout/build, package installation, sudo/admin action beyond the negative check, key/config/host mutation, qwork/qsl-backup, or public/production readiness claim work.
+- Wait accounting file: `/srv/qbuild/tmp/NA0511_ci_attach_recovery_merge_closeout_20260621T033901Z/wait_accounting.tsv`.
+- Closeout branch: pending at journal authoring.
+- Closeout PR title: `NA-0511: closeout and restore NA-0512`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- No NA-0512 implementation is performed by closeout.
+- No remote action, SSH execution, account creation, SSH key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, marker write/read/delete, remote toolchain command, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 # QSL-DIR-2026-06-20-401 / NA-0510 closeout and NA-0511 restoration rolling journal
 
 - Directive: QSL-DIR-2026-06-20-401 -- Close Out NA-0510 After Remote Read-Only Capability Probe Public-Safety Completion and Restore NA-0511.

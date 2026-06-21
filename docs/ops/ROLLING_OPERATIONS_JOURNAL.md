@@ -54,13 +54,14 @@ Last-Updated: 2026-06-21
 - Selected successor: `NA-0518 -- QSL Remote qsc E2EE SSH Forwarding Operator Action Authorization Plan`.
 - Governance patch paths: NA-0517 evidence doc, NA-0517 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
 - D-1023 records NA-0517 remote qsc E2EE transport remediation scope authorization.
+- Recovered GitHub connector PR creation issue: connector create_pull_request returned 403 after the branch was pushed. Classification: recoverable connector permission issue. Corrective action: used `gh pr create` with the same branch, base, title, and prepared PR body. Final result: PR #1306 opened.
 - Recovered overclaim wording issue: added-line overclaim scan flagged one evidence bullet that listed readiness claim labels without same-line no-claim wording. Classification: recoverable in-scope documentation wording issue. Corrective action: rewrote the line to `no public-readiness claim and no production-readiness claim`. Final result: overclaim scan passed with zero findings after rerun.
 - Static validation passed: git diff check, exact five-path scope guard including ignored evidence path, manual link-integrity check, leak scan, added-line overclaim scan, docs/governance classifier, PR body preflight, marker proof, private-key-block scan, queue/decision proof, qsl-backup boundary proof, and markdown inventory counts.
 - Required local validation passed: same_host_client_to_client_e2e, receive_e2e, key_lifecycle_zeroization_expansion, secret_material_diagnostic_boundary, handshake_provider_error_no_mutation, binding corpus validator, all qsc fuzz corpus validator, formal runner, root cargo audit, nested qsc fuzz lock audit, cargo fmt, and qsc-adversarial shell syntax under sh and bash.
 - Wait accounting: same_host_client_to_client_e2e took 152 seconds and receive_e2e took 107 seconds; both are recorded as local long-command waits.
 - Branch: `na-0517-remote-e2ee-transport-remediation-scope`.
 - PR title: `NA-0517: authorize remote E2EE transport remediation scope`.
-- PR: pending at journal authoring.
+- PR: #1306.
 - PR merge commit: pending at journal authoring.
 - Wait accounting file: `/srv/qbuild/tmp/NA0517_remote_e2ee_transport_remediation_scope_authorization_20260621T223513Z/wait_accounting.tsv`.
 - No remote action, SSH execution, authorized_keys mutation, key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, remote host mutation, sudo/admin action, package installation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.

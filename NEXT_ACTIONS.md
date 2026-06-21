@@ -29225,7 +29225,7 @@ Closeout:
 ---
 
 ### NA-0514 — QSL Remote qsc Prebuilt Binary Staging and Smoke Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -29283,6 +29283,61 @@ Acceptance criteria:
 - no key material included.
 - cleanup/retention plan recorded.
 - exactly one READY item remains after closeout.
+
+---
+
+### NA-0515 — QSL Build-to-Inspiron Remote qsc Client-to-Client E2EE Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the exact Build-to-Inspiron remote qsc client-to-client E2EE test
+scope after NA-0514 stages and smokes a qsc binary on Inspiron, selecting roles,
+command family, artifact paths, redaction rules, negative/no-mutation boundary,
+cleanup/retention rules, and stop conditions, without running remote E2EE in the
+authorization lane and without public/production readiness claims.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0515.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only review of NA-0514 staging/smoke output and prior remote setup/probe evidence.
+
+Forbidden scope:
+- running SSH in authorization lane.
+- qsc send/receive in authorization lane.
+- remote E2EE execution in authorization lane.
+- package installation.
+- sudo/admin action.
+- key generation or installation.
+- SSH config mutation.
+- known_hosts mutation.
+- remote host mutation.
+- qwork/qstart/qresume mutation.
+- qsl-backup execution.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- no public-readiness claim and no production-readiness claim.
+
+Deliverables:
+- remote E2EE scope authorization evidence.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- exact future Build-to-Inspiron E2EE command list, proof capture plan, cleanup plan, or remediation/no-action rationale.
+
+Acceptance criteria:
+- NA-0514 staging/smoke consumed.
+- retained binary hash/path/provenance accepted.
+- E2EE options reviewed.
+- exact future E2EE scope selected.
+- no remote command run in authorization lane.
+- no public/production readiness claim.
+- exactly one READY item remains.
 
 ---
 

@@ -6,6 +6,56 @@ Last-Updated: 2026-06-21
 
 # Rolling Operations Journal
 
+## NA-0514 update
+
+- Directive: QSL-DIR-2026-06-21-407 -- Execute NA-0514 QSL Remote qsc Prebuilt Binary Staging and Smoke Implementation Harness, Optional Closeout to NA-0515.
+- Begin timestamp (UTC): 2026-06-21T14:43:06Z.
+- Begin timestamp (America/Chicago): 2026-06-21T09:43:06-0500.
+- Repo path: `/srv/qbuild/work/NA-0514/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0514_remote_qsc_prebuilt_binary_staging_smoke_impl_20260621T144306Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, cargo generate-lockfile, archive, move, delete outside the proof root/staged remote artifact, ssh-keygen, ssh-keyscan, remote account creation, SSH key installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, sudo/admin action beyond negative `sudo -n true`, package installation, remote E2E, remote qsc protocol send/receive, remote source checkout/build, or qsl-backup mutation.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0514/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `6e0796de79c9`.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main was up to date with `origin/main`.
+- Disk watermark before fetch: `/` usage 82%; `/backup/qsl` usage 26%. STOP threshold 95% was not hit.
+- Startup main health on `6e0796de79c9`: public-safety success, qsc-adversarial-smoke success, qsc-linux-full-suite skipped by accepted docs/governance policy, macos-qsc-full-serial skipped by accepted docs/governance policy, and no required red checks observed in the retrieved check-run set.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- Startup queue proof: READY_COUNT 1; READY NA-0514; NA-0513 DONE; NA-0512 DONE.
+- Startup decision proof: D-1015 once, D-1016 once, D-1017 absent before patch, D-1018 absent, duplicate decision record count zero.
+- D406 response found at `/home/victor/work/qsl/codex/responses/NA0513_20260621T142803Z_D406.md`.
+- NA-0513/D406 inheritance consumed: red scheduled remote checks `remote-handshake`, `remote-relay`, and `relay-ui-integration` classified as non-required residuals; NA-0512 classification `REMOTE_MARKER_PROBE_PASS_TOOLCHAIN_ABSENT`; remote git/cargo/rustc/qsc absent; prebuilt qsc binary staging/smoke selected; retention preferred if hash/provenance/smoke passed; no remote E2E/source build/package install authorized.
+- Local build command `cargo build -p qsc --locked --bin qsc` succeeded with isolated target output under the proof root.
+- Local qsc source commit: `6e0796de79c9`.
+- Local qsc binary sha256: `6f12ab5eec2468a4146012dfc247cef15be2337cb8e8e99cefa96a8c258d91ea`.
+- Local qsc binary size: `102103920` bytes.
+- Local qsc `--help` smoke exit code 0.
+- Local `ssh -G inspiron` proof passed using safe parsed fields: host `inspiron`, user `qslcodex`, identity basename `qslcodex_ed25519`, BatchMode yes, password authentication no, identities-only yes, strict host-key checking true, no forwarding, and no private key content.
+- Exactly one bounded SSH prep invocation executed and passed account, non-root, no privileged group, no-sudo, no-backup-exposure, qwork absence, qsl-backup absence, workdir writable, bin-dir ready, final-path absent, and stage-path absent checks.
+- Exactly one scp transfer executed to qsl-remote-test stage path and exited 0. No retry occurred. No rsync or sftp was used.
+- Exactly one bounded SSH verify/smoke invocation executed and passed repeated boundaries, stage hash, chmod on stage path, non-protocol `--help` smoke, final move, stage absence, final hash, and final owner `qslcodex`.
+- Remote stage/final sha256 matched the local qsc binary sha256.
+- Retention decision: final qsc binary retained under qsl-remote-test for near-term E2EE authorization.
+- Cleanup command recorded: `ssh -o BatchMode=yes -o PasswordAuthentication=no -o ConnectTimeout=10 inspiron 'rm -f -- "$HOME/qsl-remote-test/bin/qsc"'`.
+- Result classification: `REMOTE_PREBUILT_QSC_STAGING_SMOKE_PASS_RETAINED`.
+- Selected successor: `NA-0515 -- QSL Build-to-Inspiron Remote qsc Client-to-Client E2EE Scope Authorization Plan`.
+- Recovered GitHub check-run summary issue: Python summary expected exported `PROOF_DIR` after the shell command had set a non-exported variable. Classification: recoverable command-shape/environment mistake. Corrective action: reran the local summary step with `PROOF_DIR` exported. Final result: main check-run summary succeeded.
+- Recovered local qsc lookup issue: initial `find` predicate required owner, group, and other execute bits and returned zero candidates even though Cargo produced an owner-executable qsc binary. Classification: recoverable command-shape/permission predicate mistake. Corrective action: reran the lookup with current-user executable detection. Final result: exactly one qsc binary found and local smoke passed.
+- Recovered static validation scan-scope issue: the first static scan checked full historical DECISIONS/TRACEABILITY/journal text for overclaim and credential patterns. Classification: recoverable validation scan-scope issue; the failures were dominated by historical text outside the NA-0514 added diff, plus same-line negation issues in new NA-0514 text. Corrective action: rewrote new NA-0514 claim-boundary lines with same-line negation and reran leak/overclaim checks over new files and added lines only while preserving full-file link, scope, marker, queue, and decision checks. Final result: corrected static validation passed.
+- Remote output redaction scan passed: private key block count 0, credential assignment pattern count 0, production endpoint marker count 0, backup material marker count 0, qwork execution marker count 0, qsl-backup execution marker count 0, and actual `qsc send` / `qsc receive` invocation marker count 0.
+- Static validation passed: `git diff --cached --check`, exact five-path scope guard, link-check, leak-scan, added-line overclaim scan, classifier, PR body preflight, marker proof, private-key-block proof, queue proof, and decision proof.
+- Required local validation passed: same_host_client_to_client_e2e, key_lifecycle_zeroization_expansion, secret_material_diagnostic_boundary, handshake_provider_error_no_mutation, binding corpus validator, all qsc fuzz corpus validator, formal model checks, root cargo audit, nested qsc fuzz lock audit, cargo fmt, and qsc-adversarial shell syntax under sh and bash.
+- Wait accounting: same_host_client_to_client_e2e took 2.40 minutes and was recorded as a local long-command wait; subsequent required validation commands completed below the long-wait threshold.
+- Governance patch paths: NA-0514 evidence doc, NA-0514 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1017 records NA-0514 remote qsc prebuilt binary staging and smoke implementation.
+- Branch: pending at journal authoring.
+- PR title: `NA-0514: implement remote qsc prebuilt staging smoke`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0514_remote_qsc_prebuilt_binary_staging_smoke_impl_20260621T144306Z/wait_accounting.tsv`.
+- No qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 # QSL-DIR-2026-06-21-402 / NA-0511 remote marker toolchain disk scope authorization rolling journal
 
 - Directive: QSL-DIR-2026-06-21-402 -- Execute NA-0511 QSL Remote Host Read/Write Marker and Toolchain/Disk Capability Probe Scope Authorization Plan, Optional Closeout to NA-0512.

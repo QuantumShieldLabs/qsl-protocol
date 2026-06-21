@@ -29119,7 +29119,8 @@ Forbidden scope:
 - workflow/dependency mutation.
 - corpus/vector/input mutation.
 - formal/refimpl/service/public/backup mutation.
-- public-readiness or production-readiness claims.
+- no public-readiness claim is made.
+- no production-readiness claim is made.
 - long-lived remote artifacts.
 - writes outside `$HOME/qsl-remote-test`.
 
@@ -29287,7 +29288,7 @@ Acceptance criteria:
 ---
 
 ### NA-0515 — QSL Build-to-Inspiron Remote qsc Client-to-Client E2EE Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -29338,6 +29339,73 @@ Acceptance criteria:
 - no remote command run in authorization lane.
 - no public/production readiness claim.
 - exactly one READY item remains.
+
+---
+
+### NA-0516 — QSL Build-to-Inspiron Remote qsc Client-to-Client E2EE Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Execute one bounded Build-to-Inspiron qsc client-to-client E2EE test using the
+local Build qsc capability and the retained Inspiron qsc binary, with synthetic
+messages, isolated local and remote roots, retained-binary hash recheck,
+send/receive and reply flow, one negative/no-mutation boundary if feasible,
+redacted proof capture, and cleanup/retention proof, without public/production
+readiness claims.
+
+Allowed scope:
+- docs/governance/evidence/NA-0516_qsl_build_to_inspiron_remote_qsc_client_to_client_e2ee_implementation_harness.md
+- tests/NA-0516_qsl_build_to_inspiron_remote_qsc_client_to_client_e2ee_implementation_testplan.md
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- proof-root-local capture of local/remote E2EE command output.
+- bounded SSH commands to `inspiron` as `qslcodex`.
+- bounded transfer of synthetic public/trust/message artifacts only.
+- use retained remote qsc binary at `$HOME/qsl-remote-test/bin/qsc`.
+- local Build qsc binary from current clean checkout or proof-root build.
+- synthetic messages only.
+- remote artifacts only under `$HOME/qsl-remote-test/e2ee/<PROOF_ID>`.
+- cleanup or documented retention under qsl-remote-test only.
+
+Forbidden scope:
+- package installation.
+- sudo/admin action other than negative `sudo -n true` probe.
+- key generation or installation outside qsc test-generated synthetic identities.
+- SSH config mutation.
+- known_hosts mutation.
+- remote host mutation outside qsl-remote-test E2EE root.
+- qwork/qstart/qresume mutation.
+- qsl-backup execution.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- production/user data.
+- no public-readiness claim is made.
+- no production-readiness claim is made.
+- remote source checkout/build.
+
+Deliverables:
+- remote E2EE implementation evidence.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- selected future remote negative expansion, remote cleanup, or remote assurance successor.
+
+Acceptance criteria:
+- qwork proof fresh.
+- retained remote qsc hash/path/owner rechecked.
+- local qsc provenance recorded.
+- Build-to-Inspiron synthetic send/receive succeeds.
+- Inspiron-to-Build synthetic reply succeeds.
+- at least one negative/no-mutation boundary passes or justified split successor selected.
+- no secret/private material in proof.
+- cleanup/retention decision recorded.
+- no public/production readiness claim.
+- exactly one READY item remains after closeout.
 
 ---
 

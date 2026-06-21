@@ -29343,7 +29343,7 @@ Acceptance criteria:
 ---
 
 ### NA-0516 — QSL Build-to-Inspiron Remote qsc Client-to-Client E2EE Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -29404,6 +29404,65 @@ Acceptance criteria:
 - at least one negative/no-mutation boundary passes or justified split successor selected.
 - no secret/private material in proof.
 - cleanup/retention decision recorded.
+- no public/production readiness claim.
+- exactly one READY item remains after closeout.
+
+---
+
+### NA-0517 — QSL Remote qsc E2EE Transport Remediation Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the next bounded remote qsc E2EE transport lane after NA-0516 proved
+that SSH TCP forwarding is unavailable for the Build-to-Inspiron harness. The
+lane must choose a truthful forwarding-free or operator-authorized transport
+shape before any renewed send/receive/reply attempt.
+
+Allowed scope:
+- docs/governance/evidence/NA-0517_qsl_remote_qsc_e2ee_transport_remediation_scope_authorization_plan.md
+- tests/NA-0517_qsl_remote_qsc_e2ee_transport_remediation_scope_authorization_testplan.md
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only review of NA-0516 evidence, proof summaries, qsc command surfaces, and existing tests.
+- selection of exact future transport commands, proof capture, cleanup, and stop rules.
+
+Forbidden scope:
+- remote command execution.
+- SSH execution.
+- qsc send/receive execution.
+- qsl-server use.
+- qsl-attachments use.
+- package installation.
+- remote source checkout/build.
+- SSH config mutation.
+- known_hosts mutation.
+- qwork/qstart/qresume mutation.
+- qsl-backup execution.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- production/user data.
+- no public-readiness claim.
+- no production-readiness claim.
+- no public-internet-readiness claim.
+
+Deliverables:
+- transport remediation authorization evidence.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- selected future remote E2EE retry or remediation successor.
+
+Acceptance criteria:
+- NA-0516 transport failure evidence consumed.
+- no remote action by Codex.
+- no qsc implementation mutation.
+- exact future transport path selected or remediation successor chosen.
+- send/receive/reply and wrong-mailbox negative proof remain unclaimed until a later implementation lane executes them.
 - no public/production readiness claim.
 - exactly one READY item remains after closeout.
 

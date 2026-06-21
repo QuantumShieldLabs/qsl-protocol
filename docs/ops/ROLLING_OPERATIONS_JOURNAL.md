@@ -6,6 +6,27 @@ Last-Updated: 2026-06-21
 
 # Rolling Operations Journal
 
+## NA-0516 closeout and NA-0517 restoration
+
+- Directive: QSL-DIR-2026-06-21-410 optional closeout after NA-0516 implementation PR merge.
+- Implementation PR #1304 merged at `105e793908fd`.
+- Implementation PR final head was `ba0ab13e2448`.
+- Post-merge public-safety on `105e793908fd`: success inside the short attach/early-failure window.
+- Closeout branch: `na-0516-closeout-restore-na0517`.
+- Closeout PR title: `NA-0516: closeout and restore NA-0517`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0516_closeout_restore_na0517_testplan.md`.
+- D-1022 records NA-0516 closeout and NA-0517 restoration.
+- NA-0516 is marked DONE.
+- NA-0517 Remote qsc E2EE Transport Remediation Scope Authorization Plan is restored as the sole READY successor.
+- Future NA-0517 exact paths: governance evidence/testplan paths for NA-0517, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Future NA-0517 is authorization-only: it must consume NA-0516 transport failure, select an exact future transport shape or remediation path, preserve synthetic-data and cleanup rules, and keep send/receive/reply plus wrong-mailbox proof unclaimed until a later implementation directive executes them.
+- Closeout performs no NA-0517 implementation.
+- No remote action, SSH execution, scp/sftp/rsync, remote E2EE, qsc send/receive, account creation, SSH key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0516 Build-to-Inspiron remote qsc client-to-client E2EE implementation attempt
 
 - Directive: QSL-DIR-2026-06-21-410, NA-0516, Recover NA-0516 Literal-HOME Remote Residue, Harden Path Handling, Retry Build-to-Inspiron Remote qsc E2EE Harness, Optional Closeout to NA-0517.
@@ -34,10 +55,10 @@ Last-Updated: 2026-06-21
 - Governance patch paths: NA-0516 evidence doc, NA-0516 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
 - D-1021 records NA-0516 implementation attempt and transport failure classification.
 - Selected successor: `NA-0517 -- QSL Remote qsc E2EE Transport Remediation Scope Authorization Plan`.
-- Branch: pending at journal authoring.
+- Branch: `na-0516-build-to-inspiron-remote-e2ee`.
 - PR title: `NA-0516: implement Build-to-Inspiron remote E2EE`.
-- PR: pending at journal authoring.
-- PR merge commit: pending at journal authoring.
+- PR: #1304.
+- PR merge commit: `105e793908fd`.
 - Wait accounting file: `/srv/qbuild/tmp/NA0516_cleanup_retry_remote_e2ee_20260621T170007Z/wait_accounting.tsv`.
 - Recovered failure: queue/decision proof script used the wrong regex group index. Classification: recoverable command-shape mistake. Corrective action: fixed group index and reran once. Final result: queue/decision proof passed.
 - Recovered failure: read-only command surface `rg` included a non-existent source path. Classification: recoverable read-only discovery path-shape mistake. Corrective action: located actual transport module path and reran scoped inspection. Final result: command surface inspection passed.

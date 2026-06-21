@@ -29075,7 +29075,7 @@ Completion:
 ---
 
 ### NA-0512 — QSL Remote Host Read/Write Marker and Toolchain/Disk Capability Probe Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -29147,6 +29147,66 @@ Acceptance criteria:
 - no remote E2E.
 - no key material included.
 - exactly one READY item remains after closeout.
+
+Closeout:
+- PR #1296 merged at `d20e700fcb2c`.
+- D-1013 accepted classification `REMOTE_MARKER_PROBE_PASS_TOOLCHAIN_ABSENT`.
+- Marker write/read/delete/absent-after-delete passed.
+- Remote git/cargo/rustc/qsc were absent.
+- Selected successor is `NA-0513 -- QSL Remote qsc Staging Strategy Authorization Plan`.
+- No public-readiness claim.
+- No production-readiness claim.
+
+---
+
+### NA-0513 — QSL Remote qsc Staging Strategy Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the safest remote qsc staging strategy after NA-0512 proves marker cleanup but finds no sufficient remote qsc/toolchain path, comparing prebuilt binary transfer, operator-managed toolchain setup, and deferral/remediation, without running remote commands in the authorization lane.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0513.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of NA-0512 probe output and prior remote setup/probe evidence.
+
+Forbidden scope:
+- running SSH in the authorization lane.
+- remote E2E.
+- package installation.
+- sudo/admin action.
+- key generation or installation.
+- SSH config mutation.
+- known_hosts mutation.
+- remote host mutation.
+- qwork/qstart/qresume mutation.
+- qsl-backup execution.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- no public-readiness claim.
+- no production-readiness claim.
+
+Deliverables:
+- remote staging strategy authorization evidence.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- exact future staging/smoke command list, prebuilt-binary strategy, or remediation/no-action rationale.
+
+Acceptance criteria:
+- NA-0512 probe consumed.
+- staging options reviewed.
+- exact future staging/smoke scope selected or deferred with rationale.
+- no remote command run in this authorization lane.
+- no public-readiness claim.
+- no production-readiness claim.
+- exactly one READY item remains.
 
 ---
 

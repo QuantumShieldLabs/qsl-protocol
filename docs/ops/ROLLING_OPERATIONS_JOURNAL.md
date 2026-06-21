@@ -27,6 +27,47 @@ Last-Updated: 2026-06-21
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0517 update
+
+- Directive: QSL-DIR-2026-06-21-411 -- Execute NA-0517 QSL Remote qsc E2EE Transport Remediation Scope Authorization Plan, Optional Closeout to NA-0518.
+- Begin timestamp (UTC): 2026-06-21T22:35:13Z.
+- Repo path: `/srv/qbuild/work/NA-0517/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0517_remote_e2ee_transport_remediation_scope_authorization_20260621T223513Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, cargo generate-lockfile, archive, move, delete, SSH, scp, sftp, rsync, ssh-keygen, ssh-keyscan, remote command, remote E2EE, qsc send/receive, SSH key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, qsl-server, qsl-attachments, qshield, qshield-cli, or qsl-backup mutation.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0517/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `5be44390c6c5`.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main was up to date with `origin/main`.
+- Disk watermark before fetch: `/` usage 84%; `/backup/qsl` usage 26%. STOP threshold 95% was not hit.
+- Startup main health on `5be44390c6c5`: public-safety success, qsc-adversarial-smoke success, qsc-linux-full-suite skipped by docs/governance policy, macos-qsc-full-serial skipped by docs/governance policy, and no completed red checks in the retrieved check-run set.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- Startup queue proof: READY_COUNT 1; READY NA-0517; NA-0516 DONE; NA-0515 DONE; NA-0514 DONE.
+- Startup decision proof after corrected parser: D-1021 once, D-1022 once, D-1023 absent before patch, duplicate decision record count zero.
+- Recovered startup queue/decision proof issue: first verifier counted broad textual references to D-1021/D-1022 rather than decision-entry lines and exited non-zero. Classification: recoverable command-shape mistake. Corrective action: reran immediately with parser constrained to `- **ID:** D-....` lines. Final result: corrected proof passed.
+- D409 response found at `/home/victor/work/qsl/codex/responses/NA0516_20260621T164703Z_D409.md`.
+- D410 response found at `/home/victor/work/qsl/codex/responses/NA0516_cleanup_retry_remote_e2ee_20260621T170007Z_D410.md`.
+- NA-0516 / D410 inheritance consumed: NA-0516 completed, NA-0517 restored READY, D409 literal-dollar-HOME residue cleanup completed, remote path linting hardened, retained qsc preserved and rechecked, local qsc provenance recorded, no qsl-server or qsl-attachments used, no send/receive/reply completed, wrong-mailbox negative boundary deferred, final classification `REMOTE_E2EE_TRANSPORT_FAILURE`.
+- Operator SSH observation recorded as operator-supplied context only: manual `ssh qslcodex@inspiron` reportedly reached banner and printed PTY allocation failure; interpreted as key/account path likely works and PTY remains disabled/acceptable.
+- qsc native forwarding-free review completed: current qsc send/receive/handshake paths require a reachable HTTP relay endpoint; relay serve is loopback-bound and in-memory; receive `--file` is not an offline mailbox import path; no forwarding-free Build-to-Inspiron E2EE path exists without out-of-scope qsc implementation, service use, public exposure, or custom helper/proxy.
+- SSH forwarding policy review completed: separate dedicated forwarding key selected as safer default; existing qslcodex key deferred as fallback only; key-level loopback-only constraints preferred over account-wide or sshd_config changes.
+- Forwarding model selected: Shape 1, Build-local qsc relay plus loopback-only remote reverse forwarding, default remote listen endpoint `127.0.0.1:39176` or one explicitly recorded replacement port if unavailable in a future lane.
+- Primary classification selected: `SSH_FORWARDING_OPERATOR_ACTION_AUTHORIZATION_READY`.
+- Selected successor: `NA-0518 -- QSL Remote qsc E2EE SSH Forwarding Operator Action Authorization Plan`.
+- Governance patch paths: NA-0517 evidence doc, NA-0517 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1023 records NA-0517 remote qsc E2EE transport remediation scope authorization.
+- Recovered GitHub connector PR creation issue: connector create_pull_request returned 403 after the branch was pushed. Classification: recoverable connector permission issue. Corrective action: used `gh pr create` with the same branch, base, title, and prepared PR body. Final result: PR #1306 opened.
+- Recovered overclaim wording issue: added-line overclaim scan flagged one evidence bullet that listed readiness claim labels without same-line no-claim wording. Classification: recoverable in-scope documentation wording issue. Corrective action: rewrote the line to `no public-readiness claim and no production-readiness claim`. Final result: overclaim scan passed with zero findings after rerun.
+- Static validation passed: git diff check, exact five-path scope guard including ignored evidence path, manual link-integrity check, leak scan, added-line overclaim scan, docs/governance classifier, PR body preflight, marker proof, private-key-block scan, queue/decision proof, qsl-backup boundary proof, and markdown inventory counts.
+- Required local validation passed: same_host_client_to_client_e2e, receive_e2e, key_lifecycle_zeroization_expansion, secret_material_diagnostic_boundary, handshake_provider_error_no_mutation, binding corpus validator, all qsc fuzz corpus validator, formal runner, root cargo audit, nested qsc fuzz lock audit, cargo fmt, and qsc-adversarial shell syntax under sh and bash.
+- Wait accounting: same_host_client_to_client_e2e took 152 seconds and receive_e2e took 107 seconds; both are recorded as local long-command waits.
+- Branch: `na-0517-remote-e2ee-transport-remediation-scope`.
+- PR title: `NA-0517: authorize remote E2EE transport remediation scope`.
+- PR: #1306.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0517_remote_e2ee_transport_remediation_scope_authorization_20260621T223513Z/wait_accounting.tsv`.
+- No remote action, SSH execution, authorized_keys mutation, key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, remote host mutation, sudo/admin action, package installation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0516 Build-to-Inspiron remote qsc client-to-client E2EE implementation attempt
 
 - Directive: QSL-DIR-2026-06-21-410, NA-0516, Recover NA-0516 Literal-HOME Remote Residue, Harden Path Handling, Retry Build-to-Inspiron Remote qsc E2EE Harness, Optional Closeout to NA-0517.

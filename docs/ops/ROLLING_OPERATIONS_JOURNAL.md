@@ -56,6 +56,27 @@ Last-Updated: 2026-06-21
 - No backup or restore run.
 - no public-readiness claim is made. no production-readiness claim is made. no public-internet-readiness claim is made. no external-review-complete claim is made. no crypto-complete claim is made. no replay-proof claim is made. no downgrade-proof claim is made. no secret-material-complete claim is made. no side-channel-free claim is made. no vulnerability-free claim is made. no bug-free claim is made. no perfect-crypto claim is made.
 
+## NA-0515 closeout and NA-0516 restoration
+
+- Directive: QSL-DIR-2026-06-21-408 optional closeout, NA-0515 closeout and NA-0516 restoration.
+- Closeout start timestamp: 2026-06-21T16:20:00Z.
+- Repo: `/srv/qbuild/work/NA-0515/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0515_remote_build_to_inspiron_e2ee_scope_authorization_20260621T154239Z`.
+- Authorization PR #1302 merged at `e0ded610fce8` from validated head `36aadd2fd0f2`.
+- Post-merge public-safety attached and completed success on `e0ded610fce8` inside the short attach/early-failure window.
+- Closeout queue action: NA-0515 marked DONE; `NA-0516 -- QSL Build-to-Inspiron Remote qsc Client-to-Client E2EE Implementation Harness` restored READY.
+- D-1020 records NA-0515 closeout and NA-0516 restoration.
+- Closeout mutation paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0515_closeout_restore_na0516_testplan.md`.
+- NA-0516 remains unimplemented by closeout. Future NA-0516 must start from fresh qwork proof and recheck retained remote qsc hash/path/owner/provenance before any E2EE command.
+- Branch: pending at journal authoring.
+- PR title: `NA-0515: closeout and restore NA-0516`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0515_remote_build_to_inspiron_e2ee_scope_authorization_20260621T154239Z/wait_accounting.tsv`.
+- No remote action, SSH execution, scp/sftp/rsync, qsc send/receive, remote E2EE, binary transfer, package installation, remote source checkout/build, sudo/admin action, SSH key generation or installation, ssh-keygen, ssh-keyscan, local SSH config mutation, known_hosts mutation, remote host mutation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
+- No backup or restore run.
+- no public-readiness claim is made. no production-readiness claim is made. no public-internet-readiness claim is made. no external-review-complete claim is made. no crypto-complete claim is made. no replay-proof claim is made. no downgrade-proof claim is made. no secret-material-complete claim is made. no side-channel-free claim is made. no vulnerability-free claim is made. no bug-free claim is made. no perfect-crypto claim is made.
+
 ## NA-0514 update
 
 - Directive: QSL-DIR-2026-06-21-407 -- Execute NA-0514 QSL Remote qsc Prebuilt Binary Staging and Smoke Implementation Harness, Optional Closeout to NA-0515.

@@ -36782,8 +36782,10 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Required local validation passed: same_host_client_to_client_e2e, receive_e2e, key_lifecycle_zeroization_expansion, secret_material_diagnostic_boundary, handshake_provider_error_no_mutation, binding corpus validator, all qsc fuzz corpus validator, formal runner, root cargo audit, nested qsc fuzz lock audit, cargo fmt, and qsc-adversarial shell syntax under sh and bash.
 - Wait accounting recorded two local long-command intervals: same_host_client_to_client_e2e 2.53 minutes and receive_e2e 1.78 minutes; no CI wait recorded yet at journal authoring.
 - Branch: `na-0518-ssh-forwarding-operator-action`.
+- Evidence commit: `3d7262c8dbad`.
 - PR title: `NA-0518: authorize SSH forwarding operator action`.
-- PR: pending at journal authoring.
+- Recovered PR creation connector issue: GitHub connector PR creation returned 403 `Resource not accessible by integration`. Classification: recoverable GitHub connector permission issue because the branch was already pushed and authenticated `gh` was available. Corrective action: created the same PR with `gh pr create --body-file` using the prepared PR body. Final result: PR #1308 opened.
+- PR: #1308.
 - PR merge commit: pending at journal authoring.
 - Wait accounting file: `/srv/qbuild/tmp/NA0518_ssh_forwarding_operator_action_authorization_20260621T233604Z/wait_accounting.tsv`.
 - No remote action, SSH execution, scp/sftp/rsync execution, qsc send/receive, remote E2EE, account creation, SSH key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, sshd_config mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.

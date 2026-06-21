@@ -54,6 +54,44 @@ Last-Updated: 2026-06-20
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0513 update
+
+- Directive: QSL-DIR-2026-06-21-406 -- Triage D404 Remote Red Checks, Execute NA-0513 Remote qsc Staging Strategy Authorization Plan if Safe, Optional Closeout to NA-0514.
+- Begin timestamp (UTC): 2026-06-21T13:54:06Z.
+- Begin timestamp (America/Chicago): 2026-06-21T08:54:06-0500.
+- Repo path: `/srv/qbuild/work/NA-0513/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0513_remote_red_check_triage_staging_strategy_20260621T135406Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, cargo generate-lockfile, archive, move, delete, SSH, scp, sftp, rsync, ssh-keygen, ssh-keyscan, remote account creation, SSH key installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, remote test execution, or qsl-backup mutation.
+- qwork proof files read and copied from `/srv/qbuild/work/NA-0513/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `72994b2882e7`.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main was up to date with `origin/main`.
+- Disk watermark before fetch: `/` usage 82%; `/backup/qsl` usage 26%. STOP threshold 95% was not hit.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- Startup queue proof after corrected parser: READY_COUNT 1; READY NA-0513; NA-0510 DONE; NA-0511 DONE; NA-0512 DONE.
+- Startup decision proof after corrected parser: D-1013 once, D-1014 once, D-1015 absent before patch, duplicate decision record count zero.
+- Recovered startup queue parser issue: first parser expected ASCII hyphen separators and returned READY_COUNT 0. Classification: recoverable command-shape/parser issue. Corrective action: reran with line-position heading detection independent of separator glyph. Final result: queue and decision proof passed.
+- D404 response found at `/home/victor/work/qsl/codex/responses/NA0512_20260621T051441Z_D404.md`.
+- D405 response found at `/home/victor/work/qsl/codex/responses/NA0513_20260621T133821Z_D405.md`.
+- Packet A triaged D404 closeout red checks on `72994b2882e7`: `remote-handshake`, `remote-relay`, and `relay-ui-integration`.
+- Branch protection required contexts exclude the three red scheduled remote checks; required contexts include `public-safety`.
+- `public-safety` for `72994b2882e7` completed success and was not dependent on the three scheduled remote checks.
+- PR #1297 changed only closeout governance/testplan paths.
+- Red remote checks classified as `REMOTE_CHECK_NONREQUIRED_REMOTE_RESIDUAL`: scheduled, non-required, outside public-safety, and consistent with residual remote scenario/staging gaps. They remain residuals and are not treated as passing or public-readiness evidence.
+- NA-0512/D404 inheritance consumed: classification `REMOTE_MARKER_PROBE_PASS_TOOLCHAIN_ABSENT`, marker write/read/delete/absent-after-delete passed, remote `git`, `cargo`, `rustc`, and `qsc` absent, no remote E2E, no source checkout/build, no package install, no backup exposure, qwork absent remotely, qsl-backup absent remotely.
+- Option review completed; primary classification selected: `REMOTE_PREBUILT_QSC_BINARY_STAGING_SMOKE_READY`.
+- Selected successor: `NA-0514 -- QSL Remote qsc Prebuilt Binary Staging and Smoke Implementation Harness`.
+- Future NA-0514 should stage a locally built qsc binary under `$HOME/qsl-remote-test/bin/qsc`, verify local/remote sha256, run non-protocol `qsc --help` or `--version`, and retain only with path/owner/hash/cleanup/no-backup proof.
+- Governance patch paths: NA-0513 evidence doc, NA-0513 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1015 records NA-0513 remote qsc staging strategy authorization.
+- Branch: pending at journal authoring.
+- PR title: `NA-0513: authorize remote qsc staging strategy`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0513_remote_red_check_triage_staging_strategy_20260621T135406Z/wait_accounting.tsv`.
+- No remote action, SSH execution, binary transfer, remote E2E, qsc send/receive, package installation, source checkout/build, account creation, SSH key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0512 closeout and NA-0513 restoration update
 
 - Directive: QSL-DIR-2026-06-21-404 -- optional closeout after NA-0512 implementation PR merge.

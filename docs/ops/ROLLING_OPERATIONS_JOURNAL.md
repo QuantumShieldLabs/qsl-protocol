@@ -54,6 +54,27 @@ Last-Updated: 2026-06-20
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0512 closeout and NA-0513 restoration update
+
+- Directive: QSL-DIR-2026-06-21-404 -- optional closeout after NA-0512 implementation PR merge.
+- Implementation PR #1296 merged at `d20e700fcb2c`.
+- Implementation PR head was `fb80b10dc4a`.
+- Post-merge public-safety on `d20e700fcb2c`: success inside the short attach/early-failure window.
+- Closeout branch: `na-0512-closeout-restore-na0513`.
+- Closeout PR title: `NA-0512: closeout and restore NA-0513`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0512_closeout_restore_na0513_testplan.md`.
+- D-1014 records NA-0512 closeout and NA-0513 restoration.
+- NA-0512 is marked DONE.
+- NA-0513 Remote qsc Staging Strategy Authorization Plan is restored as the sole READY successor.
+- Future NA-0513 exact paths: governance evidence/testplan paths for NA-0513, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Future NA-0513 must consume NA-0512 probe output and select a safe remote qsc staging strategy, prebuilt-binary strategy, operator-managed setup strategy, or deferral/remediation rationale. It must not run SSH or remote commands in the authorization lane and must not perform remote E2E.
+- Closeout performs no NA-0513 implementation.
+- No remote action, SSH execution, scp/sftp/rsync, remote E2E, account creation, SSH key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0512 update
 
 - Directive: QSL-DIR-2026-06-21-404 -- Execute NA-0512 QSL Remote Host Read/Write Marker and Toolchain/Disk Capability Probe Implementation Harness, Optional Closeout to NA-0513.

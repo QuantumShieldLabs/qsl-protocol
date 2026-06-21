@@ -29410,7 +29410,7 @@ Acceptance criteria:
 ---
 
 ### NA-0517 — QSL Remote qsc E2EE Transport Remediation Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -29465,6 +29465,65 @@ Acceptance criteria:
 - send/receive/reply and wrong-mailbox negative proof remain unclaimed until a later implementation lane executes them.
 - no public/production readiness claim.
 - exactly one READY item remains after closeout.
+
+---
+
+### NA-0518 — QSL Remote qsc E2EE SSH Forwarding Operator Action Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the exact operator-owned SSH forwarding remediation needed for the
+approved `inspiron` / `qslcodex` remote qsc E2EE test. The selected default is
+a separate dedicated forwarding key constrained to loopback-only remote reverse
+forwarding for a Build-local qsc relay, preserving no PTY, no agent/X11
+forwarding, no sudo/admin, no backup exposure, no qwork/qsl-backup, no
+qsl-server/qsl-attachments use, and no public/production readiness claims.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0518.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only review of D410 transport failure evidence and current SSH boundary proof.
+- exact operator manual-action checklist and proof checklist.
+
+Forbidden scope:
+- Codex running SSH.
+- Codex editing authorized_keys.
+- Codex generating/installing keys.
+- Codex reading private keys.
+- SSH config mutation by Codex.
+- known_hosts mutation by Codex.
+- remote host mutation by Codex.
+- remote E2EE execution.
+- qsc send/receive.
+- qsl-server/qsl-attachments.
+- package installation.
+- sudo/admin action.
+- qwork/qstart/qresume.
+- qsl-backup.
+- no public-readiness claim and no production-readiness claim.
+
+Deliverables:
+- operator action authorization evidence.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- exact future proof outputs.
+- exact rejection conditions.
+- selected proof-review or E2EE retry successor.
+
+Acceptance criteria:
+- D410 transport failure consumed.
+- forwarding-free qsc path rejected or deferred with evidence.
+- exact forwarding model selected.
+- separate dedicated forwarding key selected by default or fallback rationale recorded.
+- PTY policy preserved or justified.
+- no private material included.
+- no remote command run by Codex.
+- exactly one READY item remains.
 
 ---
 

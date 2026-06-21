@@ -28888,7 +28888,7 @@ Completion:
 ---
 
 ### NA-0510 — QSL Remote Host Read-Only Capability Probe Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -28963,6 +28963,91 @@ Acceptance criteria:
 - no remote E2E.
 - no key material included.
 - exactly one READY item remains after closeout.
+
+Completion:
+- PR #1292 merged at `bff96ccc1fe7`.
+- PR #1292 post-merge public-safety completed success for `bff96ccc1fe7`.
+- D-1009 exists once and records NA-0510 remote host read-only capability probe implementation.
+- NA-0510 implementation evidence is in-tree at `docs/governance/evidence/NA-0510_qsl_remote_host_read_only_capability_probe_implementation_harness.md`.
+- D-1010 closes NA-0510 and restores NA-0511 as the sole READY successor.
+- NA-0510 accepted `REMOTE_READ_ONLY_PROBE_PASS` and performed exactly one authorized read-only SSH probe during implementation; closeout performs no remote action and no SSH execution.
+- Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0510_closeout_restore_na0511_testplan.md`.
+- Closeout changes no qsc source/test/fuzz/Cargo, workflow/script/helper/dependency, corpus/vector/input, formal/refimpl/service/public/backup, qsl-server, qsl-attachments, qshield, qshield-cli, qsl-backup, backup status, backup plan, rollback, archive, move, or delete path.
+- No public-readiness claim is made.
+- No production-readiness claim is made.
+- No public-internet-readiness claim is made.
+- No external-review-complete claim is made.
+- No crypto-complete claim is made.
+- No replay-proof claim is made.
+- No downgrade-proof claim is made.
+- No secret-material-complete claim is made.
+- No side-channel-free claim is made.
+- No vulnerability-free claim is made.
+- No bug-free claim is made.
+- No perfect-crypto claim is made.
+- Exactly one READY item remains mandatory.
+
+---
+
+### NA-0511 — QSL Remote Host Read/Write Marker and Toolchain/Disk Capability Probe Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the next time-sensitive remote capability lane after the NA-0510 read-only probe, selecting exact bounded commands for a short-lived marker-file write/read/delete under `$HOME/qsl-remote-test` plus remote toolchain and disk capability capture, without remote E2E, source checkout/build, package installation, sudo/admin action, qwork/qsl-backup execution, or public/production readiness claims.
+
+Protects:
+- remote write capability boundary.
+- short-lived artifact cleanup.
+- toolchain/disk capability clarity.
+- no remote E2E before staging authorization.
+- no sudo/admin exposure.
+- no backup exposure.
+- no public-readiness claim.
+- no production-readiness claim.
+- one-READY invariant.
+
+Allowed scope:
+- governance evidence/testplan paths for NA-0511.
+- DECISIONS.md.
+- TRACEABILITY.md.
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md.
+- read-only inspection of NA-0510 probe output and prior remote setup evidence.
+
+Forbidden scope:
+- running SSH in authorization lane.
+- remote E2E.
+- qsc protocol execution remotely.
+- source checkout/build remotely.
+- package installation.
+- sudo/admin action.
+- key generation or installation.
+- SSH config mutation.
+- known_hosts mutation.
+- remote host mutation.
+- qwork/qstart/qresume mutation.
+- qsl-backup execution.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- public-readiness or production-readiness claims.
+
+Deliverables:
+- read/write marker and toolchain/disk capability scope authorization evidence.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- exact future command list or remediation/no-action rationale.
+
+Acceptance criteria:
+- NA-0510 read-only probe consumed.
+- marker write/read/delete scope selected or rejected.
+- toolchain/disk scope selected or rejected.
+- no remote command run in this authorization lane.
+- no public/production readiness claim.
+- exactly one READY item remains.
 
 ---
 

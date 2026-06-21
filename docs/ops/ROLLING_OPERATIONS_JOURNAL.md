@@ -6,6 +6,50 @@ Last-Updated: 2026-06-21
 
 # Rolling Operations Journal
 
+## NA-0516 Build-to-Inspiron remote qsc client-to-client E2EE implementation attempt
+
+- Directive: QSL-DIR-2026-06-21-410, NA-0516, Recover NA-0516 Literal-HOME Remote Residue, Harden Path Handling, Retry Build-to-Inspiron Remote qsc E2EE Harness, Optional Closeout to NA-0517.
+- Start timestamp: 2026-06-21T17:00:07Z.
+- Repo: `/srv/qbuild/work/NA-0516/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0516_cleanup_retry_remote_e2ee_20260621T170007Z`.
+- qwork proof files were read and copied into the proof root; Codex did not run qwork, qstart, or qresume.
+- qwork proof values passed: `startup_result=OK`, `lane=NA-0516`, `repo=qsl-protocol`, `head_equals_origin_main=yes`, `worktree_clean=yes`, `index_clean=yes`, `untracked_clean=yes`, `ready_count=1`, `queue_top_ready=NA-0516`, and `requested_lane_status=READY`.
+- Before fetch, live `HEAD` and live `origin/main` matched the proof commit `67fac8c8d0d6`; disk usage was below the stop threshold.
+- Startup queue proof: READY_COUNT 1; READY NA-0516; NA-0515 DONE; NA-0514 DONE.
+- Startup decision proof: D-1019 once, D-1020 once, D-1021 absent before patch, duplicate decision record count zero.
+- Current main health on `67fac8c8d0d6`: public-safety success, qsc-adversarial-smoke success, qsc-linux-full-suite skipped by accepted policy, macos-qsc-full-serial skipped by accepted policy, and no required red checks in the retrieved check-run set.
+- qsl-backup boundary remained read-only; `/usr/local/sbin/qsl-backup` sha256 matched `e9ecff3d22ed...`, and source inclusion count for `/home/victor/work/qsl/codex/ops` was exactly 1.
+- D409 inheritance consumed: D409 stopped before governance patch, branch, commit, PR, merge, or closeout; classification `REMOTE_E2EE_AMBIGUOUS_STOP`; no qsl-server or qsl-attachments use; no send/receive/reply/negative completed; retained qsc and local qsc provenance had passed; exact D409 local sensitive root and remote literal-dollar-HOME root required cleanup.
+- D409 cleanup passed: local sensitive root removed; exact remote literal-dollar-HOME root removed; literal-dollar-HOME parent absent; retained qsc unchanged.
+- Hardened manifest written under proof root; remote home resolved as `/home/qslcodex`; executable remote paths linted with no literal `$HOME`, no `..`, and only the resolved E2EE root or retained qsc path.
+- Remote boundary recheck passed: user `qslcodex`, uid non-root, no privileged groups, negative sudo probe failed, `/backup/qsl` absent or unreadable, qwork absent, qsl-backup absent, retained qsc owner/hash/help passed, retry root absent, no literal-dollar-HOME residue.
+- Local qsc provenance passed: current source commit `67fac8c8d0d6`, qsc/Cargo/lockfile diff since retained source `6e0796de79c9` empty, local qsc build/hash/size/help recorded.
+- Retry initialized isolated local and remote qsc runtime roots with synthetic passphrase files and synthetic message labels only.
+- First transport attempt failed before handshake/send/receive: proof-root-local qsc relay plus SSH reverse forwarding failed because remote port forwarding was refused.
+- Bounded recovery attempt switched to remote qsc relay under the E2EE root plus SSH local forwarding. That also failed before successful send/receive because forwarding was administratively prohibited.
+- Custom proxy or new helper transport was rejected as out of scope for this directive.
+- Result classification: `REMOTE_E2EE_TRANSPORT_FAILURE`.
+- Cleanup passed: remote retry E2EE root removed; local sensitive runtime removed; retained qsc post-cleanup hash/owner passed; literal-dollar-HOME residue remained absent.
+- Runtime-output no-secret review passed after a recovered scanner-scope issue that had initially scanned compiled Rust artifacts instead of command-output logs.
+- Governance patch paths: NA-0516 evidence doc, NA-0516 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1021 records NA-0516 implementation attempt and transport failure classification.
+- Selected successor: `NA-0517 -- QSL Remote qsc E2EE Transport Remediation Scope Authorization Plan`.
+- Branch: pending at journal authoring.
+- PR title: `NA-0516: implement Build-to-Inspiron remote E2EE`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0516_cleanup_retry_remote_e2ee_20260621T170007Z/wait_accounting.tsv`.
+- Recovered failure: queue/decision proof script used the wrong regex group index. Classification: recoverable command-shape mistake. Corrective action: fixed group index and reran once. Final result: queue/decision proof passed.
+- Recovered failure: read-only command surface `rg` included a non-existent source path. Classification: recoverable read-only discovery path-shape mistake. Corrective action: located actual transport module path and reran scoped inspection. Final result: command surface inspection passed.
+- Recovered failure: first hardened manifest lint treated the read-only remote home proof path as an executable remote path. Classification: recoverable manifest-construction false positive before retry execution. Corrective action: lint executable remote paths only. Final result: manifest lint passed.
+- Recovered failure: SSH reverse forwarding failed before handshake/send/receive. Classification: recoverable in-scope transport setup failure. Corrective action: killed stale local proof-root relay, updated manifest to remote qsc relay plus local forward, and retried from initialized roots. Final result: second transport attempt proved SSH forwarding was administratively prohibited and the lane selected `REMOTE_E2EE_TRANSPORT_FAILURE`.
+- Recovered failure: no-secret scanner initially scanned compiled target artifacts and found static library/help strings. Classification: recoverable scanner-scope mistake. Corrective action: reran scanner against runtime command-output logs only. Final result: runtime-output scan passed.
+- Recovered failure: existence check for NA-0516 evidence/testplan used `ls` on expected-new paths. Classification: valid zero-match discovery outcome. Corrective action: recorded absence and used add-file patch creation. Final result: new paths added.
+- Non-fatal warning: a proof-log `printf` separator began with a dash and emitted a formatting warning; manifest generation and lint still succeeded.
+- No qsl-server use, no qsl-attachments use, no package installation, no remote source checkout/build, no SSH config mutation, no known_hosts mutation, no qwork/qstart/qresume execution, no qsl-backup execution/mutation, no qsc source/test/fuzz/Cargo mutation, no workflow/script/helper/dependency mutation, no corpus/vector/input mutation, no formal/refimpl/service/public/backup mutation, no qshield/qshield-cli mutation, no public docs mutation, no backup mutation, archive, move, or delete is introduced.
+- No backup or restore run.
+- no public-readiness claim is made. no production-readiness claim is made. no public-internet-readiness claim is made. no crypto-complete claim is made. no replay-proof claim is made. no downgrade-proof claim is made. no vulnerability-free claim is made. no bug-free claim is made. no perfect-crypto claim is made.
+
 ## NA-0514 closeout and NA-0515 restoration update
 
 - Directive: QSL-DIR-2026-06-21-407 -- optional closeout after NA-0514 implementation PR merge.

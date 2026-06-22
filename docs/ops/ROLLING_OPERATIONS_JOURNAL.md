@@ -36938,3 +36938,45 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No remote action, SSH execution, scp/sftp/rsync execution, qsc send/receive, remote E2EE, account creation, SSH key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, sshd_config mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+## NA-0521 update
+
+- Directive: QSL-DIR-2026-06-22-416 -- Recover NA-0521 Boundary Recheck Command Shape, Verify /tmp Residue Cleanup, Execute Build-to-Inspiron Remote qsc E2EE Retry, Optional Closeout to NA-0522.
+- Begin timestamp (UTC): 2026-06-22T10:00:22Z.
+- Repo path: `/srv/qbuild/work/NA-0521/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0521_recover_retry_remote_e2ee_impl_20260622T100022Z`.
+- Codex did not run qwork, qstart, qresume, qsl-backup, qsl-server, qsl-attachments, package installation, ssh-keygen, ssh-keyscan, remote source checkout/build, remote cargo, sudo/admin except negative `sudo -n true`, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, or backup/restore.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0521/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `56521dced009`.
+- Fetch performed only after proof/live ref match and disk proof below threshold.
+- Disk watermark before fetch: `/` usage 85%; `/backup/qsl` usage 27%. STOP threshold 95% was not hit.
+- Startup queue proof: READY_COUNT 1; READY NA-0521; NA-0520 DONE; NA-0519 DONE; NA-0518 DONE.
+- Startup decision proof: D-1029 once, D-1030 once, D-1031 absent before patch, duplicate decision record count zero.
+- Main health proof: public-safety success, qsc-adversarial-smoke success, qsc-linux-full-suite skipped, macos-qsc-full-serial skipped, and no red branch-required checks. Non-required red checks were recorded but not treated as required gates.
+- qsl-backup read-only proof: installed helper matched expected digest prefix `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- D415 response consumed as `REMOTE_E2EE_BOUNDARY_RECHECK_FAILURE`: no repo mutation, no local qsc build, no forwarding, no E2EE roots, no qsc send/receive, no qsl-server/qsl-attachments, no D-1031, `/tmp` residue concern, and `$1` command-shape failure.
+- D415 residue cleanup command checked only `/tmp/na0521_sudo_probe_out` and `/tmp/na0521_sudo_probe_err`; both were absent; cleanup marker passed.
+- Remote boundary recheck passed: qslcodex non-root, no privileged groups, sudo negative failed closed using `/dev/null`, backup absent/unreadable, qwork absent, qsl-backup absent, retained qsc owner/digest/help matched, and remote E2EE root was absent.
+- Dedicated forwarding recheck passed with temporary listener and dedicated key; listener and SSH forward were cleaned up before qsc relay start.
+- Local qsc built from clean HEAD `56521dced009` in proof-root target dir; local digest prefix `baa81487058c`; local qsc help passed. Relevant qsc source/Cargo/lock/test paths had no drift since retained source `6e0796de79c9`.
+- Command manifest written under proof root and based on current qsc CLI/test surfaces: vault init, identity rotate/show, contacts add/device trust, relay inbox-set, relay serve, handshake init/poll/status, relay send/receive, and wrong-mailbox negative boundary.
+- E2EE result classification: `REMOTE_BUILD_TO_INSPIRON_E2EE_PASS_WITH_NEGATIVE_BOUNDARY`.
+- Build-to-Inspiron send/receive passed with exact synthetic payload verification.
+- Inspiron-to-Build reply passed with exact synthetic reply verification.
+- Wrong-mailbox negative boundary passed: reject marker found, selected output/session state did not mutate, and valid receive remained usable.
+- No-secret-output scan passed for private-key blocks, API-token-style material, bearer material, passphrase/private-key diagnostics, and route-token leakage.
+- Cleanup passed: local relay stopped, SSH forward stopped, remote E2EE root removed, local sensitive runtime root removed, corrected process scan found no exact qsc relay or SSH forward process, and port 39176 was not listening.
+- Recovered failure: initial main-check script treated unrelated non-required red check runs as hard failures. Classification: recoverable command-shape/policy-scope assertion mistake. Corrective action: queried branch protection required contexts and verified named directive gates plus required contexts only. Final result: main required health passed.
+- Recovered failure: remote script positional-argument guard scan matched awk field references before remote E2EE execution. Classification: recoverable guard false-positive before remote execution. Corrective action: rewrote remote parsing to sed/cut and reran `bash -n` plus literal-pattern scan. Final result: remote script shape passed.
+- Recovered failure: rerun command assumed the local E2EE runner existed even though the prior guard failure happened before file creation. Classification: recoverable local command-shape issue before remote E2EE execution. Corrective action: wrote the local runner and executed it. Final result: E2EE flow passed.
+- Recovered failure: post-E2EE `pgrep` cleanup verifier self-matched its own command line. Classification: recoverable process-scan self-match. Corrective action: reran cleanup verification using `/proc` argv parsing for exact qsc relay and SSH config paths. Final result: cleanup verification passed.
+- Recovered failure: first static scope proof used `git diff --name-only` before marking the ignored new evidence file as intent-to-add, so only three tracked files appeared. Classification: recoverable proof-shape issue for ignored/new allowed files. Corrective action: used intent-to-add for the exact new evidence and testplan paths and reran the scope guard. Final result: all five allowed implementation paths appeared in scope proof.
+- Recovered failure: first precommit static run found a trailing blank line at EOF in the new NA-0521 testplan. Classification: recoverable in-scope formatting validation failure with understood cause. Corrective action: removed the trailing blank line and reran `git diff --check`. Final result: formatting validation passed.
+- Governance patch paths: NA-0521 evidence doc, NA-0521 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1031 records NA-0521 Build-to-Inspiron remote qsc E2EE retry implementation.
+- Selected successor: `NA-0522 -- QSL Remote qsc E2EE Negative / Residual Hardening Scope Authorization Plan`.
+- Branch: pending at journal authoring.
+- PR title: `NA-0521: implement Build-to-Inspiron remote E2EE retry`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0521_recover_retry_remote_e2ee_impl_20260622T100022Z/wait_accounting.tsv`.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

@@ -29528,7 +29528,7 @@ Acceptance criteria:
 ---
 
 ### NA-0519 — QSL Remote qsc E2EE SSH Forwarding Operator Action Proof Review Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -29586,6 +29586,72 @@ Acceptance criteria:
 - no backup/qwork/qsl-backup exposure proof reviewed.
 - cleanup/revocation plan reviewed.
 - exactly one READY item remains.
+
+---
+
+### NA-0520 — QSL Remote qsc E2EE SSH Forwarding Capability Probe Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Execute a bounded SSH loopback reverse-forwarding capability probe using the
+dedicated qslcodex forwarding key, proving that Build can expose a
+proof-root-local loopback listener to Inspiron loopback on the approved port
+without PTY, agent forwarding, X11 forwarding, sudo/admin, qsl-server,
+qsl-attachments, qwork/qsl-backup, remote file writes, or qsc E2EE, and
+classify whether the forwarding path is safe for a later Build-to-Inspiron E2EE
+retry.
+
+Allowed scope:
+- docs/governance/evidence/NA-0520_qsl_remote_qsc_e2ee_ssh_forwarding_capability_probe_implementation_harness.md
+- tests/NA-0520_qsl_remote_qsc_e2ee_ssh_forwarding_capability_probe_implementation_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-local loopback listener.
+- one bounded SSH reverse-forward command using the dedicated forwarding key.
+- one bounded remote loopback trigger command if explicitly needed.
+- synthetic marker over the tunnel.
+- cleanup of local listener and SSH process.
+
+Forbidden scope:
+- qsc E2EE.
+- qsc send/receive.
+- qsl-server/qsl-attachments.
+- package installation.
+- sudo/admin action.
+- key generation or installation.
+- authorized_keys mutation.
+- SSH config mutation.
+- known_hosts mutation.
+- remote host mutation.
+- remote file write.
+- qwork/qstart/qresume mutation.
+- qsl-backup execution.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- public-readiness or production-readiness claims.
+
+Deliverables:
+- forwarding capability probe evidence.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- selected remote E2EE retry successor or remediation/no-action rationale.
+
+Acceptance criteria:
+- qwork proof fresh.
+- dedicated forwarding key selected.
+- loopback reverse forward starts with `ExitOnForwardFailure`.
+- marker traverses tunnel.
+- no PTY required.
+- no qsl-server/qsl-attachments.
+- no remote E2EE.
+- cleanup completed.
+- exactly one READY item remains after closeout.
 
 ---
 

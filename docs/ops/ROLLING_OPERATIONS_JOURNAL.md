@@ -6,6 +6,26 @@ Last-Updated: 2026-06-21
 
 # Rolling Operations Journal
 
+## NA-0519 closeout and NA-0520 restoration update
+
+- Directive: QSL-DIR-2026-06-22-413 -- optional closeout after NA-0519 proof-review PR merge.
+- Proof-review PR #1310 merged at `045ff1b525d2`.
+- Proof-review PR head was `c04464587e96`.
+- Post-merge public-safety on `045ff1b525d2`: success inside the short attach/early-failure window.
+- Closeout branch: `na-0519-closeout-restore-na0520`.
+- Closeout PR title: `NA-0519: closeout and restore NA-0520`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0519_closeout_restore_na0520_testplan.md`.
+- D-1028 records NA-0519 closeout and NA-0520 restoration.
+- NA-0519 is marked DONE.
+- NA-0520 QSL Remote qsc E2EE SSH Forwarding Capability Probe Implementation Harness is restored as the sole READY successor.
+- Future NA-0520 must use the dedicated forwarding key, test only loopback reverse forwarding, run no qsc E2EE, run no qsc send/receive, use no qsl-server/qsl-attachments, require no PTY, use no agent/X11 forwarding, use no sudo/admin, perform no authorized_keys mutation, mutate no remote files, and stop if `command="/bin/false"` prevents forwarding.
+- Closeout performs no NA-0520 implementation.
+- No remote action, SSH execution, forwarding probe, account creation, SSH key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0519 proof review update
 
 - Directive: QSL-DIR-2026-06-22-413 -- Execute NA-0519 QSL Remote qsc E2EE SSH Forwarding Operator Action Proof Review Harness, Optional Closeout to NA-0520.

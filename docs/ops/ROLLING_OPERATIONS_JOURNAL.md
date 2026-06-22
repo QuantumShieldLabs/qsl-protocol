@@ -30,6 +30,42 @@ Last-Updated: 2026-06-21
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0522 update
+
+- Directive: QSL-DIR-2026-06-22-417 -- Execute NA-0522 QSL Remote qsc E2EE Negative / Residual Hardening Scope Authorization Plan, Optional Closeout to NA-0523.
+- Begin timestamp (UTC): 2026-06-22T12:21:38Z.
+- Repo path: `/srv/qbuild/work/NA-0522/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0522_remote_e2ee_negative_residual_scope_authorization_20260622T122138Z`.
+- Codex did not run qwork, qstart, qresume, qsl-backup, backup, restore, SSH, scp, sftp, rsync, qsc send/receive, remote qsc, remote E2EE, qsl-server, qsl-attachments, qshield, qshield-cli, package installation, ssh-keygen, ssh-keyscan, remote source checkout/build, sudo/admin action, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, or backup/restore.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0522/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `057c4cb27c2e`.
+- Fetch performed only after proof/live ref match and disk proof below threshold.
+- Disk watermark before fetch: `/` usage below 95%; `/backup/qsl` checked read-only. STOP threshold 95% was not hit.
+- Startup queue proof: READY_COUNT 1; READY NA-0522; NA-0521 DONE; NA-0520 DONE; NA-0519 DONE.
+- Startup decision proof: D-1031 once, D-1032 once, D-1033 absent before patch, duplicate decision record count zero.
+- Main health proof: public-safety success, qsc-adversarial-smoke success, qsc-linux-full-suite skipped, macos-qsc-full-serial skipped, and no required red checks in the retrieved check-run set.
+- qsl-backup read-only proof: installed helper matched expected digest prefix `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- D416 response consumed as final NA-0521 inheritance: classification `REMOTE_BUILD_TO_INSPIRON_E2EE_PASS_WITH_NEGATIVE_BOUNDARY`; D415 residue recovery passed; retained remote qsc, forwarding path, and local qsc provenance were recorded; Build-to-Inspiron send/receive passed; Inspiron-to-Build reply passed; wrong-mailbox no-mutation boundary passed; cleanup passed; retained remote qsc was preserved.
+- Residual inventory completed for replayed delivery/message, corrupt delivery artifact, wrong-peer, stale public/trust material, repeated-run cleanup/freshness, retained qsc freshness, forwarding tunnel cleanup, route-token/capability redaction, qsc output no-secret review, remote root cleanup/retention, scheduled remote CI residuals, qsl-server/qsl-attachments deferral, and public/production claim boundaries.
+- Option review completed; primary classification selected: `REMOTE_E2EE_REPLAY_CORRUPT_NEGATIVE_IMPLEMENTATION_READY`.
+- Selected successor: `NA-0523 -- QSL Remote qsc E2EE Replay / Corrupt Delivery Negative Boundary Implementation Harness`.
+- Future NA-0523 command family, proof/redaction rules, stop conditions, assurance reviews, prioritization matrix, and marker plan were recorded.
+- Governance patch paths: NA-0522 evidence doc, NA-0522 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1033 records NA-0522 remote qsc E2EE negative residual hardening scope authorization.
+- Recovered failure: first intent-to-add command for the new allowed evidence/testplan paths omitted `-f`, and the ignored `docs/governance/evidence/` directory caused Git to decline the add. Classification: recoverable command-shape issue for ignored/new allowed files. Corrective action: reran `git add -N -f` on the exact two new allowed paths. Final result: all five allowed authorization paths appeared in diff scope proof.
+- Recovered failure: first static validation found three added evidence lines mentioning restricted claim labels without same-line no-claim framing, and the draft PR body missed the exact phrases `NA-0521 remote E2EE success consumed` and `no remote action by Codex`. Classification: recoverable in-scope documentation/preflight wording issue. Corrective action: rewrote the evidence lines with explicit no/rejected framing and regenerated the PR body proof with the exact phrases. Final result: static validation rerun passed.
+- Static validation passed: git diff check, exact five-path scope guard, link-check, private-material scan, added-line overclaim scan, docs/governance classifier, PR body preflight, goal-lint, marker proof, and queue/decision proof.
+- Required local validation passed: same_host_client_to_client_e2e, receive_e2e, key_lifecycle_zeroization_expansion, secret_material_diagnostic_boundary, handshake_provider_error_no_mutation, binding corpus validator, all qsc fuzz corpus validator, formal runner, root cargo audit, nested qsc fuzz lock audit, cargo fmt, and qsc-adversarial shell syntax under sh and bash.
+- Wait accounting recorded two local long-command intervals at journal authoring: same_host_client_to_client_e2e 2.53 minutes and receive_e2e 1.77 minutes; no CI wait recorded yet.
+- Branch: `na-0522-remote-e2ee-negative-residual-scope`.
+- Evidence commit: `11e29caa3700`.
+- PR title: `NA-0522: authorize remote E2EE negative residual hardening`.
+- Recovered PR creation connector issue: GitHub connector PR creation returned 403 `Resource not accessible by integration`. Classification: recoverable GitHub connector permission issue because the branch was already pushed and authenticated `gh` was available. Corrective action: created the same PR with `gh pr create --body-file` using the prepared PR body. Final result: PR #1316 opened.
+- PR: #1316.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0522_remote_e2ee_negative_residual_scope_authorization_20260622T122138Z/wait_accounting.tsv`.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0520 SSH forwarding capability probe update
 
 - Directive: QSL-DIR-2026-06-22-414 -- Execute NA-0520 QSL Remote qsc E2EE SSH Forwarding Capability Probe Implementation Harness, Optional Closeout to NA-0521.

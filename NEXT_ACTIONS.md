@@ -29734,7 +29734,7 @@ Closeout evidence:
 ---
 
 ### NA-0522 — QSL Remote qsc E2EE Negative / Residual Hardening Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -29782,6 +29782,71 @@ Acceptance criteria:
 - one READY item remains.
 - no qsl-server/qsl-attachments integration is introduced.
 - no public/production/security completion claim expansion is introduced.
+
+Closeout evidence:
+- authorization PR: #1316
+- authorization head SHA: `871365edea0c`
+- authorization merge SHA: `17894693df6f`
+- D-1033 exists once and records `REMOTE_E2EE_REPLAY_CORRUPT_NEGATIVE_IMPLEMENTATION_READY`.
+- post-merge public-safety on `17894693df6f` attached and completed success inside the short attach/early-failure window.
+- NA-0522 is closed and NA-0523 is restored as the sole READY successor.
+- no NA-0523 implementation occurred in closeout.
+- no remote action, no SSH execution, no qsc send/receive, no remote E2EE, no qsl-server/qsl-attachments use, no package install, no remote source checkout/build, no qwork/qstart/qresume, no qsl-backup execution, no qsc source/test/fuzz/Cargo mutation, no workflow/script/helper/dependency mutation, no corpus/vector/input mutation, and no public/production/security completion claim expansion occurred in closeout.
+
+---
+
+### NA-0523 — QSL Remote qsc E2EE Replay / Corrupt Delivery Negative Boundary Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Execute a bounded remote qsc E2EE negative hardening run after NA-0521 success, using retained remote qsc and the proven loopback reverse-forwarding path to rerun synthetic Build-to-Inspiron E2EE setup, then prove replayed delivery and corrupt delivery artifacts fail closed without unexpected state mutation, preserving synthetic data, isolated local/remote roots, cleanup, no qsl-server/qsl-attachments, and no public/production readiness claims.
+
+Allowed scope:
+- `docs/governance/evidence/NA-0523_qsl_remote_qsc_e2ee_replay_corrupt_negative_boundary_implementation_harness.md`
+- `tests/NA-0523_qsl_remote_qsc_e2ee_replay_corrupt_negative_boundary_implementation_testplan.md`
+- `DECISIONS.md`
+- `TRACEABILITY.md`
+- `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+- proof-root-local local/remote command output.
+- bounded SSH to inspiron as qslcodex.
+- dedicated-key reverse forwarding.
+- retained remote qsc binary.
+- synthetic messages only.
+- remote artifacts only under `$HOME/qsl-remote-test/e2ee/<PROOF_ID>`.
+- local sensitive runtime under proof root.
+- cleanup/retention proof.
+
+Forbidden scope:
+- qsl-server/qsl-attachments.
+- package installation.
+- sudo/admin action except negative `sudo -n true` probe.
+- key generation/installation.
+- authorized_keys mutation.
+- SSH config mutation outside proof root.
+- known_hosts mutation.
+- remote host mutation outside the qsl remote E2EE root.
+- remote source checkout/build.
+- qwork/qstart/qresume.
+- qsl-backup.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- production/user data.
+- no public-readiness claim and no production-readiness claim.
+
+Acceptance criteria:
+- retained qsc hash/path/owner rechecked.
+- forwarding path rechecked.
+- baseline synthetic remote E2EE setup reaches the negative test point.
+- replayed delivery fails closed or is deferred with exact rationale.
+- corrupt delivery fails closed or is deferred with exact rationale.
+- selected state no-mutation checks pass for executed negatives.
+- valid path remains usable if applicable.
+- no secret material in checked-in proof.
+- cleanup/retention result recorded.
+- exactly one READY item remains after closeout.
 
 ---
 

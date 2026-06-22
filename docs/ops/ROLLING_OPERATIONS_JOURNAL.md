@@ -66,6 +66,28 @@ Last-Updated: 2026-06-21
 - Wait accounting file: `/srv/qbuild/tmp/NA0522_remote_e2ee_negative_residual_scope_authorization_20260622T122138Z/wait_accounting.tsv`.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0522 closeout update
+
+- Directive: QSL-DIR-2026-06-22-417 optional closeout packet.
+- Begin timestamp (UTC): 2026-06-22T12:45:00Z.
+- Repo path: `/srv/qbuild/work/NA-0522/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0522_remote_e2ee_negative_residual_scope_authorization_20260622T122138Z`.
+- Authorization PR #1316 merged at `17894693df6f`.
+- Post-merge public-safety on `17894693df6f` attached and completed success inside the short attach/early-failure window.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0522_closeout_restore_na0523_testplan.md`.
+- NA-0522 is marked DONE.
+- NA-0523 is restored as READY using the selected successor text from D-1033.
+- D-1034 records NA-0522 closeout and NA-0523 restoration.
+- No NA-0523 implementation, remote action, SSH execution, forwarding probe, replay/corrupt negative execution, qsc E2EE execution, qsc send/receive execution, qsl-server/qsl-attachments use, package installation, sudo/admin action, key/config/host mutation, qwork/qstart/qresume, qsl-backup execution, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation is introduced.
+- Recovered failure: first closeout static validation did not see the new closeout testplan until it was marked intent-to-add, and it flagged one NA-0523 forbidden-scope line that mentioned restricted claim labels without same-line no-claim framing. Classification: recoverable closeout proof-shape and wording issue. Corrective action: marked the exact new closeout testplan intent-to-add and rewrote the line with explicit no public-readiness claim and no production-readiness claim wording. Final result: closeout static validation rerun passed.
+- Static closeout validation passed: git diff check, exact five-path closeout scope guard, link-check, private-material scan, added-line overclaim scan, docs/governance classifier, PR body preflight, goal-lint, marker proof, and queue/decision proof.
+- Branch: `na-0522-closeout-restore-na0523`.
+- PR title: `NA-0522: closeout and restore NA-0523`.
+- Recovered PR creation connector issue: GitHub connector PR creation returned 403 `Resource not accessible by integration`. Classification: recoverable GitHub connector permission issue because the branch was already pushed and authenticated `gh` was available. Corrective action: created the same PR with `gh pr create --body-file` using the prepared PR body. Final result: PR #1317 opened.
+- PR: #1317.
+- PR merge commit: pending at journal authoring.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0520 SSH forwarding capability probe update
 
 - Directive: QSL-DIR-2026-06-22-414 -- Execute NA-0520 QSL Remote qsc E2EE SSH Forwarding Capability Probe Implementation Harness, Optional Closeout to NA-0521.

@@ -6,6 +6,50 @@ Last-Updated: 2026-06-21
 
 # Rolling Operations Journal
 
+## NA-0520 SSH forwarding capability probe update
+
+- Directive: QSL-DIR-2026-06-22-414 -- Execute NA-0520 QSL Remote qsc E2EE SSH Forwarding Capability Probe Implementation Harness, Optional Closeout to NA-0521.
+- Begin timestamp (UTC): 2026-06-22T03:01:04Z.
+- Repo path: `/srv/qbuild/work/NA-0520/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0520_ssh_forwarding_capability_probe_impl_20260622T030104Z`.
+- Codex did not run qwork, qstart, qresume, qshell, backup, restore, qsl-backup, force-push, amend, rebase, squash, branch deletion, cargo update, cargo generate-lockfile, archive, move, delete, qsc E2EE, qsc send/receive, qsl-server, qsl-attachments, package installation, sudo/admin action, SSH key generation/installation, ssh-keygen, ssh-keyscan, authorized_keys mutation, known_hosts mutation, remote file write, remote source checkout/build, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, dependency/lockfile mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qshield, or qshield-cli mutation.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0520/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `32273a1d7ca8`.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main was up to date with `origin/main`.
+- Disk watermark before fetch: `/` usage 85%; `/backup/qsl` usage 26%. STOP threshold 95% was not hit.
+- Startup main health on `32273a1d7ca8`: public-safety success, qsc-adversarial-smoke success, qsc-linux-full-suite skipped by docs/governance policy, macos-qsc-full-serial skipped by docs/governance policy, and no completed red checks in the retrieved check-run set.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- Startup queue proof after corrected parser: READY_COUNT 1; READY NA-0520; NA-0519 DONE; NA-0518 DONE; NA-0517 DONE.
+- Startup decision proof: D-1027 once, D-1028 once, D-1029 absent before patch, duplicate decision record count zero.
+- Recovered startup queue/decision proof issue: first parser expected `### NA-....` headings with a hyphen separator, but NEXT_ACTIONS uses an em dash. Classification: recoverable command-shape mistake. Corrective action: inspected heading shape and reran with a generic NA heading parser. Final result: corrected proof passed.
+- D413 response found exactly once at `/home/victor/work/qsl/codex/responses/NA0519_20260622T021059Z_D413.md`.
+- NA-0519 / D413 inheritance consumed: classification `SSH_FORWARDING_OPERATOR_PROOF_ACCEPTED_WITH_COMPATIBILITY_CAVEAT`, dedicated forwarding key proof accepted, fingerprint `SHA256:7guT/Hd72vuu+u1Jrwpuy0hSFETVrxYaXHwupuFfaPM`, public key comment `qsl-inspiron-qslcodex-forward-20260622`, loopback-only `permitlisten` and `permitopen` on `127.0.0.1:39176`, PTY absent, agent/X11 forwarding absent, qslcodex non-sudo, no backup/qwork/qsl-backup exposure, cleanup/revocation command accepted, qsl-server/qsl-attachments out of scope, and forwarding itself untested before NA-0520.
+- Forwarding manifest written under proof root with proof ID `NA0520_20260622T030407Z_8553` and synthetic marker length 66.
+- Dedicated forwarding key path existed and was readable; Codex did not read private key contents.
+- Local port precheck proved `127.0.0.1:39176` free before listener start.
+- Local listener started on `127.0.0.1:39176`, accepted one marker, sent `NA0520_TUNNEL_ACK_OK`, wrote proof-root result JSON, and exited after one connection.
+- Dedicated-key SSH reverse-forward started with proof-root SSH config, `-N -T`, `ExitOnForwardFailure=yes`, no PTY, no agent forwarding, no X11 forwarding, and `-R 127.0.0.1:39176:127.0.0.1:39176`.
+- Remote trigger ran exactly once through the existing operational `inspiron` path, connected to remote loopback `127.0.0.1:39176`, sent the synthetic marker, received the ACK, wrote no remote files, required no PTY, required no sudo/admin action, ran no qsc, ran no qwork, and ran no qsl-backup.
+- Marker traversal proof passed: `NA0520_REMOTE_TRIGGER_STARTED_OK`, `NA0520_TUNNEL_MARKER_SENT_OK`, `NA0520_TUNNEL_ACK_RECEIVED_OK`, and `NA0520_TUNNEL_MARKER_TRAVERSED_OK`.
+- Cleanup passed: SSH forward PID terminated, listener process absent, and no SSH process using the proof-root forwarding config remained.
+- Result classification: `SSH_FORWARDING_CAPABILITY_PROBE_PASS`.
+- Selected successor: `NA-0521 -- QSL Build-to-Inspiron Remote qsc E2EE Retry Implementation Harness`.
+- Governance patch paths: NA-0520 evidence doc, NA-0520 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1029 records NA-0520 remote qsc E2EE SSH forwarding capability probe implementation.
+- Recovered static overclaim-scan issue: the first custom added-line scan flagged comma-separated no-claim lists as affirmative claims. Classification: recoverable validation tool-shape false positive. Corrective action: reran with phrase-position logic that accepts same-line no/not/does-not/did-not wording before the restricted phrase. Final result: added-line overclaim scan passed with zero findings.
+- Recovered private-material scan-scope issue: the first broad scan flagged literal private-key block-header examples in the new testplan and pre-existing historical governance prose outside the added NA-0520 lines. Classification: recoverable validation proof-scope and wording issue. Corrective action: reworded the testplan examples descriptively and reran exact block-header checks plus added-line secret-pattern checks. Final result: private-material scan passed with zero findings.
+- Static validation passed: git diff check, exact five-path scope guard including ignored evidence path, link-check, added-line leak scan, added-line overclaim scan, docs/governance classifier, PR body preflight, marker proof, private-material scan, queue/decision proof, and qsl-backup boundary proof.
+- Required local validation passed: same_host_client_to_client_e2e, receive_e2e, key_lifecycle_zeroization_expansion, secret_material_diagnostic_boundary, handshake_provider_error_no_mutation, binding corpus validator, all qsc fuzz corpus validator, formal runner, root cargo audit, nested qsc fuzz lock audit, cargo fmt, and qsc-adversarial shell syntax under sh and bash.
+- Wait accounting: same_host_client_to_client_e2e took 152 seconds and receive_e2e took 107 seconds; both are recorded as local long-command waits.
+- Branch: pending at journal authoring.
+- PR title: `NA-0520: implement SSH forwarding capability probe`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0520_ssh_forwarding_capability_probe_impl_20260622T030104Z/wait_accounting.tsv`.
+- No qsc E2EE, qsc send/receive, qsl-server use, qsl-attachments use, package installation, sudo/admin action, key generation/installation, authorized_keys mutation, local SSH config mutation outside proof root, system SSH config mutation, known_hosts mutation, sshd_config mutation, remote file write, remote host mutation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0519 closeout and NA-0520 restoration update
 
 - Directive: QSL-DIR-2026-06-22-413 -- optional closeout after NA-0519 proof-review PR merge.

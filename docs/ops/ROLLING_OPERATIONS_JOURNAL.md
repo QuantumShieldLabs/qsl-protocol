@@ -57,9 +57,11 @@ Last-Updated: 2026-06-21
 - Static validation passed: git diff check, exact five-path scope guard, link-check, private-material scan, added-line overclaim scan, docs/governance classifier, PR body preflight, goal-lint, marker proof, and queue/decision proof.
 - Required local validation passed: same_host_client_to_client_e2e, receive_e2e, key_lifecycle_zeroization_expansion, secret_material_diagnostic_boundary, handshake_provider_error_no_mutation, binding corpus validator, all qsc fuzz corpus validator, formal runner, root cargo audit, nested qsc fuzz lock audit, cargo fmt, and qsc-adversarial shell syntax under sh and bash.
 - Wait accounting recorded two local long-command intervals at journal authoring: same_host_client_to_client_e2e 2.53 minutes and receive_e2e 1.77 minutes; no CI wait recorded yet.
-- Branch: pending at journal authoring.
+- Branch: `na-0522-remote-e2ee-negative-residual-scope`.
+- Evidence commit: `11e29caa3700`.
 - PR title: `NA-0522: authorize remote E2EE negative residual hardening`.
-- PR: pending at journal authoring.
+- Recovered PR creation connector issue: GitHub connector PR creation returned 403 `Resource not accessible by integration`. Classification: recoverable GitHub connector permission issue because the branch was already pushed and authenticated `gh` was available. Corrective action: created the same PR with `gh pr create --body-file` using the prepared PR body. Final result: PR #1316 opened.
+- PR: #1316.
 - PR merge commit: pending at journal authoring.
 - Wait accounting file: `/srv/qbuild/tmp/NA0522_remote_e2ee_negative_residual_scope_authorization_20260622T122138Z/wait_accounting.tsv`.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

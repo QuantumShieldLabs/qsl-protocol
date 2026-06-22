@@ -29590,8 +29590,14 @@ Acceptance criteria:
 ---
 
 ### NA-0520 — QSL Remote qsc E2EE SSH Forwarding Capability Probe Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
+
+Implementation note:
+- qsl-protocol PR #1312 merged the bounded SSH loopback reverse-forwarding capability probe at `3b4e30b7b04b`.
+- Result classification: `SSH_FORWARDING_CAPABILITY_PROBE_PASS`.
+- The probe used the dedicated qslcodex forwarding key, one proof-root-local listener on `127.0.0.1:39176`, one `ExitOnForwardFailure=yes` reverse-forward session, one remote loopback trigger, synthetic marker traversal, and cleanup proof.
+- This is SSH transport capability evidence only; it is not qsc E2EE proof, qsc send/receive proof, qsl-server/qsl-attachments proof, or public/production readiness proof.
 
 Objective:
 Execute a bounded SSH loopback reverse-forwarding capability probe using the
@@ -29632,7 +29638,7 @@ Forbidden scope:
 - workflow/dependency mutation.
 - corpus/vector/input mutation.
 - formal/refimpl/service/public/backup mutation.
-- public-readiness or production-readiness claims.
+- no public-readiness claim and no production-readiness claim.
 
 Deliverables:
 - forwarding capability probe evidence.
@@ -29651,6 +29657,69 @@ Acceptance criteria:
 - no qsl-server/qsl-attachments.
 - no remote E2EE.
 - cleanup completed.
+- exactly one READY item remains after closeout.
+
+---
+
+### NA-0521 — QSL Build-to-Inspiron Remote qsc E2EE Retry Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Retry the bounded Build-to-Inspiron qsc client-to-client E2EE flow using the
+retained remote qsc binary and the now-proven loopback reverse-forwarding path,
+with synthetic messages, isolated local/remote roots, redacted proof,
+retained-qsc hash recheck, send/receive and reply flow, cleanup/retention
+proof, and no qsl-server/qsl-attachments or public/production readiness claims.
+
+Allowed scope:
+- docs/governance/evidence/NA-0521_qsl_build_to_inspiron_remote_qsc_e2ee_retry_implementation_harness.md
+- tests/NA-0521_qsl_build_to_inspiron_remote_qsc_e2ee_retry_implementation_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-local listener/relay.
+- dedicated-key reverse forwarding.
+- existing operational SSH trigger commands needed for qsc remote commands.
+- retained remote qsc binary at `$HOME/qsl-remote-test/bin/qsc`.
+- synthetic messages only.
+- remote artifacts under `$HOME/qsl-remote-test/e2ee/<PROOF_ID>` only.
+- cleanup/retention proof.
+
+Forbidden scope:
+- qsl-server/qsl-attachments.
+- package installation.
+- sudo/admin action.
+- SSH key generation/installation.
+- authorized_keys mutation.
+- SSH config mutation.
+- known_hosts mutation.
+- remote host mutation outside qsl-remote-test E2EE root.
+- remote source checkout/build.
+- qwork/qstart/qresume.
+- qsl-backup.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- no public-readiness claim and no production-readiness claim.
+
+Deliverables:
+- remote E2EE retry implementation evidence.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- successor selection based on E2EE result.
+
+Acceptance criteria:
+- retained qsc hash/path/owner rechecked.
+- forwarding path rechecked.
+- Build-to-Inspiron synthetic send/receive succeeds.
+- Inspiron-to-Build synthetic reply succeeds.
+- no secret material in proof.
+- cleanup/retention result recorded.
+- no public/production readiness claim.
 - exactly one READY item remains after closeout.
 
 ---

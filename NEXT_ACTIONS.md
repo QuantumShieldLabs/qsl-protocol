@@ -29469,7 +29469,7 @@ Acceptance criteria:
 ---
 
 ### NA-0518 — QSL Remote qsc E2EE SSH Forwarding Operator Action Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -29523,6 +29523,68 @@ Acceptance criteria:
 - PTY policy preserved or justified.
 - no private material included.
 - no remote command run by Codex.
+- exactly one READY item remains.
+
+---
+
+### NA-0519 — QSL Remote qsc E2EE SSH Forwarding Operator Action Proof Review Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Review operator-provided redacted proof that a dedicated qslcodex SSH forwarding
+key has been installed for the approved `inspiron` remote account with
+loopback-only forwarding constraints, PTY disabled, agent/X11 forwarding
+disabled, no sudo/admin, no backup exposure, no qwork/qsl-backup, no
+qsl-server/qsl-attachments, and cleanup/revocation documented, before any Codex
+SSH forwarding or remote E2EE retry is authorized.
+
+Allowed scope:
+- docs/governance/evidence/NA-0519_qsl_remote_qsc_e2ee_ssh_forwarding_operator_action_proof_review.md
+- tests/NA-0519_qsl_remote_qsc_e2ee_ssh_forwarding_operator_action_proof_review_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only review of operator-provided redacted proof pasted by the user.
+- read-only review of prior NA-0517/NA-0518 evidence.
+
+Forbidden scope:
+- Codex running SSH.
+- Codex editing authorized_keys.
+- Codex generating/installing keys.
+- Codex reading private keys.
+- local SSH config mutation by Codex.
+- known_hosts mutation by Codex.
+- remote host mutation by Codex.
+- remote E2EE execution.
+- qsc send/receive.
+- qsl-server/qsl-attachments.
+- package installation.
+- sudo/admin action.
+- qwork/qstart/qresume.
+- qsl-backup.
+- no public-readiness claim and no production-readiness claim.
+
+Deliverables:
+- proof-review evidence.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- selected forwarding capability probe or remote E2EE retry successor.
+
+Acceptance criteria:
+- operator proof consumed.
+- private key/passphrase/token absent.
+- relevant key fingerprint recorded.
+- no unrelated authorized_keys material included.
+- restrict and port-forwarding constraints reviewed.
+- PTY remains disabled.
+- agent/X11 forwarding disabled.
+- loopback-only permitlisten/permitopen or equivalent reviewed.
+- no sudo/admin proof reviewed.
+- no backup/qwork/qsl-backup exposure proof reviewed.
+- cleanup/revocation plan reviewed.
 - exactly one READY item remains.
 
 ---

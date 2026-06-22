@@ -29796,7 +29796,7 @@ Closeout evidence:
 ---
 
 ### NA-0523 — QSL Remote qsc E2EE Replay / Corrupt Delivery Negative Boundary Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -29847,6 +29847,25 @@ Acceptance criteria:
 - no secret material in checked-in proof.
 - cleanup/retention result recorded.
 - exactly one READY item remains after closeout.
+
+Closeout evidence:
+- implementation PR: #1318
+- implementation head SHA: `442d35a0`
+- implementation merge SHA: `2747e756fa34`
+- D-1035 exists once and records `REMOTE_E2EE_REPLAY_CORRUPT_NEGATIVES_PASS`.
+- post-merge public-safety on `2747e756fa34` attached and completed success inside the short attach/early-failure window.
+- NA-0523 is closed and NA-0524 is restored as the sole READY successor.
+- no NA-0524 implementation occurred in closeout.
+- no remote action, no SSH execution, no forwarding probe, no qsc E2EE, no qsc send/receive, no qsl-server/qsl-attachments use, no package install, no remote source checkout/build, no qwork/qstart/qresume, no qsl-backup execution, no qsc source/test/fuzz/Cargo mutation, no workflow/script/helper/dependency mutation, no corpus/vector/input mutation, and no public/production/security completion claim expansion occurred in closeout.
+
+---
+
+### NA-0524 — QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the next remote qsc E2EE hardening lane after successful replay/corrupt negative testing, focusing on wrong-peer and stale-trust negative/no-mutation behavior, retained-qsc freshness, forwarding cleanup, synthetic proof redaction, cleanup/retention, no qsl-server/qsl-attachments, and no public/production readiness claims.
 
 ---
 

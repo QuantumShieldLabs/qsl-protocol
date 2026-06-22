@@ -83,7 +83,8 @@ Last-Updated: 2026-06-21
 - Static closeout validation passed: git diff check, exact five-path closeout scope guard, link-check, private-material scan, added-line overclaim scan, docs/governance classifier, PR body preflight, goal-lint, marker proof, and queue/decision proof.
 - Branch: `na-0522-closeout-restore-na0523`.
 - PR title: `NA-0522: closeout and restore NA-0523`.
-- PR: pending at journal authoring.
+- Recovered PR creation connector issue: GitHub connector PR creation returned 403 `Resource not accessible by integration`. Classification: recoverable GitHub connector permission issue because the branch was already pushed and authenticated `gh` was available. Corrective action: created the same PR with `gh pr create --body-file` using the prepared PR body. Final result: PR #1317 opened.
+- PR: #1317.
 - PR merge commit: pending at journal authoring.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 

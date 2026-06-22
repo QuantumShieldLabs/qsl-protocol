@@ -27,6 +27,28 @@ Last-Updated: 2026-06-21
 - No backup or restore run.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0518 closeout and NA-0519 restoration update
+
+- Directive: QSL-DIR-2026-06-21-412 -- optional closeout after NA-0518 authorization PR merge.
+- Evidence PR #1308 merged at `fb05b501107b`.
+- Evidence PR head was `4e6bc290eb97`.
+- Post-merge public-safety on `fb05b501107b`: success inside the short attach/early-failure window.
+- Post-merge short poll observed no completed check failure before closeout.
+- Closeout branch: `na-0518-closeout-restore-na0519`.
+- Closeout PR title: `NA-0518: closeout and restore NA-0519`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0518_closeout_restore_na0519_testplan.md`.
+- D-1026 records NA-0518 closeout and NA-0519 restoration.
+- NA-0518 is marked DONE.
+- NA-0519 QSL Remote qsc E2EE SSH Forwarding Operator Action Proof Review Harness is restored as the sole READY successor.
+- Future NA-0519 must review operator-provided redacted proof only; it must not run SSH by Codex, edit authorized_keys by Codex, generate/install keys by Codex, read private keys, mutate local SSH config, mutate known_hosts, mutate remote hosts, execute qsc send/receive, execute remote E2EE, use qsl-server/qsl-attachments, use sudo/admin, run qwork/qstart/qresume, run qsl-backup, or expand public/security claims.
+- Closeout validation passed: git diff check, exact five-path scope guard, link-check, leak-scan, added-line overclaim scan, docs/governance classifier, PR body preflight, goal-lint, marker proof, and queue/decision proof.
+- Closeout performs no NA-0519 implementation.
+- No remote action, SSH execution, account creation, SSH key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, sudo/admin action, package installation, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0517 closeout and NA-0518 restoration update
 
 - Directive: QSL-DIR-2026-06-21-411 -- optional closeout after NA-0517 authorization PR merge.

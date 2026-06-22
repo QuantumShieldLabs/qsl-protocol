@@ -2,9 +2,43 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-06-21
+Last-Updated: 2026-06-22
 
 # Rolling Operations Journal
+
+## NA-0524 update
+
+- Directive: QSL-DIR-2026-06-22-420 -- Execute NA-0524 QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Scope Authorization Plan, Optional Closeout to NA-0525.
+- Begin timestamp (UTC): 2026-06-22T17:49:30Z.
+- Repo path: `/srv/qbuild/work/NA-0524/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0524_wrong_peer_stale_trust_negative_scope_authorization_20260622T174930Z`.
+- Codex did not run qwork, qstart, qresume, qsl-backup, backup, restore, SSH, scp, sftp, rsync, qsc send/receive, remote qsc, remote E2EE, qsl-server, qsl-attachments, qshield, qshield-cli, package installation, ssh-keygen, ssh-keyscan, remote source checkout/build, sudo/admin action, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, public docs mutation, website mutation, archive, move, delete, or backup/restore.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0524/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `f4b60a92089b`.
+- Fetch performed only after proof/live ref match and disk proof below threshold.
+- Disk watermark before fetch: `/` usage 87%; `/backup/qsl` usage 27%; STOP threshold 95% was not hit.
+- Startup queue proof: READY_COUNT 1; READY NA-0524; NA-0523 DONE; NA-0522 DONE; NA-0521 DONE.
+- Startup decision proof used the `- **ID:** D-####` parser: D-1035 once, D-1036 once, D-1037 absent before patch, D-1038 absent, and duplicate decision record count zero.
+- Main health proof: public-safety success, qsc-adversarial-smoke success, qsc-linux-full-suite skipped by accepted docs/governance policy, macos-qsc-full-serial skipped by accepted docs/governance policy, and no completed red checks.
+- qsl-backup read-only proof: installed helper matched expected digest prefix `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- D419/NA-0523 inheritance consumed: classification `REMOTE_E2EE_REPLAY_CORRUPT_NEGATIVES_PASS`; D418 startup parser stop recovered; retained remote qsc and dedicated-key forwarding rechecked; baseline remote E2EE setup succeeded; replay negative failed closed with `qsp_replay_reject` / `ratchet_replay_reject` and no duplicate plaintext artifact; corrupt delivery failed closed with `qsp_env_decode_failed` and no plaintext artifact; selected no-mutation checks passed; valid path remained usable; cleanup passed; retained remote qsc preserved; qsl-server/qsl-attachments not used.
+- Residual inventory completed for wrong-peer receive/send, stale public/trust material, wrong-device fingerprint/replaced peer identity, contact/trust downgrade or missing trust, repeated-run cleanup/freshness, retained qsc freshness, forwarding cleanup, route-token/capability redaction, qsc output no-secret review, remote root cleanup/retention, scheduled remote CI residuals, qsl-server/qsl-attachments deferral, and public/production claim boundaries.
+- qsc command surfaces inspected read-only: current CLI exposes vault, identity rotate/show, contacts add/verify/route-set/device trust/revoke/primary, relay inbox-set/serve, handshake init/poll/status, send, and receive surfaces; local tests cover wrong-peer, identity mismatch, stale public-record, changed/revoked/no-trusted-device, and no-mutation behavior.
+- Option review completed; primary classification selected: `REMOTE_E2EE_WRONG_PEER_STALE_TRUST_IMPLEMENTATION_READY`.
+- Selected successor: `NA-0525 -- QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Implementation Harness`.
+- Future NA-0525 command family, proof/redaction rules, stop conditions, assurance reviews, prioritization matrix, and marker plan were recorded.
+- Governance patch paths: NA-0524 evidence doc, NA-0524 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1037 records NA-0524 remote qsc E2EE wrong-peer stale-trust negative scope authorization.
+- Recovered failure: one mandatory-read proof-capture command used `$PROOF_DIR` without defining it in the shell invocation and failed to write the intended proof copies. Classification: recoverable command-shape issue; no repo mutation occurred. Corrective action: reran mandatory reads with explicit proof root assignment. Final result: governance reads copied into proof root successfully.
+- Recovered discovery issue: an initial queue parser assumed `## NA-` headings and returned zero READY items despite `NEXT_ACTIONS.md` using `### NA-` headings. Classification: recoverable zero-result discovery/parser-shape issue. Corrective action: reran with the actual heading shape. Final result: READY_COUNT 1 and READY NA-0524.
+- Recovered discovery issue: a read-only qsc CLI source probe attempted `qsl/qsl-client/qsc/src/cmd.rs`, which does not exist. Classification: recoverable path-discovery miss; no repo mutation occurred. Corrective action: used `rg --files` and read `qsl/qsl-client/qsc/src/cmd/mod.rs`. Final result: command surfaces were inspected.
+- Recovered validation issue: added-line overclaim scan flagged future-scope bullets with restricted claim labels lacking same-line no-claim framing. Classification: recoverable in-scope documentation wording issue. Corrective action: rewrote the affected bullets with explicit no-claim framing and reran static validation. Final result: added-line overclaim scan passed with zero findings.
+- Branch: `na-0524-remote-e2ee-wrong-peer-stale-trust-scope`.
+- PR title: `NA-0524: authorize remote E2EE wrong-peer stale-trust scope`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0524_wrong_peer_stale_trust_negative_scope_authorization_20260622T174930Z/wait_accounting.tsv`.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
 ## NA-0523 update
 

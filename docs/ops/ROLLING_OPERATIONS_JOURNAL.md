@@ -41,10 +41,34 @@ Last-Updated: 2026-06-21
 - Selected successor: `NA-0524 -- QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Scope Authorization Plan`.
 - Branch: `na-0523-remote-e2ee-replay-corrupt-negative`.
 - PR title: `NA-0523: implement remote E2EE replay corrupt negatives`.
-- PR: pending at journal authoring.
-- PR merge commit: pending at journal authoring.
+- PR: #1318.
+- PR merge commit: `2747e756fa34`.
+- PR checks on head `442d35a0`: all check-runs completed success/neutral/skipped; no red checks.
+- Post-merge public-safety on `2747e756fa34`: success inside the short attach/early-failure window.
 - Wait accounting file: `/srv/qbuild/tmp/NA0523_recover_retry_remote_e2ee_replay_corrupt_negative_impl_20260622T140616Z/wait_accounting.json`.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0523 closeout and NA-0524 restoration update
+
+- Directive: QSL-DIR-2026-06-22-419 optional closeout after NA-0523 replay/corrupt negative implementation PR merge.
+- Implementation PR #1318 merged at `2747e756fa34`.
+- Implementation PR final head was `442d35a0`.
+- Post-merge public-safety on `2747e756fa34`: success inside the short attach/early-failure window.
+- Closeout branch: `na-0523-closeout-restore-na0524`.
+- Closeout PR title: `NA-0523: closeout and restore NA-0524`.
+- Closeout PR: pending at journal authoring.
+- Closeout merge commit: pending at journal authoring.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0523_closeout_restore_na0524_testplan.md`.
+- D-1036 records NA-0523 closeout and NA-0524 restoration.
+- NA-0523 is marked DONE.
+- NA-0524 QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Scope Authorization Plan is restored as the sole READY successor.
+- Future NA-0524 must stay authorization-only until a later exact directive implements it, focus on wrong-peer and stale-trust negative/no-mutation behavior, retained-qsc freshness, forwarding cleanup, synthetic proof redaction, cleanup/retention, no qsl-server/qsl-attachments, and no public/production readiness claims.
+- Closeout performs no NA-0524 implementation.
+- Recovered closeout proof-output issue: one queue/decision proof used `tee` before the proof output directory existed because directory creation ran in a separate parallel call. Classification: recoverable command-shape/proof-output race. Corrective action: created the directory explicitly and reran the queue/decision proof. Final result: READY NA-0524, NA-0523 DONE, D-1035 once, D-1036 once, and duplicate decision count zero.
+- Recovered closeout overclaim wording issue: added-line overclaim scan flagged bundled restricted-label lists in the new closeout testplan. Classification: recoverable in-scope documentation wording issue. Corrective action: rewrote the bundled lines so each restricted label has explicit no-claim framing or generic restricted-claim wording. Final result: rerun passed with zero added-line overclaim findings.
+- No remote action, SSH execution, forwarding probe, qsc E2EE, qsc send/receive, qsl-server use, qsl-attachments use, package installation, sudo/admin action, key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, remote file write, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
 ## NA-0520 closeout and NA-0521 restoration update
 

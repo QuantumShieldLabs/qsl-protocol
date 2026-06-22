@@ -6,6 +6,46 @@ Last-Updated: 2026-06-21
 
 # Rolling Operations Journal
 
+## NA-0523 update
+
+- Directive: QSL-DIR-2026-06-22-419 -- Recover NA-0523 Startup Decision Parser and Execute Remote qsc E2EE Replay / Corrupt Delivery Negative Boundary Implementation Harness, Optional Closeout to NA-0524.
+- Begin timestamp (UTC): 2026-06-22T14:06:16Z.
+- Repo path: `/srv/qbuild/work/NA-0523/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0523_recover_retry_remote_e2ee_replay_corrupt_negative_impl_20260622T140616Z`.
+- Codex did not run qwork, qstart, qresume, qsl-backup, qsl-server, qsl-attachments, package installation, ssh-keygen, ssh-keyscan, remote source checkout/build, remote cargo, sudo/admin except negative `sudo -n true`, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, or backup/restore.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0523/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `a11535f37754`.
+- Fetch performed only after proof/live ref match and disk proof below threshold.
+- Disk watermark before fetch: `/` usage 86%; `/backup/qsl` checked read-only. STOP threshold 95% was not hit.
+- Startup queue proof: READY_COUNT 1; READY NA-0523; NA-0522 DONE; NA-0521 DONE.
+- Startup decision proof used the corrected `- **ID:** D-####` parser: D-1033 once, D-1034 once, D-1035 absent before patch, duplicate decision record count zero.
+- Main health proof: public-safety success, qsc-adversarial-smoke success, qsc-linux-full-suite skipped, macos-qsc-full-serial skipped, and no completed red checks.
+- qsl-backup read-only proof: installed helper matched expected digest prefix `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- D418 response consumed as a procedural startup stop only: no repo mutation, no PR, no qsc build/run, no SSH or remote command, no E2EE runtime root, no qsl-server/qsl-attachments; root cause was the wrong decision-entry parser shape.
+- NA-0522 / D417 inheritance consumed: classification `REMOTE_E2EE_REPLAY_CORRUPT_NEGATIVE_IMPLEMENTATION_READY`; replay/corrupt selected; wrong-peer/stale-trust deferred; qsl-server/qsl-attachments deferred; public/production readiness rejected.
+- Command manifest written under proof root and based on current qsc CLI/test surfaces: vault init, identity rotate/show, contacts add/device trust, relay inbox-set, relay serve, handshake init/poll, send, receive, duplicate relay mode, and relay HTTP inbox push for synthetic corrupt delivery.
+- Remote boundary recheck passed: qslcodex non-root, no privileged groups, sudo negative failed closed, backup absent/unreadable, qwork absent, qsl-backup absent, retained qsc owner/digest/help matched, and remote E2EE root was absent.
+- Dedicated forwarding recheck passed with temporary listener and dedicated key; listener and SSH forward were cleaned up before qsc E2EE.
+- Local qsc built from clean HEAD `a11535f37754` in proof-root target dir; local digest prefix `267410f7d6ec`; local qsc help passed. Relevant qsc source/Cargo/lock/test paths had no drift since retained source `6e0796de79c9`.
+- E2EE result classification: `REMOTE_E2EE_REPLAY_CORRUPT_NEGATIVES_PASS`.
+- Replay negative passed: duplicate qsc relay mode delivered two copies, first receive succeeded, second receive failed closed with `qsp_replay_reject` / `ratchet_replay_reject`, and selected session/output state did not mutate.
+- Corrupt delivery negative passed: synthetic corrupt bytes enqueued through qsc relay HTTP inbox failed closed with `qsp_env_decode_failed`, produced no plaintext artifact, and selected session/output state did not mutate.
+- Valid path remained usable: remote reply succeeded after replay negative; local-to-remote valid message succeeded after corrupt negative.
+- No-secret-output scan passed for qsc stdout/stderr; proof-root runner source was redacted after execution to remove synthetic passphrase and route-token literals; follow-up proof-root scan found zero matches for those literals or private-key block headers.
+- Cleanup passed: local relay stopped, SSH forward stopped, remote E2EE root removed, local sensitive runtime root removed, and port 39176 was closed. Retained remote qsc was preserved.
+- Recovered failure: first runner-generation command failed before E2EE action because a Python writer used conflicting triple-quote syntax. Classification: recoverable command-shape issue. Corrective action: regenerated the runner with non-conflicting outer quoting. Final result: runner completed and E2EE flow passed.
+- Recovered proof hygiene issue: saved runner source contained synthetic passphrase and route-token literals after execution. Classification: recoverable proof-root hygiene issue before publication. Corrective action: redacted the saved runner source and reran the proof-root sensitive-literal scan. Final result: zero matches for raw synthetic tokens, synthetic passphrase strings, or private-key block headers.
+- Recovered proof-read issue: one post-validation proof summary reader used an unexported local environment variable and attempted to read a relative proof path. Classification: recoverable command-shape issue; no repo/runtime/remote mutation occurred. Corrective action: reran the reader using the absolute proof root from `/tmp/na0523_d419_proof_dir`. Final result: corrected proof summary read succeeded.
+- Governance patch paths: NA-0523 evidence doc, NA-0523 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1035 records NA-0523 remote qsc E2EE replay corrupt negative boundary implementation.
+- Selected successor: `NA-0524 -- QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Scope Authorization Plan`.
+- Branch: `na-0523-remote-e2ee-replay-corrupt-negative`.
+- PR title: `NA-0523: implement remote E2EE replay corrupt negatives`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0523_recover_retry_remote_e2ee_replay_corrupt_negative_impl_20260622T140616Z/wait_accounting.json`.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0520 closeout and NA-0521 restoration update
 
 - Directive: QSL-DIR-2026-06-22-414 -- optional closeout after NA-0520 forwarding capability probe PR merge.

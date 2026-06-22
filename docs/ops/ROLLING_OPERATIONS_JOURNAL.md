@@ -6,6 +6,30 @@ Last-Updated: 2026-06-21
 
 # Rolling Operations Journal
 
+## NA-0520 closeout and NA-0521 restoration update
+
+- Directive: QSL-DIR-2026-06-22-414 -- optional closeout after NA-0520 forwarding capability probe PR merge.
+- Implementation PR #1312 merged at `3b4e30b7b04b`.
+- Implementation PR final head was `2abfb5c01abe`.
+- Post-merge public-safety on `3b4e30b7b04b`: success inside the short attach/early-failure window.
+- Closeout branch: `na-0520-closeout-restore-na0521`.
+- Closeout PR title: `NA-0520: closeout and restore NA-0521`.
+- Closeout PR: #1313.
+- Closeout merge commit: pending at journal authoring.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0520_closeout_restore_na0521_testplan.md`.
+- D-1030 records NA-0520 closeout and NA-0521 restoration.
+- NA-0520 is marked DONE.
+- NA-0521 QSL Build-to-Inspiron Remote qsc E2EE Retry Implementation Harness is restored as the sole READY successor.
+- Future NA-0521 must consume the forwarding capability proof, recheck retained qsc hash/path/owner, recheck forwarding, use synthetic messages only, isolate local and remote roots, run send/receive and reply proof, capture cleanup/retention proof, use no qsl-server/qsl-attachments, and make no public/production readiness claim.
+- Closeout performs no NA-0521 implementation.
+- Recovered closeout scope-guard issue: first exact scope guard ran before the new closeout testplan was visible to diff-based checks. Classification: recoverable command-shape / untracked-file visibility issue. Corrective action: added intent-to-add for the new testplan and reran. Final result: exact five-path closeout scope guard passed.
+- Recovered closeout overclaim wording issue: added-line overclaim scan flagged future forbidden-scope readiness labels without same-line no-claim wording. Classification: recoverable in-scope documentation wording issue. Corrective action: rewrote the affected bullets to `no public-readiness claim and no production-readiness claim`. Final result: added-line overclaim scan passed with zero findings.
+- Recovered closeout connector PR creation issue: GitHub connector create_pull_request returned 403 after the branch was pushed. Classification: recoverable connector permission issue. Corrective action: used `gh pr create` with the same branch, base, title, and preflighted PR body. Final result: PR #1313 opened.
+- Closeout validation passed: git diff check, exact five-path scope guard, link-check, added-line leak scan, added-line overclaim scan, docs/governance classifier, PR body preflight, queue/decision proof, and duplicate decision proof.
+- No remote action, SSH execution, forwarding probe, qsc E2EE, qsc send/receive, qsl-server use, qsl-attachments use, package installation, sudo/admin action, key generation/installation, local SSH config mutation, system SSH config mutation, known_hosts mutation, authorized_keys mutation, remote host mutation, remote file write, qwork/qstart/qresume mutation, qsl-backup execution/mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qsl-server/qsl-attachments/qshield/qshield-cli mutation, public docs mutation, backup mutation, archive, move, or delete is introduced.
+- No backup or restore run.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0520 SSH forwarding capability probe update
 
 - Directive: QSL-DIR-2026-06-22-414 -- Execute NA-0520 QSL Remote qsc E2EE SSH Forwarding Capability Probe Implementation Harness, Optional Closeout to NA-0521.

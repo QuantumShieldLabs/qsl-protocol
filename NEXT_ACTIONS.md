@@ -29662,7 +29662,7 @@ Acceptance criteria:
 ---
 
 ### NA-0521 — QSL Build-to-Inspiron Remote qsc E2EE Retry Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -29721,6 +29721,67 @@ Acceptance criteria:
 - cleanup/retention result recorded.
 - no public/production readiness claim.
 - exactly one READY item remains after closeout.
+
+Closeout evidence:
+- implementation PR: #1314
+- implementation head SHA: `33ef39f899f2`
+- implementation merge SHA: `3c1645fe0874`
+- D-1031 exists once and records `REMOTE_BUILD_TO_INSPIRON_E2EE_PASS_WITH_NEGATIVE_BOUNDARY`.
+- post-merge public-safety on `3c1645fe0874` attached and completed success inside the short attach/early-failure window.
+- NA-0521 is closed and NA-0522 is restored as the sole READY successor.
+- no qsl-server use, no qsl-attachments use, no package install, no remote source checkout/build, no qwork/qstart/qresume, no qsl-backup execution, no qsc source/test/fuzz/Cargo mutation, no workflow/script/helper/dependency mutation, no corpus/vector/input mutation, and no public/production/security completion claim expansion.
+
+---
+
+### NA-0522 — QSL Remote qsc E2EE Negative / Residual Hardening Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the next remote qsc E2EE hardening lane after a successful
+Build-to-Inspiron E2EE flow, focusing on additional negative/no-mutation
+boundaries, relay/transport residuals, cleanup/retention proof, and
+repeated-run safety without qsl-server/qsl-attachments. No public-readiness
+claim is made. No production-readiness claim is made.
+
+Allowed scope:
+- authorization plan evidence.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- no implementation of NA-0522 remote hardening actions.
+
+Must preserve:
+- no qsl-server use.
+- no qsl-attachments use.
+- no package installation.
+- no remote source checkout/build.
+- no qwork/qstart/qresume.
+- no qsl-backup execution.
+- no qsc source/test/fuzz/Cargo mutation unless a later exact implementation directive authorizes it.
+- no workflow/script/helper/dependency mutation unless a later exact implementation directive authorizes it.
+- no corpus/vector/input mutation.
+- no formal/refimpl/service/public/backup mutation.
+- no public-readiness claim.
+- no production-readiness claim.
+- no public-internet-readiness claim.
+- no crypto-complete claim.
+- no replay-proof claim.
+- no downgrade-proof claim.
+
+Deliverables:
+- scope authorization plan for additional remote qsc E2EE negative/residual hardening.
+- exact future command-surface and proof-boundary recommendations.
+- explicit no public/production readiness boundary.
+- selected successor or implementation lane.
+
+Acceptance criteria:
+- D-1032 closeout evidence remains intact.
+- NA-0522 is authorization-only until a later exact directive implements it.
+- one READY item remains.
+- no qsl-server/qsl-attachments integration is introduced.
+- no public/production/security completion claim expansion is introduced.
 
 ---
 

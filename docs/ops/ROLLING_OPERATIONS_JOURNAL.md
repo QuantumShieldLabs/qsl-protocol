@@ -36974,9 +36974,31 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Governance patch paths: NA-0521 evidence doc, NA-0521 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
 - D-1031 records NA-0521 Build-to-Inspiron remote qsc E2EE retry implementation.
 - Selected successor: `NA-0522 -- QSL Remote qsc E2EE Negative / Residual Hardening Scope Authorization Plan`.
-- Branch: pending at journal authoring.
+- Branch: `na-0521-build-to-inspiron-remote-e2ee-retry`.
 - PR title: `NA-0521: implement Build-to-Inspiron remote E2EE retry`.
-- PR: pending at journal authoring.
-- PR merge commit: pending at journal authoring.
+- Recovered PR creation connector issue: GitHub connector PR creation returned 403 `Resource not accessible by integration`. Classification: recoverable GitHub connector permission issue because the branch was already pushed and authenticated `gh` was available. Corrective action: created the same PR with `gh pr create --body-file` using the prepared PR body. Final result: PR #1314 opened.
+- Recovered failure: first PR check polling command fetched check-runs successfully but used an invalid Python stdin/heredoc shape for the per-check summary, producing `NameError: name 'null' is not defined`. Classification: recoverable local polling/reporting command-shape issue, not a CI failure. Corrective action: reran bounded REST polling with check JSON written to files and Python reading file paths. Final result: PR #1314 checks attached and all green.
+- PR: #1314.
+- PR merge commit: `3c1645fe0874`.
 - Wait accounting file: `/srv/qbuild/tmp/NA0521_recover_retry_remote_e2ee_impl_20260622T100022Z/wait_accounting.tsv`.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0521 closeout update
+
+- Directive: QSL-DIR-2026-06-22-416 optional closeout packet.
+- Begin timestamp (UTC): 2026-06-22T10:34:21Z.
+- Repo path: `/srv/qbuild/work/NA-0521/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0521_recover_retry_remote_e2ee_impl_20260622T100022Z`.
+- Implementation PR #1314 merged at `3c1645fe0874`.
+- Post-merge public-safety on `3c1645fe0874` attached and completed success inside the short attach/early-failure window.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0521_closeout_restore_na0522_testplan.md`.
+- NA-0521 is marked DONE.
+- NA-0522 is restored as READY using the approved successor text for the pass-with-negative-boundary result.
+- D-1032 records NA-0521 closeout and NA-0522 restoration.
+- Recovered failure: first closeout publication-safety scan flagged ambiguous `public/production readiness claims` wording in the NA-0522 objective. Classification: recoverable closeout wording validation failure with understood cause. Corrective action: replaced it with explicit no public-readiness claim and no production-readiness claim wording, then reran the scan. Final result: closeout publication-safety scan passed.
+- No NA-0522 implementation, remote action, SSH execution, forwarding probe, qsc E2EE execution, qsc send/receive execution, qsl-server/qsl-attachments use, package installation, sudo/admin action, key/config/host mutation, qwork/qstart/qresume, qsl-backup execution, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation is introduced.
+- Branch: pending at journal authoring.
+- PR title: `NA-0521: closeout and restore NA-0522`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

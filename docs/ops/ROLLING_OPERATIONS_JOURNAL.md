@@ -6,6 +6,50 @@ Last-Updated: 2026-06-23
 
 # Rolling Operations Journal
 
+## NA-0527 update
+
+- Directive: QSL-DIR-2026-06-23-427 -- Execute NA-0527 QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Retry After Restaging Implementation Harness, Optional Closeout to Selected NA-0528.
+- Begin timestamp (UTC): 2026-06-23T16:48:42Z.
+- Repo path: `/srv/qbuild/work/NA-0527/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0527_wrong_peer_stale_trust_negative_retry_after_restaging_impl_20260623T164842Z`.
+- Codex did not run qwork, qstart, qresume, qsl-backup, qsl-server, qsl-attachments, package installation, ssh-keygen, ssh-keyscan, remote source checkout/build, remote cargo, remote rustup, remote git, qsc send/receive, baseline E2EE, wrong-peer negative, stale-trust negative, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, dependency/lockfile mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, or backup/restore.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0527/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `bc8ed7e14834`.
+- Fetch performed only after proof/live ref match and disk proof below threshold.
+- Disk watermark before fetch: `/` usage 88%; `/backup/qsl` usage 27%. STOP threshold 95% was not hit.
+- Startup main health on `bc8ed7e14834`: public-safety success, advisories success, and no red checks in the retrieved check-run set.
+- qsl-backup read-only proof: installed helper matched expected SHA-256 `e9ecff3d22eda21ceb0e889e4dd5d6f4e270e09349c77a1f4872bfc0052f6232`; Codex ops source appears exactly once in the installed helper source list.
+- Startup queue proof: READY_COUNT 1; READY NA-0527; NA-0526 DONE; NA-0525 DONE.
+- Startup decision proof: D-1042 once, D-1043 once, D-1044 absent before patch, D-1045 absent before patch, duplicate decision record count zero.
+- D426, D425, D424, and D419 response files were found.
+- D426/D425/D424/D419 inheritance consumed: NA-0526 DONE; NA-0527 READY; D425 classification `REMOTE_PREBUILT_QSC_RESTAGING_AFTER_SECURITY_REMEDIATION_PASS_RETAINED`; retained remote qsc hash `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7`; D424 stale retained qsc block resolved by NA-0526; D419 replay/corrupt negatives passed; no qsl-server/qsl-attachments.
+- Local qsc built from clean HEAD `bc8ed7e14834` in proof-root target dir; local size `102103920`; local digest `5f7196475dd25833fd2354ea9e5966412c9abf193cfffcbe5f441302e57d92c8`; local qsc help passed.
+- qsc runtime/dependency paths had no diff from D425/PR #1325, so the local isolated-build hash divergence from the retained NA-0526 hash was recorded as non-source/non-dependency drift.
+- Remote retained qsc recheck passed before E2EE: path `$HOME/qsl-remote-test/bin/qsc`, owner `qslcodex`, mode `700`, size `102103920`, digest `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7`, and remote `qsc --help` success.
+- Recovered failure: the first retained-qsc remote probe used a remote awk field reference under `set -u` and failed after printing matching stat/hash proof. Classification: recoverable command-shape issue. Corrective action: reran once using `cut`. Final result: retained-qsc recheck passed.
+- Command surface inspection completed for qsc vault, identity, contacts/device/trust, relay inbox/serve, handshake init/poll/status, send, receive, and relevant tests/source modules.
+- Command manifest written under proof root as Markdown and JSON.
+- Remote boundary proof passed: remote user `qslcodex`, UID `1003`, groups `qslcodex`, negative sudo probe failed as expected, `/backup/qsl` not readable, qwork absent, qsl-backup absent, and remote E2EE root absent before creation.
+- Forwarding attempt 1: local qsc relay started on loopback, but remote loopback connection was refused. Recovered failure classification: proof-root SSH config had `ClearAllForwardings yes`, suppressing the explicit reverse forward. Corrective action: changed proof-root config to `ClearAllForwardings no`.
+- Forwarding attempt 2: SSH exited with `remote port forwarding failed for listen port 39176`. Read-only remote bind probe immediately after showed `127.0.0.1:39176` available and no retrieved listener.
+- Forwarding attempt 3: SSH again exited with `remote port forwarding failed for listen port 39176`. Bounded recovery exhausted.
+- Result classification: `REMOTE_E2EE_FORWARDING_RECHECK_FAILURE`.
+- Baseline E2EE setup was not run.
+- Wrong-peer negative was not run.
+- Stale-trust negative was not run.
+- Valid-path usability was not run.
+- Cleanup passed: local relay stopped, SSH forward stopped or was already absent, remote E2EE root absent, local sensitive runtime absent, local port `39176` closed, and retained remote qsc preserved unchanged.
+- Post-stop proof scan found zero private-key block markers, bearer/API-key-style markers, or explicit passphrase/password marker findings after excluding the scan output file from its own search.
+- Selected successor candidate: `NA-0528 -- QSL Remote qsc E2EE Reverse-Forwarding Diagnostic / Retry Scope Authorization Plan`.
+- Governance patch paths: NA-0527 evidence doc, NA-0527 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1044 records NA-0527 forwarding recheck failure after retained-qsc freshness passed.
+- Branch: pending at journal authoring.
+- PR title: `NA-0527: implement remote E2EE wrong-peer stale-trust negative retry`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0527_wrong_peer_stale_trust_negative_retry_after_restaging_impl_20260623T164842Z/wait_accounting.tsv`.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0526 closeout and NA-0527 restoration update
 
 - Directive: QSL-DIR-2026-06-23-426 -- Close Out NA-0526 After Remote qsc Restaging Public-Safety Completion and Restore NA-0527.

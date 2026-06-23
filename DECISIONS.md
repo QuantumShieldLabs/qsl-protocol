@@ -27421,3 +27421,56 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps this closeout to D-1042, D-1043, PR #1325, D425 inheritance, and the current public-safety/advisories proof.
     - The next directive should execute NA-0527 and must first recheck the retained qsc hash/path/owner/mode/size before any authorized remote E2EE negative work.
   - **References:** NA-0526; NA-0527; D-1043; D-1042; D-1041; D-1040; qsl-protocol PR #1325; D425 response `/home/victor/work/qsl/codex/responses/NA0526_20260623T125452Z_D425.md`; `docs/governance/evidence/NA-0526_qsl_remote_qsc_prebuilt_binary_restaging_after_quinn_proto_remediation_implementation_harness.md`; `tests/NA-0526_qsl_remote_qsc_prebuilt_binary_restaging_after_quinn_proto_remediation_implementation_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0526_closeout_restore_na0527_testplan.md`
+
+- **ID:** D-1044
+  - **Title:** NA-0527 remote qsc E2EE wrong-peer stale-trust negative retry after restaging
+  - **Date:** 2026-06-23
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0527 consumed D426/D425/D424/D419 inheritance and stopped before E2EE with result classification `REMOTE_E2EE_FORWARDING_RECHECK_FAILURE`. Retained remote qsc freshness passed against the NA-0526 retained hash/path/owner/mode/size, but the required dedicated reverse-forwarding path to Inspiron loopback `127.0.0.1:39176` did not attach after bounded recovery. No baseline E2EE, wrong-peer negative, stale-trust negative, qsc send/receive, qsl-server, or qsl-attachments action was run after the forwarding recheck failed.
+  - **Evidence consumed:** D426 confirmed NA-0526 DONE, NA-0527 READY, D-1043 once, D-1044 absent, public-safety/advisories green, and no remote action. D425 classified NA-0526 as `REMOTE_PREBUILT_QSC_RESTAGING_AFTER_SECURITY_REMEDIATION_PASS_RETAINED`, retained remote qsc hash `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7`, final path `$HOME/qsl-remote-test/bin/qsc`, owner/mode/size `qslcodex`/`700`/`102103920`, and remote help success. D424 proved the stale retained qsc block that NA-0526 resolved. D419 proved replay/corrupt negatives, no-mutation checks, cleanup, and no qsl-server/qsl-attachments for the prior lane.
+  - **Retained-qsc freshness result:** local proof-root qsc built from clean commit `bc8ed7e14834`, size `102103920`, SHA-256 `5f7196475dd25833fd2354ea9e5966412c9abf193cfffcbe5f441302e57d92c8`; qsc runtime/dependency paths had no diff from PR #1325 / D425, so this isolated-build hash divergence was recorded as non-source/non-dependency drift. Retained remote qsc recheck passed with owner `qslcodex`, mode `700`, size `102103920`, SHA-256 `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7`, and `--help` success.
+  - **Forwarding path result:** remote boundary checks passed for `qslcodex` non-root/no privileged groups, negative sudo failure, `/backup/qsl` unreadable, qwork absent, qsl-backup absent, and remote E2EE root absent. The Build-local qsc relay started on loopback. First forwarding attempt failed due proof-root SSH config `ClearAllForwardings yes`, classified and corrected as a recoverable command-shape/config mistake. Two subsequent attempts failed with `remote port forwarding failed for listen port 39176`; a read-only bind probe showed the port available before the final retry. Bounded recovery was exhausted.
+  - **Baseline E2EE result:** not run because forwarding recheck failed before E2EE was allowed.
+  - **Wrong-peer negative result:** not run because forwarding recheck failed before E2EE was allowed.
+  - **Stale-trust negative result:** not run because forwarding recheck failed before E2EE was allowed.
+  - **No-mutation result:** identity/trust no-mutation checks were not applicable because no negative boundary executed. Cleanup/no-residue checks passed: remote E2EE root absent, local sensitive runtime absent, local relay stopped, SSH forward absent, local port closed, and retained remote qsc unchanged.
+  - **Valid-path usability result:** deferred because no baseline or post-negative valid path could run without the forwarding path.
+  - **Cleanup/retention result:** cleanup passed and retained remote qsc was preserved unchanged for future retry/diagnostic use.
+  - **Security invariants introduced/changed:**
+    - No qsl-server use occurred.
+    - No qsl-attachments use occurred.
+    - No package installation occurred.
+    - No remote source checkout or remote build occurred.
+    - No qwork, qstart, or qresume execution occurred.
+    - No qsl-backup execution occurred.
+    - No qsc source/test/fuzz/Cargo mutation occurred.
+    - No workflow/script/helper mutation occurred.
+    - No corpus/vector/input mutation occurred.
+    - No dependency or lockfile mutation occurred.
+    - No formal/refimpl/service/public/backup mutation occurred.
+    - No retained remote qsc mutation occurred.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free or perfect-crypto claim is made.
+    - Exactly one READY item remains mandatory until a later closeout restores the selected successor.
+  - **Alternatives considered:**
+    - Continue retrying SSH reverse-forwarding beyond the bounded recovery budget (rejected: directive stop boundary).
+    - Run qsc E2EE without the required loopback reverse-forwarding path (rejected: out of scope and would make untruthful evidence).
+    - Use qsl-server or qsl-attachments to bypass the failed forwarding path (rejected: explicitly out of scope).
+    - Mutate authorized_keys, known_hosts, SSH config outside proof root, retained qsc, source, dependencies, workflows, or remote host state outside the proof E2EE root (rejected: explicitly out of scope).
+  - **Implications for spec/impl/tests:**
+    - NA-0527 evidence records qwork proof verification, inheritance, retained-qsc freshness, command-surface manifest, boundary rechecks, forwarding failure, recovered failures, cleanup proof, and no-claim boundaries.
+    - `TRACEABILITY.md` maps this forwarding failure evidence to D-1044.
+    - `tests/NA-0527_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_negative_retry_after_restaging_implementation_testplan.md` records validation and scope guards.
+    - Selected successor candidate: `NA-0528 -- QSL Remote qsc E2EE Reverse-Forwarding Diagnostic / Retry Scope Authorization Plan`.
+  - **References:** NA-0527; selected NA-0528 candidate; D-1044; D-1043; D-1042; D426 response `/home/victor/work/qsl/codex/responses/NA0526_closeout_restore_na0527_20260623T133949Z_D426.md`; D425 response `/home/victor/work/qsl/codex/responses/NA0526_20260623T125452Z_D425.md`; D424 response `/home/victor/work/qsl/codex/responses/NA0525_20260623T111524Z_D424.md`; D419 response `/home/victor/work/qsl/codex/responses/NA0523_recover_retry_20260622T145242Z_D419.md`; `docs/governance/evidence/NA-0527_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_negative_retry_after_restaging_implementation_harness.md`; `tests/NA-0527_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_negative_retry_after_restaging_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

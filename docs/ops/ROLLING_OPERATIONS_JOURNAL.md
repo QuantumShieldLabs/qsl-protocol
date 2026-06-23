@@ -63,10 +63,11 @@ Last-Updated: 2026-06-23
 - NA-0525 is marked DONE.
 - NA-0526 is restored READY using the D-1040 selected restaging successor text for `REMOTE_E2EE_RETAINED_QSC_STALE_AFTER_SECURITY_REMEDIATION`.
 - D-1041 records NA-0525 closeout and NA-0526 restoration.
+- Recovered failure: first closeout local goal-lint event writer referenced `BODY_FILE` without exporting it. Classification: recoverable command-shape mistake before goal-lint execution. Corrective action: reran the event writer with `BODY_FILE`, `BASE_SHA`, `HEAD_SHA`, and `EVENT` exported in the command environment. Final result: goal-lint passed.
 - No NA-0526 implementation, remote action, SSH execution, qsc E2EE execution, qsc send/receive execution, wrong-peer/stale-trust testing, qsc restaging, qsl-server/qsl-attachments use, package installation, sudo/admin action, key/config/host mutation, qwork/qstart/qresume, qsl-backup execution, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation is introduced.
 - Branch: `na-0525-closeout-restore-na0526`.
 - PR title: `NA-0525: closeout and restore NA-0526`.
-- PR: pending at journal authoring.
+- PR: #1324.
 - PR merge commit: pending at journal authoring.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 

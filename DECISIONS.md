@@ -27174,3 +27174,37 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Required markers:** `REMOTE_E2EE_WRONG_PEER_STALE_TRUST_IMPLEMENTATION_READY`; `NA0525_REMOTE_E2EE_IDENTITY_TRUST_NEGATIVE_SCOPE_CONSUMED_OK`; `NA0525_RETAINED_QSC_HASH_RECHECKED_OK`; `NA0525_FORWARDING_PATH_RECHECKED_OK`; `NA0525_BASELINE_REMOTE_E2EE_READY_FOR_NEGATIVE_OK`; `NA0525_WRONG_PEER_NEGATIVE_REJECTED_OK`; `NA0525_STALE_TRUST_NEGATIVE_REJECTED_OK`; `NA0525_NEGATIVE_NO_MUTATION_OK`; `NA0525_VALID_PATH_REMAINS_USABLE_OK`; `NA0525_NO_SECRET_OUTPUT_OK`; `NA0525_CLEANUP_COMPLETED_OK`; `NA0525_NO_QSL_SERVER_ATTACHMENTS_OK`; `NA0525_NO_PUBLIC_READINESS_CLAIM_OK`; `NA0525_NO_PRODUCTION_READINESS_CLAIM_OK`; `NA0525_ONE_READY_INVARIANT_OK`.
   - **Must never happen:** NA-0524 is represented as NA-0525 implementation, qsc E2EE execution, qsc send/receive execution, SSH execution, forwarding capability testing, wrong-peer/stale-trust negative execution, authorized_keys mutation, key generation or installation, qsl-server/qsl-attachments integration, source mutation, service integration, public deployment, or any forbidden public/security/completion claim outside the explicit no-claim boundary above.
   - **References:** NA-0524; selected NA-0525; D-1037; D-1036; D-1035; D419 response `/home/victor/work/qsl/codex/responses/NA0523_recover_retry_20260622T145242Z_D419.md`; D417 response `/home/victor/work/qsl/codex/responses/NA0522_20260622T125928Z_D417.md`; D416 response `/home/victor/work/qsl/codex/responses/NA0521_recover_retry_20260622T104500Z_D416.md`; `docs/governance/evidence/NA-0524_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_negative_scope_authorization_plan.md`; `tests/NA-0524_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_negative_scope_authorization_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1038
+  - **Title:** NA-0524 quinn-proto RUSTSEC-2026-0185 dual-lockfile remediation
+  - **Date:** 2026-06-23
+  - **Status:** Accepted
+  - **Goal IDs:** G4
+  - **Decision:** NA-0524 consumes D420 and D421 advisory inheritance and remediates the public-safety/advisories RUSTSEC-2026-0185 blocker by updating `quinn-proto` from `0.11.14` to `0.11.15` in both the root `Cargo.lock` and nested `qsl/qsl-client/qsc/fuzz/Cargo.lock`.
+  - **Evidence consumed:** D420 and D421 both identified RUSTSEC-2026-0185 as a real advisory for `quinn-proto 0.11.14` with fixed target `>=0.11.15`. D421 stopped correctly before mutation because the nested qsc fuzz lockfile also failed the same advisory and nested lockfile remediation was not yet authorized. D-1037 existed once, D-1038 and D-1039 were absent before mutation, and NA-0524 remained the sole READY item.
+  - **Exact remediation commands:** root command `cargo update -p quinn-proto --precise 0.11.15`; nested qsc fuzz command `cargo update --manifest-path qsl/qsl-client/qsc/fuzz/Cargo.toml -p quinn-proto --precise 0.11.15`. No command-shape correction was needed.
+  - **Validation:** root `cargo audit --deny warnings` passed after remediation; nested `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock` passed after remediation; focused qsc tests passed for `same_host_client_to_client_e2e`, `receive_e2e`, `key_lifecycle_zeroization_expansion`, `secret_material_diagnostic_boundary`, and `handshake_provider_error_no_mutation`; qsc fuzz corpus validators passed; formal model checks passed; `cargo fmt --check` passed; `sh -n scripts/ci/qsc_adversarial.sh` and `bash -n scripts/ci/qsc_adversarial.sh` passed.
+  - **Security invariants introduced/changed:**
+    - No protocol, wire, crypto, auth, state-machine, negotiation, or qsc runtime semantics change.
+    - No Cargo.toml mutation occurred.
+    - No qsc source/test/fuzz source or qsc fuzz Cargo.toml mutation occurred.
+    - No workflow/script/helper mutation occurred.
+    - No corpus/vector/input mutation occurred.
+    - No formal/refimpl/service/public/backup mutation occurred.
+    - No qsl-server or qsl-attachments mutation occurred.
+    - No qshield or qshield-cli mutation occurred.
+    - No remote action, SSH, scp, sftp, rsync, qsc send/receive, remote E2EE, qsl-backup, backup, or restore occurred.
+    - No cargo audit ignore, waiver, allowlist, or public-safety weakening was used.
+  - **Queue boundary:** This is dependency-security remediation only. It does not close out NA-0524, does not update `NEXT_ACTIONS.md`, and does not restore NA-0525. NA-0524 remains READY, D-1039 remains absent, and exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Leave root and nested lockfiles at `quinn-proto 0.11.14` (rejected: keeps a real advisory blocking public-safety/advisories).
+    - Waive or ignore RUSTSEC-2026-0185 (rejected: would weaken the fail-closed dependency-health gate).
+    - Mutate Cargo manifests or source code (rejected: not required for the fixed `0.11.15` lockfile update and out of scope for this remediation).
+    - Close out NA-0524 in the same PR (rejected: closeout and NA-0525 restoration require a later closeout-only directive after post-merge checks are green).
+  - **Implications for spec/impl/tests:**
+    - Root and nested qsc fuzz cargo audits are green locally after remediation.
+    - Post-merge public-safety and advisories must be green before any later NA-0524 closeout directive proceeds.
+    - The remediation evidence is recorded in `docs/governance/evidence/NA-0524_quinn_proto_rustsec_2026_0185_dual_lock_remediation.md`.
+    - The validation plan is recorded in `tests/NA-0524_quinn_proto_rustsec_2026_0185_dual_lock_remediation_testplan.md`.
+    - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+  - **References:** NA-0524; D-1038; D-1037; D420 response `/home/victor/work/qsl/codex/responses/NA0524_20260622T181657Z_D420.md`; D421 response `/home/victor/work/qsl/codex/responses/NA0524_quinn_proto_rustsec_2026_0185_remediation_20260623T010140Z_D421.md`; `Cargo.lock`; `qsl/qsl-client/qsc/fuzz/Cargo.lock`; `docs/governance/evidence/NA-0524_quinn_proto_rustsec_2026_0185_dual_lock_remediation.md`; `tests/NA-0524_quinn_proto_rustsec_2026_0185_dual_lock_remediation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

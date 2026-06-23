@@ -34,6 +34,7 @@ Last-Updated: 2026-06-23
 - Retention decision: final remote qsc retained for NA-0527. NA-0527 must recheck path, owner, mode, size, and hash before remote E2EE.
 - Cleanup/absence proof: stage path absent; proof-specific remote E2EE root absent; no local sensitive runtime or local proof-specific E2EE root created; no remote qsc process remained.
 - Recovered failure: initial local process absence proof used `pgrep -af <PROOF_ID>` inside the same shell command that contained the proof ID, so it matched the active parent shell. Classification: recoverable command-shape/proof-tooling mistake. Corrective action: reran after command completion with current-process and ancestor-process exclusion. Final result: no non-ancestor local process with the proof ID and no remote qsc process.
+- Recovered failure: first `git add` skipped the new evidence file because `docs/governance/evidence` is ignored by local ignore rules. Classification: recoverable in-scope staging issue before push. Corrective action: force-added only the allowed NA-0526 evidence path and committed it with this journal recovery note. Final result: all five allowed paths are tracked in the implementation branch.
 - Result classification: `REMOTE_PREBUILT_QSC_RESTAGING_AFTER_SECURITY_REMEDIATION_PASS_RETAINED`.
 - Selected successor: `NA-0527 -- QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Retry After Restaging Implementation Harness`.
 - Governance patch paths: NA-0526 evidence doc, NA-0526 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.

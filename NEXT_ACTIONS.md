@@ -29929,7 +29929,7 @@ Forbidden scope:
 - corpus/vector/input mutation.
 - formal/refimpl/service/public/backup mutation.
 - production/user data.
-- public-readiness, production-readiness, public-internet-readiness, crypto-complete, identity-complete, trust-complete, replay-proof, downgrade-proof, secret-material-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
+- no public-readiness, no production-readiness, no public-internet-readiness, no crypto-complete, no identity-complete, no trust-complete, no replay-proof, no downgrade-proof, no secret-material-complete, no side-channel-free, no vulnerability-free, no bug-free, and no perfect-crypto claim.
 
 Deliverables:
 - remote qsc E2EE wrong-peer/stale-trust negative evidence.
@@ -30038,7 +30038,7 @@ Closeout evidence:
 ---
 
 ### NA-0527 — QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Retry After Restaging Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -30087,7 +30087,7 @@ Forbidden scope:
 - corpus/vector/input mutation.
 - formal/refimpl/service/public/backup mutation.
 - production/user data.
-- public-readiness, production-readiness, public-internet-readiness, crypto-complete, identity-complete, trust-complete, replay-proof, downgrade-proof, secret-material-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
+- no public-readiness, no production-readiness, no public-internet-readiness, no crypto-complete, no identity-complete, no trust-complete, no replay-proof, no downgrade-proof, no secret-material-complete, no side-channel-free, no vulnerability-free, no bug-free, and no perfect-crypto claim.
 
 Deliverables:
 - retained-qsc fresh hash recheck.
@@ -30108,6 +30108,86 @@ Acceptance criteria:
 - valid path remains usable if applicable.
 - no secret material in checked-in proof.
 - cleanup/retention result recorded.
+- no qsl-server/qsl-attachments.
+- no public/production readiness claim.
+- exactly one READY item remains after closeout.
+
+---
+
+### NA-0528 — QSL Remote qsc E2EE Reverse-Forwarding Diagnostic / Retry Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the next remote qsc E2EE hardening lane after NA-0527 stopped at `REMOTE_E2EE_FORWARDING_RECHECK_FAILURE`, focusing on diagnosing the dedicated-key loopback reverse-forwarding failure for `127.0.0.1:39176`, proving or selecting a remediation for the forwarding path before any qsc send/receive, preserving retained-qsc freshness rechecks, synthetic-only proof roots, cleanup robustness, no qsl-server/qsl-attachments, and no public/production readiness claims.
+
+Protects:
+- remote qsc E2EE retry truthfulness.
+- dedicated-key reverse-forwarding correctness.
+- retained-qsc freshness before any retry.
+- synthetic proof/redaction discipline.
+- cleanup of local relay and SSH forward attempts.
+- no qsl-server/qsl-attachments boundary.
+- public/production claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- future NA-0528 evidence and testplan paths to be named by the NA-0528 directive.
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-local SSH/forwarding diagnostics.
+- bounded SSH to inspiron as qslcodex.
+- proof-root-local relay/listener diagnostics.
+- retained remote qsc read/hash/help recheck only.
+- remote artifacts only under `$HOME/qsl-remote-test/e2ee/<PROOF_ID>` if a later directive authorizes a proof root.
+- cleanup/retention proof.
+
+Forbidden scope:
+- qsc send/receive before forwarding path is proven.
+- baseline E2EE before forwarding path is proven.
+- wrong-peer/stale-trust negatives before forwarding path is proven.
+- qsl-server/qsl-attachments.
+- package installation.
+- sudo/admin action except negative `sudo -n true` probe.
+- key generation/installation.
+- authorized_keys mutation.
+- SSH config mutation outside proof root.
+- known_hosts mutation.
+- remote host mutation outside authorized qsl-remote-test proof root.
+- remote source checkout/build.
+- qwork/qstart/qresume.
+- qsl-backup.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- production/user data.
+- no public-readiness, no production-readiness, no public-internet-readiness, no crypto-complete, no identity-complete, no trust-complete, no replay-proof, no downgrade-proof, no secret-material-complete, no side-channel-free, no vulnerability-free, no bug-free, and no perfect-crypto claim.
+
+Deliverables:
+- D-1044 forwarding failure inheritance.
+- retained-qsc freshness recheck before any remote qsc action.
+- dedicated-key reverse-forwarding diagnostic classification.
+- proof whether `127.0.0.1:39176` reverse-forwarding is stable or exact remediation successor selection.
+- cleanup proof.
+- no qsc send/receive proof unless a later directive explicitly authorizes retry after forwarding is proven.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+
+Acceptance criteria:
+- READY_COUNT remains 1.
+- NA-0528 is the sole READY item after closeout.
+- D-1045 exists once.
+- D-1044 exists once.
+- D-1046 absent before NA-0528 implementation.
+- duplicate decision count zero.
+- no NA-0528 implementation in NA-0527 closeout.
+- no remote action in closeout.
+- no qsc send/receive in closeout.
+- no remote E2EE in closeout.
 - no qsl-server/qsl-attachments.
 - no public/production readiness claim.
 - exactly one READY item remains after closeout.

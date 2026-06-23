@@ -27371,3 +27371,53 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `tests/NA-0526_qsl_remote_qsc_prebuilt_binary_restaging_after_quinn_proto_remediation_implementation_testplan.md` records the validation plan.
     - Selected successor: `NA-0527 -- QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Retry After Restaging Implementation Harness`.
   - **References:** NA-0526; selected NA-0527; D-1042; D-1041; D-1040; D424 response `/home/victor/work/qsl/codex/responses/NA0525_20260623T111524Z_D424.md`; D423 response `/home/victor/work/qsl/codex/responses/NA0524_closeout_restore_na0525_20260623T041320Z_D423.md`; D422 response `/home/victor/work/qsl/codex/responses/NA0524_quinn_proto_rustsec_2026_0185_dual_lock_remediation_20260623T013035Z_D422.md`; `docs/governance/evidence/NA-0526_qsl_remote_qsc_prebuilt_binary_restaging_after_quinn_proto_remediation_implementation_harness.md`; `tests/NA-0526_qsl_remote_qsc_prebuilt_binary_restaging_after_quinn_proto_remediation_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1043
+  - **Title:** NA-0526 closeout and NA-0527 restoration
+  - **Date:** 2026-06-23
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0526 closeout is accepted after D-1042 restaged and retained the current post-remediation remote qsc binary, PR #1325 merged at `d12385252c3d`, and a current recheck proved public-safety and advisories completed success on that merge commit. NA-0526 is marked DONE and `NA-0527 -- QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Retry After Restaging Implementation Harness` is restored as the sole READY successor selected by D-1042.
+  - **Implementation evidence accepted:** D-1042 records classification `REMOTE_PREBUILT_QSC_RESTAGING_AFTER_SECURITY_REMEDIATION_PASS_RETAINED`; the old stale retained qsc hash was `6f12ab5eec2468a4146012dfc247cef15be2337cb8e8e99cefa96a8c258d91ea`; the new retained remote qsc hash is `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7`; the retained remote qsc path is `$HOME/qsl-remote-test/bin/qsc`; final owner/mode/size were `qslcodex`/`700`/`102103920`; and remote `qsc --help` passed. No qsc E2EE, qsc send/receive, qsl-server, or qsl-attachments action occurred in NA-0526 implementation.
+  - **Closeout green-gate evidence:** Current check-run retrieval on merge commit `d12385252c3d` showed public-safety completed success, advisories completed success, zero in-progress check runs, and zero completed red check runs.
+  - **Security invariants introduced/changed:**
+    - NA-0526 is DONE.
+    - NA-0527 is READY.
+    - Exactly one READY item remains mandatory, and after closeout that READY item is NA-0527.
+    - No remote qsc action occurs in this closeout.
+    - No qsc send/receive occurs in this closeout.
+    - No qsc E2EE occurs in this closeout.
+    - No qsl-server use occurs in this closeout.
+    - No qsl-attachments use occurs in this closeout.
+    - No dependency mutation occurs in this closeout.
+    - No `Cargo.lock` mutation occurs in this closeout.
+    - No qsc source/test/fuzz/Cargo mutation occurs in this closeout.
+    - No workflow/script/helper mutation occurs in this closeout.
+    - No corpus/vector/input mutation occurs in this closeout.
+    - No formal/refimpl/service/public/backup mutation occurs in this closeout.
+    - No qwork, qstart, or qresume execution occurs in this closeout.
+    - No qsl-backup execution occurs in this closeout.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No perfect-crypto claim is made.
+  - **Alternatives considered:**
+    - Leave NA-0526 READY after D-1042 (rejected: implementation merged, the retained qsc evidence is accepted, and current public-safety/advisories are green).
+    - Implement NA-0527 in this closeout (rejected: this directive is closeout-only and forbids remote qsc action, E2EE, send/receive, qsl-server, and qsl-attachments).
+    - Delete or mutate the retained qsc binary in closeout (rejected: D-1042 intentionally retained the binary for NA-0527, and closeout has no remote-action scope).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0526 DONE and restores NA-0527 READY with the exact D-1042-selected retry-after-restaging scope.
+    - `tests/NA-0526_closeout_restore_na0527_testplan.md` records closeout proof requirements, retained-qsc evidence, and no-remote/no-implementation boundaries.
+    - `TRACEABILITY.md` maps this closeout to D-1042, D-1043, PR #1325, D425 inheritance, and the current public-safety/advisories proof.
+    - The next directive should execute NA-0527 and must first recheck the retained qsc hash/path/owner/mode/size before any authorized remote E2EE negative work.
+  - **References:** NA-0526; NA-0527; D-1043; D-1042; D-1041; D-1040; qsl-protocol PR #1325; D425 response `/home/victor/work/qsl/codex/responses/NA0526_20260623T125452Z_D425.md`; `docs/governance/evidence/NA-0526_qsl_remote_qsc_prebuilt_binary_restaging_after_quinn_proto_remediation_implementation_harness.md`; `tests/NA-0526_qsl_remote_qsc_prebuilt_binary_restaging_after_quinn_proto_remediation_implementation_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0526_closeout_restore_na0527_testplan.md`

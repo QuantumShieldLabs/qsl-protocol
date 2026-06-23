@@ -29964,7 +29964,7 @@ Closeout evidence:
 ---
 
 ### NA-0526 — QSL Remote qsc Prebuilt Binary Restaging After quinn-proto Remediation Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -30021,6 +30021,95 @@ Acceptance criteria:
 - cleanup/retention decision recorded.
 - no qsl-server/qsl-attachments.
 - no E2EE.
+- exactly one READY item remains after closeout.
+
+Closeout evidence:
+- Implementation PR #1325 merged at `d12385252c3d`.
+- D-1042 records the accepted restaging result: `REMOTE_PREBUILT_QSC_RESTAGING_AFTER_SECURITY_REMEDIATION_PASS_RETAINED`.
+- Current post-remediation qsc was retained remotely for NA-0527 at `$HOME/qsl-remote-test/bin/qsc`.
+- Old stale remote qsc hash was `6f12ab5eec2468a4146012dfc247cef15be2337cb8e8e99cefa96a8c258d91ea`.
+- New retained remote qsc hash is `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7`.
+- D425 evidence recorded final owner `qslcodex`, mode `700`, size `102103920`, and remote `qsc --help` success.
+- No remote qsc action, qsc send/receive, E2EE, qsl-server, or qsl-attachments action was run in closeout.
+- No dependency, lockfile, Cargo.toml, qsc source/test/fuzz/Cargo, workflow/script/helper, corpus/vector/input, formal/refimpl/service/public/backup, qsl-server, or qsl-attachments mutation occurs in this closeout.
+- Current recheck verified public-safety and advisories completed success on `d12385252c3d`.
+- D-1043 records the closeout and restores NA-0527 as the D-1042-selected retained-qsc retry successor.
+
+---
+
+### NA-0527 — QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Retry After Restaging Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Execute the bounded remote qsc E2EE wrong-peer / stale-trust negative hardening run after NA-0526 restaged the current post-remediation qsc binary, using retained remote qsc with fresh hash recheck, proven loopback reverse-forwarding, synthetic identities/messages/trust records, isolated local/remote roots, no qsl-server/qsl-attachments, cleanup/retention proof, and no public/production readiness claims.
+
+Protects:
+- remote qsc identity/trust fail-closed behavior.
+- wrong-peer and stale-trust negative boundaries.
+- no unexpected state mutation on trust/identity rejects.
+- retained-qsc freshness after restaging.
+- synthetic proof/redaction discipline.
+- no qsl-server/qsl-attachments boundary.
+- public/production claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- docs/governance/evidence/NA-0527_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_negative_retry_after_restaging_implementation_harness.md
+- tests/NA-0527_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_negative_retry_after_restaging_implementation_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-local local/remote command output.
+- bounded SSH to inspiron as qslcodex.
+- dedicated-key reverse forwarding.
+- retained remote qsc binary.
+- synthetic messages only.
+- synthetic public/trust records only.
+- remote artifacts only under `$HOME/qsl-remote-test/e2ee/<PROOF_ID>`.
+- local sensitive runtime under proof root.
+- cleanup/retention proof.
+
+Forbidden scope:
+- qsl-server/qsl-attachments.
+- package installation.
+- sudo/admin action except negative `sudo -n true` probe.
+- key generation/installation.
+- authorized_keys mutation.
+- SSH config mutation outside proof root.
+- known_hosts mutation.
+- remote host mutation outside qsl-remote-test E2EE root.
+- remote source checkout/build.
+- qwork/qstart/qresume.
+- qsl-backup.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- production/user data.
+- public-readiness, production-readiness, public-internet-readiness, crypto-complete, identity-complete, trust-complete, replay-proof, downgrade-proof, secret-material-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
+
+Deliverables:
+- retained-qsc fresh hash recheck.
+- remote qsc E2EE wrong-peer/stale-trust negative evidence.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- successor selection based on result.
+
+Acceptance criteria:
+- retained qsc hash/path/owner rechecked against NA-0526 hash.
+- forwarding path rechecked.
+- baseline remote E2EE setup reaches identity/trust negative test point.
+- wrong-peer negative fails closed or is deferred with exact rationale.
+- stale-trust/replaced-peer negative fails closed or is deferred with exact rationale.
+- selected state no-mutation checks pass for executed negatives.
+- valid path remains usable if applicable.
+- no secret material in checked-in proof.
+- cleanup/retention result recorded.
+- no qsl-server/qsl-attachments.
+- no public/production readiness claim.
 - exactly one READY item remains after closeout.
 
 ---

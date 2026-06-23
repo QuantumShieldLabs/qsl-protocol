@@ -27277,3 +27277,49 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `tests/NA-0525_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_negative_implementation_testplan.md` records the validation plan.
     - Exactly one READY remains mandatory until a later closeout restores the selected NA-0526 successor.
   - **References:** NA-0525; selected NA-0526; D-1040; D-1039; D-1038; D-1037; D423 response `/home/victor/work/qsl/codex/responses/NA0524_closeout_restore_na0525_20260623T041320Z_D423.md`; D422 response `/home/victor/work/qsl/codex/responses/NA0524_quinn_proto_rustsec_2026_0185_dual_lock_remediation_20260623T013035Z_D422.md`; D419 response `/home/victor/work/qsl/codex/responses/NA0523_recover_retry_20260622T145242Z_D419.md`; `docs/governance/evidence/NA-0525_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_negative_implementation_harness.md`; `tests/NA-0525_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_negative_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1041
+  - **Title:** NA-0525 closeout and NA-0526 restoration
+  - **Date:** 2026-06-23
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0525 closeout is accepted after PR #1323 merged the D-1040 stale-retained-qsc evidence at `2644946204c`. Post-merge public-safety and advisories completed success on that merge commit inside the short attach/early-failure window. NA-0525 is marked DONE and `NA-0526 -- QSL Remote qsc Prebuilt Binary Restaging After quinn-proto Remediation Implementation Harness` is restored as the sole READY successor selected by D-1040.
+  - **Rationale:** D-1040 proved that the retained remote qsc binary was still the old pre-D422 binary after the `quinn-proto 0.11.15` remediation. Running new remote qsc E2EE with that stale binary would produce untruthful evidence, and NA-0525 explicitly forbids restaging. The correct next step is therefore a bounded restaging implementation lane, not wrong-peer/stale-trust execution.
+  - **Security invariants introduced/changed:**
+    - No NA-0526 implementation occurs in this closeout.
+    - No remote action, SSH execution, qsc send/receive, qsc E2EE, forwarding setup, or retained-qsc restaging occurs in this closeout.
+    - No qsl-server use occurs in this closeout.
+    - No qsl-attachments use occurs in this closeout.
+    - No package installation occurs in this closeout.
+    - No qwork, qstart, or qresume execution occurs in this closeout.
+    - No qsl-backup execution occurs in this closeout.
+    - No qsc source/test/fuzz/Cargo mutation occurs in this closeout.
+    - No workflow/script/helper mutation occurs in this closeout.
+    - No corpus/vector/input mutation occurs in this closeout.
+    - No dependency or lockfile mutation occurs in this closeout.
+    - No formal/refimpl/service/public/backup mutation occurs in this closeout.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No perfect-crypto claim is made.
+    - Exactly one READY item remains mandatory, and after closeout that READY item is NA-0526.
+  - **Alternatives considered:**
+    - Leave NA-0525 READY after D-1040 (rejected: D-1040 selected the exact restaging successor and post-merge public-safety/advisories were green).
+    - Restore the wrong-peer/stale-trust retry lane immediately (rejected: retained qsc must be restaged first).
+    - Implement NA-0526 in this closeout (rejected: closeout scope is governance-only).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0525 DONE and restores NA-0526 READY with the D-1040-selected restaging scope.
+    - `tests/NA-0525_closeout_restore_na0526_testplan.md` records closeout proof requirements and no-implementation boundaries.
+    - TRACEABILITY maps this closeout to D-1040, D-1041, PR #1323, and the post-merge public-safety/advisories proof.
+    - The next directive should execute NA-0526 only within restaging scope and must not run qsc E2EE, wrong-peer/stale-trust testing, qsl-server, or qsl-attachments.
+  - **References:** NA-0525; NA-0526; D-1041; D-1040; qsl-protocol PR #1323; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0525_closeout_restore_na0526_testplan.md`; D424 response file.

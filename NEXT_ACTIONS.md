@@ -29880,7 +29880,7 @@ Closeout evidence:
 ---
 
 ### NA-0525 — QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -29951,6 +29951,76 @@ Acceptance criteria:
 - cleanup/retention result recorded.
 - no qsl-server/qsl-attachments.
 - no public/production readiness claim.
+- exactly one READY item remains after closeout.
+
+Closeout evidence:
+- Implementation PR #1323 merged at `2644946204c`.
+- D-1040 records the fail-closed stale-retained-qsc result: `REMOTE_E2EE_RETAINED_QSC_STALE_AFTER_SECURITY_REMEDIATION`.
+- Current clean local qsc hash differed from the retained remote qsc hash, and retained remote qsc still matched the old pre-D422 retained hash.
+- No remote qsc E2EE, qsc send/receive, wrong-peer negative, stale-trust negative, forwarding setup, or remote E2EE root creation was run.
+- Post-merge public-safety and advisories completed success on `2644946204c`.
+- D-1041 records the closeout and restores NA-0526 as the selected restaging successor.
+
+---
+
+### NA-0526 — QSL Remote qsc Prebuilt Binary Restaging After quinn-proto Remediation Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Build qsc from the current post-remediation qsl-protocol checkout, stage the new prebuilt qsc binary to the approved Inspiron qslcodex account under `$HOME/qsl-remote-test/bin/qsc` using the existing bounded staging pattern, verify owner/hash/provenance and non-protocol smoke, decide retention/cleanup, and restore the remote wrong-peer/stale-trust E2EE negative lane as a later successor without qsl-server/qsl-attachments, public-readiness claim, or production-readiness claim.
+
+Allowed scope:
+- docs/governance/evidence/NA-0526_qsl_remote_qsc_prebuilt_binary_restaging_after_quinn_proto_remediation_implementation_harness.md
+- tests/NA-0526_qsl_remote_qsc_prebuilt_binary_restaging_after_quinn_proto_remediation_implementation_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-local qsc build.
+- bounded transfer to `$HOME/qsl-remote-test/bin/qsc`.
+- stage-then-hash-then-final-move pattern.
+- retained binary hash/owner/provenance proof.
+- qsc `--help` or `--version` smoke only.
+- cleanup/retention proof.
+
+Forbidden scope:
+- qsc E2EE.
+- qsc send/receive.
+- wrong-peer/stale-trust testing.
+- qsl-server/qsl-attachments.
+- package installation.
+- remote source checkout/build.
+- sudo/admin action except negative probe if needed.
+- key generation/installation.
+- authorized_keys mutation.
+- SSH config mutation outside proof root.
+- known_hosts mutation.
+- qwork/qstart/qresume.
+- qsl-backup.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- public-readiness claim or production-readiness claim.
+
+Deliverables:
+- restaging evidence.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- selected wrong-peer/stale-trust retry successor or remediation rationale.
+
+Acceptance criteria:
+- current qsc built/selected from post-D422 source.
+- local qsc hash/size/provenance recorded.
+- remote qsc staged under approved path.
+- remote hash matches local.
+- owner qslcodex.
+- non-protocol smoke passes.
+- cleanup/retention decision recorded.
+- no qsl-server/qsl-attachments.
+- no E2EE.
 - exactly one READY item remains after closeout.
 
 ---

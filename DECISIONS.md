@@ -27474,3 +27474,56 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `tests/NA-0527_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_negative_retry_after_restaging_implementation_testplan.md` records validation and scope guards.
     - Selected successor candidate: `NA-0528 -- QSL Remote qsc E2EE Reverse-Forwarding Diagnostic / Retry Scope Authorization Plan`.
   - **References:** NA-0527; selected NA-0528 candidate; D-1044; D-1043; D-1042; D426 response `/home/victor/work/qsl/codex/responses/NA0526_closeout_restore_na0527_20260623T133949Z_D426.md`; D425 response `/home/victor/work/qsl/codex/responses/NA0526_20260623T125452Z_D425.md`; D424 response `/home/victor/work/qsl/codex/responses/NA0525_20260623T111524Z_D424.md`; D419 response `/home/victor/work/qsl/codex/responses/NA0523_recover_retry_20260622T145242Z_D419.md`; `docs/governance/evidence/NA-0527_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_negative_retry_after_restaging_implementation_harness.md`; `tests/NA-0527_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_negative_retry_after_restaging_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1045
+  - **Title:** NA-0527 closeout and NA-0528 restoration
+  - **Date:** 2026-06-23
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0527 closeout is accepted after D-1044 classified the implementation run as `REMOTE_E2EE_FORWARDING_RECHECK_FAILURE`, PR #1327 merged at `7743e3926a52`, and post-merge public-safety and advisories completed success inside the short attach/early-failure window. NA-0527 is marked DONE and `NA-0528 -- QSL Remote qsc E2EE Reverse-Forwarding Diagnostic / Retry Scope Authorization Plan` is restored as the sole READY successor selected by D-1044.
+  - **Implementation evidence accepted:** D-1044 records qwork proof verification, D426/D425/D424/D419 inheritance, retained remote qsc freshness recheck against NA-0526 hash `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7`, command-surface manifest, remote boundary proof, forwarding failure after bounded recovery, cleanup proof, no qsc send/receive, no baseline E2EE, no wrong-peer/stale-trust negative execution, no qsl-server/qsl-attachments use, and no public/production/security completion claim expansion.
+  - **Closeout green-gate evidence:** PR #1327 state MERGED, merge commit `7743e3926a52`; post-merge advisories completed success; post-merge public-safety completed success; no completed red check appeared in the short post-merge polling window.
+  - **Security invariants introduced/changed:**
+    - NA-0527 is DONE.
+    - NA-0528 is READY.
+    - Exactly one READY item remains mandatory, and after closeout that READY item is NA-0528.
+    - No NA-0528 implementation occurs in this closeout.
+    - No remote action occurs in this closeout.
+    - No SSH execution occurs in this closeout.
+    - No forwarding probe occurs in this closeout.
+    - No qsc send/receive occurs in this closeout.
+    - No remote E2EE occurs in this closeout.
+    - No qsl-server use occurs in this closeout.
+    - No qsl-attachments use occurs in this closeout.
+    - No package installation occurs in this closeout.
+    - No qwork, qstart, or qresume execution occurs in this closeout.
+    - No qsl-backup execution occurs in this closeout.
+    - No qsc source/test/fuzz/Cargo mutation occurs in this closeout.
+    - No workflow/script/helper mutation occurs in this closeout.
+    - No corpus/vector/input mutation occurs in this closeout.
+    - No dependency or lockfile mutation occurs in this closeout.
+    - No formal/refimpl/service/public/backup mutation occurs in this closeout.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No perfect-crypto claim is made.
+  - **Alternatives considered:**
+    - Leave NA-0527 READY after D-1044 (rejected: implementation PR merged and post-merge public-safety/advisories were green).
+    - Restore the original repeated-run/cleanup/freshness NA-0528 successor (rejected: D-1044 did not pass wrong-peer/stale-trust negatives; the immediate blocker is forwarding diagnostics).
+    - Implement NA-0528 in this closeout (rejected: closeout scope is governance-only).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0527 DONE and restores NA-0528 READY with the D-1044-selected forwarding diagnostic / retry authorization scope.
+    - `tests/NA-0527_closeout_restore_na0528_testplan.md` records closeout proof requirements and no-implementation boundaries.
+    - `TRACEABILITY.md` maps this closeout to D-1044, D-1045, PR #1327, and post-merge public-safety/advisories proof.
+    - The next directive should execute NA-0528 only within forwarding diagnostic / retry authorization scope and must not run qsc send/receive or baseline E2EE before the reverse-forwarding path is proven.
+  - **References:** NA-0527; NA-0528; D-1045; D-1044; qsl-protocol PR #1327; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0527_closeout_restore_na0528_testplan.md`; D427 response file.

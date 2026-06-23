@@ -6,6 +6,26 @@ Last-Updated: 2026-06-23
 
 # Rolling Operations Journal
 
+## NA-0527 closeout and NA-0528 restoration update
+
+- Directive: QSL-DIR-2026-06-23-427 optional closeout packet.
+- Begin timestamp (UTC): 2026-06-23T17:14:08Z.
+- Repo path: `/srv/qbuild/work/NA-0527/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0527_wrong_peer_stale_trust_negative_retry_after_restaging_impl_20260623T164842Z`.
+- Implementation PR #1327 merged at `7743e3926a52`.
+- Post-merge advisories completed success on `7743e3926a52`.
+- Post-merge public-safety completed success on `7743e3926a52` inside the short attach/early-failure window.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0527_closeout_restore_na0528_testplan.md`.
+- NA-0527 is marked DONE.
+- NA-0528 is restored READY using the D-1044-selected forwarding diagnostic / retry authorization successor.
+- D-1045 records NA-0527 closeout and NA-0528 restoration.
+- No NA-0528 implementation, remote action, SSH execution, forwarding probe, qsc E2EE execution, qsc send/receive execution, qsl-server/qsl-attachments use, package installation, sudo/admin action, key/config/host mutation, qwork/qstart/qresume, qsl-backup execution, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation is introduced.
+- Branch: `na-0527-closeout-restore-na0528`.
+- PR title: `NA-0527: closeout and restore NA-0528`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0527 update
 
 - Directive: QSL-DIR-2026-06-23-427 -- Execute NA-0527 QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Retry After Restaging Implementation Harness, Optional Closeout to Selected NA-0528.

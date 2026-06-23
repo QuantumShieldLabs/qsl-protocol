@@ -6,6 +6,43 @@ Last-Updated: 2026-06-23
 
 # Rolling Operations Journal
 
+## NA-0528 closeout and NA-0529 restoration update
+
+- Directive: QSL-DIR-2026-06-23-429 -- Close Out NA-0528 After Reverse-Forwarding Diagnostic Authorization Public-Safety Completion and Restore NA-0529.
+- Begin timestamp (America/Chicago): 2026-06-23T15:32:16-05:00.
+- Begin timestamp (UTC): 2026-06-23T20:32:16Z.
+- Repo path: `/srv/qbuild/work/NA-0528/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0528_closeout_restore_na0529_after_forwarding_authorization_20260623T203216Z`.
+- Codex did not run qwork, qstart, qresume, qsl-backup, SSH, scp, sftp, rsync, remote commands, qsc send/receive, qsc protocol commands, remote E2EE, qsl-server, qsl-attachments, cargo update, branch-protection mutation, admin bypass, backup, or restore.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0528/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `ba54e32e3012`.
+- Fetch performed only after proof/live ref match and disk proof below threshold.
+- Disk watermark before fetch: `/` usage 84.29%; `/backup/qsl` usage 26.35%. STOP threshold 95% was not hit.
+- Startup queue proof: READY_COUNT 1; READY NA-0528; NA-0527 DONE; NA-0526 DONE; NA-0525 DONE.
+- Startup decision proof used the `- **ID:** D-####` parser: D-1044 once, D-1045 once, D-1046 once, D-1047 absent, D-1048 absent, and duplicate decision count zero.
+- D428, D427, D426, D414, and D413 response files were found.
+- PR #1329 merge proof passed by inherited D428 response and current main ancestry: merge commit `ba54e32e3012`.
+- Current main health on `ba54e32e3012`: public-safety completed success, advisories completed success, zero in-progress check runs, and zero completed red check runs in the retrieved check-run set.
+- Root and nested qsc fuzz lockfiles both contain `quinn-proto 0.11.15`; no Cargo.toml drift was present before closeout.
+- qsl-backup read-only proof: installed helper matched SHA-256 `e9ecff3d22eda21ceb0e889e4dd5d6f4e270e09349c77a1f4872bfc0052f6232`; Codex ops source appears exactly once in the installed helper source list.
+- D428/D427/D414/D413 inheritance consumed: D428 classified NA-0528 as `REMOTE_FORWARDING_DIAGNOSTIC_IMPLEMENTATION_READY`, selected `NA-0529 -- QSL Remote qsc E2EE Reverse-Forwarding Diagnostic Implementation Harness`, merged PR #1329 at `ba54e32e3012`, kept NA-0528 authorization-only, and did not run remote action, SSH, qsc send/receive, remote E2EE, qsl-server, or qsl-attachments. D427 classified the prior retry as `REMOTE_E2EE_FORWARDING_RECHECK_FAILURE`. D414 proved known-good dedicated-key marker forwarding and ACK without qsc E2EE or qsc send/receive. D413 supplied the dedicated forwarding key proof boundary inherited by D414.
+- Pre-closeout validation passed: `git diff --check`; root cargo audit; nested qsc fuzz lock cargo audit; `cargo fmt --check`; `sh -n scripts/ci/qsc_adversarial.sh`; `bash -n scripts/ci/qsc_adversarial.sh`; preferred qsc tests `same_host_client_to_client_e2e` and `receive_e2e`.
+- Static closeout validation passed: exact five-path worktree scope guard; queue/decision proof; link-check; added-line leak scan; PR body preflight with overclaim scan; docs-only classifier; marker proof; forbidden-mutation guard; and corrected added-line overclaim scan.
+- Recovered failure: a read-only proof-output inspection command used a Bash `printf` format beginning with dash characters and failed before printing artifacts. Classification: recoverable command-shape issue. Corrective action: reran the inspection with a safe `%s` format. Final result: proof output was inspected successfully.
+- Recovered failure: the first custom added-line overclaim scan flagged the directive-required NA-0529 Forbidden scope no-claim label list. Classification: recoverable proof-tooling shape issue because the labels appeared under Forbidden scope, not as affirmative claims. Corrective action: reran a context-aware scanner that ignores Forbidden scope enumerations and no-claim wording. Final result: overclaim scan passed with zero findings.
+- Post-patch validation passed: `git diff --check`; root cargo audit; nested qsc fuzz lock cargo audit; `cargo fmt --check`; `sh -n scripts/ci/qsc_adversarial.sh`; `bash -n scripts/ci/qsc_adversarial.sh`; preferred qsc tests `same_host_client_to_client_e2e` and `receive_e2e`.
+- Wait accounting so far: pre-closeout `same_host_client_to_client_e2e` ran 122 seconds; pre-closeout `receive_e2e` ran 106 seconds; post-patch `same_host_client_to_client_e2e` ran 122 seconds; post-patch `receive_e2e` ran 106 seconds; all four are recorded in the directive wait log as local long-command waits.
+- Governance patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0528_closeout_restore_na0529_testplan.md`.
+- D-1047 records NA-0528 closeout and NA-0529 restoration.
+- NA-0528 is marked DONE. NA-0529 is restored READY as the exact D-1046-selected diagnostic implementation successor.
+- Branch: `na-0528-closeout-restore-na0529`.
+- PR title: `NA-0528: closeout and restore NA-0529`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0528_closeout_restore_na0529_after_forwarding_authorization_20260623T203216Z/wait_accounting.tsv`.
+- No NA-0529 implementation, remote action, SSH execution, qsc send/receive execution, remote E2EE execution, qsl-server/qsl-attachments use, dependency mutation, lockfile mutation, Cargo.toml mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qwork/qstart/qresume, or qsl-backup execution is introduced.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0527 closeout and NA-0528 restoration update
 
 - Directive: QSL-DIR-2026-06-23-427 optional closeout packet.

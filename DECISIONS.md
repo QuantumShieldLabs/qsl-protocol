@@ -27571,3 +27571,43 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `tests/NA-0528_qsl_remote_qsc_e2ee_reverse_forwarding_diagnostic_retry_scope_authorization_testplan.md` records static validation, queue/decision validation, marker validation, private-material scans, local validation, and boundary assertions.
     - `TRACEABILITY.md` maps this authorization to D-1046 and the selected NA-0529 successor.
   - **References:** NA-0528; selected NA-0529; D-1046; D-1045; D-1044; D427 response `/home/victor/work/qsl/codex/responses/NA0527_20260623T172638Z_D427.md`; D426 response `/home/victor/work/qsl/codex/responses/NA0526_closeout_restore_na0527_20260623T133949Z_D426.md`; D425 response `/home/victor/work/qsl/codex/responses/NA0526_20260623T125452Z_D425.md`; D414 response `/home/victor/work/qsl/codex/responses/NA0520_20260622T034023Z_D414.md`; D413 response `/home/victor/work/qsl/codex/responses/NA0519_20260622T021059Z_D413.md`; `docs/governance/evidence/NA-0528_qsl_remote_qsc_e2ee_reverse_forwarding_diagnostic_retry_scope_authorization_plan.md`; `tests/NA-0528_qsl_remote_qsc_e2ee_reverse_forwarding_diagnostic_retry_scope_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1047
+  - **Title:** NA-0528 closeout and NA-0529 restoration
+  - **Date:** 2026-06-23
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0528 closeout is accepted after D-1046 authorized the reverse-forwarding diagnostic implementation successor, PR #1329 merged at `ba54e32e3012`, and the current post-merge recheck showed public-safety and advisories completed success on that merge commit. NA-0528 is marked DONE, and `NA-0529 -- QSL Remote qsc E2EE Reverse-Forwarding Diagnostic Implementation Harness` is restored as the sole READY successor selected by D-1046.
+  - **Implementation evidence accepted:** D-1046 records classification `REMOTE_FORWARDING_DIAGNOSTIC_IMPLEMENTATION_READY`, consumes the D427 reverse-forwarding failure and NA-0520 successful forwarding proof, and selects NA-0529 as the exact implementation diagnostic successor. D428 records PR #1329 merge at `ba54e32e3012`, NA-0528 authorization-only scope, no remote action, no SSH execution, no qsc send/receive, no remote E2EE, and no qsl-server/qsl-attachments. This closeout rechecked public-safety and advisories on `ba54e32e3012` and found both completed success before queue restoration.
+  - **Security invariants introduced/changed:**
+    - No remote action occurs in this closeout.
+    - No SSH execution occurs in this closeout.
+    - No qsc send/receive occurs in this closeout.
+    - No remote E2EE occurs in this closeout.
+    - No qsl-server use occurs in this closeout.
+    - No qsl-attachments use occurs in this closeout.
+    - No dependency mutation occurs in this closeout.
+    - No lockfile mutation occurs in this closeout.
+    - No qsc source/test/fuzz/Cargo mutation occurs in this closeout.
+    - No qsl-backup execution occurs in this closeout.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free, bug-free, or perfect-crypto claim is made.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Leave NA-0528 READY after D-1046 (rejected: authorization PR #1329 merged and the current public-safety/advisories recheck is green).
+    - Implement NA-0529 in the closeout PR (rejected: closeout scope only restores NA-0529 for a later directive).
+    - Skip successor restoration (rejected: one READY item remains mandatory and D-1046 selected the exact NA-0529 successor).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0528 DONE and restores NA-0529 READY with the exact D-1046-selected diagnostic implementation scope.
+    - `tests/NA-0528_closeout_restore_na0529_testplan.md` records closeout-only static validation, queue/decision validation, marker validation, boundary assertions, dependency health checks, and post-closeout public-safety/advisories requirements.
+    - `TRACEABILITY.md` maps this closeout to D-1046, D-1047, PR #1329, the green public-safety/advisories recheck, and the restored NA-0529 successor.
+  - **References:** NA-0528; NA-0529; D-1047; D-1046; D-1045; D-1044; qsl-protocol PR #1329; D428 response `/home/victor/work/qsl/codex/responses/NA0528_20260623T183117Z_D428.md`; D427 response `/home/victor/work/qsl/codex/responses/NA0527_20260623T172638Z_D427.md`; D414 response `/home/victor/work/qsl/codex/responses/NA0520_20260622T034023Z_D414.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0528_closeout_restore_na0529_testplan.md`

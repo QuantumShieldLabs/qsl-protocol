@@ -29861,11 +29861,97 @@ Closeout evidence:
 ---
 
 ### NA-0524 — QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
 Authorize the next remote qsc E2EE hardening lane after successful replay/corrupt negative testing, focusing on wrong-peer and stale-trust negative/no-mutation behavior, retained-qsc freshness, forwarding cleanup, synthetic proof redaction, cleanup/retention, no qsl-server/qsl-attachments, and no public/production readiness claims.
+
+Closeout evidence:
+- Authorization PR #1320 merged at `d309fd9d10c4`.
+- Remediation PR #1321 merged at `085806b8e79b`.
+- D-1037 authorization accepted.
+- D-1038 dual-lockfile remediation accepted.
+- Post-remediation advisories and public-safety completed success.
+- Root `Cargo.lock` and nested `qsl/qsl-client/qsc/fuzz/Cargo.lock` both contain `quinn-proto 0.11.15`.
+- Closeout made no dependency, lockfile, Cargo.toml, qsc source/test/fuzz source, workflow/script/helper, corpus/vector/input, formal/refimpl/service/public/backup, qsl-server, qsl-attachments, remote-action, or qsl-backup mutation.
+- D-1039 records the closeout and NA-0525 restoration.
+
+---
+
+### NA-0525 — QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Execute a bounded remote qsc E2EE identity/trust negative hardening run after NA-0521 and NA-0523 success, using retained remote qsc and the proven loopback reverse-forwarding path to rerun synthetic Build-to-Inspiron E2EE setup, then prove wrong-peer and stale-trust or replaced-peer public-record conditions fail closed without unexpected state mutation, preserving synthetic data, isolated local/remote roots, cleanup, no qsl-server/qsl-attachments, and no public/production readiness claims.
+
+Protects:
+- remote qsc identity/trust fail-closed behavior.
+- wrong-peer and stale-trust negative boundaries.
+- no unexpected state mutation on trust/identity rejects.
+- retained-qsc freshness discipline.
+- synthetic proof/redaction discipline.
+- no qsl-server/qsl-attachments boundary.
+- public/production claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- docs/governance/evidence/NA-0525_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_negative_implementation_harness.md
+- tests/NA-0525_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_negative_implementation_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-local local/remote command output.
+- bounded SSH to inspiron as qslcodex.
+- dedicated-key reverse forwarding.
+- retained remote qsc binary.
+- synthetic messages only.
+- synthetic public/trust records only.
+- remote artifacts only under `$HOME/qsl-remote-test/e2ee/<PROOF_ID>`.
+- local sensitive runtime under proof root.
+- cleanup/retention proof.
+
+Forbidden scope:
+- qsl-server/qsl-attachments.
+- package installation.
+- sudo/admin action except negative `sudo -n true` probe.
+- key generation/installation.
+- authorized_keys mutation.
+- SSH config mutation outside proof root.
+- known_hosts mutation.
+- remote host mutation outside qsl-remote-test E2EE root.
+- remote source checkout/build.
+- qwork/qstart/qresume.
+- qsl-backup.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- production/user data.
+- public-readiness, production-readiness, public-internet-readiness, crypto-complete, identity-complete, trust-complete, replay-proof, downgrade-proof, secret-material-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
+
+Deliverables:
+- remote qsc E2EE wrong-peer/stale-trust negative evidence.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- successor selection based on result.
+
+Acceptance criteria:
+- retained qsc hash/path/owner rechecked.
+- forwarding path rechecked.
+- baseline remote E2EE setup reaches identity/trust negative test point.
+- wrong-peer negative fails closed or is deferred with exact rationale.
+- stale-trust/replaced-peer negative fails closed or is deferred with exact rationale.
+- selected state no-mutation checks pass for executed negatives.
+- valid path remains usable if applicable.
+- no secret material in checked-in proof.
+- cleanup/retention result recorded.
+- no qsl-server/qsl-attachments.
+- no public/production readiness claim.
+- exactly one READY item remains after closeout.
 
 ---
 

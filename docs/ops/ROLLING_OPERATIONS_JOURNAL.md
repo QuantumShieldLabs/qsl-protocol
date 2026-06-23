@@ -6,6 +6,36 @@ Last-Updated: 2026-06-22
 
 # Rolling Operations Journal
 
+## NA-0524 closeout and NA-0525 restoration update
+
+- Directive: QSL-DIR-2026-06-23-423 -- Close Out NA-0524 After quinn-proto RUSTSEC-2026-0185 Dual-Lockfile Remediation and Restore NA-0525.
+- Begin timestamp (UTC): 2026-06-23T03:46:56Z.
+- Repo path: `/srv/qbuild/work/NA-0524/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0524_closeout_restore_na0525_after_quinn_proto_remediation_20260623T034656Z`.
+- Codex did not run qwork, qstart, qresume, SSH, scp, sftp, rsync, qsc send/receive, remote E2EE, remote qsc, qsl-server, qsl-attachments, qsl-backup, backup, restore, cargo update, cargo audit ignore/waiver, branch-protection mutation, or admin bypass.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0524/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `085806b8e79b`.
+- Fetch performed only after proof/live ref match and disk proof below threshold.
+- Disk watermark before fetch: `/` usage 87%; `/backup/qsl` usage 27%; STOP threshold 95% was not hit.
+- Startup queue proof: READY_COUNT 1; READY NA-0524; NA-0523 DONE; NA-0522 DONE; NA-0521 DONE.
+- Startup decision proof used the `- **ID:** D-####` parser: D-1037 once, D-1038 once, D-1039 absent, D-1040 absent, and duplicate decision record count zero.
+- D420/D421/D422 inheritance consumed: PR #1320 merged at `d309fd9d10c4`; D-1037 exists once; D420 closeout was blocked by RUSTSEC-2026-0185; D421 stopped because nested qsc fuzz lock remediation was not authorized; PR #1321 merged at `085806b8e79b`; D-1038 exists once; D422 remediated both affected lockfiles without closeout.
+- Remediation green gate passed: D422 late recheck and current main both show advisories and public-safety completed success; current main also has qsc-linux-full-suite and macos-qsc-full-serial completed success.
+- Lockfile proof: root `Cargo.lock` and nested `qsl/qsl-client/qsc/fuzz/Cargo.lock` both contain `quinn-proto 0.11.15`; no Cargo.toml drift was present before closeout.
+- qsl-backup read-only proof: installed helper matched the required SHA-256 digest; Codex ops source appears exactly once in the installed helper source list.
+- Recovered failure: the first qsl-backup boundary probe assumed a checkout path at `/home/victor/work/qsl/qsl-backup` and failed before reading backup material. Classification: recoverable command-shape/path discovery mistake; no backup execution or mutation occurred. Corrective action: verified the installed helper read-only at `/usr/local/sbin/qsl-backup` with sha256sum and source marker count. Final result: helper hash matched and source inclusion count was exactly 1.
+- Pre-closeout validation passed: `git diff --check`; root and nested cargo audits; focused qsc tests `same_host_client_to_client_e2e`, `receive_e2e`, `key_lifecycle_zeroization_expansion`, `secret_material_diagnostic_boundary`, and `handshake_provider_error_no_mutation`; qsc fuzz corpus validators; formal model checks; `cargo fmt --check`; `sh -n scripts/ci/qsc_adversarial.sh`; `bash -n scripts/ci/qsc_adversarial.sh`.
+- Governance patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0524_closeout_restore_na0525_testplan.md`.
+- D-1039 records NA-0524 closeout and NA-0525 restoration.
+- NA-0524 is marked DONE. NA-0525 is restored READY as the exact D-1037-selected successor.
+- Branch: `na-0524-closeout-restore-na0525`.
+- PR title: `NA-0524: closeout and restore NA-0525`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0524_closeout_restore_na0525_after_quinn_proto_remediation_20260623T034656Z/wait_accounting.tsv`.
+- No dependency mutation occurs in this closeout. No Cargo.lock mutation occurs in this closeout. No qsc source/test/fuzz/Cargo mutation occurs in this closeout. No workflow/script/helper mutation occurs in this closeout. No corpus/vector/input mutation occurs in this closeout. No formal/refimpl/service/public/backup mutation occurs in this closeout. No qsl-server or qsl-attachments mutation occurs in this closeout. No remote action occurs in this closeout. No qsl-backup execution occurs in this closeout.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0524 quinn-proto RUSTSEC-2026-0185 dual-lockfile remediation update
 
 - Directive: QSL-DIR-2026-06-23-422 -- Remediate NA-0524 quinn-proto RUSTSEC-2026-0185 Across Root and qsc Fuzz Lockfiles.

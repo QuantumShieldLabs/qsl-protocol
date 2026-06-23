@@ -27208,3 +27208,30 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - The validation plan is recorded in `tests/NA-0524_quinn_proto_rustsec_2026_0185_dual_lock_remediation_testplan.md`.
     - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
   - **References:** NA-0524; D-1038; D-1037; D420 response `/home/victor/work/qsl/codex/responses/NA0524_20260622T181657Z_D420.md`; D421 response `/home/victor/work/qsl/codex/responses/NA0524_quinn_proto_rustsec_2026_0185_remediation_20260623T010140Z_D421.md`; `Cargo.lock`; `qsl/qsl-client/qsc/fuzz/Cargo.lock`; `docs/governance/evidence/NA-0524_quinn_proto_rustsec_2026_0185_dual_lock_remediation.md`; `tests/NA-0524_quinn_proto_rustsec_2026_0185_dual_lock_remediation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1039
+  - **Title:** NA-0524 closeout and NA-0525 restoration
+  - **Date:** 2026-06-23
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0524 closeout is accepted after D-1037 authorization and D-1038 dual-lockfile remediation. PR #1320 merged the authorization at `d309fd9d10c4`; PR #1321 merged the remediation at `085806b8e79b`; post-remediation advisories and public-safety completed success; root `Cargo.lock` and nested `qsl/qsl-client/qsc/fuzz/Cargo.lock` both verify `quinn-proto 0.11.15`. NA-0524 is marked DONE and `NA-0525 -- QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Implementation Harness` is restored as the sole READY item.
+  - **Rationale:** D420 selected NA-0525 but closeout was blocked by RUSTSEC-2026-0185. D421 correctly stopped before unauthorized nested fuzz lockfile remediation. D422 remediated both affected lockfiles and the late post-merge recheck plus current main recheck prove advisories and public-safety are green. With dependency-health gates restored and NA-0524 still the sole READY item before this closeout, the selected successor can be restored without implementing it.
+  - **Security invariants introduced/changed:**
+    - No dependency mutation occurs in this closeout.
+    - No `Cargo.lock` mutation occurs in this closeout.
+    - No `qsl/qsl-client/qsc/fuzz/Cargo.lock` mutation occurs in this closeout.
+    - No `Cargo.toml`, qsc source/test/fuzz source, qsc fuzz Cargo, workflow/script/helper, corpus/vector/input, formal/refimpl/service/public/backup, qsl-server, or qsl-attachments mutation occurs in this closeout.
+    - No remote action, SSH execution, scp, sftp, rsync, qsc send/receive, remote E2EE, qsl-backup, backup, or restore occurs in this closeout.
+    - No public-readiness claim is made. no production-readiness claim is made. no public-internet-readiness claim is made. no external-review-complete claim is made. no crypto-complete claim is made. no identity-complete claim is made. no trust-complete claim is made. no replay-proof claim is made. no downgrade-proof claim is made. no secret-material-complete claim is made. no side-channel-free claim is made. no vulnerability-free claim is made. no bug-free claim is made. no perfect-crypto claim is made.
+    - Exactly one READY item remains mandatory, and after closeout that READY item is NA-0525.
+  - **Alternatives considered:**
+    - Leave NA-0524 READY after remediation (rejected: D-1037 selected the exact successor and the advisory blocker is now green).
+    - Restore a different successor (rejected: D-1037 selected NA-0525 exactly).
+    - Implement NA-0525 in this closeout (rejected: this directive is closeout-only and must not execute remote qsc E2EE, SSH, or wrong-peer/stale-trust negatives).
+    - Mutate dependencies or lockfiles in closeout (rejected: D-1038 already completed remediation and this closeout has no dependency mutation scope).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0524 DONE and restores NA-0525 READY with the exact D-1037 successor text.
+    - `tests/NA-0524_closeout_restore_na0525_testplan.md` records closeout proof requirements and no-claim/no-implementation boundaries.
+    - TRACEABILITY maps the closeout to D-1037, D-1038, D-1039, PR #1320, PR #1321, the D422 late recheck, and the current green-gate proof.
+    - The next directive should execute NA-0525 under its own scope and must preserve the no qsl-server/qsl-attachments, synthetic proof, cleanup, and no public/production readiness boundaries.
+  - **References:** NA-0524; NA-0525; D-1039; D-1038; D-1037; PR #1320; PR #1321; D420 response `/home/victor/work/qsl/codex/responses/NA0524_20260622T181657Z_D420.md`; D421 response `/home/victor/work/qsl/codex/responses/NA0524_quinn_proto_rustsec_2026_0185_remediation_20260623T010140Z_D421.md`; D422 response `/home/victor/work/qsl/codex/responses/NA0524_quinn_proto_rustsec_2026_0185_dual_lock_remediation_20260623T013035Z_D422.md`; D422 late recheck proof; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0524_closeout_restore_na0525_testplan.md`

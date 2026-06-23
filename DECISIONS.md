@@ -27323,3 +27323,51 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - TRACEABILITY maps this closeout to D-1040, D-1041, PR #1323, and the post-merge public-safety/advisories proof.
     - The next directive should execute NA-0526 only within restaging scope and must not run qsc E2EE, wrong-peer/stale-trust testing, qsl-server, or qsl-attachments.
   - **References:** NA-0525; NA-0526; D-1041; D-1040; qsl-protocol PR #1323; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0525_closeout_restore_na0526_testplan.md`; D424 response file.
+
+- **ID:** D-1042
+  - **Title:** NA-0526 remote qsc prebuilt binary restaging after quinn-proto remediation
+  - **Date:** 2026-06-23
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0526 consumed D424/D423/D422 inheritance and restaged the retained remote qsc binary after the `quinn-proto 0.11.15` remediation. Result classification: `REMOTE_PREBUILT_QSC_RESTAGING_AFTER_SECURITY_REMEDIATION_PASS_RETAINED`.
+  - **Evidence consumed:** D424 classified NA-0525 as `REMOTE_E2EE_RETAINED_QSC_STALE_AFTER_SECURITY_REMEDIATION`; D423 restored NA-0525 after post-remediation green checks; D422 updated both affected lockfiles to `quinn-proto 0.11.15`; D-1040 selected NA-0526; D-1041 restored NA-0526 READY.
+  - **Local current qsc build/provenance:** current clean source commit `2cff954de589`; build command `cargo build -p qsc --locked --bin qsc`; root and nested qsc fuzz lockfiles contained `quinn-proto 0.11.15`; qsc runtime/dependency paths had no diff from the D424 source commit; local binary size `102103920`; local SHA-256 `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7`; local `qsc --help` smoke passed.
+  - **Remote pre-state:** retained remote qsc at `$HOME/qsl-remote-test/bin/qsc` was owned by `qslcodex`, mode `700`, size `102103920`, and hashed to old stale value `6f12ab5eec2468a4146012dfc247cef15be2337cb8e8e99cefa96a8c258d91ea`.
+  - **Stage/final result:** staged remote qsc at `$HOME/qsl-remote-test/bin/qsc.NA0526_20260623T122810Z.stage` hashed to `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7`; final remote qsc after move was owned by `qslcodex`, mode `700`, size `102103920`, and hashed to `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7`; stage path was absent after move.
+  - **Remote smoke result:** final remote `$HOME/qsl-remote-test/bin/qsc --help` passed. No protocol command was run.
+  - **Retention/cleanup decision:** final remote qsc is retained for NA-0527; cleanup command is recorded in evidence; the proof-specific stage path and remote E2EE root are absent; no remote qsc process remained; NA-0527 must recheck retained path, owner, mode, size, and hash before remote E2EE.
+  - **Security invariants introduced/changed:**
+    - No qsc E2EE occurred.
+    - No qsc send/receive occurred.
+    - No qsl-server use occurred.
+    - No qsl-attachments use occurred.
+    - No package installation occurred.
+    - No remote source checkout or remote build occurred.
+    - No qwork, qstart, or qresume execution occurred.
+    - No qsl-backup execution occurred.
+    - No qsc source/test/fuzz/Cargo mutation occurred.
+    - No workflow/script/helper mutation occurred.
+    - No corpus/vector/input mutation occurred.
+    - No dependency or lockfile mutation occurred.
+    - No formal/refimpl/service/public/backup mutation occurred.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No vulnerability-free or perfect-crypto claim is made.
+    - Exactly one READY item remains mandatory until optional closeout restores the selected successor.
+  - **Alternatives considered:**
+    - Run wrong-peer/stale-trust remote E2EE immediately (rejected: D424 proved the retained binary was stale).
+    - Treat D424's local qsc hash as mandatory (rejected: the directive allows current-source docs-only movement; qsc runtime/dependency drift is the stop gate).
+    - Use rsync or sftp (rejected: the directive requires exactly one bounded transfer command, preferably scp).
+    - Remove the final binary after successful restaging (rejected: retained restaging is the intended predecessor for NA-0527).
+  - **Implications for spec/impl/tests:**
+    - NA-0526 evidence records local build/provenance, remote pre-state, transfer/stage proof, final hash verification, remote help smoke, retention/cleanup decision, and the no-protocol boundary.
+    - `TRACEABILITY.md` maps this restaging evidence to D-1042.
+    - `tests/NA-0526_qsl_remote_qsc_prebuilt_binary_restaging_after_quinn_proto_remediation_implementation_testplan.md` records the validation plan.
+    - Selected successor: `NA-0527 -- QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Retry After Restaging Implementation Harness`.
+  - **References:** NA-0526; selected NA-0527; D-1042; D-1041; D-1040; D424 response `/home/victor/work/qsl/codex/responses/NA0525_20260623T111524Z_D424.md`; D423 response `/home/victor/work/qsl/codex/responses/NA0524_closeout_restore_na0525_20260623T041320Z_D423.md`; D422 response `/home/victor/work/qsl/codex/responses/NA0524_quinn_proto_rustsec_2026_0185_dual_lock_remediation_20260623T013035Z_D422.md`; `docs/governance/evidence/NA-0526_qsl_remote_qsc_prebuilt_binary_restaging_after_quinn_proto_remediation_implementation_harness.md`; `tests/NA-0526_qsl_remote_qsc_prebuilt_binary_restaging_after_quinn_proto_remediation_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

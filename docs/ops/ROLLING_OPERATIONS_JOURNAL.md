@@ -6,6 +6,43 @@ Last-Updated: 2026-06-23
 
 # Rolling Operations Journal
 
+## NA-0526 closeout and NA-0527 restoration update
+
+- Directive: QSL-DIR-2026-06-23-426 -- Close Out NA-0526 After Remote qsc Restaging Public-Safety Completion and Restore NA-0527.
+- Begin timestamp (America/Chicago): 2026-06-23T08:12:18-05:00.
+- Begin timestamp (UTC): 2026-06-23T13:12:18Z.
+- Repo path: `/srv/qbuild/work/NA-0526/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0526_closeout_restore_na0527_after_restaging_20260623T131218Z`.
+- Codex did not run qwork, qstart, qresume, qsl-backup, SSH, scp, sftp, rsync, remote qsc, qsc E2EE, qsc send/receive, qsl-server, qsl-attachments, qsc restaging, package installation, remote source checkout/build, cargo update, workflow/script/helper mutation, dependency/lockfile mutation, Cargo.toml mutation, qsc source/test/fuzz source mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, branch-protection mutation, backup, or restore.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0526/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `d12385252c3d`.
+- Fetch performed only after proof/live ref match and disk proof below threshold.
+- Disk watermark before fetch: `/` usage 88%; `/backup/qsl` usage 27%. STOP threshold 95% was not hit.
+- Startup queue proof: READY_COUNT 1; READY NA-0526; NA-0525 DONE; NA-0524 DONE; NA-0523 DONE.
+- Startup decision proof used the `- **ID:** D-####` parser: D-1040 once, D-1041 once, D-1042 once, D-1043 absent, D-1044 absent, and duplicate decision count zero.
+- D425, D424, D423, and D422 response files were found.
+- PR #1325 merge proof passed: PR state MERGED; merged at 2026-06-23T12:49:42Z; merge commit `d12385252c3d`.
+- Current main health on `d12385252c3d`: public-safety completed success, advisories completed success, zero in-progress check runs, and zero completed red check runs in the retrieved check-run set.
+- Root and nested qsc fuzz lockfiles both contain `quinn-proto 0.11.15`; no Cargo.toml drift was present before closeout.
+- qsl-backup read-only proof: installed helper matched SHA-256 `e9ecff3d22eda21ceb0e889e4dd5d6f4e270e09349c77a1f4872bfc0052f6232`; Codex ops source appears exactly once in the installed helper source list.
+- D425/D424/D423 inheritance consumed: NA-0526 classified `REMOTE_PREBUILT_QSC_RESTAGING_AFTER_SECURITY_REMEDIATION_PASS_RETAINED`; old stale remote qsc hash `6f12ab5eec2468a4146012dfc247cef15be2337cb8e8e99cefa96a8c258d91ea`; new retained local/stage/final remote qsc hash `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7`; final path `$HOME/qsl-remote-test/bin/qsc`; final owner/mode/size `qslcodex`/`700`/`102103920`; remote `qsc --help` passed; no qsc E2EE, qsc send/receive, qsl-server, or qsl-attachments were used; optional closeout did not run in D425 because public-safety was queued at the short-window end.
+- Recovered failure: `gh pr view 1325 --json number,state,merged,mergeCommit,headRefName,baseRefName,title,url` failed because gh 2.93.0 does not expose a `merged` JSON field. Classification: recoverable command-shape / CLI usage mistake. Corrective action: reran once with `state`, `mergedAt`, and `mergeCommit` fields. Final result: PR #1325 merge proof passed with state MERGED and merge commit `d12385252c3d`.
+- Pre-closeout validation passed: `git diff --check`; root cargo audit; nested qsc fuzz lock cargo audit; `cargo fmt --check`; `sh -n scripts/ci/qsc_adversarial.sh`; `bash -n scripts/ci/qsc_adversarial.sh`; preferred qsc tests `same_host_client_to_client_e2e` and `receive_e2e`.
+- Static closeout validation passed: exact five-path worktree scope guard; queue/decision proof; link-check; added-line leak scan; PR body preflight with overclaim scan; docs-only classifier; marker proof; added-line overclaim scan; forbidden-mutation guard; added-line private-material scan.
+- Recovered failure: first custom added-line overclaim scan flagged the directive-required NA-0527 Forbidden scope bullet that lists prohibited claim labels. Classification: recoverable proof-tooling shape issue. Corrective action: reran with markdown context for Forbidden scope blocks. Final result: overclaim scan passed with zero findings and the exact selected NA-0527 successor text was preserved.
+- Recovered failure: first custom private-material scan scanned whole historical governance files and flagged pre-existing documentation examples. Classification: recoverable proof-shape issue. Corrective action: reran a high-confidence scan on added lines and the new testplan, matching the directive leak-scan scope. Final result: private-material scan passed with zero findings.
+- Post-patch validation passed: `git diff --check`; root cargo audit; nested qsc fuzz lock cargo audit; `cargo fmt --check`; `sh -n scripts/ci/qsc_adversarial.sh`; `bash -n scripts/ci/qsc_adversarial.sh`; preferred qsc tests `same_host_client_to_client_e2e` and `receive_e2e`.
+- Wait accounting so far: pre-closeout `same_host_client_to_client_e2e` ran 152 seconds; pre-closeout `receive_e2e` ran 106 seconds; post-patch `same_host_client_to_client_e2e` ran 123 seconds; post-patch `receive_e2e` ran 106 seconds; all four are recorded in the directive wait log as local long-command waits.
+- Governance patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0526_closeout_restore_na0527_testplan.md`.
+- D-1043 records NA-0526 closeout and NA-0527 restoration.
+- NA-0526 is marked DONE. NA-0527 is restored READY as the exact D-1042-selected retry-after-restaging successor.
+- Branch: `na-0526-closeout-restore-na0527`.
+- PR title: `NA-0526: closeout and restore NA-0527`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0526_closeout_restore_na0527_after_restaging_20260623T131218Z/wait_accounting.tsv`.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0526 update
 
 - Directive: QSL-DIR-2026-06-23-425 -- Execute NA-0526 QSL Remote qsc Prebuilt Binary Restaging After quinn-proto Remediation Implementation Harness, Optional Closeout to NA-0527.

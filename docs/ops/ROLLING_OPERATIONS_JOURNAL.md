@@ -6,6 +6,38 @@ Last-Updated: 2026-06-22
 
 # Rolling Operations Journal
 
+## NA-0524 quinn-proto RUSTSEC-2026-0185 dual-lockfile remediation update
+
+- Directive: QSL-DIR-2026-06-23-422 -- Remediate NA-0524 quinn-proto RUSTSEC-2026-0185 Across Root and qsc Fuzz Lockfiles.
+- Begin timestamp (UTC): 2026-06-23T01:30:35Z.
+- Repo path: `/srv/qbuild/work/NA-0524/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0524_quinn_proto_rustsec_2026_0185_dual_lock_remediation_20260623T013035Z`.
+- Codex did not run qwork, qstart, qresume, SSH, scp, sftp, rsync, qsc send/receive, remote E2EE, remote qsc, qsl-server, qsl-attachments, qsl-backup, backup, restore, cargo audit ignore/waiver, broad cargo update, branch-protection mutation, or admin bypass.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0524/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `d309fd9d10c4`.
+- Fetch performed only after proof/live ref match and disk proof below threshold.
+- Disk watermark before fetch: `/` usage 87%; `/backup/qsl` usage 27%; STOP threshold 95% was not hit.
+- Startup queue proof: READY_COUNT 1; READY NA-0524; NA-0523 DONE; NA-0522 DONE; NA-0521 DONE.
+- Startup decision proof used the `- **ID:** D-####` parser: D-1037 once, D-1038 absent, D-1039 absent, and duplicate decision record count zero.
+- Current main advisory proof: public-safety and advisories were completed failure on `d309fd9d10c4`; the advisories job log named RUSTSEC-2026-0185, `quinn-proto 0.11.14`, and solution `>=0.11.15`.
+- qsl-backup read-only proof: installed helper matched SHA-256 `e9ecff3d22eda21ceb0e889e4dd5d6f4e270e09349c77a1f4872bfc0052f6232`; Codex ops source appears exactly once in the installed helper source list.
+- D420 and D421 advisory inheritance consumed: PR #1320 merged; D-1037 exists once; NA-0524 remains READY; optional closeout was blocked by RUSTSEC-2026-0185; D421 stopped because nested qsc fuzz lockfile remediation was not yet authorized.
+- Pre-remediation proof: root `Cargo.lock` and nested `qsl/qsl-client/qsc/fuzz/Cargo.lock` both contained `quinn-proto 0.11.14`; both root and nested cargo audits failed as expected on RUSTSEC-2026-0185.
+- Root remediation command: `cargo update -p quinn-proto --precise 0.11.15`; result changed only root `Cargo.lock` at that step.
+- Nested remediation command: `cargo update --manifest-path qsl/qsl-client/qsc/fuzz/Cargo.toml -p quinn-proto --precise 0.11.15`; no command-shape correction was needed.
+- Post-remediation proof: both affected lockfiles contain `quinn-proto 0.11.15`; no Cargo.toml changed; no qsc source/test/fuzz source changed; no workflow/script/helper, corpus/vector/input, formal/refimpl/service/public/backup, qsl-server, qsl-attachments, qshield, qshield-cli, qsl-backup, backup status, or backup plan path changed.
+- Required validation passed: root cargo audit; nested qsc fuzz lock audit; cargo tree root/nested plus target-all proof; focused qsc tests; qsc fuzz corpus validators; formal model checks; cargo fmt; qsc-adversarial shell syntax under sh and bash.
+- Governance patch paths: root `Cargo.lock`, nested qsc fuzz `Cargo.lock`, NA-0524 RUSTSEC evidence doc, NA-0524 RUSTSEC testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1038 records the NA-0524 quinn-proto RUSTSEC-2026-0185 dual-lockfile remediation.
+- Recovered failure: the first queue/decision proof parser scanned historical READY mentions and counted archived evidence text as active queue state. Classification: recoverable command-shape/parser issue; no repo mutation occurred. Corrective action: reran with a parser anchored to `### NA-####` headings and immediate `Status:` lines. Final result: READY_COUNT 1, READY NA-0524, D-1037 once, D-1038 absent before patch, D-1039 absent, duplicate decision count zero.
+- Branch: `na-0524-quinn-proto-rustsec-2026-0185-dual-lock-remediation`.
+- PR title: `NA-0524: remediate quinn-proto RUSTSEC-2026-0185 in lockfiles`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0524_quinn_proto_rustsec_2026_0185_dual_lock_remediation_20260623T013035Z/wait_accounting.tsv`.
+- NA-0524 remains READY. D-1039 remains absent. NA-0525 is not restored by this remediation.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0524 update
 
 - Directive: QSL-DIR-2026-06-22-420 -- Execute NA-0524 QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Scope Authorization Plan, Optional Closeout to NA-0525.

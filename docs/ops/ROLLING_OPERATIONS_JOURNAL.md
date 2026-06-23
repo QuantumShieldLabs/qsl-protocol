@@ -45,8 +45,29 @@ Last-Updated: 2026-06-23
 - PR title: `NA-0525: implement remote E2EE wrong-peer stale-trust negative`.
 - Recovered PR creation connector issue: GitHub connector PR creation returned 403 `Resource not accessible by integration`. Classification: recoverable GitHub connector permission issue because the branch was already pushed and authenticated `gh` was available. Corrective action: created the same PR with `gh pr create --body-file` using the prepared PR body. Final result: PR #1323 opened.
 - PR: #1323.
-- PR merge commit: pending at journal authoring.
+- Recovered PR merge connector issue: GitHub connector merge returned 403 `Resource not accessible by integration` after PR checks were green and GitHub reported mergeStateStatus CLEAN. Classification: recoverable GitHub connector permission issue. Corrective action: merged the same PR with `gh pr merge 1323 --merge` without branch deletion, squash, rebase, amend, force-push, or admin flags. Final result: PR #1323 merged.
+- PR merge commit: `2644946204c`.
+- Post-merge proof on `2644946204c`: READY remains NA-0525; D-1040 exists once; D-1041 absent before closeout; public-safety and advisories completed success inside the short attach/early-failure window.
 - Wait accounting file: `/srv/qbuild/tmp/NA0525_wrong_peer_stale_trust_negative_impl_20260623T103805Z/wait_accounting.tsv`.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0525 closeout and NA-0526 restoration update
+
+- Directive: QSL-DIR-2026-06-23-424 optional closeout packet.
+- Begin timestamp (UTC): 2026-06-23T11:04:05Z.
+- Repo path: `/srv/qbuild/work/NA-0525/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0525_wrong_peer_stale_trust_negative_impl_20260623T103805Z`.
+- Implementation PR #1323 merged at `2644946204c`.
+- Post-merge public-safety and advisories completed success on `2644946204c` inside the short attach/early-failure window.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0525_closeout_restore_na0526_testplan.md`.
+- NA-0525 is marked DONE.
+- NA-0526 is restored READY using the D-1040 selected restaging successor text for `REMOTE_E2EE_RETAINED_QSC_STALE_AFTER_SECURITY_REMEDIATION`.
+- D-1041 records NA-0525 closeout and NA-0526 restoration.
+- No NA-0526 implementation, remote action, SSH execution, qsc E2EE execution, qsc send/receive execution, wrong-peer/stale-trust testing, qsc restaging, qsl-server/qsl-attachments use, package installation, sudo/admin action, key/config/host mutation, qwork/qstart/qresume, qsl-backup execution, qsc source/test/fuzz/Cargo mutation, workflow/script/helper/dependency mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation is introduced.
+- Branch: `na-0525-closeout-restore-na0526`.
+- PR title: `NA-0525: closeout and restore NA-0526`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
 ## NA-0524 closeout and NA-0525 restoration update

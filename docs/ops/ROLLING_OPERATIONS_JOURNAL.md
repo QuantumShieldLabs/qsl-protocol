@@ -35,13 +35,15 @@ Last-Updated: 2026-06-23
 - Cleanup/absence proof: stage path absent; proof-specific remote E2EE root absent; no local sensitive runtime or local proof-specific E2EE root created; no remote qsc process remained.
 - Recovered failure: initial local process absence proof used `pgrep -af <PROOF_ID>` inside the same shell command that contained the proof ID, so it matched the active parent shell. Classification: recoverable command-shape/proof-tooling mistake. Corrective action: reran after command completion with current-process and ancestor-process exclusion. Final result: no non-ancestor local process with the proof ID and no remote qsc process.
 - Recovered failure: first `git add` skipped the new evidence file because `docs/governance/evidence` is ignored by local ignore rules. Classification: recoverable in-scope staging issue before push. Corrective action: force-added only the allowed NA-0526 evidence path and committed it with this journal recovery note. Final result: all five allowed paths are tracked in the implementation branch.
+- Recovered failure: first GitHub connector PR creation used an incorrect repository owner/name and returned 404. Classification: recoverable connector invocation issue. Corrective action: read the exact repo name from `gh repo view` and retried once with `QuantumShieldLabs/qsl-protocol`.
+- Recovered failure: GitHub connector PR creation retry returned 403 `Resource not accessible by integration`. Classification: recoverable connector permission issue because the branch was already pushed and authenticated `gh` was available. Corrective action: created the same PR with `gh pr create --body-file` using the prepared PR body. Final result: PR #1325 opened.
 - Result classification: `REMOTE_PREBUILT_QSC_RESTAGING_AFTER_SECURITY_REMEDIATION_PASS_RETAINED`.
 - Selected successor: `NA-0527 -- QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Retry After Restaging Implementation Harness`.
 - Governance patch paths: NA-0526 evidence doc, NA-0526 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
 - D-1042 records NA-0526 retained remote qsc restaging evidence.
 - Local validation passed: `git diff --check`; exact five-path scope guard; link-check; added-line leak scan; classifier; queue and decision proof; PR body preflight; added-line overclaim scan; marker proof; private-material scan; root cargo audit; nested qsc fuzz lock cargo audit; focused qsc tests `same_host_client_to_client_e2e`, `receive_e2e`, `key_lifecycle_zeroization_expansion`, `secret_material_diagnostic_boundary`, and `handshake_provider_error_no_mutation`; qsc fuzz corpus validators; formal model checks; `cargo fmt --check`; `sh -n scripts/ci/qsc_adversarial.sh`; `bash -n scripts/ci/qsc_adversarial.sh`; final forbidden-mutation guard.
-- Branch: pending at this journal update.
-- PR: pending at this journal update.
+- Branch: `na-0526-remote-qsc-prebuilt-restaging-after-quinn-proto`.
+- PR: #1325.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
 ## NA-0525 update

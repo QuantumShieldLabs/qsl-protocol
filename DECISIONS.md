@@ -27527,3 +27527,47 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps this closeout to D-1044, D-1045, PR #1327, and post-merge public-safety/advisories proof.
     - The next directive should execute NA-0528 only within forwarding diagnostic / retry authorization scope and must not run qsc send/receive or baseline E2EE before the reverse-forwarding path is proven.
   - **References:** NA-0527; NA-0528; D-1045; D-1044; qsl-protocol PR #1327; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0527_closeout_restore_na0528_testplan.md`; D427 response file.
+
+- **ID:** D-1046
+  - **Title:** NA-0528 remote qsc E2EE reverse-forwarding diagnostic retry scope authorization
+  - **Date:** 2026-06-23
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0528 consumes NA-0527/D427 and NA-0520/D414 forwarding evidence, classifies the D427 blocker as a reverse-forwarding diagnostic gap, and selects `REMOTE_FORWARDING_DIAGNOSTIC_IMPLEMENTATION_READY`. The exact selected successor is `NA-0529 -- QSL Remote qsc E2EE Reverse-Forwarding Diagnostic Implementation Harness`.
+  - **Evidence consumed:** D427 records NA-0527 classification `REMOTE_E2EE_FORWARDING_RECHECK_FAILURE`, retained remote qsc freshness pass, remote boundary pass, local loopback relay start, first failure due proof-root `ClearAllForwardings yes`, correction to that config error, subsequent `remote port forwarding failed for listen port 39176` failures, read-only remote bind availability proof, bounded recovery exhaustion, no baseline E2EE, no wrong-peer or stale-trust negative, no qsc send/receive, cleanup pass, and no qsl-server/qsl-attachments use. D414 records NA-0520 classification `SSH_FORWARDING_CAPABILITY_PROBE_PASS`, dedicated-key reverse forwarding, loopback marker traversal, ACK, no qsc E2EE, no qsc send/receive, and no qsl-server/qsl-attachments use. D413 records accepted dedicated forwarding key proof, loopback-only `permitlisten`/`permitopen`, no PTY, no agent forwarding, no X11 forwarding, and the forced-command compatibility caveat that NA-0520 later proved compatible.
+  - **Forwarding failure classification:** D427 evidence does not prove a single root cause. NA-0529 must distinguish proof-root config error, bind-host syntax mismatch, dedicated-key restriction/policy issue, forced-command compatibility regression, stale session or port state, remote sshd policy drift, local listener/relay setup issue, and insufficient diagnostic logging.
+  - **Selected future diagnostic design:** NA-0529 combines known-good NA-0520 marker-forwarding reproduction, D427/NA-0520 command/config comparison, sanitized SSH verbose-log capture if reproduction fails, bounded local/remote loopback state checks, local cleanup proof, and exactly one successor selection. Operator key/sshd proof-review is deferred until diagnostics indicate server-side policy.
+  - **Security invariants introduced/changed:**
+    - No remote action occurs in this directive.
+    - No SSH execution occurs in this directive.
+    - No qsc send/receive occurs in this directive.
+    - No remote E2EE occurs in this directive.
+    - No qsl-server use occurs in this directive.
+    - No qsl-attachments use occurs in this directive.
+    - No package installation occurs in this directive.
+    - No remote source checkout or remote build occurs in this directive.
+    - No qsc source/test/fuzz/Cargo mutation occurs in this directive.
+    - No workflow/script/helper mutation occurs in this directive.
+    - No corpus/vector/input mutation occurs in this directive.
+    - No dependency or lockfile mutation occurs in this directive.
+    - No formal/refimpl/service/public/backup mutation occurs in this directive.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No vulnerability-free or perfect-crypto claim is made.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Immediate E2EE retry (rejected until forwarding is proven again).
+    - qsl-server/qsl-attachments integration (deferred and out of the current direct qsc sprint).
+    - Broad SSH/key/sshd remediation (rejected/deferred unless diagnostics prove it is needed and a later operator-action authorization lane permits it).
+    - Abandon remote sprint / cleanup retained qsc (rejected unless remote host becomes unavailable or forwarding diagnosis fails irrecoverably).
+  - **Implications for spec/impl/tests:**
+    - `docs/governance/evidence/NA-0528_qsl_remote_qsc_e2ee_reverse_forwarding_diagnostic_retry_scope_authorization_plan.md` records the inheritance review, forwarding failure review, NA-0520 comparison, option review, selected future command family, proof/redaction/stop rules, stewardship reviews, prioritization matrix, classification, selected NA-0529 successor, and no-claim boundaries.
+    - `tests/NA-0528_qsl_remote_qsc_e2ee_reverse_forwarding_diagnostic_retry_scope_authorization_testplan.md` records static validation, queue/decision validation, marker validation, private-material scans, local validation, and boundary assertions.
+    - `TRACEABILITY.md` maps this authorization to D-1046 and the selected NA-0529 successor.
+  - **References:** NA-0528; selected NA-0529; D-1046; D-1045; D-1044; D427 response `/home/victor/work/qsl/codex/responses/NA0527_20260623T172638Z_D427.md`; D426 response `/home/victor/work/qsl/codex/responses/NA0526_closeout_restore_na0527_20260623T133949Z_D426.md`; D425 response `/home/victor/work/qsl/codex/responses/NA0526_20260623T125452Z_D425.md`; D414 response `/home/victor/work/qsl/codex/responses/NA0520_20260622T034023Z_D414.md`; D413 response `/home/victor/work/qsl/codex/responses/NA0519_20260622T021059Z_D413.md`; `docs/governance/evidence/NA-0528_qsl_remote_qsc_e2ee_reverse_forwarding_diagnostic_retry_scope_authorization_plan.md`; `tests/NA-0528_qsl_remote_qsc_e2ee_reverse_forwarding_diagnostic_retry_scope_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

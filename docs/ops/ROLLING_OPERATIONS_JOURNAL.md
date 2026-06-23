@@ -2,9 +2,50 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-06-22
+Last-Updated: 2026-06-23
 
 # Rolling Operations Journal
+
+## NA-0525 update
+
+- Directive: QSL-DIR-2026-06-23-424 -- Execute NA-0525 QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Implementation Harness with Retained-qsc Freshness Gate, Optional Closeout to Selected NA-0526.
+- Begin timestamp (UTC): 2026-06-23T10:38:05Z.
+- Repo path: `/srv/qbuild/work/NA-0525/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0525_wrong_peer_stale_trust_negative_impl_20260623T103805Z`.
+- Codex did not run qwork, qstart, qresume, qsl-backup, qsl-server, qsl-attachments, package installation, ssh-keygen, ssh-keyscan, remote source checkout/build, remote cargo, sudo/admin, qsc send/receive, remote E2EE, forwarding setup, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, dependency/lockfile mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, or backup/restore.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0525/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `19c5bba14eef`.
+- Fetch performed only after proof/live ref match and disk proof below threshold.
+- Disk watermark before fetch: `/` usage 87%; `/backup/qsl` usage 27%. STOP threshold 95% was not hit.
+- Startup main health on `19c5bba14eef`: public-safety success, advisories success, no required red checks; optional remote checks with failures were recorded as non-required.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- Startup queue proof: READY_COUNT 1; READY NA-0525; NA-0524 DONE; NA-0523 DONE; NA-0522 DONE.
+- Startup decision proof: D-1037 once, D-1038 once, D-1039 once, D-1040 absent before patch, D-1041 absent before patch, duplicate decision record count zero.
+- D423, D422, D420, and D419 response files were found.
+- D423/D422/D419 inheritance consumed: NA-0524 completed, NA-0525 restored READY, D422 remediated root and nested qsc fuzz lockfiles to `quinn-proto 0.11.15`, D423 verified public-safety/advisories green after remediation, NA-0523 replay/corrupt negatives passed, retained remote qsc was preserved before D422, and qsl-server/qsl-attachments were not used.
+- Local qsc built from clean HEAD `19c5bba14eef` in a proof-root target dir; local digest `8292f3473909e499017912c3f814509b2a2b67d0fd8809375dad894f9d5858a2`; local qsc help passed.
+- Remote retained qsc recheck used only the allowed owner/hash/help smoke path. Remote path `/home/qslcodex/qsl-remote-test/bin/qsc` was owned by qslcodex and hashed to old retained value `6f12ab5eec2468a4146012dfc247cef15be2337cb8e8e99cefa96a8c258d91ea`.
+- Result classification: `REMOTE_E2EE_RETAINED_QSC_STALE_AFTER_SECURITY_REMEDIATION`.
+- Because the retained remote qsc remained stale after D422 dependency-security remediation, Codex did not run remote qsc E2EE, qsc send/receive, wrong-peer negative, stale-trust negative, relay setup, forwarding setup, or remote E2EE root creation.
+- Cleanup/absence proof: proof-specific remote E2EE root was absent; local `sensitive_runtime` was empty and removed; retained remote qsc was unchanged.
+- Recovered failure: initial local cargo metadata context command piped JSON into a Python heredoc, so Python consumed the script instead of the metadata JSON. Classification: recoverable command-shape mistake. Corrective action: wrote cargo metadata JSON to a proof file and parsed by path. Final result: qsc manifest/version proof passed.
+- Recovered failure: initial pre-commit helper scope guard reported zero changed paths because it compares committed `origin/main...HEAD` and could not see uncommitted intent-to-add paths. Classification: recoverable proof-shape issue. Corrective action: ran a direct uncommitted diff guard for the five allowed paths and scheduled the helper scope guard for the post-commit branch diff. Final result: direct scope guard passed with exactly five allowed paths.
+- Recovered failure: private-key-block proof scan matched literal marker strings embedded in the testplan's example scan command. Classification: recoverable documentation proof-shape issue. Corrective action: removed literal marker patterns from checked-in testplan text and kept the literal scan in proof-root validation only. Final result: leak scan and private-key-block scan passed with zero findings.
+- Recovered failure: first added-line overclaim scan flagged residual-risk wording that used completion-style phrases. Classification: recoverable in-scope evidence wording issue. Corrective action: rewrote residual-risk text to use explicit no-claim boundary labels. Final result: overclaim scan passed with zero findings.
+- Recovered failure: first local goal-lint synthetic event omitted PR base/head SHAs. Classification: recoverable command-shape mistake. Corrective action: reran with synthetic base/head SHAs and retained post-commit rerun requirement. Final result: precommit goal-lint metadata proof passed.
+- Recovered failure: first qsc fuzz corpus validator JSON artifacts were copied from wrapper logs and included wrapper metadata around the JSON payload. Classification: recoverable proof-shape issue because the validator commands passed but the artifact shape was wrong. Corrective action: reran both validator commands exactly with stdout redirected to the required JSON files. Final result: both JSON files parsed with result `pass` and finding count zero.
+- Static validation passed: git diff check, direct exact five-path precommit scope guard, link-check, leak-scan, added-line overclaim scan, docs classifier, marker proof, PR body preflight, goal-lint preflight, private-key-block scan, queue proof, and decision proof.
+- Required local validation passed: root cargo audit, nested qsc fuzz lock cargo audit, same_host_client_to_client_e2e, receive_e2e, key_lifecycle_zeroization_expansion, secret_material_diagnostic_boundary, handshake_provider_error_no_mutation, binding corpus validator, all qsc fuzz corpus validator, formal model checks, cargo fmt, and qsc-adversarial shell syntax under sh and bash.
+- Wait accounting recorded two local long-command intervals: same_host_client_to_client_e2e 2.40 minutes and receive_e2e 1.77 minutes.
+- Governance patch paths: NA-0525 evidence doc, NA-0525 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1040 records NA-0525 retained-qsc stale-after-remediation fail-closed evidence.
+- Selected successor: `NA-0526 -- QSL Remote qsc Prebuilt Binary Restaging After quinn-proto Remediation Implementation Harness`.
+- Branch: pending at journal authoring.
+- PR title: `NA-0525: implement remote E2EE wrong-peer stale-trust negative`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0525_wrong_peer_stale_trust_negative_impl_20260623T103805Z/wait_accounting.tsv`.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
 ## NA-0524 closeout and NA-0525 restoration update
 

@@ -27235,3 +27235,45 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - TRACEABILITY maps the closeout to D-1037, D-1038, D-1039, PR #1320, PR #1321, the D422 late recheck, and the current green-gate proof.
     - The next directive should execute NA-0525 under its own scope and must preserve the no qsl-server/qsl-attachments, synthetic proof, cleanup, and no public/production readiness boundaries.
   - **References:** NA-0524; NA-0525; D-1039; D-1038; D-1037; PR #1320; PR #1321; D420 response `/home/victor/work/qsl/codex/responses/NA0524_20260622T181657Z_D420.md`; D421 response `/home/victor/work/qsl/codex/responses/NA0524_quinn_proto_rustsec_2026_0185_remediation_20260623T010140Z_D421.md`; D422 response `/home/victor/work/qsl/codex/responses/NA0524_quinn_proto_rustsec_2026_0185_dual_lock_remediation_20260623T013035Z_D422.md`; D422 late recheck proof; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0524_closeout_restore_na0525_testplan.md`
+
+- **ID:** D-1040
+  - **Title:** NA-0525 remote qsc E2EE wrong-peer stale-trust negative implementation
+  - **Date:** 2026-06-23
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0525 consumed D423/D422/D419 inheritance and stopped fail-closed at the retained-qsc freshness gate with classification `REMOTE_E2EE_RETAINED_QSC_STALE_AFTER_SECURITY_REMEDIATION`. Current clean local qsc from `19c5bba14eef` hashed to `8292f3473909e499017912c3f814509b2a2b67d0fd8809375dad894f9d5858a2`, while retained remote qsc at `/home/qslcodex/qsl-remote-test/bin/qsc` remained owned by `qslcodex` and hashed to the old retained value `6f12ab5eec2468a4146012dfc247cef15be2337cb8e8e99cefa96a8c258d91ea`. Because D422 remediated root and nested qsc fuzz lockfiles to `quinn-proto 0.11.15` after retained-binary staging, NA-0525 did not run remote E2EE and selects `NA-0526 -- QSL Remote qsc Prebuilt Binary Restaging After quinn-proto Remediation Implementation Harness`.
+  - **Evidence consumed:** D423 restored NA-0525 READY after D-1037 authorization and D-1038 remediation; D422 updated both affected lockfiles to `quinn-proto 0.11.15`; D419 classified `REMOTE_E2EE_REPLAY_CORRUPT_NEGATIVES_PASS`, preserved retained remote qsc, cleaned up, and used no qsl-server/qsl-attachments.
+  - **Freshness gate result:** retained qsc path/owner/help were rechecked, but the retained remote qsc hash matched the old known retained hash and did not match the current local qsc hash.
+  - **Fresh-path results:** forwarding path was not rechecked; baseline E2EE setup was not run; wrong-peer negative was not run; stale-trust/replaced-peer negative was not run; valid-path usability was not run. Rationale: stale retained qsc after dependency-security remediation makes remote E2EE unacceptable for new evidence.
+  - **No-mutation / cleanup result:** no remote E2EE root was created; a read-only absence check passed; local `sensitive_runtime` was empty and removed; retained remote qsc was not modified; no relay/listener or SSH forward was started.
+  - **Security invariants introduced/changed:**
+    - No qsl-server use.
+    - No qsl-attachments use.
+    - No package installation.
+    - No remote source checkout or remote build.
+    - No qwork, qstart, or qresume execution.
+    - No qsl-backup execution.
+    - No qsc source/test/fuzz/Cargo mutation.
+    - No workflow/script/helper mutation.
+    - No corpus/vector/input mutation.
+    - No dependency or lockfile mutation.
+    - No formal/refimpl/service/public/backup mutation.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No vulnerability-free claim is made.
+    - No perfect-crypto claim is made.
+  - **Alternatives considered:**
+    - Run remote qsc E2EE with the stale retained binary (rejected: would produce untruthful post-D422 evidence).
+    - Restage qsc in NA-0525 (rejected: restaging is explicitly forbidden in this directive).
+    - Treat qsc help smoke as enough freshness proof (rejected: help smoke does not prove post-remediation provenance).
+  - **Implications for spec/impl/tests:**
+    - NA-0525 evidence records the stale retained-qsc classification, local/remote hashes, no-run boundary, cleanup/absence proof, and selected restaging successor.
+    - `TRACEABILITY.md` maps this fail-closed evidence to D-1040.
+    - `tests/NA-0525_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_negative_implementation_testplan.md` records the validation plan.
+    - Exactly one READY remains mandatory until a later closeout restores the selected NA-0526 successor.
+  - **References:** NA-0525; selected NA-0526; D-1040; D-1039; D-1038; D-1037; D423 response `/home/victor/work/qsl/codex/responses/NA0524_closeout_restore_na0525_20260623T041320Z_D423.md`; D422 response `/home/victor/work/qsl/codex/responses/NA0524_quinn_proto_rustsec_2026_0185_dual_lock_remediation_20260623T013035Z_D422.md`; D419 response `/home/victor/work/qsl/codex/responses/NA0523_recover_retry_20260622T145242Z_D419.md`; `docs/governance/evidence/NA-0525_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_negative_implementation_harness.md`; `tests/NA-0525_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_negative_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

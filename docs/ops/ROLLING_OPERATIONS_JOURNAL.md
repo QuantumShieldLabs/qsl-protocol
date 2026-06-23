@@ -40,9 +40,11 @@ Last-Updated: 2026-06-23
 - Governance patch paths: NA-0525 evidence doc, NA-0525 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
 - D-1040 records NA-0525 retained-qsc stale-after-remediation fail-closed evidence.
 - Selected successor: `NA-0526 -- QSL Remote qsc Prebuilt Binary Restaging After quinn-proto Remediation Implementation Harness`.
-- Branch: pending at journal authoring.
+- Branch: `na-0525-remote-e2ee-wrong-peer-stale-trust-negative`.
+- Evidence commit: `87684ddd5ef9`.
 - PR title: `NA-0525: implement remote E2EE wrong-peer stale-trust negative`.
-- PR: pending at journal authoring.
+- Recovered PR creation connector issue: GitHub connector PR creation returned 403 `Resource not accessible by integration`. Classification: recoverable GitHub connector permission issue because the branch was already pushed and authenticated `gh` was available. Corrective action: created the same PR with `gh pr create --body-file` using the prepared PR body. Final result: PR #1323 opened.
+- PR: #1323.
 - PR merge commit: pending at journal authoring.
 - Wait accounting file: `/srv/qbuild/tmp/NA0525_wrong_peer_stale_trust_negative_impl_20260623T103805Z/wait_accounting.tsv`.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

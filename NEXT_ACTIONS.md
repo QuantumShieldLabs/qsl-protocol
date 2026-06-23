@@ -30115,7 +30115,7 @@ Acceptance criteria:
 ---
 
 ### NA-0528 — QSL Remote qsc E2EE Reverse-Forwarding Diagnostic / Retry Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -30190,6 +30190,88 @@ Acceptance criteria:
 - no remote E2EE in closeout.
 - no qsl-server/qsl-attachments.
 - no public/production readiness claim.
+- exactly one READY item remains after closeout.
+
+---
+
+### NA-0529 — QSL Remote qsc E2EE Reverse-Forwarding Diagnostic Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Diagnose the NA-0527 reverse-forwarding failure without running qsc E2EE or qsc send/receive, by comparing D427 and NA-0520 command/config evidence, reproducing the known-good NA-0520 synthetic marker-forwarding probe with the dedicated forwarding key, capturing sanitized SSH debug logs if the reproduction fails, checking local/remote loopback port state without mutating remote files, cleaning all local processes, and selecting either a corrected E2EE retry successor or an operator-action remediation/proof-review successor.
+
+Protects:
+- direct qsc remote sprint from unproven transport assumptions.
+- loopback-only SSH forwarding boundary.
+- no qsc E2EE until forwarding is proven.
+- no qsl-server/qsl-attachments boundary.
+- no remote file writes in diagnostic.
+- public/production claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- docs/governance/evidence/NA-0529_qsl_remote_qsc_e2ee_reverse_forwarding_diagnostic_implementation_harness.md
+- tests/NA-0529_qsl_remote_qsc_e2ee_reverse_forwarding_diagnostic_implementation_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-local listener and logs.
+- one known-good reverse-forwarding reproduction attempt.
+- at most one corrected proof-root config retry if the first attempt reveals a local config-shape error.
+- sanitized SSH verbose log capture under proof root.
+- read-only remote boundary and port-state checks.
+- one synthetic marker traversal if forwarding starts successfully.
+- cleanup proof.
+
+Forbidden scope:
+- qsc E2EE.
+- qsc send/receive.
+- qsc identity/contact/handshake/relay protocol commands.
+- qsl-server/qsl-attachments.
+- package installation.
+- sudo/admin action except negative `sudo -n true` probe if needed.
+- key generation/installation.
+- authorized_keys mutation.
+- authorized_keys reading.
+- sshd_config mutation.
+- sshd_config reading unless operator supplies redacted proof in a later lane.
+- SSH config mutation outside proof root.
+- known_hosts mutation.
+- remote file write.
+- remote source checkout/build.
+- qwork/qstart/qresume.
+- qsl-backup.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- production/user data.
+- public-readiness, production-readiness, public-internet-readiness, crypto-complete, identity-complete, trust-complete, replay-proof, downgrade-proof, secret-material-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
+
+Deliverables:
+- reverse-forwarding diagnostic evidence.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- successor selection based on result.
+
+Acceptance criteria:
+- D427 forwarding failure consumed.
+- NA-0520 successful forwarding consumed.
+- D427/NA-0520 command/config comparison recorded.
+- proof-root SSH config safe fields recorded.
+- dedicated key used.
+- loopback-only bind checked.
+- ExitOnForwardFailure used.
+- marker traversal result recorded if forwarding starts.
+- sanitized SSH debug log recorded if forwarding fails.
+- no qsc E2EE.
+- no qsc send/receive.
+- no remote file write.
+- no qsl-server/qsl-attachments.
+- cleanup completed.
 - exactly one READY item remains after closeout.
 
 ---

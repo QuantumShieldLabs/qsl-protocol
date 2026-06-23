@@ -6,6 +6,46 @@ Last-Updated: 2026-06-23
 
 # Rolling Operations Journal
 
+## NA-0526 update
+
+- Directive: QSL-DIR-2026-06-23-425 -- Execute NA-0526 QSL Remote qsc Prebuilt Binary Restaging After quinn-proto Remediation Implementation Harness, Optional Closeout to NA-0527.
+- Begin timestamp (UTC): 2026-06-23T12:28:10Z.
+- Repo path: `/srv/qbuild/work/NA-0526/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0526_remote_qsc_prebuilt_restaging_after_quinn_proto_impl_20260623T122810Z`.
+- Codex did not run qwork, qstart, qresume, qsl-backup, qsl-server, qsl-attachments, package installation, ssh-keygen, ssh-keyscan, remote source checkout/build, remote cargo, remote rustup, remote git, qsc send/receive, remote E2EE, wrong-peer/stale-trust testing, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, dependency/lockfile mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, or backup/restore.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0526/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `2cff954de589`.
+- Fetch performed only after proof/live ref match and disk proof below threshold.
+- Disk watermark before fetch: `/` usage below 95%; `/backup/qsl` usage recorded in proof root. STOP threshold 95% was not hit.
+- Startup main health on `2cff954de589`: public-safety success, advisories success, and no red required checks in the retrieved check-run set.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- Startup queue proof: READY_COUNT 1; READY NA-0526; NA-0525 DONE; NA-0524 DONE; NA-0523 DONE.
+- Startup decision proof: D-1040 once, D-1041 once, D-1042 absent before patch, D-1043 absent before patch, duplicate decision record count zero.
+- D424, D423, D422, and D419 response files were found.
+- D424/D423/D422 inheritance consumed: NA-0525 classified `REMOTE_E2EE_RETAINED_QSC_STALE_AFTER_SECURITY_REMEDIATION`; old retained remote qsc hash `6f12ab5eec2468a4146012dfc247cef15be2337cb8e8e99cefa96a8c258d91ea`; D424 local qsc hash `8292f3473909e499017912c3f814509b2a2b67d0fd8809375dad894f9d5858a2`; both lockfiles have `quinn-proto 0.11.15`; no remote E2EE or qsl-server/qsl-attachments were used in NA-0525.
+- Local qsc built from clean HEAD `2cff954de589` in a proof-root target dir; local digest `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7`; local size `102103920`; local qsc help passed; no qsc runtime/dependency diff from D424 source commit.
+- Remote boundary proof: remote user `qslcodex`, UID `1003`, groups `qslcodex`, negative sudo probe failed as expected, `/backup/qsl` absent, qwork absent, qsl-backup absent.
+- Remote retained qsc pre-state: owner `qslcodex`, mode `700`, size `102103920`, old stale digest `6f12ab5eec2468a4146012dfc247cef15be2337cb8e8e99cefa96a8c258d91ea`.
+- Stage path `$HOME/qsl-remote-test/bin/qsc.NA0526_20260623T122810Z.stage` was absent before transfer.
+- Exactly one bounded scp transfer command staged local qsc to the stage path; transfer exit code `0`; transferred size `102103920`.
+- Stage verification passed: owner `qslcodex`, mode `700`, size `102103920`, digest `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7`.
+- Final move verification passed: stage path absent, final path `$HOME/qsl-remote-test/bin/qsc` owner `qslcodex`, mode `700`, size `102103920`, digest `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7`, differing from the old stale digest.
+- Remote `qsc --help` passed. No qsc send/receive, E2EE, identity, contact, handshake, relay, wrong-peer, or stale-trust command was run.
+- Retention decision: final remote qsc retained for NA-0527. NA-0527 must recheck path, owner, mode, size, and hash before remote E2EE.
+- Cleanup/absence proof: stage path absent; proof-specific remote E2EE root absent; no local sensitive runtime or local proof-specific E2EE root created; no remote qsc process remained.
+- Recovered failure: initial local process absence proof used `pgrep -af <PROOF_ID>` inside the same shell command that contained the proof ID, so it matched the active parent shell. Classification: recoverable command-shape/proof-tooling mistake. Corrective action: reran after command completion with current-process and ancestor-process exclusion. Final result: no non-ancestor local process with the proof ID and no remote qsc process.
+- Recovered failure: first `git add` skipped the new evidence file because `docs/governance/evidence` is ignored by local ignore rules. Classification: recoverable in-scope staging issue before push. Corrective action: force-added only the allowed NA-0526 evidence path and committed it with this journal recovery note. Final result: all five allowed paths are tracked in the implementation branch.
+- Recovered failure: first GitHub connector PR creation used an incorrect repository owner/name and returned 404. Classification: recoverable connector invocation issue. Corrective action: read the exact repo name from `gh repo view` and retried once with `QuantumShieldLabs/qsl-protocol`.
+- Recovered failure: GitHub connector PR creation retry returned 403 `Resource not accessible by integration`. Classification: recoverable connector permission issue because the branch was already pushed and authenticated `gh` was available. Corrective action: created the same PR with `gh pr create --body-file` using the prepared PR body. Final result: PR #1325 opened.
+- Result classification: `REMOTE_PREBUILT_QSC_RESTAGING_AFTER_SECURITY_REMEDIATION_PASS_RETAINED`.
+- Selected successor: `NA-0527 -- QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Retry After Restaging Implementation Harness`.
+- Governance patch paths: NA-0526 evidence doc, NA-0526 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1042 records NA-0526 retained remote qsc restaging evidence.
+- Local validation passed: `git diff --check`; exact five-path scope guard; link-check; added-line leak scan; classifier; queue and decision proof; PR body preflight; added-line overclaim scan; marker proof; private-material scan; root cargo audit; nested qsc fuzz lock cargo audit; focused qsc tests `same_host_client_to_client_e2e`, `receive_e2e`, `key_lifecycle_zeroization_expansion`, `secret_material_diagnostic_boundary`, and `handshake_provider_error_no_mutation`; qsc fuzz corpus validators; formal model checks; `cargo fmt --check`; `sh -n scripts/ci/qsc_adversarial.sh`; `bash -n scripts/ci/qsc_adversarial.sh`; final forbidden-mutation guard.
+- Branch: `na-0526-remote-qsc-prebuilt-restaging-after-quinn-proto`.
+- PR: #1325.
+- no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0525 update
 
 - Directive: QSL-DIR-2026-06-23-424 -- Execute NA-0525 QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Negative Implementation Harness with Retained-qsc Freshness Gate, Optional Closeout to Selected NA-0526.

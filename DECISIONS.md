@@ -27732,7 +27732,9 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - No trust-complete claim is made.
     - No replay-proof claim is made.
     - No downgrade-proof claim is made.
-    - No vulnerability-free claim and no perfect-crypto claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free, bug-free, or perfect-crypto claim is made.
     - Exactly one READY remains mandatory.
   - **Selected successor:** `NA-0531 -- QSL Remote qsc E2EE Integrated Trigger Quoting Remediation Harness`. This implementation PR does not edit `NEXT_ACTIONS.md`; closeout requires explicit approved successor block text for the failure-case queue mutation.
   - **Alternatives considered:**
@@ -27973,3 +27975,49 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `tests/NA-0532_closeout_restore_na0533_testplan.md` records closeout validation, queue/decision proof, scope guard, boundary assertions, and post-closeout public-safety/advisories requirements.
     - `TRACEABILITY.md` maps this closeout to D-1054, D-1055, PR #1337, the forwarding-precheck failure classification, and the restored NA-0533 successor.
   - **References:** NA-0532; NA-0533; D-1055; D-1054; PR #1337; implementation merge `aaf4d7f03d5c`; D436 response `/home/victor/work/qsl/codex/responses/NA0532_20260624T070953Z_D436.md`; D435 response `/home/victor/work/qsl/codex/responses/NA0531_20260624T053219Z_D435.md`; D434 response `/home/victor/work/qsl/codex/responses/NA0530_closeout_restore_na0531_20260624T051422Z_D434.md`; D433 response `/home/victor/work/qsl/codex/responses/NA0530_recover_retry_20260624T040457Z_D433.md`; D431 response `/home/victor/work/qsl/codex/responses/NA0529_closeout_restore_na0530_integrated_forwarding_20260624T020653Z_D431.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0532_closeout_restore_na0533_testplan.md`
+
+- **ID:** D-1056
+  - **Title:** NA-0533 remote qsc E2EE reverse-forward port 39176 regression diagnostic scope authorization
+  - **Date:** 2026-06-24
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0533 consumes NA-0532/D436, NA-0531/D435, NA-0520/D414, and NA-0519/D413 evidence and selects classification `REMOTE_FORWARD_PORT_39176_REGRESSION_DIAGNOSTIC_IMPLEMENTATION_READY`. The selected successor is `NA-0534 -- QSL Remote qsc E2EE Reverse-Forward Port 39176 Regression Diagnostic Implementation Harness`.
+  - **Evidence consumed:** D436 recorded classification `REMOTE_E2EE_INTEGRATED_FORWARDING_PRECHECK_FAILURE`, local listener readiness on `127.0.0.1:39176`, local trigger rehearsal pass, and dedicated-key proof-root reverse-forward failure before remote trigger execution with `remote port forwarding failed for listen port 39176`; no marker traversal, ACK, qsc E2EE, qsc send/receive, qsl-server, or qsl-attachments occurred. D435 recorded trigger remediation and integrated marker/ACK pass without qsc E2EE or qsc send/receive. D414 recorded dedicated-key loopback reverse-forward marker/ACK pass. D413 recorded accepted loopback-only dedicated-key proof with no PTY, no agent/X11 forwarding, non-sudo qslcodex posture, and no backup/qwork/qsl-backup exposure.
+  - **Regression inventory:** NA-0533 records the success chain from NA-0520, manual integrated proof, and NA-0531, and the failure chain from D427, D430, D433, and D436. Potential causes remain unresolved and include stale listener/session state, local process or ControlMaster/session reuse, remote port occupancy, bind syntax, proof-root SSH config drift, default alias hazards, dedicated-key `permitlisten` / `permitopen` drift, forced-command compatibility regression, sshd policy drift, remote address-family ambiguity, Tailscale/DNS alias drift, listener readiness/timing, and cleanup race.
+  - **Selected future diagnostic:** NA-0534 is authorized to perform bounded local and remote port-state diagnostics, safe `ssh -G` parsing, proof-root SSH config checks with no `ClearAllForwardings yes`, dedicated-key reverse-forward attempts with `ExitOnForwardFailure=yes`, optional no-file remote loopback bind probing if a later directive selects it, one known-good marker/ACK probe if port state permits, sanitized SSH debug-log summaries, and local cleanup proof.
+  - **Security invariants introduced/changed:**
+    - No remote action occurs in NA-0533.
+    - No SSH execution occurs in NA-0533.
+    - No qsc E2EE occurs in NA-0533.
+    - No qsc send/receive occurs in NA-0533.
+    - No remote E2EE occurs in NA-0533.
+    - No qsl-server use occurs.
+    - No qsl-attachments use occurs.
+    - No package installation occurs.
+    - No remote source checkout/build occurs.
+    - No qsc source/test/fuzz/Cargo mutation occurs.
+    - No workflow/script/helper mutation occurs.
+    - No corpus/vector/input mutation occurs.
+    - No dependency/lockfile mutation occurs.
+    - No formal/refimpl/service/public/backup mutation occurs.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No vulnerability-free claim and no perfect-crypto claim is made.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Immediate qsc E2EE retry (rejected because port allocation and marker/ACK traversal must be re-proven first).
+    - Alternate remote listen port (rejected unless a later operator-action lane changes the dedicated-key restrictions).
+    - qsl-server/qsl-attachments integration (deferred and out of the direct qsc sprint).
+    - Broad SSH/key/sshd remediation (rejected unless diagnostics prove a policy/key issue and a later operator action authorizes it).
+    - Abandon remote sprint / cleanup retained qsc (rejected unless host availability or diagnostic evidence makes the sprint irrecoverable).
+  - **Implications for spec/impl/tests:**
+    - `docs/governance/evidence/NA-0533_qsl_remote_qsc_e2ee_reverse_forward_port_39176_regression_diagnostic_scope_authorization_plan.md` records qwork proof verification, inheritance, regression inventory, option review, future command family, proof/redaction/stop rules, stewardship reviews, prioritization matrix, authorization decision, and successor selection.
+    - `tests/NA-0533_qsl_remote_qsc_e2ee_reverse_forward_port_39176_regression_diagnostic_scope_authorization_testplan.md` records validation, markers, scope guards, no-claim boundaries, and required local checks.
+    - `TRACEABILITY.md` maps NA-0533 to D-1056 and the selected NA-0534 diagnostic implementation successor.
+  - **References:** NA-0533; selected NA-0534 reverse-forward port 39176 diagnostic successor; D-1056; D-1055; D-1054; D437 response `/home/victor/work/qsl/codex/responses/NA0532_closeout_restore_na0533_20260624T075109Z_D437.md`; D436 response `/home/victor/work/qsl/codex/responses/NA0532_20260624T070953Z_D436.md`; D435 response `/home/victor/work/qsl/codex/responses/NA0531_20260624T053219Z_D435.md`; D414 response `/home/victor/work/qsl/codex/responses/NA0520_20260622T034023Z_D414.md`; D413 response `/home/victor/work/qsl/codex/responses/NA0519_20260622T021059Z_D413.md`; `docs/governance/evidence/NA-0533_qsl_remote_qsc_e2ee_reverse_forward_port_39176_regression_diagnostic_scope_authorization_plan.md`; `tests/NA-0533_qsl_remote_qsc_e2ee_reverse_forward_port_39176_regression_diagnostic_scope_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

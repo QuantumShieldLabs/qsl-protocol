@@ -28108,3 +28108,52 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0534 to D-1058 and the selected NA-0535 wrong-peer / stale-trust retry successor.
   - **Selected successor:** `NA-0535 -- QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Retry After Port Diagnostic Implementation Harness`.
   - **References:** NA-0534; selected NA-0535 wrong-peer / stale-trust retry after port diagnostic successor; D-1058; D-1057; D-1056; D438 response `/home/victor/work/qsl/codex/responses/NA0533_20260624T143842Z_D438.md`; D437 response `/home/victor/work/qsl/codex/responses/NA0532_closeout_restore_na0533_20260624T075109Z_D437.md`; D436 response `/home/victor/work/qsl/codex/responses/NA0532_20260624T070953Z_D436.md`; D435 response `/home/victor/work/qsl/codex/responses/NA0531_20260624T053219Z_D435.md`; D414 response `/home/victor/work/qsl/codex/responses/NA0520_20260622T034023Z_D414.md`; D413 response `/home/victor/work/qsl/codex/responses/NA0519_20260622T021059Z_D413.md`; `docs/governance/evidence/NA-0534_qsl_remote_qsc_e2ee_reverse_forward_port_39176_regression_diagnostic_implementation_harness.md`; `tests/NA-0534_qsl_remote_qsc_e2ee_reverse_forward_port_39176_regression_diagnostic_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1059
+  - **Title:** NA-0534 closeout and NA-0535 restoration
+  - **Date:** 2026-06-24
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** D-1058 implementation evidence is accepted for NA-0534 after PR #1341 merged at `b52988a80e43`, post-merge public-safety completed success, post-merge advisories completed success, and classification `REMOTE_FORWARD_PORT_39176_DIAGNOSTIC_MARKER_TRAVERSAL_PASS` remained selected. NA-0534 is marked DONE, and `NA-0535 -- QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Retry After Port Diagnostic Implementation Harness` is restored as the sole READY successor.
+  - **Evidence consumed:** D-1058 records the port 39176 regression diagnostic result: remote pre-probe port state showed no listener, transient remote loopback bind probe passed with `NA0534_REMOTE_LOOPBACK_BIND_PROBE_OK`, corrected single-lifetime reverse-forward showed `127.0.0.1:39176` listening remotely during the forward, marker traversal reached the local listener, the trigger received ACK, listener result recorded `ok=true`, `marker_match=true`, and `ack_sent=true`, and cleanup verified no remaining local proof-root process and no local or remote listener. D439 recorded PR #1341 merged at `b52988a80e43` and deferred optional closeout because public-safety was still in progress inside the short attach/early-failure window. D438 recorded NA-0533 DONE and NA-0534 READY. D437/D436 recorded the earlier port 39176 reverse-forward failure before qsc E2EE. D435 recorded trigger remediation marker/ACK pass.
+  - **Closeout result:** No remote action occurs in this closeout. No SSH execution occurs in this closeout. No qsc E2EE, qsc send/receive, remote E2EE, qsc protocol command, qsl-server use, qsl-attachments use, package install, remote source checkout/build, remote file write, qwork/qstart/qresume, qsl-backup execution, dependency mutation, lockfile mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation occurs.
+  - **Security invariants introduced/changed:**
+    - NA-0534 is DONE.
+    - NA-0535 is READY.
+    - Result classification remains `REMOTE_FORWARD_PORT_39176_DIAGNOSTIC_MARKER_TRAVERSAL_PASS`.
+    - Port 39176 regression diagnostic passed with marker traversal and ACK in NA-0534.
+    - No qsc E2EE occurred in NA-0534.
+    - No qsc send/receive occurred in NA-0534.
+    - No qsc protocol command occurred in NA-0534.
+    - No qsl-server use occurred.
+    - No qsl-attachments use occurred.
+    - No remote action occurs in this closeout.
+    - No SSH execution occurs in this closeout.
+    - No dependency mutation occurs.
+    - No lockfile mutation occurs.
+    - No qsc source/test/fuzz/Cargo mutation occurs.
+    - No workflow/script/helper mutation occurs.
+    - No corpus/vector/input mutation occurs.
+    - No formal/refimpl/service/public/backup mutation occurs.
+    - No qsl-backup execution occurs.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free, bug-free, or perfect-crypto claim is made.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Implement NA-0535 in this closeout (rejected because this directive is closeout-only and forbids remote action, SSH execution, qsc send/receive, and remote E2EE).
+    - Leave NA-0534 READY after PR #1341 (rejected because post-merge public-safety and advisories are now green and explicit NA-0535 successor text is supplied).
+    - Treat the port diagnostic as public, production, crypto, identity, trust, replay, downgrade, side-channel, vulnerability-free, bug-free, or perfect-crypto readiness (rejected because the evidence is a bounded transport marker/ACK diagnostic only).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0534 DONE and restores the supplied NA-0535 wrong-peer / stale-trust retry successor.
+    - `tests/NA-0534_closeout_restore_na0535_testplan.md` records closeout validation, queue/decision proof, scope guard, public-safety/advisories requirements, boundary assertions, and no-claim checks.
+    - `TRACEABILITY.md` maps this closeout to D-1058, D-1059, PR #1341, the marker-traversal-pass classification, and the restored NA-0535 successor.
+  - **References:** NA-0534; NA-0535; D-1059; D-1058; PR #1341; implementation merge `b52988a80e43`; D439 response `/home/victor/work/qsl/codex/responses/NA0534_20260624T153252Z_D439.md`; D438 response `/home/victor/work/qsl/codex/responses/NA0533_20260624T143842Z_D438.md`; D437 response `/home/victor/work/qsl/codex/responses/NA0532_closeout_restore_na0533_20260624T075109Z_D437.md`; D436 response `/home/victor/work/qsl/codex/responses/NA0532_20260624T070953Z_D436.md`; D435 response `/home/victor/work/qsl/codex/responses/NA0531_20260624T053219Z_D435.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0534_closeout_restore_na0535_testplan.md`

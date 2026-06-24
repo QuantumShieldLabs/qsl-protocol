@@ -27791,3 +27791,49 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `tests/NA-0530_closeout_restore_na0531_testplan.md` records closeout-only validation, queue/decision proof, marker validation, boundary assertions, dependency health checks, and post-closeout public-safety/advisories requirements.
     - `TRACEABILITY.md` maps this closeout to D-1050, D-1051, PR #1333, the D433 trigger quoting failure classification, and the restored NA-0531 successor.
   - **References:** NA-0530; NA-0531; D-1051; D-1050; D-1049; D-1048; qsl-protocol PR #1333; D433 response `/home/victor/work/qsl/codex/responses/NA0530_recover_retry_20260624T040457Z_D433.md`; D432 response `/home/victor/work/qsl/codex/responses/NA0530_20260624T023936Z_D432.md`; D431 response `/home/victor/work/qsl/codex/responses/NA0529_closeout_restore_na0530_integrated_forwarding_20260624T020653Z_D431.md`; D430 response `/home/victor/work/qsl/codex/responses/NA0529_20260624T010257Z_D430.md`; D425 response `/home/victor/work/qsl/codex/responses/NA0526_20260623T125452Z_D425.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0530_closeout_restore_na0531_testplan.md`
+
+- **ID:** D-1052
+  - **Title:** NA-0531 remote qsc E2EE integrated trigger quoting remediation
+  - **Date:** 2026-06-24
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0531 consumed D434/D433/D432/D431/D430 inheritance and executed the bounded integrated trigger quoting remediation harness. The exact result classification is `REMOTE_TRIGGER_QUOTING_REMEDIATION_MARKER_TRAVERSAL_PASS`. The retained qsc metadata/hash recheck passed for `/home/qslcodex/qsl-remote-test/bin/qsc`, owner/group `qslcodex/qslcodex`, mode `700`, size `102103920`, and SHA-256 `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7`. Local trigger rehearsal passed using a proof-root Python stdin script with marker `QSL_TRIGGER_QUOTING_REMEDIATION_SYNTHETIC_NA0531_20260624T053219Z_D435`. The remote trigger command shape was `ssh -T inspiron 'python3 -' < <proof-root trigger script>`, while the reverse-forward remained on the dedicated proof-root config with `ClearAllForwardings no`.
+  - **Marker/ACK result:** The integrated listener bound to `127.0.0.1:39176`, the dedicated-key reverse-forward process stayed alive with `ExitOnForwardFailure=yes`, the listener recorded `marker_match true` and `ack_sent true`, and the remote trigger recorded `NA0531_TRIGGER_ACK_RECEIVED_OK`. Cleanup passed after process and listener-state proof showed no concrete NA-0531 listener, harness, or reverse-forward process and no listening socket on `39176`.
+  - **Recovered failures:** Exact inheritance proof queries initially used wording too strict for D434/D433; they were corrected to semantic checks and passed. A no-write remote command through the dedicated forwarding key exited `1` with no output, consistent with the inherited forwarding-only key restriction; remote commands were corrected to use the operational `inspiron` alias while reverse forwarding remained dedicated-key. A listener-readiness probe shape was corrected to a ready-flag shape before the primary integrated attempt. Cleanup bind/process proof false positives were corrected with filtered process and listener-state proof.
+  - **Security invariants introduced/changed:**
+    - No qsc E2EE occurred.
+    - No qsc send/receive occurred.
+    - No qsc protocol command occurred.
+    - No remote file write occurred.
+    - No remote temp file occurred.
+    - No qsl-server use occurred.
+    - No qsl-attachments use occurred.
+    - No package installation occurred.
+    - No remote source checkout/build occurred.
+    - No qwork, qstart, qresume, or qsl-backup execution occurred.
+    - No qsc source/test/fuzz/Cargo mutation occurred.
+    - No workflow/script/helper mutation occurred.
+    - No corpus/vector/input mutation occurred.
+    - No dependency/lockfile mutation occurred.
+    - No formal/refimpl/service/public/backup mutation occurred.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No vulnerability-free claim and no perfect-crypto claim is made.
+    - Exactly one READY remains mandatory until a separate closeout restores the selected successor.
+  - **Selected successor:** `NA-0532 -- QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Retry After Trigger Remediation Implementation Harness`.
+  - **Alternatives considered:**
+    - Reuse the D433 `python3 -c` trigger payload (rejected because that was the quoted/split failure shape).
+    - Write a remote temp script or remote heredoc file (rejected because remote writes and remote temp files remain forbidden).
+    - Use the dedicated forwarding key for remote command execution (rejected because it is forwarding-restricted; it remains the reverse-forward key).
+    - Weaken SSH policy or inspect authorized_keys/sshd_config directly (rejected as out of scope and unnecessary).
+    - Treat marker/ACK traversal as qsc E2EE proof (rejected because it proves only the trigger/transport gate).
+  - **Implications for spec/impl/tests:**
+    - `docs/governance/evidence/NA-0531_qsl_remote_qsc_e2ee_integrated_trigger_quoting_remediation_harness.md` records qwork proof verification, inheritance, retained-qsc metadata/hash recheck, command manifest, local trigger rehearsal, SSH boundary checks, integrated marker/ACK pass, cleanup proof, stewardship reviews, classification, and successor selection.
+    - `tests/NA-0531_qsl_remote_qsc_e2ee_integrated_trigger_quoting_remediation_testplan.md` records validation, markers, scope guards, no-claim boundaries, and required local checks.
+    - `TRACEABILITY.md` maps NA-0531 to D-1052 and the selected NA-0532 retry successor.
+  - **References:** NA-0531; selected NA-0532 retry successor; D-1052; D-1051; D-1050; D-1049; D-1048; D434 response `/home/victor/work/qsl/codex/responses/NA0530_closeout_restore_na0531_20260624T051422Z_D434.md`; D433 response `/home/victor/work/qsl/codex/responses/NA0530_recover_retry_20260624T040457Z_D433.md`; D432 response `/home/victor/work/qsl/codex/responses/NA0530_20260624T023936Z_D432.md`; D431 response `/home/victor/work/qsl/codex/responses/NA0529_closeout_restore_na0530_integrated_forwarding_20260624T020653Z_D431.md`; D430 response `/home/victor/work/qsl/codex/responses/NA0529_20260624T010257Z_D430.md`; `docs/governance/evidence/NA-0531_qsl_remote_qsc_e2ee_integrated_trigger_quoting_remediation_harness.md`; `tests/NA-0531_qsl_remote_qsc_e2ee_integrated_trigger_quoting_remediation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

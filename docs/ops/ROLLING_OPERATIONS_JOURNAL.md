@@ -37581,3 +37581,43 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Wait accounting file: `/srv/qbuild/tmp/NA0529_closeout_restore_na0530_integrated_forwarding_review_20260624T013939Z/wait_accounting.tsv`.
 - No NA-0530 implementation, remote action, SSH execution, scp/sftp/rsync, qsc E2EE execution, qsc send/receive execution, qsc protocol command, qsl-server/qsl-attachments use, package installation, sudo/admin action, key/config/host mutation, qwork/qstart/qresume, qsl-backup execution, dependency/lockfile mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation is introduced.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0530 update
+
+- Directive: QSL-DIR-2026-06-24-433 -- Recover NA-0530 Retained-qsc Smoke Command Shape, Verify D432 /tmp Residue Cleanup, Execute Integrated Forwarding E2EE Wrong-Peer / Stale-Trust Retry, Optional Closeout to Selected NA-0531.
+- Begin timestamp (UTC): 2026-06-24T04:04:57Z.
+- Repo path: `/srv/qbuild/work/NA-0530/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0530_recover_retry_wrong_peer_stale_trust_integrated_forwarding_impl_20260624T040457Z`.
+- Codex did not run qwork, qstart, qresume, qsl-backup, qsl-server, qsl-attachments, package installation, ssh-keygen, ssh-keyscan, remote source checkout/build, remote cargo, qsc E2EE, qsc send, qsc receive, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, backup, restore, force-push, amend, rebase, squash, branch deletion, or cargo update.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0530/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `023b26452786`; proof recorded `startup_result=OK`, lane `NA-0530`, repo `qsl-protocol`, clean worktree/index/untracked state, READY_COUNT 1, queue top READY `NA-0530`, and requested lane status READY.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main remained at or descended from `023b26452786`.
+- Startup queue proof: READY_COUNT 1; READY NA-0530; NA-0529 DONE; NA-0528 DONE; NA-0527 DONE.
+- Startup decision proof: D-1048 once, D-1049 once, D-1050 absent before patch, D-1051 absent before patch, duplicate decision record count zero.
+- Main health proof on `023b26452786`: public-safety success, advisories success, 36 check-runs retrieved, and no required red checks.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list. qsl-backup was not executed.
+- D432/D431/D430/D427/D425/D419 inheritance consumed: D432 stopped before E2EE due remote `/tmp` smoke redirection and made no repo mutation; D431 accepted manual integrated marker traversal and ACK proof but required in-lane proof before E2EE; D430 recorded trigger failure; D425 retained qsc hash `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7`; D419 replay/corrupt negatives passed; no qsl-server/qsl-attachments use was inherited.
+- D432 residue recovery checked only `/tmp/NA0530_20260624T022844Z_D432_qsc_help_disallowed.tmp` and `/tmp/NA0530_20260624T022844Z_D432_qsc_help_disallowed.err`; both were absent and required cleanup markers passed.
+- Local qsc built from clean HEAD `023b26452786` in proof-root target dir; local hash `f0e05f3439fa`; size `102103920`; local help passed.
+- Retained remote qsc path `/home/qslcodex/qsl-remote-test/bin/qsc`, owner/group `qslcodex/qslcodex`, mode `700`, size `102103920`, and hash `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7` matched NA-0526/D425. Remote help smoke was captured locally only and the remote command string contained no remote redirection and no `/tmp`.
+- Local hash differed from retained remote hash, but qsc runtime/dependency diff since D425 was empty, so retained-qsc provenance was accepted.
+- Command manifest written under proof root before integrated forwarding precheck and based on current qsc CLI/test surfaces: vault init/unlock, identity rotate/show, contacts add/device list/device trust, relay inbox-set/serve, handshake init/poll/status, send, receive, and identity-binding negative patterns.
+- Remote boundary check passed: qslcodex user, UID nonzero, no privileged groups, negative sudo, `/backup/qsl` not readable, qwork absent, qsl-backup absent, remote E2EE root absent, and D432 residues absent.
+- Recovered failure: first queue parser assumed `--` headings and found zero READY items. Classification: recoverable command-shape/parser mistake. Corrective action: inspected `NEXT_ACTIONS.md`, reran parser keyed to em-dash headings and `Status:` lines. Final result: queue/decision proof passed.
+- Recovered failure: first local `ssh -G` proof script treated default Host `inspiron` forwarding hazards as a hard failure before generating the proof-root forwarding config. Classification: recoverable proof-script validation mistake. Corrective action: recorded the default `clearallforwardings yes` and non-dedicated identity hazards, then generated a proof-root SSH config with dedicated key basename `qslcodex_forward_ed25519` and `ClearAllForwardings no`. Final result: remote boundary recheck passed.
+- Integrated precheck listener bound to `127.0.0.1:39176`; dedicated-key reverse-forward stayed alive with `ExitOnForwardFailure=yes`; remote trigger failed before connection because the `python3 -c` payload was split by the remote shell. No marker traversed and no ACK was received.
+- Result classification: `REMOTE_E2EE_INTEGRATED_TRIGGER_QUOTING_FAILURE`.
+- No baseline E2EE setup, wrong-peer negative, stale-trust negative, qsc send, or qsc receive ran.
+- Wrong-peer deferral: `REMOTE_E2EE_WRONG_PEER_NEGATIVE_DEFERRED_PRECHECK_FAILURE`.
+- Stale-trust deferral: `REMOTE_E2EE_STALE_TRUST_NEGATIVE_DEFERRED_PRECHECK_FAILURE`.
+- Cleanup passed after correcting a process-scan self-match: local sensitive runtime absent, port 39176 closed, no proof-root process remained, remote E2EE root absent, and D432 residue paths absent.
+- Recovered failure: first cleanup process scan self-matched its own `rg`/shell command and reported `PROOF_PROCESS_PRESENT`. Classification: recoverable proof-parser false positive. Corrective action: reran process scan excluding scan self-matches. Final result: cleanup proof passed.
+- Governance patch paths: NA-0530 evidence doc, NA-0530 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1050 records NA-0530 remote qsc E2EE wrong-peer stale-trust retry with integrated forwarding recovery.
+- Selected successor candidate: `NA-0531 -- QSL Remote qsc E2EE Integrated Trigger Quoting Remediation Harness`. This implementation PR does not edit `NEXT_ACTIONS.md`; closeout requires explicit approved successor block text before queue mutation.
+- Branch: pending at journal authoring.
+- PR title: `NA-0530: recover and retry remote E2EE wrong-peer stale-trust integrated forwarding`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0530_recover_retry_wrong_peer_stale_trust_integrated_forwarding_impl_20260624T040457Z/wait_accounting.tsv`.
+- No qsc E2EE occurred. No qsc send/receive occurred. No baseline E2EE occurred. No wrong-peer/stale-trust negative executed. No qsl-server or qsl-attachments use occurred. No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

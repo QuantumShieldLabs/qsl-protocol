@@ -37831,9 +37831,10 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Recovered failure: first PR body preflight used semantic wording but missed exact required phrases for D436/D435/NA-0520 consumption, selected NA-0534 successor, and qsl-server/qsl-attachments deferral. Classification: recoverable PR body wording issue. Corrective action: rewrote the proof-root PR body to include the exact required phrases. Final result: PR body preflight passed.
 - Required local validation passed: `git diff --check`, exact five-path scope guard, link-check, leak-scan, added-line overclaim scan, classifier, PR body preflight, marker proof, private-material scan, root `cargo audit --deny warnings`, nested qsc fuzz lock `cargo audit --deny warnings --file`, `same_host_client_to_client_e2e`, `receive_e2e`, `key_lifecycle_zeroization_expansion`, `secret_material_diagnostic_boundary`, `handshake_provider_error_no_mutation`, binding corpus validator, all qsc fuzz corpus validator, formal model runner, `cargo fmt --check`, `sh -n scripts/ci/qsc_adversarial.sh`, and `bash -n scripts/ci/qsc_adversarial.sh`.
 - Wait accounting recorded two local long-command intervals: `same_host_client_to_client_e2e` 2.53 minutes and `receive_e2e` 1.78 minutes. No CI wait recorded yet at journal authoring.
-- Branch: pending at journal authoring.
+- Recovered failure: GitHub connector PR creation returned 403 `Resource not accessible by integration`. Classification: recoverable connector permission issue because authenticated `gh` remained available and prior lanes used the same fallback. Corrective action: created the PR with `gh pr create` using the same title and body. Final result: PR #1339 opened.
+- Branch: `na-0533-remote-e2ee-forward-port-39176-regression-scope`.
 - PR title: `NA-0533: authorize remote E2EE port 39176 regression diagnostic scope`.
-- PR: pending at journal authoring.
+- PR: #1339.
 - PR merge commit: pending at journal authoring.
 - Wait accounting file: `/srv/qbuild/tmp/NA0533_reverse_forward_port_39176_regression_scope_authorization_20260624T135353Z/wait_accounting.tsv`.
 - No remote action, SSH execution, qsc E2EE, qsc send/receive, qsc protocol command, qsl-server/qsl-attachments use, package installation, sudo/admin action, key/config/host mutation, qwork/qstart/qresume, qsl-backup execution, dependency/lockfile mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation is introduced.

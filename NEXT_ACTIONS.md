@@ -30247,7 +30247,7 @@ Forbidden scope:
 - corpus/vector/input mutation.
 - formal/refimpl/service/public/backup mutation.
 - production/user data.
-- public-readiness, production-readiness, public-internet-readiness, crypto-complete, identity-complete, trust-complete, replay-proof, downgrade-proof, secret-material-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
+- no public-readiness, production-readiness, public-internet-readiness, crypto-complete, identity-complete, trust-complete, replay-proof, downgrade-proof, secret-material-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
 
 Deliverables:
 - reverse-forwarding diagnostic evidence.
@@ -30333,7 +30333,7 @@ Forbidden scope:
 - corpus/vector/input mutation.
 - formal/refimpl/service/public/backup mutation.
 - production/user data.
-- public-readiness, production-readiness, public-internet-readiness, crypto-complete, identity-complete, trust-complete, replay-proof, downgrade-proof, secret-material-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
+- no public-readiness, production-readiness, public-internet-readiness, crypto-complete, identity-complete, trust-complete, replay-proof, downgrade-proof, secret-material-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
 
 Deliverables:
 - retained-qsc fresh hash recheck.
@@ -30421,7 +30421,7 @@ Forbidden scope:
 - corpus/vector/input mutation.
 - formal/refimpl/service/public/backup mutation.
 - production/user data.
-- public-readiness, production-readiness, public-internet-readiness, crypto-complete, identity-complete, trust-complete, replay-proof, downgrade-proof, secret-material-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
+- no public-readiness, production-readiness, public-internet-readiness, crypto-complete, identity-complete, trust-complete, replay-proof, downgrade-proof, secret-material-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
 
 Deliverables:
 - D433 trigger quoting failure consumed.
@@ -30461,7 +30461,7 @@ Retry the bounded remote qsc E2EE wrong-peer / stale-trust negative hardening ru
 ---
 
 ### NA-0533 — QSL Remote qsc E2EE Reverse-Forward Port 39176 Regression Diagnostic / Retry Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -30532,6 +30532,58 @@ Acceptance criteria:
 - no qsl-server/qsl-attachments.
 - no public/production readiness claim.
 - exactly one READY item remains after closeout.
+
+---
+
+### NA-0534 — QSL Remote qsc E2EE Reverse-Forward Port 39176 Regression Diagnostic Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Diagnose the reverse-forward port 39176 regression without running qsc E2EE or qsc send/receive by comparing prior success/failure evidence, checking local and remote loopback port state, confirming proof-root SSH config and dedicated-key constraints, running one known-good integrated marker/ACK probe only if port state is safe, capturing sanitized SSH/port diagnostics, cleaning all local processes, and selecting either a corrected E2EE retry successor, a trigger/port retry successor, or an operator-proof review successor.
+
+Allowed scope:
+- docs/governance/evidence/NA-0534_qsl_remote_qsc_e2ee_reverse_forward_port_39176_regression_diagnostic_implementation_harness.md
+- tests/NA-0534_qsl_remote_qsc_e2ee_reverse_forward_port_39176_regression_diagnostic_implementation_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-local command manifest/logs.
+- proof-root-local local listener and SSH forward logs.
+- safe `ssh -G` parsing.
+- read-only local port checks.
+- bounded read-only remote account/boundary checks.
+- bounded read-only remote port checks.
+- optional transient remote loopback bind probe if no listener is detected, no remote files are written, and the probe binds only `127.0.0.1:39176` and exits immediately.
+- one known-good integrated marker/ACK probe if port state permits.
+- sanitized SSH debug logs if forward fails.
+- cleanup proof.
+
+Forbidden scope:
+- qsc E2EE.
+- qsc send/receive.
+- qsc identity/contact/handshake/relay protocol commands.
+- qsl-server/qsl-attachments.
+- package installation.
+- sudo/admin action except negative `sudo -n true` probe if needed.
+- key generation/installation.
+- authorized_keys mutation.
+- authorized_keys reading.
+- sshd_config mutation.
+- sshd_config reading unless operator supplies redacted proof in a later lane.
+- SSH config mutation outside proof root.
+- known_hosts mutation.
+- remote file write.
+- remote temp file write.
+- remote source checkout/build.
+- qwork/qstart/qresume.
+- qsl-backup.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- production/user data.
+- no public-readiness, production-readiness, public-internet-readiness, crypto-complete, identity-complete, trust-complete, replay-proof, downgrade-proof, secret-material-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
 
 ---
 

@@ -37716,3 +37716,50 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - PR: pending at journal authoring.
 - PR merge commit: pending at journal authoring.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0532 update
+
+- Directive: QSL-DIR-2026-06-24-436 -- Execute NA-0532 QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Retry After Trigger Remediation Implementation Harness, Optional Closeout to Selected NA-0533.
+- Begin timestamp (UTC): 2026-06-24T06:39:39Z.
+- Repo path: `/srv/qbuild/work/NA-0532/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0532_wrong_peer_stale_trust_retry_after_trigger_remediation_impl_20260624T063939Z`.
+- Codex did not run qwork, qstart, qresume, qsl-backup, qsl-server, qsl-attachments, package installation, ssh-keygen, ssh-keyscan, remote source checkout/build, remote cargo/rustup/git, qsc E2EE, qsc send, qsc receive, qsc protocol commands after the failed precheck, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, backup, restore, force-push, amend, rebase, squash, branch deletion, or cargo update.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0532/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `21e63577e4ee`; proof recorded `startup_result=OK`, lane `NA-0532`, repo `qsl-protocol`, clean worktree/index/untracked state, READY_COUNT 1, queue top READY `NA-0532`, and requested lane status READY.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main remained at `21e63577e4ee`.
+- Disk watermark before fetch: `/` below 95%; `/backup/qsl` checked read-only.
+- Startup queue proof: READY_COUNT 1; READY NA-0532; NA-0531 DONE; NA-0530 DONE.
+- Startup decision proof: D-1052 once, D-1053 once, D-1054 absent before patch, D-1055 absent before patch, duplicate decision record count zero.
+- Main health proof on `21e63577e4ee`: public-safety success, advisories success, and no required context conclusively red. Non-required red check-runs `remote-relay` and `relay-ui-integration` were recorded.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list. qsl-backup was not executed.
+- Root and nested qsc fuzz lockfiles both retained `quinn-proto 0.11.15`; Cargo manifest drift check passed.
+- D435/D434/D433/D431/D425/D419 inheritance consumed: NA-0531 DONE, NA-0532 READY, D435 classification `REMOTE_TRIGGER_QUOTING_REMEDIATION_MARKER_TRAVERSAL_PASS`, D435 stdin trigger shape `ssh -T inspiron 'python3 -' < <proof-root trigger script>`, D435 marker/ACK pass, D435 no qsc E2EE and no qsc send/receive, D433 residue cleanup and retained qsc recheck pass, D425 retained qsc hash `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7`, D419 replay/corrupt negatives pass, and no qsl-server/qsl-attachments use.
+- Local qsc built from clean HEAD `21e63577e4ee` in proof-root target dir; local hash `184cbba58c29`; size `102103920`; local help passed.
+- Retained remote qsc path `/home/qslcodex/qsl-remote-test/bin/qsc`, owner/group `qslcodex/qslcodex`, mode `700`, size `102103920`, and hash `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7` matched NA-0526/D425. Remote help smoke was captured locally only and the remote command string contained no remote redirection and no remote temp path.
+- Local hash differed from retained remote hash, but qsc runtime/dependency diff since D425 source commit `2cff954de589` was empty, so retained-qsc provenance was accepted.
+- Command manifest written under proof root before integrated forwarding precheck and based on current qsc CLI/test surfaces: vault init/unlock, identity rotate/show, contacts add/device list/device trust, relay inbox-set, local qsc relay serve, handshake init/poll/status, send, receive, wrong-peer receive reject, and replaced-peer identity mismatch reject.
+- Remote boundary check passed: qslcodex user, UID nonzero, no privileged groups, negative sudo, `/backup/qsl` absent or not readable, qwork absent, qsl-backup absent, and directive-specific remote E2EE root absent.
+- Recovered failure: first main health parser treated all completed red check-runs as required red checks. Classification: recoverable command-shape/proof-parser mistake. Corrective action: queried branch protection and commit status, then enforced public-safety/advisories green and no required context conclusively red. Final result: main health gate passed.
+- Recovered failure: required context names `CodeQL` and `goal-lint` did not appear as exact check-run names. Classification: valid zero-match discovery for required contexts not all represented as check-run names in the check-runs payload. Corrective action: recorded zero-match and retrieved combined commit status evidence. Final result: no required context was conclusively red.
+- Recovered failure: first remote boundary check did not transmit the proof ID to the remote Python snippet, so it checked the parent E2EE directory. Classification: recoverable command-shape issue. Corrective action: switched to the D435-proven stdin-script remote command shape. Final result: boundary check passed.
+- Recovered failure: precheck script generation initially failed locally because an unescaped literal brace appeared inside a Python f-string template. Classification: recoverable local script-generation command-shape issue before listener/forward/trigger/qsc execution. Corrective action: rewrote the script generator without f-string interpolation hazards. Final result: script compile and local rehearsal passed.
+- Integrated precheck listener bound to `127.0.0.1:39176`, but the proof-root dedicated-key reverse-forward exited before trigger execution with `remote port forwarding failed for listen port 39176`.
+- Result classification: `REMOTE_E2EE_INTEGRATED_FORWARDING_PRECHECK_FAILURE`.
+- No marker traversed and no ACK was sent or received.
+- No baseline E2EE setup, wrong-peer negative, stale-trust/replaced-peer negative, qsc send, or qsc receive ran.
+- Wrong-peer deferral: `REMOTE_E2EE_WRONG_PEER_NEGATIVE_DEFERRED_PRECHECK_FAILURE`.
+- Stale-trust deferral: `REMOTE_E2EE_STALE_TRUST_NEGATIVE_DEFERRED_PRECHECK_FAILURE`.
+- Cleanup passed: local listener stopped, failed reverse-forward absent, local sensitive runtime removed, local port 39176 free, no proof-root listener/forward/qsc relay child remained, and remote E2EE root absent.
+- Governance patch paths: NA-0532 evidence doc, NA-0532 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Recovered failure: first added-line overclaim scanner flagged explicit negated claim-boundary lines as overclaims. Classification: recoverable validation scanner false positive. Corrective action: reran the scan with negation-aware claim-boundary handling. Final result: overclaim scan passed.
+- Required local validation passed: root `cargo audit --deny warnings`, nested qsc fuzz lock `cargo audit --deny warnings --file`, `same_host_client_to_client_e2e`, `receive_e2e`, `key_lifecycle_zeroization_expansion`, `secret_material_diagnostic_boundary`, `handshake_provider_error_no_mutation`, binding corpus validator, all qsc fuzz corpus validator, formal model runner, `cargo fmt --check`, `sh -n scripts/ci/qsc_adversarial.sh`, and `bash -n scripts/ci/qsc_adversarial.sh`.
+- Wait accounting recorded two local long-command intervals: `same_host_client_to_client_e2e` 2.42 minutes and `receive_e2e` 1.77 minutes. No CI wait recorded yet at journal authoring.
+- Recovered failure: first PR body preflight scanner compared a mixed-case required term against lowercased body text. Classification: recoverable command-shape/script case-sensitivity mistake. Corrective action: normalized required terms before comparison. Final result: PR body preflight passed.
+- D-1054 records NA-0532 remote qsc E2EE wrong-peer stale-trust retry after trigger remediation.
+- Selected successor candidate: `NA-0533 -- QSL Remote qsc E2EE Reverse-Forward Port 39176 Regression Diagnostic / Retry Scope Authorization Plan`. This implementation PR does not edit `NEXT_ACTIONS.md`; closeout requires explicit approved successor block text before queue mutation.
+- Branch: pending at journal authoring.
+- PR title: `NA-0532: implement remote E2EE wrong-peer stale-trust after trigger remediation`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0532_wrong_peer_stale_trust_retry_after_trigger_remediation_impl_20260624T063939Z/wait_accounting.tsv`.
+- No qsc E2EE occurred. No qsc send/receive occurred. No baseline E2EE occurred. No wrong-peer/stale-trust negative executed. No qsl-server or qsl-attachments use occurred. No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

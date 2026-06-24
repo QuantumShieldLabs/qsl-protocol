@@ -30452,11 +30452,86 @@ Acceptance criteria:
 ---
 
 ### NA-0532 — QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Retry After Trigger Remediation Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
 Retry the bounded remote qsc E2EE wrong-peer / stale-trust negative hardening run after NA-0531 proves the integrated trigger marker/ACK path, using retained remote qsc with fresh hash recheck, integrated listener/forward/trigger precheck, synthetic identities/messages/trust records, isolated local/remote roots, no qsl-server/qsl-attachments, cleanup/retention proof, and no public/production readiness claims.
+
+---
+
+### NA-0533 — QSL Remote qsc E2EE Reverse-Forward Port 39176 Regression Diagnostic / Retry Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the next narrow diagnostic lane after NA-0532 failed the integrated forwarding precheck because the dedicated-key reverse-forward could not allocate remote loopback port 39176, comparing prior successful NA-0520 / manual / NA-0531 marker traversal evidence with the NA-0532 port allocation failure, selecting exact safe diagnostics for remote loopback port state, stale listener/session causes, proof-root SSH config, dedicated-key forwarding constraints, and retry policy, without running qsc E2EE, qsc send/receive, qsl-server, or qsl-attachments.
+
+Protects:
+- direct qsc remote sprint from unstable forwarding assumptions.
+- loopback-only SSH forwarding boundary.
+- no qsc E2EE until port 39176 reverse-forward allocation and marker/ACK traversal are re-proven.
+- no qsl-server/qsl-attachments boundary.
+- no authorized_keys/sshd_config mutation or direct reading by Codex.
+- no remote file writes in diagnostics unless a later directive explicitly authorizes bounded proof artifacts.
+- public/production claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- docs/governance/evidence/NA-0533_qsl_remote_qsc_e2ee_reverse_forward_port_39176_regression_diagnostic_scope_authorization_plan.md
+- tests/NA-0533_qsl_remote_qsc_e2ee_reverse_forward_port_39176_regression_diagnostic_scope_authorization_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only review of D436 / D435 / D414 / D413 evidence.
+- selection of exact future diagnostic commands.
+- future proof/redaction/cleanup rules.
+- successor selection.
+
+Forbidden scope:
+- running SSH.
+- remote commands.
+- qsc E2EE.
+- qsc send/receive.
+- qsc protocol commands.
+- qsl-server/qsl-attachments.
+- package installation.
+- sudo/admin action.
+- key generation/installation.
+- authorized_keys mutation.
+- authorized_keys reading.
+- sshd_config mutation.
+- sshd_config reading unless operator supplies redacted proof in a later lane.
+- SSH config mutation outside future proof root.
+- known_hosts mutation.
+- remote file write.
+- remote source checkout/build.
+- qwork/qstart/qresume.
+- qsl-backup.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- production/user data.
+- public-readiness, production-readiness, public-internet-readiness, crypto-complete, identity-complete, trust-complete, replay-proof, downgrade-proof, secret-material-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
+
+Deliverables:
+- forwarding regression scope authorization evidence.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- exact successor selection for implementation or operator-proof review.
+
+Acceptance criteria:
+- D436 port 39176 failure consumed.
+- D435 trigger success consumed.
+- NA-0520 / manual success evidence reviewed.
+- cause categories reviewed: stale remote listener/session, key restriction drift, sshd policy drift, remote bind host syntax, proof-root SSH config, local listener timing, ControlMaster/session reuse, Tailscale/DNS alias drift.
+- future diagnostic commands selected without qsc E2EE.
+- no qsl-server/qsl-attachments.
+- no public/production readiness claim.
+- exactly one READY item remains after closeout.
 
 ---
 

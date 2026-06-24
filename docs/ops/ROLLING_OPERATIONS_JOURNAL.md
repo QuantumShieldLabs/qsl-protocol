@@ -6,6 +6,44 @@ Last-Updated: 2026-06-24
 
 # Rolling Operations Journal
 
+## NA-0532 closeout and NA-0533 restoration update
+
+- Directive: QSL-DIR-2026-06-24-437 -- Close Out NA-0532 After Integrated Forwarding Precheck Failure and Restore NA-0533 Reverse-Forward Port Diagnostic Authorization.
+- Begin timestamp (America/Chicago): 2026-06-24T02:23:17-05:00.
+- Begin timestamp (UTC): 2026-06-24T07:23:17Z.
+- Repo path: `/srv/qbuild/work/NA-0532/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0532_closeout_restore_na0533_after_forwarding_precheck_failure_20260624T072317Z`.
+- Codex did not run qwork, qstart, qresume, qsl-backup, SSH, scp, sftp, rsync, remote commands, qsc E2EE, qsc send/receive, qsc protocol commands, qsl-server, qsl-attachments, cargo update, branch-protection mutation, admin bypass, backup, or restore.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0532/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `aaf4d7f03d5c`.
+- Fetch performed only after proof/live ref match and disk proof below threshold.
+- Disk watermark before fetch: recorded for `/` and `/backup/qsl` in the directive proof root; `/` was below the 95% STOP threshold.
+- Startup queue proof: READY_COUNT 1; READY NA-0532; NA-0531 DONE; NA-0530 DONE; NA-0529 DONE.
+- Startup decision proof used the `- **ID:** D-####` parser: D-1052 once, D-1053 once, D-1054 once, D-1055 absent, D-1056 absent, and duplicate decision count zero.
+- D436, D435, D434, D433, and D431 response files were found.
+- PR #1337 merge proof passed: PR state MERGED; merged at 2026-06-24T07:06:21Z; merge commit `aaf4d7f03d5c`.
+- Current main health on `aaf4d7f03d5c`: public-safety completed success, advisories completed success, zero in-progress check runs, and zero completed red check runs in the retrieved check-run set.
+- Root and nested qsc fuzz lockfiles both contain `quinn-proto 0.11.15`; no Cargo.toml drift was present before closeout.
+- qsl-backup read-only proof: installed helper matched expected SHA-256 `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list.
+- D436/D435/D434/D433/D431 inheritance consumed: D436 classified NA-0532 as `REMOTE_E2EE_INTEGRATED_FORWARDING_PRECHECK_FAILURE`, PR #1337 merged at `aaf4d7f03d5c`, D-1054 exists once, retained qsc recheck passed, local qsc build/provenance was recorded, command manifest was written, boundary checks passed, local trigger compile/rehearsal passed, listener bound on `127.0.0.1:39176`, and the dedicated-key reverse-forward exited with `remote port forwarding failed for listen port 39176` before remote trigger execution. Marker traversal, ACK, qsc relay, remote E2EE root, qsc E2EE, qsc send/receive, baseline E2EE, wrong-peer negative, stale-trust negative, qsl-server, and qsl-attachments did not occur; cleanup passed. D435 recorded trigger marker/ACK success and no qsc E2EE. D433 recorded D432 residue cleanup and retained-qsc recheck before trigger quoting failure. D431 recorded manual integrated forwarding marker/ACK proof. D436 selected NA-0533 as the forwarding port 39176 diagnostic / retry scope authorization successor and did not run optional closeout because post-merge public-safety was missing and explicit failure-path successor text was needed.
+- Recovered failure: `git reset --ff-only origin/main` failed because `git reset` does not support `--ff-only`. Classification: recoverable command-shape issue before any repo mutation. Corrective action: used `git merge --ff-only origin/main` as the non-destructive fast-forward/no-op confirmation. Final result: success.
+- Recovered failure: `gh pr view 1337 --json ... merged ...` failed because gh 2.93.0 does not expose a `merged` JSON field. Classification: recoverable command-shape issue before any mutation. Corrective action: reran with supported `mergedAt` and `mergeCommit` fields. Final result: PR #1337 merge proof passed.
+- Recovered failure: the first inheritance required-facts parser required two exact phrases that differed from equivalent source wording. Classification: recoverable local validation script exact-phrase issue. Corrective action: reran with explicit alternate accepted evidence strings for boundary checks and D431 manual proof. Final result: inheritance proof passed.
+- Pre-closeout validation passed: `git diff --check`; root cargo audit; nested qsc fuzz lock cargo audit; `cargo fmt --check`; `sh -n scripts/ci/qsc_adversarial.sh`; `bash -n scripts/ci/qsc_adversarial.sh`; preferred qsc tests `same_host_client_to_client_e2e` and `receive_e2e`.
+- Recovered failure: the first added-line overclaim scan flagged the directive-required NA-0533 Forbidden scope bullet that lists prohibited claim labels. Classification: recoverable proof-tooling context issue because the line is a forbidden-scope enumeration, not an affirmative claim. Corrective action: reran with markdown section context that ignores Forbidden scope lists and no-claim wording. Final result: overclaim scan passed.
+- Post-patch validation passed: `git diff --check`; exact five-path closeout scope guard; queue/decision proof; link-check; leak-scan; context-aware overclaim scan; docs/governance classifier; PR body preflight; marker proof; root cargo audit; nested qsc fuzz lock cargo audit; `cargo fmt --check`; preferred qsc tests `same_host_client_to_client_e2e` and `receive_e2e`.
+- Wait accounting so far: pre-closeout `same_host_client_to_client_e2e` ran 152 seconds; pre-closeout `receive_e2e` ran 106 seconds; post-patch `same_host_client_to_client_e2e` ran 123 seconds; post-patch `receive_e2e` ran 107 seconds; all four are recorded in the directive wait log as local long-command waits.
+- Governance patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0532_closeout_restore_na0533_testplan.md`.
+- D-1055 records NA-0532 closeout and NA-0533 restoration.
+- NA-0532 is marked DONE. NA-0533 is restored READY using the explicit supplied forwarding port 39176 diagnostic authorization successor block.
+- Branch: `na-0532-closeout-restore-na0533`.
+- PR title: `NA-0532: closeout and restore NA-0533`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0532_closeout_restore_na0533_after_forwarding_precheck_failure_20260624T072317Z/wait_accounting.tsv`.
+- No NA-0533 implementation, remote action, SSH execution, qsc E2EE execution, qsc send/receive execution, qsc protocol command, qsl-server/qsl-attachments use, dependency mutation, lockfile mutation, Cargo.toml mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qwork/qstart/qresume, or qsl-backup execution is introduced.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0528 closeout and NA-0529 restoration update
 
 - Directive: QSL-DIR-2026-06-23-429 -- Close Out NA-0528 After Reverse-Forwarding Diagnostic Authorization Public-Safety Completion and Restore NA-0529.

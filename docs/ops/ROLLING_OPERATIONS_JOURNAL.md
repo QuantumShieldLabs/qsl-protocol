@@ -37839,3 +37839,27 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Wait accounting file: `/srv/qbuild/tmp/NA0533_reverse_forward_port_39176_regression_scope_authorization_20260624T135353Z/wait_accounting.tsv`.
 - No remote action, SSH execution, qsc E2EE, qsc send/receive, qsc protocol command, qsl-server/qsl-attachments use, package installation, sudo/admin action, key/config/host mutation, qwork/qstart/qresume, qsl-backup execution, dependency/lockfile mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation is introduced.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0533 closeout and NA-0534 restoration update
+
+- Directive: QSL-DIR-2026-06-24-438 optional closeout packet.
+- Begin timestamp (UTC): 2026-06-24T14:18:00Z.
+- Repo path: `/srv/qbuild/work/NA-0533/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0533_reverse_forward_port_39176_regression_scope_authorization_20260624T135353Z`.
+- Authorization PR #1339 merged at `c82b4e8a31c6` from head `33e3d65293bb`.
+- Post-merge advisories completed success on `c82b4e8a31c6`.
+- Post-merge public-safety completed success on `c82b4e8a31c6` inside the short attach/early-failure window.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0533_closeout_restore_na0534_testplan.md`.
+- NA-0533 is marked DONE.
+- NA-0534 is restored READY using the D-1056-selected reverse-forward port 39176 diagnostic implementation successor block.
+- D-1057 records NA-0533 closeout and NA-0534 restoration.
+- Recovered failure: first closeout link-check script used `Path(...)` without importing `Path`. Classification: recoverable command-shape validation script issue. Corrective action: reran link-check using `pathlib.Path(...)`. Final result: link-check passed with `TOTAL_MISSING 0`.
+- Recovered failure: first closeout static scan checked full historical governance files and hit pre-existing token/passphrase wording outside the closeout patch. Classification: recoverable validation scanner scope issue. Corrective action: reran private-material scan against added lines plus the closeout PR body. Final result: private-material scan passed.
+- Recovered failure: closeout overclaim scan flagged the inserted NA-0534 forbidden-scope claim-list line because it lacked line-local negation. Classification: recoverable wording/scanner issue. Corrective action: changed the inserted NA-0534 line to `no public-readiness...` wording. Final result: overclaim scan passed.
+- Closeout local validation passed: `git diff --check`, exact five-path closeout scope guard, queue/decision proof, link-check, private-material/leak scan, added-line overclaim scan, classifier, PR body preflight, root `cargo audit --deny warnings`, nested qsc fuzz lock `cargo audit --deny warnings --file`, and `cargo fmt --check`.
+- No NA-0534 implementation, remote action, SSH execution, qsc E2EE execution, qsc send/receive execution, qsc protocol command, qsl-server/qsl-attachments use, package installation, sudo/admin action, key/config/host mutation, qwork/qstart/qresume, qsl-backup execution, dependency/lockfile mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation is introduced.
+- Branch: `na-0533-closeout-restore-na0534`.
+- PR title: `NA-0533: closeout and restore NA-0534`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

@@ -2,7 +2,7 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-06-23
+Last-Updated: 2026-06-24
 
 # Rolling Operations Journal
 
@@ -37654,3 +37654,45 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Wait accounting file: `/srv/qbuild/tmp/NA0530_closeout_restore_na0531_after_trigger_quoting_failure_20260624T044910Z/wait_accounting.tsv`.
 - No NA-0531 implementation, remote action, SSH execution, scp/sftp/rsync, qsc E2EE execution, qsc send/receive execution, qsc protocol command, qsl-server/qsl-attachments use, package installation, sudo/admin action, key/config/host mutation, qwork/qstart/qresume, qsl-backup execution, dependency/lockfile mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation is introduced.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0531 update
+
+- Directive: QSL-DIR-2026-06-24-435 -- Execute NA-0531 QSL Remote qsc E2EE Integrated Trigger Quoting Remediation Harness, Optional Closeout to Selected NA-0532.
+- Begin timestamp (UTC): 2026-06-24T05:32:19Z.
+- Repo path: `/srv/qbuild/work/NA-0531/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0531_integrated_trigger_quoting_remediation_20260624T053219Z`.
+- Codex did not run qwork, qstart, qresume, qsl-backup, qsl-server, qsl-attachments, package installation, ssh-keygen, ssh-keyscan, remote source checkout/build, remote cargo/rustup/git, qsc E2EE, qsc send, qsc receive, qsc protocol commands, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, backup, restore, force-push, amend, rebase, squash, branch deletion, or cargo update.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0531/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `1b4ad9278d13`; proof recorded `startup_result=OK`, lane `NA-0531`, repo `qsl-protocol`, clean worktree/index/untracked state, READY_COUNT 1, queue top READY `NA-0531`, and requested lane status READY.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main remained at or descended from `1b4ad9278d13`.
+- Disk watermark before fetch: `/` usage 91%; STOP threshold 95% was not hit.
+- Startup queue proof: READY_COUNT 1; READY NA-0531; NA-0530 DONE; NA-0529 DONE.
+- Startup decision proof: D-1050 once, D-1051 once, D-1052 absent before patch, D-1053 absent before patch, duplicate decision record count zero.
+- Main health proof on `1b4ad9278d13`: public-safety success, advisories success, 36 check-runs retrieved, and no completed red checks.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list. qsl-backup was not executed.
+- Root and nested qsc fuzz lockfiles both retained `quinn-proto 0.11.15`; Cargo manifest drift check passed.
+- D434/D433/D432/D431/D430 inheritance consumed: NA-0530 DONE, NA-0531 READY, D433 classification `REMOTE_E2EE_INTEGRATED_TRIGGER_QUOTING_FAILURE`, D433 trigger failed before connecting due quoting, listener marker_match false, ack_sent false, ack_received false, D432 residue cleanup passed, retained qsc recheck passed, D431 manual integrated marker/ACK proof passed, and no qsc E2EE or qsc send/receive occurred.
+- Retained remote qsc path `/home/qslcodex/qsl-remote-test/bin/qsc`, owner/group `qslcodex/qslcodex`, mode `700`, size `102103920`, and hash `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7` matched NA-0526/D425. The binary was not executed.
+- Command manifest written under proof root before SSH execution. Trigger script SHA-256 was `2e14ce3e1e8422f95c302c2efac296c235fb9af75d5d1ba8d9ca07ca60fe61db`.
+- Local trigger rehearsal passed with marker `QSL_TRIGGER_QUOTING_REMEDIATION_SYNTHETIC_NA0531_20260624T053219Z_D435`, using a stdin Python script with no newline or shell-sensitive marker characters.
+- Safe `ssh -G inspiron` parsing recorded operational alias `clearallforwardings yes`; proof-root forwarding config used dedicated key basename `qslcodex_forward_ed25519` and effective `clearallforwardings no`.
+- Remote boundary check passed through operational SSH: qslcodex user, UID 1003, no privileged groups, negative sudo, `/backup/qsl` absent, qwork absent, and qsl-backup absent.
+- Recovered failure: exact inheritance proof queries initially used wording too strict for D434/D433. Classification: recoverable proof-query wording issue. Corrective action: extracted key lines and reran semantic checks. Final result: inheritance fact check passed.
+- Recovered failure: no-write remote command through the dedicated forwarding key exited `1` with no output. Classification: recoverable command-shape issue because inherited evidence shows the key is forwarding-restricted. Corrective action: kept dedicated key for reverse forwarding and used operational alias `inspiron` for bounded remote commands and stdin trigger. Final result: remote boundary, retained qsc recheck, and integrated trigger passed.
+- Recovered failure: listener readiness initially would have used a local probe connection that could consume the one-shot listener. Corrective action: changed the proof-root harness to use a ready flag after bind before the primary integrated attempt. Final result: local rehearsal and integrated marker/ACK pass.
+- Recovered failure: cleanup proof immediate bind and broad process assertions produced proof-method false positives after the recent TCP close and header/self-match. Corrective action: used filtered concrete process scan plus listener-state scan. Final result: cleanup proof passed.
+- Integrated trigger result: listener bound to `127.0.0.1:39176`; dedicated-key reverse-forward stayed alive with `ExitOnForwardFailure=yes`; remote stdin trigger printed `NA0531_REMOTE_TRIGGER_STARTED_OK`, `NA0531_TRIGGER_MARKER_SENT_OK`, `NA0531_TRIGGER_ACK_RECEIVED_OK`, and `NA0531_REMOTE_TRIGGER_DONE_OK`; listener recorded marker_match true and ack_sent true.
+- Result classification: `REMOTE_TRIGGER_QUOTING_REMEDIATION_MARKER_TRAVERSAL_PASS`.
+- Cleanup passed: no concrete NA-0531 listener, harness, or reverse-forward process remained; no listening socket remained on `39176`.
+- Governance patch paths: NA-0531 evidence doc, NA-0531 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Static validation passed: `git diff --check`, exact five-path scope guard, docs-only classifier, link-check, added-line leak scan, added-line overclaim scan, PR body preflight, marker proof, private-material scan, no-remote-write/no-qsc assertions, queue/decision parser, and cleanup proof.
+- Required local validation passed: root `cargo audit --deny warnings`, nested qsc fuzz lock `cargo audit --deny warnings --file`, `same_host_client_to_client_e2e`, `receive_e2e`, `key_lifecycle_zeroization_expansion`, `secret_material_diagnostic_boundary`, `handshake_provider_error_no_mutation`, binding corpus validator, all qsc fuzz corpus validator, formal model runner, `cargo fmt --check`, `sh -n scripts/ci/qsc_adversarial.sh`, and `bash -n scripts/ci/qsc_adversarial.sh`.
+- Wait accounting recorded two local long-command intervals: `same_host_client_to_client_e2e` 2.55 minutes and `receive_e2e` 1.77 minutes. No CI wait recorded yet at journal authoring.
+- D-1052 records NA-0531 remote qsc E2EE integrated trigger quoting remediation.
+- Selected successor candidate: `NA-0532 -- QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Retry After Trigger Remediation Implementation Harness`. This implementation PR does not edit `NEXT_ACTIONS.md`; closeout must restore the selected successor only after merge and green post-merge public-safety inside the short attach/early-failure window.
+- Branch: `na-0531-remote-e2ee-integrated-trigger-quoting-remediation`.
+- PR title: `NA-0531: implement integrated trigger quoting remediation`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0531_integrated_trigger_quoting_remediation_20260624T053219Z/wait_accounting.tsv`.
+- No qsc E2EE occurred. No qsc send/receive occurred. No qsc protocol command occurred. No remote file write occurred. No remote temp file occurred. No qsl-server or qsl-attachments use occurred. No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

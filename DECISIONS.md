@@ -27658,3 +27658,45 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `tests/NA-0529_qsl_remote_qsc_e2ee_reverse_forwarding_diagnostic_implementation_testplan.md` records validation, markers, scope guards, no-claim boundaries, and required local checks.
     - `TRACEABILITY.md` maps NA-0529 to D-1048 and the selected narrower NA-0530 successor.
   - **References:** NA-0529; selected NA-0530 trigger diagnostic successor; D-1048; D-1047; D-1046; D-1045; D429 response `/home/victor/work/qsl/codex/responses/NA0528_closeout_restore_na0529_20260623T205836Z_D429.md`; D428 response `/home/victor/work/qsl/codex/responses/NA0528_20260623T183117Z_D428.md`; D427 response `/home/victor/work/qsl/codex/responses/NA0527_20260623T172638Z_D427.md`; D414 response `/home/victor/work/qsl/codex/responses/NA0520_20260622T034023Z_D414.md`; D413 response `/home/victor/work/qsl/codex/responses/NA0519_20260622T021059Z_D413.md`; `docs/governance/evidence/NA-0529_qsl_remote_qsc_e2ee_reverse_forwarding_diagnostic_implementation_harness.md`; `tests/NA-0529_qsl_remote_qsc_e2ee_reverse_forwarding_diagnostic_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1049
+  - **Title:** NA-0529 closeout and NA-0530 restoration with integrated forwarding proof review
+  - **Date:** 2026-06-24
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** D-1048 implementation evidence is accepted for NA-0529 after PR #1331 merged at `9f1b86ff9d71`, post-merge public-safety completed success, post-merge advisories completed success, and the D430 classification remained `REMOTE_FORWARDING_DIAGNOSTIC_REMOTE_TRIGGER_FAILURE`. This closeout reviewed the operator-supplied manual integrated forwarding proof root `/srv/qbuild/tmp/manual_reverse_forward_marker_integrated_20260624T012231Z`, accepted its marker traversal and ACK evidence, marks NA-0529 DONE, and restores `NA-0530 -- QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Retry with Integrated Forwarding Harness` as the sole READY successor.
+  - **Evidence consumed:** D430 records PR #1331 merge, D-1048 once, dedicated-key reverse-forward startup success, `NA0529_REVERSE_FORWARD_STARTED_OK`, `NA0529_EXIT_ON_FORWARD_FAILURE_OK`, no D427 corrected remote-port-forward startup failure reproduction, single remote trigger failure before marker/ACK traversal, trigger stdout `n`, trigger stderr read/connection-reset failure, reverse-forward stderr `connect_to 127.0.0.1 port 39176: failed.`, no listener marker summary, no ACK marker, no qsc E2EE, no qsc send/receive, no qsl-server/qsl-attachments, cleanup pass, and post-merge public-safety/advisories success. D429/D428/D427/D414 inheritance is consumed, including D414's successful SSH forwarding capability probe and no-qsc-send/receive boundary.
+  - **Manual integrated proof review:** The manual integrated proof root `/srv/qbuild/tmp/manual_reverse_forward_marker_integrated_20260624T012231Z` contains `INTEGRATED_MARKER_TRAVERSED_OK`, `REMOTE_ACK=MANUAL_TUNNEL_ACK_OK`, `"marker_match": true`, `"ack_sent": true`, and `"ok": true`. It shows a local listener bound to `127.0.0.1:39176`, dedicated-key reverse-forward config by path only, a remote trigger connected to remote `127.0.0.1:39176`, the marker crossed the tunnel, the listener returned `MANUAL_TUNNEL_ACK_OK`, the remote trigger received that ACK, and cleanup left no local or remote listener row on `39176`. The manual proof and post-manual qwork proof support clean repo/no code or governance mutation. Sensitive-material scan found no private key block, passphrase, token, password value, credential, production endpoint, backup material, or raw authorized_keys/sshd_config/known_hosts dump; the only scan hit was the non-secret SSH option `PasswordAuthentication no`.
+  - **Root-cause conclusion:** The manual integrated proof supports command/test-harness shape, integrated lifetime, and remote trigger quoting as the likely D430 issue, not SSH policy. NA-0530 must re-prove integrated forwarding marker traversal and ACK in-lane before any qsc E2EE.
+  - **Security invariants introduced/changed:**
+    - No remote action occurs in this closeout.
+    - No SSH execution occurs in this closeout.
+    - No qsc send/receive occurs in this closeout.
+    - No remote E2EE occurs in this closeout.
+    - No qsl-server use occurs in this closeout.
+    - No qsl-attachments use occurs in this closeout.
+    - No dependency mutation occurs in this closeout.
+    - No lockfile mutation occurs in this closeout.
+    - No qsc source/test/fuzz/Cargo mutation occurs in this closeout.
+    - No qsl-backup execution occurs in this closeout.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free, bug-free, or perfect-crypto claim is made.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Leave NA-0529 READY after D-1048 (rejected because PR #1331 merged, post-merge public-safety/advisories were green, and this directive supplies approved NA-0530 successor text).
+    - Restore the D430 trigger-command-shape-only successor unchanged (rejected because operator-supplied manual proof now demonstrates integrated marker traversal and supports direct E2EE retry with a mandatory in-lane integrated forwarding precheck).
+    - Implement NA-0530 in this closeout (rejected because this directive is closeout-only and forbids qsc E2EE, qsc send/receive, SSH execution, and remote action).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0529 DONE and restores NA-0530 READY with mandatory in-lane integrated marker traversal and ACK precheck before qsc E2EE.
+    - `tests/NA-0529_closeout_restore_na0530_testplan.md` records closeout-only validation, manual proof review markers, queue/decision proof, scope guard, boundary assertions, and post-closeout public-safety/advisories requirements.
+    - `TRACEABILITY.md` maps this closeout to D-1048, D-1049, PR #1331, the manual integrated proof review, and the restored NA-0530 successor.
+  - **References:** NA-0529; NA-0530; D-1049; D-1048; D-1047; D-1046; qsl-protocol PR #1331; D430 response `/home/victor/work/qsl/codex/responses/NA0529_20260624T010257Z_D430.md`; D429 response `/home/victor/work/qsl/codex/responses/NA0528_closeout_restore_na0529_20260623T205836Z_D429.md`; D428 response `/home/victor/work/qsl/codex/responses/NA0528_20260623T183117Z_D428.md`; D427 response `/home/victor/work/qsl/codex/responses/NA0527_20260623T172638Z_D427.md`; D414 response `/home/victor/work/qsl/codex/responses/NA0520_20260622T034023Z_D414.md`; manual proof root `/srv/qbuild/tmp/manual_reverse_forward_marker_integrated_20260624T012231Z`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0529_closeout_restore_na0530_testplan.md`

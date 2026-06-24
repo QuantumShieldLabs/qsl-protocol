@@ -30536,7 +30536,7 @@ Acceptance criteria:
 ---
 
 ### NA-0534 — QSL Remote qsc E2EE Reverse-Forward Port 39176 Regression Diagnostic Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -30584,6 +30584,95 @@ Forbidden scope:
 - formal/refimpl/service/public/backup mutation.
 - production/user data.
 - no public-readiness, production-readiness, public-internet-readiness, crypto-complete, identity-complete, trust-complete, replay-proof, downgrade-proof, secret-material-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
+
+---
+
+### NA-0535 — QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Retry After Port Diagnostic Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Retry the bounded remote qsc E2EE wrong-peer / stale-trust negative hardening run after NA-0534 proves reverse-forward port 39176 and marker/ACK stability, using retained remote qsc with fresh hash recheck, integrated listener/forward/trigger precheck, synthetic identities/messages/trust records, isolated local/remote roots, no qsl-server/qsl-attachments, cleanup/retention proof, and no public/production readiness claims.
+
+Protects:
+- direct qsc remote sprint from unstable forwarding assumptions.
+- loopback-only SSH forwarding boundary.
+- no qsc E2EE until port 39176 reverse-forward allocation and marker/ACK are re-proven in-lane.
+- wrong-peer and stale-trust negative boundaries.
+- retained-qsc freshness after restaging.
+- synthetic proof/redaction discipline.
+- no qsl-server/qsl-attachments boundary.
+- public/production claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- docs/governance/evidence/NA-0535_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_after_port_diagnostic_implementation_harness.md
+- tests/NA-0535_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_after_port_diagnostic_implementation_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-local local/remote command output.
+- bounded SSH to inspiron as qslcodex.
+- dedicated-key reverse forwarding.
+- integrated proof-root listener/forward/trigger harness in one controlled execution lifetime.
+- one synthetic marker traversal precheck before qsc E2EE.
+- retained remote qsc binary.
+- synthetic messages only.
+- synthetic public/trust records only.
+- remote artifacts only under `$HOME/qsl-remote-test/e2ee/<PROOF_ID>`.
+- local sensitive runtime under proof root.
+- cleanup/retention proof.
+
+Forbidden scope:
+- qsc E2EE before integrated port 39176 marker traversal precheck succeeds.
+- qsl-server/qsl-attachments.
+- package installation.
+- sudo/admin action except negative `sudo -n true` probe.
+- key generation/installation.
+- authorized_keys mutation.
+- authorized_keys reading.
+- sshd_config mutation.
+- sshd_config reading unless operator supplies redacted proof in a later lane.
+- SSH config mutation outside proof root.
+- known_hosts mutation.
+- remote file write outside `$HOME/qsl-remote-test/e2ee/<PROOF_ID>`.
+- remote temp file write.
+- remote source checkout/build.
+- qwork/qstart/qresume.
+- qsl-backup.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- production/user data.
+- public-readiness, production-readiness, public-internet-readiness, crypto-complete, identity-complete, trust-complete, replay-proof, downgrade-proof, secret-material-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
+
+Deliverables:
+- retained-qsc fresh hash recheck.
+- integrated port 39176 marker traversal and ACK precheck.
+- remote qsc E2EE wrong-peer/stale-trust negative evidence if precheck passes.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- successor selection based on result.
+
+Acceptance criteria:
+- D439 port diagnostic success consumed.
+- retained qsc hash/path/owner rechecked against NA-0526 hash.
+- proof-root config safe.
+- integrated listener/forward/trigger precheck succeeds before qsc E2EE.
+- forwarding path rechecked.
+- baseline remote E2EE setup reaches identity/trust negative test point.
+- wrong-peer negative fails closed or is deferred with exact rationale.
+- stale-trust/replaced-peer negative fails closed or is deferred with exact rationale.
+- selected state no-mutation checks pass for executed negatives.
+- valid path remains usable if applicable.
+- no secret material in checked-in proof.
+- cleanup/retention result recorded.
+- no qsl-server/qsl-attachments.
+- no public/production readiness claim.
+- exactly one READY item remains after closeout.
 
 ---
 

@@ -37805,6 +37805,38 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - PR merge commit: pending at journal authoring.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0534 closeout and NA-0535 restoration update
+
+- Directive: QSL-DIR-2026-06-24-440 -- Close Out NA-0534 After Port 39176 Diagnostic Public-Safety Completion and Restore NA-0535 E2EE Retry.
+- Begin timestamp (UTC): 2026-06-24T15:47:57Z.
+- Repo path: `/srv/qbuild/work/NA-0534/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0534_closeout_restore_na0535_after_port_diagnostic_20260624T154757Z`.
+- Codex did not run qwork, qstart, qresume, SSH, scp, sftp, rsync, remote commands, qsc E2EE, qsc send, qsc receive, remote E2EE, qsc protocol commands, qsl-server, qsl-attachments, qsl-backup, package installation, ssh-keygen, ssh-keyscan, sudo/admin action, remote source checkout/build, cargo update, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, dependency mutation, lockfile mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, backup, restore, force-push, amend, rebase, squash, or branch deletion.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0534/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `b52988a80e43`; proof recorded `startup_result=OK`, lane `NA-0534`, repo `qsl-protocol`, clean worktree/index/untracked state, READY_COUNT 1, queue top READY `NA-0534`, and requested lane status READY.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main remained at `b52988a80e43`.
+- Disk watermark before fetch: `/` usage 93%; `/backup/qsl` usage 28%; STOP threshold 95% was not hit.
+- Startup queue proof: READY_COUNT 1; READY NA-0534; NA-0533 DONE; NA-0532 DONE; NA-0531 DONE.
+- Startup decision proof: D-1056 once, D-1057 once, D-1058 once, D-1059 absent before patch, D-1060 absent, duplicate decision record count zero.
+- Main health proof on `b52988a80e43`: public-safety success, advisories success, 36 check-runs retrieved, and no red check-runs.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list. qsl-backup was not executed.
+- Recovered failure: first qsl-backup source-inclusion proof counted supporting status/plan docs as well as the installed helper and reported count 14. Classification: recoverable command-shape/interpretation issue. Corrective action: reran the check against `/usr/local/sbin/qsl-backup` only, with exit status preserved. Final result: installed helper source inclusion count was 1 and the helper hash matched.
+- Root and nested qsc fuzz lockfiles both retained `quinn-proto 0.11.15`; Cargo manifest drift check passed.
+- D439/D438/D437/D436/D435 inheritance consumed: NA-0534 implementation PR #1341 merged at `b52988a80e43`; D-1058 exists once; D439 classification `REMOTE_FORWARD_PORT_39176_DIAGNOSTIC_MARKER_TRAVERSAL_PASS`; remote pre-probe port state showed no listener on 39176; transient remote loopback bind probe passed; first integrated probe failed due local harness lifetime; corrected single-lifetime integrated marker/ACK probe passed with reverse-forward alive, remote `127.0.0.1:39176` listening during the forward, marker traversal, ACK returned, listener `ok=true`, `marker_match=true`, and `ack_sent=true`; cleanup passed; no qsc E2EE, qsc send/receive, qsc protocol command, qsl-server, or qsl-attachments occurred; D439 selected `NA-0535 -- QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Retry After Port Diagnostic Implementation Harness`; optional closeout did not run because post-merge public-safety was still in progress.
+- Pre-closeout validation passed: `git diff --check`, root `cargo audit --deny warnings`, nested qsc fuzz lock `cargo audit --deny warnings --file`, `cargo fmt --check`, `sh -n scripts/ci/qsc_adversarial.sh`, `bash -n scripts/ci/qsc_adversarial.sh`, `same_host_client_to_client_e2e`, and `receive_e2e`.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, this journal, and `tests/NA-0534_closeout_restore_na0535_testplan.md`.
+- D-1059 records NA-0534 closeout and NA-0535 restoration.
+- NA-0534 is marked DONE.
+- NA-0535 is restored READY using the supplied retry-after-port-diagnostic successor block.
+- Future NA-0535 must re-prove integrated port 39176 marker traversal and ACK before qsc E2EE and must preserve the no qsl-server/qsl-attachments boundary.
+- Branch: pending at journal authoring.
+- PR title: `NA-0534: closeout and restore NA-0535`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0534_closeout_restore_na0535_after_port_diagnostic_20260624T154757Z/wait_accounting.tsv`.
+- No NA-0535 implementation, remote action, SSH execution, scp/sftp/rsync, qsc E2EE execution, qsc send/receive execution, remote E2EE execution, qsc protocol command, qsl-server/qsl-attachments use, package installation, sudo/admin action, key/config/host mutation, qwork/qstart/qresume, qsl-backup execution, dependency/lockfile mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation is introduced.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0532 update
 
 - Directive: QSL-DIR-2026-06-24-436 -- Execute NA-0532 QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Retry After Trigger Remediation Implementation Harness, Optional Closeout to Selected NA-0533.

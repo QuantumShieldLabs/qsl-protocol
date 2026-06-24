@@ -27837,3 +27837,42 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `tests/NA-0531_qsl_remote_qsc_e2ee_integrated_trigger_quoting_remediation_testplan.md` records validation, markers, scope guards, no-claim boundaries, and required local checks.
     - `TRACEABILITY.md` maps NA-0531 to D-1052 and the selected NA-0532 retry successor.
   - **References:** NA-0531; selected NA-0532 retry successor; D-1052; D-1051; D-1050; D-1049; D-1048; D434 response `/home/victor/work/qsl/codex/responses/NA0530_closeout_restore_na0531_20260624T051422Z_D434.md`; D433 response `/home/victor/work/qsl/codex/responses/NA0530_recover_retry_20260624T040457Z_D433.md`; D432 response `/home/victor/work/qsl/codex/responses/NA0530_20260624T023936Z_D432.md`; D431 response `/home/victor/work/qsl/codex/responses/NA0529_closeout_restore_na0530_integrated_forwarding_20260624T020653Z_D431.md`; D430 response `/home/victor/work/qsl/codex/responses/NA0529_20260624T010257Z_D430.md`; `docs/governance/evidence/NA-0531_qsl_remote_qsc_e2ee_integrated_trigger_quoting_remediation_harness.md`; `tests/NA-0531_qsl_remote_qsc_e2ee_integrated_trigger_quoting_remediation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1053
+  - **Title:** NA-0531 closeout and NA-0532 restoration
+  - **Date:** 2026-06-24
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** D-1052 implementation evidence is accepted for NA-0531 after PR #1335 merged at `ec9d0cf0c834`, post-merge advisories completed success, post-merge public-safety completed success inside the short attach/early-failure window, and the D-1052 classification remained `REMOTE_TRIGGER_QUOTING_REMEDIATION_MARKER_TRAVERSAL_PASS`. NA-0531 is marked DONE, and `NA-0532 -- QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Retry After Trigger Remediation Implementation Harness` is restored as the sole READY successor.
+  - **Evidence consumed:** D-1052 records D434/D433/D432/D431/D430 inheritance, retained qsc metadata/hash recheck pass at `/home/qslcodex/qsl-remote-test/bin/qsc`, local trigger rehearsal pass, safe remote trigger command shape `ssh -T inspiron 'python3 -' < <proof-root trigger script>`, integrated listener marker_match true, ACK sent and received, cleanup pass, no qsc E2EE, no qsc send/receive, no qsc protocol command, no remote file write, no qsl-server use, and no qsl-attachments use. PR #1335 merged as merge commit `ec9d0cf0c834` from head `b1621c599613`.
+  - **Closeout result:** No NA-0532 implementation occurs in this closeout. No remote action occurs. No SSH execution occurs. No qsc E2EE, qsc send/receive, qsc protocol command, qsl-server, qsl-attachments, package install, remote source checkout/build, remote file write, qwork/qstart/qresume, or qsl-backup execution occurs.
+  - **Security invariants introduced/changed:**
+    - NA-0531 is DONE.
+    - NA-0532 is READY.
+    - Exactly one READY remains mandatory.
+    - No implementation path changes occur.
+    - No qsc source/test/fuzz/Cargo mutation occurs.
+    - No workflow/script/helper mutation occurs.
+    - No corpus/vector/input mutation occurs.
+    - No dependency/lockfile mutation occurs.
+    - No formal/refimpl/service/public/backup mutation occurs.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free, bug-free, or perfect-crypto claim is made.
+  - **Alternatives considered:**
+    - Leave NA-0531 READY after D-1052 (rejected because PR #1335 merged and post-merge public-safety/advisories completed success inside the short window).
+    - Implement NA-0532 in this closeout (rejected because this closeout is queue restoration only).
+    - Restore the trigger fallback diagnostic successor (rejected because NA-0531 classified as marker traversal pass).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0531 DONE and restores the selected NA-0532 retry successor.
+    - `tests/NA-0531_closeout_restore_na0532_testplan.md` records closeout validation, queue/decision proof, scope guard, boundary assertions, and post-closeout public-safety requirement.
+    - `TRACEABILITY.md` maps this closeout to D-1052, D-1053, PR #1335, the marker traversal pass classification, and the restored NA-0532 successor.
+  - **References:** NA-0531; NA-0532; D-1053; D-1052; PR #1335; implementation merge `ec9d0cf0c834`; implementation head `b1621c599613`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0531_closeout_restore_na0532_testplan.md`

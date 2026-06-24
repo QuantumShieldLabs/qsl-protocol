@@ -30366,7 +30366,7 @@ Acceptance criteria:
 ---
 
 ### NA-0531 — QSL Remote qsc E2EE Integrated Trigger Quoting Remediation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -30448,6 +30448,15 @@ Acceptance criteria:
 - no qsl-server/qsl-attachments.
 - cleanup completed.
 - exactly one successor selected.
+
+---
+
+### NA-0532 — QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Retry After Trigger Remediation Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Retry the bounded remote qsc E2EE wrong-peer / stale-trust negative hardening run after NA-0531 proves the integrated trigger marker/ACK path, using retained remote qsc with fresh hash recheck, integrated listener/forward/trigger precheck, synthetic identities/messages/trust records, isolated local/remote roots, no qsl-server/qsl-attachments, cleanup/retention proof, and no public/production readiness claims.
 
 ---
 

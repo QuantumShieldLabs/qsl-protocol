@@ -37696,3 +37696,23 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - PR merge commit: pending at journal authoring.
 - Wait accounting file: `/srv/qbuild/tmp/NA0531_integrated_trigger_quoting_remediation_20260624T053219Z/wait_accounting.tsv`.
 - No qsc E2EE occurred. No qsc send/receive occurred. No qsc protocol command occurred. No remote file write occurred. No remote temp file occurred. No qsl-server or qsl-attachments use occurred. No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0531 closeout and NA-0532 restoration update
+
+- Directive: QSL-DIR-2026-06-24-435 optional closeout packet.
+- Begin timestamp (UTC): 2026-06-24T05:59:00Z.
+- Repo path: `/srv/qbuild/work/NA-0531/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0531_integrated_trigger_quoting_remediation_20260624T053219Z`.
+- Implementation PR #1335 merged at `ec9d0cf0c834` from head `b1621c599613`.
+- Post-merge advisories completed success on `ec9d0cf0c834`.
+- Post-merge public-safety completed success on `ec9d0cf0c834` inside the short attach/early-failure window.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0531_closeout_restore_na0532_testplan.md`.
+- NA-0531 is marked DONE.
+- NA-0532 is restored READY using the D-1052-selected retry-after-trigger-remediation successor block.
+- D-1053 records NA-0531 closeout and NA-0532 restoration.
+- No NA-0532 implementation, remote action, SSH execution, qsc E2EE execution, qsc send/receive execution, qsc protocol command, qsl-server/qsl-attachments use, package installation, sudo/admin action, key/config/host mutation, qwork/qstart/qresume, qsl-backup execution, dependency/lockfile mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation is introduced.
+- Branch: `na-0531-closeout-restore-na0532`.
+- PR title: `NA-0531: closeout and restore NA-0532`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

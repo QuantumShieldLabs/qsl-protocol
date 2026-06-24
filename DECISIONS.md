@@ -28157,3 +28157,46 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `tests/NA-0534_closeout_restore_na0535_testplan.md` records closeout validation, queue/decision proof, scope guard, public-safety/advisories requirements, boundary assertions, and no-claim checks.
     - `TRACEABILITY.md` maps this closeout to D-1058, D-1059, PR #1341, the marker-traversal-pass classification, and the restored NA-0535 successor.
   - **References:** NA-0534; NA-0535; D-1059; D-1058; PR #1341; implementation merge `b52988a80e43`; D439 response `/home/victor/work/qsl/codex/responses/NA0534_20260624T153252Z_D439.md`; D438 response `/home/victor/work/qsl/codex/responses/NA0533_20260624T143842Z_D438.md`; D437 response `/home/victor/work/qsl/codex/responses/NA0532_closeout_restore_na0533_20260624T075109Z_D437.md`; D436 response `/home/victor/work/qsl/codex/responses/NA0532_20260624T070953Z_D436.md`; D435 response `/home/victor/work/qsl/codex/responses/NA0531_20260624T053219Z_D435.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0534_closeout_restore_na0535_testplan.md`
+
+- **ID:** D-1060
+  - **Title:** NA-0535 remote qsc E2EE wrong-peer stale-trust retry after port diagnostic
+  - **Date:** 2026-06-24
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0535 consumes D440/D439/D436/D435/D425/D419 inheritance and classifies the bounded remote qsc E2EE identity/trust negative retry as `REMOTE_E2EE_WRONG_PEER_STALE_TRUST_NEGATIVES_PASS`. The retained remote qsc at `/home/qslcodex/qsl-remote-test/bin/qsc`, owner `qslcodex`, mode `700`, size `102103920`, and SHA-256 `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7` was rechecked against the NA-0526/D425 hash. The NA-0534 port 39176 diagnostic success was consumed, integrated marker traversal and ACK passed before qsc E2EE, forwarding was rechecked, and local qsc provenance was recorded from clean source commit `4fbbfaf04ecd`.
+  - **Evidence consumed:** D440 recorded NA-0534 DONE, NA-0535 READY, D-1059 once, D-1060 absent, no remote action, and public-safety/advisories green. D439 recorded `REMOTE_FORWARD_PORT_39176_DIAGNOSTIC_MARKER_TRAVERSAL_PASS`, remote loopback bind probe pass, remote `127.0.0.1:39176` listener during forward, marker traversal, ACK, listener `ok`, `marker_match`, and `ack_sent`, cleanup pass, and no qsc E2EE/send/receive. D436's previous port failure was consumed and resolved by D439. D435's stdin-script trigger remediation passed. D425 supplied the retained qsc path/hash/owner/mode/size baseline. D419 replay/corrupt negatives passed.
+  - **Remote E2EE result:** Baseline qsc identity/contact/device trust, relay inbox, handshake, send, and receive setup completed with synthetic data only and produced a valid `recv_commit`. Wrong-peer negative executed by receiving Bob mailbox with `--from charlie`; it failed closed with expected qsc fail-closed output, produced no plaintext, created no new output artifact, and did not mutate the selected Bob/Alice session digest. Stale/replaced-peer negative executed with a second local `alice` identity; Bob observed `identity_mismatch` / `peer_mismatch`, and the selected Bob/Alice session digest did not mutate. A valid Alice-to-Bob send/receive path remained usable afterward.
+  - **Cleanup/retention result:** The remote E2EE root under `/home/qslcodex/qsl-remote-test/e2ee/NA0535_20260624T163514Z/` was removed, local sensitive runtime under the proof root was removed, qsc relay/listener/SSH forward processes were stopped, and local/remote port `39176` was closed. The retained remote qsc binary remained unchanged.
+  - **Security invariants introduced/changed:**
+    - No qsl-server use occurs.
+    - No qsl-attachments use occurs.
+    - No package installation occurs.
+    - No remote source checkout/build occurs.
+    - No remote cargo, rustup, or git operation occurs.
+    - No qwork/qstart/qresume execution occurs.
+    - No qsl-backup execution occurs.
+    - No qsc source/test/fuzz/Cargo mutation occurs.
+    - No workflow/script/helper mutation occurs.
+    - No corpus/vector/input mutation occurs.
+    - No dependency/lockfile mutation occurs.
+    - No formal/refimpl/service/public/backup mutation occurs.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No vulnerability-free, bug-free, or perfect-crypto claim is made.
+    - Exactly one READY remains mandatory until closeout.
+  - **Alternatives considered:**
+    - Run qsc E2EE before marker/ACK precheck (rejected by fail-closed gate).
+    - Restage remote qsc (rejected because retained qsc matched D425 and qsc runtime/dependency diff since D425 was empty).
+    - Use qsl-server or qsl-attachments (rejected as out of scope).
+    - Claim broad identity/trust completeness (rejected because evidence is bounded to the executed surfaces).
+  - **Implications for spec/impl/tests:**
+    - `docs/governance/evidence/NA-0535_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_after_port_diagnostic_implementation_harness.md` records qwork proof verification, inheritance, retained-qsc freshness, command manifest, boundary checks, integrated marker/ACK precheck, local/remote qsc provenance, baseline setup, wrong-peer proof, stale/replaced-peer proof, no-mutation proof, valid-path proof, no-secret-output review, cleanup, stewardship reviews, and claim boundaries.
+    - `tests/NA-0535_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_after_port_diagnostic_implementation_testplan.md` records the validation gates, expected markers, stop conditions, and claim boundary.
+    - `TRACEABILITY.md` maps NA-0535 to D-1060 and the selected NA-0536 repeated-run / cleanup / freshness successor.
+  - **Selected successor:** `NA-0536 -- QSL Remote qsc E2EE Repeated-Run / Cleanup / Freshness Scope Authorization Plan`.
+  - **References:** NA-0535; selected NA-0536 repeated-run / cleanup / freshness successor; D-1060; D-1059; D-1058; D440 response `/home/victor/work/qsl/codex/responses/NA0534_closeout_restore_na0535_20260624T161554Z_D440.md`; D439 response `/home/victor/work/qsl/codex/responses/NA0534_20260624T153252Z_D439.md`; D436 response `/home/victor/work/qsl/codex/responses/NA0532_20260624T070953Z_D436.md`; D435 response `/home/victor/work/qsl/codex/responses/NA0531_20260624T053219Z_D435.md`; D425 response `/home/victor/work/qsl/codex/responses/NA0526_20260623T125452Z_D425.md`; D419 response `/home/victor/work/qsl/codex/responses/NA0523_recover_retry_20260622T145242Z_D419.md`; `docs/governance/evidence/NA-0535_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_after_port_diagnostic_implementation_harness.md`; `tests/NA-0535_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_after_port_diagnostic_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

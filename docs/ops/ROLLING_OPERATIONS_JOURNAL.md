@@ -76,8 +76,9 @@ Last-Updated: 2026-06-24
 - NA-0528 is marked DONE. NA-0529 is restored READY as the exact D-1046-selected diagnostic implementation successor.
 - Branch: `na-0528-closeout-restore-na0529`.
 - PR title: `NA-0528: closeout and restore NA-0529`.
-- PR: pending at journal authoring.
-- PR merge commit: pending at journal authoring.
+- PR: #1340 (`https://github.com/QuantumShieldLabs/qsl-protocol/pull/1340`) created from head `6c77057960a9`.
+- PR creation: `gh pr create` fallback used after the earlier directive-local GitHub connector create path had returned 403 for PR #1339.
+- PR merge commit: pending before closeout PR checks.
 - Wait accounting file: `/srv/qbuild/tmp/NA0528_closeout_restore_na0529_after_forwarding_authorization_20260623T203216Z/wait_accounting.tsv`.
 - No NA-0529 implementation, remote action, SSH execution, qsc send/receive execution, remote E2EE execution, qsl-server/qsl-attachments use, dependency mutation, lockfile mutation, Cargo.toml mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qwork/qstart/qresume, or qsl-backup execution is introduced.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

@@ -28200,3 +28200,50 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0535 to D-1060 and the selected NA-0536 repeated-run / cleanup / freshness successor.
   - **Selected successor:** `NA-0536 -- QSL Remote qsc E2EE Repeated-Run / Cleanup / Freshness Scope Authorization Plan`.
   - **References:** NA-0535; selected NA-0536 repeated-run / cleanup / freshness successor; D-1060; D-1059; D-1058; D440 response `/home/victor/work/qsl/codex/responses/NA0534_closeout_restore_na0535_20260624T161554Z_D440.md`; D439 response `/home/victor/work/qsl/codex/responses/NA0534_20260624T153252Z_D439.md`; D436 response `/home/victor/work/qsl/codex/responses/NA0532_20260624T070953Z_D436.md`; D435 response `/home/victor/work/qsl/codex/responses/NA0531_20260624T053219Z_D435.md`; D425 response `/home/victor/work/qsl/codex/responses/NA0526_20260623T125452Z_D425.md`; D419 response `/home/victor/work/qsl/codex/responses/NA0523_recover_retry_20260622T145242Z_D419.md`; `docs/governance/evidence/NA-0535_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_after_port_diagnostic_implementation_harness.md`; `tests/NA-0535_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_after_port_diagnostic_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1061
+  - **Title:** NA-0535 closeout and NA-0536 restoration
+  - **Date:** 2026-06-24
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** D-1060 implementation evidence is accepted for NA-0535 after PR #1343 merged as `954e840b66ce`, post-merge public-safety completed success inside the short attach/early-failure window, and classification `REMOTE_E2EE_WRONG_PEER_STALE_TRUST_NEGATIVES_PASS` remained selected. NA-0535 is marked DONE, and `NA-0536 -- QSL Remote qsc E2EE Repeated-Run / Cleanup / Freshness Scope Authorization Plan` is restored as the sole READY successor.
+  - **Evidence consumed:** D-1060 records D440/D439/D436/D435/D425/D419 inheritance consumption; retained remote qsc path, owner, mode, size, and hash recheck against the NA-0526/D425 hash; integrated marker traversal and ACK before qsc E2EE; local qsc provenance from clean source commit `4fbbfaf04ecd`; baseline remote qsc E2EE setup with synthetic data only; wrong-peer negative fail-closed result; stale/replaced-peer negative fail-closed result; selected-state no-mutation proof; valid-path post-negative proof; no-secret-output review; cleanup of local sensitive runtime and remote E2EE root; and selected NA-0536 successor.
+  - **Closeout result:** This closeout performs no remote action, SSH execution, qsc E2EE, qsc send/receive, qsc protocol command, qsl-server use, qsl-attachments use, package install, remote source checkout/build, remote file write, qwork/qstart/qresume, qsl-backup execution, dependency mutation, lockfile mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation.
+  - **Security invariants introduced/changed:**
+    - NA-0535 is DONE.
+    - NA-0536 is READY.
+    - Result classification remains `REMOTE_E2EE_WRONG_PEER_STALE_TRUST_NEGATIVES_PASS`.
+    - Wrong-peer and stale/replaced-peer negatives are bounded synthetic fail-closed evidence only.
+    - NA-0536 is authorization-only and does not implement repeated-run, cleanup, or freshness hardening in this closeout.
+    - No qsl-server use occurs.
+    - No qsl-attachments use occurs.
+    - No package installation occurs.
+    - No remote source checkout/build occurs.
+    - No qwork/qstart/qresume execution occurs.
+    - No qsl-backup execution occurs.
+    - No qsc source/test/fuzz/Cargo mutation occurs.
+    - No workflow/script/helper mutation occurs.
+    - No corpus/vector/input mutation occurs.
+    - No dependency/lockfile mutation occurs.
+    - No formal/refimpl/service/public/backup mutation occurs.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free, bug-free, or perfect-crypto claim is made.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Implement NA-0536 in this closeout (rejected because this closeout is queue restoration only and the directive provides NA-0536 as the successor authorization plan).
+    - Leave NA-0535 READY after PR #1343 (rejected because D-1060 evidence passed, PR #1343 merged, and post-merge public-safety completed success inside the short attach/early-failure window).
+    - Treat wrong-peer/stale-trust success as public, production, crypto, identity, trust, replay, downgrade, side-channel, vulnerability-free, bug-free, or perfect-crypto readiness (rejected because the evidence is bounded to synthetic qsc command surfaces and advisory stewardship caveats remain).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0535 DONE and restores the supplied NA-0536 repeated-run / cleanup / freshness authorization successor.
+    - `tests/NA-0535_closeout_restore_na0536_testplan.md` records closeout validation, queue/decision proof, scope guard, public-safety/advisories requirements, boundary assertions, and no-claim checks.
+    - `TRACEABILITY.md` maps this closeout to D-1060, D-1061, PR #1343, the wrong-peer/stale-trust pass classification, and the restored NA-0536 successor.
+  - **References:** NA-0535; NA-0536; D-1061; D-1060; PR #1343; implementation merge `954e840b66ce`; QSL-DIR-2026-06-24-441; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0535_closeout_restore_na0536_testplan.md`

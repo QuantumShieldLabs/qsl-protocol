@@ -84,9 +84,11 @@ Last-Updated: 2026-06-24
 - Wait accounting recorded two local long-command intervals so far: `same_host_client_to_client_e2e` 2.55 minutes and `receive_e2e` 1.77 minutes. No CI wait recorded yet at journal authoring.
 - D-1058 records NA-0534 remote qsc E2EE reverse-forward port 39176 regression diagnostic implementation.
 - Selected successor candidate: `NA-0535 -- QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Retry After Port Diagnostic Implementation Harness`. This implementation PR does not edit `NEXT_ACTIONS.md`; closeout must restore the selected successor only after merge and green post-merge public-safety inside the short attach/early-failure window.
-- Branch: pending at journal authoring.
+- Recovered failure: GitHub connector PR creation returned 403 `Resource not accessible by integration`. Classification: recoverable connector permission issue because authenticated `gh` remained available and prior lanes used the same fallback. Corrective action: created the PR with `gh pr create` using the same title and body. Final result: PR #1341 opened.
+- Goal-lint wrapper passed for PR #1341 using base `8ba332e07f84` and head `c52fc13c0074`.
+- Branch: `na-0534-remote-e2ee-port-39176-regression-diagnostic`.
 - PR title: `NA-0534: implement remote E2EE port 39176 regression diagnostic`.
-- PR: pending at journal authoring.
+- PR: #1341.
 - PR merge commit: pending at journal authoring.
 - Wait accounting file: `/srv/qbuild/tmp/NA0534_reverse_forward_port_39176_regression_diagnostic_impl_20260624T150000Z/wait_accounting.tsv`.
 - No qsc E2EE occurred. No qsc send/receive occurred. No qsc protocol command occurred. No remote file write occurred. No remote temp file occurred. No qsl-server or qsl-attachments use occurred. No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

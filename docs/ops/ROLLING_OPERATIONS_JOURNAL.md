@@ -37621,3 +37621,36 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - PR merge commit: pending at journal authoring.
 - Wait accounting file: `/srv/qbuild/tmp/NA0530_recover_retry_wrong_peer_stale_trust_integrated_forwarding_impl_20260624T040457Z/wait_accounting.tsv`.
 - No qsc E2EE occurred. No qsc send/receive occurred. No baseline E2EE occurred. No wrong-peer/stale-trust negative executed. No qsl-server or qsl-attachments use occurred. No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0530 closeout and NA-0531 restoration update
+
+- Directive: QSL-DIR-2026-06-24-434 -- Close Out NA-0530 After Integrated Trigger Quoting Failure and Restore NA-0531 Trigger Remediation.
+- Begin timestamp (UTC): 2026-06-24T04:49:10Z.
+- Repo path: `/srv/qbuild/work/NA-0530/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0530_closeout_restore_na0531_after_trigger_quoting_failure_20260624T044910Z`.
+- Codex did not run qwork, qstart, qresume, qsl-backup, qsl-server, qsl-attachments, package installation, ssh-keygen, ssh-keyscan, remote source checkout/build, remote cargo, SSH, scp, sftp, rsync, remote command execution, qsc E2EE, qsc send/receive, qsc protocol commands, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, backup, restore, force-push, amend, rebase, squash, branch deletion, or cargo update.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0530/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `532e273b9480`; proof recorded `startup_result=OK`, lane `NA-0530`, repo `qsl-protocol`, clean worktree/index/untracked state, READY_COUNT 1, queue top READY `NA-0530`, and requested lane status READY.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main remained at `532e273b9480`.
+- Disk watermark before fetch: `/` usage 85.31%; `/backup/qsl` usage 26.35%. STOP threshold 95% was not hit.
+- Startup queue proof: READY_COUNT 1; READY NA-0530; NA-0529 DONE; NA-0528 DONE.
+- Startup decision proof: D-1048 once, D-1049 once, D-1050 once, D-1051 absent before patch, D-1052 absent, duplicate decision record count zero.
+- Main health proof on `532e273b9480`: public-safety success, advisories success, 36 check-runs retrieved, and no required red checks.
+- PR #1333 verification passed: closed and merged at `532e273b9480`.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list. qsl-backup was not executed.
+- Root and nested qsc fuzz lockfiles both retained `quinn-proto 0.11.15`; Cargo manifest drift check passed.
+- D433/D432/D431/D430/D425 inheritance consumed: NA-0530 implementation PR #1333 merged; D-1050 exists once; classification `REMOTE_E2EE_INTEGRATED_TRIGGER_QUOTING_FAILURE`; D432 residue cleanup passed; retained-qsc local-only smoke capture passed against D425 digest prefix `6bf9e59fdae3`; integrated marker/ACK precheck failed because the remote trigger command was quoted incorrectly and failed before connecting; listener marker_match false, ack_sent false, ack_received false; no qsc E2EE, no qsc send/receive, no baseline E2EE, no wrong-peer negative, no stale-trust negative, no qsl-server/qsl-attachments; cleanup passed; D433 selected NA-0531 and optional closeout did not run because explicit failure-case successor block text was needed.
+- Recovered failure: first inheritance assertion expected non-exact D-1050 successor wording and exited non-zero even though the successor line existed with markdown bold label text. Classification: recoverable command-shape / proof-assertion mismatch. Corrective action: reran the assertion with exact repository wording `- **Selected successor:**`. Final result: inheritance assertions passed.
+- Pre-closeout validation passed: `git diff --check`, root `cargo audit --deny warnings`, nested qsc fuzz lock `cargo audit --deny warnings --file`, `cargo fmt --check`, `sh -n scripts/ci/qsc_adversarial.sh`, `bash -n scripts/ci/qsc_adversarial.sh`, `same_host_client_to_client_e2e`, and `receive_e2e`.
+- Governance closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, this journal, and `tests/NA-0530_closeout_restore_na0531_testplan.md`.
+- D-1051 records NA-0530 closeout and NA-0531 restoration.
+- NA-0530 is marked DONE.
+- NA-0531 is restored READY using the approved trigger-quoting remediation block.
+- Future NA-0531 must prove local-only trigger syntax/argv shape and integrated marker traversal/ACK before selecting the next successor; NA-0531 itself still forbids qsc E2EE and qsc send/receive.
+- Branch: pending at journal authoring.
+- PR title: `NA-0530: closeout and restore NA-0531`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0530_closeout_restore_na0531_after_trigger_quoting_failure_20260624T044910Z/wait_accounting.tsv`.
+- No NA-0531 implementation, remote action, SSH execution, scp/sftp/rsync, qsc E2EE execution, qsc send/receive execution, qsc protocol command, qsl-server/qsl-attachments use, package installation, sudo/admin action, key/config/host mutation, qwork/qstart/qresume, qsl-backup execution, dependency/lockfile mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation is introduced.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

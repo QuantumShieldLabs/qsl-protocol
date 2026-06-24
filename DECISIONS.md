@@ -27876,3 +27876,51 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `tests/NA-0531_closeout_restore_na0532_testplan.md` records closeout validation, queue/decision proof, scope guard, boundary assertions, and post-closeout public-safety requirement.
     - `TRACEABILITY.md` maps this closeout to D-1052, D-1053, PR #1335, the marker traversal pass classification, and the restored NA-0532 successor.
   - **References:** NA-0531; NA-0532; D-1053; D-1052; PR #1335; implementation merge `ec9d0cf0c834`; implementation head `b1621c599613`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0531_closeout_restore_na0532_testplan.md`
+
+- **ID:** D-1054
+  - **Title:** NA-0532 remote qsc E2EE wrong-peer stale-trust retry after trigger remediation
+  - **Date:** 2026-06-24
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0532 consumed D435/D434/D433/D431/D425/D419 inheritance, rechecked retained remote qsc against the NA-0526/D425 hash, built local qsc from the clean current checkout, wrote a command manifest from existing qsc CLI/test surfaces, passed local/remote boundary checks, and stopped before qsc E2EE with classification `REMOTE_E2EE_INTEGRATED_FORWARDING_PRECHECK_FAILURE` because the mandatory dedicated-key reverse-forward process exited with `remote port forwarding failed for listen port 39176` before the remote stdin trigger could run.
+  - **Evidence consumed:** D435 records trigger remediation proof with safe command shape `ssh -T inspiron 'python3 -' < <proof-root trigger script>`, integrated marker traversal, ACK receipt, no qsc E2EE, and no qsc send/receive. D434/D433 record the previous trigger quoting failure, D432 residue cleanup pass, retained qsc recheck pass, and no qsc E2EE. D431 records manual integrated forwarding marker/ACK proof. D425 records retained qsc path, owner, mode, size, and hash. D419 records replay/corrupt negatives passed, no-mutation checks, cleanup, and no qsl-server/qsl-attachments.
+  - **Retained-qsc result:** The retained remote qsc was rechecked at `/home/qslcodex/qsl-remote-test/bin/qsc`, owner/group `qslcodex/qslcodex`, mode `700`, size `102103920`, and SHA-256 `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7`. Remote `--help` used local-only output capture. Local qsc was built from clean commit `21e63577e4ee`, size `102103920`, SHA-256 `184cbba58c29ff6afaf1f4f99e2f8d50fc913f662aadc66cb7f5021e6c4ba72f`; qsc runtime/dependency paths had no diff from D425 source commit `2cff954de589`, so retained-qsc provenance was accepted.
+  - **Command manifest and boundary result:** The manifest was written under the proof root before integrated forwarding or E2EE execution and drew only from existing qsc surfaces: vault init/unlock with passphrase files, identity rotate/show, contacts add/device list/device trust, relay inbox-set, local `qsc relay serve`, handshake init/poll/status, send, receive, wrong-peer receive reject, and replaced-peer identity mismatch reject. Remote boundary checks passed for user `qslcodex`, non-root UID, no privileged groups, negative sudo, `/backup/qsl` absent or not readable, qwork absent, qsl-backup absent, and directive-specific remote E2EE root absent.
+  - **Integrated precheck result:** Local trigger compile and rehearsal passed. The listener bound to `127.0.0.1:39176`. The proof-root forwarding config used no PTY, no agent/X11 forwarding, public-key-only auth, and `ClearAllForwardings no`. The reverse-forward command exited before remote trigger execution with `remote port forwarding failed for listen port 39176`. Marker match was false, ACK sent was false, ACK received was false, and qsc E2EE remained blocked.
+  - **E2EE result:** Baseline E2EE setup did not run. Wrong-peer negative did not run and is deferred as `REMOTE_E2EE_WRONG_PEER_NEGATIVE_DEFERRED_PRECHECK_FAILURE`. Stale-trust/replaced-peer negative did not run and is deferred as `REMOTE_E2EE_STALE_TRUST_NEGATIVE_DEFERRED_PRECHECK_FAILURE`. No selected identity/trust no-mutation proof is applicable because no negative executed. Valid-path usability is deferred because no baseline valid path was established.
+  - **Cleanup result:** Cleanup verified the local listener stopped, the failed reverse-forward process was absent, local sensitive runtime was removed, local port `39176` was free, no proof-root listener/forward/qsc relay child process remained, and the directive-specific remote E2EE root was absent. Retained remote qsc was unchanged.
+  - **Security invariants introduced/changed:**
+    - No qsc E2EE occurred.
+    - No qsc send/receive occurred.
+    - No qsc protocol command occurred after the failed precheck.
+    - No qsl-server use occurred.
+    - No qsl-attachments use occurred.
+    - No package installation occurred.
+    - No remote source checkout/build occurred.
+    - No qwork, qstart, qresume, or qsl-backup execution occurred.
+    - No qsc source/test/fuzz/Cargo mutation occurred.
+    - No workflow/script/helper mutation occurred.
+    - No corpus/vector/input mutation occurred.
+    - No dependency/lockfile mutation occurred.
+    - No formal/refimpl/service/public/backup mutation occurred.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No vulnerability-free claim and no perfect-crypto claim is made.
+    - Exactly one READY remains mandatory until a separate closeout restores the selected successor.
+  - **Selected successor:** `NA-0533 -- QSL Remote qsc E2EE Reverse-Forward Port 39176 Regression Diagnostic / Retry Scope Authorization Plan`.
+  - **Alternatives considered:**
+    - Proceed to qsc E2EE after the failed precheck (rejected because marker traversal and ACK are mandatory before qsc E2EE).
+    - Retry the failed reverse-forward repeatedly in this lane (rejected because the precheck failed before qsc E2EE and the next action should diagnose the regression).
+    - Use qsl-server or qsl-attachments to bypass forwarding (rejected as out of scope).
+    - Restage retained remote qsc (rejected because retained qsc still matched NA-0526/D425 and qsc runtime/dependency diff since D425 was empty).
+    - Inspect or mutate authorized_keys, sshd_config, known_hosts, or installed keys (rejected as out of scope).
+  - **Implications for spec/impl/tests:**
+    - `docs/governance/evidence/NA-0532_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_after_trigger_remediation_implementation_harness.md` records qwork proof verification, inheritance, retained-qsc freshness, local qsc provenance, command manifest, boundary checks, integrated forwarding precheck failure, E2EE deferrals, cleanup, stewardship reviews, classification, and successor selection.
+    - `tests/NA-0532_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_after_trigger_remediation_implementation_testplan.md` records validation, markers, scope guards, no-claim boundaries, and required local checks.
+    - `TRACEABILITY.md` maps NA-0532 to D-1054 and the selected reverse-forward regression diagnostic / retry authorization successor.
+  - **References:** NA-0532; selected NA-0533 forwarding regression successor; D-1054; D-1053; D-1052; D-1051; D-1050; D435 response `/home/victor/work/qsl/codex/responses/NA0531_20260624T053219Z_D435.md`; D434 response `/home/victor/work/qsl/codex/responses/NA0530_closeout_restore_na0531_20260624T051422Z_D434.md`; D433 response `/home/victor/work/qsl/codex/responses/NA0530_recover_retry_20260624T040457Z_D433.md`; D431 response `/home/victor/work/qsl/codex/responses/NA0529_closeout_restore_na0530_integrated_forwarding_20260624T020653Z_D431.md`; D425 response `/home/victor/work/qsl/codex/responses/NA0526_20260623T125452Z_D425.md`; D419 response `/home/victor/work/qsl/codex/responses/NA0523_recover_retry_20260622T145242Z_D419.md`; `docs/governance/evidence/NA-0532_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_after_trigger_remediation_implementation_harness.md`; `tests/NA-0532_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_after_trigger_remediation_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

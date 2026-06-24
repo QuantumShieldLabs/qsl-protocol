@@ -27924,3 +27924,52 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `tests/NA-0532_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_after_trigger_remediation_implementation_testplan.md` records validation, markers, scope guards, no-claim boundaries, and required local checks.
     - `TRACEABILITY.md` maps NA-0532 to D-1054 and the selected reverse-forward regression diagnostic / retry authorization successor.
   - **References:** NA-0532; selected NA-0533 forwarding regression successor; D-1054; D-1053; D-1052; D-1051; D-1050; D435 response `/home/victor/work/qsl/codex/responses/NA0531_20260624T053219Z_D435.md`; D434 response `/home/victor/work/qsl/codex/responses/NA0530_closeout_restore_na0531_20260624T051422Z_D434.md`; D433 response `/home/victor/work/qsl/codex/responses/NA0530_recover_retry_20260624T040457Z_D433.md`; D431 response `/home/victor/work/qsl/codex/responses/NA0529_closeout_restore_na0530_integrated_forwarding_20260624T020653Z_D431.md`; D425 response `/home/victor/work/qsl/codex/responses/NA0526_20260623T125452Z_D425.md`; D419 response `/home/victor/work/qsl/codex/responses/NA0523_recover_retry_20260622T145242Z_D419.md`; `docs/governance/evidence/NA-0532_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_after_trigger_remediation_implementation_harness.md`; `tests/NA-0532_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_after_trigger_remediation_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1055
+  - **Title:** NA-0532 closeout and NA-0533 restoration
+  - **Date:** 2026-06-24
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** D-1054 implementation evidence is accepted for NA-0532 after PR #1337 merged at `aaf4d7f03d5c`, post-merge public-safety completed success, post-merge advisories completed success, and the result classification remained `REMOTE_E2EE_INTEGRATED_FORWARDING_PRECHECK_FAILURE`. NA-0532 is marked DONE, and `NA-0533 -- QSL Remote qsc E2EE Reverse-Forward Port 39176 Regression Diagnostic / Retry Scope Authorization Plan` is restored as the sole READY successor.
+  - **Evidence consumed:** D-1054 records retained qsc recheck pass, local qsc build/provenance, command manifest creation, local/remote boundary checks, local trigger compile/rehearsal pass, listener bind on `127.0.0.1:39176`, dedicated-key proof-root SSH config with `ExitOnForwardFailure=yes`, and loopback-only `-R 127.0.0.1:39176:127.0.0.1:39176`. The integrated forwarding precheck failed before qsc E2EE because the reverse-forward could not allocate remote loopback port 39176 and exited with `remote port forwarding failed for listen port 39176`.
+  - **Closeout result:** No remote action occurs in this closeout. No SSH execution occurs in this closeout. No qsc E2EE, qsc send/receive, baseline E2EE, wrong-peer negative, stale-trust negative, qsc protocol command, qsl-server use, qsl-attachments use, package install, remote source checkout/build, remote file write, qwork/qstart/qresume, or qsl-backup execution occurs.
+  - **Security invariants introduced/changed:**
+    - NA-0532 is DONE.
+    - NA-0533 is READY.
+    - Result classification remains `REMOTE_E2EE_INTEGRATED_FORWARDING_PRECHECK_FAILURE`.
+    - No marker traversal occurred in NA-0532.
+    - No ACK occurred in NA-0532.
+    - No qsc E2EE occurred in NA-0532.
+    - No qsc send/receive occurred in NA-0532.
+    - No baseline E2EE occurred in NA-0532.
+    - No wrong-peer negative occurred in NA-0532.
+    - No stale-trust negative occurred in NA-0532.
+    - No qsl-server use occurred.
+    - No qsl-attachments use occurred.
+    - No dependency mutation occurs.
+    - No lockfile mutation occurs.
+    - No qsc source/test/fuzz/Cargo mutation occurs.
+    - No workflow/script/helper mutation occurs.
+    - No corpus/vector/input mutation occurs.
+    - No formal/refimpl/service/public/backup mutation occurs.
+    - No qsl-backup execution occurs.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free, bug-free, or perfect-crypto claim is made.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Implement NA-0533 diagnostics in this closeout (rejected because this directive is closeout-only and forbids SSH/remote action).
+    - Leave NA-0532 READY after PR #1337 (rejected because post-merge public-safety and advisories are now green and explicit NA-0533 successor text is supplied).
+    - Repeat qsc E2EE without diagnosing port 39176 forwarding allocation (rejected because marker traversal and ACK remain mandatory before qsc E2EE).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0532 DONE and restores the supplied NA-0533 diagnostic authorization successor.
+    - `tests/NA-0532_closeout_restore_na0533_testplan.md` records closeout validation, queue/decision proof, scope guard, boundary assertions, and post-closeout public-safety/advisories requirements.
+    - `TRACEABILITY.md` maps this closeout to D-1054, D-1055, PR #1337, the forwarding-precheck failure classification, and the restored NA-0533 successor.
+  - **References:** NA-0532; NA-0533; D-1055; D-1054; PR #1337; implementation merge `aaf4d7f03d5c`; D436 response `/home/victor/work/qsl/codex/responses/NA0532_20260624T070953Z_D436.md`; D435 response `/home/victor/work/qsl/codex/responses/NA0531_20260624T053219Z_D435.md`; D434 response `/home/victor/work/qsl/codex/responses/NA0530_closeout_restore_na0531_20260624T051422Z_D434.md`; D433 response `/home/victor/work/qsl/codex/responses/NA0530_recover_retry_20260624T040457Z_D433.md`; D431 response `/home/victor/work/qsl/codex/responses/NA0529_closeout_restore_na0530_integrated_forwarding_20260624T020653Z_D431.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0532_closeout_restore_na0533_testplan.md`

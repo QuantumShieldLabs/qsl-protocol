@@ -37507,3 +37507,40 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - PR: pending at journal authoring.
 - PR merge commit: pending at journal authoring.
 - no public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+## NA-0529 update
+
+- Directive: QSL-DIR-2026-06-24-430 -- Execute NA-0529 QSL Remote qsc E2EE Reverse-Forwarding Diagnostic Implementation Harness, Optional Closeout to Selected NA-0530.
+- Begin timestamp (UTC): 2026-06-24T00:37:32Z.
+- Repo path: `/srv/qbuild/work/NA-0529/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0529_reverse_forwarding_diagnostic_impl_20260624T003732Z`.
+- Codex did not run qwork, qstart, qresume, qsl-backup, qsl-server, qsl-attachments, package installation, ssh-keygen, ssh-keyscan, remote source checkout/build, remote cargo, qsc E2EE, qsc send/receive, qsc identity/contact/handshake/relay protocol commands, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, backup, or restore.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0529/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `43d7a728a57f`.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main was up to date with `origin/main`.
+- Disk watermark before fetch: `/` usage 89%; `/backup/qsl` usage 27%. STOP threshold 95% was not hit.
+- Startup queue proof: READY_COUNT 1; READY NA-0529; NA-0528 DONE; NA-0527 DONE; NA-0526 DONE.
+- Startup decision proof: D-1046 once, D-1047 once, D-1048 absent before patch, D-1049 absent before patch, duplicate decision record count zero.
+- Main health proof on `43d7a728a57f`: public-safety success, advisories success, and no completed red checks in the retrieved check-run set.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list. qsl-backup was not executed.
+- D429/D428/D427/D414/D413 inheritance consumed: NA-0528 DONE, NA-0529 READY, `REMOTE_FORWARDING_DIAGNOSTIC_IMPLEMENTATION_READY`, `REMOTE_E2EE_FORWARDING_RECHECK_FAILURE`, `SSH_FORWARDING_CAPABILITY_PROBE_PASS`, dedicated forwarding key proof, D427 `ClearAllForwardings yes` first failure, D427 corrected `remote port forwarding failed for listen port 39176`, NA-0520 marker traversal success, and no qsc E2EE/qsc send/receive/qsl-server/qsl-attachments boundaries.
+- Command/config diff written under proof root. Operational `ssh -G inspiron` safe fields showed `clearallforwardings yes`; proof-root forwarding config was built from NA-0520 known-good shape and effective parse showed `clearallforwardings no`, dedicated key basename `qslcodex_forward_ed25519`, no PTY, no agent/X11 forwarding, and public-key-only auth.
+- Remote boundary check passed: qslcodex user, UID 1003, no privileged groups, negative sudo, `/backup/qsl` not readable, qwork absent, qsl-backup absent, and no remote `39176` listener lines from `ss`.
+- Local listener started on `127.0.0.1:39176` and printed `NA0529_LOOPBACK_LISTENER_STARTED_OK`.
+- Dedicated-key reverse-forward session started with `ExitOnForwardFailure=yes` and loopback-only `-R 127.0.0.1:39176:127.0.0.1:39176`.
+- Remote trigger failed: stdout was `n`, stderr reported connection reset while reading ACK, reverse-forward stderr recorded `connect_to 127.0.0.1 port 39176: failed.`, listener summary was absent, and no ACK marker was recorded. Because the directive allowed exactly one remote trigger, no corrected trigger was run.
+- Result classification: `REMOTE_FORWARDING_DIAGNOSTIC_REMOTE_TRIGGER_FAILURE`.
+- Selected successor: `NA-0530 -- QSL Remote qsc E2EE Reverse-Forwarding Remote Trigger Command-Shape Diagnostic Harness`.
+- Recovered failure: cleanup summary parser counted the `ss` header row as a live listener and exited non-zero. Classification: recoverable command-shape/proof-parser mistake because independent live checks showed no port listener and no proof-root process. Corrective action: corrected the parser to ignore the header and reran cleanup summary. Final result: cleanup proof passed with no listener line for port 39176 and no proof-root process.
+- Recovered failure: first exact scope guard missed the new evidence file because `docs/governance/evidence/` is ignored and the path had not been marked intent-to-add. Classification: recoverable proof-shape issue for an explicitly allowed path. Corrective action: attempted intent-to-add, observed Git required `-f` for the ignored evidence path, then reran `git add -N -f` for that allowed file and reran the exact scope guard. Final result: exact five-path scope guard passed.
+- Non-fatal warning: Python emitted a `datetime.utcnow()` deprecation warning while writing recovered cleanup metadata; this did not affect proof content or repo state.
+- Static validation passed: `git diff --check`, exact five-path scope guard, queue/decision proof, link-check, marker proof, private-material scan, added-line overclaim scan, classifier, and PR body preflight.
+- Required local validation passed: root `cargo audit --deny warnings`, nested qsc fuzz lock `cargo audit --deny warnings --file`, `same_host_client_to_client_e2e`, `receive_e2e`, `key_lifecycle_zeroization_expansion`, `secret_material_diagnostic_boundary`, `handshake_provider_error_no_mutation`, binding corpus validator, all qsc fuzz corpus validator, formal model runner, `cargo fmt --check`, `sh -n scripts/ci/qsc_adversarial.sh`, and `bash -n scripts/ci/qsc_adversarial.sh`.
+- Wait accounting recorded two local long-command intervals: `same_host_client_to_client_e2e` 2.53 minutes and `receive_e2e` 1.77 minutes. No CI wait recorded yet at journal authoring.
+- Governance patch paths: NA-0529 evidence doc, NA-0529 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1048 records NA-0529 remote qsc E2EE reverse-forwarding diagnostic implementation.
+- Branch: `na-0529-remote-e2ee-reverse-forwarding-diagnostic`.
+- PR title: `NA-0529: implement remote E2EE forwarding diagnostic`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0529_reverse_forwarding_diagnostic_impl_20260624T003732Z/wait_accounting.json`.
+- No qsc E2EE occurred. No qsc send/receive occurred. No remote file write occurred. No qsl-server or qsl-attachments use occurred. No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

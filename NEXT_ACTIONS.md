@@ -30277,7 +30277,7 @@ Acceptance criteria:
 ---
 
 ### NA-0530 — QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Retry with Integrated Forwarding Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -30362,6 +30362,92 @@ Acceptance criteria:
 - no qsl-server/qsl-attachments.
 - no public/production readiness claim.
 - exactly one READY item remains after closeout.
+
+---
+
+### NA-0531 — QSL Remote qsc E2EE Integrated Trigger Quoting Remediation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Remediate the NA-0530 integrated forwarding precheck failure by proving an argv-safe remote trigger command shape before any qsc E2EE, using local-only trigger syntax rehearsal, a proof-root integrated listener/forward/trigger lifetime, retained qsc freshness recheck, no remote temp files, no qsl-server/qsl-attachments, and cleanup proof; then select either a corrected wrong-peer/stale-trust E2EE retry successor or a narrower trigger/transport diagnostic successor.
+
+Protects:
+- direct qsc remote sprint from shell quoting and trigger command-shape errors.
+- loopback-only SSH forwarding boundary.
+- no qsc E2EE until marker traversal and ACK are proven in-lane.
+- retained-qsc freshness after restaging.
+- no remote temp files.
+- no qsl-server/qsl-attachments boundary.
+- public/production claim conservatism.
+- one-READY invariant.
+
+Allowed scope:
+- docs/governance/evidence/NA-0531_qsl_remote_qsc_e2ee_integrated_trigger_quoting_remediation_harness.md
+- tests/NA-0531_qsl_remote_qsc_e2ee_integrated_trigger_quoting_remediation_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-local trigger rehearsal logs.
+- proof-root-local listener and SSH forward logs.
+- proof-root-local remote trigger command scripts/logs.
+- local-only shell/argv rehearsal of the exact remote trigger payload before SSH.
+- one integrated listener/forward/trigger precheck in a single controlled lifetime.
+- at most one corrected trigger retry if the first attempt fails before qsc E2EE and before remote file writes due local command-shape/quoting error.
+- retained remote qsc hash/path/owner/mode/size recheck.
+- cleanup proof.
+
+Forbidden scope:
+- qsc E2EE.
+- qsc send/receive.
+- qsc identity/contact/handshake/relay protocol commands.
+- qsl-server/qsl-attachments.
+- package installation.
+- sudo/admin action except negative `sudo -n true` probe if needed.
+- key generation/installation.
+- authorized_keys mutation.
+- authorized_keys reading.
+- sshd_config mutation.
+- sshd_config reading unless operator supplies redacted proof in a later lane.
+- SSH config mutation outside proof root.
+- known_hosts mutation.
+- remote file write.
+- remote temp file write.
+- remote source checkout/build.
+- qwork/qstart/qresume.
+- qsl-backup.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- production/user data.
+- public-readiness, production-readiness, public-internet-readiness, crypto-complete, identity-complete, trust-complete, replay-proof, downgrade-proof, secret-material-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
+
+Deliverables:
+- D433 trigger quoting failure consumed.
+- local-only trigger syntax/argv rehearsal proof.
+- integrated marker traversal and ACK proof or exact trigger failure classification.
+- cleanup proof.
+- testplan.
+- decision.
+- TRACEABILITY update.
+- rolling journal update.
+- successor selection based on result.
+
+Acceptance criteria:
+- qwork proof verified.
+- retained qsc hash/path/owner/mode/size rechecked.
+- exact remote trigger command shape recorded.
+- trigger payload is proven locally before SSH.
+- proof-root SSH config safe.
+- listener and forward stay alive in a single controlled lifetime.
+- marker match and ACK sent/received if trigger succeeds.
+- no qsc E2EE.
+- no qsc send/receive.
+- no remote file write.
+- no qsl-server/qsl-attachments.
+- cleanup completed.
+- exactly one successor selected.
 
 ---
 

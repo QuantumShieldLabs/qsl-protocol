@@ -27745,3 +27745,49 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `tests/NA-0530_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_with_integrated_forwarding_testplan.md` records validation, markers, scope guards, no-claim boundaries, and required local checks.
     - `TRACEABILITY.md` maps NA-0530 to D-1050 and the selected trigger-quoting remediation successor.
   - **References:** NA-0530; selected NA-0531 trigger remediation successor; D-1050; D-1049; D-1048; D432 response `/home/victor/work/qsl/codex/responses/NA0530_20260624T023936Z_D432.md`; D431 response `/home/victor/work/qsl/codex/responses/NA0529_closeout_restore_na0530_integrated_forwarding_20260624T020653Z_D431.md`; D430 response `/home/victor/work/qsl/codex/responses/NA0529_20260624T010257Z_D430.md`; D427 response `/home/victor/work/qsl/codex/responses/NA0527_20260623T172638Z_D427.md`; D425 response `/home/victor/work/qsl/codex/responses/NA0526_20260623T125452Z_D425.md`; D419 response `/home/victor/work/qsl/codex/responses/NA0523_recover_retry_20260622T145242Z_D419.md`; `docs/governance/evidence/NA-0530_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_with_integrated_forwarding_harness.md`; `tests/NA-0530_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_with_integrated_forwarding_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1051
+  - **Title:** NA-0530 closeout and NA-0531 restoration
+  - **Date:** 2026-06-24
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** D-1050 implementation evidence is accepted for NA-0530 after implementation PR #1333 merged at `532e273b9480`, post-merge public-safety completed success, post-merge advisories completed success, and the D433 classification remained `REMOTE_E2EE_INTEGRATED_TRIGGER_QUOTING_FAILURE`. NA-0530 is marked DONE, and `NA-0531 -- QSL Remote qsc E2EE Integrated Trigger Quoting Remediation Harness` is restored as the sole READY successor.
+  - **Evidence consumed:** D433 records that D432 residue cleanup passed for the two exact residue paths, retained-qsc local-only smoke capture passed, retained remote qsc was rechecked at `/home/qslcodex/qsl-remote-test/bin/qsc` with owner/group `qslcodex/qslcodex`, mode `700`, size `102103920`, and the D425 retained digest prefix `6bf9e59fdae3`, and the integrated precheck stopped before qsc E2EE because the remote trigger command was quoted incorrectly. The listener bound on `127.0.0.1:39176`, the reverse-forward process stayed alive with `ExitOnForwardFailure=yes`, but the trigger failed before connecting, with listener marker_match false, ack_sent false, and ack_received false. D432 records the earlier retained-qsc smoke redirection stop; D431 records that manual integrated marker traversal and ACK proof were reviewed and accepted while still requiring in-lane proof before qsc E2EE; D430 records the prior remote trigger failure; D425 records the retained qsc digest and size inherited by D433.
+  - **Closeout result:** No qsc E2EE occurred in NA-0530. No qsc send/receive occurred in NA-0530. No baseline E2EE occurred. No wrong-peer negative occurred. No stale-trust negative occurred. No qsl-server or qsl-attachments use occurred. Cleanup passed. This closeout performed no remote action and no SSH execution.
+  - **Security invariants introduced/changed:**
+    - NA-0530 is DONE.
+    - NA-0531 is READY.
+    - Exactly one READY remains mandatory.
+    - The result classification remains `REMOTE_E2EE_INTEGRATED_TRIGGER_QUOTING_FAILURE`.
+    - No remote action occurs in this closeout.
+    - No SSH execution occurs in this closeout.
+    - No qsc E2EE, qsc send/receive, baseline E2EE, wrong-peer negative, or stale-trust negative is added by this closeout.
+    - No qsl-server/qsl-attachments use occurs in this closeout.
+    - No dependency mutation occurs.
+    - No lockfile mutation occurs.
+    - No qsc source/test/fuzz/Cargo mutation occurs.
+    - No workflow/script/helper mutation occurs.
+    - No corpus/vector/input mutation occurs.
+    - No formal/refimpl/service/public/backup mutation occurs.
+    - No qsl-backup execution occurs.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free, bug-free, or perfect-crypto claim is made.
+  - **Alternatives considered:**
+    - Leave NA-0530 READY after D-1050 (rejected because PR #1333 merged, post-merge public-safety/advisories are green, and this directive supplies the approved NA-0531 failure-case successor block).
+    - Implement NA-0531 in this closeout (rejected because this directive is closeout-only and forbids remote action, SSH execution, qsc E2EE, qsc send/receive, remote E2EE, qsl-server, and qsl-attachments).
+    - Treat the failed integrated trigger precheck as qsc E2EE evidence (rejected because the marker and ACK gate failed before qsc E2EE was allowed).
+    - Broaden scope to dependency, workflow, qsc source/test/fuzz/Cargo, corpus/vector/input, formal/refimpl/service/public/backup, qsl-server, qsl-attachments, or qsl-backup paths (rejected as out of scope).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0530 DONE and restores NA-0531 READY using the approved trigger-quoting remediation block.
+    - `tests/NA-0530_closeout_restore_na0531_testplan.md` records closeout-only validation, queue/decision proof, marker validation, boundary assertions, dependency health checks, and post-closeout public-safety/advisories requirements.
+    - `TRACEABILITY.md` maps this closeout to D-1050, D-1051, PR #1333, the D433 trigger quoting failure classification, and the restored NA-0531 successor.
+  - **References:** NA-0530; NA-0531; D-1051; D-1050; D-1049; D-1048; qsl-protocol PR #1333; D433 response `/home/victor/work/qsl/codex/responses/NA0530_recover_retry_20260624T040457Z_D433.md`; D432 response `/home/victor/work/qsl/codex/responses/NA0530_20260624T023936Z_D432.md`; D431 response `/home/victor/work/qsl/codex/responses/NA0529_closeout_restore_na0530_integrated_forwarding_20260624T020653Z_D431.md`; D430 response `/home/victor/work/qsl/codex/responses/NA0529_20260624T010257Z_D430.md`; D425 response `/home/victor/work/qsl/codex/responses/NA0526_20260623T125452Z_D425.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0530_closeout_restore_na0531_testplan.md`

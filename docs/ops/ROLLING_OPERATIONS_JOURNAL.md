@@ -6,6 +6,27 @@ Last-Updated: 2026-06-24
 
 # Rolling Operations Journal
 
+## NA-0536 closeout and NA-0537 restoration update
+
+- Directive: QSL-DIR-2026-06-24-442 optional closeout packet.
+- Begin timestamp (UTC): 2026-06-24T18:08:00Z.
+- Repo path: `/srv/qbuild/work/NA-0536/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0536_repeated_run_cleanup_freshness_scope_authorization_20260624T174125Z`.
+- Authorization PR #1345 merged at `749008231762` from head `6435f2fb331d`.
+- Post-merge advisories completed success on `749008231762`.
+- Post-merge public-safety completed success on `749008231762` inside the short attach/early-failure window.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0536_closeout_restore_na0537_testplan.md`.
+- NA-0536 is marked DONE.
+- NA-0537 is restored READY using the D-1062-selected repeated-run cleanup/freshness implementation successor block.
+- D-1063 records NA-0536 closeout and NA-0537 restoration.
+- Recovered failure: first post-merge check-run poll used a malformed Python f-string in a shell one-liner and could not summarize public-safety/advisories. Classification: recoverable local command-shape issue. Corrective action: terminated only the defective local poll shell and reran corrected JSON parsing. Final result: corrected post-merge poll reached public-safety/advisories success.
+- No NA-0537 implementation, remote action, SSH execution, qsc E2EE execution, qsc send/receive execution, qsc protocol command, qsl-server/qsl-attachments use, package installation, sudo/admin action, key/config/host mutation, qwork/qstart/qresume, qsl-backup execution, dependency/lockfile mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation is introduced.
+- Branch: `na-0536-closeout-restore-na0537`.
+- PR title: `NA-0536: closeout and restore NA-0537`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0536 update
 
 - Directive: QSL-DIR-2026-06-24-442 -- Execute NA-0536 QSL Remote qsc E2EE Repeated-Run / Cleanup / Freshness Scope Authorization Plan, Optional Closeout to NA-0537.

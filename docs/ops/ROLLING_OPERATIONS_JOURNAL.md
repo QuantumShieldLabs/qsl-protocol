@@ -37544,3 +37544,40 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - PR merge commit: pending at journal authoring.
 - Wait accounting file: `/srv/qbuild/tmp/NA0529_reverse_forwarding_diagnostic_impl_20260624T003732Z/wait_accounting.json`.
 - No qsc E2EE occurred. No qsc send/receive occurred. No remote file write occurred. No qsl-server or qsl-attachments use occurred. No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0529 closeout and NA-0530 restoration update
+
+- Directive: QSL-DIR-2026-06-24-431 -- Close Out NA-0529 with Manual Integrated Forwarding Proof Review and Restore NA-0530 E2EE Retry.
+- Begin timestamp (UTC): 2026-06-24T01:39:39Z.
+- Repo path: `/srv/qbuild/work/NA-0529/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0529_closeout_restore_na0530_integrated_forwarding_review_20260624T013939Z`.
+- Codex did not run qwork, qstart, qresume, qsl-backup, qsl-server, qsl-attachments, package installation, ssh-keygen, ssh-keyscan, remote source checkout/build, remote cargo, SSH, scp, sftp, rsync, remote command execution, qsc E2EE, qsc send/receive, qsc protocol commands, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, backup, restore, force-push, amend, rebase, squash, branch deletion, or cargo update.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0529/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `9f1b86ff9d71`; proof recorded `startup_result=OK`, lane `NA-0529`, repo `qsl-protocol`, clean worktree/index/untracked state, READY_COUNT 1, queue top READY `NA-0529`, and requested lane status READY.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main remained at `9f1b86ff9d71`.
+- Disk watermark before fetch: `/` below the 95% STOP threshold; `/backup/qsl` checked read-only.
+- Startup queue proof: READY_COUNT 1; READY NA-0529; NA-0528 DONE; NA-0527 DONE.
+- Startup decision proof: D-1046 once, D-1047 once, D-1048 once, D-1049 absent before patch, D-1050 absent before patch, duplicate decision record count zero.
+- Main health proof on `9f1b86ff9d71`: public-safety success, advisories success, and no completed red or in-progress check-runs in the retrieved check-run set.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list. qsl-backup was not executed.
+- D430/D429/D428/D427/D414 inheritance consumed: PR #1331 merged at `9f1b86ff9d71`, D-1048 exists once, D430 classification `REMOTE_FORWARDING_DIAGNOSTIC_REMOTE_TRIGGER_FAILURE`, dedicated-key reverse-forward startup succeeded, D427 corrected remote-port-forward startup failure did not reproduce, the single allowed remote trigger failed before marker/ACK traversal, D430 selected an NA-0530 trigger-diagnostic successor but optional closeout stopped because no approved NA-0530 block existed, public-safety/advisories were green after PR #1331, and no qsc E2EE, qsc send/receive, qsl-server, or qsl-attachments ran.
+- Manual integrated forwarding proof root `/srv/qbuild/tmp/manual_reverse_forward_marker_integrated_20260624T012231Z` reviewed read-only.
+- Manual proof contains `INTEGRATED_MARKER_TRAVERSED_OK`, `REMOTE_ACK=MANUAL_TUNNEL_ACK_OK`, `"marker_match": true`, `"ack_sent": true`, and `"ok": true`.
+- Manual proof shows a local listener bound to `127.0.0.1:39176`, dedicated-key reverse-forward config by path only, a remote trigger connected to remote `127.0.0.1:39176`, the marker crossed the tunnel, the local listener returned ACK, the remote trigger received ACK, and cleanup left no local or remote listener row on `39176`.
+- Manual proof and post-manual qwork proof support clean repo/no code or governance mutation. The manual root has no standalone git-status artifact; qwork proof written after the manual run reports clean worktree/index/untracked state and `head_equals_origin_main=yes`.
+- Manual proof sensitive-material scan found no suspicious private key block, passphrase, token, password value, credential, production endpoint, backup material, or raw authorized_keys/sshd_config/known_hosts dump. One benign hit was the SSH option `PasswordAuthentication no`.
+- Manual proof supports command/test-harness shape, integrated lifetime, and trigger quoting as the likely D430 issue, not SSH policy.
+- Pre-closeout validation passed: `git diff --check`, root `cargo audit --deny warnings`, nested qsc fuzz lock `cargo audit --deny warnings --file`, `cargo fmt --check`, `sh -n scripts/ci/qsc_adversarial.sh`, `bash -n scripts/ci/qsc_adversarial.sh`, `same_host_client_to_client_e2e`, and `receive_e2e`.
+- Recovered failure: first closeout PR body preflight expected the exact phrase `D-1048 implementation accepted`, while the prepared body used equivalent but non-exact wording. Classification: recoverable PR body wording preflight issue. Corrective action: normalized the PR body to include the exact directive phrase. Final result: PR body preflight passed on rerun.
+- Governance closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, this journal, and `tests/NA-0529_closeout_restore_na0530_testplan.md`.
+- D-1049 records NA-0529 closeout and NA-0530 restoration with integrated forwarding proof review.
+- NA-0529 is marked DONE.
+- NA-0530 is restored READY using the approved integrated forwarding E2EE retry successor block.
+- Future NA-0530 must re-prove integrated marker traversal and ACK in-lane before qsc E2EE.
+- Branch: pending at journal authoring.
+- PR title: `NA-0529: closeout and restore NA-0530`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0529_closeout_restore_na0530_integrated_forwarding_review_20260624T013939Z/wait_accounting.tsv`.
+- No NA-0530 implementation, remote action, SSH execution, scp/sftp/rsync, qsc E2EE execution, qsc send/receive execution, qsc protocol command, qsl-server/qsl-attachments use, package installation, sudo/admin action, key/config/host mutation, qwork/qstart/qresume, qsl-backup execution, dependency/lockfile mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation is introduced.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.

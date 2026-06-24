@@ -6,6 +6,39 @@ Last-Updated: 2026-06-24
 
 # Rolling Operations Journal
 
+## NA-0536 update
+
+- Directive: QSL-DIR-2026-06-24-442 -- Execute NA-0536 QSL Remote qsc E2EE Repeated-Run / Cleanup / Freshness Scope Authorization Plan, Optional Closeout to NA-0537.
+- Begin timestamp (UTC): 2026-06-24T17:41:25Z.
+- Begin timestamp (America/Chicago): 2026-06-24T12:41:25-05:00.
+- Repo path: `/srv/qbuild/work/NA-0536/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0536_repeated_run_cleanup_freshness_scope_authorization_20260624T174125Z`.
+- Codex did not run qwork, qstart, qresume, SSH, scp, sftp, rsync, remote commands, qsc E2EE, qsc send, qsc receive, qsc protocol commands, qsl-server, qsl-attachments, qsl-backup, package installation, ssh-keygen, ssh-keyscan, sudo/admin action, remote source checkout/build, cargo update, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, dependency mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, backup, restore, force-push, amend, rebase, squash, branch deletion, or branch-protection mutation.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0536/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `9e51b9a35e8`; proof recorded `startup_result=OK`, lane `NA-0536`, repo `qsl-protocol`, clean worktree/index/untracked state, READY_COUNT 1, queue top READY `NA-0536`, and requested lane status READY.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main remained at `9e51b9a35e8`.
+- Disk watermark before fetch: `/` usage 93%; STOP threshold 95% was not hit. `/backup/qsl` usage was 28%.
+- Startup queue proof: READY_COUNT 1; READY NA-0536; NA-0535 DONE; NA-0534 DONE.
+- Startup decision proof used the `- **ID:** D-####` parser: D-1060 once, D-1061 once, D-1062 absent before patch, D-1063 absent, duplicate decision record count zero.
+- D441, D440, D439, D435, and D419 response files were found.
+- Main health proof on `9e51b9a35e8`: public-safety success, advisories success, 36 check-runs retrieved, and no completed red or in-progress check-runs.
+- Root and nested qsc fuzz lockfiles both retained `quinn-proto 0.11.15`; Cargo manifest drift check passed.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list. qsl-backup was not executed.
+- Recovered failure: the first qsl-backup source inclusion count checked narrative mentions in backup status/plan docs instead of the installed helper source list and returned count 13. Classification: recoverable command-shape/interpretation issue before any repo mutation. Corrective action: read `/usr/local/sbin/qsl-backup` only and counted the configured source path. Final result: source inclusion count 1 and SHA verification passed.
+- D441/D440/D439/D435/D419 inheritance consumed: NA-0535 DONE; NA-0536 READY; D441 classification `REMOTE_E2EE_WRONG_PEER_STALE_TRUST_NEGATIVES_PASS`; retained qsc recheck passed; integrated port 39176 marker/ACK precheck passed; baseline remote qsc E2EE setup passed; wrong-peer and stale/replaced-peer negatives passed; selected-state no-mutation checks passed; valid path after negatives passed; cleanup passed; D439 port 39176 diagnostic success consumed; D435 trigger remediation success consumed; D419 replay/corrupt negatives passed; no qsl-server/qsl-attachments.
+- Residual inventory completed for repeated-run freshness, cleanup robustness, repeated-run determinism, negative-path repeatability, redaction/no-secret-output, retained-binary policy, public evidence sync, and qsl-server/qsl-attachments deferral.
+- Selected classification: `REMOTE_E2EE_REPEATED_RUN_CLEANUP_FRESHNESS_IMPLEMENTATION_READY`.
+- Selected successor: `NA-0537 -- QSL Remote qsc E2EE Repeated-Run / Cleanup / Freshness Implementation Harness`.
+- Governance patch paths: NA-0536 evidence doc, NA-0536 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1062 records NA-0536 remote qsc E2EE repeated-run cleanup freshness scope authorization.
+- Branch: `na-0536-remote-e2ee-repeated-run-cleanup-freshness-scope`.
+- PR title: `NA-0536: authorize remote E2EE repeated-run cleanup freshness scope`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0536_repeated_run_cleanup_freshness_scope_authorization_20260624T174125Z/wait_accounting.tsv`.
+- No remote action, SSH execution, qsc E2EE, qsc send/receive, qsc protocol command, qsl-server/qsl-attachments use, package installation, sudo/admin action, key/config/host mutation, qwork/qstart/qresume, qsl-backup execution, dependency/lockfile mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation is introduced.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0532 closeout and NA-0533 restoration update
 
 - Directive: QSL-DIR-2026-06-24-437 -- Close Out NA-0532 After Integrated Forwarding Precheck Failure and Restore NA-0533 Reverse-Forward Port Diagnostic Authorization.

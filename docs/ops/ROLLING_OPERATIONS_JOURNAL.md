@@ -38,7 +38,8 @@ Last-Updated: 2026-06-24
 - NA-0532 is marked DONE. NA-0533 is restored READY using the explicit supplied forwarding port 39176 diagnostic authorization successor block.
 - Branch: `na-0532-closeout-restore-na0533`.
 - PR title: `NA-0532: closeout and restore NA-0533`.
-- PR: pending at journal authoring.
+- Recovered failure: GitHub connector PR creation returned 403 `Resource not accessible by integration`. Classification: recoverable connector permission issue because the branch was already pushed and authenticated `gh` was available. Corrective action: created the same PR with `gh pr create --body-file` using the prepared PR body. Final result: PR #1338 opened.
+- PR: #1338.
 - PR merge commit: pending at journal authoring.
 - Wait accounting file: `/srv/qbuild/tmp/NA0532_closeout_restore_na0533_after_forwarding_precheck_failure_20260624T072317Z/wait_accounting.tsv`.
 - No NA-0533 implementation, remote action, SSH execution, qsc E2EE execution, qsc send/receive execution, qsc protocol command, qsl-server/qsl-attachments use, dependency mutation, lockfile mutation, Cargo.toml mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, qwork/qstart/qresume, or qsl-backup execution is introduced.

@@ -37879,6 +37879,21 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Wait accounting file: `/srv/qbuild/tmp/NA0535_wrong_peer_stale_trust_retry_after_port_diagnostic_impl_20260624T163514Z/wait_accounting.tsv`.
 - No qsl-server or qsl-attachments use occurred. No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0535 closeout and NA-0536 restoration update
+
+- Directive: QSL-DIR-2026-06-24-441 optional closeout packet.
+- Begin timestamp (UTC): 2026-06-24T17:11:22Z.
+- Repo path: `/srv/qbuild/work/NA-0535/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0535_wrong_peer_stale_trust_retry_after_port_diagnostic_impl_20260624T163514Z`.
+- Implementation PR #1343 merged as `954e840b66ce` from head `b0bc6b8706ac`.
+- Post-merge public-safety completed success on `954e840b66ce` inside the short attach/early-failure window.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0535_closeout_restore_na0536_testplan.md`.
+- NA-0535 is marked DONE.
+- NA-0536 is restored READY using the D-1060-selected repeated-run / cleanup / freshness authorization successor block supplied by the directive.
+- D-1061 records NA-0535 closeout and NA-0536 restoration.
+- No NA-0536 implementation, remote action, SSH execution, qsc E2EE execution, qsc send/receive execution, qsc protocol command, qsl-server/qsl-attachments use, package installation, sudo/admin action, key/config/host mutation, qwork/qstart/qresume, qsl-backup execution, dependency/lockfile mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation is introduced.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0532 update
 
 - Directive: QSL-DIR-2026-06-24-436 -- Execute NA-0532 QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Retry After Trigger Remediation Implementation Harness, Optional Closeout to Selected NA-0533.

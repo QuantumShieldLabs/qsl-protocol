@@ -30588,7 +30588,7 @@ Forbidden scope:
 ---
 
 ### NA-0535 — QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Retry After Port Diagnostic Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -30673,6 +30673,15 @@ Acceptance criteria:
 - no qsl-server/qsl-attachments.
 - no public/production readiness claim.
 - exactly one READY item remains after closeout.
+
+---
+
+### NA-0536 — QSL Remote qsc E2EE Repeated-Run / Cleanup / Freshness Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the next remote qsc E2EE hardening lane after wrong-peer/stale-trust success, focusing on repeated-run freshness, cleanup robustness, retained-qsc freshness before each run, forwarding cleanup, synthetic proof redaction, no qsl-server/qsl-attachments, and no public/production readiness claims.
 
 ---
 

@@ -28060,3 +28060,51 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `tests/NA-0533_closeout_restore_na0534_testplan.md` records closeout validation, queue/decision proof, scope guard, boundary assertions, and post-closeout public-safety requirement.
     - `TRACEABILITY.md` maps this closeout to D-1056, D-1057, PR #1339, the diagnostic authorization classification, and the restored NA-0534 successor.
   - **References:** NA-0533; NA-0534; D-1057; D-1056; PR #1339; authorization merge `c82b4e8a31c6`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0533_closeout_restore_na0534_testplan.md`
+
+- **ID:** D-1058
+  - **Title:** NA-0534 remote qsc E2EE reverse-forward port 39176 regression diagnostic implementation
+  - **Date:** 2026-06-24
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0534 consumes D438/D437/D436/D435/D414/D413 inheritance and classifies the diagnostic as `REMOTE_FORWARD_PORT_39176_DIAGNOSTIC_MARKER_TRAVERSAL_PASS`. Local port `127.0.0.1:39176` was free before the probe and closed after cleanup. Remote pre-probe port-state showed no listener, the transient loopback bind probe printed `NA0534_REMOTE_LOOPBACK_BIND_PROBE_OK`, the corrected reverse-forward made `127.0.0.1:39176` visible remotely during the probe, the stdin-script trigger received `NA0534_TRIGGER_ACK_RECEIVED_OK`, and cleanup verified no local proof-root process and no remaining local or remote listener.
+  - **Evidence consumed:** D438 recorded NA-0533 DONE, NA-0534 READY, classification `REMOTE_FORWARD_PORT_39176_REGRESSION_DIAGNOSTIC_IMPLEMENTATION_READY`, D-1056 and D-1057 each once, and final public-safety/advisories green. D437 recorded NA-0532 closeout restored NA-0533 after the D436 forwarding-precheck failure. D436 recorded local listener readiness, local trigger rehearsal pass, reverse-forward failure before remote trigger with `remote port forwarding failed for listen port 39176`, no marker traversal, no ACK, no qsc E2EE, no qsc send/receive, and cleanup pass. D435 recorded stdin-script trigger success with marker traversal and ACK. D414 recorded dedicated-key forwarding marker/ACK success. D413 recorded the accepted dedicated forwarding key proof with fingerprint `SHA256:7guT/Hd72vuu+u1Jrwpuy0hSFETVrxYaXHwupuFfaPM`, public key comment `qsl-inspiron-qslcodex-forward-20260622`, and loopback-only `permitlisten` / `permitopen` on `127.0.0.1:39176`.
+  - **Diagnostic result:** The operational `ssh -G inspiron` parse still reported `clearallforwardings yes`, so reverse forwarding used a proof-root SSH config with the dedicated key, publickey-only authentication, no agent/X11 forwarding, no PTY, no ControlMaster, and `ClearAllForwardings no`. The proof-root config contained no `ClearAllForwardings yes`. `ExitOnForwardFailure=yes` did not abort the corrected single-lifetime reverse-forward; the remote port was visible during the forward, marker traversal passed, and ACK returned. No SSH debug log redaction was required because the corrected reverse-forward did not fail.
+  - **Recovered failures:** Main check-run summary and verifier commands had local Python quoting mistakes; both were corrected and recorded. The initially guessed NA-0520 testplan path was corrected by tracked-file discovery. A zero-match `grep` for `ClearAllForwardings yes` was converted to an explicit count proof with result 0. A remote boundary command initially had nested shell quoting that prevented output capture; it was rerun with direct shell quoting and passed. The first integrated marker attempt failed because local listener and forward background processes did not survive across separate command invocations; it was rerun in one shell lifetime with trap-based cleanup and passed. These recoveries did not require any scope expansion, remote file write, qsc E2EE, qsc send/receive, qsl-server, or qsl-attachments.
+  - **Security invariants introduced/changed:**
+    - No qsc E2EE occurs.
+    - No qsc send/receive occurs.
+    - No qsc identity/contact/handshake/relay protocol command occurs.
+    - No remote file write occurs.
+    - No remote temp file occurs.
+    - No qsl-server use occurs.
+    - No qsl-attachments use occurs.
+    - No package installation occurs.
+    - No remote source checkout/build occurs.
+    - No qwork/qstart/qresume execution occurs.
+    - No qsl-backup execution occurs.
+    - No qsc source/test/fuzz/Cargo mutation occurs.
+    - No workflow/script/helper mutation occurs.
+    - No corpus/vector/input mutation occurs.
+    - No dependency/lockfile mutation occurs.
+    - No formal/refimpl/service/public/backup mutation occurs.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No vulnerability-free, bug-free, or perfect-crypto claim is made.
+    - Exactly one READY remains mandatory until closeout.
+  - **Alternatives considered:**
+    - Proceed to qsc E2EE after D436 (rejected because marker/ACK needed to be re-proven after the port regression).
+    - Change the remote listen port (rejected because the dedicated-key proof and diagnostic scope are tied to `127.0.0.1:39176`).
+    - Treat the first failed local harness lifetime attempt as remote transport evidence (rejected because the local proof-root processes had exited before trigger evidence).
+    - Read authorized_keys or sshd_config directly (rejected because this directive forbids it).
+    - Use qsl-server or qsl-attachments to bypass forwarding (rejected as out of scope).
+  - **Implications for spec/impl/tests:**
+    - `docs/governance/evidence/NA-0534_qsl_remote_qsc_e2ee_reverse_forward_port_39176_regression_diagnostic_implementation_harness.md` records qwork proof verification, inheritance, command manifest, safe SSH config, local/remote port-state evidence, bind probe, marker/ACK result, cleanup proof, reviews, release-claim boundary, and successor selection.
+    - `tests/NA-0534_qsl_remote_qsc_e2ee_reverse_forward_port_39176_regression_diagnostic_implementation_testplan.md` records validation expectations, markers, scope guards, recovery evidence, and no-claim boundaries.
+    - `TRACEABILITY.md` maps NA-0534 to D-1058 and the selected NA-0535 wrong-peer / stale-trust retry successor.
+  - **Selected successor:** `NA-0535 -- QSL Remote qsc E2EE Wrong-Peer / Stale-Trust Retry After Port Diagnostic Implementation Harness`.
+  - **References:** NA-0534; selected NA-0535 wrong-peer / stale-trust retry after port diagnostic successor; D-1058; D-1057; D-1056; D438 response `/home/victor/work/qsl/codex/responses/NA0533_20260624T143842Z_D438.md`; D437 response `/home/victor/work/qsl/codex/responses/NA0532_closeout_restore_na0533_20260624T075109Z_D437.md`; D436 response `/home/victor/work/qsl/codex/responses/NA0532_20260624T070953Z_D436.md`; D435 response `/home/victor/work/qsl/codex/responses/NA0531_20260624T053219Z_D435.md`; D414 response `/home/victor/work/qsl/codex/responses/NA0520_20260622T034023Z_D414.md`; D413 response `/home/victor/work/qsl/codex/responses/NA0519_20260622T021059Z_D413.md`; `docs/governance/evidence/NA-0534_qsl_remote_qsc_e2ee_reverse_forward_port_39176_regression_diagnostic_implementation_harness.md`; `tests/NA-0534_qsl_remote_qsc_e2ee_reverse_forward_port_39176_regression_diagnostic_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

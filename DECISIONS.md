@@ -27611,3 +27611,50 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `tests/NA-0528_closeout_restore_na0529_testplan.md` records closeout-only static validation, queue/decision validation, marker validation, boundary assertions, dependency health checks, and post-closeout public-safety/advisories requirements.
     - `TRACEABILITY.md` maps this closeout to D-1046, D-1047, PR #1329, the green public-safety/advisories recheck, and the restored NA-0529 successor.
   - **References:** NA-0528; NA-0529; D-1047; D-1046; D-1045; D-1044; qsl-protocol PR #1329; D428 response `/home/victor/work/qsl/codex/responses/NA0528_20260623T183117Z_D428.md`; D427 response `/home/victor/work/qsl/codex/responses/NA0527_20260623T172638Z_D427.md`; D414 response `/home/victor/work/qsl/codex/responses/NA0520_20260622T034023Z_D414.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0528_closeout_restore_na0529_testplan.md`
+
+- **ID:** D-1048
+  - **Title:** NA-0529 remote qsc E2EE reverse-forwarding diagnostic implementation
+  - **Date:** 2026-06-24
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0529 consumed D429/D428/D427/D414/D413 inheritance, compared the D427 failed reverse-forwarding command/config with the NA-0520 successful marker-forwarding command/config, ran a bounded dedicated-key synthetic reverse-forwarding diagnostic without qsc E2EE and without qsc send/receive, and selected result classification `REMOTE_FORWARDING_DIAGNOSTIC_REMOTE_TRIGGER_FAILURE`.
+  - **Evidence consumed:** D429 records NA-0528 DONE and NA-0529 READY. D428 records classification `REMOTE_FORWARDING_DIAGNOSTIC_IMPLEMENTATION_READY`. D427 records classification `REMOTE_E2EE_FORWARDING_RECHECK_FAILURE`, retained qsc freshness, first forwarding failure due `ClearAllForwardings yes`, later `remote port forwarding failed for listen port 39176`, remote loopback bind availability proof, no qsc send/receive, no baseline E2EE, cleanup pass, and no qsl-server/qsl-attachments use. D414 records classification `SSH_FORWARDING_CAPABILITY_PROBE_PASS`, dedicated-key reverse forwarding with `-N -T`, `ExitOnForwardFailure=yes`, loopback-only `-R 127.0.0.1:39176:127.0.0.1:39176`, marker traversal, and ACK. D413 records the accepted dedicated forwarding key proof, loopback-only `permitlisten`/`permitopen`, no PTY, no agent forwarding, no X11 forwarding, and forced-command compatibility caveat.
+  - **Diagnostic result:** The proof-root config used the dedicated forwarding key basename `qslcodex_forward_ed25519`, public-key-only auth, no PTY, no agent/X11 forwarding, and effective `clearallforwardings no`. The local listener bound only to `127.0.0.1:39176`. The dedicated-key reverse-forward session started with `ExitOnForwardFailure=yes`, so D427's corrected remote-port-forwarding failure was not reproduced. The single remote trigger failed: stdout was `n`, stderr reported a connection reset while reading the ACK, reverse-forward stderr recorded `connect_to 127.0.0.1 port 39176: failed.`, no listener marker-traversal summary was produced, and no ACK marker was recorded.
+  - **Debug-log/redaction result:** SSH verbose debug logging was not required because the reverse-forward session started successfully. Proof-root private-material scan found zero private-key block or high-likelihood token markers. Checked-in evidence contains no private key contents, passphrases, tokens, passwords, raw authorized_keys, full SSH config, known_hosts dumps, or sshd_config.
+  - **Cleanup result:** Cleanup terminated the reverse-forward SSH process, verified the listener was absent, corrected a proof-parser false positive that counted the `ss` header as a listener, and then proved no listener line for port `39176` and no proof-root process remained.
+  - **Security invariants introduced/changed:**
+    - No qsc E2EE occurred.
+    - No qsc send/receive occurred.
+    - No qsc identity/contact/handshake/relay protocol command occurred.
+    - No qsl-server use occurred.
+    - No qsl-attachments use occurred.
+    - No remote file write occurred.
+    - No package installation occurred.
+    - No remote source checkout or remote build occurred.
+    - No qwork, qstart, or qresume execution occurred.
+    - No qsl-backup execution occurred.
+    - No qsc source/test/fuzz/Cargo mutation occurred.
+    - No workflow/script/helper mutation occurred.
+    - No corpus/vector/input mutation occurred.
+    - No dependency or lockfile mutation occurred.
+    - No formal/refimpl/service/public/backup mutation occurred.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No vulnerability-free claim and no perfect-crypto claim is made.
+    - Exactly one READY remains mandatory until a later closeout restores the selected successor.
+  - **Selected successor:** Because marker traversal did not pass, the selected successor is `NA-0530 -- QSL Remote qsc E2EE Reverse-Forwarding Remote Trigger Command-Shape Diagnostic Harness`, a narrower trigger/listener diagnostic lane with no qsc E2EE, no qsc send/receive, no qsl-server/qsl-attachments, no remote file writes, and no public/production readiness claim.
+  - **Alternatives considered:**
+    - Rerun the malformed trigger immediately (rejected because the directive allowed exactly one remote trigger).
+    - Retry qsc E2EE because reverse-forward startup succeeded (rejected because no marker/ACK traversal proof exists).
+    - Broaden SSH policy or inspect authorized_keys/sshd_config directly (rejected because not proven necessary and out of scope).
+    - Use qsl-server or qsl-attachments as a bypass (rejected as out of scope).
+  - **Implications for spec/impl/tests:**
+    - `docs/governance/evidence/NA-0529_qsl_remote_qsc_e2ee_reverse_forwarding_diagnostic_implementation_harness.md` records qwork proof verification, inheritance, command/config diff, command manifest, safe SSH config proof, remote boundary proof, listener proof, reverse-forward proof, remote trigger failure, redaction proof, cleanup proof, stewardship reviews, classification, and successor selection.
+    - `tests/NA-0529_qsl_remote_qsc_e2ee_reverse_forwarding_diagnostic_implementation_testplan.md` records validation, markers, scope guards, no-claim boundaries, and required local checks.
+    - `TRACEABILITY.md` maps NA-0529 to D-1048 and the selected narrower NA-0530 successor.
+  - **References:** NA-0529; selected NA-0530 trigger diagnostic successor; D-1048; D-1047; D-1046; D-1045; D429 response `/home/victor/work/qsl/codex/responses/NA0528_closeout_restore_na0529_20260623T205836Z_D429.md`; D428 response `/home/victor/work/qsl/codex/responses/NA0528_20260623T183117Z_D428.md`; D427 response `/home/victor/work/qsl/codex/responses/NA0527_20260623T172638Z_D427.md`; D414 response `/home/victor/work/qsl/codex/responses/NA0520_20260622T034023Z_D414.md`; D413 response `/home/victor/work/qsl/codex/responses/NA0519_20260622T021059Z_D413.md`; `docs/governance/evidence/NA-0529_qsl_remote_qsc_e2ee_reverse_forwarding_diagnostic_implementation_harness.md`; `tests/NA-0529_qsl_remote_qsc_e2ee_reverse_forwarding_diagnostic_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

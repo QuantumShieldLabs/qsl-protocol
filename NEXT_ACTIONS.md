@@ -30677,11 +30677,65 @@ Acceptance criteria:
 ---
 
 ### NA-0536 — QSL Remote qsc E2EE Repeated-Run / Cleanup / Freshness Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
 Authorize the next remote qsc E2EE hardening lane after wrong-peer/stale-trust success, focusing on repeated-run freshness, cleanup robustness, retained-qsc freshness before each run, forwarding cleanup, synthetic proof redaction, no qsl-server/qsl-attachments, and no public/production readiness claims.
+
+Closeout evidence:
+- NA-0536 authorization PR #1345 merged at `749008231762`.
+- D-1062 accepted the classification `REMOTE_E2EE_REPEATED_RUN_CLEANUP_FRESHNESS_IMPLEMENTATION_READY`.
+- Post-merge public-safety and advisories completed success inside the short attach/early-failure window.
+- NA-0537 is restored as the sole READY successor.
+
+---
+
+### NA-0537 — QSL Remote qsc E2EE Repeated-Run / Cleanup / Freshness Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Execute a bounded repeated-run cleanup/freshness harness after NA-0535 success, using retained remote qsc with fresh hash recheck before each run, integrated port 39176 marker/ACK gate before each run, synthetic qsc E2EE runtime roots with unique proof IDs, cleanup after each run, local/remote port and process cleanup checks, no-secret-output review, no qsl-server/qsl-attachments, and no public/production readiness claims.
+
+Allowed scope:
+- docs/governance/evidence/NA-0537_qsl_remote_qsc_e2ee_repeated_run_cleanup_freshness_implementation_harness.md
+- tests/NA-0537_qsl_remote_qsc_e2ee_repeated_run_cleanup_freshness_implementation_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-local command manifest/logs.
+- bounded SSH to inspiron as qslcodex.
+- retained remote qsc hash/path/owner/mode/size recheck before each run.
+- integrated listener/forward/trigger marker/ACK precheck before each run.
+- local qsc binary from clean checkout.
+- synthetic messages only.
+- synthetic identities/trust records only.
+- remote artifacts only under `$HOME/qsl-remote-test/e2ee/<PROOF_ID>/run-<N>`.
+- local sensitive runtime under proof root.
+- cleanup/retention proof after each run.
+- optional repeated wrong-peer/stale-trust negatives if command surface remains safe.
+
+Forbidden scope:
+- qsl-server/qsl-attachments.
+- package installation.
+- sudo/admin action except negative `sudo -n true` probe.
+- key generation/installation.
+- authorized_keys mutation or reading.
+- sshd_config mutation or reading unless operator supplies redacted proof in a later lane.
+- SSH config mutation outside proof root.
+- known_hosts mutation.
+- remote file write outside `$HOME/qsl-remote-test/e2ee/<PROOF_ID>`.
+- remote temp file write.
+- remote source checkout/build.
+- qwork/qstart/qresume.
+- qsl-backup.
+- qsc source/test/fuzz/Cargo mutation.
+- workflow/dependency mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation.
+- production/user data.
+- no public-readiness, production-readiness, public-internet-readiness, crypto-complete, identity-complete, trust-complete, replay-proof, downgrade-proof, secret-material-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
 
 ---
 

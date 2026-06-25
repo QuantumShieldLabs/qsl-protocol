@@ -67,14 +67,15 @@ readiness claim.
   acceptance, findings, disposition, or completion evidence.
 - External live products under the same brand are not QSL protocol release-readiness proof.
 - qsl-server and qsl-attachments remain deferred from NA-0539 public evidence
-  sync and must not be inferred as integrated production services.
+  sync and NA-0541 Progress publication; they must not be inferred as
+  integrated production services.
 
 ## What Is Currently Proven
 
 | Evidence area | Current proof | Review boundary |
 | --- | --- | --- |
-| Dependency/advisory health | `cargo audit --deny warnings` passed locally on 2026-05-14 against 381 locked dependencies. | Advisory-clean proof only; not a production security audit. |
-| `public-safety` required and green | Main branch protection requires `public-safety`; latest checked `origin/main` run for `28b2a98904e9` completed successfully after PR #830. | Required-check integrity, not a substitute for external review. |
+| Dependency/advisory health | `cargo audit --deny warnings` passed locally during the June 25, 2026 NA-0541 validation, and the root plus nested qsc fuzz lockfiles retained `quinn-proto 0.11.15`. | Advisory-clean proof only; time-sensitive and not a production security audit. |
+| `public-safety` and `advisories` required gates green | Latest checked `origin/main` run for `9e7e389b6c42` completed `public-safety` and `advisories` successfully after PR #1354. | Required-check integrity, not a substitute for external review. |
 | KT verifier fail-closed evidence | D-0440 and PR #708 record canonical KT verification for STH signatures, inclusion and consistency proofs, pinned logs, bundle signatures, and responder-side evidence binding. | Bounded to current refimpl/actor KT paths and documented disabled/non-production mode. |
 | SCKA persistence and monotonicity | D-0445, PR #727, and [NA-0240 evidence](../governance/evidence/NA-0240_scka_persistence_monotonicity_audit.md) cover restart persistence, rollback rejection, tombstones, one-time consumption, and reject no-mutation checks. | Evidence over current SCKA model/refimpl paths; not universal future-code proof. |
 | Downgrade and no-mutation evidence | D-0447, PR #729, and [NA-0241 evidence](../governance/evidence/NA-0241_demo_downgrade_no_mutation_audit.md) cover transcript/capability rejects, no mutation, and demo negative acceptance. | Demo downgrade evidence remains bounded; unsupported demo surfaces are not faked. |
@@ -97,6 +98,7 @@ readiness claim.
 | Remote qsc negative boundaries | D441, D419, [NA-0535 evidence](../governance/evidence/NA-0535_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_after_port_diagnostic_implementation_harness.md), and [NA-0523 evidence](../governance/evidence/NA-0523_qsl_remote_qsc_e2ee_replay_corrupt_negative_boundary_implementation_harness.md) record selected wrong-peer, stale/replaced-peer, replay, and corrupt-delivery negative cases. | Selected negative cases only; no replay-proof, downgrade-proof, identity-complete, trust-complete, vulnerability-free, bug-free, or perfect-crypto claim. |
 | Reverse-forward diagnostic marker/ACK | D439 and [NA-0534 evidence](../governance/evidence/NA-0534_qsl_remote_qsc_e2ee_reverse_forward_port_39176_regression_diagnostic_implementation_harness.md) record marker traversal and ACK for the controlled diagnostic path. | Transport diagnostic proof only; no qsl-server/qsl-attachments integration or public internet service readiness claim. |
 | Public repository evidence sync | D-1068 and [NA-0539 evidence](../governance/evidence/NA-0539_qsl_website_repository_public_evidence_sync_implementation_harness.md) update selected repository docs with bounded evidence, limits, and review invitation. | Repository documentation sync only; no website implementation, public/ path, website/ path, external review completion, production readiness, or public readiness claim. |
+| Public Progress and site-wide accuracy sweep | D-1070, D-1071, D-1072, [Progress index](PROGRESS.md), and [June 25 Progress entry](progress/2026-06-25.md) create the repository Progress log and record the first site-wide public accuracy sweep. | Public engineering summary and correction ledger only; not a release certificate, website deployment, public readiness, production readiness, or external review completion claim. |
 | External review package refresh | D-0548, this package, the [release readiness map](RELEASE_READINESS_EVIDENCE_MAP.md), [NA-0289 audit](../governance/evidence/NA-0289_external_review_package_refresh_audit.md), and [NA-0289 testplan](../../tests/NA-0289_external_review_package_refresh_testplan.md) align the reviewer-facing evidence references after NA-0287 and NA-0288. | Refresh evidence only; reviewer acceptance, findings, disposition, and external review completion remain `NOT_READY` until separately recorded. |
 | Website truthfulness audit | D-0456 and [NA-0245 evidence](../governance/evidence/NA-0245_website_truthfulness_audit.md) map public website claims to repo truth and separate external products from protocol evidence. | Audit/plan only; no website implementation change. |
 | Triple-Ratchet-style claim boundary | D-0462, PR #744, and [Suite-2 claim boundary](SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md) authorize research-stage Triple-Ratchet-style wording and prohibit unsupported production/proven/anonymity claims. | External terminology is definitional only; it does not certify QSL. |
@@ -132,7 +134,7 @@ Run from the repository root.
 
 | Command | Purpose | Local result |
 | --- | --- | --- |
-| `cargo audit --deny warnings` | Dependency/advisory health. | PASS on 2026-05-14; scanned 381 locked dependencies. |
+| `cargo audit --deny warnings` | Dependency/advisory health. | PASS during NA-0541 validation on 2026-06-25; advisory posture remains time-sensitive. |
 | `cargo tree -i rustls-webpki --locked` | Confirms locked `rustls-webpki` dependency path. | PASS; `rustls-webpki v0.103.13` through `rustls v0.23.36`. |
 | `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` | qsc send/commit regression proof. | PASS; 3 tests passed. |
 | `python3 formal/run_model_checks.py` | Bounded SCKA and Suite-2 negotiation model checks. | PASS; 926 SCKA states and 428 negotiation no-mutation assertions. |
@@ -213,7 +215,13 @@ Run from the repository root.
 | #827 | Service production-gate evidence map and deployment-boundary plan. | Merged |
 | #829 | Metadata phase-2 and external review readiness gap plan. | Merged |
 | #830 | NA-0288 closeout and NA-0289 restoration. | Merged |
+| #1348 | NA-0537 closeout and NA-0538 restoration after repeated-run remote qsc evidence. | Merged |
 | #1349 | NA-0538 authorization for selected public evidence sync path bundle and claim policy. | Merged |
+| #1350 | NA-0538 closeout and NA-0539 restoration. | Merged |
+| #1351 | NA-0539 public evidence sync implementation. | Merged |
+| #1352 | NA-0539 closeout and NA-0540 restoration. | Merged |
+| #1353 | NA-0540 daily Progress cadence and site accuracy authorization. | Merged |
+| #1354 | NA-0540 closeout and NA-0541 restoration. | Merged |
 
 ## Review Questions For External Reviewers
 
@@ -270,6 +278,7 @@ Expected reviewer outputs if external review starts:
 | Metadata phase-2 remains open. | Use [NA-0291](../governance/evidence/NA-0291_metadata_phase2_identifier_padding_harness.md) and [NA-0293](../governance/evidence/NA-0293_metadata_phase2_sanitized_errors_retention_harness.md) as bounded policy-harness proof only. Next, improve public evidence navigation while keeping runtime, deployment, and anonymity gaps explicit. |
 | Reviewer findings and dispositions are not recorded. | Use this refreshed package as orientation material, then record accepted scope, findings, dispositions, and residual risk in a separate evidence lane. |
 | External cryptographic review is not complete. | Send this package plus canonical specs, vectors, and model limits to reviewers and record findings separately. |
+| Public Progress is new. | Review the [Progress index](PROGRESS.md), [June 25 entry](progress/2026-06-25.md), and correction ledger for factual or claim-safety gaps before treating the summary as reviewer handoff material. |
 
 ## Safe Public Wording
 
@@ -280,6 +289,7 @@ Safe:
 - "The repository contains executable evidence for selected Suite-2, KT, SCKA, downgrade, metadata, demo, attachment-demo, GUI, and formal/model-check properties."
 - "Metadata minimization work is in progress; the current demo profile is not an anonymity system."
 - "Service hardening evidence is local and production-gated; production service claims remain future work."
+- "The public Progress log summarizes merged evidence, accepted decisions, corrections, and limits; it is not a release certificate."
 
 Do not claim:
 

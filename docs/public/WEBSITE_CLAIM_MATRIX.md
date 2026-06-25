@@ -25,7 +25,7 @@ does not authorize website implementation.
 | QSL has bounded evidence for a direct remote qsc E2EE workflow using synthetic data. | QSL is production ready, public ready, or public-internet ready. | D446 and [NA-0537 evidence](../governance/evidence/NA-0537_qsl_remote_qsc_e2ee_repeated_run_cleanup_freshness_implementation_harness.md). | Engineering evidence under controlled lab conditions; not production readiness. |
 | QSL has repeated-run cleanup/freshness evidence under a controlled lab setup. | QSL has complete crypto, complete identity, complete trust, or completed external review. | D446 and [NA-0537 evidence](../governance/evidence/NA-0537_qsl_remote_qsc_e2ee_repeated_run_cleanup_freshness_implementation_harness.md). | Selected qsc proof only; external review remains invited and incomplete. |
 | QSL has fail-closed evidence for selected wrong-peer, stale/replaced-peer, replay, and corrupt-delivery cases. | QSL is replay proof, downgrade proof, vulnerability free, bug free, or has perfect crypto. | D441, D419, [NA-0535 evidence](../governance/evidence/NA-0535_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_after_port_diagnostic_implementation_harness.md), and [NA-0523 evidence](../governance/evidence/NA-0523_qsl_remote_qsc_e2ee_replay_corrupt_negative_boundary_implementation_harness.md). | Selected negative cases only; not universal proof. |
-| QSL has public-safety/advisories gate evidence and quinn-proto RUSTSEC-2026-0185 remediation in current lockfiles. | QSL has vulnerability-free, bug-free, or secret-material-complete status. | D450, NA-0539 startup proof, root `Cargo.lock`, and nested qsc fuzz lockfile checks. | Advisory posture is gate-backed and time-sensitive. |
+| QSL has public-safety/advisories gate evidence and quinn-proto RUSTSEC-2026-0185 remediation in current lockfiles. | QSL has vulnerability-free, bug-free, or secret-material-complete status. | D453, NA-0541 startup proof, root `Cargo.lock`, and nested qsc fuzz lockfile checks. | Advisory posture is gate-backed and time-sensitive. |
 | We invite review of evidence, limits, and next steps. | External review is complete or certification is complete. | [External review package](EXTERNAL_REVIEW_PACKAGE.md) and D-1068. | Review invitation only; findings and dispositions must be recorded separately. |
 
 Required no-claim boundaries:
@@ -44,6 +44,32 @@ Required no-claim boundaries:
 - no vulnerability-free claim;
 - no bug-free claim;
 - no perfect-crypto claim.
+
+## NA-0541 Progress Claim Policy Addendum
+
+NA-0541 creates repository Progress pages and performs the D-1070 public
+accuracy sweep. It does not create or mutate `public/` or `website/` paths,
+does not deploy a website, does not create automation, and does not authorize
+external website implementation.
+
+| Permitted public wording | Forbidden wording | Evidence source | Required qualifier |
+| --- | --- | --- | --- |
+| QSL publishes public Progress entries that summarize merged evidence, accepted decisions, corrections, limits, and handoffs. | The Progress entry is a release certificate, public readiness, production readiness, or public internet readiness. | D-1070, D-1071, D-1072, [Progress index](PROGRESS.md), and [June 25 Progress entry](progress/2026-06-25.md). | Engineering evidence summary only; no release approval. |
+| A stale public reference was corrected to match merged evidence and current checks. | The whole site is verified, all statements are universally correct, or future pages are pre-approved. | NA-0541 correction ledger and validation evidence. | Correction scope is the exact D-1070 public path bundle and publication-time evidence. |
+| Review of evidence, limits, corrections, and next steps is invited. | External review is complete, certification is complete, or reviewer findings are accepted. | [External review package](EXTERNAL_REVIEW_PACKAGE.md) and [Progress index](PROGRESS.md). | Review invitation only; findings and dispositions require separate evidence. |
+| Operator-local SSD maintenance context may be summarized as local operational context. | SSD cleanup is protocol assurance, security proof, deployment proof, or release readiness. | D453/D454 inherited operator-local context and NA-0541 read-only verification. | Not protocol/security evidence and not a product/service claim. |
+
+Progress evidence and correction wording policy:
+
+- tie each dated Progress entry to merged PRs, accepted decisions, in-tree
+  evidence/testplans, verified checks, and a publication-time handoff;
+- list corrected public paths and whether each correction is factual,
+  claim-safety, Progress architecture, or out of scope;
+- do not copy raw proof logs, private material, credentials, route-token or
+  capability values, raw SSH configuration, backup material, or private
+  topology into public content;
+- do not convert selected negative cases, CI gates, local maintenance, or
+  repeated daily summaries into broader security-completion claims.
 
 ## Pages Checked
 

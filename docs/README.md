@@ -13,6 +13,7 @@ crypto/security completeness.
 
 Public evidence routes:
 
+- `docs/public/PROGRESS.md`
 - `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`
 - `docs/public/EXTERNAL_REVIEW_PACKAGE.md`
 - `docs/public/WEBSITE_CLAIM_MATRIX.md`

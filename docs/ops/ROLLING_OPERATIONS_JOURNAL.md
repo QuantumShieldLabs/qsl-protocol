@@ -53,6 +53,29 @@ Last-Updated: 2026-06-25
 - Wait accounting file: `/srv/qbuild/tmp/NA0540_daily_public_progress_cadence_site_accuracy_authorization_20260625T222553Z/wait_accounting.tsv`.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0541 update
+
+- Directive: QSL-DIR-2026-06-25-454 -- Execute NA-0541 QSL Daily Public Progress Section, First End-of-Day Update, and Site-Wide Accuracy Sweep Implementation Harness, Optional Closeout to NA-0542.
+- Begin timestamp (UTC): 2026-06-25T23:43:28Z.
+- Repo path: `/srv/qbuild/work/NA-0541/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0541_daily_public_progress_first_entry_site_accuracy_impl_20260625T234328Z`.
+- Codex did not run qwork, qstart, qresume, qsl-backup, SSH, remote actions, qsc send/receive, qsc E2EE, qsl-server, qsl-attachments, local maintenance apply, workflow mutation, dependency mutation, qsc source/test/fuzz/Cargo mutation, public/ path creation, website/ path creation, or automation.
+- qwork proof `.kv` and `.json` matched required NA-0541 startup values and pre-fetch live refs at `9e7e389b6c42`; proof timestamp `2026-06-25T23:37:48Z` was after the D453 response timestamp.
+- Disk gate passed: `/` usage 37% and `/backup/qsl` usage 33% before fetch.
+- Read-only maintenance check passed: qbuild SSD maintenance script root:root mode 755, timer enabled, timer active, next run listed.
+- Startup queue proof: READY_COUNT 1; READY NA-0541; NA-0540 DONE; NA-0539 DONE.
+- Startup decision proof: D-1070 once; D-1071 once; D-1072 absent before patch; D-1073 absent before patch; duplicate decision count zero.
+- Main health proof on `9e7e389b6c42`: public-safety success, advisories success, 36 check runs, no failed or incomplete check runs, root and nested qsc fuzz lockfiles retained `quinn-proto 0.11.15`, and no Cargo.toml drift.
+- D453/D452/D451/D446 inheritance consumed: daily Progress and public accuracy implementation ready, exact D-1070 bundle authoritative, stable-handoff-only publication, D451 public evidence sync complete, D446 repeated-run remote qsc evidence bounded/synthetic, qsl-server/qsl-attachments deferred, and SSD/shared-target governance deferred not rejected.
+- Authorized path inventory completed: 40 D-1070 paths, 35 public-facing scan targets, four new paths created under D-1070 authority.
+- Recovered failure: first inventory parent-state summary reported missing immediate parent for `docs/public/progress/2026-06-25.md`. Classification: recoverable public-path inventory parser shape issue. Corrective action: regenerated inventory with nearest existing parent evidence. Final result: `docs/public` recorded as nearest existing parent and the D-1070-authorized dated entry remained creatable.
+- Site-wide public accuracy scan found verified stale reference corrections in `docs/public/EXTERNAL_REVIEW_PACKAGE.md` and `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`, plus missing Progress-specific claim policy in `docs/public/WEBSITE_CLAIM_MATRIX.md`.
+- Progress architecture added: README Latest Progress panel, docs public Current Progress section, canonical Progress index, June 25 dated entry, docs README navigation, and Progress claim policy.
+- Publication-time handoff wording: "At publication, NA-0541 is implementing the first public Progress entry and accuracy sweep; governance closeout to the next lane is pending."
+- D-1072 records classification `DAILY_PUBLIC_PROGRESS_SITE_ACCURACY_IMPLEMENTATION_PASS`, exact changed paths, scan/correction summary, no private material promoted, no raw proof logs, no public/website path creation, no automation, no local-ops mutation, no qsl-server/qsl-attachments, no qwork/qsl-backup, and selected NA-0542 successor.
+- Validation, PR, merge, optional closeout, and final response status remain pending at journal authoring.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0537 update
 
 - Directive: QSL-DIR-2026-06-24-446 -- Recover NA-0537 Baseline Receive Peer-Label Command Shape, Execute Remote qsc E2EE Repeated-Run / Cleanup / Freshness Implementation Harness, Optional Closeout to Selected NA-0538.

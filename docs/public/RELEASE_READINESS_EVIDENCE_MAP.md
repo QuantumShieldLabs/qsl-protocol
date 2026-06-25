@@ -40,9 +40,9 @@ Status meanings:
 
 | Gate | Current status | Evidence / note |
 | --- | --- | --- |
-| Dependency/advisory scan clean | PROVEN for current lockfile | `cargo audit --deny warnings` passed locally on 2026-05-14 against 381 locked dependencies. |
+| Dependency/advisory scan clean | PROVEN for current lockfile at validation time | `cargo audit --deny warnings` passed locally during NA-0541 validation on 2026-06-25, and the root plus nested qsc fuzz lockfiles retained `quinn-proto 0.11.15`. Advisory posture remains time-sensitive. |
 | Required `public-safety` present | PROVEN | Branch protection required contexts include `public-safety`. |
-| Latest main `public-safety` green | PROVEN at NA-0294 start | `origin/main` `820b3791e118` public-safety completed successfully after PR #846, with docs-only full suites skipped by policy. |
+| Latest main `public-safety` and `advisories` green | PROVEN at NA-0541 start | `origin/main` `9e7e389b6c42` completed `public-safety` and `advisories` successfully after PR #1354. |
 | G1-G5 evidence mapped | PARTIAL | This document and [external review package](EXTERNAL_REVIEW_PACKAGE.md). |
 | External cryptographic review complete | NOT_READY | No external review completion is recorded; [NA-0288](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md) keeps package existence separate from review completion. |
 | Production relay / service hardening complete | NOT_READY | Local qsl-server/qsl-attachments hardening evidence is mapped by [NA-0287](../governance/evidence/NA-0287_service_production_gate_evidence_map.md), but production operation remains future-gated. |
@@ -55,6 +55,7 @@ Status meanings:
 | Native desktop package proof complete | PROVEN for bounded Linux AppImage/screenshot proof only | [NA-0258 evidence](../governance/evidence/NA-0258_native_desktop_package_screenshot_audit.md) records provisioned-host package and screenshot proof; it is not production desktop approval. |
 | Public website evidence-boundary implemented | NOT_READY | Website audit and plan exist; implementation handoff is a recommended successor. |
 | Public repository evidence sync | PROVEN for selected repository docs only | D-1068 and [NA-0539 evidence](../governance/evidence/NA-0539_qsl_website_repository_public_evidence_sync_implementation_harness.md) update README and public docs with bounded evidence, limits, and review invitation. This is not website implementation and not release readiness. |
+| Public Progress cadence and site-wide accuracy sweep | PROVEN for repository public docs only | D-1070, D-1071, D-1072, [Progress index](PROGRESS.md), and [June 25 Progress entry](progress/2026-06-25.md) create the first Progress log and correction ledger. This is not website implementation, public readiness, production readiness, public internet readiness, or external review completion. |
 | No production-readiness overclaim | PROVEN for this package | Safe/unsafe wording is explicit. |
 
 ## CI Evidence Map
@@ -210,11 +211,12 @@ Status meanings:
   cleanup/freshness, public-safety/advisories gates, quinn-proto
   RUSTSEC-2026-0185 remediation, bounded formal/model checks, corpus validators,
   and secret-material scans.
-- This remains engineering evidence only. It does not claim public readiness,
-  production readiness, public internet readiness, external review completion,
-  crypto completeness, identity completeness, trust completeness,
-  replay-proof status, downgrade-proof status, secret-material completeness,
-  side-channel freedom, vulnerability freedom, bug freedom, or perfect crypto.
+- This remains engineering evidence only: no public readiness, no production
+  readiness, no public internet readiness, no external review completion, no
+  crypto completeness, no identity completeness, no trust completeness, no
+  replay-proof status, no downgrade-proof status, no secret-material
+  completeness, no side-channel freedom, no vulnerability freedom, no bug
+  freedom, and no perfect crypto.
 - qsl-server and qsl-attachments remain deferred from this repository public
   evidence sync.
 
@@ -229,13 +231,29 @@ Status meanings:
 | Build-to-Inspiron qsc E2EE | D441 and D446 inheritance keep the Build-to-Inspiron remote qsc E2EE proof in the public evidence map. | The proof remains bounded to controlled synthetic data and selected hosts. |
 | Wrong-peer and stale/replaced-peer negatives | D441 and D446 record selected fail-closed negatives and selected-state no-mutation checks. | Selected negatives are not universal identity or trust completeness. |
 | Replay and corrupt-delivery negatives | D419 records selected replay/corrupt delivery negative boundaries. | Selected negatives are not a replay-proof or downgrade-proof claim. |
-| Public-safety and advisories | D450 and NA-0539 startup proof record green public-safety/advisories gates on current main. | CI gates are required integrity checks, not external review completion. |
+| Public-safety and advisories | NA-0541 startup proof records green public-safety/advisories gates on `origin/main` `9e7e389b6c42` after PR #1354. | CI gates are required integrity checks, not external review completion. |
 | quinn-proto RUSTSEC-2026-0185 remediation | Startup proof confirms root and nested qsc fuzz lockfiles retain `quinn-proto 0.11.15`. | Advisory posture is time-sensitive and must stay gate-backed. |
 | Formal/model checks | Formal/model checks remain bounded evidence for modeled slices. | They are not full cryptographic secrecy, side-channel, or implementation-completeness proofs. |
 | Corpus validators and secret scans | Validation includes corpus/vector and private-material/secret-output scans where applicable. | Scans reduce exposure risk; they do not prove secret-material completeness. |
-| qsl-server and qsl-attachments | Deferred from NA-0539; existing service evidence remains separate production-gate material. | No production relay, attachment service, or public internet readiness is claimed. |
+| qsl-server and qsl-attachments | Deferred from NA-0539 public evidence sync and NA-0541 Progress publication; existing service evidence remains separate production-gate material. | No production relay, attachment service, or public internet readiness is claimed. |
 
 ## Metadata / Privacy Readiness Map
+
+## What Changed After NA-0541
+
+- NA-0541 creates the public [Progress index](PROGRESS.md) and the first dated
+  [June 25, 2026 Progress entry](progress/2026-06-25.md).
+- The entry summarizes merged June 25 workday evidence, accepted decisions,
+  site-wide public accuracy corrections, and the publication-time handoff.
+- The site-wide public accuracy sweep refreshes stale current-main,
+  public-safety, advisory, dependency-health, and recent-PR references in this
+  map and the [external review package](EXTERNAL_REVIEW_PACKAGE.md).
+- The update does not change any `NOT_READY` release gate: no public readiness,
+  no production readiness, no public internet readiness, no external review
+  completion, no crypto completeness, no identity completeness, no trust
+  completeness, no replay-proof status, no downgrade-proof status, no
+  secret-material completeness, no side-channel freedom, no vulnerability
+  freedom, no bug freedom, and no perfect crypto.
 
 | Topic | Current status | Boundary |
 | --- | --- | --- |

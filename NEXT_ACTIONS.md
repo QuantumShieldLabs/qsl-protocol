@@ -30692,7 +30692,7 @@ Closeout evidence:
 ---
 
 ### NA-0537 — QSL Remote qsc E2EE Repeated-Run / Cleanup / Freshness Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -30736,6 +30736,50 @@ Forbidden scope:
 - formal/refimpl/service/public/backup mutation.
 - production/user data.
 - no public-readiness, production-readiness, public-internet-readiness, crypto-complete, identity-complete, trust-complete, replay-proof, downgrade-proof, secret-material-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
+
+Closeout evidence:
+- NA-0537 implementation PR #1347 merged at `cda8b3090337`.
+- D-1064 accepted classification `REMOTE_E2EE_REPEATED_RUN_CLEANUP_FRESHNESS_PASS`.
+- D447 stopped before fetch and mutation on `/` disk usage at the 95% hard threshold; the operator then cleaned old per-lane target directories and reran qwork.
+- Fresh qwork proof from 2026-06-25T14:07:41Z verified `startup_result=OK`, clean worktree/index/untracked state, HEAD/origin-main at `cda8b3090337`, READY_COUNT 1, and queue top READY `NA-0537`.
+- Pre-closeout disk gate was below the 95% stop threshold.
+- Pre-closeout public-safety and advisories were green for `cda8b3090337`; optional remote/UI check failures were not branch-protection required contexts.
+- NA-0538 is restored as the sole READY successor.
+
+---
+
+### NA-0538 — QSL Website / Repository Public Evidence Sync Scope Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize a public-facing website and repository evidence-sync lane after the direct remote qsc E2EE sprint reached a repeated-run cleanup/freshness checkpoint, defining exactly what public pages, README/docs, and evidence summaries may say about QSL goals, achieved evidence, remaining limits, and review invitations, while preserving no public-readiness, no production-readiness, no crypto-complete, no identity-complete, no trust-complete, no replay-proof, no downgrade-proof, no external-review-complete, no vulnerability-free, no bug-free, and no perfect-crypto claims.
+
+Allowed scope:
+- docs/governance/evidence/NA-0538_qsl_website_repository_public_evidence_sync_scope_authorization_plan.md
+- tests/NA-0538_qsl_website_repository_public_evidence_sync_scope_authorization_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only review of current evidence/testplans/decisions/traceability.
+- selection of exact public-doc/website/README paths for a later implementation lane.
+- public claim wording policy.
+- proof/redaction rules.
+- successor selection.
+
+Forbidden scope:
+- website or README content mutation in authorization lane.
+- public-doc mutation outside the selected evidence/testplan/governance files.
+- qsc source/test/fuzz/Cargo mutation.
+- dependency/lockfile mutation.
+- workflow/script/helper mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation unless explicitly selected in the later implementation lane.
+- qsl-server/qsl-attachments implementation.
+- remote action.
+- qwork/qstart/qresume.
+- qsl-backup.
+- no public-readiness claim, no production-readiness claim, no public-internet-readiness claim, no external-review-complete claim, no crypto-complete claim, no identity-complete claim, no trust-complete claim, no replay-proof claim, no downgrade-proof claim, no secret-material-complete claim, no side-channel-free claim, no vulnerability-free claim, no bug-free claim, or no perfect-crypto claim.
 
 ---
 

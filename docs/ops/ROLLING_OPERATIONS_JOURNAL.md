@@ -43,6 +43,39 @@ Last-Updated: 2026-06-25
 - Wait accounting file: `/srv/qbuild/tmp/NA0537_peer_label_recover_retry_repeated_run_cleanup_freshness_impl_20260625T021901Z/wait_accounting.tsv`.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0537 closeout and NA-0538 restoration update
+
+- Directive: QSL-DIR-2026-06-25-448 -- Close Out NA-0537 After Repeated-Run Cleanup Freshness Implementation and Restore NA-0538 Public Evidence Sync Authorization.
+- Begin timestamp (UTC): 2026-06-25T14:21:48Z.
+- Repo path: `/srv/qbuild/work/NA-0537/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0537_closeout_restore_na0538_after_repeated_run_success_20260625T142148Z`.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0537/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- Fresh qwork proof written at 2026-06-25T14:07:41Z recorded `startup_result=OK`, lane `NA-0537`, repo `qsl-protocol`, clean worktree/index/untracked state, HEAD/origin-main/main `cda8b3090337`, READY_COUNT 1, queue top READY `NA-0537`, and requested lane status READY.
+- D447 stopped before fetch and mutation because `/` usage was at the 95% hard threshold; no D-1065 was added and no closeout PR was opened.
+- The operator subsequently cleaned old per-lane Rust target directories and reran qwork. Current closeout disk gate before fetch showed `/` below the 95% stop threshold, and `/backup/qsl` was checked read-only.
+- Fetch occurred only after qwork proof/live ref match and the disk gate passed; origin/main contains implementation merge `cda8b3090337`.
+- Startup queue proof: READY_COUNT 1; READY NA-0537; NA-0536 DONE; NA-0535 DONE.
+- Startup decision proof: D-1062 once, D-1063 once, D-1064 once, D-1065 absent before patch, duplicate decision record count zero.
+- D447/D446/D445/D444/D443/D442/D441 inheritance consumed: D446 implementation PR #1347 merged at `cda8b3090337`; D446 classification `REMOTE_E2EE_REPEATED_RUN_CLEANUP_FRESHNESS_PASS`; D446 consumed and recovered D443/D444/D445 issues; D446 corrected peer-label baseline receive; retained qsc was rechecked per run; run 1 marker/ACK, valid E2EE, wrong-peer fail-closed behavior, and cleanup passed; run 2 marker/ACK, valid E2EE, stale/replaced-peer fail-closed behavior, and cleanup passed; no stale state reuse was detected.
+- Pre-closeout green gate: PR #1347 merged at `cda8b3090337`; public-safety completed success on `cda8b3090337`; advisories completed success on `cda8b3090337`; branch-protection required contexts had no red failures. Optional `remote-handshake`, `remote-relay`, and `relay-ui-integration` failures were recorded as non-required and not closeout-acceptance gates.
+- Pre-closeout validation passed: `git diff --check`, root `cargo audit --deny warnings`, nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`, `cargo fmt --check`, `sh -n scripts/ci/qsc_adversarial.sh`, and `bash -n scripts/ci/qsc_adversarial.sh`.
+- Focused qsc E2EE tests were skipped under the directive allowance because current main contains `cda8b3090337`, closeout scope is governance/docs only, no runtime/dependency/qsc source/test/fuzz/Cargo/workflow/script/helper paths changed, audits/fmt/shell syntax passed, and PR #1347 green-gate proof was recorded.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, this journal, and `tests/NA-0537_closeout_restore_na0538_testplan.md`.
+- D-1065 records NA-0537 closeout and NA-0538 restoration.
+- NA-0537 is marked DONE.
+- NA-0538 is restored READY using the D446/D-1064 selected public evidence sync authorization successor block.
+- This closeout performs no NA-0538 implementation, website mutation, README mutation, public-doc mutation, remote action, SSH execution, qsc E2EE, qsc send/receive, qsc protocol command, qsl-server use, qsl-attachments use, package installation, sudo/admin action, key/config/host mutation, qwork/qstart/qresume, qsl-backup execution, dependency/lockfile mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation.
+- Branch: pending at journal authoring.
+- PR title: `NA-0537: closeout and restore NA-0538`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0537_closeout_restore_na0538_after_repeated_run_success_20260625T142148Z/wait_accounting.tsv`.
+- Recovered failure: the initial queue/decision parser had a Python quoting error. Classification: recoverable command-shape issue. Corrective action: reran with a simpler file-backed parser. Final result: startup queue/decision proof passed.
+- Recovered failure: the first GitHub check-run API call shape returned 404. Classification: recoverable read-only API invocation issue. Corrective action: reran with explicit GET query-string endpoints and file-backed JSON. Final result: API reads succeeded.
+- Recovered failure: the first green-gate parser treated every optional red check-run as fatal. Classification: recoverable parser policy issue. Corrective action: parsed branch-protection required contexts and preserved optional red job evidence separately. Final result: public-safety/advisories were green and no required context was red.
+- Recovered issue: a clean-main checkout used an overly strong hard-reset command after the worktree was already proven clean and HEAD/origin-main matched. Classification: command-shape issue. Corrective action: recorded the issue and avoided further hard-reset/destructive checkout commands. Final result: no working-tree diff was introduced.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0536 closeout and NA-0537 restoration update
 
 - Directive: QSL-DIR-2026-06-24-442 optional closeout packet.

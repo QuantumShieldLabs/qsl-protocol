@@ -28552,3 +28552,50 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `tests/NA-0538_closeout_restore_na0539_testplan.md` records qwork proof verification, D449/D448/D446 inheritance, post-authorization green-gate proof, queue/decision proof, scope guard, boundary assertions, and no-claim checks.
     - `TRACEABILITY.md` maps this closeout to D-1066, D-1067, PR #1349, D449 response, green-gate proof, and the restored NA-0539 successor.
   - **References:** NA-0538; NA-0539; D-1067; D-1066; PR #1349; authorization merge `176ae640b333`; QSL-DIR-2026-06-25-450; D449 response `/home/victor/work/qsl/codex/responses/NA0538_20260625T150352Z_D449.md`; D448 response `/home/victor/work/qsl/codex/responses/NA0537_closeout_restore_na0538_20260625T144734Z_D448.md`; D446 response `/home/victor/work/qsl/codex/responses/NA0537_peer_label_recover_retry_20260625T030317Z_D446.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0538_closeout_restore_na0539_testplan.md`
+
+- **ID:** D-1068
+  - **Title:** NA-0539 website repository public evidence sync implementation
+  - **Date:** 2026-06-25
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0539 consumes D450/D449/D446 inheritance, implements the D-1066 selected public evidence sync path bundle, and records classification `PUBLIC_EVIDENCE_SYNC_IMPLEMENTATION_PASS`. The implementation applies the D-1066 public claim wording policy and selects `NA-0540 -- QSL Local Ops SSD Hygiene / Shared Cargo Target Authorization Plan` as the success-case successor for a separate closeout lane.
+  - **Evidence consumed:** D450 closed NA-0538 and restored NA-0539 without implementation. D449 selected `PUBLIC_EVIDENCE_SYNC_IMPLEMENTATION_READY`, the exact future path bundle, the no-overclaim public wording policy, and the proof/redaction rules. D446 recorded repeated-run cleanup/freshness, retained-qsc freshness, selected wrong-peer and stale/replaced-peer negatives, no stale state reuse, no qsl-server, no qsl-attachments, and no public/production/security-completion claim. D441/D439/D419 inheritance supplies selected wrong-peer/stale-trust, port marker/ACK, replay, and corrupt-delivery boundaries.
+  - **Implemented path bundle:** `README.md`, `docs/README.md`, `docs/public/INDEX.md`, `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`, `docs/public/EXTERNAL_REVIEW_PACKAGE.md`, `docs/public/WEBSITE_CLAIM_MATRIX.md`, `docs/governance/evidence/NA-0539_qsl_website_repository_public_evidence_sync_implementation_harness.md`, `tests/NA-0539_qsl_website_repository_public_evidence_sync_implementation_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+  - **Implementation result:** The public/repository docs now describe QSL goals, bounded qsc evidence, limits, and review invitation. Evidence citations are present. No raw proof logs are copied. No private material is copied. The public docs cite decisions, evidence doc names, testplan names, TRACEABILITY, bounded classifications, and no-claim boundaries.
+  - **Security invariants introduced/changed:**
+    - Claim policy applied.
+    - No raw proof logs are published.
+    - No private material is published.
+    - No qsc source/test/fuzz/Cargo mutation occurs.
+    - No dependency or lockfile mutation occurs.
+    - No workflow/script/helper mutation occurs.
+    - No qsl-server or qsl-attachments use or mutation occurs.
+    - No remote action occurs.
+    - No qwork/qstart/qresume execution by Codex occurs.
+    - No qsl-backup execution occurs.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No perfect-crypto claim is made.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Create `public/` or `website/` paths (rejected because D-1066 did not authorize missing path creation).
+    - Do not treat bounded qsc evidence as public readiness, production readiness, crypto completeness, identity completeness, trust completeness, replay-proof status, downgrade-proof status, external review completion, vulnerability freedom, bug freedom, or perfect crypto.
+    - Implement qsl-server or qsl-attachments integration (rejected as deferred and outside this selected path bundle).
+    - Skip claim scans because the lane is docs-only (rejected because public-facing docs are the direct mutation surface).
+  - **Implications for spec/impl/tests:**
+    - `docs/governance/evidence/NA-0539_qsl_website_repository_public_evidence_sync_implementation_harness.md` records implementation actions, inheritance, claim policy application, path list, validation requirements, no qsl-server/qsl-attachments, no qsc source mutation, and no public/production readiness claim.
+    - `tests/NA-0539_qsl_website_repository_public_evidence_sync_implementation_testplan.md` records required markers, scope guard, queue/decision proof, claim scans, private-material scans, link checks, docs-only validation, and qsc runtime-test skip rationale.
+    - `TRACEABILITY.md` maps NA-0539 to D-1066, D-1068, the selected path bundle, validation, public claim policy, and selected NA-0540 successor.
+  - **Selected successor:** `NA-0540 -- QSL Local Ops SSD Hygiene / Shared Cargo Target Authorization Plan`.
+  - **References:** NA-0539; NA-0540; D-1068; D-1067; D-1066; D450 response `/home/victor/work/qsl/codex/responses/NA0538_closeout_restore_na0539_20260625T162258Z_D450.md`; D449 response `/home/victor/work/qsl/codex/responses/NA0538_20260625T150352Z_D449.md`; D448 response `/home/victor/work/qsl/codex/responses/NA0537_closeout_restore_na0538_20260625T144734Z_D448.md`; D446 response `/home/victor/work/qsl/codex/responses/NA0537_peer_label_recover_retry_20260625T030317Z_D446.md`; D441 response `/home/victor/work/qsl/codex/responses/NA0535_20260624T172341Z_D441.md`; D439 response `/home/victor/work/qsl/codex/responses/NA0534_20260624T153252Z_D439.md`; D419 response `/home/victor/work/qsl/codex/responses/NA0523_recover_retry_20260622T145242Z_D419.md`; `README.md`; `docs/README.md`; `docs/public/INDEX.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/public/WEBSITE_CLAIM_MATRIX.md`; `docs/governance/evidence/NA-0539_qsl_website_repository_public_evidence_sync_implementation_harness.md`; `tests/NA-0539_qsl_website_repository_public_evidence_sync_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

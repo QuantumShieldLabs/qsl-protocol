@@ -2,7 +2,7 @@ Goals: G1, G2, G3, G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-15
+Last-Updated: 2026-06-25
 Replaces: n/a
 Superseded-By: n/a
 
@@ -10,7 +10,11 @@ Superseded-By: n/a
 
 ## Summary
 
-This map classifies current QSL release evidence by goal. It is intentionally conservative: evidence can be strong for a bounded property while overall release readiness remains partial or not ready.
+This map classifies current QSL release evidence by goal. It is intentionally
+conservative: evidence can be strong for a bounded property while overall
+release readiness remains partial or not ready. This is an evidence map, not a
+release certificate, release approval, production-readiness statement, or public
+internet readiness statement.
 
 Status meanings:
 
@@ -50,6 +54,7 @@ Status meanings:
 | KT-negative demo acceptance complete | PROVEN for non-production demo verifier path only | [KT-negative demo readiness](../demo/KT_NEGATIVE_PUBLIC_DEMO_READINESS.md) and [NA-0259 evidence](../governance/evidence/NA-0259_kt_negative_demo_readiness_audit.md) prove bounded verifier rejects and accepted-state no-mutation. |
 | Native desktop package proof complete | PROVEN for bounded Linux AppImage/screenshot proof only | [NA-0258 evidence](../governance/evidence/NA-0258_native_desktop_package_screenshot_audit.md) records provisioned-host package and screenshot proof; it is not production desktop approval. |
 | Public website evidence-boundary implemented | NOT_READY | Website audit and plan exist; implementation handoff is a recommended successor. |
+| Public repository evidence sync | PROVEN for selected repository docs only | D-1068 and [NA-0539 evidence](../governance/evidence/NA-0539_qsl_website_repository_public_evidence_sync_implementation_harness.md) update README and public docs with bounded evidence, limits, and review invitation. This is not website implementation and not release readiness. |
 | No production-readiness overclaim | PROVEN for this package | Safe/unsafe wording is explicit. |
 
 ## CI Evidence Map
@@ -108,6 +113,7 @@ Status meanings:
 | qshield demo | PARTIAL | [NA-0246 evidence](../governance/evidence/NA-0246_one_command_demo_acceptance_audit.md), [NA-0259 evidence](../governance/evidence/NA-0259_kt_negative_demo_readiness_audit.md), and [NA-0260 evidence](../governance/evidence/NA-0260_attachment_demo_readiness_audit.md). | Demo proof is still non-production; live qshield KT evidence input, cross-host/private-network attachment proof, and production relay/service hardening remain open. |
 | qsc desktop GUI | PARTIAL | [NA-0247 evidence](../governance/evidence/NA-0247_desktop_gui_public_demo_readiness_audit.md) and [NA-0258 evidence](../governance/evidence/NA-0258_native_desktop_package_screenshot_audit.md). | Keychain active ops, handshake/session-establish UI, production packaging/release approval, and production desktop readiness remain open. |
 | Public website | NOT_READY for implementation | [WEBSITE_CLAIM_MATRIX.md](WEBSITE_CLAIM_MATRIX.md), [WEBSITE_UPDATE_PLAN.md](WEBSITE_UPDATE_PLAN.md), and [Suite-2 claim boundary](SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md). | Implementation handoff and external website repo changes remain future work. |
+| Public repository evidence sync | PROVEN for selected repository docs only | D-1068, [NA-0539 evidence](../governance/evidence/NA-0539_qsl_website_repository_public_evidence_sync_implementation_harness.md), and [NA-0539 testplan](../../tests/NA-0539_qsl_website_repository_public_evidence_sync_implementation_testplan.md). | No website source, public/ path, website/ path, production service, public internet, or external-review-complete claim is added. |
 
 ## What Changed After NA-0259 And NA-0260
 
@@ -192,6 +198,42 @@ Status meanings:
   metadata-free messaging, untraceability, runtime identifier rotation/default
   padding, broader runtime sanitized-error coverage, production
   retention/deletion behavior, and website implementation remain open.
+
+## What Changed After NA-0539
+
+- NA-0539 syncs selected repository public docs to current bounded evidence from
+  D419, D439, D441, D446, D449, and D450 inheritance.
+- The sync links direct qsc client-to-client E2EE evidence, same-host qsc tests,
+  retained-qsc staging/restaging, SSH reverse-forward marker/ACK proof,
+  Build-to-Inspiron qsc E2EE success, selected replay/corrupt negatives,
+  selected wrong-peer and stale/replaced-peer negatives, repeated-run
+  cleanup/freshness, public-safety/advisories gates, quinn-proto
+  RUSTSEC-2026-0185 remediation, bounded formal/model checks, corpus validators,
+  and secret-material scans.
+- This remains engineering evidence only. It does not claim public readiness,
+  production readiness, public internet readiness, external review completion,
+  crypto completeness, identity completeness, trust completeness,
+  replay-proof status, downgrade-proof status, secret-material completeness,
+  side-channel freedom, vulnerability freedom, bug freedom, or perfect crypto.
+- qsl-server and qsl-attachments remain deferred from this repository public
+  evidence sync.
+
+## Bounded qsc Evidence And Gaps
+
+| Evidence category | Current bounded evidence | Residual gap |
+| --- | --- | --- |
+| Same-host qsc tests | Current validation and prior qsc test lanes keep same-host client-to-client behavior in the evidence set. | Same-host tests do not prove public internet, service, or production operation. |
+| Direct remote qsc E2EE | D446 records repeated remote qsc E2EE success using synthetic data under controlled lab conditions. | Synthetic controlled-lab proof is not crypto completeness or production service proof. |
+| Retained qsc staging/restaging | D446 records retained qsc freshness and no stale state reuse across repeated runs. | This does not prove every future staging or release path. |
+| Reverse-forward marker/ACK | D439 records port 39176 marker traversal and ACK proof for the diagnostic path. | Marker/ACK proof is transport evidence, not qsl-server or qsl-attachments integration. |
+| Build-to-Inspiron qsc E2EE | D441 and D446 inheritance keep the Build-to-Inspiron remote qsc E2EE proof in the public evidence map. | The proof remains bounded to controlled synthetic data and selected hosts. |
+| Wrong-peer and stale/replaced-peer negatives | D441 and D446 record selected fail-closed negatives and selected-state no-mutation checks. | Selected negatives are not universal identity or trust completeness. |
+| Replay and corrupt-delivery negatives | D419 records selected replay/corrupt delivery negative boundaries. | Selected negatives are not a replay-proof or downgrade-proof claim. |
+| Public-safety and advisories | D450 and NA-0539 startup proof record green public-safety/advisories gates on current main. | CI gates are required integrity checks, not external review completion. |
+| quinn-proto RUSTSEC-2026-0185 remediation | Startup proof confirms root and nested qsc fuzz lockfiles retain `quinn-proto 0.11.15`. | Advisory posture is time-sensitive and must stay gate-backed. |
+| Formal/model checks | Formal/model checks remain bounded evidence for modeled slices. | They are not full cryptographic secrecy, side-channel, or implementation-completeness proofs. |
+| Corpus validators and secret scans | Validation includes corpus/vector and private-material/secret-output scans where applicable. | Scans reduce exposure risk; they do not prove secret-material completeness. |
+| qsl-server and qsl-attachments | Deferred from NA-0539; existing service evidence remains separate production-gate material. | No production relay, attachment service, or public internet readiness is claimed. |
 
 ## Metadata / Privacy Readiness Map
 

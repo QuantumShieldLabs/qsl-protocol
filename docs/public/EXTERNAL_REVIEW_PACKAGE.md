@@ -2,7 +2,7 @@ Goals: G1, G2, G3, G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-15
+Last-Updated: 2026-06-25
 Replaces: n/a
 Superseded-By: n/a
 
@@ -46,6 +46,16 @@ protocol, crypto, runtime, service, website, workflow, Cargo, dependency,
 branch-protection, or public-safety configuration, and it does not complete
 external review.
 
+NA-0539 syncs selected repository public docs with current bounded qsc evidence:
+direct remote qsc E2EE using synthetic data, same-host qsc tests, retained-qsc
+freshness, SSH reverse-forward marker/ACK proof, Build-to-Inspiron qsc E2EE
+success, selected replay/corrupt negatives, selected wrong-peer and
+stale/replaced-peer negatives, repeated-run cleanup/freshness, public-safety and
+advisories gates, quinn-proto RUSTSEC-2026-0185 remediation, bounded
+formal/model checks, corpus validators, and secret-material scans. This is
+review orientation, not completed external review and not a production/public
+readiness claim.
+
 ## Current Posture
 
 - Research-stage protocol and demo system.
@@ -56,6 +66,8 @@ external review.
 - This package is refreshed for reviewer orientation, not for reviewer
   acceptance, findings, disposition, or completion evidence.
 - External live products under the same brand are not QSL protocol release-readiness proof.
+- qsl-server and qsl-attachments remain deferred from NA-0539 public evidence
+  sync and must not be inferred as integrated production services.
 
 ## What Is Currently Proven
 
@@ -81,6 +93,10 @@ external review.
 | Metadata phase-2 sanitized-error/retention design | D-0557, [NA-0292 design](../governance/evidence/NA-0292_metadata_phase2_sanitized_errors_retention_design.md), and [NA-0292 testplan](../../tests/NA-0292_metadata_phase2_sanitized_errors_retention_testplan.md) scope a future executable harness for broader sanitized-error and retention/purge metadata policy. | Design evidence only; sanitized-error expansion, retention/purge policy implementation, runtime behavior, anonymity, metadata-free messaging, untraceability, production readiness, and external review completion remain not ready. |
 | Metadata phase-2 sanitized-error/retention harness | D-0559, [NA-0293 evidence](../governance/evidence/NA-0293_metadata_phase2_sanitized_errors_retention_harness.md), [NA-0293 testplan](../../tests/NA-0293_metadata_phase2_sanitized_errors_retention_harness_testplan.md), [NA-0293 vectors](../../inputs/metadata_phase2/sanitized_errors_retention_policy_vectors_v1.json), and `scripts/ci/metadata_phase2_sanitized_errors_retention_harness.sh` prove deterministic policy fixtures. | Harness proof only; broader runtime sanitized-error normalization, production retention/deletion behavior, anonymity, metadata-free messaging, untraceability, production readiness, and external review completion remain not ready. |
 | Public evidence navigation | D-0564, [README.md](../../README.md), [START_HERE.md](../../START_HERE.md), [public docs index](INDEX.md), [NA-0294 audit](../governance/evidence/NA-0294_public_evidence_navigation_refresh_audit.md), and [NA-0294 testplan](../../tests/NA-0294_public_evidence_navigation_refresh_testplan.md) make the reviewer path faster and clearer. | Navigation and claim-boundary proof only; no stronger release, production, service, website, metadata, anonymity, or external-review-complete claim. |
+| Direct remote qsc E2EE and cleanup/freshness | D446, [NA-0537 evidence](../governance/evidence/NA-0537_qsl_remote_qsc_e2ee_repeated_run_cleanup_freshness_implementation_harness.md), and [NA-0537 testplan](../../tests/NA-0537_qsl_remote_qsc_e2ee_repeated_run_cleanup_freshness_implementation_testplan.md) record repeated controlled-lab qsc E2EE, retained-qsc freshness, selected wrong-peer/stale negatives, cleanup, and no stale state reuse. | Synthetic controlled-lab qsc proof only; no production readiness, public internet readiness, external review completion, crypto completeness, or service integration claim. |
+| Remote qsc negative boundaries | D441, D419, [NA-0535 evidence](../governance/evidence/NA-0535_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_after_port_diagnostic_implementation_harness.md), and [NA-0523 evidence](../governance/evidence/NA-0523_qsl_remote_qsc_e2ee_replay_corrupt_negative_boundary_implementation_harness.md) record selected wrong-peer, stale/replaced-peer, replay, and corrupt-delivery negative cases. | Selected negative cases only; no replay-proof, downgrade-proof, identity-complete, trust-complete, vulnerability-free, bug-free, or perfect-crypto claim. |
+| Reverse-forward diagnostic marker/ACK | D439 and [NA-0534 evidence](../governance/evidence/NA-0534_qsl_remote_qsc_e2ee_reverse_forward_port_39176_regression_diagnostic_implementation_harness.md) record marker traversal and ACK for the controlled diagnostic path. | Transport diagnostic proof only; no qsl-server/qsl-attachments integration or public internet service readiness claim. |
+| Public repository evidence sync | D-1068 and [NA-0539 evidence](../governance/evidence/NA-0539_qsl_website_repository_public_evidence_sync_implementation_harness.md) update selected repository docs with bounded evidence, limits, and review invitation. | Repository documentation sync only; no website implementation, public/ path, website/ path, external review completion, production readiness, or public readiness claim. |
 | External review package refresh | D-0548, this package, the [release readiness map](RELEASE_READINESS_EVIDENCE_MAP.md), [NA-0289 audit](../governance/evidence/NA-0289_external_review_package_refresh_audit.md), and [NA-0289 testplan](../../tests/NA-0289_external_review_package_refresh_testplan.md) align the reviewer-facing evidence references after NA-0287 and NA-0288. | Refresh evidence only; reviewer acceptance, findings, disposition, and external review completion remain `NOT_READY` until separately recorded. |
 | Website truthfulness audit | D-0456 and [NA-0245 evidence](../governance/evidence/NA-0245_website_truthfulness_audit.md) map public website claims to repo truth and separate external products from protocol evidence. | Audit/plan only; no website implementation change. |
 | Triple-Ratchet-style claim boundary | D-0462, PR #744, and [Suite-2 claim boundary](SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md) authorize research-stage Triple-Ratchet-style wording and prohibit unsupported production/proven/anonymity claims. | External terminology is definitional only; it does not certify QSL. |
@@ -89,8 +105,14 @@ external review.
 ## What Is Not Proven
 
 - Production readiness.
+- Public readiness.
+- Public internet service readiness.
 - External cryptographic review completion.
 - Reviewer scope acceptance, findings, dispositions, and residual-risk signoff.
+- No crypto completeness, identity completeness, or trust completeness.
+- No replay-proof or downgrade-proof status.
+- No secret-material completeness, side-channel freedom, vulnerability freedom,
+  bug freedom, or perfect crypto.
 - "Proven true Triple Ratchet" status.
 - Anonymity or metadata elimination.
 - Untraceability or traffic-analysis resistance.
@@ -191,6 +213,7 @@ Run from the repository root.
 | #827 | Service production-gate evidence map and deployment-boundary plan. | Merged |
 | #829 | Metadata phase-2 and external review readiness gap plan. | Merged |
 | #830 | NA-0288 closeout and NA-0289 restoration. | Merged |
+| #1349 | NA-0538 authorization for selected public evidence sync path bundle and claim policy. | Merged |
 
 ## Review Questions For External Reviewers
 
@@ -200,6 +223,8 @@ Run from the repository root.
 4. Which metadata residuals create the highest public-claim risk before release readiness?
 5. Which commands should be made easier to reproduce across clean Linux and macOS hosts?
 6. Which gaps block external security review from being treated as complete?
+7. Which qsc evidence links should be promoted or simplified for independent
+   reproduction without weakening the no-overclaim boundaries?
 
 ## Reviewer Checklist
 
@@ -220,6 +245,10 @@ Not ready to treat as complete:
 - reviewer scope acceptance, findings, disposition, or residual-risk signoff;
 - production protocol, relay, attachment service, desktop, or public internet
   readiness;
+- public readiness;
+- no crypto completeness, identity completeness, or trust completeness;
+- no replay-proof, downgrade-proof, secret-material-complete,
+  side-channel-free, vulnerability-free, bug-free, or perfect-crypto status;
 - metadata phase-2 completion;
 - anonymity, metadata-free messaging, or untraceability claims.
 

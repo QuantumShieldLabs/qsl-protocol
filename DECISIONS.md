@@ -28497,3 +28497,58 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0538 to D-1066 and the selected NA-0539 successor.
   - **Selected successor:** `NA-0539 -- QSL Website / Repository Public Evidence Sync Implementation Harness`.
   - **References:** NA-0538; selected NA-0539 public evidence sync implementation successor; D-1066; D-1065; D-1064; D448 response `/home/victor/work/qsl/codex/responses/NA0537_closeout_restore_na0538_20260625T144734Z_D448.md`; D446 response `/home/victor/work/qsl/codex/responses/NA0537_peer_label_recover_retry_20260625T030317Z_D446.md`; D441 response `/home/victor/work/qsl/codex/responses/NA0535_20260624T172341Z_D441.md`; D439 response `/home/victor/work/qsl/codex/responses/NA0534_20260624T153252Z_D439.md`; D419 response `/home/victor/work/qsl/codex/responses/NA0523_recover_retry_20260622T145242Z_D419.md`; `docs/governance/evidence/NA-0538_qsl_website_repository_public_evidence_sync_scope_authorization_plan.md`; `tests/NA-0538_qsl_website_repository_public_evidence_sync_scope_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1067
+  - **Title:** NA-0538 closeout and NA-0539 restoration
+  - **Date:** 2026-06-25
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** D-1066 authorization evidence is accepted for NA-0538 after PR #1349 merged as `176ae640b333`, post-authorization public-safety and advisories completed success on `176ae640b333`, and classification `PUBLIC_EVIDENCE_SYNC_IMPLEMENTATION_READY` remained selected. NA-0538 is marked DONE, and `NA-0539 -- QSL Website / Repository Public Evidence Sync Implementation Harness` is restored as the sole READY successor using the D-1066-selected public evidence sync implementation path bundle and claim policy.
+  - **Evidence consumed:** D449 records PR #1349 merged at `176ae640b333`, D-1066 exists once, D-1067 was absent before closeout, classification `PUBLIC_EVIDENCE_SYNC_IMPLEMENTATION_READY`, selected successor `NA-0539 -- QSL Website / Repository Public Evidence Sync Implementation Harness`, the selected future path bundle, the no-overclaim public wording policy, and no website/README/public-doc implementation in NA-0538. D448 records NA-0537 closeout and NA-0538 restoration. D446 records repeated-run cleanup/freshness success, no qsl-server, no qsl-attachments, no qsl-backup, and no public/production/security-completion claim. Fresh qwork proof from 2026-06-25T16:21:32Z matched live pre-fetch HEAD and origin/main at `176ae640b333` with clean worktree/index/untracked state, READY_COUNT 1, and queue top READY `NA-0538`.
+  - **Closeout result:** This closeout performs no NA-0539 implementation, website content mutation, README content mutation, public-doc implementation mutation outside the queue successor block, remote action, SSH execution, qsc send/receive, remote E2EE, qsc protocol command, qsl-server use, qsl-attachments use, qwork/qstart/qresume execution by Codex, qsl-backup execution, dependency mutation, lockfile mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation.
+  - **Security invariants introduced/changed:**
+    - NA-0538 is DONE.
+    - NA-0539 is READY.
+    - NA-0539 remains bounded to the D-1066-selected public evidence sync implementation path bundle and claim policy.
+    - Missing `public/` and `website/` paths remain forbidden unless a later directive explicitly authorizes that path creation.
+    - No NA-0539 implementation occurs in this closeout.
+    - No website, README, or public-doc implementation mutation occurs outside the queue successor block.
+    - No remote action occurs.
+    - No SSH execution occurs.
+    - No qsc send/receive occurs.
+    - No remote E2EE occurs.
+    - No qsc protocol command occurs.
+    - No qsl-server use occurs.
+    - No qsl-attachments use occurs.
+    - No qwork/qstart/qresume execution by Codex occurs.
+    - No qsl-backup execution occurs.
+    - No qsc source/test/fuzz/Cargo mutation occurs.
+    - No workflow/script/helper mutation occurs.
+    - No dependency/lockfile mutation occurs.
+    - No corpus/vector/input mutation occurs.
+    - No formal/refimpl/service/public/backup mutation occurs.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No perfect-crypto claim is made.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Implement NA-0539 in this closeout (rejected because this directive is closeout-only).
+    - Leave NA-0538 READY after PR #1349 (rejected because D-1066 evidence passed, PR #1349 merged, and post-authorization public-safety/advisories completed success).
+    - Create or mutate missing `public/` or `website/` paths now (rejected because D-1066 and this directive require those paths to remain forbidden unless a later directive explicitly authorizes creation).
+    - Treat public evidence sync authorization as public, production, crypto, identity, trust, replay, downgrade, external-review, secret-material, side-channel, vulnerability-free, bug-free, or perfect-crypto readiness (rejected because D-1066 is bounded authorization and future NA-0539 remains a no-overclaim wording lane).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0538 DONE and restores the selected NA-0539 public evidence sync implementation successor.
+    - `tests/NA-0538_closeout_restore_na0539_testplan.md` records qwork proof verification, D449/D448/D446 inheritance, post-authorization green-gate proof, queue/decision proof, scope guard, boundary assertions, and no-claim checks.
+    - `TRACEABILITY.md` maps this closeout to D-1066, D-1067, PR #1349, D449 response, green-gate proof, and the restored NA-0539 successor.
+  - **References:** NA-0538; NA-0539; D-1067; D-1066; PR #1349; authorization merge `176ae640b333`; QSL-DIR-2026-06-25-450; D449 response `/home/victor/work/qsl/codex/responses/NA0538_20260625T150352Z_D449.md`; D448 response `/home/victor/work/qsl/codex/responses/NA0537_closeout_restore_na0538_20260625T144734Z_D448.md`; D446 response `/home/victor/work/qsl/codex/responses/NA0537_peer_label_recover_retry_20260625T030317Z_D446.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0538_closeout_restore_na0539_testplan.md`

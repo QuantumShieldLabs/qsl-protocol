@@ -97,6 +97,35 @@ Last-Updated: 2026-06-25
 - PR merge commit: pending at journal authoring.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0538 closeout and NA-0539 restoration update
+
+- Directive: QSL-DIR-2026-06-25-450 -- Close Out NA-0538 After Public Evidence Sync Authorization Public-Safety Completion and Restore NA-0539.
+- Begin timestamp (UTC): 2026-06-25T16:22:58Z.
+- Repo path: `/srv/qbuild/work/NA-0538/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0538_closeout_restore_na0539_after_public_sync_authorization_20260625T162258Z`.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0538/.qwork/`. Codex did not run qwork, qstart, or qresume.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `176ae640b333`; proof recorded `startup_result=OK`, lane `NA-0538`, repo `qsl-protocol`, clean worktree/index/untracked state, READY_COUNT 1, queue top READY `NA-0538`, requested lane status READY, and proof time 2026-06-25T16:21:32Z after the D449 response time.
+- Fetch occurred only after qwork proof/live ref match and disk proof below threshold; `/` usage was 45% before fetch.
+- Startup queue proof: READY_COUNT 1; READY NA-0538; NA-0537 DONE; NA-0536 DONE.
+- Startup decision proof: D-1064 once, D-1065 once, D-1066 once, D-1067 absent before patch, duplicate decision record count zero.
+- D449 inheritance consumed: authorization PR #1349 merged at `176ae640b333`, D-1066 exists once, classification `PUBLIC_EVIDENCE_SYNC_IMPLEMENTATION_READY`, selected successor `NA-0539 -- QSL Website / Repository Public Evidence Sync Implementation Harness`, selected future path bundle and claim policy, no website/README/public-doc implementation, no qsl-server, no qsl-attachments, no qsl-backup, no qwork/qstart/qresume by Codex, and no public/production/security-completion claim.
+- D448 inheritance consumed: NA-0537 closeout completed successfully and restored NA-0538 READY.
+- D446 inheritance consumed: repeated-run cleanup/freshness success, no qsl-server, no qsl-attachments, and no public/production/security-completion claim.
+- Post-authorization green gate on `176ae640b333`: PR #1349 state merged, merge commit matched, public-safety completed success, advisories completed success, and no completed red check-runs or bad PR check states were present.
+- Pre-closeout local validation passed: `git diff --check`, root `cargo audit --deny warnings`, nested qsc fuzz lock `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`, `cargo fmt --check`, `sh -n scripts/ci/qsc_adversarial.sh`, and `bash -n scripts/ci/qsc_adversarial.sh`.
+- Focused qsc tests were skipped because this was closeout-only, D449 was authorization-only docs/governance scope, no runtime/dependency/qsc/workflow/script paths changed, and PR #1349 public-safety/advisories were green on the merge commit.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0538_closeout_restore_na0539_testplan.md`.
+- NA-0538 is marked DONE.
+- NA-0539 is restored READY using the D-1066-selected public evidence sync implementation successor block.
+- D-1067 records NA-0538 closeout and NA-0539 restoration.
+- No NA-0539 implementation, website/README/public-doc implementation mutation outside the queue successor block, SSH execution, remote-host action, qsc send/receive, remote E2EE, qsc protocol command, qsl-server/qsl-attachments use, qwork/qstart/qresume, qsl-backup execution, dependency/lockfile mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation is introduced.
+- Recovered failure: first qwork/live prefetch verifier used inline Python string keys that were stripped by shell quoting. Classification: recoverable command-shape verifier issue; no repo mutation, remote action, or proof-state change occurred. Corrective action: reran the verifier with corrected string-key quoting. Final result: qwork/live prefetch verification passed.
+- Branch: pending at journal authoring.
+- PR title: `NA-0538: closeout and restore NA-0539`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0538 update
 
 - Directive: QSL-DIR-2026-06-25-449 -- Execute NA-0538 QSL Website / Repository Public Evidence Sync Scope Authorization Plan, Optional Closeout to NA-0539.

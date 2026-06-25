@@ -30749,7 +30749,7 @@ Closeout evidence:
 ---
 
 ### NA-0538 — QSL Website / Repository Public Evidence Sync Scope Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -30780,6 +30780,53 @@ Forbidden scope:
 - qwork/qstart/qresume.
 - qsl-backup.
 - no public-readiness claim, no production-readiness claim, no public-internet-readiness claim, no external-review-complete claim, no crypto-complete claim, no identity-complete claim, no trust-complete claim, no replay-proof claim, no downgrade-proof claim, no secret-material-complete claim, no side-channel-free claim, no vulnerability-free claim, no bug-free claim, or no perfect-crypto claim.
+
+Closeout evidence:
+- NA-0538 authorization PR #1349 merged at `176ae640b333`.
+- D-1066 accepted classification `PUBLIC_EVIDENCE_SYNC_IMPLEMENTATION_READY`.
+- D449 selected successor `NA-0539 -- QSL Website / Repository Public Evidence Sync Implementation Harness`.
+- Fresh qwork proof from 2026-06-25T16:21:32Z verified `startup_result=OK`, clean worktree/index/untracked state, HEAD/origin-main at `176ae640b333`, READY_COUNT 1, and queue top READY `NA-0538`.
+- Post-authorization public-safety and advisories completed success for `176ae640b333`.
+- This closeout performed no NA-0539 implementation and no website, README, or public-doc mutation beyond restoring the queue successor block.
+- NA-0539 is restored as the sole READY successor.
+
+---
+
+### NA-0539 — QSL Website / Repository Public Evidence Sync Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the NA-0538-approved public-facing website/repository evidence sync using only the selected future path bundle and approved claim wording policy. Summarize QSL's goals, evidence, limits, and invitation for review in an attention-worthy but no-overclaim way. Preserve no public-readiness, no production-readiness, no crypto-complete, no identity-complete, no trust-complete, no replay-proof, no downgrade-proof, no external-review-complete, no vulnerability-free, no bug-free, and no perfect-crypto claims.
+
+Allowed scope:
+- README.md
+- docs/README.md
+- docs/public/INDEX.md
+- docs/public/RELEASE_READINESS_EVIDENCE_MAP.md
+- docs/public/EXTERNAL_REVIEW_PACKAGE.md
+- docs/public/WEBSITE_CLAIM_MATRIX.md
+- docs/governance/evidence/NA-0539_qsl_website_repository_public_evidence_sync_implementation_harness.md
+- tests/NA-0539_qsl_website_repository_public_evidence_sync_implementation_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- public-facing wording updates only within selected paths.
+- static checks, link checks, claim scans, and public-safety.
+
+Forbidden scope:
+- creation or mutation of missing public/ or website/ paths unless a later directive explicitly authorizes that path creation.
+- qsc source/test/fuzz/Cargo mutation.
+- dependency/lockfile mutation.
+- workflow/script/helper mutation.
+- corpus/vector/input mutation.
+- formal/refimpl/service/public/backup mutation outside selected public sync paths.
+- qsl-server/qsl-attachments implementation.
+- remote action.
+- qwork/qstart/qresume.
+- qsl-backup.
+- private material.
+- public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, identity-complete, trust-complete, replay-proof, downgrade-proof, secret-material-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
 
 ---
 

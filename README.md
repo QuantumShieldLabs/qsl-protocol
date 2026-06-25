@@ -19,6 +19,20 @@ service readiness claim.
 - Service production-gate map: [docs/governance/evidence/NA-0287_service_production_gate_evidence_map.md](docs/governance/evidence/NA-0287_service_production_gate_evidence_map.md)
 - Metadata phase-2 evidence: [NA-0291 identifier/padding harness](docs/governance/evidence/NA-0291_metadata_phase2_identifier_padding_harness.md) and [NA-0293 sanitized-error/retention harness](docs/governance/evidence/NA-0293_metadata_phase2_sanitized_errors_retention_harness.md)
 
+## Latest Progress
+
+**Workday: June 25, 2026.** The first public Progress entry summarizes the
+remote qsc repeated-run cleanup/freshness closeout, the repository public
+evidence sync, the daily Progress/accuracy-sweep authorization, and the
+operator-local SSD maintenance context. Read the canonical Progress index at
+[docs/public/PROGRESS.md](docs/public/PROGRESS.md), or open the dated entry at
+[docs/public/progress/2026-06-25.md](docs/public/progress/2026-06-25.md) for
+the publication-time handoff and correction ledger.
+
+This is engineering evidence and public-document accuracy work only: no public
+readiness, no production readiness, no public internet readiness, no external
+review completion, and no security-completion claim.
+
 ## Why This Matters
 
 Post-quantum messaging needs more than new algorithm labels. A credible

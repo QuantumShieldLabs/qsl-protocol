@@ -18,11 +18,32 @@ or to a visible `NOT_READY` boundary.
 Start with:
 
 - [README.md](../../README.md)
+- [Current Progress](PROGRESS.md)
 - [Release-readiness evidence map](RELEASE_READINESS_EVIDENCE_MAP.md)
 - [External review package](EXTERNAL_REVIEW_PACKAGE.md)
 - [Website claim matrix](WEBSITE_CLAIM_MATRIX.md)
 - [Traceability](../../TRACEABILITY.md)
 - [Decisions](../../DECISIONS.md)
+
+## Current Progress
+
+The current Progress log starts with the June 25, 2026 workday entry:
+
+- [Progress index](PROGRESS.md)
+- [QSL Progress - 2026-06-25](progress/2026-06-25.md)
+
+That entry summarizes the remote qsc repeated-run cleanup/freshness closeout,
+public evidence synchronization, the daily Progress and site-accuracy
+authorization, and operator-local SSD maintenance context. It also records the
+site-wide public accuracy sweep and correction ledger for this publication.
+
+Review is invited on the evidence, limits, claim boundaries, corrections,
+residual gaps, and next steps. This section is an engineering-evidence summary:
+no public readiness, no production readiness, no public internet readiness, no
+external-review-complete claim, no crypto-complete claim, no identity-complete
+claim, no trust-complete claim, no replay-proof claim, no downgrade-proof
+claim, no vulnerability-free claim, no bug-free claim, and no perfect-crypto
+claim.
 
 ## Current Bounded qsc Evidence
 

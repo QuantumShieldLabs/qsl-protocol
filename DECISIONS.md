@@ -28750,3 +28750,47 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps D-1070, D-1071, PR #1353, and the restored NA-0541 successor.
   - **Selected successor:** `NA-0541 -- QSL Daily Public Progress Section, First End-of-Day Update, and Site-Wide Accuracy Sweep Implementation Harness`.
   - **References:** NA-0540; NA-0541; D-1071; D-1070; PR #1353; merge `ea38f150368e`; QSL-DIR-2026-06-25-453; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0540_closeout_restore_na0541_testplan.md`; `docs/governance/evidence/NA-0540_qsl_daily_public_progress_update_cadence_authorization_plan.md`; `tests/NA-0540_qsl_daily_public_progress_update_cadence_authorization_testplan.md`
+
+- **ID:** D-1072
+  - **Title:** NA-0541 daily public Progress section, first end-of-day update, and site-wide accuracy sweep implementation
+  - **Date:** 2026-06-25
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0541 consumes D453/D452/D451/D446 inheritance and implements the D-1070-authorized public Progress architecture and site-wide public accuracy sweep. Classification is `DAILY_PUBLIC_PROGRESS_SITE_ACCURACY_IMPLEMENTATION_PASS`. The June 25, 2026 dated Progress entry is published with publication timestamp `2026-06-25T18:46:42-0500 America/Chicago` and publication-time handoff wording: "At publication, NA-0541 is implementing the first public Progress entry and accuracy sweep; governance closeout to the next lane is pending."
+  - **Exact changed paths:** `README.md`; `docs/README.md`; `docs/public/INDEX.md`; `docs/public/PROGRESS.md`; `docs/public/progress/2026-06-25.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/public/WEBSITE_CLAIM_MATRIX.md`; `docs/governance/evidence/NA-0541_qsl_daily_public_progress_section_first_end_of_day_update_site_accuracy_implementation_harness.md`; `tests/NA-0541_qsl_daily_public_progress_section_first_end_of_day_update_site_accuracy_implementation_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+  - **Public scan result:** All D-1070 public-facing paths were scanned. The Progress architecture was implemented in README, docs public index, the canonical Progress index, and the June 25 dated entry. Verified stale public references were corrected in `docs/public/EXTERNAL_REVIEW_PACKAGE.md`, `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`, and `docs/public/WEBSITE_CLAIM_MATRIX.md`. Progress-specific permitted/forbidden wording and qualifiers were added to `docs/public/WEBSITE_CLAIM_MATRIX.md`.
+  - **Corrections and deferrals:** Factual corrections refreshed stale current-main, public-safety, advisory, dependency-health, and recent-PR references. Claim-safety corrections added Progress boundaries and no-claim qualifiers. No material out-of-scope factual or claim-safety correction blocked implementation. Historical demo-runbook path sanitization was documented as broader structural docs hygiene rather than a same-day factual or claim-safety correction.
+  - **Security invariants introduced/changed:**
+    - Progress entries are engineering evidence summaries and correction ledgers, not release certificates.
+    - Public Progress does not promote internal/private material or raw proof logs.
+    - No `public/` or `website/` path is created.
+    - No automation, cron, systemd, timer, workflow, script, helper, dependency, lockfile, qsc source/test/fuzz/Cargo, local-ops, backup, qsl-server, qsl-attachments, remote action, qwork, or qsl-backup mutation is introduced.
+    - qsl-server and qsl-attachments remain deferred and are not implied as integrated production services.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No perfect-crypto claim is made.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Publish only the dated entry without a public index/panels (rejected because D-1070 selected the full Progress information architecture).
+    - Correct only the three expected candidate files and skip the site-wide scan (rejected because D-1070 requires every authorized public path to be scanned).
+    - Rewrite historical demo runbooks to remove all old local path examples (deferred because that is broader structural documentation hygiene and could damage reproduction context without a separate lane).
+    - Defer Progress publication until external website deployment exists (rejected because D-1070 authorizes repository public docs only and explicitly defers website deployment).
+  - **Implications for spec/impl/tests:**
+    - `docs/public/PROGRESS.md` is the canonical public Progress index.
+    - `docs/public/progress/2026-06-25.md` is the first dated public Progress entry.
+    - `docs/governance/evidence/NA-0541_qsl_daily_public_progress_section_first_end_of_day_update_site_accuracy_implementation_harness.md` records qwork proof, inheritance, inventory, scan, corrections, Progress architecture, reviews, validation, SSD context, backup impact, and recommendation.
+    - `tests/NA-0541_qsl_daily_public_progress_section_first_end_of_day_update_site_accuracy_implementation_testplan.md` records required markers and validation gates.
+    - `TRACEABILITY.md` maps NA-0541 to D-1072 and the selected NA-0542 successor.
+  - **Selected successor:** `NA-0542 -- QSL Local Ops SSD Hygiene / Shared Cargo Target Authorization Plan`.
+  - **References:** NA-0541; NA-0540; D-1072; D-1071; D-1070; D-1069; D-1068; D453 response `/home/victor/work/qsl/codex/responses/NA0540_20260625T230241Z_D453.md`; D452 response `/home/victor/work/qsl/codex/responses/NA0539_closeout_restore_na0540_20260625T214828Z_D452.md`; D451 response `/home/victor/work/qsl/codex/responses/NA0539_20260625T200840Z_D451.md`; D446 response `/home/victor/work/qsl/codex/responses/NA0537_peer_label_recover_retry_20260625T030317Z_D446.md`; `docs/public/PROGRESS.md`; `docs/public/progress/2026-06-25.md`; `docs/public/WEBSITE_CLAIM_MATRIX.md`; `docs/governance/evidence/NA-0541_qsl_daily_public_progress_section_first_end_of_day_update_site_accuracy_implementation_harness.md`; `tests/NA-0541_qsl_daily_public_progress_section_first_end_of_day_update_site_accuracy_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

@@ -2,9 +2,46 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-06-24
+Last-Updated: 2026-06-25
 
 # Rolling Operations Journal
+
+## NA-0537 update
+
+- Directive: QSL-DIR-2026-06-24-446 -- Recover NA-0537 Baseline Receive Peer-Label Command Shape, Execute Remote qsc E2EE Repeated-Run / Cleanup / Freshness Implementation Harness, Optional Closeout to Selected NA-0538.
+- Begin timestamp (UTC): 2026-06-25T02:19:01Z.
+- Repo path: `/srv/qbuild/work/NA-0537/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0537_peer_label_recover_retry_repeated_run_cleanup_freshness_impl_20260625T021901Z`.
+- Codex did not run qwork, qstart, qresume, qsl-backup, qsl-server, qsl-attachments, package installation, remote source checkout/build, remote cargo/rustup/git, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, dependency/lockfile mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, backup, restore, force-push, amend, rebase, squash, or branch deletion.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0537/.qwork/`. The proof recorded `startup_result=OK`, lane NA-0537, repo `qsl-protocol`, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0537, and requested lane status READY.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `836e62ca106c`; proof written time was after the D445 response timestamp.
+- Fetch was performed only after proof/live ref match and disk proof below the 95% stop threshold. Startup main health had `public-safety` success, `advisories` success, and no required red checks.
+- Startup queue proof: READY_COUNT 1; READY NA-0537; NA-0536 DONE; NA-0535 DONE; NA-0534 DONE.
+- Startup decision proof used the `- **ID:** D-####` parser: D-1062 once, D-1063 once, D-1064 absent before patch, D-1065 absent before patch, duplicate decision record count zero.
+- D445/D444/D443/D442/D441/D440/D439/D435/D419 inheritance consumed: D445 stopped with `REMOTE_E2EE_REPEATED_RUN1_BASELINE_FAILURE` after run-1 marker/ACK, handshake, and Alice send commit passed; D445 Bob receive failed closed with `qsp_hdr_auth_failed` using `--from bob`; D444 retained-qsc command shape stopped before E2EE; D443 listener compile failure and response-writer violation stopped before E2EE; D442 authorized NA-0537; D441 wrong-peer/stale-trust negatives passed; D439 marker/ACK diagnostic passed; D435 trigger remediation passed; D419 replay/corrupt negatives passed.
+- Residue checks passed: no D443/D444/D445 proof-root listener/trigger/forward/qwork/qstart/qresume/cargo processes, repo clean, prior remote roots absent, prior local sensitive roots absent, and local/remote port 39176 free before retry.
+- Local qsc built from clean `836e62ca106c` in proof-root target dir; local size `102103920`; local help passed; qsc runtime/dependency diff since D441 source commit `4fbbfaf04ecd` was empty, so retained-qsc restage was not required.
+- Retained remote qsc was rechecked before each run at `/home/qslcodex/qsl-remote-test/bin/qsc`, owner/group `qslcodex/qslcodex`, mode `700`, size `102103920`, and hash `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7`; final post-cleanup retained-qsc recheck matched.
+- Peer-label proof passed from existing qsc tests/source: Bob receiving Alice's message must use Alice as the peer/session label (`--from alice`), not Bob. Wrong-peer used a distinct synthetic wrong peer.
+- Generated listener, trigger, local harness, remote harness, and boundary scripts compiled before use. Local listener self-test passed before SSH marker precheck.
+- Recovered failure: initial startup proof parser command shape failed locally; corrected parser passed.
+- Recovered failure: initial local port parser command shape failed locally; corrected parser passed.
+- Recovered failure: initial `ssh -G` safe-field parser command shape failed locally; compiled proof-root parser passed.
+- Recovered failure: first run-1 marker precheck used the operational SSH identity for reverse-forwarding and failed before qsc E2EE or remote root creation; cleanup proved no stale roots. Corrective action split operational remote-command SSH config from the D439/D435 dedicated forwarding config; rerun passed.
+- Recovered failure: no-secret review first matched the scanner's own private-key block pattern constants; scanner was corrected to skip its own source and rescan passed.
+- Run 1 passed: retained-qsc recheck, boundary checks, marker/ACK, valid Alice-to-Bob qsc E2EE, Bob receive `--from alice`, wrong-peer fail-closed repeat, cleanup, root absence, port closure, and zero proof-root processes.
+- Run 2 passed: run-1 roots absent before start, retained-qsc recheck, boundary checks, marker/ACK, valid Alice-to-Bob qsc E2EE, Bob receive `--from alice`, stale/replaced-peer fail-closed repeat, cleanup, parent root removal, port closure, zero proof-root processes, and retained qsc unchanged.
+- No-secret-output review passed after the scanner self-hit correction. Checked-in evidence uses redacted summaries only and does not include private keys, passphrases, tokens, passwords, raw qsc private state, or raw payload material.
+- Result classification: `REMOTE_E2EE_REPEATED_RUN_CLEANUP_FRESHNESS_PASS`.
+- Selected successor candidate: `NA-0538 -- QSL Website / Repository Public Evidence Sync Scope Authorization Plan`. This implementation PR does not edit `NEXT_ACTIONS.md`; closeout must restore the selected successor only after merge and green post-merge public-safety inside the short attach/early-failure window.
+- Governance patch paths: NA-0537 evidence doc, NA-0537 testplan, `DECISIONS.md` D-1064, `TRACEABILITY.md`, and this journal.
+- Required local validation passed: `git diff --check`, exact five-path scope guard, link-check, leak-scan, added-line overclaim scan, classifier, marker proof, private-key block scan, cleanup proof, root `cargo audit --deny warnings`, nested qsc fuzz lock `cargo audit --deny warnings --file`, `same_host_client_to_client_e2e`, `receive_e2e`, `key_lifecycle_zeroization_expansion`, `secret_material_diagnostic_boundary`, `handshake_provider_error_no_mutation`, binding corpus validator, all qsc fuzz corpus validator, formal model runner, `cargo fmt --check`, `sh -n scripts/ci/qsc_adversarial.sh`, and `bash -n scripts/ci/qsc_adversarial.sh`.
+- Branch: `na-0537-peer-label-recover-retry-remote-e2ee-repeated-run-cleanup-freshness`.
+- PR title: `NA-0537: recover peer-label remote E2EE repeated-run cleanup freshness`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0537_peer_label_recover_retry_repeated_run_cleanup_freshness_impl_20260625T021901Z/wait_accounting.tsv`.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
 ## NA-0536 closeout and NA-0537 restoration update
 

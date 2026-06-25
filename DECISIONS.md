@@ -28450,3 +28450,50 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `tests/NA-0537_closeout_restore_na0538_testplan.md` records qwork proof verification, D447/D446 inheritance, green-gate proof, disk gate, queue/decision proof, scope guard, public-safety/advisories requirements, boundary assertions, and no-claim checks.
     - `TRACEABILITY.md` maps this closeout to D-1064, D-1065, PR #1347, D446 response, D447 disk-stop inheritance, green-gate proof, and the restored NA-0538 successor.
   - **References:** NA-0537; NA-0538; D-1065; D-1064; PR #1347; implementation merge `cda8b3090337`; QSL-DIR-2026-06-25-448; D447 response `/home/victor/work/qsl/codex/responses/NA0537_closeout_restore_na0538_20260625T031744Z_D447.md`; D446 response `/home/victor/work/qsl/codex/responses/NA0537_peer_label_recover_retry_20260625T030317Z_D446.md`; D445 response `/home/victor/work/qsl/codex/responses/NA0537_recover_retry2_20260624T205833Z_D445.md`; D444 response `/home/victor/work/qsl/codex/responses/NA0537_recover_retry_20260624T202909Z_D444.md`; D443 response `/home/victor/work/qsl/codex/responses/NA0537_20260624T201124Z_D443.md`; D442 response `/home/victor/work/qsl/codex/responses/NA0536_20260624T182046Z_D442.md`; D441 response `/home/victor/work/qsl/codex/responses/NA0535_20260624T172341Z_D441.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0537_closeout_restore_na0538_testplan.md`
+
+- **ID:** D-1066
+  - **Title:** NA-0538 website repository public evidence sync scope authorization
+  - **Date:** 2026-06-25
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0538 consumes D448/D446/D441/D439/D419 inheritance, inventories current public surfaces and candidate public-safe evidence, selects the D-1066 public claim wording policy and proof/redaction rules, and authorizes the next implementation lane with classification `PUBLIC_EVIDENCE_SYNC_IMPLEMENTATION_READY`. The selected successor is `NA-0539 -- QSL Website / Repository Public Evidence Sync Implementation Harness`.
+  - **Evidence consumed:** D448 closed NA-0537 and restored NA-0538 as sole READY without NA-0538 implementation. D446 recorded `REMOTE_E2EE_REPEATED_RUN_CLEANUP_FRESHNESS_PASS`, including two valid remote qsc E2EE runs, wrong-peer and stale/replaced-peer fail-closed repeats, selected-state no-mutation checks, cleanup, no stale state reuse, retained remote qsc unchanged, no qsl-server, no qsl-attachments, and no public/production/security-completion claim. D441 recorded `REMOTE_E2EE_WRONG_PEER_STALE_TRUST_NEGATIVES_PASS`. D439 recorded port 39176 marker/ACK diagnostic success. D419 recorded replay and corrupt-delivery negative boundaries.
+  - **Public surface inventory result:** `README.md`, `docs/`, `docs/public/`, `docs/governance/evidence/`, `TRACEABILITY.md`, and `DECISIONS.md` exist. `public/`, `website/`, `qsl-server/`, `qsl-attachments/`, and `docs/public/README.md` are missing. NA-0538 does not mutate public-facing implementation files.
+  - **Selected future path bundle:** Future NA-0539 may mutate only `README.md`, `docs/README.md`, `docs/public/INDEX.md`, `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`, `docs/public/EXTERNAL_REVIEW_PACKAGE.md`, `docs/public/WEBSITE_CLAIM_MATRIX.md`, `docs/governance/evidence/NA-0539_qsl_website_repository_public_evidence_sync_implementation_harness.md`, `tests/NA-0539_qsl_website_repository_public_evidence_sync_implementation_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` unless a later directive explicitly changes scope.
+  - **Claim policy selected:** Future public wording may say QSL has bounded evidence for a direct remote qsc E2EE workflow using synthetic data, repeated-run cleanup/freshness evidence under a controlled lab setup, and fail-closed evidence for selected wrong-peer, stale/replaced-peer, replay, and corrupt-delivery cases. The same wording must state that these are engineering evidence, not production readiness, and invite review of evidence, limits, and next steps.
+  - **Proof/redaction rules selected:** Future public implementation may cite decision IDs, PR numbers, evidence doc names, testplan names, bounded classification names, and no-claim boundaries. It must not copy raw proof logs or publish private keys, passphrases, tokens, passwords, production endpoints, backup material, raw qsc runtime material, route-token/capability material, raw SSH config, `authorized_keys`, `known_hosts`, or detailed remote topology.
+  - **Security invariants introduced/changed:**
+    - No website, README, or public-doc implementation occurs in NA-0538.
+    - No qsc source/test/fuzz/Cargo mutation occurs.
+    - No workflow/script/helper mutation occurs.
+    - No dependency or lockfile mutation occurs.
+    - No corpus/vector/input mutation occurs.
+    - No formal/refimpl/service/public/backup mutation occurs.
+    - No qsl-server or qsl-attachments use or mutation occurs.
+    - No remote action, SSH, qsc send/receive, qsc E2EE, or qsc protocol command occurs.
+    - No qwork/qstart/qresume execution by Codex occurs.
+    - No qsl-backup execution occurs.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No vulnerability-free claim is made.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - README-only sync (rejected as too narrow because `docs/public/**` already exists as the public evidence front door).
+    - Website-only landing page sync (rejected because `public/` and `website/` are missing).
+    - Governance evidence index only (rejected as safe but too low visibility).
+    - No public sync yet (rejected because D446/D448 created enough bounded evidence for truthful public synchronization).
+    - qsl-server/qsl-attachments integration next (rejected as deferred and outside direct public sync).
+    - Public/production readiness package (rejected as premature and overclaim-prone).
+  - **Implications for spec/impl/tests:**
+    - `docs/governance/evidence/NA-0538_qsl_website_repository_public_evidence_sync_scope_authorization_plan.md` records inheritance, public surface inventory, public evidence inventory, claim policy, proof/redaction rules, option review, selected future path bundle, hostile cryptographer/red-team/SRE/release-claim reviews, and successor selection.
+    - `tests/NA-0538_qsl_website_repository_public_evidence_sync_scope_authorization_testplan.md` records required markers, scope guard, queue/decision proof, no-claim checks, and validation commands.
+    - `TRACEABILITY.md` maps NA-0538 to D-1066 and the selected NA-0539 successor.
+  - **Selected successor:** `NA-0539 -- QSL Website / Repository Public Evidence Sync Implementation Harness`.
+  - **References:** NA-0538; selected NA-0539 public evidence sync implementation successor; D-1066; D-1065; D-1064; D448 response `/home/victor/work/qsl/codex/responses/NA0537_closeout_restore_na0538_20260625T144734Z_D448.md`; D446 response `/home/victor/work/qsl/codex/responses/NA0537_peer_label_recover_retry_20260625T030317Z_D446.md`; D441 response `/home/victor/work/qsl/codex/responses/NA0535_20260624T172341Z_D441.md`; D439 response `/home/victor/work/qsl/codex/responses/NA0534_20260624T153252Z_D439.md`; D419 response `/home/victor/work/qsl/codex/responses/NA0523_recover_retry_20260622T145242Z_D419.md`; `docs/governance/evidence/NA-0538_qsl_website_repository_public_evidence_sync_scope_authorization_plan.md`; `tests/NA-0538_qsl_website_repository_public_evidence_sync_scope_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

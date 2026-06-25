@@ -6,6 +6,43 @@ Last-Updated: 2026-06-25
 
 # Rolling Operations Journal
 
+## NA-0540 update
+
+- Directive: QSL-DIR-2026-06-25-453 -- Execute NA-0540 QSL Daily Public Progress Update Cadence and Site-Wide Public Accuracy Sweep Authorization Plan, Optional Closeout to NA-0541.
+- Begin timestamp (America/Chicago): 2026-06-25T17:25:53-0500.
+- Begin timestamp (UTC): 2026-06-25T22:25:53Z.
+- Repo path: `/srv/qbuild/work/NA-0540/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0540_daily_public_progress_cadence_site_accuracy_authorization_20260625T222553Z`.
+- Codex did not run qwork, qstart, qresume, qsl-backup, qsl-server, qsl-attachments, SSH, scp, sftp, rsync, remote commands, qsc send/receive, qsc E2EE, qsc protocol commands, cargo update, workflow/script/helper mutation, dependency/lockfile mutation, qsc source/test/fuzz/Cargo mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, local maintenance script/timer mutation, systemd mutation, cron/timer/automation installation, force-push, amend, rebase, squash, branch deletion, public Progress implementation, or public correction implementation.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0540/.qwork/`. Proof recorded `startup_result=OK`, lane NA-0540, repo `qsl-protocol`, path `/srv/qbuild/work/NA-0540/qsl-protocol`, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0540, requested lane status READY, and `head_equals_origin_main=yes`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `dce131dbadb2`; proof written time `2026-06-25T22:24:38Z` was after the D452 response timestamp.
+- Disk watermark before fetch: `/` usage 37%; `/backup/qsl` usage 33%; STOP threshold 95% was not hit.
+- qbuild SSD maintenance state was read-only verified: `/usr/local/sbin/qbuild-ssd-maintenance` root:root mode 755; `qbuild-ssd-maintenance.timer` enabled and active; next timer listed for 2026-06-26 03:42:32 CDT.
+- Fetch was performed only after proof/live ref match, clean tree, and disk proof. `origin/main` equals or descends from `dce131dbadb2`; local main fast-forward state matched origin/main.
+- Startup queue proof: READY_COUNT 1; READY NA-0540; NA-0539 DONE; NA-0538 DONE.
+- Startup decision proof used the `- **ID:** D-####` parser: D-1068 once, D-1069 once, D-1070 absent before patch, D-1071 absent before patch, duplicate decision record count zero.
+- Current main health on `dce131dbadb2`: public-safety completed success, advisories completed success, and no completed red check-runs.
+- Root and nested qsc fuzz lockfiles both retained `quinn-proto 0.11.15`; Cargo manifest drift check passed.
+- qsl-backup was not executed. Read-only backup proof captured the installed helper digest and extracted/verified the configured source list directly from the script.
+- D452/D451/D450/D449/D446 inheritance consumed: PR #1352 merged at `dce131dbadb2`, D-1069 restored NA-0540, PR #1351 merged at `bf9faadad5af` with classification `PUBLIC_EVIDENCE_SYNC_IMPLEMENTATION_PASS`, README/docs/public evidence surfaces were synchronized, no `public/` or `website/` path was created, no raw proof logs or private material were published, no qsl-server/qsl-attachments use occurred, and SSD/shared-target governance is deferred, not rejected.
+- Public-surface discovery inspected tracked Markdown/HTML/text files. Candidate files with public/status/evidence/claim signals: 1330. Classified public-facing paths: 33. Ambiguous material path count: 0.
+- Public front doors classified: `README.md`, `docs/README.md`, and `docs/public/INDEX.md`.
+- Public evidence/claim/reference/historical public paths were individually named in D-1070. Governance evidence, testplans, archive files, source READMEs, formal/spec/input docs, and raw technical docs were not promoted to public Progress mutation paths merely because public pages link to them.
+- Public accuracy baseline reviewed all 33 classified public-facing paths. Relative public links resolved. Future factual correction candidates were recorded for stale current-main/public-safety/advisory/cargo-audit/recent-PR references in `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md` and `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; claim-safety correction was recorded for Progress-specific `docs/public/WEBSITE_CLAIM_MATRIX.md` wording. No corrections were made in NA-0540.
+- Selected classification: `DAILY_PUBLIC_PROGRESS_SITE_ACCURACY_IMPLEMENTATION_READY`.
+- Selected cadence: one active-workday entry, target approximately 21:30 America/Chicago, stable-handoff-only publishing, no speculative updates, active-day/no-update policy, and manual/queue-driven first execution.
+- Selected NA-0541 successor: `NA-0541 -- QSL Daily Public Progress Section, First End-of-Day Update, and Site-Wide Accuracy Sweep Implementation Harness`.
+- D-1070 records the site-wide public surface inventory/classification, daily cadence, stable-handoff policy, site-wide public accuracy sweep, factual and claim-safety correction policies, structural-change boundary, public information architecture, first June 25 entry scope, evidence eligibility rules, claim policy, correction/retention/no-update policies, exact NA-0541 path bundle, no wildcard mutation authority, manual process, automation deferral, SSD governance deferral, no NA-0540 implementation, and no public/production/security-completion claims.
+- Governance patch paths for the authorization PR are limited to `docs/governance/evidence/NA-0540_qsl_daily_public_progress_update_cadence_authorization_plan.md`, `tests/NA-0540_qsl_daily_public_progress_update_cadence_authorization_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Recovered failure: qwork proof parser used `Path.with_suffix` on `startup.qsl-protocol` and resolved the wrong file. Classification: recoverable command-shape mistake. Corrective action: reran with explicit proof filenames. Final result: qwork proof validation passed.
+- Recovered failure: public-surface inventory script parsed newline `git ls-files` output and failed on quoted paths with spaces/non-ASCII bytes. Classification: recoverable public-path inventory parser mistake. Corrective action: switched to NUL-delimited `git ls-files -z` parsing. Final result: inventory/classification passed.
+- Branch: `na-0540-daily-public-progress-site-accuracy-scope`.
+- PR title: `NA-0540: authorize daily public Progress cadence and site accuracy sweep`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0540_daily_public_progress_cadence_site_accuracy_authorization_20260625T222553Z/wait_accounting.tsv`.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0537 update
 
 - Directive: QSL-DIR-2026-06-24-446 -- Recover NA-0537 Baseline Receive Peer-Label Command Shape, Execute Remote qsc E2EE Repeated-Run / Cleanup / Freshness Implementation Harness, Optional Closeout to Selected NA-0538.

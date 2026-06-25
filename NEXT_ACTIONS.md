@@ -30793,7 +30793,7 @@ Closeout evidence:
 ---
 
 ### NA-0539 — QSL Website / Repository Public Evidence Sync Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -30827,6 +30827,121 @@ Forbidden scope:
 - qsl-backup.
 - private material.
 - public-readiness, production-readiness, public-internet-readiness, external-review-complete, crypto-complete, identity-complete, trust-complete, replay-proof, downgrade-proof, secret-material-complete, side-channel-free, vulnerability-free, bug-free, or perfect-crypto claim.
+
+Closeout evidence:
+- NA-0539 implementation PR #1351 merged at `bf9faadad5af`.
+- D-1068 accepted classification `PUBLIC_EVIDENCE_SYNC_IMPLEMENTATION_PASS`.
+- Post-merge public-safety and advisories completed success for `bf9faadad5af`.
+- D451 selected `NA-0540 -- QSL Local Ops SSD Hygiene / Shared Cargo Target Authorization Plan` as the success-case successor, but the Lead Director superseded that immediate successor for this closeout.
+- SSD/shared-target governance is deferred to a later lane, not rejected, after manual SSD cleanup, installed nightly qbuild SSD maintenance timer context, and reduced root filesystem pressure.
+- This closeout performed no NA-0540 implementation, no README or docs/public content mutation, no public Progress content update, no local-ops mutation, no remote action, no qsl-server or qsl-attachments use, no qsc source mutation, no dependency or lockfile mutation, and no workflow/script/helper mutation.
+- NA-0540 is restored as the sole READY successor for daily public Progress cadence authorization.
+
+---
+
+### NA-0540 — QSL Daily Public Progress Update Cadence Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize a recurring end-of-day public Progress update process for QSL’s
+repository public front door and future website mirror. Define the daily timing,
+eligible evidence, exact future paths, entry template, front-page/latest-entry
+policy, archive policy, review checklist, no-overclaim rules, operator/Codex
+boundaries, skipped-update policy, and exact implementation successor. The
+process should begin with a first end-of-day Progress entry after authorization,
+while preserving no public-readiness, no production-readiness, no crypto-
+complete, no identity-complete, no trust-complete, no replay-proof, no downgrade-
+proof, no external-review-complete, no vulnerability-free, no bug-free, and no
+perfect-crypto claims.
+
+Cadence intent:
+- one public update near the end of each active QSL workday;
+- target window: approximately 21:30 America/Chicago;
+- publish only after the day’s active lane reaches a stable merged state or a
+  truthful terminal handoff;
+- do not publish half-complete or speculative lane results;
+- if work is still active, defer the entry until a stable handoff;
+- use only merged PRs, accepted decisions, verified evidence, and known check
+  states;
+- a no-update day may be skipped or recorded as “no public evidence change”
+  according to the authorization decision;
+- daily public updates remain manual/queue-driven until a separate automation
+  lane is authorized.
+
+Candidate future public paths to review/select:
+- README.md for a short latest-progress summary/link;
+- docs/public/INDEX.md for the current Progress panel;
+- docs/public/PROGRESS.md as the full progress log, if authorized for creation;
+- an archive path under docs/public/progress/ if authorized;
+- future website mirror path only after an exact website path is authorized.
+
+Required daily-entry fields:
+- date;
+- today’s focus;
+- what changed;
+- evidence merged or reviewed;
+- current READY item or terminal handoff;
+- what remains bounded;
+- next planned step;
+- review invitation;
+- same-entry no-claim boundary.
+
+Allowed scope:
+- docs/governance/evidence/NA-0540_qsl_daily_public_progress_update_cadence_authorization_plan.md
+- tests/NA-0540_qsl_daily_public_progress_update_cadence_authorization_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only review of README.md
+- read-only review of docs/README.md
+- read-only review of docs/public/INDEX.md
+- read-only review of docs/public/RELEASE_READINESS_EVIDENCE_MAP.md
+- read-only review of docs/public/EXTERNAL_REVIEW_PACKAGE.md
+- read-only review of docs/public/WEBSITE_CLAIM_MATRIX.md
+- read-only review of NA-0539 evidence/testplan and D-1068
+- selection of exact future implementation paths
+- selection of the first daily entry content scope
+- daily timing and stable-handoff policy
+- public Progress template
+- evidence-eligibility rules
+- claim/no-claim rules
+- review checklist
+- archive/retention policy
+- operator/Codex boundary
+- automation recommendation
+- successor selection
+
+Forbidden scope:
+- direct public Progress content update in the authorization lane;
+- README or docs/public content mutation;
+- public/ or website/ path creation;
+- systemd, cron, timer, automation, or local-ops mutation;
+- qwork/qstart/qresume execution by Codex;
+- qsl-backup execution;
+- qsc source/test/fuzz/Cargo mutation;
+- dependency/lockfile mutation;
+- workflow/script/helper mutation;
+- corpus/vector/input mutation;
+- formal/refimpl/service/public/backup mutation outside the authorization
+  evidence/testplan/governance files;
+- qsl-server/qsl-attachments implementation;
+- remote action;
+- private material;
+- raw proof logs;
+- public-readiness, production-readiness, public-internet-readiness, external-
+  review-complete, crypto-complete, identity-complete, trust-complete, replay-
+  proof, downgrade-proof, secret-material-complete, side-channel-free,
+  vulnerability-free, bug-free, or perfect-crypto claim.
+
+Expected implementation successor if authorized:
+NA-0541 -- QSL Daily Public Progress Section and First End-of-Day Update
+Implementation Harness
+
+Deferred roadmap item:
+QSL Local Ops SSD Hygiene / Shared Cargo Target Authorization Plan, expected
+after the first daily Progress implementation unless disk pressure or Director
+priority requires it sooner.
 
 ---
 

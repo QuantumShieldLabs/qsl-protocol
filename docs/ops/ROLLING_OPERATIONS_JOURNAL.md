@@ -97,6 +97,45 @@ Last-Updated: 2026-06-25
 - PR merge commit: pending at journal authoring.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0538 update
+
+- Directive: QSL-DIR-2026-06-25-449 -- Execute NA-0538 QSL Website / Repository Public Evidence Sync Scope Authorization Plan, Optional Closeout to NA-0539.
+- Begin timestamp (UTC): 2026-06-25T15:03:52Z.
+- Repo path: `/srv/qbuild/work/NA-0538/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0538_website_repository_public_evidence_sync_scope_authorization_20260625T150352Z`.
+- Codex did not run qwork, qstart, qresume, SSH, scp, sftp, rsync, remote commands, qsc send/receive, qsc E2EE, qsc protocol commands, qsl-server, qsl-attachments, qsl-backup, cargo update, dependency mutation, workflow/script/helper mutation, qsc source/test/fuzz/Cargo mutation, corpus/vector/input mutation, formal/refimpl/service/public/backup mutation, backup, restore, force-push, amend, rebase, squash, or branch deletion.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0538/.qwork/`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `14f81642a8a9`; proof recorded `startup_result=OK`, lane `NA-0538`, repo `qsl-protocol`, clean worktree/index/untracked state, READY_COUNT 1, queue top READY `NA-0538`, and requested lane status READY.
+- qwork proof written time was `2026-06-25T15:02:49Z`, after D448 response time `2026-06-25T14:47:34Z`.
+- Fetch was performed only after proof/live ref match and disk proof below threshold; origin/main still descended from `14f81642a8a9`.
+- Disk watermark before fetch: `/` below the 95% STOP threshold; `/backup/qsl` recorded read-only.
+- Startup queue proof: READY_COUNT 1; READY NA-0538; NA-0537 DONE; NA-0536 DONE.
+- Startup decision proof: D-1064 once, D-1065 once, D-1066 absent before patch, D-1067 absent before patch, duplicate decision record count zero.
+- Main health proof on `14f81642a8a9`: public-safety completed success, advisories completed success, and no required red checks. An optional completed red check-run was recorded as non-required by branch protection proof.
+- qsl-backup read-only proof: installed helper matched expected digest `e9ecff3d22ed`; Codex ops source appears exactly once in the installed helper source list. qsl-backup was not executed.
+- Root and nested qsc fuzz lockfiles both retained `quinn-proto 0.11.15`; Cargo manifest drift check passed.
+- Recovered failure: an rg zero-match absence proof for D-1066/D-1067 returned non-zero. Classification: recoverable valid zero-match proof. Corrective action: retained the zero-result files and used the zero-failure-safe decision parser. Final result: D-1064 once, D-1065 once, D-1066 zero, D-1067 zero, duplicate decision count zero.
+- Recovered failure: a local proof-writing command accidentally evaluated Markdown backticks around rg inside a shell double-quoted Python one-liner, running rg with no pattern. Classification: recoverable command-shape / shell quoting mistake. Corrective action: repaired the proof text with apply_patch and recorded the mistake. Final result: repo state unchanged.
+- Recovered failure: the first main-health helper treated every completed red check-run as required and failed on an optional `ci-4c-evidence` check. Classification: recoverable parser assumption. Corrective action: queried branch protection required status checks and compared only required contexts. Final result: no required red checks.
+- Recovered failure: a Python one-liner for D-1064/D-1065 extraction failed with SyntaxError. Classification: recoverable command-shape mistake. Corrective action: replaced it with a proof-root helper file. Final result: inheritance extraction passed.
+- Public surface inventory: `README.md`, `docs/`, `docs/public/`, `docs/governance/evidence/`, `TRACEABILITY.md`, and `DECISIONS.md` exist; `public/`, `website/`, `qsl-server/`, `qsl-attachments/`, and `docs/public/README.md` are missing.
+- D448, D446, D441, D439, and D419 inheritance consumed. The inherited record includes NA-0537 closeout/restoration, repeated-run cleanup/freshness pass, wrong-peer/stale-trust pass, port diagnostic marker/ACK pass, replay/corrupt negative pass, no qsl-server/qsl-attachments, and no readiness/completion overclaim.
+- Evidence inventory completed for QSL goals, direct qsc client-to-client E2EE sprint, evidence-driven governance, fail-closed discipline, no-overclaim culture, remote host testing, same-host qsc tests, retained qsc staging/restaging, marker/ACK evidence, Build-to-Inspiron qsc E2EE, selected negative boundaries, repeated-run cleanup/freshness, public-safety/advisories gates, dependency security remediation, bounded formal checks, and scan/validator evidence.
+- Claim policy selected: bounded remote qsc E2EE, repeated-run cleanup/freshness, and selected fail-closed negative evidence may be summarized only with same-line limits and no readiness/completion claims.
+- Proof/redaction rules selected: future public sync may cite decisions, PRs, evidence docs, testplans, bounded classifications, and no-claim boundaries; it must not publish raw proof logs, secrets, route/capability material, raw SSH config, backup material, runtime material, or detailed topology.
+- Selected classification: `PUBLIC_EVIDENCE_SYNC_IMPLEMENTATION_READY`.
+- Selected successor: `NA-0539 -- QSL Website / Repository Public Evidence Sync Implementation Harness`.
+- Selected future path bundle: `README.md`, `docs/README.md`, `docs/public/INDEX.md`, `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`, `docs/public/EXTERNAL_REVIEW_PACKAGE.md`, `docs/public/WEBSITE_CLAIM_MATRIX.md`, `docs/governance/evidence/NA-0539_qsl_website_repository_public_evidence_sync_implementation_harness.md`, `tests/NA-0539_qsl_website_repository_public_evidence_sync_implementation_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Governance patch paths: NA-0538 evidence doc, NA-0538 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1066 records NA-0538 public evidence sync scope authorization.
+- Branch: pending at journal authoring.
+- PR title: `NA-0538: authorize website repository public evidence sync scope`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0538_website_repository_public_evidence_sync_scope_authorization_20260625T150352Z/wait_accounting.tsv`.
+- No website, README, public-doc, qsc runtime, qsc source/test/fuzz/Cargo, dependency, lockfile, workflow, script/helper, corpus/vector/input, formal/refimpl/service/public/backup, qsl-server, qsl-attachments, qsl-backup, remote, or backup mutation is introduced.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0536 update
 
 - Directive: QSL-DIR-2026-06-24-442 -- Execute NA-0536 QSL Remote qsc E2EE Repeated-Run / Cleanup / Freshness Scope Authorization Plan, Optional Closeout to NA-0537.

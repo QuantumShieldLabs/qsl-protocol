@@ -28397,3 +28397,56 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0537 to D-1064 and selected NA-0538 public evidence sync authorization successor.
   - **Selected successor:** `NA-0538 -- QSL Website / Repository Public Evidence Sync Scope Authorization Plan`.
   - **References:** NA-0537; selected NA-0538 public evidence sync authorization successor; D-1064; D-1063; D-1062; D445 response `/home/victor/work/qsl/codex/responses/NA0537_recover_retry2_20260624T205833Z_D445.md`; D444 response `/home/victor/work/qsl/codex/responses/NA0537_recover_retry_20260624T202909Z_D444.md`; D443 response `/home/victor/work/qsl/codex/responses/NA0537_20260624T201124Z_D443.md`; D442 response `/home/victor/work/qsl/codex/responses/NA0536_20260624T182046Z_D442.md`; D441 response `/home/victor/work/qsl/codex/responses/NA0535_20260624T172341Z_D441.md`; D439 response `/home/victor/work/qsl/codex/responses/NA0534_20260624T153252Z_D439.md`; D435 response `/home/victor/work/qsl/codex/responses/NA0531_20260624T053219Z_D435.md`; D419 response `/home/victor/work/qsl/codex/responses/NA0523_recover_retry_20260622T145242Z_D419.md`; `docs/governance/evidence/NA-0537_qsl_remote_qsc_e2ee_repeated_run_cleanup_freshness_implementation_harness.md`; `tests/NA-0537_qsl_remote_qsc_e2ee_repeated_run_cleanup_freshness_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1065
+  - **Title:** NA-0537 closeout and NA-0538 restoration
+  - **Date:** 2026-06-25
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** D-1064 implementation evidence is accepted for NA-0537 after PR #1347 merged as `cda8b3090337`, fresh qwork proof from 2026-06-25T14:07:41Z verified the lane at the merge commit with a clean tree and exactly one READY item, the disk gate recovered from the D447 stop condition and was below the 95% hard threshold, and pre-closeout public-safety and advisories completed success on `cda8b3090337`. NA-0537 is marked DONE, and `NA-0538 -- QSL Website / Repository Public Evidence Sync Scope Authorization Plan` is restored as the sole READY successor selected by D-1064.
+  - **Evidence consumed:** D447 stopped before fetch and mutation because `/` usage was at the 95% hard threshold; no D-1065 was added and no closeout PR was opened. The operator subsequently cleaned old per-lane target directories and reran qwork. D446 recorded classification `REMOTE_E2EE_REPEATED_RUN_CLEANUP_FRESHNESS_PASS`, consumed and recovered D443/D444/D445 issues, corrected the peer-label baseline receive, rechecked retained qsc per run, proved run 1 marker/ACK, valid E2EE, wrong-peer fail-closed behavior, and cleanup, then proved run 2 marker/ACK, valid E2EE, stale/replaced-peer fail-closed behavior, and cleanup. D446 recorded no stale state reuse, retained qsc unchanged, no qsl-server, no qsl-attachments, no qsl-backup, no qwork/qstart/qresume by Codex, and no public/production/security-completion claim.
+  - **Closeout result:** This closeout performs no NA-0538 implementation, website mutation, README mutation, public-doc mutation, remote action, SSH execution, qsc E2EE, qsc send/receive, qsc protocol command, qsl-server use, qsl-attachments use, package install, remote source checkout/build, remote file write, qwork/qstart/qresume, qsl-backup execution, dependency mutation, lockfile mutation, qsc source/test/fuzz/Cargo mutation, workflow/script/helper mutation, corpus/vector/input mutation, or formal/refimpl/service/public/backup mutation.
+  - **Security invariants introduced/changed:**
+    - NA-0537 is DONE.
+    - NA-0538 is READY.
+    - Result classification remains `REMOTE_E2EE_REPEATED_RUN_CLEANUP_FRESHNESS_PASS`.
+    - NA-0538 is authorization-only and does not implement website, README, public-doc, public-facing evidence, or repository evidence sync content in this closeout.
+    - D447 disk-stop inheritance is consumed only after fresh qwork proof and a below-threshold disk gate.
+    - Optional remote/UI check failures observed on `cda8b3090337` are not branch-protection required contexts; public-safety and advisories are green.
+    - No remote action occurs in this closeout.
+    - No SSH execution occurs in this closeout.
+    - No qsc send/receive occurs in this closeout.
+    - No remote E2EE occurs in this closeout.
+    - No qsl-server use occurs.
+    - No qsl-attachments use occurs.
+    - No qwork/qstart/qresume execution occurs.
+    - No qsl-backup execution occurs.
+    - No qsc source/test/fuzz/Cargo mutation occurs.
+    - No workflow/script/helper mutation occurs.
+    - No corpus/vector/input mutation occurs.
+    - No dependency/lockfile mutation occurs.
+    - No formal/refimpl/service/public/backup mutation occurs.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No perfect-crypto claim is made.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Implement NA-0538 in this closeout (rejected because this directive is closeout-only and public evidence sync authorization must be a separate lane).
+    - Leave NA-0537 READY after PR #1347 (rejected because D-1064 evidence passed, PR #1347 merged, fresh qwork proof is clean, and the D447 disk stop was resolved).
+    - Make the no-claim boundary optional (rejected because D-1064 evidence is bounded internal synthetic direct-qsc evidence and this closeout makes no public-readiness claim, no production-readiness claim, no crypto-complete claim, no identity-complete claim, no trust-complete claim, no replay-proof claim, no downgrade-proof claim, no external-review-complete claim, no vulnerability-free claim, no bug-free claim, and no perfect-crypto claim).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0537 DONE and restores the supplied NA-0538 public evidence sync authorization successor.
+    - `tests/NA-0537_closeout_restore_na0538_testplan.md` records qwork proof verification, D447/D446 inheritance, green-gate proof, disk gate, queue/decision proof, scope guard, public-safety/advisories requirements, boundary assertions, and no-claim checks.
+    - `TRACEABILITY.md` maps this closeout to D-1064, D-1065, PR #1347, D446 response, D447 disk-stop inheritance, green-gate proof, and the restored NA-0538 successor.
+  - **References:** NA-0537; NA-0538; D-1065; D-1064; PR #1347; implementation merge `cda8b3090337`; QSL-DIR-2026-06-25-448; D447 response `/home/victor/work/qsl/codex/responses/NA0537_closeout_restore_na0538_20260625T031744Z_D447.md`; D446 response `/home/victor/work/qsl/codex/responses/NA0537_peer_label_recover_retry_20260625T030317Z_D446.md`; D445 response `/home/victor/work/qsl/codex/responses/NA0537_recover_retry2_20260624T205833Z_D445.md`; D444 response `/home/victor/work/qsl/codex/responses/NA0537_recover_retry_20260624T202909Z_D444.md`; D443 response `/home/victor/work/qsl/codex/responses/NA0537_20260624T201124Z_D443.md`; D442 response `/home/victor/work/qsl/codex/responses/NA0536_20260624T182046Z_D442.md`; D441 response `/home/victor/work/qsl/codex/responses/NA0535_20260624T172341Z_D441.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0537_closeout_restore_na0538_testplan.md`

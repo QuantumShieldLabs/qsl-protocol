@@ -28706,3 +28706,47 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0540 to D-1070 and the selected NA-0541 implementation successor.
   - **Selected successor:** `NA-0541 -- QSL Daily Public Progress Section, First End-of-Day Update, and Site-Wide Accuracy Sweep Implementation Harness`.
   - **References:** NA-0540; NA-0541; D-1070; D-1069; D-1068; D452 response `/home/victor/work/qsl/codex/responses/NA0539_closeout_restore_na0540_20260625T214828Z_D452.md`; D451 response `/home/victor/work/qsl/codex/responses/NA0539_20260625T200840Z_D451.md`; D450 response `/home/victor/work/qsl/codex/responses/NA0538_closeout_restore_na0539_20260625T162258Z_D450.md`; D449 response `/home/victor/work/qsl/codex/responses/NA0538_20260625T150352Z_D449.md`; D446 response `/home/victor/work/qsl/codex/responses/NA0537_peer_label_recover_retry_20260625T030317Z_D446.md`; `docs/governance/evidence/NA-0540_qsl_daily_public_progress_update_cadence_authorization_plan.md`; `tests/NA-0540_qsl_daily_public_progress_update_cadence_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1071
+  - **Title:** NA-0540 closeout and NA-0541 restoration
+  - **Date:** 2026-06-25
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** D-1070 authorization evidence is accepted after PR #1353 merged as `ea38f150368e` and the post-merge `advisories` and `public-safety` checks completed success. NA-0540 is marked DONE. `NA-0541 -- QSL Daily Public Progress Section, First End-of-Day Update, and Site-Wide Accuracy Sweep Implementation Harness` is restored as the sole READY successor using the exact D-1070 path bundle and no wildcard mutation authority.
+  - **Evidence consumed:** D-1070 records classification `DAILY_PUBLIC_PROGRESS_SITE_ACCURACY_IMPLEMENTATION_READY`, the daily end-of-day Progress cadence, the approximately 21:30 America/Chicago target, stable-handoff-only publication, site-wide public accuracy sweep, factual and claim-safety correction policies, structural-change boundary, public information architecture, June 25 first-entry scope, evidence eligibility, claim boundaries, retention policy, manual/queue-driven execution, automation deferral, SSD/shared-target governance deferral, no public implementation in NA-0540, no public correction implementation in NA-0540, no local-ops mutation, no qwork/qstart/qresume execution, no qsl-backup execution, no qsl-server/qsl-attachments use, and no public/production/security-completion claims. PR #1353 merged at `ea38f150368e`; post-merge public-safety and advisories completed success for that merge commit.
+  - **Closeout result:** This closeout performs no NA-0541 implementation, no README/docs/public mutation, no public Progress content update, no public correction implementation, no local-ops script/timer/systemd mutation, no qwork/qstart/qresume execution by Codex, no qsl-backup execution, no qsc source/test/fuzz/Cargo mutation, no dependency/lockfile mutation, no workflow/script/helper mutation, no corpus/vector/input mutation, no formal/refimpl/service/public/backup mutation, no `public/` or `website/` path creation, and no qsl-server/qsl-attachments use.
+  - **Restored successor scope:** The NA-0541 block in `NEXT_ACTIONS.md` repeats the exact D-1070 mutation path bundle and required validation markers. No placeholder, wildcard, or later-discovery path authority is introduced.
+  - **Security invariants introduced/changed:**
+    - NA-0540 is DONE.
+    - NA-0541 is READY as the first implementation successor for the daily public Progress architecture and site-wide accuracy sweep.
+    - Exactly one READY remains mandatory.
+    - NA-0541 must use implementation-time repo, PR, decision, check, and handoff state.
+    - NA-0541 may correct verified factual and claim-safety issues only inside the exact D-1070 path bundle.
+    - Structural changes remain separately authorized unless they are the exact D-1070 Progress architecture.
+    - No wildcard public mutation authority is introduced.
+    - No internal/private material is promoted.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No perfect-crypto claim is made.
+  - **Alternatives considered:**
+    - Defer closeout after PR #1353 (rejected because post-merge advisories and public-safety reached green inside the allowed short window).
+    - Implement NA-0541 during this closeout (rejected because this closeout only restores the successor).
+    - Restore a narrower successor than D-1070 selected (rejected because the future daily sweep must cover the exact public-facing surface classified by NA-0540).
+    - Add wildcard `docs/public/**` authority (rejected because D-1070 requires individually named paths only).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0540 DONE and restores NA-0541 READY with the exact D-1070 path bundle.
+    - `tests/NA-0540_closeout_restore_na0541_testplan.md` records PR #1353 merge proof, D-1070 acceptance, post-merge advisories/public-safety proof, exact path-bundle restoration, no NA-0541 implementation, no public-doc mutation, no local-ops mutation, no qsl-server/qsl-attachments use, no public/production/security-completion claims, and exactly-one-READY proof.
+    - `TRACEABILITY.md` maps D-1070, D-1071, PR #1353, and the restored NA-0541 successor.
+  - **Selected successor:** `NA-0541 -- QSL Daily Public Progress Section, First End-of-Day Update, and Site-Wide Accuracy Sweep Implementation Harness`.
+  - **References:** NA-0540; NA-0541; D-1071; D-1070; PR #1353; merge `ea38f150368e`; QSL-DIR-2026-06-25-453; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0540_closeout_restore_na0541_testplan.md`; `docs/governance/evidence/NA-0540_qsl_daily_public_progress_update_cadence_authorization_plan.md`; `tests/NA-0540_qsl_daily_public_progress_update_cadence_authorization_testplan.md`

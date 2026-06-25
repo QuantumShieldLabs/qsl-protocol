@@ -30840,7 +30840,7 @@ Closeout evidence:
 ---
 
 ### NA-0540 — QSL Daily Public Progress Update Cadence Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -30929,10 +30929,11 @@ Forbidden scope:
 - remote action;
 - private material;
 - raw proof logs;
-- public-readiness, production-readiness, public-internet-readiness, external-
-  review-complete, crypto-complete, identity-complete, trust-complete, replay-
-  proof, downgrade-proof, secret-material-complete, side-channel-free,
-  vulnerability-free, bug-free, or perfect-crypto claim.
+- no public-readiness, no production-readiness, no public-internet-readiness,
+  no external-review-complete, no crypto-complete, no identity-complete,
+  no trust-complete, no replay-proof, no downgrade-proof, no secret-material-
+  complete, no side-channel-free, no vulnerability-free, no bug-free, or
+  no perfect-crypto claim.
 
 Expected implementation successor if authorized:
 NA-0541 -- QSL Daily Public Progress Section and First End-of-Day Update
@@ -30942,6 +30943,136 @@ Deferred roadmap item:
 QSL Local Ops SSD Hygiene / Shared Cargo Target Authorization Plan, expected
 after the first daily Progress implementation unless disk pressure or Director
 priority requires it sooner.
+
+Closeout evidence:
+- Authorization PR #1353 merged at `ea38f150368e`.
+- D-1070 accepted classification `DAILY_PUBLIC_PROGRESS_SITE_ACCURACY_IMPLEMENTATION_READY`.
+- Post-merge advisories and public-safety completed success for `ea38f150368e`.
+- NA-0540 performed authorization only: no README/docs/public implementation, no public correction implementation, no public Progress content, no local-ops mutation, no qwork/qstart/qresume, no qsl-backup execution, no qsc source/test/fuzz/Cargo mutation, no dependency or lockfile mutation, no workflow/script/helper mutation, no `public/` or `website/` path creation, and no qsl-server/qsl-attachments use.
+- NA-0541 is restored as the sole READY successor using the exact D-1070 path bundle and no wildcard mutation authority.
+
+---
+
+### NA-0541 — QSL Daily Public Progress Section, First End-of-Day Update, and Site-Wide Accuracy Sweep Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the NA-0540-approved public Progress information architecture,
+publish the first end-of-day report for the June 25, 2026 QSL workday, perform
+the authorized site-wide public accuracy sweep, correct verified factual and
+claim-safety inaccuracies within the exact D-1070 path bundle, document
+out-of-scope corrections without mutating them, cite merged evidence, identify
+the actual current handoff at publication time, and preserve no public-readiness,
+no production-readiness, no crypto-complete, no identity-complete,
+no trust-complete, no replay-proof, no downgrade-proof,
+no external-review-complete, no vulnerability-free, no bug-free, and
+no perfect-crypto claims.
+
+Allowed scope (exact D-1070 path bundle):
+- CODE_OF_CONDUCT.md
+- CONTRIBUTING.md
+- README.md
+- SECURITY.md
+- SUPPORT.md
+- docs/README.md
+- docs/demo/ATTACHMENT_PUBLIC_DEMO_READINESS.md
+- docs/demo/CLEAN_HOST_REVIEWER_REPRODUCTION.md
+- docs/demo/CROSS_HOST_DEMO_STRESS_REPRODUCIBILITY.md
+- docs/demo/CROSS_HOST_PRIVATE_NETWORK_SOAK.md
+- docs/demo/CROSS_HOST_PUBLIC_DEMO_REPRODUCIBILITY.md
+- docs/demo/DEMO-PUBLIC-001_Metadata_Visibility.md
+- docs/demo/DEMO_ACCEPTANCE_CRITERIA.md
+- docs/demo/DEMO_ADVERSARIAL_STRESS_TESTING.md
+- docs/demo/DEMO_SOAK_REPEATED_RUN_STABILITY.md
+- docs/demo/DESKTOP_SIDECAR_ADVERSARIAL_STRESS.md
+- docs/demo/KT_NEGATIVE_PUBLIC_DEMO_READINESS.md
+- docs/demo/NATIVE_DESKTOP_PACKAGE_SCREENSHOT_READINESS.md
+- docs/demo/PUBLIC_DEMO_TOUCH_AND_FEEL_READINESS.md
+- docs/public/EXTERNAL_REVIEW_PACKAGE.md
+- docs/public/EXTERNAL_WEBSITE_IMPLEMENTATION_DIRECTIVE.md
+- docs/public/INDEX.md
+- docs/public/PROGRESS.md
+- docs/public/PUBLIC_ALLOWLIST_INVENTORY.md
+- docs/public/PUBLIC_ATTENTION_AND_VISIBILITY_STRATEGY.md
+- docs/public/PUBLIC_EXPORT_MANIFEST.md
+- docs/public/PUBLIC_RELEASE_RUNBOOK.md
+- docs/public/PUBLIC_WORKSPACE_AND_NAMING.md
+- docs/public/QSL_SERVER_ATTACHMENTS_PRODUCTION_BOUNDARY_PLAN.md
+- docs/public/RELEASE_READINESS_EVIDENCE_MAP.md
+- docs/public/SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md
+- docs/public/WEBSITE_CLAIM_MATRIX.md
+- docs/public/WEBSITE_IMPLEMENTATION_HANDOFF.md
+- docs/public/WEBSITE_UPDATE_PLAN.md
+- docs/public/progress/2026-06-25.md
+- docs/governance/evidence/NA-0541_qsl_daily_public_progress_section_first_end_of_day_update_site_accuracy_implementation_harness.md
+- tests/NA-0541_qsl_daily_public_progress_section_first_end_of_day_update_site_accuracy_implementation_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+
+Required implementation behavior:
+- add/update the README latest Progress panel;
+- add/update the docs/public Current Progress panel;
+- create the canonical Progress index;
+- create the dated June 25, 2026 workday entry;
+- scan every D-1070-authorized public path;
+- correct verified factual and claim-safety inaccuracies within the exact D-1070 path bundle;
+- list corrections in evidence and the dated entry;
+- record out-of-scope inaccuracies without mutation;
+- preserve the historical correction policy;
+- use implementation-time repo, PR, decision, check, and handoff state;
+- run link, private-material, claim, and public-safety checks.
+
+Forbidden scope:
+- `public/` or `website/` path creation;
+- website deployment;
+- mutation of any path not individually named by D-1070;
+- structural redesign outside the authorized Progress architecture;
+- automation scripts;
+- workflows;
+- cron, systemd, or timer mutation;
+- qwork/qstart/qresume execution by Codex;
+- qsl-backup execution;
+- qsc source/test/fuzz/Cargo mutation;
+- dependency or lockfile mutation;
+- corpus/vector/input mutation;
+- formal/refimpl/service/public/backup mutation outside selected public paths;
+- qsl-server/qsl-attachments;
+- remote action;
+- private material;
+- internal/private content promotion;
+- raw proof logs;
+- route-token/capability material;
+- no public-readiness, no production-readiness, no public-internet-readiness,
+  no external-review-complete, no crypto-complete, no identity-complete,
+  no trust-complete, no replay-proof, no downgrade-proof,
+  no secret-material-complete, no side-channel-free,
+  no vulnerability-free, no bug-free, or no perfect-crypto claim.
+
+Required validation markers:
+- NA0541_D1070_AUTHORIZATION_CONSUMED_OK
+- NA0541_SELECTED_PATH_BUNDLE_ONLY_OK
+- NA0541_PROGRESS_SECTION_ADDED_OK
+- NA0541_DAILY_PROGRESS_TEMPLATE_APPLIED_OK
+- NA0541_FIRST_ENTRY_20260625_PUBLISHED_OK
+- NA0541_SITE_WIDE_PUBLIC_ACCURACY_SCAN_OK
+- NA0541_STALE_STATUS_REFERENCE_SCAN_OK
+- NA0541_BROKEN_PUBLIC_LINK_SCAN_OK
+- NA0541_PUBLIC_CLAIM_CONSISTENCY_SCAN_OK
+- NA0541_VERIFIED_INACCURACIES_CORRECTED_OK
+- NA0541_SITE_CORRECTIONS_RECORDED_OK
+- NA0541_OUT_OF_SCOPE_CORRECTIONS_DEFERRED_OK
+- NA0541_NO_INTERNAL_PRIVATE_MATERIAL_PUBLISHED_OK
+- NA0541_EVIDENCE_LINKS_RESOLVE_OK
+- NA0541_NO_RAW_PROOF_LOGS_OK
+- NA0541_NO_PRIVATE_MATERIAL_OK
+- NA0541_NO_QSC_SOURCE_MUTATION_OK
+- NA0541_NO_QSL_SERVER_ATTACHMENTS_OK
+- NA0541_NO_PUBLIC_READINESS_CLAIM_OK
+- NA0541_NO_PRODUCTION_READINESS_CLAIM_OK
+- NA0541_NO_CRYPTO_COMPLETE_CLAIM_OK
+- NA0541_ONE_READY_INVARIANT_OK
 
 ---
 

@@ -28599,3 +28599,52 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0539 to D-1066, D-1068, the selected path bundle, validation, public claim policy, and selected NA-0540 successor.
   - **Selected successor:** `NA-0540 -- QSL Local Ops SSD Hygiene / Shared Cargo Target Authorization Plan`.
   - **References:** NA-0539; NA-0540; D-1068; D-1067; D-1066; D450 response `/home/victor/work/qsl/codex/responses/NA0538_closeout_restore_na0539_20260625T162258Z_D450.md`; D449 response `/home/victor/work/qsl/codex/responses/NA0538_20260625T150352Z_D449.md`; D448 response `/home/victor/work/qsl/codex/responses/NA0537_closeout_restore_na0538_20260625T144734Z_D448.md`; D446 response `/home/victor/work/qsl/codex/responses/NA0537_peer_label_recover_retry_20260625T030317Z_D446.md`; D441 response `/home/victor/work/qsl/codex/responses/NA0535_20260624T172341Z_D441.md`; D439 response `/home/victor/work/qsl/codex/responses/NA0534_20260624T153252Z_D439.md`; D419 response `/home/victor/work/qsl/codex/responses/NA0523_recover_retry_20260622T145242Z_D419.md`; `README.md`; `docs/README.md`; `docs/public/INDEX.md`; `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`; `docs/public/EXTERNAL_REVIEW_PACKAGE.md`; `docs/public/WEBSITE_CLAIM_MATRIX.md`; `docs/governance/evidence/NA-0539_qsl_website_repository_public_evidence_sync_implementation_harness.md`; `tests/NA-0539_qsl_website_repository_public_evidence_sync_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1069
+  - **Title:** NA-0539 closeout and NA-0540 daily public Progress cadence restoration
+  - **Date:** 2026-06-25
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** D-1068 implementation evidence is accepted for NA-0539 after PR #1351 merged as `bf9faadad5af` with classification `PUBLIC_EVIDENCE_SYNC_IMPLEMENTATION_PASS`, post-merge public-safety and advisories completed success, and required checks had no failed required context. NA-0539 is marked DONE. The Lead Director supersedes D451's immediate SSD-hygiene successor recommendation for this closeout and restores `NA-0540 -- QSL Daily Public Progress Update Cadence Authorization Plan` as the sole READY successor.
+  - **Evidence consumed:** D451 records PR #1351 merged at `bf9faadad5af`, D-1068 exists once, `PUBLIC_EVIDENCE_SYNC_IMPLEMENTATION_PASS`, README and selected docs/public synchronization, D-1066 path bundle and claim policy application, no `public/` or `website/` path creation, no raw proof log or private material publication, no qsc source/workflow/dependency mutation, no qsl-server/qsl-attachments, no remote action, and no public/production/security-completion claim. D450, D449, D448, and D446 inheritance remains consumed for D-1066/D-1067/D-1068. Fresh qwork proof from 2026-06-25T16:24:33-05:00 matched live pre-fetch HEAD and origin/main at `bf9faadad5af`, recorded `startup_result=OK`, clean worktree/index/untracked state, READY_COUNT 1, and queue top READY `NA-0539`.
+  - **Successor override:** D451 selected `NA-0540 -- QSL Local Ops SSD Hygiene / Shared Cargo Target Authorization Plan` as the immediate success-case successor. The Lead Director supersedes only that immediate successor selection because the operator prioritized daily end-of-day public Progress, the public evidence surfaces now exist and are synchronized, the SSD emergency has been resolved operationally, the nightly qbuild SSD maintenance script and timer are installed and active, root filesystem usage is back near 37%, and the public heartbeat is the highest-value communication gap after NA-0539.
+  - **Deferred governance:** SSD/shared-target governance is deferred to a later lane, not rejected. It is expected after the daily Progress authorization and first-entry implementation unless disk pressure crosses the configured warning threshold or the Director reprioritizes it sooner.
+  - **Closeout result:** This closeout performs no NA-0540 implementation, no public Progress content update, no README or docs/public content mutation, no local-ops script/timer/systemd mutation, no remote action, no SSH execution, no qsc send/receive, no remote E2EE, no qsc protocol command, no qsl-server use, no qsl-attachments use, no qwork/qstart/qresume execution by Codex, no qsl-backup execution, no qsc source/test/fuzz/Cargo mutation, no dependency/lockfile mutation, no workflow/script/helper mutation, no corpus/vector/input mutation, and no formal/refimpl/service/public/backup mutation.
+  - **Security invariants introduced/changed:**
+    - NA-0539 is DONE.
+    - NA-0540 is READY as the daily public Progress update cadence authorization plan.
+    - Exactly one READY remains mandatory.
+    - D451's SSD-hygiene successor recommendation is deferred, not rejected.
+    - Daily public updates remain authorization-only until NA-0540 authorizes exact future paths, content scope, template, archive policy, and successor.
+    - No NA-0540 implementation occurs in this closeout.
+    - No README/docs/public content mutation occurs in this closeout.
+    - No local-ops mutation occurs in this closeout.
+    - No remote action occurs.
+    - No qsl-server or qsl-attachments use occurs.
+    - No qsc source/test/fuzz/Cargo mutation occurs.
+    - No dependency or lockfile mutation occurs.
+    - No workflow/script/helper mutation occurs.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No perfect-crypto claim is made.
+  - **Alternatives considered:**
+    - Restore the D451-selected SSD-hygiene successor immediately (superseded by Lead Director instruction, not rejected permanently).
+    - Implement NA-0540 during this closeout (rejected because this directive is closeout-only).
+    - Update README or docs/public daily Progress content now (rejected because this closeout restores authorization only).
+    - Treat NA-0539 public evidence synchronization as public readiness, production readiness, crypto completeness, identity completeness, trust completeness, replay-proof status, downgrade-proof status, external review completion, vulnerability freedom, bug freedom, or perfect crypto (rejected because D-1068 and this closeout remain bounded).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0539 DONE and restores the directive-provided NA-0540 daily public Progress cadence authorization block as the sole READY item.
+    - `tests/NA-0539_closeout_restore_na0540_testplan.md` records PR #1351 merge proof, D-1068 acceptance, public-safety/advisories green proof, Director successor override, SSD governance deferral, no NA-0540 implementation, no public-doc mutation, no local-ops mutation, and exactly-one-READY proof.
+    - `TRACEABILITY.md` maps D-1068, D-1069, PR #1351, D451/D450/D449/D448/D446 inheritance, the override, and the restored NA-0540 successor.
+  - **References:** NA-0539; NA-0540; D-1069; D-1068; D-1067; D-1066; PR #1351; merge `bf9faadad5af`; QSL-DIR-2026-06-25-452; D451 response `/home/victor/work/qsl/codex/responses/NA0539_20260625T200840Z_D451.md`; D450 response `/home/victor/work/qsl/codex/responses/NA0538_closeout_restore_na0539_20260625T162258Z_D450.md`; D449 response `/home/victor/work/qsl/codex/responses/NA0538_20260625T150352Z_D449.md`; D448 response `/home/victor/work/qsl/codex/responses/NA0537_closeout_restore_na0538_20260625T144734Z_D448.md`; D446 response `/home/victor/work/qsl/codex/responses/NA0537_peer_label_recover_retry_20260625T030317Z_D446.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0539_closeout_restore_na0540_testplan.md`

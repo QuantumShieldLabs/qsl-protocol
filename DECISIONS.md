@@ -28342,3 +28342,58 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `tests/NA-0536_closeout_restore_na0537_testplan.md` records closeout validation, queue/decision proof, scope guard, public-safety/advisories requirements, boundary assertions, and no-claim checks.
     - `TRACEABILITY.md` maps this closeout to D-1062, D-1063, PR #1345, the repeated-run cleanup/freshness authorization classification, and the restored NA-0537 successor.
   - **References:** NA-0536; NA-0537; D-1063; D-1062; PR #1345; authorization merge `749008231762`; QSL-DIR-2026-06-24-442; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0536_closeout_restore_na0537_testplan.md`
+
+- **ID:** D-1064
+  - **Title:** NA-0537 remote qsc E2EE repeated-run cleanup freshness implementation
+  - **Date:** 2026-06-25
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0537 consumes D445/D444/D443/D442/D441/D439/D435/D419 inheritance and classifies the recovered repeated-run cleanup/freshness harness as `REMOTE_E2EE_REPEATED_RUN_CLEANUP_FRESHNESS_PASS`. The D445 peer-label baseline failure is recovered: existing qsc tests/source prove Bob receiving Alice's message must use Alice as Bob's receive peer/session label, so the retried baseline used Bob receive `--from alice` instead of `--from bob`.
+  - **Evidence consumed:** D445 stopped with `REMOTE_E2EE_REPEATED_RUN1_BASELINE_FAILURE` after marker/ACK, setup, handshake, and Alice send commit passed, then Bob receive failed closed with `qsp_hdr_auth_failed`; D444 stopped before qsc E2EE on retained-qsc preflight command shape; D443 stopped before qsc E2EE on generated listener newline escaping and later response-writer safety violation; D442 authorized NA-0537; D441 recorded `REMOTE_E2EE_WRONG_PEER_STALE_TRUST_NEGATIVES_PASS`; D439 recorded port 39176 marker/ACK diagnostic success; D435 recorded stdin trigger remediation success; D419 recorded replay/corrupt negatives passed.
+  - **Recovery result:** The D443 listener compile failure is recovered by py_compile gates and local listener self-test. The D443 response-writer safety violation is recovered by proof-root file-based response-writer policy with `RESPONSE_WRITER_FILE_BASED yes`. The D444 retained-qsc preflight command-shape failure is recovered by a proof-root writer that generated a compiled remote checker and streamed it to remote stdin with local-only capture. The enhanced self-recovery policy was applied only to local proof/tooling issues or a pre-E2EE forwarding identity harness issue, with cleanup and final pass evidence recorded under the proof root.
+  - **Retained qsc result:** Retained remote qsc was rechecked before run 1 and before run 2 at `/home/qslcodex/qsl-remote-test/bin/qsc`, owner/group `qslcodex/qslcodex`, mode `700`, size `102103920`, and SHA-256 `6bf9e59fdae397c2e0f88538d700cccbee80d229c6a979cc79555e39fea2b4f7`; remote help succeeded with local-only output capture. A final post-cleanup retained-qsc recheck matched the same values. The retained qsc was not mutated.
+  - **Local qsc provenance:** Local qsc was built from clean checkout `836e62ca106c` with `cargo build -p qsc --locked --bin qsc` under proof-root `CARGO_TARGET_DIR`; local help succeeded; qsc runtime/dependency drift since D441 source commit `4fbbfaf04ecd` was empty, so retained-qsc restage was not required.
+  - **Peer-label proof result:** Current qsc tests/source show Alice-to-Bob baseline send uses Alice send `--to bob` and Bob receive `--from alice`; the receive CLI/source treats `--from` as the protocol peer/session label used for decrypt context. Wrong-peer negative used a distinct synthetic wrong peer. Bob-to-Alice reply, if used, would use Bob as Alice's receive peer label.
+  - **Generated script / marker result:** Generated listener, trigger, local harness, remote harness, and boundary scripts compiled before use. Local listener self-test passed before SSH marker precheck. Integrated port 39176 marker traversal and ACK passed before qsc E2EE in run 1 and run 2.
+  - **Run 1 result:** Run 1 used fresh local/remote roots, passed valid Alice-to-Bob qsc E2EE, and Bob baseline receive with `--from alice` succeeded. Run 1 wrong-peer negative executed with a distinct synthetic wrong peer and failed closed without plaintext in checked-in evidence, without unexpected output creation, and without selected-state mutation. Run 1 cleanup removed the remote run root and local sensitive runtime, closed local/remote port 39176, and left no proof-root process.
+  - **Run 2 result:** Run 2 started only after proving run-1 local and remote roots absent, used fresh local/remote roots, passed valid Alice-to-Bob qsc E2EE, and Bob baseline receive with `--from alice` succeeded. Run 2 stale/replaced-peer negative executed with a second synthetic Alice identity and failed closed with identity/peer mismatch while selected state remained unchanged. Run 2 cleanup removed the remote run root, removed the local sensitive runtime, removed the empty remote parent proof root, closed local/remote port 39176, and left no proof-root process.
+  - **No-stale/no-secret result:** No stale state reuse was detected across the two runs. The no-secret-output review passed after a scanner self-hit false positive was corrected; checked-in evidence contains redacted summaries only and no private key, passphrase, token, password, raw qsc private state, or raw payload material.
+  - **Security invariants introduced/changed:**
+    - No qsl-server use occurs.
+    - No qsl-attachments use occurs.
+    - No package installation occurs.
+    - No remote source checkout/build occurs.
+    - No qwork/qstart/qresume execution occurs.
+    - No qsl-backup execution occurs.
+    - No qsc source/test/fuzz/Cargo mutation occurs.
+    - No workflow/script/helper mutation occurs.
+    - No corpus/vector/input mutation occurs.
+    - No dependency/lockfile mutation occurs.
+    - No formal/refimpl/service/public/backup mutation occurs.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No secret-material-complete claim is made.
+    - No side-channel-free claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No perfect-crypto claim is made.
+    - Exactly one READY remains mandatory until closeout.
+  - **Alternatives considered:**
+    - Reuse the D445 failed root (rejected; retry used a fresh proof ID and fresh roots).
+    - Retry Bob receive with `--from bob` (rejected because qsc test/source surfaces prove `--from alice` for Bob receiving Alice's message).
+    - Skip per-run marker/ACK or retained-qsc gates (rejected by fail-closed gate).
+    - Use qsl-server or qsl-attachments (rejected as out of scope).
+    - Treat repeated-run success as a forbidden readiness or completeness claim (rejected because the evidence is bounded internal synthetic qsc evidence).
+  - **Implications for spec/impl/tests:**
+    - `docs/governance/evidence/NA-0537_qsl_remote_qsc_e2ee_repeated_run_cleanup_freshness_implementation_harness.md` records qwork proof verification, D445/D444/D443 recovery, peer-label proof, retained-qsc freshness, command manifest, generated-script safety, per-run marker/ACK, valid paths, wrong-peer and stale/replaced-peer negatives, cleanup, no-stale-state proof, no-secret-output review, stewardship reviews, claim boundaries, and selected successor.
+    - `tests/NA-0537_qsl_remote_qsc_e2ee_repeated_run_cleanup_freshness_implementation_testplan.md` records startup gates, inheritance, peer-label requirements, per-run runtime gates, acceptance markers, required validation, stop conditions, and claim boundary.
+    - `TRACEABILITY.md` maps NA-0537 to D-1064 and selected NA-0538 public evidence sync authorization successor.
+  - **Selected successor:** `NA-0538 -- QSL Website / Repository Public Evidence Sync Scope Authorization Plan`.
+  - **References:** NA-0537; selected NA-0538 public evidence sync authorization successor; D-1064; D-1063; D-1062; D445 response `/home/victor/work/qsl/codex/responses/NA0537_recover_retry2_20260624T205833Z_D445.md`; D444 response `/home/victor/work/qsl/codex/responses/NA0537_recover_retry_20260624T202909Z_D444.md`; D443 response `/home/victor/work/qsl/codex/responses/NA0537_20260624T201124Z_D443.md`; D442 response `/home/victor/work/qsl/codex/responses/NA0536_20260624T182046Z_D442.md`; D441 response `/home/victor/work/qsl/codex/responses/NA0535_20260624T172341Z_D441.md`; D439 response `/home/victor/work/qsl/codex/responses/NA0534_20260624T153252Z_D439.md`; D435 response `/home/victor/work/qsl/codex/responses/NA0531_20260624T053219Z_D435.md`; D419 response `/home/victor/work/qsl/codex/responses/NA0523_recover_retry_20260622T145242Z_D419.md`; `docs/governance/evidence/NA-0537_qsl_remote_qsc_e2ee_repeated_run_cleanup_freshness_implementation_harness.md`; `tests/NA-0537_qsl_remote_qsc_e2ee_repeated_run_cleanup_freshness_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

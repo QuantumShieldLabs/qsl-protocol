@@ -7,7 +7,8 @@ evidence in public.**
 
 QSL is a research-stage, post-quantum-first secure messaging protocol and demo
 client effort. This public repository is for review, reproduction, and
-iteration. It is not production-ready.
+iteration. It is not production-ready, public-ready, or a public internet
+service readiness claim.
 
 ## Start With The Evidence
 
@@ -59,6 +60,11 @@ currently exists.
 - Deterministic Suite-2 vector categories, reference implementation checks,
   bounded formal/model checks, and selected fail-closed negative paths are
   mapped in the [release-readiness evidence map](docs/public/RELEASE_READINESS_EVIDENCE_MAP.md).
+- Bounded qsc evidence now includes same-host qsc tests, a direct remote qsc
+  E2EE workflow using synthetic data, retained-qsc staging/restaging checks,
+  SSH reverse-forward marker/ACK proof, Build-to-Inspiron qsc E2EE success,
+  selected wrong-peer and stale/replaced-peer negatives, selected replay and
+  corrupt-delivery negatives, and repeated-run cleanup/freshness evidence.
 - Non-production demos, stress/soak evidence, KT-negative demo proof, attachment
   demo proof, and reviewer reproduction paths are linked from the
   [demo acceptance criteria](docs/demo/DEMO_ACCEPTANCE_CRITERIA.md) and the
@@ -71,8 +77,13 @@ currently exists.
 ## What Is Not Proven Yet
 
 - Production readiness.
+- Public readiness.
 - Public internet service readiness.
 - External review completion.
+- No crypto completeness, identity completeness, or trust completeness.
+- No replay-proof or downgrade-proof status.
+- No secret-material completeness, side-channel freedom, vulnerability freedom,
+  bug freedom, or perfect crypto.
 - Anonymity, metadata-free messaging, or untraceability.
 - Runtime identifier rotation or runtime default padding beyond harness proof.
 - Complete runtime sanitized-error coverage or production retention/deletion

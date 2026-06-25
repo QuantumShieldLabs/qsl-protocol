@@ -4,7 +4,7 @@ Goals: G1, G2, G3, G4, G5
 
 Status: Authoritative
 Owner: QSL maintainers
-Last-Updated: 2026-05-15
+Last-Updated: 2026-06-25
 Replaces: n/a
 Superseded-By: n/a
 
@@ -20,14 +20,42 @@ Start with:
 - [README.md](../../README.md)
 - [Release-readiness evidence map](RELEASE_READINESS_EVIDENCE_MAP.md)
 - [External review package](EXTERNAL_REVIEW_PACKAGE.md)
+- [Website claim matrix](WEBSITE_CLAIM_MATRIX.md)
 - [Traceability](../../TRACEABILITY.md)
 - [Decisions](../../DECISIONS.md)
+
+## Current Bounded qsc Evidence
+
+The latest repository sync adds public navigation for bounded qsc evidence, not
+public readiness. The evidence now includes:
+
+- direct qsc client-to-client E2EE work using synthetic data;
+- same-host qsc tests and retained-qsc staging/restaging checks;
+- SSH reverse-forward marker/ACK evidence and Build-to-Inspiron qsc E2EE
+  success;
+- selected wrong-peer, stale/replaced-peer, replay, and corrupt-delivery
+  negative cases;
+- repeated-run cleanup/freshness proof under a controlled lab setup;
+- public-safety and advisories gates, including the quinn-proto
+  RUSTSEC-2026-0185 remediation baseline;
+- bounded formal/model checks, corpus validators, and secret-material scans.
+
+Use the [release-readiness evidence map](RELEASE_READINESS_EVIDENCE_MAP.md) for
+the evidence-to-gap map and the
+[external review package](EXTERNAL_REVIEW_PACKAGE.md) for reviewer orientation.
+The implementation record is
+[NA-0539 public evidence sync](../governance/evidence/NA-0539_qsl_website_repository_public_evidence_sync_implementation_harness.md).
 
 ## What QSL Is Not
 
 - Not a production messaging service.
+- Not a public readiness claim.
 - Not a public internet service readiness claim.
 - Not completed external review.
+- Not crypto-complete, identity-complete, or trust-complete.
+- Not replay-proof or downgrade-proof.
+- Not secret-material-complete, not side-channel-free, not vulnerability-free,
+  not bug-free, and not perfect-crypto.
 - Not anonymity, metadata-free messaging, or untraceability.
 - Not production deployment approval for qsl-server or qsl-attachments.
 - Not evidence that runtime identifier rotation, runtime default padding,
@@ -47,6 +75,7 @@ Key routes:
 - Formal/model checks: [formal README](../../formal/README.md)
 - Claim-boundary package: [External review package](EXTERNAL_REVIEW_PACKAGE.md)
 - Public visibility strategy: [Public attention and visibility strategy](PUBLIC_ATTENTION_AND_VISIBILITY_STRATEGY.md)
+- Bounded claim wording: [Website claim matrix](WEBSITE_CLAIM_MATRIX.md)
 
 ## Demo Evidence
 

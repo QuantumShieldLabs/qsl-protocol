@@ -97,6 +97,39 @@ Last-Updated: 2026-06-25
 - PR merge commit: pending at journal authoring.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0539 update
+
+- Directive: QSL-DIR-2026-06-25-451 -- Execute NA-0539 QSL Website / Repository Public Evidence Sync Implementation Harness, Optional Closeout to Selected NA-0540.
+- Begin timestamp (UTC): 2026-06-25T19:40:16Z.
+- Repo path: `/srv/qbuild/work/NA-0539/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0539_website_repository_public_evidence_sync_impl_20260625T194016Z`.
+- Codex did not run qwork, qstart, qresume, SSH, scp, sftp, rsync, remote commands, qsc E2EE, qsc send, qsc receive, qsc protocol commands, qsl-server, qsl-attachments, qsl-backup, qbuild SSD maintenance apply, cargo update, dependency mutation, lockfile mutation, workflow/script/helper mutation, qsc source/test/fuzz/Cargo mutation, corpus/vector/input mutation, formal/refimpl/service/backup mutation, public/ path creation, or website/ path creation.
+- qwork proof files were read and copied from the lane `.qwork` directory.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `7f94277eb541`; proof recorded `startup_result=OK`, lane `NA-0539`, repo `qsl-protocol`, clean worktree/index/untracked state, READY_COUNT 1, queue top READY `NA-0539`, and requested lane status READY.
+- Fetch performed only after proof/live ref match and disk proof below threshold. Root filesystem usage was 37%; `/backup/qsl` usage was 33%.
+- qbuild SSD maintenance helper was read-only checked at root:root mode 755; timer was enabled and active. Maintenance apply was not run.
+- Startup queue proof: READY_COUNT 1; READY NA-0539; NA-0538 DONE; NA-0537 DONE.
+- Startup decision proof: D-1066 once, D-1067 once, D-1068 absent before patch, D-1069 absent, duplicate decision record count zero.
+- Main health proof on `7f94277eb541`: public-safety completed success, advisories completed success, and no completed red required checks.
+- Lockfile proof: root and nested qsc fuzz lockfiles both retained `quinn-proto 0.11.15`; Cargo manifests had no drift.
+- qsl-backup read-only proof: installed helper matched expected digest prefix `e9ecff3d22ed`, Codex ops source appears exactly once, and qsl-backup was not executed.
+- D450/D449/D448/D446/D441/D439/D419 inheritance consumed. D449 selected `PUBLIC_EVIDENCE_SYNC_IMPLEMENTATION_READY`, exact path bundle, claim policy, and proof/redaction rules.
+- Path inventory completed: all selected parent directories exist; missing NA-0539 evidence/testplan paths are created under authorized parents only.
+- Implementation paths: `README.md`, `docs/README.md`, `docs/public/INDEX.md`, `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`, `docs/public/EXTERNAL_REVIEW_PACKAGE.md`, `docs/public/WEBSITE_CLAIM_MATRIX.md`, `docs/governance/evidence/NA-0539_qsl_website_repository_public_evidence_sync_implementation_harness.md`, `tests/NA-0539_qsl_website_repository_public_evidence_sync_implementation_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- D-1068 records classification `PUBLIC_EVIDENCE_SYNC_IMPLEMENTATION_PASS`.
+- Public sync content now links bounded qsc evidence, residual gaps, no-claim boundaries, and review invitation.
+- qsl-server and qsl-attachments remain deferred. No qsc source mutation, dependency/lockfile mutation, workflow/script/helper mutation, public/ path creation, or website/ path creation occurs.
+- Recovered failure: first main check-run parser failed due to a Python one-line f-string quoting error. Classification: recoverable command-shape issue. Corrective action: reran parser with simpler string formatting. Final result: main public-safety and advisories parsed as completed success.
+- Recovered failure: first implementation patch failed before mutation because one `docs/public/INDEX.md` context line was malformed in the patch. Classification: recoverable patch-context issue. Corrective action: split implementation into smaller file-targeted patches. Final result: smaller patches applied inside the D-1066 path bundle.
+- Pending validation at journal authoring: diff check, scope guard, queue/decision proof, link checks, private-material scans, overclaim scans, claim matrix proof, docs-only classifier, PR body preflight, goal-lint, marker proof, cargo audits, cargo fmt, and qsc adversarial shell syntax checks.
+- Selected successor after success classification: `NA-0540 -- QSL Local Ops SSD Hygiene / Shared Cargo Target Authorization Plan`.
+- Branch: `na-0539-website-repository-public-evidence-sync`.
+- PR title: `NA-0539: implement website repository public evidence sync`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Wait accounting file: `/srv/qbuild/tmp/NA0539_website_repository_public_evidence_sync_impl_20260625T194016Z/wait_accounting.tsv`.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0538 closeout and NA-0539 restoration update
 
 - Directive: QSL-DIR-2026-06-25-450 -- Close Out NA-0538 After Public Evidence Sync Authorization Public-Safety Completion and Restore NA-0539.

@@ -1,8 +1,8 @@
-Goals: G1, G3, G5
+Goals: G1, G2, G3, G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-05-03
+Last-Updated: 2026-06-25
 Replaces: n/a
 Superseded-By: n/a
 
@@ -13,6 +13,37 @@ Directive: QSL-DIR-2026-05-03-025 / NA-0245
 Audit posture: public website truthfulness and repo-sync audit only. This matrix does not authorize website implementation changes.
 
 Retrieval timestamp for public website pages: 2026-05-03T16:09:26Z unless a row notes a more specific timestamp.
+
+## NA-0539 Repository Claim Policy Addendum
+
+NA-0539 updates selected repository public docs only. It does not create or
+mutate `public/` or `website/` paths, does not update an external website, and
+does not authorize website implementation.
+
+| Permitted public wording | Forbidden wording | Evidence source | Required qualifier |
+| --- | --- | --- | --- |
+| QSL has bounded evidence for a direct remote qsc E2EE workflow using synthetic data. | QSL is production ready, public ready, or public-internet ready. | D446 and [NA-0537 evidence](../governance/evidence/NA-0537_qsl_remote_qsc_e2ee_repeated_run_cleanup_freshness_implementation_harness.md). | Engineering evidence under controlled lab conditions; not production readiness. |
+| QSL has repeated-run cleanup/freshness evidence under a controlled lab setup. | QSL has complete crypto, complete identity, complete trust, or completed external review. | D446 and [NA-0537 evidence](../governance/evidence/NA-0537_qsl_remote_qsc_e2ee_repeated_run_cleanup_freshness_implementation_harness.md). | Selected qsc proof only; external review remains invited and incomplete. |
+| QSL has fail-closed evidence for selected wrong-peer, stale/replaced-peer, replay, and corrupt-delivery cases. | QSL is replay proof, downgrade proof, vulnerability free, bug free, or has perfect crypto. | D441, D419, [NA-0535 evidence](../governance/evidence/NA-0535_qsl_remote_qsc_e2ee_wrong_peer_stale_trust_retry_after_port_diagnostic_implementation_harness.md), and [NA-0523 evidence](../governance/evidence/NA-0523_qsl_remote_qsc_e2ee_replay_corrupt_negative_boundary_implementation_harness.md). | Selected negative cases only; not universal proof. |
+| QSL has public-safety/advisories gate evidence and quinn-proto RUSTSEC-2026-0185 remediation in current lockfiles. | QSL has vulnerability-free, bug-free, or secret-material-complete status. | D450, NA-0539 startup proof, root `Cargo.lock`, and nested qsc fuzz lockfile checks. | Advisory posture is gate-backed and time-sensitive. |
+| We invite review of evidence, limits, and next steps. | External review is complete or certification is complete. | [External review package](EXTERNAL_REVIEW_PACKAGE.md) and D-1068. | Review invitation only; findings and dispositions must be recorded separately. |
+
+Required no-claim boundaries:
+
+- no public-readiness claim;
+- no production-readiness claim;
+- no public-internet-readiness claim;
+- no external-review-complete claim;
+- no crypto-complete claim;
+- no identity-complete claim;
+- no trust-complete claim;
+- no replay-proof claim;
+- no downgrade-proof claim;
+- no secret-material-complete claim;
+- no side-channel-free claim;
+- no vulnerability-free claim;
+- no bug-free claim;
+- no perfect-crypto claim.
 
 ## Pages Checked
 

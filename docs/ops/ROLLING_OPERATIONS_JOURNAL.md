@@ -6,6 +6,39 @@ Last-Updated: 2026-06-25
 
 # Rolling Operations Journal
 
+## NA-0543 update
+
+- Directive: QSL-DIR-2026-06-26-456 -- Execute NA-0543 QSL Local Ops SSD Hygiene / Shared Cargo Target Implementation Harness, Optional Closeout to NA-0544 Operator Action Proof Review.
+- Begin timestamp (UTC): 2026-06-26T03:23:31Z.
+- Repo path: `/srv/qbuild/work/NA-0543/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0543_local_ops_ssd_shared_target_impl_20260626T032331Z`.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0543/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- qwork proof recorded `startup_result=OK`, lane NA-0543, repo `qsl-protocol`, path `/srv/qbuild/work/NA-0543/qsl-protocol`, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0543, requested lane status READY, and `head_equals_origin_main=yes`.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `8635151e3fdd`; proof written time `2026-06-26T03:22:27Z` was after D455 response timestamp `2026-06-26T01:26:19Z`.
+- Disk gate passed: `/` usage 37%; `/backup/qsl` usage 33%; STOP threshold 95% was not hit.
+- Fetch occurred only after proof/live ref match and disk proof. Local main remained equal to origin/main at `8635151e3fdd`.
+- Startup queue proof: READY_COUNT 1; READY NA-0543; NA-0542 DONE; NA-0541 DONE.
+- Startup decision proof: D-1074 once; D-1075 once; D-1076 absent before patch; D-1077 absent; duplicate decision record count zero.
+- Main health proof on `8635151e3fdd`: public-safety completed success, advisories completed success, no red required checks, root and nested qsc fuzz lockfiles retained `quinn-proto 0.11.15`, and qsl-backup read-only checksum/source-list proof passed without executing qsl-backup.
+- D455/D454/D453 inheritance consumed: exact tracked/operator path bundles, scheduled maintenance classification, storage/cache inventory, qwork/qbuild architecture, selected shared target, explicit-target precedence, isolated-target exceptions, pressure thresholds, cleanup/retention/logging policy, rollback policy, and no implementation in NA-0542.
+- Installed state was rechecked read-only: maintenance script SHA `53e9820f0ece`, service SHA `d4f37b7ed0ee`, timer SHA `d50064ce5878`, timer enabled/active, next run `2026-06-26 03:42:32 CDT`, `LastTriggerUSec` empty, service inactive/dead with no execution timestamps, service journal empty, and latest housekeeping log still the manual apply run. Classification remained `MAINTENANCE_NO_SCHEDULED_RUN_YET`.
+- Toolchain class matched D-1074: rustc/cargo 1.95.0, host `x86_64-unknown-linux-gnu`.
+- Branch: `na-0543-local-ops-ssd-shared-target-implementation`.
+- Tracked implementation paths are limited to the D-1074 nine-path bundle.
+- Implemented `scripts/local_ops/qbuild-ssd-maintenance.sh` and `scripts/local_ops/qbuild-shared-target-env.sh`; initial `bash -n` passed for both.
+- Added runbook, dry-run-first operator action bundle, implementation evidence, implementation testplan, D-1076, TRACEABILITY row, and this journal entry.
+- Recovered failure: first proof-root fixture suite invocation returned 126 because the new tracked local_ops scripts were not executable. Classification: recoverable local proof/test harness command-shape issue before live mutation. Corrective action: marked the tracked templates executable. Final result: fixture suite progressed.
+- Recovered failure: fixture mode initially rejected the directive proof root under `/srv/qbuild/tmp`. Classification: recoverable fixture-root guard issue. Corrective action: narrowed rejection to live `/srv/qbuild/work`, `/srv/qbuild/cache`, `/srv/qbuild/mirrors`, and `/backup` roots while allowing the directive proof-root subtree required by NA-0543. Final result: fixture suite passed.
+- Recovered failure: first operator-bundle safety scan command had shell quoting around literal command-substitution tokens. Classification: recoverable scan command-shape issue. Corrective action: reran with character-code literals and command-block-only scanning. Final result: operator-bundle safety scan passed.
+- Recovered validation issue: overclaim scan flagged wrapped no-claim boundary lines where negative wording was on a prior line. Classification: recoverable line-wrapping false positive. Corrective action: made no-claim lines self-contained. Final result: overclaim scan passed.
+- Recovered staging issue: evidence path is ignored by `.gitignore` `**/evidence/`. Classification: expected ignored evidence-path add. Corrective action: force-added the exact NA-0543 evidence path only. Final result: staged scope guard passed.
+- Proposed operator files and manifests were generated under the proof root. Proposed qwork/env/wrapper copies passed `bash -n`; proposed systemd units passed `systemd-analyze verify`; proof-root patch and rollback-patch application tests passed.
+- Proof-root fixture/static suite passed: dry-run no mutation of fixture targets/proof roots, active-process safe skip, newest-descendant mtime policy, archive transaction, collision fail-closed, broken symlink reporting, JSON/human logging, log retention, fixture mount guard, live-root rejection, helper expected path, explicit target preservation, isolated target override, unrelated repo rejection, invalid build-class rejection, qwork propagation proof, proposed systemd validation, rollback patch, and manifest JSON validation.
+- Local validation passed so far: `git diff --check`, exact nine-path scope guard including the ignored evidence path, queue/decision proof, marker proof, link-check, private-material scan, added-line overclaim scan, docs/tooling classifier, PR body preflight, rollback-bundle proof, root cargo audit, nested qsc fuzz cargo audit, cargo fmt, `sh -n scripts/ci/qsc_adversarial.sh`, and `bash -n scripts/ci/qsc_adversarial.sh`.
+- PR, merge, optional closeout, and CI wait accounting are pending at this journal update.
+- No operator-owned path was mutated. No qwork/qstart/qresume, qsl-backup, sudo/admin action, systemd mutation, maintenance live dry-run/apply, shared-target creation, backup mutation, qsc source/test/fuzz/Cargo mutation, dependency/lockfile mutation, workflow mutation, qsl-server use, or qsl-attachments use occurred.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no reproducibility-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced.
+
 ## NA-0540 update
 
 - Directive: QSL-DIR-2026-06-25-453 -- Execute NA-0540 QSL Daily Public Progress Update Cadence and Site-Wide Public Accuracy Sweep Authorization Plan, Optional Closeout to NA-0541.

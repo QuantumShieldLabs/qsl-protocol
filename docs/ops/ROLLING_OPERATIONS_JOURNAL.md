@@ -38347,3 +38347,43 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - PR: pending at journal authoring.
 - PR merge commit: pending at journal authoring.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0542 local ops SSD hygiene shared target authorization update
+
+- Directive: QSL-DIR-2026-06-26-455 -- Execute NA-0542 QSL Local Ops SSD Hygiene / Shared Cargo Target Authorization Plan, Optional Closeout to NA-0543.
+- Begin timestamp (America/Chicago): 2026-06-25T19:39:46-0500.
+- Begin timestamp (UTC): 2026-06-26T00:39:46Z.
+- Repo path: `/srv/qbuild/work/NA-0542/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0542_local_ops_ssd_hygiene_shared_target_authorization_20260626T004121Z`.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0542/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `dedd73199619`; proof recorded `startup_result=OK`, lane `NA-0542`, repo `qsl-protocol`, clean worktree/index/untracked state, READY_COUNT 1, queue top READY `NA-0542`, and requested lane status READY.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main remained at `dedd73199619`.
+- Disk watermark before patch: `/` 37% used; `/backup/qsl` 33% used.
+- Startup queue proof: READY_COUNT 1; READY NA-0542; NA-0541 DONE; NA-0540 DONE.
+- Startup decision proof: D-1072 once, D-1073 once, D-1074 absent before patch, D-1075 absent before patch, duplicate decision record count zero.
+- Main health proof on `dedd73199619`: public-safety success, advisories success, 36 check-runs retrieved, and no completed red check-runs.
+- qsl-backup read-only proof: installed helper digest `e9ecff3d22ed`; Codex ops sources appear in the installed helper source list. qsl-backup was not executed.
+- Root and nested qsc fuzz lockfiles both retained `quinn-proto 0.11.15`; no Cargo manifest drift was present before patch.
+- D454/D453/D452 inheritance consumed: implementation PR #1355 merged at `7060fc40b57b`, closeout PR #1356 merged at `dedd73199619`, classification `DAILY_PUBLIC_PROGRESS_SITE_ACCURACY_IMPLEMENTATION_PASS`, NA-0542 sole READY, June 25 public Progress entry published, and SSD/shared-target governance deferred to this authorization lane.
+- Operator maintenance context consumed read-only: root usage reduced from 95% to about 37%, old per-lane targets deleted, 1,133 old proof roots archived to `/backup/qsl`, symlinks retained, maintenance script root:root mode 755, service/timer installed, and timer enabled/active.
+- Installed maintenance inventory completed: script SHA `53e9820f0ece`, service SHA `d4f37b7ed0ee`, timer SHA `d50064ce5878`; service runs apply mode with 7-day policies and warn-percent 90; timer next run `2026-06-26 03:42:32 CDT`.
+- Scheduled run classification: `MAINTENANCE_NO_SCHEDULED_RUN_YET`; service journal had no entries and timer `LastTriggerUSec` was empty. Latest housekeeping log was an operator/manual apply run ending `QBUILD_SSD_MAINTENANCE_OK`, not a scheduled run.
+- Storage inventory completed: `/srv/qbuild/work` 52G, `/srv/qbuild/tmp` 65G, `/srv/qbuild/cache` 21G, `/backup/qsl/qbuild-tmp-archive` 37G, 28 remaining per-lane qsl-protocol targets totaling about 43GB, 1,133 archived symlinks, zero broken symlinks, and `/srv/qbuild/cache/targets/qsl-protocol` about 17G.
+- qwork/qbuild architecture discovered read-only: `qwork` resolves to `/home/victor/.local/bin/qwork`, a wrapper for `/srv/qbuild/tools/qwork.sh`; `qstart`, `qresume`, and `qbuild` were not resolvable in this shell; qwork source is operator-owned local state, not tracked by this repo; current qwork cannot export `CARGO_TARGET_DIR` into the parent shell.
+- Current maintenance safety review completed: future hardening must check newest descendant mtime, verify archive copies before source removal, distinguish safe active-build skips in systemd, add bounded machine-readable logs, and keep shared targets excluded from age cleanup.
+- Selected classification: `LOCAL_OPS_SSD_HYGIENE_SHARED_TARGET_IMPLEMENTATION_READY`.
+- Selected shared target base: `/srv/qbuild/cache/targets/qsl-protocol`.
+- Selected ordinary shared target: `/srv/qbuild/cache/targets/qsl-protocol/rustc-1.95.0-x86_64-unknown-linux-gnu/default`.
+- Proof-root-isolated targets remain mandatory for binary provenance/hash evidence, remote binary staging/restaging, reproducibility-sensitive builds, sanitizer/Miri/fuzz/toolchain-specialized runs when collision risk exists, directives explicitly requiring isolated artifacts, and ambiguous source-to-binary attribution.
+- Exact future tracked paths selected for NA-0543: `docs/ops/DOC-OPS-005_qbuild_SSD_Hygiene_and_Shared_Cargo_Target_Runbook_v0.1.0_DRAFT.md`, `docs/ops/NA-0543_qbuild_operator_action_bundle.md`, `scripts/local_ops/qbuild-ssd-maintenance.sh`, `scripts/local_ops/qbuild-shared-target-env.sh`, `docs/governance/evidence/NA-0543_qsl_local_ops_ssd_hygiene_shared_cargo_target_implementation_harness.md`, `tests/NA-0543_qsl_local_ops_ssd_hygiene_shared_cargo_target_implementation_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+- Exact future operator-owned paths selected: `/srv/qbuild/tools/env_qbuild.sh`, `/srv/qbuild/tools/qwork.sh`, `/home/victor/.local/bin/qwork`, `/usr/local/sbin/qbuild-ssd-maintenance`, `/etc/systemd/system/qbuild-ssd-maintenance.service`, `/etc/systemd/system/qbuild-ssd-maintenance.timer`, `/srv/qbuild/cache/targets/qsl-protocol/rustc-1.95.0-x86_64-unknown-linux-gnu/default`, `/backup/qsl/qbuild-tmp-archive/housekeeping-logs`, and `/backup/qsl/qbuild-local-ops-rollback/NA-0543/pre-change`.
+- D-1074 records NA-0542 local ops SSD hygiene and shared Cargo target authorization.
+- Governance patch paths: NA-0542 evidence doc, NA-0542 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Recovered failure: first storage JSON summarizer parsed raw `find` path output as an integer. Classification: recoverable local proof-tooling parser mistake. Corrective action: reran with Python-native path counting. Final result: storage inventory JSON passed.
+- Recovered failure: first storage Markdown writer failed due to shell quoting around a Python f-string. Classification: recoverable proof-writer command-shape issue. Corrective action: reran with `.format()` and double-quoted dictionary keys. Final result: storage inventory Markdown passed.
+- Branch: pending at journal authoring.
+- PR title: `NA-0542: authorize SSD hygiene and shared Cargo target scope`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No NA-0543 implementation, local maintenance mutation, systemd mutation, qwork/qbuild mutation, qwork/qstart/qresume execution, qsl-backup execution, backup mutation, maintenance dry-run/apply, shared target creation, target symlink creation, deletion/move/archive/relink, qsc source/test/fuzz/Cargo mutation, dependency/lockfile mutation, workflow mutation, qsl-server/qsl-attachments use, public content mutation, or public/production/security-completion claim is introduced by NA-0542.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no reproducibility-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced.

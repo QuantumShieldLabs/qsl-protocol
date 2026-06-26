@@ -31140,7 +31140,7 @@ Forbidden scope:
 ---
 
 ### NA-0543 — QSL Local Ops SSD Hygiene / Shared Cargo Target Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -31255,6 +31255,60 @@ Forbidden scope:
 - no vulnerability-free claim;
 - no bug-free claim;
 - no perfect-build claim.
+
+---
+
+### NA-0544 — QSL Local Ops SSD Hygiene / Shared Cargo Target Operator Action Proof Review Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Review operator-provided proof that the D-1076 operator action bundle was
+executed exactly or intentionally not executed. Verify installed maintenance
+script/service/timer state, shared-target path, qwork target-selection proof,
+explicit-target preservation, unrelated-repository isolation, rollback
+inventory, disk state, latest maintenance result, and no qsl-backup/backup
+boundary regression. Codex must perform read-only review only and must not run
+privileged/local installation commands.
+
+Prerequisite before Codex execution:
+- operator must review the merged NA-0543 action bundle;
+- Director must provide one-step-at-a-time operator commands;
+- operator performs any authorized local/root actions;
+- operator supplies or preserves the exact proof outputs required by D-1076;
+- operator runs fresh qwork NA-0544 qsl-protocol only after the local action
+  phase is complete or intentionally declined.
+
+Allowed scope:
+- docs/governance/evidence/NA-0544_qsl_local_ops_ssd_hygiene_shared_cargo_target_operator_action_proof_review.md
+- tests/NA-0544_qsl_local_ops_ssd_hygiene_shared_cargo_target_operator_action_proof_review_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only operator proof outputs
+- read-only installed script/unit/qwork/shared-target state
+- read-only disk/log/timer state
+- successor selection
+
+Forbidden scope:
+- sudo/admin action;
+- installed script mutation;
+- systemd mutation;
+- qwork/qbuild mutation;
+- shared-target creation/deletion/mutation;
+- maintenance apply;
+- qwork/qstart/qresume execution by Codex;
+- qsl-backup execution;
+- backup mutation;
+- qsc source/test/fuzz/Cargo mutation;
+- dependency/lockfile mutation;
+- workflow mutation;
+- remote action;
+- qsl-server/qsl-attachments;
+- public content mutation;
+- public-readiness, production-readiness, reproducibility-complete,
+  backup/restore-complete, vulnerability-free, bug-free, or perfect-build
+  claim.
 
 ---
 

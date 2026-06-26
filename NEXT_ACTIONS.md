@@ -30954,7 +30954,7 @@ Closeout evidence:
 ---
 
 ### NA-0541 — QSL Daily Public Progress Section, First End-of-Day Update, and Site-Wide Accuracy Sweep Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -31073,6 +31073,69 @@ Required validation markers:
 - NA0541_NO_PRODUCTION_READINESS_CLAIM_OK
 - NA0541_NO_CRYPTO_COMPLETE_CLAIM_OK
 - NA0541_ONE_READY_INVARIANT_OK
+
+Closeout evidence:
+- Implementation PR #1355 merged at `7060fc40b57b`.
+- D-1072 accepted classification `DAILY_PUBLIC_PROGRESS_SITE_ACCURACY_IMPLEMENTATION_PASS`.
+- Post-merge advisories and public-safety completed success for `7060fc40b57b`.
+- The first public Progress entry was published at `docs/public/progress/2026-06-25.md`.
+- The Progress index was published at `docs/public/PROGRESS.md`.
+- The site-wide public accuracy sweep and correction ledger were accepted.
+- No material out-of-scope correction blocked closeout.
+- This closeout performs no NA-0542 implementation, no local-ops mutation, no remote action, no qwork/qstart/qresume execution, no qsl-backup execution, no qsc source/test/fuzz/Cargo mutation, no dependency/lockfile mutation, no workflow/script/helper mutation, no public-content mutation, and no qsl-server/qsl-attachments use.
+
+---
+
+### NA-0542 — QSL Local Ops SSD Hygiene / Shared Cargo Target Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize a local-ops/tooling lane to formalize the operator-installed qbuild
+SSD maintenance process and design a shared Cargo target policy that prevents
+per-lane Rust target duplication. Review the existing maintenance script and
+timer read-only, define cleanup/archive/retention/logging/pressure thresholds,
+design ordinary qwork/qbuild use of a shared SSD Cargo target while preserving
+proof-root-isolated targets when required, select exact implementation paths,
+and preserve no qwork/qstart/qresume execution by Codex, no qsl-backup
+execution, no backup mutation, no qsc runtime/source mutation, no remote action,
+and no public/production/security-completion claims.
+
+Allowed scope:
+- docs/governance/evidence/NA-0542_qsl_local_ops_ssd_hygiene_shared_cargo_target_authorization_plan.md
+- tests/NA-0542_qsl_local_ops_ssd_hygiene_shared_cargo_target_authorization_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only review of /usr/local/sbin/qbuild-ssd-maintenance
+- read-only review of qbuild-ssd-maintenance.service
+- read-only review of qbuild-ssd-maintenance.timer
+- read-only review of disk usage and qbuild directory sizing
+- read-only review of qwork/qbuild configuration and source, if available
+- selection of exact later implementation paths
+- shared CARGO_TARGET_DIR design
+- cleanup/archive/retention policy
+- logging/monitoring policy
+- successor selection
+
+Forbidden scope:
+- local maintenance script mutation in authorization lane;
+- systemd unit mutation in authorization lane;
+- cron/timer mutation;
+- qwork/qbuild mutation in authorization lane;
+- qwork/qstart/qresume execution by Codex;
+- qsl-backup execution;
+- backup mutation;
+- qsc source/test/fuzz/Cargo mutation;
+- dependency/lockfile mutation;
+- workflow mutation unless selected for a later implementation lane;
+- remote action;
+- qsl-server/qsl-attachments;
+- public-content mutation;
+- public-readiness, production-readiness, public-internet-readiness,
+  external-review-complete, crypto-complete, identity-complete, trust-complete,
+  replay-proof, downgrade-proof, vulnerability-free, bug-free, or
+  perfect-crypto claim.
 
 ---
 

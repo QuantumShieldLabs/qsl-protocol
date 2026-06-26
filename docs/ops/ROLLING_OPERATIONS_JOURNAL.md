@@ -76,6 +76,23 @@ Last-Updated: 2026-06-25
 - Validation, PR, merge, optional closeout, and final response status remain pending at journal authoring.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no secret-material-complete claim is introduced. no side-channel-free claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0541 closeout and NA-0542 restoration update
+
+- Directive: QSL-DIR-2026-06-25-454 optional closeout packet.
+- Begin timestamp (UTC): 2026-06-26T00:06:00Z.
+- Repo path: `/srv/qbuild/work/NA-0541/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0541_daily_public_progress_first_entry_site_accuracy_impl_20260625T234328Z`.
+- Implementation PR #1355 merged at `7060fc40b57b` from head `79ad40297838`.
+- Post-merge advisories completed success on `7060fc40b57b`.
+- Post-merge public-safety completed success on `7060fc40b57b`.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0541_closeout_restore_na0542_testplan.md`.
+- NA-0541 is marked DONE.
+- NA-0542 is restored READY using the directive-provided local ops SSD hygiene / shared Cargo target authorization plan block.
+- D-1073 records NA-0541 closeout and NA-0542 restoration.
+- This closeout performs no NA-0542 implementation, no local-ops mutation, no public-content mutation, no qwork/qstart/qresume execution, no qsl-backup execution, no qsc source/test/fuzz/Cargo mutation, no dependency/lockfile mutation, no workflow/script/helper mutation, no remote action, and no qsl-server/qsl-attachments use.
+- Closeout validation and PR status remain pending at journal authoring.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no crypto-complete claim is introduced. no identity-complete claim is introduced. no trust-complete claim is introduced. no replay-proof claim is introduced. no downgrade-proof claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0537 update
 
 - Directive: QSL-DIR-2026-06-24-446 -- Recover NA-0537 Baseline Receive Peer-Label Command Shape, Execute Remote qsc E2EE Repeated-Run / Cleanup / Freshness Implementation Harness, Optional Closeout to Selected NA-0538.

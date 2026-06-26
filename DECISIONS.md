@@ -28794,3 +28794,40 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0541 to D-1072 and the selected NA-0542 successor.
   - **Selected successor:** `NA-0542 -- QSL Local Ops SSD Hygiene / Shared Cargo Target Authorization Plan`.
   - **References:** NA-0541; NA-0540; D-1072; D-1071; D-1070; D-1069; D-1068; D453 response `/home/victor/work/qsl/codex/responses/NA0540_20260625T230241Z_D453.md`; D452 response `/home/victor/work/qsl/codex/responses/NA0539_closeout_restore_na0540_20260625T214828Z_D452.md`; D451 response `/home/victor/work/qsl/codex/responses/NA0539_20260625T200840Z_D451.md`; D446 response `/home/victor/work/qsl/codex/responses/NA0537_peer_label_recover_retry_20260625T030317Z_D446.md`; `docs/public/PROGRESS.md`; `docs/public/progress/2026-06-25.md`; `docs/public/WEBSITE_CLAIM_MATRIX.md`; `docs/governance/evidence/NA-0541_qsl_daily_public_progress_section_first_end_of_day_update_site_accuracy_implementation_harness.md`; `tests/NA-0541_qsl_daily_public_progress_section_first_end_of_day_update_site_accuracy_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1073
+  - **Title:** NA-0541 closeout and NA-0542 restoration
+  - **Date:** 2026-06-25
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0541 implementation evidence is accepted after PR #1355 merged as `7060fc40b57b` and post-merge `public-safety` and `advisories` completed success. NA-0541 is marked DONE. `NA-0542 -- QSL Local Ops SSD Hygiene / Shared Cargo Target Authorization Plan` is restored as the sole READY successor.
+  - **Evidence consumed:** D-1072 records classification `DAILY_PUBLIC_PROGRESS_SITE_ACCURACY_IMPLEMENTATION_PASS`, the README/docs/public Progress architecture, the June 25, 2026 dated Progress entry, all D-1070 public-facing paths scanned, verified factual and claim-safety corrections, no material out-of-scope correction blocker, no internal/private material promoted, no raw proof logs, no public/website path creation, no automation, no local-ops mutation, no qsc source/test/fuzz/Cargo mutation, no dependency/lockfile mutation, no workflow/script/helper mutation, no qsl-server/qsl-attachments use, no remote action, no qwork/qsl-backup execution, and no public/production/security-completion claims.
+  - **Restored successor scope:** NA-0542 is authorization/planning only. It may review the operator-installed qbuild SSD maintenance script/timer and qwork/qbuild configuration read-only, design cleanup/archive/retention/logging/pressure thresholds, design shared Cargo target policy, select exact later implementation paths, and choose a successor. It must not mutate local maintenance, systemd, qwork/qbuild, backup, qsc runtime/source, dependencies, workflows, public content, qsl-server, or qsl-attachments.
+  - **Closeout result:** This closeout performs no NA-0542 implementation, no local-ops mutation, no public-content mutation, no qwork/qstart/qresume execution, no qsl-backup execution, no qsc source/test/fuzz/Cargo mutation, no dependency/lockfile mutation, no workflow/script/helper mutation, no remote action, and no qsl-server/qsl-attachments use.
+  - **Security invariants introduced/changed:**
+    - NA-0541 is DONE.
+    - NA-0542 is READY as the sole successor.
+    - Exactly one READY remains mandatory.
+    - No NA-0542 implementation is performed by closeout.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No crypto-complete claim is made.
+    - No identity-complete claim is made.
+    - No trust-complete claim is made.
+    - No replay-proof claim is made.
+    - No downgrade-proof claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No perfect-crypto claim is made.
+  - **Alternatives considered:**
+    - Stop after implementation merge (rejected because post-merge public-safety and advisories reached success and no material out-of-scope correction blocked closeout).
+    - Implement NA-0542 during closeout (rejected because closeout only restores the successor).
+    - Restore a different successor (rejected because D-1072 selected NA-0542 and the directive provided the exact successor block).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0541 DONE and restores NA-0542 READY.
+    - `tests/NA-0541_closeout_restore_na0542_testplan.md` records implementation merge proof, D-1072 acceptance, post-merge public-safety/advisories proof, first Progress entry proof, site accuracy sweep acceptance, no material out-of-scope correction blocker, no NA-0542 implementation, no local-ops mutation, no remote action, no qsl-server/qsl-attachments use, no public/production overclaim, and one READY invariant.
+    - `TRACEABILITY.md` maps D-1072, D-1073, PR #1355, and the restored NA-0542 successor.
+  - **Selected successor:** `NA-0542 -- QSL Local Ops SSD Hygiene / Shared Cargo Target Authorization Plan`.
+  - **References:** NA-0541; NA-0542; D-1073; D-1072; PR #1355; merge `7060fc40b57b`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0541_closeout_restore_na0542_testplan.md`; `docs/governance/evidence/NA-0541_qsl_daily_public_progress_section_first_end_of_day_update_site_accuracy_implementation_harness.md`; `tests/NA-0541_qsl_daily_public_progress_section_first_end_of_day_update_site_accuracy_implementation_testplan.md`; `docs/public/PROGRESS.md`; `docs/public/progress/2026-06-25.md`

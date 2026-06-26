@@ -38387,3 +38387,26 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - PR merge commit: pending at journal authoring.
 - No NA-0543 implementation, local maintenance mutation, systemd mutation, qwork/qbuild mutation, qwork/qstart/qresume execution, qsl-backup execution, backup mutation, maintenance dry-run/apply, shared target creation, target symlink creation, deletion/move/archive/relink, qsc source/test/fuzz/Cargo mutation, dependency/lockfile mutation, workflow mutation, qsl-server/qsl-attachments use, public content mutation, or public/production/security-completion claim is introduced by NA-0542.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no reproducibility-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced.
+
+## NA-0542 closeout and NA-0543 restoration update
+
+- Directive: QSL-DIR-2026-06-26-455 optional closeout packet.
+- Begin timestamp (UTC): 2026-06-26T01:11:00Z.
+- Repo path: `/srv/qbuild/work/NA-0542/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0542_local_ops_ssd_hygiene_shared_target_authorization_20260626T004121Z`.
+- Authorization PR #1357 merged at `987229c8dc0e` from head `d0a1fe9f0e3c`.
+- Post-merge public-safety completed success on `987229c8dc0e`.
+- Post-merge advisories completed success on `987229c8dc0e`.
+- Post-merge check polling reached 36 attached checks, zero incomplete, and zero failures before closeout.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0542_closeout_restore_na0543_testplan.md`.
+- NA-0542 is marked DONE.
+- NA-0543 is restored READY using the exact D-1074-selected implementation successor block.
+- D-1075 records NA-0542 closeout and NA-0543 restoration.
+- The restored NA-0543 block includes the exact tracked mutation paths, exact operator-owned paths, exact shared target path, isolated-target exceptions, dry-run/apply boundary, exact proof outputs, exact rollback commands, and no wildcard authority.
+- This closeout does not implement NA-0543 and does not mutate local maintenance scripts, systemd units, qwork/qbuild source, shell profiles, Cargo configuration, shared targets, target symlinks, qbuild tmp/archive/cache state, backup state, qsc source/test/fuzz/Cargo paths, dependencies, lockfiles, workflows, public content, qsl-server, or qsl-attachments.
+- Codex did not run qwork, qstart, qresume, qsl-backup, maintenance dry-run/apply, sudo/admin action, daemon-reload, systemctl mutation, target creation, symlink creation, deletion, move, archive, relink, qsc send/receive, qsl-server, or qsl-attachments.
+- Branch: `na-0542-closeout-restore-na0543`.
+- PR title: `NA-0542: closeout and restore NA-0543`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no reproducibility-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced.

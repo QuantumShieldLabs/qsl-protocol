@@ -28886,3 +28886,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0542 to D-1074 and the selected NA-0543 implementation successor.
   - **Selected successor:** `NA-0543 -- QSL Local Ops SSD Hygiene / Shared Cargo Target Implementation Harness`.
   - **References:** NA-0542; NA-0543; D-1074; D-1073; D-1072; D454 response `/home/victor/work/qsl/codex/responses/NA0541_20260626T001721Z_D454.md`; D453 response `/home/victor/work/qsl/codex/responses/NA0540_20260625T230241Z_D453.md`; D452 response `/home/victor/work/qsl/codex/responses/NA0539_closeout_restore_na0540_20260625T214828Z_D452.md`; `docs/public/PROGRESS.md`; `docs/public/progress/2026-06-25.md`; `docs/governance/evidence/NA-0542_qsl_local_ops_ssd_hygiene_shared_cargo_target_authorization_plan.md`; `tests/NA-0542_qsl_local_ops_ssd_hygiene_shared_cargo_target_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1075
+  - **Title:** NA-0542 closeout and NA-0543 restoration
+  - **Date:** 2026-06-26
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** D-1074 authorization evidence is accepted after PR #1357 merged as `987229c8dc0e` and post-merge `public-safety` and `advisories` completed success. NA-0542 is marked DONE. `NA-0543 -- QSL Local Ops SSD Hygiene / Shared Cargo Target Implementation Harness` is restored as the sole READY successor using the exact D-1074 tracked mutation paths, operator-owned paths, proof outputs, shared target path, isolated-target exceptions, stop rules, and rollback rules.
+  - **Evidence consumed:** D-1074 records classification `LOCAL_OPS_SSD_HYGIENE_SHARED_TARGET_IMPLEMENTATION_READY`, installed maintenance inventory, scheduled-run classification `MAINTENANCE_NO_SCHEDULED_RUN_YET`, storage/cache inventory, current maintenance safety review, qwork/qbuild architecture discovery, selected SSD retention/pressure/logging policy, selected shared Cargo target design, ordinary shared target `/srv/qbuild/cache/targets/qsl-protocol/rustc-1.95.0-x86_64-unknown-linux-gnu/default`, isolated-target exceptions, environment precedence, operator/Codex boundary, exact future tracked paths, exact future operator-owned paths, exact proof-review outputs, rollback plan, and no implementation in NA-0542.
+  - **Restored successor scope:** NA-0543 may mutate only `docs/ops/DOC-OPS-005_qbuild_SSD_Hygiene_and_Shared_Cargo_Target_Runbook_v0.1.0_DRAFT.md`, `docs/ops/NA-0543_qbuild_operator_action_bundle.md`, `scripts/local_ops/qbuild-ssd-maintenance.sh`, `scripts/local_ops/qbuild-shared-target-env.sh`, `docs/governance/evidence/NA-0543_qsl_local_ops_ssd_hygiene_shared_cargo_target_implementation_harness.md`, `tests/NA-0543_qsl_local_ops_ssd_hygiene_shared_cargo_target_implementation_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+  - **Operator-owned boundary restored:** Operator-owned action paths remain `/srv/qbuild/tools/env_qbuild.sh`, `/srv/qbuild/tools/qwork.sh`, `/home/victor/.local/bin/qwork`, `/usr/local/sbin/qbuild-ssd-maintenance`, `/etc/systemd/system/qbuild-ssd-maintenance.service`, `/etc/systemd/system/qbuild-ssd-maintenance.timer`, `/srv/qbuild/cache/targets/qsl-protocol/rustc-1.95.0-x86_64-unknown-linux-gnu/default`, `/backup/qsl/qbuild-tmp-archive/housekeeping-logs`, and `/backup/qsl/qbuild-local-ops-rollback/NA-0543/pre-change`. Codex may generate tracked review artifacts only; operator executes privileged/local actions; Codex verifies later read-only.
+  - **Closeout result:** This closeout performs no NA-0543 implementation, no local maintenance mutation, no systemd mutation, no qwork/qbuild mutation, no qwork/qstart/qresume execution, no qsl-backup execution, no backup mutation, no maintenance dry-run or apply, no shared target creation, no target symlink creation, no deletion/move/archive/relink, no qsc source/test/fuzz/Cargo mutation, no dependency/lockfile mutation, no workflow mutation, no qsl-server/qsl-attachments use, no public content mutation, and no public/production/security-completion claims.
+  - **Security invariants introduced/changed:**
+    - NA-0542 is DONE.
+    - NA-0543 is READY as the sole successor.
+    - Exactly one READY remains mandatory.
+    - NA-0543 must use the exact D-1074 path bundle and operator boundary.
+    - NA-0543 must not implement operator-owned local changes directly.
+    - NA-0543 must not run qwork/qstart/qresume, sudo, qsl-backup, maintenance apply, daemon-reload, systemctl mutation, target creation, symlink creation, deletion, archive, relink, or backup mutation by Codex.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No reproducibility-complete claim is made.
+    - No backup/restore-complete claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No perfect-build claim is made.
+  - **Alternatives considered:**
+    - Stop after authorization merge (rejected because post-merge public-safety and advisories completed success and D-1074 selected an exact successor).
+    - Implement NA-0543 during closeout (rejected because closeout only restores the successor).
+    - Restore an operator-action-only successor (rejected because D-1074 selected the implementation-ready classification with exact tracked and operator paths).
+    - Restore a successor with wildcard authority (rejected because D-1074 forbids wildcard mutation authority).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0542 DONE and restores NA-0543 READY with the exact D-1074 path bundle and boundaries.
+    - `tests/NA-0542_closeout_restore_na0543_testplan.md` records PR #1357 merge proof, D-1074 acceptance, public-safety/advisories proof, exact path-bundle restoration, operator boundary restoration, no NA-0543 implementation, no local-ops mutation, no qwork/qsl-backup execution, no qsl-server/qsl-attachments use, and exactly-one-READY proof.
+    - `TRACEABILITY.md` maps D-1074, D-1075, PR #1357, and the restored NA-0543 successor.
+  - **Selected successor:** `NA-0543 -- QSL Local Ops SSD Hygiene / Shared Cargo Target Implementation Harness`.
+  - **References:** NA-0542; NA-0543; D-1075; D-1074; PR #1357; merge `987229c8dc0e`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0542_closeout_restore_na0543_testplan.md`; `docs/governance/evidence/NA-0542_qsl_local_ops_ssd_hygiene_shared_cargo_target_authorization_plan.md`; `tests/NA-0542_qsl_local_ops_ssd_hygiene_shared_cargo_target_authorization_testplan.md`

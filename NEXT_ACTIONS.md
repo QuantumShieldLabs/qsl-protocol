@@ -31087,7 +31087,7 @@ Closeout evidence:
 ---
 
 ### NA-0542 — QSL Local Ops SSD Hygiene / Shared Cargo Target Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -31136,6 +31136,125 @@ Forbidden scope:
   external-review-complete, crypto-complete, identity-complete, trust-complete,
   replay-proof, downgrade-proof, vulnerability-free, bug-free, or
   perfect-crypto claim.
+
+---
+
+### NA-0543 — QSL Local Ops SSD Hygiene / Shared Cargo Target Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the D-1074-authorized tracked local-ops sources, maintenance
+hardening, shared Cargo-target integration, operator action bundle, validation,
+and rollback evidence. Codex may mutate only the exact tracked paths named by
+D-1074. Codex must not run qwork/qstart/qresume, sudo, qsl-backup,
+maintenance apply, daemon-reload, systemctl mutation, or operator-owned
+privileged actions. Privileged/local installation commands must be emitted as
+an exact reviewed operator action bundle and verified in a later proof phase.
+
+Tracked mutation paths:
+- docs/ops/DOC-OPS-005_qbuild_SSD_Hygiene_and_Shared_Cargo_Target_Runbook_v0.1.0_DRAFT.md
+- docs/ops/NA-0543_qbuild_operator_action_bundle.md
+- scripts/local_ops/qbuild-ssd-maintenance.sh
+- scripts/local_ops/qbuild-shared-target-env.sh
+- docs/governance/evidence/NA-0543_qsl_local_ops_ssd_hygiene_shared_cargo_target_implementation_harness.md
+- tests/NA-0543_qsl_local_ops_ssd_hygiene_shared_cargo_target_implementation_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+
+Operator-owned action paths:
+- /srv/qbuild/tools/env_qbuild.sh
+- /srv/qbuild/tools/qwork.sh
+- /home/victor/.local/bin/qwork
+- /usr/local/sbin/qbuild-ssd-maintenance
+- /etc/systemd/system/qbuild-ssd-maintenance.service
+- /etc/systemd/system/qbuild-ssd-maintenance.timer
+- /srv/qbuild/cache/targets/qsl-protocol/rustc-1.95.0-x86_64-unknown-linux-gnu/default
+- /backup/qsl/qbuild-tmp-archive/housekeeping-logs
+- /backup/qsl/qbuild-local-ops-rollback/NA-0543/pre-change
+
+Exact shared target:
+- Base: /srv/qbuild/cache/targets/qsl-protocol
+- Ordinary current partition: /srv/qbuild/cache/targets/qsl-protocol/rustc-1.95.0-x86_64-unknown-linux-gnu/default
+- Toolchain class: cargo/rustc 1.95.0, host x86_64-unknown-linux-gnu, ordinary default build class
+- If the toolchain class differs before implementation, STOP and request refreshed path authorization.
+
+Isolated-target exceptions:
+- binary provenance or binary hash evidence;
+- remote binary staging or restaging;
+- reproducibility-sensitive builds;
+- sanitizer, Miri, fuzz, or toolchain-specialized runs when collision risk exists;
+- directives explicitly requiring isolated build artifacts;
+- any case where source-to-binary attribution would otherwise be ambiguous.
+
+Dry-run/apply boundary:
+- Tracked scripts and operator bundle must default to dry-run where applicable.
+- Codex may write tracked script templates and runbook text only.
+- Codex must not run maintenance dry-run or apply.
+- Operator may run privileged/local install, daemon-reload, timer restart, and
+  maintenance commands only from the reviewed operator action bundle.
+- Codex may verify operator results later read-only.
+
+Required proof outputs:
+- maintenance_installation/post_install_inventory.md
+- maintenance_installation/post_install_inventory.json
+- maintenance_run_review/post_install_run_review.md
+- maintenance_run_review/post_install_run_review.json
+- shared_target/post_operator_shared_target_verification.md
+- shared_target/post_operator_shared_target_verification.json
+- rollback/rollback_bundle_inventory.md
+- rollback/rollback_bundle_inventory.json
+- validation/na0543_scope_guard.txt
+- validation/na0543_marker_proof.txt
+
+Rollback commands:
+Codex must not run these commands. They are operator-run rollback commands only:
+
+```bash
+sudo install -o root -g root -m 755 /backup/qsl/qbuild-local-ops-rollback/NA-0543/pre-change/usr_local_sbin_qbuild-ssd-maintenance /usr/local/sbin/qbuild-ssd-maintenance
+sudo install -o root -g root -m 644 /backup/qsl/qbuild-local-ops-rollback/NA-0543/pre-change/qbuild-ssd-maintenance.service /etc/systemd/system/qbuild-ssd-maintenance.service
+sudo install -o root -g root -m 644 /backup/qsl/qbuild-local-ops-rollback/NA-0543/pre-change/qbuild-ssd-maintenance.timer /etc/systemd/system/qbuild-ssd-maintenance.timer
+install -m 775 /backup/qsl/qbuild-local-ops-rollback/NA-0543/pre-change/srv_qbuild_tools_env_qbuild.sh /srv/qbuild/tools/env_qbuild.sh
+install -m 775 /backup/qsl/qbuild-local-ops-rollback/NA-0543/pre-change/srv_qbuild_tools_qwork.sh /srv/qbuild/tools/qwork.sh
+install -m 755 /backup/qsl/qbuild-local-ops-rollback/NA-0543/pre-change/home_victor_local_bin_qwork /home/victor/.local/bin/qwork
+sudo systemctl daemon-reload
+sudo systemctl restart qbuild-ssd-maintenance.timer
+```
+
+Stop rules:
+- STOP if any mutation would touch paths outside the tracked mutation paths.
+- STOP if exact operator-owned action paths differ from D-1074.
+- STOP if cargo/rustc toolchain class differs from D-1074 before shared-target implementation.
+- STOP if operator action bundle would contain secrets or private proof content.
+- STOP if implementation would require Codex to run qwork/qstart/qresume,
+  sudo, qsl-backup, maintenance apply, daemon-reload, systemctl mutation,
+  target creation, symlink creation, deletion, archive, relink, or backup mutation.
+- STOP if public-safety or advisories are red.
+- STOP if more than one READY would result.
+
+Forbidden scope:
+- NA-0543 closeout implementation during this implementation harness;
+- qwork/qstart/qresume execution by Codex;
+- sudo/admin action by Codex;
+- qsl-backup execution;
+- backup mutation;
+- maintenance dry-run or apply by Codex;
+- systemd mutation by Codex;
+- operator-owned privileged/local action by Codex;
+- qsc source/test/fuzz/Cargo mutation unless separately authorized;
+- dependency/lockfile mutation unless separately authorized;
+- workflow mutation unless separately authorized;
+- qsl-server/qsl-attachments use or mutation;
+- no public-readiness claim;
+- no production-readiness claim;
+- no public-internet-readiness claim;
+- no external-review-complete claim;
+- no reproducibility-complete claim;
+- no backup/restore-complete claim;
+- no vulnerability-free claim;
+- no bug-free claim;
+- no perfect-build claim.
 
 ---
 

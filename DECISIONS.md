@@ -28924,3 +28924,52 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps D-1074, D-1075, PR #1357, and the restored NA-0543 successor.
   - **Selected successor:** `NA-0543 -- QSL Local Ops SSD Hygiene / Shared Cargo Target Implementation Harness`.
   - **References:** NA-0542; NA-0543; D-1075; D-1074; PR #1357; merge `987229c8dc0e`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0542_closeout_restore_na0543_testplan.md`; `docs/governance/evidence/NA-0542_qsl_local_ops_ssd_hygiene_shared_cargo_target_authorization_plan.md`; `tests/NA-0542_qsl_local_ops_ssd_hygiene_shared_cargo_target_authorization_testplan.md`
+
+- **ID:** D-1076
+  - **Title:** NA-0543 local ops SSD hygiene and shared Cargo target implementation artifacts
+  - **Date:** 2026-06-26
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0543 consumes D455/D454/D453 inheritance plus D-1074/D-1075 and implements the D-1074-authorized tracked local-ops artifacts: canonical qbuild SSD maintenance template, shared Cargo target helper, runbook, dry-run-first operator action bundle, fixture/static validation plan, proof-root proposed qwork/env/wrapper integration files, proof-root proposed systemd units, rollback manifests, evidence, traceability, and rolling journal updates. The result classification is `LOCAL_OPS_SSD_HYGIENE_SHARED_TARGET_OPERATOR_ACTION_BUNDLE_READY`, selecting `NA-0544 -- QSL Local Ops SSD Hygiene / Shared Cargo Target Operator Action Proof Review Harness` as the expected successor after merge and green checks.
+  - **Evidence consumed:** D455 recorded PR #1357 merged at `987229c8dc0e`, closeout PR #1358 merged at `8635151e3fdd`, D-1074 authorization accepted, D-1075 restoring NA-0543 READY, scheduled maintenance state `MAINTENANCE_NO_SCHEDULED_RUN_YET`, installed maintenance inventory, qwork/qbuild architecture, exact tracked/operator path bundles, ordinary shared target `/srv/qbuild/cache/targets/qsl-protocol/rustc-1.95.0-x86_64-unknown-linux-gnu/default`, explicit-target precedence, isolated-target exceptions, pressure thresholds, rollback policy, and no implementation in NA-0542.
+  - **Latest scheduled maintenance classification:** NA-0543 rechecked installed maintenance read-only. The timer was enabled/active with next run listed, `LastTriggerUSec` remained empty, the service had no execution timestamps, the service journal had no entries, and the latest housekeeping log remained the manual apply run. Classification remained `MAINTENANCE_NO_SCHEDULED_RUN_YET`.
+  - **Exact tracked paths changed:** `docs/ops/DOC-OPS-005_qbuild_SSD_Hygiene_and_Shared_Cargo_Target_Runbook_v0.1.0_DRAFT.md`; `docs/ops/NA-0543_qbuild_operator_action_bundle.md`; `scripts/local_ops/qbuild-ssd-maintenance.sh`; `scripts/local_ops/qbuild-shared-target-env.sh`; `docs/governance/evidence/NA-0543_qsl_local_ops_ssd_hygiene_shared_cargo_target_implementation_harness.md`; `tests/NA-0543_qsl_local_ops_ssd_hygiene_shared_cargo_target_implementation_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`.
+  - **Canonical maintenance script:** `scripts/local_ops/qbuild-ssd-maintenance.sh` defaults to dry-run, requires explicit `--apply`, requires root for live apply, requires `/backup/qsl` mount outside fixture mode, uses nonblocking flock, validates roots/candidates, rejects dangerous destructive inputs, excludes `/srv/qbuild/cache`, uses newest-descendant mtime candidate policy, distinguishes active-build safe skip exit `3`, uses copy/verify/finalize/move/symlink archive transactions, emits human and JSON logs, applies bounded log retention, and supports proof-root-only fixture mode.
+  - **Shared-target helper:** `scripts/local_ops/qbuild-shared-target-env.sh` computes or preserves target selection for qsl-protocol, validates repo/toolchain/build-class components, emits shell/JSON/qwork-proof output, preserves explicit `CARGO_TARGET_DIR`, supports directive isolated targets, rejects unrelated repos by default, and creates directories only in explicit prepare mode.
+  - **Proposed qwork integration mechanism:** Proof-root proposed copies update env/qwork/wrapper logic to use file-backed propagation. qwork writes `cargo_target_mode`, `cargo_target_dir`, `cargo_target_source`, `cargo_target_build_class`, `cargo_target_toolchain_key`, `explicit_target_preserved`, and `shared_target_ready` into startup proof files and writes a shell-safe environment file under the lane `.qwork` directory. This survives the qwork child-process boundary and does not rely on magical parent-shell export.
+  - **Proposed systemd hardening:** Proof-root proposed units add `/backup/qsl` mount condition, exact installed script `ExecStart`, safe-skip/reclaimed `SuccessExitStatus`, bounded timeout, background scheduling, `NoNewPrivileges`, `PrivateTmp`, filesystem protection, explicit writable paths, and no network requirement.
+  - **Operator bundle:** `docs/ops/NA-0543_qbuild_operator_action_bundle.md` begins with `DO NOT RUN UNTIL DIRECTOR REVIEW`, is dry-run-first, gives one-step-at-a-time operator commands, names every root-owned action, requires rollback capture under `/backup/qsl/qbuild-local-ops-rollback/NA-0543/pre-change`, lists proof outputs, and includes rollback commands. Codex did not execute the bundle.
+  - **Rollback bundle:** Proof-root rollback manifests and the tracked operator bundle specify pre-change capture and restoration of `/usr/local/sbin/qbuild-ssd-maintenance`, the service unit, the timer unit, `/srv/qbuild/tools/env_qbuild.sh`, `/srv/qbuild/tools/qwork.sh`, and `/home/victor/.local/bin/qwork`; rollback does not delete the shared target by default.
+  - **Security invariants introduced/changed:**
+    - Local SSD maintenance remains fail-closed under ambiguous roots, mounts, active builds, archive collisions, copy verification failure, and missing proof fields.
+    - Routine cleanup never deletes `/srv/qbuild/cache` or the shared target.
+    - Shared targets are ordinary-build acceleration only, not provenance or reproducibility proof.
+    - Explicit target overrides remain authoritative.
+    - Proof-root-isolated targets remain mandatory for binary provenance/hash evidence, remote binary staging/restaging, reproducibility-sensitive builds, sanitizer/Miri/fuzz/toolchain-specialized runs where collision risk exists, directives requiring isolated artifacts, and source-to-binary attribution ambiguity.
+    - Operator-owned privileged/local mutation remains operator-run only and requires later read-only proof review.
+    - Exactly one READY remains mandatory.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No external-review-complete claim is made.
+    - No reproducibility-complete claim is made.
+    - No backup/restore-complete claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No perfect-build claim is made.
+  - **Operator-owned paths:** `/srv/qbuild/tools/env_qbuild.sh`; `/srv/qbuild/tools/qwork.sh`; `/home/victor/.local/bin/qwork`; `/usr/local/sbin/qbuild-ssd-maintenance`; `/etc/systemd/system/qbuild-ssd-maintenance.service`; `/etc/systemd/system/qbuild-ssd-maintenance.timer`; `/srv/qbuild/cache/targets/qsl-protocol/rustc-1.95.0-x86_64-unknown-linux-gnu/default`; `/backup/qsl/qbuild-tmp-archive/housekeeping-logs`; `/backup/qsl/qbuild-local-ops-rollback/NA-0543/pre-change`.
+  - **No operator action executed:** NA-0543 performs no installed/local path mutation, no systemd mutation, no shared-target creation or mutation, no qwork/qstart/qresume execution, no qsl-backup execution, no backup mutation, no maintenance live dry-run/apply, no qsc source/test/fuzz/Cargo mutation, no dependency/lockfile mutation, no workflow mutation, no qsl-server/qsl-attachments use, and no remote command.
+  - **Alternatives considered:**
+    - Install directly from Codex (rejected because D-1074 keeps privileged/local mutation operator-owned).
+    - Use shell profiles or global Cargo config for propagation (rejected because it affects unrelated repos).
+    - Use lane target symlinks (rejected because provenance and cleanup ambiguity are unacceptable).
+    - Treat shared target as reproducibility proof (rejected; isolated targets remain required for evidence-sensitive work).
+  - **Implications for spec/impl/tests:**
+    - `docs/ops/DOC-OPS-005_qbuild_SSD_Hygiene_and_Shared_Cargo_Target_Runbook_v0.1.0_DRAFT.md` records the runbook.
+    - `docs/ops/NA-0543_qbuild_operator_action_bundle.md` records the exact operator bundle.
+    - `scripts/local_ops/qbuild-ssd-maintenance.sh` and `scripts/local_ops/qbuild-shared-target-env.sh` are the tracked canonical templates.
+    - `docs/governance/evidence/NA-0543_qsl_local_ops_ssd_hygiene_shared_cargo_target_implementation_harness.md` records implementation evidence and claim boundaries.
+    - `tests/NA-0543_qsl_local_ops_ssd_hygiene_shared_cargo_target_implementation_testplan.md` records required markers and validation gates.
+    - `TRACEABILITY.md` maps NA-0543 to D-1076 and the expected NA-0544 successor.
+  - **Selected successor:** `NA-0544 -- QSL Local Ops SSD Hygiene / Shared Cargo Target Operator Action Proof Review Harness`.
+  - **References:** NA-0543; NA-0544; D-1076; D-1075; D-1074; D455 response `/home/victor/work/qsl/codex/responses/NA0542_20260626T012619Z_D455.md`; D454 response `/home/victor/work/qsl/codex/responses/NA0541_20260626T001721Z_D454.md`; D453 response `/home/victor/work/qsl/codex/responses/NA0540_20260625T230241Z_D453.md`; `docs/ops/DOC-OPS-005_qbuild_SSD_Hygiene_and_Shared_Cargo_Target_Runbook_v0.1.0_DRAFT.md`; `docs/ops/NA-0543_qbuild_operator_action_bundle.md`; `scripts/local_ops/qbuild-ssd-maintenance.sh`; `scripts/local_ops/qbuild-shared-target-env.sh`; `docs/governance/evidence/NA-0543_qsl_local_ops_ssd_hygiene_shared_cargo_target_implementation_harness.md`; `tests/NA-0543_qsl_local_ops_ssd_hygiene_shared_cargo_target_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

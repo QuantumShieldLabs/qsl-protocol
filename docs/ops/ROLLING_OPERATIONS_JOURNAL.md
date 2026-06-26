@@ -6,6 +6,30 @@ Last-Updated: 2026-06-25
 
 # Rolling Operations Journal
 
+## NA-0543 closeout and NA-0544 restoration update
+
+- Directive: QSL-DIR-2026-06-26-457 -- Execute NA-0543 Closeout and NA-0544 Restoration After Fresh Required-Check Classification.
+- Begin timestamp (UTC): 2026-06-26T18:31:47Z.
+- Repo path: `/srv/qbuild/work/NA-0543/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0543_closeout_restore_na0544_20260626T183147Z`.
+- Fresh qwork proof files were read and copied from `/srv/qbuild/work/NA-0543/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- qwork proof recorded `startup_result=OK`, lane NA-0543, repo `qsl-protocol`, path `/srv/qbuild/work/NA-0543/qsl-protocol`, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0543, requested lane status READY, and `head_equals_origin_main=yes`.
+- qwork proof HEAD, origin/main, and main matched live pre-fetch state at `717b38ac7d3d`; proof written time was `2026-06-26T18:15:26Z`.
+- Disk gate passed before mutation: `/` usage 36%; `/backup/qsl` usage 34%; STOP threshold 95% was not hit.
+- Fetch occurred only after proof/live ref match, clean tree, and disk proof. Local main matched origin/main at `717b38ac7d3d`, and the merge commit descended from PR #1359.
+- Startup queue proof: READY_COUNT 1; READY NA-0543; NA-0542 DONE; NA-0541 DONE.
+- Startup decision proof: D-1074 once; D-1075 once; D-1076 once; D-1077 absent before patch; D-1078 absent; duplicate decision count zero.
+- Fresh current-main required-check classification passed: public-safety completed success, advisories completed success, and every branch-protection required check was green or conclusively satisfied. PR-only required contexts goal-lint and CodeQL were proven success by PR #1359 status rollup; current main status rollup was success.
+- Non-required failed check-runs were recorded for forward audit: `remote-handshake`, `remote-relay`, and `relay-ui-integration`. They were not branch-protection required and did not touch this closeout-only governance scope.
+- D-1076 accepted PR #1359 merge at `717b38ac7d3d92033390a8827cde276fbdfcdf7b` with classification `LOCAL_OPS_SSD_HYGIENE_SHARED_TARGET_OPERATOR_ACTION_BUNDLE_READY`.
+- Operator bundle and rollback bundle readiness were verified from tracked artifacts. The operator bundle begins with `DO NOT RUN UNTIL DIRECTOR REVIEW`.
+- Codex did not execute the operator bundle. No installed/local path was mutated. No systemd mutation occurred. No qwork/qstart/qresume or qsl-backup was run by Codex. No backup mutation occurred. No shared target was created or mutated. No qsc source/test/fuzz/Cargo, dependency, lockfile, workflow, remote, qsl-server, or qsl-attachments work occurred.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, this journal, and `tests/NA-0543_closeout_restore_na0544_testplan.md`.
+- D-1077 records NA-0543 closeout and NA-0544 restoration.
+- NA-0543 is marked DONE.
+- NA-0544 is restored as the sole READY successor after merge.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no reproducibility-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced.
+
 ## NA-0543 update
 
 - Directive: QSL-DIR-2026-06-26-456 -- Execute NA-0543 QSL Local Ops SSD Hygiene / Shared Cargo Target Implementation Harness, Optional Closeout to NA-0544 Operator Action Proof Review.

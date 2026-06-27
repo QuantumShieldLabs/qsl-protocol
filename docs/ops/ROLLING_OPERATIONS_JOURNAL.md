@@ -6,6 +6,32 @@ Last-Updated: 2026-06-25
 
 # Rolling Operations Journal
 
+## NA-0544 operator action proof review update
+
+- Directive: QSL-DIR-2026-06-26-458 -- Execute NA-0544 Local Ops SSD Hygiene / Shared Cargo Target Operator Action Proof Review, Optional Closeout to NA-0545 Remote/Relay Forward-Audit Authorization.
+- Begin timestamp (UTC): 2026-06-27T01:12:22Z.
+- Repo path: `/srv/qbuild/work/NA-0544/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0544_operator_action_proof_review_20260627T011222Z`.
+- Fresh qwork proof files were read and copied from `/srv/qbuild/work/NA-0544/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- qwork proof recorded `startup_result=OK`, lane NA-0544, repo `qsl-protocol`, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0544, requested lane status READY, shared target mode, and shared target ready.
+- qwork proof timestamp was `2026-06-27T00:53:48Z`; proof HEAD/origin-main/main matched live pre-fetch state at `b4a64f78efe7`.
+- Disk gate passed before mutation: `/` usage 36%; `/backup/qsl` usage 34%; `/backup/qsl` was mounted.
+- Fetch occurred only after proof/live ref match, clean tree, disk proof, and mount proof. Local main matched origin/main at `b4a64f78efe7`.
+- Startup queue proof: READY_COUNT 1; READY NA-0544; NA-0543 DONE; NA-0542 DONE.
+- Startup decision proof: D-1076 once; D-1077 once; D-1078 absent before patch; D-1079 absent; duplicate decision count zero.
+- Current main health proof: public-safety completed success, advisories completed success, no observed failed required checks. PR #1360 head proved PR-only required contexts goal-lint success and CodeQL neutral/completed.
+- Inheritance proof consumed D-1076 and D-1077. D-1076 classification is `LOCAL_OPS_SSD_HYGIENE_SHARED_TARGET_OPERATOR_ACTION_BUNDLE_READY`; D-1077 restored NA-0544 as read-only proof review.
+- Rollback inventory hashes matched expected values for the pre-change maintenance script, service, timer, env script, qwork script, and old qwork wrapper.
+- Installed hashes matched: maintenance script `84f20f9e3189b8994f378ac8f8a2cde5a99f899496a8b393b7b15800a1149b0c`; service `7841add332a4ee37bd53b29e20b5d698c9e3f6014bec65ff98b6fc723b01c089`; timer `d50064ce5878a2910bd27c86dfb2631bf3bc94c5e7aee30c564704c94b323102`; env script `adf2c6dc8d719ca5b3a27260e8868ad7fde4d32ae98d19fdf8c5f10c3e30020d`; qwork script `175b0ea1d5b9abc07bdab66e9b92446e2a3d533018468e94a95c26f8698f86cf`; wrapper `97f27ced9daa2444742ba4a881f580c25b5cef1a670d83cb77668c7c4c791ee9`.
+- Shared target `/srv/qbuild/cache/targets/qsl-protocol/rustc-1.95.0-x86_64-unknown-linux-gnu/default` and parent directories are real directories owned `victor:victor` with mode `2775`.
+- qwork target-selection proof passed for default shared mode, explicit-target preservation, and unrelated-repository rejection.
+- Post-install dry-run proof at `/backup/qsl/qbuild-tmp-archive/housekeeping-logs/qbuild-ssd-maintenance_20260627T004638Z.*` reported dry-run mode, exit 0, 7 target candidates, 20 proof candidates, and zero deleted, archived, failed, broken symlinks, and reclaimed bytes.
+- Latest maintenance classification: `MAINTENANCE_CANONICAL_DRY_RUN_PASS`. No scheduled canonical apply after the operator install is visible yet; timer is enabled/active and this remains a monitoring follow-up.
+- D-1078 records NA-0544 operator action proof review acceptance and selects `NA-0545 -- QSL Remote/Relay Non-Required CI Failure Forward-Audit Authorization Plan` as successor.
+- NA-0544 implementation changes are limited to `docs/governance/evidence/NA-0544_qsl_local_ops_ssd_hygiene_shared_cargo_target_operator_action_proof_review.md`, `tests/NA-0544_qsl_local_ops_ssd_hygiene_shared_cargo_target_operator_action_proof_review_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Codex did not execute operator actions, qwork/qstart/qresume, qsl-backup, sudo/admin actions, systemd mutation, maintenance live dry-run/apply, remote commands, qsc send/receive/E2EE, qsl-server commands, or qsl-attachments commands.
+- No qsc source/test/fuzz/Cargo mutation, dependency/lockfile mutation, workflow mutation, backup mutation by Codex, public-readiness claim, production-readiness claim, reproducibility-complete claim, backup/restore-complete claim, vulnerability-free claim, bug-free claim, or perfect-build claim is introduced.
+
 ## NA-0543 closeout and NA-0544 restoration update
 
 - Directive: QSL-DIR-2026-06-26-457 -- Execute NA-0543 Closeout and NA-0544 Restoration After Fresh Required-Check Classification.

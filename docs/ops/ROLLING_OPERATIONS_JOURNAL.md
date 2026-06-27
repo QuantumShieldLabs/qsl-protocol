@@ -6,6 +6,32 @@ Last-Updated: 2026-06-27
 
 # Rolling Operations Journal
 
+## NA-0550 relay UI qsl-server boundary authorization update
+
+- Directive: QSL-DIR-2026-06-27-464 -- Execute NA-0550 Relay UI qsl-server Boundary Authorization Plan, Optional Closeout to NA-0551.
+- Repo path: `/srv/qbuild/work/NA-0550/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0550_relay_ui_qsl_server_boundary_authorization_20260627T215616Z`.
+- Fresh qwork proof files were read and copied from `/srv/qbuild/work/NA-0550/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-06-27T21:49:17Z`; proof HEAD/origin-main/main matched live pre-fetch state at `93971209e26c`.
+- Disk and mount gate passed before mutation: `/` usage below the 95% stop threshold and `/backup/qsl` mounted.
+- Fetch occurred only after proof/live ref match, clean tree, disk proof, and mount proof. Local main matched origin/main at `93971209e26c`.
+- Startup queue proof: READY_COUNT 1; READY NA-0550; NA-0549 DONE; NA-0548 DONE.
+- Startup decision proof: D-1088 once; D-1089 once; D-1090 absent before patch; D-1091 absent; duplicate decision count zero.
+- Current main required-check classification passed: public-safety completed success, advisories completed success, no failed required checks, and branch-protection required contexts classified. PR #1372 supplied aggregate/PR-only proof for goal-lint and CodeQL.
+- D-1088/D-1089 inheritance was consumed. remote-handshake exact future path is `scripts/demo/qsc_remote_handshake_smoke.sh`; remote-relay exact future path is `scripts/demo/qsc_remote_relay_smoke.sh`; relay-ui-integration remains qsl-server-boundary-required.
+- Relay UI workflow boundary reviewed read-only: qsl-server appears only as GitHub Actions black-box clone/build/run context; the inherited failure occurs after TCP bind proof and during v1-path health probing before ignored tests run.
+- qsl-protocol relay UI test/common references reviewed read-only. `relay_ui_integration.rs` depends on workflow-provided relay URL/token and does not define qsl-server health paths.
+- qsl-server metadata was reviewed through read-only GitHub API metadata. qsl-server classification: GitHub Actions black-box relay UI evidence only; no local qsl-server use, source mutation, or local reproduction authorized.
+- qsl-attachments metadata was reviewed through read-only GitHub API metadata. qsl-attachments classification: out of scope and not involved in the relay UI workflow/target failure.
+- Remote-handshake/remote-relay sequencing result: `REMOTE_SMOKE_REMEDIATION_CAN_PROCEED_INDEPENDENTLY`.
+- Result classification: `RELAY_UI_QSL_SERVER_BOUNDARY_REMOTE_SMOKE_REMEDIATION_FIRST_READY`.
+- Selected successor: `NA-0551 -- QSL Remote Handshake and Remote Relay Demo Script Exact Remediation Implementation Harness`.
+- Recovered failure: the first startup queue/decision parser expected unindented DECISIONS status fields. Classification: recoverable parser-shape issue. Corrective action: allowed indented decision fields and reran once. Final result: startup queue/decision proof passed.
+- NA-0550 implementation changes are limited to `docs/governance/evidence/NA-0550_relay_ui_qsl_server_boundary_authorization_plan.md`, `tests/NA-0550_relay_ui_qsl_server_boundary_authorization_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Codex did not execute qsl-server commands, qsl-server clone/build/run, qsl-server mutation, qsl-attachments commands, qsl-attachments clone/build/run, qsl-attachments mutation, reruns, workflow dispatches, local reproduction, workflow mutation, runtime/source mutation, qsc source/test/fuzz/Cargo mutation, dependency/lockfile mutation, qwork/qstart/qresume, qsl-backup, backup mutation, public-site mutation, or Cloudflare mutation.
+- Raw logs and raw artifacts remain proof-root-only. No raw logs or raw artifacts were committed and no private material was published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no reproducibility-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0549 closeout and NA-0550 restoration update
 
 - Directive: QSL-DIR-2026-06-27-463 optional closeout.

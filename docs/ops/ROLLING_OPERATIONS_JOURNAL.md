@@ -6,6 +6,35 @@ Last-Updated: 2026-06-25
 
 # Rolling Operations Journal
 
+## NA-0545 remote/relay forward-audit authorization update
+
+- Directive: QSL-DIR-2026-06-26-459 -- Execute NA-0545 Remote/Relay Non-Required CI Failure Forward-Audit Authorization Plan, Optional Closeout to NA-0546.
+- Repo path: `/srv/qbuild/work/NA-0545/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0545_remote_relay_forward_audit_20260627T021529Z`.
+- Fresh qwork proof files were read and copied from `/srv/qbuild/work/NA-0545/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-06-27T01:53:59Z`; proof HEAD/origin-main/main matched live pre-fetch state at `594704571c36`.
+- Disk and mount gate passed before mutation: `/` usage below the 95% stop threshold and `/backup/qsl` mounted.
+- Fetch occurred only after proof/live ref match, clean tree, disk proof, and mount proof. Local main matched origin/main at `594704571c36`.
+- Startup queue proof: READY_COUNT 1; READY NA-0545; NA-0544 DONE; NA-0543 DONE.
+- Startup decision proof: D-1078 once; D-1079 once; D-1080 absent before patch; D-1081 absent; duplicate decision count zero.
+- Current main required-check classification passed: public-safety completed success, advisories completed success, no failed required checks, and branch-protection required contexts classified. PR #1362 rollup provided PR-only required-context proof for goal-lint and CodeQL.
+- Historical failed non-required target runs were collected read-only: remote-handshake `28222737830`, remote-relay `28221877145`, and relay-ui-integration `28221488004`.
+- Failed-step logs were visible through read-only GitHub log access. Only bounded proof-root summaries were saved. No raw logs were copied into repository docs. Saved log summaries passed private-material scan.
+- Target classifications: remote-handshake `REMOTE_HANDSHAKE_RUNTIME_SCOPE_LIKELY`; remote-relay `REMOTE_RELAY_RUNTIME_SCOPE_LIKELY`; relay-ui-integration `RELAY_UI_WORKFLOW_SCOPE_LIKELY`.
+- Overall classification: `REMOTE_RELAY_FORWARD_AUDIT_REPRODUCTION_AUTHORIZATION_READY`.
+- Selected successor: `NA-0546 -- QSL Remote/Relay Non-Required CI Failure Bounded Reproduction Authorization Plan`.
+- Current workflow inventory was read-only and identified `.github/workflows/remote-handshake-tests.yml`, `.github/workflows/remote-relay-tests.yml`, and `.github/workflows/relay-ui-integration.yml`.
+- Referenced script/test inventory was read-only and identified `scripts/demo/qsc_remote_handshake_smoke.sh`, `scripts/demo/qsc_remote_relay_smoke.sh`, `qsl/qsl-client/qsc/tests/relay_ui_integration.rs`, and `qsl/qsl-client/qsc/tests/common/mod.rs`.
+- Recovered failure: first qwork proof verification parser invocation omitted the exported proof-root variable. Classification: recoverable command-shape issue. Corrective action: reran with the proof-root variable exported. Final result: qwork proof verification passed.
+- Recovered failure: first recovered-failure evidence writer used conflicting shell quotes. Classification: recoverable command-shape issue. Corrective action: reran with simplified fixed strings. Final result: recovery evidence was written.
+- Recovered failure: first pre-fetch proof parser used fragile inline Python quoting. Classification: recoverable command-shape issue. Corrective action: moved parser into proof-root script and reran. Final result: pre-fetch repo/disk/mount proof passed.
+- Recovered failure: three ad hoc GitHub JSON inspection helpers referenced an unexported proof-root variable. Classification: recoverable command-shape issue after raw JSON had already been captured. Corrective action: reran inspections with the proof path passed as an argument. Final result: inspection succeeded; no evidence was lost.
+- Recovered failure: first governance validation scan inspected historical file content, and the second pass conservatively flagged a forbidden-claim category list split across lines. Classification: recoverable validation-shape/content-scan issue. Corrective action: restricted validation scanning to staged added lines/new files and rephrased the testplan guardrail sentence. Final result: governance patch validation passed.
+- NA-0545 implementation changes are limited to `docs/governance/evidence/NA-0545_remote_relay_non_required_ci_failure_forward_audit_authorization_plan.md`, `tests/NA-0545_remote_relay_non_required_ci_failure_forward_audit_authorization_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Codex did not mutate workflows, remote/relay runtime, qsc source/test/fuzz/Cargo paths, dependencies, lockfiles, qsl-server, qsl-attachments, public-site paths, Cloudflare configuration, backup state, or operator/local system state.
+- Codex did not run remote commands, qsc send/receive, qsc E2EE, qwork/qstart/qresume, qsl-backup, GitHub workflow dispatch, GitHub rerun, GitHub cancellation, or branch-protection mutation.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no reproducibility-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0544 closeout and NA-0545 restoration update
 
 - Directive: QSL-DIR-2026-06-26-458 optional closeout packet.

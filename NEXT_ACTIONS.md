@@ -31357,7 +31357,7 @@ Forbidden scope:
 ---
 
 ### NA-0546 — QSL Remote/Relay Non-Required CI Failure Bounded Reproduction Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -31393,6 +31393,61 @@ Forbidden scope:
 - backup mutation;
 - operator/local system mutation;
 - public content mutation;
+- public-readiness, production-readiness, public-internet-readiness,
+  external-review-complete, reproducibility-complete, backup/restore-complete,
+  vulnerability-free, bug-free, or perfect-build claim.
+
+---
+
+### NA-0547 — QSL Remote/Relay Non-Required CI Failure Bounded Reproduction and Log Capture Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Execute the D-1082-authorized bounded reproduction and log-capture plan for the
+non-required remote/relay CI failures. Use only the exact historical rerun,
+current-main workflow-dispatch, or local reproduction commands authorized by
+D-1082. Capture run/job metadata and bounded logs under the proof root, scan and
+redact private material before summarizing, classify each target failure using
+the D-1082 result taxonomy, and select a later exact implementation,
+qsl-server-boundary, stale/flaky/no-fix, or stop successor. This lane must not
+mutate workflows, runtime/source paths, dependencies, qsc source, public-site
+content, Cloudflare configuration, or qsl-server/qsl-attachments sources.
+
+Allowed scope:
+- docs/governance/evidence/NA-0547_remote_relay_non_required_ci_failure_bounded_reproduction_log_capture_harness.md
+- tests/NA-0547_remote_relay_non_required_ci_failure_bounded_reproduction_log_capture_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-only raw logs and redacted extracts
+- read-only GitHub workflow/run/job/check metadata
+- exact D-1082-authorized historical rerun commands, if selected
+- exact D-1082-authorized current-main workflow-dispatch commands, if selected
+- exact D-1082-authorized local reproduction commands, if selected
+- private-material scan/redaction proof
+- successor selection
+
+Forbidden scope:
+- any rerun, dispatch, or local reproduction command not exactly authorized by
+  D-1082;
+- workflow mutation;
+- runtime/source implementation mutation;
+- dependency/lockfile mutation;
+- qsc source/test/fuzz/Cargo mutation;
+- qsl-server/qsl-attachments source mutation;
+- qsl-server/qsl-attachments local command execution unless D-1082 explicitly
+  authorized that exact bounded use;
+- remote command outside GitHub Actions API actions exactly authorized by
+  D-1082;
+- qwork/qstart/qresume execution by Codex;
+- qsl-backup execution;
+- backup mutation;
+- operator/local system mutation;
+- public-site mutation;
+- Cloudflare mutation;
+- raw logs committed to repository docs;
+- private material publication;
 - public-readiness, production-readiness, public-internet-readiness,
   external-review-complete, reproducibility-complete, backup/restore-complete,
   vulnerability-free, bug-free, or perfect-build claim.

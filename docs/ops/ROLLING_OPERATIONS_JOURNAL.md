@@ -6,6 +6,24 @@ Last-Updated: 2026-06-25
 
 # Rolling Operations Journal
 
+## NA-0546 closeout and NA-0547 restoration update
+
+- Directive: QSL-DIR-2026-06-26-460 optional closeout.
+- Repo path: `/srv/qbuild/work/NA-0546/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0546_remote_relay_reproduction_authorization_20260627T033115Z`.
+- NA-0546 implementation PR #1365 merged at `dedab5657ccd`.
+- Post-merge public-safety completed success on `dedab5657ccd`.
+- Post-merge advisories completed success on `dedab5657ccd`.
+- No observed failed required checks remained after bounded REST polling.
+- D-1082 exists once and accepted the NA-0546 reproduction authorization.
+- D-1083 records NA-0546 closeout and NA-0547 restoration.
+- Selected successor model: `NA-0547 -- QSL Remote/Relay Non-Required CI Failure Bounded Reproduction and Log Capture Harness`.
+- NA-0546 is marked DONE.
+- NA-0547 is restored READY using the exact D-1082-selected successor model.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, this journal, and `tests/NA-0546_closeout_restore_na0547_testplan.md`.
+- This closeout performs no NA-0547 implementation, no rerun, no workflow dispatch, no local reproduction, no workflow mutation, no runtime mutation, no qsc source/dependency/workflow mutation, no qsl-server/qsl-attachments mutation, no remote action, no qwork/qstart/qresume execution by Codex, no qsl-backup execution, no public-site mutation, and no Cloudflare mutation.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no reproducibility-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0546 remote/relay reproduction authorization update
 
 - Directive: QSL-DIR-2026-06-26-460 -- Execute NA-0546 Remote/Relay Non-Required CI Failure Bounded Reproduction Authorization Plan, Optional Closeout to NA-0547.

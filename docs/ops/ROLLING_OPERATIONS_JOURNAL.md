@@ -6,6 +6,32 @@ Last-Updated: 2026-06-27
 
 # Rolling Operations Journal
 
+## NA-0549 closeout and NA-0550 restoration update
+
+- Directive: QSL-DIR-2026-06-27-463 optional closeout.
+- Repo path: `/srv/qbuild/work/NA-0549/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0549_remote_relay_targeted_follow_up_evidence_20260627T205738Z`.
+- NA-0549 implementation PR #1371 merged at `6624ba9c9fc6`.
+- D-1088 exists once and records `REMOTE_RELAY_TARGETED_EVIDENCE_QSL_SERVER_BOUNDARY_READY`.
+- Post-merge public-safety completed success on `6624ba9c9fc6`.
+- Post-merge advisories completed success on `6624ba9c9fc6`.
+- No failed required checks remained after post-merge required-check classification.
+- Selected successor model: `NA-0550 -- QSL Relay UI qsl-server Boundary Authorization Plan`.
+- NA-0549 is marked DONE.
+- NA-0550 is restored READY using the exact D-1088-selected successor block.
+- This closeout performs no NA-0550 implementation, no rerun, no workflow
+  dispatch, no local reproduction, no workflow mutation, no runtime mutation,
+  no qsc source/dependency/workflow mutation, no qsl-server/qsl-attachments
+  mutation, no public-site mutation, no Cloudflare mutation, no raw-log or
+  raw-artifact commit, and no private-material publication.
+- Codex did not run qwork, qstart, qresume, or qsl-backup in closeout.
+- No public-readiness claim is introduced. no production-readiness claim is
+  introduced. no public-internet-readiness claim is introduced. no
+  external-review-complete claim is introduced. no reproducibility-complete
+  claim is introduced. no backup/restore-complete claim is introduced. no
+  vulnerability-free claim is introduced. no bug-free claim is introduced. no
+  perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0549 remote/relay targeted follow-up evidence update
 
 - Directive: QSL-DIR-2026-06-27-463 -- Execute NA-0549 Remote/Relay Non-Required CI Failure Targeted Follow-Up Evidence Harness, Optional Closeout to NA-0550.

@@ -31313,7 +31313,7 @@ Forbidden scope:
 ---
 
 ### NA-0545 — QSL Remote/Relay Non-Required CI Failure Forward-Audit Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -31341,6 +31341,49 @@ Allowed scope:
 Forbidden scope:
 - remote/relay/runtime implementation mutation;
 - workflow mutation;
+- dependency/lockfile mutation;
+- qsc source/test/fuzz/Cargo mutation;
+- qsl-server/qsl-attachments;
+- remote command;
+- qwork/qstart/qresume execution by Codex;
+- qsl-backup execution;
+- backup mutation;
+- operator/local system mutation;
+- public content mutation;
+- public-readiness, production-readiness, public-internet-readiness,
+  external-review-complete, reproducibility-complete, backup/restore-complete,
+  vulnerability-free, bug-free, or perfect-build claim.
+
+---
+
+### NA-0546 — QSL Remote/Relay Non-Required CI Failure Bounded Reproduction Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize a bounded reproduction/rerun/log-capture lane for the non-required
+remote/relay CI failures after NA-0545 could not determine a safe implementation
+from read-only evidence alone. Define exact GitHub rerun, workflow-dispatch, or
+local reproduction permissions if any; define exact log redaction and private
+material boundaries; preserve required-check, public-safety, qsl-server,
+qsl-attachments, workflow, dependency, and qsc boundaries unless later exact
+implementation scope is selected.
+
+Allowed scope:
+- docs/governance/evidence/NA-0546_remote_relay_non_required_ci_failure_bounded_reproduction_authorization_plan.md
+- tests/NA-0546_remote_relay_non_required_ci_failure_bounded_reproduction_authorization_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only current GitHub check/workflow metadata
+- exact future reproduction/rerun permission design
+- exact future log redaction policy
+- successor selection
+
+Forbidden scope:
+- running reruns in the authorization lane;
+- workflow mutation;
+- runtime mutation;
 - dependency/lockfile mutation;
 - qsc source/test/fuzz/Cargo mutation;
 - qsl-server/qsl-attachments;

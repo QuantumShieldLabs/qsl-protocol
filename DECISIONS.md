@@ -29091,3 +29091,27 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0545 to D-1080, the target run IDs, workflow inventory, testplan markers, and selected successor.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records qwork proof timestamp, current main SHA, target classifications, selected successor, and no-mutation/no-claim boundaries.
   - **References:** NA-0545; NA-0546; D-1080; D-1079; D-1078; `remote-handshake` run `28222737830`; `remote-relay` run `28221877145`; `relay-ui-integration` run `28221488004`; `docs/governance/evidence/NA-0545_remote_relay_non_required_ci_failure_forward_audit_authorization_plan.md`; `tests/NA-0545_remote_relay_non_required_ci_failure_forward_audit_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1081
+  - **Title:** NA-0545 closeout and NA-0546 restoration
+  - **Date:** 2026-06-27
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0545 forward audit is accepted. D-1080 exists once and is accepted. NA-0545 implementation PR #1363 merged at `ddca6773c563`. Post-merge public-safety completed success. Post-merge advisories completed success. No failed required check was observed. D-1080 selected Option B, `NA-0546 -- QSL Remote/Relay Non-Required CI Failure Bounded Reproduction Authorization Plan`, because read-only evidence could not safely determine exact implementation ownership. This closeout marks NA-0545 DONE and restores NA-0546 as the exactly one READY successor without implementing NA-0546.
+  - **Closeout proof:** Local `main` fast-forwarded to origin/main at `ddca6773c563`; the NA-0545 merge touched only the allowed implementation paths. Post-merge static proof verified D-1080 once, D-1081 absent before this patch, READY_COUNT 1 with READY NA-0545, duplicate decision count zero, clean worktree, and root disk below the stop threshold. The closeout patch is limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0545_closeout_restore_na0546_testplan.md`.
+  - **Selected successor:** `NA-0546 -- QSL Remote/Relay Non-Required CI Failure Bounded Reproduction Authorization Plan`.
+  - **Boundary proof:** No NA-0546 implementation occurred. No workflow mutation occurred. No runtime mutation occurred. No qsc source/dependency/workflow mutation occurred. No qsl-server/qsl-attachments use or mutation occurred. No remote action occurred. No qwork/qstart/qresume execution by Codex occurred. No qsl-backup execution occurred. No public-site mutation occurred. No Cloudflare mutation occurred. No public/production/completion overclaim was made.
+  - **Security invariants introduced/changed:**
+    - Exactly one READY item remains mandatory and is restored as NA-0546.
+    - NA-0546 remains authorization-only until a future directive explicitly authorizes reproduction/rerun/log-capture scope.
+    - Required-check, public-safety, qsl-server, qsl-attachments, workflow, dependency, qsc, public-site, and Cloudflare boundaries remain preserved.
+  - **Alternatives considered:**
+    - Leave NA-0545 READY after accepting D-1080 (rejected because the implementation PR merged and D-1080 selected an exact successor).
+    - Restore an implementation successor (rejected because D-1080 selected reproduction authorization, not implementation).
+    - Restore public-site verification (rejected because D-1080 did not classify the target failures as stale/no-fix-required).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0545 DONE and restores NA-0546 READY using the D-1080-selected Option B block.
+    - `tests/NA-0545_closeout_restore_na0546_testplan.md` records closeout markers, selected successor exactness, no NA-0546 implementation, and one-READY invariant proof.
+    - `TRACEABILITY.md` maps NA-0545 closeout and NA-0546 restoration to D-1081.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records closeout proof and boundaries.
+  - **References:** NA-0545; NA-0546; D-1081; D-1080; PR #1363; merge `ddca6773c563`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0545_closeout_restore_na0546_testplan.md`

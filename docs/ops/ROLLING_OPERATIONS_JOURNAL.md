@@ -6,6 +6,34 @@ Last-Updated: 2026-06-27
 
 # Rolling Operations Journal
 
+## NA-0550 closeout and NA-0551 restoration update
+
+- Directive: QSL-DIR-2026-06-27-464 optional closeout.
+- Repo path: `/srv/qbuild/work/NA-0550/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0550_relay_ui_qsl_server_boundary_authorization_20260627T215616Z`.
+- NA-0550 implementation PR #1373 merged at `58e377d02e3e`.
+- D-1090 exists once and records `RELAY_UI_QSL_SERVER_BOUNDARY_REMOTE_SMOKE_REMEDIATION_FIRST_READY`.
+- Post-merge public-safety completed success on `58e377d02e3e`.
+- Post-merge advisories completed success on `58e377d02e3e`.
+- No failed required checks remained after post-merge required-check classification.
+- Selected successor model: `NA-0551 -- QSL Remote Handshake and Remote Relay Demo Script Exact Remediation Implementation Harness`.
+- NA-0550 is marked DONE.
+- NA-0551 is restored READY using the exact D-1090-selected successor block.
+- This closeout performs no NA-0551 implementation, no qsl-server command, no
+  qsl-server clone/build/run, no qsl-server mutation, no qsl-attachments
+  command, no qsl-attachments clone/build/run, no qsl-attachments mutation, no
+  rerun, no workflow dispatch, no local reproduction, no workflow mutation, no
+  runtime mutation, no qsc source/dependency/workflow mutation, no public-site
+  mutation, no Cloudflare mutation, no raw-log or raw-artifact commit, and no
+  private-material publication.
+- Codex did not run qwork, qstart, qresume, or qsl-backup in closeout.
+- No public-readiness claim is introduced. no production-readiness claim is
+  introduced. no public-internet-readiness claim is introduced. no
+  external-review-complete claim is introduced. no reproducibility-complete
+  claim is introduced. no backup/restore-complete claim is introduced. no
+  vulnerability-free claim is introduced. no bug-free claim is introduced. no
+  perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0550 relay UI qsl-server boundary authorization update
 
 - Directive: QSL-DIR-2026-06-27-464 -- Execute NA-0550 Relay UI qsl-server Boundary Authorization Plan, Optional Closeout to NA-0551.

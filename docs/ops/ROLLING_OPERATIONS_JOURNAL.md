@@ -6,6 +6,23 @@ Last-Updated: 2026-06-25
 
 # Rolling Operations Journal
 
+## NA-0544 closeout and NA-0545 restoration update
+
+- Directive: QSL-DIR-2026-06-26-458 optional closeout packet.
+- Repo path: `/srv/qbuild/work/NA-0544/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0544_operator_action_proof_review_20260627T011222Z`.
+- NA-0544 proof-review PR #1361 merged at `fec5a099e0ef`.
+- Post-merge public-safety completed success on `fec5a099e0ef`.
+- Post-merge advisories completed success on `fec5a099e0ef`.
+- No observed failed required checks remained.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, this journal, and `tests/NA-0544_closeout_restore_na0545_testplan.md`.
+- D-1078 exists once and accepted the NA-0544 proof review.
+- D-1079 records NA-0544 closeout and NA-0545 restoration.
+- NA-0544 is marked DONE.
+- NA-0545 is restored READY using the directive-provided remote/relay non-required CI failure forward-audit authorization block.
+- This closeout performs no NA-0545 implementation, no Codex operator action, no qwork/qstart/qresume execution by Codex, no qsl-backup execution, no backup mutation, no qsc source/dependency/workflow mutation, no remote action, and no qsl-server/qsl-attachments work.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no reproducibility-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced.
+
 ## NA-0544 operator action proof review update
 
 - Directive: QSL-DIR-2026-06-26-458 -- Execute NA-0544 Local Ops SSD Hygiene / Shared Cargo Target Operator Action Proof Review, Optional Closeout to NA-0545 Remote/Relay Forward-Audit Authorization.

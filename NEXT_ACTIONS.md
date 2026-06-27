@@ -31259,7 +31259,7 @@ Forbidden scope:
 ---
 
 ### NA-0544 — QSL Local Ops SSD Hygiene / Shared Cargo Target Operator Action Proof Review Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -31309,6 +31309,50 @@ Forbidden scope:
 - public-readiness, production-readiness, reproducibility-complete,
   backup/restore-complete, vulnerability-free, bug-free, or perfect-build
   claim.
+
+---
+
+### NA-0545 — QSL Remote/Relay Non-Required CI Failure Forward-Audit Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize a bounded forward-audit lane for the non-required remote/relay CI
+failures recorded during NA-0543 closeout: `remote-handshake`, `remote-relay`,
+and `relay-ui-integration`. Collect fresh read-only GitHub workflow/check/log
+evidence, determine whether the failures still reproduce or are stale/flaky,
+classify whether any remote/relay/runtime/workflow/dependency path requires a
+future exact implementation lane, and preserve public-safety, one-READY, and
+no-overclaim boundaries. This lane is authorization and triage only unless a
+later exact implementation scope is selected.
+
+Allowed scope:
+- docs/governance/evidence/NA-0545_remote_relay_non_required_ci_failure_forward_audit_authorization_plan.md
+- tests/NA-0545_remote_relay_non_required_ci_failure_forward_audit_authorization_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only GitHub check-run/workflow/job/log metadata for `remote-handshake`,
+  `remote-relay`, and `relay-ui-integration`
+- read-only inspection of current workflow definitions and referenced scripts
+- read-only current main check classification
+- successor selection
+
+Forbidden scope:
+- remote/relay/runtime implementation mutation;
+- workflow mutation;
+- dependency/lockfile mutation;
+- qsc source/test/fuzz/Cargo mutation;
+- qsl-server/qsl-attachments;
+- remote command;
+- qwork/qstart/qresume execution by Codex;
+- qsl-backup execution;
+- backup mutation;
+- operator/local system mutation;
+- public content mutation;
+- public-readiness, production-readiness, public-internet-readiness,
+  external-review-complete, reproducibility-complete, backup/restore-complete,
+  vulnerability-free, bug-free, or perfect-build claim.
 
 ---
 

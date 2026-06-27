@@ -6,6 +6,33 @@ Last-Updated: 2026-06-25
 
 # Rolling Operations Journal
 
+## NA-0547 remote/relay reproduction log-capture update
+
+- Directive: QSL-DIR-2026-06-26-461 -- Execute NA-0547 Remote/Relay Non-Required CI Failure Bounded Reproduction and Log Capture Harness, Optional Closeout to NA-0548.
+- Repo path: `/srv/qbuild/work/NA-0547/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0547_remote_relay_reproduction_log_capture_20260627T183232Z`.
+- Fresh qwork proof files were read and copied from `/srv/qbuild/work/NA-0547/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-06-27T07:04:10Z`; proof HEAD/origin-main/main matched live pre-fetch state at `c37fa6111e46`.
+- Disk and mount gate passed before reproduction: `/` usage below the 95% stop threshold and `/backup/qsl` mounted.
+- Fetch occurred only after proof/live ref match, clean tree, disk proof, and mount proof. Local main matched origin/main at `c37fa6111e46`.
+- Startup queue proof: READY_COUNT 1; READY NA-0547; NA-0546 DONE; NA-0545 DONE.
+- Startup decision proof: D-1082 once; D-1083 once; D-1084 absent before patch; D-1085 absent; duplicate decision count zero.
+- Current main required-check classification passed: public-safety completed success, advisories completed success, no failed required checks, and branch-protection required contexts classified. PR #1366 supplied PR-only required-context proof for goal-lint and aggregate CodeQL.
+- Exact historical rerun commands executed: `gh run rerun 28222737830 --failed`, `gh run rerun 28221877145 --failed`, and `gh run rerun 28221488004 --failed`.
+- Historical rerun classifications: remote-handshake `HISTORICAL_REPRODUCED`; remote-relay `HISTORICAL_REPRODUCED`; relay-ui-integration `HISTORICAL_REPRODUCED`.
+- Exact current-main dispatch commands executed: `gh workflow run remote-handshake-tests.yml --ref main`, `gh workflow run remote-relay-tests.yml --ref main -f scenario=happy-path -f seed=1`, and `gh workflow run relay-ui-integration.yml --ref main`.
+- Current-main dispatch run IDs: remote-handshake `28298341119`; remote-relay `28298371731`; relay-ui-integration `28298405239`.
+- Target classifications: remote-handshake `REMOTE_HANDSHAKE_REPRODUCED_CURRENT`; remote-relay `REMOTE_RELAY_REPRODUCED_CURRENT`; relay-ui-integration `RELAY_UI_REPRODUCED_CURRENT`.
+- Overall classification: `REMOTE_RELAY_REPRODUCTION_PARTIAL_MORE_EVIDENCE_REQUIRED`.
+- Selected successor: `NA-0548 -- QSL Remote/Relay Non-Required CI Failure Follow-Up Evidence Authorization Plan`.
+- Raw logs remain proof-root-only. Redacted historical and current-main extracts passed private-material scan. No raw logs were copied into repository docs and no private material was published.
+- Recovered failure: a read-only preflight `gh workflow view --json` metadata command used an unsupported CLI flag. Classification: recoverable command-shape issue. Corrective action: used allowed read-only GitHub REST workflow endpoints. Final result: workflow metadata captured and command gate passed.
+- Local validation passed: `git diff --check`, exact five-path scope guard, queue/decision proof, marker proof, link-check, private-material scans, added-line overclaim scan, docs/governance-only classifier, PR body preflight, root cargo audit, nested qsc fuzz lock cargo audit, `cargo fmt --check`, `sh -n scripts/ci/qsc_adversarial.sh`, and `bash -n scripts/ci/qsc_adversarial.sh`.
+- Focused qsc runtime tests were skipped because NA-0547 uses GitHub Actions rerun/dispatch evidence only, local qsc runtime reproduction was not authorized, and no qsc source/runtime/dependency/workflow mutation occurred.
+- NA-0547 implementation changes are limited to `docs/governance/evidence/NA-0547_remote_relay_non_required_ci_failure_bounded_reproduction_log_capture_harness.md`, `tests/NA-0547_remote_relay_non_required_ci_failure_bounded_reproduction_log_capture_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Codex did not execute local reproduction, mutate workflows, mutate runtime/source, mutate qsc source/test/fuzz/Cargo, update dependencies or lockfiles, run qsl-server/qsl-attachments locally, execute qwork/qstart/qresume, execute qsl-backup, mutate public-site paths, or mutate Cloudflare configuration.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no reproducibility-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0546 closeout and NA-0547 restoration update
 
 - Directive: QSL-DIR-2026-06-26-460 optional closeout.

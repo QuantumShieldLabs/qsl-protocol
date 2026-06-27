@@ -31589,8 +31589,21 @@ Closeout evidence:
 ---
 
 ### NA-0550 — QSL Relay UI qsl-server Boundary Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
+
+Implementation note:
+- NA-0550 boundary authorization PR #1373 merged at `58e377d02e3e`.
+- D-1090 accepted the relay UI qsl-server boundary authorization and selected
+  `RELAY_UI_QSL_SERVER_BOUNDARY_REMOTE_SMOKE_REMEDIATION_FIRST_READY`.
+- qsl-server remains GitHub Actions black-box context for the inherited relay
+  UI failure; qsl-attachments remains out of scope for that failure.
+- Selected successor: `NA-0551 -- QSL Remote Handshake and Remote Relay Demo
+  Script Exact Remediation Implementation Harness`.
+- No qsl-server/qsl-attachments command, clone, build, run, or mutation
+  occurred. No rerun, workflow dispatch, local reproduction, workflow mutation,
+  runtime/source mutation, qsc source/dependency/workflow mutation,
+  public-site mutation, or Cloudflare mutation occurred.
 
 Objective:
 Authorize a bounded lane to define whether and how relay UI reproduction or
@@ -31624,6 +31637,49 @@ Forbidden scope:
 - Cloudflare mutation;
 - public-readiness, production-readiness, vulnerability-free, bug-free, or
   perfect-build claim.
+
+---
+
+### NA-0551 — QSL Remote Handshake and Remote Relay Demo Script Exact Remediation Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement exact remediation for the remote-handshake and remote-relay
+non-required CI failures using the NA-0549 evidence that identified exact
+implementation-ready demo script paths. Mutate only the authorized demo scripts,
+tests/evidence/governance files, and traceability/journal files. Preserve the
+relay-ui-integration qsl-server boundary as a separate unresolved successor
+topic. Do not mutate workflows, qsc source, dependencies, lockfiles,
+qsl-server, qsl-attachments, public-site, or Cloudflare paths.
+
+Allowed scope:
+- scripts/demo/qsc_remote_handshake_smoke.sh
+- scripts/demo/qsc_remote_relay_smoke.sh
+- docs/governance/evidence/NA-0551_remote_handshake_remote_relay_demo_script_exact_remediation_implementation_harness.md
+- tests/NA-0551_remote_handshake_remote_relay_demo_script_exact_remediation_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-only logs and validation artifacts
+- successor selection
+
+Forbidden scope:
+- relay-ui-integration remediation;
+- qsl-server/qsl-attachments command, clone, build, run, source mutation, or
+  local use;
+- workflow mutation;
+- qsc source/test/fuzz/Cargo mutation;
+- dependency/lockfile mutation;
+- public-site mutation;
+- Cloudflare mutation;
+- qwork/qstart/qresume execution by Codex;
+- qsl-backup execution;
+- backup mutation;
+- remote command outside explicitly authorized GitHub check/log reads;
+- public-readiness, production-readiness, public-internet-readiness,
+  external-review-complete, reproducibility-complete, backup/restore-complete,
+  vulnerability-free, bug-free, or perfect-build claim.
 
 ---
 

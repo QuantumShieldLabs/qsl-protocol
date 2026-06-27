@@ -6,6 +6,31 @@ Last-Updated: 2026-06-27
 
 # Rolling Operations Journal
 
+## NA-0549 remote/relay targeted follow-up evidence update
+
+- Directive: QSL-DIR-2026-06-27-463 -- Execute NA-0549 Remote/Relay Non-Required CI Failure Targeted Follow-Up Evidence Harness, Optional Closeout to NA-0550.
+- Repo path: `/srv/qbuild/work/NA-0549/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0549_remote_relay_targeted_follow_up_evidence_20260627T205738Z`.
+- Fresh qwork proof files were read and copied from `/srv/qbuild/work/NA-0549/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-06-27T20:45:18Z`; proof HEAD/origin-main/main matched live pre-fetch state at `e2e4b159ebfd`.
+- Disk and mount gate passed before mutation: `/` usage below the 95% stop threshold and `/backup/qsl` mounted.
+- Fetch occurred only after proof/live ref match, clean tree, disk proof, and mount proof. Local main matched origin/main at `e2e4b159ebfd`.
+- Startup queue proof: READY_COUNT 1; READY NA-0549; NA-0548 DONE; NA-0547 DONE.
+- Startup decision proof: D-1086 once; D-1087 once; D-1088 absent before patch; D-1089 absent; duplicate decision count zero.
+- Current main required-check classification passed: public-safety completed success, advisories completed success, no failed required checks, and branch-protection required contexts classified. PR #1370 supplied aggregate/PR-only proof for goal-lint and CodeQL.
+- Reviewed target run IDs: remote-handshake historical `28222737830`, remote-handshake current-main `28298341119`, remote-relay historical `28221877145`, remote-relay current-main `28298371731`, relay-ui-integration historical `28221488004`, and relay-ui-integration current-main `28298405239`.
+- Run/job/check metadata, artifact metadata, proof-root-only raw logs, proof-root-only small artifacts, redacted extracts, private-material scans, failure-correlation tables, evidence-gap updates, implementation-readiness review, and qsl-server boundary review were captured.
+- Updated evidence-gap classifications: remote-handshake `REMOTE_HANDSHAKE_GAP_EXACT_IMPLEMENTATION_READY`; remote-relay `REMOTE_RELAY_GAP_EXACT_IMPLEMENTATION_READY`; relay-ui-integration `RELAY_UI_GAP_QSL_SERVER_BOUNDARY_REQUIRED`.
+- Implementation readiness: remote-handshake `IMPLEMENTATION_READY_EXACT_PATHS`; remote-relay `IMPLEMENTATION_READY_EXACT_PATHS`; relay-ui-integration `IMPLEMENTATION_NOT_READY_QSL_SERVER_BOUNDARY_REQUIRED`.
+- qsl-server/qsl-attachments boundary classification: `QSL_SERVER_BOUNDARY_SEPARATE_AUTHORIZATION_REQUIRED`; qsl-attachments did not appear in the target failure evidence.
+- Result classification: `REMOTE_RELAY_TARGETED_EVIDENCE_QSL_SERVER_BOUNDARY_READY`.
+- Selected successor: `NA-0550 -- QSL Relay UI qsl-server Boundary Authorization Plan`.
+- Recovered failure: the first current-main required-check classifier treated aggregate `CodeQL` and PR-only `goal-lint` as missing. Classification: recoverable classifier-shape issue. Corrective action: captured read-only check-suite and PR #1370 head check-run metadata. Final result: required contexts classified green with evidence basis recorded.
+- NA-0549 implementation changes are limited to `docs/governance/evidence/NA-0549_remote_relay_non_required_ci_failure_targeted_follow_up_evidence_harness.md`, `tests/NA-0549_remote_relay_non_required_ci_failure_targeted_follow_up_evidence_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Codex did not execute reruns, workflow dispatches, local reproduction, workflow mutation, runtime/source mutation, qsc source/test/fuzz/Cargo mutation, dependency/lockfile mutation, qsl-server/qsl-attachments commands or mutation, qwork/qstart/qresume, qsl-backup, backup mutation, public-site mutation, or Cloudflare mutation.
+- Raw logs and raw artifacts remain proof-root-only. No raw logs or raw artifacts were committed and no private material was published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no reproducibility-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0548 closeout and NA-0549 restoration update
 
 - Directive: QSL-DIR-2026-06-27-462 optional closeout.

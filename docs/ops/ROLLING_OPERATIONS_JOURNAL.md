@@ -6,6 +6,24 @@ Last-Updated: 2026-06-25
 
 # Rolling Operations Journal
 
+## NA-0545 closeout and NA-0546 restoration update
+
+- Directive: QSL-DIR-2026-06-26-459 optional closeout.
+- Repo path: `/srv/qbuild/work/NA-0545/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0545_remote_relay_forward_audit_20260627T021529Z`.
+- NA-0545 forward-audit implementation PR #1363 merged at `ddca6773c563`.
+- Post-merge public-safety completed success on `ddca6773c563`.
+- Post-merge advisories completed success on `ddca6773c563`.
+- No observed failed required checks remained after bounded REST polling.
+- D-1080 exists once and accepted the NA-0545 forward audit.
+- D-1081 records NA-0545 closeout and NA-0546 restoration.
+- Selected successor option: Option B, `NA-0546 -- QSL Remote/Relay Non-Required CI Failure Bounded Reproduction Authorization Plan`.
+- NA-0545 is marked DONE.
+- NA-0546 is restored READY using the exact D-1080-selected Option B block.
+- Recovered failure: the first closeout validation scan flagged the exact Option B Forbidden-scope claim list as overclaim text. Classification: recoverable validation-shape issue. Corrective action: restricted the proof-root scanner exemption to the exact successor block's Forbidden-scope claim list. Final result: closeout patch validation passed.
+- This closeout performs no NA-0546 implementation, no workflow mutation, no runtime mutation, no qsc source/dependency/workflow mutation, no qsl-server/qsl-attachments work, no remote action, no qwork/qstart/qresume execution by Codex, no qsl-backup execution, no public-site mutation, and no Cloudflare mutation.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no reproducibility-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced.
+
 ## NA-0545 remote/relay forward-audit authorization update
 
 - Directive: QSL-DIR-2026-06-26-459 -- Execute NA-0545 Remote/Relay Non-Required CI Failure Forward-Audit Authorization Plan, Optional Closeout to NA-0546.

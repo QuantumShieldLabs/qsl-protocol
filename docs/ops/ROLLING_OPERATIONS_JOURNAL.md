@@ -2,9 +2,25 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-06-25
+Last-Updated: 2026-06-27
 
 # Rolling Operations Journal
+
+## NA-0547 closeout and NA-0548 restoration update
+
+- Directive: QSL-DIR-2026-06-26-461 optional closeout.
+- Repo path: `/srv/qbuild/work/NA-0547/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0547_remote_relay_reproduction_log_capture_20260627T183232Z`.
+- NA-0547 implementation PR #1367 merged at `ce781ad33c27`.
+- D-1084 exists once and records `REMOTE_RELAY_REPRODUCTION_PARTIAL_MORE_EVIDENCE_REQUIRED`.
+- Post-merge public-safety completed success on `ce781ad33c27`.
+- Post-merge advisories completed success on `ce781ad33c27`.
+- No failed required checks remained after bounded REST polling.
+- Selected successor model: `NA-0548 -- QSL Remote/Relay Non-Required CI Failure Follow-Up Evidence Authorization Plan`.
+- NA-0547 is marked DONE.
+- NA-0548 is restored READY using the exact D-1084-selected successor block.
+- This closeout performs no NA-0548 implementation, no local reproduction, no workflow mutation, no runtime mutation, no qsc source/dependency/workflow mutation, no qsl-server/qsl-attachments mutation, no public-site mutation, no Cloudflare mutation, no raw-log commit, and no private-material publication.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no reproducibility-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
 ## NA-0547 remote/relay reproduction log-capture update
 

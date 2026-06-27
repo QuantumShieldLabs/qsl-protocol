@@ -29035,3 +29035,31 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records qwork proof timestamp, main SHA, installed hashes, latest maintenance state, successor selection, no-claim boundary, and Codex/operator boundary.
   - **Selected successor:** `NA-0545 -- QSL Remote/Relay Non-Required CI Failure Forward-Audit Authorization Plan`.
   - **References:** NA-0544; NA-0545; D-1078; D-1077; D-1076; D-1075; D-1074; `docs/ops/NA-0543_qbuild_operator_action_bundle.md`; `docs/ops/DOC-OPS-005_qbuild_SSD_Hygiene_and_Shared_Cargo_Target_Runbook_v0.1.0_DRAFT.md`; `docs/governance/evidence/NA-0544_qsl_local_ops_ssd_hygiene_shared_cargo_target_operator_action_proof_review.md`; `tests/NA-0544_qsl_local_ops_ssd_hygiene_shared_cargo_target_operator_action_proof_review_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1079
+  - **Title:** NA-0544 closeout and NA-0545 restoration
+  - **Date:** 2026-06-26
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0544 closeout is accepted after the proof-review PR merged, D-1078 was accepted once, post-merge public-safety completed success, post-merge advisories completed success, and no observed failed required checks remained. NA-0544 is marked DONE. `NA-0545 -- QSL Remote/Relay Non-Required CI Failure Forward-Audit Authorization Plan` is restored as exactly one READY successor. No NA-0545 implementation is performed.
+  - **Evidence consumed:** D-1078 accepted the NA-0544 proof review with classification `LOCAL_OPS_SSD_HYGIENE_SHARED_TARGET_OPERATOR_ACTION_PROOF_REVIEW_PASS`, verified the human operator action proof, fresh qwork proof, rollback inventory, installed hashes, shared target, qwork target-selection proof, explicit-target preservation, unrelated-repository rejection, dry-run proof, latest maintenance state, timer state, and Codex/operator boundaries.
+  - **Post-merge check proof:** NA-0544 implementation PR #1361 merged at `fec5a099e0ef`. Post-merge public-safety completed success. Post-merge advisories completed success. No observed failed required check remained; main merge commit missing PR-only direct contexts was recorded separately and not treated as failure.
+  - **Restored successor:** NA-0545 is authorization and triage only for non-required remote/relay CI failures `remote-handshake`, `remote-relay`, and `relay-ui-integration`. It may collect fresh read-only GitHub workflow/check/job/log metadata, inspect current workflow definitions and referenced scripts read-only, classify whether failures still reproduce or are stale/flaky, and select a future exact implementation lane if needed.
+  - **Boundary proof:** This closeout performs no NA-0545 implementation, no Codex operator action, no qwork/qstart/qresume execution by Codex, no qsl-backup execution, no backup mutation, no qsc source/dependency/workflow mutation, no remote action, and no qsl-server/qsl-attachments work.
+  - **Claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No reproducibility-complete claim is made. No backup/restore-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-build claim is made.
+  - **Security invariants introduced/changed:**
+    - Exactly one READY remains mandatory.
+    - NA-0545 is read-only authorization and triage unless a later exact implementation scope is selected.
+    - Failed non-required remote/relay checks remain forward-audit evidence and cannot be silently ignored.
+    - Operator/local state remains outside Codex closeout authority.
+  - **Alternatives considered:**
+    - Leave NA-0544 READY after proof-review merge (rejected because D-1078 accepted the review and selected NA-0545).
+    - Implement NA-0545 during closeout (rejected because closeout only restores the successor).
+    - Broaden NA-0545 to remote/runtime or workflow mutation (rejected; the restored lane is authorization and triage only).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0544 DONE and restores NA-0545 READY with the exact successor block.
+    - `tests/NA-0544_closeout_restore_na0545_testplan.md` records merge proof, D-1078 acceptance, public-safety/advisories proof, D-1079 restoration, no NA-0545 implementation, and boundary markers.
+    - `TRACEABILITY.md` maps PR #1361, D-1078, D-1079, NA-0544 proof review, closeout testplan, and NA-0545 restoration.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records closeout proof and NA-0545 restoration.
+  - **Selected successor:** `NA-0545 -- QSL Remote/Relay Non-Required CI Failure Forward-Audit Authorization Plan`.
+  - **References:** NA-0544; NA-0545; D-1079; D-1078; PR #1361; merge `fec5a099e0ef`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0544_closeout_restore_na0545_testplan.md`; `docs/governance/evidence/NA-0544_qsl_local_ops_ssd_hygiene_shared_cargo_target_operator_action_proof_review.md`; `tests/NA-0544_qsl_local_ops_ssd_hygiene_shared_cargo_target_operator_action_proof_review_testplan.md`

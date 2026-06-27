@@ -31400,7 +31400,7 @@ Forbidden scope:
 ---
 
 ### NA-0547 — QSL Remote/Relay Non-Required CI Failure Bounded Reproduction and Log Capture Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -31451,6 +31451,60 @@ Forbidden scope:
 - public-readiness, production-readiness, public-internet-readiness,
   external-review-complete, reproducibility-complete, backup/restore-complete,
   vulnerability-free, bug-free, or perfect-build claim.
+
+Closeout evidence:
+- NA-0547 implementation PR: #1367 https://github.com/QuantumShieldLabs/qsl-protocol/pull/1367
+- NA-0547 implementation merge SHA: `ce781ad33c27`
+- D-1084 records the bounded reproduction/log-capture result classification:
+  `REMOTE_RELAY_REPRODUCTION_PARTIAL_MORE_EVIDENCE_REQUIRED`.
+- D-1085 records closeout and restores NA-0548 as the exactly one READY
+  successor.
+- NA-0547 raw logs remain proof-root-only. No raw logs were committed and no
+  private material was published.
+- Closeout performs no NA-0548 implementation, no local reproduction, no
+  workflow mutation, no runtime/source mutation, no qsc source/test/fuzz/Cargo
+  mutation, no dependency/lockfile mutation, no qsl-server/qsl-attachments
+  mutation, no public-site mutation, and no Cloudflare mutation.
+
+---
+
+### NA-0548 — QSL Remote/Relay Non-Required CI Failure Follow-Up Evidence Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize a bounded follow-up evidence lane for target remote/relay CI failures
+that remained partially reproduced or ambiguous after NA-0547. Define exact
+additional GitHub Actions metadata/log capture or rerun permissions, exact log
+redaction boundaries, and exact stop conditions before any implementation lane.
+No workflow/runtime/dependency/qsc/qsl-server/qsl-attachments mutation is
+authorized.
+
+Allowed scope:
+- docs/governance/evidence/NA-0548_remote_relay_non_required_ci_failure_follow_up_evidence_authorization_plan.md
+- tests/NA-0548_remote_relay_non_required_ci_failure_follow_up_evidence_authorization_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only GitHub run/job/check/log metadata
+- exact future evidence permission design
+- successor selection
+
+Forbidden scope:
+- rerun/dispatch execution in the authorization lane;
+- workflow mutation;
+- runtime mutation;
+- dependency/lockfile mutation;
+- qsc source/test/fuzz/Cargo mutation;
+- qsl-server/qsl-attachments;
+- remote command outside exact future GitHub Actions evidence actions;
+- qwork/qstart/qresume execution by Codex;
+- qsl-backup execution;
+- backup mutation;
+- public-site mutation;
+- Cloudflare mutation;
+- public-readiness claim, production-readiness claim, vulnerability-free claim,
+  bug-free claim, or perfect-build claim.
 
 ---
 

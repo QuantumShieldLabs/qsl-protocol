@@ -6,6 +6,32 @@ Last-Updated: 2026-06-25
 
 # Rolling Operations Journal
 
+## NA-0546 remote/relay reproduction authorization update
+
+- Directive: QSL-DIR-2026-06-26-460 -- Execute NA-0546 Remote/Relay Non-Required CI Failure Bounded Reproduction Authorization Plan, Optional Closeout to NA-0547.
+- Repo path: `/srv/qbuild/work/NA-0546/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0546_remote_relay_reproduction_authorization_20260627T033115Z`.
+- Fresh qwork proof files were read and copied from `/srv/qbuild/work/NA-0546/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-06-27T03:21:51Z`; proof HEAD/origin-main/main matched live pre-fetch state at `0e4560febcc`.
+- Disk and mount gate passed before mutation: `/` usage below the 95% stop threshold and `/backup/qsl` mounted.
+- Fetch occurred only after proof/live ref match, clean tree, disk proof, and mount proof. Local main matched origin/main at `0e4560febcc`.
+- Startup queue proof: READY_COUNT 1; READY NA-0546; NA-0545 DONE; NA-0544 DONE.
+- Startup decision proof: D-1080 once; D-1081 once; D-1082 absent before patch; D-1083 absent; duplicate decision count zero.
+- Current main required-check classification passed: public-safety completed success, advisories completed success, no failed required checks, and branch-protection required contexts classified. PR #1364 supplied PR-only required-context proof for goal-lint and CodeQL.
+- Target failures inherited: remote-handshake run `28222737830`, remote-relay run `28221877145`, and relay-ui-integration run `28221488004`.
+- Workflow trigger inventory and referenced command inventory completed for the three target workflows and scripts/tests.
+- Historical rerun authorization design completed. Future exact commands are `gh run rerun 28222737830 --failed`, `gh run rerun 28221877145 --failed`, and `gh run rerun 28221488004 --failed`.
+- Current-main dispatch authorization design completed. Future exact commands are `gh workflow run remote-handshake-tests.yml --ref main`, `gh workflow run remote-relay-tests.yml --ref main -f scenario=happy-path -f seed=1`, and `gh workflow run relay-ui-integration.yml --ref main`.
+- Local reproduction authorization design completed and does not authorize local reproduction because of private relay and qsl-server boundaries.
+- qsl-server/qsl-attachments boundary classified: relay UI is GitHub Actions black-box qsl-server use only; no local qsl-server/qsl-attachments command or mutation is authorized.
+- Log capture, redaction, and private-material scan policies selected.
+- Result classification: `REMOTE_RELAY_REPRODUCTION_AUTHORIZATION_PARTIAL_GITHUB_RERUN_ONLY`.
+- Selected successor: `NA-0547 -- QSL Remote/Relay Non-Required CI Failure Bounded Reproduction and Log Capture Harness`.
+- NA-0546 implementation changes are limited to `docs/governance/evidence/NA-0546_remote_relay_non_required_ci_failure_bounded_reproduction_authorization_plan.md`, `tests/NA-0546_remote_relay_non_required_ci_failure_bounded_reproduction_authorization_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Codex did not run historical reruns, dispatch workflows, execute local reproduction, mutate workflows, mutate runtime/source, mutate qsc source/test/fuzz/Cargo, update dependencies or lockfiles, run qsl-server/qsl-attachments commands, run remote commands, execute qwork/qstart/qresume, execute qsl-backup, mutate public-site paths, or mutate Cloudflare configuration.
+- No private material was published and no raw logs were copied into repository docs.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no reproducibility-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0545 closeout and NA-0546 restoration update
 
 - Directive: QSL-DIR-2026-06-26-459 optional closeout.

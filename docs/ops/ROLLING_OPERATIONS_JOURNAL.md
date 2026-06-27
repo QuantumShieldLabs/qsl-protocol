@@ -6,6 +6,31 @@ Last-Updated: 2026-06-27
 
 # Rolling Operations Journal
 
+## NA-0548 closeout and NA-0549 restoration update
+
+- Directive: QSL-DIR-2026-06-27-462 optional closeout.
+- Repo path: `/srv/qbuild/work/NA-0548/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0548_remote_relay_follow_up_evidence_authorization_20260627T194838Z`.
+- NA-0548 implementation PR #1369 merged at `fef3c5e9f59c`.
+- D-1086 exists once and records `REMOTE_RELAY_FOLLOW_UP_EVIDENCE_TARGETED_GITHUB_CAPTURE_READY`.
+- Post-merge public-safety completed success on `fef3c5e9f59c`.
+- Post-merge advisories completed success on `fef3c5e9f59c`.
+- No failed required checks remained after bounded REST polling.
+- Selected successor model: `NA-0549 -- QSL Remote/Relay Non-Required CI Failure Targeted Follow-Up Evidence Harness`.
+- NA-0548 is marked DONE.
+- NA-0549 is restored READY using the exact D-1086-selected successor block.
+- This closeout performs no NA-0549 implementation, no rerun, no workflow
+  dispatch, no local reproduction, no workflow mutation, no runtime mutation,
+  no qsc source/dependency/workflow mutation, no qsl-server/qsl-attachments
+  mutation, no public-site mutation, no Cloudflare mutation, no raw-log commit,
+  and no private-material publication.
+- No public-readiness claim is introduced. no production-readiness claim is
+  introduced. no public-internet-readiness claim is introduced. no
+  external-review-complete claim is introduced. no reproducibility-complete
+  claim is introduced. no backup/restore-complete claim is introduced. no
+  vulnerability-free claim is introduced. no bug-free claim is introduced. no
+  perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0548 remote/relay follow-up evidence authorization update
 
 - Directive: QSL-DIR-2026-06-27-462 -- Execute NA-0548 Remote/Relay Non-Required CI Failure Follow-Up Evidence Authorization Plan, Optional Closeout to NA-0549.

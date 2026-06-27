@@ -31469,7 +31469,7 @@ Closeout evidence:
 ---
 
 ### NA-0548 — QSL Remote/Relay Non-Required CI Failure Follow-Up Evidence Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -31505,6 +31505,76 @@ Forbidden scope:
 - Cloudflare mutation;
 - public-readiness claim, production-readiness claim, vulnerability-free claim,
   bug-free claim, or perfect-build claim.
+
+Closeout evidence:
+- NA-0548 implementation PR: #1369 https://github.com/QuantumShieldLabs/qsl-protocol/pull/1369
+- NA-0548 implementation merge SHA: `fef3c5e9f59c`.
+- D-1086 exists once and records
+  `REMOTE_RELAY_FOLLOW_UP_EVIDENCE_TARGETED_GITHUB_CAPTURE_READY`.
+- Post-merge public-safety completed success on `fef3c5e9f59c`.
+- Post-merge advisories completed success on `fef3c5e9f59c`.
+- No failed required checks remained after bounded REST polling.
+- D-1087 records closeout and restores NA-0549 as the exactly one READY
+  successor.
+- This closeout performs no NA-0549 implementation, no rerun, no workflow
+  dispatch, no local reproduction, no workflow mutation, no runtime/source
+  mutation, no qsc source/test/fuzz/Cargo mutation, no dependency/lockfile
+  mutation, no qsl-server/qsl-attachments mutation, no public-site mutation,
+  and no Cloudflare mutation.
+- No raw logs were committed and no private material was published.
+
+---
+
+### NA-0549 — QSL Remote/Relay Non-Required CI Failure Targeted Follow-Up Evidence Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Execute the D-1086-authorized targeted follow-up evidence plan for the
+remote-handshake, remote-relay, and relay-ui-integration failures that
+reproduced on current main in NA-0547. Use only the exact GitHub Actions
+metadata/log/rerun/dispatch actions authorized by D-1086. Capture run/job/check
+metadata and bounded logs under the proof root, scan and redact private material
+before summarizing, update per-target evidence-gap classifications, and select a
+later exact remediation, qsl-server-boundary, no-fix, or stop successor. This
+lane must not mutate workflows, runtime/source paths, dependencies, qsc source,
+public-site content, Cloudflare configuration, or qsl-server/qsl-attachments
+sources.
+
+Allowed scope:
+- docs/governance/evidence/NA-0549_remote_relay_non_required_ci_failure_targeted_follow_up_evidence_harness.md
+- tests/NA-0549_remote_relay_non_required_ci_failure_targeted_follow_up_evidence_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-only raw logs and redacted extracts
+- read-only GitHub workflow/run/job/check metadata
+- exact D-1086-authorized GitHub Actions metadata/log/rerun/dispatch commands
+- private-material scan/redaction proof
+- successor selection
+
+Forbidden scope:
+- any rerun, dispatch, or log action not exactly authorized by D-1086;
+- workflow mutation;
+- runtime/source implementation mutation;
+- dependency/lockfile mutation;
+- qsc source/test/fuzz/Cargo mutation;
+- qsl-server/qsl-attachments source mutation;
+- qsl-server/qsl-attachments local command execution unless D-1086 explicitly
+  authorized that exact bounded use;
+- remote command outside GitHub Actions API actions exactly authorized by
+  D-1086;
+- qwork/qstart/qresume execution by Codex;
+- qsl-backup execution;
+- backup mutation;
+- operator/local system mutation;
+- public-site mutation;
+- Cloudflare mutation;
+- raw logs committed to repository docs;
+- private material publication;
+- public-readiness, production-readiness, public-internet-readiness,
+  external-review-complete, reproducibility-complete, backup/restore-complete,
+  vulnerability-free, bug-free, or perfect-build claim.
 
 ---
 

@@ -58,6 +58,8 @@ run_tag="${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-0}-${scenario}-${seed}"
 run_tag="$(printf '%s' "$run_tag" | tr -c 'a-zA-Z0-9_-' '-')"
 proto_alice="alice-${run_tag}"
 proto_bob="bob-${run_tag}"
+alice_route_token="route_token_alice_${run_tag}"
+bob_route_token="route_token_bob_${run_tag}"
 
 state_root="$out/state_${run_tag}"
 peer_alice="$state_root/peer_alice"
@@ -235,9 +237,55 @@ run_vault_init() {
   exit 1
 }
 
+run_required_qsc_step() {
+  local actor="$1"
+  local step="$2"
+  local log_file="$3"
+  local expected_marker="$4"
+  local msg="$5"
+  shift 5
+  if ! run_qsc_step "$actor" "$step" "$log_file" "$@"; then
+    echo "$msg" >&2
+    exit 1
+  fi
+  assert_marker_present "$expected_marker" "$log_file" "$msg"
+}
+
+extract_identity_fp() {
+  local log_file="$1"
+  local actor="$2"
+  local fp=""
+  fp="$(sed -n -E 's/^identity_fp=([^[:space:]]+).*/\1/p' "$log_file" | tail -n1)"
+  if [ -z "$fp" ]; then
+    echo "identity fingerprint missing for $actor before relay interaction" >&2
+    exit 1
+  fi
+  printf '%s\n' "$fp"
+}
+
 # initialize secure stores and clear stale outboxes
 run_vault_init alice "$alice_log"
 run_vault_init bob "$bob_log"
+run_required_qsc_step alice relay_inbox_set "$alice_log" 'event=relay_inbox_set ok=true' \
+  "relay inbox setup failed for alice before handshake" relay inbox-set --token "$alice_route_token"
+run_required_qsc_step bob relay_inbox_set "$bob_log" 'event=relay_inbox_set ok=true' \
+  "relay inbox setup failed for bob before handshake" relay inbox-set --token "$bob_route_token"
+run_required_qsc_step alice identity_rotate "$alice_log" 'event=identity_rotate ok=true' \
+  "identity initialization failed for alice before handshake" identity rotate --as "$proto_alice" --confirm
+run_required_qsc_step bob identity_rotate "$bob_log" 'event=identity_rotate ok=true' \
+  "identity initialization failed for bob before handshake" identity rotate --as "$proto_bob" --confirm
+alice_fp="$(extract_identity_fp "$alice_log" alice)"
+bob_fp="$(extract_identity_fp "$bob_log" bob)"
+run_required_qsc_step alice contacts_add_bob "$alice_log" 'event=contacts_add ok=true' \
+  "contact route setup failed for alice before handshake" \
+  contacts add --label "$proto_bob" --fp "$bob_fp" --route-token "$bob_route_token"
+run_required_qsc_step bob contacts_add_alice "$bob_log" 'event=contacts_add ok=true' \
+  "contact route setup failed for bob before handshake" \
+  contacts add --label "$proto_alice" --fp "$alice_fp" --route-token "$alice_route_token"
+run_required_qsc_step alice contacts_device_list_bob "$alice_log" 'event=contacts_device_list .* count=1' \
+  "contact route validation failed for alice before handshake" contacts device list --label "$proto_bob"
+run_required_qsc_step bob contacts_device_list_alice "$bob_log" 'event=contacts_device_list .* count=1' \
+  "contact route validation failed for bob before handshake" contacts device list --label "$proto_alice"
 run_qsc_step alice pre_abort "$alice_log" send abort
 run_qsc_step bob pre_abort "$bob_log" send abort
 

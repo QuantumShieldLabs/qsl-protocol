@@ -297,6 +297,11 @@ fi
   echo "dup_count=$dup_count"
 } > "$summary"
 
+if [ "$status" != "ok" ] && mark_grep "event=error code=relay_inbox_push_failed" "$markers" >/dev/null 2>&1; then
+  echo "relay_inbox_push_failed encountered after deterministic contact-store setup" >&2
+  exit 1
+fi
+
 # charter checks: no retry/recover markers, no obvious secrets
 if mark_grep "retry|recover" "$markers" >/dev/null 2>&1; then
   echo "charter violation: retry/recover marker present" >&2

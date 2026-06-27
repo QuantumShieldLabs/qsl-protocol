@@ -31526,14 +31526,14 @@ Closeout evidence:
 ---
 
 ### NA-0549 — QSL Remote/Relay Non-Required CI Failure Targeted Follow-Up Evidence Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
 Execute the D-1086-authorized targeted follow-up evidence plan for the
 remote-handshake, remote-relay, and relay-ui-integration failures that
 reproduced on current main in NA-0547. Use only the exact GitHub Actions
-metadata/log/rerun/dispatch actions authorized by D-1086. Capture run/job/check
+metadata/log/artifact capture actions authorized by D-1086. Capture run/job/check
 metadata and bounded logs under the proof root, scan and redact private material
 before summarizing, update per-target evidence-gap classifications, and select a
 later exact remediation, qsl-server-boundary, no-fix, or stop successor. This
@@ -31549,7 +31549,7 @@ Allowed scope:
 - docs/ops/ROLLING_OPERATIONS_JOURNAL.md
 - proof-root-only raw logs and redacted extracts
 - read-only GitHub workflow/run/job/check metadata
-- exact D-1086-authorized GitHub Actions metadata/log/rerun/dispatch commands
+- exact D-1086-authorized GitHub Actions metadata/log/artifact capture commands
 - private-material scan/redaction proof
 - successor selection
 
@@ -31575,6 +31575,55 @@ Forbidden scope:
 - public-readiness, production-readiness, public-internet-readiness,
   external-review-complete, reproducibility-complete, backup/restore-complete,
   vulnerability-free, bug-free, or perfect-build claim.
+
+Closeout evidence:
+- NA-0549 targeted follow-up evidence PR #1371 merged at `6624ba9c9fc6`.
+- D-1088 accepted once and selected `REMOTE_RELAY_TARGETED_EVIDENCE_QSL_SERVER_BOUNDARY_READY`.
+- public-safety completed success, advisories completed success, and no failed required checks remained before closeout.
+- Updated evidence gaps: remote-handshake `REMOTE_HANDSHAKE_GAP_EXACT_IMPLEMENTATION_READY`, remote-relay `REMOTE_RELAY_GAP_EXACT_IMPLEMENTATION_READY`, and relay-ui-integration `RELAY_UI_GAP_QSL_SERVER_BOUNDARY_REQUIRED`.
+- Implementation readiness: remote-handshake and remote-relay are exact script-remediation-ready for future lanes; relay-ui-integration requires qsl-server boundary authorization first.
+- Selected successor: `NA-0550 -- QSL Relay UI qsl-server Boundary Authorization Plan`.
+- Raw logs and raw artifacts remain proof-root-only. No raw logs or raw artifacts were committed and no private material was published.
+- No rerun, workflow dispatch, local reproduction, workflow mutation, runtime/source mutation, qsc source/test/fuzz/Cargo mutation, dependency/lockfile mutation, qsl-server/qsl-attachments mutation, public-site mutation, or Cloudflare mutation occurred in closeout.
+
+---
+
+### NA-0550 — QSL Relay UI qsl-server Boundary Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize a bounded lane to define whether and how relay UI reproduction or
+remediation may use qsl-server/qsl-attachments context. Identify exact
+qsl-server/qsl-attachments paths, commands, logs, private-material risks, proof
+boundaries, and successor rules before any local qsl-server or relay UI
+reproduction is attempted.
+
+Allowed scope:
+- docs/governance/evidence/NA-0550_relay_ui_qsl_server_boundary_authorization_plan.md
+- tests/NA-0550_relay_ui_qsl_server_boundary_authorization_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only qsl-protocol workflow/test references
+- read-only GitHub qsl-server/qsl-attachments workflow metadata if visible
+- exact future boundary design
+- successor selection
+
+Forbidden scope:
+- qsl-server/qsl-attachments clone/build/run/mutation;
+- workflow mutation;
+- runtime mutation;
+- dependency/lockfile mutation;
+- qsc source/test/fuzz/Cargo mutation;
+- remote command;
+- qwork/qstart/qresume execution by Codex;
+- qsl-backup execution;
+- backup mutation;
+- public-site mutation;
+- Cloudflare mutation;
+- public-readiness, production-readiness, vulnerability-free, bug-free, or
+  perfect-build claim.
 
 ---
 

@@ -6,6 +6,31 @@ Last-Updated: 2026-06-27
 
 # Rolling Operations Journal
 
+## NA-0548 remote/relay follow-up evidence authorization update
+
+- Directive: QSL-DIR-2026-06-27-462 -- Execute NA-0548 Remote/Relay Non-Required CI Failure Follow-Up Evidence Authorization Plan, Optional Closeout to NA-0549.
+- Repo path: `/srv/qbuild/work/NA-0548/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0548_remote_relay_follow_up_evidence_authorization_20260627T194838Z`.
+- Fresh qwork proof files were read and copied from `/srv/qbuild/work/NA-0548/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-06-27T19:36:42Z`; proof HEAD/origin-main/main matched live pre-fetch state at `17737472b438`.
+- Disk and mount gate passed before mutation: `/` usage below the 95% stop threshold and `/backup/qsl` mounted.
+- Fetch occurred only after proof/live ref match, clean tree, disk proof, and mount proof. Local main matched origin/main at `17737472b438`.
+- Startup queue proof: READY_COUNT 1; READY NA-0548; NA-0547 DONE; NA-0546 DONE.
+- Startup decision proof: D-1084 once; D-1085 once; D-1086 absent before patch; D-1087 absent; duplicate decision count zero.
+- Current main required-check classification passed: public-safety completed success, advisories completed success, no failed required checks, and branch-protection required contexts classified.
+- NA-0547 reproduction inheritance consumed: remote-handshake `REMOTE_HANDSHAKE_REPRODUCED_CURRENT`, remote-relay `REMOTE_RELAY_REPRODUCED_CURRENT`, and relay-ui-integration `RELAY_UI_REPRODUCED_CURRENT`.
+- Failure signatures reviewed: remote-handshake vault init failed for Alice; remote-relay produced `contacts_store_invalid` plus failed happy-path count expectations; relay-ui-integration got loopback health HTTP 404 before ignored tests ran.
+- Evidence gaps classified: remote-handshake `REMOTE_HANDSHAKE_GAP_ADDITIONAL_GITHUB_LOGS_REQUIRED`; remote-relay `REMOTE_RELAY_GAP_ADDITIONAL_GITHUB_LOGS_REQUIRED`; relay-ui-integration `RELAY_UI_GAP_ADDITIONAL_GITHUB_LOGS_REQUIRED`.
+- Implementation readiness reviewed: all targets are `IMPLEMENTATION_NOT_READY_MORE_EVIDENCE_REQUIRED`; no exact remediation mutation paths selected.
+- qsl-server/qsl-attachments boundary classified: `QSL_SERVER_BOUNDARY_GITHUB_ACTIONS_BLACK_BOX_ONLY`; future evidence remains existing GitHub Actions black-box metadata/log/artifact capture unless later evidence requires a boundary lane.
+- Result classification: `REMOTE_RELAY_FOLLOW_UP_EVIDENCE_TARGETED_GITHUB_CAPTURE_READY`.
+- Selected successor: `NA-0549 -- QSL Remote/Relay Non-Required CI Failure Targeted Follow-Up Evidence Harness`.
+- NA-0548 implementation changes are limited to `docs/governance/evidence/NA-0548_remote_relay_non_required_ci_failure_follow_up_evidence_authorization_plan.md`, `tests/NA-0548_remote_relay_non_required_ci_failure_follow_up_evidence_authorization_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Codex did not execute reruns, workflow dispatches, local reproduction, workflow mutation, runtime/source mutation, qsc source/test/fuzz/Cargo mutation, dependency/lockfile mutation, qsl-server/qsl-attachments commands or mutation, qwork/qstart/qresume, qsl-backup, backup mutation, public-site mutation, or Cloudflare mutation.
+- Raw logs remain proof-root-only. No raw logs were committed and no private material was published.
+- qwork pipe-to-tee cd-persistence issue recorded as operator ergonomics/future process improvement only; no qwork mutation occurred in this lane.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no reproducibility-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0547 closeout and NA-0548 restoration update
 
 - Directive: QSL-DIR-2026-06-26-461 optional closeout.

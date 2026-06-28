@@ -31944,7 +31944,7 @@ Closeout note:
 ---
 
 ### NA-0556 — QSL Remote Relay Environment and Secret Boundary Review Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -31983,6 +31983,79 @@ Forbidden scope:
 - qsl-backup execution;
 - backup mutation;
 - public-site/Cloudflare mutation;
+- private material publication;
+- public-readiness, production-readiness, vulnerability-free, bug-free, or
+  perfect-build claim.
+
+Closeout note:
+- NA-0556 implementation PR #1385 merged at `9580d81dbdd4`.
+- D-1102 exists once and is Accepted.
+- Post-merge public-safety completed success.
+- Post-merge advisories completed success.
+- No failed required check was classified.
+- NA-0556 selected `REMOTE_RELAY_ENV_SECRET_BOUNDARY_OPERATOR_PROOF_CAPTURE_READY`.
+- NA-0556 is DONE.
+- NA-0557 is restored READY as the sole successor.
+- No NA-0557 implementation occurred in this closeout.
+
+---
+
+### NA-0557 — QSL Remote Relay Environment Non-Secret Operator Proof Capture Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Capture and review non-secret operator proof for the remote relay environment and
+secret boundary after NA-0555 diagnostics classified both remote-handshake and
+remote-relay as network/TLS/timeout with route-token and bearer headers present.
+The operator must provide only redacted/non-secret proof fields selected by
+D-1102. Codex must review proof read-only, verify no secret values or private
+endpoint details are published, classify endpoint/DNS/TLS/service/auth/route
+ownership, and select a later exact remediation, qsc runtime review,
+remote-service review, confirmation evidence, or stop successor.
+
+Prerequisite before Codex execution:
+- Director must provide one-step-at-a-time operator proof-capture instructions
+  derived from D-1102.
+- Operator must review outputs before sharing and remove any secret values.
+- Operator must not paste route-token values, bearer values, Authorization
+  headers, private endpoints, private topology, payloads, response bodies, or
+  secret environment values.
+- Operator runs fresh qwork NA-0557 qsl-protocol only after proof files are
+  prepared or intentionally declined.
+
+Allowed scope:
+- docs/governance/evidence/NA-0557_remote_relay_environment_non_secret_operator_proof_capture_harness.md
+- tests/NA-0557_remote_relay_environment_non_secret_operator_proof_capture_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-only operator non-secret proof files
+- read-only NA-0555/NA-0556 evidence
+- read-only workflow variable names, not values
+- private-material scan/redaction proof
+- successor selection
+
+Forbidden scope:
+- requesting or publishing secret values;
+- route-token/capability value publication;
+- bearer value publication;
+- Authorization header publication;
+- private endpoint or private topology publication;
+- script remediation;
+- qsc source/test/fuzz/Cargo mutation;
+- workflow mutation;
+- dependency/lockfile mutation;
+- rerun or workflow dispatch;
+- local reproduction;
+- qsc send/receive or E2EE;
+- qsl-server/qsl-attachments command, clone, build, run, or mutation;
+- remote command by Codex;
+- qwork/qstart/qresume execution by Codex;
+- qsl-backup execution;
+- backup mutation;
+- public-site mutation;
+- Cloudflare mutation;
 - private material publication;
 - public-readiness, production-readiness, vulnerability-free, bug-free, or
   perfect-build claim.

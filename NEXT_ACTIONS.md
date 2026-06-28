@@ -32177,7 +32177,7 @@ or public/production/security overclaim occurred.
 ---
 
 ### NA-0561 — QSL Remote Relay Service Owner Non-Secret Proof Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -32206,6 +32206,70 @@ Forbidden scope:
 - workflow dispatch/rerun;
 - qsl-server/qsl-attachments;
 - public-site/Cloudflare mutation.
+
+---
+
+### NA-0562 — QSL Remote Relay Service Listener Non-Secret Proof Capture Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Execute the D-1112-authorized service-owner non-secret proof capture to determine
+whether the remote relay service is listening on the expected loopback target
+behind the SSH tunnel. Codex may run only exact non-mutating commands authorized
+by D-1112: current-main proof, read-only GitHub metadata where needed, one
+bounded SSH command-execution check to `inspiron`, and one proof-root-generated
+remote listener probe script through SSH stdin. The lane must classify listener
+presence, TCP connect class, and HEAD /v1/push class without publishing endpoint
+values, private hosts/IPs, private topology, tokens, bearer values, Authorization
+headers, payloads, response bodies, process identity, or secret environment
+values. Codex must not mutate accounts, shells, authorized_keys, Tailscale,
+services, qsl-server, qsl-attachments, source, scripts, workflows, dependencies,
+or backup state.
+
+Allowed scope:
+- docs/governance/evidence/NA-0562_remote_relay_service_listener_non_secret_proof_capture_harness.md
+- tests/NA-0562_remote_relay_service_listener_non_secret_proof_capture_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-only remote listener probe outputs
+- read-only NA-0555/NA-0556/NA-0557/NA-0558/NA-0559/NA-0560/NA-0561 evidence
+- read-only GitHub metadata
+- exact SSH command-execution check selected by D-1112
+- exact remote listener probe through SSH stdin selected by D-1112
+- private-material scan/redaction proof
+- successor selection
+
+Forbidden scope:
+- qwork/qstart/qresume execution by Codex;
+- any SSH command outside exact D-1112 allowlist;
+- scp/sftp/rsync;
+- sudo/admin action;
+- account, shell, authorized_keys, Tailscale, firewall, or service mutation;
+- qsc send/receive;
+- qsc E2EE;
+- payload push;
+- workflow dispatch;
+- rerun;
+- source/script/qsc mutation;
+- workflow mutation;
+- dependency/lockfile mutation;
+- qsl-server/qsl-attachments command, clone, build, run, or mutation;
+- qsl-backup;
+- backup mutation;
+- public-site mutation;
+- Cloudflare mutation;
+- endpoint value publication;
+- route-token/capability value publication;
+- bearer value publication;
+- Authorization header publication;
+- private endpoint or private topology publication;
+- process identity publication unless separately proven safe;
+- payload or response body publication;
+- secret environment value publication;
+- public-readiness, production-readiness, vulnerability-free, bug-free, or
+  perfect-build claim.
 
 ---
 

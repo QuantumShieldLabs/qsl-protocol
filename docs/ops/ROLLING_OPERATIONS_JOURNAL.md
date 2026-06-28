@@ -6,6 +6,31 @@ Last-Updated: 2026-06-28
 
 # Rolling Operations Journal
 
+## NA-0558 closeout and NA-0559 restoration update
+
+- Directive: QSL-DIR-2026-06-28-478 optional closeout after NA-0558 implementation merge.
+- Repo path: `/srv/qbuild/work/NA-0558/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0558_remote_relay_targeted_non_secret_probe_authorization_20260628T174118Z`.
+- Implementation PR #1389 merged at `bf12922dafa8` from head `78c8f5b6a724`.
+- Post-merge public-safety completed success on `bf12922dafa8`.
+- Post-merge advisories completed success on `bf12922dafa8`.
+- Post-merge suite2-vectors completed success on `bf12922dafa8`.
+- No failed required check was classified.
+- D-1106 exists once and records `REMOTE_RELAY_TARGETED_NON_SECRET_OPERATOR_PROBE_CAPTURE_READY`.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0558_closeout_restore_na0559_testplan.md`.
+- NA-0558 is marked DONE.
+- NA-0559 is restored READY using the exact D-1106-selected remote relay targeted non-secret operator probe capture successor block.
+- D-1107 records NA-0558 closeout and NA-0559 restoration.
+- This closeout does not implement NA-0559 and does not mutate source, script, workflow, dependency, lockfile, qsc source/test/fuzz/Cargo paths, qsl-server, qsl-attachments, public-site, Cloudflare, backup state, operator-local state, raw logs, or raw artifacts.
+- Codex did not run qwork, qstart, qresume, qsl-backup, rerun, workflow dispatch, local reproduction, qsc send/receive, qsc E2EE, qsl-server, qsl-attachments, probes, remote commands, SSH, scp, sftp, rsync, sudo/admin actions, or Cloudflare actions during closeout.
+- No secret values were requested or published. No route-token/capability values, bearer values, Authorization headers, endpoint values, private topology, payloads, response bodies, or secret environment values were published.
+- Branch: `na-0558-closeout-restore-na0559`.
+- PR title: `NA-0558: closeout and restore NA-0559`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: closeout PR checks, public-safety, advisories, no failed required checks, and final queue proof after merge.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No backup/restore-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
+
 ## NA-0558 remote relay targeted non-secret operator probe authorization update
 
 - Directive: QSL-DIR-2026-06-28-478 -- Execute NA-0558 Remote Relay Targeted Non-Secret Operator Probe Authorization Plan, Optional Closeout to NA-0559.

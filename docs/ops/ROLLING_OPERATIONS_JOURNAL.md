@@ -6,6 +6,33 @@ Last-Updated: 2026-06-28
 
 # Rolling Operations Journal
 
+## NA-0556 closeout and NA-0557 restoration update
+
+- Directive: QSL-DIR-2026-06-28-475 optional closeout after NA-0556 implementation merge.
+- Repo path: `/srv/qbuild/work/NA-0556/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0556_remote_relay_env_secret_boundary_authorization_20260628T150714Z`.
+- Implementation PR #1385 merged at `9580d81dbdd4` from head `690daeb27475`.
+- Post-merge public-safety completed success on `9580d81dbdd4`.
+- Post-merge advisories completed success on `9580d81dbdd4`.
+- Post-merge suite2-vectors completed success on `9580d81dbdd4`.
+- No failed required check was classified.
+- D-1102 exists once and records `REMOTE_RELAY_ENV_SECRET_BOUNDARY_OPERATOR_PROOF_CAPTURE_READY`.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0556_closeout_restore_na0557_testplan.md`.
+- NA-0556 is marked DONE.
+- NA-0557 is restored READY using the exact D-1102-selected remote relay environment non-secret operator proof capture successor block.
+- D-1103 records NA-0556 closeout and NA-0557 restoration.
+- Recovered failure: the first closeout overclaim scan flagged the required NA-0557 `Forbidden scope` claim list as positive wording across wrapped lines. Classification: recoverable scan-context issue. Corrective action: reran the scanner with forbidden-scope block context preserved while keeping the exact successor block unchanged. Final result: validation passed.
+- Recovered failure: the first closeout goal-lint preflight did not export proof-root/base/head variables into the synthetic event writer, causing `tools/goal_lint.py` to report a missing event path. Classification: recoverable command-shape issue. Corrective action: reran once with explicit exported variables. Final result: goal-lint passed.
+- This closeout does not implement NA-0557 and does not mutate source, script, workflow, dependency, lockfile, qsc source/test/fuzz/Cargo paths, qsl-server, qsl-attachments, public-site, Cloudflare, backup state, operator-local state, raw logs, or raw artifacts.
+- Codex did not run qwork, qstart, qresume, qsl-backup, rerun, workflow dispatch, local reproduction, qsc send/receive, qsc E2EE, qsl-server, qsl-attachments, remote commands, SSH, scp, sftp, rsync, sudo/admin actions, or Cloudflare actions during closeout.
+- No secret values were requested or published. No route-token/capability values, bearer values, Authorization headers, private endpoints, private topology, payloads, response bodies, or secret environment values were published.
+- Branch: `na-0556-closeout-restore-na0557`.
+- PR title: `NA-0556: closeout and restore NA-0557`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: closeout PR checks, public-safety, advisories, no failed required checks, and final queue proof after merge.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No reproducibility-complete claim is introduced. No backup/restore-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
+
 ## NA-0556 remote relay environment secret-boundary authorization update
 
 - Directive: QSL-DIR-2026-06-28-475 -- Execute NA-0556 Remote Relay Environment and Secret Boundary Review Authorization Plan, Optional Closeout to NA-0557.

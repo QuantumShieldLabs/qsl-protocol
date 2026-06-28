@@ -39129,3 +39129,25 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - PR merge commit: pending at journal authoring.
 - No NA-0558 implementation, SSH/Tailscale/remote command, probe execution, rerun, workflow dispatch, local reproduction, qsc send/receive, qsc E2EE, qsl-server/qsl-attachments command or mutation, qwork/qstart/qresume execution, qsl-backup execution, backup mutation, source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, raw-log/raw-artifact repository docs, or private-material publication is introduced by NA-0557.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0557 closeout and NA-0558 restoration update
+
+- Directive: QSL-DIR-2026-06-28-477 optional closeout packet.
+- Begin timestamp (UTC): 2026-06-28T17:15:00Z.
+- Repo path: `/srv/qbuild/work/NA-0557/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0557_operator_proof_capture_parser_recovery_20260628T164957Z`.
+- Implementation PR #1387 merged at `7f41c5febda3` from head `6625c34a4459`.
+- Post-merge public-safety completed success on `7f41c5febda3`.
+- Post-merge advisories completed success on `7f41c5febda3`.
+- Post-merge check polling reached 36 attached checks, zero incomplete, and zero failures before closeout.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0557_closeout_restore_na0558_testplan.md`.
+- NA-0557 is marked DONE.
+- NA-0558 is restored READY using the exact D-1104-selected targeted non-secret operator probe authorization successor block.
+- D-1105 records NA-0557 closeout and NA-0558 restoration.
+- This closeout does not implement NA-0558 and does not run operator probes, SSH, Tailscale, remote commands, workflow dispatches, reruns, local qsc send/receive, local qsc E2EE, qsl-server, qsl-attachments, qwork, qstart, qresume, qsl-backup, or backup mutation.
+- No source, script, workflow, dependency, lockfile, qsc source/test/fuzz/Cargo, qsl-server, qsl-attachments, public-site, Cloudflare, raw-log/raw-artifact repository-doc, or private-material mutation is introduced.
+- Branch: pending at journal authoring.
+- PR title: `NA-0557: closeout and restore NA-0558`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.

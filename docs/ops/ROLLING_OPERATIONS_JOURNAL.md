@@ -6,6 +6,37 @@ Last-Updated: 2026-06-28
 
 # Rolling Operations Journal
 
+## NA-0562 remote relay service listener proof capture update
+
+- Directive: QSL-DIR-2026-06-28-483 -- Recover NA-0562 Remote Relay Service Listener Proof Capture After Readiness Marker Authority Mismatch.
+- Repo path: `/srv/qbuild/work/NA-0562/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0562_service_listener_probe_marker_recovery_20260628T233212Z`.
+- Fresh NA-0562 qwork proof files were read and copied from `/srv/qbuild/work/NA-0562/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-06-28T23:03:37Z`; startup head/origin-main/main was `6972309858fa` with READY_COUNT 1 and READY NA-0562.
+- Disk and mount gate passed before SSH or mutation: `/` usage below the 95 percent stop threshold and `/backup/qsl` mounted.
+- Fetch occurred only after proof/live ref match, clean tree, disk proof, and mount proof. Local main matched origin/main at `6972309858fa`.
+- Startup queue proof: READY_COUNT 1; READY NA-0562; NA-0561 DONE; NA-0560 DONE.
+- Startup decision proof: D-1112 once and Accepted; D-1113 once and Accepted; D-1114 absent before patch; D-1115 absent; duplicate decision record count zero.
+- Current main required-check classification passed: public-safety completed success, advisories completed success, suite2-vectors completed success, no failed required checks, no pending required checks, and branch-protection required contexts classified.
+- D482 marker mismatch stop was consumed. D483 recovered by using the D-1112 exact readiness marker. The incorrect D482 marker was not used.
+- Recovered proof-parser issue: the first D483 D482 recovery proof parser used overly narrow wording. Classification: recoverable local proof-validation/parser issue. Corrective action: reran with D482 proof-root JSON and actual stop wording. Final result: pass.
+- The proof-root-only remote listener probe script was generated and statically reviewed. Syntax, forbidden import, no persistence, no qsc, no external command, HEAD-only, and JSON-only checks passed.
+- SSH listener readiness command executed exactly once and classified `SSH_LISTENER_PROBE_READY`; raw output remains proof-root-only and private-material scan passed.
+- Remote listener probe through SSH stdin executed exactly once and classified `REMOTE_LISTENER_OTHER_LOOPBACK_PRESENT_EXPECTED_ABSENT`; raw output remains proof-root-only and private-material scan passed.
+- Coarse listener proof classes: listener presence `no`; listener bind `not_available`; other loopback listener presence `yes`; TCP connect `refused`; v1_push HEAD `not_checked`.
+- Result classification: `SERVICE_OWNER_PORT_MISMATCH_REMEDIATION_READY`.
+- Selected successor: `NA-0563 -- QSL Remote Relay Loopback Port Alignment Authorization Plan`.
+- Governance patch paths are limited to `docs/governance/evidence/NA-0562_remote_relay_service_listener_non_secret_proof_capture_harness.md`, `tests/NA-0562_remote_relay_service_listener_non_secret_proof_capture_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Codex did not mutate accounts, shells, authorized_keys, Tailscale, firewall, services, qsl-server, qsl-attachments, source, scripts, workflows, dependencies, lockfiles, backup state, public-site content, or Cloudflare configuration.
+- Codex did not run qwork, qstart, qresume, qsl-backup, qsc send/receive, qsc E2EE, workflow dispatch, rerun, local reproduction, qsl-server, qsl-attachments, scp, sftp, rsync, sudo/admin actions, or Tailscale commands.
+- No endpoint values, route-token/capability values, bearer values, Authorization headers, private topology, process identity, payloads, response bodies, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, API keys, raw logs, or raw artifacts are published.
+- Branch: pending at journal authoring.
+- PR title: `NA-0562: recover listener probe and capture service proof`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: implementation validation, PR checks, public-safety, advisories, no failed required checks, post-merge proof, and optional NA-0563 closeout only if gates are green.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No backup/restore-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
+
 ## NA-0559 closeout and NA-0560 restoration update
 
 - Directive: QSL-DIR-2026-06-28-479 optional closeout after NA-0559 implementation merge.

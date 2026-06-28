@@ -31716,7 +31716,7 @@ Forbidden scope:
 ---
 
 ### NA-0553 — QSL Remote Relay API Boundary Diagnostic Instrumentation Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -31761,6 +31761,113 @@ Forbidden scope:
 - private material publication;
 - public-readiness, production-readiness, vulnerability-free, bug-free, or
   perfect-build claim.
+
+Closeout evidence:
+- D-1096 accepted NA-0553 remote relay API boundary diagnostic instrumentation
+  authorization.
+- qsl-protocol PR #1379 merged the NA-0553 authorization-only evidence as
+  merge `b9f01614eea6` from head `2f2387603854`.
+- Post-merge public-safety completed success on `b9f01614eea6`.
+- Post-merge advisories completed success on `b9f01614eea6`.
+- Post-merge check polling reached terminal state with no failed checks.
+- NA-0553 selected `REMOTE_RELAY_DIAGNOSTIC_INSTRUMENTATION_IMPLEMENTATION_READY`.
+- NA-0554 is restored READY using the exact D-1096-selected diagnostic
+  instrumentation implementation successor block.
+- No NA-0554 implementation occurred in this closeout.
+
+---
+
+### NA-0554 — QSL Remote Relay API Boundary Diagnostic Instrumentation Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement bounded, redacted diagnostic instrumentation for the qsc relay push
+boundary selected by NA-0553. Expose enough status/error classification to
+diagnose `relay_inbox_push_failed` in remote-handshake and remote-relay
+validation without printing route-token values, bearer material, Authorization
+headers, private endpoint hosts, request payloads, response bodies, private
+topology, or secret environment values.
+
+Selected diagnostic gate:
+- qsc env var: `QSC_RELAY_PUSH_DIAGNOSTIC=redacted`
+- CLI flag: none selected
+- Default behavior: diagnostics disabled unless the env var is explicitly set by
+  an authorized validation harness.
+
+Allowed scope:
+- qsl/qsl-client/qsc/src/transport/mod.rs
+- qsl/qsl-client/qsc/tests/relay_push_diagnostics.rs
+- qsl/qsl-client/qsc/tests/secret_material_diagnostic_boundary.rs
+- scripts/demo/qsc_remote_handshake_smoke.sh
+- scripts/demo/qsc_remote_relay_smoke.sh
+- docs/governance/evidence/NA-0554_remote_relay_api_boundary_diagnostic_instrumentation_implementation_harness.md
+- tests/NA-0554_remote_relay_api_boundary_diagnostic_instrumentation_implementation_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-only validation logs and redacted summaries
+
+Forbidden scope:
+- workflow mutation;
+- dependency or lockfile mutation;
+- qsc source/test paths outside the exact allowed qsc paths;
+- qsc fuzz mutation;
+- script remediation unrelated to consuming redacted qsc diagnostics;
+- local qsc send/receive outside explicitly authorized tests or workflows;
+- qsl-server/qsl-attachments command, clone, build, run, or mutation;
+- remote command outside read-only GitHub API/log access and explicitly
+  authorized workflow validation;
+- qwork/qstart/qresume execution by Codex;
+- qsl-backup execution;
+- backup mutation;
+- public-site mutation;
+- Cloudflare mutation;
+- raw logs or raw artifacts committed to repository docs;
+- private material publication;
+- no public-readiness claim;
+- no production-readiness claim;
+- no public-internet-readiness claim;
+- no external-review-complete claim;
+- no reproducibility-complete claim;
+- no backup/restore-complete claim;
+- no vulnerability-free claim;
+- no bug-free claim;
+- no perfect-build claim;
+- no perfect-crypto claim.
+
+Redaction policy:
+- diagnostics must remain disabled by default;
+- route-token values, bearer token values, Authorization headers, request
+  payloads, full private endpoint hosts, response body content, body hashes,
+  route capabilities, private topology, passphrases, private keys, and secret
+  environment values must never be emitted;
+- allowed diagnostic fields are status class, exact HTTP status code, local error
+  class, response body presence boolean, response body length, route-token header
+  presence boolean, bearer auth presence boolean, endpoint path label
+  `relay_push`, attempt count, qsc error variant, and optional non-secret run
+  correlation id;
+- raw diagnostic logs are proof-root-only;
+- repository docs are summary-only after private-material scans.
+
+Required validation:
+- `git diff --check`;
+- `cargo test -p qsc --locked --test relay_push_diagnostics -- --test-threads=1 --nocapture`;
+- `cargo test -p qsc --locked --test secret_material_diagnostic_boundary -- --test-threads=1 --nocapture`;
+- `cargo test -p qsc --locked --test relay_dup_no_mutation -- --test-threads=1 --nocapture`;
+- `bash -n scripts/demo/qsc_remote_handshake_smoke.sh scripts/demo/qsc_remote_relay_smoke.sh`;
+- `cargo fmt --check`;
+- `cargo audit --deny warnings`;
+- `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock`;
+- `sh -n scripts/ci/qsc_adversarial.sh`;
+- `bash -n scripts/ci/qsc_adversarial.sh`;
+- added-line/new-file private-material scan;
+- raw-log private-material scan before summary use.
+
+Branch workflow validation if authorized by the implementation directive:
+- `gh workflow run remote-handshake-tests.yml --ref <branch>`;
+- `gh workflow run remote-relay-tests.yml --ref <branch> -f scenario=happy-path -f seed=1`;
+- `gh workflow run remote-relay-tests.yml --ref <branch> -f scenario=drop-reorder -f seed=7`.
 
 ---
 

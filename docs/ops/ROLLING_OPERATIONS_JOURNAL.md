@@ -6,6 +6,30 @@ Last-Updated: 2026-06-28
 
 # Rolling Operations Journal
 
+## NA-0555 closeout and NA-0556 restoration update
+
+- Directive: QSL-DIR-2026-06-28-474 optional closeout after NA-0555 implementation merge.
+- Repo path: `/srv/qbuild/work/NA-0555/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0555_remote_relay_api_diagnostic_evidence_capture_20260628T141227Z`.
+- Implementation PR #1383 merged at `a8c822805a3f` from head `d7d356f92fcd`.
+- Post-merge public-safety completed success on `a8c822805a3f`.
+- Post-merge advisories completed success on `a8c822805a3f`.
+- Post-merge suite2-vectors completed success on `a8c822805a3f`.
+- No failed required check was classified.
+- D-1100 exists once and records `REMOTE_RELAY_DIAGNOSTIC_EVIDENCE_REMOTE_ENV_SECRET_BOUNDARY_READY`.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0555_closeout_restore_na0556_testplan.md`.
+- NA-0555 is marked DONE.
+- NA-0556 is restored READY using the exact D-1100-selected remote relay environment and secret-boundary review authorization successor block.
+- D-1101 records NA-0555 closeout and NA-0556 restoration.
+- This closeout does not implement NA-0556 and does not mutate source, script, workflow, dependency, lockfile, qsc source/test/fuzz/Cargo paths, qsl-server, qsl-attachments, public-site, Cloudflare, backup state, operator-local state, raw logs, or raw artifacts.
+- Codex did not run qwork, qstart, qresume, qsl-backup, rerun, workflow dispatch, local reproduction, qsc send/receive, qsc E2EE, qsl-server, qsl-attachments, remote commands, SSH, scp, sftp, rsync, sudo/admin actions, or Cloudflare actions during closeout.
+- Branch: `na-0555-closeout-restore-na0556`.
+- PR title: `NA-0555: closeout and restore NA-0556`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: closeout PR checks, public-safety, advisories, no failed required checks, and final queue proof after merge.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No reproducibility-complete claim is introduced. No backup/restore-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
+
 ## NA-0555 remote relay API boundary diagnostic evidence capture update
 
 - Directive: QSL-DIR-2026-06-28-474 -- Execute NA-0555 Remote Relay API Boundary Diagnostic Evidence Capture Harness, Optional Closeout to NA-0556.

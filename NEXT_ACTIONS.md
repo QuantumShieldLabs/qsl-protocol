@@ -31883,7 +31883,7 @@ Closeout note:
 ---
 
 ### NA-0555 — QSL Remote Relay API Boundary Diagnostic Evidence Capture Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -31926,6 +31926,63 @@ Forbidden scope:
 - public-site mutation;
 - Cloudflare mutation;
 - raw logs committed to repository docs;
+- private material publication;
+- public-readiness, production-readiness, vulnerability-free, bug-free, or
+  perfect-build claim.
+
+Closeout note:
+- NA-0555 implementation PR #1383 merged at `a8c822805a3f`.
+- D-1100 exists once and is Accepted.
+- Post-merge public-safety completed success.
+- Post-merge advisories completed success.
+- No failed required check was classified.
+- NA-0555 selected `REMOTE_RELAY_DIAGNOSTIC_EVIDENCE_REMOTE_ENV_SECRET_BOUNDARY_READY`.
+- NA-0555 is DONE.
+- NA-0556 is restored READY as the sole successor.
+- No NA-0556 implementation occurred in this closeout.
+
+---
+
+### NA-0556 — QSL Remote Relay Environment and Secret Boundary Review Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize a bounded review of remote relay endpoint, environment, auth, route
+token, bearer, and secret-boundary evidence after NA-0555 diagnostics indicated
+the remaining relay-push failure may be owned by external configuration or
+secret state. Define exact non-secret operator proof requirements, redaction
+rules, classification rules, and successor selection. This lane is
+authorization-only and must not request or publish secret values.
+
+Allowed scope:
+- docs/governance/evidence/NA-0556_remote_relay_environment_secret_boundary_review_authorization_plan.md
+- tests/NA-0556_remote_relay_environment_secret_boundary_review_authorization_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only NA-0555 proof-root evidence and redacted summaries
+- read-only workflow variable names, not values
+- exact future operator non-secret proof requirements
+- exact private-material policy
+- successor selection
+
+Forbidden scope:
+- requesting or publishing secret values;
+- endpoint/route-token/capability publication;
+- script remediation;
+- qsc source/test/fuzz/Cargo mutation;
+- workflow mutation;
+- dependency/lockfile mutation;
+- local reproduction;
+- qsc send/receive or E2EE;
+- rerun or workflow dispatch;
+- qsl-server/qsl-attachments;
+- remote command;
+- qwork/qstart/qresume execution by Codex;
+- qsl-backup execution;
+- backup mutation;
+- public-site/Cloudflare mutation;
 - private material publication;
 - public-readiness, production-readiness, vulnerability-free, bug-free, or
   perfect-build claim.

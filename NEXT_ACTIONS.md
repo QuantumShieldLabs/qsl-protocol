@@ -31778,7 +31778,7 @@ Closeout evidence:
 ---
 
 ### NA-0554 — QSL Remote Relay API Boundary Diagnostic Instrumentation Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -31868,6 +31868,67 @@ Branch workflow validation if authorized by the implementation directive:
 - `gh workflow run remote-handshake-tests.yml --ref <branch>`;
 - `gh workflow run remote-relay-tests.yml --ref <branch> -f scenario=happy-path -f seed=1`;
 - `gh workflow run remote-relay-tests.yml --ref <branch> -f scenario=drop-reorder -f seed=7`.
+
+Closeout note:
+- NA-0554 implementation PR #1381 merged at `a3e6a3789fe1`.
+- D-1098 exists once and is Accepted.
+- Post-merge public-safety completed success.
+- Post-merge advisories completed success.
+- No failed branch-protection required check was classified.
+- Branch diagnostic validation completed safely with redacted diagnostics observed.
+- NA-0554 is DONE.
+- NA-0555 is restored READY as the sole successor.
+- No NA-0555 implementation occurred in this closeout.
+
+---
+
+### NA-0555 — QSL Remote Relay API Boundary Diagnostic Evidence Capture Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Use the NA-0554 redacted relay-push diagnostic instrumentation to capture
+bounded evidence for the remote-handshake and remote-relay `relay_inbox_push_failed`
+boundary. Run only exact Director-authorized GitHub Actions workflow dispatches,
+capture run/job/log evidence proof-root-only, scan and redact private material,
+classify the relay-push status/error boundary, and select a later exact
+script-remediation, qsc-runtime remediation, environment/secret-boundary review,
+or stop successor. This lane must not mutate qsc source, demo scripts,
+workflows, dependencies, qsl-server/qsl-attachments, public-site content, or
+Cloudflare configuration.
+
+Allowed scope:
+- docs/governance/evidence/NA-0555_remote_relay_api_boundary_diagnostic_evidence_capture_harness.md
+- tests/NA-0555_remote_relay_api_boundary_diagnostic_evidence_capture_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-only raw logs and redacted extracts
+- read-only GitHub workflow/run/job/check metadata
+- exact future GitHub Actions workflow dispatch commands authorized by the
+  NA-0555 directive
+- private-material scan/redaction proof
+- successor selection
+
+Forbidden scope:
+- qsc source/test/fuzz/Cargo mutation;
+- demo script mutation;
+- workflow mutation;
+- dependency/lockfile mutation;
+- local reproduction;
+- qsc send/receive or E2EE outside the exact GitHub Actions workflows
+  authorized by the directive;
+- qsl-server/qsl-attachments command, clone, build, run, or mutation;
+- remote command outside exact GitHub Actions API/log access;
+- qwork/qstart/qresume execution by Codex;
+- qsl-backup execution;
+- backup mutation;
+- public-site mutation;
+- Cloudflare mutation;
+- raw logs committed to repository docs;
+- private material publication;
+- public-readiness, production-readiness, vulnerability-free, bug-free, or
+  perfect-build claim.
 
 ---
 

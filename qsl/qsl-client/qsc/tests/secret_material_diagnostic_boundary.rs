@@ -239,6 +239,40 @@ fn diagnostic_scrubber_rejects_synthetic_secret_markers() {
 }
 
 #[test]
+fn na0554_relay_push_diagnostic_boundary_is_value_free() {
+    let safe = CapturedDiagnostic {
+        name: "na0554_relay_push_diagnostic_safe",
+        text: concat!(
+            "QSC_MARK/1 event=relay_push_diagnostic ",
+            "diagnostic=QSC_RELAY_PUSH_DIAGNOSTIC mode=redacted ",
+            "api=relay_push_v1 status_class=4xx status_code=401 ",
+            "error_class=auth_rejected response_body_present=true ",
+            "response_body_len=23 route_header_present=true auth_present=true ",
+            "qsc_error=relay_unauthorized attempt=1\n"
+        )
+        .to_string(),
+    };
+    assert_no_secret_diagnostic_material(&safe);
+
+    for forbidden in [
+        "x_qsl_route_token_marker",
+        "bearer_marker",
+        "private_endpoint_marker",
+        "operator_data_marker",
+    ] {
+        let leaked = format!("QSC_MARK/1 event=relay_push_diagnostic carried {forbidden}");
+        let findings = diagnostic_secret_findings(leaked.as_str());
+        assert!(
+            !findings.is_empty(),
+            "scanner failed to reject synthetic NA-0554 relay diagnostic leak {forbidden}"
+        );
+    }
+
+    println!("NA0554_SECRET_MATERIAL_REDACTION_TESTS_OK");
+    println!("NA0554_RELAY_PUSH_DIAGNOSTIC_VALUE_FREE_OK");
+}
+
+#[test]
 fn na0500_common_no_overclaim_markers() {
     println!("NA0500_SECRET_MATERIAL_SCOPE_CONSUMED_OK");
     println!("NA0500_NO_QSC_SOURCE_CHANGE_OK");

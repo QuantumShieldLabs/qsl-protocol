@@ -100,6 +100,7 @@ run_send_once() {
     export QSC_SEED="$seed"
     export QSC_QSP_SEED="$seed"
     export QSC_ALLOW_SEED_FALLBACK=1
+    export QSC_RELAY_PUSH_DIAGNOSTIC=redacted
     export XDG_CONFIG_HOME="$qsc_home/.config"
     export XDG_DATA_HOME="$qsc_home/.local/share"
     export XDG_STATE_HOME="$qsc_home/.local/state"

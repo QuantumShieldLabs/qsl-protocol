@@ -142,6 +142,7 @@ run_qsc_step() {
     export RELAY_URL="$relay_addr"
     export RELAY_TOKEN="$relay_token"
     export QSC_RELAY_TOKEN="$relay_token"
+    export QSC_RELAY_PUSH_DIAGNOSTIC=redacted
     unset QSC_ALLOW_SEED_FALLBACK
     unset QSC_QSP_SEED
     mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME" "$QSC_CONFIG_DIR"

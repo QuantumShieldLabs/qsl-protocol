@@ -6,6 +6,40 @@ Last-Updated: 2026-06-28
 
 # Rolling Operations Journal
 
+## NA-0559 Codex-executed probe authority pivot update
+
+- Directive: QSL-DIR-2026-06-28-479 -- Execute NA-0559 Remote Relay Probe Authority Pivot to Codex-Executed Non-Secret Probe Harness, Optional Closeout to NA-0560.
+- Repo path: `/srv/qbuild/work/NA-0559/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0559_codex_executed_probe_authority_pivot_20260628T194659Z`.
+- Fresh NA-0559 qwork proof files were read and copied from `/srv/qbuild/work/NA-0559/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-06-28T19:38:46Z`; startup head/origin-main/main was `2ae25ad37c6e` with READY_COUNT 1 and READY NA-0559.
+- Disk and mount gate passed before mutation: `/` usage below the 95 percent stop threshold and `/backup/qsl` mounted.
+- Fetch occurred only after proof/live ref match, clean tree, disk proof, and mount proof. Local main matched origin/main at `2ae25ad37c6e`.
+- Startup queue proof: READY_COUNT 1; READY NA-0559; NA-0558 DONE; NA-0557 DONE.
+- Startup decision proof: D-1106 once; D-1107 once; D-1108 absent before patch; D-1109 absent; duplicate decision count zero.
+- Current main required-check classification passed: public-safety completed success, advisories completed success, suite2-vectors completed success, no failed required checks, and branch-protection required contexts classified.
+- Recovered failure: the first proof-root Phase 1-7 writer found D-1106 and D-1107 once but did not classify their indented `Status: Accepted` fields. Classification: recoverable command-shape/parser issue before repository mutation. Corrective action: reran once with indentation-tolerant status parsing. Final result: phase 1-7 proof artifacts passed.
+- Recovered discovery outcome: after creating the allowed NA-0559 evidence and testplan files, normal untracked output did not show them because existing ignore rules match evidence directories and secret-looking filenames. Classification: valid zero-match discovery/proof outcome. Corrective action: force-added exactly the two directive-authorized new markdown files and normalized their file mode. Final result: the implementation diff tracks both files.
+- Recovered failure: the first implementation overclaim scan flagged explicit negative claim-boundary wording in `DECISIONS.md` as positive claim text. Classification: recoverable scan-context issue. Corrective action: reran once with claim-boundary negative context recognized. Final result: implementation validation passed.
+- D-1106/D-1107 inheritance was consumed. NA-0558 result classification `REMOTE_RELAY_TARGETED_NON_SECRET_OPERATOR_PROBE_CAPTURE_READY` was consumed.
+- Operator request for Codex-executed probing was consumed. The operator-supplied `inspiron` and `qslcodex` labels were recorded without probing or remote action.
+- NA-0559 did not fix shell access, SSH to `inspiron`, use Tailscale, or run probes.
+- Prior evidence was consumed: remote-handshake and remote-relay remained `REMOTE_HANDSHAKE_DIAGNOSTIC_NETWORK_TLS_TIMEOUT` and `REMOTE_RELAY_DIAGNOSTIC_NETWORK_TLS_TIMEOUT`; route-token header present true and bearer auth present true were consumed only as redacted diagnostic facts; HTTP status/body remained unknown.
+- Exact NA-0560 Codex-executed non-secret probe authority was selected with origins `LOCAL_QBUILD_HOST`, `INSPIRON_VIA_SSH_IF_NO_REMOTE_MUTATION_REQUIRED`, and `GITHUB_METADATA_READ_ONLY`.
+- Exact future SSH reachability command selected for NA-0560 only: `ssh -o BatchMode=yes -o ConnectTimeout=10 inspiron 'printf QSL_REMOTE_PROBE_READY\n'`.
+- NA-0560 private-material policy was selected. Future outputs must be coarse classes only and must stop on endpoint values, token/bearer values, Authorization headers, private IP/host/topology, payload/body, or need for account mutation.
+- Result classification: `REMOTE_RELAY_CODEX_EXECUTED_NON_SECRET_PROBE_AUTH_READY`.
+- Selected successor: `NA-0560 -- QSL Remote Relay Codex-Executed Non-Secret Probe Harness`.
+- Governance patch paths are limited to `docs/governance/evidence/NA-0559_remote_relay_targeted_non_secret_operator_probe_capture_harness.md`, `tests/NA-0559_remote_relay_targeted_non_secret_operator_probe_capture_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Codex did not execute probes, reruns, workflow dispatches, local reproduction, local qsc send/receive, qsc E2EE, source mutation, script mutation, workflow mutation, dependency/lockfile mutation, qsl-server/qsl-attachments commands or mutation, qwork/qstart/qresume, qsl-backup, backup mutation, public-site mutation, Cloudflare mutation, remote commands, SSH, scp, sftp, rsync, sudo/admin actions, or Cloudflare actions.
+- No secret values were requested or published. No route-token/capability values, bearer values, Authorization headers, private endpoints, private topology, payloads, response bodies, raw logs, raw artifacts, or secret environment values were published.
+- Branch: pending at journal authoring.
+- PR title: `NA-0559: authorize Codex-executed relay probes`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: implementation validation, PR checks, public-safety, advisories, no failed required checks, post-merge proof, and optional NA-0560 closeout only if gates are green.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No backup/restore-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
+
 ## NA-0558 closeout and NA-0559 restoration update
 
 - Directive: QSL-DIR-2026-06-28-478 optional closeout after NA-0558 implementation merge.

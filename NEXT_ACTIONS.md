@@ -31663,7 +31663,7 @@ Closeout proof:
 - no script changes were merged.
 
 ### NA-0552 — QSL Remote Relay API Boundary Diagnosis Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -31697,6 +31697,55 @@ Forbidden scope:
 - script remediation implementation;
 - workflow mutation;
 - qsc source/test/fuzz/Cargo mutation;
+- dependency/lockfile mutation;
+- local reproduction;
+- qsc send/receive or E2EE;
+- rerun or workflow dispatch;
+- qsl-server/qsl-attachments command, clone, build, run, or mutation;
+- remote command outside read-only GitHub API/log access;
+- qwork/qstart/qresume execution by Codex;
+- qsl-backup execution;
+- backup mutation;
+- public-site mutation;
+- Cloudflare mutation;
+- raw logs committed to repository docs;
+- private material publication;
+- public-readiness, production-readiness, vulnerability-free, bug-free, or
+  perfect-build claim.
+
+---
+
+### NA-0553 — QSL Remote Relay API Boundary Diagnostic Instrumentation Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize bounded diagnostic instrumentation for the remote relay API boundary
+after NA-0552 determined that `relay_inbox_push_failed` lacks safe
+status/body visibility. Select exact future diagnostic paths, log redaction
+rules, validation commands, and stop conditions needed to expose relay push
+status/error class without leaking route tokens, bearer material, endpoints,
+payloads, private topology, or secrets. This lane is authorization-only and must
+not implement instrumentation.
+
+Allowed scope:
+- docs/governance/evidence/NA-0553_remote_relay_api_boundary_diagnostic_instrumentation_authorization_plan.md
+- tests/NA-0553_remote_relay_api_boundary_diagnostic_instrumentation_authorization_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only D465/D466/NA-0552 proof-root evidence and redacted summaries
+- read-only qsc relay push source/docs/tests selected by NA-0552
+- read-only stopped-branch demo scripts
+- exact future diagnostic instrumentation path selection
+- exact future validation and redaction policy
+- successor selection
+
+Forbidden scope:
+- implementing instrumentation;
+- qsc source/test/fuzz/Cargo mutation;
+- script remediation implementation;
+- workflow mutation;
 - dependency/lockfile mutation;
 - local reproduction;
 - qsc send/receive or E2EE;

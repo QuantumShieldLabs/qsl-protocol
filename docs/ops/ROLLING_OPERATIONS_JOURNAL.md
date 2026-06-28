@@ -6,6 +6,23 @@ Last-Updated: 2026-06-27
 
 # Rolling Operations Journal
 
+## NA-0552 closeout and NA-0553 restoration update
+
+- Directive: QSL-DIR-2026-06-28-468 optional closeout.
+- Repo path: `/srv/qbuild/work/NA-0552/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0552_remote_relay_api_boundary_diagnosis_authorization_20260628T005134Z`.
+- NA-0552 implementation PR #1377 merged at `ce77c34858ee`.
+- D-1094 exists once and records `REMOTE_RELAY_API_BOUNDARY_DIAGNOSTIC_INSTRUMENTATION_READY`.
+- Post-merge public-safety completed success on `ce77c34858ee`.
+- Post-merge advisories completed success on `ce77c34858ee`.
+- No failed required check was observed.
+- Selected successor model: `NA-0553 -- QSL Remote Relay API Boundary Diagnostic Instrumentation Authorization Plan`.
+- NA-0552 is marked DONE.
+- NA-0553 is restored READY using the exact D-1094-selected successor block.
+- This closeout performs no NA-0553 implementation, no rerun, no workflow dispatch, no local reproduction, no script remediation, no workflow mutation, no runtime mutation, no qsc source/dependency/workflow mutation, no qsl-server/qsl-attachments mutation, no public-site mutation, no Cloudflare mutation, no raw-log or raw-artifact commit, and no private-material publication.
+- Codex did not run qwork, qstart, qresume, or qsl-backup in closeout.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no reproducibility-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0552 remote relay API boundary diagnosis authorization update
 
 - Directive: QSL-DIR-2026-06-28-468 -- Execute NA-0552 Remote Relay API Boundary Diagnosis Authorization Plan.

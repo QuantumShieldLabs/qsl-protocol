@@ -29333,3 +29333,18 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0551, D-1092, D465, D466, the stopped branch, branch validation runs, relay API boundary stop classification, and selected NA-0552 successor.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the stop handoff and no-mutation boundaries.
   - **References:** NA-0551; NA-0552; D-1092; D-1091; D-1090; D465 response `NA0551_remote_handshake_remote_relay_demo_script_remediation_20260627T231725Z_D465.md`; D466 response `NA0551_remote_smoke_remediation_recovery_20260627T233629Z_D466.md`; branch `na-0551-remote-smoke-demo-script-remediation`; commits `ab4ab9bba14f`, `2b897d658416`; runs `28304536771`, `28304537372`, `28304699022`, `28304701270`; `docs/governance/evidence/NA-0551_remote_handshake_remote_relay_demo_script_relay_api_boundary_stop_handoff.md`; `tests/NA-0551_remote_handshake_remote_relay_demo_script_relay_api_boundary_stop_handoff_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1093
+  - **Title:** NA-0551 closeout and NA-0552 restoration
+  - **Date:** 2026-06-27
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0551 terminal stop handoff is accepted. D-1092 exists once and records `REMOTE_SMOKE_DEMO_SCRIPT_REMEDIATION_RELAY_API_BOUNDARY_STOP_ACCEPTED`. PR #1375 merged the governance handoff at `87db5a441fdd`. Post-merge public-safety completed success. Post-merge advisories completed success. No failed required check was observed. NA-0551 is marked DONE as terminally stopped with no remediation merge. NA-0552 is restored as exactly one READY successor.
+  - **Selected successor:** `NA-0552 -- QSL Remote Relay API Boundary Diagnosis Authorization Plan`.
+  - **Boundary proof:** No NA-0552 implementation occurred. No script changes were merged. Relay UI remains separate. No workflow mutation occurred. No qsc source/dependency/workflow mutation occurred. No qsl-server/qsl-attachments mutation occurred. No rerun, workflow dispatch, or local reproduction occurred. No public-site or Cloudflare mutation occurred. No private material was published. No public-readiness claim is made. No production-readiness claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-build claim is made.
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0551 DONE as a terminal stop with no script remediation merge and restores NA-0552 READY using the exact successor authorization block.
+    - `tests/NA-0551_closeout_restore_na0552_testplan.md` records closeout markers for D-1092 acceptance, post-merge public-safety/advisories, D-1093 restoration of NA-0552, no NA-0552 implementation, no script merge, relay API boundary recording, no rerun/dispatch/local reproduction, no workflow/qsc/dependency/qsl-server/qsl-attachments/public-site/Cloudflare/private-material mutation, no public/production overclaim, and one-READY invariant proof.
+    - `TRACEABILITY.md` maps NA-0551 closeout, D-1093, D-1092, PR #1375, merge `87db5a441fdd`, and restored NA-0552 successor.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records closeout proof and boundaries.
+  - **References:** NA-0551; NA-0552; D-1093; D-1092; PR #1375; merge `87db5a441fdd`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0551_closeout_restore_na0552_testplan.md`

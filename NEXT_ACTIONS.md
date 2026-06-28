@@ -31641,45 +31641,77 @@ Forbidden scope:
 ---
 
 ### NA-0551 — QSL Remote Handshake and Remote Relay Demo Script Exact Remediation Implementation Harness
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Closed as a terminal relay API boundary stop. D465 attempted exact script-only
+remediation on the preserved branch
+`na-0551-remote-smoke-demo-script-remediation`, but branch validation failed at
+`relay_inbox_push_failed` after deterministic vault/contact setup and qsc
+payload construction. D466 selected
+`SCRIPT_ONLY_FIX_NOT_SUPPORTED_RELAY_API_BOUNDARY`. D467 accepted D-1092 and PR
+#1375 merged the governance handoff only. No script remediation was merged.
+
+Closeout proof:
+- D-1092 exists once.
+- PR #1375 merged at `87db5a441fdd`.
+- public-safety completed success.
+- advisories completed success.
+- no failed required check was observed.
+- stopped remediation branch remains preserved and unmerged.
+- no script changes were merged.
+
+### NA-0552 — QSL Remote Relay API Boundary Diagnosis Authorization Plan
 Status: READY
 Goals: G1, G2, G3, G4, G5
 
 Objective:
-Implement exact remediation for the remote-handshake and remote-relay
-non-required CI failures using the NA-0549 evidence that identified exact
-implementation-ready demo script paths. Mutate only the authorized demo scripts,
-tests/evidence/governance files, and traceability/journal files. Preserve the
-relay-ui-integration qsl-server boundary as a separate unresolved successor
-topic. Do not mutate workflows, qsc source, dependencies, lockfiles,
-qsl-server, qsl-attachments, public-site, or Cloudflare paths.
+Authorize a bounded diagnostic lane for the remote relay API boundary after
+NA-0551 script-only remediation reached `relay_inbox_push_failed` after
+deterministic vault/contact setup and qsc payload construction. Consume D465 and
+D466 proof-root evidence, inspect read-only qsc relay push semantics, safe
+GitHub Actions log/status/body visibility, endpoint shape, and secret/environment
+boundaries, and decide whether the next lane should be qsc runtime review,
+remote relay environment/secret-boundary review, diagnostic instrumentation, or
+a renewed exact script remediation. This lane is authorization only and must not
+execute reruns, workflow dispatches, local reproduction, qsc send/receive,
+qsl-server/qsl-attachments, or remediation.
 
 Allowed scope:
-- scripts/demo/qsc_remote_handshake_smoke.sh
-- scripts/demo/qsc_remote_relay_smoke.sh
-- docs/governance/evidence/NA-0551_remote_handshake_remote_relay_demo_script_exact_remediation_implementation_harness.md
-- tests/NA-0551_remote_handshake_remote_relay_demo_script_exact_remediation_testplan.md
+- docs/governance/evidence/NA-0552_remote_relay_api_boundary_diagnosis_authorization_plan.md
+- tests/NA-0552_remote_relay_api_boundary_diagnosis_authorization_testplan.md
 - DECISIONS.md
 - TRACEABILITY.md
 - docs/ops/ROLLING_OPERATIONS_JOURNAL.md
-- proof-root-only logs and validation artifacts
-- successor selection
+- read-only D465/D466 proof-root evidence and redacted summaries
+- read-only GitHub run/job/log metadata for runs 28304536771, 28304537372,
+  28304699022, and 28304701270
+- read-only scripts/demo/qsc_remote_handshake_smoke.sh and
+  scripts/demo/qsc_remote_relay_smoke.sh from the preserved stopped branch
+- read-only qsc relay push source/docs/tests sufficient to understand
+  status/body/error classification
+- exact future successor selection
 
 Forbidden scope:
-- relay-ui-integration remediation;
-- qsl-server/qsl-attachments command, clone, build, run, source mutation, or
-  local use;
+- script remediation implementation;
 - workflow mutation;
 - qsc source/test/fuzz/Cargo mutation;
 - dependency/lockfile mutation;
-- public-site mutation;
-- Cloudflare mutation;
+- local reproduction;
+- qsc send/receive or E2EE;
+- rerun or workflow dispatch;
+- qsl-server/qsl-attachments command, clone, build, run, or mutation;
+- remote command outside read-only GitHub API/log access;
 - qwork/qstart/qresume execution by Codex;
 - qsl-backup execution;
 - backup mutation;
-- remote command outside explicitly authorized GitHub check/log reads;
-- public-readiness, production-readiness, public-internet-readiness,
-  external-review-complete, reproducibility-complete, backup/restore-complete,
-  vulnerability-free, bug-free, or perfect-build claim.
+- public-site mutation;
+- Cloudflare mutation;
+- raw logs committed to repository docs;
+- private material publication;
+- public-readiness, production-readiness, vulnerability-free, bug-free, or
+  perfect-build claim.
 
 ---
 

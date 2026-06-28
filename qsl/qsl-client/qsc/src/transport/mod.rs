@@ -1206,6 +1206,123 @@ fn relay_auth_token_from_token_file() -> Option<String> {
     read_relay_token_file(token_file.as_str()).ok()
 }
 
+const RELAY_PUSH_DIAGNOSTIC_ENV: &str = "QSC_RELAY_PUSH_DIAGNOSTIC";
+const RELAY_PUSH_DIAGNOSTIC_MODE_REDACTED: &str = "redacted";
+
+#[derive(Clone, Copy)]
+struct RelayPushDiagnostic {
+    status: Option<HttpStatus>,
+    body_len: Option<u64>,
+    error_class: &'static str,
+    qsc_error: &'static str,
+    route_header_present: bool,
+    auth_present: bool,
+}
+
+fn relay_push_diagnostic_enabled() -> bool {
+    env::var(RELAY_PUSH_DIAGNOSTIC_ENV)
+        .ok()
+        .map(|v| v == RELAY_PUSH_DIAGNOSTIC_MODE_REDACTED)
+        .unwrap_or(false)
+}
+
+fn relay_push_status_class(status: Option<HttpStatus>) -> &'static str {
+    match status.map(|s| s.as_u16() / 100) {
+        Some(2) => "2xx",
+        Some(3) => "3xx",
+        Some(4) => "4xx",
+        Some(5) => "5xx",
+        _ => "unknown",
+    }
+}
+
+fn relay_push_body_presence(body_len: Option<u64>) -> &'static str {
+    match body_len {
+        Some(0) => "false",
+        Some(_) => "true",
+        None => "unknown",
+    }
+}
+
+fn relay_push_qsc_error_for_status(status: HttpStatus) -> &'static str {
+    match status {
+        HttpStatus::OK => "none",
+        HttpStatus::UNAUTHORIZED | HttpStatus::FORBIDDEN => "relay_unauthorized",
+        HttpStatus::PAYLOAD_TOO_LARGE => "relay_inbox_too_large",
+        HttpStatus::TOO_MANY_REQUESTS => "relay_inbox_queue_full",
+        _ => "relay_inbox_push_failed",
+    }
+}
+
+fn relay_push_error_class_for_status(status: HttpStatus) -> &'static str {
+    match status {
+        HttpStatus::OK => "unknown",
+        HttpStatus::UNAUTHORIZED | HttpStatus::FORBIDDEN => "auth_rejected",
+        HttpStatus::BAD_REQUEST => "route_rejected",
+        HttpStatus::NOT_FOUND => "endpoint_not_found",
+        HttpStatus::PAYLOAD_TOO_LARGE => "payload_rejected",
+        HttpStatus::TOO_MANY_REQUESTS => "route_rejected",
+        _ => "unexpected_status",
+    }
+}
+
+fn relay_push_error_class_for_send_error(err: &reqwest::Error) -> &'static str {
+    if err.is_timeout() {
+        return "timeout";
+    }
+    let lower = err.to_string().to_ascii_lowercase();
+    if lower.contains("tls") || lower.contains("certificate") {
+        return "tls_error";
+    }
+    if err.is_connect() {
+        return "network_error";
+    }
+    "transport_error"
+}
+
+fn emit_relay_push_diagnostic(diag: RelayPushDiagnostic) {
+    if !relay_push_diagnostic_enabled() {
+        return;
+    }
+
+    let status_code = diag
+        .status
+        .map(|status| status.as_u16().to_string())
+        .unwrap_or_else(|| "unknown".to_string());
+    let body_len = diag
+        .body_len
+        .map(|len| len.to_string())
+        .unwrap_or_else(|| "unknown".to_string());
+    let route_header_present = if diag.route_header_present {
+        "true"
+    } else {
+        "false"
+    };
+    let auth_present = if diag.auth_present { "true" } else { "false" };
+
+    emit_marker(
+        "relay_push_diagnostic",
+        None,
+        &[
+            ("diagnostic", RELAY_PUSH_DIAGNOSTIC_ENV),
+            ("mode", RELAY_PUSH_DIAGNOSTIC_MODE_REDACTED),
+            ("api", "relay_push_v1"),
+            ("status_class", relay_push_status_class(diag.status)),
+            ("status_code", status_code.as_str()),
+            ("error_class", diag.error_class),
+            (
+                "response_body_present",
+                relay_push_body_presence(diag.body_len),
+            ),
+            ("response_body_len", body_len.as_str()),
+            ("route_header_present", route_header_present),
+            ("auth_present", auth_present),
+            ("qsc_error", diag.qsc_error),
+            ("attempt", "1"),
+        ],
+    );
+}
+
 pub(super) fn relay_inbox_push(
     relay_base: &str,
     route_token: &str,
@@ -1220,14 +1337,35 @@ pub(super) fn relay_inbox_push(
         .post(url)
         .header("X-QSL-Route-Token", route_token.as_str())
         .body(payload.to_vec());
-    if let Some(token) = relay_auth_token() {
+    let bearer_token = relay_auth_token();
+    let auth_present = bearer_token.is_some();
+    if let Some(token) = bearer_token {
         req = req.header("Authorization", format!("Bearer {}", token));
     }
     let resp = match req.send() {
         Ok(v) => v,
-        Err(_) => return Err("relay_inbox_push_failed"),
+        Err(err) => {
+            emit_relay_push_diagnostic(RelayPushDiagnostic {
+                status: None,
+                body_len: None,
+                error_class: relay_push_error_class_for_send_error(&err),
+                qsc_error: "relay_inbox_push_failed",
+                route_header_present: true,
+                auth_present,
+            });
+            return Err("relay_inbox_push_failed");
+        }
     };
-    match resp.status() {
+    let status = resp.status();
+    emit_relay_push_diagnostic(RelayPushDiagnostic {
+        status: Some(status),
+        body_len: resp.content_length(),
+        error_class: relay_push_error_class_for_status(status),
+        qsc_error: relay_push_qsc_error_for_status(status),
+        route_header_present: true,
+        auth_present,
+    });
+    match status {
         HttpStatus::OK => Ok(()),
         HttpStatus::UNAUTHORIZED | HttpStatus::FORBIDDEN => Err("relay_unauthorized"),
         HttpStatus::PAYLOAD_TOO_LARGE => Err("relay_inbox_too_large"),
@@ -1738,4 +1876,60 @@ fn read_send_state(dir: &Path, source: ConfigSource) -> Result<u64, ()> {
         }
     }
     Err(())
+}
+
+#[cfg(test)]
+mod relay_push_diagnostic_tests {
+    use super::*;
+
+    #[test]
+    fn relay_push_status_and_error_mapping_is_bounded() {
+        assert_eq!(relay_push_status_class(Some(HttpStatus::OK)), "2xx");
+        assert_eq!(relay_push_status_class(Some(HttpStatus::FOUND)), "3xx");
+        assert_eq!(
+            relay_push_status_class(Some(HttpStatus::UNAUTHORIZED)),
+            "4xx"
+        );
+        assert_eq!(
+            relay_push_status_class(Some(HttpStatus::INTERNAL_SERVER_ERROR)),
+            "5xx"
+        );
+        assert_eq!(relay_push_status_class(None), "unknown");
+
+        assert_eq!(
+            relay_push_error_class_for_status(HttpStatus::UNAUTHORIZED),
+            "auth_rejected"
+        );
+        assert_eq!(
+            relay_push_error_class_for_status(HttpStatus::FORBIDDEN),
+            "auth_rejected"
+        );
+        assert_eq!(
+            relay_push_error_class_for_status(HttpStatus::BAD_REQUEST),
+            "route_rejected"
+        );
+        assert_eq!(
+            relay_push_error_class_for_status(HttpStatus::NOT_FOUND),
+            "endpoint_not_found"
+        );
+        assert_eq!(
+            relay_push_error_class_for_status(HttpStatus::PAYLOAD_TOO_LARGE),
+            "payload_rejected"
+        );
+        assert_eq!(
+            relay_push_error_class_for_status(HttpStatus::TOO_MANY_REQUESTS),
+            "route_rejected"
+        );
+        assert_eq!(
+            relay_push_error_class_for_status(HttpStatus::INTERNAL_SERVER_ERROR),
+            "unexpected_status"
+        );
+    }
+
+    #[test]
+    fn relay_push_body_presence_is_length_only() {
+        assert_eq!(relay_push_body_presence(Some(0)), "false");
+        assert_eq!(relay_push_body_presence(Some(17)), "true");
+        assert_eq!(relay_push_body_presence(None), "unknown");
+    }
 }

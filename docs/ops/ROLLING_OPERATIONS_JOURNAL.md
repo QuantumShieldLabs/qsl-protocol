@@ -6,6 +6,25 @@ Last-Updated: 2026-06-27
 
 # Rolling Operations Journal
 
+## NA-0554 remote relay API boundary diagnostic instrumentation implementation update
+
+- Directive: QSL-DIR-2026-06-28-473 -- Recover NA-0554 Diagnostic Branch Validation Reachability Without Expanding Beyond Harness Scope.
+- Repo path: `/srv/qbuild/work/NA-0554/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0554_diagnostic_branch_validation_reachability_recovery_20260628T034908Z`.
+- Reused qwork proof timestamp was `2026-06-28T02:48:33Z`; Codex did not run qwork, qstart, or qresume.
+- Startup branch was `na-0554-remote-relay-api-diagnostic-instrumentation`; D472 branch head was `1c5b941f473f`; recovery commit was `e800e55077ef`.
+- Current main remained `8cd7468624bc`; READY_COUNT 1 and READY NA-0554; D-1098 absent before patch; D-1099 absent.
+- D472 stopped at `REMOTE_RELAY_DIAGNOSTIC_INSTRUMENTATION_BRANCH_NO_DIAGNOSTIC_STOP` after local qsc diagnostics passed but branch workflows failed before relay push.
+- D473 reviewed D465/D466 and classified setup changes. Used only pre-relay setup reachability pieces: passphrase-file vault init, explicit unlock, isolated qsc state, deterministic contact/route setup. Rejected relay API remediation, target-failure suppression, success-criteria broadening, and secret/private-material risk.
+- Local validation passed: qsc diagnostic tests, secret-material diagnostic boundary tests, relay no-mutation regression, cargo fmt, bash syntax, and script safety scan.
+- Authorized recovery branch runs were remote-handshake `28310659387` and remote-relay `28310659797`.
+- Branch validation classifications: `REMOTE_HANDSHAKE_RECOVERY_DIAGNOSTIC_OBSERVED_SAFE` and `REMOTE_RELAY_RECOVERY_DIAGNOSTIC_OBSERVED_SAFE`.
+- Result classification: `REMOTE_RELAY_DIAGNOSTIC_INSTRUMENTATION_IMPLEMENTATION_PASS`.
+- Selected successor: `NA-0555 -- QSL Remote Relay API Boundary Diagnostic Evidence Capture Harness`.
+- Raw logs and artifacts remain proof-root-only. Private-material scan passed and no private material was published.
+- No workflow mutation, dependency/lockfile mutation, qsl-server/qsl-attachments command or mutation, local reproduction, local qsc send/receive, public-site mutation, Cloudflare mutation, qwork/qstart/qresume, or qsl-backup execution occurred.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No reproducibility-complete claim is introduced. No backup/restore-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
+
 ## NA-0553 remote relay API boundary diagnostic instrumentation authorization update
 
 - Directive: QSL-DIR-2026-06-28-469 -- Execute NA-0553 Remote Relay API Boundary Diagnostic Instrumentation Authorization Plan.

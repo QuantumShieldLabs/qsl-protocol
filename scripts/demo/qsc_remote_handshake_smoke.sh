@@ -43,12 +43,39 @@ umask 077
 mkdir -p "$out"
 chmod 700 "$out"
 
-peer_alice="$out/peer_alice"
-peer_bob="$out/peer_bob"
+# Normalize env payloads in case secrets are supplied as KEY=value.
+relay_url="$(printf '%s' "$RELAY_URL" | sed -E 's/^[[:space:]]*RELAY_URL[[:space:]]*=[[:space:]]*//')"
+relay_token="$(printf '%s' "$RELAY_TOKEN" | sed -E 's/^[[:space:]]*RELAY_TOKEN[[:space:]]*=[[:space:]]*//')"
+
+relay_addr="$relay_url"
+case "$relay_addr" in
+  http://*|https://*) : ;;
+  *) relay_addr="http://$relay_addr" ;;
+esac
+
+# Avoid cross-run mailbox/session collisions on shared remote relays.
+run_tag="${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-0}-${scenario}-${seed}"
+run_tag="$(printf '%s' "$run_tag" | tr -c 'a-zA-Z0-9_-' '-')"
+proto_alice="alice-${run_tag}"
+proto_bob="bob-${run_tag}"
+alice_route_token="route_token_alice_${run_tag}"
+bob_route_token="route_token_bob_${run_tag}"
+
+state_root="$out/state_${run_tag}"
+peer_alice="$state_root/peer_alice"
+peer_bob="$state_root/peer_bob"
 out_alice="$out/out_alice"
 out_bob="$out/out_bob"
-mkdir -p "$peer_alice" "$peer_bob" "$out_alice" "$out_bob"
-chmod 700 "$peer_alice" "$peer_bob" "$out_alice" "$out_bob"
+secret_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/qsc_remote_handshake_${run_tag}"
+secret_dir="$secret_root/passphrases"
+mkdir -p "$peer_alice" "$peer_bob" "$out_alice" "$out_bob" "$secret_dir"
+chmod 700 "$state_root" "$peer_alice" "$peer_bob" "$out_alice" "$out_bob" "$secret_root" "$secret_dir"
+
+alice_passphrase_file="$secret_dir/alice.passphrase"
+bob_passphrase_file="$secret_dir/bob.passphrase"
+printf '%s\n' "na0551-${run_tag}-alice-vault-passphrase" > "$alice_passphrase_file"
+printf '%s\n' "na0551-${run_tag}-bob-vault-passphrase" > "$bob_passphrase_file"
+chmod 600 "$alice_passphrase_file" "$bob_passphrase_file"
 
 markers="$out/markers"
 summary="$out/summary.txt"
@@ -67,22 +94,6 @@ bob_recv_log="$out/bob_recv.log"
 : > "$bob_log"
 : > "$alice_recv_log"
 : > "$bob_recv_log"
-
-# Normalize env payloads in case secrets are supplied as KEY=value.
-relay_url="$(printf '%s' "$RELAY_URL" | sed -E 's/^[[:space:]]*RELAY_URL[[:space:]]*=[[:space:]]*//')"
-relay_token="$(printf '%s' "$RELAY_TOKEN" | sed -E 's/^[[:space:]]*RELAY_TOKEN[[:space:]]*=[[:space:]]*//')"
-
-relay_addr="$relay_url"
-case "$relay_addr" in
-  http://*|https://*) : ;;
-  *) relay_addr="http://$relay_addr" ;;
-esac
-
-# Avoid cross-run mailbox/session collisions on shared remote relays.
-run_tag="${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-0}-${scenario}-${seed}"
-run_tag="$(printf '%s' "$run_tag" | tr -c 'a-zA-Z0-9_-' '-')"
-proto_alice="alice-${run_tag}"
-proto_bob="bob-${run_tag}"
 
 if [ -x "target/debug/qsc" ]; then
   qsc_cmd=("target/debug/qsc")
@@ -120,12 +131,15 @@ run_qsc_step() {
   local tmp="$out/.${actor}_${step}.tmp"
   local home=""
   local peer=""
+  local passphrase_file=""
   if [ "$actor" = "alice" ]; then
     home="$peer_alice"
     peer="bob"
+    passphrase_file="$alice_passphrase_file"
   else
     home="$peer_bob"
     peer="alice"
+    passphrase_file="$bob_passphrase_file"
   fi
 
   set +e
@@ -138,15 +152,19 @@ run_qsc_step() {
     export QSC_SELF_LABEL="$actor"
     export QSC_SCENARIO="$scenario"
     export QSC_SEED="$seed"
-    export QSC_PASSPHRASE="na0108-${actor}-vault-passphrase"
     export RELAY_URL="$relay_addr"
     export RELAY_TOKEN="$relay_token"
     export QSC_RELAY_TOKEN="$relay_token"
+    export QSC_RELAY_PUSH_DIAGNOSTIC=redacted
     unset QSC_ALLOW_SEED_FALLBACK
     unset QSC_QSP_SEED
     mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME" "$QSC_CONFIG_DIR"
     chmod 700 "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME" "$QSC_CONFIG_DIR"
-    "${qsc_cmd[@]}" "$@"
+    if [ "$step" = "vault_init" ]; then
+      "${qsc_cmd[@]}" "$@"
+    else
+      "${qsc_cmd[@]}" --unlock-passphrase-file "$passphrase_file" "$@"
+    fi
   ) >"$tmp" 2>&1
   local rc=$?
   set -e
@@ -195,19 +213,81 @@ extract_recv_commit_count() {
 run_vault_init() {
   local actor="$1"
   local log_file="$2"
-  if run_qsc_step "$actor" vault_init "$log_file" vault init --non-interactive --passphrase-env QSC_PASSPHRASE --key-source passphrase; then
+  local passphrase_file=""
+  if [ "$actor" = "alice" ]; then
+    passphrase_file="$alice_passphrase_file"
+  else
+    passphrase_file="$bob_passphrase_file"
+  fi
+  if run_qsc_step "$actor" vault_init "$log_file" vault init --non-interactive --passphrase-file "$passphrase_file" --key-source passphrase; then
+    if ! run_qsc_step "$actor" vault_status "$log_file" vault status; then
+      echo "vault status failed for $actor after initialization" >&2
+      exit 1
+    fi
+    assert_marker_present 'event=vault_status present=true' "$log_file" "vault status missing after init for $actor"
     return 0
   fi
   if mark_grep 'event=error code=vault_exists' "$log_file" >/dev/null 2>&1; then
+    if ! run_qsc_step "$actor" vault_status "$log_file" vault status; then
+      echo "vault status failed for $actor after existing vault detection" >&2
+      exit 1
+    fi
+    assert_marker_present 'event=vault_status present=true' "$log_file" "vault status missing after existing vault for $actor"
     return 0
   fi
-  echo "vault init failed for $actor" >&2
+  echo "vault initialization failed for $actor before relay interaction" >&2
   exit 1
+}
+
+run_required_qsc_step() {
+  local actor="$1"
+  local step="$2"
+  local log_file="$3"
+  local expected_marker="$4"
+  local msg="$5"
+  shift 5
+  if ! run_qsc_step "$actor" "$step" "$log_file" "$@"; then
+    echo "$msg" >&2
+    exit 1
+  fi
+  assert_marker_present "$expected_marker" "$log_file" "$msg"
+}
+
+extract_identity_fp() {
+  local log_file="$1"
+  local actor="$2"
+  local fp=""
+  fp="$(sed -n -E 's/^identity_fp=([^[:space:]]+).*/\1/p' "$log_file" | tail -n1)"
+  if [ -z "$fp" ]; then
+    echo "identity fingerprint missing for $actor before relay interaction" >&2
+    exit 1
+  fi
+  printf '%s\n' "$fp"
 }
 
 # initialize secure stores and clear stale outboxes
 run_vault_init alice "$alice_log"
 run_vault_init bob "$bob_log"
+run_required_qsc_step alice relay_inbox_set "$alice_log" 'event=relay_inbox_set ok=true' \
+  "relay inbox setup failed for alice before handshake" relay inbox-set --token "$alice_route_token"
+run_required_qsc_step bob relay_inbox_set "$bob_log" 'event=relay_inbox_set ok=true' \
+  "relay inbox setup failed for bob before handshake" relay inbox-set --token "$bob_route_token"
+run_required_qsc_step alice identity_rotate "$alice_log" 'event=identity_rotate ok=true' \
+  "identity initialization failed for alice before handshake" identity rotate --as "$proto_alice" --confirm
+run_required_qsc_step bob identity_rotate "$bob_log" 'event=identity_rotate ok=true' \
+  "identity initialization failed for bob before handshake" identity rotate --as "$proto_bob" --confirm
+alice_fp="$(extract_identity_fp "$alice_log" alice)"
+bob_fp="$(extract_identity_fp "$bob_log" bob)"
+run_required_qsc_step alice contacts_add_bob "$alice_log" 'event=contacts_add ok=true' \
+  "contact route setup failed for alice before handshake" \
+  contacts add --label "$proto_bob" --fp "$bob_fp" --route-token "$bob_route_token"
+run_required_qsc_step bob contacts_add_alice "$bob_log" 'event=contacts_add ok=true' \
+  "contact route setup failed for bob before handshake" \
+  contacts add --label "$proto_alice" --fp "$alice_fp" --route-token "$alice_route_token"
+run_required_qsc_step alice contacts_device_list_bob "$alice_log" 'event=contacts_device_list .* count=1' \
+  "contact route validation failed for alice before handshake" contacts device list --label "$proto_bob"
+run_required_qsc_step bob contacts_device_list_alice "$bob_log" 'event=contacts_device_list .* count=1' \
+  "contact route validation failed for bob before handshake" contacts device list --label "$proto_alice"
 run_qsc_step alice pre_abort "$alice_log" send abort
 run_qsc_step bob pre_abort "$bob_log" send abort
 

@@ -42,20 +42,27 @@ while [ $# -gt 0 ]; do
     --scenario) scenario="$2"; shift 2 ;;
     --seed) seed="$2"; shift 2 ;;
     --out) out="$2"; shift 2 ;;
-    *) echo "Unknown arg: $1"; usage; exit 2 ;;
+    *) echo "Unknown arg: $1" >&2; usage; exit 2 ;;
   esac
- done
+done
+
+case "$scenario" in
+  happy-path|drop-reorder) ;;
+  *) echo "invalid scenario: $scenario" >&2; exit 2 ;;
+esac
 
 if [ -z "${RELAY_URL:-}" ]; then
   echo "RELAY_URL is required" >&2
   exit 2
 fi
 
+umask 077
 mkdir -p "$out"
+chmod 700 "$out"
 
-# mask token in case of debug
+# Mask token in case of debug output.
 relay_url="$(printf '%s' "$RELAY_URL" | sed -E 's/^[[:space:]]*RELAY_URL[[:space:]]*=[[:space:]]*//')"
-relay_token="${RELAY_TOKEN:-}"
+relay_token="$(printf '%s' "${RELAY_TOKEN:-}" | sed -E 's/^[[:space:]]*RELAY_TOKEN[[:space:]]*=[[:space:]]*//')"
 
 # Normalize relay URL for qsc relay inbox base URL.
 relay_addr="$relay_url"
@@ -64,10 +71,20 @@ case "$relay_addr" in
   *) relay_addr="http://$relay_addr" ;;
 esac
 
-# Isolated qsc state to avoid polluting real config
-qsc_home="$out/qsc_state"
-mkdir -p "$qsc_home/.config" "$qsc_home/.local/share" "$qsc_home/.local/state" "$qsc_home/.cache"
-chmod 700 "$qsc_home" "$qsc_home/.config" "$qsc_home/.local/share" "$qsc_home/.local/state" "$qsc_home/.cache"
+# Isolated, per-run qsc state to avoid polluting real config or reusing stale state.
+run_tag="${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-0}-${scenario}-${seed}"
+run_tag="$(printf '%s' "$run_tag" | tr -c 'a-zA-Z0-9_-' '-')"
+qsc_home="$out/qsc_state_${run_tag}"
+secret_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/qsc_remote_relay_${run_tag}"
+secret_dir="$secret_root/passphrases"
+mkdir -p "$qsc_home/.config" "$qsc_home/.local/share" "$qsc_home/.local/state" "$qsc_home/.cache" "$secret_dir"
+chmod 700 "$qsc_home" "$qsc_home/.config" "$qsc_home/.local/share" "$qsc_home/.local/state" "$qsc_home/.cache" "$secret_root" "$secret_dir"
+
+passphrase_file="$secret_dir/relay.passphrase"
+printf '%s\n' "na0551-${run_tag}-relay-vault-passphrase" > "$passphrase_file"
+chmod 600 "$passphrase_file"
+
+bob_route_token="route_token_bob_${run_tag}"
 
 payload="$out/payload.txt"
 echo "hello" > "$payload"
@@ -77,6 +94,12 @@ summary="$out/summary.txt"
 subset="$out/normalized_subset.txt"
 counts="$out/normalized_counts.txt"
 status="ok"
+
+if [ -x "target/debug/qsc" ]; then
+  qsc_cmd=("target/debug/qsc")
+else
+  qsc_cmd=("cargo" "run" "-p" "qsc" "--")
+fi
 
 # Determine bounded number of sends to make hostile scenario observable
 send_count=2
@@ -91,49 +114,112 @@ emit_markers_from_log() {
   fi
 }
 
-run_send_once() {
-  local idx="$1"
-  local log_file="$out/send_${idx}.log"
-  local rc=0
+run_qsc_step() {
+  local step="$1"
+  local log_file="$2"
+  shift 2
+  local tmp="$out/.${step}.tmp"
+
+  set +e
   (
     export QSC_SCENARIO="$scenario"
     export QSC_SEED="$seed"
     export QSC_QSP_SEED="$seed"
     export QSC_ALLOW_SEED_FALLBACK=1
+    export QSC_RELAY_PUSH_DIAGNOSTIC=redacted
     export XDG_CONFIG_HOME="$qsc_home/.config"
     export XDG_DATA_HOME="$qsc_home/.local/share"
     export XDG_STATE_HOME="$qsc_home/.local/state"
     export XDG_CACHE_HOME="$qsc_home/.cache"
-    cargo run -p qsc -- send --transport relay --relay "$relay_addr" --to bob --file "$payload"
-  ) 2>&1 | tee "$log_file"
-  rc=${PIPESTATUS[0]}
+    export QSC_CONFIG_DIR="$qsc_home/.qsc"
+    if [ -n "$relay_token" ]; then
+      export RELAY_TOKEN="$relay_token"
+      export QSC_RELAY_TOKEN="$relay_token"
+    else
+      unset RELAY_TOKEN
+      unset QSC_RELAY_TOKEN
+    fi
+    mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME" "$QSC_CONFIG_DIR"
+    chmod 700 "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME" "$QSC_CONFIG_DIR"
+    if [ "$step" = "vault_init" ]; then
+      "${qsc_cmd[@]}" "$@"
+    else
+      "${qsc_cmd[@]}" --unlock-passphrase-file "$passphrase_file" "$@"
+    fi
+  ) >"$tmp" 2>&1
+  local rc=$?
+  set -e
+
+  cat "$tmp" >> "$log_file"
+  emit_markers_from_log "$tmp"
+  rm -f "$tmp"
+  return "$rc"
+}
+
+assert_marker_present() {
+  local pattern="$1"
+  local file="$2"
+  local msg="$3"
+  if ! mark_grep "$pattern" "$file" >/dev/null 2>&1; then
+    echo "$msg" >&2
+    exit 1
+  fi
+}
+
+run_setup_step() {
+  local step="$1"
+  local expected_marker="$2"
+  local msg="$3"
+  shift 3
+  local log_file="$out/setup_${step}.log"
+  if ! run_qsc_step "$step" "$log_file" "$@"; then
+    echo "$msg" >&2
+    exit 1
+  fi
+  assert_marker_present "$expected_marker" "$log_file" "$msg"
+}
+
+run_send_once() {
+  local idx="$1"
+  local log_file="$out/send_${idx}.log"
+  local rc=0
+  if run_qsc_step "send_${idx}" "$log_file" send --transport relay --relay "$relay_addr" --to bob --file "$payload"; then
+    rc=0
+  else
+    rc=$?
+  fi
   echo "$rc" > "$out/send_${idx}.rc"
-  emit_markers_from_log "$log_file"
   return "$rc"
 }
 
 run_abort() {
   local idx="$1"
   local log_file="$out/abort_${idx}.log"
-  (
-    export XDG_CONFIG_HOME="$qsc_home/.config"
-    export XDG_DATA_HOME="$qsc_home/.local/share"
-    export XDG_STATE_HOME="$qsc_home/.local/state"
-    export XDG_CACHE_HOME="$qsc_home/.cache"
-    cargo run -p qsc -- send abort
-  ) 2>&1 | tee "$log_file"
-  emit_markers_from_log "$log_file"
+  run_qsc_step "abort_${idx}" "$log_file" send abort
 }
 
 ensure_outbox_clear() {
   run_abort "pre"
 }
+
+initialize_remote_relay_state() {
+  run_setup_step vault_init 'event=vault_init' "vault initialization failed before remote relay interaction" \
+    vault init --non-interactive --key-source passphrase --passphrase-file "$passphrase_file"
+  run_setup_step vault_status 'event=vault_status present=true' "vault status missing after remote relay initialization" \
+    vault status
+  run_setup_step contacts_add 'event=contacts_add ok=true' "contact-store initialization failed before remote relay interaction" \
+    contacts add --label bob --fp fp-remote-relay-bob --route-token "$bob_route_token"
+  run_setup_step contacts_device_list 'event=contacts_device_list label=bob count=1' "contact-store validation failed before remote relay interaction" \
+    contacts device list --label bob
+}
+
 {
   echo "QSC_MARK/1 event=remote_start scenario=$scenario seed=$seed"
   echo "QSC_MARK/1 event=protocol_mode mode=seed_fallback_test"
   echo "QSC_MARK/1 event=remote_relay url=RELAY_URL_REDACTED"
 } > "$markers"
 
+initialize_remote_relay_state
 ensure_outbox_clear
 
 for i in $(seq 1 "$send_count"); do
@@ -157,6 +243,10 @@ echo "QSC_MARK/1 event=remote_complete status=$status" >> "$markers"
 
 if mark_grep "event=error code=protocol_inactive" "$markers" >/dev/null 2>&1; then
   echo "protocol_inactive encountered in remote relay smoke lane" >&2
+  exit 1
+fi
+if mark_grep "event=error code=contacts_store_invalid" "$markers" >/dev/null 2>&1; then
+  echo "contacts_store_invalid encountered after deterministic contact-store setup" >&2
   exit 1
 fi
 

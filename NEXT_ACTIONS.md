@@ -32074,7 +32074,7 @@ Closeout note:
 ---
 
 ### NA-0558 — QSL Remote Relay Targeted Non-Secret Operator Probe Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -32117,6 +32117,78 @@ Forbidden scope:
 - rerun;
 - local qsc send/receive or E2EE;
 - qsl-server/qsl-attachments;
+- qwork/qstart/qresume execution by Codex;
+- qsl-backup execution;
+- backup mutation;
+- public-site mutation;
+- Cloudflare mutation;
+- public-readiness, production-readiness, vulnerability-free, bug-free, or
+  perfect-build claim.
+
+Closeout note:
+- NA-0558 implementation PR #1389 merged at `bf12922dafa8`.
+- D-1106 exists once and is Accepted.
+- Post-merge public-safety completed success.
+- Post-merge advisories completed success.
+- No failed required check was classified.
+- NA-0558 selected `REMOTE_RELAY_TARGETED_NON_SECRET_OPERATOR_PROBE_CAPTURE_READY`.
+- NA-0558 is DONE.
+- NA-0559 is restored READY as the sole successor.
+- No NA-0559 implementation occurred in this closeout.
+
+---
+
+### NA-0559 — QSL Remote Relay Targeted Non-Secret Operator Probe Capture Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Capture and review one-step-at-a-time operator-run non-secret probe proof for
+the remote relay timeout boundary. The Director must provide exact operator
+commands derived from D-1106. The operator must run commands locally or on the
+appropriate operator-selected host, review all outputs before sharing, and
+preserve only redacted proof files. Codex must review proof read-only, verify no
+secret values or private endpoint/topology details are published, classify
+endpoint/DNS/TCP/TLS/service-health/auth/route/runner boundaries, and select a
+later exact environment fix, service-owner proof, GitHub-runner confirmation,
+qsc runtime review, or stop successor.
+
+Prerequisites before Codex execution:
+- Director provides exact one-step commands derived from D-1106.
+- Operator runs only those commands.
+- Operator reviews outputs before sharing.
+- Operator does not paste route-token values, bearer values, Authorization
+  headers, endpoint values, private topology, payloads, response bodies, or
+  secret environment values.
+- Operator runs fresh qwork NA-0559 qsl-protocol only after proof files are
+  prepared or intentionally declined.
+
+Allowed scope:
+- docs/governance/evidence/NA-0559_remote_relay_targeted_non_secret_operator_probe_capture_harness.md
+- tests/NA-0559_remote_relay_targeted_non_secret_operator_probe_capture_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-only operator probe proof files
+- read-only NA-0555/NA-0556/NA-0557/NA-0558 evidence
+- private-material scan/redaction proof
+- successor selection
+
+Forbidden scope:
+- requesting or publishing secret values;
+- route-token/capability value publication;
+- bearer value publication;
+- Authorization header publication;
+- private endpoint or private topology publication;
+- raw payload or response body publication;
+- source/script/qsc mutation;
+- workflow mutation;
+- dependency/lockfile mutation;
+- workflow dispatch;
+- rerun;
+- local qsc send/receive or E2EE by Codex;
+- qsl-server/qsl-attachments;
+- SSH/Tailscale/remote command by Codex;
 - qwork/qstart/qresume execution by Codex;
 - qsl-backup execution;
 - backup mutation;

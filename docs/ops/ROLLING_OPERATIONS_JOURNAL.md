@@ -6,6 +6,39 @@ Last-Updated: 2026-06-28
 
 # Rolling Operations Journal
 
+## NA-0556 remote relay environment secret-boundary authorization update
+
+- Directive: QSL-DIR-2026-06-28-475 -- Execute NA-0556 Remote Relay Environment and Secret Boundary Review Authorization Plan, Optional Closeout to NA-0557.
+- Repo path: `/srv/qbuild/work/NA-0556/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0556_remote_relay_env_secret_boundary_authorization_20260628T150714Z`.
+- Fresh NA-0556 qwork proof files were read and copied from `/srv/qbuild/work/NA-0556/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-06-28T15:00:09Z`; startup head/origin-main/main was `9bd9f14c7c69` with READY_COUNT 1 and READY NA-0556.
+- Disk and mount gate passed before mutation: `/` usage below the 95% stop threshold and `/backup/qsl` mounted.
+- Fetch occurred only after proof/live ref match, clean tree, disk proof, and mount proof. Local main matched origin/main at `9bd9f14c7c69`.
+- Startup queue proof: READY_COUNT 1; READY NA-0556; NA-0555 DONE; NA-0554 DONE.
+- Startup decision proof: D-1100 once; D-1101 once; D-1102 absent before patch; D-1103 absent; duplicate decision count zero.
+- Current main required-check classification passed: public-safety completed success, advisories completed success, suite2-vectors completed success, no failed required checks, and branch-protection required contexts classified.
+- D-1100/D-1101 inheritance was consumed. NA-0555 result classification `REMOTE_RELAY_DIAGNOSTIC_EVIDENCE_REMOTE_ENV_SECRET_BOUNDARY_READY` was consumed.
+- remote-handshake run `28325075419` / job `83913585385` was consumed as `REMOTE_HANDSHAKE_DIAGNOSTIC_NETWORK_TLS_TIMEOUT`, with route-token header present true and bearer auth present true as redacted diagnostic facts.
+- remote-relay run `28325168201` / job `83913828473` was consumed as `REMOTE_RELAY_DIAGNOSTIC_NETWORK_TLS_TIMEOUT`, with route-token header present true and bearer auth present true as redacted diagnostic facts.
+- Workflow environment and secret-reference names were reviewed without values. The reviewed workflows reference `RELAY_URL` and `RELAY_TOKEN`; repository variable references were not used.
+- GitHub secret/variable metadata review was read-only and value-free. Metadata classification: `SECRET_VARIABLE_NAMES_VISIBLE_BUT_OPERATOR_PROOF_REQUIRED` and `SECRET_VARIABLE_METADATA_API_VISIBLE_SAFE`.
+- Endpoint/network/TLS/service boundary design selected non-secret operator proof, GitHub Actions runner proof, and remote service owner proof classes.
+- Operator non-secret proof requirements were selected; future proof must use yes/no/unknown/coarse fields and must stop on any secret value, route-token/capability value, bearer value, Authorization header, private endpoint, private topology, payload, response body, secret environment value, or failed redaction review.
+- Result classification: `REMOTE_RELAY_ENV_SECRET_BOUNDARY_OPERATOR_PROOF_CAPTURE_READY`.
+- Selected successor: `NA-0557 -- QSL Remote Relay Environment Non-Secret Operator Proof Capture Harness`.
+- Recovered failure: the first pre-PR overclaim scan flagged required forbidden-scope and `No ... claim` wording as positive overclaims. Classification: recoverable scan-context issue. Corrective action: reran the scanner with forbidden-scope and negative-claim lines treated as negative context while preserving the exact successor block and claim-boundary wording. Final result: validation passed.
+- Recovered failure: the first local goal-lint invocation used a malformed synthetic event writer that did not pass base/head SHAs, so `tools/goal_lint.py` reported a missing event path. Classification: recoverable command-shape issue. Corrective action: regenerated the event from git-derived base/head SHAs and reran goal-lint once. Final result: goal-lint passed.
+- Governance patch paths are limited to `docs/governance/evidence/NA-0556_remote_relay_environment_secret_boundary_review_authorization_plan.md`, `tests/NA-0556_remote_relay_environment_secret_boundary_review_authorization_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Codex did not execute reruns, workflow dispatches, local reproduction, local qsc send/receive, qsc E2EE, source mutation, script mutation, workflow mutation, dependency/lockfile mutation, qsl-server/qsl-attachments commands or mutation, qwork/qstart/qresume, qsl-backup, backup mutation, public-site mutation, Cloudflare mutation, remote commands, SSH, scp, sftp, rsync, sudo/admin actions, or Cloudflare actions.
+- No secret values were requested or published. No route-token/capability values, bearer values, Authorization headers, private endpoints, private topology, payloads, response bodies, raw logs, raw artifacts, or secret environment values were published.
+- Branch: pending at journal authoring.
+- PR title: `NA-0556: authorize remote relay environment boundary review`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: implementation validation, PR checks, public-safety, advisories, no failed required checks, post-merge proof, and optional NA-0557 closeout only if gates are green.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No reproducibility-complete claim is introduced. No backup/restore-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
+
 ## NA-0555 closeout and NA-0556 restoration update
 
 - Directive: QSL-DIR-2026-06-28-474 optional closeout after NA-0555 implementation merge.

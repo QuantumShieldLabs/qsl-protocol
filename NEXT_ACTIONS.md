@@ -32139,61 +32139,82 @@ Closeout note:
 ---
 
 ### NA-0559 — QSL Remote Relay Targeted Non-Secret Operator Probe Capture Harness
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+NA-0559 consumed D-1106/D-1107, recorded D-1108, accepted the operator request
+for Codex-executed non-secret remote relay probes, selected exact NA-0560
+command authority and private-material policy, and selected NA-0560 as the
+successor. No probes, SSH/Tailscale/remote commands, workflow dispatches,
+reruns, local reproduction, qsc send/receive, source/script/workflow/dependency
+mutation, qsl-server/qsl-attachments action, public-site mutation, Cloudflare
+mutation, secret-value publication, private endpoint/topology publication, raw
+payload/body publication, or public/production/security overclaim occurred.
+
+---
+
+### NA-0560 — QSL Remote Relay Codex-Executed Non-Secret Probe Harness
 Status: READY
 Goals: G1, G2, G3, G4, G5
 
 Objective:
-Capture and review one-step-at-a-time operator-run non-secret probe proof for
-the remote relay timeout boundary. The Director must provide exact operator
-commands derived from D-1106. The operator must run commands locally or on the
-appropriate operator-selected host, review all outputs before sharing, and
-preserve only redacted proof files. Codex must review proof read-only, verify no
-secret values or private endpoint/topology details are published, classify
-endpoint/DNS/TCP/TLS/service-health/auth/route/runner boundaries, and select a
-later exact environment fix, service-owner proof, GitHub-runner confirmation,
-qsc runtime review, or stop successor.
-
-Prerequisites before Codex execution:
-- Director provides exact one-step commands derived from D-1106.
-- Operator runs only those commands.
-- Operator reviews outputs before sharing.
-- Operator does not paste route-token values, bearer values, Authorization
-  headers, endpoint values, private topology, payloads, response bodies, or
-  secret environment values.
-- Operator runs fresh qwork NA-0559 qsl-protocol only after proof files are
-  prepared or intentionally declined.
+Execute the D-1108-authorized Codex-run non-secret remote relay probe plan to
+classify the `relay_inbox_push_failed` network/TLS/timeout boundary. Codex may
+perform only exact non-mutating probes authorized by D-1108: current-main proof,
+read-only GitHub metadata, local redacted probe classification where safe, and
+one bounded SSH command-execution check to `inspiron`. If SSH command execution
+is available without remote mutation, Codex may run the exact redacted probe
+script authorized by D-1108 to produce coarse DNS/TCP/TLS/service-health and
+secret-presence classes. Codex must not fix shell access, mutate `inspiron`,
+publish endpoint values, publish token/bearer values, publish Authorization
+headers, publish private topology, send qsc payloads, dispatch workflows, rerun
+jobs, or mutate source/scripts/workflows/dependencies.
 
 Allowed scope:
-- docs/governance/evidence/NA-0559_remote_relay_targeted_non_secret_operator_probe_capture_harness.md
-- tests/NA-0559_remote_relay_targeted_non_secret_operator_probe_capture_testplan.md
+- docs/governance/evidence/NA-0560_remote_relay_codex_executed_non_secret_probe_harness.md
+- tests/NA-0560_remote_relay_codex_executed_non_secret_probe_testplan.md
 - DECISIONS.md
 - TRACEABILITY.md
 - docs/ops/ROLLING_OPERATIONS_JOURNAL.md
-- proof-root-only operator probe proof files
-- read-only NA-0555/NA-0556/NA-0557/NA-0558 evidence
+- proof-root-only redacted probe outputs
+- read-only NA-0555/NA-0556/NA-0557/NA-0558/NA-0559 evidence
+- read-only GitHub metadata
+- exact SSH reachability command:
+  ssh -o BatchMode=yes -o ConnectTimeout=10 inspiron 'printf QSL_REMOTE_PROBE_READY\n'
+- exact redacted probe script execution only if SSH command execution is
+  available and the script is proof-root generated and non-mutating
 - private-material scan/redaction proof
 - successor selection
 
 Forbidden scope:
-- requesting or publishing secret values;
+- qwork/qstart/qresume execution by Codex;
+- fixing or changing qslcodex shell/login/account state;
+- sudo/admin action;
+- Tailscale mutation;
+- remote file mutation;
+- service mutation;
+- firewall/network configuration mutation;
+- qsc send/receive;
+- qsc E2EE;
+- payload push;
+- workflow dispatch;
+- rerun;
+- source/script/qsc mutation;
+- workflow mutation;
+- dependency/lockfile mutation;
+- qsl-server/qsl-attachments;
+- qsl-backup;
+- backup mutation;
+- public-site mutation;
+- Cloudflare mutation;
+- endpoint value publication;
 - route-token/capability value publication;
 - bearer value publication;
 - Authorization header publication;
 - private endpoint or private topology publication;
-- raw payload or response body publication;
-- source/script/qsc mutation;
-- workflow mutation;
-- dependency/lockfile mutation;
-- workflow dispatch;
-- rerun;
-- local qsc send/receive or E2EE by Codex;
-- qsl-server/qsl-attachments;
-- SSH/Tailscale/remote command by Codex;
-- qwork/qstart/qresume execution by Codex;
-- qsl-backup execution;
-- backup mutation;
-- public-site mutation;
-- Cloudflare mutation;
+- payload or response body publication;
+- secret environment value publication;
 - public-readiness, production-readiness, vulnerability-free, bug-free, or
   perfect-build claim.
 

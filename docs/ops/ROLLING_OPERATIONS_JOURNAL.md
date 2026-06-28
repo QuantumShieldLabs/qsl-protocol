@@ -6,6 +6,31 @@ Last-Updated: 2026-06-28
 
 # Rolling Operations Journal
 
+## NA-0559 closeout and NA-0560 restoration update
+
+- Directive: QSL-DIR-2026-06-28-479 optional closeout after NA-0559 implementation merge.
+- Repo path: `/srv/qbuild/work/NA-0559/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0559_codex_executed_probe_authority_pivot_20260628T194659Z`.
+- Implementation PR #1391 merged at `23ac1f98ee3a` from head `d715cab8db27`.
+- Post-merge public-safety completed success on `23ac1f98ee3a`.
+- Post-merge advisories completed success on `23ac1f98ee3a`.
+- Post-merge suite2-vectors completed success on `23ac1f98ee3a`.
+- No failed required check was classified.
+- D-1108 exists once and records `REMOTE_RELAY_CODEX_EXECUTED_NON_SECRET_PROBE_AUTH_READY`.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0559_closeout_restore_na0560_testplan.md`.
+- NA-0559 is marked DONE.
+- NA-0560 is restored READY using the exact D-1108-selected Codex-executed non-secret probe successor block.
+- D-1109 records NA-0559 closeout and NA-0560 restoration.
+- This closeout does not implement NA-0560 and does not mutate source, script, workflow, dependency, lockfile, qsc source/test/fuzz/Cargo paths, qsl-server, qsl-attachments, public-site, Cloudflare, backup state, operator-local state, raw logs, or raw artifacts.
+- Codex did not run qwork, qstart, qresume, qsl-backup, rerun, workflow dispatch, local reproduction, qsc send/receive, qsc E2EE, qsl-server, qsl-attachments, probes, remote commands, SSH, scp, sftp, rsync, sudo/admin actions, or Cloudflare actions during closeout.
+- No secret values were requested or published. No route-token/capability values, bearer values, Authorization headers, endpoint values, private topology, payloads, response bodies, or secret environment values were published.
+- Branch: `na-0559-closeout-restore-na0560`.
+- PR title: `NA-0559: closeout and restore NA-0560`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: closeout PR checks, public-safety, advisories, no failed required checks, and final queue proof after merge.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No backup/restore-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
+
 ## NA-0559 Codex-executed probe authority pivot update
 
 - Directive: QSL-DIR-2026-06-28-479 -- Execute NA-0559 Remote Relay Probe Authority Pivot to Codex-Executed Non-Secret Probe Harness, Optional Closeout to NA-0560.

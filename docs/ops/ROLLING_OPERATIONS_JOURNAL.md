@@ -6,6 +6,26 @@ Last-Updated: 2026-06-27
 
 # Rolling Operations Journal
 
+## NA-0551 closeout and NA-0552 restoration update
+
+- Directive: QSL-DIR-2026-06-27-467 optional closeout.
+- Repo path: `/srv/qbuild/work/NA-0551/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0551_relay_api_boundary_stop_restore_na0552_20260627T235607Z`.
+- Governance handoff PR #1375 merged at `87db5a441fdd`.
+- D-1092 exists once and records the accepted NA-0551 relay API boundary stop.
+- Post-merge public-safety completed success on main.
+- Post-merge advisories completed success on main.
+- No failed required check was observed.
+- Stopped remediation branch `na-0551-remote-smoke-demo-script-remediation` remains preserved on origin and is not an ancestor of main.
+- NA-0551 is marked DONE as a terminal stop with no script remediation merge.
+- D-1093 restores `NA-0552 -- QSL Remote Relay API Boundary Diagnosis Authorization Plan` as exactly one READY successor.
+- No NA-0552 implementation occurred.
+- No script changes were merged.
+- Relay UI remains separate.
+- This closeout performs no rerun, workflow dispatch, local reproduction, workflow mutation, qsc source/dependency/workflow mutation, qsl-server/qsl-attachments mutation, public-site mutation, Cloudflare mutation, or private-material publication.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced.
+- Recovered failure: closeout overclaim scanner flagged the exact NA-0552 `Forbidden scope` claim list as positive wording. Classification: recoverable scan-context issue. Corrective action: rerun overclaim validation with `Forbidden scope` treated as negative context while preserving the exact successor block. Final result: validation rerun passed.
+
 ## NA-0551 relay API boundary stop handoff update
 
 - Directive: QSL-DIR-2026-06-27-467 -- Record NA-0551 Relay API Boundary Stop and Restore NA-0552 Authorization.

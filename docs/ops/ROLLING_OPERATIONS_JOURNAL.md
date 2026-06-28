@@ -6,6 +6,38 @@ Last-Updated: 2026-06-28
 
 # Rolling Operations Journal
 
+## NA-0558 remote relay targeted non-secret operator probe authorization update
+
+- Directive: QSL-DIR-2026-06-28-478 -- Execute NA-0558 Remote Relay Targeted Non-Secret Operator Probe Authorization Plan, Optional Closeout to NA-0559.
+- Repo path: `/srv/qbuild/work/NA-0558/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0558_remote_relay_targeted_non_secret_probe_authorization_20260628T174118Z`.
+- Fresh NA-0558 qwork proof files were read and copied from `/srv/qbuild/work/NA-0558/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-06-28T17:33:39Z`; startup head/origin-main/main was `d7363ac6d9c5` with READY_COUNT 1 and READY NA-0558.
+- Disk and mount gate passed before mutation: `/` usage below the 95% stop threshold and `/backup/qsl` mounted.
+- Fetch occurred only after proof/live ref match, clean tree, disk proof, and mount proof. Local main matched origin/main at `d7363ac6d9c5`.
+- Startup queue proof: READY_COUNT 1; READY NA-0558; NA-0557 DONE; NA-0556 DONE.
+- Startup decision proof: D-1104 once; D-1105 once; D-1106 absent before patch; D-1107 absent; duplicate decision count zero.
+- Current main required-check classification passed: public-safety completed success, advisories completed success, suite2-vectors completed success, no failed required checks, and branch-protection required contexts classified.
+- Recovered failure: the first current-main required-check classifier overwrote the repository identifier while storing raw REST payloads, producing malformed PR-head check endpoints. Classification: recoverable command-shape/parser variable collision. Corrective action: reran once with the repository identifier kept separate from raw payload storage. Final result: current-main required-check classification passed.
+- Recovered discovery outcome: the pre-patch existence check for the two new NA-0558 documents returned missing-file errors because the files had not yet been created. Classification: valid expected zero-result/new-file discovery. Corrective action: create the two files in the allowed implementation patch. Final result: not a blocker.
+- D-1104/D-1105 inheritance was consumed. NA-0557 result classification `REMOTE_RELAY_OPERATOR_PROOF_TARGETED_NON_SECRET_PROBE_AUTH_READY` was consumed.
+- NA-0555 remote-handshake and remote-relay timeout evidence was consumed as redacted non-secret facts: endpoint label `relay_push_v1`, qsc error `relay_inbox_push_failed`, route-token header present true, bearer auth present true, and HTTP status/body unknown.
+- NA-0557 gap classifications were consumed: endpoint `ENDPOINT_CONFIGURED_UNKNOWN`; DNS `DNS_RESOLUTION_NOT_CHECKED`; TCP `TCP_CONNECT_NOT_CHECKED`; TLS `TLS_HANDSHAKE_NOT_CHECKED`; service health `RELAY_SERVICE_HEALTH_NOT_CHECKED`; auth/route `AUTH_ROUTE_CONFIGURED_UNKNOWN`; runner proof `GITHUB_RUNNER_PROOF_NOT_PERFORMED`.
+- Targeted non-secret probe design was selected with origins `OPERATOR_LOCAL_HOST`, `OPERATOR_SELECTED_REMOTE_HOST`, `GITHUB_ACTIONS_RUNNER`, `REMOTE_SERVICE_OWNER`, and `UNKNOWN_OR_NOT_PERFORMED`.
+- Exact future operator command design was selected. Future commands are operator-run only, one step at a time, Python/stdout structured summaries only, and must not print endpoint hosts, secret values, private topology, payloads, or response bodies.
+- Future proof schema and private-material policy were selected. Unsafe disclosure flags or private-material findings require stop before publication.
+- Result classification: `REMOTE_RELAY_TARGETED_NON_SECRET_OPERATOR_PROBE_CAPTURE_READY`.
+- Selected successor: `NA-0559 -- QSL Remote Relay Targeted Non-Secret Operator Probe Capture Harness`.
+- Governance patch paths are limited to `docs/governance/evidence/NA-0558_remote_relay_targeted_non_secret_operator_probe_authorization_plan.md`, `tests/NA-0558_remote_relay_targeted_non_secret_operator_probe_authorization_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Codex did not execute probes, reruns, workflow dispatches, local reproduction, local qsc send/receive, qsc E2EE, source mutation, script mutation, workflow mutation, dependency/lockfile mutation, qsl-server/qsl-attachments commands or mutation, qwork/qstart/qresume, qsl-backup, backup mutation, public-site mutation, Cloudflare mutation, remote commands, SSH, scp, sftp, rsync, sudo/admin actions, or Cloudflare actions.
+- No secret values were requested or published. No route-token/capability values, bearer values, Authorization headers, private endpoints, private topology, payloads, response bodies, raw logs, raw artifacts, or secret environment values were published.
+- Branch: pending at journal authoring.
+- PR title: `NA-0558: authorize targeted non-secret relay probes`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: implementation validation, PR checks, public-safety, advisories, no failed required checks, post-merge proof, and optional NA-0559 closeout only if gates are green.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No backup/restore-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
+
 ## NA-0556 closeout and NA-0557 restoration update
 
 - Directive: QSL-DIR-2026-06-28-475 optional closeout after NA-0556 implementation merge.

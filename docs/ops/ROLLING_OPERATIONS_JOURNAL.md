@@ -6,6 +6,34 @@ Last-Updated: 2026-06-27
 
 # Rolling Operations Journal
 
+## NA-0552 remote relay API boundary diagnosis authorization update
+
+- Directive: QSL-DIR-2026-06-28-468 -- Execute NA-0552 Remote Relay API Boundary Diagnosis Authorization Plan.
+- Repo path: `/srv/qbuild/work/NA-0552/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0552_remote_relay_api_boundary_diagnosis_authorization_20260628T005134Z`.
+- Fresh NA-0552 qwork proof files were read and copied from `/srv/qbuild/work/NA-0552/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-06-28T00:45:05Z`; startup head/origin-main/main was `4cdfaf14ab47` with READY_COUNT 1 and READY NA-0552.
+- Disk and mount gate passed before mutation: `/` usage below the 95% stop threshold and `/backup/qsl` mounted.
+- Fetch occurred only after proof/live ref match, clean tree, disk proof, and mount proof. Local main matched origin/main at `4cdfaf14ab47`.
+- Startup queue proof: READY_COUNT 1; READY NA-0552; NA-0551 DONE; NA-0550 DONE.
+- Startup decision proof: D-1092 once; D-1093 once; D-1094 absent before patch; D-1095 absent; duplicate decision count zero.
+- Current main required-check classification passed: public-safety completed success, advisories completed success, no failed required checks, and branch-protection required contexts classified. PR #1376 supplied PR-head proof for `goal-lint` and `CodeQL` contexts not emitted directly on the merge commit.
+- D-1092/D-1093 inheritance was consumed. NA-0551 is DONE as a terminal stop and no script remediation branch was merged.
+- Stopped branch `na-0551-remote-smoke-demo-script-remediation` remains preserved at HEAD `2b897d658416`, is not an ancestor of current main, has no open PR, and its diff against its original base is limited to `scripts/demo/qsc_remote_handshake_smoke.sh` and `scripts/demo/qsc_remote_relay_smoke.sh`.
+- D465/D466 run IDs reviewed: `28304536771`, `28304537372`, `28304699022`, and `28304701270`.
+- qsc relay-push source/docs/tests were reviewed read-only. qsc owns the relay push v1-path pattern, route-token header, optional bearer auth, payload body, and status/error mapping.
+- Relay push status/body visibility classification: `RELAY_PUSH_STATUS_BODY_NOT_LOGGED`.
+- Secret/environment boundary classification: `SECRET_ENV_BOUNDARY_POSSIBLE_BUT_NOT_PROVEN`.
+- Per-target classifications: remote-handshake `HANDSHAKE_RELAY_BOUNDARY_RELAY_API_STATUS_DIAGNOSTIC_REQUIRED`; remote-relay `RELAY_RELAY_BOUNDARY_RELAY_API_STATUS_DIAGNOSTIC_REQUIRED`.
+- Result classification: `REMOTE_RELAY_API_BOUNDARY_DIAGNOSTIC_INSTRUMENTATION_READY`.
+- Selected successor: `NA-0553 -- QSL Remote Relay API Boundary Diagnostic Instrumentation Authorization Plan`.
+- Governance patch paths are limited to `docs/governance/evidence/NA-0552_remote_relay_api_boundary_diagnosis_authorization_plan.md`, `tests/NA-0552_remote_relay_api_boundary_diagnosis_authorization_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Codex did not execute reruns, workflow dispatches, local reproduction, script remediation, workflow mutation, runtime/source mutation, qsc source/test/fuzz/Cargo mutation, dependency/lockfile mutation, qsl-server/qsl-attachments commands or mutation, qwork/qstart/qresume, qsl-backup, backup mutation, public-site mutation, or Cloudflare mutation.
+- Raw logs and raw artifacts remain proof-root-only. No raw logs or raw artifacts were committed and no private material was published.
+- Recovered failure: the first startup queue/decision parser expected decision `Status` immediately after the ID. Classification: recoverable parser-shape issue. Corrective action: reran once with block-level decision parsing. Final result: startup queue/decision proof passed.
+- Recovered failure: the first required-check classifier treated PR-head-only `goal-lint` and aggregate `CodeQL` as missing on the merge commit. Classification: recoverable classifier-visibility issue. Corrective action: captured associated PR #1376 head check-runs and reran once. Final result: required-check classification passed.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no reproducibility-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0551 closeout and NA-0552 restoration update
 
 - Directive: QSL-DIR-2026-06-27-467 optional closeout.

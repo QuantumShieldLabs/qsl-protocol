@@ -32001,7 +32001,7 @@ Closeout note:
 ---
 
 ### NA-0557 — QSL Remote Relay Environment Non-Secret Operator Proof Capture Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -32057,6 +32057,71 @@ Forbidden scope:
 - public-site mutation;
 - Cloudflare mutation;
 - private material publication;
+- public-readiness, production-readiness, vulnerability-free, bug-free, or
+  perfect-build claim.
+
+Closeout note:
+- NA-0557 implementation PR #1387 merged at `7f41c5febda3`.
+- D-1104 exists once and is Accepted.
+- Post-merge public-safety completed success.
+- Post-merge advisories completed success.
+- No failed required check was classified.
+- NA-0557 selected `REMOTE_RELAY_OPERATOR_PROOF_TARGETED_NON_SECRET_PROBE_AUTH_READY`.
+- NA-0557 is DONE.
+- NA-0558 is restored READY as the sole successor.
+- No NA-0558 implementation occurred in this closeout.
+
+---
+
+### NA-0558 — QSL Remote Relay Targeted Non-Secret Operator Probe Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize a one-step-at-a-time operator-run, non-secret targeted probe package
+for the remote relay environment after NA-0557 found the existing operator proof
+insufficient to classify DNS/TCP/TLS/service health for the
+`relay_inbox_push_failed` timeout boundary. The Director must provide exact
+commands for the operator to run locally or on the appropriate host, and the
+operator must review outputs before sharing. Codex may only review
+operator-provided proof. The lane must not request, reveal, or publish route
+tokens, bearer values, Authorization headers, private endpoints, private
+topology, payloads, response bodies, or secret environment values.
+
+Allowed scope:
+- docs/governance/evidence/NA-0558_remote_relay_targeted_non_secret_operator_probe_authorization_plan.md
+- tests/NA-0558_remote_relay_targeted_non_secret_operator_probe_authorization_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only NA-0555/NA-0556/NA-0557 evidence
+- exact future non-secret operator proof command design
+- exact future proof fields
+- exact private-material policy
+- successor selection
+
+Forbidden scope:
+- running probes in the authorization lane;
+- Codex SSH, Tailscale, or remote commands;
+- requesting or publishing secret values;
+- route-token/capability value publication;
+- bearer value publication;
+- Authorization header publication;
+- private endpoint or private topology publication;
+- raw payload or response body publication;
+- qsc source/test/fuzz/Cargo mutation;
+- demo script mutation;
+- workflow mutation;
+- dependency/lockfile mutation;
+- workflow dispatch;
+- rerun;
+- local qsc send/receive or E2EE;
+- qsl-server/qsl-attachments;
+- qwork/qstart/qresume execution by Codex;
+- qsl-backup execution;
+- backup mutation;
+- public-site mutation;
+- Cloudflare mutation;
 - public-readiness, production-readiness, vulnerability-free, bug-free, or
   perfect-build claim.
 

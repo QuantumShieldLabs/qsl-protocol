@@ -6,6 +6,29 @@ Last-Updated: 2026-06-27
 
 # Rolling Operations Journal
 
+## NA-0554 closeout and NA-0555 restoration update
+
+- Directive: QSL-DIR-2026-06-28-473 optional closeout packet after resume.
+- Repo path: `/srv/qbuild/work/NA-0554/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0554_diagnostic_branch_validation_reachability_recovery_20260628T034908Z`.
+- Implementation PR #1381 merged at `a3e6a3789fe1` from head `2e04165fcb85`.
+- Post-merge public-safety completed success on `a3e6a3789fe1`.
+- Post-merge advisories completed success on `a3e6a3789fe1`.
+- Post-merge suite2-vectors completed success on `a3e6a3789fe1`.
+- No failed attached branch-protection required check was classified. Non-required remote workflow failures after merge were recorded as outside the closeout required-check gate.
+- Branch diagnostic validation completed safely through D473 recovery runs `28310659387` and `28310659797`.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0554_closeout_restore_na0555_testplan.md`.
+- NA-0554 is marked DONE.
+- NA-0555 is restored READY using the exact D-1098-selected diagnostic evidence capture successor block.
+- D-1099 records NA-0554 closeout and NA-0555 restoration.
+- This closeout does not implement NA-0555 and does not mutate qsc source/test/fuzz/Cargo paths, demo scripts, workflows, dependencies, lockfiles, qsl-server, qsl-attachments, public-site, Cloudflare, backup state, operator-local state, raw logs, or raw artifacts.
+- Codex did not run qwork, qstart, qresume, qsl-backup, rerun, workflow dispatch, local reproduction, qsc send/receive, qsc E2EE, qsl-server, qsl-attachments, remote commands, SSH, scp, sftp, rsync, sudo/admin actions, or Cloudflare actions during closeout.
+- Branch: `na-0554-closeout-restore-na0555`.
+- PR title: `NA-0554: closeout and restore NA-0555`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No reproducibility-complete claim is introduced. No backup/restore-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
+
 ## NA-0554 remote relay API boundary diagnostic instrumentation implementation update
 
 - Directive: QSL-DIR-2026-06-28-473 -- Recover NA-0554 Diagnostic Branch Validation Reachability Without Expanding Beyond Harness Scope.

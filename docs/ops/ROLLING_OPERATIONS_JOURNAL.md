@@ -6,6 +6,31 @@ Last-Updated: 2026-06-28
 
 # Rolling Operations Journal
 
+## NA-0562 closeout and NA-0563 restoration update
+
+- Directive: QSL-DIR-2026-06-28-483 optional closeout after NA-0562 implementation merge.
+- Repo path: `/srv/qbuild/work/NA-0562/qsl-protocol`.
+- Proof root: proof-root-only D483 recovery bundle; local path withheld from repository docs.
+- Implementation PR #1397 merged at `39248060df9c` from head `f5c1d5fd4994`.
+- Post-merge public-safety completed success on `39248060df9c`.
+- Post-merge advisories completed success on `39248060df9c`.
+- Post-merge suite2-vectors completed success on `39248060df9c`.
+- No failed required check was classified.
+- D-1114 exists once and records `SERVICE_OWNER_PORT_MISMATCH_REMEDIATION_READY`.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0562_closeout_restore_na0563_testplan.md`.
+- NA-0562 is marked DONE.
+- NA-0563 is restored READY using the exact D-1114-selected loopback port alignment authorization successor block.
+- D-1115 records NA-0562 closeout and NA-0563 restoration.
+- This closeout does not implement NA-0563 and does not mutate source, script, workflow, dependency, lockfile, qsc source/test/fuzz/Cargo paths, qsl-server, qsl-attachments, public-site, Cloudflare, backup state, operator-local state, raw logs, or raw artifacts.
+- Codex did not run qwork, qstart, qresume, qsl-backup, rerun, workflow dispatch, local reproduction, qsc send/receive, qsc E2EE, qsl-server, qsl-attachments, probes, remote commands, SSH, scp, sftp, rsync, sudo/admin actions, Tailscale commands, or Cloudflare actions during closeout.
+- No secret values were requested or published. No endpoint, topology, token, bearer, Authorization header, payload, response body, process identity, raw authorized_keys content, public key material, private key material, secret environment value, Cloudflare token, API key, or private material was published.
+- Branch: pending at journal authoring.
+- PR title: `NA-0562: closeout and restore NA-0563`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: closeout PR checks, public-safety, advisories, no failed required checks, and final queue proof after merge.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
+
 ## NA-0562 remote relay service listener proof capture update
 
 - Directive: QSL-DIR-2026-06-28-483 -- Recover NA-0562 Remote Relay Service Listener Proof Capture After Readiness Marker Authority Mismatch.

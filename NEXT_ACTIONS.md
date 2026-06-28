@@ -32210,7 +32210,7 @@ Forbidden scope:
 ---
 
 ### NA-0562 — QSL Remote Relay Service Listener Non-Secret Proof Capture Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -32270,6 +32270,40 @@ Forbidden scope:
 - secret environment value publication;
 - public-readiness, production-readiness, vulnerability-free, bug-free, or
   perfect-build claim.
+
+---
+
+### NA-0563 — QSL Remote Relay Loopback Port Alignment Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize a bounded non-secret remediation plan for a likely mismatch between
+the SSH tunnel's expected loopback target and the remote relay service listener.
+Define exact operator/service-owner proof and action requirements to align the
+tunnel target, service listener, or workflow access model without publishing
+private ports beyond already authorized labels, endpoint values, topology,
+tokens, bearer values, Authorization headers, payloads, response bodies, process
+identity, or secret environment values. This lane is authorization-only.
+
+Allowed scope:
+- docs/governance/evidence/NA-0563_remote_relay_loopback_port_alignment_authorization_plan.md
+- tests/NA-0563_remote_relay_loopback_port_alignment_authorization_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only NA-0562 summaries
+- exact operator/service-owner action requirement design
+- exact proof requirements
+- successor selection
+
+Forbidden scope:
+- Codex service/tunnel/account mutation;
+- endpoint/topology/token/body publication;
+- source/script/workflow/dependency mutation;
+- workflow dispatch/rerun;
+- qsl-server/qsl-attachments mutation;
+- public-site/Cloudflare mutation.
 
 ---
 

@@ -39280,6 +39280,27 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No endpoint values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, authorized_keys content, public key material, private key material, or secret environment values are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0560 closeout and NA-0561 restoration update
+
+- Directive: QSL-DIR-2026-06-28-480 optional closeout packet.
+- Repo path: `/srv/qbuild/work/NA-0560/qsl-protocol`.
+- Proof root: proof-root-only NA-0560 Codex probe directory.
+- Implementation PR #1393 merged at `22cb9a7f4c16` from head `b8f98978908c`.
+- Post-merge public-safety completed success on `22cb9a7f4c16`.
+- Post-merge advisories completed success on `22cb9a7f4c16`.
+- Post-merge check polling reached 36 attached checks, zero incomplete, and zero failures before closeout.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0560_closeout_restore_na0561_testplan.md`.
+- NA-0560 is marked DONE.
+- NA-0561 is restored READY using the exact D-1110-selected service-owner non-secret proof authorization successor block.
+- D-1111 records NA-0560 closeout and NA-0561 restoration.
+- This closeout does not implement NA-0561 and does not request or publish secret values, endpoint values, private topology, route-token/capability values, bearer values, Authorization headers, payloads, response bodies, raw authorized_keys content, public key material, or private material.
+- No workflow dispatch, rerun, source mutation, script mutation, workflow mutation, dependency/lockfile mutation, qsc source/test/fuzz/Cargo mutation, qsl-server/qsl-attachments mutation, public-site mutation, or Cloudflare mutation is introduced.
+- Branch: pending at journal authoring.
+- PR title: `NA-0560: closeout and restore NA-0561`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0557 closeout and NA-0558 restoration update
 
 - Directive: QSL-DIR-2026-06-28-477 optional closeout packet.

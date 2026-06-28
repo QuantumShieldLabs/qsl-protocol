@@ -32155,68 +32155,57 @@ payload/body publication, or public/production/security overclaim occurred.
 ---
 
 ### NA-0560 — QSL Remote Relay Codex-Executed Non-Secret Probe Harness
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+NA-0560 consumed D-1108/D-1109, recorded D-1110, executed the authorized
+Codex-run non-secret probe harness, classified the remote relay boundary as
+`CODEX_PROBE_SSH_TUNNEL_RELAY_UNREACHABLE_SERVICE_OWNER_PROOF_REQUIRED`, and
+selected NA-0561 as the successor. The probe evidence recorded SSH command
+execution success, SSH port-forward setup success, forwarded relay TCP refused,
+tunnel cleanup success, and remote stdin probe secret-presence classification
+without publishing endpoint values, route-token/capability values, bearer
+values, Authorization headers, private topology, payloads, response bodies,
+authorized_keys content, public key material, or private material. No qwork,
+qstart, qresume, account/shell/authorized_keys mutation, sudo/admin action,
+Tailscale mutation, service mutation, workflow dispatch, rerun, qsc send/receive,
+qsc E2EE, source/script/workflow/dependency/lockfile mutation,
+qsl-server/qsl-attachments mutation, public-site mutation, Cloudflare mutation,
+or public/production/security overclaim occurred.
+
+---
+
+### NA-0561 — QSL Remote Relay Service Owner Non-Secret Proof Authorization Plan
 Status: READY
 Goals: G1, G2, G3, G4, G5
 
 Objective:
-Execute the D-1108-authorized Codex-run non-secret remote relay probe plan to
-classify the `relay_inbox_push_failed` network/TLS/timeout boundary. Codex may
-perform only exact non-mutating probes authorized by D-1108: current-main proof,
-read-only GitHub metadata, local redacted probe classification where safe, and
-one bounded SSH command-execution check to `inspiron`. If SSH command execution
-is available without remote mutation, Codex may run the exact redacted probe
-script authorized by D-1108 to produce coarse DNS/TCP/TLS/service-health and
-secret-presence classes. Codex must not fix shell access, mutate `inspiron`,
-publish endpoint values, publish token/bearer values, publish Authorization
-headers, publish private topology, send qsc payloads, dispatch workflows, rerun
-jobs, or mutate source/scripts/workflows/dependencies.
+Authorize collection of non-secret proof from the remote relay service owner or
+deployer after NA-0560 showed the SSH tunnel path exists but the forwarded relay
+service did not respond as expected. Define exact non-secret service availability,
+deployment, DNS/TLS, loopback listener, path/method, and health proof fields.
+Do not request or publish private topology, private endpoints, tokens, bearer
+material, Authorization headers, payloads, response bodies, or secret values.
 
 Allowed scope:
-- docs/governance/evidence/NA-0560_remote_relay_codex_executed_non_secret_probe_harness.md
-- tests/NA-0560_remote_relay_codex_executed_non_secret_probe_testplan.md
+- docs/governance/evidence/NA-0561_remote_relay_service_owner_non_secret_proof_authorization_plan.md
+- tests/NA-0561_remote_relay_service_owner_non_secret_proof_authorization_testplan.md
 - DECISIONS.md
 - TRACEABILITY.md
 - docs/ops/ROLLING_OPERATIONS_JOURNAL.md
-- proof-root-only redacted probe outputs
-- read-only NA-0555/NA-0556/NA-0557/NA-0558/NA-0559 evidence
-- read-only GitHub metadata
-- exact SSH reachability command:
-  ssh -o BatchMode=yes -o ConnectTimeout=10 inspiron 'printf QSL_REMOTE_PROBE_READY\n'
-- exact redacted probe script execution only if SSH command execution is
-  available and the script is proof-root generated and non-mutating
-- private-material scan/redaction proof
+- read-only NA-0560 summaries
+- exact service-owner non-secret proof requirements
+- private-material policy
 - successor selection
 
 Forbidden scope:
-- qwork/qstart/qresume execution by Codex;
-- fixing or changing qslcodex shell/login/account state;
-- sudo/admin action;
-- Tailscale mutation;
-- remote file mutation;
-- service mutation;
-- firewall/network configuration mutation;
-- qsc send/receive;
-- qsc E2EE;
-- payload push;
-- workflow dispatch;
-- rerun;
-- source/script/qsc mutation;
-- workflow mutation;
-- dependency/lockfile mutation;
+- service mutation by Codex;
+- secret/endpoint/topology/payload/body publication;
+- qsc/script/workflow/dependency mutation;
+- workflow dispatch/rerun;
 - qsl-server/qsl-attachments;
-- qsl-backup;
-- backup mutation;
-- public-site mutation;
-- Cloudflare mutation;
-- endpoint value publication;
-- route-token/capability value publication;
-- bearer value publication;
-- Authorization header publication;
-- private endpoint or private topology publication;
-- payload or response body publication;
-- secret environment value publication;
-- public-readiness, production-readiness, vulnerability-free, bug-free, or
-  perfect-build claim.
+- public-site/Cloudflare mutation.
 
 ---
 

@@ -39357,3 +39357,25 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No probes, SSH/Tailscale/remote command, workflow dispatch, rerun, qsc send/receive, qsc E2EE, qsl-server/qsl-attachments command or mutation, qwork/qstart/qresume execution, qsl-backup execution, backup mutation, source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, raw-log/raw-artifact repository docs, or private-material publication is introduced by NA-0561.
 - No endpoint values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, authorized_keys content, public key material, private key material, or secret environment values are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0561 closeout and NA-0562 restoration update
+
+- Directive: QSL-DIR-2026-06-28-481 optional closeout packet.
+- Repo path: `/srv/qbuild/work/NA-0561/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0561_remote_relay_service_owner_proof_authorization_20260628T222021Z`.
+- Implementation PR #1395 merged at `808697ee6579` from head `2d322c20ba6`.
+- Post-merge public-safety completed success on `808697ee6579`.
+- Post-merge advisories completed success on `808697ee6579`.
+- Post-merge check polling reached 36 attached checks, zero incomplete, and zero failures before closeout.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0561_closeout_restore_na0562_testplan.md`.
+- NA-0561 is marked DONE.
+- NA-0562 is restored READY using the exact D-1112-selected service listener non-secret proof capture successor block.
+- D-1113 records NA-0561 closeout and NA-0562 restoration.
+- This closeout does not implement NA-0562 and does not run probes, SSH, Tailscale, remote commands, workflow dispatches, reruns, qsc send/receive, qsc E2EE, qsl-server, qsl-attachments, qwork, qstart, qresume, qsl-backup, or backup mutation.
+- No source, script, workflow, dependency, lockfile, qsc source/test/fuzz/Cargo, qsl-server, qsl-attachments, public-site, Cloudflare, raw-log/raw-artifact repository-doc, or private-material mutation is introduced.
+- Branch: pending at journal authoring.
+- PR title: `NA-0561: closeout and restore NA-0562`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No endpoint values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, authorized_keys content, public key material, private key material, or secret environment values are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.

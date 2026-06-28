@@ -2,9 +2,43 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-06-27
+Last-Updated: 2026-06-28
 
 # Rolling Operations Journal
+
+## NA-0555 remote relay API boundary diagnostic evidence capture update
+
+- Directive: QSL-DIR-2026-06-28-474 -- Execute NA-0555 Remote Relay API Boundary Diagnostic Evidence Capture Harness, Optional Closeout to NA-0556.
+- Begin timestamp (UTC): 2026-06-28T14:12:27Z.
+- Repo path: `/srv/qbuild/work/NA-0555/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0555_remote_relay_api_diagnostic_evidence_capture_20260628T141227Z`.
+- Fresh NA-0555 qwork proof files were read and copied from `/srv/qbuild/work/NA-0555/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-06-28T14:03:22Z`; startup head/origin-main/main was `e5f49a17c357` with READY_COUNT 1 and READY NA-0555.
+- Disk and mount gate passed before mutation: `/` usage below the 95% stop threshold and `/backup/qsl` mounted.
+- Fetch occurred only after proof/live ref match, clean tree, disk proof, and mount proof. Local main matched origin/main at `e5f49a17c357`.
+- Startup queue proof: READY_COUNT 1; READY NA-0555; NA-0554 DONE; NA-0553 DONE.
+- Startup decision proof: D-1098 once; D-1099 once; D-1100 absent before patch; D-1101 absent; duplicate decision count zero.
+- Current main required-check classification passed: public-safety completed success, advisories completed success, suite2-vectors completed success or was conclusively satisfied, no failed required checks, and branch-protection required contexts classified.
+- Recovered failure: the first current-main required-check classifier treated PR-only `CodeQL` and `goal-lint` contexts as missing on the merge commit. Classification: recoverable classifier-visibility issue. Corrective action: captured associated PR metadata and PR-head check-runs/statuses for those contexts and reran the classifier once. Final result: current-main required-check classification passed.
+- Recovered failure: the first pre-PR overclaim scan flagged the required successor `Forbidden scope` claim list as positive wording. Classification: recoverable scan-context issue. Corrective action: reran the scanner with forbidden-scope and must-not wording treated as negative context while preserving the exact successor block. Final result: validation passed.
+- Recovered failure: the first PR body preflight missed exact lowercase required phrases, and the first local goal-lint event was premature because the implementation head commit did not exist yet. Classification: recoverable command-shape/preflight issue. Corrective action: rewrote the proof-root PR body with exact required phrases and deferred goal-lint until after the branch commit provides a real head SHA. Final result: PR body preflight passed; goal-lint rerun remains a pre-PR watch item.
+- Inheritance consumed: D-1098 accepted NA-0554 diagnostic instrumentation implementation, D-1099 accepted NA-0554 closeout and restored NA-0555, NA-0554 result classification `REMOTE_RELAY_DIAGNOSTIC_INSTRUMENTATION_IMPLEMENTATION_PASS`.
+- Dispatch gate passed on clean main. The exact authorized dispatches executed once: `remote-handshake-tests.yml` on main and `remote-relay-tests.yml` on main with happy-path seed 1.
+- remote-handshake run `28325075419` / job `83913585385` completed failure at the expected smoke step, reached relay push, and emitted one safe redacted diagnostic marker from the exact run artifact.
+- remote-relay run `28325168201` / job `83913828473` completed failure at the expected smoke step, reached relay push, and emitted two safe redacted diagnostic markers from the exact run artifact.
+- Raw Actions logs were captured proof-root-only. Artifacts were downloaded proof-root-only only because raw Actions logs did not contain the diagnostic marker needed for classification.
+- Private-material scans passed with proof-root quarantine for raw logs/artifacts and passed for redacted summaries. Raw artifacts, including request-payload artifact content, remain proof-root-only and are not summarized in repository docs.
+- Per-target classifications: remote-handshake `REMOTE_HANDSHAKE_DIAGNOSTIC_NETWORK_TLS_TIMEOUT`; remote-relay `REMOTE_RELAY_DIAGNOSTIC_NETWORK_TLS_TIMEOUT`.
+- Result classification: `REMOTE_RELAY_DIAGNOSTIC_EVIDENCE_REMOTE_ENV_SECRET_BOUNDARY_READY`.
+- Selected successor: `NA-0556 -- QSL Remote Relay Environment and Secret Boundary Review Authorization Plan`.
+- Governance patch paths are limited to `docs/governance/evidence/NA-0555_remote_relay_api_boundary_diagnostic_evidence_capture_harness.md`, `tests/NA-0555_remote_relay_api_boundary_diagnostic_evidence_capture_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Codex did not execute reruns, extra workflow dispatches, local reproduction, local qsc send/receive, qsc E2EE, source mutation, script mutation, workflow mutation, dependency/lockfile mutation, qsl-server/qsl-attachments commands or mutation, qwork/qstart/qresume, qsl-backup, backup mutation, public-site mutation, or Cloudflare mutation.
+- Branch: pending at journal authoring.
+- PR title: `NA-0555: capture remote relay diagnostic evidence`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: post-commit goal-lint, implementation PR checks, public-safety, advisories, no failed required checks, post-merge proof, and optional NA-0556 closeout only if gates are green.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No reproducibility-complete claim is introduced. No backup/restore-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
 
 ## NA-0554 closeout and NA-0555 restoration update
 

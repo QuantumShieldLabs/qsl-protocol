@@ -39097,3 +39097,35 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - PR: pending at journal authoring.
 - PR merge commit: pending at journal authoring.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no reproducibility-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced.
+
+## NA-0557 remote relay environment non-secret operator proof capture update
+
+- Directive: QSL-DIR-2026-06-28-477 -- Recover NA-0557 Operator Proof Capture After qwork Parser Command-Shape Stop.
+- Begin timestamp (UTC): 2026-06-28T16:49:57Z.
+- Repo path: `/srv/qbuild/work/NA-0557/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0557_operator_proof_capture_parser_recovery_20260628T164957Z`.
+- D476 stop consumed: D476 stopped safely during Phase 0 qwork proof parsing, before fetch, repository mutation, PR creation, merge, closeout, remote action, probe execution, qwork/qstart/qresume, or private-material scan.
+- qwork proof files were read and copied from `/srv/qbuild/work/NA-0557/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- D477 recovered the qwork parser stop using proof-root file-backed parser `recovery/verify_qwork_proof.py`; qwork proof timestamp `2026-06-28T16:33:05Z` and lane `NA-0557` verified.
+- qwork proof HEAD and origin/main matched live pre-fetch state at `fe17e458cef1`; proof recorded clean worktree/index/untracked state, READY_COUNT 1, queue top READY `NA-0557`, and requested lane status READY.
+- Fetch performed only after proof/live ref match and disk proof below threshold; local main remained at `fe17e458cef1`.
+- Disk watermark before patch: `/` 34% used; `/backup/qsl` 34% used and mounted.
+- Startup queue proof: READY_COUNT 1; READY NA-0557; NA-0556 DONE; NA-0555 DONE.
+- Startup decision proof: D-1102 once, D-1103 once, D-1104 absent before patch, D-1105 absent before patch, duplicate decision record count zero.
+- Recovered proof-root parser issue: first queue parser omitted a queue dash variant. Classification: recoverable proof-root parser shape issue before repository mutation. Corrective action: accepted the queue dash variant. Final result: follow-up parser still needed suffixed NA ID handling.
+- Recovered proof-root parser issue: second queue parser did not support suffixed NA IDs and allowed later status lines to overwrite the first queue status. Classification: recoverable proof-root parser shape issue before repository mutation. Corrective action: accepted suffixed NA IDs and captured only the first status per entry. Final result: queue/decision proof passed.
+- Main health proof on `fe17e458cef1`: public-safety success, advisories success, suite2-vectors success, required branch-protection contexts classified green or conclusively satisfied, and no Cargo manifest or lockfile drift.
+- Operator proof package copied proof-root-only from `/srv/qbuild/tmp/NA0557_operator_non_secret_proof_20260628T160543Z`.
+- Operator proof private-material scan passed; operator-supplied scan pass was true and Codex scan agreed. No secret values, route-token/capability values, bearer values, Authorization headers, private endpoint hosts, private topology, payloads, response bodies, passphrases, private keys, secret environment values, GitHub tokens, API keys, SSH private material, backup material, or Cloudflare tokens were published.
+- Operator proof field classification preserved unknown fields `relay_endpoint_configured`, `bearer_secret_configured`, `bearer_secret_age_class`, `route_secret_configured`, and `route_secret_age_class`; preserved not_checked fields `dns_resolution_class`, `tcp_connect_class`, `tls_handshake_class`, and `health_endpoint_class`.
+- Boundary classification: endpoint `ENDPOINT_CONFIGURED_UNKNOWN`; endpoint host publication `ENDPOINT_PRIVATE_NOT_REPORTED`; DNS `DNS_RESOLUTION_NOT_CHECKED`; TCP `TCP_CONNECT_NOT_CHECKED`; TLS `TLS_HANDSHAKE_NOT_CHECKED`; service health `RELAY_SERVICE_HEALTH_NOT_CHECKED`; auth/route `AUTH_ROUTE_CONFIGURED_UNKNOWN`; runner proof `GITHUB_RUNNER_PROOF_NOT_PERFORMED`; overall `REMOTE_RELAY_OPERATOR_PROOF_INSUFFICIENT_TARGETED_PROBE_REQUIRED`.
+- Selected result classification: `REMOTE_RELAY_OPERATOR_PROOF_TARGETED_NON_SECRET_PROBE_AUTH_READY`.
+- Selected successor: `NA-0558 -- QSL Remote Relay Targeted Non-Secret Operator Probe Authorization Plan`.
+- D-1104 records NA-0557 remote relay environment non-secret operator proof capture.
+- Governance patch paths: NA-0557 evidence doc, NA-0557 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: pending at journal authoring.
+- PR title: `NA-0557: capture remote relay operator proof`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No NA-0558 implementation, SSH/Tailscale/remote command, probe execution, rerun, workflow dispatch, local reproduction, qsc send/receive, qsc E2EE, qsl-server/qsl-attachments command or mutation, qwork/qstart/qresume execution, qsl-backup execution, backup mutation, source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, raw-log/raw-artifact repository docs, or private-material publication is introduced by NA-0557.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.

@@ -6,6 +6,26 @@ Last-Updated: 2026-06-27
 
 # Rolling Operations Journal
 
+## NA-0551 relay API boundary stop handoff update
+
+- Directive: QSL-DIR-2026-06-27-467 -- Record NA-0551 Relay API Boundary Stop and Restore NA-0552 Authorization.
+- Repo path: `/srv/qbuild/work/NA-0551/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0551_relay_api_boundary_stop_restore_na0552_20260627T235607Z`.
+- Fresh NA-0551 qwork proof files were read and copied from `/srv/qbuild/work/NA-0551/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-06-27T22:46:15Z`; startup head/origin-main/main was `2ff3dd6c915c` with READY_COUNT 1 and READY NA-0551.
+- Stopped branch `na-0551-remote-smoke-demo-script-remediation` was preserved as evidence at HEAD `2b897d658416`; it is two commits ahead of `origin/main` and its diff is limited to `scripts/demo/qsc_remote_handshake_smoke.sh` and `scripts/demo/qsc_remote_relay_smoke.sh`.
+- No open PR exists for the stopped remediation branch. The branch was not merged and was not deleted.
+- D465 classification consumed: `REMOTE_SMOKE_DEMO_SCRIPT_REMEDIATION_VALIDATION_FAILURE_STOP`.
+- D466 classification consumed: `SCRIPT_ONLY_FIX_NOT_SUPPORTED_RELAY_API_BOUNDARY`.
+- D465 branch validation attempts consumed: remote-handshake `28304536771` failed at missing contact route; remote-relay `28304537372` failed at `relay_inbox_push_failed` after setup; remote-handshake `28304699022` and remote-relay `28304701270` both failed at `relay_inbox_push_failed`.
+- D466 diagnosis consumed: deterministic vault/contact setup and qsc payload construction occur before the remaining `relay_inbox_push_failed`; exact HTTP status/body was not safely visible enough to prove a script-only fix; qsc owns the relay push v1-path pattern, route-token header, optional bearer auth, payload body, and status/error mapping.
+- Result classification: `REMOTE_SMOKE_DEMO_SCRIPT_REMEDIATION_RELAY_API_BOUNDARY_STOP_ACCEPTED`.
+- D-1092 records the terminal stop handoff and selects `NA-0552 -- QSL Remote Relay API Boundary Diagnosis Authorization Plan`.
+- Governance patch paths are limited to `docs/governance/evidence/NA-0551_remote_handshake_remote_relay_demo_script_relay_api_boundary_stop_handoff.md`, `tests/NA-0551_remote_handshake_remote_relay_demo_script_relay_api_boundary_stop_handoff_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- This handoff merges no script changes and performs no script patching, rerun, workflow dispatch, local reproduction, qsc send/receive, qsc runtime reproduction, workflow mutation, qsc source/test/fuzz/Cargo mutation, dependency/lockfile mutation, qsl-server/qsl-attachments command or mutation, qwork/qstart/qresume, qsl-backup, public-site mutation, Cloudflare mutation, raw-log commit, or private-material publication.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no reproducibility-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+- Recovered failure: pre-PR overclaim scan flagged claim-boundary wording where long wrapped lines separated some restricted terms from the negating `No`. Classification: recoverable validation wording/scan-shape issue. Corrective action: rewrote claim-boundary prose so each restricted claim term is explicitly negated. Final result: validation rerun passed.
+
 ## NA-0550 closeout and NA-0551 restoration update
 
 - Directive: QSL-DIR-2026-06-27-464 optional closeout.

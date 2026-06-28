@@ -29306,3 +29306,30 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0550 closeout and NA-0551 restoration to D-1091.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records closeout proof and boundaries.
   - **References:** NA-0550; NA-0551; D-1091; D-1090; PR #1373; merge `58e377d02e3e`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0550_closeout_restore_na0551_testplan.md`
+
+- **ID:** D-1092
+  - **Title:** NA-0551 remote smoke demo script remediation relay API boundary stop handoff
+  - **Date:** 2026-06-27
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0551 accepts the terminal relay API boundary stop for the remote-handshake and remote-relay demo script remediation lane. D-1090 and D-1091 were consumed. D465 attempted exact script-only remediation on branch `na-0551-remote-smoke-demo-script-remediation` with branch commits `ab4ab9bba14f` and `2b897d658416`; that branch was not merged, no PR was opened for it, and its diff remains limited to `scripts/demo/qsc_remote_handshake_smoke.sh` and `scripts/demo/qsc_remote_relay_smoke.sh`. D465 branch validation failed after deterministic setup. D466 reviewed the stopped branch and selected `SCRIPT_ONLY_FIX_NOT_SUPPORTED_RELAY_API_BOUNDARY`. The final bounded failure is `relay_inbox_push_failed`, occurring after deterministic vault/contact setup and qsc payload construction. Exact HTTP status/body was not safely visible enough to prove a script-only fix. Further script patching would risk guessing at relay API, qsc runtime, secret, environment, or remote relay behavior.
+  - **Result classification:** `REMOTE_SMOKE_DEMO_SCRIPT_REMEDIATION_RELAY_API_BOUNDARY_STOP_ACCEPTED`.
+  - **Selected successor:** `NA-0552 -- QSL Remote Relay API Boundary Diagnosis Authorization Plan`.
+  - **Boundary proof:** No script changes are merged. No runtime/source/qsc/workflow/dependency mutation occurred on main. No qsl-server/qsl-attachments command or mutation occurred. No rerun, workflow dispatch, or local reproduction occurred in this handoff. No qwork/qstart/qresume execution by Codex occurred. No qsl-backup occurred. No public-site or Cloudflare mutation occurred. No raw logs or private material were published. Exactly one READY remains mandatory.
+  - **Claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No reproducibility-complete claim is made. No backup/restore-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-build claim is made. No perfect-crypto claim is made.
+  - **Security invariants introduced/changed:**
+    - Failed remote relay push remains fail-closed and cannot be hidden by script assertions.
+    - Script-only remediation must not proceed when the remaining evidence belongs to relay API, qsc runtime, secret/environment, or remote relay behavior boundaries.
+    - Raw logs, route capabilities, bearer tokens, passphrases, token hashes, private endpoints, and raw fingerprints remain proof-root-only.
+    - The stopped remediation branch remains preserved as evidence and must not be merged as this handoff.
+  - **Alternatives considered:**
+    - Patch the scripts again (rejected because D466 did not prove a bounded script-only fix).
+    - Merge the stopped branch despite failing validation (rejected because validation failed at `relay_inbox_push_failed`).
+    - Open a PR for the stopped remediation branch (rejected because this handoff records a terminal stop, not remediation).
+    - Move directly to qsc runtime or qsl-server implementation (rejected because the next step must authorize and classify the remote relay API boundary first).
+  - **Implications for spec/impl/tests:**
+    - `docs/governance/evidence/NA-0551_remote_handshake_remote_relay_demo_script_relay_api_boundary_stop_handoff.md` records qwork proof, D-1090/D-1091 inheritance, D465 attempts, D466 diagnosis, branch preservation, relay API boundary classification, private-material handling, no-merge/no-PR proof, result classification, and selected successor.
+    - `tests/NA-0551_remote_handshake_remote_relay_demo_script_relay_api_boundary_stop_handoff_testplan.md` records stop-handoff markers and governance-only validation gates.
+    - `TRACEABILITY.md` maps NA-0551, D-1092, D465, D466, the stopped branch, branch validation runs, relay API boundary stop classification, and selected NA-0552 successor.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the stop handoff and no-mutation boundaries.
+  - **References:** NA-0551; NA-0552; D-1092; D-1091; D-1090; D465 response `NA0551_remote_handshake_remote_relay_demo_script_remediation_20260627T231725Z_D465.md`; D466 response `NA0551_remote_smoke_remediation_recovery_20260627T233629Z_D466.md`; branch `na-0551-remote-smoke-demo-script-remediation`; commits `ab4ab9bba14f`, `2b897d658416`; runs `28304536771`, `28304537372`, `28304699022`, `28304701270`; `docs/governance/evidence/NA-0551_remote_handshake_remote_relay_demo_script_relay_api_boundary_stop_handoff.md`; `tests/NA-0551_remote_handshake_remote_relay_demo_script_relay_api_boundary_stop_handoff_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

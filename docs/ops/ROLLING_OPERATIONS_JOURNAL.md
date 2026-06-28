@@ -35,6 +35,29 @@ Last-Updated: 2026-06-27
 - Raw logs and raw artifacts remain proof-root-only. No raw logs or raw artifacts were committed and no private material was published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no reproducibility-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0553 closeout and NA-0554 restoration update
+
+- Directive: QSL-DIR-2026-06-28-469 optional closeout packet.
+- Begin timestamp (UTC): 2026-06-28T02:05:30Z.
+- Repo path: `/srv/qbuild/work/NA-0553/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0553_remote_relay_api_diagnostic_instrumentation_authorization_20260628T014116Z`.
+- Authorization PR #1379 merged at `b9f01614eea6` from head `2f2387603854`.
+- Post-merge public-safety completed success on `b9f01614eea6`.
+- Post-merge advisories completed success on `b9f01614eea6`.
+- Post-merge check polling reached 36 attached checks, zero incomplete, and zero failures before closeout.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0553_closeout_restore_na0554_testplan.md`.
+- NA-0553 is marked DONE.
+- NA-0554 is restored READY using the exact D-1096-selected diagnostic instrumentation implementation successor block.
+- D-1097 records NA-0553 closeout and NA-0554 restoration.
+- The restored NA-0554 block includes exact qsc diagnostic env gate `QSC_RELAY_PUSH_DIAGNOSTIC=redacted`, exact qsc transport/test paths, exact demo script paths, exact governance/testplan paths, no workflow mutation, no dependency or lockfile mutation, proof-root-only raw logs, summary-only repository docs, and explicit redaction rules.
+- This closeout does not implement NA-0554 and does not mutate qsc source/test/fuzz/Cargo paths, demo scripts, workflows, dependencies, lockfiles, qsl-server, qsl-attachments, public-site, Cloudflare, backup state, operator-local state, raw logs, or raw artifacts.
+- Codex did not run qwork, qstart, qresume, qsl-backup, rerun, workflow dispatch, local reproduction, qsc send/receive, qsc E2EE, qsl-server, qsl-attachments, remote commands, SSH, scp, sftp, rsync, sudo/admin actions, or Cloudflare actions.
+- Branch: `na-0553-closeout-restore-na0554`.
+- PR title: `NA-0553: closeout and restore NA-0554`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No reproducibility-complete claim is introduced. No backup/restore-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
+
 ## NA-0552 closeout and NA-0553 restoration update
 
 - Directive: QSL-DIR-2026-06-28-468 optional closeout.

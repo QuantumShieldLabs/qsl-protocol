@@ -39246,6 +39246,40 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No NA-0558 implementation, SSH/Tailscale/remote command, probe execution, rerun, workflow dispatch, local reproduction, qsc send/receive, qsc E2EE, qsl-server/qsl-attachments command or mutation, qwork/qstart/qresume execution, qsl-backup execution, backup mutation, source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, raw-log/raw-artifact repository docs, or private-material publication is introduced by NA-0557.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0560 remote relay Codex-executed non-secret probe update
+
+- Directive: QSL-DIR-2026-06-28-480.
+- Begin timestamp (UTC): 2026-06-28T21:26:30Z.
+- Repo path: `/srv/qbuild/work/NA-0560/qsl-protocol`.
+- Proof root: proof-root-only NA-0560 Codex probe directory.
+- qwork proof files were copied from the lane workspace and verified before probe execution or repository mutation; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp `2026-06-28T20:41:09Z` or later, lane `NA-0560`, repo `qsl-protocol`, HEAD `e74f9c211690`, origin/main `e74f9c211690`, and clean worktree/index/untracked state were verified.
+- Fetch was performed only after proof/live ref match, disk proof below threshold, and `/backup/qsl` mount proof passed.
+- Startup queue proof: READY_COUNT 1; READY NA-0560; NA-0559 DONE; NA-0558 DONE.
+- Startup decision proof: D-1108 once and Accepted; D-1109 once and Accepted; D-1110 absent before patch; D-1111 absent before patch; duplicate decision record count zero.
+- Current main required-check proof on `e74f9c211690`: public-safety success, advisories success, suite2-vectors success, no failed required checks, and required branch-protection contexts classified green or conclusively satisfied using merged PR #1392 head checks where needed.
+- Recovered proof-root parser issue: first queue/decision parser did not match the local `DECISIONS.md` ID line format. Classification: recoverable command-shape/parser issue before repository mutation. Corrective action: reran with the actual decision ID format. Final result: queue/decision proof passed.
+- Recovered current-main classifier issue: first required-check classifier used check-runs only and missed required contexts satisfied on the merged PR head. Classification: recoverable classifier issue before repository mutation. Corrective action: classified current merge-commit checks plus PR #1392 head checks. Final result: required checks classified green or conclusively satisfied.
+- Recovered SSH classifier issue: first SSH command reachability classifier expected a newline-exact ready marker. Classification: recoverable classifier issue with no SSH rerun. Corrective action: reclassified the existing captured output because the exact authorized command exited 0 and emitted the ready marker with literal `n` behavior. Final result: SSH command execution classified success.
+- Probe script static review passed for proof-root-only redacted local/remote probe script and forwarded relay probe script: JSON-only output, no subprocess import, no file mutation calls, no qsc execution, no POST, no auth headers, no body read/print, and no hardcoded private endpoint/token/key material.
+- Local qbuild probe classification: `LOCAL_PROBE_ENDPOINT_ABSENT_OR_UNKNOWN`.
+- SSH command-execution classification: `SSH_COMMAND_EXECUTION_SUCCESS`.
+- SSH port-forward setup classification: `SSH_PORT_FORWARD_SETUP_SUCCESS`.
+- Forwarded relay probe classification: `SSH_PORT_FORWARD_RELAY_TCP_REFUSED`.
+- SSH tunnel cleanup classification: `SSH_TUNNEL_CLEANUP_SUCCESS`.
+- Remote stdin probe classification: `REMOTE_PROBE_SECRET_PRESENCE_CLASSIFIED`.
+- Result classification: `CODEX_PROBE_SSH_TUNNEL_RELAY_UNREACHABLE_SERVICE_OWNER_PROOF_REQUIRED`.
+- Selected successor: `NA-0561 -- QSL Remote Relay Service Owner Non-Secret Proof Authorization Plan`.
+- D-1110 records NA-0560 remote relay Codex-executed non-secret probe evidence.
+- Governance patch paths: NA-0560 evidence doc, NA-0560 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: pending at journal authoring.
+- PR title: `NA-0560: capture Codex-executed relay probe evidence`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No qwork/qstart/qresume execution, account/shell/authorized_keys mutation, sudo/admin action, Tailscale mutation, service mutation, workflow dispatch, rerun, qsc send/receive, qsc E2EE, qsl-server/qsl-attachments command or mutation, qsl-backup execution, backup mutation, source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, raw-log/raw-artifact repository docs, or private-material publication is introduced by NA-0560.
+- No endpoint values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, authorized_keys content, public key material, private key material, or secret environment values are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0557 closeout and NA-0558 restoration update
 
 - Directive: QSL-DIR-2026-06-28-477 optional closeout packet.

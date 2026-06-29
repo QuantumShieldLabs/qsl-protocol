@@ -6,6 +6,30 @@ Last-Updated: 2026-06-29
 
 # Rolling Operations Journal
 
+## NA-0567 closeout and NA-0568 restoration update
+
+- Directive: QSL-DIR-2026-06-29-488 optional closeout after NA-0567 implementation merge.
+- Repo path: `/srv/qbuild/work/NA-0567/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0567_codex_recovery_authority_pivot_20260629T055231Z`.
+- Implementation PR #1407 merged at `b91688db6a14` from head `ab7a7a0490d5`.
+- Post-merge public-safety completed success on `b91688db6a14`.
+- Post-merge advisories completed success on `b91688db6a14`.
+- Post-merge suite2-vectors completed success on `b91688db6a14`.
+- No failed required check was classified.
+- D-1124 exists once and records `REMOTE_RELAY_CODEX_EXECUTED_RECOVERY_AUTH_READY`.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0567_closeout_restore_na0568_testplan.md`.
+- NA-0567 is marked DONE.
+- NA-0568 is restored READY using the exact D-1124-selected Codex-executed remote recovery successor block.
+- D-1125 records NA-0567 closeout and NA-0568 restoration.
+- This closeout does not implement NA-0568 and does not execute remote action, SSH, Tailscale, remote command, remote probe, workflow dispatch, rerun, qsc send/receive, qsc E2EE, qsl-server, qsl-attachments, qwork, qstart, qresume, qsl-backup, backup mutation, source mutation, script mutation, workflow mutation, dependency/lockfile mutation, account mutation, service mutation, public-site mutation, or Cloudflare mutation.
+- No secret values were requested or published. No endpoint, private port, private topology, token, bearer value, Authorization header, payload, response body, process identity, service process identity, raw authorized_keys content, public key material, private key material, secret environment value, raw log, raw artifact, or private material was published.
+- Branch: pending at journal authoring.
+- PR title: `NA-0567: closeout and restore NA-0568`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: closeout PR checks, public-safety, advisories, no failed required checks, final queue proof after merge, and NA-0568 startup handoff.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
+
 ## NA-0567 remote relay Codex recovery authority pivot update
 
 - Directive: QSL-DIR-2026-06-29-488 -- Execute NA-0567 Remote Relay Listener Deployment Proof Capture Authority Pivot to Codex-Executed Remote Recovery, Optional Closeout to NA-0568.

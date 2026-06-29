@@ -39829,6 +39829,43 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, or secret environment values are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0572 qsl-server dependency audit recovery implementation update
+
+- Directive: QSL-DIR-2026-06-29-496.
+- Repo path: `/srv/qbuild/work/NA-0572/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0572_qsl_server_dependency_audit_recovery_20260629T233246Z`.
+- qwork proof files were copied from the lane workspace and verified before qsl-server clone, qsl-server mutation, qsl-protocol governance mutation, or PR creation; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp `2026-06-29T23:25:30Z`, lane `NA-0572`, repo `qsl-protocol`, HEAD `a4df7fadfb83`, origin/main `a4df7fadfb83`, and clean worktree/index/untracked state were verified.
+- Fetch was performed only after proof/live ref match, disk proof below threshold, and `/backup/qsl` mount proof passed.
+- Startup queue proof: READY_COUNT 1; READY NA-0572; NA-0571 DONE; NA-0570 DONE.
+- Startup decision proof: D-1132 once and Accepted; D-1133 once and Accepted; D-1134 absent before patch; D-1135 absent before patch; duplicate decision record count zero.
+- Current main required-check proof on `a4df7fadfb83`: public-safety success, advisories success, suite2-vectors success, no failed required checks, and required branch-protection contexts classified green or conclusively satisfied.
+- Local qsl-protocol dependency-health proof before qsl-server mutation: root cargo audit passed and nested qsc fuzz lock cargo audit passed.
+- D-1132/D-1133 inheritance consumed: D-1132 selected qsl-server `Cargo.lock` only recovery for `RUSTSEC-2026-0185`; D-1133 restored NA-0572 as the sole READY successor.
+- qsl-server checkout path: `/srv/qbuild/work/NA-0572/qsl-server`.
+- qsl-server starting HEAD: `d40e6003fdf0`.
+- qsl-server baseline audit classification: `QSL_SERVER_BASELINE_AUDIT_EXPECTED_RUSTSEC_2026_0185`.
+- qsl-server remediation command: `cargo update -p quinn-proto --precise 0.11.15`.
+- qsl-server changed path: `Cargo.lock` only.
+- qsl-server `Cargo.toml`, source paths, and workflow paths remained unchanged.
+- qsl-server pre-merge validation passed: locked metadata, cargo audit, cargo build, cargo test, and cargo fmt check.
+- qsl-server branch: `na-0572-quinn-proto-lockfile-audit-recovery`.
+- qsl-server PR #57 merged at `6bf61d439fa2` from head `e32f48754ab0`.
+- qsl-server post-merge validation passed on main: locked metadata, cargo audit, cargo build, cargo test, cargo fmt check, and `rust` check success.
+- Recovered failures: RF-001 corrected missing exported proof path for a check metadata summary; RF-002 corrected an unsupported `gh pr checks` JSON field; RF-003 corrected decision duplicate parsing to count decision entry lines only; RF-004 corrected inheritance parser string matching; RF-005 recorded qsl-server inverse cargo-tree target-scope zero output and used audit tree plus follow-up tree proof; RF-006 corrected metadata stderr strictness; RF-007 corrected advisory-count logic; RF-008 cleaned generated qsl-server build artifacts and rewrote proof checks using recorded validation return codes; RF-009 corrected wrapped or aggregated negative claim-boundary wording. All final results passed.
+- Result classification: `QSL_SERVER_DEPENDENCY_AUDIT_RECOVERY_IMPLEMENTATION_PASS`.
+- Selected successor: `NA-0573 -- QSL Remote Relay qsl-server Inspiron Deployment Recovery Retry Harness`.
+- D-1134 records NA-0572 qsl-server dependency audit recovery implementation.
+- Governance patch paths: NA-0572 evidence doc, NA-0572 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- qsl-protocol branch: `na-0572-qsl-server-dependency-audit-recovery-governance`.
+- qsl-protocol PR title: `NA-0572: record qsl-server dependency audit recovery`.
+- qsl-protocol PR: pending at journal authoring.
+- qsl-protocol PR merge commit: pending at journal authoring.
+- No qsl-server deployment, qsl-server service run, qsl-attachments work, SSH, scp, Tailscale, remote command, qsc command, qsc send/receive, qsc E2EE, workflow dispatch, workflow rerun, qwork/qstart/qresume execution, qsl-backup execution, backup mutation, public-site mutation, or Cloudflare mutation occurred.
+- No qsl-protocol source, script, workflow, dependency, lockfile, qsc source/test/fuzz/Cargo, qsl-server source, qsl-server workflow, qsl-attachments, public-site, Cloudflare, raw-log/raw-artifact repository-doc, or private-material mutation is introduced.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, or secret environment values are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced.
+
 ## NA-0566 remote relay listener deployment proof authorization update
 
 - Directive: QSL-DIR-2026-06-29-487.

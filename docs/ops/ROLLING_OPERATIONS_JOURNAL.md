@@ -39498,3 +39498,38 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - PR merge commit: pending at journal authoring.
 - No endpoint values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, or secret environment values are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0564 remote relay loopback alignment action authorization update
+
+- Directive: QSL-DIR-2026-06-29-485.
+- Begin timestamp (UTC): 2026-06-29T02:08:31Z.
+- Repo path: `/srv/qbuild/work/NA-0564/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0564_loopback_alignment_action_authorization_20260629T020831Z`.
+- qwork proof files were copied from the lane workspace and verified before fetch, probe execution, or repository mutation; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp `2026-06-29T01:58:42Z`, lane `NA-0564`, repo `qsl-protocol`, HEAD `c21c107cc7fe`, origin/main `c21c107cc7fe`, and clean worktree/index/untracked state were verified.
+- Fetch was performed only after proof/live ref match, disk proof below threshold, and `/backup/qsl` mount proof passed.
+- Disk watermark before patch: `/` below the stop threshold and `/backup/qsl` mounted.
+- Startup queue proof: READY_COUNT 1; READY NA-0564; NA-0563 DONE; NA-0562 DONE.
+- Startup decision proof: D-1116 once and Accepted; D-1117 once and Accepted; D-1118 absent before patch; D-1119 absent before patch; duplicate decision record count zero.
+- Current main required-check proof on `c21c107cc7fe`: public-safety success, advisories success, suite2-vectors success, no failed required checks, and required branch-protection contexts classified green or conclusively satisfied.
+- Recovered proof-root classifier issue: current-main required-check classification initially treated aggregate `goal-lint` and `CodeQL` contexts as missing. Classification: recoverable proof-classifier issue plus zero-match metadata discovery outcome before repository mutation. Corrective action: classified `goal-lint` through PR #1400 rollup and `CodeQL` through successful attached analysis/code-scanning metadata. Final result: current-main required-check classification passed.
+- D-1116/D-1117 inheritance consumed: NA-0563 implementation PR #1399 merged at `c1b4e3ca68dc`; NA-0563 closeout PR #1400 merged at `c21c107cc7fe`; D-1116 classification `REMOTE_RELAY_LOOPBACK_ALIGNMENT_ACTION_AUTH_READY`; D-1117 restored NA-0564 as the non-mutating proof plus operator action bundle lane.
+- NA-0562 coarse proof consumed through D-1116: SSH listener readiness ready, expected listener absent, other loopback listener present, TCP refused, v1 push HEAD not checked, and private-material scans passed.
+- The proof-root-only loopback alignment probe script was generated and statically reviewed. Recovered static-scan issue: the initial scanner flagged the directive-required authorized-key disclosure field. Classification: recoverable static-scanner false positive. Corrective action: allowed the required disclosure flag while preserving path/content bans. Final result: script review passed.
+- SSH alignment readiness command executed exactly once and classified `SSH_ALIGNMENT_PROBE_READY`. Recovered local classifier issue: the exact command's unquoted format string produced a deterministic marker variant; SSH was not rerun. Corrective action: classified from raw captured bytes. Final result: readiness passed.
+- Remote alignment probe executed exactly once through SSH stdin after readiness succeeded. Classification: `LOOPBACK_ALIGNMENT_UNKNOWN_ACCESS_LIMITED`; JSON parse passed; private-material scan passed.
+- Remote proof classes: expected target listener present `unknown`; other loopback listener presence `yes`; loopback listener count class `one`; candidate listener class `present`; expected target alignment class `unknown`; action owner `unknown`; operator action required `unknown`; codex mutation authorized `no`.
+- Operator action bundle status: candidate-proof-only; no operator action authorized by NA-0564.
+- Result classification: `LOOPBACK_ALIGNMENT_CANDIDATE_PROOF_READY`.
+- Selected successor: `NA-0565 -- QSL Remote Relay Loopback Candidate Confirmation Proof Harness`.
+- D-1118 records NA-0564 remote relay loopback port alignment action authorization.
+- Governance patch paths: NA-0564 evidence doc, NA-0564 testplan, NA-0564 review-only operator action bundle, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: pending at journal authoring.
+- PR title: `NA-0564: authorize loopback alignment action bundle`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No account, shell, authorized_keys, Tailscale, firewall, service, qsl-server, qsl-attachments, source, script, workflow, dependency, lockfile, backup, public-site, or Cloudflare mutation is introduced by NA-0564.
+- No qsc send/receive, qsc E2EE, workflow dispatch, rerun, qsl-server/qsl-attachments command, qwork/qstart/qresume execution, qsl-backup execution, or backup mutation occurred.
+- Raw SSH and remote probe outputs remain proof-root-only. Repository docs publish only coarse classes and scan outcomes.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, or secret environment values are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.

@@ -39435,3 +39435,44 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - PR merge commit: pending at journal authoring.
 - No endpoint values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, authorized_keys content, public key material, private key material, or secret environment values are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0563 remote relay loopback port alignment authorization update
+
+- Directive: QSL-DIR-2026-06-29-484.
+- Begin timestamp (UTC): 2026-06-29T00:26:53Z.
+- Repo path: `/srv/qbuild/work/NA-0563/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0563_loopback_port_alignment_authorization_20260629T002653Z`.
+- qwork proof files were copied from the lane workspace and verified before fetch or repository mutation; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp `2026-06-29T00:18:11Z` or later, lane `NA-0563`, repo `qsl-protocol`, HEAD `7775babf409e`, origin/main `7775babf409e`, and clean worktree/index/untracked state were verified.
+- Fetch was performed only after proof/live ref match, disk proof below threshold, and `/backup/qsl` mount proof passed.
+- Disk watermark before patch: `/` below the stop threshold and `/backup/qsl` mounted.
+- Startup queue proof: READY_COUNT 1; READY NA-0563; NA-0562 DONE; NA-0561 DONE.
+- Startup decision proof: D-1114 once and Accepted; D-1115 once and Accepted; D-1116 absent before patch; D-1117 absent before patch; duplicate decision record count zero.
+- Current main required-check proof on `7775babf409e`: public-safety success, advisories success, suite2-vectors success or conclusively satisfied, no failed required checks, and required branch-protection contexts classified green or conclusively satisfied.
+- Recovered proof-root classifier issue: first current-main required-check classifier treated PR-head `goal-lint` and aggregate CodeQL required contexts as pending. Classification: recoverable command-shape/proof-classifier issue before repository mutation. Corrective action: reran once with explicit PR-head rollup handling for `goal-lint` and aggregate CodeQL satisfaction through successful attached analysis runs. Final result: current-main required-check classification passed.
+- D-1114/D-1115 inheritance consumed: NA-0562 implementation PR #1397 merged at `39248060df9c`; NA-0562 closeout PR #1398 merged at `7775babf409e`; D-1114 classification `SERVICE_OWNER_PORT_MISMATCH_REMEDIATION_READY`; D-1115 restored NA-0563 as authorization-only.
+- NA-0562 coarse proof consumed: SSH listener readiness ready, expected listener absent, other loopback listener present, TCP refused, v1 push HEAD not checked, and private-material scans passed.
+- Loopback alignment boundary selected: expected tunnel target likely stale or mismatched; actual relay listener present but not identified; loopback port alignment required; SSH permitopen target may be stale; service deployment alignment proof required; qsc runtime not primary suspect; GitHub runner proof deferred until alignment proof/action.
+- Exact NA-0564 model selected: Model C, Codex-executed non-mutating proof plus operator-owned action bundle.
+- Exact NA-0564 command/action allowlist selected: one bounded SSH readiness command to `inspiron` and one proof-root-generated remote alignment probe through SSH stdin, with no SSH command outside the D-1116 allowlist.
+- NA-0564 proof schema selected: JSON-only coarse expected-target listener, other loopback listener, listener count, alignment class, action owner, operator action required, mutation authorization, disclosure, private-material, and redaction fields.
+- NA-0564 private-material policy selected: stop on endpoint values, private ports beyond authorized labels, private hosts/IPs/topology, route-token/capability values, bearer values, Authorization headers, payloads, response bodies, process identities, authorized_keys/public key material, private keys, secret environment values, Cloudflare tokens, API keys, raw logs, raw artifacts, or private material.
+- NA-0564 decision tree selected with operator action bundle ready, service-owner proof required, candidate proof ready, already-correct GitHub runner proof, access unavailable, private-material stop, and ambiguous stop outcomes.
+- Result classification: `REMOTE_RELAY_LOOPBACK_ALIGNMENT_ACTION_AUTH_READY`.
+- Selected successor: `NA-0564 -- QSL Remote Relay Loopback Port Alignment Action Authorization Harness`.
+- D-1116 records NA-0563 remote relay loopback port alignment authorization.
+- Governance patch paths: NA-0563 evidence doc, NA-0563 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: `na-0563-remote-relay-loopback-port-alignment-authorization`.
+- PR title: `NA-0563: authorize remote relay loopback alignment`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Local validation before commit: git diff checks, exact five-path scope guard,
+  queue/decision proof, marker proof, changed Markdown link-check,
+  private-material scan, prohibited-material scan, added-line overclaim scan,
+  docs/governance-only classifier, PR body preflight, root cargo audit, nested
+  qsc fuzz lock cargo audit, cargo fmt --check, and qsc-adversarial shell syntax
+  checks passed. Focused qsc runtime tests were skipped because this lane is
+  authorization-only and mutates no qsc source/runtime/dependency/workflow path.
+- No probes, SSH/Tailscale/remote command, workflow dispatch, rerun, qsc send/receive, qsc E2EE, qsl-server/qsl-attachments command or mutation, qwork/qstart/qresume execution, qsl-backup execution, backup mutation, source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, raw-log/raw-artifact repository docs, or private-material publication is introduced by NA-0563.
+- No endpoint values, route-token/capability values, bearer values, Authorization headers, private topology, private ports, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, or secret environment values are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.

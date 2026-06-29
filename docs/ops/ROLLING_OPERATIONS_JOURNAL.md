@@ -39555,3 +39555,42 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - PR merge commit: pending at journal authoring.
 - No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, or secret environment values are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0565 remote relay loopback candidate confirmation update
+
+- Directive: QSL-DIR-2026-06-29-486.
+- Begin timestamp (UTC): 2026-06-29T03:08:11Z.
+- Repo path: `/srv/qbuild/work/NA-0565/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0565_candidate_confirmation_proof_20260629T030811Z`.
+- qwork proof files were copied from the lane workspace and verified before fetch, probe execution, or repository mutation; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp `2026-06-29T02:58:54Z`, lane `NA-0565`, repo `qsl-protocol`, HEAD `5cefcca84667`, origin/main `5cefcca84667`, and clean worktree/index/untracked state were verified.
+- Fetch was performed only after proof/live ref match, disk proof below threshold, and `/backup/qsl` mount proof passed.
+- Disk watermark before patch: `/` below the stop threshold and `/backup/qsl` mounted.
+- Startup queue proof: READY_COUNT 1; READY NA-0565; NA-0564 DONE; NA-0563 DONE.
+- Startup decision proof: D-1118 once and Accepted; D-1119 once and Accepted; D-1120 absent before patch; D-1121 absent before patch; duplicate decision record count zero.
+- Current main required-check proof on `5cefcca84667`: public-safety success, advisories success, suite2-vectors success, no failed required checks, and required branch-protection contexts classified green or conclusively satisfied.
+- Recovered proof-root classifier issue: current-main required-check classification initially treated required contexts not visible on the merge commit check-run list as missing. Classification: recoverable proof-classifier issue before repository mutation. Corrective action: classified required contexts through current main status/workflow metadata, merged PR #1402 head checks, and successful analysis jobs. Final result: current-main required-check classification passed.
+- Recovered proof-root queue parser issue: the first pre-probe queue/decision parser did not recognize indented decision statuses. Classification: recoverable local parser issue before repository mutation. Corrective action: reran once with indentation-tolerant status parsing. Final result: queue/decision proof passed.
+- D-1118/D-1119 inheritance consumed: NA-0564 implementation PR #1401 merged at `91443c1d43f5`; NA-0564 closeout PR #1402 merged at `5cefcca84667`; D-1118 classification `LOOPBACK_ALIGNMENT_CANDIDATE_PROOF_READY`; D-1119 restored NA-0565 as the non-mutating candidate confirmation proof lane.
+- NA-0564 coarse proof consumed: expected target listener unknown, other loopback listener present, loopback listener count one, candidate listener present, expected target alignment unknown, action owner unknown, operator action required unknown, and private-material scans passed.
+- The proof-root-only candidate confirmation probe script was generated and statically reviewed. Static review passed.
+- SSH candidate readiness command executed exactly once and classified `SSH_CANDIDATE_CONFIRMATION_READY`.
+- Remote candidate confirmation probe executed exactly once through SSH stdin after readiness succeeded. Classification: `CANDIDATE_CONFIRMATION_NO_CANDIDATE`; JSON parse passed; private-material scan passed.
+- Remote proof classes: candidate listener count class `none`; candidate listener class `absent`; candidate TCP connect class `not_checked`; candidate v1 push HEAD class `not_checked`; candidate v1 pull HEAD class `not_checked`; candidate relay shape class `unknown`; expected target alignment class `unknown`; candidate confirmation class `unknown`; action owner `unknown`; operator action required `unknown`; codex mutation authorized `no`.
+- Recovered proof-root scan issue: the first aggregate private-material scan flagged approved long NA-0566 successor path identifiers. Classification: recoverable scanner-context false positive. Corrective action: reran with only those exact approved governance path identifiers allowed. Final result: aggregate private-material scan passed.
+- Recovered validation proof-root issue: the first local validation preflight script shadowed its validation path variable. Classification: recoverable local command-shape/tooling issue before commit or PR. Corrective action: reran once with a non-shadowing variable. Final result: validation preflight continued.
+- Recovered validation scan-context issues: validation initially scanned whole historical governance files and then label-only negative claim wording too broadly. Classification: recoverable scan-context issue. Corrective action: reran with added-line/new-file scan scope and explicit negative disclosure/claim-boundary handling. Final result: local validation preflight passed.
+- Recovered discovery outcome: the new evidence document was hidden by existing ignore rules for evidence directories. Classification: valid zero-match discovery/proof outcome. Corrective action: force-add exactly the directive-authorized NA-0565 evidence document during staging. Final result: pending at journal authoring.
+- Result classification: `LOOPBACK_CANDIDATE_MISSING_SERVICE_DEPLOYMENT_PROOF_REQUIRED`.
+- Selected successor: `NA-0566 -- QSL Remote Relay Listener Deployment Proof Authorization Plan`.
+- D-1120 records NA-0565 remote relay loopback candidate confirmation proof.
+- Governance patch paths: NA-0565 evidence doc, NA-0565 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: pending at journal authoring.
+- PR title: `NA-0565: confirm remote relay loopback candidate`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No account, shell, authorized_keys, Tailscale, firewall, service, qsl-server, qsl-attachments, source, script, workflow, dependency, lockfile, backup, public-site, or Cloudflare mutation is introduced by NA-0565.
+- No qsc send/receive, qsc E2EE, workflow dispatch, rerun, qsl-server/qsl-attachments command, qwork/qstart/qresume execution, qsl-backup execution, or backup mutation occurred.
+- Raw SSH and remote probe outputs remain proof-root-only. Repository docs publish only coarse classes and scan outcomes.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, or secret environment values are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.

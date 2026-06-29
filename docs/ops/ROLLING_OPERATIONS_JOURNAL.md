@@ -6,6 +6,30 @@ Last-Updated: 2026-06-29
 
 # Rolling Operations Journal
 
+## NA-0568 closeout and NA-0569 restoration update
+
+- Directive: QSL-DIR-2026-06-29-489 optional closeout after NA-0568 implementation merge.
+- Repo path: `/srv/qbuild/work/NA-0568/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0568_inspiron_codex_recovery_20260629T064703Z`.
+- Implementation PR #1409 merged at `9be00b932806` from head `21483211e368`.
+- Post-merge public-safety completed success on `9be00b932806`.
+- Post-merge advisories completed success on `9be00b932806`.
+- Post-merge suite2-vectors completed success on `9be00b932806`.
+- No failed branch-protection required check was classified. The optional `relay-ui-integration` check failed and was recorded as non-required.
+- D-1126 exists once and records `REMOTE_RECOVERY_QSC_RELAY_COMMAND_AUTH_REQUIRED`.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0568_closeout_restore_na0569_testplan.md`.
+- NA-0568 is marked DONE.
+- NA-0569 is restored READY using the exact D-1126-selected qsc relay command discovery authorization successor block.
+- D-1127 records NA-0568 closeout and NA-0569 restoration.
+- This closeout does not implement NA-0569 and does not execute remote action, SSH, Tailscale, remote command, remote probe, workflow dispatch, rerun, qsc send/receive, qsc E2EE, qsl-server, qsl-attachments, qwork, qstart, qresume, qsl-backup, backup mutation, source mutation, script mutation, workflow mutation, dependency/lockfile mutation, account mutation, service mutation, public-site mutation, or Cloudflare mutation.
+- No secret values were requested or published. No endpoint, private port, private topology, token, bearer value, Authorization header, payload, response body, process identity, raw authorized_keys content, public key material, private key material, secret environment value, raw log, raw artifact, or private material was published.
+- Branch: pending at journal authoring.
+- PR title: `NA-0568: closeout and restore NA-0569`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: closeout PR checks, public-safety, advisories, no failed required checks, final queue proof after merge, and NA-0569 startup handoff.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced.
+
 ## NA-0568 remote relay inspiron Codex-executed deployment recovery update
 
 - Directive: QSL-DIR-2026-06-29-489 -- Execute NA-0568 Remote Relay Inspiron Codex-Executed Deployment Recovery Harness, Optional Closeout to NA-0569.

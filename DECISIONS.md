@@ -30275,3 +30275,30 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0568 to D-1126, the proof-root-only remote recovery evidence, and the selected NA-0569 authorization successor.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records NA-0568 proof gates, remote recovery classifications, recovered tooling issues, selected successor, and next-watch items.
   - **References:** NA-0568; NA-0569; D-1126; D-1125; D-1124; `docs/governance/evidence/NA-0568_remote_relay_inspiron_codex_executed_deployment_recovery_harness.md`; `tests/NA-0568_remote_relay_inspiron_codex_executed_deployment_recovery_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1127
+  - **Title:** NA-0568 closeout and NA-0569 restoration
+  - **Date:** 2026-06-29
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0568 remote relay inspiron Codex-executed deployment recovery is accepted. D-1126 exists once and is Accepted. NA-0568 implementation PR #1409 merged at `9be00b932806` from head `21483211e368`. Post-merge public-safety completed success. Post-merge advisories completed success. Post-merge suite2-vectors completed success. No failed branch-protection required check was classified. D-1126 selected `REMOTE_RECOVERY_QSC_RELAY_COMMAND_AUTH_REQUIRED` and successor `NA-0569 -- QSL Remote qsc Relay Command Discovery Authorization Plan`. This closeout marks NA-0568 DONE and restores NA-0569 as the exactly one READY successor.
+  - **Selected successor model:** NA-0569 is authorization-only. It must authorize exact next proof needed to identify a safe qsc local relay listener command without secrets or private material.
+  - **Selected successor block:** NA-0569 is READY with Goals G1, G2, G3, G4, G5. Objective: authorize exact next proof needed to identify a safe qsc local relay listener command without secrets or private material. Allowed scope is limited to `docs/governance/evidence/NA-0569_remote_qsc_relay_command_discovery_authorization_plan.md`, `tests/NA-0569_remote_qsc_relay_command_discovery_authorization_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, read-only NA-0568 proof summaries, exact future proof design, and successor selection. Forbidden scope includes remote mutation, qsc send/receive, secret/endpoint/topology publication, source/workflow/dependency mutation, and public-site/Cloudflare mutation.
+  - **Closeout proof:** Local main fast-forwarded to NA-0568 implementation merge `9be00b932806`. The implementation merge touched only the five allowed NA-0568 implementation paths. Post-merge proof verified D-1126 once, D-1127 absent before this patch, READY_COUNT 1 with READY NA-0568, duplicate decision count zero, clean worktree, public-safety success, advisories success, suite2-vectors success, no failed branch-protection required check, and no forbidden implementation path mutation. The closeout patch is limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0568_closeout_restore_na0569_testplan.md`.
+  - **Boundary proof:** No NA-0569 implementation occurred. No remote action occurred. No SSH, Tailscale, or remote command occurred. No qsc send/receive or E2EE occurred. No workflow dispatch or rerun occurred. No source, script, workflow, dependency, lockfile, qsc runtime, qsl-server, qsl-attachments, account, service, public-site, or Cloudflare mutation occurred. No private material was published.
+  - **Claim boundary:** No public-readiness claim was made. No production-readiness claim was made. No public-internet-readiness claim was made. No vulnerability-free claim was made. No bug-free claim was made. No perfect-build claim was made.
+  - **Security invariants introduced/changed:**
+    - Closeout changes no protocol, wire, crypto, auth, state-machine, qsc runtime, source, repository script, workflow, dependency, service, public-site, or Cloudflare semantics.
+    - NA-0569 is restored only as the D-1126-selected authorization-only successor.
+    - NA-0569 implementation is not performed during closeout.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Leave NA-0568 READY after implementation merge (rejected because D-1126 was accepted and selected an exact successor).
+    - Implement NA-0569 during closeout (rejected as out of scope).
+    - Restore a broader remote recovery or workflow verification lane (rejected because D-1126 selected qsc relay command discovery authorization only).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0568 DONE and restores NA-0569 READY using the exact D-1126-selected successor block.
+    - `tests/NA-0568_closeout_restore_na0569_testplan.md` records closeout markers, implementation PR merge proof, D-1126 acceptance, post-merge check proof, no NA-0569 implementation, no remote/qsc/source/public mutation, and the one-READY invariant.
+    - `TRACEABILITY.md` maps NA-0568 closeout and NA-0569 restoration to D-1127.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the NA-0568 closeout state, D-1127, and restored NA-0569 successor.
+  - **References:** NA-0568; NA-0569; D-1127; D-1126; PR #1409; merge `9be00b932806`; head `21483211e368`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0568_closeout_restore_na0569_testplan.md`

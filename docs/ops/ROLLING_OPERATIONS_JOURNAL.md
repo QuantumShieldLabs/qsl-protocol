@@ -39476,3 +39476,25 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No probes, SSH/Tailscale/remote command, workflow dispatch, rerun, qsc send/receive, qsc E2EE, qsl-server/qsl-attachments command or mutation, qwork/qstart/qresume execution, qsl-backup execution, backup mutation, source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, raw-log/raw-artifact repository docs, or private-material publication is introduced by NA-0563.
 - No endpoint values, route-token/capability values, bearer values, Authorization headers, private topology, private ports, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, or secret environment values are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no backup/restore-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0563 closeout and NA-0564 restoration update
+
+- Directive: QSL-DIR-2026-06-29-484 optional closeout packet.
+- Repo path: `/srv/qbuild/work/NA-0563/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0563_loopback_port_alignment_authorization_20260629T002653Z`.
+- Implementation PR #1399 merged at `c1b4e3ca68dc` from head `83ce6c2c1864`.
+- Post-merge public-safety completed success on `c1b4e3ca68dc`.
+- Post-merge advisories completed success on `c1b4e3ca68dc`.
+- Post-merge check polling reached 36 attached checks, zero incomplete, and zero failures before closeout.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0563_closeout_restore_na0564_testplan.md`.
+- NA-0563 is marked DONE.
+- NA-0564 is restored READY using the exact D-1116-selected loopback alignment action authorization successor block.
+- D-1117 records NA-0563 closeout and NA-0564 restoration.
+- This closeout does not implement NA-0564 and does not run probes, SSH, Tailscale, remote commands, workflow dispatches, reruns, qsc send/receive, qsc E2EE, qsl-server, qsl-attachments, qwork, qstart, qresume, qsl-backup, or backup mutation.
+- No source, script, workflow, dependency, lockfile, qsc source/test/fuzz/Cargo, qsl-server, qsl-attachments, public-site, Cloudflare, raw-log/raw-artifact repository-doc, or private-material mutation is introduced.
+- Branch: `na-0563-closeout-restore-na0564`.
+- PR title: `NA-0563: closeout and restore NA-0564`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No endpoint values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, or secret environment values are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.

@@ -32274,7 +32274,7 @@ Forbidden scope:
 ---
 
 ### NA-0563 — QSL Remote Relay Loopback Port Alignment Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -32304,6 +32304,69 @@ Forbidden scope:
 - workflow dispatch/rerun;
 - qsl-server/qsl-attachments mutation;
 - public-site/Cloudflare mutation.
+
+---
+
+### NA-0564 — QSL Remote Relay Loopback Port Alignment Action Authorization Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Use the D-1116-authorized non-secret alignment model to determine whether the
+remote relay SSH tunnel target, authorized forwarding target, and actual relay
+listener should be aligned through an operator-owned action bundle. Codex may
+perform only exact non-mutating proof commands authorized by D-1116, generate a
+non-secret operator action bundle if alignment is required, and classify the
+next proof-review or service-owner lane. Codex must not mutate `inspiron`,
+authorized_keys, service configuration, Tailscale, firewall, qslcodex account
+state, qsl-server, qsl-attachments, source, scripts, workflows, dependencies,
+backup state, public-site content, or Cloudflare configuration.
+
+Allowed scope:
+- docs/governance/evidence/NA-0564_remote_relay_loopback_port_alignment_action_authorization_harness.md
+- tests/NA-0564_remote_relay_loopback_port_alignment_action_authorization_testplan.md
+- docs/ops/NA-0564_remote_relay_loopback_alignment_operator_action_bundle.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-only alignment probe outputs
+- proof-root-only proposed operator action artifacts
+- read-only NA-0555 through NA-0563 evidence
+- exact SSH readiness command authorized by D-1116
+- exact remote alignment probe through SSH stdin authorized by D-1116
+- private-material scan/redaction proof
+- successor selection
+
+Forbidden scope:
+- qwork/qstart/qresume execution by Codex;
+- any SSH command outside exact D-1116 allowlist;
+- scp/sftp/rsync;
+- sudo/admin action by Codex;
+- account, shell, authorized_keys, Tailscale, firewall, or service mutation by
+  Codex;
+- qsc send/receive;
+- qsc E2EE;
+- payload push;
+- workflow dispatch;
+- rerun;
+- source/script/qsc mutation;
+- workflow mutation;
+- dependency/lockfile mutation;
+- qsl-server/qsl-attachments command, clone, build, run, or mutation;
+- qsl-backup;
+- backup mutation;
+- public-site mutation;
+- Cloudflare mutation;
+- endpoint value publication;
+- route-token/capability value publication;
+- bearer value publication;
+- Authorization header publication;
+- private endpoint or private topology publication;
+- process identity publication;
+- payload or response body publication;
+- secret environment value publication;
+- public-readiness, production-readiness, vulnerability-free, bug-free, or
+  perfect-build claim.
 
 ---
 

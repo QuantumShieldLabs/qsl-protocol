@@ -6,6 +6,35 @@ Last-Updated: 2026-06-29
 
 # Rolling Operations Journal
 
+## NA-0570 qsl-server source-audit stop and NA-0571 recovery handoff update
+
+- Directive: QSL-DIR-2026-06-29-494 -- Record NA-0570 qsl-server Source-Audit Stop and Restore NA-0571 qsl-server Source / Build Recovery Authorization.
+- Begin timestamp (America/Chicago): `2026-06-29T16:29:12-05:00`.
+- Begin timestamp (UTC): `2026-06-29T21:29:12Z`.
+- Repo path: `/srv/qbuild/work/NA-0570/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0570_qsl_server_source_audit_stop_restore_na0571_20260629T212912Z`.
+- Fresh NA-0570 qwork proof files were read and copied from the lane workspace; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-06-29T21:28:06Z`; startup head/origin-main/main was `eb0e6a24dad8` with READY_COUNT 1 and READY NA-0570.
+- Disk and mount gate passed before repository mutation: `/` used 33 percent and `/backup/qsl` used 35 percent; `/backup/qsl` was mounted.
+- Fetch occurred only after qwork proof, live ref match, clean tree, disk proof, and mount proof passed. Local main matched origin/main at `eb0e6a24dad8`.
+- Startup queue proof: READY_COUNT 1; READY NA-0570; NA-0569 DONE; NA-0568 DONE.
+- Startup decision proof: D-1128 once and Accepted; D-1129 once and Accepted; D-1130 absent before patch; D-1131 absent; duplicate decision count zero.
+- Current main required-check classification passed: public-safety completed success, advisories completed success, suite2-vectors completed success, no failed required checks, no pending required checks after branch-protection context classification, root cargo audit passed, nested qsc fuzz cargo audit passed, cargo metadata --locked passed, and no Cargo.toml/Cargo.lock/qsc fuzz Cargo.lock drift was detected.
+- D493 source-audit stop was consumed. D493 stopped before repository mutation, build, remote scripts, SSH, scp, remote stage, remote start, and remote postcheck because qsl-server `cargo audit --deny warnings` failed.
+- D493 qsl-server source commit was `d40e6003fdf0`; package was `qsl-server 0.1.0`; advisory was `RUSTSEC-2026-0185`; affected crate/version was `quinn-proto 0.11.14`; dependency path class was qsl-server dev dependency path via reqwest/quinn.
+- D493 qsl-server build was skipped. No qsl-server binary was built, no qsl-server help/version command ran, no remote script was generated, no SSH readiness ran, no scp transfer occurred, and no remote stage/start/postcheck occurred.
+- D493 and D494 did not mutate qsl-server, qsl-attachments, qsl-protocol source, scripts, workflows, dependencies, lockfiles, public-site content, Cloudflare configuration, backup state, or private material.
+- Selected result classification: `QSL_SERVER_RECOVERY_SOURCE_AUDIT_STOP_ACCEPTED`.
+- Selected successor: `NA-0571 -- QSL Remote qsl-server Source / Build Recovery Authorization Plan`.
+- Recovered Phase 0 parser issue: the first queue/decision proof parser recognized only ASCII heading separators and found zero READY blocks. Classification: recoverable command-shape/parser issue before repository mutation. Corrective action: reran once with a parser accepting the repository heading dash form. Final result: queue/decision proof passed.
+- Governance patch paths are limited to `docs/governance/evidence/NA-0570_remote_relay_qsl_server_source_audit_stop_handoff.md`, `tests/NA-0570_remote_relay_qsl_server_source_audit_stop_handoff_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: pending at journal authoring.
+- PR title: `NA-0570: record qsl-server source audit stop`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: implementation validation, PR checks, public-safety, advisories, no failed required checks, post-merge proof, and optional closeout to NA-0571 only if gates are green.
+- No public readiness claim is introduced. No production readiness claim is introduced. No public internet readiness claim is introduced. No external review complete claim is introduced. No vulnerability free claim is introduced. No bug free claim is introduced. No perfect build claim is introduced.
+
 ## NA-0569 post-merge verification closeout and NA-0570 restoration update
 
 - Directive: QSL-DIR-2026-06-29-492 -- Complete NA-0569 Post-Merge Verification and Optional Closeout to NA-0570 After D491 Bounded-Wait Stop.

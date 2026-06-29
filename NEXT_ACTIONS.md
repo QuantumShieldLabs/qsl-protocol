@@ -32638,7 +32638,7 @@ Implementation note:
 ---
 
 ### NA-0571 — QSL Remote qsl-server Source / Build Recovery Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -32675,6 +32675,58 @@ Forbidden scope:
 - private material publication;
 - public-readiness, production-readiness, vulnerability-free, bug-free, or
   perfect-build claim.
+
+Closeout evidence:
+- D-1132 accepted NA-0571 qsl-server source/build recovery authorization after
+  PR #1415 merged at `2267524dcd10` from head `e0803d48e08f`.
+- D-1132 selected `QSL_SERVER_SOURCE_BUILD_RECOVERY_LOCKFILE_ONLY_IMPLEMENTATION_READY`.
+- D-1132 selected the exact successor
+  `NA-0572 -- QSL qsl-server Dependency Audit Recovery Implementation Harness`.
+- Post-merge public-safety, advisories, and suite2-vectors completed success.
+- No qsl-server source-of-truth mutation, qsl-server PR, qsl-server deployment,
+  qsl-attachments work, remote action, qsc send/receive, workflow dispatch/rerun,
+  public-site mutation, Cloudflare mutation, or private-material publication
+  occurred.
+
+---
+
+### NA-0572 — QSL qsl-server Dependency Audit Recovery Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the D-1132-authorized qsl-server dependency audit recovery for
+`RUSTSEC-2026-0185` using the exact lockfile-only remediation proven in NA-0571.
+This lane may mutate only the qsl-server repository lockfile path required by
+the proven remediation, open a qsl-server PR, and then record qsl-protocol
+governance evidence. It must not deploy qsl-server, run remote commands, mutate
+qsl-protocol source/runtime paths, mutate qsl-attachments, dispatch workflows,
+or publish private material.
+
+Primary implementation target:
+- QuantumShieldLabs/qsl-server
+
+Allowed qsl-server mutation:
+- Cargo.lock only, unless D-1132 explicitly records a different exact path.
+
+Allowed qsl-protocol governance mutation:
+- docs/governance/evidence/NA-0572_qsl_server_dependency_audit_recovery_implementation_harness.md
+- tests/NA-0572_qsl_server_dependency_audit_recovery_implementation_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+
+Forbidden scope:
+- qsl-server source code mutation;
+- qsl-server runtime/deployment;
+- qsl-server workflow mutation;
+- qsl-attachments;
+- qsc send/receive;
+- remote action;
+- workflow dispatch/rerun;
+- public-site/Cloudflare mutation;
+- private material publication;
+- public/production/security overclaim.
 
 ---
 

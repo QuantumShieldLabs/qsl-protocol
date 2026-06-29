@@ -30442,3 +30442,29 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0571 source/build recovery authorization and the lockfile-only qsl-server successor to D-1132.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records NA-0571 proof gates, recovered classifier/scan issues, scratch recovery classification, selected successor, validation/CI watch items, and no-action/no-claim boundaries.
   - **References:** NA-0571; NA-0572; D-1132; D-1131; D-1130; D493 response; D494 response; qsl-server source `d40e6003fdf0`; `docs/governance/evidence/NA-0571_remote_qsl_server_source_build_recovery_authorization_plan.md`; `tests/NA-0571_remote_qsl_server_source_build_recovery_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1133
+  - **Title:** NA-0571 closeout and NA-0572 restoration
+  - **Date:** 2026-06-29
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0571 is closed after implementation PR #1415 merged at `2267524dcd10` from head `e0803d48e08f`. D-1132 exists once and is Accepted. Post-merge public-safety completed success. Post-merge advisories completed success. Post-merge suite2-vectors completed success. No failed required checks were classified. D-1132 selected `QSL_SERVER_SOURCE_BUILD_RECOVERY_LOCKFILE_ONLY_IMPLEMENTATION_READY` and exact successor `NA-0572 -- QSL qsl-server Dependency Audit Recovery Implementation Harness`. NA-0571 is marked DONE, and NA-0572 is restored as exactly one READY successor.
+  - **Selected successor model:** NA-0572 is the qsl-server lockfile-only dependency audit recovery implementation lane. It may mutate only qsl-server `Cargo.lock`, unless D-1132 explicitly records a different exact path. It may open a qsl-server PR and record qsl-protocol governance evidence. It must not deploy qsl-server, run remote commands, mutate qsl-protocol source/runtime paths, mutate qsl-attachments, dispatch workflows, or publish private material.
+  - **Closeout proof:** Local main was fast-forwarded to origin/main at `2267524dcd10`. Worktree, index, and untracked state were clean. Post-merge proof verified D-1132 once, D-1133 absent before this patch, READY_COUNT 1 with READY NA-0571, duplicate decision count zero, public-safety success, advisories success, suite2-vectors success, no failed required checks, root cargo audit success, nested qsc fuzz cargo audit success, root disk below the stop threshold, and no forbidden path mutation.
+  - **Boundary proof:** No NA-0572 implementation occurred. No qsl-server source-of-truth mutation occurred in closeout. No qsl-server PR was opened in closeout. No qsl-server deployment or run occurred. No qsl-attachments command, clone, build, run, or mutation occurred. No remote action occurred. No SSH, scp, Tailscale, or remote command occurred. No qsc send/receive occurred. No workflow dispatch or rerun occurred. No qsl-protocol source, script, workflow, dependency, or lockfile mutation occurred in closeout. No public-site or Cloudflare mutation occurred. No private material was published.
+  - **Claim boundary:** No public-readiness claim was made. No production-readiness claim was made. No public-internet-readiness claim was made. No external-review-complete claim was made. No vulnerability-free claim was made. No bug-free claim was made. No perfect-build claim was made.
+  - **Security invariants introduced/changed:**
+    - Closeout changes no protocol, wire, crypto, auth, state-machine, qsc runtime, qsl-server runtime, qsl-attachments runtime, qsl-protocol source, repository script, workflow, dependency, lockfile, service, public-site, or Cloudflare semantics.
+    - NA-0572 is restored only as the D-1132-selected qsl-server lockfile-only implementation successor.
+    - NA-0572 implementation is not performed during closeout.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Leave NA-0571 READY after D-1132 merged (rejected because D-1132 selected the exact NA-0572 successor and post-merge gates are green).
+    - Implement NA-0572 during closeout (rejected as out of scope).
+    - Restore remote qsl-server deployment recovery immediately (rejected because qsl-server source-of-truth audit recovery must land first).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0571 DONE and restores NA-0572 READY using the exact D-1132-selected qsl-server lockfile-only implementation successor block.
+    - `tests/NA-0571_closeout_restore_na0572_testplan.md` records closeout markers, implementation PR merge proof, D-1132 acceptance, public-safety/advisories proof, D-1133 restoration proof, exact successor proof, no NA-0572 implementation, no qsl-server source mutation, no qsl-server PR, no remote action, no qsc send/receive, no workflow dispatch, no private-material publication, and the one-READY invariant.
+    - `TRACEABILITY.md` maps NA-0571 closeout and NA-0572 restoration to D-1133.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the NA-0571 closeout state, D-1133, post-merge proof, dependency-health proof, and restored NA-0572 successor.
+  - **References:** NA-0571; NA-0572; D-1133; D-1132; PR #1415; merge `2267524dcd10`; head `e0803d48e08f`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0571_closeout_restore_na0572_testplan.md`

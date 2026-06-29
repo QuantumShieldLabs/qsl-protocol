@@ -2,9 +2,40 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-06-28
+Last-Updated: 2026-06-29
 
 # Rolling Operations Journal
+
+## NA-0567 remote relay Codex recovery authority pivot update
+
+- Directive: QSL-DIR-2026-06-29-488 -- Execute NA-0567 Remote Relay Listener Deployment Proof Capture Authority Pivot to Codex-Executed Remote Recovery, Optional Closeout to NA-0568.
+- Repo path: `/srv/qbuild/work/NA-0567/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0567_codex_recovery_authority_pivot_20260629T055231Z`.
+- Fresh NA-0567 qwork proof files were read and copied from `/srv/qbuild/work/NA-0567/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-06-29T05:49:41Z`; startup head/origin-main/main was `e26e57f58273` with READY_COUNT 1 and READY NA-0567.
+- Disk and mount gate passed before mutation: root usage below the 95 percent stop threshold and `/backup/qsl` mounted.
+- Fetch occurred only after qwork proof, live ref match, clean tree, disk proof, and mount proof passed. Local main matched origin/main at `e26e57f58273`.
+- Startup queue proof: READY_COUNT 1; READY NA-0567; NA-0566 DONE; NA-0565 DONE.
+- Startup decision proof: D-1122 once and Accepted; D-1123 once and Accepted; D-1124 absent before patch; D-1125 absent; duplicate decision count zero.
+- Current main required-check classification passed: public-safety completed success, advisories completed success, suite2-vectors completed success, no failed check runs, no pending check runs, and branch-protection contexts classified green or conclusively satisfied.
+- D-1122/D-1123 inheritance consumed: NA-0566 implementation PR #1405 merged at `64945f366851`; NA-0566 closeout PR #1406 merged at `e26e57f58273`; D-1122 classification `REMOTE_RELAY_LISTENER_DEPLOYMENT_OPERATOR_PROOF_READY`; D-1123 restored NA-0567 as the operator/service-owner proof capture lane.
+- Operator intent recorded: `inspiron` is operator-owned and used for QSL/QSC testing; `qslcodex` was intentionally created for remote test use; the operator wants a future bounded Codex-executed remote recovery lane with evidence, rollback, no-secret publication, and no public/security overclaim discipline.
+- Selected classification: `REMOTE_RELAY_CODEX_EXECUTED_RECOVERY_AUTH_READY`.
+- Selected NA-0568 model: Codex-executed remote recovery using bounded SSH readiness and proof-root-generated inventory/repair/postcheck scripts through SSH stdin, with remote writes only under the qslcodex test workspace and rollback manifest before mutation.
+- Selected NA-0568 command allowlist: SSH readiness, remote inventory through SSH stdin, remote repair through SSH stdin only after safe inventory classification, remote postcheck through SSH stdin, and optional non-secret qsc smoke/status-class proof only if inventory proves it is safe.
+- Selected NA-0568 private-material policy: no raw authorized_keys content, public keys, private keys, private ports, endpoints, private topology, tokens, bearer values, Authorization headers, payloads, response bodies, service process identities, secret environment values, or private material may be published in repository docs.
+- Selected successor: `NA-0568 -- QSL Remote Relay Inspiron Codex-Executed Deployment Recovery Harness`.
+- D-1124 records NA-0567 remote relay Codex-executed recovery authority pivot.
+- Governance patch paths are limited to `docs/governance/evidence/NA-0567_remote_relay_codex_recovery_authority_pivot.md`, `tests/NA-0567_remote_relay_codex_recovery_authority_pivot_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Recovered discovery outcome: the new evidence document was hidden by existing ignore rules for evidence directories. Classification: valid zero-match discovery/proof outcome. Corrective action: confirm the ignore behavior and force-add exactly the directive-authorized NA-0567 evidence document during staging. Final result: implementation diff tracks the evidence document.
+- Recovered validation scan-context issue: the first overclaim scan inspected entire long governance files and flagged historical text outside the NA-0567 patch plus an explicit stop-condition line. Classification: recoverable scan-context issue before PR. Corrective action: rerun the scan on added lines only with stop-condition context recognized. Final result: added-line overclaim scan passed on rerun.
+- Codex did not execute remote action, SSH, Tailscale, remote command, remote probe, qsc send/receive, workflow dispatch, rerun, sudo, systemctl, service mutation, account mutation, shell mutation, authorized_keys mutation, qsl-server, qsl-attachments, source mutation, script mutation, workflow mutation, dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation.
+- Branch: pending at journal authoring.
+- PR title: `NA-0567: authorize Codex remote recovery pivot`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: implementation validation, PR checks, public-safety, advisories, no failed required checks, post-merge proof, and optional NA-0567 closeout to NA-0568 only if gates are green.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
 
 ## NA-0562 closeout and NA-0563 restoration update
 

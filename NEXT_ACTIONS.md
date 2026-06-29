@@ -32440,7 +32440,7 @@ Forbidden scope:
 ---
 
 ### NA-0567 — QSL Remote Relay Listener Deployment Non-Secret Operator Proof Capture Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -32512,6 +32512,72 @@ Forbidden scope:
 - no vulnerability-free claim;
 - no bug-free claim;
 - no perfect-build claim.
+
+---
+
+### NA-0568 — QSL Remote Relay Inspiron Codex-Executed Deployment Recovery Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Execute the D-1124-authorized Codex remote recovery lane on the operator-owned
+`inspiron` test host. Codex may run exact SSH commands, proof-root-generated
+remote inventory/repair/postcheck scripts through SSH stdin, and bounded
+non-secret recovery actions inside `/home/qslcodex/qsl-remote-test/` only.
+Codex may inspect and repair the qslcodex test workspace, verify the `qsc` test
+binary presence, repair missing non-secret test directories/files, and produce
+rollback and postcheck proof. Codex must stop before sudo, systemctl,
+Tailscale, firewall, authorized_keys, shell/account, root-owned service, secret,
+endpoint, private topology, workflow dispatch, qsc send/receive,
+source/workflow/dependency, or public-site mutation unless a later exact
+directive authorizes it.
+
+Allowed scope:
+- docs/governance/evidence/NA-0568_remote_relay_inspiron_codex_executed_deployment_recovery_harness.md
+- tests/NA-0568_remote_relay_inspiron_codex_executed_deployment_recovery_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-only SSH outputs
+- proof-root-only generated remote scripts
+- proof-root-only remote inventory/repair/postcheck outputs
+- read-only GitHub metadata
+- successor selection
+
+Remote action boundary:
+- exact SSH command allowlist from D-1124 only;
+- remote writes only under `/home/qslcodex/qsl-remote-test/`;
+- rollback manifest required before any remote write;
+- no sudo/systemctl/service/firewall/Tailscale/account/authorized_keys mutation;
+- no private material publication;
+- no process identity publication;
+- no private port/endpoint/topology publication;
+- no qsc send/receive unless D-1124 exact safe phase authorizes non-secret proof;
+- stop if repair requires root/operator action.
+
+Forbidden scope:
+- qwork/qstart/qresume execution by Codex;
+- SSH command outside D-1124 allowlist;
+- scp/sftp/rsync;
+- sudo/admin action;
+- systemctl/service/firewall/Tailscale mutation;
+- account/shell/authorized_keys mutation;
+- root-owned path mutation;
+- qsl-server/qsl-attachments mutation outside explicitly safe qslcodex test
+  workspace evidence;
+- qsc send/receive with secrets/endpoints;
+- GitHub workflow dispatch/rerun;
+- source/script/workflow/dependency mutation;
+- qsl-backup;
+- backup mutation;
+- public-site mutation;
+- Cloudflare mutation;
+- endpoint/private port/topology/token/body/process identity publication;
+- public-readiness claim;
+- production-readiness claim;
+- vulnerability-free claim;
+- bug-free claim;
+- perfect-build claim.
 
 ---
 

@@ -30219,3 +30219,30 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0567 to D-1124, the selected NA-0568 successor, the future remote recovery boundary, and the no-mutation/no-claim boundaries.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records NA-0567 proof gates, operator intent, selected NA-0568 model, validation notes, and next-watch items.
   - **References:** NA-0567; NA-0568; D-1124; D-1123; D-1122; `docs/governance/evidence/NA-0567_remote_relay_codex_recovery_authority_pivot.md`; `tests/NA-0567_remote_relay_codex_recovery_authority_pivot_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1125
+  - **Title:** NA-0567 closeout and NA-0568 restoration
+  - **Date:** 2026-06-29
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0567 remote relay Codex-executed recovery authority pivot is accepted. D-1124 exists once and is Accepted. NA-0567 implementation PR #1407 merged at `b91688db6a14` from head `ab7a7a0490d5`. Post-merge public-safety completed success. Post-merge advisories completed success. No failed required check was classified. D-1124 selected `REMOTE_RELAY_CODEX_EXECUTED_RECOVERY_AUTH_READY` and successor `NA-0568 -- QSL Remote Relay Inspiron Codex-Executed Deployment Recovery Harness`. This closeout marks NA-0567 DONE and restores NA-0568 as the exactly one READY successor.
+  - **Selected successor model:** NA-0568 is a Codex-executed remote recovery lane with bounded SSH readiness, proof-root-generated remote inventory/repair/postcheck scripts through SSH stdin, remote writes only under the qslcodex test workspace, rollback manifest before mutation, and repository-safe summaries only.
+  - **Selected successor block:** NA-0568 is READY with Goals G1, G2, G3, G4, G5. Objective: execute the D-1124-authorized Codex remote recovery lane on the operator-owned `inspiron` test host. Codex may run exact SSH commands, proof-root-generated remote inventory/repair/postcheck scripts through SSH stdin, and bounded non-secret recovery actions inside `/home/qslcodex/qsl-remote-test/` only. Codex must stop before sudo, systemctl, Tailscale, firewall, authorized_keys, shell/account, root-owned service, secret, endpoint, private topology, workflow dispatch, qsc send/receive, source/workflow/dependency, or public-site mutation unless a later exact directive authorizes it.
+  - **Closeout proof:** Local main fast-forwarded to NA-0567 implementation merge `b91688db6a14`. The implementation merge touched only the five allowed NA-0567 implementation paths. Post-merge proof verified D-1124 once, D-1125 absent before this patch, READY_COUNT 1 with READY NA-0567, duplicate decision count zero, clean worktree, public-safety success, advisories success, suite2-vectors success, no failed required check, and no forbidden implementation path mutation. The closeout patch is limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0567_closeout_restore_na0568_testplan.md`.
+  - **Boundary proof:** No NA-0568 implementation occurred. No remote action occurred. No SSH, Tailscale, or remote command occurred. No qsc send/receive occurred. No workflow dispatch or rerun occurred. No source, script, workflow, dependency, lockfile, qsc runtime, qsl-server, qsl-attachments, account, service, public-site, or Cloudflare mutation occurred. No private material was published.
+  - **Claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-build claim is made. No perfect-crypto claim is made.
+  - **Security invariants introduced/changed:**
+    - Closeout changes no protocol, wire, crypto, auth, state-machine, qsc runtime, source, repository script, workflow, dependency, service, public-site, or Cloudflare semantics.
+    - NA-0568 is restored only as the D-1124-selected Codex-executed remote recovery successor.
+    - NA-0568 implementation is not performed during closeout.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Leave NA-0567 READY after implementation merge (rejected because D-1124 was accepted and selected an exact successor).
+    - Implement NA-0568 during closeout (rejected as out of scope).
+    - Restore a broader remote administration lane (rejected because D-1124 selected bounded qslcodex-workspace recovery only).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0567 DONE and restores NA-0568 READY using the exact D-1124-selected successor block.
+    - `tests/NA-0567_closeout_restore_na0568_testplan.md` records closeout markers, implementation PR merge proof, D-1124 acceptance, post-merge check proof, no NA-0568 implementation, no remote/qsc/source/account/service/public mutation, and the one-READY invariant.
+    - `TRACEABILITY.md` maps NA-0567 closeout and NA-0568 restoration to D-1125.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the NA-0567 closeout state, D-1125, and restored NA-0568 successor.
+  - **References:** NA-0567; NA-0568; D-1125; D-1124; PR #1407; merge `b91688db6a14`; head `ab7a7a0490d5`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0567_closeout_restore_na0568_testplan.md`

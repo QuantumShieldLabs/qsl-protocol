@@ -32516,8 +32516,18 @@ Forbidden scope:
 ---
 
 ### NA-0568 — QSL Remote Relay Inspiron Codex-Executed Deployment Recovery Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
+
+Completion summary:
+- D-1126 accepted NA-0568 after PR #1409 merged at `9be00b932806`.
+- Result classification: `REMOTE_RECOVERY_QSC_RELAY_COMMAND_AUTH_REQUIRED`.
+- Remote workspace support directories were repaired under the qslcodex test
+  workspace with rollback/repair manifests.
+- qsc binary metadata/help was available, but no safe allowlisted local qsc
+  relay listener start command was discovered.
+- Closeout restores NA-0569 as the exact D-1126-selected authorization-only
+  successor.
 
 Objective:
 Execute the D-1124-authorized Codex remote recovery lane on the operator-owned
@@ -32578,6 +32588,33 @@ Forbidden scope:
 - vulnerability-free claim;
 - bug-free claim;
 - perfect-build claim.
+
+---
+
+### NA-0569 — QSL Remote qsc Relay Command Discovery Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize exact next proof needed to identify a safe qsc local relay listener
+command without secrets or private material. This lane is authorization-only.
+
+Allowed scope:
+- docs/governance/evidence/NA-0569_remote_qsc_relay_command_discovery_authorization_plan.md
+- tests/NA-0569_remote_qsc_relay_command_discovery_authorization_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only NA-0568 proof summaries
+- exact future proof design
+- successor selection
+
+Forbidden scope:
+- remote mutation;
+- qsc send/receive;
+- secret/endpoint/topology publication;
+- source/workflow/dependency mutation;
+- public-site/Cloudflare mutation.
 
 ---
 

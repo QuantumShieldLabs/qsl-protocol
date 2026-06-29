@@ -39570,6 +39570,30 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No secret values were requested or published. No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, service names, authorized_keys content, public key material, private key material, or secret environment values are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0566 closeout and NA-0567 restoration update
+
+- Directive: QSL-DIR-2026-06-29-487 optional closeout packet.
+- Repo path: `/srv/qbuild/work/NA-0566/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0566_listener_deployment_proof_authorization_20260629T040741Z`.
+- Implementation PR #1405 merged at `64945f366851` from head `91b662cd02c9`.
+- Post-merge public-safety completed success on `64945f366851`.
+- Post-merge advisories completed success on `64945f366851`.
+- Post-merge suite2-vectors completed success on `64945f366851`.
+- Post-merge check polling reached 36 attached checks, zero incomplete, and zero failures before closeout.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0566_closeout_restore_na0567_testplan.md`.
+- Recovered closeout validation scan-context issue: the first overclaim scan flagged a wrapped negative claim-boundary line in the restored NA-0567 queue block. Classification: recoverable scan-context/wrapping issue inside allowed closeout text. Corrective action: rewrote the claim boundary as one negated claim per line. Final result: overclaim scan passed on rerun.
+- NA-0566 is marked DONE.
+- NA-0567 is restored READY using the exact D-1122-selected operator/service-owner proof capture successor block.
+- D-1123 records NA-0566 closeout and NA-0567 restoration.
+- This closeout does not implement NA-0567 and does not execute probes, SSH, Tailscale, remote commands, workflow dispatches, reruns, qsc send/receive, qsc E2EE, qsl-server, qsl-attachments, qwork, qstart, qresume, qsl-backup, or backup mutation.
+- No source, script, workflow, dependency, lockfile, qsc source/test/fuzz/Cargo, qsl-server, qsl-attachments, account, service, public-site, Cloudflare, raw-log/raw-artifact repository-doc, or private-material mutation is introduced.
+- Branch: `na-0566-closeout-restore-na0567`.
+- PR title: `NA-0566: closeout and restore NA-0567`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No secret values were requested or published. No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, service names, authorized_keys content, public key material, private key material, or secret environment values are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0564 closeout and NA-0565 restoration update
 
 - Directive: QSL-DIR-2026-06-29-485 optional closeout packet.

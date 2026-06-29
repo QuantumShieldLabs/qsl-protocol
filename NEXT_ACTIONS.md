@@ -31635,8 +31635,11 @@ Forbidden scope:
 - backup mutation;
 - public-site mutation;
 - Cloudflare mutation;
-- public-readiness, production-readiness, vulnerability-free, bug-free, or
-  perfect-build claim.
+- no public-readiness claim;
+- no production-readiness claim;
+- no vulnerability-free claim;
+- no bug-free claim;
+- no perfect-build claim.
 
 ---
 
@@ -32403,7 +32406,7 @@ Forbidden scope:
 ---
 
 ### NA-0566 — QSL Remote Relay Listener Deployment Proof Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -32433,6 +32436,82 @@ Forbidden scope:
 - endpoint/topology/token/body/process identity publication;
 - qsl-server/qsl-attachments;
 - public-site/Cloudflare mutation.
+
+---
+
+### NA-0567 — QSL Remote Relay Listener Deployment Non-Secret Operator Proof Capture Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Review operator-provided or service-owner-provided non-secret proof about remote
+relay deployment and listener state after NA-0565 found no usable candidate
+listener. The proof must classify whether the relay service is running,
+installed but not running, absent/not installed, unhealthy, or unknown; whether a
+listener exists at a safe coarse class; whether operator/service-owner action is
+required; and whether a future alignment or deployment action can be authorized.
+Codex must perform read-only proof review only. Codex must not run SSH,
+Tailscale, sudo, systemctl, service commands, qsc send/receive, workflow
+dispatch/rerun, mutate `inspiron`, mutate authorized_keys, mutate service
+configuration, publish private ports, publish endpoint values, publish topology,
+publish process identities, publish service names, publish token values, publish
+bearer values, publish Authorization headers, publish payloads, publish response
+bodies, or publish secret material.
+
+Prerequisite before Codex execution:
+- Director provides one-step-at-a-time operator/service-owner proof collection
+  instructions derived from D-1122.
+- Operator/service owner collects or declines proof locally.
+- Operator reviews outputs before sharing.
+- Operator supplies only the safe-to-paste summary and any approved proof files.
+- Operator runs fresh qwork NA-0567 qsl-protocol only after proof collection is
+  complete or intentionally declined.
+
+Allowed scope:
+- docs/governance/evidence/NA-0567_remote_relay_listener_deployment_non_secret_operator_proof_capture_harness.md
+- tests/NA-0567_remote_relay_listener_deployment_non_secret_operator_proof_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only operator/service-owner proof summaries
+- proof-root-only raw proof copies if safe and scanned
+- private-material scan/redaction proof
+- successor selection
+
+Forbidden scope:
+- qwork/qstart/qresume execution by Codex;
+- SSH/Tailscale/remote command by Codex;
+- sudo/admin action by Codex;
+- account, shell, authorized_keys, Tailscale, firewall, or service mutation by
+  Codex;
+- qsc send/receive;
+- qsc E2EE;
+- payload push;
+- workflow dispatch;
+- rerun;
+- source/script/qsc mutation;
+- workflow mutation;
+- dependency/lockfile mutation;
+- qsl-server/qsl-attachments command, clone, build, run, or mutation;
+- qsl-backup;
+- backup mutation;
+- public-site mutation;
+- Cloudflare mutation;
+- endpoint value publication;
+- private port value publication;
+- route-token/capability value publication;
+- bearer value publication;
+- Authorization header publication;
+- private endpoint or private topology publication;
+- process identity publication;
+- service name publication unless separately proven public and safe;
+- payload or response body publication;
+- secret environment value publication;
+- no public-readiness claim;
+- no production-readiness claim;
+- no vulnerability-free claim;
+- no bug-free claim;
+- no perfect-build claim.
 
 ---
 

@@ -32592,29 +32592,89 @@ Forbidden scope:
 ---
 
 ### NA-0569 — QSL Remote qsc Relay Command Discovery Authorization Plan
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+NA-0569 is closed. D-1128 corrected the remote-relay recovery target from qsc
+command discovery to qsl-server deployment recovery, and D-1129 restores the
+qsl-server-centered NA-0570 successor after post-merge public-safety, advisories,
+required-check, and dependency-health gates passed.
+
+Closeout evidence:
+- implementation PR #1411 merged at `bcbb5f7a66d1`;
+- D-1128 exists once and is Accepted;
+- post-merge public-safety and advisories completed success;
+- root cargo audit and nested qsc fuzz cargo audit completed success;
+- D-1129 records closeout and NA-0570 restoration;
+- no NA-0570 implementation, remote action, qsc command execution,
+  qsl-server command execution, qsl-attachments command execution, workflow
+  dispatch/rerun, source mutation, dependency/lockfile mutation,
+  account/service/public-site/Cloudflare mutation, private-material publication,
+  public-readiness claim, production-readiness claim, vulnerability-free claim,
+  bug-free claim, or perfect-build claim occurred in closeout.
+
+---
+
+### NA-0570 — QSL Remote Relay qsl-server Inspiron Deployment Recovery Harness
 Status: READY
 Goals: G1, G2, G3, G4, G5
 
 Objective:
-Authorize exact next proof needed to identify a safe qsc local relay listener
-command without secrets or private material. This lane is authorization-only.
+Execute the D-1128-authorized qsl-server-centered recovery lane on the
+operator-owned `inspiron` test host. Codex may run exact commands selected by
+D-1128 to inspect the qslcodex test workspace, acquire/build/stage qsl-server
+only under proof-root and `/home/qslcodex/qsl-remote-test/` boundaries, preserve
+rollback before remote writes, start only a non-privileged qsl-server loopback
+test process if a safe no-secret command is discovered, and verify canonical
+qsl-server route shape with no secrets and no response-body publication. Codex
+must stop before sudo, systemctl, Tailscale, firewall, account/shell/
+authorized_keys, root-owned service, qsl-attachments, qsc send/receive, workflow
+dispatch/rerun, source/workflow/dependency mutation, public-site mutation,
+Cloudflare mutation, or private-material publication.
 
 Allowed scope:
-- docs/governance/evidence/NA-0569_remote_qsc_relay_command_discovery_authorization_plan.md
-- tests/NA-0569_remote_qsc_relay_command_discovery_authorization_testplan.md
+- docs/governance/evidence/NA-0570_remote_relay_qsl_server_inspiron_deployment_recovery_harness.md
+- tests/NA-0570_remote_relay_qsl_server_inspiron_deployment_recovery_testplan.md
 - DECISIONS.md
 - TRACEABILITY.md
 - docs/ops/ROLLING_OPERATIONS_JOURNAL.md
-- read-only NA-0568 proof summaries
-- exact future proof design
+- proof-root-only qsl-server source/build artifacts
+- proof-root-only SSH outputs
+- proof-root-only generated remote scripts
+- proof-root-only remote inventory/stage/start/postcheck outputs
+- read-only qsl-server GitHub/source metadata
+- private-material scan/redaction proof
 - successor selection
 
+Remote action boundary:
+- exact SSH/scp command allowlist from D-1128 only;
+- remote writes only under `/home/qslcodex/qsl-remote-test/`;
+- rollback manifest required before replacing any qsl-server artifact;
+- no sudo/systemctl/service/firewall/Tailscale/account/authorized_keys mutation;
+- no qsc send/receive;
+- no qsl-attachments;
+- stop if recovery requires root/operator/secret/public-endpoint action.
+
 Forbidden scope:
-- remote mutation;
+- qwork/qstart/qresume execution by Codex;
+- SSH/scp command outside D-1128 allowlist;
+- sudo/admin action;
+- systemctl/service/firewall/Tailscale mutation;
+- account/shell/authorized_keys mutation;
+- root-owned path mutation;
+- qsl-server source mutation or PR;
+- qsl-attachments command, clone, build, run, or mutation;
 - qsc send/receive;
-- secret/endpoint/topology publication;
-- source/workflow/dependency mutation;
-- public-site/Cloudflare mutation.
+- workflow dispatch/rerun;
+- source/script/workflow/dependency mutation in qsl-protocol;
+- qsl-backup;
+- backup mutation;
+- public-site mutation;
+- Cloudflare mutation;
+- endpoint/private port/topology/token/body/process identity publication;
+- public-readiness, production-readiness, vulnerability-free, bug-free, or
+  perfect-build claim.
 
 ---
 

@@ -6,6 +6,38 @@ Last-Updated: 2026-06-29
 
 # Rolling Operations Journal
 
+## NA-0569 post-merge verification closeout and NA-0570 restoration update
+
+- Directive: QSL-DIR-2026-06-29-492 -- Complete NA-0569 Post-Merge Verification and Optional Closeout to NA-0570 After D491 Bounded-Wait Stop.
+- Begin timestamp (America/Chicago): `2026-06-29T12:04:57-05:00`.
+- Begin timestamp (UTC): `2026-06-29T17:04:57Z`.
+- Repo path: `/srv/qbuild/work/NA-0569/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0569_postmerge_closeout_restore_na0570_20260629T170457Z`.
+- Fresh NA-0569 qwork proof files were read and copied from the lane workspace; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-06-29T16:58:58Z`; startup head/origin-main/main was `bcbb5f7a66d1` with READY_COUNT 1 and READY NA-0569.
+- Disk and mount gate passed before repository mutation: `/` used 33 percent and `/backup/qsl` used 35 percent; `/backup/qsl` was mounted.
+- Fetch occurred only after qwork proof, live ref match, clean tree, disk proof, and mount proof passed. Local main matched origin/main at `bcbb5f7a66d1`.
+- Startup queue proof: READY_COUNT 1; READY NA-0569; NA-0568 DONE; NA-0567 DONE.
+- Startup decision proof: D-1126 once and Accepted; D-1127 once and Accepted; D-1128 once and Accepted; D-1129 absent before patch; D-1130 absent; duplicate decision count zero.
+- D491 inheritance proof passed: implementation PR #1411 merged at `bcbb5f7a66d1` from head `303300d283fa`; D-1128 selected `NA-0570 -- QSL Remote Relay qsl-server Inspiron Deployment Recovery Harness`; D491 stopped before closeout only because post-merge checks were incomplete; D491 did not add D-1129; NA-0570 had not been implemented.
+- Post-merge bounded REST polling completed after 50 iterations and about 17.0 minutes: public-safety completed success, advisories completed success, suite2-vectors completed success, no failed required check was classified, and no check-runs remained incomplete. `goal-lint` was classified through merged PR #1411 head rollup; CodeQL was classified through merge-commit analysis check-runs plus PR-head rollup.
+- Dependency-health proof passed: root cargo audit, nested qsc fuzz cargo audit, `cargo metadata --locked --format-version=1`, and `cargo tree -i anyhow` completed success; root `Cargo.lock` contains `anyhow 1.0.103`; `Cargo.toml` and `qsl/qsl-client/qsc/fuzz/Cargo.lock` are unchanged relative to the D491 expectation; no dependency drift beyond D491 was detected.
+- Recovered metadata command-shape issue: PR #1411 metadata capture first used unsupported `gh pr view --json merged`. Corrective action: reran once with supported fields. Final result: PR metadata captured successfully.
+- Recovered zero-match proof outcome: `git ls-files | rg 'NA-0570|NA0570'` returned exit 1 with empty output. Corrective action: recorded the empty result as proof that no NA-0570 files were tracked before closeout. Final result: NA-0570 implementation was absent before closeout.
+- Recovered local proof-parser issue: the first D491 inheritance proof parser used overly narrow private-material wording. Corrective action: matched the actual D491 response wording that the response does not include private material. Final result: D491 inheritance proof passed.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0569_closeout_restore_na0570_testplan.md`.
+- NA-0569 is marked DONE.
+- NA-0570 is restored READY using the D-1128-selected qsl-server-centered successor block.
+- D-1129 records NA-0569 closeout and NA-0570 restoration.
+- This closeout does not implement NA-0570 and does not execute remote action, SSH, Tailscale, remote command, qsc command, qsl-server command, qsl-attachments command, workflow dispatch, rerun, qwork, qstart, qresume, qsl-backup, backup mutation, source mutation, script mutation, workflow mutation, dependency/lockfile mutation, account mutation, service mutation, public-site mutation, or Cloudflare mutation.
+- No secret values were requested or published. No endpoint, private port, private topology, route-token/capability value, bearer value, Authorization header, payload, response body, process identity, raw authorized_keys content, public key material, private key material, secret environment value, raw log, raw artifact, or private material was published.
+- Branch: `na-0569-closeout-restore-na0570` after local validation.
+- PR title: `NA-0569: closeout and restore NA-0570`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: closeout validation, PR checks, public-safety, advisories, no failed required checks, final queue proof after merge, and NA-0570 startup handoff.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced.
+
 ## NA-0569 cargo-audit recovery and qsl-server deployment recovery authority correction update
 
 - Directive: QSL-DIR-2026-06-29-491 -- Recover NA-0569 after local Cargo-audit RustSec stop and complete qsl-server deployment recovery authority correction.

@@ -30390,3 +30390,29 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0570 source-audit stop acceptance and NA-0571 recovery handoff to D-1130.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records D494 proof gates, the recovered parser issue, D493 stop consumption, selected successor, validation/CI watch items, and no-action/no-claim boundaries.
   - **References:** NA-0570; NA-0571; D-1130; D-1129; D-1128; D493 response; qsl-server source `d40e6003fdf0`; `docs/governance/evidence/NA-0570_remote_relay_qsl_server_source_audit_stop_handoff.md`; `tests/NA-0570_remote_relay_qsl_server_source_audit_stop_handoff_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1131
+  - **Title:** NA-0570 closeout and NA-0571 restoration
+  - **Date:** 2026-06-29
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0570 is closed after implementation PR #1413 merged at `d1289d754c7a` from head `464166a50202`. D-1130 exists once and is Accepted. Post-merge public-safety completed success. Post-merge advisories completed success. Post-merge suite2-vectors completed success. No failed required checks were classified. Root `cargo audit --deny warnings` completed success after merge. Nested qsc fuzz `cargo audit --deny warnings --file qsl/qsl-client/qsc/fuzz/Cargo.lock` completed success after merge. NA-0570 is marked DONE, and `NA-0571 -- QSL Remote qsl-server Source / Build Recovery Authorization Plan` is restored as exactly one READY successor.
+  - **Closeout proof:** Local main was fast-forwarded to origin/main at `d1289d754c7a`. Worktree, index, and untracked state were clean. D-1130 selected NA-0571 exactly. The post-merge bounded REST wait completed with public-safety success, advisories success, suite2-vectors success, no failed check-runs, and no incomplete check-runs. Root disk usage remained below the 95 percent stop threshold.
+  - **Selected successor:** NA-0571 is restored READY with Goals G1, G2, G3, G4, G5. It is authorization-only for qsl-server source/build recovery after the D493 `RUSTSEC-2026-0185` / `quinn-proto 0.11.14` audit failure. It may determine lockfile-only remediation, manifest-required remediation, qsl-server repository lane need, or an operator-provided binary/source staging authorization need, but it does not authorize qsl-server deployment, remote staging, remote start, qsc send/receive, workflow dispatch/rerun, qsl-attachments work, public-site mutation, or private-material publication.
+  - **Boundary proof:** No NA-0571 implementation occurred. No qsl-server mutation occurred. No qsl-server deployment or run occurred. No qsl-attachments command, clone, build, run, or mutation occurred. No remote action occurred. No SSH, scp, or Tailscale command occurred. No qsc send/receive occurred. No workflow dispatch occurred. No workflow rerun occurred. No qsl-protocol source, script, workflow, dependency, or lockfile mutation occurred in closeout. No public-site or Cloudflare mutation occurred. No private material was published.
+  - **Claim boundary:** No public readiness claim was made. No production readiness claim was made. No public internet readiness claim was made. No external review complete claim was made. No vulnerability free claim was made. No bug free claim was made. No perfect build claim was made.
+  - **Security invariants introduced/changed:**
+    - Closeout changes no protocol, wire, crypto, auth, state-machine, qsc runtime, qsl-server runtime, qsl-attachments runtime, source, repository script, workflow, dependency, lockfile, service, public-site, or Cloudflare semantics.
+    - NA-0571 is restored only as the D-1130-selected qsl-server source/build recovery authorization successor.
+    - NA-0571 implementation is not performed during closeout.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Leave NA-0570 READY after D-1130 merged (rejected because D-1130 selected the exact NA-0571 successor and post-merge gates are green).
+    - Implement NA-0571 during closeout (rejected as out of scope).
+    - Restore NA-0570 deployment recovery immediately (rejected because qsl-server source/build recovery must be authorized first).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0570 DONE and restores NA-0571 READY using the D-1130-selected qsl-server source/build recovery authorization block.
+    - `tests/NA-0570_closeout_restore_na0571_testplan.md` records closeout markers, implementation PR merge proof, D-1130 acceptance, post-merge check proof, root/nested audit proof, D-1131 restoration proof, no NA-0571 implementation, no forbidden action, no private-material publication, and the one-READY invariant.
+    - `TRACEABILITY.md` maps NA-0570 closeout and NA-0571 restoration to D-1131.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the NA-0570 closeout state, D-1131, post-merge proof, dependency-health proof, and restored NA-0571 successor.
+  - **References:** NA-0570; NA-0571; D-1131; D-1130; PR #1413; merge `d1289d754c7a`; head `464166a50202`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0570_closeout_restore_na0571_testplan.md`

@@ -6,6 +6,30 @@ Last-Updated: 2026-06-29
 
 # Rolling Operations Journal
 
+## NA-0570 closeout and NA-0571 restoration update
+
+- Directive: QSL-DIR-2026-06-29-494 optional closeout after NA-0570 implementation merge.
+- Repo path: `/srv/qbuild/work/NA-0570/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0570_qsl_server_source_audit_stop_restore_na0571_20260629T212912Z`.
+- Implementation PR #1413 merged at `d1289d754c7a` from head `464166a50202`.
+- Post-merge public-safety completed success on `d1289d754c7a`.
+- Post-merge advisories completed success on `d1289d754c7a`.
+- Post-merge suite2-vectors completed success on `d1289d754c7a`.
+- No failed required check was classified.
+- Root cargo audit and nested qsc fuzz cargo audit completed success after the implementation merge.
+- D-1130 exists once and records `QSL_SERVER_RECOVERY_SOURCE_AUDIT_STOP_ACCEPTED`.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0570_closeout_restore_na0571_testplan.md`.
+- NA-0570 is marked DONE.
+- NA-0571 is restored READY using the exact D-1130-selected qsl-server source/build recovery authorization successor block.
+- D-1131 records NA-0570 closeout and NA-0571 restoration.
+- This closeout does not implement NA-0571 and does not mutate qsl-server, deploy or run qsl-server, run qsl-attachments, perform remote action, run SSH, scp, Tailscale, qsc send/receive, workflow dispatch, rerun, qwork, qstart, qresume, qsl-backup, backup mutation, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, or private-material publication.
+- Branch: pending at journal authoring.
+- PR title: `NA-0570: closeout and restore NA-0571`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: closeout validation, PR checks, public-safety, advisories, no failed required checks, final queue proof after merge, and NA-0571 startup handoff.
+- No public readiness claim is introduced. No production readiness claim is introduced. No public internet readiness claim is introduced. No external review complete claim is introduced. No vulnerability free claim is introduced. No bug free claim is introduced. No perfect build claim is introduced.
+
 ## NA-0570 qsl-server source-audit stop and NA-0571 recovery handoff update
 
 - Directive: QSL-DIR-2026-06-29-494 -- Record NA-0570 qsl-server Source-Audit Stop and Restore NA-0571 qsl-server Source / Build Recovery Authorization.

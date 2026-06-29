@@ -6,6 +6,46 @@ Last-Updated: 2026-06-29
 
 # Rolling Operations Journal
 
+## NA-0569 cargo-audit recovery and qsl-server deployment recovery authority correction update
+
+- Directive: QSL-DIR-2026-06-29-491 -- Recover NA-0569 after local Cargo-audit RustSec stop and complete qsl-server deployment recovery authority correction.
+- Begin timestamp (America/Chicago): `2026-06-29T10:13:45-05:00`.
+- Begin timestamp (UTC): `2026-06-29T15:13:45Z`.
+- Repo path: `/srv/qbuild/work/NA-0569/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0569_audit_recovery_qsl_server_authority_correction_20260629T151345Z`.
+- Fresh NA-0569 qwork proof files were read and copied from the lane workspace; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-06-29T15:04:45Z`; startup head/origin-main/main was `f4bfada25717` with READY_COUNT 1 and READY NA-0569.
+- Disk and mount gate passed before repository mutation: `/` used 33 percent and `/backup/qsl` used 35 percent; `/backup/qsl` was mounted.
+- Fetch occurred only after qwork proof, live ref match, clean tree, disk proof, and mount proof passed. Local main matched origin/main at `f4bfada25717`.
+- Startup queue proof: READY_COUNT 1; READY NA-0569; NA-0568 DONE; NA-0567 DONE.
+- Startup decision proof: D-1126 once and Accepted; D-1127 once and Accepted; D-1128 absent before patch; D-1129 absent; duplicate decision count zero.
+- Current main required-check classification passed: public-safety completed success, advisories completed success, suite2-vectors completed success, no failed required checks, no pending required checks, and branch-protection contexts classified green or conclusively satisfied. The failed remote-handshake and remote-relay check-runs were classified as non-required context for this lane.
+- D490 stop was consumed. D490 selected `REMOTE_RELAY_QSL_SERVER_DEPLOYMENT_RECOVERY_AUTH_READY` but stopped before PR creation because local root `cargo audit --deny warnings` failed on `RUSTSEC-2026-0190` for `anyhow 1.0.100`.
+- D490 saved staged patch was copied and reviewed. It touched only the five NA-0569 governance/evidence/testplan paths, had no unstaged patch, had no dependency or forbidden path changes, and had no sensitive-value scan hits.
+- Dependency recovery classification: `CARGO_AUDIT_ANYHOW_RUSTSEC_RECOVERY_LOCKFILE_ONLY_PASS`.
+- Dependency recovery path: `Cargo.lock` only. `anyhow` changed from `1.0.100` to `1.0.103`. `Cargo.toml` and `qsl/qsl-client/qsc/fuzz/Cargo.lock` were unchanged.
+- Dependency validation passed: root cargo audit, nested qsc fuzz cargo audit, `cargo metadata --locked --format-version=1`, `cargo tree -i anyhow`, and `cargo check --workspace --locked`.
+- D-1126/D-1127 inheritance was consumed. NA-0568 result classification `REMOTE_RECOVERY_QSC_RELAY_COMMAND_AUTH_REQUIRED` was consumed.
+- Architecture correction recorded: qsc is the client/demo CLI, qsl-server is the transport-only relay/server component, and qsl-attachments is a separate opaque encrypted attachment service/runtime.
+- Read-only qsl-server source review used GitHub metadata/source only; qsl-server head was `d40e6003fdf0`.
+- Read-only qsl-attachments source review used GitHub metadata/source only; qsl-attachments head was `96b9352bd63`.
+- Selected authority classification: `REMOTE_RELAY_QSL_SERVER_DEPLOYMENT_RECOVERY_AUTH_READY`.
+- Selected successor: `NA-0570 -- QSL Remote Relay qsl-server Inspiron Deployment Recovery Harness`.
+- Selected NA-0570 model: Codex-executed qsl-server deployment recovery on inspiron, limited to exact qwork/current-main gates, bounded SSH readiness, proof-root-generated remote inventory/stage/start/postcheck scripts through SSH stdin, qslcodex test workspace write boundaries, rollback before replacement, no-secret qsl-server loopback start only if safe command discovery succeeds, and coarse route-shape proof only.
+- Selected NA-0570 command allowlist: read-only qsl-server source acquisition into proof root or clean discovered checkout, local qsl-server locked release build under proof-root/shared-target policy, bounded SSH readiness, remote inventory through SSH stdin, staged transfer by exact selected method, remote install/stage with rollback first, remote start only if safe, and remote postcheck.
+- Selected NA-0570 private-material policy: no endpoint values, private ports, topology, route-token/capability values, bearer values, Authorization headers, payloads, response bodies, process identities, authorized_keys content, key material, secret environment values, raw logs, raw artifacts, or private material may be published.
+- Governance and dependency patch paths are limited to `Cargo.lock`, `docs/governance/evidence/NA-0569_remote_relay_qsl_server_deployment_recovery_authority_correction.md`, `tests/NA-0569_remote_relay_qsl_server_deployment_recovery_authority_correction_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Recovered Phase 0 parser command-shape issue: the first qwork proof parser had a Python markdown-list syntax error before repository mutation. Corrective action: rewrote the markdown assembly and reran. Final result: qwork proof verification passed.
+- Recovered queue parser issue: the first queue proof parser expected an ASCII heading separator and matched zero NA blocks. Corrective action: accepted the repository's actual heading dash style. Final result: queue/decision proof passed.
+- Codex did not execute remote action, SSH, Tailscale, remote commands, remote probes, qsc commands, qsl-server commands, qsl-server clone/build/run, qsl-attachments commands, qsl-attachments clone/build/run, workflow dispatch, rerun, sudo, systemctl, service mutation, account mutation, shell mutation, authorized_keys mutation, source mutation, script mutation, workflow mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation.
+- No secret values were requested or published. No endpoint values, private port values, private topology, route-token/capability values, bearer values, Authorization headers, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, secret environment values, raw logs, raw artifacts, or private material were published.
+- Branch: `na-0569-audit-recovery-qsl-server-authority-correction` after local validation.
+- PR title: `NA-0569: recover audit gate and correct relay recovery to qsl-server`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: implementation validation, PR checks, public-safety, advisories, no failed required checks, post-merge proof, and optional closeout to NA-0570 only if gates are green.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced.
+
 ## NA-0568 closeout and NA-0569 restoration update
 
 - Directive: QSL-DIR-2026-06-29-489 optional closeout after NA-0568 implementation merge.

@@ -39534,6 +39534,42 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, or secret environment values are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0566 remote relay listener deployment proof authorization update
+
+- Directive: QSL-DIR-2026-06-29-487.
+- Begin timestamp (UTC): 2026-06-29T04:07:41Z.
+- Repo path: `/srv/qbuild/work/NA-0566/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0566_listener_deployment_proof_authorization_20260629T040741Z`.
+- qwork proof files were copied from the lane workspace and verified before fetch or repository mutation; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp `2026-06-29T03:58:53Z`, lane `NA-0566`, repo `qsl-protocol`, HEAD `0de8707462b4`, origin/main `0de8707462b4`, and clean worktree/index/untracked state were verified.
+- Fetch was performed only after proof/live ref match, disk proof below threshold, and `/backup/qsl` mount proof passed.
+- Disk watermark before patch: `/` below the stop threshold and `/backup/qsl` mounted.
+- Startup queue proof: READY_COUNT 1; READY NA-0566; NA-0565 DONE; NA-0564 DONE.
+- Startup decision proof: D-1120 once and Accepted; D-1121 once and Accepted; D-1122 absent before patch; D-1123 absent before patch; duplicate decision entry count zero.
+- Current main required-check proof on `0de8707462b4`: public-safety success, advisories success, suite2-vectors success, no failed required checks, no pending required checks, and required branch-protection contexts classified green or conclusively satisfied.
+- Recovered read-only GitHub API issue: a workflow-run query initially used an invalid command shape and returned 404. Classification: recoverable command-shape issue before repository mutation. Corrective action: reran once with query parameters in the GET URL. Final result: corrected query succeeded.
+- Recovered proof-root classifier issue: the first current-main required-check classifier treated `goal-lint` as missing because the context was not attached to the merge commit. Classification: recoverable proof-classifier visibility issue before repository mutation. Corrective action: classified `goal-lint` through merged PR #1404 head check-run success. Final result: current-main required-check classification passed.
+- Recovered discovery outcome: the new evidence document was hidden by existing ignore rules for evidence directories. Classification: valid zero-match discovery/proof outcome. Corrective action: confirm the ignore rule and force-add exactly the directive-authorized NA-0566 evidence document during staging. Final result: pending at journal authoring.
+- Recovered validation scan-context issue: the first implementation overclaim scan flagged wrapped negative claim-boundary continuation lines. Classification: recoverable scan-context/wrapping issue inside allowed evidence text. Corrective action: rewrote the claim boundary as one negated claim per line. Final result: overclaim scan passed on rerun.
+- Recovered local goal-lint metadata issue: direct `python3 tools/goal_lint.py` failed because PR event metadata was absent. Classification: recoverable local environment/metadata issue. Corrective action: created a proof-root file-backed PR event after the implementation commit existed and reran with `GITHUB_EVENT_PATH` set. Final result: goal-lint passed.
+- D-1120/D-1121 inheritance consumed: NA-0565 implementation PR #1403 merged at `cac313e06837`; NA-0565 closeout PR #1404 merged at `0de8707462b4`; D-1120 classification `LOOPBACK_CANDIDATE_MISSING_SERVICE_DEPLOYMENT_PROOF_REQUIRED`; D-1121 restored NA-0566 as the authorization-only listener deployment proof lane.
+- NA-0565 coarse proof consumed: SSH candidate readiness ready, candidate listener count none, candidate listener absent, candidate TCP not checked, v1 push HEAD not checked, v1 pull HEAD not checked, candidate relay shape unknown, candidate confirmation unknown, and private-material scans passed.
+- Deployment/listener boundary selected: deployment state proof required, listener binding proof required, service installation proof required, operator/service-owner proof required, Codex action not authorized, qsc runtime not primary suspect, and GitHub runner proof deferred.
+- Selected NA-0567 model: operator/service-owner proof capture only.
+- Selected NA-0567 proof package: `00_manifest.kv`, `01_listener_deployment_summary.json`, `02_service_health_summary.json`, `03_alignment_candidate_summary.json`, `04_private_material_scan.json`, and `05_safe_to_paste_summary.json`, each requiring operator review before sharing.
+- Selected result classification: `REMOTE_RELAY_LISTENER_DEPLOYMENT_OPERATOR_PROOF_READY`.
+- Selected successor: `NA-0567 -- QSL Remote Relay Listener Deployment Non-Secret Operator Proof Capture Harness`.
+- D-1122 records NA-0566 remote relay listener deployment proof authorization.
+- Governance patch paths: NA-0566 evidence doc, NA-0566 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: `na-0566-remote-relay-listener-deployment-proof-authorization`.
+- PR title: `NA-0566: authorize remote relay listener deployment proof`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No probes, SSH, Tailscale, remote commands, workflow dispatches, reruns, qsc send/receive, qsc E2EE, qsl-server, qsl-attachments, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
+- No source, script, workflow, dependency, lockfile, qsc source/test/fuzz/Cargo, qsl-server, qsl-attachments, account, service, public-site, Cloudflare, raw-log/raw-artifact repository-doc, or private-material mutation is introduced by NA-0566.
+- No secret values were requested or published. No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, service names, authorized_keys content, public key material, private key material, or secret environment values are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0564 closeout and NA-0565 restoration update
 
 - Directive: QSL-DIR-2026-06-29-485 optional closeout packet.

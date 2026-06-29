@@ -32308,7 +32308,7 @@ Forbidden scope:
 ---
 
 ### NA-0564 — QSL Remote Relay Loopback Port Alignment Action Authorization Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -32367,6 +32367,38 @@ Forbidden scope:
 - secret environment value publication;
 - public-readiness, production-readiness, vulnerability-free, bug-free, or
   perfect-build claim.
+
+---
+
+### NA-0565 — QSL Remote Relay Loopback Candidate Confirmation Proof Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Run or review exact non-secret proof to confirm the safe loopback listener
+candidate class identified by NA-0564 before authorizing an operator action
+bundle. Codex must not publish private port values, process identity, endpoint
+values, private topology, token values, bearer values, Authorization headers,
+payloads, response bodies, or secret material.
+
+Allowed scope:
+- docs/governance/evidence/NA-0565_remote_relay_loopback_candidate_confirmation_proof_harness.md
+- tests/NA-0565_remote_relay_loopback_candidate_confirmation_proof_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-only candidate confirmation output
+- private-material scan/redaction proof
+- successor selection
+
+Forbidden scope:
+- service/account/tunnel mutation by Codex;
+- qsc send/receive;
+- workflow dispatch/rerun;
+- source/script/workflow/dependency mutation;
+- qsl-server/qsl-attachments;
+- public-site/Cloudflare mutation;
+- private material publication.
 
 ---
 

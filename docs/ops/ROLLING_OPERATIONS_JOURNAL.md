@@ -6,6 +6,39 @@ Last-Updated: 2026-06-29
 
 # Rolling Operations Journal
 
+## NA-0568 remote relay inspiron Codex-executed deployment recovery update
+
+- Directive: QSL-DIR-2026-06-29-489 -- Execute NA-0568 Remote Relay Inspiron Codex-Executed Deployment Recovery Harness, Optional Closeout to NA-0569.
+- Repo path: `/srv/qbuild/work/NA-0568/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0568_inspiron_codex_recovery_20260629T064703Z`.
+- Fresh NA-0568 qwork proof files were read and copied from `/srv/qbuild/work/NA-0568/.qwork/`; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was at or after `2026-06-29T06:38:16Z`; startup head/origin-main/main was `b4e0b5a52ca4` with READY_COUNT 1 and READY NA-0568.
+- Disk and mount gate passed before SSH or mutation: root usage below the 95 percent stop threshold and `/backup/qsl` mounted.
+- Fetch occurred only after qwork proof, live ref match, clean tree, disk proof, and mount proof passed. Local main matched origin/main at `b4e0b5a52ca4`.
+- Startup queue proof: READY_COUNT 1; READY NA-0568; NA-0567 DONE; NA-0566 DONE.
+- Startup decision proof: D-1124 once and Accepted; D-1125 once and Accepted; D-1126 absent before patch; D-1127 absent; duplicate decision count zero.
+- Current main required-check classification passed: public-safety completed success, advisories completed success, suite2-vectors completed success, no failed required checks, no pending required checks, and branch-protection required contexts classified green or conclusively satisfied.
+- Recovered current-main classifier issue: the first classifier treated CodeQL and goal-lint as missing literal check-run names. Classification: recoverable classifier-shape issue before repository mutation. Corrective action: classify CodeQL through aggregate successful analysis/workflow evidence and goal-lint as pull-request-only for current-main health. Final result: current-main check classification passed.
+- D-1124/D-1125 inheritance was consumed. NA-0567 was DONE and NA-0568 was READY.
+- Remote recovery scripts were generated proof-root-only and statically reviewed. Syntax, JSON-only stdout, no shell, no forbidden command, qsc metadata allowlist, repair-only qsc relay start allowlist, write-scope guard, and rollback-first checks passed.
+- Recovered static-review issue: the first AST review assumed a fixed stdout line number. Classification: recoverable review-tooling issue. Corrective action: verify stdout writes are enclosed by the JSON emit helper. Final result: static review passed.
+- SSH readiness command executed exactly once and classified `SSH_REMOTE_RECOVERY_READY`; raw stdout/stderr remain proof-root-only and private-material scan passed.
+- Remote inventory through SSH stdin executed exactly once and classified `REMOTE_INVENTORY_WORKSPACE_REPAIRABLE`; qsc binary existed, was executable, and provided metadata/help, but qsc relay start command discovery was `not_discovered`.
+- Remote repair through SSH stdin executed exactly once and classified `REMOTE_REPAIR_WORKSPACE_DIRS_REPAIRED`; rollback manifest was written before repair writes; repair/rollback manifests are present; remote write scope stayed under the qslcodex test workspace.
+- Remote postcheck through SSH stdin executed exactly once and classified `REMOTE_POSTCHECK_WORKSPACE_READY_LISTENER_NOT_READY`; workspace and qsc binary were ready, but the expected listener was not ready and v1-path HEAD checks were not checked.
+- Aggregate private-material scan passed after a recovered scan-context false positive for public GitHub metadata URLs in proof-root-only API payloads. No private endpoint, private port, route-token/capability, bearer, Authorization header, private topology, process identity, payload, response body, authorized_keys content, SSH key material, secret environment value, Cloudflare token, API key, raw log, raw artifact, or private material is published.
+- Recovered discovery outcome: the new NA-0568 evidence document was hidden by existing ignore rules for evidence directories. Classification: valid zero-match discovery/proof outcome. Corrective action: confirm the ignore behavior and force-add exactly the directive-authorized NA-0568 evidence document during staging. Final result: implementation diff tracks the evidence document.
+- Result classification: `REMOTE_RECOVERY_QSC_RELAY_COMMAND_AUTH_REQUIRED`.
+- Selected successor: `NA-0569 -- QSL Remote qsc Relay Command Discovery Authorization Plan`.
+- Governance patch paths are limited to `docs/governance/evidence/NA-0568_remote_relay_inspiron_codex_executed_deployment_recovery_harness.md`, `tests/NA-0568_remote_relay_inspiron_codex_executed_deployment_recovery_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Codex did not execute sudo, systemctl, service commands, Tailscale mutation, firewall mutation, account/shell/authorized_keys mutation, root-owned path mutation, qsc send/receive, qsc E2EE, workflow dispatch, rerun, qsl-server, qsl-attachments, qwork, qstart, qresume, qsl-backup, backup mutation, source mutation, script mutation, workflow mutation, dependency/lockfile mutation, public-site mutation, or Cloudflare mutation.
+- Branch: pending at journal authoring.
+- PR title: `NA-0568: recover inspiron remote relay test workspace`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: implementation validation, PR checks, public-safety, advisories, no failed required checks, post-merge proof, and optional closeout to NA-0569 only if gates are green.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced.
+
 ## NA-0567 closeout and NA-0568 restoration update
 
 - Directive: QSL-DIR-2026-06-29-488 optional closeout after NA-0567 implementation merge.

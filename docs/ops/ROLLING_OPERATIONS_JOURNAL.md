@@ -6,6 +6,40 @@ Last-Updated: 2026-06-29
 
 # Rolling Operations Journal
 
+## NA-0571 qsl-server source/build recovery authorization update
+
+- Directive: QSL-DIR-2026-06-29-495 -- Execute NA-0571 qsl-server Source / Build Recovery Authorization Plan, Optional Closeout to NA-0572.
+- Begin timestamp (America/Chicago): `2026-06-29T17:36:19-05:00`.
+- Begin timestamp (UTC): `2026-06-29T22:36:19Z`.
+- Repo path: `/srv/qbuild/work/NA-0571/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0571_qsl_server_source_build_recovery_authorization_20260629T223619Z`.
+- Fresh NA-0571 qwork proof files were read and copied from the lane workspace; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-06-29T22:11:25Z`; startup head/origin-main/main was `03166146d7c` with READY_COUNT 1 and READY NA-0571.
+- Disk and mount gate passed before qsl-server source acquisition or repository mutation: root usage was below the 95 percent stop threshold and `/backup/qsl` was mounted.
+- Fetch occurred only after qwork proof, live ref match, clean tree, disk proof, and mount proof passed. Local main matched origin/main at `03166146d7c`.
+- Startup queue proof: READY_COUNT 1; READY NA-0571; NA-0570 DONE; NA-0569 DONE.
+- Startup decision proof: D-1130 once and Accepted; D-1131 once and Accepted; D-1132 absent before patch; D-1133 absent; duplicate decision count zero.
+- Current main required-check classification passed: public-safety completed success, advisories completed success, suite2-vectors completed success, no failed check-runs, no incomplete check-runs, root cargo audit passed, nested qsc fuzz cargo audit passed, locked metadata passed, and no Cargo.toml/Cargo.lock/qsc fuzz lockfile drift was detected.
+- D493/D494 inheritance review passed. D493 stopped before repository mutation with `QSL_SERVER_RECOVERY_SOURCE_AUDIT_STOP`; D494 accepted the stop and restored NA-0571.
+- qsl-server source was acquired proof-root-only at `d40e6003fdf0`.
+- Baseline qsl-server audit was classified failed on `RUSTSEC-2026-0185`, affecting `quinn-proto 0.11.14` through the qsl-server dev dependency path via reqwest/quinn.
+- Scratch recovery under the proof root changed only qsl-server `Cargo.lock`, updated `quinn-proto` from `0.11.14` to `0.11.15`, left `quinn 0.11.9` and `reqwest 0.12.28` unchanged, and passed locked metadata, cargo audit, cargo build, and cargo test.
+- Selected scratch classification: `QSL_SERVER_SCRATCH_LOCKFILE_ONLY_RECOVERY_PASS`.
+- Selected result classification: `QSL_SERVER_SOURCE_BUILD_RECOVERY_LOCKFILE_ONLY_IMPLEMENTATION_READY`.
+- Selected successor: `NA-0572 -- QSL qsl-server Dependency Audit Recovery Implementation Harness`.
+- Recovered current-main classifier issue: the first classifier treated `CodeQL` and `goal-lint` as missing literal merge-commit check-run names. Classification: recoverable classifier-shape issue before repository mutation. Corrective action: classified CodeQL through successful merge-commit analysis check-runs and `goal-lint` through the merged PR #1414 head context. Final result: PASS.
+- Recovered scratch-output scan issue: the first qsl-server scratch-output private-material scan included proof-root Cargo target build artifacts. Classification: recoverable scan-scope issue before repository mutation. Corrective action: terminated the local scan process and reran over proof-output files only while excluding cloned source trees and build artifacts. Final result: PASS.
+- Recovered overclaim-scan issue: the first overclaim validator flagged the required negated sentence `No perfect-build claim was made.` as if it were a positive claim. Classification: recoverable validation-tooling false positive. Corrective action: reran with a scanner that recognizes required negated claim-boundary wording. Final result: PASS.
+- Governance patch paths are limited to `docs/governance/evidence/NA-0571_remote_qsl_server_source_build_recovery_authorization_plan.md`, `tests/NA-0571_remote_qsl_server_source_build_recovery_authorization_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Codex did not execute remote action, SSH, scp, Tailscale, remote commands, qsc commands, qsc send/receive, qsl-server source-of-truth mutation, qsl-server PR creation, qsl-server deployment/run, qsl-attachments command/clone/build/run/mutation, workflow dispatch, rerun, qwork, qstart, qresume, qsl-backup, backup mutation, source mutation, script mutation, workflow mutation, dependency/lockfile mutation in qsl-protocol, public-site mutation, or Cloudflare mutation.
+- No private material was published. Proof-root raw outputs remain proof-root-only.
+- Branch: `na-0571-qsl-server-source-build-recovery-authorization` after local validation.
+- PR title: `NA-0571: authorize qsl-server source build recovery`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: implementation validation, PR checks, public-safety, advisories, no failed required checks, post-merge proof, and optional closeout to NA-0572 only if gates are green.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced.
+
 ## NA-0570 closeout and NA-0571 restoration update
 
 - Directive: QSL-DIR-2026-06-29-494 optional closeout after NA-0570 implementation merge.

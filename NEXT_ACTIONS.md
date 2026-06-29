@@ -32371,7 +32371,7 @@ Forbidden scope:
 ---
 
 ### NA-0565 — QSL Remote Relay Loopback Candidate Confirmation Proof Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -32399,6 +32399,40 @@ Forbidden scope:
 - qsl-server/qsl-attachments;
 - public-site/Cloudflare mutation;
 - private material publication.
+
+---
+
+### NA-0566 — QSL Remote Relay Listener Deployment Proof Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize exact non-secret service-owner or operator proof for the absence of any
+usable loopback relay candidate. Define whether the remote relay service is
+stopped, uninstalled, bound elsewhere, or intentionally absent without publishing
+private ports, endpoint values, topology, process identity, token values, bearer
+values, Authorization headers, payloads, response bodies, or secret environment
+values. This lane is authorization-only.
+
+Allowed scope:
+- docs/governance/evidence/NA-0566_remote_relay_listener_deployment_proof_authorization_plan.md
+- tests/NA-0566_remote_relay_listener_deployment_proof_authorization_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only NA-0565 summaries
+- exact proof requirement design
+- successor selection
+
+Forbidden scope:
+- Codex service mutation;
+- account/shell/authorized_keys/Tailscale mutation by Codex;
+- qsc send/receive;
+- workflow dispatch/rerun;
+- source/script/workflow/dependency mutation;
+- endpoint/topology/token/body/process identity publication;
+- qsl-server/qsl-attachments;
+- public-site/Cloudflare mutation.
 
 ---
 

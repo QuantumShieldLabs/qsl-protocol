@@ -39594,3 +39594,25 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Raw SSH and remote probe outputs remain proof-root-only. Repository docs publish only coarse classes and scan outcomes.
 - No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, or secret environment values are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0565 closeout and NA-0566 restoration update
+
+- Directive: QSL-DIR-2026-06-29-486 optional closeout packet.
+- Repo path: `/srv/qbuild/work/NA-0565/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0565_candidate_confirmation_proof_20260629T030811Z`.
+- Implementation PR #1403 merged at `cac313e06837` from head `5dccaf426c70`.
+- Post-merge public-safety completed success on `cac313e06837`.
+- Post-merge advisories completed success on `cac313e06837`.
+- Post-merge check polling reached 36 attached checks, zero incomplete, and zero failures before closeout.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0565_closeout_restore_na0566_testplan.md`.
+- NA-0565 is marked DONE.
+- NA-0566 is restored READY using the exact D-1120-selected listener deployment proof authorization successor block.
+- D-1121 records NA-0565 closeout and NA-0566 restoration.
+- This closeout does not implement NA-0566 and does not execute operator action, deployment proof, SSH, Tailscale, remote commands, workflow dispatches, reruns, qsc send/receive, qsc E2EE, qsl-server, qsl-attachments, qwork, qstart, qresume, qsl-backup, or backup mutation.
+- No source, script, workflow, dependency, lockfile, qsc source/test/fuzz/Cargo, qsl-server, qsl-attachments, public-site, Cloudflare, raw-log/raw-artifact repository-doc, or private-material mutation is introduced.
+- Branch: pending at journal authoring.
+- PR title: `NA-0565: closeout and restore NA-0566`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, or secret environment values are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.

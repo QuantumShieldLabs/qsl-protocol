@@ -32887,7 +32887,7 @@ Closeout evidence:
   material, or make public/production/security readiness claims.
 
 ### NA-0576 — QSL Remote qsl-server Start / Bind Proof Completion Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -32924,6 +32924,66 @@ Forbidden scope:
 - no vulnerability-free claim;
 - no bug-free claim;
 - no perfect-build claim.
+
+Closeout evidence:
+- qsl-protocol amendment PR #1426 merged at `070791c43b36`.
+- D-1142 and D-1143 were consumed and accepted.
+- D-1143 made the continuous CI wait-work policy durable in `START_HERE.md`,
+  `AGENTS.md`, and `docs/ops/CODEX_BOUNDED_OPERATIONAL_AUTHORITY.md`.
+- Amendment post-merge public-safety completed success.
+- Amendment post-merge advisories completed success.
+- Amendment post-merge suite2-vectors completed success.
+- No failed required checks or pending visible check-runs were classified.
+- NA-0576 did not implement NA-0577.
+- NA-0576 closeout did not execute remote action, start/run/deploy
+  qsl-server, run qsc send/receive, dispatch/rerun workflows, mutate source,
+  mutate dependencies, publish private material, or make public/production
+  readiness or security overclaims.
+
+---
+
+### NA-0577 — QSL Remote qsl-server Start / Bind Proof Completion Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Complete the qsl-server start/bind proof left by NA-0575 using the D-1142/D-1143
+bounded Codex operational authority model. Codex may use Tier 1 redacted
+diagnostics on the approved `inspiron` / `/home/qslcodex/qsl-remote-test/`
+workspace and may use Tier 2 bounded test action only if the active directive
+proves no-secret, non-root, loopback-only, no-sudo, no-systemd, no-firewall,
+no-Tailscale, no-account-mutation, and no-private-publication gates. The lane
+must decide whether qsl-server can be safely started by Codex, requires operator
+start, requires service-owner action, requires secret/endpoint action, or remains
+insufficient/ambiguous. Raw output must remain proof-root-only and repository
+evidence may publish only coarse classes.
+
+Allowed scope:
+- docs/governance/evidence/NA-0577_remote_qsl_server_start_bind_proof_completion_harness.md
+- tests/NA-0577_remote_qsl_server_start_bind_proof_completion_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-only SSH outputs
+- proof-root-only generated remote diagnostic/start/postcheck scripts if
+  authorized by the active directive
+- proof-root-only redacted JSON classifications
+- private-material scan/redaction proof
+- successor selection
+
+Forbidden scope:
+- qwork/qstart/qresume execution by Codex;
+- sudo/systemd/service/firewall/Tailscale/account/shell/authorized_keys mutation;
+- qsl-server source mutation or PR;
+- qsl-attachments command, clone, build, run, or mutation;
+- qsc send/receive unless a later exact directive authorizes it;
+- workflow dispatch/rerun unless a later exact directive authorizes it;
+- qsl-protocol source/script/workflow/dependency mutation;
+- public-site/Cloudflare mutation;
+- endpoint/private port/topology/token/body/process identity publication;
+- private material publication;
+- no public-readiness, no production-readiness, no vulnerability-free,
+  no bug-free, no perfect-build, or no perfect-crypto claim.
 
 ---
 

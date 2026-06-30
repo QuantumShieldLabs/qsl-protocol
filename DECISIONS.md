@@ -30741,3 +30741,28 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `tests/NA-0576_project_wide_bounded_codex_operational_authority_hardening_testplan.md` adds markers `NA0576_CONTINUOUS_CI_WAIT_WORK_POLICY_DEFINED_OK`, `NA0576_READ_ONLY_FORWARD_AUDIT_DURING_WAITS_DEFINED_OK`, `NA0576_NO_IDLE_POLLING_POLICY_DEFINED_OK`, `NA0576_WAIT_WORK_REPORTING_REQUIRED_OK`, and `NA0576_NEXT_LANE_WORK_DURING_WAITS_FORBIDDEN_OK`.
     - `TRACEABILITY.md` maps this amendment to D-1143, the authority runbook, START_HERE, AGENTS, evidence, testplan, and rolling journal.
   - **References:** NA-0576; selected future NA-0577; D-1143; D-1142; D-1141; D-1140; D502 response; D503 response; qsl-protocol PR #1425; qsl-protocol merge `c6f4cacde1d6`; `docs/ops/CODEX_BOUNDED_OPERATIONAL_AUTHORITY.md`; `START_HERE.md`; `AGENTS.md`; `docs/governance/evidence/NA-0576_project_wide_bounded_codex_operational_authority_hardening.md`; `tests/NA-0576_project_wide_bounded_codex_operational_authority_hardening_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1144
+  - **Title:** NA-0576 closeout and NA-0577 restoration
+  - **Date:** 2026-06-30
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0576 is closed after consuming D-1142 and D-1143. D502 implementation merged, and D504 amendment PR #1426 merged at `070791c43b36`. Amendment post-merge public-safety completed success. Amendment post-merge advisories completed success. suite2-vectors completed success. No failed required checks or pending visible check-runs were classified. NA-0576 is marked DONE, and NA-0577 is restored as exactly one READY successor. No NA-0577 implementation occurred. The continuous CI wait-work policy is durable in `START_HERE.md`, `AGENTS.md`, and `docs/ops/CODEX_BOUNDED_OPERATIONAL_AUTHORITY.md`.
+  - **Selected successor:** NA-0577 is restored READY with Goals G1, G2, G3, G4, G5. It is the QSL Remote qsl-server Start / Bind Proof Completion Harness. It must use the D-1142/D-1143 bounded Codex operational authority model, keep raw output proof-root-only, publish only coarse classes in repository evidence, and decide whether qsl-server can be safely started by Codex, requires operator start, requires service-owner action, requires secret/endpoint action, or remains insufficient/ambiguous.
+  - **Boundary proof:** No remote action occurred. No qsl-server start, qsl-server deployment, qsl-server run, qsl-server source mutation, qsl-server PR, qsl-attachments command/clone/build/run/mutation, qsc command, qsc send/receive, workflow dispatch, workflow rerun, qsl-protocol source/runtime/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, backup mutation, or private-material publication occurred. No endpoint values, private port values, topology, token values, Authorization headers, process identities, payloads, response bodies, authorized_keys content, key material, raw private logs, secret env values, Cloudflare tokens, or API keys were published.
+  - **Claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-build claim is made. No perfect-crypto claim is made.
+  - **Security invariants introduced/changed:**
+    - Exactly one READY item remains mandatory after closeout.
+    - NA-0577 is restored only as a future proof-completion harness; it is not implemented during NA-0576 closeout.
+    - The D-1143 continuous CI wait-work rule remains active for future PR and post-merge waits.
+    - The closeout does not change protocol, wire, crypto, auth, state-machine, qsc runtime, qsl-server runtime/source, qsl-attachments runtime/source, qsl-protocol source, repository script, workflow, dependency, lockfile, public-site, or Cloudflare semantics.
+  - **Alternatives considered:**
+    - Leave NA-0576 READY after the D-1143 amendment merged (rejected because amendment post-merge checks are green and the successor is already selected).
+    - Restore a different successor (rejected because D-1142 and D-1143 preserve NA-0577 as the qsl-server technical successor).
+    - Implement NA-0577 during closeout (rejected as out of scope and contrary to one-READY queue discipline).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0576 DONE and restores NA-0577 READY using the exact closeout successor block.
+    - `tests/NA-0576_closeout_restore_na0577_testplan.md` records closeout markers for D-1142/D-1143 acceptance, amendment PR merge, public-safety/advisories proof, D-1144 restoration, no NA-0577 implementation, wait-work policy durability, no remote action, no qsl-server start, no qsc send/receive, no workflow dispatch, no private-material publication, and the one-READY invariant.
+    - `TRACEABILITY.md` maps NA-0576 closeout and NA-0577 restoration to D-1144.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records qwork proof, amendment post-merge wait-work, D-1144, restored NA-0577 successor, validation notes, and no-action/no-claim boundaries.
+  - **References:** NA-0576; NA-0577; D-1144; D-1143; D-1142; D502 response; D503 response; D504 response; qsl-protocol PR #1426; qsl-protocol merge `070791c43b36`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0576_closeout_restore_na0577_testplan.md`

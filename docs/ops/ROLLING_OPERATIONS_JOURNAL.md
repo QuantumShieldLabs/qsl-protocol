@@ -40101,3 +40101,31 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - PR merge commit: pending at journal authoring.
 - No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced.
+
+## NA-0574 qsl-server start/bind operator proof authorization update
+
+- Directive: QSL-DIR-2026-06-30-499.
+- Begin timestamp (UTC): 2026-06-30T03:23:01Z.
+- Repo path: `/srv/qbuild/work/NA-0574/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0574_qsl_server_start_bind_operator_proof_auth_20260630T032301Z`.
+- qwork proof files were copied from the NA-0574 lane workspace and verified before fetch or repository mutation; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp `2026-06-30T03:11:20Z` or later, lane NA-0574, repo qsl-protocol, HEAD `e6f01d620907`, origin/main `e6f01d620907`, and clean worktree/index/untracked state were verified.
+- Fetch was performed only after proof/live ref match, disk proof below threshold, and `/backup/qsl` mount proof passed.
+- Startup queue proof: READY_COUNT 1; READY NA-0574; NA-0573 DONE; NA-0572 DONE.
+- Startup decision proof: D-1136 once and Accepted; D-1137 once and Accepted; D-1138 absent before patch; D-1139 absent before patch; duplicate decision record count zero.
+- Current main required-check classification on `e6f01d620907`: public-safety success, advisories success, suite2-vectors success, no failed required checks, and no required pending checks.
+- Required-check recovery RF-001: the initial main-commit classifier reported missing `goal-lint` and `CodeQL`; this was classified as a recoverable D498 visibility gap and recovered from PR #1420 head metadata with both contexts success.
+- D498/D-1136/D-1137 inheritance consumed: qsl-server source/build/dependency state is not the blocker; qsl-server was staged under the qslcodex test workspace, start was not executed, expected loopback bind target was unavailable, and postcheck classified binary ready/listener not ready.
+- Start/bind blocker analysis selected missing private loopback bind target, safe qsl-server start command shape, start ownership, privilege, secret, and background-process classes as the next proof surface.
+- NA-0575 operator proof package selected: `00_manifest.kv`, `01_staged_qsl_server_presence.json`, `02_bind_target_availability.json`, `03_start_command_shape.json`, `04_secret_dependency_classification.json`, `05_operator_action_boundary.json`, `06_private_material_scan.json`, and `07_safe_to_paste_summary.json`.
+- Safe-to-paste and private-material policies selected: only coarse classes and safe labels may be shared; raw files remain operator-reviewed by default; private material in shared proof is a stop condition.
+- Result classification: `QSL_SERVER_BIND_START_OPERATOR_PROOF_CAPTURE_READY`.
+- Selected successor: `NA-0575 -- QSL Remote qsl-server Start / Bind Operator Proof Capture Harness`.
+- Governance patch paths: NA-0574 evidence doc, NA-0574 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: pending at journal authoring.
+- PR title: `NA-0574: authorize qsl-server start bind proof`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
+- No remote action, SSH, scp, Tailscale, remote command, qsl-server start, qsl-server deployment, qsl-server source mutation, qsl-attachments command/mutation, qsc command, qsc send/receive, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.

@@ -32943,7 +32943,7 @@ Closeout evidence:
 ---
 
 ### NA-0577 — QSL Remote qsl-server Start / Bind Proof Completion Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -32984,6 +32984,41 @@ Forbidden scope:
 - private material publication;
 - no public-readiness, no production-readiness, no vulnerability-free,
   no bug-free, no perfect-build, or no perfect-crypto claim.
+
+Closeout evidence:
+- qsl-protocol implementation PR #1428 merged at `f2d14a071b2e`.
+- D-1145 consumed D-1142, D-1143, and D-1144.
+- D-1145 selected result `QSL_SERVER_START_BIND_INSUFFICIENT_PROOF`.
+- SSH readiness classified ready.
+- Remote inspection classified temporary loopback smoke safe.
+- Bounded start classified failed.
+- Bounded postcheck was skipped because bounded start failed and listener was
+  not already ready.
+- Cleanup classified done.
+- Post-merge public-safety completed success.
+- Post-merge advisories completed success.
+- No failed required checks were classified.
+- NA-0577 did not prove route-shape or relay readiness.
+- NA-0577 did not publish endpoint values, private port values, topology,
+  token values, Authorization headers, process identities, payloads, response
+  bodies, authorized_keys content, key material, raw private logs, or private
+  material.
+- NA-0577 closeout does not implement NA-0578 and does not execute remote
+  action, start/run/deploy qsl-server, run qsc send/receive, dispatch/rerun
+  workflows, mutate source, mutate dependencies, publish private material, or
+  make public/production readiness or security overclaims.
+
+---
+
+### NA-0578 — QSL Remote qsl-server Start / Bind Proof Completion Follow-Up Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Complete the remaining qsl-server start/bind proof after NA-0577 preserved
+unknown/not_checked values. Codex may use only the D-1145-selected bounded
+diagnostic or proof actions and must not publish private bind, endpoint,
+topology, token, payload, body, process identity, or key material.
 
 ---
 

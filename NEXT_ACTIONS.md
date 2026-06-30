@@ -32797,7 +32797,7 @@ Closeout evidence:
 - NA-0574 is restored as the exact D-1136-selected successor.
 
 ### NA-0574 — QSL Remote qsl-server Start / Bind Operator Proof Authorization Plan
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -32824,6 +32824,57 @@ Forbidden scope:
 - source/workflow/dependency mutation;
 - qsl-attachments;
 - public-site/Cloudflare mutation.
+
+Closeout evidence:
+- NA-0574 implementation PR #1421 merged at `29fb45efe595`.
+- D-1138 records result classification
+  `QSL_SERVER_BIND_START_OPERATOR_PROOF_CAPTURE_READY`.
+- D-1138 selected the exact NA-0575 successor below.
+- NA-0574 did not start qsl-server, run remote actions, run qsc send/receive,
+  dispatch workflows, mutate qsl-server/qsl-attachments/qsl-protocol runtime
+  paths, or publish private material.
+
+### NA-0575 — QSL Remote qsl-server Start / Bind Operator Proof Capture Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Capture and review only non-secret operator proof needed to classify the
+qsl-server start/bind blocker left by NA-0573. The operator must provide a
+safe-to-paste summary and proof package that reports whether the staged
+qsl-server binary has a known private loopback bind target, safe start-command
+shape, and non-privileged no-secret start path. Actual private port values,
+endpoint values, topology, token values, Authorization headers, process
+identities, payloads, response bodies, authorized_keys content, key material,
+and raw private logs must not be published. NA-0575 must choose whether a later
+lane may perform a Codex-bounded start, must authorize operator start, must
+authorize service-owner action, must authorize secret/endpoint action, or must
+stop for insufficient/private-material proof.
+
+Allowed scope:
+- docs/governance/evidence/NA-0575_remote_qsl_server_start_bind_operator_proof_capture_harness.md
+- tests/NA-0575_remote_qsl_server_start_bind_operator_proof_capture_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- operator-provided non-secret proof package
+- private-material scan/redaction proof
+- successor selection
+
+Forbidden scope:
+- qwork/qstart/qresume execution by Codex;
+- Codex SSH/scp/Tailscale/remote command unless a later directive authorizes it;
+- qsl-server start;
+- qsl-server deployment or mutation;
+- qsl-attachments command, clone, build, run, or mutation;
+- qsc send/receive;
+- workflow dispatch/rerun;
+- qsl-protocol source/script/workflow/dependency mutation;
+- public-site/Cloudflare mutation;
+- endpoint/private port/topology/token/body/process identity publication;
+- private material publication;
+- public-readiness, production-readiness, vulnerability-free, bug-free, or
+  perfect-build claim.
 
 ---
 

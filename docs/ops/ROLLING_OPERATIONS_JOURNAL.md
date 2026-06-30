@@ -40129,3 +40129,28 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
 - No remote action, SSH, scp, Tailscale, remote command, qsl-server start, qsl-server deployment, qsl-server source mutation, qsl-attachments command/mutation, qsc command, qsc send/receive, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0574 closeout and NA-0575 restoration update
+
+- Directive: QSL-DIR-2026-06-30-499 optional closeout packet.
+- Repo path: `/srv/qbuild/work/NA-0574/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0574_qsl_server_start_bind_operator_proof_auth_20260630T032301Z`.
+- Implementation PR #1421 merged at `29fb45efe595` from head `f7b9e40996ae`.
+- D-1138 exists once and is Accepted.
+- D-1138 result classification is `QSL_SERVER_BIND_START_OPERATOR_PROOF_CAPTURE_READY`.
+- Post-merge public-safety completed success on `29fb45efe595`.
+- Post-merge advisories completed success on `29fb45efe595`.
+- Post-merge suite2-vectors completed success on `29fb45efe595`.
+- No failed required checks were classified.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0574_closeout_restore_na0575_testplan.md`.
+- NA-0574 is marked DONE.
+- NA-0575 is restored READY using the exact D-1138-selected start/bind operator proof capture successor block.
+- D-1139 records NA-0574 closeout and NA-0575 restoration.
+- This closeout does not implement NA-0575 and does not execute remote action, SSH, scp, Tailscale, remote command, qsl-server start, qsl-server deployment, qsl-server mutation, qsl-attachments command/mutation, qsc send/receive, workflow dispatch, workflow rerun, qwork, qstart, qresume, qsl-backup, or backup mutation.
+- No qsl-protocol source, script, workflow, dependency, lockfile, public-site, Cloudflare, raw-log/raw-artifact repository-doc, or private-material mutation is introduced.
+- Branch: pending at journal authoring.
+- PR title: `NA-0574: closeout and restore NA-0575`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.

@@ -244,6 +244,69 @@ authorizes workflow dispatch/rerun. Watch modes are not permitted. Use bounded
 REST polling and stop at cap. Do not weaken required-check, goal-lint,
 public-safety, advisories, CodeQL, or branch-protection intent.
 
+## 20A. Productive CI wait-work and read-only forward audits
+
+CI/check polling must not be idle when safe current-lane or read-only
+forward-audit work exists. During long waits, Codex must perform productive
+same-lane proof work, validation work, response drafting, scanner/parser
+hardening, or read-only forward audits. Codex must not begin the next READY
+lane or mutate outside scope during waits. Final responses must report what
+useful work was performed during waits; if no useful work was possible, Codex
+must justify that specifically. Passive polling alone is not productive work.
+
+This rule is triggered by any of the following:
+
+- an expected CI/check wait over about 2-3 minutes;
+- any wait already over 60 seconds;
+- known long public-safety, full-suite, macOS, or CodeQL waits.
+
+Required continuous work categories, when safely available inside the active
+directive boundary, are:
+
+1. capture PR, check, status, and branch-protection metadata;
+2. draft response sections that are already knowable;
+3. prepare if-green and if-red plans;
+4. prepare post-merge and closeout proof;
+5. run remaining allowed validation;
+6. harden proof-root parsers, scanners, and classifiers;
+7. perform read-only forward audits;
+8. triage findings;
+9. record work in the proof root;
+10. report wait-work in the final response.
+
+Allowed read-only audit categories are:
+
+- crypto/protocol invariants;
+- qsc client/runtime risks;
+- qsl-server relay risks;
+- qsl-attachments boundary risks;
+- dependency/advisory watch;
+- workflow/CI reliability;
+- public-claim safety;
+- private-material/redaction safety;
+- test coverage gaps;
+- runbook/operator friction;
+- governance/queue consistency;
+- build/provenance/reproducibility risks.
+
+Forward-audit findings should be classified as `CRITICAL_BLOCKER`,
+`HIGH_VALUE_FIX`, `MEDIUM_RISK`, `LOW_RISK`, `FALSE_POSITIVE`, or
+`NO_ACTION`.
+
+During CI waits, Codex must not:
+
+- implement the next READY lane;
+- open speculative PRs;
+- mutate outside current scope;
+- close out before required gates are green;
+- run `qwork`, `qstart`, or `qresume`;
+- weaken checks;
+- treat pending or failed CI as success;
+- publish private material;
+- make forbidden public-readiness, production-readiness, security,
+  forbidden vulnerability-free, forbidden bug-free, forbidden perfect-build, or
+  forbidden perfect-crypto overclaims.
+
 ## 21. Public-safety/advisories invariants
 
 This model does not weaken public-safety or advisories. A lane that requires

@@ -27,6 +27,11 @@ as NA-0577.
 - NA0576_TIER2_BOUNDED_TEST_ACTION_DEFINED_OK
 - NA0576_TIER3_OPERATOR_ADMIN_BOUNDARY_DEFINED_OK
 - NA0576_TIER4_FORBIDDEN_BOUNDARY_DEFINED_OK
+- NA0576_CONTINUOUS_CI_WAIT_WORK_POLICY_DEFINED_OK
+- NA0576_READ_ONLY_FORWARD_AUDIT_DURING_WAITS_DEFINED_OK
+- NA0576_NO_IDLE_POLLING_POLICY_DEFINED_OK
+- NA0576_WAIT_WORK_REPORTING_REQUIRED_OK
+- NA0576_NEXT_LANE_WORK_DURING_WAITS_FORBIDDEN_OK
 - NA0576_START_HERE_UPDATED_OK
 - NA0576_AGENTS_UPDATED_OK
 - NA0576_QSL_SERVER_THREAD_PRESERVED_OK
@@ -50,6 +55,10 @@ as NA-0577.
   the NA-0575 evidence/testplan files.
 - Authority model markers map to
   `docs/ops/CODEX_BOUNDED_OPERATIONAL_AUTHORITY.md`.
+- Continuous CI wait-work markers map to the productive CI wait-work and
+  read-only forward-audit policy in
+  `docs/ops/CODEX_BOUNDED_OPERATIONAL_AUTHORITY.md`, plus the START_HERE and
+  AGENTS pointers.
 - START_HERE and AGENTS markers map to the added bounded authority sections in
   those files.
 - qsl-server thread preservation maps to the NA-0577 successor selected in
@@ -65,4 +74,7 @@ NA-0577 as successor, and keeps exactly one READY item as NA-0576 until
 optional closeout. No remote action, qsl-server start, qsc send/receive,
 workflow dispatch/rerun, qsl-attachments work, qsl-protocol runtime/source
 mutation, private-material publication, or public/production/security overclaim
-occurs.
+occurs. The amendment additionally records that long CI waits require
+productive current-lane wait-work or read-only forward audits when such work is
+available, require wait-work reporting, forbid idle polling, and forbid
+next-lane implementation during waits.

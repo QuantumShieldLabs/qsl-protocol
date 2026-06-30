@@ -45,6 +45,7 @@
 - **Never use `--watch`.** Do not use `gh pr checks --watch` (or other watch modes) in directives.
 - **Use bounded REST polling for checks.** Sleep 20s; cap at 180 iterations (60 minutes). Report state and STOP if not complete.
 - **Make “post-merge evidence” a separate directive** when it may require large API payloads (PR file lists, logs, etc.).
+- **No idle long CI waits.** If CI/check waiting is nontrivial and safe current-lane/proof-root work or read-only forward audit work exists, do that work during the wait and record it. Report what useful wait-work was performed, or justify specifically why no useful work remained. Do not start the next READY lane, mutate outside scope, weaken checks, publish private material, or treat pending/failed CI as success during waits.
 
 **Canonical helper snippet (copy/paste into directives):**
 ~~~bash

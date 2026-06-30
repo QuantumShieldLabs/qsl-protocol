@@ -150,6 +150,38 @@ NA-0576 only read GitHub metadata and local validation output. No workflow
 dispatch or rerun occurred. Required-check handling used bounded visibility
 recovery only for known PR-scoped or aggregate contexts.
 
+## Continuous CI Wait-Work Amendment
+
+D-1142 is consumed by this amendment. D502 implementation PR #1425 merged at
+`c6f4cacde1d6`. D502 post-merge public-safety, advisories, suite2-vectors,
+and visible check-runs were verified green before repository mutation. D503
+stopped before mutation because D502 public-safety was still nonterminal, and
+the operator rejected idle CI waits.
+
+The authority runbook now requires productive current-lane/proof-root-safe work
+during nontrivial CI/check waits when such work exists. Examples include
+metadata capture, response drafting, if-green/if-red planning, post-merge proof
+preparation, remaining allowed validation, proof-root parser/scanner/classifier
+hardening, read-only forward audits, finding triage, proof-root logging, and
+final-response wait-work reporting. Passive polling alone is not productive
+work.
+
+Read-only forward audits are allowed during waits when they remain inside the
+active directive boundary. The allowed categories cover crypto/protocol
+invariants, qsc client/runtime risks, qsl-server relay risks, qsl-attachments
+boundary risks, dependency/advisory watch, workflow/CI reliability,
+public-claim safety, private-material/redaction safety, test coverage gaps,
+runbook/operator friction, governance/queue consistency, and
+build/provenance/reproducibility risks. Findings are classified as
+`CRITICAL_BLOCKER`, `HIGH_VALUE_FIX`, `MEDIUM_RISK`, `LOW_RISK`,
+`FALSE_POSITIVE`, or `NO_ACTION`.
+
+The amendment preserves the prohibition on next-lane implementation,
+speculative PRs, mutation outside current scope, closeout before green gates,
+`qwork`/`qstart`/`qresume`, check weakening, treating pending/failed CI as
+success, private-material publication, and public/production/security
+overclaims during waits.
+
 ## Source / Script Mutation Boundary
 
 No qsl-protocol runtime source, repository script, workflow, dependency, or
@@ -212,8 +244,8 @@ Post-fix hardening review:
 3. Maintainability: the authority model is centralized in one runbook with
    short pointers from START_HERE and AGENTS.
 4. Coverage quality: markers and scans cover the authority tiers, opt-in
-   requirements, qsl-server successor preservation, and forbidden-action
-   boundaries.
+   requirements, continuous CI wait-work, read-only forward audits, qsl-server
+   successor preservation, and forbidden-action boundaries.
 5. Cross-lane stability: no macOS/Linux runtime, qsc, qsl-server,
    qsl-attachments, workflow, dependency, or lockfile behavior changed.
 

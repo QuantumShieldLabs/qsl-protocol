@@ -125,6 +125,12 @@ qwork proof, the one-READY queue invariant, evidence gates, public-safety,
 advisories, required-check visibility, private-material controls, or claim
 boundaries.
 
+Long CI/check waits are not idle time when safe current-lane work exists.
+Codex must use those waits for productive proof-root/current-lane work or
+read-only forward audits, must report that wait-work, and must not begin the
+next READY lane or mutate outside the active scope during the wait. See
+`docs/ops/CODEX_BOUNDED_OPERATIONAL_AUTHORITY.md`.
+
 ## 2. Non-negotiable constraints (fail-closed)
 
 ### 2.1 Safety rails on changes

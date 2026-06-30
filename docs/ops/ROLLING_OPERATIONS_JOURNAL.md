@@ -40188,6 +40188,41 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0576 continuous CI wait-work amendment update
+
+- Directive: QSL-DIR-2026-06-30-504.
+- Begin timestamp (UTC): 2026-06-30T18:20:48Z.
+- Repo path: `/srv/qbuild/work/NA-0576/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0576_resume_continuous_ci_wait_work_amendment_closeout_20260630_132048_CDT`.
+- qwork proof files were copied and verified before fetch or repository mutation; Codex did not run qwork, qstart, or qresume.
+- qwork proof verified lane NA-0576, repo qsl-protocol, path `/srv/qbuild/work/NA-0576/qsl-protocol`, branch main, upstream origin/main, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0576, and shared cargo target ready.
+- Pre-fetch and post-fetch `HEAD`/`origin/main`: `c6f4cacde1d6`.
+- Disk and mount gates passed before fetch; `/backup/qsl` was mounted and root disk was below the stop threshold.
+- Startup queue proof: READY_COUNT 1; READY NA-0576; NA-0575 DONE; NA-0574 DONE.
+- Startup decision proof: D-1140 once and Accepted; D-1141 once and Accepted; D-1142 once and Accepted; D-1143 absent before amendment; D-1144 absent; duplicate decision entry count zero.
+- Recovered proof issue: the first duplicate-decision probe counted references rather than decision entry headings; corrective action was to rerun with the entry-heading classifier. Final result: PASS.
+- Recovered proof issue: the first entry-level assertion used absent Counter IDs without a zero default and exited 2; corrective action was to rerun with zero defaults for absent D-1143/D-1144 entries. Final result: PASS.
+- D502 implementation PR #1425 was verified merged at `c6f4cacde1d6` from head `78cdbd54a524`.
+- D502 post-merge public-safety, advisories, suite2-vectors, and all visible check-runs completed success after bounded polling resolved at iteration 38.
+- Required-context visibility recovery verified PR-head goal-lint and CodeQL completed success.
+- Productive CI wait-work was performed before and during the D502 gate wait: check/status/branch-protection snapshots, D502/D503 proof review, response drafting, if-green/if-red planning, post-merge/closeout checklist preparation, scanner category preparation, inheritance review, amendment plan, active job metadata capture, workflow wait-policy audit, and read-only forward audits.
+- Passive polling alone was not counted as productive work; after safe current-lane work was exhausted, remaining polling was recorded as bounded passive wait with a specific no-useful-work justification.
+- D503 stop consumed: D503 stopped before mutation because D502 public-safety remained nonterminal and recorded the operator requirement that idle CI waits are rejected.
+- D-1143 records the continuous CI wait-work and read-only forward-audit amendment.
+- START_HERE updated with the long-wait pointer.
+- AGENTS updated with the agent-facing no-idle long-CI-wait instruction.
+- `docs/ops/CODEX_BOUNDED_OPERATIONAL_AUTHORITY.md` updated with trigger points, productive wait-work categories, read-only audit categories, finding classifications, reporting requirements, and forbidden wait-time actions.
+- NA-0576 evidence and testplan updated with the continuous CI wait-work markers.
+- Recovered patch issue: first policy patch used mismatched START_HERE context. Corrective action was to reread exact line numbers and reapply with tighter context. Final result: PASS.
+- Governance patch paths: `START_HERE.md`, `AGENTS.md`, `docs/ops/CODEX_BOUNDED_OPERATIONAL_AUTHORITY.md`, `docs/governance/evidence/NA-0576_project_wide_bounded_codex_operational_authority_hardening.md`, `tests/NA-0576_project_wide_bounded_codex_operational_authority_hardening_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: `na-0576-continuous-ci-wait-work-amendment`.
+- PR title: `NA-0576: add continuous CI wait work policy`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No remote action, SSH, scp, Tailscale, remote command, qsl-server start/run/deployment, qsl-server source mutation or PR, qsl-attachments command/clone/build/run/mutation, qsc command, qsc send/receive, workflow dispatch/rerun, qsl-protocol runtime/source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0575 codex-executed qsl-server start/bind inspection update
 
 - Directive: QSL-DIR-2026-06-30-501.

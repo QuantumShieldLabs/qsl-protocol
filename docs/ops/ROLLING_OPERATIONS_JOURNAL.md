@@ -40318,3 +40318,40 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - This closeout does not implement NA-0577 and does not execute remote action, SSH, scp, Tailscale, remote command, qsl-server start, qsl-server run, qsl-server deployment, qsl-server source mutation, qsl-server PR, qsl-attachments command/clone/build/run/mutation, qsc command, qsc send/receive, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation.
 - No endpoint values, private port values, topology, token values, Authorization headers, process identities, payloads, response bodies, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, API keys, raw private logs, or private material are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0577 remote qsl-server start/bind proof completion update
+
+- Directive: QSL-DIR-2026-06-30-506.
+- Begin timestamp (UTC): 2026-06-30T22:11:59Z.
+- Repo path: `/srv/qbuild/work/NA-0577/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0577_qsl_server_start_bind_proof_completion_20260630T221159Z`.
+- qwork proof files were copied and verified before fetch, remote action, or repository mutation; Codex did not run qwork, qstart, or qresume.
+- qwork proof verified lane NA-0577, repo qsl-protocol, path `/srv/qbuild/work/NA-0577/qsl-protocol`, branch main, upstream origin/main, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0577, and shared cargo target ready.
+- Pre-fetch and post-fetch `HEAD`/`origin/main`: `bff5d8379100`.
+- Disk watermark: root and backup filesystems below the 95 percent stop threshold; `/backup/qsl` mounted.
+- Startup queue proof: READY_COUNT 1; READY NA-0577; NA-0576 DONE; NA-0575 DONE.
+- Startup decision proof: D-1142 once and Accepted; D-1143 once and Accepted; D-1144 once and Accepted; D-1145 absent before patch; D-1146 absent; duplicate decision entry count zero.
+- Current main required-check classification: public-safety success, advisories success, no failed visible check-runs, no pending visible check-runs, root cargo audit success, nested qsc fuzz cargo audit success, locked metadata success, and Cargo drift absent.
+- Recovered proof issue RF-001: inheritance proof parser used overly exact capitalization and phrase matching. Corrective action: reran with section-based, case-insensitive, source-set-aware checks. Final result: PASS.
+- Recovered proof issue RF-002: remote script static review treated HTTP route-shape probe paths as filesystem paths. Corrective action: separated HTTP route literals from filesystem write checks. Final result: PASS.
+- Recovered proof issue RF-003: SSH readiness stdout used the known directive-form literal trailing marker shape; no SSH rerun occurred. Corrective action: classified exit-0 known marker output as ready. Final result: PASS.
+- Recovered proof issue RF-004: remote inspection private-material scan matched the directive-required safe field name `account_or_authorized_keys_required_class`. Corrective action: allowlisted the required field name while preserving value and disclosure scans. Final result: PASS.
+- D505, D501, D500, D-1142, D-1143, and D-1144 inheritance was reviewed and accepted.
+- Bounded Codex operational authority applied: Tier 1 redacted diagnostics and Tier 2 bounded test action only after safety gates; Tier 3 and Tier 4 remained forbidden.
+- Remote scripts generated proof-root-only and statically reviewed.
+- SSH readiness command executed exactly once and classified `SSH_QSL_SERVER_START_BIND_COMPLETION_READY`.
+- Remote inspection executed exactly once and classified `QSL_SERVER_START_BIND_COMPLETION_TEMP_LOOPBACK_SMOKE_SAFE`.
+- Bounded start executed exactly once and classified `QSL_SERVER_BOUNDED_START_FAILED`.
+- Bounded postcheck skipped because bounded start failed and listener was not already ready.
+- Cleanup executed exactly once and classified `QSL_SERVER_BOUNDED_CLEANUP_DONE`.
+- Aggregate private-material review passed.
+- Result classification: `QSL_SERVER_START_BIND_INSUFFICIENT_PROOF`.
+- Selected successor: `NA-0578 -- QSL Remote qsl-server Start / Bind Proof Completion Follow-Up Harness`.
+- Governance patch paths: NA-0577 evidence doc, NA-0577 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: `na-0577-qsl-server-start-bind-proof-completion`.
+- PR title: `NA-0577: complete qsl-server start bind proof`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
+- No sudo, systemctl, service, Tailscale, firewall, account, shell, authorized_keys mutation, writes outside `/home/qslcodex/qsl-remote-test/`, qsc send/receive, workflow dispatch/rerun, qsl-attachments command/mutation, qsl-server source mutation, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.

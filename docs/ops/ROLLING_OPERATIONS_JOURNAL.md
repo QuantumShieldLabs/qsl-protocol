@@ -40155,6 +40155,39 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0576 project-wide bounded Codex operational authority hardening update
+
+- Directive: QSL-DIR-2026-06-30-502.
+- Begin timestamp (UTC): 2026-06-30T16:31:04Z.
+- Repo path: `/srv/qbuild/work/NA-0576/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0576_project_wide_bounded_codex_operational_authority_20260630T163104Z`.
+- qwork proof files were copied and verified before fetch or repository mutation; Codex did not run qwork, qstart, or qresume.
+- qwork proof verified lane NA-0576, repo qsl-protocol, path `/srv/qbuild/work/NA-0576/qsl-protocol`, branch main, upstream origin/main, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0576, and shared cargo target ready.
+- Pre-fetch and post-fetch `HEAD`/`origin/main`: `16faab413e60`.
+- Disk and mount gates passed before fetch; `/backup/qsl` was mounted and root disk was below the stop threshold.
+- Startup queue proof: READY_COUNT 1; READY NA-0576; NA-0575 DONE; NA-0574 DONE.
+- Startup decision proof: D-1140 once and Accepted; D-1141 once and Accepted; D-1142 absent before patch; D-1143 absent; duplicate decision count zero.
+- Current main required-check classification: public-safety success, advisories success, suite2-vectors success, no failed required contexts, no pending required contexts, root cargo audit success, nested qsc fuzz cargo audit success, locked metadata success, cargo fmt success, qsc-adversarial shell syntax success, and no Cargo manifest/lock drift.
+- Recovered proof issue RF-001: initial current-main required-check classifier did not see PR-scoped `goal-lint` and aggregate CodeQL as merge-commit check-run names. Corrective action: applied D498 visibility recovery using PR #1424 statusCheckRollup plus main check-run evidence. Final result: PASS.
+- D500 consumed: stopped only because no operator proof package existed; no repo mutation, no remote action, and no qsl-server start occurred.
+- D501/D-1140 consumed: bounded Codex operational authority was recorded; remote inspection classified insufficient proof; qsl-server start was skipped; result classification was `QSL_SERVER_BIND_START_INSUFFICIENT_PROOF`.
+- D-1141 consumed: NA-0575 DONE and NA-0576 restored READY.
+- Operator request consumed: project-wide smoother workflow requires durable bounded authority, not unlimited authority.
+- Durable policy document created: `docs/ops/CODEX_BOUNDED_OPERATIONAL_AUTHORITY.md`.
+- START_HERE updated with the concise project-wide policy pointer and opt-in boundaries.
+- AGENTS updated with Codex-facing authority, redaction, stop, qwork/qstart/qresume, private-material, check, and claim rules.
+- qsl-server technical thread preserved: qsl-server dependency audit recovered, qsl-server staged on `inspiron`, qsl-server start skipped, D501 inspection insufficient.
+- Selected technical successor after hardening: `NA-0577 -- QSL Remote qsl-server Start / Bind Proof Completion Harness`.
+- Result classification: `PROJECT_WIDE_BOUNDED_CODEX_OPERATIONAL_AUTHORITY_HARDENING_PASS`.
+- Governance patch paths: `START_HERE.md`, `AGENTS.md`, `docs/ops/CODEX_BOUNDED_OPERATIONAL_AUTHORITY.md`, `docs/governance/evidence/NA-0576_project_wide_bounded_codex_operational_authority_hardening.md`, `tests/NA-0576_project_wide_bounded_codex_operational_authority_hardening_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: `na-0576-project-wide-bounded-codex-authority`.
+- PR title: `NA-0576: harden bounded Codex operational authority`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No remote action, SSH, scp, Tailscale, remote command, qsl-server start/run/deployment, qsl-server source mutation or PR, qsl-attachments command/clone/build/run/mutation, qsc command, qsc send/receive, workflow dispatch/rerun, qsl-protocol runtime/source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0575 codex-executed qsl-server start/bind inspection update
 
 - Directive: QSL-DIR-2026-06-30-501.

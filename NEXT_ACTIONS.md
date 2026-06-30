@@ -32691,7 +32691,7 @@ Closeout evidence:
 ---
 
 ### NA-0572 — QSL qsl-server Dependency Audit Recovery Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -32724,6 +32724,66 @@ Forbidden scope:
 - qsc send/receive;
 - remote action;
 - workflow dispatch/rerun;
+- public-site/Cloudflare mutation;
+- private material publication;
+- public/production/security overclaim.
+
+Closeout evidence:
+- D-1134 accepted NA-0572 qsl-server dependency audit recovery implementation
+  after qsl-protocol PR #1417 merged at `39832069c469` from head
+  `d0e5d3f5e05d`.
+- qsl-server PR #57 merged at `6bf61d439fa2` from head `e32f48754ab0`.
+- qsl-server source-of-truth mutation was `Cargo.lock` only, updating
+  `quinn-proto 0.11.14` to `0.11.15`.
+- qsl-server `Cargo.toml`, source paths, and workflow paths were unchanged.
+- qsl-server cargo audit, locked metadata, build, test, fmt, and `rust` checks
+  passed after merge.
+- qsl-protocol post-merge public-safety, advisories, and suite2-vectors
+  completed success on `39832069c469`.
+- No qsl-server deployment, qsl-attachments work, remote action, qsc
+  send/receive, workflow dispatch/rerun, qsl-protocol source/script/workflow/
+  dependency mutation, public-site mutation, Cloudflare mutation, or
+  private-material publication occurred.
+
+---
+
+### NA-0573 — QSL Remote Relay qsl-server Inspiron Deployment Recovery Retry Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Retry the qsl-server-centered `inspiron` deployment recovery now that qsl-server
+source/build audit has been remediated. Codex may acquire qsl-server source
+under proof root, audit/build it, stage qsl-server under the qslcodex test
+workspace, start only a non-privileged loopback qsl-server process if a safe
+no-secret command and bind target are available, and verify canonical qsl-server
+route shape with no secrets and no response-body publication. Codex must stop
+before sudo, systemctl, Tailscale, firewall, account/shell/authorized_keys,
+root-owned service, qsl-attachments, qsc send/receive, workflow
+dispatch/rerun, source/workflow/dependency mutation, public-site mutation,
+Cloudflare mutation, or private-material publication.
+
+Allowed scope:
+- docs/governance/evidence/NA-0573_remote_relay_qsl_server_inspiron_deployment_recovery_retry_harness.md
+- tests/NA-0573_remote_relay_qsl_server_inspiron_deployment_recovery_retry_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-only qsl-server source/build artifacts
+- proof-root-only SSH/scp outputs
+- proof-root-only generated remote scripts
+- proof-root-only remote inventory/stage/start/postcheck outputs
+- private-material scan/redaction proof
+- successor selection
+
+Forbidden scope:
+- qwork/qstart/qresume execution by Codex;
+- qsl-server source mutation or PR;
+- qsl-attachments command, clone, build, run, or mutation;
+- qsc send/receive;
+- workflow dispatch/rerun unless later exact directive authorizes verification;
+- root/systemd/Tailscale/firewall/account/authorized_keys mutation;
+- qsl-protocol source/script/workflow/dependency mutation;
 - public-site/Cloudflare mutation;
 - private material publication;
 - public/production/security overclaim.

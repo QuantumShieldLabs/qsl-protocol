@@ -40285,3 +40285,36 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - PR merge commit: pending at journal authoring.
 - No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0576 closeout and NA-0577 restoration update
+
+- Directive: QSL-DIR-2026-06-30-505.
+- Begin timestamp (UTC): 2026-06-30T20:30:15Z.
+- Repo path: `/srv/qbuild/work/NA-0576/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0576_closeout_restore_na0577_after_wait_work_amendment_20260630T203015Z`.
+- qwork proof files were copied and verified before fetch or repository mutation; Codex did not run qwork, qstart, or qresume.
+- qwork proof verified lane NA-0576, repo qsl-protocol, path `/srv/qbuild/work/NA-0576/qsl-protocol`, branch main, upstream origin/main, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0576, and shared cargo target ready.
+- Pre-fetch and post-fetch `HEAD`/`origin/main`: `070791c43b36`.
+- Disk watermark: `/` 33 percent used; `/backup/qsl` 35 percent used and mounted.
+- Startup queue proof: READY_COUNT 1; READY NA-0576; NA-0575 DONE.
+- Startup decision proof: D-1140 once; D-1141 once; D-1142 once and Accepted; D-1143 once and Accepted; D-1144 absent before closeout; D-1145 absent; duplicate decision entry count zero.
+- Recovered proof issue: the first qwork verification helper used an invalid Python list/set union while building an evidence subset. Corrective action was to rerun with a normalized set. Final result: PASS.
+- Recovered proof issue: the first queue parser was too strict for `NEXT_ACTIONS.md` separator spacing and returned a false zero-READY parse. Corrective action was to rerun with a line-oriented `### NA-` parser. Final result: PASS.
+- Recovered proof issue: the first inheritance parser looked for accepted status within too small a line window. Corrective action was to rerun with section-based decision parsing. Final result: PASS.
+- Amendment PR #1426 was verified merged at `070791c43b36` from head `2599acd28a02`.
+- Amendment post-merge wait started because `public-safety` and `qsc-linux-full-suite` were still in progress on `070791c43b36`.
+- Productive CI wait-work was performed before and during the gate wait: check/status/branch-protection snapshots, if-green/if-red table, post-merge closeout checklist, read-only wait-work policy audit, read-only qsl-server/NA-0577 technical-thread audit, inheritance review, and known response-section drafting.
+- Amendment post-merge gate resolved green at bounded polling iteration 34: public-safety success, advisories success, suite2-vectors success, no failed visible check-runs, and no pending visible check-runs.
+- D502, D503, D504, D-1142, and D-1143 inheritance was reviewed; D-1142 and D-1143 are accepted once.
+- START_HERE, AGENTS, and `docs/ops/CODEX_BOUNDED_OPERATIONAL_AUTHORITY.md` contain the durable continuous CI wait-work policy from D-1143.
+- D-1144 records NA-0576 closeout and NA-0577 restoration.
+- NA-0576 is marked DONE.
+- NA-0577 is restored READY as the exact qsl-server start/bind proof completion harness successor.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0576_closeout_restore_na0577_testplan.md`.
+- Branch: `na-0576-closeout-restore-na0577`.
+- PR title: `NA-0576: closeout and restore NA-0577`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- This closeout does not implement NA-0577 and does not execute remote action, SSH, scp, Tailscale, remote command, qsl-server start, qsl-server run, qsl-server deployment, qsl-server source mutation, qsl-server PR, qsl-attachments command/clone/build/run/mutation, qsc command, qsc send/receive, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation.
+- No endpoint values, private port values, topology, token values, Authorization headers, process identities, payloads, response bodies, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, API keys, raw private logs, or private material are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.

@@ -106,6 +106,25 @@ Authority split:
 - `DOC-PROG-001` and `DOC-AUD-001` are strategic/supporting only and must not reorder or override the queue; and
 - `DOC-OPS-001` through `DOC-OPS-004` plus the rolling-journal template are operational guidance/supporting memory only and must not override live repo truth.
 
+### 1.7 Bounded Codex Operational Authority
+
+Project-wide bounded Codex operational authority is defined in
+`docs/ops/CODEX_BOUNDED_OPERATIONAL_AUTHORITY.md`.
+
+The authority model does not grant default remote action. Operational tiers
+require active directive opt-in with an exact tier, host/workspace or local
+path, command family, allowed mutation paths, raw-output quarantine path,
+redaction/publication policy, rollback/manifest requirements, stop conditions,
+and final response claim boundaries.
+
+Tier 1 redacted diagnostics and Tier 2 bounded test action are allowed on
+approved test hosts/workspaces only when the active directive names exact
+boundaries. Tier 3 operator/admin action remains operator-owned unless a later
+directive explicitly authorizes that privileged lane. The model does not weaken
+qwork proof, the one-READY queue invariant, evidence gates, public-safety,
+advisories, required-check visibility, private-material controls, or claim
+boundaries.
+
 ## 2. Non-negotiable constraints (fail-closed)
 
 ### 2.1 Safety rails on changes

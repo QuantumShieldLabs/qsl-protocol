@@ -139,6 +139,15 @@ If CI/workflow integration requires path tuning, do so without weakening enforce
 - All assistants and Codex sessions MUST follow docs/dev/DOC-DEV-003_Assistant_Operating_Rules_v1.0.0_DRAFT.md.
 - In particular: every Codex directive must be fully contained in a code block (or split into multiple code-block directives).
 
+## Bounded Codex operational authority
+- Codex may use bounded operational authority only when the active directive explicitly opts in and names the authority tier, host/workspace or local path, exact command family, allowed mutation paths, raw-output quarantine path, redaction/publication policy, rollback/manifest requirements, stop conditions, and final response claim boundaries.
+- Codex MUST NOT infer operational authority from memory, prior lanes, convenience, or the existence of `docs/ops/CODEX_BOUNDED_OPERATIONAL_AUTHORITY.md`.
+- Tier 1 diagnostics and Tier 2 bounded test action require directive-specific authorization and approved test-host/workspace scope. Raw output must remain proof-root-only; repository evidence and final responses may publish safe classes only.
+- Codex MUST stop before Tier 3 operator/admin action unless the active directive exactly authorizes the privileged lane. This includes sudo, systemd, firewall, Tailscale, account, shell, authorized_keys, root-owned service, backup, and other operator/admin actions.
+- Codex MUST stop before Tier 4 forbidden action. This includes secret publication, destructive unbounded mutation, workflow weakening, out-of-scope protocol/crypto/security semantic changes, and public/production/security overclaims.
+- Codex MUST NOT run `qwork`, `qstart`, or `qresume`.
+- Codex MUST NOT publish private material and MUST NOT weaken checks, evidence gates, scope gates, public-safety, advisories, one-READY queue discipline, or claim boundaries.
+
 ## Post-fix hardening review (mandatory)
 After any issue fix, the assistant MUST complete and report a post-fix hardening review before declaring the work complete. The review MUST include:
 1. Correctness under stress.

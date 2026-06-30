@@ -30850,3 +30850,28 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0578 qsl-server failed-start cause classification and corrected loopback proof to D-1147.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records proof gates, recovered parser/scanner/invocation issues, remote classifications, result classification, selected successor, validation/CI notes, and no-action/no-claim boundaries.
   - **References:** NA-0578; selected future NA-0579; D-1147; D-1146; D-1145; qsl-protocol main `75cd8e8b572c`; `docs/governance/evidence/NA-0578_qsl_server_failed_start_cause_corrected_loopback_proof_harness.md`; `tests/NA-0578_qsl_server_failed_start_cause_corrected_loopback_proof_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1148
+  - **Title:** NA-0578 closeout and NA-0579 restoration
+  - **Date:** 2026-06-30
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0578 is closed after qsl-protocol implementation PR #1430 merged at `fe63eb1745df` from head `f2856ac6b2f7`. D-1147 exists once and is Accepted. D-1147 selected result classification `QSL_SERVER_FAILED_START_INSUFFICIENT_PROOF` and exact successor `NA-0579 -- QSL Remote qsl-server Failed Start Proof Completion Follow-Up Harness`. Post-merge public-safety completed success. Post-merge advisories completed success. No failed required checks were classified. NA-0578 is marked DONE, and NA-0579 is restored as exactly one READY successor.
+  - **Selected successor:** NA-0579 is restored READY with Goals G1, G2, G3, G4, G5. It must complete the remaining failed-start proof after NA-0578 confirmed the original bind-argument harness bug but did not produce corrected listener or route-shape proof. It may use only D-1147-selected bounded diagnostic or proof actions and must not publish private bind, endpoint, topology, token, payload, body, process identity, command line, or key material.
+  - **Boundary proof:** No NA-0579 implementation occurred. No remote action occurred during closeout. No SSH, scp, Tailscale, remote command, qsl-server start, qsl-server deployment, qsl-server mutation, qsl-attachments command/mutation, qsc send/receive, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency mutation, public-site mutation, Cloudflare mutation, or private-material publication occurred. No endpoint values, private port values, topology, token values, Authorization values, command lines, process identities, payloads, response bodies, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys were published.
+  - **Claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-build claim is made. No perfect-crypto claim is made.
+  - **Security invariants introduced/changed:**
+    - Closeout changes no protocol, wire, crypto, auth, state-machine, qsc runtime, qsl-server runtime/source, qsl-attachments runtime/source, qsl-protocol source, repository script, workflow, dependency, lockfile, public-site, or Cloudflare semantics.
+    - NA-0579 is restored only as the D-1147-selected follow-up proof completion harness.
+    - NA-0579 implementation is not performed during closeout.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Leave NA-0578 READY after D-1147 merged (rejected because D-1147 selected exact NA-0579 successor and post-merge checks are green).
+    - Restore the expected-bind alignment successor (rejected because NA-0578 did not prove corrected temporary loopback route-shape pass).
+    - Implement NA-0579 during closeout (rejected as out of scope).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0578 DONE and restores NA-0579 READY using the exact D-1147-selected proof completion successor block.
+    - `tests/NA-0578_closeout_restore_na0579_testplan.md` records closeout markers, implementation PR merge proof, D-1147 acceptance, post-merge public-safety/advisories proof, D-1148 restoration proof, exact successor proof, no NA-0579 implementation, no remote action, no qsl-server start, no qsc send/receive, no workflow dispatch/rerun, no qsl-attachments, no private-material publication, no public/production/security overclaim, and the one-READY invariant.
+    - `TRACEABILITY.md` maps NA-0578 closeout and NA-0579 restoration to D-1148.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the NA-0578 closeout state, D-1148, post-merge proof, and restored NA-0579 successor.
+  - **References:** NA-0578; NA-0579; D-1148; D-1147; qsl-protocol PR #1430; qsl-protocol merge `fe63eb1745df`; qsl-protocol head `f2856ac6b2f7`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0578_closeout_restore_na0579_testplan.md`

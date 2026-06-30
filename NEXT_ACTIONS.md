@@ -33011,12 +33011,43 @@ Closeout evidence:
 ---
 
 ### NA-0578 — QSL Remote qsl-server Start / Bind Proof Completion Follow-Up Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
 Complete the remaining qsl-server start/bind proof after NA-0577 preserved
 unknown/not_checked values. Codex may use only the D-1145-selected bounded
+diagnostic or proof actions and must not publish private bind, endpoint,
+topology, token, payload, body, process identity, or key material.
+
+Closeout evidence:
+- qsl-protocol implementation PR #1430 merged at `fe63eb1745df`.
+- D-1147 exists once and is Accepted.
+- D-1147 selected result `QSL_SERVER_FAILED_START_INSUFFICIENT_PROOF`.
+- D-1147 selected exact successor `NA-0579 -- QSL Remote qsl-server Failed Start Proof Completion Follow-Up Harness`.
+- D-1147 confirmed the NA-0577 failed-start cause as `QSL_SERVER_FAILED_START_CAUSE_HARNESS_BIND_ARG_BUG_CONFIRMED`.
+- Post-merge public-safety completed success.
+- Post-merge advisories completed success.
+- No failed required checks were classified.
+- NA-0578 did not prove corrected listener or route-shape readiness.
+- NA-0578 did not publish endpoint values, private port values, topology,
+  token values, Authorization values, command lines, process identities,
+  payloads, response bodies, authorized_keys content, key material, raw private
+  logs, or private material.
+- NA-0578 closeout does not implement NA-0579 and does not execute remote
+  action, start/run/deploy qsl-server, run qsc send/receive, dispatch/rerun
+  workflows, mutate source, mutate dependencies, publish private material, or
+  make public/production readiness or security overclaims.
+
+---
+
+### NA-0579 — QSL Remote qsl-server Failed Start Proof Completion Follow-Up Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Complete the remaining failed-start proof after NA-0578 preserved
+unknown/not_checked values. Codex may use only the D-1147-selected bounded
 diagnostic or proof actions and must not publish private bind, endpoint,
 topology, token, payload, body, process identity, or key material.
 

@@ -30658,3 +30658,29 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0575 redacted inspection and bounded-start gate to D-1140.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records proof gates, recovered proof-review issues, remote classifications, result classification, selected successor, validation/CI watch items, and no-action/no-claim boundaries.
   - **References:** NA-0575; selected future NA-0576; D-1140; D-1139; D-1138; D500 response; D499 response; D498 response; qsl-protocol main `f159415ffc8a`; `docs/governance/evidence/NA-0575_remote_qsl_server_start_bind_operator_proof_capture_harness.md`; `tests/NA-0575_remote_qsl_server_start_bind_operator_proof_capture_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1141
+  - **Title:** NA-0575 closeout and NA-0576 restoration
+  - **Date:** 2026-06-30
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0575 is closed after qsl-protocol implementation PR #1423 merged at `5c1cd64d624c` from head `f1d00dfe6deb`. D-1140 exists once and is Accepted. D-1140 selected result classification `QSL_SERVER_BIND_START_INSUFFICIENT_PROOF` and exact successor `NA-0576 -- QSL Remote qsl-server Start / Bind Proof Completion Authorization Plan`. Post-merge public-safety completed success. Post-merge advisories completed success. No failed required checks were classified after the D498 goal-lint visibility recovery. NA-0575 is marked DONE, and NA-0576 is restored as exactly one READY successor.
+  - **Selected successor:** NA-0576 is restored READY with Goals G1, G2, G3, G4, G5. It must authorize the minimum additional non-secret proof needed after Codex-executed inspection preserved unknown/not_checked values and could not safely authorize start. It must not request or publish private bind values, endpoint values, topology, token values, Authorization headers, process identities, payloads, response bodies, authorized_keys content, key material, raw private logs, or secret values.
+  - **Closeout proof:** Local main was fast-forwarded to origin/main at `5c1cd64d624c`. Worktree, index, and untracked state were clean before closeout edits. Post-merge proof verified D-1140 once, D-1141 absent before this patch, READY_COUNT 1 with READY NA-0575, duplicate decision count zero, public-safety success, advisories success, no failed required checks after D498 goal-lint visibility recovery, and no forbidden path mutation.
+  - **Boundary proof:** No NA-0576 implementation occurred. No remote action occurred during closeout. No SSH, scp, Tailscale, remote command, qsl-server start, qsl-server deployment, qsl-server mutation, qsl-attachments command/mutation, qsc send/receive, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency mutation, public-site mutation, Cloudflare mutation, or private-material publication occurred. No endpoint values, private port values, topology, token values, Authorization headers, process identities, payloads, response bodies, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys were published.
+  - **Claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-build claim is made. No perfect-crypto claim is made.
+  - **Security invariants introduced/changed:**
+    - Closeout changes no protocol, wire, crypto, auth, state-machine, qsc runtime, qsl-server runtime/source, qsl-attachments runtime/source, qsl-protocol source, repository script, workflow, dependency, lockfile, public-site, or Cloudflare semantics.
+    - NA-0576 is restored only as the D-1140-selected non-secret proof completion authorization successor.
+    - NA-0576 implementation is not performed during closeout.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Leave NA-0575 READY after D-1140 merged (rejected because D-1140 selected exact NA-0576 successor and post-merge checks are green).
+    - Restore a relay-test verification successor (rejected because D-1140 classified insufficient proof and no listener was started or classified relay-ready).
+    - Implement NA-0576 during closeout (rejected as out of scope).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0575 DONE and restores NA-0576 READY using the exact D-1140-selected proof completion authorization successor block.
+    - `tests/NA-0575_closeout_restore_na0576_testplan.md` records closeout markers, implementation PR merge proof, D-1140 acceptance, post-merge public-safety/advisories proof, D-1141 restoration proof, exact successor proof, no NA-0576 implementation, no remote action, no qsl-server start, no qsc send/receive, no workflow dispatch/rerun, no qsl-attachments, no private-material publication, no public/production/security overclaim, and the one-READY invariant.
+    - `TRACEABILITY.md` maps NA-0575 closeout and NA-0576 restoration to D-1141.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the NA-0575 closeout state, D-1141, post-merge proof, and restored NA-0576 successor.
+  - **References:** NA-0575; NA-0576; D-1141; D-1140; qsl-protocol PR #1423; qsl-protocol merge `5c1cd64d624c`; qsl-protocol head `f1d00dfe6deb`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0575_closeout_restore_na0576_testplan.md`

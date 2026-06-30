@@ -32835,7 +32835,7 @@ Closeout evidence:
   paths, or publish private material.
 
 ### NA-0575 — QSL Remote qsl-server Start / Bind Operator Proof Capture Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -32875,6 +32875,55 @@ Forbidden scope:
 - private material publication;
 - public-readiness, production-readiness, vulnerability-free, bug-free, or
   perfect-build claim.
+
+Closeout evidence:
+- qsl-protocol implementation PR #1423 merged at `5c1cd64d624c`.
+- D-1140 records result classification
+  `QSL_SERVER_BIND_START_INSUFFICIENT_PROOF`.
+- D-1140 selected the exact NA-0576 successor below.
+- NA-0575 did not start qsl-server, run qsc send/receive, dispatch or rerun
+  workflows, run qsl-attachments, mutate qsl-server source, mutate
+  qsl-protocol source/script/workflow/dependency paths, publish private
+  material, or make public/production/security readiness claims.
+
+### NA-0576 — QSL Remote qsl-server Start / Bind Proof Completion Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize the minimum additional non-secret proof needed after Codex-executed
+inspection preserved unknown/not_checked values and could not safely authorize
+start.
+
+Allowed scope:
+- non-secret proof completion plan for the qsl-server start/bind blocker;
+- coarse-class evidence needed to resolve unknown/not_checked bind/start fields;
+- DECISIONS.md;
+- TRACEABILITY.md;
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md;
+- tests and governance evidence named by the future directive.
+
+Forbidden scope:
+- qwork/qstart/qresume execution by Codex;
+- qsl-server start unless a later directive authorizes the exact command and
+  redaction boundary;
+- private bind, endpoint, topology, token, Authorization, process identity,
+  payload, response body, authorized_keys, key material, raw private log, or
+  secret value publication;
+- sudo/systemctl/service/Tailscale/firewall/account/shell/authorized_keys
+  mutation;
+- qsc send/receive;
+- workflow dispatch/rerun unless a later directive explicitly authorizes it;
+- qsl-attachments command, clone, build, run, or mutation;
+- qsl-server source mutation;
+- qsl-protocol source/script/workflow/dependency mutation unless explicitly
+  named by a future directive;
+- public-site/Cloudflare mutation;
+- no public-readiness claim;
+- no production-readiness claim;
+- no vulnerability-free claim;
+- no bug-free claim;
+- no perfect-build claim.
 
 ---
 

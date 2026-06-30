@@ -40041,3 +40041,37 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - PR merge commit: pending at journal authoring.
 - No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, or secret environment values are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0573 required-check recovery and qsl-server deployment retry update
+
+- Directive: QSL-DIR-2026-06-30-498.
+- Begin timestamp (UTC): 2026-06-30T01:57:03Z.
+- Repo path: `/srv/qbuild/work/NA-0573/qsl-protocol`.
+- Proof root: D498 qsl-server deployment retry proof package.
+- qwork proof files were copied from the NA-0573 lane workspace and verified before fetch, qsl-server source acquisition, SSH, scp, remote scripts, or repository mutation; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp `2026-06-30T01:55:29Z`, lane NA-0573, repo qsl-protocol, HEAD `c89c758d4174`, origin/main `c89c758d4174`, and clean worktree/index/untracked state were verified.
+- Fetch was performed only after proof/live ref match, disk proof below threshold, and `/backup/qsl` mount proof passed.
+- Startup queue proof: READY_COUNT 1; READY NA-0573; NA-0572 DONE; NA-0571 DONE.
+- Startup decision proof: D-1134 once and Accepted; D-1135 once and Accepted; D-1136 absent before patch; D-1137 absent before patch; duplicate decision record count zero.
+- Required-check recovery model applied on `c89c758d4174`: public-safety success, advisories success, suite2-vectors success, goal-lint recovered from merged PR #1418 head success, CodeQL recovered through aggregate/PR-head success, and no failed required checks.
+- qsl-protocol dependency-health proof before qsl-server acquisition: root cargo audit passed, nested qsc fuzz cargo audit passed, and Cargo.toml/Cargo.lock/fuzz lock drift was empty.
+- D497 consumed as a pre-implementation stop for required-check visibility ambiguity. D496, D-1134, and D-1135 consumed as qsl-server dependency audit recovery and NA-0573 restoration proof.
+- qsl-server source acquired proof-root-only with `gh repo clone` at `6bf61d439fa2`; Cargo.lock contains `quinn-proto 0.11.15`.
+- qsl-server validation passed: locked metadata, cargo audit, release build, cargo test, and cargo fmt. Binary manifest recorded proof-root-only with SHA-256 prefix `a0de07ec8ae4`.
+- Remote scripts generated proof-root-only and statically reviewed. Review passed: JSON-only stdout, no shell=True, no forbidden service/Tailscale/firewall/authorized_keys actions, no qsc send/receive, no qsl-attachments, and qslcodex workspace write scope.
+- SSH readiness command executed exactly once and classified `SSH_QSL_SERVER_RECOVERY_READY`; exact command output shape included the directive-form trailing literal `n`.
+- Remote inventory classified `QSL_SERVER_INVENTORY_STAGE_REQUIRED`: workspace exists/writable, qsc exists/executable, qsl-server missing, expected bind unavailable, staging needed.
+- qsl-server binary transferred to the authorized remote tmp path and staged under `/home/qslcodex/qsl-remote-test/`; stage classified `QSL_SERVER_STAGE_INSTALLED_OR_REPLACED`, rollback manifest created, previous binary backup class none previous.
+- Remote start did not run. Classification: `QSL_SERVER_START_EXPECTED_BIND_UNAVAILABLE` because no safe expected internal loopback bind target was available from authorized sources.
+- Remote postcheck classified `QSL_SERVER_POSTCHECK_BINARY_READY_LISTENER_NOT_READY`; stage manifest and rollback manifest present; start manifest absent.
+- Result classification: `QSL_SERVER_RECOVERY_EXPECTED_BIND_UNAVAILABLE_OPERATOR_ACTION_REQUIRED`.
+- Selected successor: `NA-0574 -- QSL Remote qsl-server Start / Bind Operator Proof Authorization Plan`.
+- Recovered proof issues: malformed GitHub status/check-runs endpoint corrected once; local AST-summary heredoc redirection corrected once; local and aggregate private-material scans preserved STOP artifacts while correcting explicit public-placeholder and public-metadata URL false positives. Final aggregate private-material review passed by retained scan evidence plus manual adjudication of public metadata URL false positives.
+- Governance patch paths: NA-0573 evidence doc, NA-0573 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: pending at journal authoring.
+- PR title: `NA-0573: recover check proof and retry qsl-server relay recovery`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
+- No sudo, systemctl, service, Tailscale, firewall, account, shell, authorized_keys, qsl-server source, qsl-attachments, qsc send/receive, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency/lockfile, public-site, Cloudflare, qsl-backup, or backup mutation occurred.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced.

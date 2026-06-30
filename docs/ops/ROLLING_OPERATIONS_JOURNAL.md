@@ -39863,6 +39863,39 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - qsl-protocol PR merge commit: pending at journal authoring.
 - No qsl-server deployment, qsl-server service run, qsl-attachments work, SSH, scp, Tailscale, remote command, qsc command, qsc send/receive, qsc E2EE, workflow dispatch, workflow rerun, qwork/qstart/qresume execution, qsl-backup execution, backup mutation, public-site mutation, or Cloudflare mutation occurred.
 - No qsl-protocol source, script, workflow, dependency, lockfile, qsc source/test/fuzz/Cargo, qsl-server source, qsl-server workflow, qsl-attachments, public-site, Cloudflare, raw-log/raw-artifact repository-doc, or private-material mutation is introduced.
+- No private endpoints, auth material, route-capability material, payloads, response bodies, process identities, key material, or secret environment values are published.
+- No public-readiness claim is introduced.
+- No production-readiness claim is introduced.
+- No public-internet-readiness claim is introduced.
+- No external-review-complete claim is introduced.
+- No vulnerability-free claim is introduced.
+- No bug-free claim is introduced.
+- No perfect-build claim is introduced.
+
+## NA-0572 closeout and NA-0573 restoration update
+
+- Directive: QSL-DIR-2026-06-29-496 optional closeout packet.
+- Repo path: `/srv/qbuild/work/NA-0572/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0572_qsl_server_dependency_audit_recovery_20260629T233246Z`.
+- Implementation PR #1417 merged at `39832069c469` from head `d0e5d3f5e05d`.
+- D-1134 exists once and is Accepted.
+- qsl-server recovery PR #57 merged at `6bf61d439fa2` from head `e32f48754ab0`.
+- qsl-server source-of-truth recovery was `Cargo.lock` only and updated `quinn-proto 0.11.14` to `0.11.15`.
+- qsl-server post-merge audit, locked metadata, build, test, fmt, and `rust` check passed.
+- qsl-protocol post-merge public-safety completed success on `39832069c469`.
+- qsl-protocol post-merge advisories completed success on `39832069c469`.
+- qsl-protocol post-merge suite2-vectors completed success on `39832069c469`.
+- No failed required checks were classified.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0572_closeout_restore_na0573_testplan.md`.
+- NA-0572 is marked DONE.
+- NA-0573 is restored READY using the exact D-1134-selected qsl-server Inspiron deployment recovery retry successor block.
+- D-1135 records NA-0572 closeout and NA-0573 restoration.
+- This closeout does not implement NA-0573 and does not execute qsl-server deployment, qsl-server service start, qsl-attachments work, remote action, SSH, scp, Tailscale, qsc send/receive, workflow dispatch, workflow rerun, public-site mutation, Cloudflare mutation, qwork/qstart/qresume, qsl-backup, or backup mutation.
+- No qsl-protocol source, script, workflow, dependency, lockfile, qsc source/test/fuzz/Cargo, qsl-server source, qsl-server workflow, qsl-attachments, public-site, Cloudflare, raw-log/raw-artifact repository-doc, or private-material mutation is introduced.
+- qsl-protocol closeout branch: `na-0572-closeout-restore-na0573`.
+- qsl-protocol closeout PR title: `NA-0572: closeout and restore NA-0573`.
+- qsl-protocol closeout PR: pending at journal authoring.
+- qsl-protocol closeout PR merge commit: pending at journal authoring.
 - No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, or secret environment values are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced.
 

@@ -40068,10 +40068,36 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Selected successor: `NA-0574 -- QSL Remote qsl-server Start / Bind Operator Proof Authorization Plan`.
 - Recovered proof issues: malformed GitHub status/check-runs endpoint corrected once; local AST-summary heredoc redirection corrected once; local and aggregate private-material scans preserved STOP artifacts while correcting explicit public-placeholder and public-metadata URL false positives. Final aggregate private-material review passed by retained scan evidence plus manual adjudication of public metadata URL false positives.
 - Governance patch paths: NA-0573 evidence doc, NA-0573 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
-- Branch: pending at journal authoring.
+- Branch: `na-0573-required-check-recovery-qsl-server-deployment-retry`.
 - PR title: `NA-0573: recover check proof and retry qsl-server relay recovery`.
+- PR: #1419.
+- PR merge commit: `4fb37cbdfc26`.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
+- No sudo, systemctl, service, Tailscale, firewall, account, shell, authorized_keys, qsl-server source, qsl-attachments, qsc send/receive, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency/lockfile, public-site, Cloudflare, qsl-backup, or backup mutation occurred.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced.
+
+## NA-0573 closeout and NA-0574 restoration update
+
+- Directive: QSL-DIR-2026-06-30-498 optional closeout packet.
+- Repo path: `/srv/qbuild/work/NA-0573/qsl-protocol`.
+- Proof root: D498 qsl-server deployment retry proof package.
+- Implementation PR #1419 merged at `4fb37cbdfc26` from head `d7d779205cf9`.
+- D-1136 exists once and is Accepted.
+- D-1136 result classification is `QSL_SERVER_RECOVERY_EXPECTED_BIND_UNAVAILABLE_OPERATOR_ACTION_REQUIRED`.
+- Post-merge public-safety completed success on `4fb37cbdfc26`.
+- Post-merge advisories completed success on `4fb37cbdfc26`.
+- Post-merge suite2-vectors completed success on `4fb37cbdfc26`.
+- No failed required checks were classified after the D498 recovery model.
+- Post-merge private-material verification first stopped on a scan-scope issue that scanned historical full-file governance content; the STOP artifact was preserved, the scan was corrected to the merge first-parent added-line publication surface, and the final scan passed.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0573_closeout_restore_na0574_testplan.md`.
+- NA-0573 is marked DONE.
+- NA-0574 is restored READY using the exact D-1136-selected start/bind operator proof authorization successor block.
+- D-1137 records NA-0573 closeout and NA-0574 restoration.
+- This closeout does not implement NA-0574 and does not execute remote action, SSH, scp, sudo, systemctl, service, Tailscale, firewall, account, shell, authorized_keys, qsc send/receive, workflow dispatch, workflow rerun, qsl-server source mutation, qsl-attachments command/mutation, qwork, qstart, qresume, qsl-backup, or backup mutation.
+- No source, script, workflow, dependency, lockfile, public-site, Cloudflare, raw-log/raw-artifact repository-doc, or private-material mutation is introduced.
+- Branch: `na-0573-closeout-restore-na0574`.
+- PR title: `NA-0573: closeout and restore NA-0574`.
 - PR: pending at journal authoring.
 - PR merge commit: pending at journal authoring.
 - No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
-- No sudo, systemctl, service, Tailscale, firewall, account, shell, authorized_keys, qsl-server source, qsl-attachments, qsc send/receive, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency/lockfile, public-site, Cloudflare, qsl-backup, or backup mutation occurred.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced.

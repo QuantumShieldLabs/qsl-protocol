@@ -30552,3 +30552,28 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0573 recovery retry and the selected NA-0574 start/bind authorization successor to D-1136.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records NA-0573 proof gates, recoveries, qsl-server staging result, start/bind blocker, validation/CI watch items, and no-action/no-claim boundaries.
   - **References:** NA-0573; selected future NA-0574; D-1136; D-1135; D-1134; D497 response; qsl-protocol main `c89c758d4174`; qsl-protocol PR #1418 head `f3b5e9a31326`; qsl-server PR #57; qsl-server merge `6bf61d439fa2`; `docs/governance/evidence/NA-0573_remote_relay_qsl_server_inspiron_deployment_recovery_retry_harness.md`; `tests/NA-0573_remote_relay_qsl_server_inspiron_deployment_recovery_retry_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1137
+  - **Title:** NA-0573 closeout and NA-0574 restoration
+  - **Date:** 2026-06-30
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0573 is closed after qsl-protocol implementation PR #1419 merged at `4fb37cbdfc26` from head `d7d779205cf9`. D-1136 exists once and is Accepted. D-1136 selected result classification `QSL_SERVER_RECOVERY_EXPECTED_BIND_UNAVAILABLE_OPERATOR_ACTION_REQUIRED`, recorded qsl-server staged under the qslcodex test workspace, and recorded remote start skipped because no safe expected internal loopback bind target was available. Post-merge public-safety completed success. Post-merge advisories completed success. Post-merge suite2-vectors completed success. No failed required checks were classified. NA-0573 is marked DONE, and NA-0574 is restored as exactly one READY successor.
+  - **Selected successor:** NA-0574 is restored READY with Goals G1, G2, G3, G4, G5. It is the D-1136-selected `QSL Remote qsl-server Start / Bind Operator Proof Authorization Plan`. It authorizes exact operator-owned or service-owner proof/action requirements to identify the private loopback bind target or safe qsl-server start command after NA-0573 staged qsl-server but could not safely start it. Codex must remain read-only until exact non-secret proof is available.
+  - **Boundary proof:** No NA-0574 implementation occurred. No remote action occurred. No SSH, scp, sudo, systemctl, service, Tailscale, firewall, account, shell, authorized_keys, or secret mutation occurred. No qsc send/receive occurred. No workflow dispatch or rerun command was executed. No qsl-server source mutation or PR occurred. No qsl-attachments command or mutation occurred. No qsl-protocol source, script, workflow, dependency, or lockfile mutation occurred. No public-site mutation occurred. No Cloudflare mutation occurred. No private material was published.
+  - **Claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-build claim is made.
+  - **Security invariants introduced/changed:**
+    - Closeout changes no protocol, wire, crypto, auth, state-machine, qsc runtime, qsl-server runtime, qsl-attachments runtime, qsl-protocol source, repository script, workflow, dependency, lockfile, service, public-site, or Cloudflare semantics.
+    - NA-0574 is restored only as the D-1136-selected read-only operator proof authorization plan.
+    - NA-0574 implementation is not performed during closeout.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Leave NA-0573 READY after D-1136 merged (rejected because D-1136 selected an exact NA-0574 successor and post-merge checks are green).
+    - Restore a relay-test verification successor (rejected because NA-0573 staged qsl-server but did not start a listener).
+    - Implement NA-0574 during closeout (rejected as out of scope).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0573 DONE and restores NA-0574 READY using the exact D-1136-selected start/bind operator proof authorization successor block.
+    - `tests/NA-0573_closeout_restore_na0574_testplan.md` records closeout markers, implementation PR merge proof, D-1136 acceptance, post-merge public-safety/advisories proof, D-1137 restoration proof, exact successor proof, no NA-0574 implementation, no remote action, no qsc send/receive, no workflow dispatch/rerun, no qsl-server source mutation, no qsl-attachments, no private-material publication, and the one-READY invariant.
+    - `TRACEABILITY.md` maps NA-0573 closeout and NA-0574 restoration to D-1137.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the NA-0573 closeout state, D-1137, post-merge proof, and restored NA-0574 successor.
+  - **References:** NA-0573; NA-0574; D-1137; D-1136; qsl-protocol PR #1419; qsl-protocol merge `4fb37cbdfc26`; qsl-protocol head `d7d779205cf9`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0573_closeout_restore_na0574_testplan.md`

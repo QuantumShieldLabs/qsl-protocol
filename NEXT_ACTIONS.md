@@ -32748,7 +32748,7 @@ Closeout evidence:
 ---
 
 ### NA-0573 — QSL Remote Relay qsl-server Inspiron Deployment Recovery Retry Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -32787,6 +32787,43 @@ Forbidden scope:
 - public-site/Cloudflare mutation;
 - private material publication;
 - public/production/security overclaim.
+
+Closeout evidence:
+- NA-0573 implementation PR #1419 merged at `4fb37cbdfc26`.
+- D-1136 records result classification
+  `QSL_SERVER_RECOVERY_EXPECTED_BIND_UNAVAILABLE_OPERATOR_ACTION_REQUIRED`.
+- qsl-server was staged under the qslcodex test workspace, but remote start was
+  skipped because no safe expected internal loopback bind target was available.
+- NA-0574 is restored as the exact D-1136-selected successor.
+
+### NA-0574 — QSL Remote qsl-server Start / Bind Operator Proof Authorization Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize exact operator-owned or service-owner proof/action requirements to
+identify the private loopback bind target or safe qsl-server start command after
+NA-0573 staged qsl-server but could not safely start it. Codex must remain
+read-only until exact non-secret proof is available.
+
+Allowed scope:
+- docs/governance/evidence/NA-0574_remote_qsl_server_start_bind_operator_proof_authorization_plan.md
+- tests/NA-0574_remote_qsl_server_start_bind_operator_proof_authorization_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only NA-0573 summaries
+- exact operator proof/action design
+- successor selection
+
+Forbidden scope:
+- Codex sudo/systemd/Tailscale/firewall/secret mutation;
+- endpoint/private port/topology/token/body/process identity publication;
+- qsc send/receive;
+- workflow dispatch/rerun;
+- source/workflow/dependency mutation;
+- qsl-attachments;
+- public-site/Cloudflare mutation.
 
 ---
 

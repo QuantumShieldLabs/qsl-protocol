@@ -39731,6 +39731,45 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No endpoint values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, authorized_keys content, public key material, private key material, or secret environment values are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0578 qsl-server failed start cause classification and corrected loopback proof update
+
+- Directive: QSL-DIR-2026-06-30-507.
+- Begin timestamp (UTC): 2026-06-30T23:18:46Z.
+- Repo path: `/srv/qbuild/work/NA-0578/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0578_qsl_server_failed_start_cause_corrected_loopback_20260630T231846Z`.
+- qwork proof files were copied and verified before fetch, remote action, or repository mutation; Codex did not run qwork, qstart, or qresume.
+- qwork proof verified lane NA-0578, repo qsl-protocol, path `/srv/qbuild/work/NA-0578/qsl-protocol`, branch main, upstream origin/main, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0578, and shared cargo target ready.
+- Pre-fetch and post-fetch `HEAD`/`origin/main`: `75cd8e8b572c`.
+- Disk watermark: root and backup filesystems below the 95 percent stop threshold; `/backup/qsl` mounted.
+- Startup queue proof: READY_COUNT 1; READY NA-0578; NA-0577 DONE; NA-0576 DONE.
+- Startup decision proof: D-1145 once and Accepted; D-1146 once and Accepted; D-1147 absent before patch; D-1148 absent; duplicate decision entry count zero.
+- Current main required-check classification: public-safety success, advisories success, no failed visible check-runs, no pending visible check-runs, root cargo audit success, nested qsc fuzz cargo audit success, locked metadata success, and Cargo drift absent.
+- Recovered proof issue RF-001: local discovery used an `rg` pattern beginning with `--`. Corrective action: reran with `rg -e`. Final result: PASS.
+- Recovered proof issue RF-002: qsl-server help probe initially ran from qsl-protocol instead of the proof-root qsl-server source snapshot. Corrective action: reran with explicit proof-root qsl-server manifest and isolated target directory. Final result: PASS.
+- Recovered proof issue RF-003: remote inspection private-material scan treated long uppercase enum/proof-origin strings as opaque material. Corrective action: reran local scan with enum/proof-origin allowlisting and no SSH rerun. Final result: PASS.
+- D506, D-1145, and D-1146 inheritance was reviewed and accepted.
+- NA-0577 failed-start script review confirmed the generated bind argument shape mismatch.
+- qsl-server source/help review confirmed bind host/address only, separate port flag, internal bind-plus-port composition, optional bearer auth for startup, and route-header requirement for route use.
+- Failed-start cause classification: `QSL_SERVER_FAILED_START_CAUSE_HARNESS_BIND_ARG_BUG_CONFIRMED`.
+- Bounded Codex operational authority applied: Tier 1 redacted diagnostics and Tier 2 corrected temporary loopback smoke action only after safety gates; Tier 3 and Tier 4 remained forbidden.
+- Remote scripts generated proof-root-only and statically reviewed.
+- SSH readiness command executed exactly once and classified `SSH_QSL_SERVER_FAILED_START_FOLLOWUP_READY`.
+- Remote follow-up inspection executed exactly once through SSH stdin and classified `QSL_SERVER_FAILED_START_FOLLOWUP_CORRECTED_START_SAFE`.
+- Corrected bounded start executed exactly once through SSH stdin and classified `QSL_SERVER_CORRECTED_BOUNDED_START_AMBIGUOUS_STOP` before start attempt due a generated harness gating defect.
+- Corrected postcheck skipped because corrected start did not produce listener proof; classification `QSL_SERVER_CORRECTED_POSTCHECK_LISTENER_NOT_READY`.
+- Cleanup not needed because no NA-0578-owned start state was created; classification `QSL_SERVER_CORRECTED_CLEANUP_NOT_NEEDED`.
+- Aggregate private-material review passed.
+- Result classification: `QSL_SERVER_FAILED_START_INSUFFICIENT_PROOF`.
+- Selected successor: `NA-0579 -- QSL Remote qsl-server Failed Start Proof Completion Follow-Up Harness`.
+- Governance patch paths: NA-0578 evidence doc, NA-0578 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: `na-0578-qsl-server-failed-start-cause-corrected-loopback`.
+- PR title: `NA-0578: classify qsl-server failed start cause`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization values, private topology, payloads, response bodies, process identities, command lines, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
+- No sudo, systemctl, service, Tailscale, firewall, account, shell, authorized_keys mutation, writes outside `/home/qslcodex/qsl-remote-test/`, qsc send/receive, workflow dispatch/rerun, qsl-attachments command/mutation, qsl-server source mutation, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0563 remote relay loopback port alignment authorization update
 
 - Directive: QSL-DIR-2026-06-29-484.

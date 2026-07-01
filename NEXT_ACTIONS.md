@@ -33042,7 +33042,7 @@ Closeout evidence:
 ---
 
 ### NA-0579 — QSL Remote qsl-server Failed Start Proof Completion Follow-Up Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33050,6 +33050,70 @@ Complete the remaining failed-start proof after NA-0578 preserved
 unknown/not_checked values. Codex may use only the D-1147-selected bounded
 diagnostic or proof actions and must not publish private bind, endpoint,
 topology, token, payload, body, process identity, or key material.
+
+Closeout evidence:
+- qsl-protocol implementation PR #1432 merged at `9ace76bc0b7f`.
+- D-1149 exists once and is Accepted.
+- D-1149 selected result `QSL_SERVER_PROOF_COMPLETION_TEMP_LOOPBACK_ROUTE_SHAPE_PASS_EXPECTED_BIND_REQUIRED`.
+- D-1149 selected exact successor `NA-0580 -- QSL Remote qsl-server Expected Bind / Endpoint Alignment Harness`.
+- Post-merge public-safety completed success.
+- Post-merge advisories completed success.
+- No failed required checks were classified.
+- NA-0579 proved corrected temporary loopback route-shape only; expected bind /
+  endpoint alignment remains unresolved.
+- NA-0579 did not publish endpoint values, private port values, topology,
+  token values, Authorization values, command lines, process identities,
+  payloads, response bodies, authorized_keys content, key material, raw private
+  logs, or private material.
+- NA-0579 closeout does not implement NA-0580 and does not execute remote
+  action, start/run/deploy qsl-server, run qsc send/receive, dispatch/rerun
+  workflows, mutate source, mutate dependencies, publish private material, or
+  make public/production readiness or security overclaims.
+
+---
+
+### NA-0580 — QSL Remote qsl-server Expected Bind / Endpoint Alignment Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Resolve the remaining qsl-server expected bind / endpoint alignment gap after
+NA-0579 proved qsl-server can start and answer route-shape probes on a corrected
+temporary loopback bind. Codex may use Tier 1 redacted diagnostics and Tier 2
+bounded test actions only if an active directive proves no-secret, non-root,
+loopback-only, no-sudo, no-systemd, no-firewall, no-Tailscale,
+no-account-mutation, and no-private-publication gates. The lane must determine
+whether the remote relay expected bind target can be aligned by Codex, requires
+operator action, requires service-owner action, or requires secret/endpoint
+configuration. Raw private values must remain proof-root-only and repository
+evidence may publish only coarse classes.
+
+Allowed scope:
+- docs/governance/evidence/NA-0580_remote_qsl_server_expected_bind_endpoint_alignment_harness.md
+- tests/NA-0580_remote_qsl_server_expected_bind_endpoint_alignment_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- proof-root-only SSH outputs
+- proof-root-only generated remote diagnostic/alignment scripts if authorized by
+  the active directive
+- proof-root-only redacted JSON classifications
+- private-material scan/redaction proof
+- successor selection
+
+Forbidden scope:
+- qwork/qstart/qresume execution by Codex;
+- sudo/systemd/service/firewall/Tailscale/account/shell/authorized_keys mutation;
+- qsl-server source mutation or PR;
+- qsl-attachments command, clone, build, run, or mutation;
+- qsc send/receive unless a later exact directive authorizes it;
+- workflow dispatch/rerun unless a later exact directive authorizes it;
+- qsl-protocol source/script/workflow/dependency mutation;
+- public-site/Cloudflare mutation;
+- endpoint/private port/topology/token/body/process identity publication;
+- private material publication;
+- public-readiness, production-readiness, vulnerability-free, bug-free,
+  perfect-build, or perfect-crypto claim.
 
 ---
 

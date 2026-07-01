@@ -30909,3 +30909,28 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0579 proof completion to D-1149.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records proof gates, recovered parser/scanner/classifier issues, remote classifications, result classification, selected successor, validation/CI notes, and no-action/no-claim boundaries.
   - **References:** NA-0579; selected future NA-0580; D-1149; D-1148; D-1147; qsl-protocol main `dbaa462d602`; `docs/governance/evidence/NA-0579_qsl_server_failed_start_proof_completion_followup_harness.md`; `tests/NA-0579_qsl_server_failed_start_proof_completion_followup_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1150
+  - **Title:** NA-0579 closeout and NA-0580 restoration
+  - **Date:** 2026-07-01
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0579 is closed after qsl-protocol implementation PR #1432 merged at `9ace76bc0b7f` from head `c9c2db005ec`. D-1149 exists once and is Accepted. D-1149 selected result classification `QSL_SERVER_PROOF_COMPLETION_TEMP_LOOPBACK_ROUTE_SHAPE_PASS_EXPECTED_BIND_REQUIRED` and exact successor `NA-0580 -- QSL Remote qsl-server Expected Bind / Endpoint Alignment Harness`. Post-merge public-safety completed success. Post-merge advisories completed success. No failed required checks were classified. NA-0579 is marked DONE, and NA-0580 is restored as exactly one READY successor.
+  - **Selected successor:** NA-0580 is restored READY with Goals G1, G2, G3, G4, G5. It must resolve the remaining qsl-server expected bind / endpoint alignment gap after NA-0579 proved qsl-server can start and answer route-shape probes on a corrected temporary loopback bind. It may use Tier 1 redacted diagnostics and Tier 2 bounded test actions only if an active directive proves no-secret, non-root, loopback-only, no-sudo, no-systemd, no-firewall, no-Tailscale, no-account-mutation, and no-private-publication gates. Raw private values must remain proof-root-only and repository evidence may publish only coarse classes.
+  - **Boundary proof:** No NA-0580 implementation occurred. No remote action occurred during closeout. No SSH, scp, Tailscale, remote command, qsl-server start, qsl-server deployment, qsl-server mutation, qsl-attachments command/mutation, qsc send/receive, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency mutation, public-site mutation, Cloudflare mutation, or private-material publication occurred. No endpoint values, private port values, topology, token values, Authorization values, command lines, process identities, payloads, response bodies, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys were published.
+  - **Claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-build claim is made. No perfect-crypto claim is made.
+  - **Security invariants introduced/changed:**
+    - Closeout changes no protocol, wire, crypto, auth, state-machine, qsc runtime, qsl-server runtime/source, qsl-attachments runtime/source, qsl-protocol source, repository script, workflow, dependency, lockfile, public-site, or Cloudflare semantics.
+    - NA-0580 is restored only as the D-1149-selected expected bind / endpoint alignment harness.
+    - NA-0580 implementation is not performed during closeout.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Leave NA-0579 READY after D-1149 merged (rejected because D-1149 selected exact NA-0580 successor and post-merge checks are green).
+    - Restore another failed-start proof completion lane (rejected because NA-0579 already proved corrected temporary loopback route shape and selected expected bind / endpoint alignment as the remaining gap).
+    - Implement NA-0580 during closeout (rejected as out of scope).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0579 DONE and restores NA-0580 READY using the exact D-1149-selected expected bind / endpoint alignment successor block.
+    - `tests/NA-0579_closeout_restore_na0580_testplan.md` records closeout markers, implementation PR merge proof, D-1149 acceptance, post-merge public-safety/advisories proof, D-1150 restoration proof, exact successor proof, no NA-0580 implementation, no remote action, no qsl-server start, no qsc send/receive, no workflow dispatch/rerun, no qsl-attachments, no private-material publication, no public/production/security overclaim, and the one-READY invariant.
+    - `TRACEABILITY.md` maps NA-0579 closeout and NA-0580 restoration to D-1150.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the NA-0579 closeout state, D-1150, post-merge proof, and restored NA-0580 successor.
+  - **References:** NA-0579; NA-0580; D-1150; D-1149; qsl-protocol PR #1432; qsl-protocol merge `9ace76bc0b7f`; qsl-protocol head `c9c2db005ec`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0579_closeout_restore_na0580_testplan.md`

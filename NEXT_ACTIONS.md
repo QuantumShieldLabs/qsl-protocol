@@ -33073,7 +33073,7 @@ Closeout evidence:
 ---
 
 ### NA-0580 — QSL Remote qsl-server Expected Bind / Endpoint Alignment Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33114,6 +33114,18 @@ Forbidden scope:
 - private material publication;
 - public-readiness, production-readiness, vulnerability-free, bug-free,
   perfect-build, or perfect-crypto claim.
+
+---
+
+### NA-0581 — QSL Remote qsl-server Expected Bind Failure Remediation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Remediate the redacted expected-bind failure class selected by NA-0580 without
+publishing private bind values, endpoints, topology, tokens, command lines,
+process identities, payloads, or response bodies. Codex may use only the
+D-1151-selected redacted diagnostics and bounded actions.
 
 ---
 

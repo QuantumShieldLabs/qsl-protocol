@@ -6,6 +6,49 @@ Last-Updated: 2026-06-29
 
 # Rolling Operations Journal
 
+## NA-0581 qsl-server expected bind failure remediation update
+
+- Directive: QSL-DIR-2026-07-01-510 -- Execute NA-0581 Remote qsl-server Expected Bind Failure Remediation Harness, Optional Closeout to NA-0582.
+- Begin timestamp (UTC): `2026-07-01T05:25:08Z`.
+- Repo path: `/srv/qbuild/work/NA-0581/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0581_qsl_server_expected_bind_failure_remediation_20260701T052508Z`.
+- Fresh NA-0581 qwork proof files were read and copied from the lane workspace; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-07-01T05:12:12Z`; startup head/origin-main/main was `d7d8f98f336a` with READY_COUNT 1 and READY NA-0581.
+- Disk and mount gate passed before fetch, repository mutation, remote script generation, SSH, or proof publication: root usage was below the 95 percent stop threshold and `/backup/qsl` was mounted.
+- Fetch occurred only after qwork proof, live ref match, clean tree, disk proof, and mount proof passed. Local main matched origin/main at `d7d8f98f336a`.
+- Startup queue proof: READY_COUNT 1; READY NA-0581; NA-0580 DONE; NA-0579 DONE.
+- Startup decision proof: D-1151 once and Accepted; D-1152 once and Accepted; D-1153 absent before patch; D-1154 absent; duplicate decision count zero.
+- Current main required-check classification passed: public-safety completed success, advisories completed success, suite2-vectors completed success, no failed required checks, root cargo audit passed, nested qsc fuzz cargo audit passed, locked metadata passed, and no Cargo.toml/Cargo.lock/qsc fuzz lockfile drift was detected.
+- D509/D-1151/D-1152 inheritance review passed. D-1151 result was `QSL_SERVER_EXPECTED_BIND_ENDPOINT_VALUE_UNAVAILABLE`; D-1152 restored NA-0581.
+- Authority model confirmation passed, including the D510 authorized_keys read-only private-inspection exception for forwarding classes only.
+- qsl-server CLI source/help review reconfirmed bind host-only plus separate port, internal bind/port composition, optional `RELAY_TOKEN` for startup when absent/empty, and route-token header requirement for route usage.
+- qsl-protocol/qsc relay expectation review confirmed remote-handshake and remote-relay share the `RELAY_URL`/`RELAY_TOKEN` secret-name boundary, qsc uses `/v1/push` and `/v1/pull?max=N`, and route tokens use `X-QSL-Route-Token`.
+- GitHub metadata review observed secret names only: `RELAY_TOKEN`, `RELAY_URL`. No secret values were accessed.
+- Remote scripts static review passed after the UTC timestamp fix; scripts are proof-root-only, Python stdlib only, JSON-only stdout, no forbidden commands, workspace-bounded, and redacted-by-construction.
+- SSH readiness classified `SSH_QSL_SERVER_EXPECTED_BIND_REMEDIATION_READY`.
+- Remote inspection classified `QSL_SERVER_EXPECTED_BIND_REMEDIATION_CODEX_START_SAFE`.
+- authorized_keys forwarding class: readable, forwarding restriction present, single candidate, loopback-only, non-ambiguous, no authorized_keys content disclosed, and no public key material disclosed.
+- Expected-bind bounded start classified `QSL_SERVER_EXPECTED_BIND_REMEDIATION_START_STARTED` after one recovered proof-root harness retry.
+- Expected-bind postcheck classified `QSL_SERVER_EXPECTED_BIND_REMEDIATION_POSTCHECK_RELAY_TESTING_READY`.
+- Cleanup classified `QSL_SERVER_EXPECTED_BIND_REMEDIATION_CLEANUP_NOT_NEEDED`; cleanup was not run because postcheck passed and the process is NA-0581-owned for the recovered-test successor.
+- Failure-cause investigation classified `QSL_SERVER_EXPECTED_BIND_REMEDIATION_FAILURE_HARNESS_BUG_FIXED_AND_RETRIED`.
+- Aggregate private-material review passed after a recovered generated-script field-name scanner false positive. No endpoint, private port, private topology, route-token/capability value, bearer value, Authorization value, command line, process identity, payload, response body, authorized_keys content, public key material, private key material, secret environment value, or private material was published.
+- Selected result classification: `QSL_SERVER_EXPECTED_BIND_REMEDIATION_RELAY_TESTING_READY`.
+- Selected successor: `NA-0582 -- QSL Remote Relay Recovered Test Verification Harness`.
+- Recovered command-shape issue: the first check-runs API call used a POST-shaped `gh api` invocation. Corrective action: reran with explicit GET. Final result: PASS.
+- Recovered discovery command-shape issue: source/expectation review included a non-existent `workflows` path. Corrective action: reran against existing paths. Final result: PASS.
+- Recovered qsl-server source-review command-shape issue: `rg` pattern beginning with `--bind` was parsed as an option. Corrective action: reran with `rg --`. Final result: PASS.
+- Recovered SSH readiness classifier strictness: exact newline expectation mismatched benign sentinel formatting. Corrective action: classified by return code, expected sentinel prefix, empty stderr, and private-material scan pass without rerunning SSH. Final result: PASS.
+- Recovered start harness bug: generated start script used local-time conversion for a UTC safe-manifest timestamp. Corrective action: patched the proof-root script to use UTC conversion, recompiled it, preserved attempt1 artifacts, and retried once. Final result: PASS.
+- Governance patch paths are limited to `docs/governance/evidence/NA-0581_remote_qsl_server_expected_bind_failure_remediation_harness.md`, `tests/NA-0581_remote_qsl_server_expected_bind_failure_remediation_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Codex did not execute qwork, qstart, qresume, scp, sudo, systemctl, service, journalctl, ps, ss, netstat, lsof, Tailscale, firewall commands, account/shell/authorized_keys mutation, qsl-backup, qsc send/receive, workflow dispatch/rerun, qsl-attachments command/clone/build/run/mutation, qsl-server source mutation or PR, qsl-protocol source/script/workflow/dependency mutation, public-site mutation, or Cloudflare mutation.
+- Branch: pending at journal authoring.
+- PR title: `NA-0581: remediate qsl-server expected bind failure`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: implementation validation, PR checks, public-safety, advisories, no failed required checks, post-merge proof, and optional closeout to NA-0582 only if gates are green.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
+
 ## NA-0579 closeout and NA-0580 restoration update
 
 - Directive: QSL-DIR-2026-07-01-508 optional closeout after NA-0579 implementation merge.

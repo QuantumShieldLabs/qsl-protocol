@@ -40067,6 +40067,43 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No sudo, systemctl, service, Tailscale, firewall, account, shell, authorized_keys mutation, writes outside `/home/qslcodex/qsl-remote-test/`, qsc send/receive, workflow dispatch/rerun, qsl-attachments command/mutation, qsl-server source mutation, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0586 remote relay diagnostic verification and timeout phase triage update
+
+- Directive: QSL-DIR-2026-07-01-515.
+- Begin timestamp (UTC): 2026-07-01T21:04:08Z.
+- Repo path: `/srv/qbuild/work/NA-0586/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0586_remote_relay_diagnostic_verification_timeout_phase_triage_20260701T210408Z`.
+- qwork proof files were copied and verified before fetch, repository mutation, workflow action, artifact/log retrieval, or proof publication; Codex did not run qwork, qstart, or qresume.
+- qwork proof verified lane NA-0586, repo qsl-protocol, path `/srv/qbuild/work/NA-0586/qsl-protocol`, branch main, upstream origin/main, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0586, and shared cargo target ready.
+- Pre-fetch and post-fetch `HEAD`/`origin/main`: `d4b8b9545b2a`.
+- Disk watermark: root and backup filesystems below the 95 percent stop threshold; `/backup/qsl` mounted.
+- Startup queue proof: READY_COUNT 1; READY NA-0586; NA-0585 DONE; NA-0584 DONE.
+- Startup decision proof: D-1161 once and Accepted; D-1162 once and Accepted; D-1163 absent before patch; D-1164 absent; duplicate decision entry count zero.
+- Current main required-check classification: public-safety success, advisories success, suite2-vectors success, no failed required checks, no required pending checks, root cargo audit success, nested qsc fuzz cargo audit success, locked metadata success, and Cargo drift absent.
+- Recovered proof issue RF-NA0586-000: inheritance proof-root checker used brittle exact phrase/case matching for the D-1161 authority hardening. Corrective action: aggregate case-insensitive semantic authority anchors. Final result: PASS.
+- Recovered proof issue RF-NA0586-001: source diagnostic proof-root checker searched for rendered marker key-value literals. Corrective action: source-level marker event/key checks. Final result: PASS.
+- D514 / D-1161 / D-1162 inheritance was reviewed and accepted.
+- D-1161 issue-investigation authority applied; source analysis, proof-root fix, safe diagnostic fix, and workflow verification boundaries were recorded.
+- Current diagnostic surface review confirmed qsc relay-push diagnostic marker fields and helper artifact summary fields are present. Pull-side diagnostics remain coarser, and helper extraction is key-based.
+- Exact authorized workflow dispatches executed on main: remote-handshake run `28548002907`; remote-relay run `28548012640`.
+- Workflow polling used bounded CLI/API reads with no watch mode. Both runs completed failure and were used as diagnostic evidence only.
+- Workflow artifact/log review kept raw logs and artifacts proof-root-only.
+- Diagnostic surface verification: remote-handshake and remote-relay were both `REMOTE_RELAY_DIAGNOSTIC_SURFACE_PRESENT_AND_PARSEABLE`.
+- Timeout phase classification: `REMOTE_RELAY_TIMEOUT_PHASE_DNS_TIMEOUT`.
+- Result classification: `REMOTE_RELAY_DIAGNOSTIC_VERIFICATION_DNS_TIMEOUT`.
+- Phase 8 source/fix investigation skipped because diagnostics were present, parseable, and actionable; no diagnostic fix was applied.
+- Optional remote postcheck skipped as not needed; no SSH or remote mutation occurred.
+- Selected successor: `NA-0587 -- QSL Remote Relay Network Path Remediation Harness`.
+- Productive wait-work performed: workflow polling snapshots, if-green/if-red table, post-merge/closeout checklist, read-only forward audit, response/evidence drafting, and scanner/parser hardening.
+- Governance patch paths: NA-0586 evidence doc, NA-0586 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: `na-0586-remote-relay-diagnostic-verification`.
+- PR title: `NA-0586: verify remote relay diagnostics and classify timeout phase`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No qsc source/test/helper mutation, workflow file mutation, dependency/lockfile change, qsl-server source/runtime mutation, qsl-attachments command/mutation, manual qsc send/receive, SSH/scp/Tailscale/remote command, qsl-server start/stop/cleanup, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization values, private topology, payloads, response bodies, process identities, command lines, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0585 remote relay diagnostic surface and Codex issue authority update
 
 - Directive: QSL-DIR-2026-07-01-514.

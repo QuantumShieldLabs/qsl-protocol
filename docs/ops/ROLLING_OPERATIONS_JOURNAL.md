@@ -39868,6 +39868,44 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No endpoint values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, authorized_keys content, public key material, private key material, or secret environment values are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0583 remote relay artifact-backed triage update
+
+- Directive: QSL-DIR-2026-07-01-512.
+- Begin timestamp (UTC): 2026-07-01T07:58:56Z.
+- Repo path: `/srv/qbuild/work/NA-0583/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0583_remote_relay_service_reachability_after_local_ready_triage_20260701T075856Z`.
+- qwork proof files were copied and verified before fetch, GitHub artifact/log retrieval, SSH, or repository mutation; Codex did not run qwork, qstart, or qresume.
+- qwork proof verified lane NA-0583, repo qsl-protocol, path `/srv/qbuild/work/NA-0583/qsl-protocol`, branch main, upstream origin/main, `HEAD`/`origin/main` `d96ecc074abc`, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0583, and shared cargo target ready.
+- Disk watermark: root filesystem below the 95 percent stop threshold; `/backup/qsl` mounted.
+- Startup queue proof: READY_COUNT 1; READY NA-0583; NA-0582 DONE; NA-0581 DONE.
+- Startup decision proof: D-1155 once and Accepted; D-1156 once and Accepted; D-1157 absent before patch; D-1158 absent; duplicate decision entry count zero.
+- Current main required-check classification: public-safety success, advisories success, suite2-vectors success, no failed required checks, no required pending checks, root cargo audit success, nested qsc fuzz cargo audit success after wrapper-status recovery, locked metadata success, and Cargo drift absent.
+- D498-style visibility handling used PR #1439 rollup for PR-head/aggregate `goal-lint` and `CodeQL` while retaining current-main check-run proof for direct contexts.
+- D511/D-1155/D-1156 inheritance reviewed: D511 factual local-ready/workflow-failed result preserved; D511 service-unreachable classification corrected as provisional before artifact review.
+- Corrected working classification before artifact inspection: `LOCAL_READY_REMOTE_WORKFLOW_FAILED_ARTIFACTS_REQUIRED`.
+- Workflow run metadata reviewed for exact runs `28498817017` and `28498817988`; both belong to qsl-protocol, are workflow_dispatch runs on main, and completed failure.
+- Workflow artifacts listed, downloaded proof-root-only, scanned before summarization, and reviewed.
+- Artifact inspection classified both workflow artifact sets as present and scanned safe for publishable summaries, with redacted relay push diagnostic timeout class and unknown HTTP status/body class.
+- Failure-cause classification: `REMOTE_RELAY_ARTIFACT_BACKED_FAILURE_SERVICE_UNREACHABLE_AFTER_LOCAL_READY`.
+- Workflow logs fetched proof-root-only and re-reviewed; qsc relay diagnostics were absent from logs but present in artifacts.
+- Scanner correction: masked GitHub checkout metadata `AUTHORIZATION: basic ***` classified as `MASKED_GITHUB_AUTH_HEADER_PRESENT`, not unmasked Authorization; no unmasked Authorization value observed.
+- Optional remote postcheck classified `REMOTE_RELAY_TRIAGE_QSL_SERVER_POSTCHECK_NOT_RUN`; no SSH command was run.
+- Optional diagnostic rerun classified `DIAGNOSTIC_RERUN_NOT_RUN_ARTIFACTS_SUFFICIENT`; no workflow rerun or dispatch occurred.
+- Result classification: `REMOTE_RELAY_TRIAGE_ARTIFACT_BACKED_SERVICE_UNREACHABLE_AFTER_LOCAL_READY`.
+- Selected successor: `NA-0584 -- QSL Remote Relay Runner / Service Reachability Remediation Harness`.
+- Recovered proof issue RF-NA0583-000: nested qsc fuzz cargo audit wrapper printed success while the tool wrapper reported nonzero. Corrective action: reran nested qsc fuzz cargo audit with a simpler wrapper. Final result: PASS.
+- Recovered proof issue RF-NA0583-001: `gh pr view` used unsupported JSON field `merged`. Corrective action: reran with supported merged-state fields. Final result: PASS.
+- Recovered proof issue RF-NA0583-002: `gh pr checks` used unsupported JSON field `conclusion`. Corrective action: reran with supported `state` and `bucket` fields. Final result: PASS.
+- Recovered proof issue RF-NA0583-003: initial workflow-log scanner over-classified masked GitHub checkout Authorization metadata as unmasked. Corrective action: reran value-class audits and classified masked `basic ***` as `MASKED_GITHUB_AUTH_HEADER_PRESENT`. Final result: PASS.
+- Governance patch paths: NA-0583 evidence doc, NA-0583 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: `na-0583-remote-relay-artifact-backed-triage`.
+- PR title: `NA-0583: triage remote relay failure with artifacts`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No endpoint values, private port values, route-token/capability values, bearer values, unmasked Authorization values, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
+- No remote mutation, SSH command, qsl-server start/stop/cleanup, qsl-server deployment, qsl-server mutation, qsl-attachments command/mutation, qsc send/receive, workflow dispatch/rerun, qsl-protocol source/script/workflow/dependency/lockfile mutation, qsl-server source mutation, public-site mutation, Cloudflare mutation, qwork, qstart, or qresume occurred.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0580 remote qsl-server expected bind / endpoint alignment update
 
 - Directive: QSL-DIR-2026-07-01-509.

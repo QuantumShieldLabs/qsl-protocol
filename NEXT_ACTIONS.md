@@ -33148,7 +33148,7 @@ content, or Cloudflare configuration.
 ---
 
 ### NA-0583 — QSL Remote Relay Service Reachability After Local Ready Triage Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33158,6 +33158,19 @@ workflow logs, qsl-server postcheck metadata, and safe GitHub metadata only
 unless a later directive authorizes additional action. Do not publish private
 endpoint, bind, port, token, Authorization, topology, process, payload,
 response-body, authorized_keys, public-key, private-key, or secret values.
+
+---
+
+### NA-0584 — QSL Remote Relay Runner / Service Reachability Remediation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Remediate the artifact-backed runner/service reachability gap after local
+qsl-server readiness. Codex may use redacted network/reachability diagnostics
+only if explicitly authorized. Codex must not publish endpoint values, private
+ports, topology, tokens, payloads, response bodies, process identities, or key
+material.
 
 ---
 

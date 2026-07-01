@@ -31144,3 +31144,29 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0583 artifact-backed triage to D-1157.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records proof gates, recovered failures, artifact/log classifications, scanner correction, failure classification, selected successor, validation notes, and no-action/no-claim boundaries.
   - **References:** NA-0583; selected future NA-0584; D-1157; D-1156; D-1155; qsl-protocol main `d96ecc074abc`; remote-handshake run `28498817017`; remote-relay run `28498817988`; `docs/governance/evidence/NA-0583_remote_relay_service_reachability_after_local_ready_triage_harness.md`; `tests/NA-0583_remote_relay_service_reachability_after_local_ready_triage_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1158
+  - **Title:** NA-0583 closeout and NA-0584 restoration
+  - **Date:** 2026-07-01
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0583 is closed after qsl-protocol implementation PR #1440 merged at `01b38e45fba8` from head `8ceeceedd4fa`. D-1157 exists once and is Accepted. D-1157 selected result classification `REMOTE_RELAY_TRIAGE_ARTIFACT_BACKED_SERVICE_UNREACHABLE_AFTER_LOCAL_READY` and exact successor `NA-0584 -- QSL Remote Relay Runner / Service Reachability Remediation Harness`. Post-merge public-safety completed success. Post-merge advisories completed success. No failed required checks were classified. NA-0583 is marked DONE, and NA-0584 is restored as exactly one READY successor.
+  - **Selected successor:** NA-0584 is restored READY with Goals G1, G2, G3, G4, G5. It must remediate the artifact-backed runner/service reachability gap after local qsl-server readiness. Codex may use redacted network/reachability diagnostics only if explicitly authorized. Codex must not publish endpoint values, private ports, topology, tokens, payloads, response bodies, process identities, or key material.
+  - **Closeout proof:** Local main was fast-forwarded to origin/main at `01b38e45fba8`. Worktree, index, and untracked state were clean before closeout edits. Post-merge proof verified D-1157 once, D-1158 absent before this patch, READY_COUNT 1 with READY NA-0583, duplicate decision count zero, public-safety success, advisories success, and no failed required checks.
+  - **Boundary proof:** No NA-0584 implementation occurred. No remote action occurred during closeout. No SSH, scp, Tailscale, remote command, qsl-server start, qsl-server stop, qsl-server cleanup, qsl-server deployment, qsl-server mutation, qsl-attachments command/mutation, qsc send/receive, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency mutation, qsl-server source mutation, public-site mutation, Cloudflare mutation, or private-material publication occurred. No endpoint values, private port values, topology, token values, Authorization values, command lines, process identities, payloads, response bodies, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys were published.
+  - **Claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-build claim is made. No perfect-crypto claim is made.
+  - **Security invariants introduced/changed:**
+    - Closeout changes no protocol, wire, crypto, auth, state-machine, qsc runtime/source, qsl-server runtime/source, qsl-attachments runtime/source, qsl-protocol source, repository script, workflow, dependency, lockfile, public-site, or Cloudflare semantics.
+    - NA-0584 is restored only as the D-1157-selected runner/service reachability remediation harness.
+    - NA-0584 implementation is not performed during closeout.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Leave NA-0583 READY after D-1157 merged (rejected because D-1157 selected exact NA-0584 successor and post-merge public-safety/advisories gates are green).
+    - Restore a diagnostic-surface improvement successor (rejected because D-1157 selected an artifact-backed service reachability result, not a diagnostic gap result).
+    - Implement NA-0584 during closeout (rejected as out of scope).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0583 DONE and restores NA-0584 READY using the exact D-1157-selected runner/service reachability successor block.
+    - `tests/NA-0583_closeout_restore_na0584_testplan.md` records closeout markers, implementation PR merge proof, D-1157 acceptance, post-merge public-safety/advisories proof, D-1158 restoration proof, exact successor proof, no NA-0584 implementation, no remote action, no qsl-server start/stop/cleanup, no qsc send/receive, no workflow dispatch/rerun, no qsl-attachments, no private-material publication, no public/production/security overclaim, and the one-READY invariant.
+    - `TRACEABILITY.md` maps NA-0583 closeout and NA-0584 restoration to D-1158.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the NA-0583 closeout state, D-1158, post-merge proof, and restored NA-0584 successor.
+  - **References:** NA-0583; NA-0584; D-1158; D-1157; qsl-protocol PR #1440; qsl-protocol merge `01b38e45fba8`; qsl-protocol head `8ceeceedd4fa`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0583_closeout_restore_na0584_testplan.md`

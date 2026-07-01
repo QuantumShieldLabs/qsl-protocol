@@ -6,6 +6,36 @@ Last-Updated: 2026-06-29
 
 # Rolling Operations Journal
 
+## NA-0579 closeout and NA-0580 restoration update
+
+- Directive: QSL-DIR-2026-07-01-508 optional closeout after NA-0579 implementation merge.
+- Begin timestamp (America/Chicago): `2026-06-30T19:44:45-05:00`.
+- Begin timestamp (UTC): `2026-07-01T00:44:45Z`.
+- Repo path: `/srv/qbuild/work/NA-0579/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0579_qsl_server_failed_start_proof_completion_20260701T001845Z`.
+- Implementation PR #1432 merged at `9ace76bc0b7f` from head `c9c2db005ec`.
+- Post-merge public-safety completed success on `9ace76bc0b7f`.
+- Post-merge advisories completed success on `9ace76bc0b7f`.
+- No failed required check was classified.
+- D-1149 exists once and records result `QSL_SERVER_PROOF_COMPLETION_TEMP_LOOPBACK_ROUTE_SHAPE_PASS_EXPECTED_BIND_REQUIRED`.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, this journal, and `tests/NA-0579_closeout_restore_na0580_testplan.md`.
+- NA-0579 is marked DONE.
+- NA-0580 is restored READY using the exact D-1149-selected qsl-server expected bind / endpoint alignment successor block.
+- D-1150 records NA-0579 closeout and NA-0580 restoration.
+- Recovered closeout validation issue: an initial full-file scan flagged historical
+  wording and required forbidden-scope claim-boundary text outside the closeout
+  added-line evidence surface. Classification: recoverable validation-scope and
+  wording-context false positive. Corrective action: reran added-line/new-file
+  private-material and overclaim scans with adjacent claim-boundary context.
+  Final result: PASS.
+- This closeout does not implement NA-0580 and does not mutate qsl-server, deploy or run qsl-server, run qsl-attachments, perform remote action, run SSH, scp, Tailscale, qsc send/receive, workflow dispatch, rerun, qwork, qstart, qresume, qsl-backup, backup mutation, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, or private-material publication.
+- Branch: pending at journal authoring.
+- PR title: `NA-0579: closeout and restore NA-0580`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: closeout validation, PR checks, public-safety, advisories, no failed required checks, final queue proof after merge, and NA-0580 startup handoff.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
+
 ## NA-0579 qsl-server failed start proof completion follow-up update
 
 - Directive: QSL-DIR-2026-07-01-508 -- Execute NA-0579 qsl-server Failed Start Proof Completion Follow-Up Harness, Optional Closeout to NA-0580.

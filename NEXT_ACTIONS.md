@@ -33187,7 +33187,7 @@ be exact, minimal, no-secret, and preserve no-private-material publication.
 ---
 
 ### NA-0586 — QSL Remote Relay Diagnostic Verification and Timeout Phase Triage Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33199,6 +33199,20 @@ publish endpoint values, private ports, topology, tokens, Authorization values,
 payloads, response bodies, process identities, key material, or raw logs.
 Codex must not mutate workflows/source in NA-0586 unless a later exact directive
 authorizes it.
+
+---
+
+### NA-0587 — QSL Remote Relay Network Path Remediation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Remediate the artifact-backed network path failure class selected by NA-0586
+without publishing endpoint values, private ports, topology, tokens,
+Authorization values, payloads, response bodies, process identities, command
+lines, or key material. Codex may use D-1163-authorized redacted diagnostics and
+bounded project-owned fixes only. Remote host, tunnel, DNS, or secret actions
+remain operator-owned unless a later exact directive authorizes them.
 
 ---
 

@@ -33175,7 +33175,7 @@ material.
 ---
 
 ### NA-0585 — QSL Remote Relay Diagnostic Surface Improvement Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33183,6 +33183,22 @@ Improve safe diagnostic surfacing for remote-handshake and remote-relay so futur
 runs classify DNS/TCP/TLS/HTTP timeout phase, request-arrival class, and redacted
 relay result directly in logs/artifacts. Any workflow/test harness mutation must
 be exact, minimal, no-secret, and preserve no-private-material publication.
+
+---
+
+### NA-0586 — QSL Remote Relay Diagnostic Verification and Timeout Phase Triage Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Verify the NA-0585 diagnostic surface on the remote-handshake and remote-relay
+workflows, classify the timeout phase using the new safe diagnostic output, and
+select the next remediation lane. Codex may run exact D-1161-authorized workflow
+verification actions and inspect artifacts/logs proof-root-only. Codex must not
+publish endpoint values, private ports, topology, tokens, Authorization values,
+payloads, response bodies, process identities, key material, or raw logs.
+Codex must not mutate workflows/source in NA-0586 unless a later exact directive
+authorizes it.
 
 ---
 

@@ -39917,6 +39917,49 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No sudo, systemctl, service, Tailscale, firewall, account, shell, authorized_keys mutation, writes outside `/home/qslcodex/qsl-remote-test/`, qsc send/receive, workflow dispatch/rerun, qsl-attachments command/mutation, qsl-server source mutation, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0582 remote relay recovered test verification update
+
+- Directive: QSL-DIR-2026-07-01-511.
+- Begin timestamp (UTC): 2026-07-01T06:35:00Z.
+- Repo path: `/srv/qbuild/work/NA-0582/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0582_remote_relay_recovered_test_verification_20260701T063500Z`.
+- qwork proof files were copied and verified before fetch, remote action, workflow action, workflow log retrieval, or repository mutation; Codex did not run qwork, qstart, or qresume.
+- qwork proof verified lane NA-0582, repo qsl-protocol, path `/srv/qbuild/work/NA-0582/qsl-protocol`, branch main, upstream origin/main, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0582, proof timestamp `2026-07-01T06:12:58Z`, and shared cargo target ready.
+- Pre-fetch and post-fetch `HEAD`/`origin/main`: `788689cbd86e`.
+- Disk watermark: `/` 33 percent used; `/backup/qsl` 35 percent used and mounted.
+- Startup queue proof: READY_COUNT 1; READY NA-0582; NA-0581 DONE; NA-0580 DONE.
+- Startup decision proof: D-1153 once and Accepted; D-1154 once and Accepted; D-1155 absent before patch; D-1156 absent; duplicate decision entry count zero.
+- Current main required-check classification: public-safety success, advisories success, suite2-vectors success, no failed required checks, no required pending checks, root cargo audit success, nested qsc fuzz cargo audit success, locked metadata success, and Cargo drift absent.
+- Recovered proof issue RF-000: current-main check classifier looked for local dependency-health proof as GitHub check-run names. Corrective action: recorded direct local cargo audit and metadata proofs plus exact public check names. Final result: PASS.
+- Recovered proof issue RF-001: corrected current-main classifier required cargo-audit stdout to be non-empty even though successful cargo-audit output was recorded on stderr. Corrective action: accepted cargo-audit stderr proof. Final result: PASS.
+- Recovered proof issue RF-002: inheritance proof initially used too narrow a phrase match for the NA-0581-owned process left for the recovered-test successor. Corrective action: matched the checked-in evidence wording. Final result: PASS.
+- Recovered proof issue RF-003: remote postcheck static review matched `ss ` inside `push_class =` as an external command. Corrective action: replaced raw substring scan with AST/process-call review. Final result: PASS.
+- Recovered proof issue RF-004: SSH readiness classifier initially rejected the directive-form sentinel with a literal trailing marker character after the one authorized SSH command exited 0. Corrective action: accepted the known sentinel shape without rerunning SSH. Final result: PASS.
+- D-1153/D-1154 inheritance was reviewed and accepted.
+- Bounded Codex operational authority applied: Tier 1 redacted diagnostics, no remote mutation, exact two-workflow verification only after remote postcheck, Tier 3/Tier 4 forbidden.
+- Remote postcheck script generated proof-root-only and statically reviewed.
+- SSH readiness command executed exactly once and classified `SSH_REMOTE_RELAY_RECOVERED_VERIFY_READY`.
+- Recovered qsl-server postcheck executed exactly once and classified `REMOTE_RELAY_RECOVERED_QSL_SERVER_POSTCHECK_READY`.
+- Workflow metadata review found no suitable failed current-main run, so dispatch on current `main` was selected.
+- remote-handshake workflow dispatch run ID: `28498817017`.
+- remote-relay workflow dispatch run ID: `28498817988`.
+- Bounded REST polling completed after 6 iterations and about 110 seconds.
+- remote-handshake result: completed failure.
+- remote-relay result: completed failure.
+- Raw workflow logs were fetched proof-root-only and scanned; publishable summaries passed private-material review.
+- Failure-cause classification: `REMOTE_RELAY_VERIFICATION_FAILURE_SERVICE_UNREACHABLE_AFTER_LOCAL_READY`.
+- Result classification: `REMOTE_RELAY_RECOVERED_VERIFICATION_FAIL_SERVICE_UNREACHABLE_AFTER_LOCAL_READY`.
+- Selected successor: `NA-0583 -- QSL Remote Relay Service Reachability After Local Ready Triage Harness`.
+- Productive wait-work was performed during workflow polling: if-green/if-red table, postmerge/closeout checklist, and the required read-only forward-audit backlog.
+- Governance patch paths: NA-0582 evidence doc, NA-0582 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: `na-0582-remote-relay-recovered-test-verification`.
+- PR title: `NA-0582: verify recovered remote relay tests`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, command lines, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
+- No remote mutation, qsl-server start, qsl-server stop, qsl-server cleanup, qsc send/receive, workflow file mutation, qsl-attachments work, qsl-server source mutation, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0580 closeout and NA-0581 restoration update
 
 - Directive: QSL-DIR-2026-07-01-509 optional closeout phase.

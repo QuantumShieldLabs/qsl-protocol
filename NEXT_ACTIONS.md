@@ -33118,7 +33118,7 @@ Forbidden scope:
 ---
 
 ### NA-0581 — QSL Remote qsl-server Expected Bind Failure Remediation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33126,6 +33126,24 @@ Remediate the redacted expected-bind failure class selected by NA-0580 without
 publishing private bind values, endpoints, topology, tokens, command lines,
 process identities, payloads, or response bodies. Codex may use only the
 D-1151-selected redacted diagnostics and bounded actions.
+
+---
+
+### NA-0582 — QSL Remote Relay Recovered Test Verification Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Verify whether the recovered `inspiron` qsl-server expected-bind setup resolves
+the previously failing remote-handshake and remote-relay checks. Codex may run
+only exact D-1153-authorized verification actions, which may include redacted
+qsl-server postcheck, read-only GitHub metadata review, and exact workflow
+dispatch/rerun only if D-1153 explicitly authorizes that action. Raw logs and
+artifacts must remain proof-root-only. Repository docs may publish only coarse
+classifications, run IDs, check names, and redacted summaries. Codex must not
+mutate remote accounts, services, Tailscale, authorized_keys, qsl-server source,
+qsl-attachments, qsc runtime/source, workflows, dependencies, public-site
+content, or Cloudflare configuration.
 
 ---
 

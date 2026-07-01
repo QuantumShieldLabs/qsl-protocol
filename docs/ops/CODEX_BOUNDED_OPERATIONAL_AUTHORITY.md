@@ -23,31 +23,55 @@ path scope.
 
 This model does not let Codex run `qwork`, `qstart`, or `qresume`.
 
+This model also defines the project-wide issue-resolution authority used when a
+diagnostic, test, workflow, build, runtime check, integration path, or generated
+harness fails. Codex must not stop at a coarse failed, blocked, ambiguous, or
+insufficient label while safe in-scope investigation remains available. Codex
+must inspect relevant project-owned source, tests, workflows, scripts,
+artifacts, logs, generated harnesses, and proof-root tooling; classify the
+likely issue; apply authorized safe fixes when the active tier permits them;
+rerun the smallest relevant validation; and report the result.
+
 ## 3. Authority tiers
 
 The authority tiers are:
 
-Tier 0 — governance/read-only:
+Tier 0 - governance/read-only:
 - default for public, release, crypto, formal, dependency, and claim lanes
   unless exact operational authority is granted.
+- includes source analysis for project-owned code, tests, workflows, scripts,
+  artifacts, logs, and generated harnesses when needed to classify a failure.
 
-Tier 1 — redacted diagnostics:
+Tier 1 - redacted diagnostics:
 - Codex may run exact read-only commands or SSH-stdin scripts on named test
   hosts/workspaces.
 - Output must be reduced to safe enums/classes.
 - Raw output remains proof-root-only.
+- Codex may fix generated proof-root scripts, parsers, scanners, classifiers,
+  manifests, fixture generators, and local harnesses when the fix stays
+  proof-root-only and safety boundaries hold.
 
-Tier 2 — bounded test action:
+Tier 2 - bounded test action:
 - Codex may perform exact no-secret, non-root, non-privileged, reversible test
   actions in approved test workspaces.
 - Action requires preflight proof and postcheck.
 - Rollback/manifest required where state changes.
+- When an active lane opts into issue-resolution authority, Codex may also
+  patch minimal project-owned diagnostic surfaces, tests, and workflow
+  diagnostics inside the lane's allowed paths to classify the active failure.
+  Such fixes must preserve redaction, fail-closed behavior, checks, and claim
+  boundaries.
 
-Tier 3 — operator/admin action:
+Tier 3 - operator/admin action:
 - sudo, systemd, firewall, Tailscale, account, shell, authorized_keys,
   root-owned service, backup, and privileged operator actions remain
   operator-owned unless a later directive explicitly authorizes a privileged
   lane.
+- Minimal project-owned diagnostic or integration bug fixes may be made only
+  when the active lane explicitly opts in, evidence supports the bug, the fix
+  is narrow, tests/proof are added, paths are allowed, and no crypto, protocol,
+  wire, auth, state-machine, or security semantics change unless explicitly
+  authorized.
 
 Tier 4 — forbidden:
 - secret publication;
@@ -56,19 +80,25 @@ Tier 4 — forbidden:
 - protocol/crypto/security semantic changes outside exact scope;
 - public/production/security overclaims.
 
-## 4. Tier 0 — governance/read-only
+## 4. Tier 0 - governance/read-only
 
 Tier 0 is the default. It permits repository reads, local file inspection,
 proof-root evidence assembly, GitHub metadata reads, governance edits within
 the active directive scope, and validation commands that do not mutate runtime
 state or weaken enforcement.
 
+For failures, Tier 0 includes mandatory source analysis of project-owned code
+and harnesses. Codex may inspect relevant source, tests, workflows, scripts,
+artifacts, logs, generated scripts, classifiers, and proof-root outputs to
+classify why a check or diagnostic failed. A coarse failure label is not enough
+when safe evidence can still be gathered.
+
 Tier 0 does not authorize remote commands, qsc commands, qsl-server start,
 workflow dispatch/rerun, qsl-attachments work, public-site mutation,
 Cloudflare mutation, dependency mutation, privileged action, or private-value
 publication.
 
-## 5. Tier 1 — redacted diagnostics
+## 5. Tier 1 - redacted diagnostics
 
 Tier 1 may be used only when the active directive names the host/workspace or
 local path, exact read-only command family, raw-output quarantine path, and safe
@@ -81,7 +111,13 @@ private topology, endpoint values, private port values, tokens, Authorization
 material, payloads, response bodies, and key material must remain
 proof-root-only and must not be committed.
 
-## 6. Tier 2 — bounded test action
+Safe proof-root fixes are authorized by default. Codex may repair generated
+proof-root scripts, parsers, scanners, classifiers, manifests, fixture
+generators, and local harnesses without a new Director turn when the repair
+stays proof-root-only, preserves private-material quarantine, and does not cross
+the stop boundaries in this runbook or the active directive.
+
+## 6. Tier 2 - bounded test action
 
 Tier 2 may be used only when the active directive proves all action gates before
 execution. The action must be no-secret, non-root, non-privileged, reversible,
@@ -91,6 +127,19 @@ named by the directive.
 Tier 2 requires preflight proof, a state-change manifest when state changes,
 postcheck proof, cleanup/rollback proof when applicable, and a private-material
 scan before any evidence is published.
+
+When the active lane opts into the issue-resolution authority model, Tier 2 also
+permits minimal project-owned diagnostic fixes inside declared allowed paths.
+Examples include safe error-classification summaries, redacted diagnostic
+fields, workflow diagnostic summaries, CI helper diagnostics, and tests proving
+redaction and no-private-material publication. These fixes must not weaken auth,
+validation, fail-closed behavior, checks, or claim boundaries.
+
+Minimal project-owned bug fixes are allowed only when evidence supports the
+bug, the fix is narrow, the active scope allows the path, tests/proof are added,
+and the fix does not alter crypto, protocol, wire, auth, state-machine, or
+security semantics unless the active lane explicitly authorizes those
+semantics.
 
 ## 7. Tier 3 — operator/admin action
 
@@ -208,6 +257,10 @@ Codex must stop when:
   security semantics outside exact scope;
 - the requested action weakens validation, auth, evidence, checks, or claims;
 - private material would be published;
+- source analysis or a fix would require secrets, private key access,
+  dependency or lockfile changes outside scope, branch-protection/settings
+  mutation, workflow weakening, out-of-scope source paths, or unquarantined raw
+  private material;
 - Tier 3 or Tier 4 action is required without exact authorization;
 - root cause is unclear enough that continuing would risk untruthful evidence
   or behavior drift.

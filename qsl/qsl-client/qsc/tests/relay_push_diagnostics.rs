@@ -226,6 +226,11 @@ fn redacted_mode_reports_status_body_and_presence_without_values() {
     assert!(text.contains("status_class=4xx"), "{text}");
     assert!(text.contains("status_code=401"), "{text}");
     assert!(text.contains("error_class=auth_rejected"), "{text}");
+    assert!(
+        text.contains("diagnostic_class=bearer_auth_failed"),
+        "{text}"
+    );
+    assert!(text.contains("timeout_phase_class=not_timeout"), "{text}");
     assert!(text.contains("response_body_present=true"), "{text}");
     assert!(
         text.contains(format!("response_body_len={}", RESPONSE_BODY_FIXTURE.len()).as_str()),
@@ -252,6 +257,11 @@ fn redacted_mode_maps_payload_rejected_without_response_content() {
     assert!(text.contains("status_class=4xx"), "{text}");
     assert!(text.contains("status_code=413"), "{text}");
     assert!(text.contains("error_class=payload_rejected"), "{text}");
+    assert!(
+        text.contains("diagnostic_class=http_status_received"),
+        "{text}"
+    );
+    assert!(text.contains("timeout_phase_class=not_timeout"), "{text}");
     assert!(text.contains("qsc_error=relay_inbox_too_large"), "{text}");
     assert_no_fixture_secrets(&text);
     println!("NA0554_RELAY_PUSH_DIAGNOSTIC_STATUS_CLASS_OK");

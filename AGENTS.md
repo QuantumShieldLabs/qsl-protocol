@@ -149,6 +149,15 @@ If CI/workflow integration requires path tuning, do so without weakening enforce
 - Codex MUST NOT run `qwork`, `qstart`, or `qresume`.
 - Codex MUST NOT publish private material and MUST NOT weaken checks, evidence gates, scope gates, public-safety, advisories, one-READY queue discipline, or claim boundaries.
 
+## Failure-triggered investigation and safe issue resolution
+- When a diagnostic, test, workflow, build, runtime check, integration path, or generated harness fails, Codex MUST inspect relevant project-owned source, tests, workflows, scripts, artifacts, logs, generated harnesses, and proof-root tooling while safe in-scope investigation remains available.
+- Codex MUST NOT stop at a coarse failed, blocked, ambiguous, or insufficient label when the active directive and safety boundaries allow further source analysis, artifact review, proof-root repair, targeted diagnostics, or a narrow safe fix.
+- Project-owned source analysis is authorized by default for failure classification: Codex may read relevant repository code, tests, workflows, scripts, and artifacts without a new Director turn, subject to private-material and raw-output quarantine rules.
+- Safe proof-root fixes are authorized by default: Codex may fix and retry generated proof-root scripts, parsers, scanners, classifiers, manifests, fixture generators, and local harnesses when the fix stays proof-root-only and does not cross stop boundaries.
+- Safe project-owned diagnostic fixes are authorized only when the active lane opts into the issue-resolution authority model. Such fixes must be minimal, stay in allowed paths, preserve redaction, preserve fail-closed behavior, preserve checks, and add tests or proof.
+- Minimal project-owned bug fixes are allowed only when evidence supports the bug, the fix is narrow, the active scope allows the paths, tests/proof are added, and the fix does not alter crypto, protocol, wire, auth, state-machine, or security semantics unless the lane explicitly authorizes those semantics.
+- Hard stops remain for secrets, private-material publication, privileged/root/admin actions, destructive actions, out-of-scope dependency changes, out-of-scope source paths, workflow weakening, branch-protection/settings mutation, public/security overclaims, and `qwork`/`qstart`/`qresume` execution by Codex.
+
 ## Post-fix hardening review (mandatory)
 After any issue fix, the assistant MUST complete and report a post-fix hardening review before declaring the work complete. The review MUST include:
 1. Correctness under stress.

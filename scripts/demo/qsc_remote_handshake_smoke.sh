@@ -123,6 +123,31 @@ mark_count() {
   fi
 }
 
+marker_values() {
+  local key="$1"
+  local values=""
+  if [ "$have_rg" -eq 1 ]; then
+    values=$(
+      (rg -o "${key}=[^ ]+" "$markers" 2>/dev/null || true) \
+        | sed -E "s/^${key}=//" \
+        | sort -u \
+        | paste -sd, -
+    )
+  else
+    values=$(
+      (grep -Eo "${key}=[^ ]+" "$markers" 2>/dev/null || true) \
+        | sed -E "s/^${key}=//" \
+        | sort -u \
+        | paste -sd, -
+    )
+  fi
+  if [ -z "$values" ]; then
+    echo "diagnostic_unavailable"
+  else
+    echo "$values"
+  fi
+}
+
 run_qsc_step() {
   local actor="$1"
   local step="$2"
@@ -389,6 +414,10 @@ recv_commit_count="$(mark_count 'event=recv_commit')"
 handshake_complete_count="$(mark_count 'event=handshake_complete')"
 protocol_inactive_count="$(mark_count 'event=error code=protocol_inactive')"
 relay_unauthorized_count="$(mark_count 'code=relay_unauthorized')"
+relay_push_diagnostic_count="$(mark_count 'event=relay_push_diagnostic')"
+relay_push_diagnostic_classes="$(marker_values diagnostic_class)"
+relay_push_timeout_phase_classes="$(marker_values timeout_phase_class)"
+relay_push_status_classes="$(marker_values status_class)"
 
 {
   echo "scenario=$scenario"
@@ -403,6 +432,10 @@ relay_unauthorized_count="$(mark_count 'code=relay_unauthorized')"
   echo "handshake_complete_count=$handshake_complete_count"
   echo "protocol_inactive_count=$protocol_inactive_count"
   echo "relay_unauthorized_count=$relay_unauthorized_count"
+  echo "relay_push_diagnostic_count=$relay_push_diagnostic_count"
+  echo "relay_push_diagnostic_classes=$relay_push_diagnostic_classes"
+  echo "relay_push_timeout_phase_classes=$relay_push_timeout_phase_classes"
+  echo "relay_push_status_classes=$relay_push_status_classes"
 } > "$counts"
 
 {
@@ -415,6 +448,10 @@ relay_unauthorized_count="$(mark_count 'code=relay_unauthorized')"
   echo "recv_commit_bob=$bob_recv_commit_count"
   echo "recv_commit_alice=$alice_recv_commit_count"
   echo "marker_lines=$(wc -l < "$markers" | tr -d ' ')"
+  echo "relay_push_diagnostic_count=$relay_push_diagnostic_count"
+  echo "relay_push_diagnostic_classes=$relay_push_diagnostic_classes"
+  echo "relay_push_timeout_phase_classes=$relay_push_timeout_phase_classes"
+  echo "relay_push_status_classes=$relay_push_status_classes"
   echo "normalized_subset_sha256=$(sha256sum "$subset" | awk '{print $1}')"
 } > "$summary"
 

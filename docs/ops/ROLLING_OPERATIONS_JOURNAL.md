@@ -40044,6 +40044,34 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No sudo, systemctl, service, Tailscale, firewall, account, shell, authorized_keys mutation, writes outside `/home/qslcodex/qsl-remote-test/`, qsc send/receive, workflow dispatch/rerun, qsl-attachments command/mutation, qsl-server source mutation, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0585 remote relay diagnostic surface and Codex issue authority update
+
+- Directive: QSL-DIR-2026-07-01-514.
+- Repo path: `/srv/qbuild/work/NA-0585/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0585_remote_relay_diagnostic_surface_and_codex_issue_authority_*`.
+- qwork proof files were copied and verified before fetch, repository mutation, GitHub action, workflow action, artifact/log retrieval, source-analysis result publication, or proof publication; Codex did not run qwork, qstart, or qresume.
+- qwork proof verified lane NA-0585, repo qsl-protocol, clean main, `HEAD`/`origin/main` at `8a376e30e92a`, READY_COUNT 1, queue top READY NA-0585, and shared cargo target ready.
+- Disk watermark was below the 95 percent stop threshold and `/backup/qsl` was mounted.
+- Current main required-check classification: public-safety success, advisories success, suite2-vectors success, no failed visible check-runs, no pending visible check-runs, root cargo audit success, nested qsc fuzz cargo audit success, locked metadata success, and Cargo drift absent.
+- D-1159 and D-1160 inheritance was reviewed and accepted; D-1159 result `REMOTE_RELAY_REACHABILITY_QSC_TIMEOUT_PHASE_ONLY` was consumed.
+- Codex issue-investigation authority was hardened in START_HERE, AGENTS, and `docs/ops/CODEX_BOUNDED_OPERATIONAL_AUTHORITY.md`.
+- Source analysis classified qsc relay gaps as timeout phase lost, error context dropped, log summary missing, and harness counts only.
+- Selected diagnostic mutation paths: `qsl/qsl-client/qsc/src/transport/mod.rs`, `qsl/qsl-client/qsc/tests/relay_push_diagnostics.rs`, `qsl/qsl-client/qsc/tests/secret_material_diagnostic_boundary.rs`, `scripts/demo/qsc_remote_handshake_smoke.sh`, and `scripts/demo/qsc_remote_relay_smoke.sh`.
+- Diagnostic surface implementation added safe qsc relay-push enum fields and remote helper safe summary/count artifact fields.
+- Focused validation passed: qsc fmt, helper bash syntax, qsc relay diagnostic unit tests, relay push diagnostic integration tests, and NA-0554 diagnostic redaction boundary test.
+- Private-material scan passed and no-semantics-change review passed.
+- Result classification: `REMOTE_RELAY_DIAGNOSTIC_SURFACE_SAFE_FIX_IMPLEMENTED`.
+- Selected successor: `NA-0586 -- QSL Remote Relay Diagnostic Verification and Timeout Phase Triage Harness`.
+- D-1161 records NA-0585 implementation and successor selection.
+- Recovered proof issue: queue/decision parser strictness. Corrective action: section-based parser. Final result: PASS.
+- Recovered proof issue: nested qsc fuzz audit command shape. Corrective action: use lockfile audit with `cargo audit -f`. Final result: PASS.
+- Recovered proof issue: aggregate authority-hardening scanner strictness. Corrective action: aggregate governance-set coverage check. Final result: PASS.
+- Recovered proof issue: absent qsc examples path during source search. Corrective action: record absent optional path and search existing qsc source/tests. Final result: PASS.
+- Recovered proof issue: private-material scanner policy-term false positive. Corrective action: separate boundary terms from value-like material. Final result: PASS.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization values, payloads, response bodies, private topology, process identities, command lines, authorized_keys content, public key material, private key material, secret values, raw logs, or private material are published.
+- No qsl-server source mutation, qsl-attachments work, dependency/lockfile change, workflow file mutation, remote action, SSH, scp, Tailscale, qsl-server start/stop/cleanup, manual qsc send/receive, workflow dispatch, workflow rerun, public-site mutation, Cloudflare mutation, qwork, qstart, or qresume occurred.
+- No public-readiness, production-readiness, vulnerability-free, bug-free, perfect-build, perfect-crypto, crypto-complete, or external-review-complete claim is introduced.
+
 ## NA-0582 remote relay recovered test verification update
 
 - Directive: QSL-DIR-2026-07-01-511.

@@ -246,7 +246,8 @@ fn na0554_relay_push_diagnostic_boundary_is_value_free() {
             "QSC_MARK/1 event=relay_push_diagnostic ",
             "diagnostic=QSC_RELAY_PUSH_DIAGNOSTIC mode=redacted ",
             "api=relay_push_v1 status_class=4xx status_code=401 ",
-            "error_class=auth_rejected response_body_present=true ",
+            "error_class=auth_rejected diagnostic_class=bearer_auth_failed ",
+            "timeout_phase_class=not_timeout response_body_present=true ",
             "response_body_len=23 route_header_present=true auth_present=true ",
             "qsc_error=relay_unauthorized attempt=1\n"
         )

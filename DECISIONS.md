@@ -30968,3 +30968,29 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0580 expected bind / endpoint alignment classification to D-1151.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records proof gates, recovered classifier/scanner issues, remote classifications, result classification, selected successor, validation/CI notes, and no-action/no-claim boundaries.
   - **References:** NA-0580; selected future NA-0581; D-1151; D-1150; D-1149; qsl-protocol main `4ba0bb4988c3`; `docs/governance/evidence/NA-0580_remote_qsl_server_expected_bind_endpoint_alignment_harness.md`; `tests/NA-0580_remote_qsl_server_expected_bind_endpoint_alignment_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1152
+  - **Title:** NA-0580 closeout and NA-0581 restoration
+  - **Date:** 2026-07-01
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0580 is closed after qsl-protocol implementation PR #1434 merged at `c45bea4e686d` from head `e09ac6a1426c`. D-1151 exists once and is Accepted. D-1151 selected result classification `QSL_SERVER_EXPECTED_BIND_ENDPOINT_VALUE_UNAVAILABLE` and exact successor `NA-0581 -- QSL Remote qsl-server Expected Bind Failure Remediation Harness`. Post-merge public-safety completed success. Post-merge advisories completed success. No failed required checks were classified. NA-0580 is marked DONE, and NA-0581 is restored as exactly one READY successor.
+  - **Selected successor:** NA-0581 is restored READY with Goals G1, G2, G3, G4, G5. It must remediate the redacted expected-bind failure class selected by NA-0580 without publishing private bind values, endpoints, topology, tokens, command lines, process identities, payloads, or response bodies. Codex may use only D-1151-selected redacted diagnostics and bounded actions.
+  - **Closeout proof:** Local main was fast-forwarded to origin/main at `c45bea4e686d`. Worktree, index, and untracked state were clean before closeout edits. Post-merge proof verified D-1151 once, D-1152 absent before this patch, READY_COUNT 1 with READY NA-0580, duplicate decision count zero, public-safety success, advisories success, no failed required checks, and no forbidden path mutation.
+  - **Boundary proof:** No NA-0581 implementation occurred. No remote action occurred during closeout. No SSH, scp, Tailscale, remote command, qsl-server start, qsl-server deployment, qsl-server mutation, qsl-attachments command/mutation, qsc send/receive, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency mutation, public-site mutation, Cloudflare mutation, or private-material publication occurred. No endpoint values, private port values, topology, token values, Authorization values, command lines, process identities, payloads, response bodies, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys were published.
+  - **Claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-build claim is made. No perfect-crypto claim is made.
+  - **Security invariants introduced/changed:**
+    - Closeout changes no protocol, wire, crypto, auth, state-machine, qsc runtime, qsl-server runtime/source, qsl-attachments runtime/source, qsl-protocol source, repository script, workflow, dependency, lockfile, public-site, or Cloudflare semantics.
+    - NA-0581 is restored only as the D-1151-selected expected-bind failure remediation harness.
+    - NA-0581 implementation is not performed during closeout.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Leave NA-0580 READY after D-1151 merged (rejected because D-1151 selected exact NA-0581 successor and post-merge checks are green).
+    - Restore an endpoint-alignment proof successor (rejected because D-1151 classified endpoint value unavailable and selected the failure remediation harness).
+    - Implement NA-0581 during closeout (rejected as out of scope).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0580 DONE and restores NA-0581 READY using the exact D-1151-selected expected-bind failure remediation successor block.
+    - `tests/NA-0580_closeout_restore_na0581_testplan.md` records closeout markers, implementation PR merge proof, D-1151 acceptance, post-merge public-safety/advisories proof, D-1152 restoration proof, exact successor proof, no NA-0581 implementation, no remote action, no qsl-server start, no qsc send/receive, no workflow dispatch/rerun, no qsl-attachments, no private-material publication, no public/production/security overclaim, and the one-READY invariant.
+    - `TRACEABILITY.md` maps NA-0580 closeout and NA-0581 restoration to D-1152.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the NA-0580 closeout state, D-1152, post-merge proof, and restored NA-0581 successor.
+  - **References:** NA-0580; NA-0581; D-1152; D-1151; qsl-protocol PR #1434; qsl-protocol merge `c45bea4e686d`; qsl-protocol head `e09ac6a1426c`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0580_closeout_restore_na0581_testplan.md`

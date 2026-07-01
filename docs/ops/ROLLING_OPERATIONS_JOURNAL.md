@@ -39839,12 +39839,40 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Result classification: `QSL_SERVER_EXPECTED_BIND_ENDPOINT_VALUE_UNAVAILABLE`.
 - Selected successor: `NA-0581 -- QSL Remote qsl-server Expected Bind Failure Remediation Harness`.
 - Governance patch paths: NA-0580 evidence doc, NA-0580 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
-- Branch: pending at journal authoring.
+- Branch: `na-0580-qsl-server-expected-bind-endpoint-alignment`.
 - PR title: `NA-0580: classify qsl-server expected bind endpoint alignment`.
-- PR: pending at journal authoring.
-- PR merge commit: pending at journal authoring.
+- PR: #1434.
+- PR merge commit: `c45bea4e686d`.
+- PR head: `e09ac6a1426c`.
+- Implementation post-merge public-safety completed success.
+- Implementation post-merge advisories completed success.
+- Implementation post-merge check polling reached 36 attached checks, zero incomplete, and zero failures before closeout.
 - No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
 - No sudo, systemctl, service, Tailscale, firewall, account, shell, authorized_keys mutation, writes outside `/home/qslcodex/qsl-remote-test/`, qsc send/receive, workflow dispatch/rerun, qsl-attachments command/mutation, qsl-server source mutation, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
+## NA-0580 closeout and NA-0581 restoration update
+
+- Directive: QSL-DIR-2026-07-01-509 optional closeout phase.
+- Begin timestamp (UTC): 2026-07-01T04:20:00Z.
+- Repo path: `/srv/qbuild/work/NA-0580/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0580_qsl_server_expected_bind_endpoint_alignment_20260701T034625Z`.
+- Implementation PR #1434 merged at `c45bea4e686d` from head `e09ac6a1426c`.
+- Local main was fast-forwarded to origin/main at `c45bea4e686d`.
+- Worktree, index, and untracked state were clean before closeout edits.
+- Post-merge queue proof before closeout: READY_COUNT 1; READY NA-0580.
+- Post-merge decision proof before closeout: D-1151 once and Accepted; D-1152 absent; duplicate decision count zero.
+- Post-merge public-safety completed success.
+- Post-merge advisories completed success.
+- No failed required checks were classified.
+- D-1151 result classification: `QSL_SERVER_EXPECTED_BIND_ENDPOINT_VALUE_UNAVAILABLE`.
+- D-1151 selected successor: `NA-0581 -- QSL Remote qsl-server Expected Bind Failure Remediation Harness`.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0580_closeout_restore_na0581_testplan.md`.
+- NA-0580 is marked DONE.
+- NA-0581 is restored READY using the exact D-1151-selected expected-bind failure remediation successor block.
+- D-1152 records NA-0580 closeout and NA-0581 restoration.
+- This closeout does not implement NA-0581 and does not execute remote action, SSH, scp, Tailscale, remote command, qsl-server start, qsl-server deployment, qsl-server mutation, qsl-attachments command/mutation, qsc send/receive, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation.
+- No endpoint values, private port values, topology, token values, Authorization values, command lines, process identities, payloads, response bodies, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
 ## NA-0578 qsl-server failed start cause classification and corrected loopback proof update

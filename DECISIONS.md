@@ -31084,3 +31084,29 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0582 recovered verification to D-1155.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records proof gates, recoveries, remote classifications, workflow run IDs, failure classification, selected successor, CI wait-work, validation notes, and no-action/no-claim boundaries.
   - **References:** NA-0582; selected future NA-0583; D-1155; D-1154; D-1153; qsl-protocol main `788689cbd86e`; remote-handshake run `28498817017`; remote-relay run `28498817988`; `docs/governance/evidence/NA-0582_remote_relay_recovered_test_verification_harness.md`; `tests/NA-0582_remote_relay_recovered_test_verification_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1156
+  - **Title:** NA-0582 closeout and NA-0583 restoration
+  - **Date:** 2026-07-01
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0582 is closed after qsl-protocol implementation PR #1438 merged at `1bdf546107db` from head `d3b2296ee42f`. D-1155 exists once and is Accepted. D-1155 selected result classification `REMOTE_RELAY_RECOVERED_VERIFICATION_FAIL_SERVICE_UNREACHABLE_AFTER_LOCAL_READY` and exact successor `NA-0583 -- QSL Remote Relay Service Reachability After Local Ready Triage Harness`. Post-merge public-safety completed success. Post-merge advisories completed success. No failed required checks were classified. NA-0582 is marked DONE, and NA-0583 is restored as exactly one READY successor.
+  - **Selected successor:** NA-0583 is restored READY with Goals G1, G2, G3, G4, G5. It must triage why exact GitHub remote-handshake and remote-relay verification workflows still fail after the recovered qsl-server local postcheck is ready. It may use redacted workflow logs, qsl-server postcheck metadata, and safe GitHub metadata only unless a later directive authorizes additional action. It must not publish private endpoint, bind, port, token, Authorization, topology, process, payload, response-body, authorized_keys, public-key, private-key, or secret values.
+  - **Closeout proof:** Local main was fast-forwarded to origin/main at `1bdf546107db`. Worktree, index, and untracked state were clean before closeout edits. Post-merge proof verified D-1155 once, D-1156 absent before this patch, READY_COUNT 1 with READY NA-0582, duplicate decision count zero, public-safety success, advisories success, and no failed required checks.
+  - **Boundary proof:** No NA-0583 implementation occurred. No remote action occurred during closeout. No SSH, scp, Tailscale, remote command, qsl-server start, qsl-server stop, qsl-server cleanup, qsl-server deployment, qsl-server mutation, qsl-attachments command/mutation, qsc send/receive, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency mutation, public-site mutation, Cloudflare mutation, or private-material publication occurred. No endpoint values, private port values, topology, token values, Authorization values, command lines, process identities, payloads, response bodies, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys were published.
+  - **Claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-build claim is made. No perfect-crypto claim is made.
+  - **Security invariants introduced/changed:**
+    - Closeout changes no protocol, wire, crypto, auth, state-machine, qsc runtime/source, qsl-server runtime/source, qsl-attachments runtime/source, qsl-protocol source, repository script, workflow, dependency, lockfile, public-site, or Cloudflare semantics.
+    - NA-0583 is restored only as the D-1155-selected service-reachability triage harness.
+    - NA-0583 implementation is not performed during closeout.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Leave NA-0582 READY after D-1155 merged (rejected because D-1155 selected exact NA-0583 successor and post-merge public-safety/advisories gates are green).
+    - Restore the send/receive E2EE expansion successor (rejected because D-1155 classified both workflows as still failing after the local recovered postcheck).
+    - Implement NA-0583 during closeout (rejected as out of scope).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0582 DONE and restores NA-0583 READY using the exact D-1155-selected service-reachability triage successor block.
+    - `tests/NA-0582_closeout_restore_na0583_testplan.md` records closeout markers, implementation PR merge proof, D-1155 acceptance, post-merge public-safety/advisories proof, D-1156 restoration proof, exact successor proof, no NA-0583 implementation, no remote action, no qsl-server start/stop/cleanup, no qsc send/receive, no workflow dispatch/rerun, no qsl-attachments, no private-material publication, no public/production/security overclaim, and the one-READY invariant.
+    - `TRACEABILITY.md` maps NA-0582 closeout and NA-0583 restoration to D-1156.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the NA-0582 closeout state, D-1156, post-merge proof, and restored NA-0583 successor.
+  - **References:** NA-0582; NA-0583; D-1156; D-1155; qsl-protocol PR #1438; qsl-protocol merge `1bdf546107db`; qsl-protocol head `d3b2296ee42f`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0582_closeout_restore_na0583_testplan.md`

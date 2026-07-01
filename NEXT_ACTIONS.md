@@ -33130,7 +33130,7 @@ D-1151-selected redacted diagnostics and bounded actions.
 ---
 
 ### NA-0582 — QSL Remote Relay Recovered Test Verification Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33144,6 +33144,20 @@ classifications, run IDs, check names, and redacted summaries. Codex must not
 mutate remote accounts, services, Tailscale, authorized_keys, qsl-server source,
 qsl-attachments, qsc runtime/source, workflows, dependencies, public-site
 content, or Cloudflare configuration.
+
+---
+
+### NA-0583 — QSL Remote Relay Service Reachability After Local Ready Triage Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Triage why exact GitHub remote-handshake and remote-relay verification workflows
+still fail after the recovered qsl-server local postcheck is ready. Use redacted
+workflow logs, qsl-server postcheck metadata, and safe GitHub metadata only
+unless a later directive authorizes additional action. Do not publish private
+endpoint, bind, port, token, Authorization, topology, process, payload,
+response-body, authorized_keys, public-key, private-key, or secret values.
 
 ---
 

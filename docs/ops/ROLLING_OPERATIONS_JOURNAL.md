@@ -6,6 +6,47 @@ Last-Updated: 2026-06-29
 
 # Rolling Operations Journal
 
+## NA-0579 qsl-server failed start proof completion follow-up update
+
+- Directive: QSL-DIR-2026-07-01-508 -- Execute NA-0579 qsl-server Failed Start Proof Completion Follow-Up Harness, Optional Closeout to NA-0580.
+- Begin timestamp (America/Chicago): `2026-06-30T19:18:45-05:00`.
+- Begin timestamp (UTC): `2026-07-01T00:18:45Z`.
+- Repo path: `/srv/qbuild/work/NA-0579/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0579_qsl_server_failed_start_proof_completion_20260701T001845Z`.
+- Fresh NA-0579 qwork proof files were read and copied from the lane workspace; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-07-01T00:07:58Z`; startup head/origin-main/main was `dbaa462d602` with READY_COUNT 1 and READY NA-0579.
+- Disk and mount gate passed before fetch, repository mutation, remote script generation, or SSH: root usage was below the 95 percent stop threshold and `/backup/qsl` was mounted.
+- Fetch occurred only after qwork proof, live ref match, clean tree, disk proof, and mount proof passed. Local main matched origin/main at `dbaa462d602`.
+- Startup queue proof: READY_COUNT 1; READY NA-0579; NA-0578 DONE; NA-0577 DONE.
+- Startup decision proof: D-1147 once and Accepted; D-1148 once and Accepted; D-1149 absent before patch; D-1150 absent; duplicate decision count zero.
+- Current main required-check classification passed: public-safety completed success, advisories completed success, suite2-vectors completed success, no failed required checks, no required pending checks after D498-style visibility recovery, root cargo audit passed, nested qsc fuzz cargo audit passed, locked metadata passed, and no Cargo.toml/Cargo.lock/qsc fuzz lockfile drift was detected.
+- D507/D-1147/D-1148 inheritance review passed.
+- NA-0578 generated script review classified the gating defect as `QSL_SERVER_NA0578_GATING_DEFECT_INSPECTION_STATE_NOT_PERSISTED`: inspection stdout contained safe state, but the persisted handoff manifest consumed by start did not.
+- Local dry-run assertion passed before remote start and proved inspection/start field names, origin sentinel, deterministic manifest path, host-only bind plus separate port shape, no host-plus-port bind, sanitized environment without `RELAY_TOKEN`, no selected-port output, no command-line output, no process-identity output, and redacted child exit/stderr class.
+- qsl-server CLI source/help review reconfirmed bind host-only plus separate port, internal bind/port composition, optional `RELAY_TOKEN` for startup when absent/empty, and route-token header requirement for route usage.
+- Remote scripts static review passed after field-name scanner recovery; scripts are proof-root-only, Python stdlib only, JSON-only stdout, no forbidden commands, workspace-bounded, and redacted-by-construction.
+- SSH readiness classified `SSH_QSL_SERVER_PROOF_COMPLETION_FOLLOWUP_READY`.
+- Remote inspection classified `QSL_SERVER_PROOF_COMPLETION_CORRECTED_START_SAFE`.
+- Corrected bounded start classified `QSL_SERVER_PROOF_COMPLETION_BOUNDED_START_TEMP_SMOKE_STARTED`.
+- Corrected bounded postcheck classified `QSL_SERVER_PROOF_COMPLETION_POSTCHECK_TEMP_LOOPBACK_ROUTE_SHAPE_PASS`.
+- Cleanup classified `QSL_SERVER_PROOF_COMPLETION_CLEANUP_DONE`.
+- Aggregate private-material review passed. No endpoint, private port, private topology, route-token/capability value, bearer value, Authorization value, command line, process identity, payload, response body, authorized_keys content, key material, or private material was published.
+- Selected result classification: `QSL_SERVER_PROOF_COMPLETION_TEMP_LOOPBACK_ROUTE_SHAPE_PASS_EXPECTED_BIND_REQUIRED`.
+- Selected successor: `NA-0580 -- QSL Remote qsl-server Expected Bind / Endpoint Alignment Harness`.
+- Recovered current-main classifier issue: the first classifier treated `goal-lint` and `CodeQL` as literal merge-commit check-run names. Classification: recoverable required-check visibility issue. Corrective action: classified goal-lint and CodeQL through PR-head and merge analysis check evidence per D498. Final result: PASS.
+- Recovered source-review command-shape issue: `rg` pattern beginning with `--` was parsed as an option. Corrective action: reran with `rg -e`. Final result: PASS.
+- Recovered inheritance parser issue: one bind-bug confirmation check used a too-narrow source set. Corrective action: classified against D-1147 and NA-0578 evidence text. Final result: PASS.
+- Recovered static-review and private-scan false positives: required coarse JSON field names containing operation words, public GitHub/proof enum data, and descriptive bearer wording triggered broad scans. Corrective action: field-name/public-proof allowlists while preserving directive-sensitive scans. Final result: PASS.
+- Recovered SSH readiness classifier strictness: exact newline expectation mismatched benign sentinel formatting. Corrective action: classified by return code, expected sentinel prefix, empty stderr, and private-material scan pass without rerunning SSH. Final result: PASS.
+- Governance patch paths are limited to `docs/governance/evidence/NA-0579_qsl_server_failed_start_proof_completion_followup_harness.md`, `tests/NA-0579_qsl_server_failed_start_proof_completion_followup_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Codex did not execute qwork, qstart, qresume, scp, sudo, systemctl, service, journalctl, ps, ss, netstat, lsof, Tailscale, firewall commands, account/shell/authorized_keys mutation, qsl-backup, qsc send/receive, workflow dispatch/rerun, qsl-attachments command/clone/build/run/mutation, qsl-server source mutation or PR, qsl-protocol source/script/workflow/dependency mutation, public-site mutation, or Cloudflare mutation.
+- Branch: `na-0579-qsl-server-failed-start-proof-completion` after local validation.
+- PR title: `NA-0579: complete qsl-server failed start proof`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: implementation validation, PR checks, public-safety, advisories, no failed required checks, post-merge proof, and optional closeout to NA-0580 only if gates are green.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
+
 ## NA-0571 closeout and NA-0572 restoration update
 
 - Directive: QSL-DIR-2026-06-29-495 optional closeout after NA-0571 implementation merge.

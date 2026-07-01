@@ -31026,3 +31026,29 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0581 expected bind remediation to D-1153.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records proof gates, recovered command/classifier/harness/scanner issues, remote classifications, result classification, selected successor, validation/CI notes, and no-action/no-claim boundaries.
   - **References:** NA-0581; selected future NA-0582; D-1153; D-1152; D-1151; qsl-protocol main `d7d8f98f336a`; `docs/governance/evidence/NA-0581_remote_qsl_server_expected_bind_failure_remediation_harness.md`; `tests/NA-0581_remote_qsl_server_expected_bind_failure_remediation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1154
+  - **Title:** NA-0581 closeout and NA-0582 restoration
+  - **Date:** 2026-07-01
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0581 is closed after qsl-protocol implementation PR #1436 merged at `19adf352860b` from head `4170938162cf`. D-1153 exists once and is Accepted. D-1153 selected result classification `QSL_SERVER_EXPECTED_BIND_REMEDIATION_RELAY_TESTING_READY` and exact successor `NA-0582 -- QSL Remote Relay Recovered Test Verification Harness`. Post-merge public-safety completed success. Post-merge advisories completed success. No failed required checks were classified. NA-0581 is marked DONE, and NA-0582 is restored as exactly one READY successor.
+  - **Selected successor:** NA-0582 is restored READY with Goals G1, G2, G3, G4, G5. It must verify whether the recovered `inspiron` qsl-server expected-bind setup resolves the previously failing remote-handshake and remote-relay checks. Codex may run only exact D-1153-authorized verification actions, which may include redacted qsl-server postcheck, read-only GitHub metadata review, and exact workflow dispatch/rerun only if D-1153 explicitly authorizes that action. Raw logs and artifacts must remain proof-root-only. Repository docs may publish only coarse classifications, run IDs, check names, and redacted summaries. Codex must not mutate remote accounts, services, Tailscale, authorized_keys, qsl-server source, qsl-attachments, qsc runtime/source, workflows, dependencies, public-site content, or Cloudflare configuration.
+  - **Closeout proof:** Local main was fast-forwarded to origin/main at `19adf352860b`. Worktree, index, and untracked state were clean before closeout edits. Post-merge proof verified D-1153 once, D-1154 absent before this patch, READY_COUNT 1 with READY NA-0581, duplicate decision count zero, public-safety success, advisories success, and no failed required checks.
+  - **Boundary proof:** No NA-0582 implementation occurred. No remote action occurred during closeout. No SSH, scp, Tailscale, remote command, qsl-server start, qsl-server deployment, qsl-server mutation, qsl-attachments command/mutation, qsc send/receive, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency mutation, public-site mutation, Cloudflare mutation, or private-material publication occurred. No endpoint values, private port values, topology, token values, Authorization values, command lines, process identities, payloads, response bodies, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys were published.
+  - **Claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-build claim is made. No perfect-crypto claim is made.
+  - **Security invariants introduced/changed:**
+    - Closeout changes no protocol, wire, crypto, auth, state-machine, qsc runtime/source, qsl-server runtime/source, qsl-attachments runtime/source, qsl-protocol source, repository script, workflow, dependency, lockfile, public-site, or Cloudflare semantics.
+    - NA-0582 is restored only as the D-1153-selected recovered-test verification harness.
+    - NA-0582 implementation is not performed during closeout.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Leave NA-0581 READY after D-1153 merged (rejected because D-1153 selected exact NA-0582 successor and post-merge public-safety/advisories gates are green).
+    - Restore an endpoint-alignment proof successor (rejected because D-1153 selected recovered-test verification after relay testing readiness).
+    - Implement NA-0582 during closeout (rejected as out of scope).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0581 DONE and restores NA-0582 READY using the exact D-1153-selected recovered-test verification successor block.
+    - `tests/NA-0581_closeout_restore_na0582_testplan.md` records closeout markers, implementation PR merge proof, D-1153 acceptance, post-merge public-safety/advisories proof, D-1154 restoration proof, exact successor proof, no NA-0582 implementation, no remote action, no qsl-server start, no qsc send/receive, no workflow dispatch/rerun, no qsl-attachments, no private-material publication, no public/production/security overclaim, and the one-READY invariant.
+    - `TRACEABILITY.md` maps NA-0581 closeout and NA-0582 restoration to D-1154.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the NA-0581 closeout state, D-1154, post-merge proof, and restored NA-0582 successor.
+  - **References:** NA-0581; NA-0582; D-1154; D-1153; qsl-protocol PR #1436; qsl-protocol merge `19adf352860b`; qsl-protocol head `4170938162cf`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0581_closeout_restore_na0582_testplan.md`

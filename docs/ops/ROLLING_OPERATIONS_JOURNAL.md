@@ -6,6 +6,29 @@ Last-Updated: 2026-06-29
 
 # Rolling Operations Journal
 
+## NA-0581 closeout and NA-0582 restoration update
+
+- Directive: QSL-DIR-2026-07-01-510 optional closeout after NA-0581 implementation merge.
+- Begin timestamp (UTC): `2026-07-01T05:52:00Z`.
+- Repo path: `/srv/qbuild/work/NA-0581/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0581_qsl_server_expected_bind_failure_remediation_20260701T052508Z`.
+- Implementation PR #1436 merged at `19adf352860b` from head `4170938162cf`.
+- Post-merge public-safety completed success on `19adf352860b`.
+- Post-merge advisories completed success on `19adf352860b`.
+- No failed required check was classified.
+- D-1153 exists once and records result `QSL_SERVER_EXPECTED_BIND_REMEDIATION_RELAY_TESTING_READY`.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, this journal, and `tests/NA-0581_closeout_restore_na0582_testplan.md`.
+- NA-0581 is marked DONE.
+- NA-0582 is restored READY using the exact D-1153-selected recovered-test verification successor block.
+- D-1154 records NA-0581 closeout and NA-0582 restoration.
+- This closeout does not implement NA-0582 and does not mutate qsl-server, deploy or start qsl-server, run qsl-attachments, perform remote action, run SSH, scp, Tailscale, qsc send/receive, workflow dispatch, rerun, qwork, qstart, qresume, qsl-backup, backup mutation, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, or private-material publication.
+- Branch: pending at journal authoring.
+- PR title: `NA-0581: closeout and restore NA-0582`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: closeout validation, PR checks, public-safety, advisories, no failed required checks, final queue proof after merge, and NA-0582 startup handoff.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
+
 ## NA-0581 qsl-server expected bind failure remediation update
 
 - Directive: QSL-DIR-2026-07-01-510 -- Execute NA-0581 Remote qsl-server Expected Bind Failure Remediation Harness, Optional Closeout to NA-0582.

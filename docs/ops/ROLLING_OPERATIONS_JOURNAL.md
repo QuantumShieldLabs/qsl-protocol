@@ -6,6 +6,47 @@ Last-Updated: 2026-06-29
 
 # Rolling Operations Journal
 
+## NA-0584 remote relay runner/service reachability remediation update
+
+- Directive: QSL-DIR-2026-07-01-513.
+- Begin timestamp (UTC): `2026-07-01T09:23:27Z`.
+- Repo path: `/srv/qbuild/work/NA-0584/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0584_remote_relay_runner_service_reachability_remediation_20260701T092327Z`.
+- Fresh NA-0584 qwork proof files were verified before fetch, repository mutation, GitHub action, artifact/log retrieval, SSH, or proof publication; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-07-01T09:01:48Z`; startup head/origin-main/main was `d86f153fe72d`, READY_COUNT 1, and READY NA-0584.
+- Disk and mount gate passed before fetch: root usage below the 95 percent stop threshold and `/backup/qsl` mounted.
+- Fetch occurred only after qwork proof, live ref match, clean tree, disk proof, and mount proof passed. Local main matched origin/main at `d86f153fe72d`.
+- Startup queue proof: READY_COUNT 1; READY NA-0584; NA-0583 DONE; NA-0582 DONE.
+- Startup decision proof: D-1157 once and Accepted; D-1158 once and Accepted; D-1159 absent before patch; D-1160 absent; duplicate decision count zero.
+- Current main required-check classification passed: public-safety completed success, advisories completed success, no failed or pending required checks, root cargo audit passed, nested qsc fuzz cargo audit passed, locked metadata passed, and Cargo drift absent.
+- D512/D-1157/D-1158 inheritance review passed. D-1157 selected `REMOTE_RELAY_TRIAGE_ARTIFACT_BACKED_SERVICE_UNREACHABLE_AFTER_LOCAL_READY`; D-1158 restored NA-0584.
+- Bounded Codex operational authority applied: Tier 1 redacted diagnostics only; no remote mutation; exact workflow rerun as evidence only; continuous CI wait-work and automatic failure-cause investigation applied.
+- qsc relay timeout semantics review classified `/v1/push`, `/v1/pull?max=N`, `X-QSL-Route-Token`, optional bearer, and `qsc_generic_timeout` only.
+- qsl-server route review reconfirmed canonical route/header expectations and no payload/body publication.
+- Remote scripts were generated proof-root-only and static review passed: Python stdlib only, JSON-only stdout, no forbidden commands, no remote mutation, and redacted-by-construction.
+- SSH readiness executed exactly once and classified `SSH_READINESS_READY` after a recovered classifier issue for the directive-form literal trailing marker.
+- Local qsl-server precheck classified `REMOTE_RELAY_REACHABILITY_PRECHECK_LOCAL_READY`.
+- Diagnostic action selected exact D512/D-1157 runs and executed:
+  - `gh run rerun 28498817017 --failed`
+  - `gh run rerun 28498817988 --failed`
+- remote-handshake run `28498817017` completed failure, reached relay push, and classified timeout phase `qsc_generic_timeout`.
+- remote-relay run `28498817988` completed failure, reached relay push, and classified timeout phase `qsc_generic_timeout`; payload artifact file remained quarantined proof-root-only and unpublished.
+- Remote postrun snapshot classified local relay still ready, request-arrival delta unavailable, no request-arrival time overlap observed, no response completion observed, and log visibility available.
+- Failure-cause classification: `REMOTE_RELAY_REACHABILITY_QSC_TIMEOUT_PHASE_CLASSIFIED`.
+- Result classification: `REMOTE_RELAY_REACHABILITY_QSC_TIMEOUT_PHASE_ONLY`.
+- Selected successor: `NA-0585 -- QSL Remote Relay Diagnostic Surface Improvement Harness`.
+- Productive CI wait-work was performed during workflow rerun waits: initial polling snapshots, if-green/if-red table, postmerge/closeout checklist, final response skeleton, and read-only forward audit across required categories.
+- Recovered failures recorded: broad source search path/noise issue; binary route-corpus search issue; SSH readiness classifier literal marker issue; unsupported `gh workflow view --json` command shape.
+- Governance patch paths are limited to `docs/governance/evidence/NA-0584_remote_relay_runner_service_reachability_remediation_harness.md`, `tests/NA-0584_remote_relay_runner_service_reachability_remediation_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization values, private topology, process identities, command lines, payloads, response bodies, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, API keys, or private material are published.
+- No remote mutation, qsl-server start/stop/cleanup, qsl-server source mutation or PR, manual qsc send/receive, workflow file mutation, qsl-attachments work, qsl-protocol source/script/workflow/dependency mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
+- Branch: pending at journal authoring.
+- PR title: `NA-0584: triage remote relay runner service reachability`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: implementation validation, PR checks, public-safety, advisories, no failed required checks, post-merge proof, and optional closeout to NA-0585 only if gates are green.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
+
 ## NA-0581 closeout and NA-0582 restoration update
 
 - Directive: QSL-DIR-2026-07-01-510 optional closeout after NA-0581 implementation merge.

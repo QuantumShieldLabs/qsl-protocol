@@ -33162,7 +33162,7 @@ response-body, authorized_keys, public-key, private-key, or secret values.
 ---
 
 ### NA-0584 — QSL Remote Relay Runner / Service Reachability Remediation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33171,6 +33171,18 @@ qsl-server readiness. Codex may use redacted network/reachability diagnostics
 only if explicitly authorized. Codex must not publish endpoint values, private
 ports, topology, tokens, payloads, response bodies, process identities, or key
 material.
+
+---
+
+### NA-0585 — QSL Remote Relay Diagnostic Surface Improvement Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Improve safe diagnostic surfacing for remote-handshake and remote-relay so future
+runs classify DNS/TCP/TLS/HTTP timeout phase, request-arrival class, and redacted
+relay result directly in logs/artifacts. Any workflow/test harness mutation must
+be exact, minimal, no-secret, and preserve no-private-material publication.
 
 ---
 

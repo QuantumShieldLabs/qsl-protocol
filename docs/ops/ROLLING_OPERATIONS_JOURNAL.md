@@ -39802,6 +39802,51 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No endpoint values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, authorized_keys content, public key material, private key material, or secret environment values are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0580 remote qsl-server expected bind / endpoint alignment update
+
+- Directive: QSL-DIR-2026-07-01-509.
+- Begin timestamp (UTC): 2026-07-01T03:46:25Z.
+- Repo path: `/srv/qbuild/work/NA-0580/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0580_qsl_server_expected_bind_endpoint_alignment_20260701T034625Z`.
+- qwork proof files were copied and verified before fetch, remote action, GitHub metadata review, remote script generation, or repository mutation; Codex did not run qwork, qstart, or qresume.
+- qwork proof verified lane NA-0580, repo qsl-protocol, path `/srv/qbuild/work/NA-0580/qsl-protocol`, branch main, upstream origin/main, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0580, and shared cargo target ready.
+- Pre-fetch and post-fetch `HEAD`/`origin/main`: `4ba0bb4988c3`.
+- Disk watermark: root filesystem below the 95 percent stop threshold; `/backup/qsl` mounted.
+- Startup queue proof: READY_COUNT 1; READY NA-0580; NA-0579 DONE; NA-0578 DONE.
+- Startup decision proof: D-1149 once and Accepted; D-1150 once and Accepted; D-1151 absent before patch; D-1152 absent; duplicate decision count zero.
+- Current main required-check classification: public-safety success, advisories success, suite2-vectors success, no failed visible check-runs, root cargo audit success, nested qsc fuzz cargo audit success, locked metadata success, cargo fmt success, qsc-adversarial shell syntax success, and Cargo drift absent.
+- Recovered proof issue RF-000: current-main required-check classifier saw required `goal-lint` and `CodeQL` missing on the merge commit. Corrective action: applied D498 visibility recovery using PR #1433 head check-runs and required both to be completed success. Final result: PASS.
+- D508, D-1149, and D-1150 inheritance was reviewed: NA-0579 proved corrected temporary loopback route shape only and did not prove expected bind or endpoint alignment.
+- Bounded Codex operational authority applied: Tier 1 redacted diagnostics and Tier 2 bounded expected-bind test action only after safety gates; Tier 3 and Tier 4 remained forbidden.
+- qsl-server source/route review completed: `--bind` host-only, `--port` separate, internal bind-plus-port composition, optional `RELAY_TOKEN`, canonical `/v1/push` and `/v1/pull`, and `X-QSL-Route-Token`.
+- qsl-protocol/qsc relay expectation review completed: remote workflows use secret names `RELAY_URL` and `RELAY_TOKEN`; qsc uses `/v1/push`, `/v1/pull?max=N`, `X-QSL-Route-Token`, and optional bearer auth without value access.
+- GitHub metadata review completed names-only; no secret or variable values were accessed.
+- Remote scripts generated proof-root-only and statically reviewed.
+- Recovered proof issue RF-001: first static review flagged directive-required JSON field names as forbidden command literals. Corrective action: reran AST-based review with field-name allowlisting and actual subprocess/path checks. Final result: PASS.
+- SSH readiness command executed exactly once and classified `SSH_QSL_SERVER_EXPECTED_BIND_ALIGNMENT_READY`.
+- Recovered proof issue RF-002: SSH readiness stdout used the known directive-form literal trailing marker shape; no SSH rerun occurred. Corrective action: classified exit-0 expected sentinel-prefix output as ready. Final result: PASS.
+- Recovered proof issue RF-003: validation overclaim scanning matched required negative-boundary sentence fragments embedded in long table rows. Corrective action: reran overclaim scan with sentence-fragment negative-boundary handling. Final result: PASS.
+- Recovered proof issue RF-004: goal-lint discovery used an `rg` command with optional package files that do not exist. Corrective action: reran targeted discovery against existing scripts/workflow paths and found the local goal-lint path. Final result: PASS.
+- Recovered proof issue RF-005: nested qsc fuzz cargo audit initially used non-existent `qsc/fuzz` path. Corrective action: reran root audit with deny warnings and reran nested audit against `qsl/qsl-client/qsc/fuzz/Cargo.lock`. Final result: PASS.
+- Recovered proof issue RF-006: a normal `git add` refused the in-scope evidence file because `docs/governance/evidence/**` is ignored. Corrective action: force-added only the allowed NA-0580 evidence file and staged other tracked files normally. Final result: PASS.
+- Recovered proof issue RF-007: final added-line private-material scan matched the safe negative-boundary phrase `bearer Authorization values were not accessed` as if it were a bearer token. Corrective action: preserved token scans but required concrete token-like bearer material instead of adjacent descriptive words. Final result: PASS.
+- Remote expected-bind alignment inspection executed exactly once and classified `QSL_SERVER_EXPECTED_BIND_ALIGNMENT_ENDPOINT_VALUE_UNAVAILABLE`.
+- Expected-bind bounded start skipped because inspection returned `expected_bind_codex_start_safe=no` and no safe manifest was written.
+- Expected-bind postcheck skipped because start was not authorized and no listener was already ready.
+- Cleanup classified not needed because no NA-0580-owned start state was created.
+- Failure-cause investigation classified `QSL_SERVER_EXPECTED_BIND_FAILURE_ENDPOINT_VALUE_UNAVAILABLE`; no safe retry was allowed because further progress requires private endpoint/secret values or operator-provided non-secret expected-bind proof.
+- Aggregate private-material review passed.
+- Result classification: `QSL_SERVER_EXPECTED_BIND_ENDPOINT_VALUE_UNAVAILABLE`.
+- Selected successor: `NA-0581 -- QSL Remote qsl-server Expected Bind Failure Remediation Harness`.
+- Governance patch paths: NA-0580 evidence doc, NA-0580 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: pending at journal authoring.
+- PR title: `NA-0580: classify qsl-server expected bind endpoint alignment`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
+- No sudo, systemctl, service, Tailscale, firewall, account, shell, authorized_keys mutation, writes outside `/home/qslcodex/qsl-remote-test/`, qsc send/receive, workflow dispatch/rerun, qsl-attachments command/mutation, qsl-server source mutation, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0578 qsl-server failed start cause classification and corrected loopback proof update
 
 - Directive: QSL-DIR-2026-06-30-507.

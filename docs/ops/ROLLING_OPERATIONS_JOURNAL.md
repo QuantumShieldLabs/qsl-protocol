@@ -40104,6 +40104,26 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No endpoint values, private port values, route-token/capability values, bearer values, Authorization values, private topology, payloads, response bodies, process identities, command lines, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0586 closeout and NA-0587 restoration update
+
+- Directive: QSL-DIR-2026-07-01-515.
+- Closeout timestamp (UTC): 2026-07-01 after implementation PR #1446 post-merge proof.
+- Repo path: `/srv/qbuild/work/NA-0586/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0586_remote_relay_diagnostic_verification_timeout_phase_triage_20260701T210408Z`.
+- Implementation PR #1446 merged at `7767fb130840` from head `13140a698afc`.
+- Post-merge proof verified local main equals origin/main, worktree/index/untracked state clean, D-1163 once, D-1164 absent before closeout, READY_COUNT 1, READY NA-0586, public-safety success, advisories success, and no failed or pending checks.
+- D-1164 records NA-0586 closeout and NA-0587 restoration.
+- NA-0586 is marked DONE.
+- NA-0587 is restored READY as the exact D-1163-selected network-path remediation harness successor.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0586_closeout_restore_na0587_testplan.md`.
+- Branch: `na-0586-closeout-restore-na0587`.
+- PR title: `NA-0586: closeout and restore NA-0587`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- This closeout does not implement NA-0587 and does not execute remote action, SSH, scp, Tailscale, remote command, qsl-server start, qsl-server stop, qsl-server cleanup, qsl-server deployment, qsl-server mutation, qsl-attachments command/mutation, qsc send/receive, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency mutation, qsl-server source mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation.
+- No endpoint values, private port values, topology, token values, Authorization values, command lines, process identities, payloads, response bodies, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, API keys, raw logs, or private material are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0585 remote relay diagnostic surface and Codex issue authority update
 
 - Directive: QSL-DIR-2026-07-01-514.

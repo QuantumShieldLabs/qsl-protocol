@@ -6,6 +6,29 @@ Last-Updated: 2026-06-29
 
 # Rolling Operations Journal
 
+## NA-0584 closeout and NA-0585 restoration update
+
+- Directive: QSL-DIR-2026-07-01-513 optional closeout after NA-0584 implementation merge.
+- Implementation PR #1442 merged at `409db738cb32` from head `ea62fdb06b87`.
+- Post-merge local main was fast-forwarded to origin/main at `409db738cb32`; worktree, index, and untracked state were clean before closeout edits.
+- Post-merge proof verified D-1159 once, D-1160 absent before closeout patch, READY_COUNT 1, and READY NA-0584.
+- Post-merge public-safety completed success.
+- Post-merge advisories completed success.
+- No failed check was present in the completed post-merge check set before closeout.
+- D-1159 selected result `REMOTE_RELAY_REACHABILITY_QSC_TIMEOUT_PHASE_ONLY` and exact successor `NA-0585 -- QSL Remote Relay Diagnostic Surface Improvement Harness`.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, this journal, and `tests/NA-0584_closeout_restore_na0585_testplan.md`.
+- NA-0584 is marked DONE.
+- NA-0585 is restored READY using the exact D-1159-selected diagnostic-surface improvement successor block.
+- D-1160 records NA-0584 closeout and NA-0585 restoration.
+- This closeout does not implement NA-0585 and does not mutate remote state, run SSH, run qsc send/receive, dispatch or rerun workflows, start/stop/cleanup qsl-server, run qsl-attachments, mutate qsl-protocol source/script/workflow/dependency files, mutate qsl-server source, mutate public-site or Cloudflare state, or publish private material.
+- No endpoint values, private port values, topology, token values, Authorization values, command lines, process identities, payloads, response bodies, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
+- Branch: pending at journal authoring.
+- PR title: `NA-0584: closeout and restore NA-0585`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: closeout validation, PR checks, public-safety, advisories, no failed required checks, final queue proof after merge, and NA-0585 startup handoff.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced.
+
 ## NA-0584 remote relay runner/service reachability remediation update
 
 - Directive: QSL-DIR-2026-07-01-513.

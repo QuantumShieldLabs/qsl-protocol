@@ -111,6 +111,15 @@ Authority split:
 Project-wide bounded Codex operational authority is defined in
 `docs/ops/CODEX_BOUNDED_OPERATIONAL_AUTHORITY.md`.
 
+When a diagnostic, test, workflow, build, runtime check, integration path, or
+generated harness fails, Codex must investigate while safe in-scope evidence
+remains available. Codex must inspect relevant project-owned source, tests,
+workflows, scripts, artifacts, logs, and generated harnesses before settling on
+a coarse failed/insufficient label. If the active lane opts into the
+issue-resolution authority model, Codex may apply minimal proof-root fixes,
+safe diagnostic-surface fixes, or narrow project-owned bug fixes inside the
+declared scope when evidence supports the change and tests/proof are added.
+
 The authority model does not grant default remote action. Operational tiers
 require active directive opt-in with an exact tier, host/workspace or local
 path, command family, allowed mutation paths, raw-output quarantine path,
@@ -124,6 +133,12 @@ directive explicitly authorizes that privileged lane. The model does not weaken
 qwork proof, the one-READY queue invariant, evidence gates, public-safety,
 advisories, required-check visibility, private-material controls, or claim
 boundaries.
+
+Failure investigation and safe fixes do not authorize secrets, private-material
+publication, privileged/root/admin action, destructive action, dependency
+changes, workflow weakening, branch-protection/settings mutation,
+qwork/qstart/qresume execution by Codex, public/security overclaims, or
+protocol/wire/crypto/auth/state-machine semantics outside the active scope.
 
 Long CI/check waits are not idle time when safe current-lane work exists.
 Codex must use those waits for productive proof-root/current-lane work or

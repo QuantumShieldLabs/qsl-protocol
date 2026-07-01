@@ -36,6 +36,22 @@ mark_grep_o() {
   fi
 }
 
+marker_values() {
+  local key="$1"
+  local values=""
+  values=$(
+    (mark_grep_o "${key}=[^ ]+" "$markers" 2>/dev/null || true) \
+      | sed -E "s/^${key}=//" \
+      | sort -u \
+      | paste -sd, -
+  )
+  if [ -z "$values" ]; then
+    echo "diagnostic_unavailable"
+  else
+    echo "$values"
+  fi
+}
+
 while [ $# -gt 0 ]; do
   case "$1" in
     --help|-h) usage; exit 0 ;;
@@ -258,6 +274,10 @@ deliver_count=$( (mark_grep_o "action=deliver" "$markers" 2>/dev/null || true) |
 drop_count=$( (mark_grep_o "action=drop" "$markers" 2>/dev/null || true) | wc -l | tr -d ' ' )
 reorder_count=$( (mark_grep_o "action=reorder" "$markers" 2>/dev/null || true) | wc -l | tr -d ' ' )
 dup_count=$( (mark_grep_o "action=dup" "$markers" 2>/dev/null || true) | wc -l | tr -d ' ' )
+relay_push_diagnostic_count=$( (mark_grep "event=relay_push_diagnostic" "$markers" 2>/dev/null || true) | wc -l | tr -d ' ' )
+relay_push_diagnostic_classes="$(marker_values diagnostic_class)"
+relay_push_timeout_phase_classes="$(marker_values timeout_phase_class)"
+relay_push_status_classes="$(marker_values status_class)"
 
 {
   echo "protocol_mode=seed_fallback_test"
@@ -268,6 +288,10 @@ dup_count=$( (mark_grep_o "action=dup" "$markers" 2>/dev/null || true) | wc -l |
   echo "drop_count=$drop_count"
   echo "reorder_count=$reorder_count"
   echo "dup_count=$dup_count"
+  echo "relay_push_diagnostic_count=$relay_push_diagnostic_count"
+  echo "relay_push_diagnostic_classes=$relay_push_diagnostic_classes"
+  echo "relay_push_timeout_phase_classes=$relay_push_timeout_phase_classes"
+  echo "relay_push_status_classes=$relay_push_status_classes"
 } > "$counts"
 
 # summary
@@ -281,6 +305,10 @@ dup_count=$( (mark_grep_o "action=dup" "$markers" 2>/dev/null || true) | wc -l |
   echo "drop_count=$drop_count"
   echo "reorder_count=$reorder_count"
   echo "dup_count=$dup_count"
+  echo "relay_push_diagnostic_count=$relay_push_diagnostic_count"
+  echo "relay_push_diagnostic_classes=$relay_push_diagnostic_classes"
+  echo "relay_push_timeout_phase_classes=$relay_push_timeout_phase_classes"
+  echo "relay_push_status_classes=$relay_push_status_classes"
 } > "$summary"
 
 # charter checks: no retry/recover markers, no obvious secrets

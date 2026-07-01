@@ -1214,6 +1214,8 @@ struct RelayPushDiagnostic {
     status: Option<HttpStatus>,
     body_len: Option<u64>,
     error_class: &'static str,
+    diagnostic_class: &'static str,
+    timeout_phase_class: &'static str,
     qsc_error: &'static str,
     route_header_present: bool,
     auth_present: bool,
@@ -1266,6 +1268,72 @@ fn relay_push_error_class_for_status(status: HttpStatus) -> &'static str {
     }
 }
 
+fn relay_push_diagnostic_class_for_status(status: HttpStatus) -> &'static str {
+    match status {
+        HttpStatus::UNAUTHORIZED | HttpStatus::FORBIDDEN => "bearer_auth_failed",
+        HttpStatus::BAD_REQUEST => "route_token_auth_failed",
+        _ => "http_status_received",
+    }
+}
+
+fn relay_push_timeout_phase_class_from_parts(
+    is_timeout: bool,
+    is_connect: bool,
+    error_text: &str,
+) -> &'static str {
+    if !is_timeout {
+        return "not_timeout";
+    }
+
+    let lower = error_text.to_ascii_lowercase();
+    if lower.contains("dns")
+        || lower.contains("name or service")
+        || lower.contains("failed to lookup")
+    {
+        return "dns_timeout";
+    }
+    if lower.contains("tls") || lower.contains("certificate") {
+        return "tls_handshake_timeout";
+    }
+    if is_connect || lower.contains("connect") {
+        return "tcp_connect_timeout";
+    }
+    if lower.contains("request") || lower.contains("body") || lower.contains("response") {
+        return "http_request_timeout";
+    }
+    "unknown_timeout"
+}
+
+fn relay_push_diagnostic_class_from_error_parts(
+    is_timeout: bool,
+    is_connect: bool,
+    error_text: &str,
+) -> &'static str {
+    let lower = error_text.to_ascii_lowercase();
+    if lower.contains("connection refused") {
+        return "connection_refused";
+    }
+    if lower.contains("connection reset") {
+        return "connection_reset";
+    }
+    if is_timeout {
+        return relay_push_timeout_phase_class_from_parts(true, is_connect, error_text);
+    }
+    "not_timeout"
+}
+
+fn relay_push_timeout_phase_class_for_send_error(err: &reqwest::Error) -> &'static str {
+    relay_push_timeout_phase_class_from_parts(err.is_timeout(), err.is_connect(), &err.to_string())
+}
+
+fn relay_push_diagnostic_class_for_send_error(err: &reqwest::Error) -> &'static str {
+    relay_push_diagnostic_class_from_error_parts(
+        err.is_timeout(),
+        err.is_connect(),
+        &err.to_string(),
+    )
+}
+
 fn relay_push_error_class_for_send_error(err: &reqwest::Error) -> &'static str {
     if err.is_timeout() {
         return "timeout";
@@ -1310,6 +1378,8 @@ fn emit_relay_push_diagnostic(diag: RelayPushDiagnostic) {
             ("status_class", relay_push_status_class(diag.status)),
             ("status_code", status_code.as_str()),
             ("error_class", diag.error_class),
+            ("diagnostic_class", diag.diagnostic_class),
+            ("timeout_phase_class", diag.timeout_phase_class),
             (
                 "response_body_present",
                 relay_push_body_presence(diag.body_len),
@@ -1349,6 +1419,8 @@ pub(super) fn relay_inbox_push(
                 status: None,
                 body_len: None,
                 error_class: relay_push_error_class_for_send_error(&err),
+                diagnostic_class: relay_push_diagnostic_class_for_send_error(&err),
+                timeout_phase_class: relay_push_timeout_phase_class_for_send_error(&err),
                 qsc_error: "relay_inbox_push_failed",
                 route_header_present: true,
                 auth_present,
@@ -1361,6 +1433,8 @@ pub(super) fn relay_inbox_push(
         status: Some(status),
         body_len: resp.content_length(),
         error_class: relay_push_error_class_for_status(status),
+        diagnostic_class: relay_push_diagnostic_class_for_status(status),
+        timeout_phase_class: "not_timeout",
         qsc_error: relay_push_qsc_error_for_status(status),
         route_header_present: true,
         auth_present,
@@ -1924,6 +1998,23 @@ mod relay_push_diagnostic_tests {
             relay_push_error_class_for_status(HttpStatus::INTERNAL_SERVER_ERROR),
             "unexpected_status"
         );
+
+        assert_eq!(
+            relay_push_diagnostic_class_for_status(HttpStatus::UNAUTHORIZED),
+            "bearer_auth_failed"
+        );
+        assert_eq!(
+            relay_push_diagnostic_class_for_status(HttpStatus::FORBIDDEN),
+            "bearer_auth_failed"
+        );
+        assert_eq!(
+            relay_push_diagnostic_class_for_status(HttpStatus::BAD_REQUEST),
+            "route_token_auth_failed"
+        );
+        assert_eq!(
+            relay_push_diagnostic_class_for_status(HttpStatus::PAYLOAD_TOO_LARGE),
+            "http_status_received"
+        );
     }
 
     #[test]
@@ -1931,5 +2022,53 @@ mod relay_push_diagnostic_tests {
         assert_eq!(relay_push_body_presence(Some(0)), "false");
         assert_eq!(relay_push_body_presence(Some(17)), "true");
         assert_eq!(relay_push_body_presence(None), "unknown");
+    }
+
+    #[test]
+    fn relay_push_timeout_phase_mapping_is_bounded() {
+        assert_eq!(
+            relay_push_timeout_phase_class_from_parts(true, false, "dns lookup timed out"),
+            "dns_timeout"
+        );
+        assert_eq!(
+            relay_push_timeout_phase_class_from_parts(true, true, "connect timed out"),
+            "tcp_connect_timeout"
+        );
+        assert_eq!(
+            relay_push_timeout_phase_class_from_parts(true, false, "tls handshake timed out"),
+            "tls_handshake_timeout"
+        );
+        assert_eq!(
+            relay_push_timeout_phase_class_from_parts(true, false, "request timed out"),
+            "http_request_timeout"
+        );
+        assert_eq!(
+            relay_push_timeout_phase_class_from_parts(true, false, "elapsed timeout"),
+            "unknown_timeout"
+        );
+        assert_eq!(
+            relay_push_timeout_phase_class_from_parts(false, true, "connect failed"),
+            "not_timeout"
+        );
+    }
+
+    #[test]
+    fn relay_push_diagnostic_error_mapping_is_bounded() {
+        assert_eq!(
+            relay_push_diagnostic_class_from_error_parts(false, true, "connection refused"),
+            "connection_refused"
+        );
+        assert_eq!(
+            relay_push_diagnostic_class_from_error_parts(false, true, "connection reset by peer"),
+            "connection_reset"
+        );
+        assert_eq!(
+            relay_push_diagnostic_class_from_error_parts(true, true, "connect timed out"),
+            "tcp_connect_timeout"
+        );
+        assert_eq!(
+            relay_push_diagnostic_class_from_error_parts(false, false, "other error"),
+            "not_timeout"
+        );
     }
 }

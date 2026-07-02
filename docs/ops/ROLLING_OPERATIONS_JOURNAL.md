@@ -41183,6 +41183,7 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Recovered proof issue RF-NA0591-009: proof-root summary writer had an indentation error. Corrective action reran corrected writer. Final result: PASS.
 - Recovered proof issue RF-NA0591-010: standalone `rustfmt` on the restored qsc test failed because the test helper module needed crate edition context. Corrective action reran targeted `rustfmt --edition 2021` and then `cargo fmt --check`. Final result: PASS.
 - Recovered proof issue RF-NA0591-011: the first post-patch publication-safety scanner treated compact negated claim-boundary lists and a rejected unsupported-claim alternative as positive overclaims. Corrective action reran the scanner with those negation shapes recognized. Final result: PASS.
+- Recovered proof issue RF-NA0591-012: GitHub connector PR creation for qsl-protocol returned 403. Corrective action used authenticated `gh pr create` with the preflighted PR body. Final result: PR #1456 opened.
 - D520/D519/D-1171/D-1172 inheritance was reviewed and accepted; D520 stopped before governance mutation and left a useful qsc diagnostic test preserved by the operator.
 - Preserved qsc diagnostic test SHA was verified and restored to `qsl/qsl-client/qsc/tests/na_0591_true_triple_ratchet_path.rs`.
 - qsl-server true GitHub main at `6bf61d439fa2` passed metadata, audit, fmt, test, and build. qsl-server PR #58 was closed unmerged because no current audit recovery was needed.
@@ -41195,9 +41196,9 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Result classification: `TRUE_TRIPLE_RATCHET_DEMO_OR_FIXTURE_BYPASS_FOUND`.
 - Selected successor: `NA-0592 -- QSL qsc True Triple-Ratchet E2EE Hardening / Bug Fix Authorization Harness`.
 - Governance patch paths: NA-0591 evidence doc, NA-0591 testplan, `DECISIONS.md`, `TRACEABILITY.md`, this journal, and the qsc diagnostic test.
-- Branch: pending at journal authoring.
+- Branch: `na-0591-resume-true-triple-ratchet-path-verification`.
 - PR title: `NA-0591: verify qsc true triple-ratchet path and record hardening successor`.
-- PR: pending at journal authoring.
+- PR: #1456.
 - PR merge commit: pending at journal authoring.
 - No full qsl-attachments send/receive integration occurred.
 - No qsl-attachments runtime or mutation occurred.

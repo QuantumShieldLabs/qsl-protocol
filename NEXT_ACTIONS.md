@@ -33396,7 +33396,7 @@ full qsl-attachments send/receive integration.
 ---
 
 ### NA-0594 — QSL Local qsl-attachments Send / Receive Integration Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33436,6 +33436,36 @@ Forbidden scope:
 - no public-readiness claim, no production-readiness claim, no crypto-complete
   claim, no attachment-complete claim, no vulnerability-free claim, no bug-free
   claim, and no triple-ratchet-complete overclaim.
+
+Completion note:
+NA-0594 completed in D-1179 and closeout D-1180. D-1179 recorded result
+`LOCAL_QSL_ATTACHMENTS_SEND_RECEIVE_INTEGRATION_PASS_WITH_METADATA_LIMITS`,
+proved the first local proof-root-only qsc/qsl-server/qsl-attachments
+attachment-bearing send/receive exchange, confirmed qsc-owned encryption,
+qsl-server relay/control-plane-only behavior, qsl-attachments opaque storage,
+selected fail-closed negatives, metadata limits, and cleanup, and selected
+NA-0595 as the exact adversarial and metadata stress successor. D-1180 closed
+NA-0594 only after PR #1462 post-merge public-safety and advisories were green
+with no failed required checks.
+
+---
+
+### NA-0595 — QSL Local qsl-attachments Adversarial and Metadata Stress Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Stress the working local qsc/qsl-server/qsl-attachments send/receive
+integration with repeated attachment transfers, multi-attachment behavior,
+wrong capability, missing capability, corrupted descriptor, corrupted
+ciphertext, wrong route, wrong peer if supported, missing/deleted object,
+restart/retention behavior, bounded-large fixture classes, cleanup, and
+metadata minimization review. Codex may use D-1179-expanded
+issue-investigation and safe-fix authority for qsl-protocol/qsc, qsl-server,
+and qsl-attachments local integration issues, but must stop before
+crypto/protocol/wire/auth/storage semantic changes, dependency changes,
+private-material publication, remote/Tailscale/workflow action, or
+public/production/security-completion claims.
 
 ---
 

@@ -41200,6 +41200,48 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Begin timestamp (UTC): 2026-07-02T06:50:26Z.
 - Repo path: `/srv/qbuild/work/NA-0591/qsl-protocol`.
 - Proof root: `/srv/qbuild/tmp/NA0591_resume_true_triple_ratchet_qsl_server_audit_recovery_20260702T065026Z`.
+- Directive: QSL-DIR-2026-07-02-523.
+- Begin timestamp (UTC): 2026-07-02T16:10:49Z.
+- Repo path: `/srv/qbuild/work/NA-0592/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0592_qsc_true_triple_ratchet_hardening_authorization_20260702T161049Z`.
+- qwork proof files were copied and verified before fetch, source-result publication, qsc testing, GitHub metadata review, repository mutation, or proof publication; Codex did not run qwork, qstart, or qresume.
+- qwork proof verified lane NA-0592, repo qsl-protocol, path `/srv/qbuild/work/NA-0592/qsl-protocol`, branch main, upstream origin/main, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0592, and shared cargo target ready.
+- Pre-fetch and post-fetch qsl-protocol `HEAD`/`origin/main`: `5d79fc682098`.
+- Disk watermark: root and backup filesystems below the 95 percent stop threshold; `/backup/qsl` mounted.
+- Startup queue proof: READY_COUNT 1; READY NA-0592; NA-0591 DONE; NA-0590 DONE.
+- Startup decision proof: D-1171 once and Accepted; D-1172 once and Accepted; D-1173 once and Accepted; D-1174 once and Accepted; D-1175 absent before patch; D-1176 absent; duplicate decision entry count zero.
+- Current main required-check classification: public-safety success, advisories success, suite2-vectors success, no failed attached checks, no pending attached checks, root cargo audit success, nested qsc fuzz cargo audit success, locked metadata success, and Cargo manifest/lock drift absent.
+- Recovered proof issue RF-NA0592-D523-001: current-main required-check classifier treated branch-protection `goal-lint` and `CodeQL` names as missing on the main push SHA. Classification: recoverable required-check visibility/classifier issue. Corrective action verified successful CodeQL workflow/analyze jobs on the current SHA, verified goal-lint is pull-request-only, and kept PR goal-lint as a required preflight. Final result: PASS_WITH_VISIBILITY_RECOVERY.
+- Recovered proof issue RF-NA0592-D523-002: broad qsc source search included optional absent `qsl/qsl-client/qsc/examples`. Classification: recoverable zero-result discovery/path-shape issue. Corrective action reran source mapping over existing qsc source/tests plus demo/CI scripts and recorded the missing optional examples path. Final result: PASS.
+- Recovered proof issue RF-NA0592-D523-003: initial aggregate private-material/claim scanner inspected historical pre-existing governance content instead of the NA-0592 publication delta. Classification: recoverable scanner-scope false positive. Corrective action rescoped the scan to new files plus added lines in modified files and reworded wrapped claim-boundary lines so each prohibited claim phrase carries same-line negation. Final result: PASS.
+- Recovered proof issue RF-NA0592-D523-004: initial queue/decision proof parser expected ASCII double-hyphen NA headings in `NEXT_ACTIONS.md`. Classification: recoverable command-shape/parser issue. Corrective action reran the queue proof with a parser that reads the actual NA heading blocks and `Status:` lines. Final result: PASS.
+- D522/D521/D-1173/D-1174 inheritance was reviewed and accepted.
+- Seed fallback source inventory completed. Primary runtime surfaces: qsc `protocol_state`, qsc main qsp helpers, transport send/receive, qsc attachment descriptor send, remote relay smoke script, and qsc remote relay testing docs.
+- Seed fallback call graph completed. Ordinary qsc send/receive, TUI relay send/receive, and qsc attachment descriptor send can reach the fallback when explicit env is present.
+- Runtime reachability classified: ordinary qsc send yes, ordinary qsc receive yes, qsc attachment descriptor send yes, explicit env yes, explicit flag no, compiled into normal binary yes, visible in top-level help no, visible in docs yes, handshake bypass yes, true triple-ratchet assurance bypass yes, weakens runtime security if enabled yes, seed summaries appear in demo outputs, accidental trigger via inherited env possible, safe to leave without hardening no.
+- Primary class: `SEED_FALLBACK_RUNTIME_PRODUCTION_PATH_RISK`.
+- Crypto review packet completed: BKM, Hostile Cryptographer, Red-Team, Production SRE, Side-Channel Caveat, Formal Mapping, and Release-Claim Boundary.
+- Hardening options A through H reviewed.
+- Selected hardening strategy: B/E hybrid. Gate fallback behind explicit unsafe test-only cfg seam, isolate or rename retained deterministic fallback behavior as test-only helper surface, make default qsc builds ignore or reject env-only fallback, update tests/demos/docs, and preserve verified no-seed Suite2/triple-ratchet send/receive path.
+- Exact implementation plan written. Crypto/protocol/wire/auth/key-schedule/identity/transcript/state semantic redesign is not needed for the selected successor.
+- Focused validation passed: help-surface check; `cargo test -p qsc --test na_0591_true_triple_ratchet_path`; `cargo test -p qsc --test qsp_status_truthy`; `cargo test -p qsc --test qsp_protocol_gate`.
+- Private-material and overclaim scans passed for publication-selected summaries; raw output and seed-bearing details remain proof-root-only.
+- Result classification: `SEED_FALLBACK_HARDENING_IMPLEMENTATION_READY`.
+- Selected successor: `NA-0593 -- QSL qsc True Triple-Ratchet Seed Fallback Hardening Implementation Harness`.
+- Governance patch paths: NA-0592 evidence doc, NA-0592 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: `na-0592-qsc-seed-fallback-hardening-authorization`.
+- PR title: `NA-0592: authorize qsc seed fallback hardening`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No qsc source/test/demo/script mutation occurred in NA-0592.
+- No full qsl-attachments send/receive integration occurred.
+- No qsl-attachments runtime or mutation occurred.
+- No qsl-server mutation occurred.
+- No qsl-protocol dependency, lockfile, workflow, script, public-site, or Cloudflare mutation occurred.
+- No remote action, SSH, scp, Tailscale action, workflow dispatch, workflow rerun, sudo, systemd, firewall, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization values, payload/body/plaintext bytes, ciphertext bodies, seed values, key material, raw command lines, raw logs, process identities, private topology, or private material are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced. no crypto-complete claim is introduced. no attachment-complete claim is introduced. no formal-proof-complete claim is introduced. no side-channel-free claim is introduced. no triple-ratchet-complete claim is introduced. no external-review-complete claim is introduced.
+
 - qwork proof files were copied and verified before fetch, qsl-server action, qsc test restoration, repository mutation, GitHub publication, source-analysis publication, or proof publication; Codex did not run qwork, qstart, or qresume.
 - qwork proof verified lane NA-0591, repo qsl-protocol, path `/srv/qbuild/work/NA-0591/qsl-protocol`, branch main, upstream origin/main, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0591, and shared cargo target ready.
 - Pre-fetch and post-fetch qsl-protocol `HEAD`/`origin/main`: `c9d3b81c93e7`.

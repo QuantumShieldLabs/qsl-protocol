@@ -6,6 +6,29 @@ Last-Updated: 2026-06-29
 
 # Rolling Operations Journal
 
+## NA-0589 closeout and NA-0590 restoration update
+
+- Directive: QSL-DIR-2026-07-02-518 optional closeout after NA-0589 implementation merge.
+- Implementation PR #1452 merged at `c54927ebb7bb` from head `062a09d06493`.
+- Post-merge local main was fast-forwarded to origin/main at `c54927ebb7bb`; worktree, index, and untracked state were clean before closeout edits.
+- Post-merge proof verified D-1169 once, D-1170 absent before closeout patch, READY_COUNT 1, and READY NA-0589.
+- Post-merge public-safety completed success.
+- Post-merge advisories completed success.
+- No failed or pending checks were classified before closeout.
+- D-1169 selected result `QSL_ATTACHMENTS_LOCKFILE_ONLY_RECOVERY_IMPLEMENTED` and exact successor `NA-0590 -- QSL qsl-attachments Recovery Verification and Integration Readiness Harness`.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, this journal, and `tests/NA-0589_closeout_restore_na0590_testplan.md`.
+- NA-0589 is marked DONE.
+- NA-0590 is restored READY using the exact D-1169-selected recovery-verification successor block.
+- D-1170 records NA-0589 closeout and NA-0590 restoration.
+- This closeout does not implement NA-0590 and does not run qsl-attachments, qsc send/receive, qsl-server start/stop/cleanup/deployment/mutation, remote action, SSH, scp, Tailscale, workflow dispatch, workflow rerun, qwork, qstart, qresume, qsl-backup, backup mutation, qsl-protocol source/script/workflow/dependency/lockfile mutation, qsl-server source mutation, public-site mutation, Cloudflare mutation, or private-material publication.
+- No endpoint values, private port values, token values, bearer values, Authorization values, raw capability values, payloads, response bodies, plaintext attachment contents, sensitive filenames, raw storage paths, key material, or private material are published.
+- Branch: pending at journal authoring.
+- PR title: `NA-0589: closeout and restore NA-0590`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: closeout validation, PR checks, public-safety, advisories, no failed required checks, final queue proof after merge, and NA-0590 startup handoff.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced. No crypto-complete claim is introduced. No attachment-complete claim is introduced.
+
 ## NA-0589 local qsl-attachments integration readiness update
 
 - Directive: QSL-DIR-2026-07-02-518.

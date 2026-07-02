@@ -31491,3 +31491,29 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0589 local qsl-attachments integration readiness and qsl-attachments lockfile-only recovery to D-1169.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records proof gates, recovered failures, qsl-attachments PR #38, validation, classification, selected successor, and boundaries.
   - **References:** NA-0589; selected future NA-0590; D-1169; D-1168; D-1167; qsl-protocol main `62de62d64f5e`; qsl-attachments initial `96b9352bd63e`; qsl-attachments PR #38; qsl-attachments head `be54a80a870b`; qsl-attachments merge `767eca189ee0`; `docs/governance/evidence/NA-0589_local_qsl_attachments_integration_readiness_harness.md`; `tests/NA-0589_local_qsl_attachments_integration_readiness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1170
+  - **Title:** NA-0589 closeout and NA-0590 restoration
+  - **Date:** 2026-07-02
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0589 is closed after qsl-protocol implementation PR #1452 merged with merge commit `c54927ebb7bb` from implementation head `062a09d06493`. D-1169 exists once and is Accepted. D-1169 selected result classification `QSL_ATTACHMENTS_LOCKFILE_ONLY_RECOVERY_IMPLEMENTED` and exact successor `NA-0590 -- QSL qsl-attachments Recovery Verification and Integration Readiness Harness`. Post-merge public-safety completed success. Post-merge advisories completed success. No failed or pending checks were classified before closeout. NA-0589 is marked DONE, and NA-0590 is restored as exactly one READY successor.
+  - **Selected successor:** NA-0590 is restored READY with Goals G1, G2, G3, G4, G5. It must verify the qsl-attachments recovery PR and rerun readiness review before starting local send/receive integration.
+  - **Closeout proof:** Local main was fast-forwarded to origin/main at `c54927ebb7bb`. Worktree, index, and untracked state were clean before closeout edits. Post-merge proof verified D-1169 once, D-1170 absent before this patch, READY_COUNT 1 with READY NA-0589, public-safety success, advisories success, and no failed or pending checks. The implementation merge touched only the allowed NA-0589 implementation paths and published no private material.
+  - **Boundary proof:** No NA-0590 implementation occurred. No qsl-attachments command, runtime smoke, local send/receive integration, source mutation, dependency mutation, or lockfile mutation occurred during closeout. No qsl-server start, stop, cleanup, deployment, or mutation occurred. No qsc send/receive occurred. No remote action, SSH, scp, Tailscale action, public network exposure, GitHub workflow dispatch, GitHub workflow rerun, qsl-protocol source/script/workflow/dependency/lockfile mutation, qsl-server source mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, or private-material publication occurred during closeout. No endpoint value, private port value, token value, bearer value, Authorization value, raw capability value, payload, response body, plaintext attachment content, sensitive filename, raw storage path, key material, or private material is published. No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-build claim is made. No perfect-crypto claim is made. No crypto-complete claim is made. No attachment-complete claim is made. No external-review-complete claim is made.
+  - **Security invariants introduced/changed:**
+    - Closeout changes no protocol, wire, crypto, auth, state-machine, qsc runtime/source, qsl-server runtime/source, qsl-attachments runtime/source, qsl-protocol source, repository script, workflow, dependency, lockfile, public-site, or Cloudflare semantics.
+    - NA-0590 is restored only as the D-1169-selected qsl-attachments recovery-verification readiness harness.
+    - NA-0590 implementation is not performed during closeout.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Leave NA-0589 READY after D-1169 merged (rejected because D-1169 selected exact NA-0590 successor and post-merge gates are green).
+    - Restore direct send/receive integration (rejected because D-1169 selected recovery verification after a qsl-attachments recovery PR).
+    - Restore a source/build recovery successor (rejected because qsl-attachments PR #38 already merged and post-recovery validation passed).
+    - Implement NA-0590 during closeout (rejected as out of scope).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0589 DONE and restores NA-0590 READY using the exact D-1169-selected recovery-verification successor block.
+    - `tests/NA-0589_closeout_restore_na0590_testplan.md` records closeout markers, implementation PR merge proof, D-1169 acceptance, post-merge public-safety/advisories proof, D-1170 restoration proof, exact successor proof, no NA-0590 implementation, no qsl-attachments runtime/integration/mutation, no remote action, no workflow dispatch/rerun, no private-material publication, no public/production/security overclaim, and the one-READY invariant.
+    - `TRACEABILITY.md` maps NA-0589 closeout and NA-0590 restoration to D-1170.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the NA-0589 closeout state, D-1170, post-merge proof, and restored NA-0590 successor.
+  - **References:** NA-0589; NA-0590; D-1170; D-1169; qsl-protocol PR #1452; qsl-protocol merge `c54927ebb7bb`; qsl-protocol head `062a09d06493`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0589_closeout_restore_na0590_testplan.md`

@@ -33238,7 +33238,7 @@ concurrency, metadata minimization, diagnostics quality, and private-material
 review were classified. D-1167 selected NA-0589 as the exact successor.
 
 ### NA-0589 — QSL Local qsl-attachments Integration Readiness Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33250,6 +33250,19 @@ attachment send/receive integration proof. Codex must not mutate
 qsl-attachments, qsl-protocol, or qsl-server source unless D-1167 explicitly
 authorizes a minimal safe fix. No remote/Tailscale/GitHub workflow work, public
 deployment, or public/production/security-completion claim is authorized.
+
+Implementation note:
+NA-0589 classified qsl-attachments readiness in D-1169 and implemented the
+required qsl-attachments PR #38 lockfile-only advisory recovery before local
+send/receive integration. D-1169 selected the recovery-verification successor.
+
+### NA-0590 — QSL qsl-attachments Recovery Verification and Integration Readiness Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Verify the qsl-attachments recovery PR and rerun readiness review before
+starting local send/receive integration.
 
 ---
 

@@ -33267,7 +33267,7 @@ starting local send/receive integration.
 ---
 
 ### NA-0591 — QSL Local qsc True Triple-Ratchet E2EE Path Verification Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33308,6 +33308,53 @@ Forbidden scope:
 - remote/Tailscale/workflow action;
 - public/production/security-completion claims;
 - private material publication.
+
+Implementation note:
+NA-0591 completed in D-1173 and closeout D-1174. The validated no-seed qsc
+send/receive path is Suite2/triple-ratchet-bound for the reviewed local path,
+but a seed fallback/demo-fixture shortcut remains and must be classified or
+hardened before full qsl-attachments send/receive integration. D-1174 restored
+NA-0592 as the exact successor and did not implement NA-0592.
+
+---
+
+### NA-0592 — QSL qsc True Triple-Ratchet E2EE Hardening / Bug Fix Authorization Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Authorize and scope the exact hardening needed after NA-0591 found an explicit
+seed fallback / demo-fixture shortcut while also proving the no-seed qsc send/
+receive path is Suite2/triple-ratchet-bound. The lane must classify whether the
+fallback is test-only, demo-only, operator-controlled diagnostic behavior, or a
+runtime production-path risk; decide whether to remove, gate, rename, restrict,
+or test-harden it; select exact qsc source/test/helper paths; require fail-closed
+tests and no private-material publication; and stop before any crypto/protocol/
+wire/auth/key-schedule/identity/transcript semantic change unless the directive
+explicitly authorizes that class. Full qsl-attachments send/receive integration
+remains deferred until this hardening decision is complete.
+
+Allowed scope:
+- docs/governance/evidence/NA-0592_qsc_true_triple_ratchet_e2ee_hardening_bugfix_authorization_harness.md
+- tests/NA-0592_qsc_true_triple_ratchet_e2ee_hardening_bugfix_authorization_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- qsl/qsl-client/qsc/src/** read-only and exact selected mutation if authorized
+- qsl/qsl-client/qsc/tests/** for tests
+- qsl/qsl-client/qsc/examples/** if demo surface is involved
+- scripts/demo/** if fallback is exposed in demo scripts
+
+Forbidden scope:
+- qsl-attachments send/receive integration;
+- qsl-attachments mutation;
+- qsl-server mutation;
+- dependency/lockfile mutation;
+- remote/Tailscale/workflow action;
+- public/production/security-completion claims;
+- private material publication;
+- crypto/protocol/wire/auth/key-schedule semantic change unless specifically
+  authorized after source classification.
 
 ---
 

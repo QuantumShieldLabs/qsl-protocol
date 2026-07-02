@@ -40125,6 +40125,41 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No sudo, systemctl, service, Tailscale, firewall, account, shell, authorized_keys mutation, writes outside `/home/qslcodex/qsl-remote-test/`, qsc send/receive, workflow dispatch/rerun, qsl-attachments command/mutation, qsl-server source mutation, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0591 closeout and NA-0592 restoration update
+
+- Directive: QSL-DIR-2026-07-02-522.
+- Begin timestamp (UTC): 2026-07-02T15:12:18Z.
+- Repo path: `/srv/qbuild/work/NA-0591/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0591_closeout_restore_na0592_after_d521_postmerge_20260702T151218Z`.
+- qwork proof files were copied and verified before fetch, repository mutation, GitHub polling, source-analysis result publication, or proof publication; Codex did not run qwork, qstart, or qresume.
+- qwork proof verified lane NA-0591, repo qsl-protocol, path `/srv/qbuild/work/NA-0591/qsl-protocol`, branch main, upstream origin/main, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0591, and shared cargo target ready.
+- Pre-fetch and post-fetch qsl-protocol `HEAD`/`origin/main`: `bbfab90fed0a`.
+- Disk watermark: root and backup filesystems below the 95 percent stop threshold; `/backup/qsl` mounted.
+- Startup queue proof: READY_COUNT 1; READY NA-0591; NA-0590 DONE; NA-0589 DONE.
+- Startup decision proof: D-1171 once; D-1172 once; D-1173 once and Accepted; D-1174 absent before closeout; D-1175 absent; duplicate decision entry count zero.
+- D521 inheritance was reviewed and accepted: PR #1456 merged at `bbfab90fed0a`, D-1173 exists once and is Accepted, D-1173 selected `NA-0592 -- QSL qsc True Triple-Ratchet E2EE Hardening / Bug Fix Authorization Harness`, result classification is `TRUE_TRIPLE_RATCHET_DEMO_OR_FIXTURE_BYPASS_FOUND`, and no full qsl-attachments integration occurred.
+- PR #1456 post-merge check classification on `bbfab90fed0a`: public-safety success, advisories success, suite2-vectors success, qsc-linux-full-suite success, macOS full serial success, all attached check-runs completed success, CodeQL mapped to successful Analyze check-runs, goal-lint mapped to PR-head Goal compliance success for `473ce4064431`, no failed attached check-runs, no pending attached check-runs, and no failed required checks.
+- Recovered proof issue RF-NA0591-D522-001: startup queue parser expected a narrower separator shape and missed existing NA-0589/NA-0590 DONE entries. Corrective action replaced separator-based extraction with a line-oriented `### NA-` parser. Final result: PASS.
+- Recovered proof issue RF-NA0591-D522-002: inheritance classifier required classification text in NEXT_ACTIONS and an exact no-integration phrase. Corrective action scoped classification to authoritative inheritance artifacts and used bounded phrase-class matching for no-integration boundaries. Final result: PASS.
+- Recovered proof issue RF-NA0591-D522-003: inheritance overclaim scanner matched negated claim-boundary text, including not-as-a-complete-triple-ratchet-proof wording. Corrective action changed the scanner to ignore bounded negation contexts and fail only affirmative completion/readiness claims. Final result: PASS.
+- Recovered proof issue RF-NA0591-D522-004: publication-safety scan matched explicit no-claim wording as an overclaim. Corrective action adjusted the overclaim scanner to ignore explicit no/not/does-not negation contexts. Final result: PASS.
+- Recovered proof issue RF-NA0591-D522-005: phase-4 combined scan first examined whole governance files and then missed wrapped no-claim wording. Corrective action reran scans over added lines and the new testplan with multiline negation context and normalized PR body phrase casing. Final result: PASS.
+- D-1174 records NA-0591 closeout and NA-0592 restoration.
+- NA-0591 is marked DONE.
+- NA-0592 is restored READY using the exact D-1173-selected qsc true triple-ratchet E2EE hardening / bug-fix authorization successor block.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0591_closeout_restore_na0592_testplan.md`.
+- Branch: `na-0591-closeout-restore-na0592`.
+- PR title: `NA-0591: closeout and restore NA-0592`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- This closeout does not implement NA-0592 and does not execute qsc send/receive, qsl-attachments command/runtime/integration/mutation, qsl-server start/stop/cleanup/deployment/mutation, remote action, SSH, scp, Tailscale action, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation.
+- No qsc source mutation occurred in closeout.
+- No qsl-server mutation occurred in closeout.
+- No qsl-attachments mutation or integration occurred in closeout.
+- No dependency or lockfile mutation occurred in closeout.
+- No endpoint values, private port values, route-token values, bearer values, Authorization values, payload/body/plaintext bytes, ciphertext bodies, key material, raw command lines, raw logs, process identities, private topology, or private material are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced. no crypto-complete claim is introduced. no attachment-complete claim is introduced. no formal-proof-complete claim is introduced. no side-channel-free claim is introduced. no triple-ratchet-complete claim is introduced. no external-review-complete claim is introduced.
+
 ## NA-0588 local qsc / qsl-server adversarial and metadata stress update
 
 - Directive: QSL-DIR-2026-07-02-517.

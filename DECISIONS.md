@@ -31675,3 +31675,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0592 authorization and the NA-0593 hardening successor selection to D-1175.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records proof gates, recovered failures, source classification, selected hardening strategy, validation, successor, and boundaries.
   - **References:** NA-0592; selected future NA-0593; D-1175; D-1174; D-1173; qsl-protocol main `5d79fc682098`; `docs/governance/evidence/NA-0592_qsc_true_triple_ratchet_e2ee_hardening_bugfix_authorization_harness.md`; `tests/NA-0592_qsc_true_triple_ratchet_e2ee_hardening_bugfix_authorization_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1176
+  - **Title:** NA-0592 closeout and NA-0593 restoration
+  - **Date:** 2026-07-02
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0592 closeout consumes D-1175 and qsl-protocol PR #1458, verifies implementation merge commit `d4ab08d76e96`, verifies D-1175 exists once and is Accepted, verifies post-merge public-safety and advisories success with no failed or pending attached checks, marks NA-0592 DONE, and restores exactly one READY successor: `NA-0593 -- QSL qsc True Triple-Ratchet Seed Fallback Hardening Implementation Harness`. NA-0593 is the D-1175-selected implementation hardening lane for the qsc seed fallback/demo-fixture surface. This closeout does not implement NA-0593.
+  - **Selected successor restored:** NA-0593 is READY with Goals G1, G2, G3, G4, G5. Objective: implement the exact D-1175-selected seed fallback / demo-fixture hardening for qsc; preserve the verified no-seed Suite2/triple-ratchet send/receive path; add fail-closed tests proving ordinary qsc send, receive, relay, and future attachment command surfaces cannot accidentally use the seed fallback; keep full qsl-attachments send/receive integration deferred; mutate only exact D-1175-selected qsc source/test/example/demo paths; and stop before crypto/protocol/wire/auth/key-schedule/identity/transcript/state semantic changes unless D-1175 explicitly authorized that exact class.
+  - **Boundary proof:** Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0592_closeout_restore_na0593_testplan.md`. It does not mutate qsc source/tests/examples/scripts, qsl-server, qsl-attachments, dependencies, lockfiles, workflows, public-site, docs/public, website, formal, refimpl, qshield, or qshield-cli. It performs no full qsl-attachments send/receive integration, no remote action, no Tailscale action, no workflow dispatch, no workflow rerun, no sudo/systemd/firewall action, and no qwork/qstart/qresume execution.
+  - **Security and publication invariants:**
+    - D-1175 remains the active seed fallback authorization decision.
+    - NA-0592 is DONE.
+    - NA-0593 is the only READY item after closeout.
+    - Full qsl-attachments integration remains deferred until after seed fallback hardening.
+    - No endpoint values, private port values, route-token/capability values, bearer values, Authorization values, payload/body/plaintext bytes, ciphertext bodies, seed values, key material, raw command lines, raw logs, process identities, private topology, or private material are published.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No crypto-complete claim is made.
+    - No attachment-complete claim is made.
+    - No formal-proof-complete claim is made.
+    - No side-channel-free claim is made.
+    - No triple-ratchet-complete claim is made.
+    - No external-review-complete claim is made.
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0592 DONE and restores NA-0593 READY exactly as selected by D-1175.
+    - `tests/NA-0592_closeout_restore_na0593_testplan.md` records closeout validation markers.
+    - `TRACEABILITY.md` maps NA-0592 closeout and NA-0593 restoration to D-1176.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the implementation PR merge, post-merge check proof, closeout mutation boundary, and restored successor.
+  - **References:** NA-0592; NA-0593; D-1176; D-1175; qsl-protocol PR #1458; qsl-protocol merge `d4ab08d76e96`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0592_closeout_restore_na0593_testplan.md`

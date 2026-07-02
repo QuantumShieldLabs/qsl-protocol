@@ -41231,8 +41231,15 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Governance patch paths: NA-0592 evidence doc, NA-0592 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
 - Branch: `na-0592-qsc-seed-fallback-hardening-authorization`.
 - PR title: `NA-0592: authorize qsc seed fallback hardening`.
-- PR: pending at journal authoring.
-- PR merge commit: pending at journal authoring.
+- PR: #1458.
+- PR merge commit: `d4ab08d76e96`.
+- PR #1458 checks: public-safety success, advisories success, suite2-vectors success, goal-lint success, and no failed/pending attached checks before merge.
+- Post-merge main checks for `d4ab08d76e96`: public-safety success, advisories success, no failed attached checks, and no pending attached checks.
+- Recovered proof issue RF-NA0592-D523-005: GitHub connector PR creation returned `Resource not accessible by integration`. Classification: recoverable GitHub connector permission issue. Corrective action created PR #1458 with `gh pr create` using the same preflighted PR body. Final result: PASS.
+- Recovered proof issue RF-NA0592-D523-006: post-merge local fast-forward command used invalid `git reset --ff-only` option. Classification: recoverable command-shape issue. Corrective action ran `git merge --ff-only origin/main` to fast-forward local main without rewriting history. Final result: PASS.
+- Closeout branch: `na-0592-closeout-restore-na0593`.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0592_closeout_restore_na0593_testplan.md`.
+- Closeout result: D-1176 records NA-0592 closeout and restores `NA-0593 -- QSL qsc True Triple-Ratchet Seed Fallback Hardening Implementation Harness` as the sole READY successor. NA-0593 is not implemented by closeout.
 - No qsc source/test/demo/script mutation occurred in NA-0592.
 - No full qsl-attachments send/receive integration occurred.
 - No qsl-attachments runtime or mutation occurred.

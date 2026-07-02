@@ -142,6 +142,7 @@ run_qsc_step() {
     export QSC_SEED="$seed"
     export QSC_QSP_SEED="$seed"
     export QSC_ALLOW_SEED_FALLBACK=1
+    export QSC_UNSAFE_TEST_SEED_FALLBACK=1
     export QSC_RELAY_PUSH_DIAGNOSTIC=redacted
     export XDG_CONFIG_HOME="$qsc_home/.config"
     export XDG_DATA_HOME="$qsc_home/.local/share"
@@ -230,8 +231,8 @@ initialize_remote_relay_state() {
 }
 
 {
-  echo "QSC_MARK/1 event=remote_start scenario=$scenario seed=$seed"
-  echo "QSC_MARK/1 event=protocol_mode mode=seed_fallback_test"
+  echo "QSC_MARK/1 event=remote_start scenario=$scenario seed=redacted"
+  echo "QSC_MARK/1 event=protocol_mode mode=unsafe_seed_fallback_diagnostic"
   echo "QSC_MARK/1 event=remote_relay url=RELAY_URL_REDACTED"
 } > "$markers"
 
@@ -280,9 +281,9 @@ relay_push_timeout_phase_classes="$(marker_values timeout_phase_class)"
 relay_push_status_classes="$(marker_values status_class)"
 
 {
-  echo "protocol_mode=seed_fallback_test"
+  echo "protocol_mode=unsafe_seed_fallback_diagnostic"
   echo "scenario=$scenario"
-  echo "seed=$seed"
+  echo "seed=redacted"
   echo "status=$status"
   echo "deliver_count=$deliver_count"
   echo "drop_count=$drop_count"
@@ -296,9 +297,9 @@ relay_push_status_classes="$(marker_values status_class)"
 
 # summary
 {
-  echo "protocol_mode=seed_fallback_test"
+  echo "protocol_mode=unsafe_seed_fallback_diagnostic"
   echo "scenario=$scenario"
-  echo "seed=$seed"
+  echo "seed=redacted"
   echo "markers=$(wc -l < "$markers" | tr -d ' ')"
   echo "status=$status"
   echo "deliver_count=$deliver_count"

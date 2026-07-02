@@ -61,6 +61,7 @@ fn init_cfg_with_peer_route_token(cfg: &Path) {
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .args([
             "contacts",
             "add",
@@ -91,6 +92,7 @@ fn send_refuses_without_transport() {
     cmd.env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args(["send", "--to", "bob", "--file", payload.to_str().unwrap()]);
     cmd.assert().failure().stdout(predicate::eq(
@@ -116,6 +118,7 @@ fn send_happy_path_local_relay() {
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "send",
@@ -155,6 +158,7 @@ fn send_failure_no_commit() {
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "send",
@@ -192,6 +196,7 @@ fn outbox_recovery_via_send_abort() {
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "send",
@@ -212,6 +217,7 @@ fn outbox_recovery_via_send_abort() {
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "send",
@@ -236,6 +242,7 @@ fn outbox_recovery_via_send_abort() {
     cmd.env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args(["send", "abort"]);
     cmd.assert()
@@ -250,6 +257,7 @@ fn outbox_recovery_via_send_abort() {
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "send",
@@ -289,6 +297,7 @@ fn send_outputs_have_no_secrets() {
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "send",

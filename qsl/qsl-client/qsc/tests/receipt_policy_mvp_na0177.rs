@@ -90,6 +90,7 @@ fn send_msg(cfg: &Path, relay: &str, file: &Path) -> String {
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "send",
@@ -128,6 +129,7 @@ fn recv_with_policy(
     cmd.env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .env("QSC_TUI_TEST_MODE", "1")
         .args([
@@ -165,6 +167,7 @@ fn recv_default(cfg: &Path, relay: &str, mailbox: &str, from: &str, out_dir: &Pa
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "receive",
@@ -192,6 +195,7 @@ fn send_file(cfg: &Path, relay: &str, path: &Path) -> String {
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "file",

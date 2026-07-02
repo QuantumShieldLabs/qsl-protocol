@@ -121,6 +121,7 @@ fn poll_bounds_enforced() {
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .args([
             "receive",
             "--transport",
@@ -170,6 +171,7 @@ fn poll_deterministic_schedule_headless() {
             .env("QSC_CONFIG_DIR", &cfg)
             .env("QSC_QSP_SEED", "1")
             .env("QSC_ALLOW_SEED_FALLBACK", "1")
+            .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
             .args([
                 "receive",
                 "--transport",
@@ -225,6 +227,7 @@ fn pad_bucket_applied_on_wire() {
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .args([
             "send",
             "--transport",
@@ -269,6 +272,7 @@ fn pad_invalid_rejects_no_mutation() {
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .args([
             "send",
             "--transport",

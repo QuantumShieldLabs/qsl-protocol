@@ -145,7 +145,7 @@ use output::{
     PANIC_DEMO_SENTINEL,
 };
 use protocol_state::{
-    allow_seed_fallback_for_tests, emit_protocol_inactive, kmac_out,
+    allow_unsafe_seed_fallback_for_tests, emit_protocol_inactive, kmac_out,
     protocol_active_or_reason_for_peer, protocol_inactive_exit, qsp_send_ready_tuple,
     qsp_session_for_channel, qsp_session_load, qsp_session_store, qsp_status_parts,
     qsp_status_string, qsp_status_tuple, qsp_status_user_note, record_qsp_status, zero32,
@@ -192,8 +192,8 @@ fn bootstrap_unlock(passphrase_file: Option<&Path>, passphrase_env: Option<&str>
             Ok(()) => set_vault_unlocked(true),
             Err(code) => print_error_marker(code),
         }
-    } else if allow_seed_fallback_for_tests() {
-        // Deterministic test mode keeps existing seeded test workflows intact.
+    } else if allow_unsafe_seed_fallback_for_tests() {
+        // Explicit unsafe fixture mode keeps deterministic test workflows isolated.
         set_vault_unlocked(true);
     }
 }

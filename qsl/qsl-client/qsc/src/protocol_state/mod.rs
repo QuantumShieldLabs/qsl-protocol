@@ -187,7 +187,7 @@ fn qsp_session_store_key_load(peer: &str) -> Result<[u8; 32], ErrorCode> {
         Ok(Some(v)) => qsp_session_decode_key(&v),
         Ok(None) => Err(ErrorCode::IdentitySecretUnavailable),
         Err("vault_missing" | "vault_locked") => {
-            if allow_seed_fallback_for_tests() {
+            if allow_unsafe_seed_fallback_for_tests() {
                 qsp_session_test_fallback_key(peer)
             } else {
                 Err(ErrorCode::IdentitySecretUnavailable)
@@ -210,7 +210,7 @@ fn qsp_session_store_key_get_or_create(peer: &str) -> Result<[u8; 32], ErrorCode
             match vault::secret_set(QSP_SESSION_STORE_KEY_SECRET, &secret) {
                 Ok(()) => Ok(key),
                 Err("vault_missing" | "vault_locked") => {
-                    if allow_seed_fallback_for_tests() {
+                    if allow_unsafe_seed_fallback_for_tests() {
                         qsp_session_test_fallback_key(peer)
                     } else {
                         Err(ErrorCode::IdentitySecretUnavailable)
@@ -220,7 +220,7 @@ fn qsp_session_store_key_get_or_create(peer: &str) -> Result<[u8; 32], ErrorCode
             }
         }
         Err("vault_missing" | "vault_locked") => {
-            if allow_seed_fallback_for_tests() {
+            if allow_unsafe_seed_fallback_for_tests() {
                 qsp_session_test_fallback_key(peer)
             } else {
                 Err(ErrorCode::IdentitySecretUnavailable)
@@ -411,7 +411,9 @@ pub(crate) fn qsp_session_store(peer: &str, st: &Suite2SessionState) -> Result<(
 
 pub(crate) fn protocol_active_or_reason_for_peer(peer: &str) -> Result<(), String> {
     let (status, reason) = qsp_status_tuple(peer);
-    if status == "ACTIVE" || (allow_seed_fallback_for_tests() && env::var("QSC_QSP_SEED").is_ok()) {
+    if status == "ACTIVE"
+        || (allow_unsafe_seed_fallback_for_tests() && env::var("QSC_QSP_SEED").is_ok())
+    {
         Ok(())
     } else {
         Err(reason)
@@ -427,8 +429,8 @@ pub(crate) fn protocol_inactive_exit(reason: &str) -> ! {
     process::exit(1);
 }
 
-pub(crate) fn allow_seed_fallback_for_tests() -> bool {
-    env_bool("QSC_ALLOW_SEED_FALLBACK")
+pub(crate) fn allow_unsafe_seed_fallback_for_tests() -> bool {
+    env_bool("QSC_ALLOW_SEED_FALLBACK") && env_bool("QSC_UNSAFE_TEST_SEED_FALLBACK")
 }
 
 pub(crate) fn qsp_seed_from_env() -> Result<u64, &'static str> {
@@ -457,7 +459,7 @@ pub(crate) fn qsp_session_for_channel(channel: &str) -> Result<Suite2SessionStat
     if let Ok(Some(st)) = qsp_session_load(channel) {
         return Ok(st);
     }
-    if !allow_seed_fallback_for_tests() {
+    if !allow_unsafe_seed_fallback_for_tests() {
         return Err("qsp_no_session");
     }
     let seed = qsp_seed_from_env()?;

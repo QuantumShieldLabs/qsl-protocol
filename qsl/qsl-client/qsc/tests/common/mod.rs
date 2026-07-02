@@ -23,6 +23,14 @@ use tokio::sync::oneshot;
 
 pub const TEST_MOCK_VAULT_PASSPHRASE_ENV: &str = "QSC_DESKTOP_SESSION_PASSPHRASE";
 pub const TEST_MOCK_VAULT_PASSPHRASE: &str = "qsc-test-mock-vault-passphrase";
+pub const UNSAFE_TEST_SEED_FALLBACK_ENV: &str = "QSC_UNSAFE_TEST_SEED_FALLBACK";
+
+#[allow(dead_code)]
+pub fn add_unsafe_seed_fallback_env(cmd: &mut StdCommand) {
+    cmd.env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
+        .env(UNSAFE_TEST_SEED_FALLBACK_ENV, "1");
+}
 
 #[allow(dead_code)]
 pub fn init_mock_vault(cfg: &Path) {

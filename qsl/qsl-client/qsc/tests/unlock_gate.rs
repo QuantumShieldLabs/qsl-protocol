@@ -93,6 +93,7 @@ fn qsc_with_unlock(cfg: &Path, passphrase: &str) -> Command {
         .env("QSC_DISABLE_KEYCHAIN", "1")
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain");
     common::add_global_unlock_passphrase_file_arg(&mut cmd, cfg, "unlock-gate", passphrase);
     cmd

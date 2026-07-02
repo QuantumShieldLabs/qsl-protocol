@@ -43,6 +43,7 @@ fn send_once(cfg_dir: &Path, seed: &str) -> String {
         .env("QSC_CONFIG_DIR", cfg_dir)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .args([
             "contacts",
             "add",
@@ -68,6 +69,7 @@ fn send_once(cfg_dir: &Path, seed: &str) -> String {
         .env("QSC_CONFIG_DIR", cfg_dir)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .env("QSC_SCENARIO", "drop-reorder")
         .env("QSC_SEED", seed)

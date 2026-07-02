@@ -69,6 +69,7 @@ fn qsc_with_unlock_marked(cfg: &Path, passphrase: &str) -> Command {
     let mut cmd = qsc_with_unlock(cfg, passphrase);
     cmd.env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain");
     cmd
 }
@@ -181,6 +182,7 @@ fn receive_two_way_e2e_local_inbox() {
         .env("QSC_CONFIG_DIR", &alice_cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "send",
@@ -201,6 +203,7 @@ fn receive_two_way_e2e_local_inbox() {
         .env("QSC_CONFIG_DIR", &bob_cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "receive",
@@ -233,6 +236,7 @@ fn receive_two_way_e2e_local_inbox() {
         .env("QSC_CONFIG_DIR", &bob_cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "send",
@@ -253,6 +257,7 @@ fn receive_two_way_e2e_local_inbox() {
         .env("QSC_CONFIG_DIR", &alice_cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "receive",
@@ -584,6 +589,7 @@ fn tui_receive_headless_marks() {
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "send",
@@ -604,6 +610,7 @@ fn tui_receive_headless_marks() {
     cmd.env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .env("QSC_TUI_HEADLESS", "1")
         .env("QSC_TUI_SCRIPT", "/receive;/exit")

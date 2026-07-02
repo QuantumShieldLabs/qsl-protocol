@@ -1,0 +1,59 @@
+Status: Supporting
+Owner: QSL governance
+Last-Updated: 2026-07-02
+
+# NA-0593 qsc true triple-ratchet seed fallback hardening implementation testplan
+
+## Required markers
+
+- NA0593_D1175_SEED_FALLBACK_AUTH_CONSUMED_OK
+- NA0593_D1176_CLOSEOUT_CONSUMED_OK
+- NA0593_FRESH_QWORK_PROOF_OK
+- NA0593_CURRENT_MAIN_CHECKS_CLASSIFIED_OK
+- NA0593_SELECTED_MUTATION_PATHS_RECORDED_OK
+- NA0593_SEED_FALLBACK_SOURCE_MAP_REFRESHED_OK
+- NA0593_HARDENING_IMPLEMENTED_OK
+- NA0593_DEFAULT_SEND_ENV_ONLY_FALLBACK_BLOCKED_OK
+- NA0593_DEFAULT_RECEIVE_ENV_ONLY_FALLBACK_BLOCKED_OK
+- NA0593_RELAY_ENV_ONLY_FALLBACK_BLOCKED_OK
+- NA0593_ATTACHMENT_DESCRIPTOR_ENV_ONLY_FALLBACK_BLOCKED_OK
+- NA0593_TEST_ONLY_HELPER_ISOLATED_OR_REMOVED_OK
+- NA0593_NO_SEED_PATH_PRESERVED_OK
+- NA0593_NA0591_TRIPLE_RATCHET_TEST_PASS_OK
+- NA0593_FOCUSED_QSC_TESTS_PASS_OK
+- NA0593_NO_SEED_OR_KEY_MATERIAL_LOGGED_OK
+- NA0593_PRIVATE_MATERIAL_SCAN_OK
+- NA0593_NO_ENDPOINT_VALUE_PUBLISHED_OK
+- NA0593_NO_PRIVATE_PORT_VALUE_PUBLISHED_OK
+- NA0593_NO_TOKEN_OR_AUTHORIZATION_PUBLISHED_OK
+- NA0593_NO_PAYLOAD_BODY_PLAINTEXT_PUBLISHED_OK
+- NA0593_NO_SEED_OR_KEY_MATERIAL_PUBLISHED_OK
+- NA0593_NO_FULL_ATTACHMENT_INTEGRATION_OK
+- NA0593_NO_QSL_SERVER_MUTATION_OK
+- NA0593_NO_QSL_ATTACHMENTS_MUTATION_OK
+- NA0593_NO_REMOTE_TAILSCALE_WORKFLOW_ACTION_OK
+- NA0593_NO_PUBLIC_READINESS_CLAIM_OK
+- NA0593_NO_PRODUCTION_READINESS_CLAIM_OK
+- NA0593_NO_CRYPTO_COMPLETE_CLAIM_OK
+- NA0593_NO_TRIPLE_RATCHET_COMPLETE_OVERCLAIM_OK
+- NA0593_RESULT_CLASSIFICATION_SELECTED_OK
+- NA0593_SUCCESSOR_SELECTED_OK
+- NA0593_ONE_READY_INVARIANT_OK
+
+## Focused validation commands
+
+- `cargo test -p qsc --test na_0591_true_triple_ratchet_path`
+- `cargo test -p qsc --test na_0593_seed_fallback_hardening`
+- `cargo test -p qsc --test qsp_protocol_gate`
+- `cargo test -p qsc --test qsp_status_truthy`
+- `cargo test -p qsc --test relay_auth_header`
+- `cargo test -p qsc --test receive_e2e receive_mailbox_peer_separation_fail_closed`
+- `cargo test -p qsc --tests --no-run`
+
+## Expected outcome
+
+NA-0593 records D-1177, blocks old env-only seed fallback in ordinary qsc
+send/receive/relay and qsc attachment descriptor paths, preserves the no-seed
+qsp pack/unpack Suite2 path, and selects NA-0594 local qsl-attachments
+send/receive integration while keeping full attachment integration out of this
+lane.

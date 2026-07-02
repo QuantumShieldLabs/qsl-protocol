@@ -41097,6 +41097,47 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No endpoint values, private port values, topology, token values, Authorization headers, process identities, payloads, response bodies, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, API keys, raw private logs, or private material are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0590 qsl-attachments recovery verification and integration readiness update
+
+- Directive: QSL-DIR-2026-07-02-519.
+- Begin timestamp (UTC): 2026-07-02T05:08:06Z.
+- Repo path: `/srv/qbuild/work/NA-0590/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0590_qsl_attachments_recovery_verification_integration_readiness_20260702T050806Z`.
+- qwork proof files were copied and verified before fetch, repository mutation, qsl-attachments clone/build/test/run, qsc command execution, qsl-server action, GitHub metadata review, source-analysis publication, or proof publication; Codex did not run qwork, qstart, or qresume.
+- qwork proof verified lane NA-0590, repo qsl-protocol, branch main, upstream origin/main, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0590, and shared cargo target ready.
+- Pre-fetch and post-fetch `HEAD`/`origin/main`: `fae321274e86`.
+- Disk watermark: root and backup filesystems below the 95 percent stop threshold; `/backup/qsl` mounted.
+- Startup queue proof: READY_COUNT 1; READY NA-0590; NA-0589 DONE; NA-0588 DONE.
+- Startup decision proof: D-1169 once and Accepted; D-1170 once and Accepted; D-1171 absent before patch; D-1172 absent; duplicate decision entry count zero.
+- Current main required-check classification: public-safety success, advisories success, suite2-vectors success, no failed required checks, no required pending checks, root cargo audit success, nested qsc fuzz cargo audit success, locked metadata success, and Cargo manifest/lock drift absent.
+- Recovered proof issue RF-NA0590-001: current-main required-check classifier used literal branch-protection context names against merge-commit check-run names. Corrective action applied D498-style visibility recovery for CodeQL Analyze runs and goal-lint PR-head evidence. Final result: PASS.
+- Recovered proof issue RF-NA0590-002: nested qsc fuzz cargo audit was first invoked with unsupported `cargo audit` manifest arguments. Corrective action reran cargo audit from the nested qsc fuzz crate. Final result: PASS.
+- Recovered proof issue RF-NA0590-003: exploratory qsl-attachments source search included an optional non-existent examples path. Corrective action reran review over existing README, source, and tests. Final result: PASS.
+- D-1169/D-1170 inheritance was reviewed and accepted: D-1169 classified `QSL_ATTACHMENTS_LOCKFILE_ONLY_RECOVERY_IMPLEMENTED`, selected NA-0590, and did not run qsl-attachments runtime smoke or full send/receive integration; D-1170 restored NA-0590 as the sole READY item.
+- qsl-attachments source was acquired under the NA-0590 workspace and verified clean on main at `767eca189ee0`.
+- qsl-attachments PR #38 recovery was verified: `Cargo.lock` only, recovered `anyhow` to `1.0.103`, no `Cargo.toml`, source, workflow, deployment, service, runtime, protocol, crypto, auth, or storage semantic change.
+- qsl-attachments post-recovery validation passed metadata, audit, fmt, test, and build.
+- qsl-protocol attachment expectations were revalidated: qsc-owned encryption/decryption, qsl-attachments opaque ciphertext storage/fetch, and qsl-server relay/control-plane only.
+- qsc attachment command surface was revalidated: file send/receive attachment-service option present; descriptor, fetch, ciphertext-root verification, and local decrypt/validate surfaces present.
+- True triple-ratchet preliminary boundary review classified `TRIPLE_RATCHET_DEDICATED_VERIFICATION_REQUIRED`; qsc send/receive triple-ratchet path evidence is partial, so full attachment integration remains deferred.
+- qsl-attachments runtime model remains `RUNTIME_MODEL_MIXED`.
+- Crypto/opaque-data boundary remains confirmed; auth/access remains capability-style and fail-closed for reviewed cases; storage/retention/resource boundary remains local-filesystem, cleanup/TTL/resource bounded, and proof-root-suitable; metadata exposure remains class-only publishable; failure behavior remains fail-closed or bounded for reviewed cases.
+- Optional local no-secret qsl-attachments smoke was not run and classified `QSL_ATTACHMENTS_LOCAL_SMOKE_NOT_RUN_NOT_NEEDED` because validation/source/test review sufficed for this recovery-verification lane.
+- Result classification: `QSL_ATTACHMENTS_RECOVERY_VERIFICATION_READINESS_PASS_TRIPLE_RATCHET_VERIFY_REQUIRED`.
+- Selected successor: `NA-0591 -- QSL Local qsc True Triple-Ratchet E2EE Path Verification Harness`.
+- Governance patch paths: NA-0590 evidence doc, NA-0590 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: pending at journal authoring.
+- PR title: `NA-0590: verify qsl-attachments recovery and readiness`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No full qsc/qsl-server/qsl-attachments attachment send/receive integration occurred.
+- No qsl-server start, stop, deployment, or mutation occurred.
+- No qsc source/test/helper mutation occurred.
+- No qsl-attachments mutation, runtime start, or PR occurred in NA-0590.
+- No remote action, SSH, scp, Tailscale action, public network exposure, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
+- No endpoint values, private port values, token values, bearer values, Authorization values, raw capability values, payloads, response bodies, plaintext attachment contents, sensitive filenames, raw storage paths, key material, or private material are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced. no crypto-complete claim is introduced. no attachment-complete claim is introduced. no triple-ratchet-complete claim is introduced. no external-review-complete claim is introduced.
+
 ## NA-0577 remote qsl-server start/bind proof completion update
 
 - Directive: QSL-DIR-2026-06-30-506.

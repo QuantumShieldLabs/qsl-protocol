@@ -60,6 +60,7 @@ fn outbox_abort_idempotent_when_absent() {
         .env("QSC_CONFIG_DIR", &base)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .args(["send", "abort"])
         .output()
         .expect("run abort");
@@ -85,6 +86,7 @@ fn outbox_abort_burns_state_and_allows_next_send() {
         .env("QSC_CONFIG_DIR", &base)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .args([
             "relay",
@@ -105,6 +107,7 @@ fn outbox_abort_burns_state_and_allows_next_send() {
         .env("QSC_CONFIG_DIR", &base)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .args(["send", "abort"])
         .output()
         .expect("run abort");

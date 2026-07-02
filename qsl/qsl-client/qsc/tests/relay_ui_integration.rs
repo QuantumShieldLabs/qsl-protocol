@@ -67,6 +67,7 @@ fn send_one(cfg: &Path, relay: &str, token: &str, passphrase: &str, payload: &Pa
             .env("QSC_RELAY_TOKEN", token)
             .env("QSC_QSP_SEED", "7")
             .env("QSC_ALLOW_SEED_FALLBACK", "1")
+            .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
             .env("QSC_MARK_FORMAT", "plain")
             .args([
                 "send",
@@ -92,6 +93,7 @@ fn run_tui_receive(cfg: &Path, relay: &str, token: &str, passphrase: &str, scrip
         .env("QSC_RELAY_TOKEN", token)
         .env("QSC_QSP_SEED", "7")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .env("QSC_TUI_HEADLESS", "1")
         .env("QSC_TUI_SCRIPT", script)

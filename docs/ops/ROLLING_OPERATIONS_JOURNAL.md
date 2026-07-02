@@ -6,6 +6,41 @@ Last-Updated: 2026-06-29
 
 # Rolling Operations Journal
 
+## NA-0593 qsc seed fallback hardening implementation update
+
+- Directive: QSL-DIR-2026-07-02-524.
+- Directive title: Execute NA-0593 qsc True Triple-Ratchet Seed Fallback Hardening Implementation Harness, Optional Closeout to NA-0594.
+- Begin timestamp (UTC): `2026-07-02T17:31:20Z`.
+- Repo path: `/srv/qbuild/work/NA-0593/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0593_qsc_seed_fallback_hardening_implementation_20260702T173120Z`.
+- Fresh NA-0593 qwork proof files were verified before fetch, source inspection publication, qsc tests, repository mutation, GitHub metadata review, or proof publication; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-07-02T17:18:57Z`; startup head/origin-main/main was `e1f9b3eb2204`, READY_COUNT 1, and READY NA-0593.
+- Disk and mount gates passed before fetch: root usage was below the 95 percent stop threshold and `/backup/qsl` was mounted.
+- Startup queue proof passed: READY_COUNT 1; READY NA-0593; NA-0591 DONE; NA-0592 DONE; D-1173, D-1174, D-1175, and D-1176 each existed once; D-1177 and D-1178 were absent before patch; duplicate decision count zero.
+- Current main required-check classification passed: public-safety success, advisories success, suite2-vectors success/satisfied, no failed required checks, no pending required checks, root cargo audit success, nested qsc fuzz cargo audit success, locked metadata success, and no Cargo drift.
+- D-1175/D-1176 inheritance review passed. D-1175 classified the seed fallback as `SEED_FALLBACK_RUNTIME_PRODUCTION_PATH_RISK`, selected B/E hybrid hardening, and selected NA-0593 as the exact implementation successor. D-1176 restored NA-0593.
+- Source-map refresh identified qsc protocol-state fallback helpers, qsp pack/unpack runtime call sites, relay send/receive and TUI paths, qsc attachment descriptor send path, deterministic fixture tests, demo scripts, and qsc remote relay/handshake documentation.
+- Selected mutation paths were recorded before editing in the proof root. Selected paths were limited to qsc source/tests, qsc demo scripts, qsc documentation, and NA-0593 governance evidence/testplan/trace/journal/decision files.
+- Hardening implementation made the legacy `QSC_ALLOW_SEED_FALLBACK=1` insufficient by default and requires the explicit unsafe diagnostic/test gate `QSC_UNSAFE_TEST_SEED_FALLBACK=1` for retained deterministic fixture fallback.
+- Ordinary qsc send, receive, relay, and qsc attachment descriptor paths now block old env-only fallback before qsp pack/unpack, relay pull/push completion, outbox/receive commit, or descriptor construction.
+- Existing deterministic fixture tests were updated to opt into the explicit unsafe diagnostic/test gate where they intentionally depend on the retained fixture fallback.
+- Remote relay smoke output was relabeled as unsafe diagnostic fixture behavior and redacts the deterministic fixture seed in marker/summary output. Remote handshake smoke clears both fallback envs.
+- Focused qsc tests passed: `na_0591_true_triple_ratchet_path`, `na_0593_seed_fallback_hardening`, `qsp_protocol_gate`, `qsp_status_truthy`, `relay_auth_header`, and `receive_e2e receive_mailbox_peer_separation_fail_closed`; qsc integration-test compile check also passed.
+- No-seed path preservation was classified `NO_SEED_DYNAMIC_PATH_NOT_RUN_SOURCE_TESTS_SUFFICIENT` because the NA-0591 true-triple-ratchet test passed after the hardening and the source change only restricts deterministic fallback after stored-session lookup fails.
+- Attachment boundary was classified `ATTACHMENT_DESCRIPTOR_SEED_FALLBACK_BLOCKED`. Full qsl-attachments send/receive integration was not run.
+- Result classification: `SEED_FALLBACK_HARDENING_IMPLEMENTATION_PASS_ATTACHMENT_DEFERRED`.
+- Selected successor: `NA-0594 -- QSL Local qsl-attachments Send / Receive Integration Harness`.
+- Recovered failures recorded: wrapped-markdown inheritance parser mismatch; apply-patch context mismatch for the handshake script; source-location zero-match repaired with broader search; NA-0593 test assertion adjusted to redacted attachment marker semantics; proof-root fixture pairing checker variable bug; fixture pairing false-positive for dedicated negative tests; overclaim scanner scope narrowed to added lines after a historical-text false positive; and validation summary cargo-audit phrase expectation corrected after exit-success audit logs.
+- Governance patch paths are limited to `docs/governance/evidence/NA-0593_qsc_true_triple_ratchet_seed_fallback_hardening_implementation_harness.md`, `tests/NA-0593_qsc_true_triple_ratchet_seed_fallback_hardening_implementation_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- qsc implementation patch paths are limited to selected qsc source/tests, selected demo scripts, and selected qsc documentation. No qsl-server mutation, qsl-attachments mutation, dependency/lockfile mutation, workflow mutation, remote action, SSH, scp, Tailscale action, public-site mutation, or Cloudflare mutation occurred.
+- No endpoint values, private port values, token values, bearer values, Authorization values, raw capability values, payloads, response bodies, plaintext attachment contents, key material, seed values, raw logs, command lines, process identities, or private material are published.
+- Branch: pending at journal authoring.
+- PR title: `NA-0593: harden qsc seed fallback surface`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: implementation validation, PR checks, public-safety, advisories, no failed required checks, post-merge proof, and optional closeout to NA-0594 only if gates remain green.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced. No crypto-complete claim is introduced. No attachment-complete claim is introduced. No triple-ratchet-complete claim is introduced.
+
 ## NA-0589 closeout and NA-0590 restoration update
 
 - Directive: QSL-DIR-2026-07-02-518 optional closeout after NA-0589 implementation merge.

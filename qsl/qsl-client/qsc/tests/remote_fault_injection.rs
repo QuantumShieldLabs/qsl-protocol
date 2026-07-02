@@ -49,6 +49,7 @@ fn relay_send(
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .env("QSC_SCENARIO", scenario)
         .env("QSC_SEED", seed)
@@ -81,6 +82,7 @@ fn init_cfg_with_peer_route_token(cfg: &Path) {
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .args([
             "contacts",
             "add",

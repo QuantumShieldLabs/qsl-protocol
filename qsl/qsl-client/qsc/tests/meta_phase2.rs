@@ -166,6 +166,7 @@ fn seed_inbox_two_items(iso: &common::TestIsolation, base: &Path, relay: &str) {
             .env("QSC_CONFIG_DIR", &sender_cfg)
             .env("QSC_QSP_SEED", "7")
             .env("QSC_ALLOW_SEED_FALLBACK", "1")
+            .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
             .args([
                 "send",
                 "--transport",
@@ -210,6 +211,7 @@ fn receive_poll_emits_ticks_and_is_deterministic() {
             .env("QSC_CONFIG_DIR", &cfg)
             .env("QSC_QSP_SEED", "7")
             .env("QSC_ALLOW_SEED_FALLBACK", "1")
+            .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
             .args([
                 "receive",
                 "--transport",

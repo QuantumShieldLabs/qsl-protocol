@@ -39,6 +39,7 @@ fn run_qsc(iso: &common::TestIsolation, cfg: &Path, args: &[&str]) -> std::proce
         .env("QSC_MARK_FORMAT", "plain")
         .env_remove("QSC_QSP_SEED")
         .env_remove("QSC_ALLOW_SEED_FALLBACK")
+        .env_remove("QSC_UNSAFE_TEST_SEED_FALLBACK")
         .args(args)
         .output()
         .expect("qsc command")

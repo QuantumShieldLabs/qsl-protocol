@@ -109,7 +109,8 @@ fn qsc_base(iso: &common::TestIsolation, cfg: &Path) -> Command {
     cmd.env("QSC_CONFIG_DIR", cfg)
         .env("QSC_MARK_FORMAT", "plain")
         .env("QSC_QSP_SEED", "0554")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1");
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1");
     cmd
 }
 

@@ -40,9 +40,11 @@ health and remote handshake exercise; it is never the operator front door.
 
 - Define a normalized marker subset for comparison across runs.
 - Same scenario inputs should yield identical normalized subsets even if timings differ.
-- The remote relay smoke lane explicitly runs in `protocol_mode=seed_fallback_test` by exporting
-  `QSC_QSP_SEED` and `QSC_ALLOW_SEED_FALLBACK=1`; it is a transport/reliability lane and
-  not handshake/session-proof evidence.
+- The remote relay smoke lane explicitly runs in
+  `protocol_mode=unsafe_seed_fallback_diagnostic` by exporting `QSC_QSP_SEED`,
+  `QSC_ALLOW_SEED_FALLBACK=1`, and `QSC_UNSAFE_TEST_SEED_FALLBACK=1`; it is a
+  transport/reliability diagnostic lane and not normal runtime or
+  handshake/session-proof evidence.
 
 ## Execution policy
 
@@ -60,7 +62,8 @@ health and remote handshake exercise; it is never the operator front door.
 
 - Script: `scripts/demo/qsc_remote_handshake_smoke.sh`
 - Env: `RELAY_URL` and `RELAY_TOKEN` required
-- Protocol mode: real handshake/session proof only (no `QSC_ALLOW_SEED_FALLBACK`)
+- Protocol mode: real handshake/session proof only (no `QSC_ALLOW_SEED_FALLBACK`
+  and no `QSC_UNSAFE_TEST_SEED_FALLBACK`)
 - Sequence:
   - `alice handshake init --peer bob`
   - `bob handshake poll --peer alice`

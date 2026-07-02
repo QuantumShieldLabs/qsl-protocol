@@ -146,6 +146,7 @@ fn msg_peer_auto_orchestrates_and_focuses_messages_thread() {
         &[
             ("QSC_TUI_TEST_UNLOCK", "1"),
             ("QSC_ALLOW_SEED_FALLBACK", "1"),
+            ("QSC_UNSAFE_TEST_SEED_FALLBACK", "1"),
             ("QSC_QSP_SEED", "7"),
             ("QSC_SELF_LABEL", "alice"),
         ],
@@ -179,6 +180,7 @@ fn msg_peer_auto_orchestrates_and_focuses_messages_thread() {
         &[
             ("QSC_TUI_TEST_UNLOCK", "1"),
             ("QSC_ALLOW_SEED_FALLBACK", "1"),
+            ("QSC_UNSAFE_TEST_SEED_FALLBACK", "1"),
             ("QSC_QSP_SEED", "7"),
             ("QSC_SELF_LABEL", "bob"),
         ],
@@ -220,6 +222,7 @@ fn msg_peer_auto_trusts_first_use_after_handshake_and_sends() {
         &[
             ("QSC_TUI_TEST_UNLOCK", "1"),
             ("QSC_ALLOW_SEED_FALLBACK", "1"),
+            ("QSC_UNSAFE_TEST_SEED_FALLBACK", "1"),
             ("QSC_QSP_SEED", "11"),
             ("QSC_SELF_LABEL", "alice"),
         ],
@@ -252,6 +255,7 @@ fn msg_peer_auto_trusts_first_use_after_handshake_and_sends() {
         &[
             ("QSC_TUI_TEST_UNLOCK", "1"),
             ("QSC_ALLOW_SEED_FALLBACK", "1"),
+            ("QSC_UNSAFE_TEST_SEED_FALLBACK", "1"),
             ("QSC_QSP_SEED", "11"),
             ("QSC_SELF_LABEL", "bob"),
         ],

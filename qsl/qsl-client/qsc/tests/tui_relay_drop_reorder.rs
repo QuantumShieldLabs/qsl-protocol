@@ -38,6 +38,7 @@ fn add_peer_route_token(cfg: &Path) {
             .env("QSC_CONFIG_DIR", cfg)
             .env("QSC_QSP_SEED", "1")
             .env("QSC_ALLOW_SEED_FALLBACK", "1")
+            .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
             .args([
                 "contacts",
                 "add",
@@ -63,6 +64,7 @@ fn run_tui(cfg_dir: &Path, seed: u64, script: &str) -> String {
         .env("QSC_CONFIG_DIR", cfg_dir)
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain")
         .env("QSC_TUI_HEADLESS", "1")
         .env("QSC_TUI_SCRIPT", script)

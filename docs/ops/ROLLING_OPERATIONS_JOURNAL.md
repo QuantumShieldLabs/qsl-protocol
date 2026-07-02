@@ -6,6 +6,46 @@ Last-Updated: 2026-06-29
 
 # Rolling Operations Journal
 
+## NA-0594 local qsl-attachments send/receive integration update
+
+- Directive: QSL-DIR-2026-07-02-526.
+- Directive title: Execute NA-0594 Local qsl-attachments Send / Receive Integration Harness, Optional Closeout to NA-0595.
+- Begin timestamp (UTC): `2026-07-02T20:40:25Z`.
+- Repo path: `/srv/qbuild/work/NA-0594/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0594_local_qsl_attachments_send_receive_integration_20260702T204025Z`.
+- Fresh NA-0594 qwork proof files were verified before fetch, qsl-server/qsl-attachments acquisition, build, runtime startup, qsc execution, repository mutation, source-analysis publication, or proof publication; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-07-02T20:21:14Z`; startup head/origin-main/main was `d124e734f67e`, READY_COUNT 1, and READY NA-0594.
+- Disk and mount gates passed before fetch: root usage was below the 95 percent stop threshold and `/backup/qsl` was mounted.
+- Startup queue proof passed: READY_COUNT 1; READY NA-0594; NA-0593 DONE; NA-0592 DONE; D-1177 and D-1178 each existed once; D-1179 and D-1180 were absent before patch; duplicate decision count zero.
+- Current main health passed: public-safety success, advisories success, suite2-vectors success/satisfied, no failed required checks, no pending attached required checks, root cargo audit success, nested qsc fuzz cargo audit success, locked metadata success, and no Cargo drift.
+- D525/D524/D-1177/D-1178 inheritance review passed. D-1177 result `SEED_FALLBACK_HARDENING_IMPLEMENTATION_PASS_ATTACHMENT_DEFERRED` and D-1178 NA-0594 restoration were consumed.
+- qsc attachment command surface revalidation passed: above-threshold attachment path uses the attachment service when configured, exact 4 MiB remains legacy-sized, qsc owns encryption/decrypt/descriptor/fetch verification, and seed fallback env-only behavior remains blocked in the attachment path.
+- qsl-server relay boundary revalidation passed: qsl-server remains loopback-startable relay/control-plane only, uses header-carried route tokens, relays opaque bytes, and has no attachment storage role.
+- qsl-attachments runtime surface revalidation passed: qsl-attachments starts locally with proof-root storage, stores opaque object bytes, and exposes session/upload/commit/fetch lifecycle with resource-scoped capabilities.
+- qsl-server validation passed at `6bf61d439fa2`: metadata, audit, fmt, tests, and build.
+- qsl-attachments validation passed at `767eca189ee`: metadata, audit, fmt, tests, and build; PR #38 recovery commit was present.
+- qsc focused validation passed: `na_0591_true_triple_ratchet_path`, `na_0593_seed_fallback_hardening`, `attachments_contract_na0217h`, `attachment_streaming_na0197c`, `qsp_protocol_gate`, `relay_auth_header`, and `receive_e2e_peer_separation`.
+- Proof-root local harness static review passed: subprocess argument arrays, no shell execution, loopback-only services, proof-root qsc state/logs/storage, proof-root qsl-attachments storage, no public bind, no forbidden operator commands, no remote/Tailscale/workflow action, no deletion outside proof-root-owned runtime subtrees, and class-only terminal output.
+- Local runtime startup classified `LOCAL_RUNTIME_QSL_SERVER_READY` and `LOCAL_RUNTIME_QSL_ATTACHMENTS_READY`.
+- Local qsl-attachments send/receive classified `LOCAL_QSL_ATTACHMENTS_SEND_RECEIVE_PASS` using a non-secret synthetic fixture larger than 4 MiB. qsc committed through qsl-attachments, relayed an opaque descriptor/envelope through qsl-server, fetched/verifed/decrypted locally on receive, validated the received fixture class, and empty pull after drain failed closed.
+- Boundary verification classified `BOUNDARY_QSC_OWNS_ENCRYPTION_CONFIRMED`, `BOUNDARY_QSL_SERVER_CONTROL_PLANE_ONLY_CONFIRMED`, `BOUNDARY_QSL_ATTACHMENTS_OPAQUE_STORAGE_CONFIRMED`, and `BOUNDARY_SEED_FALLBACK_BLOCKED_IN_ATTACHMENT_PATH`.
+- Selected negatives were classified: above-threshold send without attachment service, wrong route token receive, wrong fetch capability, corrupted descriptor/envelope, corrupted fetched ciphertext, missing object, and exact 4 MiB boundary all passed fail-closed; unsupported/not-configured variants were recorded for the next stress lane.
+- Metadata review classified filename, exact size, object/capability values, route/recipient values, timing, command lines, and storage paths as proof-root-only; size bucket as class-only; and payload/body, plaintext, key material, and seed fallback exposure as no.
+- Cleanup classified `LOCAL_ATTACHMENT_CLEANUP_DONE`; owned qsl-server and qsl-attachments processes were stopped and no owned listener remained.
+- Result classification: `LOCAL_QSL_ATTACHMENTS_SEND_RECEIVE_INTEGRATION_PASS_WITH_METADATA_LIMITS`.
+- Selected successor: `NA-0595 -- QSL Local qsl-attachments Adversarial and Metadata Stress Harness`.
+- Recovered failures recorded: unsupported cargo-audit manifest-path command shape for nested qsc fuzz audit; optional absent qsc examples path in source search; proof-root exact-4MiB negative classifier repaired after raw proof showed fail-closed legacy-sized rejection; validation scope-guard helper boolean serialization corrected; marker proof helper expected-count corrected; and a zero-match forbidden-pattern static scan recorded as an expected proof outcome.
+- Governance patch paths are limited to `docs/governance/evidence/NA-0594_local_qsl_attachments_send_receive_integration_harness.md`, `tests/NA-0594_local_qsl_attachments_send_receive_integration_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- No qsc source/test/script mutation occurred. No qsl-server mutation or PR occurred. No qsl-attachments mutation or PR occurred. No dependency/lockfile mutation occurred. No workflow mutation occurred.
+- No remote action, SSH, scp, Tailscale action, workflow dispatch, workflow rerun, sudo, systemd, firewall, public-site, Cloudflare action, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization values, payload/body/plaintext bytes, ciphertext bodies, seed values, key material, raw command lines, raw logs, process identities, qsl-attachments storage paths, private topology, or private material are published.
+- Branch: pending at journal authoring.
+- PR title: `NA-0594: integrate local qsl-attachments send receive`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: implementation validation, PR checks, public-safety, advisories, no failed required checks, post-merge proof, and optional closeout to NA-0595 only if gates remain green.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced. No crypto-complete claim is introduced. No attachment-complete claim is introduced. No triple-ratchet-complete claim is introduced.
+
 ## NA-0593 qsc seed fallback hardening implementation update
 
 - Directive: QSL-DIR-2026-07-02-524.

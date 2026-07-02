@@ -6,6 +6,41 @@ Last-Updated: 2026-06-29
 
 # Rolling Operations Journal
 
+## NA-0589 local qsl-attachments integration readiness update
+
+- Directive: QSL-DIR-2026-07-02-518.
+- Begin timestamp (UTC): `2026-07-02T04:09:47Z`.
+- Repo path: NA-0589 qsl-protocol workspace.
+- Fresh NA-0589 qwork proof files were verified before fetch, qsl-attachments clone/build/test/run, qsc command execution, qsl-server start, source-analysis publication, GitHub metadata review, or proof publication; Codex did not run qwork, qstart, or qresume.
+- qwork proof timestamp was `2026-07-02T04:01:52Z`; startup head/origin-main/main was `62de62d64f5e`, READY_COUNT 1, and READY NA-0589.
+- Disk and mount gates passed before fetch: root usage was below the 95 percent stop threshold and the backup mount was present.
+- Startup queue proof passed: READY_COUNT 1; READY NA-0589; NA-0588 DONE; NA-0587 DONE; D-1167 once and Accepted; D-1168 once and Accepted; D-1169 absent before patch; D-1170 absent; duplicate decision count zero.
+- Current main required-check classification passed: public-safety success, advisories success, suite2 success, no failed required checks, no required pending checks, root cargo audit success, nested qsc fuzz cargo audit success, locked metadata success, and no Cargo drift.
+- D517/D-1167/D-1168 inheritance review passed. D-1167 result was `LOCAL_QSC_QSL_SERVER_E2EE_ADVERSARIAL_METADATA_STRESS_PASS`; D-1168 restored NA-0589.
+- qsl-attachments source was acquired from `QuantumShieldLabs/qsl-attachments`, initially reviewed at `96b9352bd63e`, and classified as package `qsl-attachments` with binary target `qsl-attachments`, library target `qsl_attachments`, and tests present.
+- Initial qsl-attachments metadata, fmt, test, and build passed. Initial qsl-attachments audit found a dependency advisory. Scratch proof showed a qsl-attachments `Cargo.lock`-only recovery was sufficient.
+- qsl-attachments PR #38 merged the lockfile-only recovery from head `be54a80a870b` at merge `767eca189ee0`. Post-merge qsl-attachments metadata, audit, fmt, test, and build passed.
+- qsl-protocol attachment expectations and qsc attachment command/source surface were reviewed. qsc owns attachment encryption/decryption and qsl-attachments stores opaque ciphertext for the reviewed path.
+- qsl-attachments runtime model classified `RUNTIME_MODEL_MIXED`: HTTP service, Rust library, and local filesystem storage service.
+- Auth/access review classified capability-style resume/fetch controls with missing/wrong capability fail-closed evidence. No token, Authorization, or raw capability values were published.
+- Storage/retention/resource review classified local filesystem storage, configurable proof-root-suitable storage root, retention/TTL, cleanup, persistence for coherent committed objects, and resource bounds.
+- Metadata review classified size/timing/reference classes as expected, capability values and storage paths as proof-root-only, and payload/plaintext/key exposure as not required.
+- Failure behavior review classified missing/wrong auth, unknown object, malformed request, oversized request, invalid range, expired session, and conflicting part upload as fail-closed or safely bounded by source/tests.
+- Optional no-secret smoke was deferred as not needed because qsl-attachments recovery verification must precede first local send/receive integration.
+- Result classification: `QSL_ATTACHMENTS_LOCKFILE_ONLY_RECOVERY_IMPLEMENTED`.
+- Selected successor: `NA-0590 -- QSL qsl-attachments Recovery Verification and Integration Readiness Harness`.
+- Recovered failures recorded: inheritance parser wording mismatch; advisory investigation wrong-crate command shape; GitHub connector PR-create fallback to authenticated CLI; qsc search non-existent examples path; guessed qsc attachment module path; PR #38 polling wrapper status inconsistency.
+- Governance patch paths are limited to `docs/governance/evidence/NA-0589_local_qsl_attachments_integration_readiness_harness.md`, `tests/NA-0589_local_qsl_attachments_integration_readiness_testplan.md`, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- qsl-attachments mutation was limited to `Cargo.lock` in qsl-attachments PR #38. No qsl-protocol source/script/workflow/dependency/lockfile mutation occurred.
+- No qsl-server mutation or qsl-server start occurred. No full qsc/qsl-server/qsl-attachments send/receive integration occurred. No remote action, SSH, scp, Tailscale action, public network exposure, GitHub workflow dispatch, GitHub workflow rerun, public-site mutation, Cloudflare mutation, qwork, qstart, or qresume execution occurred.
+- No endpoint values, private port values, token values, bearer values, Authorization values, raw capability values, payloads, response bodies, plaintext attachment contents, sensitive filenames, raw storage paths, key material, or private material are published.
+- Branch: pending at journal authoring.
+- PR title: `NA-0589: assess local qsl-attachments integration readiness`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: implementation validation, PR checks, public-safety, advisories, no failed required checks, post-merge proof, and optional closeout to NA-0590 recovery verification only if gates are green.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced. No crypto-complete claim is introduced. No attachment-complete claim is introduced.
+
 ## NA-0585 closeout and NA-0586 restoration update
 
 - Directive: QSL-DIR-2026-07-01-514 optional closeout packet.

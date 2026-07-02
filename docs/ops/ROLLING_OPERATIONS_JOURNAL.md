@@ -40067,6 +40067,49 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No sudo, systemctl, service, Tailscale, firewall, account, shell, authorized_keys mutation, writes outside `/home/qslcodex/qsl-remote-test/`, qsc send/receive, workflow dispatch/rerun, qsl-attachments command/mutation, qsl-server source mutation, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0588 local qsc / qsl-server adversarial and metadata stress update
+
+- Directive: QSL-DIR-2026-07-02-517.
+- Begin timestamp (UTC): 2026-07-02T02:43:16Z.
+- Repo path: `/srv/qbuild/work/NA-0588/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0588_local_qsc_qsl_server_adversarial_metadata_stress_20260702T024316Z`.
+- qwork proof files were copied and verified before fetch, repository mutation, qsl-server acquisition/start, qsc execution, source-analysis publication, GitHub metadata review, or proof publication; Codex did not run qwork, qstart, or qresume.
+- qwork proof verified lane NA-0588, repo qsl-protocol, path `/srv/qbuild/work/NA-0588/qsl-protocol`, branch main, upstream origin/main, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0588, and shared cargo target ready.
+- Pre-fetch `HEAD`/`origin/main` matched qwork proof at `6d62fbc3bdd6`; post-fetch main still descended from `6d62fbc3bdd6`.
+- Disk watermark was below the 95 percent stop threshold; `/backup/qsl` was mounted.
+- Startup queue proof: READY_COUNT 1; READY NA-0588; NA-0587 DONE; NA-0586 DONE.
+- Startup decision proof: D-1165 once and Accepted; D-1166 once and Accepted; D-1167 absent before patch; D-1168 absent; duplicate decision entry count zero.
+- Current-main checks were classified with public-safety success, advisories success, suite2-vectors satisfied, no failed required checks, no required pending checks, root cargo audit success, nested qsc fuzz cargo audit success, locked cargo metadata success, and no Cargo drift.
+- Recovered proof issue RF-NA0588-000: current-main required-check classification needed visibility recovery for goal-lint and CodeQL context naming. Corrective action: used branch-protection and attached-check evidence without weakening check requirements. Final result: PASS.
+- Recovered command issue RF-NA0588-001: qsl-server source search included a non-existent examples path. Corrective action: reran over existing paths. Final result: PASS.
+- Recovered command issue RF-NA0588-002: qsc source search included a non-existent examples path. Corrective action: reran over existing paths. Final result: PASS.
+- Recovered proof-root harness issue RF-NA0588-003: harness generation initially missed a generator import for the chmod step. Corrective action: fixed the proof-root generator and reran static review/execution. Final result: PASS.
+- D516, D-1165, and D-1166 inheritance was reviewed and accepted; D-1165 result classification `LOCAL_CLIENT_RELAY_E2EE_INTEGRATION_PASS` was consumed.
+- qsl-server source was acquired at `6bf61d439fa2`, reviewed, validated with metadata/audit/fmt/test/build, and cleaned back to a clean worktree after validation.
+- qsc source and command discovery completed; qsc build and focused relay tests passed.
+- Proof-root-only local stress harness static review passed: loopback-only bind, proof-root-only state/logs/fixtures, no public bind, no remote/Tailscale/SSH/scp, no workflow dispatch/rerun, no qsl-attachments invocation, no qsl-backup, no sudo/systemd/firewall, no qwork/qstart/qresume, and explicit owned-process cleanup.
+- Baseline classified `BASELINE_LOCAL_QSC_E2EE_PASS`.
+- Repetition classified `REPETITION_STRESS_PASS` after ten fresh-state E2EE cycles.
+- Multi-message and empty queue classified `MULTI_MESSAGE_ORDERING_PASS` and `EMPTY_PULL_AFTER_DRAIN_PASS`.
+- Route isolation classified `ROUTE_ISOLATION_PASS`.
+- Auth negatives classified `AUTH_NEGATIVES_FAIL_CLOSED_PASS`.
+- Malformed and bounded input checks classified `MALFORMED_INPUTS_FAIL_CLOSED_PASS`.
+- Restart boundary classified `RESTART_BOUNDARY_VOLATILE_QUEUE_EXPECTED`.
+- Concurrency/rapid operations classified `CONCURRENCY_RAPID_OPS_PASS`.
+- Metadata minimization review passed; diagnostics quality classified `DIAGNOSTICS_ACTIONABLE_PASS`.
+- Issue investigation selected no qsc or qsl-server product fix; no source/test/helper mutation was needed.
+- Result classification: `LOCAL_QSC_QSL_SERVER_E2EE_ADVERSARIAL_METADATA_STRESS_PASS`.
+- Selected successor: `NA-0589 -- QSL Local qsl-attachments Integration Readiness Harness`.
+- Governance patch paths: NA-0588 evidence doc, NA-0588 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: `na-0588-local-qsc-qsl-server-adversarial-metadata-stress`.
+- PR title: `NA-0588: stress local qsc qsl-server relay integration`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No endpoint values beyond loopback class, private port values, route-token/capability values, bearer values, Authorization values, private topology, payloads, response bodies, plaintext fixtures, envelope bodies, process identities, qsc key material, secret environment values, Cloudflare tokens, or API keys are published.
+- No qsl-attachments command, runtime, integration, direct build lane, or mutation occurred. qsl-attachments remains deferred to the selected NA-0589 successor.
+- No remote action, SSH, scp, Tailscale, remote command, workflow dispatch, workflow rerun, qsl-server deployment, qsl-server source mutation, qsl-protocol qsc source/test/helper mutation, workflow mutation, dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced. no crypto-complete claim is introduced.
+
 ## NA-0587 local qsc / qsl-server relay integration pivot update
 
 - Directive: QSL-DIR-2026-07-01-516.

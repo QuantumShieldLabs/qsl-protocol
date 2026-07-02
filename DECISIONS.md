@@ -31340,3 +31340,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0586 closeout and NA-0587 restoration to D-1164.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the NA-0586 closeout state, D-1164, post-merge proof, and restored NA-0587 successor.
   - **References:** NA-0586; NA-0587; D-1164; D-1163; qsl-protocol PR #1446; qsl-protocol merge `7767fb130840`; qsl-protocol head `13140a698afc`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0586_closeout_restore_na0587_testplan.md`
+
+- **ID:** D-1165
+  - **Title:** NA-0587 local qsc client and qsl-server relay integration pivot
+  - **Date:** 2026-07-01
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0587 consumes D-1163 and D-1164, verifies fresh qwork proof from `2026-07-02T01:33:24Z`, verifies current main `HEAD`/`origin/main` at `48efc7278b87`, and records the operator-selected strategy pivot `LOCAL_CLIENT_RELAY_INTEGRATION_PIVOT_SELECTED`. D-1163/D-1164 proved the remote workflow failure reached the safe diagnostic surface and classified as DNS timeout, consistent with GitHub-hosted runners not being inside the operator private Tailnet. The operator deferred Tailnet/GitHub-runner remediation and selected local build-server integration as the higher-value immediate path. qsl-server source was acquired and reviewed at `6bf61d439fa2`; qsl-server metadata, audit, fmt, test, and build validation passed. qsl-server started locally on loopback, canonical route shape passed, and missing/wrong auth rejected fail-closed. qsc relay source and command discovery completed; focused qsc relay tests passed. qsc local relay push/pull passed against local qsl-server, qsc E2EE send/receive over local qsl-server passed, selected wrong-bearer/empty-pull/wrong-route negatives passed, metadata review passed, and private-material scan passed. No project-owned source fix was needed. Result classification is `LOCAL_CLIENT_RELAY_E2EE_INTEGRATION_PASS`.
+  - **Selected successor:** NA-0588 is selected as `NA-0588 — QSL Local qsc / qsl-server Adversarial and Metadata Stress Harness` with Goals G1, G2, G3, G4, G5. It must stress the working local qsc/qsl-server setup with repeated runs, wrong peer, wrong token, stale state, replay-like duplicates, malformed relay responses, server restart, client restart, concurrency, timeout, empty queue, and metadata visibility checks. qsl-attachments remains deferred unless selected later.
+  - **Boundary proof:** No remote action occurred. No SSH, scp, Tailscale, remote command, GitHub workflow dispatch, GitHub workflow rerun, qsl-server deployment, qsl-server source mutation, qsl-attachments command/mutation, qsl-protocol qsc source/test mutation, workflow mutation, dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, or qresume execution occurred. Raw qsl-server logs, raw qsc output, route-token values, bearer values, Authorization values, payloads, response bodies, plaintext message content, loopback port values, local qsc state, passphrase fixture, and private-material-like test values remain proof-root-only. No public-readiness, production-readiness, public-Internet-readiness, vulnerability-free, bug-free, perfect-build, perfect-crypto, crypto-complete, or external-review-complete claim is made.
+  - **Recovered failures:**
+    - RF-NA0587-000: queue proof initially used zero-match-unsafe D-1165 counting. Classification: valid zero-match proof outcome. Corrective action: reran with zero-match-safe counting. Final result: PASS.
+    - RF-NA0587-001: queue proof parser crossed historical NEXT_ACTIONS sections and produced a false queue-top value. Classification: proof-root parser bug. Corrective action: reran with section-bounded parsing. Final result: PASS.
+    - RF-NA0587-002: qsl-server route/auth search included a non-existent examples path. Classification: command-shape issue. Corrective action: reran over existing paths. Final result: PASS.
+    - RF-NA0587-003: qsc discovery included a non-existent examples path and an incorrect CLI entry path. Classification: command-shape issue. Corrective action: reran over existing paths and actual qsc entrypoint. Final result: PASS.
+  - **Security invariants introduced/changed:**
+    - Remote/Tailnet remediation is deferred, not rejected.
+    - Local loopback success is evidence only for local client/relay behavior and does not prove remote, public, production, Internet, or security-completion readiness.
+    - qsl-server remains transport-only; no protocol parsing, crypto, wire, auth-model, state-machine, or dependency semantics changed.
+    - qsc local relay behavior was exercised without qsc source/test mutation or crypto/protocol semantics change.
+    - Exactly one READY remains mandatory until closeout.
+  - **Alternatives considered:**
+    - Continue immediate Tailnet/GitHub-runner remediation (deferred because local integration removes runner DNS/Tailnet variables and directly tests the qsc/qsl-server surface).
+    - Select a qsc client bug successor (rejected because local qsc push/pull and E2EE over local qsl-server passed).
+    - Select a qsl-server bug successor (rejected because qsl-server route shape, auth checks, validation, and local qsc integration passed).
+    - Select a diagnostic/harness completion successor (rejected because the local command surface was clear enough and the E2EE path executed).
+    - Start qsl-attachments work (rejected as deferred and out of scope).
+  - **Implications for spec/impl/tests:**
+    - `docs/governance/evidence/NA-0587_local_qsc_qsl_server_relay_integration_pivot_harness.md` records qwork proof, inheritance, pivot record, qsl-server review/validation, qsc command/source discovery, local qsl-server route-shape harness, local qsc relay integration, local E2EE result, selected negatives, issue-investigation/safe-fix result, private-material scan, metadata review, result classification, selected successor, and boundaries.
+    - `tests/NA-0587_local_qsc_qsl_server_relay_integration_pivot_testplan.md` records required markers, classification proof, boundary proof, and validation requirements.
+    - `TRACEABILITY.md` maps NA-0587 local integration pivot and E2EE pass to D-1165.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records proof gates, recovered failures, local validation, route-shape and qsc integration classifications, selected successor, and no-action/no-claim boundaries.
+  - **References:** NA-0587; selected future NA-0588; D-1165; D-1164; D-1163; qsl-protocol main `48efc7278b87`; qsl-server `6bf61d439fa2`; `docs/governance/evidence/NA-0587_local_qsc_qsl_server_relay_integration_pivot_harness.md`; `tests/NA-0587_local_qsc_qsl_server_relay_integration_pivot_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

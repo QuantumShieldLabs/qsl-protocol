@@ -40067,6 +40067,45 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No sudo, systemctl, service, Tailscale, firewall, account, shell, authorized_keys mutation, writes outside `/home/qslcodex/qsl-remote-test/`, qsc send/receive, workflow dispatch/rerun, qsl-attachments command/mutation, qsl-server source mutation, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0587 local qsc / qsl-server relay integration pivot update
+
+- Directive: QSL-DIR-2026-07-01-516.
+- Begin timestamp (UTC): 2026-07-02T01:35:31Z.
+- Repo path: `/srv/qbuild/work/NA-0587/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0587_local_qsc_qsl_server_relay_integration_20260702T013531Z`.
+- qwork proof files were copied and verified before fetch, qsl-server acquisition, qsl-server start, qsc command execution, or repository mutation; Codex did not run qwork, qstart, or qresume.
+- qwork proof verified lane NA-0587, repo qsl-protocol, path `/srv/qbuild/work/NA-0587/qsl-protocol`, branch main, upstream origin/main, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0587, and shared cargo target ready.
+- Pre-fetch `HEAD`/`origin/main`: `48efc7278b87`.
+- Disk watermark: root filesystem 32 percent used; `/backup/qsl` 35 percent used and mounted.
+- Startup queue proof: READY_COUNT 1; READY NA-0587; NA-0586 DONE; NA-0585 DONE.
+- Startup decision proof: D-1163 once and Accepted; D-1164 once and Accepted; D-1165 absent before patch; D-1166 absent.
+- Current-main check proof: public-safety success, advisories success, no failed visible check-runs, no pending visible check-runs, root cargo audit success, nested qsc fuzz cargo audit success, locked metadata success, and Cargo drift absent.
+- Strategy pivot recorded: remote DNS/Tailnet/GitHub-runner remediation deferred, local qsc/qsl-server loopback integration selected, remote/Tailnet remediation not rejected, and local success bounded to local evidence only.
+- Recovered proof issue RF-NA0587-000: queue proof initially used zero-match-unsafe D-1165 counting. Corrective action: reran with zero-match-safe counting. Final result: PASS.
+- Recovered proof issue RF-NA0587-001: queue proof parser crossed historical NEXT_ACTIONS sections and produced a false queue-top value. Corrective action: reran with section-bounded parsing. Final result: PASS.
+- Recovered command issue RF-NA0587-002: qsl-server route/auth search included a non-existent examples path. Corrective action: reran over existing paths. Final result: PASS.
+- Recovered command issue RF-NA0587-003: qsc discovery included a non-existent examples path and an incorrect CLI entry path. Corrective action: reran over existing paths and actual qsc entrypoint. Final result: PASS.
+- qsl-server source acquired at `/srv/qbuild/work/NA-0587/qsl-server`; reviewed clean at `6bf61d439fa2`.
+- qsl-server validation passed: cargo metadata, cargo audit, cargo fmt, cargo test, and cargo build.
+- qsl-server local route-shape harness started a loopback-only process with proof-root-only test credentials and logs; classification `LOCAL_QSL_SERVER_ROUTE_SHAPE_PASS`; auth classification `LOCAL_QSL_SERVER_AUTH_FAIL_CLOSED_PASS`; cleanup completed.
+- qsc source/command discovery completed; qsc cargo build passed; focused qsc relay tests passed.
+- qsc local relay integration passed against local qsl-server: classification `LOCAL_QSC_RELAY_PUSH_PULL_PASS`.
+- qsc local E2EE over relay passed: classification `LOCAL_QSC_E2EE_OVER_RELAY_PASS`.
+- Selected negatives passed: wrong bearer rejected without commit/accepted marker, empty pull after drain produced no-item class, and wrong-route pull produced no-item class without cross-route delivery.
+- Aggregate private-material review passed; raw logs, payloads, response bodies, test tokens, bearer values, Authorization values, loopback port, passphrase fixture, and qsc local state remain proof-root-only.
+- Metadata review passed at class level only; local success is not remote/public metadata readiness.
+- Safe fix skipped because no blocking integration issue remained; no qsl-protocol qsc source/test mutation and no qsl-server source mutation occurred.
+- Result classification: `LOCAL_CLIENT_RELAY_E2EE_INTEGRATION_PASS`.
+- Selected successor: `NA-0588 — QSL Local qsc / qsl-server Adversarial and Metadata Stress Harness`.
+- Governance patch paths: NA-0587 evidence doc, NA-0587 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Branch: `na-0587-local-qsc-qsl-server-relay-integration`.
+- PR title: `NA-0587: pivot to local qsc qsl-server relay integration`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No remote action, SSH, scp, Tailscale, remote command, workflow dispatch/rerun, qsl-server deployment, qsl-server source mutation, qsl-attachments command/mutation, qsl-protocol qsc source/test mutation, workflow mutation, dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, or qresume execution occurred.
+- No endpoint value beyond loopback class, private port value, route-token/capability value, bearer value, Authorization value, payload, response body, plaintext message content, process identity, private topology, public key material, private key material, secret environment value, raw private log, or private material is published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+
 ## NA-0586 remote relay diagnostic verification and timeout phase triage update
 
 - Directive: QSL-DIR-2026-07-01-515.

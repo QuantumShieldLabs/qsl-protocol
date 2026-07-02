@@ -41159,6 +41159,56 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No endpoint values, private port values, token values, bearer values, Authorization values, raw capability values, payloads, response bodies, plaintext attachment contents, sensitive filenames, raw storage paths, key material, or private material are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced. no crypto-complete claim is introduced. no attachment-complete claim is introduced. no triple-ratchet-complete claim is introduced. no external-review-complete claim is introduced.
 
+## NA-0591 resumed true triple-ratchet path verification update
+
+- Directive: QSL-DIR-2026-07-02-521.
+- Begin timestamp (UTC): 2026-07-02T06:50:26Z.
+- Repo path: `/srv/qbuild/work/NA-0591/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0591_resume_true_triple_ratchet_qsl_server_audit_recovery_20260702T065026Z`.
+- qwork proof files were copied and verified before fetch, qsl-server action, qsc test restoration, repository mutation, GitHub publication, source-analysis publication, or proof publication; Codex did not run qwork, qstart, or qresume.
+- qwork proof verified lane NA-0591, repo qsl-protocol, path `/srv/qbuild/work/NA-0591/qsl-protocol`, branch main, upstream origin/main, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0591, and shared cargo target ready.
+- Pre-fetch and post-fetch qsl-protocol `HEAD`/`origin/main`: `c9d3b81c93e7`.
+- Disk watermark: root and backup filesystems below the 95 percent stop threshold; `/backup/qsl` mounted.
+- Startup queue proof: READY_COUNT 1; READY NA-0591; NA-0590 DONE; NA-0589 DONE.
+- Startup decision proof: D-1171 once and Accepted; D-1172 once and Accepted; D-1173 absent before patch; D-1174 absent; duplicate decision entry count zero.
+- Current main required-check classification: public-safety success, advisories success, suite2-vectors success, no failed required checks attached, root cargo audit success, nested qsc fuzz cargo audit success, locked metadata success, and Cargo manifest/lock drift absent.
+- Recovered proof issue RF-NA0591-001: current-main required-check classifier treated absent current-main `goal-lint` as a failed required check. Corrective action separated success/failed/pending/absent contexts and recorded absent `goal-lint` for PR preflight. Final result: PASS for no failed required checks.
+- Recovered proof issue RF-NA0591-002: initial qsl-server dependency-tree command used an old advisory crate name. Corrective action reran dependency discovery for actual qsl-server advisory crates. Final result: PASS.
+- Recovered proof issue RF-NA0591-003: qsl-server `gh repo view` could not infer repo from the local mirror remote. Corrective action used explicit `QuantumShieldLabs/qsl-server` and a local-only GitHub remote. Final result: PASS.
+- Recovered proof issue RF-NA0591-004: GitHub connector PR creation for qsl-server returned 403. Corrective action used authenticated `gh pr create`. Final result: PR #58 opened.
+- Recovered proof issue RF-NA0591-005: qsl-server local mirror `origin/main` was stale at `0826ffa4d6f3` while GitHub main was `6bf61d439fa2`. Corrective action fetched true GitHub main, redid audit/validation, and closed the stale PR unmerged. Final result: qsl-server audit already clear on true main.
+- Recovered proof issue RF-NA0591-006: `gh pr view` used invalid JSON field `merged`. Corrective action queried valid fields. Final result: PR #58 confirmed closed unmerged.
+- Recovered proof issue RF-NA0591-007: qsc seed fallback `rg` included absent optional examples path. Corrective action reran over existing qsc source/tests. Final result: PASS.
+- Recovered proof issue RF-NA0591-008: D520 focused test target `receive_e2e_peer_separation` no longer exists. Corrective action discovered and ran current `receive_e2e receive_mailbox_peer_separation_fail_closed` filter. Final result: PASS.
+- Recovered proof issue RF-NA0591-009: proof-root summary writer had an indentation error. Corrective action reran corrected writer. Final result: PASS.
+- Recovered proof issue RF-NA0591-010: standalone `rustfmt` on the restored qsc test failed because the test helper module needed crate edition context. Corrective action reran targeted `rustfmt --edition 2021` and then `cargo fmt --check`. Final result: PASS.
+- Recovered proof issue RF-NA0591-011: the first post-patch publication-safety scanner treated compact negated claim-boundary lists and a rejected unsupported-claim alternative as positive overclaims. Corrective action reran the scanner with those negation shapes recognized. Final result: PASS.
+- Recovered proof issue RF-NA0591-012: GitHub connector PR creation for qsl-protocol returned 403. Corrective action used authenticated `gh pr create` with the preflighted PR body. Final result: PR #1456 opened.
+- D520/D519/D-1171/D-1172 inheritance was reviewed and accepted; D520 stopped before governance mutation and left a useful qsc diagnostic test preserved by the operator.
+- Preserved qsc diagnostic test SHA was verified and restored to `qsl/qsl-client/qsc/tests/na_0591_true_triple_ratchet_path.rs`.
+- qsl-server true GitHub main at `6bf61d439fa2` passed metadata, audit, fmt, test, and build. qsl-server PR #58 was closed unmerged because no current audit recovery was needed.
+- qsc source mapping verified send path through qsp pack and Suite2 `send_wire`, receive path through qsp unpack and Suite2 `recv_wire`, and attachment descriptor send source path through the qsc message plane.
+- Focused qsc tests passed for restored NA-0591 diagnostic, ratchet step, QSP/QSE on-wire behavior, qsp protocol gate, handshake activation negotiation, Suite2 runtime equivalence, relay auth header, and corrected peer-separation coverage.
+- Dynamic local qsc/qsl-server proof passed without seed fallback; qsl-server saw opaque relay bytes class and receive/decrypt/validate succeeded locally.
+- Negative/adversarial tests classified ciphertext tamper, envelope/AAD/header tamper, wrong peer, stale state, replay-like duplicate, missing state, malformed relay payload, wrong route token, and wrong bearer as fail-closed or detected/rejected for reviewed surfaces.
+- Crypto review packet completed: BKM, Hostile Cryptographer, Red-Team, Production SRE, Side-Channel Caveat, Formal Mapping, External-Review Readiness, Release-Claim Boundary, and Assurance Trigger Review.
+- Private-material and overclaim scans passed for publication-selected summaries; raw runtime values and logs remain proof-root-only.
+- Result classification: `TRUE_TRIPLE_RATCHET_DEMO_OR_FIXTURE_BYPASS_FOUND`.
+- Selected successor: `NA-0592 -- QSL qsc True Triple-Ratchet E2EE Hardening / Bug Fix Authorization Harness`.
+- Governance patch paths: NA-0591 evidence doc, NA-0591 testplan, `DECISIONS.md`, `TRACEABILITY.md`, this journal, and the qsc diagnostic test.
+- Branch: `na-0591-resume-true-triple-ratchet-path-verification`.
+- PR title: `NA-0591: verify qsc true triple-ratchet path and record hardening successor`.
+- PR: #1456.
+- PR merge commit: pending at journal authoring.
+- No full qsl-attachments send/receive integration occurred.
+- No qsl-attachments runtime or mutation occurred.
+- No qsl-server source, Cargo.toml, runtime, protocol, auth, route, storage, deployment, workflow, or semantic mutation was merged.
+- No qsc source semantic mutation occurred.
+- No qsl-protocol dependency, lockfile, workflow, script, public-site, or Cloudflare mutation occurred.
+- No remote action, SSH, scp, Tailscale action, workflow dispatch, workflow rerun, sudo, systemd, firewall, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
+- No endpoint values, private port values, route-token values, bearer values, Authorization values, payload/body/plaintext bytes, ciphertext bodies, key material, raw command lines, raw logs, process identities, private topology, or private material are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced. no crypto-complete claim is introduced. no attachment-complete claim is introduced. no formal-proof-complete claim is introduced. no side-channel-free claim is introduced. no triple-ratchet-complete claim is introduced. no external-review-complete claim is introduced.
+
 ## NA-0577 remote qsl-server start/bind proof completion update
 
 - Directive: QSL-DIR-2026-06-30-506.

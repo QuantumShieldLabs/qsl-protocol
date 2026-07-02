@@ -33366,7 +33366,7 @@ start full qsl-attachments send/receive integration.
 ---
 
 ### NA-0593 — QSL qsc True Triple-Ratchet Seed Fallback Hardening Implementation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33382,6 +33382,60 @@ transcript/state semantic changes unless D-1175 explicitly authorized that exact
 class. No dependency/lockfile, qsl-server, qsl-attachments, remote/Tailscale/
 workflow, public-site, or public/production/security-completion claim is
 authorized.
+
+Completion note:
+NA-0593 completed in D-1177 and closeout D-1178. D-1177 recorded result
+`SEED_FALLBACK_HARDENING_IMPLEMENTATION_PASS_ATTACHMENT_DEFERRED`, blocked old
+env-only fallback for ordinary qsc send/receive/relay and qsc attachment
+descriptor paths, preserved the no-seed Suite2/triple-ratchet path, and selected
+NA-0594 as the exact qsl-attachments local send/receive integration successor.
+D-1178 closed NA-0593 only after PR #1460 post-merge public-safety and
+advisories were green with no failed required checks. NA-0593 did not implement
+full qsl-attachments send/receive integration.
+
+---
+
+### NA-0594 — QSL Local qsl-attachments Send / Receive Integration Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Run the first local qsl-attachments send/receive integration after local
+qsc/qsl-server stress passed, qsl-attachments recovery/readiness passed, the
+qsc true triple-ratchet path was verified for the validated no-seed path, and
+NA-0593 hardened the seed fallback / demo-fixture surface. Use proof-root-only
+qsl-attachments storage, local-only or loopback-only runtime, non-secret
+fixtures, qsc-owned encryption, qsl-server relay/control-plane boundaries,
+qsl-attachments opaque ciphertext storage, descriptor/fetch verification, local
+decrypt/validate, cleanup, selected fail-closed negatives, and metadata/redaction
+review. Codex may use D-1177-expanded issue-investigation and safe-fix authority
+for qsl-protocol/qsc, qsl-server, and qsl-attachments local integration issues,
+but must stop before crypto/protocol/wire/auth/storage semantic changes,
+dependency changes, private-material publication, remote/Tailscale/workflow
+action, or public/production/security-completion claims.
+
+Allowed scope:
+- docs/governance/evidence/NA-0594_local_qsl_attachments_send_receive_integration_harness.md
+- tests/NA-0594_local_qsl_attachments_send_receive_integration_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- qsl/qsl-client/qsc/src/** only if exact source-analysis selects a safe local integration fix
+- qsl/qsl-client/qsc/tests/** for tests
+- qsl/qsl-client/qsc/examples/** only if exact integration command examples require safe correction
+- qsl-server read-only source/build/run as local relay if required
+- qsl-attachments source/build/run as local loopback/filesystem service if required
+- proof-root-only local qsc/qsl-server/qsl-attachments artifacts
+
+Forbidden scope:
+- crypto/protocol/wire/auth/storage semantic change without later exact authorization;
+- dependency/lockfile mutation;
+- remote/Tailscale/workflow action;
+- public-site/Cloudflare mutation;
+- private material publication;
+- no public-readiness claim, no production-readiness claim, no crypto-complete
+  claim, no attachment-complete claim, no vulnerability-free claim, no bug-free
+  claim, and no triple-ratchet-complete overclaim.
 
 ---
 

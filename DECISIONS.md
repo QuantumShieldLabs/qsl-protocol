@@ -31744,3 +31744,41 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0593 implementation and NA-0594 successor selection to D-1177.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records proof gates, recoveries, implementation summary, validation, classification, selected successor, and boundaries.
   - **References:** NA-0593; selected future NA-0594; D-1177; D-1176; D-1175; qsl-protocol main `e1f9b3eb2204`; `docs/governance/evidence/NA-0593_qsc_true_triple_ratchet_seed_fallback_hardening_implementation_harness.md`; `tests/NA-0593_qsc_true_triple_ratchet_seed_fallback_hardening_implementation_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `qsl/qsl-client/qsc/tests/na_0593_seed_fallback_hardening.rs`
+
+- **ID:** D-1178
+  - **Title:** NA-0593 closeout and NA-0594 restoration
+  - **Date:** 2026-07-02
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0593 closeout consumes D524 and qsl-protocol PR #1460, which merged at `cc91646adb94` from implementation branch `na-0593-qsc-seed-fallback-hardening` with implementation commit `867826d7b546`. D-1177 exists once and is Accepted. D-1177 selected result classification `SEED_FALLBACK_HARDENING_IMPLEMENTATION_PASS_ATTACHMENT_DEFERRED` and exact successor `NA-0594 -- QSL Local qsl-attachments Send / Receive Integration Harness`. PR #1460 post-merge public-safety completed success. PR #1460 post-merge advisories completed success. No failed required checks remain after required-context classification, including D498-style visibility recovery for goal-lint and CodeQL. NA-0593 is marked DONE, and NA-0594 is restored as exactly one READY successor.
+  - **Selected successor restored:** NA-0594 is READY with Goals G1, G2, G3, G4, G5. It must run the first local qsl-attachments send/receive integration after qsc seed fallback hardening, using proof-root-only qsl-attachments storage, local-only or loopback-only runtime, non-secret fixtures, qsc-owned encryption, qsl-server relay/control-plane boundaries, qsl-attachments opaque ciphertext storage, descriptor/fetch verification, local decrypt/validate, cleanup, selected fail-closed negatives, and metadata/redaction review. It may use D-1177-expanded issue-investigation and safe-fix authority for qsl-protocol/qsc, qsl-server, and qsl-attachments local integration issues, but must stop before crypto/protocol/wire/auth/storage semantic changes, dependency changes, private-material publication, remote/Tailscale/workflow action, or public/production/security-completion claims.
+  - **Closeout proof:** Fresh qwork proof from `2026-07-02T19:35:59Z` was verified before fetch, repository mutation, GitHub polling, PR creation, source-analysis result publication, or proof publication. Local pre-fetch and post-fetch `HEAD`/`origin/main` matched `cc91646adb94`. Worktree, index, and untracked state were clean before closeout edits. Disk and mount gates passed with root usage below the stop threshold and `/backup/qsl` mounted. Pre-closeout proof verified READY_COUNT 1 with READY NA-0593, NA-0592 DONE, NA-0591 DONE, D-1175 once, D-1176 once, D-1177 once and Accepted, D-1178 absent, D-1179 absent, and duplicate decision count zero. PR #1460 post-merge check proof verified public-safety success, advisories success, suite2-vectors success, qsc full-suite success, macOS full serial success, CodeQL/Analyze success, goal-lint PR-head success, no failed attached check-runs, no pending attached check-runs, and no failed required checks.
+  - **Boundary proof:** Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0593_closeout_restore_na0594_testplan.md`. No NA-0594 implementation occurred. No qsc source/test mutation occurred in closeout. No qsl-server mutation occurred in closeout. No qsl-attachments mutation, runtime action, or full integration occurred in closeout. No remote action, SSH, scp, Tailscale action, workflow dispatch, workflow rerun, sudo, systemd, firewall, public-site, or Cloudflare action occurred. No dependency or lockfile mutation occurred. No private material was published.
+  - **Security and publication invariants:**
+    - D-1177 remains the accepted seed fallback hardening implementation decision.
+    - NA-0593 is DONE.
+    - NA-0594 is the only READY item after closeout.
+    - Full qsl-attachments send/receive integration remains deferred to NA-0594 and is not performed by this closeout.
+    - No endpoint values, private port values, route-token/capability values, bearer values, Authorization values, payload/body/plaintext bytes, ciphertext bodies, seed values, key material, raw command lines, raw logs, process identities, private topology, or private material are published.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No public-internet-readiness claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No crypto-complete claim is made.
+    - No attachment-complete claim is made.
+    - No formal-proof-complete claim is made.
+    - No side-channel-free claim is made.
+    - No triple-ratchet-complete overclaim is made.
+    - No external-review-complete claim is made.
+  - **Recovered failures:**
+    - RF-NA0593-D525-001: inheritance verifier Python here-doc had a syntax error. Classification: recoverable command-shape mistake before repository mutation. Corrective action: fixed the missing parenthesis and reran. Final result: PASS.
+    - RF-NA0593-D525-002: inheritance verifier used overly literal wording checks for no-seed preservation and boundary phrases. Classification: recoverable proof-root parser/scanner strictness false positive. Corrective action: normalized required facts across D-1177, the D524 response, evidence, and testplan. Final result: PASS.
+    - RF-NA0593-D525-003: initial PR #1460 post-merge required-check classifier treated branch-protection `goal-lint` and `CodeQL` names as missing on the main push SHA. Classification: recoverable required-check visibility/classifier issue. Corrective action: captured PR-head check evidence and mapped goal-lint/CodeQL via D498-style visibility recovery plus merge-commit Analyze success. Final result: PASS.
+    - RF-NA0593-D525-004: broad goal-lint discovery included optional absent `justfile`, `package.json`, and `pyproject.toml` path arguments. Classification: recoverable optional-path discovery issue. Corrective action: used repository file inventory results to select `tools/goal_lint.py` and avoided absent optional path arguments. Final result: PASS.
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0593 DONE and restores NA-0594 READY using the exact D-1177-selected local qsl-attachments send/receive integration successor block.
+    - `tests/NA-0593_closeout_restore_na0594_testplan.md` records closeout validation markers.
+    - `TRACEABILITY.md` maps NA-0593 closeout and NA-0594 restoration to D-1178.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records qwork proof, D524/D-1177 inheritance, PR #1460 post-merge proof, wait-work, recoveries, closeout mutation boundary, and restored NA-0594 successor.
+  - **References:** NA-0593; NA-0594; D-1178; D-1177; D-1176; D-1175; D524; qsl-protocol PR #1460; qsl-protocol merge `cc91646adb94`; qsl-protocol head `867826d7b546`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0593_closeout_restore_na0594_testplan.md`

@@ -122,6 +122,45 @@ Last-Updated: 2026-06-29
 - No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0593 closeout and NA-0594 restoration update
+
+- Directive: QSL-DIR-2026-07-02-525.
+- Begin timestamp (UTC): 2026-07-02T19:47:18Z.
+- Repo path: `/srv/qbuild/work/NA-0593/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0593_closeout_restore_na0594_after_d524_postmerge_20260702T194718Z`.
+- qwork proof files were copied and verified before fetch, repository mutation, GitHub polling, PR creation, source-analysis result publication, or proof publication; Codex did not run qwork, qstart, or qresume.
+- qwork proof verified lane NA-0593, repo qsl-protocol, path `/srv/qbuild/work/NA-0593/qsl-protocol`, branch main, upstream origin/main, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0593, and shared cargo target ready.
+- Pre-fetch and post-fetch qsl-protocol `HEAD`/`origin/main`: `cc91646adb94`.
+- Disk watermark: root filesystem 36 percent used; `/backup/qsl` filesystem 36 percent used; `/backup/qsl` mounted.
+- Startup queue proof: READY_COUNT 1; READY NA-0593; NA-0592 DONE; NA-0591 DONE.
+- Startup decision proof: D-1175 once; D-1176 once; D-1177 once and Accepted; D-1178 absent before patch; D-1179 absent; duplicate decision entry count zero.
+- D524 and D-1177 inheritance was reviewed and accepted. PR #1460 merged at `cc91646adb94` from head `867826d7b546`; D-1177 selected `NA-0594 -- QSL Local qsl-attachments Send / Receive Integration Harness`; result classification `SEED_FALLBACK_HARDENING_IMPLEMENTATION_PASS_ATTACHMENT_DEFERRED` was accepted.
+- Implementation inheritance proof verified no qsl-server mutation, no qsl-attachments mutation/integration, no dependency/lockfile mutation, no workflow mutation, no remote/Tailscale/workflow action, and no crypto/triple-ratchet-complete overclaim in the inherited evidence.
+- PR #1460 post-merge wait started because public-safety and qsc-linux-full-suite were still in progress while advisories was already success.
+- Productive CI wait-work was performed: if-green/if-red table, post-merge closeout checklist, final-response preparation notes, read-only forward audit, qsc seed fallback boundary audit, true triple-ratchet path audit, attachment descriptor boundary audit, qsl-attachments first-integration readiness audit, qsl-server relay/control-plane boundary audit, metadata/redaction audit, overclaim audit, dependency/advisory watch, test coverage gap review, proof-tooling audit, governance/queue consistency audit, and roadmap/backlog triage note.
+- PR #1460 post-merge gate resolved green at bounded polling iteration 16: public-safety success, advisories success, suite2-vectors success, qsc-linux-full-suite success, macOS qsc full serial success, CodeQL/Analyze success, no failed attached check-runs, no pending attached check-runs, and no failed required checks after D498-style goal-lint/CodeQL visibility recovery.
+- Recovered proof issue RF-NA0593-D525-001: inheritance verifier Python here-doc had a syntax error. Classification: recoverable command-shape mistake before repository mutation. Corrective action: fixed the missing parenthesis and reran. Final result: PASS.
+- Recovered proof issue RF-NA0593-D525-002: inheritance verifier used overly literal wording checks for no-seed preservation and boundary phrases. Classification: recoverable proof-root parser/scanner strictness false positive. Corrective action: normalized required facts across D-1177, the D524 response, evidence, and testplan. Final result: PASS.
+- Recovered proof issue RF-NA0593-D525-003: initial PR #1460 post-merge required-check classifier treated branch-protection `goal-lint` and `CodeQL` names as missing on the main push SHA. Classification: recoverable required-check visibility/classifier issue. Corrective action: captured PR-head check evidence and mapped goal-lint/CodeQL via D498-style visibility recovery plus merge-commit Analyze success. Final result: PASS.
+- Recovered proof issue RF-NA0593-D525-004: broad goal-lint discovery included optional absent `justfile`, `package.json`, and `pyproject.toml` path arguments. Classification: recoverable optional-path discovery issue. Corrective action: used repository file inventory results to select `tools/goal_lint.py` and avoided absent optional path arguments. Final result: PASS.
+- Closeout patch paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0593_closeout_restore_na0594_testplan.md`.
+- Local closeout validation passed: `git diff --check`, exact five-path scope guard, queue/decision proof, marker proof, markdown link check, added-line/new-file private-material scan, secret/prohibited-material scan, overclaim scan, crypto/triple-ratchet/attachment claim-boundary scan, docs/governance-only classifier, PR body preflight, local goal-lint, root cargo audit, nested qsc fuzz cargo audit, locked cargo metadata, cargo fmt check, `sh -n scripts/ci/qsc_adversarial.sh`, and `bash -n scripts/ci/qsc_adversarial.sh`. Focused qsc runtime tests were skipped because closeout did not mutate qsc source/test/runtime/dependency/workflow files and did not implement NA-0594.
+- D-1178 records NA-0593 closeout and restores `NA-0594 -- QSL Local qsl-attachments Send / Receive Integration Harness` as the sole READY successor.
+- NA-0593 is marked DONE.
+- NA-0594 is restored READY.
+- Branch: `na-0593-closeout-restore-na0594`.
+- PR title: `NA-0593: closeout and restore NA-0594`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- No NA-0594 implementation occurred.
+- No qsc source/test mutation occurred in closeout.
+- No qsl-server mutation occurred in closeout.
+- No qsl-attachments mutation, runtime action, or full integration occurred in closeout.
+- No remote action, SSH, scp, Tailscale action, workflow dispatch, workflow rerun, sudo, systemd, firewall, public-site, Cloudflare action, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
+- No qsl-protocol dependency or lockfile mutation occurred.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization values, payload/body/plaintext bytes, ciphertext bodies, seed values, key material, raw command lines, raw logs, process identities, private topology, or private material are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no crypto-complete claim is introduced. no attachment-complete claim is introduced. no formal-proof-complete claim is introduced. no side-channel-free claim is introduced. no triple-ratchet-complete overclaim is introduced. no external-review-complete claim is introduced.
+
 ## NA-0584 closeout and NA-0585 restoration update
 
 - Directive: QSL-DIR-2026-07-01-513 optional closeout after NA-0584 implementation merge.

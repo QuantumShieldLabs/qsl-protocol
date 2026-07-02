@@ -40106,6 +40106,22 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No endpoint value beyond loopback class, private port value, route-token/capability value, bearer value, Authorization value, payload, response body, plaintext message content, process identity, private topology, public key material, private key material, secret environment value, raw private log, or private material is published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
 
+## NA-0587 closeout and NA-0588 restoration update
+
+- Directive: QSL-DIR-2026-07-01-516, optional closeout phase.
+- Implementation PR #1448 merged by merge commit `f19619c43093` from implementation head `79139d7b74e2`.
+- Post-merge local main proof: local `main` equals `origin/main` at `f19619c43093`; worktree, index, and untracked state were clean before closeout edits.
+- D-1165 exists once and is Accepted; D-1165 result classification is `LOCAL_CLIENT_RELAY_E2EE_INTEGRATION_PASS`.
+- D-1166 was absent before closeout patch and is added by this closeout.
+- Post-merge required-check proof before closeout: public-safety success, advisories success, no failed checks, and no pending checks.
+- NA-0587 is marked DONE.
+- NA-0588 is restored READY as the exact D-1165-selected successor: `NA-0588 — QSL Local qsc / qsl-server Adversarial and Metadata Stress Harness`.
+- qsl-attachments remains deferred unless selected later.
+- Closeout mutation paths: `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, this journal, and `tests/NA-0587_closeout_restore_na0588_testplan.md`.
+- Closeout does not implement NA-0588 and does not execute remote action, SSH, scp, Tailscale, remote command, qsl-server start, qsl-server stop, qsl-server cleanup, qsl-server deployment, qsl-server mutation, qsl-attachments command/mutation, qsc send/receive, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency mutation, qsl-server source mutation, public-site mutation, Cloudflare mutation, qwork, qstart, or qresume.
+- No endpoint value, private port value, topology, token value, Authorization value, command line, process identity, payload, response body, authorized_keys content, public key material, private key material, secret environment value, Cloudflare token, API key, raw private log, or private material is published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced. no crypto-complete claim is introduced.
+
 ## NA-0586 remote relay diagnostic verification and timeout phase triage update
 
 - Directive: QSL-DIR-2026-07-01-515.

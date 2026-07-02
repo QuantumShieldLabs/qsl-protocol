@@ -33319,7 +33319,7 @@ NA-0592 as the exact successor and did not implement NA-0592.
 ---
 
 ### NA-0592 — QSL qsc True Triple-Ratchet E2EE Hardening / Bug Fix Authorization Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33355,6 +33355,33 @@ Forbidden scope:
 - private material publication;
 - crypto/protocol/wire/auth/key-schedule semantic change unless specifically
   authorized after source classification.
+
+Completion note:
+NA-0592 completed in D-1175 and closeout D-1176. D-1175 classified the qsc seed
+fallback as `SEED_FALLBACK_RUNTIME_PRODUCTION_PATH_RISK`, selected result
+`SEED_FALLBACK_HARDENING_IMPLEMENTATION_READY`, and selected NA-0593 as the
+exact implementation successor. NA-0592 did not implement hardening and did not
+start full qsl-attachments send/receive integration.
+
+---
+
+### NA-0593 — QSL qsc True Triple-Ratchet Seed Fallback Hardening Implementation Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the exact D-1175-selected seed fallback / demo-fixture hardening for
+qsc. Preserve the verified no-seed Suite2/triple-ratchet send/receive path while
+removing, gating, renaming, restricting, or test-hardening the unsafe or
+ambiguous seed fallback surface. Add fail-closed tests proving ordinary qsc send,
+receive, relay, and future attachment command surfaces cannot accidentally use
+the seed fallback. Keep full qsl-attachments send/receive integration deferred.
+Codex may mutate only exact D-1175-selected qsc source/test/example/demo paths.
+Codex must stop before crypto/protocol/wire/auth/key-schedule/identity/
+transcript/state semantic changes unless D-1175 explicitly authorized that exact
+class. No dependency/lockfile, qsl-server, qsl-attachments, remote/Tailscale/
+workflow, public-site, or public/production/security-completion claim is
+authorized.
 
 ---
 

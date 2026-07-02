@@ -40110,6 +40110,26 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No remote action, SSH, scp, Tailscale, remote command, workflow dispatch, workflow rerun, qsl-server deployment, qsl-server source mutation, qsl-protocol qsc source/test/helper mutation, workflow mutation, dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced. no crypto-complete claim is introduced.
 
+## NA-0588 closeout and NA-0589 restoration update
+
+- Directive: QSL-DIR-2026-07-02-517 optional closeout phase.
+- Repo path: `/srv/qbuild/work/NA-0588/qsl-protocol`.
+- Implementation PR #1450 merged at `94a3b50d0189` from head `9ae74ed2d867`.
+- Local main was fast-forwarded to origin/main at `94a3b50d0189`; worktree, index, and untracked state were clean before closeout edits.
+- Post-merge proof verified D-1167 once, D-1168 absent before closeout, READY_COUNT 1 with READY NA-0588, public-safety success, advisories success, suite2 success, and no failed or pending checks.
+- Productive CI wait-work was performed during post-merge waits: if-green/if-red table, optional closeout prechecklist, governance/queue consistency audit, and workflow/CI reliability audit.
+- D-1168 records NA-0588 closeout and NA-0589 restoration.
+- NA-0588 is marked DONE.
+- NA-0589 is restored READY as the exact D-1167-selected successor: `NA-0589 -- QSL Local qsl-attachments Integration Readiness Harness`.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, this journal, and `tests/NA-0588_closeout_restore_na0589_testplan.md`.
+- Branch: `na-0588-closeout-restore-na0589`.
+- PR title: `NA-0588: closeout and restore NA-0589`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- This closeout does not implement NA-0589 and does not execute qsl-attachments command, runtime, integration, direct build lane, source mutation, dependency mutation, lockfile mutation, remote action, SSH, scp, Tailscale, remote command, qsl-server start, qsl-server stop, qsl-server cleanup, qsl-server deployment, qsl-server mutation, qsc send/receive, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency mutation, qsl-server source mutation, public-site mutation, Cloudflare mutation, qwork, qstart, or qresume.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, plaintext fixtures, envelope bodies, process identities, public key material, private key material, secret environment values, Cloudflare tokens, API keys, raw private logs, or private material are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced. no crypto-complete claim is introduced.
+
 ## NA-0587 local qsc / qsl-server relay integration pivot update
 
 - Directive: QSL-DIR-2026-07-01-516.

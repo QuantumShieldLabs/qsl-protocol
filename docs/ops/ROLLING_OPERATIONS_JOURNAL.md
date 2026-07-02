@@ -41138,6 +41138,27 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No endpoint values, private port values, token values, bearer values, Authorization values, raw capability values, payloads, response bodies, plaintext attachment contents, sensitive filenames, raw storage paths, key material, or private material are published.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced. no crypto-complete claim is introduced. no attachment-complete claim is introduced. no triple-ratchet-complete claim is introduced. no external-review-complete claim is introduced.
 
+## NA-0590 closeout and NA-0591 restoration update
+
+- Directive: QSL-DIR-2026-07-02-519 optional closeout packet.
+- Repo path: `/srv/qbuild/work/NA-0590/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0590_qsl_attachments_recovery_verification_integration_readiness_20260702T050806Z`.
+- Implementation PR #1454 merged at `b20d31ec2b59` from head `c9958e0d9ea76`.
+- D-1171 exists once and is Accepted.
+- D-1171 result classification is `QSL_ATTACHMENTS_RECOVERY_VERIFICATION_READINESS_PASS_TRIPLE_RATCHET_VERIFY_REQUIRED`.
+- D-1171 selected exact successor `NA-0591 -- QSL Local qsc True Triple-Ratchet E2EE Path Verification Harness`.
+- Post-merge public-safety completed success on `b20d31ec2b59`.
+- Post-merge advisories completed success on `b20d31ec2b59`.
+- Post-merge suite2-vectors completed success on `b20d31ec2b59`.
+- No failed or pending checks were classified before closeout.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0590_closeout_restore_na0591_testplan.md`.
+- NA-0590 is marked DONE.
+- NA-0591 is restored READY using the exact D-1171-selected true triple-ratchet path verification successor block.
+- D-1172 records NA-0590 closeout and NA-0591 restoration.
+- This closeout does not implement NA-0591 and does not execute qsc send/receive, qsl-attachments command/runtime/integration/mutation, qsl-server start/stop/cleanup/deployment/mutation, remote action, SSH, scp, Tailscale action, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation.
+- No endpoint values, private port values, token values, bearer values, Authorization values, raw capability values, payloads, response bodies, plaintext attachment contents, sensitive filenames, raw storage paths, key material, or private material are published.
+- No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced. no crypto-complete claim is introduced. no attachment-complete claim is introduced. no triple-ratchet-complete claim is introduced. no external-review-complete claim is introduced.
+
 ## NA-0577 remote qsl-server start/bind proof completion update
 
 - Directive: QSL-DIR-2026-06-30-506.

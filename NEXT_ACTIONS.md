@@ -33257,12 +33257,57 @@ required qsl-attachments PR #38 lockfile-only advisory recovery before local
 send/receive integration. D-1169 selected the recovery-verification successor.
 
 ### NA-0590 — QSL qsl-attachments Recovery Verification and Integration Readiness Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
 Verify the qsl-attachments recovery PR and rerun readiness review before
 starting local send/receive integration.
+
+---
+
+### NA-0591 — QSL Local qsc True Triple-Ratchet E2EE Path Verification Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Verify that the exact qsc send/receive command paths used by local relay and
+future attachment integration traverse the intended QSL true triple-ratchet E2EE
+implementation rather than a demo shortcut, fixture-only bypass, plaintext
+fallback, or test-only serialization path. Codex may inspect qsl-protocol/qsc
+source, run proof-root-only local qsc/qsl-server tests, add minimal safe tests or
+diagnostics in exact selected qsc paths if needed, and classify send, receive,
+wrong-peer, stale-state, replay-like duplicate, tamper, metadata, key-material,
+and server/attachment plaintext boundaries. Codex must not mutate crypto/
+protocol/wire/auth/key-schedule semantics unless a later exact directive
+authorizes that class of change. qsl-attachments full send/receive integration
+remains deferred until this path verification passes.
+
+Allowed scope:
+- docs/governance/evidence/NA-0591_local_qsc_true_triple_ratchet_e2ee_path_verification_harness.md
+- tests/NA-0591_local_qsc_true_triple_ratchet_e2ee_path_verification_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- qsl/qsl-client/qsc/src/** only if exact source-analysis selects a safe
+  diagnostic/test-only path
+- qsl/qsl-client/qsc/tests/** for verification tests
+- qsl/qsl-client/qsc/examples/** if command examples need safe diagnostic
+  correction
+- proof-root-only local qsc/qsl-server test artifacts
+- qsl-server read-only source/build/use as local relay if needed
+- qsl-attachments read-only boundary review only
+
+Forbidden scope:
+- crypto/protocol/wire/auth/key-schedule semantic change without later exact
+  authorization;
+- qsl-attachments send/receive integration;
+- qsl-attachments mutation;
+- qsl-server mutation;
+- dependency/lockfile mutation;
+- remote/Tailscale/workflow action;
+- public/production/security-completion claims;
+- private material publication.
 
 ---
 

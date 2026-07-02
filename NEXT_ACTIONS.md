@@ -33203,7 +33203,7 @@ authorizes it.
 ---
 
 ### NA-0587 — QSL Remote Relay Network Path Remediation Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33213,6 +33213,22 @@ Authorization values, payloads, response bodies, process identities, command
 lines, or key material. Codex may use D-1163-authorized redacted diagnostics and
 bounded project-owned fixes only. Remote host, tunnel, DNS, or secret actions
 remain operator-owned unless a later exact directive authorizes them.
+
+Implementation note:
+NA-0587 recorded the operator-selected pivot away from immediate Tailnet/GitHub
+runner remediation and proved local build-server qsc/qsl-server relay integration
+over loopback. D-1165 selected the local adversarial and metadata stress harness
+as the next READY successor. Remote/Tailnet remediation remains deferred.
+
+### NA-0588 — QSL Local qsc / qsl-server Adversarial and Metadata Stress Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Stress the working local qsc/qsl-server setup with repeated runs, wrong peer,
+wrong token, stale state, replay-like duplicates, malformed relay responses,
+server restart, client restart, concurrency, timeout, empty queue, and metadata
+visibility checks. qsl-attachments remains deferred unless selected later.
 
 ---
 

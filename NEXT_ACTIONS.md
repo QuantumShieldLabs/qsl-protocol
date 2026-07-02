@@ -33221,7 +33221,7 @@ over loopback. D-1165 selected the local adversarial and metadata stress harness
 as the next READY successor. Remote/Tailnet remediation remains deferred.
 
 ### NA-0588 — QSL Local qsc / qsl-server Adversarial and Metadata Stress Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33229,6 +33229,27 @@ Stress the working local qsc/qsl-server setup with repeated runs, wrong peer,
 wrong token, stale state, replay-like duplicates, malformed relay responses,
 server restart, client restart, concurrency, timeout, empty queue, and metadata
 visibility checks. qsl-attachments remains deferred unless selected later.
+
+Implementation note:
+NA-0588 passed local qsc/qsl-server adversarial and metadata stress in D-1167.
+Baseline local E2EE, ten-cycle repetition, multi-message/empty-queue, route
+isolation, auth negatives, malformed/bounded inputs, restart/volatility,
+concurrency, metadata minimization, diagnostics quality, and private-material
+review were classified. D-1167 selected NA-0589 as the exact successor.
+
+### NA-0589 — QSL Local qsl-attachments Integration Readiness Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Begin local qsl-attachments integration readiness after local qsc/qsl-server
+client/relay/E2EE behavior and selected adversarial/metadata stress passed.
+Codex may inspect qsl-attachments source, build/test qsl-attachments locally,
+classify attachment protocol/runtime expectations, and design the first local
+attachment send/receive integration proof. Codex must not mutate
+qsl-attachments, qsl-protocol, or qsl-server source unless D-1167 explicitly
+authorizes a minimal safe fix. No remote/Tailscale/GitHub workflow work, public
+deployment, or public/production/security-completion claim is authorized.
 
 ---
 

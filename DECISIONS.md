@@ -31431,3 +31431,29 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0588 local adversarial and metadata stress to D-1167.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records proof gates, recovered failures, validation, local stress results, classification, selected successor, and boundaries.
   - **References:** NA-0588; selected future NA-0589; D-1167; D-1166; D-1165; qsl-protocol main `6d62fbc3bdd6`; qsl-server `6bf61d439fa2`; `docs/governance/evidence/NA-0588_local_qsc_qsl_server_adversarial_metadata_stress_harness.md`; `tests/NA-0588_local_qsc_qsl_server_adversarial_metadata_stress_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1168
+  - **Title:** NA-0588 closeout and NA-0589 restoration
+  - **Date:** 2026-07-02
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0588 is closed after qsl-protocol implementation PR #1450 merged with merge commit `94a3b50d0189` from implementation head `9ae74ed2d867`. D-1167 exists once and is Accepted. D-1167 selected result classification `LOCAL_QSC_QSL_SERVER_E2EE_ADVERSARIAL_METADATA_STRESS_PASS` and exact successor `NA-0589 -- QSL Local qsl-attachments Integration Readiness Harness`. Post-merge public-safety completed success. Post-merge advisories completed success. Suite2 checks completed success. No failed or pending checks were classified before closeout. NA-0588 is marked DONE, and NA-0589 is restored as exactly one READY successor.
+  - **Selected successor:** NA-0589 is restored READY with Goals G1, G2, G3, G4, G5. It may begin local qsl-attachments integration readiness after local qsc/qsl-server client/relay/E2EE behavior and selected adversarial/metadata stress passed. It must not mutate qsl-attachments, qsl-protocol, or qsl-server source unless a later exact directive explicitly authorizes a minimal safe fix. No remote/Tailscale/GitHub workflow work, public deployment, or public/production/security-completion claim is authorized.
+  - **Closeout proof:** Local main was fast-forwarded to origin/main at `94a3b50d0189`. Worktree, index, and untracked state were clean before closeout edits. Post-merge proof verified D-1167 once, D-1168 absent before this patch, READY_COUNT 1 with READY NA-0588, public-safety success, advisories success, suite2 success, and no failed or pending checks. The implementation merge touched only the allowed NA-0588 implementation paths and published no private material.
+  - **Boundary proof:** No NA-0589 implementation occurred. No qsl-attachments command, runtime, integration, direct build lane, source mutation, dependency mutation, or lockfile mutation occurred during closeout. No remote action, SSH, scp, Tailscale, remote command, qsl-server start, qsl-server stop, qsl-server cleanup, qsl-server deployment, qsl-server mutation, qsc send/receive, workflow dispatch, workflow rerun, qsl-protocol source/script/workflow/dependency mutation, qsl-server source mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, or private-material publication occurred during closeout. No endpoint values, private port values, topology, token values, Authorization values, command lines, process identities, payloads, response bodies, plaintext fixtures, envelope bodies, public key material, private key material, secret environment values, Cloudflare tokens, or API keys were published.
+  - **Claim boundary:** No public-readiness claim is made. No production-readiness claim is made. No public-internet-readiness claim is made. No external-review-complete claim is made. No vulnerability-free claim is made. No bug-free claim is made. No perfect-build claim is made. No perfect-crypto claim is made. No crypto-complete claim is made.
+  - **Security invariants introduced/changed:**
+    - Closeout changes no protocol, wire, crypto, auth, state-machine, qsc runtime/source, qsl-server runtime/source, qsl-attachments runtime/source, qsl-protocol source, repository script, workflow, dependency, lockfile, public-site, or Cloudflare semantics.
+    - NA-0589 is restored only as the D-1167-selected local qsl-attachments integration readiness harness.
+    - NA-0589 implementation is not performed during closeout.
+    - Exactly one READY remains mandatory.
+  - **Alternatives considered:**
+    - Leave NA-0588 READY after D-1167 merged (rejected because D-1167 selected exact NA-0589 successor and post-merge public-safety/advisories gates are green).
+    - Restore a qsc, qsl-server, metadata, or diagnostic bug-fix successor (rejected because NA-0588 classified local E2EE adversarial metadata stress pass).
+    - Implement NA-0589 during closeout (rejected as out of scope).
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0588 DONE and restores NA-0589 READY using the exact D-1167-selected qsl-attachments integration readiness successor block.
+    - `tests/NA-0588_closeout_restore_na0589_testplan.md` records closeout markers, implementation PR merge proof, D-1167 acceptance, post-merge public-safety/advisories proof, D-1168 restoration proof, exact successor proof, no NA-0589 implementation, no qsl-attachments runtime/integration/mutation, no remote action, no workflow dispatch/rerun, no private-material publication, no public/production/security overclaim, and the one-READY invariant.
+    - `TRACEABILITY.md` maps NA-0588 closeout and NA-0589 restoration to D-1168.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the NA-0588 closeout state, D-1168, post-merge proof, and restored NA-0589 successor.
+  - **References:** NA-0588; NA-0589; D-1168; D-1167; qsl-protocol PR #1450; qsl-protocol merge `94a3b50d0189`; qsl-protocol head `9ae74ed2d867`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0588_closeout_restore_na0589_testplan.md`

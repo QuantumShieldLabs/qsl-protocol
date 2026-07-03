@@ -31878,3 +31878,32 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0595 stress and NA-0596 diagnostic successor selection to D-1181.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records proof gates, recoveries, local runtime validation, classification, selected successor, and boundaries.
   - **References:** NA-0595; selected future NA-0596; D-1181; D-1180; D-1179; D-1178; D-1177; qsl-protocol main `d992e12ab731`; qsl-server `6bf61d439fa2`; qsl-attachments `767eca189ee`; `docs/governance/evidence/NA-0595_local_qsl_attachments_adversarial_metadata_stress_harness.md`; `tests/NA-0595_local_qsl_attachments_adversarial_metadata_stress_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1182
+  - **Title:** NA-0595 closeout and NA-0596 restoration
+  - **Date:** 2026-07-03
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0595 closeout consumes D-1181 and qsl-protocol PR #1464, which merged at `008cddc00677` from implementation branch `na-0595-local-qsl-attachments-adversarial-metadata-stress` with implementation commit `6921eb08c70f`. D-1181 exists once and is Accepted. D-1181 selected result classification `LOCAL_QSL_ATTACHMENTS_STRESS_RESOURCE_BOUNDARY_GAP` and exact successor `NA-0596 -- QSL Local Attachment Stress Diagnostic Follow-Up Harness`. PR #1464 post-merge public-safety completed success. PR #1464 post-merge advisories completed success. No failed required checks remain. NA-0595 is marked DONE, and NA-0596 is restored as exactly one READY successor.
+  - **Selected successor restored:** NA-0596 is READY with Goals G1, G2, G3, G4, G5. It must complete the exact stress diagnostic, resource-boundary, or harness gap found by NA-0595. Codex may mutate exact selected proof/test/harness paths and rerun local stress without expanding to remote/Tailscale/workflow.
+  - **Closeout proof:** Local main was fast-forwarded to origin/main at `008cddc00677` after PR #1464 merge. Worktree, index, and untracked state were clean before closeout edits. Pre-closeout proof verified READY_COUNT 1 with READY NA-0595, D-1181 once, D-1182 absent, and duplicate decision count zero. PR #1464 post-merge check proof verified public-safety success, advisories success, no failed attached check-runs, no pending attached check-runs, and no failed required checks after bounded REST polling.
+  - **Boundary proof:** Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0595_closeout_restore_na0596_testplan.md`. No NA-0596 implementation occurred. No qsc source/test mutation occurred in closeout. No qsl-server mutation occurred in closeout. No qsl-attachments mutation or runtime action occurred in closeout. No remote action, SSH, scp, Tailscale action, workflow dispatch, workflow rerun, sudo, systemd, firewall, public-site, or Cloudflare action occurred. No dependency or lockfile mutation occurred. No private material was published.
+  - **Security and publication invariants:**
+    - D-1181 remains the accepted local qsl-attachments adversarial and metadata stress decision.
+    - NA-0595 is DONE.
+    - NA-0596 is the only READY item after closeout.
+    - NA-0596 is not implemented by this closeout.
+    - No endpoint values, private port values, route-token/capability values, bearer/auth-header details, payload/body/plaintext content, ciphertext bodies, seed values, key material, raw command lines, raw logs, process identities, qsl-attachments storage paths, private topology, or private material are published.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No crypto-complete claim is made.
+    - No attachment-complete claim is made.
+    - No triple-ratchet-complete overclaim is made.
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0595 DONE and restores NA-0596 READY using the exact D-1181-selected local attachment stress diagnostic follow-up successor block.
+    - `tests/NA-0595_closeout_restore_na0596_testplan.md` records closeout validation markers.
+    - `TRACEABILITY.md` maps NA-0595 closeout and NA-0596 restoration to D-1182.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records implementation PR merge, post-merge check proof, closeout mutation boundary, and restored NA-0596 successor.
+  - **References:** NA-0595; NA-0596; D-1182; D-1181; qsl-protocol PR #1464; qsl-protocol merge `008cddc00677`; qsl-protocol head `6921eb08c70f`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0595_closeout_restore_na0596_testplan.md`

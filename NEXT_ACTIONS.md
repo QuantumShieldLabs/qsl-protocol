@@ -33451,7 +33451,7 @@ with no failed required checks.
 ---
 
 ### NA-0595 — QSL Local qsl-attachments Adversarial and Metadata Stress Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33466,6 +33466,29 @@ and qsl-attachments local integration issues, but must stop before
 crypto/protocol/wire/auth/storage semantic changes, dependency changes,
 private-material publication, remote/Tailscale/workflow action, or
 public/production/security-completion claims.
+
+Completion note:
+NA-0595 completed in D-1181 and closeout D-1182. D-1181 consumed D-1179 and
+D-1180, verified fresh qwork proof from `2026-07-03T05:46:41Z`, revalidated
+qsc/qsl-server/qsl-attachments local attachment surfaces, validated qsl-server,
+qsl-attachments, and focused qsc tests, ran proof-root-only local adversarial
+attachment stress, classified baseline/repetition/multi-size/capability/
+descriptor/object/route/restart/concurrency/metadata/cleanup results, found no
+fail-open, plaintext exposure, seed fallback regression, qsl-server boundary
+failure, or qsl-attachments opaque-storage failure, and selected the exact
+resource-boundary diagnostic follow-up successor after classifying the exact
+4 MiB legacy boundary probe as a bounded local diagnostic gap.
+
+---
+
+### NA-0596 — QSL Local Attachment Stress Diagnostic Follow-Up Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Complete the exact stress diagnostic, resource-boundary, or harness gap found by
+NA-0595. Codex may mutate exact selected proof/test/harness paths and rerun
+local stress without expanding to remote/Tailscale/workflow.
 
 ---
 

@@ -2,9 +2,37 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-06-29
+Last-Updated: 2026-07-03
 
 # Rolling Operations Journal
+
+## NA-0595 closeout and NA-0596 restoration update
+
+- Directive: QSL-DIR-2026-07-03-527 optional closeout after NA-0595 implementation merge.
+- Implementation PR #1464 merged at `008cddc00677` from head `6921eb08c70f`.
+- Post-merge local main was fast-forwarded to origin/main at `008cddc00677`; worktree, index, and untracked state were clean before closeout edits.
+- Post-merge proof verified D-1181 once, D-1182 absent before closeout patch, READY_COUNT 1, and READY NA-0595.
+- Post-merge public-safety completed success.
+- Post-merge advisories completed success.
+- No failed or pending attached check-runs remained after bounded REST polling.
+- D-1181 selected result `LOCAL_QSL_ATTACHMENTS_STRESS_RESOURCE_BOUNDARY_GAP` and exact successor `NA-0596 -- QSL Local Attachment Stress Diagnostic Follow-Up Harness`.
+- Closeout changes are limited to `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, this journal, and `tests/NA-0595_closeout_restore_na0596_testplan.md`.
+- NA-0595 is marked DONE.
+- NA-0596 is restored READY using the exact D-1181-selected diagnostic follow-up successor block.
+- D-1182 records NA-0595 closeout and restores NA-0596.
+- This closeout does not implement NA-0596 and does not run additional qsc send/receive, qsl-server runtime, or qsl-attachments runtime actions.
+- No qsc source/test mutation occurred in closeout.
+- No qsl-server mutation occurred in closeout.
+- No qsl-attachments mutation occurred in closeout.
+- No qsl-protocol dependency or lockfile mutation occurred.
+- No remote action, SSH, scp, Tailscale action, workflow dispatch, workflow rerun, sudo, systemd, firewall, public-site, Cloudflare action, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
+- No endpoint values, private port values, route-token/capability values, bearer/auth-header details, payload/body/plaintext content, ciphertext bodies, seed values, key material, raw command lines, raw logs, process identities, qsl-attachments storage paths, private topology, or private material are published.
+- Branch: pending at journal authoring.
+- PR title: `NA-0595: closeout and restore NA-0596`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: closeout validation, PR checks, public-safety, advisories, no failed required checks, closeout merge, and final queue proof.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced. No crypto-complete claim is introduced. No attachment-complete claim is introduced.
 
 ## NA-0595 local qsl-attachments adversarial and metadata stress update
 

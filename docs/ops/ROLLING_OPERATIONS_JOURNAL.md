@@ -41559,3 +41559,12 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Result classification: `LOCAL_ATTACHMENT_EXACT_4MIB_HARNESS_TIMEOUT_BUDGET_GAP`.
 - Selected successor: `NA-0597 -- QSL Local Exact 4 MiB Attachment Boundary Diagnostic Completion Harness`.
 - No remote action, Tailscale action, workflow dispatch/rerun, dependency/lockfile mutation, product source mutation, public-site mutation, Cloudflare mutation, qwork/qstart/qresume execution, or private-material publication occurred.
+
+## 2026-07-03 — NA-0596 closeout and NA-0597 restoration
+
+- Directive: QSL-DIR-2026-07-03-528, optional closeout.
+- Implementation PR #1466 merged at `57c563774707`; post-merge public-safety and advisories completed success with no failed attached checks.
+- D-1183 exists once and is Accepted; D-1184 records closeout and NA-0597 restoration.
+- NA-0596 is marked DONE. NA-0597 is restored as exactly one READY successor using the D-1183-selected local exact 4 MiB boundary diagnostic completion block.
+- Closeout mutated only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0596_closeout_restore_na0597_testplan.md`.
+- No NA-0597 implementation, qsc source/test mutation, qsl-server mutation, qsl-attachments mutation/runtime action, remote action, Tailscale action, workflow dispatch/rerun, dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork/qstart/qresume execution, or private-material publication occurred.

@@ -33482,13 +33482,37 @@ resource-boundary diagnostic follow-up successor after classifying the exact
 ---
 
 ### NA-0596 — QSL Local Attachment Stress Diagnostic Follow-Up Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
 Complete the exact stress diagnostic, resource-boundary, or harness gap found by
 NA-0595. Codex may mutate exact selected proof/test/harness paths and rerun
 local stress without expanding to remote/Tailscale/workflow.
+
+Completion note:
+NA-0596 completed in D-1183 and closeout D-1184. D-1183 consumed D-1181 and
+D-1182, verified fresh qwork proof from `2026-07-03T18:13:28Z`, revalidated
+the qsc threshold policy, reviewed qsc/qsl-server/qsl-attachments exact-boundary
+surfaces, validated local qsl-server/qsl-attachments/qsc readiness, designed and
+ran a proof-root-only local boundary diagnostic harness, revalidated just-over
+and above-threshold qsl-attachments controls, classified exact 4 MiB as legacy
+in-message with qsl-attachments not used, and selected a local completion
+successor after the bounded qsc-send phase exceeded the diagnostic window.
+
+---
+
+### NA-0597 — QSL Local Exact 4 MiB Attachment Boundary Diagnostic Completion Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Complete the exact remaining diagnostic/resource/harness gap for the 4 MiB
+legacy boundary. Codex may mutate only D-1183-selected qsc tests/proof harness
+paths and may rerun local qsl-server/qsl-attachments diagnostics. No
+crypto/protocol/path-selection semantic change, dependency/lockfile change,
+remote/Tailscale/workflow action, or public/security-completion claim is
+authorized.
 
 ---
 

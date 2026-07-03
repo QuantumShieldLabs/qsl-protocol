@@ -33503,7 +33503,7 @@ successor after the bounded qsc-send phase exceeded the diagnostic window.
 ---
 
 ### NA-0597 — QSL Local Exact 4 MiB Attachment Boundary Diagnostic Completion Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33512,6 +33512,31 @@ legacy boundary. Codex may mutate only D-1183-selected qsc tests/proof harness
 paths and may rerun local qsl-server/qsl-attachments diagnostics. No
 crypto/protocol/path-selection semantic change, dependency/lockfile change,
 remote/Tailscale/workflow action, or public/security-completion claim is
+authorized.
+
+Completion note:
+NA-0597 completed in D-1185 and closeout D-1186. D-1185 consumed D-1183 and
+D-1184, verified fresh qwork proof from `2026-07-03T20:12:19Z`, revalidated
+the strict greater-than-4-MiB threshold policy, reviewed qsc/qsl-server/
+qsl-attachments exact-boundary surfaces, validated local qsl-server,
+qsl-attachments, and focused qsc readiness, designed and ran a proof-root-only
+local completion diagnostic harness, revalidated the above-threshold
+qsl-attachments controls, confirmed exact 4 MiB remains legacy in-message with
+qsl-attachments not used, classified the exact legacy manifest publication
+failure as qsl-server relay queue-depth behavior, and selected the qsl-server
+relay boundary fix successor.
+
+---
+
+### NA-0598 — QSL qsl-server Exact 4 MiB Relay Boundary Fix Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Fix the artifact-backed qsl-server local relay behavior affecting the exact
+4 MiB legacy boundary. Codex may mutate exact D-1185-selected qsl-server
+source/test paths and create a qsl-server PR. Stop before route/auth/storage/
+protocol semantic changes or dependency/lockfile mutation unless explicitly
 authorized.
 
 ---

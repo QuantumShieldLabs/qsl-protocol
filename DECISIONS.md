@@ -31978,3 +31978,31 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0597 diagnostic completion and NA-0598 qsl-server relay-boundary successor selection to D-1185.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records proof gates, recoveries, local runtime validation, diagnostic result, selected successor, boundaries, and wait-work.
   - **References:** NA-0597; selected future NA-0598; D-1185; D-1184; D-1183; qsl-protocol main `4de013ef4275`; qsl-server `6bf61d439fa2`; qsl-attachments `767eca189ee`; `docs/governance/evidence/NA-0597_local_exact_4mib_attachment_boundary_diagnostic_completion_harness.md`; `tests/NA-0597_local_exact_4mib_attachment_boundary_diagnostic_completion_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1186
+  - **Title:** NA-0597 closeout and NA-0598 restoration
+  - **Date:** 2026-07-03
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0597 closeout consumes D-1185 and qsl-protocol PR #1468, which merged at `c361797f64bb` from implementation branch `na-0597-local-exact-4mib-boundary-diagnostic-completion` with implementation commit `c626466f639f`. D-1185 exists once and is Accepted. D-1185 selected result classification `LOCAL_ATTACHMENT_EXACT_4MIB_QSL_SERVER_RELAY_BUG_FOUND` and exact successor `NA-0598 -- QSL qsl-server Exact 4 MiB Relay Boundary Fix Harness`. PR #1468 post-merge public-safety completed success. PR #1468 post-merge advisories completed success. No failed required checks remain. NA-0597 is marked DONE, and NA-0598 is restored as exactly one READY successor.
+  - **Selected successor restored:** NA-0598 is READY with Goals G1, G2, G3, G4, G5. It must fix the artifact-backed qsl-server local relay behavior affecting the exact 4 MiB legacy boundary. Codex may mutate exact D-1185-selected qsl-server source/test paths and create a qsl-server PR. Stop before route/auth/storage/protocol semantic changes or dependency/lockfile mutation unless explicitly authorized.
+  - **Closeout proof:** Local main was fast-forwarded to origin/main at `c361797f64bb` after PR #1468 merge. Worktree, index, and untracked state were clean before closeout edits. Pre-closeout proof verified READY_COUNT 1 with READY NA-0597, D-1185 once, D-1186 absent, and duplicate decision count zero. PR #1468 post-merge check proof verified public-safety success, advisories success, no failed attached check-runs, no pending attached check-runs, and no failed required checks after bounded REST polling.
+  - **Boundary proof:** Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0597_closeout_restore_na0598_testplan.md`. No NA-0598 implementation occurred. No qsc source/test mutation occurred in closeout. No qsl-server mutation occurred in closeout. No qsl-attachments mutation or runtime action occurred in closeout. No remote action, SSH, scp, Tailscale action, workflow dispatch, workflow rerun, sudo, systemd, firewall, public-site, or Cloudflare action occurred. No dependency or lockfile mutation occurred. No private material was published.
+  - **Security and publication invariants:**
+    - D-1185 remains the accepted local exact 4 MiB attachment boundary diagnostic completion decision.
+    - NA-0597 is DONE.
+    - NA-0598 is the only READY item after closeout.
+    - NA-0598 is not implemented by this closeout.
+    - No endpoint values, private port values, route-token/capability values, bearer/auth-header details, payload/body/plaintext content, ciphertext bodies, seed values, key material, raw command lines, raw logs, process identities, qsl-attachments storage paths, private topology, or private material are published.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No crypto-complete claim is made.
+    - No attachment-complete claim is made.
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0597 DONE and restores NA-0598 READY using the exact D-1185-selected qsl-server exact 4 MiB relay boundary fix successor block.
+    - `tests/NA-0597_closeout_restore_na0598_testplan.md` records closeout validation markers.
+    - `TRACEABILITY.md` maps NA-0597 closeout and NA-0598 restoration to D-1186.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records implementation PR merge, post-merge check proof, closeout mutation boundary, and restored NA-0598 successor.
+  - **References:** NA-0597; NA-0598; D-1186; D-1185; qsl-protocol PR #1468; qsl-protocol merge `c361797f64bb`; qsl-protocol head `c626466f639f`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0597_closeout_restore_na0598_testplan.md`

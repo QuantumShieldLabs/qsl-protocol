@@ -6,6 +6,55 @@ Last-Updated: 2026-06-29
 
 # Rolling Operations Journal
 
+## NA-0595 local qsl-attachments adversarial and metadata stress update
+
+- Directive: QSL-DIR-2026-07-03-527.
+- Directive title: Execute NA-0595 Local qsl-attachments Adversarial and Metadata Stress Harness, Optional Closeout to NA-0596.
+- Proof root: `/srv/qbuild/tmp/NA0595_local_qsl_attachments_adversarial_metadata_stress_20260703T161732Z`.
+- qwork proof files were copied and verified before fetch, qsl-server/qsl-attachments acquisition, builds, runtime startup, qsc execution, repository mutation, GitHub publication, source-analysis publication, or proof publication; Codex did not run qwork, qstart, or qresume.
+- qwork proof verified lane NA-0595, repo qsl-protocol, path `/srv/qbuild/work/NA-0595/qsl-protocol`, branch main, upstream origin/main, clean worktree/index/untracked state, READY_COUNT 1, queue top READY NA-0595, and shared cargo target ready.
+- Pre-fetch and post-fetch qsl-protocol `HEAD`/`origin/main`: `d992e12ab731`.
+- Disk watermark: root and backup filesystems below the 95 percent stop threshold; `/backup/qsl` mounted.
+- Startup queue proof: READY_COUNT 1; READY NA-0595; NA-0594 DONE; NA-0593 DONE.
+- Startup decision proof: D-1179 once and Accepted; D-1180 once and Accepted; D-1181 absent before patch; D-1182 absent; duplicate decision entry count zero.
+- Current main required-check classification: public-safety success, advisories success, suite2-vectors success, no failed required checks, no pending required checks, root cargo audit success, nested qsc fuzz cargo audit success, locked metadata success, and Cargo manifest/lock drift absent.
+- D-1179/D-1180 inheritance was reviewed and accepted.
+- qsc attachment stress surface, qsl-server relay/control-plane boundary, and qsl-attachments runtime/storage surface were revalidated.
+- qsl-server validation passed at `6bf61d439fa2`: metadata, audit, fmt, tests, and build.
+- qsl-attachments validation passed at `767eca189ee`: metadata, audit, fmt, tests, build, and PR #38 recovery commit present.
+- Focused qsc validation passed: `na_0591_true_triple_ratchet_path`, `na_0593_seed_fallback_hardening`, `attachments_contract_na0217h`, `attachment_streaming_na0197c`, `qsp_protocol_gate`, `relay_auth_header`, and `receive_e2e receive_mailbox_peer_separation_fail_closed`.
+- Proof-root stress harness static review passed: loopback/local storage only, proof-root raw artifacts only, no public bind, no secret env dependency, no remote/Tailscale/workflow, no qwork/qstart/qresume, no sudo/systemctl/firewall/Tailscale, and no deletion outside proof root.
+- Baseline >4 MiB local attachment send/receive passed.
+- Repetition stress passed: ten sequential above-threshold attachment transfers.
+- Multi-message/multi-size stress passed; one-message multi-attachment is not supported by the selected qsc command surface.
+- Exact 4 MiB threshold boundary classified `MULTI_ATTACHMENT_SIZE_BOUNDARY_GAP` after the corrected legacy probe timed out inside the bounded stress window.
+- Capability/auth negatives passed fail-closed.
+- Descriptor/object corruption negatives passed fail-closed.
+- Route/peer/relay negatives passed.
+- Restart/retention stress passed for qsl-attachments restart persistence; qsl-server descriptor persistence remains not supported in memory-only local runtime.
+- Concurrency/rapid operations passed.
+- Metadata matrix completed: payload/body, plaintext, key material, and seed fallback exposure classified no; residual route/object/capability/size/path details remain proof-root-only or class-only.
+- Cleanup completed: owned qsl-server and qsl-attachments processes stopped, no owned listener remained.
+- Aggregate private-material scan passed with zero plaintext fixture-marker hits in qsl-server logs and qsl-attachments storage.
+- Recovered proof issues RF-NA0595-D527-001 through RF-NA0595-D527-012 were proof-root parser/classifier/command-shape/harness isolation, goal-lint preflight setup, and scanner-scope recoveries; final stress rerun completed and added-line/new-file scans passed.
+- No product source fix was applied.
+- No qsl-server PR or qsl-attachments PR was created.
+- Result classification: `LOCAL_QSL_ATTACHMENTS_STRESS_RESOURCE_BOUNDARY_GAP`.
+- Selected successor: `NA-0596 -- QSL Local Attachment Stress Diagnostic Follow-Up Harness`.
+- Governance patch paths: NA-0595 evidence doc, NA-0595 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- No qsc source/test/script mutation occurred.
+- No qsl-server mutation occurred.
+- No qsl-attachments mutation occurred.
+- No qsl-protocol dependency, lockfile, workflow, public-site, docs/public, or Cloudflare mutation occurred.
+- No remote action, SSH, scp, Tailscale action, workflow dispatch, workflow rerun, sudo, systemd, firewall, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
+- No endpoint values, private port values, route-token/capability values, bearer values, Authorization values, payload/body/plaintext bytes, ciphertext bodies, seed values, key material, raw command lines, raw logs, process identities, qsl-attachments storage paths, private topology, or private material are published.
+- Branch: pending at journal authoring.
+- PR title: `NA-0595: stress local qsl-attachments integration`.
+- PR: pending at journal authoring.
+- PR merge commit: pending at journal authoring.
+- Next-watch items: validation, PR checks, public-safety, advisories, no failed required checks, implementation merge, and optional closeout restoring the diagnostic NA-0596 successor.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No external-review-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No perfect-build claim is introduced. No perfect-crypto claim is introduced. No crypto-complete claim is introduced. No attachment-complete claim is introduced.
+
 ## NA-0594 closeout and NA-0595 restoration update
 
 - Directive: QSL-DIR-2026-07-02-526 optional closeout after NA-0594 implementation merge.

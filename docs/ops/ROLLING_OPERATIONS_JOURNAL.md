@@ -41586,3 +41586,12 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Recovered failures were recorded proof-root-only for inheritance parser wording, optional missing qsc examples path discovery, qsl-server parallel log-capture validation, overbroad qsc attachment test invocation, diagnostic static-review classifier shape, and self-matching progress-probe cleanup command.
 - Wait-work included exact 4 MiB legacy-send audit, qsc threshold/path-selection audit, seed fallback hardening audit, metadata/private-material audit, test coverage gap audit, crypto/protocol claim-boundary audit, and deep legacy-send source audit.
 - No qsc source/test/script mutation, qsl-server mutation, qsl-attachments mutation, dependency/lockfile mutation, workflow mutation, public-site mutation, Cloudflare mutation, remote action, Tailscale action, workflow dispatch/rerun, qwork/qstart/qresume execution, or private-material publication occurred.
+
+## 2026-07-03 — NA-0597 closeout and NA-0598 restoration
+
+- Directive: QSL-DIR-2026-07-03-529, optional closeout.
+- Implementation PR #1468 merged at `c361797f64bb`; post-merge public-safety and advisories completed success with no failed attached checks.
+- D-1185 exists once and is Accepted; D-1186 records closeout and NA-0598 restoration.
+- NA-0597 is marked DONE. NA-0598 is restored as exactly one READY successor using the D-1185-selected qsl-server exact 4 MiB relay boundary fix block.
+- Closeout mutated only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0597_closeout_restore_na0598_testplan.md`.
+- No NA-0598 implementation, qsc source/test mutation, qsl-server mutation, qsl-attachments mutation/runtime action, remote action, Tailscale action, workflow dispatch/rerun, dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork/qstart/qresume execution, or private-material publication occurred.

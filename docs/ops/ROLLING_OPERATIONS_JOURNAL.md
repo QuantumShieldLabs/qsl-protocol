@@ -41568,3 +41568,21 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - NA-0596 is marked DONE. NA-0597 is restored as exactly one READY successor using the D-1183-selected local exact 4 MiB boundary diagnostic completion block.
 - Closeout mutated only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0596_closeout_restore_na0597_testplan.md`.
 - No NA-0597 implementation, qsc source/test mutation, qsl-server mutation, qsl-attachments mutation/runtime action, remote action, Tailscale action, workflow dispatch/rerun, dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork/qstart/qresume execution, or private-material publication occurred.
+
+## 2026-07-03 — NA-0597 local exact 4 MiB attachment boundary diagnostic completion
+
+- Directive: QSL-DIR-2026-07-03-529, NA-0597.
+- Fresh qwork proof verified from `2026-07-03T20:12:19Z`; live pre-fetch `HEAD`/`origin/main` matched `4de013ef4275`.
+- D-1183 and D-1184 were consumed once and Accepted; NA-0597 was the sole READY item.
+- Current main health passed before mutation: public-safety success, advisories success, suite2-vectors success/satisfied, no failed or pending attached checks, root cargo audit success, nested qsc fuzz cargo audit success, locked metadata success, and Cargo drift absent.
+- qsc source review revalidated strict greater-than-4-MiB attachment threshold behavior; exact 4 MiB remains legacy in-message and greater-than-4-MiB remains qsl-attachments when configured.
+- qsl-server and qsl-attachments local readiness completed. qsl-server validation used a recovered serial-test rerun for a parallel log-capture issue. qsl-attachments validation passed on main with the required PR #38 recovery commit present. Focused qsc tests passed after replacing an overbroad attachment test invocation with narrow focused cases.
+- Proof-root harness controls passed for just-over-4 MiB and known-good greater-than-4-MiB qsl-attachments paths. The under-4-MiB control entered legacy and did not use qsl-attachments.
+- Exact 4 MiB remained legacy in-message, did not use qsl-attachments, created no exact-case qsl-attachments object, reached the full data-chunk class under the maximum bounded local diagnostic attempt, and failed at manifest push with relay queue full classification.
+- Failure-cause classification: `EXACT_4MIB_CAUSE_PRODUCT_BUG_SUPPORTED`, localized to qsl-server relay queue-depth behavior for exact 4 MiB legacy transfer shape.
+- Result classification: `LOCAL_ATTACHMENT_EXACT_4MIB_QSL_SERVER_RELAY_BUG_FOUND`.
+- Selected successor: `NA-0598 -- QSL qsl-server Exact 4 MiB Relay Boundary Fix Harness`.
+- No safe fix was applied because qsl-server product source and relay semantic changes were outside NA-0597 authority.
+- Recovered failures were recorded proof-root-only for inheritance parser wording, optional missing qsc examples path discovery, qsl-server parallel log-capture validation, overbroad qsc attachment test invocation, diagnostic static-review classifier shape, and self-matching progress-probe cleanup command.
+- Wait-work included exact 4 MiB legacy-send audit, qsc threshold/path-selection audit, seed fallback hardening audit, metadata/private-material audit, test coverage gap audit, crypto/protocol claim-boundary audit, and deep legacy-send source audit.
+- No qsc source/test/script mutation, qsl-server mutation, qsl-attachments mutation, dependency/lockfile mutation, workflow mutation, public-site mutation, Cloudflare mutation, remote action, Tailscale action, workflow dispatch/rerun, qwork/qstart/qresume execution, or private-material publication occurred.

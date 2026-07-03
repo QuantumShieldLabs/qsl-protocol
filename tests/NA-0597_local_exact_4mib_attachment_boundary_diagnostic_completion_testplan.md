@@ -1,0 +1,66 @@
+# NA-0597 Local Exact 4 MiB Attachment Boundary Diagnostic Completion Test Plan
+
+Goals: G1, G2, G3, G4, G5
+
+Required markers:
+
+- NA0597_D1183_EXACT_4MIB_GAP_CONSUMED_OK
+- NA0597_D1184_CLOSEOUT_CONSUMED_OK
+- NA0597_FRESH_QWORK_PROOF_OK
+- NA0597_CURRENT_MAIN_CHECKS_CLASSIFIED_OK
+- NA0597_THRESHOLD_POLICY_REVALIDATED_OK
+- NA0597_QSC_EXACT_4MIB_SOURCE_REVIEW_OK
+- NA0597_QSL_SERVER_EXACT_4MIB_REVIEW_OK
+- NA0597_QSL_ATTACHMENTS_NONUSE_REVIEW_OK
+- NA0597_LOCAL_VALIDATION_OK
+- NA0597_COMPLETION_HARNESS_DESIGNED_OK
+- NA0597_CONTROL_BASELINE_OK
+- NA0597_EXACT_4MIB_BUDGET_PROBE_CLASSIFIED_OK
+- NA0597_QSC_SEND_PHASE_CLASSIFIED_OK
+- NA0597_QSL_SERVER_PHASE_CLASSIFIED_OK
+- NA0597_QSL_ATTACHMENTS_NONUSE_CLASSIFIED_OK
+- NA0597_LEGACY_PATH_COMPLETION_CLASSIFIED_OK
+- NA0597_FAILURE_CAUSE_REVIEW_OK
+- NA0597_METADATA_REVIEW_OK
+- NA0597_CLEANUP_DONE_OK
+- NA0597_ISSUE_INVESTIGATION_EXECUTED_OR_SKIPPED_OK
+- NA0597_SAFE_FIX_APPLIED_OR_SKIPPED_OK
+- NA0597_PRIVATE_MATERIAL_SCAN_OK
+- NA0597_NO_ENDPOINT_VALUE_PUBLISHED_OK
+- NA0597_NO_PRIVATE_PORT_VALUE_PUBLISHED_OK
+- NA0597_NO_TOKEN_OR_AUTHORIZATION_PUBLISHED_OK
+- NA0597_NO_CAPABILITY_VALUE_PUBLISHED_OK
+- NA0597_NO_PAYLOAD_BODY_PLAINTEXT_PUBLISHED_OK
+- NA0597_NO_SEED_OR_KEY_MATERIAL_PUBLISHED_OK
+- NA0597_NO_REMOTE_TAILSCALE_WORKFLOW_ACTION_OK
+- NA0597_NO_PUBLIC_READINESS_CLAIM_OK
+- NA0597_NO_PRODUCTION_READINESS_CLAIM_OK
+- NA0597_NO_CRYPTO_COMPLETE_CLAIM_OK
+- NA0597_NO_ATTACHMENT_COMPLETE_CLAIM_OK
+- NA0597_RESULT_CLASSIFICATION_SELECTED_OK
+- NA0597_SUCCESSOR_SELECTED_OK
+- NA0597_ONE_READY_INVARIANT_OK
+
+Validation commands:
+
+- `git diff --check`
+- Scope guard over tracked, staged, and untracked changes
+- Queue/decision proof for READY NA-0597 and D-1185 once
+- Marker proof for this testplan
+- Markdown link check
+- Added-line and runtime-artifact private-material scans
+- Secret/prohibited-material scan
+- Overclaim scan
+- Crypto/triple-ratchet/attachment claim-boundary scan
+- Docs/governance/source-diagnostic classifier
+- PR body preflight
+- goal-lint if available
+- Root cargo audit
+- Nested qsc fuzz cargo audit
+- `cargo metadata --locked --format-version=1`
+- `cargo fmt --check`
+- `sh -n scripts/ci/qsc_adversarial.sh`
+- `bash -n scripts/ci/qsc_adversarial.sh`
+- qsl-server metadata/audit/fmt/test/build validation summary
+- qsl-attachments metadata/audit/fmt/test/build validation summary
+- focused qsc validation summary

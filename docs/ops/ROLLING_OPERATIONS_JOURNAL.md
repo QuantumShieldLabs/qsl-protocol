@@ -41548,3 +41548,14 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No endpoint values, private port values, route-token/capability values, bearer values, Authorization headers, private topology, payloads, response bodies, process identities, authorized_keys content, public key material, private key material, secret environment values, Cloudflare tokens, or API keys are published.
 - No sudo, systemctl, service, Tailscale, firewall, account, shell, authorized_keys mutation, writes outside `/home/qslcodex/qsl-remote-test/`, qsc send/receive, workflow dispatch/rerun, qsl-attachments command/mutation, qsl-server source mutation, qsl-protocol source/script/workflow/dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork, qstart, qresume, qsl-backup, or backup mutation occurred.
 - No public-readiness claim is introduced. no production-readiness claim is introduced. no public-internet-readiness claim is introduced. no external-review-complete claim is introduced. no vulnerability-free claim is introduced. no bug-free claim is introduced. no perfect-build claim is introduced. no perfect-crypto claim is introduced.
+## 2026-07-03 — NA-0596 local attachment stress diagnostic follow-up
+
+- Directive: QSL-DIR-2026-07-03-528, NA-0596.
+- Fresh qwork proof verified from `2026-07-03T18:13:28Z`; live pre-fetch `HEAD`/`origin/main` matched `a9de6a9979fb`.
+- D-1181 and D-1182 consumed once and Accepted; NA-0596 was the sole READY item.
+- qsl-server, qsl-attachments, and qsc local readiness completed with recorded recoveries. qsl-server source remained unmodified; qsl-attachments source remained unmodified; qsc source remained unmodified.
+- Proof-root harness classified known-good above-threshold and just-over-4 MiB controls as qsl-attachments path success.
+- Exact 4 MiB entered legacy in-message qsc send, did not use qsl-attachments, showed qsl-server relay-accepted chunk progress, and exceeded the bounded qsc-send phase.
+- Result classification: `LOCAL_ATTACHMENT_EXACT_4MIB_HARNESS_TIMEOUT_BUDGET_GAP`.
+- Selected successor: `NA-0597 -- QSL Local Exact 4 MiB Attachment Boundary Diagnostic Completion Harness`.
+- No remote action, Tailscale action, workflow dispatch/rerun, dependency/lockfile mutation, product source mutation, public-site mutation, Cloudflare mutation, qwork/qstart/qresume execution, or private-material publication occurred.

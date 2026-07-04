@@ -41788,3 +41788,25 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No NA-0603 implementation, LAN runtime test, qsc LAN command, qsl-server startup, qsl-attachments runtime, Codex SSH to laptop, laptop SSH server setup, second Codex on laptop, remote action, Tailscale action, workflow dispatch/rerun, GitHub secret/variable mutation, DNS mutation, Cloudflare mutation, dependency/lockfile mutation, public-site mutation, deployment mutation, qwork/qstart/qresume execution, or private-material publication occurred.
 - No endpoint values, private port values, hostnames, topology details beyond classes, token values, Authorization values, capability values, payload/body/plaintext, ciphertext bodies, seed/key material, raw logs, raw artifacts, or private material are published.
 - No public-readiness claim is introduced. No production-readiness claim is introduced. No remote-ready claim is introduced. No Tailnet-ready claim is introduced. No LAN-ready overclaim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No crypto-complete claim is introduced. No attachment-complete claim is introduced.
+
+## 2026-07-04 -- NA-0603 LAN minimal qsc E2EE relay verification
+
+- Directive: QSL-DIR-2026-07-04-535, NA-0603.
+- Fresh qwork proof verified from `2026-07-04T18:42:17Z`; live pre-fetch `HEAD`/`origin/main` matched `8908447cfe2b`.
+- Disk watermark gates were below stop thresholds; `/backup/qsl` was mounted.
+- D-1195 and D-1196 were consumed once and Accepted; NA-0603 was the sole READY item; D-1197 and D-1198 were absent before mutation; duplicate decision count was zero.
+- qsl-server was acquired in the NA-0603 build-server workspace, verified clean, verified to include fix merge `544edfd213ea`, and validated with locked metadata, audit, format, tests, and build.
+- Build-server bind selection classified `private_lan_bind_class`; qsl-server startup classified ready with proof-root-only logs and non-secret route/auth fixture values; selected auth negative classified fail-closed.
+- Operator packet files were created under the NA-0603 operator handoff directory. After operator feedback that the laptop lacked qsc and the build-server path layout, a local laptop bundle was created with a bundled Linux x86_64 qsc binary and source-build fallback. The bundle self-check passed on the operator laptop.
+- Operator class-safe laptop proof was received and schema-validated. Exact private-value hits were zero; private IPv4 publication was false; `private_values_published_class` was `no`.
+- Laptop proof classified qsc sender ready, qsc receiver ready, TCP connect success, and qsl-server route shape ready.
+- qsc rejected the private-LAN HTTP relay endpoint with TLS-required policy. qsc LAN state setup classified `tls_required_gap`; tiny send classified `tls_required_gap`; receive/decrypt/validate classified `not_reached`.
+- qsl-server plaintext exposure classified `no`; payload body logging was not reached because qsc did not send the tiny message. Seed fallback classified `no`; unsafe seed-fallback env class was absent. Metadata exposure classified `classified`.
+- Cleanup classified `LAN_TINY_CLEANUP_DONE`; no unknown build-server qsl-server process remained.
+- Hostile analyst / metadata minimization and implementation attack hardening roadmap recorded for future traffic-analysis metadata, implementation attack analysis, and hardening options.
+- Result classification: `LAN_TINY_QSC_LAPTOP_READINESS_GAP`.
+- Selected successor: `NA-0604 -- QSL LAN Operator Laptop qsc Readiness Follow-Up Harness`.
+- Governance patch paths: NA-0603 evidence doc, NA-0603 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- No qsl-attachments runtime, Codex SSH to laptop, laptop SSH server setup, second Codex on laptop, Tailnet/Tailscale action, workflow dispatch/rerun, public endpoint, DNS/Cloudflare/public-site/deployment mutation, qsc source/test mutation, qsl-server source/test mutation, qsl-attachments source/test mutation, dependency/lockfile mutation, qwork/qstart/qresume execution by Codex, or private-material publication occurred.
+- No endpoint values, private port values, hostnames, topology, token values, Authorization values, route-token values, capability values, payload/body/plaintext, ciphertext bodies, seed/key material, raw command lines, raw logs, raw artifacts, or private material are published.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No remote-ready claim is introduced. No Tailnet-ready claim is introduced. No LAN-ready overclaim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No crypto-complete claim is introduced. No attachment-complete claim is introduced.

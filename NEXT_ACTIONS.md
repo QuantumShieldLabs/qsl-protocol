@@ -33707,7 +33707,7 @@ Implementation note:
 ---
 
 ### NA-0603 — QSL LAN Minimal qsc E2EE Relay Verification Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33749,6 +33749,34 @@ Forbidden NA-0603 actions:
 - public endpoint/DNS/Cloudflare
 - source/dependency/lockfile mutation
 - publishing private values
+
+Implementation note:
+- D-1197 accepted result `LAN_TINY_QSC_LAPTOP_READINESS_GAP`.
+  NA-0603 consumed D535/D-1195/D-1196, verified fresh qwork proof,
+  validated qsl-server, classified private-LAN bind/startup, created the
+  operator packet and laptop bundle, consumed class-safe laptop proof,
+  classified qsl-server plaintext exposure, seed fallback, metadata exposure,
+  cleanup, and recorded the hostile analyst / metadata hardening roadmap.
+  qsc rejected the private-LAN HTTP relay endpoint with TLS-required policy
+  before tiny-message send completed; therefore NA-0603 did not prove LAN tiny
+  E2EE delivery. qsl-protocol PR #1480 merged at `45262cff950b`;
+  post-merge public-safety, advisories, suite2-vectors, and
+  qsc-adversarial-smoke completed success with no failed required checks. No
+  qsl-attachments runtime, Codex SSH to laptop, laptop SSH server setup,
+  second Codex on laptop, Tailnet/Tailscale action, workflow dispatch/rerun,
+  no public endpoint, DNS/Cloudflare/public-site/deployment mutation,
+  source/dependency/lockfile mutation, or private-material publication
+  occurred.
+
+---
+
+### NA-0604 — QSL LAN Operator Laptop qsc Readiness Follow-Up Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Guide and review operator-owned laptop qsc readiness proof for the minimal LAN
+tiny-message test. Codex must not run laptop commands or publish private values.
 
 ---
 

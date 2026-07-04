@@ -1,0 +1,49 @@
+# NA-0600 closeout and NA-0601 restoration testplan
+
+Goals: G1, G2, G3, G4, G5
+
+This testplan records the closeout-only validation for NA-0600. It does not
+authorize NA-0601 implementation.
+
+## Required Markers
+
+- NA0600_CLOSEOUT_IMPLEMENTATION_PR_MERGED_OK
+- NA0600_CLOSEOUT_D1191_ACCEPTED_OK
+- NA0600_CLOSEOUT_PR1474_POSTMERGE_GREEN_OK
+- NA0600_CLOSEOUT_PUBLIC_SAFETY_GREEN_OK
+- NA0600_CLOSEOUT_ADVISORIES_GREEN_OK
+- NA0600_CLOSEOUT_NO_FAILED_REQUIRED_CHECKS_OK
+- NA0600_CLOSEOUT_D1192_RESTORED_NA0601_OK
+- NA0600_CLOSEOUT_SELECTED_SUCCESSOR_EXACT_OK
+- NA0600_CLOSEOUT_NA0600_DONE_OK
+- NA0600_CLOSEOUT_NA0601_READY_OK
+- NA0600_CLOSEOUT_NO_NA0601_IMPLEMENTATION_OK
+- NA0600_CLOSEOUT_NO_REMOTE_ACTION_OK
+- NA0600_CLOSEOUT_NO_TAILSCALE_ACTION_OK
+- NA0600_CLOSEOUT_NO_WORKFLOW_MUTATION_OK
+- NA0600_CLOSEOUT_NO_GITHUB_SECRET_VARIABLE_MUTATION_OK
+- NA0600_CLOSEOUT_NO_PUBLIC_SITE_CLOUDFLARE_MUTATION_OK
+- NA0600_CLOSEOUT_NO_DEPLOYMENT_MUTATION_OK
+- NA0600_CLOSEOUT_NO_PRIVATE_MATERIAL_PUBLICATION_OK
+- NA0600_CLOSEOUT_NO_PUBLIC_READINESS_CLAIM_OK
+- NA0600_CLOSEOUT_NO_PRODUCTION_READINESS_CLAIM_OK
+- NA0600_CLOSEOUT_NO_REMOTE_READY_CLAIM_OK
+- NA0600_CLOSEOUT_NO_TAILNET_READY_CLAIM_OK
+- NA0600_CLOSEOUT_ONE_READY_INVARIANT_OK
+
+## Validation Plan
+
+- Verify implementation PR #1474 merged and post-merge checks completed green.
+- Verify D-1191 exists once and is Accepted.
+- Verify D-1192 is absent before closeout patch and exists once after patch.
+- Verify NA-0600 is DONE.
+- Verify NA-0601 is the sole READY item.
+- Verify changed files are limited to closeout-authorized governance paths.
+- Verify no NA-0601 implementation occurred.
+- Verify no remote/Tailnet/workflow/secret/DNS/Cloudflare/deployment/source/
+  dependency/lockfile mutation occurred.
+
+## Result
+
+Closeout restores exactly one READY successor:
+`NA-0601 -- QSL Remote / Tailnet Operator Setup Completion Harness`.

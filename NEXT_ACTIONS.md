@@ -33584,7 +33584,7 @@ Implementation note:
 ---
 
 ### NA-0600 — QSL Remote / Tailnet Operator Setup Proof Review Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33603,6 +33603,34 @@ Prerequisite before Codex execution:
 - Operator performs or declines the setup.
 - Operator preserves proof outputs required by D-1189.
 - Operator runs fresh qwork NA-0600 qsl-protocol only after setup/proof phase.
+
+Implementation note:
+- D-1191 accepted result `REMOTE_TAILNET_OPERATOR_SETUP_PROOF_STILL_REQUIRED`.
+  NA-0600 consumed D531/D-1189/D-1190, verified fresh qwork proof, reviewed
+  operator proof inventory, GitHub secret-name and variable-name classes,
+  workflow surface, Tailnet access proof, qsl-server service readiness proof,
+  qsl-attachments service readiness proof, access model, redacted diagnostic
+  plan, security/metadata/claim boundary, and readiness matrix. No operator
+  proof package was supplied. No remote verification, remote action, Tailscale
+  action, workflow mutation/dispatch, GitHub secret/variable mutation,
+  DNS/Cloudflare mutation, deployment mutation, source mutation, or
+  private-material publication occurred. qsl-protocol PR #1474 merged at
+  `1b5b307e39f6`; post-merge public-safety and advisories completed success.
+
+---
+
+### NA-0601 — QSL Remote / Tailnet Operator Setup Completion Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Complete the operator setup/proof cycle for the D-1189-selected GitHub-hosted
+runner Tailnet access model. Director must provide one-step-at-a-time operator
+instructions. Operator, not Codex, performs any Tailnet/GitHub-secret/service
+setup. Codex may later review only safe proof classes. No Codex Tailnet command,
+GitHub secret mutation, remote action, workflow dispatch, DNS/Cloudflare change,
+deployment mutation, private-material publication, or public/production/
+security-completion claim is authorized.
 
 ---
 

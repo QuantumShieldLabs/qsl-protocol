@@ -41702,3 +41702,14 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No remote verification, remote action, SSH, scp, Tailscale action, workflow dispatch/rerun, workflow mutation, GitHub secret/variable mutation, DNS mutation, Cloudflare mutation, public-site mutation, deployment mutation, qsc source/test mutation, qsl-server source/test mutation, qsl-attachments source/test mutation, dependency mutation, lockfile mutation, qwork/qstart/qresume execution by Codex, or private-material publication occurred.
 - No secret values, endpoint values, private port values, topology, tokens, Authorization values, capability values, payload/body/plaintext, ciphertext bodies, seed/key material, raw logs, raw artifacts, or private material are published.
 - No public-readiness claim is introduced. No production-readiness claim is introduced. No remote-ready claim is introduced. No Tailnet-ready claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No crypto-complete claim is introduced. No attachment-complete claim is introduced.
+
+## 2026-07-04 — NA-0600 closeout and NA-0601 restoration
+
+- Directive: QSL-DIR-2026-07-04-532, optional closeout.
+- Implementation PR #1474 merged at `1b5b307e39f6`; post-merge public-safety and advisories completed success with no failed attached checks.
+- D-1191 exists once and is Accepted; D-1192 records closeout and NA-0601 restoration.
+- NA-0600 is marked DONE. NA-0601 is restored as exactly one READY successor using the D-1191-selected operator setup completion block.
+- Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0600_closeout_restore_na0601_testplan.md`.
+- No NA-0601 implementation, qsc source/test mutation, qsl-server mutation, qsl-attachments mutation/runtime action, remote action, Tailscale action, workflow dispatch/rerun, GitHub secret/variable mutation, DNS mutation, Cloudflare mutation, dependency/lockfile mutation, public-site mutation, deployment mutation, qwork/qstart/qresume execution, or private-material publication occurred.
+- No endpoint values, private port values, topology, token values, Authorization values, capability values, payload/body/plaintext, seed/key material, raw logs, raw artifacts, or private material are published.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No remote-ready claim is introduced. No Tailnet-ready claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No crypto-complete claim is introduced. No attachment-complete claim is introduced.

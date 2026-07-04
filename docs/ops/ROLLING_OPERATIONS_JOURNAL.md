@@ -2,7 +2,7 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-07-03
+Last-Updated: 2026-07-04
 
 # Rolling Operations Journal
 
@@ -41748,3 +41748,30 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No NA-0602 implementation, LAN runtime test, qsc source/test mutation, qsl-server mutation, qsl-attachments mutation/runtime action, remote action, Tailscale action, workflow dispatch/rerun, GitHub secret/variable mutation, DNS mutation, Cloudflare mutation, dependency/lockfile mutation, public-site mutation, deployment mutation, qwork/qstart/qresume execution, or private-material publication occurred.
 - No endpoint values, private port values, hostnames, topology details beyond classes, token values, Authorization values, capability values, payload/body/plaintext, seed/key material, raw logs, raw artifacts, or private material are published.
 - No public-readiness claim is introduced. No production-readiness claim is introduced. No remote-ready claim is introduced. No Tailnet-ready claim is introduced. No LAN-ready overclaim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No crypto-complete claim is introduced. No attachment-complete claim is introduced.
+
+## 2026-07-04 — NA-0602 LAN full-stack reintroduction readiness
+
+- Directive: QSL-DIR-2026-07-04-534, NA-0602.
+- Fresh qwork proof verified from `2026-07-04T16:52:17Z`; live pre-fetch `HEAD`/`origin/main` matched `f766a53a4cde`.
+- Disk watermark: root and backup filesystems were below the 95 percent stop threshold; `/backup/qsl` was mounted.
+- D-1193 and D-1194 were consumed once and Accepted; NA-0602 was the sole READY item; D-1195 and D-1196 were absent before mutation; duplicate decision count was zero.
+- Current main health passed before mutation: public-safety success, advisories success, suite2-vectors success, required contexts classified with D498-style visibility recovery for aggregate CodeQL and PR-head-only goal-lint, root cargo audit success, nested qsc fuzz cargo audit success, locked metadata success, and Cargo drift absent.
+- Recovered proof issue RF-NA0602-D534-001: the first qwork proof parser used a list/set union expression and failed before fetch or repository mutation. Classification: recoverable command-shape/script issue. Corrective action: corrected the parser and reran before fetch or mutation. Final result: PASS.
+- Recovered proof issue RF-NA0602-D534-002: the qwork proof parser overconstrained the cargo env file to normalized startup keys, while the env file uses `QBUILD_*` names. Classification: recoverable proof-root parser assumption error. Corrective action: parsed env `QBUILD_*` names and required normalized lane values from startup proof. Final result: PASS.
+- Recovered proof issue RF-NA0602-D534-003: the first required-check classifier treated aggregate `CodeQL` and PR-head-only `goal-lint` as literal main check-run names. Classification: recoverable D498-style visibility issue. Corrective action: recorded split CodeQL Analyze job success and retained PR-body/goal-lint validation before PR. Final result: PASS.
+- Recovered proof issue RF-NA0602-D534-004: a read-only source search included optional `qsl/qsl-client/qsc/examples`, which is absent. Classification: valid absent optional path discovery. Corrective action: used existing qsc source, tests, and runbooks. Final result: PASS.
+- D533/D-1193/D-1194 inheritance verified: D-1193 selected the private-LAN pivot after Tailnet/GitHub-runner setup was deferred, D-1194 restored NA-0602, and no NA-0601 LAN runtime test or remote/Tailnet/workflow/secret/DNS/Cloudflare/deployment mutation occurred.
+- LAN role/topology readiness recorded class-only: operator personal laptop planned as qsc sender and receiver logical-client host; build server planned as qsl-server relay/control-plane host; private home LAN class; qsl-attachments deferred; no public exposure; Tailnet/GitHub-runner deferred.
+- Operator laptop readiness plan completed: qsc availability, operator command ability, and private-LAN presence remain operator-confirmed classes for NA-0603; laptop proof output must be class-safe or proof-root-only; laptop cleanup is operator-owned; laptop SSH server and second Codex are not required initially.
+- Build-server readiness plan completed: qsl-server is relay/control-plane only, public bind is forbidden, logs are proof-root-only, cleanup is required, and service ownership is Codex-owned only when NA-0603 authorizes it. qsl-attachments bind/storage/capability work is deferred.
+- LAN access model matrix completed. Selected model A: operator runs laptop commands, Codex controls only build-server qsl-server service if authorized, qsl-attachments is not used, no Codex SSH to laptop, no laptop SSH server setup, and no second Codex on laptop.
+- NA-0603 operator/Codex boundary defined. Codex may later own qwork proof, build-server qsl-server startup/logging/cleanup, placeholder laptop command templates, class-safe proof parsing, and governance evidence. Operator owns laptop qsc commands, laptop state, private-value handling, class-safe proof, laptop cleanup, and no-public-exposure confirmation.
+- Redacted LAN tiny-message diagnostic plan completed for future phase classes: qsl-server start/bind, laptop sender/receiver readiness, laptop-to-build-server TCP connect, qsl-server route shape, qsc handshake/state setup, tiny send, tiny receive/decrypt/validate, qsl-server plaintext exposure, seed fallback use, metadata exposure, and cleanup.
+- LAN readiness matrix completed: local qsc/qsl-server evidence pass; local qsl-attachments evidence pass; exact 4 MiB qsl-server fix pass; qsc seed fallback hardening pass; laptop qsc readiness operator_required; build-server qsl-server readiness ready_to_authorize; qsl-attachments first LAN lane deferred; private LAN assumed_present; redaction policy ready; first LAN runtime lane ready.
+- Security/metadata/claim review completed for private endpoint/port exposure, laptop logs, build-server logs, route/auth fixture leakage, qsc local state leakage, plaintext/key leakage, qsl-server public-bind risk, LAN trust boundary, proof transfer, cleanup, and claim boundaries.
+- Result classification: `LAN_FULL_STACK_REINTRODUCTION_READINESS_SELECTED`.
+- Selected successor: `NA-0603 -- QSL LAN Minimal qsc E2EE Relay Verification Harness`.
+- Governance patch paths: NA-0602 evidence doc, NA-0602 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- No LAN runtime test, qsc LAN command, qsl-server startup, qsl-attachments runtime, Codex SSH to laptop, laptop SSH server setup, second Codex on laptop, remote action, Tailscale action, workflow dispatch/rerun, workflow mutation, GitHub secret/variable mutation, DNS mutation, Cloudflare mutation, public-site mutation, deployment mutation, qsc source/test mutation, qsl-server source/test mutation, qsl-attachments source/test mutation, dependency mutation, lockfile mutation, qwork/qstart/qresume execution by Codex, or private-material publication occurred.
+- No secret values, endpoint values, private port values, hostnames, topology details beyond classes, token values, Authorization values, capability values, payload/body/plaintext, ciphertext bodies, seed/key material, raw logs, raw artifacts, or private material are published.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No remote-ready claim is introduced. No Tailnet-ready claim is introduced. No LAN-ready overclaim is introduced. No metadata-free claim is introduced. No anonymity claim is introduced. No untraceability claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No crypto-complete claim is introduced. No attachment-complete claim is introduced.

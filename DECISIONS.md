@@ -32085,3 +32085,31 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0599 readiness classification and NA-0600 operator setup proof review successor selection to D-1189.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records proof gates, review summaries, classification, selected successor, validation, and boundaries.
   - **References:** NA-0599; selected future NA-0600; D-1189; D-1188; D-1187; D530 response `/home/victor/work/qsl/codex/responses/NA0598_qsl_server_exact_4mib_relay_boundary_fix_20260704T013044Z_D530.md`; qsl-protocol main `2209126e3952`; qsl-server PR #59; qsl-server merge `544edfd213ea`; qsl-protocol PR #1470; qsl-protocol merge `e35a61ccea19`; qsl-protocol closeout PR #1471; qsl-protocol closeout merge `2209126e3952`; `docs/governance/evidence/NA-0599_remote_tailnet_full_stack_reintroduction_readiness_harness.md`; `tests/NA-0599_remote_tailnet_full_stack_reintroduction_readiness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1190
+  - **Title:** NA-0599 closeout and NA-0600 restoration
+  - **Date:** 2026-07-04
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0599 closeout consumes D-1189 and qsl-protocol PR #1472, which merged at `c64b3a996d66` from implementation branch `na-0599-remote-tailnet-full-stack-readiness` with implementation commit `51793f241239`. D-1189 exists once and is Accepted. D-1189 selected result classification `REMOTE_TAILNET_REINTRODUCTION_READINESS_OPERATOR_SETUP_REQUIRED` and exact successor `NA-0600 -- QSL Remote / Tailnet Operator Setup Proof Review Harness`. PR #1472 post-merge public-safety completed success. PR #1472 post-merge advisories completed success. No failed required checks remain. NA-0599 is marked DONE, and NA-0600 is restored as exactly one READY successor.
+  - **Selected successor restored:** NA-0600 is READY with Goals G1, G2, G3, G4, G5. It must review operator-provided proof that the D-1189-selected remote/Tailnet access setup was completed or intentionally declined. It must verify only safe metadata classes: secret-name presence, Tailnet access class, runner access class, service readiness class, rollback/disable class, and redacted endpoint-source class. Codex must not create or read secret values, must not run Tailscale commands, must not mutate GitHub secrets, workflows, DNS, Cloudflare, remote hosts, qsl-server deployment, or qsl-attachments deployment, and must not publish private endpoint, private port, topology, token, Authorization, capability, payload/body/plaintext, seed, or key material.
+  - **Closeout proof:** Local main was fast-forwarded to origin/main at `c64b3a996d66` after PR #1472 merge. Worktree, index, and untracked state were clean before closeout edits. Pre-closeout proof verified READY_COUNT 1 with READY NA-0599, D-1189 once, D-1190 absent, and duplicate decision count zero. PR #1472 post-merge check proof verified public-safety success, advisories success, no failed attached check-runs, no pending attached check-runs, and no failed required checks after bounded REST polling.
+  - **Boundary proof:** Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0599_closeout_restore_na0600_testplan.md`. No NA-0600 implementation occurred. No qsc source/test mutation occurred in closeout. No qsl-server mutation occurred in closeout. No qsl-attachments mutation or runtime action occurred in closeout. No remote action, SSH, scp, Tailscale action, workflow dispatch, workflow rerun, GitHub secret/variable mutation, DNS mutation, Cloudflare mutation, sudo, systemd, firewall, public-site, or deployment action occurred. No dependency or lockfile mutation occurred. No private material was published.
+  - **Security and publication invariants:**
+    - D-1189 remains the accepted NA-0599 readiness decision.
+    - NA-0599 is DONE.
+    - NA-0600 is the only READY item after closeout.
+    - NA-0600 is not implemented by this closeout.
+    - No endpoint values, private port values, topology, token values, Authorization values, capability values, payload/body/plaintext content, ciphertext bodies, seed values, key material, raw command lines, raw logs, process identities, qsl-attachments storage paths, private topology, or private material are published.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No crypto-complete claim is made.
+    - No attachment-complete claim is made.
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0599 DONE and restores NA-0600 READY using the exact D-1189-selected operator setup proof review successor block.
+    - `tests/NA-0599_closeout_restore_na0600_testplan.md` records closeout validation markers.
+    - `TRACEABILITY.md` maps NA-0599 closeout and NA-0600 restoration to D-1190.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records implementation PR merge, post-merge check proof, closeout mutation boundary, and restored NA-0600 successor.
+  - **References:** NA-0599; NA-0600; D-1190; D-1189; qsl-protocol PR #1472; qsl-protocol merge `c64b3a996d66`; qsl-protocol head `51793f241239`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0599_closeout_restore_na0600_testplan.md`

@@ -33550,7 +33550,7 @@ Implementation note:
 ---
 
 ### NA-0599 — QSL Remote / Tailnet Full-Stack Reintroduction Readiness Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33566,6 +33566,43 @@ bounded remote verification successor. Codex must not mutate Tailscale,
 Cloudflare, public DNS, GitHub secrets, workflows, remote hosts, qsl-server
 deployment, or qsl-attachments deployment unless a later exact directive
 authorizes that action.
+
+Implementation note:
+- D-1189 accepted result
+  `REMOTE_TAILNET_REINTRODUCTION_READINESS_OPERATOR_SETUP_REQUIRED`.
+  NA-0599 consumed D-1187/D-1188 and D530, summarized local full-stack evidence,
+  reviewed prior remote/Tailnet failure history, reviewed current workflow and
+  GitHub secret-name metadata without secret-value access, selected
+  GitHub-hosted runner Tailnet join as the preferred future model pending
+  operator setup proof, defined redacted diagnostics, and selected NA-0600 as
+  the operator setup proof review successor. qsl-protocol PR #1472 merged at
+  `c64b3a996d66`; post-merge public-safety, advisories, and required checks
+  completed success. No remote action, Tailscale action, workflow mutation,
+  GitHub secret mutation, DNS/Cloudflare mutation, deployment mutation, source
+  mutation, or private-material publication occurred.
+
+---
+
+### NA-0600 — QSL Remote / Tailnet Operator Setup Proof Review Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Review operator-provided proof that the D-1189-selected remote/Tailnet access
+setup was completed or intentionally declined. Verify only safe metadata:
+secret-name presence, Tailnet access class, runner access class, service
+readiness class, rollback/disable class, and redacted endpoint-source class.
+Codex must not create or read secret values, must not run Tailscale commands,
+must not mutate GitHub secrets, workflows, DNS, Cloudflare, remote hosts,
+qsl-server deployment, or qsl-attachments deployment, and must not publish
+private endpoint, private port, topology, token, Authorization, capability,
+payload/body/plaintext, seed, or key material.
+
+Prerequisite before Codex execution:
+- Director provides one-step-at-a-time operator setup checklist from D-1189.
+- Operator performs or declines the setup.
+- Operator preserves proof outputs required by D-1189.
+- Operator runs fresh qwork NA-0600 qsl-protocol only after setup/proof phase.
 
 ---
 

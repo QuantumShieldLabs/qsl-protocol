@@ -41616,3 +41616,12 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Recovered failures were recorded proof-root-only for cargo-audit command shape, optional missing path discovery, qsl-server log-capture test structure, GitHub connector PR permission fallback, unsupported `gh pr view` field, qsc proof-harness handshake and marker classifiers, stale continuation state, and attachment-control marker classifier.
 - Wait-work included qsl-server queue/resource audit, qsl-server auth/route isolation audit, qsl-server plaintext/logging audit, exact 4 MiB legacy-send audit, qsc threshold/path-selection audit, qsl-attachments control audit, seed fallback hardening audit, metadata/private-material audit, governance consistency audit, and runtime progress classification.
 - No qsc source/test/script mutation, qsl-attachments mutation, qsl-protocol dependency/lockfile/workflow mutation, remote action, Tailscale action, workflow dispatch/rerun, deployment/service mutation, public-site mutation, Cloudflare mutation, qwork/qstart/qresume execution, or private-material publication occurred.
+
+## 2026-07-04 — NA-0598 closeout and NA-0599 restoration
+
+- Directive: QSL-DIR-2026-07-03-530, optional closeout.
+- Implementation PR #1470 merged at `e35a61ccea19`; post-merge public-safety, advisories, and suite2-vectors completed success with no failed attached checks.
+- D-1187 exists once and is Accepted; D-1188 records closeout and NA-0599 restoration.
+- NA-0598 is marked DONE. NA-0599 is restored as exactly one READY successor using the D-1187-selected remote/Tailnet full-stack reintroduction readiness block.
+- Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0598_closeout_restore_na0599_testplan.md`.
+- No NA-0599 implementation, qsc source/test mutation, qsl-server mutation, qsl-attachments mutation/runtime action, remote action, Tailscale action, workflow dispatch/rerun, dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork/qstart/qresume execution, or private-material publication occurred.

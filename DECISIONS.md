@@ -32033,3 +32033,31 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0598 qsl-server relay-boundary fix and NA-0599 successor selection to D-1187.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records proof gates, recoveries, qsl-server PR/merge evidence, local runtime validation, classification, selected successor, and boundaries.
   - **References:** NA-0598; selected future NA-0599; D-1187; D-1186; D-1185; qsl-protocol main `aeb11a3d1813`; qsl-server PR #59; qsl-server implementation `560379da0262`; qsl-server merge `544edfd213ea`; qsl-server pre-fix main `6bf61d439fa2`; qsl-attachments `767eca189ee`; `docs/governance/evidence/NA-0598_qsl_server_exact_4mib_relay_boundary_fix_harness.md`; `tests/NA-0598_qsl_server_exact_4mib_relay_boundary_fix_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1188
+  - **Title:** NA-0598 closeout and NA-0599 restoration
+  - **Date:** 2026-07-04
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0598 closeout consumes D-1187 and qsl-protocol PR #1470, which merged at `e35a61ccea19` from implementation branch `na-0598-qsl-server-exact-4mib-relay-boundary-fix` with implementation commit `aee54ba3fa51`. D-1187 exists once and is Accepted. D-1187 selected result classification `QSL_SERVER_EXACT_4MIB_RELAY_BOUNDARY_FIX_PASS` and exact successor `NA-0599 -- QSL Remote / Tailnet Full-Stack Reintroduction Readiness Harness`. PR #1470 post-merge public-safety completed success. PR #1470 post-merge advisories completed success. No failed required checks remain. NA-0598 is marked DONE, and NA-0599 is restored as exactly one READY successor.
+  - **Selected successor restored:** NA-0599 is READY with Goals G1, G2, G3, G4, G5. It must plan and authorize controlled remote/Tailnet full-stack reintroduction after local qsc/qsl-server/qsl-attachments integration, stress, hardening, exact 4 MiB diagnostics, and qsl-server relay-boundary fix evidence. It must separate local correctness evidence from remote reachability, identify remote/Tailnet/GitHub-runner constraints, preserve private-material boundaries, and must not mutate Tailscale, Cloudflare, public DNS, GitHub secrets, workflows, remote hosts, qsl-server deployment, or qsl-attachments deployment unless later explicitly authorized.
+  - **Closeout proof:** Local main was fast-forwarded to origin/main at `e35a61ccea19` after PR #1470 merge. Worktree, index, and untracked state were clean before closeout edits. Pre-closeout proof verified READY_COUNT 1 with READY NA-0598, D-1187 once, D-1188 absent, D-1189 absent, and duplicate decision count zero. PR #1470 post-merge check proof verified public-safety success, advisories success, suite2-vectors success, no failed attached check-runs, no pending attached check-runs, and no failed required checks after bounded REST polling.
+  - **Boundary proof:** Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0598_closeout_restore_na0599_testplan.md`. No NA-0599 implementation occurred. No qsc source/test mutation occurred in closeout. No qsl-server mutation occurred in closeout. No qsl-attachments mutation or runtime action occurred in closeout. No remote action, SSH, scp, Tailscale action, workflow dispatch, workflow rerun, sudo, systemd, firewall, public-site, or Cloudflare action occurred. No dependency or lockfile mutation occurred. No private material was published.
+  - **Security and publication invariants:**
+    - D-1187 remains the accepted qsl-server exact 4 MiB relay boundary fix decision.
+    - NA-0598 is DONE.
+    - NA-0599 is the only READY item after closeout.
+    - NA-0599 is not implemented by this closeout.
+    - No endpoint values, private port values, route-token/capability values, bearer/auth-header details, payload/body/plaintext content, ciphertext bodies, seed values, key material, raw command lines, raw logs, process identities, qsl-attachments storage paths, private topology, or private material are published.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No crypto-complete claim is made.
+    - No attachment-complete claim is made.
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0598 DONE and restores NA-0599 READY using the exact D-1187-selected remote/Tailnet reintroduction readiness successor block.
+    - `tests/NA-0598_closeout_restore_na0599_testplan.md` records closeout validation markers.
+    - `TRACEABILITY.md` maps NA-0598 closeout and NA-0599 restoration to D-1188.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records implementation PR merge, post-merge check proof, closeout mutation boundary, and restored NA-0599 successor.
+  - **References:** NA-0598; NA-0599; D-1188; D-1187; qsl-protocol PR #1470; qsl-protocol merge `e35a61ccea19`; qsl-protocol head `aee54ba3fa51`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0598_closeout_restore_na0599_testplan.md`

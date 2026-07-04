@@ -33529,7 +33529,7 @@ relay boundary fix successor.
 ---
 
 ### NA-0598 — QSL qsl-server Exact 4 MiB Relay Boundary Fix Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33538,6 +33538,34 @@ Fix the artifact-backed qsl-server local relay behavior affecting the exact
 source/test paths and create a qsl-server PR. Stop before route/auth/storage/
 protocol semantic changes or dependency/lockfile mutation unless explicitly
 authorized.
+
+Implementation note:
+- D-1187 accepted result `QSL_SERVER_EXACT_4MIB_RELAY_BOUNDARY_FIX_PASS`.
+  qsl-server PR #59 merged a bounded plus-one queue/resource fix that allows
+  the exact 4 MiB legacy data chunks plus manifest while preserving beyond-bound
+  rejection, auth/route isolation, fail-closed behavior, and metadata-only
+  logging. qsl-protocol PR #1470 recorded the evidence and merged at
+  `e35a61ccea19`; post-merge public-safety and advisories completed success.
+
+---
+
+### NA-0599 — QSL Remote / Tailnet Full-Stack Reintroduction Readiness Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Plan and authorize the controlled reintroduction of remote/Tailnet full-stack
+testing after the local qsc/qsl-server/qsl-attachments path passed integration,
+adversarial/metadata stress, seed-fallback hardening, exact 4 MiB boundary
+diagnostics, and qsl-server exact 4 MiB relay-boundary fix. Codex must separate
+local correctness evidence from remote reachability, identify exact remote/
+Tailnet/GitHub-runner constraints, define whether operator Tailscale/OAuth/secret
+setup is required, design redacted DNS/TCP/TLS/HTTP/relay/attachment diagnostics,
+preserve no private endpoint/token/topology publication, and select the first
+bounded remote verification successor. Codex must not mutate Tailscale,
+Cloudflare, public DNS, GitHub secrets, workflows, remote hosts, qsl-server
+deployment, or qsl-attachments deployment unless a later exact directive
+authorizes that action.
 
 ---
 

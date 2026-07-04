@@ -33620,7 +33620,7 @@ Implementation note:
 ---
 
 ### NA-0601 — QSL Remote / Tailnet Operator Setup Completion Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33631,6 +33631,61 @@ setup. Codex may later review only safe proof classes. No Codex Tailnet command,
 GitHub secret mutation, remote action, workflow dispatch, DNS/Cloudflare change,
 deployment mutation, private-material publication, or public/production/
 security-completion claim is authorized.
+
+Implementation note:
+- D-1193 accepted result
+  `TAILNET_OPERATOR_SETUP_DEFERRED_LAN_PIVOT_SELECTED`.
+  NA-0601 consumed D532/D-1191/D-1192, verified fresh qwork proof, recorded the
+  operator decision to defer Tailnet/GitHub-runner setup for now, selected a
+  two-machine private-LAN full-stack readiness pivot, classified LAN topology
+  and access models, defined the operator/Codex boundary, redacted future LAN
+  diagnostic classes, LAN readiness matrix, and security/metadata/claim
+  boundaries, and selected NA-0602 as the LAN readiness successor. qsl-protocol
+  PR #1476 merged at `7ddd49799186`; post-merge public-safety and advisories
+  completed success. No LAN runtime test, remote action, Tailscale action,
+  workflow mutation/dispatch, GitHub secret/variable mutation, DNS/Cloudflare
+  mutation, deployment mutation, source mutation, dependency/lockfile mutation,
+  or private-material publication occurred.
+
+---
+
+### NA-0602 — QSL LAN Full-Stack Reintroduction Readiness Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Plan the first two-machine private-LAN full-stack verification after local
+single-machine qsc/qsl-server/qsl-attachments success and the operator decision
+to defer Tailnet. The intended topology is operator laptop as qsc client and
+build server as qsl-server plus qsl-attachments host on a private home LAN.
+Codex must inventory LAN host roles, operator/Codex responsibilities, service
+bind classes, proof-root storage/logging, non-secret fixture policy, redacted
+diagnostics, cleanup/rollback, and private-material boundaries. Codex must not
+run LAN verification in this lane unless a later directive explicitly
+authorizes it. No Tailnet, public endpoint, GitHub runner, DNS, Cloudflare,
+workflow dispatch, remote-public exposure, dependency/lockfile mutation,
+qsc/qsl-server/qsl-attachments source mutation, or public/production/
+security-completion claim is authorized.
+
+Allowed NA-0602 scope:
+- docs/governance/evidence/NA-0602_lan_full_stack_reintroduction_readiness_harness.md
+- tests/NA-0602_lan_full_stack_reintroduction_readiness_testplan.md
+- DECISIONS.md
+- TRACEABILITY.md
+- docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+- read-only qsc/qsl-server/qsl-attachments source/docs/workflows as needed
+- proof-root-only LAN readiness plans and redaction checklists
+
+Forbidden NA-0602 scope:
+- running actual LAN send/receive verification unless the next directive
+  explicitly authorizes it
+- SSH to laptop unless explicitly authorized
+- Tailnet/Tailscale
+- GitHub workflow dispatch/rerun
+- public endpoint/DNS/Cloudflare
+- source/dependency/lockfile mutation
+- private endpoint/port/token/capability/publication
+- public/production/security-completion claims
 
 ---
 

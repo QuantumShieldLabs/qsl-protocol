@@ -32190,3 +32190,34 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0601 Tailnet setup deferral, LAN pivot selection, and NA-0602 successor selection to D-1193.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records proof gates, recoveries, review summaries, classification, selected successor, validation, and boundaries.
   - **References:** NA-0601; selected future NA-0602; D-1193; D-1192; D-1191; D532 response `/home/victor/work/qsl/codex/responses/NA0600_remote_tailnet_operator_setup_proof_review_20260704T044356Z_D532.md`; qsl-protocol main `7217dd9a6265`; `docs/governance/evidence/NA-0601_tailnet_setup_deferral_lan_full_stack_pivot_harness.md`; `tests/NA-0601_tailnet_setup_deferral_lan_full_stack_pivot_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1194
+  - **Title:** NA-0601 closeout and NA-0602 restoration
+  - **Date:** 2026-07-04
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0601 closeout consumes D-1193 and qsl-protocol PR #1476, which merged at `7ddd49799186` from implementation branch `na-0601-tailnet-deferral-lan-pivot` with implementation commit `8dd6a212ff40`. D-1193 exists once and is Accepted. D-1193 selected result classification `TAILNET_OPERATOR_SETUP_DEFERRED_LAN_PIVOT_SELECTED` and exact successor `NA-0602 -- QSL LAN Full-Stack Reintroduction Readiness Harness`. PR #1476 post-merge public-safety completed success. PR #1476 post-merge advisories completed success. No failed required checks remain. NA-0601 is marked DONE, and NA-0602 is restored as exactly one READY successor.
+  - **Selected successor restored:** NA-0602 is READY with Goals G1, G2, G3, G4, G5. It must plan the first two-machine private-LAN full-stack verification after local single-machine qsc/qsl-server/qsl-attachments success and the operator decision to defer Tailnet. It must inventory LAN host roles, operator/Codex responsibilities, service bind classes, proof-root storage/logging, non-secret fixture policy, redacted diagnostics, cleanup/rollback, and private-material boundaries. It must not run LAN verification unless a later directive explicitly authorizes it.
+  - **Closeout proof:** Local main was fast-forwarded to origin/main at `7ddd49799186` after PR #1476 merge. Worktree, index, and untracked state were clean before closeout edits. Pre-closeout proof verified READY_COUNT 1 with READY NA-0601, D-1193 once, D-1194 absent, and duplicate decision count zero. PR #1476 post-merge check proof verified public-safety success, advisories success, no failed attached check-runs, no pending attached check-runs, and no failed required checks after bounded REST polling.
+  - **Boundary proof:** Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0601_closeout_restore_na0602_testplan.md`. No NA-0602 implementation occurred. No LAN runtime test occurred. No qsc source/test mutation occurred in closeout. No qsl-server mutation occurred in closeout. No qsl-attachments mutation or runtime action occurred in closeout. No remote action, SSH, scp, Tailscale action, workflow dispatch, workflow rerun, GitHub secret/variable mutation, DNS mutation, Cloudflare mutation, sudo, systemd, firewall, public-site, or deployment action occurred. No dependency or lockfile mutation occurred. No private material was published.
+  - **Security and publication invariants:**
+    - D-1193 remains the accepted NA-0601 pivot decision.
+    - NA-0601 is DONE.
+    - NA-0602 is the only READY item after closeout.
+    - NA-0602 is not implemented by this closeout.
+    - No endpoint values, private port values, hostnames, topology details beyond classes, token values, Authorization values, capability values, payload/body/plaintext content, ciphertext bodies, seed values, key material, raw command lines, raw logs, raw artifacts, or private material are published.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No remote-ready claim is made.
+    - No Tailnet-ready claim is made.
+    - No LAN-ready overclaim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No crypto-complete claim is made.
+    - No attachment-complete claim is made.
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0601 DONE and restores NA-0602 READY using the exact D-1193-selected LAN full-stack reintroduction readiness successor block.
+    - `tests/NA-0601_closeout_restore_na0602_testplan.md` records closeout validation markers.
+    - `TRACEABILITY.md` maps NA-0601 closeout and NA-0602 restoration to D-1194.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records implementation PR merge, post-merge check proof, closeout mutation boundary, and restored NA-0602 successor.
+  - **References:** NA-0601; NA-0602; D-1194; D-1193; qsl-protocol PR #1476; qsl-protocol merge `7ddd49799186`; qsl-protocol head `8dd6a212ff40`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0601_closeout_restore_na0602_testplan.md`

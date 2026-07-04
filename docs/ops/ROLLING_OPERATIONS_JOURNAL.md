@@ -41595,3 +41595,24 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - NA-0597 is marked DONE. NA-0598 is restored as exactly one READY successor using the D-1185-selected qsl-server exact 4 MiB relay boundary fix block.
 - Closeout mutated only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0597_closeout_restore_na0598_testplan.md`.
 - No NA-0598 implementation, qsc source/test mutation, qsl-server mutation, qsl-attachments mutation/runtime action, remote action, Tailscale action, workflow dispatch/rerun, dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork/qstart/qresume execution, or private-material publication occurred.
+
+## 2026-07-04 — NA-0598 qsl-server exact 4 MiB relay boundary fix
+
+- Directive: QSL-DIR-2026-07-03-530, NA-0598.
+- Fresh qwork proof verified from `2026-07-03T22:13:30Z`; live pre-fetch `HEAD`/`origin/main` matched `aeb11a3d1813`.
+- D-1185 and D-1186 were consumed once and Accepted; NA-0598 was the sole READY item.
+- Current main health passed before mutation: public-safety success, advisories success, suite2-vectors success/satisfied, no failed or pending attached checks, root cargo audit success, nested qsc fuzz cargo audit success, locked metadata success, and Cargo drift absent.
+- qsl-server source review classified queue behavior as `QSL_SERVER_QUEUE_DEPTH_MODEL_CONFIGURED`; the 256-item default/ceiling fit exact 4 MiB data chunks but not the manifest.
+- qsl-server reproduction classified the bug as `QSL_SERVER_EXACT_4MIB_QUEUE_FULL_REPRODUCED`.
+- Selected fix: bounded plus-one queue/resource capacity, preserving beyond-bound rejection and fail-closed auth/route behavior.
+- qsl-server PR #59 merged at `544edfd213ea` with implementation commit `560379da0262`; changed paths were `src/lib.rs`, `src/main.rs`, `README.md`, and NA-0598 tests under `tests/`.
+- qsl-server validation passed before patch, on the fix branch, and after merge: metadata, audit, fmt, tests, build, and clippy.
+- Local fixed-stack retest classified `EXACT_4MIB_QSL_SERVER_RELAY_FIX_LOCAL_PASS`: exact 4 MiB remained legacy in-message, qsl-attachments remained not used, qsl-server accepted data chunks plus manifest, and qsc receive/decrypt/validate completed.
+- Above-threshold controls classified `ABOVE_THRESHOLD_CONTROLS_AFTER_QSL_SERVER_FIX_PASS`: just-over-4 MiB and known-good 5 MiB used qsl-attachments and completed receive/decrypt/validate.
+- Resource/auth regression tests passed: queue and push burst remained bounded; missing/wrong bearer, wrong route token, route isolation, and empty pull after drain remained fail-closed; payload/plaintext logging was not observed.
+- Cleanup classified `QSL_SERVER_EXACT_4MIB_FIX_CLEANUP_DONE`; owned qsc, qsl-server, and qsl-attachments process counts were zero after the retest.
+- Result classification: `QSL_SERVER_EXACT_4MIB_RELAY_BOUNDARY_FIX_PASS`.
+- Selected successor: `NA-0599 -- QSL Remote / Tailnet Full-Stack Reintroduction Readiness Harness`.
+- Recovered failures were recorded proof-root-only for cargo-audit command shape, optional missing path discovery, qsl-server log-capture test structure, GitHub connector PR permission fallback, unsupported `gh pr view` field, qsc proof-harness handshake and marker classifiers, stale continuation state, and attachment-control marker classifier.
+- Wait-work included qsl-server queue/resource audit, qsl-server auth/route isolation audit, qsl-server plaintext/logging audit, exact 4 MiB legacy-send audit, qsc threshold/path-selection audit, qsl-attachments control audit, seed fallback hardening audit, metadata/private-material audit, governance consistency audit, and runtime progress classification.
+- No qsc source/test/script mutation, qsl-attachments mutation, qsl-protocol dependency/lockfile/workflow mutation, remote action, Tailscale action, workflow dispatch/rerun, deployment/service mutation, public-site mutation, Cloudflare mutation, qwork/qstart/qresume execution, or private-material publication occurred.

@@ -33650,7 +33650,7 @@ Implementation note:
 ---
 
 ### NA-0602 — QSL LAN Full-Stack Reintroduction Readiness Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33686,6 +33686,69 @@ Forbidden NA-0602 scope:
 - source/dependency/lockfile mutation
 - private endpoint/port/token/capability/publication
 - public/production/security-completion claims
+
+Implementation note:
+- D-1195 accepted result `LAN_FULL_STACK_REINTRODUCTION_READINESS_SELECTED`.
+  NA-0602 consumed D533/D-1193/D-1194, verified fresh qwork proof, classified
+  LAN role/topology readiness, completed operator laptop and build-server
+  readiness plans, selected Model A for the first runtime lane, defined the
+  NA-0603 operator/Codex boundary, completed the redacted LAN tiny-message
+  diagnostic plan, reviewed security/metadata/claim boundaries, and selected
+  NA-0603 as the tiny-message qsc E2EE relay verification successor.
+  qsl-protocol PR #1478 merged at `bd08931e1549`; post-merge public-safety
+  and advisories completed success with no failed required checks. No LAN
+  runtime test, qsc LAN command, qsl-server startup, qsl-attachments runtime,
+  Codex SSH to laptop, laptop SSH server setup, second Codex on laptop, remote
+  action, Tailscale action, workflow mutation/dispatch, GitHub secret/variable
+  mutation, DNS/Cloudflare mutation, public-site mutation, deployment mutation,
+  source mutation, dependency/lockfile mutation, or private-material
+  publication occurred.
+
+---
+
+### NA-0603 — QSL LAN Minimal qsc E2EE Relay Verification Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Run the first private-LAN tiny-message qsc E2EE relay verification. Use the
+operator laptop as the qsc sender and receiver logical-client host, with the
+operator running exact laptop-side commands manually. Use the build server as
+qsl-server relay/control-plane host, with Codex authorized only for exact
+build-server service setup, proof-root logging, and cleanup. qsl-attachments is
+deferred. The lane must prove message delivery, receiver decrypt/validate,
+qsl-server plaintext exposure class, seed-fallback non-use class, metadata
+exposure class, and cleanup class. It must publish only class summaries; no raw
+LAN IP, private port, hostname, token, Authorization value, route token,
+capability, payload/body/plaintext, ciphertext body, seed, key material, raw
+command line, raw log, or topology value may be published. No Codex SSH to
+laptop, laptop SSH server setup, second Codex, Tailnet, GitHub workflow
+dispatch, public endpoint, qsc/qsl-server/qsl-attachments source mutation,
+dependency or lockfile mutation is authorized. No public-readiness claim is
+authorized. No production-readiness claim is authorized. No remote-ready claim
+is authorized. No LAN-ready overclaim is authorized. No security-completion
+claim is authorized.
+
+Allowed NA-0603 actions:
+- verify fresh qwork proof
+- start qsl-server on build server using private-LAN-safe bind class
+- use proof-root-only qsl-server logs
+- generate exact operator command templates with placeholders for laptop
+- receive operator-provided class-safe proof outputs
+- classify LAN tiny-message result
+- clean up build-server qsl-server process
+- write governance evidence/testplan
+
+Forbidden NA-0603 actions:
+- Codex SSH to laptop
+- installing/enabling SSH server on laptop
+- running commands on laptop by Codex
+- qsl-attachments runtime
+- Tailnet/Tailscale
+- workflow dispatch/rerun
+- public endpoint/DNS/Cloudflare
+- source/dependency/lockfile mutation
+- publishing private values
 
 ---
 

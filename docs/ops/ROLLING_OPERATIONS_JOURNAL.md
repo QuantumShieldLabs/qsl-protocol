@@ -41625,3 +41625,41 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - NA-0598 is marked DONE. NA-0599 is restored as exactly one READY successor using the D-1187-selected remote/Tailnet full-stack reintroduction readiness block.
 - Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0598_closeout_restore_na0599_testplan.md`.
 - No NA-0599 implementation, qsc source/test mutation, qsl-server mutation, qsl-attachments mutation/runtime action, remote action, Tailscale action, workflow dispatch/rerun, dependency/lockfile mutation, public-site mutation, Cloudflare mutation, qwork/qstart/qresume execution, or private-material publication occurred.
+
+## 2026-07-04 — NA-0599 remote / Tailnet full-stack reintroduction readiness
+
+- Directive: QSL-DIR-2026-07-04-531, NA-0599.
+- Begin timestamp (UTC): 2026-07-04T01:49:39Z.
+- Worktree path: `/srv/qbuild/work/NA-0599/qsl-protocol`.
+- Proof root: `/srv/qbuild/tmp/NA0599_remote_tailnet_full_stack_reintroduction_readiness_20260704T014939Z`.
+- Fresh qwork proof verified from `2026-07-04T01:41:11Z`; live pre-fetch `HEAD`/`origin/main` matched `2209126e3952`.
+- Disk watermark: root and backup filesystems were below the 95 percent stop threshold; `/backup/qsl` was mounted.
+- D-1187 and D-1188 were consumed once and Accepted; NA-0599 was the sole READY item; D-1189 and D-1190 were absent before mutation; duplicate decision count was zero.
+- Current main health passed before mutation: public-safety success, advisories success, suite2-vectors success, no failed or pending visible checks, root cargo audit success, nested qsc fuzz cargo audit success, locked metadata success, and Cargo drift absent.
+- D530 inheritance verified qsl-server PR #59 merged at `544edfd213ea`, qsl-protocol PR #1470 merged at `e35a61ccea19`, and qsl-protocol closeout PR #1471 merged at `2209126e3952`.
+- Local evidence summary classified qsc/qsl-server, qsl-attachments, true triple-ratchet, seed-fallback, exact 4 MiB diagnostics, and qsl-server exact 4 MiB relay-boundary fix evidence as supportive for planning but local-only for reachability.
+- Prior remote/Tailnet failure review found earlier service-unreachable, generic timeout, and DNS-timeout classes; local qsl-server correctness does not prove GitHub-runner or Tailnet reachability.
+- Workflow review found `remote-handshake-tests.yml` and `remote-relay-tests.yml`, both using GitHub-hosted runners and secret names `RELAY_URL` and `RELAY_TOKEN`.
+- GitHub metadata review observed secret names `RELAY_URL` and `RELAY_TOKEN` without values; no repository variables were observed; no secret values were accessed.
+- No Tailscale/Tailnet join step and no remote qsl-attachments workflow surface were found.
+- Access model matrix selected GitHub-hosted runner Tailnet join as the preferred future model pending operator setup proof.
+- Operator-owned actions were identified: Tailnet auth setup, GitHub secret/variable setup, service deployment/readiness, runner setup if later selected, DNS/Cloudflare/firewall/public exposure if later selected, private endpoint value handling, and privileged commands.
+- Codex-owned NA-0599 work remained read-only review, readiness documentation, redacted diagnostic design, classification, and scans.
+- Redacted diagnostic plan defined phase classes for Tailnet join, endpoint source, DNS, TCP, TLS-or-HTTP, qsl-server route shape, qsl-attachments shape, qsc remote handshake, qsc remote relay E2EE, and qsc remote attachment send/receive.
+- Readiness matrix: local qsc/qsl-server evidence pass; local qsl-attachments evidence pass; exact 4 MiB qsl-server fix pass; qsc seed fallback hardening pass; workflow diagnostics partial; Tailnet access operator_required; GitHub secrets/variables names_present; remote service deployment operator_required; redaction policy ready; first remote verification lane operator_setup_required.
+- Result classification: `REMOTE_TAILNET_REINTRODUCTION_READINESS_OPERATOR_SETUP_REQUIRED`.
+- Selected successor: `NA-0600 -- QSL Remote / Tailnet Operator Setup Proof Review Harness`.
+- Governance patch paths: NA-0599 evidence doc, NA-0599 testplan, `DECISIONS.md`, `TRACEABILITY.md`, and this journal.
+- Recovered validation issue RF-001: the first validation classifier treated the
+  new ignored evidence file and new testplan visibility as a scope failure.
+  Classification: recoverable proof-tooling classifier issue. Corrective action:
+  made the new allowed files visible to git diff with intent-to-add and reran
+  the scope classifier. Final result: PASS.
+- Recovered validation issue RF-002: the first overclaim classifier flagged
+  wrapped negated claim-boundary wording. Classification: recoverable
+  content-safety wording issue. Corrective action: rewrote NA-0599
+  claim-boundary wording so each restricted claim is explicitly negated. Final
+  result: PASS.
+- No remote action, SSH, scp, Tailscale action, workflow dispatch/rerun, GitHub secret/variable mutation, DNS mutation, Cloudflare mutation, public-site mutation, qsl-server deployment mutation, qsl-attachments deployment mutation, qsc source/test mutation, qsl-server source/test mutation, qsl-attachments source/test mutation, dependency/lockfile mutation, qwork/qstart/qresume execution, or private-material publication occurred.
+- No endpoint values, private port values, topology, route-token values, Authorization values, capability values, payload/body/plaintext, seed/key material, raw logs, raw artifacts, or private material are published.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No public-internet-readiness claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No crypto-complete claim is introduced. No attachment-complete claim is introduced.

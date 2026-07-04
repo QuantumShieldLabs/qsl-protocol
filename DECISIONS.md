@@ -32243,3 +32243,35 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0602 LAN readiness selection and NA-0603 successor selection to D-1195.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records proof gates, recoveries, review summaries, result classification, selected successor, validation, and boundaries.
   - **References:** NA-0602; selected future NA-0603; D-1195; D-1194; D-1193; D533 response `/home/victor/work/qsl/codex/responses/NA0601_tailnet_setup_deferral_lan_full_stack_pivot_20260704T153726Z_D533.md`; qsl-protocol main `f766a53a4cde`; `docs/governance/evidence/NA-0602_lan_full_stack_reintroduction_readiness_harness.md`; `tests/NA-0602_lan_full_stack_reintroduction_readiness_testplan.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1196
+  - **Title:** NA-0602 closeout and NA-0603 restoration
+  - **Date:** 2026-07-04
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0602 closeout consumes D-1195 and qsl-protocol PR #1478, which merged at `bd08931e1549` from implementation branch `na-0602-lan-full-stack-reintroduction-readiness` with implementation commit `370954b4e255`. D-1195 exists once and is Accepted. D-1195 selected result classification `LAN_FULL_STACK_REINTRODUCTION_READINESS_SELECTED` and exact successor `NA-0603 -- QSL LAN Minimal qsc E2EE Relay Verification Harness`. PR #1478 post-merge public-safety completed success. PR #1478 post-merge advisories completed success. No failed required checks remain. NA-0602 is marked DONE, and NA-0603 is restored as exactly one READY successor.
+  - **Selected successor restored:** NA-0603 is READY with Goals G1, G2, G3, G4, G5. It must run the first private-LAN tiny-message qsc E2EE relay verification with the operator laptop as qsc sender and receiver logical-client host and the build server as qsl-server relay/control-plane host. The operator runs laptop-side commands manually. Codex may later control only exact build-server qsl-server service setup, proof-root logging, cleanup, placeholder command templates, class-safe proof parsing, and governance evidence when NA-0603 explicitly authorizes it. qsl-attachments is deferred.
+  - **Closeout proof:** Local main was fast-forwarded to origin/main at `bd08931e1549` after PR #1478 merge. Worktree, index, and untracked state were clean before closeout edits. Pre-closeout proof verified READY_COUNT 1 with READY NA-0602, D-1195 once, D-1196 absent, D-1197 absent, and duplicate decision count zero. PR #1478 post-merge check proof verified public-safety success, advisories success, suite2-vectors success, no failed attached check-runs, no pending attached check-runs, and no failed required checks after bounded REST polling.
+  - **Boundary proof:** Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0602_closeout_restore_na0603_testplan.md`. No NA-0603 implementation occurred. No LAN runtime test occurred. No qsc LAN command was run. No qsl-server startup occurred. No qsl-attachments runtime occurred. No qsc source/test mutation occurred in closeout. No qsl-server mutation occurred in closeout. No qsl-attachments mutation occurred in closeout. No remote action, SSH, scp, Tailscale action, workflow dispatch, workflow rerun, GitHub secret/variable mutation, DNS mutation, Cloudflare mutation, sudo, systemd, firewall, public-site, or deployment action occurred. No dependency or lockfile mutation occurred. No private material was published.
+  - **Security and publication invariants:**
+    - D-1195 remains the accepted NA-0602 LAN readiness decision.
+    - NA-0602 is DONE.
+    - NA-0603 is the only READY item after closeout.
+    - NA-0603 is not implemented by this closeout.
+    - No endpoint values, private port values, hostnames, topology details beyond classes, token values, Authorization values, capability values, payload/body/plaintext content, ciphertext bodies, seed values, key material, raw command lines, raw logs, raw artifacts, or private material are published.
+    - No public-readiness claim is made.
+    - No production-readiness claim is made.
+    - No remote-ready claim is made.
+    - No Tailnet-ready claim is made.
+    - No LAN-ready overclaim is made.
+    - No vulnerability-free claim is made.
+    - No bug-free claim is made.
+    - No crypto-complete claim is made.
+    - No attachment-complete claim is made.
+    - No metadata-free, anonymity, or untraceability claim is made.
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0602 DONE and restores NA-0603 READY using the exact D-1195-selected LAN minimal qsc E2EE relay verification successor block.
+    - `tests/NA-0602_closeout_restore_na0603_testplan.md` records closeout validation markers.
+    - `TRACEABILITY.md` maps NA-0602 closeout and NA-0603 restoration to D-1196.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records implementation PR merge, post-merge check proof, closeout mutation boundary, and restored NA-0603 successor.
+  - **References:** NA-0602; NA-0603; D-1196; D-1195; qsl-protocol PR #1478; qsl-protocol merge `bd08931e1549`; qsl-protocol head `370954b4e255`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0602_closeout_restore_na0603_testplan.md`

@@ -33866,7 +33866,7 @@ Publish only class summaries and no private values.
 ---
 
 ### NA-0607 — QSL LAN Minimal qsl-attachments Send / Receive via SSH Local-Forward Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33883,6 +33883,28 @@ server setup, no second Codex, no Tailnet, no workflow dispatch, no public
 endpoint, no source/dependency/lockfile mutation, and no
 public/production/remote/Tailnet claim is authorized. No LAN-ready claim is
 authorized. No security-completion claim is authorized.
+
+---
+
+### NA-0608 — QSL LAN qsl-attachments Hostile Analyst / Metadata and Fail-Closed Adversarial Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Stress and analyze the working LAN qsl-attachments SSH loopback-forward path
+under a hostile analyst model. Assume an attacker can read the protocol/code,
+operate or observe relay/storage metadata, collect timing/size/object/route
+patterns, and send malformed/adversarial traffic. Run selected LAN-safe
+attachment negatives: wrong capability, missing capability, corrupted
+descriptor, corrupted object, wrong route, wrong peer if supported,
+missing/deleted object if supported, replay-like duplicate, qsl-server log
+review, qsl-attachments log/storage review, qsc local state/log review, seed
+fallback regression check, metadata minimization matrix, cleanup, and
+no-private-material publication. Codex may use ssh qscremote only as qscwork,
+within bounded qscwork workspace, with no sudo, no broad laptop scan, no
+personal file access, no Tailnet, no public endpoint, no workflow dispatch, and
+no source/dependency/lockfile mutation unless a later directive explicitly
+authorizes an exact safe fix.
 
 ---
 

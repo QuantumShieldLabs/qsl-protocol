@@ -33771,12 +33771,77 @@ Implementation note:
 ---
 
 ### NA-0604 — QSL LAN Operator Laptop qsc Readiness Follow-Up Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
 Guide and review operator-owned laptop qsc readiness proof for the minimal LAN
 tiny-message test. Codex must not run laptop commands or publish private values.
+
+Implementation note:
+- D-1199 accepted result `NA0604_QSC_TLS_REQUIRED_POLICY_CONFIRMED`.
+  PR #1482 merged at `2ed1d17d61d3`; post-merge public-safety,
+  advisories, suite2-vectors, qsc-adversarial-smoke, CodeQL visibility, and
+  goal-lint visibility were classified green with no failed required checks.
+  D-1200 closes NA-0604 and restores NA-0605 as the exact READY successor.
+  The current direct LAN HTTP non-loopback relay endpoint shape remains blocked
+  by qsc TLS-required policy, and that block is security-preserving. QSL/qsc is
+  the cryptographic/content protocol; HTTP, HTTPS, SSH local-forward, Tailnet,
+  and public internet paths are transport/carriage layers for opaque QSL/qsc
+  envelopes and relay/control APIs. No qsc source/test/fuzz mutation,
+  qsl-server mutation, qsl-attachments mutation/runtime action, LAN runtime
+  test, NA-0605 implementation, Codex SSH to laptop, laptop SSH server setup,
+  second Codex on laptop, Tailnet/Tailscale action, workflow dispatch/rerun,
+  GitHub secret/variable mutation, public endpoint, DNS/Cloudflare/public-site
+  mutation, dependency/lockfile mutation, or private-material publication
+  occurred.
+
+---
+
+### NA-0605 — QSL LAN Minimal qsc E2EE Relay Verification via Operator SSH Local-Forward Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Run the first private-LAN tiny-message qsc E2EE relay verification while
+preserving qsc’s TLS-required policy. Use operator-owned SSH local-forward from
+the laptop to the build server so qsc on the laptop sees an HTTP loopback relay
+endpoint while the LAN carriage is protected by SSH. The build server runs
+qsl-server as relay/control-plane only with proof-root logs and non-secret
+fixtures. The operator runs exact laptop-side commands manually; Codex does not
+SSH to the laptop, does not install a laptop SSH server, and does not run a second
+Codex on the laptop. qsl-attachments remains deferred. The lane must prove or
+classify tiny-message send, receive/decrypt/validate, qsl-server plaintext
+exposure, seed-fallback non-use, metadata exposure, and cleanup. It must publish
+only class summaries and no raw LAN IP, private port, hostname, token,
+Authorization value, route token, capability, payload/body/plaintext, ciphertext
+body, seed, key material, raw command line, raw log, or topology value. No qsc,
+qsl-server, qsl-attachments source mutation, dependency/lockfile mutation,
+Tailnet, workflow dispatch, public endpoint, DNS, Cloudflare, public-site
+mutation, or public/production/security-completion claim is authorized.
+
+Allowed NA-0605 actions:
+- verify fresh qwork proof;
+- validate qsl-server build-server readiness;
+- start qsl-server on build server using loopback or private-LAN-safe bind
+  class appropriate for SSH local-forward;
+- create operator packet for laptop-side SSH local-forward and qsc commands;
+- receive class-safe operator proof;
+- classify tiny-message LAN result;
+- clean up build-server qsl-server process;
+- write governance evidence/testplan.
+
+Forbidden NA-0605 actions:
+- Codex SSH to laptop;
+- installing/enabling laptop SSH server;
+- second Codex on laptop;
+- qsl-attachments runtime;
+- Tailnet/Tailscale;
+- GitHub workflow dispatch/rerun;
+- public endpoint/DNS/Cloudflare;
+- qsc/qsl-server/qsl-attachments source mutation;
+- dependency/lockfile mutation;
+- private value publication.
 
 ---
 

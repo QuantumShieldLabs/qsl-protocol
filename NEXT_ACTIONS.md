@@ -33799,7 +33799,7 @@ Implementation note:
 ---
 
 ### NA-0605 — QSL LAN Minimal qsc E2EE Relay Verification via Operator SSH Local-Forward Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33842,6 +33842,26 @@ Forbidden NA-0605 actions:
 - qsc/qsl-server/qsl-attachments source mutation;
 - dependency/lockfile mutation;
 - private value publication.
+
+---
+
+### NA-0606 — QSL LAN Tiny-Message Hostile Analyst / Metadata and Fail-Closed Adversarial Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Stress and analyze the first working LAN SSH-forward tiny-message qsc E2EE relay
+path under a hostile analyst model. Assume an attacker can read the protocol and
+code, observe relay metadata, collect timing/size/route metadata, and send
+malformed or adversarial traffic. Run selected LAN-safe negatives: wrong route,
+wrong bearer or route token, wrong peer if supported, tampered envelope,
+malformed relay payload, stale/replay-like duplicate, missing state, empty pull
+after drain, qsl-server log review, qsc local state/log review, seed fallback
+regression check, metadata minimization matrix, and cleanup. No qsl-attachments
+yet. No Codex SSH to laptop, no laptop SSH server, no second Codex, no Tailnet,
+no workflow dispatch, no public endpoint, no source/dependency/lockfile
+mutation unless a later directive explicitly authorizes an exact safe fix.
+Publish only class summaries and no private values.
 
 ---
 

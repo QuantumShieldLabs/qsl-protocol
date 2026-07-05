@@ -41883,6 +41883,18 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No endpoint values, private port values, hostnames, topology values, token values, Authorization values, route-token values, bearer values, capability values, payload/body/plaintext, ciphertext bodies, seed/key material, raw command lines, raw logs, process identities, raw artifacts, or private material are published.
 - No public-readiness claim is introduced. No production-readiness claim is introduced. No remote-ready claim is introduced. No Tailnet-ready claim is introduced. No LAN-ready overclaim is introduced. No direct HTTPS LAN readiness claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No crypto-complete claim is introduced. No attachment-complete claim is introduced. No side-channel-free, metadata-free, anonymity, untraceability, formal-proof-complete, or external-review-complete claim is introduced.
 
+## 2026-07-05 -- NA-0606 closeout and NA-0607 restoration
+
+- Directive: QSL-DIR-2026-07-05-538, optional closeout.
+- Implementation PR #1486 merged at `222f0c2dde76` from head `b1b13114e269`; public-safety, advisories, suite2-vectors, qsc-adversarial-smoke, and CodeQL completed success with no failed required checks.
+- Post-merge proof verified local main equals origin/main at `222f0c2dde76`, worktree clean, D-1203 once, D-1204 absent before closeout, READY_COUNT 1, READY NA-0606, public-safety success, advisories success, suite2-vectors success, qsc-adversarial-smoke success, CodeQL success, and no failed required checks.
+- D-1203 exists once and is Accepted; D-1204 records closeout and NA-0607 restoration.
+- NA-0606 is marked DONE. NA-0607 is restored as exactly one READY successor using the D-1203-selected qsl-attachments minimal send/receive via SSH local-forward harness block.
+- Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0606_closeout_restore_na0607_testplan.md`.
+- No NA-0607 implementation, qsl-attachments runtime, qsc source/test/fuzz mutation, qsl-server source/test mutation, qsl-attachments source/test mutation, workflow mutation, dependency/lockfile mutation, Codex SSH to laptop, laptop SSH server setup, second Codex on laptop, Tailnet/Tailscale action, workflow dispatch/rerun, GitHub secret/variable mutation, public endpoint, DNS/Cloudflare/public-site/deployment mutation, qwork/qstart/qresume execution by Codex, or private-material publication occurred.
+- No endpoint values, private port values, hostnames, topology values, token values, Authorization values, route-token values, bearer values, capability values, payload/body/plaintext, ciphertext bodies, seed/key material, raw command lines, raw logs, process identities, raw artifacts, or private material are published.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No remote-ready claim is introduced. No Tailnet-ready claim is introduced. No LAN-ready overclaim is introduced. No direct HTTPS LAN readiness claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced. No crypto-complete claim is introduced. No attachment-complete claim is introduced.
+
 ## 2026-07-05 -- NA-0605 closeout and NA-0606 restoration
 
 - Directive: QSL-DIR-2026-07-05-537, optional closeout.

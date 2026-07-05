@@ -33846,7 +33846,7 @@ Forbidden NA-0605 actions:
 ---
 
 ### NA-0606 — QSL LAN Tiny-Message Hostile Analyst / Metadata and Fail-Closed Adversarial Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -33862,6 +33862,27 @@ yet. No Codex SSH to laptop, no laptop SSH server, no second Codex, no Tailnet,
 no workflow dispatch, no public endpoint, no source/dependency/lockfile
 mutation unless a later directive explicitly authorizes an exact safe fix.
 Publish only class summaries and no private values.
+
+---
+
+### NA-0607 — QSL LAN Minimal qsl-attachments Send / Receive via SSH Local-Forward Harness
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Run the first private-LAN qsl-attachments send/receive verification after the
+LAN tiny-message qsc E2EE relay path passed and hostile tiny-message negatives
+were classified. Use operator laptop qsc sender/receiver logical states, build
+server qsl-server relay/control-plane, and build server qsl-attachments opaque
+storage. Use SSH local-forward transport as needed so qsc endpoint policy
+remains intact. Verify qsc-owned encryption/decryption, qsl-server plaintext
+exposure class, qsl-attachments plaintext/key exposure class, attachment
+fetch/decrypt/validate class, seed-fallback non-use, metadata exposure, and
+cleanup. Publish only class summaries. No Codex SSH to laptop, no laptop SSH
+server setup, no second Codex, no Tailnet, no workflow dispatch, no public
+endpoint, no source/dependency/lockfile mutation, and no
+public/production/remote/Tailnet claim is authorized. No LAN-ready claim is
+authorized. No security-completion claim is authorized.
 
 ---
 

@@ -33972,7 +33972,9 @@ divergence). Consumes D-1213. NA-0609 remains the sole READY item and begins at 
 ---
 
 ### NA-0609C — Constant-Time Handshake MAC Comparison Hardening (ENG-0003)
-Status: IN_PROGRESS
+Status: DONE
+Closeout note:
+- Executed under directive D544; consumes D-1214 (implementation, qsl-protocol PR #1497 merged `1c1c808fbb2e`) and D-1215 (this closeout). Result `CONSTANT_TIME_HANDSHAKE_MAC_COMPARE_HARDENED`; ledger ENG-0003 closed. Timing-only change to `handshake/mod.rs`; all handshake suites + new unit tests + full CI (qsc-adversarial, ci-4a-4d, CodeQL, suite2, advisories) green. NA-0609 remains the sole READY item.
 Goals: G1, G2, G3, G4, G5
 
 Objective:

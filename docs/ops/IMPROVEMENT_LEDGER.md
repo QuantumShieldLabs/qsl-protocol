@@ -105,7 +105,14 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 
 ### ENG-0003 — Non-constant-time keyed-MAC comparisons in the handshake accept path
 - Severity: P3 (implementation-attack surface; low current exploitability)
-- Status: open — originating lane NA-0609B (D-1213); last-updated 2026-07-06
+- Status: done — remediated by NA-0609C (D-1214); last-updated 2026-07-06
+- Resolution (NA-0609C): added a dependency-free constant-time 32-byte helper
+  `hs_ct_eq_32` in handshake/mod.rs and used it at both MAC-comparison sites
+  (:1458 B1 transcript MAC, :1665 A2 confirm MAC); timing-only, accept/reject
+  semantics bit-for-bit unchanged; proven by a co-located unit test (equivalence
+  to `==`) and the existing handshake suites passing. Residual: other tag/MAC
+  comparison sites outside the handshake seam are not in scope and remain future
+  work if a review finds them.
 - Exact surfaces: `qsl/qsl-client/qsc/src/handshake/mod.rs:1458` (B1 transcript
   MAC) and `:1665` (A2 confirm MAC); no constant-time equality helper exists in the
   qsc or refimpl crypto stack.
@@ -168,3 +175,19 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Recommended change: a Director triage discipline (in `docs/ops/DIRECTOR_OPERATIONS.md`)
   requiring each Director turn to read this ledger and the DOC-PROG-001 gates and
   justify successor selection against them. Resolved by NA-0609A.
+
+### WF-0004 — Consecutive lanes in the same NA workspace get a stale qwork proof
+- Status: open — originating lane NA-0609C (D-1214); last-updated 2026-07-06
+- Problem: when a second lane reuses an existing NA workspace, re-running the
+  operator startup gate (`qwork`) returns the cached proof from the earlier run
+  rather than regenerating it, so the proof `head`/timestamp name a superseded
+  commit while live `origin/main` has advanced. Observed twice in one session
+  (before NA-0609B and before NA-0609C); each time the executor caught it fail-
+  closed by verifying the proof against live state and stopped.
+- Recommended change: for a new lane after any merge in the same NA workspace,
+  drop the disposable checkout before re-running the startup gate
+  (`drop_checkout.sh <lane> <repo>` then the startup gate), so a fresh checkout at
+  current `origin/main` with a fresh proof is minted. Add a one-line note to
+  `docs/ops/DIRECTOR_OPERATIONS.md` §5 (verified-state) capturing this, and/or a
+  startup-gate enhancement to refresh an existing checkout's proof.
+- Recommended directive shape: docs/process (a LITE lane) to add the runbook note.

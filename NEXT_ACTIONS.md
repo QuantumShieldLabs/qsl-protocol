@@ -33952,6 +33952,25 @@ READY successor and begins at D-1213.
 
 ---
 
+### NA-0609B — qsc Handshake and Identity Read-Only Security Audit
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+Lane class: LITE-CEREMONY (single PR, single decision D-1213) — certified read-only audit.
+
+Objective:
+Inserted read-only security audit lane (does NOT implement NA-0609; applies no
+fix). Executed under directive D543 per the NA-0609A Director triage discipline
+and DOC-AUD-001 §4.1 (highest-yield seam: qsc handshake execution + identity).
+Result `QSC_HANDSHAKE_IDENTITY_AUDIT_COMPLETE_NO_P0_P1_THREE_P3_HARDENING`: no P0/P1;
+the handshake seam verified sound on transcript binding, hybrid handshake + all-zero
+DH guard, fail-closed ML-DSA verify, downgrade/suite-context binding, dual-pin
+identity model, no-mutation-on-reject, atomic writes, and replay rejection. Three P3
+findings routed to the ledger (ENG-0003 non-constant-time MAC comparisons; ENG-0004
+directory-fsync no-op; ENG-0001 resolved-into-finding: silent `--as` self-label
+divergence). Consumes D-1213. NA-0609 remains the sole READY item and begins at D-1214.
+
+---
+
 ### NA-0609 — QSL Hostile Analyst / Metadata Minimization and Implementation-Attack Hardening Plan
 Status: READY
 Goals: G1, G2, G3, G4, G5

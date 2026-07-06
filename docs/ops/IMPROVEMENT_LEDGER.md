@@ -60,8 +60,16 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 ## Engineering findings
 
 ### ENG-0001 — qsc identity/handshake verification-fingerprint semantics unclear
-- Severity: P3 (clarity/correctness; no demonstrated security downgrade)
-- Status: open — originating lane NA-0608 (D-1209); last-updated 2026-07-06
+- Severity: P3 (robustness/UX footgun; not an identity-binding defect)
+- Status: resolved-into-finding — audited by NA-0609B (D-1213); last-updated 2026-07-06
+- Resolution (NA-0609B): the verification-fingerprint model is COHERENT — the
+  primary pin is checked against the KEM identity fingerprint that `identity show`
+  displays, with the ML-DSA signing-key fingerprint as a separate optional pin;
+  there is no KEM-vs-SIG binding flaw. The residual is a P3 footgun: an
+  inconsistent `--as <label>` self-label silently operates a divergent
+  lazily-created identity instead of failing loud. Minimal fix: fail loud on an
+  unknown self label, and/or document the single-self-label convention. See the
+  NA-0609B evidence doc.
 - Exact surfaces: `qsl/qsl-client/qsc/src/identity/mod.rs`,
   `qsl/qsl-client/qsc/src/handshake/mod.rs` (identity-show fingerprint vs the
   handshake peer-verify path; `--as <label>` self-identity selection)
@@ -94,6 +102,41 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Proof gap: no documented/tested statement of multi-send-per-session behavior.
 - Recommended directive shape: docs/evidence-only clarification, or a small audit
   follow-on within the attachment hardening track (NA-0609).
+
+### ENG-0003 — Non-constant-time keyed-MAC comparisons in the handshake accept path
+- Severity: P3 (implementation-attack surface; low current exploitability)
+- Status: open — originating lane NA-0609B (D-1213); last-updated 2026-07-06
+- Exact surfaces: `qsl/qsl-client/qsc/src/handshake/mod.rs:1458` (B1 transcript
+  MAC) and `:1665` (A2 confirm MAC); no constant-time equality helper exists in the
+  qsc or refimpl crypto stack.
+- Claim potentially at stake: defense-in-depth constant-time MAC/tag verification
+  (implementation-attack resistance; G5-adjacent hardening).
+- Why it matters: array `!=` short-circuits and is not constant-time; a precise
+  timing oracle could in principle aid MAC forgery. Exploitability is LOW here
+  (acceptance also requires a valid ML-DSA signature; keys are fresh per handshake),
+  but the pattern is systematic and constant-time comparison is standard hygiene.
+- Minimal fix direction: add a constant-time fixed-length comparison helper and use
+  it at both sites; audit for other tag comparisons.
+- Proof gap: no test asserts constant-time comparison for handshake MAC/tag paths.
+- Recommended directive shape: implementation-only; natural first item for the
+  NA-0609 implementation-attack hardening batch.
+
+### ENG-0004 — Directory fsync is a no-op; atomic-rename durability not guaranteed
+- Severity: P3 (crash-durability; fail-closed-safe direction)
+- Status: open — originating lane NA-0609B (D-1213); last-updated 2026-07-06
+- Exact surfaces: `qsl/qsl-client/qsc/src/fs_store/mod.rs:359`
+  (`fsync_dir_best_effort` is empty), called after the rename in `write_atomic`.
+- Claim potentially at stake: G2 crash-safe state persistence.
+- Why it matters: file content is written atomically (temp + `sync_all` + rename),
+  so no partial/corrupt file is possible, but the directory entry from the rename
+  is not fsync'd, so a power-loss crash right after a store can revert to the prior
+  state. Direction is fail-closed-safe (revert → re-handshake), but it is a real
+  gap against the G2 durability gate.
+- Minimal fix direction: implement a real directory fsync, or document the
+  durability boundary explicitly against G2 if deferred.
+- Proof gap: no crash/durability test exercises loss of the directory entry.
+- Recommended directive shape: implementation-only (or docs boundary statement),
+  scoped to fs_store.
 
 ---
 

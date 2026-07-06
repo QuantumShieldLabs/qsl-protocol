@@ -1,0 +1,37 @@
+{
+  "_comment": "Place at <repo>/.claude/settings.json (commit it) or ~/.claude/settings.json for machine-wide effect. Verify key names against the current Claude Code settings docs after install. Permissions deny rules are the second enforcement layer; the PreToolUse hook is the first.",
+  "permissions": {
+    "deny": [
+      "Bash(sudo:*)",
+      "Bash(qwork:*)",
+      "Bash(qstart:*)",
+      "Bash(qresume:*)",
+      "Bash(systemctl:*)",
+      "Bash(tailscale:*)",
+      "Bash(apt:*)",
+      "Bash(apt-get:*)",
+      "Bash(gh workflow run:*)",
+      "Bash(git push --force:*)",
+      "Bash(git rebase:*)",
+      "Read(~/.ssh/**)",
+      "Read(~/.config/gh/hosts.yml)",
+      "Write(Cargo.lock)",
+      "Write(.github/**)",
+      "Write(inputs/phase2/**)",
+      "Write(inputs/phase3/**)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/srv/qbuild/tools/claude/qsl_guardrails_hook.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

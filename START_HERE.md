@@ -198,6 +198,8 @@ Supporting artifact:
 1) Read this START_HERE.md.
 2) Read GOALS.md, AGENTS.md, PROJECT_CHARTER.md.
 3) Open NEXT_ACTIONS.md and identify the top-most item with Status = READY.
+4) Read docs/ops/IMPROVEMENT_LEDGER.md (DOC-OPS-007) — the cross-lane
+   engineering-findings and process-improvement backlog.
 
 ### Step 2 — Confirm scope and constraints
 Before touching code or docs, write down (in your working notes / PR description):

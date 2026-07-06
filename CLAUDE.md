@@ -19,6 +19,9 @@ addressed to "Codex" in this repository binds you identically when executing.
 7. docs/ops/DIRECTOR_OPERATIONS.md — directive template, counter rules, and
    standing conventions (formerly chat-held; now repo-backed)
 8. DECISIONS.md and TRACEABILITY.md — required updates for behavior changes
+9. docs/ops/IMPROVEMENT_LEDGER.md (DOC-OPS-007) — cross-lane engineering-findings
+   and process-improvement backlog; read during the Director phase and file or
+   update entries before closeout
 
 MUST READ project directive: docs/dev/DOC-DEV-003_Assistant_Operating_Rules_v1.0.0_DRAFT.md
 

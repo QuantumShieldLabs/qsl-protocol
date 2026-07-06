@@ -33909,8 +33909,10 @@ proof-root-only.
 ---
 
 ### NA-0608 — QSL LAN qsl-attachments Hostile Analyst / Metadata and Fail-Closed Adversarial Harness
-Status: READY
+Status: DONE
 Goals: G1, G2, G3, G4, G5
+Closeout note:
+- Implemented under directive D541 and Addendum A; consumes D-1209 (implementation, qsl-protocol PR #1492 merged `eb63edb8e29a`) and D-1210 (this closeout). Result `LAN_QSL_ATTACHMENTS_HOSTILE_ANALYST_FAIL_CLOSED_PASS` (loopback-harness variant); all hostile-analyst negatives fail-closed with zero plaintext, opaque ciphertext-only storage confirmed, seed fallback not used, metadata matrix classified. Successor NA-0609 restored below as the sole READY item.
 
 Objective:
 Stress and analyze the working LAN qsl-attachments SSH loopback-forward path
@@ -33927,6 +33929,28 @@ within bounded qscwork workspace, with no sudo, no broad laptop scan, no
 personal file access, no Tailnet, no public endpoint, no workflow dispatch, and
 no source/dependency/lockfile mutation unless a later directive explicitly
 authorizes an exact safe fix.
+
+---
+
+### NA-0609 — QSL Hostile Analyst / Metadata Minimization and Implementation-Attack Hardening Plan
+Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Turn the NA-0608 hostile-analyst findings into a bounded hardening PLAN (no
+protocol/wire/crypto/state-machine change without a later explicit lane). Cover
+traffic-analysis metadata (timing/size/object/route/peer), implementation-attack
+surface, relay and qsl-attachments compromise models, malformed
+envelope/descriptor/object test expansion, padding/bucketing feasibility,
+error/retry normalization, and external/formal-review readiness. Analysis and
+planning only; any concrete behavior change returns to governance for a separate
+implementation lane. Bounded qscwork LAN diagnostics/test action allowed only when
+a later directive explicitly authorizes exact tiers, host/workspace, command
+family, mutation paths, quarantine path, redaction policy, rollback, stop
+conditions, and claim boundaries. No source/dependency/lockfile/workflow mutation,
+no Tailnet, no public endpoint, no workflow dispatch, and no
+public/production/crypto-complete/attachment-complete/security-complete claim is
+authorized.
 
 ---
 

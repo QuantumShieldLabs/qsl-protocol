@@ -32571,3 +32571,20 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `NEXT_ACTIONS.md` inserts NA-0609A IN_PROGRESS while NA-0609 remains the sole READY item.
     - `TRACEABILITY.md` maps NA-0609A to D-1211; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the lane.
   - **References:** NA-0609A; NA-0609; NA-0608; D-1211; D-1210; D-1209; QSL-DIR-2026-07-06-542 (D542); DOC-OPS-007; DOC-OPS-006; DOC-PROG-001; DOC-AUD-001; `docs/ops/IMPROVEMENT_LEDGER.md`; `docs/ops/DIRECTOR_OPERATIONS.md`; `CLAUDE.md`; `START_HERE.md`; `AGENTS.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `docs/governance/evidence/NA-0609A_improvement_ledger_director_triage_lane_classes_harness.md`; `tests/NA-0609A_improvement_ledger_director_triage_lane_classes_testplan.md`
+
+- **ID:** D-1212
+  - **Title:** NA-0609A closeout; NA-0609 remains sole READY
+  - **Date:** 2026-07-06
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0609A closeout consumes D-1211 and qsl-protocol implementation PR #1494, which merged at `a179157be2a59a02b557c853b3b2420562038da4` from implementation branch `na-0609a-improvement-ledger-director-triage-lane-classes`. D-1211 exists once and is Accepted. Post-merge public-safety, advisories, suite2-vectors, goal-lint, and CodeQL completed success with no failed required checks. NA-0609A is marked DONE. NA-0609 remains exactly one READY successor and begins at D-1213.
+  - **Successor:** NA-0609 (QSL Hostile Analyst / Metadata Minimization and Implementation-Attack Hardening Plan) is the sole READY item, unchanged in scope by this lane. The new Director triage discipline (DOC-OPS-006 §8) and the improvement ledger (DOC-OPS-007) now inform its and every future lane's successor selection.
+  - **Closeout proof:** Local main was fast-forwarded to origin/main at `a179157be2a5` after PR #1494 merge. Worktree clean before closeout edits. Pre-closeout proof verified D-1211 once, D-1212 absent, READY_COUNT 1 with READY NA-0609 and NA-0609A IN_PROGRESS. Post-patch queue proof restores READY_COUNT 1 with READY NA-0609 and NA-0609A DONE.
+  - **Boundary proof:** Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0609A_closeout_testplan.md`. No NA-0609 implementation occurred. No qsc/qsl-server/qsl-attachments source, test, dependency, lockfile, or workflow mutation; no protocol behavior change; no `.claude/settings.json` or guardrail-hook edit; no qwork/qstart/qresume execution; no sudo/systemd/firewall/Tailnet action; no workflow dispatch/rerun; no branch-protection or repo-settings mutation; no runtime/LAN action.
+  - **Claim boundary:** No endpoint, private port, hostname, topology, token, capability, payload/plaintext, ciphertext body, seed, key material, personal path, raw command line, or raw log is published. No public-readiness, production-readiness, security-completion, crypto-complete, attachment-complete, vulnerability-free, or bug-free claim is made.
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0609A DONE and NA-0609 remains the sole READY item.
+    - `tests/NA-0609A_closeout_testplan.md` records closeout validation markers.
+    - `TRACEABILITY.md` maps NA-0609A closeout to D-1212.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the implementation PR merge, post-merge check proof, and closeout mutation boundary.
+  - **References:** NA-0609A; NA-0609; D-1212; D-1211; qsl-protocol PR #1494; qsl-protocol merge `a179157be2a5`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0609A_closeout_testplan.md`

@@ -42054,3 +42054,15 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No qsc/qsl-server/qsl-attachments source/test/dependency/lockfile/workflow mutation, no protocol behavior change, no `.claude/settings.json` or guardrail-hook edit, no qwork/qstart/qresume execution, no sudo/systemd/firewall/Tailnet action, no workflow dispatch/rerun, no branch-protection or repo-settings mutation, and no runtime/LAN action occurred.
 - No endpoint values, private port values, hostnames, topology values, token values, capability values, payload/body/plaintext, ciphertext bodies, seed/key material, raw command lines, raw logs, personal paths, or private material are published.
 - No public-readiness claim is introduced. No production-readiness claim is introduced. No remote-ready claim is introduced. No Tailnet-ready claim is introduced. No security-completion claim is introduced. No crypto-complete claim is introduced. No attachment-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced.
+
+## 2026-07-06 -- NA-0609A closeout
+
+- Directive: QSL-DIR-2026-07-06-542 (D542), optional closeout.
+- Implementation PR #1494 merged at `a179157be2a59a02b557c853b3b2420562038da4`; post-merge public-safety, advisories, suite2-vectors, goal-lint, and CodeQL completed success with no failed required checks.
+- Post-merge proof verified local main equals origin/main at `a179157be2a5`, worktree clean, D-1211 once, D-1212 absent before closeout, READY_COUNT 1 with READY NA-0609 and NA-0609A IN_PROGRESS.
+- D-1211 exists once and is Accepted; D-1212 records closeout.
+- NA-0609A is marked DONE. NA-0609 remains exactly one READY successor and begins at D-1213. The improvement ledger (DOC-OPS-007) and the Director triage discipline (DOC-OPS-006 §8) now inform every future lane's successor selection.
+- Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0609A_closeout_testplan.md`.
+- No NA-0609 implementation, qsc/qsl-server/qsl-attachments source/test/dependency/lockfile/workflow mutation, protocol behavior change, `.claude/settings.json` or guardrail-hook edit, qwork/qstart/qresume execution, sudo/systemd/firewall/Tailnet action, workflow dispatch/rerun, branch-protection or repo-settings mutation, or runtime/LAN action occurred in closeout.
+- No endpoint, private port, hostname, topology, token, capability, payload/plaintext, ciphertext body, seed/key material, personal path, raw command line, raw log, or private material is published.
+- No public-readiness claim is introduced. No production-readiness claim is introduced. No security-completion claim is introduced. No crypto-complete claim is introduced. No attachment-complete claim is introduced. No vulnerability-free claim is introduced. No bug-free claim is introduced.

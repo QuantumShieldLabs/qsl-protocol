@@ -33886,6 +33886,28 @@ authorized. No security-completion claim is authorized.
 
 ---
 
+### NA-0608A — Executor Transition: Claude Code Onboarding, Mechanical Guardrails, and Director Governance Backfill
+Status: IN_PROGRESS
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Inserted governance/tooling lane (G4 primary). Transition the executor seat
+from Codex to Claude Code with mechanical guardrails, migrate operational
+artifacts off the home directory, and backfill the formerly chat-held Director
+conventions into the repository as docs/ops/DIRECTOR_OPERATIONS.md
+(DOC-OPS-006). Install repo-root CLAUDE.md and committed .claude/settings.json
+so a PreToolUse guardrail hook plus permissions deny rules propagate through
+every disposable qwork lane checkout. Does not implement NA-0608; changes no
+qsc/qsl-server/qsl-attachments source, test, dependency, lockfile, or workflow;
+no protocol behavior change; no LAN/qscwork access; no renaming of legacy
+Codex-era files. Satellite repos qsl-server and qsl-attachments each receive a
+new pointer CLAUDE.md only. Consumes D-1207 (implementation) and D-1208
+(closeout); NA-0608 remains the sole READY successor and NA-0608 begins at
+D-1209. Publish class summaries only; raw private values remain
+proof-root-only.
+
+---
+
 ### NA-0608 — QSL LAN qsl-attachments Hostile Analyst / Metadata and Fail-Closed Adversarial Harness
 Status: READY
 Goals: G1, G2, G3, G4, G5

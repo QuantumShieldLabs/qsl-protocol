@@ -33932,6 +33932,24 @@ authorizes an exact safe fix.
 
 ---
 
+### NA-0609A — Cross-Lane Improvement Ledger, Director Triage Discipline, and Lane-Class Definitions
+Status: IN_PROGRESS
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Inserted governance/tooling lane (G4 primary). Does NOT implement NA-0609.
+Create the in-repo improvement ledger `docs/ops/IMPROVEMENT_LEDGER.md`
+(DOC-OPS-007), wire it into the mandatory reads (`CLAUDE.md`, `START_HERE.md`,
+`AGENTS.md`), add a Director triage discipline and two lane classes (wave, lite)
+to `docs/ops/DIRECTOR_OPERATIONS.md`, and seed the ledger with found items.
+Governance/docs only; no protocol/wire/crypto/state-machine change; no source,
+dependency, lockfile, or workflow mutation; no runtime or LAN/qscwork action; no
+`.claude/settings.json` or guardrail-hook edit. Executed under directive D542;
+consumes D-1211 (implementation) and D-1212 (closeout). NA-0609 remains the sole
+READY successor and begins at D-1213.
+
+---
+
 ### NA-0609 — QSL Hostile Analyst / Metadata Minimization and Implementation-Attack Hardening Plan
 Status: READY
 Goals: G1, G2, G3, G4, G5

@@ -208,3 +208,45 @@ live there.
 - Deferred until explicitly authorized: Tailnet/GitHub-runner, public
   endpoint/DNS/Cloudflare, self-hosted runner, laptop SSH server, second
   executor on laptop (not selected).
+
+## 8. Director triage discipline (mandatory)
+
+Every Director turn must, before drafting the directive:
+
+- read `docs/ops/IMPROVEMENT_LEDGER.md` (DOC-OPS-007) and the release gates in
+  `docs/program/DOC-PROG-001`; and
+- justify successor selection against them: either advance the highest actionable
+  ledger item (or the item that best closes a DOC-PROG-001 release gate), or
+  record in the directive/evidence why the current READY item takes precedence.
+
+This triage informs successor choice only. It never overrides `NEXT_ACTIONS.md`
+order authority, never reorders or promotes queue items implicitly, and never
+weakens a fail-closed gate. If the ledger and the queue disagree about priority,
+`NEXT_ACTIONS.md` wins and the ledger/roadmap is updated later. When a lane
+discovers a finding or process issue, the Director ensures a ledger entry is
+filed or updated before closeout (see `AGENTS.md`).
+
+## 9. Lane classes (optional, Director-declared)
+
+A directive MAY declare one of two reduced-ceremony classes. If none is declared,
+the full ritual applies (separate implementation and closeout PRs/decisions).
+
+- WAVE lane: one directive carries several bounded, related sub-items with shared
+  evidence and a single closeout (precedent: the NA-0217A–J modularization wave
+  and the NA-0235A paired set). All normal gates apply to each sub-item: scope
+  guard, decision IDs, validation defaults, claim boundaries, and evidence.
+
+- LITE-CEREMONY lane: for genuinely low-risk docs/process/read-only-audit work
+  ONLY, the implementation and closeout MAY be a single PR and a single decision
+  instead of two. It STILL requires operator-run qwork proof, a decision ID,
+  evidence + testplan, the exactly-one-READY invariant, the validation defaults,
+  bounded CI polling, and the claim boundaries.
+
+Hard boundary (fail-closed): neither class may be used for anything that touches
+protocol/wire/crypto/auth/state-machine or other security semantics,
+dependencies, lockfiles, workflows, branch protection, the public-safety or
+advisories gates, or any runtime/LAN/qscwork action. Those always use the full
+two-PR ritual. The Director must certify in the directive that the lane qualifies
+before using a reduced class; if qualification is uncertain, use the full ritual.
+These classes reduce ceremony only; they never reduce truthfulness, evidence, or
+fail-closed safety.

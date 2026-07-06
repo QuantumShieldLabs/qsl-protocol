@@ -111,6 +111,16 @@ This file governs automated assistants (including Codex) operating on this repos
 3. DECISIONS.md
 4. TRACEABILITY.md
 5. CHECKLIST_PROTOCOL_CHANGE.md (when relevant)
+6. docs/ops/IMPROVEMENT_LEDGER.md (DOC-OPS-007)
+
+## Improvement ledger discipline (mandatory)
+- Read `docs/ops/IMPROVEMENT_LEDGER.md` (DOC-OPS-007) in every lane.
+- Any lane that discovers an engineering finding or a workflow/process issue, or
+  advances/resolves an existing one, MUST file or update a ledger entry (with
+  status, originating/last lane, and last-updated) before closeout.
+- Ledger entries are class-only: no secrets, endpoints, tokens, capabilities,
+  keys, plaintext, or ciphertext bodies. The ledger is subordinate to the
+  governance spine and does not reorder or override `NEXT_ACTIONS.md`.
 
 ## Non-negotiable rules
 - Every change MUST advance at least one Goal ID (G1–G5) and MUST NOT regress others.

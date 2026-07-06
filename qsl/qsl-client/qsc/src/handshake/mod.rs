@@ -731,6 +731,18 @@ fn hs_session_id(label: &str) -> [u8; 16] {
     sid
 }
 
+// Constant-time equality for fixed-length 32-byte MAC/tag values. Bit-for-bit
+// equal to `a == b` for all inputs, but does not short-circuit on the first
+// differing byte, closing the handshake MAC-comparison timing side-channel
+// (ENG-0003). Accept/reject semantics and wire format are unchanged.
+fn hs_ct_eq_32(a: &[u8; 32], b: &[u8; 32]) -> bool {
+    let mut diff = 0u8;
+    for i in 0..32 {
+        diff |= a[i] ^ b[i];
+    }
+    diff == 0
+}
+
 fn hs_transcript_mac(pq_init_ss: &[u8; 32], a1: &[u8], b1_no_mac: &[u8]) -> [u8; 32] {
     let c = StdCrypto;
     let mut data = Vec::with_capacity(a1.len() + b1_no_mac.len());
@@ -1455,7 +1467,7 @@ fn perform_handshake_poll_with_tokens(
                             &active_suite_context,
                         );
                         let mac = hs_transcript_mac(&pq_init_ss, &a1, &b1_no_auth);
-                        if mac != resp.mac {
+                        if !hs_ct_eq_32(&mac, &resp.mac) {
                             if resp.suite_context.is_explicit() {
                                 let _ = hs_pending_clear(self_label, peer);
                                 hs_emit_suite_reject("REJECT_QSC_HS_TRANSCRIPT_CONTEXT");
@@ -1662,7 +1674,7 @@ fn perform_handshake_poll_with_tokens(
                             &th,
                             &active_suite_context,
                         );
-                        if expect != confirm.mac {
+                        if !hs_ct_eq_32(&expect, &confirm.mac) {
                             emit_marker("handshake_recv", None, &[("msg", "A2"), ("ok", "false")]);
                             if active_suite_context.is_explicit() {
                                 let _ = hs_pending_clear(self_label, peer);
@@ -2030,4 +2042,69 @@ pub(crate) fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usi
         max,
         HandshakeSuiteMode::LegacyCompat,
     );
+}
+
+#[cfg(test)]
+mod ct_eq_tests {
+    use super::hs_ct_eq_32;
+
+    // hs_ct_eq_32 must be bit-for-bit equivalent to `==` for all 32-byte inputs;
+    // only the timing (no early-out) differs. These vectors assert that equivalence
+    // so the ENG-0003 hardening cannot change accept/reject semantics.
+
+    #[test]
+    fn equal_arrays_are_equal() {
+        let a = [0x5au8; 32];
+        let b = [0x5au8; 32];
+        assert!(hs_ct_eq_32(&a, &b));
+        assert_eq!(hs_ct_eq_32(&a, &b), a == b);
+    }
+
+    #[test]
+    fn single_byte_flip_is_unequal_at_every_position() {
+        let base = {
+            let mut v = [0u8; 32];
+            for (i, b) in v.iter_mut().enumerate() {
+                *b = i as u8;
+            }
+            v
+        };
+        for pos in 0..32 {
+            let mut other = base;
+            other[pos] ^= 0x01;
+            assert!(!hs_ct_eq_32(&base, &other), "flip at {pos} must be unequal");
+            assert_eq!(hs_ct_eq_32(&base, &other), base == other);
+        }
+    }
+
+    #[test]
+    fn high_bit_flip_and_all_different_are_unequal() {
+        let base = [0x00u8; 32];
+        let mut hi = base;
+        hi[31] ^= 0x80;
+        assert!(!hs_ct_eq_32(&base, &hi));
+        let allff = [0xffu8; 32];
+        assert!(!hs_ct_eq_32(&base, &allff));
+        assert_eq!(hs_ct_eq_32(&base, &allff), base == allff);
+    }
+
+    #[test]
+    fn matches_operator_over_mixed_vectors() {
+        let vectors: [([u8; 32], [u8; 32]); 4] = [
+            ([0u8; 32], [0u8; 32]),
+            ([1u8; 32], [1u8; 32]),
+            ([0u8; 32], [1u8; 32]),
+            (
+                {
+                    let mut v = [7u8; 32];
+                    v[0] = 9;
+                    v
+                },
+                [7u8; 32],
+            ),
+        ];
+        for (a, b) in vectors.iter() {
+            assert_eq!(hs_ct_eq_32(a, b), a == b);
+        }
+    }
 }

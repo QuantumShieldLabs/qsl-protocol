@@ -33971,6 +33971,23 @@ divergence). Consumes D-1213. NA-0609 remains the sole READY item and begins at 
 
 ---
 
+### NA-0609C — Constant-Time Handshake MAC Comparison Hardening (ENG-0003)
+Status: IN_PROGRESS
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Inserted remediation lane (does NOT implement NA-0609's plan). Closes ledger
+ENG-0003 from the NA-0609B audit: makes the two handshake keyed-MAC comparisons in
+`qsl/qsl-client/qsc/src/handshake/mod.rs` constant-time via a dependency-free
+32-byte helper (`hs_ct_eq_32`), with a co-located unit test proving semantic
+equivalence to `==`. Timing-only: accept/reject semantics and wire format
+bit-for-bit unchanged; no new dependency; no other source; no protocol/wire/
+state-machine change; no runtime/LAN action; no `.claude`/hook edit. Executed under
+directive D544; consumes D-1214 (implementation) and D-1215 (closeout). NA-0609
+remains the sole READY successor and begins at D-1216.
+
+---
+
 ### NA-0609 — QSL Hostile Analyst / Metadata Minimization and Implementation-Attack Hardening Plan
 Status: READY
 Goals: G1, G2, G3, G4, G5

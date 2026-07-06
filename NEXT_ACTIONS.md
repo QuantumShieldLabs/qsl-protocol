@@ -33933,7 +33933,9 @@ authorizes an exact safe fix.
 ---
 
 ### NA-0609A — Cross-Lane Improvement Ledger, Director Triage Discipline, and Lane-Class Definitions
-Status: IN_PROGRESS
+Status: DONE
+Closeout note:
+- Executed under directive D542; consumes D-1211 (implementation, qsl-protocol PR #1494 merged `a179157be2a5`) and D-1212 (this closeout). Result `IMPROVEMENT_LEDGER_AND_LANE_DISCIPLINE_ESTABLISHED`. Created `docs/ops/IMPROVEMENT_LEDGER.md` (DOC-OPS-007), wired it into the mandatory reads, and added the Director triage discipline and WAVE/LITE-CEREMONY lane classes. NA-0609 remains the sole READY item.
 Goals: G1, G2, G3, G4, G5
 
 Objective:

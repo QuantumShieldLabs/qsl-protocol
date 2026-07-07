@@ -55,10 +55,22 @@ fn attachment_find_outbound_by_source(
 ) -> Option<(String, AttachmentTransferRecord)> {
     let needle = source_path.to_string_lossy();
     store.records.iter().find_map(|(key, rec)| {
+        // NA-0617 (ENG-0002): only reuse a prior outbound record whose service upload
+        // session may still be usable — resumable (SESSION_CREATED/UPLOADING) or an
+        // in-flight delivery caught by the send-time guard (AWAITING_CONFIRMATION). Once
+        // the session has been committed and consumed (COMMITTED/ACCEPTED_BY_RELAY) or the
+        // delivery is complete (PEER_CONFIRMED), the service session no longer exists, so
+        // reusing the record would re-commit against a destroyed session and fail closed
+        // with REJECT_QATTSVC_SESSION_STATE. Excluding those states lets a re-send of the
+        // same file mint a fresh attachment_id + session instead.
+        let session_reusable = !matches!(
+            rec.state.as_str(),
+            "PEER_CONFIRMED" | "COMMITTED" | "ACCEPTED_BY_RELAY"
+        );
         if rec.direction == "out"
             && rec.peer == peer
             && rec.source_path.as_deref() == Some(needle.as_ref())
-            && rec.state != "PEER_CONFIRMED"
+            && session_reusable
         {
             Some((key.clone(), rec.clone()))
         } else {

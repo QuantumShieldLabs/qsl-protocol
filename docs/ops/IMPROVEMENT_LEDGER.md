@@ -95,8 +95,24 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   then a bounded remediation lane only if the audit substantiates a concrete root cause.
 
 ### ENG-0002 — qsc attachment upload session single-use per qsc session
-- Severity: P3 (clarity/documentation)
-- Status: open — originating lane NA-0608 (D-1209); last-updated 2026-07-06
+- Severity: P3 (clarity/documentation → resolved with a fix)
+- Status: done — resolved (fixed) by NA-0617 (D-1229); originating lane NA-0608
+  (D-1209); last-updated 2026-07-07
+- Resolution (NA-0617): disambiguated into a two-layer session model and fixed a
+  client footgun. L1 = the qsl-attachments SERVICE upload session (single-object BY
+  DESIGN: create → upload → commit → session consumed/removed, object persists);
+  reuse fails closed with `REJECT_QATTSVC_SESSION_STATE`. L2 = the qsc CLIENT session
+  (config dir/identity across `file send` invocations), which is NOT limited to one
+  attachment — distinct sends each mint their own L1 session. The reject was L1
+  fail-closed behavior on session reuse, not an L2 cap. Footgun fixed:
+  `attachment_find_outbound_by_source` now excludes consumed-session states
+  (`COMMITTED`/`ACCEPTED_BY_RELAY`, in addition to `PEER_CONFIRMED`) from reuse, so a
+  re-send of an already-delivered file mints a fresh session and succeeds; resumable
+  (`SESSION_CREATED`/`UPLOADING`) and in-flight (`AWAITING_CONFIRMATION`) states are
+  preserved. Client journal logic only; no protocol/wire/crypto/state-machine or
+  attachment-format change. Pinned by `na_0617_attachment_single_send_per_session`
+  (4/4) with a negative control and full `attachment_streaming_na0197c` regression.
+  See the NA-0617 evidence doc.
 - Exact surfaces: `qsl/qsl-client/qsc/src/attachments/mod.rs`; qsl-attachments
   service session-state path (`REJECT_QATTSVC_SESSION_STATE`)
 - Claim potentially at stake: none security-critical; operability/predictability

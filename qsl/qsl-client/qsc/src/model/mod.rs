@@ -13,6 +13,9 @@ pub(crate) enum ErrorCode {
     IoReadFailed,
     ParseFailed,
     IdentitySecretUnavailable,
+    // NA-0616 (ENG-0001): refused to auto-mint a second, divergent self-identity
+    // (a self-identity under a different label already exists in the config dir).
+    IdentitySelfAmbiguous,
 }
 
 impl ErrorCode {
@@ -29,6 +32,7 @@ impl ErrorCode {
             ErrorCode::IoReadFailed => "io_read_failed",
             ErrorCode::ParseFailed => "parse_failed",
             ErrorCode::IdentitySecretUnavailable => "identity_secret_unavailable",
+            ErrorCode::IdentitySelfAmbiguous => "identity_self_ambiguous",
         }
     }
 }

@@ -61,7 +61,14 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 
 ### ENG-0001 — qsc identity/handshake verification-fingerprint semantics unclear
 - Severity: P3 (robustness/UX footgun; not an identity-binding defect)
-- Status: resolved-into-finding — audited by NA-0609B (D-1213); last-updated 2026-07-06
+- Status: done — the self-label footgun remediated by NA-0616 (D-1227); last-updated 2026-07-07
+- Resolution (NA-0616): the self-label divergence footgun is fixed fail-closed. The
+  auto-create branch of `identity_self_kem_keypair` now refuses to mint a SECOND,
+  divergent self-identity when the config dir already holds one (emitting
+  `identity_self_ambiguous` / `ErrorCode::IdentitySelfAmbiguous`); first-run auto-create
+  and explicit `identity rotate` are preserved. The handshake `--as` default is aligned
+  with `identity show`'s `"self"`. The verification-fingerprint model itself was already
+  coherent (NA-0609B); this closes the residual footgun. See the NA-0616 evidence doc.
 - Resolution (NA-0609B): the verification-fingerprint model is COHERENT — the
   primary pin is checked against the KEM identity fingerprint that `identity show`
   displays, with the ML-DSA signing-key fingerprint as a separate optional pin;

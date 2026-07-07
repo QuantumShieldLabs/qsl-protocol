@@ -326,8 +326,8 @@ pub(crate) enum HandshakeSuiteMode {
 pub(crate) enum HandshakeCmd {
     /// Initiate a handshake (A1) to a peer inbox.
     Init {
-        /// Local label (used for identity context).
-        #[arg(long = "as", value_name = "LABEL")]
+        /// Local label (defaults to "self"; the canonical single self-identity).
+        #[arg(long = "as", value_name = "LABEL", default_value = "self")]
         as_label: String,
         /// Peer label.
         #[arg(long, value_name = "LABEL")]
@@ -341,8 +341,8 @@ pub(crate) enum HandshakeCmd {
     },
     /// Poll inbox and process handshake messages.
     Poll {
-        /// Local label (used for identity context).
-        #[arg(long = "as", value_name = "LABEL")]
+        /// Local label (defaults to "self"; the canonical single self-identity).
+        #[arg(long = "as", value_name = "LABEL", default_value = "self")]
         as_label: String,
         /// Peer label.
         #[arg(long, value_name = "LABEL")]

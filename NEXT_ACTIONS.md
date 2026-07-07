@@ -34009,8 +34009,28 @@ begins at D-1217.
 
 ---
 
-### NA-0611 — Constant-Time Comparison Sweep Beyond the Handshake Seam (read-only audit)
+### NA-0612 — Error/Retry Normalization Review (read-only audit)
 Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement DOC-G5-005 §9 rank 3 / ledger ENG-0006: a read-only audit of whether
+distinct internal failure causes across qsc / qsl-server / qsl-attachments are
+externally distinguishable by reject-code, timing, or retry/backoff shape beyond what
+the deterministic reject taxonomy already exposes. Produce a ranked findings report
+(DOC-AUD-001 §6 schema) and ledger updates; recommend a bounded normalization design
+for any distinguishability finding. Read-only audit; no source fix (each fix returns
+as its own full-ritual lane); LITE-CEREMONY eligible per DOC-OPS-006 §9. No
+dependency/lockfile/workflow mutation, no runtime/LAN action unless a later directive
+explicitly authorizes it, and no public/production/security-complete claim is
+authorized.
+
+---
+
+### NA-0611 — Constant-Time Comparison Sweep Beyond the Handshake Seam (read-only audit)
+Status: DONE
+Closeout note:
+- Executed under directive D548 (LITE-CEREMONY); consumes D-1221. Result `CONSTANT_TIME_POSTURE_SOUND_NO_KEYED_SECRET_COMPARE_OUTSIDE_HANDSHAKE`: the only keyed-MAC compares were the handshake ones already fixed in NA-0609C; outside handshake no keyed-secret comparison exists (kmac derivations, in-primitive AEAD tag verify, verified-acceptable integrity-hash/route-token compares). ENG-0005 resolved; ENG-0008 filed (optional P3 defense-in-depth). Successor NA-0612 (ENG-0006 error/retry review) restored above.
 Goals: G1, G2, G3, G4, G5
 
 Objective:

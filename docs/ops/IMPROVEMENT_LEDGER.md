@@ -155,7 +155,13 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 
 ### ENG-0005 — Constant-time comparison sweep beyond the handshake seam
 - Severity: P3 (implementation-attack; defense-in-depth)
-- Status: open — originating lane NA-0609 (D-1217); last-updated 2026-07-07
+- Status: resolved-into-findings — swept by NA-0611 (D-1221); last-updated 2026-07-07
+- Resolution (NA-0611): the sweep found NO keyed-secret/MAC comparison outside the
+  already-fixed handshake seam. `kmac_out` uses are key derivations (not compares);
+  AEAD tag verification is in-primitive constant-time; protocol_state has no secret
+  compares; integrity-hash (SHA-512) and route-token compares are verified-acceptable
+  (timing not exploitable). Constant-time posture sound. One optional P3
+  defense-in-depth item recorded as ENG-0008. See the NA-0611 evidence doc.
 - Surfaces: qsc tag/MAC/secret comparison sites outside handshake/mod.rs (e.g.
   attachment capability/token checks, vault unlock).
 - Why it matters: ENG-0003 fixed the handshake MAC comparisons; a sweep should
@@ -182,6 +188,20 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   the attachment contract; needs feasibility+design before any behavior change.
 - Recommended directive shape: read-only feasibility+design (cost/benefit matrix),
   then a separate implementation lane if justified.
+
+### ENG-0008 — Verification-code equality is not constant-time (optional defense-in-depth)
+- Severity: P3 (defense-in-depth; NOT exploitable)
+- Status: open — originating lane NA-0611 (D-1221); last-updated 2026-07-07
+- Surfaces: `qsl/qsl-client/qsc/src/tui/controller/commands/contacts.rs:1194` and
+  `qsl/qsl-client/qsc/src/contacts/mod.rs:1237` (`if expected == provided`).
+- Why it matters: the trust-promotion gate compares the pinned identity fingerprint
+  against the operator-provided code with `==` (not constant-time). This is NOT a
+  keyed-secret comparison: the fingerprint is public (safety-number-style, derived
+  from the peer's public key), and any local attacker able to build a timing oracle
+  already has direct read access to it — so there is no practical timing advantage.
+- Minimal fix direction: use a constant-time fixed-length comparison at these two
+  sites if a future lane elects the hardening.
+- Recommended directive shape: optional small implementation-only lane; low priority.
 
 ---
 

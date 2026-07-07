@@ -484,6 +484,7 @@ fn forged_attachment_descriptor(path: &Path, bad_enc_ctx: bool) {
             "\"v\":1,",
             "\"t\":\"attachment_descriptor\",",
             "\"attachment_id\":\"{}\",",
+            "\"content_len\":{},",
             "\"plaintext_len\":{},",
             "\"ciphertext_len\":{},",
             "\"part_size_class\":\"p64k\",",
@@ -502,6 +503,7 @@ fn forged_attachment_descriptor(path: &Path, bad_enc_ctx: bool) {
             "}}"
         ),
         "0".repeat(64),
+        plaintext_len,
         plaintext_len,
         ciphertext_len,
         part_count,

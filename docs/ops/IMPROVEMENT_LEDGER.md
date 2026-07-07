@@ -153,6 +153,36 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Recommended directive shape: implementation-only (or docs boundary statement),
   scoped to fs_store.
 
+### ENG-0005 — Constant-time comparison sweep beyond the handshake seam
+- Severity: P3 (implementation-attack; defense-in-depth)
+- Status: open — originating lane NA-0609 (D-1217); last-updated 2026-07-07
+- Surfaces: qsc tag/MAC/secret comparison sites outside handshake/mod.rs (e.g.
+  attachment capability/token checks, vault unlock).
+- Why it matters: ENG-0003 fixed the handshake MAC comparisons; a sweep should
+  enumerate and confirm/convert any remaining secret comparisons. DOC-G5-005 §3,9
+  (rank 2).
+- Recommended directive shape: read-only audit, then a bounded fix lane per finding.
+
+### ENG-0006 — Error/retry normalization review
+- Severity: P3 (implementation-attack; distinguishability)
+- Status: open — originating lane NA-0609 (D-1217); last-updated 2026-07-07
+- Surfaces: qsc/qsl-server/qsl-attachments reject-code, timing, and retry/backoff
+  behavior.
+- Why it matters: distinct internal failure causes should not be externally
+  distinguishable beyond the deterministic reject taxonomy. DOC-G5-005 §7,9 (rank 3).
+- Recommended directive shape: audit/docs review, then a bounded normalization fix.
+
+### ENG-0007 — Attachment-plane metadata mitigation feasibility (size/count/timing)
+- Severity: P3 (metadata; highest-value residual)
+- Status: open — originating lane NA-0609 (D-1217); last-updated 2026-07-07
+- Surfaces: qsl-attachments object storage/service contract; qsc attachment path.
+- Why it matters: NA-0608 showed ciphertext-object size, object/part count, and
+  upload/fetch timing are EXPOSED residual metadata on the attachment plane (the
+  message plane already has padding/bucketing). DOC-G5-005 §2,6,9 (rank 4). Touches
+  the attachment contract; needs feasibility+design before any behavior change.
+- Recommended directive shape: read-only feasibility+design (cost/benefit matrix),
+  then a separate implementation lane if justified.
+
 ---
 
 ## Workflow / process items

@@ -34009,8 +34009,26 @@ begins at D-1217.
 
 ---
 
-### NA-0616 — ENG-0001 Self-Label Footgun Remediation (source/test)
+### NA-0617 — ENG-0002 Attachment Single-Send-Per-Session Clarification (docs/test)
 Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement ledger ENG-0002 (DOC-G5-005 §9 rank 6): clarify and pin the intended
+per-qsc-session attachment send semantics (a second `file send` in one session returns
+`REJECT_QATTSVC_SESSION_STATE`). Determine whether it is by design (one attachment per
+session) or a client session-reuse limitation; document the intended behavior and assert
+it with a deterministic test, or file a bounded fix lane if it is an unintended
+limitation. Docs/evidence + test only unless a source fix is substantiated; no protocol/
+wire/crypto/state-machine semantic change; no dependency/workflow mutation. If the
+operator instead prioritizes the WF-0009 docs-only CI path-filter or another item, this
+block is replaced at closeout per direction. No public/production/security-complete claim
+authorized.
+
+---
+
+### NA-0616 — ENG-0001 Self-Label Footgun Remediation (source/test)
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:

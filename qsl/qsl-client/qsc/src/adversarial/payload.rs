@@ -180,4 +180,93 @@ mod tests {
         }"#;
         assert!(parse_file_transfer_payload(raw).is_none());
     }
+
+    // NA-0610: explicit malformed attachment-descriptor and confirm negatives.
+    // These convert the NA-0608 "corrupted descriptor / not separately exercised"
+    // hedge into deterministic fail-closed reject assertions at the descriptor and
+    // confirm parse boundary. Each malformed input must yield None (reject); the
+    // sanity case confirms the well-formed template parses so the negatives are
+    // meaningful. This changes no production parse behavior; it observes it.
+
+    // A well-formed attachment descriptor (the unknown-fields test above minus the
+    // extra field). Mutated below for each malformed case.
+    const VALID_DESCRIPTOR: &[u8] = br#"{
+        "v":1,
+        "t":"attachment_descriptor",
+        "attachment_id":"a1",
+        "plaintext_len":1,
+        "ciphertext_len":2,
+        "part_size_class":"small",
+        "part_count":1,
+        "integrity_alg":"sha512_merkle_v1",
+        "integrity_root":"root",
+        "locator_kind":"service_ref_v1",
+        "locator_ref":"loc",
+        "fetch_capability":"cap",
+        "enc_ctx_alg":"ctx",
+        "enc_ctx_b64u":"ctxb64",
+        "retention_class":"default",
+        "expires_at_unix_s":1,
+        "confirm_requested":false
+    }"#;
+
+    #[test]
+    fn attachment_descriptor_wellformed_template_parses() {
+        // Sanity: the template the negatives mutate is itself accepted.
+        assert!(parse_attachment_descriptor_payload(VALID_DESCRIPTOR).is_some());
+    }
+
+    #[test]
+    fn attachment_descriptor_rejects_empty_input() {
+        assert!(parse_attachment_descriptor_payload(b"").is_none());
+    }
+
+    #[test]
+    fn attachment_descriptor_rejects_non_json_garbage() {
+        assert!(parse_attachment_descriptor_payload(b"\x00\x01\x02not-json").is_none());
+    }
+
+    #[test]
+    fn attachment_descriptor_rejects_truncated_json() {
+        // The valid template cut off mid-object is not valid JSON.
+        let truncated = &VALID_DESCRIPTOR[..VALID_DESCRIPTOR.len() / 2];
+        assert!(parse_attachment_descriptor_payload(truncated).is_none());
+    }
+
+    #[test]
+    fn attachment_descriptor_rejects_wrong_version() {
+        let raw = std::str::from_utf8(VALID_DESCRIPTOR)
+            .unwrap()
+            .replace("\"v\":1", "\"v\":2");
+        assert!(parse_attachment_descriptor_payload(raw.as_bytes()).is_none());
+    }
+
+    #[test]
+    fn attachment_descriptor_rejects_wrong_type() {
+        let raw = std::str::from_utf8(VALID_DESCRIPTOR).unwrap().replace(
+            "\"attachment_descriptor\"",
+            "\"attachment_descriptor_wrong\"",
+        );
+        assert!(parse_attachment_descriptor_payload(raw.as_bytes()).is_none());
+    }
+
+    #[test]
+    fn attachment_descriptor_rejects_missing_required_field() {
+        // Drop a required field (attachment_id); serde must fail closed.
+        let raw = std::str::from_utf8(VALID_DESCRIPTOR)
+            .unwrap()
+            .replace("\"attachment_id\":\"a1\",", "");
+        assert!(parse_attachment_descriptor_payload(raw.as_bytes()).is_none());
+    }
+
+    #[test]
+    fn attachment_confirm_rejects_malformed_inputs() {
+        // Empty, non-JSON, and a JSON object missing required confirm fields all
+        // reject fail-closed regardless of the confirm struct's exact shape.
+        assert!(parse_attachment_confirm_payload(b"").is_none());
+        assert!(parse_attachment_confirm_payload(b"not-json").is_none());
+        assert!(parse_attachment_confirm_payload(br#"{"v":1,"t":"ack"}"#).is_none());
+        // Valid JSON with the wrong discriminant also rejects.
+        assert!(parse_attachment_confirm_payload(br#"{"v":2,"t":"nack","kind":"x"}"#).is_none());
+    }
 }

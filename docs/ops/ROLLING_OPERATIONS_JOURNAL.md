@@ -42122,3 +42122,14 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Governance patch paths: DOC-G5-005, `docs/ops/IMPROVEMENT_LEDGER.md`, the NA-0609 evidence doc and testplan, `DECISIONS.md` (D-1217), `TRACEABILITY.md`, and this journal. NEXT_ACTIONS is unchanged in the implementation PR (NA-0609 remains READY until closeout).
 - No source/test/Cargo/workflow/canonical-spec/input/`.claude`/guardrail-hook mutation, no hardening implementation, no LAN/runtime/qscwork action, no qwork/qstart/qresume execution, no sudo/systemd/firewall/Tailnet action, no workflow dispatch/rerun, and no branch-protection or repo-settings mutation occurred.
 - No endpoint, private port, hostname, topology, token, capability, key, seed, plaintext, ciphertext body, or raw private material is published. No public-readiness, production-readiness, security-completion, crypto-complete, attachment-complete, metadata-free, anonymity, or bug-free claim is introduced.
+
+## 2026-07-07 -- NA-0609 closeout and NA-0610 restoration
+
+- Directive: QSL-DIR-2026-07-06-546 (D546), closeout.
+- Implementation PR #1500 merged at `c4b9f8e3438201c0f3f40b761ef638b1599961c8`; post-merge public-safety, advisories, suite2-vectors, goal-lint, and CodeQL completed success with no failed required checks.
+- Post-merge proof verified local main equals origin/main at `c4b9f8e34382`, worktree clean, D-1217 once, D-1218 absent before closeout, D-1219 absent, READY_COUNT 1 with READY NA-0609.
+- D-1217 exists once and is Accepted; D-1218 records closeout and NA-0610 restoration.
+- NA-0609 is marked DONE. NA-0610 is restored as exactly one READY successor using the DOC-G5-005 §9 rank-1 item (malformed envelope/descriptor/object adversarial negative-test expansion). NA-0610 begins at D-1219.
+- Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0609_closeout_testplan.md`.
+- No NA-0610 implementation, source/test/Cargo/workflow/spec/`.claude`/guardrail-hook change, qwork/qstart/qresume execution, sudo/systemd/firewall/Tailnet action, workflow dispatch/rerun, branch-protection or repo-settings mutation, or runtime/LAN action occurred in closeout.
+- No endpoint, private port, hostname, topology, token, capability, key, seed, plaintext, ciphertext body, or raw private material is published. No public-readiness, production-readiness, security-completion, crypto-complete, attachment-complete, metadata-free, or bug-free claim is introduced.

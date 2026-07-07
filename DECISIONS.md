@@ -32678,3 +32678,20 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `docs/governance/evidence/NA-0609_...harness.md` and `tests/NA-0609_...testplan.md` record the deliverable and validation.
     - `TRACEABILITY.md` maps NA-0609 to D-1217; the rolling journal records the plan.
   - **References:** NA-0609; NA-0610; NA-0608; D-1217; D-1216; D-1215; QSL-DIR-2026-07-06-546 (D546); DOC-G5-005; DOC-G5-001; DOC-G5-002; DOC-G5-004; DOC-OPS-007; `docs/design/DOC-G5-005_Hostile_Analyst_Metadata_and_Implementation_Attack_Hardening_Plan_v0.1.0_DRAFT.md`; `docs/ops/IMPROVEMENT_LEDGER.md`; `docs/governance/evidence/NA-0609_hostile_analyst_metadata_impl_attack_hardening_plan_harness.md`; `tests/NA-0609_hostile_analyst_metadata_impl_attack_hardening_plan_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1218
+  - **Title:** NA-0609 closeout and NA-0610 restoration
+  - **Date:** 2026-07-07
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0609 closeout consumes D-1217 and qsl-protocol implementation PR #1500, which merged at `c4b9f8e3438201c0f3f40b761ef638b1599961c8` from implementation branch `na-0609-metadata-impl-attack-hardening-plan`. D-1217 exists once and is Accepted. Post-merge public-safety, advisories, suite2-vectors, goal-lint, and CodeQL completed success with no failed required checks. NA-0609 is marked DONE, and NA-0610 is restored as exactly one READY successor.
+  - **Successor restored:** NA-0610 is READY with Goals G1, G2, G3, G4, G5. It implements the DOC-G5-005 §9 rank-1 item: expand qsc adversarial negative-test coverage for malformed envelope, attachment descriptor, and attachment object inputs, converting the NA-0608 "if supported / not separately exercised" hedges into explicit deterministic negative tests asserting fail-closed reject and no-mutation-on-reject. Test/source only within the qsc adversarial/handshake/attachments test surface plus minimal fixtures; no protocol/wire/crypto/state-machine semantic change; no dependency/lockfile/workflow mutation; no runtime/LAN action unless a later directive explicitly authorizes it; no public/production/crypto-complete/attachment-complete/security-complete claim.
+  - **Closeout proof:** Local main was fast-forwarded to origin/main at `c4b9f8e34382` after PR #1500 merge. Worktree clean before closeout edits. Pre-closeout proof verified D-1217 once, D-1218 absent, D-1219 absent, READY_COUNT 1 with READY NA-0609. Post-patch queue proof restores READY_COUNT 1 with READY NA-0610 and NA-0609 DONE.
+  - **Boundary proof:** Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0609_closeout_testplan.md`. No NA-0610 implementation occurred. No source/test/Cargo/workflow/spec/`.claude`/guardrail-hook change; no qwork/qstart/qresume execution; no sudo/systemd/firewall/Tailnet action; no workflow dispatch/rerun; no branch-protection or repo-settings mutation; no runtime/LAN action.
+  - **Claim boundary:** No endpoint, private port, hostname, topology, token, capability, key, seed, plaintext, ciphertext body, or raw private material is published. No public-readiness, production-readiness, security-completion, crypto-complete, attachment-complete, metadata-free, anonymity, or bug-free claim is made.
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0609 DONE and restores NA-0610 as the sole READY item.
+    - `tests/NA-0609_closeout_testplan.md` records closeout validation markers.
+    - `TRACEABILITY.md` maps NA-0609 closeout and NA-0610 restoration to D-1218.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the implementation PR merge, post-merge check proof, and closeout mutation boundary.
+  - **References:** NA-0609; NA-0610; D-1218; D-1217; qsl-protocol PR #1500; qsl-protocol merge `c4b9f8e34382`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0609_closeout_testplan.md`

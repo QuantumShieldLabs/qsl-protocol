@@ -34009,9 +34009,30 @@ begins at D-1217.
 
 ---
 
-### NA-0609 — QSL Hostile Analyst / Metadata Minimization and Implementation-Attack Hardening Plan
+### NA-0610 — Malformed Envelope/Descriptor/Object Adversarial Negative-Test Expansion
 Status: READY
 Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the highest-priority bounded item from the DOC-G5-005 hardening plan
+(§9 rank 1): expand qsc adversarial negative-test coverage for malformed envelope,
+attachment descriptor, and attachment object inputs, converting the NA-0608 "if
+supported / not separately exercised" hedges (e.g. corrupted-descriptor handling
+covered only by envelope authentication) into explicit deterministic negative tests
+that assert fail-closed reject and no-mutation-on-reject. Test/source only within
+the qsc adversarial/handshake/attachments test surface plus minimal fixture helpers;
+no protocol/wire/crypto/state-machine semantic change; tests must fail for the right
+reasons. No dependency/lockfile/workflow mutation, no runtime/LAN action unless a
+later directive explicitly authorizes it, and no public/production/crypto-complete/
+attachment-complete/security-complete claim is authorized.
+
+---
+
+### NA-0609 — QSL Hostile Analyst / Metadata Minimization and Implementation-Attack Hardening Plan
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+Closeout note:
+- Implemented under directive D546; consumes D-1217 (implementation, qsl-protocol PR #1500 merged `c4b9f8e34382`) and D-1218 (this closeout). Result `HOSTILE_ANALYST_METADATA_IMPL_ATTACK_HARDENING_PLAN_ESTABLISHED`; authored DOC-G5-005 with a prioritized six-item backlog. Successor NA-0610 restored above as the sole READY item.
 
 Objective:
 Turn the NA-0608 hostile-analyst findings into a bounded hardening PLAN (no

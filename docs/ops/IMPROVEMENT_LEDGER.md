@@ -189,7 +189,15 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 
 ### ENG-0007 — Attachment-plane metadata mitigation feasibility (size/count/timing)
 - Severity: P3 (metadata; highest-value residual)
-- Status: open — originating lane NA-0609 (D-1217); last-updated 2026-07-07
+- Status: resolved-into-findings — studied by NA-0613 (D-1223); last-updated 2026-07-07
+- Resolution (NA-0613): DOC-G5-006 inventories the residual channels (C1 object size,
+  C2 part count, C3 part-size-class-by-plaintext, C4 upload/fetch timing) and shows
+  object-size/part-count bucketing (M1) is client-side feasible against the
+  service/network observer without an attachment-contract change, because the
+  descriptor (true plaintext_len) is peer-only inside the encrypted envelope while the
+  service sees only the opaque padded object. Recommended mitigation filed as ENG-0010;
+  timing/cover deferred as ENG-0011. Honest residual documented (no metadata
+  elimination). See DOC-G5-006.
 - Surfaces: qsl-attachments object storage/service contract; qsc attachment path.
 - Why it matters: NA-0608 showed ciphertext-object size, object/part count, and
   upload/fetch timing are EXPOSED residual metadata on the attachment plane (the
@@ -225,6 +233,32 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Minimal fix direction: randomize the retry jitter only if send-retry-to-relay timing
   is ever made a live mitigation target; otherwise no action.
 - Recommended directive shape: optional small implementation-only lane; low priority.
+
+### ENG-0010 — Attachment-plane object-size/part-count bucketing (recommended mitigation)
+- Severity: P3 (metadata; highest-value residual — the top NA-0613 recommendation)
+- Status: open — originating lane NA-0613 (D-1223); last-updated 2026-07-07
+- Surface: `qsl/qsl-client/qsc/src/attachments/mod.rs` object sizing/chunking path.
+- Why it matters: today `ciphertext_len = plaintext_len + part_count*tag` (no object
+  padding), so the service/network observer learns the plaintext size almost exactly
+  (C1), plus a coarse count (C2) and a 3-way class band (C3). DOC-G5-006 M1/M2/M3.
+- Design (client-only, no contract change): pad the plaintext to a defined size ladder
+  before chunk/AEAD; keep descriptor `plaintext_len` true (peer decrypt truncates);
+  `ciphertext_len`/`part_count`/integrity root reflect the padded object; choose the
+  part-size-class from the padded size. Keep all size fields consistent in the per-part
+  AAD and confirm MAC.
+- Recommended directive shape: full-ritual implementation lane (NA-0614) with
+  deterministic bucketed-size vectors, fail-closed decrypt/truncation preserved, and
+  explicit bandwidth/storage-overhead accounting. No metadata-free claim.
+
+### ENG-0011 — Attachment upload/fetch timing and cover-traffic (deferred, cross-repo)
+- Severity: P3 (metadata; deferred)
+- Status: open — originating lane NA-0613 (D-1223); last-updated 2026-07-07
+- Surface: qsl-attachments service/deployment (primary); optional qsc send/fetch jitter.
+- Why it matters: upload/fetch timing and access pattern (C4) are observable by the
+  service/network and are largely a qsl-attachments/deployment property, not a qsc-only
+  concern; cover traffic is high-cost.
+- Recommended directive shape: separate cross-repo design/implementation in
+  qsl-attachments; optional small qsc-side jitter follow-up. Lower priority than ENG-0010.
 
 ---
 

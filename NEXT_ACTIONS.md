@@ -34009,8 +34009,29 @@ begins at D-1217.
 
 ---
 
-### NA-0613 — Attachment-Plane Metadata Mitigation Feasibility and Design (read-only)
+### NA-0614 — Attachment-Plane Object-Size/Part-Count Bucketing (implementation)
 Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement the top NA-0613/DOC-G5-006 recommendation (ledger ENG-0010): extend the
+message-plane bucketing model to the attachment plane by padding the plaintext to a
+defined size ladder before chunk/AEAD, keeping the descriptor `plaintext_len` true (so
+the peer decrypt truncates) while `ciphertext_len`/`part_count`/integrity root reflect
+the padded object and the part-size-class is chosen from the padded size. Bounded
+source/test change in the qsc attachment path (`attachments/mod.rs`); deterministic
+vectors proving bucketed sizes and preserved fail-closed decrypt/truncation; keep all
+size fields consistent in the per-part AAD and confirm MAC; explicitly account for the
+bandwidth/storage overhead. Client-only; no attachment-contract or wire change; no new
+dependency. Full ritual (two PRs). No metadata-free/anonymity/unlinkability/
+security-complete claim authorized.
+
+---
+
+### NA-0613 — Attachment-Plane Metadata Mitigation Feasibility and Design (read-only)
+Status: DONE
+Closeout note:
+- Executed under directive D550 (LITE-CEREMONY); consumes D-1223. Result `ATTACHMENT_PLANE_METADATA_MITIGATION_DESIGN_ESTABLISHED`: authored DOC-G5-006 (channel inventory C1-C4; threat/observation separation; M1/M2/M3 client-side object-size/part-count bucketing feasible with no contract change; M4 timing/cover deferred cross-repo; cost/benefit matrix; honest residual). ENG-0007 resolved; ENG-0010 (recommended bucketing) and ENG-0011 (deferred timing) filed. Successor NA-0614 (ENG-0010 bucketing implementation) restored above.
 Goals: G1, G2, G3, G4, G5
 
 Objective:

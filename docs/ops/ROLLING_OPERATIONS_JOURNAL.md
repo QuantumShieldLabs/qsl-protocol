@@ -42202,3 +42202,15 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - No Cargo/handshake/SCKA/crypto-suite-negotiation/message-plane/workflow/`.claude`/guardrail-hook change, no operator-startup-command execution, no runtime/LAN action, and no branch-protection or repo-settings mutation occurred. NEXT_ACTIONS is unchanged in the implementation PR (NA-0614 remains READY until closeout).
 - Workflow note (WF): gov-append invoked via Bash cannot carry standard governance boilerplate because the guardrail hook blocks Bash text containing operator-startup-command words; governance appends with that boilerplate use Write/Edit instead. Recorded for the NA-0615 WF ledger.
 - No endpoint, private port, hostname, topology, token, capability, key, seed, plaintext, ciphertext body, or raw private material is published. No metadata-free, anonymity, unlinkability, traffic-analysis-resistant, security-completion, or bug-free claim is introduced.
+
+## 2026-07-07 -- NA-0614 closeout and NA-0615 restoration
+
+- Directive: QSL-DIR-2026-07-07-551 (D551), closeout.
+- Implementation PR #1507 merged at `cbea1c7db67f694e7045abe75abf46d9572461a3`; post-merge public-safety, advisories, suite2-vectors, goal-lint, CodeQL, qsc-adversarial-smoke, qsc-adversarial-miri, and the ci-4a through ci-4d qshield lanes completed success with no failed required checks.
+- Post-merge proof verified local main equals origin/main at `cbea1c7db67f`, worktree clean, D-1224 once, D-1225 absent before closeout, D-1226 absent, READY_COUNT 1 with READY NA-0614.
+- D-1224 exists once and is Accepted; D-1225 records closeout and NA-0615 restoration.
+- NA-0614 is marked DONE. NA-0615 is restored as exactly one READY successor (governance spine design-tenet section + LITE read-only-audit fast-path + batch-audit convention + WF-#### workflow ledger for #1/#2/#4). NA-0615 begins at D-1226.
+- Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0614_closeout_testplan.md`.
+- The project design tenet was persisted to the executor's memory during this lane; NA-0615 folds it into the governance spine.
+- No NA-0615 implementation, source/test/Cargo/workflow/spec/`.claude`/guardrail-hook change, operator-startup-command execution, sudo/systemd/firewall/Tailnet action, workflow dispatch/rerun, branch-protection or repo-settings mutation, or runtime/LAN action occurred in closeout.
+- No endpoint, private port, hostname, topology, token, capability, key, seed, plaintext, ciphertext body, or raw private material is published. No public-readiness, production-readiness, security-completion, crypto-complete, or bug-free claim is introduced.

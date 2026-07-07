@@ -42145,3 +42145,14 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - Governance patch paths: `qsl/qsl-client/qsc/src/adversarial/payload.rs`, the NA-0610 evidence doc and testplan, `DECISIONS.md` (D-1219), `TRACEABILITY.md`, and this journal. NEXT_ACTIONS is unchanged in the implementation PR (NA-0610 remains READY until closeout).
 - No Cargo change, no other source, no production semantic change, no `.github`/workflow, no canonical spec/input, no `.claude`/guardrail-hook, no qwork/qstart/qresume execution, no sudo/systemd/firewall/Tailnet action, no workflow dispatch/rerun, and no branch-protection or repo-settings mutation occurred.
 - No endpoint, private port, hostname, topology, token, capability, key, seed, plaintext, ciphertext body, or raw private material is published. No public-readiness, production-readiness, security-completion, crypto-complete, attachment-complete, or bug-free claim is introduced.
+
+## 2026-07-07 -- NA-0610 closeout and NA-0611 restoration
+
+- Directive: QSL-DIR-2026-07-07-547 (D547), closeout.
+- Implementation PR #1502 merged at `087ec2816e169183cd0af2eb9d86a3ebf423e795`; post-merge public-safety, advisories, suite2-vectors, goal-lint, CodeQL, qsc-adversarial-smoke, qsc-adversarial-miri, and the ci-4a through ci-4d qshield lanes completed success with no failed required checks.
+- Post-merge proof verified local main equals origin/main at `087ec2816e16`, worktree clean, D-1219 once, D-1220 absent before closeout, D-1221 absent, READY_COUNT 1 with READY NA-0610.
+- D-1219 exists once and is Accepted; D-1220 records closeout and NA-0611 restoration.
+- NA-0610 is marked DONE. NA-0611 is restored as exactly one READY successor (DOC-G5-005 §9 rank-2 / ledger ENG-0005: constant-time comparison sweep beyond the handshake seam, a read-only audit lane). NA-0611 begins at D-1221.
+- Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0610_closeout_testplan.md`.
+- No NA-0611 implementation, source/test/Cargo/workflow/spec/`.claude`/guardrail-hook change, qwork/qstart/qresume execution, sudo/systemd/firewall/Tailnet action, workflow dispatch/rerun, branch-protection or repo-settings mutation, or runtime/LAN action occurred in closeout.
+- No endpoint, private port, hostname, topology, token, capability, key, seed, plaintext, ciphertext body, or raw private material is published. No public-readiness, production-readiness, security-completion, crypto-complete, attachment-complete, or bug-free claim is introduced.

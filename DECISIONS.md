@@ -32712,3 +32712,20 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `docs/governance/evidence/NA-0610_..._harness.md` and `tests/NA-0610_..._testplan.md` record the change and validation.
     - `TRACEABILITY.md` maps NA-0610 to D-1219; the rolling journal records the change.
   - **References:** NA-0610; NA-0611; NA-0608; D-1219; D-1218; D-1217; QSL-DIR-2026-07-07-547 (D547); DOC-G5-005; `qsl/qsl-client/qsc/src/adversarial/payload.rs`; `docs/governance/evidence/NA-0610_malformed_input_negative_test_expansion_harness.md`; `tests/NA-0610_malformed_input_negative_test_expansion_testplan.md`; `DECISIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+- **ID:** D-1220
+  - **Title:** NA-0610 closeout and NA-0611 restoration
+  - **Date:** 2026-07-07
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0610 closeout consumes D-1219 and qsl-protocol implementation PR #1502, which merged at `087ec2816e169183cd0af2eb9d86a3ebf423e795` from implementation branch `na-0610-malformed-input-negative-test-expansion`. D-1219 exists once and is Accepted. Post-merge public-safety, advisories, suite2-vectors, goal-lint, CodeQL, qsc-adversarial-smoke, qsc-adversarial-miri, and the ci-4a through ci-4d qshield lanes completed success with no failed required checks. NA-0610 is marked DONE, and NA-0611 is restored as exactly one READY successor.
+  - **Successor restored:** NA-0611 is READY with Goals G1, G2, G3, G4, G5. It implements DOC-G5-005 §9 rank 2 / ledger ENG-0005: a read-only audit enumerating qsc tag/MAC/secret comparison sites outside handshake/mod.rs and classifying whether each is constant-time, producing a DOC-AUD-001 §6 ranked findings report and ledger updates. Read-only audit; no source fix (each concrete fix returns as its own full-ritual lane); LITE-CEREMONY eligible per DOC-OPS-006 §9. No dependency/lockfile/workflow mutation, no runtime/LAN action, and no security-complete/crypto-complete claim is authorized.
+  - **Closeout proof:** Local main was fast-forwarded to origin/main at `087ec2816e16` after PR #1502 merge. Worktree clean before closeout edits. Pre-closeout proof verified D-1219 once, D-1220 absent, D-1221 absent, READY_COUNT 1 with READY NA-0610. Post-patch queue proof restores READY_COUNT 1 with READY NA-0611 and NA-0610 DONE.
+  - **Boundary proof:** Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0610_closeout_testplan.md`. No NA-0611 implementation occurred. No source/test/Cargo/workflow/spec/`.claude`/guardrail-hook change; no qwork/qstart/qresume execution; no sudo/systemd/firewall/Tailnet action; no workflow dispatch/rerun; no branch-protection or repo-settings mutation; no runtime/LAN action.
+  - **Claim boundary:** No endpoint, private port, hostname, topology, token, capability, key, seed, plaintext, ciphertext body, or raw private material is published. No public-readiness, production-readiness, security-completion, crypto-complete, attachment-complete, or bug-free claim is made.
+  - **Implications for spec/impl/tests:**
+    - `NEXT_ACTIONS.md` marks NA-0610 DONE and restores NA-0611 as the sole READY item.
+    - `tests/NA-0610_closeout_testplan.md` records closeout validation markers.
+    - `TRACEABILITY.md` maps NA-0610 closeout and NA-0611 restoration to D-1220.
+    - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the implementation PR merge, post-merge check proof, and closeout mutation boundary.
+  - **References:** NA-0610; NA-0611; D-1220; D-1219; qsl-protocol PR #1502; qsl-protocol merge `087ec2816e16`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0610_closeout_testplan.md`

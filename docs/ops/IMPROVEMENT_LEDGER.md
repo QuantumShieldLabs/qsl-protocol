@@ -289,6 +289,127 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Recommended directive shape: separate cross-repo design/implementation in
   qsl-attachments; optional small qsc-side jitter follow-up. Lower priority than ENG-0010.
 
+### ENG-0012 — Suite-2 send-side ratchet liveness gap (no DH ratchet + no boundary/PQ-reseed sender)
+- Severity: P1 (blocks the G1/G2 release gates; top-priority engineering finding)
+- Status: open — filed NA-0617 (D-1230) from the external Suite-2 code/crypto review
+  (findings C-1 + C-2); last-updated 2026-07-07
+- Exact surfaces: `tools/refimpl/quantumshield_refimpl/src/suite2/{ratchet.rs,establish.rs,
+  scka.rs}`; `qsl/qsl-client/qsc/src/main.rs` send path (`send_wire_canon(..., 0, ...)`).
+- Claim at stake: G1 (per-message hybrid keys with a live classical DH ratchet + sparse PQ
+  reseed) and the "Triple Ratchet" description; DOC-CAN-003 §8.5.2 (DH boundary).
+- Why it matters: the shipped `suite2` module never executes a classical X25519 DH ratchet
+  (`rk`/`hk_s`/`hk_r` are assigned once in `init_from_base_handshake` and never updated; no
+  X25519 use in the module), AND there is no sender-side path for boundary/PQ-reseed
+  messages (`send_wire` rejects any nonzero `flags`; no `send_boundary`/`send_pq_*`
+  anywhere), so SCKA epoch advancement and `apply_pq_reseed` are receive-only and
+  unreachable from the real client. Net delivered property: forward secrecy by chain-key
+  deletion only, for the session lifetime, with NO post-compromise self-healing — weaker
+  than plain Signal and contradicting the spec/name. A live state snapshot compromises all
+  future messages in the session.
+- Minimal fix direction: design first (trigger policy — e.g. every N messages / T seconds;
+  DH-only vs co-scheduled DH+PQ boundary reconciled with `parse_pq_prefix` and DOC-CAN-003
+  §8.5.2; metadata/traffic-shape/G5 implications), then implement `send_boundary`/
+  `send_pq_ctxt` mirroring the existing receive side, wired to the client send path.
+- Proof gap: no conformance vector exercises a full two-party session where the DH ratchet
+  and PQ reseed fire mid-conversation through the real client send path and messages still
+  decrypt.
+- Cross-repo note: primarily qsl-protocol (refimpl + qsc), but reconciliation touches the
+  canonical spec (DOC-CAN-003). Driving queue/operator for the multi-repo implementation
+  is TBD (operator to confirm).
+- Recommended directive shape: docs-only feasibility+design lane first, then staged
+  implementation lane(s) with conformance vectors. Blocking for any production /
+  quantum-secure / Triple-Ratchet / post-compromise claim.
+
+### ENG-0013 — Suite-2 symmetric counter (ns/nr) overflow hard-stop missing
+- Severity: P2 (nonce-reuse-class at saturation; bounded precondition)
+- Status: queued — filed NA-0617 (D-1230) from the Suite-2 review (H-1); selected as the
+  NA-0618 successor; last-updated 2026-07-07
+- Exact surfaces: `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs` `send_wire`
+  (`ns`), `recv_nonboundary_ooo`/`recv_boundary_in_order` (`nr`) — all `saturating_add`
+  with no `u32::MAX` guard; the sibling `qsp/ratchet.rs` has the guard.
+- Claim at stake: fail-closed message-counter monotonicity; header-nonce uniqueness.
+- Why it matters: at `ns==u32::MAX` in one direction `saturating_add` freezes the counter;
+  with static header keys (see ENG-0012) the header ciphertext then repeats byte-for-byte —
+  a nonce-reuse-class failure. Bounded behind ~4.29e9 messages/direction, but a real defect
+  with the fix pattern already in the same crate.
+- Minimal fix direction: add the identical `u32::MAX` guard to the three sites, forcing a
+  re-handshake on hit rather than saturating.
+- Proof gap: no vector drives a counter to saturation and asserts fail-closed.
+- Recommended directive shape: small source/test lane (NA-0618).
+
+### ENG-0014 — qsl-server non-constant-time bearer/route-token comparison
+- Severity: P2 (impl-attack; cross-repo)
+- Status: open — filed NA-0617 (D-1230) from the Suite-2 review (H-3); last-updated
+  2026-07-07
+- Exact surfaces: qsl-server `src/lib.rs` `auth_ok` (`provided == token`) and per-channel
+  route-token resolution (ordinary HashMap lookup); `relay_token: None` disables auth.
+- Claim at stake: constant-time credential comparison (consistent with the qsc ENG-0003
+  fix and the ML-DSA timing-oracle audit posture).
+- Why it matters: ordinary `&str` equality short-circuits and is not constant-time; the one
+  place timing-side-channel hygiene was missed. The `None` relay token disabling auth is a
+  dev-only posture that must never be a production default.
+- Minimal fix direction: `subtle::ConstantTimeEq` (or manual byte-accumulate) for the
+  bearer token and the per-channel route token; document the `None`-token dev-only posture.
+- Proof gap: no test asserts constant-time comparison for the server token paths.
+- Cross-repo note: **qsl-server**, NOT this repo. Driving queue/operator is TBD (operator
+  to confirm whether this NA queue drives qsl-server).
+- Recommended directive shape: small source/test lane in qsl-server.
+
+### ENG-0015 — Suite-2 header trial-decryption is not constant-time (ordering leak)
+- Severity: P3 (impl-attack; timing)
+- Status: open — filed NA-0617 (D-1230) from the Suite-2 review (H-2); last-updated
+  2026-07-07
+- Exact surfaces: `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`
+  `recv_nonboundary_ooo` (fixed-priority candidate order, returns on first AEAD success).
+- Why it matters: the number of AEAD `open()` attempts — and thus processing time — depends
+  on which bucket the true `header_n` falls into, leaking coarse ordering/gap info to a
+  local timing observer. NA-0611's sweep scoped qsc secret compares, not this refimpl loop.
+- Minimal fix direction: run a constant number of AEAD attempts regardless of early
+  success, OR document an accepted residual bounded by network jitter.
+- Proof gap: no test bounds the attempt-count variance across header positions.
+- Recommended directive shape: source/test normalization or a documented residual decision.
+
+### ENG-0016 — Suite-2 skip-window key-derivation amplification
+- Severity: P3 (bounded DoS amplification)
+- Status: open — filed NA-0617 (D-1230) from the Suite-2 review (M-1); last-updated
+  2026-07-07
+- Exact surfaces: `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`
+  `recv_nonboundary_ooo` skip loop (`MAX_SKIP = 1000`).
+- Why it matters: one crafted message from an authenticated peer forces up to ~3000 KMAC
+  ops (3 per skipped counter), repeatable per message.
+- Minimal fix direction: per-peer skip-rate limit, or reassess whether `MAX_SKIP = 1000`
+  exceeds real need.
+- Proof gap: no test bounds forced KMAC work per inbound message.
+- Recommended directive shape: small source/test lane; low priority.
+
+### ENG-0017 — Pre-1.0 PQ crates and ml-dsa version skew in the interop actor
+- Severity: P3 (dependency maturity / interop hygiene)
+- Status: open — filed NA-0617 (D-1230) from the Suite-2 review (M-2); last-updated
+  2026-07-07
+- Exact surfaces: `Cargo.lock` (`ml-kem 0.2.1`, `ml-dsa 0.1.0-rc.7` in the client; a
+  second `ml-dsa 0.0.4` pulled only by `tools/actors/refimpl_actor_rs`).
+- Why it matters: any "quantum-secure" claim rests on pre-1.0 PQ crates; and the
+  interop/vector actor generates against a different ML-DSA draft (`0.0.4`) than the client
+  uses (`0.1.0-rc.7`), a quiet version-skew footgun for conformance vectors.
+- Minimal fix direction: caveat PQ-maturity in claims; align the interop actor's ML-DSA
+  version with the client; monitor upstream 1.0 releases.
+- Proof gap: no CI check flags actor-vs-client PQ-crate version divergence.
+- Recommended directive shape: dependency/docs lane (touches Cargo — full ritual, its own
+  authorization).
+
+### ENG-0018 — Legacy plaintext-session migration deletion not verified
+- Severity: P3 (secret-at-rest hygiene)
+- Status: open — filed NA-0617 (D-1230) from the Suite-2 review (LOW note); last-updated
+  2026-07-07
+- Exact surfaces: `qsl/qsl-client/qsc/src/protocol_state/mod.rs:338` (reads an old
+  plaintext session blob and re-encrypts via the vault).
+- Why it matters: the encrypted-at-rest path is otherwise sound (all three snapshot paths
+  route through the vault), but the legacy migration should provably delete the plaintext
+  original so no unencrypted session snapshot lingers.
+- Minimal fix direction: confirm/assert deletion of the plaintext source after migration.
+- Proof gap: no test asserts the pre-encryption plaintext blob is removed post-migration.
+- Recommended directive shape: small audit + deletion-assertion lane.
+
 ---
 
 ## Workflow / process items
@@ -395,3 +516,17 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   public-safety/advisories/goal-lint/link-check. This mutates workflows and interacts
   with branch-protection required checks, so it needs explicit lane authorization and the
   full two-PR ritual — NOT a docs/LITE lane. Filed for prioritization.
+
+### WF-0010 — No reachability/liveness audit class (spec-mandated transitions can ship unreachable)
+- Type: workflow; Status: open — filed NA-0617 (D-1230) from the external Suite-2 review
+- Problem: the audit program has deep parse/reject/state-machine coverage but no class that
+  asks "is every spec-mandated state transition actually reachable from the real client
+  entry points?" The Suite-2 send-side ratchet gap (ENG-0012: DH ratchet and PQ reseed
+  unreachable from the real send path) coexisted for months with hundreds of green evidence
+  docs and was surfaced only by an external code review, not by the in-repo audit trail.
+- Recommended change: add a DOC-AUD-001 reachability/liveness audit class that, for each
+  spec-mandated transition, traces a path from a real client entry point to that transition
+  (or records it as deliberately unimplemented). Require it before any "implemented" or
+  release-gate (DOC-PROG-001 G1/G2) claim for a protocol feature.
+- Recommended directive shape: docs/process (add the audit class to DOC-AUD-001 and wire it
+  into the Director triage + release-gate checklist).

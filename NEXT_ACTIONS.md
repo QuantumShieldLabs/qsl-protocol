@@ -33990,6 +33990,25 @@ remains the sole READY successor and begins at D-1216.
 
 ---
 
+### NA-0609D — fs_store Persistence Durability Re-Verification and ENG-0004 False-Positive Correction
+Status: DONE
+Goals: G1, G2, G3, G4, G5
+Lane class: LITE-CEREMONY (single PR, single decision D-1216) — certified read-only.
+
+Objective:
+Inserted read-only re-verification lane (does NOT implement NA-0609; no source fix).
+Executed under directive D545. Corrects a NA-0609B audit false positive: ENG-0004
+reported the fs_store directory fsync as a no-op, but that is only the
+`#[cfg(not(unix))]` fallback; the `#[cfg(unix)]` variant does the real directory
+fsync, so on x86_64-linux `write_atomic` is fully durable (content sync_all ->
+atomic rename -> directory fsync) and G2 crash-durability is sound. Result
+`FS_STORE_DURABILITY_SOUND_ON_UNIX_ENG0004_FALSE_POSITIVE`. Ledger ENG-0004 set to
+wontfix; WF-0005 filed (audit-methodology: check cfg-gated variants); NA-0609B
+evidence addendum added. Consumes D-1216. NA-0609 remains the sole READY item and
+begins at D-1217.
+
+---
+
 ### NA-0609 — QSL Hostile Analyst / Metadata Minimization and Implementation-Attack Hardening Plan
 Status: READY
 Goals: G1, G2, G3, G4, G5

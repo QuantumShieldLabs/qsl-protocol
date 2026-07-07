@@ -114,6 +114,14 @@ Grounded in code at the cited lines, the following held:
 - Proof gap: no crash/durability test exercises loss of the directory entry.
 - Recommended directive shape: implementation-only (or a docs/evidence boundary
   statement if deferred), scoped to fs_store.
+- CORRECTION (NA-0609D, D-1216): ENG-0004 is a FALSE POSITIVE and is marked wontfix
+  in the ledger. `fsync_dir_best_effort` has two cfg-gated definitions; only the
+  `#[cfg(not(unix))]` variant is a no-op, while the `#[cfg(unix)]` variant (the one
+  compiled on the x86_64-linux deployment target) does the real directory fsync
+  `File::open(dir).and_then(|d| d.sync_all())`. So on Unix `write_atomic` is fully
+  durable (content sync_all -> atomic rename -> directory fsync) and G2
+  crash-durability is sound; this audit erred by reading only the `not(unix)` stub.
+  Lesson recorded as ledger WF-0005.
 
 ### ENG-0001 (resolved-into-finding) — Silent `--as <label>` self-identity divergence
 - Severity: P3 (robustness/UX footgun; not an identity-binding defect)

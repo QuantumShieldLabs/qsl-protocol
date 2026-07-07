@@ -130,7 +130,15 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 
 ### ENG-0004 — Directory fsync is a no-op; atomic-rename durability not guaranteed
 - Severity: P3 (crash-durability; fail-closed-safe direction)
-- Status: open — originating lane NA-0609B (D-1213); last-updated 2026-07-06
+- Status: wontfix — FALSE POSITIVE, re-verified by NA-0609D (D-1216); last-updated 2026-07-06
+- Correction (NA-0609D): NOT a defect. `fsync_dir_best_effort` has two cfg-gated
+  definitions in `fs_store/mod.rs`: the `#[cfg(not(unix))]` variant (line 359) is a
+  no-op, but the `#[cfg(unix)]` variant (line 362) does the real directory fsync
+  `File::open(dir).and_then(|d| d.sync_all())`. On the deployment target
+  (x86_64-linux) `write_atomic` performs a full durable sequence: content
+  `sync_all` -> atomic `rename` -> directory fsync. G2 crash-durability is sound on
+  Unix; the non-unix no-op is a documented best-effort degradation. The NA-0609B
+  audit erred by grepping only the `not(unix)` stub. See WF-0005.
 - Exact surfaces: `qsl/qsl-client/qsc/src/fs_store/mod.rs:359`
   (`fsync_dir_best_effort` is empty), called after the rename in `write_atomic`.
 - Claim potentially at stake: G2 crash-safe state persistence.
@@ -191,3 +199,16 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   `docs/ops/DIRECTOR_OPERATIONS.md` §5 (verified-state) capturing this, and/or a
   startup-gate enhancement to refresh an existing checkout's proof.
 - Recommended directive shape: docs/process (a LITE lane) to add the runbook note.
+
+### WF-0005 — Audits must check for cfg-gated alternate definitions before calling a function a no-op
+- Status: done — lane NA-0609D (D-1216); last-updated 2026-07-06
+- Problem: the NA-0609B audit reported ENG-0004 (a directory-fsync no-op) as a
+  finding by grepping and seeing only the `#[cfg(not(unix))]` stub of
+  `fsync_dir_best_effort`; it missed the `#[cfg(unix)]` variant that does the real
+  fsync. The finding was a false positive (see ENG-0004 correction).
+- Recommended change: when a read-only audit concludes a function is a no-op or
+  stub, first grep for all definitions of that symbol (including `#[cfg(...)]`,
+  `#[cfg(not(...))]`, target-gated, and feature-gated variants) and read the one
+  that applies to the deployment target before recording a finding. Lesson
+  recorded here for future audit lanes (DOC-AUD-001 methodology); resolved by
+  NA-0609D re-verification and this note.

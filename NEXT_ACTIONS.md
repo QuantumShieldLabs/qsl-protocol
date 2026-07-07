@@ -34009,8 +34009,26 @@ begins at D-1217.
 
 ---
 
-### NA-0610 — Malformed Envelope/Descriptor/Object Adversarial Negative-Test Expansion
+### NA-0611 — Constant-Time Comparison Sweep Beyond the Handshake Seam (read-only audit)
 Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement DOC-G5-005 §9 rank 2 / ledger ENG-0005: a read-only audit enumerating qsc
+tag/MAC/secret comparison sites outside handshake/mod.rs (e.g. attachment
+capability/token checks, vault unlock) and confirming or classifying whether each is
+constant-time, producing a ranked findings report (DOC-AUD-001 §6 schema) and ledger
+updates. Read-only audit; no source fix (each concrete fix returns as its own
+full-ritual lane). LITE-CEREMONY eligible (single PR) per DOC-OPS-006 §9. No
+dependency/lockfile/workflow mutation, no runtime/LAN action, and no
+security-complete/crypto-complete claim is authorized.
+
+---
+
+### NA-0610 — Malformed Envelope/Descriptor/Object Adversarial Negative-Test Expansion
+Status: DONE
+Closeout note:
+- Implemented under directive D547; consumes D-1219 (implementation, qsl-protocol PR #1502 merged `087ec2816e16`) and D-1220 (this closeout). Result `MALFORMED_ATTACHMENT_DESCRIPTOR_NEGATIVES_PINNED`; added deterministic malformed descriptor/confirm negatives (all reject fail-closed); no production change; no finding. Successor NA-0611 restored above as the sole READY item.
 Goals: G1, G2, G3, G4, G5
 
 Objective:

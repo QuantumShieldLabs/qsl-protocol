@@ -34009,8 +34009,27 @@ begins at D-1217.
 
 ---
 
-### NA-0612 — Error/Retry Normalization Review (read-only audit)
+### NA-0613 — Attachment-Plane Metadata Mitigation Feasibility and Design (read-only)
 Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement DOC-G5-005 §9 rank 4 / ledger ENG-0007: a read-only feasibility+design study
+for mitigating the NA-0608 attachment-plane residual metadata (ciphertext-object size,
+part count, upload/fetch timing) — extending the message-plane padding/bucketing model
+to the attachment plane. Produce a cost/benefit matrix and a bounded design proposal
+(no behavior change), identifying which mitigations are compatible with the attachment
+contract and which require a separate implementation lane. Read-only; no source/wire/
+contract change; LITE-CEREMONY eligible per DOC-OPS-006 §9. No dependency/lockfile/
+workflow mutation, no runtime/LAN action, and no metadata-free/anonymity/
+security-complete claim is authorized.
+
+---
+
+### NA-0612 — Error/Retry Normalization Review (read-only audit)
+Status: DONE
+Closeout note:
+- Executed under directive D549 (LITE-CEREMONY); consumes D-1222. Result `ERROR_RETRY_DISTINGUISHABILITY_LOCAL_ONLY_NO_REMOTE_ORACLE`: within qsc the reject taxonomy is local-only (stdout/log markers, not wire-transmitted), the retry path is cause-agnostic (bounded_retry unit error), and no reason NACK is sent on the wire; no remotely-observable failure-cause oracle beyond the send/fetch timing/size metadata already tracked. ENG-0006 resolved; ENG-0009 filed (optional P3 deterministic-jitter); service-side (qsl-server/qsl-attachments) normalization noted as out-of-repo follow-up. Successor NA-0613 (ENG-0007 attachment-plane metadata feasibility) restored above.
 Goals: G1, G2, G3, G4, G5
 
 Objective:

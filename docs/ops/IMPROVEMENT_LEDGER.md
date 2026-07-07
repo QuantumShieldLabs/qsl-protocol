@@ -330,8 +330,18 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 
 ### ENG-0013 — Suite-2 symmetric counter (ns/nr) overflow hard-stop missing
 - Severity: P2 (nonce-reuse-class at saturation; bounded precondition)
-- Status: queued — filed NA-0617 (D-1230) from the Suite-2 review (H-1); selected as the
-  NA-0618 successor; last-updated 2026-07-07
+- Status: done — resolved by NA-0618 (D-1232); filed NA-0617 (D-1230) from the Suite-2
+  review (H-1); last-updated 2026-07-07
+- Resolution (NA-0618): added a `checked_counter_inc` helper (fail-closed `u32::MAX`
+  increment) used at all three ns/nr advance sites in `suite2/ratchet.rs` (`send_wire`,
+  `recv_nonboundary_ooo`, `recv_boundary_in_order`) in place of `saturating_add`; on
+  saturation the send returns `Err(REJECT_S2_COUNTER_OVERFLOW)` and the recv paths return a
+  reject with that reason and NO state mutation (the transactional no-mutation-on-reject rule
+  holds). New reject code `REJECT_S2_COUNTER_OVERFLOW` registered in DOC-CAN-003 §10 (local
+  reason code; not wire-transmitted). Pinned by `checked_counter_inc_boundary_and_normal` and
+  `send_wire_rejects_counter_overflow_at_ns_max_and_no_mutation`; the receive-side guards use
+  the same helper (unreachable via a compliant sender). Full refimpl suite green (no
+  regression). See the NA-0618 evidence doc.
 - Exact surfaces: `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs` `send_wire`
   (`ns`), `recv_nonboundary_ooo`/`recv_boundary_in_order` (`nr`) — all `saturating_add`
   with no `u32::MAX` guard; the sibling `qsp/ratchet.rs` has the guard.

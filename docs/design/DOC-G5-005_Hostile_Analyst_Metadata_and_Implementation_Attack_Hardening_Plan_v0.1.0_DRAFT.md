@@ -126,6 +126,12 @@ review; it defines the preconditions.
 
 ## 9. Prioritized hardening backlog (each returns as its own lane)
 
+> **SUPERSEDED (2026-07-07, D-1231).** This ranked table is retained for history only; its
+> ranks 1–6 are all complete (NA-0610…NA-0617). It is **no longer the live roadmap.** The
+> single authoritative prioritized backlog is now `docs/ops/IMPROVEMENT_LEDGER.md` (ENG-####
+> / WF-#### entries, sorted by severity), surfaced via the LIVE QUEUE / ON DECK header in
+> `NEXT_ACTIONS.md`. Do not add new items here; file them in the ledger.
+
 | rank | item | plane / area | severity | recommended lane shape |
 | --- | --- | --- | --- | --- |
 | 1 | Malformed envelope/descriptor/object negative-test expansion | test coverage | P2 | source/test (NA-0610) |

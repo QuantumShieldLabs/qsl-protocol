@@ -54,7 +54,7 @@ spine before making changes.
 
 ### I want to contribute
 
-1) Read [CONTRIBUTING.md](CONTRIBUTING.md) and the active READY item in [NEXT_ACTIONS.md](NEXT_ACTIONS.md).
+1) Read [CONTRIBUTING.md](CONTRIBUTING.md) and the active READY item in [NEXT_ACTIONS.md](NEXT_ACTIONS.md) — start with its `## LIVE QUEUE` header (the READY pointer + ON DECK). The single prioritized backlog is [docs/ops/IMPROVEMENT_LEDGER.md](docs/ops/IMPROVEMENT_LEDGER.md); NA-#### IDs are creation-order, not run-order (see DOC-OPS-006).
 2) Prefer small evidence improvements: negative tests, reproducible demo proof, link fixes, clearer `NOT_READY` boundaries, or documentation that ties claims to evidence.
 3) Preserve fail-closed behavior and stop before changing protocol, wire, crypto, state-machine, service, website, workflow, dependency, branch-protection, or public-safety semantics without explicit queue authorization.
 

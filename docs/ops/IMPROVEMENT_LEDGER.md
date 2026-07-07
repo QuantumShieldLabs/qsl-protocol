@@ -319,6 +319,14 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Recommended directive shape: docs-only feasibility+design lane first, then staged
   implementation lane(s) with conformance vectors. Blocking for any production /
   quantum-secure / Triple-Ratchet / post-compromise claim.
+- Addendum (D-1231, from the Comprehensive Audit — sharpens, does not change severity): the
+  client does not merely leave the reverse direction static — it MANUFACTURES both chains
+  from the same static root key. `qsp_activate_responder_send_chain_if_needed` /
+  `_initiator_recv_chain_if_needed` (`qsl/qsl-client/qsc/src/main.rs` ~:2130/:2153) set
+  `ck_ec`/`ck_pq` via `kmac_out(&st.recv.rk, "QSP5.0/CK0/B->A", ...)`. Net: the ENTIRE
+  bidirectional key schedule is a deterministic function of one `rk` fixed at establishment;
+  no fresh entropy is ever injected in either direction. Confirms "no PCS" and that the fix
+  must also remove this static-`rk` bootstrap in favour of real ratchet steps.
 
 ### ENG-0013 — Suite-2 symmetric counter (ns/nr) overflow hard-stop missing
 - Severity: P2 (nonce-reuse-class at saturation; bounded precondition)
@@ -409,6 +417,60 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Minimal fix direction: confirm/assert deletion of the plaintext source after migration.
 - Proof gap: no test asserts the pre-encryption plaintext blob is removed post-migration.
 - Recommended directive shape: small audit + deletion-assertion lane.
+
+### ENG-0019 — `qsp::handshake` X3DH skeleton is auth-unsafe dead code
+- Severity: P3 (latent; unreachable in the shipped client, so NOT currently exploitable)
+- Status: open — filed D-1231 from the Comprehensive Audit (H-4); last-updated 2026-07-07
+- Exact surfaces: `tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs`
+  (`responder_process` ~:216; `InitiatorState.pq_rcv_a_priv` ~:196/:206).
+- Claim at stake: peer authentication of any deployment that wires in this skeleton.
+- Why it matters: `responder_process` defers KT identity verification to the caller ("expects
+  the caller to have performed KT pinning for A out-of-band"), and `pq_rcv_a_priv` is left
+  `Vec::new()` ("not populated here") so the initiator cannot decapsulate ct3 — the skeleton
+  cannot complete and, if wired into a real deployment, peer authentication would be
+  MITM-able. The shipped `qsc` client uses its own `QSC.HS.*` handshake, so this is NOT
+  reachable today; the risk is an integrator mistaking this plausibly-named `QSP4.3` code for
+  the production handshake.
+- Minimal fix direction: feature-gate / mark non-functional / remove the skeleton so it
+  cannot be mistaken for the real path; OR complete it (KT verification inside
+  `responder_process`; retain `pq_rcv_a_priv`) with conformance tests.
+- Proof gap: no test asserts the skeleton is unreachable/gated.
+- Recommended directive shape: small source lane (gate/remove). Recommended near-term
+  despite P3 severity — the fix is cheap and it aligns with the "eliminate attack surfaces by
+  construction" design tenet (PROJECT_CHARTER).
+
+### ENG-0020 — Attachment Merkle root duplicates the last node on odd levels (malleability shape)
+- Severity: P3 (defense-in-depth; doubly mitigated — not currently exploitable)
+- Status: open — filed D-1231 from the Comprehensive Audit (L-1); last-updated 2026-07-07
+- Exact surfaces: `qsl/qsl-client/qsc/src/attachments/mod.rs` `attachment_merkle_root`
+  (~:249) AND qsl-attachments `sha512_merkle_root` (both duplicate the last node on odd
+  levels — the CVE-2012-2459 shape).
+- Claim at stake: attachment integrity-root uniqueness (no two distinct part-lists → one root).
+- Why it matters: classic Merkle odd-duplication malleability. Doubly mitigated here: each
+  leaf binds its index + length (`0x00` prefix), and the protocol independently binds
+  `part_count` (commit validates `parts.len() == part_count`), so the standard substitution
+  attack is already neutralized. Recorded as defense-in-depth hardening, not a live exploit.
+- Minimal fix direction: reject odd duplication, or bind the total leaf count into the root.
+  NOTE: the root is a shared wire-level integrity commitment, so this is a COORDINATED
+  cross-repo change — the qsc client and the qsl-attachments service must change identically.
+- Proof gap: no test rejects the odd-duplication collision shape.
+- Recommended directive shape: coordinated qsc + qsl-attachments source lane; low priority.
+
+### ENG-0021 — `hash_secret` is unsalted SHA-512
+- Severity: P3 (latent; current callers are high-entropy, so NOT currently exploitable)
+- Status: open — filed D-1231 from the Comprehensive Audit (L-2); last-updated 2026-07-07
+- Exact surfaces: qsl-attachments `hash_secret` (`SHA-512(secret)`, unsalted), called on
+  `resume_token` and `fetch_capability`; the qsl-server has an analogous pattern.
+- Claim at stake: resistance to brute-force of any low-entropy value passed to the hash.
+- Why it matters: unsalted SHA-512 is cheap to brute-force for low-entropy inputs. Current
+  callers pass only high-entropy random tokens (`random_token(18)`/`random_token(32)`), so
+  there is no realized risk; the concern is purely latent (a future low-entropy caller).
+- Minimal fix direction: add/enforce a caller-invariant that only high-entropy random tokens
+  are hashed (assertion + doc); route through a salted KDF only if a low-entropy caller is
+  ever introduced.
+- Proof gap: no invariant/test constrains what may be passed to `hash_secret`.
+- Cross-repo note: qsl-attachments (+ qsl-server); driving queue TBD. Low priority.
+- Recommended directive shape: small caller-invariant/docs lane; low priority.
 
 ---
 
@@ -530,3 +592,22 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   release-gate (DOC-PROG-001 G1/G2) claim for a protocol feature.
 - Recommended directive shape: docs/process (add the audit class to DOC-AUD-001 and wire it
   into the Director triage + release-gate checklist).
+
+### WF-0011 — Split the DONE archive out of NEXT_ACTIONS.md (CI-script-aware)
+- Type: workflow; Status: open — filed D-1231 (queue-header restructure)
+- Problem: `NEXT_ACTIONS.md` is ~34k lines because it holds every completed lane block. The
+  live queue is now surfaced by a `## LIVE QUEUE` header (D-1231), but the DONE blocks still
+  bloat the file. A physical split into a live file + `docs/ops/NA_ARCHIVE.md` was deferred
+  because three in-repo CI scripts read DONE blocks from `NEXT_ACTIONS.md` and would break:
+  `scripts/ci/post_merge_verify.sh` (asserts the merged lane's `Status: DONE` block is in
+  NEXT_ACTIONS.md), `scripts/ci/qsl_director_state_index.py` (computes `last_done` from DONE
+  blocks), and `scripts/ci/public_safety_gate.py` (reads NEXT_ACTIONS.md content). The READY
+  parser (`scripts/ci/qsl_evidence_helper.py queue`) is already tolerant (filters by
+  `Status: READY`).
+- Recommended change: a dedicated lane that (1) moves all `Status: DONE` lane blocks to
+  `docs/ops/NA_ARCHIVE.md` (append-only), (2) updates the three CI scripts to read the archive
+  where they currently read DONE blocks (or relaxes the post-merge DONE assertion to check
+  TRACEABILITY.md, which already records every closeout), and (3) verifies the full CI gate
+  set green before/after on a no-op lane. Keep exactly one `Status: READY` in the live file.
+- Recommended directive shape: source/CI lane (touches CI scripts) — full ritual, its own
+  authorization; NOT a docs/LITE lane. Medium priority (readability/maintainability).

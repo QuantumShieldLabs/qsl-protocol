@@ -171,7 +171,16 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 
 ### ENG-0006 — Error/retry normalization review
 - Severity: P3 (implementation-attack; distinguishability)
-- Status: open — originating lane NA-0609 (D-1217); last-updated 2026-07-07
+- Status: resolved-into-findings — reviewed by NA-0612 (D-1222); last-updated 2026-07-07
+- Resolution (NA-0612): within qsc, the reject taxonomy (recv_reject_*, REJECT_ATT_*,
+  REJECT_QSC_HS_*) is LOCAL-ONLY (operator stdout/log markers; not transmitted on the
+  wire on reject), the retry path (`bounded_retry`) is cause-agnostic (unit error;
+  attempt-count-derived backoff), and no reason-carrying NACK is sent on the wire.
+  No remotely-observable failure-cause oracle beyond the send/fetch timing/size
+  metadata already documented (NA-0608 / DOC-G5-005). Residual: optional P3 ENG-0009
+  (deterministic retry jitter) plus a service-side scope note (qsl-server /
+  qsl-attachments error normalization is out of qsc-repo scope). See the NA-0612
+  evidence doc.
 - Surfaces: qsc/qsl-server/qsl-attachments reject-code, timing, and retry/backoff
   behavior.
 - Why it matters: distinct internal failure causes should not be externally
@@ -201,6 +210,20 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   already has direct read access to it — so there is no practical timing advantage.
 - Minimal fix direction: use a constant-time fixed-length comparison at these two
   sites if a future lane elects the hardening.
+- Recommended directive shape: optional small implementation-only lane; low priority.
+
+### ENG-0009 — Deterministic retry backoff jitter (optional defense-in-depth)
+- Severity: P3 (defense-in-depth; NOT a failure-cause oracle)
+- Status: open — originating lane NA-0612 (D-1222); last-updated 2026-07-07
+- Surface: `qsl/qsl-client/qsc/src/main.rs` `bounded_retry` — the backoff jitter is
+  deterministic (attempt-count-derived), not randomized.
+- Why it matters: retry is cause-agnostic and retry attempts are not remotely
+  observable in the current model, so this leaks no failure cause. It is recorded only
+  because a deterministic backoff is more predictable than a randomized one in a
+  hypothetical live send-retry-to-relay scenario; any concern there ties to the
+  send-timing metadata already tracked (NA-0608 / DOC-G5-005), not to distinguishability.
+- Minimal fix direction: randomize the retry jitter only if send-retry-to-relay timing
+  is ever made a live mitigation target; otherwise no action.
 - Recommended directive shape: optional small implementation-only lane; low priority.
 
 ---

@@ -67,6 +67,10 @@ pub struct AttachmentDescriptorPayload {
     pub v: u8,
     pub t: String,
     pub attachment_id: String,
+    // NA-0614: true delivered length (required). `plaintext_len` is the padded/encrypted
+    // length (a size-ladder bucket); the receiver truncates output to `content_len`.
+    // Required in the v1 wire format from first release; not defaulted (strict).
+    pub content_len: u64,
     pub plaintext_len: u64,
     pub ciphertext_len: u64,
     pub part_size_class: String,
@@ -147,6 +151,7 @@ mod tests {
             "v":1,
             "t":"attachment_descriptor",
             "attachment_id":"a1",
+            "content_len":1,
             "plaintext_len":1,
             "ciphertext_len":2,
             "part_size_class":"small",
@@ -194,6 +199,7 @@ mod tests {
         "v":1,
         "t":"attachment_descriptor",
         "attachment_id":"a1",
+        "content_len":1,
         "plaintext_len":1,
         "ciphertext_len":2,
         "part_size_class":"small",

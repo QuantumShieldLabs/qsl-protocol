@@ -8,6 +8,18 @@ Last-Updated: 2026-07-07
 
 # DOC-G5-006 — Attachment-Plane Metadata Mitigation Feasibility and Design
 
+> **CORRECTION (NA-0614, D-1224):** This doc's original conclusion that M1
+> (object-size padding) is **client-only with "no contract change"** was wrong. The
+> receiver enforces an exact `sum(decrypted) == plaintext_len` check and the descriptor
+> is `#[serde(deny_unknown_fields)]`, so a true-length field cannot be added without a
+> coordinated format change — padding is **not** achievable as a sender-only change.
+> Because the project is pre-release (no installed base), that coordinated change is
+> cheap and needs no negotiation/versioning machinery, so padding is made a **mandatory
+> baseline format** with an additive authenticated `content_len` (the exact-length check
+> is preserved, not weakened). The corrected, locked design is in **DOC-G5-007**. In the
+> tables below, read M1's "contract change = None" as **"format change: yes; negotiation:
+> no (pre-release mandatory baseline)"**.
+
 ## 1. Purpose and scope
 
 This is a read-only feasibility+design study (DOC-G5-005 §9 rank 4 / ledger ENG-0007)

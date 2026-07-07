@@ -236,7 +236,13 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 
 ### ENG-0010 — Attachment-plane object-size/part-count bucketing (recommended mitigation)
 - Severity: P3 (metadata; highest-value residual — the top NA-0613 recommendation)
-- Status: open — originating lane NA-0613 (D-1223); last-updated 2026-07-07
+- Status: resolved (implemented) — shipped by NA-0614 (D-1224); last-updated 2026-07-07
+- Resolution (NA-0614): mandatory baseline attachment-object padding (DOC-G5-007):
+  additive authenticated `content_len` vs padded `plaintext_len`, receiver truncation
+  with the exact-length check preserved, AAD/confirm binding, a sender size ladder with
+  a ladder-agnostic receiver. The service/network observer now sees only a bucketed
+  object size. Part-count is bucketed as a consequence. Access existence/timing residual
+  remains ENG-0011.
 - Surface: `qsl/qsl-client/qsc/src/attachments/mod.rs` object sizing/chunking path.
 - Why it matters: today `ciphertext_len = plaintext_len + part_count*tag` (no object
   padding), so the service/network observer learns the plaintext size almost exactly

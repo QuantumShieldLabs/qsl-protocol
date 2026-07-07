@@ -135,6 +135,41 @@ fn attachment_ciphertext_len_for_plaintext(plaintext_len: u64, part_count: u32) 
     plaintext_len.checked_add(u64::from(part_count) * ATTACHMENT_CIPHER_TAG_LEN as u64)
 }
 
+// NA-0614: object-size padding ladder (bytes). `content_len` is rounded UP to the
+// smallest bucket >= content_len; the top bucket is the max file size, so a valid
+// content_len (<= max) always fits and padding never exceeds the max. This is sender
+// policy only — the receiver honors any content_len <= plaintext_len and is agnostic to
+// the ladder, so the ladder may be retuned in a future build with no format/receiver
+// change. See DOC-G5-007.
+const ATTACHMENT_PAD_LADDER: &[u64] = &[
+    4_096,
+    8_192,
+    16_384,
+    32_768,
+    65_536,
+    131_072,
+    262_144,
+    524_288,
+    1_048_576,
+    2_097_152,
+    4_194_304,
+    8_388_608,
+    16_777_216,
+    33_554_432,
+    67_108_864,
+    ATTACHMENT_DEFAULT_MAX_FILE_SIZE as u64,
+];
+
+fn attachment_pad_to_ladder(content_len: u64) -> Option<u64> {
+    if content_len == 0 || content_len > ATTACHMENT_DEFAULT_MAX_FILE_SIZE as u64 {
+        return None;
+    }
+    ATTACHMENT_PAD_LADDER
+        .iter()
+        .copied()
+        .find(|&bucket| bucket >= content_len)
+}
+
 fn attachment_ciphertext_part_len(
     part_index: u32,
     _plaintext_len: u64,
@@ -160,17 +195,20 @@ fn attachment_nonce(prefix: &[u8; 8], part_index: u32) -> [u8; 12] {
     out
 }
 
+#[allow(clippy::too_many_arguments)]
 fn attachment_part_aad(
     attachment_id: &str,
     enc_ctx_alg: &str,
+    content_len: u64,
     plaintext_len: u64,
     ciphertext_len: u64,
     part_size_class: &str,
     part_count: u32,
     part_index: u32,
 ) -> Vec<u8> {
+    // NA-0614: content_len is bound here so a tampered true-length fails AEAD decrypt.
     format!(
-        "QATT-PART-V1|{attachment_id}|{enc_ctx_alg}|{plaintext_len}|{ciphertext_len}|{part_size_class}|{part_count}|{part_index}"
+        "QATT-PART-V1|{attachment_id}|{enc_ctx_alg}|{content_len}|{plaintext_len}|{ciphertext_len}|{part_size_class}|{part_count}|{part_index}"
     )
     .into_bytes()
 }
@@ -292,6 +330,7 @@ fn attachment_decode_enc_ctx(token: &str) -> Result<([u8; 32], [u8; 8]), &'stati
 
 struct AttachmentConfirmHandleInput<'a> {
     attachment_id: &'a str,
+    content_len: u64,
     plaintext_len: u64,
     ciphertext_len: u64,
     part_size_class: &'a str,
@@ -305,6 +344,7 @@ struct AttachmentConfirmHandleInput<'a> {
 fn attachment_confirm_handle(input: AttachmentConfirmHandleInput<'_>) -> String {
     let AttachmentConfirmHandleInput {
         attachment_id,
+        content_len,
         plaintext_len,
         ciphertext_len,
         part_size_class,
@@ -314,8 +354,9 @@ fn attachment_confirm_handle(input: AttachmentConfirmHandleInput<'_>) -> String 
         retention_class,
         expires_at_unix_s,
     } = input;
+    // NA-0614: content_len bound into the confirm material alongside the padded length.
     let material = format!(
-        "QATT-CONFIRM-V1|{attachment_id}|{plaintext_len}|{ciphertext_len}|{part_size_class}|{part_count}|{integrity_alg}|{integrity_root}|{retention_class}|{expires_at_unix_s}"
+        "QATT-CONFIRM-V1|{attachment_id}|{content_len}|{plaintext_len}|{ciphertext_len}|{part_size_class}|{part_count}|{integrity_alg}|{integrity_root}|{retention_class}|{expires_at_unix_s}"
     );
     let digest = Sha512::digest(material.as_bytes());
     hex_encode(&digest[..12])
@@ -593,13 +634,16 @@ fn attachment_build_outbound_record(
     receipt: Option<ReceiptKind>,
 ) -> Result<AttachmentTransferRecord, &'static str> {
     let metadata = fs::metadata(path).map_err(|_| "file_xfer_read_failed")?;
-    let plaintext_len = metadata.len();
-    if plaintext_len == 0 {
+    // NA-0614: content_len is the true file length and the "too-big" gate; plaintext_len
+    // is padded up to a size-ladder bucket so the stored object reveals only the bucket.
+    let content_len = metadata.len();
+    if content_len == 0 {
         return Err("file_xfer_empty");
     }
-    if plaintext_len > ATTACHMENT_DEFAULT_MAX_FILE_SIZE as u64 {
+    if content_len > ATTACHMENT_DEFAULT_MAX_FILE_SIZE as u64 {
         return Err("size_exceeds_max");
     }
+    let plaintext_len = attachment_pad_to_ladder(content_len).ok_or("attachment_shape_invalid")?;
     let filename_hint = path
         .file_name()
         .and_then(|v| v.to_str())
@@ -636,25 +680,40 @@ fn attachment_build_outbound_record(
         attachment_plaintext_capacity(&part_size_class).ok_or("attachment_shape_invalid")?;
     let mut leaves = Vec::with_capacity(part_count as usize);
     let mut buf = vec![0u8; capacity];
-    let mut produced = 0u32;
-    loop {
+    let capacity_u64 = capacity as u64;
+    // NA-0614: drive the loop by the padded part_count. Each part carries `capacity`
+    // plaintext bytes except the last; source content fills the first content_len bytes
+    // across parts and the remainder is deterministic zero padding (encrypted, so the
+    // stored object is indistinguishable from real content of the bucket size).
+    let mut content_remaining = content_len;
+    for produced in 0..part_count {
+        let part_plain_len = if produced + 1 < part_count {
+            capacity
+        } else {
+            usize::try_from(plaintext_len - u64::from(part_count - 1) * capacity_u64)
+                .map_err(|_| "attachment_shape_invalid")?
+        };
+        for b in buf[..part_plain_len].iter_mut() {
+            *b = 0;
+        }
+        let want = usize::try_from(content_remaining.min(part_plain_len as u64))
+            .map_err(|_| "attachment_shape_invalid")?;
         let mut read_len = 0usize;
-        while read_len < capacity {
+        while read_len < want {
             let n = src
-                .read(&mut buf[read_len..])
+                .read(&mut buf[read_len..want])
                 .map_err(|_| "file_xfer_read_failed")?;
             if n == 0 {
                 break;
             }
             read_len += n;
         }
-        if read_len == 0 {
-            break;
-        }
+        content_remaining -= read_len as u64;
         let nonce = attachment_nonce(&nonce_prefix, produced);
         let aad = attachment_part_aad(
             &attachment_id,
             ATTACHMENT_ENC_CTX_ALG_V1,
+            content_len,
             plaintext_len,
             ciphertext_len,
             &part_size_class,
@@ -665,7 +724,7 @@ fn attachment_build_outbound_record(
             .encrypt(
                 Nonce::from_slice(&nonce),
                 Payload {
-                    msg: &buf[..read_len],
+                    msg: &buf[..part_plain_len],
                     aad: &aad,
                 },
             )
@@ -673,15 +732,12 @@ fn attachment_build_outbound_record(
         dst.write_all(&ciphertext)
             .map_err(|_| "attachment_stage_unavailable")?;
         leaves.push(attachment_merkle_leaf(produced, &ciphertext));
-        produced = produced.saturating_add(1);
-        if read_len < capacity {
-            break;
-        }
     }
     dst.sync_all().map_err(|_| "attachment_stage_unavailable")?;
-    if produced != part_count {
+    // All source content must have been consumed exactly (file did not shrink under us).
+    if content_remaining != 0 {
         let _ = fs::remove_file(&staged_path);
-        return Err("attachment_shape_invalid");
+        return Err("file_xfer_read_failed");
     }
     let integrity_root = attachment_merkle_root(leaves).ok_or("attachment_shape_invalid")?;
     Ok(AttachmentTransferRecord {
@@ -690,6 +746,7 @@ fn attachment_build_outbound_record(
         direction: "out".to_string(),
         service_url: Some(service_url.to_string()),
         state: "STAGED".to_string(),
+        content_len,
         plaintext_len,
         ciphertext_len,
         part_size_class,
@@ -809,6 +866,7 @@ fn attachment_build_descriptor(record: &AttachmentTransferRecord) -> Result<Vec<
     let confirm_handle = if record.confirm_requested {
         Some(attachment_confirm_handle(AttachmentConfirmHandleInput {
             attachment_id: &record.attachment_id,
+            content_len: record.content_len,
             plaintext_len: record.plaintext_len,
             ciphertext_len: record.ciphertext_len,
             part_size_class: &record.part_size_class,
@@ -825,6 +883,7 @@ fn attachment_build_descriptor(record: &AttachmentTransferRecord) -> Result<Vec<
         v: ATTACHMENT_DESCRIPTOR_VERSION,
         t: ATTACHMENT_DESCRIPTOR_TYPE.to_string(),
         attachment_id: record.attachment_id.clone(),
+        content_len: record.content_len,
         plaintext_len: record.plaintext_len,
         ciphertext_len: record.ciphertext_len,
         part_size_class: record.part_size_class.clone(),
@@ -949,6 +1008,7 @@ fn attachment_send_execute(args: AttachmentSendExec<'_>) -> Result<(), String> {
     record.confirm_handle = if record.confirm_requested {
         Some(attachment_confirm_handle(AttachmentConfirmHandleInput {
             attachment_id: &record.attachment_id,
+            content_len: record.content_len,
             plaintext_len: record.plaintext_len,
             ciphertext_len: record.ciphertext_len,
             part_size_class: &record.part_size_class,
@@ -1022,6 +1082,7 @@ fn attachment_record_matches_descriptor(
     desc: &AttachmentDescriptorPayload,
 ) -> bool {
     record.attachment_id == desc.attachment_id
+        && record.content_len == desc.content_len
         && record.plaintext_len == desc.plaintext_len
         && record.ciphertext_len == desc.ciphertext_len
         && record.part_size_class == desc.part_size_class
@@ -1100,6 +1161,12 @@ fn attachment_validate_descriptor(
     if expected_part_count != desc.part_count || expected_ciphertext_len != desc.ciphertext_len {
         return Err("REJECT_ATT_DESC_INCONSISTENT_SHAPE");
     }
+    // NA-0614: the authenticated true length must be a positive value within the padded
+    // object (0 < content_len <= plaintext_len). plaintext_len <= max is enforced
+    // elsewhere, so content_len <= max follows transitively.
+    if desc.content_len == 0 || desc.content_len > desc.plaintext_len {
+        return Err("REJECT_ATT_DESC_INCONSISTENT_SHAPE");
+    }
     Ok(())
 }
 
@@ -1114,6 +1181,7 @@ fn attachment_inbound_record_from_descriptor(
         direction: "in".to_string(),
         service_url: service_url.map(|v| v.to_string()),
         state: "PENDING_FETCH".to_string(),
+        content_len: desc.content_len,
         plaintext_len: desc.plaintext_len,
         ciphertext_len: desc.ciphertext_len,
         part_size_class: desc.part_size_class.clone(),
@@ -1314,7 +1382,13 @@ fn attachment_decrypt_to_output(
         .map_err(|_| "REJECT_ATT_PLAINTEXT_SHAPE")?;
     #[cfg(unix)]
     enforce_file_perms(&tmp_path).map_err(|_| "REJECT_ATT_PLAINTEXT_SHAPE")?;
-    let mut plaintext_len = 0u64;
+    // NA-0614: content_len is the authenticated true length within the padded object.
+    if record.content_len == 0 || record.content_len > record.plaintext_len {
+        let _ = fs::remove_file(&tmp_path);
+        return Err("REJECT_ATT_PLAINTEXT_SHAPE");
+    }
+    let mut decrypted_total = 0u64;
+    let mut written = 0u64;
     for part_index in 0..record.part_count {
         let ct_len = attachment_ciphertext_part_len(
             part_index,
@@ -1331,6 +1405,7 @@ fn attachment_decrypt_to_output(
         let aad = attachment_part_aad(
             &record.attachment_id,
             &record.enc_ctx_alg,
+            record.content_len,
             record.plaintext_len,
             record.ciphertext_len,
             &record.part_size_class,
@@ -1346,12 +1421,20 @@ fn attachment_decrypt_to_output(
                 },
             )
             .map_err(|_| "REJECT_ATT_DECRYPT_AUTH")?;
-        plaintext_len = plaintext_len.saturating_add(plaintext.len() as u64);
-        dst.write_all(&plaintext)
-            .map_err(|_| "REJECT_ATT_PLAINTEXT_SHAPE")?;
+        decrypted_total = decrypted_total.saturating_add(plaintext.len() as u64);
+        // Write only up to content_len; the padded remainder is verified and discarded.
+        if written < record.content_len {
+            let take = usize::try_from((record.content_len - written).min(plaintext.len() as u64))
+                .map_err(|_| "REJECT_ATT_PLAINTEXT_SHAPE")?;
+            dst.write_all(&plaintext[..take])
+                .map_err(|_| "REJECT_ATT_PLAINTEXT_SHAPE")?;
+            written = written.saturating_add(take as u64);
+        }
     }
     dst.sync_all().map_err(|_| "REJECT_ATT_PLAINTEXT_SHAPE")?;
-    if plaintext_len != record.plaintext_len {
+    // Exact-length integrity check preserved (over the padded length); and the true
+    // content must be fully recovered.
+    if decrypted_total != record.plaintext_len || written != record.content_len {
         let _ = fs::remove_file(&tmp_path);
         return Err("REJECT_ATT_PLAINTEXT_SHAPE");
     }
@@ -2220,4 +2303,118 @@ pub(super) fn resolve_large_file_attachment_service(
         .or_else(validated_attachment_service_from_env)
         .ok_or("attachment_service_required")?;
     normalize_relay_endpoint(raw.as_str())
+}
+
+#[cfg(test)]
+mod na0614_padding_tests {
+    use super::*;
+
+    // Deterministic size-ladder vectors (DOC-G5-007 §4): round content_len UP to the
+    // smallest bucket; the top bucket == the max file size; 0 and >max reject.
+    #[test]
+    fn pad_to_ladder_rounds_up_to_buckets() {
+        assert_eq!(attachment_pad_to_ladder(1), Some(4096));
+        assert_eq!(attachment_pad_to_ladder(4096), Some(4096));
+        assert_eq!(attachment_pad_to_ladder(4097), Some(8192));
+        assert_eq!(attachment_pad_to_ladder(65_536), Some(65_536));
+        assert_eq!(attachment_pad_to_ladder(65_537), Some(131_072));
+        let max = ATTACHMENT_DEFAULT_MAX_FILE_SIZE as u64;
+        assert_eq!(attachment_pad_to_ladder(max), Some(max));
+        assert_eq!(attachment_pad_to_ladder(max - 1), Some(max));
+        assert_eq!(attachment_pad_to_ladder(67_108_865), Some(max)); // just over 64 MiB -> cap
+    }
+
+    #[test]
+    fn pad_to_ladder_rejects_zero_and_over_max() {
+        assert_eq!(attachment_pad_to_ladder(0), None);
+        assert_eq!(
+            attachment_pad_to_ladder(ATTACHMENT_DEFAULT_MAX_FILE_SIZE as u64 + 1),
+            None
+        );
+    }
+
+    #[test]
+    fn pad_to_ladder_output_is_ge_input_and_a_bucket() {
+        for n in [1u64, 100, 5_000, 1_000_000, 50_000_000, 99_000_000] {
+            let padded = attachment_pad_to_ladder(n).expect("valid size pads");
+            assert!(padded >= n, "padded {padded} < input {n}");
+            assert!(
+                ATTACHMENT_PAD_LADDER.contains(&padded),
+                "padded {padded} not a bucket"
+            );
+        }
+    }
+
+    // A well-formed padded descriptor (content_len=1000 -> plaintext_len=4096 bucket).
+    fn valid_padded_descriptor() -> AttachmentDescriptorPayload {
+        let content_len = 1000u64;
+        let plaintext_len = attachment_pad_to_ladder(content_len).unwrap();
+        let part_size_class = choose_attachment_part_size_class(plaintext_len).to_string();
+        let part_count =
+            attachment_part_count_for_plaintext(plaintext_len, &part_size_class).unwrap();
+        let ciphertext_len =
+            attachment_ciphertext_len_for_plaintext(plaintext_len, part_count).unwrap();
+        AttachmentDescriptorPayload {
+            v: ATTACHMENT_DESCRIPTOR_VERSION,
+            t: ATTACHMENT_DESCRIPTOR_TYPE.to_string(),
+            attachment_id: "0".repeat(64),
+            content_len,
+            plaintext_len,
+            ciphertext_len,
+            part_size_class,
+            part_count,
+            integrity_alg: ATTACHMENT_INTEGRITY_ALG_V1.to_string(),
+            integrity_root: "1".repeat(128),
+            locator_kind: ATTACHMENT_LOCATOR_KIND_V1.to_string(),
+            locator_ref: "loc1234567890".to_string(),
+            fetch_capability: "fetchcapabilityplaceholder1234567890".to_string(),
+            enc_ctx_alg: ATTACHMENT_ENC_CTX_ALG_V1.to_string(),
+            enc_ctx_b64u: "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA".to_string(),
+            retention_class: "standard".to_string(),
+            expires_at_unix_s: 4_102_444_800,
+            confirm_requested: false,
+            confirm_handle: None,
+            filename_hint: None,
+            media_type: None,
+        }
+    }
+
+    #[test]
+    fn validate_accepts_valid_padded_descriptor() {
+        let desc = valid_padded_descriptor();
+        assert!(attachment_validate_descriptor(
+            &desc,
+            ATTACHMENT_DEFAULT_MAX_FILE_SIZE,
+            ATTACHMENT_DEFAULT_MAX_PARTS
+        )
+        .is_ok());
+    }
+
+    #[test]
+    fn validate_rejects_content_len_over_plaintext_len() {
+        let mut desc = valid_padded_descriptor();
+        desc.content_len = desc.plaintext_len + 1;
+        assert_eq!(
+            attachment_validate_descriptor(
+                &desc,
+                ATTACHMENT_DEFAULT_MAX_FILE_SIZE,
+                ATTACHMENT_DEFAULT_MAX_PARTS
+            ),
+            Err("REJECT_ATT_DESC_INCONSISTENT_SHAPE")
+        );
+    }
+
+    #[test]
+    fn validate_rejects_zero_content_len() {
+        let mut desc = valid_padded_descriptor();
+        desc.content_len = 0;
+        assert_eq!(
+            attachment_validate_descriptor(
+                &desc,
+                ATTACHMENT_DEFAULT_MAX_FILE_SIZE,
+                ATTACHMENT_DEFAULT_MAX_PARTS
+            ),
+            Err("REJECT_ATT_DESC_INCONSISTENT_SHAPE")
+        );
+    }
 }

@@ -108,6 +108,12 @@ pub(crate) struct AttachmentTransferRecord {
     pub(crate) direction: String,
     pub(crate) service_url: Option<String>,
     pub(crate) state: String,
+    // NA-0614: true delivered length. `plaintext_len` is the padded/encrypted length
+    // (a size-ladder bucket); `content_len` is the true file length the receiver
+    // truncates to. Invariant 0 < content_len <= plaintext_len. #[serde(default)] keeps
+    // pre-release persisted records loadable; new transfers always set it explicitly.
+    #[serde(default)]
+    pub(crate) content_len: u64,
     pub(crate) plaintext_len: u64,
     pub(crate) ciphertext_len: u64,
     pub(crate) part_size_class: String,

@@ -199,7 +199,7 @@ proptest! {
 #[test]
 fn attachment_descriptor_accepts_canonical_shape() {
     let raw = format!(
-        "{{\"v\":{ATTACHMENT_DESCRIPTOR_VERSION},\"t\":\"{ATTACHMENT_DESCRIPTOR_TYPE}\",\"attachment_id\":\"att1\",\"plaintext_len\":1,\"ciphertext_len\":2,\"part_size_class\":\"small\",\"part_count\":1,\"integrity_alg\":\"sha512_merkle_v1\",\"integrity_root\":\"root\",\"locator_kind\":\"service_ref_v1\",\"locator_ref\":\"loc\",\"fetch_capability\":\"cap\",\"enc_ctx_alg\":\"ctx\",\"enc_ctx_b64u\":\"ctxb64\",\"retention_class\":\"default\",\"expires_at_unix_s\":1,\"confirm_requested\":false}}"
+        "{{\"v\":{ATTACHMENT_DESCRIPTOR_VERSION},\"t\":\"{ATTACHMENT_DESCRIPTOR_TYPE}\",\"attachment_id\":\"att1\",\"content_len\":1,\"plaintext_len\":1,\"ciphertext_len\":2,\"part_size_class\":\"small\",\"part_count\":1,\"integrity_alg\":\"sha512_merkle_v1\",\"integrity_root\":\"root\",\"locator_kind\":\"service_ref_v1\",\"locator_ref\":\"loc\",\"fetch_capability\":\"cap\",\"enc_ctx_alg\":\"ctx\",\"enc_ctx_b64u\":\"ctxb64\",\"retention_class\":\"default\",\"expires_at_unix_s\":1,\"confirm_requested\":false}}"
     );
     let parsed = parse_attachment_descriptor_payload(raw.as_bytes()).expect("descriptor parses");
     assert_eq!(parsed.attachment_id, "att1");

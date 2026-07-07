@@ -34009,8 +34009,28 @@ begins at D-1217.
 
 ---
 
-### NA-0615 — Governance Spine Design Tenets + LITE-Audit/Batch Conventions + Workflow-Ledger (docs/governance)
+### NA-0616 — ENG-0001 Self-Label Footgun Remediation (source/test)
 Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Implement ledger ENG-0001 (DOC-G5-005 §9 rank 5): remediate the self-label footgun
+identified in NA-0608 whereby an inconsistent `--as <label>` selects divergent
+identities without a clear fail-closed signal. Bounded source/test change in the qsc
+label/identity-selection path to fail closed (or clearly warn) on an ambiguous or
+self-referential label, with deterministic tests; no protocol/wire/crypto/state-machine
+semantic change; no dependency/lockfile/workflow mutation. Full ritual (two PRs). If the
+operator instead prioritizes the docs-only CI path-filter (WF-0009) or another item,
+this block is replaced at closeout per direction. No public/production/security-complete
+claim authorized.
+
+---
+
+### NA-0615 — Governance Spine Design Tenets + LITE-Audit/Batch Conventions + Workflow-Ledger (docs/governance)
+Status: DONE
+Closeout note:
+- Executed under directive D552 (LITE-CEREMONY); consumes D-1226. Result `GOVERNANCE_TENET_AND_WORKFLOW_LEDGER_RECORDED`: added the Design tenets subsection to PROJECT_CHARTER, §9a/§9b (LITE read-only-audit fast-path + batch-audit convention) to DOC-OPS-006, and WF-0006..WF-0009 to the ledger. Records operator-applied infra (startup wrapper/qnext, gov-append, guardrail-hook narrowing) without editing it. Successor NA-0616 (ENG-0001 self-label footgun remediation) restored above.
+Goals: G1, G2, G3, G4, G5
 Goals: G1, G2, G3, G4, G5
 
 Objective:

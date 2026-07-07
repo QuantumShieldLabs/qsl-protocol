@@ -32817,3 +32817,21 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
     - `TRACEABILITY.md` maps NA-0614 closeout and NA-0615 restoration to D-1225.
     - `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` records the implementation PR merge, post-merge check proof, and closeout mutation boundary.
   - **References:** NA-0614; NA-0615; D-1225; D-1224; qsl-protocol PR #1507; qsl-protocol merge `cbea1c7db67f`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `tests/NA-0614_closeout_testplan.md`
+
+- **ID:** D-1226
+  - **Title:** NA-0615 governance spine design tenet + LITE-audit/batch conventions + workflow ledger (docs/governance, LITE-CEREMONY); NA-0616 restoration
+  - **Date:** 2026-07-07
+  - **Status:** Accepted
+  - **Goal IDs:** G1, G2, G3, G4, G5
+  - **Decision:** NA-0615 is a docs/governance LITE-CEREMONY lane (single PR, single decision) under directive QSL-DIR-2026-07-07-552 (D552). It banks the recent process work into the durable governance spine and implements no source/workflow change. D-1224 and D-1225 were each consumed once and Accepted; D-1226 was absent before this implementation.
+  - **LITE-CEREMONY certification:** Docs/governance only; no `.rs`/test/Cargo/workflow/spec/`.claude`/hook change; no operator-infrastructure edit; no runtime/LAN action; no protocol/crypto/security-semantics touch. Qualifies per DOC-OPS-006 §9.
+  - **Recorded:** (a) `PROJECT_CHARTER.md` gains an authoritative "Design tenets" subsection under Design philosophy (right the first time with versioned extension plumbing; extensibility versioned/explicit not permissive; eliminate attack surfaces by construction; pre-release leverage; ground feasibility on the verify path). (b) `docs/ops/DIRECTOR_OPERATIONS.md` gains §9a (LITE read-only-audit fast-path certification checklist) and §9b (batch-audit convention for related read-only audits over a shared surface), both under the existing §9 hard boundary. (c) `docs/ops/IMPROVEMENT_LEDGER.md` gains WF-0006 (startup wrapper fail-visible + qnext), WF-0007 (gov-append + its guardrail-boilerplate limitation), WF-0008 (guardrail hook command-position narrowing, operator-applied, with residual), WF-0009 (docs-only CI path-filter, deferred to its own authorized workflow lane).
+  - **Operator-infra note:** the startup wrapper, qnext, gov-append, and guardrail hook were operator-applied outside the repo; the executor must never edit them. This lane only records them.
+  - **Successor restored:** NA-0616 is READY (default: ENG-0001 self-label footgun remediation, DOC-G5-005 §9 rank 5 — a bounded source/test lane). The operator may instead prioritize the WF-0009 docs-only CI path-filter (its own authorized workflow lane) or another item.
+  - **Boundary/claim:** mutates only `PROJECT_CHARTER.md`, `docs/ops/DIRECTOR_OPERATIONS.md`, `docs/ops/IMPROVEMENT_LEDGER.md`, the NA-0615 evidence doc and testplan, `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, and `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`. No source/test/Cargo/workflow/spec/`.claude`/hook change; no operator-infra edit; no operator-startup-command execution; no runtime/LAN action. No endpoint, token, capability, key, seed, plaintext, ciphertext body, or raw private material is published. No public-readiness, production-readiness, security-completion, crypto-complete, or bug-free claim is made.
+  - **Implications for spec/impl/tests:**
+    - `PROJECT_CHARTER.md` and `docs/ops/DIRECTOR_OPERATIONS.md` become the authoritative homes for the design tenet and the §9a/§9b conventions.
+    - `docs/ops/IMPROVEMENT_LEDGER.md` tracks WF-0006..WF-0009.
+    - `NEXT_ACTIONS.md` marks NA-0615 DONE and restores NA-0616 as the sole READY item.
+    - `TRACEABILITY.md` maps NA-0615 to D-1226; the rolling journal records the lane.
+  - **References:** NA-0615; NA-0616; D-1226; D-1225; D-1224; QSL-DIR-2026-07-07-552 (D552); DOC-OPS-006; ENG-0001; WF-0006; WF-0007; WF-0008; WF-0009; `PROJECT_CHARTER.md`; `docs/ops/DIRECTOR_OPERATIONS.md`; `docs/ops/IMPROVEMENT_LEDGER.md`; `docs/governance/evidence/NA-0615_governance_tenet_workflow_ledger_harness.md`; `tests/NA-0615_governance_tenet_workflow_ledger_testplan.md`; `NEXT_ACTIONS.md`; `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`

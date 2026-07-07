@@ -42214,3 +42214,12 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - The project design tenet was persisted to the executor's memory during this lane; NA-0615 folds it into the governance spine.
 - No NA-0615 implementation, source/test/Cargo/workflow/spec/`.claude`/guardrail-hook change, operator-startup-command execution, sudo/systemd/firewall/Tailnet action, workflow dispatch/rerun, branch-protection or repo-settings mutation, or runtime/LAN action occurred in closeout.
 - No endpoint, private port, hostname, topology, token, capability, key, seed, plaintext, ciphertext body, or raw private material is published. No public-readiness, production-readiness, security-completion, crypto-complete, or bug-free claim is introduced.
+
+## 2026-07-07 -- NA-0615 governance spine design tenet + LITE-audit/batch conventions + workflow ledger (docs/governance, LITE-CEREMONY)
+
+- Directive: QSL-DIR-2026-07-07-552 (D552). LITE-CEREMONY docs/governance; records durable process guidance; implements no source/workflow change.
+- Pre-mutation verification: fresh operator startup proof for lane NA-0615 (`2026-07-07T06:51:35Z`, via the qnext helper) verified; HEAD == main == origin/main == `d09ab9f4e0c2`; clean; READY_COUNT 1 with sole READY NA-0615; D-1224 once, D-1225 once, D-1226 absent.
+- Result `GOVERNANCE_TENET_AND_WORKFLOW_LEDGER_RECORDED`: PROJECT_CHARTER Design tenets subsection; DOC-OPS-006 §9a (LITE read-only-audit fast-path) and §9b (batch-audit convention); ledger WF-0006..WF-0009.
+- The operator startup wrapper, the qnext helper, gov-append, and the guardrail hook were operator-applied outside the repo; the executor must never edit them; this lane only records them. This journal entry and the TRACEABILITY entry were appended via gov-append (dogfooding WF-0007) now that the WF-0008 narrowing lets governance text through.
+- No source/test/Cargo/workflow/spec/`.claude`/hook change, no operator-infra edit, no operator-startup-command execution, no runtime/LAN action, and no branch-protection or repo-settings mutation occurred.
+- No endpoint, private port, hostname, topology, token, capability, key, seed, plaintext, ciphertext body, or raw private material is published. No public-readiness, production-readiness, security-completion, crypto-complete, or bug-free claim is introduced.

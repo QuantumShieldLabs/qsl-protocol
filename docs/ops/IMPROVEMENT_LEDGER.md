@@ -325,3 +325,50 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   that applies to the deployment target before recording a finding. Lesson
   recorded here for future audit lanes (DOC-AUD-001 methodology); resolved by
   NA-0609D re-verification and this note.
+
+### WF-0006 — Operator startup wrapper failed silently; qnext helper added
+- Type: workflow; Status: resolved (operator-applied); recorded NA-0615 (D-1226)
+- Problem: the sourced startup wrapper captured the startup script's output then
+  returned on failure without printing it, so a wrong-lane startup (e.g. requesting a
+  DONE lane) failed silently with no diagnostic.
+- Change (operator infra, outside repo): the wrapper now prints the failure output to
+  stderr and returns the code; and a `qnext <current-lane> <repo>` helper derives the
+  new sole-READY lane from the queue and runs drop-then-startup for it, so the operator
+  never re-types the (changed) lane number. Refines the WF-0004 drop-first workflow.
+- Residual: none material. Recorded so future lanes rely on the fail-visible behavior.
+
+### WF-0007 — gov-append helper for anchor-free governance appends (with a limitation)
+- Type: workflow; Status: partial (operator-applied); recorded NA-0615 (D-1226)
+- Problem: governance appends done via the Edit tool require a unique last-line anchor,
+  which is fragile (duplicate-match errors).
+- Change (operator infra): a `gov-append <file>` helper appends stdin verbatim (no
+  anchor). Use it for governance appends.
+- Limitation: `gov-append` is invoked via the Bash tool, and the PreToolUse guardrail
+  hook scans Bash text; standard governance boilerplate contains operator-startup words,
+  which (before WF-0008) blocked the Bash call. After the WF-0008 narrowing, gov-append
+  works when the text has no such word in command position; when in doubt use Write/Edit.
+
+### WF-0008 — Guardrail hook over-broad word-matching narrowed to command position
+- Type: workflow; Status: resolved (operator-applied); recorded NA-0615 (D-1226)
+- Problem: the PreToolUse guardrail hook matched operator-only/privileged command names
+  (startup commands, sudo, systemctl, firewall, package managers) anywhere in the Bash
+  text, so prose/attestations/PR-bodies/heredocs merely mentioning those words were
+  false-blocked (a specific instance of the known blunt-word-matching issue).
+- Change (operator-amended hook, outside repo; the executor must never edit the hook):
+  the matchers now require a real command boundary (line start, `;`/`&`/`|`/`(`/backtick)
+  with an optional path/`source` prefix, instead of "any whitespace." Verified with
+  three test harnesses (regex + against the installed hook + live tool calls): all real
+  invocations still block (and several forms the old regex missed now block too), and
+  prose is allowed.
+- Residual (accepted): contrived indirect execution (`eval "..."`, `xargs`, `doas`/`env`
+  prefixes) is not caught; those are deliberate-evasion forms, and the settings.json deny
+  rules remain as the second defense layer. The hook is a defense-in-depth aid.
+
+### WF-0009 — Docs-only CI path-filter (deferred to its own authorized workflow lane)
+- Type: workflow; Status: open (deferred); recorded NA-0615 (D-1226)
+- Problem: docs-only PRs run the full CI suite (qsc-adversarial, ci-4a..4d, CodeQL),
+  costing minutes and bounded-poll cycles per lane.
+- Proposed change: a `.github` path-filter so documentation-only PRs run only
+  public-safety/advisories/goal-lint/link-check. This mutates workflows and interacts
+  with branch-protection required checks, so it needs explicit lane authorization and the
+  full two-PR ritual — NOT a docs/LITE lane. Filed for prioritization.

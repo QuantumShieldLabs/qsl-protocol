@@ -34009,8 +34009,29 @@ begins at D-1217.
 
 ---
 
-### NA-0614 — Attachment-Plane Object-Size/Part-Count Bucketing (implementation)
+### NA-0615 — Governance Spine Design Tenets + LITE-Audit/Batch Conventions + Workflow-Ledger (docs/governance)
 Status: READY
+Goals: G1, G2, G3, G4, G5
+
+Objective:
+Encode the project-wide design tenet ("first release = excellent architecture plus
+deliberate versioned extension plumbing; fail-closed strictness preserved, not
+loosened; eliminate attack surfaces by construction") into the governance spine as an
+authoritative design-tenets section; add the LITE read-only-audit fast-path (workflow
+#3) and the batch-audit convention (workflow #5) to DOC-OPS-006; and file WF-####
+ledger entries for the workflow improvements #1 (qwork wrapper/qnext), #2 (gov-append,
+including the noted Bash-guardrail limitation for governance boilerplate), and #4
+(docs-only CI path-filter) with their concrete proposed changes. Docs/governance only;
+LITE-CEREMONY eligible; no source/workflow/dependency change (the #4 CI change itself
+remains its own later authorized lane). No public/production/security-complete claim
+authorized.
+
+---
+
+### NA-0614 — Attachment-Plane Object-Size/Part-Count Bucketing (implementation)
+Status: DONE
+Closeout note:
+- Executed under directive D551; consumes D-1224 (implementation, qsl-protocol PR #1507 merged `cbea1c7db67f`) and D-1225 (this closeout). Result `ATTACHMENT_OBJECT_PADDING_BASELINE_SHIPPED`: mandatory baseline attachment-object padding with an additive authenticated content_len vs padded plaintext_len, the exact-length check preserved and output truncated to content_len, AAD/confirm binding, a sender size ladder with a ladder-agnostic receiver (DOC-G5-007; DOC-G5-006 M1 corrected). D551 superseded this block's original "client-only, no wire change" scope (implemented as a coordinated format change, not client-only). ENG-0010 resolved. Successor NA-0615 (governance tenet + workflow conventions) restored above.
 Goals: G1, G2, G3, G4, G5
 
 Objective:

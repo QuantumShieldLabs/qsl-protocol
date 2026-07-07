@@ -250,3 +250,32 @@ two-PR ritual. The Director must certify in the directive that the lane qualifie
 before using a reduced class; if qualification is uncertain, use the full ritual.
 These classes reduce ceremony only; they never reduce truthfulness, evidence, or
 fail-closed safety.
+
+### 9a. LITE read-only-audit fast-path (certification checklist)
+
+A read-only audit qualifies for the LITE-CEREMONY single-PR/single-decision path when
+ALL of the following hold; the Director certifies them in the directive:
+
+1. Output is docs/evidence/ledger/governance ONLY — no source/test/Cargo/workflow/
+   `.claude`/hook/spec change and no fix (every fix is deferred to its own lane).
+2. No runtime/LAN/qscwork action; reads code and contracts only (existing suites MAY be
+   run unmodified to observe behavior).
+3. The successor is either clear from the findings or the directive names a default plus
+   a stop-and-request-direction fork; a P0/P1 finding escalates before merge.
+4. All normal gates still apply: operator startup proof, one decision ID, the
+   exactly-one-READY invariant, validation defaults, bounded CI polling, and the claim
+   boundaries. Precedents: NA-0611, NA-0612, NA-0613.
+
+If any item is uncertain, use the full ritual. This fast-path reduces ceremony only; it
+never reduces evidence or fail-closed safety.
+
+### 9b. Batch-audit convention (related read-only audits over a shared surface)
+
+Several related read-only audits that read the SAME code/contract surface MAY be carried
+by one directive as a WAVE lane (§9) instead of a chain of separate lanes, to avoid
+repeated plan/startup/PR cycles. Each sub-audit keeps its own decision ID, evidence,
+findings, and claim boundary; the batch shares a single closeout and successor
+selection. The batch remains subject to the §9 hard boundary and the §9a checklist: it
+is read-only, docs-only output, no fix, no runtime action. Do not batch audits that span
+unrelated surfaces (keep findings attributable) or any item that would touch protocol/
+crypto/security semantics, dependencies, workflows, or branch protection.

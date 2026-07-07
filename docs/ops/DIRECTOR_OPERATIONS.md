@@ -119,6 +119,23 @@ otherwise.
 Queue discipline: exactly one READY; STOP if zero or more than one; no
 successor implementation during closeout or CI waits.
 
+Queue structure and conventions (D-1231):
+- `NEXT_ACTIONS.md` opens with a `## LIVE QUEUE` header: a machine/human `STATE:` line, the
+  single READY pointer, and an `ON DECK` priority list. Read it first. The full READY block
+  (with scope flags) still lives below under section 2 with its `Status: READY` marker (the
+  qwork/CI parsers key off that marker, so keep exactly one).
+- `docs/ops/IMPROVEMENT_LEDGER.md` is the single authoritative prioritized backlog
+  (ENG-####/WF-####, by severity). The DOC-G5-005 §9 table is superseded. `ON DECK` is a
+  view of the top ledger items; the Director promotes the top item to READY at each closeout
+  (WF-0003 triage).
+- NA-#### is a permanent creation-order ID and does NOT imply run order; run order is the
+  `ON DECK` list. Inserting a lane never renumbers existing lanes — assign the next free NA
+  number and place it in `ON DECK`. Governance/housekeeping edits (e.g. filing ledger
+  findings) need not consume an NA number.
+- Physically splitting the `DONE` archive out of `NEXT_ACTIONS.md` is deferred to WF-0011
+  (it must first update the CI scripts that read `DONE` blocks: `scripts/ci/post_merge_verify.sh`,
+  `scripts/ci/qsl_director_state_index.py`, `scripts/ci/public_safety_gate.py`).
+
 PR rules: small atomic PRs; merge commits only; no squash/rebase/force-push;
 no amend after PR creation; no branch-deletion flags (repo settings may
 auto-delete after merge). PR body requires Goals / Impact / No-regression /

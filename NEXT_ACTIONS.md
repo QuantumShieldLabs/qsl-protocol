@@ -2,6 +2,36 @@
 
 Goals: G4 (primary), drives G1–G3 delivery
 
+<!-- ============================ LIVE QUEUE (read this first) ============================ -->
+
+## LIVE QUEUE
+
+`STATE: READY=NA-0618 | HIGHEST_NA=0618 | HIGHEST_D=1231 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+
+**READY (exactly one — execute this):** `NA-0618 — ENG-0013 Suite-2 Symmetric Counter
+Overflow Hard-Stop`. Its full block (with scope flags) is below under section 2; find it by
+searching `Status: READY` (there is exactly one).
+
+**ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
+each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
+1. **ENG-0012** — Suite-2 send-side ratchet liveness design (P1, blocks the G1/G2 release gates) — *recommended next after NA-0618*.
+2. **ENG-0014** — qsl-server non-constant-time token compare (P2, cross-repo).
+3. **ENG-0019** — gate/remove the auth-unsafe `qsp::handshake` skeleton (P3, cheap; design-tenet aligned).
+4. Remaining P3 defense-in-depth: ENG-0008, ENG-0009, ENG-0015, ENG-0016, ENG-0017, ENG-0018, ENG-0020, ENG-0021.
+
+**Conventions (authoritative — see DOC-OPS-006):**
+- **The `IMPROVEMENT_LEDGER` is the single prioritized backlog.** The DOC-G5-005 §9 table is
+  superseded (its ranks 1–6 are all done); do not treat it as a live roadmap.
+- **NA-#### is a permanent ID assigned in creation order; it does NOT imply run order.**
+  Run order is the ON DECK list above. Inserting a lane never renumbers existing lanes —
+  assign the next free NA number and place it wherever it belongs in ON DECK.
+- **Exactly one `Status: READY`** at any time (the qwork/CI parsers depend on this).
+- **Archive:** completed (`Status: DONE`) lane blocks currently remain below in this file.
+  Physically splitting them into a separate archive file (and updating the CI scripts that
+  read them) is tracked as **WF-0011** — a dedicated future lane.
+
+<!-- ========================================================================================= -->
+
 ## 0) New Chat Starter (paste this verbatim at the top of every new chat)
 
 Read START_HERE.md first and follow it strictly.
@@ -34058,7 +34088,8 @@ session; `attachment_find_outbound_by_source` now excludes consumed-session stat
 re-send mints a fresh session. Pinned by `na_0617_attachment_single_send_per_session`
 (4/4) with a negative control; resume/in-flight preserved. ENG-0002 resolved (fixed) via
 implementation PR #1512 (merge `d597afa0`). NA-0618 (ENG-0013 counter overflow hard-stop)
-restored as the sole READY successor and begins at D-1231.
+restored as the sole READY successor and begins at D-1232 (D-1231 was consumed by the
+governance queue-header + audit-intake housekeeping change).
 
 ---
 

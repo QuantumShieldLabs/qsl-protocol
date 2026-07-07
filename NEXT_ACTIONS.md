@@ -34009,8 +34009,32 @@ begins at D-1217.
 
 ---
 
-### NA-0617 — ENG-0002 Attachment Single-Send-Per-Session Clarification (docs/test)
+### NA-0618 — ENG-0013 Suite-2 Symmetric Counter Overflow Hard-Stop (source/test)
 Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? Limited YES (add a fail-closed overflow hard-stop only)
+Crypto/state-machine change allowed? Limited YES (terminate the session at counter saturation; no key-schedule/KDF/AEAD/wire-format change)
+Docs-only allowed? NO
+
+Objective:
+Implement ledger ENG-0013 (Suite-2 security review H-1): the Suite-2 symmetric message
+counters `ns`/`nr` use `saturating_add` with no `u32::MAX` hard-stop, so a session that
+reaches `u32::MAX` in one direction would freeze the counter and (with static header keys)
+repeat header ciphertext — a nonce-reuse-class failure gated behind ~4.29e9 messages. The
+sibling `qsp` module already has the correct guard. Port the identical `u32::MAX` guard to
+`send_wire`, `recv_nonboundary_ooo`, and `recv_boundary_in_order` in
+`tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`, failing closed (forcing a
+re-handshake) instead of silently saturating, with deterministic vectors. Smallest
+fail-closed change; NO key-schedule/KDF/AEAD/wire-format/descriptor change; NO qsc-client,
+qsl-attachments, qsl-server, dependency, lockfile, or workflow mutation. Full ritual (two
+PRs). If the operator instead prioritizes the ENG-0012 ratchet-liveness design lane or
+another item, this block is replaced at closeout per direction. No
+public/production/security-complete/crypto-complete claim authorized.
+
+---
+
+### NA-0617 — ENG-0002 Attachment Single-Send-Per-Session Clarification (docs/test)
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 
 Objective:
@@ -34024,6 +34048,17 @@ wire/crypto/state-machine semantic change; no dependency/workflow mutation. If t
 operator instead prioritizes the WF-0009 docs-only CI path-filter or another item, this
 block is replaced at closeout per direction. No public/production/security-complete claim
 authorized.
+
+Outcome (D-1229/D-1230): resolved as a two-layer clarification plus a source fix under the
+directive's operator-authorized carve-out. L1 (qsl-attachments service upload session) is
+single-object by design; L2 (qsc client session) is not limited to one attachment;
+`REJECT_QATTSVC_SESSION_STATE` was L1 fail-closed behavior on session reuse, not an L2 cap.
+Fixed the one client footgun: re-sending the same delivered file reused a consumed L1
+session; `attachment_find_outbound_by_source` now excludes consumed-session states so a
+re-send mints a fresh session. Pinned by `na_0617_attachment_single_send_per_session`
+(4/4) with a negative control; resume/in-flight preserved. ENG-0002 resolved (fixed) via
+implementation PR #1512 (merge `d597afa0`). NA-0618 (ENG-0013 counter overflow hard-stop)
+restored as the sole READY successor and begins at D-1231.
 
 ---
 

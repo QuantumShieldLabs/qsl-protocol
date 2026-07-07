@@ -496,6 +496,31 @@ pub(super) fn identity_self_kem_keypair(self_label: &str) -> Result<IdentityKeyp
         }
         return Err(ErrorCode::ParseFailed);
     }
+    // NA-0616 (ENG-0001): fail closed rather than silently minting a SECOND, divergent
+    // self-identity. A config dir is meant to hold one self; first-run auto-create (empty
+    // dir) is allowed, but if a self-identity under a DIFFERENT label already exists the
+    // operator most likely typo'd or used an inconsistent `--as`, so refuse. Explicit
+    // `identity rotate --as <label>` bypasses this path and remains the intentional way
+    // to create an additional identity.
+    if let Ok(entries) = std::fs::read_dir(&identities) {
+        for entry in entries.flatten() {
+            if let Some(name) = entry.file_name().to_str() {
+                if let Some(existing) = name
+                    .strip_prefix("self_")
+                    .and_then(|stem| stem.strip_suffix(".json"))
+                {
+                    if existing != self_label {
+                        emit_marker(
+                            "identity_self_ambiguous",
+                            None,
+                            &[("existing", existing), ("requested", self_label)],
+                        );
+                        return Err(ErrorCode::IdentitySelfAmbiguous);
+                    }
+                }
+            }
+        }
+    }
     #[cfg(qsc_rng_failure_test_seam)]
     let (kem_pk, kem_sk) = match identity_lazy_kem_keypair() {
         Ok(v) => v,

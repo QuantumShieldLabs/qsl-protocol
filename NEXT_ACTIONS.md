@@ -6,18 +6,19 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0618 | HIGHEST_NA=0618 | HIGHEST_D=1231 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0619 | HIGHEST_NA=0619 | HIGHEST_D=1233 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
-**READY (exactly one — execute this):** `NA-0618 — ENG-0013 Suite-2 Symmetric Counter
-Overflow Hard-Stop`. Its full block (with scope flags) is below under section 2; find it by
-searching `Status: READY` (there is exactly one).
+**READY (exactly one — execute this):** `NA-0619 — ENG-0012 Suite-2 Send-Side Ratchet
+Liveness: Feasibility + Design (docs-only)`. Its full block (with scope flags) is below under
+section 2; find it by searching `Status: READY` (there is exactly one).
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
-1. **ENG-0012** — Suite-2 send-side ratchet liveness design (P1, blocks the G1/G2 release gates) — *recommended next after NA-0618*.
-2. **ENG-0014** — qsl-server non-constant-time token compare (P2, cross-repo).
-3. **ENG-0019** — gate/remove the auth-unsafe `qsp::handshake` skeleton (P3, cheap; design-tenet aligned).
+1. **ENG-0014** — qsl-server non-constant-time token compare (P2, cross-repo).
+2. **ENG-0019** — gate/remove the auth-unsafe `qsp::handshake` skeleton (P3, cheap; design-tenet aligned).
+3. **WF-0012** — build the `ledger.py` findings-tracking tool (@meta lines + list/validate/dedup/ondeck); pays off before the next audit.
 4. Remaining P3 defense-in-depth: ENG-0008, ENG-0009, ENG-0015, ENG-0016, ENG-0017, ENG-0018, ENG-0020, ENG-0021.
+   (ENG-0012 is now the READY lane NA-0619; its implementation lane follows once the design is accepted.)
 
 **Conventions (authoritative — see DOC-OPS-006):**
 - **The `IMPROVEMENT_LEDGER` is the single prioritized backlog.** The DOC-G5-005 §9 table is
@@ -34039,8 +34040,33 @@ begins at D-1217.
 
 ---
 
-### NA-0618 — ENG-0013 Suite-2 Symmetric Counter Overflow Hard-Stop (source/test)
+### NA-0619 — ENG-0012 Suite-2 Send-Side Ratchet Liveness: Feasibility + Design (docs-only)
 Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? NO (design-only lane; no code)
+Crypto/state-machine change allowed? NO (design-only; a separate implementation lane follows)
+Docs-only allowed? YES
+
+Objective:
+Design-only lane (NO code) for ledger ENG-0012 (P1, blocks the G1/G2 release gates): the
+shipped `suite2` module never executes a classical DH ratchet and has no sender-side
+boundary/PQ-reseed path, and the client bootstraps both chains from one static root key
+(`qsp_activate_*_chain_if_needed`), so there is no post-compromise security. Produce a
+feasibility + design document that reconciles DOC-CAN-003 §8.5.2 (DH boundary) and the
+FLAG_BOUNDARY/FLAG_PQ_CTXT parse coupling with a concrete re-key trigger policy, enumerates
+the metadata/traffic-shape (G5) implications, defines conformance-vector requirements for a
+full two-party session where the DH ratchet and PQ reseed fire mid-session through the real
+client send path, plans removal of the static-`rk` bootstrap, and states the honest claim
+boundary (no Triple-Ratchet / post-compromise claim until implemented). Docs/design + ledger
+only; no source change; a separate implementation lane follows if the design is accepted. If
+the operator instead prioritizes ENG-0019/ENG-0014/WF-0012 or another item, this block is
+replaced at closeout per direction. No public/production/security-complete/crypto-complete
+claim authorized.
+
+---
+
+### NA-0618 — ENG-0013 Suite-2 Symmetric Counter Overflow Hard-Stop (source/test)
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? Limited YES (add a fail-closed overflow hard-stop only)
 Crypto/state-machine change allowed? Limited YES (terminate the session at counter saturation; no key-schedule/KDF/AEAD/wire-format change)
@@ -34060,6 +34086,15 @@ qsl-attachments, qsl-server, dependency, lockfile, or workflow mutation. Full ri
 PRs). If the operator instead prioritizes the ENG-0012 ratchet-liveness design lane or
 another item, this block is replaced at closeout per direction. No
 public/production/security-complete/crypto-complete claim authorized.
+
+Outcome (D-1232/D-1233): resolved. Added `checked_counter_inc` (fail-closed `u32::MAX`
+increment returning `REJECT_S2_COUNTER_OVERFLOW`) used at all three ns/nr advance sites in
+`suite2/ratchet.rs` in place of `saturating_add`; send fails closed before deriving key
+material, recv rejects with no state mutation; registered the reject code in DOC-CAN-003 §10
+(local reason code, not wire-transmitted). No key-schedule/KDF/AEAD/nonce/wire change; no
+qsc/attachments/server/dependency change. Pinned by two unit tests; full refimpl suite green.
+ENG-0013 resolved via implementation PR #1515 (merge `c6447afb`). NA-0619 (ENG-0012
+ratchet-liveness design) restored as the sole READY successor and begins at D-1234.
 
 ---
 

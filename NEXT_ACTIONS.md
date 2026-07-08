@@ -6,19 +6,20 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0619 | HIGHEST_NA=0619 | HIGHEST_D=1233 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0620 | HIGHEST_NA=0620 | HIGHEST_D=1234 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
-**READY (exactly one — execute this):** `NA-0619 — ENG-0012 Suite-2 Send-Side Ratchet
-Liveness: Feasibility + Design (docs-only)`. Its full block (with scope flags) is below under
-section 2; find it by searching `Status: READY` (there is exactly one).
+**READY (exactly one — execute this):** `NA-0620 — ENG-0012 Stage 1: Suite-2 Classical DH
+Ratchet on the Real Send Path`. Its full block (with scope flags) is below under section 2;
+find it by searching `Status: READY` (there is exactly one).
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
-1. **ENG-0014** — qsl-server non-constant-time token compare (P2, cross-repo).
-2. **ENG-0019** — gate/remove the auth-unsafe `qsp::handshake` skeleton (P3, cheap; design-tenet aligned).
-3. **WF-0012** — build the `ledger.py` findings-tracking tool (@meta lines + list/validate/dedup/ondeck); pays off before the next audit.
-4. Remaining P3 defense-in-depth: ENG-0008, ENG-0009, ENG-0015, ENG-0016, ENG-0017, ENG-0018, ENG-0020, ENG-0021.
-   (ENG-0012 is now the READY lane NA-0619; its implementation lane follows once the design is accepted.)
+1. **ENG-0012 Stage 2** — Suite-2 PQ reseed sender (`send_pq_ctxt` + SCKA encapsulation) — follows NA-0620.
+2. **ENG-0014** — qsl-server non-constant-time token compare (P2, cross-repo).
+3. **ENG-0019** — gate/remove the auth-unsafe `qsp::handshake` skeleton (P3, cheap; design-tenet aligned).
+4. **WF-0012** — build the `ledger.py` findings-tracking tool (@meta lines + list/validate/dedup/ondeck); pays off before the next audit.
+5. Remaining P3 defense-in-depth: ENG-0008, ENG-0009, ENG-0015, ENG-0016, ENG-0017, ENG-0018, ENG-0020, ENG-0021.
+   (The ENG-0012 design DOC-G5-008 was accepted at NA-0619; NA-0620 implements Stage 1.)
 
 **Conventions (authoritative — see DOC-OPS-006):**
 - **The `IMPROVEMENT_LEDGER` is the single prioritized backlog.** The DOC-G5-005 §9 table is
@@ -34040,8 +34041,35 @@ begins at D-1217.
 
 ---
 
-### NA-0619 — ENG-0012 Suite-2 Send-Side Ratchet Liveness: Feasibility + Design (docs-only)
+### NA-0620 — ENG-0012 Stage 1: Suite-2 Classical DH Ratchet on the Real Send Path (source/test)
 Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? YES (implement the DH-boundary send path per DOC-CAN-003 §8.5.2 + DOC-G5-008)
+Crypto/state-machine change allowed? YES (add X25519 DH-ratchet state + send_boundary; remove the static-rk bootstrap; no KDF/AEAD primitive change)
+Docs-only allowed? NO
+
+Objective:
+Implement Stage 1 of the accepted design `docs/design/DOC-G5-008` (ledger ENG-0012, the P1
+blocking the G1/G2 gates): the classical X25519 DH ratchet on the REAL client send path. Add
+the DH-ratchet state to the suite2 send/recv state (X25519 keypair `DHs`, peer `DHr`, live
+`RK`), implement `send_boundary` (mirror `recv_boundary_in_order` + `qsp::dh_ratchet_send` per
+§8.5.2: new keypair, `PNs:=Ns`, `Ns:=0`, `KDF_RK_DH`, PQ send-chain reinit, `HK/NHK` recompute,
+header under `boundary_hk`, `FLAG_BOUNDARY`), remove the static-`rk` bootstrap
+(`qsp_activate_*_chain_if_needed` in qsc), wire the DH trigger policy (ratchet-on-reply +
+bounded count/time fallback) into the real send path, and extend crash-safe state persistence
+(G2). Add two-party conformance vectors: the DH ratchet fires mid-conversation (both
+directions) and messages still decrypt, plus a PCS-healing vector (pre-boundary snapshot cannot
+decrypt post-boundary messages) and no-mutation-on-reject. PQ reseed sender is Stage 2 (out of
+scope here). No KDF/AEAD/primitive change; no qsl-attachments/qsl-server change; no dependency
+mutation. Full ritual (two PRs). Resolve the DOC-G5-008 open questions (trigger defaults;
+reply-driven vs time-based cadence; state-snapshot version bump) with the operator at design-
+lock. No public/production/security-complete/crypto-complete claim; no Triple-Ratchet /
+post-compromise claim until Stage 2 also lands and vectors pass.
+
+---
+
+### NA-0619 — ENG-0012 Suite-2 Send-Side Ratchet Liveness: Feasibility + Design (docs-only)
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? NO (design-only lane; no code)
 Crypto/state-machine change allowed? NO (design-only; a separate implementation lane follows)
@@ -34063,7 +34091,13 @@ the operator instead prioritizes ENG-0019/ENG-0014/WF-0012 or another item, this
 replaced at closeout per direction. No public/production/security-complete/crypto-complete
 claim authorized.
 
----
+Outcome (D-1234): produced `docs/design/DOC-G5-008` — the feasibility + staged design for the
+send-side ratchet (DH ratchet + PQ reseed + static-`rk` removal), grounded on the existing
+receiver machinery and the qsp reference. Feasible; staged into Stage 1 (DH ratchet, NA-0620),
+Stage 2 (PQ reseed sender), Stage 3 (spec + claim reconciliation). ENG-0012 advanced to
+design-complete (implementation pending). The operator accepted the design and selected NA-0620
+= ENG-0012 Stage 1 (DH ratchet) as the sole READY successor; begins at D-1235. Docs-only; no
+source/spec change.
 
 ### NA-0618 — ENG-0013 Suite-2 Symmetric Counter Overflow Hard-Stop (source/test)
 Status: DONE

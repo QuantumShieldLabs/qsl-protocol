@@ -1006,9 +1006,10 @@ fn hs_build_session(
     pq_init_ss: [u8; 32],
     dh_self_pub: [u8; 32],
     dh_peer_pub: [u8; 32],
+    dh_self_priv: [u8; 32],
 ) -> Result<Suite2SessionState, &'static str> {
     let c = StdCrypto;
-    init_from_base_handshake(
+    let mut st = init_from_base_handshake(
         &c,
         role_is_a,
         SUITE2_PROTOCOL_VERSION,
@@ -1019,7 +1020,12 @@ fn hs_build_session(
         &dh_self_pub,
         &dh_peer_pub,
         authenticated,
-    )
+    )?;
+    // NA-0620 (ENG-0012 Stage 1a): carry the local X25519 ephemeral private key into the
+    // session's DH-ratchet state so the Stage 1b send-side ratchet can use it. Plumbing only —
+    // no message-path code reads it in Stage 1a.
+    st.set_dh_self_priv(dh_self_priv);
+    Ok(st)
 }
 
 fn hs_pending_legacy_path(dir: &Path, self_label: &str, peer: &str) -> PathBuf {
@@ -1514,6 +1520,15 @@ fn perform_handshake_poll_with_tokens(
                         {
                             return Ok(());
                         }
+                        // NA-0620 (Stage 1a): the initiator's local X25519 ephemeral private key
+                        // (retained in the pending handshake) feeds the session DH-ratchet state.
+                        let dh_self_priv: [u8; 32] = match pending.dh_sk.as_slice().try_into() {
+                            Ok(v) => v,
+                            Err(_) => {
+                                emit_marker("handshake_reject", None, &[("reason", "dh_sk_len")]);
+                                return Ok(());
+                            }
+                        };
                         let st = match hs_build_session(
                             true,
                             true,
@@ -1522,6 +1537,7 @@ fn perform_handshake_poll_with_tokens(
                             pq_init_ss,
                             dh_self_pub,
                             dh_peer_pub,
+                            dh_self_priv,
                         ) {
                             Ok(v) => v,
                             Err(_) => {
@@ -1875,6 +1891,7 @@ fn perform_handshake_poll_with_tokens(
                     pq_init_ss,
                     dh_self_pub,
                     dh_peer_pub,
+                    dh_sk,
                 ) {
                     Ok(v) => v,
                     Err(_) => {

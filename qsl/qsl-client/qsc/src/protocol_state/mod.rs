@@ -4,7 +4,9 @@ use chacha20poly1305::aead::{Aead, KeyInit, Payload};
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
 use quantumshield_refimpl::crypto::traits::{Hash, Kmac};
-use quantumshield_refimpl::suite2::ratchet::{Suite2RecvWireState, Suite2SendState};
+use quantumshield_refimpl::suite2::ratchet::{
+    Suite2DhRatchetState, Suite2RecvWireState, Suite2SendState,
+};
 use quantumshield_refimpl::suite2::state::Suite2SessionState;
 use quantumshield_refimpl::suite2::types::{SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID};
 use rand_core::{OsRng, RngCore};
@@ -476,6 +478,9 @@ pub(crate) fn qsp_session_for_channel(channel: &str) -> Result<Suite2SessionStat
     let ck_pq = kmac_out::<32>(&c, &base, "QSC.QSP.CK.PQ", b"");
     let rk = kmac_out::<32>(&c, &base, "QSC.QSP.RK", b"");
     let dh_pub = kmac_out::<32>(&c, &base, "QSC.QSP.DH", b"");
+    // NA-0620 (Stage 1a): seed-derived DH-ratchet material for the seed-fallback session
+    // (deterministic; plumbing only — not read by the message path in Stage 1a).
+    let dh_priv = kmac_out::<32>(&c, &base, "QSC.QSP.DH.PRIV", b"");
 
     let send = Suite2SendState {
         session_id,
@@ -506,5 +511,11 @@ pub(crate) fn qsp_session_for_channel(channel: &str) -> Result<Suite2SessionStat
         tombstoned_targets: BTreeSet::new(),
         mkskipped: Vec::new(),
     };
-    Ok(Suite2SessionState { send, recv })
+    let dh = Suite2DhRatchetState {
+        dhs_priv: dh_priv,
+        dhs_pub: dh_pub,
+        dhr: dh_pub,
+        rk,
+    };
+    Ok(Suite2SessionState { send, recv, dh })
 }

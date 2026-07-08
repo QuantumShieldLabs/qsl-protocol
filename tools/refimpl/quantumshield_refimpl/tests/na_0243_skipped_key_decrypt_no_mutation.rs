@@ -1,7 +1,7 @@
 use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
 use quantumshield_refimpl::crypto::traits::{Aead, CryptoError};
 use quantumshield_refimpl::suite2::ratchet::{
-    MkSkippedEntry, Suite2RecvWireState, Suite2SendState,
+    MkSkippedEntry, Suite2DhRatchetState, Suite2RecvWireState, Suite2SendState,
 };
 use quantumshield_refimpl::suite2::state::Suite2SessionState;
 use quantumshield_refimpl::suite2::{recv_wire_canon, send_wire_canon, types};
@@ -83,6 +83,7 @@ fn base_session() -> Suite2SessionState {
             tombstoned_targets: BTreeSet::new(),
             mkskipped: Vec::new(),
         },
+        dh: Suite2DhRatchetState::default(),
     }
 }
 

@@ -291,8 +291,16 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 
 ### ENG-0012 — Suite-2 send-side ratchet liveness gap (no DH ratchet + no boundary/PQ-reseed sender)
 - Severity: P1 (blocks the G1/G2 release gates; top-priority engineering finding)
-- Status: in-lane — design-complete (NA-0619, D-1234); implementation pending (staged, NA-0620
-  = Stage 1 DH ratchet). Filed NA-0617 (D-1230) from the external Suite-2 code/crypto review;
+- Status: in-lane — design-complete (NA-0619, D-1234); Stage 1a (DH-ratchet state plumbing)
+  DONE (NA-0620, D-1235); implementation continuing (Stage 1b DH-ratchet behavior = NA-0621;
+  Stage 2 PQ reseed). Filed NA-0617 (D-1230) from the external Suite-2 code/crypto review;
+- Stage 1a (NA-0620): added a session-level `Suite2DhRatchetState` (`dhs_priv`/`dhs_pub`/`dhr`/
+  `rk`) to `Suite2SessionState`, populated at establishment (the qsc handshake threads its
+  retained X25519 ephemeral private key via `set_dh_self_priv`), and persisted via a snapshot
+  format bump to v2 (fail-closed on any non-v2 version). PLUMBING ONLY — no message-path/wire/
+  nonce/KDF/AEAD change; the static-`rk` bootstrap is untouched (removed in Stage 1b). Proven
+  by DH round-trip + non-v2 fail-closed unit tests and the full suite2/qsc regression
+  (including the runtime-equivalence test) passing byte-for-byte. See the NA-0620 evidence doc.
   last-updated 2026-07-07
 - Design (NA-0619): `docs/design/DOC-G5-008_Suite2_Send_Side_Ratchet_Liveness_Feasibility_and_Design_v0.1.0_DRAFT.md`
   establishes feasibility (receiver machinery + `qsp::dh_ratchet_send` reference + complete

@@ -804,6 +804,20 @@ pub struct Suite2SendState {
     pub pn: u32,
 }
 
+/// NA-0620 (ENG-0012 Stage 1a): session-level DH-ratchet state, carried and persisted so the
+/// send-side DH ratchet (Stage 1b, DOC-G5-008 §5) has the material it needs — the local X25519
+/// keypair (`dhs_priv`/`dhs_pub`), the current peer DH public (`dhr`), and the live root key
+/// (`rk`). This is PLUMBING ONLY: no message-path code reads it in Stage 1a. `dhs_priv` is
+/// populated by the client after establishment (`set_dh_self_priv`); establishment itself
+/// leaves it zero for callers that do not ratchet.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Suite2DhRatchetState {
+    pub dhs_priv: [u8; 32],
+    pub dhs_pub: [u8; 32],
+    pub dhr: [u8; 32],
+    pub rk: [u8; 32],
+}
+
 pub struct SendWireOutcome {
     pub state: Suite2SendState,
     pub wire: Vec<u8>,

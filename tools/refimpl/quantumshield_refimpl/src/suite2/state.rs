@@ -1,6 +1,8 @@
 //! Suite-2 session snapshot/restore (durability test support).
 
-use crate::suite2::ratchet::{MkSkippedEntry, Suite2RecvWireState, Suite2SendState};
+use crate::suite2::ratchet::{
+    MkSkippedEntry, Suite2DhRatchetState, Suite2RecvWireState, Suite2SendState,
+};
 use std::collections::BTreeSet;
 
 const MAX_TARGETS_RESTORE: usize = 10_000; // DOC-SCL-001 rsf.inbox_max_items cap (deployment profile default/upper bound).
@@ -25,9 +27,20 @@ impl std::error::Error for Suite2StateError {}
 pub struct Suite2SessionState {
     pub send: Suite2SendState,
     pub recv: Suite2RecvWireState,
+    /// NA-0620 (ENG-0012 Stage 1a): DH-ratchet state (plumbing; not read by the message path
+    /// until Stage 1b).
+    pub dh: Suite2DhRatchetState,
 }
 
 impl Suite2SessionState {
+    /// NA-0620 (Stage 1a): set the local DH-ratchet private key after establishment. The client
+    /// handshake retains the X25519 ephemeral private key and supplies it here; establishment
+    /// leaves `dhs_priv` zero for callers (actor/tests) that do not ratchet. Plumbing only —
+    /// the message path does not read `dhs_priv` until Stage 1b.
+    pub fn set_dh_self_priv(&mut self, dh_self_priv: [u8; 32]) {
+        self.dh.dhs_priv = dh_self_priv;
+    }
+
     pub fn snapshot_bytes(&self) -> Vec<u8> {
         fn push_u8(out: &mut Vec<u8>, v: u8) {
             out.push(v);
@@ -53,7 +66,7 @@ impl Suite2SessionState {
 
         let mut out = Vec::new();
         out.extend_from_slice(b"QS2S");
-        push_u8(&mut out, 1); // version
+        push_u8(&mut out, 2); // version (NA-0620: v2 appends the DH-ratchet state)
 
         // Send state
         push_arr16(&mut out, &self.send.session_id);
@@ -89,6 +102,12 @@ impl Suite2SessionState {
             push_u32(&mut out, entry.n);
             push_arr32(&mut out, &entry.mk);
         }
+
+        // NA-0620 (Stage 1a): DH-ratchet state (v2).
+        push_arr32(&mut out, &self.dh.dhs_priv);
+        push_arr32(&mut out, &self.dh.dhs_pub);
+        push_arr32(&mut out, &self.dh.dhr);
+        push_arr32(&mut out, &self.dh.rk);
 
         out
     }
@@ -141,7 +160,8 @@ impl Suite2SessionState {
             return Err(invalid());
         }
         let ver = c.u8()?;
-        if ver != 1 {
+        if ver != 2 {
+            // NA-0620: v2 is the only accepted format (pre-release; no legacy v1 restore).
             return Err(invalid());
         }
 
@@ -233,11 +253,19 @@ impl Suite2SessionState {
             recv.mkskipped.push(MkSkippedEntry { dh_pub, n, mk });
         }
 
+        // NA-0620 (Stage 1a): DH-ratchet state (v2).
+        let dh = Suite2DhRatchetState {
+            dhs_priv: c.arr32()?,
+            dhs_pub: c.arr32()?,
+            dhr: c.arr32()?,
+            rk: c.arr32()?,
+        };
+
         if c.i != bytes.len() {
             return Err(invalid());
         }
 
-        Ok(Suite2SessionState { send, recv })
+        Ok(Suite2SessionState { send, recv, dh })
     }
 }
 
@@ -278,7 +306,13 @@ mod tests {
             tombstoned_targets: BTreeSet::new(),
             mkskipped: Vec::new(),
         };
-        Suite2SessionState { send, recv }
+        let dh = Suite2DhRatchetState {
+            dhs_priv: [0x88; 32],
+            dhs_pub: [0x99; 32],
+            dhr: [0xaa; 32],
+            rk: [0xbb; 32],
+        };
+        Suite2SessionState { send, recv, dh }
     }
 
     fn length_offsets(bytes: &[u8]) -> (usize, usize, usize, usize) {
@@ -486,5 +520,36 @@ mod tests {
             Suite2Reject::Code(code) => assert_eq!(code, "REJECT_SCKA_TARGET_TOMBSTONED"),
         }
         assert_eq!(before_replay, restored.snapshot_bytes());
+    }
+
+    // NA-0620 (ENG-0012 Stage 1a): the DH-ratchet state round-trips through snapshot/restore.
+    #[test]
+    fn snapshot_roundtrip_preserves_dh_ratchet_state() {
+        let st = sample_state();
+        let restored =
+            Suite2SessionState::restore_bytes(&st.snapshot_bytes()).expect("restore v2 snapshot");
+        assert_eq!(restored.dh, st.dh);
+        assert_eq!(restored.dh.dhs_priv, [0x88; 32]);
+        assert_eq!(restored.dh.dhs_pub, [0x99; 32]);
+        assert_eq!(restored.dh.dhr, [0xaa; 32]);
+        assert_eq!(restored.dh.rk, [0xbb; 32]);
+        assert_eq!(
+            restored.snapshot_bytes(),
+            st.snapshot_bytes(),
+            "snapshot bytes drifted across round-trip"
+        );
+    }
+
+    // NA-0620: the pre-release snapshot format is v2 only; a legacy v1 (or any other) version
+    // fails closed (eliminate legacy per the PROJECT_CHARTER design tenet).
+    #[test]
+    fn restore_rejects_non_v2_version() {
+        let mut bytes = sample_state().snapshot_bytes();
+        assert_eq!(&bytes[0..4], b"QS2S");
+        assert_eq!(bytes[4], 2, "current snapshot version is 2");
+        bytes[4] = 1; // legacy v1
+        assert!(Suite2SessionState::restore_bytes(&bytes).is_err());
+        bytes[4] = 3; // unknown future version
+        assert!(Suite2SessionState::restore_bytes(&bytes).is_err());
     }
 }

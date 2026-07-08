@@ -639,3 +639,33 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   set green before/after on a no-op lane. Keep exactly one `Status: READY` in the live file.
 - Recommended directive shape: source/CI lane (touches CI scripts) — full ritual, its own
   authorization; NOT a docs/LITE lane. Medium priority (readability/maintainability).
+
+### WF-0012 — Structured, tool-backed findings ledger (`ledger.py`)
+- Type: workflow; Status: open — proposed at NA-0619 (design), recorded D-1236
+- Problem: triage of the flat markdown ledger is manual and O(n); severity/status/repo live in
+  prose (not filterable); no dedup on intake (two external audits re-reported known findings and
+  had to be hand-cross-mapped); IDs/fields/status integrity is hand-maintained; ON DECK can drift
+  from the ledger.
+- Recommended change: keep the markdown, add one machine-readable `@meta sev=… status=… repo=…
+  related=… updated=…` line per entry, plus a `scripts/ci/ledger.py` tool (mirroring the existing
+  `qsl_evidence_helper.py queue`): `list` (filter/sort), `validate` (CI gate on monotonic/unique
+  IDs, required fields, valid status, live cross-refs), `dedup` (fuzzy-match a new finding against
+  existing by surface/keyword — the audit-intake killer feature), `ondeck` (generate the ON DECK
+  view from the ledger), `new` (scaffold the next ID). Backfill `@meta` on existing entries.
+  Optional follow-up: a CI check that the LIVE QUEUE ON DECK equals `ledger ondeck`.
+- Recommended directive shape: small source (`scripts/`) + docs lane; full ritual (touches CI
+  preflight). Pays for itself the next time an audit lands.
+
+### WF-0013 — Build the full workspace (`--workspace --all-targets`) before pushing a shared-struct change
+- Type: workflow; Status: open — recorded D-1236 from the NA-0620 recovered failure
+- Problem: NA-0620 added a field to `Suite2SessionState`; local validation built only
+  `-p quantumshield_refimpl -p qsc`, which missed two direct-construction sites in
+  `tools/actors/refimpl_actor_rs` (a workspace member CI builds with `--all-targets`). The first
+  CI run failed the ci-4*/demo/metadata build checks; a corrective commit added the field and it
+  went green. No bad merge resulted, but a CI cycle was wasted.
+- Recommended change: when a change adds/removes a field on, or changes the signature of, a
+  shared type or a widely-used function, run `cargo build --workspace --all-targets` (and, where
+  cheap, `cargo test --workspace`) locally BEFORE pushing — not just the directly-edited crates.
+  Add this to the executor's Phase-5 build-gate checklist in `docs/ops/DIRECTOR_OPERATIONS.md`.
+- Recommended directive shape: docs/process (a LITE note in DOC-OPS-006), or fold into the next
+  source lane's checklist.

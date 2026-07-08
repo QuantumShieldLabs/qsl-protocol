@@ -46,6 +46,20 @@ liveness) release gates.**
 
 ## 2. Feasibility — the machinery already exists
 
+> **Correction (NA-0621 / ENG-0012 Stage 1b-i, 2026-07-08).** The "receiver mirror already
+> exists" framing below was imprecise. Design-lock at `1ec1784f` established that
+> `recv_boundary_in_order` implements the **PQ-reseed** path (`apply_pq_reseed`, §8.5.3) — NOT
+> the classical DH ratchet (0 X25519/`kdf_rk_dh`/keypair uses). The classical DH ratchet was
+> therefore absent on **both** the send and receive sides, and Suite-2 had **no `NHK`
+> (next-header-key)** machinery, which §8.5.1's boundary-header anti-spoof rule requires. What
+> *did* hold: the wire already carries `DH_pub[32]` on every ratchet message (§4.3;
+> `parse_ratchet_header` extracts it, `send_wire` writes it), so no wire-format change was needed
+> — the DH ratchet is a behavior change, not a format change. NA-0621 (Stage 1b-i) implemented,
+> in refimpl: `KDF_RK_DH` (§3.3.2), the `HK/NHK` derivation (§3.4/§8.1), `send_boundary` (DH send,
+> §8.5.2), and `recv_dh_boundary` (DH receive + §8.5.1 CURRENT_NHK anti-spoof), proven by a
+> two-party round-trip and a PCS-healing test. The qsc trigger + static-`rk` removal are Stage
+> 1b-ii; the PQ-reseed sender is Stage 2.
+
 This is not a from-scratch protocol design; the receive side and a reference send side already
 exist and constrain the answer:
 

@@ -292,8 +292,10 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 ### ENG-0012 — Suite-2 send-side ratchet liveness gap (no DH ratchet + no boundary/PQ-reseed sender)
 - Severity: P1 (blocks the G1/G2 release gates; top-priority engineering finding)
 - Status: in-lane — design-complete (NA-0619, D-1234); Stage 1a (DH-ratchet state plumbing)
-  DONE (NA-0620, D-1235); implementation continuing (Stage 1b DH-ratchet behavior = NA-0621;
-  Stage 2 PQ reseed). Filed NA-0617 (D-1230) from the external Suite-2 code/crypto review;
+  DONE (NA-0620, D-1235); Stage 1b-i (DH-ratchet SEND+RECEIVE behavior + NHK header keys, in
+  refimpl) DONE (NA-0621, D-1237); remaining: Stage 1b-ii (qsc trigger + static-`rk` removal =
+  NA-0622) and Stage 2 (PQ reseed). The P1 stays OPEN until 1b-ii wires the ratchet into the real
+  qsc send path. Filed NA-0617 (D-1230) from the external Suite-2 code/crypto review;
 - Stage 1a (NA-0620): added a session-level `Suite2DhRatchetState` (`dhs_priv`/`dhs_pub`/`dhr`/
   `rk`) to `Suite2SessionState`, populated at establishment (the qsc handshake threads its
   retained X25519 ephemeral private key via `set_dh_self_priv`), and persisted via a snapshot
@@ -301,7 +303,18 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   nonce/KDF/AEAD change; the static-`rk` bootstrap is untouched (removed in Stage 1b). Proven
   by DH round-trip + non-v2 fail-closed unit tests and the full suite2/qsc regression
   (including the runtime-equivalence test) passing byte-for-byte. See the NA-0620 evidence doc.
-  last-updated 2026-07-07
+- Stage 1b-i (NA-0621): implemented the classical DH ratchet in refimpl — `KDF_RK_DH` (§3.3.2,
+  `KMAC256(RK,"QSP5.0/RKDH",dh_out,64)`), on-demand `HK/NHK` header keys (§3.4/§8.1),
+  `send_boundary` (DH-ratchet send, §8.5.2: fresh X25519 keypair, `KDF_RK_DH`, PQ send-chain
+  reinit, `HK_s` recompute, header under the pre-boundary `NHK_s`), and `recv_dh_boundary`
+  (DH-ratchet receive + §8.5.1 CURRENT_NHK anti-spoof, no state mutation on reject). No
+  wire-format change (the `DH_pub[32]` per §4.3 is already on the wire), no non-boundary-path
+  change, no PQ-reseed (`apply_pq_reseed`) change, no snapshot change (NHK derived on demand).
+  Proven by co-located refimpl tests: two-party round-trip (the ratchet fires both directions and
+  messages decrypt), PCS-healing (a pre-ratchet state snapshot cannot decrypt post-ratchet
+  messages once both parties have advanced), and no-mutation-on-reject; the full suite2/qsc
+  regression stays green. NOT wired into qsc and NOT a post-compromise claim yet (Stage 1b-ii).
+  See the NA-0621 evidence doc. last-updated 2026-07-08
 - Design (NA-0619): `docs/design/DOC-G5-008_Suite2_Send_Side_Ratchet_Liveness_Feasibility_and_Design_v0.1.0_DRAFT.md`
   establishes feasibility (receiver machinery + `qsp::dh_ratchet_send` reference + complete
   DOC-CAN-003 §8.5 spec) and a staged plan: Stage 1 classical DH ratchet on the real send path

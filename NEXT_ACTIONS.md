@@ -6,7 +6,7 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0621 | HIGHEST_NA=0621 | HIGHEST_D=1236 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0622 | HIGHEST_NA=0622 | HIGHEST_D=1238 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
 **READY (exactly one — execute this):** `NA-0621 — ENG-0012 Stage 1b: Suite-2 DH Ratchet
 send_boundary + trigger + static-rk removal` (where classical post-compromise security lands).
@@ -34042,8 +34042,35 @@ begins at D-1217.
 
 ---
 
-### NA-0621 — ENG-0012 Stage 1b: Suite-2 DH Ratchet send_boundary + trigger + static-rk removal (source/test)
+### NA-0622 — ENG-0012 Stage 1b-ii: qsc DH-ratchet trigger + static-rk removal (source/test)
 Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? YES (originate DH boundaries from the real qsc send path)
+Crypto/state-machine change allowed? YES (wire the trigger + remove the static-rk bootstrap; no new KDF/AEAD primitive)
+Docs-only allowed? NO
+
+Objective:
+Implement Stage 1b-ii of DOC-G5-008 (ENG-0012, the P1 blocking the G1/G2 gates), building on the
+Stage-1b-i refimpl DH-ratchet core (NA-0621: `send_boundary` + `recv_dh_boundary` + `NHK`, D-1237,
+merged `6f2118e1`). This is where the P1 closes on the REAL client send path: wire the
+OPERATOR-CHOSEN DH trigger policy (RATCHET-ON-REPLY + a bounded every-N-messages/T-seconds
+fallback) into the qsc send path so the client originates DH boundaries; REMOVE the static-`rk`
+bootstrap (`qsp_activate_*_chain_if_needed`) in favour of the real ratchet using the Stage-1a `dh`
+state; and add end-to-end qsc conformance vectors (the DH ratchet fires mid-conversation both
+directions and messages decrypt) plus an end-to-end PCS-healing vector. Resolve the DOC-G5-008
+open questions at design-lock: the trigger defaults `N_dh`/`T_dh`, and confirm the reply-driven
+cadence's G5 metadata profile (a DH boundary is observable on the wire — check it does not leak a
+new distinguisher). Reuse the refimpl `send_boundary`/`recv_dh_boundary` semantics exactly (no
+divergent client re-implementation); the runtime-equivalence test must still pass. PQ reseed
+sender is Stage 2 (out of scope). No KDF/AEAD primitive change; no qsl-attachments/qsl-server
+change; no dependency mutation. Full ritual (two PRs). Classical post-compromise security is fully
+wired here; NO Triple-Ratchet / post-compromise claim until Stage 2 also lands and vectors pass.
+Reminder: build `cargo build --workspace --all-targets` before pushing (WF-0013).
+
+---
+
+### NA-0621 — ENG-0012 Stage 1b-i: Suite-2 DH Ratchet (send+receive) + NHK, refimpl core (source/test)
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? YES (originate DH-boundary messages per DOC-CAN-003 §8.5.2)
 Crypto/state-machine change allowed? YES (send_boundary + DH trigger; remove the static-rk bootstrap; no KDF/AEAD primitive change)
@@ -34065,6 +34092,17 @@ metadata profile (G5) pinned at design-lock. No KDF/AEAD/primitive change; no qs
 qsl-server change; no dependency mutation. Full ritual (two PRs). Classical post-compromise
 security lands here; NO Triple-Ratchet / post-compromise claim until Stage 2 also lands and
 vectors pass. Reminder: build `cargo build --workspace --all-targets` before pushing (WF-0013).
+
+OUTCOME (D-1237 / D-1238, 2026-07-08): The operator re-scoped this lane after a design-lock
+finding — the classical DH ratchet was absent on BOTH sides of suite2 and there was no `NHK`
+machinery (the receiver code that existed is the PQ reseed). Sub-staged: NA-0621 delivered
+**Stage 1b-i** (the refimpl DH-ratchet crypto core only — `KDF_RK_DH`, on-demand `HK/NHK`,
+`send_boundary` + `recv_dh_boundary` with §8.5.1 CURRENT_NHK anti-spoof), proven by co-located
+two-party round-trip + PCS-healing + no-mutation tests; no wire-format change (DH_pub is already
+on the wire per §4.3), no non-boundary/PQ-reseed change, no snapshot change, no qsc change.
+Merged PR #1520 (`6f2118e1`); full refimpl suite green; `--workspace --all-targets` clean. The
+qsc trigger wiring + static-`rk` removal moved to **NA-0622 = Stage 1b-ii** (where the P1
+closes on the real send path). ENG-0012 -> Stage-1b-i-done; the P1 stays OPEN until 1b-ii.
 
 ---
 

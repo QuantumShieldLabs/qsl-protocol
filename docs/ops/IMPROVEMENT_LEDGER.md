@@ -291,7 +291,17 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 
 ### ENG-0012 — Suite-2 send-side ratchet liveness gap (no DH ratchet + no boundary/PQ-reseed sender)
 - Severity: P1 (blocks the G1/G2 release gates; top-priority engineering finding)
-- Status: open — filed NA-0617 (D-1230) from the external Suite-2 code/crypto review
+- Status: in-lane — design-complete (NA-0619, D-1234); implementation pending (staged, NA-0620
+  = Stage 1 DH ratchet). Filed NA-0617 (D-1230) from the external Suite-2 code/crypto review;
+  last-updated 2026-07-07
+- Design (NA-0619): `docs/design/DOC-G5-008_Suite2_Send_Side_Ratchet_Liveness_Feasibility_and_Design_v0.1.0_DRAFT.md`
+  establishes feasibility (receiver machinery + `qsp::dh_ratchet_send` reference + complete
+  DOC-CAN-003 §8.5 spec) and a staged plan: Stage 1 classical DH ratchet on the real send path
+  (remove the static-`rk` bootstrap; two-party vectors) → NA-0620; Stage 2 PQ reseed sender;
+  Stage 3 spec + claim reconciliation. Requires adding DH keypair / `DHr` / live `RK` to the
+  send/recv state (currently absent). Corrected an audit imprecision: parse permits DH-only
+  boundaries. Binding claim boundary: no Triple-Ratchet / post-compromise / quantum-secure
+  claim until Stages 1–2 land and vectors pass.
   (findings C-1 + C-2); last-updated 2026-07-07
 - Exact surfaces: `tools/refimpl/quantumshield_refimpl/src/suite2/{ratchet.rs,establish.rs,
   scka.rs}`; `qsl/qsl-client/qsc/src/main.rs` send path (`send_wire_canon(..., 0, ...)`).

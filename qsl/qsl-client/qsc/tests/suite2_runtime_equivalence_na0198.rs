@@ -7,7 +7,9 @@ use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
 use quantumshield_refimpl::crypto::traits::{Hash, Kmac};
 use quantumshield_refimpl::qse::Envelope;
-use quantumshield_refimpl::suite2::ratchet::{Suite2RecvWireState, Suite2SendState};
+use quantumshield_refimpl::suite2::ratchet::{
+    Suite2DhRatchetState, Suite2RecvWireState, Suite2SendState,
+};
 use quantumshield_refimpl::suite2::state::Suite2SessionState;
 use quantumshield_refimpl::suite2::types::{SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID};
 use quantumshield_refimpl::suite2::{recv_wire_canon, send_wire_canon};
@@ -170,6 +172,7 @@ fn seeded_session_state(seed: u64, peer: &str) -> Suite2SessionState {
     let ck_pq = kmac_out::<32>(&c, &base, "QSC.QSP.CK.PQ", b"");
     let rk = kmac_out::<32>(&c, &base, "QSC.QSP.RK", b"");
     let dh_pub = kmac_out::<32>(&c, &base, "QSC.QSP.DH", b"");
+    let dh_priv = kmac_out::<32>(&c, &base, "QSC.QSP.DH.PRIV", b"");
     let send = Suite2SendState {
         session_id,
         protocol_version: SUITE2_PROTOCOL_VERSION,
@@ -199,7 +202,13 @@ fn seeded_session_state(seed: u64, peer: &str) -> Suite2SessionState {
         tombstoned_targets: BTreeSet::new(),
         mkskipped: Vec::new(),
     };
-    Suite2SessionState { send, recv }
+    let dh = Suite2DhRatchetState {
+        dhs_priv: dh_priv,
+        dhs_pub: dh_pub,
+        dhr: dh_pub,
+        rk,
+    };
+    Suite2SessionState { send, recv, dh }
 }
 
 fn load_session_state(cfg: &Path, peer: &str) -> Suite2SessionState {
@@ -277,6 +286,7 @@ fn seeded_runtime_state_matches_refimpl_send_receive_roundtrip() {
     let expected_alice_after_send = Suite2SessionState {
         send: send_a_expected.state,
         recv: seeded_session_state(1, "peer").recv,
+        dh: seeded_session_state(1, "peer").dh,
     };
     let alice_after_send = load_session_state(&alice_cfg, "peer");
     assert_eq!(
@@ -336,6 +346,7 @@ fn seeded_runtime_state_matches_refimpl_send_receive_roundtrip() {
     let expected_bob_after_recv = Suite2SessionState {
         send: seeded_session_state(1, "peer").send,
         recv: recv_b_expected.state,
+        dh: seeded_session_state(1, "peer").dh,
     };
     let bob_after_recv = load_session_state(&bob_cfg, "peer");
     assert_eq!(
@@ -372,6 +383,7 @@ fn seeded_runtime_state_matches_refimpl_send_receive_roundtrip() {
     let expected_bob_after_send = Suite2SessionState {
         send: send_b_expected.state,
         recv: expected_bob_after_recv.recv,
+        dh: seeded_session_state(1, "peer").dh,
     };
     let bob_after_send = load_session_state(&bob_cfg, "peer");
     assert_eq!(
@@ -431,6 +443,7 @@ fn seeded_runtime_state_matches_refimpl_send_receive_roundtrip() {
     let expected_alice_after_recv = Suite2SessionState {
         send: expected_alice_after_send.send,
         recv: recv_a_expected.state,
+        dh: seeded_session_state(1, "peer").dh,
     };
     let alice_after_recv = load_session_state(&alice_cfg, "peer");
     assert_eq!(

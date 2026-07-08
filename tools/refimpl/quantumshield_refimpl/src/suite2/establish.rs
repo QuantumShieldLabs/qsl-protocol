@@ -3,7 +3,7 @@
 use std::collections::BTreeSet;
 
 use crate::crypto::traits::{CryptoError, Kmac};
-use crate::suite2::ratchet::{Suite2RecvWireState, Suite2SendState};
+use crate::suite2::ratchet::{Suite2DhRatchetState, Suite2RecvWireState, Suite2SendState};
 use crate::suite2::state::Suite2SessionState;
 
 const ZERO32: [u8; 32] = [0u8; 32];
@@ -138,5 +138,16 @@ pub fn init_from_base_handshake(
         }
     };
 
-    Ok(Suite2SessionState { send, recv })
+    // NA-0620 (ENG-0012 Stage 1a): populate the DH-ratchet state for Stage 1b. `dhs_priv` is
+    // left zero here; the client sets it post-establishment via `set_dh_self_priv` (callers that
+    // do not ratchet, e.g. the interop actor, keep it zero). Plumbing only — no message-path
+    // code reads this state in Stage 1a.
+    let dh = Suite2DhRatchetState {
+        dhs_priv: ZERO32,
+        dhs_pub: dh_self,
+        dhr: dh_peer,
+        rk,
+    };
+
+    Ok(Suite2SessionState { send, recv, dh })
 }

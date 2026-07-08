@@ -3,7 +3,9 @@ mod common;
 use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
 use quantumshield_refimpl::crypto::traits::{Hash, Kmac};
 use quantumshield_refimpl::qse::{Envelope, EnvelopeProfile};
-use quantumshield_refimpl::suite2::ratchet::{Suite2RecvWireState, Suite2SendState};
+use quantumshield_refimpl::suite2::ratchet::{
+    Suite2DhRatchetState, Suite2RecvWireState, Suite2SendState,
+};
 use quantumshield_refimpl::suite2::state::Suite2SessionState;
 use quantumshield_refimpl::suite2::types::{SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID};
 use quantumshield_refimpl::suite2::{recv_wire_canon, send_wire_canon};
@@ -75,6 +77,7 @@ fn qsp_session_for_channel(seed: u64, channel: &str) -> Suite2SessionState {
     let ck_pq = kmac_out::<32>(&c, &base, "QSC.QSP.CK.PQ", b"");
     let rk = kmac_out::<32>(&c, &base, "QSC.QSP.RK", b"");
     let dh_pub = kmac_out::<32>(&c, &base, "QSC.QSP.DH", b"");
+    let dh_priv = kmac_out::<32>(&c, &base, "QSC.QSP.DH.PRIV", b"");
 
     let send = Suite2SendState {
         session_id,
@@ -105,7 +108,13 @@ fn qsp_session_for_channel(seed: u64, channel: &str) -> Suite2SessionState {
         tombstoned_targets: BTreeSet::new(),
         mkskipped: Vec::new(),
     };
-    Suite2SessionState { send, recv }
+    let dh = Suite2DhRatchetState {
+        dhs_priv: dh_priv,
+        dhs_pub: dh_pub,
+        dhr: dh_pub,
+        rk,
+    };
+    Suite2SessionState { send, recv, dh }
 }
 
 fn qsp_pack_for_channel(seed: u64, channel: &str, plaintext: &[u8]) -> Vec<u8> {

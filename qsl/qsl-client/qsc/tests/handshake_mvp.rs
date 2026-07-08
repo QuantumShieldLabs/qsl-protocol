@@ -1342,3 +1342,253 @@ fn handshake_fs_identity_compromise_cannot_decrypt_recorded_message() {
     );
     assert!(!combined.contains("send_ok=true"), "{}", combined);
 }
+
+// NA-0622 (ENG-0012 Stage 1b-ii): end-to-end DH ratchet across a REAL A/B handshake. Alice
+// (initiator, role A) and Bob (responder, role B) complete the handshake, then exchange messages;
+// ratchet-on-reply fires (Bob's first reply is a DH boundary that CREATES his send chain now that
+// the static-rk bootstrap is gone) and both sides decrypt across the ratchet.
+fn hs_dance(alice_cfg: &Path, bob_cfg: &Path, relay: &str) {
+    seed_authenticated_pair(alice_cfg, bob_cfg);
+    relay_inbox_set(alice_cfg, ROUTE_TOKEN_ALICE);
+    relay_inbox_set(bob_cfg, ROUTE_TOKEN_BOB);
+    let init = qsc_cfg_cmd(alice_cfg)
+        .args([
+            "handshake",
+            "init",
+            "--as",
+            "alice",
+            "--peer",
+            "bob",
+            "--relay",
+            relay,
+        ])
+        .output()
+        .expect("hs init");
+    assert!(init.status.success(), "{}", output_text(&init));
+    for (cfg, me, peer) in [
+        (bob_cfg, "bob", "alice"),
+        (alice_cfg, "alice", "bob"),
+        (bob_cfg, "bob", "alice"),
+    ] {
+        let out = qsc_cfg_cmd(cfg)
+            .args([
+                "handshake",
+                "poll",
+                "--as",
+                me,
+                "--peer",
+                peer,
+                "--relay",
+                relay,
+                "--max",
+                "4",
+            ])
+            .output()
+            .expect("hs poll");
+        assert!(out.status.success(), "{}", output_text(&out));
+    }
+    assert!(
+        session_path(alice_cfg, "bob").exists(),
+        "alice session missing"
+    );
+    assert!(
+        session_path(bob_cfg, "alice").exists(),
+        "bob session missing"
+    );
+}
+
+fn send_msg(cfg: &Path, relay: &str, to: &str, path: &Path) -> String {
+    let out = qsc_cfg_cmd(cfg)
+        .args([
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            relay,
+            "--to",
+            to,
+            "--file",
+            path.to_str().unwrap(),
+        ])
+        .output()
+        .expect("send");
+    assert!(out.status.success(), "{}", output_text(&out));
+    output_text(&out)
+}
+
+fn recv_msg(
+    cfg: &Path,
+    relay: &str,
+    mailbox: &str,
+    from: &str,
+    out_dir: &Path,
+) -> std::process::Output {
+    qsc_cfg_cmd(cfg)
+        .args([
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            relay,
+            "--mailbox",
+            mailbox,
+            "--from",
+            from,
+            "--max",
+            "1",
+            "--out",
+            out_dir.to_str().unwrap(),
+        ])
+        .output()
+        .expect("receive")
+}
+
+#[test]
+fn dh_ratchet_e2e_roundtrip_over_real_handshake() {
+    let base = safe_test_root().join(format!("na0622_dh_e2e_{}", std::process::id()));
+    let _ = fs::remove_dir_all(&base);
+    ensure_dir_700(&base);
+    let alice_cfg = base.join("alice");
+    let bob_cfg = base.join("bob");
+    let alice_out = base.join("alice_out");
+    let bob_out = base.join("bob_out");
+    for d in [&alice_cfg, &bob_cfg, &alice_out, &bob_out] {
+        ensure_dir_700(d);
+    }
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+    let server = common::start_inbox_server(1024 * 1024, 16);
+    let relay = server.base_url().to_string();
+    hs_dance(&alice_cfg, &bob_cfg, &relay);
+
+    // Alice (role A) sends first: her send chain is established at the handshake, she has not
+    // received, so this is a NORMAL message (no ratchet).
+    let m1 = base.join("m1.bin");
+    fs::write(&m1, b"hello-from-alice").unwrap();
+    let s1 = send_msg(&alice_cfg, &relay, "bob", &m1);
+    assert!(
+        !s1.contains("event=qsp_dh_ratchet"),
+        "alice's first send must not ratchet: {s1}"
+    );
+    let r1 = recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &bob_out);
+    assert!(r1.status.success(), "{}", output_text(&r1));
+    assert_eq!(
+        fs::read(bob_out.join("recv_1.bin")).unwrap(),
+        b"hello-from-alice"
+    );
+
+    // Bob (role B) replies: he RECEIVED, so ratchet-on-reply fires and his reply is a DH boundary
+    // (which also creates his send chain — the static-rk bootstrap is gone).
+    let m2 = base.join("m2.bin");
+    fs::write(&m2, b"hello-from-bob").unwrap();
+    let s2 = send_msg(&bob_cfg, &relay, "alice", &m2);
+    assert!(
+        s2.contains("event=qsp_dh_ratchet dir=send"),
+        "bob's reply must be a DH boundary (ratchet-on-reply): {s2}"
+    );
+    let r2 = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &alice_out);
+    assert!(r2.status.success(), "{}", output_text(&r2));
+    assert!(
+        output_text(&r2).contains("event=qsp_dh_ratchet dir=recv"),
+        "alice must process bob's DH boundary: {}",
+        output_text(&r2)
+    );
+    assert_eq!(
+        fs::read(alice_out.join("recv_1.bin")).unwrap(),
+        b"hello-from-bob"
+    );
+
+    // Another round the other way proves the ratchet keeps working: Alice replies (ratchets),
+    // Bob decrypts across the boundary.
+    let m3 = base.join("m3.bin");
+    fs::write(&m3, b"hello-again-alice").unwrap();
+    let s3 = send_msg(&alice_cfg, &relay, "bob", &m3);
+    assert!(
+        s3.contains("event=qsp_dh_ratchet dir=send"),
+        "alice's reply must ratchet: {s3}"
+    );
+    let r3 = recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &bob_out);
+    assert!(r3.status.success(), "{}", output_text(&r3));
+    assert_eq!(
+        fs::read(bob_out.join("recv_1.bin")).unwrap(),
+        b"hello-again-alice"
+    );
+}
+
+#[test]
+fn dh_ratchet_e2e_pcs_healing_over_real_handshake() {
+    let base = safe_test_root().join(format!("na0622_dh_pcs_{}", std::process::id()));
+    let _ = fs::remove_dir_all(&base);
+    ensure_dir_700(&base);
+    let alice_cfg = base.join("alice");
+    let bob_cfg = base.join("bob");
+    let a_out = base.join("a_out");
+    let b_out = base.join("b_out");
+    for d in [&alice_cfg, &bob_cfg, &a_out, &b_out] {
+        ensure_dir_700(d);
+    }
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+    let server = common::start_inbox_server(1024 * 1024, 16);
+    let relay = server.base_url().to_string();
+    hs_dance(&alice_cfg, &bob_cfg, &relay);
+
+    let mk = |name: &str, body: &[u8]| {
+        let p = base.join(name);
+        fs::write(&p, body).unwrap();
+        p
+    };
+    // Warm up the ratchet: Alice->Bob (normal), Bob->Alice (ratchet), Alice->Bob (ratchet).
+    send_msg(&alice_cfg, &relay, "bob", &mk("m1", b"m1"));
+    assert!(recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
+        .status
+        .success());
+    send_msg(&bob_cfg, &relay, "alice", &mk("m2", b"m2"));
+    assert!(
+        recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
+            .status
+            .success()
+    );
+    send_msg(&alice_cfg, &relay, "bob", &mk("m3", b"m3"));
+    assert!(recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
+        .status
+        .success());
+
+    // Adversary snapshots Alice's session blob at state S.
+    let alice_blob = alice_cfg.join("qsp_sessions").join("bob.qsv");
+    let backup = base.join("alice_S.qsv");
+    fs::copy(&alice_blob, &backup).expect("backup alice S");
+
+    // Both parties ratchet forward past S: Bob->Alice (ratchet, Alice's REAL state advances),
+    // Alice->Bob (ratchet), then Bob->Alice (ratchet under a root two steps past S).
+    send_msg(&bob_cfg, &relay, "alice", &mk("m4", b"m4"));
+    assert!(
+        recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
+            .status
+            .success()
+    );
+    send_msg(&alice_cfg, &relay, "bob", &mk("m5", b"m5"));
+    assert!(recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
+        .status
+        .success());
+    let s6 = send_msg(&bob_cfg, &relay, "alice", &mk("m6", b"top-secret"));
+    assert!(
+        s6.contains("event=qsp_dh_ratchet dir=send"),
+        "m6 must be a boundary: {s6}"
+    );
+
+    // Restore the epoch-S snapshot and attempt to receive m6. The stale NHK cannot authenticate a
+    // boundary two ratchets ahead, so the pre-compromise snapshot CANNOT decrypt m6 (PCS healed).
+    fs::copy(&backup, &alice_blob).expect("restore alice S");
+    let heal_out = base.join("heal_out");
+    ensure_dir_700(&heal_out);
+    let r6 = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &heal_out);
+    let got_secret = fs::read(heal_out.join("recv_1.bin"))
+        .map(|b| b == b"top-secret")
+        .unwrap_or(false);
+    assert!(
+        !got_secret,
+        "PCS FAILED: pre-ratchet snapshot decrypted a post-ratchet message. out={}",
+        output_text(&r6)
+    );
+}

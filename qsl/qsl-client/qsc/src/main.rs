@@ -19,9 +19,12 @@ use quantumshield_refimpl::crypto::traits::{
 use quantumshield_refimpl::qse::{Envelope, EnvelopeProfile};
 use quantumshield_refimpl::suite2::establish::init_from_base_handshake;
 use quantumshield_refimpl::suite2::ratchet::Suite2RecvWireState;
+use quantumshield_refimpl::suite2::ratchet::{recv_dh_boundary, send_boundary};
 use quantumshield_refimpl::suite2::state::Suite2SessionState;
-use quantumshield_refimpl::suite2::types::{SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID};
-use quantumshield_refimpl::suite2::{recv_wire_canon, send_wire_canon};
+use quantumshield_refimpl::suite2::types::{
+    FLAG_BOUNDARY, FLAG_PQ_CTXT, SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID,
+};
+use quantumshield_refimpl::suite2::{decode_suite2_wire_canon, recv_wire_canon, send_wire_canon};
 use quantumshield_refimpl::RefimplError;
 use rand_core::{OsRng, RngCore};
 use ratatui_core::{
@@ -147,8 +150,9 @@ use output::{
 use protocol_state::{
     allow_unsafe_seed_fallback_for_tests, emit_protocol_inactive, kmac_out,
     protocol_active_or_reason_for_peer, protocol_inactive_exit, qsp_send_ready_tuple,
-    qsp_session_for_channel, qsp_session_load, qsp_session_store, qsp_status_parts,
-    qsp_status_string, qsp_status_tuple, qsp_status_user_note, record_qsp_status, zero32,
+    qsp_session_for_channel, qsp_session_load, qsp_session_store, qsp_session_store_with_trigger,
+    qsp_status_parts, qsp_status_string, qsp_status_tuple, qsp_status_user_note, qsp_trigger_load,
+    record_qsp_status, zero32, QspTriggerState, QSP_DH_FALLBACK_N, QSP_DH_FALLBACK_T_SECS,
     QSP_STATUS_FILE_NAME,
 };
 use relay::*;
@@ -1405,6 +1409,7 @@ fn protocol_active_or_reason_for_send_peer(peer: &str) -> Result<(), String> {
 struct QspPackOutcome {
     envelope: Vec<u8>,
     next_state: Suite2SessionState,
+    trigger: QspTriggerState,
     msg_idx: u32,
     ck_idx: u32,
     padded_len: usize,
@@ -1420,6 +1425,7 @@ struct QspPackError {
 struct QspUnpackOutcome {
     plaintext: Vec<u8>,
     next_state: Suite2SessionState,
+    trigger: QspTriggerState,
     msg_idx: u32,
     skip_delta: usize,
     evicted: usize,
@@ -2016,7 +2022,8 @@ fn send_delivered_receipt_ack(relay: &str, to: &str, msg_id: &str) -> Result<(),
     let pack = qsp_pack(to, &payload, pad_cfg, None).map_err(|e| e.code)?;
     let route_token = relay_peer_route_token(to)?;
     transport::relay_inbox_push(relay, route_token.as_str(), &pack.envelope)?;
-    qsp_session_store(to, &pack.next_state).map_err(|_| "qsp_session_store_failed")?;
+    qsp_session_store_with_trigger(to, &pack.next_state, &pack.trigger)
+        .map_err(|_| "qsp_session_store_failed")?;
     Ok(())
 }
 
@@ -2035,7 +2042,8 @@ fn send_file_completion_ack(
     let pack = qsp_pack(to, &payload, pad_cfg, None).map_err(|e| e.code)?;
     let route_token = relay_peer_route_token(to)?;
     transport::relay_inbox_push(relay, route_token.as_str(), &pack.envelope)?;
-    qsp_session_store(to, &pack.next_state).map_err(|_| "qsp_session_store_failed")?;
+    qsp_session_store_with_trigger(to, &pack.next_state, &pack.trigger)
+        .map_err(|_| "qsp_session_store_failed")?;
     Ok(())
 }
 
@@ -2116,50 +2124,36 @@ fn map_qsp_pack_reason(err: &RefimplError) -> &'static str {
     }
 }
 
-fn qsp_activate_responder_send_chain_if_needed(st: &mut Suite2SessionState) {
-    if st.recv.role_is_a {
-        return;
-    }
-    if !(zero32(&st.send.ck_ec) || zero32(&st.send.ck_pq)) {
-        return;
-    }
-    if zero32(&st.recv.rk) || zero32(&st.send.hk_s) {
-        return;
-    }
-    let c = StdCrypto;
-    st.send.ck_ec = kmac_out::<32>(&c, &st.recv.rk, "QSP5.0/CK0/B->A", &[0x01]);
-    st.send.ck_pq = kmac_out::<32>(&c, &st.recv.rk, "QSP5.0/PQ0/B->A", &[0x01]);
-    emit_marker(
-        "qsp_send_chain",
-        None,
-        &[
-            ("activated", "true"),
-            ("reason", "responder_recv_bootstrap"),
-        ],
-    );
+/// NA-0622 (ENG-0012 Stage 1b-ii): wall-clock seconds for the bounded DH-ratchet time fallback.
+fn qsp_now_unix_secs() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0)
 }
 
-fn qsp_activate_initiator_recv_chain_if_needed(st: &mut Suite2SessionState) {
-    if !st.recv.role_is_a {
-        return;
+/// NA-0622 (ENG-0012 Stage 1b-ii): decide whether this send performs a classical DH ratchet.
+/// Ratchet-on-reply (a reply is pending) OR the bounded fallback fired (N messages / T seconds)
+/// OR the send chain is unset — the responder's first send, which the ratchet CREATES now that
+/// the static-`rk` bootstrap is gone.
+fn qsp_should_ratchet(st: &Suite2SessionState, trig: &QspTriggerState, now: u64) -> bool {
+    // A degenerate self-DH session (peer DH key == our own) is the UNSAFE seed-fallback test model
+    // (symmetric, both role-A); it cannot round-trip the DIRECTION-sensitive DH ratchet (a sender
+    // signs a boundary header under NHK_A->B while a role-A receiver would try NHK_B->A) and its
+    // send chain is already seeded, so it retains the pre-ratchet behavior. We key off the SESSION
+    // STATE (not the seed-permitted flag, which real-handshake tests also set): real handshake
+    // sessions have dhr != dhs. The ratchet is proven end-to-end over a real A/B handshake in
+    // tests/handshake_mvp.rs::dh_ratchet_e2e_*.
+    if st.dh.dhr == st.dh.dhs_pub {
+        return false;
     }
-    if !(zero32(&st.recv.ck_ec) || zero32(&st.recv.ck_pq_recv)) {
-        return;
+    if zero32(&st.send.ck_ec) || zero32(&st.send.ck_pq) {
+        return true;
     }
-    if zero32(&st.recv.rk) || zero32(&st.recv.hk_r) {
-        return;
-    }
-    let c = StdCrypto;
-    st.recv.ck_ec = kmac_out::<32>(&c, &st.recv.rk, "QSP5.0/CK0/B->A", &[0x01]);
-    st.recv.ck_pq_recv = kmac_out::<32>(&c, &st.recv.rk, "QSP5.0/PQ0/B->A", &[0x01]);
-    emit_marker(
-        "qsp_recv_chain",
-        None,
-        &[
-            ("activated", "true"),
-            ("reason", "initiator_send_bootstrap"),
-        ],
-    );
+    trig.pending_send_ratchet
+        || trig.msgs_since_ratchet >= QSP_DH_FALLBACK_N
+        || (trig.last_ratchet_unix_secs != 0
+            && now.saturating_sub(trig.last_ratchet_unix_secs) >= QSP_DH_FALLBACK_T_SECS)
 }
 
 fn qsp_pack(
@@ -2170,18 +2164,54 @@ fn qsp_pack(
 ) -> Result<QspPackOutcome, QspPackError> {
     let st =
         qsp_session_for_channel(channel).map_err(|code| QspPackError { code, reason: None })?;
+    let mut trig = qsp_trigger_load(channel);
     let c = StdCrypto;
-    let outcome =
-        send_wire_canon(&c, &c, &c, st.send.clone(), 0, plaintext).map_err(|e| QspPackError {
-            code: "qsp_pack_failed",
-            reason: Some(map_qsp_pack_reason(&e)),
+    // NA-0622 (ENG-0012 Stage 1b-ii): originate a classical DH boundary when the trigger fires
+    // (ratchet-on-reply + N=4/T=15min fallback + the responder's first send), else a normal
+    // message on the current sending chain. The DH ratchet reuses the refimpl `send_boundary`.
+    let now = qsp_now_unix_secs();
+    let (wire, next_state, msg_n) = if qsp_should_ratchet(&st, &trig, now) {
+        let out =
+            send_boundary(&c, &c, &c, &c, st.clone(), plaintext).map_err(|e| QspPackError {
+                code: "qsp_pack_failed",
+                reason: Some(e),
+            })?;
+        let reason = if trig.pending_send_ratchet {
+            "reply"
+        } else if zero32(&st.send.ck_ec) || zero32(&st.send.ck_pq) {
+            "first_send"
+        } else {
+            "fallback"
+        };
+        emit_marker(
+            "qsp_dh_ratchet",
+            None,
+            &[("dir", "send"), ("reason", reason)],
+        );
+        trig = QspTriggerState {
+            pending_send_ratchet: false,
+            msgs_since_ratchet: 0,
+            last_ratchet_unix_secs: now,
+        };
+        (out.wire, out.state, 0u32)
+    } else {
+        let out = send_wire_canon(&c, &c, &c, st.send.clone(), 0, plaintext).map_err(|e| {
+            QspPackError {
+                code: "qsp_pack_failed",
+                reason: Some(map_qsp_pack_reason(&e)),
+            }
         })?;
+        let mut ns = st.clone();
+        ns.send = out.state;
+        trig.msgs_since_ratchet = trig.msgs_since_ratchet.saturating_add(1);
+        (out.wire, ns, out.n)
+    };
     let mut env = Envelope {
         env_version: QSE_ENV_VERSION_V1,
         flags: 0,
         route_token: Vec::new(),
         timestamp_bucket: 0,
-        payload: outcome.wire,
+        payload: wire,
         padding: Vec::new(),
     };
     let mut pad_label = None;
@@ -2241,14 +2271,12 @@ fn qsp_pack(
             pad_label = cfg.label;
         }
     }
-    let mut next_state = st.clone();
-    next_state.send = outcome.state;
-    qsp_activate_initiator_recv_chain_if_needed(&mut next_state);
     Ok(QspPackOutcome {
         envelope: env.encode(),
         next_state,
-        msg_idx: outcome.n,
-        ck_idx: outcome.n,
+        trigger: trig,
+        msg_idx: msg_n,
+        ck_idx: msg_n,
         padded_len: encoded_len,
         pad_label,
     })
@@ -2295,19 +2323,46 @@ fn qsp_unpack_for_peer(
 fn qsp_unpack(channel: &str, envelope_bytes: &[u8]) -> Result<QspUnpackOutcome, &'static str> {
     let env = Envelope::decode(envelope_bytes).map_err(|_| "qsp_env_decode_failed")?;
     let st = qsp_session_for_channel(channel)?;
+    let mut trig = qsp_trigger_load(channel);
     let c = StdCrypto;
-    let outcome = recv_wire_canon(&c, &c, &c, st.recv.clone(), &env.payload, None, None)
-        .map_err(|e| map_qsp_recv_err(&e))?;
-    let mut next_state = st.clone();
-    let prev_len = next_state.recv.mkskipped.len();
-    next_state.recv = outcome.state;
-    qsp_activate_responder_send_chain_if_needed(&mut next_state);
-    let skip_delta = next_state.recv.mkskipped.len().saturating_sub(prev_len);
-    let evicted = bound_mkskipped(&mut next_state.recv);
+    // NA-0622 (ENG-0012 Stage 1b-ii): route an incoming classical DH boundary (FLAG_BOUNDARY
+    // without FLAG_PQ_CTXT) to the refimpl `recv_dh_boundary`; otherwise a normal message.
+    let is_dh_boundary = match decode_suite2_wire_canon(&env.payload) {
+        Ok((_, _, _, parsed)) => {
+            (parsed.flags & FLAG_BOUNDARY) != 0 && (parsed.flags & FLAG_PQ_CTXT) == 0
+        }
+        Err(_) => false,
+    };
+    let (plaintext, next_state, msg_n, skip_delta, evicted) = if is_dh_boundary {
+        let out = recv_dh_boundary(&c, &c, &c, &c, st.clone(), &env.payload);
+        if !out.ok {
+            return Err(out.reason.unwrap_or("qsp_recv_failed"));
+        }
+        emit_marker("qsp_dh_ratchet", None, &[("dir", "recv")]);
+        (out.plaintext, out.state, 0u32, 0usize, 0usize)
+    } else {
+        let outcome = recv_wire_canon(&c, &c, &c, st.recv.clone(), &env.payload, None, None)
+            .map_err(|e| map_qsp_recv_err(&e))?;
+        let mut next_state = st.clone();
+        let prev_len = next_state.recv.mkskipped.len();
+        next_state.recv = outcome.state;
+        let skip_delta = next_state.recv.mkskipped.len().saturating_sub(prev_len);
+        let evicted = bound_mkskipped(&mut next_state.recv);
+        (
+            outcome.plaintext,
+            next_state,
+            outcome.n,
+            skip_delta,
+            evicted,
+        )
+    };
+    // Any received message arms the reply-driven trigger: the next send performs a DH ratchet.
+    trig.pending_send_ratchet = true;
     Ok(QspUnpackOutcome {
-        plaintext: outcome.plaintext,
+        plaintext,
         next_state,
-        msg_idx: outcome.n,
+        trigger: trig,
+        msg_idx: msg_n,
         skip_delta,
         evicted,
     })

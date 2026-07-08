@@ -300,9 +300,13 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
         "expected peer_confirmed=yes after bootstrap receive: {}",
         bob_status_after_out
     );
+    // NA-0622 (ENG-0012 Stage 1b-ii): the static-`rk` bootstrap is gone, so RECEIVING no longer
+    // makes the responder send-ready — its send chain is created when it first REPLIES (the DH
+    // ratchet). Right after the bootstrap receive it is still recv-only (send_ready=no); the
+    // send-ready transition now happens on the first reply (asserted below).
     assert!(
-        bob_status_after_out.contains("send_ready=yes"),
-        "expected send_ready=yes after bootstrap receive: {}",
+        bob_status_after_out.contains("send_ready=no"),
+        "expected send_ready=no (recv-only) after bootstrap receive, before first reply: {}",
         bob_status_after_out
     );
 
@@ -334,6 +338,21 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
         !bob_send_out.contains("/v1/"),
         "output leaked URI path: {}",
         bob_send_out
+    );
+
+    // NA-0622: the responder's first reply RATCHETED to create its send chain, so it is now
+    // send-ready — the send-ready transition happens at the first reply, not at the bootstrap
+    // receive.
+    let bob_status_sent = common::qsc_std_command()
+        .env("QSC_CONFIG_DIR", &bob_cfg)
+        .args(["handshake", "status", "--peer", "alice"])
+        .output()
+        .expect("bob handshake status after first reply");
+    let bob_status_sent_out = combined_output(&bob_status_sent);
+    assert!(
+        bob_status_sent_out.contains("send_ready=yes"),
+        "expected send_ready=yes after the responder's first ratcheting reply: {}",
+        bob_status_sent_out
     );
 
     let alice_recv_dir = base.join("alice-recv");

@@ -232,6 +232,103 @@ fn qsp_session_store_key_get_or_create(peer: &str) -> Result<[u8; 32], ErrorCode
     }
 }
 
+// NA-0622 (ENG-0012 Stage 1b-ii): reply-driven DH-ratchet trigger state, persisted INSIDE the
+// qsc session blob's encrypted plaintext (v2 = b"QTRG" + trigger(13) + QS2S snapshot). A legacy
+// raw-QS2S plaintext (starting with b"QS2S") migrates transparently with a default trigger. This
+// keeps the refimpl Suite2SessionState / QS2S snapshot format FROZEN — client policy stays out of
+// the crypto core. qsc is load-per-message, so this state must be persisted, not in-memory.
+pub(crate) const QSP_TRIGGER_MAGIC: &[u8; 4] = b"QTRG";
+pub(crate) const QSP_TRIGGER_LEN: usize = 13;
+/// Bounded fallback: force a DH ratchet after this many messages without a reply.
+pub(crate) const QSP_DH_FALLBACK_N: u32 = 4;
+/// Bounded fallback: force a DH ratchet after this many seconds without a reply.
+pub(crate) const QSP_DH_FALLBACK_T_SECS: u64 = 900;
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub(crate) struct QspTriggerState {
+    /// Set on receive; the next send performs a DH boundary (ratchet-on-reply).
+    pub pending_send_ratchet: bool,
+    /// Messages sent since the last DH ratchet (bounded fallback, N).
+    pub msgs_since_ratchet: u32,
+    /// Unix seconds of the last DH ratchet (bounded fallback, T).
+    pub last_ratchet_unix_secs: u64,
+}
+
+impl QspTriggerState {
+    fn encode(&self) -> [u8; QSP_TRIGGER_LEN] {
+        let mut out = [0u8; QSP_TRIGGER_LEN];
+        out[0] = self.pending_send_ratchet as u8;
+        out[1..5].copy_from_slice(&self.msgs_since_ratchet.to_le_bytes());
+        out[5..13].copy_from_slice(&self.last_ratchet_unix_secs.to_le_bytes());
+        out
+    }
+    fn decode(b: &[u8; QSP_TRIGGER_LEN]) -> Self {
+        let mut m = [0u8; 4];
+        m.copy_from_slice(&b[1..5]);
+        let mut t = [0u8; 8];
+        t.copy_from_slice(&b[5..13]);
+        QspTriggerState {
+            pending_send_ratchet: b[0] != 0,
+            msgs_since_ratchet: u32::from_le_bytes(m),
+            last_ratchet_unix_secs: u64::from_le_bytes(t),
+        }
+    }
+}
+
+/// Split a decrypted session-blob plaintext into (trigger, raw QS2S snapshot). A v2 plaintext is
+/// prefixed with `QSP_TRIGGER_MAGIC`; a legacy plaintext is the raw snapshot (default trigger).
+fn qsp_split_plaintext(pt: &[u8]) -> (QspTriggerState, &[u8]) {
+    let hdr = QSP_TRIGGER_MAGIC.len() + QSP_TRIGGER_LEN;
+    if pt.len() >= hdr && &pt[..QSP_TRIGGER_MAGIC.len()] == QSP_TRIGGER_MAGIC {
+        let mut t = [0u8; QSP_TRIGGER_LEN];
+        t.copy_from_slice(&pt[QSP_TRIGGER_MAGIC.len()..hdr]);
+        (QspTriggerState::decode(&t), &pt[hdr..])
+    } else {
+        (QspTriggerState::default(), pt)
+    }
+}
+
+/// Build a v2 session-blob plaintext = magic + trigger + snapshot.
+fn qsp_join_plaintext(trig: &QspTriggerState, snapshot: &[u8]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(QSP_TRIGGER_MAGIC.len() + QSP_TRIGGER_LEN + snapshot.len());
+    out.extend_from_slice(QSP_TRIGGER_MAGIC);
+    out.extend_from_slice(&trig.encode());
+    out.extend_from_slice(snapshot);
+    out
+}
+
+/// Read the persisted DH-ratchet trigger for a channel (default if no session or legacy blob).
+pub(crate) fn qsp_trigger_load(peer: &str) -> QspTriggerState {
+    if !channel_label_ok(peer) {
+        return QspTriggerState::default();
+    }
+    let dir = match config_dir() {
+        Ok((d, _)) => d,
+        Err(_) => return QspTriggerState::default(),
+    };
+    let blob_path = qsp_session_blob_path(&dir, peer);
+    if !blob_path.exists() {
+        return QspTriggerState::default();
+    }
+    let blob = match fs::read(&blob_path) {
+        Ok(b) => b,
+        Err(_) => return QspTriggerState::default(),
+    };
+    match qsp_session_decrypt_blob(peer, &blob) {
+        Ok(pt) => qsp_split_plaintext(&pt).0,
+        Err(_) => QspTriggerState::default(),
+    }
+}
+
+/// Store the session state together with an explicit DH-ratchet trigger (message path).
+pub(crate) fn qsp_session_store_with_trigger(
+    peer: &str,
+    st: &Suite2SessionState,
+    trig: &QspTriggerState,
+) -> Result<(), ErrorCode> {
+    qsp_session_store_inner(peer, &qsp_join_plaintext(trig, &st.snapshot_bytes()))
+}
+
 fn qsp_session_encrypt_blob(peer: &str, plaintext: &[u8]) -> Result<Vec<u8>, ErrorCode> {
     let key = qsp_session_store_key_get_or_create(peer)?;
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key));
@@ -309,11 +406,16 @@ fn qsp_session_load_encrypted(
             return Err(ErrorCode::ParseFailed);
         }
     };
-    let st = Suite2SessionState::restore_bytes(&plaintext).map_err(|_| {
+    // Strip the optional v2 DH-ratchet trigger prefix; a legacy raw-snapshot plaintext is
+    // returned unchanged (default trigger). The trigger itself is read via qsp_trigger_load.
+    let is_v2 = plaintext.starts_with(QSP_TRIGGER_MAGIC);
+    let (_trig, snapshot) = qsp_split_plaintext(&plaintext);
+    let st = Suite2SessionState::restore_bytes(snapshot).map_err(|_| {
         emit_marker("error", Some("session_decrypt_failed"), &[]);
         ErrorCode::ParseFailed
     })?;
-    emit_marker("session_load", None, &[("ok", "true"), ("format", "v1")]);
+    let format = if is_v2 { "v2" } else { "v1" };
+    emit_marker("session_load", None, &[("ok", "true"), ("format", format)]);
     Ok(st)
 }
 
@@ -388,6 +490,14 @@ pub(crate) fn qsp_session_load(peer: &str) -> Result<Option<Suite2SessionState>,
 }
 
 pub(crate) fn qsp_session_store(peer: &str, st: &Suite2SessionState) -> Result<(), ErrorCode> {
+    // Preserve the persisted DH-ratchet trigger across a snapshot-only store (non-message-path
+    // callers: handshake, transport setup, status). The message path (qsp_pack/qsp_unpack) uses
+    // qsp_session_store_with_trigger to update it explicitly.
+    let trig = qsp_trigger_load(peer);
+    qsp_session_store_with_trigger(peer, st, &trig)
+}
+
+fn qsp_session_store_inner(peer: &str, plaintext: &[u8]) -> Result<(), ErrorCode> {
     if !channel_label_ok(peer) {
         return Err(ErrorCode::ParseFailed);
     }
@@ -395,8 +505,7 @@ pub(crate) fn qsp_session_store(peer: &str, st: &Suite2SessionState) -> Result<(
     let sessions = qsp_sessions_dir(&dir);
     enforce_safe_parents(&sessions, source)?;
     fs::create_dir_all(&sessions).map_err(|_| ErrorCode::IoWriteFailed)?;
-    let bytes = st.snapshot_bytes();
-    let blob = qsp_session_encrypt_blob(peer, &bytes)?;
+    let blob = qsp_session_encrypt_blob(peer, plaintext)?;
     let blob_path = qsp_session_blob_path(&dir, peer);
     write_atomic(&blob_path, &blob, source)?;
     let legacy_path = qsp_session_path(&dir, peer);
@@ -406,7 +515,7 @@ pub(crate) fn qsp_session_store(peer: &str, st: &Suite2SessionState) -> Result<(
     emit_marker(
         "session_store",
         None,
-        &[("ok", "true"), ("format", "v1"), ("enc", "aead")],
+        &[("ok", "true"), ("format", "v2"), ("enc", "aead")],
     );
     Ok(())
 }

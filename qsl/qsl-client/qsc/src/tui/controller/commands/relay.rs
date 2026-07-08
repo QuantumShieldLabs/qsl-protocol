@@ -283,7 +283,13 @@ pub(in super::super) fn tui_receive_via_relay(state: &mut TuiState, from: &str) 
                     let ev = outcome.evicted.to_string();
                     emit_marker("ratchet_skip_evict", None, &[("count", ev.as_str())]);
                 }
-                if qsp_session_store(channel.as_str(), &outcome.next_state).is_err() {
+                if qsp_session_store_with_trigger(
+                    channel.as_str(),
+                    &outcome.next_state,
+                    &outcome.trigger,
+                )
+                .is_err()
+                {
                     emit_marker("error", Some("qsp_session_store_failed"), &[]);
                     print_error_marker("qsp_session_store_failed");
                 }

@@ -201,7 +201,13 @@ fn load_session_state(cfg: &Path, peer: &str) -> Suite2SessionState {
             },
         )
         .expect("session decrypt");
-    Suite2SessionState::restore_bytes(&plaintext).expect("session restore")
+    // NA-0622: strip the qsc session-blob v2 DH-ratchet trigger prefix (b"QTRG" + 13 bytes).
+    let snapshot: &[u8] = if plaintext.len() >= 17 && &plaintext[..4] == b"QTRG" {
+        &plaintext[17..]
+    } else {
+        &plaintext
+    };
+    Suite2SessionState::restore_bytes(snapshot).expect("session restore")
 }
 
 fn marker_value<'a>(text: &'a str, event: &str, msg: &str, key: &str) -> &'a str {

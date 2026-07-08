@@ -6,16 +6,16 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0623 | HIGHEST_NA=0623 | HIGHEST_D=1240 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0624 | HIGHEST_NA=0624 | HIGHEST_D=1242 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
-**READY (exactly one — execute this):** `NA-0621 — ENG-0012 Stage 1b: Suite-2 DH Ratchet
-send_boundary + trigger + static-rk removal` (where classical post-compromise security lands).
-Its full block (with scope flags) is below under section 2; find it by searching
-`Status: READY` (there is exactly one).
+**READY (exactly one — execute this):** `NA-0624 — ENG-0012 Stage 2b: qsc SCKA wiring (advertise +
+reseed cadence + persistence)` (where POST-QUANTUM forward secrecy lands on live qsc traffic — the
+stage that FULLY closes the P1). Its full block (with scope flags) is below under section 2; find it
+by searching `Status: READY` (there is exactly one).
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
-1. **ENG-0012 Stage 2** — Suite-2 PQ reseed sender (`send_pq_ctxt` + SCKA encapsulation) — follows NA-0621.
+1. **ENG-0012 Stage 2b = NA-0624 (now READY)** — qsc SCKA wiring (advertise + reseed cadence + persistence). Stage 2a (the refimpl SCKA sender core + both-sides RK advance) landed as NA-0623 (D-1241).
 2. **ENG-0014** — qsl-server non-constant-time token compare (P2, cross-repo).
 3. **ENG-0019** — gate/remove the auth-unsafe `qsp::handshake` skeleton (P3, cheap; design-tenet aligned).
 4. **WF-0012** — build the `ledger.py` findings-tracking tool (@meta lines + list/validate/dedup/ondeck); pays off before the next audit.
@@ -34042,8 +34042,29 @@ begins at D-1217.
 
 ---
 
-### NA-0623 — ENG-0012 Stage 2: Suite-2 PQ-reseed SENDER (boundary-with-PQ, §8.5.3) (source/test)
+### NA-0624 — ENG-0012 Stage 2b: qsc SCKA wiring (advertise + reseed cadence + persistence) (source/test)
 Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? YES (originate SCKA ADV + PQ-reseed boundaries from the real qsc send path)
+Crypto/state-machine change allowed? YES (wire the advertisement + reseed cadence; persist the SCKA state; no new KDF/AEAD/KEM primitive)
+Docs-only allowed? NO
+
+Objective:
+Implement Stage 2b of DOC-G5-008 (ENG-0012), building on the Stage-2a refimpl SCKA sender core
+(NA-0623): wire the SCKA advertisement cadence and the PQ-reseed cadence into the real qsc send
+path (policy-driven per DOC-CAN-004 §1 — resolve the cadence defaults at design-lock), persist the
+SCKA state (the advertised-key store + peer advertisement state) in qsc session storage, and add
+end-to-end qsc conformance vectors (advertise -> reseed mid-conversation -> both decrypt) plus an
+end-to-end PQ-PCS-healing vector. This is the stage that delivers POST-QUANTUM forward secrecy on
+live qsc traffic and FULLY closes the P1 (ENG-0012). Reuse the Stage-2a refimpl semantics exactly;
+the runtime-equivalence test must still pass. No KDF/AEAD/KEM primitive change; no qsl-attachments/
+qsl-server change; no dependency mutation. Full ritual. NO Triple-Ratchet / post-compromise /
+post-quantum claim until vectors pass AND the DH+PQ composition is independently analyzed.
+
+---
+
+### NA-0623 — ENG-0012 Stage 2: Suite-2 PQ-reseed SENDER (boundary-with-PQ, §8.5.3) (source/test)
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? YES (originate boundary-with-PQ messages per §8.5.3; FLAG_PQ_CTXT)
 Crypto/state-machine change allowed? YES (PQ-reseed sender + SCKA advertisement/epoch; no new KDF/AEAD primitive)
@@ -34063,6 +34084,24 @@ interplay + refimpl-vs-qsc split); likely sub-staged (refimpl PQ-reseed core, th
 KDF/AEAD primitive change; no dependency mutation. Full ritual. NO Triple-Ratchet / post-compromise
 / quantum-secure claim until vectors pass and the DH+PQ composition is analyzed. Reminder: build
 `cargo build --workspace --all-targets` before pushing (WF-0013).
+
+OUTCOME (D-1241 / D-1242, 2026-07-08): DONE, merged PR #1524 (`07658773`). The Suite-2 SCKA sender
+core is implemented IN REFIMPL (Stage 2a): `KDF_RK_PQ` (§3.3.3); the advertisement sender
+(`send_pq_advertise`), peer-ADV monotonicity tracking (`track_peer_adv`), and the PQ-reseed sender
+(`send_pq_reseed`, §8.5.3/§8.5.4 + DOC-CAN-004 §3.1–§3.3). Per the D560 AMENDMENT the ROOT ADVANCE is
+fixed on BOTH sides — `recv_boundary_in_order` now advances `RK := KDF_RK_PQ` + recomputes `HK_r`
+after `apply_pq_reseed`, and the sender mirrors it, writing the advanced root to both root slots
+(`recv.rk` + `dh.rk`) — so the post-quantum hardening SURVIVES a subsequent classical DH ratchet
+(the boundary reinitialised `CK_pq` from the un-hardened root before, wiping it). The advertised-key
+store / ML-KEM KeyGen+Encap are caller-side (pure sender fns); no snapshot bump, no wire-format
+change, `apply_pq_reseed` CTXT-validation semantics frozen (its vectors byte-identical). Proven by
+co-located refimpl tests incl. the headline `pq_pcs_healing_survives_dh_ratchet`, harness ops +
+6 CAT-SCKA-LOGIC-001 vectors (scka_logic 14/14); frozen sets green (apply_pq_reseed 5/5, boundary
+4/4, scka_kem 5/5, kdf 6/6); full refimpl suite green; WF-0013 build clean. Known deviation flagged:
+the refimpl PQ-CTXT boundary header uses `HK` (the frozen receiver), not the §8.5.1 `NHK` — deferred
+to Stage 2b / a spec-alignment lane. Successor: NA-0624 = Stage 2b (qsc SCKA wiring) delivers
+post-quantum PCS on live traffic and FULLY closes the P1. NO post-quantum / Triple-Ratchet claim
+until Stage 2b lands and the DH+PQ composition is independently analyzed.
 
 ---
 

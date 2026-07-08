@@ -6,7 +6,7 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0622 | HIGHEST_NA=0622 | HIGHEST_D=1238 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0623 | HIGHEST_NA=0623 | HIGHEST_D=1240 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
 **READY (exactly one — execute this):** `NA-0621 — ENG-0012 Stage 1b: Suite-2 DH Ratchet
 send_boundary + trigger + static-rk removal` (where classical post-compromise security lands).
@@ -34042,8 +34042,32 @@ begins at D-1217.
 
 ---
 
-### NA-0622 — ENG-0012 Stage 1b-ii: qsc DH-ratchet trigger + static-rk removal (source/test)
+### NA-0623 — ENG-0012 Stage 2: Suite-2 PQ-reseed SENDER (boundary-with-PQ, §8.5.3) (source/test)
 Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? YES (originate boundary-with-PQ messages per §8.5.3; FLAG_PQ_CTXT)
+Crypto/state-machine change allowed? YES (PQ-reseed sender + SCKA advertisement/epoch; no new KDF/AEAD primitive)
+Docs-only allowed? NO
+
+Objective:
+Implement Stage 2 of DOC-G5-008 (ENG-0012): the PQ-reseed SENDER — the boundary-with-PQ path
+(DOC-CAN-003 §8.5.3) that mirrors the existing `apply_pq_reseed` RECEIVER. Generate the ML-KEM
+encapsulation, construct the SCKA advertisement / PQ epoch and the `pq_prefix` (`pq_target_id` +
+`pq_ct`), set FLAG_PQ_CTXT (+ FLAG_BOUNDARY), and advance the root via the PQ epoch secret (§3.3.3),
+composing with the classical DH ratchet now wired on the real send path (NA-0622, D-1239). Add
+two-party + PQ-PCS-healing conformance vectors (a snapshot before a PQ reseed cannot decrypt
+post-reseed messages even against a quantum-capable DH adversary model). This is the stage that
+delivers POST-QUANTUM forward secrecy in the ratchet — the genuine edge over Signal's classical
+ratchet, and the stage that FULLY closes the P1 (ENG-0012). Design-lock first (feasibility + SCKA
+interplay + refimpl-vs-qsc split); likely sub-staged (refimpl PQ-reseed core, then qsc wiring). No
+KDF/AEAD primitive change; no dependency mutation. Full ritual. NO Triple-Ratchet / post-compromise
+/ quantum-secure claim until vectors pass and the DH+PQ composition is analyzed. Reminder: build
+`cargo build --workspace --all-targets` before pushing (WF-0013).
+
+---
+
+### NA-0622 — ENG-0012 Stage 1b-ii: qsc DH-ratchet trigger + static-rk removal (source/test)
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? YES (originate DH boundaries from the real qsc send path)
 Crypto/state-machine change allowed? YES (wire the trigger + remove the static-rk bootstrap; no new KDF/AEAD primitive)
@@ -34066,6 +34090,20 @@ sender is Stage 2 (out of scope). No KDF/AEAD primitive change; no qsl-attachmen
 change; no dependency mutation. Full ritual (two PRs). Classical post-compromise security is fully
 wired here; NO Triple-Ratchet / post-compromise claim until Stage 2 also lands and vectors pass.
 Reminder: build `cargo build --workspace --all-targets` before pushing (WF-0013).
+
+OUTCOME (D-1239 / D-1240, 2026-07-08): DONE, merged PR #1522 (`e3e210c5`). The classical DH ratchet
+now runs on the REAL qsc send path — the CLASSICAL half of the P1 is closed. Delivered:
+ratchet-on-reply + N=4/T=15min fallback in `qsp_pack` (via refimpl `send_boundary`); `qsp_unpack`
+routes DH boundaries to `recv_dh_boundary`; the static-`rk` bootstrap (`qsp_activate_*`) removed
+(the ratchet creates the responder send chain + initiator recv chain); the trigger persisted in a
+qsc session-blob v2 (refimpl snapshot FROZEN; legacy blobs migrate; no wire-format change). Proven
+end-to-end over a REAL A/B handshake (round-trip + PCS-healing); runtime-equivalence byte-for-byte;
+full qsc suite (144 binaries) green. The ratchet is gated off for degenerate self-DH seed-fallback
+TEST sessions (`dhr == dhs`, a session-state check — real sessions always ratchet). Operator
+decisions resolved: N=4/T=15min; DH-boundary metadata observable accepted + documented in
+DOC-G5-004, cover traffic deferred to ENG-0022 (filed). Successor: NA-0623 = Stage 2 (PQ-reseed
+sender) for full POST-QUANTUM PCS, after which the P1 fully closes. NO post-quantum / Triple-Ratchet
+claim until Stage 2.
 
 ---
 

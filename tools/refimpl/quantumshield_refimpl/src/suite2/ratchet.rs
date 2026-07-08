@@ -90,6 +90,19 @@ fn header_key(
     kmac32(kmac, rk, label, &[0x01])
 }
 
+/// §3.3.3 Root update from a PQ shared secret: `RK' = KMAC32(RK, "QSP5.0/RKPQ", pq_ss || [0x01])`.
+///
+/// NA-0623 (ENG-0012 Stage 2a): used by the PQ-reseed boundary send/receive so the PQ epoch secret
+/// lands in the root `RK` (DOC-CAN-003 §8.5.3 step 5). This is the same derivation the base
+/// handshake uses to mix in the initial PQ seed (suite2::establish `QSP5.0/RKPQ`); advancing the
+/// root here is what lets the classical DH ratchet carry the PQ hardening forward permanently.
+fn kdf_rk_pq(kmac: &dyn Kmac, rk: &[u8; 32], pq_ss: &[u8]) -> Result<[u8; 32], CryptoError> {
+    let mut data = Vec::with_capacity(pq_ss.len() + 1);
+    data.extend_from_slice(pq_ss);
+    data.push(0x01);
+    kmac32(kmac, rk, "QSP5.0/RKPQ", &data)
+}
+
 /// The A->B direction is the sending direction for role A and the receiving direction for role B.
 fn send_is_a_to_b(role_is_a: bool) -> bool {
     role_is_a
@@ -804,6 +817,41 @@ pub fn recv_boundary_in_order(
             };
         }
     };
+    // NA-0623 (ENG-0012 Stage 2a, D560 AMENDMENT): advance the root with the PQ epoch secret and
+    // recompute the receive header key (DOC-CAN-003 §8.5.3 steps 5+7, §3.3.6 normative ordering).
+    // apply_pq_reseed above absorbs `pq_epoch_ss` into the directional PQ chains from `RK_old`
+    // ONLY; it never advances the root. Without this step, a subsequent DH ratchet reinitialises
+    // `CK_pq` from the un-hardened `RK` (§8.5.2 step 6) and wipes the post-quantum protection.
+    // Advancing `RK` here (mirrored in the SCKA sender) lands the PQ secret in the root so the DH
+    // ratchet carries it forward permanently. Fail-closed with no state mutation on KDF error.
+    let new_rk = match kdf_rk_pq(kmac, &st.rk, pq_epoch_ss) {
+        Ok(v) => v,
+        Err(_) => {
+            return BoundaryOutcome {
+                state: st,
+                ok: false,
+                reason: Some("REJECT_S2_LOCAL_UNSUPPORTED"),
+                plaintext: None,
+                pn: Some(header_pn),
+                n: Some(n),
+            };
+        }
+    };
+    let a2b_recv = !send_is_a_to_b(st.role_is_a);
+    let new_hk_r = match header_key(kmac, &new_rk, a2b_recv, false) {
+        Ok(v) => v,
+        Err(_) => {
+            return BoundaryOutcome {
+                state: st,
+                ok: false,
+                reason: Some("REJECT_S2_LOCAL_UNSUPPORTED"),
+                plaintext: None,
+                pn: Some(header_pn),
+                n: Some(n),
+            };
+        }
+    };
+
     let mut new_state = st.clone();
     new_state.ck_ec = ck_ec_p;
     new_state.ck_pq_send = apply.ck_pq_send_after;
@@ -812,6 +860,8 @@ pub fn recv_boundary_in_order(
     new_state.consumed_targets = apply.consumed_targets_after;
     new_state.tombstoned_targets = apply.tombstoned_targets_after;
     new_state.nr = nr_next;
+    new_state.rk = new_rk;
+    new_state.hk_r = new_hk_r;
 
     BoundaryOutcome {
         state: new_state,
@@ -1065,6 +1115,12 @@ pub fn recv_wire(
     new_state.consumed_targets = out.state.consumed_targets;
     new_state.tombstoned_targets = out.state.tombstoned_targets;
     new_state.nr = out.state.nr;
+    // NA-0623 (ENG-0012 Stage 2a): the PQ reseed advanced the root and recomputed the receive
+    // header key (recv_boundary_in_order); carry both forward so the next (post-reseed) message
+    // decrypts under the new key schedule (DOC-CAN-003 §3.4/§8.5.3 step 7). Dropping them would
+    // leave the receiver on the stale pre-reseed header key.
+    new_state.rk = out.state.rk;
+    new_state.hk_r = out.state.hk_r;
     Ok(RecvWireOutcome {
         state: new_state,
         plaintext: out.plaintext.unwrap_or_default(),
@@ -1358,6 +1414,318 @@ pub fn recv_dh_boundary(
         ok: true,
         reason: None,
     }
+}
+
+// ============ NA-0623 (ENG-0012 Stage 2a): SCKA sender (advertisement + PQ reseed) ============
+// The send side of the SCKA control plane (DOC-CAN-004 §3.1/§3.3) and the PQ-reseed boundary
+// (DOC-CAN-003 §8.5.3/§8.5.4), operating at the session level (Suite2SessionState) so the PQ root
+// advance composes with the classical DH ratchet: on a reseed the new root lands in BOTH the
+// PQ-path root (`recv.rk`) and the DH-ratchet root (`dh.rk`), so a subsequent DH boundary
+// (send_boundary/recv_dh_boundary) reinitialises `CK_pq` from a PQ-hardened root and the
+// post-quantum protection is carried forward permanently (the D560 AMENDMENT).
+//
+// These functions are PURE and generate/store NO key material: the caller (the interop actor / a
+// test now; qsc in Stage 2b) owns the advertised-key store (`advkeys`: adv_id -> ML-KEM secret
+// key + consumed), `local_next_adv_id`, and the peer's advertised public key (DOC-CAN-004 §2), and
+// performs the ML-KEM KeyGen / Encap / Decap. The public/ciphertext bytes are passed in. The
+// reseed is the exact structural mirror of `recv_boundary_in_order`'s PQ path (which the receiver
+// uses to decrypt), including its header key (`HK`, not `NHK`): the frozen CTXT receiver is the
+// mirror target and reconciling it to the §8.5.1 `NHK` boundary-header rule would change its
+// semantics (out of scope here) — flagged for the Stage-2b/spec-alignment follow-up.
+
+const PQ_ADV_PUB_LEN: usize = 1184; // ML-KEM-768 public key (DOC-CAN-004 §1.3)
+const MLKEM768_CT_LEN: usize = 1088; // ML-KEM-768 ciphertext (DOC-CAN-004 §1.3)
+const MLKEM768_SS_LEN: usize = 32; // ML-KEM-768 shared secret (DOC-CAN-004 §1.3)
+
+pub struct SendPqAdvertiseOutcome {
+    pub state: crate::suite2::state::Suite2SessionState,
+    pub wire: Vec<u8>,
+}
+
+pub struct SendPqReseedOutcome {
+    pub state: crate::suite2::state::Suite2SessionState,
+    pub wire: Vec<u8>,
+}
+
+/// Frame a Suite-2 ratchet wire message that carries a PQ prefix (mirrors `send_wire` /
+/// `frame_suite2_wire`, inserting `pq_prefix` between the flags and the header ciphertext exactly
+/// as `parse.rs` decodes it).
+fn frame_pq_wire(
+    protocol_version: u16,
+    suite_id: u16,
+    dh_pub: &[u8; 32],
+    flags: u16,
+    pq_prefix: &[u8],
+    hdr_ct: &[u8],
+    body_ct: &[u8],
+) -> Vec<u8> {
+    let mut header = Vec::with_capacity(32 + 2 + pq_prefix.len() + hdr_ct.len());
+    header.extend_from_slice(dh_pub);
+    header.extend_from_slice(&flags.to_be_bytes());
+    header.extend_from_slice(pq_prefix);
+    header.extend_from_slice(hdr_ct);
+    let mut wire = Vec::with_capacity(10 + header.len() + body_ct.len());
+    wire.extend_from_slice(&protocol_version.to_be_bytes());
+    wire.extend_from_slice(&suite_id.to_be_bytes());
+    wire.push(0x02);
+    wire.push(0x00);
+    wire.extend_from_slice(&(header.len() as u16).to_be_bytes());
+    wire.extend_from_slice(&(body_ct.len() as u16).to_be_bytes());
+    wire.extend_from_slice(&header);
+    wire.extend_from_slice(body_ct);
+    wire
+}
+
+/// The canonical session root (DOC-CAN-003 §8.1: one `RK`). The refimpl stores it redundantly in
+/// `recv.rk` (read by the PQ path) and `dh.rk` (read/advanced by the DH ratchet); prefer the DH
+/// root when populated (a live ratcheting session), else the recv root (the interop actor's
+/// non-DH plumbing path leaves `dh` zero). The reseed writes BOTH on commit so they stay equal.
+fn session_root(st: &crate::suite2::state::Suite2SessionState) -> [u8; 32] {
+    if !is_zero32(&st.dh.rk) {
+        st.dh.rk
+    } else {
+        st.recv.rk
+    }
+}
+
+/// DOC-CAN-004 §3.1 / DOC-CAN-003 §8.5.4: SCKA advertisement SEND (boundary with `FLAG_PQ_ADV`).
+///
+/// The caller has already generated the ML-KEM-768 receive keypair, allocated the strictly
+/// increasing `pq_adv_id` (`local_next_adv_id + 1`), and persisted the secret key in its
+/// advertised-key store (DOC-CAN-004 §3.1 steps 1-3). This function records `pq_adv_id` in the
+/// local `known_targets` set — so a later peer CTXT targeting it passes `apply_pq_reseed`'s
+/// known-target check — and frames a `FLAG_PQ_ADV | FLAG_BOUNDARY` message carrying
+/// `(pq_adv_id, pq_adv_pub)`. Fail-closed with no state mutation on any reject.
+pub fn send_pq_advertise(
+    hash: &dyn Hash,
+    kmac: &dyn Kmac,
+    aead: &dyn Aead,
+    mut st: crate::suite2::state::Suite2SessionState,
+    pq_adv_id: u32,
+    pq_adv_pub: &[u8],
+    plaintext: &[u8],
+) -> Result<SendPqAdvertiseOutcome, &'static str> {
+    if pq_adv_pub.len() != PQ_ADV_PUB_LEN {
+        return Err("REJECT_SCKA_ADV_BAD_PUB_LEN");
+    }
+    // Strictly-increasing allocation (DOC-CAN-004 §3.1 step 1): the id must exceed every id we
+    // have already advertised (and thus not already be present).
+    if let Some(max_known) = st.recv.known_targets.iter().next_back() {
+        if pq_adv_id <= *max_known {
+            return Err("REJECT_SCKA_ADV_NONMONOTONIC");
+        }
+    }
+    if is_zero32(&st.send.ck_ec) || is_zero32(&st.send.ck_pq) {
+        return Err(REJECT_S2_CHAINKEY_UNSET);
+    }
+    let ns_next = checked_counter_inc(st.send.ns)?;
+    let (ck_ec_p, ck_pq_p, mk) = derive_mk_step(kmac, &st.send.ck_ec, &st.send.ck_pq)
+        .map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+
+    let flags = types::FLAG_PQ_ADV | types::FLAG_BOUNDARY;
+    let mut pq_prefix = Vec::with_capacity(4 + PQ_ADV_PUB_LEN);
+    pq_prefix.extend_from_slice(&pq_adv_id.to_be_bytes());
+    pq_prefix.extend_from_slice(pq_adv_pub);
+
+    let pq_bind = binding::pq_bind_sha512_32(hash, flags, &pq_prefix);
+    let ad_hdr = binding::ad_hdr(
+        &st.send.session_id,
+        st.send.protocol_version,
+        st.send.suite_id,
+        &st.send.dh_pub,
+        flags,
+        &pq_bind,
+    );
+    let ad_body = binding::ad_body(
+        &st.send.session_id,
+        st.send.protocol_version,
+        st.send.suite_id,
+        &pq_bind,
+    );
+    let hdr_pt = {
+        let mut v = Vec::with_capacity(8);
+        v.extend_from_slice(&st.send.pn.to_be_bytes());
+        v.extend_from_slice(&st.send.ns.to_be_bytes());
+        v
+    };
+    let hdr_ct = aead.seal(
+        &st.send.hk_s,
+        &nonce_hdr(hash, &st.send.session_id, &st.send.dh_pub, st.send.ns),
+        &ad_hdr,
+        &hdr_pt,
+    );
+    let body_ct = aead.seal(
+        &mk,
+        &nonce_body(hash, &st.send.session_id, &st.send.dh_pub, st.send.ns),
+        &ad_body,
+        plaintext,
+    );
+    if hdr_ct.is_empty() || body_ct.is_empty() {
+        return Err("REJECT_S2_LOCAL_AEAD_FAIL");
+    }
+    let wire = frame_pq_wire(
+        st.send.protocol_version,
+        st.send.suite_id,
+        &st.send.dh_pub,
+        flags,
+        &pq_prefix,
+        &hdr_ct,
+        &body_ct,
+    );
+
+    // Commit only on full success.
+    st.recv.known_targets.insert(pq_adv_id);
+    st.send.ck_ec = ck_ec_p;
+    st.send.ck_pq = ck_pq_p;
+    st.send.ns = ns_next;
+    Ok(SendPqAdvertiseOutcome { state: st, wire })
+}
+
+/// DOC-CAN-003 §8.5.3 (sender/encapsulator side) / DOC-CAN-004 §3.3: SCKA PQ-reseed SEND
+/// (boundary with `FLAG_PQ_CTXT`).
+///
+/// The caller has already run `MLKEM768.Encap(peer_adv_pub) -> (pq_ct, pq_epoch_ss)` on the peer's
+/// advertised public key and passes the ciphertext + shared secret in; `pq_target_id` is the peer
+/// advertisement id being targeted. The exact structural mirror of `recv_boundary_in_order`'s PQ
+/// path: derive the directional PQ seeds from `RK_old` (reused `kdf_pq_reseed_seeds`, so both
+/// parties converge), advance the root with `KDF_RK_PQ` (§3.3.6 ordering: seeds first), recompute
+/// the directional header keys, replace the directional PQ chains, and frame the boundary message
+/// under the PRE-reseed key schedule. The new root is written to both root slots so the DH ratchet
+/// carries the PQ hardening forward. Fail-closed with no state mutation on any reject.
+#[allow(clippy::too_many_arguments)]
+pub fn send_pq_reseed(
+    hash: &dyn Hash,
+    kmac: &dyn Kmac,
+    aead: &dyn Aead,
+    mut st: crate::suite2::state::Suite2SessionState,
+    pq_target_id: u32,
+    pq_ct: &[u8],
+    pq_epoch_ss: &[u8],
+    plaintext: &[u8],
+) -> Result<SendPqReseedOutcome, &'static str> {
+    if pq_ct.len() != MLKEM768_CT_LEN {
+        return Err("REJECT_SCKA_CTXT_BAD_CT_LEN");
+    }
+    if pq_epoch_ss.len() != MLKEM768_SS_LEN {
+        return Err("REJECT_SCKA_CTXT_BAD_SS_LEN");
+    }
+    if is_zero32(&st.send.ck_ec) || is_zero32(&st.send.ck_pq) {
+        return Err(REJECT_S2_CHAINKEY_UNSET);
+    }
+    let rk_old = session_root(&st);
+    if is_zero32(&rk_old) {
+        return Err(REJECT_S2_CHAINKEY_UNSET);
+    }
+    let role_is_a = st.recv.role_is_a;
+
+    // §8.5.3 step 4: directional PQ seeds from RK_old (identical to the receiver's derivation).
+    let (seed_a2b, seed_b2a) =
+        scka::kdf_pq_reseed_seeds(hash, kmac, &rk_old, pq_ct, pq_epoch_ss, pq_target_id);
+    let (ck_pq_send_after, ck_pq_recv_after) = if role_is_a {
+        (seed_a2b, seed_b2a)
+    } else {
+        (seed_b2a, seed_a2b)
+    };
+
+    // §8.5.3 step 5: advance the root (AFTER the seeds — §3.3.6 normative ordering).
+    let new_rk =
+        kdf_rk_pq(kmac, &rk_old, pq_epoch_ss).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+
+    // §8.5.3 step 7: recompute the directional header keys from the new root.
+    let a2b_send = send_is_a_to_b(role_is_a);
+    let hk_s_new =
+        header_key(kmac, &new_rk, a2b_send, false).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+    let hk_r_new =
+        header_key(kmac, &new_rk, !a2b_send, false).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+
+    // The boundary message is an in-order message under the PRE-reseed key schedule (mirror
+    // recv_boundary_in_order, which opens the header under the pre-boundary hk_r at n == nr and
+    // derives the body mk from the pre-boundary ck_ec/ck_pq): advance the EC send chain one step;
+    // the reseed replaces the PQ chains for FUTURE messages.
+    let ns_next = checked_counter_inc(st.send.ns)?;
+    let (ck_ec_p, _ck_pq_p, mk) = derive_mk_step(kmac, &st.send.ck_ec, &st.send.ck_pq)
+        .map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+
+    let flags = types::FLAG_PQ_CTXT | types::FLAG_BOUNDARY;
+    let mut pq_prefix = Vec::with_capacity(4 + MLKEM768_CT_LEN);
+    pq_prefix.extend_from_slice(&pq_target_id.to_be_bytes());
+    pq_prefix.extend_from_slice(pq_ct);
+
+    let pq_bind = binding::pq_bind_sha512_32(hash, flags, &pq_prefix);
+    let ad_hdr = binding::ad_hdr(
+        &st.send.session_id,
+        st.send.protocol_version,
+        st.send.suite_id,
+        &st.send.dh_pub,
+        flags,
+        &pq_bind,
+    );
+    let ad_body = binding::ad_body(
+        &st.send.session_id,
+        st.send.protocol_version,
+        st.send.suite_id,
+        &pq_bind,
+    );
+    let hdr_pt = {
+        let mut v = Vec::with_capacity(8);
+        v.extend_from_slice(&st.send.pn.to_be_bytes());
+        v.extend_from_slice(&st.send.ns.to_be_bytes());
+        v
+    };
+    let hdr_ct = aead.seal(
+        &st.send.hk_s,
+        &nonce_hdr(hash, &st.send.session_id, &st.send.dh_pub, st.send.ns),
+        &ad_hdr,
+        &hdr_pt,
+    );
+    let body_ct = aead.seal(
+        &mk,
+        &nonce_body(hash, &st.send.session_id, &st.send.dh_pub, st.send.ns),
+        &ad_body,
+        plaintext,
+    );
+    if hdr_ct.is_empty() || body_ct.is_empty() {
+        return Err("REJECT_S2_LOCAL_AEAD_FAIL");
+    }
+    let wire = frame_pq_wire(
+        st.send.protocol_version,
+        st.send.suite_id,
+        &st.send.dh_pub,
+        flags,
+        &pq_prefix,
+        &hdr_ct,
+        &body_ct,
+    );
+
+    // Commit only on full success (§8.5.3 step 8 semantics). Advance the EC send chain; replace the
+    // directional PQ chains; advance the root in BOTH slots; recompute the directional header keys.
+    st.send.ck_ec = ck_ec_p;
+    st.send.ck_pq = ck_pq_send_after;
+    st.send.hk_s = hk_s_new;
+    st.send.ns = ns_next;
+    st.recv.ck_pq_send = ck_pq_send_after;
+    st.recv.ck_pq_recv = ck_pq_recv_after;
+    st.recv.hk_r = hk_r_new;
+    st.recv.rk = new_rk;
+    st.dh.rk = new_rk;
+    Ok(SendPqReseedOutcome { state: st, wire })
+}
+
+/// DOC-CAN-004 §3.2: process a peer advertisement (the SCKA track side). Enforces the peer-ADV
+/// monotonicity and public-key length rules and returns the updated `peer_max_adv_id_seen`. The
+/// caller records the peer's advertised public key in its peer state on success. Pure; fail-closed.
+pub fn track_peer_adv(
+    peer_max_adv_id_seen: u32,
+    peer_adv_id: u32,
+    peer_adv_pub: &[u8],
+) -> Result<u32, &'static str> {
+    if peer_adv_pub.len() != PQ_ADV_PUB_LEN {
+        return Err("REJECT_SCKA_ADV_BAD_PUB_LEN");
+    }
+    if peer_adv_id <= peer_max_adv_id_seen {
+        return Err("REJECT_SCKA_ADV_NONMONOTONIC");
+    }
+    Ok(peer_adv_id)
 }
 
 #[cfg(test)]

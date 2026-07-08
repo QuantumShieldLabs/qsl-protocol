@@ -26,6 +26,35 @@ fn kmac32(kmac: &dyn Kmac, key: &[u8], label: &str, data: &[u8]) -> [u8; 32] {
     arr
 }
 
+/// §3.3.6 PQ chain reseed KDF from an SCKA ciphertext event: derive the directional PQ seeds
+/// `(CK_pq_seed_A2B, CK_pq_seed_B2A)` from `RK_old`.
+///
+/// This is the exact derivation `apply_pq_reseed` performs; it is factored out so the SCKA sender
+/// (`suite2::ratchet::send_pq_reseed`, NA-0623) computes byte-identical seeds and both parties
+/// converge (DOC-CAN-003 §8.5.3 "so that both parties converge on the same directional seeds").
+/// The root advance `KDF_RK_PQ` is applied by the callers AFTER these seeds (the §3.3.6 normative
+/// ordering, CAT-S2-KDF-001).
+pub(crate) fn kdf_pq_reseed_seeds(
+    hash: &dyn Hash,
+    kmac: &dyn Kmac,
+    rk: &[u8; 32],
+    pq_ct: &[u8],
+    pq_epoch_ss: &[u8],
+    pq_target_id: u32,
+) -> ([u8; 32], [u8; 32]) {
+    let h = hash.sha512(pq_ct);
+    let ct_hash = &h[0..32];
+    let mut ctx = Vec::new();
+    ctx.extend_from_slice(b"QSP5.0/SCKA/CTXT");
+    ctx.extend_from_slice(&pq_target_id.to_be_bytes());
+    ctx.extend_from_slice(ct_hash);
+    ctx.extend_from_slice(pq_epoch_ss);
+
+    let ck_pq_seed_a2b = kmac32(kmac, rk, "QSP5.0/PQSEED/A->B", &ctx);
+    let ck_pq_seed_b2a = kmac32(kmac, rk, "QSP5.0/PQSEED/B->A", &ctx);
+    (ck_pq_seed_a2b, ck_pq_seed_b2a)
+}
+
 /// Apply PQ reseed derivation and SCKA checks for a single ciphertext event.
 #[allow(clippy::too_many_arguments)]
 pub fn apply_pq_reseed(
@@ -62,16 +91,8 @@ pub fn apply_pq_reseed(
         return Err(Suite2Reject::Code("REJECT_SCKA_TARGET_CONSUMED"));
     }
 
-    let h = hash.sha512(pq_ct);
-    let ct_hash = &h[0..32];
-    let mut ctx = Vec::new();
-    ctx.extend_from_slice(b"QSP5.0/SCKA/CTXT");
-    ctx.extend_from_slice(&pq_target_id.to_be_bytes());
-    ctx.extend_from_slice(ct_hash);
-    ctx.extend_from_slice(pq_epoch_ss);
-
-    let ck_pq_seed_a2b = kmac32(kmac, rk, "QSP5.0/PQSEED/A->B", &ctx);
-    let ck_pq_seed_b2a = kmac32(kmac, rk, "QSP5.0/PQSEED/B->A", &ctx);
+    let (ck_pq_seed_a2b, ck_pq_seed_b2a) =
+        kdf_pq_reseed_seeds(hash, kmac, rk, pq_ct, pq_epoch_ss, pq_target_id);
 
     let (ck_pq_send_after, ck_pq_recv_after) = if role_is_a {
         (ck_pq_seed_a2b, ck_pq_seed_b2a)

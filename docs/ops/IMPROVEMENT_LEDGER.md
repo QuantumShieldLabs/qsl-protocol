@@ -297,8 +297,11 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   DH ratchet now runs on the REAL client send path) DONE (NA-0622, D-1239). The CLASSICAL half of
   the P1 is CLOSED — classical post-compromise security now runs on live qsc traffic (ratchet-on-
   reply + N=4/T=15min fallback), proven end-to-end over a real handshake (round-trip + PCS-healing).
-  Remaining: Stage 2 (PQ-reseed sender = NA-0623) for full POST-QUANTUM PCS, after which the P1
-  fully closes. Filed NA-0617 (D-1230) from the external Suite-2 code/crypto review;
+  Stage 2 (PQ-reseed sender) was sub-staged: Stage 2a (the refimpl SCKA sender core — advertisement
+  + PQ reseed — plus the both-sides RK advance so the PQ hardening survives a DH ratchet) DONE
+  (NA-0623, D-1241). Remaining: Stage 2b (qsc SCKA wiring = NA-0624) for full POST-QUANTUM PCS on
+  live traffic, after which the P1 fully closes. Filed NA-0617 (D-1230) from the external Suite-2
+  code/crypto review;
 - Stage 1a (NA-0620): added a session-level `Suite2DhRatchetState` (`dhs_priv`/`dhs_pub`/`dhr`/
   `rk`) to `Suite2SessionState`, populated at establishment (the qsc handshake threads its
   retained X25519 ephemeral private key via `set_dh_self_priv`), and persisted via a snapshot
@@ -338,6 +341,28 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   runtime-equivalence test (deterministic path byte-for-byte equivalent + ratchet-on-reply fires)
   and the full qsc regression. The DH-boundary observable is recorded in DOC-G5-004; cover-traffic
   obfuscation is deferred to ENG-0022. See the NA-0622 evidence doc. last-updated 2026-07-08
+- Stage 2a (NA-0623): implemented the Suite-2 SCKA sender core IN REFIMPL and — per the D560
+  AMENDMENT — the both-sides ROOT ADVANCE. Adds `KDF_RK_PQ` (§3.3.3,
+  `KMAC32(RK,"QSP5.0/RKPQ",pq_ss||[0x01])`); the SCKA advertisement sender (`send_pq_advertise`),
+  peer-ADV monotonicity tracking (`track_peer_adv`), and the PQ-reseed sender (`send_pq_reseed`,
+  §8.5.3/§8.5.4 + DOC-CAN-004 §3.1–§3.3). The AMENDMENT fix: the receiver (`recv_boundary_in_order`)
+  now advances `RK := KDF_RK_PQ` and recomputes `HK_r` after `apply_pq_reseed` (it previously
+  absorbed `pq_epoch_ss` into the PQ chains only — §8.5.3 steps 5+7 were unimplemented — so the next
+  DH ratchet reinitialised `CK_pq` from the un-hardened root and WIPED the PQ protection), and the
+  new sender mirrors it, writing the advanced root to BOTH root slots so the classical DH ratchet
+  carries the PQ hardening forward permanently. The advertised-key store / ML-KEM KeyGen+Encap are
+  CALLER-side (the refimpl sender is pure functions); the SCKA target sets already persist (snapshot
+  v2 — no bump); `parse.rs` already parses `FLAG_PQ_ADV`/`FLAG_PQ_CTXT` (no wire change). The
+  `KDF_PQ_RESEED` seeds are reused from `apply_pq_reseed` (its CTXT-validation semantics unchanged;
+  its vectors byte-identical). Proven by co-located refimpl integration tests — round-trip
+  (advertise -> encapsulate -> `apply_pq_reseed` decrypts + converges) and, the headline,
+  `pq_pcs_healing_survives_dh_ratchet` (a pre-reseed snapshot cannot open the post-reseed DH
+  boundary) — plus fail-closed sender rejects / one-time / peer-ADV monotonicity, harness ops, and 6
+  byte-pinned CAT-SCKA-LOGIC-001 vectors; the frozen `apply_pq_reseed`/boundary/SCKA-KEM/KDF vectors
+  and the full refimpl suite stay green. NOT wired into qsc and NOT a post-quantum claim on live
+  traffic yet (Stage 2b). NHK note: the refimpl PQ-CTXT boundary header uses `HK` (the frozen
+  receiver), not the §8.5.1 `NHK` — flagged for Stage 2b / a spec-alignment lane. See the NA-0623
+  evidence doc. last-updated 2026-07-08
 - Design (NA-0619): `docs/design/DOC-G5-008_Suite2_Send_Side_Ratchet_Liveness_Feasibility_and_Design_v0.1.0_DRAFT.md`
   establishes feasibility (receiver machinery + `qsp::dh_ratchet_send` reference + complete
   DOC-CAN-003 §8.5 spec) and a staged plan: Stage 1 classical DH ratchet on the real send path

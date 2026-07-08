@@ -623,6 +623,11 @@ Implementations MUST map failures to stable reason codes. At minimum, the follow
 - `REJECT_S2_AD_MISMATCH`
 - `REJECT_S2_ESTABLISH_PQ_BIND_MISSING`
 - `REJECT_S2_ESTABLISH_PQ_BIND_MISMATCH`
+- `REJECT_S2_COUNTER_OVERFLOW` — a symmetric message counter (`ns`/`nr`) would advance past
+  `u32::MAX`. The send and receive paths MUST fail closed (terminate the session; no state
+  mutation) rather than saturate the counter, since a frozen counter with static header keys
+  would reuse a header nonce/ciphertext. A well-behaved sender never originates a message at
+  the saturating counter.
 
 Additional reason codes are permitted but MUST be documented and registered (see DOC-SCL-002).
 

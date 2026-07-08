@@ -14,6 +14,22 @@ const HDR_CT_LEN: usize = 24;
 const BODY_CT_MIN: usize = 16;
 const REJECT_S2_CHAINKEY_UNSET: &str =
     "REJECT_S2_CHAINKEY_UNSET; reason_code=REJECT_S2_CHAINKEY_UNSET";
+// NA-0618 (ENG-0013): terminal fail-closed reject when a symmetric message counter would
+// pass u32::MAX. Sessions never re-key (no DH ratchet / PQ reseed fires), so a saturated
+// counter with static header keys would repeat header ciphertext (nonce-reuse class);
+// hard-stop instead. Local reason code only (not wire-transmitted). Mirrors the sibling
+// qsp module's `ns == u32::MAX` guard.
+const REJECT_S2_COUNTER_OVERFLOW: &str =
+    "REJECT_S2_COUNTER_OVERFLOW; reason_code=REJECT_S2_COUNTER_OVERFLOW";
+
+/// NA-0618 (ENG-0013): fail-closed increment of a u32 symmetric message counter. Returns the
+/// next counter value, or `REJECT_S2_COUNTER_OVERFLOW` if it would pass `u32::MAX`. Used at
+/// every `ns`/`nr` advance in place of `saturating_add`, so a saturated counter can never
+/// freeze (which, with static header keys, would reuse a header nonce/ciphertext).
+#[inline]
+fn checked_counter_inc(counter: u32) -> Result<u32, &'static str> {
+    counter.checked_add(1).ok_or(REJECT_S2_COUNTER_OVERFLOW)
+}
 
 #[cfg(test)]
 thread_local! {
@@ -484,10 +500,26 @@ pub fn recv_nonboundary_ooo(
     let nonce = nonce_body(hash, &st.session_id, &st.dh_pub, header_n);
     match aead.open(&mk, &nonce, &ad_body, body_ct) {
         Ok(pt) => {
+            // NA-0618 (ENG-0013): hard-stop before nr would pass u32::MAX. Fail closed with
+            // no state mutation (state: st is returned unchanged). A well-behaved sender
+            // never originates a message at this counter (send_wire guards symmetrically).
+            let nr_next = match checked_counter_inc(header_n) {
+                Ok(v) => v,
+                Err(reason) => {
+                    return RecvOutcome {
+                        state: st,
+                        ok: false,
+                        reason: Some(reason),
+                        plaintext: None,
+                        pn: None,
+                        n: None,
+                    };
+                }
+            };
             let mut new_state = st.clone();
             new_state.ck_ec = ck_ec;
             new_state.ck_pq = ck_pq;
-            new_state.nr = header_n.saturating_add(1);
+            new_state.nr = nr_next;
             new_state.mkskipped.extend(staged);
             new_state.mkskipped = evict_mkskipped(new_state.mkskipped);
             RecvOutcome {
@@ -697,6 +729,21 @@ pub fn recv_boundary_in_order(
         }
     };
 
+    // NA-0618 (ENG-0013): hard-stop before nr would pass u32::MAX. Fail closed with no state
+    // mutation (state: st is returned unchanged).
+    let nr_next = match checked_counter_inc(n) {
+        Ok(v) => v,
+        Err(reason) => {
+            return BoundaryOutcome {
+                state: st,
+                ok: false,
+                reason: Some(reason),
+                plaintext: None,
+                pn: Some(header_pn),
+                n: Some(n),
+            };
+        }
+    };
     let mut new_state = st.clone();
     new_state.ck_ec = ck_ec_p;
     new_state.ck_pq_send = apply.ck_pq_send_after;
@@ -704,7 +751,7 @@ pub fn recv_boundary_in_order(
     new_state.peer_max_adv_id_seen = apply.peer_max_adv_id_seen_after;
     new_state.consumed_targets = apply.consumed_targets_after;
     new_state.tombstoned_targets = apply.tombstoned_targets_after;
-    new_state.nr = n.saturating_add(1);
+    new_state.nr = nr_next;
 
     BoundaryOutcome {
         state: new_state,
@@ -779,6 +826,10 @@ pub fn send_wire(
     if is_zero32(&st.ck_ec) || is_zero32(&st.ck_pq) {
         return Err(REJECT_S2_CHAINKEY_UNSET);
     }
+    // NA-0618 (ENG-0013): hard-stop before the send counter would pass u32::MAX (fail closed
+    // before deriving any key material). Advancing past this would freeze `ns` and (with
+    // static header keys) repeat header ciphertext.
+    let ns_next = checked_counter_inc(st.ns)?;
     let (ck_ec_p, ck_pq_p, mk) =
         derive_mk_step(kmac, &st.ck_ec, &st.ck_pq).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
 
@@ -833,7 +884,7 @@ pub fn send_wire(
     let mut new_state = st.clone();
     new_state.ck_ec = ck_ec_p;
     new_state.ck_pq = ck_pq_p;
-    new_state.ns = st.ns.saturating_add(1);
+    new_state.ns = ns_next;
 
     Ok(SendWireOutcome {
         state: new_state,
@@ -1479,6 +1530,51 @@ mod tests {
             Err(e) => e,
         };
         assert!(err1.contains("reason_code=REJECT_S2_CHAINKEY_UNSET"));
+        assert_eq!(err1, err2);
+        assert_eq!(before, snapshot_send_state(&st));
+    }
+
+    // NA-0618 (ENG-0013): the counter-overflow hard-stop. `checked_counter_inc` is the single
+    // point used at every ns/nr advance (send_wire, recv_nonboundary_ooo,
+    // recv_boundary_in_order), so this directly covers the fail-closed logic at all three
+    // sites — including the receive-side guards, which are otherwise unreachable through the
+    // public API because a compliant sender (guarded below) never originates a message at the
+    // saturating counter.
+    #[test]
+    fn checked_counter_inc_boundary_and_normal() {
+        assert_eq!(checked_counter_inc(0), Ok(1));
+        assert_eq!(checked_counter_inc(u32::MAX - 1), Ok(u32::MAX));
+        match checked_counter_inc(u32::MAX) {
+            Ok(_) => panic!("expected overflow reject at u32::MAX"),
+            Err(e) => assert!(e.contains("REJECT_S2_COUNTER_OVERFLOW")),
+        }
+    }
+
+    #[test]
+    fn send_wire_rejects_counter_overflow_at_ns_max_and_no_mutation() {
+        let c = StdCrypto;
+        let aead = PanicAead; // the guard returns before any AEAD use
+        let st = Suite2SendState {
+            session_id: rng16(),
+            protocol_version: 5,
+            suite_id: 2,
+            dh_pub: rng32(),
+            hk_s: rng32(),
+            ck_ec: rng32(),
+            ck_pq: rng32(),
+            ns: u32::MAX,
+            pn: 0,
+        };
+        let before = snapshot_send_state(&st);
+        let err1 = match send_wire(&c, &c, &aead, st.clone(), 0, b"hi") {
+            Ok(_) => panic!("expected send_wire to reject at ns == u32::MAX"),
+            Err(e) => e,
+        };
+        let err2 = match send_wire(&c, &c, &aead, st.clone(), 0, b"hi") {
+            Ok(_) => panic!("expected send_wire to reject at ns == u32::MAX"),
+            Err(e) => e,
+        };
+        assert!(err1.contains("REJECT_S2_COUNTER_OVERFLOW"));
         assert_eq!(err1, err2);
         assert_eq!(before, snapshot_send_state(&st));
     }

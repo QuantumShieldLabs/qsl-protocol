@@ -1,6 +1,6 @@
 //! Suite-2 ratchet surface (minimal helpers).
 
-use crate::crypto::traits::{Aead, CryptoError, Hash, Kmac};
+use crate::crypto::traits::{Aead, CryptoError, Hash, Kmac, X25519Dh, X25519Priv, X25519Pub};
 #[cfg(test)]
 use std::cell::Cell;
 use std::collections::{BTreeSet, HashSet};
@@ -51,6 +51,66 @@ fn kmac32(kmac: &dyn Kmac, key: &[u8], label: &str, data: &[u8]) -> Result<[u8; 
 
 fn is_zero32(v: &[u8; 32]) -> bool {
     v.iter().all(|b| *b == 0)
+}
+
+// NA-0621 (ENG-0012 Stage 1b-i): classical DH-ratchet key derivations (DOC-CAN-003 §3.3.2,
+// §3.4, §8.1). These are used ONLY by the DH-boundary send/receive paths; the non-boundary
+// message path (send_wire / recv_nonboundary_ooo) is unchanged.
+
+/// §3.3.2 Root update from DH ratchet: `KMAC256(RK, "QSP5.0/RKDH", dh_out, 64)` -> (RK', CK_ec0).
+fn kdf_rk_dh(
+    kmac: &dyn Kmac,
+    rk: &[u8; 32],
+    dh_out: &[u8; 32],
+) -> Result<([u8; 32], [u8; 32]), CryptoError> {
+    let out = kmac.kmac256(rk, "QSP5.0/RKDH", dh_out, 64);
+    if out.len() != 64 {
+        return Err(CryptoError::InvalidKey);
+    }
+    let mut rk1 = [0u8; 32];
+    let mut ck = [0u8; 32];
+    rk1.copy_from_slice(&out[0..32]);
+    ck.copy_from_slice(&out[32..64]);
+    Ok((rk1, ck))
+}
+
+/// §3.4/§8.1 directional header keys from RK. `next` selects HK (false) vs NHK (true).
+fn header_key(
+    kmac: &dyn Kmac,
+    rk: &[u8; 32],
+    a_to_b: bool,
+    next: bool,
+) -> Result<[u8; 32], CryptoError> {
+    let label = match (next, a_to_b) {
+        (false, true) => "QSP5.0/HK/A->B",
+        (false, false) => "QSP5.0/HK/B->A",
+        (true, true) => "QSP5.0/NHK/A->B",
+        (true, false) => "QSP5.0/NHK/B->A",
+    };
+    kmac32(kmac, rk, label, &[0x01])
+}
+
+/// The A->B direction is the sending direction for role A and the receiving direction for role B.
+fn send_is_a_to_b(role_is_a: bool) -> bool {
+    role_is_a
+}
+
+/// §8.5.2 PQ send-chain reinit label after a DH boundary (matches establish.rs).
+fn pq0_send_label(role_is_a: bool) -> &'static str {
+    if role_is_a {
+        "QSP5.0/PQ0/A->B"
+    } else {
+        "QSP5.0/PQ0/B->A"
+    }
+}
+
+/// §8.5.2 PQ recv-chain reinit label after a DH boundary.
+fn pq0_recv_label(role_is_a: bool) -> &'static str {
+    if role_is_a {
+        "QSP5.0/PQ0/B->A"
+    } else {
+        "QSP5.0/PQ0/A->B"
+    }
 }
 
 fn evict_mkskipped(mut entries: Vec<MkSkippedEntry>) -> Vec<MkSkippedEntry> {
@@ -1014,6 +1074,292 @@ pub fn recv_wire(
     })
 }
 
+// ======================= NA-0621 (ENG-0012 Stage 1b-i): DH ratchet =======================
+// Classical X25519 DH ratchet (send + receive) for Suite-2, operating at the session level
+// (Suite2SessionState: the Stage-1a `dh` field holds DHs/DHr/RK; per-direction chains stay in
+// send/recv). NHK header keys are derived on demand from RK (no new stored field, no snapshot
+// change). This uses the DH_pub already carried on every ratchet message (DOC-CAN-003 §4.3), so
+// there is NO wire-format change; the non-boundary message path is untouched, and the PQ-reseed
+// path (apply_pq_reseed) is untouched. The qsc trigger + static-rk removal are Stage 1b-ii.
+
+pub struct SendBoundaryOutcome {
+    pub state: crate::suite2::state::Suite2SessionState,
+    pub wire: Vec<u8>,
+}
+
+pub struct RecvDhBoundaryOutcome {
+    pub state: crate::suite2::state::Suite2SessionState,
+    pub plaintext: Vec<u8>,
+    pub ok: bool,
+    pub reason: Option<&'static str>,
+}
+
+/// Frame a header + body into the Suite-2 wire envelope (mirrors send_wire's framing exactly).
+fn frame_suite2_wire(
+    protocol_version: u16,
+    suite_id: u16,
+    dh_pub: &[u8; 32],
+    flags: u16,
+    hdr_ct: &[u8],
+    body_ct: &[u8],
+) -> Vec<u8> {
+    let mut header = Vec::with_capacity(32 + 2 + hdr_ct.len());
+    header.extend_from_slice(dh_pub);
+    header.extend_from_slice(&flags.to_be_bytes());
+    header.extend_from_slice(hdr_ct);
+    let mut wire = Vec::with_capacity(10 + header.len() + body_ct.len());
+    wire.extend_from_slice(&protocol_version.to_be_bytes());
+    wire.extend_from_slice(&suite_id.to_be_bytes());
+    wire.push(0x02);
+    wire.push(0x00);
+    wire.extend_from_slice(&(header.len() as u16).to_be_bytes());
+    wire.extend_from_slice(&(body_ct.len() as u16).to_be_bytes());
+    wire.extend_from_slice(&header);
+    wire.extend_from_slice(body_ct);
+    wire
+}
+
+/// §8.5.2 DH-ratchet SEND (boundary without PQ). Generates a fresh X25519 keypair, advances the
+/// root via KDF_RK_DH, reinitialises the send chains, recomputes HK_s, and emits a FLAG_BOUNDARY
+/// message whose header is encrypted under the pre-boundary NHK_s (§8.5.1). The receive chain is
+/// untouched (it advances only on the peer's boundary). Fail-closed on unset chain keys or a zero
+/// DH key.
+pub fn send_boundary(
+    hash: &dyn Hash,
+    kmac: &dyn Kmac,
+    aead: &dyn Aead,
+    dh: &dyn X25519Dh,
+    mut st: crate::suite2::state::Suite2SessionState,
+    plaintext: &[u8],
+) -> Result<SendBoundaryOutcome, &'static str> {
+    // A DH boundary CREATES a fresh send chain from KDF_RK_DH; it does not consume the prior
+    // send chain (so the responder, whose send chain is zero until its first ratchet, can send).
+    // It does require a live root key and a known peer DH public key.
+    if is_zero32(&st.dh.dhr) || is_zero32(&st.dh.rk) {
+        return Err("REJECT_S2_LOCAL_UNSUPPORTED");
+    }
+    let role_is_a = st.recv.role_is_a;
+    let a2b = send_is_a_to_b(role_is_a);
+
+    // Boundary header key = pre-boundary NHK_s (§8.5.1 anti-spoof).
+    let boundary_hk =
+        header_key(kmac, &st.dh.rk, a2b, true).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+
+    // Fresh DH keypair; advance the root; reinit send chains; recompute HK_s.
+    let (new_priv, new_pub) = dh.keypair();
+    let dh_out = dh.dh(&new_priv, &X25519Pub(st.dh.dhr));
+    let (rk1, ck_ec0) =
+        kdf_rk_dh(kmac, &st.dh.rk, &dh_out).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+    let ck_pq0 = kmac32(kmac, &rk1, pq0_send_label(role_is_a), &[0x01])
+        .map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+    let hk_s_new = header_key(kmac, &rk1, a2b, false).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+
+    // The boundary message is message n=0 of the new send epoch.
+    let (ck_ec_p, ck_pq_p, mk) =
+        derive_mk_step(kmac, &ck_ec0, &ck_pq0).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+
+    let flags = types::FLAG_BOUNDARY;
+    let pq_bind = binding::pq_bind_sha512_32(hash, flags, &[]);
+    let ad_hdr = binding::ad_hdr(
+        &st.send.session_id,
+        st.send.protocol_version,
+        st.send.suite_id,
+        &new_pub.0,
+        flags,
+        &pq_bind,
+    );
+    let ad_body = binding::ad_body(
+        &st.send.session_id,
+        st.send.protocol_version,
+        st.send.suite_id,
+        &pq_bind,
+    );
+    let pn_new = st.send.ns;
+    let n0: u32 = 0;
+    let hdr_pt = {
+        let mut v = Vec::with_capacity(8);
+        v.extend_from_slice(&pn_new.to_be_bytes());
+        v.extend_from_slice(&n0.to_be_bytes());
+        v
+    };
+    let hdr_ct = aead.seal(
+        &boundary_hk,
+        &nonce_hdr(hash, &st.send.session_id, &new_pub.0, n0),
+        &ad_hdr,
+        &hdr_pt,
+    );
+    let body_ct = aead.seal(
+        &mk,
+        &nonce_body(hash, &st.send.session_id, &new_pub.0, n0),
+        &ad_body,
+        plaintext,
+    );
+    if hdr_ct.is_empty() || body_ct.is_empty() {
+        return Err("REJECT_S2_LOCAL_AEAD_FAIL");
+    }
+    let wire = frame_suite2_wire(
+        st.send.protocol_version,
+        st.send.suite_id,
+        &new_pub.0,
+        flags,
+        &hdr_ct,
+        &body_ct,
+    );
+
+    // Commit send + DH state (receive chain untouched).
+    st.dh.rk = rk1;
+    st.dh.dhs_priv = new_priv.0;
+    st.dh.dhs_pub = new_pub.0;
+    st.send.dh_pub = new_pub.0;
+    st.send.hk_s = hk_s_new;
+    st.send.ck_ec = ck_ec_p;
+    st.send.ck_pq = ck_pq_p;
+    st.send.pn = pn_new;
+    st.send.ns = 1;
+    Ok(SendBoundaryOutcome { state: st, wire })
+}
+
+/// §8.5.2 DH-ratchet RECEIVE (boundary without PQ) + §8.5.1 anti-spoof. The boundary header MUST
+/// decrypt under the receiver's CURRENT NHK_r; then the root advances with
+/// `dh_out = X25519(DHs_priv, msg.DH_pub)`, the receive chains reinitialise, HK_r is recomputed,
+/// DHr updates, Nr := 0, and the body decrypts under the new epoch's first message key. State is
+/// committed only on full success (no mutation on reject). The send chain is untouched.
+pub fn recv_dh_boundary(
+    hash: &dyn Hash,
+    kmac: &dyn Kmac,
+    aead: &dyn Aead,
+    dh: &dyn X25519Dh,
+    st: crate::suite2::state::Suite2SessionState,
+    wire: &[u8],
+) -> RecvDhBoundaryOutcome {
+    macro_rules! reject {
+        ($st:expr, $reason:expr) => {
+            return RecvDhBoundaryOutcome {
+                state: $st,
+                plaintext: Vec::new(),
+                ok: false,
+                reason: Some($reason),
+            }
+        };
+    }
+
+    let (_pv, _sid, _mt, parsed) = match parse::decode_suite2_wire(wire) {
+        Ok(v) => v,
+        Err(code) => reject!(st, code),
+    };
+    let flags = parsed.flags;
+    if (flags & types::FLAG_BOUNDARY) == 0
+        || (flags & types::FLAG_PQ_CTXT) != 0
+        || (flags & types::FLAG_PQ_ADV) != 0
+    {
+        reject!(st, "REJECT_S2_LOCAL_UNSUPPORTED");
+    }
+    if parsed.hdr_ct.len() != HDR_CT_LEN || parsed.body_ct.len() < BODY_CT_MIN {
+        reject!(st, "REJECT_S2_HDR_AUTH_FAIL");
+    }
+    if is_zero32(&st.dh.rk) || is_zero32(&st.dh.dhs_priv) {
+        reject!(st, "REJECT_S2_LOCAL_UNSUPPORTED");
+    }
+    // A boundary MUST advance the peer DH key, and it must be non-zero.
+    if is_zero32(&parsed.dh_pub) {
+        reject!(st, "REJECT_S2_HDR_AUTH_FAIL");
+    }
+    if parsed.dh_pub == st.dh.dhr {
+        reject!(
+            st,
+            "REJECT_S2_BOUNDARY_NOT_IN_ORDER; reason_code=REJECT_S2_BOUNDARY_NOT_IN_ORDER"
+        );
+    }
+
+    let role_is_a = st.recv.role_is_a;
+    let a2b_recv = !send_is_a_to_b(role_is_a); // the receive direction
+
+    // §8.5.1: the boundary header MUST decrypt under the CURRENT NHK_r (pre-boundary RK).
+    let current_nhk_r = match header_key(kmac, &st.dh.rk, a2b_recv, true) {
+        Ok(v) => v,
+        Err(_) => reject!(st, "REJECT_S2_LOCAL_UNSUPPORTED"),
+    };
+    let pq_bind = binding::pq_bind_sha512_32(hash, flags, &[]);
+    let ad_hdr = binding::ad_hdr(
+        &st.recv.session_id,
+        st.recv.protocol_version,
+        st.recv.suite_id,
+        &parsed.dh_pub,
+        flags,
+        &pq_bind,
+    );
+    let ad_body = binding::ad_body(
+        &st.recv.session_id,
+        st.recv.protocol_version,
+        st.recv.suite_id,
+        &pq_bind,
+    );
+    let n0: u32 = 0;
+    let hdr_pt = match aead.open(
+        &current_nhk_r,
+        &nonce_hdr(hash, &st.recv.session_id, &parsed.dh_pub, n0),
+        &ad_hdr,
+        &parsed.hdr_ct,
+    ) {
+        Ok(pt) => pt,
+        Err(_) => reject!(st, "REJECT_S2_HDR_AUTH_FAIL"),
+    };
+    if hdr_pt.len() != 8 {
+        reject!(st, "REJECT_S2_HDR_AUTH_FAIL");
+    }
+    let n_val = u32::from_be_bytes([hdr_pt[4], hdr_pt[5], hdr_pt[6], hdr_pt[7]]);
+    if n_val != 0 {
+        reject!(
+            st,
+            "REJECT_S2_BOUNDARY_NOT_IN_ORDER; reason_code=REJECT_S2_BOUNDARY_NOT_IN_ORDER"
+        );
+    }
+
+    // DH ratchet: advance the root, reinit the receive chains, recompute HK_r.
+    let dh_out = dh.dh(&X25519Priv(st.dh.dhs_priv), &X25519Pub(parsed.dh_pub));
+    let (rk1, ck_ec0) = match kdf_rk_dh(kmac, &st.dh.rk, &dh_out) {
+        Ok(v) => v,
+        Err(_) => reject!(st, "REJECT_S2_LOCAL_UNSUPPORTED"),
+    };
+    let ck_pq0 = match kmac32(kmac, &rk1, pq0_recv_label(role_is_a), &[0x01]) {
+        Ok(v) => v,
+        Err(_) => reject!(st, "REJECT_S2_LOCAL_UNSUPPORTED"),
+    };
+    let hk_r_new = match header_key(kmac, &rk1, a2b_recv, false) {
+        Ok(v) => v,
+        Err(_) => reject!(st, "REJECT_S2_LOCAL_UNSUPPORTED"),
+    };
+    let (ck_ec_p, ck_pq_p, mk) = match derive_mk_step(kmac, &ck_ec0, &ck_pq0) {
+        Ok(v) => v,
+        Err(_) => reject!(st, "REJECT_S2_LOCAL_UNSUPPORTED"),
+    };
+    let pt = match aead.open(
+        &mk,
+        &nonce_body(hash, &st.recv.session_id, &parsed.dh_pub, n0),
+        &ad_body,
+        &parsed.body_ct,
+    ) {
+        Ok(pt) => pt,
+        Err(_) => reject!(st, "REJECT_S2_BODY_AUTH_FAIL"),
+    };
+
+    // Commit receive + DH state (send chain untouched).
+    let mut new = st;
+    new.dh.rk = rk1;
+    new.dh.dhr = parsed.dh_pub;
+    new.recv.dh_pub = parsed.dh_pub;
+    new.recv.hk_r = hk_r_new;
+    new.recv.ck_ec = ck_ec_p;
+    new.recv.ck_pq_recv = ck_pq_p;
+    new.recv.nr = 1;
+    RecvDhBoundaryOutcome {
+        state: new,
+        plaintext: pt,
+        ok: true,
+        reason: None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1798,5 +2144,114 @@ mod tests {
         assert_eq!(out.reason, Some("REJECT_S2_OOO_BOUNDS"));
         assert!(count <= MAX_HEADER_ATTEMPTS);
         assert_eq!(pre, snapshot_recv_state(&out.state));
+    }
+
+    // NA-0621 (ENG-0012 Stage 1b-i): DH-ratchet round-trip, no-mutation-on-reject, and the
+    // post-compromise self-healing (PCS) property.
+    fn matched_dh_pair(
+        c: &StdCrypto,
+    ) -> (
+        crate::suite2::state::Suite2SessionState,
+        crate::suite2::state::Suite2SessionState,
+    ) {
+        let (a_priv, a_pub) = c.keypair();
+        let (b_priv, b_pub) = c.keypair();
+        let session_id = [0x5a; 16];
+        let pq_init_ss = [0x77; 32];
+        let dh_init = c.dh(&a_priv, &b_pub);
+        assert_eq!(dh_init, c.dh(&b_priv, &a_pub), "X25519 must be symmetric");
+        let mut a = crate::suite2::establish::init_from_base_handshake(
+            c,
+            true,
+            types::SUITE2_PROTOCOL_VERSION,
+            types::SUITE2_SUITE_ID,
+            &session_id,
+            &dh_init,
+            &pq_init_ss,
+            &a_pub.0,
+            &b_pub.0,
+            true,
+        )
+        .expect("establish A");
+        a.set_dh_self_priv(a_priv.0);
+        let mut b = crate::suite2::establish::init_from_base_handshake(
+            c,
+            false,
+            types::SUITE2_PROTOCOL_VERSION,
+            types::SUITE2_SUITE_ID,
+            &session_id,
+            &dh_init,
+            &pq_init_ss,
+            &b_pub.0,
+            &a_pub.0,
+            true,
+        )
+        .expect("establish B");
+        b.set_dh_self_priv(b_priv.0);
+        (a, b)
+    }
+
+    #[test]
+    fn dh_ratchet_two_party_roundtrip_both_directions() {
+        let c = StdCrypto;
+        let (a, b) = matched_dh_pair(&c);
+        // A performs a DH boundary and sends; B receives and decrypts.
+        let sa = send_boundary(&c, &c, &c, &c, a, b"hello-from-a").expect("A send_boundary");
+        let rb = recv_dh_boundary(&c, &c, &c, &c, b, &sa.wire);
+        assert!(rb.ok, "B recv failed: {:?}", rb.reason);
+        assert_eq!(rb.plaintext, b"hello-from-a");
+        // Reverse direction: B performs a DH boundary and sends; A receives and decrypts.
+        let sb = send_boundary(&c, &c, &c, &c, rb.state, b"hello-from-b").expect("B send_boundary");
+        let ra = recv_dh_boundary(&c, &c, &c, &c, sa.state, &sb.wire);
+        assert!(ra.ok, "A recv failed: {:?}", ra.reason);
+        assert_eq!(ra.plaintext, b"hello-from-b");
+    }
+
+    #[test]
+    fn dh_ratchet_no_mutation_on_reject() {
+        let c = StdCrypto;
+        let (a, b) = matched_dh_pair(&c);
+        let sa = send_boundary(&c, &c, &c, &c, a, b"m").expect("A send_boundary");
+        // Flip a body-ciphertext bit -> body AEAD fails; state must be returned unchanged.
+        let mut bad = sa.wire.clone();
+        let last = bad.len() - 1;
+        bad[last] ^= 0x01;
+        let b_pre = b.snapshot_bytes();
+        let rb = recv_dh_boundary(&c, &c, &c, &c, b, &bad);
+        assert!(!rb.ok);
+        assert_eq!(
+            rb.state.snapshot_bytes(),
+            b_pre,
+            "state must not mutate on reject"
+        );
+    }
+
+    #[test]
+    fn dh_ratchet_pcs_healing() {
+        let c = StdCrypto;
+        let (a0, b0) = matched_dh_pair(&c);
+        // Adversary snapshots B's full state at epoch 0 (all keys, incl. DHs_priv and RK).
+        let b_captured = b0.clone();
+        // Round 1: A ratchets, B receives.
+        let sa1 = send_boundary(&c, &c, &c, &c, a0, b"r1").expect("A1");
+        let rb1 = recv_dh_boundary(&c, &c, &c, &c, b0, &sa1.wire);
+        assert!(rb1.ok);
+        // Round 2: B ratchets with a FRESH keypair the adversary never captured; A receives.
+        let sb1 = send_boundary(&c, &c, &c, &c, rb1.state, b"r2").expect("B1");
+        let ra1 = recv_dh_boundary(&c, &c, &c, &c, sa1.state, &sb1.wire);
+        assert!(ra1.ok);
+        // Round 3: A ratchets again and sends a secret; the REAL B decrypts it.
+        let sa2 = send_boundary(&c, &c, &c, &c, ra1.state, b"top-secret").expect("A2");
+        let rb2 = recv_dh_boundary(&c, &c, &c, &c, sb1.state, &sa2.wire);
+        assert!(rb2.ok, "real B must decrypt post-ratchet: {:?}", rb2.reason);
+        assert_eq!(rb2.plaintext, b"top-secret");
+        // PCS: the epoch-0 snapshot lacks B's fresh key and the advanced root, so it CANNOT
+        // decrypt the round-3 message (the boundary header fails to authenticate under its stale
+        // NHK). Post-compromise security has self-healed.
+        let heal = recv_dh_boundary(&c, &c, &c, &c, b_captured, &sa2.wire);
+        assert!(
+            !heal.ok,
+            "pre-ratchet snapshot must NOT decrypt a post-ratchet message (PCS self-healing)"
+        );
     }
 }

@@ -3019,6 +3019,9 @@ impl Actor {
                         suite2_state::Suite2SessionState {
                             send: send_state,
                             recv: out.state.clone(),
+                            // NA-0620 (Stage 1a): DH-ratchet state plumbing; the actor does not
+                            // ratchet, so default (zero) is carried and persisted.
+                            dh: suite2_ratchet::Suite2DhRatchetState::default(),
                         },
                     );
                 }
@@ -3137,6 +3140,9 @@ impl Actor {
                         suite2_state::Suite2SessionState {
                             send: out.state.clone(),
                             recv: recv_state,
+                            // NA-0620 (Stage 1a): DH-ratchet state plumbing; the actor does not
+                            // ratchet, so default (zero) is carried and persisted.
+                            dh: suite2_ratchet::Suite2DhRatchetState::default(),
                         },
                     );
                 }

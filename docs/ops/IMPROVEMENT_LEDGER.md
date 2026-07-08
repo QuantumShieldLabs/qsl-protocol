@@ -293,9 +293,12 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Severity: P1 (blocks the G1/G2 release gates; top-priority engineering finding)
 - Status: in-lane — design-complete (NA-0619, D-1234); Stage 1a (DH-ratchet state plumbing)
   DONE (NA-0620, D-1235); Stage 1b-i (DH-ratchet SEND+RECEIVE behavior + NHK header keys, in
-  refimpl) DONE (NA-0621, D-1237); remaining: Stage 1b-ii (qsc trigger + static-`rk` removal =
-  NA-0622) and Stage 2 (PQ reseed). The P1 stays OPEN until 1b-ii wires the ratchet into the real
-  qsc send path. Filed NA-0617 (D-1230) from the external Suite-2 code/crypto review;
+  refimpl) DONE (NA-0621, D-1237); Stage 1b-ii (qsc trigger + static-`rk` removal — the classical
+  DH ratchet now runs on the REAL client send path) DONE (NA-0622, D-1239). The CLASSICAL half of
+  the P1 is CLOSED — classical post-compromise security now runs on live qsc traffic (ratchet-on-
+  reply + N=4/T=15min fallback), proven end-to-end over a real handshake (round-trip + PCS-healing).
+  Remaining: Stage 2 (PQ-reseed sender = NA-0623) for full POST-QUANTUM PCS, after which the P1
+  fully closes. Filed NA-0617 (D-1230) from the external Suite-2 code/crypto review;
 - Stage 1a (NA-0620): added a session-level `Suite2DhRatchetState` (`dhs_priv`/`dhs_pub`/`dhr`/
   `rk`) to `Suite2SessionState`, populated at establishment (the qsc handshake threads its
   retained X25519 ephemeral private key via `set_dh_self_priv`), and persisted via a snapshot
@@ -315,6 +318,26 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   messages once both parties have advanced), and no-mutation-on-reject; the full suite2/qsc
   regression stays green. NOT wired into qsc and NOT a post-compromise claim yet (Stage 1b-ii).
   See the NA-0621 evidence doc. last-updated 2026-07-08
+- Stage 1b-ii (NA-0622): wired the classical DH ratchet into the REAL qsc send/receive path and
+  removed the static-`rk` bootstrap (`qsp_activate_responder_send_chain_if_needed`,
+  `qsp_activate_initiator_recv_chain_if_needed`). `qsp_pack` originates a DH boundary via the
+  refimpl `send_boundary` when the trigger fires — RATCHET-ON-REPLY (first send after any receive)
+  plus a bounded fallback of N=4 messages / T=15 min; `qsp_unpack` routes incoming DH boundaries
+  to the refimpl `recv_dh_boundary`. The reply-driven trigger (a `pending` bit + N/T counters) is
+  persisted in a new qsc session-blob v2 plaintext (`b"QTRG"` + trigger + snapshot), keeping the
+  refimpl Suite2SessionState / QS2S snapshot FROZEN; legacy blobs migrate transparently. No
+  wire-format change (DH_pub already on the wire), no refimpl change, no PQ-reseed change. The
+  ratchet is gated OFF for a degenerate self-DH session (`dhr == dhs`, the symmetric both-role-A
+  seed-fallback TEST model that cannot round-trip the directional ratchet) — a SESSION-STATE check,
+  not the seed-permitted flag (real-handshake tests set that flag too), so the pre-ratchet
+  seed-model regression suite stays byte-for-byte green while REAL handshake sessions (dhr != dhs)
+  always ratchet. Proven
+  end-to-end over a REAL A/B handshake: `dh_ratchet_e2e_roundtrip_over_real_handshake` (the ratchet
+  fires both directions and messages decrypt) and `dh_ratchet_e2e_pcs_healing_over_real_handshake`
+  (a pre-ratchet session snapshot cannot decrypt a post-ratchet message), plus the updated
+  runtime-equivalence test (deterministic path byte-for-byte equivalent + ratchet-on-reply fires)
+  and the full qsc regression. The DH-boundary observable is recorded in DOC-G5-004; cover-traffic
+  obfuscation is deferred to ENG-0022. See the NA-0622 evidence doc. last-updated 2026-07-08
 - Design (NA-0619): `docs/design/DOC-G5-008_Suite2_Send_Side_Ratchet_Liveness_Feasibility_and_Design_v0.1.0_DRAFT.md`
   establishes feasibility (receiver machinery + `qsp::dh_ratchet_send` reference + complete
   DOC-CAN-003 §8.5 spec) and a staged plan: Stage 1 classical DH ratchet on the real send path
@@ -512,6 +535,21 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Proof gap: no invariant/test constrains what may be passed to `hash_secret`.
 - Cross-repo note: qsl-attachments (+ qsl-server); driving queue TBD. Low priority.
 - Recommended directive shape: small caller-invariant/docs lane; low priority.
+
+### ENG-0022 — DH-boundary cadence is an observable metadata distinguisher (G5)
+- Severity: P3 (metadata; no confidentiality/integrity impact) — filed D-1239 from the NA-0622
+  (ENG-0012 Stage 1b-ii) metadata decision
+- Problem: with ratchet-on-reply, a Suite-2 DH boundary (FLAG_BOUNDARY + a fresh on-wire DH_pub)
+  is observable and correlates with conversation turn-taking; these are the first boundary
+  messages on the wire (PQ-reseed boundaries are Stage 2). The NA-0622 operator decision was
+  ACCEPT + DOCUMENT (the leak is minor beyond what message timing/direction already exposes, and
+  the bounded fallback prevents long silent gaps); the observable is recorded in DOC-G5-004.
+- Recommended change: boundary-cadence obfuscation / cover traffic to blur the reply-correlation —
+  e.g., decouple some ratchets from replies, or emit occasional cover boundaries. This is a
+  protocol-wide G5 decision best made AFTER Stage 2 (PQ reseed) lands, alongside a holistic
+  metadata pass; premature to bolt onto the ratchet lane.
+- Recommended directive shape: G5 design lane (DOC-G5-004/DOC-G5-005 family) + a scoped
+  qsc/refimpl source lane; sequence after ENG-0012 Stage 2. Deferred (consciously), tracked here.
 
 ---
 

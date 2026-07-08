@@ -438,7 +438,7 @@ fn reject_or_artifact_boundaries_do_not_retain_forbidden_markers() {
         "responder reject created or changed a session artifact"
     );
     assert!(
-        legacy_pending_path(&bob_cfg, "bob", "alice").exists() == false,
+        !legacy_pending_path(&bob_cfg, "bob", "alice").exists(),
         "legacy pending plaintext artifact unexpectedly exists"
     );
     assert_bytes_do_not_contain(

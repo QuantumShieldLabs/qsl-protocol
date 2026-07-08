@@ -60,6 +60,19 @@ liveness) release gates.**
 > two-party round-trip and a PCS-healing test. The qsc trigger + static-`rk` removal are Stage
 > 1b-ii; the PQ-reseed sender is Stage 2.
 
+> **Update (NA-0622 / ENG-0012 Stage 1b-ii, 2026-07-08).** Stage 1b-ii landed: the classical DH
+> ratchet now runs on the REAL qsc send path. `qsp_pack` originates a DH boundary via the refimpl
+> `send_boundary` on the operator-chosen trigger — RATCHET-ON-REPLY (first send after any receive)
+> + a bounded fallback of N=4 messages / T=15 min; `qsp_unpack` routes incoming boundaries to
+> `recv_dh_boundary`. The static-`rk` bootstrap (`qsp_activate_*`) is removed — the ratchet now
+> creates the responder's send chain and the initiator's recv chain. The reply-driven trigger is
+> persisted in a qsc session-blob v2 plaintext (refimpl snapshot frozen). Proven end-to-end over a
+> real A/B handshake (round-trip + PCS-healing). §5's open questions are resolved: N_dh=4 / T_dh=15
+> min; the DH-boundary observable is accepted + documented in DOC-G5-004, with cover traffic
+> deferred to ENG-0022. **Classical** post-compromise security now runs on live traffic; the
+> POST-QUANTUM guarantee awaits Stage 2 (PQ-reseed sender). No Triple-Ratchet / post-compromise
+> claim beyond the classical, refimpl-and-e2e-proven scope until Stage 2 lands.
+
 This is not a from-scratch protocol design; the receive side and a reference send side already
 exist and constrain the answer:
 

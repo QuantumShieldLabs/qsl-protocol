@@ -3165,6 +3165,90 @@ impl Actor {
                     } }
                 }))
             }
+            // NA-0623 (ENG-0012 Stage 2a): SCKA sender ops. These drive the pure session-level
+            // SCKA send functions (advertisement + PQ reseed). The advertised-key store / ML-KEM
+            // KeyGen+Encap are caller-side (DOC-CAN-004 §2/§3): the vector supplies the advertised
+            // public key / the ciphertext + shared secret. The DH-ratchet slot is left default
+            // (the reseed reads the recv-side root when `dh.rk` is unset), matching the actor's
+            // non-DH e2e plumbing.
+            "suite2.send_pq_advertise" => {
+                let send_v = get_json_data(&req.params, "send_state")?;
+                let recv_v = get_json_data(&req.params, "recv_state")?;
+                let send_state = parse_suite2_send_state(&send_v)?;
+                let recv_state = parse_suite2_recv_state(&recv_v)?;
+                let pq_adv_id = get_u32(&req.params, "pq_adv_id")?;
+                let pq_adv_pub = get_bytes(&req.params, "pq_adv_pub")?;
+                let plaintext = get_bytes(&req.params, "plaintext_hex")?;
+
+                let st = suite2_state::Suite2SessionState {
+                    send: send_state,
+                    recv: recv_state,
+                    dh: suite2_ratchet::Suite2DhRatchetState::default(),
+                };
+                let out = suite2_ratchet::send_pq_advertise(
+                    &self.std,
+                    &self.std,
+                    &self.std,
+                    st,
+                    pq_adv_id,
+                    &pq_adv_pub,
+                    &plaintext,
+                )
+                .map_err(|e| ActorError::Invalid(format!("reject: {e}")))?;
+
+                let known: Vec<u32> = out.state.recv.known_targets.iter().cloned().collect();
+                Ok(serde_json::json!({
+                    "wire_hex": { "type": "hex", "data": to_hex(&out.wire) },
+                    "new_state": { "type": "json", "data": {
+                        "known_targets": known,
+                        "send_ck_ec": to_hex(&out.state.send.ck_ec),
+                        "send_ck_pq": to_hex(&out.state.send.ck_pq),
+                        "ns": { "u32": out.state.send.ns }
+                    } }
+                }))
+            }
+            "suite2.send_pq_reseed" => {
+                let send_v = get_json_data(&req.params, "send_state")?;
+                let recv_v = get_json_data(&req.params, "recv_state")?;
+                let send_state = parse_suite2_send_state(&send_v)?;
+                let recv_state = parse_suite2_recv_state(&recv_v)?;
+                let pq_target_id = get_u32(&req.params, "pq_target_id")?;
+                let pq_ct = get_bytes(&req.params, "pq_ct")?;
+                let pq_epoch_ss = get_bytes(&req.params, "pq_epoch_ss")?;
+                let plaintext = get_bytes(&req.params, "plaintext_hex")?;
+
+                let st = suite2_state::Suite2SessionState {
+                    send: send_state,
+                    recv: recv_state,
+                    dh: suite2_ratchet::Suite2DhRatchetState::default(),
+                };
+                let out = suite2_ratchet::send_pq_reseed(
+                    &self.std,
+                    &self.std,
+                    &self.std,
+                    st,
+                    pq_target_id,
+                    &pq_ct,
+                    &pq_epoch_ss,
+                    &plaintext,
+                )
+                .map_err(|e| ActorError::Invalid(format!("reject: {e}")))?;
+
+                Ok(serde_json::json!({
+                    "wire_hex": { "type": "hex", "data": to_hex(&out.wire) },
+                    "new_state": { "type": "json", "data": {
+                        "rk": to_hex(&out.state.recv.rk),
+                        "dh_rk": to_hex(&out.state.dh.rk),
+                        "hk_s": to_hex(&out.state.send.hk_s),
+                        "hk_r": to_hex(&out.state.recv.hk_r),
+                        "send_ck_ec": to_hex(&out.state.send.ck_ec),
+                        "send_ck_pq": to_hex(&out.state.send.ck_pq),
+                        "recv_ck_pq_send": to_hex(&out.state.recv.ck_pq_send),
+                        "recv_ck_pq_recv": to_hex(&out.state.recv.ck_pq_recv),
+                        "ns": { "u32": out.state.send.ns }
+                    } }
+                }))
+            }
             "suite2.kdf_ec_ck" => {
                 let ck = get_bytes(&req.params, "CK_ec")?;
                 let ck_p = kmac32(&self.std, &ck, "QSP5.0/CK", &[0x01]);

@@ -73,6 +73,26 @@ liveness) release gates.**
 > POST-QUANTUM guarantee awaits Stage 2 (PQ-reseed sender). No Triple-Ratchet / post-compromise
 > claim beyond the classical, refimpl-and-e2e-proven scope until Stage 2 lands.
 
+> **Update (NA-0623 / ENG-0012 Stage 2a, 2026-07-08).** Stage 2 was sub-staged; Stage 2a landed the
+> PQ-reseed SENDER core IN REFIMPL. A Phase-2 re-scope (D560 AMENDMENT) fixed a security gap the
+> design-lock surfaced: the existing PQ-reseed RECEIVER (`recv_boundary_in_order` -> `apply_pq_reseed`)
+> absorbed the PQ epoch secret into the directional PQ chains but NEVER advanced the root `RK`
+> (§8.5.3 steps 5+7 were unimplemented), so the next classical DH ratchet reinitialised `CK_pq` from
+> the un-hardened root and WIPED the post-quantum protection. Stage 2a adds `KDF_RK_PQ` (§3.3.3) +
+> the `HK` recompute to BOTH the receiver AND the new sender (`send_pq_advertise`, `send_pq_reseed`,
+> `track_peer_adv`), so the PQ secret lands in the root and the DH ratchet carries it forward
+> permanently. The advertised-key store / ML-KEM KeyGen+Encap are caller-side (the refimpl sender is
+> pure functions); no snapshot bump, no non-boundary-path change, no wire-format change; the
+> `apply_pq_reseed` CTXT-validation semantics are unchanged. Proven in refimpl by a round-trip
+> (advertise -> encapsulate -> `apply_pq_reseed` decrypts) and — the headline — a PQ-PCS-healing
+> vector that SURVIVES a subsequent DH ratchet (a pre-reseed snapshot cannot open the post-reseed DH
+> boundary), plus monotonicity/one-time/tombstone rejects. Known deviation for Stage 2b/spec
+> alignment: the refimpl PQ-CTXT boundary header uses `HK` (the frozen receiver), not the §8.5.1
+> `NHK`. Stage 2b (NA-0624) wires the SCKA advertise + reseed cadence into the real qsc send path and
+> persists the SCKA state — the stage that delivers post-quantum PCS on live traffic and FULLY closes
+> the P1. No POST-QUANTUM / Triple-Ratchet claim on live traffic until Stage 2b lands and the DH+PQ
+> composition is independently analyzed.
+
 This is not a from-scratch protocol design; the receive side and a reference send side already
 exist and constrain the answer:
 

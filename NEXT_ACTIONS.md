@@ -6,15 +6,16 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0620 | HIGHEST_NA=0620 | HIGHEST_D=1234 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0621 | HIGHEST_NA=0621 | HIGHEST_D=1236 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
-**READY (exactly one — execute this):** `NA-0620 — ENG-0012 Stage 1: Suite-2 Classical DH
-Ratchet on the Real Send Path`. Its full block (with scope flags) is below under section 2;
-find it by searching `Status: READY` (there is exactly one).
+**READY (exactly one — execute this):** `NA-0621 — ENG-0012 Stage 1b: Suite-2 DH Ratchet
+send_boundary + trigger + static-rk removal` (where classical post-compromise security lands).
+Its full block (with scope flags) is below under section 2; find it by searching
+`Status: READY` (there is exactly one).
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
-1. **ENG-0012 Stage 2** — Suite-2 PQ reseed sender (`send_pq_ctxt` + SCKA encapsulation) — follows NA-0620.
+1. **ENG-0012 Stage 2** — Suite-2 PQ reseed sender (`send_pq_ctxt` + SCKA encapsulation) — follows NA-0621.
 2. **ENG-0014** — qsl-server non-constant-time token compare (P2, cross-repo).
 3. **ENG-0019** — gate/remove the auth-unsafe `qsp::handshake` skeleton (P3, cheap; design-tenet aligned).
 4. **WF-0012** — build the `ledger.py` findings-tracking tool (@meta lines + list/validate/dedup/ondeck); pays off before the next audit.
@@ -34041,8 +34042,34 @@ begins at D-1217.
 
 ---
 
-### NA-0620 — ENG-0012 Stage 1: Suite-2 Classical DH Ratchet on the Real Send Path (source/test)
+### NA-0621 — ENG-0012 Stage 1b: Suite-2 DH Ratchet send_boundary + trigger + static-rk removal (source/test)
 Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? YES (originate DH-boundary messages per DOC-CAN-003 §8.5.2)
+Crypto/state-machine change allowed? YES (send_boundary + DH trigger; remove the static-rk bootstrap; no KDF/AEAD primitive change)
+Docs-only allowed? NO
+
+Objective:
+Implement Stage 1b of DOC-G5-008 (ENG-0012, the P1 blocking the G1/G2 gates), building on the
+Stage-1a DH-ratchet state plumbing (NA-0620): implement `send_boundary` (mirror
+`recv_boundary_in_order` + `qsp::dh_ratchet_send` per DOC-CAN-003 §8.5.2 — new X25519 keypair,
+`PNs:=Ns`, `Ns:=0`, `KDF_RK_DH`, PQ send-chain reinit, `HK/NHK` recompute, header under
+`boundary_hk`, `FLAG_BOUNDARY`); wire the OPERATOR-CHOSEN DH trigger policy (RATCHET-ON-REPLY +
+a bounded every-N-messages/T-seconds fallback) into the real qsc send path; and REMOVE the
+static-`rk` bootstrap (`qsp_activate_*_chain_if_needed`), using the Stage-1a `dh` state
+(`dhs_priv`/`dhs_pub`/`dhr`/`rk`) instead. Add two-party conformance vectors (the DH ratchet
+fires mid-conversation both directions and messages still decrypt), a PCS-healing vector (a
+pre-boundary state snapshot cannot decrypt post-boundary messages), and no-mutation-on-reject.
+PQ reseed sender is Stage 2 (out of scope). Trigger defaults + the reply-driven cadence's
+metadata profile (G5) pinned at design-lock. No KDF/AEAD/primitive change; no qsl-attachments/
+qsl-server change; no dependency mutation. Full ritual (two PRs). Classical post-compromise
+security lands here; NO Triple-Ratchet / post-compromise claim until Stage 2 also lands and
+vectors pass. Reminder: build `cargo build --workspace --all-targets` before pushing (WF-0013).
+
+---
+
+### NA-0620 — ENG-0012 Stage 1: Suite-2 Classical DH Ratchet on the Real Send Path (source/test)
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? YES (implement the DH-boundary send path per DOC-CAN-003 §8.5.2 + DOC-G5-008)
 Crypto/state-machine change allowed? YES (add X25519 DH-ratchet state + send_boundary; remove the static-rk bootstrap; no KDF/AEAD primitive change)
@@ -34065,6 +34092,19 @@ mutation. Full ritual (two PRs). Resolve the DOC-G5-008 open questions (trigger 
 reply-driven vs time-based cadence; state-snapshot version bump) with the operator at design-
 lock. No public/production/security-complete/crypto-complete claim; no Triple-Ratchet /
 post-compromise claim until Stage 2 also lands and vectors pass.
+
+Outcome (D-1235/D-1236): the operator sub-staged this into 1a (plumbing) and 1b (behavior).
+NA-0620 delivered STAGE 1a (plumbing, NO behavior change): added a session-level
+`Suite2DhRatchetState` (`dhs_priv`/`dhs_pub`/`dhr`/`rk`) to `Suite2SessionState`, populated at
+establishment (qsc handshake threads its X25519 ephemeral private key via `set_dh_self_priv`),
+persisted via a snapshot v2 bump (fail-closed on non-v2). No message-path/wire/nonce/KDF/AEAD
+change; the static-`rk` bootstrap is untouched. Pinned by round-trip + non-v2 unit tests and the
+full suite2/qsc regression (incl. runtime-equivalence, byte-for-byte). ENG-0012 Stage 1a resolved
+via implementation PR #1518 (merge `685e4367`). Recovered-failure: the first CI run failed to
+build the `refimpl_actor` (a workspace member with two `Suite2SessionState` literals missed by a
+`refimpl`+`qsc`-only local build); corrective commit `245bdc7b` added the field, verified with
+`cargo build --workspace --all-targets`; final run green. NA-0621 (Stage 1b DH-ratchet behavior)
+restored as the sole READY successor and begins at D-1237.
 
 ---
 

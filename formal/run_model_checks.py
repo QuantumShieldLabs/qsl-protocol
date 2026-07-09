@@ -70,7 +70,7 @@ def main() -> int:
     print(f"QSC binding scenarios: {qsc_binding_stats['scenarios']}")
     print(f"QSC binding accepted traces: {qsc_binding_stats['accepted_traces']}")
     print(f"QSC binding rejected traces: {qsc_binding_stats['rejected_traces']}")
-    print("NA-0625 Suite-2 root-composition bounded model checks")
+    print("NA-0626 Suite-2 root-composition bounded model checks")
     root_stats = emit_suite2_root_composition_model_report()
     print("OK: Suite-2 root-composition formal model checks passed")
     print(f"Root composition states: {root_stats['states']}")

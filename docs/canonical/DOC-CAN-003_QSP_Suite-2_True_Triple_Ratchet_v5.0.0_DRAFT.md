@@ -514,7 +514,7 @@ A “boundary” message is any message with `FLAG_BOUNDARY = 1`. Boundaries are
 
 #### 8.5.1 Boundary header key rule (anti-spoof)
 
-- A boundary message header MUST be encrypted under the sender’s `NHK_s` derived from the **pre-boundary** `RK`.
+- A boundary message header that applies an epoch transition (DH ratchet advancement and/or an SCKA reseed event) MUST be encrypted under the sender’s `NHK_s` derived from the **pre-boundary** `RK`; an advertisement-only boundary (`FLAG_PQ_ADV` without an epoch transition) advances no root and its header remains under the sender’s current `HK_s`.
 - The receiver MUST accept a boundary epoch transition only if the header decrypt source is `CURRENT_NHK` (i.e., decrypted using its current `NHK_r`). If the boundary header decrypts under any other candidate key, the receiver MUST reject.
 
 This rule prevents forged “new epoch” transitions.

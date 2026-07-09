@@ -1,0 +1,253 @@
+NA-0626 WF-0014 PINNED-FRAME BYTE-SCAN (Phase 2(a), D563)
+repo_head=842f6757ff12807d56206b8a898382e4a098925b
+directive_glob_files=17 extra_inputs_json=134
+
+== SECTION 1: pinned Suite-2 wire envelopes (exhaustive) ==
+FRAME file=qshield_suite2_e2e_recv_vectors_v1.json vector=S2-E2E-ACCEPT-NONBOUNDARY-0001 path=.vectors[0].input.steps.data[0].wire_hex len=88 flags=0x0000(NONE) pq_adv_id=None pq_target_id=None hdr_ct_range=[44, 68] body_ct_len=20 dh_pub_sha12=89c7460452ed frame_sha12=e4e005acfc60 intersects_lane=no
+FRAME file=qshield_suite2_e2e_recv_vectors_v1.json vector=S2-E2E-ACCEPT-OOO-0001 path=.vectors[1].input.steps.data[0].wire_hex len=88 flags=0x0000(NONE) pq_adv_id=None pq_target_id=None hdr_ct_range=[44, 68] body_ct_len=20 dh_pub_sha12=89c7460452ed frame_sha12=5292bac011fc intersects_lane=no
+FRAME file=qshield_suite2_e2e_recv_vectors_v1.json vector=S2-E2E-ACCEPT-OOO-0001 path=.vectors[1].input.steps.data[1].wire_hex len=88 flags=0x0000(NONE) pq_adv_id=None pq_target_id=None hdr_ct_range=[44, 68] body_ct_len=20 dh_pub_sha12=89c7460452ed frame_sha12=e4e005acfc60 intersects_lane=no
+FRAME file=qshield_suite2_e2e_recv_vectors_v1.json vector=S2-E2E-ACCEPT-OOO-0001 path=.vectors[1].input.steps.data[2].wire_hex len=88 flags=0x0000(NONE) pq_adv_id=None pq_target_id=None hdr_ct_range=[44, 68] body_ct_len=20 dh_pub_sha12=89c7460452ed frame_sha12=3efcd1988f1f intersects_lane=no
+FRAME file=qshield_suite2_e2e_recv_vectors_v1.json vector=S2-E2E-ACCEPT-BOUNDARY-0001 path=.vectors[2].input.steps.data[0].wire_hex len=1180 flags=0x0006(PQ_CTXT|BOUNDARY) pq_adv_id=None pq_target_id=42 hdr_ct_range=[1136, 1160] body_ct_len=20 dh_pub_sha12=89c7460452ed frame_sha12=25744b7ccd18 intersects_lane=YES
+FRAME file=qshield_suite2_scka_logic_vectors_v1.json vector=S2-SEND-PQADV-ACCEPT-0001 path=.vectors[8].expect.output.wire_hex.data len=1306 flags=0x0005(PQ_ADV|BOUNDARY) pq_adv_id=1 pq_target_id=None hdr_ct_range=[1232, 1256] body_ct_len=50 dh_pub_sha12=9f72ea0cf495 frame_sha12=f969dce63c35 intersects_lane=YES
+FRAME file=qshield_suite2_scka_logic_vectors_v1.json vector=S2-SEND-PQRESEED-ACCEPT-0001 path=.vectors[9].expect.output.wire_hex.data len=1178 flags=0x0006(PQ_CTXT|BOUNDARY) pq_adv_id=None pq_target_id=1 hdr_ct_range=[1136, 1160] body_ct_len=18 dh_pub_sha12=9f72ea0cf495 frame_sha12=cacfdc562b50 intersects_lane=YES
+
+== SECTION 1b: pinned HEADERLESS ratchet messages (parse_vectors format) ==
+MSG file=qshield_suite2_parse_vectors_v1.json vector=S2-PARSE-ACCEPT-NONBOUNDARY-0001 path=.vectors[0].input.msg.data len=74 flags=0x0000(NONE) pq_adv_id=None pq_target_id=None hdr_ct_range=[34, 58] body_ct_len=16 dh_pub_sha12=630dcd2966c4 frame_sha12=7cc72be96361 intersects_lane=no
+
+== SECTION 1c: msg/wire-named pinned hex decoding as NEITHER (deliberate malformed) ==
+MALFORMED file=qshield_suite2_e2e_recv_vectors_v1.json vector=S2-E2E-REJECT-PARSE-0001 path=.vectors[3].input.steps.data[0].wire_hex len=83 msg_reject=REJECT_S2_PARSE_FLAGS flags_at_32=0x2627 sha12=3b6469189344
+MALFORMED file=qshield_suite2_parse_vectors_v1.json vector=S2-PARSE-REJECT-BAD-PREFIX-0001 path=.vectors[1].input.msg.data len=10 msg_reject=REJECT_S2_PARSE_PREFIX flags_at_32=n/a sha12=ffadf8d89d37
+MALFORMED file=qshield_suite2_parse_vectors_v1.json vector=S2-PARSE-REJECT-HDR-LEN-0001 path=.vectors[2].input.msg.data len=57 msg_reject=REJECT_S2_PARSE_HDR_LEN flags_at_32=0x0000 sha12=15640a459855
+MALFORMED file=qshield_suite2_parse_vectors_v1.json vector=S2-PARSE-REJECT-BODY-LEN-0001 path=.vectors[3].input.msg.data len=73 msg_reject=REJECT_S2_PARSE_BODY_LEN flags_at_32=0x0000 sha12=3ec8c510d5f7
+MALFORMED file=qshield_suite2_parse_vectors_v1.json vector=S2-PARSE-REJECT-FLAGS-0001 path=.vectors[4].input.msg.data len=74 msg_reject=REJECT_S2_PARSE_FLAGS flags_at_32=0x0002 sha12=a27b76fcd5de
+MALFORMED file=qshield_suite2_parse_vectors_v1.json vector=S2-PARSE-REJECT-PQPREFIX-CTLEN-0001 path=.vectors[5].input.msg.data len=94 msg_reject=REJECT_S2_PQPREFIX_PARSE flags_at_32=0x0006 sha12=9945c1d83d1c
+
+== SECTION 2: pinned QS2S snapshots (any version; all lane-affected) ==
+none
+
+== SECTION 3: state-shaped JSON objects with an `rk` member / DH-state markers ==
+RKNODE file=qshield_suite2_crash_restart_vectors_v1.json vector=S2-CRASH-001-PASS path=.vectors[0].input.recv_state.data.rk(parent) keys=ck_ec,ck_pq_recv,ck_pq_send,consumed_targets,dh_pub,hk_r,known_targets,mkskipped,nr,peer_max_adv_id_seen,rk,role,session_id,tombstoned_targets
+RKNODE file=qshield_suite2_crash_restart_vectors_v1.json vector=S2-CRASH-002-REPLAY path=.vectors[1].input.recv_state.data.rk(parent) keys=ck_ec,ck_pq_recv,ck_pq_send,consumed_targets,dh_pub,hk_r,known_targets,mkskipped,nr,peer_max_adv_id_seen,rk,role,session_id,tombstoned_targets
+RKNODE file=qshield_suite2_crash_restart_vectors_v1.json vector=S2-CRASH-003-ROLLBACK path=.vectors[2].input.recv_state.data.rk(parent) keys=ck_ec,ck_pq_recv,ck_pq_send,consumed_targets,dh_pub,hk_r,known_targets,mkskipped,nr,peer_max_adv_id_seen,rk,role,session_id,tombstoned_targets
+RKNODE file=qshield_suite2_crash_restart_vectors_v1.json vector=S2-CRASH-003-ROLLBACK path=.vectors[2].input.recv_state_advanced.data.rk(parent) keys=ck_ec,ck_pq_recv,ck_pq_send,consumed_targets,dh_pub,hk_r,known_targets,mkskipped,nr,peer_max_adv_id_seen,rk,role,session_id,tombstoned_targets
+RKNODE file=qshield_suite2_e2e_recv_vectors_v1.json vector=S2-E2E-ACCEPT-NONBOUNDARY-0001 path=.vectors[0].input.recv_state.data.rk(parent) keys=ck_ec,ck_pq_recv,ck_pq_send,consumed_targets,dh_pub,hk_r,known_targets,mkskipped,nr,peer_max_adv_id_seen,rk,role,session_id,tombstoned_targets
+RKNODE file=qshield_suite2_e2e_recv_vectors_v1.json vector=S2-E2E-ACCEPT-OOO-0001 path=.vectors[1].input.recv_state.data.rk(parent) keys=ck_ec,ck_pq_recv,ck_pq_send,consumed_targets,dh_pub,hk_r,known_targets,mkskipped,nr,peer_max_adv_id_seen,rk,role,session_id,tombstoned_targets
+RKNODE file=qshield_suite2_e2e_recv_vectors_v1.json vector=S2-E2E-ACCEPT-BOUNDARY-0001 path=.vectors[2].input.recv_state.data.rk(parent) keys=ck_ec,ck_pq_recv,ck_pq_send,consumed_targets,dh_pub,hk_r,known_targets,mkskipped,nr,peer_max_adv_id_seen,rk,role,session_id,tombstoned_targets
+RKNODE file=qshield_suite2_e2e_recv_vectors_v1.json vector=S2-E2E-REJECT-PARSE-0001 path=.vectors[3].input.recv_state.data.rk(parent) keys=ck_ec,ck_pq_recv,ck_pq_send,consumed_targets,dh_pub,hk_r,known_targets,mkskipped,nr,peer_max_adv_id_seen,rk,role,session_id,tombstoned_targets
+RKNODE file=qshield_suite2_interop_vectors_v1.json vector=S2-INTEROP-A2B-0001 path=.vectors[0].input.recv_state.data.rk(parent) keys=ck_ec,ck_pq_recv,ck_pq_send,consumed_targets,dh_pub,hk_r,known_targets,mkskipped,nr,peer_max_adv_id_seen,rk,role,session_id,tombstoned_targets
+RKNODE file=qshield_suite2_interop_vectors_v1.json vector=S2-INTEROP-B2A-0001 path=.vectors[1].input.recv_state.data.rk(parent) keys=ck_ec,ck_pq_recv,ck_pq_send,consumed_targets,dh_pub,hk_r,known_targets,mkskipped,nr,peer_max_adv_id_seen,rk,role,session_id,tombstoned_targets
+RKNODE file=qshield_suite2_interop_vectors_v1.json vector=S2-INTEROP-REJECT-FLAGS-0001 path=.vectors[2].input.recv_state.data.rk(parent) keys=ck_ec,ck_pq_recv,ck_pq_send,consumed_targets,dh_pub,hk_r,known_targets,mkskipped,nr,peer_max_adv_id_seen,rk,role,session_id,tombstoned_targets
+RKNODE file=qshield_suite2_interop_ximpl_vectors_v1.json vector=S2-INTEROP-XIMPL-A2B-0001 path=.vectors[0].input.recv_state.data.rk(parent) keys=ck_ec,ck_pq_recv,ck_pq_send,consumed_targets,dh_pub,hk_r,known_targets,mkskipped,nr,peer_max_adv_id_seen,rk,role,session_id,tombstoned_targets
+RKNODE file=qshield_suite2_interop_ximpl_vectors_v1.json vector=S2-INTEROP-XIMPL-B2A-0001 path=.vectors[1].input.recv_state.data.rk(parent) keys=ck_ec,ck_pq_recv,ck_pq_send,consumed_targets,dh_pub,hk_r,known_targets,mkskipped,nr,peer_max_adv_id_seen,rk,role,session_id,tombstoned_targets
+RKNODE file=qshield_suite2_scka_logic_vectors_v1.json vector=S2-SEND-PQADV-ACCEPT-0001 path=.vectors[8].input.recv_state.data.rk(parent) keys=ck_ec,ck_pq_recv,ck_pq_send,consumed_targets,dh_pub,hk_r,known_targets,mkskipped,nr,peer_max_adv_id_seen,rk,role,session_id,tombstoned_targets
+RKNODE file=qshield_suite2_scka_logic_vectors_v1.json vector=S2-SEND-PQRESEED-ACCEPT-0001 path=.vectors[9].expect.output.new_state.data.rk(parent) keys=dh_rk,hk_r,hk_s,ns,recv_ck_pq_recv,recv_ck_pq_send,rk,send_ck_ec,send_ck_pq
+RKNODE file=qshield_suite2_scka_logic_vectors_v1.json vector=S2-SEND-PQRESEED-ACCEPT-0001 path=.vectors[9].input.recv_state.data.rk(parent) keys=ck_ec,ck_pq_recv,ck_pq_send,consumed_targets,dh_pub,hk_r,known_targets,mkskipped,nr,peer_max_adv_id_seen,rk,role,session_id,tombstoned_targets
+RKNODE file=qshield_suite2_scka_logic_vectors_v1.json vector=S2-SEND-PQADV-REJECT-BADPUB-0001 path=.vectors[10].input.recv_state.data.rk(parent) keys=ck_ec,ck_pq_recv,ck_pq_send,consumed_targets,dh_pub,hk_r,known_targets,mkskipped,nr,peer_max_adv_id_seen,rk,role,session_id,tombstoned_targets
+RKNODE file=qshield_suite2_scka_logic_vectors_v1.json vector=S2-SEND-PQADV-REJECT-NONMONO-0001 path=.vectors[11].input.recv_state.data.rk(parent) keys=ck_ec,ck_pq_recv,ck_pq_send,consumed_targets,dh_pub,hk_r,known_targets,mkskipped,nr,peer_max_adv_id_seen,rk,role,session_id,tombstoned_targets
+RKNODE file=qshield_suite2_scka_logic_vectors_v1.json vector=S2-SEND-PQRESEED-REJECT-BADCT-0001 path=.vectors[12].input.recv_state.data.rk(parent) keys=ck_ec,ck_pq_recv,ck_pq_send,consumed_targets,dh_pub,hk_r,known_targets,mkskipped,nr,peer_max_adv_id_seen,rk,role,session_id,tombstoned_targets
+RKNODE file=qshield_suite2_scka_logic_vectors_v1.json vector=S2-SEND-PQRESEED-REJECT-BADSS-0001 path=.vectors[13].input.recv_state.data.rk(parent) keys=ck_ec,ck_pq_recv,ck_pq_send,consumed_targets,dh_pub,hk_r,known_targets,mkskipped,nr,peer_max_adv_id_seen,rk,role,session_id,tombstoned_targets
+
+== SECTION 3b: constructed-frame knobs (runtime-built frames; semantics surface) ==
+KNOB file=qshield_suite2_boundary_vectors_v1.json vector=S2-BOUNDARY-ACCEPT-IN-ORDER-0001 path=.vectors[0].input.message spec-keys=body_pt_hex,flags,n,pn,pq_epoch_ss,pq_prefix_hex,tamper
+KNOB file=qshield_suite2_boundary_vectors_v1.json vector=S2-BOUNDARY-ACCEPT-IN-ORDER-0001 path=.vectors[0].input.message.data.flags value={"u16": 6}
+KNOB file=qshield_suite2_boundary_vectors_v1.json vector=S2-BOUNDARY-REJECT-NOT-IN-ORDER-0001 path=.vectors[1].input.message spec-keys=body_pt_hex,flags,n,pn,pq_epoch_ss,pq_prefix_hex,tamper
+KNOB file=qshield_suite2_boundary_vectors_v1.json vector=S2-BOUNDARY-REJECT-NOT-IN-ORDER-0001 path=.vectors[1].input.message.data.flags value={"u16": 6}
+KNOB file=qshield_suite2_boundary_vectors_v1.json vector=S2-BOUNDARY-REJECT-CT-BAD-LEN-0001 path=.vectors[2].input.message spec-keys=body_pt_hex,flags,n,pn,pq_epoch_ss,pq_prefix_hex,tamper
+KNOB file=qshield_suite2_boundary_vectors_v1.json vector=S2-BOUNDARY-REJECT-CT-BAD-LEN-0001 path=.vectors[2].input.message.data.flags value={"u16": 6}
+KNOB file=qshield_suite2_boundary_vectors_v1.json vector=S2-BOUNDARY-REJECT-PQPREFIX-PARSE-0001 path=.vectors[3].input.message spec-keys=body_pt_hex,flags,n,pn,pq_epoch_ss,pq_prefix_hex,tamper
+KNOB file=qshield_suite2_boundary_vectors_v1.json vector=S2-BOUNDARY-REJECT-PQPREFIX-PARSE-0001 path=.vectors[3].input.message.data.flags value={"u16": 6}
+KNOB file=qshield_suite2_establish_vectors_v1.json vector=S2-ESTABLISH-ACCEPT-0001 path=.vectors[0].input.message spec-keys=flags,plaintext_hex
+KNOB file=qshield_suite2_establish_vectors_v1.json vector=S2-ESTABLISH-ACCEPT-0001 path=.vectors[0].input.message.data.flags value={"u16": 0}
+KNOB file=qshield_suite2_interop_vectors_v1.json vector=S2-INTEROP-REJECT-FLAGS-0001 path=.vectors[2].input.flags value={"u16": 1}
+KNOB file=qshield_suite2_negotiation_vectors_na0302.json vector=NA0302-S2-NEGOTIATION-VALID-0001 path=.vectors[0].input.parameters.data.flags value="0x0000"
+KNOB file=qshield_suite2_negotiation_vectors_na0302.json vector=NA0302-S2-NEGOTIATION-UNSUPPORTED-SUITE-0001 path=.vectors[1].input.parameters.data.flags value="0x0000"
+KNOB file=qshield_suite2_negotiation_vectors_na0302.json vector=NA0302-S2-NEGOTIATION-DOWNGRADE-VERSION-0001 path=.vectors[2].input.parameters.data.flags value="0x0000"
+KNOB file=qshield_suite2_negotiation_vectors_na0302.json vector=NA0302-S2-NEGOTIATION-UNSUPPORTED-ALGORITHM-0001 path=.vectors[3].input.parameters.data.flags value="0x0000"
+KNOB file=qshield_suite2_negotiation_vectors_na0302.json vector=NA0302-S2-NEGOTIATION-UNSUPPORTED-FLAGS-0001 path=.vectors[4].input.parameters.data.flags value="0x8000"
+KNOB file=qshield_suite2_parse_vectors_v1.json vector=S2-PARSE-ACCEPT-NONBOUNDARY-0001 path=.vectors[0].expect.output.flags value={"u16": 0}
+KNOB file=qshield_suite2_pq_reseed_vectors_v1.json vector=S2-RECV-PQRESEED-NHK-ACCEPT-0001 path=.vectors[5].input.message spec-keys=body_pt_hex,flags,n,pn,pq_epoch_ss,pq_prefix_hex,tamper
+KNOB file=qshield_suite2_pq_reseed_vectors_v1.json vector=S2-RECV-PQRESEED-NHK-ACCEPT-0001 path=.vectors[5].input.message.data.flags value={"u16": 6}
+KNOB file=qshield_suite2_pq_reseed_vectors_v1.json vector=S2-RECV-PQRESEED-REJECT-HK-DOWNGRADE-0001 path=.vectors[6].input.message spec-keys=body_pt_hex,flags,hdr_key,n,pn,pq_epoch_ss,pq_prefix_hex,tamper
+KNOB file=qshield_suite2_pq_reseed_vectors_v1.json vector=S2-RECV-PQRESEED-REJECT-HK-DOWNGRADE-0001 path=.vectors[6].input.message.data.flags value={"u16": 6}
+KNOB file=qshield_suite2_pq_reseed_vectors_v1.json vector=S2-RECV-PQRESEED-REJECT-HK-DOWNGRADE-0001 path=.vectors[6].input.message.data.hdr_key value="hk"
+KNOB file=qshield_suite2_scka_logic_vectors_v1.json vector=S2-RECV-PQADV-ACCEPT-0001 path=.vectors[14].input.message spec-keys=body_payload_hex,mac,n,pn,pq_adv_id,pq_adv_pub_hex,tamper
+KNOB file=qshield_suite2_scka_logic_vectors_v1.json vector=S2-RECV-PQADV-REJECT-SPOOFED-0001 path=.vectors[15].input.message spec-keys=body_payload_hex,hdr_key_hex,mac,n,pn,pq_adv_id,pq_adv_pub_hex,tamper
+KNOB file=qshield_suite2_scka_logic_vectors_v1.json vector=S2-RECV-PQADV-REJECT-SPOOFED-0001 path=.vectors[15].input.message.data.hdr_key_hex value="eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+KNOB file=qshield_suite2_scka_logic_vectors_v1.json vector=S2-RECV-PQADV-REJECT-BADMAC-0001 path=.vectors[16].input.message spec-keys=body_payload_hex,mac,n,pn,pq_adv_id,pq_adv_pub_hex,tamper
+KNOB file=qshield_suite2_scka_logic_vectors_v1.json vector=S2-RECV-PQADV-REJECT-REPLAY-0001 path=.vectors[17].input.message spec-keys=body_payload_hex,mac,n,pn,pq_adv_id,pq_adv_pub_hex,tamper
+KNOB file=qshield_suite2_scka_logic_vectors_v1.json vector=S2-RECV-PQADV-REJECT-NOMAC-0001 path=.vectors[18].input.message spec-keys=body_payload_hex,mac,n,pn,pq_adv_id,pq_adv_pub_hex,tamper
+KNOB file=qshield_suite2_transcript_vectors_v1.json vector=S2-TRANSCRIPT-ACCEPT-0001 path=.vectors[0].input.flags value={"u16": 0}
+KNOB file=qshield_suite2_transcript_vectors_v1.json vector=S2-TRANSCRIPT-REJECT-ADHDR-MISMATCH-0001 path=.vectors[1].input.flags value={"u16": 0}
+KNOB file=qshield_suite2_transcript_vectors_v1.json vector=S2-TRANSCRIPT-REJECT-FLAGS-MISMATCH-0001 path=.vectors[2].input.flags value={"u16": 1}
+KNOB file=qshield_suite2_transcript_vectors_v1.json vector=S2-TRANSCRIPT-REJECT-PQ-BIND-MISMATCH-NA0241 path=.vectors[3].input.flags value={"u16": 0}
+
+== SECTION 4: per-file verdict (Decision-5 artifact-scope input) ==
+FILE inputs/local_ops/directive_manifest_fixtures/fixture_cases.json sha12=f74f1431a4dd hex_strings=28 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/directive_manifest_fixtures/forbidden_operation_missing.json sha12=8865ccd738d2 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/directive_manifest_fixtures/forbidden_overlay_manifest.json sha12=064358eb8f90 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/directive_manifest_fixtures/malformed_json.json sha12=997893a175ee hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/directive_manifest_fixtures/missing_directive_id.json sha12=7f80951d5c5e hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/directive_manifest_fixtures/missing_expected_origin_main.json sha12=60cfaf241fd3 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/directive_manifest_fixtures/missing_prior_response_path.json sha12=da51f8e633f6 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/directive_manifest_fixtures/missing_public_claim_boundaries.json sha12=a69ede03b29c hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/directive_manifest_fixtures/missing_required_checks.json sha12=fc819e533125 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/directive_manifest_fixtures/missing_schema_version.json sha12=d8557f29faba hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/directive_manifest_fixtures/missing_stop_conditions.json sha12=179128fafa4a hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/directive_manifest_fixtures/missing_target_na.json sha12=29ed21c6173f hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/directive_manifest_fixtures/operator_input_mismatch.json sha12=9e006112b591 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/directive_manifest_fixtures/secret_shaped_value.json sha12=0bc6a230e036 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/directive_manifest_fixtures/successor_mismatch.json sha12=445b3fc3c4b3 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/directive_manifest_fixtures/unknown_top_level_key.json sha12=304d571680e9 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/directive_manifest_fixtures/valid_manifest.json sha12=e73490de2183 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/directive_manifest_fixtures/wrong_directive_id.json sha12=b557a1b7db47 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/directive_manifest_fixtures/wrong_expected_origin_main.json sha12=07458722285c hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/directive_manifest_fixtures/wrong_target_na.json sha12=349d1636572d hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/director_state_index_fixtures/advisory_only_no_override_ok.json sha12=4833c0b50e96 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/director_state_index_fixtures/backup_status_unavailable_warn.json sha12=752517c915db hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/director_state_index_fixtures/duplicate_decision_reject.json sha12=b00c884ae2d0 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/director_state_index_fixtures/durable_output_path_reject.json sha12=d4a85f606fa8 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/director_state_index_fixtures/latest_decision_mismatch_reject.json sha12=f1d942a2f0a3 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/director_state_index_fixtures/malformed_json_reject.json sha12=4358cd0fe3c6 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/director_state_index_fixtures/missing_branch_protection_warn.json sha12=d4c904d26aaa hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/director_state_index_fixtures/missing_public_safety_reject.json sha12=00b353f43301 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/director_state_index_fixtures/multiple_ready_reject.json sha12=a4a2e95ea875 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/director_state_index_fixtures/public_claim_overreach_reject.json sha12=1aa800bf10b6 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/director_state_index_fixtures/public_docs_output_path_reject.json sha12=45cf041708db hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/director_state_index_fixtures/qsl_attachments_unavailable_warn.json sha12=5476932f0381 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/director_state_index_fixtures/qsl_server_unavailable_warn.json sha12=67d3f4f5ead9 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/director_state_index_fixtures/ready_mismatch_reject.json sha12=a1f460ad567d hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/director_state_index_fixtures/red_public_safety_reject.json sha12=7e1946e9cf54 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/director_state_index_fixtures/response_archive_output_path_reject.json sha12=a2bc5a29aef4 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/director_state_index_fixtures/secret_sentinel_reject.json sha12=c8b49d86607b hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/director_state_index_fixtures/stale_origin_main_reject.json sha12=cae76501015c hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/director_state_index_fixtures/unknown_schema_reject.json sha12=842a2ecec4b7 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/director_state_index_fixtures/valid_current_state.json sha12=53488b720a6d hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/qsl_bounded_check_poll_fixtures/api_404_persistent_failure.json sha12=43175f62d5d7 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/qsl_bounded_check_poll_fixtures/api_404_transient_then_success.json sha12=236e94f02270 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/qsl_bounded_check_poll_fixtures/codeql_neutral_accepted.json sha12=2b49479fa875 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/qsl_bounded_check_poll_fixtures/codeql_red_rejected.json sha12=a7e7792894d7 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/qsl_bounded_check_poll_fixtures/docs_only_skipped_accepted.json sha12=18109d293517 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/qsl_bounded_check_poll_fixtures/malformed_json.json sha12=119b566c2c63 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/qsl_bounded_check_poll_fixtures/missing_public_safety.json sha12=a08510103e17 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/qsl_bounded_check_poll_fixtures/pr_required_success.json sha12=f15bd326042d hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/qsl_bounded_check_poll_fixtures/public_safety_in_progress_then_success.json sha12=aa636ea67cfc hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/qsl_bounded_check_poll_fixtures/push_sha_pr_only_missing_report_only.json sha12=7a92f0da4426 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/qsl_bounded_check_poll_fixtures/red_public_safety.json sha12=83d3b9b8daa6 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/qsl_bounded_check_poll_fixtures/red_required_check.json sha12=96f08bc3a3a7 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/qsl_bounded_check_poll_fixtures/skipped_not_accepted_without_policy.json sha12=cefb09ebd742 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/qsl_bounded_check_poll_fixtures/stale_failed_rerun_latest_success.json sha12=5351ce5efae0 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/qsl_bounded_check_poll_fixtures/timeout_pending.json sha12=03ab6f1b16e5 hex_strings=1 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_history_catalog_fixtures/fixture_cases.json sha12=20bd7f261210 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_history_catalog_fixtures/valid_summary_fixture.json sha12=5a667624ff03 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_fixtures/archive_output_requested_metadata.json sha12=07939b2f4a1f hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_fixtures/fixture_cases.json sha12=6ea41eeb99ce hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_fixtures/invalid_directive_suffix_metadata.json sha12=789d968d9e3d hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_fixtures/invalid_target_metadata.json sha12=a553527be102 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_fixtures/invalid_timestamp_metadata.json sha12=3772786e4bd1 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_fixtures/invalid_timezone_offset_metadata.json sha12=a0f6c150ac7b hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_fixtures/malformed_metadata.json sha12=ffb528a82d73 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_fixtures/missing_directive_suffix_metadata.json sha12=cdd9d838a1bd hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_fixtures/missing_target_metadata.json sha12=2bdbf6dd279b hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_fixtures/missing_wrapper_timestamp_metadata.json sha12=67e3586cfc71 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_fixtures/valid_full_metadata.json sha12=ff6b84701060 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_fixtures/valid_minimal_metadata.json sha12=c593cf263712 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_real_archive_fixtures/delete_request_metadata.json sha12=0f25d76de2a4 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_real_archive_fixtures/fixture_cases.json sha12=536a3ff38c6d hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_real_archive_fixtures/index_request_metadata.json sha12=09663f326a06 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_real_archive_fixtures/invalid_directive_suffix_metadata.json sha12=379155f41433 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_real_archive_fixtures/invalid_target_metadata.json sha12=d107c7761ba8 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_real_archive_fixtures/invalid_timestamp_metadata.json sha12=0ef4f3e8797b hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_real_archive_fixtures/malformed_metadata.json sha12=ffb528a82d73 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_real_archive_fixtures/real_archive_missing_metadata_gate.json sha12=33b8b2982765 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_real_archive_fixtures/valid_real_archive_smoke_metadata.json sha12=1fa42999c272 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/response_writer_real_archive_fixtures/valid_temp_metadata.json sha12=ebc89393d269 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/events/code_crypto_before_public_paper.json sha12=7f0f2f7aa872 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/events/external_watch_future_gated.json sha12=c64112a91a71 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/events/no_audit_due.json sha12=6bc830b26a35 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/events/public_claim_before_website.json sha12=2e2799b73262 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/events/quick_overall_due_by_pr_count.json sha12=edf5e5fb13d3 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/fixture_cases.json sha12=eaaaaf286a1a hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/negative/auto_promotes_ready.json sha12=80b623b7aa44 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/negative/background_automation_requested.json sha12=dfc4cba7ca74 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/negative/bug_free_claim.json sha12=4d1159081f2e hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/negative/critical_without_stop.json sha12=1616c835e53d hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/negative/durable_report_output_requested.json sha12=69c67030ba84 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/negative/external_review_complete_claim.json sha12=1e597059349b hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/negative/external_watch_performed.json sha12=3a0c13f20334 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/negative/malformed_json.json sha12=bf74f9426a35 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/negative/metadata_free_anonymity_untraceable_claim.json sha12=516afb454df7 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/negative/missing_audit_profiles.json sha12=55c7223945dc hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/negative/missing_code_crypto_profile.json sha12=f7aab9079bc0 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/negative/missing_public_claim_boundary.json sha12=a39bf3f6c62b hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/negative/multiple_ready_candidates.json sha12=aa79a4f6208a hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/negative/perfect_crypto_claim.json sha12=ee2fbe74d56e hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/negative/production_ready_claim.json sha12=cc0aa2272c0d hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/negative/public_internet_ready_claim.json sha12=d52950d2ebc6 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/negative/public_paper_without_preconditions.json sha12=0c8e11183e09 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/negative/scheduler_cron_workflow_requested.json sha12=0851867ed443 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/negative/unknown_severity.json sha12=3eae2e00c77b hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/negative/unknown_top_level_key.json sha12=16665834bead hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/profiles/code_crypto.json sha12=ecc780ee2c60 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/profiles/external_standards_threat_technology_watch.json sha12=9eb4bc8ad6fa hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/profiles/local_ops_history_backup.json sha12=d0ceb012cb8a hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/profiles/overall_project.json sha12=33d6af06c888 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/profiles/public_claim_external_review.json sha12=db35f4bcae21 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/profiles/targeted_incident_regression.json sha12=6182200d6de1 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/triggers/na_count.json sha12=2dcd845c5658 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/triggers/pr_count.json sha12=806eafd05b10 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/triggers/public_paper_precondition.json sha12=53ddf9555373 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/triggers/risk_event.json sha12=201493681f82 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/valid_minimal_policy.json sha12=235ed6f0dbbf hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/valid_policy.json sha12=45c4564cc8c2 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/valid_queue_insertion_policy.json sha12=14b14b5c1508 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/valid_report_output_boundary.json sha12=981dc29c2512 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/valid_severity_taxonomy.json sha12=04cc39128faa hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/local_ops/routine_audit_cadence_fixtures/valid_summary_fixture.json sha12=4e723d9a3560 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/metadata_phase2/identifier_padding_policy_vectors_v1.json sha12=e54d115656e7 hex_strings=2 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/metadata_phase2/sanitized_errors_retention_policy_vectors_v1.json sha12=e59724cd0c80 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/metadata_runtime/identifier_padding_runtime_fixture_v1.json sha12=b378bc488973 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/metadata_runtime/key_custody_recovery_no_secret_fixture_v1.json sha12=57bc7c0ff2c2 hex_strings=12 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/metadata_runtime/off_host_backup_target_candidate_host_identity_operator_action_packet_v1.json sha12=7763622bc8ee hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/metadata_runtime/off_host_backup_target_candidate_host_identity_operator_response_collection_request_v1.json sha12=8d1eefbe7036 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/metadata_runtime/off_host_backup_target_tool_no_secret_fixture_v1.json sha12=0ea66c994c6d hex_strings=20 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/metadata_runtime/production_backup_deploy_rollback_fixture_v1.json sha12=dbee9c4bdb40 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/metadata_runtime/restore_drill_dry_run_fixture_v1.json sha12=6ceae5b12e46 hex_strings=6 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/metadata_runtime/restore_drill_isolated_restore_no_secret_fixture_v1.json sha12=a0d6cfbe101e hex_strings=16 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/phase3/phase3.lock.json sha12=449f2f077e30 hex_strings=57 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/suite2/internal_negative_binding_vectors/qsl_binding_negative_vector_manifest_v1.json sha12=27bd6dcb49ad hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/suite2/qsc_handshake_suite_id_vectors_na0310.json sha12=51f258692598 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/suite2/vectors/qshield_suite2_boundary_vectors_v1.json sha12=67e5b5da0e91 hex_strings=38 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=8 -> AFFECTED-or-semantics-adjacent [constructed-frame-knobs=8]
+FILE inputs/suite2/vectors/qshield_suite2_crash_restart_vectors_v1.json sha12=8da8ffccd242 hex_strings=60 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=4 knobs=0 -> AFFECTED-or-semantics-adjacent [rk-state-nodes=4]
+FILE inputs/suite2/vectors/qshield_suite2_downgrade_vectors_v1.json sha12=f2b41e78299c hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/suite2/vectors/qshield_suite2_e2e_recv_vectors_v1.json sha12=9d4169fd187c hex_strings=35 envelopes=5 msgs=0 malformed=1 qs2s=0 rk_nodes=4 knobs=0 -> AFFECTED-or-semantics-adjacent [pinned-flagged-envelopes=1; rk-state-nodes=4]
+FILE inputs/suite2/vectors/qshield_suite2_establish_vectors_v1.json sha12=03d9d7aea0f4 hex_strings=104 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=2 -> AFFECTED-or-semantics-adjacent [constructed-frame-knobs=2]
+FILE inputs/suite2/vectors/qshield_suite2_interop_vectors_v1.json sha12=94c32dcd9888 hex_strings=50 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=3 knobs=1 -> AFFECTED-or-semantics-adjacent [rk-state-nodes=3; constructed-frame-knobs=1]
+FILE inputs/suite2/vectors/qshield_suite2_interop_ximpl_vectors_v1.json sha12=49cf398a238f hex_strings=38 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=2 knobs=0 -> AFFECTED-or-semantics-adjacent [rk-state-nodes=2]
+FILE inputs/suite2/vectors/qshield_suite2_kdf_vectors_v1.json sha12=ad1766f18c7f hex_strings=21 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/suite2/vectors/qshield_suite2_kt_verifier_vectors_v1.json sha12=cf0b1c83db6c hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/suite2/vectors/qshield_suite2_mk_hybrid_vectors_v1.json sha12=ee58fabf5989 hex_strings=17 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/suite2/vectors/qshield_suite2_negotiation_vectors_na0302.json sha12=254f013a9f38 hex_strings=0 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=5 -> AFFECTED-or-semantics-adjacent [constructed-frame-knobs=5]
+FILE inputs/suite2/vectors/qshield_suite2_ooo_replay_vectors_v1.json sha12=c8117e7c301d hex_strings=42 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/suite2/vectors/qshield_suite2_parse_vectors_v1.json sha12=3332f6351a23 hex_strings=6 envelopes=0 msgs=1 malformed=5 qs2s=0 rk_nodes=0 knobs=1 -> AFFECTED-or-semantics-adjacent [constructed-frame-knobs=1]
+FILE inputs/suite2/vectors/qshield_suite2_pq_reseed_vectors_v1.json sha12=b27d202ed88c hex_strings=54 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=5 -> AFFECTED-or-semantics-adjacent [constructed-frame-knobs=5]
+FILE inputs/suite2/vectors/qshield_suite2_scka_kem_vectors_v1.json sha12=efcb7147b8c2 hex_strings=17 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=0 -> not-affected-by-bytes
+FILE inputs/suite2/vectors/qshield_suite2_scka_logic_vectors_v1.json sha12=172b9d062cdf hex_strings=144 envelopes=2 msgs=0 malformed=0 qs2s=0 rk_nodes=7 knobs=6 -> AFFECTED-or-semantics-adjacent [pinned-flagged-envelopes=2; rk-state-nodes=7; constructed-frame-knobs=6]
+FILE inputs/suite2/vectors/qshield_suite2_transcript_vectors_v1.json sha12=c7e4f3d4a1af hex_strings=19 envelopes=0 msgs=0 malformed=0 qs2s=0 rk_nodes=0 knobs=4 -> AFFECTED-or-semantics-adjacent [constructed-frame-knobs=4]
+
+== non-JSON files raw-scanned (deliberate malformed fixtures, non-vector) ==
+RAWSCANNED inputs/local_ops/directive_manifest_fixtures/malformed_json.json (Expecting property name enclosed in double quotes: line 2 column 1 (char 49))
+RAWSCANNED inputs/local_ops/director_state_index_fixtures/malformed_json_reject.json (Expecting ',' delimiter: line 6 column 1 (char 125))
+RAWSCANNED inputs/local_ops/qsl_bounded_check_poll_fixtures/malformed_json.json (Expecting value: line 2 column 1 (char 10))
+RAWSCANNED inputs/local_ops/response_writer_fixtures/malformed_metadata.json (Expecting property name enclosed in double quotes: line 2 column 1 (char 60))
+RAWSCANNED inputs/local_ops/response_writer_real_archive_fixtures/malformed_metadata.json (Expecting property name enclosed in double quotes: line 2 column 1 (char 60))
+RAWSCANNED inputs/local_ops/routine_audit_cadence_fixtures/negative/malformed_json.json (Expecting ',' delimiter: line 7 column 1 (char 126))
+
+note: rk-state-nodes marks the actor state-JSON schema surface (recv_state/new_state
+carrying `rk`); whether those vectors change is decided by the design-lock state-shape
+pin (2b/2c), not by wire bytes. pinned-flagged envelopes/msgs transit the boundary
+dispatch this lane restructures: the regenerator must assert byte-identity for every
+one it does not deliberately change. pinned-qs2s blobs are ALWAYS affected (QS2S
+v2->v3, v2 fail-closed). constructed-frame-knobs mark vectors that BUILD frames at run
+time (flags/hdr_key/message specs): byte-freeze-independent, but their expected
+dispositions sit on the receiver-dispatch surface and each must be dispositioned in
+the design-lock (esp. any flags override reaching the recv_wire dispatch).

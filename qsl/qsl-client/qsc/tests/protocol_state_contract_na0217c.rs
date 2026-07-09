@@ -99,7 +99,6 @@ fn seeded_session_state(seed: u64, peer: &str) -> Suite2SessionState {
         suite_id: SUITE2_SUITE_ID,
         dh_pub,
         hk_r: hk,
-        rk,
         ck_ec,
         ck_pq_send: ck_pq,
         ck_pq_recv: ck_pq,
@@ -115,9 +114,8 @@ fn seeded_session_state(seed: u64, peer: &str) -> Suite2SessionState {
         dhs_priv: dh_priv,
         dhs_pub: dh_pub,
         dhr: dh_pub,
-        rk,
     };
-    Suite2SessionState { send, recv, dh }
+    Suite2SessionState { rk, send, recv, dh }
 }
 
 fn write_legacy_session(cfg: &Path, peer: &str, seed: u64) {
@@ -142,36 +140,43 @@ fn status_reports_missing_seed_without_session_state() {
     );
 }
 
+/// NA-0626 (Operator Decision 1): the legacy plaintext migration is REMOVED — a legacy
+/// plaintext session necessarily holds a pre-v3 QS2S snapshot and is UNRECOVERABLE: the status
+/// contract is the DISTINCT deterministic marker, INACTIVE, and no on-disk mutation.
 #[test]
-fn status_preserves_legacy_migration_to_active_session() {
-    let base = unique_dir("na0217c_status_legacy_migration");
+fn status_reports_legacy_session_unrecoverable_no_mutation() {
+    let base = unique_dir("na0626_status_legacy_unrecoverable");
     let cfg = base.join("cfg");
     ensure_dir_700(&base);
     ensure_dir_700(&cfg);
     common::init_mock_vault(&cfg);
     write_legacy_session(&cfg, "peer-0", 21);
 
+    let legacy = cfg.join("qsp_sessions").join("peer-0.bin");
+    let before = fs::read(&legacy).unwrap();
     let first = qsc_status(&cfg);
     assert!(
-        first.contains("event=session_migrate ok=true action=imported reason=legacy_plaintext"),
+        first.contains("event=error code=session_unsupported_version"),
         "{first}"
     );
     assert!(
-        first.contains("event=qsp_status status=ACTIVE reason=handshake"),
+        first.contains("event=qsp_status status=INACTIVE reason=session_invalid"),
         "{first}"
     );
     assert!(
-        cfg.join("qsp_sessions").join("peer-0.qsv").exists(),
-        "encrypted session blob missing"
+        !cfg.join("qsp_sessions").join("peer-0.qsv").exists(),
+        "no blob may be created from an unrecoverable legacy session"
+    );
+    assert_eq!(
+        before,
+        fs::read(&legacy).unwrap(),
+        "legacy file byte-unchanged"
     );
 
     let second = qsc_status(&cfg);
     assert!(
-        second.contains("event=session_load ok=true format=v1"),
-        "{second}"
+        second.contains("event=error code=session_unsupported_version"),
+        "deterministic: {second}"
     );
-    assert!(
-        second.contains("event=qsp_status status=ACTIVE reason=handshake"),
-        "{second}"
-    );
+    assert_eq!(before, fs::read(&legacy).unwrap());
 }

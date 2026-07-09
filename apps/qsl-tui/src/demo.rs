@@ -126,8 +126,17 @@ fn run_local_demo(channel: &str, privacy_mode: PrivacyMode) -> Result<DemoResult
         PrivacyMode::Padded => pad_payload(b"hello")?,
     };
     let send_out = send_wire(&c, &c, &c, a_state.send, 0, &payload).map_err(|e| anyhow!(e))?;
-    let recv_out =
-        recv_wire(&c, &c, &c, b_state.recv, &send_out.wire, None, None).map_err(|e| anyhow!(e))?;
+    let recv_out = recv_wire(
+        &c,
+        &c,
+        &c,
+        b_state.recv,
+        &b_state.rk,
+        &send_out.wire,
+        None,
+        None,
+    )
+    .map_err(|e| anyhow!(e))?;
 
     let unpadded = match privacy_mode {
         PrivacyMode::Basic => recv_out.plaintext,
@@ -173,8 +182,8 @@ async fn run_relay_demo(
         sleep(Duration::from_millis(100)).await;
     };
 
-    let recv_out =
-        recv_wire(&c, &c, &c, b_state.recv, &wire, None, None).map_err(|e| anyhow!(e))?;
+    let recv_out = recv_wire(&c, &c, &c, b_state.recv, &b_state.rk, &wire, None, None)
+        .map_err(|e| anyhow!(e))?;
 
     let unpadded = match privacy_mode {
         PrivacyMode::Basic => recv_out.plaintext,
@@ -233,8 +242,8 @@ pub async fn run_party_once(
     } else {
         local_pull_wait(&pull_channel).await?
     };
-    let recv_out =
-        recv_wire(&c, &c, &c, b_state.recv, &wire, None, None).map_err(|e| anyhow!(e))?;
+    let recv_out = recv_wire(&c, &c, &c, b_state.recv, &b_state.rk, &wire, None, None)
+        .map_err(|e| anyhow!(e))?;
     let recv_plain_len = recv_out.plaintext.len();
     let unpadded = match privacy_mode {
         PrivacyMode::Basic => recv_out.plaintext,

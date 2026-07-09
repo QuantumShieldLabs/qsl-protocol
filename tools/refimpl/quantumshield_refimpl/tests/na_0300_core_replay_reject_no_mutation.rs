@@ -26,6 +26,7 @@ fn base_session() -> Suite2SessionState {
     let ck_pq = arr32(0x70);
 
     Suite2SessionState {
+        rk: arr32(0x80),
         send: Suite2SendState {
             session_id,
             protocol_version: types::SUITE2_PROTOCOL_VERSION,
@@ -43,7 +44,6 @@ fn base_session() -> Suite2SessionState {
             suite_id: types::SUITE2_SUITE_ID,
             dh_pub,
             hk_r: hk,
-            rk: arr32(0x80),
             ck_ec,
             ck_pq_send: arr32(0x90),
             ck_pq_recv: ck_pq,
@@ -69,11 +69,13 @@ fn recv_into_session(
         crypto,
         crypto,
         session.recv.clone(),
+        &session.rk,
         wire,
         None,
         None,
     )?;
     session.recv = out.state;
+    session.rk = out.rk;
     Ok(out.plaintext)
 }
 

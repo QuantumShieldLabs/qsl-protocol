@@ -34,15 +34,19 @@ pub fn send_wire_canon(
     ratchet::send_wire(hash, kmac, aead, st, flags, plaintext).map_err(RefimplError::from)
 }
 
+/// NA-0626 (ENG-0024): root-explicit, mirroring `ratchet::recv_wire` — `rk` is the canonical
+/// session root in; the possibly-advanced root returns in `RecvWireOutcome.rk`.
+#[allow(clippy::too_many_arguments)]
 pub fn recv_wire_canon(
     hash: &dyn Hash,
     kmac: &dyn Kmac,
     aead: &dyn Aead,
     st: ratchet::Suite2RecvWireState,
+    rk: &[u8; 32],
     wire: &[u8],
     pq_epoch_ss: Option<&[u8]>,
     peer_adv_id: Option<u32>,
 ) -> Result<ratchet::RecvWireOutcome, RefimplError> {
-    ratchet::recv_wire(hash, kmac, aead, st, wire, pq_epoch_ss, peer_adv_id)
+    ratchet::recv_wire(hash, kmac, aead, st, rk, wire, pq_epoch_ss, peer_adv_id)
         .map_err(RefimplError::from)
 }

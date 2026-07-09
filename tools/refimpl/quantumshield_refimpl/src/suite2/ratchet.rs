@@ -927,6 +927,9 @@ pub fn recv_boundary_in_order(
     }
 }
 
+/// NA-0626 (ENG-0024): the session root `RK` no longer lives here — the wire-level receive is
+/// root-EXPLICIT (`recv_wire` takes the root as a parameter and returns the possibly-advanced
+/// root in `RecvWireOutcome.rk`); the single persistent copy is `Suite2SessionState.rk`.
 #[derive(Clone)]
 pub struct Suite2RecvWireState {
     pub session_id: [u8; 16],
@@ -934,7 +937,6 @@ pub struct Suite2RecvWireState {
     pub suite_id: u16,
     pub dh_pub: [u8; 32],
     pub hk_r: [u8; 32],
-    pub rk: [u8; 32],
     pub ck_ec: [u8; 32],
     pub ck_pq_send: [u8; 32],
     pub ck_pq_recv: [u8; 32],
@@ -949,6 +951,10 @@ pub struct Suite2RecvWireState {
 
 pub struct RecvWireOutcome {
     pub state: Suite2RecvWireState,
+    /// NA-0626 (ENG-0024): the possibly-advanced session root (a PQ reseed advances it; every
+    /// other path returns the input root unchanged). The session-level callers persist it in
+    /// the single `Suite2SessionState.rk` slot.
+    pub rk: [u8; 32],
     pub plaintext: Vec<u8>,
     pub flags: u16,
     pub pn: u32,
@@ -968,18 +974,16 @@ pub struct Suite2SendState {
     pub pn: u32,
 }
 
-/// NA-0620 (ENG-0012 Stage 1a): session-level DH-ratchet state, carried and persisted so the
-/// send-side DH ratchet (Stage 1b, DOC-G5-008 §5) has the material it needs — the local X25519
-/// keypair (`dhs_priv`/`dhs_pub`), the current peer DH public (`dhr`), and the live root key
-/// (`rk`). This is PLUMBING ONLY: no message-path code reads it in Stage 1a. `dhs_priv` is
-/// populated by the client after establishment (`set_dh_self_priv`); establishment itself
-/// leaves it zero for callers that do not ratchet.
+/// NA-0620 (ENG-0012 Stage 1a): session-level DH-ratchet state — the local X25519 keypair
+/// (`dhs_priv`/`dhs_pub`) and the current peer DH public (`dhr`). `dhs_priv` is populated by
+/// the client after establishment (`set_dh_self_priv`); establishment itself leaves it zero
+/// for callers that do not ratchet. NA-0626 (ENG-0024): the root key `rk` moved to the single
+/// session-level slot (`Suite2SessionState.rk`) — this struct carries DH key material only.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Suite2DhRatchetState {
     pub dhs_priv: [u8; 32],
     pub dhs_pub: [u8; 32],
     pub dhr: [u8; 32],
-    pub rk: [u8; 32],
 }
 
 pub struct SendWireOutcome {
@@ -1072,11 +1076,17 @@ pub fn send_wire(
         n: st.ns,
     })
 }
+/// NA-0626 (ENG-0024): the wire-level receive is root-EXPLICIT — `rk` is the canonical session
+/// root (the single `Suite2SessionState.rk` slot), passed in pure and returned (possibly
+/// advanced by a PQ reseed) in `RecvWireOutcome.rk`. There is no stored root at this level, so
+/// there is nothing for a caller to inject or adopt.
+#[allow(clippy::too_many_arguments)]
 pub fn recv_wire(
     hash: &dyn Hash,
     kmac: &dyn Kmac,
     aead: &dyn Aead,
     st: Suite2RecvWireState,
+    rk: &[u8; 32],
     wire: &[u8],
     pq_epoch_ss: Option<&[u8]>,
     peer_adv_id: Option<u32>,
@@ -1115,6 +1125,7 @@ pub fn recv_wire(
         new_state.mkskipped = out.state.mkskipped;
         return Ok(RecvWireOutcome {
             state: new_state,
+            rk: *rk,
             plaintext: out.plaintext.unwrap_or_default(),
             flags,
             pn: out.pn.unwrap_or(0),
@@ -1138,6 +1149,7 @@ pub fn recv_wire(
             kmac,
             aead,
             st,
+            rk,
             flags,
             &parsed.pq_prefix,
             pq_adv_id,
@@ -1152,6 +1164,7 @@ pub fn recv_wire(
         }
         return Ok(RecvWireOutcome {
             state: out.state,
+            rk: *rk, // an ADV advances no root
             plaintext: out.plaintext.unwrap_or_default(),
             flags,
             pn: out.pn.unwrap_or(0),
@@ -1168,7 +1181,7 @@ pub fn recv_wire(
         suite_id: st.suite_id,
         dh_pub: parsed.dh_pub,
         hk_r: st.hk_r,
-        rk: st.rk,
+        rk: *rk,
         ck_ec: st.ck_ec,
         ck_pq_send: st.ck_pq_send,
         ck_pq_recv: st.ck_pq_recv,
@@ -1204,12 +1217,12 @@ pub fn recv_wire(
     new_state.nr = out.state.nr;
     // NA-0623 (ENG-0012 Stage 2a): the PQ reseed advanced the root and recomputed the receive
     // header key (recv_boundary_in_order); carry both forward so the next (post-reseed) message
-    // decrypts under the new key schedule (DOC-CAN-003 §3.4/§8.5.3 step 7). Dropping them would
-    // leave the receiver on the stale pre-reseed header key.
-    new_state.rk = out.state.rk;
+    // decrypts under the new key schedule (DOC-CAN-003 §3.4/§8.5.3 step 7). NA-0626: the
+    // advanced root travels in the outcome's explicit `rk` (the state has no root slot).
     new_state.hk_r = out.state.hk_r;
     Ok(RecvWireOutcome {
         state: new_state,
+        rk: out.state.rk,
         plaintext: out.plaintext.unwrap_or_default(),
         flags,
         pn: out.pn.unwrap_or(0),
@@ -1278,7 +1291,7 @@ pub fn send_boundary(
     // A DH boundary CREATES a fresh send chain from KDF_RK_DH; it does not consume the prior
     // send chain (so the responder, whose send chain is zero until its first ratchet, can send).
     // It does require a live root key and a known peer DH public key.
-    if is_zero32(&st.dh.dhr) || is_zero32(&st.dh.rk) {
+    if is_zero32(&st.dh.dhr) || is_zero32(&st.rk) {
         return Err("REJECT_S2_LOCAL_UNSUPPORTED");
     }
     let role_is_a = st.recv.role_is_a;
@@ -1286,13 +1299,13 @@ pub fn send_boundary(
 
     // Boundary header key = pre-boundary NHK_s (§8.5.1 anti-spoof).
     let boundary_hk =
-        header_key(kmac, &st.dh.rk, a2b, true).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+        header_key(kmac, &st.rk, a2b, true).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
 
     // Fresh DH keypair; advance the root; reinit send chains; recompute HK_s.
     let (new_priv, new_pub) = dh.keypair();
     let dh_out = dh.dh(&new_priv, &X25519Pub(st.dh.dhr));
     let (rk1, ck_ec0) =
-        kdf_rk_dh(kmac, &st.dh.rk, &dh_out).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+        kdf_rk_dh(kmac, &st.rk, &dh_out).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
     let ck_pq0 = kmac32(kmac, &rk1, pq0_send_label(role_is_a), &[0x01])
         .map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
     let hk_s_new = header_key(kmac, &rk1, a2b, false).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
@@ -1350,7 +1363,7 @@ pub fn send_boundary(
     );
 
     // Commit send + DH state (receive chain untouched).
-    st.dh.rk = rk1;
+    st.rk = rk1;
     st.dh.dhs_priv = new_priv.0;
     st.dh.dhs_pub = new_pub.0;
     st.send.dh_pub = new_pub.0;
@@ -1400,7 +1413,7 @@ pub fn recv_dh_boundary(
     if parsed.hdr_ct.len() != HDR_CT_LEN || parsed.body_ct.len() < BODY_CT_MIN {
         reject!(st, "REJECT_S2_HDR_AUTH_FAIL");
     }
-    if is_zero32(&st.dh.rk) || is_zero32(&st.dh.dhs_priv) {
+    if is_zero32(&st.rk) || is_zero32(&st.dh.dhs_priv) {
         reject!(st, "REJECT_S2_LOCAL_UNSUPPORTED");
     }
     // A boundary MUST advance the peer DH key, and it must be non-zero.
@@ -1418,7 +1431,7 @@ pub fn recv_dh_boundary(
     let a2b_recv = !send_is_a_to_b(role_is_a); // the receive direction
 
     // §8.5.1: the boundary header MUST decrypt under the CURRENT NHK_r (pre-boundary RK).
-    let current_nhk_r = match header_key(kmac, &st.dh.rk, a2b_recv, true) {
+    let current_nhk_r = match header_key(kmac, &st.rk, a2b_recv, true) {
         Ok(v) => v,
         Err(_) => reject!(st, "REJECT_S2_LOCAL_UNSUPPORTED"),
     };
@@ -1460,7 +1473,7 @@ pub fn recv_dh_boundary(
 
     // DH ratchet: advance the root, reinit the receive chains, recompute HK_r.
     let dh_out = dh.dh(&X25519Priv(st.dh.dhs_priv), &X25519Pub(parsed.dh_pub));
-    let (rk1, ck_ec0) = match kdf_rk_dh(kmac, &st.dh.rk, &dh_out) {
+    let (rk1, ck_ec0) = match kdf_rk_dh(kmac, &st.rk, &dh_out) {
         Ok(v) => v,
         Err(_) => reject!(st, "REJECT_S2_LOCAL_UNSUPPORTED"),
     };
@@ -1488,7 +1501,7 @@ pub fn recv_dh_boundary(
 
     // Commit receive + DH state (send chain untouched).
     let mut new = st;
-    new.dh.rk = rk1;
+    new.rk = rk1;
     new.dh.dhr = parsed.dh_pub;
     new.recv.dh_pub = parsed.dh_pub;
     new.recv.hk_r = hk_r_new;
@@ -1506,8 +1519,8 @@ pub fn recv_dh_boundary(
 // ============ NA-0623 (ENG-0012 Stage 2a): SCKA sender (advertisement + PQ reseed) ============
 // The send side of the SCKA control plane (DOC-CAN-004 §3.1/§3.3) and the PQ-reseed boundary
 // (DOC-CAN-003 §8.5.3/§8.5.4), operating at the session level (Suite2SessionState) so the PQ root
-// advance composes with the classical DH ratchet: on a reseed the new root lands in BOTH the
-// PQ-path root (`recv.rk`) and the DH-ratchet root (`dh.rk`), so a subsequent DH boundary
+// advance composes with the classical DH ratchet: on a reseed the new root lands in the single
+// session root (`Suite2SessionState.rk`, NA-0626 ENG-0024), so a subsequent DH boundary
 // (send_boundary/recv_dh_boundary) reinitialises `CK_pq` from a PQ-hardened root and the
 // post-quantum protection is carried forward permanently (the D560 AMENDMENT).
 //
@@ -1564,18 +1577,6 @@ fn frame_pq_wire(
     wire
 }
 
-/// The canonical session root (DOC-CAN-003 §8.1: one `RK`). The refimpl stores it redundantly in
-/// `recv.rk` (read by the PQ path) and `dh.rk` (read/advanced by the DH ratchet); prefer the DH
-/// root when populated (a live ratcheting session), else the recv root (the interop actor's
-/// non-DH plumbing path leaves `dh` zero). The reseed writes BOTH on commit so they stay equal.
-fn session_root(st: &crate::suite2::state::Suite2SessionState) -> [u8; 32] {
-    if !is_zero32(&st.dh.rk) {
-        st.dh.rk
-    } else {
-        st.recv.rk
-    }
-}
-
 /// DOC-CAN-004 §3.1 / DOC-CAN-003 §8.5.4: SCKA advertisement SEND (boundary with `FLAG_PQ_ADV`).
 ///
 /// The caller has already generated the ML-KEM-768 receive keypair, allocated the strictly
@@ -1608,7 +1609,7 @@ pub fn send_pq_advertise(
     }
     // NA-0625 (ENG-0023): the ADVAUTH MAC keys off the canonical session root; a session with no
     // live root cannot authenticate its control plane (fail-closed, mirrors send_pq_reseed).
-    let rk = session_root(&st);
+    let rk = st.rk;
     if is_zero32(&rk) {
         return Err(REJECT_S2_CHAINKEY_UNSET);
     }
@@ -1715,7 +1716,7 @@ pub fn send_pq_reseed(
     if is_zero32(&st.send.ck_ec) || is_zero32(&st.send.ck_pq) {
         return Err(REJECT_S2_CHAINKEY_UNSET);
     }
-    let rk_old = session_root(&st);
+    let rk_old = st.rk;
     if is_zero32(&rk_old) {
         return Err(REJECT_S2_CHAINKEY_UNSET);
     }
@@ -1808,7 +1809,7 @@ pub fn send_pq_reseed(
     );
 
     // Commit only on full success (§8.5.3 step 8 semantics). Advance the EC send chain; replace the
-    // directional PQ chains; advance the root in BOTH slots; recompute the directional header keys.
+    // directional PQ chains; advance the single session root; recompute the directional header keys.
     st.send.ck_ec = ck_ec_p;
     st.send.ck_pq = ck_pq_send_after;
     st.send.hk_s = hk_s_new;
@@ -1816,9 +1817,169 @@ pub fn send_pq_reseed(
     st.recv.ck_pq_send = ck_pq_send_after;
     st.recv.ck_pq_recv = ck_pq_recv_after;
     st.recv.hk_r = hk_r_new;
-    st.recv.rk = new_rk;
-    st.dh.rk = new_rk;
+    st.rk = new_rk;
     Ok(SendPqReseedOutcome { state: st, wire })
+}
+
+pub struct SendCombinedBoundaryOutcome {
+    pub state: crate::suite2::state::Suite2SessionState,
+    pub wire: Vec<u8>,
+}
+
+/// NA-0626 (ENG-0026): combined DH+PQ boundary SEND — a single `FLAG_BOUNDARY | FLAG_PQ_CTXT`
+/// message that both advances the classical DH ratchet (fresh `DH_pub`, §8.5.2) and applies an
+/// SCKA PQ reseed (§8.5.3) in one hybrid epoch transition. The frame is byte-layout-identical to
+/// the existing reseed frame (§4.3 carries `DH_pub` on every ratchet message); the receiver
+/// discriminates combined-vs-PQ-only by whether the carried `DH_pub` is fresh.
+///
+/// KDF ordering (design-locked, DH first then PQ — the hybrid ordering establishment already
+/// uses, §8.2 / DOC-G5-008 §4): `(RK_dh, CK_ec0) = KDF_RK_DH(RK_pre, dh_out)`; the transient
+/// PQ0 chain and the directional reseed seeds derive from `RK_dh` (§3.3.6's "RK value before
+/// applying KDF_RK_PQ"); `RK_final = KDF_RK_PQ(RK_dh, pq_epoch_ss)`. The boundary message is
+/// n=0 of the NEW DH epoch: header sealed under the sender's CURRENT `NHK_s` (pre-boundary root,
+/// §8.5.1), body mk from the fresh pre-seed epoch chains (the reseed applies to FUTURE messages,
+/// mirroring §8.5.3's posture).
+///
+/// The fresh X25519 keypair is CALLER-supplied (the SCKA pure-function precedent: no key
+/// generation inside refimpl fns), which makes the sender deterministic and vector-pinnable.
+/// The caller has already run `MLKEM768.Encap(peer_adv_pub) -> (pq_ct, pq_epoch_ss)`.
+/// Fail-closed with no state mutation on any reject; no new reason code.
+#[allow(clippy::too_many_arguments)]
+pub fn send_combined_boundary(
+    hash: &dyn Hash,
+    kmac: &dyn Kmac,
+    aead: &dyn Aead,
+    dh: &dyn X25519Dh,
+    mut st: crate::suite2::state::Suite2SessionState,
+    new_dh_priv: &[u8; 32],
+    new_dh_pub: &[u8; 32],
+    pq_target_id: u32,
+    pq_ct: &[u8],
+    pq_epoch_ss: &[u8],
+    plaintext: &[u8],
+) -> Result<SendCombinedBoundaryOutcome, &'static str> {
+    if pq_ct.len() != MLKEM768_CT_LEN {
+        return Err("REJECT_SCKA_CTXT_BAD_CT_LEN");
+    }
+    if pq_epoch_ss.len() != MLKEM768_SS_LEN {
+        return Err("REJECT_SCKA_CTXT_BAD_SS_LEN");
+    }
+    // A combined boundary CREATES a fresh send chain from KDF_RK_DH (mirrors send_boundary: the
+    // responder, whose send chain is zero until its first ratchet, can send one). It requires a
+    // live root, a known peer DH public key, and a real caller-supplied keypair.
+    let rk_pre = st.rk;
+    if is_zero32(&st.dh.dhr) || is_zero32(&rk_pre) {
+        return Err("REJECT_S2_LOCAL_UNSUPPORTED");
+    }
+    if is_zero32(new_dh_priv) || is_zero32(new_dh_pub) {
+        return Err("REJECT_S2_LOCAL_UNSUPPORTED");
+    }
+    let role_is_a = st.recv.role_is_a;
+    let a2b = send_is_a_to_b(role_is_a);
+
+    // Boundary header key = pre-boundary NHK_s (§8.5.1 — the pre-everything root).
+    let boundary_hk =
+        header_key(kmac, &rk_pre, a2b, true).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+
+    // DH first (§8.5.2 steps 4-6 against the pre-boundary root).
+    let dh_out = dh.dh(&X25519Priv(*new_dh_priv), &X25519Pub(st.dh.dhr));
+    let (rk_dh, ck_ec0) =
+        kdf_rk_dh(kmac, &rk_pre, &dh_out).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+    let ck_pq0 = kmac32(kmac, &rk_dh, pq0_send_label(role_is_a), &[0x01])
+        .map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+
+    // Then PQ (§8.5.3 steps 4-5 with RK_old := RK_dh — the §3.3.6 seeds-before-root ordering).
+    let (seed_a2b, seed_b2a) =
+        scka::kdf_pq_reseed_seeds(hash, kmac, &rk_dh, pq_ct, pq_epoch_ss, pq_target_id);
+    let (seed_send, seed_recv) = if role_is_a {
+        (seed_a2b, seed_b2a)
+    } else {
+        (seed_b2a, seed_a2b)
+    };
+    let rk_final =
+        kdf_rk_pq(kmac, &rk_dh, pq_epoch_ss).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+
+    // §8.5.3 step 7: directional header keys from the final root.
+    let hk_s_new =
+        header_key(kmac, &rk_final, a2b, false).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+    let hk_r_new =
+        header_key(kmac, &rk_final, !a2b, false).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+
+    // The combined message is n=0 of the new DH epoch: body mk from the fresh PRE-seed chains
+    // (the reseed seeds replace the PQ chains for FUTURE messages; ck_pq0 is transient here).
+    let (ck_ec_p, _ck_pq_p, mk) =
+        derive_mk_step(kmac, &ck_ec0, &ck_pq0).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+
+    let flags = types::FLAG_PQ_CTXT | types::FLAG_BOUNDARY;
+    let mut pq_prefix = Vec::with_capacity(4 + MLKEM768_CT_LEN);
+    pq_prefix.extend_from_slice(&pq_target_id.to_be_bytes());
+    pq_prefix.extend_from_slice(pq_ct);
+
+    let pq_bind = binding::pq_bind_sha512_32(hash, flags, &pq_prefix);
+    let ad_hdr = binding::ad_hdr(
+        &st.send.session_id,
+        st.send.protocol_version,
+        st.send.suite_id,
+        new_dh_pub,
+        flags,
+        &pq_bind,
+    );
+    let ad_body = binding::ad_body(
+        &st.send.session_id,
+        st.send.protocol_version,
+        st.send.suite_id,
+        &pq_bind,
+    );
+    let pn_new = st.send.ns;
+    let n0: u32 = 0;
+    let hdr_pt = {
+        let mut v = Vec::with_capacity(8);
+        v.extend_from_slice(&pn_new.to_be_bytes());
+        v.extend_from_slice(&n0.to_be_bytes());
+        v
+    };
+    let hdr_ct = aead.seal(
+        &boundary_hk,
+        &nonce_hdr(hash, &st.send.session_id, new_dh_pub, n0),
+        &ad_hdr,
+        &hdr_pt,
+    );
+    let body_ct = aead.seal(
+        &mk,
+        &nonce_body(hash, &st.send.session_id, new_dh_pub, n0),
+        &ad_body,
+        plaintext,
+    );
+    if hdr_ct.is_empty() || body_ct.is_empty() {
+        return Err("REJECT_S2_LOCAL_AEAD_FAIL");
+    }
+    let wire = frame_pq_wire(
+        st.send.protocol_version,
+        st.send.suite_id,
+        new_dh_pub,
+        flags,
+        &pq_prefix,
+        &hdr_ct,
+        &body_ct,
+    );
+
+    // Commit only on full success: the sender's mirror of the combined epoch transition — fresh
+    // DH keypair + advanced root + full directional key schedule + n=0-of-new-epoch counters.
+    // (SCKA target sets are receiver-side state; the sender consumed the PEER's advertised key,
+    // which the caller tracks.)
+    st.rk = rk_final;
+    st.dh.dhs_priv = *new_dh_priv;
+    st.dh.dhs_pub = *new_dh_pub;
+    st.send.dh_pub = *new_dh_pub;
+    st.send.hk_s = hk_s_new;
+    st.send.ck_ec = ck_ec_p;
+    st.send.ck_pq = seed_send;
+    st.send.pn = pn_new;
+    st.send.ns = 1;
+    st.recv.ck_pq_send = seed_send;
+    st.recv.ck_pq_recv = seed_recv;
+    st.recv.hk_r = hk_r_new;
+    Ok(SendCombinedBoundaryOutcome { state: st, wire })
 }
 
 pub struct RecvPqAdvOutcome {
@@ -1858,6 +2019,7 @@ pub fn recv_pq_adv(
     kmac: &dyn Kmac,
     aead: &dyn Aead,
     st: Suite2RecvWireState,
+    rk: &[u8; 32],
     flags: u16,
     pq_prefix: &[u8],
     pq_adv_id: u32,
@@ -1958,7 +2120,7 @@ pub fn recv_pq_adv(
     if body_pt.len() < ADV_MAC_LEN {
         reject!(st, "REJECT_S2_BODY_AUTH_FAIL", Some(header_pn), Some(n));
     }
-    let expected_mac = match adv_auth_mac(kmac, &st.rk, pq_adv_id, pq_adv_pub) {
+    let expected_mac = match adv_auth_mac(kmac, rk, pq_adv_id, pq_adv_pub) {
         Ok(v) => v,
         Err(_) => reject!(st, "REJECT_S2_LOCAL_UNSUPPORTED", Some(header_pn), Some(n)),
     };
@@ -2010,6 +2172,409 @@ pub fn track_peer_adv(
         return Err("REJECT_SCKA_ADV_NONMONOTONIC");
     }
     Ok(peer_adv_id)
+}
+
+// ========== NA-0626 (ENG-0024 + ENG-0030): session-level SCKA receive entry points ==========
+// The receive-side mirror of `send_pq_advertise` / `send_pq_reseed` at the SESSION level: one
+// entry point per control-plane arm, each taking and returning a FULL `Suite2SessionState`, so
+// no caller can ever hold half a key schedule. This is the structural fix for the three
+// caller-owned-coherence defects (the D560 amendment, the NA-0624 dh.rk-sync desync, and
+// ENG-0030's stale receiver send-half): the root injection, the root adoption, and the §8.5.3
+// step-6/7 send-half refresh all happen INSIDE the entry point, atomically with the receive.
+
+pub struct RecvSessionOutcome {
+    /// FULLY updated session state: root + send + recv + dh. On a reject this is the input
+    /// state, unmodified.
+    pub state: crate::suite2::state::Suite2SessionState,
+    pub plaintext: Vec<u8>,
+    pub ok: bool,
+    pub reason: Option<&'static str>,
+    pub pn: Option<u32>,
+    pub n: Option<u32>,
+}
+
+/// NA-0626 (ENG-0030 structural + ENG-0026): session-level SCKA reseed RECEIVE — mirrors
+/// `send_pq_reseed` field-for-field, INCLUDING the send half no caller may ever hold stale
+/// again (`send.hk_s` from the advanced root, `send.ck_pq` from the send-direction seed). Also
+/// accepts the combined DH+PQ boundary (ENG-0026): a `FLAG_BOUNDARY | FLAG_PQ_CTXT` frame whose
+/// `DH_pub` is FRESH (differs from the session's current peer DH key) applies the DH ratchet
+/// first, then the PQ reseed, per the design-locked §8.2/§3.3.6 hybrid ordering; an equal
+/// `DH_pub` is a PQ-only reseed (the existing wire-level path). The AD binds `DH_pub`, so a
+/// tampered discriminator fails header AEAD either way.
+///
+/// The caller owns the advkey store + decapsulation (DOC-CAN-004), as today: `pq_epoch_ss` is
+/// the decapsulated shared secret for the targeted local advertised key, `peer_adv_id` the
+/// peer's advertisement id for the monotonicity check. Reject => the INPUT state is returned
+/// unmodified; every reason code exists today (no new codes).
+#[allow(clippy::too_many_arguments)]
+pub fn recv_pq_reseed(
+    hash: &dyn Hash,
+    kmac: &dyn Kmac,
+    aead: &dyn Aead,
+    dh: &dyn X25519Dh,
+    st: crate::suite2::state::Suite2SessionState,
+    wire: &[u8],
+    pq_epoch_ss: &[u8],
+    peer_adv_id: u32,
+) -> RecvSessionOutcome {
+    macro_rules! reject {
+        ($st:expr, $reason:expr, $pn:expr, $n:expr) => {
+            return RecvSessionOutcome {
+                state: $st,
+                plaintext: Vec::new(),
+                ok: false,
+                reason: Some($reason),
+                pn: $pn,
+                n: $n,
+            }
+        };
+    }
+
+    let (_pv, _sid, _mt, parsed) = match parse::decode_suite2_wire(wire) {
+        Ok(v) => v,
+        Err(code) => reject!(st, code, None, None),
+    };
+    // Exactly the reseed shape: BOUNDARY|PQ_CTXT. ADV|CTXT (0x0007) stays unsupported.
+    if parsed.flags != (types::FLAG_BOUNDARY | types::FLAG_PQ_CTXT) {
+        reject!(st, "REJECT_S2_LOCAL_UNSUPPORTED", None, None);
+    }
+
+    // ENG-0026 discrimination (receiver semantics, not parse): a FRESH DH_pub makes this a
+    // combined DH+PQ boundary; the session's current peer key makes it a PQ-only reseed.
+    if parsed.dh_pub != st.dh.dhr {
+        return recv_combined_boundary(hash, kmac, aead, dh, st, &parsed, pq_epoch_ss, peer_adv_id);
+    }
+
+    // PQ-only reseed: the existing wire-level receive, fed the single session root explicitly,
+    // then the full-schedule commit (root + the ENG-0030 send-half refresh) in one place.
+    let out = match recv_wire(
+        hash,
+        kmac,
+        aead,
+        st.recv.clone(),
+        &st.rk,
+        wire,
+        Some(pq_epoch_ss),
+        Some(peer_adv_id),
+    ) {
+        Ok(v) => v,
+        Err(code) => reject!(st, code, None, None),
+    };
+    // §8.5.3 step 7 (send direction): the receiver's send header key from the advanced root.
+    let a2b_send = send_is_a_to_b(st.recv.role_is_a);
+    let hk_s_new = match header_key(kmac, &out.rk, a2b_send, false) {
+        Ok(v) => v,
+        Err(_) => reject!(st, "REJECT_S2_LOCAL_UNSUPPORTED", None, None),
+    };
+    let mut new = st;
+    new.recv = out.state;
+    new.rk = out.rk;
+    new.send.hk_s = hk_s_new;
+    // §8.5.3 step 6 (send direction): the receiver's post-reseed send PQ chain is the one
+    // apply_pq_reseed derived into the send-direction transport slot.
+    new.send.ck_pq = new.recv.ck_pq_send;
+    RecvSessionOutcome {
+        state: new,
+        plaintext: out.plaintext,
+        ok: true,
+        reason: None,
+        pn: Some(out.pn),
+        n: Some(out.n),
+    }
+}
+
+/// NA-0626 (ENG-0026): combined DH+PQ boundary RECEIVE (the fresh-`DH_pub` arm of
+/// `recv_pq_reseed`). The exact receive-side mirror of `send_combined_boundary`: NHK-ONLY header
+/// open at n == 0 of the NEW DH epoch (nonce/AD on the fresh `DH_pub`), DH ratchet first
+/// (`KDF_RK_DH` from the pre-boundary root), then the SCKA reseed from `RK_dh` (frozen
+/// `apply_pq_reseed` rules), then `RK_final = KDF_RK_PQ(RK_dh, ss)`; body mk from the fresh
+/// PRE-seed epoch chains. Commit only on full success; reject => input state unmodified.
+#[allow(clippy::too_many_arguments)]
+fn recv_combined_boundary(
+    hash: &dyn Hash,
+    kmac: &dyn Kmac,
+    aead: &dyn Aead,
+    dh: &dyn X25519Dh,
+    st: crate::suite2::state::Suite2SessionState,
+    parsed: &parse::Suite2ParsedRatchetMsg,
+    pq_epoch_ss: &[u8],
+    peer_adv_id: u32,
+) -> RecvSessionOutcome {
+    macro_rules! reject {
+        ($st:expr, $reason:expr, $pn:expr, $n:expr) => {
+            return RecvSessionOutcome {
+                state: $st,
+                plaintext: Vec::new(),
+                ok: false,
+                reason: Some($reason),
+                pn: $pn,
+                n: $n,
+            }
+        };
+    }
+
+    // A boundary MUST carry a real fresh key (mirrors recv_dh_boundary).
+    if is_zero32(&parsed.dh_pub) {
+        reject!(st, "REJECT_S2_HDR_AUTH_FAIL", None, None);
+    }
+    // A fresh DH_pub needs local DH capability (actor plumbing sessions leave dhs_priv zero).
+    let rk_pre = st.rk;
+    if is_zero32(&st.dh.dhs_priv) || is_zero32(&rk_pre) {
+        reject!(st, "REJECT_S2_LOCAL_UNSUPPORTED", None, None);
+    }
+    if parsed.hdr_ct.len() != HDR_CT_LEN {
+        reject!(st, "REJECT_S2_HDR_AUTH_FAIL", None, None);
+    }
+    if parsed.body_ct.len() < BODY_CT_MIN {
+        reject!(st, "REJECT_S2_BODY_AUTH_FAIL", None, None);
+    }
+    let pq_target_id = match parsed.pq_target_id {
+        Some(v) => v,
+        None => reject!(st, "REJECT_S2_PQPREFIX_PARSE", None, None),
+    };
+    let pq_ct = match parsed.pq_ct.as_deref() {
+        Some(v) => v,
+        None => reject!(st, "REJECT_S2_PQPREFIX_PARSE", None, None),
+    };
+
+    let role_is_a = st.recv.role_is_a;
+    let a2b_recv = !send_is_a_to_b(role_is_a);
+
+    // §8.5.1: the epoch-transition header MUST decrypt under the CURRENT NHK_r (pre-boundary
+    // root). NHK-ONLY open, at n == 0 of the new epoch only (nonce/AD on the NEW DH_pub).
+    let current_nhk_r = match header_key(kmac, &rk_pre, a2b_recv, true) {
+        Ok(v) => v,
+        Err(_) => reject!(st, "REJECT_S2_LOCAL_UNSUPPORTED", None, None),
+    };
+    let flags = parsed.flags;
+    let pq_bind = binding::pq_bind_sha512_32(hash, flags, &parsed.pq_prefix);
+    let ad_hdr = binding::ad_hdr(
+        &st.recv.session_id,
+        st.recv.protocol_version,
+        st.recv.suite_id,
+        &parsed.dh_pub,
+        flags,
+        &pq_bind,
+    );
+    let ad_body = binding::ad_body(
+        &st.recv.session_id,
+        st.recv.protocol_version,
+        st.recv.suite_id,
+        &pq_bind,
+    );
+    let n0: u32 = 0;
+    let hdr_pt = match aead.open(
+        &current_nhk_r,
+        &nonce_hdr(hash, &st.recv.session_id, &parsed.dh_pub, n0),
+        &ad_hdr,
+        &parsed.hdr_ct,
+    ) {
+        Ok(pt) => pt,
+        Err(_) => reject!(st, "REJECT_S2_HDR_AUTH_FAIL", None, None),
+    };
+    if hdr_pt.len() != 8 {
+        reject!(st, "REJECT_S2_HDR_AUTH_FAIL", None, None);
+    }
+    let header_pn = u32::from_be_bytes([hdr_pt[0], hdr_pt[1], hdr_pt[2], hdr_pt[3]]);
+    let n_val = u32::from_be_bytes([hdr_pt[4], hdr_pt[5], hdr_pt[6], hdr_pt[7]]);
+    if n_val != 0 {
+        reject!(
+            st,
+            "REJECT_S2_BOUNDARY_NOT_IN_ORDER; reason_code=REJECT_S2_BOUNDARY_NOT_IN_ORDER",
+            Some(header_pn),
+            Some(n_val)
+        );
+    }
+
+    // DH first (§8.5.2 against the pre-boundary root)...
+    let dh_out = dh.dh(&X25519Priv(st.dh.dhs_priv), &X25519Pub(parsed.dh_pub));
+    let (rk_dh, ck_ec0) = match kdf_rk_dh(kmac, &rk_pre, &dh_out) {
+        Ok(v) => v,
+        Err(_) => reject!(
+            st,
+            "REJECT_S2_LOCAL_UNSUPPORTED",
+            Some(header_pn),
+            Some(n_val)
+        ),
+    };
+    let ck_pq0 = match kmac32(kmac, &rk_dh, pq0_recv_label(role_is_a), &[0x01]) {
+        Ok(v) => v,
+        Err(_) => reject!(
+            st,
+            "REJECT_S2_LOCAL_UNSUPPORTED",
+            Some(header_pn),
+            Some(n_val)
+        ),
+    };
+    // ...body mk from the fresh PRE-seed epoch chains (the combined frame is n=0 of the new
+    // DH epoch; the reseed seeds apply to FUTURE messages)...
+    let (ck_ec_p, _ck_pq_p, mk) = match derive_mk_step(kmac, &ck_ec0, &ck_pq0) {
+        Ok(v) => v,
+        Err(_) => reject!(st, "REJECT_S2_BODY_AUTH_FAIL", Some(header_pn), Some(n_val)),
+    };
+    let body_pt = match aead.open(
+        &mk,
+        &nonce_body(hash, &st.recv.session_id, &parsed.dh_pub, n0),
+        &ad_body,
+        &parsed.body_ct,
+    ) {
+        Ok(pt) => pt,
+        Err(_) => reject!(st, "REJECT_S2_BODY_AUTH_FAIL", Some(header_pn), Some(n_val)),
+    };
+
+    // ...then the PQ reseed from RK_dh (the frozen DOC-CAN-004 §3.4 validation + §3.3.6 seeds,
+    // with RK_old := RK_dh — the §8.5.2-then-§8.5.3 composition in which both step lists hold).
+    let apply = match scka::apply_pq_reseed(
+        hash,
+        kmac,
+        role_is_a,
+        &rk_dh,
+        pq_ct,
+        pq_epoch_ss,
+        peer_adv_id,
+        st.recv.peer_max_adv_id_seen,
+        &st.recv.known_targets,
+        &st.recv.consumed_targets,
+        &st.recv.tombstoned_targets,
+        pq_target_id,
+        true,
+        &st.recv.ck_pq_send,
+        &st.recv.ck_pq_recv,
+    ) {
+        Ok(v) => v,
+        Err(scka::Suite2Reject::Code(code)) => reject!(st, code, Some(header_pn), Some(n_val)),
+    };
+    let rk_final = match kdf_rk_pq(kmac, &rk_dh, pq_epoch_ss) {
+        Ok(v) => v,
+        Err(_) => reject!(
+            st,
+            "REJECT_S2_LOCAL_UNSUPPORTED",
+            Some(header_pn),
+            Some(n_val)
+        ),
+    };
+    // §8.5.3 step 7 from the final root — BOTH directions (the ENG-0030 full-schedule guarantee).
+    let hk_r_new = match header_key(kmac, &rk_final, a2b_recv, false) {
+        Ok(v) => v,
+        Err(_) => reject!(
+            st,
+            "REJECT_S2_LOCAL_UNSUPPORTED",
+            Some(header_pn),
+            Some(n_val)
+        ),
+    };
+    let hk_s_new = match header_key(kmac, &rk_final, !a2b_recv, false) {
+        Ok(v) => v,
+        Err(_) => reject!(
+            st,
+            "REJECT_S2_LOCAL_UNSUPPORTED",
+            Some(header_pn),
+            Some(n_val)
+        ),
+    };
+
+    // Commit only on full success: the receiver's mirror of the combined epoch transition.
+    let mut new = st;
+    new.rk = rk_final;
+    new.dh.dhr = parsed.dh_pub;
+    new.recv.dh_pub = parsed.dh_pub;
+    new.recv.hk_r = hk_r_new;
+    new.recv.ck_ec = ck_ec_p;
+    new.recv.ck_pq_send = apply.ck_pq_send_after;
+    new.recv.ck_pq_recv = apply.ck_pq_recv_after;
+    new.recv.nr = 1;
+    new.recv.peer_max_adv_id_seen = apply.peer_max_adv_id_seen_after;
+    new.recv.consumed_targets = apply.consumed_targets_after;
+    new.recv.tombstoned_targets = apply.tombstoned_targets_after;
+    new.send.hk_s = hk_s_new;
+    new.send.ck_pq = apply.ck_pq_send_after;
+    RecvSessionOutcome {
+        state: new,
+        plaintext: body_pt,
+        ok: true,
+        reason: None,
+        pn: Some(header_pn),
+        n: Some(n_val),
+    }
+}
+
+/// NA-0626 (ENG-0024 companion): session-level SCKA advertisement RECEIVE — wraps `recv_pq_adv`
+/// so the caller's ADV arm is uniform with `recv_pq_reseed` (full-state in/out, root injection
+/// internal). An ADV advances no root: only the receive chains step (`recv_pq_adv`'s
+/// chain-consume commit). `peer_adv_watermark` is the CALLER-OWNED peer-ADV watermark, exactly
+/// as on `recv_pq_adv`. Reject => input state unmodified.
+pub fn recv_pq_adv_session(
+    hash: &dyn Hash,
+    kmac: &dyn Kmac,
+    aead: &dyn Aead,
+    st: crate::suite2::state::Suite2SessionState,
+    wire: &[u8],
+    peer_adv_watermark: u32,
+) -> RecvSessionOutcome {
+    macro_rules! reject {
+        ($st:expr, $reason:expr, $pn:expr, $n:expr) => {
+            return RecvSessionOutcome {
+                state: $st,
+                plaintext: Vec::new(),
+                ok: false,
+                reason: Some($reason),
+                pn: $pn,
+                n: $n,
+            }
+        };
+    }
+
+    let (_pv, _sid, _mt, parsed) = match parse::decode_suite2_wire(wire) {
+        Ok(v) => v,
+        Err(code) => reject!(st, code, None, None),
+    };
+    if parsed.flags != (types::FLAG_BOUNDARY | types::FLAG_PQ_ADV) {
+        reject!(st, "REJECT_S2_LOCAL_UNSUPPORTED", None, None);
+    }
+    let pq_adv_id = match parsed.pq_adv_id {
+        Some(v) => v,
+        None => reject!(st, "REJECT_S2_PQPREFIX_PARSE", None, None),
+    };
+    let pq_adv_pub = match parsed.pq_adv_pub.as_deref() {
+        Some(v) => v,
+        None => reject!(st, "REJECT_S2_PQPREFIX_PARSE", None, None),
+    };
+
+    // The header key schedule and the ADVAUTH MAC both key off the single session root the
+    // sender derived from — passed explicitly; an ADV advances nothing.
+    let out = recv_pq_adv(
+        hash,
+        kmac,
+        aead,
+        st.recv.clone(),
+        &st.rk,
+        parsed.flags,
+        &parsed.pq_prefix,
+        pq_adv_id,
+        pq_adv_pub,
+        peer_adv_watermark,
+        &parsed.dh_pub,
+        &parsed.hdr_ct,
+        &parsed.body_ct,
+    );
+    if !out.ok {
+        reject!(
+            st,
+            out.reason.unwrap_or("REJECT_S2_HDR_AUTH_FAIL"),
+            out.pn,
+            out.n
+        );
+    }
+    let mut new = st;
+    new.recv = out.state;
+    RecvSessionOutcome {
+        state: new,
+        plaintext: out.plaintext.unwrap_or_default(),
+        ok: true,
+        reason: None,
+        pn: out.pn,
+        n: out.n,
+    }
 }
 
 #[cfg(test)]
@@ -2980,31 +3545,34 @@ mod tests {
         assert_eq!(snap_before, snapshot_boundary_state(&out.state));
     }
 
-    fn adv_recv_state(nr: u32) -> Suite2RecvWireState {
-        Suite2RecvWireState {
-            session_id: rng16(),
-            protocol_version: 5,
-            suite_id: 2,
-            dh_pub: rng32(),
-            hk_r: rng32(),
-            rk: rng32(),
-            ck_ec: rng32(),
-            ck_pq_send: rng32(),
-            ck_pq_recv: rng32(),
-            nr,
-            role_is_a: true,
-            peer_max_adv_id_seen: 0,
-            known_targets: BTreeSet::new(),
-            consumed_targets: BTreeSet::new(),
-            tombstoned_targets: BTreeSet::new(),
-            mkskipped: Vec::new(),
-        }
+    /// NA-0626 (ENG-0024): the root no longer lives in the wire-level state — it is returned
+    /// beside the state, exactly as the root-explicit `recv_pq_adv` consumes it.
+    fn adv_recv_state(nr: u32) -> (Suite2RecvWireState, [u8; 32]) {
+        (
+            Suite2RecvWireState {
+                session_id: rng16(),
+                protocol_version: 5,
+                suite_id: 2,
+                dh_pub: rng32(),
+                hk_r: rng32(),
+                ck_ec: rng32(),
+                ck_pq_send: rng32(),
+                ck_pq_recv: rng32(),
+                nr,
+                role_is_a: true,
+                peer_max_adv_id_seen: 0,
+                known_targets: BTreeSet::new(),
+                consumed_targets: BTreeSet::new(),
+                tombstoned_targets: BTreeSet::new(),
+                mkskipped: Vec::new(),
+            },
+            rng32(),
+        )
     }
 
     fn snapshot_recv_wire_state(st: &Suite2RecvWireState) -> Vec<u8> {
         let mut out = Vec::new();
         out.extend_from_slice(&st.hk_r);
-        out.extend_from_slice(&st.rk);
         out.extend_from_slice(&st.ck_ec);
         out.extend_from_slice(&st.ck_pq_send);
         out.extend_from_slice(&st.ck_pq_recv);
@@ -3084,7 +3652,7 @@ mod tests {
     #[test]
     fn adv_recv_accept_consumes_chain_and_tracks() {
         let c = StdCrypto;
-        let st = adv_recv_state(3);
+        let (st, rk) = adv_recv_state(3);
         let adv_pub = vec![0xBB; 1184];
         let adv_id = 9u32;
         let (flags, pq_prefix, hdr_ct, body_ct) = seal_adv_frame(
@@ -3094,7 +3662,7 @@ mod tests {
             adv_id,
             &adv_pub,
             b"adv-payload",
-            Some(&st.rk),
+            Some(&rk),
             &st.hk_r,
         );
         let (exp_ck_ec, exp_ck_pq, _mk) =
@@ -3105,6 +3673,7 @@ mod tests {
             &c,
             &c,
             st.clone(),
+            &rk,
             flags,
             &pq_prefix,
             adv_id,
@@ -3139,7 +3708,7 @@ mod tests {
     #[test]
     fn adv_recv_bad_mac_rejects_no_mutation() {
         let c = StdCrypto;
-        let st = adv_recv_state(0);
+        let (st, rk) = adv_recv_state(0);
         let adv_pub = vec![0xBB; 1184];
         let wrong_rk = rng32();
         let (flags, pq_prefix, hdr_ct, body_ct) = seal_adv_frame(
@@ -3158,6 +3727,7 @@ mod tests {
             &c,
             &c,
             st.clone(),
+            &rk,
             flags,
             &pq_prefix,
             1,
@@ -3176,7 +3746,7 @@ mod tests {
     #[test]
     fn adv_recv_missing_mac_rejects_no_mutation() {
         let c = StdCrypto;
-        let st = adv_recv_state(0);
+        let (st, rk) = adv_recv_state(0);
         let adv_pub = vec![0xBB; 1184];
         let (flags, pq_prefix, hdr_ct, body_ct) =
             seal_adv_frame(&c, &st, st.nr, 1, &adv_pub, b"legacy", None, &st.hk_r);
@@ -3186,6 +3756,7 @@ mod tests {
             &c,
             &c,
             st.clone(),
+            &rk,
             flags,
             &pq_prefix,
             1,
@@ -3205,17 +3776,18 @@ mod tests {
     #[test]
     fn adv_recv_spoofed_header_rejects_no_mutation() {
         let c = StdCrypto;
-        let st = adv_recv_state(0);
+        let (st, rk) = adv_recv_state(0);
         let adv_pub = vec![0xBB; 1184];
         let foreign_key = rng32();
         let (flags, pq_prefix, hdr_ct, body_ct) =
-            seal_adv_frame(&c, &st, st.nr, 1, &adv_pub, b"", Some(&st.rk), &foreign_key);
+            seal_adv_frame(&c, &st, st.nr, 1, &adv_pub, b"", Some(&rk), &foreign_key);
         let snap = snapshot_recv_wire_state(&st);
         let out = recv_pq_adv(
             &c,
             &c,
             &c,
             st.clone(),
+            &rk,
             flags,
             &pq_prefix,
             1,
@@ -3235,16 +3807,17 @@ mod tests {
     #[test]
     fn adv_recv_out_of_order_rejects_no_mutation() {
         let c = StdCrypto;
-        let st = adv_recv_state(2);
+        let (st, rk) = adv_recv_state(2);
         let adv_pub = vec![0xBB; 1184];
         let (flags, pq_prefix, hdr_ct, body_ct) =
-            seal_adv_frame(&c, &st, st.nr + 1, 1, &adv_pub, b"", Some(&st.rk), &st.hk_r);
+            seal_adv_frame(&c, &st, st.nr + 1, 1, &adv_pub, b"", Some(&rk), &st.hk_r);
         let snap = snapshot_recv_wire_state(&st);
         let out = recv_pq_adv(
             &c,
             &c,
             &c,
             st.clone(),
+            &rk,
             flags,
             &pq_prefix,
             1,
@@ -3268,16 +3841,17 @@ mod tests {
     #[test]
     fn adv_recv_nonmonotonic_rejects_no_mutation() {
         let c = StdCrypto;
-        let st = adv_recv_state(0);
+        let (st, rk) = adv_recv_state(0);
         let adv_pub = vec![0xBB; 1184];
         let (flags, pq_prefix, hdr_ct, body_ct) =
-            seal_adv_frame(&c, &st, st.nr, 5, &adv_pub, b"", Some(&st.rk), &st.hk_r);
+            seal_adv_frame(&c, &st, st.nr, 5, &adv_pub, b"", Some(&rk), &st.hk_r);
         let snap = snapshot_recv_wire_state(&st);
         let out = recv_pq_adv(
             &c,
             &c,
             &c,
             st.clone(),
+            &rk,
             flags,
             &pq_prefix,
             5,
@@ -3296,7 +3870,7 @@ mod tests {
     #[test]
     fn adv_recv_combined_flags_rejects() {
         let c = StdCrypto;
-        let st = adv_recv_state(0);
+        let (st, rk) = adv_recv_state(0);
         let adv_pub = vec![0xBB; 1184];
         let flags = types::FLAG_PQ_ADV | types::FLAG_PQ_CTXT | types::FLAG_BOUNDARY;
         let out = recv_pq_adv(
@@ -3304,6 +3878,7 @@ mod tests {
             &c,
             &c,
             st.clone(),
+            &rk,
             flags,
             &[],
             1,

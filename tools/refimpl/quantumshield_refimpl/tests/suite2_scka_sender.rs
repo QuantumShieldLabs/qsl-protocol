@@ -15,7 +15,8 @@ use quantumshield_refimpl::crypto::traits::{PqKem768, X25519Dh};
 use quantumshield_refimpl::suite2::establish::init_from_base_handshake;
 use quantumshield_refimpl::suite2::parse::decode_suite2_wire;
 use quantumshield_refimpl::suite2::ratchet::{
-    recv_dh_boundary, recv_wire, send_boundary, send_pq_advertise, send_pq_reseed, track_peer_adv,
+    recv_dh_boundary, recv_pq_adv_session, recv_pq_reseed, recv_wire, send_boundary,
+    send_pq_advertise, send_pq_reseed, track_peer_adv,
 };
 use quantumshield_refimpl::suite2::state::Suite2SessionState;
 
@@ -23,9 +24,9 @@ const PV: u16 = 0x0500;
 const SID: u16 = 0x0002;
 
 /// Establish a fresh authenticated Suite-2 session pair (A = initiator, B = responder). Both
-/// parties share one root `RK` (`recv.rk == dh.rk` on each, equal across the pair). The X25519
-/// ratchet private keys are populated (as the real client does post-establishment) so the DH
-/// ratchet can run. Returns `(A, B, R0)`.
+/// parties share one root `RK` (the single session-level slot, equal across the pair). The
+/// X25519 ratchet private keys are populated (as the real client does post-establishment) so
+/// the DH ratchet can run. Returns `(A, B, R0)`.
 fn establish_pair(c: &StdCrypto) -> (Suite2SessionState, Suite2SessionState, [u8; 32]) {
     let (a_priv, a_pub) = c.keypair();
     let (b_priv, b_pub) = c.keypair();
@@ -62,10 +63,8 @@ fn establish_pair(c: &StdCrypto) -> (Suite2SessionState, Suite2SessionState, [u8
     a.set_dh_self_priv(a_priv.0);
     b.set_dh_self_priv(b_priv.0);
 
-    let r0 = a.recv.rk;
-    assert_eq!(a.recv.rk, b.recv.rk, "both parties share the root");
-    assert_eq!(a.recv.rk, a.dh.rk, "A: recv.rk == dh.rk at establishment");
-    assert_eq!(b.recv.rk, b.dh.rk, "B: recv.rk == dh.rk at establishment");
+    let r0 = a.rk;
+    assert_eq!(a.rk, b.rk, "both parties share the root");
     (a, b, r0)
 }
 
@@ -104,9 +103,19 @@ fn reseed_round_trip_sender_to_apply_pq_reseed_decrypts_and_converges() {
     // B decapsulates (caller-side) and applies the reseed via recv_wire -> apply_pq_reseed.
     let ss_b = c.decap(&sk_b, &pq_ct).expect("decap");
     assert_eq!(ss_a, ss_b, "ML-KEM correctness: encap ss == decap ss");
-    let rout = recv_wire(&c, &c, &c, b.recv.clone(), &wire, Some(&ss_b), Some(adv_id))
-        .expect("recv_wire reseed");
+    let rout = recv_wire(
+        &c,
+        &c,
+        &c,
+        b.recv.clone(),
+        &b.rk,
+        &wire,
+        Some(&ss_b),
+        Some(adv_id),
+    )
+    .expect("recv_wire reseed");
     b.recv = rout.state;
+    b.rk = rout.rk;
 
     assert_eq!(
         rout.plaintext, b"hello-pq",
@@ -119,11 +128,10 @@ fn reseed_round_trip_sender_to_apply_pq_reseed_decrypts_and_converges() {
         "directional PQ seeds converge"
     );
     let expect_r1 = kdf_rk_pq_expected(&c, &r0, &ss_a);
-    assert_eq!(a.recv.rk, expect_r1, "sender root advanced via KDF_RK_PQ");
-    assert_eq!(a.dh.rk, expect_r1, "sender DH-root slot advanced too");
-    assert_eq!(b.recv.rk, expect_r1, "receiver root advanced identically");
+    assert_eq!(a.rk, expect_r1, "sender root advanced via KDF_RK_PQ");
+    assert_eq!(b.rk, expect_r1, "receiver root advanced identically");
     assert_ne!(
-        a.recv.rk, r0,
+        a.rk, r0,
         "root actually changed (PQ hardening landed in RK)"
     );
     // Header keys recomputed from the new root and converge: A's send header key (A->B) equals B's
@@ -146,7 +154,7 @@ fn pq_pcs_healing_survives_dh_ratchet() {
     // Snapshot A BEFORE any reseed (an attacker who compromised the pre-reseed state, root R0).
     let a_pre_reseed = a.clone();
 
-    // --- PQ reseed A -> B (before any DH ratchet, so recv.rk == dh.rk == R0 on both) ---
+    // --- PQ reseed A -> B (before any DH ratchet, root == R0 on both) ---
     let adv_id: u32 = 1;
     let (pk_b, sk_b) = runtime_pq_kem_keypair();
     b.recv.known_targets.insert(adv_id);
@@ -159,20 +167,20 @@ fn pq_pcs_healing_survives_dh_ratchet() {
         &c,
         &c,
         b.recv.clone(),
+        &b.rk,
         &out.wire,
         Some(&ss_b),
         Some(adv_id),
     )
     .expect("recv");
     b.recv = rout.state;
-    // Caller-side composition (Stage 2a): adopt the advanced root into the DH-ratchet slot so the
-    // classical ratchet carries the PQ hardening forward (Stage 2b performs this in qsc session
-    // state). A already synced its own dh.rk inside send_pq_reseed.
-    b.dh.rk = b.recv.rk;
+    // NA-0626 (ENG-0024): the advanced root returns in the outcome; there is no second slot to
+    // adopt into — the classical ratchet reads the same single root the reseed advanced.
+    b.rk = rout.rk;
 
     let r1 = kdf_rk_pq_expected(&c, &r0, &ss_a);
-    assert_eq!(a.dh.rk, r1, "A DH-root advanced with the PQ secret");
-    assert_eq!(b.dh.rk, r1, "B DH-root advanced with the PQ secret");
+    assert_eq!(a.rk, r1, "A root advanced with the PQ secret");
+    assert_eq!(b.rk, r1, "B root advanced with the PQ secret");
     assert_ne!(r1, r0, "reseed advanced the root (the AMENDMENT fix)");
 
     // --- Subsequent classical DH ratchet: B -> A boundary, sealed under NHK derived from R1 ---
@@ -185,7 +193,7 @@ fn pq_pcs_healing_survives_dh_ratchet() {
     assert_eq!(live.plaintext, b"healed-secret");
     let a_after = live.state;
     assert_ne!(
-        a_after.dh.rk, r1,
+        a_after.rk, r1,
         "DH ratchet advanced the root again (R1 -> R2)"
     );
 
@@ -279,8 +287,7 @@ fn reseed_sender_rejects_are_deterministic_and_no_mutation() {
 
     // The retained sender state is byte-identical (rejects consumed a clone, never the original).
     assert_eq!(retained.send.ns, a.send.ns);
-    assert_eq!(retained.recv.rk, a.recv.rk);
-    assert_eq!(retained.dh.rk, a.dh.rk);
+    assert_eq!(retained.rk, a.rk);
 }
 
 /// (c') Receiver one-time enforcement: a replayed reseed targeting an already-consumed advertised
@@ -301,22 +308,25 @@ fn reseed_replay_is_rejected_one_time() {
         &c,
         &c,
         b.recv.clone(),
+        &b.rk,
         &out.wire,
         Some(&ss_b),
         Some(adv_id),
     )
     .expect("first recv accepts");
     b.recv = r1.state;
+    b.rk = r1.rk;
     assert!(b.recv.consumed_targets.contains(&adv_id));
     assert!(b.recv.tombstoned_targets.contains(&adv_id));
 
     // Replay the same reseed: the target is now tombstoned/consumed -> reject, no mutation.
-    let before = b.recv.clone();
+    let before_rk = b.rk;
     let replay = recv_wire(
         &c,
         &c,
         &c,
         b.recv.clone(),
+        &b.rk,
         &out.wire,
         Some(&ss_b),
         Some(adv_id),
@@ -326,7 +336,7 @@ fn reseed_replay_is_rejected_one_time() {
         "replayed reseed to a consumed target rejects"
     );
     assert_eq!(
-        before.rk, b.recv.rk,
+        before_rk, b.rk,
         "no state mutation on the retained receiver state"
     );
 }
@@ -349,7 +359,7 @@ fn adv_recv_round_trip_consumes_chain_and_next_message_in_order() {
 
     // The `peer_adv_id` parameter carries the caller-owned peer-ADV watermark on the ADV path
     // (0 here: no peer advertisement tracked yet).
-    let rout = recv_wire(&c, &c, &c, b.recv.clone(), &out.wire, None, Some(0))
+    let rout = recv_wire(&c, &c, &c, b.recv.clone(), &b.rk, &out.wire, None, Some(0))
         .expect("authenticated ADV receive");
     assert_eq!(rout.plaintext, b"adv-payload", "MAC stripped, payload back");
     let nr_before = b.recv.nr;
@@ -377,7 +387,8 @@ fn adv_recv_round_trip_consumes_chain_and_next_message_in_order() {
     )
     .expect("send_wire");
     a.send = m.state;
-    let r2 = recv_wire(&c, &c, &c, b.recv.clone(), &m.wire, None, None).expect("in-order recv");
+    let r2 =
+        recv_wire(&c, &c, &c, b.recv.clone(), &b.rk, &m.wire, None, None).expect("in-order recv");
     assert_eq!(r2.plaintext, b"after-adv");
     b.recv = r2.state;
     assert!(
@@ -386,17 +397,14 @@ fn adv_recv_round_trip_consumes_chain_and_next_message_in_order() {
     );
 }
 
-/// NA-0625 REGRESSION (the qsc CTXT-arm finding): after a party RECEIVES a reseed, its SEND-side
-/// key schedule must be mirrored from the advanced root. `send_pq_reseed` writes both directional
-/// header keys AND the new send PQ chain into the SENDER's session state; the receive path
-/// returns only recv-side state, so the CALLER must recompute the receiver's `send.hk_s` (§8.5.3
-/// step 7) and adopt its new send PQ chain from `recv.ck_pq_send` (step 6) — qsc does both in its
-/// CTXT intercept arm, next to the dh.rk ADOPT. Without it the receiver's next control
-/// pre-envelope (an SCKA advertisement, which rides the CURRENT send chain) is sealed under a
-/// stale schedule and the peer's authenticated ADV receiver rejects it.
+/// NA-0626 (ENG-0030 STRUCTURAL — the NA-0625 regression INVERTED): after a party RECEIVES a
+/// reseed through the session-level entry point (`recv_pq_reseed`), its SEND-side key schedule
+/// is refreshed from the advanced root BY CONSTRUCTION. The NA-0625 shape of this test asserted
+/// the staleness (`assert_ne!`) and then performed the caller-side composition qsc's CTXT arm
+/// carried (root INJECT/ADOPT + `send.hk_s`/`send.ck_pq` refresh); the entry point performs all
+/// of it atomically with the receive, so no caller can hold half a key schedule.
 #[test]
 fn reseed_receiver_send_schedule_must_be_refreshed_from_advanced_root() {
-    use quantumshield_refimpl::suite2::ratchet::header_key;
     let c = StdCrypto;
     let (mut a, mut b, _r0) = establish_pair(&c);
 
@@ -416,48 +424,83 @@ fn reseed_receiver_send_schedule_must_be_refreshed_from_advanced_root() {
     let out = send_pq_reseed(&c, &c, &c, a.clone(), adv_id, &pq_ct, &ss_a, b"m").expect("reseed");
     a = out.state;
 
-    // B receives it (INJECT the canonical root first — the NA-0624 dh.rk-sync composition).
+    // B receives it through the SESSION-LEVEL entry point: no INJECT, no ADOPT, no caller-side
+    // send-half refresh — the entry point owns the whole schedule.
     let ss_b = c.decap(&sk_b, &pq_ct).expect("decap");
-    let mut recv_in = b.recv.clone();
-    recv_in.rk = b.dh.rk;
-    let rout =
-        recv_wire(&c, &c, &c, recv_in, &out.wire, Some(&ss_b), Some(adv_id)).expect("recv reseed");
-    b.recv = rout.state;
+    let rout = recv_pq_reseed(&c, &c, &c, &c, b.clone(), &out.wire, &ss_b, adv_id);
+    assert!(rout.ok, "session-level reseed receive accepts");
+    assert_eq!(rout.plaintext, b"m");
+    b = rout.state;
 
-    // The receive path refreshed B's RECV header key (it converges with A's send key)...
+    // INVERTED ASSERTIONS: the returned state is coherent on the advanced root — both header-key
+    // directions and both directional PQ chains, with no caller composition performed.
     assert_eq!(a.send.hk_s, b.recv.hk_r, "A->B header keys converge");
-    // ...but B's SEND header key and send PQ chain are still the PRE-reseed ones.
-    assert_ne!(
-        b.send.hk_s, a.recv.hk_r,
-        "the receive path alone leaves the receiver's send header key stale (the finding)"
-    );
-    assert_ne!(
-        b.send.ck_pq, a.recv.ck_pq_recv,
-        "the receive path alone leaves the receiver's send PQ chain stale (the finding)"
-    );
-
-    // THE CALLER-SIDE COMPOSITION (what qsc's CTXT arm performs, beside the dh.rk ADOPT).
-    b.dh.rk = b.recv.rk;
-    b.send.hk_s = header_key(&c, &b.recv.rk, b.recv.role_is_a, false).expect("hk_s");
-    b.send.ck_pq = b.recv.ck_pq_send;
-
     assert_eq!(
         b.send.hk_s, a.recv.hk_r,
-        "after the composition the header keys are coherent on the advanced root"
+        "the receiver's send header key is refreshed from the advanced root (the ENG-0030 fix)"
     );
     assert_eq!(
         b.send.ck_pq, a.recv.ck_pq_recv,
-        "after the composition the directional PQ chains are coherent"
+        "the receiver's send PQ chain is refreshed from the advanced root (the ENG-0030 fix)"
+    );
+    assert_eq!(
+        b.rk, a.rk,
+        "the single session root converges (no ADOPT left to the caller — the slot is gone)"
     );
 
-    // Concretely: B's advertisement (a control pre-envelope on the current send chain) now
-    // authenticates at A's authenticated ADV receiver — header AND body.
+    // Concretely: B's advertisement (a control pre-envelope on the current send chain)
+    // authenticates at A's authenticated ADV receiver — header AND body — built on the schedule
+    // the entry point returned, exactly as the peer expects.
     let (pk_b2, _sk_b2) = runtime_pq_kem_keypair();
     let adv = send_pq_advertise(&c, &c, &c, b.clone(), 2, &pk_b2, b"post-reseed-adv")
         .expect("B advertises");
-    let r = recv_wire(&c, &c, &c, a.recv.clone(), &adv.wire, None, Some(0))
+    let r = recv_wire(&c, &c, &c, a.recv.clone(), &a.rk, &adv.wire, None, Some(0))
         .expect("A authenticates B's post-reseed advertisement");
     assert_eq!(r.plaintext, b"post-reseed-adv");
+}
+
+/// NA-0626 (ENG-0024 companion): the session-level ADV receive mirrors the wire-level one —
+/// authenticated round trip, chain slot consumed, root untouched, next message in order — with
+/// the root injection internal and the FULL session state returned. Rejects leave the input
+/// state unmodified (planted ADV with a wrong-root MAC).
+#[test]
+fn recv_pq_adv_session_round_trip_and_reject_no_mutation() {
+    let c = StdCrypto;
+    let (mut a, mut b, _r0) = establish_pair(&c);
+
+    let adv_id: u32 = 1;
+    let (pk_a, _sk_a) = runtime_pq_kem_keypair();
+    let out =
+        send_pq_advertise(&c, &c, &c, a.clone(), adv_id, &pk_a, b"adv-payload").expect("advertise");
+    a = out.state;
+
+    let rout = recv_pq_adv_session(&c, &c, &c, b.clone(), &out.wire, 0);
+    assert!(rout.ok, "session-level ADV receive accepts");
+    assert_eq!(rout.plaintext, b"adv-payload", "MAC stripped, payload back");
+    let nr_before = b.recv.nr;
+    let root_before = b.rk;
+    b = rout.state;
+    assert_eq!(b.recv.nr, nr_before + 1, "ADV consumed its chain slot");
+    assert_eq!(b.rk, root_before, "an ADV advances no root");
+    assert!(b.recv.mkskipped.is_empty(), "no receive-chain gap");
+
+    // A's next normal message arrives strictly in order.
+    let m = quantumshield_refimpl::suite2::ratchet::send_wire(&c, &c, &c, a.send.clone(), 0, b"x")
+        .expect("send_wire");
+    a.send = m.state;
+    let r2 =
+        recv_wire(&c, &c, &c, b.recv.clone(), &b.rk, &m.wire, None, None).expect("in-order recv");
+    assert_eq!(r2.plaintext, b"x");
+
+    // A replayed ADV rejects (stale counter under the session keys) with no state mutation.
+    let before_bytes = b.snapshot_bytes();
+    let replay = recv_pq_adv_session(&c, &c, &c, b.clone(), &out.wire, adv_id);
+    assert!(!replay.ok, "replayed ADV rejects");
+    assert_eq!(
+        replay.state.snapshot_bytes(),
+        before_bytes,
+        "reject returns the input state unmodified"
+    );
 }
 
 /// THE DECISION-2 PROOF at refimpl level: an [ADV, reseed] pair from the same sender round-trips
@@ -486,8 +529,17 @@ fn adv_then_reseed_same_pack_round_trips() {
     a = reseed_out.state;
 
     // B receives IN PACK ORDER: ADV first (consumes slot n), reseed second (n+1 == nr).
-    let r_adv =
-        recv_wire(&c, &c, &c, b.recv.clone(), &adv_out.wire, None, Some(0)).expect("ADV accepted");
+    let r_adv = recv_wire(
+        &c,
+        &c,
+        &c,
+        b.recv.clone(),
+        &b.rk,
+        &adv_out.wire,
+        None,
+        Some(0),
+    )
+    .expect("ADV accepted");
     b.recv = r_adv.state;
     assert!(b.recv.mkskipped.is_empty(), "ADV left no gap");
 
@@ -497,6 +549,7 @@ fn adv_then_reseed_same_pack_round_trips() {
         &c,
         &c,
         b.recv.clone(),
+        &b.rk,
         &reseed_out.wire,
         Some(&ss_b),
         Some(b_adv_id),
@@ -504,12 +557,13 @@ fn adv_then_reseed_same_pack_round_trips() {
     .expect("reseed accepted immediately after the ADV in the same pack");
     assert_eq!(r_reseed.plaintext, b"reseed-pt");
     b.recv = r_reseed.state;
+    b.rk = r_reseed.rk;
 
     // Convergence on the advanced root. (The peer-ADV watermark is caller-owned; here the ADV
     // authenticated against watermark 0 — the caller would persist a_adv_id as the new mark.)
     let r1 = kdf_rk_pq_expected(&c, &r0, &ss_a);
-    assert_eq!(a.recv.rk, r1, "sender root advanced");
-    assert_eq!(b.recv.rk, r1, "receiver root advanced identically");
+    assert_eq!(a.rk, r1, "sender root advanced");
+    assert_eq!(b.rk, r1, "receiver root advanced identically");
     assert!(
         b.recv.mkskipped.is_empty(),
         "no mkskipped growth across [ADV, reseed]"

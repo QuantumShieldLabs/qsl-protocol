@@ -190,7 +190,6 @@ fn seeded_session_state(seed: u64, peer: &str) -> Suite2SessionState {
         suite_id: SUITE2_SUITE_ID,
         dh_pub,
         hk_r: hk,
-        rk,
         ck_ec,
         ck_pq_send: ck_pq,
         ck_pq_recv: ck_pq,
@@ -206,9 +205,8 @@ fn seeded_session_state(seed: u64, peer: &str) -> Suite2SessionState {
         dhs_priv: dh_priv,
         dhs_pub: dh_pub,
         dhr: dh_pub,
-        rk,
     };
-    Suite2SessionState { send, recv, dh }
+    Suite2SessionState { rk, send, recv, dh }
 }
 
 fn load_session_state(cfg: &Path, peer: &str) -> Suite2SessionState {
@@ -234,24 +232,43 @@ fn load_session_state(cfg: &Path, peer: &str) -> Suite2SessionState {
             },
         )
         .expect("session decrypt");
-    // NA-0622 (ENG-0012 Stage 1b-ii): strip the qsc session-blob v2 DH-ratchet trigger prefix
-    // (b"QTRG" + 13 bytes) before restoring the QS2S snapshot; a legacy plaintext is raw.
-    // NA-0624 (Stage 2b): a v3 plaintext additionally carries scka_len(u32 LE) + SCKA section
-    // between the trigger and the snapshot. A seed-model (non-advertising) session always has
-    // scka_len == 0, so the restored QS2S snapshot — and therefore this runtime-equivalence
-    // comparison — stays byte-for-byte identical to the refimpl.
-    let snapshot: &[u8] = if plaintext.len() >= 17 && &plaintext[..4] == b"QTRG" {
-        let rest = &plaintext[17..];
-        if rest.starts_with(b"QS2S") {
-            rest
-        } else {
-            let scka_len = u32::from_le_bytes([rest[0], rest[1], rest[2], rest[3]]) as usize;
-            &rest[4 + scka_len..]
-        }
-    } else {
-        &plaintext
-    };
+    // NA-0624 (Stage 2b) / NA-0626: the v3 plaintext layout (b"QTRG" + trigger(13) +
+    // scka_len(u32 LE) + SCKA section + QS2S snapshot) is the ONLY accepted layout — the
+    // legacy v2/v1 shapes are unrecoverable by design and must not appear here. A seed-model
+    // (non-advertising) session always has scka_len == 0, so the restored QS2S snapshot — and
+    // therefore this runtime-equivalence comparison — stays byte-for-byte identical to the
+    // refimpl.
+    assert!(
+        plaintext.len() >= 21 && &plaintext[..4] == b"QTRG",
+        "session blob plaintext is not the v3 layout"
+    );
+    let rest = &plaintext[17..];
+    let scka_len = u32::from_le_bytes([rest[0], rest[1], rest[2], rest[3]]) as usize;
+    let snapshot: &[u8] = &rest[4 + scka_len..];
     Suite2SessionState::restore_bytes(snapshot).expect("session restore")
+}
+
+/// NA-0626 (Operator Decision 3, condition b — the STRENGTHENED wire half): the seed-model
+/// wires are additionally pinned against FIXED golden SHA-256 constants. Today the refimpl is
+/// the only oracle for the qsc wire equality; the golden digests make the seed-model wire
+/// bytes ABSOLUTE, so a coordinated refimpl+qsc drift cannot pass. The seeded fixture is
+/// deterministic, so the digests are stable; they may change ONLY with an operator-approved
+/// wire-affecting directive.
+const GOLDEN_WIRE_A_SHA256: &str =
+    "f14eabfaf76f072241d298b560503f570348255c06c3b33191f5ee3a530a0ef8";
+const GOLDEN_WIRE_B_SHA256: &str =
+    "9b20496ca70c12a93f2d44c3843157cd4978ee6a0bedae9cfe1bf08e2d6100d1";
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    use sha2::{Digest, Sha256};
+    let mut h = Sha256::new();
+    h.update(bytes);
+    let out = h.finalize();
+    let mut s = String::with_capacity(64);
+    for b in out {
+        s.push_str(&format!("{b:02x}"));
+    }
+    s
 }
 
 #[test]
@@ -300,7 +317,13 @@ fn seeded_runtime_state_matches_refimpl_send_receive_roundtrip() {
     let send_a_expected =
         send_wire_canon(&StdCrypto, &StdCrypto, &StdCrypto, initial.send, 0, &msg_a)
             .expect("refimpl send a");
+    assert_eq!(
+        sha256_hex(&send_a_expected.wire),
+        GOLDEN_WIRE_A_SHA256,
+        "seed-model wire A drifted from the golden pin (Operator Decision 3)"
+    );
     let expected_alice_after_send = Suite2SessionState {
+        rk: seeded_session_state(1, "peer").rk,
         send: send_a_expected.state,
         recv: seeded_session_state(1, "peer").recv,
         dh: seeded_session_state(1, "peer").dh,
@@ -354,6 +377,7 @@ fn seeded_runtime_state_matches_refimpl_send_receive_roundtrip() {
         &StdCrypto,
         &StdCrypto,
         seeded_session_state(1, "peer").recv,
+        &seeded_session_state(1, "peer").rk,
         &env_a.payload,
         None,
         None,
@@ -361,6 +385,7 @@ fn seeded_runtime_state_matches_refimpl_send_receive_roundtrip() {
     .expect("refimpl recv b");
     assert_eq!(recv_b_expected.plaintext, msg_a);
     let expected_bob_after_recv = Suite2SessionState {
+        rk: recv_b_expected.rk,
         send: seeded_session_state(1, "peer").send,
         recv: recv_b_expected.state,
         dh: seeded_session_state(1, "peer").dh,
@@ -397,7 +422,13 @@ fn seeded_runtime_state_matches_refimpl_send_receive_roundtrip() {
         &msg_b,
     )
     .expect("refimpl send b");
+    assert_eq!(
+        sha256_hex(&send_b_expected.wire),
+        GOLDEN_WIRE_B_SHA256,
+        "seed-model wire B drifted from the golden pin (Operator Decision 3)"
+    );
     let expected_bob_after_send = Suite2SessionState {
+        rk: expected_bob_after_recv.rk,
         send: send_b_expected.state,
         recv: expected_bob_after_recv.recv,
         dh: seeded_session_state(1, "peer").dh,
@@ -451,6 +482,7 @@ fn seeded_runtime_state_matches_refimpl_send_receive_roundtrip() {
         &StdCrypto,
         &StdCrypto,
         expected_alice_after_send.recv,
+        &expected_alice_after_send.rk,
         &env_b.payload,
         None,
         None,
@@ -458,6 +490,7 @@ fn seeded_runtime_state_matches_refimpl_send_receive_roundtrip() {
     .expect("refimpl recv a");
     assert_eq!(recv_a_expected.plaintext, msg_b);
     let expected_alice_after_recv = Suite2SessionState {
+        rk: recv_a_expected.rk,
         send: expected_alice_after_send.send,
         recv: recv_a_expected.state,
         dh: seeded_session_state(1, "peer").dh,

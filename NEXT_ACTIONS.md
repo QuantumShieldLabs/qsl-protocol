@@ -6,24 +6,23 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0625 | HIGHEST_NA=0625 | HIGHEST_D=1245 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0626 | HIGHEST_NA=0626 | HIGHEST_D=1246 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
-**READY (exactly one — execute this):** `NA-0625 — ENG-0023: Suite-2 spec-alignment — §8.5.1 NHK
-boundary header + authenticated ADV receive` (reconciles the two frozen-receiver header-auth gaps
-carried out of NA-0623/NA-0624 in one lane; operator-selected successor at the NA-0624 closeout).
-Its full block (with scope flags) is below under section 2; find it with the ANCHORED pattern
-`^Status:` carrying the state READY (there is exactly one such line in this file).
+**READY (exactly one — execute this):** `NA-0626 — ENG-0024 + ENG-0026: unify the Suite-2 root key
+and add the combined DH+PQ boundary receiver` (one same-surface lane; folds in ENG-0030 structurally
+and ENG-0031 as a rider; operator-steered at D562 Operator Decision 5 and restored at the NA-0625
+closeout, D-1246). Its full block (with scope flags) is below under section 2; find it with the
+ANCHORED pattern `^Status:` carrying the state READY (there is exactly one such line in this file).
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
-1. **ENG-0023 = NA-0625 (now READY)** — Suite-2 spec-alignment (§8.5.1 NHK boundary header + authenticated ADV receive); filed at NA-0624 (D-1243). ENG-0012 (the P1) CLOSED at NA-0624 (D-1243/D-1244).
-2. **ENG-0024** — RK-duality unification (snapshot migration; pairs with ENG-0023's surface) / **ENG-0026** — combined DH+PQ boundary receiver (same surface).
-3. **ENG-0025** — qsc session façade (seam-obligation consolidation).
-4. **ENG-0014** — qsl-server non-constant-time token compare (P2, cross-repo).
+1. **ENG-0024 + ENG-0026 = NA-0626 (now READY)** — RK-duality unification + combined DH+PQ boundary receiver, one same-surface lane; absorbs ENG-0030 (make the reseed-receive send-schedule coherence STRUCTURAL) and ENG-0031 (the §8.5.1/§8.5.4 ADV-header text tension) as a rider. ENG-0023 CLOSED at NA-0625 (D-1245/D-1246).
+2. **ENG-0028** — ProVerif model of the DH+PQ composition (the independent-analysis on-ramp the standing claim boundary requires). Sequence AFTER NA-0626: it models exactly the composition that lane restructures. NA-0625 already delivered the bounded root-composition slice.
+3. **ENG-0014** — qsl-server non-constant-time token compare (P2, cross-repo, cheap; Signal-Server `MessageDigest.isEqual` precedent). Good short lane whenever a slot opens.
+4. **ENG-0025** — qsc session façade (largely subsumed by the ENG-0024 refactor; re-triage after NA-0626).
 5. **ENG-0019** — gate/remove the auth-unsafe `qsp::handshake` skeleton (P3, cheap; design-tenet aligned).
-6. **WF-0012** — build the `ledger.py` findings-tracking tool (@meta lines + list/validate/dedup/ondeck); pays off before the next audit. **ENG-0022** — cover traffic / metadata (unblocked now that ENG-0012 Stage 2 landed).
+6. **WF-0014** — vector-freeze scope claims must be proved against the vector BYTES; Phase-5 gate lists derived mechanically from the touched workflows. Cheap; fold into NA-0626's design-lock. **WF-0012** — the `ledger.py` findings-tracking tool. **ENG-0022** — cover traffic / metadata (unblocked). **ENG-0027** — chunked/erasure-coded PQ transport (largest; partially conflicts with the NA-0626 receiver refactor).
 7. Remaining P3 defense-in-depth: ENG-0008, ENG-0009, ENG-0015, ENG-0016, ENG-0017, ENG-0018, ENG-0020, ENG-0021.
-   (The ENG-0012 design DOC-G5-008 was accepted at NA-0619; NA-0620 implements Stage 1.)
 
 **Conventions (authoritative — see DOC-OPS-006):**
 - **The `IMPROVEMENT_LEDGER` is the single prioritized backlog.** The DOC-G5-005 §9 table is
@@ -34052,11 +34051,28 @@ begins at D-1217.
 ---
 
 ### NA-0625 — ENG-0023: Suite-2 spec-alignment — §8.5.1 NHK boundary header + authenticated ADV receive (source/test)
-Status: READY
-<!-- NA-0625 implementation complete; the Phase-4/5 STOP (an HK-sealed PQ-CTXT frame pinned in a
-     third, non-named frozen vector file) was RESOLVED by Operator Decision 5 (D562 addendum): the named
-     vector-file list extends 2 -> 3, bounded to 24 bytes of one vector. Executed, machine-checked, all
-     15 vector runners green. Lane proceeds to PR/merge/closeout; this block flips to DONE at D-1246. -->
+Status: DONE
+OUTCOME (D-1245 impl / D-1246 closeout; impl PR #1528, merge `4b3e4fda`): ENG-0023 CLOSED. The
+PQ-CTXT boundary header now seals/opens under the §8.5.1 `NHK` derived on the fly from the pre-reseed
+root (receiver + Stage-2a sender mirror; NHK-only open, so an HK-sealed frame fails generically) — no
+stored NHK field, hence no QS2S snapshot bump, hence Operator Decision 3 (ENG-0024 co-scope) stayed
+NO. An authenticated ADV receive path (`recv_pq_adv`) binds a tracked advertisement to the session
+before it is persisted, via an SPQR-style root-keyed MAC carried in the sealed body
+(`KMAC32(RK, "QSP5.0/ADVAUTH", u32be(id) || pub || [0x01])`); `parse.rs` took no hook, no new
+primitive, no new reason code. **A planted advertisement is now rejected and never tracked — the
+relay-inbox injection vector filed at NA-0624 is eliminated.** The ADV consumes its chain slot
+(Operator Decision 2), retiring the ADV/reseed pack-exclusion rule AND the mkskipped control-slot
+growth; `[ADV, reseed]` round-trips in one pack. Operator Decision 4's bounded root-composition model
+ships in `formal/` (15,494 states, 6 regression shapes) and is CI-wired. Runtime-equivalence
+byte-for-byte; refimpl 112/112; full qsc suite 586/586; all 15 suite2 vector runners green. Two
+findings filed: **ENG-0030** (a reseed RECEIVE leaves the receiver's SEND key schedule stale —
+mitigated caller-side in qsc, LOAD-BEARING until made structural) and **ENG-0031** (the
+§8.5.1/§8.5.4 ADV-header text tension). Two process failures filed as **WF-0014**: a directive STOP
+(gap (1) invalidated a byte-pinned HK-sealed frame in a THIRD, non-named vector file — resolved by
+Operator Decision 5 with a bounded 24-byte re-seal) and a CI-caught vector schema violation. The
+standing claim boundary is UNCHANGED: no post-quantum / Triple-Ratchet / post-compromise claim until
+the DH+PQ composition is independently analyzed (ENG-0028).
+
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? YES (the PQ-CTXT boundary header key moves from HK to the §8.5.1 NHK; an authenticated ADV receive path is added — no wire FORMAT change expected)
 Crypto/state-machine change allowed? YES (frozen-receiver semantics change + sender mirror; conformance vectors regenerate; no new KDF/AEAD/KEM primitive)
@@ -34599,3 +34615,58 @@ Closeout evidence:
   - refreshed `qsl-protocol` `main` passes `cargo audit --deny warnings`.
   - PR `#695` remains OPEN and untouched; the next truthful queue state is `NA-0235` resumed from refreshed `main`.
   - this closeout PR is governance-only with no runtime-path changes.
+
+---
+
+### NA-0626 — ENG-0024 + ENG-0026: unify the Suite-2 root key + combined DH+PQ boundary receiver (source/test)
+Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? YES (ENG-0026 adds a combined DH+PQ boundary frame to the refimpl receiver; ENG-0024 is internal state, no wire change)
+Crypto/state-machine change allowed? YES (QS2S snapshot migration + cross-set conformance-vector regeneration; no new KDF/AEAD/KEM primitive)
+Docs-only allowed? NO
+
+Objective:
+Make the Suite-2 root-key coherence STRUCTURAL rather than caller-owned, and add the combined DH+PQ
+boundary receiver, in ONE lane — they share the receiver, the session state, and the snapshot
+migration.
+
+(1) **ENG-0024 — RK duality.** DOC-CAN-003 §8.1 defines ONE session root, but `Suite2SessionState`
+stores it twice (`recv.rk`, read by the PQ path; `dh.rk`, read/advanced by the DH ratchet) and
+nothing type-enforces their coherence. That single missing invariant is now the demonstrated root
+cause of THREE defects: the D560 amendment (a DH reply wiped the PQ hardening), the NA-0624
+dh.rk-sync desync (a DH boundary advanced only `dh.rk`, so a following reseed derived `KDF_RK_PQ`
+from different roots on the two parties), and NA-0625's ENG-0030. All three were caught by testing,
+none prevented by construction. Unify to a single root; retire the qsc inject/adopt dance now
+load-bearing in TWO intercept arms.
+
+(2) **ENG-0030 — absorb structurally.** `send_pq_reseed` writes both directional header keys AND the
+new send PQ chain into the SENDER's session state, but the receive path (`recv_wire` ->
+`recv_boundary_in_order`) operates on `Suite2RecvWireState` and can only return recv-side state — so
+a party that RECEIVES a reseed keeps `send.hk_s` / `send.ck_pq` on the pre-reseed schedule. qsc
+currently mirrors the send half caller-side; **that mitigation is LOAD-BEARING and must not be
+dropped until it is replaced.** The fix: a session-level reseed-RECEIVE entry point that returns a
+fully updated `Suite2SessionState`, mirroring `send_pq_reseed`, so no caller can hold half a schedule.
+
+(3) **ENG-0026 — combined DH+PQ boundary.** A single-message hybrid ratchet boundary in the refimpl
+receiver (currently `ADV|CTXT` flags reject as `REJECT_S2_LOCAL_UNSUPPORTED`).
+
+(4) **ENG-0031 — rider.** Resolve the §8.5.1-sender vs §8.5.4 text tension for the ADV boundary
+header: either a one-line DOC-CAN-003 clarification scoping §8.5.1's sender sentence to
+epoch-creating boundaries (matching §8.5.4's silence and §8.5.1's own receiver sentence), or a
+bounded NHK flip for the ADV header. Pick one; do not leave the tension unrecorded in the spec.
+
+Binding constraints:
+- **WF-0014 applies at the design-lock.** A snapshot migration regenerates conformance vectors across
+  ALL sets, so the design-lock MUST prove its vector scope by DECODING the pinned bytes of every
+  `inputs/**/vectors/*.json` (the ~30-second scan archived in
+  `docs/governance/evidence/NA-0625_suite2_spec_alignment_harness.md` §8), never by citing a
+  forward-study note. NA-0625 lost a merge cycle to exactly that mistake.
+- The Phase-5 gate list MUST be derived mechanically from the workflows the change touches (every
+  `scripts/ci/*.py` invoked by the affected `.github/workflows/*.yml`, including
+  `validate_suite2_vectors.py`), not from a remembered subset.
+- The seed-model runtime-equivalence test (`suite2_runtime_equivalence_na0198`) must still pass
+  byte-for-byte, or the snapshot migration must be explicitly justified against it at design-lock.
+- No post-quantum / Triple-Ratchet / post-compromise claim (ENG-0028 remains the on-ramp).
+
+Begins at D-1247. Delicate crypto lane: design-lock before code; one session handoff permitted at
+design-lock completion, per the session-handoff convention.

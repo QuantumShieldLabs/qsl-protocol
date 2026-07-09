@@ -93,6 +93,51 @@ liveness) release gates.**
 > the P1. No POST-QUANTUM / Triple-Ratchet claim on live traffic until Stage 2b lands and the DH+PQ
 > composition is independently analyzed.
 
+> **Update (NA-0624 / ENG-0012 Stage 2b, 2026-07-08).** Stage 2b landed: the Stage-2a SCKA sender is
+> wired into the REAL qsc send/receive path, reusing the frozen refimpl semantics exactly (the
+> runtime-equivalence test stays byte-for-byte). `qsp_pack` originates SCKA advertisements
+> (`send_pq_advertise`) as separate CONTROL envelopes pushed before the main message — on
+> establishment, when the local advertised key is consumed, and on rotation — and originates PQ
+> reseeds (`send_pq_reseed`) on the operator-approved sparse cadence (Decision 3: first reseed as
+> soon as a fresh unconsumed peer advertisement is available, then every N_pq=8 sent DH boundaries
+> or T_pq=3600 s, evaluated on non-boundary sends so reseeds co-schedule after DH boundaries). An
+> advertisement consumes a send-chain slot the receiver skips as a control message — a NORMAL main
+> message heals the receiver's n-gap via the OOO machinery and a DH boundary abandons the old
+> epoch, but the frozen reseed receiver is strict-in-order, so an advertisement NEVER shares a
+> pack with a reseed (it defers to the next send).
+> `qsp_unpack` intercepts `FLAG_PQ_ADV` before `recv_wire` (the frozen receiver has no ADV path) and
+> validates via `track_peer_adv`; a `FLAG_PQ_CTXT` boundary decapsulates against the local
+> advertised ML-KEM key, INJECTS the canonical session root into the receive state (`recv.rk :=
+> dh.rk` when live — a DH boundary advances only `dh.rk` and the frozen reseed SENDER derives from
+> `session_root`, so the receiver must mirror it or the parties derive `KDF_RK_PQ` from different
+> roots: the NA-0623 dh.rk-sync carry-over, resolved caller-side), drives the frozen
+> `apply_pq_reseed` via `recv_wire`, and then ADOPTS the advanced root into the DH-ratchet slot
+> (`dh.rk := recv.rk`) — the caller-side composition Stage 2a deferred to qsc, so a later classical
+> DH ratchet carries the PQ hardening instead of wiping it.
+> The SCKA state (bounded advertised-key store with deterministic eviction, peer advertisement,
+> cadence counters) persists inside the AEAD session blob as a length-delimited v3 section (refimpl
+> QS2S snapshot frozen; v2/v1 migrate; a non-advertising session has an empty section) with a G2
+> monotonic side-record (`peer_max_adv_id_seen` / `local_next_adv_id` / `peer_adv_max_seen` /
+> `peer_adv_consumed_max` / tombstones): a rolled-back blob fails closed
+> (`session_rollback_detected`), which also prevents re-consuming a one-time peer target across a
+> restore. An enabling fix landed with the wiring: the transport deliver path now persists the
+> qsp_pack trigger (the NA-0622 cleared ratchet-on-reply flag and N/T fallback counters previously
+> never persisted on the main send path, so every post-receive send ratcheted and a non-boundary
+> reseed send could never fire; the documented D-1239 cadence is now live). Proven end
+> to end over a real A/B handshake: advertise -> reseed mid-conversation -> both decrypt; the
+> headline PQ-PCS-healing vector survives a subsequent DH ratchet ON THE REAL CLIENT (the pre-reseed
+> snapshot holds every classical secret — the DH private key is in it and the boundary DH public is
+> on the wire — and still cannot decrypt); rollback fails closed. Flagged deviations carried to the
+> spec-alignment successor lane (with the §8.5.1 NHK item): (1) ADV TRACKING IS UNAUTHENTICATED —
+> `qsp_unpack` validates length + monotonicity but cannot authenticate the ADV header (the frozen
+> receiver rejects `FLAG_PQ_ADV`), so an attacker able to inject into the relay inbox can plant an
+> advertisement (bounding: the planted-key reseed still MIXES into `RK` via `KDF_RK_PQ`, so classical
+> security is unaffected and the result is no worse than "no reseed" for the PQ layer, plus a
+> tracking-DoS via a max `adv_id`); (2) a lost/dropped ADV or reseed envelope degrades to the
+> classical status quo until rotation re-advertises (the outbox replays only the main message).
+> The POST-QUANTUM / Triple-Ratchet / post-compromise claim on live traffic remains WITHHELD pending
+> independent analysis of the DH+PQ composition (the standing claim boundary).
+
 This is not a from-scratch protocol design; the receive side and a reference send side already
 exist and constrain the answer:
 

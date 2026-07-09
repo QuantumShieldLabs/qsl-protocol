@@ -239,11 +239,17 @@ fn handshake_backed_send_receive_uses_qsp_without_seed_fallback() {
         "seed fallback surface leaked into send output: {send_text}"
     );
 
+    // NA-0624: the first send on a real-handshake session also emits an SCKA advertisement
+    // CONTROL envelope before the message; the application message is the LAST item. Neither
+    // envelope may leak the plaintext.
     let queued = server.drain_channel(ROUTE_TOKEN_BOB);
-    assert_eq!(queued.len(), 1, "expected exactly one relay item");
-    let envelope = Envelope::decode(&queued[0]).expect("decode qse envelope");
+    assert_eq!(queued.len(), 2, "expected [scka_adv, message] relay items");
+    for item in queued.iter() {
+        assert!(!contains_subslice(item, &plaintext));
+    }
+    let envelope =
+        Envelope::decode(queued.last().expect("message item")).expect("decode qse envelope");
     assert!(envelope.payload.len() > plaintext.len());
-    assert!(!contains_subslice(&queued[0], &plaintext));
     assert!(!contains_subslice(&envelope.payload, &plaintext));
     server.replace_channel(ROUTE_TOKEN_BOB, queued);
 

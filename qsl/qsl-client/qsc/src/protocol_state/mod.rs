@@ -10,6 +10,7 @@ use quantumshield_refimpl::suite2::ratchet::{
 use quantumshield_refimpl::suite2::state::Suite2SessionState;
 use quantumshield_refimpl::suite2::types::{SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID};
 use rand_core::{OsRng, RngCore};
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use std::env;
 use std::fs;
@@ -233,8 +234,9 @@ fn qsp_session_store_key_get_or_create(peer: &str) -> Result<[u8; 32], ErrorCode
 }
 
 // NA-0622 (ENG-0012 Stage 1b-ii): reply-driven DH-ratchet trigger state, persisted INSIDE the
-// qsc session blob's encrypted plaintext (v2 = b"QTRG" + trigger(13) + QS2S snapshot). A legacy
-// raw-QS2S plaintext (starting with b"QS2S") migrates transparently with a default trigger. This
+// qsc session blob's encrypted plaintext (v2 = b"QTRG" + trigger(13) + QS2S snapshot; NA-0624
+// v3 additionally carries a length-delimited SCKA section between the trigger and the snapshot).
+// A legacy raw-QS2S plaintext (starting with b"QS2S") migrates transparently with a default trigger. This
 // keeps the refimpl Suite2SessionState / QS2S snapshot format FROZEN — client policy stays out of
 // the crypto core. qsc is load-per-message, so this state must be persisted, not in-memory.
 pub(crate) const QSP_TRIGGER_MAGIC: &[u8; 4] = b"QTRG";
@@ -252,6 +254,357 @@ pub(crate) struct QspTriggerState {
     pub msgs_since_ratchet: u32,
     /// Unix seconds of the last DH ratchet (bounded fallback, T).
     pub last_ratchet_unix_secs: u64,
+}
+
+// NA-0624 (ENG-0012 Stage 2b): qsc-side SCKA state (DOC-CAN-004 §2/§3), persisted INSIDE the
+// session blob's encrypted plaintext as the v3 SCKA section (v3 = b"QTRG" + trigger(13) +
+// scka_len(u32 LE) + scka(scka_len) + QS2S snapshot). The refimpl Suite2SessionState / QS2S
+// snapshot stays FROZEN: the advertised-key store (ML-KEM-768 receive secret keys), the peer
+// advertisement, and the reseed/advertise cadence counters are client policy, kept out of the
+// crypto core exactly like the v2 `QTRG` trigger. Legacy v2/v1 plaintexts migrate transparently
+// with an empty SCKA section. The ML-KEM secret keys live ONLY inside the AEAD-encrypted blob.
+/// Bound on live advertised receive keys (deterministic lowest-id eviction; each sk is ~2.4 KB).
+pub(crate) const QSP_SCKA_ADVKEY_CAP: usize = 4;
+/// Reseed cadence: originate a PQ reseed after this many sent DH boundaries (Decision 3).
+pub(crate) const QSP_PQ_RESEED_N: u32 = 8;
+/// Reseed cadence: or after this many seconds since the last reseed; also the advertised-key
+/// rotation period (a stale unconsumed advertisement is re-advertised after this long).
+pub(crate) const QSP_PQ_RESEED_T_SECS: u64 = 3600;
+const QSP_SCKA_SECTION_MAX: usize = 64 * 1024;
+const QSP_SCKA_SK_MAX: usize = 4096;
+const QSP_SCKA_PUB_MAX: usize = 2048;
+const QSP_SCKA_TOMB_MAX: usize = 4096;
+
+/// One advertised ML-KEM-768 receive keypair (DOC-CAN-004 §3.1 step 2). `secret` is emptied
+/// (zero-overwritten) when the peer consumes the target; the entry stays as a consumed marker
+/// until evicted.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub(crate) struct SckaAdvKey {
+    pub adv_id: u32,
+    pub consumed: bool,
+    pub secret: Vec<u8>,
+}
+
+/// The peer's most recent unconsumed advertisement (DOC-CAN-004 §3.2); removed on consumption.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub(crate) struct SckaPeerAdv {
+    pub adv_id: u32,
+    pub pubkey: Vec<u8>,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub(crate) struct SckaLocalState {
+    /// Next local advertisement id to allocate (strictly increasing; first allocation is 1).
+    pub local_next_adv_id: u32,
+    /// Advertised receive keys, ascending `adv_id`, at most `QSP_SCKA_ADVKEY_CAP` entries.
+    pub advkeys: Vec<SckaAdvKey>,
+    /// Local ids retired without a live secret (evicted or consumed-and-pruned).
+    pub tombstones: BTreeSet<u32>,
+    /// The peer's live (unconsumed) advertisement, if any.
+    pub peer_adv: Option<SckaPeerAdv>,
+    /// Highest peer advertisement id ever tracked (track_peer_adv monotonicity floor).
+    pub peer_adv_max_seen: u32,
+    /// Highest peer advertisement id ever CONSUMED by an originated reseed (or dropped as
+    /// unusable). One-time targets: a rolled-back store must never re-consume one (G2).
+    pub peer_adv_consumed_max: u32,
+    /// Sent DH boundaries since the last originated reseed (cadence N).
+    pub boundaries_since_reseed: u32,
+    /// Unix seconds of the last originated reseed (cadence T; 0 = never).
+    pub last_reseed_unix_secs: u64,
+    /// Unix seconds of the last originated advertisement (rotation; 0 = never).
+    pub last_adv_unix_secs: u64,
+}
+
+impl SckaLocalState {
+    /// True when the SCKA path has never been used on this session (nothing to persist or track).
+    pub(crate) fn is_default(&self) -> bool {
+        *self == SckaLocalState::default()
+    }
+
+    /// The live (unconsumed, secret-bearing) advertised key with the highest id, if any.
+    pub(crate) fn live_advkey(&self) -> Option<&SckaAdvKey> {
+        self.advkeys
+            .iter()
+            .rev()
+            .find(|k| !k.consumed && !k.secret.is_empty())
+    }
+
+    /// Insert a freshly advertised keypair, evicting deterministically (lowest id first,
+    /// consumed entries before live ones) to stay within `QSP_SCKA_ADVKEY_CAP`. Evicted and
+    /// pruned ids are tombstoned so they are never re-accepted.
+    pub(crate) fn insert_advkey(&mut self, adv_id: u32, secret: Vec<u8>) {
+        while self.advkeys.len() >= QSP_SCKA_ADVKEY_CAP {
+            let evict_idx = self
+                .advkeys
+                .iter()
+                .position(|k| k.consumed)
+                .unwrap_or(0usize);
+            let mut evicted = self.advkeys.remove(evict_idx);
+            for b in evicted.secret.iter_mut() {
+                *b = 0;
+            }
+            self.tombstones.insert(evicted.adv_id);
+        }
+        self.advkeys.push(SckaAdvKey {
+            adv_id,
+            consumed: false,
+            secret,
+        });
+        self.advkeys.sort_by_key(|k| k.adv_id);
+    }
+
+    /// Mark a local advertised key consumed (one-time use): zero-overwrite and drop the secret.
+    pub(crate) fn consume_advkey(&mut self, adv_id: u32) {
+        if let Some(k) = self.advkeys.iter_mut().find(|k| k.adv_id == adv_id) {
+            for b in k.secret.iter_mut() {
+                *b = 0;
+            }
+            k.secret = Vec::new();
+            k.consumed = true;
+        }
+        self.tombstones.insert(adv_id);
+    }
+
+    /// Encode the SCKA section (empty for a default state, so a non-advertising session keeps
+    /// `scka_len == 0` and the v3 plaintext stays byte-stable modulo the 4-byte length field).
+    fn encode(&self) -> Vec<u8> {
+        if self.is_default() {
+            return Vec::new();
+        }
+        let mut out = Vec::new();
+        out.extend_from_slice(&self.local_next_adv_id.to_le_bytes());
+        out.extend_from_slice(&(self.advkeys.len() as u32).to_le_bytes());
+        for k in &self.advkeys {
+            out.extend_from_slice(&k.adv_id.to_le_bytes());
+            out.push(k.consumed as u8);
+            out.extend_from_slice(&(k.secret.len() as u16).to_le_bytes());
+            out.extend_from_slice(&k.secret);
+        }
+        out.extend_from_slice(&(self.tombstones.len() as u32).to_le_bytes());
+        for id in &self.tombstones {
+            out.extend_from_slice(&id.to_le_bytes());
+        }
+        match &self.peer_adv {
+            Some(p) => {
+                out.push(1u8);
+                out.extend_from_slice(&p.adv_id.to_le_bytes());
+                out.extend_from_slice(&(p.pubkey.len() as u16).to_le_bytes());
+                out.extend_from_slice(&p.pubkey);
+            }
+            None => out.push(0u8),
+        }
+        out.extend_from_slice(&self.peer_adv_max_seen.to_le_bytes());
+        out.extend_from_slice(&self.peer_adv_consumed_max.to_le_bytes());
+        out.extend_from_slice(&self.boundaries_since_reseed.to_le_bytes());
+        out.extend_from_slice(&self.last_reseed_unix_secs.to_le_bytes());
+        out.extend_from_slice(&self.last_adv_unix_secs.to_le_bytes());
+        out
+    }
+
+    /// Fail-closed decode: exact-length consumption with hard caps (mirror the QS2S
+    /// `restore_bytes` restore caps). A zero-length section is the default state.
+    fn decode(b: &[u8]) -> Result<SckaLocalState, ()> {
+        if b.is_empty() {
+            return Ok(SckaLocalState::default());
+        }
+        let mut pos = 0usize;
+        let take = |pos: &mut usize, n: usize| -> Result<&[u8], ()> {
+            let end = pos.checked_add(n).ok_or(())?;
+            if end > b.len() {
+                return Err(());
+            }
+            let s = &b[*pos..end];
+            *pos = end;
+            Ok(s)
+        };
+        let read_u32 = |pos: &mut usize| -> Result<u32, ()> {
+            let s = take(pos, 4)?;
+            Ok(u32::from_le_bytes([s[0], s[1], s[2], s[3]]))
+        };
+        let read_u16 = |pos: &mut usize| -> Result<u16, ()> {
+            let s = take(pos, 2)?;
+            Ok(u16::from_le_bytes([s[0], s[1]]))
+        };
+        let read_u64 = |pos: &mut usize| -> Result<u64, ()> {
+            let s = take(pos, 8)?;
+            Ok(u64::from_le_bytes([
+                s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7],
+            ]))
+        };
+        let local_next_adv_id = read_u32(&mut pos)?;
+        let advkey_count = read_u32(&mut pos)? as usize;
+        if advkey_count > QSP_SCKA_ADVKEY_CAP {
+            return Err(());
+        }
+        let mut advkeys = Vec::with_capacity(advkey_count);
+        let mut prev_id: Option<u32> = None;
+        for _ in 0..advkey_count {
+            let adv_id = read_u32(&mut pos)?;
+            if let Some(p) = prev_id {
+                if adv_id <= p {
+                    return Err(());
+                }
+            }
+            prev_id = Some(adv_id);
+            let consumed = match take(&mut pos, 1)?[0] {
+                0 => false,
+                1 => true,
+                _ => return Err(()),
+            };
+            let sk_len = read_u16(&mut pos)? as usize;
+            if sk_len > QSP_SCKA_SK_MAX {
+                return Err(());
+            }
+            let secret = take(&mut pos, sk_len)?.to_vec();
+            advkeys.push(SckaAdvKey {
+                adv_id,
+                consumed,
+                secret,
+            });
+        }
+        let tomb_count = read_u32(&mut pos)? as usize;
+        if tomb_count > QSP_SCKA_TOMB_MAX {
+            return Err(());
+        }
+        let mut tombstones = BTreeSet::new();
+        for _ in 0..tomb_count {
+            tombstones.insert(read_u32(&mut pos)?);
+        }
+        if tombstones.len() != tomb_count {
+            return Err(());
+        }
+        let peer_adv = match take(&mut pos, 1)?[0] {
+            0 => None,
+            1 => {
+                let adv_id = read_u32(&mut pos)?;
+                let pub_len = read_u16(&mut pos)? as usize;
+                if pub_len > QSP_SCKA_PUB_MAX {
+                    return Err(());
+                }
+                let pubkey = take(&mut pos, pub_len)?.to_vec();
+                Some(SckaPeerAdv { adv_id, pubkey })
+            }
+            _ => return Err(()),
+        };
+        let peer_adv_max_seen = read_u32(&mut pos)?;
+        let peer_adv_consumed_max = read_u32(&mut pos)?;
+        let boundaries_since_reseed = read_u32(&mut pos)?;
+        let last_reseed_unix_secs = read_u64(&mut pos)?;
+        let last_adv_unix_secs = read_u64(&mut pos)?;
+        if pos != b.len() {
+            return Err(());
+        }
+        Ok(SckaLocalState {
+            local_next_adv_id,
+            advkeys,
+            tombstones,
+            peer_adv,
+            peer_adv_max_seen,
+            peer_adv_consumed_max,
+            boundaries_since_reseed,
+            last_reseed_unix_secs,
+            last_adv_unix_secs,
+        })
+    }
+}
+
+/// G2 rollback guard: a small monotonic side-record (ids only, NO key material), stored next to
+/// the session blob and merge-updated on every store — the qsc mirror of the interop actor's
+/// `dur_scka` record (`check_dur_scka_rollback`). A session blob whose SCKA counters regress
+/// below this record fails closed on load (`session_rollback_detected`).
+#[derive(Serialize, Deserialize)]
+struct SckaMonoRecord {
+    version: u8,
+    peer_max_adv_id_seen: u32,
+    local_next_adv_id: u32,
+    peer_adv_max_seen: u32,
+    #[serde(default)]
+    peer_adv_consumed_max: u32,
+    tombstones: Vec<u32>,
+}
+
+fn qsp_scka_mono_path(dir: &Path, peer: &str) -> PathBuf {
+    qsp_sessions_dir(dir).join(format!("{}.scka.json", peer))
+}
+
+fn qsp_scka_mono_load(dir: &Path, peer: &str) -> Result<Option<SckaMonoRecord>, ()> {
+    let path = qsp_scka_mono_path(dir, peer);
+    if !path.exists() {
+        return Ok(None);
+    }
+    let bytes = fs::read(&path).map_err(|_| ())?;
+    let rec: SckaMonoRecord = serde_json::from_slice(&bytes).map_err(|_| ())?;
+    if rec.version != 1 || rec.tombstones.len() > QSP_SCKA_TOMB_MAX {
+        return Err(());
+    }
+    Ok(Some(rec))
+}
+
+fn qsp_scka_rollback_check(
+    rec: &SckaMonoRecord,
+    recv: &Suite2RecvWireState,
+    scka: &SckaLocalState,
+) -> Result<(), ()> {
+    if recv.peer_max_adv_id_seen < rec.peer_max_adv_id_seen {
+        return Err(());
+    }
+    if scka.local_next_adv_id < rec.local_next_adv_id {
+        return Err(());
+    }
+    if scka.peer_adv_max_seen < rec.peer_adv_max_seen {
+        return Err(());
+    }
+    if scka.peer_adv_consumed_max < rec.peer_adv_consumed_max {
+        return Err(());
+    }
+    for t in rec.tombstones.iter() {
+        if !recv.tombstoned_targets.contains(t) && !scka.tombstones.contains(t) {
+            return Err(());
+        }
+    }
+    Ok(())
+}
+
+fn qsp_scka_mono_update(
+    dir: &Path,
+    source: ConfigSource,
+    peer: &str,
+    recv: &Suite2RecvWireState,
+    scka: &SckaLocalState,
+) -> Result<(), ErrorCode> {
+    // Nothing to guard until SCKA state exists; avoid churning a side-record for every
+    // non-SCKA session (keeps pre-Stage-2b store behavior unchanged on disk).
+    let prev = qsp_scka_mono_load(dir, peer).map_err(|_| ErrorCode::ParseFailed)?;
+    if prev.is_none() && scka.is_default() && recv.peer_max_adv_id_seen == 0 {
+        return Ok(());
+    }
+    let mut tombs: BTreeSet<u32> = recv.tombstoned_targets.iter().copied().collect();
+    tombs.extend(scka.tombstones.iter().copied());
+    let mut rec = SckaMonoRecord {
+        version: 1,
+        peer_max_adv_id_seen: recv.peer_max_adv_id_seen,
+        local_next_adv_id: scka.local_next_adv_id,
+        peer_adv_max_seen: scka.peer_adv_max_seen,
+        peer_adv_consumed_max: scka.peer_adv_consumed_max,
+        tombstones: Vec::new(),
+    };
+    if let Some(p) = prev {
+        rec.peer_max_adv_id_seen = rec.peer_max_adv_id_seen.max(p.peer_max_adv_id_seen);
+        rec.local_next_adv_id = rec.local_next_adv_id.max(p.local_next_adv_id);
+        rec.peer_adv_max_seen = rec.peer_adv_max_seen.max(p.peer_adv_max_seen);
+        rec.peer_adv_consumed_max = rec.peer_adv_consumed_max.max(p.peer_adv_consumed_max);
+        tombs.extend(p.tombstones.iter().copied());
+    }
+    while tombs.len() > QSP_SCKA_TOMB_MAX {
+        let lowest = match tombs.iter().next().copied() {
+            Some(v) => v,
+            None => break,
+        };
+        tombs.remove(&lowest);
+    }
+    rec.tombstones = tombs.into_iter().collect();
+    let bytes = serde_json::to_vec(&rec).map_err(|_| ErrorCode::ParseFailed)?;
+    write_atomic(&qsp_scka_mono_path(dir, peer), &bytes, source)
 }
 
 impl QspTriggerState {
@@ -275,24 +628,50 @@ impl QspTriggerState {
     }
 }
 
-/// Split a decrypted session-blob plaintext into (trigger, raw QS2S snapshot). A v2 plaintext is
-/// prefixed with `QSP_TRIGGER_MAGIC`; a legacy plaintext is the raw snapshot (default trigger).
-fn qsp_split_plaintext(pt: &[u8]) -> (QspTriggerState, &[u8]) {
+/// The QS2S snapshot magic (the refimpl `Suite2SessionState` snapshot prefix), used to tell a
+/// legacy v2 plaintext (trigger + raw snapshot) from a v3 plaintext (trigger + SCKA section +
+/// snapshot) without ambiguity.
+const QS2S_SNAPSHOT_MAGIC: &[u8; 4] = b"QS2S";
+
+/// Split a decrypted session-blob plaintext into (trigger, SCKA state, raw QS2S snapshot).
+/// v3 = magic + trigger + scka_len(u32 LE) + scka + snapshot; v2 = magic + trigger + snapshot
+/// (empty SCKA); legacy v1 = the raw snapshot (defaults). Fail-closed on a malformed v3 SCKA
+/// section.
+fn qsp_split_plaintext(pt: &[u8]) -> Result<(QspTriggerState, SckaLocalState, &[u8]), ()> {
     let hdr = QSP_TRIGGER_MAGIC.len() + QSP_TRIGGER_LEN;
     if pt.len() >= hdr && &pt[..QSP_TRIGGER_MAGIC.len()] == QSP_TRIGGER_MAGIC {
         let mut t = [0u8; QSP_TRIGGER_LEN];
         t.copy_from_slice(&pt[QSP_TRIGGER_MAGIC.len()..hdr]);
-        (QspTriggerState::decode(&t), &pt[hdr..])
+        let trig = QspTriggerState::decode(&t);
+        let rest = &pt[hdr..];
+        if rest.starts_with(QS2S_SNAPSHOT_MAGIC) {
+            // v2: no SCKA section (a QS2S snapshot follows the trigger directly).
+            return Ok((trig, SckaLocalState::default(), rest));
+        }
+        if rest.len() < 4 {
+            return Err(());
+        }
+        let scka_len = u32::from_le_bytes([rest[0], rest[1], rest[2], rest[3]]) as usize;
+        if scka_len > QSP_SCKA_SECTION_MAX || 4 + scka_len > rest.len() {
+            return Err(());
+        }
+        let scka = SckaLocalState::decode(&rest[4..4 + scka_len])?;
+        Ok((trig, scka, &rest[4 + scka_len..]))
     } else {
-        (QspTriggerState::default(), pt)
+        Ok((QspTriggerState::default(), SckaLocalState::default(), pt))
     }
 }
 
-/// Build a v2 session-blob plaintext = magic + trigger + snapshot.
-fn qsp_join_plaintext(trig: &QspTriggerState, snapshot: &[u8]) -> Vec<u8> {
-    let mut out = Vec::with_capacity(QSP_TRIGGER_MAGIC.len() + QSP_TRIGGER_LEN + snapshot.len());
+/// Build a v3 session-blob plaintext = magic + trigger + scka_len + scka + snapshot.
+fn qsp_join_plaintext(trig: &QspTriggerState, scka: &SckaLocalState, snapshot: &[u8]) -> Vec<u8> {
+    let scka_bytes = scka.encode();
+    let mut out = Vec::with_capacity(
+        QSP_TRIGGER_MAGIC.len() + QSP_TRIGGER_LEN + 4 + scka_bytes.len() + snapshot.len(),
+    );
     out.extend_from_slice(QSP_TRIGGER_MAGIC);
     out.extend_from_slice(&trig.encode());
+    out.extend_from_slice(&(scka_bytes.len() as u32).to_le_bytes());
+    out.extend_from_slice(&scka_bytes);
     out.extend_from_slice(snapshot);
     out
 }
@@ -315,18 +694,83 @@ pub(crate) fn qsp_trigger_load(peer: &str) -> QspTriggerState {
         Err(_) => return QspTriggerState::default(),
     };
     match qsp_session_decrypt_blob(peer, &blob) {
-        Ok(pt) => qsp_split_plaintext(&pt).0,
+        Ok(pt) => match qsp_split_plaintext(&pt) {
+            Ok((trig, _, _)) => trig,
+            Err(()) => QspTriggerState::default(),
+        },
         Err(_) => QspTriggerState::default(),
     }
 }
 
-/// Store the session state together with an explicit DH-ratchet trigger (message path).
+/// Read the persisted SCKA state for a channel (default if no session or a pre-v3 blob).
+pub(crate) fn qsp_scka_load(peer: &str) -> SckaLocalState {
+    if !channel_label_ok(peer) {
+        return SckaLocalState::default();
+    }
+    let dir = match config_dir() {
+        Ok((d, _)) => d,
+        Err(_) => return SckaLocalState::default(),
+    };
+    let blob_path = qsp_session_blob_path(&dir, peer);
+    if !blob_path.exists() {
+        return SckaLocalState::default();
+    }
+    let blob = match fs::read(&blob_path) {
+        Ok(b) => b,
+        Err(_) => return SckaLocalState::default(),
+    };
+    match qsp_session_decrypt_blob(peer, &blob) {
+        Ok(pt) => match qsp_split_plaintext(&pt) {
+            Ok((_, scka, _)) => scka,
+            Err(()) => SckaLocalState::default(),
+        },
+        Err(_) => SckaLocalState::default(),
+    }
+}
+
+/// Persist an updated SCKA state against the CURRENTLY STORED session snapshot and trigger
+/// (read-modify-write). Used by the message path at SCKA mutation points (an advertised secret
+/// key MUST be durable before its advertisement can leave the client; a consumed peer
+/// advertisement MUST be durable before the reseed wire exists — fail closed).
+pub(crate) fn qsp_scka_store(peer: &str, scka: &SckaLocalState) -> Result<(), ErrorCode> {
+    if !channel_label_ok(peer) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    let (dir, source) = config_dir()?;
+    let blob_path = qsp_session_blob_path(&dir, peer);
+    let blob = fs::read(&blob_path).map_err(|_| ErrorCode::IoReadFailed)?;
+    let pt = qsp_session_decrypt_blob(peer, &blob).map_err(|_| ErrorCode::ParseFailed)?;
+    let (trig, _old_scka, snapshot) =
+        qsp_split_plaintext(&pt).map_err(|_| ErrorCode::ParseFailed)?;
+    let recv = Suite2SessionState::restore_bytes(snapshot)
+        .map_err(|_| ErrorCode::ParseFailed)?
+        .recv;
+    qsp_session_store_inner(peer, &qsp_join_plaintext(&trig, scka, snapshot))?;
+    qsp_scka_mono_update(&dir, source, peer, &recv, scka)
+}
+
+/// Store the session state together with an explicit DH-ratchet trigger (message path). The
+/// persisted SCKA state is preserved.
 pub(crate) fn qsp_session_store_with_trigger(
     peer: &str,
     st: &Suite2SessionState,
     trig: &QspTriggerState,
 ) -> Result<(), ErrorCode> {
-    qsp_session_store_inner(peer, &qsp_join_plaintext(trig, &st.snapshot_bytes()))
+    let scka = qsp_scka_load(peer);
+    qsp_session_store_with_trigger_scka(peer, st, trig, &scka)
+}
+
+/// Store the session state together with an explicit trigger AND SCKA state (v3 blob), then
+/// merge-update the G2 monotonic side-record.
+pub(crate) fn qsp_session_store_with_trigger_scka(
+    peer: &str,
+    st: &Suite2SessionState,
+    trig: &QspTriggerState,
+    scka: &SckaLocalState,
+) -> Result<(), ErrorCode> {
+    qsp_session_store_inner(peer, &qsp_join_plaintext(trig, scka, &st.snapshot_bytes()))?;
+    let (dir, source) = config_dir()?;
+    qsp_scka_mono_update(&dir, source, peer, &st.recv, scka)
 }
 
 fn qsp_session_encrypt_blob(peer: &str, plaintext: &[u8]) -> Result<Vec<u8>, ErrorCode> {
@@ -406,15 +850,44 @@ fn qsp_session_load_encrypted(
             return Err(ErrorCode::ParseFailed);
         }
     };
-    // Strip the optional v2 DH-ratchet trigger prefix; a legacy raw-snapshot plaintext is
-    // returned unchanged (default trigger). The trigger itself is read via qsp_trigger_load.
-    let is_v2 = plaintext.starts_with(QSP_TRIGGER_MAGIC);
-    let (_trig, snapshot) = qsp_split_plaintext(&plaintext);
+    // Strip the v3/v2 trigger + SCKA prefix; a legacy raw-snapshot plaintext is returned
+    // unchanged (defaults). The trigger/SCKA state are read via qsp_trigger_load/qsp_scka_load.
+    let has_magic = plaintext.starts_with(QSP_TRIGGER_MAGIC);
+    let (_trig, scka, snapshot) = qsp_split_plaintext(&plaintext).map_err(|_| {
+        emit_marker("error", Some("session_decrypt_failed"), &[]);
+        ErrorCode::ParseFailed
+    })?;
     let st = Suite2SessionState::restore_bytes(snapshot).map_err(|_| {
         emit_marker("error", Some("session_decrypt_failed"), &[]);
         ErrorCode::ParseFailed
     })?;
-    let format = if is_v2 { "v2" } else { "v1" };
+    // NA-0624 G2: SCKA monotonicity rollback guard — a session blob whose SCKA counters or
+    // tombstones regress below the persisted monotonic side-record fails closed.
+    if let Ok((dir, _)) = config_dir() {
+        match qsp_scka_mono_load(&dir, peer) {
+            Ok(Some(rec)) => {
+                if qsp_scka_rollback_check(&rec, &st.recv, &scka).is_err() {
+                    emit_marker("error", Some("session_rollback_detected"), &[]);
+                    return Err(ErrorCode::ParseFailed);
+                }
+            }
+            Ok(None) => {}
+            Err(()) => {
+                emit_marker("error", Some("session_rollback_detected"), &[]);
+                return Err(ErrorCode::ParseFailed);
+            }
+        }
+    }
+    let format = if has_magic {
+        let hdr = QSP_TRIGGER_MAGIC.len() + QSP_TRIGGER_LEN;
+        if plaintext[hdr..].starts_with(QS2S_SNAPSHOT_MAGIC) {
+            "v2"
+        } else {
+            "v3"
+        }
+    } else {
+        "v1"
+    };
     emit_marker("session_load", None, &[("ok", "true"), ("format", format)]);
     Ok(st)
 }
@@ -515,7 +988,7 @@ fn qsp_session_store_inner(peer: &str, plaintext: &[u8]) -> Result<(), ErrorCode
     emit_marker(
         "session_store",
         None,
-        &[("ok", "true"), ("format", "v2"), ("enc", "aead")],
+        &[("ok", "true"), ("format", "v3"), ("enc", "aead")],
     );
     Ok(())
 }
@@ -627,4 +1100,215 @@ pub(crate) fn qsp_session_for_channel(channel: &str) -> Result<Suite2SessionStat
         rk,
     };
     Ok(Suite2SessionState { send, recv, dh })
+}
+
+// NA-0624 (ENG-0012 Stage 2b): co-located tests for the v3 SCKA persistence layer — the
+// section codec (fail-closed), the v3/v2/v1 plaintext split, and the G2 rollback guard.
+#[cfg(test)]
+mod scka_tests {
+    use super::*;
+
+    fn sample_scka() -> SckaLocalState {
+        let mut tombstones = BTreeSet::new();
+        tombstones.insert(1);
+        tombstones.insert(3);
+        SckaLocalState {
+            local_next_adv_id: 5,
+            advkeys: vec![
+                SckaAdvKey {
+                    adv_id: 2,
+                    consumed: true,
+                    secret: Vec::new(),
+                },
+                SckaAdvKey {
+                    adv_id: 4,
+                    consumed: false,
+                    secret: vec![0xA5; 2400],
+                },
+            ],
+            tombstones,
+            peer_adv: Some(SckaPeerAdv {
+                adv_id: 7,
+                pubkey: vec![0x5A; 1184],
+            }),
+            peer_adv_max_seen: 7,
+            peer_adv_consumed_max: 6,
+            boundaries_since_reseed: 3,
+            last_reseed_unix_secs: 1_700_000_000,
+            last_adv_unix_secs: 1_700_000_100,
+        }
+    }
+
+    #[test]
+    fn scka_section_roundtrips() {
+        let s = sample_scka();
+        let bytes = s.encode();
+        assert!(!bytes.is_empty());
+        let d = SckaLocalState::decode(&bytes).expect("decode");
+        assert_eq!(d, s);
+    }
+
+    #[test]
+    fn scka_default_is_empty_section() {
+        assert!(SckaLocalState::default().encode().is_empty());
+        assert_eq!(
+            SckaLocalState::decode(&[]).expect("decode empty"),
+            SckaLocalState::default()
+        );
+    }
+
+    #[test]
+    fn scka_decode_fails_closed() {
+        let s = sample_scka();
+        let bytes = s.encode();
+        // Trailing garbage rejects (exact-length consumption).
+        let mut trailing = bytes.clone();
+        trailing.push(0);
+        assert!(SckaLocalState::decode(&trailing).is_err());
+        // Truncation rejects at every prefix length.
+        for cut in 1..bytes.len() {
+            assert!(
+                SckaLocalState::decode(&bytes[..cut]).is_err(),
+                "prefix of len {cut} must reject"
+            );
+        }
+        // An oversize advkey count rejects.
+        let mut oversize = bytes.clone();
+        oversize[4..8].copy_from_slice(&(QSP_SCKA_ADVKEY_CAP as u32 + 1).to_le_bytes());
+        assert!(SckaLocalState::decode(&oversize).is_err());
+        // A non-boolean consumed byte rejects.
+        let mut badflag = bytes.clone();
+        badflag[12] = 2;
+        assert!(SckaLocalState::decode(&badflag).is_err());
+    }
+
+    #[test]
+    fn v3_plaintext_join_split_roundtrips_and_reads_legacy() {
+        let trig = QspTriggerState {
+            pending_send_ratchet: true,
+            msgs_since_ratchet: 9,
+            last_ratchet_unix_secs: 42,
+        };
+        let scka = sample_scka();
+        let snapshot = b"QS2Sfake-snapshot-bytes".to_vec();
+        // v3 round trip.
+        let pt = qsp_join_plaintext(&trig, &scka, &snapshot);
+        let (t, s, snap) = qsp_split_plaintext(&pt).expect("split v3");
+        assert_eq!(t, trig);
+        assert_eq!(s, scka);
+        assert_eq!(snap, snapshot.as_slice());
+        // v3 with an empty SCKA section keeps the snapshot at offset 17 + 4.
+        let pt0 = qsp_join_plaintext(&trig, &SckaLocalState::default(), &snapshot);
+        assert_eq!(&pt0[17..21], &0u32.to_le_bytes());
+        let (_, s0, snap0) = qsp_split_plaintext(&pt0).expect("split v3 empty");
+        assert!(s0.is_default());
+        assert_eq!(snap0, snapshot.as_slice());
+        // Legacy v2 (no SCKA section) splits with a default SCKA state.
+        let mut v2 = Vec::new();
+        v2.extend_from_slice(QSP_TRIGGER_MAGIC);
+        v2.extend_from_slice(&trig.encode());
+        v2.extend_from_slice(&snapshot);
+        let (t2, s2, snap2) = qsp_split_plaintext(&v2).expect("split v2");
+        assert_eq!(t2, trig);
+        assert!(s2.is_default());
+        assert_eq!(snap2, snapshot.as_slice());
+        // Legacy v1 (raw snapshot) splits with defaults.
+        let (t1, s1, snap1) = qsp_split_plaintext(&snapshot).expect("split v1");
+        assert_eq!(t1, QspTriggerState::default());
+        assert!(s1.is_default());
+        assert_eq!(snap1, snapshot.as_slice());
+        // A malformed v3 SCKA section fails closed.
+        let mut bad = qsp_join_plaintext(&trig, &scka, &snapshot);
+        bad.truncate(30);
+        assert!(qsp_split_plaintext(&bad).is_err());
+    }
+
+    fn recv_state_with(peer_max: u32, tombs: &[u32]) -> Suite2RecvWireState {
+        Suite2RecvWireState {
+            session_id: [0u8; 16],
+            protocol_version: SUITE2_PROTOCOL_VERSION,
+            suite_id: SUITE2_SUITE_ID,
+            dh_pub: [0u8; 32],
+            hk_r: [0u8; 32],
+            rk: [0u8; 32],
+            ck_ec: [0u8; 32],
+            ck_pq_send: [0u8; 32],
+            ck_pq_recv: [0u8; 32],
+            nr: 0,
+            role_is_a: true,
+            peer_max_adv_id_seen: peer_max,
+            known_targets: BTreeSet::new(),
+            consumed_targets: BTreeSet::new(),
+            tombstoned_targets: tombs.iter().copied().collect(),
+            mkskipped: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn scka_rollback_guard_rejects_regressions_and_accepts_progress() {
+        let rec = SckaMonoRecord {
+            version: 1,
+            peer_max_adv_id_seen: 3,
+            local_next_adv_id: 5,
+            peer_adv_max_seen: 2,
+            peer_adv_consumed_max: 2,
+            tombstones: vec![1, 3],
+        };
+        let mut scka = SckaLocalState {
+            local_next_adv_id: 5,
+            peer_adv_max_seen: 2,
+            peer_adv_consumed_max: 2,
+            ..SckaLocalState::default()
+        };
+        // Equal state passes.
+        assert!(qsp_scka_rollback_check(&rec, &recv_state_with(3, &[1, 3]), &scka).is_ok());
+        // Progressed state passes.
+        scka.local_next_adv_id = 9;
+        assert!(qsp_scka_rollback_check(&rec, &recv_state_with(4, &[1, 3, 4]), &scka).is_ok());
+        // A regressed peer_max fails closed.
+        assert!(qsp_scka_rollback_check(&rec, &recv_state_with(2, &[1, 3]), &scka).is_err());
+        // A regressed local_next fails closed.
+        scka.local_next_adv_id = 4;
+        assert!(qsp_scka_rollback_check(&rec, &recv_state_with(3, &[1, 3]), &scka).is_err());
+        scka.local_next_adv_id = 5;
+        // A regressed peer_adv_max fails closed.
+        scka.peer_adv_max_seen = 1;
+        assert!(qsp_scka_rollback_check(&rec, &recv_state_with(3, &[1, 3]), &scka).is_err());
+        scka.peer_adv_max_seen = 2;
+        // A regressed peer_adv_consumed_max fails closed (a rolled-back store must never
+        // re-consume a one-time peer target).
+        scka.peer_adv_consumed_max = 1;
+        assert!(qsp_scka_rollback_check(&rec, &recv_state_with(3, &[1, 3]), &scka).is_err());
+        scka.peer_adv_consumed_max = 2;
+        // A missing tombstone fails closed (SCKA-section tombstones also satisfy it).
+        assert!(qsp_scka_rollback_check(&rec, &recv_state_with(3, &[1]), &scka).is_err());
+        scka.tombstones.insert(3);
+        assert!(qsp_scka_rollback_check(&rec, &recv_state_with(3, &[1]), &scka).is_ok());
+    }
+
+    #[test]
+    fn scka_advkey_cap_evicts_deterministically_and_tombstones() {
+        let mut s = SckaLocalState::default();
+        for id in 1..=(QSP_SCKA_ADVKEY_CAP as u32) {
+            s.insert_advkey(id, vec![id as u8; 8]);
+        }
+        assert_eq!(s.advkeys.len(), QSP_SCKA_ADVKEY_CAP);
+        // Consumed entries evict before live ones; else the lowest id evicts.
+        s.consume_advkey(2);
+        s.insert_advkey(99, vec![9; 8]);
+        assert_eq!(s.advkeys.len(), QSP_SCKA_ADVKEY_CAP);
+        assert!(s.advkeys.iter().all(|k| k.adv_id != 2));
+        assert!(s.tombstones.contains(&2));
+        s.insert_advkey(100, vec![10; 8]);
+        assert!(s.advkeys.iter().all(|k| k.adv_id != 1));
+        assert!(s.tombstones.contains(&1));
+        // The live key is the highest unconsumed one; consumption erases the secret.
+        assert_eq!(s.live_advkey().expect("live").adv_id, 100);
+        s.consume_advkey(100);
+        assert!(s
+            .advkeys
+            .iter()
+            .any(|k| k.adv_id == 100 && k.consumed && k.secret.is_empty()));
+        assert_eq!(s.live_advkey().map(|k| k.adv_id), Some(99));
+    }
 }

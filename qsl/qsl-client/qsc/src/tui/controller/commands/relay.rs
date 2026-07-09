@@ -293,6 +293,11 @@ pub(in super::super) fn tui_receive_via_relay(state: &mut TuiState, from: &str) 
                     emit_marker("error", Some("qsp_session_store_failed"), &[]);
                     print_error_marker("qsp_session_store_failed");
                 }
+                // NA-0624: an SCKA control message (peer advertisement) carries no application
+                // payload — the state is committed above; nothing to write or display.
+                if outcome.is_control {
+                    continue;
+                }
                 count = count.saturating_add(1);
                 let seq = state.session.recv_count.saturating_add(count as u64);
                 let name = format!("recv_{}.bin", seq);

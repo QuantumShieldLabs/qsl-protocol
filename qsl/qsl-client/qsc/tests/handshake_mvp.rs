@@ -1284,9 +1284,11 @@ fn handshake_fs_identity_compromise_cannot_decrypt_recorded_message() {
         String::from_utf8_lossy(&out_send.stderr)
     );
 
+    // NA-0624: the first send on a real-handshake session also emits an SCKA advertisement
+    // CONTROL envelope before the message; the recorded application message is the LAST item.
     let wire_items = server.drain_channel(ROUTE_TOKEN_BOB);
-    assert_eq!(wire_items.len(), 1);
-    let wire = wire_items[0].clone();
+    assert_eq!(wire_items.len(), 2, "expected [scka_adv, message]");
+    let wire = wire_items.last().expect("message envelope").clone();
     let wire_path = attacker_cfg.join("captured.qse");
     fs::write(&wire_path, &wire).expect("write wire");
 
@@ -1591,4 +1593,387 @@ fn dh_ratchet_e2e_pcs_healing_over_real_handshake() {
         "PCS FAILED: pre-ratchet snapshot decrypted a post-ratchet message. out={}",
         output_text(&r6)
     );
+}
+
+// ============ NA-0624 (ENG-0012 Stage 2b): SCKA wiring end-to-end proofs ============
+// The qsc SCKA wiring over a REAL A/B handshake: (a) advertise -> reseed mid-conversation ->
+// both decrypt (and the DH ratchet keeps working across the reseed — the dh.rk adoption);
+// (b) THE HEADLINE: PQ-PCS healing that survives a subsequent DH ratchet on the real client —
+// a session snapshot captured before a reseed cannot decrypt a post-reseed-post-DH-ratchet
+// message even though it contains every CLASSICAL secret needed to follow the conversation
+// (the DH private key is in the snapshot and the boundary DH public is on the wire; only the
+// ML-KEM shared secret, encapsulated to the PEER's advertised key, is missing);
+// (c) G2 rollback: a rolled-back v3 session blob fails closed (which also enforces one-time
+// consumption of an advertised target across a restore).
+
+#[test]
+fn scka_e2e_advertise_reseed_roundtrip_over_real_handshake() {
+    let base = safe_test_root().join(format!("na0624_scka_e2e_{}", std::process::id()));
+    let _ = fs::remove_dir_all(&base);
+    ensure_dir_700(&base);
+    let alice_cfg = base.join("alice");
+    let bob_cfg = base.join("bob");
+    let a_out = base.join("a_out");
+    let b_out = base.join("b_out");
+    for d in [&alice_cfg, &bob_cfg, &a_out, &b_out] {
+        ensure_dir_700(d);
+    }
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+    let server = common::start_inbox_server(1024 * 1024, 32);
+    let relay = server.base_url().to_string();
+    hs_dance(&alice_cfg, &bob_cfg, &relay);
+
+    let mk = |name: &str, body: &[u8]| {
+        let p = base.join(name);
+        fs::write(&p, body).unwrap();
+        p
+    };
+
+    // m1 Alice->Bob: her first send ADVERTISES (control envelope before the message).
+    let s1 = send_msg(&alice_cfg, &relay, "bob", &mk("m1", b"m1-from-alice"));
+    assert!(
+        s1.contains("event=qsp_scka_adv dir=send"),
+        "alice's first send must advertise: {s1}"
+    );
+    let r1 = recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out);
+    let r1_text = output_text(&r1);
+    assert!(r1.status.success(), "{r1_text}");
+    assert!(
+        r1_text.contains("event=qsp_scka_adv dir=recv"),
+        "bob must track alice's advertisement: {r1_text}"
+    );
+    assert_eq!(
+        fs::read(b_out.join("recv_1.bin")).unwrap(),
+        b"m1-from-alice"
+    );
+
+    // m2 Bob->Alice: ratchet-on-reply (creates Bob's send chain).
+    let s2 = send_msg(&bob_cfg, &relay, "alice", &mk("m2", b"m2-from-bob"));
+    assert!(s2.contains("event=qsp_dh_ratchet dir=send"), "{s2}");
+    let r2 = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
+    assert!(r2.status.success(), "{}", output_text(&r2));
+    assert_eq!(fs::read(a_out.join("recv_1.bin")).unwrap(), b"m2-from-bob");
+
+    // m3 Bob->Alice (second consecutive send, no DH trigger): Bob RESEEDS to Alice's
+    // advertisement (FLAG_PQ_CTXT boundary carrying the payload). His own advertisement is
+    // DEFERRED — an ADV consumes a chain slot the strict-in-order reseed receiver cannot skip,
+    // so an ADV never shares a pack with a reseed.
+    let s3 = send_msg(&bob_cfg, &relay, "alice", &mk("m3", b"m3-reseed-payload"));
+    assert!(
+        s3.contains("event=qsp_pq_reseed dir=send"),
+        "bob's non-boundary send must originate the PQ reseed: {s3}"
+    );
+    assert!(
+        !s3.contains("event=qsp_scka_adv dir=send"),
+        "an advertisement must never share a pack with a reseed: {s3}"
+    );
+    let r3 = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
+    let r3_text = output_text(&r3);
+    assert!(r3.status.success(), "{r3_text}");
+    assert!(
+        r3_text.contains("event=qsp_pq_reseed dir=recv"),
+        "alice must decapsulate and apply the reseed: {r3_text}"
+    );
+    assert_eq!(
+        fs::read(a_out.join("recv_1.bin")).unwrap(),
+        b"m3-reseed-payload",
+        "the reseed boundary carries a decryptable payload"
+    );
+
+    // m4 Bob->Alice: the deferred advertisement rides Bob's next send (a normal message that
+    // immediately heals the receiver's control-slot gap via the OOO machinery).
+    let s4 = send_msg(&bob_cfg, &relay, "alice", &mk("m4", b"m4-with-bob-adv"));
+    assert!(
+        s4.contains("event=qsp_scka_adv dir=send"),
+        "bob's deferred advertisement must ride his next send: {s4}"
+    );
+    let r4 = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
+    let r4_text = output_text(&r4);
+    assert!(r4.status.success(), "{r4_text}");
+    assert!(
+        r4_text.contains("event=qsp_scka_adv dir=recv"),
+        "alice must track bob's advertisement: {r4_text}"
+    );
+    assert_eq!(
+        fs::read(a_out.join("recv_1.bin")).unwrap(),
+        b"m4-with-bob-adv"
+    );
+
+    // m5 Alice->Bob: a DH boundary ON TOP of the PQ-advanced root proves the dh.rk adoption on
+    // BOTH sides (a stale root on either side would fail the NHK header authentication).
+    let s5 = send_msg(&alice_cfg, &relay, "bob", &mk("m5", b"m5-post-reseed"));
+    assert!(s5.contains("event=qsp_dh_ratchet dir=send"), "{s5}");
+    let r5 = recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out);
+    let r5_text = output_text(&r5);
+    assert!(r5.status.success(), "{r5_text}");
+    assert!(
+        r5_text.contains("event=qsp_dh_ratchet dir=recv"),
+        "bob must process the post-reseed DH boundary: {r5_text}"
+    );
+    assert_eq!(
+        fs::read(b_out.join("recv_1.bin")).unwrap(),
+        b"m5-post-reseed"
+    );
+
+    // m6 Alice->Bob: Alice reseeds back to Bob's advertisement (tracked at m4).
+    let s6 = send_msg(&alice_cfg, &relay, "bob", &mk("m6", b"m6-alice-reseed"));
+    assert!(
+        s6.contains("event=qsp_pq_reseed dir=send"),
+        "alice must reseed to bob's advertisement: {s6}"
+    );
+    let r6 = recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out);
+    let r6_text = output_text(&r6);
+    assert!(r6.status.success(), "{r6_text}");
+    assert!(
+        r6_text.contains("event=qsp_pq_reseed dir=recv"),
+        "{r6_text}"
+    );
+    assert_eq!(
+        fs::read(b_out.join("recv_1.bin")).unwrap(),
+        b"m6-alice-reseed"
+    );
+
+    // m7 Bob->Alice: the conversation stays live in both directions after both reseeds.
+    let s7 = send_msg(&bob_cfg, &relay, "alice", &mk("m7", b"m7-final"));
+    assert!(s7.contains("event=qsp_dh_ratchet dir=send"), "{s7}");
+    let r7 = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
+    assert!(r7.status.success(), "{}", output_text(&r7));
+    assert_eq!(fs::read(a_out.join("recv_1.bin")).unwrap(), b"m7-final");
+}
+
+#[test]
+fn scka_e2e_pq_pcs_healing_survives_dh_ratchet_over_real_handshake() {
+    let base = safe_test_root().join(format!("na0624_pq_pcs_{}", std::process::id()));
+    let _ = fs::remove_dir_all(&base);
+    ensure_dir_700(&base);
+    let alice_cfg = base.join("alice");
+    let bob_cfg = base.join("bob");
+    let a_out = base.join("a_out");
+    let b_out = base.join("b_out");
+    for d in [&alice_cfg, &bob_cfg, &a_out, &b_out] {
+        ensure_dir_700(d);
+    }
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+    let server = common::start_inbox_server(1024 * 1024, 32);
+    let relay = server.base_url().to_string();
+    hs_dance(&alice_cfg, &bob_cfg, &relay);
+
+    let mk = |name: &str, body: &[u8]| {
+        let p = base.join(name);
+        fs::write(&p, body).unwrap();
+        p
+    };
+
+    // Warm-up: m1 A->B (advertise + normal); m2 B->A (boundary); m3 B->A (Bob reseeds to
+    // Alice's key; his own advertisement defers); m4 B->A (Bob's deferred advertisement —
+    // Alice now holds Bob's UNCONSUMED advertisement); m5 A->B (Alice's DH boundary, fresh
+    // keypair, plus her rotated advertisement).
+    send_msg(&alice_cfg, &relay, "bob", &mk("m1", b"m1"));
+    assert!(recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
+        .status
+        .success());
+    send_msg(&bob_cfg, &relay, "alice", &mk("m2", b"m2"));
+    assert!(
+        recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
+            .status
+            .success()
+    );
+    let s3 = send_msg(&bob_cfg, &relay, "alice", &mk("m3", b"m3"));
+    assert!(s3.contains("event=qsp_pq_reseed dir=send"), "{s3}");
+    assert!(
+        recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
+            .status
+            .success()
+    );
+    // m4 B->A: Bob's DEFERRED advertisement rides his next (normal) send; Alice tracks it and
+    // now holds Bob's UNCONSUMED advertisement.
+    let s4 = send_msg(&bob_cfg, &relay, "alice", &mk("m4", b"m4"));
+    assert!(s4.contains("event=qsp_scka_adv dir=send"), "{s4}");
+    assert!(
+        recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
+            .status
+            .success()
+    );
+    // m5 A->B: Alice's DH boundary (fresh keypair; her consumed advertisement also rotates).
+    let s5 = send_msg(&alice_cfg, &relay, "bob", &mk("m5", b"m5"));
+    assert!(s5.contains("event=qsp_dh_ratchet dir=send"), "{s5}");
+    assert!(recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
+        .status
+        .success());
+
+    // Adversary snapshots Alice's FULL session state S (root, chains, her DH PRIVATE key, her
+    // own advertised ML-KEM secret keys, and Bob's advertised PUBLIC key).
+    let alice_blob = alice_cfg.join("qsp_sessions").join("bob.qsv");
+    let backup = base.join("alice_S.qsv");
+    fs::copy(&alice_blob, &backup).expect("backup alice S");
+
+    // m6 A->B: Alice's PQ reseed to Bob's advertisement — the ONLY root-advancing event whose
+    // secret (the ML-KEM shared secret, encapsulated to BOB's receive key) is outside S.
+    let s6 = send_msg(&alice_cfg, &relay, "bob", &mk("m6", b"m6"));
+    assert!(
+        s6.contains("event=qsp_pq_reseed dir=send"),
+        "m6 must be alice's reseed: {s6}"
+    );
+    assert!(
+        !s6.contains("event=qsp_dh_ratchet dir=send"),
+        "no classical ratchet may hide the PQ healing between S and m7: {s6}"
+    );
+    assert!(recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
+        .status
+        .success());
+
+    // m7 B->A: Bob's DH boundary rides the PQ-advanced root. From S the adversary knows
+    // Alice's DH private key and sees Bob's boundary DH public on the wire — classically it
+    // could follow this boundary. Only the PQ reseed stands in the way.
+    let s7 = send_msg(&bob_cfg, &relay, "alice", &mk("m7", b"top-secret"));
+    assert!(s7.contains("event=qsp_dh_ratchet dir=send"), "{s7}");
+
+    // Restore S and attempt to receive m7 on the real client: the PQ-hardened root cannot be
+    // reconstructed from S, so the boundary header fails to authenticate (PQ-PCS healed, and
+    // the healing SURVIVED the subsequent classical DH ratchet).
+    fs::copy(&backup, &alice_blob).expect("restore alice S");
+    let heal_out = base.join("heal_out");
+    ensure_dir_700(&heal_out);
+    let r7 = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &heal_out);
+    let got_secret = fs::read(heal_out.join("recv_1.bin"))
+        .map(|b| b == b"top-secret")
+        .unwrap_or(false);
+    assert!(
+        !got_secret,
+        "PQ-PCS FAILED: a pre-reseed snapshot decrypted a post-reseed-post-DH message. out={}",
+        output_text(&r7)
+    );
+}
+
+#[test]
+fn scka_e2e_rolled_back_session_blob_fails_closed() {
+    let base = safe_test_root().join(format!("na0624_rollback_{}", std::process::id()));
+    let _ = fs::remove_dir_all(&base);
+    ensure_dir_700(&base);
+    let alice_cfg = base.join("alice");
+    let bob_cfg = base.join("bob");
+    let a_out = base.join("a_out");
+    let b_out = base.join("b_out");
+    for d in [&alice_cfg, &bob_cfg, &a_out, &b_out] {
+        ensure_dir_700(d);
+    }
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+    let server = common::start_inbox_server(1024 * 1024, 32);
+    let relay = server.base_url().to_string();
+    hs_dance(&alice_cfg, &bob_cfg, &relay);
+
+    let mk = |name: &str, body: &[u8]| {
+        let p = base.join(name);
+        fs::write(&p, body).unwrap();
+        p
+    };
+
+    // m1 A->B advertises Alice's receive key; Bob tracks it.
+    send_msg(&alice_cfg, &relay, "bob", &mk("m1", b"m1"));
+    assert!(recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
+        .status
+        .success());
+
+    // Snapshot BOB before he consumes Alice's advertised target.
+    let bob_blob = bob_cfg.join("qsp_sessions").join("alice.qsv");
+    let backup = base.join("bob_pre_reseed.qsv");
+    fs::copy(&bob_blob, &backup).expect("backup bob");
+
+    // m2 B->A boundary, then m3 B->A reseed: Bob consumes Alice's target (one-time) — his
+    // SCKA monotonic record advances (peer_adv_consumed_max).
+    send_msg(&bob_cfg, &relay, "alice", &mk("m2", b"m2"));
+    assert!(
+        recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
+            .status
+            .success()
+    );
+    let s3 = send_msg(&bob_cfg, &relay, "alice", &mk("m3", b"m3"));
+    assert!(s3.contains("event=qsp_pq_reseed dir=send"), "{s3}");
+    assert!(
+        recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
+            .status
+            .success()
+    );
+
+    // Roll Bob's session blob back to the pre-reseed snapshot: loading it must FAIL CLOSED
+    // (G2 rollback detection) — a rolled-back store may never re-consume a one-time target
+    // or replay a consumed reseed epoch.
+    fs::copy(&backup, &bob_blob).expect("roll back bob");
+    let s4 = qsc_cfg_cmd(&bob_cfg)
+        .args([
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            &relay,
+            "--to",
+            "alice",
+            "--file",
+            mk("m4", b"m4").to_str().unwrap(),
+        ])
+        .output()
+        .expect("send after rollback");
+    let s4_text = output_text(&s4);
+    assert!(
+        !s4.status.success(),
+        "sending on a rolled-back session must fail closed: {s4_text}"
+    );
+    assert!(
+        s4_text.contains("session_rollback_detected"),
+        "the failure must be the G2 rollback guard: {s4_text}"
+    );
+}
+
+// NA-0624 regression for the NA-0622 trigger-persistence enabling fix: the transport deliver
+// path now persists the qsp_pack trigger, so the documented bounded fallback (N=4 messages)
+// actually fires on the real send path — consecutive sends without a reply eventually force a
+// DH boundary (previously the counters never persisted there, so the fallback was dormant; and
+// conversely, after this fix a send following a boundary is NOT another boundary).
+#[test]
+fn dh_ratchet_e2e_bounded_fallback_fires_over_real_handshake() {
+    let base = safe_test_root().join(format!("na0624_fallback_{}", std::process::id()));
+    let _ = fs::remove_dir_all(&base);
+    ensure_dir_700(&base);
+    let alice_cfg = base.join("alice");
+    let bob_cfg = base.join("bob");
+    let b_out = base.join("b_out");
+    for d in [&alice_cfg, &bob_cfg, &b_out] {
+        ensure_dir_700(d);
+    }
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+    let server = common::start_inbox_server(1024 * 1024, 32);
+    let relay = server.base_url().to_string();
+    hs_dance(&alice_cfg, &bob_cfg, &relay);
+
+    let mk = |name: &str, body: &[u8]| {
+        let p = base.join(name);
+        fs::write(&p, body).unwrap();
+        p
+    };
+
+    // Alice sends consecutively with NO replies. m1 = advertisement + normal message (2 chain
+    // steps -> msgs_since_ratchet = 2); m2, m3 = normal (3, 4). m4 must be forced to a DH
+    // boundary by the N=4 fallback (reason=fallback, not reply).
+    let s1 = send_msg(&alice_cfg, &relay, "bob", &mk("m1", b"f1"));
+    assert!(!s1.contains("event=qsp_dh_ratchet"), "{s1}");
+    let s2 = send_msg(&alice_cfg, &relay, "bob", &mk("m2", b"f2"));
+    assert!(!s2.contains("event=qsp_dh_ratchet"), "{s2}");
+    let s3 = send_msg(&alice_cfg, &relay, "bob", &mk("m3", b"f3"));
+    assert!(!s3.contains("event=qsp_dh_ratchet"), "{s3}");
+    let s4 = send_msg(&alice_cfg, &relay, "bob", &mk("m4", b"f4"));
+    assert!(
+        s4.contains("event=qsp_dh_ratchet dir=send reason=fallback"),
+        "the bounded N-fallback must force a boundary on the real send path: {s4}"
+    );
+
+    // Bob receives the whole run — control skip, three normal messages, then the boundary.
+    for expected in [b"f1".as_slice(), b"f2", b"f3", b"f4"] {
+        let r = recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out);
+        assert!(r.status.success(), "{}", output_text(&r));
+        assert_eq!(fs::read(b_out.join("recv_1.bin")).unwrap(), expected);
+    }
 }

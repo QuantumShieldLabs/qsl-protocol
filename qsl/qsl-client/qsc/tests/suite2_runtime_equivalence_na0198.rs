@@ -236,8 +236,18 @@ fn load_session_state(cfg: &Path, peer: &str) -> Suite2SessionState {
         .expect("session decrypt");
     // NA-0622 (ENG-0012 Stage 1b-ii): strip the qsc session-blob v2 DH-ratchet trigger prefix
     // (b"QTRG" + 13 bytes) before restoring the QS2S snapshot; a legacy plaintext is raw.
+    // NA-0624 (Stage 2b): a v3 plaintext additionally carries scka_len(u32 LE) + SCKA section
+    // between the trigger and the snapshot. A seed-model (non-advertising) session always has
+    // scka_len == 0, so the restored QS2S snapshot — and therefore this runtime-equivalence
+    // comparison — stays byte-for-byte identical to the refimpl.
     let snapshot: &[u8] = if plaintext.len() >= 17 && &plaintext[..4] == b"QTRG" {
-        &plaintext[17..]
+        let rest = &plaintext[17..];
+        if rest.starts_with(b"QS2S") {
+            rest
+        } else {
+            let scka_len = u32::from_le_bytes([rest[0], rest[1], rest[2], rest[3]]) as usize;
+            &rest[4 + scka_len..]
+        }
     } else {
         &plaintext
     };

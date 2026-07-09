@@ -885,6 +885,50 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Recommended directive shape: a docs/canonical LITE lane (clarification), or a rider on ENG-0026.
   last-updated 2026-07-09
 
+### ENG-0032 — apps hygiene: qsl-tui demo bypasses the session-level API; qshield-cli lint debt
+- Severity: P3 (maintainability/coupling debt; zero runtime impact) — filed 2026-07-09,
+  operator-directed, from the NA-0626 D-1247 reported boundary deviation and the D-1245 reported
+  lint carry-over
+- Problem: `apps/qsl-tui/src/demo.rs` (the NA-0051-era demo) calls the refimpl WIRE-LEVEL ops
+  (`send_wire`/`recv_wire`) directly, so every internal refimpl signature change leaks into
+  `apps/**` — which the standing directive boundaries FORBID. NA-0626's root-explicit `recv_wire`
+  forced a three-line mechanical fallout there (reported at D-1247): the boundary, the WF-0013
+  workspace-build gate, and the design-locked signature could not all hold. Separately,
+  `apps/qshield-cli/tests/na_0318_qshield_ack_commit.rs:150` carries a pre-existing
+  `needless_borrow` lint (clippy 1.95.0) that fails `-D warnings` workspace-wide, reported at
+  D-1245 and again untouched at D-1247.
+- Recommended change: ONE LITE apps-hygiene lane that (a) points the qsl-tui demo at the stable
+  session-level entry points (`recv_pq_reseed`-style; they exist since NA-0626) or retires the
+  demo outright per the pre-release eliminate-legacy tenet, and (b) fixes the qshield-cli lint.
+  Alternatively fold (a) into the ENG-0025 façade lane (same theme: one stable seam for callers).
+- Recommended directive shape: apps-only LITE lane (no refimpl/qsc change; workspace build +
+  clippy are the gates). last-updated 2026-07-09
+
+### ENG-0033 — public-safety PR gate: broken "unless" fallback (403), cancelled-vs-failed conflation, cancellable main runs
+- Severity: P3 (CI availability/process; no security delta — the gate fails CLOSED) — filed
+  2026-07-09, operator-directed, from the NA-0626 Phase-5 finding (D-1248 records the recovery)
+- Problem (three defects, one gate): the public-ci "block relevant PRs when latest main
+  public-safety is red unless the PR clears live advisories" step (1) can never take its
+  documented "unless" branch — its fallback queries the branch-protection required-checks API
+  with the default `GITHUB_TOKEN`, which 403s ("Resource not accessible by integration"), so the
+  step errors instead of evaluating the PR's advisories; (2) treats a CANCELLED latest-main run
+  the same as a FAILED one — but cancelled is indeterminate, not red: main@`842f6757`'s
+  public-safety JOB was cancelled (siblings succeeded) and every subsequent PR was blocked with
+  nothing actually failing; (3) main-push public-ci runs are cancellable in the first place —
+  the root cause. NA-0626 recovered by re-running the cancelled MAIN-side job once (completing
+  an interrupted run; no failing PR check was re-run to green), disclosed at D-1247/D-1248.
+- Recommended change: (1) rewrite the fallback to read the PR's own `advisories` job result (no
+  extra token scope needed) or grant a token that can read branch protection; (2) in the block
+  step, distinguish `conclusion == failure` (block) from `cancelled`/`skipped` (warn + require a
+  completed rerun); (3) set `concurrency: cancel-in-progress: false` for main-push public-ci so
+  the gate's own precondition cannot be cancelled out from under it. RECOVERY PLAYBOOK (until
+  fixed): if the gate is red with main's public-safety job `cancelled`, re-run that MAIN-side
+  job (`gh run rerun <main-run-id> --failed`), then re-run the PR's public-ci run; never re-run
+  a FAILING PR check to green.
+- Recommended directive shape: `.github/**` is outside standard lane mutation paths — an
+  operator-authorized CI LITE lane (workflow YAML + a runbook paragraph), or operator-side edit.
+  last-updated 2026-07-09
+
 ---
 
 ## Workflow / process items
@@ -1086,3 +1130,27 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   locally, so it belongs on a PR-creation checklist.)
 - Recommended directive shape: docs/process LITE lane, or fold into the next source lane's
   design-lock checklist (it costs one command). last-updated 2026-07-09
+
+### WF-0015 — A signature/shape change's scope claim MUST enumerate its CALLER surface at design-lock
+- Status: filed 2026-07-09, operator-directed, from the NA-0626 D-1247 reported boundary
+  deviation (the caller-surface sibling of WF-0014's byte-claim rule)
+- Problem: NA-0626's design-lock §10 boundary audit asserted "apps/** untouched", checking the
+  lane's MUTATION INTENT but not the CALLER SURFACE of the design-locked signature change —
+  `apps/qsl-tui`'s demo calls `recv_wire` directly, so the root-explicit signature + the binding
+  WF-0013 workspace-build gate forced a three-line edit in a boundary-FORBIDDEN path, discovered
+  at Phase 3 instead of Phase 2 (where the operator could have pre-authorized it in the
+  directive). Same failure shape as WF-0014: a scope claim asserted from intent rather than
+  from the artifact.
+- Rule: a design-lock that pins a change to any public refimpl signature, public struct shape,
+  or serialized format MUST verify its boundary audit MECHANICALLY against the caller surface —
+  `cargo build --workspace --all-targets` (WF-0013, run at DESIGN-LOCK time against a spike or
+  by grepping every caller of the changed item) and an explicit list of every crate/path the
+  change forces edits in, each checked against the directive's Result boundary. A forced caller
+  outside the boundary is design-lock output for the operator (pre-authorize or re-scope), not
+  a Phase-3 surprise.
+- Companion standing-directive suggestion (operator's call): a boundary clause distinguishing
+  discretionary mutation (FORBIDDEN stays forbidden) from signature-forced mechanical compile
+  fallout (bounded, reported, not a STOP) — NA-0626's D-1247 records the precedent resolution.
+- Recommended directive shape: docs/process LITE (design-lock checklist edit in
+  DIRECTOR_OPERATIONS/DOC-OPS-006), or fold into the next source lane's design-lock like
+  WF-0014 was. last-updated 2026-07-09

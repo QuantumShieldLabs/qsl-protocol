@@ -490,6 +490,11 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   dev-only posture that must never be a production default.
 - Minimal fix direction: `subtle::ConstantTimeEq` (or manual byte-accumulate) for the
   bearer token and the per-channel route token; document the `None`-token dev-only posture.
+- Precedent (Signal comparison study, 2026-07-09): Signal-Server compares all credential
+  material via `MessageDigest.isEqual` (constant-time) — `SaltedTokenHash` /
+  `UnidentifiedAccessUtil` / `HmacUtils`; it also derives time-limited downstream credentials
+  via HMAC (`ExternalServiceCredentialsGenerator`) so services store no long-term secrets —
+  a candidate pattern for relay route tokens.
 - Proof gap: no test asserts constant-time comparison for the server token paths.
 - Cross-repo note: **qsl-server**, NOT this repo. Driving queue/operator is TBD (operator
   to confirm whether this NA queue drives qsl-server).
@@ -601,6 +606,9 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   are hashed (assertion + doc); route through a salted KDF only if a low-entropy caller is
   ever introduced.
 - Proof gap: no invariant/test constrains what may be passed to `hash_secret`.
+- Precedent (Signal comparison study, 2026-07-09): Signal-Server stores credentials only as
+  `SaltedTokenHash` (salt + hash, constant-time verify) — the reference shape if a salted KDF
+  path is ever needed here.
 - Cross-repo note: qsl-attachments (+ qsl-server); driving queue TBD. Low priority.
 - Recommended directive shape: small caller-invariant/docs lane; low priority.
 
@@ -633,9 +641,13 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   still mixes into `RK` via `KDF_RK_PQ` (classical security unaffected; the PQ layer degrades at
   worst to "no reseed"), and a max-`adv_id` injection is a tracking DoS for future advertisements.
 - Recommended change: reconcile the PQ-CTXT boundary header to `NHK` AND add an authenticated ADV
-  receive path (open the ADV header under the receive header key with the `pq_bind` AD before
-  tracking) in one lane — both need the same receiver-semantics change + conformance-vector
-  regeneration, and the qsc intercept then upgrades to authenticated tracking.
+  receive path in one lane — both need the same receiver-semantics change + conformance-vector
+  regeneration, and the qsc intercept then upgrades to authenticated tracking. Design options for
+  the ADV path (resolve at design-lock): (a) header trial-open under the receive header key with
+  the `pq_bind` AD; (b) SPQR precedent (Signal's production PQ ratchet) — a dedicated
+  control-plane MAC under a session-derived `auth_key` (e.g. KMAC over the ADV bytes keyed from
+  `RK`), which avoids trial-decryption entirely and also lets the receiver CONSUME the ADV chain
+  slot in-order, retiring the NA-0624 ADV/reseed pack-exclusion rule and the mkskipped growth.
 - Recommended directive shape: a delicate refimpl+qsc source lane (frozen-receiver semantics
   change; regenerate byte-pinned vectors; runtime-equivalence must still pass); the leading
   successor candidate at the NA-0624 closeout triage. Tees up the independent DH+PQ composition
@@ -686,6 +698,61 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   collapsing the reseed into the boundary message and simplifying the qsc cadence policy.
 - Recommended directive shape: refimpl lane with new conformance vectors; sequence after (or
   with) ENG-0023/ENG-0024 since it touches the same receiver surface. last-updated 2026-07-08
+
+### ENG-0027 — Chunked / erasure-coded PQ control-plane transport (SPQR-style) with an always-progress state machine
+- Severity: P3 (robustness + metadata; supersedes part of ENG-0022's scope) — filed 2026-07-09
+  from the operator-directed Signal comparison study at the NA-0624 closeout (D-1244)
+- Problem: our SCKA control plane ships MONOLITHIC envelopes (~1184 B FLAG_PQ_ADV, ~1088 B
+  FLAG_PQ_CTXT). Consequences accepted at NA-0624: a lost/dropped ADV or reseed degrades to the
+  classical status quo until the T_pq rotation; PQ control messages are size-distinguishable on
+  the wire (the DOC-G5-004 §3.1 observable); cadence has idle gaps. Signal's production PQ
+  ratchet (SPQR, signalapp/SparsePostQuantumRatchet) instead ERASURE-CODES the ML-KEM key and
+  ciphertext into small chunks piggybacked on EVERY message header — any sufficient subset
+  reconstructs, so an attacker must drop ALL traffic to suppress an epoch (loss-suppression
+  becomes full DoS), per-message overhead is near-uniform (the distinguisher shrinks toward
+  timing-only), and an explicit per-epoch state machine (SendingEK/ReceivingCT analogues) keeps
+  both parties always making progress.
+- Recommended change: a chunked PQ-transport design for the SCKA plane — polynomial/erasure
+  encoding of ADV pubkeys + reseed ciphertexts across ratchet-message headers, an epoch state
+  machine replacing the timer-only cadence, and (per SPQR's `SecretOutput::{Send,Recv}` shape)
+  an API that tells the caller which chain the epoch secret mixes into. Wire-format change —
+  a major design lane (DOC-CAN-004 §3 revision + refimpl + qsc + vectors), NOT a bolt-on.
+- Recommended directive shape: a design lane first (DOC-G5-008/DOC-CAN-004 family, folding in
+  what remains of ENG-0022's cadence-obfuscation scope), then staged implementation lanes;
+  sequence after ENG-0023 (the frozen-receiver unfreeze it depends on). last-updated 2026-07-09
+
+### ENG-0028 — ProVerif model of the DH+PQ composition (+ root-composition slice for the bounded explorer)
+- Severity: P2 (assurance; the standing claim boundary REQUIRES independent analysis of the
+  DH+PQ composition before any post-quantum claim) — filed 2026-07-09 from the Signal comparison
+  study at the NA-0624 closeout (D-1244)
+- Problem: `formal/` covers the SCKA LOGIC invariants (monotonicity/one-time/no-mutation-on-
+  reject) but NOT the root-composition layer (recv.rk/dh.rk coherence, KDF_RK_PQ convergence,
+  trigger cadence) — exactly where all four NA-0624 findings lived; the dh.rk-sync desync would
+  have been caught pre-implementation by a two-party model asserting root convergence. Signal
+  modeled SPQR in ProVerif BEFORE implementation and runs continuous machine-checked proofs
+  (hax→F*) in CI.
+- Recommended change: (1) near-term — extend the bounded Python explorer with a two-party
+  root-composition slice over {DH boundary, PQ reseed, ADV} events asserting root convergence +
+  PCS/healing properties (guards the ENG-0023/0024 receiver changes); (2) the substantive lane —
+  a ProVerif model of the Suite-2 DH+PQ composition (secrecy + healing under compromise),
+  which doubles as the on-ramp for the independent analysis the claim boundary demands.
+- Recommended directive shape: a formal/ lane (G4) — the bounded-explorer slice is LITE-adjacent;
+  the ProVerif model is its own full lane, ideally sequenced alongside ENG-0023 so the model
+  covers the NHK-corrected receiver. last-updated 2026-07-09
+
+### ENG-0029 — Evaluate migrating ML-KEM to a formally verified implementation (libcrux-ml-kem)
+- Severity: P3 (assurance hardening; no known defect in the current dependency) — filed
+  2026-07-09 from the Signal comparison study at the NA-0624 closeout (D-1244)
+- Problem: we use the RustCrypto `ml-kem` crate; Signal's libsignal uses Cryspen's
+  `libcrux-ml-kem`, whose ML-KEM implementation carries machine-checked functional-correctness
+  and secret-independence proofs. Our KEM sits under every PQ epoch secret.
+- Recommended change: an evaluation lane — API/feature fit (encap/decap/keygen surfaces used by
+  `PqKem768` + `runtime_pq_kem_keypair`), maturity/audit trail, build/lockfile impact, and a
+  byte-compatibility check against the existing SCKA-KEM conformance vectors; migrate only if
+  the evaluation is clean (dependency mutation requires its own operator-approved lane under
+  the standing rules).
+- Recommended directive shape: a bounded dependency-evaluation lane (read/evaluate + report,
+  then a migration lane on operator approval). last-updated 2026-07-09
 
 ---
 

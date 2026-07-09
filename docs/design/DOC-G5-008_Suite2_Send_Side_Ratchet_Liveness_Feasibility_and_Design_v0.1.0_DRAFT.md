@@ -342,6 +342,52 @@ guards this lane's surface — root convergence, healing across a DH boundary, c
 chain-consume, and reject⇒no-mutation — but it is an agreement/coherence model over abstracted
 KDFs, not a secrecy proof.
 
+## ENG-0024 + ENG-0026 implementation note (NA-0626, D-1247) — single root + combined DH+PQ boundary
+
+Recorded here because this document is the design home for the Suite-2 ratchet lanes. NA-0626
+made the root-key coherence STRUCTURAL and delivered the §4 combined boundary:
+
+- **One root (ENG-0024).** `Suite2SessionState` now carries exactly one `rk` (DOC-CAN-003 §8.1);
+  the duplicated `recv.rk`/`dh.rk` slots and `session_root()` are gone. The wire-level ops are
+  root-explicit (the root is a parameter in and a returned value out), so the qsc
+  inject-before/adopt-after dance is unrepresentable. QS2S bumped v2 → v3 (the root leads the
+  layout; net −32 B); any non-v3 snapshot fails closed with a distinct static marker — no
+  migration (a v2 snapshot whose two root copies diverged cannot be soundly collapsed). qsc
+  treats pre-v3 stored sessions as unrecoverable (`session_unsupported_version`; nothing mutated
+  on disk; re-establish).
+- **Session-level receive entry points (ENG-0030 structural).** `recv_pq_reseed` mirrors
+  `send_pq_reseed` field-for-field — including the receiver's send half (`send.hk_s` from the
+  advanced root, `send.ck_pq` from the send-direction seed) — and `recv_pq_adv_session` gives the
+  ADV arm the same full-state shape. The NA-0625 caller-side send-half mitigation was removed in
+  the same commit that landed the replacement (compiler-enforced).
+- **Combined DH+PQ boundary (ENG-0026, this document's §4 composition).** `send_combined_boundary`
+  (pure; caller-supplied fresh keypair) + the combined arm of `recv_pq_reseed`
+  (fresh-`DH_pub` discrimination on the existing `0x0006` shape; the AD binds `DH_pub`). Ordering
+  is DH-FIRST-THEN-PQ exactly as §4 states ("keeps the hybrid ordering (classical then PQ) that
+  establishment already uses"): `RK_final = KDF_RK_PQ(KDF_RK_DH(RK_pre, dh_out), ss)`, seeds and
+  the transient PQ0 chain from `RK_dh` (§3.3.6's pre-`KDF_RK_PQ` root). The combined frame is
+  n = 0 of the new DH epoch under the pre-boundary NHK (§8.5.1). NO wire-format change (§4.3
+  already carries `DH_pub`; the frame is byte-layout-identical to the PQ-only reseed frame, so no
+  new DOC-G5-004 observable) and parse.rs took no hook. `0x0007` (ADV|CTXT) stays rejected.
+  **Editorial recommendation to the operator (deliberately NOT taken in NA-0626 — the canonical
+  unfreeze covered exactly the ENG-0031 sentence):** DOC-CAN-003 §8.5 has no explicit
+  combined-receiver step list; the implemented ordering is the unique reading under which §8.5.2
+  and §8.5.3 both hold verbatim. A future editorial note in §8.5 (alongside §4's own recommended
+  DH-only note) would close the ambiguity in the spec text.
+- **qsc cadence unchanged.** qsc can now RECEIVE combined frames; its SEND cadence stays the D561
+  operator-set policy (PQ-only reseeds co-scheduled after DH boundaries). Switching to combined
+  sends is a live-behavior policy decision re-triaged with ENG-0025.
+- **ENG-0031 resolved (Operator Decision 4 at D563):** §8.5.1's sender sentence now scopes the
+  NHK rule to epoch-transition boundaries; an advertisement-only boundary keeps `HK_s`. One
+  sentence; nothing else in `docs/canonical/**` changed.
+
+**Claim boundary unchanged.** Nothing in NA-0626 introduces a post-quantum, Triple-Ratchet, or
+post-compromise claim: the DH+PQ composition still awaits independent analysis (ENG-0028 — now
+unblocked, since this lane restructured exactly the composition it would model). The replaced
+root-composition model (single root, combined alphabet, PQ-first counterfactual) is an
+agreement/coherence model over abstracted KDFs, not a secrecy proof.
+
+
 ## G5 metadata / traffic-shape note (§7 cross-reference)
 
 Boundary messages are distinguishable (larger — carrying `DH_pub` and, for PQ, `pq_ct`) and, if

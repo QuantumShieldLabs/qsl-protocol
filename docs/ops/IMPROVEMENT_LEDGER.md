@@ -672,6 +672,23 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   analysis the standing claim boundary requires. last-updated 2026-07-08
 
 ### ENG-0024 — Root-key duality: `RK` stored redundantly in `recv.rk` and `dh.rk` with caller-owned coherence
+- **STATUS: DONE (NA-0626; D-1247 impl; impl PR + merge SHA recorded at the D-1248 closeout).**
+  `Suite2SessionState` now carries exactly ONE `rk` (DOC-CAN-003 §8.1); `recv.rk` and `dh.rk` are
+  REMOVED and `session_root()` is deleted. The wire-level ops are root-EXPLICIT (`recv_wire` /
+  `recv_wire_canon` take the root and return the possibly-advanced root in the outcome;
+  `recv_pq_adv` takes it for the ADVAUTH verify); session-level fns read/write the single slot.
+  The qsc INJECT/ADOPT dances became UNREPRESENTABLE (fields gone; deleted in the same
+  workspace-atomic commit, compiler-enforced). QS2S bumped v2 -> v3 (root leads the layout; net
+  -32 B); `restore_bytes` rejects any non-v3 version fail-closed with the DISTINCT static marker
+  `unsupported suite2 snapshot version` (Operator Decision 1: no migration — diverged v2 roots
+  are not soundly collapsible); qsc treats a pre-v3 stored session as UNRECOVERABLE
+  (`session_unsupported_version`, nothing mutated on disk, session re-established) and the three
+  dead legacy-migration branches are removed with a test each. Zero pinned vector bytes were
+  invalidated (the WF-0014 byte-scan proved no vector pins QS2S bytes); exactly ONE vector JSON
+  member changed (`S2-SEND-PQRESEED-ACCEPT-0001` lost the duplicate `dh_rk` output). The
+  runtime-equivalence gate was restated per Operator Decision 3 (v3 state bytes; wire half
+  STRENGTHENED with fixed golden SHA-256 pins). Severity/problem/history below are retained
+  as filed.
 - Severity: P2 (architecture debt with a demonstrated desync failure class; currently mitigated
   caller-side) — filed 2026-07-08 from the NA-0624 findings (D-1243)
 - Problem: DOC-CAN-003 §8.1 defines ONE session root, but `Suite2SessionState` stores it twice
@@ -704,8 +721,36 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   protocol path out of the 3k-line `main.rs`.
 - Recommended directive shape: a qsc-only refactor lane (no wire/crypto change; the full suite +
   runtime-equivalence are the safety net). last-updated 2026-07-08
+- RE-TRIAGE (NA-0626, D-1247): the seam contract SHRANK — the root INJECT/ADOPT and the ENG-0030
+  send-half refresh no longer exist (structural at the refimpl; ENG-0024/ENG-0030 DONE), and the
+  ADV/reseed pack-exclusion rule was already retired at NA-0625. REMAINING scope: (1) the
+  persistence choreography (multiple AEAD decrypt passes per message; one façade owning
+  load->mutate->store) and the `main.rs` extraction; (2) `recv.ck_pq_send` — the wire-level ops'
+  transport slot for the send-direction reseed seed. Same caller-owned-coherence CLASS as
+  ENG-0024/0030 but at the wire-op level only; the session entry points moot the qsc-seam hazard
+  (the seed lands directly in `send.ck_pq`), and the vectors pin it as input AND expectation, so
+  removing it means another vector-touching lane — deliberately not widened into NA-0626;
+  (3) the qsc combined-send CADENCE switch (send combined DH+PQ boundaries instead of PQ-only
+  reseeds co-scheduled after DH boundaries): a live-behavior policy change, D561 operator-set,
+  explicitly out of NA-0626's scope — decide alongside this façade lane or its own LITE lane.
+  last-updated 2026-07-09
 
 ### ENG-0026 — Combined DH+PQ boundary (single-message hybrid ratchet) in the refimpl receiver
+- **STATUS: DONE (NA-0626; D-1247 impl; impl PR + merge SHA recorded at the D-1248 closeout).**
+  A single `FLAG_BOUNDARY|FLAG_PQ_CTXT` (0x0006) frame carrying a FRESH `DH_pub` now applies the
+  DH ratchet AND the SCKA reseed in one hybrid epoch transition: pure sender
+  `send_combined_boundary` (caller-supplied keypair — vector-deterministic) and the combined arm
+  of the session-level `recv_pq_reseed` (discrimination = `parsed.dh_pub != dh.dhr`; the AD binds
+  `DH_pub`). Composition order design-locked DH-FIRST-THEN-PQ
+  (`RK_final = KDF_RK_PQ(KDF_RK_DH(RK_pre, dh_out), ss)`; anchors §8.2 / DOC-G5-008 §4 / §3.3.6;
+  the PQ-first order would clobber the §8.5.3 step-6 ct-bound seeds via §8.5.2 step 6 — pinned as
+  a model counterfactual). The combined frame is n=0 of the new DH epoch under the pre-boundary
+  NHK (§8.5.1); NO wire FORMAT change (byte-layout identical to the existing reseed frame; §4.3
+  already carries `DH_pub`; parse.rs untouched — the D563 Decision-2 re-present clause did not
+  fire); 0x0007 stays `REJECT_S2_LOCAL_UNSUPPORTED`. New vectors: `S2-SEND-COMBINED-ACCEPT-0001`
+  (pinned wire) + 4 constructed receiver vectors. qsc RECEIVES combined frames via the same entry
+  point; the SEND cadence stays the D561 operator-set policy (explicitly out of scope; re-triage
+  with ENG-0025). Severity/problem/history below are retained as filed.
 - Severity: P3 (optimization/spec-recommended shape; the PQ-only reseed composition is proven)
   — filed 2026-07-08 from Operator Decision 1 at D561 (D-1243)
 - Problem: DOC-G5-008 §4 recommends PQ reseeds RIDE ON DH boundaries (one combined boundary
@@ -773,6 +818,16 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   then a migration lane on operator approval). last-updated 2026-07-09
 
 ### ENG-0030 — Reseed RECEIVE leaves the receiver's SEND key schedule stale (caller-owned coherence)
+- **STATUS: DONE (NA-0626; D-1247 impl; impl PR + merge SHA recorded at the D-1248 closeout).**
+  STRUCTURAL, as recommended: the session-level `recv_pq_reseed` (mirroring `send_pq_reseed`
+  field-for-field) returns a fully updated `Suite2SessionState` INCLUDING the send half
+  (`send.hk_s` from the advanced root, `send.ck_pq` from the send-direction seed), with a
+  companion `recv_pq_adv_session` for a uniform ADV arm. The qsc caller-side mitigation was
+  removed IN THE SAME COMMIT that landed the replacement (the duplicated root fields are gone,
+  so the compiler enforces the no-window rule). The regression test
+  `reseed_receiver_send_schedule_must_be_refreshed_from_advanced_root` was INVERTED
+  (`assert_ne!` -> `assert_eq!`; name kept) and the model's invariant 4 is now asserted OF the
+  entry point. Severity/problem/history below are retained as filed.
 - Severity: P2 (a demonstrated desync class, currently mitigated caller-side in qsc) — filed
   2026-07-09 from an NA-0625 implementation finding (D-1245)
 - Problem: `send_pq_reseed` writes BOTH directional header keys and the new send PQ chain into the
@@ -800,6 +855,16 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   migration amortizes it), or ENG-0025. last-updated 2026-07-09
 
 ### ENG-0031 — DOC-CAN-003 §8.5.1 vs §8.5.4: is an ADV boundary header NHK or HK?
+- **STATUS: DONE (NA-0626; D-1247 impl; Operator Decision 4 at D563 selected the one-sentence
+  clarification).** DOC-CAN-003 §8.5.1's sender bullet now scopes the NHK rule to boundary
+  headers "that apply an epoch transition (DH ratchet advancement and/or an SCKA reseed event)"
+  and states that an advertisement-only boundary advances no root and keeps the sender's current
+  `HK_s` — matching §8.5.4's silence, §8.5.1's own receiver sentence, and the shipped
+  implementation. EXACTLY ONE SENTENCE changed in `docs/canonical/**` (the bounded unfreeze D563
+  granted); the NHK-flip alternative stays rejected (an ADV advances no root, so NHK confers zero
+  attacker advantage, and the flip would churn the ADV vectors for nothing). The combined
+  boundary (ENG-0026) is an epoch transition and is unambiguously NHK under either wording.
+  Severity/problem/history below are retained as filed.
 - Severity: P3 (spec text ambiguity; no implementation defect, no security delta) — filed
   2026-07-09 from the NA-0625 design-lock residual (D-1245)
 - Problem: §8.5.1's SENDER sentence is unconditional over `FLAG_BOUNDARY = 1` messages ("A boundary

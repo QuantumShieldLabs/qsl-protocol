@@ -998,6 +998,7 @@ where
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn hs_build_session(
     authenticated: bool,
     role_is_a: bool,

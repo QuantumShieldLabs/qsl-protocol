@@ -36,8 +36,7 @@ fn run_headless(
         .iter()
         .any(|(k, v)| *k == "QSC_TUI_TEST_UNLOCK" && *v == "1");
     let mut cmd = if unlock_requested {
-        let cmd = common::qsc_assert_command();
-        cmd
+        common::qsc_assert_command()
     } else {
         assert_cmd::Command::from_std(StdCommand::new(assert_cmd::cargo::cargo_bin!("qsc")))
     };

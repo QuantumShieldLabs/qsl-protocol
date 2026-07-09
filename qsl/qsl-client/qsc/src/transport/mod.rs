@@ -413,372 +413,409 @@ pub(super) fn receive_execute(args: ReceiveArgs) {
     }
 }
 
+/// NA-0624: bounded re-pull rounds when a pull batch contained only SCKA control envelopes
+/// (advertisements), so `receive --max N` still yields up to N application messages.
+const RECV_CONTROL_ROUNDS_MAX: usize = 4;
+
 fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullStats {
-    let items = match relay_inbox_pull(ctx.relay, ctx.mailbox, max) {
-        Ok(v) => v,
-        Err(code) => print_error_marker(code),
-    };
     let mut stats = ReceivePullStats { count: 0, bytes: 0 };
     let mut pending_receipts: Vec<PendingReceipt> = Vec::new();
-    for item in items {
-        let envelope_len = item.data.len();
-        match qsp_unpack_for_peer(ctx.from, &item.data) {
-            Ok((outcome, channel)) => {
-                let commit_unpack_state = || {
-                    record_qsp_status(ctx.cfg_dir, ctx.cfg_source, true, "unpack_ok", false, true);
-                    emit_marker("qsp_unpack", None, &[("ok", "true"), ("version", "5.0")]);
-                    let msg_idx_s = outcome.msg_idx.to_string();
-                    emit_marker(
-                        "ratchet_recv_advance",
-                        None,
-                        &[("msg_idx", msg_idx_s.as_str())],
-                    );
-                    if outcome.skip_delta > 0 {
-                        let sd = outcome.skip_delta.to_string();
-                        emit_marker("ratchet_skip_store", None, &[("count", sd.as_str())]);
-                    }
-                    if outcome.evicted > 0 {
-                        let ev = outcome.evicted.to_string();
-                        emit_marker("ratchet_skip_evict", None, &[("count", ev.as_str())]);
-                    }
-                    if qsp_session_store_with_trigger(
-                        channel.as_str(),
-                        &outcome.next_state,
-                        &outcome.trigger,
-                    )
-                    .is_err()
-                    {
-                        emit_marker("error", Some("qsp_session_store_failed"), &[]);
-                        print_error_marker("qsp_session_store_failed");
-                    }
-                };
-                let mut payload = outcome.plaintext.clone();
-                let mut request_receipt = false;
-                let mut request_msg_id = String::new();
-                if let Some(desc) = parse_attachment_descriptor_payload(&outcome.plaintext) {
-                    let attachment_id = desc.attachment_id.clone();
-                    match attachment_handle_descriptor(ctx, desc) {
-                        Ok(Some((confirm_attachment_id, confirm_handle))) => {
-                            commit_unpack_state();
-                            queue_or_send_receipt(
-                                ctx,
-                                &mut pending_receipts,
-                                PendingReceipt::AttachmentComplete {
-                                    attachment_id: confirm_attachment_id,
-                                    confirm_handle,
-                                },
-                            );
+    let mut rounds = 0usize;
+    'pull: loop {
+        let want = max.saturating_sub(stats.count).max(1);
+        let items = match relay_inbox_pull(ctx.relay, ctx.mailbox, want) {
+            Ok(v) => v,
+            Err(code) => print_error_marker(code),
+        };
+        if items.is_empty() {
+            break 'pull;
+        }
+        let mut controls = 0usize;
+        for item in items {
+            let envelope_len = item.data.len();
+            match qsp_unpack_for_peer(ctx.from, &item.data) {
+                Ok((outcome, channel)) => {
+                    let commit_unpack_state = || {
+                        record_qsp_status(
+                            ctx.cfg_dir,
+                            ctx.cfg_source,
+                            true,
+                            "unpack_ok",
+                            false,
+                            true,
+                        );
+                        emit_marker("qsp_unpack", None, &[("ok", "true"), ("version", "5.0")]);
+                        let msg_idx_s = outcome.msg_idx.to_string();
+                        emit_marker(
+                            "ratchet_recv_advance",
+                            None,
+                            &[("msg_idx", msg_idx_s.as_str())],
+                        );
+                        if outcome.skip_delta > 0 {
+                            let sd = outcome.skip_delta.to_string();
+                            emit_marker("ratchet_skip_store", None, &[("count", sd.as_str())]);
                         }
-                        Ok(None) => {
-                            commit_unpack_state();
+                        if outcome.evicted > 0 {
+                            let ev = outcome.evicted.to_string();
+                            emit_marker("ratchet_skip_evict", None, &[("count", ev.as_str())]);
                         }
-                        Err(reason) => {
+                        if qsp_session_store_with_trigger(
+                            channel.as_str(),
+                            &outcome.next_state,
+                            &outcome.trigger,
+                        )
+                        .is_err()
+                        {
+                            emit_marker("error", Some("qsp_session_store_failed"), &[]);
+                            print_error_marker("qsp_session_store_failed");
+                        }
+                    };
+                    // NA-0624: an SCKA control message (peer advertisement) carries no application
+                    // payload — commit the trigger/SCKA state and move on.
+                    if outcome.is_control {
+                        commit_unpack_state();
+                        controls = controls.saturating_add(1);
+                        continue;
+                    }
+                    let mut payload = outcome.plaintext.clone();
+                    let mut request_receipt = false;
+                    let mut request_msg_id = String::new();
+                    if let Some(desc) = parse_attachment_descriptor_payload(&outcome.plaintext) {
+                        let attachment_id = desc.attachment_id.clone();
+                        match attachment_handle_descriptor(ctx, desc) {
+                            Ok(Some((confirm_attachment_id, confirm_handle))) => {
+                                commit_unpack_state();
+                                queue_or_send_receipt(
+                                    ctx,
+                                    &mut pending_receipts,
+                                    PendingReceipt::AttachmentComplete {
+                                        attachment_id: confirm_attachment_id,
+                                        confirm_handle,
+                                    },
+                                );
+                            }
+                            Ok(None) => {
+                                commit_unpack_state();
+                            }
+                            Err(reason) => {
+                                emit_marker(
+                                    "attachment_desc_reject",
+                                    Some(reason),
+                                    &[
+                                        (
+                                            "attachment_id",
+                                            file_delivery_short_id(&attachment_id).as_str(),
+                                        ),
+                                        ("reason", reason),
+                                    ],
+                                );
+                                print_error_marker(reason);
+                            }
+                        }
+                        continue;
+                    }
+                    if let Some(file_payload) = parse_file_transfer_payload(&outcome.plaintext) {
+                        let file_id = match &file_payload {
+                            FileTransferPayload::Chunk(v) => v.file_id.clone(),
+                            FileTransferPayload::Manifest(v) => v.file_id.clone(),
+                        };
+                        if ctx.legacy_receive_mode == LegacyReceiveMode::Retired {
+                            let payload_type = match &file_payload {
+                                FileTransferPayload::Chunk(_) => "file_chunk",
+                                FileTransferPayload::Manifest(_) => "file_manifest",
+                            };
                             emit_marker(
-                                "attachment_desc_reject",
-                                Some(reason),
+                                "legacy_receive_reject",
+                                Some("legacy_receive_retired_post_w0"),
                                 &[
-                                    (
-                                        "attachment_id",
-                                        file_delivery_short_id(&attachment_id).as_str(),
-                                    ),
-                                    ("reason", reason),
+                                    ("id", file_id.as_str()),
+                                    ("mode", legacy_receive_mode_name(ctx.legacy_receive_mode)),
+                                    ("payload_type", payload_type),
+                                    ("reason", "legacy_receive_retired_post_w0"),
                                 ],
                             );
-                            print_error_marker(reason);
-                        }
-                    }
-                    continue;
-                }
-                if let Some(file_payload) = parse_file_transfer_payload(&outcome.plaintext) {
-                    let file_id = match &file_payload {
-                        FileTransferPayload::Chunk(v) => v.file_id.clone(),
-                        FileTransferPayload::Manifest(v) => v.file_id.clone(),
-                    };
-                    if ctx.legacy_receive_mode == LegacyReceiveMode::Retired {
-                        let payload_type = match &file_payload {
-                            FileTransferPayload::Chunk(_) => "file_chunk",
-                            FileTransferPayload::Manifest(_) => "file_manifest",
-                        };
-                        emit_marker(
-                            "legacy_receive_reject",
-                            Some("legacy_receive_retired_post_w0"),
-                            &[
-                                ("id", file_id.as_str()),
-                                ("mode", legacy_receive_mode_name(ctx.legacy_receive_mode)),
-                                ("payload_type", payload_type),
-                                ("reason", "legacy_receive_retired_post_w0"),
-                            ],
-                        );
-                        emit_marker(
-                            "file_xfer_reject",
-                            Some("legacy_receive_retired_post_w0"),
-                            &[
-                                ("id", file_id.as_str()),
-                                ("reason", "legacy_receive_retired_post_w0"),
-                            ],
-                        );
-                        print_error_marker("legacy_receive_retired_post_w0");
-                    }
-                    let file_res = match file_payload {
-                        FileTransferPayload::Chunk(v) => {
-                            file_transfer_handle_chunk(ctx, v).map(|_| None)
-                        }
-                        FileTransferPayload::Manifest(v) => file_transfer_handle_manifest(ctx, v),
-                    };
-                    match file_res {
-                        Ok(Some((confirm_file_id, confirm_id))) => {
-                            commit_unpack_state();
-                            queue_or_send_receipt(
-                                ctx,
-                                &mut pending_receipts,
-                                PendingReceipt::FileComplete {
-                                    file_id: confirm_file_id,
-                                    confirm_id,
-                                },
-                            );
-                        }
-                        Ok(None) => {
-                            commit_unpack_state();
-                        }
-                        Err(reason) => {
-                            if reason == "manifest_mismatch" {
-                                let _ =
-                                    file_transfer_fail_clean(ctx.from, file_id.as_str(), reason);
-                            }
                             emit_marker(
                                 "file_xfer_reject",
-                                Some(reason),
-                                &[("id", file_id.as_str()), ("reason", reason)],
-                            );
-                            print_error_marker(reason);
-                        }
-                    }
-                    continue;
-                }
-                if let Some(confirm) = parse_attachment_confirm_payload(&outcome.plaintext) {
-                    commit_unpack_state();
-                    match apply_attachment_peer_confirmation(
-                        ctx.from,
-                        confirm.attachment_id.as_str(),
-                        confirm.confirm_handle.as_str(),
-                        channel.as_str(),
-                    ) {
-                        Ok((ConfirmApplyOutcome::Confirmed, target)) => {
-                            let device = target
-                                .as_deref()
-                                .or_else(|| channel_device_id(channel.as_str()));
-                            emit_marker(
-                                "attachment_confirm_recv",
-                                None,
-                                &[("attachment_id", "redacted"), ("ok", "true")],
-                            );
-                            emit_cli_file_delivery_with_device(
-                                ctx.from,
-                                "peer_confirmed",
-                                confirm.attachment_id.as_str(),
-                                device,
-                            );
-                            emit_tui_file_delivery_with_device(
-                                ctx.from,
-                                "peer_confirmed",
-                                confirm.attachment_id.as_str(),
-                                device,
-                            );
-                        }
-                        Ok((ConfirmApplyOutcome::IgnoredWrongDevice, _)) => {
-                            let dev = channel_device_marker(channel.as_str());
-                            emit_cli_receipt_ignored_wrong_device(ctx.from, dev.as_str());
-                            emit_tui_receipt_ignored_wrong_device(ctx.from, dev.as_str());
-                        }
-                        Err(reason) => emit_marker(
-                            "attachment_confirm_reject",
-                            Some(reason),
-                            &[("reason", reason), ("ok", "false")],
-                        ),
-                    }
-                    continue;
-                }
-                if let Some(file_confirm) = parse_file_confirm_payload(&outcome.plaintext) {
-                    commit_unpack_state();
-                    match apply_file_peer_confirmation(
-                        ctx.from,
-                        file_confirm.file_id.as_str(),
-                        file_confirm.confirm_id.as_str(),
-                        channel.as_str(),
-                    ) {
-                        Ok((ConfirmApplyOutcome::Confirmed, target)) => {
-                            let device = target
-                                .as_deref()
-                                .or_else(|| channel_device_id(channel.as_str()));
-                            emit_marker(
-                                "file_confirm_recv",
-                                None,
+                                Some("legacy_receive_retired_post_w0"),
                                 &[
-                                    ("kind", "coarse_complete"),
-                                    ("file_id", "redacted"),
-                                    ("ok", "true"),
+                                    ("id", file_id.as_str()),
+                                    ("reason", "legacy_receive_retired_post_w0"),
                                 ],
                             );
-                            emit_cli_file_delivery_with_device(
-                                ctx.from,
-                                "peer_confirmed",
-                                file_confirm.file_id.as_str(),
-                                device,
-                            );
-                            emit_tui_file_delivery_with_device(
-                                ctx.from,
-                                "peer_confirmed",
-                                file_confirm.file_id.as_str(),
-                                device,
-                            );
+                            print_error_marker("legacy_receive_retired_post_w0");
                         }
-                        Ok((ConfirmApplyOutcome::IgnoredWrongDevice, _)) => {
-                            let dev = channel_device_marker(channel.as_str());
-                            emit_cli_receipt_ignored_wrong_device(ctx.from, dev.as_str());
-                            emit_tui_receipt_ignored_wrong_device(ctx.from, dev.as_str());
+                        let file_res = match file_payload {
+                            FileTransferPayload::Chunk(v) => {
+                                file_transfer_handle_chunk(ctx, v).map(|_| None)
+                            }
+                            FileTransferPayload::Manifest(v) => {
+                                file_transfer_handle_manifest(ctx, v)
+                            }
+                        };
+                        match file_res {
+                            Ok(Some((confirm_file_id, confirm_id))) => {
+                                commit_unpack_state();
+                                queue_or_send_receipt(
+                                    ctx,
+                                    &mut pending_receipts,
+                                    PendingReceipt::FileComplete {
+                                        file_id: confirm_file_id,
+                                        confirm_id,
+                                    },
+                                );
+                            }
+                            Ok(None) => {
+                                commit_unpack_state();
+                            }
+                            Err(reason) => {
+                                if reason == "manifest_mismatch" {
+                                    let _ = file_transfer_fail_clean(
+                                        ctx.from,
+                                        file_id.as_str(),
+                                        reason,
+                                    );
+                                }
+                                emit_marker(
+                                    "file_xfer_reject",
+                                    Some(reason),
+                                    &[("id", file_id.as_str()), ("reason", reason)],
+                                );
+                                print_error_marker(reason);
+                            }
                         }
-                        Err(reason) => emit_marker(
-                            "file_confirm_reject",
-                            Some(reason),
-                            &[("reason", reason), ("ok", "false")],
-                        ),
+                        continue;
                     }
-                    continue;
-                }
-                if let Some(ctrl) = parse_receipt_payload(&outcome.plaintext) {
-                    if ctrl.v == 1 && ctrl.kind == "delivered" && ctrl.t == "ack" {
+                    if let Some(confirm) = parse_attachment_confirm_payload(&outcome.plaintext) {
                         commit_unpack_state();
-                        match apply_message_peer_confirmation(
+                        match apply_attachment_peer_confirmation(
                             ctx.from,
-                            ctrl.msg_id.as_str(),
+                            confirm.attachment_id.as_str(),
+                            confirm.confirm_handle.as_str(),
                             channel.as_str(),
                         ) {
-                            Ok((ConfirmApplyOutcome::IgnoredWrongDevice, _)) => {
-                                let dev = channel_device_marker(channel.as_str());
-                                emit_cli_receipt_ignored_wrong_device(ctx.from, dev.as_str());
-                                emit_tui_receipt_ignored_wrong_device(ctx.from, dev.as_str());
-                            }
                             Ok((ConfirmApplyOutcome::Confirmed, target)) => {
                                 let device = target
                                     .as_deref()
                                     .or_else(|| channel_device_id(channel.as_str()));
                                 emit_marker(
-                                    "receipt_recv",
+                                    "attachment_confirm_recv",
                                     None,
-                                    &[("kind", "delivered"), ("msg_id", "<redacted>")],
+                                    &[("attachment_id", "redacted"), ("ok", "true")],
                                 );
-                                emit_marker(
-                                    "delivered_to_peer",
-                                    None,
-                                    &[("kind", "delivered"), ("msg_id", "<redacted>")],
-                                );
-                                emit_cli_delivery_state_with_device(
+                                emit_cli_file_delivery_with_device(
                                     ctx.from,
                                     "peer_confirmed",
+                                    confirm.attachment_id.as_str(),
                                     device,
                                 );
-                                emit_tui_delivery_state_with_device(
+                                emit_tui_file_delivery_with_device(
                                     ctx.from,
                                     "peer_confirmed",
+                                    confirm.attachment_id.as_str(),
                                     device,
                                 );
                             }
-                            Err(reason) => emit_message_state_reject(ctrl.msg_id.as_str(), reason),
+                            Ok((ConfirmApplyOutcome::IgnoredWrongDevice, _)) => {
+                                let dev = channel_device_marker(channel.as_str());
+                                emit_cli_receipt_ignored_wrong_device(ctx.from, dev.as_str());
+                                emit_tui_receipt_ignored_wrong_device(ctx.from, dev.as_str());
+                            }
+                            Err(reason) => emit_marker(
+                                "attachment_confirm_reject",
+                                Some(reason),
+                                &[("reason", reason), ("ok", "false")],
+                            ),
                         }
                         continue;
                     }
-                    if ctrl.v == 1 && ctrl.kind == "delivered" && ctrl.t == "data" {
-                        if let Some(body) = ctrl.body {
-                            payload = body;
-                            request_receipt = true;
-                            request_msg_id = ctrl.msg_id;
+                    if let Some(file_confirm) = parse_file_confirm_payload(&outcome.plaintext) {
+                        commit_unpack_state();
+                        match apply_file_peer_confirmation(
+                            ctx.from,
+                            file_confirm.file_id.as_str(),
+                            file_confirm.confirm_id.as_str(),
+                            channel.as_str(),
+                        ) {
+                            Ok((ConfirmApplyOutcome::Confirmed, target)) => {
+                                let device = target
+                                    .as_deref()
+                                    .or_else(|| channel_device_id(channel.as_str()));
+                                emit_marker(
+                                    "file_confirm_recv",
+                                    None,
+                                    &[
+                                        ("kind", "coarse_complete"),
+                                        ("file_id", "redacted"),
+                                        ("ok", "true"),
+                                    ],
+                                );
+                                emit_cli_file_delivery_with_device(
+                                    ctx.from,
+                                    "peer_confirmed",
+                                    file_confirm.file_id.as_str(),
+                                    device,
+                                );
+                                emit_tui_file_delivery_with_device(
+                                    ctx.from,
+                                    "peer_confirmed",
+                                    file_confirm.file_id.as_str(),
+                                    device,
+                                );
+                            }
+                            Ok((ConfirmApplyOutcome::IgnoredWrongDevice, _)) => {
+                                let dev = channel_device_marker(channel.as_str());
+                                emit_cli_receipt_ignored_wrong_device(ctx.from, dev.as_str());
+                                emit_tui_receipt_ignored_wrong_device(ctx.from, dev.as_str());
+                            }
+                            Err(reason) => emit_marker(
+                                "file_confirm_reject",
+                                Some(reason),
+                                &[("reason", reason), ("ok", "false")],
+                            ),
+                        }
+                        continue;
+                    }
+                    if let Some(ctrl) = parse_receipt_payload(&outcome.plaintext) {
+                        if ctrl.v == 1 && ctrl.kind == "delivered" && ctrl.t == "ack" {
+                            commit_unpack_state();
+                            match apply_message_peer_confirmation(
+                                ctx.from,
+                                ctrl.msg_id.as_str(),
+                                channel.as_str(),
+                            ) {
+                                Ok((ConfirmApplyOutcome::IgnoredWrongDevice, _)) => {
+                                    let dev = channel_device_marker(channel.as_str());
+                                    emit_cli_receipt_ignored_wrong_device(ctx.from, dev.as_str());
+                                    emit_tui_receipt_ignored_wrong_device(ctx.from, dev.as_str());
+                                }
+                                Ok((ConfirmApplyOutcome::Confirmed, target)) => {
+                                    let device = target
+                                        .as_deref()
+                                        .or_else(|| channel_device_id(channel.as_str()));
+                                    emit_marker(
+                                        "receipt_recv",
+                                        None,
+                                        &[("kind", "delivered"), ("msg_id", "<redacted>")],
+                                    );
+                                    emit_marker(
+                                        "delivered_to_peer",
+                                        None,
+                                        &[("kind", "delivered"), ("msg_id", "<redacted>")],
+                                    );
+                                    emit_cli_delivery_state_with_device(
+                                        ctx.from,
+                                        "peer_confirmed",
+                                        device,
+                                    );
+                                    emit_tui_delivery_state_with_device(
+                                        ctx.from,
+                                        "peer_confirmed",
+                                        device,
+                                    );
+                                }
+                                Err(reason) => {
+                                    emit_message_state_reject(ctrl.msg_id.as_str(), reason)
+                                }
+                            }
+                            continue;
+                        }
+                        if ctrl.v == 1 && ctrl.kind == "delivered" && ctrl.t == "data" {
+                            if let Some(body) = ctrl.body {
+                                payload = body;
+                                request_receipt = true;
+                                request_msg_id = ctrl.msg_id;
+                            }
                         }
                     }
-                }
-                commit_unpack_state();
-                stats.count = stats.count.saturating_add(1);
-                stats.bytes = stats.bytes.saturating_add(envelope_len);
-                let bucket = meta_bucket_for_len(envelope_len, ctx.bucket_max);
-                let bucket_s = bucket.to_string();
-                let orig_s = envelope_len.to_string();
-                let capped_s = if envelope_len > ctx.bucket_max {
-                    ctx.bucket_max.to_string()
-                } else {
-                    envelope_len.to_string()
-                };
-                emit_marker(
-                    "meta_bucket",
-                    None,
-                    &[
-                        ("bucket", bucket_s.as_str()),
-                        ("orig", orig_s.as_str()),
-                        ("capped", capped_s.as_str()),
-                        ("metric", "envelope_len"),
-                    ],
-                );
-                let name = format!("recv_{}.bin", stats.count);
-                let path = ctx.out.join(name);
-                if write_atomic(&path, &payload, ctx.source).is_err() {
-                    print_error_marker("recv_write_failed");
-                }
-                let idx_s = stats.count.to_string();
-                let size_s = payload.len().to_string();
-                emit_marker(
-                    "recv_item",
-                    None,
-                    &[
-                        ("idx", idx_s.as_str()),
-                        ("size", size_s.as_str()),
-                        ("id", item.id.as_str()),
-                    ],
-                );
-                if let Err(code) = timeline_append_entry(
-                    ctx.from,
-                    "in",
-                    payload.len(),
-                    "msg",
-                    MessageState::Received,
-                    if request_msg_id.is_empty() {
-                        None
+                    commit_unpack_state();
+                    stats.count = stats.count.saturating_add(1);
+                    stats.bytes = stats.bytes.saturating_add(envelope_len);
+                    let bucket = meta_bucket_for_len(envelope_len, ctx.bucket_max);
+                    let bucket_s = bucket.to_string();
+                    let orig_s = envelope_len.to_string();
+                    let capped_s = if envelope_len > ctx.bucket_max {
+                        ctx.bucket_max.to_string()
                     } else {
-                        Some(request_msg_id.as_str())
-                    },
-                ) {
-                    emit_message_state_reject("<redacted>", code);
-                    emit_marker("error", Some(code), &[("op", "timeline_receive_ingest")]);
-                }
-                if request_receipt {
-                    queue_or_send_receipt(
-                        ctx,
-                        &mut pending_receipts,
-                        PendingReceipt::Message {
-                            msg_id: request_msg_id,
-                        },
+                        envelope_len.to_string()
+                    };
+                    emit_marker(
+                        "meta_bucket",
+                        None,
+                        &[
+                            ("bucket", bucket_s.as_str()),
+                            ("orig", orig_s.as_str()),
+                            ("capped", capped_s.as_str()),
+                            ("metric", "envelope_len"),
+                        ],
                     );
+                    let name = format!("recv_{}.bin", stats.count);
+                    let path = ctx.out.join(name);
+                    if write_atomic(&path, &payload, ctx.source).is_err() {
+                        print_error_marker("recv_write_failed");
+                    }
+                    let idx_s = stats.count.to_string();
+                    let size_s = payload.len().to_string();
+                    emit_marker(
+                        "recv_item",
+                        None,
+                        &[
+                            ("idx", idx_s.as_str()),
+                            ("size", size_s.as_str()),
+                            ("id", item.id.as_str()),
+                        ],
+                    );
+                    if let Err(code) = timeline_append_entry(
+                        ctx.from,
+                        "in",
+                        payload.len(),
+                        "msg",
+                        MessageState::Received,
+                        if request_msg_id.is_empty() {
+                            None
+                        } else {
+                            Some(request_msg_id.as_str())
+                        },
+                    ) {
+                        emit_message_state_reject("<redacted>", code);
+                        emit_marker("error", Some(code), &[("op", "timeline_receive_ingest")]);
+                    }
+                    if request_receipt {
+                        queue_or_send_receipt(
+                            ctx,
+                            &mut pending_receipts,
+                            PendingReceipt::Message {
+                                msg_id: request_msg_id,
+                            },
+                        );
+                    }
+                }
+                Err(code) => {
+                    let from_alias = peer_alias_from_channel(ctx.from);
+                    if contacts_entry_read(from_alias).ok().flatten().is_none()
+                        && channel_label_ok(from_alias)
+                    {
+                        let _ = contact_request_upsert(from_alias, None, Some(code));
+                        emit_cli_contact_request("created", from_alias, None);
+                        emit_tui_contact_request("created", from_alias, None);
+                    }
+                    if code == "qsp_verify_failed" {
+                        emit_file_integrity_fail(code, "rotate_mailbox_hint");
+                    }
+                    record_qsp_status(ctx.cfg_dir, ctx.cfg_source, false, code, false, false);
+                    emit_marker("qsp_unpack", Some(code), &[("ok", "false")]);
+                    if code == "qsp_replay_reject" {
+                        let msg_idx = qsp_session_for_channel(ctx.from)
+                            .map(|st| st.recv.nr.to_string())
+                            .unwrap_or_else(|_| "0".to_string());
+                        emit_marker("ratchet_replay_reject", None, &[("msg_idx", &msg_idx)]);
+                    }
+                    print_error_marker(code);
                 }
             }
-            Err(code) => {
-                let from_alias = peer_alias_from_channel(ctx.from);
-                if contacts_entry_read(from_alias).ok().flatten().is_none()
-                    && channel_label_ok(from_alias)
-                {
-                    let _ = contact_request_upsert(from_alias, None, Some(code));
-                    emit_cli_contact_request("created", from_alias, None);
-                    emit_tui_contact_request("created", from_alias, None);
-                }
-                if code == "qsp_verify_failed" {
-                    emit_file_integrity_fail(code, "rotate_mailbox_hint");
-                }
-                record_qsp_status(ctx.cfg_dir, ctx.cfg_source, false, code, false, false);
-                emit_marker("qsp_unpack", Some(code), &[("ok", "false")]);
-                if code == "qsp_replay_reject" {
-                    let msg_idx = qsp_session_for_channel(ctx.from)
-                        .map(|st| st.recv.nr.to_string())
-                        .unwrap_or_else(|_| "0".to_string());
-                    emit_marker("ratchet_replay_reject", None, &[("msg_idx", &msg_idx)]);
-                }
-                print_error_marker(code);
-            }
+        }
+        rounds = rounds.saturating_add(1);
+        if controls == 0 || stats.count >= max || rounds >= RECV_CONTROL_ROUNDS_MAX {
+            break 'pull;
         }
     }
     if let Some(service_url) = ctx.attachment_service {
@@ -1620,6 +1657,7 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySe
                     outbox.channel.as_deref().unwrap_or(outbox.to.as_str()),
                     next_state,
                 )),
+                None,
                 Some(TimelineSendIngest {
                     peer: outbox.to.as_str(),
                     byte_len: outbox.payload_len,
@@ -1794,6 +1832,23 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySe
     let len_s = payload.len().to_string();
     print_marker("send_prepare", &[("payload_len", len_s.as_str())]);
 
+    // NA-0624: deliver any SCKA control envelopes (advertisements) before the main message.
+    // Their secret material is already durable (qsp_pack persists the SCKA store fail-closed
+    // before returning an advertisement) and the chain advance is carried by the outbox
+    // next-state, so a crash or push failure here is recovered by the normal outbox replay.
+    for pre in pack.pre_envelopes.iter() {
+        if let Err(code) = relay_inbox_push(relay, push_route_token.as_str(), pre) {
+            emit_marker("relay_event", None, &[("action", "push_fail")]);
+            print_marker("send_attempt", &[("ok", "false")]);
+            return RelaySendOutcome {
+                action: "push_fail".to_string(),
+                delivered: false,
+                error_code: Some(code),
+            };
+        }
+        emit_marker("relay_event", None, &[("action", "deliver_control")]);
+    }
+
     match relay_inbox_push(relay, push_route_token.as_str(), &ciphertext) {
         Ok(()) => {
             emit_marker("relay_event", None, &[("action", "deliver")]);
@@ -1815,6 +1870,7 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySe
                 &outbox_path,
                 "deliver".to_string(),
                 Some((routing.channel.as_str(), pack.next_state.clone())),
+                Some(&pack.trigger),
                 Some(TimelineSendIngest {
                     peer: to,
                     byte_len: payload.len(),
@@ -1842,6 +1898,12 @@ fn finalize_send_commit(
     outbox_path: &Path,
     action: String,
     session_update: Option<(&str, Suite2SessionState)>,
+    // NA-0624: the DH-ratchet trigger from qsp_pack. The deliver path MUST persist it —
+    // without it the cleared ratchet-on-reply flag and the N/T fallback counters never land
+    // on the main send path, every post-receive send ratchets, and the co-scheduled PQ-reseed
+    // cadence (a non-boundary send) can never fire. The outbox-replay path has no pack
+    // outcome and preserves the stored trigger (None).
+    send_trigger: Option<&QspTriggerState>,
     timeline_ingest: Option<TimelineSendIngest<'_>>,
 ) -> RelaySendOutcome {
     let next_seq = match read_send_state(dir, source) {
@@ -1856,7 +1918,11 @@ fn finalize_send_commit(
         }
     };
     if let Some((peer, st)) = session_update {
-        if qsp_session_store(peer, &st).is_err() {
+        let stored = match send_trigger {
+            Some(trig) => qsp_session_store_with_trigger(peer, &st, trig),
+            None => qsp_session_store(peer, &st),
+        };
+        if stored.is_err() {
             emit_marker("error", Some("qsp_session_store_failed"), &[]);
             return RelaySendOutcome {
                 action,

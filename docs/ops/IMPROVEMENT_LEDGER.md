@@ -291,17 +291,21 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 
 ### ENG-0012 — Suite-2 send-side ratchet liveness gap (no DH ratchet + no boundary/PQ-reseed sender)
 - Severity: P1 (blocks the G1/G2 release gates; top-priority engineering finding)
-- Status: in-lane — design-complete (NA-0619, D-1234); Stage 1a (DH-ratchet state plumbing)
-  DONE (NA-0620, D-1235); Stage 1b-i (DH-ratchet SEND+RECEIVE behavior + NHK header keys, in
-  refimpl) DONE (NA-0621, D-1237); Stage 1b-ii (qsc trigger + static-`rk` removal — the classical
-  DH ratchet now runs on the REAL client send path) DONE (NA-0622, D-1239). The CLASSICAL half of
-  the P1 is CLOSED — classical post-compromise security now runs on live qsc traffic (ratchet-on-
-  reply + N=4/T=15min fallback), proven end-to-end over a real handshake (round-trip + PCS-healing).
+- Status: CLOSED (the P1 resolved at NA-0624, D-1243) — design-complete (NA-0619, D-1234); Stage 1a
+  (DH-ratchet state plumbing) DONE (NA-0620, D-1235); Stage 1b-i (DH-ratchet SEND+RECEIVE behavior
+  + NHK header keys, in refimpl) DONE (NA-0621, D-1237); Stage 1b-ii (qsc trigger + static-`rk`
+  removal — the classical DH ratchet now runs on the REAL client send path) DONE (NA-0622, D-1239).
+  The CLASSICAL half of the P1 closed there — classical post-compromise security on live qsc
+  traffic (ratchet-on-reply + N=4/T=15min fallback), proven end-to-end over a real handshake
+  (round-trip + PCS-healing).
   Stage 2 (PQ-reseed sender) was sub-staged: Stage 2a (the refimpl SCKA sender core — advertisement
   + PQ reseed — plus the both-sides RK advance so the PQ hardening survives a DH ratchet) DONE
-  (NA-0623, D-1241). Remaining: Stage 2b (qsc SCKA wiring = NA-0624) for full POST-QUANTUM PCS on
-  live traffic, after which the P1 fully closes. Filed NA-0617 (D-1230) from the external Suite-2
-  code/crypto review;
+  (NA-0623, D-1241). Stage 2b (qsc SCKA wiring = NA-0624, D-1243) DONE — the P1 is CLOSED:
+  post-quantum forward secrecy now runs on live qsc traffic, proven end-to-end over a real
+  handshake (advertise -> reseed -> both decrypt; PQ-PCS healing that survives a subsequent DH
+  ratchet; G2 rollback fails closed). NO post-quantum / Triple-Ratchet / post-compromise CLAIM
+  until the DH+PQ composition is independently analyzed (the standing claim boundary). Filed
+  NA-0617 (D-1230) from the external Suite-2 code/crypto review;
 - Stage 1a (NA-0620): added a session-level `Suite2DhRatchetState` (`dhs_priv`/`dhs_pub`/`dhr`/
   `rk`) to `Suite2SessionState`, populated at establishment (the qsc handshake threads its
   retained X25519 ephemeral private key via `set_dh_self_priv`), and persisted via a snapshot
@@ -363,6 +367,45 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   traffic yet (Stage 2b). NHK note: the refimpl PQ-CTXT boundary header uses `HK` (the frozen
   receiver), not the §8.5.1 `NHK` — flagged for Stage 2b / a spec-alignment lane. See the NA-0623
   evidence doc. last-updated 2026-07-08
+- Stage 2b (NA-0624): wired the Stage-2a SCKA sender into the REAL qsc send/receive path, reusing
+  the frozen refimpl semantics exactly (no refimpl change; the seed-model runtime-equivalence test
+  stays byte-for-byte). `qsp_pack` originates SCKA advertisements as separate CONTROL envelopes
+  pushed before the main message (the frozen receiver has no ADV body decrypt path) — on
+  establishment, on consumption of the local advertised key, and on rotation — and originates PQ
+  reseeds via the frozen `send_pq_reseed` on the operator-approved sparse cadence (first reseed as
+  soon as a fresh unconsumed peer advertisement is available, then every N_pq=8 sent DH boundaries
+  or T_pq=3600 s, evaluated on non-boundary sends so reseeds co-schedule after DH boundaries).
+  `qsp_unpack` intercepts `FLAG_PQ_ADV` before `recv_wire` (validating via `track_peer_adv`) and
+  routes `FLAG_PQ_CTXT` through ML-KEM decapsulation into the frozen `apply_pq_reseed`, first
+  INJECTING the canonical session root (`recv.rk := dh.rk` when live — the frozen reseed sender
+  derives from `session_root` while a DH boundary advances only `dh.rk`; the NA-0623 dh.rk-sync
+  carry-over, resolved caller-side) and then ADOPTING the advanced root into the DH-ratchet slot
+  (`dh.rk := recv.rk`) so a later classical DH ratchet carries the PQ hardening. SCKA state
+  (bounded advertised-key store, CAP=4 with deterministic eviction; peer advertisement; cadence
+  counters) persists inside the AEAD session blob as a length-delimited v3 plaintext section
+  (QS2S snapshot FROZEN; v2/v1 migrate; ML-KEM secrets only inside the encrypted blob) with a G2
+  monotonic side-record (incl. `peer_adv_consumed_max`, so a rolled-back store can never
+  re-consume a one-time peer target) — a rolled-back blob FAILS CLOSED
+  (`session_rollback_detected`). An advertisement never shares a pack with a reseed (the control
+  envelope consumes a chain slot only a normal message's OOO skip or a DH epoch reset can absorb;
+  the frozen reseed receiver is strict-in-order), so a due advertisement defers to the next send.
+  Enabling fix: the transport deliver path now persists the qsp_pack trigger (the NA-0622
+  cleared-flag/fallback counters previously never landed there, so every post-receive send
+  ratcheted and a non-boundary reseed send could never fire). Proven end-to-end over a REAL A/B
+  handshake: `scka_e2e_advertise_reseed_roundtrip_over_real_handshake` (advertise -> reseed
+  mid-conversation in both directions -> both decrypt, with a DH boundary riding the PQ-advanced
+  root); `scka_e2e_pq_pcs_healing_survives_dh_ratchet_over_real_handshake` (THE HEADLINE — a
+  pre-reseed snapshot holding every CLASSICAL secret, including the DH private key, cannot decrypt
+  the post-reseed-post-DH message; only the ML-KEM shared secret encapsulated to the peer's key is
+  missing); `scka_e2e_rolled_back_session_blob_fails_closed` (G2), plus fail-closed
+  codec/rollback/eviction unit tests. Flagged deviations deferred to the spec-alignment successor
+  candidate (with the §8.5.1 NHK item): ADV tracking is UNAUTHENTICATED (the frozen receiver has
+  no ADV path — length+monotonicity only; a relay-level injector can plant an advertisement;
+  bounded: the reseed still mixes into RK, so classical security is unaffected and the PQ layer
+  degrades at worst to "no reseed", plus a tracking-DoS via a max adv_id); a lost ADV/reseed
+  envelope degrades to the classical status quo until rotation. The PQ-ADV/PQ-CTXT wire
+  observables are recorded in DOC-G5-004 §3.1 (Operator Decision 4); cover traffic stays deferred
+  to ENG-0022. See the NA-0624 evidence doc. last-updated 2026-07-08
 - Design (NA-0619): `docs/design/DOC-G5-008_Suite2_Send_Side_Ratchet_Liveness_Feasibility_and_Design_v0.1.0_DRAFT.md`
   establishes feasibility (receiver machinery + `qsp::dh_ratchet_send` reference + complete
   DOC-CAN-003 §8.5 spec) and a staged plan: Stage 1 classical DH ratchet on the real send path
@@ -575,6 +618,74 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   metadata pass; premature to bolt onto the ratchet lane.
 - Recommended directive shape: G5 design lane (DOC-G5-004/DOC-G5-005 family) + a scoped
   qsc/refimpl source lane; sequence after ENG-0012 Stage 2. Deferred (consciously), tracked here.
+
+### ENG-0023 — Spec-alignment: PQ-CTXT boundary header under HK (not §8.5.1 NHK) + no authenticated ADV receive path
+- Severity: P2 (spec deviation + an unauthenticated control-plane input; bounded, no classical
+  confidentiality/integrity impact) — filed 2026-07-08 from the NA-0623 deviation note (D-1241,
+  Operator Decision 5 at D561) and the NA-0624 flagged deviation (D-1243)
+- Problem: two header-authentication gaps live in the same frozen-receiver work area. (1) The
+  frozen PQ-CTXT boundary receiver (`recv_boundary_in_order`) opens the boundary header under the
+  ordinary `HK_r`, not the §8.5.1 `NHK` anti-spoof rule; the Stage-2a sender mirrors `HK_s` so the
+  round-trip holds, but the deviation is normative. (2) The frozen receiver has no ADV receive
+  path at all (`recv_wire` rejects `FLAG_PQ_ADV`), so the NA-0624 qsc wiring can validate an
+  incoming advertisement only by length + monotonicity (`track_peer_adv`) — ADV TRACKING IS
+  UNAUTHENTICATED. A relay-inbox injector can plant an advertisement: a reseed to a planted key
+  still mixes into `RK` via `KDF_RK_PQ` (classical security unaffected; the PQ layer degrades at
+  worst to "no reseed"), and a max-`adv_id` injection is a tracking DoS for future advertisements.
+- Recommended change: reconcile the PQ-CTXT boundary header to `NHK` AND add an authenticated ADV
+  receive path (open the ADV header under the receive header key with the `pq_bind` AD before
+  tracking) in one lane — both need the same receiver-semantics change + conformance-vector
+  regeneration, and the qsc intercept then upgrades to authenticated tracking.
+- Recommended directive shape: a delicate refimpl+qsc source lane (frozen-receiver semantics
+  change; regenerate byte-pinned vectors; runtime-equivalence must still pass); the leading
+  successor candidate at the NA-0624 closeout triage. Tees up the independent DH+PQ composition
+  analysis the standing claim boundary requires. last-updated 2026-07-08
+
+### ENG-0024 — Root-key duality: `RK` stored redundantly in `recv.rk` and `dh.rk` with caller-owned coherence
+- Severity: P2 (architecture debt with a demonstrated desync failure class; currently mitigated
+  caller-side) — filed 2026-07-08 from the NA-0624 findings (D-1243)
+- Problem: DOC-CAN-003 §8.1 defines ONE session root, but `Suite2SessionState` stores it twice
+  (`recv.rk`, read by the PQ path; `dh.rk`, read/advanced by the DH ratchet) and keeping them
+  coherent is a CALLER obligation nothing type-enforces. This duality caused the D560 amendment
+  (a DH reply wiped the PQ hardening) and the NA-0624 dh.rk-sync desync (a DH boundary advances
+  only `dh.rk`, so a following reseed derived `KDF_RK_PQ` from different roots on the two
+  parties); qsc now compensates with an inject-before/adopt-after dance at the CTXT receive,
+  regression-pinned by the scka_e2e vectors.
+- Recommended change: unify to one canonical `RK` slot in the session state (the sub-states read
+  it; no redundant copies), retiring the inject/adopt obligations. Requires a QS2S snapshot
+  format migration — sequence opportunistically with the NEXT lane that already needs a snapshot
+  bump (pre-1.0: eliminate, do not carry, per the PROJECT_CHARTER design tenet).
+- Recommended directive shape: refimpl state-model lane with a snapshot migration + full vector
+  regeneration; pairs naturally with ENG-0023 (same frozen-surface unfreeze). last-updated 2026-07-08
+
+### ENG-0025 — qsc session façade: seam obligations are scattered across the message path
+- Severity: P3 (maintainability/assurance debt; all current obligations are regression-pinned)
+  — filed 2026-07-08 from the NA-0624 findings (D-1243)
+- Problem: the qsc↔refimpl seam carries an informal contract list enforced only by convention and
+  tests: inject the canonical root before a CTXT receive and adopt it after (ENG-0024), never pair
+  an ADV with a reseed in one pack (the control chain-slot / strict-in-order reseed interaction),
+  persist the trigger on EVERY send path (the NA-0622 gap sat dormant on main because one of five
+  store call-sites used the trigger-preserving variant), and preserve the SCKA section on every
+  store. The persistence choreography also performs several AEAD decrypt passes per message
+  (session + trigger + SCKA loads, plus read-modify-write stores).
+- Recommended change: a single qsc session façade owning load→mutate→store for (snapshot, trigger,
+  SCKA, monotonic record) with one decrypt/encrypt cycle and the coherence rules in one place;
+  `qsp_pack`/`qsp_unpack` become pure policy over it. Also a natural home for extracting the
+  protocol path out of the 3k-line `main.rs`.
+- Recommended directive shape: a qsc-only refactor lane (no wire/crypto change; the full suite +
+  runtime-equivalence are the safety net). last-updated 2026-07-08
+
+### ENG-0026 — Combined DH+PQ boundary (single-message hybrid ratchet) in the refimpl receiver
+- Severity: P3 (optimization/spec-recommended shape; the PQ-only reseed composition is proven)
+  — filed 2026-07-08 from Operator Decision 1 at D561 (D-1243)
+- Problem: DOC-G5-008 §4 recommends PQ reseeds RIDE ON DH boundaries (one combined boundary
+  applying `KDF_RK_DH` + `KDF_RK_PQ`), but the frozen receiver has no combined path, so NA-0624
+  ships PQ-only reseeds co-scheduled AFTER DH boundaries (two wire messages where one could do,
+  with the ADV/reseed pack-exclusion rule as a consequence of the split).
+- Recommended change: a combined DH+PQ boundary receive path (and sender mirror) in refimpl,
+  collapsing the reseed into the boundary message and simplifying the qsc cadence policy.
+- Recommended directive shape: refimpl lane with new conformance vectors; sequence after (or
+  with) ENG-0023/ENG-0024 since it touches the same receiver surface. last-updated 2026-07-08
 
 ---
 

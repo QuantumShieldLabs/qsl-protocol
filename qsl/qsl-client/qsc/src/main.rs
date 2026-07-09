@@ -19,10 +19,12 @@ use quantumshield_refimpl::crypto::traits::{
 use quantumshield_refimpl::qse::{Envelope, EnvelopeProfile};
 use quantumshield_refimpl::suite2::establish::init_from_base_handshake;
 use quantumshield_refimpl::suite2::ratchet::Suite2RecvWireState;
-use quantumshield_refimpl::suite2::ratchet::{recv_dh_boundary, send_boundary};
+use quantumshield_refimpl::suite2::ratchet::{
+    recv_dh_boundary, send_boundary, send_pq_advertise, send_pq_reseed, track_peer_adv,
+};
 use quantumshield_refimpl::suite2::state::Suite2SessionState;
 use quantumshield_refimpl::suite2::types::{
-    FLAG_BOUNDARY, FLAG_PQ_CTXT, SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID,
+    FLAG_BOUNDARY, FLAG_PQ_ADV, FLAG_PQ_CTXT, SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID,
 };
 use quantumshield_refimpl::suite2::{decode_suite2_wire_canon, recv_wire_canon, send_wire_canon};
 use quantumshield_refimpl::RefimplError;
@@ -149,11 +151,12 @@ use output::{
 };
 use protocol_state::{
     allow_unsafe_seed_fallback_for_tests, emit_protocol_inactive, kmac_out,
-    protocol_active_or_reason_for_peer, protocol_inactive_exit, qsp_send_ready_tuple,
-    qsp_session_for_channel, qsp_session_load, qsp_session_store, qsp_session_store_with_trigger,
-    qsp_status_parts, qsp_status_string, qsp_status_tuple, qsp_status_user_note, qsp_trigger_load,
-    record_qsp_status, zero32, QspTriggerState, QSP_DH_FALLBACK_N, QSP_DH_FALLBACK_T_SECS,
-    QSP_STATUS_FILE_NAME,
+    protocol_active_or_reason_for_peer, protocol_inactive_exit, qsp_scka_load, qsp_scka_store,
+    qsp_send_ready_tuple, qsp_session_for_channel, qsp_session_load, qsp_session_store,
+    qsp_session_store_with_trigger, qsp_status_parts, qsp_status_string, qsp_status_tuple,
+    qsp_status_user_note, qsp_trigger_load, record_qsp_status, zero32, QspTriggerState,
+    SckaLocalState, SckaPeerAdv, QSP_DH_FALLBACK_N, QSP_DH_FALLBACK_T_SECS, QSP_PQ_RESEED_N,
+    QSP_PQ_RESEED_T_SECS, QSP_STATUS_FILE_NAME,
 };
 use relay::*;
 use store::*;
@@ -1408,6 +1411,8 @@ fn protocol_active_or_reason_for_send_peer(peer: &str) -> Result<(), String> {
 
 struct QspPackOutcome {
     envelope: Vec<u8>,
+    /// NA-0624: SCKA control envelopes (advertisements) to push BEFORE `envelope`, in order.
+    pre_envelopes: Vec<Vec<u8>>,
     next_state: Suite2SessionState,
     trigger: QspTriggerState,
     msg_idx: u32,
@@ -1429,6 +1434,9 @@ struct QspUnpackOutcome {
     msg_idx: u32,
     skip_delta: usize,
     evicted: usize,
+    /// NA-0624: an SCKA control message (peer advertisement) — commit state, but there is no
+    /// application payload (the frozen receiver has no ADV body decrypt path).
+    is_control: bool,
 }
 
 const MKSKIPPED_CAP_DEFAULT: usize = 32;
@@ -2021,6 +2029,9 @@ fn send_delivered_receipt_ack(relay: &str, to: &str, msg_id: &str) -> Result<(),
     });
     let pack = qsp_pack(to, &payload, pad_cfg, None).map_err(|e| e.code)?;
     let route_token = relay_peer_route_token(to)?;
+    for pre in pack.pre_envelopes.iter() {
+        transport::relay_inbox_push(relay, route_token.as_str(), pre)?;
+    }
     transport::relay_inbox_push(relay, route_token.as_str(), &pack.envelope)?;
     qsp_session_store_with_trigger(to, &pack.next_state, &pack.trigger)
         .map_err(|_| "qsp_session_store_failed")?;
@@ -2041,6 +2052,9 @@ fn send_file_completion_ack(
     });
     let pack = qsp_pack(to, &payload, pad_cfg, None).map_err(|e| e.code)?;
     let route_token = relay_peer_route_token(to)?;
+    for pre in pack.pre_envelopes.iter() {
+        transport::relay_inbox_push(relay, route_token.as_str(), pre)?;
+    }
     transport::relay_inbox_push(relay, route_token.as_str(), &pack.envelope)?;
     qsp_session_store_with_trigger(to, &pack.next_state, &pack.trigger)
         .map_err(|_| "qsp_session_store_failed")?;
@@ -2156,6 +2170,75 @@ fn qsp_should_ratchet(st: &Suite2SessionState, trig: &QspTriggerState, now: u64)
             && now.saturating_sub(trig.last_ratchet_unix_secs) >= QSP_DH_FALLBACK_T_SECS)
 }
 
+// NA-0624 (ENG-0012 Stage 2b): SCKA cadence policy (Operator Decision 3). The SCKA path is
+// gated OFF for the degenerate self-DH seed session (`dhr == dhs`, the UNSAFE seed-fallback
+// test model), exactly like the DH ratchet — real handshake sessions have dhr != dhs. With no
+// advertisements the SCKA path is inert and the persisted SCKA section stays empty, keeping the
+// seed-model runtime-equivalence byte-for-byte.
+fn qsp_scka_enabled(st: &Suite2SessionState) -> bool {
+    st.dh.dhr != st.dh.dhs_pub
+}
+
+/// Advertise on establishment (no live advertised key yet — also re-arms after the peer consumes
+/// our key) and on rotation (a live key advertised more than the rotation period ago is refreshed
+/// so a lost advertisement or lost reseed self-heals).
+fn qsp_scka_advertise_due(scka: &SckaLocalState, now: u64) -> bool {
+    match scka.live_advkey() {
+        None => true,
+        Some(_) => {
+            scka.last_adv_unix_secs != 0
+                && now.saturating_sub(scka.last_adv_unix_secs) >= QSP_PQ_RESEED_T_SECS
+        }
+    }
+}
+
+/// Reseed when a fresh (unconsumed) peer advertisement is available AND sparsely: immediately
+/// for the first reseed, then every `QSP_PQ_RESEED_N` sent DH boundaries or
+/// `QSP_PQ_RESEED_T_SECS` seconds. Evaluated only on a non-DH-boundary send, so a reseed is
+/// co-scheduled after DH boundaries rather than replacing one.
+fn qsp_scka_reseed_due(scka: &SckaLocalState, now: u64) -> bool {
+    if scka.peer_adv.is_none() {
+        return false;
+    }
+    scka.last_reseed_unix_secs == 0
+        || scka.boundaries_since_reseed >= QSP_PQ_RESEED_N
+        || now.saturating_sub(scka.last_reseed_unix_secs) >= QSP_PQ_RESEED_T_SECS
+}
+
+/// Wrap a Suite-2 wire message in a standard-profile QSE envelope (the SCKA control-envelope
+/// path; mirrors the main-message envelope padding in `qsp_pack`).
+fn qsp_wrap_standard_envelope(
+    c: &StdCrypto,
+    wire: Vec<u8>,
+    meta_seed: Option<u64>,
+) -> Result<Vec<u8>, QspPackError> {
+    let mut env = Envelope {
+        env_version: QSE_ENV_VERSION_V1,
+        flags: 0,
+        route_token: Vec::new(),
+        timestamp_bucket: 0,
+        payload: wire,
+        padding: Vec::new(),
+    };
+    let encoded_len = env.encode().len();
+    let min_len = EnvelopeProfile::Standard.min_size_bytes();
+    if encoded_len < min_len {
+        let need = min_len - encoded_len;
+        let mut seed_bytes = Vec::new();
+        if let Some(seed) = meta_seed {
+            seed_bytes.extend_from_slice(&seed.to_le_bytes());
+        }
+        let pad = c.kmac256(&env.payload, "QSC.QSP.PAD", &seed_bytes, need);
+        env = env
+            .pad_to_profile(EnvelopeProfile::Standard, &pad)
+            .map_err(|_| QspPackError {
+                code: "qsp_pack_failed",
+                reason: Some("QSP_PACK_INTERNAL"),
+            })?;
+    }
+    Ok(env.encode())
+}
+
 fn qsp_pack(
     channel: &str,
     plaintext: &[u8],
@@ -2170,15 +2253,76 @@ fn qsp_pack(
     // (ratchet-on-reply + N=4/T=15min fallback + the responder's first send), else a normal
     // message on the current sending chain. The DH ratchet reuses the refimpl `send_boundary`.
     let now = qsp_now_unix_secs();
-    let (wire, next_state, msg_n) = if qsp_should_ratchet(&st, &trig, now) {
+    // NA-0624 (ENG-0012 Stage 2b): SCKA advertisement — a CONTROL message pushed BEFORE the main
+    // message. It rides the current send chain (one chain step; the peer's OOO machinery skips
+    // it), so it needs live send chain keys; the advertised ML-KEM secret key is persisted
+    // fail-closed BEFORE the advertisement envelope can exist.
+    let scka_on = qsp_scka_enabled(&st);
+    let mut scka = if scka_on {
+        qsp_scka_load(channel)
+    } else {
+        SckaLocalState::default()
+    };
+    let mut pre_envelopes: Vec<Vec<u8>> = Vec::new();
+    let mut scka_dirty = false;
+    let mut st_cur = st.clone();
+    // An advertisement consumes a send-chain slot the receiver skips as a control message; a
+    // NORMAL main message immediately heals the receiver's n-gap via the OOO machinery and a DH
+    // boundary abandons the old epoch, but a RESEED boundary requires strict in-order receipt
+    // (n == nr) in the frozen receiver — so an ADV must never share a pack with a reseed. When
+    // this send will reseed, the advertisement defers to the next send.
+    let will_reseed =
+        scka_on && !qsp_should_ratchet(&st_cur, &trig, now) && qsp_scka_reseed_due(&scka, now);
+    if scka_on
+        && !will_reseed
+        && !zero32(&st_cur.send.ck_ec)
+        && !zero32(&st_cur.send.ck_pq)
+        && qsp_scka_advertise_due(&scka, now)
+    {
+        let max_known = st_cur
+            .recv
+            .known_targets
+            .iter()
+            .next_back()
+            .copied()
+            .unwrap_or(0);
+        let adv_id = scka
+            .local_next_adv_id
+            .max(max_known.saturating_add(1))
+            .max(1);
+        let (pk, sk) = runtime_pq_kem_keypair();
+        match send_pq_advertise(&c, &c, &c, st_cur.clone(), adv_id, &pk, &[]) {
+            Ok(out) => {
+                scka.insert_advkey(adv_id, sk);
+                scka.local_next_adv_id = adv_id.saturating_add(1);
+                scka.last_adv_unix_secs = now;
+                scka_dirty = true;
+                pre_envelopes.push(qsp_wrap_standard_envelope(&c, out.wire, meta_seed)?);
+                st_cur = out.state;
+                trig.msgs_since_ratchet = trig.msgs_since_ratchet.saturating_add(1);
+                let id_s = adv_id.to_string();
+                emit_marker(
+                    "qsp_scka_adv",
+                    None,
+                    &[("dir", "send"), ("adv_id", id_s.as_str())],
+                );
+            }
+            Err(e) => {
+                // Fail-safe skip: no advertisement means no reseed (the classical status quo);
+                // the user message itself is unaffected.
+                emit_marker("qsp_scka_adv", Some(e), &[("dir", "send"), ("ok", "false")]);
+            }
+        }
+    }
+    let (wire, next_state, msg_n) = if qsp_should_ratchet(&st_cur, &trig, now) {
         let out =
-            send_boundary(&c, &c, &c, &c, st.clone(), plaintext).map_err(|e| QspPackError {
+            send_boundary(&c, &c, &c, &c, st_cur.clone(), plaintext).map_err(|e| QspPackError {
                 code: "qsp_pack_failed",
                 reason: Some(e),
             })?;
         let reason = if trig.pending_send_ratchet {
             "reply"
-        } else if zero32(&st.send.ck_ec) || zero32(&st.send.ck_pq) {
+        } else if zero32(&st_cur.send.ck_ec) || zero32(&st_cur.send.ck_pq) {
             "first_send"
         } else {
             "fallback"
@@ -2193,15 +2337,79 @@ fn qsp_pack(
             msgs_since_ratchet: 0,
             last_ratchet_unix_secs: now,
         };
+        if scka_on && !scka.is_default() {
+            scka.boundaries_since_reseed = scka.boundaries_since_reseed.saturating_add(1);
+            scka_dirty = true;
+        }
         (out.wire, out.state, 0u32)
+    } else if scka_on && qsp_scka_reseed_due(&scka, now) {
+        // NA-0624: PQ reseed (DOC-CAN-003 §8.5.3) — encapsulate to the peer's advertised key and
+        // originate the FLAG_PQ_CTXT boundary via the FROZEN Stage-2a sender. The consumed peer
+        // advertisement is persisted fail-closed BEFORE the reseed wire exists (re-targeting a
+        // consumed advertisement after a crash would desynchronise the root).
+        let peer_adv = scka.peer_adv.clone().expect("reseed_due implies peer_adv");
+        match c.encap(&peer_adv.pubkey) {
+            Ok((ct, ss)) => {
+                let target_s = peer_adv.adv_id.to_string();
+                let out = send_pq_reseed(
+                    &c,
+                    &c,
+                    &c,
+                    st_cur.clone(),
+                    peer_adv.adv_id,
+                    &ct,
+                    &ss,
+                    plaintext,
+                )
+                .map_err(|e| QspPackError {
+                    code: "qsp_pack_failed",
+                    reason: Some(e),
+                })?;
+                scka.peer_adv = None;
+                scka.peer_adv_consumed_max = scka.peer_adv_consumed_max.max(peer_adv.adv_id);
+                scka.boundaries_since_reseed = 0;
+                scka.last_reseed_unix_secs = now;
+                scka_dirty = true;
+                emit_marker(
+                    "qsp_pq_reseed",
+                    None,
+                    &[("dir", "send"), ("target_id", target_s.as_str())],
+                );
+                let n = st_cur.send.ns;
+                trig.msgs_since_ratchet = trig.msgs_since_ratchet.saturating_add(1);
+                (out.wire, out.state, n)
+            }
+            Err(_) => {
+                // Fail-safe skip: an un-encapsulatable advertisement is dropped (never
+                // re-targeted) and the message goes out on the current chain.
+                scka.peer_adv = None;
+                scka.peer_adv_consumed_max = scka.peer_adv_consumed_max.max(peer_adv.adv_id);
+                scka_dirty = true;
+                emit_marker(
+                    "qsp_pq_reseed",
+                    Some("scka_encap_failed"),
+                    &[("dir", "send"), ("ok", "false")],
+                );
+                let out = send_wire_canon(&c, &c, &c, st_cur.send.clone(), 0, plaintext).map_err(
+                    |e| QspPackError {
+                        code: "qsp_pack_failed",
+                        reason: Some(map_qsp_pack_reason(&e)),
+                    },
+                )?;
+                let mut ns = st_cur.clone();
+                ns.send = out.state;
+                trig.msgs_since_ratchet = trig.msgs_since_ratchet.saturating_add(1);
+                (out.wire, ns, out.n)
+            }
+        }
     } else {
-        let out = send_wire_canon(&c, &c, &c, st.send.clone(), 0, plaintext).map_err(|e| {
+        let out = send_wire_canon(&c, &c, &c, st_cur.send.clone(), 0, plaintext).map_err(|e| {
             QspPackError {
                 code: "qsp_pack_failed",
                 reason: Some(map_qsp_pack_reason(&e)),
             }
         })?;
-        let mut ns = st.clone();
+        let mut ns = st_cur.clone();
         ns.send = out.state;
         trig.msgs_since_ratchet = trig.msgs_since_ratchet.saturating_add(1);
         (out.wire, ns, out.n)
@@ -2271,8 +2479,19 @@ fn qsp_pack(
             pad_label = cfg.label;
         }
     }
+    // NA-0624: persist the SCKA store exactly once, at the success boundary — an advertised
+    // ML-KEM secret key and a consumed peer advertisement MUST be durable before any wire that
+    // depends on them leaves this function, and nothing may persist if the pack fails (no
+    // orphaned live advertised key can suppress future advertisements).
+    if scka_dirty {
+        qsp_scka_store(channel, &scka).map_err(|_| QspPackError {
+            code: "qsp_pack_failed",
+            reason: Some("scka_store_failed"),
+        })?;
+    }
     Ok(QspPackOutcome {
         envelope: env.encode(),
+        pre_envelopes,
         next_state,
         trigger: trig,
         msg_idx: msg_n,
@@ -2325,15 +2544,126 @@ fn qsp_unpack(channel: &str, envelope_bytes: &[u8]) -> Result<QspUnpackOutcome, 
     let st = qsp_session_for_channel(channel)?;
     let mut trig = qsp_trigger_load(channel);
     let c = StdCrypto;
-    // NA-0622 (ENG-0012 Stage 1b-ii): route an incoming classical DH boundary (FLAG_BOUNDARY
-    // without FLAG_PQ_CTXT) to the refimpl `recv_dh_boundary`; otherwise a normal message.
-    let is_dh_boundary = match decode_suite2_wire_canon(&env.payload) {
-        Ok((_, _, _, parsed)) => {
-            (parsed.flags & FLAG_BOUNDARY) != 0 && (parsed.flags & FLAG_PQ_CTXT) == 0
-        }
-        Err(_) => false,
+    // NA-0622 (ENG-0012 Stage 1b-ii) + NA-0624 (Stage 2b) routing: an SCKA advertisement
+    // (FLAG_PQ_ADV) is intercepted BEFORE recv_wire (the frozen receiver rejects PQ_ADV and has
+    // no ADV body decrypt path — it is a control message); a PQ-reseed boundary (FLAG_PQ_CTXT)
+    // decapsulates against the local advertised key and drives the frozen `apply_pq_reseed` via
+    // `recv_wire`; a classical DH boundary goes to `recv_dh_boundary`; else a normal message.
+    let flags = match decode_suite2_wire_canon(&env.payload) {
+        Ok((_, _, _, parsed)) => parsed.flags,
+        Err(_) => 0,
     };
-    let (plaintext, next_state, msg_n, skip_delta, evicted) = if is_dh_boundary {
+    let is_pq_adv = (flags & FLAG_PQ_ADV) != 0;
+    let is_pq_ctxt = !is_pq_adv && (flags & FLAG_BOUNDARY) != 0 && (flags & FLAG_PQ_CTXT) != 0;
+    let is_dh_boundary = !is_pq_adv && (flags & FLAG_BOUNDARY) != 0 && (flags & FLAG_PQ_CTXT) == 0;
+    if is_pq_adv {
+        // SCKA TRACK (DOC-CAN-004 §3.2): validate + persist the peer's advertised public key.
+        // The SCKA path is gated exactly like the send side (never on a seed-model session).
+        if !qsp_scka_enabled(&st) {
+            return Err("qsp_recv_failed");
+        }
+        let parsed = match decode_suite2_wire_canon(&env.payload) {
+            Ok((_, _, _, p)) => p,
+            Err(_) => return Err("qsp_recv_failed"),
+        };
+        let adv_id = parsed.pq_adv_id.ok_or("qsp_recv_failed")?;
+        let adv_pub = parsed.pq_adv_pub.ok_or("qsp_recv_failed")?;
+        let mut scka = qsp_scka_load(channel);
+        let new_max = track_peer_adv(scka.peer_adv_max_seen, adv_id, &adv_pub)
+            .map_err(|_| "qsp_scka_adv_reject")?;
+        scka.peer_adv = Some(SckaPeerAdv {
+            adv_id,
+            pubkey: adv_pub,
+        });
+        scka.peer_adv_max_seen = new_max;
+        qsp_scka_store(channel, &scka).map_err(|_| "qsp_session_store_failed")?;
+        let id_s = adv_id.to_string();
+        emit_marker(
+            "qsp_scka_adv",
+            None,
+            &[("dir", "recv"), ("adv_id", id_s.as_str())],
+        );
+        // Any received message arms the reply-driven trigger.
+        trig.pending_send_ratchet = true;
+        return Ok(QspUnpackOutcome {
+            plaintext: Vec::new(),
+            next_state: st,
+            trigger: trig,
+            msg_idx: 0,
+            skip_delta: 0,
+            evicted: 0,
+            is_control: true,
+        });
+    }
+    let (plaintext, next_state, msg_n, skip_delta, evicted) = if is_pq_ctxt {
+        // SCKA RESEED RECEIVE (DOC-CAN-003 §8.5.3 receiver side): look up the targeted local
+        // advertised key, decapsulate, and let the FROZEN receiver (`apply_pq_reseed` via
+        // recv_wire) enforce monotonicity/one-time/tombstone rules and advance the root; then
+        // ADOPT the advanced root into the DH-ratchet slot so a later classical DH ratchet
+        // carries the PQ hardening forward (the caller-side composition Stage 2a deferred to
+        // qsc). The consumed local key is erased fail-closed before the plaintext is released.
+        if !qsp_scka_enabled(&st) {
+            return Err("qsp_recv_failed");
+        }
+        let parsed = match decode_suite2_wire_canon(&env.payload) {
+            Ok((_, _, _, p)) => p,
+            Err(_) => return Err("qsp_recv_failed"),
+        };
+        let target_id = parsed.pq_target_id.ok_or("qsp_recv_failed")?;
+        let ct = parsed.pq_ct.ok_or("qsp_recv_failed")?;
+        let mut scka = qsp_scka_load(channel);
+        let secret = match scka
+            .advkeys
+            .iter()
+            .find(|k| k.adv_id == target_id && !k.consumed && !k.secret.is_empty())
+        {
+            Some(k) => k.secret.clone(),
+            None => return Err("qsp_scka_target_unknown"),
+        };
+        let ss = c.decap(&secret, &ct).map_err(|_| "qsp_scka_decap_failed")?;
+        // Inject the CANONICAL session root before the frozen receiver runs: a DH boundary
+        // advances only `dh.rk` (recv.rk goes stale), and the frozen reseed SENDER derives from
+        // `session_root` (dh.rk when live) — the receiver must mirror it or the two parties
+        // derive KDF_RK_PQ from different roots and desynchronise (the NA-0623 dh.rk-sync
+        // carry-over; caller-side composition, no refimpl change).
+        let mut recv_in = st.recv.clone();
+        if !zero32(&st.dh.rk) {
+            recv_in.rk = st.dh.rk;
+        }
+        let outcome = recv_wire_canon(
+            &c,
+            &c,
+            &c,
+            recv_in,
+            &env.payload,
+            Some(&ss),
+            Some(target_id),
+        )
+        .map_err(|e| map_qsp_recv_err(&e))?;
+        let mut next_state = st.clone();
+        let prev_len = next_state.recv.mkskipped.len();
+        next_state.recv = outcome.state;
+        let skip_delta = next_state.recv.mkskipped.len().saturating_sub(prev_len);
+        let evicted = bound_mkskipped(&mut next_state.recv);
+        // THE COMPOSITION: adopt the PQ-advanced root into the DH-ratchet slot. Without this a
+        // later DH ratchet reads the stale root and wipes the PQ hardening (NA-0623 finding).
+        next_state.dh.rk = next_state.recv.rk;
+        scka.consume_advkey(target_id);
+        qsp_scka_store(channel, &scka).map_err(|_| "qsp_session_store_failed")?;
+        let target_s = target_id.to_string();
+        emit_marker(
+            "qsp_pq_reseed",
+            None,
+            &[("dir", "recv"), ("target_id", target_s.as_str())],
+        );
+        (
+            outcome.plaintext,
+            next_state,
+            outcome.n,
+            skip_delta,
+            evicted,
+        )
+    } else if is_dh_boundary {
         let out = recv_dh_boundary(&c, &c, &c, &c, st.clone(), &env.payload);
         if !out.ok {
             return Err(out.reason.unwrap_or("qsp_recv_failed"));
@@ -2365,6 +2695,7 @@ fn qsp_unpack(channel: &str, envelope_bytes: &[u8]) -> Result<QspUnpackOutcome, 
         msg_idx: msg_n,
         skip_delta,
         evicted,
+        is_control: false,
     })
 }
 

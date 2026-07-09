@@ -42394,3 +42394,82 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
 - LIVE QUEUE header updated to READY=NA-0624 / HIGHEST_NA=0624 / HIGHEST_D=1242; the stale READY-prose pointer (which still named NA-0621) corrected to NA-0624. The refimpl-vs-spec NHK deviation (the PQ-CTXT boundary header uses HK, not the §8.5.1 NHK) is carried forward for Stage 2b / a spec-alignment lane.
 - Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0623_closeout_testplan.md`. No NA-0624 implementation; no source/test/Cargo/spec/workflow/`.claude`/hook change; no operator-startup-command execution; no workflow dispatch/rerun; no runtime/LAN action.
 - No endpoint, private port, hostname, topology, token, capability, key, seed, plaintext, ciphertext body, or raw private material is published. No public-readiness, production-readiness, security-completion, crypto-complete, post-compromise, post-quantum, or Triple-Ratchet claim is introduced.
+
+## 2026-07-08 -- NA-0624 (ENG-0012 Stage 2b) qsc SCKA wiring — the P1 CLOSES
+
+- Directive QSL-DIR-2026-07-08-561 (D561), implementation phase (D-1243). Lane workspace
+  `/srv/qbuild/work/NA-0624/qsl-protocol`, branch `na-0624-qsc-scka-wiring`, base main `0a21f0ea`.
+- Startup/state verified live (read-only; no operator startup commands run): HEAD == main ==
+  origin/main == `0a21f0ea`; sole READY NA-0624; highest decision D-1242; D-1243 absent at start;
+  disk 50%; /backup/qsl mounted. Phase-2 design-lock was already recorded in the D561 archive
+  (session-handoff convention); resumed at Phase 3 without re-deriving it.
+- Implemented (qsc only; refimpl FROZEN — `tools/refimpl/**` untouched): the Stage-2a SCKA sender
+  wired into the real send/receive path. SEND (`qsp_pack`): advertisements via the frozen
+  `send_pq_advertise` as separate CONTROL envelopes pushed before the main message (on
+  establishment / consumption / rotation; the frozen receiver has no ADV body decrypt path);
+  reseeds via the frozen `send_pq_reseed` on the approved cadence (first reseed when a fresh
+  unconsumed peer advertisement is available, then N_pq=8 sent DH boundaries or T_pq=3600 s,
+  evaluated on non-boundary sends). An ADV never shares a pack with a reseed (the control chain
+  slot is only healed by a normal message's OOO skip or a DH epoch reset; the frozen reseed
+  receiver is strict-in-order) — a due advertisement defers to the next send. RECEIVE
+  (`qsp_unpack`): `FLAG_PQ_ADV` intercepted BEFORE `recv_wire` (frozen `track_peer_adv`
+  validation; control outcome, no app payload; bounded control re-pull keeps `receive --max N`
+  yielding N app messages); `FLAG_PQ_CTXT` -> local advkey lookup -> `PqKem768::decap` -> INJECT
+  the canonical root (`recv.rk := dh.rk` when live) -> frozen `apply_pq_reseed` via `recv_wire`
+  -> ADOPT `dh.rk := recv.rk` -> consume + erase the one-time local key. PERSIST: SCKA state in
+  the AEAD session blob as the length-delimited v3 plaintext section (QS2S FROZEN; v2/v1
+  migrate; empty for a non-advertising session) + the G2 monotonic side-record
+  (`peer_max_adv_id_seen` / `local_next_adv_id` / `peer_adv_max_seen` / `peer_adv_consumed_max`
+  / tombstones) — a rolled-back blob fails closed (`session_rollback_detected`).
+- Composition findings resolved caller-side (the NA-0623 carry-overs, no refimpl change): (1) the
+  dh.rk-sync — a DH boundary advances only `dh.rk` while the frozen reseed SENDER derives from
+  `session_root`; without the receive-side root INJECTION the parties derive KDF_RK_PQ from
+  different roots and desynchronise (surfaced by the e2e vectors; fixed + proven). (2) The ADV
+  control-slot/in-order-reseed exclusion (above). (3) An NA-0622 trigger-persistence gap: the
+  transport deliver path never persisted the qsp_pack trigger, so every post-receive send
+  ratcheted (the D-1239 N=4/T=15min fallback was dormant) and a non-boundary reseed send could
+  never fire — the deliver path now persists `pack.trigger` (outbox replay still preserves);
+  `dh_ratchet_e2e_*` assertions unchanged and green.
+- Proof: end-to-end over a REAL A/B handshake (`tests/handshake_mvp.rs`, 16/16 green incl. the new bounded-fallback regression vector):
+  `scka_e2e_advertise_reseed_roundtrip_over_real_handshake` (advertise -> track -> reseed in BOTH
+  directions -> both decrypt; a DH boundary rides the PQ-advanced root between them);
+  `scka_e2e_pq_pcs_healing_survives_dh_ratchet_over_real_handshake` (THE HEADLINE — the pre-reseed
+  snapshot holds EVERY classical secret incl. the DH private key, the boundary DH public is on the
+  wire, and only the ML-KEM shared secret encapsulated to the PEER's key is missing: the snapshot
+  cannot decrypt the post-reseed-post-DH message); `scka_e2e_rolled_back_session_blob_fails_closed`
+  (G2). Co-located `scka_tests` (codec round-trip; fail-closed decode at every truncation;
+  v3/v2/v1 split; rollback matrix incl. peer_adv_consumed_max; deterministic CAP eviction).
+  Runtime-equivalence (`suite2_runtime_equivalence_na0198`) byte-for-byte (seed-model sessions
+  SCKA-gated OFF via dhr==dhs; scka_len==0); na_0302/0304/0313 helpers updated to skip the v3
+  section; the FS test updated for the [adv, message] envelope pair. Full qsc suite green
+  (146 test targets, 584 tests, 0 failed); full refimpl suite green (101 tests, 0 failed).
+  WF-0013 `cargo build --workspace --all-targets` clean; fmt --check / clippy -D warnings on
+  qsc (after fixing two pre-existing main lints, in-scope) / metadata --locked / audit (1159
+  advisories, 375 dependencies, no findings) clean. Scope guard: 11 changed paths, all within the D561 allowlist.
+- Flagged deviations (deferred with rationale — carried to the spec-alignment successor candidate
+  with the §8.5.1 NHK item): ADV tracking is UNAUTHENTICATED (length + monotonicity only; the
+  frozen receiver has no ADV path — a relay-inbox injector can plant an advertisement; bounded:
+  the reseed still mixes into RK via KDF_RK_PQ so classical security is unaffected and the PQ
+  layer degrades at worst to "no reseed"; a max-adv_id injection is a tracking DoS); the outbox
+  replays only the main message (a dropped ADV heals at rotation); extra per-send blob decrypt
+  passes (NA-0622 precedent; consolidation candidate).
+- Metadata: the FLAG_PQ_ADV (~1184 B) / FLAG_PQ_CTXT (~1088 B) observables recorded in DOC-G5-004
+  §3.1 (Operator Decision 4); cover traffic stays deferred to ENG-0022.
+- Boundary/claim: mutates only `qsl/qsl-client/qsc/src/**` + `qsl/qsl-client/qsc/tests/**` +
+  `docs/design/DOC-G5-008_*` + `docs/design/DOC-G5-004_*` + governance. No refimpl semantic
+  change; no KDF/AEAD/KEM primitive change; no normative DOC-CAN change; no
+  qsl-attachments/qsl-server change; no Cargo/`.github`/`.claude`/hook change; no
+  operator-startup-command execution; no runtime/LAN action. Research/demo only. ENG-0012 (the
+  P1) CLOSES: post-quantum forward secrecy runs on live qsc traffic and is e2e-proven — but NO
+  post-quantum / Triple-Ratchet / post-compromise security CLAIM is made until the DH+PQ
+  composition is independently analyzed (the standing claim boundary). No endpoint, private
+  port, hostname, topology, token, capability, key, seed, plaintext, ciphertext body, or raw
+  private material is published.
+- Ledger filings (operator-directed, 2026-07-08, recorded at D-1243): the architecture-debt items
+  surfaced by this lane are FILED for the Phase-7 successor triage — ENG-0023 (spec-alignment:
+  §8.5.1 NHK reconciliation + an authenticated ADV receive path; bundles Operator Decision 5 with
+  this lane's unauthenticated-ADV deviation; leading candidate), ENG-0024 (root-key duality:
+  unify `recv.rk`/`dh.rk` at the next snapshot migration — the debt behind the D560 amendment and
+  this lane's dh.rk-sync finding), ENG-0025 (qsc session façade consolidating the seam
+  obligations + store choreography), ENG-0026 (combined DH+PQ boundary refimpl receiver,
+  Operator Decision 1).

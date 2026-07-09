@@ -61,6 +61,29 @@ Authoritative sources for meaning:
 - NA-0307 qsc handshake suite-id compatibility/transcript design evidence
 - NA-0308 qsc handshake suite-id formal/vector design evidence
 
+The fourth model (NA-0625 / ENG-0023, Operator Decision 4) checks the **Suite-2 root-composition
+slice** — the layer beneath the SCKA logic model, where the classical DH ratchet, the PQ reseed,
+and the SCKA advertisement compose over the shared root and the directional chains:
+- root convergence: after any delivered in-order schedule both parties hold the same root, and
+  per party the PQ-path root and the DH-ratchet root agree (`recv.rk == dh.rk`);
+- PQ healing survives a subsequent DH boundary (every absorbed epoch secret stays in the root
+  lineage) — the D560 amendment property, at epoch granularity;
+- chain continuity under the authenticated ADV's chain-consume: `nr` advances exactly once per
+  delivered frame including an advertisement, so an in-order schedule opens no receive-chain gap;
+- send/receive schedule coherence after a reseed RECEIVE (header keys and PQ chains, both
+  directions); and
+- reject implies no state mutation, including the §8.5.1 HK-downgrade boundary frame, a spoofed
+  ADV header, and an ADVAUTH MAC computed under a foreign root.
+
+Crypto is abstracted to injective tuple hashes (a key *is* its derivation history), so the model
+reasons about agreement and coherence, not computational secrecy. The ProVerif composition model
+remains ENG-0028's own lane.
+
+Authoritative sources for meaning:
+- DOC-CAN-003 §8.5 (boundaries; §8.5.1 NHK, §8.5.3 reseed, §8.5.4 advertisement)
+- DOC-CAN-004 §3 (SCKA control plane)
+- NA-0625 design-lock evidence (ENG-0023)
+
 ## 3. Roles and channels (model)
 
 Roles:

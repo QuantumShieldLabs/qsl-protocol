@@ -628,9 +628,27 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   qsc/refimpl source lane; sequence after ENG-0012 Stage 2. Deferred (consciously), tracked here.
 
 ### ENG-0023 — Spec-alignment: PQ-CTXT boundary header under HK (not §8.5.1 NHK) + no authenticated ADV receive path
+- **STATUS: DONE (NA-0625, D-1245).** Both gaps closed. (1) The PQ-CTXT boundary header now seals
+  and opens under the §8.5.1 `NHK`, derived on the fly from the pre-reseed root (receiver
+  `recv_boundary_in_order` + sender mirror `send_pq_reseed`); NHK-only open, so a pre-NHK
+  (HK-sealed) frame fails generically with `REJECT_S2_HDR_AUTH_FAIL`. The design-lock settled the
+  crux from DOC-CAN-003 exact text (§8.5 defines a boundary as any `FLAG_BOUNDARY=1` message;
+  §8.5.3 step 1 verbatim: "Require `hdr_source == CURRENT_NHK`") — the NA-0623 deviation was real.
+  (2) An authenticated ADV receive path (`recv_pq_adv`, routed from `recv_wire`) binds a tracked
+  advertisement to the session BEFORE it is persisted: header AEAD under the session receive
+  header key, then an SPQR-style control-plane MAC
+  `adv_mac = KMAC32(RK, "QSP5.0/ADVAUTH", u32be(pq_adv_id) || pq_adv_pub || [0x01])` carried as
+  the first 32 bytes of the sealed body (DOC-CAN-004 §1.1/§1.3 fixes the prefix normatively, so
+  the MAC cannot ride there; parse.rs took no hook). qsc's intercept fails closed: an
+  unauthenticated advertisement is REJECTED, never tracked. The ADV receive consumes its chain
+  slot in-order (Operator Decision 2), retiring BOTH NA-0624 workarounds — the ADV/reseed
+  pack-exclusion rule and the mkskipped control-slot growth. No new primitive, no new reason code,
+  no QS2S snapshot bump (NHK is derived, never stored). Two follow-ups filed below (ENG-0030,
+  ENG-0031). See DOC-G5-008 (ENG-0023 note) and DOC-G5-004 §3.1 (+32B ADV observable).
 - Severity: P2 (spec deviation + an unauthenticated control-plane input; bounded, no classical
   confidentiality/integrity impact) — filed 2026-07-08 from the NA-0623 deviation note (D-1241,
-  Operator Decision 5 at D561) and the NA-0624 flagged deviation (D-1243)
+  Operator Decision 5 at D561) and the NA-0624 flagged deviation (D-1243); RESOLVED 2026-07-09
+  (NA-0625, D-1245)
 - Problem: two header-authentication gaps live in the same frozen-receiver work area. (1) The
   frozen PQ-CTXT boundary receiver (`recv_boundary_in_order`) opens the boundary header under the
   ordinary `HK_r`, not the §8.5.1 `NHK` anti-spoof rule; the Stage-2a sender mirrors `HK_s` so the
@@ -753,6 +771,54 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   the standing rules).
 - Recommended directive shape: a bounded dependency-evaluation lane (read/evaluate + report,
   then a migration lane on operator approval). last-updated 2026-07-09
+
+### ENG-0030 — Reseed RECEIVE leaves the receiver's SEND key schedule stale (caller-owned coherence)
+- Severity: P2 (a demonstrated desync class, currently mitigated caller-side in qsc) — filed
+  2026-07-09 from an NA-0625 implementation finding (D-1245)
+- Problem: `send_pq_reseed` writes BOTH directional header keys and the new send PQ chain into the
+  SENDER's session state (§8.5.3 steps 6+7). The receive path (`recv_wire` -> `recv_boundary_in_order`)
+  operates on `Suite2RecvWireState` and can only return recv-side state, so after a party RECEIVES
+  a reseed its `send.hk_s` and `send.ck_pq` are still on the PRE-reseed schedule while the peer's
+  receive schedule has moved. (The receiver's correct post-reseed send PQ chain is the one
+  `apply_pq_reseed` derived into `recv.ck_pq_send`.) This was LATENT before NA-0625 — the
+  reply-driven trigger makes any send after a receive a DH boundary, which reinitialises both —
+  but an SCKA advertisement rides the CURRENT send chain as a control pre-envelope, and NA-0625's
+  authenticated ADV receiver actually opens that header and body: the peer rejected the
+  advertisement with `REJECT_S2_HDR_AUTH_FAIL`. Same class as the NA-0624 dh.rk-sync bug, and the
+  same root cause as ENG-0024 (caller-owned coherence nothing type-enforces).
+- Mitigation in place (NA-0625): qsc's CTXT intercept arm now mirrors the send half beside the
+  dh.rk ADOPT (`send.hk_s := HK(new_rk, send_dir)`, `send.ck_pq := recv.ck_pq_send`). Pinned by
+  `reseed_receiver_send_schedule_must_be_refreshed_from_advanced_root` (refimpl), by the
+  `scka_e2e_*` proofs, and at model level by invariant 4 of
+  `formal/model_suite2_root_composition_bounded.py`.
+- Recommended change: make the coherence structural rather than caller-owned — a session-level
+  reseed RECEIVE entry point in the refimpl (mirroring `send_pq_reseed`) that returns a fully
+  updated `Suite2SessionState`, so no caller can hold half a schedule. Natural co-scope for
+  ENG-0024 (RK unification) and ENG-0025 (qsc session façade); until then the qsc mitigation is
+  load-bearing and must not be dropped.
+- Recommended directive shape: fold into the ENG-0024 + ENG-0026 same-surface lane (the snapshot
+  migration amortizes it), or ENG-0025. last-updated 2026-07-09
+
+### ENG-0031 — DOC-CAN-003 §8.5.1 vs §8.5.4: is an ADV boundary header NHK or HK?
+- Severity: P3 (spec text ambiguity; no implementation defect, no security delta) — filed
+  2026-07-09 from the NA-0625 design-lock residual (D-1245)
+- Problem: §8.5.1's SENDER sentence is unconditional over `FLAG_BOUNDARY = 1` messages ("A boundary
+  message header MUST be encrypted under the sender's `NHK_s` derived from the pre-boundary `RK`"),
+  which literally also covers `FLAG_PQ_ADV` boundaries. But §8.5.4 (advertisement) conspicuously
+  omits the "Require `hdr_source == CURRENT_NHK`" step that §8.5.2 and §8.5.3 both state, and
+  §8.5.1's RECEIVER sentence scopes itself to "a boundary **epoch transition**" — which an ADV is
+  not (it advances no root). Both readings are defensible.
+- Decision taken at the NA-0625 design-lock (bounded, deliberate): the ADV header stays under
+  `HK`. An ADV advances no root, so HK-vs-NHK confers zero attacker advantage — both prove
+  possession of a key derived from the same `RK` — and flipping `send_pq_advertise`'s header key
+  was outside the lane's two named gaps. The ADV is separately authenticated by the ADVAUTH MAC
+  under the root (ENG-0023).
+- Recommended change: a one-line normative clarification in DOC-CAN-003 (scope §8.5.1's sender
+  sentence to epoch-creating boundaries, matching §8.5.4's silence and §8.5.1's own receiver
+  sentence), OR a bounded NHK flip for the ADV header riding ENG-0026. Pick one; do not leave the
+  tension unrecorded in the spec.
+- Recommended directive shape: a docs/canonical LITE lane (clarification), or a rider on ENG-0026.
+  last-updated 2026-07-09
 
 ---
 
@@ -923,3 +989,35 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   Add this to the executor's Phase-5 build-gate checklist in `docs/ops/DIRECTOR_OPERATIONS.md`.
 - Recommended directive shape: docs/process (a LITE note in DOC-OPS-006), or fold into the next
   source lane's checklist.
+
+### WF-0014 — A vector-freeze scope claim MUST be verified against the vector BYTES, not a prose note
+- Status: filed 2026-07-09 from the NA-0625 STOP (D-1245 / D562 Operator Decision 5)
+- Problem: the NA-0625 forward study asserted "e2e_recv/interop/crash_restart embed NO reseed
+  frames", and the NA-0625 design-lock §5 promoted that to "verified against live files" without
+  ever decoding the pinned bytes. It was wrong: `qshield_suite2_e2e_recv_vectors_v1.json` ->
+  `S2-E2E-ACCEPT-BOUNDARY-0001` pins a `flags = 0x0006 (PQ_CTXT|BOUNDARY)` frame whose header was
+  sealed under `HK`. The §8.5.1 NHK change therefore invalidated a frozen vector set OUTSIDE the two
+  files the directive named, which surfaced only at the Phase-4/5 merge boundary — as a STOP, after
+  the whole implementation and gate stack had run — instead of at the Phase-2 design-lock, where the
+  operator could have scoped the lane correctly from the start.
+- Recommended change: whenever a lane's design-lock claims a set of conformance-vector files is
+  unaffected, it MUST prove it by decoding every pinned byte string in `inputs/**/vectors/*.json`
+  that parses as a wire envelope and reporting the frames whose flags/shape intersect the semantics
+  being changed. The scan is ~30 lines of Python and runs in well under a minute; the NA-0625
+  version is archived at `docs/governance/evidence/NA-0625_suite2_spec_alignment_harness.md` §8 and
+  can be lifted verbatim. Add the obligation to the design-lock checklist in
+  `docs/ops/DIRECTOR_OPERATIONS.md` (and to DOC-OPS-006's design-lock section): "a vector-freeze
+  claim is a BYTE claim; cite the scan, not a forward-study note."
+- Cheaper generalization worth considering: a `scripts/ci/scan_pinned_wire_frames.py` that any lane
+  can run, and which CI could optionally assert against a checked-in inventory so that a frame's
+  appearance in a new vector file is itself reviewable.
+- Companion gap, same lane, same root cause (assumption instead of the real artifact/tooling): the
+  executor ran all 15 suite2 vector RUNNERS locally but not `scripts/ci/validate_suite2_vectors.py`,
+  so a JSON-schema violation in the 5 appended ADV-receive vectors (`input.role.data` must be an
+  object, not the bare string `"A"`) reached CI instead of being caught locally. The executor's
+  Phase-5 gate checklist should be derived MECHANICALLY from the workflows a change touches — i.e.
+  run every `scripts/ci/*.py` invoked by the affected `.github/workflows/*.yml`, not a remembered
+  subset. (`goal-lint` additionally requires a `Goals: G1, ...` line in the PR body; it cannot run
+  locally, so it belongs on a PR-creation checklist.)
+- Recommended directive shape: docs/process LITE lane, or fold into the next source lane's
+  design-lock checklist (it costs one command). last-updated 2026-07-09

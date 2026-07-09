@@ -3,12 +3,14 @@ use chacha20poly1305::aead::Aead;
 use chacha20poly1305::KeyInit;
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use quantumshield_refimpl::crypto::stdcrypto::{
-    runtime_pq_kem_ciphertext_bytes, runtime_pq_kem_public_key_bytes,
+    runtime_pq_kem_ciphertext_bytes, runtime_pq_kem_keypair, runtime_pq_kem_public_key_bytes,
     runtime_pq_kem_secret_key_bytes, runtime_pq_sig_public_key_bytes,
     runtime_pq_sig_signature_bytes, StdCrypto,
 };
 use quantumshield_refimpl::crypto::traits::{Kmac, PqKem768};
+use quantumshield_refimpl::qse::Envelope;
 use quantumshield_refimpl::suite2::establish::init_from_base_handshake;
+use quantumshield_refimpl::suite2::ratchet::send_pq_advertise;
 use quantumshield_refimpl::suite2::types::{SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID};
 use std::env;
 use std::fs;
@@ -1656,24 +1658,34 @@ fn scka_e2e_advertise_reseed_roundtrip_over_real_handshake() {
     assert_eq!(fs::read(a_out.join("recv_1.bin")).unwrap(), b"m2-from-bob");
 
     // m3 Bob->Alice (second consecutive send, no DH trigger): Bob RESEEDS to Alice's
-    // advertisement (FLAG_PQ_CTXT boundary carrying the payload). His own advertisement is
-    // DEFERRED — an ADV consumes a chain slot the strict-in-order reseed receiver cannot skip,
-    // so an ADV never shares a pack with a reseed.
+    // advertisement (FLAG_PQ_CTXT boundary carrying the payload) AND his own advertisement
+    // rides the SAME pack as a control pre-envelope — NA-0625 (Operator Decision 2) retired
+    // the NA-0624 ADV/reseed pack exclusion: the authenticated ADV receiver consumes its
+    // chain slot in-order, so nr passes through the control slot before the reseed's strict
+    // n == nr check. THE ONE-PACK [ADV, reseed] ROUND-TRIP PROOF.
     let s3 = send_msg(&bob_cfg, &relay, "alice", &mk("m3", b"m3-reseed-payload"));
     assert!(
         s3.contains("event=qsp_pq_reseed dir=send"),
         "bob's non-boundary send must originate the PQ reseed: {s3}"
     );
     assert!(
-        !s3.contains("event=qsp_scka_adv dir=send"),
-        "an advertisement must never share a pack with a reseed: {s3}"
+        s3.contains("event=qsp_scka_adv dir=send"),
+        "bob's advertisement must share the pack with the reseed (exclusion retired): {s3}"
     );
     let r3 = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
     let r3_text = output_text(&r3);
     assert!(r3.status.success(), "{r3_text}");
     assert!(
+        r3_text.contains("event=qsp_scka_adv dir=recv") && r3_text.contains("auth=ok"),
+        "alice must AUTHENTICATE and track bob's advertisement from the shared pack: {r3_text}"
+    );
+    assert!(
         r3_text.contains("event=qsp_pq_reseed dir=recv"),
-        "alice must decapsulate and apply the reseed: {r3_text}"
+        "alice must decapsulate and apply the reseed delivered after the in-pack ADV: {r3_text}"
+    );
+    assert!(
+        !r3_text.contains("event=ratchet_skip_store"),
+        "the chain-consumed ADV must leave no receive-chain gap (mkskipped stays empty): {r3_text}"
     );
     assert_eq!(
         fs::read(a_out.join("recv_1.bin")).unwrap(),
@@ -1681,24 +1693,20 @@ fn scka_e2e_advertise_reseed_roundtrip_over_real_handshake() {
         "the reseed boundary carries a decryptable payload"
     );
 
-    // m4 Bob->Alice: the deferred advertisement rides Bob's next send (a normal message that
-    // immediately heals the receiver's control-slot gap via the OOO machinery).
-    let s4 = send_msg(&bob_cfg, &relay, "alice", &mk("m4", b"m4-with-bob-adv"));
+    // m4 Bob->Alice: a plain send — his advertisement already went with m3 (no deferral left).
+    let s4 = send_msg(&bob_cfg, &relay, "alice", &mk("m4", b"m4-plain"));
     assert!(
-        s4.contains("event=qsp_scka_adv dir=send"),
-        "bob's deferred advertisement must ride his next send: {s4}"
+        !s4.contains("event=qsp_scka_adv dir=send"),
+        "no deferred advertisement remains after the shared pack: {s4}"
     );
     let r4 = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
     let r4_text = output_text(&r4);
     assert!(r4.status.success(), "{r4_text}");
     assert!(
-        r4_text.contains("event=qsp_scka_adv dir=recv"),
-        "alice must track bob's advertisement: {r4_text}"
+        !r4_text.contains("event=ratchet_skip_store"),
+        "in-order delivery across the ADV keeps mkskipped empty: {r4_text}"
     );
-    assert_eq!(
-        fs::read(a_out.join("recv_1.bin")).unwrap(),
-        b"m4-with-bob-adv"
-    );
+    assert_eq!(fs::read(a_out.join("recv_1.bin")).unwrap(), b"m4-plain");
 
     // m5 Alice->Bob: a DH boundary ON TOP of the PQ-advanced root proves the dh.rk adoption on
     // BOTH sides (a stale root on either side would fail the NHK header authentication).
@@ -1716,7 +1724,7 @@ fn scka_e2e_advertise_reseed_roundtrip_over_real_handshake() {
         b"m5-post-reseed"
     );
 
-    // m6 Alice->Bob: Alice reseeds back to Bob's advertisement (tracked at m4).
+    // m6 Alice->Bob: Alice reseeds back to Bob's advertisement (tracked from the m3 pack).
     let s6 = send_msg(&alice_cfg, &relay, "bob", &mk("m6", b"m6-alice-reseed"));
     assert!(
         s6.contains("event=qsp_pq_reseed dir=send"),
@@ -1767,9 +1775,9 @@ fn scka_e2e_pq_pcs_healing_survives_dh_ratchet_over_real_handshake() {
     };
 
     // Warm-up: m1 A->B (advertise + normal); m2 B->A (boundary); m3 B->A (Bob reseeds to
-    // Alice's key; his own advertisement defers); m4 B->A (Bob's deferred advertisement —
-    // Alice now holds Bob's UNCONSUMED advertisement); m5 A->B (Alice's DH boundary, fresh
-    // keypair, plus her rotated advertisement).
+    // Alice's key AND his own advertisement shares the pack — NA-0625 retired the exclusion;
+    // Alice now holds Bob's UNCONSUMED advertisement); m4 B->A (plain); m5 A->B (Alice's DH
+    // boundary, fresh keypair, plus her rotated advertisement).
     send_msg(&alice_cfg, &relay, "bob", &mk("m1", b"m1"));
     assert!(recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
         .status
@@ -1783,14 +1791,17 @@ fn scka_e2e_pq_pcs_healing_survives_dh_ratchet_over_real_handshake() {
     let s3 = send_msg(&bob_cfg, &relay, "alice", &mk("m3", b"m3"));
     assert!(s3.contains("event=qsp_pq_reseed dir=send"), "{s3}");
     assert!(
+        s3.contains("event=qsp_scka_adv dir=send"),
+        "bob's advertisement shares the reseed pack (NA-0625): {s3}"
+    );
+    assert!(
         recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
             .status
             .success()
     );
-    // m4 B->A: Bob's DEFERRED advertisement rides his next (normal) send; Alice tracks it and
-    // now holds Bob's UNCONSUMED advertisement.
+    // m4 B->A: a plain send (the advertisement already went with m3).
     let s4 = send_msg(&bob_cfg, &relay, "alice", &mk("m4", b"m4"));
-    assert!(s4.contains("event=qsp_scka_adv dir=send"), "{s4}");
+    assert!(!s4.contains("event=qsp_scka_adv dir=send"), "{s4}");
     assert!(
         recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
             .status
@@ -1925,6 +1936,211 @@ fn scka_e2e_rolled_back_session_blob_fails_closed() {
         s4_text.contains("session_rollback_detected"),
         "the failure must be the G2 rollback guard: {s4_text}"
     );
+}
+
+// ============ NA-0625 (ENG-0023): authenticated-ADV + NHK rejection e2e proofs ============
+
+/// SPOOFED/PLANTED ADV REJECTION (DoD 4): a relay-inbox injector plants a syntactically valid
+/// SCKA advertisement built under FOREIGN session keys. The authenticated receive path REJECTS
+/// it (header AEAD under session keys; ADVAUTH MAC under the canonical root behind it) and
+/// tracks NOTHING — and the real conversation continues unharmed afterwards.
+#[test]
+fn scka_e2e_spoofed_adv_injection_rejected_never_tracked() {
+    let base = safe_test_root().join(format!("na0625_spoofed_adv_{}", std::process::id()));
+    let _ = fs::remove_dir_all(&base);
+    ensure_dir_700(&base);
+    let alice_cfg = base.join("alice");
+    let bob_cfg = base.join("bob");
+    let a_out = base.join("a_out");
+    let b_out = base.join("b_out");
+    for d in [&alice_cfg, &bob_cfg, &a_out, &b_out] {
+        ensure_dir_700(d);
+    }
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+    let server = common::start_inbox_server(1024 * 1024, 32);
+    let relay = server.base_url().to_string();
+    hs_dance(&alice_cfg, &bob_cfg, &relay);
+
+    let mk = |name: &str, body: &[u8]| {
+        let p = base.join(name);
+        fs::write(&p, body).unwrap();
+        p
+    };
+
+    // Warm up one real round trip (Alice's genuine advertisement is tracked by Bob).
+    let s1 = send_msg(&alice_cfg, &relay, "bob", &mk("m1", b"m1"));
+    assert!(s1.contains("event=qsp_scka_adv dir=send"), "{s1}");
+    let r1 = recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out);
+    assert!(r1.status.success(), "{}", output_text(&r1));
+    assert!(output_text(&r1).contains("auth=ok"), "{}", output_text(&r1));
+
+    // The INJECTOR: fabricate a foreign Suite-2 session (attacker-chosen keys, correct wire
+    // format) and frame a valid-looking advertisement with a high id, wrapped in a standard
+    // QSE envelope, planted straight into BOB's relay inbox.
+    let c = StdCrypto;
+    let atk = init_from_base_handshake(
+        &c,
+        true,
+        SUITE2_PROTOCOL_VERSION,
+        SUITE2_SUITE_ID,
+        &[0x5Au8; 16],
+        &[0x11u8; 32],
+        &[0x22u8; 32],
+        &[0x33u8; 32],
+        &[0x44u8; 32],
+        true,
+    )
+    .expect("attacker session");
+    let (atk_pk, _atk_sk) = runtime_pq_kem_keypair();
+    let spoofed = send_pq_advertise(&c, &c, &c, atk, 99, &atk_pk, b"").expect("attacker adv");
+    let planted = Envelope {
+        env_version: 0x0100, // QSE v1
+        flags: 0,
+        route_token: Vec::new(),
+        timestamp_bucket: 0,
+        payload: spoofed.wire,
+        padding: Vec::new(),
+    }
+    .encode();
+    let mut items = server.drain_channel(ROUTE_TOKEN_BOB);
+    assert!(items.is_empty(), "inbox should be drained after r1");
+    items.push(planted);
+    server.replace_channel(ROUTE_TOKEN_BOB, items);
+
+    // Bob pulls the planted advertisement: REJECTED, fail-closed, NOTHING tracked.
+    let r_spoof = recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out);
+    let spoof_text = output_text(&r_spoof);
+    assert!(
+        !r_spoof.status.success(),
+        "a planted ADV must fail the receive closed: {spoof_text}"
+    );
+    assert!(
+        spoof_text.contains("event=qsp_scka_adv") && spoof_text.contains("ok=false"),
+        "the ADV reject marker must fire: {spoof_text}"
+    );
+    assert!(
+        !spoof_text.contains("auth=ok"),
+        "a spoofed advertisement must NEVER authenticate: {spoof_text}"
+    );
+
+    // The real conversation is unharmed: Bob replies (DH boundary) and Alice reads it; then a
+    // genuine reseed still targets Alice's REAL advertisement — id 99 was never tracked (a
+    // tracked id-99 would make Bob's reseed encapsulate to the attacker key and monotonicity
+    // would block Alice's genuine follow-up advertisements).
+    let s2 = send_msg(&bob_cfg, &relay, "alice", &mk("m2", b"m2"));
+    assert!(s2.contains("event=qsp_dh_ratchet dir=send"), "{s2}");
+    let r2 = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
+    assert!(r2.status.success(), "{}", output_text(&r2));
+    assert_eq!(fs::read(a_out.join("recv_1.bin")).unwrap(), b"m2");
+    let s3 = send_msg(&bob_cfg, &relay, "alice", &mk("m3", b"m3"));
+    assert!(
+        s3.contains("event=qsp_pq_reseed dir=send") && s3.contains("target_id=1"),
+        "bob's reseed must target alice's REAL advertisement (id 1), not the planted one: {s3}"
+    );
+    let r3 = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
+    let r3_text = output_text(&r3);
+    assert!(r3.status.success(), "{r3_text}");
+    assert!(
+        r3_text.contains("event=qsp_pq_reseed dir=recv"),
+        "{r3_text}"
+    );
+    assert_eq!(fs::read(a_out.join("recv_1.bin")).unwrap(), b"m3");
+}
+
+/// BOUNDARY-HEADER AUTHENTICATION REJECTION (DoD 4, the client-level arm): a reseed boundary
+/// frame whose header does not authenticate under the receiver's CURRENT NHK is rejected
+/// fail-closed with NO state mutation — re-delivering the intact frame then succeeds and the
+/// post-reseed conversation continues. (The true HK-DOWNGRADE frame — same generic rejection,
+/// constructed with the session's real keys — is byte-pinned at the conformance level in
+/// S2-RECV-PQRESEED-REJECT-HK-DOWNGRADE-0001; a client-level test has no access to session
+/// header keys by design.)
+#[test]
+fn scka_e2e_unauthentic_reseed_header_rejected_no_mutation_then_recovers() {
+    let base = safe_test_root().join(format!("na0625_hdr_reject_{}", std::process::id()));
+    let _ = fs::remove_dir_all(&base);
+    ensure_dir_700(&base);
+    let alice_cfg = base.join("alice");
+    let bob_cfg = base.join("bob");
+    let a_out = base.join("a_out");
+    let b_out = base.join("b_out");
+    for d in [&alice_cfg, &bob_cfg, &a_out, &b_out] {
+        ensure_dir_700(d);
+    }
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+    let server = common::start_inbox_server(1024 * 1024, 32);
+    let relay = server.base_url().to_string();
+    hs_dance(&alice_cfg, &bob_cfg, &relay);
+
+    let mk = |name: &str, body: &[u8]| {
+        let p = base.join(name);
+        fs::write(&p, body).unwrap();
+        p
+    };
+
+    // Warm-up to Bob's [ADV, reseed] pack: m1 A->B (advertise), m2 B->A (boundary),
+    // m3 B->A ([ADV, reseed] — captured, not yet delivered).
+    send_msg(&alice_cfg, &relay, "bob", &mk("m1", b"m1"));
+    assert!(recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
+        .status
+        .success());
+    send_msg(&bob_cfg, &relay, "alice", &mk("m2", b"m2"));
+    assert!(
+        recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
+            .status
+            .success()
+    );
+    let s3 = send_msg(&bob_cfg, &relay, "alice", &mk("m3", b"m3-reseed"));
+    assert!(s3.contains("event=qsp_pq_reseed dir=send"), "{s3}");
+    assert!(s3.contains("event=qsp_scka_adv dir=send"), "{s3}");
+
+    // Capture the pack; corrupt ONE byte of the reseed frame's header ciphertext (offset:
+    // 10B suite2 envelope + 32B dh_pub + 2B flags + 4B target id + 1088B ML-KEM ct => hdr_ct).
+    let mut items = server.drain_channel(ROUTE_TOKEN_ALICE);
+    assert_eq!(items.len(), 2, "expected [ADV, reseed] in one pack");
+    let intact_reseed = items[1].clone();
+    let mut env = Envelope::decode(&items[1]).expect("decode reseed envelope");
+    let hdr_ct_off = 10 + 32 + 2 + 4 + 1088;
+    env.payload[hdr_ct_off] ^= 0x01;
+    items[1] = env.encode();
+    server.replace_channel(ROUTE_TOKEN_ALICE, items);
+
+    // Alice: the in-pack ADV authenticates; the unauthentic boundary header is REJECTED
+    // fail-closed (generic header-auth failure — exactly how a pre-NHK downgrade frame dies).
+    let r_bad = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
+    let bad_text = output_text(&r_bad);
+    assert!(
+        !r_bad.status.success(),
+        "the unauthentic boundary header must fail the receive closed: {bad_text}"
+    );
+    assert!(
+        bad_text.contains("event=qsp_scka_adv dir=recv") && bad_text.contains("auth=ok"),
+        "the authentic in-pack ADV must still be tracked: {bad_text}"
+    );
+    assert!(
+        !bad_text.contains("event=qsp_pq_reseed dir=recv"),
+        "the corrupted reseed must NOT apply: {bad_text}"
+    );
+
+    // NO MUTATION on the reject: re-deliver the INTACT reseed frame — it must now be accepted
+    // (a receiver that had mutated chain/root/consumed state on the reject could not).
+    server.replace_channel(ROUTE_TOKEN_ALICE, vec![intact_reseed]);
+    let r_good = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
+    let good_text = output_text(&r_good);
+    assert!(r_good.status.success(), "{good_text}");
+    assert!(
+        good_text.contains("event=qsp_pq_reseed dir=recv"),
+        "the intact reseed must apply after the rejected attempt: {good_text}"
+    );
+    assert_eq!(fs::read(a_out.join("recv_1.bin")).unwrap(), b"m3-reseed");
+
+    // The post-reseed schedule works in both directions.
+    let s4 = send_msg(&alice_cfg, &relay, "bob", &mk("m4", b"m4-post"));
+    assert!(s4.contains("event=qsp_dh_ratchet dir=send"), "{s4}");
+    let r4 = recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out);
+    assert!(r4.status.success(), "{}", output_text(&r4));
+    assert_eq!(fs::read(b_out.join("recv_1.bin")).unwrap(), b"m4-post");
 }
 
 // NA-0624 regression for the NA-0622 trigger-persistence enabling fix: the transport deliver

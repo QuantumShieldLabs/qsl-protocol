@@ -75,7 +75,9 @@ fn kdf_rk_dh(
 }
 
 /// §3.4/§8.1 directional header keys from RK. `next` selects HK (false) vs NHK (true).
-fn header_key(
+/// NA-0625 (ENG-0023): `pub` so the conformance harness (refimpl actor) can construct
+/// NHK-sealed boundary frames exactly as the senders do; pure derivation, no state.
+pub fn header_key(
     kmac: &dyn Kmac,
     rk: &[u8; 32],
     a_to_b: bool,
@@ -88,6 +90,39 @@ fn header_key(
         (true, false) => "QSP5.0/NHK/B->A",
     };
     kmac32(kmac, rk, label, &[0x01])
+}
+
+/// NA-0625 (ENG-0023, Operator Decision 1): SPQR-style SCKA control-plane authenticator —
+/// `adv_mac = KMAC32(RK, "QSP5.0/ADVAUTH", u32be(pq_adv_id) || pq_adv_pub || [0x01])`, carried
+/// as the FIRST 32 BYTES of the sealed ADV body plaintext (`body_pt = adv_mac || app_payload`).
+/// The pq_prefix layout is normatively fixed by DOC-CAN-004 §1.1/§1.3 and cannot carry it. `RK`
+/// is the canonical session root at send time; the receiver verifies under its canonical root,
+/// so the MAC inherits exactly the header-key synchronization envelope. KMAC only; no new
+/// primitive; no new reason code (a mismatch reuses `REJECT_S2_BODY_AUTH_FAIL`).
+const ADV_MAC_LEN: usize = 32;
+fn adv_auth_mac(
+    kmac: &dyn Kmac,
+    rk: &[u8; 32],
+    pq_adv_id: u32,
+    pq_adv_pub: &[u8],
+) -> Result<[u8; 32], CryptoError> {
+    let mut data = Vec::with_capacity(4 + pq_adv_pub.len() + 1);
+    data.extend_from_slice(&pq_adv_id.to_be_bytes());
+    data.extend_from_slice(pq_adv_pub);
+    data.push(0x01);
+    kmac32(kmac, rk, "QSP5.0/ADVAUTH", &data)
+}
+
+/// Constant-time 32-byte tag comparison (no early exit on mismatch position).
+fn ct_eq32(a: &[u8; 32], b: &[u8]) -> bool {
+    if b.len() != 32 {
+        return false;
+    }
+    let mut diff = 0u8;
+    for i in 0..32 {
+        diff |= a[i] ^ b[i];
+    }
+    diff == 0
 }
 
 /// §3.3.3 Root update from a PQ shared secret: `RK' = KMAC32(RK, "QSP5.0/RKPQ", pq_ss || [0x01])`.
@@ -685,6 +720,26 @@ pub fn recv_boundary_in_order(
     );
     let ad_body = binding::ad_body(&st.session_id, st.protocol_version, st.suite_id, &pq_bind);
 
+    // NA-0625 (ENG-0023): §8.5.1 + §8.5.3 step 1 — the PQ-CTXT boundary header MUST decrypt
+    // under the receiver's CURRENT `NHK_r`, derived on demand from the PRE-reseed root (the
+    // `recv_dh_boundary` pattern; no stored NHK field). NHK-ONLY open: a pre-NA-0625 (HK-sealed)
+    // boundary frame fails generically with REJECT_S2_HDR_AUTH_FAIL — §8.5.1's "decrypts under
+    // any other candidate key MUST reject" is satisfied by never trying other keys.
+    let a2b_recv = !send_is_a_to_b(st.role_is_a);
+    let nhk_r = match header_key(kmac, &st.rk, a2b_recv, true) {
+        Ok(v) => v,
+        Err(_) => {
+            return BoundaryOutcome {
+                state: st,
+                ok: false,
+                reason: Some("REJECT_S2_LOCAL_UNSUPPORTED"),
+                plaintext: None,
+                pn: None,
+                n: None,
+            };
+        }
+    };
+
     let mut header_pt: Option<[u8; 8]> = None;
     let mut n: u32 = 0;
     let candidates = [st.nr, st.nr.saturating_add(1)];
@@ -692,7 +747,7 @@ pub fn recv_boundary_in_order(
         let nonce_hdr = nonce_hdr(hash, &st.session_id, &st.dh_pub, cand);
         #[cfg(test)]
         S2_HDR_TRY_COUNT_BOUNDARY.with(|c| c.set(c.get().saturating_add(1)));
-        if let Ok(pt) = aead.open(&st.hk_r, &nonce_hdr, &ad_hdr, hdr_ct) {
+        if let Ok(pt) = aead.open(&nhk_r, &nonce_hdr, &ad_hdr, hdr_ct) {
             if pt.len() == 8 {
                 let pn = u32::from_be_bytes([pt[0], pt[1], pt[2], pt[3]]);
                 let n_val = u32::from_be_bytes([pt[4], pt[5], pt[6], pt[7]]);
@@ -837,7 +892,6 @@ pub fn recv_boundary_in_order(
             };
         }
     };
-    let a2b_recv = !send_is_a_to_b(st.role_is_a);
     let new_hk_r = match header_key(kmac, &new_rk, a2b_recv, false) {
         Ok(v) => v,
         Err(_) => {
@@ -1069,7 +1123,40 @@ pub fn recv_wire(
     }
 
     if (flags & types::FLAG_PQ_ADV) != 0 {
-        return Err("REJECT_S2_LOCAL_UNSUPPORTED");
+        // NA-0625 (ENG-0023): authenticated ADV receive (was REJECT_S2_LOCAL_UNSUPPORTED — the
+        // named gap (2)). recv_pq_adv enforces flags == BOUNDARY|PQ_ADV exactly, so a combined
+        // ADV+CTXT frame still rejects as unsupported (ENG-0026 territory). On this path the
+        // `peer_adv_id` parameter carries the caller-owned peer-ADV WATERMARK (qsc: the SCKA
+        // store's `peer_adv_max_seen`; None => 0, a fresh session with no tracked peer ADV).
+        let pq_adv_id = parsed.pq_adv_id.ok_or("REJECT_S2_PQPREFIX_PARSE")?;
+        let pq_adv_pub = parsed
+            .pq_adv_pub
+            .as_deref()
+            .ok_or("REJECT_S2_PQPREFIX_PARSE")?;
+        let out = recv_pq_adv(
+            hash,
+            kmac,
+            aead,
+            st,
+            flags,
+            &parsed.pq_prefix,
+            pq_adv_id,
+            pq_adv_pub,
+            peer_adv_id.unwrap_or(0),
+            &parsed.dh_pub,
+            &parsed.hdr_ct,
+            &parsed.body_ct,
+        );
+        if !out.ok {
+            return Err(out.reason.unwrap_or("REJECT_S2_HDR_AUTH_FAIL"));
+        }
+        return Ok(RecvWireOutcome {
+            state: out.state,
+            plaintext: out.plaintext.unwrap_or_default(),
+            flags,
+            pn: out.pn.unwrap_or(0),
+            n: out.n.unwrap_or(0),
+        });
     }
 
     let pq_epoch_ss = pq_epoch_ss.ok_or("REJECT_S2_LOCAL_UNSUPPORTED")?;
@@ -1429,9 +1516,10 @@ pub fn recv_dh_boundary(
 // key + consumed), `local_next_adv_id`, and the peer's advertised public key (DOC-CAN-004 §2), and
 // performs the ML-KEM KeyGen / Encap / Decap. The public/ciphertext bytes are passed in. The
 // reseed is the exact structural mirror of `recv_boundary_in_order`'s PQ path (which the receiver
-// uses to decrypt), including its header key (`HK`, not `NHK`): the frozen CTXT receiver is the
-// mirror target and reconciling it to the §8.5.1 `NHK` boundary-header rule would change its
-// semantics (out of scope here) — flagged for the Stage-2b/spec-alignment follow-up.
+// uses to decrypt), including its header key: NA-0625 (ENG-0023) aligned BOTH sides to the
+// §8.5.1 `NHK` boundary-header rule (sealed/opened under the NHK derived from the PRE-reseed
+// root), closing the NA-0623 deviation. The ADV header stays `HK` (§8.5.4 states no CURRENT_NHK
+// step and an ADV advances no root; the §8.5.1/§8.5.4 textual tension is recorded in DOC-G5-008).
 
 const PQ_ADV_PUB_LEN: usize = 1184; // ML-KEM-768 public key (DOC-CAN-004 §1.3)
 const MLKEM768_CT_LEN: usize = 1088; // ML-KEM-768 ciphertext (DOC-CAN-004 §1.3)
@@ -1518,6 +1606,12 @@ pub fn send_pq_advertise(
     if is_zero32(&st.send.ck_ec) || is_zero32(&st.send.ck_pq) {
         return Err(REJECT_S2_CHAINKEY_UNSET);
     }
+    // NA-0625 (ENG-0023): the ADVAUTH MAC keys off the canonical session root; a session with no
+    // live root cannot authenticate its control plane (fail-closed, mirrors send_pq_reseed).
+    let rk = session_root(&st);
+    if is_zero32(&rk) {
+        return Err(REJECT_S2_CHAINKEY_UNSET);
+    }
     let ns_next = checked_counter_inc(st.send.ns)?;
     let (ck_ec_p, ck_pq_p, mk) = derive_mk_step(kmac, &st.send.ck_ec, &st.send.ck_pq)
         .map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
@@ -1548,6 +1642,15 @@ pub fn send_pq_advertise(
         v.extend_from_slice(&st.send.ns.to_be_bytes());
         v
     };
+    // NA-0625 (ENG-0023): authenticated ADV — the SPQR-style ADVAUTH MAC rides as the first 32
+    // bytes of the sealed body plaintext (the receiver strips + verifies it before tracking).
+    // The ADV HEADER stays under `HK_s` (§8.5.4 states no CURRENT_NHK step; an ADV advances no
+    // root — the §8.5.1/§8.5.4 textual tension is recorded in DOC-G5-008, ENG-0023 note).
+    let adv_mac = adv_auth_mac(kmac, &rk, pq_adv_id, pq_adv_pub)
+        .map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+    let mut body_pt = Vec::with_capacity(ADV_MAC_LEN + plaintext.len());
+    body_pt.extend_from_slice(&adv_mac);
+    body_pt.extend_from_slice(plaintext);
     let hdr_ct = aead.seal(
         &st.send.hk_s,
         &nonce_hdr(hash, &st.send.session_id, &st.send.dh_pub, st.send.ns),
@@ -1558,7 +1661,7 @@ pub fn send_pq_advertise(
         &mk,
         &nonce_body(hash, &st.send.session_id, &st.send.dh_pub, st.send.ns),
         &ad_body,
-        plaintext,
+        &body_pt,
     );
     if hdr_ct.is_empty() || body_ct.is_empty() {
         return Err("REJECT_S2_LOCAL_AEAD_FAIL");
@@ -1638,6 +1741,13 @@ pub fn send_pq_reseed(
     let hk_r_new =
         header_key(kmac, &new_rk, !a2b_send, false).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
 
+    // NA-0625 (ENG-0023): §8.5.1 — the boundary header is sealed under the sender's CURRENT
+    // `NHK_s`, derived from the PRE-reseed root (the receiver mirrors it from its canonical
+    // root). Derived on demand; no stored NHK field. The post-commit directional header keys
+    // above remain HK-from-new-root (§8.5.3 step 7 unchanged).
+    let nhk_s =
+        header_key(kmac, &rk_old, a2b_send, true).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
+
     // The boundary message is an in-order message under the PRE-reseed key schedule (mirror
     // recv_boundary_in_order, which opens the header under the pre-boundary hk_r at n == nr and
     // derives the body mk from the pre-boundary ck_ec/ck_pq): advance the EC send chain one step;
@@ -1673,7 +1783,7 @@ pub fn send_pq_reseed(
         v
     };
     let hdr_ct = aead.seal(
-        &st.send.hk_s,
+        &nhk_s,
         &nonce_hdr(hash, &st.send.session_id, &st.send.dh_pub, st.send.ns),
         &ad_hdr,
         &hdr_pt,
@@ -1709,6 +1819,180 @@ pub fn send_pq_reseed(
     st.recv.rk = new_rk;
     st.dh.rk = new_rk;
     Ok(SendPqReseedOutcome { state: st, wire })
+}
+
+pub struct RecvPqAdvOutcome {
+    pub state: Suite2RecvWireState,
+    pub ok: bool,
+    pub reason: Option<&'static str>,
+    pub plaintext: Option<Vec<u8>>,
+    pub pn: Option<u32>,
+    pub n: Option<u32>,
+}
+
+/// NA-0625 (ENG-0023): AUTHENTICATED SCKA advertisement RECEIVE (DOC-CAN-004 §3.2 / DOC-CAN-003
+/// §8.5.4) — the receive-side mirror of `send_pq_advertise`. A tracked advertisement is
+/// cryptographically bound to the session BEFORE it can be persisted: the header must open under
+/// the receive header key with the ADV `pq_bind` in the AD, the body must open under the in-order
+/// hybrid message key, and the ADVAUTH MAC (first 32 bytes of the body plaintext) must verify
+/// under the canonical session root. An unauthenticated or failed ADV is REJECTED, never tracked.
+///
+/// IN-ORDER-ONLY control plane (`n == nr`, mirroring the CTXT boundary receiver), and the ADV
+/// CONSUMES its chain slot (Operator Decision 2): BOTH `ck_ec` and `ck_pq_recv` advance one step
+/// (mirroring the sender, which advances both send chains) plus `nr` — so an in-order ADV leaves
+/// no receive-chain gap (no mkskipped growth) and an [ADV, reseed] pack round-trips. Replay of an
+/// old authentic ADV fails the header open (counter/nonce mismatch at candidates [nr, nr+1]) and
+/// would also fail the `track_peer_adv` monotonicity check. Fail-closed: NO state mutation on any
+/// reject.
+///
+/// `peer_adv_watermark` is the CALLER-OWNED peer-advertisement watermark (qsc: the SCKA store's
+/// `peer_adv_max_seen`; both parties allocate adv ids from independent counters). It is
+/// deliberately NOT `st.peer_max_adv_id_seen`: that session field is the FROZEN CTXT receiver's
+/// reseed-target watermark (`apply_pq_reseed` compares the ids of OUR OWN consumed
+/// advertisements against it), and the two id spaces collide — tracking the peer's ADV id 1
+/// there would make the peer's next reseed of our key id 1 reject NONMONOTONIC. The caller
+/// persists the advanced watermark (`pq_adv_id`) alongside the staged peer advertisement.
+#[allow(clippy::too_many_arguments)]
+pub fn recv_pq_adv(
+    hash: &dyn Hash,
+    kmac: &dyn Kmac,
+    aead: &dyn Aead,
+    st: Suite2RecvWireState,
+    flags: u16,
+    pq_prefix: &[u8],
+    pq_adv_id: u32,
+    pq_adv_pub: &[u8],
+    peer_adv_watermark: u32,
+    dh_pub: &[u8; 32],
+    hdr_ct: &[u8],
+    body_ct: &[u8],
+) -> RecvPqAdvOutcome {
+    macro_rules! reject {
+        ($st:expr, $reason:expr, $pn:expr, $n:expr) => {
+            return RecvPqAdvOutcome {
+                state: $st,
+                ok: false,
+                reason: Some($reason),
+                plaintext: None,
+                pn: $pn,
+                n: $n,
+            }
+        };
+    }
+
+    // Flags must be exactly BOUNDARY|PQ_ADV: a combined ADV+CTXT frame stays unsupported
+    // (ENG-0026 territory).
+    if flags != (types::FLAG_BOUNDARY | types::FLAG_PQ_ADV) {
+        reject!(st, "REJECT_S2_LOCAL_UNSUPPORTED", None, None);
+    }
+    if hdr_ct.len() != HDR_CT_LEN {
+        reject!(st, "REJECT_S2_HDR_AUTH_FAIL", None, None);
+    }
+    if body_ct.len() < BODY_CT_MIN {
+        reject!(st, "REJECT_S2_BODY_AUTH_FAIL", None, None);
+    }
+
+    let pq_bind = binding::pq_bind_sha512_32(hash, flags, pq_prefix);
+    let ad_hdr = binding::ad_hdr(
+        &st.session_id,
+        st.protocol_version,
+        st.suite_id,
+        dh_pub,
+        flags,
+        &pq_bind,
+    );
+    let ad_body = binding::ad_body(&st.session_id, st.protocol_version, st.suite_id, &pq_bind);
+
+    // The ADV header opens under the receive header key `HK_r` (§8.5.4 — an ADV advances no
+    // root, so §8.5.1's NHK epoch-transition rule does not bind it; see DOC-G5-008).
+    let mut header_pt: Option<[u8; 8]> = None;
+    let mut n: u32 = 0;
+    let candidates = [st.nr, st.nr.saturating_add(1)];
+    for cand in candidates {
+        let nonce_hdr = nonce_hdr(hash, &st.session_id, dh_pub, cand);
+        #[cfg(test)]
+        S2_HDR_TRY_COUNT_BOUNDARY.with(|c| c.set(c.get().saturating_add(1)));
+        if let Ok(pt) = aead.open(&st.hk_r, &nonce_hdr, &ad_hdr, hdr_ct) {
+            if pt.len() == 8 {
+                let n_val = u32::from_be_bytes([pt[4], pt[5], pt[6], pt[7]]);
+                if n_val == cand {
+                    header_pt = Some([pt[0], pt[1], pt[2], pt[3], pt[4], pt[5], pt[6], pt[7]]);
+                    n = n_val;
+                    break;
+                }
+            }
+        }
+    }
+    let header_pt = match header_pt {
+        Some(v) => v,
+        None => reject!(st, "REJECT_S2_HDR_AUTH_FAIL", None, None),
+    };
+    let header_pn = u32::from_be_bytes([header_pt[0], header_pt[1], header_pt[2], header_pt[3]]);
+    if n != st.nr {
+        reject!(
+            st,
+            "REJECT_S2_BOUNDARY_NOT_IN_ORDER; reason_code=REJECT_S2_BOUNDARY_NOT_IN_ORDER",
+            Some(header_pn),
+            Some(n)
+        );
+    }
+
+    if is_zero32(&st.ck_ec) || is_zero32(&st.ck_pq_recv) {
+        reject!(st, REJECT_S2_CHAINKEY_UNSET, Some(header_pn), Some(n));
+    }
+
+    // Chain-consume in-order (Decision 2): derive the slot's hybrid mk and advance BOTH chains.
+    let (ck_ec_p, ck_pq_p, mk) = match derive_mk_step(kmac, &st.ck_ec, &st.ck_pq_recv) {
+        Ok(v) => v,
+        Err(_) => reject!(st, "REJECT_S2_BODY_AUTH_FAIL", Some(header_pn), Some(n)),
+    };
+
+    let nonce_body = nonce_body(hash, &st.session_id, dh_pub, n);
+    let body_pt = match aead.open(&mk, &nonce_body, &ad_body, body_ct) {
+        Ok(pt) => pt,
+        Err(_) => reject!(st, "REJECT_S2_BODY_AUTH_FAIL", Some(header_pn), Some(n)),
+    };
+
+    // ADVAUTH (Decision 1): body_pt = adv_mac(32) || app_payload. A pre-NA-0625-format body
+    // (shorter than the MAC) and a MAC mismatch both reuse REJECT_S2_BODY_AUTH_FAIL.
+    if body_pt.len() < ADV_MAC_LEN {
+        reject!(st, "REJECT_S2_BODY_AUTH_FAIL", Some(header_pn), Some(n));
+    }
+    let expected_mac = match adv_auth_mac(kmac, &st.rk, pq_adv_id, pq_adv_pub) {
+        Ok(v) => v,
+        Err(_) => reject!(st, "REJECT_S2_LOCAL_UNSUPPORTED", Some(header_pn), Some(n)),
+    };
+    if !ct_eq32(&expected_mac, &body_pt[..ADV_MAC_LEN]) {
+        reject!(st, "REJECT_S2_BODY_AUTH_FAIL", Some(header_pn), Some(n));
+    }
+    let app_payload = body_pt[ADV_MAC_LEN..].to_vec();
+
+    // DOC-CAN-004 §3.2 track rules (length + monotonicity against the caller-owned peer-ADV
+    // watermark), existing reason codes. The advanced watermark is caller-persisted.
+    if let Err(code) = track_peer_adv(peer_adv_watermark, pq_adv_id, pq_adv_pub) {
+        reject!(st, code, Some(header_pn), Some(n));
+    }
+
+    let nr_next = match checked_counter_inc(n) {
+        Ok(v) => v,
+        Err(reason) => reject!(st, reason, Some(header_pn), Some(n)),
+    };
+
+    // Commit atomically: both receive chains step and nr advances. `peer_max_adv_id_seen` is
+    // NOT touched (see the watermark note above — it belongs to the frozen CTXT path).
+    let mut new_state = st.clone();
+    new_state.ck_ec = ck_ec_p;
+    new_state.ck_pq_recv = ck_pq_p;
+    new_state.nr = nr_next;
+
+    RecvPqAdvOutcome {
+        state: new_state,
+        ok: true,
+        reason: None,
+        plaintext: Some(app_payload),
+        pn: Some(header_pn),
+        n: Some(n),
+    }
 }
 
 /// DOC-CAN-004 §3.2: process a peer advertisement (the SCKA track side). Enforces the peer-ADV
@@ -1939,8 +2223,11 @@ mod tests {
             v.extend_from_slice(&st.nr.to_be_bytes());
             v
         };
+        // NA-0625 (ENG-0023): boundary headers seal under the NHK from the pre-reseed root
+        // (§8.5.1), so the ct-len reject (not HDR_AUTH_FAIL) is what this test exercises.
+        let nhk = header_key(&c, &st.rk, !send_is_a_to_b(st.role_is_a), true).expect("nhk");
         let hdr_ct = c.seal(
-            &st.hk_r,
+            &nhk,
             &nonce_hdr(&c, &st.session_id, &st.dh_pub, st.nr),
             &ad_hdr,
             &hdr_pt,
@@ -2142,8 +2429,11 @@ mod tests {
             v.extend_from_slice(&st.nr.to_be_bytes());
             v
         };
+        // NA-0625 (ENG-0023): the boundary header seals under the sender's NHK from the
+        // pre-reseed root (§8.5.1); the receiver derives the same key from its `rk`.
+        let nhk = header_key(&c, &st.rk, !send_is_a_to_b(st.role_is_a), true).expect("nhk");
         let hdr_ct = c.seal(
-            &st.hk_r,
+            &nhk,
             &nonce_hdr(&c, &st.session_id, &st.dh_pub, st.nr),
             &ad_hdr,
             &hdr_pt,
@@ -2621,5 +2911,409 @@ mod tests {
             !heal.ok,
             "pre-ratchet snapshot must NOT decrypt a post-ratchet message (PCS self-healing)"
         );
+    }
+
+    // ============ NA-0625 (ENG-0023): NHK boundary header + authenticated ADV receive ============
+
+    /// A pre-NA-0625-style PQ-CTXT boundary frame (header sealed under HK, not NHK) MUST fail
+    /// generically with REJECT_S2_HDR_AUTH_FAIL and no state mutation (the header-downgrade
+    /// rejection of the DoD).
+    #[test]
+    fn ctxt_boundary_hk_downgrade_rejects_no_mutation() {
+        let c = StdCrypto;
+        let st = boundary_state_with_target(7);
+        let flags = types::FLAG_BOUNDARY | types::FLAG_PQ_CTXT;
+        let pq_ct = vec![0u8; 1088];
+        let pq_prefix = make_pq_prefix(7, &pq_ct);
+        let pq_epoch_ss = [0xCC; 32];
+
+        let (_ck_ec_p, _ck_pq_p, mk) =
+            derive_mk_step(&c, &st.ck_ec, &st.ck_pq_recv).expect("derive_mk_step");
+        let pq_bind = binding::pq_bind_sha512_32(&c, flags, &pq_prefix);
+        let ad_hdr = binding::ad_hdr(
+            &st.session_id,
+            st.protocol_version,
+            st.suite_id,
+            &st.dh_pub,
+            flags,
+            &pq_bind,
+        );
+        let ad_body = binding::ad_body(&st.session_id, st.protocol_version, st.suite_id, &pq_bind);
+        let hdr_pt = {
+            let mut v = Vec::with_capacity(8);
+            v.extend_from_slice(&0u32.to_be_bytes());
+            v.extend_from_slice(&st.nr.to_be_bytes());
+            v
+        };
+        // DOWNGRADE: seal under the ordinary HK_r (the pre-NA-0625 sender behaviour).
+        let hdr_ct = c.seal(
+            &st.hk_r,
+            &nonce_hdr(&c, &st.session_id, &st.dh_pub, st.nr),
+            &ad_hdr,
+            &hdr_pt,
+        );
+        let body_ct = c.seal(
+            &mk,
+            &nonce_body(&c, &st.session_id, &st.dh_pub, st.nr),
+            &ad_body,
+            b"ok",
+        );
+
+        let snap_before = snapshot_boundary_state(&st);
+        let out = recv_boundary_in_order(
+            &c,
+            &c,
+            &c,
+            st.clone(),
+            flags,
+            &pq_prefix,
+            &hdr_ct,
+            &body_ct,
+            &pq_epoch_ss,
+            1,
+        );
+        assert!(
+            !out.ok,
+            "an HK-sealed boundary frame must not open under NHK"
+        );
+        assert_eq!(out.reason, Some("REJECT_S2_HDR_AUTH_FAIL"));
+        assert_eq!(snap_before, snapshot_boundary_state(&out.state));
+    }
+
+    fn adv_recv_state(nr: u32) -> Suite2RecvWireState {
+        Suite2RecvWireState {
+            session_id: rng16(),
+            protocol_version: 5,
+            suite_id: 2,
+            dh_pub: rng32(),
+            hk_r: rng32(),
+            rk: rng32(),
+            ck_ec: rng32(),
+            ck_pq_send: rng32(),
+            ck_pq_recv: rng32(),
+            nr,
+            role_is_a: true,
+            peer_max_adv_id_seen: 0,
+            known_targets: BTreeSet::new(),
+            consumed_targets: BTreeSet::new(),
+            tombstoned_targets: BTreeSet::new(),
+            mkskipped: Vec::new(),
+        }
+    }
+
+    fn snapshot_recv_wire_state(st: &Suite2RecvWireState) -> Vec<u8> {
+        let mut out = Vec::new();
+        out.extend_from_slice(&st.hk_r);
+        out.extend_from_slice(&st.rk);
+        out.extend_from_slice(&st.ck_ec);
+        out.extend_from_slice(&st.ck_pq_send);
+        out.extend_from_slice(&st.ck_pq_recv);
+        out.extend_from_slice(&st.nr.to_be_bytes());
+        out.extend_from_slice(&st.peer_max_adv_id_seen.to_be_bytes());
+        out.extend_from_slice(&(st.mkskipped.len() as u32).to_be_bytes());
+        out
+    }
+
+    /// Seal an ADV frame exactly as `send_pq_advertise` frames it, against the given receiver
+    /// state's keys (the mirror sender), with knobs for the negative cases.
+    #[allow(clippy::too_many_arguments)]
+    fn seal_adv_frame(
+        c: &StdCrypto,
+        st: &Suite2RecvWireState,
+        n: u32,
+        adv_id: u32,
+        adv_pub: &[u8],
+        payload: &[u8],
+        mac_rk: Option<&[u8; 32]>, // None => omit the MAC (pre-NA-0625-format body)
+        hdr_key: &[u8; 32],
+    ) -> (u16, Vec<u8>, Vec<u8>, Vec<u8>) {
+        let flags = types::FLAG_PQ_ADV | types::FLAG_BOUNDARY;
+        let mut pq_prefix = Vec::with_capacity(4 + adv_pub.len());
+        pq_prefix.extend_from_slice(&adv_id.to_be_bytes());
+        pq_prefix.extend_from_slice(adv_pub);
+
+        let mut ck_ec = st.ck_ec;
+        let mut ck_pq = st.ck_pq_recv;
+        let mut mk = [0u8; 32];
+        for _ in st.nr..=n {
+            let (e, p, m) = derive_mk_step(c, &ck_ec, &ck_pq).expect("derive");
+            mk = m;
+            ck_ec = e;
+            ck_pq = p;
+        }
+
+        let pq_bind = binding::pq_bind_sha512_32(c, flags, &pq_prefix);
+        let ad_hdr = binding::ad_hdr(
+            &st.session_id,
+            st.protocol_version,
+            st.suite_id,
+            &st.dh_pub,
+            flags,
+            &pq_bind,
+        );
+        let ad_body = binding::ad_body(&st.session_id, st.protocol_version, st.suite_id, &pq_bind);
+        let hdr_pt = {
+            let mut v = Vec::with_capacity(8);
+            v.extend_from_slice(&0u32.to_be_bytes());
+            v.extend_from_slice(&n.to_be_bytes());
+            v
+        };
+        let hdr_ct = c.seal(
+            hdr_key,
+            &nonce_hdr(c, &st.session_id, &st.dh_pub, n),
+            &ad_hdr,
+            &hdr_pt,
+        );
+        let mut body_pt = Vec::new();
+        if let Some(rk) = mac_rk {
+            let mac = adv_auth_mac(c, rk, adv_id, adv_pub).expect("adv mac");
+            body_pt.extend_from_slice(&mac);
+        }
+        body_pt.extend_from_slice(payload);
+        let body_ct = c.seal(
+            &mk,
+            &nonce_body(c, &st.session_id, &st.dh_pub, n),
+            &ad_body,
+            &body_pt,
+        );
+        (flags, pq_prefix, hdr_ct, body_ct)
+    }
+
+    /// Authenticated in-order ADV: accepted, BOTH receive chains consume the slot, nr advances,
+    /// the peer-ADV watermark tracks, and the app payload comes back.
+    #[test]
+    fn adv_recv_accept_consumes_chain_and_tracks() {
+        let c = StdCrypto;
+        let st = adv_recv_state(3);
+        let adv_pub = vec![0xBB; 1184];
+        let adv_id = 9u32;
+        let (flags, pq_prefix, hdr_ct, body_ct) = seal_adv_frame(
+            &c,
+            &st,
+            st.nr,
+            adv_id,
+            &adv_pub,
+            b"adv-payload",
+            Some(&st.rk),
+            &st.hk_r,
+        );
+        let (exp_ck_ec, exp_ck_pq, _mk) =
+            derive_mk_step(&c, &st.ck_ec, &st.ck_pq_recv).expect("derive");
+
+        let out = recv_pq_adv(
+            &c,
+            &c,
+            &c,
+            st.clone(),
+            flags,
+            &pq_prefix,
+            adv_id,
+            &adv_pub,
+            0,
+            &st.dh_pub,
+            &hdr_ct,
+            &body_ct,
+        );
+        assert!(
+            out.ok,
+            "authenticated ADV must be accepted: {:?}",
+            out.reason
+        );
+        assert_eq!(out.plaintext.as_deref(), Some(&b"adv-payload"[..]));
+        assert_eq!(out.n, Some(3));
+        assert_eq!(out.state.nr, 4, "nr advances exactly once (chain-consume)");
+        assert_eq!(out.state.ck_ec, exp_ck_ec, "EC chain consumed the slot");
+        assert_eq!(
+            out.state.ck_pq_recv, exp_ck_pq,
+            "PQ chain consumed the slot"
+        );
+        assert_eq!(
+            out.state.peer_max_adv_id_seen, st.peer_max_adv_id_seen,
+            "the frozen CTXT-path watermark field is untouched (caller owns the ADV watermark)"
+        );
+        assert!(out.state.mkskipped.is_empty(), "no receive-chain gap");
+    }
+
+    /// A valid AEAD body whose ADVAUTH MAC is corrupted rejects with the reused
+    /// REJECT_S2_BODY_AUTH_FAIL and no state mutation.
+    #[test]
+    fn adv_recv_bad_mac_rejects_no_mutation() {
+        let c = StdCrypto;
+        let st = adv_recv_state(0);
+        let adv_pub = vec![0xBB; 1184];
+        let wrong_rk = rng32();
+        let (flags, pq_prefix, hdr_ct, body_ct) = seal_adv_frame(
+            &c,
+            &st,
+            st.nr,
+            1,
+            &adv_pub,
+            b"",
+            Some(&wrong_rk), // MAC under a foreign root
+            &st.hk_r,
+        );
+        let snap = snapshot_recv_wire_state(&st);
+        let out = recv_pq_adv(
+            &c,
+            &c,
+            &c,
+            st.clone(),
+            flags,
+            &pq_prefix,
+            1,
+            &adv_pub,
+            0,
+            &st.dh_pub,
+            &hdr_ct,
+            &body_ct,
+        );
+        assert!(!out.ok);
+        assert_eq!(out.reason, Some("REJECT_S2_BODY_AUTH_FAIL"));
+        assert_eq!(snap, snapshot_recv_wire_state(&out.state));
+    }
+
+    /// A pre-NA-0625-format ADV body (no leading MAC) rejects — the ADV downgrade case.
+    #[test]
+    fn adv_recv_missing_mac_rejects_no_mutation() {
+        let c = StdCrypto;
+        let st = adv_recv_state(0);
+        let adv_pub = vec![0xBB; 1184];
+        let (flags, pq_prefix, hdr_ct, body_ct) =
+            seal_adv_frame(&c, &st, st.nr, 1, &adv_pub, b"legacy", None, &st.hk_r);
+        let snap = snapshot_recv_wire_state(&st);
+        let out = recv_pq_adv(
+            &c,
+            &c,
+            &c,
+            st.clone(),
+            flags,
+            &pq_prefix,
+            1,
+            &adv_pub,
+            0,
+            &st.dh_pub,
+            &hdr_ct,
+            &body_ct,
+        );
+        assert!(!out.ok);
+        assert_eq!(out.reason, Some("REJECT_S2_BODY_AUTH_FAIL"));
+        assert_eq!(snap, snapshot_recv_wire_state(&out.state));
+    }
+
+    /// A planted/foreign-key ADV (header sealed under an attacker key) fails FIRST at the header
+    /// AEAD with REJECT_S2_HDR_AUTH_FAIL and no mutation — the primary spoofed-ADV rejection.
+    #[test]
+    fn adv_recv_spoofed_header_rejects_no_mutation() {
+        let c = StdCrypto;
+        let st = adv_recv_state(0);
+        let adv_pub = vec![0xBB; 1184];
+        let foreign_key = rng32();
+        let (flags, pq_prefix, hdr_ct, body_ct) =
+            seal_adv_frame(&c, &st, st.nr, 1, &adv_pub, b"", Some(&st.rk), &foreign_key);
+        let snap = snapshot_recv_wire_state(&st);
+        let out = recv_pq_adv(
+            &c,
+            &c,
+            &c,
+            st.clone(),
+            flags,
+            &pq_prefix,
+            1,
+            &adv_pub,
+            0,
+            &st.dh_pub,
+            &hdr_ct,
+            &body_ct,
+        );
+        assert!(!out.ok);
+        assert_eq!(out.reason, Some("REJECT_S2_HDR_AUTH_FAIL"));
+        assert_eq!(snap, snapshot_recv_wire_state(&out.state));
+    }
+
+    /// The ADV control plane is in-order-only: a frame at n = nr+1 opens (candidate window) but
+    /// rejects REJECT_S2_BOUNDARY_NOT_IN_ORDER with no mutation.
+    #[test]
+    fn adv_recv_out_of_order_rejects_no_mutation() {
+        let c = StdCrypto;
+        let st = adv_recv_state(2);
+        let adv_pub = vec![0xBB; 1184];
+        let (flags, pq_prefix, hdr_ct, body_ct) =
+            seal_adv_frame(&c, &st, st.nr + 1, 1, &adv_pub, b"", Some(&st.rk), &st.hk_r);
+        let snap = snapshot_recv_wire_state(&st);
+        let out = recv_pq_adv(
+            &c,
+            &c,
+            &c,
+            st.clone(),
+            flags,
+            &pq_prefix,
+            1,
+            &adv_pub,
+            0,
+            &st.dh_pub,
+            &hdr_ct,
+            &body_ct,
+        );
+        assert!(!out.ok);
+        assert!(out
+            .reason
+            .unwrap_or("")
+            .starts_with("REJECT_S2_BOUNDARY_NOT_IN_ORDER"));
+        assert_eq!(snap, snapshot_recv_wire_state(&out.state));
+    }
+
+    /// An authenticated but NON-MONOTONIC advertisement (id <= the caller-owned watermark)
+    /// rejects with the existing REJECT_SCKA_ADV_NONMONOTONIC and no mutation (replays are
+    /// doubly rejected: the header counter has moved on AND monotonicity fails).
+    #[test]
+    fn adv_recv_nonmonotonic_rejects_no_mutation() {
+        let c = StdCrypto;
+        let st = adv_recv_state(0);
+        let adv_pub = vec![0xBB; 1184];
+        let (flags, pq_prefix, hdr_ct, body_ct) =
+            seal_adv_frame(&c, &st, st.nr, 5, &adv_pub, b"", Some(&st.rk), &st.hk_r);
+        let snap = snapshot_recv_wire_state(&st);
+        let out = recv_pq_adv(
+            &c,
+            &c,
+            &c,
+            st.clone(),
+            flags,
+            &pq_prefix,
+            5,
+            &adv_pub,
+            5,
+            &st.dh_pub,
+            &hdr_ct,
+            &body_ct,
+        );
+        assert!(!out.ok);
+        assert_eq!(out.reason, Some("REJECT_SCKA_ADV_NONMONOTONIC"));
+        assert_eq!(snap, snapshot_recv_wire_state(&out.state));
+    }
+
+    /// A combined ADV+CTXT frame stays REJECT_S2_LOCAL_UNSUPPORTED (ENG-0026 territory).
+    #[test]
+    fn adv_recv_combined_flags_rejects() {
+        let c = StdCrypto;
+        let st = adv_recv_state(0);
+        let adv_pub = vec![0xBB; 1184];
+        let flags = types::FLAG_PQ_ADV | types::FLAG_PQ_CTXT | types::FLAG_BOUNDARY;
+        let out = recv_pq_adv(
+            &c,
+            &c,
+            &c,
+            st.clone(),
+            flags,
+            &[],
+            1,
+            &adv_pub,
+            0,
+            &st.dh_pub,
+            &[0u8; HDR_CT_LEN],
+            &[0u8; BODY_CT_MIN],
+        );
+        assert!(!out.ok);
+        assert_eq!(out.reason, Some("REJECT_S2_LOCAL_UNSUPPORTED"));
     }
 }

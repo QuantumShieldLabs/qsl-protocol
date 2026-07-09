@@ -42547,3 +42547,124 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
   production-readiness, security-completion, crypto-complete, post-compromise, post-quantum, or
   Triple-Ratchet claim introduced (the standing boundary holds until the DH+PQ composition is
   independently analyzed).
+
+## 2026-07-09 -- NA-0625 (ENG-0023) Suite-2 spec-alignment: §8.5.1 NHK boundary header + authenticated ADV receive
+
+Directive QSL-DIR-2026-07-09-562 (D562). Decision D-1245. Base main `bc512f2e`. Closes ENG-0023.
+
+**What landed.** The Suite-2 receiver was unfrozen for exactly the two named header-authentication
+gaps carried out of NA-0623/NA-0624, and nothing else.
+
+1. **§8.5.1 NHK on the PQ-CTXT boundary.** Both the receiver (`recv_boundary_in_order`) and the
+   Stage-2a sender mirror (`send_pq_reseed`) now open/seal the boundary header under the `NHK`
+   derived on the fly from the pre-reseed root — the in-repo `recv_dh_boundary` pattern. NHK-only
+   open, so a pre-NA-0625 (HK-sealed) frame dies generically as `REJECT_S2_HDR_AUTH_FAIL`. No
+   stored NHK field, therefore no snapshot bump, therefore Operator Decision 3 (ENG-0024 co-scope)
+   stayed NO with its re-present clause never firing.
+2. **Authenticated ADV receive.** New `recv_pq_adv`, routed from `recv_wire`'s former
+   `FLAG_PQ_ADV ⇒ REJECT_S2_LOCAL_UNSUPPORTED` arm. An advertisement is now cryptographically bound
+   to the session before it can be tracked: header AEAD under the session receive header key, body
+   under the in-order hybrid message key, then an SPQR-style control-plane MAC
+   `KMAC32(RK, "QSP5.0/ADVAUTH", u32be(pq_adv_id) || pq_adv_pub || [0x01])` verified in constant
+   time under the canonical root. The MAC rides the first 32 bytes of the sealed body — DOC-CAN-004
+   §1.1/§1.3 fixes the prefix normatively and `docs/canonical/` was not mutable this lane — so
+   `pq_bind`/AD layouts are byte-unchanged and `parse.rs` took no hook. No new primitive, no new
+   reason code. **The relay-inbox ADV-injection vector filed at NA-0624 is eliminated.**
+3. **Chain-consume (Operator Decision 2).** The ADV receive consumes its slot in order (both
+   receive chains + `nr`), retiring BOTH NA-0624 workarounds: the ADV/reseed pack-exclusion rule
+   and the mkskipped control-slot growth. `[ADV, reseed]` now round-trips in one pack, proved e2e.
+
+**The crux, settled from the text.** The design-lock's open question was whether §8.5.1's NHK rule
+reaches the PQ-CTXT boundary at all. DOC-CAN-003 §8.5 defines a boundary as ANY `FLAG_BOUNDARY = 1`
+message and names SCKA reseed application as a boundary purpose; §8.5.1's sender rule is
+unconditional; §8.5.3 step 1 says verbatim "Require `hdr_source == CURRENT_NHK`". The
+counter-argument (a reseed is in-order, not a fresh DH epoch) fails on both text and purpose: a
+reseed IS a key-schedule transition (steps 5–7 advance `RK` and recompute `HK`/`NHK`), and
+counter continuity is orthogonal to header-key choice. **The NA-0623 deviation was real.**
+
+**Finding (ENG-0030), the lane's substantive discovery.** `send_pq_reseed` refreshes both
+directional header keys AND the send PQ chain for the SENDER, but the receive path can only return
+recv-side state — so a party that RECEIVES a reseed keeps `send.hk_s` / `send.ck_pq` on the
+pre-reseed schedule. Latent before this lane (the reply trigger makes any post-receive send a DH
+boundary, which reinitialises both), but an advertisement rides the CURRENT send chain as a control
+pre-envelope, and the authenticated ADV receiver actually opens that header: the peer rejected it
+with `REJECT_S2_HDR_AUTH_FAIL`. Diagnosed from the failing e2e run, fixed caller-side in qsc's CTXT
+arm beside the dh.rk ADOPT, and pinned three ways (a refimpl regression test asserting both the
+staleness and the post-composition coherence; the `scka_e2e_*` proofs; invariant 4 of the bounded
+model). Same caller-owned-coherence class as the NA-0624 dh.rk-sync bug; making it structural is
+recommended into ENG-0024/ENG-0026. **The qsc mitigation is load-bearing until then.**
+
+**Recorded spec tension (ENG-0031).** §8.5.1's sender sentence is unconditional over boundaries and
+so literally covers `FLAG_PQ_ADV` too, but §8.5.4 omits the `CURRENT_NHK` step that §8.5.2/§8.5.3
+both state, and §8.5.1's receiver sentence scopes to "a boundary epoch transition" — which an
+advertisement is not. The ADV header stayed on `HK` this lane (no root transition ⇒ no anti-spoof
+delta ⇒ not a weakening; and flipping it would widen beyond the two named gaps). The operator picks
+the resolution: a one-line DOC-CAN clarification, or a bounded NHK flip riding ENG-0026.
+
+**Vectors (the named, reviewed artifact).** Two files only. Exactly two pre-existing vectors changed
+bytes (`S2-SEND-PQADV-ACCEPT-0001` body +32; `S2-SEND-PQRESEED-ACCEPT-0001` header under NHK), their
+`new_state` expectations unchanged; the other 17 across the two files are byte-identical
+(machine-checked, proof in evidence); 7 appended (5 ADV-receive incl. spoofed/bad-MAC/no-MAC-downgrade,
+2 CTXT-NHK incl. the HK-downgrade rejection). All other frozen vector sets are untouched and green.
+
+**Formal (Operator Decision 4).** `formal/model_suite2_root_composition_bounded.py`: a two-party
+bounded explorer over {DH boundary, PQ reseed, ADV} × {send, recv}, all in-order interleavings to
+depth 6 (15,494 states / 23,886 transitions) plus 6 directly-asserted regression shapes. It proves
+root convergence (and would have caught the NA-0624 dh.rk-sync bug pre-implementation), PQ healing
+surviving a subsequent DH boundary, chain continuity under chain-consume, send/receive schedule
+coherence after a reseed receive (the ENG-0030 finding), and reject⇒no-mutation against a spoofed
+header, a tampered body, an out-of-order frame, the HK-downgrade frame, a foreign-root ADVAUTH MAC,
+and a non-monotonic advertisement. Runs in ~1.5 s; wired into `formal/run_model_checks.py`. Crypto
+is abstracted to injective tuple hashes: an agreement/coherence model, not a secrecy proof.
+
+**Boundary/claim.** Mutates only the refimpl `ratchet.rs` (the two named changes), refimpl tests,
+the actor harness, the two named vector files, qsc `main.rs` + `handshake_mvp.rs`, `formal/**`,
+DOC-G5-008 / DOC-G5-004, the ledger, and governance. `parse.rs`, `docs/canonical/`, the QS2S
+snapshot format, the KDF/AEAD/KEM primitives, `apply_pq_reseed`'s validation rules, the DH ratchet,
+and the non-boundary message paths are all untouched. No Cargo/lockfile, `.github`, or `.claude`
+change; no qsl-attachments/qsl-server change; no runtime/LAN action; no operator-startup-command
+execution; no workflow dispatch/rerun. The seed-model runtime-equivalence test still passes
+byte-for-byte. No endpoint, private port, hostname, topology, token, capability, key, seed,
+plaintext, ciphertext body, or raw private material is published. ENG-0023 is CLOSED, and still NO
+public-readiness, production-readiness, security-completion, crypto-complete, post-compromise,
+post-quantum, or Triple-Ratchet claim is introduced — the standing boundary holds until the DH+PQ
+composition is independently analyzed (ENG-0028, which this lane's bounded model is the on-ramp for).
+
+**STOP at the merge boundary (2026-07-09).** The lane is implementation-complete and every gate is
+green EXCEPT one, and it is a directive STOP condition rather than a defect. Gap (1) cannot close
+without invalidating a byte-pinned frame in a frozen vector set OUTSIDE the two named files:
+`qshield_suite2_e2e_recv_vectors_v1.json` -> `S2-E2E-ACCEPT-BOUNDARY-0001` pins a PQ-CTXT boundary
+frame (`flags = 0x0006`) whose 24-byte header ciphertext was sealed under the ordinary `HK_r` by the
+pre-NA-0625 sender, so the NHK-only receiver correctly rejects it (`REJECT_S2_HDR_AUTH_FAIL`) and the
+runner is 3/4. An exhaustive scan of every vector file for pinned Suite-2 frames with `flags != 0`
+found exactly three, and this is the only one outside the two named files (`boundary_vectors` pins no
+wire bytes — its actor builds the frame at run time, hence 4/4 and byte-identical). The NA-0625
+forward study's claim that "e2e_recv/interop/crash_restart embed NO reseed frames", repeated by the
+design-lock §5 as "verified against live files", was wrong; it is the only part of the vector sizing
+that did not hold. Per the directive's STOP CONDITIONS and the standing "NAMED, REVIEWED artifact"
+phrasing, the executor did NOT touch the third file, did NOT open the impl PR, and did NOT merge.
+Recommended resolution: extend the named vector-file list to three and re-seal that one vector's
+`hdr_ct` bytes `[1136, 1160)` under the NHK from its own `recv_state.rk` — a one-vector, one-field
+change leaving the file's other three vectors and that vector's `expect_*` fields byte-identical.
+Also reported, deliberately not fixed: a pre-existing, out-of-scope `needless_borrow` lint at
+`apps/qshield-cli/tests/na_0318_qshield_ack_commit.rs:150` breaks a workspace-wide `clippy -D
+warnings` (clippy is clean on the three crates this lane touches; no CI workflow runs clippy).
+The impl PR, the merge, the post-merge verification, the Phase-7 successor triage, and the D-1246
+closeout all remain OPEN pending the operator's decision.
+
+**STOP RESOLVED (2026-07-09) — Operator Decision 5: named vector-file list extended 2 -> 3.** The
+operator approved the minimal, bounded resolution rather than the alternatives (re-shaping the vector
+to a rejection case, or splitting gap (1) into its own lane). Executed and machine-checked: in
+`qshield_suite2_e2e_recv_vectors_v1.json`, only `S2-E2E-ACCEPT-BOUNDARY-0001` changed, only its
+`input.steps[0].wire_hex`, only the 24 header-ciphertext bytes `[1136, 1160)`, re-sealed under the
+NHK derived from that vector's own `recv_state.rk`. The replacement ciphertext was produced BY THE
+REFERENCE IMPLEMENTATION (driving `suite2.send_pq_reseed` through the actor as the originating peer,
+role B), not re-derived by the tooling; the regenerator asserts the produced wire differs from the
+pinned wire in exactly that window before splicing, and fails closed otherwise. That vector's
+`recv_state` / `expect` / non-wire step fields and all three sibling vectors are byte-identical;
+`git diff --numstat` on the file is `1 1`. All 15 suite2 vector runners are now green (`e2e_recv
+4/4`), refimpl is 112/112, the formal runner passes, and `fmt --check` is clean. The root cause —
+a vector-freeze scope claim asserted from a forward-study note instead of from the vector bytes — is
+filed as **WF-0014**, with the ~30-second scan that would have caught it at the Phase-2 design-lock.
+The lane proceeds to the impl PR, merge, post-merge verification, Phase-7 triage, and the D-1246
+closeout.

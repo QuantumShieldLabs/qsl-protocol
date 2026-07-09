@@ -93,8 +93,8 @@ sentence.
     `recv_pq_adv_session`; CTXT → `recv_pq_reseed`); marker/persist orderings unchanged
     (ADV session-first; CTXT erase-consumed-key-before-plaintext). GREEN (full `cargo test -p
     qsc`, ~80 min — result recorded below).
-20. Full `cargo test -p qsc`: run started at R2 completion; final result recorded in this file
-    before the impl PR merge.
+20. Full `cargo test -p qsc` (started at R2 completion, run against the complete R1–R4 tree):
+    144 test binaries, **587 passed / 0 failed / 3 ignored**, exit 0. GREEN.
 
 ## Conformance vectors (Operator Decision 5 — the byte-scanned split, machine-asserted)
 

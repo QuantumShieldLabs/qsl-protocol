@@ -628,7 +628,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   qsc/refimpl source lane; sequence after ENG-0012 Stage 2. Deferred (consciously), tracked here.
 
 ### ENG-0023 — Spec-alignment: PQ-CTXT boundary header under HK (not §8.5.1 NHK) + no authenticated ADV receive path
-- **STATUS: DONE (NA-0625, D-1245).** Both gaps closed. (1) The PQ-CTXT boundary header now seals
+- **STATUS: DONE (NA-0625; D-1245 impl, D-1246 closeout; PR #1528, merge `4b3e4fda`).** Both gaps closed. (1) The PQ-CTXT boundary header now seals
   and opens under the §8.5.1 `NHK`, derived on the fly from the pre-reseed root (receiver
   `recv_boundary_in_order` + sender mirror `send_pq_reseed`); NHK-only open, so a pre-NHK
   (HK-sealed) frame fails generically with `REJECT_S2_HDR_AUTH_FAIL`. The design-lock settled the

@@ -42668,3 +42668,56 @@ a vector-freeze scope claim asserted from a forward-study note instead of from t
 filed as **WF-0014**, with the ~30-second scan that would have caught it at the Phase-2 design-lock.
 The lane proceeds to the impl PR, merge, post-merge verification, Phase-7 triage, and the D-1246
 closeout.
+
+## 2026-07-09 -- NA-0625 closeout; ENG-0023 CLOSED; NA-0626 (ENG-0024 + ENG-0026) restoration
+
+Directive QSL-DIR-2026-07-09-562 (D562). Decisions D-1245 (impl) / D-1246 (closeout). Impl PR #1528,
+merge `4b3e4fda` (base `bc512f2e`). ENG-0023 is CLOSED.
+
+**Landed.** The §8.5.1 `NHK` boundary header on both the PQ-CTXT receiver and the Stage-2a sender
+mirror, derived on the fly from the pre-reseed root; NHK-only open, so an HK-sealed frame dies
+generically. No stored NHK field, hence no snapshot bump, hence Operator Decision 3 held. An
+authenticated ADV receive path (`recv_pq_adv`) binds a tracked advertisement to the session before it
+is persisted, via an SPQR-style root-keyed MAC in the sealed body; `parse.rs` took no hook, no new
+primitive, no new reason code. **A planted advertisement is now rejected and never tracked — the
+relay-inbox injection vector filed at NA-0624 is eliminated.** The ADV consumes its chain slot
+(Operator Decision 2), retiring the ADV/reseed pack-exclusion rule and the mkskipped control-slot
+growth; `[ADV, reseed]` round-trips in one pack. The Decision-4 bounded root-composition model ships
+in `formal/` (15,494 states, 6 regression shapes) and guards exactly the layer where all three
+coherence bugs lived. Runtime-equivalence byte-for-byte; refimpl 112/112; full qsc suite 586/586
+across 146 targets; all 15 suite2 vector runners green; main-push CI green at job level including the
+event-filtered `qsc-linux-full-suite` and `macos-qsc-full-serial`.
+
+**Two process failures, both recorded, both the same shape — a claim asserted from a note or from
+memory instead of from the artifact.** (1) A directive STOP at the merge boundary: gap (1) also
+invalidated a byte-pinned HK-sealed PQ-CTXT frame in a THIRD, non-named frozen vector file. The
+executor halted, touched nothing, and reported; the operator resolved it at Operator Decision 5 by
+extending the named vector-file list 2 -> 3 under a bounded, machine-checked mutation (24 bytes of one
+vector). Root cause: the forward study claimed "e2e_recv/interop/crash_restart embed NO reseed frames"
+and the design-lock promoted that to "verified against live files" without decoding the bytes. (2) A
+JSON-schema violation in the appended vectors reached CI because the executor ran the 15 vector
+runners but not the repo's own `validate_suite2_vectors.py`. Both filed as **WF-0014**, whose
+obligations are written into the NA-0626 lane block as binding constraints.
+
+**Findings carried forward.** **ENG-0030** — a reseed RECEIVE leaves the receiver's SEND key schedule
+stale; mitigated caller-side in qsc and **load-bearing** until made structural. **ENG-0031** — the
+§8.5.1/§8.5.4 ADV-header text tension.
+
+**Successor: NA-0626 = ENG-0024 + ENG-0026** as one same-surface lane, absorbing ENG-0030
+structurally and ENG-0031 as a rider. RK duality is now the demonstrated root cause of three defects
+of one class (the D560 amendment, the NA-0624 dh.rk-sync desync, and ENG-0030), every one caught by
+testing rather than prevented by construction; the next lane makes the invariant structural while the
+vectors are already being regenerated. ENG-0028 (ProVerif) sequences after it — modelling a
+composition that is about to be restructured would waste the model. ENG-0014 remains a cheap
+cross-repo lane for a short slot.
+
+**Boundary/claim.** Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`,
+`docs/ops/IMPROVEMENT_LEDGER.md`, this journal, and `tests/NA-0625_closeout_testplan.md`. No source,
+vector, Cargo, `.github`, or `.claude` change; no runtime/LAN action; no operator-startup-command
+execution; no workflow dispatch/rerun. No endpoint, private port, hostname, topology, token,
+capability, key, seed, plaintext, ciphertext body, or raw private material is published. ENG-0023 is
+CLOSED and the Suite-2 control plane is authenticated, and still NO public-readiness,
+production-readiness, security-completion, crypto-complete, post-compromise, self-healing,
+post-quantum, or Triple-Ratchet claim is introduced — the standing boundary holds until the DH+PQ
+composition is independently analyzed (ENG-0028). The bounded model proves agreement and coherence
+over abstracted KDFs, not secrecy.

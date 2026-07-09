@@ -263,6 +263,85 @@ language currently appears (candidate ledger item).
 - Scope of the state-snapshot version bump and back-compat stance (pre-release: eliminate, do
   not carry legacy — per the PROJECT_CHARTER design tenet).
 
+## ENG-0023 implementation note (NA-0625, D-1245) — §8.5.1 NHK + authenticated ADV receive
+
+Recorded here because this document is the design home for the Suite-2 ratchet lanes. NA-0625
+closed the two header-authentication gaps carried out of NA-0623/NA-0624. It changed no normative
+DOC-CAN text; `docs/canonical/` and `parse.rs` were untouched.
+
+**Gap (1) — the §8.5.1 NHK boundary header (a real deviation, now fixed).** The design-lock's crux
+was whether §8.5.1's `NHK` rule reaches the PQ-CTXT boundary at all, or whether NA-0623's
+"HK-not-NHK deviation" was imprecise labelling. It was settled from DOC-CAN-003's exact text, not
+from intuition: §8.5 defines a boundary as **any** message with `FLAG_BOUNDARY = 1` and names
+"application of SCKA reseed events" as a boundary purpose; §8.5.1's sender rule is unconditional
+over such messages; and §8.5.3 step 1 states verbatim, for the `FLAG_PQ_CTXT` receiver, "Require
+`hdr_source == CURRENT_NHK` (see §8.5.1)". The counter-argument (a reseed is an in-order message on
+the pre-reseed schedule, not a fresh DH epoch, so NHK's anti-spoof purpose may not map) fails
+against both the text and the purpose: a reseed **is** a key-schedule transition — §8.5.3 steps 5–7
+advance `RK` and recompute `HK`/`NHK` — and §8.5.1's rationale is to bind the transition header to
+the pre-transition root. Message-counter continuity is orthogonal to header-key choice.
+
+Both sides now derive the NHK on the fly from the canonical pre-reseed root (the in-repo
+`recv_dh_boundary` pattern): no stored NHK field, therefore no `Suite2*State` change, therefore
+**no QS2S snapshot bump** — which is why Operator Decision 3 (ENG-0024 co-scope) stayed NO and its
+re-present clause never triggered. The receiver opens NHK-only, keeping candidates `[nr, nr+1]` and
+the `n == nr` check, so the `NOT_IN_ORDER` vs `HDR_AUTH_FAIL` distinction is preserved and a
+pre-NHK (HK-sealed) frame dies generically as `REJECT_S2_HDR_AUTH_FAIL`. §8.5.1's "decrypts under
+any other candidate key MUST reject" is satisfied by never trying another key.
+
+**Gap (2) — authenticated ADV receive (Operator Decisions 1 + 2).** DOC-CAN-004 §1.1/§1.3 fixes the
+ADV prefix normatively as `pq_adv_id(4) || pq_adv_pub(1184)`, and `docs/canonical/` was not a
+mutable path this lane, so the SPQR-style control-plane MAC could not ride in the pq_prefix. It
+rides instead as the first 32 bytes of the **sealed body plaintext**:
+
+```
+adv_mac = KMAC32(RK, "QSP5.0/ADVAUTH", u32be(pq_adv_id) || pq_adv_pub || [0x01])
+body_pt = adv_mac(32) || app_payload
+```
+
+`RK` is the canonical session root on both sides, so the MAC inherits exactly the header-key
+synchronisation envelope — no new failure mode, no new primitive (KMAC only), no new reason code
+(a MAC mismatch or a short body reuses `REJECT_S2_BODY_AUTH_FAIL`). `pq_bind` and the AD layouts
+are byte-unchanged; parse.rs took no hook. The wire delta is exactly +32 B on the ADV `body_ct`
+(recorded in DOC-G5-004 §3.1). A planted advertisement fails first at the header AEAD under session
+keys; the ADVAUTH MAC is the root-keyed authenticator on top (defence in depth, and an explicit
+binding of the advertised key material to the session root).
+
+The ADV receive **consumes its chain slot** in order (Decision 2): both receive chains step and
+`nr` advances, mirroring the sender. That retired both NA-0624 workarounds — the ADV/reseed
+pack-exclusion rule and the mkskipped control-slot growth — and `[ADV, reseed]` now round-trips in
+one pack (proved e2e on the real client). The control plane is in-order-only, matching the CTXT
+receiver's posture; a lost predecessor degrades bounded, via outbox replay or `T_pq` re-advertise.
+
+**ADV header key: HK, not NHK — and the spec tension that follows.** §8.5.1's *sender* sentence is
+unconditional over `FLAG_BOUNDARY = 1` and so literally covers `FLAG_PQ_ADV` boundaries too. But
+§8.5.4 conspicuously omits the "Require `hdr_source == CURRENT_NHK`" step that §8.5.2 and §8.5.3
+both state, and §8.5.1's *receiver* sentence scopes itself to "a boundary **epoch transition**" —
+which an advertisement is not, since it advances no root. Both readings are defensible. This lane
+pinned the ADV header to `HK` (unchanged): HK-vs-NHK confers zero attacker advantage when no root
+transition occurs (both prove possession of a key derived from the same `RK`), so this is not a
+weakening, and flipping `send_pq_advertise`'s header key was outside the two named gaps.
+**Operator: the tension is real and belongs in the spec.** Filed as **ENG-0031** — either a
+one-line DOC-CAN-003 clarification (scope §8.5.1's sender sentence to epoch-creating boundaries,
+matching §8.5.4's silence and §8.5.1's own receiver sentence) or a bounded NHK flip for the ADV
+header riding ENG-0026. Not this lane either way.
+
+**Implementation finding (ENG-0030).** `send_pq_reseed` refreshes both directional header keys and
+the send PQ chain for the SENDER, but the receive path can only return recv-side state — so after a
+party RECEIVES a reseed its `send.hk_s` / `send.ck_pq` remain on the pre-reseed schedule. Latent
+before this lane (any send after a receive is a DH boundary, which reinitialises both); exposed by
+the authenticated ADV, because an advertisement rides the CURRENT send chain as a control
+pre-envelope and the peer now opens that header. qsc's CTXT intercept arm now mirrors the send half
+beside the dh.rk ADOPT. Same caller-owned-coherence class as ENG-0024; making it structural is
+recommended there.
+
+**Claim boundary unchanged.** Nothing in NA-0625 introduces a post-quantum, Triple-Ratchet, or
+post-compromise claim: the DH+PQ composition still awaits independent analysis (ENG-0028). The
+Decision-4 bounded root-composition model (`formal/model_suite2_root_composition_bounded.py`)
+guards this lane's surface — root convergence, healing across a DH boundary, chain continuity under
+chain-consume, and reject⇒no-mutation — but it is an agreement/coherence model over abstracted
+KDFs, not a secrecy proof.
+
 ## G5 metadata / traffic-shape note (§7 cross-reference)
 
 Boundary messages are distinguishable (larger — carrying `DH_pub` and, for PQ, `pq_ct`) and, if

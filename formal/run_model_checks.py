@@ -31,6 +31,9 @@ from formal.model_qsc_kem_signature_transcript_binding_bounded import (  # noqa:
 from formal.model_suite2_negotiation_bounded import (  # noqa: E402
     check_suite2_negotiation_model,
 )
+from formal.model_suite2_root_composition_bounded import (  # noqa: E402
+    emit_suite2_root_composition_model_report,
+)
 
 
 def main() -> int:
@@ -67,6 +70,13 @@ def main() -> int:
     print(f"QSC binding scenarios: {qsc_binding_stats['scenarios']}")
     print(f"QSC binding accepted traces: {qsc_binding_stats['accepted_traces']}")
     print(f"QSC binding rejected traces: {qsc_binding_stats['rejected_traces']}")
+    print("NA-0625 Suite-2 root-composition bounded model checks")
+    root_stats = emit_suite2_root_composition_model_report()
+    print("OK: Suite-2 root-composition formal model checks passed")
+    print(f"Root composition states: {root_stats['states']}")
+    print(f"Root composition transitions: {root_stats['transitions']}")
+    print(f"Root composition unique visited: {root_stats['visited']}")
+    print(f"Root composition regression shapes: {root_stats['regression_shapes']}")
     return 0
 
 

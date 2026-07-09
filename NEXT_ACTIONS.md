@@ -6,13 +6,13 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0625 | HIGHEST_NA=0625 | HIGHEST_D=1244 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0625 | HIGHEST_NA=0625 | HIGHEST_D=1245 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
 **READY (exactly one — execute this):** `NA-0625 — ENG-0023: Suite-2 spec-alignment — §8.5.1 NHK
 boundary header + authenticated ADV receive` (reconciles the two frozen-receiver header-auth gaps
 carried out of NA-0623/NA-0624 in one lane; operator-selected successor at the NA-0624 closeout).
-Its full block (with scope flags) is below under section 2; find it by searching `Status: READY`
-(there is exactly one).
+Its full block (with scope flags) is below under section 2; find it with the ANCHORED pattern
+`^Status:` carrying the state READY (there is exactly one such line in this file).
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -31,7 +31,13 @@ each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
 - **NA-#### is a permanent ID assigned in creation order; it does NOT imply run order.**
   Run order is the ON DECK list above. Inserting a lane never renumbers existing lanes —
   assign the next free NA number and place it wherever it belongs in ON DECK.
-- **Exactly one `Status: READY`** at any time (the qwork/CI parsers depend on this).
+- **Exactly one lane block carries the READY state** at any time (the qwork/CI parsers depend on
+  this). **Tooling MUST match the status line ANCHORED to the start of a line (`^Status:` followed
+  by the state), never as an unanchored substring search** — prose elsewhere in this file legitimately
+  discusses the READY state, and an unanchored `grep` will match that prose. (Learned at NA-0624:
+  D-1244's reworded LIVE-QUEUE paragraph fooled an unanchored `grep -B1` in the qnext wrapper.
+  Recorded here at NA-0625 / D-1245; the wrapper itself is operator-side tooling, outside this
+  repo's mutation paths.)
 - **Archive:** completed (`Status: DONE`) lane blocks currently remain below in this file.
   Physically splitting them into a separate archive file (and updating the CI scripts that
   read them) is tracked as **WF-0011** — a dedicated future lane.
@@ -34047,6 +34053,17 @@ begins at D-1217.
 
 ### NA-0625 — ENG-0023: Suite-2 spec-alignment — §8.5.1 NHK boundary header + authenticated ADV receive (source/test)
 Status: READY
+<!-- NA-0625 IMPLEMENTATION IS COMPLETE AND UNMERGED, HALTED AT A DIRECTIVE STOP CONDITION (D-1245).
+     Gap (1) cannot close without invalidating ONE byte-pinned frame in a frozen vector set OUTSIDE
+     the two named files: qshield_suite2_e2e_recv_vectors_v1.json -> S2-E2E-ACCEPT-BOUNDARY-0001 ->
+     input.steps[0].wire_hex (flags=0x0006, header sealed under HK by the pre-NA-0625 sender). The
+     NHK-only receiver correctly rejects it; the runner is 3/4. It is the ONLY such frame outside the
+     two named files (exhaustively scanned). The executor did NOT touch the third file, open the impl
+     PR, or merge. OPERATOR DECISION REQUIRED: extend the named vector-file list from two to three
+     (recommended; a one-vector, one-field re-seal of hdr_ct bytes [1136,1160) under the NHK from that
+     vector's own recv_state.rk), or re-scope. Then: impl PR, merge, post-merge verify, Phase-7
+     successor triage, D-1246 closeout. Full analysis: the STOP bullet of D-1245 and
+     docs/governance/evidence/NA-0625_suite2_spec_alignment_harness.md §8. This lane stays READY. -->
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? YES (the PQ-CTXT boundary header key moves from HK to the §8.5.1 NHK; an authenticated ADV receive path is added — no wire FORMAT change expected)
 Crypto/state-machine change allowed? YES (frozen-receiver semantics change + sender mirror; conformance vectors regenerate; no new KDF/AEAD/KEM primitive)

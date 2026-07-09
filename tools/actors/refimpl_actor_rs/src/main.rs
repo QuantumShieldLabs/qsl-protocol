@@ -2633,7 +2633,24 @@ impl Actor {
                 let mk = mk.ok_or_else(|| {
                     ActorError::Invalid("params.message.n: failed to derive mk".into())
                 })?;
-                let mut hdr_ct = self.std.seal(&hk_r_arr, &nonce_hdr, &ad_hdr, &hdr_pt);
+                // NA-0625 (ENG-0023): PQ-CTXT boundary frames are NHK-sealed (§8.5.1) — derive
+                // the receive-direction NHK from the state root, exactly as the sender derives
+                // it from the pre-reseed root. `message.hdr_key = "hk"` constructs a
+                // pre-NA-0625-style (downgrade) frame sealed under the ordinary HK_r instead.
+                let hdr_key_mode = msg.get("hdr_key").and_then(|v| v.as_str()).unwrap_or("nhk");
+                let hdr_seal_key = match hdr_key_mode {
+                    "nhk" => suite2_ratchet::header_key(&self.std, &rk_arr, !role_is_a, true)
+                        .map_err(|_| {
+                            ActorError::Invalid("reject: REJECT_S2_LOCAL_UNSUPPORTED".into())
+                        })?,
+                    "hk" => hk_r_arr,
+                    _ => {
+                        return Err(ActorError::Invalid(
+                            "params.message.hdr_key: expected nhk|hk".into(),
+                        ))
+                    }
+                };
+                let mut hdr_ct = self.std.seal(&hdr_seal_key, &nonce_hdr, &ad_hdr, &hdr_pt);
                 let mut body_ct = self.std.seal(&mk, &nonce_body, &ad_body, &body_pt);
 
                 match tamper.as_str() {
@@ -3247,6 +3264,269 @@ impl Actor {
                         "recv_ck_pq_recv": to_hex(&out.state.recv.ck_pq_recv),
                         "ns": { "u32": out.state.send.ns }
                     } }
+                }))
+            }
+            "suite2.recv_pq_adv" => {
+                // NA-0625 (ENG-0023): drive the AUTHENTICATED ADV receive path. The actor
+                // constructs the ADV frame the way `send_pq_advertise` does (mk from the
+                // receiver's chains, ADVAUTH MAC under the root), with knobs for the negative
+                // cases: tamper none|body|header (reused plumbing), mac ok|missing|corrupt,
+                // and an optional foreign header seal key (the spoofed/planted-ADV case).
+                let negotiated = get_json_data(&req.params, "negotiated")?;
+                let pv = parse_u16(
+                    negotiated.get("protocol_version").ok_or_else(|| {
+                        ActorError::Invalid("params.negotiated.protocol_version missing".into())
+                    })?,
+                    "params.negotiated.protocol_version",
+                )?;
+                let sid = parse_u16(
+                    negotiated.get("suite_id").ok_or_else(|| {
+                        ActorError::Invalid("params.negotiated.suite_id missing".into())
+                    })?,
+                    "params.negotiated.suite_id",
+                )?;
+
+                let role_v = get_json_data(&req.params, "role")?;
+                let role_s = role_v
+                    .as_str()
+                    .ok_or_else(|| ActorError::Invalid("params.role: expected string".into()))?;
+                let role_is_a = match role_s {
+                    "A" => true,
+                    "B" => false,
+                    _ => {
+                        return Err(ActorError::Invalid(
+                            "params.role: expected 'A' or 'B'".into(),
+                        ))
+                    }
+                };
+
+                let session_id = get_bytes(&req.params, "session_id")?;
+                let session_id_arr: [u8; 16] = session_id.as_slice().try_into().map_err(|_| {
+                    ActorError::Invalid("params.session_id: expected 16 bytes".into())
+                })?;
+                let dh_pub = get_bytes(&req.params, "dh_pub")?;
+                let dh_pub_arr: [u8; 32] = dh_pub
+                    .as_slice()
+                    .try_into()
+                    .map_err(|_| ActorError::Invalid("params.dh_pub: expected 32 bytes".into()))?;
+                let hk_r = get_bytes(&req.params, "hk_r")?;
+                let hk_r_arr: [u8; 32] = hk_r
+                    .as_slice()
+                    .try_into()
+                    .map_err(|_| ActorError::Invalid("params.hk_r: expected 32 bytes".into()))?;
+                let rk = get_bytes(&req.params, "rk")?;
+                let rk_arr: [u8; 32] = rk
+                    .as_slice()
+                    .try_into()
+                    .map_err(|_| ActorError::Invalid("params.rk: expected 32 bytes".into()))?;
+                let ck_ec0 = get_bytes(&req.params, "ck_ec0")?;
+                let ck_ec_arr: [u8; 32] = ck_ec0
+                    .as_slice()
+                    .try_into()
+                    .map_err(|_| ActorError::Invalid("params.ck_ec0: expected 32 bytes".into()))?;
+                let ck_pq_send0 = get_bytes(&req.params, "ck_pq_send0")?;
+                let ck_pq_send_arr: [u8; 32] = ck_pq_send0.as_slice().try_into().map_err(|_| {
+                    ActorError::Invalid("params.ck_pq_send0: expected 32 bytes".into())
+                })?;
+                let ck_pq_recv0 = get_bytes(&req.params, "ck_pq_recv0")?;
+                let ck_pq_recv_arr: [u8; 32] = ck_pq_recv0.as_slice().try_into().map_err(|_| {
+                    ActorError::Invalid("params.ck_pq_recv0: expected 32 bytes".into())
+                })?;
+                let nr0 = get_u32(&req.params, "nr0")?;
+                let peer_max_adv_id_seen = get_u32(&req.params, "peer_max_adv_id_seen")?;
+                let peer_adv_watermark = get_u32(&req.params, "peer_adv_watermark")?;
+
+                let msg_v = get_json_data(&req.params, "message")?;
+                let msg = msg_v
+                    .as_object()
+                    .ok_or_else(|| ActorError::Invalid("params.message: expected object".into()))?;
+                let n = parse_u32_value(
+                    msg.get("n")
+                        .ok_or_else(|| ActorError::Invalid("params.message.n missing".into()))?,
+                    "params.message.n",
+                )?;
+                let pn = parse_u32_value(
+                    msg.get("pn")
+                        .ok_or_else(|| ActorError::Invalid("params.message.pn missing".into()))?,
+                    "params.message.pn",
+                )?;
+                let pq_adv_id = parse_u32_value(
+                    msg.get("pq_adv_id").ok_or_else(|| {
+                        ActorError::Invalid("params.message.pq_adv_id missing".into())
+                    })?,
+                    "params.message.pq_adv_id",
+                )?;
+                let pq_adv_pub = parse_hex_value(
+                    msg.get("pq_adv_pub_hex").ok_or_else(|| {
+                        ActorError::Invalid("params.message.pq_adv_pub_hex missing".into())
+                    })?,
+                    "params.message.pq_adv_pub_hex",
+                )?;
+                let body_payload = parse_hex_value(
+                    msg.get("body_payload_hex").ok_or_else(|| {
+                        ActorError::Invalid("params.message.body_payload_hex missing".into())
+                    })?,
+                    "params.message.body_payload_hex",
+                )?;
+                let tamper = msg
+                    .get("tamper")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("none")
+                    .to_string();
+                let mac_mode = msg
+                    .get("mac")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("ok")
+                    .to_string();
+                let hdr_seal_key: [u8; 32] = match msg.get("hdr_key_hex") {
+                    Some(v) => parse_hex_value(v, "params.message.hdr_key_hex")?
+                        .as_slice()
+                        .try_into()
+                        .map_err(|_| {
+                            ActorError::Invalid(
+                                "params.message.hdr_key_hex: expected 32 bytes".into(),
+                            )
+                        })?,
+                    None => hk_r_arr,
+                };
+
+                if n < nr0 {
+                    return Err(ActorError::Invalid(
+                        "params.message.n: expected >= nr0".into(),
+                    ));
+                }
+
+                let flags = suite2_types::FLAG_PQ_ADV | suite2_types::FLAG_BOUNDARY;
+                let mut pq_prefix = Vec::with_capacity(4 + pq_adv_pub.len());
+                pq_prefix.extend_from_slice(&pq_adv_id.to_be_bytes());
+                pq_prefix.extend_from_slice(&pq_adv_pub);
+
+                // Derive the slot's hybrid mk from the receiver's chains (the mirror sender).
+                let mut mk = [0u8; 32];
+                let mut ck_ec_s = ck_ec_arr;
+                let mut ck_pq_s = ck_pq_recv_arr;
+                for i in nr0..=n {
+                    let (ck_ec_p, ck_pq_p, mk_i) = suite2_ratchet::derive_mk_step(
+                        &self.std, &ck_ec_s, &ck_pq_s,
+                    )
+                    .map_err(|_| {
+                        ActorError::Invalid("reject: REJECT_S2_BOUNDARY_DERIVE_FAIL".into())
+                    })?;
+                    if i == n {
+                        mk = mk_i;
+                    }
+                    ck_ec_s = ck_ec_p;
+                    ck_pq_s = ck_pq_p;
+                }
+
+                let pq_bind = binding::pq_bind_sha512_32(&self.std, flags, &pq_prefix);
+                let ad_hdr =
+                    binding::ad_hdr(&session_id_arr, pv, sid, &dh_pub_arr, flags, &pq_bind);
+                let ad_body = binding::ad_body(&session_id_arr, pv, sid, &pq_bind);
+                let mut hdr_pt = Vec::with_capacity(8);
+                hdr_pt.extend_from_slice(&pn.to_be_bytes());
+                hdr_pt.extend_from_slice(&n.to_be_bytes());
+                let nonce_hdr =
+                    suite2_ratchet::nonce_hdr(&self.std, &session_id_arr, &dh_pub_arr, n);
+                let nonce_body =
+                    suite2_ratchet::nonce_body(&self.std, &session_id_arr, &dh_pub_arr, n);
+
+                // ADVAUTH MAC (DOC/design-lock construction):
+                // KMAC32(RK, "QSP5.0/ADVAUTH", u32be(pq_adv_id) || pq_adv_pub || [0x01]).
+                let mut body_pt = Vec::new();
+                match mac_mode.as_str() {
+                    "ok" | "corrupt" => {
+                        let mut mac_data = Vec::with_capacity(4 + pq_adv_pub.len() + 1);
+                        mac_data.extend_from_slice(&pq_adv_id.to_be_bytes());
+                        mac_data.extend_from_slice(&pq_adv_pub);
+                        mac_data.push(0x01);
+                        let mut mac = self.std.kmac256(&rk_arr, "QSP5.0/ADVAUTH", &mac_data, 32);
+                        if mac.len() != 32 {
+                            return Err(ActorError::Invalid("adv mac derive failed".into()));
+                        }
+                        if mac_mode == "corrupt" {
+                            mac[0] ^= 0x01;
+                        }
+                        body_pt.extend_from_slice(&mac);
+                    }
+                    "missing" => {}
+                    _ => {
+                        return Err(ActorError::Invalid(
+                            "params.message.mac: expected ok|missing|corrupt".into(),
+                        ))
+                    }
+                }
+                body_pt.extend_from_slice(&body_payload);
+
+                let mut hdr_ct = self.std.seal(&hdr_seal_key, &nonce_hdr, &ad_hdr, &hdr_pt);
+                let mut body_ct = self.std.seal(&mk, &nonce_body, &ad_body, &body_pt);
+                match tamper.as_str() {
+                    "none" => {}
+                    "body" => {
+                        if !body_ct.is_empty() {
+                            body_ct[0] ^= 0x01;
+                        }
+                    }
+                    "header" => {
+                        if !hdr_ct.is_empty() {
+                            hdr_ct[0] ^= 0x01;
+                        }
+                    }
+                    _ => {
+                        return Err(ActorError::Invalid(
+                            "params.message.tamper: expected none|body|header".into(),
+                        ))
+                    }
+                }
+
+                let state = suite2_ratchet::Suite2RecvWireState {
+                    session_id: session_id_arr,
+                    protocol_version: pv,
+                    suite_id: sid,
+                    dh_pub: dh_pub_arr,
+                    hk_r: hk_r_arr,
+                    rk: rk_arr,
+                    ck_ec: ck_ec_arr,
+                    ck_pq_send: ck_pq_send_arr,
+                    ck_pq_recv: ck_pq_recv_arr,
+                    nr: nr0,
+                    role_is_a,
+                    peer_max_adv_id_seen,
+                    known_targets: BTreeSet::new(),
+                    consumed_targets: BTreeSet::new(),
+                    tombstoned_targets: BTreeSet::new(),
+                    mkskipped: Vec::new(),
+                };
+
+                let out = suite2_ratchet::recv_pq_adv(
+                    &self.std,
+                    &self.std,
+                    &self.std,
+                    state,
+                    flags,
+                    &pq_prefix,
+                    pq_adv_id,
+                    &pq_adv_pub,
+                    peer_adv_watermark,
+                    &dh_pub_arr,
+                    &hdr_ct,
+                    &body_ct,
+                );
+                if !out.ok {
+                    return Err(ActorError::Invalid(format!(
+                        "reject: {}",
+                        out.reason.unwrap_or("REJECT_S2_HDR_AUTH_FAIL")
+                    )));
+                }
+                Ok(serde_json::json!({
+                    "final_state": { "type": "json", "data": {
+                        "nr": { "u32": out.state.nr },
+                        "ck_ec": to_hex(&out.state.ck_ec),
+                        "ck_pq_recv": to_hex(&out.state.ck_pq_recv),
+                        "peer_max_adv_id_seen": { "u32": out.state.peer_max_adv_id_seen },
+                        "mkskipped_len": { "u32": out.state.mkskipped.len() as u32 }
+                    } },
+                    "plaintext_hex": { "type": "hex", "data": to_hex(&out.plaintext.unwrap_or_default()) }
                 }))
             }
             "suite2.kdf_ec_ck" => {

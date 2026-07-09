@@ -20,7 +20,7 @@ use quantumshield_refimpl::qse::{Envelope, EnvelopeProfile};
 use quantumshield_refimpl::suite2::establish::init_from_base_handshake;
 use quantumshield_refimpl::suite2::ratchet::Suite2RecvWireState;
 use quantumshield_refimpl::suite2::ratchet::{
-    recv_dh_boundary, send_boundary, send_pq_advertise, send_pq_reseed, track_peer_adv,
+    header_key, recv_dh_boundary, send_boundary, send_pq_advertise, send_pq_reseed,
 };
 use quantumshield_refimpl::suite2::state::Suite2SessionState;
 use quantumshield_refimpl::suite2::types::{
@@ -2266,15 +2266,12 @@ fn qsp_pack(
     let mut pre_envelopes: Vec<Vec<u8>> = Vec::new();
     let mut scka_dirty = false;
     let mut st_cur = st.clone();
-    // An advertisement consumes a send-chain slot the receiver skips as a control message; a
-    // NORMAL main message immediately heals the receiver's n-gap via the OOO machinery and a DH
-    // boundary abandons the old epoch, but a RESEED boundary requires strict in-order receipt
-    // (n == nr) in the frozen receiver — so an ADV must never share a pack with a reseed. When
-    // this send will reseed, the advertisement defers to the next send.
-    let will_reseed =
-        scka_on && !qsp_should_ratchet(&st_cur, &trig, now) && qsp_scka_reseed_due(&scka, now);
+    // NA-0625 (ENG-0023, Operator Decision 2): the authenticated ADV receiver consumes its
+    // chain slot in-order, so an advertisement may share a pack with a reseed — the NA-0624
+    // ADV/reseed pack-exclusion rule (and the mkskipped control-slot growth it worked around)
+    // is RETIRED. The receiver processes the pack in order: ADV first (nr passes through the
+    // control slot), then the reseed's strict n == nr check holds.
     if scka_on
-        && !will_reseed
         && !zero32(&st_cur.send.ck_ec)
         && !zero32(&st_cur.send.ck_pq)
         && qsp_scka_advertise_due(&scka, now)
@@ -2544,11 +2541,12 @@ fn qsp_unpack(channel: &str, envelope_bytes: &[u8]) -> Result<QspUnpackOutcome, 
     let st = qsp_session_for_channel(channel)?;
     let mut trig = qsp_trigger_load(channel);
     let c = StdCrypto;
-    // NA-0622 (ENG-0012 Stage 1b-ii) + NA-0624 (Stage 2b) routing: an SCKA advertisement
-    // (FLAG_PQ_ADV) is intercepted BEFORE recv_wire (the frozen receiver rejects PQ_ADV and has
-    // no ADV body decrypt path — it is a control message); a PQ-reseed boundary (FLAG_PQ_CTXT)
-    // decapsulates against the local advertised key and drives the frozen `apply_pq_reseed` via
-    // `recv_wire`; a classical DH boundary goes to `recv_dh_boundary`; else a normal message.
+    // NA-0622 (ENG-0012 Stage 1b-ii) + NA-0624 (Stage 2b) + NA-0625 (ENG-0023) routing: an SCKA
+    // advertisement (FLAG_PQ_ADV) drives the AUTHENTICATED `recv_pq_adv` receiver via
+    // `recv_wire` (a control message, cryptographically bound to the session before tracking);
+    // a PQ-reseed boundary (FLAG_PQ_CTXT) decapsulates against the local advertised key and
+    // drives `apply_pq_reseed` via `recv_wire`; a classical DH boundary goes to
+    // `recv_dh_boundary`; else a normal message.
     let flags = match decode_suite2_wire_canon(&env.payload) {
         Ok((_, _, _, parsed)) => parsed.flags,
         Err(_) => 0,
@@ -2557,8 +2555,13 @@ fn qsp_unpack(channel: &str, envelope_bytes: &[u8]) -> Result<QspUnpackOutcome, 
     let is_pq_ctxt = !is_pq_adv && (flags & FLAG_BOUNDARY) != 0 && (flags & FLAG_PQ_CTXT) != 0;
     let is_dh_boundary = !is_pq_adv && (flags & FLAG_BOUNDARY) != 0 && (flags & FLAG_PQ_CTXT) == 0;
     if is_pq_adv {
-        // SCKA TRACK (DOC-CAN-004 §3.2): validate + persist the peer's advertised public key.
-        // The SCKA path is gated exactly like the send side (never on a seed-model session).
+        // NA-0625 (ENG-0023): AUTHENTICATED SCKA TRACK (DOC-CAN-004 §3.2) — the ADV drives the
+        // refimpl `recv_pq_adv` via `recv_wire`, mirroring the CTXT arm (gate, INJECT the
+        // canonical root, recv_wire, ADOPT). A planted/unauthenticated advertisement is
+        // REJECTED, never tracked: it fails the header AEAD under session keys and/or the
+        // ADVAUTH MAC under the canonical root. The ADV consumes its chain slot in-order
+        // (Operator Decision 2), so it leaves no receive-chain gap (mkskipped stays empty)
+        // and may share a pack with a reseed (the NA-0624 exclusion rule is retired).
         if !qsp_scka_enabled(&st) {
             return Err("qsp_recv_failed");
         }
@@ -2569,27 +2572,67 @@ fn qsp_unpack(channel: &str, envelope_bytes: &[u8]) -> Result<QspUnpackOutcome, 
         let adv_id = parsed.pq_adv_id.ok_or("qsp_recv_failed")?;
         let adv_pub = parsed.pq_adv_pub.ok_or("qsp_recv_failed")?;
         let mut scka = qsp_scka_load(channel);
-        let new_max = track_peer_adv(scka.peer_adv_max_seen, adv_id, &adv_pub)
-            .map_err(|_| "qsp_scka_adv_reject")?;
+        // INJECT the canonical session root (the NA-0624 dh.rk-sync composition): the header
+        // key schedule and the ADVAUTH MAC both key off the root the sender derived from.
+        let mut recv_in = st.recv.clone();
+        if !zero32(&st.dh.rk) {
+            recv_in.rk = st.dh.rk;
+        }
+        // On the ADV path the `peer_adv_id` slot carries the CALLER-OWNED peer-ADV watermark
+        // (the SCKA store's peer_adv_max_seen); the session-state watermark field belongs to
+        // the frozen CTXT receiver's consumed-target monotonicity and is not touched.
+        let outcome = match recv_wire_canon(
+            &c,
+            &c,
+            &c,
+            recv_in,
+            &env.payload,
+            None,
+            Some(scka.peer_adv_max_seen),
+        ) {
+            Ok(v) => v,
+            Err(e) => {
+                let code = map_qsp_recv_err(&e);
+                emit_marker(
+                    "qsp_scka_adv",
+                    Some(code),
+                    &[("dir", "recv"), ("ok", "false")],
+                );
+                return Err("qsp_scka_adv_reject");
+            }
+        };
+        let mut next_state = st.clone();
+        next_state.recv = outcome.state;
+        // ADOPT (uniform with the CTXT arm; an ADV advances no root, so this is a no-op).
+        next_state.dh.rk = next_state.recv.rk;
+        // Any received message arms the reply-driven trigger.
+        trig.pending_send_ratchet = true;
+        // G2 ordering pin: persist the SESSION FIRST (the consumed chain slot must be durable
+        // before anything depends on it — a replayed ADV can never re-derive the slot key),
+        // the SCKA store SECOND. A crash between the two loses only an UNTRACKED peer
+        // advertisement — bounded by the peer's T_pq re-advertise — and can never break the
+        // chain, accept a replay, or roll back consumed-monotonicity. (Contrast the CTXT arm
+        // below, which keeps its erase-consumed-key-BEFORE-plaintext order for the
+        // one-time-key hazard.)
+        qsp_session_store_with_trigger(channel, &next_state, &trig)
+            .map_err(|_| "qsp_session_store_failed")?;
         scka.peer_adv = Some(SckaPeerAdv {
             adv_id,
             pubkey: adv_pub,
         });
-        scka.peer_adv_max_seen = new_max;
+        scka.peer_adv_max_seen = adv_id;
         qsp_scka_store(channel, &scka).map_err(|_| "qsp_session_store_failed")?;
         let id_s = adv_id.to_string();
         emit_marker(
             "qsp_scka_adv",
             None,
-            &[("dir", "recv"), ("adv_id", id_s.as_str())],
+            &[("dir", "recv"), ("adv_id", id_s.as_str()), ("auth", "ok")],
         );
-        // Any received message arms the reply-driven trigger.
-        trig.pending_send_ratchet = true;
         return Ok(QspUnpackOutcome {
             plaintext: Vec::new(),
-            next_state: st,
+            next_state,
             trigger: trig,
-            msg_idx: 0,
+            msg_idx: outcome.n,
             skip_delta: 0,
             evicted: 0,
             is_control: true,
@@ -2648,6 +2691,20 @@ fn qsp_unpack(channel: &str, envelope_bytes: &[u8]) -> Result<QspUnpackOutcome, 
         // THE COMPOSITION: adopt the PQ-advanced root into the DH-ratchet slot. Without this a
         // later DH ratchet reads the stale root and wipes the PQ hardening (NA-0623 finding).
         next_state.dh.rk = next_state.recv.rk;
+        // NA-0625: mirror the SEND half of the reseed onto the receiver (§8.5.3 steps 6+7).
+        // `send_pq_reseed` writes both directional header keys AND the new send PQ chain into
+        // the SENDER's session state; the receive path returns only recv-side state, so the
+        // receiver's `send.hk_s` / `send.ck_pq` otherwise stay on the pre-reseed schedule while
+        // the peer's receive schedule has moved. (The receiver's post-reseed send PQ chain is
+        // the one apply_pq_reseed derived into `recv.ck_pq_send`.) Latent before this lane — a
+        // send after a receive is a DH boundary, which reinitialises both — but an SCKA
+        // advertisement rides the CURRENT send chain as a control pre-envelope, and the peer
+        // now authenticates that header and body.
+        match header_key(&c, &next_state.recv.rk, next_state.recv.role_is_a, false) {
+            Ok(hk_s) => next_state.send.hk_s = hk_s,
+            Err(_) => return Err("qsp_recv_failed"),
+        }
+        next_state.send.ck_pq = next_state.recv.ck_pq_send;
         scka.consume_advkey(target_id);
         qsp_scka_store(channel, &scka).map_err(|_| "qsp_session_store_failed")?;
         let target_s = target_id.to_string();

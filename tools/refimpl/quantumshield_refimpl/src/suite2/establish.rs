@@ -105,7 +105,6 @@ pub fn init_from_base_handshake(
             suite_id,
             dh_pub: dh_peer,
             hk_r: hk_b2a,
-            rk,
             ck_ec: ZERO32,
             ck_pq_send: pq0_a2b,
             ck_pq_recv: ZERO32,
@@ -124,7 +123,6 @@ pub fn init_from_base_handshake(
             suite_id,
             dh_pub: dh_peer,
             hk_r: hk_a2b,
-            rk,
             ck_ec: ck0_a2b,
             ck_pq_send: ZERO32,
             ck_pq_recv: pq0_a2b,
@@ -138,16 +136,15 @@ pub fn init_from_base_handshake(
         }
     };
 
-    // NA-0620 (ENG-0012 Stage 1a): populate the DH-ratchet state for Stage 1b. `dhs_priv` is
-    // left zero here; the client sets it post-establishment via `set_dh_self_priv` (callers that
-    // do not ratchet, e.g. the interop actor, keep it zero). Plumbing only — no message-path
-    // code reads this state in Stage 1a.
+    // NA-0620 (ENG-0012 Stage 1a): populate the DH-ratchet key material for Stage 1b.
+    // `dhs_priv` is left zero here; the client sets it post-establishment via
+    // `set_dh_self_priv` (callers that do not ratchet, e.g. the interop actor, keep it zero).
     let dh = Suite2DhRatchetState {
         dhs_priv: ZERO32,
         dhs_pub: dh_self,
         dhr: dh_peer,
-        rk,
     };
 
-    Ok(Suite2SessionState { send, recv, dh })
+    // NA-0626 (ENG-0024): the establishment root lands in the SINGLE session-level slot.
+    Ok(Suite2SessionState { rk, send, recv, dh })
 }

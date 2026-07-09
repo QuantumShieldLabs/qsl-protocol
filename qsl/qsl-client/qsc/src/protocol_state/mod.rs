@@ -633,11 +633,25 @@ impl QspTriggerState {
 /// snapshot) without ambiguity.
 const QS2S_SNAPSHOT_MAGIC: &[u8; 4] = b"QS2S";
 
+/// NA-0626 (Operator Decision 1): how a session-blob plaintext fails to split. A pre-v3 layout
+/// (legacy raw-QS2S v1 plaintext, or the pre-SCKA v2 trigger+snapshot layout) necessarily
+/// carries a pre-v3 QS2S section, which `restore_bytes` no longer accepts — those stored
+/// sessions are UNRECOVERABLE by design (no migration; the session must be re-established),
+/// distinct from a merely malformed blob.
+#[derive(Debug, PartialEq, Eq)]
+enum QspPlaintextError {
+    UnrecoverableLegacy,
+    Malformed,
+}
+
 /// Split a decrypted session-blob plaintext into (trigger, SCKA state, raw QS2S snapshot).
-/// v3 = magic + trigger + scka_len(u32 LE) + scka + snapshot; v2 = magic + trigger + snapshot
-/// (empty SCKA); legacy v1 = the raw snapshot (defaults). Fail-closed on a malformed v3 SCKA
-/// section.
-fn qsp_split_plaintext(pt: &[u8]) -> Result<(QspTriggerState, SckaLocalState, &[u8]), ()> {
+/// v3 = magic + trigger + scka_len(u32 LE) + scka + snapshot is the ONLY accepted layout
+/// (NA-0626: the v2 trigger+raw-snapshot and legacy v1 raw-snapshot migration branches are
+/// REMOVED — they necessarily carry a pre-v3 QS2S section and are unrecoverable). Fail-closed
+/// on a malformed v3 SCKA section.
+fn qsp_split_plaintext(
+    pt: &[u8],
+) -> Result<(QspTriggerState, SckaLocalState, &[u8]), QspPlaintextError> {
     let hdr = QSP_TRIGGER_MAGIC.len() + QSP_TRIGGER_LEN;
     if pt.len() >= hdr && &pt[..QSP_TRIGGER_MAGIC.len()] == QSP_TRIGGER_MAGIC {
         let mut t = [0u8; QSP_TRIGGER_LEN];
@@ -645,20 +659,22 @@ fn qsp_split_plaintext(pt: &[u8]) -> Result<(QspTriggerState, SckaLocalState, &[
         let trig = QspTriggerState::decode(&t);
         let rest = &pt[hdr..];
         if rest.starts_with(QS2S_SNAPSHOT_MAGIC) {
-            // v2: no SCKA section (a QS2S snapshot follows the trigger directly).
-            return Ok((trig, SckaLocalState::default(), rest));
+            // Pre-SCKA v2 layout (a QS2S snapshot follows the trigger directly): unrecoverable.
+            return Err(QspPlaintextError::UnrecoverableLegacy);
         }
         if rest.len() < 4 {
-            return Err(());
+            return Err(QspPlaintextError::Malformed);
         }
         let scka_len = u32::from_le_bytes([rest[0], rest[1], rest[2], rest[3]]) as usize;
         if scka_len > QSP_SCKA_SECTION_MAX || 4 + scka_len > rest.len() {
-            return Err(());
+            return Err(QspPlaintextError::Malformed);
         }
-        let scka = SckaLocalState::decode(&rest[4..4 + scka_len])?;
+        let scka = SckaLocalState::decode(&rest[4..4 + scka_len])
+            .map_err(|()| QspPlaintextError::Malformed)?;
         Ok((trig, scka, &rest[4 + scka_len..]))
     } else {
-        Ok((QspTriggerState::default(), SckaLocalState::default(), pt))
+        // Legacy v1 layout (a raw QS2S snapshot with no trigger/SCKA prefix): unrecoverable.
+        Err(QspPlaintextError::UnrecoverableLegacy)
     }
 }
 
@@ -696,7 +712,7 @@ pub(crate) fn qsp_trigger_load(peer: &str) -> QspTriggerState {
     match qsp_session_decrypt_blob(peer, &blob) {
         Ok(pt) => match qsp_split_plaintext(&pt) {
             Ok((trig, _, _)) => trig,
-            Err(()) => QspTriggerState::default(),
+            Err(_) => QspTriggerState::default(),
         },
         Err(_) => QspTriggerState::default(),
     }
@@ -722,7 +738,7 @@ pub(crate) fn qsp_scka_load(peer: &str) -> SckaLocalState {
     match qsp_session_decrypt_blob(peer, &blob) {
         Ok(pt) => match qsp_split_plaintext(&pt) {
             Ok((_, scka, _)) => scka,
-            Err(()) => SckaLocalState::default(),
+            Err(_) => SckaLocalState::default(),
         },
         Err(_) => SckaLocalState::default(),
     }
@@ -850,15 +866,28 @@ fn qsp_session_load_encrypted(
             return Err(ErrorCode::ParseFailed);
         }
     };
-    // Strip the v3/v2 trigger + SCKA prefix; a legacy raw-snapshot plaintext is returned
-    // unchanged (defaults). The trigger/SCKA state are read via qsp_trigger_load/qsp_scka_load.
-    let has_magic = plaintext.starts_with(QSP_TRIGGER_MAGIC);
-    let (_trig, scka, snapshot) = qsp_split_plaintext(&plaintext).map_err(|_| {
-        emit_marker("error", Some("session_decrypt_failed"), &[]);
+    // Strip the v3 trigger + SCKA prefix. NA-0626 (Operator Decision 1): a pre-v3 blob layout
+    // or a pre-v3 QS2S section is UNRECOVERABLE — a DISTINCT deterministic marker fires, the
+    // stored blob is never mutated, and the session must be re-established (no migration; a v2
+    // snapshot whose two root copies diverged cannot be soundly collapsed to the single root).
+    let (_trig, scka, snapshot) = qsp_split_plaintext(&plaintext).map_err(|e| {
+        let code = match e {
+            QspPlaintextError::UnrecoverableLegacy => "session_unsupported_version",
+            QspPlaintextError::Malformed => "session_decrypt_failed",
+        };
+        emit_marker("error", Some(code), &[]);
         ErrorCode::ParseFailed
     })?;
     let st = Suite2SessionState::restore_bytes(snapshot).map_err(|_| {
-        emit_marker("error", Some("session_decrypt_failed"), &[]);
+        // Valid magic + non-v3 version = the unrecoverable class; anything else is generic.
+        let code =
+            if snapshot.len() >= 5 && snapshot.starts_with(QS2S_SNAPSHOT_MAGIC) && snapshot[4] != 3
+            {
+                "session_unsupported_version"
+            } else {
+                "session_decrypt_failed"
+            };
+        emit_marker("error", Some(code), &[]);
         ErrorCode::ParseFailed
     })?;
     // NA-0624 G2: SCKA monotonicity rollback guard — a session blob whose SCKA counters or
@@ -878,72 +907,8 @@ fn qsp_session_load_encrypted(
             }
         }
     }
-    let format = if has_magic {
-        let hdr = QSP_TRIGGER_MAGIC.len() + QSP_TRIGGER_LEN;
-        if plaintext[hdr..].starts_with(QS2S_SNAPSHOT_MAGIC) {
-            "v2"
-        } else {
-            "v3"
-        }
-    } else {
-        "v1"
-    };
-    emit_marker("session_load", None, &[("ok", "true"), ("format", format)]);
+    emit_marker("session_load", None, &[("ok", "true"), ("format", "v3")]);
     Ok(st)
-}
-
-fn qsp_session_migrate_legacy(
-    peer: &str,
-    source: ConfigSource,
-    legacy_path: &Path,
-    blob_path: &Path,
-) -> Result<Option<Suite2SessionState>, ErrorCode> {
-    enforce_safe_parents(legacy_path, source)?;
-    let legacy = fs::read(legacy_path).map_err(|_| ErrorCode::IoReadFailed)?;
-    if legacy == QSP_SESSION_LEGACY_TOMBSTONE {
-        emit_marker(
-            "session_migrate",
-            None,
-            &[
-                ("ok", "true"),
-                ("action", "skipped"),
-                ("reason", "already_migrated"),
-            ],
-        );
-        return Ok(None);
-    }
-    let st = Suite2SessionState::restore_bytes(&legacy).map_err(|_| ErrorCode::ParseFailed)?;
-    let blob = match qsp_session_encrypt_blob(peer, &legacy) {
-        Ok(v) => v,
-        Err(ErrorCode::IdentitySecretUnavailable) => {
-            emit_marker(
-                "session_migrate",
-                Some("migration_blocked"),
-                &[
-                    ("ok", "false"),
-                    ("action", "skipped"),
-                    ("reason", "vault_unavailable"),
-                ],
-            );
-            return Err(ErrorCode::IdentitySecretUnavailable);
-        }
-        Err(e) => return Err(e),
-    };
-    write_atomic(blob_path, &blob, source)?;
-    if let Err(e) = write_atomic(legacy_path, QSP_SESSION_LEGACY_TOMBSTONE, source) {
-        let _ = fs::remove_file(blob_path);
-        return Err(e);
-    }
-    emit_marker(
-        "session_migrate",
-        None,
-        &[
-            ("ok", "true"),
-            ("action", "imported"),
-            ("reason", "legacy_plaintext"),
-        ],
-    );
-    Ok(Some(st))
 }
 
 pub(crate) fn qsp_session_load(peer: &str) -> Result<Option<Suite2SessionState>, ErrorCode> {
@@ -955,9 +920,14 @@ pub(crate) fn qsp_session_load(peer: &str) -> Result<Option<Suite2SessionState>,
     if blob_path.exists() {
         return qsp_session_load_encrypted(peer, source, &blob_path).map(Some);
     }
+    // NA-0626 (Operator Decision 1): the legacy plaintext-session migration branch is REMOVED —
+    // a legacy plaintext file necessarily holds a pre-v3 QS2S snapshot, which is unrecoverable
+    // by design. Distinct deterministic marker; the file is left untouched; the session must be
+    // re-established.
     let legacy_path = qsp_session_path(&dir, peer);
     if legacy_path.exists() {
-        return qsp_session_migrate_legacy(peer, source, &legacy_path, &blob_path);
+        emit_marker("error", Some("session_unsupported_version"), &[]);
+        return Err(ErrorCode::ParseFailed);
     }
     Ok(None)
 }
@@ -1081,7 +1051,6 @@ pub(crate) fn qsp_session_for_channel(channel: &str) -> Result<Suite2SessionStat
         suite_id: SUITE2_SUITE_ID,
         dh_pub,
         hk_r: hk,
-        rk,
         ck_ec,
         ck_pq_send: ck_pq,
         ck_pq_recv: ck_pq,
@@ -1097,9 +1066,8 @@ pub(crate) fn qsp_session_for_channel(channel: &str) -> Result<Suite2SessionStat
         dhs_priv: dh_priv,
         dhs_pub: dh_pub,
         dhr: dh_pub,
-        rk,
     };
-    Ok(Suite2SessionState { send, recv, dh })
+    Ok(Suite2SessionState { rk, send, recv, dh })
 }
 
 // NA-0624 (ENG-0012 Stage 2b): co-located tests for the v3 SCKA persistence layer — the
@@ -1183,7 +1151,7 @@ mod scka_tests {
     }
 
     #[test]
-    fn v3_plaintext_join_split_roundtrips_and_reads_legacy() {
+    fn v3_plaintext_join_split_roundtrips() {
         let trig = QspTriggerState {
             pending_send_ratchet: true,
             msgs_since_ratchet: 9,
@@ -1203,24 +1171,54 @@ mod scka_tests {
         let (_, s0, snap0) = qsp_split_plaintext(&pt0).expect("split v3 empty");
         assert!(s0.is_default());
         assert_eq!(snap0, snapshot.as_slice());
-        // Legacy v2 (no SCKA section) splits with a default SCKA state.
+        // A malformed v3 SCKA section fails closed (Malformed, not the legacy class).
+        let mut bad = qsp_join_plaintext(&trig, &scka, &snapshot);
+        bad.truncate(30);
+        assert_eq!(
+            qsp_split_plaintext(&bad).err(),
+            Some(QspPlaintextError::Malformed)
+        );
+    }
+
+    // NA-0626 (Operator Decision 1): one test per REMOVED legacy-migration branch. A pre-v3
+    // blob layout necessarily carries a pre-v3 QS2S section (which restore_bytes no longer
+    // accepts) and is UNRECOVERABLE by design — distinct from a merely malformed blob, and
+    // deterministic.
+    #[test]
+    fn v2_plaintext_layout_is_unrecoverable() {
+        let trig = QspTriggerState {
+            pending_send_ratchet: true,
+            msgs_since_ratchet: 9,
+            last_ratchet_unix_secs: 42,
+        };
+        // The removed v2 branch: trigger + raw QS2S snapshot, no SCKA section.
         let mut v2 = Vec::new();
         v2.extend_from_slice(QSP_TRIGGER_MAGIC);
         v2.extend_from_slice(&trig.encode());
-        v2.extend_from_slice(&snapshot);
-        let (t2, s2, snap2) = qsp_split_plaintext(&v2).expect("split v2");
-        assert_eq!(t2, trig);
-        assert!(s2.is_default());
-        assert_eq!(snap2, snapshot.as_slice());
-        // Legacy v1 (raw snapshot) splits with defaults.
-        let (t1, s1, snap1) = qsp_split_plaintext(&snapshot).expect("split v1");
-        assert_eq!(t1, QspTriggerState::default());
-        assert!(s1.is_default());
-        assert_eq!(snap1, snapshot.as_slice());
-        // A malformed v3 SCKA section fails closed.
-        let mut bad = qsp_join_plaintext(&trig, &scka, &snapshot);
-        bad.truncate(30);
-        assert!(qsp_split_plaintext(&bad).is_err());
+        v2.extend_from_slice(b"QS2Sfake-snapshot-bytes");
+        let before = v2.clone();
+        assert_eq!(
+            qsp_split_plaintext(&v2).err(),
+            Some(QspPlaintextError::UnrecoverableLegacy)
+        );
+        assert_eq!(
+            qsp_split_plaintext(&v2).err(),
+            Some(QspPlaintextError::UnrecoverableLegacy),
+            "deterministic"
+        );
+        assert_eq!(before, v2, "the input is never mutated");
+    }
+
+    #[test]
+    fn v1_raw_snapshot_plaintext_is_unrecoverable() {
+        // The removed v1 branch: a raw QS2S snapshot with no trigger/SCKA prefix.
+        let v1 = b"QS2Sfake-snapshot-bytes".to_vec();
+        let before = v1.clone();
+        assert_eq!(
+            qsp_split_plaintext(&v1).err(),
+            Some(QspPlaintextError::UnrecoverableLegacy)
+        );
+        assert_eq!(before, v1, "the input is never mutated");
     }
 
     fn recv_state_with(peer_max: u32, tombs: &[u32]) -> Suite2RecvWireState {
@@ -1230,7 +1228,6 @@ mod scka_tests {
             suite_id: SUITE2_SUITE_ID,
             dh_pub: [0u8; 32],
             hk_r: [0u8; 32],
-            rk: [0u8; 32],
             ck_ec: [0u8; 32],
             ck_pq_send: [0u8; 32],
             ck_pq_recv: [0u8; 32],

@@ -25,10 +25,14 @@ impl std::error::Error for Suite2StateError {}
 
 #[derive(Clone)]
 pub struct Suite2SessionState {
+    /// NA-0626 (ENG-0024): THE session root (DOC-CAN-003 §8.1) — the only copy. Every root
+    /// read/advance (DH ratchet, PQ reseed, combined boundary, ADVAUTH) goes through this slot;
+    /// the wire-level ops take/return it explicitly. The former duplicated slots (`recv.rk`,
+    /// `dh.rk`) are removed, so their coherence can no longer be a caller obligation.
+    pub rk: [u8; 32],
     pub send: Suite2SendState,
     pub recv: Suite2RecvWireState,
-    /// NA-0620 (ENG-0012 Stage 1a): DH-ratchet state (plumbing; not read by the message path
-    /// until Stage 1b).
+    /// NA-0620 (ENG-0012 Stage 1a): DH-ratchet key material (dhs_priv/dhs_pub/dhr).
     pub dh: Suite2DhRatchetState,
 }
 
@@ -66,7 +70,10 @@ impl Suite2SessionState {
 
         let mut out = Vec::new();
         out.extend_from_slice(b"QS2S");
-        push_u8(&mut out, 2); // version (NA-0620: v2 appends the DH-ratchet state)
+        push_u8(&mut out, 3); // version (NA-0626: v3 = single session root, serialized first)
+
+        // NA-0626 (ENG-0024): the session root — the only copy, leading the layout.
+        push_arr32(&mut out, &self.rk);
 
         // Send state
         push_arr16(&mut out, &self.send.session_id);
@@ -79,13 +86,12 @@ impl Suite2SessionState {
         push_u32(&mut out, self.send.ns);
         push_u32(&mut out, self.send.pn);
 
-        // Recv state
+        // Recv state (v2 minus its embedded root copy)
         push_arr16(&mut out, &self.recv.session_id);
         push_u16(&mut out, self.recv.protocol_version);
         push_u16(&mut out, self.recv.suite_id);
         push_arr32(&mut out, &self.recv.dh_pub);
         push_arr32(&mut out, &self.recv.hk_r);
-        push_arr32(&mut out, &self.recv.rk);
         push_arr32(&mut out, &self.recv.ck_ec);
         push_arr32(&mut out, &self.recv.ck_pq_send);
         push_arr32(&mut out, &self.recv.ck_pq_recv);
@@ -103,11 +109,10 @@ impl Suite2SessionState {
             push_arr32(&mut out, &entry.mk);
         }
 
-        // NA-0620 (Stage 1a): DH-ratchet state (v2).
+        // DH-ratchet key material (v2 minus its embedded root copy).
         push_arr32(&mut out, &self.dh.dhs_priv);
         push_arr32(&mut out, &self.dh.dhs_pub);
         push_arr32(&mut out, &self.dh.dhr);
-        push_arr32(&mut out, &self.dh.rk);
 
         out
     }
@@ -160,10 +165,19 @@ impl Suite2SessionState {
             return Err(invalid());
         }
         let ver = c.u8()?;
-        if ver != 2 {
-            // NA-0620: v2 is the only accepted format (pre-release; no legacy v1 restore).
-            return Err(invalid());
+        if ver != 3 {
+            // NA-0626 (Operator Decision 1): v3 is the ONLY accepted format. Any other version
+            // with a valid magic (v1, v2, a future version) fails closed with a DISTINCT static
+            // marker — no migration (PROJECT_CHARTER: eliminate, do not carry legacy; a v2
+            // snapshot whose two root copies have diverged is not soundly migratable). Pure and
+            // deterministic; the input bytes are never mutated.
+            return Err(Suite2StateError::Invalid(
+                "unsupported suite2 snapshot version",
+            ));
         }
+
+        // NA-0626 (ENG-0024): the session root leads the v3 layout.
+        let rk = c.arr32()?;
 
         let send = Suite2SendState {
             session_id: c.arr16()?,
@@ -183,7 +197,6 @@ impl Suite2SessionState {
             suite_id: c.u16()?,
             dh_pub: c.arr32()?,
             hk_r: c.arr32()?,
-            rk: c.arr32()?,
             ck_ec: c.arr32()?,
             ck_pq_send: c.arr32()?,
             ck_pq_recv: c.arr32()?,
@@ -253,19 +266,18 @@ impl Suite2SessionState {
             recv.mkskipped.push(MkSkippedEntry { dh_pub, n, mk });
         }
 
-        // NA-0620 (Stage 1a): DH-ratchet state (v2).
+        // DH-ratchet key material (v3: no embedded root copy).
         let dh = Suite2DhRatchetState {
             dhs_priv: c.arr32()?,
             dhs_pub: c.arr32()?,
             dhr: c.arr32()?,
-            rk: c.arr32()?,
         };
 
         if c.i != bytes.len() {
             return Err(invalid());
         }
 
-        Ok(Suite2SessionState { send, recv, dh })
+        Ok(Suite2SessionState { rk, send, recv, dh })
     }
 }
 
@@ -294,7 +306,6 @@ mod tests {
             suite_id: 2,
             dh_pub: [0x22; 32],
             hk_r: [0x33; 32],
-            rk: [0x44; 32],
             ck_ec: [0x55; 32],
             ck_pq_send: [0x66; 32],
             ck_pq_recv: [0x77; 32],
@@ -310,9 +321,13 @@ mod tests {
             dhs_priv: [0x88; 32],
             dhs_pub: [0x99; 32],
             dhr: [0xaa; 32],
-            rk: [0xbb; 32],
         };
-        Suite2SessionState { send, recv, dh }
+        Suite2SessionState {
+            rk: [0x44; 32],
+            send,
+            recv,
+            dh,
+        }
     }
 
     fn length_offsets(bytes: &[u8]) -> (usize, usize, usize, usize) {
@@ -357,6 +372,7 @@ mod tests {
         let mut c = Cur { b: bytes, i: 0 };
         let _ = c.take(4).expect("magic");
         let _ = c.u8().expect("version");
+        let _ = c.arr32().expect("rk"); // NA-0626: the v3 leading session root
         let _ = c.arr16().expect("session_id");
         let _ = c.u16().expect("protocol_version");
         let _ = c.u16().expect("suite_id");
@@ -372,7 +388,6 @@ mod tests {
         let _ = c.u16().expect("suite_id");
         let _ = c.arr32().expect("dh_pub");
         let _ = c.arr32().expect("hk_r");
-        let _ = c.arr32().expect("rk");
         let _ = c.arr32().expect("ck_ec");
         let _ = c.arr32().expect("ck_pq_send");
         let _ = c.arr32().expect("ck_pq_recv");
@@ -522,17 +537,21 @@ mod tests {
         assert_eq!(before_replay, restored.snapshot_bytes());
     }
 
-    // NA-0620 (ENG-0012 Stage 1a): the DH-ratchet state round-trips through snapshot/restore.
+    // NA-0620 (ENG-0012 Stage 1a) / NA-0626 (v3): the DH-ratchet key material and the single
+    // session root round-trip through snapshot/restore.
     #[test]
     fn snapshot_roundtrip_preserves_dh_ratchet_state() {
         let st = sample_state();
         let restored =
-            Suite2SessionState::restore_bytes(&st.snapshot_bytes()).expect("restore v2 snapshot");
+            Suite2SessionState::restore_bytes(&st.snapshot_bytes()).expect("restore v3 snapshot");
         assert_eq!(restored.dh, st.dh);
         assert_eq!(restored.dh.dhs_priv, [0x88; 32]);
         assert_eq!(restored.dh.dhs_pub, [0x99; 32]);
         assert_eq!(restored.dh.dhr, [0xaa; 32]);
-        assert_eq!(restored.dh.rk, [0xbb; 32]);
+        assert_eq!(
+            restored.rk, [0x44; 32],
+            "the single session root round-trips"
+        );
         assert_eq!(
             restored.snapshot_bytes(),
             st.snapshot_bytes(),
@@ -540,16 +559,48 @@ mod tests {
         );
     }
 
-    // NA-0620: the pre-release snapshot format is v2 only; a legacy v1 (or any other) version
-    // fails closed (eliminate legacy per the PROJECT_CHARTER design tenet).
+    // NA-0620 / NA-0626 (Operator Decision 1): the pre-release snapshot format is v3 only; any
+    // other version with a valid magic fails closed with the DISTINCT static version marker —
+    // deterministically, with no migration and no input mutation (eliminate legacy per the
+    // PROJECT_CHARTER design tenet; diverged v2 roots are not soundly migratable).
     #[test]
-    fn restore_rejects_non_v2_version() {
+    fn restore_rejects_non_v3_version() {
         let mut bytes = sample_state().snapshot_bytes();
         assert_eq!(&bytes[0..4], b"QS2S");
-        assert_eq!(bytes[4], 2, "current snapshot version is 2");
-        bytes[4] = 1; // legacy v1
-        assert!(Suite2SessionState::restore_bytes(&bytes).is_err());
-        bytes[4] = 3; // unknown future version
-        assert!(Suite2SessionState::restore_bytes(&bytes).is_err());
+        assert_eq!(bytes[4], 3, "current snapshot version is 3");
+
+        for bad_version in [1u8, 2u8, 4u8] {
+            bytes[4] = bad_version;
+            let before = bytes.clone();
+            let err1 = Suite2SessionState::restore_bytes(&bytes)
+                .err()
+                .expect("non-v3 version must fail closed");
+            let err2 = Suite2SessionState::restore_bytes(&bytes)
+                .err()
+                .expect("non-v3 version must fail closed");
+            assert_eq!(
+                format!("{}", err1),
+                "unsupported suite2 snapshot version",
+                "the version reject carries the DISTINCT marker (v{})",
+                bad_version
+            );
+            assert_eq!(format!("{}", err1), format!("{}", err2), "deterministic");
+            assert_eq!(before, bytes, "the input bytes are never mutated");
+        }
+
+        // A synthesized v2 header in particular (the migration-refusal case): distinct marker,
+        // NOT the generic parse reject.
+        bytes[4] = 2;
+        let err = Suite2SessionState::restore_bytes(&bytes)
+            .err()
+            .expect("v2 must fail closed");
+        assert_ne!(format!("{}", err), "bad suite2 snapshot");
+        // Magic mismatch keeps the generic marker (unchanged).
+        let mut bad_magic = sample_state().snapshot_bytes();
+        bad_magic[0] = b'X';
+        let err = Suite2SessionState::restore_bytes(&bad_magic)
+            .err()
+            .expect("bad magic must fail closed");
+        assert_eq!(format!("{}", err), "bad suite2 snapshot");
     }
 }

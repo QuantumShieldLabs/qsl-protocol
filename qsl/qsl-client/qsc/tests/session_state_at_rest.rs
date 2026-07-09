@@ -78,7 +78,6 @@ fn seeded_session_state(seed: u64, peer: &str) -> Suite2SessionState {
         suite_id: SUITE2_SUITE_ID,
         dh_pub,
         hk_r: hk,
-        rk,
         ck_ec,
         ck_pq_send: ck_pq,
         ck_pq_recv: ck_pq,
@@ -94,9 +93,8 @@ fn seeded_session_state(seed: u64, peer: &str) -> Suite2SessionState {
         dhs_priv: dh_priv,
         dhs_pub: dh_pub,
         dhr: dh_pub,
-        rk,
     };
-    Suite2SessionState { send, recv, dh }
+    Suite2SessionState { rk, send, recv, dh }
 }
 
 fn run_status(cfg: &Path) -> String {
@@ -218,6 +216,35 @@ fn session_not_plaintext_on_disk() {
     }
 }
 
+/// Create an encrypted v3 session blob for peer-0 by driving a real send (the seed-fallback
+/// session is established and persisted by the message path). NA-0626: the legacy plaintext
+/// migration no longer exists, so this is the only blob-creation path.
+fn create_session_blob_via_send(base: &Path, cfg: &Path) {
+    let relay = common::start_inbox_server(1024 * 1024, 32);
+    let payload = base.join("payload.txt");
+    fs::write(&payload, b"fixture-material-42").unwrap();
+    let out = common::qsc_std_command()
+        .env("QSC_CONFIG_DIR", cfg)
+        .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
+        .env("QSC_MARK_FORMAT", "plain")
+        .args([
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            relay.base_url(),
+            "--to",
+            "peer-0",
+            "--file",
+            payload.to_str().unwrap(),
+        ])
+        .output()
+        .expect("send");
+    assert!(out.status.success());
+}
+
 #[test]
 fn tamper_session_blob_rejects_no_mutation() {
     let base = safe_test_root().join(format!("na0109_tamper_{}", std::process::id()));
@@ -227,11 +254,7 @@ fn tamper_session_blob_rejects_no_mutation() {
     ensure_dir_700(&cfg);
     common::init_mock_vault(&cfg);
     ensure_peer0_route_token(&cfg);
-    write_legacy_session(&cfg, "peer-0", 9);
-
-    let first = run_status(&cfg);
-    assert!(first.contains("event=session_migrate ok=true action=imported"));
-    assert!(first.contains("event=qsp_status status=ACTIVE reason=handshake"));
+    create_session_blob_via_send(&base, &cfg);
 
     let blob = cfg.join("qsp_sessions").join("peer-0.qsv");
     assert!(blob.exists());
@@ -247,9 +270,13 @@ fn tamper_session_blob_rejects_no_mutation() {
     assert_eq!(tampered, after, "tampered blob should remain unchanged");
 }
 
+/// NA-0626 (Operator Decision 1): the legacy plaintext-session migration branch is REMOVED — a
+/// legacy plaintext file necessarily holds a pre-v3 QS2S snapshot, which is UNRECOVERABLE. The
+/// load fails with the DISTINCT deterministic marker, NOTHING on disk is mutated (no blob
+/// appears, the legacy file is byte-unchanged), and the session must be re-established.
 #[test]
-fn migration_idempotent() {
-    let base = safe_test_root().join(format!("na0109_migrate_idem_{}", std::process::id()));
+fn legacy_plaintext_session_is_unrecoverable_no_mutation() {
+    let base = safe_test_root().join(format!("na0626_legacy_unrec_{}", std::process::id()));
     let _ = fs::remove_dir_all(&base);
     ensure_dir_700(&base);
     let cfg = base.join("cfg");
@@ -257,39 +284,29 @@ fn migration_idempotent() {
     common::init_mock_vault(&cfg);
     write_legacy_session(&cfg, "peer-0", 11);
 
-    let out1 = run_status(&cfg);
-    assert!(out1.contains("event=session_migrate ok=true action=imported"));
-    let blob = cfg.join("qsp_sessions").join("peer-0.qsv");
-    let legacy = cfg.join("qsp_sessions").join("peer-0.bin");
-    let blob_after_first = fs::read(&blob).unwrap();
-    let legacy_after_first = fs::read(&legacy).unwrap();
-    assert_eq!(legacy_after_first, b"QSC_SESSION_MIGRATED_V1\n");
-
-    let out2 = run_status(&cfg);
-    assert!(out2.contains("event=session_load ok=true format=v1"));
-    let blob_after_second = fs::read(&blob).unwrap();
-    let legacy_after_second = fs::read(&legacy).unwrap();
-    assert_eq!(blob_after_first, blob_after_second);
-    assert_eq!(legacy_after_first, legacy_after_second);
-}
-
-#[test]
-fn migration_blocked_without_vault_no_mutation() {
-    let base = safe_test_root().join(format!("na0109_migrate_blocked_{}", std::process::id()));
-    let _ = fs::remove_dir_all(&base);
-    ensure_dir_700(&base);
-    let cfg = base.join("cfg");
-    ensure_dir_700(&cfg);
-    write_legacy_session(&cfg, "peer-0", 13);
-
     let legacy = cfg.join("qsp_sessions").join("peer-0.bin");
     let before = fs::read(&legacy).unwrap();
-    let out = run_status_plain(&cfg);
-    assert!(out.contains("event=session_migrate code=migration_blocked ok=false action=skipped reason=vault_unavailable"));
-    assert!(out.contains("event=qsp_status status=INACTIVE reason=session_invalid"));
-    let after = fs::read(&legacy).unwrap();
-    assert_eq!(before, after, "legacy session should remain unchanged");
-    assert!(!cfg.join("qsp_sessions").join("peer-0.qsv").exists());
+    let out1 = run_status_plain(&cfg);
+    assert!(
+        out1.contains("event=error code=session_unsupported_version"),
+        "distinct unrecoverable marker expected: {out1}"
+    );
+    assert!(out1.contains("event=qsp_status status=INACTIVE reason=session_invalid"));
+    assert!(
+        !cfg.join("qsp_sessions").join("peer-0.qsv").exists(),
+        "no blob may be created from an unrecoverable legacy session"
+    );
+    let after_first = fs::read(&legacy).unwrap();
+    assert_eq!(
+        before, after_first,
+        "legacy file must remain byte-unchanged"
+    );
+
+    // Deterministic on repeat, still no mutation.
+    let out2 = run_status_plain(&cfg);
+    assert!(out2.contains("event=error code=session_unsupported_version"));
+    let after_second = fs::read(&legacy).unwrap();
+    assert_eq!(before, after_second);
 }
 
 #[test]

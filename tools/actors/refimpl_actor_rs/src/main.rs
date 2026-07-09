@@ -390,9 +390,11 @@ fn parse_suite2_send_state(
     })
 }
 
+/// NA-0626 (ENG-0024): the VECTOR-FACING schema keeps `recv_state.rk` (byte-stable inputs); it
+/// now maps to the explicit root beside the wire-level state rather than a field inside it.
 fn parse_suite2_recv_state(
     v: &serde_json::Value,
-) -> Result<suite2_ratchet::Suite2RecvWireState, ActorError> {
+) -> Result<(suite2_ratchet::Suite2RecvWireState, [u8; 32]), ActorError> {
     let obj = v
         .as_object()
         .ok_or_else(|| ActorError::Invalid("params.recv_state: expected object".into()))?;
@@ -538,24 +540,26 @@ fn parse_suite2_recv_state(
         });
     }
 
-    Ok(suite2_ratchet::Suite2RecvWireState {
-        session_id: session_id_arr,
-        protocol_version: suite2_types::SUITE2_PROTOCOL_VERSION,
-        suite_id: suite2_types::SUITE2_SUITE_ID,
-        dh_pub: dh_pub_arr,
-        hk_r: hk_r_arr,
-        rk: rk_arr,
-        ck_ec: ck_ec_arr,
-        ck_pq_send: ck_pq_send_arr,
-        ck_pq_recv: ck_pq_recv_arr,
-        nr,
-        role_is_a,
-        peer_max_adv_id_seen,
-        known_targets,
-        consumed_targets,
-        tombstoned_targets,
-        mkskipped,
-    })
+    Ok((
+        suite2_ratchet::Suite2RecvWireState {
+            session_id: session_id_arr,
+            protocol_version: suite2_types::SUITE2_PROTOCOL_VERSION,
+            suite_id: suite2_types::SUITE2_SUITE_ID,
+            dh_pub: dh_pub_arr,
+            hk_r: hk_r_arr,
+            ck_ec: ck_ec_arr,
+            ck_pq_send: ck_pq_send_arr,
+            ck_pq_recv: ck_pq_recv_arr,
+            nr,
+            role_is_a,
+            peer_max_adv_id_seen,
+            known_targets,
+            consumed_targets,
+            tombstoned_targets,
+            mkskipped,
+        },
+        rk_arr,
+    ))
 }
 
 fn jhex(b: &[u8]) -> serde_json::Value {
@@ -2932,13 +2936,13 @@ impl Actor {
                     None
                 };
 
-                let recv_state = if req.params.get("recv_state").is_some() {
+                let (recv_state, recv_rk) = if req.params.get("recv_state").is_some() {
                     let state_v = get_json_data(&req.params, "recv_state")?;
                     parse_suite2_recv_state(&state_v)?
                 } else if let Some(sid) = session_id_arr_opt {
                     self.suite2_sessions
                         .get(&sid)
-                        .map(|e| e.recv.clone())
+                        .map(|e| (e.recv.clone(), e.rk))
                         .ok_or_else(|| ActorError::Invalid("params.recv_state missing".into()))?
                 } else {
                     return Err(ActorError::Invalid("params.recv_state missing".into()));
@@ -3008,6 +3012,7 @@ impl Actor {
                     &self.std,
                     &self.std,
                     recv_state,
+                    &recv_rk,
                     &wire,
                     pq_epoch_ss.as_deref(),
                     peer_adv_id,
@@ -3034,6 +3039,7 @@ impl Actor {
                     self.suite2_sessions.insert(
                         sid,
                         suite2_state::Suite2SessionState {
+                            rk: out.rk,
                             send: send_state,
                             recv: out.state.clone(),
                             // NA-0620 (Stage 1a): DH-ratchet state plumbing; the actor does not
@@ -3067,7 +3073,7 @@ impl Actor {
                         "session_id": to_hex(&out.state.session_id),
                         "dh_pub": to_hex(&out.state.dh_pub),
                         "hk_r": to_hex(&out.state.hk_r),
-                        "rk": to_hex(&out.state.rk),
+                        "rk": to_hex(&out.rk),
                         "ck_ec": to_hex(&out.state.ck_ec),
                         "ck_pq_send": to_hex(&out.state.ck_pq_send),
                         "ck_pq_recv": to_hex(&out.state.ck_pq_recv),
@@ -3127,7 +3133,9 @@ impl Actor {
                         let recv_v = get_json_data(&req.params, "recv_state")?;
                         Some(parse_suite2_recv_state(&recv_v)?)
                     } else {
-                        self.suite2_sessions.get(&sid).map(|e| e.recv.clone())
+                        self.suite2_sessions
+                            .get(&sid)
+                            .map(|e| (e.recv.clone(), e.rk))
                     }
                 } else {
                     None
@@ -3147,7 +3155,7 @@ impl Actor {
                 .map_err(|e| ActorError::Invalid(format!("reject: {e}")))?;
 
                 if let Some(sid) = session_id_arr_opt {
-                    let recv_state = recv_state_for_store.ok_or_else(|| {
+                    let (recv_state, recv_rk) = recv_state_for_store.ok_or_else(|| {
                         ActorError::Invalid(
                             "params.recv_state missing for new suite2 session".into(),
                         )
@@ -3155,6 +3163,7 @@ impl Actor {
                     self.suite2_sessions.insert(
                         sid,
                         suite2_state::Suite2SessionState {
+                            rk: recv_rk,
                             send: out.state.clone(),
                             recv: recv_state,
                             // NA-0620 (Stage 1a): DH-ratchet state plumbing; the actor does not
@@ -3186,18 +3195,19 @@ impl Actor {
             // SCKA send functions (advertisement + PQ reseed). The advertised-key store / ML-KEM
             // KeyGen+Encap are caller-side (DOC-CAN-004 §2/§3): the vector supplies the advertised
             // public key / the ciphertext + shared secret. The DH-ratchet slot is left default
-            // (the reseed reads the recv-side root when `dh.rk` is unset), matching the actor's
-            // non-DH e2e plumbing.
+            // (the actor does not ratchet); the vector's `recv_state.rk` populates the single
+            // session root (NA-0626 ENG-0024).
             "suite2.send_pq_advertise" => {
                 let send_v = get_json_data(&req.params, "send_state")?;
                 let recv_v = get_json_data(&req.params, "recv_state")?;
                 let send_state = parse_suite2_send_state(&send_v)?;
-                let recv_state = parse_suite2_recv_state(&recv_v)?;
+                let (recv_state, recv_rk) = parse_suite2_recv_state(&recv_v)?;
                 let pq_adv_id = get_u32(&req.params, "pq_adv_id")?;
                 let pq_adv_pub = get_bytes(&req.params, "pq_adv_pub")?;
                 let plaintext = get_bytes(&req.params, "plaintext_hex")?;
 
                 let st = suite2_state::Suite2SessionState {
+                    rk: recv_rk,
                     send: send_state,
                     recv: recv_state,
                     dh: suite2_ratchet::Suite2DhRatchetState::default(),
@@ -3228,13 +3238,14 @@ impl Actor {
                 let send_v = get_json_data(&req.params, "send_state")?;
                 let recv_v = get_json_data(&req.params, "recv_state")?;
                 let send_state = parse_suite2_send_state(&send_v)?;
-                let recv_state = parse_suite2_recv_state(&recv_v)?;
+                let (recv_state, recv_rk) = parse_suite2_recv_state(&recv_v)?;
                 let pq_target_id = get_u32(&req.params, "pq_target_id")?;
                 let pq_ct = get_bytes(&req.params, "pq_ct")?;
                 let pq_epoch_ss = get_bytes(&req.params, "pq_epoch_ss")?;
                 let plaintext = get_bytes(&req.params, "plaintext_hex")?;
 
                 let st = suite2_state::Suite2SessionState {
+                    rk: recv_rk,
                     send: send_state,
                     recv: recv_state,
                     dh: suite2_ratchet::Suite2DhRatchetState::default(),
@@ -3253,9 +3264,11 @@ impl Actor {
 
                 Ok(serde_json::json!({
                     "wire_hex": { "type": "hex", "data": to_hex(&out.wire) },
+                    // NA-0626 (ENG-0024): `dh_rk` is gone — the duplicated root slot no longer
+                    // exists (its pinned value was a byte-equal copy of `rk`; Decision-5 CHANGED
+                    // scope = exactly this one removed member).
                     "new_state": { "type": "json", "data": {
-                        "rk": to_hex(&out.state.recv.rk),
-                        "dh_rk": to_hex(&out.state.dh.rk),
+                        "rk": to_hex(&out.state.rk),
                         "hk_s": to_hex(&out.state.send.hk_s),
                         "hk_r": to_hex(&out.state.recv.hk_r),
                         "send_ck_ec": to_hex(&out.state.send.ck_ec),
@@ -3263,6 +3276,348 @@ impl Actor {
                         "recv_ck_pq_send": to_hex(&out.state.recv.ck_pq_send),
                         "recv_ck_pq_recv": to_hex(&out.state.recv.ck_pq_recv),
                         "ns": { "u32": out.state.send.ns }
+                    } }
+                }))
+            }
+            // NA-0626 (ENG-0026): combined DH+PQ boundary SEND — drives the pure
+            // `send_combined_boundary` (caller-supplied fresh X25519 keypair, so the wire is
+            // deterministic and vector-pinnable). `dh_state` supplies the sender's DH-ratchet
+            // key material (`dhr` = the peer's current DH public the fresh key agrees against).
+            "suite2.send_combined_boundary" => {
+                let send_v = get_json_data(&req.params, "send_state")?;
+                let recv_v = get_json_data(&req.params, "recv_state")?;
+                let send_state = parse_suite2_send_state(&send_v)?;
+                let (recv_state, recv_rk) = parse_suite2_recv_state(&recv_v)?;
+                let dh_v = get_json_data(&req.params, "dh_state")?;
+                let dhs_priv: [u8; 32] = parse_hex_value(
+                    dh_v.get("dhs_priv").ok_or_else(|| {
+                        ActorError::Invalid("params.dh_state.dhs_priv missing".into())
+                    })?,
+                    "params.dh_state.dhs_priv",
+                )?
+                .as_slice()
+                .try_into()
+                .map_err(|_| {
+                    ActorError::Invalid("params.dh_state.dhs_priv: expected 32 bytes".into())
+                })?;
+                let dhs_pub: [u8; 32] = parse_hex_value(
+                    dh_v.get("dhs_pub").ok_or_else(|| {
+                        ActorError::Invalid("params.dh_state.dhs_pub missing".into())
+                    })?,
+                    "params.dh_state.dhs_pub",
+                )?
+                .as_slice()
+                .try_into()
+                .map_err(|_| {
+                    ActorError::Invalid("params.dh_state.dhs_pub: expected 32 bytes".into())
+                })?;
+                let dhr: [u8; 32] = parse_hex_value(
+                    dh_v.get("dhr")
+                        .ok_or_else(|| ActorError::Invalid("params.dh_state.dhr missing".into()))?,
+                    "params.dh_state.dhr",
+                )?
+                .as_slice()
+                .try_into()
+                .map_err(|_| {
+                    ActorError::Invalid("params.dh_state.dhr: expected 32 bytes".into())
+                })?;
+                let new_dh_priv: [u8; 32] = get_bytes(&req.params, "new_dh_priv")?
+                    .as_slice()
+                    .try_into()
+                    .map_err(|_| {
+                        ActorError::Invalid("params.new_dh_priv: expected 32 bytes".into())
+                    })?;
+                let new_dh_pub: [u8; 32] = get_bytes(&req.params, "new_dh_pub")?
+                    .as_slice()
+                    .try_into()
+                    .map_err(|_| {
+                        ActorError::Invalid("params.new_dh_pub: expected 32 bytes".into())
+                    })?;
+                let pq_target_id = get_u32(&req.params, "pq_target_id")?;
+                let pq_ct = get_bytes(&req.params, "pq_ct")?;
+                let pq_epoch_ss = get_bytes(&req.params, "pq_epoch_ss")?;
+                let plaintext = get_bytes(&req.params, "plaintext_hex")?;
+
+                let st = suite2_state::Suite2SessionState {
+                    rk: recv_rk,
+                    send: send_state,
+                    recv: recv_state,
+                    dh: suite2_ratchet::Suite2DhRatchetState {
+                        dhs_priv,
+                        dhs_pub,
+                        dhr,
+                    },
+                };
+                let out = suite2_ratchet::send_combined_boundary(
+                    &self.std,
+                    &self.std,
+                    &self.std,
+                    &self.std,
+                    st,
+                    &new_dh_priv,
+                    &new_dh_pub,
+                    pq_target_id,
+                    &pq_ct,
+                    &pq_epoch_ss,
+                    &plaintext,
+                )
+                .map_err(|e| ActorError::Invalid(format!("reject: {e}")))?;
+
+                Ok(serde_json::json!({
+                    "wire_hex": { "type": "hex", "data": to_hex(&out.wire) },
+                    "new_state": { "type": "json", "data": {
+                        "rk": to_hex(&out.state.rk),
+                        "dh_pub": to_hex(&out.state.send.dh_pub),
+                        "hk_s": to_hex(&out.state.send.hk_s),
+                        "hk_r": to_hex(&out.state.recv.hk_r),
+                        "send_ck_ec": to_hex(&out.state.send.ck_ec),
+                        "send_ck_pq": to_hex(&out.state.send.ck_pq),
+                        "recv_ck_pq_send": to_hex(&out.state.recv.ck_pq_send),
+                        "recv_ck_pq_recv": to_hex(&out.state.recv.ck_pq_recv),
+                        "ns": { "u32": out.state.send.ns },
+                        "pn": { "u32": out.state.send.pn }
+                    } }
+                }))
+            }
+            // NA-0626 (ENG-0026): combined DH+PQ boundary RECEIVE — constructs a combined frame
+            // exactly as `send_combined_boundary` frames it (with knobs for the negative shapes:
+            // arbitrary claimed n, `hdr_key: hk` downgrade, body/header tamper) and drives the
+            // SESSION-LEVEL `recv_pq_reseed`. Every reject path additionally asserts
+            // reject => no state mutation (snapshot-byte equality) before reporting the reason.
+            "suite2.combined_boundary.run" => {
+                let send_v = get_json_data(&req.params, "send_state")?;
+                let recv_v = get_json_data(&req.params, "recv_state")?;
+                let send_state = parse_suite2_send_state(&send_v)?;
+                let (recv_state, recv_rk) = parse_suite2_recv_state(&recv_v)?;
+                let dh_v = get_json_data(&req.params, "dh_state")?;
+                let dhs_priv: [u8; 32] = parse_hex_value(
+                    dh_v.get("dhs_priv").ok_or_else(|| {
+                        ActorError::Invalid("params.dh_state.dhs_priv missing".into())
+                    })?,
+                    "params.dh_state.dhs_priv",
+                )?
+                .as_slice()
+                .try_into()
+                .map_err(|_| {
+                    ActorError::Invalid("params.dh_state.dhs_priv: expected 32 bytes".into())
+                })?;
+                let dhs_pub: [u8; 32] = parse_hex_value(
+                    dh_v.get("dhs_pub").ok_or_else(|| {
+                        ActorError::Invalid("params.dh_state.dhs_pub missing".into())
+                    })?,
+                    "params.dh_state.dhs_pub",
+                )?
+                .as_slice()
+                .try_into()
+                .map_err(|_| {
+                    ActorError::Invalid("params.dh_state.dhs_pub: expected 32 bytes".into())
+                })?;
+                let dhr: [u8; 32] = parse_hex_value(
+                    dh_v.get("dhr")
+                        .ok_or_else(|| ActorError::Invalid("params.dh_state.dhr missing".into()))?,
+                    "params.dh_state.dhr",
+                )?
+                .as_slice()
+                .try_into()
+                .map_err(|_| {
+                    ActorError::Invalid("params.dh_state.dhr: expected 32 bytes".into())
+                })?;
+                let peer_adv_id = get_u32(&req.params, "peer_adv_id")?;
+
+                let msg_v = get_json_data(&req.params, "message")?;
+                let msg = msg_v
+                    .as_object()
+                    .ok_or_else(|| ActorError::Invalid("params.message: expected object".into()))?;
+                let get_msg = |k: &str| -> Result<&serde_json::Value, ActorError> {
+                    msg.get(k)
+                        .ok_or_else(|| ActorError::Invalid(format!("params.message.{k} missing")))
+                };
+                let new_dh_priv: [u8; 32] =
+                    parse_hex_value(get_msg("new_dh_priv")?, "params.message.new_dh_priv")?
+                        .as_slice()
+                        .try_into()
+                        .map_err(|_| {
+                            ActorError::Invalid(
+                                "params.message.new_dh_priv: expected 32 bytes".into(),
+                            )
+                        })?;
+                let new_dh_pub: [u8; 32] =
+                    parse_hex_value(get_msg("new_dh_pub")?, "params.message.new_dh_pub")?
+                        .as_slice()
+                        .try_into()
+                        .map_err(|_| {
+                            ActorError::Invalid(
+                                "params.message.new_dh_pub: expected 32 bytes".into(),
+                            )
+                        })?;
+                let n = parse_u32_value(get_msg("n")?, "params.message.n")?;
+                let pn = parse_u32_value(get_msg("pn")?, "params.message.pn")?;
+                let pq_target_id =
+                    parse_u32_value(get_msg("pq_target_id")?, "params.message.pq_target_id")?;
+                let pq_ct = parse_hex_value(get_msg("pq_ct_hex")?, "params.message.pq_ct_hex")?;
+                let pq_epoch_ss =
+                    parse_hex_value(get_msg("pq_epoch_ss")?, "params.message.pq_epoch_ss")?;
+                let body_pt =
+                    parse_hex_value(get_msg("body_pt_hex")?, "params.message.body_pt_hex")?;
+                let tamper = msg
+                    .get("tamper")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("none")
+                    .to_string();
+                let hdr_key_mode = msg.get("hdr_key").and_then(|v| v.as_str()).unwrap_or("nhk");
+
+                let role_is_a = recv_state.role_is_a;
+                let pv = recv_state.protocol_version;
+                let sid = recv_state.suite_id;
+                let session_id_arr = recv_state.session_id;
+
+                // Mirror send_combined_boundary's derivations from the SENDER's perspective:
+                // dh_out from the fresh private key against the receiver's ratchet public.
+                let flags = suite2_types::FLAG_PQ_CTXT | suite2_types::FLAG_BOUNDARY;
+                let mut pq_prefix = Vec::with_capacity(4 + pq_ct.len());
+                pq_prefix.extend_from_slice(&pq_target_id.to_be_bytes());
+                pq_prefix.extend_from_slice(&pq_ct);
+
+                let dh_out = self.std.dh(&X25519Priv(new_dh_priv), &X25519Pub(dhs_pub));
+                let rkdh = self.std.kmac256(&recv_rk, "QSP5.0/RKDH", &dh_out, 64);
+                if rkdh.len() != 64 {
+                    return Err(ActorError::Invalid("kdf_rk_dh derive failed".into()));
+                }
+                let mut rk_dh = [0u8; 32];
+                rk_dh.copy_from_slice(&rkdh[0..32]);
+                let mut ck_ec0 = [0u8; 32];
+                ck_ec0.copy_from_slice(&rkdh[32..64]);
+                // The sender's send-direction PQ0 chain (transient, pre-seed).
+                let sender_is_a = !role_is_a;
+                let pq0_label = if sender_is_a {
+                    "QSP5.0/PQ0/A->B"
+                } else {
+                    "QSP5.0/PQ0/B->A"
+                };
+                let ck_pq0: [u8; 32] = kmac32(&self.std, &rk_dh, pq0_label, &[0x01])
+                    .as_slice()
+                    .try_into()
+                    .map_err(|_| ActorError::Invalid("pq0 derive failed".into()))?;
+                let (_ck_ec_p, _ck_pq_p, mk) =
+                    suite2_ratchet::derive_mk_step(&self.std, &ck_ec0, &ck_pq0).map_err(|_| {
+                        ActorError::Invalid("reject: REJECT_S2_BOUNDARY_DERIVE_FAIL".into())
+                    })?;
+
+                let pq_bind = binding::pq_bind_sha512_32(&self.std, flags, &pq_prefix);
+                let ad_hdr =
+                    binding::ad_hdr(&session_id_arr, pv, sid, &new_dh_pub, flags, &pq_bind);
+                let ad_body = binding::ad_body(&session_id_arr, pv, sid, &pq_bind);
+                let mut hdr_pt = Vec::with_capacity(8);
+                hdr_pt.extend_from_slice(&pn.to_be_bytes());
+                hdr_pt.extend_from_slice(&n.to_be_bytes());
+                // The combined frame is n=0 of the new DH epoch: sealed at the n=0 nonce (a
+                // claimed n != 0 in the header plaintext is the NOT_IN_ORDER shape).
+                let nonce_hdr =
+                    suite2_ratchet::nonce_hdr(&self.std, &session_id_arr, &new_dh_pub, 0);
+                let nonce_body =
+                    suite2_ratchet::nonce_body(&self.std, &session_id_arr, &new_dh_pub, 0);
+                let hdr_seal_key = match hdr_key_mode {
+                    "nhk" => suite2_ratchet::header_key(&self.std, &recv_rk, !role_is_a, true)
+                        .map_err(|_| {
+                            ActorError::Invalid("reject: REJECT_S2_LOCAL_UNSUPPORTED".into())
+                        })?,
+                    "hk" => recv_state.hk_r,
+                    _ => {
+                        return Err(ActorError::Invalid(
+                            "params.message.hdr_key: expected nhk|hk".into(),
+                        ))
+                    }
+                };
+                let mut hdr_ct = self.std.seal(&hdr_seal_key, &nonce_hdr, &ad_hdr, &hdr_pt);
+                let mut body_ct = self.std.seal(&mk, &nonce_body, &ad_body, &body_pt);
+                match tamper.as_str() {
+                    "none" => {}
+                    "body" => {
+                        if !body_ct.is_empty() {
+                            body_ct[0] ^= 0x01;
+                        }
+                    }
+                    "header" => {
+                        if !hdr_ct.is_empty() {
+                            hdr_ct[0] ^= 0x01;
+                        }
+                    }
+                    _ => {
+                        return Err(ActorError::Invalid(
+                            "params.message.tamper: expected none|body|header".into(),
+                        ))
+                    }
+                }
+
+                let mut header = Vec::with_capacity(32 + 2 + pq_prefix.len() + hdr_ct.len());
+                header.extend_from_slice(&new_dh_pub);
+                header.extend_from_slice(&flags.to_be_bytes());
+                header.extend_from_slice(&pq_prefix);
+                header.extend_from_slice(&hdr_ct);
+                let mut wire = Vec::with_capacity(10 + header.len() + body_ct.len());
+                wire.extend_from_slice(&pv.to_be_bytes());
+                wire.extend_from_slice(&sid.to_be_bytes());
+                wire.push(0x02);
+                wire.push(0x00);
+                wire.extend_from_slice(&(header.len() as u16).to_be_bytes());
+                wire.extend_from_slice(&(body_ct.len() as u16).to_be_bytes());
+                wire.extend_from_slice(&header);
+                wire.extend_from_slice(&body_ct);
+
+                let st = suite2_state::Suite2SessionState {
+                    rk: recv_rk,
+                    send: send_state,
+                    recv: recv_state,
+                    dh: suite2_ratchet::Suite2DhRatchetState {
+                        dhs_priv,
+                        dhs_pub,
+                        dhr,
+                    },
+                };
+                let before = st.snapshot_bytes();
+                let out = suite2_ratchet::recv_pq_reseed(
+                    &self.std,
+                    &self.std,
+                    &self.std,
+                    &self.std,
+                    st,
+                    &wire,
+                    &pq_epoch_ss,
+                    peer_adv_id,
+                );
+                if !out.ok {
+                    // reject => no mutation, asserted for EVERY reject shape before reporting.
+                    if out.state.snapshot_bytes() != before {
+                        return Err(ActorError::Internal(
+                            "combined boundary reject mutated state".into(),
+                        ));
+                    }
+                    return Err(ActorError::Invalid(format!(
+                        "reject: {}",
+                        out.reason.unwrap_or("REJECT_S2_HDR_AUTH_FAIL")
+                    )));
+                }
+                let consumed_after: Vec<u32> =
+                    out.state.recv.consumed_targets.iter().cloned().collect();
+                let tombstoned_after: Vec<u32> =
+                    out.state.recv.tombstoned_targets.iter().cloned().collect();
+                Ok(serde_json::json!({
+                    "plaintext_hex": { "type": "hex", "data": to_hex(&out.plaintext) },
+                    "final_state": { "type": "json", "data": {
+                        "rk": to_hex(&out.state.rk),
+                        "dhr": to_hex(&out.state.dh.dhr),
+                        "recv_dh_pub": to_hex(&out.state.recv.dh_pub),
+                        "hk_r": to_hex(&out.state.recv.hk_r),
+                        "hk_s": to_hex(&out.state.send.hk_s),
+                        "recv_ck_ec": to_hex(&out.state.recv.ck_ec),
+                        "recv_ck_pq_send": to_hex(&out.state.recv.ck_pq_send),
+                        "recv_ck_pq_recv": to_hex(&out.state.recv.ck_pq_recv),
+                        "send_ck_pq": to_hex(&out.state.send.ck_pq),
+                        "nr": { "u32": out.state.recv.nr },
+                        "peer_max_adv_id_seen": { "u32": out.state.recv.peer_max_adv_id_seen },
+                        "consumed_targets": consumed_after,
+                        "tombstoned_targets": tombstoned_after,
+                        "mkskipped_len": { "u32": out.state.recv.mkskipped.len() as u32 }
                     } }
                 }))
             }
@@ -3494,7 +3849,6 @@ impl Actor {
                     suite_id: sid,
                     dh_pub: dh_pub_arr,
                     hk_r: hk_r_arr,
-                    rk: rk_arr,
                     ck_ec: ck_ec_arr,
                     ck_pq_send: ck_pq_send_arr,
                     ck_pq_recv: ck_pq_recv_arr,
@@ -3512,6 +3866,7 @@ impl Actor {
                     &self.std,
                     &self.std,
                     state,
+                    &rk_arr,
                     flags,
                     &pq_prefix,
                     pq_adv_id,
@@ -3646,7 +4001,7 @@ impl Actor {
                 .map_err(|e| ActorError::Invalid(format!("reject: {e}")))?;
 
                 Ok(serde_json::json!({
-                    "rk": jhex(&state.recv.rk),
+                    "rk": jhex(&state.rk),
                     "ck_pq_send": jhex(&state.recv.ck_pq_send),
                     "ck_pq_recv": jhex(&state.recv.ck_pq_recv),
                     "peer_max_adv_id_seen": { "type": "json", "data": { "u32": state.recv.peer_max_adv_id_seen } },

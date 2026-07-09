@@ -65,8 +65,8 @@ fn establish_pair(c: &StdCrypto) -> (Suite2SessionState, Suite2SessionState, [u8
     a.set_dh_self_priv(a_priv.0);
     b.set_dh_self_priv(b_priv.0);
 
-    let r0 = a.recv.rk;
-    assert_eq!(a.recv.rk, b.recv.rk, "both parties share the root");
+    let r0 = a.rk;
+    assert_eq!(a.rk, b.rk, "both parties share the root");
     (a, b, r0)
 }
 
@@ -204,15 +204,10 @@ fn combined_boundary_round_trip_converges_on_dh_then_pq_composition() {
         "PQ secret advanced the root after the DH step"
     );
     assert_eq!(
-        a.recv.rk, rk_final,
+        a.rk, rk_final,
         "sender root == KDF_RK_PQ(KDF_RK_DH(R0, dh_out), ss)"
     );
-    assert_eq!(
-        a.dh.rk, rk_final,
-        "sender DH-root slot advanced identically"
-    );
-    assert_eq!(b.recv.rk, rk_final, "receiver root converges");
-    assert_eq!(b.dh.rk, rk_final, "receiver DH-root slot converges");
+    assert_eq!(b.rk, rk_final, "receiver root converges");
 
     // Full-directional schedule coherence (the ENG-0030 guarantee extends to the combined path).
     assert_eq!(a.send.hk_s, b.recv.hk_r, "A->B header keys converge");
@@ -239,6 +234,7 @@ fn combined_boundary_round_trip_converges_on_dh_then_pq_composition() {
         &c,
         &c,
         b.recv.clone(),
+        &b.rk,
         &m.wire,
         None,
         None,
@@ -312,8 +308,8 @@ fn combined_boundary_rejects_out_of_order_n_without_mutation() {
     let wire = build_combined_frame_with_n(
         &c,
         &b.recv.session_id,
-        &a.dh.rk, // == B's root; the sender's NHK_s derives from the shared pre-boundary root
-        true,     // A->B
+        &a.rk, // == B's root; the sender's NHK_s derives from the shared pre-boundary root
+        true,  // A->B
         &fresh_pub.0,
         1,
     );
@@ -339,8 +335,7 @@ fn combined_boundary_anti_spoof_rejects_without_mutation() {
 
     // Zero DH_pub (a boundary must carry a real key). The zero key differs from dhr, so it
     // routes to the combined arm and dies at the zero check.
-    let wire_zero =
-        build_combined_frame_with_n(&c, &b.recv.session_id, &a.dh.rk, true, &[0u8; 32], 0);
+    let wire_zero = build_combined_frame_with_n(&c, &b.recv.session_id, &a.rk, true, &[0u8; 32], 0);
     let before = b.snapshot_bytes();
     let r1 = recv_pq_reseed(&c, &c, &c, &c, b.clone(), &wire_zero, &[0x33u8; 32], 1);
     assert!(!r1.ok);
@@ -351,7 +346,7 @@ fn combined_boundary_anti_spoof_rejects_without_mutation() {
     // plumbing-session shape): LOCAL_UNSUPPORTED before any crypto.
     let (_p, fresh_pub) = c.keypair();
     let wire_fresh =
-        build_combined_frame_with_n(&c, &b.recv.session_id, &a.dh.rk, true, &fresh_pub.0, 0);
+        build_combined_frame_with_n(&c, &b.recv.session_id, &a.rk, true, &fresh_pub.0, 0);
     let mut b_nodh = b.clone();
     b_nodh.dh.dhs_priv = [0u8; 32];
     let before_nodh = b_nodh.snapshot_bytes();

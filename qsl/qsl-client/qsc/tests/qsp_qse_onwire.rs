@@ -96,7 +96,6 @@ fn qsp_session_for_channel(seed: u64, channel: &str) -> Suite2SessionState {
         suite_id: SUITE2_SUITE_ID,
         dh_pub,
         hk_r: hk,
-        rk,
         ck_ec,
         ck_pq_send: ck_pq,
         ck_pq_recv: ck_pq,
@@ -112,9 +111,8 @@ fn qsp_session_for_channel(seed: u64, channel: &str) -> Suite2SessionState {
         dhs_priv: dh_priv,
         dhs_pub: dh_pub,
         dhr: dh_pub,
-        rk,
     };
-    Suite2SessionState { send, recv, dh }
+    Suite2SessionState { rk, send, recv, dh }
 }
 
 fn qsp_pack_for_channel(seed: u64, channel: &str, plaintext: &[u8]) -> Vec<u8> {
@@ -215,6 +213,7 @@ fn on_wire_is_envelope_not_raw() {
         &StdCrypto,
         &StdCrypto,
         st.recv,
+        &st.rk,
         &env.payload,
         None,
         None,
@@ -306,6 +305,7 @@ fn bucket_mode_zero_len_fields_decode_compat() {
         &StdCrypto,
         &StdCrypto,
         st.recv,
+        &st.rk,
         &env.payload,
         None,
         None,

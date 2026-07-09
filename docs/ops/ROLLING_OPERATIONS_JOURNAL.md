@@ -42473,3 +42473,77 @@ Directive: QSL-DIR-2026-05-14-087 — NA-0284 qsl-attachments Capability Scope /
   this lane's dh.rk-sync finding), ENG-0025 (qsc session façade consolidating the seam
   obligations + store choreography), ENG-0026 (combined DH+PQ boundary refimpl receiver,
   Operator Decision 1).
+
+## 2026-07-08 -- NA-0624 closeout and NA-0625 restoration
+
+- Directive QSL-DIR-2026-07-08-561 (D561), closeout phase (D-1244).
+- Merge: qsl-protocol implementation PR #1526 merged via a merge commit at
+  `9dbb1ed1d820a3746732e2f89fccaf51f25f18d3` from branch `na-0624-qsc-scka-wiring`. Local main
+  fast-forwarded to `9dbb1ed1`; the SCKA wiring present on main; D-1243 present once; ENG-0012
+  CLOSED in the ledger; evidence + testplan present; worktree clean before closeout edits.
+- PR-path required checks: 38 total, 0 pending, 0 failed (36 success + 2 qsc full suites SKIPPED
+  BY DESIGN on pull_request events — `qsc-linux-full-suite` and `macos-qsc-full-serial` carry
+  `if: github.event_name != 'pull_request'` and run on the post-merge main push; the D-1242
+  description of the same SKIPs as path-filtered was imprecise). Post-merge main-push runs at
+  `9dbb1ed1`: all 9 main-push workflows SUCCESS, including the two event-filtered full suites at job level — `qsc-linux-full-suite` SUCCESS (qshield-ci) and `macos-qsc-full-serial` SUCCESS (macos-build) — plus public-ci, qsc-adversarial, suite2-ci, formal-ci, demo-packaging, Code Quality, Push on main.
+- Clean lane (no bypass): the impl PR passed CI on the first run. The substance happened pre-push:
+  three full local suite passes drove four findings, all fixed + regression-pinned before the PR
+  existed (see the D-1243 journal entry above); two pre-existing main clippy lints fixed in-scope;
+  the evidence file force-added past the `**/evidence/` gitignore (house precedent).
+- Pre-closeout proof: D-1243 once, D-1244 absent, sole READY NA-0624. Post-patch proof: exactly one
+  `Status: READY` (NA-0625), NA-0624 DONE, D-1244 once, D-1245 absent.
+- WF-0003 triage / successor (operator-selected at the embedded Phase-7 decision): ENG-0012 ->
+  CLOSED (the P1 resolved — post-quantum forward secrecy live and e2e-proven on real qsc traffic).
+  NA-0625 = ENG-0023 (Suite-2 spec-alignment: §8.5.1 NHK boundary header + authenticated ADV
+  receive — bundles Operator Decision 5 with the NA-0624 unauthenticated-ADV deviation; one
+  frozen-receiver unfreeze + one vector regeneration; tees up the independent DH+PQ composition
+  analysis) restored as the sole READY successor; begins at D-1245. Alternatives weighed: ENG-0014
+  (lighter); ENG-0024/ENG-0026 (same surface; may be raised for re-scope at the NA-0625
+  design-lock).
+- LIVE QUEUE header updated to READY=NA-0625 / HIGHEST_NA=0625 / HIGHEST_D=1244.
+- Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`,
+  `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0624_closeout_testplan.md`. No NA-0625
+  implementation; no source/test/Cargo/spec/workflow/`.claude`/hook change; no
+  operator-startup-command execution; no workflow dispatch/rerun; no runtime/LAN action.
+- No endpoint, private port, hostname, topology, token, capability, key, seed, plaintext,
+  ciphertext body, or raw private material is published. The P1 is CLOSED with no public-readiness,
+  production-readiness, security-completion, crypto-complete, post-compromise, post-quantum, or
+  Triple-Ratchet claim introduced (the standing boundary holds until the DH+PQ composition is
+  independently analyzed).
+
+## 2026-07-08 -- NA-0624 closeout and NA-0625 restoration
+
+- Directive QSL-DIR-2026-07-08-561 (D561), closeout phase (D-1244).
+- Merge: qsl-protocol implementation PR #1526 merged via a merge commit at
+  `9dbb1ed1d820a3746732e2f89fccaf51f25f18d3` from branch `na-0624-qsc-scka-wiring`. Local main
+  fast-forwarded to `9dbb1ed1`; the SCKA wiring present on main; D-1243 present once; ENG-0012
+  CLOSED in the ledger; evidence + testplan present; worktree clean before closeout edits.
+- PR-path required checks: 38 total, 0 pending, 0 failed (36 success + 2 qsc full suites SKIPPED
+  BY DESIGN on pull_request events — `qsc-linux-full-suite` and `macos-qsc-full-serial` carry
+  `if: github.event_name != 'pull_request'` and run on the post-merge main push; the D-1242
+  description of the same SKIPs as path-filtered was imprecise). Post-merge main-push runs at
+  `9dbb1ed1`: all 9 main-push workflows SUCCESS, including the two event-filtered full suites at job level -- qsc-linux-full-suite SUCCESS (qshield-ci) and macos-qsc-full-serial SUCCESS (macos-build) -- plus public-ci, qsc-adversarial, suite2-ci, formal-ci, demo-packaging, Code Quality, Push on main.
+- Clean lane (no bypass): the impl PR passed CI on the first run. The substance happened pre-push:
+  three full local suite passes drove four findings, all fixed + regression-pinned before the PR
+  existed (see the D-1243 journal entry above); two pre-existing main clippy lints fixed in-scope;
+  the evidence file force-added past the `**/evidence/` gitignore (house precedent).
+- Pre-closeout proof: D-1243 once, D-1244 absent, sole READY NA-0624. Post-patch proof: exactly one
+  `Status: READY` (NA-0625), NA-0624 DONE, D-1244 once, D-1245 absent.
+- WF-0003 triage / successor (operator-selected at the embedded Phase-7 decision): ENG-0012 ->
+  CLOSED (the P1 resolved — post-quantum forward secrecy live and e2e-proven on real qsc traffic).
+  NA-0625 = ENG-0023 (Suite-2 spec-alignment: §8.5.1 NHK boundary header + authenticated ADV
+  receive — bundles Operator Decision 5 with the NA-0624 unauthenticated-ADV deviation; one
+  frozen-receiver unfreeze + one vector regeneration; tees up the independent DH+PQ composition
+  analysis) restored as the sole READY successor; begins at D-1245. Alternatives weighed: ENG-0014
+  (lighter); ENG-0024/ENG-0026 (same surface; may be raised for re-scope at the NA-0625
+  design-lock).
+- LIVE QUEUE header updated to READY=NA-0625 / HIGHEST_NA=0625 / HIGHEST_D=1244.
+- Closeout mutates only `NEXT_ACTIONS.md`, `DECISIONS.md`, `TRACEABILITY.md`,
+  `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, and `tests/NA-0624_closeout_testplan.md`. No NA-0625
+  implementation; no source/test/Cargo/spec/workflow/`.claude`/hook change; no
+  operator-startup-command execution; no workflow dispatch/rerun; no runtime/LAN action.
+- No endpoint, private port, hostname, topology, token, capability, key, seed, plaintext,
+  ciphertext body, or raw private material is published. The P1 is CLOSED with no public-readiness,
+  production-readiness, security-completion, crypto-complete, post-compromise, post-quantum, or
+  Triple-Ratchet claim introduced (the standing boundary holds until the DH+PQ composition is
+  independently analyzed).

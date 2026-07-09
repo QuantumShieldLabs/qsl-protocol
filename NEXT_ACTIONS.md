@@ -6,20 +6,23 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0624 | HIGHEST_NA=0624 | HIGHEST_D=1242 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0625 | HIGHEST_NA=0625 | HIGHEST_D=1244 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
-**READY (exactly one — execute this):** `NA-0624 — ENG-0012 Stage 2b: qsc SCKA wiring (advertise +
-reseed cadence + persistence)` (where POST-QUANTUM forward secrecy lands on live qsc traffic — the
-stage that FULLY closes the P1). Its full block (with scope flags) is below under section 2; find it
-by searching `Status: READY` (there is exactly one).
+**READY (exactly one — execute this):** `NA-0625 — ENG-0023: Suite-2 spec-alignment — §8.5.1 NHK
+boundary header + authenticated ADV receive` (reconciles the two frozen-receiver header-auth gaps
+carried out of NA-0623/NA-0624 in one lane; operator-selected successor at the NA-0624 closeout).
+Its full block (with scope flags) is below under section 2; find it by searching `Status: READY`
+(there is exactly one).
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
-1. **ENG-0012 Stage 2b = NA-0624 (now READY)** — qsc SCKA wiring (advertise + reseed cadence + persistence). Stage 2a (the refimpl SCKA sender core + both-sides RK advance) landed as NA-0623 (D-1241).
-2. **ENG-0014** — qsl-server non-constant-time token compare (P2, cross-repo).
-3. **ENG-0019** — gate/remove the auth-unsafe `qsp::handshake` skeleton (P3, cheap; design-tenet aligned).
-4. **WF-0012** — build the `ledger.py` findings-tracking tool (@meta lines + list/validate/dedup/ondeck); pays off before the next audit.
-5. Remaining P3 defense-in-depth: ENG-0008, ENG-0009, ENG-0015, ENG-0016, ENG-0017, ENG-0018, ENG-0020, ENG-0021.
+1. **ENG-0023 = NA-0625 (now READY)** — Suite-2 spec-alignment (§8.5.1 NHK boundary header + authenticated ADV receive); filed at NA-0624 (D-1243). ENG-0012 (the P1) CLOSED at NA-0624 (D-1243/D-1244).
+2. **ENG-0024** — RK-duality unification (snapshot migration; pairs with ENG-0023's surface) / **ENG-0026** — combined DH+PQ boundary receiver (same surface).
+3. **ENG-0025** — qsc session façade (seam-obligation consolidation).
+4. **ENG-0014** — qsl-server non-constant-time token compare (P2, cross-repo).
+5. **ENG-0019** — gate/remove the auth-unsafe `qsp::handshake` skeleton (P3, cheap; design-tenet aligned).
+6. **WF-0012** — build the `ledger.py` findings-tracking tool (@meta lines + list/validate/dedup/ondeck); pays off before the next audit. **ENG-0022** — cover traffic / metadata (unblocked now that ENG-0012 Stage 2 landed).
+7. Remaining P3 defense-in-depth: ENG-0008, ENG-0009, ENG-0015, ENG-0016, ENG-0017, ENG-0018, ENG-0020, ENG-0021.
    (The ENG-0012 design DOC-G5-008 was accepted at NA-0619; NA-0620 implements Stage 1.)
 
 **Conventions (authoritative — see DOC-OPS-006):**
@@ -34042,8 +34045,34 @@ begins at D-1217.
 
 ---
 
-### NA-0624 — ENG-0012 Stage 2b: qsc SCKA wiring (advertise + reseed cadence + persistence) (source/test)
+### NA-0625 — ENG-0023: Suite-2 spec-alignment — §8.5.1 NHK boundary header + authenticated ADV receive (source/test)
 Status: READY
+Goals: G1, G2, G3, G4, G5
+Wire/behavior change allowed? YES (the PQ-CTXT boundary header key moves from HK to the §8.5.1 NHK; an authenticated ADV receive path is added — no wire FORMAT change expected)
+Crypto/state-machine change allowed? YES (frozen-receiver semantics change + sender mirror; conformance vectors regenerate; no new KDF/AEAD/KEM primitive)
+Docs-only allowed? NO
+
+Objective:
+Implement ENG-0023 (filed at NA-0624, D-1243): reconcile the two header-authentication gaps in the
+frozen Suite-2 receiver in ONE lane. (1) The PQ-CTXT boundary header opens under the ordinary
+`HK_r`, not the §8.5.1 `NHK` anti-spoof rule (the NA-0623 deviation; Operator Decision 5 at D561
+deferred it here) — move the boundary header to `NHK` on both the receiver and the Stage-2a sender
+mirror. (2) Add an AUTHENTICATED ADV receive path (open the ADV header under the receive header key
+with the `pq_bind` AD before tracking), upgrading the NA-0624 qsc intercept from
+length+monotonicity-only validation and closing the planted-advertisement deviation. Both changes
+unfreeze the same receiver surface: regenerate the byte-pinned conformance vectors once; the
+seed-model runtime-equivalence test must still pass; qsc adopts the authenticated path. Design-lock
+first (delicate refimpl+qsc lane; the frozen-surface change is the POINT of the lane — bounded to
+the two named gaps; no KDF/AEAD/KEM primitive change; no dependency mutation). Full ritual. Tees up
+the independent DH+PQ composition analysis required by the standing claim boundary. ENG-0024
+(RK-duality snapshot migration) and ENG-0026 (combined DH+PQ boundary) touch the same surface and
+may be RAISED at design-lock for operator re-scope, but the default scope is the two named gaps.
+Reminder: build `cargo build --workspace --all-targets` before pushing (WF-0013).
+
+---
+
+### NA-0624 — ENG-0012 Stage 2b: qsc SCKA wiring (advertise + reseed cadence + persistence) (source/test)
+Status: DONE
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? YES (originate SCKA ADV + PQ-reseed boundaries from the real qsc send path)
 Crypto/state-machine change allowed? YES (wire the advertisement + reseed cadence; persist the SCKA state; no new KDF/AEAD/KEM primitive)
@@ -34060,6 +34089,21 @@ live qsc traffic and FULLY closes the P1 (ENG-0012). Reuse the Stage-2a refimpl 
 the runtime-equivalence test must still pass. No KDF/AEAD/KEM primitive change; no qsl-attachments/
 qsl-server change; no dependency mutation. Full ritual. NO Triple-Ratchet / post-compromise /
 post-quantum claim until vectors pass AND the DH+PQ composition is independently analyzed.
+
+OUTCOME (D-1243 / D-1244, 2026-07-08): DONE, merged PR #1526 (`9dbb1ed1`). The Stage-2a SCKA sender
+is wired into the REAL qsc send/receive path with the refimpl FROZEN: advertisements as CONTROL
+pre-envelopes (establishment/consume/rotation), PQ reseeds on the approved cadence (first-available,
+then N_pq=8 boundaries / T_pq=3600 s), v3 session-blob SCKA persistence (QS2S frozen; v2/v1
+migrate) + a G2 monotonic side-record (rolled-back blobs FAIL CLOSED). Four findings fixed and
+regression-pinned: the dh.rk-sync root INJECTION+ADOPTION composition (NA-0623 carry-over), the
+ADV/reseed pack exclusion (strict-in-order receiver), the NA-0622 trigger-persistence gap (the
+D-1239 fallback cadence is now live, pinned by a new vector), and `peer_adv_consumed_max` in the
+G2 record. Proven e2e over a real handshake incl. THE HEADLINE PQ-PCS-healing-survives-DH vector;
+full qsc suite 146 targets / 584 tests / 0 failed; refimpl 101/0; runtime-equivalence
+byte-for-byte. ENG-0012 (the P1) is CLOSED — with NO post-quantum / Triple-Ratchet /
+post-compromise claim until the DH+PQ composition is independently analyzed. Deviations carried to
+ENG-0023 (unauthenticated ADV tracking; outbox replays the main message only); architecture-debt
+filings ENG-0023..ENG-0026 (operator-directed). ENG-0023/NA-0625 begins at D-1245.
 
 ---
 

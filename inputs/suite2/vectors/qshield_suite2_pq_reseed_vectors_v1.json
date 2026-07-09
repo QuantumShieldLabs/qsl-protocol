@@ -720,6 +720,380 @@
         "ok": false,
         "reason_code": "REJECT_S2_HDR_AUTH_FAIL"
       }
+    },
+    {
+      "id": "S2-RECV-COMBINED-ACCEPT-0001",
+      "op": "suite2.combined_boundary.run",
+      "kind": "positive",
+      "tags": [
+        "CAT-S2-PQRESEED-001",
+        "CAT-S2-COMBINED-001",
+        "G2"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a73.3.6",
+        "DOC-CAN-003 \u00a78.5.1",
+        "DOC-CAN-003 \u00a78.5.2",
+        "DOC-CAN-003 \u00a78.5.3"
+      ],
+      "notes": "NA-0626 (ENG-0026) combined DH+PQ boundary RECEIVE (session-level recv_pq_reseed, fresh-DH_pub discrimination): NHK-only open at n=0 of the NEW DH epoch (nonce/AD on the fresh DH_pub), DH ratchet first from the pre-boundary root, then the frozen apply_pq_reseed from RK_dh, RK_final = KDF_RK_PQ(RK_dh, ss); the returned state carries the FULL directional schedule (root, dhr, both header keys, both PQ chains, nr=1) \u2014 the ENG-0030 structural guarantee.",
+      "input": {
+        "send_state": {
+          "type": "json",
+          "data": {
+            "session_id": "000102030405060708090a0b0c0d0e0f",
+            "dh_pub": "1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a",
+            "hk_s": "3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c",
+            "ck_ec": "4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d",
+            "ck_pq": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+            "ns": 3,
+            "pn": 0
+          }
+        },
+        "recv_state": {
+          "type": "json",
+          "data": {
+            "session_id": "000102030405060708090a0b0c0d0e0f",
+            "dh_pub": "2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e",
+            "hk_r": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f",
+            "rk": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+            "ck_ec": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+            "ck_pq_send": "1111111111111111111111111111111111111111111111111111111111111111",
+            "ck_pq_recv": "2222222222222222222222222222222222222222222222222222222222222222",
+            "nr": 0,
+            "role": "A",
+            "peer_max_adv_id_seen": 40,
+            "known_targets": [
+              42
+            ],
+            "consumed_targets": [],
+            "tombstoned_targets": [],
+            "mkskipped": []
+          }
+        },
+        "dh_state": {
+          "type": "json",
+          "data": {
+            "dhs_priv": "4040404040404040404040404040404040404040404040404040404040404040",
+            "dhs_pub": "d7b5e81d336e578b13b8d706e82d061e3038c96bce66cdcf50d566b96ddbba10",
+            "dhr": "2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e"
+          }
+        },
+        "peer_adv_id": {
+          "type": "json",
+          "data": {
+            "u32": 41
+          }
+        },
+        "message": {
+          "type": "json",
+          "data": {
+            "new_dh_priv": "5050505050505050505050505050505050505050505050505050505050505050",
+            "new_dh_pub": "ef38b4abd14b0a919cbe6839f6185b97d32607bee359c6c53c12cc7597867d59",
+            "n": 0,
+            "pn": 3,
+            "pq_target_id": 42,
+            "pq_ct_hex": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "pq_epoch_ss": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+            "body_pt_hex": "00010203",
+            "tamper": "none",
+            "hdr_key": "nhk"
+          }
+        }
+      },
+      "expect": {
+        "ok": true,
+        "output": {
+          "final_state": {
+            "data": {
+              "consumed_targets": [
+                42
+              ],
+              "dhr": "ef38b4abd14b0a919cbe6839f6185b97d32607bee359c6c53c12cc7597867d59",
+              "hk_r": "a8019dd2c3797db76718a9c36bd79cecefc58129e3111d5776564e9a0791d309",
+              "hk_s": "421f2d5f12699dbfa1d8680de29a52b571f9b38f6ba1dc5c0c7e113c0705a8c2",
+              "mkskipped_len": {
+                "u32": 0
+              },
+              "nr": {
+                "u32": 1
+              },
+              "peer_max_adv_id_seen": {
+                "u32": 41
+              },
+              "recv_ck_ec": "85ecc96c969cee5a3283694ff912691d4743d0e3b8a5b53d5c55caeb48eb107d",
+              "recv_ck_pq_recv": "aaa000ea9f20fe6f6baf30920e8e0e08bdc9ccfea2764fd37549debea7e6ec61",
+              "recv_ck_pq_send": "66334ebf3271e40316c64cb798ddaf13d53b9262340044526d50bdbacec2cb9b",
+              "recv_dh_pub": "ef38b4abd14b0a919cbe6839f6185b97d32607bee359c6c53c12cc7597867d59",
+              "rk": "37bdbad7b2c23c935348cda47c852282837a981997988b514a82478ff6d85674",
+              "send_ck_pq": "66334ebf3271e40316c64cb798ddaf13d53b9262340044526d50bdbacec2cb9b",
+              "tombstoned_targets": [
+                42
+              ]
+            },
+            "type": "json"
+          },
+          "plaintext_hex": {
+            "data": "00010203",
+            "type": "hex"
+          }
+        }
+      }
+    },
+    {
+      "id": "S2-RECV-COMBINED-REJECT-NOT-IN-ORDER-0001",
+      "op": "suite2.combined_boundary.run",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-PQRESEED-001",
+        "CAT-S2-COMBINED-001",
+        "G2"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a73.3.6",
+        "DOC-CAN-003 \u00a78.5.1",
+        "DOC-CAN-003 \u00a78.5.2",
+        "DOC-CAN-003 \u00a78.5.3"
+      ],
+      "notes": "The combined frame is n=0 of the new DH epoch ONLY: a header claiming n=1 (sealed at the n=0 nonce so it opens) rejects REJECT_S2_BOUNDARY_NOT_IN_ORDER with no state mutation (asserted inside the op).",
+      "input": {
+        "send_state": {
+          "type": "json",
+          "data": {
+            "session_id": "000102030405060708090a0b0c0d0e0f",
+            "dh_pub": "1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a",
+            "hk_s": "3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c",
+            "ck_ec": "4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d",
+            "ck_pq": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+            "ns": 3,
+            "pn": 0
+          }
+        },
+        "recv_state": {
+          "type": "json",
+          "data": {
+            "session_id": "000102030405060708090a0b0c0d0e0f",
+            "dh_pub": "2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e",
+            "hk_r": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f",
+            "rk": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+            "ck_ec": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+            "ck_pq_send": "1111111111111111111111111111111111111111111111111111111111111111",
+            "ck_pq_recv": "2222222222222222222222222222222222222222222222222222222222222222",
+            "nr": 0,
+            "role": "A",
+            "peer_max_adv_id_seen": 40,
+            "known_targets": [
+              42
+            ],
+            "consumed_targets": [],
+            "tombstoned_targets": [],
+            "mkskipped": []
+          }
+        },
+        "dh_state": {
+          "type": "json",
+          "data": {
+            "dhs_priv": "4040404040404040404040404040404040404040404040404040404040404040",
+            "dhs_pub": "d7b5e81d336e578b13b8d706e82d061e3038c96bce66cdcf50d566b96ddbba10",
+            "dhr": "2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e"
+          }
+        },
+        "peer_adv_id": {
+          "type": "json",
+          "data": {
+            "u32": 41
+          }
+        },
+        "message": {
+          "type": "json",
+          "data": {
+            "new_dh_priv": "5050505050505050505050505050505050505050505050505050505050505050",
+            "new_dh_pub": "ef38b4abd14b0a919cbe6839f6185b97d32607bee359c6c53c12cc7597867d59",
+            "n": 1,
+            "pn": 3,
+            "pq_target_id": 42,
+            "pq_ct_hex": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "pq_epoch_ss": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+            "body_pt_hex": "00010203",
+            "tamper": "none",
+            "hdr_key": "nhk"
+          }
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_BOUNDARY_NOT_IN_ORDER"
+      }
+    },
+    {
+      "id": "S2-RECV-COMBINED-REJECT-NO-DH-CAPABILITY-0001",
+      "op": "suite2.combined_boundary.run",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-PQRESEED-001",
+        "CAT-S2-COMBINED-001",
+        "G2"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a73.3.6",
+        "DOC-CAN-003 \u00a78.5.1",
+        "DOC-CAN-003 \u00a78.5.2",
+        "DOC-CAN-003 \u00a78.5.3"
+      ],
+      "notes": "A fresh DH_pub against a session with no local DH capability (dhs_priv zero \u2014 the actor plumbing-session shape) rejects REJECT_S2_LOCAL_UNSUPPORTED before any crypto, with no state mutation (asserted inside the op).",
+      "input": {
+        "send_state": {
+          "type": "json",
+          "data": {
+            "session_id": "000102030405060708090a0b0c0d0e0f",
+            "dh_pub": "1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a",
+            "hk_s": "3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c",
+            "ck_ec": "4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d",
+            "ck_pq": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+            "ns": 3,
+            "pn": 0
+          }
+        },
+        "recv_state": {
+          "type": "json",
+          "data": {
+            "session_id": "000102030405060708090a0b0c0d0e0f",
+            "dh_pub": "2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e",
+            "hk_r": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f",
+            "rk": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+            "ck_ec": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+            "ck_pq_send": "1111111111111111111111111111111111111111111111111111111111111111",
+            "ck_pq_recv": "2222222222222222222222222222222222222222222222222222222222222222",
+            "nr": 0,
+            "role": "A",
+            "peer_max_adv_id_seen": 40,
+            "known_targets": [
+              42
+            ],
+            "consumed_targets": [],
+            "tombstoned_targets": [],
+            "mkskipped": []
+          }
+        },
+        "dh_state": {
+          "type": "json",
+          "data": {
+            "dhs_priv": "0000000000000000000000000000000000000000000000000000000000000000",
+            "dhs_pub": "d7b5e81d336e578b13b8d706e82d061e3038c96bce66cdcf50d566b96ddbba10",
+            "dhr": "2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e"
+          }
+        },
+        "peer_adv_id": {
+          "type": "json",
+          "data": {
+            "u32": 41
+          }
+        },
+        "message": {
+          "type": "json",
+          "data": {
+            "new_dh_priv": "5050505050505050505050505050505050505050505050505050505050505050",
+            "new_dh_pub": "ef38b4abd14b0a919cbe6839f6185b97d32607bee359c6c53c12cc7597867d59",
+            "n": 0,
+            "pn": 3,
+            "pq_target_id": 42,
+            "pq_ct_hex": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "pq_epoch_ss": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+            "body_pt_hex": "00010203",
+            "tamper": "none",
+            "hdr_key": "nhk"
+          }
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_LOCAL_UNSUPPORTED"
+      }
+    },
+    {
+      "id": "S2-RECV-COMBINED-REJECT-BODY-TAMPER-0001",
+      "op": "suite2.combined_boundary.run",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-PQRESEED-001",
+        "CAT-S2-COMBINED-001",
+        "G2"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a73.3.6",
+        "DOC-CAN-003 \u00a78.5.1",
+        "DOC-CAN-003 \u00a78.5.2",
+        "DOC-CAN-003 \u00a78.5.3"
+      ],
+      "notes": "reject => no mutation: a tampered combined body fails REJECT_S2_BODY_AUTH_FAIL and the input session state is returned byte-identical (snapshot-byte equality asserted inside the op for EVERY reject shape).",
+      "input": {
+        "send_state": {
+          "type": "json",
+          "data": {
+            "session_id": "000102030405060708090a0b0c0d0e0f",
+            "dh_pub": "1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a",
+            "hk_s": "3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c",
+            "ck_ec": "4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d",
+            "ck_pq": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+            "ns": 3,
+            "pn": 0
+          }
+        },
+        "recv_state": {
+          "type": "json",
+          "data": {
+            "session_id": "000102030405060708090a0b0c0d0e0f",
+            "dh_pub": "2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e",
+            "hk_r": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f",
+            "rk": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+            "ck_ec": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+            "ck_pq_send": "1111111111111111111111111111111111111111111111111111111111111111",
+            "ck_pq_recv": "2222222222222222222222222222222222222222222222222222222222222222",
+            "nr": 0,
+            "role": "A",
+            "peer_max_adv_id_seen": 40,
+            "known_targets": [
+              42
+            ],
+            "consumed_targets": [],
+            "tombstoned_targets": [],
+            "mkskipped": []
+          }
+        },
+        "dh_state": {
+          "type": "json",
+          "data": {
+            "dhs_priv": "4040404040404040404040404040404040404040404040404040404040404040",
+            "dhs_pub": "d7b5e81d336e578b13b8d706e82d061e3038c96bce66cdcf50d566b96ddbba10",
+            "dhr": "2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e"
+          }
+        },
+        "peer_adv_id": {
+          "type": "json",
+          "data": {
+            "u32": 41
+          }
+        },
+        "message": {
+          "type": "json",
+          "data": {
+            "new_dh_priv": "5050505050505050505050505050505050505050505050505050505050505050",
+            "new_dh_pub": "ef38b4abd14b0a919cbe6839f6185b97d32607bee359c6c53c12cc7597867d59",
+            "n": 0,
+            "pn": 3,
+            "pq_target_id": 42,
+            "pq_ct_hex": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "pq_epoch_ss": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+            "body_pt_hex": "00010203",
+            "tamper": "body",
+            "hdr_key": "nhk"
+          }
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_BODY_AUTH_FAIL"
+      }
     }
   ],
   "registries": {

@@ -989,3 +989,27 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   Add this to the executor's Phase-5 build-gate checklist in `docs/ops/DIRECTOR_OPERATIONS.md`.
 - Recommended directive shape: docs/process (a LITE note in DOC-OPS-006), or fold into the next
   source lane's checklist.
+
+### WF-0014 — A vector-freeze scope claim MUST be verified against the vector BYTES, not a prose note
+- Status: filed 2026-07-09 from the NA-0625 STOP (D-1245 / D562 Operator Decision 5)
+- Problem: the NA-0625 forward study asserted "e2e_recv/interop/crash_restart embed NO reseed
+  frames", and the NA-0625 design-lock §5 promoted that to "verified against live files" without
+  ever decoding the pinned bytes. It was wrong: `qshield_suite2_e2e_recv_vectors_v1.json` ->
+  `S2-E2E-ACCEPT-BOUNDARY-0001` pins a `flags = 0x0006 (PQ_CTXT|BOUNDARY)` frame whose header was
+  sealed under `HK`. The §8.5.1 NHK change therefore invalidated a frozen vector set OUTSIDE the two
+  files the directive named, which surfaced only at the Phase-4/5 merge boundary — as a STOP, after
+  the whole implementation and gate stack had run — instead of at the Phase-2 design-lock, where the
+  operator could have scoped the lane correctly from the start.
+- Recommended change: whenever a lane's design-lock claims a set of conformance-vector files is
+  unaffected, it MUST prove it by decoding every pinned byte string in `inputs/**/vectors/*.json`
+  that parses as a wire envelope and reporting the frames whose flags/shape intersect the semantics
+  being changed. The scan is ~30 lines of Python and runs in well under a minute; the NA-0625
+  version is archived at `docs/governance/evidence/NA-0625_suite2_spec_alignment_harness.md` §8 and
+  can be lifted verbatim. Add the obligation to the design-lock checklist in
+  `docs/ops/DIRECTOR_OPERATIONS.md` (and to DOC-OPS-006's design-lock section): "a vector-freeze
+  claim is a BYTE claim; cite the scan, not a forward-study note."
+- Cheaper generalization worth considering: a `scripts/ci/scan_pinned_wire_frames.py` that any lane
+  can run, and which CI could optionally assert against a checked-in inventory so that a frame's
+  appearance in a new vector file is itself reviewable.
+- Recommended directive shape: docs/process LITE lane, or fold into the next source lane's
+  design-lock checklist (it costs one command). last-updated 2026-07-09

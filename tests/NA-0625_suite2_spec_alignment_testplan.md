@@ -5,8 +5,10 @@ Directive: QSL-DIR-2026-07-09-562 (D562). Decision: D-1245. Closes ENG-0023.
 ## Objective
 Prove the two named header-authentication gaps are closed on the previously frozen Suite-2 receiver
 surface, WITHOUT changing any other refimpl semantic, any normative DOC-CAN text, `parse.rs`, the
-QS2S snapshot format, any KDF/AEAD/KEM primitive, the seed-model runtime equivalence, or any frozen
-conformance-vector set outside the two named files.
+QS2S snapshot format, any KDF/AEAD/KEM primitive, or the seed-model runtime equivalence. Conformance
+vectors change ONLY inside the NAMED, REVIEWED set — two files by directive, plus a third (24 bytes
+of one vector) added by Operator Decision 5 when the NHK change was found to invalidate a byte-pinned
+HK-sealed boundary frame there.
 
 Gap (1) — the PQ-CTXT boundary header moves from `HK` to the §8.5.1 `NHK` (receiver
 `recv_boundary_in_order` + Stage-2a sender mirror `send_pq_reseed`), derived on the fly from the
@@ -63,7 +65,7 @@ Pre-existing NA-0623 proofs unchanged and still green:
 (the headline), `advertise_frames_parseable_boundary_and_track_enforces_monotonicity`,
 `reseed_sender_rejects_are_deterministic_and_no_mutation`, `reseed_replay_is_rejected_one_time`.
 
-## Conformance vectors (the two NAMED files ONLY; append/replace only)
+## Conformance vectors (the NAMED files; append/replace only — TWO by directive, a THIRD added by Operator Decision 5)
 `inputs/suite2/vectors/qshield_suite2_scka_logic_vectors_v1.json` (14 -> 19):
 - CHANGED bytes (2, as pinned at design-lock): `S2-SEND-PQADV-ACCEPT-0001` (`wire_hex`: `body_ct`
   +32 for the ADVAUTH MAC) and `S2-SEND-PQRESEED-ACCEPT-0001` (`wire_hex`: `hdr_ct` under NHK).
@@ -81,18 +83,29 @@ BYTE-IDENTITY PROOF (machine-checked during regeneration, recorded in
 vectors across the two files are byte-identical, and the changed set is exactly the two named
 `S2-SEND-*-ACCEPT` vectors. Regenerator archived at `docs/governance/evidence/NA-0625_vector_regen.py`.
 
-ALL OTHER frozen vector sets are byte-identical (untouched on disk); all but ONE stay green:
-boundary (4/4), parse (6/6), kdf (6/6), transcript (4/4), mk_hybrid (3/3), establish (14/14),
-ooo_replay (6/6), crash_restart (3/3), interop (3/3), interop_ximpl (2/2), scka_kem (5/5),
-downgrade (5/5). Regenerated runners: scka_logic 19/19, pq_reseed 7/7.
+ALL OTHER frozen vector sets are byte-identical (untouched on disk) and green: boundary (4/4),
+parse (6/6), kdf (6/6), transcript (4/4), mk_hybrid (3/3), establish (14/14), ooo_replay (6/6),
+crash_restart (3/3), interop (3/3), interop_ximpl (2/2), scka_kem (5/5), downgrade (5/5).
+Regenerated runners: scka_logic 19/19, pq_reseed 7/7.
 
-**`e2e_recv` is 3/4 — a directive STOP condition, reported and NOT resolved by the executor.**
-`S2-E2E-ACCEPT-BOUNDARY-0001` pins a PQ-CTXT boundary frame whose header was sealed under `HK`; the
-NHK-only receiver correctly rejects it (`REJECT_S2_HDR_AUTH_FAIL`). It is the ONLY pinned
-`flags != 0` frame outside the two named files (exhaustively scanned). `boundary_vectors` is 4/4
-because it pins no wire bytes — the actor constructs the frame at run time. The lane did NOT touch
-the third file, open a PR, or merge. See `docs/governance/evidence/NA-0625_suite2_spec_alignment_harness.md` §8
-and the STOP bullet of D-1245.
+**`e2e_recv` — the THIRD named vector file (Operator Decision 5, D562 addendum).** The NHK change
+invalidated one byte-pinned frame here: `S2-E2E-ACCEPT-BOUNDARY-0001` -> `input.steps[0].wire_hex`
+pinned a `flags = 0x0006 (PQ_CTXT|BOUNDARY)` frame whose header was sealed under `HK` by the
+pre-NA-0625 sender, which the NHK-only receiver correctly rejects. Raised as a directive STOP at the
+merge boundary; the operator extended the named vector-file list from two files to three with a
+bounded mutation, executed and machine-checked: exactly the 24 header-ciphertext bytes `[1136, 1160)`
+re-sealed under the NHK from that vector's own `recv_state.rk`, one line of the file, one field.
+That vector's `recv_state`, `expect`, and non-wire step fields are byte-identical, and its three
+siblings (`S2-E2E-ACCEPT-NONBOUNDARY-0001`, `S2-E2E-ACCEPT-OOO-0001`, `S2-E2E-REJECT-PARSE-0001`) are
+byte-identical. The replacement ciphertext was produced BY THE REFERENCE IMPLEMENTATION (driving
+`suite2.send_pq_reseed` through the actor as the originating peer, role B), not re-derived by the
+tooling. Runner: `e2e_recv 4/4`. Regenerator + proof:
+`docs/governance/evidence/NA-0625_e2e_recv_vector_regen.py` / `..._proof.json.txt`.
+Root cause of the miss filed as WF-0014. It was the ONLY pinned `flags != 0` frame outside the two
+originally named files (exhaustively scanned); `boundary_vectors` is 4/4 because it pins no wire
+bytes — its actor constructs the frame at run time.
+
+**All 15 suite2 vector runners are green.**
 
 ## Harness (`tools/actors/refimpl_actor_rs`)
 - New op `suite2.recv_pq_adv` drives the authenticated ADV receiver, reusing the existing tamper
@@ -167,10 +180,5 @@ mutation paths, and no CI workflow runs clippy) — reported, not fixed; `cargo 
 OK. Refimpl suite 112/112. Full `cargo test -p qsc` exit 0.
 
 ## Merge status
-**NOT merged. No PR opened.** Blocked at the `e2e_recv` STOP condition above, pending the operator's
-decision on extending the named vector-file list from two to three.
-
-## Claim boundary
-Unchanged. NA-0625 hardens what NA-0624 shipped; it introduces NO post-quantum, Triple-Ratchet, or
-post-compromise security claim. The DH+PQ composition still awaits independent analysis (ENG-0028).
-The bounded root-composition model guards this lane's surface but proves agreement, not secrecy.
+All gates green; the STOP was resolved by Operator Decision 5. Impl PR, merge, post-merge
+verification, Phase-7 successor triage, and the D-1246 closeout proceed.

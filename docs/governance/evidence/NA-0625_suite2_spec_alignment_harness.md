@@ -90,7 +90,7 @@ untouched on disk; all but one are green: boundary 4/4, parse 6/6, kdf 6/6, tran
 mk_hybrid 3/3, establish 14/14, ooo_replay 6/6, crash_restart 3/3, interop 3/3, interop_ximpl 2/2,
 scka_kem 5/5, downgrade 5/5.
 
-**`e2e_recv` is 3/4 — see §8 (STOP).**
+**`e2e_recv` is the THIRD named file — see §8 (STOP raised, resolved by Operator Decision 5). Now 4/4.**
 
 ## 5. The ENG-0030 finding (how it surfaced, how it was proved)
 
@@ -154,10 +154,13 @@ vector is eliminated. The project still makes NO post-quantum, Triple-Ratchet, p
 self-healing claim. The bounded model abstracts crypto to injective tuple hashes and therefore proves
 agreement/coherence, NOT secrecy — the independent DH+PQ composition analysis remains ENG-0028.
 
-## 8. STOP — a frozen vector set OUTSIDE the two named files is invalidated by gap (1)
+## 8. STOP — a frozen vector set OUTSIDE the two named files was invalidated by gap (1)
 
-**Status: the lane is implementation-complete and every gate passes EXCEPT this. Nothing has been
-merged, no PR opened, and the third vector file has NOT been touched. The operator must decide.**
+**Status: RAISED at the merge boundary, RESOLVED by Operator Decision 5 (D562 addendum, 2026-07-09),
+which extended the NAMED, REVIEWED vector-file list from two files to three with a bounded,
+machine-checked mutation. Executed. All 15 suite2 vector runners are green.** The record below is
+kept in full because the root cause (a vector-freeze claim asserted from a prose note rather than
+from the bytes) is filed as WF-0014.
 
 ### The finding
 `inputs/suite2/vectors/qshield_suite2_e2e_recv_vectors_v1.json` -> `S2-E2E-ACCEPT-BOUNDARY-0001`
@@ -235,12 +238,46 @@ HK-downgrade rejection vector. This is a larger semantic edit to the file and du
 Either way the operator must extend the named vector-file list from two to three (or explicitly
 re-scope), because the frame is byte-pinned in a file this directive froze.
 
-### State at STOP
+### Resolution as executed (Operator Decision 5)
+Bounds approved and enforced by `docs/governance/evidence/NA-0625_e2e_recv_vector_regen.py`, which
+fails closed on any violation:
+- only `S2-E2E-ACCEPT-BOUNDARY-0001` may change; only `input.steps[0].wire_hex`; only bytes
+  `[1136, 1160)`;
+- the replacement ciphertext is produced BY THE REFERENCE IMPLEMENTATION, not re-derived by the
+  tooling: the script drives `suite2.send_pq_reseed` through the refimpl actor configured as the
+  ORIGINATING PEER (role B, whose send chains are the vector receiver's receive chains and whose
+  session root is the same pre-reseed `RK`), so the sender seals under
+  `NHK_s = header_key(rk_old, "B->A", next=true)` — bit-for-bit the key the vector's receiver derives
+  as `nhk_r`. The script then asserts the produced wire differs from the pinned wire in EXACTLY the
+  `[1136, 1160)` window before splicing;
+- that vector's `recv_state`, `expect`, and every non-`wire_hex` step field are asserted identical;
+- the three sibling vectors are asserted byte-identical.
+
+Machine-checked result (`..._e2e_recv_vector_regen_proof.json.txt`):
+
+```
+changed: ["S2-E2E-ACCEPT-BOUNDARY-0001"]   field: input.steps[0].wire_hex
+changed_byte_range: [1136, 1160]           changed_bytes: 24
+old_hdr_ct: 93f8f43e743afdb72aee54056892d5aa12fb93c4af27f683
+new_hdr_ct: be79e96495bb6257902c8ba4475690fd6341ac113148db0c
+byte_identical_siblings: [S2-E2E-ACCEPT-NONBOUNDARY-0001, S2-E2E-ACCEPT-OOO-0001, S2-E2E-REJECT-PARSE-0001]
+expect_fields_unchanged: true
+```
+`git diff --numstat` on the file: `1 1` (one line). Runner: `e2e_recv 4/4`.
+
+Rejected alternatives, for the record: re-shaping the vector to `kind: negative` (a larger semantic
+edit that duplicates the new `S2-RECV-PQRESEED-REJECT-HK-DOWNGRADE-0001` and destroys the only
+multi-step accepting-boundary e2e proof); and splitting gap (1) into its own lane (re-runs the whole
+gate stack and breaks the deliberate "one unfreeze, one vector regeneration" bundling).
+
+### State at the STOP (before the resolution)
 Working tree: implementation complete, all governance written, all other gates green (fmt; workspace
 build WF-0013; clippy clean on the three lane crates; `cargo metadata --locked`; `cargo audit`;
 `formal/run_model_checks.py`; refimpl 112/112; full `cargo test -p qsc` exit 0; the seed-model
 runtime-equivalence test byte-for-byte). NOT done, pending this decision: the impl PR, the merge, the
 post-merge verification, the Phase-7 successor triage, and the D-1246 closeout.
+
+(All of that work then proceeded to PR/merge once the operator resolved the STOP.)
 
 One pre-existing, out-of-scope lint also surfaced and was deliberately NOT fixed:
 `cargo clippy --workspace --all-targets -- -D warnings` fails on

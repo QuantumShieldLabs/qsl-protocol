@@ -42651,3 +42651,20 @@ Also reported, deliberately not fixed: a pre-existing, out-of-scope `needless_bo
 warnings` (clippy is clean on the three crates this lane touches; no CI workflow runs clippy).
 The impl PR, the merge, the post-merge verification, the Phase-7 successor triage, and the D-1246
 closeout all remain OPEN pending the operator's decision.
+
+**STOP RESOLVED (2026-07-09) — Operator Decision 5: named vector-file list extended 2 -> 3.** The
+operator approved the minimal, bounded resolution rather than the alternatives (re-shaping the vector
+to a rejection case, or splitting gap (1) into its own lane). Executed and machine-checked: in
+`qshield_suite2_e2e_recv_vectors_v1.json`, only `S2-E2E-ACCEPT-BOUNDARY-0001` changed, only its
+`input.steps[0].wire_hex`, only the 24 header-ciphertext bytes `[1136, 1160)`, re-sealed under the
+NHK derived from that vector's own `recv_state.rk`. The replacement ciphertext was produced BY THE
+REFERENCE IMPLEMENTATION (driving `suite2.send_pq_reseed` through the actor as the originating peer,
+role B), not re-derived by the tooling; the regenerator asserts the produced wire differs from the
+pinned wire in exactly that window before splicing, and fails closed otherwise. That vector's
+`recv_state` / `expect` / non-wire step fields and all three sibling vectors are byte-identical;
+`git diff --numstat` on the file is `1 1`. All 15 suite2 vector runners are now green (`e2e_recv
+4/4`), refimpl is 112/112, the formal runner passes, and `fmt --check` is clean. The root cause —
+a vector-freeze scope claim asserted from a forward-study note instead of from the vector bytes — is
+filed as **WF-0014**, with the ~30-second scan that would have caught it at the Phase-2 design-lock.
+The lane proceeds to the impl PR, merge, post-merge verification, Phase-7 triage, and the D-1246
+closeout.

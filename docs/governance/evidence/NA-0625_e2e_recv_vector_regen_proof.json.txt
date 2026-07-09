@@ -1,0 +1,21 @@
+{
+ "file": "qshield_suite2_e2e_recv_vectors_v1.json",
+ "changed": [
+  "S2-E2E-ACCEPT-BOUNDARY-0001"
+ ],
+ "changed_field": "input.steps[0].wire_hex",
+ "changed_byte_range": [
+  1136,
+  1160
+ ],
+ "changed_bytes": 24,
+ "old_hdr_ct": "93f8f43e743afdb72aee54056892d5aa12fb93c4af27f683",
+ "new_hdr_ct": "be79e96495bb6257902c8ba4475690fd6341ac113148db0c",
+ "byte_identical_siblings": [
+  "S2-E2E-ACCEPT-NONBOUNDARY-0001",
+  "S2-E2E-ACCEPT-OOO-0001",
+  "S2-E2E-REJECT-PARSE-0001"
+ ],
+ "expect_fields_unchanged": true
+}
+OK: 1 vector, 1 field, 24 bytes; 3 siblings byte-identical

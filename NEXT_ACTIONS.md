@@ -6,23 +6,24 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0626 | HIGHEST_NA=0626 | HIGHEST_D=1246 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0627 | HIGHEST_NA=0627 | HIGHEST_D=1248 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
-**READY (exactly one — execute this):** `NA-0626 — ENG-0024 + ENG-0026: unify the Suite-2 root key
-and add the combined DH+PQ boundary receiver` (one same-surface lane; folds in ENG-0030 structurally
-and ENG-0031 as a rider; operator-steered at D562 Operator Decision 5 and restored at the NA-0625
-closeout, D-1246). Its full block (with scope flags) is below under section 2; find it with the
-ANCHORED pattern `^Status:` carrying the state READY (there is exactly one such line in this file).
+**READY (exactly one — execute this):** `NA-0627 — ENG-0028: independent formal analysis of the
+Suite-2 DH+PQ composition (ProVerif)` (the independent-analysis on-ramp the standing claim boundary
+requires; UNBLOCKED by NA-0626, which restructured — and structurally fixed — exactly the
+composition this lane models; the leading candidate named in D563's proposed successor block and
+promoted at the NA-0626 closeout, D-1248). Its full block (with scope flags) is below under
+section 2; find it with the ANCHORED pattern `^Status:` carrying the state READY (there is exactly
+one such line in this file).
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
-1. **ENG-0024 + ENG-0026 = NA-0626 (now READY)** — RK-duality unification + combined DH+PQ boundary receiver, one same-surface lane; absorbs ENG-0030 (make the reseed-receive send-schedule coherence STRUCTURAL) and ENG-0031 (the §8.5.1/§8.5.4 ADV-header text tension) as a rider. ENG-0023 CLOSED at NA-0625 (D-1245/D-1246).
-2. **ENG-0028** — ProVerif model of the DH+PQ composition (the independent-analysis on-ramp the standing claim boundary requires). Sequence AFTER NA-0626: it models exactly the composition that lane restructures. NA-0625 already delivered the bounded root-composition slice.
-3. **ENG-0014** — qsl-server non-constant-time token compare (P2, cross-repo, cheap; Signal-Server `MessageDigest.isEqual` precedent). Good short lane whenever a slot opens.
-4. **ENG-0025** — qsc session façade (largely subsumed by the ENG-0024 refactor; re-triage after NA-0626).
-5. **ENG-0019** — gate/remove the auth-unsafe `qsp::handshake` skeleton (P3, cheap; design-tenet aligned).
-6. **WF-0014** — vector-freeze scope claims must be proved against the vector BYTES; Phase-5 gate lists derived mechanically from the touched workflows. Cheap; fold into NA-0626's design-lock. **WF-0012** — the `ledger.py` findings-tracking tool. **ENG-0022** — cover traffic / metadata (unblocked). **ENG-0027** — chunked/erasure-coded PQ transport (largest; partially conflicts with the NA-0626 receiver refactor).
-7. Remaining P3 defense-in-depth: ENG-0008, ENG-0009, ENG-0015, ENG-0016, ENG-0017, ENG-0018, ENG-0020, ENG-0021.
+1. **ENG-0028 = NA-0627 (now READY)** — ProVerif model of the DH+PQ composition (the independent-analysis on-ramp the standing claim boundary requires). UNBLOCKED: NA-0626 closed ENG-0024/0026/0030/0031 (D-1247/D-1248), so the composition it models — single root, DH boundary, PQ reseed, combined DH+PQ boundary — is now structurally settled.
+2. **ENG-0014** — qsl-server non-constant-time token compare (P2, cross-repo, cheap; Signal-Server `MessageDigest.isEqual` precedent). Good short lane whenever a slot opens.
+3. **ENG-0025** — qsc session façade, RE-TRIAGED at D-1247 (the seam contract SHRANK: the root INJECT/ADOPT and ENG-0030 send-half obligations are structural now). Remaining scope: the persistence choreography + `main.rs` extraction; the `recv.ck_pq_send` wire-op transport slot; the qsc combined-send CADENCE switch (D561 operator-set — decide here or as its own LITE lane).
+4. **ENG-0019** — gate/remove the auth-unsafe `qsp::handshake` skeleton (P3, cheap; design-tenet aligned).
+5. **WF-0012** — the `ledger.py` findings-tracking tool. **ENG-0022** — cover traffic / metadata (unblocked). **ENG-0027** — chunked/erasure-coded PQ transport (largest; re-check against the post-NA-0626 receiver shape).
+6. Remaining P3 defense-in-depth: ENG-0008, ENG-0009, ENG-0015, ENG-0016, ENG-0017, ENG-0018, ENG-0020, ENG-0021.
 
 **Conventions (authoritative — see DOC-OPS-006):**
 - **The `IMPROVEMENT_LEDGER` is the single prioritized backlog.** The DOC-G5-005 §9 table is
@@ -34619,7 +34620,25 @@ Closeout evidence:
 ---
 
 ### NA-0626 — ENG-0024 + ENG-0026: unify the Suite-2 root key + combined DH+PQ boundary receiver (source/test)
-Status: READY
+Status: DONE
+OUTCOME (D-1247 impl / D-1248 closeout; impl PR #1530, merge `fb2f1c21`): ENG-0024, ENG-0026,
+ENG-0030, and ENG-0031 are ALL CLOSED. `Suite2SessionState` carries exactly ONE root; the wire-level
+ops are root-explicit; the qsc INJECT/ADOPT and ENG-0030 send-half dances are UNREPRESENTABLE
+(deleted compiler-enforced in the same workspace-atomic commit that landed the session-level
+`recv_pq_reseed`/`recv_pq_adv_session` replacements — the root-coherence defect class behind the
+D560 amendment, the NA-0624 dh.rk-sync desync, and ENG-0030 is prevented BY CONSTRUCTION). The
+combined DH+PQ boundary is live (pure `send_combined_boundary` + the fresh-DH_pub receive arm;
+DH-first-then-PQ; NO wire FORMAT change, parse.rs untouched); qsc can receive combined frames while
+its send cadence stays the D561 policy (re-triage with ENG-0025). QS2S bumped v2→v3 fail-closed
+(distinct `unsupported suite2 snapshot version` / `session_unsupported_version` markers; no
+migration; three dead qsc legacy branches removed). Vector artifact matched the WF-0014 byte-scan
+EXACTLY (machine-asserted: 1 changed — the `dh_rk` member drop, ZERO wire bytes; 25 byte-identical
++ sha256 cross-set guard; 5 appended combined vectors); all 15 runners green. Runtime equivalence
+restated per Operator Decision 3 (v3 bytes; wire half STRENGTHENED with fixed golden SHA-256 pins).
+Formal model REPLACED (single root; combined alphabet; PQ-first counterfactual; 15,032 states / 9
+shapes). DOC-CAN-003 changed by exactly the ENG-0031 sentence. REPORTED boundary deviation:
+apps/qsl-tui three-line mechanical recv_wire fallout (D-1247). Full qsc suite 587/0/3 green
+locally; post-merge main-push suites green at job level (D-1248).
 Goals: G1, G2, G3, G4, G5
 Wire/behavior change allowed? YES (ENG-0026 adds a combined DH+PQ boundary frame to the refimpl receiver; ENG-0024 is internal state, no wire change)
 Crypto/state-machine change allowed? YES (QS2S snapshot migration + cross-set conformance-vector regeneration; no new KDF/AEAD/KEM primitive)
@@ -34670,3 +34689,32 @@ Binding constraints:
 
 Begins at D-1247. Delicate crypto lane: design-lock before code; one session handoff permitted at
 design-lock completion, per the session-handoff convention.
+
+---
+
+### NA-0627 — ENG-0028: independent formal analysis of the Suite-2 DH+PQ composition (ProVerif) (formal/docs)
+Status: READY
+Goals: G1, G2, G4
+Wire/behavior change allowed? NO (analysis lane: it READS the protocol; any finding is filed, not fixed here)
+Crypto/state-machine change allowed? NO
+Docs-only allowed? NO (new `formal/**` ProVerif artifacts + runner wiring + docs; no refimpl/qsc source change)
+
+Objective:
+Deliver the independent-analysis on-ramp the standing claim boundary requires: a ProVerif model of
+the Suite-2 DH+PQ composition as it NOW exists post-NA-0626 — establishment (classical-then-PQ),
+the DH boundary, the PQ reseed, the combined DH+PQ boundary, and the SCKA control plane's
+authenticated ADV — over the SINGLE session root. Scope, query set (secrecy/agreement/PCS shapes),
+abstraction boundary versus the existing bounded Python models, and the claim language any result
+does or does NOT license are all design-lock material. The standing claim boundary HOLDS until the
+operator explicitly revises it on this lane's evidence: a ProVerif result is necessary input to —
+not sufficient grounds for — any post-quantum/Triple-Ratchet/post-compromise claim.
+
+Binding constraints:
+- The bounded root-composition model (`formal/model_suite2_root_composition_bounded.py`) stays —
+  it is the fast CI regression guard; ProVerif is the independent analysis layer above it.
+- No refimpl/qsc source mutation. A finding against the shipped composition is a STOP + filing,
+  not an in-lane fix.
+- Phase-5 gates derived mechanically from the touched workflows (WF-0014 discipline).
+
+Begins at D-1249. Delicate analysis lane: design-lock before modeling; one session handoff
+permitted at design-lock completion, per the session-handoff convention.

@@ -42721,3 +42721,40 @@ production-readiness, security-completion, crypto-complete, post-compromise, sel
 post-quantum, or Triple-Ratchet claim is introduced — the standing boundary holds until the DH+PQ
 composition is independently analyzed (ENG-0028). The bounded model proves agreement and coherence
 over abstracted KDFs, not secrecy.
+
+## 2026-07-09 -- NA-0626 closeout; ENG-0024/0026/0030/0031 CLOSED; NA-0627 (ENG-0028 ProVerif) promotion
+
+Directive QSL-DIR-2026-07-09-563 (D563). Decisions D-1247 (impl) / D-1248 (closeout). Impl PR #1530,
+merge `fb2f1c21` (base `842f6757`). ENG-0024, ENG-0026, ENG-0030, and ENG-0031 are CLOSED.
+
+**Landed.** ONE session root by construction: `Suite2SessionState.rk` is the only copy; the wire-level
+receive is root-explicit (root in as a parameter, possibly-advanced root out in the outcome); the qsc
+INJECT/ADOPT and ENG-0030 send-half mitigations became unrepresentable and were deleted
+compiler-enforced in the same workspace-atomic commit that landed the session-level
+`recv_pq_reseed`/`recv_pq_adv_session` replacements. The combined DH+PQ boundary is live
+(DH-first-then-PQ; the existing 0x0006 shape with fresh-DH_pub discrimination; no wire FORMAT change;
+parse.rs untouched; caller-supplied keypair keeps the sender vector-pinnable). QS2S v2→v3 fail-closed
+with DISTINCT markers and NO migration; three dead qsc legacy branches removed, one test each. The
+vector artifact matched the committed WF-0014 byte-scan exactly, machine-asserted (1 changed = the
+`dh_rk` member drop, ZERO wire bytes; 25 byte-identical + cross-set sha256 guard; 5 appended).
+Runtime equivalence restated per Operator Decision 3 (v3 state bytes; golden SHA-256 wire pins).
+Formal model replaced (single root; combined alphabet; PQ-first counterfactual; 15,032 states / 9
+shapes). DOC-CAN-003 changed by exactly the ENG-0031 sentence.
+
+**Process notes.** Two REPORTED non-STOP events: the apps/qsl-tui three-line mechanical `recv_wire`
+fallout (Result-boundary deviation forced by the design-locked signature + WF-0013; D-1247 carries the
+full account and a process note to extend mechanical scope derivation to the caller surface of a
+signature change), and one rerun of the CANCELLED main-side public-safety job from the pre-lane
+morning push (infra recovery so the PR-blocking gate could evaluate; no failing PR check was masked).
+goal-lint reminder: TRACEABILITY.md must ride the impl diff beside DECISIONS.md.
+
+**Verification.** WF-0013 workspace build; fmt; clippy -D warnings on the touched crates; metadata
+--locked; audit --deny warnings; schema + all 15 suite2 vector runners; run_model_checks (~1.6 s);
+4B harness locally; full local `cargo test -p qsc` 144 binaries 587/0/3; PR checks 34 pass + 2
+skipped-by-design; post-merge main-push workflows all SUCCESS incl. `qsc-linux-full-suite` and
+`macos-qsc-full-serial` at job level.
+
+**Queue.** NA-0626 DONE. NA-0627 (ENG-0028 — ProVerif analysis of the DH+PQ composition, now
+structurally settled and therefore unblocked) promoted as the sole READY lane; begins at D-1249.
+LIVE QUEUE STATE: READY=NA-0627, HIGHEST_NA=0627, HIGHEST_D=1248. The standing claim boundary holds
+unchanged until that independent analysis lands.

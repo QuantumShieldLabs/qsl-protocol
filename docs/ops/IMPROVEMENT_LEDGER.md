@@ -672,7 +672,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   analysis the standing claim boundary requires. last-updated 2026-07-08
 
 ### ENG-0024 — Root-key duality: `RK` stored redundantly in `recv.rk` and `dh.rk` with caller-owned coherence
-- **STATUS: DONE (NA-0626; D-1247 impl; impl PR + merge SHA recorded at the D-1248 closeout).**
+- **STATUS: DONE (NA-0626; D-1247 impl, D-1248 closeout; impl PR #1530, merge `fb2f1c21`).**
   `Suite2SessionState` now carries exactly ONE `rk` (DOC-CAN-003 §8.1); `recv.rk` and `dh.rk` are
   REMOVED and `session_root()` is deleted. The wire-level ops are root-EXPLICIT (`recv_wire` /
   `recv_wire_canon` take the root and return the possibly-advanced root in the outcome;
@@ -736,7 +736,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   last-updated 2026-07-09
 
 ### ENG-0026 — Combined DH+PQ boundary (single-message hybrid ratchet) in the refimpl receiver
-- **STATUS: DONE (NA-0626; D-1247 impl; impl PR + merge SHA recorded at the D-1248 closeout).**
+- **STATUS: DONE (NA-0626; D-1247 impl, D-1248 closeout; impl PR #1530, merge `fb2f1c21`).**
   A single `FLAG_BOUNDARY|FLAG_PQ_CTXT` (0x0006) frame carrying a FRESH `DH_pub` now applies the
   DH ratchet AND the SCKA reseed in one hybrid epoch transition: pure sender
   `send_combined_boundary` (caller-supplied keypair — vector-deterministic) and the combined arm
@@ -818,7 +818,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   then a migration lane on operator approval). last-updated 2026-07-09
 
 ### ENG-0030 — Reseed RECEIVE leaves the receiver's SEND key schedule stale (caller-owned coherence)
-- **STATUS: DONE (NA-0626; D-1247 impl; impl PR + merge SHA recorded at the D-1248 closeout).**
+- **STATUS: DONE (NA-0626; D-1247 impl, D-1248 closeout; impl PR #1530, merge `fb2f1c21`).**
   STRUCTURAL, as recommended: the session-level `recv_pq_reseed` (mirroring `send_pq_reseed`
   field-for-field) returns a fully updated `Suite2SessionState` INCLUDING the send half
   (`send.hk_s` from the advanced root, `send.ck_pq` from the send-direction seed), with a
@@ -855,8 +855,8 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   migration amortizes it), or ENG-0025. last-updated 2026-07-09
 
 ### ENG-0031 — DOC-CAN-003 §8.5.1 vs §8.5.4: is an ADV boundary header NHK or HK?
-- **STATUS: DONE (NA-0626; D-1247 impl; Operator Decision 4 at D563 selected the one-sentence
-  clarification).** DOC-CAN-003 §8.5.1's sender bullet now scopes the NHK rule to boundary
+- **STATUS: DONE (NA-0626; D-1247 impl, D-1248 closeout; impl PR #1530, merge `fb2f1c21`;
+  Operator Decision 4 at D563 selected the one-sentence clarification).** DOC-CAN-003 §8.5.1's sender bullet now scopes the NHK rule to boundary
   headers "that apply an epoch transition (DH ratchet advancement and/or an SCKA reseed event)"
   and states that an advertisement-only boundary advances no root and keeps the sender's current
   `HK_s` — matching §8.5.4's silence, §8.5.1's own receiver sentence, and the shipped

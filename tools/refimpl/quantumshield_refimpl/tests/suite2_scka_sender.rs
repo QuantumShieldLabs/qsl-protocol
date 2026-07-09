@@ -15,7 +15,8 @@ use quantumshield_refimpl::crypto::traits::{PqKem768, X25519Dh};
 use quantumshield_refimpl::suite2::establish::init_from_base_handshake;
 use quantumshield_refimpl::suite2::parse::decode_suite2_wire;
 use quantumshield_refimpl::suite2::ratchet::{
-    recv_dh_boundary, recv_wire, send_boundary, send_pq_advertise, send_pq_reseed, track_peer_adv,
+    recv_dh_boundary, recv_pq_adv_session, recv_pq_reseed, recv_wire, send_boundary,
+    send_pq_advertise, send_pq_reseed, track_peer_adv,
 };
 use quantumshield_refimpl::suite2::state::Suite2SessionState;
 
@@ -386,17 +387,14 @@ fn adv_recv_round_trip_consumes_chain_and_next_message_in_order() {
     );
 }
 
-/// NA-0625 REGRESSION (the qsc CTXT-arm finding): after a party RECEIVES a reseed, its SEND-side
-/// key schedule must be mirrored from the advanced root. `send_pq_reseed` writes both directional
-/// header keys AND the new send PQ chain into the SENDER's session state; the receive path
-/// returns only recv-side state, so the CALLER must recompute the receiver's `send.hk_s` (§8.5.3
-/// step 7) and adopt its new send PQ chain from `recv.ck_pq_send` (step 6) — qsc does both in its
-/// CTXT intercept arm, next to the dh.rk ADOPT. Without it the receiver's next control
-/// pre-envelope (an SCKA advertisement, which rides the CURRENT send chain) is sealed under a
-/// stale schedule and the peer's authenticated ADV receiver rejects it.
+/// NA-0626 (ENG-0030 STRUCTURAL — the NA-0625 regression INVERTED): after a party RECEIVES a
+/// reseed through the session-level entry point (`recv_pq_reseed`), its SEND-side key schedule
+/// is refreshed from the advanced root BY CONSTRUCTION. The NA-0625 shape of this test asserted
+/// the staleness (`assert_ne!`) and then performed the caller-side composition qsc's CTXT arm
+/// carried (root INJECT/ADOPT + `send.hk_s`/`send.ck_pq` refresh); the entry point performs all
+/// of it atomically with the receive, so no caller can hold half a key schedule.
 #[test]
 fn reseed_receiver_send_schedule_must_be_refreshed_from_advanced_root() {
-    use quantumshield_refimpl::suite2::ratchet::header_key;
     let c = StdCrypto;
     let (mut a, mut b, _r0) = establish_pair(&c);
 
@@ -416,48 +414,82 @@ fn reseed_receiver_send_schedule_must_be_refreshed_from_advanced_root() {
     let out = send_pq_reseed(&c, &c, &c, a.clone(), adv_id, &pq_ct, &ss_a, b"m").expect("reseed");
     a = out.state;
 
-    // B receives it (INJECT the canonical root first — the NA-0624 dh.rk-sync composition).
+    // B receives it through the SESSION-LEVEL entry point: no INJECT, no ADOPT, no caller-side
+    // send-half refresh — the entry point owns the whole schedule.
     let ss_b = c.decap(&sk_b, &pq_ct).expect("decap");
-    let mut recv_in = b.recv.clone();
-    recv_in.rk = b.dh.rk;
-    let rout =
-        recv_wire(&c, &c, &c, recv_in, &out.wire, Some(&ss_b), Some(adv_id)).expect("recv reseed");
-    b.recv = rout.state;
+    let rout = recv_pq_reseed(&c, &c, &c, &c, b.clone(), &out.wire, &ss_b, adv_id);
+    assert!(rout.ok, "session-level reseed receive accepts");
+    assert_eq!(rout.plaintext, b"m");
+    b = rout.state;
 
-    // The receive path refreshed B's RECV header key (it converges with A's send key)...
+    // INVERTED ASSERTIONS: the returned state is coherent on the advanced root — both header-key
+    // directions and both directional PQ chains, with no caller composition performed.
     assert_eq!(a.send.hk_s, b.recv.hk_r, "A->B header keys converge");
-    // ...but B's SEND header key and send PQ chain are still the PRE-reseed ones.
-    assert_ne!(
-        b.send.hk_s, a.recv.hk_r,
-        "the receive path alone leaves the receiver's send header key stale (the finding)"
-    );
-    assert_ne!(
-        b.send.ck_pq, a.recv.ck_pq_recv,
-        "the receive path alone leaves the receiver's send PQ chain stale (the finding)"
-    );
-
-    // THE CALLER-SIDE COMPOSITION (what qsc's CTXT arm performs, beside the dh.rk ADOPT).
-    b.dh.rk = b.recv.rk;
-    b.send.hk_s = header_key(&c, &b.recv.rk, b.recv.role_is_a, false).expect("hk_s");
-    b.send.ck_pq = b.recv.ck_pq_send;
-
     assert_eq!(
         b.send.hk_s, a.recv.hk_r,
-        "after the composition the header keys are coherent on the advanced root"
+        "the receiver's send header key is refreshed from the advanced root (the ENG-0030 fix)"
     );
     assert_eq!(
         b.send.ck_pq, a.recv.ck_pq_recv,
-        "after the composition the directional PQ chains are coherent"
+        "the receiver's send PQ chain is refreshed from the advanced root (the ENG-0030 fix)"
+    );
+    assert_eq!(
+        b.recv.rk, b.dh.rk,
+        "the entry point returns coherent root slots (no ADOPT left to the caller)"
     );
 
-    // Concretely: B's advertisement (a control pre-envelope on the current send chain) now
-    // authenticates at A's authenticated ADV receiver — header AND body.
+    // Concretely: B's advertisement (a control pre-envelope on the current send chain)
+    // authenticates at A's authenticated ADV receiver — header AND body — built on the schedule
+    // the entry point returned, exactly as the peer expects.
     let (pk_b2, _sk_b2) = runtime_pq_kem_keypair();
     let adv = send_pq_advertise(&c, &c, &c, b.clone(), 2, &pk_b2, b"post-reseed-adv")
         .expect("B advertises");
     let r = recv_wire(&c, &c, &c, a.recv.clone(), &adv.wire, None, Some(0))
         .expect("A authenticates B's post-reseed advertisement");
     assert_eq!(r.plaintext, b"post-reseed-adv");
+}
+
+/// NA-0626 (ENG-0024 companion): the session-level ADV receive mirrors the wire-level one —
+/// authenticated round trip, chain slot consumed, root untouched, next message in order — with
+/// the root injection internal and the FULL session state returned. Rejects leave the input
+/// state unmodified (planted ADV with a wrong-root MAC).
+#[test]
+fn recv_pq_adv_session_round_trip_and_reject_no_mutation() {
+    let c = StdCrypto;
+    let (mut a, mut b, _r0) = establish_pair(&c);
+
+    let adv_id: u32 = 1;
+    let (pk_a, _sk_a) = runtime_pq_kem_keypair();
+    let out =
+        send_pq_advertise(&c, &c, &c, a.clone(), adv_id, &pk_a, b"adv-payload").expect("advertise");
+    a = out.state;
+
+    let rout = recv_pq_adv_session(&c, &c, &c, b.clone(), &out.wire, 0);
+    assert!(rout.ok, "session-level ADV receive accepts");
+    assert_eq!(rout.plaintext, b"adv-payload", "MAC stripped, payload back");
+    let nr_before = b.recv.nr;
+    let root_before = b.dh.rk;
+    b = rout.state;
+    assert_eq!(b.recv.nr, nr_before + 1, "ADV consumed its chain slot");
+    assert_eq!(b.dh.rk, root_before, "an ADV advances no root");
+    assert!(b.recv.mkskipped.is_empty(), "no receive-chain gap");
+
+    // A's next normal message arrives strictly in order.
+    let m = quantumshield_refimpl::suite2::ratchet::send_wire(&c, &c, &c, a.send.clone(), 0, b"x")
+        .expect("send_wire");
+    a.send = m.state;
+    let r2 = recv_wire(&c, &c, &c, b.recv.clone(), &m.wire, None, None).expect("in-order recv");
+    assert_eq!(r2.plaintext, b"x");
+
+    // A replayed ADV rejects (stale counter under the session keys) with no state mutation.
+    let before_bytes = b.snapshot_bytes();
+    let replay = recv_pq_adv_session(&c, &c, &c, b.clone(), &out.wire, adv_id);
+    assert!(!replay.ok, "replayed ADV rejects");
+    assert_eq!(
+        replay.state.snapshot_bytes(),
+        before_bytes,
+        "reject returns the input state unmodified"
+    );
 }
 
 /// THE DECISION-2 PROOF at refimpl level: an [ADV, reseed] pair from the same sender round-trips

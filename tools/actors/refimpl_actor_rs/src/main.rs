@@ -3286,10 +3286,19 @@ impl Actor {
                     "params.negotiated.suite_id",
                 )?;
 
+                // Accept both the bare-string and the canonical `{"role": "A"}` shapes, exactly as
+                // `suite2.boundary.run` does (the vector schema requires the object form).
                 let role_v = get_json_data(&req.params, "role")?;
-                let role_s = role_v
-                    .as_str()
-                    .ok_or_else(|| ActorError::Invalid("params.role: expected string".into()))?;
+                let role_s = if let Some(s) = role_v.as_str() {
+                    s
+                } else if let Some(obj) = role_v.as_object() {
+                    obj.get("role")
+                        .and_then(|v| v.as_str())
+                        .or_else(|| obj.get("value").and_then(|v| v.as_str()))
+                        .ok_or_else(|| ActorError::Invalid("params.role: expected string".into()))?
+                } else {
+                    return Err(ActorError::Invalid("params.role: expected string".into()));
+                };
                 let role_is_a = match role_s {
                     "A" => true,
                     "B" => false,

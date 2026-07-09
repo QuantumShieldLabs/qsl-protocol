@@ -177,7 +177,13 @@ PRE-EXISTING, out-of-scope lint in `apps/qshield-cli/tests/na_0318_qshield_ack_c
 (`needless_borrow`, clippy 1.95.0; file untouched by this lane, `apps/**` not in the allowed
 mutation paths, and no CI workflow runs clippy) — reported, not fixed; `cargo metadata --locked` OK;
 `cargo audit` no findings (1159 advisories, 375 dependencies); `python3 formal/run_model_checks.py`
-OK. Refimpl suite 112/112. Full `cargo test -p qsc` exit 0.
+OK; `python3 scripts/ci/validate_suite2_vectors.py` OK. Refimpl suite 112/112. Full `cargo test -p qsc`
+exit 0. All 15 suite2 vector runners green.
+
+The schema validator was initially SKIPPED locally and CI caught a JSON-schema violation in the 5
+appended ADV-receive vectors (`input.role.data` must be the canonical `{"role": "A"}` object, not a
+bare string). Fixed in the vectors, in the archived regenerator, and in the actor's `suite2.recv_pq_adv`
+op (which now accepts both shapes, as `suite2.boundary.run` already did). Process gap folded into WF-0014.
 
 ## Merge status
 All gates green; the STOP was resolved by Operator Decision 5. Impl PR, merge, post-merge

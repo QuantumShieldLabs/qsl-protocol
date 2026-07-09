@@ -44,7 +44,7 @@ ADV_PUB = "bb" * 1184
 def adv_common_state():
     return {
         "negotiated": J({"protocol_version": "0x0500", "suite_id": "0x0002"}),
-        "role": J("A"),
+        "role": J({"role": "A"}),  # canonical shape required by scripts/ci/validate_suite2_vectors.py
         "session_id": H("11111111111111111111111111111111"),
         "dh_pub": H("22" * 32),
         "hk_r": H("66" * 32),

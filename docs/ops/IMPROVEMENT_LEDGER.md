@@ -1011,5 +1011,13 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Cheaper generalization worth considering: a `scripts/ci/scan_pinned_wire_frames.py` that any lane
   can run, and which CI could optionally assert against a checked-in inventory so that a frame's
   appearance in a new vector file is itself reviewable.
+- Companion gap, same lane, same root cause (assumption instead of the real artifact/tooling): the
+  executor ran all 15 suite2 vector RUNNERS locally but not `scripts/ci/validate_suite2_vectors.py`,
+  so a JSON-schema violation in the 5 appended ADV-receive vectors (`input.role.data` must be an
+  object, not the bare string `"A"`) reached CI instead of being caught locally. The executor's
+  Phase-5 gate checklist should be derived MECHANICALLY from the workflows a change touches — i.e.
+  run every `scripts/ci/*.py` invoked by the affected `.github/workflows/*.yml`, not a remembered
+  subset. (`goal-lint` additionally requires a `Goals: G1, ...` line in the PR body; it cannot run
+  locally, so it belongs on a PR-creation checklist.)
 - Recommended directive shape: docs/process LITE lane, or fold into the next source lane's
   design-lock checklist (it costs one command). last-updated 2026-07-09

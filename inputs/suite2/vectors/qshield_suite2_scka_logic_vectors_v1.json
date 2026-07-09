@@ -829,7 +829,9 @@
         },
         "role": {
           "type": "json",
-          "data": "A"
+          "data": {
+            "role": "A"
+          }
         },
         "session_id": {
           "type": "hex",
@@ -939,7 +941,9 @@
         },
         "role": {
           "type": "json",
-          "data": "A"
+          "data": {
+            "role": "A"
+          }
         },
         "session_id": {
           "type": "hex",
@@ -1029,7 +1033,9 @@
         },
         "role": {
           "type": "json",
-          "data": "A"
+          "data": {
+            "role": "A"
+          }
         },
         "session_id": {
           "type": "hex",
@@ -1118,7 +1124,9 @@
         },
         "role": {
           "type": "json",
-          "data": "A"
+          "data": {
+            "role": "A"
+          }
         },
         "session_id": {
           "type": "hex",
@@ -1207,7 +1215,9 @@
         },
         "role": {
           "type": "json",
-          "data": "A"
+          "data": {
+            "role": "A"
+          }
         },
         "session_id": {
           "type": "hex",

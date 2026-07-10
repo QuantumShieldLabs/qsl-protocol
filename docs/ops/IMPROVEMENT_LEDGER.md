@@ -784,7 +784,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   what remains of ENG-0022's cadence-obfuscation scope), then staged implementation lanes;
   sequence after ENG-0023 (the frozen-receiver unfreeze it depends on). last-updated 2026-07-09
 
-### ENG-0028 — ProVerif model of the DH+PQ composition (+ root-composition slice for the bounded explorer)
+### ENG-0028 — ProVerif model of the DH+PQ composition (+ root-composition slice for the bounded explorer) — **CLOSED (NA-0627, D-1249/D-1250; PR #1533, merge `a43c0af2`)**
 - Severity: P2 (assurance; the standing claim boundary REQUIRES independent analysis of the
   DH+PQ composition before any post-quantum claim) — filed 2026-07-09 from the Signal comparison
   study at the NA-0624 closeout (D-1244)
@@ -929,7 +929,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   operator-authorized CI LITE lane (workflow YAML + a runbook paragraph), or operator-side edit.
   last-updated 2026-07-09
 
-### ENG-0034 — X25519 DH accepts non-contributory (low-order) peer keys: the DH output is never checked
+### ENG-0034 — X25519 DH accepts non-contributory (low-order) peer keys: the DH output is never checked — **OPEN; filed NA-0627 (PR #1533, merge `a43c0af2`); operator-directed successor lane**
 - Severity: P2 (security-relevant correctness gap; NOT remotely exploitable against an honest
   pair — see the exposure bound below — but it silently voids the CLASSICAL half of
   post-compromise security and therefore blocks the Triple-Ratchet/PCS claim language) — filed
@@ -992,7 +992,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   check on that arm. NOT done in NA-0627: D564 is an ANALYSIS lane ("the FIX, if warranted, stays
   out of scope"). last-updated 2026-07-09
 
-### ENG-0035 — ProVerif does not terminate on the 2-boundary unrolling of the Suite-2 composition
+### ENG-0035 — ProVerif does not terminate on the 2-boundary unrolling of the Suite-2 composition — **OPEN; filed NA-0627 (PR #1533, merge `a43c0af2`)**
 - Severity: P3 (assurance-coverage limit; no security delta — the reduced-scope model proves the
   same queries, and nothing was weakened) — filed 2026-07-09 from NA-0627 (ENG-0028), per D564
   Decision 1's standing instruction and the design-lock §6 non-termination protocol.

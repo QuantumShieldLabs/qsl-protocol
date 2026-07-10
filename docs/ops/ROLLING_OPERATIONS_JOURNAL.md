@@ -42758,3 +42758,74 @@ skipped-by-design; post-merge main-push workflows all SUCCESS incl. `qsc-linux-f
 structurally settled and therefore unblocked) promoted as the sole READY lane; begins at D-1249.
 LIVE QUEUE STATE: READY=NA-0627, HIGHEST_NA=0627, HIGHEST_D=1248. The standing claim boundary holds
 unchanged until that independent analysis lands.
+
+## 2026-07-09 — NA-0627 (ENG-0028): the DH+PQ composition, analyzed
+
+**What landed.** ProVerif 2.05 is the project's cryptographic-model tool (D-1249), pinned and
+CI-gated by one additive `formal-proverif-composition` job. A symbolic model of the Suite-2 hybrid
+key schedule **as shipped post-NA-0626** lives in `formal/proverif/`: establishment (§8.2), the DH
+boundary (§8.5.2), the PQ reseed (§8.5.3), the combined DH+PQ boundary (DOC-G5-008 §4), and the
+authenticated SCKA advertisement (§8.5.4 + ADVAUTH), over the single session root. Eleven modeled
+steps, each naming the shipped function and its normative section; the 20-label derivation alphabet
+encoded label-by-label. This DISCHARGES the standing FORMAL_VERIFICATION_PLAN tooling milestone that
+has been open since the plan was written.
+
+**What it proves.** Message-key secrecy and injective transcript agreement against an active
+Dolev-Yao adversary. Bidirectional healing: with EVERY classical X25519 secret compromised, traffic
+after a PQ reseed (Q3) or after the combined boundary (Q4) stays secret; with the ML-KEM
+decapsulation key compromised, traffic after a DH boundary (Q5) stays secret. Q3+Q4+Q5 together are
+the hybrid claim — security survives if either primitive survives — and no artifact quotes one
+direction alone. A planted or replayed advertisement is never tracked (Q6).
+
+**Why the greens are not vacuous.** Each healing model asserts CANARIES that must come back
+`is false.`: pre-heal traffic must be readable under the modeled leak, and the reseed/combined
+frames' own bodies must be readable under full classical compromise (they ride the pre-reseed
+schedule by design). The gate asserts those reds. Its FIRST assertion is the tool sanity pair — a
+negative control that must REFUTE — so a verifier that only ever answers "true" fails the job before
+any protocol model runs. Both properties were mutation-tested rather than assumed.
+
+**Two findings, filed not fixed (analysis lane, and the rule held under pressure).**
+
+`ENG-0034` (P2) discharges Operator Decision 5, which the design-lock had RE-PRESENTED rather than
+satisfied. The contributory/low-order question **cannot be answered in a symbolic model**: extending
+ProVerif's DH theory with a degenerate element makes the tool diverge, and more fundamentally the
+theory idealizes the group, so it would return "secure" regardless of whether the code screens
+low-order keys — a vacuous green, exactly what the abstraction table exists to prevent. Answered
+instead by code inspection against RFC 7748 §6.1: the X25519 **DH output** is never checked for
+all-zero at any of the four Suite-2 call sites or the QSP handshake's `dh1`/`dh2`;
+`was_contributory()` is never called; `X25519Dh::dh` discards the flag at the trait boundary; and
+`is_zero32(&parsed.dh_pub)` rejects exactly one of Curve25519's eight small-order encodings. Not
+reachable by a network adversary — that envelope is precisely what Q1/Q2 prove — but reachable by
+the AUTHENTICATED PEER, who can silently void the CLASSICAL half of post-compromise security. The PQ
+half still heals, so the hybrid degrades rather than collapses. **A 2026-04-09 incoming audit stated
+the same fact and was never converted into a tracked item; that is the gap this filing closes, and
+the reason the lane treated "surfaced somewhere" as not the same thing as "tracked."**
+
+`ENG-0035` (P3): at the design-locked 2-boundary unrolling the main model does NOT terminate
+(>102,000 rules, no RESULT, 2400 s cap) — the exact ProVerif-vs-Tamarin tradeoff Decision 1 recorded
+when ProVerif was chosen. The §6 protocol was followed to the letter: runtime recorded in the proof
+root, a reduced-scope model produced with **the reduction stated in the model header**, the
+non-termination filed as a FINDING, and the Tamarin option re-presented. **No query was weakened to
+reach a green.** The combined boundary is separately verified, with its own compromise scenario and
+its own guard-form query, in a model that terminates.
+
+**Claim boundary: UNCHANGED**, as Operator Decision 4's default requires. A green symbolic result is
+necessary input to, not sufficient grounds for, any post-quantum / Triple-Ratchet / post-compromise
+claim. Independent human review remains an open prerequisite. Candidate sentences are DRAFTED in
+`DOC-G4-002` §7 for the operator; the executor moved no claim. ENG-0034 independently blocks
+post-compromise language until a contributory check exists.
+
+**Operator decisions taken in-session at closeout.** (1) ENG-0034 is to be FIXED, as the sole READY
+successor lane, with its own design-lock before code. The alternative — amending D564 to authorize an
+in-lane fix — was presented and DECLINED on the executor's recommendation, because it would have
+falsified D-1249/TRACEABILITY/the testplan/DOC-G4-002 (each asserts "no source change") and landed a
+crypto-path change with no design-lock, no WF-0014 byte-claim vector regen, and no WF-0015
+caller-surface enumeration. (2) That successor lane's scope covers **both** DH surfaces — the four
+Suite-2 ratchet call sites AND the QSP base handshake's `dh1`/`dh2` prekey-bundle path, where
+`verify_bundle` screens identity-key signatures but not the X25519 prekeys for small order. Fixing
+only the ratchet would leave the establishment half open and re-create the very "surfaced once,
+tracked nowhere" failure ENG-0034 exists to close.
+
+**Queue.** NA-0627 DONE; ENG-0028 CLOSED. The successor (ENG-0034 remediation) is PROPOSED, not
+promoted: the executor cannot self-promote a lane, and it becomes READY when the operator approves
+its directive.

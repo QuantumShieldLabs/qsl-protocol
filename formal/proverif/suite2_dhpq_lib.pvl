@@ -1,0 +1,192 @@
+(* ==========================================================================================
+   NA-0627 / ENG-0028 (D564): ProVerif model of the Suite-2 DH+PQ composition AS SHIPPED
+   post-NA-0626 — shared library.
+
+   Goals: G1, G2, G4
+
+   This library is the SINGLE place the fidelity map lives: every derivation below names the
+   shipped refimpl function and the normative section it implements (design-lock §3, rows
+   M1-M11). The query models (suite2_dhpq_main.pv, suite2_dhpq_q3/q4/q5_*.pv) load this file
+   via `proverif -lib` so the encoding cannot drift between queries.
+
+   GROUND TRUTH: tools/refimpl/quantumshield_refimpl/src/suite2/{establish,ratchet,scka}.rs
+   at main d9baed9d (the post-NA-0626 single-root state: Suite2SessionState{rk,send,recv,dh}).
+
+   ABSTRACTIONS (design-lock §4, operator-ratified Decision 3 — each masks a property):
+     A1 establishment authenticated by assumption: dh_init / pq_init_ss are pre-shared private
+        names; the handshake's own signature/KEM/transcript binding is covered by the bounded
+        Python model, NOT here. (Masks identity misbinding/downgrade at the handshake.)
+     A2 KMAC/SHA-512 as perfect one-way functions (free constructors). The single 64-byte
+        KMAC(RK,"QSP5.0/RKDH",dh_out,64) output split into (RK',CK_ec0) halves is modeled as
+        the constructor pair rkdh_rk/rkdh_ck — the standard treatment of independent halves of
+        one PRF output. (Masks collisions/length-extension; the 20-label separation below is
+        verified by inspection against the code.)
+     A3 AEAD ideal (senc/sdec with nonce+AD as data). (Masks nonce reuse — guarded in the code
+        by the ENG-0013 counter hard-stop, out of model scope.)
+     A4 X25519 as an idealized symbolic group: exp + the commutativity equation ONLY. Per the
+        operator-ratified Decision-5 discharge, NO low-order/degenerate algebra is modeled
+        (option (b) is FORBIDDEN — the probe evidence shows equational completion diverges,
+        and the theory could not express the attack anyway). zeroG below is an algebra-free
+        constant used ONLY for the Q7 guard-form check-presence query. (Masks small-subgroup/
+        low-order behaviour and the contributory check — answered OUTSIDE the model, ENG item.)
+     A5 ML-KEM ideal KEM (kemenc/kemdec, no decapsulation failure). The SCKA one-time /
+        monotonicity / tombstone rules are modeled STRUCTURALLY within the bounded schedule
+        (each receive arm is linear, so a target is consumable at most once in-bound); the
+        exhaustive set-logic lives in formal/model_scka_bounded.py. (Masks decap-failure
+        oracles / implicit rejection.)
+     A6 bounded epoch unrolling: the query models script at most 2 root-advancing boundaries
+        per direction. (Masks attacks needing more epochs; the bound is stated per query.)
+     A7 mkskipped / out-of-order receive out of scope: every modeled receive is the in-order
+        arm (n == nr), as the shipped SCKA/boundary receivers require. (Masks skip-window
+        key-retention attacks; covered by the ooo_replay conformance vectors.)
+     A8 qsc cadence/policy out of scope (= ENG-0022).
+
+   FIDELITY NOTE F1 (why scripted receive arms are sound here): the shipped AD binds
+   (session_id, pv, suite, DH_pub, flags, pq_bind) into BOTH the header and body AEAD
+   (binding::ad_hdr/ad_body), and pq_bind = SHA-512-32(flags || pq_prefix). A frame of one
+   kind therefore cannot decrypt in a receive arm of another kind: cross-kind confusion is
+   cryptographically excluded, so giving each scripted receive point only its scheduled arm
+   loses no adversarial behaviour for the queried properties.
+   ========================================================================================== *)
+
+(* ---------- types ---------- *)
+type G.        (* X25519 group elements (public keys / DH outputs) *)
+type exponent. (* X25519 private scalars *)
+type label.    (* the KMAC customization-label alphabet *)
+
+(* ---------- network ---------- *)
+free c: channel.                       (* the Dolev-Yao network *)
+
+(* ---------- session constants (public wire/context values) ---------- *)
+free sesid: bitstring.                   (* 16-byte session id — public *)
+const pv5: bitstring.                  (* protocol_version = 5 *)
+const suite2: bitstring.               (* suite_id = 2 *)
+const b1: bitstring.                   (* the 0x01 domain-separation byte *)
+const b2: bitstring.                   (* the 0x02 domain-separation byte *)
+const emptyb: bitstring.               (* the empty pq_prefix of a plain/DH-boundary frame *)
+
+(* message counters (bounded schedule: ns/nr/pn values are script constants) *)
+const c0, c1, c2, c3, c4: bitstring.
+
+(* wire flags (types.rs): plain msg, BOUNDARY, BOUNDARY|PQ_CTXT, BOUNDARY|PQ_ADV *)
+const fMSG, fBND, fBNDCTXT, fBNDADV: bitstring.
+
+(* transcript "kind" tags for agreement events *)
+const kMsg, kDhB, kRes, kCmb, kAdv: bitstring.
+(* direction tags *)
+const dAB, dBA: bitstring.
+
+(* SCKA advertisement ids (public u32 values on the wire) *)
+const aid1, bid1: bitstring.
+
+(* the all-zero X25519 public key: an algebra-free constant (NO equation — Decision 5(b) is
+   forbidden), used only to mirror the shipped is_zero32(DH_pub) reject (ratchet.rs:1420,
+   ratchet.rs:2317) for the Q7 guard-form query *)
+const zeroG: G.
+
+(* ---------- establishment inputs (A1: authenticated by assumption) ---------- *)
+free dh_init:    bitstring [private].  (* base-handshake classical DH output (§8.2) *)
+free pq_init_ss: bitstring [private].  (* base-handshake ML-KEM shared secret (§8.2) *)
+
+(* ---------- primitives ---------- *)
+(* KMAC256(key, label, data) -> 32 bytes (crypto::traits::Kmac; kmac32 helpers) *)
+fun kmac(bitstring, label, bitstring): bitstring.
+(* SHA-512 truncations (nonce_hdr/nonce_body/pq_bind_sha512_32) *)
+fun h(bitstring): bitstring.
+
+(* X25519 (A4: idealized group; commutativity only) *)
+const g: G.
+fun exp(G, exponent): G.
+equation forall x: exponent, y: exponent; exp(exp(g, x), y) = exp(exp(g, y), x).
+
+(* KMAC256(RK,"QSP5.0/RKDH",dh_out,64) -> (RK', CK_ec0): the two 32-byte halves as a
+   constructor pair (ratchet.rs:61 kdf_rk_dh; §3.3.2) — the RKDH row of the label alphabet *)
+fun rkdh_rk(bitstring, G): bitstring.
+fun rkdh_ck(bitstring, G): bitstring.
+
+(* AEAD (A3: ideal): seal(key, nonce, ad, pt) / open by destructor *)
+fun senc(bitstring, bitstring, bitstring, bitstring): bitstring.
+reduc forall k: bitstring, n: bitstring, ad: bitstring, pt: bitstring;
+  sdec(k, n, ad, senc(k, n, ad, pt)) = pt.
+
+(* ML-KEM-768 (A5: ideal KEM). Encap randomness is an explicit seed so an attacker can
+   encapsulate to any public key with randomness IT knows (a real capability); honest shared
+   secrets are secret because the honest seed is fresh. *)
+fun kempub(bitstring): bitstring.                (* decap key -> advertised public key *)
+fun kemenc(bitstring, bitstring): bitstring.     (* (pk, seed) -> ciphertext *)
+fun kemss(bitstring, bitstring): bitstring.      (* (pk, seed) -> shared secret *)
+reduc forall sk: bitstring, s: bitstring;
+  kemdec(sk, kemenc(kempub(sk), s)) = kemss(kempub(sk), s).
+
+(* ---------- the 20-label derivation alphabet (design-lock §3; extracted from the code) ----
+   RK0, RKPQ, [RKDH -> the rkdh_rk/rkdh_ck pair above], HK/A->B, HK/B->A, NHK/A->B, NHK/B->A,
+   CK0/A->B, PQ0/A->B, PQ0/B->A, CK, MK, PQCK, PQMK, HYBRID, ADVAUTH, HDR-NONCE, BODY-NONCE,
+   PQSEED/A->B, PQSEED/B->A, SCKA/CTXT *)
+const lRK0:       label.  (* establish.rs:57  "QSP5.0/RK0"        *)
+const lRKPQ:      label.  (* establish.rs:63 / ratchet.rs:138 "QSP5.0/RKPQ" *)
+const lHK_AB:     label.  (* ratchet.rs:87   "QSP5.0/HK/A->B"     *)
+const lHK_BA:     label.  (* ratchet.rs:88   "QSP5.0/HK/B->A"     *)
+const lNHK_AB:    label.  (* ratchet.rs:89   "QSP5.0/NHK/A->B"    *)
+const lNHK_BA:    label.  (* ratchet.rs:90   "QSP5.0/NHK/B->A"    *)
+const lCK0_AB:    label.  (* establish.rs:70 "QSP5.0/CK0/A->B"    *)
+const lPQ0_AB:    label.  (* ratchet.rs:149  "QSP5.0/PQ0/A->B"    *)
+const lPQ0_BA:    label.  (* ratchet.rs:151  "QSP5.0/PQ0/B->A"    *)
+const lCK:        label.  (* ratchet.rs:303  "QSP5.0/CK"          *)
+const lMK:        label.  (* ratchet.rs:304  "QSP5.0/MK"          *)
+const lPQCK:      label.  (* ratchet.rs:306  "QSP5.0/PQCK"        *)
+const lPQMK:      label.  (* ratchet.rs:307  "QSP5.0/PQMK"        *)
+const lHYBRID:    label.  (* ratchet.rs:312  "QSP5.0/HYBRID"      *)
+const lADVAUTH:   label.  (* ratchet.rs:113  "QSP5.0/ADVAUTH"     *)
+const lHDRN:      label.  (* ratchet.rs:271  "QSP5.0/HDR-NONCE"   *)
+const lBODYN:     label.  (* ratchet.rs:283  "QSP5.0/BODY-NONCE"  *)
+const lPQSEED_AB: label.  (* scka.rs:53      "QSP5.0/PQSEED/A->B" *)
+const lPQSEED_BA: label.  (* scka.rs:54      "QSP5.0/PQSEED/B->A" *)
+const lSCKACTXT:  label.  (* scka.rs:48      "QSP5.0/SCKA/CTXT"   *)
+
+(* ---------- M1: establishment (establish.rs:23 init_from_base_handshake; §8.2) ---------- *)
+letfun est_rk0(di: bitstring)                  = kmac(di, lRK0, (sesid, b1)).
+letfun est_rk(di: bitstring, pqi: bitstring)   = kmac(est_rk0(di), lRKPQ, (pqi, b1)).
+letfun kdf_hk_ab(rk: bitstring)                = kmac(rk, lHK_AB, b1).
+letfun kdf_hk_ba(rk: bitstring)                = kmac(rk, lHK_BA, b1).
+letfun kdf_nhk_ab(rk: bitstring)               = kmac(rk, lNHK_AB, b1).
+letfun kdf_nhk_ba(rk: bitstring)               = kmac(rk, lNHK_BA, b1).
+letfun kdf_ck0_ab(rk: bitstring)               = kmac(rk, lCK0_AB, b1).
+letfun kdf_pq0_ab(rk: bitstring)               = kmac(rk, lPQ0_AB, b1).
+letfun kdf_pq0_ba(rk: bitstring)               = kmac(rk, lPQ0_BA, b1).
+
+(* ---------- M11: per-message hybrid mk step (ratchet.rs:295 derive_mk_step; §3.3) ---------- *)
+letfun ck_ec_next(ck: bitstring)               = kmac(ck, lCK,   b1).
+letfun ck_pq_next(ck: bitstring)               = kmac(ck, lPQCK, b1).
+letfun mk_hybrid(ck_ec: bitstring, ck_pq: bitstring) =
+  kmac(kmac(ck_ec, lMK, b2), lHYBRID, (kmac(ck_pq, lPQMK, b2), b1)).
+
+(* ---------- M4/M8: PQ reseed derivations (ratchet.rs:134 kdf_rk_pq; scka.rs:37
+   kdf_pq_reseed_seeds; §3.3.3/§3.3.6) ---------- *)
+letfun kdf_rk_pq(rk: bitstring, ss: bitstring) = kmac(rk, lRKPQ, (ss, b1)).
+letfun seedctx(tid: bitstring, ct: bitstring, ss: bitstring) = (lSCKACTXT, tid, h(ct), ss).
+letfun kdf_seed_ab(rk: bitstring, tid: bitstring, ct: bitstring, ss: bitstring) =
+  kmac(rk, lPQSEED_AB, seedctx(tid, ct, ss)).
+letfun kdf_seed_ba(rk: bitstring, tid: bitstring, ct: bitstring, ss: bitstring) =
+  kmac(rk, lPQSEED_BA, seedctx(tid, ct, ss)).
+
+(* ---------- M9: ADVAUTH control-plane MAC (ratchet.rs:103 adv_auth_mac; §8.5.4) ---------- *)
+letfun advmac(rk: bitstring, id: bitstring, pk: bitstring) = kmac(rk, lADVAUTH, (id, pk, b1)).
+
+(* ---------- nonces and AEAD binding (ratchet.rs:269/281 nonce_hdr/nonce_body;
+   binding::ad_hdr/ad_body/pq_bind_sha512_32) ---------- *)
+letfun nhdr(dp: G, n: bitstring)  = h((lHDRN,  sesid, dp, n)).
+letfun nbody(dp: G, n: bitstring) = h((lBODYN, sesid, dp, n)).
+letfun pqbind(fl: bitstring, pfx: bitstring) = h((fl, pfx)).
+letfun adhdr(dp: G, fl: bitstring, pqb: bitstring) = (sesid, pv5, suite2, dp, fl, pqb).
+letfun adbody(pqb: bitstring) = (sesid, pv5, suite2, pqb).
+
+(* ---------- events ---------- *)
+(* transcript agreement: (kind, direction, epoch DH_pub, counter, payload) *)
+event MsgSent(bitstring, bitstring, G, bitstring, bitstring).
+event MsgAcc (bitstring, bitstring, G, bitstring, bitstring).
+(* SCKA control plane: an advertisement offered / tracked as (adv_id, adv_pub) *)
+event AdvSent(bitstring, bitstring).
+event AdvTracked(bitstring, bitstring).
+(* Q7 guard-form: a root-advancing boundary receiver accepted peer DH public key p.
+   Fired ONLY on the far side of the is_zero32 reject mirror. *)
+event BoundaryAccepted(G).

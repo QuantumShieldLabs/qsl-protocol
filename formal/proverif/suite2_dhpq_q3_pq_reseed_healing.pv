@@ -1,0 +1,193 @@
+(* ==========================================================================================
+   NA-0627 / ENG-0028 (D564): Q3 — PQ healing after a PQ RESEED (design-lock §6).
+   Load with: proverif -lib formal/proverif/suite2_dhpq_lib.pvl <this file>
+
+   PLAIN SENTENCE: if every classical X25519 secret leaks — the establishment DH output, both
+   establishment ratchet privates, every later boundary private — AND the attacker additionally
+   holds a full snapshot of the post-establishment session root (a STRICT SUPERSET of the D564
+   compromise set: strengthen, do not weaken), messages sent after a PQ reseed stay secret.
+
+   Compromise (phase 1): dh_init, x0, y0, rk_est; y1 (B's boundary private) is published the
+   moment it is created in phase 2. NOT compromised: pq_init_ss, skA, the reseed encap seed.
+   NOTE the snapshot leak is deliberate: without it, secrecy would hold vacuously via the
+   establishment KEM secret and the reseed would never be exercised (the Decision-3 trap).
+
+   Bounded schedule (A6: 1 DH boundary + 1 PQ reseed, both B->A):
+     phase 0: A: m0 (n=0), ADV(aid1, pkA) (n=1); B receives both.
+     phase 1: the leak above.
+     phase 2: B: DH boundary (n=0, fresh y1, leaked), PQ reseed -> tracked A adv (n=1, body
+              m_rs), m_q3 (n=2, the healing target); A receives all three.
+
+   Expected results (asserted fail-closed by run_proverif_checks.py):
+     RESULT not attacker(secret_q3[]) is true.   <- THE PQ-HEALING CLAIM (one third of the
+                                                    hybrid claim; report only with Q4+Q5)
+     RESULT not attacker(m0[]) is false.         <- CANARY: pre-heal traffic MUST be readable
+                                                    under this leak, or the compromise is not
+                                                    real and the green above would be vacuous
+     RESULT not attacker(m_rs[]) is false.       <- EXPECTED-RED PROBE: the reseed frame's OWN
+                                                    body rides the PRE-reseed schedule
+                                                    (§8.5.3; ratchet.rs:1752-1758) — under full
+                                                    classical compromise it is readable. The
+                                                    reseed protects FUTURE messages, not itself.
+
+   What this does NOT license: any "post-quantum secure" claim — the KEM is ideal (A5), the
+   result is symbolic, and an ACTIVE attacker holding the leaked state can still impersonate/
+   desynchronize until the heal (the model's A-side receiver accepts state-forged frames in
+   phase 2 exactly as the code would; secrecy of B's post-reseed sends holds regardless).
+   ========================================================================================== *)
+
+free m0, m_rs, secret_q3: bitstring [private].
+const padq3: bitstring.  (* public DH-boundary body payload *)
+
+query attacker(secret_q3).
+query attacker(m0).
+query attacker(m_rs).
+
+let procA_q3(x0: exponent, Y0: G, skA: bitstring) =
+  let rk_est = est_rk(dh_init, pq_init_ss) in
+  let hk_s0 = kdf_hk_ab(rk_est) in
+  let ck_ec_s0 = kdf_ck0_ab(rk_est) in
+  let ck_pq_s0 = kdf_pq0_ab(rk_est) in
+  let X0 = exp(g, x0) in
+
+  (* phase 0 --- send m0 (n=0): the canary target *)
+  let pqb1 = pqbind(fMSG, emptyb) in
+  let mk1 = mk_hybrid(ck_ec_s0, ck_pq_s0) in
+  let ck_ec_s1 = ck_ec_next(ck_ec_s0) in
+  let ck_pq_s1 = ck_pq_next(ck_pq_s0) in
+  out(c, (pv5, suite2, X0, fMSG,
+          senc(hk_s0, nhdr(X0, c0), adhdr(X0, fMSG, pqb1), (c0, c0)),
+          senc(mk1, nbody(X0, c0), adbody(pqb1), m0)));
+
+  (* phase 0 --- send ADV(aid1, kempub(skA)) (n=1) (M9) *)
+  let pkA = kempub(skA) in
+  let pfxA = (aid1, pkA) in
+  let pqbA = pqbind(fBNDADV, pfxA) in
+  let mk2 = mk_hybrid(ck_ec_s1, ck_pq_s1) in
+  let macA = advmac(rk_est, aid1, pkA) in
+  out(c, (pv5, suite2, X0, fBNDADV, pfxA,
+          senc(hk_s0, nhdr(X0, c1), adhdr(X0, fBNDADV, pqbA), (c0, c1)),
+          senc(mk2, nbody(X0, c1), adbody(pqbA), (macA, emptyb))));
+
+  (* phase 1 --- the compromise: all classical DH secrets + the root snapshot *)
+  phase 1;
+  out(c, (dh_init, x0, rk_est));
+
+  (* phase 2 --- receive B's DH boundary (M3), PQ reseed (M5/M8), then m_q3 *)
+  phase 2;
+  in(c, (=pv5, =suite2, xdh: G, =fBND, xh3: bitstring, xb3: bitstring));
+  if xdh = zeroG then 0 else
+  if xdh = Y0 then 0 else
+  let pqb3 = pqbind(fBND, emptyb) in
+  let (xpn3: bitstring, =c0) = sdec(kdf_nhk_ba(rk_est), nhdr(xdh, c0),
+                                    adhdr(xdh, fBND, pqb3), xh3) in
+  let dhA = exp(xdh, x0) in
+  let rk1 = rkdh_rk(rk_est, dhA) in
+  let ck_ec_r0 = rkdh_ck(rk_est, dhA) in
+  let ck_pq_r0 = kdf_pq0_ba(rk1) in
+  let hk_r1 = kdf_hk_ba(rk1) in
+  let mk3r = mk_hybrid(ck_ec_r0, ck_pq_r0) in
+  let ck_ec_r1 = ck_ec_next(ck_ec_r0) in
+  let ck_pq_r1 = ck_pq_next(ck_pq_r0) in
+  let xpt3 = sdec(mk3r, nbody(xdh, c0), adbody(pqb3), xb3) in
+
+  in(c, (=pv5, =suite2, xdh6: G, =fBNDCTXT, (xtid: bitstring, xct: bitstring),
+         xh6: bitstring, xb6: bitstring));
+  if xdh6 = xdh then                        (* equal DH_pub => pq-only arm *)
+  let pqb6 = pqbind(fBNDCTXT, (xtid, xct)) in
+  let (xpn6: bitstring, =c1) = sdec(kdf_nhk_ba(rk1), nhdr(xdh6, c1),
+                                    adhdr(xdh6, fBNDCTXT, pqb6), xh6) in
+  if xtid = aid1 then
+  let xss = kemdec(skA, xct) in
+  let sAB = kdf_seed_ab(rk1, xtid, xct, xss) in
+  let sBA = kdf_seed_ba(rk1, xtid, xct, xss) in
+  let rk2 = kdf_rk_pq(rk1, xss) in
+  let mk6r = mk_hybrid(ck_ec_r1, ck_pq_r1) in
+  let ck_ec_r2 = ck_ec_next(ck_ec_r1) in
+  let xpt6 = sdec(mk6r, nbody(xdh6, c1), adbody(pqb6), xb6) in
+  let hk_r2 = kdf_hk_ba(rk2) in
+
+  in(c, (=pv5, =suite2, xdh7: G, =fMSG, xh7: bitstring, xb7: bitstring));
+  let pqb7 = pqbind(fMSG, emptyb) in
+  let (xpn7: bitstring, =c2) = sdec(hk_r2, nhdr(xdh7, c2),
+                                    adhdr(xdh7, fMSG, pqb7), xh7) in
+  let mk7r = mk_hybrid(ck_ec_r2, sBA) in
+  let xpt7 = sdec(mk7r, nbody(xdh7, c2), adbody(pqb7), xb7) in
+  0.
+
+let procB_q3(y0: exponent, X0: G) =
+  let rk_est = est_rk(dh_init, pq_init_ss) in
+  let hk_rB0 = kdf_hk_ab(rk_est) in
+  let ck_ec_r0 = kdf_ck0_ab(rk_est) in
+  let ck_pq_r0 = kdf_pq0_ab(rk_est) in
+
+  (* phase 0 --- receive m0, then A's ADV (M10) *)
+  in(c, (=pv5, =suite2, ydh1: G, =fMSG, yh1: bitstring, yb1: bitstring));
+  let qqb1 = pqbind(fMSG, emptyb) in
+  let (ypn1: bitstring, =c0) = sdec(hk_rB0, nhdr(ydh1, c0),
+                                    adhdr(ydh1, fMSG, qqb1), yh1) in
+  let mkr1 = mk_hybrid(ck_ec_r0, ck_pq_r0) in
+  let ck_ec_r1 = ck_ec_next(ck_ec_r0) in
+  let ck_pq_r1 = ck_pq_next(ck_pq_r0) in
+  let ypt1 = sdec(mkr1, nbody(ydh1, c0), adbody(qqb1), yb1) in
+
+  in(c, (=pv5, =suite2, ydh2: G, =fBNDADV, (yaid: bitstring, yapk: bitstring),
+         yh2: bitstring, yb2: bitstring));
+  let qqb2 = pqbind(fBNDADV, (yaid, yapk)) in
+  let (ypn2: bitstring, =c1) = sdec(hk_rB0, nhdr(ydh2, c1),
+                                    adhdr(ydh2, fBNDADV, qqb2), yh2) in
+  let mkr2 = mk_hybrid(ck_ec_r1, ck_pq_r1) in
+  let (ymac: bitstring, yapl: bitstring) = sdec(mkr2, nbody(ydh2, c1),
+                                                adbody(qqb2), yb2) in
+  if ymac = advmac(rk_est, yaid, yapk) then
+
+  (* phase 1 --- B's half of the classical compromise *)
+  phase 1;
+  out(c, y0);
+
+  (* phase 2 --- DH boundary (M2, private key published), PQ reseed (M4), m_q3 *)
+  phase 2;
+  new y1: exponent;
+  out(c, y1);                               (* ALL classical DH secrets leak, y1 included *)
+  let Y1 = exp(g, y1) in
+  let dhB = exp(X0, y1) in
+  let rk1 = rkdh_rk(rk_est, dhB) in
+  let ck_ec0s = rkdh_ck(rk_est, dhB) in
+  let ck_pq0s = kdf_pq0_ba(rk1) in
+  let hk_sB1 = kdf_hk_ba(rk1) in
+  let mkb = mk_hybrid(ck_ec0s, ck_pq0s) in
+  let ck_ec_s1 = ck_ec_next(ck_ec0s) in
+  let ck_pq_s1 = ck_pq_next(ck_pq0s) in
+  let qqb3 = pqbind(fBND, emptyb) in
+  out(c, (pv5, suite2, Y1, fBND,
+          senc(kdf_nhk_ba(rk_est), nhdr(Y1, c0), adhdr(Y1, fBND, qqb3), (c0, c0)),
+          senc(mkb, nbody(Y1, c0), adbody(qqb3), padq3)));
+
+  new sA: bitstring;
+  let ctA = kemenc(yapk, sA) in
+  let ssA = kemss(yapk, sA) in
+  let sAB = kdf_seed_ab(rk1, yaid, ctA, ssA) in
+  let sBA = kdf_seed_ba(rk1, yaid, ctA, ssA) in
+  let rk2 = kdf_rk_pq(rk1, ssA) in
+  let hk_sB2 = kdf_hk_ba(rk2) in
+  let mks2 = mk_hybrid(ck_ec_s1, ck_pq_s1) in   (* PRE-reseed schedule: m_rs is expected-red *)
+  let ck_ec_s2 = ck_ec_next(ck_ec_s1) in
+  let pfxC = (yaid, ctA) in
+  let qqb4 = pqbind(fBNDCTXT, pfxC) in
+  out(c, (pv5, suite2, Y1, fBNDCTXT, pfxC,
+          senc(kdf_nhk_ba(rk1), nhdr(Y1, c1), adhdr(Y1, fBNDCTXT, qqb4), (c0, c1)),
+          senc(mks2, nbody(Y1, c1), adbody(qqb4), m_rs)));
+
+  (* the healing target: n=2 under the POST-reseed schedule (EC chain continues, PQ chain and
+     header key are reseed-fresh) *)
+  let qqb5 = pqbind(fMSG, emptyb) in
+  let mks3 = mk_hybrid(ck_ec_s2, sBA) in
+  out(c, (pv5, suite2, Y1, fMSG,
+          senc(hk_sB2, nhdr(Y1, c2), adhdr(Y1, fMSG, qqb5), (c0, c2)),
+          senc(mks3, nbody(Y1, c2), adbody(qqb5), secret_q3)));
+  0.
+
+process
+  new x0: exponent; new y0: exponent; new skA: bitstring;
+  out(c, (exp(g, x0), exp(g, y0), kempub(skA)));
+  ( procA_q3(x0, exp(g, y0), skA) | procB_q3(y0, exp(g, x0)) )

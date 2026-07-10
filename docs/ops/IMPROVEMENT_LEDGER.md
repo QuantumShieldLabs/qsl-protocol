@@ -929,6 +929,101 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   operator-authorized CI LITE lane (workflow YAML + a runbook paragraph), or operator-side edit.
   last-updated 2026-07-09
 
+### ENG-0034 — X25519 DH accepts non-contributory (low-order) peer keys: the DH output is never checked
+- Severity: P2 (security-relevant correctness gap; NOT remotely exploitable against an honest
+  pair — see the exposure bound below — but it silently voids the CLASSICAL half of
+  post-compromise security and therefore blocks the Triple-Ratchet/PCS claim language) — filed
+  2026-07-09 from NA-0627 (ENG-0028), discharging **Operator Decision 5 of D564, option (c)**.
+  Full evidence: `docs/governance/evidence/NA-0627_decision5_contributory_code_inspection.md`.
+- Problem: `x25519-dalek 2.0.1`'s `StaticSecret::diffie_hellman` is deliberately
+  NON-CONTRIBUTORY per RFC 7748 — a low-order peer point yields an all-zero shared secret rather
+  than an error. RFC 7748 §6.1 requires protocols needing contributory behaviour to check the
+  all-zero DH OUTPUT. This repo never does: `was_contributory()` is called nowhere, and
+  `X25519Dh::dh` (`crypto/traits.rs:36`) returns a bare `[u8; 32]`, so the flag is discarded at
+  the trait boundary. All four Suite-2 DH outputs (`ratchet.rs:1306` send_boundary, `:1475`
+  recv_dh_boundary, `:1885` send_combined_boundary, `:2390` recv_combined_boundary) and the QSP
+  handshake's `dh1`/`dh2` (`qsp/handshake.rs:134`, `:144`, `:285`, `:297`) feed straight into
+  `KDF_RK_DH`/`derive_rk0`. The only related guard, `is_zero32(&parsed.dh_pub)`
+  (`ratchet.rs:1420`, `:2317`), rejects exactly ONE of Curve25519's eight small-order encodings
+  (the all-zero one); every other low-order encoding passes and drives `dh_out = [0u8; 32]`.
+  Effect: `RK' = KMAC(RK, "QSP5.0/RKDH", 0…0)` — the DH ratchet contributes NO fresh entropy for
+  that epoch, silently (no reject, no reason code, both parties converge, no vector observes it).
+- Exposure bound (stated honestly, this is why it is P2 and not a STOP): a network/Dolev-Yao
+  attacker CANNOT reach it — a boundary header is AEAD-sealed under `NHK_r` from the current root
+  and `DH_pub` is bound into `ad_hdr`, so injection needs the root. NA-0627's Q1/Q2 prove that
+  envelope (`is true.`); no modeled query is disproved. The AUTHENTICATED PEER (or malware
+  steering its key selection) can reach it, and thereby void classical PCS: an attacker who once
+  learned `RK` stays synchronized across every boundary it forces non-contributory. NA-0627's Q5
+  (classical healing across a DH boundary) holds ONLY because the modeled honest sender always
+  contributes a fresh exponent — exactly the property a low-order point removes. The PQ half
+  still heals (Q3/Q4 hold independently), so the hybrid degrades to PQ-only healing rather than
+  collapsing. Note: **the symbolic model cannot decide this question at all** (abstraction A4;
+  ProVerif's DH theory idealizes the group and would return "secure" either way — the
+  Decision-5 re-presentation), which is why it is answered by code inspection.
+- Prior art, now closed: the 2026-04-09 incoming security audit
+  (`docs/audit/incoming/2026-04-09_security_batch/…Security Audit.md:138`) stated the same fact
+  for the QSP-4.3-era code and was never converted into a tracked item. This filing closes that
+  gap and adds the post-compromise consequence the audit did not analyze.
+- Recommended change: fail closed on a non-contributory DH. Either (a) surface
+  `was_contributory()` through `X25519Dh::dh` (`Result`/`Option` return) and reject at all call
+  sites — the version a new call site cannot forget; or (b) keep the trait shape and add an
+  `is_zero32(&dh_out)` fail-closed check immediately after each `dh()` call, plus a small-order
+  screen on `DH_pub` ingress — the smaller diff. Either needs a new reason code
+  (`REJECT_S2_DH_NONCONTRIBUTORY`) and negative conformance vectors.
+- **Operator direction (2026-07-09, at the NA-0627 closeout): FIX IT, as the sole READY successor
+  lane (NA-0628), with its own design-lock before code.** The alternative — amending D564 to
+  authorize an in-lane fix — was presented and DECLINED on the executor's recommendation: it would
+  have falsified D-1249/TRACEABILITY/the NA-0627 testplan/DOC-G4-002 (each asserts "no source
+  change") and landed a crypto-path change with no design-lock, no WF-0014 byte-claim vector regen,
+  and no WF-0015 caller-surface enumeration. The analysis-lane rule held: **filed, not fixed.**
+- **SCOPE, decided by the operator (2026-07-09): NA-0628 covers BOTH DH surfaces**, not just the
+  ratchet. (i) the four Suite-2 call sites (`ratchet.rs:1306`, `:1475`, `:1885`, `:2390`); and
+  (ii) the QSP base handshake's `dh1`/`dh2` prekey-bundle path (`qsp/handshake.rs:134`, `:144`,
+  `:285`, `:297`), where a degenerate X25519 prekey served in B's bundle collapses the CLASSICAL
+  half of `RK0` to a constant — `verify_bundle` checks identity-key signatures/KT and does NOT
+  screen the X25519 prekeys for small order. The PQ contributions `ss1`/`ss2` still bind, so
+  establishment degrades rather than collapses (the same shape as the ratchet gap). Fixing only the
+  ratchet would leave the establishment half open and re-create precisely the "surfaced once,
+  tracked nowhere" failure this item exists to close.
+- Recommended directive shape: refimpl + vectors lane (`tools/refimpl/**` suite2 + qsp, `inputs/**`
+  negative vectors, a DOC-CAN-003 §8.5.2 note). Note for its design-lock: the handshake arm touches
+  the `qsc` handshake caller surface, so **WF-0015's caller-surface enumeration binds regardless of
+  which fix shape is chosen**, and the bundle-ingress screen is the natural home for the small-order
+  check on that arm. NOT done in NA-0627: D564 is an ANALYSIS lane ("the FIX, if warranted, stays
+  out of scope"). last-updated 2026-07-09
+
+### ENG-0035 — ProVerif does not terminate on the 2-boundary unrolling of the Suite-2 composition
+- Severity: P3 (assurance-coverage limit; no security delta — the reduced-scope model proves the
+  same queries, and nothing was weakened) — filed 2026-07-09 from NA-0627 (ENG-0028), per D564
+  Decision 1's standing instruction and the design-lock §6 non-termination protocol.
+- Problem: the design-lock bound was "unroll 2 boundaries per direction" (abstraction A6). At
+  that bound `formal/proverif/suite2_dhpq_main.pv` DOES NOT TERMINATE: with A's combined DH+PQ
+  boundary following B's DH boundary, the session root carries TWO nested `exp` terms under the
+  commutativity equation and ProVerif's saturation diverges (>102 000 rules inserted, no `RESULT`
+  line, capped at 2400 s; a single secrecy query in isolation also diverges, so the cost is the
+  PROCESS, not the query count). Raw evidence in the proof root:
+  `nonterm_main_v1_full_2400s.out`, `nonterm_main_v1_q1only_2400s.out`, `nonterm_main_v1.pv.txt`.
+  This is the exact risk Decision 1 recorded when ProVerif was selected over Tamarin.
+- What was done instead (recorded, not silent): the main model was reduced to ONE DH boundary +
+  ONE PQ reseed + both advertisements, and the reduction is documented in the model header. **No
+  query text was weakened** — Q1/Q2/Q6/Q7 are stated over the full reduced schedule and all pass.
+  The combined boundary is NOT unmodeled: it is verified with its own compromise scenario and its
+  own guard-form query in `suite2_dhpq_q4_combined_healing.pv`, which terminates in ~1 min.
+  Q3/Q4/Q5 (the healing queries, one boundary each) all terminate.
+- Residual gap: no single model exercises TWO consecutive root-advancing DH epochs, so an attack
+  requiring a second DH epoch would not be found. Nothing suggests one exists; the gap is stated,
+  not papered over (abstraction A6, as reduced).
+- Recommended change: RE-PRESENT THE TAMARIN OPTION for this query shape (D564 Decision 1's
+  documented fallback). Tamarin's multiset rewriting handles unbounded ratchet state and PCS
+  lemmas natively; the cost is hand-written oracles/lemmas and a much larger lane. Alternative,
+  cheaper: keep ProVerif and try `set attacker = passive` variants, `nounif` hints, or an
+  axiomatized `rkdh_rk` over an opaque `dh_out` type (dropping the `exp` equation and modeling
+  the DH share as an abstract fresh value per epoch) — the last of which would trade the DH
+  algebra for a stated abstraction and should be design-locked, not improvised.
+- Recommended directive shape: an operator decision at D-1249 (accept the stated A6 reduction) +
+  an optional successor formal lane if the 2-epoch unrolling is judged load-bearing.
+  last-updated 2026-07-09
+
 ---
 
 ## Workflow / process items

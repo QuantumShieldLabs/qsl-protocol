@@ -1,0 +1,286 @@
+(* ==========================================================================================
+   NA-0627 / ENG-0028 (D564): Suite-2 DH+PQ composition — main model (no compromise).
+   Load with: proverif -lib formal/proverif/suite2_dhpq_lib.pvl formal/proverif/suite2_dhpq_main.pv
+
+   Queries (design-lock §6):
+     Q1 message-key secrecy under an active adversary, encoded as payload secrecy: the AEAD is
+        ideal (A3), so the attacker learns a payload iff it learns the message key. Targets
+        m1 (pre-boundary A->B), m2 (post-DH-boundary B->A), m4 (post-PQ-reseed A->B).
+     Q2 injective agreement on the session transcript (kind, direction, epoch DH_pub, counter,
+        payload) for EVERY accepted frame, boundary and control-plane frames included.
+     Q6 control plane: an advertisement is tracked only if the honest peer offered exactly that
+        (adv_id, adv_pub) — injectively (a planted or replayed ADV is never tracked).
+     Q7 GUARD-FORM ONLY (design-lock §5, operator-ratified option (a)): the accept path of the
+        DH-boundary receiver never carries the all-zero DH_pub, mirroring the shipped
+        is_zero32 reject (ratchet.rs:1420). The combined-boundary arm's mirror
+        (ratchet.rs:2317) is queried in suite2_dhpq_q4_combined_healing.pv.
+        THIS IS NOT AN ATTACK-EXISTENCE PROOF: it documents the presence of the zero-key check
+        in the model; it says NOTHING about low-order/small-subgroup points, which the
+        symbolic theory cannot express (Decision 5, discharged OUTSIDE the model — see the
+        ENG filing and the analysis record).
+
+   ------------------------------------------------------------------------------------------
+   SCOPE REDUCTION (A6) — RECORDED, NOT SILENT. See the NA-0627 FINDING F1 (non-termination).
+   The design-lock §6 bound was "unroll 2 boundaries per direction". At that bound this model
+   DOES NOT TERMINATE: with A's combined DH+PQ boundary following B's DH boundary, the root
+   carries TWO nested `exp` terms under the commutativity equation, and ProVerif's saturation
+   diverged (>102000 rules, no RESULT, capped at 2400 s; raw output in the proof root as
+   nonterm_main_v1_{full,q1only}_2400s.out — a single secrecy query alone also diverged, so
+   the cost is the process, not the query count).
+
+   WHAT WAS REDUCED, EXACTLY: the second root-advancing DH boundary (A's COMBINED DH+PQ
+   boundary) and the message after it are removed from THIS model. The schedule below keeps
+   ONE DH boundary + ONE PQ reseed + both advertisements. Nothing was weakened about any
+   query: Q1/Q2/Q6/Q7 are stated over the full reduced schedule, and no query text changed.
+   The combined boundary is NOT unmodeled — it is verified, with its own compromise scenario
+   and its own guard-form query, in suite2_dhpq_q4_combined_healing.pv, which terminates.
+   The Tamarin option for the 2-boundary unrolling is RE-PRESENTED to the operator (D-1249).
+   ------------------------------------------------------------------------------------------
+
+   Bounded schedule (A6, as reduced above; every receive is the in-order arm, A7):
+     A->B: m1 (n=0), ADV(aid1) (n=1)
+     B->A: DH boundary (n=0), m2 (n=1), ADV(bid1) (n=2), PQ reseed -> aid1 (n=3)
+     A->B: m4 (n=2) under A's POST-reseed send half — which A never recomputed itself: the
+           reseed RECEIVE refreshed it (send.hk_s from the advanced root, send.ck_pq from the
+           send-direction seed). This message therefore also exercises the ENG-0030
+           full-schedule commit (ratchet.rs:2263-2275): if the receiver's send half were
+           stale, B could not open m4 and Q2 would fail.
+
+   Expected results (asserted fail-closed by formal/proverif/run_proverif_checks.py):
+     RESULT not attacker(m1[]) is true.
+     RESULT not attacker(m2[]) is true.
+     RESULT not attacker(m4[]) is true.
+     RESULT inj-event(MsgAcc(...)) ==> inj-event(MsgSent(...)) is true.
+     RESULT inj-event(AdvTracked(...)) ==> inj-event(AdvSent(...)) is true.
+     RESULT not event(BoundaryAccepted(zeroG[])) is true.
+   ========================================================================================== *)
+
+free m1, m2, m4: bitstring [private].
+const padc: bitstring.  (* public boundary/reseed body payload (not a secrecy target) *)
+
+query attacker(m1).
+query attacker(m2).
+query attacker(m4).
+query k: bitstring, d: bitstring, p: G, n: bitstring, x: bitstring;
+  inj-event(MsgAcc(k, d, p, n, x)) ==> inj-event(MsgSent(k, d, p, n, x)).
+query i: bitstring, pk: bitstring;
+  inj-event(AdvTracked(i, pk)) ==> inj-event(AdvSent(i, pk)).
+query event(BoundaryAccepted(zeroG)).
+
+(* ---------- role A (initiator; sends A->B under HK/CK0/PQ0 A->B) ---------- *)
+let procA(x0: exponent, Y0: G, skA: bitstring) =
+  (* M1: establishment (establish.rs:23; §8.2) *)
+  let rk_est = est_rk(dh_init, pq_init_ss) in
+  let hk_s0 = kdf_hk_ab(rk_est) in
+  let ck_ec_s0 = kdf_ck0_ab(rk_est) in
+  let ck_pq_s0 = kdf_pq0_ab(rk_est) in
+  let X0 = exp(g, x0) in
+
+  (* --- send m1: plain message n=0 (send_wire; M11) --- *)
+  let pqb1 = pqbind(fMSG, emptyb) in
+  let mk1 = mk_hybrid(ck_ec_s0, ck_pq_s0) in
+  let ck_ec_s1 = ck_ec_next(ck_ec_s0) in
+  let ck_pq_s1 = ck_pq_next(ck_pq_s0) in
+  event MsgSent(kMsg, dAB, X0, c0, m1);
+  out(c, (pv5, suite2, X0, fMSG,
+          senc(hk_s0, nhdr(X0, c0), adhdr(X0, fMSG, pqb1), (c0, c0)),
+          senc(mk1, nbody(X0, c0), adbody(pqb1), m1)));
+
+  (* --- send ADV(aid1, kempub(skA)) n=1 (M9: send_pq_advertise; §8.5.4 + ADVAUTH) --- *)
+  let pkA = kempub(skA) in
+  let pfxA = (aid1, pkA) in
+  let pqbA = pqbind(fBNDADV, pfxA) in
+  let mk2 = mk_hybrid(ck_ec_s1, ck_pq_s1) in
+  let ck_ec_s2 = ck_ec_next(ck_ec_s1) in
+  let ck_pq_s2 = ck_pq_next(ck_pq_s1) in
+  let macA = advmac(rk_est, aid1, pkA) in
+  event AdvSent(aid1, pkA);
+  event MsgSent(kAdv, dAB, X0, c1, emptyb);
+  out(c, (pv5, suite2, X0, fBNDADV, pfxA,
+          senc(hk_s0, nhdr(X0, c1), adhdr(X0, fBNDADV, pqbA), (c0, c1)),
+          senc(mk2, nbody(X0, c1), adbody(pqbA), (macA, emptyb))));
+
+  (* --- recv B's DH boundary n=0 (M3: recv_dh_boundary; §8.5.2 + §8.5.1 NHK anti-spoof) --- *)
+  in(c, (=pv5, =suite2, xdh: G, =fBND, xh3: bitstring, xb3: bitstring));
+  if xdh = zeroG then 0 else            (* ratchet.rs:1420 zero-key reject *)
+  if xdh = Y0 then 0 else               (* ratchet.rs:1423 non-fresh key reject *)
+  let pqb3 = pqbind(fBND, emptyb) in
+  let (xpn3: bitstring, =c0) = sdec(kdf_nhk_ba(rk_est), nhdr(xdh, c0),
+                                    adhdr(xdh, fBND, pqb3), xh3) in
+  let dhA = exp(xdh, x0) in             (* dh(dhs_priv, msg.DH_pub) *)
+  let rk1 = rkdh_rk(rk_est, dhA) in
+  let ck_ec_r0 = rkdh_ck(rk_est, dhA) in
+  let ck_pq_r0 = kdf_pq0_ba(rk1) in     (* pq0_recv_label(role A) = PQ0/B->A *)
+  let hk_r1 = kdf_hk_ba(rk1) in
+  let mk3r = mk_hybrid(ck_ec_r0, ck_pq_r0) in
+  let ck_ec_r1 = ck_ec_next(ck_ec_r0) in
+  let ck_pq_r1 = ck_pq_next(ck_pq_r0) in
+  let xpt3 = sdec(mk3r, nbody(xdh, c0), adbody(pqb3), xb3) in
+  event BoundaryAccepted(xdh);
+  event MsgAcc(kDhB, dBA, xdh, c0, xpt3);
+
+  (* --- recv m2 n=1 (in-order under the new B->A epoch) --- *)
+  in(c, (=pv5, =suite2, xdh4: G, =fMSG, xh4: bitstring, xb4: bitstring));
+  let pqb4 = pqbind(fMSG, emptyb) in
+  let (xpn4: bitstring, =c1) = sdec(hk_r1, nhdr(xdh4, c1),
+                                    adhdr(xdh4, fMSG, pqb4), xh4) in
+  let mk4r = mk_hybrid(ck_ec_r1, ck_pq_r1) in
+  let ck_ec_r2 = ck_ec_next(ck_ec_r1) in
+  let ck_pq_r2 = ck_pq_next(ck_pq_r1) in
+  let xpt4 = sdec(mk4r, nbody(xdh4, c1), adbody(pqb4), xb4) in
+  event MsgAcc(kMsg, dBA, xdh4, c1, xpt4);
+
+  (* --- recv B's ADV n=2 (M10: recv_pq_adv; ADVAUTH under A's canonical root,
+         chain-consume: BOTH receive chains step) --- *)
+  in(c, (=pv5, =suite2, xdh5: G, =fBNDADV, (xbid: bitstring, xpkB: bitstring),
+         xh5: bitstring, xb5: bitstring));
+  let pqb5 = pqbind(fBNDADV, (xbid, xpkB)) in
+  let (xpn5: bitstring, =c2) = sdec(hk_r1, nhdr(xdh5, c2),
+                                    adhdr(xdh5, fBNDADV, pqb5), xh5) in
+  let mk5r = mk_hybrid(ck_ec_r2, ck_pq_r2) in
+  let ck_ec_r3 = ck_ec_next(ck_ec_r2) in
+  let ck_pq_r3 = ck_pq_next(ck_pq_r2) in
+  let (xmacB: bitstring, xaplB: bitstring) = sdec(mk5r, nbody(xdh5, c2),
+                                                  adbody(pqb5), xb5) in
+  if xmacB = advmac(rk1, xbid, xpkB) then   (* ratchet.rs:2123-2128 ADVAUTH verify *)
+  event AdvTracked(xbid, xpkB);
+  event MsgAcc(kAdv, dBA, xdh5, c2, xaplB);
+
+  (* --- recv B's PQ reseed -> aid1, n=3 (M5: recv_pq_reseed pq-only arm; M8: apply_pq_reseed;
+         §8.5.1 NHK from the PRE-reseed root; ENG-0030 full-schedule commit) --- *)
+  in(c, (=pv5, =suite2, xdh6: G, =fBNDCTXT, (xtid: bitstring, xct: bitstring),
+         xh6: bitstring, xb6: bitstring));
+  if xdh6 = xdh then                        (* equal DH_pub => pq-only arm (ratchet.rs:2244) *)
+  let pqb6 = pqbind(fBNDCTXT, (xtid, xct)) in
+  let (xpn6: bitstring, =c3) = sdec(kdf_nhk_ba(rk1), nhdr(xdh6, c3),
+                                    adhdr(xdh6, fBNDCTXT, pqb6), xh6) in
+  if xtid = aid1 then                       (* M8 known-target (one-time via linearity, A5) *)
+  let xss = kemdec(skA, xct) in
+  let sAB = kdf_seed_ab(rk1, xtid, xct, xss) in
+  let sBA = kdf_seed_ba(rk1, xtid, xct, xss) in
+  let rk2 = kdf_rk_pq(rk1, xss) in
+  let mk6r = mk_hybrid(ck_ec_r3, ck_pq_r3) in   (* body under the PRE-reseed schedule *)
+  let xpt6 = sdec(mk6r, nbody(xdh6, c3), adbody(pqb6), xb6) in
+  let hk_s2 = kdf_hk_ab(rk2) in             (* ENG-0030: the RECEIVE refreshes A's SEND half *)
+  event MsgAcc(kRes, dBA, xdh6, c3, xpt6);
+
+  (* --- send m4: plain message n=2 under A's POST-reseed send half (send.ck_ec untouched by
+         a reseed; send.ck_pq := the send-direction seed; send.hk_s from the advanced root) --- *)
+  let pqb7 = pqbind(fMSG, emptyb) in
+  let mk7s = mk_hybrid(ck_ec_s2, sAB) in
+  event MsgSent(kMsg, dAB, X0, c2, m4);
+  out(c, (pv5, suite2, X0, fMSG,
+          senc(hk_s2, nhdr(X0, c2), adhdr(X0, fMSG, pqb7), (c0, c2)),
+          senc(mk7s, nbody(X0, c2), adbody(pqb7), m4)));
+  0.
+
+(* ---------- role B (responder; send chains ZERO until its first boundary) ---------- *)
+let procB(y0: exponent, X0: G, skB: bitstring) =
+  (* M1: establishment — B's receive half of the A->B chains *)
+  let rk_est = est_rk(dh_init, pq_init_ss) in
+  let hk_rB0 = kdf_hk_ab(rk_est) in
+  let ck_ec_r0 = kdf_ck0_ab(rk_est) in
+  let ck_pq_r0 = kdf_pq0_ab(rk_est) in
+
+  (* --- recv m1 n=0 --- *)
+  in(c, (=pv5, =suite2, ydh1: G, =fMSG, yh1: bitstring, yb1: bitstring));
+  let qqb1 = pqbind(fMSG, emptyb) in
+  let (ypn1: bitstring, =c0) = sdec(hk_rB0, nhdr(ydh1, c0),
+                                    adhdr(ydh1, fMSG, qqb1), yh1) in
+  let mkr1 = mk_hybrid(ck_ec_r0, ck_pq_r0) in
+  let ck_ec_r1 = ck_ec_next(ck_ec_r0) in
+  let ck_pq_r1 = ck_pq_next(ck_pq_r0) in
+  let ypt1 = sdec(mkr1, nbody(ydh1, c0), adbody(qqb1), yb1) in
+  event MsgAcc(kMsg, dAB, ydh1, c0, ypt1);
+
+  (* --- recv A's ADV n=1 (M10; ADVAUTH under B's canonical root; chain-consume) --- *)
+  in(c, (=pv5, =suite2, ydh2: G, =fBNDADV, (yaid: bitstring, yapk: bitstring),
+         yh2: bitstring, yb2: bitstring));
+  let qqb2 = pqbind(fBNDADV, (yaid, yapk)) in
+  let (ypn2: bitstring, =c1) = sdec(hk_rB0, nhdr(ydh2, c1),
+                                    adhdr(ydh2, fBNDADV, qqb2), yh2) in
+  let mkr2 = mk_hybrid(ck_ec_r1, ck_pq_r1) in
+  let ck_ec_r2 = ck_ec_next(ck_ec_r1) in
+  let ck_pq_r2 = ck_pq_next(ck_pq_r1) in
+  let (ymac: bitstring, yapl: bitstring) = sdec(mkr2, nbody(ydh2, c1),
+                                                adbody(qqb2), yb2) in
+  if ymac = advmac(rk_est, yaid, yapk) then
+  event AdvTracked(yaid, yapk);
+  event MsgAcc(kAdv, dAB, ydh2, c1, yapl);
+
+  (* --- send DH boundary n=0 (M2: send_boundary; fresh keypair; header under pre-boundary
+         NHK_s; creates B's send chains) --- *)
+  new y1: exponent;
+  let Y1 = exp(g, y1) in
+  let dhB = exp(X0, y1) in                  (* dh(new_priv, st.dh.dhr) *)
+  let rk1 = rkdh_rk(rk_est, dhB) in
+  let ck_ec0s = rkdh_ck(rk_est, dhB) in
+  let ck_pq0s = kdf_pq0_ba(rk1) in          (* pq0_send_label(role B) = PQ0/B->A *)
+  let hk_sB1 = kdf_hk_ba(rk1) in
+  let mkb = mk_hybrid(ck_ec0s, ck_pq0s) in
+  let ck_ec_s1 = ck_ec_next(ck_ec0s) in
+  let ck_pq_s1 = ck_pq_next(ck_pq0s) in
+  let qqb3 = pqbind(fBND, emptyb) in
+  event MsgSent(kDhB, dBA, Y1, c0, padc);
+  out(c, (pv5, suite2, Y1, fBND,
+          senc(kdf_nhk_ba(rk_est), nhdr(Y1, c0), adhdr(Y1, fBND, qqb3), (c0, c0)),
+          senc(mkb, nbody(Y1, c0), adbody(qqb3), padc)));
+
+  (* --- send m2 n=1 --- *)
+  let qqb4 = pqbind(fMSG, emptyb) in
+  let mks2 = mk_hybrid(ck_ec_s1, ck_pq_s1) in
+  let ck_ec_s2 = ck_ec_next(ck_ec_s1) in
+  let ck_pq_s2 = ck_pq_next(ck_pq_s1) in
+  event MsgSent(kMsg, dBA, Y1, c1, m2);
+  out(c, (pv5, suite2, Y1, fMSG,
+          senc(hk_sB1, nhdr(Y1, c1), adhdr(Y1, fMSG, qqb4), (c0, c1)),
+          senc(mks2, nbody(Y1, c1), adbody(qqb4), m2)));
+
+  (* --- send ADV(bid1, kempub(skB)) n=2 (M9; ADVAUTH under B's current root rk1) --- *)
+  let pkB = kempub(skB) in
+  let pfxB = (bid1, pkB) in
+  let qqb5 = pqbind(fBNDADV, pfxB) in
+  let mks3 = mk_hybrid(ck_ec_s2, ck_pq_s2) in
+  let ck_ec_s3 = ck_ec_next(ck_ec_s2) in
+  let ck_pq_s3 = ck_pq_next(ck_pq_s2) in
+  let macB = advmac(rk1, bid1, pkB) in
+  event AdvSent(bid1, pkB);
+  event MsgSent(kAdv, dBA, Y1, c2, emptyb);
+  out(c, (pv5, suite2, Y1, fBNDADV, pfxB,
+          senc(hk_sB1, nhdr(Y1, c2), adhdr(Y1, fBNDADV, qqb5), (c0, c2)),
+          senc(mks3, nbody(Y1, c2), adbody(qqb5), (macB, emptyb))));
+
+  (* --- send PQ reseed -> the TRACKED (yaid, yapk), n=3 (M4: send_pq_reseed; seeds from
+         RK_old then root advance, §3.3.6; header under NHK_s from the PRE-reseed root) --- *)
+  new sA: bitstring;
+  let ctA = kemenc(yapk, sA) in
+  let ssA = kemss(yapk, sA) in
+  let sAB = kdf_seed_ab(rk1, yaid, ctA, ssA) in
+  let sBA = kdf_seed_ba(rk1, yaid, ctA, ssA) in
+  let rk2 = kdf_rk_pq(rk1, ssA) in
+  let hk_rB2 = kdf_hk_ab(rk2) in            (* §8.5.3 step 7, receive direction *)
+  let mks4 = mk_hybrid(ck_ec_s3, ck_pq_s3) in   (* body under the PRE-reseed schedule *)
+  let pfxC = (yaid, ctA) in
+  let qqb6 = pqbind(fBNDCTXT, pfxC) in
+  event MsgSent(kRes, dBA, Y1, c3, padc);
+  out(c, (pv5, suite2, Y1, fBNDCTXT, pfxC,
+          senc(kdf_nhk_ba(rk1), nhdr(Y1, c3), adhdr(Y1, fBNDCTXT, qqb6), (c0, c3)),
+          senc(mks4, nbody(Y1, c3), adbody(qqb6), padc)));
+
+  (* --- recv A's post-reseed m4 n=2 (B's recv PQ chain := the A->B seed; recv EC chain has
+         consumed m1 + the ADV; header under the reseed-refreshed hk_r) --- *)
+  in(c, (=pv5, =suite2, ydh7: G, =fMSG, yh7: bitstring, yb7: bitstring));
+  let qqb7 = pqbind(fMSG, emptyb) in
+  let (ypn7: bitstring, =c2) = sdec(hk_rB2, nhdr(ydh7, c2),
+                                    adhdr(ydh7, fMSG, qqb7), yh7) in
+  let mkr7 = mk_hybrid(ck_ec_r2, sAB) in
+  let ypt7 = sdec(mkr7, nbody(ydh7, c2), adbody(qqb7), yb7) in
+  event MsgAcc(kMsg, dAB, ydh7, c2, ypt7);
+  0.
+
+process
+  new x0: exponent; new y0: exponent;
+  new skA: bitstring; new skB: bitstring;
+  (* A1: establishment publics/adv publics exchanged authentically; all public *)
+  out(c, (exp(g, x0), exp(g, y0), kempub(skA), kempub(skB)));
+  ( procA(x0, exp(g, y0), skA) | procB(y0, exp(g, x0), skB) )

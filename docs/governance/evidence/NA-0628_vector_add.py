@@ -74,7 +74,7 @@ def add_recv_vector() -> bool:
     v["kind"] = "negative"
     v["tags"] = ["CAT-S2-PQRESEED-001", "CAT-S2-COMBINED-001", "G2", "G4"]
     v["spec_refs"] = sorted(set(base.get("spec_refs", [])) | {RFC})
-    v["note"] = NOTE_RECV
+    v["notes"] = NOTE_RECV
     # THE ONE FIELD: the peer's fresh DH public key becomes a small-subgroup point.
     assert v["input"]["message"]["data"]["new_dh_pub"] != LOW_ORDER_U1
     v["input"]["message"]["data"]["new_dh_pub"] = LOW_ORDER_U1
@@ -94,7 +94,7 @@ def add_send_vector() -> bool:
     v["kind"] = "reject"
     v["tags"] = ["CAT-SCKA-LOGIC-001", "CAT-S2-COMBINED-001", "G2", "G4"]
     v["spec_refs"] = sorted(set(base.get("spec_refs", [])) | {RFC})
-    v["note"] = NOTE_SEND
+    v["notes"] = NOTE_SEND
     # THE ONE FIELD: the stored peer key is a small-subgroup point.
     assert v["input"]["dh_state"]["data"]["dhr"] != LOW_ORDER_U1
     v["input"]["dh_state"]["data"]["dhr"] = LOW_ORDER_U1

@@ -1413,7 +1413,7 @@
         "DOC-CAN-003 \u00a78.5.3",
         "RFC 7748 \u00a76.1"
       ],
-      "notes": "NA-0626 (ENG-0026) combined DH+PQ boundary SEND: one FLAG_BOUNDARY|FLAG_PQ_CTXT frame carrying a FRESH caller-supplied DH_pub; DH-first-then-PQ composition (RK_final = KDF_RK_PQ(KDF_RK_DH(RK_pre, dh_out), ss)); header sealed under the pre-boundary NHK_s at n=0 of the new DH epoch; body mk from the fresh PRE-seed epoch chains. Byte-layout identical to the existing 0x0006 reseed frame (no wire FORMAT change).",
+      "notes": "ENG-0034: the stored peer key DHr is a low-order point (u=1), so the sender's own X25519 output is all-zero. The sender MUST reject with REJECT_S2_DH_NONCONTRIBUTORY before the root advances.",
       "input": {
         "send_state": {
           "type": "json",
@@ -1486,8 +1486,7 @@
       "expect": {
         "ok": false,
         "reason_code": "REJECT_S2_DH_NONCONTRIBUTORY"
-      },
-      "note": "ENG-0034: the stored peer key DHr is a low-order point (u=1), so the sender's own X25519 output is all-zero. The sender MUST reject with REJECT_S2_DH_NONCONTRIBUTORY before the root advances."
+      }
     }
   ]
 }

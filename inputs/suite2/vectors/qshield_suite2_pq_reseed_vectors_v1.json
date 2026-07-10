@@ -1112,7 +1112,7 @@
         "DOC-CAN-003 \u00a78.5.3",
         "RFC 7748 \u00a76.1"
       ],
-      "notes": "NA-0626 (ENG-0026) combined DH+PQ boundary RECEIVE (session-level recv_pq_reseed, fresh-DH_pub discrimination): NHK-only open at n=0 of the NEW DH epoch (nonce/AD on the fresh DH_pub), DH ratchet first from the pre-boundary root, then the frozen apply_pq_reseed from RK_dh, RK_final = KDF_RK_PQ(RK_dh, ss); the returned state carries the FULL directional schedule (root, dhr, both header keys, both PQ chains, nr=1) \u2014 the ENG-0030 structural guarantee.",
+      "notes": "ENG-0034: the peer advertises a low-order DH_pub (u=1). The frame is honestly sealed, so it authenticates; the X25519 output is all-zero, contributing no entropy to the new root. The receiver MUST reject with REJECT_S2_DH_NONCONTRIBUTORY and MUST NOT mutate state. Note that u=1 is NOT the all-zero encoding, so it passes the pre-existing is_zero32(dh_pub) screen: this vector proves the DH OUTPUT check, not the encoding check.",
       "input": {
         "send_state": {
           "type": "json",
@@ -1180,8 +1180,7 @@
       "expect": {
         "ok": false,
         "reason_code": "REJECT_S2_DH_NONCONTRIBUTORY"
-      },
-      "note": "ENG-0034: the peer advertises a low-order DH_pub (u=1). The frame is honestly sealed, so it authenticates; the X25519 output is all-zero, contributing no entropy to the new root. The receiver MUST reject with REJECT_S2_DH_NONCONTRIBUTORY and MUST NOT mutate state. Note that u=1 is NOT the all-zero encoding, so it passes the pre-existing is_zero32(dh_pub) screen: this vector proves the DH OUTPUT check, not the encoding check."
+      }
     }
   ],
   "registries": {

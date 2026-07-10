@@ -9,14 +9,14 @@ honest transcript."
 The claim is PER-VECTOR, not per-file: a purely additive append necessarily changes a file's bytes
 while changing no existing vector, and the STOP's own rationale ("the guard would be rejecting an
 honest transcript") is a statement about transcripts, not about file offsets. This scan therefore
-asserts, against `git show HEAD:<file>`:
+asserts, against `git show <BASE_REF>:<file>` (BASE_REF = the pre-lane baseline, `main`):
 
   1. no pre-existing vector id was removed;
   2. every pre-existing vector's canonical serialization is byte-identical (sha256 per vector);
   3. every inputs/suite2/** file OTHER than the two appended files is byte-identical at FILE level;
   4. the set of newly added ids is exactly the NA-0628 allowlist — nothing else may appear;
   5. cross-set guard: sha256 over the sorted per-vector hashes of the pre-existing set matches the
-     baseline computed from HEAD.
+     baseline.
 
 Exit non-zero on any violation. Run from the repo root.
 """
@@ -39,7 +39,7 @@ EXPECTED_APPENDED_FILES = {
     "inputs/suite2/vectors/qshield_suite2_scka_logic_vectors_v1.json",
 }
 
-BASE_REF = "HEAD"
+BASE_REF = "main"
 
 
 def sh(*args: str) -> bytes:

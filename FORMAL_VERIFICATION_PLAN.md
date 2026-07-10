@@ -1,6 +1,7 @@
 # Formal Verification Plan (Living)
 
 Goals: G4
+Last-Updated: 2026-07-10
 
 This plan satisfies GOALS.md (G4) and defines the verification roadmap.
 
@@ -32,6 +33,6 @@ CI integration:
 - **The tooling milestone is DISCHARGED (NA-0627 / ENG-0028, D-1249).** A ProVerif model of the Suite-2 DH+PQ composition **as shipped post-NA-0626** lives in `formal/proverif/` and is CI-gated. It covers establishment (§8.2), the DH boundary (§8.5.2), the PQ reseed (§8.5.3), the combined DH+PQ boundary (§8.5.2+§8.5.3), and the authenticated SCKA advertisement (§8.5.4 + ADVAUTH). Proved: message-key secrecy and injective transcript agreement under an active Dolev-Yao adversary; PQ healing across a reseed and across a combined boundary with **all** classical DH secrets compromised; classical healing across a DH boundary with the ML-KEM decapsulation key compromised; and that a planted advertisement is never tracked.
 - **Read the results with their limits.** `docs/design/DOC-G4-002` records, per query, what was proved, under which abstraction, and **what it does not license**. A green symbolic result is necessary input to — not sufficient grounds for — any post-quantum / Triple-Ratchet / post-compromise claim (Operator Decision 4: the claim boundary is UNCHANGED). Independent human review remains an open prerequisite.
 - **Two findings, both filed, neither fixed in that analysis lane:**
-  - **ENG-0034 (P2):** the X25519 DH output is never checked for the all-zero (non-contributory) value, and only one of Curve25519's small-order encodings is rejected on ingress. A symbolic DH model **cannot** decide this (the theory idealizes the group), so it was answered by code inspection against RFC 7748 §6.1. It blocks post-compromise claim language until fixed.
+  - **ENG-0034 (P2, CLOSED at NA-0628 — D-1251/D-1252):** the X25519 DH output was never checked for the all-zero (non-contributory) value, and only one of Curve25519's small-order encodings was rejected on ingress. A symbolic DH model **cannot** decide this (the theory idealizes the group), so it was answered by code inspection against RFC 7748 §6.1. **Now fixed: every LIVE X25519 DH output fails closed on the all-zero value (`REJECT_S2_DH_NONCONTRIBUTORY`), with additive negative conformance vectors and a byte-scan proving the existing set unchanged.** The CODE obstacle to post-compromise claim language is removed; the claim remains blocked by the A1–A8 abstractions, ENG-0035, and independent human review.
   - **ENG-0035 (P3):** ProVerif does not terminate on the design-locked 2-boundary unrolling. The main model was reduced to one DH boundary + one PQ reseed — the reduction is stated in the model header and no query was weakened — and the **Tamarin option is re-presented** for that query shape.
-- Next candidates: the ENG-0034 remediation lane (refimpl + negative vectors); optionally a Tamarin lane for the multi-epoch unrolling (ENG-0035); extending the model to out-of-order/skip-window receives (abstraction A7).
+- Next candidates: a Tamarin lane for the multi-epoch unrolling (ENG-0035), IFF the post-compromise claim is being pursued (a review of a model with a known non-terminating query reviews the wrong artifact); extending the model to out-of-order/skip-window receives (abstraction A7). (ENG-0034 remediation is DONE — NA-0628.)

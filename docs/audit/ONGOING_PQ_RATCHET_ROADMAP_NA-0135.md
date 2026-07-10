@@ -1,5 +1,12 @@
 # NA-0135 Ongoing PQ Ratchet Roadmap Decision
 
+> **Superseded-By (2026-07-10):** the PQ-ratchet direction described here was carried out across the
+> NA-0619..NA-0628 arc — SCKA sender/wiring, the single-root DH+PQ composition (NA-0626), the CI-gated
+> ProVerif symbolic analysis (NA-0627, `docs/design/DOC-G4-002`), and the RFC 7748 §6.1
+> non-contributory-DH guard (NA-0628). This NA-0135 decision package is retained as a historical
+> artifact; consult `DECISIONS.md`, `TRACEABILITY.md`, and `FORMAL_VERIFICATION_PLAN.md` for current
+> status.
+
 ## Scope
 This is a docs-only decision package. No protocol/client/server code changes are included.
 

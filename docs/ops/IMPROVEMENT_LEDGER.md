@@ -555,8 +555,8 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Proof gap: no test asserts the pre-encryption plaintext blob is removed post-migration.
 - Recommended directive shape: small audit + deletion-assertion lane.
 
-### ENG-0019 — `qsp::handshake` is auth-unsafe code that CI blesses and releases attest — **UNFOLDED from NA-0628; re-rated P3 → P2 (2026-07-10)**
-- Severity: **P2** (raised from P3 at NA-0628 Phase 0, 2026-07-10). It is NOT remotely exploitable
+### ENG-0019 — `qsp::handshake` is auth-unsafe reference code — **PARTIALLY REMEDIATED at NA-0630 (D-1254): de-attested + labeled + CI-guarded; re-rated P2 → P3. Full retirement (b type-extraction + c Suite-1/1B conformance) OPEN at P3.**
+- Severity: **P3** (lowered from P2 at NA-0630, 2026-07-10, after partial remediation: `refimpl_actor` is no longer built/attested/shipped by `release-auth.yml`, the `qsp` modules carry a `//! NOT PRODUCTION — auth-unsafe` banner, and `cargo test -p quantumshield_refimpl` — incl. the NA-0628 anti-regression scan — now runs on every code PR via the required `ci-4a` job. Residual: the code still compiles and runs in `ci-4b`/`ci-4d-dur` as the Suite-1/1B reference; full retirement (b + c below) remains OPEN.). It is NOT remotely exploitable
   and NOT reachable from the shipped `qsc` client. It is raised because the original P3 rested on
   "auth-unsafe DEAD code", and the code is **not dead**: two REQUIRED CI checks certify it green as
   the Suite-1/1B reference, and a published release attests and ships the binary that embeds it.

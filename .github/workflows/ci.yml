@@ -364,6 +364,9 @@ jobs:
           cargo +stable test -p qsc --locked --test vault -- --test-threads=1
           cargo +stable test -p qsc --locked --test handshake_contract_na0217i -- --test-threads=1
           cargo +stable test -p qsc --locked --test qsp_protocol_gate -- --test-threads=1
+          # ENG-0019 (NA-0630): run the refimpl crate tests so the NA-0628 non-contributory-DH
+          # anti-regression scan and the DH-guard tests are enforced on every code PR.
+          cargo +stable test -p quantumshield_refimpl --locked
 
   qsc_linux_full_suite:
     name: qsc-linux-full-suite

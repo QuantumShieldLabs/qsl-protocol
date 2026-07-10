@@ -42873,3 +42873,20 @@ claim matrix untouched, no unguarded forbidden claim.** The two claim-adjacent p
 DOC-G4-002 fix were operator-approved ("lets go with your recommendations"). Queue back to READY=NONE
 pending the next directive; strongest next candidate is the external-review-bundle assembly on the
 now-accurate inputs. No package installed; no operator startup command run; the executor promoted no lane.
+
+## 2026-07-10 — NA-0630 (ENG-0019 partial remediation, D-1254)
+Executed and closed NA-0630 per D567 (single-PR lane). NA-0628 had re-rated ENG-0019 P2 on the finding
+that the `qsp` skeleton is not dead code but auth-unsafe REFERENCE code that CI blesses and the release
+provenance chain attests. This lane removed the two worst parts and closed the CI-coverage gap, without
+the library refactor or the Suite-1/1B conformance decision:
+- **(d) de-attest**: `release-auth.yml` no longer builds/attests/ships `refimpl_actor` (release-only;
+  no required PR check touched) — the auth-unsafe binary is no longer signed and shipped beside qsc/qshield;
+- **(a) banner**: a `//! NOT PRODUCTION — auth-unsafe (ENG-0019)` module doc-comment on qsp/handshake.rs
+  + qsp/ratchet.rs (doc-comment only, machine-verified no logic change);
+- **CI-coverage**: `cargo test -p quantumshield_refimpl` wired into the required `ci-4a` job so the
+  NA-0628 non-contributory-DH anti-regression scan and the DH-guard tests are enforced on every code PR.
+Build + refimpl tests (89 lib incl. the scan) + fmt/clippy green. **ENG-0019 P2 → P3**; full retirement
+(b library type-extraction + c Suite-1/1B conformance) remains OPEN at P3. Claim boundary UNCHANGED; no
+shipped code path changed. Queue back to READY=NONE; the two prerequisites for the external-review-bundle
+assembly (accurate docs + no attested auth-unsafe binary) are now both met. No package installed; no
+operator startup command run; the executor promoted no lane.

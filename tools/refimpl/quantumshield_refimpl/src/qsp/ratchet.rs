@@ -1,3 +1,9 @@
+//! NOT PRODUCTION — auth-unsafe reference implementation (ENG-0019).
+//! Part of the `qsp` Suite-1/1B reference skeleton whose handshake defers KT verification to the
+//! caller (peer authentication is MITM-able if wired into a real deployment). The shipped client uses
+//! `qsc`'s own QSC.HS.* handshake, not this. Kept only as the conformance reference exercised by the
+//! ci-4b / ci-4d-dur checks.
+
 use super::constants::*;
 use super::state::derive_header_keys_kmac;
 use super::{HeaderSource, ProtocolMessage, SessionState};

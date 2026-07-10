@@ -28,16 +28,15 @@ jobs:
           set -euo pipefail
           cargo build -p qsc --release --locked
           cargo build -p qshield-cli --release --locked
-          cargo build -p refimpl_actor --release --locked
+          # ENG-0019 (NA-0630): refimpl_actor is the auth-unsafe Suite-1/1B reference implementation
+          # and is NOT shipped or provenance-attested. Only the shipped clients go in release_artifacts.
 
           mkdir -p release_artifacts
           test -f target/release/qsc
           test -f target/release/qshield
-          test -f target/release/refimpl_actor
 
           cp target/release/qsc release_artifacts/
           cp target/release/qshield release_artifacts/
-          cp target/release/refimpl_actor release_artifacts/
 
           sha256sum release_artifacts/* > release_artifacts/SHA256SUMS
 

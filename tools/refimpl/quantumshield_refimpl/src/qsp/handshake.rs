@@ -1,3 +1,9 @@
+//! NOT PRODUCTION — auth-unsafe reference implementation (ENG-0019).
+//! `responder_process` defers KT identity verification to the caller and `pq_rcv_a_priv` is left
+//! empty, so peer authentication is MITM-able if this is wired into a real deployment. The shipped
+//! client uses `qsc`'s own QSC.HS.* handshake, not this. Kept only as the Suite-1/1B conformance
+//! reference exercised by the ci-4b / ci-4d-dur checks.
+
 use super::constants::*;
 use super::{HandshakeInit, HandshakeResp, PrekeyBundle, SessionRole, SessionState};
 use crate::codec::CodecError;

@@ -6,9 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0630 | HIGHEST_NA=0630 | HIGHEST_D=1253 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
-<!-- NA-0630 (ENG-0019 partial remediation) promoted to sole READY 2026-07-10, at the operator's explicit "promote it" instruction after approving directive D567. The executor made this mechanical promotion edit under that authorization; it did not self-promote. -->
-<!-- prior: STATE: READY=NONE | HIGHEST_NA=0629 | HIGHEST_D=1253 (NA-0629 closeout, D-1253) -->
+`STATE: READY=NONE | HIGHEST_NA=0630 | HIGHEST_D=1254 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- READY=NONE at the NA-0630 closeout (D-1254): the executor cannot self-promote a lane. The next lane becomes READY only when the operator approves a directive. Candidates: ENG-0019 (b)+(c) full retirement (P3); the external-review-bundle assembly (docs now accurate + the auth-unsafe binary no longer attested/shipped); ENG-0014; ENG-0036/0037 (product/metadata). -->
+<!-- prior: STATE: READY=NA-0630 | HIGHEST_NA=0630 | HIGHEST_D=1253 (NA-0630 promotion, D567) -->
 
 **READY (exactly one — execute this):** `NA-0628 — ENG-0034: reject non-contributory (low-order)
 X25519 on every LIVE DH path; ENG-0019: retire the auth-unsafe qsp skeleton` (directive
@@ -34839,7 +34839,8 @@ Begins at D-1253. Docs/governance single-PR lane; claim-adjacent, fail-closed on
 ---
 
 ### NA-0630 — ENG-0019 (partial remediation): stop shipping/attesting the auth-unsafe `qsp` reference impl, label it, make its guard tests run in CI
-Status: READY
+Status: DONE
+OUTCOME (2026-07-10): D-1254. ENG-0019 P2 → P3. (d) `release-auth.yml` no longer builds/attests/ships `refimpl_actor` (release-only; no required PR check touched); (a) `qsp/handshake.rs` + `qsp/ratchet.rs` gained a `//! NOT PRODUCTION — auth-unsafe (ENG-0019)` banner (doc-comment only, machine-verified no logic change); CI-coverage: `cargo test -p quantumshield_refimpl` wired into the REQUIRED `ci-4a` job so the NA-0628 anti-regression scan + DH-guard tests run on every code PR. Build + refimpl tests (89 lib incl. the scan) + fmt/clippy green. DEFERRED to a P3 successor: (b) library type-extraction + (c) Suite-1/1B conformance retirement. Claim boundary UNCHANGED. Single PR; no `qsp` logic / `tools/actors` / canonical / vector / Cargo change.
 Goals: G4
 Wire/behavior change allowed? NO behavior change — a module doc-comment banner, a release-workflow subtraction, and one added CI test invocation only.
 Canonical change allowed? NO — any `docs/canonical/**` edit is a STOP. Vector/Cargo/KDF-AEAD-KEM change? NO. Claim change allowed? NO.

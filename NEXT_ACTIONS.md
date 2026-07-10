@@ -6,9 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0628 | HIGHEST_D=1252 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
-<!-- READY=NONE by design at the NA-0628 closeout: the executor cannot self-promote a lane. NA-0629 becomes READY only when the operator approves a directive. Drafted/queued candidates: WF-0018 (docs truth-up, directive D566 DRAFTED, pending approval), ENG-0019 remediation, ENG-0014, ENG-0036/0037 (product/metadata, post-crypto-core). -->
-<!-- prior: STATE: READY=NA-0628 | HIGHEST_NA=0628 | HIGHEST_D=1250 -->
+`STATE: READY=NA-0629 | HIGHEST_NA=0629 | HIGHEST_D=1252 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- NA-0629 (WF-0018 strategic-docs truth-up) promoted to sole READY 2026-07-10, at the operator's explicit "promote it" instruction after approving directive D566. The executor made this mechanical promotion edit under that authorization; it did not self-promote. -->
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0628 | HIGHEST_D=1252 (NA-0628 closeout) -->
 
 **READY (exactly one — execute this):** `NA-0628 — ENG-0034: reject non-contributory (low-order)
 X25519 on every LIVE DH path; ENG-0019: retire the auth-unsafe qsp skeleton` (directive
@@ -22,7 +22,7 @@ Its full block (with scope flags) is below under section 2; find it with the ANC
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
 1. **ENG-0034 = NA-0628 (now READY)** — reject non-contributory (low-order) X25519 on every LIVE DH path. Directive D565 as amended by D565-A1 (2026-07-10). Live paths: `qsc`'s establishment `hs_dh_shared` (2 call sites) + the 4 Suite-2 ratchet sites — all of them SHIPPED-CLIENT paths (`qsc/src/main.rs:2320/:2657/:2683`). **ENG-0019 was UNFOLDED**: `qsp/**` is NOT dead code (it backs the REQUIRED `ci-4b` / `ci-4d-dur` checks); it is re-rated P2 and awaits its own directive.
-1a. **WF-0018 = strategic-docs truth-up — directive D566 DRAFTED (pending operator approval)** — the governance spine is current but the strategic narrative is 6–18 weeks stale; the external-review package omits the CI-gated ProVerif analysis (NA-0627), the project's strongest assurance artifact. Claim-adjacent, fail-closed on any claim movement (closing ENG-0034 moves NO claim). **Strong candidate to run BEFORE commissioning external review** — you do not hand a reviewer a package that omits your formal analysis. Docs/governance single-PR lane.
+1a. **WF-0018 = strategic-docs truth-up — PROMOTED to NA-0629 (READY), directive D566 APPROVED 2026-07-10.** See the NA-0629 lane block below. (Was: the external-review package omits the CI-gated ProVerif analysis; claim-adjacent, fail-closed on any claim movement.)
 2. **ENG-0014** — qsl-server non-constant-time token compare (P2, cross-repo, cheap; Signal-Server `MessageDigest.isEqual` precedent). Good short lane whenever a slot opens.
 2b. **ENG-0032 / ENG-0033** — the NA-0626 follow-up filings (apps hygiene + the public-safety PR gate's cancelled-vs-failed conflation), batched as one LITE lane.
 2c. **ENG-0035 / Tamarin** — the NA-0627 non-termination at the 2-boundary unrolling. Only if the 2-epoch unrolling is judged load-bearing; the reduced-scope model proves the same queries and nothing was weakened.
@@ -34818,3 +34818,19 @@ Binding constraints:
 Begins at D-1251. Delicate lane (crypto, multi-file): design-lock before code; ONE session handoff
 permitted at design-lock completion, per the session-handoff convention. FULL RITUAL (two PRs, two
 decisions) — DOC-OPS-006 §9 forbids WAVE/LITE for protocol/crypto/canonical/vector work.
+
+---
+
+### NA-0629 — Strategic-docs truth-up to live truth (`main == 08341a12`), WITHOUT moving any security claim
+Status: READY
+Goals: G4, G5
+Docs-only allowed? YES — this lane is docs/governance/process only. Canonical change allowed? NO — any `docs/canonical/**` edit is a STOP. Source/vector/`.github`/Cargo change? NO.
+Claim change allowed? NO by default — claim boundary UNCHANGED (Operator Decision 1); ANY change to a claim STATUS or claim sentence is a STOP + re-present.
+
+Objective:
+Execute **WF-0018** per **QSL-DIR-2026-07-10-566 (D566, APPROVED 2026-07-10)**. The governance spine is current, but the strategic/program/review-facing narrative is 6–18 weeks stale, and — highest-value gap — `docs/public/EXTERNAL_REVIEW_PACKAGE.md` OMITS the CI-gated ProVerif analysis (NA-0627), the project's strongest assurance artifact. Bring the strategic docs to live truth (`08341a12`; ENG-0034 CLOSED at `e9439df7`, D-1251/D-1252) — strengthening the EVIDENCE base while holding the claim boundary exactly where it is (closing ENG-0034 moves NO claim: A1–A8 abstractions + ENG-0035 + independent human review still block post-compromise language).
+
+Scope (D566 items 1–9): [SAFE] `FORMAL_VERIFICATION_PLAN.md` (ENG-0034 closed, claim still blocked); `docs/public/EXTERNAL_REVIEW_PACKAGE.md` + `RELEASE_READINESS_EVIDENCE_MAP.md` + `PROGRESS.md` (add the ProVerif layer + single-root composition + contributory guard); `STATUS.md` (deprecate-to-stub, Operator Decision 2); superseded-by pointers on the Feb metadata roadmaps; [CLAIM-ADJ] `ROADMAP.md` + `docs/program/DOC-PROG-001` posture refresh (exact before/after for operator approval); `docs/public/INDEX.md`/`WEBSITE_CLAIM_MATRIX.md` mechanical consistency. Optional doc-staleness lint (Operator Decision 3 = YES). See D566 for the full DoD, phases, and STOP conditions.
+
+Successor candidates (Phase 7): the external-review-bundle assembly (now on accurate inputs), ENG-0019 remediation, ENG-0014, ENG-0036/0037.
+Begins at D-1253. Docs/governance single-PR lane; claim-adjacent, fail-closed on any claim movement.

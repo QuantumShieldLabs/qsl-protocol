@@ -22,6 +22,8 @@ Rationale:
 
 This is an intentionally conservative first step that does **not** preclude adopting ProVerif and/or Tamarin later (see FORMAL_VERIFICATION_PLAN.md). It exists to ensure G4 has an executable gate immediately.
 
+**Update (NA-0627 / ENG-0028, D-1249): ProVerif 2.05 is now the selected cryptographic-model tool**, and a model of the Suite-2 DH+PQ composition lives in `formal/proverif/` (§8 below). The bounded Python explorers below are **not** superseded: they remain the fast, always-on regression guard for control-plane *logic*. ProVerif is the layer above, reasoning about secrecy and authentication against an active adversary — the properties the explorers explicitly do not cover (§5).
+
 ## 2. Modeled protocol slices (current)
 
 The first model checks the **SCKA control-plane logic invariants**:
@@ -146,3 +148,51 @@ The model is executed in CI by:
 - `.github/workflows/formal.yml`
 
 The job is intended to be a release gate (G4): if the model fails, CI fails.
+
+## 8. ProVerif composition model (`formal/proverif/`) — NA-0627 / ENG-0028
+
+The layer above the bounded explorers: a **symbolic (Dolev-Yao) model of the Suite-2 DH+PQ
+composition as shipped post-NA-0626**, in ProVerif 2.05 (version-pinned, D-1249).
+
+Files:
+- `suite2_dhpq_lib.pvl` — the shared theory, the 20-label derivation alphabet, and the
+  **fidelity map**: every derivation names the shipped refimpl function and the DOC-CAN section
+  it implements. Loaded by every model via `proverif -lib`, so the encoding cannot drift.
+- `suite2_dhpq_main.pv` — Q1 message-key secrecy, Q2 injective transcript agreement, Q6 the
+  control plane (a planted advertisement is never tracked), Q7 the guard-form zero-key query.
+- `suite2_dhpq_q3_pq_reseed_healing.pv` — PQ healing across a **PQ reseed**, all classical DH
+  secrets compromised.
+- `suite2_dhpq_q4_combined_healing.pv` — PQ healing across the **combined DH+PQ boundary**, plus
+  Q7's combined-boundary arm.
+- `suite2_dhpq_q5_dh_healing.pv` — classical healing across a **DH boundary**, ML-KEM
+  decapsulation key compromised.
+- `run_proverif_checks.py` — the fail-closed gate.
+
+**Q3 + Q4 + Q5 together are the hybrid claim** (security survives if *either* primitive survives).
+Quoting one direction alone misstates the composition.
+
+Running locally (requires `proverif` 2.05 on `PATH`):
+
+- `python3 formal/proverif/run_proverif_checks.py`
+
+The gate asserts the expected `RESULT` line **per query** — not a zero exit — and its **first**
+assertion is the **tool sanity pair**: a positive control that must prove (`is true.`) and a
+negative control that must refute (`is false.`). *A verifier that only ever answers "true" is
+worse than no verifier*: if the negative control returns `true`, the gate stops before any
+protocol model runs. Several expected results are deliberately `is false.` — the healing models'
+canaries (pre-heal traffic must be readable under the modeled leak, or the healing green beside
+it would be vacuous) and the reseed/combined frames' own bodies, which ride the pre-reseed key
+schedule by design. Asserting the reds is what proves the model models the compromise.
+
+### Scope limits (read before quoting any result)
+
+`docs/design/DOC-G4-002` is the authoritative record: per query, what was proved, under which
+abstraction, and **what it does not license**. In short: one session, two parties, establishment
+authentication **assumed**, in-order receives only, one root-advancing DH epoch per model,
+idealized KDF/AEAD/X25519-group/ML-KEM, and **no low-order or small-subgroup reasoning of any
+kind** — a symbolic DH theory cannot express it (ENG-0034 answers that question outside the
+model; the non-termination at the 2-boundary bound is ENG-0035).
+
+A green symbolic result is **necessary input to**, not **sufficient grounds for**, any
+post-quantum / Triple-Ratchet / post-compromise claim. Independent human review remains an open
+prerequisite.

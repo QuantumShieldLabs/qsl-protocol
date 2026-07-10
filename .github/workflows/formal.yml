@@ -53,3 +53,56 @@ jobs:
         if: needs.classify.outputs.docs_only != 'true'
         run: |
           python3 formal/run_model_checks.py
+
+  # NA-0627 (ENG-0028, D564 Operator Decision 2 / D-1249): the ProVerif symbolic model of the
+  # Suite-2 DH+PQ composition. ADDITIVE job — it does not touch the bounded-explorer job above,
+  # which stays the fast, always-on regression guard.
+  #
+  # Cost, stated: `opam install proverif.2.05` builds against lablgtk (ProVerif's INTERACTIVE
+  # mode) and therefore pulls the system package libgtk2.0-dev. The HEADLESS binary links no GTK
+  # (verified with ldd), so this is a BUILD cost only. The opam root is cached on the pinned
+  # version, so the OCaml/lablgtk build is paid once per cache generation.
+  formal-proverif-composition:
+    needs: classify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve docs/governance-only PRs cheaply
+        if: needs.classify.outputs.docs_only == 'true'
+        run: echo "docs/governance-only change; ProVerif composition lane resolved without model runs"
+
+      - name: Checkout
+        if: needs.classify.outputs.docs_only != 'true'
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        if: needs.classify.outputs.docs_only != 'true'
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      # conf-gtk2 is a build dependency of the opam proverif package (lablgtk); the headless
+      # binary this job runs links no GTK.
+      - name: Install ProVerif build dependencies
+        if: needs.classify.outputs.docs_only != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk2.0-dev
+
+      - name: Set up OCaml
+        if: needs.classify.outputs.docs_only != 'true'
+        uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: "4.14"
+          opam-pin: false
+
+      - name: Install ProVerif (version-pinned)
+        if: needs.classify.outputs.docs_only != 'true'
+        run: opam install -y proverif.2.05
+
+      # Fail-closed: run_proverif_checks.py asserts the expected RESULT line PER QUERY (never a
+      # bare exit code), and its FIRST assertion is the tool sanity pair -- a positive control
+      # that must prove and a negative control that must REFUTE. If the negative control ever
+      # returns `true`, the verifier is vacuously accepting, the gate is lying, and this fails.
+      - name: Run ProVerif composition model (fail-closed, sanity pair asserted first)
+        if: needs.classify.outputs.docs_only != 'true'
+        run: opam exec -- python3 formal/proverif/run_proverif_checks.py

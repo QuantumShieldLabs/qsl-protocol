@@ -6,20 +6,25 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0627 | HIGHEST_NA=0627 | HIGHEST_D=1248 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NONE (awaiting operator directive for the ENG-0034 remediation lane) | HIGHEST_NA=0627 | HIGHEST_D=1250 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
-**READY (exactly one — execute this):** `NA-0627 — ENG-0028: independent formal analysis of the
-Suite-2 DH+PQ composition (ProVerif)` (the independent-analysis on-ramp the standing claim boundary
-requires; UNBLOCKED by NA-0626, which restructured — and structurally fixed — exactly the
-composition this lane models; the leading candidate named in D563's proposed successor block and
-promoted at the NA-0626 closeout, D-1248). Its full block (with scope flags) is below under
-section 2; find it with the ANCHORED pattern `^Status:` carrying the state READY (there is exactly
-one such line in this file).
+**READY: NONE.** NA-0627 (ENG-0028) is DONE (D-1249 implementation, D-1250 closeout; PR #1533,
+merge `a43c0af2`). The successor — **ENG-0034 remediation: reject non-contributory (low-order)
+X25519** — is **PROPOSED, NOT PROMOTED**: the executor cannot self-promote a lane. It becomes the
+sole READY lane when the operator approves its directive. The operator has DIRECTED that ENG-0034 be
+fixed and has SCOPED that lane to cover BOTH DH surfaces (the four Suite-2 ratchet call sites AND the
+QSP base-handshake prekey path); see `docs/ops/IMPROVEMENT_LEDGER.md` ENG-0034 for the binding
+scope + shape notes, and D-1250 for the triage. There is currently NO anchored `^Status: READY` line
+in this file, by design.
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
-1. **ENG-0028 = NA-0627 (now READY)** — ProVerif model of the DH+PQ composition (the independent-analysis on-ramp the standing claim boundary requires). UNBLOCKED: NA-0626 closed ENG-0024/0026/0030/0031 (D-1247/D-1248), so the composition it models — single root, DH boundary, PQ reseed, combined DH+PQ boundary — is now structurally settled.
+1. **ENG-0034 = the proposed successor lane** — reject non-contributory (low-order) X25519: the DH OUTPUT is never checked for all-zero. **P2, and it BLOCKS the post-compromise claim language** every lane since NA-0619 has deferred. **OPERATOR-DIRECTED (2026-07-09): fix it, with its own design-lock before code; SCOPE covers BOTH DH surfaces** — the four Suite-2 ratchet call sites AND the QSP base-handshake `dh1`/`dh2` prekey path. Filed by NA-0627 (D-1249/D-1250) discharging D564 Operator Decision 5. **NOT YET READY: the executor cannot self-promote a lane; it becomes READY when the operator approves its directive.**
 2. **ENG-0014** — qsl-server non-constant-time token compare (P2, cross-repo, cheap; Signal-Server `MessageDigest.isEqual` precedent). Good short lane whenever a slot opens.
+2b. **ENG-0032 / ENG-0033** — the NA-0626 follow-up filings (apps hygiene + the public-safety PR gate's cancelled-vs-failed conflation), batched as one LITE lane.
+2c. **ENG-0035 / Tamarin** — the NA-0627 non-termination at the 2-boundary unrolling. Only if the 2-epoch unrolling is judged load-bearing; the reduced-scope model proves the same queries and nothing was weakened.
+2c-bis. **WF-0016 + WF-0012** — the session-handoff protocol has no single artifact and no machine-checkable contract (five artifacts, five lifetimes, two outside git, one in a nightly-swept tmp dir; the auto-memory pointer to the handoff packet was STALE and the file does not exist). Fix: one TRACKED `docs/governance/handoff/NA-####_handoff.md` + a fail-closed `scripts/ops/verify_handoff.py` run as the incoming chat's first Phase-0 duty. Operator-requested at the NA-0627 closeout. Pairs naturally with WF-0012 (`ledger.py`). docs/process + tooling LITE lane.
+2d. **CI-cost follow-up (NA-0627, recorded at D-1250)** — the `formal-proverif-composition` job measured **24.1 min**. It is ADDITIVE and NOT a required check, so it cannot wedge the repo. Path-filter it to `formal/**` + `tools/refimpl/**/suite2/**`, or keep the sanity pair on the PR path and run the full model set on main-push + `workflow_dispatch`. `.github/**` LITE lane.
 3. **ENG-0025** — qsc session façade, RE-TRIAGED at D-1247 (the seam contract SHRANK: the root INJECT/ADOPT and ENG-0030 send-half obligations are structural now). Remaining scope: the persistence choreography + `main.rs` extraction; the `recv.ck_pq_send` wire-op transport slot; the qsc combined-send CADENCE switch (D561 operator-set — decide here or as its own LITE lane).
 4. **ENG-0019** — gate/remove the auth-unsafe `qsp::handshake` skeleton (P3, cheap; design-tenet aligned).
 5. **WF-0012** — the `ledger.py` findings-tracking tool. **ENG-0022** — cover traffic / metadata (unblocked). **ENG-0027** — chunked/erasure-coded PQ transport (largest; re-check against the post-NA-0626 receiver shape).
@@ -34693,7 +34698,7 @@ design-lock completion, per the session-handoff convention.
 ---
 
 ### NA-0627 — ENG-0028: independent formal analysis of the Suite-2 DH+PQ composition (ProVerif) (formal/docs)
-Status: READY
+Status: DONE
 Goals: G1, G2, G4
 Wire/behavior change allowed? NO (analysis lane: it READS the protocol; any finding is filed, not fixed here)
 Crypto/state-machine change allowed? NO
@@ -34718,3 +34723,36 @@ Binding constraints:
 
 Begins at D-1249. Delicate analysis lane: design-lock before modeling; one session handoff
 permitted at design-lock completion, per the session-handoff convention.
+
+OUTCOME (D-1249 implementation, D-1250 closeout; PR #1533, merge `a43c0af2`; base `d9baed9d`):
+ENG-0028 **CLOSED**. ProVerif 2.05 selected + version-pinned (discharging FORMAL_VERIFICATION_PLAN's
+standing "select ProVerif vs Tamarin" milestone) and CI-gated by ONE additive
+`formal-proverif-composition` job. A symbolic model of the Suite-2 DH+PQ composition AS SHIPPED
+post-NA-0626 lives in `formal/proverif/` (M1–M11 fidelity map; 20-label alphabet). PROVED: Q1
+message-key secrecy and Q2 injective transcript agreement under an active Dolev-Yao adversary; Q3 PQ
+healing across a PQ reseed and Q4 across the combined DH+PQ boundary, both with ALL classical DH
+secrets + a root snapshot compromised; Q5 classical healing across a DH boundary with the ML-KEM
+decapsulation key compromised (**Q3+Q4+Q5 TOGETHER are the hybrid claim**); Q6 a planted/replayed ADV
+is never tracked; Q7 guard-form on both root-advancing receive arms — **explicitly NOT an
+attack-existence proof**. The compromises are proved REAL: canaries that MUST return `is false.` are
+asserted by the gate, so it cannot pass on a model that compromised nothing; the gate's FIRST
+assertion is the tool sanity pair (a negative control that must REFUTE). **No query disproved a
+security property of the shipped composition** — the STOP rule was not triggered.
+
+TWO FINDINGS FILED, NEITHER FIXED (analysis lane; the rule held): **ENG-0034 (P2)** — the X25519 DH
+OUTPUT is never checked for all-zero (non-contributory) at any of the four Suite-2 call sites or the
+QSP handshake's `dh1`/`dh2`; discharges Operator Decision 5 by option (c), because a symbolic DH
+model CANNOT decide the question (the theory idealizes the group and would return "secure" either
+way — a vacuous green). Not reachable by a network adversary; reachable by the AUTHENTICATED PEER,
+who can silently void the CLASSICAL half of post-compromise security (the PQ half still heals).
+**ENG-0035 (P3)** — ProVerif does not terminate at the design-locked 2-boundary unrolling; the main
+model was reduced to one DH boundary + one PQ reseed with **the reduction stated in the model
+header**, NO query weakened, the combined boundary separately verified, and **Tamarin re-presented**.
+
+CLAIM BOUNDARY: **UNCHANGED** (Operator Decision 4's default). Candidate sentences are DRAFTED in
+`docs/design/DOC-G4-002` §7 for the operator; the executor moved no claim. Independent HUMAN review
+remains an open prerequisite, and **ENG-0034 independently blocks post-compromise language**.
+COST RECORDED: the new CI job measured **24.1 min** on the PR path (D564 priced only the ~2–4 min
+opam install; the MODEL RUN was never costed). It is ADDITIVE and NOT a required check, so it cannot
+wedge the repo — but a follow-up is recommended (path-filter the heavy job, or keep the sanity pair
+on the PR path and run the full model set on main-push + `workflow_dispatch`).

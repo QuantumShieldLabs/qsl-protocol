@@ -784,7 +784,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   what remains of ENG-0022's cadence-obfuscation scope), then staged implementation lanes;
   sequence after ENG-0023 (the frozen-receiver unfreeze it depends on). last-updated 2026-07-09
 
-### ENG-0028 — ProVerif model of the DH+PQ composition (+ root-composition slice for the bounded explorer)
+### ENG-0028 — ProVerif model of the DH+PQ composition (+ root-composition slice for the bounded explorer) — **CLOSED (NA-0627, D-1249/D-1250; PR #1533, merge `a43c0af2`)**
 - Severity: P2 (assurance; the standing claim boundary REQUIRES independent analysis of the
   DH+PQ composition before any post-quantum claim) — filed 2026-07-09 from the Signal comparison
   study at the NA-0624 closeout (D-1244)
@@ -929,7 +929,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   operator-authorized CI LITE lane (workflow YAML + a runbook paragraph), or operator-side edit.
   last-updated 2026-07-09
 
-### ENG-0034 — X25519 DH accepts non-contributory (low-order) peer keys: the DH output is never checked
+### ENG-0034 — X25519 DH accepts non-contributory (low-order) peer keys: the DH output is never checked — **OPEN; filed NA-0627 (PR #1533, merge `a43c0af2`); operator-directed successor lane**
 - Severity: P2 (security-relevant correctness gap; NOT remotely exploitable against an honest
   pair — see the exposure bound below — but it silently voids the CLASSICAL half of
   post-compromise security and therefore blocks the Triple-Ratchet/PCS claim language) — filed
@@ -992,7 +992,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   check on that arm. NOT done in NA-0627: D564 is an ANALYSIS lane ("the FIX, if warranted, stays
   out of scope"). last-updated 2026-07-09
 
-### ENG-0035 — ProVerif does not terminate on the 2-boundary unrolling of the Suite-2 composition
+### ENG-0035 — ProVerif does not terminate on the 2-boundary unrolling of the Suite-2 composition — **OPEN; filed NA-0627 (PR #1533, merge `a43c0af2`)**
 - Severity: P3 (assurance-coverage limit; no security delta — the reduced-scope model proves the
   same queries, and nothing was weakened) — filed 2026-07-09 from NA-0627 (ENG-0028), per D564
   Decision 1's standing instruction and the design-lock §6 non-termination protocol.
@@ -1249,3 +1249,60 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Recommended directive shape: docs/process LITE (design-lock checklist edit in
   DIRECTOR_OPERATIONS/DOC-OPS-006), or fold into the next source lane's design-lock like
   WF-0014 was. last-updated 2026-07-09
+
+### WF-0016 — Session handoff has no single artifact and no machine-checkable contract
+- Severity: P2 (process/assurance; a lost or stale handoff artifact can silently drop a
+  design-lock, and nothing fails closed when it does) — filed 2026-07-09 from NA-0627, at the
+  operator's request after the NA-0626→NA-0627 handoff proved rough in practice.
+- Problem: a handoff is currently **five artifacts with five different lifetimes**, two of them
+  outside version control:
+  (1) the archived directive + its appended DESIGN-LOCK CONCLUSIONS — durable, but lives in
+      `/srv/qbuild/operator/directives/`, OUTSIDE git;
+  (2) `docs/governance/evidence/NA-####_design_lock.md` — the single most load-bearing document
+      for the incoming chat, and it is **GITIGNORED** (`.gitignore:65` `**/evidence/`). It survives
+      only because the convention "commit it with `git add -f`" is itself remembered. Forget once
+      and a fresh checkout silently has no design-lock;
+  (3) the auto-memory resume note — per-user, per-machine, not in the repo, not reviewable in a PR;
+  (4) the proof root under `/srv/qbuild/tmp/NA####_...` — holds the RAW query/probe outputs, and
+      `qbuild-ssd-maintenance.timer` runs nightly. The only copy of the evidence sits somewhere a
+      timer is entitled to delete;
+  (5) a ~1,500-character resume prompt typed by the operator by hand, carrying paths and rules.
+  The workaround for (1)-(5) has been to make the directive "self-sufficient" by **duplicating**
+  the design-lock conclusions into it — which creates two sources of truth that can disagree.
+  **Nothing verifies any of it.** The incoming chat is told, in prose, to "re-verify Phase 0 live."
+  It works when the chat is conscientious; nothing objects when it is not.
+- Evidence that this is real, not theoretical (all from the NA-0627 resume, 2026-07-09): the
+  auto-memory index pointed at `~/qsl-handoff-packet.md`; the operator's shell history records
+  `~/work/qsl-handoff-packet.md`; **neither exists** — verified by bounded `find / -xdev`, the repo
+  and its git history, and `/backup/qsl` manifests. Two recorded paths, zero files, and the
+  incoming chat spent real time proving the absence. Nothing in the lane depended on it *only*
+  because the directive happened to carry the duplicated conclusions.
+- Recommended change: **ONE artifact, ONE path, machine-verified.**
+  (a) `docs/governance/handoff/NA-####_handoff.md` — TRACKED (deliberately NOT under `evidence/`,
+      so no `git add -f` footgun), generated by `scripts/ops/make_handoff.py` so every handoff has
+      an identical shape. Fixed schema: lane/directive/decision identity + phase to resume at; base
+      SHA with the exact commands that verify each claim; the DESIGN-LOCK CONCLUSIONS **once**
+      (the directive REFERENCES them instead of copying them); decisions RE-PRESENTED and still
+      owed an operator answer; a proof-root inventory **with a sha256 per file**; an explicit
+      DO-NOT list; a mechanical phase checklist the incoming chat converts 1:1 into its task list
+      (task lists do not cross chats); and the resume prompt emitted VERBATIM, never hand-composed.
+  (b) `scripts/ops/verify_handoff.py NA-####` — read-only, FAIL-CLOSED, the incoming chat's FIRST
+      Phase-0 duty. Asserts: manifest present + schema-complete; live `HEAD` == recorded base;
+      worktree clean; the anchored `^Status: READY` count is exactly what the manifest declares;
+      DECISIONS counters correct (successor ID absent); every proof-root file present with a
+      MATCHING sha256 — so a nightly tmp sweep STOPS the lane instead of letting it proceed on
+      missing evidence; and each declared tool version is invocable and matches (e.g.
+      `proverif -help` -> 2.05). This converts "the incoming chat was careful" into "the gate
+      refused."
+  (c) Durability: copy the load-bearing raw outputs (small text files) into the tracked handoff dir
+      rather than leaving the only copy in a swept tmp directory; and store REPO paths in
+      auto-memory, never home-directory paths — repo paths are versioned, reviewable, and cannot
+      quietly evaporate the way the packet did.
+- Non-goals: this does NOT change the ONE-handoff-per-lane cap (delicate lanes only, at design-lock
+  completion) recorded from the 2026-07-08 operator pushback. It does not add handoffs; it makes
+  the single permitted handoff cheap and verifiable.
+- Recommended directive shape: docs/process + tooling LITE lane (`docs/governance/handoff/**` +
+  `scripts/ops/**` + a DOC-OPS-006/AGENTS.md section). **Must NOT be ad-hoc-edited from an
+  unrelated executor lane** — that is precisely why NA-0627 filed this rather than fixing it.
+  Adjacent: WF-0012 (`ledger.py`) is the same "stop hand-maintaining structured state in markdown"
+  theme and could share the lane. last-updated 2026-07-09

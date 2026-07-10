@@ -1,5 +1,10 @@
 # NA-0137 Metadata Mitigations Roadmap (Padding/Batching/Fixed-Interval)
 
+> **Superseded-By (2026-07-10):** live metadata work is tracked in `docs/ops/IMPROVEMENT_LEDGER.md` —
+> **ENG-0022** (cover-traffic / boundary-cadence / mixnet), **ENG-0027** (which supersedes part of
+> ENG-0022's scope), and **ENG-0037** (sealed-sender — hide sender↔recipient from the relay). This
+> NA-0137 roadmap is retained as a historical audit artifact; consult the ledger for current status.
+
 ## Context
 This document defines a prioritized metadata-mitigation roadmap based on findings in `docs/audit/METADATA_LEAKAGE_AUDIT_NA-0134.md` (especially sections **B) Leakage Matrix**, **C) Mitigation Options with Cost Matrix**, and **E) Findings + Follow-on NA Recommendations**).
 

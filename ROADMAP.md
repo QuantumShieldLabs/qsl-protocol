@@ -2,7 +2,7 @@ Goals: G1, G2, G3, G4, G5
 
 Status: Authoritative
 Owner: QSL governance
-Last-Updated: 2026-04-30
+Last-Updated: 2026-07-10
 
 # QuantumShield Roadmap
 
@@ -10,7 +10,7 @@ Last-Updated: 2026-04-30
 
 QuantumShield remains a research-stage protocol and demo system. It is not production-ready, and project artifacts must not claim production readiness until the release-readiness gates in `GOALS.md`, the canonical specs, conformance vectors, formal checks, demo acceptance criteria, and public-safety gates all support that claim.
 
-The immediate recovery sequence is now complete enough to resume forward engineering: the dependency advisory was remediated, the `send_commit` regression was repaired without restoring retired mock-provider behavior, `public-safety` was restored as a required check and completed green after PR `#723`, and the fail-closed KT verifier implementation merged through PR `#708`.
+The cryptographic core is now correctness-complete: the Suite-2 DH+PQ composition is unified on a single root (NA-0626), independently analyzed in a CI-gated ProVerif symbolic model (NA-0627, `docs/design/DOC-G4-002`), and the last known correctness gap — the RFC 7748 §6.1 non-contributory-DH check — is closed (NA-0628). No open P1 remains and there is no known correctness gap in the crypto core. The remaining gate on any post-compromise / production claim is now review, not engineering: independent human review plus the bounded ENG-0035 formal follow-up. Forward work is hardening, metadata (ENG-0022/ENG-0037), and the TUI/GUI + private-server product direction (ENG-0036).
 
 ## Roadmap principle
 
@@ -26,26 +26,21 @@ Pure governance-only PRs are exceptional and should be limited to queue integrit
 
 ## 30-day priorities
 
-- Public-safety red-main deadlock prevention hardening: implement bounded executable gate tests and helper validation so known non-advisory repair lanes do not require branch-protection exceptions.
-- KT closeout and successor hygiene: keep KT verifier evidence tied to `DOC-CAN-008`, D-0440, and the merged PR `#708` proof without reopening closed recovery branches.
-- SCKA persistence and monotonicity next: turn the existing normative requirements into stronger restart, rollback, tombstone, and monotonicity vectors.
-- Downgrade-resistance vectors: expand negative coverage where both peers support Suite-2 and any fallback or transcript mismatch must reject.
-- No-state-mutation rejection proofs: prioritize stateful reject paths where failed verification, failed decrypt, rollback, or malformed input could otherwise advance durable state.
-- Demo acceptance: define and execute one-command acceptance that proves valid send/decrypt and invalid/downgrade/malformed rejects without production-readiness overclaims.
+- Strategic-docs truth-up (this lane, WF-0018 / D566): keep the strategic, program, and public/review-facing docs current with live truth, and assemble the external-review bundle on accurate inputs (the package now records the ProVerif analysis, the single-root composition, and the contributory-DH guard).
+- ENG-0019 remediation: retire or neutralize the auth-unsafe `qsp` reference implementation so CI and the release provenance chain stop blessing it; the cheapest sub-item (stop shipping `refimpl_actor` in `release_artifacts/`) is a one-line change.
+- Cheap hardening sweep: ENG-0032 / ENG-0033 (apps hygiene + public-safety gate hardening) and the NA-0627 CI-cost path-filter.
 
 ## 60-day priorities
 
-- Conformance vector expansion: add high-value KT, SCKA, downgrade, no-mutation, metadata, and demo acceptance vectors before broad feature expansion.
-- Demo hardening: make the demo easier to inspect and repeat while keeping unsafe overrides explicit and non-production.
-- Metadata conformance expansion: extend store-permission, token-auth, padding, identifier, queue-cap, and error-surface checks.
-- Release-readiness evidence: accumulate reproducible local and CI evidence for each G1-G5 gate, including model-check and public-safety results.
+- Constant-time hardening: ENG-0014 (qsl-server token compare) and the related constant-time family (ENG-0003/0005/0008/0015).
+- ENG-0035 / Tamarin: the multi-epoch unrolling — pursued only if the post-compromise claim is being sought (a review of a model with a known non-terminating query reviews the wrong artifact).
+- Commission independent human review — the standing prerequisite that no internal proof discharges — of the composition, the DOC-G4-002 abstraction table, and the contributory guard.
 
 ## 90-day priorities
 
-- External review package: prepare a bounded, self-contained protocol/review bundle with current limits and known gaps.
-- Reproducible conformance harness: make vector execution repeatable across local Linux, CI Linux, and macOS where relevant.
-- Demo app reviewability: keep demo paths clear enough that reviewers can trace valid and invalid flows without reading unrelated implementation seams.
-- Clear non-production limits: preserve explicit research/demo labels until release evidence proves otherwise.
+- Metadata: cover-traffic / boundary-cadence (ENG-0022/ENG-0027) and sealed-sender (ENG-0037, analysis-first via a relay/sender-metadata audit) — the flagship "beat Signal on metadata" work, now un-parked as the crypto core reaches its completion point.
+- Product direction: the TUI/GUI, and the token-gated private-server deployment with a setup-time public/private mode toggle (ENG-0036) — access control, not E2EE or metadata protection.
+- Clear non-production limits: preserve explicit research/demo labels until release evidence and independent review prove otherwise.
 
 ## Non-goals
 

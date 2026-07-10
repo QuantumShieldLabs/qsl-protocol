@@ -42857,3 +42857,19 @@ public/private mode toggle); **ENG-0037** (sealed-sender — the flagship metada
 NA-0622, now finally filed; analysis-first). Claim boundary UNCHANGED. Queue READY=NONE pending the
 next operator directive (candidates: WF-0018/D566, ENG-0019, ENG-0014). No package installed; no
 operator startup command run; the executor promoted no lane.
+
+## 2026-07-10 — NA-0629 (WF-0018 strategic-docs truth-up, D-1253)
+Executed and closed NA-0629 per D566 (single-PR docs/governance lane). The governance spine was
+current, but the strategic narrative had drifted 6–18 weeks behind; the highest-value gap was that the
+external-review package OMITTED the CI-gated ProVerif analysis (NA-0627) — the project's strongest
+assurance artifact. Refreshed the strategic/program/public-review docs to live truth (crypto core
+correctness-complete; ENG-0034 closed): the review package + evidence map + a new dated progress entry
+now record the single-root composition, the ProVerif analysis, and the contributory-DH guard; `STATUS.md`
+deprecated to a stub; the two Feb metadata roadmaps got Superseded-By headers; `ROADMAP.md` and
+`DOC-PROG-001` posture refreshed; a stale `DOC-G4-002` §7 statement (found live at design-lock) corrected.
+A non-required doc-staleness lint was added (self-tested to fail on a stale doc). **Claim boundary
+UNCHANGED (Operator Decision 1), machine-verified: no canonical touched, gate STATUS cells byte-identical,
+claim matrix untouched, no unguarded forbidden claim.** The two claim-adjacent posture edits + the
+DOC-G4-002 fix were operator-approved ("lets go with your recommendations"). Queue back to READY=NONE
+pending the next directive; strongest next candidate is the external-review-bundle assembly on the
+now-accurate inputs. No package installed; no operator startup command run; the executor promoted no lane.

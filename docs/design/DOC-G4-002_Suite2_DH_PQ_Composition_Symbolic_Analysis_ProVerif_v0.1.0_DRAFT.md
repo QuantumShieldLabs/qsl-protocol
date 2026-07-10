@@ -205,8 +205,10 @@ outstanding*:
 
 What they do **not** support, and what the standing boundary therefore keeps forbidding: any
 "post-quantum", "Triple-Ratchet", "post-compromise secure", "crypto-complete", "bug-free", or
-"vulnerability-free" claim. **ENG-0034 independently blocks post-compromise language** until the
-contributory check exists: the classical half of PCS is currently voidable by the peer.
+"vulnerability-free" claim. **ENG-0034 is now closed (NA-0628, D-1251/D-1252):** every LIVE X25519 DH output is checked for the
+all-zero (non-contributory) value and fails closed (RFC 7748 §6.1), so the classical half of PCS is no
+longer voidable by the peer at the code level. Post-compromise language remains blocked by the A1–A8
+abstractions, ENG-0035, and independent human review — this symbolic analysis result is unchanged.
 
 ## 8. For the external reviewer: where to start
 

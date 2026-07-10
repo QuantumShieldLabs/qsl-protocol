@@ -4,7 +4,7 @@ Goals: G1, G2, G3, G4, G5
 
 Status: Authoritative
 Owner: QSL maintainers
-Last-Updated: 2026-06-25
+Last-Updated: 2026-07-10
 Replaces: n/a
 Superseded-By: n/a
 
@@ -27,15 +27,18 @@ Start with:
 
 ## Current Progress
 
-The current Progress log starts with the June 25, 2026 workday entry:
+The current Progress log's latest entry is the July 10, 2026 workday entry:
 
 - [Progress index](PROGRESS.md)
+- [QSL Progress - 2026-07-10](progress/2026-07-10.md)
 - [QSL Progress - 2026-06-25](progress/2026-06-25.md)
 
-That entry summarizes the remote qsc repeated-run cleanup/freshness closeout,
-public evidence synchronization, the daily Progress and site-accuracy
-authorization, and operator-local SSD maintenance context. It also records the
-site-wide public accuracy sweep and correction ledger for this publication.
+The 2026-07-10 entry summarizes the Suite-2 cryptographic-core completion arc
+(single-root DH+PQ composition, the CI-gated ProVerif symbolic analysis, and the
+RFC 7748 §6.1 non-contributory-DH guard) and the docs truth-up that records it,
+with the claim boundary unchanged. The 2026-06-25 entry summarizes the remote qsc
+repeated-run cleanup/freshness closeout, public evidence synchronization, and the
+site-wide public accuracy sweep for that publication.
 
 Review is invited on the evidence, limits, claim boundaries, corrections,
 residual gaps, and next steps. This section is an engineering-evidence summary:

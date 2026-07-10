@@ -2,7 +2,7 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-04-03
+Last-Updated: 2026-07-10
 
 # DOC-PROG-001 — Goal-to-Release Roadmap v0.1.0 DRAFT
 
@@ -18,16 +18,17 @@ The merged program already has these major workstreams in place:
 - qsc client hardening, desktop boundary decisions, and the completed `NA-0217*` modularization wave;
 - qsl-server governance that keeps the relay transport-only;
 - qsl-attachments governance that keeps the service opaque-ciphertext-only; and
-- adversarial validation, fuzz, chaos, and formal-verification lanes that now exist as checked-in program work rather than informal intent.
+- adversarial validation, fuzz, chaos, and formal-verification lanes that now exist as checked-in program work rather than informal intent; and
+- the Suite-2 DH+PQ key schedule unified on a single root (NA-0626), independently analyzed in a CI-gated ProVerif 2.05 symbolic model (NA-0627, `docs/design/DOC-G4-002`), with the RFC 7748 §6.1 non-contributory-DH check now enforced on every live DH path (NA-0628).
 
 ## 3. Release-readiness gates by goal
 
 | Goal | Release gate | Merged work now | Still required before any release claim |
 | --- | --- | --- | --- |
-| `G1` | Per-message hybrid derivation stays normative, implemented, and regression-tested across supported surfaces | `DOC-CAN-003`, Suite-2 refimpl, `CAT-S2-KDF-001`, `CAT-S2-MK-001`, and related CI lanes are merged | Continue carrying the merged hybrid contract through future queue work and integrated release evidence; no release claim is justified by isolated vector success alone |
+| `G1` | Per-message hybrid derivation stays normative, implemented, and regression-tested across supported surfaces | `DOC-CAN-003`, Suite-2 refimpl, `CAT-S2-KDF-001`, `CAT-S2-MK-001`, the single-root DH+PQ composition (NA-0626), the CI-gated ProVerif analysis of that composition (NA-0627, `DOC-G4-002`), the RFC 7748 §6.1 non-contributory-DH guard (NA-0628), and related CI lanes are merged | Continue carrying the merged hybrid contract through future queue work and integrated release evidence; no release claim is justified by isolated vector success alone |
 | `G2` | Explicit SCKA state-machine, persistence, rollback detection, and deterministic reject behavior remain specified and tested | `DOC-CAN-004`, durability vectors, bounded model checks, and qsc fail-closed state foundations are merged | Preserve those guarantees across future promoted work and prove the full release surface still respects them under current main truth |
 | `G3` | Downgrade resistance and transcript binding remain fail-closed and operator-visible where required | downgrade/transcript vectors, establish coverage, and qsc handshake-related hardening are merged | Maintain the downgrade contract through future queue work and integrated product evidence; no silent fallback or queue shortcut is acceptable |
-| `G4` | Verification remains a release gate: vectors, formal model checks, adversarial lanes, and truthful continuity evidence stay current | `DOC-TST-005`, `formal/README.md`, `DOC-G4-001`, qsc-adversarial lanes, and the `NA-0218` continuity canon are merged | Continue executing live queue items with green evidence and maintain off-host continuity discipline; docs alone do not satisfy the full release gate |
+| `G4` | Verification remains a release gate: vectors, formal model checks, adversarial lanes, and truthful continuity evidence stay current | `DOC-TST-005`, `formal/README.md`, `DOC-G4-001`, `DOC-G4-002` (the CI-gated ProVerif symbolic analysis of the Suite-2 DH+PQ composition, NA-0627), qsc-adversarial lanes, and the `NA-0218` continuity canon are merged | Continue executing live queue items with green evidence and maintain off-host continuity discipline; docs alone do not satisfy the full release gate |
 | `G5` | Operator surfaces, continuity artifacts, relay posture, and attachment posture minimize metadata and secret leakage | qsc product-surface audits, desktop boundary docs, qsl-server route-token/header governance, qsl-attachments canonical docs, and `NA-0218` secret-safe continuity rules are merged | Keep runtime/output/ops artifacts aligned with the merged posture; do not make production-readiness claims beyond current evidence |
 
 ## 4. What the completed `NA-0217*` wave accomplished

@@ -6,9 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0629 | HIGHEST_D=1253 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
-<!-- READY=NONE at the NA-0629 closeout (D-1253): the executor cannot self-promote a lane. The next lane becomes READY only when the operator approves a directive. Strongest candidates: the external-review-bundle assembly (now on accurate inputs), ENG-0019 remediation, ENG-0014, ENG-0036/0037 (product/metadata). -->
-<!-- prior: STATE: READY=NA-0629 | HIGHEST_NA=0629 | HIGHEST_D=1252 (NA-0629 promotion, D566) -->
+`STATE: READY=NA-0630 | HIGHEST_NA=0630 | HIGHEST_D=1253 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- NA-0630 (ENG-0019 partial remediation) promoted to sole READY 2026-07-10, at the operator's explicit "promote it" instruction after approving directive D567. The executor made this mechanical promotion edit under that authorization; it did not self-promote. -->
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0629 | HIGHEST_D=1253 (NA-0629 closeout, D-1253) -->
 
 **READY (exactly one — execute this):** `NA-0628 — ENG-0034: reject non-contributory (low-order)
 X25519 on every LIVE DH path; ENG-0019: retire the auth-unsafe qsp skeleton` (directive
@@ -29,7 +29,7 @@ each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
 2c-bis. **WF-0016 + WF-0012** — the session-handoff protocol has no single artifact and no machine-checkable contract (five artifacts, five lifetimes, two outside git, one in a nightly-swept tmp dir; the auto-memory pointer to the handoff packet was STALE and the file does not exist). Fix: one TRACKED `docs/governance/handoff/NA-####_handoff.md` + a fail-closed `scripts/ops/verify_handoff.py` run as the incoming chat's first Phase-0 duty. Operator-requested at the NA-0627 closeout. Pairs naturally with WF-0012 (`ledger.py`). docs/process + tooling LITE lane.
 2d. **CI-cost follow-up (NA-0627, recorded at D-1250)** — the `formal-proverif-composition` job measured **24.1 min**. It is ADDITIVE and NOT a required check, so it cannot wedge the repo. Path-filter it to `formal/**` + `tools/refimpl/**/suite2/**`, or keep the sanity pair on the PR path and run the full model set on main-push + `workflow_dispatch`. `.github/**` LITE lane.
 3. **ENG-0025** — qsc session façade, RE-TRIAGED at D-1247 (the seam contract SHRANK: the root INJECT/ADOPT and ENG-0030 send-half obligations are structural now). Remaining scope: the persistence choreography + `main.rs` extraction; the `recv.ck_pq_send` wire-op transport slot; the qsc combined-send CADENCE switch (D561 operator-set — decide here or as its own LITE lane).
-4. **ENG-0019** — retire/neutralize the auth-unsafe `qsp` skeleton (**re-rated P2 at NA-0628 Phase 0**; NOT dead code — it backs the REQUIRED `ci-4b`/`ci-4d-dur` checks and is provenance-attested + shipped by `release-auth.yml`). Own directive; menu = banner / type-extraction / retire Suite-1-1B conformance / **(cheapest) stop shipping `refimpl_actor` in `release_artifacts/` (one-line `.github` LITE lane)**.
+4. **ENG-0019** — PARTIAL remediation PROMOTED to NA-0630 (READY), directive D567 APPROVED 2026-07-10: (d) de-attest + (a) banner + CI-coverage; ENG-0019 → P3 after. **Deferred to a P3 successor:** (b) library type-extraction + (c) Suite-1/1B conformance retirement. See the NA-0630 lane block below.
 4a. **ENG-0036 = token-gated relay access (operator product direction, filed 2026-07-10)** — install-time provisioned relay-access token so only apps holding the token + server address can connect; a closed-network AUTHORIZATION layer for a private/self-hosted niche, extending the existing `relay_auth_header`/route-token mechanism. Includes a setup-time PUBLIC-vs-PRIVATE mode toggle (private ⇒ token-gating on; public ⇒ open relay). NOT E2EE and NOT metadata protection — access control only; bearer-token rotation/revocation is load-bearing. Design-lock-first (threat model + token lifecycle), cross-repo, sequenced alongside the forthcoming TUI/GUI.
 4b. **ENG-0037 = sealed-sender (flagship metadata item; filed 2026-07-10, was owed since NA-0622)** — hide sender↔recipient (the social graph) from the relay operator; the concrete mechanism behind the standing "beat Signal on metadata" goal. Content is already protected; this is a who-talks-to-whom exposure. **Analysis-first: a relay/sender-metadata audit (extend DOC-G5-004) BEFORE any design.** Complementary to ENG-0036 (token = keep outsiders out; sealed-sender = hide the graph from the operator). Post-crypto-core, alongside the metadata batch (ENG-0022/0027).
 5. **WF-0012** — the `ledger.py` findings-tracking tool. **ENG-0022** — cover traffic / metadata (unblocked). **ENG-0027** — chunked/erasure-coded PQ transport (largest; re-check against the post-NA-0626 receiver shape).
@@ -34835,3 +34835,22 @@ Scope (D566 items 1–9): [SAFE] `FORMAL_VERIFICATION_PLAN.md` (ENG-0034 closed,
 
 Successor candidates (Phase 7): the external-review-bundle assembly (now on accurate inputs), ENG-0019 remediation, ENG-0014, ENG-0036/0037.
 Begins at D-1253. Docs/governance single-PR lane; claim-adjacent, fail-closed on any claim movement.
+
+---
+
+### NA-0630 — ENG-0019 (partial remediation): stop shipping/attesting the auth-unsafe `qsp` reference impl, label it, make its guard tests run in CI
+Status: READY
+Goals: G4
+Wire/behavior change allowed? NO behavior change — a module doc-comment banner, a release-workflow subtraction, and one added CI test invocation only.
+Canonical change allowed? NO — any `docs/canonical/**` edit is a STOP. Vector/Cargo/KDF-AEAD-KEM change? NO. Claim change allowed? NO.
+`.github/**` change allowed? YES, BOUNDED — exactly two files: remove `refimpl_actor` from `release-auth.yml`, and wire `cargo test -p quantumshield_refimpl` into ONE existing job. Any other `.github` edit is a STOP.
+
+Objective:
+Execute **ENG-0019 partial remediation** per **QSL-DIR-2026-07-10-567 (D567, APPROVED)**. NA-0628 re-rated ENG-0019 P2 on the finding that the auth-unsafe `qsp` reference implementation is NOT dead code: `tools/actors/refimpl_actor_rs` consumes it as the Suite-1/1B reference (run on every PR by the REQUIRED `ci-4b`/`ci-4d-dur`), it performs NO KT verification (empty pinned log), and `release-auth.yml` builds + provenance-attests + ships `refimpl_actor` alongside `qsc`/`qshield`. This lane removes the worst parts cheaply:
+- **(d)** stop building/copying/attesting `refimpl_actor` in `.github/workflows/release-auth.yml` (release-only; touches no required PR check);
+- **(a)** add a `//! NOT PRODUCTION — auth-unsafe (ENG-0019)` module banner to `qsp/handshake.rs` + `qsp/ratchet.rs` (doc-comment only);
+- **CI-coverage**: wire `cargo test -p quantumshield_refimpl` into one existing Rust job so the NA-0628 anti-regression `.dh(` scan + DH-guard tests run on PRs.
+DEFER (b) library type-extraction + (c) Suite-1/1B conformance retirement to a P3 successor. ENG-0019 → P3 after this. See D567 for the full DoD, Operator Decisions 1–3, phases, and STOP conditions.
+
+Successor candidates (Phase 7): ENG-0019 (b)+(c) full retirement (P3); the external-review-bundle assembly; ENG-0014; ENG-0036/0037.
+Begins at D-1254. Standard single-PR lane; LOW delicacy; no crypto/canonical/vector semantics change.

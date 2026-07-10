@@ -6,20 +6,20 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE (awaiting operator directive for the ENG-0034 remediation lane) | HIGHEST_NA=0627 | HIGHEST_D=1250 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0628 | HIGHEST_NA=0628 | HIGHEST_D=1250 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
-**READY: NONE.** NA-0627 (ENG-0028) is DONE (D-1249 implementation, D-1250 closeout; PR #1533,
-merge `a43c0af2`). The successor — **ENG-0034 remediation: reject non-contributory (low-order)
-X25519** — is **PROPOSED, NOT PROMOTED**: the executor cannot self-promote a lane. It becomes the
-sole READY lane when the operator approves its directive. The operator has DIRECTED that ENG-0034 be
-fixed and has SCOPED that lane to cover BOTH DH surfaces (the four Suite-2 ratchet call sites AND the
-QSP base-handshake prekey path); see `docs/ops/IMPROVEMENT_LEDGER.md` ENG-0034 for the binding
-scope + shape notes, and D-1250 for the triage. There is currently NO anchored `^Status: READY` line
-in this file, by design.
+**READY (exactly one — execute this):** `NA-0628 — ENG-0034: reject non-contributory (low-order)
+X25519 on every LIVE DH path; ENG-0019: retire the auth-unsafe qsp skeleton` (directive
+QSL-DIR-2026-07-10-565). ENG-0034 is the last correctness gap standing between the project and the
+post-compromise / Triple-Ratchet claim language every lane since NA-0619 has deferred — it is not
+remotely exploitable, but an authenticated peer can silently void the CLASSICAL half of
+post-compromise security. Promoted at the operator's direction after NA-0627 (ENG-0028) filed it.
+Its full block (with scope flags) is below under section 2; find it with the ANCHORED pattern
+`^Status:` carrying the state READY (there is exactly one such line in this file).
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
-1. **ENG-0034 = the proposed successor lane** — reject non-contributory (low-order) X25519: the DH OUTPUT is never checked for all-zero. **P2, and it BLOCKS the post-compromise claim language** every lane since NA-0619 has deferred. **OPERATOR-DIRECTED (2026-07-09): fix it, with its own design-lock before code; SCOPE covers BOTH DH surfaces** — the four Suite-2 ratchet call sites AND the QSP base-handshake `dh1`/`dh2` prekey path. Filed by NA-0627 (D-1249/D-1250) discharging D564 Operator Decision 5. **NOT YET READY: the executor cannot self-promote a lane; it becomes READY when the operator approves its directive.**
+1. **ENG-0034 + ENG-0019 = NA-0628 (now READY)** — reject non-contributory (low-order) X25519 on every LIVE DH path, and RETIRE the auth-unsafe `qsp` skeleton rather than harden it. Directive D565. Surface CORRECTED 2026-07-10: the live paths are `qsc`'s establishment `hs_dh_shared` (2 call sites) + the 4 Suite-2 ratchet sites; `qsp/**` is dead code (ENG-0019).
 2. **ENG-0014** — qsl-server non-constant-time token compare (P2, cross-repo, cheap; Signal-Server `MessageDigest.isEqual` precedent). Good short lane whenever a slot opens.
 2b. **ENG-0032 / ENG-0033** — the NA-0626 follow-up filings (apps hygiene + the public-safety PR gate's cancelled-vs-failed conflation), batched as one LITE lane.
 2c. **ENG-0035 / Tamarin** — the NA-0627 non-termination at the 2-boundary unrolling. Only if the 2-epoch unrolling is judged load-bearing; the reduced-scope model proves the same queries and nothing was weakened.
@@ -34756,3 +34756,56 @@ COST RECORDED: the new CI job measured **24.1 min** on the PR path (D564 priced 
 opam install; the MODEL RUN was never costed). It is ADDITIVE and NOT a required check, so it cannot
 wedge the repo — but a follow-up is recommended (path-filter the heavy job, or keep the sanity pair
 on the PR path and run the full model set on main-push + `workflow_dispatch`).
+
+---
+
+### NA-0628 — ENG-0034: reject non-contributory (low-order) X25519 on every LIVE DH path; ENG-0019: retire the auth-unsafe qsp skeleton (refimpl/qsc/vectors/canonical)
+Status: READY
+Goals: G1, G2, G4
+Wire/behavior change allowed? YES, BOUNDED — a new fail-closed REJECT path only. No wire FORMAT change; no honest transcript changes (a BYTE claim, WF-0014).
+Crypto/state-machine change allowed? YES, BOUNDED — an all-zero DH-output guard at the LIVE call sites; no KDF/AEAD/KEM primitive change.
+Docs-only allowed? NO. Canonical change allowed? YES, BOUNDED — ONE reason-code registry row + ONE §8.5.2 sentence in DOC-CAN-003 (Operator Decision 3). Any further canonical edit is a STOP.
+
+Objective:
+Close **ENG-0034 (P2)**: X25519 is deliberately non-contributory (RFC 7748), and this repo never
+checks the all-zero DH OUTPUT that RFC 7748 §6.1 requires of protocols needing contributory
+behaviour. Not reachable by a network adversary — that envelope is what NA-0627's Q1/Q2 proved — but
+reachable by the AUTHENTICATED PEER, who can thereby silently void the CLASSICAL half of
+post-compromise security. The PQ half still heals (Q3/Q4), so the hybrid degrades to PQ-only healing
+rather than collapsing, with no reject, no log, and no reason code. **ENG-0034 independently blocks
+the post-compromise / Triple-Ratchet claim language.**
+
+LIVE surface (verified 2026-07-10; re-verify at Phase 0 — line numbers are evidence, not scripture):
+- `qsc` establishment: `qsl/qsl-client/qsc/src/handshake/mod.rs:801 hs_dh_shared` (already returns
+  `Result`), covering call sites `:1449` (initiator) and `:1877` (responder). **The shipped client's
+  establishment DH — and the most important surface in the lane.**
+- refimpl Suite-2 ratchet: `ratchet.rs:1306` `send_boundary`, `:1475` `recv_dh_boundary`,
+  `:1885` `send_combined_boundary`, `:2390` `recv_combined_boundary`.
+
+Also close **ENG-0019 (P3)** in the same lane: `qsp::handshake` + `qsp::ratchet` have ZERO callers
+outside the `qsp` module, and the handshake is auth-unsafe (KT verification deferred to the caller;
+`pq_rcv_a_priv` left empty). **RETIRE the skeleton — do NOT add contributory checks to dead code**
+(Operator Decision 1; deletion recommended per the "eliminate, do not carry legacy" tenet).
+
+Binding constraints:
+- `dh_out == 0` **iff** the peer point is in the small subgroup (clamping ⇒ low-order points map to
+  the identity). The OUTPUT check is necessary AND sufficient; an ingress screen is optional
+  defence-in-depth and is NOT required.
+- Fix shape (Operator Decision 2): the trait-level `Result` option touches 7 impls and ~20 call
+  sites INCLUDING boundary-FORBIDDEN `apps/qsl-tui/src/demo.rs` (WF-0015 — enumerated before
+  design-lock). The contained post-hoc guard is RECOMMENDED, **plus a MANDATORY anti-regression scan
+  that fails if a new `dh()` call site appears without an adjacent zero check** (and the design-lock
+  must prove that scan CAN fail, on a synthetic unguarded site).
+- Vectors are ADDITIVE ONLY. "Existing vectors unchanged" is a **BYTE claim** and must be
+  machine-asserted (WF-0014). If any existing `inputs/suite2/**` vector byte changes, that is a STOP
+  — it means the guard rejects an honest transcript.
+- If the chosen fix shape forces a change in a FORBIDDEN path (`apps/**`, `tools/actors/**`,
+  `.github/**`, Cargo/lockfile), that is a STOP: re-present the shape; do NOT "just fix" the caller.
+- Claim boundary UNCHANGED by default (Operator Decision 5). Closing ENG-0034 removes the CODE
+  obstacle to post-compromise language, not the others: NA-0627's result is symbolic over abstracted
+  primitives (A1–A8); ENG-0035's 2-epoch gap stands; independent HUMAN review remains an open
+  prerequisite. The executor DRAFTS sentences and enumerates blockers; the operator decides.
+
+Begins at D-1251. Delicate lane (crypto, multi-file): design-lock before code; ONE session handoff
+permitted at design-lock completion, per the session-handoff convention. FULL RITUAL (two PRs, two
+decisions) — DOC-OPS-006 §9 forbids WAVE/LITE for protocol/crypto/canonical/vector work.

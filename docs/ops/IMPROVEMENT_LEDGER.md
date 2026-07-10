@@ -555,7 +555,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Proof gap: no test asserts the pre-encryption plaintext blob is removed post-migration.
 - Recommended directive shape: small audit + deletion-assertion lane.
 
-### ENG-0019 — `qsp::handshake` X3DH skeleton is auth-unsafe dead code
+### ENG-0019 — `qsp::handshake` X3DH skeleton is auth-unsafe dead code — **FOLDED INTO NA-0628 (D565): RETIRE, do not harden**
 - Severity: P3 (latent; unreachable in the shipped client, so NOT currently exploitable)
 - Status: open — filed D-1231 from the Comprehensive Audit (H-4); last-updated 2026-07-07
 - Exact surfaces: `tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs`
@@ -976,15 +976,36 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   have falsified D-1249/TRACEABILITY/the NA-0627 testplan/DOC-G4-002 (each asserts "no source
   change") and landed a crypto-path change with no design-lock, no WF-0014 byte-claim vector regen,
   and no WF-0015 caller-surface enumeration. The analysis-lane rule held: **filed, not fixed.**
-- **SCOPE, decided by the operator (2026-07-09): NA-0628 covers BOTH DH surfaces**, not just the
-  ratchet. (i) the four Suite-2 call sites (`ratchet.rs:1306`, `:1475`, `:1885`, `:2390`); and
-  (ii) the QSP base handshake's `dh1`/`dh2` prekey-bundle path (`qsp/handshake.rs:134`, `:144`,
-  `:285`, `:297`), where a degenerate X25519 prekey served in B's bundle collapses the CLASSICAL
-  half of `RK0` to a constant — `verify_bundle` checks identity-key signatures/KT and does NOT
-  screen the X25519 prekeys for small order. The PQ contributions `ss1`/`ss2` still bind, so
-  establishment degrades rather than collapses (the same shape as the ratchet gap). Fixing only the
-  ratchet would leave the establishment half open and re-create precisely the "surfaced once,
-  tracked nowhere" failure this item exists to close.
+- **⚠ SURFACE CORRECTED 2026-07-10 (Director turn, verified read-only before D565 was drafted). The
+  original filing was BOTH understated and overstated. Recorded, not silently fixed:**
+  - **UNDERSTATED — the shipped client's ESTABLISHMENT DH was missing.** `qsc` does not use
+    `qsp::handshake`; it has its own `QSC.HS.*` handshake, whose DH helper
+    `qsl/qsl-client/qsc/src/handshake/mod.rs:801 hs_dh_shared` validates LENGTHS ONLY and returns the
+    raw shared secret. Live call sites: `:1449` (initiator) and `:1877` (responder). **This is the
+    establishment DH of the shipped client and the most important surface in the item.** It already
+    returns `Result<[u8;32], &'static str>`, so the guard is a two-line change in ONE function.
+  - **OVERSTATED — `qsp/**` is DEAD CODE.** `qsp::handshake` and `qsp::ratchet` have ZERO callers
+    outside the `qsp` module. `qsp::handshake` is separately filed as **ENG-0019** (auth-unsafe:
+    `responder_process` defers KT verification to the caller; `pq_rcv_a_priv` is left empty so the
+    skeleton cannot complete — MITM-able if ever wired in). **Adding a contributory check to
+    auth-unsafe dead code hardens a path that must not exist.** Operator decision (2026-07-10):
+    NA-0628 fixes the LIVE surfaces and **folds in ENG-0019 to RETIRE the skeleton** instead.
+  - **OVERSTATED — a "small-order ingress screen" is NOT required.** X25519 clamps the scalar to a
+    multiple of 8, so any small-order peer point maps to the identity and yields an all-zero output.
+    Therefore `dh_out == 0` **iff** the peer point is in the small subgroup: the all-zero OUTPUT check
+    alone catches all eight low-order encodings, and it is exactly what RFC 7748 §6.1 prescribes. An
+    ingress screen is optional defence-in-depth. The earlier "plus a small-order screen" phrasing is
+    superseded by D565.
+- **LIVE SURFACE (authoritative, as of D565):** (i) `qsc` establishment — `hs_dh_shared`
+  (`qsl/qsl-client/qsc/src/handshake/mod.rs:801`), covering call sites `:1449` and `:1877`; and
+  (ii) refimpl Suite-2 ratchet — `ratchet.rs:1306` `send_boundary`, `:1475` `recv_dh_boundary`,
+  `:1885` `send_combined_boundary`, `:2390` `recv_combined_boundary`. Everything in `qsp/**` is dead
+  and is handled by ENG-0019, not by hardening.
+- **WF-0015 caller surface, enumerated before design-lock:** changing the trait `X25519Dh::dh` to
+  return `Result`/`Option` would touch **7 trait impls and ~20 call sites**, INCLUDING the
+  boundary-FORBIDDEN `apps/qsl-tui/src/demo.rs:378-379` — the same `apps/**` leak ENG-0032 was filed
+  for. D565 therefore recommends the contained post-hoc guard PLUS a mandatory anti-regression scan
+  that fails if a new `dh()` call site appears without an adjacent zero check.
 - Recommended directive shape: refimpl + vectors lane (`tools/refimpl/**` suite2 + qsp, `inputs/**`
   negative vectors, a DOC-CAN-003 §8.5.2 note). Note for its design-lock: the handshake arm touches
   the `qsc` handshake caller surface, so **WF-0015's caller-surface enumeration binds regardless of

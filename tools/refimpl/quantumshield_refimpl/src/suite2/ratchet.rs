@@ -1304,6 +1304,12 @@ pub fn send_boundary(
     // Fresh DH keypair; advance the root; reinit send chains; recompute HK_s.
     let (new_priv, new_pub) = dh.keypair();
     let dh_out = dh.dh(&new_priv, &X25519Pub(st.dh.dhr));
+    // ENG-0034 / RFC 7748 §6.1: X25519 is non-contributory — a small-subgroup peer point yields the
+    // all-zero shared secret instead of an error. Reject before the root absorbs it (no mutation:
+    // `st` is owned here and the commit block below has not run).
+    if is_zero32(&dh_out) {
+        return Err("REJECT_S2_DH_NONCONTRIBUTORY");
+    }
     let (rk1, ck_ec0) =
         kdf_rk_dh(kmac, &st.rk, &dh_out).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
     let ck_pq0 = kmac32(kmac, &rk1, pq0_send_label(role_is_a), &[0x01])
@@ -1473,6 +1479,12 @@ pub fn recv_dh_boundary(
 
     // DH ratchet: advance the root, reinit the receive chains, recompute HK_r.
     let dh_out = dh.dh(&X25519Priv(st.dh.dhs_priv), &X25519Pub(parsed.dh_pub));
+    // ENG-0034 / RFC 7748 §6.1: the peer's DH_pub is in the small subgroup, so the shared secret is
+    // all-zero and this epoch's root would carry no fresh classical entropy. The `is_zero32(dh_pub)`
+    // check above rejects only ONE of the eight low-order encodings; this catches all of them.
+    if is_zero32(&dh_out) {
+        reject!(st, "REJECT_S2_DH_NONCONTRIBUTORY");
+    }
     let (rk1, ck_ec0) = match kdf_rk_dh(kmac, &st.rk, &dh_out) {
         Ok(v) => v,
         Err(_) => reject!(st, "REJECT_S2_LOCAL_UNSUPPORTED"),
@@ -1883,6 +1895,11 @@ pub fn send_combined_boundary(
 
     // DH first (§8.5.2 steps 4-6 against the pre-boundary root).
     let dh_out = dh.dh(&X25519Priv(*new_dh_priv), &X25519Pub(st.dh.dhr));
+    // ENG-0034 / RFC 7748 §6.1: reject a non-contributory DH before the root advances (no mutation:
+    // `st` is owned here and the commit block below has not run).
+    if is_zero32(&dh_out) {
+        return Err("REJECT_S2_DH_NONCONTRIBUTORY");
+    }
     let (rk_dh, ck_ec0) =
         kdf_rk_dh(kmac, &rk_pre, &dh_out).map_err(|_| "REJECT_S2_LOCAL_UNSUPPORTED")?;
     let ck_pq0 = kmac32(kmac, &rk_dh, pq0_send_label(role_is_a), &[0x01])
@@ -2388,6 +2405,17 @@ fn recv_combined_boundary(
 
     // DH first (§8.5.2 against the pre-boundary root)...
     let dh_out = dh.dh(&X25519Priv(st.dh.dhs_priv), &X25519Pub(parsed.dh_pub));
+    // ENG-0034 / RFC 7748 §6.1: a small-subgroup DH_pub yields an all-zero shared secret. Reject
+    // before the root advances; the `is_zero32(dh_pub)` check above catches only the all-zero
+    // encoding, one of the eight low-order points.
+    if is_zero32(&dh_out) {
+        reject!(
+            st,
+            "REJECT_S2_DH_NONCONTRIBUTORY",
+            Some(header_pn),
+            Some(n_val)
+        );
+    }
     let (rk_dh, ck_ec0) = match kdf_rk_dh(kmac, &rk_pre, &dh_out) {
         Ok(v) => v,
         Err(_) => reject!(
@@ -3446,6 +3474,420 @@ mod tests {
             rb.state.snapshot_bytes(),
             b_pre,
             "state must not mutate on reject"
+        );
+    }
+
+    // ===================== NA-0628 (ENG-0034): non-contributory X25519 =====================
+    // RFC 7748 §6.1: X25519 accepts small-order points and returns the all-zero shared secret
+    // instead of erroring. `u=1` (0x01 followed by zeros) is a low-order encoding that is NOT the
+    // all-zero encoding, so it passes the pre-existing `is_zero32(dh_pub)` ingress check at :1420 /
+    // :2317 and reaches the DH. It is therefore the encoding that proves the OUTPUT guard is real
+    // rather than shadowed. (Verified against RFC 7748 for all eight low-order encodings.)
+    fn low_order_u1() -> [u8; 32] {
+        let mut v = [0u8; 32];
+        v[0] = 1;
+        v
+    }
+
+    /// Honest crypto, except that fresh keypairs advertise a low-order public key — i.e. exactly a
+    /// peer who ratchets with a small-subgroup point. `dh()` itself is the real X25519.
+    struct LowOrderPubDh;
+    impl X25519Dh for LowOrderPubDh {
+        fn keypair(&self) -> (X25519Priv, X25519Pub) {
+            let (priv_k, _pub_k) = StdCrypto.keypair();
+            (priv_k, X25519Pub(low_order_u1()))
+        }
+        fn dh(&self, privk: &X25519Priv, pubk: &X25519Pub) -> [u8; 32] {
+            StdCrypto.dh(privk, pubk)
+        }
+    }
+
+    #[test]
+    fn send_boundary_rejects_noncontributory_peer_key_no_mutation() {
+        let c = StdCrypto;
+        let (mut a, _b) = matched_dh_pair(&c);
+        // The peer's stored DH key is a small-subgroup point: our own DH output would be all-zero.
+        a.dh.dhr = low_order_u1();
+        let pre = a.snapshot_bytes();
+        let r = send_boundary(&c, &c, &c, &c, a.clone(), b"m");
+        assert_eq!(r.err(), Some("REJECT_S2_DH_NONCONTRIBUTORY"));
+        assert_eq!(a.snapshot_bytes(), pre, "state must not mutate on reject");
+    }
+
+    #[test]
+    fn recv_dh_boundary_rejects_noncontributory_dh_pub_no_mutation() {
+        let c = StdCrypto;
+        let (a, b) = matched_dh_pair(&c);
+        // A ratchets honestly but advertises a low-order DH_pub. The frame is sealed correctly under
+        // the pre-boundary NHK_s, so it authenticates: only the DH OUTPUT check can catch it.
+        let low = LowOrderPubDh;
+        let sa = send_boundary(&c, &c, &c, &low, a, b"m").expect("A send_boundary");
+        let b_pre = b.snapshot_bytes();
+        let rb = recv_dh_boundary(&c, &c, &c, &c, b, &sa.wire);
+        assert!(!rb.ok);
+        assert_eq!(rb.reason, Some("REJECT_S2_DH_NONCONTRIBUTORY"));
+        assert_eq!(
+            rb.state.snapshot_bytes(),
+            b_pre,
+            "state must not mutate on reject"
+        );
+    }
+
+    #[test]
+    fn send_combined_boundary_rejects_noncontributory_peer_key_no_mutation() {
+        let c = StdCrypto;
+        let (mut a, _b) = matched_dh_pair(&c);
+        a.dh.dhr = low_order_u1();
+        let (new_priv, new_pub) = c.keypair();
+        let pre = a.snapshot_bytes();
+        let r = send_combined_boundary(
+            &c,
+            &c,
+            &c,
+            &c,
+            a.clone(),
+            &new_priv.0,
+            &new_pub.0,
+            1,
+            &[0xaau8; MLKEM768_CT_LEN],
+            &[0x5au8; MLKEM768_SS_LEN],
+            b"m",
+        );
+        assert_eq!(r.err(), Some("REJECT_S2_DH_NONCONTRIBUTORY"));
+        assert_eq!(a.snapshot_bytes(), pre, "state must not mutate on reject");
+    }
+
+    #[test]
+    fn recv_combined_boundary_rejects_noncontributory_dh_pub_no_mutation() {
+        let c = StdCrypto;
+        let (a, b) = matched_dh_pair(&c);
+        // A ratchets honestly against B's real key, but advertises a low-order DH_pub. The frame is
+        // sealed correctly, so it authenticates; only the DH OUTPUT check can catch it. The guard
+        // must fire BEFORE the PQ reseed is applied (no target/tombstone state may move).
+        let (new_priv, _new_pub) = c.keypair();
+        let low = low_order_u1();
+        let out = send_combined_boundary(
+            &c,
+            &c,
+            &c,
+            &c,
+            a,
+            &new_priv.0,
+            &low,
+            1,
+            &[0xaau8; MLKEM768_CT_LEN],
+            &[0x5au8; MLKEM768_SS_LEN],
+            b"m",
+        )
+        .expect("A send_combined_boundary");
+        let b_pre = b.snapshot_bytes();
+        let rout = recv_pq_reseed(&c, &c, &c, &c, b, &out.wire, &[0x5au8; MLKEM768_SS_LEN], 1);
+        assert!(!rout.ok);
+        assert_eq!(rout.reason, Some("REJECT_S2_DH_NONCONTRIBUTORY"));
+        assert_eq!(
+            rout.state.snapshot_bytes(),
+            b_pre,
+            "state must not mutate on reject"
+        );
+    }
+
+    #[test]
+    fn noncontributory_guard_is_not_shadowed_by_the_dh_pub_encoding_check() {
+        // The all-zero ENCODING is rejected earlier, with a different code. The two guards are
+        // distinct: `is_zero32(dh_pub)` catches one of eight low-order points; the output check
+        // catches all eight. This test pins that distinction so a future refactor cannot collapse
+        // them and silently lose seven encodings.
+        let c = StdCrypto;
+        let (a, b) = matched_dh_pair(&c);
+        let sa = send_boundary(&c, &c, &c, &c, a, b"m").expect("A send_boundary");
+        let mut zero_pub_wire = sa.wire.clone();
+        // dh_pub occupies the 32 bytes at the start of the header (frame_suite2_wire layout).
+        for byte in zero_pub_wire.iter_mut().skip(10).take(32) {
+            *byte = 0;
+        }
+        let rb = recv_dh_boundary(&c, &c, &c, &c, b, &zero_pub_wire);
+        assert!(!rb.ok);
+        assert_eq!(rb.reason, Some("REJECT_S2_HDR_AUTH_FAIL"));
+    }
+
+    // ============ NA-0628 anti-regression scan (Operator Decision 2(c), amended by D565-A1.5) ======
+    // Every `.dh(` call site in the repo must be EITHER followed by a fail-closed all-zero check on
+    // the DH OUTPUT, OR listed in ALLOWED_UNGUARDED_DH with a written reason. Per-file site counts
+    // are PINNED, so a new call site cannot hide inside an already-allowlisted file.
+    //
+    // Mutation-proved (docs/governance/evidence/NA-0628_design_lock.md §6): the scan fails on (i) a
+    // synthetic unguarded site in unlisted code, (ii) an allowlist entry with no reason, and (iii)
+    // count drift in an allowlisted file. A scan that cannot fail is not a scan.
+    //
+    // KNOWN LIMITATION, stated rather than papered over: no CI job runs
+    // `cargo test -p quantumshield_refimpl`, so this scan guards the lane gate and local runs, NOT
+    // pull requests. The CI-durable proof of the guard is the pair of negative conformance vectors
+    // executed by the REQUIRED `suite2-vectors` check.
+
+    struct AllowedUnguardedDh {
+        file: &'static str,
+        function: &'static str,
+        reason: &'static str,
+    }
+
+    const QSP_LEGACY_REASON: &str = "legacy Suite-1/1B conformance surface (exercised by the required checks ci-4b / ci-4d-dur); not shipped-client code; auth-safety tracked by ENG-0019 (P2)";
+
+    const ALLOWED_UNGUARDED_DH: &[AllowedUnguardedDh] = &[
+        AllowedUnguardedDh {
+            file: "tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs",
+            function: "initiator_build",
+            reason: QSP_LEGACY_REASON,
+        },
+        AllowedUnguardedDh {
+            file: "tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs",
+            function: "responder_process",
+            reason: QSP_LEGACY_REASON,
+        },
+        AllowedUnguardedDh {
+            file: "tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs",
+            function: "dh_ratchet_send",
+            reason: QSP_LEGACY_REASON,
+        },
+        AllowedUnguardedDh {
+            file: "tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs",
+            function: "dh_ratchet_receive",
+            reason: QSP_LEGACY_REASON,
+        },
+        AllowedUnguardedDh {
+            file: "tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs",
+            function: "ratchet_encrypt",
+            reason: QSP_LEGACY_REASON,
+        },
+        AllowedUnguardedDh {
+            file: "tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs",
+            function: "ratchet_decrypt",
+            reason: QSP_LEGACY_REASON,
+        },
+        AllowedUnguardedDh {
+            file: "tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs",
+            function: "matched_dh_pair",
+            reason: "test scaffolding: derives the establishment secret for a matched pair, not a protocol DH",
+        },
+        AllowedUnguardedDh {
+            file: "tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs",
+            function: "dh",
+            reason: "test stub LowOrderPubDh delegating to the real X25519; the guard under test lives in its callers",
+        },
+        AllowedUnguardedDh {
+            file: "tools/refimpl/quantumshield_refimpl/tests/suite2_combined_boundary.rs",
+            function: "establish_pair",
+            reason: "test scaffolding: establishment secret for a matched pair",
+        },
+        AllowedUnguardedDh {
+            file: "tools/refimpl/quantumshield_refimpl/tests/suite2_combined_boundary.rs",
+            function: "combined_boundary_round_trip_converges_on_dh_then_pq_composition",
+            reason: "test recomputes the expected dh_out to assert root convergence; not a protocol path",
+        },
+        AllowedUnguardedDh {
+            file: "tools/refimpl/quantumshield_refimpl/tests/suite2_scka_sender.rs",
+            function: "establish_pair",
+            reason: "test scaffolding: establishment secret for a matched pair",
+        },
+        AllowedUnguardedDh {
+            file: "tools/actors/refimpl_actor_rs/src/main.rs",
+            function: "dispatch",
+            reason: "conformance actor's deterministic DhDet plumbing; boundary-FORBIDDEN path (tools/actors/**)",
+        },
+        AllowedUnguardedDh {
+            file: "apps/qsl-tui/src/demo.rs",
+            function: "init_states_for_channel",
+            reason: "demo establishment secret; boundary-FORBIDDEN path (apps/**); retirement tracked by ENG-0032",
+        },
+    ];
+
+    /// Total `.dh(` call sites per file. Drift in EITHER direction fails the scan: a new site cannot
+    /// hide inside an allowlisted file, and a removed site must be de-pinned deliberately.
+    const PINNED_DH_SITE_COUNTS: &[(&str, usize)] = &[
+        ("apps/qsl-tui/src/demo.rs", 2),
+        ("qsl/qsl-client/qsc/src/handshake/mod.rs", 1),
+        ("tools/actors/refimpl_actor_rs/src/main.rs", 1),
+        (
+            "tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs",
+            4,
+        ),
+        ("tools/refimpl/quantumshield_refimpl/src/qsp/ratchet.rs", 4),
+        (
+            "tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs",
+            7,
+        ),
+        (
+            "tools/refimpl/quantumshield_refimpl/tests/suite2_combined_boundary.rs",
+            2,
+        ),
+        (
+            "tools/refimpl/quantumshield_refimpl/tests/suite2_scka_sender.rs",
+            1,
+        ),
+    ];
+
+    fn repo_root() -> std::path::PathBuf {
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../..")
+            .canonicalize()
+            .expect("repo root")
+    }
+
+    fn collect_rs_files(dir: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
+        for entry in std::fs::read_dir(dir).expect("readable dir").flatten() {
+            let path = entry.path();
+            let name = entry.file_name();
+            let name = name.to_string_lossy().to_string();
+            if path.is_dir() {
+                if name != "target" && name != ".git" {
+                    collect_rs_files(&path, out);
+                }
+            } else if name.ends_with(".rs") {
+                out.push(path);
+            }
+        }
+    }
+
+    /// True if this line contains a real `.dh(` CALL — not a comment, and not a `".dh("` string
+    /// literal. Without this, the scan matches its own source and can never pass.
+    fn has_dh_call(line: &str) -> bool {
+        let mut in_string = false;
+        let mut escaped = false;
+        let mut prev_slash = false;
+        for (idx, ch) in line.char_indices() {
+            if escaped {
+                escaped = false;
+                continue;
+            }
+            match ch {
+                '\\' if in_string => escaped = true,
+                '"' => {
+                    in_string = !in_string;
+                    prev_slash = false;
+                }
+                '/' if !in_string => {
+                    if prev_slash {
+                        return false; // line comment starts here
+                    }
+                    prev_slash = true;
+                }
+                _ => {
+                    prev_slash = false;
+                    if !in_string && line[idx..].starts_with(".dh(") {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+
+    /// The `let <name> = ... .dh(` binding on this line, if any.
+    fn dh_output_binding(line: &str) -> Option<&str> {
+        let after_let = line.trim_start().strip_prefix("let ")?;
+        let after_let = after_let.strip_prefix("mut ").unwrap_or(after_let);
+        let name = after_let
+            .split(|c: char| !c.is_alphanumeric() && c != '_')
+            .next()?;
+        if name.is_empty() {
+            None
+        } else {
+            Some(name)
+        }
+    }
+
+    /// A fail-closed all-zero check on `name` within the following few lines. Both in-repo idioms
+    /// count: `is_zero32(&name)` (refimpl) and `name.iter().all(..)` (qsc, which has no is_zero32).
+    fn is_guarded(lines: &[&str], idx: usize, name: &str) -> bool {
+        let end = (idx + 1 + 10).min(lines.len());
+        lines[idx + 1..end].iter().any(|l| {
+            l.contains(&format!("is_zero32(&{name})")) || l.contains(&format!("{name}.iter().all("))
+        })
+    }
+
+    fn enclosing_fn(lines: &[&str], idx: usize) -> String {
+        for line in lines[..=idx].iter().rev() {
+            let t = line.trim_start();
+            for prefix in ["pub(crate) fn ", "pub fn ", "async fn ", "fn "] {
+                if let Some(rest) = t.strip_prefix(prefix) {
+                    return rest
+                        .split(|c: char| !c.is_alphanumeric() && c != '_')
+                        .next()
+                        .unwrap_or("?")
+                        .to_string();
+                }
+            }
+        }
+        "?".to_string()
+    }
+
+    #[test]
+    fn na0628_every_dh_call_site_is_guarded_or_allowlisted() {
+        // (ii) An allowlist entry without a written reason is itself a scan failure.
+        for entry in ALLOWED_UNGUARDED_DH {
+            assert!(
+                !entry.reason.trim().is_empty(),
+                "ALLOWED_UNGUARDED_DH entry {}::{} has no written reason",
+                entry.file,
+                entry.function
+            );
+        }
+
+        let root = repo_root();
+        let mut files = Vec::new();
+        collect_rs_files(&root, &mut files);
+        files.sort();
+
+        let mut counts: std::collections::BTreeMap<String, usize> =
+            std::collections::BTreeMap::new();
+        let mut unguarded: Vec<String> = Vec::new();
+
+        for path in &files {
+            let rel = path
+                .strip_prefix(&root)
+                .expect("under root")
+                .to_string_lossy()
+                .replace('\\', "/");
+            let text = std::fs::read_to_string(path).expect("readable file");
+            let lines: Vec<&str> = text.split('\n').collect();
+            for (i, line) in lines.iter().enumerate() {
+                if !has_dh_call(line) {
+                    continue;
+                }
+                *counts.entry(rel.clone()).or_insert(0) += 1;
+                let guarded = dh_output_binding(line)
+                    .map(|name| is_guarded(&lines, i, name))
+                    .unwrap_or(false);
+                if guarded {
+                    continue;
+                }
+                let function = enclosing_fn(&lines, i);
+                let allowed = ALLOWED_UNGUARDED_DH
+                    .iter()
+                    .any(|e| e.file == rel && e.function == function);
+                if !allowed {
+                    unguarded.push(format!("{rel}:{} (fn {function})", i + 1));
+                }
+            }
+        }
+
+        // (i) A `.dh(` site that is neither guarded nor allowlisted fails the scan.
+        assert!(
+            unguarded.is_empty(),
+            "ENG-0034: unguarded X25519 DH output at:\n  {}\n\nEvery `.dh(` call must either \
+             fail closed on an all-zero output (RFC 7748 §6.1) or be added to ALLOWED_UNGUARDED_DH \
+             with a written reason.",
+            unguarded.join("\n  ")
+        );
+
+        // (iii) Per-file count drift fails the scan: a new site cannot hide in an allowlisted file.
+        let pinned: std::collections::BTreeMap<&str, usize> =
+            PINNED_DH_SITE_COUNTS.iter().copied().collect();
+        let found: std::collections::BTreeMap<&str, usize> =
+            counts.iter().map(|(k, v)| (k.as_str(), *v)).collect();
+        assert_eq!(
+            found, pinned,
+            "ENG-0034: the set of `.dh(` call sites changed. Re-derive the inventory, classify every \
+             new site (guard it, or allowlist it with a reason), and update PINNED_DH_SITE_COUNTS."
         );
     }
 

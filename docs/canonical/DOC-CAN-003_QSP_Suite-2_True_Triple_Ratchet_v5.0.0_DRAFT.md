@@ -546,6 +546,8 @@ Receiver processing when `msg.DH_pub != st.DHr`:
 7) Recompute `HK/NHK` from the updated `RK` (§8.1).
 8) Commit state only after body decrypt success.
 
+After computing `dh_out = X25519(DHs_priv, msg.DH_pub)`, the implementation MUST reject the message with `REJECT_S2_DH_NONCONTRIBUTORY` and MUST NOT commit any state if `dh_out` is the all-zero value (RFC 7748 §6.1 contributory-behaviour check); the same check MUST be applied to the DH output of the combined DH+PQ boundary (§8.5.3) and to the sending side before the root advances.
+
 #### 8.5.3 Applying SCKA reseed (boundary with PQ ciphertext)
 
 If a boundary message carries `FLAG_PQ_CTXT`, it additionally carries:
@@ -628,6 +630,9 @@ Implementations MUST map failures to stable reason codes. At minimum, the follow
   mutation) rather than saturate the counter, since a frozen counter with static header keys
   would reuse a header nonce/ciphertext. A well-behaved sender never originates a message at
   the saturating counter.
+- `REJECT_S2_DH_NONCONTRIBUTORY` — the X25519 DH output is the all-zero value, i.e. the peer's
+  `DH_pub` lies in the small subgroup and contributes no entropy to the root (RFC 7748 §6.1). The
+  receiver MUST reject and MUST NOT commit any state.
 
 Additional reason codes are permitted but MUST be documented and registered (see DOC-SCL-002).
 

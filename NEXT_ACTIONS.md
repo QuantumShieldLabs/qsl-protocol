@@ -19,7 +19,7 @@ Its full block (with scope flags) is below under section 2; find it with the ANC
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
-1. **ENG-0034 + ENG-0019 = NA-0628 (now READY)** — reject non-contributory (low-order) X25519 on every LIVE DH path, and RETIRE the auth-unsafe `qsp` skeleton rather than harden it. Directive D565. Surface CORRECTED 2026-07-10: the live paths are `qsc`'s establishment `hs_dh_shared` (2 call sites) + the 4 Suite-2 ratchet sites; `qsp/**` is dead code (ENG-0019).
+1. **ENG-0034 = NA-0628 (now READY)** — reject non-contributory (low-order) X25519 on every LIVE DH path. Directive D565 as amended by D565-A1 (2026-07-10). Live paths: `qsc`'s establishment `hs_dh_shared` (2 call sites) + the 4 Suite-2 ratchet sites — all of them SHIPPED-CLIENT paths (`qsc/src/main.rs:2320/:2657/:2683`). **ENG-0019 was UNFOLDED**: `qsp/**` is NOT dead code (it backs the REQUIRED `ci-4b` / `ci-4d-dur` checks); it is re-rated P2 and awaits its own directive.
 2. **ENG-0014** — qsl-server non-constant-time token compare (P2, cross-repo, cheap; Signal-Server `MessageDigest.isEqual` precedent). Good short lane whenever a slot opens.
 2b. **ENG-0032 / ENG-0033** — the NA-0626 follow-up filings (apps hygiene + the public-safety PR gate's cancelled-vs-failed conflation), batched as one LITE lane.
 2c. **ENG-0035 / Tamarin** — the NA-0627 non-termination at the 2-boundary unrolling. Only if the 2-epoch unrolling is judged load-bearing; the reduced-scope model proves the same queries and nothing was weakened.
@@ -34759,7 +34759,7 @@ on the PR path and run the full model set on main-push + `workflow_dispatch`).
 
 ---
 
-### NA-0628 — ENG-0034: reject non-contributory (low-order) X25519 on every LIVE DH path; ENG-0019: retire the auth-unsafe qsp skeleton (refimpl/qsc/vectors/canonical)
+### NA-0628 — ENG-0034: reject non-contributory (low-order) X25519 on every LIVE DH path (refimpl/qsc/vectors/canonical)
 Status: READY
 Goals: G1, G2, G4
 Wire/behavior change allowed? YES, BOUNDED — a new fail-closed REJECT path only. No wire FORMAT change; no honest transcript changes (a BYTE claim, WF-0014).
@@ -34782,10 +34782,13 @@ LIVE surface (verified 2026-07-10; re-verify at Phase 0 — line numbers are evi
 - refimpl Suite-2 ratchet: `ratchet.rs:1306` `send_boundary`, `:1475` `recv_dh_boundary`,
   `:1885` `send_combined_boundary`, `:2390` `recv_combined_boundary`.
 
-Also close **ENG-0019 (P3)** in the same lane: `qsp::handshake` + `qsp::ratchet` have ZERO callers
-outside the `qsp` module, and the handshake is auth-unsafe (KT verification deferred to the caller;
-`pq_rcv_a_priv` left empty). **RETIRE the skeleton — do NOT add contributory checks to dead code**
-(Operator Decision 1; deletion recommended per the "eliminate, do not carry legacy" tenet).
+**ENG-0019 was UNFOLDED from this lane (D565 AMENDMENT 1, 2026-07-10).** D565's premise —
+"`qsp::handshake` + `qsp::ratchet` have ZERO callers outside the `qsp` module" — was FALSE: the
+conformance actor consumes them as its Suite-1/Suite-1B implementation, and they execute on every PR
+under the REQUIRED checks `ci-4b` and `ci-4d-dur`; `refimpl_error.rs` and `kt/` consume their types.
+Retirement would break core library code and remove the subject matter of two required checks. Phase 0
+STOPPED the lane and re-presented; the operator amended D565. ENG-0019 stays OPEN, is re-rated
+**P3 -> P2**, and gets its own successor directive. See the ledger and WF-0017.
 
 Binding constraints:
 - `dh_out == 0` **iff** the peer point is in the small subgroup (clamping ⇒ low-order points map to

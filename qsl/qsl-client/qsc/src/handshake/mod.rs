@@ -798,6 +798,10 @@ fn hs_dh_init_from_shared(
     kmac_out::<32>(&c, dh_shared, "QSC.HS.DHINIT", &data)
 }
 
+/// ENG-0034: the establishment DH rejected a non-contributory (small-subgroup) peer key. This is a
+/// qsc-local log marker, not a canonical DOC-CAN-003 reason code.
+const HS_DH_NONCONTRIBUTORY: &str = "dh_noncontributory";
+
 fn hs_dh_shared(self_sk: &[u8], peer_pub: &[u8]) -> Result<[u8; 32], &'static str> {
     if self_sk.len() != 32 || peer_pub.len() != 32 {
         return Err("handshake_dh_len");
@@ -807,7 +811,15 @@ fn hs_dh_shared(self_sk: &[u8], peer_pub: &[u8]) -> Result<[u8; 32], &'static st
     let mut pk = [0u8; 32];
     pk.copy_from_slice(peer_pub);
     let c = StdCrypto;
-    Ok(c.dh(&X25519Priv(sk), &X25519Pub(pk)))
+    let dh_out = c.dh(&X25519Priv(sk), &X25519Pub(pk));
+    // RFC 7748 §6.1: X25519 accepts small-order points and returns the all-zero shared secret rather
+    // than erroring. `hs_dh_pub_is_all_zero` screens only the all-zero ENCODING — one of the eight
+    // low-order points. Checking the OUTPUT catches all eight, and is what the RFC prescribes for
+    // protocols requiring contributory behaviour.
+    if dh_out.iter().all(|b| *b == 0) {
+        return Err(HS_DH_NONCONTRIBUTORY);
+    }
+    Ok(dh_out)
 }
 
 fn hs_dh_pub_from_bytes(bytes: &[u8]) -> Result<[u8; 32], &'static str> {
@@ -1448,8 +1460,13 @@ fn perform_handshake_poll_with_tokens(
                         };
                         let dh_shared = match hs_dh_shared(&pending.dh_sk, &resp.dh_pub) {
                             Ok(v) => v,
-                            Err(_) => {
-                                emit_marker("handshake_reject", None, &[("reason", "dh_failed")]);
+                            Err(e) => {
+                                let reason = if e == HS_DH_NONCONTRIBUTORY {
+                                    HS_DH_NONCONTRIBUTORY
+                                } else {
+                                    "dh_failed"
+                                };
+                                emit_marker("handshake_reject", None, &[("reason", reason)]);
                                 return Ok(());
                             }
                         };
@@ -1876,8 +1893,13 @@ fn perform_handshake_poll_with_tokens(
                 let (dh_sk, dh_self_pub) = hs_ephemeral_keypair();
                 let dh_shared = match hs_dh_shared(&dh_sk, &init.dh_pub) {
                     Ok(v) => v,
-                    Err(_) => {
-                        emit_marker("handshake_reject", None, &[("reason", "dh_failed")]);
+                    Err(e) => {
+                        let reason = if e == HS_DH_NONCONTRIBUTORY {
+                            HS_DH_NONCONTRIBUTORY
+                        } else {
+                            "dh_failed"
+                        };
+                        emit_marker("handshake_reject", None, &[("reason", reason)]);
                         continue;
                     }
                 };
@@ -2124,5 +2146,87 @@ mod ct_eq_tests {
         for (a, b) in vectors.iter() {
             assert_eq!(hs_ct_eq_32(a, b), a == b);
         }
+    }
+}
+
+#[cfg(test)]
+mod na0628_contributory_dh_tests {
+    use super::{hs_dh_pub_is_all_zero, hs_dh_shared, HS_DH_NONCONTRIBUTORY};
+
+    // NA-0628 (ENG-0034). RFC 7748 §6.1: X25519 accepts small-order points and returns the all-zero
+    // shared secret rather than erroring. `hs_dh_pub_is_all_zero` screens the all-zero ENCODING —
+    // exactly one of Curve25519's eight low-order points. The other seven reach the DH and produce a
+    // degenerate shared secret, so the establishment DH must check the OUTPUT.
+
+    /// The eight classical low-order encodings (RFC 7748 §6.1; the standard list). Every one of them
+    /// drives `X25519(clamped_sk, .) -> 0^32`, independent of the scalar.
+    const LOW_ORDER: [&str; 8] = [
+        "0000000000000000000000000000000000000000000000000000000000000000",
+        "0100000000000000000000000000000000000000000000000000000000000000",
+        "e0eb7a7c3b41b8ae1656e3faf19fc46ada098deb9c32b1fd866205165f49b800",
+        "5f9c95bca3508c24b1d0b1559c83ef5b04445cc4581c8e86d8224eddd09f1157",
+        "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+        "edffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+        "eeffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f",
+        "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    ];
+
+    fn unhex(s: &str) -> [u8; 32] {
+        let mut out = [0u8; 32];
+        for (i, byte) in out.iter_mut().enumerate() {
+            *byte = u8::from_str_radix(&s[i * 2..i * 2 + 2], 16).unwrap();
+        }
+        out
+    }
+
+    #[test]
+    fn establishment_dh_rejects_every_low_order_peer_key() {
+        // Two structurally different scalars: the guard must not depend on the local key.
+        for sk in [[0x11u8; 32], [0xa5u8; 32]] {
+            for enc in LOW_ORDER {
+                let peer = unhex(enc);
+                assert_eq!(
+                    hs_dh_shared(&sk, &peer),
+                    Err(HS_DH_NONCONTRIBUTORY),
+                    "low-order peer key {enc} must be rejected"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn seven_of_eight_low_order_keys_evade_the_encoding_check() {
+        // Pins the reason the OUTPUT check is required: the ingress screen catches only one of them.
+        let evade = LOW_ORDER
+            .iter()
+            .filter(|enc| !hs_dh_pub_is_all_zero(&unhex(enc)))
+            .count();
+        assert_eq!(evade, 7);
+    }
+
+    #[test]
+    fn establishment_dh_accepts_an_honest_peer_key() {
+        // Negative control: a real public key must still produce a shared secret, so the guard
+        // cannot be passing by rejecting everything.
+        let sk = [0x11u8; 32];
+        let mut basepoint = [0u8; 32];
+        basepoint[0] = 9;
+        let peer = hs_dh_shared(&[0x77u8; 32], &basepoint).expect("honest pub derivation");
+        let shared = hs_dh_shared(&sk, &peer).expect("honest peer key must be accepted");
+        assert_ne!(shared, [0u8; 32]);
+    }
+
+    #[test]
+    fn length_errors_keep_their_distinct_marker() {
+        // The new marker must not swallow the pre-existing `handshake_dh_len` failure, whose callers
+        // map it to the `dh_failed` log reason.
+        assert_eq!(
+            hs_dh_shared(&[0u8; 31], &[1u8; 32]),
+            Err("handshake_dh_len")
+        );
+        assert_eq!(
+            hs_dh_shared(&[1u8; 32], &[0u8; 31]),
+            Err("handshake_dh_len")
+        );
     }
 }

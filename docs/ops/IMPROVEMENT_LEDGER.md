@@ -555,26 +555,53 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Proof gap: no test asserts the pre-encryption plaintext blob is removed post-migration.
 - Recommended directive shape: small audit + deletion-assertion lane.
 
-### ENG-0019 — `qsp::handshake` X3DH skeleton is auth-unsafe dead code — **FOLDED INTO NA-0628 (D565): RETIRE, do not harden**
-- Severity: P3 (latent; unreachable in the shipped client, so NOT currently exploitable)
-- Status: open — filed D-1231 from the Comprehensive Audit (H-4); last-updated 2026-07-07
+### ENG-0019 — `qsp::handshake` is auth-unsafe code that CI blesses and releases attest — **UNFOLDED from NA-0628; re-rated P3 → P2 (2026-07-10)**
+- Severity: **P2** (raised from P3 at NA-0628 Phase 0, 2026-07-10). It is NOT remotely exploitable
+  and NOT reachable from the shipped `qsc` client. It is raised because the original P3 rested on
+  "auth-unsafe DEAD code", and the code is **not dead**: two REQUIRED CI checks certify it green as
+  the Suite-1/1B reference, and a published release attests and ships the binary that embeds it.
+  Authority and provenance, not reachability, are the harm.
+- Status: open — filed D-1231 (Comprehensive Audit H-4); folded into NA-0628 by D565 and **UNFOLDED
+  by D565-A1.2 when its "dead code" premise was falsified**; last-updated 2026-07-10.
 - Exact surfaces: `tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs`
-  (`responder_process` ~:216; `InitiatorState.pq_rcv_a_priv` ~:196/:206).
-- Claim at stake: peer authentication of any deployment that wires in this skeleton.
-- Why it matters: `responder_process` defers KT identity verification to the caller ("expects
-  the caller to have performed KT pinning for A out-of-band"), and `pq_rcv_a_priv` is left
-  `Vec::new()` ("not populated here") so the initiator cannot decapsulate ct3 — the skeleton
-  cannot complete and, if wired into a real deployment, peer authentication would be
-  MITM-able. The shipped `qsc` client uses its own `QSC.HS.*` handshake, so this is NOT
-  reachable today; the risk is an integrator mistaking this plausibly-named `QSP4.3` code for
-  the production handshake.
-- Minimal fix direction: feature-gate / mark non-functional / remove the skeleton so it
-  cannot be mistaken for the real path; OR complete it (KT verification inside
-  `responder_process`; retain `pq_rcv_a_priv`) with conformance tests.
-- Proof gap: no test asserts the skeleton is unreachable/gated.
-- Recommended directive shape: small source lane (gate/remove). Recommended near-term
-  despite P3 severity — the fix is cheap and it aligns with the "eliminate attack surfaces by
-  construction" design tenet (PROJECT_CHARTER).
+  (`responder_process` ~:216; `InitiatorState.pq_rcv_a_priv` ~:196/:206) and `src/qsp/ratchet.rs`.
+- Claim at stake: peer authentication of any deployment or integrator that wires in this skeleton.
+- Why it matters (rewritten 2026-07-10): `responder_process` defers KT identity verification to the
+  caller ("expects the caller to have performed KT pinning for A out-of-band"), and `pq_rcv_a_priv`
+  is left `Vec::new()`, so **peer authentication would be MITM-able if wired into a real deployment**.
+  The shipped `qsc` client uses its own `QSC.HS.*` handshake, so this is not reachable today. What
+  changed is the *authority* the code carries:
+  1. **Two REQUIRED status checks execute it on every PR.** `ci-4b` and `ci-4d-dur` drive
+     `refimpl_actor`'s Suite-1/Suite-1B `handshake_init/respond/finish` ops straight into
+     `qsp::handshake` + `qsp::ratchet`.
+  2. **The green does not mean what a reader assumes.** The actor performs NO KT verification: it
+     reconstructs the peer bundle locally from a shared deterministic seed
+     (`build_prekey_bundle_for`, `main.rs:1495/:1558`) and its verifier is
+     `CanonicalKtVerifier::new([], KtTimeSource::Fixed(0), true)` — an **empty pinned log**
+     (`main.rs:1358/:1396`). The checks validate transcript and ratchet MECHANICS and say nothing
+     about peer authentication. **ENG-0019's MITM-able finding stands, un-contradicted by the green.**
+  3. **`release-auth.yml` builds, sha256s, provenance-ATTESTS (`attest-build-provenance@v3`) and
+     uploads `refimpl_actor` alongside `qsc` and `qshield`** on every published release. The binary
+     advertises `"suites": ["Suite-1","Suite-1B","Suite-2"]`.
+  So the risk is no longer merely "an integrator might mistake this plausibly-named `QSP4.3` code for
+  the production handshake" — it is that CI and the release provenance chain actively invite them to.
+- **Retirement is NOT cheap** (this is why the fold failed): deleting `qsp/ratchet.rs` breaks
+  `refimpl_error.rs` (`RatchetError`); gating the module breaks `kt/` (`HandshakeInit`,
+  `PrekeyBundle` live in `qsp/types.rs`); and either removes the subject matter of two required
+  checks. See the ENG-0034 entry for the full consumer map.
+- Fix menu for the successor directive (operator chooses; none of these belong in NA-0628):
+  (a) module banner `//! NOT PRODUCTION — auth-unsafe (ENG-0019)` + docs, keep compiling;
+  (b) extract `RatchetError` / `HandshakeInit` / `PrekeyBundle` into a neutral module so `qsp` CAN be
+      gated at all;
+  (c) retire Suite-1/1B conformance — a **product** decision touching branch protection, the
+      `4b`/`4d-dur` harnesses, `tests/harness/4b/actor_contract.md`, and the actor's advertised suites;
+  (d) **stop shipping `refimpl_actor` in `release_artifacts/`** — one line in `release-auth.yml`.
+      **Cheapest real risk reduction on the list, and independent of (a)-(c).** It is release-only, so
+      it cannot affect the required PR checks. `.github/**` — needs operator authorization.
+- Proof gap: no test asserts the skeleton is unreachable/gated; no test asserts the conformance actor
+  performs no KT verification (it does not, by construction).
+- Recommended directive shape: its own lane (D566 candidate), carrying the consumer map above. (d) can
+  stand alone as a one-line LITE lane.
 
 ### ENG-0020 — Attachment Merkle root duplicates the last node on odd levels (malleability shape)
 - Severity: P3 (defense-in-depth; doubly mitigated — not currently exploitable)
@@ -984,12 +1011,32 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
     raw shared secret. Live call sites: `:1449` (initiator) and `:1877` (responder). **This is the
     establishment DH of the shipped client and the most important surface in the item.** It already
     returns `Result<[u8;32], &'static str>`, so the guard is a two-line change in ONE function.
-  - **OVERSTATED — `qsp/**` is DEAD CODE.** `qsp::handshake` and `qsp::ratchet` have ZERO callers
-    outside the `qsp` module. `qsp::handshake` is separately filed as **ENG-0019** (auth-unsafe:
-    `responder_process` defers KT verification to the caller; `pq_rcv_a_priv` is left empty so the
-    skeleton cannot complete — MITM-able if ever wired in). **Adding a contributory check to
-    auth-unsafe dead code hardens a path that must not exist.** Operator decision (2026-07-10):
-    NA-0628 fixes the LIVE surfaces and **folds in ENG-0019 to RETIRE the skeleton** instead.
+  - **~~OVERSTATED — `qsp/**` is DEAD CODE~~ — THIS CORRECTION WAS ITSELF FALSE.** Corrected again at
+    NA-0628 Phase 0 (2026-07-10), which STOPPED the lane; see D565 AMENDMENT 1 (D565-A1.1).
+    `qsp::handshake` and `qsp::ratchet` have LIVE CONSUMERS. `qsp/mod.rs` flattens its submodules
+    (`pub use handshake::*; pub use ratchet::*;`), so consumers write `qsp::initiator_build`, and a
+    path-qualified grep for `qsp::handshake` / `qsp::ratchet` returns zero while callers exist.
+    True consumer map: **`tools/actors/refimpl_actor_rs/src/main.rs`** calls `initiator_build`
+    (`:1508`), `responder_process` (`:1561`), `initiator_finalize` (`:1614`), `ratchet_encrypt`
+    (`:1654`), `ratchet_decrypt` (`:1718`) behind its `handshake_init/respond/finish`, `encrypt` and
+    `decrypt` ops — these ARE Suite-1/Suite-1B, and **they run on EVERY pull request as the REQUIRED
+    checks `ci-4b` and `ci-4d-dur`** (`ci.yml` → `scripts/ci/run_4b.sh` → `tests/harness/4b/runner.py`,
+    suites `["Suite-1","Suite-1B"]`; `ci.yml` → `scripts/ci/run_4d_dur.sh` → `scripts/ci/durability_4d.py`,
+    `suite = "Suite-1"`). Library-internal consumers outside the module: `src/kt/mod.rs:6` and
+    `src/kt/canonical.rs:3,567` (`HandshakeInit`, `PrekeyBundle`), `src/refimpl_error.rs:4,63`
+    (`RatchetError`), `src/lib.rs:13,18`. Tests: `tests/na_0071_header_key_derivation.rs`,
+    `tests/kt_verifier_vectors.rs`. (The repo-root `main.rs` also calls them but is ORPHANED — the
+    root `Cargo.toml` is a virtual manifest with no `[package]`, so it never compiles.)
+    **Consequence: deleting or feature-gating `qsp` would break core library code
+    (`refimpl_error.rs`, `kt/`) and would remove the subject matter of two REQUIRED status checks.**
+    ENG-0019 was therefore **UNFOLDED from NA-0628** (D565-A1.2) and re-rated — see its entry.
+    `qsc` references neither `kt` nor `qsp`, so none of this reaches the shipped client.
+    **Process lesson filed as WF-0017.**
+  - **CORRECTED FRAMING (NA-0628 design-lock, 2026-07-10): the four Suite-2 sites are SHIPPED-CLIENT
+    paths, not merely reference-implementation paths.** `qsl/qsl-client/qsc/src/main.rs:23` imports
+    the refimpl ratchet directly and calls `send_boundary` (`:2320` → `ratchet.rs:1306`),
+    `recv_pq_reseed` (`:2657` → `ratchet.rs:2390` via `recv_combined_boundary`) and
+    `recv_dh_boundary` (`:2683` → `ratchet.rs:1475`). This RAISES the item's importance.
   - **OVERSTATED — a "small-order ingress screen" is NOT required.** X25519 clamps the scalar to a
     multiple of 8, so any small-order peer point maps to the identity and yields an all-zero output.
     Therefore `dh_out == 0` **iff** the peer point is in the small subgroup: the all-zero OUTPUT check
@@ -1327,3 +1374,34 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   unrelated executor lane** — that is precisely why NA-0627 filed this rather than fixing it.
   Adjacent: WF-0012 (`ledger.py`) is the same "stop hand-maintaining structured state in markdown"
   theme and could share the lane. last-updated 2026-07-09
+
+### WF-0017 — A NEGATIVE reachability claim MUST be established by a mechanism proved able to find a POSITIVE
+- Severity: P2 (process; it has already produced two wrong directives in 24 hours)
+- Status: open — filed at NA-0628 Phase 0 (2026-07-10, D565-A1.6); last-updated 2026-07-10
+- Rule: a claim of the form **"zero callers", "dead code", "nothing runs this", "not wired into CI"**
+  must be established by a search mechanism that has been **demonstrated capable of finding a
+  counterexample**. A single-pattern grep is not such a mechanism when the reference can sit one
+  indirection away.
+- The two errors that motivated it, both from this lane, both the same shape:
+  1. **D565's Director turn** claimed `qsp::handshake` / `qsp::ratchet` had zero external callers.
+     `qsp/mod.rs` re-exports flattened (`pub use handshake::*`), so every real consumer writes
+     `qsp::initiator_build`. The grep searched a module path that **no caller can ever contain**:
+     `grep -c 'qsp::handshake\|qsp::ratchet'` over the actor is 0 while `grep -c 'qsp::'` is 1.
+  2. **NA-0628's Phase-0 executor** claimed the `4b`/`4d-dur` harnesses were "not wired into any
+     current `.github` workflow", from `grep -rn 'harness/4b|durability_4d' .github/workflows/` →
+     empty. The workflows call **wrapper scripts** (`scripts/ci/run_4b.sh`,
+     `scripts/ci/run_4d_dur.sh`) which call the harnesses. Both are REQUIRED checks.
+- Accepted mechanisms, in ascending order of decisiveness:
+  1. grep the **flattened symbol names**, not the module path;
+  2. read `mod.rs` for `pub use <sub>::*` **before** trusting any path-qualified grep;
+  3. trace the **job → script → harness** chain rather than grepping the workflow directory;
+  4. read the **required-checks list** (`gh api .../protection/required_status_checks/contexts`) and
+     follow each job to what it actually executes;
+  5. **decisive:** delete or `#[cfg(any())]` the item and let the **compiler enumerate the consumers**.
+     A `cargo check` cannot be fooled by a re-export.
+- Relationship to WF-0015: this is its **dual**. WF-0015 governs *positive* caller enumeration when a
+  signature changes. WF-0017 governs *negative* claims, which are strictly harder — a positive claim
+  is proved by one example; a negative claim requires proof that the search **could have found one**.
+- Proof gap: no lint or checklist item forces a negative claim to name its search mechanism.
+- Recommended directive shape: docs/process (DOC-OPS-006 directive template gains a "negative claims"
+  box; AGENTS.md gains the mechanism list). Cheap. Pairs naturally with WF-0016.

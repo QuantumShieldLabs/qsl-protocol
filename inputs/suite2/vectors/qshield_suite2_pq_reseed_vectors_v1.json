@@ -1094,6 +1094,94 @@
         "ok": false,
         "reason_code": "REJECT_S2_BODY_AUTH_FAIL"
       }
+    },
+    {
+      "id": "S2-RECV-COMBINED-REJECT-DH-NONCONTRIBUTORY-0001",
+      "op": "suite2.combined_boundary.run",
+      "kind": "negative",
+      "tags": [
+        "CAT-S2-PQRESEED-001",
+        "CAT-S2-COMBINED-001",
+        "G2",
+        "G4"
+      ],
+      "spec_refs": [
+        "DOC-CAN-003 \u00a73.3.6",
+        "DOC-CAN-003 \u00a78.5.1",
+        "DOC-CAN-003 \u00a78.5.2",
+        "DOC-CAN-003 \u00a78.5.3",
+        "RFC 7748 \u00a76.1"
+      ],
+      "notes": "NA-0626 (ENG-0026) combined DH+PQ boundary RECEIVE (session-level recv_pq_reseed, fresh-DH_pub discrimination): NHK-only open at n=0 of the NEW DH epoch (nonce/AD on the fresh DH_pub), DH ratchet first from the pre-boundary root, then the frozen apply_pq_reseed from RK_dh, RK_final = KDF_RK_PQ(RK_dh, ss); the returned state carries the FULL directional schedule (root, dhr, both header keys, both PQ chains, nr=1) \u2014 the ENG-0030 structural guarantee.",
+      "input": {
+        "send_state": {
+          "type": "json",
+          "data": {
+            "session_id": "000102030405060708090a0b0c0d0e0f",
+            "dh_pub": "1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a",
+            "hk_s": "3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c",
+            "ck_ec": "4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d",
+            "ck_pq": "5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e",
+            "ns": 3,
+            "pn": 0
+          }
+        },
+        "recv_state": {
+          "type": "json",
+          "data": {
+            "session_id": "000102030405060708090a0b0c0d0e0f",
+            "dh_pub": "2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e",
+            "hk_r": "303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f",
+            "rk": "a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+            "ck_ec": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+            "ck_pq_send": "1111111111111111111111111111111111111111111111111111111111111111",
+            "ck_pq_recv": "2222222222222222222222222222222222222222222222222222222222222222",
+            "nr": 0,
+            "role": "A",
+            "peer_max_adv_id_seen": 40,
+            "known_targets": [
+              42
+            ],
+            "consumed_targets": [],
+            "tombstoned_targets": [],
+            "mkskipped": []
+          }
+        },
+        "dh_state": {
+          "type": "json",
+          "data": {
+            "dhs_priv": "4040404040404040404040404040404040404040404040404040404040404040",
+            "dhs_pub": "d7b5e81d336e578b13b8d706e82d061e3038c96bce66cdcf50d566b96ddbba10",
+            "dhr": "2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e"
+          }
+        },
+        "peer_adv_id": {
+          "type": "json",
+          "data": {
+            "u32": 41
+          }
+        },
+        "message": {
+          "type": "json",
+          "data": {
+            "new_dh_priv": "5050505050505050505050505050505050505050505050505050505050505050",
+            "new_dh_pub": "0100000000000000000000000000000000000000000000000000000000000000",
+            "n": 0,
+            "pn": 3,
+            "pq_target_id": 42,
+            "pq_ct_hex": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "pq_epoch_ss": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+            "body_pt_hex": "00010203",
+            "tamper": "none",
+            "hdr_key": "nhk"
+          }
+        }
+      },
+      "expect": {
+        "ok": false,
+        "reason_code": "REJECT_S2_DH_NONCONTRIBUTORY"
+      },
+      "note": "ENG-0034: the peer advertises a low-order DH_pub (u=1). The frame is honestly sealed, so it authenticates; the X25519 output is all-zero, contributing no entropy to the new root. The receiver MUST reject with REJECT_S2_DH_NONCONTRIBUTORY and MUST NOT mutate state. Note that u=1 is NOT the all-zero encoding, so it passes the pre-existing is_zero32(dh_pub) screen: this vector proves the DH OUTPUT check, not the encoding check."
     }
   ],
   "registries": {

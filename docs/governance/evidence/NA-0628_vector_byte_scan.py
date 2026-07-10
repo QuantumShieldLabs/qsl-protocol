@@ -9,7 +9,7 @@ honest transcript."
 The claim is PER-VECTOR, not per-file: a purely additive append necessarily changes a file's bytes
 while changing no existing vector, and the STOP's own rationale ("the guard would be rejecting an
 honest transcript") is a statement about transcripts, not about file offsets. This scan therefore
-asserts, against `git show <BASE_REF>:<file>` (BASE_REF = the pre-lane baseline, `main`):
+asserts, against `git show <BASE_REF>:<file>` (BASE_REF = the pinned pre-lane base 1fdd5b9b):
 
   1. no pre-existing vector id was removed;
   2. every pre-existing vector's canonical serialization is byte-identical (sha256 per vector);
@@ -23,6 +23,7 @@ Exit non-zero on any violation. Run from the repo root.
 from __future__ import annotations
 
 import hashlib
+import os
 import json
 import subprocess
 import sys
@@ -39,7 +40,11 @@ EXPECTED_APPENDED_FILES = {
     "inputs/suite2/vectors/qshield_suite2_scka_logic_vectors_v1.json",
 }
 
-BASE_REF = "main"
+# Pinned to the lane's pre-lane base (the base at NA-0628 open, per D-1251), NOT the moving `main`
+# ref: once this lane merges, `main` contains the two additions and a re-run against it would compare
+# the tree to itself. A fixed commit keeps the byte claim reproducible for any later reviewer.
+# Overridable for local dry-runs via NA0628_BYTE_SCAN_BASE.
+BASE_REF = os.environ.get("NA0628_BYTE_SCAN_BASE", "1fdd5b9b347edc694e6ac29a8433f1c5acc286dd")
 
 
 def sh(*args: str) -> bytes:

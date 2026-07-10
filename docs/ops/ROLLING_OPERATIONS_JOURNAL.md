@@ -42829,3 +42829,31 @@ tracked nowhere" failure ENG-0034 exists to close.
 **Queue.** NA-0627 DONE; ENG-0028 CLOSED. The successor (ENG-0034 remediation) is PROPOSED, not
 promoted: the executor cannot self-promote a lane, and it becomes READY when the operator approves
 its directive.
+
+## 2026-07-10 — NA-0628 closeout (ENG-0034 CLOSED)
+NA-0628 closed. ENG-0034 (non-contributory / low-order X25519 on every LIVE DH path) is DONE: impl
+D-1251 / PR #1536 / merge `e9439df7`; closeout D-1252. Six LIVE DH outputs now fail closed on the
+all-zero value (RFC 7748 §6.1) with no state mutation — the four Suite-2 ratchet sites plus `qsc`'s
+establishment `hs_dh_shared` (both call sites), all shipped-client paths. New canonical
+`REJECT_S2_DH_NONCONTRIBUTORY` via a bounded DOC-CAN-003 unfreeze (2 additions, 0 deletions); two
+additive negative vectors on the required `suite2-vectors` check (mutation-proved); WF-0014 byte-scan
+(162 pre-existing vectors byte-identical, cross-set `460f97e3…`); an anti-regression scan proved to
+fail on three mutations. Post-merge verified AT JOB LEVEL: the two event-filtered full suites RAN, the
+NA-0627 ProVerif gate is green and UNCHANGED, `ci-4b`/`ci-4d-dur`/`public-safety` SUCCESS.
+
+Governance events: **Phase 0 STOPPED the lane with zero mutations** when D565's "qsp is dead code"
+premise proved false (the conformance actor consumes `qsp::handshake`/`qsp::ratchet` as its Suite-1/1B
+implementation, run on every PR by the REQUIRED `ci-4b`/`ci-4d-dur` checks and shipped/attested by
+`release-auth.yml`); the operator amended D565 (D565-A1), ENG-0019 left the lane and was re-rated
+**P3 → P2**, and **WF-0017** was filed for the shared root cause (a negative-reachability claim needs a
+mechanism proved able to find a positive). An AUDIT of the merged lane at operator request found one
+defect — the byte-scan evidence script hardcoded `BASE_REF=main`, which became non-reproducible after
+merge; pinned to the pre-lane base `1fdd5b9b`. The crypto/code re-verified clean.
+
+Product/strategy filings (operator direction, 2026-07-10): **WF-0018** (strategic/review-facing docs
+6–18 weeks stale; the external-review package omits the ProVerif analysis — directive `D566` DRAFTED,
+fail-closed on any claim movement); **ENG-0036** (token-gated private relay + a setup-time
+public/private mode toggle); **ENG-0037** (sealed-sender — the flagship metadata item, owed since
+NA-0622, now finally filed; analysis-first). Claim boundary UNCHANGED. Queue READY=NONE pending the
+next operator directive (candidates: WF-0018/D566, ENG-0019, ENG-0014). No package installed; no
+operator startup command run; the executor promoted no lane.

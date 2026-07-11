@@ -6,9 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0630 | HIGHEST_D=1254 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
-<!-- READY=NONE at the NA-0630 closeout (D-1254): the executor cannot self-promote a lane. The next lane becomes READY only when the operator approves a directive. Candidates: ENG-0019 (b)+(c) full retirement (P3); the external-review-bundle assembly (docs now accurate + the auth-unsafe binary no longer attested/shipped); ENG-0014; ENG-0036/0037 (product/metadata). -->
-<!-- prior: STATE: READY=NA-0630 | HIGHEST_NA=0630 | HIGHEST_D=1253 (NA-0630 promotion, D567) -->
+`STATE: READY=NA-0631 | HIGHEST_NA=0631 | HIGHEST_D=1254 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- NA-0631 (external-review-bundle assembly) promoted to sole READY 2026-07-10, at the operator's explicit "promote it" instruction after approving directive D568. The executor made this mechanical promotion edit under that authorization; it did not self-promote. -->
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0630 | HIGHEST_D=1254 (NA-0630 closeout, D-1254) -->
 
 **READY (exactly one — execute this):** `NA-0628 — ENG-0034: reject non-contributory (low-order)
 X25519 on every LIVE DH path; ENG-0019: retire the auth-unsafe qsp skeleton` (directive
@@ -34855,3 +34855,16 @@ DEFER (b) library type-extraction + (c) Suite-1/1B conformance retirement to a P
 
 Successor candidates (Phase 7): ENG-0019 (b)+(c) full retirement (P3); the external-review-bundle assembly; ENG-0014; ENG-0036/0037.
 Begins at D-1254. Standard single-PR lane; LOW delicacy; no crypto/canonical/vector semantics change.
+
+---
+
+### NA-0631 — Assemble the external-review bundle: complete `docs/public/EXTERNAL_REVIEW_PACKAGE.md` into a current, self-contained reviewer entry-point, WITHOUT moving any security claim
+Status: READY
+Goals: G4, G5
+Docs-only allowed? YES — docs/governance only. Canonical change allowed? NO. `docs/design/DOC-G4-002` change? NO (referenced, not edited). Source/vector/`.github`/Cargo change? NO. Claim change allowed? NO — claim boundary UNCHANGED (Operator Decision 1); any change to a claim STATUS/sentence or to the meaning of "What Is Not Proven" / "Safe Public Wording" is a STOP.
+
+Objective:
+Execute the **external-review-bundle assembly** per **QSL-DIR-2026-07-10-568 (D568, APPROVED)**. The package already EXISTS (`docs/public/EXTERNAL_REVIEW_PACKAGE.md`, 306 lines) but its load-bearing deeper sections predate the crypto-core arc: "What Is Currently Proven" has NO ProVerif/NA-0626/0627/0628 row, "Reproducible Commands" omits the ProVerif gate + `cargo test -p quantumshield_refimpl`, and the "Evidence Artifact Index" doesn't point to `DOC-G4-002`. Complete it: add the ProVerif symbolic analysis + single-root composition + contributory-DH guard to the Proven table (each with its symbolic-over-abstractions review boundary); add the ProVerif gate + refimpl-crate reproducer commands; index `DOC-G4-002` (call out §2 the A1–A8 abstraction table); extend the PR-evidence table through NA-0627/0628/0629/0630; refresh "Known Gaps" to name independent human review as THE gate + ENG-0035 residual; add a reviewer reading-order; fix the WF-0018 ledger status-line drift. Claim boundary UNCHANGED — strengthen the evidence PRESENTATION, move no claim. See D568 for the DoD, Operator Decisions 1–3, phases, and STOP conditions.
+
+Successor candidates (Phase 7): commission the external review (operator's step); a portable export bundle (Decision 2); ENG-0019 (b)+(c); ENG-0014; the CI-cost path-filter; ENG-0036/0037.
+Begins at D-1255. Docs/governance single-PR lane; claim-adjacent, fail-closed on any claim movement.

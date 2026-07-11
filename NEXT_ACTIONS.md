@@ -6,9 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0631 | HIGHEST_D=1255 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
-<!-- READY=NONE at the NA-0631 closeout (D-1255): the executor cannot self-promote a lane. The external-review bundle is now reviewer-ready — commissioning the independent review is the operator's external step (the true release gate). Other candidates: a portable export bundle; ENG-0019 (b)+(c); ENG-0014; the NA-0627 CI-cost path-filter; ENG-0036/0037. -->
-<!-- prior: STATE: READY=NA-0631 | HIGHEST_NA=0631 | HIGHEST_D=1254 (NA-0631 promotion, D568) -->
+`STATE: READY=NA-0632 | HIGHEST_NA=0632 | HIGHEST_D=1255 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- NA-0632 (internal adversarial core re-analysis) promoted to sole READY 2026-07-11, at the operator's explicit "promote it" instruction after approving directive D569. The executor made this mechanical promotion edit under that authorization; it did not self-promote. RUN IN A FRESH CHAT (qwork NA-0632 after this merges). -->
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0631 | HIGHEST_D=1255 (NA-0631 closeout, D-1255) -->
 
 **READY (exactly one — execute this):** `NA-0628 — ENG-0034: reject non-contributory (low-order)
 X25519 on every LIVE DH path; ENG-0019: retire the auth-unsafe qsp skeleton` (directive
@@ -34869,3 +34869,18 @@ Execute the **external-review-bundle assembly** per **QSL-DIR-2026-07-10-568 (D5
 
 Successor candidates (Phase 7): commission the external review (operator's step); a portable export bundle (Decision 2); ENG-0019 (b)+(c); ENG-0014; the CI-cost path-filter; ENG-0036/0037.
 Begins at D-1255. Docs/governance single-PR lane; claim-adjacent, fail-closed on any claim movement.
+
+---
+
+### NA-0632 — INTERNAL adversarial re-analysis of the Suite-2 crypto core (analysis lane: find issues, FILE them; fix nothing in-lane)
+Status: READY
+Goals: G1, G2, G4
+Docs-only allowed? Findings/governance only. Product source / canonical / vectors / `formal/` / `.github` / Cargo change? NO — a finding is FILED, not fixed (the NA-0627 analysis-lane rule). Claim change allowed? NO — this is internal scrutiny, not the independent review; it moves no claim.
+
+Objective:
+Execute the **internal adversarial re-analysis of the Suite-2 crypto core** per **QSL-DIR-2026-07-11-569 (D569, APPROVED)**. No external reviewer is available; this pass surfaces any remaining issues before a GUI is started. **⚠ ADVERSARIAL: the standing "crypto core correctness-complete / no known gap" conclusion (NA-0619..0631) is the HYPOTHESIS UNDER TEST — treat it as guilty until shown otherwise; re-derive every claim from the code + canonical specs; re-test every prior "verified/no-mutation/covered" assertion rather than trusting it.** Walk each core component (handshake/KT, DH ratchet, SCKA/PQ reseed, combined boundary, key schedule, state machine, nonce derivation, primitive usage) against each attack class (nonce/key reuse, downgrade, replay, state confusion, auth-deferral, low-order points, oracles, overflow). For each: FINDING (file an ENG item) / CHECKED-OK (log the assumption) / CAN'T-TELL (log the tool that would decide). Deliver a triaged before-GUI findings report + an honest blind-spot section. **This is internal scrutiny, NOT the independent external review — it cannot certify absence, and a clean result means "found nothing", not "secure". A confirmed exploitable finding is a STOP → surface + file, do not fix silently.**
+
+**RUN IN A FRESH CHAT** (reduce anchoring bias): after this promotion merges, the operator runs `qwork NA-0632 qsl-protocol` in a new chat, pastes the proof, and instructs "execute NA-0632 per D569". See D569 for the full COVERAGE contract, Operator Decisions 1–3, phases, and STOP conditions.
+
+Successor candidates (Phase 7): the fix lanes for whatever is filed (operator triages before the GUI); the GUI lane; the independent external review (the true gate).
+Begins at D-1256. Analysis lane; findings filed, not fixed.

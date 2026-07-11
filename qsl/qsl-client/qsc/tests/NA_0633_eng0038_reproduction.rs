@@ -1,21 +1,14 @@
-// NA-0633 (ENG-0038) Phase 0 REPRODUCTION — PoC-first (directive D570).
+// NA-0633 (ENG-0038) security regression test.
 //
-// Demonstrates ENG-0038 end-to-end with the REAL qsc binary and NO forged frames: the initiator
-// (alice) commits a Suite-2 session to a responder whose identity is NOT the one she pinned and
-// verified out-of-band. A second real identity (mallory) — different KEM key AND different signing
-// key from the pinned "bob" — occupies bob's channel, answers alice's handshake, and alice ACCEPTS
-// it as "bob".
+// This file began as the Phase-0 REPRODUCTION of ENG-0038 (the initiator committing a session to a
+// wrong responder). With the C1 fix in place it now asserts the SECURITY PROPERTY: the initiator
+// REJECTS a responder whose identity is not the one it pinned/verified out-of-band, and still
+// establishes with the genuine responder. Both cases use the REAL qsc binary with NO forged frames.
 //
-// Why alice accepts (the defect, NA-0632 report §2): the responder's only identity credential in B1
-// is its ML-DSA signing key; alice verifies the signature under the key the responder SENT (mallory's,
-// self-consistent); the OPTIONAL sig_fp pin that would catch a substituted key is structurally None on
-// the shipped path; and alice's REQUIRED KEM pin is tautological/inert in the B->A direction (the
-// responder sends no KEM key). Bob's real keys never touch this exchange.
-//
-// This test asserts the CURRENT (vulnerable) behavior so it is GREEN and documents the bug. The
-// ENG-0038 fix (Phase 2) will make alice REJECT mallory; at that point this test's assertion is
-// inverted (see the FIX marker below) — that inversion, committed alongside the fix, is the
-// security-property regression test.
+// The fix (NA-0632 report §2 / NA-0633 design-lock C1): the contact carries the peer's full identity
+// KEM public key (verified against the human code); the initiator encapsulates to it in A1 and mixes
+// the shared secret into pq_init_ss, so a responder that cannot decapsulate (i.e. does not hold the
+// pinned identity KEM secret) produces a B1 transcript MAC the initiator rejects.
 
 mod common;
 
@@ -68,22 +61,31 @@ fn init_identity(iso: &common::TestIsolation, cfg: &Path, label: &str) {
     ));
 }
 
-fn identity_fp(iso: &common::TestIsolation, cfg: &Path, label: &str) -> String {
+fn identity_field(iso: &common::TestIsolation, cfg: &Path, label: &str, key: &str) -> String {
     let out = run_qsc(iso, cfg, &["identity", "show", "--as", label]);
     assert_success(&out);
+    let prefix = format!("{key}=");
     output_text(&out)
         .lines()
-        .find_map(|line| line.strip_prefix("identity_fp="))
-        .map(ToOwned::to_owned)
-        .unwrap_or_else(|| panic!("missing identity_fp: {}", output_text(&out)))
+        .find_map(|line| line.strip_prefix(prefix.as_str()).map(ToOwned::to_owned))
+        .unwrap_or_else(|| panic!("missing {key} in output: {}", output_text(&out)))
 }
 
-fn contacts_add(iso: &common::TestIsolation, cfg: &Path, label: &str, fp: &str, token: &str) {
+// NA-0633: provision the peer's full identity KEM key (verified against the fingerprint) — required now.
+fn contacts_add(
+    iso: &common::TestIsolation,
+    cfg: &Path,
+    label: &str,
+    fp: &str,
+    kem_pk: &str,
+    token: &str,
+) {
     assert_success(&run_qsc(
         iso,
         cfg,
         &[
-            "contacts", "add", "--label", label, "--fp", fp, "--route-token", token,
+            "contacts", "add", "--label", label, "--fp", fp, "--kem-pk", kem_pk, "--route-token",
+            token,
         ],
     ));
 }
@@ -124,77 +126,102 @@ fn session_path(cfg: &Path, peer: &str) -> PathBuf {
     cfg.join("qsp_sessions").join(format!("{peer}.qsv"))
 }
 
-#[test]
-fn eng0038_initiator_accepts_wrong_responder_reproduction() {
-    let iso = common::TestIsolation::new("na0633_eng0038_repro");
-    let base = iso.root.join("repro");
-    let _ = fs::remove_dir_all(&base);
-    ensure_dir_700(&base);
-    let alice_cfg = base.join("alice");
-    let bob_cfg = base.join("bob"); // the REAL bob — only used to mint the verification code alice pins
-    let mallory_cfg = base.join("mallory"); // the wrong responder: different KEM AND signing keys
-    for c in [&alice_cfg, &bob_cfg, &mallory_cfg] {
-        ensure_dir_700(c);
-        common::init_mock_vault(c);
-    }
-
-    init_identity(&iso, &alice_cfg, "alice");
-    init_identity(&iso, &bob_cfg, "bob");
-    init_identity(&iso, &mallory_cfg, "mallory");
-    let alice_fp = identity_fp(&iso, &alice_cfg, "alice");
-    let bob_fp = identity_fp(&iso, &bob_cfg, "bob");
-    let mallory_fp = identity_fp(&iso, &mallory_cfg, "mallory");
-    assert_ne!(
-        bob_fp, mallory_fp,
-        "test setup: mallory must have a different identity than bob"
-    );
-
-    // Alice pins the REAL bob's out-of-band verification code (KEM fingerprint) and routes to bob's
-    // channel. This is the diligent user who verified bob's code.
-    contacts_add(&iso, &alice_cfg, "bob", &bob_fp, ROUTE_TOKEN_BOB);
-    // Mallory pins alice (so mallory's responder accepts alice's A1) and routes replies to alice's
-    // inbox. Mallory OCCUPIES bob's channel — the on-path position (e.g., the relay).
-    contacts_add(&iso, &mallory_cfg, "alice", &alice_fp, ROUTE_TOKEN_ALICE);
-    relay_inbox_set(&iso, &alice_cfg, ROUTE_TOKEN_ALICE);
-    relay_inbox_set(&iso, &mallory_cfg, ROUTE_TOKEN_BOB);
-
-    let server = common::start_inbox_server(1024 * 1024, 16);
-    let relay = server.base_url().to_string();
-
-    // Alice initiates to "bob"; A1 lands on bob's channel, which mallory occupies.
-    assert_success(&handshake_init(&iso, &alice_cfg, &relay));
+/// Drive alice-initiates-to-"bob" where `responder_cfg`/`responder_label` answers on bob's channel.
+/// Returns alice's B1-processing output.
+fn drive(
+    iso: &common::TestIsolation,
+    alice_cfg: &Path,
+    responder_cfg: &Path,
+    responder_label: &str,
+    server: &common::InboxTestServer,
+    relay: &str,
+) -> Output {
+    assert_success(&handshake_init(iso, alice_cfg, relay));
     let a1 = server
         .drain_channel(ROUTE_TOKEN_BOB)
         .pop()
         .expect("A1 on bob's channel");
     server.replace_channel(ROUTE_TOKEN_BOB, vec![a1]);
-
-    // Mallory (NOT bob) answers: accepts alice's A1 (mallory pinned alice) and signs B1 with MALLORY's
-    // key. No forged bytes — this is the real qsc responder path under mallory's identity.
-    assert_success(&handshake_poll(&iso, &mallory_cfg, "mallory", "alice", &relay));
+    assert_success(&handshake_poll(iso, responder_cfg, responder_label, "alice", relay));
     let b1 = server
         .drain_channel(ROUTE_TOKEN_ALICE)
         .pop()
-        .expect("B1 from mallory on alice's channel");
+        .expect("B1 on alice's channel");
     server.replace_channel(ROUTE_TOKEN_ALICE, vec![b1]);
+    handshake_poll(iso, alice_cfg, "alice", "bob", relay)
+}
 
-    // Alice processes mallory's B1 as "bob"'s response.
-    let alice = handshake_poll(&iso, &alice_cfg, "alice", "bob", &relay);
+fn setup(iso: &common::TestIsolation, tag: &str) -> (PathBuf, PathBuf, PathBuf) {
+    let base = iso.root.join(tag);
+    let _ = fs::remove_dir_all(&base);
+    ensure_dir_700(&base);
+    let alice = base.join("alice");
+    let bob = base.join("bob");
+    let mallory = base.join("mallory");
+    for c in [&alice, &bob, &mallory] {
+        ensure_dir_700(c);
+        common::init_mock_vault(c);
+    }
+    init_identity(iso, &alice, "alice");
+    init_identity(iso, &bob, "bob");
+    init_identity(iso, &mallory, "mallory");
+    let alice_fp = identity_field(iso, &alice, "alice", "identity_fp");
+    let alice_kem = identity_field(iso, &alice, "alice", "identity_kem_pk");
+    let bob_fp = identity_field(iso, &bob, "bob", "identity_fp");
+    let bob_kem = identity_field(iso, &bob, "bob", "identity_kem_pk");
+    // Alice pins the REAL bob (fingerprint + full identity KEM key). Mallory (a different identity)
+    // pins alice so its responder answers, and occupies bob's channel — the on-path position.
+    contacts_add(iso, &alice, "bob", &bob_fp, &bob_kem, ROUTE_TOKEN_BOB);
+    contacts_add(iso, &bob, "alice", &alice_fp, &alice_kem, ROUTE_TOKEN_ALICE);
+    contacts_add(iso, &mallory, "alice", &alice_fp, &alice_kem, ROUTE_TOKEN_ALICE);
+    relay_inbox_set(iso, &alice, ROUTE_TOKEN_ALICE);
+    (alice, bob, mallory)
+}
+
+#[test]
+fn eng0038_fixed_initiator_rejects_wrong_responder() {
+    let iso = common::TestIsolation::new("na0633_eng0038_reject");
+    let (alice_cfg, _bob_cfg, mallory_cfg) = setup(&iso, "reject");
+    relay_inbox_set(&iso, &mallory_cfg, ROUTE_TOKEN_BOB); // mallory occupies bob's channel
+    let server = common::start_inbox_server(1024 * 1024, 16);
+    let relay = server.base_url().to_string();
+
+    let alice = drive(&iso, &alice_cfg, &mallory_cfg, "mallory", &server, &relay);
     let text = output_text(&alice);
 
-    // ===== ENG-0038 (the vulnerable behavior this lane exists to fix) =====
-    // Alice ACCEPTS mallory as "bob": no peer_mismatch, and a Suite-2 session is committed — even
-    // though mallory's identity != the pinned/verified bob. The out-of-band code gave no protection.
+    // THE FIX: alice REJECTS mallory (its B1 transcript MAC cannot match — mallory could not
+    // decapsulate the initiator's encapsulation to bob's identity KEM key), and commits NO session.
     assert!(
-        !text.contains("peer_mismatch") && !text.contains("handshake_reject"),
-        "ENG-0038 did NOT reproduce (alice rejected the wrong responder) — investigate before fixing:\n{text}"
+        text.contains("handshake_reject"),
+        "expected alice to reject the wrong responder; got:\n{text}"
+    );
+    assert!(
+        !session_path(&alice_cfg, "bob").exists(),
+        "ENG-0038 NOT fixed: alice committed a session to a wrong responder:\n{text}"
+    );
+    eprintln!("NA0633_ENG0038_WRONG_RESPONDER_REJECTED_OK");
+}
+
+#[test]
+fn eng0038_fixed_positive_roundtrip_with_genuine_responder() {
+    let iso = common::TestIsolation::new("na0633_eng0038_positive");
+    let (alice_cfg, bob_cfg, _mallory_cfg) = setup(&iso, "positive");
+    relay_inbox_set(&iso, &bob_cfg, ROUTE_TOKEN_BOB); // the genuine bob answers
+    let server = common::start_inbox_server(1024 * 1024, 16);
+    let relay = server.base_url().to_string();
+
+    let alice = drive(&iso, &alice_cfg, &bob_cfg, "bob", &server, &relay);
+    let text = output_text(&alice);
+
+    // The genuine bob holds its identity KEM secret, decapsulates correctly, and the transcript MAC
+    // matches — so honest peers still establish (no regression of the initiator->responder direction).
+    assert!(
+        !text.contains("handshake_reject"),
+        "genuine responder was wrongly rejected:\n{text}"
     );
     assert!(
         session_path(&alice_cfg, "bob").exists(),
-        "ENG-0038 did NOT reproduce (no session committed):\n{text}"
+        "genuine handshake did not establish a session:\n{text}"
     );
-    // FIX marker (Phase 2/3): once ENG-0038 is fixed, alice MUST reject mallory. Invert the two
-    // assertions above (expect handshake_reject and assert_no_session) — that becomes the security
-    // regression test. Kept as the CURRENT (vulnerable) behavior here to prove the bug reproduces.
-    eprintln!("NA0633_ENG0038_REPRODUCED_OK bob_fp={bob_fp} mallory_fp={mallory_fp}");
+    eprintln!("NA0633_ENG0038_GENUINE_ROUNDTRIP_OK");
 }

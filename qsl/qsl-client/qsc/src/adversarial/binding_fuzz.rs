@@ -318,7 +318,10 @@ pub fn decode_init_shape(
     bytes: &[u8],
     mode: FuzzSuiteMode,
 ) -> Result<FuzzFrameShape, &'static str> {
-    let payload_len = 16 + kem_public_key_len() + sig_public_key_len() + 32;
+    // NA-0633 (ENG-0038, C1): A1 now carries the initiator's encapsulation to the responder's identity
+    // KEM key (ct), so the payload grows by one ML-KEM ciphertext.
+    let payload_len =
+        16 + kem_public_key_len() + sig_public_key_len() + 32 + kem_ciphertext_len();
     let header = decode_header(bytes, BindingFuzzFrameKind::A1, payload_len, mode, true)?;
     let mut session_id = [0u8; 16];
     let off = header.payload_offset();

@@ -401,6 +401,10 @@ pub(crate) enum ContactsCmd {
         label: String,
         #[arg(long, value_name = "FINGERPRINT")]
         fp: String,
+        /// NA-0633 (ENG-0038): the peer's full identity KEM public key (hex), verified against
+        /// FINGERPRINT. Required for the initiator to authenticate this peer as the responder.
+        #[arg(long, value_name = "KEM_PK_HEX")]
+        kem_pk: Option<String>,
         #[arg(long, value_name = "ROUTE_TOKEN")]
         route_token: Option<String>,
         #[arg(long)]

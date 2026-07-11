@@ -200,6 +200,12 @@ pub(crate) struct ContactRecord {
     pub(crate) seen_at: Option<u64>,
     #[serde(default)]
     pub(crate) sig_fp: Option<String>,
+    /// NA-0633 (ENG-0038): the peer's full identity KEM public key (hex), verified at add-time
+    /// against `fp`. Load-bearing: the initiator encapsulates to it so the responder must prove
+    /// KEM-secret possession (DOC-CAN handshake C1). Absent on legacy contacts => the initiator
+    /// fails closed rather than fall back to the unauthenticated path.
+    #[serde(default)]
+    pub(crate) kem_pk: Option<String>,
     #[serde(default)]
     pub(crate) route_token: Option<String>,
     #[serde(default)]
@@ -214,6 +220,9 @@ pub(crate) struct ContactDeviceRecord {
     pub(crate) fp: String,
     #[serde(default)]
     pub(crate) sig_fp: Option<String>,
+    /// NA-0633 (ENG-0038): the device's full identity KEM public key (hex); see ContactRecord::kem_pk.
+    #[serde(default)]
+    pub(crate) kem_pk: Option<String>,
     pub(crate) state: String,
     #[serde(default)]
     pub(crate) route_token: Option<String>,

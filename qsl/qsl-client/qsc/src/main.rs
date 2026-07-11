@@ -136,7 +136,7 @@ use handshake::{
 };
 use identity::{
     format_verification_code_from_fingerprint, identities_dir, identity_fingerprint_from_pk,
-    identity_marker_display, identity_pin_matches_seen, identity_read_pin,
+    identity_marker_display, identity_pin_matches_seen, identity_read_peer_kem_pk, identity_read_pin,
     identity_read_self_public, identity_read_sig_pin, identity_rotate_kem_keypair,
     identity_rotate_sig_keypair, identity_secret_name, identity_secret_store,
     identity_self_fingerprint, identity_self_kem_keypair, identity_self_path,
@@ -469,9 +469,10 @@ fn main() {
             ContactsCmd::Add {
                 label,
                 fp,
+                kem_pk,
                 route_token,
                 verify,
-            } => contacts_add(&label, &fp, route_token.as_deref(), verify),
+            } => contacts_add(&label, &fp, kem_pk.as_deref(), route_token.as_deref(), verify),
             ContactsCmd::Show { label } => contacts_show(&label),
             ContactsCmd::List => contacts_list(),
             ContactsCmd::Verify { label, fp, confirm } => contacts_verify(&label, &fp, confirm),
@@ -981,6 +982,10 @@ fn identity_show(self_label: &str) {
         &[("ok", "true"), ("fp", fp.as_str())],
     );
     println!("identity_fp={}", fp);
+    // NA-0633 (ENG-0038): also emit the full identity KEM public key so a peer can provision it
+    // (`contacts add --fp <this fp> --kem-pk <this>`) and thereby authenticate this side as the
+    // handshake responder. The fingerprint stays the human-comparable element.
+    println!("identity_kem_pk={}", hex_encode(&rec.kem_pk));
 }
 
 fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
@@ -1066,6 +1071,8 @@ fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
         &[("ok", "true"), ("fp", fp.as_str())],
     );
     println!("identity_fp={}", fp);
+    // NA-0633 (ENG-0038): emit the full identity KEM public key for peer provisioning (see identity_show).
+    println!("identity_kem_pk={}", hex_encode(&kem_pk));
 }
 
 fn peers_list() {

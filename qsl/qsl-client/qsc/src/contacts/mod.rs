@@ -148,6 +148,7 @@ pub(super) fn normalize_contact_record(alias: &str, rec: &mut ContactRecord) -> 
             device_id: device_id_short(alias, rec.sig_fp.as_deref(), rec.fp.as_str()),
             fp: rec.fp.clone(),
             sig_fp: rec.sig_fp.clone(),
+            kem_pk: rec.kem_pk.clone(),
             state: legacy_contact_status_to_device_state(rec.status.as_str()).to_string(),
             route_token: rec.route_token.clone(),
             seen_at: rec.seen_at,
@@ -223,6 +224,10 @@ pub(super) fn normalize_contact_record(alias: &str, rec: &mut ContactRecord) -> 
         }
         if rec.sig_fp != primary.sig_fp {
             rec.sig_fp = primary.sig_fp.clone();
+            mutated = true;
+        }
+        if rec.kem_pk != primary.kem_pk {
+            rec.kem_pk = primary.kem_pk.clone();
             mutated = true;
         }
         if rec.route_token != primary.route_token {
@@ -1016,10 +1021,35 @@ pub(super) fn tui_enforce_peer_not_blocked(
     }
 }
 
-pub(super) fn contacts_add(label: &str, fp: &str, route_token: Option<&str>, verify: bool) {
+pub(super) fn contacts_add(
+    label: &str,
+    fp: &str,
+    kem_pk: Option<&str>,
+    route_token: Option<&str>,
+    verify: bool,
+) {
     if !require_unlocked("contacts_add") {
         return;
     }
+    // NA-0633 (ENG-0038): if the peer's full identity KEM public key is supplied, verify it against
+    // the human-comparable fingerprint code BEFORE storing (fail-closed on a bad-hex or mismatch).
+    // This binds the verified code to the actual key the initiator will encapsulate to, so the
+    // responder must prove KEM-secret possession. `None` => a legacy/incomplete contact that the
+    // initiator cannot authenticate as a responder (the handshake init then fails closed).
+    let kem_pk_hex: Option<String> = match kem_pk {
+        Some(raw) => {
+            let bytes = match hex_decode(raw) {
+                Ok(b) => b,
+                Err(_) => print_error_marker("contacts_kem_pk_bad_hex"),
+            };
+            let computed = identity_fingerprint_from_pk(&bytes);
+            if !identity_pin_matches_seen(fp, &computed) {
+                print_error_marker("contacts_kem_pk_fp_mismatch");
+            }
+            Some(hex_encode(&bytes))
+        }
+        None => None,
+    };
     let status = if verify { "verified" } else { "pinned" };
     let route_token = match route_token {
         Some(raw) => {
@@ -1045,12 +1075,14 @@ pub(super) fn contacts_add(label: &str, fp: &str, route_token: Option<&str>, ver
         blocked: false,
         seen_at: None,
         sig_fp: None,
+        kem_pk: kem_pk_hex.clone(),
         route_token: route_token.clone(),
         primary_device_id: None,
         devices: vec![ContactDeviceRecord {
             device_id: device_id_short(label, None, fp),
             fp: fp.to_string(),
             sig_fp: None,
+            kem_pk: kem_pk_hex.clone(),
             state: legacy_contact_status_to_device_state(status).to_string(),
             route_token: route_token.clone(),
             seen_at: None,
@@ -1108,6 +1140,7 @@ pub(super) fn contacts_device_add(label: &str, fp: &str, route_token: Option<&st
         device_id: device_id.clone(),
         fp: fp.to_ascii_uppercase(),
         sig_fp: None,
+        kem_pk: None,
         state: "UNVERIFIED".to_string(),
         route_token,
         seen_at: None,
@@ -1447,12 +1480,14 @@ pub(super) fn contacts_route_set(label: &str, route_token: &str) {
             blocked: false,
             seen_at: None,
             sig_fp: None,
+            kem_pk: None,
             route_token: None,
             primary_device_id: None,
             devices: vec![ContactDeviceRecord {
                 device_id: device_id_short(label, None, "UNSET"),
                 fp: "UNSET".to_string(),
                 sig_fp: None,
+                kem_pk: None,
                 state: "UNVERIFIED".to_string(),
                 route_token: None,
                 seen_at: None,
@@ -1663,12 +1698,14 @@ pub(super) fn contacts_request_accept(label: &str) {
             blocked: false,
             seen_at: None,
             sig_fp: None,
+            kem_pk: None,
             route_token: None,
             primary_device_id: None,
             devices: vec![ContactDeviceRecord {
                 device_id: device_id_short(label, None, fp.as_str()),
                 fp: fp.clone(),
                 sig_fp: None,
+                kem_pk: None,
                 state: "UNVERIFIED".to_string(),
                 route_token: None,
                 seen_at: None,
@@ -1715,12 +1752,14 @@ pub(super) fn contacts_request_block(label: &str) {
             blocked: true,
             seen_at: None,
             sig_fp: None,
+            kem_pk: None,
             route_token: None,
             primary_device_id: None,
             devices: vec![ContactDeviceRecord {
                 device_id: device_id_short(label, None, "UNSET"),
                 fp: "UNSET".to_string(),
                 sig_fp: None,
+                kem_pk: None,
                 state: "REVOKED".to_string(),
                 route_token: None,
                 seen_at: None,

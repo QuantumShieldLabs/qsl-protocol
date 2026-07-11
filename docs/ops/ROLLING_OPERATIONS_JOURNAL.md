@@ -42916,3 +42916,49 @@ created`), and Phase 0 re-verified it with extra WF-0004 care. No lasting harm.
 The bundle is now reviewer-ready — commissioning the independent external review is the operator's
 external step and the true release gate. Queue back to READY=NONE. No package installed; no operator
 startup command run by the executor; the executor promoted no lane.
+
+## 2026-07-11 — NA-0632 (internal adversarial re-analysis of the Suite-2 core, D-1256): ONE P1 FINDING (ENG-0038), otherwise CHECKED-OK
+
+Ran the internal adversarial re-analysis per D569 in a fresh chat (to shed the prior sessions' "it is
+solid" narrative). Treated the standing "crypto core correctness-complete / no known gap" conclusion
+(NA-0619..0631) as the HYPOTHESIS UNDER TEST: re-derived every property from DOC-CAN-003/004 and the code,
+and re-checked each prior "verified/no-mutation/covered" assertion against current source rather than
+trusting it. Analysis lane — findings FILED, fixed in NO lane; no product/spec/vector/`formal`/`.github`/
+Cargo change; no compiled test; no claim moved.
+
+**The Suite-2 ratchet math held up.** The full non-test read of `tools/refimpl/quantumshield_refimpl/src/
+suite2/*.rs`, walked per the §COVERAGE contract, produced CHECKED-OK across the board: KDF labels byte-match
+§3; `nonce_hdr`/`nonce_body` are `(dh_pub, N)`-unique per direction (N monotonic + overflow-checked, dh_pub
+fresh per DH boundary, HK≠NHK); the RFC 7748 §6.1 non-contributory check (`is_zero32(dh_out)`) is on every
+live DH site incl. the handshake; counter overflow fails closed; every reject path returns the input state
+unchanged; the §8.5.1 NHK boundary header is NHK-only; the SCKA control plane is ADVAUTH-authenticated +
+one-time (consumed+tombstoned) + monotonic; the combined DH+PQ boundary composes identically on sender and
+receiver; parsing is strict/fail-closed and cross-frame-kind confusion is blocked by AD-bound flags;
+primitive USAGE is fail-closed with real backends (AES-256-GCM, KMAC-256, ML-KEM-768, ML-DSA-65, X25519).
+
+**But the handshake gave the finding.** ENG-0038 (P1): the SHIPPED `qsc` `QSC.HS.*` handshake authenticates
+the initiator TO the responder (the responder pins + uses the initiator's KEM identity key; possession
+proven by the A2 confirm MAC) but does NOT authenticate the responder to the initiator. The responder's
+only credential in B1 is its ML-DSA `sig_pk` (it sends no KEM key); the initiator verifies the signature
+under the key the responder SENT (self-consistent for any key); the OPTIONAL `sig_fp` pin that would catch
+a substituted key is structurally always `None` (`contacts_add`/`contacts_device_add` set it `None` even
+with `verify=true`, and nothing writes it back); and the REQUIRED "primary" KEM pin is inert here — the
+responder's KEM key is never sent/used B→A and the check is tautological. ⇒ an on-path attacker (e.g., the
+relay — squarely the self-hosted-relay threat model) can impersonate the responder to the initiator, and a
+correctly-verified out-of-band code does not prevent it. Mechanically corroborated by
+`NA-0632_sig_pin_probe.sh` and by the test infrastructure (`kem_signature_transcript_binding_negative.rs`
+must hand-inject `sig_fp` via `set_contact_sig_pin` because no product path sets it).
+
+This RE-TESTS AND CONTRADICTS the prior ENG-0001/NA-0609B conclusion "the verification-fingerprint model is
+COHERENT … there is no KEM-vs-SIG binding flaw" — exactly the kind of prior "verified" claim D569 required
+re-testing, and it does not hold on current code for the initiator→responder direction. Filed as ENG-0038;
+before-GUI triage says fix it BEFORE the GUI (options in the ledger + report §7). The `qsc` handshake
+authentication is UNMODELED by the ProVerif work (DOC-G4-002 covers the ratchet composition), so a
+ProVerif/Tamarin model of `QSC.HS.*` would decide the residual positive properties.
+
+Honest framing (BINDING, per D569): INTERNAL scrutiny, NOT the independent external review. It cannot
+certify absence — "found one issue and otherwise nothing" is not "the core is secure"; a fresh copy of the
+same model shares the deep blind spots of the sessions that built the code. F1 is a finding-by-trace
+corroborated by the test infrastructure, NOT a running PoC. The independent external human review remains
+the true release gate; no claim moved. Queue returns to READY=NONE — the operator promotes the ENG-0038
+fix lane (or the next candidate); the executor promoted no lane and ran no operator startup command.

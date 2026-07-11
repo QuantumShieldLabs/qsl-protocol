@@ -6,9 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0632 | HIGHEST_NA=0632 | HIGHEST_D=1255 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
-<!-- NA-0632 (internal adversarial core re-analysis) promoted to sole READY 2026-07-11, at the operator's explicit "promote it" instruction after approving directive D569. The executor made this mechanical promotion edit under that authorization; it did not self-promote. RUN IN A FRESH CHAT (qwork NA-0632 after this merges). -->
-<!-- prior: STATE: READY=NONE | HIGHEST_NA=0631 | HIGHEST_D=1255 (NA-0631 closeout, D-1255) -->
+`STATE: READY=NONE | HIGHEST_NA=0632 | HIGHEST_D=1256 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- NA-0632 (internal adversarial core re-analysis) DONE 2026-07-11 (D-1256). Result: ONE P1 FINDING — ENG-0038 (the qsc handshake does not authenticate the responder to the initiator; contradicts the prior ENG-0001/NA-0609B "no KEM-vs-SIG binding flaw" conclusion), otherwise CHECKED-OK. Before-GUI triage: FIX ENG-0038 before the GUI. Queue returns to READY=NONE — the operator promotes the ENG-0038 fix lane (or the next candidate). The executor cannot self-promote. -->
+<!-- prior: STATE: READY=NA-0632 | HIGHEST_NA=0632 | HIGHEST_D=1255 (NA-0632 promoted for D569) -->
 
 **READY (exactly one — execute this):** `NA-0628 — ENG-0034: reject non-contributory (low-order)
 X25519 on every LIVE DH path; ENG-0019: retire the auth-unsafe qsp skeleton` (directive
@@ -21,6 +21,7 @@ Its full block (with scope flags) is below under section 2; find it with the ANC
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
+0. **⚠ ENG-0038 = qsc handshake responder-auth gap — BEFORE-GUI BLOCKER (filed 2026-07-11 by NA-0632, P1).** The shipped `qsc` `QSC.HS.*` handshake does NOT authenticate the responder to the initiator: an on-path attacker (e.g., the relay) can impersonate the responder despite a correctly-verified out-of-band code (responder's only B1 credential is its ML-DSA `sig_pk`; the OPTIONAL `sig_fp` pin is structurally always `None`; the REQUIRED KEM pin is tautological/inert B→A). **Re-tests and CONTRADICTS the prior ENG-0001/NA-0609B "no KEM-vs-SIG binding flaw" conclusion.** Fix BEFORE the GUI (it is the establishment layer a GUI ships on). Design-lock-first: authenticate BOTH directions (wire the responder `sig_fp` pin and/or bind the responder's identity KEM key); add the report §B proof-of-issue test. Its own directive when the operator is ready. See `docs/governance/evidence/NA-0632_adversarial_reanalysis.md` §2/§6/§7.
 1. **ENG-0034 = NA-0628 (now READY)** — reject non-contributory (low-order) X25519 on every LIVE DH path. Directive D565 as amended by D565-A1 (2026-07-10). Live paths: `qsc`'s establishment `hs_dh_shared` (2 call sites) + the 4 Suite-2 ratchet sites — all of them SHIPPED-CLIENT paths (`qsc/src/main.rs:2320/:2657/:2683`). **ENG-0019 was UNFOLDED**: `qsp/**` is NOT dead code (it backs the REQUIRED `ci-4b` / `ci-4d-dur` checks); it is re-rated P2 and awaits its own directive.
 1a. **~~WF-0018 = strategic-docs truth-up~~ — DONE as NA-0629 (D-1253, 2026-07-10).** The strategic/program/public-review docs are current; the external-review package now records the ProVerif analysis. **Strongest next candidate: assemble the external-review bundle on these now-accurate inputs** (the roadmap's 90-day priority) — its own directive when the operator is ready.
 2. **ENG-0014** — qsl-server non-constant-time token compare (P2, cross-repo, cheap; Signal-Server `MessageDigest.isEqual` precedent). Good short lane whenever a slot opens.
@@ -34873,8 +34874,10 @@ Begins at D-1255. Docs/governance single-PR lane; claim-adjacent, fail-closed on
 ---
 
 ### NA-0632 — INTERNAL adversarial re-analysis of the Suite-2 crypto core (analysis lane: find issues, FILE them; fix nothing in-lane)
-Status: READY
+Status: DONE
 Goals: G1, G2, G4
+
+**DONE 2026-07-11 (D-1256).** Executed per D569. Result: **ONE P1 FINDING — ENG-0038**, otherwise CHECKED-OK. The refimpl Suite-2 core (`suite2/*.rs`) held up under the full §COVERAGE walk (KDF/nonce/non-contributory-DH/counter-overflow/no-mutation-on-reject/§8.5.1-NHK/SCKA-one-time/combined-boundary/parsing/primitive-usage). **ENG-0038 (P1):** the shipped `qsc` `QSC.HS.*` handshake does not authenticate the responder to the initiator (responder's only B1 credential is its ML-DSA `sig_pk`; the OPTIONAL `sig_fp` pin is structurally always `None`; the REQUIRED KEM pin is tautological/inert for this direction) ⇒ an on-path attacker (e.g., the relay) can impersonate the responder despite a correctly-verified out-of-band code. **RE-TESTS AND CONTRADICTS the prior ENG-0001/NA-0609B "no KEM-vs-SIG binding flaw" conclusion.** Before-GUI triage: FIX ENG-0038 before the GUI. INTERNAL scrutiny only — cannot certify absence; no claim moved; the independent external review is still the true gate. Report: `docs/governance/evidence/NA-0632_adversarial_reanalysis.md`; probe: `docs/governance/evidence/NA-0632_sig_pin_probe.sh`; testplan: `tests/NA-0632_adversarial_reanalysis_testplan.md`. Queue returns to READY=NONE (operator promotes the ENG-0038 fix lane / next).
 Docs-only allowed? Findings/governance only. Product source / canonical / vectors / `formal/` / `.github` / Cargo change? NO — a finding is FILED, not fixed (the NA-0627 analysis-lane rule). Claim change allowed? NO — this is internal scrutiny, not the independent review; it moves no claim.
 
 Objective:

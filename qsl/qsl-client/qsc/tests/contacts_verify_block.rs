@@ -218,6 +218,34 @@ fn pinned_mismatch_refuses_no_mutation() {
     init_vault(&alice_cfg);
     init_vault(&mallory_cfg);
 
+    // NA-0633 (ENG-0038, C1): alice + mallory need real identities so mallory (the initiator) can
+    // encapsulate to alice's identity KEM key. alice pins mallory to a MISMATCHED fingerprint (the
+    // test's point); mallory pins alice's REAL fp+kem so its init reaches alice, whereupon alice
+    // rejects on the responder-side fp mismatch (mallory's real fp != alice's pin).
+    for (cfg, label) in [(&alice_cfg, "alice"), (&mallory_cfg, "mallory")] {
+        let r = qsc_with_unlock(cfg)
+            .args(["identity", "rotate", "--as", label, "--confirm"])
+            .output()
+            .expect("identity rotate");
+        assert!(r.status.success(), "{}", output_text(&r));
+    }
+    let alice_show = output_text(
+        &qsc_with_unlock(&alice_cfg)
+            .args(["identity", "show", "--as", "alice"])
+            .output()
+            .expect("alice identity show"),
+    );
+    let alice_fp = alice_show
+        .lines()
+        .find_map(|l| l.strip_prefix("identity_fp="))
+        .expect("alice identity_fp")
+        .to_string();
+    let alice_kem = alice_show
+        .lines()
+        .find_map(|l| l.strip_prefix("identity_kem_pk="))
+        .expect("alice identity_kem_pk")
+        .to_string();
+
     let add = qsc_with_unlock(&alice_cfg)
         .args([
             "contacts",
@@ -241,7 +269,9 @@ fn pinned_mismatch_refuses_no_mutation() {
             "--label",
             "alice",
             "--fp",
-            "fp-alice-any",
+            alice_fp.as_str(),
+            "--kem-pk",
+            alice_kem.as_str(),
             "--route-token",
             ROUTE_TOKEN_ALICE,
         ])

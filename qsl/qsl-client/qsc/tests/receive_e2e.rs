@@ -95,6 +95,19 @@ fn identity_fp(cfg: &Path, label: &str, passphrase: &str) -> String {
         .unwrap_or_else(|| panic!("missing identity_fp marker: {}", combined_output(&out)))
 }
 
+fn identity_kem_pk(cfg: &Path, label: &str, passphrase: &str) -> String {
+    let out = qsc_with_unlock(cfg, passphrase)
+        .args(["identity", "show", "--as", label])
+        .output()
+        .expect("identity show");
+    assert!(out.status.success(), "{}", combined_output(&out));
+    combined_output(&out)
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_kem_pk="))
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| panic!("missing identity_kem_pk marker: {}", combined_output(&out)))
+}
+
 fn contacts_route_set(cfg: &Path, label: &str, token: &str, passphrase: Option<&str>) {
     let mut cmd = common::qsc_std_command();
     cmd.env("QSC_CONFIG_DIR", cfg);
@@ -120,7 +133,7 @@ fn contacts_route_set(cfg: &Path, label: &str, token: &str, passphrase: Option<&
 fn contacts_add_authenticated_with_route(
     cfg: &Path,
     label: &str,
-    fp: &str,
+    fp: &str, kem_pk: &str,
     token: &str,
     passphrase: &str,
 ) {
@@ -132,6 +145,8 @@ fn contacts_add_authenticated_with_route(
             label,
             "--fp",
             fp,
+            "--kem-pk",
+            kem_pk,
             "--route-token",
             token,
         ])
@@ -322,11 +337,14 @@ fn receive_mailbox_peer_separation_fail_closed() {
     identity_rotate(&alice_cfg, "alice", "test-pass-a");
     identity_rotate(&bob_cfg, "bob", "test-pass-b");
     let alice_fp = identity_fp(&alice_cfg, "alice", "test-pass-a");
+    let alice_kem = identity_kem_pk(&alice_cfg, "alice", "test-pass-a");
     let bob_fp = identity_fp(&bob_cfg, "bob", "test-pass-b");
+    let bob_kem = identity_kem_pk(&bob_cfg, "bob", "test-pass-b");
     contacts_add_authenticated_with_route(
         &alice_cfg,
         "bob",
         bob_fp.as_str(),
+        bob_kem.as_str(),
         ROUTE_TOKEN_BOB,
         "test-pass-a",
     );
@@ -334,6 +352,7 @@ fn receive_mailbox_peer_separation_fail_closed() {
         &bob_cfg,
         "alice",
         alice_fp.as_str(),
+        alice_kem.as_str(),
         ROUTE_TOKEN_ALICE,
         "test-pass-b",
     );

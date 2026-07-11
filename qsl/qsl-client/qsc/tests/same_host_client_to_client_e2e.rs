@@ -126,10 +126,20 @@ fn identity_fp(client: &ClientRoot, label: &str) -> (String, String) {
     (fp, text)
 }
 
+// NA-0633 (ENG-0038): extract the peer's full identity KEM public key from an `identity show` output,
+// required now to authenticate the responder (`contacts add --kem-pk`).
+fn identity_kem_pk(show: &str) -> String {
+    show.lines()
+        .find_map(|line| line.strip_prefix("identity_kem_pk="))
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| panic!("missing identity_kem_pk marker: {show}"))
+}
+
 fn contacts_add_trusted_with_route(
     client: &ClientRoot,
     label: &str,
     fp: &str,
+    kem_pk: &str,
     route_token: &str,
 ) -> Vec<String> {
     let add = run_success(
@@ -141,6 +151,8 @@ fn contacts_add_trusted_with_route(
             label,
             "--fp",
             fp,
+            "--kem-pk",
+            kem_pk,
             "--route-token",
             route_token,
         ],
@@ -204,18 +216,22 @@ fn setup_authenticated_pair() -> (ClientRoot, ClientRoot, Vec<String>) {
     outputs.push(init_identity(&bob, "bob"));
     let (alice_fp, alice_show) = identity_fp(&alice, "alice");
     let (bob_fp, bob_show) = identity_fp(&bob, "bob");
+    let alice_kem = identity_kem_pk(&alice_show);
+    let bob_kem = identity_kem_pk(&bob_show);
     outputs.push(alice_show);
     outputs.push(bob_show);
     outputs.extend(contacts_add_trusted_with_route(
         &alice,
         "bob",
         bob_fp.as_str(),
+        bob_kem.as_str(),
         ROUTE_TOKEN_BOB,
     ));
     outputs.extend(contacts_add_trusted_with_route(
         &bob,
         "alice",
         alice_fp.as_str(),
+        alice_kem.as_str(),
         ROUTE_TOKEN_ALICE,
     ));
     outputs.push(relay_inbox_set(&alice, ROUTE_TOKEN_ALICE));

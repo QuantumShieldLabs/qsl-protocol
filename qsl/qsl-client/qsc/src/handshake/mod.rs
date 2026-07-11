@@ -3,8 +3,9 @@
 use super::{
     cmd::HandshakeSuiteMode, config_dir, emit_marker, enforce_peer_not_blocked,
     enforce_safe_parents, fs, hex_encode, identity_fingerprint_from_pk, identity_marker_display,
-    identity_peer_status, identity_pin_matches_seen, identity_read_pin, identity_read_sig_pin,
-    identity_self_kem_keypair, init_from_base_handshake, kmac_out, print_error_marker,
+    identity_peer_status, identity_pin_matches_seen, identity_read_peer_kem_pk, identity_read_pin,
+    identity_read_sig_pin, identity_self_kem_keypair, init_from_base_handshake, kmac_out,
+    print_error_marker,
     qsp_send_ready_tuple, qsp_session_load, qsp_session_store, relay_peer_route_token,
     relay_self_inbox_route_token, require_unlocked, resolve_peer_device_target,
     runtime_pq_kem_ciphertext_bytes, runtime_pq_kem_keypair, runtime_pq_kem_public_key_bytes,
@@ -127,6 +128,10 @@ struct HsInit {
     kem_pk: Vec<u8>,
     sig_pk: Vec<u8>,
     dh_pub: [u8; 32],
+    /// NA-0633 (ENG-0038, C1): the initiator's ML-KEM encapsulation to the RESPONDER's pinned identity
+    /// KEM key. The responder must decapsulate it (proving identity-key possession) to derive the same
+    /// `pq_init_ss`; a wrong responder cannot, and fails the transcript MAC. Length = ML-KEM-768 ct.
+    resp_kem_ct: Vec<u8>,
 }
 
 #[derive(Clone, Debug)]
@@ -161,6 +166,14 @@ struct HandshakePending {
     dh_pub: Vec<u8>,
     #[serde(default)]
     sig_pk: Vec<u8>,
+    /// NA-0633 (ENG-0038, C1): the initiator's encapsulation to the responder's identity KEM key (kept
+    /// so the B1-processing transcript reconstruction is byte-identical to the A1 that was sent).
+    #[serde(default)]
+    resp_kem_ct: Vec<u8>,
+    /// NA-0633 (ENG-0038, C1): the shared secret from that encapsulation, mixed into pq_init_ss at B1
+    /// processing. A wrong responder cannot reproduce it.
+    #[serde(default)]
+    resp_kem_ss: Vec<u8>,
     #[serde(default)]
     peer_fp: Option<String>,
     #[serde(default)]
@@ -483,7 +496,11 @@ fn hs_decode_header(
 fn hs_encode_init(msg: &HsInit) -> Vec<u8> {
     let pk_len = hs_kem_pk_len();
     let sig_pk_len = hs_sig_pk_len();
-    if msg.kem_pk.len() != pk_len || msg.sig_pk.len() != sig_pk_len {
+    let ct_len = hs_kem_ct_len();
+    if msg.kem_pk.len() != pk_len
+        || msg.sig_pk.len() != sig_pk_len
+        || msg.resp_kem_ct.len() != ct_len
+    {
         return Vec::new();
     }
     let header_len = 4
@@ -493,7 +510,7 @@ fn hs_encode_init(msg: &HsInit) -> Vec<u8> {
             .suite_context
             .explicit_block()
             .map_or(0, |b| 2 + b.len());
-    let mut out = Vec::with_capacity(header_len + 16 + pk_len + sig_pk_len + 32);
+    let mut out = Vec::with_capacity(header_len + 16 + pk_len + sig_pk_len + 32 + ct_len);
     if !hs_encode_header(&mut out, HS_TYPE_INIT, &msg.suite_context) {
         return Vec::new();
     }
@@ -501,13 +518,15 @@ fn hs_encode_init(msg: &HsInit) -> Vec<u8> {
     out.extend_from_slice(&msg.kem_pk);
     out.extend_from_slice(&msg.sig_pk);
     out.extend_from_slice(&msg.dh_pub);
+    out.extend_from_slice(&msg.resp_kem_ct);
     out
 }
 
 fn hs_decode_init(bytes: &[u8], mode: HandshakeSuiteMode) -> Result<HsInit, &'static str> {
     let pk_len = hs_kem_pk_len();
     let sig_pk_len = hs_sig_pk_len();
-    let payload_len = 16 + pk_len + sig_pk_len + 32;
+    let ct_len = hs_kem_ct_len();
+    let payload_len = 16 + pk_len + sig_pk_len + 32 + ct_len;
     let (suite_context, off) = hs_decode_header(bytes, HS_TYPE_INIT, payload_len, mode, true)?;
     let mut sid = [0u8; 16];
     sid.copy_from_slice(&bytes[off..off + 16]);
@@ -517,12 +536,16 @@ fn hs_decode_init(bytes: &[u8], mode: HandshakeSuiteMode) -> Result<HsInit, &'st
     let mut dh_pub = [0u8; 32];
     let dh_off = pk_off + pk_len + sig_pk_len;
     dh_pub.copy_from_slice(&bytes[dh_off..dh_off + 32]);
+    // NA-0633 (ENG-0038, C1): the initiator's encapsulation to the responder's identity KEM key.
+    let ct_off = dh_off + 32;
+    let resp_kem_ct = bytes[ct_off..(ct_off + ct_len)].to_vec();
     Ok(HsInit {
         suite_context,
         session_id: sid,
         kem_pk,
         sig_pk,
         dh_pub,
+        resp_kem_ct,
     })
 }
 
@@ -770,11 +793,24 @@ fn hs_append_key_context(data: &mut Vec<u8>, ctx: &HsSuiteContext) {
     }
 }
 
-fn hs_pq_init_ss(ss_pq: &[u8], session_id: &[u8; 16], ctx: &HsSuiteContext) -> [u8; 32] {
+fn hs_pq_init_ss(
+    ss_pq: &[u8],
+    session_id: &[u8; 16],
+    resp_kem_ss: &[u8],
+    ctx: &HsSuiteContext,
+) -> [u8; 32] {
     let c = StdCrypto;
-    let mut data = Vec::with_capacity(16 + 1 + hs_context_len(ctx));
+    let mut data = Vec::with_capacity(16 + 1 + 2 + resp_kem_ss.len() + hs_context_len(ctx));
     data.extend_from_slice(session_id);
     data.push(0x01);
+    // NA-0633 (ENG-0038, construction C1): mix the responder-identity KEM shared secret. The initiator
+    // encapsulated to the peer's PINNED identity KEM key; only the holder of that secret decapsulates the
+    // same `resp_kem_ss`. Binding it here binds pq_init_ss — hence the transcript MAC AND the Suite-2 root
+    // — to the responder's verified identity, so a wrong responder derives a different value and fails the
+    // initiator's transcript-MAC check (explicit reject at B1). A length prefix keeps the encoding
+    // unambiguous. Both sides feed the identical 32-byte secret.
+    data.extend_from_slice(&(resp_kem_ss.len() as u16).to_be_bytes());
+    data.extend_from_slice(resp_kem_ss);
     hs_append_key_context(&mut data, ctx);
     kmac_out::<32>(&c, ss_pq, "QSC.HS.PQ", &data)
 }
@@ -1258,6 +1294,31 @@ fn perform_handshake_init_with_route(
             return Err("identity_pin_failed");
         }
     };
+    // NA-0633 (ENG-0038, C1): load the peer's PINNED identity KEM key and encapsulate to it, so the
+    // responder must prove KEM-secret possession to complete the handshake. A contact without the full
+    // key (legacy/incomplete) fails closed here — no fallback to the unauthenticated path.
+    let peer_kem_pk = match identity_read_peer_kem_pk(peer) {
+        Ok(Some(k)) => k,
+        _ => {
+            emit_marker(
+                "handshake_reject",
+                None,
+                &[("reason", "peer_identity_key_missing")],
+            );
+            return Err("peer_identity_key_missing");
+        }
+    };
+    let (resp_kem_ct, resp_kem_ss) = match StdCrypto.encap(&peer_kem_pk) {
+        Ok(v) => v,
+        Err(_) => {
+            emit_marker(
+                "handshake_reject",
+                None,
+                &[("reason", "peer_identity_key_invalid")],
+            );
+            return Err("peer_identity_key_invalid");
+        }
+    };
     let IdentityKeypair {
         kem_pk,
         kem_sk,
@@ -1276,6 +1337,7 @@ fn perform_handshake_init_with_route(
         kem_pk: kem_pk.clone(),
         sig_pk: sig_pk.clone(),
         dh_pub,
+        resp_kem_ct: resp_kem_ct.clone(),
     };
     let bytes = hs_encode_init(&msg);
     if bytes.is_empty() {
@@ -1290,6 +1352,8 @@ fn perform_handshake_init_with_route(
         dh_sk: dh_sk.to_vec(),
         dh_pub: dh_pub.to_vec(),
         sig_pk,
+        resp_kem_ct: resp_kem_ct.clone(),
+        resp_kem_ss: resp_kem_ss.clone(),
         peer_sig_fp: None,
         peer_sig_pk: None,
         peer_fp: Some(peer_fp),
@@ -1308,6 +1372,9 @@ fn perform_handshake_init_with_route(
     let size_s = bytes.len().to_string();
     let pk_len_s = hs_kem_pk_len().to_string();
     let sig_pk_len_s = hs_sig_pk_len().to_string();
+    // NA-0633 (ENG-0038, C1): A1 now also carries the initiator's encapsulation to the responder's
+    // identity KEM key (one ML-KEM ciphertext); report its length so consumers can assert the layout.
+    let resp_kem_ct_len_s = hs_kem_ct_len().to_string();
     let hs_version_s = suite_context.wire_version().to_string();
     emit_marker(
         "handshake_send",
@@ -1317,6 +1384,7 @@ fn perform_handshake_init_with_route(
             ("size", size_s.as_str()),
             ("kem_pk_len", pk_len_s.as_str()),
             ("sig_pk_len", sig_pk_len_s.as_str()),
+            ("resp_kem_ct_len", resp_kem_ct_len_s.as_str()),
             ("hs_version", hs_version_s.as_str()),
             ("suite_context", suite_context.mode_label()),
         ],
@@ -1445,8 +1513,15 @@ fn perform_handshake_poll_with_tokens(
                                 return Ok(());
                             }
                         };
-                        let pq_init_ss =
-                            hs_pq_init_ss(&ss_pq, &resp.session_id, &active_suite_context);
+                        // NA-0633 (ENG-0038, C1): mix the responder-identity KEM secret the initiator
+                        // encapsulated at init time; the transcript MAC below then only verifies if the
+                        // responder decapsulated the SAME secret (i.e. holds the pinned identity key).
+                        let pq_init_ss = hs_pq_init_ss(
+                            &ss_pq,
+                            &resp.session_id,
+                            &pending.resp_kem_ss,
+                            &active_suite_context,
+                        );
                         if hs_dh_pub_is_all_zero(&resp.dh_pub) {
                             emit_marker("handshake_reject", None, &[("reason", "dh_pub_invalid")]);
                             return Ok(());
@@ -1482,6 +1557,7 @@ fn perform_handshake_poll_with_tokens(
                             kem_pk: pending.kem_pk.clone(),
                             sig_pk: pending.sig_pk.clone(),
                             dh_pub: dh_self_pub,
+                            resp_kem_ct: pending.resp_kem_ct.clone(),
                         });
                         let b1_no_auth = hs_encode_resp_no_auth(
                             &resp.session_id,
@@ -1889,7 +1965,30 @@ fn perform_handshake_poll_with_tokens(
                         continue;
                     }
                 };
-                let pq_init_ss = hs_pq_init_ss(&ss_pq, &init.session_id, &init.suite_context);
+                // NA-0633 (ENG-0038, C1): decapsulate the initiator's encapsulation to OUR identity KEM
+                // key using our identity KEM secret. Only the holder of that secret derives the same
+                // `resp_kem_ss`; mixing it into pq_init_ss makes our transcript MAC verifiable ONLY by an
+                // initiator who encapsulated to our REAL identity key — so a wrong responder (which cannot
+                // decapsulate) produces a MAC the initiator rejects (the ENG-0038 fix, receiver half).
+                let resp_kem_ss = match identity_self_kem_keypair(self_label) {
+                    Ok(k) => match c.decap(&k.kem_sk, &init.resp_kem_ct) {
+                        Ok(ss) => ss,
+                        Err(_) => {
+                            emit_marker(
+                                "handshake_reject",
+                                None,
+                                &[("reason", "resp_kem_decap_failed")],
+                            );
+                            continue;
+                        }
+                    },
+                    Err(_) => {
+                        emit_marker("handshake_reject", None, &[("reason", "identity_missing")]);
+                        continue;
+                    }
+                };
+                let pq_init_ss =
+                    hs_pq_init_ss(&ss_pq, &init.session_id, &resp_kem_ss, &init.suite_context);
                 let (dh_sk, dh_self_pub) = hs_ephemeral_keypair();
                 let dh_shared = match hs_dh_shared(&dh_sk, &init.dh_pub) {
                     Ok(v) => v,
@@ -1976,6 +2075,8 @@ fn perform_handshake_poll_with_tokens(
                     dh_sk: dh_sk.to_vec(),
                     dh_pub: dh_self_pub.to_vec(),
                     sig_pk: Vec::new(),
+                    resp_kem_ct: Vec::new(),
+                    resp_kem_ss: Vec::new(),
                     peer_fp: Some(peer_fp),
                     peer_sig_fp: Some(peer_sig_fp),
                     peer_sig_pk: Some(init.sig_pk.clone()),

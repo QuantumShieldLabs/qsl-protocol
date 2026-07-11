@@ -61,7 +61,21 @@ fn identity_show_fp(cfg: &Path, label: &str) -> String {
         .expect("identity_fp in output")
 }
 
-fn contacts_add(cfg: &Path, peer: &str, fp: &str, token: &str) -> Output {
+// NA-0633 (ENG-0038): the peer's full identity KEM key, needed to authenticate it as the responder.
+fn identity_show_kem(cfg: &Path, label: &str) -> String {
+    let out = common::qsc_std_command()
+        .env("QSC_CONFIG_DIR", cfg)
+        .args(["identity", "show", "--as", label])
+        .output()
+        .expect("identity show");
+    assert!(out.status.success(), "{}", out_text(&out));
+    out_text(&out)
+        .lines()
+        .find_map(|l| l.strip_prefix("identity_kem_pk=").map(str::to_string))
+        .expect("identity_kem_pk in output")
+}
+
+fn contacts_add(cfg: &Path, peer: &str, fp: &str, kem_pk: &str, token: &str) -> Output {
     common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .args([
@@ -71,6 +85,8 @@ fn contacts_add(cfg: &Path, peer: &str, fp: &str, token: &str) -> Output {
             peer,
             "--fp",
             fp,
+            "--kem-pk",
+            kem_pk,
             "--route-token",
             token,
         ])
@@ -121,10 +137,12 @@ fn second_divergent_self_label_fails_closed() {
     let peer_cfg = fresh_cfg("divergent_peer");
     assert!(rotate(&peer_cfg, "self").status.success());
     let peer_fp = identity_show_fp(&peer_cfg, "self");
+    let peer_kem = identity_show_kem(&peer_cfg, "self");
     assert!(contacts_add(
         &cfg,
         "peer0",
         &peer_fp,
+        &peer_kem,
         "route_token_peer0_abcdefghijklmnop"
     )
     .status

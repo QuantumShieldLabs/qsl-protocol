@@ -64,11 +64,21 @@ fn identity_fp(iso: &common::TestIsolation, cfg: &Path, label: &str) -> String {
         .unwrap_or_else(|| panic!("missing identity_fp in output: {}", output_text(&out)))
 }
 
+fn identity_kem_pk(iso: &common::TestIsolation, cfg: &Path, label: &str) -> String {
+    let out = run_qsc(iso, cfg, &["identity", "show", "--as", label]);
+    assert!(out.status.success(), "{}", output_text(&out));
+    output_text(&out)
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_kem_pk="))
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| panic!("missing identity_kem_pk in output: {}", output_text(&out)))
+}
+
 fn contacts_add_authenticated_with_route(
     iso: &common::TestIsolation,
     cfg: &Path,
     label: &str,
-    fp: &str,
+    fp: &str, kem_pk: &str,
     token: &str,
 ) {
     let out = run_qsc(
@@ -81,6 +91,8 @@ fn contacts_add_authenticated_with_route(
             label,
             "--fp",
             fp,
+            "--kem-pk",
+            kem_pk,
             "--route-token",
             token,
         ],
@@ -200,9 +212,11 @@ fn handshake_backed_send_receive_uses_qsp_without_seed_fallback() {
     init_identity(&iso, &alice_cfg, "alice");
     init_identity(&iso, &bob_cfg, "bob");
     let alice_fp = identity_fp(&iso, &alice_cfg, "alice");
+    let alice_kem = identity_kem_pk(&iso, &alice_cfg, "alice");
     let bob_fp = identity_fp(&iso, &bob_cfg, "bob");
-    contacts_add_authenticated_with_route(&iso, &alice_cfg, "bob", &bob_fp, ROUTE_TOKEN_BOB);
-    contacts_add_authenticated_with_route(&iso, &bob_cfg, "alice", &alice_fp, ROUTE_TOKEN_ALICE);
+    let bob_kem = identity_kem_pk(&iso, &bob_cfg, "bob");
+    contacts_add_authenticated_with_route(&iso, &alice_cfg, "bob", &bob_fp, &bob_kem, ROUTE_TOKEN_BOB);
+    contacts_add_authenticated_with_route(&iso, &bob_cfg, "alice", &alice_fp, &alice_kem, ROUTE_TOKEN_ALICE);
     relay_inbox_set(&iso, &alice_cfg, ROUTE_TOKEN_ALICE);
     relay_inbox_set(&iso, &bob_cfg, ROUTE_TOKEN_BOB);
 

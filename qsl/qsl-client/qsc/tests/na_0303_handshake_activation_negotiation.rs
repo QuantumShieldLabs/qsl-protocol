@@ -69,7 +69,17 @@ fn identity_fp(cfg: &Path, label: &str) -> String {
         .unwrap_or_else(|| panic!("missing identity_fp in output: {}", output_text(&out)))
 }
 
-fn contacts_add_authenticated_with_route(cfg: &Path, label: &str, fp: &str, token: &str) {
+fn identity_kem_pk(cfg: &Path, label: &str) -> String {
+    let out = run_qsc(cfg, &["identity", "show", "--as", label]);
+    assert!(out.status.success(), "{}", output_text(&out));
+    output_text(&out)
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_kem_pk="))
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| panic!("missing identity_kem_pk in output: {}", output_text(&out)))
+}
+
+fn contacts_add_authenticated_with_route(cfg: &Path, label: &str, fp: &str, kem_pk: &str, token: &str) {
     let out = run_qsc(
         cfg,
         &[
@@ -79,6 +89,8 @@ fn contacts_add_authenticated_with_route(cfg: &Path, label: &str, fp: &str, toke
             label,
             "--fp",
             fp,
+            "--kem-pk",
+            kem_pk,
             "--route-token",
             token,
         ],
@@ -110,9 +122,11 @@ fn seed_authenticated_pair(alice_cfg: &Path, bob_cfg: &Path) {
     init_identity(alice_cfg, "alice");
     init_identity(bob_cfg, "bob");
     let alice_fp = identity_fp(alice_cfg, "alice");
+    let alice_kem = identity_kem_pk(alice_cfg, "alice");
     let bob_fp = identity_fp(bob_cfg, "bob");
-    contacts_add_authenticated_with_route(alice_cfg, "bob", bob_fp.as_str(), ROUTE_TOKEN_BOB);
-    contacts_add_authenticated_with_route(bob_cfg, "alice", alice_fp.as_str(), ROUTE_TOKEN_ALICE);
+    let bob_kem = identity_kem_pk(bob_cfg, "bob");
+    contacts_add_authenticated_with_route(alice_cfg, "bob", bob_fp.as_str(), bob_kem.as_str(), ROUTE_TOKEN_BOB);
+    contacts_add_authenticated_with_route(bob_cfg, "alice", alice_fp.as_str(), alice_kem.as_str(), ROUTE_TOKEN_ALICE);
     relay_inbox_set(alice_cfg, ROUTE_TOKEN_ALICE);
     relay_inbox_set(bob_cfg, ROUTE_TOKEN_BOB);
 }

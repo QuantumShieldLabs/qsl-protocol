@@ -639,3 +639,19 @@ pub(super) fn identity_read_sig_pin(peer: &str) -> Result<Option<String>, ErrorC
             .or(v.sig_fp)
     }))
 }
+
+/// NA-0633 (ENG-0038): the peer's full identity KEM public key (decoded), verified against the pinned
+/// fingerprint at add-time. The initiator encapsulates to it so the responder must prove KEM-secret
+/// possession (construction C1). `None` => a legacy/incomplete contact ⇒ the initiator fails closed.
+pub(super) fn identity_read_peer_kem_pk(peer: &str) -> Result<Option<Vec<u8>>, ErrorCode> {
+    let peer_alias = peer_alias_from_channel(peer);
+    let hex = contacts_entry_read(peer_alias)?.and_then(|v| {
+        primary_device(&v)
+            .and_then(|d| d.kem_pk.clone())
+            .or(v.kem_pk)
+    });
+    Ok(match hex {
+        Some(h) => hex_decode(&h).ok(),
+        None => None,
+    })
+}

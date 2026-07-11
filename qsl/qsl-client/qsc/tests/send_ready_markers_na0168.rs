@@ -56,6 +56,22 @@ fn identity_fp(cfg: &Path, label: &str) -> String {
     panic!("missing identity_fp marker: {}", text);
 }
 
+fn identity_kem_pk(cfg: &Path, label: &str) -> String {
+    let out = common::qsc_std_command()
+        .env("QSC_CONFIG_DIR", cfg)
+        .args(["identity", "show", "--as", label])
+        .output()
+        .expect("identity show");
+    assert!(out.status.success(), "{}", combined_output(&out));
+    let text = combined_output(&out);
+    for line in text.lines() {
+        if let Some(v) = line.strip_prefix("identity_kem_pk=") {
+            return v.to_string();
+        }
+    }
+    panic!("missing identity_kem_pk marker: {}", text);
+}
+
 fn init_identity(cfg: &Path, label: &str) {
     let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
@@ -65,7 +81,7 @@ fn init_identity(cfg: &Path, label: &str) {
     assert!(out.status.success(), "{}", combined_output(&out));
 }
 
-fn contacts_add_pinned_with_route(cfg: &Path, label: &str, fp: &str, token: &str) {
+fn contacts_add_pinned_with_route(cfg: &Path, label: &str, fp: &str, kem_pk: &str, token: &str) {
     let out = common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .args([
@@ -75,6 +91,8 @@ fn contacts_add_pinned_with_route(cfg: &Path, label: &str, fp: &str, token: &str
             label,
             "--fp",
             fp,
+            "--kem-pk",
+            kem_pk,
             "--route-token",
             token,
         ])
@@ -107,9 +125,11 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
     init_identity(&alice_cfg, "alice");
     init_identity(&bob_cfg, "bob");
     let alice_fp = identity_fp(&alice_cfg, "alice");
+    let alice_kem = identity_kem_pk(&alice_cfg, "alice");
     let bob_fp = identity_fp(&bob_cfg, "bob");
-    contacts_add_pinned_with_route(&alice_cfg, "bob", bob_fp.as_str(), ROUTE_TOKEN_BOB);
-    contacts_add_pinned_with_route(&bob_cfg, "alice", alice_fp.as_str(), ROUTE_TOKEN_ALICE);
+    let bob_kem = identity_kem_pk(&bob_cfg, "bob");
+    contacts_add_pinned_with_route(&alice_cfg, "bob", bob_fp.as_str(), bob_kem.as_str(), ROUTE_TOKEN_BOB);
+    contacts_add_pinned_with_route(&bob_cfg, "alice", alice_fp.as_str(), alice_kem.as_str(), ROUTE_TOKEN_ALICE);
     relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
     relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
 

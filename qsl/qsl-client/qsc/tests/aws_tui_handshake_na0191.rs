@@ -127,6 +127,15 @@ fn tui_handshake_completes_after_restart_na0191() {
         .lines()
         .find_map(|line| line.strip_prefix("identity_fp="))
         .expect("bob identity fp");
+    // NA-0633 (ENG-0038, C1): the peer's full identity KEM key, needed to authenticate the responder.
+    let alice_kem = alice_show
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_kem_pk="))
+        .expect("alice identity_kem_pk");
+    let bob_kem = bob_show
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_kem_pk="))
+        .expect("bob identity_kem_pk");
     let alice_code = format_verification_code_from_fingerprint(alice_fp);
     let bob_code = format_verification_code_from_fingerprint(bob_fp);
 
@@ -155,6 +164,8 @@ fn tui_handshake_completes_after_restart_na0191() {
             "Bob",
             "--fp",
             &bob_code,
+            "--kem-pk",
+            bob_kem,
             "--route-token",
             ROUTE_TOKEN_BOB,
             "--verify",
@@ -169,6 +180,8 @@ fn tui_handshake_completes_after_restart_na0191() {
             "Alice",
             "--fp",
             &alice_code,
+            "--kem-pk",
+            alice_kem,
             "--route-token",
             ROUTE_TOKEN_ALICE,
         ],

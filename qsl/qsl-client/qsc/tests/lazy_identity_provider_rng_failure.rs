@@ -101,11 +101,21 @@ fn identity_fp(iso: &common::TestIsolation, cfg: &Path, label: &str) -> String {
         .unwrap_or_else(|| panic!("missing identity_fp in output: {}", output_text(&out)))
 }
 
+fn identity_kem_pk(iso: &common::TestIsolation, cfg: &Path, label: &str) -> String {
+    let out = run_qsc(iso, cfg, &["identity", "show", "--as", label]);
+    assert_success(&out);
+    output_text(&out)
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_kem_pk="))
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| panic!("missing identity_kem_pk in output: {}", output_text(&out)))
+}
+
 fn contacts_add_authenticated_with_route(
     iso: &common::TestIsolation,
     cfg: &Path,
     label: &str,
-    fp: &str,
+    fp: &str, kem_pk: &str,
     token: &str,
 ) {
     let out = run_qsc(
@@ -118,6 +128,8 @@ fn contacts_add_authenticated_with_route(
             label,
             "--fp",
             fp,
+            "--kem-pk",
+            kem_pk,
             "--route-token",
             token,
         ],
@@ -128,7 +140,8 @@ fn contacts_add_authenticated_with_route(
 fn seed_peer_only(iso: &common::TestIsolation, alice_cfg: &Path, bob_cfg: &Path) {
     init_identity(iso, bob_cfg, "bob");
     let bob_fp = identity_fp(iso, bob_cfg, "bob");
-    contacts_add_authenticated_with_route(iso, alice_cfg, "bob", bob_fp.as_str(), ROUTE_TOKEN_BOB);
+    let bob_kem = identity_kem_pk(iso, bob_cfg, "bob");
+    contacts_add_authenticated_with_route(iso, alice_cfg, "bob", bob_fp.as_str(), bob_kem.as_str(), ROUTE_TOKEN_BOB);
 }
 
 fn handshake_init_with_forced_rng_failure(

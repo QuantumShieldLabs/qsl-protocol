@@ -6,9 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0633 | HIGHEST_NA=0633 | HIGHEST_D=1256 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
-<!-- NA-0633 (ENG-0038 fix: authenticate the responder to the initiator in the qsc QSC.HS.* handshake) promoted to sole READY 2026-07-11 at the operator's explicit "promote it" instruction after approving directive D570. The executor made this MECHANICAL promotion edit under that authorization; it did NOT self-promote. NA-0632 (D-1256) filed ENG-0038 as the P1 before-GUI blocker; this lane fixes it (design-lock-first, PoC-first). After this promotion PR merges, the operator runs `qwork NA-0633 qsl-protocol` (merge BEFORE qwork — the NA-0631 lesson). -->
-<!-- prior: STATE: READY=NONE | HIGHEST_NA=0632 | HIGHEST_D=1256 (NA-0632 closeout, D-1256; ENG-0038 filed) -->
+`STATE: READY=NONE | HIGHEST_NA=0633 | HIGHEST_D=1257 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- NA-0633 (ENG-0038 fix, construction C1) DONE 2026-07-11 (D-1257). The shipped qsc handshake now authenticates the responder to the initiator against its pinned identity KEM key (A1 gains resp_kem_ct; ss_B mixed into pq_init_ss; a wrong responder fails the transcript MAC → explicit reject at B1). ENG-0038 REMEDIATED. Closes the DOC-CAN-003 §6.3 gap for the initiator path + the ENG-0001/NA-0609B conclusion NA-0632 contradicted. Claim boundary otherwise UNCHANGED. Queue returns to READY=NONE — the operator promotes the successor (a ProVerif model of QSC.HS.*, the GUI lane, or the independent external review). The executor cannot self-promote. -->
+<!-- prior: STATE: READY=NA-0633 | HIGHEST_NA=0633 | HIGHEST_D=1256 (NA-0633 promoted for D570) -->
 
 **READY (exactly one — execute this):** `NA-0633 — ENG-0038 fix: authenticate the responder to the
 initiator in the qsc QSC.HS.* handshake (close the KEM-vs-SIG asymmetry)` (directive
@@ -34891,7 +34891,9 @@ Begins at D-1256. Analysis lane; findings filed, not fixed.
 ---
 
 ### NA-0633 — ENG-0038 fix: authenticate the responder to the initiator in the qsc QSC.HS.* handshake (close the KEM-vs-SIG asymmetry), design-lock-first, PoC-first
-Status: READY
+Status: DONE
+
+**DONE 2026-07-11 (D-1257).** ENG-0038 FIXED via construction C1 (D570). PoC-first: Phase 0 reproduced ENG-0038 end-to-end (real binary). The shipped `qsc` handshake now authenticates the responder to the initiator against its PINNED identity KEM key: a contact carries the peer's full identity KEM key (`contacts add --kem-pk`, verified against the code); A1 gains a trailing `resp_kem_ct`; `hs_pq_init_ss` mixes `resp_kem_ss` so a responder that cannot decapsulate fails the initiator's transcript MAC → explicit reject at B1, no session. Proven: `tests/NA_0633_eng0038_reproduction.rs` (wrong responder REJECTED + genuine responder establishes); ~26 migrated handshake tests + the handshake-critical/e2e set green locally. Closes the DOC-CAN-003 §6.3 gap (DOC-AUD-002 §178) + the ENG-0001/NA-0609B conclusion NA-0632 contradicted. Claim boundary otherwise UNCHANGED. Queue returns to READY=NONE — the operator promotes the successor (a ProVerif model of QSC.HS.*, the GUI lane, or the independent external review).
 Goals: G1, G2, G3, G4
 Wire/behavior change allowed? YES (D570 — the fix IS a wire/behavior change; fail-closed).
 Crypto/state-machine change allowed? YES (handshake authentication / establishment).

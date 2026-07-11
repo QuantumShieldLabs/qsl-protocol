@@ -42962,3 +42962,43 @@ same model shares the deep blind spots of the sessions that built the code. F1 i
 corroborated by the test infrastructure, NOT a running PoC. The independent external human review remains
 the true release gate; no claim moved. Queue returns to READY=NONE — the operator promotes the ENG-0038
 fix lane (or the next candidate); the executor promoted no lane and ran no operator startup command.
+
+## 2026-07-11 — NA-0633 (ENG-0038 fix, construction C1, D-1257): the responder is now authenticated to the initiator
+
+Fixed ENG-0038 (the P1 the NA-0632 adversarial pass found) per D570, PoC-first. **Phase 0 first
+REPRODUCED the bug end-to-end** with the real qsc binary and no forged frames: two real identities
+(alice + a wrong responder "mallory" occupying bob's channel) and alice committed a Suite-2 session to
+mallory while believing it was the pinned/verified bob — upgrading the NA-0632 finding-by-trace to a
+demonstrated bug. Only then did I fix it.
+
+**The design-lock offered three constructions; the operator chose C1** at the checkpoint (contact carries
+the peer's full identity KEM key + the initiator encapsulates to it in A1 — cleanest, explicit reject,
+contact holds the real key), over C2 (4-message symmetric) and C3 (implicit binding). As-built: a contact
+now carries the peer's full identity KEM public key (`contacts add --fp <code> --kem-pk <hex>`, verified
+`fingerprint(kem_pk)==code` at add-time; `identity show`/`rotate` emit `identity_kem_pk=`). A1 gains a
+trailing ML-KEM ciphertext `resp_kem_ct` (B1/A2 unchanged). `hs_pq_init_ss` mixes `resp_kem_ss` — the
+initiator's `Encap(peer_kem_pk)` at init, the responder's `Decap(own_identity_kem_sk, resp_kem_ct)` — so
+the transcript MAC and the Suite-2 root are bound to the responder's verified identity. A responder that
+cannot decapsulate (does not hold the pinned identity key) derives a different `resp_kem_ss`, fails the
+initiator's transcript MAC, and is REJECTED at B1 with no committed session. Fail-closed everywhere: a
+contact without the key refuses to initiate (`peer_identity_key_missing`); `peer_identity_key_invalid`;
+`resp_kem_decap_failed`. No fallback to the unauthenticated path; no silent TOFU.
+
+**Proven** by `tests/NA_0633_eng0038_reproduction.rs` (which began as the Phase-0 reproduction and now
+asserts the security property): a wrong responder is REJECTED and the genuine responder still establishes.
+
+**Test fallout, handled.** The wire + provisioning change broke ~26 existing handshake tests (they added
+contacts without the key) + a handful that hardcode A1 byte-offsets. Migrated all of them to provision the
+peer KEM key (`identity show` → `identity_kem_pk`, `contacts add --kem-pk`) and updated the A1-length
+assertions (A1 grew by one ML-KEM ciphertext; I also added `resp_kem_ct_len` to the A1 send-marker). The
+handshake-critical/e2e set is green locally (handshake_mvp 18, same_host 4, two_client_runbook 3, kem_sig 5,
+na_0304/na_0313, identity_binding 3, handshake_security 4, na_0616 4; the reproduction 2/2); the full qsc
+suite is the CI gate.
+
+This CLOSES the DOC-CAN-003 §6.3 "authenticate peer identity before Suite-2 state is committed" gap for the
+initiator path — the gap DOC-AUD-002 §178 recorded and the ENG-0001/NA-0609B "no KEM-vs-SIG binding flaw"
+conclusion that NA-0632 contradicted. **The claim boundary is otherwise UNCHANGED: no post-compromise/PQ
+claim moves** (still gated by the A1–A8 abstractions, ENG-0035, and the independent external review, which
+remains the true release gate). Queue returns to READY=NONE; the executor promoted no lane. Successor
+candidates: a ProVerif/Tamarin model of `QSC.HS.*` (proves the fix), the GUI lane (unblocked on this axis),
+and the independent external review.

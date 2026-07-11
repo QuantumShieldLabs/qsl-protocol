@@ -117,3 +117,34 @@ surfaced to the operator at this design-lock checkpoint before implementation, p
   a fingerprint-mismatch negative; a malformed-`ek_B` negative.
 - Claim matrix / DOC-CAN-003 §6.3: note that the shipped handshake now authenticates BOTH directions
   (previously only the initiator→responder direction held). No post-compromise/PQ claim moves.
+
+## AS-BUILT (C1, implemented)
+
+**Provisioning.** A contact carries the peer's full identity KEM public key (`ContactRecord.kem_pk` /
+`ContactDeviceRecord.kem_pk`, hex). `contacts add --fp <code> --kem-pk <hex>` verifies
+`fingerprint(kem_pk) == <code>` at add-time (fail-closed: `contacts_kem_pk_bad_hex` /
+`contacts_kem_pk_fp_mismatch`). `identity show` / `identity rotate` emit `identity_kem_pk=<hex>` for the
+peer to provision. A contact without the key is a legacy/incomplete contact.
+
+**Wire.** A1 (`HsInit`) gains a trailing field `resp_kem_ct` = one ML-KEM-768 ciphertext, appended after
+`dh_pub`: `header || session_id || kem_pk || sig_pk || dh_pub || resp_kem_ct`. B1 and A2 are UNCHANGED.
+The A1 send-marker reports `resp_kem_ct_len`.
+
+**Key schedule.** `hs_pq_init_ss(ss_pq, session_id, resp_kem_ss, ctx) = KMAC(ss_pq, "QSC.HS.PQ",
+session_id || 0x01 || u16(len(resp_kem_ss)) || resp_kem_ss || ctx)`. `resp_kem_ss` is the shared secret
+of the A1 encapsulation: the initiator computes it via `Encap(peer_kem_pk)` at init; the responder via
+`Decap(own_identity_kem_sk, resp_kem_ct)`. This binds `pq_init_ss` — hence the transcript MAC AND the
+Suite-2 root — to the responder's verified identity.
+
+**Fail-closed reject codes (initiator init / responder A1):** `peer_identity_key_missing` (initiator has
+no provisioned peer KEM key ⇒ refuses to initiate); `peer_identity_key_invalid` (encapsulation fails);
+`resp_kem_decap_failed` (responder cannot decapsulate — malformed ciphertext). A wrong responder that
+holds a different identity key decapsulates a DIFFERENT `resp_kem_ss` and fails the initiator's transcript
+MAC check → the existing `REJECT_QSC_HS_TRANSCRIPT_CONTEXT` / `bad_transcript` reject at B1 (no session).
+
+**Property.** The initiator authenticates the responder against the SAME KEM identity it verifies
+out-of-band. Proven end-to-end (`tests/NA_0633_eng0038_reproduction.rs`): a wrong responder is REJECTED;
+the genuine responder still establishes. The initiator→responder direction is unchanged (no regression).
+This satisfies the DOC-CAN-003 §6.3 "authenticate peer identity before Suite-2 state is committed"
+precondition for the shipped initiator path (the gap DOC-AUD-002 §178 recorded). No post-compromise/PQ
+claim moves; the A1–A8 abstraction ceiling, ENG-0035, and independent review still gate those.

@@ -6,9 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0631 | HIGHEST_NA=0631 | HIGHEST_D=1254 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
-<!-- NA-0631 (external-review-bundle assembly) promoted to sole READY 2026-07-10, at the operator's explicit "promote it" instruction after approving directive D568. The executor made this mechanical promotion edit under that authorization; it did not self-promote. -->
-<!-- prior: STATE: READY=NONE | HIGHEST_NA=0630 | HIGHEST_D=1254 (NA-0630 closeout, D-1254) -->
+`STATE: READY=NONE | HIGHEST_NA=0631 | HIGHEST_D=1255 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- READY=NONE at the NA-0631 closeout (D-1255): the executor cannot self-promote a lane. The external-review bundle is now reviewer-ready — commissioning the independent review is the operator's external step (the true release gate). Other candidates: a portable export bundle; ENG-0019 (b)+(c); ENG-0014; the NA-0627 CI-cost path-filter; ENG-0036/0037. -->
+<!-- prior: STATE: READY=NA-0631 | HIGHEST_NA=0631 | HIGHEST_D=1254 (NA-0631 promotion, D568) -->
 
 **READY (exactly one — execute this):** `NA-0628 — ENG-0034: reject non-contributory (low-order)
 X25519 on every LIVE DH path; ENG-0019: retire the auth-unsafe qsp skeleton` (directive
@@ -34859,7 +34859,8 @@ Begins at D-1254. Standard single-PR lane; LOW delicacy; no crypto/canonical/vec
 ---
 
 ### NA-0631 — Assemble the external-review bundle: complete `docs/public/EXTERNAL_REVIEW_PACKAGE.md` into a current, self-contained reviewer entry-point, WITHOUT moving any security claim
-Status: READY
+Status: DONE
+OUTCOME (2026-07-10): D-1255. `EXTERNAL_REVIEW_PACKAGE.md` completed so a reviewer reaches the ProVerif analysis: "What Is Currently Proven" gained the single-root composition (NA-0626) + the CI-gated ProVerif symbolic analysis (NA-0627, DOC-G4-002) + the contributory-DH guard (NA-0628), each with its symbolic-over-abstractions boundary; "Reproducible Commands" gained the ProVerif gate + `cargo test -p quantumshield_refimpl`; the Evidence Artifact Index now points to DOC-G4-002 (§2 abstraction table called out); the PR table extended through the crypto-core arc; Known Gaps names independent human review as THE gate + the ENG-0035 residual; a reading-order routes reviewers to DOC-G4-002 §2 first. **Claim boundary UNCHANGED (Operator Decision 1), machine-verified: "What Is Not Proven" (sha 0313efc3…) + "Safe Public Wording" (sha a8242ee0…) BYTE-UNCHANGED; no canonical/DOC-G4-002 touched; no unguarded forbidden claim.** WF-0018 ledger status-line drift fixed. Single PR; docs/governance only. **Recovery note: the operator's early `qnext` (before promotion merge) left a partial workspace; the executor merged promotion PR #1542 (main 27efec5a), the operator re-ran `qwork NA-0631` for a clean fresh provisioning.**
 Goals: G4, G5
 Docs-only allowed? YES — docs/governance only. Canonical change allowed? NO. `docs/design/DOC-G4-002` change? NO (referenced, not edited). Source/vector/`.github`/Cargo change? NO. Claim change allowed? NO — claim boundary UNCHANGED (Operator Decision 1); any change to a claim STATUS/sentence or to the meaning of "What Is Not Proven" / "Safe Public Wording" is a STOP.
 

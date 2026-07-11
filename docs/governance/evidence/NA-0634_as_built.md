@@ -51,7 +51,8 @@ fail-closed. Base main `9e717a59`. Scope held: **only `qsl/qsl-client/qsc/` was 
 ## Scope caveat
 - **`sha2` added to `qsc` `[dev-dependencies]`** (Cargo.toml) — test-only, so the wrong-signing-key negative
   can compute `fingerprint(bob.kem, mallory.sig)` in-test. Outside the 6-src + tests scope; no shipped-binary
-  impact.
+  impact. **Operator-ACKNOWLEDGED at merge (2026-07-11): a disclosed test-only scope exception, accepted
+  explicitly — recorded here so it is not silently accepted.**
 
 ## Verification
 - **`tests/NA_0634_full_identity_provisioning.rs`:** `na0634_positive_full_identity_roundtrip` (genuine full

@@ -647,9 +647,14 @@ fn msg_reports_actionable_handshake_failure_marker() {
         token_file.to_string_lossy()
     );
     let out = run_headless(&cfg, script.as_str());
+    // NA-0633 (ENG-0038, C1): the contact was pinned by verification code only (no full identity KEM
+    // key), so `/msg` now surfaces the deterministic actionable `peer_identity_key_missing` marker BEFORE
+    // the relay push (the initiator fails closed without the peer's key). Either that or the original
+    // relay-push failure satisfies the test's intent: an actionable marker, not a generic error.
     assert!(
         (out.contains("event=tui_msg_reject code=relay_inbox_push_failed reason=relay_inbox_push_failed peer=Alice")
-            || out.contains("event=error code=relay_inbox_push_failed"))
+            || out.contains("event=error code=relay_inbox_push_failed")
+            || out.contains("peer_identity_key_missing"))
             && !out.contains("reason=contacts_store_unavailable"),
         "msg should expose a deterministic actionable handshake failure marker instead of a generic error: {out}"
     );
@@ -790,6 +795,15 @@ fn tui_handshake_uses_default_self_identity_label() {
         .lines()
         .find_map(|line| line.strip_prefix("identity_fp="))
         .expect("bob identity fp");
+    // NA-0633 (ENG-0038, C1): the peer's full identity KEM key, needed to authenticate the responder.
+    let alice_kem = alice_show
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_kem_pk="))
+        .expect("alice identity_kem_pk");
+    let bob_kem = bob_show
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_kem_pk="))
+        .expect("bob identity_kem_pk");
     let alice_code = format_verification_code_from_fingerprint(alice_fp);
     let bob_code = format_verification_code_from_fingerprint(bob_fp);
 
@@ -810,6 +824,8 @@ fn tui_handshake_uses_default_self_identity_label() {
             "Bob",
             "--fp",
             &bob_code,
+            "--kem-pk",
+            bob_kem,
             "--route-token",
             ROUTE_TOKEN_BOB,
             "--verify",
@@ -824,6 +840,8 @@ fn tui_handshake_uses_default_self_identity_label() {
             "Alice",
             "--fp",
             &alice_code,
+            "--kem-pk",
+            alice_kem,
             "--route-token",
             ROUTE_TOKEN_ALICE,
             "--verify",

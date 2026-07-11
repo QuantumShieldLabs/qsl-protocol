@@ -245,6 +245,11 @@ fn pinned_mismatch_refuses_no_mutation() {
         .find_map(|l| l.strip_prefix("identity_kem_pk="))
         .expect("alice identity_kem_pk")
         .to_string();
+    let alice_sig = alice_show
+        .lines()
+        .find_map(|l| l.strip_prefix("identity_sig_pk="))
+        .expect("alice identity_sig_pk")
+        .to_string();
 
     let add = qsc_with_unlock(&alice_cfg)
         .args([
@@ -272,6 +277,8 @@ fn pinned_mismatch_refuses_no_mutation() {
             alice_fp.as_str(),
             "--kem-pk",
             alice_kem.as_str(),
+            "--sig-pk",
+            alice_sig.as_str(),
             "--route-token",
             ROUTE_TOKEN_ALICE,
         ])

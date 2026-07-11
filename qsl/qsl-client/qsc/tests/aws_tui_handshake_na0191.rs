@@ -136,6 +136,15 @@ fn tui_handshake_completes_after_restart_na0191() {
         .lines()
         .find_map(|line| line.strip_prefix("identity_kem_pk="))
         .expect("bob identity_kem_pk");
+    // NA-0634 (D571): the peer's full identity SIGNING key, provisioned alongside the KEM key.
+    let alice_sig = alice_show
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_sig_pk="))
+        .expect("alice identity_sig_pk");
+    let bob_sig = bob_show
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_sig_pk="))
+        .expect("bob identity_sig_pk");
     let alice_code = format_verification_code_from_fingerprint(alice_fp);
     let bob_code = format_verification_code_from_fingerprint(bob_fp);
 
@@ -166,6 +175,8 @@ fn tui_handshake_completes_after_restart_na0191() {
             &bob_code,
             "--kem-pk",
             bob_kem,
+            "--sig-pk",
+            bob_sig,
             "--route-token",
             ROUTE_TOKEN_BOB,
             "--verify",
@@ -182,6 +193,8 @@ fn tui_handshake_completes_after_restart_na0191() {
             &alice_code,
             "--kem-pk",
             alice_kem,
+            "--sig-pk",
+            alice_sig,
             "--route-token",
             ROUTE_TOKEN_ALICE,
         ],

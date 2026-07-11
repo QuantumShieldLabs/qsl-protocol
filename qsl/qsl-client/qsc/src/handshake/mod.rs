@@ -2,7 +2,7 @@
 
 use super::{
     cmd::HandshakeSuiteMode, config_dir, emit_marker, enforce_peer_not_blocked,
-    enforce_safe_parents, fs, hex_encode, identity_fingerprint_from_pk, identity_marker_display,
+    enforce_safe_parents, fs, hex_encode, identity_fingerprint_from_identity, identity_marker_display,
     identity_peer_status, identity_pin_matches_seen, identity_read_peer_kem_pk, identity_read_pin,
     identity_read_sig_pin, identity_self_kem_keypair, init_from_base_handshake, kmac_out,
     print_error_marker,
@@ -793,26 +793,49 @@ fn hs_append_key_context(data: &mut Vec<u8>, ctx: &HsSuiteContext) {
     }
 }
 
+/// NA-0634 (D571 Decision 2b): the canonical handshake key-schedule combiner. Derives a 32-byte
+/// handshake secret from an ORDERED, length-prefixed list of labeled contributions through ONE KMAC,
+/// replacing C1's incremental `resp_kem_ss` append. It is EXTENSIBLE: adding a contribution (e.g. the
+/// X3DH DH products or a prekey KEM secret in NA-0635) is a list append, not a redesign. It stays in the
+/// qsc handshake layer and feeds the UNCHANGED Suite-2 core (`init_from_base_handshake`); it introduces
+/// NO prekey / three-DH structure here. The contribution count and per-item length prefixes keep the
+/// encoding unambiguous; the fixed domain key provides domain separation (the secrecy is in the
+/// contributions themselves — an HKDF-Extract-style construction). Both parties feed the identical
+/// contributions in the identical order and derive the identical output.
+const HS_ROOT_COMBINE_KEY: &[u8] = b"QSC.HS.ROOT.COMBINE.v1";
+
+fn hs_root_combine(
+    domain: &str,
+    session_id: &[u8; 16],
+    tag: u8,
+    contributions: &[&[u8]],
+    ctx: &HsSuiteContext,
+) -> [u8; 32] {
+    let c = StdCrypto;
+    let mut data = Vec::with_capacity(16 + 1 + 1 + hs_context_len(ctx));
+    data.extend_from_slice(session_id);
+    data.push(tag);
+    data.push(contributions.len() as u8);
+    for contribution in contributions {
+        data.extend_from_slice(&(contribution.len() as u16).to_be_bytes());
+        data.extend_from_slice(contribution);
+    }
+    hs_append_key_context(&mut data, ctx);
+    kmac_out::<32>(&c, HS_ROOT_COMBINE_KEY, domain, &data)
+}
+
 fn hs_pq_init_ss(
     ss_pq: &[u8],
     session_id: &[u8; 16],
     resp_kem_ss: &[u8],
     ctx: &HsSuiteContext,
 ) -> [u8; 32] {
-    let c = StdCrypto;
-    let mut data = Vec::with_capacity(16 + 1 + 2 + resp_kem_ss.len() + hs_context_len(ctx));
-    data.extend_from_slice(session_id);
-    data.push(0x01);
-    // NA-0633 (ENG-0038, construction C1): mix the responder-identity KEM shared secret. The initiator
-    // encapsulated to the peer's PINNED identity KEM key; only the holder of that secret decapsulates the
-    // same `resp_kem_ss`. Binding it here binds pq_init_ss — hence the transcript MAC AND the Suite-2 root
-    // — to the responder's verified identity, so a wrong responder derives a different value and fails the
-    // initiator's transcript-MAC check (explicit reject at B1). A length prefix keeps the encoding
-    // unambiguous. Both sides feed the identical 32-byte secret.
-    data.extend_from_slice(&(resp_kem_ss.len() as u16).to_be_bytes());
-    data.extend_from_slice(resp_kem_ss);
-    hs_append_key_context(&mut data, ctx);
-    kmac_out::<32>(&c, ss_pq, "QSC.HS.PQ", &data)
+    // NA-0634 (D571 Decision 2b): canonical ordered-list combiner over C1's ACTUAL PQ contributions —
+    // the ephemeral handshake KEM secret (`ss_pq`) and the responder-identity KEM secret (`resp_kem_ss`,
+    // C1). Binding `resp_kem_ss` here binds pq_init_ss — hence the transcript MAC AND the Suite-2 root —
+    // to the responder's verified identity, so a wrong responder derives a different value and fails the
+    // initiator's transcript-MAC check (explicit reject at B1). NO prekey / three-DH structure is added.
+    hs_root_combine("QSC.HS.PQ", session_id, 0x01, &[ss_pq, resp_kem_ss], ctx)
 }
 
 fn hs_ephemeral_keypair() -> ([u8; 32], [u8; 32]) {
@@ -826,12 +849,11 @@ fn hs_dh_init_from_shared(
     session_id: &[u8; 16],
     ctx: &HsSuiteContext,
 ) -> [u8; 32] {
-    let c = StdCrypto;
-    let mut data = Vec::with_capacity(16 + 1 + hs_context_len(ctx));
-    data.extend_from_slice(session_id);
-    data.push(0x02);
-    hs_append_key_context(&mut data, ctx);
-    kmac_out::<32>(&c, dh_shared, "QSC.HS.DHINIT", &data)
+    // NA-0634 (D571 Decision 2b): the ephemeral DH contribution through the same canonical combiner,
+    // structured so future X3DH DH products (DH1..DH4) extend this list without a redesign. The Suite-2
+    // core keeps the DH and PQ inputs separate (the hybrid property) — this only makes the derivation
+    // of each input canonical and extensible.
+    hs_root_combine("QSC.HS.DHINIT", session_id, 0x02, &[dh_shared], ctx)
 }
 
 /// ENG-0034: the establishment DH rejected a non-contributory (small-subgroup) peer key. This is a
@@ -1000,6 +1022,58 @@ where
                 &[("reason", "identity_pin_failed")],
             );
             Err("identity_pin_failed")
+        }
+    }
+}
+
+/// NA-0634 (D571 Decision 2a): REQUIRE the responder's signing identity to be pinned AND to match.
+/// Mirrors `hs_require_primary_identity_pin` but for the signing-key fingerprint (`sig_fp`), which
+/// full-identity provisioning now populates. A missing pin (`None`) is a fail-closed REJECT — closing the
+/// ENG-0038 never-populated-`sig_fp` weakness (the old OPTIONAL check passed on `None`, so the signing
+/// key was never authenticated to the verified identity).
+fn hs_require_sig_identity_pin<F>(
+    peer: &str,
+    seen_fp: &str,
+    read_pin: F,
+) -> Result<(), &'static str>
+where
+    F: Fn(&str) -> Result<Option<String>, ErrorCode>,
+{
+    match read_pin(peer) {
+        Ok(Some(pinned)) => {
+            #[cfg(qsc_binding_fuzz_helper)]
+            let pin_matches = {
+                let _canonical_pin_matches = identity_pin_matches_seen(pinned.as_str(), seen_fp);
+                crate::adversarial::binding_fuzz::trusted_pin_matches_seen(pinned.as_str(), seen_fp)
+            };
+            #[cfg(not(qsc_binding_fuzz_helper))]
+            let pin_matches = identity_pin_matches_seen(pinned.as_str(), seen_fp);
+            if !pin_matches {
+                emit_peer_mismatch(peer, pinned.as_str(), seen_fp);
+                emit_marker(
+                    "handshake_reject",
+                    None,
+                    &[("reason", "responder_sig_mismatch")],
+                );
+                return Err("responder_sig_mismatch");
+            }
+            Ok(())
+        }
+        Ok(None) => {
+            emit_marker(
+                "handshake_reject",
+                None,
+                &[("reason", "responder_sig_unpinned")],
+            );
+            Err("responder_sig_unpinned")
+        }
+        Err(_) => {
+            emit_marker(
+                "handshake_reject",
+                None,
+                &[("reason", "responder_sig_pin_failed")],
+            );
+            Err("responder_sig_pin_failed")
         }
     }
 }
@@ -1605,7 +1679,10 @@ fn perform_handshake_poll_with_tokens(
                         {
                             return Ok(());
                         }
-                        if hs_check_optional_identity_pin(
+                        // NA-0634 (D571 Decision 2a): the responder's signing identity is now REQUIRED-
+                        // pinned against the populated sig_fp (was an inert OPTIONAL check — ENG-0038):
+                        // fingerprint(resp.sig_pk) MUST equal the contact's sig_fp, else fail closed.
+                        if hs_require_sig_identity_pin(
                             peer,
                             sig_fp.as_str(),
                             identity_read_sig_pin,
@@ -1940,7 +2017,9 @@ fn perform_handshake_poll_with_tokens(
                     emit_marker("handshake_reject", None, &[("reason", "dh_pub_invalid")]);
                     continue;
                 }
-                let peer_fp = identity_fingerprint_from_pk(&init.kem_pk);
+                // NA-0634 (D571 Decision 2a): the responder pins the initiator's FULL identity (KEM +
+                // signing) against the single combined verification code — binding init.sig_pk too.
+                let peer_fp = identity_fingerprint_from_identity(&init.kem_pk, &init.sig_pk);
                 let peer_sig_fp = hs_sig_fingerprint(&init.sig_pk);
                 if hs_require_primary_identity_pin(peer, peer_fp.as_str(), identity_read_pin)
                     .is_err()

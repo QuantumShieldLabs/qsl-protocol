@@ -79,11 +79,21 @@ fn identity_kem_pk(iso: &common::TestIsolation, cfg: &Path, label: &str) -> Stri
         .unwrap_or_else(|| panic!("missing identity_kem_pk in output: {}", output_text(&out)))
 }
 
+fn identity_sig_pk(iso: &common::TestIsolation, cfg: &Path, label: &str) -> String {
+    let out = run_qsc(iso, cfg, &["identity", "show", "--as", label]);
+    assert_success(&out);
+    output_text(&out)
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_sig_pk="))
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| panic!("missing identity_sig_pk in output: {}", output_text(&out)))
+}
+
 fn contacts_add_authenticated_with_route(
     iso: &common::TestIsolation,
     cfg: &Path,
     label: &str,
-    fp: &str, kem_pk: &str,
+    fp: &str, kem_pk: &str, sig_pk: &str,
     token: &str,
 ) {
     let out = run_qsc(
@@ -98,6 +108,8 @@ fn contacts_add_authenticated_with_route(
             fp,
             "--kem-pk",
             kem_pk,
+            "--sig-pk",
+            sig_pk,
             "--route-token",
             token,
         ],
@@ -128,15 +140,17 @@ fn seed_authenticated_pair(iso: &common::TestIsolation, alice_cfg: &Path, bob_cf
     init_identity(iso, bob_cfg, "bob");
     let alice_fp = identity_fp(iso, alice_cfg, "alice");
     let alice_kem = identity_kem_pk(iso, alice_cfg, "alice");
+    let alice_sig = identity_sig_pk(iso, alice_cfg, "alice");
     let bob_fp = identity_fp(iso, bob_cfg, "bob");
     let bob_kem = identity_kem_pk(iso, bob_cfg, "bob");
-    contacts_add_authenticated_with_route(iso, alice_cfg, "bob", bob_fp.as_str(), bob_kem.as_str(), ROUTE_TOKEN_BOB);
+    let bob_sig = identity_sig_pk(iso, bob_cfg, "bob");
+    contacts_add_authenticated_with_route(iso, alice_cfg, "bob", bob_fp.as_str(), bob_kem.as_str(), bob_sig.as_str(), ROUTE_TOKEN_BOB);
     contacts_add_authenticated_with_route(
         iso,
         bob_cfg,
         "alice",
         alice_fp.as_str(),
-        alice_kem.as_str(),
+        alice_kem.as_str(), alice_sig.as_str(),
         ROUTE_TOKEN_ALICE,
     );
     relay_inbox_set(iso, alice_cfg, ROUTE_TOKEN_ALICE);
@@ -154,16 +168,18 @@ fn seed_wrong_alice_pair(
     init_identity(iso, bob_cfg, "bob");
     let alice_fp = identity_fp(iso, alice_cfg, "alice");
     let alice_kem = identity_kem_pk(iso, alice_cfg, "alice");
+    let alice_sig = identity_sig_pk(iso, alice_cfg, "alice");
     let bob_fp = identity_fp(iso, bob_cfg, "bob");
     let bob_kem = identity_kem_pk(iso, bob_cfg, "bob");
-    contacts_add_authenticated_with_route(iso, alice_cfg, "bob", bob_fp.as_str(), bob_kem.as_str(), ROUTE_TOKEN_BOB);
-    contacts_add_authenticated_with_route(iso, alice2_cfg, "bob", bob_fp.as_str(), bob_kem.as_str(), ROUTE_TOKEN_BOB);
+    let bob_sig = identity_sig_pk(iso, bob_cfg, "bob");
+    contacts_add_authenticated_with_route(iso, alice_cfg, "bob", bob_fp.as_str(), bob_kem.as_str(), bob_sig.as_str(), ROUTE_TOKEN_BOB);
+    contacts_add_authenticated_with_route(iso, alice2_cfg, "bob", bob_fp.as_str(), bob_kem.as_str(), bob_sig.as_str(), ROUTE_TOKEN_BOB);
     contacts_add_authenticated_with_route(
         iso,
         bob_cfg,
         "alice",
         alice_fp.as_str(),
-        alice_kem.as_str(),
+        alice_kem.as_str(), alice_sig.as_str(),
         ROUTE_TOKEN_ALICE,
     );
     relay_inbox_set(iso, alice_cfg, ROUTE_TOKEN_ALICE);

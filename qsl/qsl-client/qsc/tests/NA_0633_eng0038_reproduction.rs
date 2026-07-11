@@ -78,14 +78,15 @@ fn contacts_add(
     label: &str,
     fp: &str,
     kem_pk: &str,
+    sig_pk: &str,
     token: &str,
 ) {
     assert_success(&run_qsc(
         iso,
         cfg,
         &[
-            "contacts", "add", "--label", label, "--fp", fp, "--kem-pk", kem_pk, "--route-token",
-            token,
+            "contacts", "add", "--label", label, "--fp", fp, "--kem-pk", kem_pk, "--sig-pk", sig_pk,
+            "--route-token", token,
         ],
     ));
 }
@@ -167,13 +168,15 @@ fn setup(iso: &common::TestIsolation, tag: &str) -> (PathBuf, PathBuf, PathBuf) 
     init_identity(iso, &mallory, "mallory");
     let alice_fp = identity_field(iso, &alice, "alice", "identity_fp");
     let alice_kem = identity_field(iso, &alice, "alice", "identity_kem_pk");
+    let alice_sig = identity_field(iso, &alice, "alice", "identity_sig_pk");
     let bob_fp = identity_field(iso, &bob, "bob", "identity_fp");
     let bob_kem = identity_field(iso, &bob, "bob", "identity_kem_pk");
-    // Alice pins the REAL bob (fingerprint + full identity KEM key). Mallory (a different identity)
-    // pins alice so its responder answers, and occupies bob's channel — the on-path position.
-    contacts_add(iso, &alice, "bob", &bob_fp, &bob_kem, ROUTE_TOKEN_BOB);
-    contacts_add(iso, &bob, "alice", &alice_fp, &alice_kem, ROUTE_TOKEN_ALICE);
-    contacts_add(iso, &mallory, "alice", &alice_fp, &alice_kem, ROUTE_TOKEN_ALICE);
+    let bob_sig = identity_field(iso, &bob, "bob", "identity_sig_pk");
+    // Alice pins the REAL bob (combined fingerprint + full identity: KEM + signing key). Mallory (a
+    // different identity) pins alice so its responder answers, and occupies bob's channel — on-path.
+    contacts_add(iso, &alice, "bob", &bob_fp, &bob_kem, &bob_sig, ROUTE_TOKEN_BOB);
+    contacts_add(iso, &bob, "alice", &alice_fp, &alice_kem, &alice_sig, ROUTE_TOKEN_ALICE);
+    contacts_add(iso, &mallory, "alice", &alice_fp, &alice_kem, &alice_sig, ROUTE_TOKEN_ALICE);
     relay_inbox_set(iso, &alice, ROUTE_TOKEN_ALICE);
     (alice, bob, mallory)
 }

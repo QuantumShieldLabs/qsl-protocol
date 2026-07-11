@@ -43002,3 +43002,31 @@ claim moves** (still gated by the A1–A8 abstractions, ENG-0035, and the indepe
 remains the true release gate). Queue returns to READY=NONE; the executor promoted no lane. Successor
 candidates: a ProVerif/Tamarin model of `QSC.HS.*` (proves the fix), the GUI lane (unblocked on this axis),
 and the independent external review.
+
+## NA-0634 — D571 fold-ins: complete the authenticated interim (D-1258, 2026-07-11)
+
+Executed NA-0634 per QSL-DIR-2026-07-11-571 (D571, REV 4), Decision 2 — the in-lane fold-ins that complete the
+C1 authenticated interim (NA-0633 shipped C1-only). Base main `9e717a59`. Three changes, all in the qsc
+handshake/identity/contacts layer, fail-closed: (a) the single verification code now binds both identity keys
+(`fingerprint(kem_pk, sig_pk)`), `contacts add --sig-pk` verifies the combined code and populates `sig_fp`;
+(b) the initiator REQUIRES the responder's signing key to match the pinned `sig_fp` at B1
+(`hs_require_sig_identity_pin`, fail-closed) — closing the ENG-0038 never-populated-`sig_fp` weakness; (c) a
+canonical `hs_root_combine` (ordered labeled-contribution KMAC, fixed domain key) replaces C1's incremental
+`resp_kem_ss` append, feeding the UNCHANGED Suite-2 core with no prekey/three-DH structure. This retires the
+whole ENG-0038 authentication-asymmetry class (both KEM + signing identity pinned to the single code) — the
+authenticated INTERIM; the Signal-shaped prekey end-state is D571 Decision 3 (NA-0635, GATED), not built here.
+
+Verification: `tests/NA_0634_full_identity_provisioning.rs` (positive full-identity roundtrip + wrong-signing-
+key REJECTED at B1 with `responder_sig_mismatch`); NA_0633 stays green; full `cargo test -p qsc` = 525 passed +
+the 3 initial failures resolved (1 real test-update — `legacy_identity_public_record` assert_eq→assert_ne,
+because a legacy identity's code now changes when it gains a signing key; and 2 load-flaky e2e tests that pass
+clean single-threaded on a quiet box). ~33 handshake/provisioning tests migrated to `--sig-pk`. The full suite
+skips on PRs, so the local run is the gate; CI `qsc-linux-full-suite` re-runs on main-push.
+
+Honest caveats (surfaced in `docs/governance/evidence/NA-0634_as_built.md`, not buried): `sha2` added to qsc
+`[dev-dependencies]` (test-only, outside the src+tests scope); the responder→initiator sig-pin left OPTIONAL
+(redundant given the combined primary pin now binds `init.sig_pk`); the combiner uses a fixed-key ordered-list
+form, not a literal Suite-2 chained-KMAC copy; the negative test's framing (alice pins a hybrid `{bob.kem,
+mallory.sig}`) is slightly contrived. Claim boundary UNCHANGED — no post-compromise/PQ claim moves. Queue
+returns to READY=NONE; the executor promoted no lane. Successor candidates: NA-0635 (GATED prekey redesign),
+the `QSC.HS.*` formal-model gate, the audit-methodology coverage finding (D571 Decision 4), the GUI lane.

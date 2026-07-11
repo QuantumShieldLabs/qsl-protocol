@@ -405,6 +405,11 @@ pub(crate) enum ContactsCmd {
         /// FINGERPRINT. Required for the initiator to authenticate this peer as the responder.
         #[arg(long, value_name = "KEM_PK_HEX")]
         kem_pk: Option<String>,
+        /// NA-0634 (D571): the peer's full identity SIGNING public key (hex). With --kem-pk, the pair is
+        /// verified against FINGERPRINT = fingerprint(kem_pk, sig_pk) at add-time and populates the
+        /// responder sig-pin (sig_fp), so the initiator authenticates the responder's signing identity.
+        #[arg(long, value_name = "SIG_PK_HEX")]
+        sig_pk: Option<String>,
         #[arg(long, value_name = "ROUTE_TOKEN")]
         route_token: Option<String>,
         #[arg(long)]

@@ -23,6 +23,12 @@ It defines the authoritative sources, the non-negotiable constraints, and the re
 If any instruction conflicts, resolve conflicts using the “Authoritative Sources” order below.
 If ambiguity remains, STOP and fail-closed: do not guess; do not “infer” protocol behavior.
 
+Product direction: QSL serves a specific niche — self-hosted, phone-number-free,
+small high-trust organizations — and competes with Signal property-by-property
+rather than on scale. See docs/program/DOC-PROG-002. Note the overclaim ban
+(prove properties, don't claim superiority) and the "match Signal can cost the
+PQ-native-auth edge" tension recorded there.
+
 ## 0.1 Audience Entry Points
 
 Use the shortest path that matches your role, then return to the governance

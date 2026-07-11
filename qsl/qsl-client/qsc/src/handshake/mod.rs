@@ -1372,6 +1372,9 @@ fn perform_handshake_init_with_route(
     let size_s = bytes.len().to_string();
     let pk_len_s = hs_kem_pk_len().to_string();
     let sig_pk_len_s = hs_sig_pk_len().to_string();
+    // NA-0633 (ENG-0038, C1): A1 now also carries the initiator's encapsulation to the responder's
+    // identity KEM key (one ML-KEM ciphertext); report its length so consumers can assert the layout.
+    let resp_kem_ct_len_s = hs_kem_ct_len().to_string();
     let hs_version_s = suite_context.wire_version().to_string();
     emit_marker(
         "handshake_send",
@@ -1381,6 +1384,7 @@ fn perform_handshake_init_with_route(
             ("size", size_s.as_str()),
             ("kem_pk_len", pk_len_s.as_str()),
             ("sig_pk_len", sig_pk_len_s.as_str()),
+            ("resp_kem_ct_len", resp_kem_ct_len_s.as_str()),
             ("hs_version", hs_version_s.as_str()),
             ("suite_context", suite_context.mode_label()),
         ],

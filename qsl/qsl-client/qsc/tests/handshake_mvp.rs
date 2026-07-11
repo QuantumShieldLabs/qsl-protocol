@@ -271,7 +271,9 @@ fn kmac_out_32(key: &[u8], label: &str, data: &[u8]) -> [u8; 32] {
 fn parse_hs_init(bytes: &[u8]) -> ([u8; 16], [u8; 32]) {
     let pk_len = kem_pk_len();
     let spk_len = sig_pk_len();
-    assert_eq!(bytes.len(), 4 + 2 + 1 + 16 + pk_len + spk_len + 32);
+    // NA-0633 (ENG-0038, C1): A1 gained a trailing ML-KEM ciphertext (the initiator's encapsulation to
+    // the responder's identity KEM key); it sits after dh_pub, so only the length check changes.
+    assert_eq!(bytes.len(), 4 + 2 + 1 + 16 + pk_len + spk_len + 32 + kem_ct_len());
     assert_eq!(&bytes[0..4], b"QHSM");
     assert_eq!(u16::from_be_bytes([bytes[4], bytes[5]]), 1u16);
     assert_eq!(bytes[6], 1u8);

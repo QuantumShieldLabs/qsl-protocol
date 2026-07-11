@@ -281,9 +281,15 @@ fn assert_init_frame_has_no_explicit_suite_slot(frame: &[u8], text: &str) {
     let size = marker_usize(text, "handshake_send", "A1", "size");
     let kem_pk_len = marker_usize(text, "handshake_send", "A1", "kem_pk_len");
     let sig_pk_len = marker_usize(text, "handshake_send", "A1", "sig_pk_len");
+    // NA-0633 (ENG-0038, C1): A1 also carries the initiator's encapsulation to the responder's
+    // identity KEM key.
+    let resp_kem_ct_len = marker_usize(text, "handshake_send", "A1", "resp_kem_ct_len");
     assert_eq!(frame.len(), size);
     assert_qhsm_header(frame, 1);
-    assert_eq!(frame.len(), 4 + 2 + 1 + 16 + kem_pk_len + sig_pk_len + 32);
+    assert_eq!(
+        frame.len(),
+        4 + 2 + 1 + 16 + kem_pk_len + sig_pk_len + 32 + resp_kem_ct_len
+    );
 }
 
 fn assert_resp_frame_has_no_explicit_suite_slot(frame: &[u8], text: &str) {

@@ -82,6 +82,18 @@ fn identity_fp(cfg: &Path) -> String {
         .unwrap_or_else(|| panic!("missing identity_fp: {}", output_text(&out)))
 }
 
+fn identity_kem_pk(cfg: &Path) -> String {
+    let out = qsc_with_unlock(cfg)
+        .args(["identity", "show"])
+        .output()
+        .expect("identity show");
+    assert!(out.status.success(), "{}", output_text(&out));
+    output_text(&out)
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_kem_pk=").map(ToOwned::to_owned))
+        .unwrap_or_else(|| panic!("missing identity_kem_pk: {}", output_text(&out)))
+}
+
 fn device_id(cfg: &Path, label: &str) -> String {
     let out = qsc_with_unlock(cfg)
         .args(["contacts", "device", "list", "--label", label])
@@ -340,7 +352,9 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
     assert!(bob_rotate.status.success(), "{}", output_text(&bob_rotate));
 
     let alice_fp = identity_fp(&alice_cfg);
+    let alice_kem = identity_kem_pk(&alice_cfg);
     let bob_fp = identity_fp(&bob_cfg);
+    let bob_kem = identity_kem_pk(&bob_cfg);
 
     let alice_inbox = qsc_with_unlock(&alice_cfg)
         .args(["relay", "inbox-set", "--token", ROUTE_TOKEN_ALICE])
@@ -365,6 +379,8 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
             "bob",
             "--fp",
             bob_fp.as_str(),
+            "--kem-pk",
+            bob_kem.as_str(),
             "--route-token",
             ROUTE_TOKEN_BOB,
         ])
@@ -379,6 +395,8 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
             "alice",
             "--fp",
             alice_fp.as_str(),
+            "--kem-pk",
+            alice_kem.as_str(),
             "--route-token",
             ROUTE_TOKEN_ALICE,
         ])

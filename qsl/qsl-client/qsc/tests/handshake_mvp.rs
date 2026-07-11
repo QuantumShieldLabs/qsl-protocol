@@ -132,6 +132,22 @@ fn identity_fp(cfg: &Path, label: &str) -> String {
     panic!("missing identity_fp in output: {}", text);
 }
 
+fn identity_kem_pk(cfg: &Path, label: &str) -> String {
+    let out = run_qsc(cfg, &["identity", "show", "--as", label]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let text = String::from_utf8_lossy(&out.stdout);
+    for line in text.lines() {
+        if let Some(value) = line.strip_prefix("identity_kem_pk=") {
+            return value.to_string();
+        }
+    }
+    panic!("missing identity_kem_pk in output: {}", text);
+}
+
 fn init_identity(cfg: &Path, label: &str) {
     let out = run_qsc(cfg, &["identity", "rotate", "--as", label, "--confirm"]);
     assert!(
@@ -142,7 +158,7 @@ fn init_identity(cfg: &Path, label: &str) {
     );
 }
 
-fn contacts_add_pinned_with_route(cfg: &Path, label: &str, fp: &str, token: &str) {
+fn contacts_add_pinned_with_route(cfg: &Path, label: &str, fp: &str, kem_pk: &str, token: &str) {
     let out = run_qsc(
         cfg,
         &[
@@ -152,6 +168,8 @@ fn contacts_add_pinned_with_route(cfg: &Path, label: &str, fp: &str, token: &str
             label,
             "--fp",
             fp,
+            "--kem-pk",
+            kem_pk,
             "--route-token",
             token,
         ],
@@ -203,9 +221,11 @@ fn seed_authenticated_pair(alice_cfg: &Path, bob_cfg: &Path) {
     init_identity(alice_cfg, "alice");
     init_identity(bob_cfg, "bob");
     let alice_fp = identity_fp(alice_cfg, "alice");
+    let alice_kem = identity_kem_pk(alice_cfg, "alice");
     let bob_fp = identity_fp(bob_cfg, "bob");
-    contacts_add_pinned_with_route(alice_cfg, "bob", bob_fp.as_str(), ROUTE_TOKEN_BOB);
-    contacts_add_pinned_with_route(bob_cfg, "alice", alice_fp.as_str(), ROUTE_TOKEN_ALICE);
+    let bob_kem = identity_kem_pk(bob_cfg, "bob");
+    contacts_add_pinned_with_route(alice_cfg, "bob", bob_fp.as_str(), bob_kem.as_str(), ROUTE_TOKEN_BOB);
+    contacts_add_pinned_with_route(bob_cfg, "alice", alice_fp.as_str(), alice_kem.as_str(), ROUTE_TOKEN_ALICE);
 }
 
 fn build_fake_resp(session_id: [u8; 16]) -> Vec<u8> {
@@ -688,7 +708,8 @@ fn handshake_out_of_order_rejects_no_mutation() {
     common::init_mock_vault(&bob_cfg);
     init_identity(&bob_cfg, "bob");
     let bob_fp = identity_fp(&bob_cfg, "bob");
-    contacts_add_pinned_with_route(&alice_cfg, "bob", bob_fp.as_str(), ROUTE_TOKEN_BOB);
+    let bob_kem = identity_kem_pk(&bob_cfg, "bob");
+    contacts_add_pinned_with_route(&alice_cfg, "bob", bob_fp.as_str(), bob_kem.as_str(), ROUTE_TOKEN_BOB);
     relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
 
     let server = common::start_inbox_server(1024 * 1024, 16);

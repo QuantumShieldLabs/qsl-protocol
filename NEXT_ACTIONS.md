@@ -6,22 +6,22 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0632 | HIGHEST_D=1256 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
-<!-- NA-0632 (internal adversarial core re-analysis) DONE 2026-07-11 (D-1256). Result: ONE P1 FINDING — ENG-0038 (the qsc handshake does not authenticate the responder to the initiator; contradicts the prior ENG-0001/NA-0609B "no KEM-vs-SIG binding flaw" conclusion), otherwise CHECKED-OK. Before-GUI triage: FIX ENG-0038 before the GUI. Queue returns to READY=NONE — the operator promotes the ENG-0038 fix lane (or the next candidate). The executor cannot self-promote. -->
-<!-- prior: STATE: READY=NA-0632 | HIGHEST_NA=0632 | HIGHEST_D=1255 (NA-0632 promoted for D569) -->
+`STATE: READY=NA-0633 | HIGHEST_NA=0633 | HIGHEST_D=1256 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- NA-0633 (ENG-0038 fix: authenticate the responder to the initiator in the qsc QSC.HS.* handshake) promoted to sole READY 2026-07-11 at the operator's explicit "promote it" instruction after approving directive D570. The executor made this MECHANICAL promotion edit under that authorization; it did NOT self-promote. NA-0632 (D-1256) filed ENG-0038 as the P1 before-GUI blocker; this lane fixes it (design-lock-first, PoC-first). After this promotion PR merges, the operator runs `qwork NA-0633 qsl-protocol` (merge BEFORE qwork — the NA-0631 lesson). -->
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0632 | HIGHEST_D=1256 (NA-0632 closeout, D-1256; ENG-0038 filed) -->
 
-**READY (exactly one — execute this):** `NA-0628 — ENG-0034: reject non-contributory (low-order)
-X25519 on every LIVE DH path; ENG-0019: retire the auth-unsafe qsp skeleton` (directive
-QSL-DIR-2026-07-10-565). ENG-0034 is the last correctness gap standing between the project and the
-post-compromise / Triple-Ratchet claim language every lane since NA-0619 has deferred — it is not
-remotely exploitable, but an authenticated peer can silently void the CLASSICAL half of
-post-compromise security. Promoted at the operator's direction after NA-0627 (ENG-0028) filed it.
-Its full block (with scope flags) is below under section 2; find it with the ANCHORED pattern
-`^Status:` carrying the state READY (there is exactly one such line in this file).
+**READY (exactly one — execute this):** `NA-0633 — ENG-0038 fix: authenticate the responder to the
+initiator in the qsc QSC.HS.* handshake (close the KEM-vs-SIG asymmetry)` (directive
+QSL-DIR-2026-07-11-570, D570, APPROVED). ENG-0038 (filed by NA-0632 / D-1256) is the P1 before-GUI
+blocker: on the shipped path an on-path attacker (e.g., the relay) can impersonate the RESPONDER to the
+INITIATOR, and a correctly-verified out-of-band verification code does not prevent it. Design-lock-first,
+PoC-first (Phase 0 REPRODUCES ENG-0038 before any fix). Its full block (with scope flags) is below under
+section 2; find it with the ANCHORED pattern `^Status:` carrying the state READY (there is exactly one
+such line in this file).
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
-0. **⚠ ENG-0038 = qsc handshake responder-auth gap — BEFORE-GUI BLOCKER (filed 2026-07-11 by NA-0632, P1).** The shipped `qsc` `QSC.HS.*` handshake does NOT authenticate the responder to the initiator: an on-path attacker (e.g., the relay) can impersonate the responder despite a correctly-verified out-of-band code (responder's only B1 credential is its ML-DSA `sig_pk`; the OPTIONAL `sig_fp` pin is structurally always `None`; the REQUIRED KEM pin is tautological/inert B→A). **Re-tests and CONTRADICTS the prior ENG-0001/NA-0609B "no KEM-vs-SIG binding flaw" conclusion.** Fix BEFORE the GUI (it is the establishment layer a GUI ships on). Design-lock-first: authenticate BOTH directions (wire the responder `sig_fp` pin and/or bind the responder's identity KEM key); add the report §B proof-of-issue test. Its own directive when the operator is ready. See `docs/governance/evidence/NA-0632_adversarial_reanalysis.md` §2/§6/§7.
+0. **✅ ENG-0038 = qsc handshake responder-auth gap — PROMOTED to NA-0633 (now READY); directive D570 APPROVED 2026-07-11.** The shipped `qsc` `QSC.HS.*` handshake does NOT authenticate the responder to the initiator (an on-path attacker — e.g., the relay — can impersonate the responder; a correctly-verified out-of-band code does not prevent it). Fix goal (D570 Operator Decision 1): authenticate the responder against the SAME verified KEM identity so the ONE verification code authenticates both directions; the design-lock chooses the construction (leading candidate: a mutual-KEM possession proof). Design-lock-first, PoC-first. See the NA-0633 lane block (section 2) + `docs/governance/evidence/NA-0632_adversarial_reanalysis.md` §2/§6/§7. **Re-tested and CONTRADICTED the prior ENG-0001/NA-0609B "no KEM-vs-SIG binding flaw" conclusion.**
 1. **ENG-0034 = NA-0628 (now READY)** — reject non-contributory (low-order) X25519 on every LIVE DH path. Directive D565 as amended by D565-A1 (2026-07-10). Live paths: `qsc`'s establishment `hs_dh_shared` (2 call sites) + the 4 Suite-2 ratchet sites — all of them SHIPPED-CLIENT paths (`qsc/src/main.rs:2320/:2657/:2683`). **ENG-0019 was UNFOLDED**: `qsp/**` is NOT dead code (it backs the REQUIRED `ci-4b` / `ci-4d-dur` checks); it is re-rated P2 and awaits its own directive.
 1a. **~~WF-0018 = strategic-docs truth-up~~ — DONE as NA-0629 (D-1253, 2026-07-10).** The strategic/program/public-review docs are current; the external-review package now records the ProVerif analysis. **Strongest next candidate: assemble the external-review bundle on these now-accurate inputs** (the roadmap's 90-day priority) — its own directive when the operator is ready.
 2. **ENG-0014** — qsl-server non-constant-time token compare (P2, cross-repo, cheap; Signal-Server `MessageDigest.isEqual` precedent). Good short lane whenever a slot opens.
@@ -34887,3 +34887,24 @@ Execute the **internal adversarial re-analysis of the Suite-2 crypto core** per 
 
 Successor candidates (Phase 7): the fix lanes for whatever is filed (operator triages before the GUI); the GUI lane; the independent external review (the true gate).
 Begins at D-1256. Analysis lane; findings filed, not fixed.
+
+---
+
+### NA-0633 — ENG-0038 fix: authenticate the responder to the initiator in the qsc QSC.HS.* handshake (close the KEM-vs-SIG asymmetry), design-lock-first, PoC-first
+Status: READY
+Goals: G1, G2, G3, G4
+Wire/behavior change allowed? YES (D570 — the fix IS a wire/behavior change; fail-closed).
+Crypto/state-machine change allowed? YES (handshake authentication / establishment).
+Docs-only allowed? NO.
+Claim change allowed? Claim-adjacent only, fail-closed — moves NO post-compromise/PQ claim (still gated by A1–A8 + ENG-0035 + independent review); MAY substantiate/correct a bidirectional-peer-auth statement the fix makes true (the design-lock names it, if any).
+
+Objective:
+Fix **ENG-0038 (P1, filed by NA-0632 / D-1256)** per **QSL-DIR-2026-07-11-570 (D570, APPROVED)**: the shipped `qsc` `QSC.HS.*` handshake does NOT authenticate the RESPONDER to the INITIATOR — an on-path attacker (e.g., the relay) can impersonate the responder, and a correctly-verified out-of-band verification code does not prevent it (the responder's only B1 credential is its ML-DSA `sig_pk`; the OPTIONAL `sig_fp` pin is structurally always `None`; the REQUIRED KEM pin is tautological/inert B→A). **Design-lock-first, PoC-first:**
+- **Phase 0 REPRODUCES ENG-0038** with the NA-0632 testplan §B proof-of-issue (the initiator currently ACCEPTS a substituted responder key, `sig_fp` unset). If it cannot be reproduced, **STOP** and report (the finding was by-trace).
+- **Phase 1 DESIGN-LOCK** chooses the construction (Operator Decision 1): authenticate the responder against the SAME verified KEM identity so the ONE verification code authenticates both directions — leading candidate a **mutual-KEM possession proof** (the initiator encapsulates to the responder's identity KEM key; the responder proves decapsulation), mirroring the initiator side; amendable fallback: bind the messaging signing key to the pinned KEM identity (no second out-of-band fingerprint). The plain "populate `sig_fp`" route is **REJECTED** (keeps the asymmetry; reinstates the fragile optional-check-must-be-wired shape that caused ENG-0038).
+- Then implement (both handshake sides + establishment + provisioning as needed), fail-closed, **without regressing** the sound initiator→responder direction and **without silent TOFU**; flip the PoC test to PASS (reject the substituted responder), add a positive round-trip + an initiator-direction no-regression check + conformance vectors; update the `QSC.HS.*` handshake spec.
+
+See D570 for the full COVERAGE contract, Operator Decisions 1–4, phases, and STOP conditions.
+
+Successor candidates (Phase 6): a ProVerif/Tamarin model of `QSC.HS.*` (proves the fix, extends the ENG-0035 formal track); the GUI lane (unblocked on this axis); the independent external human review (still the true release gate).
+Begins at D-1257. Fix lane; wire/crypto/auth change allowed; the analysis-lane "findings only" rule does NOT apply.

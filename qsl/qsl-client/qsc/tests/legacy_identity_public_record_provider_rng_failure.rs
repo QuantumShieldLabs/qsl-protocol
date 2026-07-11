@@ -111,11 +111,21 @@ fn identity_kem_pk(iso: &common::TestIsolation, cfg: &Path, label: &str) -> Stri
         .unwrap_or_else(|| panic!("missing identity_kem_pk in output: {}", output_text(&out)))
 }
 
+fn identity_sig_pk(iso: &common::TestIsolation, cfg: &Path, label: &str) -> String {
+    let out = run_qsc(iso, cfg, &["identity", "show", "--as", label]);
+    assert_success(&out);
+    output_text(&out)
+        .lines()
+        .find_map(|line| line.strip_prefix("identity_sig_pk="))
+        .map(ToOwned::to_owned)
+        .unwrap_or_else(|| panic!("missing identity_sig_pk in output: {}", output_text(&out)))
+}
+
 fn contacts_add_authenticated_with_route(
     iso: &common::TestIsolation,
     cfg: &Path,
     label: &str,
-    fp: &str, kem_pk: &str,
+    fp: &str, kem_pk: &str, sig_pk: &str,
     token: &str,
 ) {
     let out = run_qsc(
@@ -130,6 +140,8 @@ fn contacts_add_authenticated_with_route(
             fp,
             "--kem-pk",
             kem_pk,
+            "--sig-pk",
+            sig_pk,
             "--route-token",
             token,
         ],
@@ -141,7 +153,8 @@ fn seed_peer_only(iso: &common::TestIsolation, alice_cfg: &Path, bob_cfg: &Path)
     init_identity(iso, bob_cfg, "bob");
     let bob_fp = identity_fp(iso, bob_cfg, "bob");
     let bob_kem = identity_kem_pk(iso, bob_cfg, "bob");
-    contacts_add_authenticated_with_route(iso, alice_cfg, "bob", bob_fp.as_str(), bob_kem.as_str(), ROUTE_TOKEN_BOB);
+    let bob_sig = identity_sig_pk(iso, bob_cfg, "bob");
+    contacts_add_authenticated_with_route(iso, alice_cfg, "bob", bob_fp.as_str(), bob_kem.as_str(), bob_sig.as_str(), ROUTE_TOKEN_BOB);
 }
 
 fn handshake_init_with_forced_rng_failure(
@@ -573,7 +586,11 @@ fn legacy_identity_public_record_rng_failure_seam_inactive_without_cfg() {
             .is_empty(),
         "normal build did not upgrade public record signature key"
     );
-    assert_eq!(identity_fp(&iso, &alice_cfg, "alice"), fp_before);
+    // NA-0634 (D571 Decision 2a): the verification code now binds fingerprint(kem_pk, sig_pk). Completing
+    // a LEGACY (kem-only) record by upgrading it with a signing key therefore legitimately CHANGES the
+    // code — while the KEM identity and its secret are preserved (asserted immediately below). `fp_before`
+    // was captured pre-upgrade, when sig_pk was still empty.
+    assert_ne!(identity_fp(&iso, &alice_cfg, "alice"), fp_before);
     assert_eq!(
         read_mock_vault_secret(&alice_cfg, "identity.kem_sk.alice").as_deref(),
         Some(kem_secret_before.as_str())

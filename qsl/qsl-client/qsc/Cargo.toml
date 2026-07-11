@@ -28,6 +28,8 @@ keychain = ["dep:keyring"]
 
 [dev-dependencies]
 assert_cmd = "2"
+# NA-0634 (D571): test-only — compute fingerprint(kem_pk, sig_pk) for the wrong-signing-key negative.
+sha2 = "0.10"
 axum = "0.7"
 predicates = "3"
 proptest = "1"

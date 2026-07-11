@@ -1025,20 +1025,42 @@ pub(super) fn contacts_add(
     label: &str,
     fp: &str,
     kem_pk: Option<&str>,
+    sig_pk: Option<&str>,
     route_token: Option<&str>,
     verify: bool,
 ) {
     if !require_unlocked("contacts_add") {
         return;
     }
-    // NA-0633 (ENG-0038): if the peer's full identity KEM public key is supplied, verify it against
-    // the human-comparable fingerprint code BEFORE storing (fail-closed on a bad-hex or mismatch).
-    // This binds the verified code to the actual key the initiator will encapsulate to, so the
-    // responder must prove KEM-secret possession. `None` => a legacy/incomplete contact that the
-    // initiator cannot authenticate as a responder (the handshake init then fails closed).
-    let kem_pk_hex: Option<String> = match kem_pk {
-        Some(raw) => {
-            let bytes = match hex_decode(raw) {
+    // NA-0633 / NA-0634 (ENG-0038 / D571 Decision 2a): provision and verify the peer's FULL identity
+    // against the SINGLE human-comparable code BEFORE storing (fail-closed). When both the identity KEM
+    // key and the signing key are supplied, the code MUST equal fingerprint(kem_pk, sig_pk); we store the
+    // KEM key (the initiator encapsulates to it — C1) and POPULATE sig_fp = fingerprint(sig_pk) so the
+    // initiator can pin the responder's signing identity at B1 (closing the ENG-0038 signing asymmetry).
+    // KEM-only (legacy) contacts keep the old single-key check but cannot complete a handshake — the B1
+    // sig-pin is now required and fails closed on a missing sig_fp. A signing key without the KEM key
+    // cannot bind to the single code (which covers both) and is refused.
+    let (kem_pk_hex, sig_fp_val): (Option<String>, Option<String>) = match (kem_pk, sig_pk) {
+        (Some(kem_raw), Some(sig_raw)) => {
+            let kem_bytes = match hex_decode(kem_raw) {
+                Ok(b) => b,
+                Err(_) => print_error_marker("contacts_kem_pk_bad_hex"),
+            };
+            let sig_bytes = match hex_decode(sig_raw) {
+                Ok(b) => b,
+                Err(_) => print_error_marker("contacts_sig_pk_bad_hex"),
+            };
+            let computed = identity_fingerprint_from_identity(&kem_bytes, &sig_bytes);
+            if !identity_pin_matches_seen(fp, &computed) {
+                print_error_marker("contacts_identity_fp_mismatch");
+            }
+            (
+                Some(hex_encode(&kem_bytes)),
+                Some(identity_fingerprint_from_pk(&sig_bytes)),
+            )
+        }
+        (Some(kem_raw), None) => {
+            let bytes = match hex_decode(kem_raw) {
                 Ok(b) => b,
                 Err(_) => print_error_marker("contacts_kem_pk_bad_hex"),
             };
@@ -1046,9 +1068,10 @@ pub(super) fn contacts_add(
             if !identity_pin_matches_seen(fp, &computed) {
                 print_error_marker("contacts_kem_pk_fp_mismatch");
             }
-            Some(hex_encode(&bytes))
+            (Some(hex_encode(&bytes)), None)
         }
-        None => None,
+        (None, Some(_)) => print_error_marker("contacts_sig_pk_requires_kem_pk"),
+        (None, None) => (None, None),
     };
     let status = if verify { "verified" } else { "pinned" };
     let route_token = match route_token {
@@ -1074,14 +1097,14 @@ pub(super) fn contacts_add(
         status: status.to_string(),
         blocked: false,
         seen_at: None,
-        sig_fp: None,
+        sig_fp: sig_fp_val.clone(),
         kem_pk: kem_pk_hex.clone(),
         route_token: route_token.clone(),
         primary_device_id: None,
         devices: vec![ContactDeviceRecord {
-            device_id: device_id_short(label, None, fp),
+            device_id: device_id_short(label, sig_fp_val.as_deref(), fp),
             fp: fp.to_string(),
-            sig_fp: None,
+            sig_fp: sig_fp_val.clone(),
             kem_pk: kem_pk_hex.clone(),
             state: legacy_contact_status_to_device_state(status).to_string(),
             route_token: route_token.clone(),

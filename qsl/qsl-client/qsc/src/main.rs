@@ -135,8 +135,8 @@ use handshake::{
     handshake_status, hs_kem_keypair, hs_sig_keypair,
 };
 use identity::{
-    format_verification_code_from_fingerprint, identities_dir, identity_fingerprint_from_pk,
-    identity_marker_display, identity_pin_matches_seen, identity_read_peer_kem_pk, identity_read_pin,
+    format_verification_code_from_fingerprint, identities_dir, identity_fingerprint_from_identity,
+    identity_fingerprint_from_pk, identity_marker_display, identity_pin_matches_seen, identity_read_peer_kem_pk, identity_read_pin,
     identity_read_self_public, identity_read_sig_pin, identity_rotate_kem_keypair,
     identity_rotate_sig_keypair, identity_secret_name, identity_secret_store,
     identity_self_fingerprint, identity_self_kem_keypair, identity_self_path,
@@ -470,9 +470,17 @@ fn main() {
                 label,
                 fp,
                 kem_pk,
+                sig_pk,
                 route_token,
                 verify,
-            } => contacts_add(&label, &fp, kem_pk.as_deref(), route_token.as_deref(), verify),
+            } => contacts_add(
+                &label,
+                &fp,
+                kem_pk.as_deref(),
+                sig_pk.as_deref(),
+                route_token.as_deref(),
+                verify,
+            ),
             ContactsCmd::Show { label } => contacts_show(&label),
             ContactsCmd::List => contacts_list(),
             ContactsCmd::Verify { label, fp, confirm } => contacts_verify(&label, &fp, confirm),
@@ -975,7 +983,8 @@ fn identity_show(self_label: &str) {
         );
         print_error_marker("identity_missing");
     };
-    let fp = identity_fingerprint_from_pk(&rec.kem_pk);
+    // NA-0634 (D571 Decision 2a): the verification code binds BOTH identity keys (KEM + signing).
+    let fp = identity_fingerprint_from_identity(&rec.kem_pk, &rec.sig_pk);
     emit_marker(
         "identity_show",
         None,
@@ -986,6 +995,9 @@ fn identity_show(self_label: &str) {
     // (`contacts add --fp <this fp> --kem-pk <this>`) and thereby authenticate this side as the
     // handshake responder. The fingerprint stays the human-comparable element.
     println!("identity_kem_pk={}", hex_encode(&rec.kem_pk));
+    // NA-0634 (D571 Decision 2a): also emit the signing key so a peer provisions BOTH keys against the
+    // single verification code (`contacts add --fp <fp> --kem-pk <kem> --sig-pk <sig>`).
+    println!("identity_sig_pk={}", hex_encode(&rec.sig_pk));
 }
 
 fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
@@ -1064,7 +1076,8 @@ fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
             }
         }
     }
-    let fp = identity_fingerprint_from_pk(&kem_pk);
+    // NA-0634 (D571 Decision 2a): the verification code binds BOTH identity keys (KEM + signing).
+    let fp = identity_fingerprint_from_identity(&kem_pk, &sig_pk);
     emit_marker(
         "identity_rotate",
         None,
@@ -1073,6 +1086,8 @@ fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
     println!("identity_fp={}", fp);
     // NA-0633 (ENG-0038): emit the full identity KEM public key for peer provisioning (see identity_show).
     println!("identity_kem_pk={}", hex_encode(&kem_pk));
+    // NA-0634 (D571 Decision 2a): emit the signing key for full-identity peer provisioning.
+    println!("identity_sig_pk={}", hex_encode(&sig_pk));
 }
 
 fn peers_list() {

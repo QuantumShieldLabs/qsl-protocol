@@ -194,6 +194,20 @@ pub(super) fn identity_fingerprint_from_pk(pk: &[u8]) -> String {
     format!("{}{}", IDENTITY_FP_PREFIX, hex_encode(fp))
 }
 
+/// NA-0634 (D571 Decision 2a): the FULL-IDENTITY verification code binds BOTH identity public keys —
+/// the ML-KEM identity key and the ML-DSA signing key — so the single out-of-band code a user compares
+/// authenticates the whole identity, not just its KEM half (closing the ENG-0038 signing-key asymmetry
+/// that C1 left open). Both keys are fixed-length, so the ordered concatenation `kem_pk || sig_pk` is an
+/// unambiguous pre-image; both parties compute it identically.
+pub(super) fn identity_fingerprint_from_identity(kem_pk: &[u8], sig_pk: &[u8]) -> String {
+    let c = StdCrypto;
+    let mut buf = Vec::with_capacity(kem_pk.len() + sig_pk.len());
+    buf.extend_from_slice(kem_pk);
+    buf.extend_from_slice(sig_pk);
+    let hash = c.sha512(&buf);
+    format!("{}{}", IDENTITY_FP_PREFIX, hex_encode(&hash[..16]))
+}
+
 pub(super) fn identity_secret_name(self_label: &str) -> String {
     format!("identity.kem_sk.{}", self_label)
 }
@@ -562,7 +576,8 @@ pub(super) fn identity_self_kem_keypair(self_label: &str) -> Result<IdentityKeyp
 
 pub(super) fn identity_self_fingerprint(self_label: &str) -> Result<String, ErrorCode> {
     match identity_read_self_public(self_label)? {
-        Some(rec) => Ok(identity_fingerprint_from_pk(&rec.kem_pk)),
+        // NA-0634 (D571 Decision 2a): the self verification code binds BOTH identity keys.
+        Some(rec) => Ok(identity_fingerprint_from_identity(&rec.kem_pk, &rec.sig_pk)),
         None => Ok("untrusted".to_string()),
     }
 }

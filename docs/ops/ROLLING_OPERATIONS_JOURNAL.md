@@ -42890,3 +42890,29 @@ Build + refimpl tests (89 lib incl. the scan) + fmt/clippy green. **ENG-0019 P2 
 shipped code path changed. Queue back to READY=NONE; the two prerequisites for the external-review-bundle
 assembly (accurate docs + no attested auth-unsafe binary) are now both met. No package installed; no
 operator startup command run; the executor promoted no lane.
+
+## 2026-07-10 — NA-0631 (external-review-bundle assembly, D-1255)
+Executed and closed NA-0631 per D568 (single-PR docs/governance lane). The external-review package
+existed but NA-0629 had updated only its Executive Summary; its load-bearing sections predated the
+crypto-core arc, so a reviewer following it could not reach the ProVerif analysis — its strongest
+evidence. Completed `docs/public/EXTERNAL_REVIEW_PACKAGE.md`: the "What Is Currently Proven" table now
+carries the single-root composition, the CI-gated ProVerif symbolic analysis (DOC-G4-002), and the
+contributory-DH guard (each stated as symbolic/structural over the A1–A8 abstractions, not a security
+claim); "Reproducible Commands" now runs the ProVerif gate + `cargo test -p quantumshield_refimpl`; the
+Artifact Index points to DOC-G4-002 (§2 abstraction table called out); the PR table is current; "Known
+Gaps" names independent human review as THE gate and records the ENG-0035 residual; a reading-order
+routes reviewers to DOC-G4-002 §2 first. The WF-0018 ledger status-line drift was fixed.
+
+**Claim boundary UNCHANGED (Operator Decision 1), machine-verified: the "What Is Not Proven" and "Safe
+Public Wording" sections are byte-identical to baseline; no canonical or DOC-G4-002 edit; no unguarded
+forbidden claim.** Reproducers re-run this lane (refimpl 89 lib incl. the scan; ProVerif 17 assertions).
+
+Recovery note (governance): the operator ran `qnext NA-0630 qsl-protocol` before the promotion PR #1542
+merged, which dropped the NA-0630 checkout and left a partial NA-0631 workspace with no startup proof.
+The executor merged #1542 (origin/main → 27efec5a, NA-0631 seated READY), the operator cleared the
+partial and re-ran `qwork NA-0631 qsl-protocol` for a clean fresh provisioning (`created_or_existing=
+created`), and Phase 0 re-verified it with extra WF-0004 care. No lasting harm.
+
+The bundle is now reviewer-ready — commissioning the independent external review is the operator's
+external step and the true release gate. Queue back to READY=NONE. No package installed; no operator
+startup command run by the executor; the executor promoted no lane.

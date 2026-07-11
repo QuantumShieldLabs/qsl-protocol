@@ -58,6 +58,18 @@ formal/model checks, corpus validators, and secret-material scans. This is
 review orientation, not completed external review and not a production/public
 readiness claim.
 
+### How to read this package
+
+1. This Executive Summary — what QSL is and the claim boundary.
+2. **What Is Currently Proven** and **What Is Not Proven** — the evidence and its limits, side by side.
+3. **[DOC-G4-002](../design/DOC-G4-002_Suite2_DH_PQ_Composition_Symbolic_Analysis_ProVerif_v0.1.0_DRAFT.md)** for the formal results — **read §2 (the A1–A8 abstraction table) first**: it names what each symbolic result masks and is the anchor for what to trust.
+4. **Reproducible Commands** — rebuild the evidence yourself, including the ProVerif gate.
+5. **Known Gaps And Recommended Next Work** — what remains, with **independent human review named as the gate**.
+
+The strongest and newest evidence is the CI-gated ProVerif symbolic analysis of the Suite-2 DH+PQ
+composition (NA-0627, DOC-G4-002); it is a symbolic result over abstracted primitives, not a security
+claim, and the package states that boundary throughout.
+
 ## Current Posture
 
 - Research-stage protocol and demo system.
@@ -105,6 +117,9 @@ readiness claim.
 | Website truthfulness audit | D-0456 and [NA-0245 evidence](../governance/evidence/NA-0245_website_truthfulness_audit.md) map public website claims to repo truth and separate external products from protocol evidence. | Audit/plan only; no website implementation change. |
 | Triple-Ratchet-style claim boundary | D-0462, PR #744, and [Suite-2 claim boundary](SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md) authorize research-stage Triple-Ratchet-style wording and prohibit unsupported production/proven/anonymity claims. | External terminology is definitional only; it does not certify QSL. |
 | Formal downgrade/no-mutation evidence | D-0464, PR #746, [formal README](../../formal/README.md), and [NA-0249 evidence](../governance/evidence/NA-0249_formal_downgrade_no_mutation_audit.md) run bounded SCKA and Suite-2 negotiation models. | Bounded model evidence; not a full cryptographic or production proof. |
+| Single-root DH+PQ composition | D-1247/D-1248 (NA-0626) unify the classical DH ratchet and the post-quantum SCKA reseed onto one Suite-2 session root, with a combined DH+PQ boundary; bounded model checks (15,032 states / 9 shapes) exercise the single-root schedule and the PQ-first mis-composition counterfactual. | Structural/implementation evidence over the shipped refimpl; not by itself a security proof. |
+| Suite-2 DH+PQ composition — symbolic analysis (ProVerif) | D-1249/D-1250 (NA-0627); [DOC-G4-002](../design/DOC-G4-002_Suite2_DH_PQ_Composition_Symbolic_Analysis_ProVerif_v0.1.0_DRAFT.md) records a **CI-gated ProVerif 2.05 symbolic (Dolev-Yao) model of the composition as shipped**, proving message-key secrecy, injective transcript agreement, bidirectional healing (post-reseed and post-combined-boundary traffic stays secret with all classical DH secrets compromised; post-DH-boundary traffic stays secret with the ML-KEM decapsulation key compromised — **these three together are the hybrid claim**), and control-plane advertisement unforgeability; the gate is mutation-tested and its first assertion is a tool sanity pair. | **A symbolic result over the abstractions in DOC-G4-002 §2 (idealized KDF/AEAD/X25519 group/ML-KEM); NOT a computational, implementation, or post-quantum proof, and NOT a post-compromise/Triple-Ratchet security claim.** Start a review at DOC-G4-002 §2 (the A1–A8 abstraction table) — it names what each result masks. |
+| Non-contributory (low-order) X25519 rejected | D-1251/D-1252 (NA-0628); every live X25519 DH output is now checked for the all-zero (non-contributory) value RFC 7748 §6.1 requires and fails closed (`REJECT_S2_DH_NONCONTRIBUTORY`), with additive negative conformance vectors and a byte-scan proving the existing vector set unchanged. | Closes the code obstacle to post-compromise language; the claim itself remains gated (see "What Is Not Proven" and the abstraction table). |
 
 ## What Is Not Proven
 
@@ -146,6 +161,8 @@ Run from the repository root.
 | `scripts/ci/metadata_phase2_identifier_padding_harness.sh` | Metadata phase-2 identifier/padding policy fixture harness. | PASS when the NA-0291 harness markers are emitted; design-only markers preserve runtime claim boundaries. |
 | [NA-0292 sanitized-error/retention design](../governance/evidence/NA-0292_metadata_phase2_sanitized_errors_retention_design.md) | Metadata phase-2 sanitized-error and retention/purge design review. | DOCS_ONLY planning evidence; NA-0293 now carries the bounded executable policy-harness proof. |
 | `scripts/ci/metadata_phase2_sanitized_errors_retention_harness.sh` | Metadata phase-2 sanitized-error and retention/purge policy fixture harness. | PASS when the NA-0293 harness markers are emitted; harness-only markers preserve runtime and production-retention claim boundaries. |
+| `python3 formal/proverif/run_proverif_checks.py` | The CI-gated ProVerif 2.05 symbolic analysis of the Suite-2 DH+PQ composition (NA-0627); the fail-closed runner asserts the expected `RESULT` line per query, with a tool sanity pair first. | PASS; 17 assertions (2 sanity + 15 model). ~24 min wall-clock; symbolic result over the DOC-G4-002 §2 abstractions, not an implementation proof. |
+| `cargo test -p quantumshield_refimpl --locked` | The reference-implementation crate tests, including the NA-0628 non-contributory-DH anti-regression scan (`na0628_every_dh_call_site_is_guarded_or_allowlisted`) and the DH-guard tests. | PASS; 89 lib tests incl. the scan, plus the integration targets. |
 
 ## Evidence Artifact Index
 
@@ -162,6 +179,10 @@ Run from the repository root.
 - [qsc desktop prototype README](../../qsl/qsl-client/qsc-desktop/README.md)
 - [Desktop GUI active-ops boundary](../design/DOC-QSC-010_Desktop_GUI_Prototype_Active_Ops_Boundary_v0.1.0_DRAFT.md)
 - [Formal model README](../../formal/README.md)
+- **[DOC-G4-002 — Suite-2 DH+PQ composition symbolic analysis (ProVerif)](../design/DOC-G4-002_Suite2_DH_PQ_Composition_Symbolic_Analysis_ProVerif_v0.1.0_DRAFT.md)** — the reviewer-facing analysis record; **§2 is the A1–A8 abstraction table (what each result masks) and §7 the drafted claim boundary — start here for the formal results.**
+- [ProVerif model + fail-closed gate runner](../../formal/proverif/run_proverif_checks.py)
+- [NA-0628 contributory-DH design-lock](../governance/evidence/NA-0628_design_lock.md) and [testplan](../../tests/NA-0628_eng0034_contributory_dh_testplan.md)
+- [NA-0627 Decision-5 contributory code inspection](../governance/evidence/NA-0627_decision5_contributory_code_inspection.md)
 - [NA-0240 SCKA evidence](../governance/evidence/NA-0240_scka_persistence_monotonicity_audit.md)
 - [NA-0241 downgrade/demo evidence](../governance/evidence/NA-0241_demo_downgrade_no_mutation_audit.md)
 - [NA-0242 KT evidence](../governance/evidence/NA-0242_kt_consistency_no_mutation_audit.md)
@@ -224,6 +245,10 @@ Run from the repository root.
 | #1352 | NA-0539 closeout and NA-0540 restoration. | Merged |
 | #1353 | NA-0540 daily Progress cadence and site accuracy authorization. | Merged |
 | #1354 | NA-0540 closeout and NA-0541 restoration. | Merged |
+| #1533 / #1534 | NA-0627 (ENG-0028): the CI-gated ProVerif symbolic analysis of the Suite-2 DH+PQ composition; DOC-G4-002. | Merged |
+| #1536 / #1537 | NA-0628 (ENG-0034): reject non-contributory (low-order) X25519 on every live DH path; new reason code + additive negative vectors + byte-scan. | Merged |
+| #1539 | NA-0629 (WF-0018): strategic/review-facing docs truthed up to live crypto-core state; claim boundary unchanged. | Merged |
+| #1541 | NA-0630 (ENG-0019): the auth-unsafe `qsp` reference implementation de-attested from releases, labeled NOT-PRODUCTION, and CI-guarded. | Merged |
 
 ## Review Questions For External Reviewers
 
@@ -281,6 +306,8 @@ Expected reviewer outputs if external review starts:
 | Reviewer findings and dispositions are not recorded. | Use this refreshed package as orientation material, then record accepted scope, findings, dispositions, and residual risk in a separate evidence lane. |
 | External cryptographic review is not complete. | Send this package plus canonical specs, vectors, and model limits to reviewers and record findings separately. |
 | Public Progress is new. | Review the [Progress index](PROGRESS.md), [June 25 entry](progress/2026-06-25.md), and correction ledger for factual or claim-safety gaps before treating the summary as reviewer handoff material. |
+| Independent human review of the cryptographic composition is THE remaining gate. | The ProVerif result is a symbolic result over abstracted primitives (DOC-G4-002 §2). No post-quantum / post-compromise / proven-Triple-Ratchet language is justified until an independent cryptographer reviews the composition, the abstraction table, and the shipped code. This package is the orientation material for that review. |
+| Formal coverage is bounded — the two-epoch unrolling does not terminate (ENG-0035). | ProVerif does not terminate at the design-locked 2-boundary unrolling; the main model was reduced to one DH boundary + one PQ reseed (the reduction is stated in the model header and no query was weakened), and Tamarin is re-presented for that query shape. No single model exercises two consecutive root-advancing DH epochs. |
 
 ## Safe Public Wording
 

@@ -22,6 +22,9 @@ addressed to "Codex" in this repository binds you identically when executing.
 9. docs/ops/IMPROVEMENT_LEDGER.md (DOC-OPS-007) — cross-lane engineering-findings
    and process-improvement backlog; read during the Director phase and file or
    update entries before closeout
+10. docs/program/DOC-PROG-002 — QSL Product Strategy (niche thesis, competitive
+    pillars, standing tensions, claim-gating and overclaim-ban rules). Orients
+    every strategy-relevant lane; non-normative but binding on claim language.
 
 MUST READ project directive: docs/dev/DOC-DEV-003_Assistant_Operating_Rules_v1.0.0_DRAFT.md
 

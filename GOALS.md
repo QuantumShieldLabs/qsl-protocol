@@ -33,6 +33,25 @@ Protocol and envelope work MUST consider linkability and fingerprinting:
 - padding/traffic profiles where applicable
 - minimization of stable identifiers and observable state where feasible
 
+## Product Strategy (orientation, non-normative)
+
+The goals above are oriented by a product strategy: QSL targets self-hosted,
+phone-number-free, small high-trust organizations — users Signal structurally
+cannot serve — while technical pillars (mapping to G1–G5) close specific gaps
+so QSL is stronger than Signal property-by-property. Post-quantum-native
+authentication (Pillar I) is the flagship differentiator.
+
+See docs/program/DOC-PROG-002 (QSL Product Strategy) for the full thesis,
+pillars, standing tensions, and the two-horizon definition of done.
+
+Two hard rules from that strategy bind all lanes:
+1. Competitive/superiority language is banned in lane artifacts. Lanes prove
+   PROPERTIES; comparisons to Signal are made externally on gated evidence.
+2. "Match Signal" can pull AGAINST "beat Signal" — most sharply in the
+   handshake, where Signal's authentication is not yet post-quantum.
+   Any lane touching authentication must treat "does matching Signal forfeit
+   the PQ-native-auth edge?" as a recorded decision, never a silent default.
+
 ## Global non-regression rules (apply to every PR)
 
 1. **Goal impact statement required:** every PR must declare which Goal IDs it advances (G1–G5).

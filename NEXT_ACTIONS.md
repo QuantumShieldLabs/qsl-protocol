@@ -6,18 +6,18 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0633 | HIGHEST_D=1257 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
-<!-- NA-0633 (ENG-0038 fix, construction C1) DONE 2026-07-11 (D-1257). The shipped qsc handshake now authenticates the responder to the initiator against its pinned identity KEM key (A1 gains resp_kem_ct; ss_B mixed into pq_init_ss; a wrong responder fails the transcript MAC → explicit reject at B1). ENG-0038 REMEDIATED. Closes the DOC-CAN-003 §6.3 gap for the initiator path + the ENG-0001/NA-0609B conclusion NA-0632 contradicted. Claim boundary otherwise UNCHANGED. Queue returns to READY=NONE — the operator promotes the successor (a ProVerif model of QSC.HS.*, the GUI lane, or the independent external review). The executor cannot self-promote. -->
-<!-- prior: STATE: READY=NA-0633 | HIGHEST_NA=0633 | HIGHEST_D=1256 (NA-0633 promoted for D570) -->
+`STATE: READY=NA-0634 | HIGHEST_NA=0634 | HIGHEST_D=1257 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- NA-0634 (D571 REV 4 fold-ins) PROMOTED to sole READY 2026-07-11 for directive QSL-DIR-2026-07-11-571 (D571 REV 4, APPROVED): full-identity provisioning + sig_fp population + wrong-signing-key negative + canonical KDF combiner, completing the C1 authenticated interim (NA-0633 shipped C1-only). Phase 0–1 ONLY; the NA-0635 prekey gate (Decision 3) is a separate later lane. -->
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0633 | HIGHEST_D=1257 (NA-0633/ENG-0038 DONE at D-1257; queue was READY=NONE before the NA-0634 promotion) -->
 
-**READY (exactly one — execute this):** `NA-0633 — ENG-0038 fix: authenticate the responder to the
-initiator in the qsc QSC.HS.* handshake (close the KEM-vs-SIG asymmetry)` (directive
-QSL-DIR-2026-07-11-570, D570, APPROVED). ENG-0038 (filed by NA-0632 / D-1256) is the P1 before-GUI
-blocker: on the shipped path an on-path attacker (e.g., the relay) can impersonate the RESPONDER to the
-INITIATOR, and a correctly-verified out-of-band verification code does not prevent it. Design-lock-first,
-PoC-first (Phase 0 REPRODUCES ENG-0038 before any fix). Its full block (with scope flags) is below under
-section 2; find it with the ANCHORED pattern `^Status:` carrying the state READY (there is exactly one
-such line in this file).
+**READY (exactly one — execute this):** `NA-0634 — D571 fold-ins: complete the authenticated interim —
+full-identity provisioning (populate sig_fp) + canonical KDF combiner over C1's actual inputs` (directive
+QSL-DIR-2026-07-11-571, D571 REV 4, APPROVED). Completes the C1 authenticated interim (NA-0633 shipped
+C1-only): full-identity provisioning binds BOTH the identity KEM key AND the signing key to the SINGLE
+verification code (sig_fp finally populated; the responder sig-pin made REQUIRED/fail-closed), plus a
+canonical KDF combiner over C1's actual inputs. Phase 0–1 ONLY — the NA-0635 prekey gate (Decision 3) is a
+separate later lane. Its full block (with scope flags) is below under section 2; find it with the ANCHORED
+pattern `^Status:` carrying the state READY (there is exactly one such line in this file).
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -34910,3 +34910,34 @@ See D570 for the full COVERAGE contract, Operator Decisions 1–4, phases, and S
 
 Successor candidates (Phase 6): a ProVerif/Tamarin model of `QSC.HS.*` (proves the fix, extends the ENG-0035 formal track); the GUI lane (unblocked on this axis); the independent external human review (still the true release gate).
 Begins at D-1257. Fix lane; wire/crypto/auth change allowed; the analysis-lane "findings only" rule does NOT apply.
+
+---
+
+### NA-0634 — D571 fold-ins: complete the authenticated interim — full-identity provisioning (populate `sig_fp`) + canonical KDF combiner over C1's actual inputs (qsc source/test)
+Status: READY
+Goals: G1, G2, G3, G4
+Wire/behavior change allowed? YES (D571 REV 4, Decision 2 — provisioning gains `--sig-pk`; A1/B1 on-wire format unchanged; fail-closed).
+Crypto/state-machine change allowed? YES, BOUNDED — the responder signing-identity pin (`sig_fp`) made REQUIRED/fail-closed at B1, plus a canonical KDF combiner over C1's ACTUAL inputs (`ss_pq`, `resp_kem_ss`, the ephemeral DH). NO KEM/AEAD/KDF primitive change; NO prekey/three-DH structure.
+Docs-only allowed? NO. Canonical change allowed? NO. Suite-2 core (`establish.rs`) / Suite-2 vectors / `formal/` change? NO — the combiner stays in the qsc handshake layer feeding the UNCHANGED Suite-2 interface.
+Claim change allowed? Claim-adjacent only, fail-closed — moves NO post-compromise/PQ claim (still gated by A1–A8 + the formal model + independent review); MAY substantiate the full bidirectional identity-auth statement the fold-ins make true (both KEM + signing identity pinned to the single verified code).
+
+Scope:
+- `qsl/qsl-client/qsc/src/identity/mod.rs`
+- `qsl/qsl-client/qsc/src/contacts/mod.rs`
+- `qsl/qsl-client/qsc/src/cmd/mod.rs`
+- `qsl/qsl-client/qsc/src/main.rs`
+- `qsl/qsl-client/qsc/src/store/mod.rs`
+- `qsl/qsl-client/qsc/src/handshake/mod.rs`
+- `qsl/qsl-client/qsc/tests/NA_0634_full_identity_provisioning.rs`
+- `qsl/qsl-client/qsc/tests/**` — test-migration touch (thread `--sig-pk` through the existing handshake tests)
+
+Objective:
+Execute **Phase 0–1 of QSL-DIR-2026-07-11-571 (D571, REV 4, APPROVED)** — the Decision-2 fold-ins that complete the C1 authenticated interim (NA-0633 shipped C1-only). Do NOT begin the NA-0635 prekey gate (Decision 3); that is a separate lane after NA-0634 closes.
+- **(a) Full-identity provisioning + `sig_fp` population.** Redefine the single verification code as `fingerprint(kem_pk, sig_pk)` (full identity; operator-acknowledged, correct pre-release). `contacts add --fp <code> --kem-pk <hex> --sig-pk <hex>` verifies `fingerprint(kem_pk, sig_pk) == code` at add-time (fail-closed) and POPULATES `sig_fp`; `identity show`/`rotate` emit `identity_sig_pk` + the combined code. The initiator's B1 processing pins `fingerprint(resp.sig_pk) == sig_fp`, REQUIRED/fail-closed — retiring the whole authentication-asymmetry class (the signing half C1 left open) and closing the never-populated-sig-pin weakness.
+- **(b) Canonical KDF combiner.** Replace C1's incremental `resp_kem_ss` append (inside `hs_pq_init_ss`) with ONE explicit, ordered, labeled combiner over C1's ACTUAL inputs (`ss_pq`, `resp_kem_ss`, the ephemeral DH) — Suite-2 hybrid-KDF style, structured to EXTEND to the X3DH target (`DH1‖DH2‖DH3[‖DH4]‖SS`) later without a redesign, introducing NO prekey/three-DH structure now and NOT touching the Suite-2 core (`establish.rs`) or its vectors.
+- Tests: ADD a wrong-SIGNING-key negative (initiator REJECTS a responder with the correct KEM identity but a wrong signing key at B1); keep the existing wrong-responder test (`tests/NA_0633_eng0038_reproduction.rs`) GREEN; add a positive full-identity roundtrip. Run `cargo test -p qsc` LOCALLY before the PR (the `qsc-linux-full-suite` check SKIPS on PRs).
+
+See D571 (REV 4) for the full Decision 1–4 structure, the Phase-1 scope guard, and STOP conditions (esp. NO prekey/three-DH structure in the combiner; NO PQXDH-shape adoption; the NA-0635 gate is NOT this lane).
+
+Successor candidates (Phase 6): NA-0635 (the GATED prekey redesign — separate lane); the `QSC.HS.*` formal-model gate (D571 Decision 4); the audit-methodology coverage finding (D571 Decision 4); the GUI lane (after the formal-model gate).
+Begins at D-1258. Fix/fold-in lane; wire/crypto/auth change allowed; the NA-0635 prekey gate is a separate successor lane.

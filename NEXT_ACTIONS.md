@@ -6,26 +6,29 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0637 | HIGHEST_D=1260 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
-<!-- NA-0637 (audit-methodology coverage finding) DONE 2026-07-12 (D-1260): the dropped D571 Decision-4 instruction is PAID. WF-0019 FILED — the coverage lesson: NA-0609B's QSC_HANDSHAKE_IDENTITY_AUDIT_COMPLETE_NO_P0_P1_THREE_P3_HARDENING verdict certified sound the exact seam that carried ENG-0038 (the "optional pin" never populated by any product path, the initiator's "primary pin" tautological, the ML-DSA verify self-referential for identity); every local observation was accurate, the soundness CONCLUSION outran the coverage — a soundness verdict must be backed by NAMED, EXERCISED coverage plus the WF-0017-style non-vacuity question ("could this audit have detected the flaw class it certifies absent?"). WF-0020 FILED — the drop: D571 Decision 4/Phase 5 assigned that filing to NA-0634; NA-0634 closed (D-1258) without executing it; every existing closeout check passed because a dropped instruction leaves no artifact; undetected until the 2026-07-12 ad-hoc live-state check (a coverage gap fell into a coverage gap — recorded honestly). The NA-0609B coverage re-examination is SCOPED as ON DECK item 0a (per-claim EXERCISED-vs-INSPECTED verdicts, seeded by NA-0636's five unmodeled slices, NA-0636 bounded-model + non-vacuity method) — NOT executed, NOT promoted. Governance/ledger only; zero source/formal/vector/canonical/.github change; claim boundary UNCHANGED (this lane narrows past assurance, moves no claim). Queue returns to READY=NONE — the operator promotes the successor (the re-examination lane 0a, NA-0635 GATED prekey, or the GUI lane). The executor cannot self-promote. -->
-<!-- prior: STATE: READY=NA-0637 | HIGHEST_NA=0637 | HIGHEST_D=1259 (NA-0637 promoted for D573; PR #1553) -->
+`STATE: READY=NA-0638 | HIGHEST_NA=0638 | HIGHEST_D=1260 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- NA-0638 (NA-0609B coverage re-examination) PROMOTED to sole READY 2026-07-12 for directive QSL-DIR-2026-07-12-574 (D574, APPROVED): ON-DECK item 0a seated as a lane — governance/ledger-ONLY, READ-ONLY toward the code. Classify the COVERAGE behind each of NA-0609B's NINE "verified sound" claims: EXERCISED (a counterexample-capable test/vector/model run existed at audit time — name it) / INSPECTED-ONLY (code reading alone) / CONTRADICTED (claim 5, dual-pin identity, pre-decided via ENG-0038 — the calibration point, cite existing evidence). All NINE claims including the 9th ("Operator markers") that WF-0019's eight-item enumeration omitted (discrepancy recorded). MAPPING lane, NOT proving: any need to BUILD or RUN a model/test to decide a claim is a STOP condition — the missing exercise is FILED as a finding (first free WF-0021, CONFIRM-LIVE at Phase 0) and SCOPED ON-DECK for its own successor lane (device indirection, NA-0636's "substantive one", the natural first); re-inspection may CONFIRM a verdict but never upgrade it to EXERCISED (WF-0019 standard). EXERCISED asserts only that a counterexample-capable mechanism existed, NOT that the seam is secure. Zero source/formal/test/vector/canonical/.github change; no claim movement; ENG-0003/0004 stay closed; NA-0635 stays RESERVED (D571 Decision 3). Begins at D-1261. -->
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0637 | HIGHEST_D=1260 (NA-0637/D573 DONE at D-1260; queue was READY=NONE before the NA-0638 promotion) -->
 
-**READY (exactly one — execute this): NONE.** NA-0637 (the audit-methodology coverage finding, D573) is
-**DONE** at D-1260 — the instruction D571 Decision 4 ordered and NA-0634 dropped is **PAID**: **WF-0019**
-(NA-0609B's "verified sound"/"no P0/P1" certification outran its coverage — it certified sound the exact
-seam that carried ENG-0038; soundness verdicts require named, EXERCISED coverage plus the non-vacuity
-question) and **WF-0020** (the drop itself: an approved-directive instruction closed a lane unexecuted with
-no automatic detection) are **FILED** on the ledger, and the **NA-0609B coverage re-examination is SCOPED
-as ON DECK item 0a** — not executed, not promoted, awaiting its own directive. Its full block (now
-`Status: DONE` with the OUTCOME) is below under section 2. The queue returns to **READY=NONE**; the
-operator promotes the successor — the **re-examination lane** (item 0a), **NA-0635** (the GATED prekey
-redesign, D571 Decision 3), or the **GUI lane** (formal-model gate satisfied at NA-0636). The executor
-cannot self-promote.
+**READY (exactly one — execute this):** `NA-0638 — NA-0609B coverage re-examination: classify each
+"verified sound" claim EXERCISED / INSPECTED-ONLY / CONTRADICTED (map coverage; do not re-prove, do not
+fix)` (directive QSL-DIR-2026-07-12-574, D574, APPROVED). Governance/ledger-ONLY; READ-ONLY toward the
+code. For EACH of NA-0609B's NINE "verified sound" claims, classify the coverage that backed the audit's
+verdict AT AUDIT TIME: **EXERCISED** (a counterexample-capable test/vector/model run existed — name it),
+**INSPECTED-ONLY** (code reading alone), or **CONTRADICTED** (claim 5, dual-pin identity, pre-decided via
+ENG-0038 — cite existing evidence, no new work). All nine, including the 9th ("Operator markers") that
+WF-0019's eight-item enumeration omitted — record the discrepancy. **MAPPING lane, not proving:** needing
+to BUILD or RUN a model/test to decide a claim is a STOP — file the missing exercise as a finding (first
+free **WF-0021**, CONFIRM-LIVE at Phase 0) and scope it ON-DECK for its own lane (device indirection
+first); re-inspection may CONFIRM a verdict, never upgrade it to EXERCISED. No source/formal/test/vector/
+canonical/`.github` change; no claim movement; ENG-0003/0004 stay closed; NOT the NA-0635 prekey gate.
+Its full block (with scope flags) is below under section 2; find it with the ANCHORED pattern `^Status:`
+carrying the state READY (there is exactly one such line in this file).
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
 0. **✅ ENG-0038 = qsc handshake responder-auth gap — PROMOTED to NA-0633 (now READY); directive D570 APPROVED 2026-07-11.** The shipped `qsc` `QSC.HS.*` handshake does NOT authenticate the responder to the initiator (an on-path attacker — e.g., the relay — can impersonate the responder; a correctly-verified out-of-band code does not prevent it). Fix goal (D570 Operator Decision 1): authenticate the responder against the SAME verified KEM identity so the ONE verification code authenticates both directions; the design-lock chooses the construction (leading candidate: a mutual-KEM possession proof). Design-lock-first, PoC-first. See the NA-0633 lane block (section 2) + `docs/governance/evidence/NA-0632_adversarial_reanalysis.md` §2/§6/§7. **Re-tested and CONTRADICTED the prior ENG-0001/NA-0609B "no KEM-vs-SIG binding flaw" conclusion.**
-0a. **NA-0609B coverage re-examination — SCOPED by NA-0637 (D573 Phase 3, 2026-07-12); awaiting its own directive; the operator promotes.** Bounded, READ-ONLY successor lane: revisit each NA-0609B "verified sound" conclusion (transcript binding; hybrid handshake + all-zero DH guard; fail-closed ML-DSA verify; downgrade/suite-context binding; dual-pin identity model — already CONTRADICTED by ENG-0038, the calibration point; no-mutation-on-reject; atomic writes; replay rejection) and answer PER CLAIM: was the verdict backed by an EXERCISED mechanism (a test/vector/model run demonstrably capable of finding a counterexample) or by INSPECTION alone? Seed targets = NA-0636's five unmodeled slices (device indirection — the substantive one, FIRST; cross-session replay; concurrent pendings; composition with suite negotiation; collision-resistance). Method = the NA-0636 bounded-model + WF-0017 non-vacuity discipline (prefer a bounded exercise over re-inspection; re-inspection may CONFIRM a verdict, never upgrade it to "exercised"). Output = a per-claim verdict table (EXERCISED / INSPECTED-ONLY / CONTRADICTED) + new ledger findings where warranted; fixes are separate lanes; ENG-0003/0004 stay closed. See WF-0019 + `docs/governance/evidence/NA-0637_as_built.md` §5.
+0a. **✅ NA-0609B coverage re-examination — PROMOTED to NA-0638 (now READY); directive D574 APPROVED 2026-07-12; SCOPED by NA-0637 (D573 Phase 3, 2026-07-12).** Bounded, READ-ONLY successor lane: revisit each NA-0609B "verified sound" conclusion (transcript binding; hybrid handshake + all-zero DH guard; fail-closed ML-DSA verify; downgrade/suite-context binding; dual-pin identity model — already CONTRADICTED by ENG-0038, the calibration point; no-mutation-on-reject; atomic writes; replay rejection) and answer PER CLAIM: was the verdict backed by an EXERCISED mechanism (a test/vector/model run demonstrably capable of finding a counterexample) or by INSPECTION alone? Seed targets = NA-0636's five unmodeled slices (device indirection — the substantive one, FIRST; cross-session replay; concurrent pendings; composition with suite negotiation; collision-resistance). Method = the NA-0636 bounded-model + WF-0017 non-vacuity discipline (prefer a bounded exercise over re-inspection; re-inspection may CONFIRM a verdict, never upgrade it to "exercised"). Output = a per-claim verdict table (EXERCISED / INSPECTED-ONLY / CONTRADICTED) + new ledger findings where warranted; fixes are separate lanes; ENG-0003/0004 stay closed. See WF-0019 + `docs/governance/evidence/NA-0637_as_built.md` §5.
 1. **ENG-0034 = NA-0628 (now READY)** — reject non-contributory (low-order) X25519 on every LIVE DH path. Directive D565 as amended by D565-A1 (2026-07-10). Live paths: `qsc`'s establishment `hs_dh_shared` (2 call sites) + the 4 Suite-2 ratchet sites — all of them SHIPPED-CLIENT paths (`qsc/src/main.rs:2320/:2657/:2683`). **ENG-0019 was UNFOLDED**: `qsp/**` is NOT dead code (it backs the REQUIRED `ci-4b` / `ci-4d-dur` checks); it is re-rated P2 and awaits its own directive.
 1a. **~~WF-0018 = strategic-docs truth-up~~ — DONE as NA-0629 (D-1253, 2026-07-10).** The strategic/program/public-review docs are current; the external-review package now records the ProVerif analysis. **Strongest next candidate: assemble the external-review bundle on these now-accurate inputs** (the roadmap's 90-day priority) — its own directive when the operator is ready.
 2. **ENG-0014** — qsl-server non-constant-time token compare (P2, cross-repo, cheap; Signal-Server `MessageDigest.isEqual` precedent). Good short lane whenever a slot opens.
@@ -35023,3 +35026,34 @@ See D573 for the authority model, strict scope, phases, required response sectio
 
 Successor candidates (Phase 5): the NA-0609B coverage re-examination lane (scoped ON-DECK by this lane — its own directive); NA-0635 (the GATED prekey redesign — D571 Decision 3); the GUI lane (the formal-model gate was satisfied at NA-0636).
 Begins at D-1260. Governance/ledger-only lane; NO source/formal/vector/canonical/.github change; the re-examination is SCOPED here and EXECUTED in its own successor lane.
+
+---
+
+### NA-0638 — NA-0609B coverage re-examination: classify each "verified sound" claim EXERCISED / INSPECTED-ONLY / CONTRADICTED (map coverage; do not re-prove, do not fix)
+Status: READY
+Goals: G4, G5
+Wire/behavior change allowed? NO — governance/ledger-only lane, READ-ONLY toward the code; zero qsc/refimpl/protocol/wire/crypto/state-machine source change.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? YES — this lane touches ONLY the improvement ledger, the governance spine, and its own evidence/testplan. Canonical change allowed? NO. Suite-2 core (`establish.rs`) / Suite-2 vectors / qsp / server / attachments change? NO. `formal/**` change? NO. `tests/*.rs` change? NO. `.github/**` change? NO.
+Claim change allowed? NO — no claim movement. The lane classifies the COVERAGE behind NA-0609B's verdicts; it neither re-proves claims nor fixes anything, does not reopen ENG-0003/0004 (closed), and does not alter NA-0609B's filed record.
+
+Scope:
+- `docs/governance/evidence/NA-0638_as_built.md` (the nine-claim verdict table + per-claim rationale)
+- `docs/ops/IMPROVEMENT_LEDGER.md` (new WF/ENG findings for material INSPECTED-ONLY claims; scope notes)
+- `tests/NA-0638_na0609b_coverage_reexamination_testplan.md`
+- `NEXT_ACTIONS.md` (this lane's DONE block; exercise-successors scoped ON-DECK — NOT promoted; NA-0635 stays reserved/untouched)
+- `DECISIONS.md` (one D-####), `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+- NOTHING else — no source, no `formal/`, no `tests/*.rs`, no vectors, no `.github/**`, no canonical. If landing needs any path outside this list, STOP.
+
+Objective:
+Execute **QSL-DIR-2026-07-12-574 (D574, APPROVED)** — ON-DECK item 0a, the bounded READ-ONLY coverage re-examination scoped by NA-0637 per WF-0019:
+- **Classify EACH of NA-0609B's NINE "verified sound" claims** (transcript binding; hybrid handshake + all-zero DH guard; fail-closed ML-DSA verify; downgrade/suite-context binding; dual-pin identity; no-mutation-on-reject; operator markers; atomic writes; replay rejection) by the coverage that backed the audit's verdict AT AUDIT TIME: **EXERCISED** — a test/vector/model run demonstrably capable of finding a counterexample existed (name the mechanism); **INSPECTED-ONLY** — code reading alone; **CONTRADICTED** — later shown false. Claim 5 (dual-pin identity) is pre-decided CONTRADICTED via ENG-0038 (the calibration point) — cite existing evidence, no new work. All NINE claims including the 9th ("Operator markers") that WF-0019's eight-item enumeration omitted — record the discrepancy.
+- **MAPPING lane, NOT proving (the boundary that keeps it finishable):** any need to BUILD or RUN a model/test to DECIDE a claim is a STOP condition — classify the claim INSPECTED-ONLY, FILE the finding naming the exercise that would settle it, and SCOPE that exercise as an ON-DECK successor (its own future directive; device indirection — NA-0636's "substantive one" — is the natural first). Re-inspection may CONFIRM a verdict but may NEVER upgrade it to EXERCISED (WF-0019 standard).
+- **File WF/ENG findings** (first free: **WF-0021**, CONFIRM-LIVE at Phase 0) for each material INSPECTED-ONLY claim; cross-reference NA-0636's five unmodeled slices where a claim overlaps one (the slices are themselves inspected-only/unmodeled regions).
+- **Do not overclaim:** EXERCISED asserts only that a counterexample-capable mechanism existed — NOT that the mechanism is sufficient or the seam cryptographically secure. No claim movement.
+Result classes: NA0609B_COVERAGE_REEXAMINATION_COMPLETE / NA0609B_COVERAGE_REEXAMINATION_STOP. STOP conditions (class): any need to BUILD or RUN a model/test to decide a claim; any need to touch source/`formal/`/`tests/*.rs`/vectors/canonical/`.github`; any need to reopen ENG-0003/0004 or alter NA-0609B's filed record; any claim movement.
+
+See D574 for the authority model, strict scope, phases, required response sections, and STOP conditions.
+
+Successor candidates (Phase 5): the exercise lanes this lane scopes ON-DECK (device indirection first — each its own directive); NA-0635 (the GATED prekey redesign — D571 Decision 3); the GUI lane (the formal-model gate was satisfied at NA-0636).
+Begins at D-1261. Governance/ledger-only, code-READ-ONLY lane; NO source/formal/test/vector/canonical/.github change; this lane MAPS coverage — the exercises are EXECUTED in their own successor lanes.

@@ -86,6 +86,43 @@ Authoritative sources for meaning:
 - DOC-CAN-004 §3 (SCKA control plane)
 - NA-0625 design-lock evidence (ENG-0023)
 
+The fifth model (NA-0636 / D572) checks the **`QSC.HS.*` handshake AUTHENTICATION slice** as
+shipped post-NA-0634 — the establishment step every other model on this page *assumes*
+(§8's ProVerif scope limits say "establishment authentication **assumed**"; this is the model
+that stops assuming it on the bounded-explorer side):
+- identities are opaque `(kem_id, sig_id)` pairs; the single verified code is the injective
+  combined fingerprint `CODE(kem_id, sig_id)`, and a contact pin binds BOTH keys;
+- the initiator's ACCEPT at B1 requires KEM-possession of the *pinned* responder identity key
+  (NA-0633 C1) **and** the NA-0634 REQUIRED responder sig-pin;
+- the responder's PRIMARY pin recomputes the combined code from the presented pair, and the
+  reverse (responder→initiator) sig-pin is modeled **OPTIONAL, exactly as landed**;
+- the contact store ranges over every state provisioning can reach (full / legacy KEM-only /
+  bare-code / absent), including **mid-run re-pinning** between A1 and A2, under an adversary
+  holding any subset of the honest identity secrets.
+
+It exists to **discharge the open ENG-0038 verification obligation** filed at NA-0634 closeout:
+whether the combined primary pin makes the separate optional signing-key pin redundant. That was
+asserted on reasoning; this model decides it by exhaustive search (see P13–P16 and §5).
+
+Two counterfactuals keep the result honest, because a "no counterexample found" claim is only
+worth what the search could have found (WF-0017):
+- **faithfulness anchor** — rewind the landed defences and the model *reproduces the real,
+  known ENG-0038 flaw*: an adversary that has stolen **nothing**, signing B1 with a keypair it
+  generated itself, makes the initiator commit with `authenticated=true`. Under the landed rules
+  that count is **zero**, as is the sharper case of an adversary holding the responder's KEM
+  identity secret but not its signing secret.
+- **non-vacuity** — rewind *only* the primary pin to its pre-NA-0634 KEM-only form and the P3
+  search surfaces an unbound-signing-key commit a required reverse pin would have caught. The
+  redundancy verdict is therefore **contingent on the combined code covering the signing key
+  injectively** — that coverage is what NA-0634 bought, and a code format that stopped covering
+  the signing half would make the reverse pin load-bearing again.
+
+Authoritative sources for meaning:
+- DOC-CAN-003 §6.3 (authenticate peer identity before Suite-2 state is committed)
+- ENG-0038 (`docs/ops/IMPROVEMENT_LEDGER.md`) and its open verification obligation
+- NA-0633 design-lock (C1) and NA-0634 as-built evidence; NA-0636 as-built §1 (the read-only
+  extraction of the accept/reject rules this model encodes)
+
 ## 3. Roles and channels (model)
 
 Roles:
@@ -120,6 +157,21 @@ The model checks the following properties for all explored executions within the
   when transcript and key-context bindings include the canonical suite context.
 - **P12 (qsc reject boundary):** every qsc suite-id reject is deterministic
   and leaves modeled accepted state, output, recv_commit, and leak flags clear.
+- **P13 (QSC.HS mutual-auth binding):** in every reachable accepting state — initiator-accept or
+  responder-commit — the accepting party's counterparty holds BOTH the KEM secret and the signing
+  secret of the identity whose combined code is pinned. No party accepts a peer whose `kem_id` or
+  `sig_id` is not bound to the single verified code.
+- **P14 (QSC.HS wrong-signing-key rejection):** a peer presenting the correct KEM identity but a
+  wrong signing identity always reaches a deterministic fail-closed reject (the NA-0634 required
+  sig-pin), with no commit and no success output.
+- **P15 (QSC.HS reverse-pin redundancy — the ENG-0038 obligation):** with the responder→initiator
+  sig-pin OPTIONAL exactly as landed, **no** reachable responder-commit leaves the initiator's
+  presented signing key unbound to the verified code. The optional reverse pin is therefore
+  redundant *given the combined primary pin* — decided by exhaustive search over the bound in §5,
+  not by argument.
+- **P16 (QSC.HS fail-closed reject hygiene):** every handshake-authentication reject commits no
+  session, emits no success output, mutates no durable state, and carries a deterministic reason
+  label drawn from a fixed set.
 
 ## 5. Scope limits
 
@@ -132,6 +184,36 @@ The model checks the following properties for all explored executions within the
   memory-safety proof, or cryptographic proof.
 - The qsc model does not claim that current persisted qsc Suite-2 state is
   explicit qsc handshake suite-id admission evidence.
+- The `QSC.HS.*` handshake-authentication model (NA-0636) proves a bounded authentication-**binding**
+  property over an abstract state machine. It is **not** cryptographic security, **not** a
+  side-channel property, **not** a post-compromise or PQ guarantee, and **not** a qsc/refimpl
+  equivalence claim. Specifically:
+  - **fingerprint collision-resistance is ASSUMED, not proved.** Codes are injective structured
+    tokens (the standard symbolic abstraction). The P15 redundancy verdict *depends* on the
+    combined code binding the signing key injectively; the model makes that dependency visible via
+    its pre-fix counterfactual rather than hiding it. A truncated-hash collision analysis is out of
+    scope for a crypto-agnostic model.
+  - the bound is small and fixed: 3 identities (2 honest + 1 adversary), 3 KEM and 3 signing keys,
+    5 contact-pin states per side explored independently at A1 and A2 (mid-run re-pin), 3 message
+    producers, all 16 subsets of the four honest identity secrets as adversary compromise, and 3
+    reverse-pin modes — **10,800 responder configurations and 10,800 initiator configurations,
+    enumerated exhaustively**. Behaviour outside that bound is not covered.
+  - it models a single bounded handshake per configuration; it is not a multi-session,
+    concurrent-handshake, or cross-session replay proof.
+  - it abstracts KEM and signature *possession* as capability sets. It says nothing about the
+    computational hardness of ML-KEM or ML-DSA.
+  - **it flattens the contact-store DEVICE INDIRECTION.** The model represents the pin store as a
+    single coherent `(pin_code, kem_stored, sig_fp)` triple — an *abstraction*, not a proved
+    invariant. The shipped code resolves the pin reads through a primary-device indirection whose
+    coherence is upheld by `normalize_contact_record` (run on every store load/save); that
+    justification was established by **reading the code, not by the model**. Primary-device
+    *selection* and a change of primary device mid-handshake are likewise unmodeled. The P1/P3
+    results are **argued** to survive this — the signing-key binding flows entirely from the
+    REQUIRED primary pin, so a stale `sig_fp` can only false-reject, never admit — but that argument
+    is **REASONED, not model-verified**. Recorded as a known unmodeled slice on the ENG-0038 ledger
+    entry, with extending the model to it named as a candidate follow-up lane.
+  - the **composition** of authentication with suite negotiation/downgrade is covered by neither this
+    model nor the negotiation models — each covers its own slice.
 - The models are intentionally narrow to establish and expand the CI lane without overclaiming production proof.
 
 ## 6. Running locally

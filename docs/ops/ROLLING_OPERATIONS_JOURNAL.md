@@ -43030,3 +43030,68 @@ form, not a literal Suite-2 chained-KMAC copy; the negative test's framing (alic
 mallory.sig}`) is slightly contrived. Claim boundary UNCHANGED — no post-compromise/PQ claim moves. Queue
 returns to READY=NONE; the executor promoted no lane. Successor candidates: NA-0635 (GATED prekey redesign),
 the `QSC.HS.*` formal-model gate, the audit-methodology coverage finding (D571 Decision 4), the GUI lane.
+
+## NA-0636 — `QSC.HS.*` bounded handshake-authentication model: the ENG-0038 obligation, PAID (D-1259, 2026-07-12)
+
+Directive QSL-DIR-2026-07-11-572 (D572, APPROVED). `formal/` + governance lane — zero protocol/source/wire/
+crypto/state-machine change, zero workflow change. Base main `8e8699db`.
+
+The lane existed to pay ONE debt. NA-0634 retired the ENG-0038 authentication-asymmetry class but left the
+responder→initiator sig-pin OPTIONAL on a *redundancy argument*: the responder's primary pin now recomputes
+the combined `fingerprint(kem_pk, sig_pk)`, which already binds `init.sig_pk`, so the separate signing-key pin
+was judged redundant. The operator refused to let that stand on reasoning and filed an explicit obligation:
+the `QSC.HS.*` formal model MUST VERIFY it. **The model decides the obligation — reasoning does not.**
+
+Phase 1 first, deliberately: the abstract accept/reject rules were extracted READ-ONLY from the landed code
+(`qsc/src/{handshake,identity,contacts}/mod.rs`) into `docs/governance/evidence/NA-0636_as_built.md` §1
+**before a line of model code existed**, so the model encodes what shipped rather than what I remembered.
+That extraction is where the contact-store state table (FULL / legacy KEM-only / bare-code / absent) and the
+skip-on-absent behaviour of the optional pin came from — the states that turn out to matter.
+
+**VERDICT: the reverse sig-pin IS REDUNDANT. The obligation is DISCHARGED AFFIRMATIVELY — by the search, not
+by re-argument.** Exhaustively enumerating 10,800 responder configurations — every reachable pin state
+INCLUDING the `sig_fp`-absent ones where the optional pin skips, every mid-run re-pin between A1 and A2, all
+16 adversary compromise subsets of the honest identity secrets, every presented key pair — yields **0
+reachable responder-commits in which the initiator's presented signing key escapes binding to the verified
+code** (80 commits judged). No run exists that the reverse pin would have caught and the primary does not.
+
+**The result that matters more than the verdict: WHY it holds, and what would void it.** Redundancy is
+CONTINGENT — it holds *because and only because* the combined code covers the signing key injectively
+(collision-resistance is ASSUMED; a crypto-agnostic model cannot prove it). This is not a footnote, it is
+machine-checked: rewind that one property to the pre-NA-0634 KEM-only code and the same search immediately
+finds **128 unbound-signing-key commits** a required reverse pin *would* have caught. **⚠ If the verification-
+code format is ever narrowed back to the KEM half, the reverse pin becomes LOAD-BEARING again and this
+discharge is VOID.** The obligation moved: it now sits on the CODE FORMAT, not on the pin. That guard is
+recorded on the ENG-0038 ledger entry.
+
+**Non-vacuity was designed in, not hoped for (WF-0017 — a negative claim must prove the search could have
+found a positive).** With the landed defences rewound, the model **reproduces the real, known ENG-0038 flaw**:
+54 impersonation traces, canonically an adversary that has stolen **nothing**, signing B1 with a keypair it
+generated itself, making the initiator commit `authenticated=true` to a peer holding neither of the
+responder's identity secrets — verbatim the NA-0632 §2.2 failure scenario. Under the LANDED rules that count
+is **0**, as is the sharper case of an adversary holding the responder's KEM identity secret but NOT its
+signing secret (the NA-0634 half). *A model that cannot express the real flaw cannot be trusted to certify its
+absence.* The gate itself fails closed: a P3 disproof raises `QSC_HS_HANDSHAKE_AUTH_MODEL_GAP_FOUND` and turns
+the REQUIRED formal check RED — verified by re-running the P3 machinery against the pre-fix rules.
+
+**Secondary result — a question NA-0634 left open, now answered: do NOT make the reverse pin required "for
+symmetry."** 60 enumerated configurations are commits that are correctly bound *and* that a required reverse
+pin would reject (`responder_sig_unpinned`): the S-BARE contacts provisioned by `contacts add --fp <code>`
+(code only, no keys ⇒ no `sig_fp`), which cannot initiate but can legitimately respond. Requiring the pin
+would convert sound handshakes into rejects and catch nothing.
+
+Verification: `python3 formal/run_model_checks.py` → exit 0, all five bounded models green. P1: 80 responder +
+60 initiator full-identity bindings. P2: 720 wrong-signing-key rejects. P3: 0 unbound of 80. P4: 10,720 +
+10,740 reject-hygiene assertions. Registration is by explicit import + call in the runner — `formal.yml` just
+executes it, so **no workflow change was needed** (the committed `.claude/settings.json` denies
+`Write(.github/**)`; no override was requested and none was used).
+
+Claim boundary UNCHANGED. A PASS substantiates a **bounded authentication-BINDING property over an abstract
+state machine** — NOT cryptographic security, NOT side channels, NOT post-compromise/PQ, NOT refimpl
+equivalence. Independent external review remains an open prerequisite. Result class
+`QSC_HS_HANDSHAKE_AUTH_MODEL_PASS` (not PARTIAL — the bound was enumerated exhaustively with no reduction;
+ENG-0035's non-termination is avoided by construction, not by cutting the bound).
+
+This lane satisfies the D571 Decision 4 formal-model gate that was sequenced BEFORE the GUI lane. Queue
+returns to READY=NONE; the executor promoted nothing. Successor candidates: NA-0635 (GATED prekey redesign),
+the audit-methodology coverage finding, the GUI lane.

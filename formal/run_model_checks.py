@@ -22,6 +22,9 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 from formal.model_scka_bounded import explore  # noqa: E402
+from formal.model_qsc_handshake_authentication_bounded import (  # noqa: E402
+    emit_qsc_hs_handshake_authentication_model_report,
+)
 from formal.model_qsc_handshake_suite_id_bounded import (  # noqa: E402
     emit_qsc_handshake_suite_id_model_report,
 )
@@ -77,6 +80,12 @@ def main() -> int:
     print(f"Root composition transitions: {root_stats['transitions']}")
     print(f"Root composition unique visited: {root_stats['visited']}")
     print(f"Root composition regression shapes: {root_stats['regression_shapes']}")
+    print("NA-0636 QSC.HS.* handshake-authentication bounded model checks")
+    hs_auth = emit_qsc_hs_handshake_authentication_model_report()
+    print("OK: QSC.HS handshake-authentication formal model checks passed")
+    hs_p3 = hs_auth["p3"]
+    print(f"QSC.HS auth P3 reverse-pin redundant: {hs_p3.redundant}")
+    print(f"QSC.HS auth P3 unbound-sig commits: {hs_p3.unbound_commits}")
     return 0
 
 

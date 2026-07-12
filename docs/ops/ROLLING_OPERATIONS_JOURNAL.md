@@ -43128,3 +43128,40 @@ directive; the operator promotes.
 Result `AUDIT_METHODOLOGY_COVERAGE_FINDING_FILED`. Claim boundary UNCHANGED — this lane narrows past
 internal assurance and moves no claim. Queue returns to READY=NONE; successor candidates: item 0a, NA-0635
 (GATED prekey), the GUI lane. The executor promoted nothing.
+
+## 2026-07-12 — NA-0638: the NA-0609B coverage map (D574, D-1261)
+
+**What this lane was:** the re-examination WF-0019 scoped — for each of NA-0609B's nine "verified sound"
+claims, WAS the verdict backed by a mechanism that could have found a counterexample, or by reading alone?
+A mapping lane: the deliverable is the classification table, not new proofs, and the boundary held — at no
+point was a model or test built or run to decide a claim.
+
+**The map (audit-time tree `c0b30265`):** 6 EXERCISED — transcript binding, fail-closed ML-DSA verify,
+downgrade/suite-context binding, no-mutation-on-reject, operator markers, replay rejection — each backed by
+named end-to-end negative tests (real-frame byte-flips at the signature offset, live KEM-ciphertext
+mutation, wire-level downgrade injection, live A1 replay) plus CI-live bounded models. 2 INSPECTED-ONLY —
+the all-zero DH guard (zero references outside the guard itself; WF-0021, closed-as-paid: NA-0628/ENG-0034
+landed the settling exercise post-audit, including the demonstration that 7/8 low-order keys evade the
+encoding check) and `write_atomic` crash-window atomicity (WF-0022, open: no fault-injection mechanism has
+ever covered the temp-write→sync→rename window; the same bullet's neighborhood produced both ENG-0004 and
+its WF-0005 correction — both by reading). 1 CONTRADICTED — dual-pin identity, per ENG-0038.
+
+**The methodology yield (sharper than WF-0019 could be):** the audit's coverage was NOT thin — six of nine
+claims sat on genuinely counterexample-capable, CI-live mechanisms. The failure was that ONE claim whose
+mechanisms were vacuous for the flaw class (wrong-VALUE pins exercised; the pin-ABSENT/tautological region
+unreachable) was certified in the same format and the same breath as the six exercised ones. Nothing in the
+audit's format distinguished them. The per-claim exercised-coverage box (WF-0019's DOC-AUD-001
+recommendation) is exactly the fix.
+
+**The 9th claim:** operator markers — omitted from WF-0019's eight-item enumeration — is classified
+EXERCISED (`handshake_complete` absence is asserted on reject paths); the omission was benign, and is now
+recorded rather than silent.
+
+**Scoped, not executed:** ON DECK 0b — extend the NA-0636 bounded model to the device indirection +
+primary-device selection (slice 1 FIRST; converts the "REASONED, NOT MODEL-VERIFIED" survival argument into
+a search result), then cross-session replay / concurrent pendings / negotiation×auth composition. ON DECK
+0c — the WF-0022 crash-window fault-injection harness (LITE), WF-0017 non-vacuity required.
+
+Result `NA0609B_COVERAGE_REEXAMINATION_COMPLETE`. Claim boundary UNCHANGED. WF-0019 closed; ENG-0003/0004
+untouched; NA-0635 RESERVED. Queue returns to READY=NONE; successor candidates: 0b, 0c, NA-0635, the GUI
+lane. The executor promoted nothing.

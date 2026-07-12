@@ -43165,3 +43165,33 @@ a search result), then cross-session replay / concurrent pendings / negotiation�
 Result `NA0609B_COVERAGE_REEXAMINATION_COMPLETE`. Claim boundary UNCHANGED. WF-0019 closed; ENG-0003/0004
 untouched; NA-0635 RESERVED. Queue returns to READY=NONE; successor candidates: 0b, 0c, NA-0635, the GUI
 lane. The executor promoted nothing.
+
+## 2026-07-12 — NA-0639: the WF-0022 crash-window harness (D575, D-1262)
+
+**What this lane was:** the exercise WF-0022 named, made real. NA-0638 classified NA-0609B's claim 8
+("file content is never partially written") INSPECTED-ONLY — nine years of confidence in `write_atomic`'s
+crash safety, zero mechanisms that could have caught a regression. This LITE lane built the mechanism:
+an in-suite Rust test that drives the REAL `write_atomic` through the compiled binary and interrupts it
+at the named point — after the temp-write and its `sync_all`, at the rename — by denying directory write
+permission the instant the deterministic temp file appears. The child finishes writing on its open fd,
+its rename is denied, and the disk is left holding exactly what a crash before the rename would leave.
+
+**What it found:** the invariant HELD. A subsequent reader saw the target byte-identical to the old
+content in every interrupted trial; the temp residue held the complete new content and never became the
+live target; a concurrent reader across 24 real write cycles never saw a torn sample. No ENG filing.
+
+**Why the green means something (WF-0017):** the same classifier and the same reader loop were turned
+against a deliberately non-atomic, test-local writer — both negative controls trip, and a temporary
+red-run demo (reverted) showed the positive test failing loudly against it (36,961 torn samples of
+45,033). The harness also fails itself if no trial demonstrably lands in-window. A green that could not
+have gone red proves nothing; this one could have.
+
+**What it does NOT claim:** the crash is simulated at the directory-permission seam, not a power cut.
+Page-cache loss, lying fsyncs, kills mid-temp-write, the per-seam fault matrix, and the claim-7
+`handshake_complete`-marker case stay unexercised — the last two remain ON-DECK 0c residue by the D575
+scope note. The claim boundary did not move.
+
+**Mechanics:** TEST-ONLY — `write_atomic` was read, driven, and interrupted, never edited; one new test
+file plus governance. WF-0022 closed citing the harness. Queue back to READY=NONE (HIGHEST_D=1262);
+NA-0635 stays RESERVED; 0b (device-indirection model extension), the 0c residue, NA-0635, and the GUI
+lane are the operator's successor candidates. The executor promoted nothing.

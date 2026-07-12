@@ -202,6 +202,18 @@ The model checks the following properties for all explored executions within the
     concurrent-handshake, or cross-session replay proof.
   - it abstracts KEM and signature *possession* as capability sets. It says nothing about the
     computational hardness of ML-KEM or ML-DSA.
+  - **it flattens the contact-store DEVICE INDIRECTION.** The model represents the pin store as a
+    single coherent `(pin_code, kem_stored, sig_fp)` triple — an *abstraction*, not a proved
+    invariant. The shipped code resolves the pin reads through a primary-device indirection whose
+    coherence is upheld by `normalize_contact_record` (run on every store load/save); that
+    justification was established by **reading the code, not by the model**. Primary-device
+    *selection* and a change of primary device mid-handshake are likewise unmodeled. The P1/P3
+    results are **argued** to survive this — the signing-key binding flows entirely from the
+    REQUIRED primary pin, so a stale `sig_fp` can only false-reject, never admit — but that argument
+    is **REASONED, not model-verified**. Recorded as a known unmodeled slice on the ENG-0038 ledger
+    entry, with extending the model to it named as a candidate follow-up lane.
+  - the **composition** of authentication with suite negotiation/downgrade is covered by neither this
+    model nor the negotiation models — each covers its own slice.
 - The models are intentionally narrow to establish and expand the CI lane without overclaiming production proof.
 
 ## 6. Running locally

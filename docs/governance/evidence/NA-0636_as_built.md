@@ -62,11 +62,49 @@ Per contact label the store carries `pin` (the fp field), `kem_pk`, `sig_fp`
 A signing key without the KEM key is refused (`contacts_sig_pk_requires_kem_pk`, `:1073`).
 Re-provisioning is an atomic upsert (`contacts_entry_upsert`, `:1115`), so the store can
 transition between these states BETWEEN protocol steps (modeled as adversary-scheduled repin
-actions). **Store-coherence observation (proved as a model invariant, not assumed): in S-FULL
-the stored `kem_pk` and `sig_fp` are exactly the components of the pair the pin fingerprints**
-— enforced by the add-time check; no reachable provisioning writes an incoherent triple.
-`sig_fp`-absent-with-pin-present states (S-KEM, S-BARE) ARE reachable — they are exactly the
-states in which the OPTIONAL reverse pin skips, i.e. the P3 configuration.
+actions). `sig_fp`-absent-with-pin-present states (S-KEM, S-BARE) ARE reachable — they are
+exactly the states in which the OPTIONAL reverse pin skips, i.e. the P3 configuration.
+
+**⚠ Store-coherence: what the model ASSUMES vs what the code DOES (stated precisely; this is an
+abstraction boundary, not a proved invariant).**
+
+*What the model does.* The model represents the pin store as a **single coherent triple**
+`(pin_code, kem_stored, sig_fp)` per contact — the four states in the table above. Coherence is an
+**abstraction of the model, not a property the model proves**. Everything in §4 is proved over that
+abstraction.
+
+*What the real code does.* The three pin reads resolve through a **primary-device indirection**, not
+a flat record: `identity_read_pin` (`identity/mod.rs:635`) returns the primary device's `fp`;
+`identity_read_sig_pin` (`:649`) returns the primary device's `sig_fp` **`.or(` the contact record's
+`sig_fp)`**; `identity_read_peer_kem_pk` (`:661`) is the same shape. Read in isolation those three
+could resolve from *different* records. They do not, because `contacts_entry_read`
+(`contacts/mod.rs:464`) goes through `contacts_store_load` (`:429`), which runs
+`normalize_contact_record` (`:144`) over **every record on every load** — and that function
+force-syncs the contact record's `fp`/`sig_fp`/`kem_pk` **from the primary device** (`:221-232`),
+guaranteeing at least one device exists (`:146-158`). `contacts_store_save` normalizes on write too
+(`:451-455`). So at read time the record and its primary device agree, and the `.or(...)` fallbacks
+are **inert**.
+
+*What is therefore NOT claimed.* The single-store abstraction is **justified by that normalization
+invariant, which was established by reading the code — it is NOT model-verified.** In particular the
+model does **not** represent, and this document does **not** claim:
+- the primary-device **selection rule** (explicit `primary_device_id` → first `TRUSTED` device →
+  first device, `:191-206`), nor a change of primary device (promotion / removal / a newly-trusted
+  device) **mid-handshake** — which is a re-pin channel the model represents only in the abstract,
+  via its `pin_a1` / `pin_a2` dimension;
+- that **no** reachable multi-device provisioning path can write an incoherent *primary-device*
+  triple. `contacts_device_add` (`:1139`) writes a device with an operator-supplied `fp` and
+  `sig_fp: None`, `kem_pk: None` (`:1165-1166`) and performs **no** key verification — a
+  legitimately-reachable S-BARE-shaped device, benign under §4 (the sig binding flows from the
+  primary pin) but not exhaustively enumerated by the model.
+
+This is a **known unmodeled slice**, recorded as such on the ENG-0038 ledger entry alongside the
+other slices this model does not cover (cross-session replay, concurrent pendings, composition with
+suite negotiation). The §4 verdict is **argued** to survive it — the sig binding flows entirely from
+the REQUIRED primary pin, so a stale or mismatched `sig_fp` can only make the OPTIONAL reverse check
+stricter (a false reject), never admit a commit the primary pin would refuse: fail-closed — but that
+survival argument is **REASONED, not model-verified**, and is exactly the kind of claim this lane
+exists to distrust. Extending the model to the device indirection is a candidate follow-up lane.
 
 ### 1.3 Initiator (A) — INIT preconditions and A1 (`perform_handshake_init_with_route`, `handshake/mod.rs:1343-1468`)
 

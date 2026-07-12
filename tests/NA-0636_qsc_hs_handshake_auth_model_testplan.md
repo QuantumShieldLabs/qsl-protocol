@@ -74,7 +74,19 @@ construction, not by cutting the bound.
   tokens. The P3 verdict *depends* on the combined code covering the signing key injectively; the
   non-vacuity counterfactual makes that dependency visible rather than hiding it.
 - Multi-session / concurrent-handshake / cross-session replay: one bounded handshake per
-  configuration.
+  configuration. Concurrent/competing pending handshake records are likewise not modeled.
+- **The contact-store DEVICE INDIRECTION.** The model assumes a single coherent
+  `(pin_code, kem_stored, sig_fp)` triple. The shipped code resolves the pin reads through a
+  primary-device indirection (`identity_read_pin` vs `identity_read_sig_pin` /
+  `identity_read_peer_kem_pk`), whose coherence is upheld by `normalize_contact_record` running on
+  every store load/save — a fact established by **reading the code, not by the model**. Primary-device
+  selection, and a change of primary device mid-handshake, are unmodeled. The verdict is **argued** to
+  survive (binding flows from the REQUIRED primary pin; a stale `sig_fp` can only false-reject, never
+  admit — fail-closed) but that survival is **REASONED, not model-verified**. Recorded as a known
+  unmodeled slice on the ENG-0038 ledger entry; extending the model to it is a candidate follow-up
+  lane. See `docs/governance/evidence/NA-0636_as_built.md` §1.2.
+- The **composition** of authentication with suite negotiation/downgrade (each is modeled on its own;
+  their composition is modeled by neither).
 - The NA-0635 prekey redesign (a separate GATED lane) — not modeled here.
 
 ## Suites expected unchanged (formal/ + governance lane) — confirmed

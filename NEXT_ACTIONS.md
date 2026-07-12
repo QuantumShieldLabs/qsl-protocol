@@ -6,21 +6,22 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0636 | HIGHEST_D=1259 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
-<!-- NA-0636 (QSC.HS.* bounded handshake-authentication model) DONE 2026-07-12 (D-1259): the ENG-0038 verification obligation is PAID. VERDICT — the responder→initiator sig-pin IS REDUNDANT, discharged AFFIRMATIVELY by the model, not by re-argument: 10,800 responder configurations exhaustively enumerated (every reachable pin state INCLUDING the sig_fp-absent ones where the optional pin SKIPS, every mid-run re-pin, all 16 adversary compromise subsets) yield 0 reachable responder-commits in which the initiator's presented signing key escapes binding to the verified code (80 commits judged). ⚠ CONTINGENT: redundancy holds because and only because the combined code covers the signing key INJECTIVELY (collision-resistance ASSUMED, not proved) — rewind that one property and the same search finds 128 unbound commits. IF THE VERIFICATION-CODE FORMAT IS EVER NARROWED BACK TO THE KEM HALF, THE REVERSE PIN BECOMES LOAD-BEARING AGAIN AND THE DISCHARGE IS VOID (regression guard now on the ENG-0038 ledger entry). Non-vacuity (WF-0017): with the landed defences rewound the model REPRODUCES the real ENG-0038 flaw (54 impersonation traces; an adversary that stole NOTHING makes the initiator commit authenticated=true) — under the landed rules: 0, and 0 for the KEM-only-compromise case. Secondary: do NOT make the reverse pin required "for symmetry" — 60 correctly-bound commits would be falsely rejected (the S-BARE `contacts add --fp` contacts). Zero protocol/source/workflow change. Claim boundary UNCHANGED. Satisfies the D571 Decision 4 formal-model gate sequenced before the GUI lane. Queue returns to READY=NONE — the operator promotes the successor (NA-0635 GATED prekey redesign, the audit-methodology coverage finding, or the GUI lane). The executor cannot self-promote. -->
-<!-- prior: STATE: READY=NA-0636 | HIGHEST_NA=0636 | HIGHEST_D=1258 (NA-0636 promoted for D572; PR #1551) -->
+`STATE: READY=NA-0637 | HIGHEST_NA=0637 | HIGHEST_D=1259 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- NA-0637 (audit-methodology coverage finding) PROMOTED to sole READY 2026-07-12 for directive QSL-DIR-2026-07-12-573 (D573, APPROVED): a governance/ledger-ONLY lane that (1) FILES the coverage finding D571 Decision 4 required ("file now") and NA-0634 dropped — NA-0609B (D543) closed QSC_HANDSHAKE_IDENTITY_AUDIT_COMPLETE_NO_P0_P1_THREE_P3_HARDENING and certified the handshake identity seam sound ("dual-pin identity model", "fail-closed ML-DSA verify"), yet ENG-0038, a P1 responder-auth bypass, lived in exactly that seam (found NA-0632, fixed NA-0633/NA-0634, modeled NA-0636) — expected WF-0019, CONFIRM-LIVE; (2) FILES a process item recording the drop itself (D571 Phase 5 assigned the filing to NA-0634; NA-0634 closed at D-1258 without it; undetected until the post-NA-0636 live-state check) — expected WF-0020, CONFIRM-LIVE; (3) SCOPES — does NOT execute — a bounded re-examination of NA-0609B's other "sound" conclusions (each re-asked: EXERCISED or INSPECTED?), seeded by NA-0636's five unmodeled slices, recorded ON-DECK for the operator to promote. Zero source/formal/vector/canonical/.github change; no claim movement; ENG-0003/0004 stay closed; NA-0635 stays RESERVED (D571 Decision 3). -->
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0636 | HIGHEST_D=1259 (NA-0636/D572 model DONE at D-1259; queue was READY=NONE before the NA-0637 promotion) -->
 
-**READY (exactly one — execute this): NONE.** NA-0636 (the `QSC.HS.*` bounded handshake-authentication
-model, D572) is **DONE** at D-1259 — the open ENG-0038 verification obligation is **PAID**, and its verdict
-is **affirmative**: the responder→initiator sig-pin is **REDUNDANT** (0 unbound-signing-key commits across
-10,800 exhaustively enumerated responder configurations; the model decided it, reasoning did not). The
-redundancy is **CONTINGENT on the combined verification code covering the signing key injectively** — the
-regression guard now sits on the **code format**, recorded on the ENG-0038 ledger entry. Its full block (now
-`Status: DONE` with the OUTCOME) is below under section 2. This lane **satisfies the D571 Decision 4
-formal-model gate** that was sequenced before the GUI lane. The queue returns to **READY=NONE**; the operator
-promotes the successor — **NA-0635** (the GATED prekey redesign, D571 Decision 3), the **audit-methodology
-coverage finding** (D571 Decision 4), or the **GUI lane** (now unblocked on the formal-model gate). The
-executor cannot self-promote.
+**READY (exactly one — execute this):** `NA-0637 — Audit-methodology coverage finding: file the dropped D571
+Decision-4 finding + record the drop + SCOPE (not execute) the NA-0609B re-examination` (directive
+QSL-DIR-2026-07-12-573, D573, APPROVED). Governance/ledger-ONLY. File **WF-0019** (the coverage lesson):
+NA-0609B's "no P0/P1" certification outran its coverage — it certified sound the exact seam that carried
+ENG-0038, with no end-to-end adversarial exercise of that seam (the wrong-responder test did not exist until
+NA-0633); soundness verdicts require named, EXERCISED coverage plus an NA-0636-style non-vacuity check.
+File **WF-0020** (the drop): D571 Decision 4 / Phase 5 assigned that filing to NA-0634; NA-0634 closed
+(D-1258) without it; undetected until the post-NA-0636 live-state check — an approved-directive instruction
+can close a lane unexecuted with no automatic detection. SCOPE (do NOT execute) the bounded NA-0609B
+re-examination as an ON-DECK successor. No source/formal/vector/canonical/`.github` change; no claim
+movement; NOT the NA-0635 prekey gate. Its full block (with scope flags) is below under section 2; find it
+with the ANCHORED pattern `^Status:` carrying the state READY (there is exactly one such line in this file).
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -34986,3 +34987,33 @@ See D572 for the authority model, strict scope, phases, required response sectio
 
 Successor candidates (Phase 5): NA-0635 (the GATED prekey redesign — D571 Decision 3, separate lane); the audit-methodology coverage finding (D571 Decision 4); the GUI lane (unblocked on the formal-model gate IF P1–P4 are green AND the obligation is discharged affirmatively).
 Begins at D-1259. formal/ + governance lane; NO protocol/wire/crypto/state-machine change; the NA-0635 prekey gate is NOT this lane.
+
+---
+
+### NA-0637 — Audit-methodology coverage finding: file the dropped D571 Decision-4 finding + record the drop + SCOPE (not execute) the NA-0609B re-examination (governance/ledger only)
+Status: READY
+Goals: G4, G5
+Wire/behavior change allowed? NO — governance/ledger-only lane; zero qsc/refimpl/protocol/wire/crypto/state-machine source change.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? YES — this lane touches ONLY the improvement ledger, the governance spine, and its own evidence/testplan. Canonical change allowed? NO. Suite-2 core (`establish.rs`) / Suite-2 vectors / qsp / server / attachments change? NO. `formal/**` change? NO. `.github/**` change? NO.
+Claim change allowed? NO — no claim movement. The lane files methodology findings and scopes a successor; it neither re-audits nor fixes, and it does not reopen NA-0609B's filed findings/remediations (ENG-0003/0004 stay closed).
+
+Scope:
+- `docs/ops/IMPROVEMENT_LEDGER.md` (the WF-0019 coverage finding + the WF-0020 process item + the re-examination scoping note)
+- `docs/governance/evidence/NA-0637_as_built.md`
+- `tests/NA-0637_audit_methodology_coverage_finding_testplan.md`
+- `NEXT_ACTIONS.md` (the re-examination successor scoped ON-DECK — NOT promoted; this lane's own DONE block; NA-0635 stays reserved/untouched)
+- `DECISIONS.md` (one D-####), `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+- NOTHING else — no source, no `formal/`, no vectors, no `.github/**`, no canonical. If landing needs any path outside this list, STOP.
+
+Objective:
+Execute **QSL-DIR-2026-07-12-573 (D573, APPROVED)** — pay the dropped D571 Decision-4 instruction, governance/ledger only:
+- **(1) FILE the coverage finding (expected WF-0019; CONFIRM-LIVE at Phase 0).** NA-0609B (directive D543, the read-only handshake/identity audit) closed with QSC_HANDSHAKE_IDENTITY_AUDIT_COMPLETE_NO_P0_P1_THREE_P3_HARDENING and certified the seam "verified sound on ... dual-pin identity model" and "fail-closed ML-DSA verify"; ENG-0038 — a P1 responder-auth bypass in exactly that identity-pinning seam — was later found (NA-0632), fixed (NA-0633/NA-0634), and modeled (NA-0636, which named five slices STILL unmodeled). The finding records the methodology lesson: a "no P0/P1"/"verified sound" conclusion is only as strong as the coverage that produced it; NA-0609B reached its verdict with NO end-to-end adversarial exercise of the seam (the wrong-responder test did not exist until NA-0633). Soundness verdicts must be backed by NAMED, EXERCISED coverage — with an NA-0636-style non-vacuity check ("could this audit have detected the flaw class it certifies absent?") as the constructive standard. Cross-reference WF-0005 (the prior NA-0609B methodology miss; this is the second from the same audit — a pattern, recorded as such).
+- **(2) FILE the process item (expected WF-0020; CONFIRM-LIVE at Phase 0).** D571 Decision 4 said "file now"; Phase 5 assigned the filing to NA-0634; NA-0634 closed (D-1258) without filing it and D-1258 does not record it; the drop went undetected until the post-NA-0636 live-state check. Lesson: an approved-directive instruction can close a lane unexecuted with NO automatic detection — directive-instruction completeness is not checked at closeout. NOTE (do not implement here) that a closeout checklist verifying each instruction executed-or-explicitly-deferred would catch this class. Recorded honestly as a live, second-order instance of the sibling finding's failure mode (a coverage gap fell into a coverage gap).
+- **(3) SCOPE — do NOT execute — the bounded NA-0609B re-examination** as an ON-DECK successor (its own directive; the operator promotes): revisit each of NA-0609B's other "sound" conclusions (transcript binding; hybrid handshake + all-zero DH guard; fail-closed ML-DSA verify; downgrade/suite-context binding; dual-pin identity model; no-mutation-on-reject; atomic writes; replay rejection) and ask, for each: EXERCISED, or INSPECTED? Seed with NA-0636's five unmodeled slices (device indirection — the substantive one; cross-session replay; concurrent pendings; composition with suite negotiation; collision-resistance) as the first targets; method = the NA-0636 bounded-model + non-vacuity discipline (prefer a bounded exercise over re-inspection where feasible).
+Result classes: AUDIT_METHODOLOGY_COVERAGE_FINDING_FILED / AUDIT_METHODOLOGY_COVERAGE_FINDING_STOP. STOP conditions (class): any need to touch source/formal/vectors/canonical/`.github`; any need to EXECUTE the re-examination rather than scope it; any need to reopen or alter NA-0609B's filed findings/remediations; any claim movement.
+
+See D573 for the authority model, strict scope, phases, required response sections, and STOP conditions.
+
+Successor candidates (Phase 5): the NA-0609B coverage re-examination lane (scoped ON-DECK by this lane — its own directive); NA-0635 (the GATED prekey redesign — D571 Decision 3); the GUI lane (the formal-model gate was satisfied at NA-0636).
+Begins at D-1260. Governance/ledger-only lane; NO source/formal/vector/canonical/.github change; the re-examination is SCOPED here and EXECUTED in its own successor lane.

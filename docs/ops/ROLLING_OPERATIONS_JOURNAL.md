@@ -43095,3 +43095,36 @@ ENG-0035's non-termination is avoided by construction, not by cutting the bound)
 This lane satisfies the D571 Decision 4 formal-model gate that was sequenced BEFORE the GUI lane. Queue
 returns to READY=NONE; the executor promoted nothing. Successor candidates: NA-0635 (GATED prekey redesign),
 the audit-methodology coverage finding, the GUI lane.
+
+## NA-0637 — Audit-methodology coverage finding: the dropped D571 Decision-4 instruction, PAID (D-1260, 2026-07-12)
+
+Governance/ledger-only lane per QSL-DIR-2026-07-12-573 (D573). Two WF items filed, one successor scoped,
+zero source touched.
+
+**WF-0019 — the coverage lesson.** NA-0609B (D543, 2026-07-06) certified the qsc handshake identity seam
+sound — result `QSC_HANDSHAKE_IDENTITY_AUDIT_COMPLETE_NO_P0_P1_THREE_P3_HARDENING`, eight enumerated
+"verified sound" mechanisms including the "dual-pin identity model" and "fail-closed ML-DSA verify". Five
+days later that exact seam carried ENG-0038, the P1 responder-impersonation bypass: the "optional pin" was
+structurally never populated (the check always skipped), the initiator's "primary pin" compared a stored
+value to itself, and the signature verified under the key the attacker supplied. The audit's local
+observations were all accurate; its CONCLUSION outran its coverage — no end-to-end adversarial exercise of
+the seam existed until the fix lane created one (NA-0633). The filed standard: a soundness verdict must
+name, per claim, the EXERCISED mechanism that could have found a counterexample, and answer the WF-0017
+non-vacuity question — "could this audit have detected the flaw class it certifies absent?" This is the
+second methodology miss from the same audit (WF-0005 was the first): a pattern, recorded as such.
+
+**WF-0020 — the drop.** D571 Decision 4 said "file now"; Phase 5 assigned the filing to NA-0634; NA-0634
+closed (D-1258) without executing it, and every closeout check passed — a dropped instruction leaves no
+artifact for any of them to fail on. Undetected until the 2026-07-12 ad-hoc live-state check. Recorded
+honestly as second-order: the dropped instruction was itself the coverage finding — a coverage gap fell
+into a coverage gap. The corrective (a closeout directive-instruction completeness checklist) is
+deliberately NOT built here (D573 non-goal); it is a candidate to batch with WF-0016.
+
+**Scoped, not executed:** the bounded NA-0609B coverage re-examination now sits at ON DECK 0a — per-claim
+EXERCISED / INSPECTED-ONLY / CONTRADICTED verdicts over the eight sound-claims, seeded by NA-0636's five
+unmodeled slices (device indirection first), using the NA-0636 bounded-model + non-vacuity method. Its own
+directive; the operator promotes.
+
+Result `AUDIT_METHODOLOGY_COVERAGE_FINDING_FILED`. Claim boundary UNCHANGED — this lane narrows past
+internal assurance and moves no claim. Queue returns to READY=NONE; successor candidates: item 0a, NA-0635
+(GATED prekey), the GUI lane. The executor promoted nothing.

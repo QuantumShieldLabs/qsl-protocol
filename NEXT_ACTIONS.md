@@ -6,17 +6,21 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0634 | HIGHEST_D=1258 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
-<!-- NA-0634 (D571 REV 4 fold-ins) DONE 2026-07-11 (D-1258): the single verification code now binds fingerprint(kem_pk, sig_pk), sig_fp is populated, and the initiator REQUIRES the responder sig-pin at B1 — retiring the whole ENG-0038 auth-asymmetry class (both KEM + signing identity pinned to the single code). Canonical hs_root_combine replaced C1's incremental append; Suite-2 core untouched; NO prekey/three-DH. The authenticated INTERIM — the Signal-shaped prekey end-state is D571 Decision 3 (NA-0635, GATED). Queue returns to READY=NONE — the operator promotes the successor (NA-0635 GATED prekey redesign, the QSC.HS.* formal-model gate, the audit-methodology finding, or the GUI lane). The executor cannot self-promote. -->
-<!-- prior: STATE: READY=NA-0634 | HIGHEST_NA=0634 | HIGHEST_D=1257 (NA-0634 promoted for D571 REV 4) -->
+`STATE: READY=NA-0636 | HIGHEST_NA=0636 | HIGHEST_D=1258 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- NA-0636 (QSC.HS.* bounded handshake-authentication model) PROMOTED to sole READY 2026-07-11 for directive QSL-DIR-2026-07-11-572 (D572, APPROVED): a bounded, executable, crypto-agnostic model of the post-NA-0634 handshake AUTHENTICATION slice in the formal/ house pattern — P1 mutual-auth binding, P2 wrong-signing-key rejection, P4 fail-closed reject hygiene, and P3 = THE OPEN ENG-0038 VERIFICATION OBLIGATION (NA-0634 caveat): the responder→initiator sig-pin redundancy is decided by the MODEL, not by reasoning. formal/ + governance only; NO protocol/source/wire/crypto change; NOT the NA-0635 prekey gate (D571 Decision 3 — NA-0635 stays reserved for that separate GATED lane; this lane takes NA-0636). If P3 DISPROVES the redundancy: record the disproof, file a NEW finding, STOP for operator direction (GAP_FOUND is a success of the method, not a lane failure). -->
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0634 | HIGHEST_D=1258 (NA-0634/D571 fold-ins DONE at D-1258; queue was READY=NONE before the NA-0636 promotion) -->
 
-**READY (exactly one — execute this): NONE.** NA-0634 (D571 REV 4 fold-ins) is **DONE** at D-1258 — the
-authenticated interim is complete (full-identity provisioning + `sig_fp` populated + the REQUIRED responder
-sig-pin at B1 + the canonical combiner; the whole ENG-0038 auth-asymmetry class is retired). Its full block
-(now `Status: DONE` with the OUTCOME) is below under section 2. The queue returns to **READY=NONE**; the
-operator promotes the successor per D571 — **NA-0635** (the GATED prekey redesign, Decision 3), the
-**`QSC.HS.*` formal-model** gate (Decision 4), the **audit-methodology coverage finding** (Decision 4), or the
-GUI lane. The executor cannot self-promote.
+**READY (exactly one — execute this):** `NA-0636 — QSC.HS.* bounded handshake-authentication model: prove
+mutual authentication + DISCHARGE the NA-0634 responder-sig-pin redundancy obligation` (directive
+QSL-DIR-2026-07-11-572, D572, APPROVED). Pays the OPEN verification obligation on the ENG-0038 ledger entry
+(the NA-0634 caveat): a bounded, executable, crypto-agnostic model of the post-NA-0634 handshake
+authentication slice, in the established formal/ house pattern (a bounded Python explorer registered in
+`run_model_checks.py` — NOT raw ProVerif; the ENG-0035 termination limit). P1 mutual-auth binding, P2
+wrong-signing-key rejection, P4 fail-closed reject hygiene; P3 decides the responder→initiator sig-pin
+redundancy — a DISPROOF is GAP_FOUND (record + file a new finding + STOP for operator direction), a
+success of the method, not a lane failure. formal/ + governance only; NO protocol/source change; NOT the
+NA-0635 prekey gate. Its full block (with scope flags) is below under section 2; find it with the ANCHORED
+pattern `^Status:` carrying the state READY (there is exactly one such line in this file).
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -34942,3 +34946,35 @@ See D571 (REV 4) for the full Decision 1–4 structure, the Phase-1 scope guard,
 
 Successor candidates (Phase 6): NA-0635 (the GATED prekey redesign — separate lane); the `QSC.HS.*` formal-model gate (D571 Decision 4); the audit-methodology coverage finding (D571 Decision 4); the GUI lane (after the formal-model gate).
 Begins at D-1258. Fix/fold-in lane; wire/crypto/auth change allowed; the NA-0635 prekey gate is a separate successor lane.
+
+---
+
+### NA-0636 — QSC.HS.* bounded handshake-authentication model: prove mutual authentication + DISCHARGE the NA-0634 responder-sig-pin redundancy obligation (formal/ + governance)
+Status: READY
+Goals: G1, G2, G4
+Wire/behavior change allowed? NO — formal/ + governance lane only; zero qsc/refimpl/protocol/wire/crypto/state-machine source change.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO — adds an executable bounded model under `formal/` plus its runner registration (model code, NOT protocol code). Canonical change allowed? NO. Suite-2 core (`establish.rs`) / Suite-2 vectors / qsp / server / attachments change? NO. `.github/**` only if unavoidable via the EXISTING formal job (prefer NO workflow change — the runner registers models by explicit import + call), never reducing where any safety check runs, and only with the operator's per-lane settings.local.json override (the committed settings deny Write(.github/**)) — STOP and request it rather than assume it.
+Claim change allowed? NO — no claim movement. A PASS claims a bounded authentication-BINDING property over the abstract state machine, NOT cryptographic security and NOT a post-compromise/PQ guarantee.
+
+Scope:
+- `formal/model_qsc_handshake_authentication_bounded.py` (the new bounded model)
+- `formal/run_model_checks.py` (register the model — explicit import + call in `main()`)
+- `formal/README.md` (scope/limitations note, matching the existing models' disclaimers)
+- `docs/governance/evidence/NA-0636_as_built.md`
+- `tests/NA-0636_qsc_hs_handshake_auth_model_testplan.md`
+- `NEXT_ACTIONS.md`, `DECISIONS.md` (one D-####), `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, `docs/ops/IMPROVEMENT_LEDGER.md` (discharge or re-file the ENG-0038 obligation)
+- `.github/workflows/**` — CONDITIONAL only, per the flag line above
+
+Objective:
+Execute **QSL-DIR-2026-07-11-572 (D572, APPROVED)** — model the post-NA-0634 `QSC.HS.*` authentication slice with opaque tokens (identities as `(kem_id, sig_id)` pairs; the single verified code = `fingerprint(kem_id, sig_id)`; the contact pin binds BOTH keys; the initiator's REQUIRED responder sig-pin + KEM pin; the responder's PRIMARY pin recomputing the combined code; the reverse responder→initiator sig-pin OPTIONAL, exactly as landed) and check, fail-closed, in the house style:
+- **P1 (mutual auth):** no reachable accepting state in which either party accepted a peer whose `kem_id` or `sig_id` is not bound to the pinned verified code.
+- **P2 (wrong-signing-key rejection):** a responder presenting the correct `kem_id` but a wrong `sig_id` always reaches a deterministic fail-closed REJECT (no accepted-state mutation, no output/recv_commit, no secret/sentinel leak) — the NA-0634 mechanism, modeled.
+- **P3 (THE OBLIGATION — reverse-pin redundancy):** with the reverse sig-pin OPTIONAL, search the bounded space for ANY reachable state in which `init.sig_id` is NOT bound to the verified code (a run the reverse pin WOULD have caught but the primary combined pin does NOT). NO such state ⇒ the reverse pin is REDUNDANT: DISCHARGE the ENG-0038 obligation with an affirmative verdict in the ledger + evidence. SUCH a state ⇒ the redundancy claim is FALSE: record the DISPROOF, file a NEW ledger finding (the reverse pin is NOT redundant / must be made required), classify GAP_FOUND, and STOP for operator direction — do NOT make the reverse pin required in-lane (a protocol change for a separate approved lane), and do NOT weaken or re-bound the model to pass. The model decides the obligation — reasoning does not.
+- **P4 (fail-closed hygiene):** every reject mutates no accepted/durable state, emits no output/recv_commit, leaks no secret/sentinel, and carries a deterministic reason label.
+Bounded and crypto-agnostic (the ENG-0035 termination constraint): if exhaustive coverage would need unreasonable bounds, prove over an explicitly-stated reduced bound and classify PARTIAL — do NOT expand toward an unbounded or cryptographic proof. Result classes: QSC_HS_HANDSHAKE_AUTH_MODEL_PASS / PARTIAL / GAP_FOUND / STOP. State the model's limitations in its docstring and the README, matching the existing formal/ disclaimers.
+
+See D572 for the authority model, strict scope, phases, required response sections, and STOP conditions.
+
+Successor candidates (Phase 5): NA-0635 (the GATED prekey redesign — D571 Decision 3, separate lane); the audit-methodology coverage finding (D571 Decision 4); the GUI lane (unblocked on the formal-model gate IF P1–P4 are green AND the obligation is discharged affirmatively).
+Begins at D-1259. formal/ + governance lane; NO protocol/wire/crypto/state-machine change; the NA-0635 prekey gate is NOT this lane.

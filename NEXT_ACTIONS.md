@@ -6,7 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0641 | HIGHEST_NA=0641 | HIGHEST_D=1263 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NONE | HIGHEST_NA=0641 | HIGHEST_D=1264 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- NA-0641 (QSC feature plan doc, D577+A1) DONE 2026-07-13 (D-1264, result class QSC_FEATURE_PLAN_DOC_LANDED): the operator's tiered feature decision is repo truth — docs/program/DOC-PROG-003_QSC_Feature_Plan_Tiered_Feature_Set_and_Build_Order_v0.1.0_DRAFT.md (DOC-PROG-002 house form, DRAFT): §1 honest current state (2026-07-13 investigation vs main 7d7c7550 — NONE of the seven Signal-parity features built; no differentiator UI except the structural no-account posture; KT refimpl-only stub; self-host partial/demo-class); §2 strategic sharpening (Signal builds SPQR + KT ⇒ PQ/KT become table stakes; durable edge = self-host + no-phone-number + PQ-native AUTHENTICATION, the NA-0634/NA-0636 line; do NOT chase the parity tail; DOC-PROG-002 §6 overclaim ban carried over); §3 tiers (T1 build: self-host OPERATOR-FIRST top priority, identity-verification UI, disappearing messages, basic search; T2 differentiator UIs: PQ-status indicator, KT verifier UI, guided admission-token UX [ENG-0036]; T3 DEFER: reactions/quoting/voice notes/groups/calls/stickers/polls/stories); §4 self-host split (qsc CLIENT admission UX [ENG-0036, admission control never message security] vs CROSS-REPO qsl-server PRODUCTION relay [durability/authz/backup/TLS; ENG-0037 adjacent]; near-term = technical-OPERATOR-first); §5 build order (operator-path → identity-verify UI + PQ-status → disappearing + search → KT verifier + guided UX; T3 promotion requires a recorded operator decision + plan update FIRST); §7 maintenance rule. AUTHORIZES NO IMPLEMENTATION (stated 3x). Spine wired: BOTH DOC-PROG-002 dangling refs fixed (§4 + §8 per A1; two parenthetical insertions + Last-Updated, zero prose deletions — the minimal-fix boundary held); DOC-CTRL-001 gains its FIRST program-doc registry entry (new §4.5; External bundles → §4.6, zero external refs broken; DOC-PROG-001/-002 remain unindexed, noted — candidate micro-lane). Optional ledger note SKIPPED (DOC-PROG-003 cites ENG-0036/0037 directly; rationale in the as-built §6). Zero source/feature/GUI code; claim boundary UNCHANGED (no comparative security claim — Phase-3 overclaim scan clean). Queue returns to READY=NONE — the operator promotes the successor (expected: the FIRST TIER-1 BUILD LANE = the self-host operator-path, DOC-PROG-003 §5 step 1; standing candidates: 0b, the 0c residue, NA-0635, the GUI lane [step 4, after step-3 core gaps]). The executor cannot self-promote. -->
+<!-- prior: STATE: READY=NA-0641 | HIGHEST_NA=0641 | HIGHEST_D=1263 (NA-0641 closed for D577 at D-1264; this lane PR) -->
 <!-- NA-0640 (full-stack e2e integration, D576) DONE 2026-07-13 (D-1263, result class E2E_INTEGRATION_FULL_STACK_PASS): the FIRST test exercising the real product stack together is green in the STANDARD suite — qsl/qsl-client/qsc/tests/NA_0640_full_stack_e2e.rs runs two isolated qsc clients + the REAL qsl-server IN-PROCESS (dev-only git dep pinned at 19b9b02dbe1f2ae9bc246ff3a16890e56c073c3e; tests/common/mod.rs start_qsl_server, auth explicit via new_with_auth_and_controls) + the REAL qsl-attachments in-process: message round-trip with plaintext byte-match (recv_1.bin) + receipts to peer_confirmed; 6 MiB+321 attachment (>4 MiB = the REAL attachment path, QSC_ATTACHMENT_SERVICE) uploaded to the real service, descriptor through the real relay, downloaded byte-verified; auth modes open AND bearer-token + a wrong-bearer NEGATIVE rejected by the real server. GREEN ON THE FIRST RUN against unmodified product source — no ENG warranted; zero production-source change. Dev-only PROVEN (cargo tree -p qsc -e normal byte-identical before/after; lock adds only qsl-server/tower-http/uuid on the dev edge). TUI focus semantics ported in-suite FIRST (NA_0640_tui_focus_semantics.rs: unfocused=buffer+unread=1, focused=append+unread=0; scripts drive the CURRENT key model — /key tab toggles INTO Main, inverse of the na-0127 era; account.rs:440-443), THEN .github/workflows/relay-ui-integration.yml RETIRED (deleted; it had been silently dead since 2026-02-11 — schedule-only + UNPINNED server HEAD + qsl-server's na-0012 route retirement = health-probe 404 before any test ran). WF-0023 filed + closed-as-paid (the gap, the root cause, the structural closure: in-suite + rev-pinned). Limits recorded (open+static-bearer auth only; one message + one 6 MiB attachment; happy path + one auth negative; no fault injection against the real relay; remote deployed-relay workflows stay red, operator-gated NA-0564/NA-0565; the dormant relay_ui_integration.rs test FILE stays in-tree — outside D576 scope, hygiene candidate). Queue returns to READY=NONE — the operator promotes the successor (0b, the 0c residue, NA-0635, the GUI lane, or a real-relay fault-scenario lane). The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0640 | HIGHEST_D=1263 (NA-0641 promoted for D577; PR #1561) -->
 <!-- prior: STATE: READY=NA-0640 | HIGHEST_NA=0640 | HIGHEST_D=1262 (NA-0640 closed for D576 at D-1263; this lane PR) -->
@@ -14,30 +16,24 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NA-0641** — the QSC feature plan DOCS lane
-(**D577 = QSL-DIR-2026-07-13-577, operator-approved, AS AMENDED 2026-07-13 [A1: the §8 reference
-fix added]**; an INSERTED DOCS lane, not from ON DECK). Author **DOC-PROG-003** — the "qsc feature
-plan" that DOC-PROG-002 cites in the present tense but which DOES NOT EXIST (verified read-only
-2026-07-13) — and wire it into the spine. This is step 2 of the operator's pre-GUI sequence:
-(1) integration proven [DONE, NA-0640]; (2) DECIDE the feature set [THIS lane records it];
-(3) close core gaps; (4) GUI. The document records: **(1)** the HONEST current state (qsc = a
-working 1:1 PQ-hybrid E2EE messenger; NONE of the seven Signal-parity features built; no
-differentiator UI except the structural no-account posture; KT refimpl-only; self-host
-partial/demo-class); **(2)** the STRATEGIC SHARPENING (Signal now builds PQ [SPQR] + KT, so the
-durable edge = self-host + no-phone-number + PQ-native AUTHENTICATION — do NOT chase the parity
-tail); **(3)** the TIERED set (Tier 1 build: self-host OPERATOR-FIRST top priority,
-identity-verification UI, disappearing messages, search; Tier 2 differentiator UIs: PQ-status
-indicator, KT verifier UI, guided admission-token UX [ENG-0036]; Tier 3 DEFER: reactions, quoting,
-voice notes, groups, calls, etc.); **(4)** the SELF-HOST SPLIT (qsc CLIENT admission UX [ENG-0036]
-vs the CROSS-REPO qsl-server PRODUCTION relay [ENG-0037 adjacent]; near-term = the TECHNICAL
-operator, not non-technical onboarding); **(5)** the BUILD ORDER (self-host operator-path first;
-each feature's build is its OWN future lane — this plan authorizes NO implementation). Spine
-wiring: fix BOTH dangling DOC-PROG-002 references (§4 line ~120 AND §8 line ~200 — the A1
-amendment) as MINIMAL pointer updates; index DOC-PROG-003 in DOC-CTRL-001 (which currently indexes
-NO DOC-PROG doc — this entry is the first). DOCS-ONLY: NO feature/GUI/source code, NO claim
-movement, NO comparative Signal security claim. Begins at **D-1264**. Full lane block at the end
-of section 2. NA-0640 (the full-stack e2e integration lane, D576) is DONE at D-1263, result class
-E2E_INTEGRATION_FULL_STACK_PASS — see its block below.
+**READY (exactly one — execute this): NONE.** NA-0641 (the QSC feature plan DOCS lane, D577 as
+amended A1) is **DONE** at D-1264, result class **QSC_FEATURE_PLAN_DOC_LANDED** — the operator's
+tiered feature decision is now repo truth: **DOC-PROG-003** (QSC Feature Plan: Tiered Target
+Feature Set and Build Order, DRAFT) records the honest current state, the strategic sharpening
+(the durable edge = self-host + no-phone-number + PQ-native AUTHENTICATION; do NOT chase Signal's
+parity tail), the tiers (T1: self-host OPERATOR-FIRST top priority, identity-verification UI,
+disappearing messages, search; T2: PQ-status indicator, KT verifier UI, guided admission-token UX
+[ENG-0036]; T3 deferred), the self-host client-vs-relay split (qsc admission UX vs CROSS-REPO
+qsl-server production relay), and the build order — and **authorizes NO implementation** (each
+feature's build is its own future lane + directive). BOTH DOC-PROG-002 dangling references now
+point at DOC-PROG-003 (§4 + §8, minimal parenthetical fixes); DOC-CTRL-001 carries its FIRST
+program-doc registry entry (new §4.5). Its full block (now `Status: DONE` with the OUTCOME) is at
+the end of section 2. The queue returns to **READY=NONE**; the operator promotes the successor —
+**expected: the first Tier-1 build lane, the SELF-HOST OPERATOR-PATH (DOC-PROG-003 §5 step 1;
+the §4 split scopes qsc-side vs cross-repo)**; standing candidates: **0b** (the NA-0636
+bounded-model extension), the **0c residue**, **NA-0635** (the GATED prekey redesign, D571
+Decision 3), the **GUI lane** (step 4 of the pre-GUI sequence — after the step-3 core gaps).
+The executor cannot self-promote.
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -35142,7 +35138,8 @@ See D576 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-12-576_e2e_integratio
 Begins at D-1263. TEST+CI-only lane; the pinned services are consumed AS-IS; prove the stack works together — do not patch product code to fake it.
 
 ### NA-0641 — Land the QSC Feature Plan (DOC-PROG-003): resolve the dangling DOC-PROG-002 references (§4 + §8); record the tiered feature set with self-host (operator-first) as the top build priority
-Status: READY
+Status: DONE
+OUTCOME (2026-07-13, D-1264, result class QSC_FEATURE_PLAN_DOC_LANDED): DOC-PROG-003 authored and spine-wired; zero source/feature/GUI code. `docs/program/DOC-PROG-003_QSC_Feature_Plan_Tiered_Feature_Set_and_Build_Order_v0.1.0_DRAFT.md` (DOC-PROG-002 house form, DRAFT; the authorization boundary — NO implementation authorized — stated in the provenance block, §5, and the footer): §1 the honest current-state inventory (from the 2026-07-13 read-only investigation vs main `7d7c7550`); §2 the strategic sharpening + the DOC-PROG-002 §6 overclaim ban carried over in full; §3 the tiers exactly as directed; §4 the self-host split (ENG-0036 client admission UX vs the CROSS-REPO qsl-server production relay; ENG-0037 adjacent; technical-OPERATOR-first near-term target); §5 the build order (each step its OWN future lane + directive; Tier-3 promotion requires a recorded operator decision + plan update FIRST); §7 the maintenance rule. Spine: DOC-PROG-002 diff = exactly two parenthetical `(DOC-PROG-003)` insertions (§4 third bullet + §8 per the A1 amendment) + the Last-Updated header — zero prose deletions, the minimal-fix boundary held; DOC-CTRL-001 = the FIRST program-document registry entry (new §4.5 Program Documents subsection; the prior §4.5 External bundles renumbered §4.6 with zero external references broken; DOC-PROG-001/-002 noted as remaining unindexed — candidate follow-up micro-lane). The OPTIONAL ledger note was SKIPPED deliberately (DOC-PROG-003 cites ENG-0036/ENG-0037 by ID with their threat-model boundaries; rationale in the as-built §6). Phase-3 validation: scope guard clean (changed paths ⊆ the D577 allowed list); overclaim scan clean (no comparative security claim; Signal statements are factual gap observations); private-material scan clean; goal-lint green locally. Claim boundary UNCHANGED. See `docs/governance/evidence/NA-0641_as_built.md` and D-1264. Successor: the operator promotes — expected the self-host operator-path lane (DOC-PROG-003 §5 step 1).
 Goals: G4, G5
 Wire/behavior change allowed? NO — DOCS/governance lane; ZERO source/protocol/wire/crypto change; NO feature implementation (this is the PLAN, not the build); NO GUI code; NOT the NA-0635 prekey gate.
 Crypto/state-machine change allowed? NO.

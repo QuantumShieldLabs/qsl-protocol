@@ -2,7 +2,7 @@ Goals: G4, G5
 
 Status: Supporting (product strategy; subordinate to canonical specs, GOALS, the queue, and independent review)
 Owner: QSL governance
-Last-Updated: 2026-07-11
+Last-Updated: 2026-07-13
 Authority: Non-normative product strategy. Does NOT override START_HERE, GOALS,
 the canonical specs, NEXT_ACTIONS, the IMPROVEMENT_LEDGER, or any recorded
 decision. Where this document and any of those disagree, THEY win and this
@@ -118,7 +118,7 @@ the operator requirements captured in the N3 lane-family plan.
   authorization, backup/restore, TLS. Consciously scoped to the high-trust-org
   profile, not consumer scale.
 - **Client feature parity where it serves the niche.** The qsc feature plan
-  identifies the Signal Desktop features worth matching (disappearing messages,
+  (DOC-PROG-003) identifies the Signal Desktop features worth matching (disappearing messages,
   reactions, quoting, voice notes, search, groups, calls, etc.), prioritized
   for this audience, plus niche differentiators Signal lacks (PQ status
   indicator, KT verifier UI, "no account" UX, screen security). A Tauri GUI
@@ -197,7 +197,7 @@ because it never made one it couldn't back — is the product.
   document supplies the "why" and the niche framing behind it.
 - **The IMPROVEMENT_LEDGER** — the live findings register; the external-review
   package (§5) draws from it.
-- **The N3 lane-family plan and the qsc feature plan** — the product-shaped
+- **The N3 lane-family plan and the qsc feature plan (DOC-PROG-003)** — the product-shaped
   detail behind §4; those enter the repo via their own design lanes.
 - **DOC-CAN-003 / DOC-CAN-008** — the canonical crypto specs the pillars build
   on; canonical, and authoritative over this document.

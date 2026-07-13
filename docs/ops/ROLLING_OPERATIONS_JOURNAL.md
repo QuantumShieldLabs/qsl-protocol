@@ -43230,3 +43230,28 @@ static-bearer auth, one message + one 6 MiB attachment, happy paths + one auth n
 production-readiness. The REMOTE deployed-relay smokes stay red and operator-gated (NA-0564/NA-0565).
 WF-0023 filed + closed-as-paid records all of it. Queue back to READY=NONE (HIGHEST_D=1263); the
 operator promotes the successor.
+
+## 2026-07-13 — NA-0641: the QSC feature plan lane (D577 + A1, D-1264)
+
+DOCS-only lane, per QSL-DIR-2026-07-13-577 as amended (A1: the second dangling
+reference, §8, added at operator approval). The "qsc feature plan" DOC-PROG-002
+had cited in the present tense since 2026-07-11 now EXISTS: DOC-PROG-003 records
+the operator's 2026-07-13 tiered feature decision — Tier 1 build (self-host
+OPERATOR-FIRST as the top priority, identity-verification UI, disappearing
+messages, basic search), Tier 2 differentiator UIs (PQ-status indicator, KT
+verifier UI, guided admission-token UX per ENG-0036), Tier 3 deferred (the
+Signal parity tail: reactions, quoting, voice notes, groups, calls, stickers,
+polls, stories). The strategic core, stated in the doc: Signal now builds SPQR
+and key transparency, so PQ and KT alone become table stakes — the durable edge
+is self-host + no-phone-number + PQ-native authentication, and the plan
+explicitly refuses to chase parity. The self-host work is split honestly: qsc
+client admission UX (ENG-0036) vs the CROSS-REPO qsl-server production relay
+(durability/authz/backup/TLS; ENG-0037 adjacent), targeting a technical
+operator first. Both DOC-PROG-002 references now point at DOC-PROG-003 (two
+parenthetical insertions — the minimal-fix boundary held); DOC-CTRL-001 gains
+its FIRST program-document registry entry (new §4.5; the old §4.5 External
+bundles renumbered §4.6 with zero external references broken). The document
+authorizes no implementation; every feature's build is its own future lane.
+Result `QSC_FEATURE_PLAN_DOC_LANDED`; claim boundary unchanged. Queue returns
+to READY=NONE at HIGHEST_D=1264 — the operator promotes the successor
+(expected: the first Tier-1 build lane, the self-host operator-path).

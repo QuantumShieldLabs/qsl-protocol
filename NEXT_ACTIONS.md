@@ -6,26 +6,28 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0640 | HIGHEST_NA=0640 | HIGHEST_D=1262 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 <!-- NA-0639 (WF-0022 atomic-write crash-window harness) DONE 2026-07-12 (D-1262): the settling exercise EXISTS and is GREEN — qsl/qsl-client/qsc/tests/NA_0639_wf0022_atomic_write_crash_window.rs (PREFERRED in-suite form; the standalone fallback was not needed) EXERCISES the real write_atomic through the compiled binary (config set policy-profile, exactly one rename per invocation once the layout is seeded). Named interruption point: after temp-write+sync_all, at fs::rename (fs_store/mod.rs:120-122), reached by denying directory write permission on the deterministic temp's appearance; the child finishes writing on its open fd, its rename is DENIED — the disk holds exactly the pre-rename crash state. Positive results: subsequent reader saw target byte-identical OLD in every interrupted trial (temp residue = complete NEW, never the live target; recovery lands exact NEW); concurrent reader across 24 real write cycles saw ZERO torn samples; the test FAILS if no trial lands in-window (no silent vacuity); 10 consecutive runs 40/40 green. WF-0017 non-vacuity DEMONSTRATED: both negative controls (test-local truncate-then-write) trip the shared classifier; red-run demo (reverted) failed the positive test against the non-atomic writer with 36,961/45,033 torn samples. NO real OLD-XOR-NEW violation found — no ENG filed. write_atomic NEVER edited; zero production-source change. WF-0022 CLOSED. Limits recorded: denied-rename simulation, not power loss; kills mid-temp-write, per-seam fault matrix, and the claim-7 handshake_complete-marker case NOT exercised — the last two stay ON-DECK 0c residue. Queue returns to READY=NONE — the operator promotes the successor (0b, the 0c residue, NA-0635, or the GUI lane). The executor cannot self-promote. -->
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NONE.** NA-0639 (the WF-0022 atomic-write crash-window harness,
-D575) is **DONE** at D-1262 — the exercise WF-0022 named now exists and is green:
-`qsl/qsl-client/qsc/tests/NA_0639_wf0022_atomic_write_crash_window.rs` EXERCISES the real `write_atomic`
-through the compiled binary, interrupts it at the NAMED point (after temp-write + `sync_all`, at
-`fs::rename` — directory write permission denied on the deterministic temp's appearance), and asserts
-**OLD-XOR-NEW**: the subsequent reader saw the target byte-identical OLD in every interrupted trial (the
-temp residue held complete NEW and never became the live target; recovery lands exact NEW); a concurrent
-reader across 24 real write cycles saw zero torn samples. **WF-0017 non-vacuity DEMONSTRATED** — both
-negative controls trip the shared classifier, and a red-run demo (reverted before commit) failed the
-positive test against a deliberately non-atomic writer (36,961/45,033 torn samples). **No real violation
-found; no ENG filed; `write_atomic` never edited.** **WF-0022 is CLOSED.** Limits: a denied-rename
-simulation, not power loss — the per-seam fault matrix and the claim-7 marker case stay **ON-DECK 0c
-residue**. Its full block (now `Status: DONE` with the OUTCOME) is below under section 2. The queue
-returns to **READY=NONE**; the operator promotes the successor — **0b** (the NA-0636 bounded-model
-extension, device indirection first), the **0c residue**, **NA-0635** (the GATED prekey redesign, D571
-Decision 3), or the **GUI lane**. The executor cannot self-promote.
+**READY (exactly one — execute this): NA-0640** — the full-stack e2e integration lane
+(**D576 = QSL-DIR-2026-07-12-576, operator-approved**; an INSERTED integration lane, not from ON DECK).
+Close the integration gap: NO test exercises the real product stack (qsc <-> qsl-server <->
+qsl-attachments) together, and the only real-qsl-server coverage was schedule-only + unpinned and
+rotted silently for ~5 months. Three parts, in order: **(1)** a NEW e2e test in the STANDARD
+`cargo test -p qsc` suite — two isolated qsc clients + the REAL qsl-server in-process (DEV-ONLY git
+dependency pinned at rev `19b9b02dbe1f2ae9bc246ff3a16890e56c073c3e`) + the REAL qsl-attachments
+in-process; message round-trip AND a >4 MiB attachment round-trip (the real attachment path, byte-verified);
+**(2)** port the two UNIQUE TUI focus-semantics assertions (unfocused ⇒ `mode=buffer`+`unread=1`;
+focused ⇒ `mode=append`+`unread=0`) into the suite via the na0177 mock-inbox pattern; **(3)** ONLY
+after (2) is green, RETIRE the drifted `.github/workflows/relay-ui-integration.yml` (requires the
+operator-provided `.claude/settings.local.json` `.github` override in the lane checkout — STOP and
+request if absent). ZERO production-source change: the pinned services are consumed AS-IS — if the
+round-trip only passes by editing product code, that is a REAL integration bug: file an ENG and STOP;
+do not patch product code to make the test pass. The dev-dep must NOT alter the production dependency
+graph (STOP if it does). Begins at **D-1263**; expected ledger filing **WF-0023**. Full lane block at
+the end of section 2. NA-0639 (WF-0022 crash harness, D575) is DONE at D-1262 — see its block below.
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -35096,3 +35098,34 @@ See D575 for the authority model, strict scope, phases, required response sectio
 
 Successor candidates (Phase 5): 0b (the NA-0636 bounded-model extension — device indirection first); NA-0635 (the GATED prekey redesign — D571 Decision 3); the GUI lane (the formal-model gate was satisfied at NA-0636). READY returns to NONE — the operator promotes; the executor cannot self-promote.
 Begins at D-1262. TEST-ONLY lane; NO production/formal/vector/canonical/.github change; the harness EXERCISES `write_atomic` — it does not modify it.
+
+### NA-0640 — Full-stack E2E integration: two qsc clients + REAL qsl-server (pinned dev-dep) + REAL qsl-attachments round-trip in the standard suite; preserve the TUI focus semantics in-suite; retire the drifted relay-ui workflow
+Status: READY
+Goals: G1, G2, G3, G4
+Wire/behavior change allowed? NO — TEST+CI-only lane; zero qsc/qsl-server/qsl-attachments PRODUCTION-source change; the pinned services are consumed AS-IS. If the e2e round-trip only passes by editing product code, that is a REAL integration bug: file an ENG, STOP — do not patch product code to make the test pass.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO — this lane adds the e2e test, the ported TUI-semantics test, a `start_qsl_server` test helper, the qsl-server DEV-ONLY dependency pin, ONE workflow deletion, plus governance/ledger/evidence/testplan updates. Canonical change allowed? NO. Suite-2 core / vectors / qsp / server / attachments SOURCE change? NO. `formal/**` change? NO. `.github/**` change? YES — EXACTLY ONE FILE, the DELETION of `.github/workflows/relay-ui-integration.yml`, only after the TUI semantics are preserved in-suite and green, and only with the operator-provided `.claude/settings.local.json` override present (STOP and request if absent; DELETE the override at closeout and verify absent).
+Claim change allowed? NO — a PASS asserts the three-component stack interoperates under the tested scenarios at the pinned revs; NOT production-readiness. State the coverage limits (which auth modes, sizes, paths). Does not reopen closed ENGs; NOT the NA-0635 prekey gate; NO GUI work.
+
+Scope:
+- `qsl/qsl-client/qsc/tests/NA_0640_*.rs` (the new e2e test)
+- the ported TUI focus-semantics test: a new `qsl/qsl-client/qsc/tests/<name>.rs` OR an addition to an existing in-suite TUI test file (Phase-1 decides; record which and WHY in the evidence doc) — preserving BOTH assertions (unfocused ⇒ `mode=buffer`+`unread=1`; focused ⇒ `mode=append`+`unread=0`)
+- `qsl/qsl-client/qsc/tests/common/mod.rs` (a `start_qsl_server` helper mirroring `start_attachment_server` — TEST HELPER ONLY)
+- `qsl/qsl-client/qsc/Cargo.toml` + `Cargo.lock` (the qsl-server DEV-ONLY git dependency pinned at rev `19b9b02dbe1f2ae9bc246ff3a16890e56c073c3e`; re-confirm current-or-intended at Phase 0; the pin must NOT alter the PRODUCTION dependency graph — STOP if it does)
+- `.github/workflows/relay-ui-integration.yml` (RETIRE — delete; order: preserve-then-retire; requires the settings.local.json override)
+- `docs/ops/IMPROVEMENT_LEDGER.md` (record the integration-coverage closure + the root cause — unpinned + schedule-only; new WF/finding as appropriate — expected WF-0023)
+- `docs/governance/evidence/NA-0640_as_built.md`, `tests/NA-0640_e2e_integration_full_stack_testplan.md`
+- `NEXT_ACTIONS.md` (this block), `DECISIONS.md` (one D-####), `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+- NOTHING else — no production source (qsc/src, qsl-server/src, qsl-attachments/src), no `formal/`, no vectors, no canonical, no OTHER workflows. If landing needs any other path, STOP.
+
+Objective:
+Execute **QSL-DIR-2026-07-12-576 (D576, APPROVED)** — close the integration gap: NO test currently exercises the real product stack (qsc <-> qsl-server <-> qsl-attachments) together; the only real-qsl-server coverage was schedule-only + unpinned and rotted silently for ~5 months (qsl-server retired its `:channel` routes at its na-0012; the workflow's health probes 404'd; nobody noticed — root cause = (a) schedule-only/unwatched + (b) pinned to nothing).
+- **(1) The e2e test (STANDARD suite):** two isolated qsc clients (separate `QSC_CONFIG_DIR` + seeds) + the REAL qsl-server in-process (bind 127.0.0.1:0, take `local_addr` — the `start_attachment_server` pattern) + the REAL qsl-attachments in-process. Message round-trip: A sends → real relay → B receives + decrypts; assert delivery + plaintext match. Attachment round-trip: a >4 MiB payload (forces the REAL attachment path, not the legacy in-message path; set `QSC_ATTACHMENT_SERVICE` so the validated lane activates) uploaded to the real service, descriptor delivered through the real relay, B downloads + byte-verifies. Exercise BOTH auth modes if cheap (open relay AND `RELAY_TOKEN` on the server + `QSC_RELAY_TOKEN` on the clients); at minimum DOCUMENT which is covered. Deterministic: in-process, OS-assigned ports, no network egress. This is the FIRST proof the full stack works together.
+- **(2) Preserve the TUI focus semantics IN-SUITE (BEFORE (3) — order matters):** the two `relay_ui_integration.rs` assertions are UNIQUE in the suite; port them via the na0177 headless-TUI-over-mock-inbox pattern (they do NOT need a real server); the ported test must assert the SAME `mode`/`unread` fields.
+- **(3) Retire `.github/workflows/relay-ui-integration.yml`:** its transport leg is superseded by (1); its TUI value is preserved by (2). ONLY after (2) is green.
+- **Root-cause closure on the ledger:** the coverage now lives in the standard suite (cannot silently stop running) and qsl-server is REV-PINNED (drift becomes a deliberate visible bump, not silent rot).
+Result classes: E2E_INTEGRATION_FULL_STACK_PASS / E2E_INTEGRATION_FULL_STACK_STOP. STOP conditions (class): the round-trip fails / the components do not interoperate (file an ENG, STOP — a real interop bug is a FINDING, not something to patch around); the dev-dep alters the PRODUCTION dependency graph (must be dev-only); ANY production-source change needed (qsc/qsl-server/qsl-attachments); the `.github` settings.local.json override absent (STOP and request); workflow retirement attempted before the TUI port is green; scope breach; claim movement; queue/decision ambiguity; failed/pending required check at merge; standing Tier-5. Remember `qsc-linux-full-suite` SKIPS on PRs — the LOCAL `cargo test -p qsc` run is the real merge gate.
+
+See D576 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-12-576_e2e_integration_full_stack.md`) for the authority model, strict scope, phases, required response sections, and STOP conditions.
+
+Begins at D-1263. TEST+CI-only lane; the pinned services are consumed AS-IS; prove the stack works together — do not patch product code to fake it.

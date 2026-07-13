@@ -6,6 +6,10 @@ use qsl_attachments::{
     build_router, AppState as AttachmentAppState, Config as AttachmentConfig,
     TestClock as AttachmentTestClock,
 };
+use qsl_server::{
+    app as qsl_relay_app, AppState as QslRelayAppState, Limits as QslRelayLimits,
+    ResourceControls as QslRelayResourceControls,
+};
 use serde::Serialize;
 use std::collections::{HashMap, VecDeque};
 use std::io::{Read, Write};
@@ -375,6 +379,104 @@ pub fn start_attachment_server(max_ciphertext_bytes: u64) -> AttachmentTestServe
     };
     wait_until_attachment_ready(server.base_url());
     server
+}
+
+// NA-0640 (D576): run the REAL qsl-server relay in-process for the full-stack e2e
+// round-trip, mirroring start_attachment_server (bind 127.0.0.1:0, take local_addr,
+// serve, graceful shutdown on drop). Auth is EXPLICIT: qsl-server's env-reading
+// constructors (AppState::new / new_with_controls) consult the ambient RELAY_TOKEN,
+// which a test must never depend on — new_with_auth_and_controls pins it per call.
+#[allow(dead_code)]
+pub struct QslRelayTestServer {
+    base_url: String,
+    shutdown: Option<oneshot::Sender<()>>,
+    handle: Option<thread::JoinHandle<()>>,
+}
+
+#[allow(dead_code)]
+impl QslRelayTestServer {
+    pub fn base_url(&self) -> &str {
+        &self.base_url
+    }
+}
+
+impl Drop for QslRelayTestServer {
+    fn drop(&mut self) {
+        if let Some(tx) = self.shutdown.take() {
+            let _ = tx.send(());
+        }
+        if let Some(handle) = self.handle.take() {
+            let _ = handle.join();
+        }
+    }
+}
+
+#[allow(dead_code)]
+pub fn start_qsl_server(
+    max_body: usize,
+    max_queue: usize,
+    relay_token: Option<&str>,
+) -> QslRelayTestServer {
+    let relay_token = relay_token.map(|t| t.to_string());
+    let (addr_tx, addr_rx) = std::sync::mpsc::channel();
+    let (shutdown_tx, shutdown_rx) = oneshot::channel();
+    let handle = thread::spawn(move || {
+        let runtime = tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .expect("qsl-server runtime");
+        runtime.block_on(async move {
+            let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+                .await
+                .expect("qsl-server bind");
+            let addr = listener.local_addr().expect("qsl-server local addr");
+            addr_tx.send(addr).expect("qsl-server ready send");
+            let limits = QslRelayLimits::new(max_body, max_queue).expect("qsl-server limits");
+            let state = QslRelayAppState::new_with_auth_and_controls(
+                limits,
+                QslRelayResourceControls::default(),
+                relay_token,
+            );
+            let router = qsl_relay_app(state);
+            serve(listener, router)
+                .with_graceful_shutdown(async {
+                    let _ = shutdown_rx.await;
+                })
+                .await
+                .expect("qsl-server serve");
+        });
+    });
+    let addr = addr_rx.recv().expect("qsl-server ready addr");
+    let server = QslRelayTestServer {
+        base_url: format!("http://{}", addr),
+        shutdown: Some(shutdown_tx),
+        handle: Some(handle),
+    };
+    wait_until_qsl_server_ready(server.base_url());
+    server
+}
+
+fn wait_until_qsl_server_ready(base_url: &str) {
+    let client = reqwest::blocking::Client::builder()
+        .timeout(Duration::from_millis(250))
+        .build()
+        .expect("build qsl-server readiness client");
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while Instant::now() < deadline {
+        let url = format!("{}/v1/pull?max=1", base_url);
+        // Any parsed HTTP response (200 empty pull, 401 in token mode) proves the
+        // relay is accepting and routing requests.
+        if client
+            .get(&url)
+            .header("x-qsl-route-token", "readiness_probe_route_token_0000")
+            .send()
+            .is_ok()
+        {
+            return;
+        }
+        thread::sleep(Duration::from_millis(50));
+    }
+    panic!("qsl-server failed readiness: {base_url}");
 }
 
 #[allow(dead_code)]

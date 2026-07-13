@@ -6,8 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0642 | HIGHEST_D=1265 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0643 | HIGHEST_NA=0643 | HIGHEST_D=1265 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 <!-- NA-0642 (qsl-server durability, D578) DONE 2026-07-13 (D-1265, result class QSL_SERVER_DURABILITY_PASS): the FIRST Tier-1 build lane of DOC-PROG-003 §5 (self-host operator-path step 1) shipped CROSS-REPO — the CODE landed as qsl-server PR #61 (branch na-0642-durable-queue off pin 19b9b02d, commit ddde687, merge 8e4ea278, the single required `rust` check GREEN at merge, merge-commit per qsl-server CLAUDE.md); THIS repo carries governance only. The relay queue is DURABLE: embedded SQLite (rusqlite bundled; WAL + synchronous=FULL — a push 200 means fsynced; schema v1: routes keyed by SHA-256(route_token), raw tokens NEVER persisted; messages seq-FIFO, msg_id NOT unique per the NA-0275 duplicate contract, opaque BLOB body, enqueued_at, leased_until). Operator-approved design-lock built exactly: ack model B OPT-IN (GET /v1/pull?ack=lease leases for PULL_LEASE_SECS [default 60s] without deleting; POST /v1/pull/ack deletes ONLY leased copies, idempotent, route-scoped; un-acked leases expire and messages reappear) while the LEGACY pull stays BYTE-IDENTICAL (delete-on-deliver, exact-field-set guarded) — the current non-acking qsc client is NOT stranded; RETENTION_TTL_SECS (default 7d, ceiling 30d) REPLACES the 5-minute idle-route discard (ROUTE_IDLE_TTL_MS now warn-and-ignore); STORE_PATH REQUIRED fail-closed (:memory: = deliberate ephemeral); leased messages count against MAX_QUEUE_DEPTH; delivered+acked still FORGOTTEN — reliable, NOT an archive; StateDirectory=qsl-server added (operator-ratified: ProtectSystem=strict needs it). Tests 100/0 across 25 binaries incl. the operator-required HARD-KILL proofs (SIGKILL between push-200 and restart → byte-identical delivery, proving the fsync not a graceful flush; SIGKILL mid-lease → lease survives restart, message reappears after expiry, ack deletes; delivered messages never resurrect) + retention non-vacuity controls + concurrency exactly-once (new coverage) + at-rest token-privacy. relay.env.example 256→257 FIXED (the ONE in-lane fix); the REST FILED: ENG-0039 (hardening bundle (a)–(f) + the README/DOC-SRV-003 drift this lane knowingly created), ENG-0040 (OWED: qsc ack-client lane — full delivery durability requires it; stated, not faked), ENG-0041 (OWED: pin bump past 8e4ea278 + local NA-0640 e2e re-run; the pin is knowingly STALE). Recorded-contract flips: config_semantics zero-env start → fail-closed; route_lifecycle_ttl* retired with its contract (drain-release carried into na0642_retention_lifecycle.rs); na0347 purge block → retention mechanism. One qsl-server DECISIONS entry: D-0011. NO qsc/qsl-attachments/qsl-protocol source, NO wire message-semantic/E2EE change, relay stays blind, NOT auth/TLS/sealed-sender, pin NOT bumped. Claim boundary UNCHANGED. Queue returns to READY=NONE — the operator promotes the successor (natural: ENG-0041 the LITE pin-bump/e2e lane and/or ENG-0040 the qsc ack-client lane; then ENG-0036 admission UX / ENG-0039 hardening; standing: 0b, 0c residue, NA-0635, the GUI lane). The executor cannot self-promote. -->
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0642 | HIGHEST_D=1265 (NA-0643 promoted for D579; PR #1565) -->
 <!-- prior: STATE: READY=NA-0642 | HIGHEST_NA=0642 | HIGHEST_D=1264 (NA-0642 closed for D578 at D-1265; this lane PR) -->
 <!-- NA-0641 (QSC feature plan doc, D577+A1) DONE 2026-07-13 (D-1264, result class QSC_FEATURE_PLAN_DOC_LANDED): the operator's tiered feature decision is repo truth — docs/program/DOC-PROG-003_QSC_Feature_Plan_Tiered_Feature_Set_and_Build_Order_v0.1.0_DRAFT.md (DOC-PROG-002 house form, DRAFT): §1 honest current state (2026-07-13 investigation vs main 7d7c7550 — NONE of the seven Signal-parity features built; no differentiator UI except the structural no-account posture; KT refimpl-only stub; self-host partial/demo-class); §2 strategic sharpening (Signal builds SPQR + KT ⇒ PQ/KT become table stakes; durable edge = self-host + no-phone-number + PQ-native AUTHENTICATION, the NA-0634/NA-0636 line; do NOT chase the parity tail; DOC-PROG-002 §6 overclaim ban carried over); §3 tiers (T1 build: self-host OPERATOR-FIRST top priority, identity-verification UI, disappearing messages, basic search; T2 differentiator UIs: PQ-status indicator, KT verifier UI, guided admission-token UX [ENG-0036]; T3 DEFER: reactions/quoting/voice notes/groups/calls/stickers/polls/stories); §4 self-host split (qsc CLIENT admission UX [ENG-0036, admission control never message security] vs CROSS-REPO qsl-server PRODUCTION relay [durability/authz/backup/TLS; ENG-0037 adjacent]; near-term = technical-OPERATOR-first); §5 build order (operator-path → identity-verify UI + PQ-status → disappearing + search → KT verifier + guided UX; T3 promotion requires a recorded operator decision + plan update FIRST); §7 maintenance rule. AUTHORIZES NO IMPLEMENTATION (stated 3x). Spine wired: BOTH DOC-PROG-002 dangling refs fixed (§4 + §8 per A1; two parenthetical insertions + Last-Updated, zero prose deletions — the minimal-fix boundary held); DOC-CTRL-001 gains its FIRST program-doc registry entry (new §4.5; External bundles → §4.6, zero external refs broken; DOC-PROG-001/-002 remain unindexed, noted — candidate micro-lane). Optional ledger note SKIPPED (DOC-PROG-003 cites ENG-0036/0037 directly; rationale in the as-built §6). Zero source/feature/GUI code; claim boundary UNCHANGED (no comparative security claim — Phase-3 overclaim scan clean). Queue returns to READY=NONE — the operator promotes the successor (expected: the FIRST TIER-1 BUILD LANE = the self-host operator-path, DOC-PROG-003 §5 step 1; standing candidates: 0b, the 0c residue, NA-0635, the GUI lane [step 4, after step-3 core gaps]). The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0641 | HIGHEST_D=1264 (NA-0642 promoted for D578; PR #1563) -->
@@ -19,28 +20,27 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NONE.** NA-0642 (the qsl-server DURABILITY lane, D578)
-is **DONE** at D-1265, result class **QSL_SERVER_DURABILITY_PASS** — the FIRST Tier-1 build
-lane of DOC-PROG-003 §5 shipped: the relay's store-and-forward queue is DURABLE (embedded
-SQLite, WAL + synchronous=FULL; a SIGKILL'd relay redelivers byte-identically after restart);
-an operator-tunable retention TTL (default 7 days) REPLACES the 5-minute idle-route discard;
-delivery gained the opt-in ACKNOWLEDGED-PULL mode (lease + visibility timeout, design-lock
-option B) while the LEGACY pull stayed byte-identical — the current non-acking qsc client is
-NOT stranded and the NA-0640 e2e passes unchanged at pin-bump time. Route tokens are persisted
-only as SHA-256 digests; payloads stay opaque; the relay stays blind. CROSS-REPO: the CODE is
-qsl-server PR #61 (merge `8e4ea278`, `rust` green at merge; one qsl-server DECISIONS entry
-D-0011); THIS repo carries the governance closeout only — NO qsc/qsl-protocol source was
-edited, NO wire message-semantic/E2EE change, the dev-dep pin was NOT bumped. Debt rule
-executed: relay.env.example 256→257 fixed (the ONE fix); the rest FILED as **ENG-0039** (the
-hardening bundle, incl. the README/DOC-SRV-003 drift this lane knowingly created); the TWO owed
-follow-ups recorded as **ENG-0040** (qsc ack-client lane — full delivery durability requires
-it) and **ENG-0041** (pin bump + local NA-0640 e2e re-run — the pin is knowingly STALE). Its
-full block (now `Status: DONE` with the OUTCOME) is at the end of section 2. The queue returns
-to **READY=NONE**; the operator promotes the successor — natural next steps in the DOC-PROG-003
-§5 order: **ENG-0041** (LITE pin-bump/e2e lane, cheapest, restores assurance currency) and/or
-**ENG-0040** (the qsc ack-client lane), then **ENG-0036** (admission UX) / **ENG-0039** (the
-hardening bundle); standing candidates: **0b**, the **0c residue**, **NA-0635** (GATED, D571
-Decision 3), the **GUI lane**. The executor cannot self-promote.
+**READY (exactly one — execute this): NA-0643** — the ENG-0041 PIN-BUMP lane (**D579 =
+QSL-DIR-2026-07-13-579, operator-approved; LITE**). The NA-0640 full-stack e2e — the standard
+suite's ONLY real-server coverage — pins qsl-server as a dev-dep at `19b9b02d`, which predates
+the NA-0642 durability merge: it exercises a relay that no longer represents qsl-server main.
+Objective: bump the pin in `qsl/qsl-client/qsc/Cargo.toml` to `8e4ea278` (+ the mechanical
+`Cargo.lock` regeneration — DEV-EDGE-ONLY per the NA-0640 discipline: `cargo tree -p qsc -e
+normal` before/after must be byte-identical or STOP), then RUN the NA-0640 e2e LOCALLY (it does
+NOT run on PRs — the local run is the ONLY gate) and prove BOTH tests pass UNCHANGED against
+the durable server, plus the full `cargo test -p qsc` suite green. **The GREEN RUN is the
+deliverable, not the edit** — "passes unchanged" is expected-by-analysis (the in-process
+harness uses the library constructor → `:memory:` default, so the new binary-only STORE_PATH
+requirement never applies); the lane exists to CONVERT that analysis into an artifact. HARD
+BOUNDARIES: NO test-file change — if the e2e needs an edit to pass, that is a REAL
+backward-compat finding (the NA-0642 legacy-pull guarantee failing end-to-end): STOP + file an
+ENG, never edit the test or patch product code; NO qsc/protocol/qsl-server source; NO
+ack-client work (ENG-0040, separate). Phase 0 confirms `8e4ea278` is qsl-server main HEAD by
+fresh `git ls-remote` (the qbuild mirror is STALE and lacks the rev). A PASS asserts the
+CURRENT e2e scenarios pass against the durable server — it does NOT exercise the new
+durability/ack features (that coverage arrives with ENG-0040). Pays ENG-0041. Begins at
+**D-1266**. Full lane block at the end of section 2. NA-0642 (the qsl-server DURABILITY lane,
+D578) is DONE at D-1265, result class QSL_SERVER_DURABILITY_PASS — see its block below.
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -35213,3 +35213,27 @@ Result classes: QSL_SERVER_DURABILITY_PASS / QSL_SERVER_DURABILITY_STOP. STOP co
 See D578 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-13-578_qsl_server_durability.md`) for the corrected satellite governance model, strict scope, phases, required response sections, and STOP conditions.
 
 Begins at D-1265. CROSS-REPO lane: code in the qsl-server satellite, governance here. Design-lock the wire-visible pull contract FIRST; keep the relay blind; make it reliable — not a hoard, not a smarter server; fix one config bug, file the rest.
+
+### NA-0643 — ENG-0041 pin bump (D579, LITE): advance the qsl-server dev-dep to the NA-0642 durability merge `8e4ea278`; re-run the NA-0640 full-stack e2e LOCALLY and prove it passes UNCHANGED
+Status: READY
+Goals: G4
+Wire/behavior change allowed? NO — a dev-dependency pin bump only: no wire, no protocol, no product-behavior change. The NA-0640 e2e must pass against the durable server WITHOUT any change.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO — but minimal: the ONLY non-governance changes are the one-line dev-dep rev in `qsl/qsl-client/qsc/Cargo.toml` and the mechanical root `Cargo.lock` regeneration (DEV-EDGE-ONLY, proven). Canonical change allowed? NO. qsl-protocol source/vector/`formal/`/`.github` change? NO. Test-FILE change? NO — HARD BOUNDARY (see the Objective).
+Claim change allowed? NO — a PASS asserts the CURRENT e2e scenarios pass against the durable server; it does NOT exercise the new durability/ack features (that coverage arrives with ENG-0040). State that limit.
+
+Scope (allowed paths ONLY):
+- `qsl/qsl-client/qsc/Cargo.toml` — the ONE dev-dep line: rev `19b9b02dbe1f2ae9bc246ff3a16890e56c073c3e` → `8e4ea27877db46a2b660b46c36ba60f3db73b38c` (qsl-server main HEAD = the NA-0642 durability merge, PR #61; Phase 0 confirms current-or-intended by FRESH `git ls-remote` — the qbuild mirror is STALE and lacks the rev)
+- `Cargo.lock` — mechanical regeneration (root, ~lines 1931-1933); DEV-EDGE-ONLY per the NA-0640 discipline: capture `cargo tree -p qsc -e normal` before/after and confirm byte-identical — if the PRODUCTION dependency graph changes, STOP
+- `docs/ops/IMPROVEMENT_LEDGER.md` — close ENG-0041 (cite the green e2e run + the new pin rev)
+- `docs/governance/evidence/<lane>_as_built.md`, `tests/<lane>_testplan.md`
+- `NEXT_ACTIONS.md` (this block), `DECISIONS.md` (one D-####), `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+- FORBIDDEN: any test-FILE change (incl. `NA_0640_full_stack_e2e.rs` and `tests/common/mod.rs`); any qsc/protocol/qsl-server SOURCE; `formal/`, vectors, canonical, `.github`; the ack-client work (ENG-0040 — a separate lane). If landing needs anything else, STOP.
+
+Objective:
+Execute **QSL-DIR-2026-07-13-579 (D579, APPROVED; LITE)** — pay ENG-0041. The NA-0640 full-stack e2e pins qsl-server at `19b9b02d` (pre-durability), so the standard suite's ONLY real-server coverage exercises a relay that no longer represents qsl-server main. Bump the pin to `8e4ea278`, regenerate the lock, and RUN the e2e LOCALLY — it does NOT run on PRs; the local run is the ONLY gate. **THE GREEN RUN IS THE DELIVERABLE, NOT THE EDIT:** `cargo test -p qsc --test NA_0640_full_stack_e2e` BOTH tests green (message round-trip with plaintext byte-match + >4 MiB attachment byte-verified; open AND bearer-token auth; the wrong-bearer NEGATIVE) UNCHANGED against the durable server, then the full `cargo test -p qsc` suite green (the standard merge gate). Record the e2e output, the full-suite result, and the cargo-tree before/after dev-only proof. "Passes unchanged" is expected-by-analysis (the in-process `start_qsl_server` harness uses the library constructor, which defaults to `:memory:` — the new STORE_PATH requirement is binary-only and never applies); the lane exists to CONVERT that analysis into an actual green artifact. **If the e2e does NOT pass unchanged, that is a REAL backward-compat finding (the NA-0642 legacy-pull guarantee did not hold end-to-end): STOP, file an ENG, report — do NOT edit the test to force green, do NOT patch product code.**
+Result classes: ENG0041_PIN_BUMP_PASS / ENG0041_PIN_BUMP_STOP. STOP conditions (class): the e2e does not pass unchanged (file the finding); the dev-dep alters the PRODUCTION dependency graph; any need to change a test file, any qsc/protocol/qsl-server source, or to do the ack-client work; scope breach; queue/decision ambiguity; failed/pending check at merge; standing stops. Closeout notes that ENG-0040 (the qsc ack-client lane) remains OWED and now has the durable server available in the dev-dep.
+
+See D579 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-13-579_eng0041_pin_bump.md`) for phases, required response sections, and STOP conditions.
+
+Begins at D-1266. LITE lane: one rev, one lock delta, one green run. Prove; do not assume — the green run IS the deliverable; never edit the test to make it pass.

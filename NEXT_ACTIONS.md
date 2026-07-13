@@ -6,28 +6,38 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0640 | HIGHEST_D=1263 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0641 | HIGHEST_NA=0641 | HIGHEST_D=1263 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 <!-- NA-0640 (full-stack e2e integration, D576) DONE 2026-07-13 (D-1263, result class E2E_INTEGRATION_FULL_STACK_PASS): the FIRST test exercising the real product stack together is green in the STANDARD suite — qsl/qsl-client/qsc/tests/NA_0640_full_stack_e2e.rs runs two isolated qsc clients + the REAL qsl-server IN-PROCESS (dev-only git dep pinned at 19b9b02dbe1f2ae9bc246ff3a16890e56c073c3e; tests/common/mod.rs start_qsl_server, auth explicit via new_with_auth_and_controls) + the REAL qsl-attachments in-process: message round-trip with plaintext byte-match (recv_1.bin) + receipts to peer_confirmed; 6 MiB+321 attachment (>4 MiB = the REAL attachment path, QSC_ATTACHMENT_SERVICE) uploaded to the real service, descriptor through the real relay, downloaded byte-verified; auth modes open AND bearer-token + a wrong-bearer NEGATIVE rejected by the real server. GREEN ON THE FIRST RUN against unmodified product source — no ENG warranted; zero production-source change. Dev-only PROVEN (cargo tree -p qsc -e normal byte-identical before/after; lock adds only qsl-server/tower-http/uuid on the dev edge). TUI focus semantics ported in-suite FIRST (NA_0640_tui_focus_semantics.rs: unfocused=buffer+unread=1, focused=append+unread=0; scripts drive the CURRENT key model — /key tab toggles INTO Main, inverse of the na-0127 era; account.rs:440-443), THEN .github/workflows/relay-ui-integration.yml RETIRED (deleted; it had been silently dead since 2026-02-11 — schedule-only + UNPINNED server HEAD + qsl-server's na-0012 route retirement = health-probe 404 before any test ran). WF-0023 filed + closed-as-paid (the gap, the root cause, the structural closure: in-suite + rev-pinned). Limits recorded (open+static-bearer auth only; one message + one 6 MiB attachment; happy path + one auth negative; no fault injection against the real relay; remote deployed-relay workflows stay red, operator-gated NA-0564/NA-0565; the dormant relay_ui_integration.rs test FILE stays in-tree — outside D576 scope, hygiene candidate). Queue returns to READY=NONE — the operator promotes the successor (0b, the 0c residue, NA-0635, the GUI lane, or a real-relay fault-scenario lane). The executor cannot self-promote. -->
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0640 | HIGHEST_D=1263 (NA-0641 promoted for D577; PR #1561) -->
 <!-- prior: STATE: READY=NA-0640 | HIGHEST_NA=0640 | HIGHEST_D=1262 (NA-0640 closed for D576 at D-1263; this lane PR) -->
 <!-- NA-0639 (WF-0022 atomic-write crash-window harness) DONE 2026-07-12 (D-1262): the settling exercise EXISTS and is GREEN — qsl/qsl-client/qsc/tests/NA_0639_wf0022_atomic_write_crash_window.rs (PREFERRED in-suite form; the standalone fallback was not needed) EXERCISES the real write_atomic through the compiled binary (config set policy-profile, exactly one rename per invocation once the layout is seeded). Named interruption point: after temp-write+sync_all, at fs::rename (fs_store/mod.rs:120-122), reached by denying directory write permission on the deterministic temp's appearance; the child finishes writing on its open fd, its rename is DENIED — the disk holds exactly the pre-rename crash state. Positive results: subsequent reader saw target byte-identical OLD in every interrupted trial (temp residue = complete NEW, never the live target; recovery lands exact NEW); concurrent reader across 24 real write cycles saw ZERO torn samples; the test FAILS if no trial lands in-window (no silent vacuity); 10 consecutive runs 40/40 green. WF-0017 non-vacuity DEMONSTRATED: both negative controls (test-local truncate-then-write) trip the shared classifier; red-run demo (reverted) failed the positive test against the non-atomic writer with 36,961/45,033 torn samples. NO real OLD-XOR-NEW violation found — no ENG filed. write_atomic NEVER edited; zero production-source change. WF-0022 CLOSED. Limits recorded: denied-rename simulation, not power loss; kills mid-temp-write, per-seam fault matrix, and the claim-7 handshake_complete-marker case NOT exercised — the last two stay ON-DECK 0c residue. Queue returns to READY=NONE — the operator promotes the successor (0b, the 0c residue, NA-0635, or the GUI lane). The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NONE.** NA-0640 (the full-stack e2e integration lane, D576)
-is **DONE** at D-1263, result class **E2E_INTEGRATION_FULL_STACK_PASS** — the FIRST test exercising
-the real product stack together is green in the STANDARD suite: two qsc clients + the REAL
-qsl-server in-process (dev-only pin `19b9b02d`) + the REAL qsl-attachments; message round-trip
-byte-matched + receipts to `peer_confirmed`; a 6 MiB attachment on the REAL attachment path,
-downloaded and byte-verified; both relay auth modes plus a wrong-bearer rejection. Green on the
-FIRST run against unmodified product source (the D576 fail-closed ENG branch was never taken); the
-dev-dep is PROVEN dev-only; the two unique TUI focus-semantics assertions were ported in-suite
-BEFORE `.github/workflows/relay-ui-integration.yml` was retired (it had been silently dead since
-2026-02-11 — schedule-only + unpinned; WF-0023 filed + closed-as-paid records the class). Its full
-block (now `Status: DONE` with the OUTCOME) is at the end of section 2. The queue returns to
-**READY=NONE**; the operator promotes the successor — **0b** (the NA-0636 bounded-model extension,
-device indirection first), the **0c residue**, **NA-0635** (the GATED prekey redesign, D571
-Decision 3), the **GUI lane**, or a **real-relay fault-scenario lane** (drop/reorder against the
-in-process real server). The executor cannot self-promote.
+**READY (exactly one — execute this): NA-0641** — the QSC feature plan DOCS lane
+(**D577 = QSL-DIR-2026-07-13-577, operator-approved, AS AMENDED 2026-07-13 [A1: the §8 reference
+fix added]**; an INSERTED DOCS lane, not from ON DECK). Author **DOC-PROG-003** — the "qsc feature
+plan" that DOC-PROG-002 cites in the present tense but which DOES NOT EXIST (verified read-only
+2026-07-13) — and wire it into the spine. This is step 2 of the operator's pre-GUI sequence:
+(1) integration proven [DONE, NA-0640]; (2) DECIDE the feature set [THIS lane records it];
+(3) close core gaps; (4) GUI. The document records: **(1)** the HONEST current state (qsc = a
+working 1:1 PQ-hybrid E2EE messenger; NONE of the seven Signal-parity features built; no
+differentiator UI except the structural no-account posture; KT refimpl-only; self-host
+partial/demo-class); **(2)** the STRATEGIC SHARPENING (Signal now builds PQ [SPQR] + KT, so the
+durable edge = self-host + no-phone-number + PQ-native AUTHENTICATION — do NOT chase the parity
+tail); **(3)** the TIERED set (Tier 1 build: self-host OPERATOR-FIRST top priority,
+identity-verification UI, disappearing messages, search; Tier 2 differentiator UIs: PQ-status
+indicator, KT verifier UI, guided admission-token UX [ENG-0036]; Tier 3 DEFER: reactions, quoting,
+voice notes, groups, calls, etc.); **(4)** the SELF-HOST SPLIT (qsc CLIENT admission UX [ENG-0036]
+vs the CROSS-REPO qsl-server PRODUCTION relay [ENG-0037 adjacent]; near-term = the TECHNICAL
+operator, not non-technical onboarding); **(5)** the BUILD ORDER (self-host operator-path first;
+each feature's build is its OWN future lane — this plan authorizes NO implementation). Spine
+wiring: fix BOTH dangling DOC-PROG-002 references (§4 line ~120 AND §8 line ~200 — the A1
+amendment) as MINIMAL pointer updates; index DOC-PROG-003 in DOC-CTRL-001 (which currently indexes
+NO DOC-PROG doc — this entry is the first). DOCS-ONLY: NO feature/GUI/source code, NO claim
+movement, NO comparative Signal security claim. Begins at **D-1264**. Full lane block at the end
+of section 2. NA-0640 (the full-stack e2e integration lane, D576) is DONE at D-1263, result class
+E2E_INTEGRATION_FULL_STACK_PASS — see its block below.
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -35130,3 +35140,34 @@ Result classes: E2E_INTEGRATION_FULL_STACK_PASS / E2E_INTEGRATION_FULL_STACK_STO
 See D576 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-12-576_e2e_integration_full_stack.md`) for the authority model, strict scope, phases, required response sections, and STOP conditions.
 
 Begins at D-1263. TEST+CI-only lane; the pinned services are consumed AS-IS; prove the stack works together — do not patch product code to fake it.
+
+### NA-0641 — Land the QSC Feature Plan (DOC-PROG-003): resolve the dangling DOC-PROG-002 references (§4 + §8); record the tiered feature set with self-host (operator-first) as the top build priority
+Status: READY
+Goals: G4, G5
+Wire/behavior change allowed? NO — DOCS/governance lane; ZERO source/protocol/wire/crypto change; NO feature implementation (this is the PLAN, not the build); NO GUI code; NOT the NA-0635 prekey gate.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? YES — this lane is docs/governance only: the NEW program doc DOC-PROG-003 (DRAFT, DOC-PROG-002 house form), the DOC-PROG-002 dangling-reference fixes (§4 AND §8 per the D577-A1 operator amendment 2026-07-13 — MINIMAL pointer updates ONLY, no other content change; a broader rewrite is a STOP), the DOC-CTRL-001 index entry (DOC-CTRL-001 currently indexes NO DOC-PROG doc — this entry is the first), plus governance/evidence/testplan. Canonical change allowed? NO. Source/vector/`formal/`/`.github`/Cargo change? NO.
+Claim change allowed? NO — the document states QSL's own target properties; NO comparative security claim about Signal (an overclaim is a STOP); the DOC-PROG-002 overclaim ban carries over; claim boundary UNCHANGED.
+
+Scope:
+- `docs/program/DOC-PROG-003_*.md` (the NEW feature plan — re-confirm 003 is still the next free number at Phase 0)
+- `docs/program/DOC-PROG-002_*.md` (fix the TWO dangling "qsc feature plan" references — §4 [line ~120] AND §8 [line ~200], per the D577-A1 amendment — MINIMAL pointer updates only; no other content change)
+- `docs/master/DOC-CTRL-001*` (index the new doc)
+- `docs/governance/evidence/NA-0641_as_built.md`, `tests/NA-0641_qsc_feature_plan_doc_testplan.md`
+- `NEXT_ACTIONS.md` (this block), `DECISIONS.md` (one D-####), `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+- `docs/ops/IMPROVEMENT_LEDGER.md` (OPTIONAL — only if a small note linking ENG-0036/ENG-0037 as the self-host build inputs is warranted)
+- NOTHING else — no qsc/qsl-server/qsl-attachments source, no `formal/`, no vectors, no canonical, no `.github`, no feature code. If landing needs any other path, STOP.
+
+Objective:
+Execute **QSL-DIR-2026-07-13-577 (D577, APPROVED, as amended 2026-07-13 [A1: the §8 reference fix added])** — a DOCS lane that turns the operator's feature decision into durable repo truth and resolves the dangling DOC-PROG-002 references ("the qsc feature plan" is cited in the present tense; no such document exists anywhere in the repo or operator dirs — verified read-only 2026-07-13). Step 2 of the pre-GUI sequence: (1) integration proven [DONE, NA-0640]; (2) DECIDE the feature set [THIS lane records it]; (3) close core gaps; (4) GUI. DOC-PROG-003 must record, faithfully:
+- **(1) CURRENT STATE (honest inventory):** qsc is a working 1:1 PQ-hybrid E2EE messenger (send/receive with receipts; attachments proven e2e at NA-0640; the QSC.HS.* handshake with pinned-identity out-of-band verification; encrypted-at-rest storage; a read-mostly TUI). NONE of the seven Signal-parity features built (disappearing messages, reactions, quoting/replies, voice notes, search, groups, calls). NONE of the four differentiator UIs built EXCEPT the no-account posture, which is structural (local keypair under a label; no registration/phone). KT = refimpl-only stub plumbing, not in qsc. Self-host = partial (demo-class relay + client bearer-token auth; production durability/TLS/backup and per-client admission tokens do not exist).
+- **(2) STRATEGIC SHARPENING:** Signal now markets/builds post-quantum (SPQR) AND key transparency → "we have PQ" and "we have KT" become table stakes. The DURABLE edge = (a) self-host, (b) no phone number / no account (already structural), (c) PQ-native AUTHENTICATION (SPQR is confidentiality; Signal's handshake still authenticates classically — the NA-0634/NA-0636 line). State the discipline explicitly: do NOT chase Signal's parity tail. Retain DOC-PROG-002's overclaim ban.
+- **(3) THE TIERED SET:** Tier 1 build (self-host OPERATOR-FIRST = top priority; identity-verification UI over the existing verification-code/pinned-identity mechanism; disappearing messages; basic search). Tier 2 differentiator UIs (PQ-status indicator; KT verifier UI; self-host guided/admission-token UX — ENG-0036). Tier 3 DEFER (reactions, quoting/replies, voice notes, groups, voice/video calls, stickers, polls, stories).
+- **(4) THE SELF-HOST SPLIT:** CLIENT admission UX (qsc territory; ENG-0036 — public/private toggle, per-client revocable admission tokens, print/QR invite; admission control, NEVER message security) vs PRODUCTION RELAY (qsl-server territory; CROSS-REPO — durability, per-client authorization, backup/restore, TLS; ENG-0037 sealed-sender adjacent). NEAR-TERM TARGET = technical-OPERATOR-first (a CLI+config admin with a real setup/deploy guide), NOT a polished non-technical onboarding flow.
+- **(5) BUILD ORDER:** self-host operator-path first → identity-verify UI + PQ-status indicator (cheap, high-value surfaces of existing mechanisms) → disappearing messages + search → KT verifier UI + guided admission-token UX as they mature; Tier 3 deferred. Each feature's actual build is its OWN future lane with its own directive — this plan authorizes NO implementation.
+- **(6) SPINE WIRING:** fix BOTH DOC-PROG-002 dangling references (§4 + §8) to point at DOC-PROG-003; add the DOC-CTRL-001 index entry; note ENG-0036/ENG-0037 as the self-host build inputs.
+Result classes: QSC_FEATURE_PLAN_DOC_LANDED / QSC_FEATURE_PLAN_DOC_STOP. STOP conditions (class): ANY need to touch source/feature/GUI code, `formal/`, vectors, canonical, `.github`; the DOC-PROG-002 edits growing beyond minimal reference fixes; any comparative Signal security claim creeping into the doc; claim movement; scope breach; queue/decision ambiguity; failed/pending required check at merge; standing Tier-5.
+
+See D577 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-13-577_qsc_feature_plan_doc.md`, including the appended A1 operator amendment of 2026-07-13) for the authority model, strict scope, phases, required response sections, and STOP conditions.
+
+Begins at D-1264. DOCS-ONLY lane; this lane writes the PLAN — it builds nothing.

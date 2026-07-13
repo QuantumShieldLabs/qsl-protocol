@@ -1,6 +1,6 @@
 # QuantumShield Documentation Master Index & Release Packet
 Version: v1.0.1 (Draft)
-Last Updated: 2025-12-28
+Last Updated: 2026-07-13
 Goals: G4
 
 Scope: This document is the authoritative index of QuantumShield/QSL project documents and the minimum release packet required to claim implementation, interop, and security readiness. It defines (a) which documents are authoritative for governance and protocol semantics, and (b) which artifacts constitute a minimum “ship-quality” release.
@@ -182,7 +182,21 @@ Master control docs:
 - DOC-TST-005: Suite-2 Conformance Vector Categories — v1.0.0 — Test Authority — Status: Draft  
   Location: docs/test/DOC-TST-005_Suite-2_Conformance_Vector_Categories_v1.0.0_DRAFT.md
 
-### 4.5 External bundles (pointer-only; content is authoritative per pointer)
+### 4.5 Program Documents (strategy / product planning — Supporting, non-normative)
+
+Program documents record strategy and product planning. They are Supporting
+and non-normative: subordinate to the governance spine (§1.1), the canonical
+specs (§1.2), NEXT_ACTIONS.md, and the IMPROVEMENT_LEDGER, and they define no
+execution queue.
+
+- DOC-PROG-003: QSC Feature Plan — Tiered Target Feature Set and Build Order — v0.1.0 — Supporting — Status: Draft
+  Location: docs/program/DOC-PROG-003_QSC_Feature_Plan_Tiered_Feature_Set_and_Build_Order_v0.1.0_DRAFT.md
+
+(First program-document registry entry, added per D577/D-1264. DOC-PROG-001
+and DOC-PROG-002 predate program-doc indexing — see DOC-PROG-002's landing
+note — and remain unindexed pending their own registry decision.)
+
+### 4.6 External bundles (pointer-only; content is authoritative per pointer)
 
 - PHASE2_CANONICAL bundle — referenced by docs/_external/PHASE2_CANONICAL.pointer.json
 - PHASE3_SUPPORTING bundle — referenced by docs/_external/PHASE3_SUPPORTING.pointer.json

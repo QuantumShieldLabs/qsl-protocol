@@ -6,8 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0641 | HIGHEST_D=1264 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0642 | HIGHEST_NA=0642 | HIGHEST_D=1264 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 <!-- NA-0641 (QSC feature plan doc, D577+A1) DONE 2026-07-13 (D-1264, result class QSC_FEATURE_PLAN_DOC_LANDED): the operator's tiered feature decision is repo truth — docs/program/DOC-PROG-003_QSC_Feature_Plan_Tiered_Feature_Set_and_Build_Order_v0.1.0_DRAFT.md (DOC-PROG-002 house form, DRAFT): §1 honest current state (2026-07-13 investigation vs main 7d7c7550 — NONE of the seven Signal-parity features built; no differentiator UI except the structural no-account posture; KT refimpl-only stub; self-host partial/demo-class); §2 strategic sharpening (Signal builds SPQR + KT ⇒ PQ/KT become table stakes; durable edge = self-host + no-phone-number + PQ-native AUTHENTICATION, the NA-0634/NA-0636 line; do NOT chase the parity tail; DOC-PROG-002 §6 overclaim ban carried over); §3 tiers (T1 build: self-host OPERATOR-FIRST top priority, identity-verification UI, disappearing messages, basic search; T2 differentiator UIs: PQ-status indicator, KT verifier UI, guided admission-token UX [ENG-0036]; T3 DEFER: reactions/quoting/voice notes/groups/calls/stickers/polls/stories); §4 self-host split (qsc CLIENT admission UX [ENG-0036, admission control never message security] vs CROSS-REPO qsl-server PRODUCTION relay [durability/authz/backup/TLS; ENG-0037 adjacent]; near-term = technical-OPERATOR-first); §5 build order (operator-path → identity-verify UI + PQ-status → disappearing + search → KT verifier + guided UX; T3 promotion requires a recorded operator decision + plan update FIRST); §7 maintenance rule. AUTHORIZES NO IMPLEMENTATION (stated 3x). Spine wired: BOTH DOC-PROG-002 dangling refs fixed (§4 + §8 per A1; two parenthetical insertions + Last-Updated, zero prose deletions — the minimal-fix boundary held); DOC-CTRL-001 gains its FIRST program-doc registry entry (new §4.5; External bundles → §4.6, zero external refs broken; DOC-PROG-001/-002 remain unindexed, noted — candidate micro-lane). Optional ledger note SKIPPED (DOC-PROG-003 cites ENG-0036/0037 directly; rationale in the as-built §6). Zero source/feature/GUI code; claim boundary UNCHANGED (no comparative security claim — Phase-3 overclaim scan clean). Queue returns to READY=NONE — the operator promotes the successor (expected: the FIRST TIER-1 BUILD LANE = the self-host operator-path, DOC-PROG-003 §5 step 1; standing candidates: 0b, the 0c residue, NA-0635, the GUI lane [step 4, after step-3 core gaps]). The executor cannot self-promote. -->
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0641 | HIGHEST_D=1264 (NA-0642 promoted for D578; PR #1563) -->
 <!-- prior: STATE: READY=NA-0641 | HIGHEST_NA=0641 | HIGHEST_D=1263 (NA-0641 closed for D577 at D-1264; this lane PR) -->
 <!-- NA-0640 (full-stack e2e integration, D576) DONE 2026-07-13 (D-1263, result class E2E_INTEGRATION_FULL_STACK_PASS): the FIRST test exercising the real product stack together is green in the STANDARD suite — qsl/qsl-client/qsc/tests/NA_0640_full_stack_e2e.rs runs two isolated qsc clients + the REAL qsl-server IN-PROCESS (dev-only git dep pinned at 19b9b02dbe1f2ae9bc246ff3a16890e56c073c3e; tests/common/mod.rs start_qsl_server, auth explicit via new_with_auth_and_controls) + the REAL qsl-attachments in-process: message round-trip with plaintext byte-match (recv_1.bin) + receipts to peer_confirmed; 6 MiB+321 attachment (>4 MiB = the REAL attachment path, QSC_ATTACHMENT_SERVICE) uploaded to the real service, descriptor through the real relay, downloaded byte-verified; auth modes open AND bearer-token + a wrong-bearer NEGATIVE rejected by the real server. GREEN ON THE FIRST RUN against unmodified product source — no ENG warranted; zero production-source change. Dev-only PROVEN (cargo tree -p qsc -e normal byte-identical before/after; lock adds only qsl-server/tower-http/uuid on the dev edge). TUI focus semantics ported in-suite FIRST (NA_0640_tui_focus_semantics.rs: unfocused=buffer+unread=1, focused=append+unread=0; scripts drive the CURRENT key model — /key tab toggles INTO Main, inverse of the na-0127 era; account.rs:440-443), THEN .github/workflows/relay-ui-integration.yml RETIRED (deleted; it had been silently dead since 2026-02-11 — schedule-only + UNPINNED server HEAD + qsl-server's na-0012 route retirement = health-probe 404 before any test ran). WF-0023 filed + closed-as-paid (the gap, the root cause, the structural closure: in-suite + rev-pinned). Limits recorded (open+static-bearer auth only; one message + one 6 MiB attachment; happy path + one auth negative; no fault injection against the real relay; remote deployed-relay workflows stay red, operator-gated NA-0564/NA-0565; the dormant relay_ui_integration.rs test FILE stays in-tree — outside D576 scope, hygiene candidate). Queue returns to READY=NONE — the operator promotes the successor (0b, the 0c residue, NA-0635, the GUI lane, or a real-relay fault-scenario lane). The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0640 | HIGHEST_D=1263 (NA-0641 promoted for D577; PR #1561) -->
@@ -16,24 +17,28 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NONE.** NA-0641 (the QSC feature plan DOCS lane, D577 as
-amended A1) is **DONE** at D-1264, result class **QSC_FEATURE_PLAN_DOC_LANDED** — the operator's
-tiered feature decision is now repo truth: **DOC-PROG-003** (QSC Feature Plan: Tiered Target
-Feature Set and Build Order, DRAFT) records the honest current state, the strategic sharpening
-(the durable edge = self-host + no-phone-number + PQ-native AUTHENTICATION; do NOT chase Signal's
-parity tail), the tiers (T1: self-host OPERATOR-FIRST top priority, identity-verification UI,
-disappearing messages, search; T2: PQ-status indicator, KT verifier UI, guided admission-token UX
-[ENG-0036]; T3 deferred), the self-host client-vs-relay split (qsc admission UX vs CROSS-REPO
-qsl-server production relay), and the build order — and **authorizes NO implementation** (each
-feature's build is its own future lane + directive). BOTH DOC-PROG-002 dangling references now
-point at DOC-PROG-003 (§4 + §8, minimal parenthetical fixes); DOC-CTRL-001 carries its FIRST
-program-doc registry entry (new §4.5). Its full block (now `Status: DONE` with the OUTCOME) is at
-the end of section 2. The queue returns to **READY=NONE**; the operator promotes the successor —
-**expected: the first Tier-1 build lane, the SELF-HOST OPERATOR-PATH (DOC-PROG-003 §5 step 1;
-the §4 split scopes qsc-side vs cross-repo)**; standing candidates: **0b** (the NA-0636
-bounded-model extension), the **0c residue**, **NA-0635** (the GATED prekey redesign, D571
-Decision 3), the **GUI lane** (step 4 of the pre-GUI sequence — after the step-3 core gaps).
-The executor cannot self-promote.
+**READY (exactly one — execute this): NA-0642** — the qsl-server DURABILITY lane
+(**D578 = QSL-DIR-2026-07-13-578, operator-approved**; the FIRST Tier-1 BUILD lane of
+DOC-PROG-003 §5 — the self-host operator-path, step 1 — and the durability half of the §4
+production-relay split). CROSS-REPO GOVERNANCE (corrected per the 2026-07-13 qsl-server review):
+qsl-server is a SATELLITE with no queue/directive authority of its own, so this is a
+qsl-protocol-GOVERNED lane whose CODE lands as a qsl-server PR — branch named for this NA, gated
+by qsl-server's single required `rust` check (fmt + cargo test + clippy -D warnings),
+merge-commit only, worked in a FRESH clone at HEAD == pin `19b9b02d` (the qbuild mirror is
+STALE). Objective: move the relay's store-and-forward queue off demo-class in-memory storage —
+embedded SQLite (queued messages survive restart); an operator-tunable retention TTL (default
+~7 days) REPLACING the 5-minute idle-route discard; delete-on-ACKNOWLEDGED-pull (a crash between
+pull and local-store must not lose a message; delivered+acked messages are still FORGOTTEN —
+reliable, NOT an archive). The pull-contract change is WIRE-VISIBLE: Phase 1 DESIGN-LOCKS it
+(ack-option A pull+separate-ack / B in-flight+visibility-timeout / C durable cursor, WITH the
+backward-compat story for the CURRENT non-acking qsc client — stranding it is a STOP) and
+**STOPS for operator choice before code**. NO wire MESSAGE-SEMANTIC or E2EE change (payloads stay
+opaque; the relay stays blind); NO per-client auth (ENG-0036), TLS, or sealed-sender (ENG-0037);
+NO qsc/qsl-protocol source edit; NO pin bump (owed separately, with the NA-0640 e2e re-run). Debt
+rule: fix ONLY relay.env.example MAX_QUEUE_DEPTH 256→257; FILE the rest as ONE deferred hardening
+item. Begins at **D-1265**. Full lane block at the end of section 2. NA-0641 (the QSC feature
+plan DOCS lane, D577+A1) is DONE at D-1264, result class QSC_FEATURE_PLAN_DOC_LANDED — see its
+block below.
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -35168,3 +35173,38 @@ Result classes: QSC_FEATURE_PLAN_DOC_LANDED / QSC_FEATURE_PLAN_DOC_STOP. STOP co
 See D577 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-13-577_qsc_feature_plan_doc.md`, including the appended A1 operator amendment of 2026-07-13) for the authority model, strict scope, phases, required response sections, and STOP conditions.
 
 Begins at D-1264. DOCS-ONLY lane; this lane writes the PLAN — it builds nothing.
+
+### NA-0642 — qsl-server durability (D578, CROSS-REPO): persist the store-and-forward queue in embedded SQLite; operator-tunable retention TTL replacing the 5-minute idle-discard; delete-on-ACKNOWLEDGED-pull
+Status: READY
+Goals: G4, G5
+Wire/behavior change allowed? YES, NARROWLY — the qsl-server PULL-DELIVERY CONTRACT ONLY (wire-visible; DESIGN-LOCKED at Phase 1 with the operator choosing the ack model BEFORE code, and BACKWARD-COMPATIBLE with the current non-acking qsc client — stranding it is a STOP). NO wire MESSAGE-SEMANTIC or E2EE change: payloads stay opaque; the relay stays blind. NOT the NA-0635 prekey gate.
+Crypto/state-machine change allowed? NO.
+Docs-only allowed? NO — a CODE lane in the qsl-server SATELLITE plus qsl-protocol governance paperwork. Canonical change allowed? NO. qsl-protocol source/vector/`formal/`/`.github`/Cargo change? NO — governance files only on the qsl-protocol side (the qsc ack client change and the dev-dep pin bump + NA-0640 e2e re-run are OWED SEPARATE lanes, recorded at closeout).
+Claim change allowed? NO — a PASS asserts durable store-and-forward under the tested scenarios, NOT production-hardening in every respect (per-client auth, TLS, constant-time compare, metrics, signed releases remain separate/filed).
+
+Scope (SPLIT — two repos, one lane; per the D578 governance model qsl-server has no authority of its own):
+- qsl-server CODE paths (land via a qsl-server PR: branch named for this NA; single required `rust` check = fmt + cargo test + clippy -D warnings; merge-commit only, no squash/rebase/force-push; FRESH clone at HEAD == pin `19b9b02d`, NOT the stale qbuild mirror):
+  - `src/lib.rs`, `src/main.rs` (storage layer, config, the pull/ack contract); a new storage module if warranted (e.g. `src/store.rs`)
+  - `Cargo.toml` / `Cargo.lock` (the SQLite crate; the store-path + retention-TTL config surface)
+  - tests (in-repo, cargo test)
+  - `relay.env.example` (the new envs AND the MAX_QUEUE_DEPTH 256→257 fix) + the runbook's config section — MINIMAL, only what changed config requires
+  - qsl-server `DECISIONS.md` — ONE entry (the pull-contract decision; the D-0009/D-0010 recorded-decision surface)
+- qsl-protocol GOVERNANCE-ONLY paths (land in qsl-protocol; NOT client code):
+  - `NEXT_ACTIONS.md` (this block), `DECISIONS.md` (one D-####), `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+  - `docs/governance/evidence/NA-0642_as_built.md`, `tests/NA-0642_qsl_server_durability_testplan.md`
+  - `docs/ops/IMPROVEMENT_LEDGER.md` — the ONE filed deferred-hardening item (debt (a)–(f)) + the TWO owed follow-ups (the qsc ack client lane; the pin bump + NA-0640 e2e re-run)
+- NO qsc/qsl-attachments/qsl-protocol SOURCE; NO pin bump; NO per-client auth/admission (ENG-0036), TLS, or sealed-sender (ENG-0037); NOTHING else — if landing needs any other path, STOP.
+
+Objective:
+Execute **QSL-DIR-2026-07-13-578 (D578, APPROVED)** — the FIRST Tier-1 build lane of DOC-PROG-003 §5 (self-host operator-path, step 1; the durability half of the §4 production-relay split). Today the relay queue is Arc<Mutex<HashMap>> of VecDeque, purely in-memory: a restart drops every queued message and idle routes discard after a default 5-minute TTL (src/lib.rs:247, :357-375). Build to the operator-locked design decisions (2026-07-13):
+- **(1) STORE = embedded SQLite** (single-file, crash-safe; the DB file IS the backup unit; one binary, no external DB service). The crate is proposed at design-lock (rusqlite the simple default vs sqlx if async fits the Axum handlers — justified). REJECTED: sled (less proven); plain-disk-files (re-implements the crash-consistency the DB gives free — cf. the NA-0639 discipline against hand-rolling atomic-write correctness).
+- **(2) RETENTION:** delete-on-pull is REPLACED by delete-on-ACKNOWLEDGED-pull (a pulled message is removed ONLY after the puller acknowledges local persistence — a crash between pull and local-store must not lose it) PLUS an operator-tunable retention TTL for undelivered messages (env/flag, default ~7 days) REPLACING the 5-minute idle-route discard as the message-lifetime control. Delivered+acked messages are still FORGOTTEN — privacy posture preserved: reliable, NOT a permanent archive.
+- **(3) MUST NOT PRECLUDE later client-side read receipts:** "delivered" = the acknowledged pull (relay-observable); "read" = a future E2EE B→A receipt carried as an ordinary opaque payload through the same durable queue (a future client lane — bake in nothing that blocks it).
+- **DESIGN-LOCK FIRST (Phase 1 — STOP for operator):** the pull-contract change is WIRE-VISIBLE (today GET /v1/pull returns AND deletes in one op; src/lib.rs:464, :495, :510-512). Propose the crate; the schema (routes, messages: msg_id, route_token, body, enqueued_at, in-flight/ack state); the retention-TTL + store-path config; and ONE of ack-option A (pull + separate POST /v1/pull/ack) / B (in-flight + visibility timeout, SQS-style) / C (durable per-route cursor) — WITH the backward-compat story for the CURRENT non-acking qsc client (e.g. ack-optional with a safe delete-fallback so today's client still drains; do NOT fake robustness — if full durability needs a client ack, say so and sequence the client lane). STOP for operator choice BEFORE code. Record the chosen contract as ONE qsl-server DECISIONS entry.
+- **DEBT RULE (operator decision 2026-07-13: fix ONE, file the rest):** fix ONLY relay.env.example MAX_QUEUE_DEPTH 256→257 (NA-0598: an exact-4-MiB attachment = 256 chunks + 1 manifest; a fresh install from the template rejects the 257th message; note in the FILED item that DOC-SRV-001 still says 256 — do NOT rewrite the DOC-SRV here). FILE as ONE deferred qsl-server hardening item: (a) ENG-0014 non-constant-time bearer compare (src/lib.rs:338 — NO in-repo trace in qsl-server); (b) stale release tags / broken release-deploy (v0.0.4 predates current routes; runbook says v0.0.3; Cargo.toml 0.1.0 vs v0.0.x tags); (c) three orphaned scripts/ci guards (packaging-alignment, deploy-compat, route-token-migration); (d) all five DOC-SRV contracts still DRAFT, two behind the code; (e) dead tower-http dependency; (f) stale Caddyfile.example legacy-path comment. Fixing a FILED item in-lane is a STOP.
+- **Tests (Phase 3, qsl-server cargo test):** restart-durability (enqueue → restart the process → still deliverable); retention-TTL expiry; delete-on-acknowledged-pull INCLUDING the crash-between-pull-and-ack case (message survives, redeliverable); backward-compat with a non-acking pull; at least one contended/concurrency case (storage touches the lock and is currently untested for contention). Non-vacuity where a claim is negative. Startup stays fail-closed on bad config (the existing ERR_INVALID_CONFIG_* behavior preserved). fmt + clippy -D warnings clean.
+Result classes: QSL_SERVER_DURABILITY_PASS / QSL_SERVER_DURABILITY_STOP. STOP conditions (class): the Phase-1 design-lock (BY DESIGN — the operator chooses the ack model); any unavoidable break of the CURRENT non-acking qsc client not fixable in scope; any need for a wire-semantic/E2EE change, a qsc/qsl-protocol source edit, the pin bump, or per-client auth/TLS/sealed-sender; any temptation to FIX a filed debt item; scope breach; queue/decision ambiguity; failed/pending `rust` check at merge; standing stops.
+
+See D578 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-13-578_qsl_server_durability.md`) for the corrected satellite governance model, strict scope, phases, required response sections, and STOP conditions.
+
+Begins at D-1265. CROSS-REPO lane: code in the qsl-server satellite, governance here. Design-lock the wire-visible pull contract FIRST; keep the relay blind; make it reliable — not a hoard, not a smarter server; fix one config bug, file the rest.

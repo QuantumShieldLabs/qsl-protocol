@@ -43195,3 +43195,38 @@ scope note. The claim boundary did not move.
 file plus governance. WF-0022 closed citing the harness. Queue back to READY=NONE (HIGHEST_D=1262);
 NA-0635 stays RESERVED; 0b (device-indirection model extension), the 0c residue, NA-0635, and the GUI
 lane are the operator's successor candidates. The executor promoted nothing.
+
+## 2026-07-13 — NA-0640: the full-stack e2e integration lane (D576, D-1263)
+
+**What this lane was:** the first proof the product actually fits together. Five months of
+"integration coverage" turned out to be mocks all the way down: every in-suite test swapped out at
+least one real component, and the single workflow that touched a real qsl-server had been silently
+dead since February — it cloned the server UNPINNED, the server retired its legacy routes in March,
+and the workflow's health probes 404'd before a single test ran. Nobody noticed until the 2026-07-12
+read-only investigation.
+
+**What it built:** `NA_0640_full_stack_e2e.rs` — two isolated qsc clients, the REAL qsl-server
+in-process (dev-only dependency pinned at `19b9b02d`, mirroring the qsl-attachments precedent), and
+the REAL qsl-attachments service, in the STANDARD suite. A message crosses the real relay and comes
+out byte-identical, receipts flow back to `peer_confirmed`; a 6 MiB attachment takes the real
+attachment path — real upload sessions, descriptor through the real relay, download byte-verified.
+Both relay auth modes run, including a wrong-bearer client the real server rejects.
+
+**What it found:** the stack interoperates AS-IS — green on the first run with zero product-source
+change, so the D576 fail-closed branch (file an ENG, STOP) was never taken. The one adaptation was
+test-side: the TUI focus KEY model inverted since the na-0127 era (`/key tab` now toggles INTO the
+thread), which the first red run surfaced; the ported assertions themselves — unfocused buffers and
+increments unread, focused appends and doesn't — are unchanged and now live in-suite
+(`NA_0640_tui_focus_semantics.rs`), where they were previously guarded only by the dead workflow.
+
+**Structure over vigilance:** both halves of the February failure mode are closed by construction —
+coverage in the standard suite cannot silently stop running, and a rev-pinned server cannot drift out
+from under it; the next qsl-server bump is a deliberate one-line change that either passes the e2e
+or visibly fails it. The drifted `relay-ui-integration.yml` was retired only AFTER the port was green
+(preserve-then-retire), under the operator's per-lane `.github` override, deleted at closeout.
+
+**Limits (stated, not hedged):** interop under the tested scenarios at the pinned revs — open +
+static-bearer auth, one message + one 6 MiB attachment, happy paths + one auth negative. Not
+production-readiness. The REMOTE deployed-relay smokes stay red and operator-gated (NA-0564/NA-0565).
+WF-0023 filed + closed-as-paid records all of it. Queue back to READY=NONE (HIGHEST_D=1263); the
+operator promotes the successor.

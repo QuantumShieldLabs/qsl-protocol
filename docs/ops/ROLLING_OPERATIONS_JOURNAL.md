@@ -43255,3 +43255,62 @@ authorizes no implementation; every feature's build is its own future lane.
 Result `QSC_FEATURE_PLAN_DOC_LANDED`; claim boundary unchanged. Queue returns
 to READY=NONE at HIGHEST_D=1264 — the operator promotes the successor
 (expected: the first Tier-1 build lane, the self-host operator-path).
+
+## 2026-07-13 — NA-0642: qsl-server durability (D578, D-1265)
+
+The first Tier-1 BUILD lane of the self-host operator-path (DOC-PROG-003 §5
+step 1), and the first lane run under the corrected satellite governance model
+D578 records: qsl-server holds no queue authority, so the lane lived in this
+spine and its CODE landed as qsl-server PR #61 (merge `8e4ea278`, the single
+required `rust` check green at merge, merge-commit only). Before this lane the
+relay was demo-class: an in-memory HashMap of VecDeques, every queued message
+lost on restart, and a 5-minute idle-route discard silently deleting
+undelivered mail.
+
+**What shipped.** The queue is durable — embedded SQLite (rusqlite `bundled`,
+WAL + `synchronous=FULL`, so the push 200 means the message is fsynced), one
+file, no external service; the DB file is the backup unit. Message lifetime
+moved from "5 idle minutes" to an operator-tunable retention TTL (default
+7 days). Delivery gained the acknowledged-pull mode the operator chose at
+design-lock (option B): an opt-in lease with a visibility timeout, an ack
+route that deletes only leased copies, and redelivery on lease expiry — the
+crash between pull and local persistence no longer loses a message. The
+LEGACY pull stayed byte-identical (an exact-field-set test guards the JSON),
+so the shipped non-acking qsc client is not stranded and the NA-0640 e2e will
+pass unchanged when the pin bumps. Privacy posture held and improved: payloads
+stay opaque, the relay stays blind, delivered+acked messages are still
+forgotten, and route tokens now never touch disk — the store keys routes by
+SHA-256 of the token (proved by a test that reads the raw db+wal bytes).
+
+**The operator's hard-kill requirement.** Restart durability is proved with
+SIGKILL, not graceful shutdown: the binary is killed dead between the push-200
+and the restart and must redeliver byte-identically (that passes only because
+of the fsync); a second proof kills it mid-lease and the lease itself survives
+the restart — invisible while live, redelivered after expiry, deleted on ack.
+A negative control pins the forgetting: legacy-delivered messages never
+resurrect. 100 tests, 0 failures, 25 binaries, clippy -D warnings clean.
+
+**Recorded contracts moved, on purpose.** Fail-closed STORE_PATH means the
+binary no longer starts with zero env (config_semantics updated to the
+approved posture); the NA-0281 idle-discard tests retired WITH their contract
+(the drain-release contracts were carried forward verbatim); the NA-0347
+retention-purge block now exercises retention. StateDirectory=qsl-server was
+the one flagged scope judgment — ratified: ProtectSystem=strict cannot write
+/var/lib without it.
+
+**Fix one, file the rest — executed literally.** The one fix: relay.env.example
+MAX_QUEUE_DEPTH 256→257 (the NA-0598 exact-4-MiB boundary). Filed: ENG-0039,
+the hardening bundle (stale tags/broken release deploy, orphaned CI guards,
+DRAFT DOC-SRVs — now including the README/DOC-SRV-003 idle-TTL drift this lane
+knowingly created and did not silently fix — dead tower-http, the Caddy
+comment, an ENG-0014 cross-reference). Owed and recorded: ENG-0040 (the qsc
+ack-client lane — full end-to-end delivery durability requires the client to
+opt in and ack; the server mechanism exists, the claim does not move until the
+client speaks it) and ENG-0041 (the deliberate pin bump + local e2e re-run;
+the dev-dep pin is knowingly stale as of this merge).
+
+Result `QSL_SERVER_DURABILITY_PASS` — durable under the tested scenarios, NOT
+production-hardened in every respect (auth, TLS, constant-time compare, signed
+releases remain filed). Claim boundary unchanged. Queue back to READY=NONE at
+HIGHEST_D=1265; the operator promotes the successor (natural: ENG-0041 and/or
+ENG-0040, then ENG-0036/ENG-0039; standing: 0b, 0c residue, NA-0635, GUI).

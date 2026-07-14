@@ -105,6 +105,7 @@ mod adversarial;
 mod attachments;
 mod cmd;
 mod contacts;
+mod dedup;
 mod envelope;
 mod fs_store;
 mod handshake;
@@ -359,6 +360,7 @@ fn main() {
             transport,
             relay,
             legacy_receive_mode,
+            ack_mode,
             attachment_service,
             from,
             mailbox,
@@ -385,6 +387,7 @@ fn main() {
                 if transport.is_some()
                     || relay.is_some()
                     || legacy_receive_mode.is_some()
+                    || ack_mode.is_some()
                     || attachment_service.is_some()
                     || from.is_some()
                     || mailbox.is_some()
@@ -414,6 +417,7 @@ fn main() {
                     transport,
                     relay,
                     legacy_receive_mode,
+                    ack_mode,
                     attachment_service,
                     from,
                     mailbox,
@@ -2795,6 +2799,7 @@ struct ReceiveArgs {
     transport: Option<SendTransport>,
     relay: Option<String>,
     legacy_receive_mode: Option<LegacyReceiveMode>,
+    ack_mode: Option<AckMode>,
     attachment_service: Option<String>,
     from: Option<String>,
     mailbox: Option<String>,
@@ -2820,6 +2825,7 @@ struct ReceiveArgs {
 struct ReceivePullCtx<'a> {
     relay: &'a str,
     legacy_receive_mode: LegacyReceiveMode,
+    ack_mode: AckMode,
     attachment_service: Option<&'a str>,
     mailbox: &'a str,
     from: &'a str,
@@ -2916,6 +2922,18 @@ struct InboxPullItem {
 #[derive(Deserialize, Serialize)]
 struct InboxPullResp {
     items: Vec<InboxPullItem>,
+}
+
+// NA-0644 (D580): the acknowledged-pull wire pair (POST /v1/pull/ack). Route-scoped,
+// idempotent, deletes only leased copies server-side; <= RELAY_ACK_MAX_IDS ids per POST.
+#[derive(Deserialize, Serialize)]
+struct AckReq {
+    ids: Vec<String>,
+}
+
+#[derive(Deserialize, Serialize)]
+struct AckResp {
+    acked: usize,
 }
 
 #[derive(Clone)]

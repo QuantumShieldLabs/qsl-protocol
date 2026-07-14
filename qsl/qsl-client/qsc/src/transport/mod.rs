@@ -173,6 +173,7 @@ pub(super) fn receive_execute(args: ReceiveArgs) {
         transport,
         relay,
         legacy_receive_mode,
+        ack_mode,
         attachment_service,
         from,
         mailbox,
@@ -232,6 +233,8 @@ pub(super) fn receive_execute(args: ReceiveArgs) {
             let legacy_receive_mode =
                 resolve_legacy_receive_mode(legacy_receive_mode, attachment_service.as_deref())
                     .unwrap_or_else(|code| print_error_marker(code));
+            // NA-0644 (D580): the default is LEGACY delete-on-pull; lease is explicit opt-in.
+            let ack_mode = ack_mode.unwrap_or(AckMode::Legacy);
             if let Err(code) = normalize_relay_endpoint(relay.as_str()) {
                 print_error_marker(code);
             }
@@ -329,6 +332,10 @@ pub(super) fn receive_execute(args: ReceiveArgs) {
                     ("max", max_s.as_str()),
                 ],
             );
+            // Lease-only marker so the legacy stdout stays byte-identical.
+            if ack_mode == AckMode::Lease {
+                emit_marker("recv_ack_mode", None, &[("mode", "lease")]);
+            }
             let mut total = 0usize;
             if let Some(cfg) = poll_cfg {
                 let interval_s = cfg.interval_ms.to_string();
@@ -360,6 +367,7 @@ pub(super) fn receive_execute(args: ReceiveArgs) {
                     let pull = ReceivePullCtx {
                         relay: &relay,
                         legacy_receive_mode,
+                        ack_mode,
                         attachment_service: attachment_service.as_deref(),
                         mailbox: mailbox.as_str(),
                         from: &from,
@@ -389,6 +397,7 @@ pub(super) fn receive_execute(args: ReceiveArgs) {
                 let pull = ReceivePullCtx {
                     relay: &relay,
                     legacy_receive_mode,
+                    ack_mode,
                     attachment_service: attachment_service.as_deref(),
                     mailbox: mailbox.as_str(),
                     from: &from,
@@ -420,10 +429,22 @@ const RECV_CONTROL_ROUNDS_MAX: usize = 4;
 fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullStats {
     let mut stats = ReceivePullStats { count: 0, bytes: 0 };
     let mut pending_receipts: Vec<PendingReceipt> = Vec::new();
+    // NA-0644 (D580): lease-mode state. Legacy mode never constructs the seen store and
+    // never accumulates acks, so its behavior stays byte-identical.
+    let mut pending_acks: Vec<String> = Vec::new();
+    let mut seen_ids: Option<dedup::RelaySeenIds> = if ctx.ack_mode == AckMode::Lease {
+        let loaded = dedup::RelaySeenIds::load(ctx.cfg_dir, ctx.mailbox, ctx.cfg_source);
+        if loaded.reset {
+            emit_marker("dedup_store_reset", Some("dedup_store_parse_failed"), &[]);
+        }
+        Some(loaded.store)
+    } else {
+        None
+    };
     let mut rounds = 0usize;
     'pull: loop {
         let want = max.saturating_sub(stats.count).max(1);
-        let items = match relay_inbox_pull(ctx.relay, ctx.mailbox, want) {
+        let items = match relay_inbox_pull_mode(ctx.relay, ctx.mailbox, want, ctx.ack_mode) {
             Ok(v) => v,
             Err(code) => print_error_marker(code),
         };
@@ -432,6 +453,16 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
         }
         let mut controls = 0usize;
         for item in items {
+            // NA-0644 (D580): dedup BEFORE unpack. Lease delivery is at-least-once, so a
+            // redelivered id whose item is already durably persisted must be acked and
+            // skipped — reprocessing would hit the ratchet replay-reject.
+            if let Some(seen) = seen_ids.as_ref() {
+                if seen.contains(item.id.as_str()) {
+                    emit_marker("recv_dup_skipped", None, &[("id", item.id.as_str())]);
+                    pending_acks.push(item.id.clone());
+                    continue;
+                }
+            }
             let envelope_len = item.data.len();
             match qsp_unpack_for_peer(ctx.from, &item.data) {
                 Ok((outcome, channel)) => {
@@ -474,6 +505,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                     // payload — commit the trigger/SCKA state and move on.
                     if outcome.is_control {
                         commit_unpack_state();
+                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id);
                         controls = controls.saturating_add(1);
                         continue;
                     }
@@ -512,6 +544,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                                 print_error_marker(reason);
                             }
                         }
+                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id);
                         continue;
                     }
                     if let Some(file_payload) = parse_file_transfer_payload(&outcome.plaintext) {
@@ -583,6 +616,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                                 print_error_marker(reason);
                             }
                         }
+                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id);
                         continue;
                     }
                     if let Some(confirm) = parse_attachment_confirm_payload(&outcome.plaintext) {
@@ -626,6 +660,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                                 &[("reason", reason), ("ok", "false")],
                             ),
                         }
+                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id);
                         continue;
                     }
                     if let Some(file_confirm) = parse_file_confirm_payload(&outcome.plaintext) {
@@ -673,6 +708,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                                 &[("reason", reason), ("ok", "false")],
                             ),
                         }
+                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id);
                         continue;
                     }
                     if let Some(ctrl) = parse_receipt_payload(&outcome.plaintext) {
@@ -717,6 +753,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                                     emit_message_state_reject(ctrl.msg_id.as_str(), reason)
                                 }
                             }
+                            record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id);
                             continue;
                         }
                         if ctrl.v == 1 && ctrl.kind == "delivered" && ctrl.t == "data" {
@@ -788,6 +825,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                             },
                         );
                     }
+                    record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id);
                 }
                 Err(code) => {
                     let from_alias = peer_alias_from_channel(ctx.from);
@@ -808,6 +846,22 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                             .map(|st| st.recv.nr.to_string())
                             .unwrap_or_else(|_| "0".to_string());
                         emit_marker("ratchet_replay_reject", None, &[("msg_idx", &msg_idx)]);
+                        // NA-0644 (D580) lease-mode backstop for the pre-existing
+                        // commit-before-write seam: the ratchet consumed this envelope's
+                        // key in an earlier run but its payload was never persisted (crash
+                        // between commit_unpack_state and write_atomic), so the plaintext
+                        // is unrecoverable no matter how often the relay redelivers it.
+                        // Ack it (loudly) to end the redelivery loop instead of hard-
+                        // exiting the whole batch. Legacy behavior is unchanged.
+                        if ctx.ack_mode == AckMode::Lease {
+                            emit_marker(
+                                "ack_replay_unrecoverable",
+                                Some(code),
+                                &[("id", item.id.as_str())],
+                            );
+                            record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id);
+                            continue;
+                        }
                     }
                     print_error_marker(code);
                 }
@@ -818,6 +872,10 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
             break 'pull;
         }
     }
+    // NA-0644 (D580): flush the acks before attachment resume — a long content download
+    // must not hold acks past the server's lease clock; a descriptor item is durable at
+    // its pending-record commit, independent of the later content download.
+    flush_pending_acks(ctx, &mut pending_acks);
     if let Some(service_url) = ctx.attachment_service {
         match attachment_resume_pending_for_peer(ctx, service_url) {
             Ok(resumed) => {
@@ -830,6 +888,74 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
     }
     flush_batched_receipts(ctx, &mut pending_receipts);
     stats
+}
+
+// NA-0644 (D580): the lease-mode ordering invariant. An id becomes ack-eligible ONLY
+// after (a) the item's own durable commit — the callers reach this on committed paths
+// only — and (b) the seen-store entry for it is durably on disk (`record` returning Ok).
+// A failed seen-write is fail-closed: the id is never acked, the lease expires, and the
+// redelivery lands in the seen store or the replay-reject backstop. No-op in legacy mode.
+fn record_seen_and_queue_ack(
+    seen: &mut Option<dedup::RelaySeenIds>,
+    pending_acks: &mut Vec<String>,
+    id: &str,
+) {
+    if let Some(store) = seen.as_mut() {
+        if store.record(id).is_err() {
+            print_error_marker("dedup_store_write_failed");
+        }
+        pending_acks.push(id.to_string());
+    }
+}
+
+// qsl-server MAX_ACK_IDS: the ack route rejects larger id lists.
+const RELAY_ACK_MAX_IDS: usize = 4096;
+
+enum AckFlushOutcome {
+    Acked(usize),
+    LegacyComplete,
+}
+
+fn flush_pending_acks(ctx: &ReceivePullCtx<'_>, pending_acks: &mut Vec<String>) {
+    if pending_acks.is_empty() {
+        return;
+    }
+    let sent = pending_acks.len();
+    let mut acked = 0usize;
+    let mut legacy_complete = false;
+    for chunk in pending_acks.chunks(RELAY_ACK_MAX_IDS) {
+        match relay_inbox_ack(ctx.relay, ctx.mailbox, chunk) {
+            Ok(AckFlushOutcome::Acked(n)) => acked = acked.saturating_add(n),
+            Ok(AckFlushOutcome::LegacyComplete) => {
+                legacy_complete = true;
+                break;
+            }
+            Err(code) => {
+                // Never fail the receive on a lost ack: every queued id is already
+                // durably persisted locally; the lease expires server-side and the
+                // redelivery is deduped on the next receive.
+                let pending_s = sent.to_string();
+                emit_marker("ack_failed", Some(code), &[("pending", pending_s.as_str())]);
+                pending_acks.clear();
+                return;
+            }
+        }
+    }
+    let sent_s = sent.to_string();
+    if legacy_complete {
+        // Old-server tolerance: a pre-durability relay ignores ?ack=lease and has no ack
+        // route (404). It already delivered legacy-style (delete-on-deliver), so nothing
+        // is lost and nothing will redeliver — "legacy-complete", not an error, no retry.
+        emit_marker("ack_legacy_complete", None, &[("count", sent_s.as_str())]);
+    } else {
+        let acked_s = acked.to_string();
+        emit_marker(
+            "relay_ack",
+            None,
+            &[("sent", sent_s.as_str()), ("acked", acked_s.as_str())],
+        );
+    }
+    pending_acks.clear();
 }
 
 pub(super) fn relay_serve(port: u16, cfg: RelayConfig, max_messages: u64) {
@@ -1496,10 +1622,24 @@ pub(super) fn relay_inbox_pull(
     route_token: &str,
     max: usize,
 ) -> Result<Vec<InboxPullItem>, &'static str> {
+    relay_inbox_pull_mode(relay_base, route_token, max, AckMode::Legacy)
+}
+
+fn relay_inbox_pull_mode(
+    relay_base: &str,
+    route_token: &str,
+    max: usize,
+    ack_mode: AckMode,
+) -> Result<Vec<InboxPullItem>, &'static str> {
     let route_token = normalize_route_token(route_token)?;
     let base = normalize_relay_endpoint(relay_base)?;
     let base = base.trim_end_matches('/');
-    let url = format!("{}/v1/pull?max={}", base, max);
+    // Legacy keeps the exact pre-NA-0644 URL. Lease adds the opt-in ack param, which a
+    // pre-durability relay silently ignores (it then behaves legacy end-to-end).
+    let url = match ack_mode {
+        AckMode::Legacy => format!("{}/v1/pull?max={}", base, max),
+        AckMode::Lease => format!("{}/v1/pull?max={}&ack=lease", base, max),
+    };
     let client = HttpClient::new();
     let mut req = client
         .get(url)
@@ -1525,6 +1665,49 @@ pub(super) fn relay_inbox_pull(
         HttpStatus::PAYLOAD_TOO_LARGE => Err("relay_inbox_too_large"),
         HttpStatus::TOO_MANY_REQUESTS => Err("relay_inbox_queue_full"),
         _ => Err("relay_inbox_pull_failed"),
+    }
+}
+
+// NA-0644 (D580): POST /v1/pull/ack — acknowledge durably persisted ids so the relay
+// deletes its leased copies. A 404 is the pre-durability relay (no ack route): it
+// already delivered legacy-style, so the caller must treat it as legacy-complete.
+fn relay_inbox_ack(
+    relay_base: &str,
+    route_token: &str,
+    ids: &[String],
+) -> Result<AckFlushOutcome, &'static str> {
+    let route_token = normalize_route_token(route_token)?;
+    let base = normalize_relay_endpoint(relay_base)?;
+    let base = base.trim_end_matches('/');
+    let url = format!("{}/v1/pull/ack", base);
+    let body = match serde_json::to_vec(&AckReq { ids: ids.to_vec() }) {
+        Ok(v) => v,
+        Err(_) => return Err("relay_ack_failed"),
+    };
+    let client = HttpClient::new();
+    let mut req = client
+        .post(url)
+        .header("X-QSL-Route-Token", route_token.as_str())
+        .header("Content-Type", "application/json")
+        .body(body);
+    if let Some(token) = relay_auth_token() {
+        req = req.header("Authorization", format!("Bearer {}", token));
+    }
+    let resp = match req.send() {
+        Ok(v) => v,
+        Err(_) => return Err("relay_ack_failed"),
+    };
+    match resp.status() {
+        HttpStatus::OK => {
+            let body: AckResp = match resp.json() {
+                Ok(v) => v,
+                Err(_) => return Err("relay_ack_parse_failed"),
+            };
+            Ok(AckFlushOutcome::Acked(body.acked))
+        }
+        HttpStatus::NOT_FOUND => Ok(AckFlushOutcome::LegacyComplete),
+        HttpStatus::UNAUTHORIZED | HttpStatus::FORBIDDEN => Err("relay_unauthorized"),
+        _ => Err("relay_ack_failed"),
     }
 }
 

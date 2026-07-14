@@ -8,7 +8,7 @@ use qsl_attachments::{
 };
 use qsl_server::{
     app as qsl_relay_app, AppState as QslRelayAppState, Limits as QslRelayLimits,
-    ResourceControls as QslRelayResourceControls,
+    ResourceControls as QslRelayResourceControls, StoreConfig as QslRelayStoreConfig,
 };
 use serde::Serialize;
 use std::collections::{HashMap, VecDeque};
@@ -437,6 +437,62 @@ pub fn start_qsl_server(
                 QslRelayResourceControls::default(),
                 relay_token,
             );
+            let router = qsl_relay_app(state);
+            serve(listener, router)
+                .with_graceful_shutdown(async {
+                    let _ = shutdown_rx.await;
+                })
+                .await
+                .expect("qsl-server serve");
+        });
+    });
+    let addr = addr_rx.recv().expect("qsl-server ready addr");
+    let server = QslRelayTestServer {
+        base_url: format!("http://{}", addr),
+        shutdown: Some(shutdown_tx),
+        handle: Some(handle),
+    };
+    wait_until_qsl_server_ready(server.base_url());
+    server
+}
+
+// NA-0644 (D580): additive-only variant of start_qsl_server for the ack-path tests —
+// same in-process real relay, but with an explicit StoreConfig so a test can pin a short
+// pull lease (real lease expiry + real redelivery, no 60s waits). The existing
+// start_qsl_server and every test using it are untouched.
+#[allow(dead_code)]
+pub fn start_qsl_server_with_store(
+    max_body: usize,
+    max_queue: usize,
+    relay_token: Option<&str>,
+    pull_lease_secs: usize,
+) -> QslRelayTestServer {
+    let relay_token = relay_token.map(|t| t.to_string());
+    let (addr_tx, addr_rx) = std::sync::mpsc::channel();
+    let (shutdown_tx, shutdown_rx) = oneshot::channel();
+    let handle = thread::spawn(move || {
+        let runtime = tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .expect("qsl-server runtime");
+        runtime.block_on(async move {
+            let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+                .await
+                .expect("qsl-server bind");
+            let addr = listener.local_addr().expect("qsl-server local addr");
+            addr_tx.send(addr).expect("qsl-server ready send");
+            let limits = QslRelayLimits::new(max_body, max_queue).expect("qsl-server limits");
+            let store_cfg = QslRelayStoreConfig {
+                pull_lease_secs,
+                ..QslRelayStoreConfig::default()
+            };
+            let state = QslRelayAppState::new_with_auth_controls_and_store(
+                limits,
+                QslRelayResourceControls::default(),
+                relay_token,
+                store_cfg,
+            )
+            .expect("qsl-server store open");
             let router = qsl_relay_app(state);
             serve(listener, router)
                 .with_graceful_shutdown(async {

@@ -43383,3 +43383,37 @@ ENG-0040 CLOSED; ENG-0043 (the default flip) OWED. Result QSC_ACK_CLIENT_PASS �
 honest claim: lease+dedup close the client's pull→persist crash window EXCEPT the
 bounded, filed ENG-0042 seam; lease is NOT the default; old relays fall back. Queue →
 READY=NONE (HIGHEST_D=1267); the operator promotes the successor.
+
+## 2026-07-14 — NA-0645: the qsc TUI is retired (D581, D-1268, RETIRE_TUI_PASS)
+
+The operator's product decision is executed: the GUI will be the only end-user UI, the
+CLI remains a thin test-harness/operator surface, and the qsc TUI — redundant, and a
+correctness hazard (its receive loop was a simplified fork lacking the NA-0644
+ack-lease/dedup durability) — is deleted whole: src/tui (18 files, 10,007 lines), the
+`tui` subcommand, every TUI-only helper/const/store-key across nine source modules,
+qsc's four ratatui/crossterm dependencies, and 44 TUI test files plus six partial
+edits (~18.9k lines removed). The order was the lane: the relay token and token-file
+auth setters — previously settable ONLY through the TUI — were re-homed to the CLI
+first (`relay token-set` / `relay token-file-set`, mirroring `relay inbox-set`) and
+the token-file auth test ported to drive the new setter, proven green with the TUI
+still in-tree, before anything was deleted; the auth resolution order is untouched.
+The D581 coverage contingency fired exactly once and was remedied as the directive
+prescribes: `relay_url_policy.rs` turned out to be the ONLY coverage of the core relay
+URL policy, so the accept/reject matrix was ported to a hermetic CLI vehicle
+(NA_0645_relay_url_policy_cli.rs, 2/2) before its TUI file died. The GUI-relevant
+surface is kept and proven: the InApp marker routing gained a unit test (the GUI's
+event sink is not zero-coverage), the core QSC_TUI_* emitters still fire from the CLI
+(receipt_policy 3/3), and the six core-read persisted `tui.*` keys survive verbatim.
+Three named-KEEP items whose only caller was the TUI (the handshake_init/poll
+wrappers, the VaultSession session API, two RelaySendOutcome fields) are kept dormant
+under explicit "D581 KEEP" annotations for the core-extraction lane to adjudicate.
+The three co-deleted TUI-only security features — vault failed-unlock attempt-limit,
+idle autolock, account-destroy — are FILED as ENG-0044 (P2, one coherent item): the
+GUI phase must not close without restoring them or recording a per-feature operator
+drop. TUI docs carry SUPERSEDED banners; DOC-PROG-003 is truthed-up (including no
+longer advertising the co-deleted wipe limit). Gates: cargo check --all-targets clean;
+full `cargo test -p qsc` local 422/0/1-pre-existing-ignored across 107 result sets, exit 0; the NA-0640 e2e green unchanged.
+Nothing here extracts the core (the NEXT lane), builds GUI code, or touches
+protocol/crypto/wire; the claim boundary is unchanged. Queue → READY=NONE
+(HIGHEST_D=1268); the operator promotes the successor — naturally the
+core-extraction/crate-split lane this deletion was staged for.

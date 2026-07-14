@@ -6,7 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0645 | HIGHEST_NA=0645 | HIGHEST_D=1267 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NONE | HIGHEST_NA=0645 | HIGHEST_D=1268 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- NA-0645 (retire the qsc TUI, D581) DONE 2026-07-14 (D-1268, result class RETIRE_TUI_PASS): the qsc TUI is DELETED — src/tui whole (18 files, 10,007 lines), Cmd::Tui + TuiTransport, the main.rs dispatch/imports/consts/normalize_tui_*/tui_perf_tests + the WHOLE vault attempt-limit machinery, the TUI-only helpers across identity/vault/contacts/transport/timeline/protocol_state/adversarial (~30 fns), the 4 TUI-only store keys (+ the orphaned tui.relay.endpoint + account.verification_seed_v1 consts + the vault-security consts/types), qsc's 4 TUI Cargo deps (crossterm, ratatui-core/-crossterm/-widgets), 44 whole TUI test files + 6 partial edits (~18.9k lines total). THE ORDER WAS THE LANE — RE-HOME FIRST: `relay token-set` + `relay token-file-set` added to the CLI (mirroring relay inbox-set; both auth sources were TUI-only-settable; canonicalize + redaction semantics preserved) and the token-file test PORTED (relay_auth_header.rs:681 drives the NEW setter) — proven green 4/4 WITH THE TUI STILL IN-TREE; the resolution order env → account-secret → token-file character-untouched. THE D581 CONTINGENCY FIRED ONCE, remedied as prescribed ("STOP and re-home it first"): relay_url_policy.rs was the ONLY coverage of the CORE relay URL policy (loopback-http/https accept; non-loopback http → QSC_ERR_RELAY_TLS_REQUIRED; bad scheme reject) — the matrix was PORTED to the hermetic CLI vehicle tests/NA_0645_relay_url_policy_cli.rs (2/2 green) BEFORE its TUI file died; the persisted-endpoint half died legitimately (TUI-only feature). KEEP intact: MarkerRouting::InApp + set_marker_routing + marker_queue + the InApp emit_marker branch (+ ONE new unit test — the GUI event sink is not zero-coverage); the core QSC_TUI_* emitters (named-marker, contact-request, delivery/file/receipt-ignored) PROVEN live from the CLI (receipt_policy_mvp_na0177 3/3); the 6 core-read persisted tui.* keys VERBATIM (rename = data migration, later). Three named-KEEP items turned out TUI-only-called (the handshake_init/poll wrappers — CLI uses *_with_suite_mode; the VaultSession session API; RelaySendOutcome.action/.delivered): KEPT per the D581 prohibition, annotated #[allow(dead_code)] "D581 KEEP (NA-0645)" — dormant by decision, flagged to the core-extraction lane. FILED: ENG-0044 (P2, ONE coherent item): vault failed-unlock ATTEMPT-LIMIT + idle AUTOLOCK + ACCOUNT-DESTROY co-deleted; THE GUI PHASE MUST NOT CLOSE without restoring all three or a recorded per-feature operator drop decision; git history preserves the implementations. DOCS: SUPERSEDED banners on the five TUI docs (history retained); DOC-PROG-003 truthed-up (retirement recorded; the co-deleted wipe limit no longer advertised; PQ-status + DOC-QSC pointers corrected). Directive-vs-reality deltas RECORDED: DOC-QSC-007 does not exist; DOC-PROG-002 has zero TUI mentions; the 4 deps are TUI-only at the QSC-CRATE level but the out-of-scope apps/qsl-tui demo client (separate refimpl demo, NOT the qsc TUI) still declares them — workspace lock keeps the packages for it (qsc's edges removed; hygiene candidate). Gates: cargo check --all-targets 0 errors/0 warnings; full cargo test -p qsc LOCALLY (the suite skips on PRs) 422/0/1-pre-existing-ignored across 107 result sets, exit 0; the NA-0640 e2e green UNCHANGED within it 2 passed / 0 failed (119.17s, dedicated re-run on the final tree; zero e2e edits this lane) (zero e2e edits). NO core-extraction/crate-split/exit->Result (the NEXT lane), NO GUI code, NO protocol/crypto/wire change, NO tui.* key rename, NO qsl-server/formal/vectors/canonical/.github change. Claim boundary UNCHANGED. Queue returns to READY=NONE — the operator promotes the successor (natural: THE CORE-EXTRACTION/CRATE-SPLIT LANE — the stated purpose of deleting the TUI first; the separability investigation's EXTRACT-FIRST verdict + the dormant-KEEP annotations feed it; then the GUI lane per DOC-PROG-003 §5; standing: ENG-0036, ENG-0039, ENG-0042/0043, 0b, 0c residue, NA-0635 GATED). The executor cannot self-promote. -->
+<!-- prior: STATE: READY=NA-0645 | HIGHEST_NA=0645 | HIGHEST_D=1267 (NA-0645 closed for D581 at D-1268; this lane PR) -->
 <!-- NA-0644 (ENG-0040 qsc ack-client, D580) DONE 2026-07-14 (D-1267, result class QSC_ACK_CLIENT_PASS): qsc speaks the NA-0642 acknowledged-pull contract OPT-IN — `receive --ack-mode lease` (flag-only selector; absent = LEGACY, byte-identical) pulls ?ack=lease, persists durably at the existing per-item commit points, THEN batch-acks POST /v1/pull/ack (≤4096 ids, after the pull loop, BEFORE attachment resume + receipts) — the server deletes only on the ack. NEW durable per-mailbox msg_id dedup (src/dedup/mod.rs: relay_seen_ids_v1_<hash>.json via write_atomic; >31-day prune beyond the 30-day retention ceiling + 65,536 cap; corrupt = reset + warn) checked BEFORE unpack — a redelivered id is acked-and-skipped, never reprocessed, never process-exited; recording at the SEVEN per-item success exits keeps THE INVARIANT: ack-eligible only after BOTH the item's durable commit AND the seen-entry are on disk. Lease-only replay-reject backstop acks cryptographically-unrecoverable envelopes LOUDLY (ack_replay_unrecoverable) — the PRE-EXISTING commit-before-write seam (ratchet key consumed at commit_unpack_state BEFORE the payload write_atomic; one message per crash; present in legacy today) FILED as ENG-0042 (operator must-have #1), its handling PROVEN bounded by the forced-crash-in-the-gap test (must-have #2: loud ack, queue drains, NO poison redelivery loop). Old-server tolerance: ack-404 = "legacy-complete" (one info marker, no error, no retry — the pre-durability relay ignored ?ack=lease and already delivered legacy-style). PROOF (tests/NA_0644_ack_client.rs, 6/6 first full run, 223.68s, vs the REAL pinned server with a REAL 1s lease via the additive-only start_qsl_server_with_store): legacy default = character-identical pull URL + ZERO ack POSTs + no new markers; lease happy path deletes server-side (proven PAST the lease window); THE LANE-PROVER = lost ack → real lease expiry → real redelivery → all recv_dup_skipped, zero new files, zero reprocess/exit, re-acked, drained — NON-VACUOUS per WF-0017 (the reverted red-run with dedup neutered FAILS with today's qsp_replay_reject process-exit, output in the as-built §7); SIGKILL mid-ack-stall observed the payload ON DISK while the ack was in flight (persist-before-ack made visible); old-server 404 = legacy-complete, nothing lost. Gates: NA-0640 e2e LOCAL green UNCHANGED (2/2, 118.62s, ZERO test-file edits — the backward-compat guard held); full cargo test -p qsc final tree = 609 passed / 0 failed / 3 pre-existing-ignored across 150 result sets, exit 0 (the NA-0643 baseline + exactly the 6 new tests). ENG-0040 CLOSED; ENG-0042 FILED (the seam — the real fix is a write-before-commit reorder touching the no-mutation-on-reject discipline: its own lane); ENG-0043 OWED (the default flip — D580 forbade it in-lane). NO qsl-server change (contract fixed at 8e4ea278), NO E2EE/ratchet/wire-message-semantic change, NO formal/vectors/canonical/.github. CLAIM (stated per the classification rule): lease+dedup close the client's pull→persist crash window EXCEPT the bounded, filed ENG-0042 seam — NOT "delivery is now durable, full stop"; lease is NOT the default; old relays fall back to legacy-complete. Claim boundary otherwise UNCHANGED. Queue returns to READY=NONE — the operator promotes the successor (natural: ENG-0036 admission UX / ENG-0039 the qsl-server hardening bundle per DOC-PROG-003 §5; ENG-0043 once lease has operational mileage; ENG-0042 when a slot opens; standing: 0b, 0c residue, NA-0635, the GUI lane). The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0644 | HIGHEST_D=1267 (NA-0645 promoted for D581; PR #1569) -->
 <!-- prior: STATE: READY=NA-0644 | HIGHEST_NA=0644 | HIGHEST_D=1266 (NA-0644 closed for D580 at D-1267; this lane PR) -->
@@ -26,31 +28,30 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NA-0645** — the RETIRE-TUI lane (**D581 =
-QSL-DIR-2026-07-14-581, operator-approved**). Product decision (operator, 2026-07-14): the
-GUI will be the ONLY end-user UI, the CLI stays as a thin test-harness/operator surface, and
-the qsc TUI — redundant, and a correctness hazard (its receive loop is a simplified FORK
-lacking the NA-0644 ack-lease/dedup durability) — is RETIRED. This is the FIRST lane of the
-core-extraction/GUI phase: deleting the TUI first shrinks the extraction lane that follows.
-Objective: DELETE src/tui (~10,007 lines) + every TUI-only helper/const/key/test/dep across
-cmd/main/identity/vault/contacts/transport/output, with exactly TWO tracked exceptions that
-prevent silent capability loss — **(1) THE RE-HOME, FIRST:** a small CLI relay token-file
-setter (+ the account-secret equivalent if likewise TUI-only-settable) + the ported
-`relay_auth_header.rs` token-file test, proven green BEFORE any deletion; the auth resolution
-ORDER (env → account-secret → token-file) is UNTOUCHABLE — the re-home changes only HOW the
-token-file is set; minimal-or-STOP. **(2) THE FILING:** ONE ENG-class P2 ledger item recording
-that vault ATTEMPT-LIMIT, vault AUTOLOCK, and ACCOUNT-DESTROY are co-deleted with the TUI and
-the GUI phase MUST restore them (or an explicit operator decision to drop each). **KEEP (do
-NOT delete):** MarkerRouting::InApp + its emit path (the GUI's event sink; + ONE new unit test
-so it is not zero-coverage), the core QSC_TUI_* emitters CLI tests assert unconditionally
-(vocabulary rename = a LATER lane), and the persisted `tui.*` key strings (rename = data
-migration, out of scope). Near-zero CORE coverage is lost (the 2026-07-14 scoping: every core
-behavior the dying TUI tests touched has confirmed non-TUI coverage — if an exception
-appears, STOP and re-home it first). NO core-extraction/crate-split/exit->Result (the NEXT
-lane), NO GUI code, NO protocol/crypto/wire change, NO tui.* key rename. Gate: full local
-`cargo test -p qsc` green + the NA-0640 e2e unchanged. Begins at **D-1268**. Full lane block
-at the end of section 2. NA-0644 (the ENG-0040 QSC ACK-CLIENT lane, D580) is DONE at D-1267,
-result class QSC_ACK_CLIENT_PASS — see its block below.
+**READY (exactly one — execute this): NONE.** NA-0645 (the RETIRE-TUI lane, D581) is **DONE**
+at D-1268, result class **RETIRE_TUI_PASS** — the qsc TUI is deleted (src/tui 18 files /
+10,007 lines + every TUI-only helper/const/key, qsc's 4 ratatui/crossterm deps, 44 whole TUI
+test files + 6 partial edits; ~18.9k lines removed) with the capability transfers done FIRST:
+the relay token/token-file setters re-homed to the CLI (`relay token-set` /
+`relay token-file-set`, ported test green 4/4 with the TUI still in-tree; auth resolution
+order untouched), and — the D581 contingency, fired once and remedied as prescribed — the
+relay URL-policy matrix ported to a hermetic CLI vehicle (2/2) when `relay_url_policy.rs`
+turned out to be the policy's ONLY coverage. KEEP intact and proven: the InApp routing (+ a
+new unit test — the GUI's event sink), the core QSC_TUI_* emitters (receipt_policy 3/3 from
+the CLI), the 6 core-read persisted `tui.*` keys verbatim; three named-KEEP items whose only
+caller was the TUI are kept dormant under `#[allow(dead_code)]` "D581 KEEP" annotations for
+the core-extraction lane to adjudicate. **ENG-0044 FILED** (P2, one coherent item): vault
+attempt-limit + idle autolock + account-destroy are co-deleted and **the GUI phase must not
+close without restoring them** (or a recorded per-feature operator drop). TUI docs carry
+SUPERSEDED banners; DOC-PROG-003 is truthed-up. Gates: `cargo check --all-targets` 0/0; full
+`cargo test -p qsc` local 422/0/1-pre-existing-ignored across 107 result sets, exit 0; the NA-0640 e2e green UNCHANGED. NO
+core-extraction (NEXT lane), NO GUI code, NO crypto/wire change, NO key rename. Its full
+block (now `Status: DONE` with the OUTCOME) is at the end of section 2. The queue returns to
+**READY=NONE**; the operator promotes the successor — natural: **the core-extraction /
+crate-split lane** (deleting the TUI first was FOR this; the separability investigation's
+EXTRACT-FIRST verdict + the dormant-KEEP annotations feed it), then the **GUI lane** per
+DOC-PROG-003 §5; standing: **ENG-0036**, **ENG-0039**, **ENG-0042**/**ENG-0043**, **0b**,
+the **0c residue**, **NA-0635** (GATED). The executor cannot self-promote.
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -35283,7 +35284,9 @@ See D580 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-13-580_eng0040_ack_cl
 Begins at D-1267. Client-source lane, design-lock-first. Persist BEFORE ack; dedup BEFORE unpack; keep legacy the default and byte-identical. The lost-ack redelivery test is the one that proves the lane. Closeout records the default-flip as OWED (a later lane once proven).
 
 ### NA-0645 — Retire the qsc TUI (D581): delete src/tui + all TUI-only code/tests/deps; re-home the relay token-file setter to the CLI FIRST; file the three co-deleted security features as ONE ledger item; keep the GUI-relevant routing/emitters/keys
-Status: READY
+Status: DONE
+
+**DONE 2026-07-14 (D-1268, result class RETIRE_TUI_PASS).** Executed exactly to D581 with the order proven: the re-home green (4/4) BEFORE any deletion; the one coverage contingency (the relay URL-policy matrix) re-homed to a hermetic CLI vehicle (2/2) before its TUI file died; src/tui (18 files, 10,007 lines) + every TUI-only helper/const/key + qsc's 4 TUI deps + 44 test files + 6 partial edits deleted (~18.9k lines); the KEEP surface intact and proven (InApp + new unit test; core emitters via receipt_policy 3/3; the 6 core-read tui.* keys verbatim; 3 TUI-only-called named-KEEP items kept dormant under #[allow(dead_code)] D581 annotations); ENG-0044 FILED (attempt-limit + autolock + account-destroy — the GUI phase must restore); the five TUI docs superseded + DOC-PROG-003 truthed-up. Gates: cargo check --all-targets 0/0; full local suite 422/0/1-pre-existing-ignored across 107 result sets, exit 0; the NA-0640 e2e 2 passed / 0 failed (119.17s, dedicated re-run on the final tree; zero e2e edits this lane). See `docs/governance/evidence/NA-0645_as_built.md` and D-1268.
 
 Goals: G4
 Wire/behavior change allowed? YES, BOUNDED (D581) — UI-surface REMOVAL only: the `tui` subcommand and all TUI-only behavior are DELETED, and ONE small CLI relay token-file setter is ADDED (the re-home; the GUI needs it anyway). NO protocol/crypto/wire change; the relay auth resolution ORDER (env → account-secret → token-file) is UNCHANGED — the re-home changes only HOW the token-file is set, not how it is resolved; core behavior the CLI relies on is UNCHANGED.

@@ -10,6 +10,5 @@ fn modularization_keeps_cli_surface_stable() {
         .stdout(contains("status"))
         .stdout(contains("config"))
         .stdout(contains("vault"))
-        .stdout(contains("tui"))
         .stdout(contains("relay"));
 }

@@ -59,24 +59,6 @@ fn qsc(cfg: &Path) -> Command {
     cmd
 }
 
-fn run_headless(cfg: &Path, script: &str) -> String {
-    let mut cmd = common::qsc_assert_command();
-    let out = cmd
-        .env("QSC_CONFIG_DIR", cfg)
-        .env("QSC_TUI_HEADLESS", "1")
-        .env("QSC_TUI_SCRIPT", script)
-        .env("QSC_TUI_COLS", "140")
-        .env("QSC_TUI_ROWS", "40")
-        .env("QSC_MARK_FORMAT", "plain")
-        .env("QSC_TUI_TEST_UNLOCK", "1")
-        .args(["tui"])
-        .output()
-        .expect("run tui");
-    let combined = output_text(&out);
-    assert!(out.status.success(), "tui failed: {combined}");
-    combined
-}
-
 fn first_device_id(cfg: &Path, label: &str) -> String {
     let out = qsc(cfg)
         .args(["contacts", "device", "list", "--label", label])
@@ -326,33 +308,6 @@ fn unknown_inbound_creates_request_and_accept_keeps_untrusted() {
     assert_no_leaks(&recv_text);
     assert_no_leaks(&accept_text);
     assert_no_leaks(&blocked_text);
-}
-
-#[test]
-fn tui_strict_mode_blocks_first_use_auto_promotion() {
-    let cfg = unique_test_dir("na0187_tui_strict");
-    ensure_dir_700(&cfg);
-    common::init_mock_vault(&cfg);
-
-    let script = format!(
-        "/unlock;/trust mode strict;/contacts add bob {} {};/msg bob hello;/exit",
-        CODE_BOB, ROUTE_BOB
-    );
-    let out = run_headless(&cfg, script.as_str());
-    assert!(out.contains("QSC_TUI_TRUST_MODE mode=strict"), "{}", out);
-    assert!(
-        out.contains(
-            "QSC_TUI_TRUST_PROMOTION result=verified_only reason=strict_mode peer=bob mode=strict"
-        ),
-        "{}",
-        out
-    );
-    assert!(
-        out.contains("QSC_TUI_SEND_BLOCKED reason=no_trusted_device peer=bob"),
-        "{}",
-        out
-    );
-    assert_no_leaks(&out);
 }
 
 #[test]

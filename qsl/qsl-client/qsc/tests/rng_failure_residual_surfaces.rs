@@ -15,16 +15,11 @@ use std::process::{Command, Output, Stdio};
 const ROUTE_TOKEN_BOB: &str = "route_token_bob_na0452_residual__";
 const DEFAULT_ROUTE_TOKEN_LABEL: &str = "QSC.VAULT.INIT.DEFAULT_ROUTE_TOKEN";
 const CONTACT_ROUTE_TOKEN_LABEL: &str = "QSC.CONTACT.ROUTE_TOKEN";
-const TUI_CONTACT_ROUTE_TOKEN_LABEL: &str = "QSC.TUI.CONTACT.ROUTE_TOKEN";
-const TUI_RELAY_INBOX_ROUTE_TOKEN_LABEL: &str = "QSC.TUI.RELAY_INBOX_ROUTE_TOKEN";
 const ATTACHMENT_ID_LABEL: &str = "QSC.ATTACHMENT.ID";
 const ATTACHMENT_CEK_LABEL: &str = "QSC.ATTACHMENT.CEK";
 const ATTACHMENT_NONCE_PREFIX_LABEL: &str = "QSC.ATTACHMENT.NONCE_PREFIX";
 const CONTACTS_SECRET_KEY: &str = "contacts.json";
 const ATTACHMENT_JOURNAL_SECRET_KEY: &str = "attachments.json";
-const TUI_RELAY_INBOX_TOKEN_SECRET_KEY: &str = "tui.relay.inbox_token";
-const TUI_CODE_ALICE: &str = "ABCD-EFGH-JKMN-PQRS-T";
-const TUI_PASSPHRASE: &str = "StrongPassphrase1234";
 
 fn ensure_dir_700(path: &Path) {
     if let Ok(meta) = fs::symlink_metadata(path) {
@@ -119,35 +114,6 @@ fn vault_init_with_stdin(
         .write_all(common::TEST_MOCK_VAULT_PASSPHRASE.as_bytes())
         .expect("write passphrase");
     child.wait_with_output().expect("vault init wait")
-}
-
-fn run_headless_tui(
-    iso: &common::TestIsolation,
-    cfg: &Path,
-    script: &str,
-    forced_label: Option<&str>,
-) -> Output {
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
-    iso.apply_to(&mut cmd);
-    cmd.env("QSC_CONFIG_DIR", cfg)
-        .env("QSC_TUI_HEADLESS", "1")
-        .env("QSC_DISABLE_KEYCHAIN", "1")
-        .env("NO_COLOR", "1")
-        .env("QSC_TUI_SCRIPT", script)
-        .env("QSC_TUI_COLS", "140")
-        .env("QSC_TUI_ROWS", "40")
-        .env("QSC_MARK_FORMAT", "plain")
-        .args(["tui"]);
-    if let Some(label) = forced_label {
-        cmd.env("QSC_RNG_FAILURE_TEST_SEAM", label);
-    }
-    cmd.output().expect("run tui headless")
-}
-
-fn init_unlock_script() -> String {
-    format!(
-        "/init DemoUser {TUI_PASSPHRASE} {TUI_PASSPHRASE} I UNDERSTAND;/unlock {TUI_PASSPHRASE};"
-    )
 }
 
 fn contacts_add_with_route_token(
@@ -390,71 +356,6 @@ fn contact_route_token_rng_failure_writes_no_contact_state() {
     );
 
     println!("NA0452_CONTACT_RNG_FAILURE_NO_PARTIAL_STATE_OK");
-}
-
-#[cfg(qsc_rng_failure_test_seam)]
-#[test]
-fn tui_contact_route_token_rng_failure_writes_no_contact_cache() {
-    let iso = common::TestIsolation::new("na0452_tui_contact_route_token_rng_failure");
-    let cfg = iso.root.join("tui-contact-route-rng-failure");
-    ensure_dir_700(&cfg);
-    let script = format!(
-        "{} /contacts add Alice {};/exit",
-        init_unlock_script(),
-        TUI_CODE_ALICE
-    );
-
-    let out = run_headless_tui(
-        &iso,
-        &cfg,
-        script.as_str(),
-        Some(TUI_CONTACT_ROUTE_TOKEN_LABEL),
-    );
-    assert_success(&out);
-    let text = output_text(&out);
-    assert!(text.contains("rng_failure_forced"), "{text}");
-    assert!(
-        !text.contains("event=tui_contacts_add label=Alice ok=true"),
-        "{text}"
-    );
-    assert!(
-        read_vault_secret_with_passphrase(&cfg, CONTACTS_SECRET_KEY, TUI_PASSPHRASE).is_none(),
-        "forced TUI contact route-token RNG failure persisted contacts cache"
-    );
-
-    println!("NA0452_TUI_CONTACT_RNG_FAILURE_NO_PARTIAL_STATE_OK");
-}
-
-#[cfg(qsc_rng_failure_test_seam)]
-#[test]
-fn tui_relay_inbox_route_token_rng_failure_writes_no_route_secret() {
-    let iso = common::TestIsolation::new("na0452_tui_relay_route_token_rng_failure");
-    let cfg = iso.root.join("tui-relay-route-rng-failure");
-    ensure_dir_700(&cfg);
-    let script = format!("/init DemoUser {TUI_PASSPHRASE} {TUI_PASSPHRASE} I UNDERSTAND;/exit");
-
-    let out = run_headless_tui(
-        &iso,
-        &cfg,
-        script.as_str(),
-        Some(TUI_RELAY_INBOX_ROUTE_TOKEN_LABEL),
-    );
-    assert_success(&out);
-    let text = output_text(&out);
-    assert!(text.contains("settings_init_failed"), "{text}");
-    assert!(!text.contains("event=tui_init ok=true"), "{text}");
-    let retained =
-        read_vault_secret_with_passphrase(&cfg, TUI_RELAY_INBOX_TOKEN_SECRET_KEY, TUI_PASSPHRASE)
-            .expect("vault init default route token should remain");
-    assert!(
-        retained.len() == 32
-            && retained
-                .chars()
-                .all(|ch| ch.is_ascii_hexdigit() && !ch.is_ascii_uppercase()),
-        "forced TUI relay route-token RNG failure overwrote the default route token: {retained}"
-    );
-
-    println!("NA0452_TUI_RELAY_ROUTE_RNG_FAILURE_NO_PARTIAL_STATE_OK");
 }
 
 #[cfg(qsc_rng_failure_test_seam)]

@@ -194,27 +194,6 @@ pub(crate) enum Cmd {
         #[command(subcommand)]
         cmd: FileCmd,
     },
-    /// Security Lens TUI (read-mostly; no implicit actions).
-    Tui {
-        /// Run in headless scripted mode (tests only).
-        #[arg(long, hide = true)]
-        headless: bool,
-        /// Transport selection (explicit-only).
-        #[arg(long, value_enum)]
-        transport: Option<TuiTransport>,
-        /// Relay address (host:port) for transport=relay.
-        #[arg(long)]
-        relay: Option<String>,
-        /// Relay bearer token file path (must be 0600 on unix).
-        #[arg(long, value_name = "PATH")]
-        token_file: Option<PathBuf>,
-        /// Seed for deterministic relay scenarios.
-        #[arg(long, default_value_t = 0)]
-        seed: u64,
-        /// Scenario label (used for deterministic headless tests).
-        #[arg(long, default_value = "default")]
-        scenario: String,
-    },
     /// Relay demo transport (explicit-only; deterministic fault injection).
     Relay {
         #[command(subcommand)]
@@ -315,11 +294,6 @@ pub(crate) enum ReceiptMode {
 pub(crate) enum FileConfirmMode {
     Off,
     CompleteOnly,
-}
-
-#[derive(ValueEnum, Debug, Clone, Copy)]
-pub(crate) enum TuiTransport {
-    Relay,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy)]

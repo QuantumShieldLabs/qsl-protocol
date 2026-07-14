@@ -10,13 +10,6 @@ pub(super) struct IdentityKeypair {
     pub(super) sig_sk: Vec<u8>,
 }
 
-impl IdentityKeypair {
-    pub(super) fn zeroize_secrets(&mut self) {
-        self.kem_sk.zeroize();
-        self.sig_sk.zeroize();
-    }
-}
-
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct IdentityPublicRecord {
@@ -48,13 +41,6 @@ const IDENTITY_PUBLIC_RECORD_UPGRADE_SIG_KEYPAIR_FAILURE_LABELS: &[&str] =
 const IDENTITY_ROTATE_KEM_KEYPAIR_FAILURE_LABELS: &[&str] = &["QSC.IDENTITY.ROTATE.KEM_KEYPAIR"];
 #[cfg(qsc_rng_failure_test_seam)]
 const IDENTITY_ROTATE_SIG_KEYPAIR_FAILURE_LABELS: &[&str] = &["QSC.IDENTITY.ROTATE.SIG_KEYPAIR"];
-#[cfg(qsc_rng_failure_test_seam)]
-const IDENTITY_TUI_BOOTSTRAP_KEM_KEYPAIR_FAILURE_LABELS: &[&str] =
-    &["QSC.TUI.BOOTSTRAP.IDENTITY.KEM_KEYPAIR"];
-#[cfg(qsc_rng_failure_test_seam)]
-const IDENTITY_TUI_BOOTSTRAP_SIG_KEYPAIR_FAILURE_LABELS: &[&str] =
-    &["QSC.TUI.BOOTSTRAP.IDENTITY.SIG_KEYPAIR"];
-
 #[cfg(qsc_rng_failure_test_seam)]
 fn identity_rng_failure_forced(labels: &[&str]) -> bool {
     std::env::var("QSC_RNG_FAILURE_TEST_SEAM")
@@ -119,64 +105,6 @@ pub(super) fn identity_rotate_sig_keypair() -> Result<(Vec<u8>, Vec<u8>), &'stat
 #[cfg(not(qsc_rng_failure_test_seam))]
 pub(super) fn identity_rotate_sig_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
     Ok(hs_sig_keypair())
-}
-
-#[cfg(qsc_rng_failure_test_seam)]
-fn identity_tui_bootstrap_kem_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
-    if identity_rng_failure_forced(IDENTITY_TUI_BOOTSTRAP_KEM_KEYPAIR_FAILURE_LABELS) {
-        return Err("rng_failure_forced");
-    }
-    Ok(hs_kem_keypair())
-}
-
-#[cfg(not(qsc_rng_failure_test_seam))]
-fn identity_tui_bootstrap_kem_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
-    Ok(hs_kem_keypair())
-}
-
-#[cfg(qsc_rng_failure_test_seam)]
-fn identity_tui_bootstrap_sig_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
-    if identity_rng_failure_forced(IDENTITY_TUI_BOOTSTRAP_SIG_KEYPAIR_FAILURE_LABELS) {
-        return Err("rng_failure_forced");
-    }
-    Ok(hs_sig_keypair())
-}
-
-#[cfg(not(qsc_rng_failure_test_seam))]
-fn identity_tui_bootstrap_sig_keypair() -> Result<(Vec<u8>, Vec<u8>), &'static str> {
-    Ok(hs_sig_keypair())
-}
-
-pub(super) fn identity_tui_bootstrap_keypair() -> Result<IdentityKeypair, ErrorCode> {
-    let (kem_pk, mut kem_sk) = match identity_tui_bootstrap_kem_keypair() {
-        Ok(v) => v,
-        Err(e) => {
-            emit_marker(
-                "identity_secret_unavailable",
-                Some(e),
-                &[("reason", "rng_failure_forced")],
-            );
-            return Err(ErrorCode::IdentitySecretUnavailable);
-        }
-    };
-    let (sig_pk, sig_sk) = match identity_tui_bootstrap_sig_keypair() {
-        Ok(v) => v,
-        Err(e) => {
-            kem_sk.zeroize();
-            emit_marker(
-                "identity_secret_unavailable",
-                Some(e),
-                &[("reason", "rng_failure_forced")],
-            );
-            return Err(ErrorCode::IdentitySecretUnavailable);
-        }
-    };
-    Ok(IdentityKeypair {
-        kem_pk,
-        kem_sk,
-        sig_pk,
-        sig_sk,
-    })
 }
 
 pub(super) fn identities_dir(dir: &Path) -> PathBuf {
@@ -572,14 +500,6 @@ pub(super) fn identity_self_kem_keypair(self_label: &str) -> Result<IdentityKeyp
         sig_pk,
         sig_sk,
     })
-}
-
-pub(super) fn identity_self_fingerprint(self_label: &str) -> Result<String, ErrorCode> {
-    match identity_read_self_public(self_label)? {
-        // NA-0634 (D571 Decision 2a): the self verification code binds BOTH identity keys.
-        Some(rec) => Ok(identity_fingerprint_from_identity(&rec.kem_pk, &rec.sig_pk)),
-        None => Ok("untrusted".to_string()),
-    }
 }
 
 pub(super) fn format_verification_code_from_fingerprint(fingerprint: &str) -> String {

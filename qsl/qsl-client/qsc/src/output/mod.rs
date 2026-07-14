@@ -118,6 +118,8 @@ pub(crate) fn print_error_marker(code: &str) -> ! {
     process::exit(1);
 }
 
+// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+#[allow(dead_code)]
 pub(crate) fn set_marker_routing(routing: MarkerRouting) {
     let value = match routing {
         MarkerRouting::Stdout => 0,

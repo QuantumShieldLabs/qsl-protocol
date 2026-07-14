@@ -3,11 +3,6 @@ use base64::Engine;
 use chacha20poly1305::aead::{Aead, KeyInit, Payload};
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use clap::Parser;
-use crossterm::{
-    event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
-    execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-};
 use quantumshield_refimpl::crypto::stdcrypto::{
     runtime_pq_kem_ciphertext_bytes, runtime_pq_kem_keypair, runtime_pq_kem_public_key_bytes,
     runtime_pq_sig_keypair, runtime_pq_sig_public_key_bytes, runtime_pq_sig_signature_bytes,
@@ -30,34 +25,19 @@ use quantumshield_refimpl::suite2::types::{
 use quantumshield_refimpl::suite2::{decode_suite2_wire_canon, recv_wire_canon, send_wire_canon};
 use quantumshield_refimpl::RefimplError;
 use rand_core::{OsRng, RngCore};
-use ratatui_core::{
-    layout::{Constraint, Direction, Layout, Margin, Rect},
-    style::{Color, Modifier, Style},
-    terminal::{Frame, Terminal},
-    text::{Line, Span},
-};
-use ratatui_crossterm::CrosstermBackend;
-use ratatui_widgets::{
-    block::Block,
-    borders::Borders,
-    clear::Clear as TuiClear,
-    list::{List, ListItem, ListState},
-    paragraph::Paragraph,
-};
 use reqwest::blocking::Client as HttpClient;
 use reqwest::StatusCode as HttpStatus;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha512};
-use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::collections::{BTreeMap, VecDeque};
 use std::env;
 use std::fs::{self, File, OpenOptions};
-use std::io::{IsTerminal, Read, Write};
+use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
-use std::process::{self, Command, Stdio};
+use std::process;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::sync::mpsc;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 use zeroize::Zeroize;
 
 const CONFIG_FILE_NAME: &str = "config.txt";
@@ -75,12 +55,6 @@ const RETRY_BASE_MS: u64 = 20;
 const RETRY_MAX_MS: u64 = 200;
 const RETRY_JITTER_MS: u64 = 10;
 const MAX_TIMEOUT_MS: u64 = 2000;
-const TUI_AUTOLOCK_DEFAULT_MINUTES: u64 = 10;
-const TUI_AUTOLOCK_MIN_MINUTES: u64 = 1;
-const TUI_AUTOLOCK_MAX_MINUTES: u64 = 120;
-const TUI_POLL_DEFAULT_INTERVAL_SECONDS: u64 = 10;
-const TUI_POLL_MIN_INTERVAL_SECONDS: u64 = 2;
-const TUI_POLL_MAX_INTERVAL_SECONDS: u64 = 300;
 const RECEIPT_BATCH_WINDOW_MS_DEFAULT: u64 = 250;
 const RECEIPT_JITTER_MS_DEFAULT: u64 = 0;
 const RECEIPT_BATCH_WINDOW_MS_MAX: u64 = 60_000;
@@ -117,7 +91,6 @@ mod relay;
 mod store;
 mod timeline;
 mod transport;
-mod tui;
 mod vault;
 
 pub(crate) use timeline::{timeline_ts_default, TimelineEntry};
@@ -132,33 +105,30 @@ use fs_store::{
     write_atomic, write_config_atomic,
 };
 use handshake::{
-    handshake_init, handshake_init_with_suite_mode, handshake_poll, handshake_poll_with_suite_mode,
-    handshake_status, hs_kem_keypair, hs_sig_keypair,
+    handshake_init_with_suite_mode, handshake_poll_with_suite_mode, handshake_status,
+    hs_kem_keypair, hs_sig_keypair,
 };
 use identity::{
-    format_verification_code_from_fingerprint, identities_dir, identity_fingerprint_from_identity,
-    identity_fingerprint_from_pk, identity_marker_display, identity_pin_matches_seen, identity_read_peer_kem_pk, identity_read_pin,
-    identity_read_self_public, identity_read_sig_pin, identity_rotate_kem_keypair,
-    identity_rotate_sig_keypair, identity_secret_name, identity_secret_store,
-    identity_self_fingerprint, identity_self_kem_keypair, identity_self_path,
-    identity_sig_secret_name, identity_sig_secret_store, identity_write_public_record,
+    identities_dir, identity_fingerprint_from_identity, identity_fingerprint_from_pk,
+    identity_marker_display, identity_pin_matches_seen, identity_read_peer_kem_pk,
+    identity_read_pin, identity_read_self_public, identity_read_sig_pin,
+    identity_rotate_kem_keypair, identity_rotate_sig_keypair, identity_secret_store,
+    identity_self_kem_keypair, identity_sig_secret_store, identity_write_public_record,
     IdentityKeypair, IDENTITY_FP_PREFIX,
 };
 use model::*;
 use output::{
     emit_cli_named_marker, emit_marker, emit_tui_named_marker, init_output_policy,
-    install_panic_redaction_hook, marker_queue, print_error_marker, print_marker, qsc_mark,
-    qsc_sanitize_terminal_text, redact_text_for_output, set_marker_routing, MarkerRouting,
-    PANIC_DEMO_SENTINEL,
+    install_panic_redaction_hook, print_error_marker, print_marker, qsc_mark,
+    qsc_sanitize_terminal_text, redact_text_for_output, PANIC_DEMO_SENTINEL,
 };
 use protocol_state::{
-    allow_unsafe_seed_fallback_for_tests, emit_protocol_inactive, kmac_out,
-    protocol_active_or_reason_for_peer, protocol_inactive_exit, qsp_scka_load, qsp_scka_store,
-    qsp_send_ready_tuple, qsp_session_for_channel, qsp_session_load, qsp_session_store,
-    qsp_session_store_with_trigger, qsp_status_parts, qsp_status_string, qsp_status_tuple,
-    qsp_status_user_note, qsp_trigger_load, record_qsp_status, zero32, QspTriggerState,
-    SckaLocalState, SckaPeerAdv, QSP_DH_FALLBACK_N, QSP_DH_FALLBACK_T_SECS, QSP_PQ_RESEED_N,
-    QSP_PQ_RESEED_T_SECS, QSP_STATUS_FILE_NAME,
+    allow_unsafe_seed_fallback_for_tests, kmac_out, protocol_active_or_reason_for_peer,
+    protocol_inactive_exit, qsp_scka_load, qsp_scka_store, qsp_send_ready_tuple,
+    qsp_session_for_channel, qsp_session_load, qsp_session_store,
+    qsp_session_store_with_trigger, qsp_status_tuple, qsp_trigger_load, record_qsp_status,
+    zero32, QspTriggerState, SckaLocalState, SckaPeerAdv, QSP_DH_FALLBACK_N,
+    QSP_DH_FALLBACK_T_SECS, QSP_PQ_RESEED_N, QSP_PQ_RESEED_T_SECS,
 };
 use relay::*;
 use store::*;
@@ -166,16 +136,13 @@ use timeline::{
     apply_attachment_peer_confirmation, apply_file_peer_confirmation,
     apply_message_peer_confirmation, emit_cli_confirm_policy, emit_cli_delivery_state_with_device,
     emit_cli_file_delivery_with_device, emit_cli_receipt_ignored_wrong_device,
-    emit_message_state_reject, emit_message_state_transition, emit_tui_confirm_policy,
-    emit_tui_delivery_state, emit_tui_delivery_state_with_device, emit_tui_file_delivery,
+    emit_message_state_reject, emit_tui_delivery_state_with_device,
     emit_tui_file_delivery_with_device, emit_tui_receipt_ignored_wrong_device,
-    file_delivery_semantic_from_state, file_delivery_short_id, file_transfer_confirm_id,
+    file_delivery_short_id, file_transfer_confirm_id,
     file_transfer_upsert_outbound_record, latest_outbound_file_id,
-    message_delivery_semantic_from_state_str, message_state_transition_allowed,
     timeline_append_entry, timeline_append_entry_for_target, timeline_clear, timeline_list,
     timeline_show, timeline_store_load, timeline_store_save, ConfirmApplyOutcome, MessageState,
 };
-use tui::*;
 
 static VAULT_UNLOCKED_THIS_RUN: AtomicBool = AtomicBool::new(false);
 
@@ -568,22 +535,6 @@ fn main() {
                 receipt,
             }),
         },
-        Some(Cmd::Tui {
-            headless,
-            transport: _transport,
-            relay,
-            token_file,
-            seed,
-            scenario,
-        }) => tui_entry(
-            headless,
-            TuiConfig {
-                relay,
-                token_file,
-                seed,
-                scenario,
-            },
-        ),
         Some(Cmd::Relay { cmd }) => relay_cmd(cmd),
         Some(Cmd::Meta { cmd }) => meta_cmd(cmd),
     }
@@ -788,102 +739,6 @@ fn meta_cmd(cmd: MetaCmd) {
     }
 }
 
-fn compute_envelope_status(payload_len: usize) -> String {
-    let plan = envelope::plan_for_payload_len(
-        payload_len,
-        3,
-        100,
-        envelope::MAX_TICKS_DEFAULT,
-        envelope::MAX_BUNDLE_SIZE_DEFAULT,
-        envelope::MAX_PAYLOAD_COUNT_DEFAULT,
-    );
-    match plan {
-        Ok(p) => {
-            let tick = p.ticks.first().copied().unwrap_or(0);
-            format!("bucket={} tick={}", p.bundle.bucket_len, tick)
-        }
-        Err(e) => format!("invalid({})", e.code()),
-    }
-}
-
-fn compute_local_fingerprint() -> String {
-    match identity_self_fingerprint("self") {
-        Ok(fp) => fp,
-        Err(_) => "untrusted".to_string(),
-    }
-}
-
-fn compute_peer_fingerprint(peer: &str) -> String {
-    let (fp, pinned) = identity_peer_status(peer);
-    if pinned {
-        format!("{} (pinned)", fp)
-    } else {
-        "untrusted".to_string()
-    }
-}
-
-fn split_cmd_result_entry(entry: &str) -> (&str, &str, &str) {
-    let Some(rest) = entry.strip_prefix('[') else {
-        return ("unknown", "unknown", entry);
-    };
-    let Some((status, after_status)) = rest.split_once("] /") else {
-        return ("unknown", "unknown", entry);
-    };
-    let Some((command, detail)) = after_status.split_once(' ') else {
-        return (status, after_status, "ok");
-    };
-    (status, command, detail)
-}
-
-fn relay_endpoint_hash8(endpoint: &str) -> String {
-    let c = StdCrypto;
-    let hash = c.sha512(endpoint.as_bytes());
-    hex_encode(&hash[..4])
-}
-
-fn relay_token_file_hash8(path: &str) -> String {
-    let c = StdCrypto;
-    let hash = c.sha512(path.as_bytes());
-    hex_encode(&hash[..4])
-}
-
-fn short_hash12(value: &str) -> String {
-    let c = StdCrypto;
-    let hash = c.sha512(value.as_bytes());
-    hex_encode(&hash[..6])
-}
-
-fn short_identity_display(value: &str) -> String {
-    if value.eq_ignore_ascii_case("untrusted") || value.trim().is_empty() {
-        "untrusted".to_string()
-    } else {
-        short_hash12(value)
-    }
-}
-
-fn relay_user_reason_from_code(code: &str) -> &'static str {
-    match code {
-        "relay_endpoint_missing" => "Relay endpoint missing: configure an endpoint first.",
-        "relay_test_already_running" => "Relay test already running: wait for completion.",
-        "relay_test_pending_timeout" => "Relay test did not complete in time.",
-        "relay_unauthorized" => "Unauthorized (401): check token or token file.",
-        "relay_overloaded" | "relay_inbox_queue_full" => "Relay overloaded (429): retry shortly.",
-        "relay_network_unreachable" => "Network unreachable: check host, network, and firewall.",
-        "relay_dns_failure" => "DNS failure: verify relay hostname.",
-        "relay_network_timeout" => "Network timeout: relay did not respond in time.",
-        "relay_inbox_push_failed" | "relay_inbox_pull_failed" | "relay_http_failure" => {
-            "Relay request failed: verify endpoint and retry."
-        }
-        "relay_token_file_missing" => "Token file missing: set a valid token file path.",
-        "relay_token_file_unreadable" => "Token file unreadable: check file ownership and perms.",
-        "relay_token_file_empty" => "Token file empty: provide a valid bearer token.",
-        "relay_token_file_perms_too_open" => "Token file perms too open: require 0600.",
-        "relay_client_init_failed" => "Client init failed: local HTTP client unavailable.",
-        "QSC_ERR_RELAY_TLS_REQUIRED" => "TLS required: use HTTPS (or loopback HTTP).",
-        _ => "Relay operation failed.",
-    }
-}
-
 fn read_relay_token_file(path: &str) -> Result<String, &'static str> {
     let p = Path::new(path);
     let md = fs::metadata(p).map_err(|_| "relay_token_file_missing")?;
@@ -908,104 +763,6 @@ fn read_relay_token_file(path: &str) -> Result<String, &'static str> {
 
 fn normalize_relay_endpoint(value: &str) -> Result<String, &'static str> {
     adversarial::route::normalize_relay_endpoint(value)
-}
-
-fn relay_transport_label(endpoint: Option<&str>) -> &'static str {
-    let Some(url) = endpoint else {
-        return "unset";
-    };
-    if url.starts_with("https://") {
-        "https"
-    } else if url.starts_with("http://") {
-        "http"
-    } else {
-        "unknown"
-    }
-}
-
-fn relay_tls_label(endpoint: Option<&str>) -> &'static str {
-    let Some(url) = endpoint else {
-        return "unset";
-    };
-    if url.starts_with("https://") {
-        "enabled"
-    } else if url.starts_with("http://") {
-        "disabled"
-    } else {
-        "unknown"
-    }
-}
-
-fn relay_pinning_label(endpoint: Option<&str>) -> &'static str {
-    match relay_tls_label(endpoint) {
-        "enabled" => "not configured",
-        _ => "n/a",
-    }
-}
-
-fn validated_front_door_note() -> &'static str {
-    "qbuild/local runbook is the validated front door."
-}
-
-fn compatibility_surface_note() -> &'static str {
-    "remote/AWS artifacts remain compatibility evidence only."
-}
-
-fn validated_front_door_marker() -> &'static str {
-    "local_qbuild_front_door"
-}
-
-fn compatibility_surface_marker() -> &'static str {
-    "remote_aws_compat_only"
-}
-
-fn migration_posture_note(attachment_service_active: bool) -> &'static str {
-    if attachment_service_active {
-        "Validated post-w0 lane active: <= 4 MiB sends use w2 and legacy receive defaults to retired."
-    } else {
-        "Set QSC_ATTACHMENT_SERVICE to activate the validated post-w0 lane (w2 sends + retired legacy receive)."
-    }
-}
-
-fn migration_posture_marker(attachment_service_active: bool) -> &'static str {
-    if attachment_service_active {
-        "attachment_service_active"
-    } else {
-        "attachment_service_required"
-    }
-}
-
-fn vault_access_note(locked: bool) -> &'static str {
-    if locked {
-        "unlock required for local state"
-    } else {
-        "unlocked"
-    }
-}
-
-fn vault_attempt_limit_note(limit: Option<u32>) -> String {
-    match limit {
-        Some(value) => format!("{value} failures wipe local vault + state"),
-        None => "off (no automatic wipe threshold)".to_string(),
-    }
-}
-
-fn relay_probe_url(endpoint: &str) -> Result<String, &'static str> {
-    adversarial::route::relay_probe_url(endpoint)
-}
-
-fn account_storage_safety_status() -> String {
-    let (cfg_dir, source) = match config_dir() {
-        Ok(v) => v,
-        Err(code) => return format!("reject ({})", code.as_str()),
-    };
-    if !check_symlink_safe(&cfg_dir) {
-        return "reject (unsafe path symlink)".to_string();
-    }
-    if !check_parent_safe(&cfg_dir, source) {
-        return "reject (unsafe parent perms)".to_string();
-    }
-    "OK".to_string()
 }
 
 fn identity_peer_status(peer: &str) -> (String, bool) {
@@ -1164,20 +921,6 @@ fn env_bool(key: &str) -> bool {
     )
 }
 
-fn tui_color_enabled() -> bool {
-    if env::var_os("NO_COLOR").is_some() {
-        return false;
-    }
-    if env::var("TERM")
-        .ok()
-        .map(|v| v.eq_ignore_ascii_case("dumb"))
-        .unwrap_or(false)
-    {
-        return false;
-    }
-    true
-}
-
 fn config_set(key: &str, value: &str) {
     if key != "policy-profile" {
         print_error(ErrorCode::ParseFailed);
@@ -1248,138 +991,6 @@ fn config_get(key: &str) {
         "config_get",
         &[("key", "policy_profile"), ("value", &value), ("ok", "true")],
     );
-}
-
-fn parse_vault_attempt_limit_config(raw: &str) -> Result<Option<u32>, ErrorCode> {
-    for line in raw.lines() {
-        let trimmed = line.trim();
-        if trimmed.is_empty() || trimmed.starts_with('#') {
-            continue;
-        }
-        let Some(value) = trimmed.strip_prefix("attempt_limit=") else {
-            continue;
-        };
-        let value = value.trim();
-        if value.eq_ignore_ascii_case("off") {
-            return Ok(None);
-        }
-        let parsed = value.parse::<u32>().map_err(|_| ErrorCode::ParseFailed)?;
-        if !(VAULT_ATTEMPT_LIMIT_MIN..=VAULT_ATTEMPT_LIMIT_MAX).contains(&parsed) {
-            return Err(ErrorCode::ParseFailed);
-        }
-        return Ok(Some(parsed));
-    }
-    Ok(None)
-}
-
-fn parse_vault_failed_unlocks(raw: &str) -> Result<u32, ErrorCode> {
-    for line in raw.lines() {
-        let trimmed = line.trim();
-        if trimmed.is_empty() || trimmed.starts_with('#') {
-            continue;
-        }
-        let Some(value) = trimmed.strip_prefix("failed_unlocks=") else {
-            continue;
-        };
-        return value
-            .trim()
-            .parse::<u32>()
-            .map_err(|_| ErrorCode::ParseFailed);
-    }
-    Ok(0)
-}
-
-fn vault_security_state_load() -> Result<VaultSecurityState, ErrorCode> {
-    let (dir, source) = config_dir()?;
-    ensure_store_layout(&dir, source)?;
-    let config_path = dir.join(VAULT_SECURITY_CONFIG_NAME);
-    let counter_path = dir.join(VAULT_UNLOCK_COUNTER_NAME);
-    enforce_safe_parents(&config_path, source)?;
-    enforce_safe_parents(&counter_path, source)?;
-    let _lock = lock_store_shared(&dir, source)?;
-
-    let attempt_limit = if config_path.exists() {
-        #[cfg(unix)]
-        enforce_file_perms(&config_path)?;
-        let mut raw = String::new();
-        File::open(&config_path)
-            .map_err(|_| ErrorCode::IoReadFailed)?
-            .read_to_string(&mut raw)
-            .map_err(|_| ErrorCode::IoReadFailed)?;
-        parse_vault_attempt_limit_config(raw.as_str())?
-    } else {
-        None
-    };
-
-    let failed_unlocks = if counter_path.exists() {
-        #[cfg(unix)]
-        enforce_file_perms(&counter_path)?;
-        let mut raw = String::new();
-        File::open(&counter_path)
-            .map_err(|_| ErrorCode::IoReadFailed)?
-            .read_to_string(&mut raw)
-            .map_err(|_| ErrorCode::IoReadFailed)?;
-        parse_vault_failed_unlocks(raw.as_str())?
-    } else {
-        0
-    };
-
-    Ok(VaultSecurityState {
-        attempt_limit,
-        failed_unlocks,
-    })
-}
-
-fn vault_security_state_store(state: &VaultSecurityState) -> Result<(), ErrorCode> {
-    let (dir, source) = config_dir()?;
-    ensure_store_layout(&dir, source)?;
-    let config_path = dir.join(VAULT_SECURITY_CONFIG_NAME);
-    let counter_path = dir.join(VAULT_UNLOCK_COUNTER_NAME);
-    enforce_safe_parents(&config_path, source)?;
-    enforce_safe_parents(&counter_path, source)?;
-    let _lock = lock_store_exclusive(&dir, source)?;
-
-    let config_content = match state.attempt_limit {
-        Some(limit) => format!("attempt_limit={limit}\n"),
-        None => "attempt_limit=off\n".to_string(),
-    };
-    let counter_content = format!("failed_unlocks={}\n", state.failed_unlocks);
-    write_atomic(&config_path, config_content.as_bytes(), source)?;
-    write_atomic(&counter_path, counter_content.as_bytes(), source)?;
-    Ok(())
-}
-
-fn vault_security_state_clear_files() -> Result<(), ErrorCode> {
-    let (dir, source) = config_dir()?;
-    ensure_store_layout(&dir, source)?;
-    let config_path = dir.join(VAULT_SECURITY_CONFIG_NAME);
-    let counter_path = dir.join(VAULT_UNLOCK_COUNTER_NAME);
-    enforce_safe_parents(&config_path, source)?;
-    enforce_safe_parents(&counter_path, source)?;
-    let _lock = lock_store_exclusive(&dir, source)?;
-    let _ = fs::remove_file(config_path);
-    let _ = fs::remove_file(counter_path);
-    fsync_dir_best_effort(&dir);
-    Ok(())
-}
-
-fn wipe_vault_file_best_effort() -> Result<(), ErrorCode> {
-    let (dir, source) = config_dir()?;
-    ensure_store_layout(&dir, source)?;
-    let vault_path = dir.join("vault.qsv");
-    enforce_safe_parents(&vault_path, source)?;
-    let _lock = lock_store_exclusive(&dir, source)?;
-    if !vault_path.exists() {
-        return Ok(());
-    }
-    let tombstone = dir.join(format!("vault.qsv.tombstone.{}", process::id()));
-    if fs::rename(&vault_path, &tombstone).is_ok() {
-        let _ = fs::remove_file(&tombstone);
-    } else {
-        let _ = fs::remove_file(&vault_path);
-    }
-    fsync_dir_best_effort(&dir);
-    Ok(())
 }
 
 #[derive(Serialize)]
@@ -2014,7 +1625,6 @@ fn send_pending_receipt(ctx: &ReceivePullCtx<'_>, item: PendingReceipt) {
                 meta_seed: None,
                 receipt: None,
                 routing_override: None,
-                tui_thread: None,
             });
             if let Some(code) = outcome.error_code {
                 emit_marker(
@@ -2939,7 +2549,10 @@ type HttpRelayTarget = adversarial::route::HttpRelayTarget;
 type HttpRequestParsed = adversarial::route::HttpRequestParsed;
 
 struct RelaySendOutcome {
+    // D581 KEEP (NA-0645): only the retired TUI read these; the GUI phase re-consumes them.
+    #[allow(dead_code)]
     action: String,
+    #[allow(dead_code)]
     delivered: bool,
     error_code: Option<&'static str>,
 }
@@ -3017,7 +2630,6 @@ struct RelaySendPayloadArgs<'a> {
     meta_seed: Option<u64>,
     receipt: Option<ReceiptKind>,
     routing_override: Option<SendRoutingTarget>,
-    tui_thread: Option<&'a str>,
 }
 
 fn util_sanitize(print: Option<Vec<String>>) {
@@ -3256,36 +2868,6 @@ fn envelope_plan_ack(
     );
 }
 
-fn normalize_tui_autolock_minutes(value: &str) -> Result<u64, ErrorCode> {
-    let minutes = value
-        .trim()
-        .parse::<u64>()
-        .map_err(|_| ErrorCode::ParseFailed)?;
-    if !(TUI_AUTOLOCK_MIN_MINUTES..=TUI_AUTOLOCK_MAX_MINUTES).contains(&minutes) {
-        return Err(ErrorCode::ParseFailed);
-    }
-    Ok(minutes)
-}
-
-fn normalize_tui_poll_interval_seconds(value: &str) -> Result<u64, ErrorCode> {
-    let seconds = value
-        .trim()
-        .parse::<u64>()
-        .map_err(|_| ErrorCode::ParseFailed)?;
-    if !(TUI_POLL_MIN_INTERVAL_SECONDS..=TUI_POLL_MAX_INTERVAL_SECONDS).contains(&seconds) {
-        return Err(ErrorCode::ParseFailed);
-    }
-    Ok(seconds)
-}
-
-fn normalize_tui_poll_mode(value: &str) -> Result<TuiPollMode, ErrorCode> {
-    match value.trim() {
-        "adaptive" => Ok(TuiPollMode::Adaptive),
-        "fixed" => Ok(TuiPollMode::Fixed),
-        _ => Err(ErrorCode::ParseFailed),
-    }
-}
-
 fn print_error(code: ErrorCode) -> ! {
     emit_marker("error", Some(code.as_str()), &[]);
     process::exit(1);
@@ -3333,7 +2915,7 @@ fn write_doctor_export(path: &Path, report: &DoctorReport) -> Result<(), ErrorCo
 
 #[cfg(test)]
 mod message_state_tests {
-    use super::{message_state_transition_allowed, MessageState};
+    use super::timeline::{message_state_transition_allowed, MessageState};
 
     #[test]
     fn failed_state_is_terminal() {
@@ -3357,97 +2939,5 @@ mod message_state_tests {
             message_state_transition_allowed(MessageState::Received, MessageState::Delivered, "in")
                 .expect_err("RECEIVED -> DELIVERED must reject for inbound timeline");
         assert_eq!(err, "state_invalid_transition");
-    }
-}
-
-#[cfg(test)]
-mod tui_perf_tests {
-    use super::{
-        tui_next_poll_timeout_ms, TuiConfig, TuiPollMode, TuiState, TUI_POLL_MIN_INTERVAL_SECONDS,
-    };
-
-    fn test_tui_config(relay: bool) -> TuiConfig {
-        TuiConfig {
-            relay: if relay {
-                Some("http://127.0.0.1:9".to_string())
-            } else {
-                None
-            },
-            token_file: None,
-            seed: 0,
-            scenario: "direct".to_string(),
-        }
-    }
-
-    #[test]
-    fn interactive_poll_timeout_is_never_zero() {
-        assert!(
-            tui_next_poll_timeout_ms() >= 50,
-            "interactive poll timeout must be clamped to prevent busy loops"
-        );
-    }
-
-    #[test]
-    fn idle_clock_advance_without_state_change_does_not_request_redraw() {
-        let mut state = TuiState::new(test_tui_config(false));
-        state.vault_locked = false;
-        state.status.locked = "UNLOCKED";
-        state.needs_redraw = false;
-        for _ in 0..32 {
-            state.headless_advance_clock(100);
-            assert!(
-                !state.needs_redraw,
-                "idle clock advancement must not schedule redraws without state changes"
-            );
-        }
-    }
-
-    #[test]
-    fn fixed_poll_due_seed_respects_minimum_interval_clamp() {
-        let mut state = TuiState::new(test_tui_config(true));
-        state.vault_locked = false;
-        state.status.locked = "UNLOCKED";
-        state.poll_mode = TuiPollMode::Fixed;
-        state.poll_interval_seconds = TUI_POLL_MIN_INTERVAL_SECONDS.saturating_sub(1);
-        state.poll_next_due_ms = None;
-        assert!(
-            !state.maybe_run_fixed_poll(0),
-            "initial scheduling should seed next due timestamp without immediate tick"
-        );
-        assert_eq!(
-            state.poll_next_due_ms,
-            Some(TUI_POLL_MIN_INTERVAL_SECONDS.saturating_mul(1_000)),
-            "fixed polling due timestamp must respect min interval clamp"
-        );
-    }
-}
-
-#[cfg(test)]
-mod relay_url_policy_tests {
-    use super::normalize_relay_endpoint;
-    use crate::adversarial::route::QSC_ERR_RELAY_TLS_REQUIRED;
-
-    #[test]
-    fn relay_url_policy_allow_deny_matrix() {
-        assert!(normalize_relay_endpoint("http://localhost:8080").is_ok());
-        assert!(normalize_relay_endpoint("http://127.0.0.1:8080").is_ok());
-        assert!(normalize_relay_endpoint("http://[::1]:8080").is_ok());
-        assert!(normalize_relay_endpoint("https://example.com").is_ok());
-
-        assert_eq!(
-            normalize_relay_endpoint("http://example.com")
-                .expect_err("non-loopback http must reject"),
-            QSC_ERR_RELAY_TLS_REQUIRED
-        );
-        assert_eq!(
-            normalize_relay_endpoint("http://192.168.1.10")
-                .expect_err("non-loopback LAN http must reject"),
-            QSC_ERR_RELAY_TLS_REQUIRED
-        );
-        assert_eq!(
-            normalize_relay_endpoint("tcp://example.com")
-                .expect_err("non-http scheme must reject deterministically"),
-            "relay_endpoint_invalid_scheme"
-        );
     }
 }

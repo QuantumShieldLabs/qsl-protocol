@@ -377,55 +377,6 @@ pub(super) fn resolve_send_routing_target(peer: &str) -> Result<SendRoutingTarge
     resolve_peer_device_target(peer, true)
 }
 
-pub(super) fn tui_resolve_peer_device_target(
-    state: &TuiState,
-    peer: &str,
-    require_trusted: bool,
-) -> Result<SendRoutingTarget, &'static str> {
-    let peer_alias = peer_alias_from_channel(peer);
-    if !channel_label_ok(peer_alias) {
-        return Err("unknown_contact");
-    }
-    let mut rec = state
-        .contact_record_cached(peer_alias)
-        .cloned()
-        .ok_or("unknown_contact")?;
-    let implicit_primary = rec.primary_device_id.is_none();
-    normalize_contact_record(peer_alias, &mut rec);
-    let Some(primary) = primary_device(&rec).cloned() else {
-        return Err("no_trusted_device");
-    };
-    let canonical_state = canonical_device_state(primary.state.as_str());
-    match canonical_state {
-        "CHANGED" => return Err("device_changed_reapproval_required"),
-        "REVOKED" => return Err("device_revoked"),
-        "TRUSTED" => {}
-        _ if require_trusted => return Err("no_trusted_device"),
-        _ => {}
-    }
-    let route_token = primary
-        .route_token
-        .clone()
-        .or_else(|| rec.route_token.clone())
-        .ok_or("contact_route_token_missing")?;
-    let route_token =
-        normalize_route_token(route_token.as_str()).map_err(|_| "contact_route_token_missing")?;
-    let multi_device = rec.devices.len() > 1;
-    let channel = if multi_device {
-        channel_label_for_device(peer_alias, primary.device_id.as_str())
-            .ok_or("qsp_channel_invalid")?
-    } else {
-        peer_alias.to_string()
-    };
-    Ok(SendRoutingTarget {
-        peer_alias: peer_alias.to_string(),
-        channel,
-        device_id: primary.device_id,
-        route_token,
-        implicit_primary,
-    })
-}
-
 pub(super) fn contacts_store_load() -> Result<ContactsStore, ErrorCode> {
     match vault::secret_get(CONTACTS_SECRET_KEY) {
         Ok(None) => Ok(ContactsStore::default()),
@@ -620,39 +571,6 @@ pub(super) fn emit_cli_contact_flow(
     }
 }
 
-pub(super) fn emit_tui_contact_flow(
-    action: &str,
-    state: &str,
-    peer: &str,
-    device: Option<&str>,
-    mode: TrustOnboardingMode,
-) {
-    let safe_peer = short_peer_marker(peer);
-    let safe_device = device.map(short_device_marker);
-    if let Some(dev) = safe_device.as_ref() {
-        emit_tui_named_marker(
-            "QSC_TUI_CONTACT_FLOW",
-            &[
-                ("action", action),
-                ("state", state),
-                ("peer", safe_peer.as_str()),
-                ("device", dev.as_str()),
-                ("mode", mode.as_str()),
-            ],
-        );
-    } else {
-        emit_tui_named_marker(
-            "QSC_TUI_CONTACT_FLOW",
-            &[
-                ("action", action),
-                ("state", state),
-                ("peer", safe_peer.as_str()),
-                ("mode", mode.as_str()),
-            ],
-        );
-    }
-}
-
 pub(super) fn emit_cli_contact_request(action: &str, peer: &str, device: Option<&str>) {
     let safe_peer = short_peer_marker(peer);
     let safe_device = device.map(short_device_marker);
@@ -726,39 +644,6 @@ pub(super) fn emit_cli_trust_promotion(
     }
 }
 
-pub(super) fn emit_tui_trust_promotion(
-    result: &str,
-    reason: &str,
-    peer: &str,
-    device: Option<&str>,
-    mode: TrustOnboardingMode,
-) {
-    let safe_peer = short_peer_marker(peer);
-    let safe_device = device.map(short_device_marker);
-    if let Some(dev) = safe_device.as_ref() {
-        emit_tui_named_marker(
-            "QSC_TUI_TRUST_PROMOTION",
-            &[
-                ("result", result),
-                ("reason", reason),
-                ("peer", safe_peer.as_str()),
-                ("device", dev.as_str()),
-                ("mode", mode.as_str()),
-            ],
-        );
-    } else {
-        emit_tui_named_marker(
-            "QSC_TUI_TRUST_PROMOTION",
-            &[
-                ("result", result),
-                ("reason", reason),
-                ("peer", safe_peer.as_str()),
-                ("mode", mode.as_str()),
-            ],
-        );
-    }
-}
-
 pub(super) fn trust_remediation_steps(reason: &str) -> &'static [&'static str] {
     match reason {
         "unknown_contact" => &["add_contact", "learn_more"],
@@ -802,10 +687,6 @@ pub(super) fn trust_remediation_hint(reason: &str) -> &'static str {
     }
 }
 
-pub(super) fn trust_remediation_verify_vs_trusted_hint() -> &'static str {
-    "VERIFIED means identity/code matched; TRUSTED means send-authorized."
-}
-
 pub(super) fn emit_cli_trust_remediation(reason: &str, peer: &str, device: Option<&str>) {
     let safe_peer = short_peer_marker(peer);
     let safe_device = device.map(short_device_marker);
@@ -823,33 +704,6 @@ pub(super) fn emit_cli_trust_remediation(reason: &str, peer: &str, device: Optio
         } else {
             emit_cli_named_marker(
                 "QSC_TRUST_REMEDIATION",
-                &[
-                    ("reason", reason),
-                    ("step", step),
-                    ("peer", safe_peer.as_str()),
-                ],
-            );
-        }
-    }
-}
-
-pub(super) fn emit_tui_trust_remediation(reason: &str, peer: &str, device: Option<&str>) {
-    let safe_peer = short_peer_marker(peer);
-    let safe_device = device.map(short_device_marker);
-    for step in trust_remediation_steps(reason) {
-        if let Some(dev) = safe_device.as_ref() {
-            emit_tui_named_marker(
-                "QSC_TUI_TRUST_REMEDIATION",
-                &[
-                    ("reason", reason),
-                    ("step", step),
-                    ("peer", safe_peer.as_str()),
-                    ("device", dev.as_str()),
-                ],
-            );
-        } else {
-            emit_tui_named_marker(
-                "QSC_TUI_TRUST_REMEDIATION",
                 &[
                     ("reason", reason),
                     ("step", step),
@@ -926,19 +780,6 @@ pub(super) fn emit_cli_routing_marker(peer: &str, device_id: &str, implicit: boo
     emit_cli_named_marker("QSC_ROUTING", fields.as_slice());
 }
 
-pub(super) fn emit_tui_routing_marker(thread: &str, device_id: &str, implicit: bool) {
-    let safe_thread = short_peer_marker(thread);
-    let mut fields = vec![
-        ("policy", "primary_only"),
-        ("thread", safe_thread.as_str()),
-        ("device", device_id),
-    ];
-    if implicit {
-        fields.push(("selected", "implicit"));
-    }
-    emit_tui_named_marker("QSC_TUI_ROUTING", fields.as_slice());
-}
-
 pub(super) fn enforce_cli_send_contact_trust(peer: &str) -> Result<(), &'static str> {
     match send_contact_trust_gate(peer) {
         Ok(()) => Ok(()),
@@ -976,14 +817,6 @@ pub(super) fn contact_blocked(label: &str) -> Result<bool, ErrorCode> {
         .unwrap_or(false))
 }
 
-pub(super) fn tui_contact_blocked(state: &TuiState, label: &str) -> Result<bool, &'static str> {
-    let alias = peer_alias_from_channel(label);
-    let rec = state
-        .contact_record_cached(alias)
-        .ok_or("unknown_contact")?;
-    Ok(rec.blocked)
-}
-
 pub(super) fn enforce_peer_not_blocked(label: &str) -> Result<(), &'static str> {
     let alias = peer_alias_from_channel(label);
     match contact_blocked(label) {
@@ -999,25 +832,6 @@ pub(super) fn enforce_peer_not_blocked(label: &str) -> Result<(), &'static str> 
         // Missing/locked contacts store means no explicit block policy is available.
         Err(ErrorCode::IdentitySecretUnavailable) => Ok(()),
         Err(_) => Err("contacts_store_invalid"),
-    }
-}
-
-pub(super) fn tui_enforce_peer_not_blocked(
-    state: &TuiState,
-    label: &str,
-) -> Result<(), &'static str> {
-    let alias = peer_alias_from_channel(label);
-    match tui_contact_blocked(state, label) {
-        Ok(true) => {
-            emit_marker(
-                "contacts_refuse",
-                None,
-                &[("label", alias), ("reason", "peer_blocked")],
-            );
-            Err("peer_blocked")
-        }
-        Ok(false) => Ok(()),
-        Err(code) => Err(code),
     }
 }
 

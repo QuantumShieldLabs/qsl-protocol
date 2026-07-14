@@ -43314,3 +43314,43 @@ production-hardened in every respect (auth, TLS, constant-time compare, signed
 releases remain filed). Claim boundary unchanged. Queue back to READY=NONE at
 HIGHEST_D=1265; the operator promotes the successor (natural: ENG-0041 and/or
 ENG-0040, then ENG-0036/ENG-0039; standing: 0b, 0c residue, NA-0635, GUI).
+
+## 2026-07-13 — NA-0643: the ENG-0041 pin bump (D579, D-1266)
+
+The cheapest lane on the board, and deliberately so: one rev, one lock delta,
+one green run. The qsl-server dev-dep in `qsl/qsl-client/qsc/Cargo.toml`
+advanced from the pre-durability pin `19b9b02d` to `8e4ea278` (the NA-0642
+durability merge — confirmed CURRENT qsl-server main HEAD at Phase 0 by fresh
+`git ls-remote`, per the standing stale-mirror caution), restoring the standard
+suite's real-server coverage currency: until this lane, the suite's only
+real-server test exercised a relay that no longer represented qsl-server main.
+
+**The deliverable was the run, not the edit — and the run delivered.** The
+NA-0640 full-stack e2e, LOCALLY (it does not run on PRs), first invocation
+after the bump, zero test edits, zero retries: 2 passed / 0 failed (115.57s).
+Message round-trip byte-matched, the 6 MiB attachment byte-verified through the
+real attachment service and real relay, both auth modes, the wrong-bearer
+negative still rejected — UNCHANGED against the durable server. That is the
+NA-0642 legacy-pull backward-compat guarantee holding end-to-end: previously a
+server-side exact-field-set test plus analysis, now a full-stack artifact. The
+ENG-0041 filing caveat held exactly as written (the in-process harness uses the
+library constructor → `:memory:` default; the binary-only STORE_PATH
+requirement never applied). Full merge gate: `cargo test -p qsc` = 603 passed /
+0 failed / 3 pre-existing-ignored across all 149 test-result sets, exit 0.
+
+Dev-edge discipline (NA-0640 precedent) re-applied and proven: `cargo tree -p
+qsc -e normal` byte-identical before/after (sha256 `3b0e8896…` both sides); the
+lock delta is the rev swap plus qsl-server's new SQLite stack (rusqlite,
+libsqlite3-sys, and six support crates) riding the dev edge only. The shipped
+binary's dependency graph did not move.
+
+Both D579 hard boundaries held without strain: no test-file change was needed
+(so none was made — had one been needed, that was the STOP-and-file path), and
+the production graph was untouched. ENG-0041 closed on the ledger citing this
+run. Result `ENG0041_PIN_BUMP_PASS` — scoped honestly: the CURRENT e2e
+scenarios against the durable server; the new durability/ack surface
+(`?ack=lease`, `/v1/pull/ack`, retention, client-observed restart durability)
+remains client-unexercised until ENG-0040, which is now unblocked (the durable
+server sits in the dev-dep). Claim boundary unchanged. Queue back to
+READY=NONE at HIGHEST_D=1266; the operator promotes the successor (natural:
+ENG-0040, then ENG-0036/ENG-0039; standing: 0b, 0c residue, NA-0635, GUI).

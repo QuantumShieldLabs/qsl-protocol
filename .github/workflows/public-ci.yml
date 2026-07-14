@@ -1,5 +1,11 @@
 name: public-ci
 
+# 2026-07-14 self-repair bootstrap (operator-authorized): the push run for main merge
+# 9018ae4f was never emitted by GitHub, leaving main without a public-safety check-run.
+# This comment satisfies the bootstrap validator's required-paths rule; the incident
+# record lives in docs/ops/ROLLING_OPERATIONS_JOURNAL.md (2026-07-14) and in
+# scripts/ci/public_safety_gate.py above SELF_REPAIR_BOOTSTRAP_ROOT_PATHS.
+
 on:
   push:
     branches: [ "main" ]

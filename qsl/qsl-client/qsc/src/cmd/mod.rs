@@ -97,6 +97,9 @@ pub(crate) enum Cmd {
         /// Legacy receive mode for `file_chunk` / `file_manifest` (`retired` becomes the validated post-`w0` default once attachment-service config is present; `coexistence` no longer restores coexistence there).
         #[arg(long, value_enum)]
         legacy_receive_mode: Option<LegacyReceiveMode>,
+        /// Relay pull acknowledgment mode (default `legacy` delete-on-pull; `lease` acks only after durable local persistence).
+        #[arg(long, value_enum)]
+        ack_mode: Option<AckMode>,
         /// Attachment service base URL override/diagnostic for the streaming attachment path (supplying it activates the validated post-`w0` receive lane).
         #[arg(long)]
         attachment_service: Option<String>,
@@ -288,6 +291,17 @@ pub(crate) enum LegacyInMessageStage {
 pub(crate) enum LegacyReceiveMode {
     Coexistence,
     Retired,
+}
+
+// NA-0644 (D580, ENG-0040): relay pull acknowledgment mode. Legacy (the default) is the
+// delete-on-pull contract, byte-identical to the pre-lane behavior. Lease is the opt-in
+// acknowledged-pull contract (GET /v1/pull?ack=lease + POST /v1/pull/ack): the relay
+// deletes only after the client acks, and the client acks only after durable local
+// persistence. This lane does NOT flip the default.
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum AckMode {
+    Legacy,
+    Lease,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]

@@ -660,6 +660,46 @@ fn relay_cmd(cmd: RelayCmd) {
             );
             println!("relay_inbox_token=cleared");
         }
+        RelayCmd::TokenSet { token } => {
+            if !require_unlocked("relay_token_set") {
+                return;
+            }
+            let token = token.trim();
+            if token.is_empty() {
+                print_error_marker("relay_token_missing");
+            }
+            if vault::secret_set(TUI_RELAY_TOKEN_SECRET_KEY, token).is_err() {
+                print_error_marker("relay_token_store_failed");
+            }
+            emit_marker(
+                "relay_token_set",
+                None,
+                &[("ok", "true"), ("token", "redacted")],
+            );
+            println!("relay_token=set");
+        }
+        RelayCmd::TokenFileSet { path } => {
+            if !require_unlocked("relay_token_file_set") {
+                return;
+            }
+            if path.as_os_str().is_empty() {
+                print_error_marker("relay_token_file_missing");
+            }
+            let canonical = path
+                .canonicalize()
+                .unwrap_or(path)
+                .to_string_lossy()
+                .to_string();
+            if vault::secret_set(TUI_RELAY_TOKEN_FILE_SECRET_KEY, canonical.as_str()).is_err() {
+                print_error_marker("relay_token_file_store_failed");
+            }
+            emit_marker(
+                "relay_token_file_set",
+                None,
+                &[("ok", "true"), ("path", "redacted")],
+            );
+            println!("relay_token_file=set");
+        }
     }
 }
 

@@ -669,6 +669,18 @@ pub(crate) enum RelayCmd {
     },
     /// Clear self inbox route token.
     InboxClear,
+    /// Set relay auth bearer token (account secret; env token takes precedence).
+    TokenSet {
+        /// Bearer token value.
+        #[arg(long, value_name = "TOKEN")]
+        token: String,
+    },
+    /// Set path to a relay auth bearer token file (lowest-precedence source).
+    TokenFileSet {
+        /// Path to the token file.
+        #[arg(long, value_name = "PATH")]
+        path: PathBuf,
+    },
 }
 
 #[derive(Subcommand, Debug)]

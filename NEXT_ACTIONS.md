@@ -6,8 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0643 | HIGHEST_D=1266 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0644 | HIGHEST_NA=0644 | HIGHEST_D=1266 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 <!-- NA-0643 (ENG-0041 pin bump, D579, LITE) DONE 2026-07-13 (D-1266, result class ENG0041_PIN_BUMP_PASS): the qsl-server dev-dep in qsl/qsl-client/qsc/Cargo.toml advanced 19b9b02d → 8e4ea27877db46a2b660b46c36ba60f3db73b38c (the NA-0642 durability merge; confirmed CURRENT qsl-server main HEAD at Phase 0 by fresh git ls-remote, not the stale mirror) + scoped mechanical Cargo.lock regen (cargo update -p qsl-server: the rev swap + eight new DEV-EDGE transitives — rusqlite/libsqlite3-sys/hashlink/fallible-iterator/fallible-streaming-iterator/ahash/hashbrown/vcpkg; 149 deps untouched). THE DELIVERABLE (the green LOCAL run — the e2e does not run on PRs): cargo test -p qsc --test NA_0640_full_stack_e2e FIRST post-bump invocation, zero test edits, zero retries = 2 passed / 0 failed (115.57s) — message round-trip byte-matched + receipts, the 6 MiB+321 B attachment byte-verified through the real qsl-attachments service + real relay, open AND bearer-token auth, wrong-bearer negative rejected — UNCHANGED against the durable server: the NA-0642 legacy-pull backward-compat guarantee proven END-TO-END (the ENG-0041 filing caveat held exactly: library constructor → :memory:, the binary-only STORE_PATH requirement never applied). Full merge gate: cargo test -p qsc = 603 passed / 0 failed / 3 pre-existing-ignored across all 149 test-result sets, exit 0, zero panics. Dev-edge-only PROVEN (cargo tree -p qsc -e normal byte-identical before/after, sha256 3b0e8896… both sides). BOTH D579 hard boundaries held: ZERO test-file change (none needed, none made) and the PRODUCTION dependency graph untouched. ENG-0041 CLOSED on the ledger citing this run. Claim boundary UNCHANGED — a PASS asserts the CURRENT e2e scenarios against the durable server; the new durability/ack features (?ack=lease, /v1/pull/ack, retention, client-observed restart durability) remain client-UNEXERCISED until ENG-0040 (still OWED, now unblocked: the durable server is in the dev-dep). Queue returns to READY=NONE — the operator promotes the successor (natural: ENG-0040 the qsc ack-client lane; then ENG-0036 admission UX / ENG-0039 the qsl-server hardening bundle; standing: 0b, 0c residue, NA-0635, the GUI lane). The executor cannot self-promote. -->
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0643 | HIGHEST_D=1266 (NA-0644 promoted for D580; PR #1567) -->
 <!-- prior: STATE: READY=NA-0643 | HIGHEST_NA=0643 | HIGHEST_D=1265 (NA-0643 closed for D579 at D-1266; this lane PR) -->
 <!-- NA-0642 (qsl-server durability, D578) DONE 2026-07-13 (D-1265, result class QSL_SERVER_DURABILITY_PASS): the FIRST Tier-1 build lane of DOC-PROG-003 §5 (self-host operator-path step 1) shipped CROSS-REPO — the CODE landed as qsl-server PR #61 (branch na-0642-durable-queue off pin 19b9b02d, commit ddde687, merge 8e4ea278, the single required `rust` check GREEN at merge, merge-commit per qsl-server CLAUDE.md); THIS repo carries governance only. The relay queue is DURABLE: embedded SQLite (rusqlite bundled; WAL + synchronous=FULL — a push 200 means fsynced; schema v1: routes keyed by SHA-256(route_token), raw tokens NEVER persisted; messages seq-FIFO, msg_id NOT unique per the NA-0275 duplicate contract, opaque BLOB body, enqueued_at, leased_until). Operator-approved design-lock built exactly: ack model B OPT-IN (GET /v1/pull?ack=lease leases for PULL_LEASE_SECS [default 60s] without deleting; POST /v1/pull/ack deletes ONLY leased copies, idempotent, route-scoped; un-acked leases expire and messages reappear) while the LEGACY pull stays BYTE-IDENTICAL (delete-on-deliver, exact-field-set guarded) — the current non-acking qsc client is NOT stranded; RETENTION_TTL_SECS (default 7d, ceiling 30d) REPLACES the 5-minute idle-route discard (ROUTE_IDLE_TTL_MS now warn-and-ignore); STORE_PATH REQUIRED fail-closed (:memory: = deliberate ephemeral); leased messages count against MAX_QUEUE_DEPTH; delivered+acked still FORGOTTEN — reliable, NOT an archive; StateDirectory=qsl-server added (operator-ratified: ProtectSystem=strict needs it). Tests 100/0 across 25 binaries incl. the operator-required HARD-KILL proofs (SIGKILL between push-200 and restart → byte-identical delivery, proving the fsync not a graceful flush; SIGKILL mid-lease → lease survives restart, message reappears after expiry, ack deletes; delivered messages never resurrect) + retention non-vacuity controls + concurrency exactly-once (new coverage) + at-rest token-privacy. relay.env.example 256→257 FIXED (the ONE in-lane fix); the REST FILED: ENG-0039 (hardening bundle (a)–(f) + the README/DOC-SRV-003 drift this lane knowingly created), ENG-0040 (OWED: qsc ack-client lane — full delivery durability requires it; stated, not faked), ENG-0041 (OWED: pin bump past 8e4ea278 + local NA-0640 e2e re-run; the pin is knowingly STALE). Recorded-contract flips: config_semantics zero-env start → fail-closed; route_lifecycle_ttl* retired with its contract (drain-release carried into na0642_retention_lifecycle.rs); na0347 purge block → retention mechanism. One qsl-server DECISIONS entry: D-0011. NO qsc/qsl-attachments/qsl-protocol source, NO wire message-semantic/E2EE change, relay stays blind, NOT auth/TLS/sealed-sender, pin NOT bumped. Claim boundary UNCHANGED. Queue returns to READY=NONE — the operator promotes the successor (natural: ENG-0041 the LITE pin-bump/e2e lane and/or ENG-0040 the qsc ack-client lane; then ENG-0036 admission UX / ENG-0039 hardening; standing: 0b, 0c residue, NA-0635, the GUI lane). The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0642 | HIGHEST_D=1265 (NA-0643 promoted for D579; PR #1565) -->
@@ -22,23 +23,28 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NONE.** NA-0643 (the ENG-0041 PIN-BUMP lane, D579, LITE)
-is **DONE** at D-1266, result class **ENG0041_PIN_BUMP_PASS** — the qsl-server dev-dep advanced
-from the pre-durability pin `19b9b02d` to `8e4ea278` (the NA-0642 durability merge) and **the
-NA-0640 full-stack e2e passed UNCHANGED on the first post-bump run** (2/2, 115.57s: message +
->4 MiB attachment round-trips byte-verified, open + bearer-token auth, the wrong-bearer
-negative rejected) — the NA-0642 legacy-pull backward-compat guarantee proven END-TO-END, the
-standard suite's real-server coverage currency restored. Full `cargo test -p qsc` green (603 /
-0 failed / 3 pre-existing-ignored, exit 0). Dev-edge-only proven (`cargo tree -p qsc -e normal`
-byte-identical before/after). ZERO test-file or source change — both D579 hard boundaries held.
-ENG-0041 closed. A PASS asserts the CURRENT e2e scenarios against the durable server; the new
-durability/ack features remain client-UNEXERCISED until **ENG-0040** (still OWED, now unblocked
-— the durable server sits in the dev-dep). Its full block (now `Status: DONE` with the OUTCOME)
-is at the end of section 2. The queue returns to **READY=NONE**; the operator promotes the
-successor — natural next steps in the DOC-PROG-003 §5 order: **ENG-0040** (the qsc ack-client
-lane — completes end-to-end delivery durability), then **ENG-0036** (admission UX) /
-**ENG-0039** (the qsl-server hardening bundle); standing candidates: **0b**, the **0c residue**,
-**NA-0635** (GATED, D571 Decision 3), the **GUI lane**. The executor cannot self-promote.
+**READY (exactly one — execute this): NA-0644** — the ENG-0040 QSC ACK-CLIENT lane (**D580 =
+QSL-DIR-2026-07-13-580, operator-approved**). The NA-0642 durable relay ships an opt-in
+acknowledged-pull contract (`GET /v1/pull?ack=lease` + `POST /v1/pull/ack`), but qsc still
+ALWAYS uses legacy delete-on-pull — the client's pull→persist crash window is open even though
+the server-side fix landed. Objective: an OPT-IN lease-mode pull that acks ONLY AFTER durable
+local persistence, with msg_id DEDUP for redeliveries, DEFAULTING TO LEGACY (byte-identical —
+this lane does NOT flip the default). **THE ORDERING IS THE LANE:** pull-lease → persist
+durably at the existing per-item commit points → ONLY THEN ack → the server deletes;
+crash-before-ack = lease expiry = redelivery, made safe by dedup. **DEDUP IS A PREREQUISITE,
+NOT PARALLEL WORK:** lease mode is AT-LEAST-ONCE (a lost ack ⇒ redelivery in NORMAL operation)
+and qsc today has NO msg_id dedup — its only duplicate handler is the ratchet replay-reject,
+which PROCESS-EXITS the receive command mid-batch; dedup by relay msg_id must sit BEFORE unpack
+(recognized dupe = ack-and-skip, never reprocess, never crash). **DESIGN-LOCK FIRST:** Phase 1
+proposes the selector, the dedup mechanism (the load-bearing design), the ack-batching point,
+the old-server ack-404 = "legacy-complete" flow (the 404 is the ONLY old-server signal — never
+an error), and the test plan — then STOPS for the operator before implementation code. **THE
+LOST-ACK REDELIVERY DEDUP TEST PROVES THE LANE** (non-vacuous: it must catch today's
+process-exit). NO qsl-server change (the contract is fixed at `8e4ea278`), NO
+E2EE/ratchet/wire-MESSAGE-SEMANTIC change, NO default-flip; the NA-0640 legacy e2e is the
+untouchable backward-compat guard. Pays ENG-0040; the default-flip recorded as OWED. Begins at
+**D-1267**. Full lane block at the end of section 2. NA-0643 (the ENG-0041 PIN-BUMP lane, D579,
+LITE) is DONE at D-1266, result class ENG0041_PIN_BUMP_PASS — see its block below.
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -35238,3 +35244,32 @@ Result classes: ENG0041_PIN_BUMP_PASS / ENG0041_PIN_BUMP_STOP. STOP conditions (
 See D579 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-13-579_eng0041_pin_bump.md`) for phases, required response sections, and STOP conditions.
 
 Begins at D-1266. LITE lane: one rev, one lock delta, one green run. Prove; do not assume — the green run IS the deliverable; never edit the test to make it pass.
+
+### NA-0644 — ENG-0040 qsc ack-client (D580): adopt the acknowledged-pull contract — opt-in lease mode, ack ONLY after durable local persistence, msg_id dedup for redeliveries; legacy default + old-server fallback
+Status: READY
+
+Goals: G4, G5
+Wire/behavior change allowed? YES, BOUNDED (D580) — OPT-IN transport-layer delivery behavior only: the lease-mode pull (`GET /v1/pull?ack=lease`), the batched `POST /v1/pull/ack`, and msg_id dedup, behind an explicit selector. NO wire MESSAGE-SEMANTIC change — the ack is a transport-layer delivery acknowledgment, NOT a cryptographic receipt and NOT the existing peer delivery-receipt. The LEGACY default path stays BYTE-IDENTICAL.
+Crypto/state-machine change allowed? NO — no E2EE/ratchet change of any kind.
+Docs-only allowed? NO — a qsc client-source lane.
+Canonical change allowed? NO. qsl-server change? NO — the contract is FIXED at `8e4ea278`. `formal/`, vectors, `.github` change? NO. Default flip? NO — legacy stays the default; the flip is a LATER lane once proven, recorded as OWED at closeout.
+Claim change allowed? NO — a PASS asserts opt-in lease-mode delivery durability with dedup UNDER THE TESTED SCENARIOS: NOT that lease is the default (it is not, by design) and NOT that every relay supports it (old servers fall back to legacy-complete). State the limits.
+
+Scope (allowed paths ONLY):
+- `qsl/qsl-client/qsc/src/transport/mod.rs` — the lease pull, the ack POST, the dedup check, the old-server 404 handling
+- `qsl/qsl-client/qsc/src/cmd/mod.rs` — the selector flag, if the design-lock chooses one
+- `qsl/qsl-client/qsc/src/main.rs` — wire structs if a new ack req/resp struct is needed; config wiring
+- a dedup store module if the design-lock warrants one, + config plumbing for the selector
+- `qsl/qsl-client/qsc/tests/**` — NEW ack-path tests ONLY; do NOT weaken the existing legacy e2e (`NA_0640_full_stack_e2e.rs` is the untouchable backward-compat guard)
+- `docs/ops/IMPROVEMENT_LEDGER.md` — close ENG-0040; record the default-flip follow-up as OWED
+- `docs/governance/evidence/<lane>_as_built.md`, `tests/<lane>_testplan.md`
+- `NEXT_ACTIONS.md` (this block), `DECISIONS.md` (one D-####), `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+- FORBIDDEN: ANY qsl-server change (the contract is fixed at `8e4ea278`); ANY E2EE/ratchet/wire-MESSAGE-SEMANTIC change; flipping the legacy default; the admission-token work (ENG-0036); `formal/`, vectors, canonical, `.github`. If landing needs anything else, STOP.
+
+Objective:
+Execute **QSL-DIR-2026-07-13-580 (D580, APPROVED)** — pay ENG-0040. The NA-0642 durable relay ships an opt-in acknowledged-pull contract, but qsc still ALWAYS uses legacy delete-on-pull (`relay_inbox_pull`, no ack param) — a crash between pulling a message and persisting it locally still loses the message even though the server-side fix landed. Add an OPT-IN lease mode that closes that window, defaulting to LEGACY so nothing existing changes. **THE ORDERING THAT MUST BE RIGHT (the whole point — getting it wrong reintroduces the exact crash-loses-message bug NA-0642 fixed):** (1) pull in lease mode (the server leases, does NOT delete) → (2) persist the message DURABLY locally at the existing per-item commit points (`write_atomic` for app messages; `commit_unpack_state`/`qsp_session_store_with_trigger` for envelopes) → (3) ONLY AFTER (2) succeeds, ack the msg_id (the server then deletes) → (4) a crash before (3) means the lease expires and the message is REDELIVERED — at-least-once, made safe by (2)'s durability + (5) dedup: a redelivered msg_id already persisted is RECOGNIZED and ACKED-AND-SKIPPED, never reprocessed, never crashed on. NEVER ack before the durable persist; NEVER delete-equivalent before the ack. **DEDUP IS A PREREQUISITE, NOT PARALLEL WORK:** lease mode is AT-LEAST-ONCE — a lost ack causes redelivery in NORMAL operation, not just failure — and qsc today has NO msg_id dedup; its only duplicate handler is the ratchet replay-reject (`transport/mod.rs` ~:806-811), which ends in `print_error_marker` → `process::exit(1)` (`output/mod.rs:116-119`), so a redelivery would HARD-EXIT the receive command mid-batch. Dedup by relay msg_id must sit BEFORE unpack and must land before or atomically-with lease mode; a lease implementation whose dedup does not survive a LOST ACK is incomplete and MUST NOT be classified PASS. **PHASE 1 = DESIGN-LOCK, then STOP for the operator** (before ANY implementation code), proposing: (1) the SELECTOR (flag vs config key vs both; default legacy; recommend one); (2) the DEDUP mechanism — where seen/persisted msg_ids are tracked, how the set survives restart, how growth is bounded, and exactly where the check sits (BEFORE unpack) — the load-bearing design, be concrete; (3) the ACK-BATCHING point — collect ids after their durable commit, one batched POST at end of round, mirroring the existing `pending_receipts`/`flush_batched_receipts` pattern (AckReq{ids} ≤4096 = MAX_ACK_IDS, idempotent, route-scoped, deletes only LEASED copies — the NA-0275 unleased-duplicate contract survives); (4) the OLD-SERVER flow — a pre-NA-0642 relay silently IGNORES `?ack=lease` and returns 404 on the ack: ack-404 = "LEGACY-COMPLETE" (already delivered legacy-style, nothing lost), NOT an error — no failed receive, no re-wait, no ack retry; it is the ONLY old-vs-new signal (pull responses are shape-identical); (5) the TEST plan incl. the critical lost-ack case. Tests (Phase 3, local `cargo test -p qsc`): (a) legacy default unchanged — the existing e2e green (the backward-compat guard); (b) lease pull + ack happy path deletes server-side; (c) **THE CRITICAL ONE — a LOST ACK causes redelivery and the client DEDUPS (acks-and-skips, does NOT reprocess, does NOT process::exit)**; (d) crash between persist and ack → redelivered and safely deduped; (e) old-server / simulated 404 → treated as legacy-complete, no error. Non-vacuity: the dedup test must be able to FAIL if dedup is absent (prove it catches today's process-exit). Run the NA-0640 e2e locally green (legacy default, unchanged).
+Result classes: QSC_ACK_CLIENT_PASS / QSC_ACK_CLIENT_STOP. STOP conditions (class): the Phase-1 design-lock (BY DESIGN — the operator chooses the selector + dedup design before code); dedup cannot be made to safely survive a lost-ack redelivery within scope (e.g. the process-exit path cannot be cleanly converted) — STOP and report; any need to change the server, E2EE/ratchet, wire message semantics, or to flip the legacy default; the existing legacy e2e would change/weaken (it is the compat guard); scope breach; queue/decision ambiguity; failed/pending check at merge; standing stops.
+
+See D580 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-13-580_eng0040_ack_client.md`) for the full ordering/dedup constraints, backward-compat behaviors, phases, required response sections, and STOP conditions.
+
+Begins at D-1267. Client-source lane, design-lock-first. Persist BEFORE ack; dedup BEFORE unpack; keep legacy the default and byte-identical. The lost-ack redelivery test is the one that proves the lane. Closeout records the default-flip as OWED (a later lane once proven).

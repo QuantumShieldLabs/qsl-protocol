@@ -39,6 +39,14 @@ HIGH_CONF_PATTERN = re.compile(
     r"x-api-key\s*[:=]\s*[A-Za-z0-9_-]{10,})"
 )
 MARKDOWN_LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+# 2026-07-14 self-repair bootstrap (operator-authorized, out of D581 scope): GitHub
+# never emitted the push-triggered public-ci run for main merge 9018ae4f (PR #1569),
+# leaving main HEAD with no public-safety check-run, which fails this gate closed for
+# every relevant PR; a mis-shaped workflow_dispatch (run 29375806367) then attached
+# advisories=failure + public-safety=failure check-runs to that SHA. This comment is
+# the minimal allowed-path change carrying the bootstrap PR whose merge push restores
+# a legitimately green main run. Incident record: docs/ops/ROLLING_OPERATIONS_JOURNAL.md
+# (2026-07-14, public-safety bootstrap entry).
 SELF_REPAIR_BOOTSTRAP_ROOT_PATHS = {
     ".github/workflows/public-ci.yml",
     "scripts/ci/public_safety_gate.py",

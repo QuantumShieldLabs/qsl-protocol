@@ -37,32 +37,20 @@ pub(crate) const QSP_SESSION_BLOB_VERSION: u8 = 1;
 pub(crate) const QSP_SESSION_STORE_KEY_SECRET: &str = "qsp_session_store_key_v1";
 pub(crate) const CONTACTS_SECRET_KEY: &str = "contacts.json";
 pub(crate) const TIMELINE_SECRET_KEY: &str = "timeline.json";
-pub(crate) const TUI_AUTOLOCK_SECRET_KEY: &str = "tui.autolock.minutes";
-pub(crate) const TUI_POLL_MODE_SECRET_KEY: &str = "tui.poll.mode";
-pub(crate) const TUI_POLL_INTERVAL_SECRET_KEY: &str = "tui.poll.interval_seconds";
 pub(crate) const TUI_RECEIPT_MODE_SECRET_KEY: &str = "tui.receipt.mode";
 pub(crate) const TUI_RECEIPT_BATCH_WINDOW_MS_SECRET_KEY: &str = "tui.receipt.batch_window_ms";
 pub(crate) const TUI_RECEIPT_JITTER_MS_SECRET_KEY: &str = "tui.receipt.jitter_ms";
 pub(crate) const TUI_FILE_CONFIRM_MODE_SECRET_KEY: &str = "tui.file_confirm.mode";
 pub(crate) const TUI_TRUST_MODE_SECRET_KEY: &str = "tui.trust.mode";
-pub(crate) const TUI_LAST_COMMAND_RESULT_SECRET_KEY: &str = "tui.last_command_result";
-pub(crate) const TUI_RELAY_ENDPOINT_SECRET_KEY: &str = "tui.relay.endpoint";
 pub(crate) const TUI_RELAY_TOKEN_SECRET_KEY: &str = "tui.relay.token";
 pub(crate) const TUI_RELAY_TOKEN_FILE_SECRET_KEY: &str = "tui.relay.token_file";
 pub(crate) const TUI_RELAY_INBOX_TOKEN_SECRET_KEY: &str = "tui.relay.inbox_token";
 pub(crate) const OUTBOX_NEXT_STATE_SECRET_KEY: &str = "outbox.next_state.v1";
-pub(crate) const ACCOUNT_VERIFICATION_SEED_SECRET_KEY: &str = "account.verification_seed_v1";
 pub(crate) const CONTACT_REQUESTS_SECRET_KEY: &str = "contact_requests.json";
 pub(crate) const ATTACHMENT_JOURNAL_SECRET_KEY: &str = "attachments.json";
 pub(crate) const QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED: &str = "QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED";
 pub(crate) const QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED: &str =
     "QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED";
-pub(crate) const QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS: &str =
-    "QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS";
-pub(crate) const VAULT_SECURITY_CONFIG_NAME: &str = "vault_security.txt";
-pub(crate) const VAULT_UNLOCK_COUNTER_NAME: &str = "vault_unlock_failures.txt";
-pub(crate) const VAULT_ATTEMPT_LIMIT_MIN: u32 = 1;
-pub(crate) const VAULT_ATTEMPT_LIMIT_MAX: u32 = 100;
 pub(crate) const FILE_XFER_VERSION: u8 = crate::adversarial::payload::FILE_XFER_VERSION;
 pub(crate) const FILE_XFER_DEFAULT_MAX_FILE_SIZE: usize = 256 * 1024;
 pub(crate) const FILE_XFER_MAX_FILE_SIZE_CEILING: usize = 4 * 1024 * 1024;
@@ -242,14 +230,3 @@ pub(crate) struct TimelineStore {
     pub(crate) file_transfers: BTreeMap<String, FileTransferRecord>,
 }
 
-#[derive(Clone, Debug, Default)]
-pub(crate) struct VaultSecurityState {
-    pub(crate) attempt_limit: Option<u32>,
-    pub(crate) failed_unlocks: u32,
-}
-
-pub(crate) enum UnlockAttemptOutcome {
-    Unlocked,
-    Rejected,
-    Wiped,
-}

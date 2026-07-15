@@ -190,37 +190,6 @@ pub fn unlock_with_passphrase(passphrase: &str) -> Result<(), &'static str> {
     out
 }
 
-pub fn destroy_with_passphrase(passphrase: &str) -> Result<(), &'static str> {
-    if passphrase.is_empty() {
-        return Err("vault_locked");
-    }
-    let (vault_path, mut runtime) = load_vault_runtime_with_passphrase(Some(passphrase))?;
-    let _ = decrypt_payload(&runtime)?;
-    let key_source = runtime.envelope.key_source;
-    runtime.key.zeroize();
-
-    if key_source == 2 {
-        keychain_remove_key().map_err(|_| "vault_erase_failed")?;
-    }
-
-    // Best-effort cryptographic erase path: remove wrapped material and then delete file.
-    if vault_path.exists() {
-        let len = fs::metadata(&vault_path)
-            .ok()
-            .map(|md| md.len() as usize)
-            .unwrap_or(0usize);
-        if len > 0 {
-            let zeros = vec![0u8; len];
-            fs::write(&vault_path, zeros).map_err(|_| "vault_erase_failed")?;
-        }
-        fs::remove_file(&vault_path).map_err(|_| "vault_erase_failed")?;
-        if let Some(parent) = vault_path.parent() {
-            crate::fsync_dir_best_effort(parent);
-        }
-    }
-    Ok(())
-}
-
 pub fn secret_get(name: &str) -> Result<Option<String>, &'static str> {
     if name.is_empty() {
         return Err("vault_secret_name_invalid");
@@ -254,6 +223,8 @@ pub fn secret_set(name: &str, value: &str) -> Result<(), &'static str> {
     Ok(())
 }
 
+// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+#[allow(dead_code)]
 pub fn secret_set_with_passphrase(
     name: &str,
     value: &str,
@@ -284,6 +255,8 @@ pub fn secret_set_with_passphrase(
     Ok(())
 }
 
+// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+#[allow(dead_code)]
 pub fn open_session(passphrase_override: Option<&str>) -> Result<VaultSession, &'static str> {
     let (vault_path, runtime) = load_vault_runtime_with_passphrase(passphrase_override)?;
     let payload = decrypt_payload(&runtime)?;
@@ -296,6 +269,8 @@ pub fn open_session(passphrase_override: Option<&str>) -> Result<VaultSession, &
     })
 }
 
+// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+#[allow(dead_code)]
 pub fn open_session_with_passphrase(passphrase: &str) -> Result<VaultSession, &'static str> {
     if passphrase.is_empty() {
         return Err("vault_locked");
@@ -303,6 +278,8 @@ pub fn open_session_with_passphrase(passphrase: &str) -> Result<VaultSession, &'
     open_session(Some(passphrase))
 }
 
+// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+#[allow(dead_code)]
 pub fn session_get(session: &VaultSession, name: &str) -> Result<Option<String>, &'static str> {
     if name.is_empty() {
         return Err("vault_secret_name_invalid");
@@ -310,6 +287,8 @@ pub fn session_get(session: &VaultSession, name: &str) -> Result<Option<String>,
     Ok(session.payload.secrets.get(name).cloned())
 }
 
+// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+#[allow(dead_code)]
 pub fn session_set(
     session: &mut VaultSession,
     name: &str,
@@ -325,6 +304,8 @@ pub fn session_set(
     persist_session(session)
 }
 
+// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+#[allow(dead_code)]
 pub fn perf_snapshot() -> (u64, u64, u64, u64) {
     (
         PERF_KDF_CALLS.load(Ordering::Relaxed),
@@ -334,6 +315,8 @@ pub fn perf_snapshot() -> (u64, u64, u64, u64) {
     )
 }
 
+// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+#[allow(dead_code)]
 fn persist_session(session: &mut VaultSession) -> Result<(), &'static str> {
     let write_epoch = VAULT_WRITE_EPOCH.load(Ordering::Relaxed);
     if write_epoch != session.write_epoch_seen {
@@ -694,6 +677,8 @@ struct VaultRuntime {
     key: [u8; 32],
 }
 
+// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+#[allow(dead_code)]
 pub struct VaultSession {
     vault_path: PathBuf,
     envelope: VaultRuntimeEnvelope,
@@ -1046,6 +1031,8 @@ pub fn set_process_passphrase(passphrase: Option<&str>) {
     *slot = passphrase.map(|value| value.to_string());
 }
 
+// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+#[allow(dead_code)]
 pub fn has_process_passphrase() -> bool {
     process_passphrase_slot()
         .lock()

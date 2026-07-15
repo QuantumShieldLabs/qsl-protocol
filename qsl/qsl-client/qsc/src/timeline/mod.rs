@@ -94,22 +94,6 @@ fn message_delivery_semantic(direction: &str, state: MessageState) -> Option<&'s
     }
 }
 
-pub(super) fn message_delivery_semantic_from_state_str(
-    direction: &str,
-    state: &str,
-) -> Option<&'static str> {
-    MessageState::parse(state).and_then(|parsed| message_delivery_semantic(direction, parsed))
-}
-
-pub(super) fn file_delivery_semantic_from_state(state: &str) -> Option<&'static str> {
-    match state.trim().to_ascii_uppercase().as_str() {
-        "SENT" | "ACCEPTED_BY_RELAY" => Some("accepted_by_relay"),
-        "AWAITING_CONFIRMATION" => Some("awaiting_confirmation"),
-        "DELIVERED" | "PEER_CONFIRMED" => Some("peer_confirmed"),
-        _ => None,
-    }
-}
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum ConfirmPolicy {
     PrimaryOnly,
@@ -127,10 +111,6 @@ const CONFIRM_POLICY: ConfirmPolicy = ConfirmPolicy::PrimaryOnly;
 
 pub(super) fn emit_cli_confirm_policy() {
     emit_cli_named_marker("QSC_CONFIRM_POLICY", &[("policy", CONFIRM_POLICY.as_str())]);
-}
-
-pub(super) fn emit_tui_confirm_policy() {
-    emit_tui_named_marker("QSC_CONFIRM_POLICY", &[("policy", CONFIRM_POLICY.as_str())]);
 }
 
 pub(super) fn emit_cli_delivery_state_with_device(
@@ -167,10 +147,6 @@ pub(super) fn emit_tui_delivery_state_with_device(
             ("device", safe_device.as_str()),
         ],
     );
-}
-
-pub(super) fn emit_tui_delivery_state(thread: &str, state: &'static str) {
-    emit_tui_delivery_state_with_device(thread, state, None);
 }
 
 pub(super) fn emit_cli_receipt_ignored_wrong_device(peer: &str, device: &str) {
@@ -313,10 +289,6 @@ pub(super) fn emit_tui_file_delivery_with_device(
             ("file", safe_file.as_str()),
         ],
     );
-}
-
-pub(super) fn emit_tui_file_delivery(thread: &str, state: &'static str, file_id: &str) {
-    emit_tui_file_delivery_with_device(thread, state, file_id, None);
 }
 
 pub(super) fn file_transfer_upsert_outbound_record(

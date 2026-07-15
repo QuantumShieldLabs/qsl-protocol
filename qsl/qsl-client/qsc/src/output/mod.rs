@@ -118,6 +118,8 @@ pub(crate) fn print_error_marker(code: &str) -> ! {
     process::exit(1);
 }
 
+// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+#[allow(dead_code)]
 pub(crate) fn set_marker_routing(routing: MarkerRouting) {
     let value = match routing {
         MarkerRouting::Stdout => 0,
@@ -315,4 +317,47 @@ fn log_marker(event: &str, code: Option<&str>, kv: &[(&str, &str)]) {
         .append(true)
         .open(path)
         .and_then(|mut f| f.write_all(line.as_bytes()));
+}
+
+// NA-0645 (D581 KEEP): the InApp routing is dormant after the TUI retirement — its only
+// producers were the TUI — but it is the event sink the GUI phase builds on. This test
+// keeps it off zero coverage until then.
+#[cfg(test)]
+mod inapp_routing_tests {
+    use super::{emit_marker, marker_queue, set_marker_routing, MarkerRouting};
+
+    #[test]
+    fn inapp_routing_queues_markers_and_stdout_routing_bypasses_queue() {
+        set_marker_routing(MarkerRouting::InApp);
+        emit_marker("na0645_inapp_probe", Some("keep"), &[("field", "value")]);
+        set_marker_routing(MarkerRouting::Stdout);
+
+        let queued = {
+            let mut queue = marker_queue().lock().expect("marker queue lock");
+            let mut found = None;
+            queue.retain(|line| {
+                if line.contains("event=na0645_inapp_probe") {
+                    found = Some(line.clone());
+                    false
+                } else {
+                    true
+                }
+            });
+            found
+        };
+        let line = queued.expect("InApp-routed marker must land in the marker queue");
+        assert!(
+            line.starts_with("QSC_MARK/1 event=na0645_inapp_probe")
+                && line.contains("code=keep")
+                && line.contains("field=value"),
+            "queued marker must carry the full formatted line: {line}"
+        );
+
+        emit_marker("na0645_stdout_probe", None, &[]);
+        let queue = marker_queue().lock().expect("marker queue lock");
+        assert!(
+            !queue.iter().any(|l| l.contains("na0645_stdout_probe")),
+            "Stdout-routed markers must not land in the marker queue"
+        );
+    }
 }

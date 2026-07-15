@@ -1,6 +1,5 @@
 mod common;
 
-use predicates::str::contains;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -8,7 +7,6 @@ use std::process::Command;
 
 const ROUTE_TOKEN_ALICE: &str = "route_token_alice_abcdefghijklmnop";
 const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
-const ROUTE_TOKEN_PEER0: &str = "route_token_peer0_abcdefghijklmnop";
 
 fn safe_test_root() -> PathBuf {
     let root = if let Ok(v) = env::var("QSC_TEST_ROOT") {
@@ -606,63 +604,4 @@ fn receive_mailbox_peer_separation_fail_closed() {
     );
     let after_wrong_peer_entries = fs::read_dir(&bob_out).unwrap().count();
     assert_eq!(before_wrong_peer_entries, after_wrong_peer_entries);
-}
-
-#[test]
-fn tui_receive_headless_marks() {
-    let server = common::start_inbox_server(1024 * 1024, 32);
-    let base = safe_test_root().join(format!("na0091_tui_recv_{}", std::process::id()));
-    create_dir_700(&base);
-    let cfg = base.join("cfg");
-    create_dir_700(&cfg);
-    common::init_mock_vault(&cfg);
-    contacts_route_set(&cfg, "peer-0", ROUTE_TOKEN_PEER0, None);
-    relay_inbox_set(&cfg, ROUTE_TOKEN_PEER0, None);
-    let msg = base.join("msg.bin");
-    fs::write(&msg, b"hello").expect("write msg");
-
-    let output_send = common::qsc_std_command()
-        .env("QSC_CONFIG_DIR", &cfg)
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
-        .env("QSC_MARK_FORMAT", "plain")
-        .args([
-            "send",
-            "--transport",
-            "relay",
-            "--relay",
-            server.base_url(),
-            "--to",
-            "peer-0",
-            "--file",
-            msg.to_str().unwrap(),
-        ])
-        .output()
-        .expect("send to peer-0");
-    assert!(output_send.status.success(), "send failed");
-
-    let mut cmd = common::qsc_assert_command();
-    cmd.env("QSC_CONFIG_DIR", &cfg)
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
-        .env("QSC_MARK_FORMAT", "plain")
-        .env("QSC_TUI_HEADLESS", "1")
-        .env("QSC_TUI_SCRIPT", "/receive;/exit")
-        .args([
-            "tui",
-            "--transport",
-            "relay",
-            "--relay",
-            server.base_url(),
-            "--seed",
-            "7",
-            "--scenario",
-            "happy-path",
-        ]);
-    cmd.assert()
-        .success()
-        .stdout(contains("event=tui_receive"))
-        .stdout(contains("event=recv_item"));
 }

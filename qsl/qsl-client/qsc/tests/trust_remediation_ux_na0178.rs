@@ -102,24 +102,6 @@ fn device_id_for(cfg: &Path, label: &str) -> String {
         .to_string()
 }
 
-fn run_headless(cfg: &Path, script: &str) -> String {
-    let mut cmd = common::qsc_assert_command();
-    let out = cmd
-        .env("QSC_CONFIG_DIR", cfg)
-        .env("QSC_TUI_HEADLESS", "1")
-        .env("QSC_TUI_SCRIPT", script)
-        .env("QSC_TUI_COLS", "140")
-        .env("QSC_TUI_ROWS", "40")
-        .env("QSC_MARK_FORMAT", "plain")
-        .env("QSC_TUI_TEST_UNLOCK", "1")
-        .args(["tui"])
-        .output()
-        .expect("run tui");
-    let combined = output_text(&out);
-    assert!(out.status.success(), "tui failed: {combined}");
-    combined
-}
-
 #[test]
 fn unknown_contact_remediation_cli_send_and_file_send() {
     let cfg = unique_test_dir("na0178_unknown_contact");
@@ -423,23 +405,3 @@ fn revoked_device_remediation_cli_no_mutation() {
     assert_no_leaks(&text);
 }
 
-#[test]
-fn tui_blocked_msg_emits_remediation_markers() {
-    let cfg = unique_test_dir("na0178_tui_blocked");
-    ensure_dir_700(&cfg);
-    common::init_mock_vault(&cfg);
-    let out = run_headless(&cfg, "/msg unknown hello;/exit");
-    assert!(
-        out.contains("QSC_TUI_SEND_BLOCKED reason=unknown_contact peer=unknown"),
-        "missing blocked marker: {out}"
-    );
-    assert!(
-        out.contains(
-            "QSC_TUI_TRUST_REMEDIATION reason=unknown_contact step=add_contact peer=unknown"
-        ) && out.contains(
-            "QSC_TUI_TRUST_REMEDIATION reason=unknown_contact step=learn_more peer=unknown"
-        ),
-        "missing tui remediation markers: {out}"
-    );
-    assert_no_leaks(&out);
-}

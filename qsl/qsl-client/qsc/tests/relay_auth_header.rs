@@ -240,15 +240,22 @@ fn init_mock_vault(cfg: &Path) {
     common::init_mock_vault(cfg);
 }
 
-fn tui_set_relay_token_file(cfg: &Path, token_file: &Path) {
-    let script = format!("/relay set token-file {}\n/exit\n", token_file.display());
+fn cli_set_relay_token_file(cfg: &Path, token_file: &Path) {
     let out = qsc_base(cfg)
-        .env("QSC_TUI_HEADLESS", "1")
-        .env("QSC_TUI_SCRIPT", script)
-        .args(["tui"])
+        .args([
+            "relay",
+            "token-file-set",
+            "--path",
+            token_file.to_str().expect("token file path"),
+        ])
         .output()
-        .expect("tui set relay token file");
-    assert!(out.status.success(), "{}", combined_output(&out));
+        .expect("relay token-file-set");
+    let combined = combined_output(&out);
+    assert!(out.status.success(), "{combined}");
+    assert!(
+        !combined.contains(token_file.to_string_lossy().as_ref()),
+        "setter output leaked token-file path"
+    );
 }
 
 fn receive_once_with_token(
@@ -700,7 +707,7 @@ fn relay_auth_uses_account_token_file_when_env_missing() {
     init_mock_vault(&cfg);
     contacts_add_with_route_token(&cfg, "bob", ROUTE_TOKEN_BOB);
     relay_set_inbox_token(&cfg, ROUTE_TOKEN_BOB);
-    tui_set_relay_token_file(&cfg, &token_file);
+    cli_set_relay_token_file(&cfg, &token_file);
 
     let send_output = qsc_base(&cfg)
         .env_remove("QSC_RELAY_TOKEN")

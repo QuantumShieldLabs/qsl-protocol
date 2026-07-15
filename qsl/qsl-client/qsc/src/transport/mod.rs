@@ -1311,7 +1311,6 @@ pub(super) fn relay_send(
         meta_seed,
         receipt,
         routing_override: None,
-        tui_thread: None,
     });
     if let Some(code) = outcome.error_code {
         print_error_marker(code);
@@ -1332,16 +1331,6 @@ pub(super) fn fault_injector_from_env() -> Option<FaultInjector> {
         .parse::<u64>()
         .unwrap_or_else(|_| print_error_marker("fault_injection_seed_invalid"));
     Some(FaultInjector { seed, scenario })
-}
-
-pub(super) fn fault_injector_from_tui(cfg: &TuiRelayConfig) -> Option<FaultInjector> {
-    if cfg.scenario == "happy-path" || cfg.scenario == "default" {
-        return None;
-    }
-    Some(FaultInjector {
-        seed: cfg.seed,
-        scenario: cfg.scenario.clone(),
-    })
 }
 
 fn relay_auth_token() -> Option<String> {
@@ -1738,7 +1727,6 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySe
         meta_seed,
         receipt,
         routing_override,
-        tui_thread,
     } = args;
     if let Err(code) = normalize_relay_endpoint(relay) {
         return RelaySendOutcome {
@@ -1766,10 +1754,6 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySe
         routing.implicit_primary,
     );
     emit_cli_confirm_policy();
-    if let Some(thread) = tui_thread {
-        emit_tui_routing_marker(thread, routing.device_id.as_str(), routing.implicit_primary);
-        emit_tui_confirm_policy();
-    }
     let push_route_token = routing.route_token.clone();
     let (dir, source) = match config_dir() {
         Ok(v) => v,
@@ -2040,13 +2024,6 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySe
                 "accepted_by_relay",
                 Some(routing.device_id.as_str()),
             );
-            if let Some(thread) = tui_thread {
-                emit_tui_delivery_state_with_device(
-                    thread,
-                    "accepted_by_relay",
-                    Some(routing.device_id.as_str()),
-                );
-            }
             finalize_send_commit(
                 &dir,
                 source,

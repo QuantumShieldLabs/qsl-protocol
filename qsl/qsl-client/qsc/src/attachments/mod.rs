@@ -1054,7 +1054,6 @@ fn attachment_send_execute(args: AttachmentSendExec<'_>) -> Result<(), String> {
         meta_seed: None,
         receipt: None,
         routing_override: None,
-        tui_thread: None,
     });
     if let Some(code) = outcome.error_code {
         return Err(code.to_string());
@@ -1713,7 +1712,6 @@ fn relay_send_file_payload_with_retry(to: &str, payload: Vec<u8>, relay: &str) -
             meta_seed: None,
             receipt: None,
             routing_override: None,
-            tui_thread: None,
         });
         let Some(code) = outcome.error_code else {
             return outcome;

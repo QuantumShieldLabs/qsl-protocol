@@ -2,7 +2,7 @@ Goals: G4, G5
 
 Status: Supporting (product planning; subordinate to canonical specs, GOALS, the queue, and independent review)
 Owner: QSL governance
-Last-Updated: 2026-07-13
+Last-Updated: 2026-07-14 (NA-0645/D581: TUI retired — UI facts truthed-up)
 Authority: Non-normative product planning. Does NOT override START_HERE, GOALS,
 the canonical specs, NEXT_ACTIONS, the IMPROVEMENT_LEDGER, or any recorded
 decision. Where this document and any of those disagree, THEY win and this
@@ -43,11 +43,16 @@ What qsc IS today: a working 1:1 PQ-hybrid E2EE messenger over a relay —
   identity, out-of-band verification-code trust (responder authenticated
   against the pinned KEM identity since NA-0633); per-device contact records,
   trust modes, inbound-request handling.
-- **Storage:** encrypted-at-rest vault (Argon2id + AEAD) with failed-unlock
-  wipe limit; encrypted timeline; redacted diagnostics export.
-- **TUI:** the read-mostly "Security Lens" — conversation view with
-  focused/unfocused unread semantics, session/keys/contacts/relay panes, a
-  command surface for handshake/contacts/relay/vault operations.
+- **Storage:** encrypted-at-rest vault (Argon2id + AEAD); encrypted timeline;
+  redacted diagnostics export. (The failed-unlock wipe limit was TUI-only and
+  was co-deleted with the TUI at NA-0645 — owed back in the GUI phase via
+  ENG-0044, together with idle autolock and account-destroy.)
+- **UI:** the qsc TUI (the read-mostly "Security Lens") was **RETIRED at
+  NA-0645 (D581, 2026-07-14)** — operator product decision: the GUI is the
+  only end-user UI and the CLI stays a thin test-harness/operator surface;
+  the TUI's simplified receive loop lacked the NA-0644 ack-lease/dedup
+  durability. Its conversation view, panes, and command surface are prior
+  art for the GUI.
 
 What qsc is NOT (none of this is built):
 
@@ -59,8 +64,9 @@ What qsc is NOT (none of this is built):
 - **NONE of the four differentiator UIs exist, except the no-account posture,
   which is structural:** identity is a local keypair under a label — no
   registration, no phone number, no account concept anywhere. There is no
-  PQ-status indicator in the TUI (the protocol IS hybrid-PQ; the UI never says
-  so). There is no KT verifier UI.
+  PQ-status indicator in any user-facing surface (the protocol IS hybrid-PQ;
+  nothing user-facing says so — the indicator lands in the GUI, the TUI being
+  retired). There is no KT verifier UI.
 - **KT exists only in the refimpl** (`tools/refimpl/.../kt/`, interface defined,
   verification plumbing stubbed pending DOC-CAN-008 wire formats). The qsc
   client has zero KT code.
@@ -199,8 +205,12 @@ external claim.
   lane's design-lock.
 - **DOC-CAN-008** — the KT profile the Tier-2 KT verifier UI ultimately
   builds against (via the refimpl's KT interface, once wire formats settle).
-- **DOC-QSC-001..006 / QSC TUI spec** — the existing TUI charter the UI
-  surfaces in Tiers 1–2 must respect.
+- **DOC-QSC-001..006 / QSC TUI spec** — the TUI-specific docs (DOC-QSC-001,
+  DOC-QSC-005, QSC_TUI_SPEC/INVARIANTS/IMPLEMENTATION_CHECKLIST) are
+  SUPERSEDED as of NA-0645 (the TUI is retired; they remain as history).
+  Their security-lens PRINCIPLES — explicit intent, deterministic markers,
+  truthful security state, no implicit mutation — carry forward as the bar
+  the GUI surfaces in Tiers 1–2 must respect.
 - **GOALS.md** — Tier 1/2 items serve G4 (verification-adjacent surfaces) and
   the product posture; metadata-relevant items (ENG-0037) belong to the G5
   family per the metadata roadmap.

@@ -46,22 +46,6 @@ fn qsp_rng_fill(label: &str, out: &mut [u8]) -> Result<(), ErrorCode> {
     Ok(())
 }
 
-pub(crate) fn qsp_status_parts(value: &str) -> (&str, &str) {
-    value.split_once(" reason=").unwrap_or((value, "unknown"))
-}
-
-pub(crate) fn qsp_status_user_note(reason: &str) -> &'static str {
-    match reason {
-        "handshake" => "Stored session ready for exchange.",
-        "no_session" => "No stored session yet; run handshake init/poll before exchange.",
-        "missing_seed" => "No stored session yet; deterministic seed fallback is absent.",
-        "session_invalid" => "Stored session rejected as invalid or stale; re-establish handshake.",
-        "vault_secret_missing" => "Unlock before restoring session state from the local vault.",
-        "chainkey_unset" => "Handshake exists, but send keys are not ready yet.",
-        _ => "Session state unavailable.",
-    }
-}
-
 fn qsp_status_path(dir: &Path) -> PathBuf {
     dir.join(QSP_STATUS_FILE_NAME)
 }
@@ -137,11 +121,6 @@ pub(crate) fn qsp_send_ready_tuple(peer: &str) -> (bool, &'static str) {
         Err(ErrorCode::ParseFailed) => (false, "state_corrupt"),
         Err(_) => (false, "other"),
     }
-}
-
-pub(crate) fn qsp_status_string(peer: &str) -> String {
-    let (status, reason) = qsp_status_tuple(peer);
-    format!("{} reason={}", status, reason)
 }
 
 fn qsp_sessions_dir(dir: &Path) -> PathBuf {

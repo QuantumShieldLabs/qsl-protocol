@@ -73,11 +73,6 @@ pub fn normalize_relay_endpoint(value: &str) -> Result<String, &'static str> {
     Ok(parsed.to_string().trim_end_matches('/').to_string())
 }
 
-pub fn relay_probe_url(endpoint: &str) -> Result<String, &'static str> {
-    let endpoint = normalize_relay_endpoint(endpoint)?;
-    Ok(format!("{}/v1/pull?max=1", endpoint.trim_end_matches('/')))
-}
-
 pub fn parse_http_target(target: &str) -> Option<HttpRelayTarget> {
     let (path, query) = match target.split_once('?') {
         Some((p, q)) => (p, Some(q)),

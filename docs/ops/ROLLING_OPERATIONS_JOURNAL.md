@@ -43443,3 +43443,51 @@ Nothing here extracts the core (the NEXT lane), builds GUI code, or touches
 protocol/crypto/wire; the claim boundary is unchanged. Queue → READY=NONE
 (HIGHEST_D=1268); the operator promotes the successor — naturally the
 core-extraction/crate-split lane this deletion was staged for.
+
+## 2026-07-15 — NA-0646: qsc-core extracted (D582, D-1269, CORE_EXTRACTION_PASS)
+
+The hinge lane of the product phase is complete: qsc's messaging core is a linkable
+library with byte-identical CLI behavior, in the two sequential PRs D582 prescribed.
+
+PR-A (#1573, merged `abb10cab`) was the crate split — pure text motion plus 210
+machine-verified visibility widenings: src/lib.rs fattened 7 → 2,310 lines (all 17
+modules incl. cmd/ wholesale; the 2,155 enumerated main.rs lines landed at the lib
+ROOT so every module's `use super::*` / `use crate::…` kept resolving and module
+bodies stayed untouched); main.rs shrank to the 642-line thin bin. Purity was
+machine-checked (2,836 verbatim + 94 widened + 46 wiring lines, zero unexplained,
+zero lost; git color-moved concurred at 2,192/2,183) and the 14-case byte-identity
+prover (landed in PR-A, determinism proven by double-run) captured the corpus
+BEFORE/AFTER byte-identical. Suite 405/0/1-pre-existing-ignored across 107 result
+sets — the 422 baseline minus exactly the 17 adversarial/envelope unit tests the old
+double-compile ran twice, reconciled BY NAME; e2e 2/0 unchanged.
+
+PR-B (this PR) was exit→Result: the five funnels return CliError and the LIBRARY
+CONTAINS ZERO process::exit SITES — exit semantics live only in the bin's single
+Err→emit+exit adapter (plus util_sanitize's bin-local usage exit(2) and clap's own).
+The three kv/dynamic funnels emit AT SITE and return already-emitted errors
+(require_unlocked, protocol_inactive_error, file_xfer_reject — both markers, original
+order); the plain-code families propagate their exact code for the adapter to emit as
+the byte-identical last line. ~263 sites rewired; the signature cascade converted ~80
+fns; where soft and fatal error paths coexisted the original fan-out is preserved
+exactly (AttachmentSendError, ReceiptSendError, the read_send_state nesting,
+fault_injector_from_env → CliResult<Option<…>>). receive_pull_and_write's 8 in-loop
+exits land at the SAME control points (the equivalence document is in the evidence
+dir), the ENG-0042 seam is PRESERVED not fixed, and the session-store site's
+pre-existing double emission is reproduced exactly. Proof: the prover BEFORE (at
+PR-A's merged state) vs AFTER byte-diff EMPTY 14/14 on the first run; WF-0017
+non-vacuity demonstrated (a deliberately reversed kv order turned the differ RED on
+exactly the vault-locked case, then reverted and green re-proven); cargo check
+--all-targets 0/0 with every dropped-Result warning chased to an explicit `?`; full
+local suite 405/0/1 across 107 result sets — identical to the PR-A baseline; the
+NA-0640 e2e green unchanged (2/0, 117.65s, zero e2e edits).
+
+The D581 KEEP items are the library's pub GUI surface (annotations updated). Named
+residue: CoreCtx de-globaling (globals stay this lane — and lib-level state-dependent
+tests remain forbidden, the binary stays the behavior-test vehicle); the ~30 raw
+println!/eprintln! sites that bypass marker routing (GUI lane); the clap-value-enum
+split if a separate qsc-core package is ever wanted; blocking reqwest (Tauri
+spawn_blocking); the KEEP dead_code allowances come off when the GUI consumes them.
+Nothing here builds GUI code or touches protocol/crypto/wire; ENG-0042 and ENG-0044
+stand as filed; the claim boundary is unchanged. Queue → READY=NONE (HIGHEST_D=1269);
+the operator promotes the successor — naturally the GUI lane per DOC-PROG-003 §5,
+which this lane exists to serve.

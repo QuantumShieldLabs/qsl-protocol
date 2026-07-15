@@ -937,7 +937,27 @@ struct AttachmentSendExec<'a> {
     receipt: Option<ReceiptKind>,
 }
 
-fn attachment_send_execute(args: AttachmentSendExec<'_>) -> Result<(), String> {
+// NA-0646 (D582) PR-B: the upload path had ONE fatal exit (protocol-inactive) among
+// soft String errors that file_send_execute converts into file_xfer_reject markers.
+// Soft/fatal are routed by From impls so the existing `?` sites stay untouched.
+enum AttachmentSendError {
+    Soft(String),
+    Fatal(CliError),
+}
+
+impl From<String> for AttachmentSendError {
+    fn from(code: String) -> Self {
+        AttachmentSendError::Soft(code)
+    }
+}
+
+impl From<CliError> for AttachmentSendError {
+    fn from(err: CliError) -> Self {
+        AttachmentSendError::Fatal(err)
+    }
+}
+
+fn attachment_send_execute(args: AttachmentSendExec<'_>) -> Result<(), AttachmentSendError> {
     let AttachmentSendExec {
         to,
         path,
@@ -949,13 +969,13 @@ fn attachment_send_execute(args: AttachmentSendExec<'_>) -> Result<(), String> {
         receipt,
     } = args;
     if let Err(code) = enforce_peer_not_blocked(to) {
-        return Err(code.to_string());
+        return Err(code.to_string().into());
     }
     if let Err(code) = enforce_cli_send_contact_trust(to) {
-        return Err(code.to_string());
+        return Err(code.to_string().into());
     }
     if let Err(reason) = protocol_active_or_reason_for_send_peer(to) {
-        protocol_inactive_exit(reason.as_str());
+        return Err(protocol_inactive_error(reason.as_str()).into());
     }
     let routing = resolve_send_routing_target(to).map_err(|e| e.to_string())?;
     let effective_limit = max_file_size.unwrap_or(ATTACHMENT_DEFAULT_MAX_FILE_SIZE);
@@ -964,10 +984,10 @@ fn attachment_send_execute(args: AttachmentSendExec<'_>) -> Result<(), String> {
         .map_err(|_| "file_xfer_read_failed".to_string())?
         .len() as usize;
     if payload_len <= ATTACHMENT_LEGACY_THRESHOLD_BYTES && !allow_legacy_sized {
-        return Err("attachment_path_requires_large_file".to_string());
+        return Err("attachment_path_requires_large_file".to_string().into());
     }
     if payload_len > effective_limit {
-        return Err("size_exceeds_max".to_string());
+        return Err("size_exceeds_max".to_string().into());
     }
     let mut journal = attachment_journal_load().map_err(|e| e.to_string())?;
     let (record_key, mut record) = match attachment_find_outbound_by_source(&journal, to, path) {
@@ -980,10 +1000,10 @@ fn attachment_send_execute(args: AttachmentSendExec<'_>) -> Result<(), String> {
         }
     };
     if record.part_count as usize > effective_max_parts {
-        return Err("chunk_count_exceeds_max".to_string());
+        return Err("chunk_count_exceeds_max".to_string().into());
     }
     if record.state == "PEER_CONFIRMED" || record.state == "AWAITING_CONFIRMATION" {
-        return Err("attachment_send_inflight".to_string());
+        return Err("attachment_send_inflight".to_string().into());
     }
     record.service_url = Some(service_url.to_string());
     record.target_device_id = Some(short_device_marker(&routing.device_id));
@@ -1048,15 +1068,15 @@ fn attachment_send_execute(args: AttachmentSendExec<'_>) -> Result<(), String> {
         to,
         payload: descriptor,
         relay,
-        injector: transport::fault_injector_from_env(),
+        injector: transport::fault_injector_from_env()?,
         pad_cfg: None,
         bucket_max: None,
         meta_seed: None,
         receipt: None,
         routing_override: None,
-    });
+    })?;
     if let Some(code) = outcome.error_code {
-        return Err(code.to_string());
+        return Err(code.to_string().into());
     }
     record.timeline_id = latest_outbound_file_id(to).ok();
     record.state = if record.confirm_requested {
@@ -1559,8 +1579,8 @@ pub(super) fn attachment_handle_descriptor(
 pub(super) fn attachment_resume_pending_for_peer(
     ctx: &ReceivePullCtx<'_>,
     service_url: &str,
-) -> Result<usize, &'static str> {
-    let journal = attachment_journal_load()?;
+) -> CliResult<usize> {
+    let journal = attachment_journal_load().map_err(CliError::code)?;
     let pending: Vec<String> = journal
         .records
         .iter()
@@ -1578,7 +1598,8 @@ pub(super) fn attachment_resume_pending_for_peer(
     drop(journal);
     let mut resumed = 0usize;
     for key in pending {
-        if let Some((attachment_id, confirm_handle)) = attachment_process_inbound_record(ctx, &key)?
+        if let Some((attachment_id, confirm_handle)) =
+            attachment_process_inbound_record(ctx, &key).map_err(CliError::code)?
         {
             resumed = resumed.saturating_add(1);
             let item = PendingReceipt::AttachmentComplete {
@@ -1601,7 +1622,7 @@ pub(super) fn attachment_resume_pending_for_peer(
                     );
                 }
                 ReceiptEmitMode::Immediate | ReceiptEmitMode::Batched => {
-                    send_pending_receipt(ctx, item);
+                    send_pending_receipt(ctx, item)?;
                 }
             }
         }
@@ -1609,13 +1630,14 @@ pub(super) fn attachment_resume_pending_for_peer(
     Ok(resumed)
 }
 
-pub(super) fn file_xfer_reject(id: &str, reason: &str) -> ! {
+pub(super) fn file_xfer_reject(id: &str, reason: &str) -> CliError {
     emit_marker(
         "file_xfer_reject",
         Some(reason),
         &[("id", id), ("reason", reason)],
     );
-    print_error_marker(reason);
+    emit_marker("error", Some(reason), &[]);
+    CliError::Emitted
 }
 
 pub(super) fn file_xfer_store_key(peer: &str, file_id: &str) -> String {
@@ -1699,25 +1721,25 @@ pub(super) fn file_transfer_fail_clean(
     Ok(())
 }
 
-fn relay_send_file_payload_with_retry(to: &str, payload: Vec<u8>, relay: &str) -> RelaySendOutcome {
+fn relay_send_file_payload_with_retry(to: &str, payload: Vec<u8>, relay: &str) -> CliResult<RelaySendOutcome> {
     let mut attempt = 1usize;
     loop {
         let outcome = transport::relay_send_with_payload(RelaySendPayloadArgs {
             to,
             payload: payload.clone(),
             relay,
-            injector: transport::fault_injector_from_env(),
+            injector: transport::fault_injector_from_env()?,
             pad_cfg: None,
             bucket_max: None,
             meta_seed: None,
             receipt: None,
             routing_override: None,
-        });
+        })?;
         let Some(code) = outcome.error_code else {
-            return outcome;
+            return Ok(outcome);
         };
         if !file_push_retryable(code) || attempt >= FILE_PUSH_MAX_ATTEMPTS {
-            return outcome;
+            return Ok(outcome);
         }
         let backoff_ms = FILE_PUSH_RETRY_BASE_BACKOFF_MS * (1u64 << (attempt - 1));
         emit_file_push_retry(attempt, backoff_ms, code);
@@ -1739,7 +1761,7 @@ pub struct FileSendExec<'a> {
     pub receipt: Option<ReceiptKind>,
 }
 
-pub fn file_send_execute(args: FileSendExec<'_>) {
+pub fn file_send_execute(args: FileSendExec<'_>) -> CliResult {
     let FileSendExec {
         transport,
         relay,
@@ -1752,14 +1774,12 @@ pub fn file_send_execute(args: FileSendExec<'_>) {
         max_chunks,
         receipt,
     } = args;
-    if !require_unlocked("file_send") {
-        return;
-    }
+    require_unlocked("file_send")?;
     let legacy_in_message_stage = resolve_legacy_in_message_stage(legacy_in_message_stage)
-        .unwrap_or_else(|code| file_xfer_reject("unknown", code));
+        .map_err(|code| file_xfer_reject("unknown", code))?;
     let path_len_hint = fs::metadata(path)
         .map(|v| v.len() as usize)
-        .unwrap_or_else(|_| file_xfer_reject("unknown", "file_xfer_read_failed"));
+        .map_err(|_| file_xfer_reject("unknown", "file_xfer_read_failed"))?;
     let size_class = if path_len_hint > ATTACHMENT_LEGACY_THRESHOLD_BYTES {
         "above_threshold"
     } else {
@@ -1789,22 +1809,22 @@ pub fn file_send_execute(args: FileSendExec<'_>) {
     );
     if use_attachment_path {
         let service_url = resolve_large_file_attachment_service(attachment_service)
-            .unwrap_or_else(|code| file_xfer_reject("unknown", code));
+            .map_err(|code| file_xfer_reject("unknown", code))?;
         if chunk_size != FILE_XFER_DEFAULT_CHUNK_SIZE {
-            file_xfer_reject("unknown", "attachment_chunk_flag_invalid");
+            return Err(file_xfer_reject("unknown", "attachment_chunk_flag_invalid"));
         }
         let transport = match transport {
             Some(v) => v,
-            None => file_xfer_reject("unknown", "file_xfer_transport_required"),
+            None => return Err(file_xfer_reject("unknown", "file_xfer_transport_required")),
         };
         match transport {
             SendTransport::Relay => {}
         }
         let relay = match relay {
             Some(v) => v,
-            None => file_xfer_reject("unknown", "file_xfer_relay_required"),
+            None => return Err(file_xfer_reject("unknown", "file_xfer_relay_required")),
         };
-        if let Err(code) = attachment_send_execute(AttachmentSendExec {
+        if let Err(err) = attachment_send_execute(AttachmentSendExec {
             to,
             path,
             relay,
@@ -1814,56 +1834,60 @@ pub fn file_send_execute(args: FileSendExec<'_>) {
             max_parts: max_chunks,
             receipt,
         }) {
-            file_xfer_reject("unknown", code.as_str());
+            let code = match err {
+                AttachmentSendError::Soft(code) => code,
+                AttachmentSendError::Fatal(e) => return Err(e),
+            };
+            return Err(file_xfer_reject("unknown", code.as_str()));
         }
-        return;
+        return Ok(());
     }
     let transport = match transport {
         Some(v) => v,
-        None => file_xfer_reject("unknown", "file_xfer_transport_required"),
+        None => return Err(file_xfer_reject("unknown", "file_xfer_transport_required")),
     };
     match transport {
         SendTransport::Relay => {}
     }
     let relay = match relay {
         Some(v) => v,
-        None => file_xfer_reject("unknown", "file_xfer_relay_required"),
+        None => return Err(file_xfer_reject("unknown", "file_xfer_relay_required")),
     };
     if !channel_label_ok(to) {
-        file_xfer_reject("unknown", "file_xfer_peer_invalid");
+        return Err(file_xfer_reject("unknown", "file_xfer_peer_invalid"));
     }
     let max_file_size = max_file_size.unwrap_or(FILE_XFER_DEFAULT_MAX_FILE_SIZE);
     let max_chunks = max_chunks.unwrap_or(FILE_XFER_DEFAULT_MAX_CHUNKS);
     if max_file_size == 0 || max_file_size > FILE_XFER_MAX_FILE_SIZE_CEILING {
-        file_xfer_reject("unknown", "file_xfer_size_bound_invalid");
+        return Err(file_xfer_reject("unknown", "file_xfer_size_bound_invalid"));
     }
     if chunk_size == 0 || chunk_size > FILE_XFER_MAX_CHUNK_SIZE_CEILING {
-        file_xfer_reject("unknown", "file_xfer_chunk_bound_invalid");
+        return Err(file_xfer_reject("unknown", "file_xfer_chunk_bound_invalid"));
     }
     if max_chunks == 0 || max_chunks > FILE_XFER_MAX_CHUNKS_CEILING {
-        file_xfer_reject("unknown", "file_xfer_chunks_bound_invalid");
+        return Err(file_xfer_reject("unknown", "file_xfer_chunks_bound_invalid"));
     }
     if let Err(code) = enforce_peer_not_blocked(to) {
-        file_xfer_reject("unknown", code);
+        return Err(file_xfer_reject("unknown", code));
     }
     let payload =
-        fs::read(path).unwrap_or_else(|_| file_xfer_reject("unknown", "file_xfer_read_failed"));
+        fs::read(path).map_err(|_| file_xfer_reject("unknown", "file_xfer_read_failed"))?;
     if payload.is_empty() {
-        file_xfer_reject("unknown", "file_xfer_empty");
+        return Err(file_xfer_reject("unknown", "file_xfer_empty"));
     }
     if payload.len() > max_file_size {
-        file_xfer_reject("unknown", "size_exceeds_max");
+        return Err(file_xfer_reject("unknown", "size_exceeds_max"));
     }
     let chunk_count = payload.len().div_ceil(chunk_size);
     if chunk_count > max_chunks {
-        file_xfer_reject("unknown", "chunk_count_exceeds_max");
+        return Err(file_xfer_reject("unknown", "chunk_count_exceeds_max"));
     }
     if let Err(code) = enforce_cli_send_contact_trust(to) {
-        file_xfer_reject("unknown", code);
+        return Err(file_xfer_reject("unknown", code));
     }
     let routing = match resolve_send_routing_target(to) {
         Ok(v) => v,
-        Err(code) => file_xfer_reject("unknown", code),
+        Err(code) => return Err(file_xfer_reject("unknown", code)),
     };
     if let Err(reason) = protocol_active_or_reason_for_peer(routing.channel.as_str()) {
         emit_marker(
@@ -1875,7 +1899,7 @@ pub fn file_send_execute(args: FileSendExec<'_>) {
                 ("detail", reason.as_str()),
             ],
         );
-        protocol_inactive_exit(reason.as_str());
+        return Err(protocol_inactive_error(reason.as_str()));
     }
     let filename = path
         .file_name()
@@ -1926,10 +1950,10 @@ pub fn file_send_execute(args: FileSendExec<'_>) {
             chunk,
         };
         let body = serde_json::to_vec(&chunk_payload)
-            .unwrap_or_else(|_| file_xfer_reject(file_id.as_str(), "file_xfer_encode_failed"));
-        let outcome = relay_send_file_payload_with_retry(to, body, relay);
+            .map_err(|_| file_xfer_reject(file_id.as_str(), "file_xfer_encode_failed"))?;
+        let outcome = relay_send_file_payload_with_retry(to, body, relay)?;
         if let Some(code) = outcome.error_code {
-            file_xfer_reject(file_id.as_str(), code);
+            return Err(file_xfer_reject(file_id.as_str(), code));
         }
         let idx_s = idx.to_string();
         emit_marker(
@@ -1956,10 +1980,10 @@ pub fn file_send_execute(args: FileSendExec<'_>) {
         confirm_id: confirm_id.clone(),
     };
     let manifest_body = serde_json::to_vec(&manifest)
-        .unwrap_or_else(|_| file_xfer_reject(file_id.as_str(), "file_xfer_encode_failed"));
-    let outcome = relay_send_file_payload_with_retry(to, manifest_body, relay);
+        .map_err(|_| file_xfer_reject(file_id.as_str(), "file_xfer_encode_failed"))?;
+    let outcome = relay_send_file_payload_with_retry(to, manifest_body, relay)?;
     if let Some(code) = outcome.error_code {
-        file_xfer_reject(file_id.as_str(), code);
+        return Err(file_xfer_reject(file_id.as_str(), code));
     }
     emit_marker(
         "file_xfer_manifest",
@@ -1976,7 +2000,7 @@ pub fn file_send_execute(args: FileSendExec<'_>) {
         Some(routing.device_id.as_str()),
     ) {
         emit_message_state_reject(file_id.as_str(), code);
-        file_xfer_reject(file_id.as_str(), code);
+        return Err(file_xfer_reject(file_id.as_str(), code));
     }
     let outbound = FileTransferRecord {
         id: file_id.clone(),
@@ -2001,7 +2025,7 @@ pub fn file_send_execute(args: FileSendExec<'_>) {
         },
     };
     if let Err(code) = file_transfer_upsert_outbound_record(to, file_id.as_str(), outbound) {
-        file_xfer_reject(file_id.as_str(), code);
+        return Err(file_xfer_reject(file_id.as_str(), code));
     }
     emit_marker(
         "file_xfer_complete",
@@ -2023,6 +2047,7 @@ pub fn file_send_execute(args: FileSendExec<'_>) {
             Some(routing.device_id.as_str()),
         );
     }
+    Ok(())
 }
 
 pub(super) fn file_transfer_handle_chunk(
@@ -2213,7 +2238,7 @@ pub(super) fn file_transfer_handle_manifest(
     Ok(None)
 }
 
-pub(super) fn build_file_completion_ack(file_id: &str, confirm_id: &str) -> Vec<u8> {
+pub(super) fn build_file_completion_ack(file_id: &str, confirm_id: &str) -> CliResult<Vec<u8>> {
     let ack = FileConfirmPayload {
         v: 1,
         t: "ack".to_string(),
@@ -2221,13 +2246,13 @@ pub(super) fn build_file_completion_ack(file_id: &str, confirm_id: &str) -> Vec<
         file_id: file_id.to_string(),
         confirm_id: confirm_id.to_string(),
     };
-    serde_json::to_vec(&ack).unwrap_or_else(|_| print_error_marker("receipt_encode_failed"))
+    serde_json::to_vec(&ack).map_err(|_| CliError::code("receipt_encode_failed"))
 }
 
 pub(super) fn build_attachment_completion_ack(
     attachment_id: &str,
     confirm_handle: &str,
-) -> Vec<u8> {
+) -> CliResult<Vec<u8>> {
     let ack = AttachmentConfirmPayload {
         v: 1,
         t: "ack".to_string(),
@@ -2235,7 +2260,7 @@ pub(super) fn build_attachment_completion_ack(
         attachment_id: attachment_id.to_string(),
         confirm_handle: confirm_handle.to_string(),
     };
-    serde_json::to_vec(&ack).unwrap_or_else(|_| print_error_marker("receipt_encode_failed"))
+    serde_json::to_vec(&ack).map_err(|_| CliError::code("receipt_encode_failed"))
 }
 
 pub(super) fn validated_attachment_service_from_env() -> Option<String> {

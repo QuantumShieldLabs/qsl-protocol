@@ -119,10 +119,11 @@ use identity::{
 };
 use model::*;
 use output::{
-    emit_cli_named_marker, emit_marker, emit_tui_named_marker, print_error_marker, print_marker, };
+    CliError, CliResult,
+    emit_cli_named_marker, emit_marker, emit_tui_named_marker, print_marker, };
 use protocol_state::{
     kmac_out, protocol_active_or_reason_for_peer,
-    protocol_inactive_exit, qsp_scka_load, qsp_scka_store, qsp_send_ready_tuple,
+    protocol_inactive_error, qsp_scka_load, qsp_scka_store, qsp_send_ready_tuple,
     qsp_session_for_channel, qsp_session_load, qsp_session_store,
     qsp_session_store_with_trigger, qsp_trigger_load, record_qsp_status,
     zero32, QspTriggerState, SckaLocalState, SckaPeerAdv, QSP_DH_FALLBACK_N,
@@ -151,16 +152,20 @@ pub fn vault_unlocked() -> bool {
     VAULT_UNLOCKED_THIS_RUN.load(Ordering::SeqCst)
 }
 
-pub fn require_unlocked(op_name: &'static str) -> bool {
+pub(crate) fn cli_err(code: ErrorCode) -> CliError {
+    CliError::code(code.as_str())
+}
+
+pub fn require_unlocked(op_name: &'static str) -> CliResult {
     if vault_unlocked() {
-        return true;
+        return Ok(());
     }
     emit_marker(
         "error",
         Some("vault_locked"),
         &[("op", op_name), ("reason", "explicit_unlock_required")],
     );
-    process::exit(1);
+    Err(CliError::Emitted)
 }
 
 fn read_relay_token_file(path: &str) -> Result<String, &'static str> {
@@ -197,16 +202,16 @@ pub fn identity_peer_status(peer: &str) -> (String, bool) {
     }
 }
 
-pub fn identity_show(self_label: &str) {
+pub fn identity_show(self_label: &str) -> CliResult {
     let Some(rec) =
-        identity_read_self_public(self_label).unwrap_or_else(|e| print_error_marker(e.as_str()))
+        identity_read_self_public(self_label).map_err(|e| CliError::code(e.as_str()))?
     else {
         emit_marker(
             "identity_show",
             None,
             &[("ok", "false"), ("reason", "missing_identity")],
         );
-        print_error_marker("identity_missing");
+        return Err(CliError::code("identity_missing"));
     };
     // NA-0634 (D571 Decision 2a): the verification code binds BOTH identity keys (KEM + signing).
     let fp = identity_fingerprint_from_identity(&rec.kem_pk, &rec.sig_pk);
@@ -223,19 +228,18 @@ pub fn identity_show(self_label: &str) {
     // NA-0634 (D571 Decision 2a): also emit the signing key so a peer provisions BOTH keys against the
     // single verification code (`contacts add --fp <fp> --kem-pk <kem> --sig-pk <sig>`).
     println!("identity_sig_pk={}", hex_encode(&rec.sig_pk));
+    Ok(())
 }
 
-pub fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
-    if !require_unlocked("identity_rotate") {
-        return;
-    }
+pub fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) -> CliResult {
+    require_unlocked("identity_rotate")?;
     if !confirm {
         emit_marker(
             "identity_rotate",
             None,
             &[("ok", "false"), ("reason", "confirm_required")],
         );
-        print_error_marker("identity_rotate_confirm_required");
+        return Err(CliError::code("identity_rotate_confirm_required"));
     }
     let (kem_pk, kem_sk) = match identity_rotate_kem_keypair() {
         Ok(v) => v,
@@ -245,7 +249,7 @@ pub fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
                 Some(e),
                 &[("reason", "rng_failure_forced")],
             );
-            print_error_marker("identity_secret_unavailable");
+            return Err(CliError::code("identity_secret_unavailable"));
         }
     };
     let (sig_pk, sig_sk) = match identity_rotate_sig_keypair() {
@@ -256,7 +260,7 @@ pub fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
                 Some(e),
                 &[("reason", "rng_failure_forced")],
             );
-            print_error_marker("identity_secret_unavailable");
+            return Err(CliError::code("identity_secret_unavailable"));
         }
     };
     if identity_secret_store(self_label, &kem_sk).is_err() {
@@ -265,7 +269,7 @@ pub fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
             None,
             &[("reason", "vault_missing_or_locked")],
         );
-        print_error_marker("identity_secret_unavailable");
+        return Err(CliError::code("identity_secret_unavailable"));
     }
     if identity_sig_secret_store(self_label, &sig_sk).is_err() {
         emit_marker(
@@ -273,7 +277,7 @@ pub fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
             None,
             &[("reason", "vault_missing_or_locked")],
         );
-        print_error_marker("identity_secret_unavailable");
+        return Err(CliError::code("identity_secret_unavailable"));
     }
     if identity_write_public_record(self_label, &kem_pk, &sig_pk).is_err() {
         emit_marker(
@@ -281,7 +285,7 @@ pub fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
             None,
             &[("ok", "false"), ("reason", "write_failed")],
         );
-        print_error_marker("identity_rotate_write_failed");
+        return Err(CliError::code("identity_rotate_write_failed"));
     }
     if reset_peers {
         let empty = ContactsStore::default();
@@ -313,11 +317,12 @@ pub fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
     println!("identity_kem_pk={}", hex_encode(&kem_pk));
     // NA-0634 (D571 Decision 2a): emit the signing key for full-identity peer provisioning.
     println!("identity_sig_pk={}", hex_encode(&sig_pk));
+    Ok(())
 }
 
-pub fn peers_list() {
+pub fn peers_list() -> CliResult {
     let mut peers = contacts_list_entries()
-        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
+        .map_err(|_| CliError::code("contacts_store_unavailable"))?
         .into_iter()
         .map(|(label, rec)| (label, rec.fp))
         .collect::<Vec<_>>();
@@ -336,6 +341,7 @@ pub fn peers_list() {
         );
         println!("peer={} fp={} status=pinned", peer, fp);
     }
+    Ok(())
 }
 
 fn env_bool(key: &str) -> bool {
@@ -345,30 +351,30 @@ fn env_bool(key: &str) -> bool {
     )
 }
 
-pub fn config_set(key: &str, value: &str) {
+pub fn config_set(key: &str, value: &str) -> CliResult {
     if key != "policy-profile" {
-        print_error(ErrorCode::ParseFailed);
+        return Err(cli_err(ErrorCode::ParseFailed));
     }
     let profile = match normalize_profile(value) {
         Ok(v) => v,
-        Err(e) => print_error(e),
+        Err(e) => return Err(cli_err(e)),
     };
 
     let (dir, source) = match config_dir() {
         Ok(v) => v,
-        Err(e) => print_error(e),
+        Err(e) => return Err(cli_err(e)),
     };
     let file = dir.join(CONFIG_FILE_NAME);
 
     let _lock = match lock_store_exclusive(&dir, source) {
         Ok(v) => v,
-        Err(e) => print_error(e),
+        Err(e) => return Err(cli_err(e)),
     };
     if let Err(e) = ensure_store_layout(&dir, source) {
-        print_error(e);
+        return Err(cli_err(e));
     }
     if let Err(e) = write_config_atomic(&file, &profile, source) {
-        print_error(e);
+        return Err(cli_err(e));
     }
 
     print_marker(
@@ -379,42 +385,44 @@ pub fn config_set(key: &str, value: &str) {
             ("ok", "true"),
         ],
     );
+    Ok(())
 }
 
-pub fn config_get(key: &str) {
+pub fn config_get(key: &str) -> CliResult {
     if key != "policy-profile" {
-        print_error(ErrorCode::ParseFailed);
+        return Err(cli_err(ErrorCode::ParseFailed));
     }
     let (dir, source) = match config_dir() {
         Ok(v) => v,
-        Err(e) => print_error(e),
+        Err(e) => return Err(cli_err(e)),
     };
     let file = dir.join(CONFIG_FILE_NAME);
 
     if let Err(e) = enforce_safe_parents(&file, source) {
-        print_error(e);
+        return Err(cli_err(e));
     }
     let _lock = match lock_store_shared(&dir, source) {
         Ok(v) => v,
-        Err(e) => print_error(e),
+        Err(e) => return Err(cli_err(e)),
     };
     #[cfg(unix)]
     if file.exists() {
         if let Err(e) = enforce_file_perms(&file) {
-            print_error(e);
+            return Err(cli_err(e));
         }
     }
 
     let value = match read_policy_profile(&file) {
         Ok(Some(v)) => v,
         Ok(None) => "unset".to_string(),
-        Err(e) => print_error(e),
+        Err(e) => return Err(cli_err(e)),
     };
 
     print_marker(
         "config_get",
         &[("key", "policy_profile"), ("value", &value), ("ok", "true")],
     );
+    Ok(())
 }
 
 #[derive(Serialize)]
@@ -430,13 +438,13 @@ struct DoctorReport {
     redacted: bool,
 }
 
-pub fn doctor_check_only(check_only: bool, timeout_ms: u64, export: Option<PathBuf>) {
+pub fn doctor_check_only(check_only: bool, timeout_ms: u64, export: Option<PathBuf>) -> CliResult {
     if !check_only {
-        print_error(ErrorCode::ParseFailed);
+        return Err(cli_err(ErrorCode::ParseFailed));
     }
     let (dir, source) = match config_dir() {
         Ok(v) => v,
-        Err(e) => print_error(e),
+        Err(e) => return Err(cli_err(e)),
     };
     let file = dir.join(CONFIG_FILE_NAME);
 
@@ -472,7 +480,7 @@ pub fn doctor_check_only(check_only: bool, timeout_ms: u64, export: Option<PathB
 
     if let Some(path) = export {
         if let Err(e) = write_doctor_export(&path, &report) {
-            print_error(e);
+            return Err(cli_err(e));
         }
     }
 
@@ -504,6 +512,7 @@ pub fn doctor_check_only(check_only: bool, timeout_ms: u64, export: Option<PathB
             ("receipt_jitter_ms", receipt_jitter_s.as_str()),
         ],
     );
+    Ok(())
 }
 
 fn protocol_active_or_reason_for_send_peer(peer: &str) -> Result<(), String> {
@@ -853,9 +862,9 @@ fn receipt_msg_id(payload: &[u8]) -> String {
 fn encode_receipt_data_payload(
     payload: Vec<u8>,
     receipt: Option<ReceiptKind>,
-) -> (Vec<u8>, Option<String>) {
+) -> CliResult<(Vec<u8>, Option<String>)> {
     let Some(kind) = receipt else {
-        return (payload, None);
+        return Ok((payload, None));
     };
     let msg_id = receipt_msg_id(&payload);
     let ctrl = ReceiptControlPayload {
@@ -866,8 +875,8 @@ fn encode_receipt_data_payload(
         body: Some(payload),
     };
     let encoded =
-        serde_json::to_vec(&ctrl).unwrap_or_else(|_| print_error_marker("receipt_encode_failed"));
-    (encoded, Some(msg_id))
+        serde_json::to_vec(&ctrl).map_err(|_| CliError::code("receipt_encode_failed"))?;
+    Ok((encoded, Some(msg_id)))
 }
 
 fn emit_cli_receipt_policy_event(
@@ -910,7 +919,7 @@ fn parse_receipt_payload(plaintext: &[u8]) -> Option<ReceiptControlPayload> {
     adversarial::payload::parse_receipt_payload(plaintext)
 }
 
-fn build_delivered_ack(msg_id: &str) -> Vec<u8> {
+fn build_delivered_ack(msg_id: &str) -> CliResult<Vec<u8>> {
     let ack = ReceiptControlPayload {
         v: 1,
         t: "ack".to_string(),
@@ -918,7 +927,7 @@ fn build_delivered_ack(msg_id: &str) -> Vec<u8> {
         msg_id: msg_id.to_string(),
         body: None,
     };
-    serde_json::to_vec(&ack).unwrap_or_else(|_| print_error_marker("receipt_encode_failed"))
+    serde_json::to_vec(&ack).map_err(|_| CliError::code("receipt_encode_failed"))
 }
 
 #[derive(Clone, Debug)]
@@ -940,7 +949,7 @@ fn queue_or_send_receipt(
     ctx: &ReceivePullCtx<'_>,
     queue: &mut Vec<PendingReceipt>,
     item: PendingReceipt,
-) {
+) -> CliResult {
     let kind = match item {
         PendingReceipt::Message { .. } => "message",
         PendingReceipt::FileComplete { .. } => "file_complete",
@@ -957,7 +966,7 @@ fn queue_or_send_receipt(
             );
         }
         ReceiptEmitMode::Immediate => {
-            send_pending_receipt(ctx, item);
+            send_pending_receipt(ctx, item)?;
         }
         ReceiptEmitMode::Batched => {
             queue.push(item);
@@ -965,9 +974,10 @@ fn queue_or_send_receipt(
             emit_tui_receipt_policy_event(ctx.receipt_policy.mode, "queued", kind, ctx.from);
         }
     }
+    Ok(())
 }
 
-fn send_pending_receipt(ctx: &ReceivePullCtx<'_>, item: PendingReceipt) {
+fn send_pending_receipt(ctx: &ReceivePullCtx<'_>, item: PendingReceipt) -> CliResult {
     match item {
         PendingReceipt::Message { msg_id } => {
             match send_delivered_receipt_ack(ctx.relay, ctx.from, &msg_id) {
@@ -994,7 +1004,10 @@ fn send_pending_receipt(ctx: &ReceivePullCtx<'_>, item: PendingReceipt) {
                         ctx.from,
                     );
                 }
-                Err(code) => emit_marker("receipt_send_failed", Some(code), &[("code", code)]),
+                Err(ReceiptSendError::Soft(code)) => {
+                    emit_marker("receipt_send_failed", Some(code), &[("code", code)])
+                }
+                Err(ReceiptSendError::Fatal(e)) => return Err(e),
             }
         }
         PendingReceipt::FileComplete {
@@ -1031,32 +1044,35 @@ fn send_pending_receipt(ctx: &ReceivePullCtx<'_>, item: PendingReceipt) {
                         ctx.from,
                     );
                 }
-                Err(code) => emit_marker("file_confirm_send_failed", Some(code), &[("code", code)]),
+                Err(ReceiptSendError::Soft(code)) => {
+                    emit_marker("file_confirm_send_failed", Some(code), &[("code", code)])
+                }
+                Err(ReceiptSendError::Fatal(e)) => return Err(e),
             }
         }
         PendingReceipt::AttachmentComplete {
             attachment_id,
             confirm_handle,
         } => {
-            let payload = build_attachment_completion_ack(&attachment_id, &confirm_handle);
+            let payload = build_attachment_completion_ack(&attachment_id, &confirm_handle)?;
             let outcome = transport::relay_send_with_payload(RelaySendPayloadArgs {
                 to: ctx.from,
                 payload,
                 relay: ctx.relay,
-                injector: transport::fault_injector_from_env(),
+                injector: transport::fault_injector_from_env()?,
                 pad_cfg: None,
                 bucket_max: None,
                 meta_seed: None,
                 receipt: None,
                 routing_override: None,
-            });
+            })?;
             if let Some(code) = outcome.error_code {
                 emit_marker(
                     "attachment_confirm_send_failed",
                     Some(code),
                     &[("code", code)],
                 );
-                return;
+                return Ok(());
             }
             let safe_attachment = file_delivery_short_id(&attachment_id);
             emit_marker(
@@ -1070,11 +1086,12 @@ fn send_pending_receipt(ctx: &ReceivePullCtx<'_>, item: PendingReceipt) {
             );
         }
     }
+    Ok(())
 }
 
-fn flush_batched_receipts(ctx: &ReceivePullCtx<'_>, queue: &mut Vec<PendingReceipt>) {
+fn flush_batched_receipts(ctx: &ReceivePullCtx<'_>, queue: &mut Vec<PendingReceipt>) -> CliResult {
     if ctx.receipt_policy.mode != ReceiptEmitMode::Batched || queue.is_empty() {
-        return;
+        return Ok(());
     }
     // Deterministic ordering; jitter only affects stable sort priority.
     queue.sort_by_key(|item| match item {
@@ -1117,12 +1134,33 @@ fn flush_batched_receipts(ctx: &ReceivePullCtx<'_>, queue: &mut Vec<PendingRecei
     });
     let pending = std::mem::take(queue);
     for item in pending {
-        send_pending_receipt(ctx, item);
+        send_pending_receipt(ctx, item)?;
+    }
+    Ok(())
+}
+
+// NA-0646 (D582) PR-B: receipt sends fail SOFT (the caller emits *_send_failed and
+// continues) except the encode step, which was a fatal funnel exit. From impls route
+// both through the existing `?` sites unchanged.
+enum ReceiptSendError {
+    Soft(&'static str),
+    Fatal(CliError),
+}
+
+impl From<&'static str> for ReceiptSendError {
+    fn from(code: &'static str) -> Self {
+        ReceiptSendError::Soft(code)
     }
 }
 
-fn send_delivered_receipt_ack(relay: &str, to: &str, msg_id: &str) -> Result<(), &'static str> {
-    let payload = build_delivered_ack(msg_id);
+impl From<CliError> for ReceiptSendError {
+    fn from(err: CliError) -> Self {
+        ReceiptSendError::Fatal(err)
+    }
+}
+
+fn send_delivered_receipt_ack(relay: &str, to: &str, msg_id: &str) -> Result<(), ReceiptSendError> {
+    let payload = build_delivered_ack(msg_id)?;
     let pad_cfg = Some(MetaPadConfig {
         target_len: None,
         profile: Some(EnvelopeProfile::Standard),
@@ -1144,8 +1182,8 @@ fn send_file_completion_ack(
     to: &str,
     file_id: &str,
     confirm_id: &str,
-) -> Result<(), &'static str> {
-    let payload = build_file_completion_ack(file_id, confirm_id);
+) -> Result<(), ReceiptSendError> {
+    let payload = build_file_completion_ack(file_id, confirm_id)?;
     let pad_cfg = Some(MetaPadConfig {
         target_len: None,
         profile: Some(EnvelopeProfile::Standard),
@@ -1918,37 +1956,35 @@ struct ReceivePullStats {
     bytes: usize,
 }
 
-pub fn receive_file(path: &Path) {
-    if !require_unlocked("receive_file") {
-        return;
-    }
+pub fn receive_file(path: &Path) -> CliResult {
+    require_unlocked("receive_file")?;
     let (dir, source) = match config_dir() {
         Ok(v) => v,
-        Err(e) => print_error(e),
+        Err(e) => return Err(cli_err(e)),
     };
     // Fail-closed: reject if config dir parents or symlinks are unsafe.
     if !check_symlink_safe(&dir) {
-        print_error(ErrorCode::UnsafePathSymlink);
+        return Err(cli_err(ErrorCode::UnsafePathSymlink));
     }
     if !check_parent_safe(&dir, source) {
-        print_error(ErrorCode::UnsafeParentPerms);
+        return Err(cli_err(ErrorCode::UnsafeParentPerms));
     }
 
     let bytes = match fs::read(path) {
         Ok(v) => v,
-        Err(_) => print_error(ErrorCode::IoReadFailed),
+        Err(_) => return Err(cli_err(ErrorCode::IoReadFailed)),
     };
     if bytes.is_empty() {
         emit_marker("recv_reject", None, &[("reason", "empty")]);
-        print_error_marker("recv_reject_parse");
+        return Err(CliError::code("recv_reject_parse"));
     }
     if bytes.len() > envelope::MAX_BUNDLE_SIZE_DEFAULT {
         emit_marker("recv_reject", None, &[("reason", "oversize")]);
-        print_error_marker("recv_reject_size");
+        return Err(CliError::code("recv_reject_size"));
     }
 
     emit_marker("recv_reject", None, &[("reason", "malformed")]);
-    print_error_marker("recv_reject_parse");
+    return Err(CliError::code("recv_reject_parse"));
 }
 
 struct RelayInboxStore {
@@ -1973,7 +2009,8 @@ type HttpRelayTarget = adversarial::route::HttpRelayTarget;
 type HttpRequestParsed = adversarial::route::HttpRequestParsed;
 
 pub struct RelaySendOutcome {
-    // D581 KEEP (NA-0645): only the retired TUI read these; the GUI phase re-consumes them.
+    // D581 KEEP -> NA-0646 (D582): pub GUI-surface fields (send outcome for the GUI);
+    // dormant until the GUI consumes them.
     #[allow(dead_code)]
     pub action: String,
     #[allow(dead_code)]
@@ -2062,12 +2099,12 @@ pub fn util_receipt_apply(
     msg_id: Option<String>,
     file_id: Option<String>,
     confirm_id: Option<String>,
-) {
+) -> CliResult {
     if !env_bool("QSC_TEST_MODE") {
-        print_error_marker("test_mode_required");
+        return Err(CliError::code("test_mode_required"));
     }
     if !channel_label_ok(peer) || !channel_label_ok(channel) {
-        print_error_marker("qsp_channel_invalid");
+        return Err(CliError::code("qsp_channel_invalid"));
     }
     emit_cli_confirm_policy();
     match (msg_id.as_deref(), file_id.as_deref(), confirm_id.as_deref()) {
@@ -2075,22 +2112,24 @@ pub fn util_receipt_apply(
             Ok((ConfirmApplyOutcome::IgnoredWrongDevice, _)) => {
                 let dev = channel_device_marker(channel);
                 emit_cli_receipt_ignored_wrong_device(peer, dev.as_str());
+                Ok(())
             }
             Ok((ConfirmApplyOutcome::Confirmed, target)) => {
                 let device = target.as_deref().or_else(|| channel_device_id(channel));
                 emit_cli_delivery_state_with_device(peer, "peer_confirmed", device);
+                Ok(())
             }
-            Err(code) => print_error_marker(code),
+            Err(code) => return Err(CliError::code(code)),
         },
         (None, Some(file), Some(confirm)) => {
             let file_id = if file == "latest" {
-                latest_outbound_file_id(peer).unwrap_or_else(|code| print_error_marker(code))
+                latest_outbound_file_id(peer).map_err(|code| CliError::code(code))?
             } else {
                 file.to_string()
             };
             let confirm_id = if confirm == "auto" {
                 file_transfer_confirm_id(peer, file_id.as_str())
-                    .unwrap_or_else(|code| print_error_marker(code))
+                    .map_err(|code| CliError::code(code))?
             } else {
                 confirm.to_string()
             };
@@ -2099,6 +2138,7 @@ pub fn util_receipt_apply(
                 Ok((ConfirmApplyOutcome::IgnoredWrongDevice, _)) => {
                     let dev = channel_device_marker(channel);
                     emit_cli_receipt_ignored_wrong_device(peer, dev.as_str());
+                    Ok(())
                 }
                 Ok((ConfirmApplyOutcome::Confirmed, target)) => {
                     let device = target.as_deref().or_else(|| channel_device_id(channel));
@@ -2108,11 +2148,12 @@ pub fn util_receipt_apply(
                         file_id.as_str(),
                         device,
                     );
+                    Ok(())
                 }
-                Err(code) => print_error_marker(code),
+                Err(code) => return Err(CliError::code(code)),
             }
         }
-        _ => print_error_marker("receipt_apply_invalid_args"),
+        _ => return Err(CliError::code("receipt_apply_invalid_args")),
     }
 }
 
@@ -2170,14 +2211,14 @@ pub fn util_envelope(
     max_bundle: usize,
     max_count: usize,
     payload_lens: Vec<usize>,
-) {
+) -> CliResult {
     let ticks = match envelope::tick_schedule(tick_count, interval_ms, max_ticks) {
         Ok(v) => v,
-        Err(e) => print_error_marker(e.code()),
+        Err(e) => return Err(CliError::code(e.code())),
     };
     let bundle = match envelope::pack_bundle(&payload_lens, max_bundle, max_count) {
         Ok(v) => v,
-        Err(e) => print_error_marker(e.code()),
+        Err(e) => return Err(CliError::code(e.code())),
     };
     let ticks_s = ticks.len().to_string();
     let interval_s = interval_ms.to_string();
@@ -2194,6 +2235,7 @@ pub fn util_envelope(
             ("payload_count", count_s.as_str()),
         ],
     );
+    Ok(())
 }
 
 pub fn envelope_plan_ack(
@@ -2204,9 +2246,9 @@ pub fn envelope_plan_ack(
     max_bundle: usize,
     max_count: usize,
     small_len: usize,
-) {
+) -> CliResult {
     if !deterministic {
-        print_error_marker("ack_plan_requires_deterministic");
+        return Err(CliError::code("ack_plan_requires_deterministic"));
     }
     let plan = match envelope::plan_ack(
         small_len,
@@ -2217,7 +2259,7 @@ pub fn envelope_plan_ack(
         max_count,
     ) {
         Ok(v) => v,
-        Err(e) => print_error_marker(e.code()),
+        Err(e) => return Err(CliError::code(e.code())),
     };
     let tick = plan.ticks.first().copied().unwrap_or(0);
     let tick_s = tick.to_string();
@@ -2226,12 +2268,9 @@ pub fn envelope_plan_ack(
         "ack_plan",
         &[("size_class", bucket_s.as_str()), ("tick", tick_s.as_str())],
     );
+    Ok(())
 }
 
-fn print_error(code: ErrorCode) -> ! {
-    emit_marker("error", Some(code.as_str()), &[]);
-    process::exit(1);
-}
 
 fn bool_str(v: bool) -> &'static str {
     if v {

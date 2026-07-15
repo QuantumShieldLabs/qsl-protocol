@@ -1,12 +1,12 @@
 #![allow(unexpected_cfgs)]
 
+use crate::output::{CliError, CliResult};
 use super::{
     cmd::HandshakeSuiteMode, config_dir, emit_marker, enforce_peer_not_blocked,
     enforce_safe_parents, fs, hex_encode, identity_fingerprint_from_identity, identity_marker_display,
     identity_peer_status, identity_pin_matches_seen, identity_read_peer_kem_pk, identity_read_pin,
     identity_read_sig_pin, identity_self_kem_keypair, init_from_base_handshake, kmac_out,
-    print_error_marker,
-    qsp_send_ready_tuple, qsp_session_load, qsp_session_store, relay_peer_route_token,
+        qsp_send_ready_tuple, qsp_session_load, qsp_session_store, relay_peer_route_token,
     relay_self_inbox_route_token, require_unlocked, resolve_peer_device_target,
     runtime_pq_kem_ciphertext_bytes, runtime_pq_kem_keypair, runtime_pq_kem_public_key_bytes,
     runtime_pq_sig_keypair, runtime_pq_sig_public_key_bytes, runtime_pq_sig_signature_bytes,
@@ -1264,13 +1264,11 @@ fn hs_status_truth(st: &Suite2SessionState) -> (&'static str, &'static str, Opti
     ("established", "yes", None)
 }
 
-pub fn handshake_status(peer: Option<&str>) {
-    if !require_unlocked("handshake_status") {
-        return;
-    }
+pub fn handshake_status(peer: Option<&str>) -> CliResult {
+    require_unlocked("handshake_status")?;
     let peer_label = peer.unwrap_or("peer-0");
     if let Err(code) = enforce_peer_not_blocked(peer_label) {
-        print_error_marker(code);
+        return Err(CliError::code(code));
     }
     let (peer_fp, pinned) = identity_peer_status(peer_label);
     let pinned_s = if pinned { "true" } else { "false" };
@@ -1338,6 +1336,7 @@ pub fn handshake_status(peer: Option<&str>) {
             );
         }
     }
+    Ok(())
 }
 
 fn perform_handshake_init_with_route(
@@ -1473,15 +1472,14 @@ fn handshake_init_with_route(
     relay: &str,
     route_token: &str,
     suite_mode: HandshakeSuiteMode,
-) {
-    if !require_unlocked("handshake_init") {
-        return;
-    }
+) -> CliResult {
+    require_unlocked("handshake_init")?;
     if let Err(code) =
         perform_handshake_init_with_route(self_label, peer, relay, route_token, suite_mode)
     {
-        print_error_marker(code);
+        return Err(CliError::code(code));
     }
+    Ok(())
 }
 
 pub fn handshake_init_with_suite_mode(
@@ -1489,27 +1487,30 @@ pub fn handshake_init_with_suite_mode(
     peer: &str,
     relay: &str,
     suite_mode: HandshakeSuiteMode,
-) {
+) -> CliResult {
     if !vault_unlocked() {
-        require_unlocked("handshake_init");
+        require_unlocked("handshake_init")?;
     }
     let peer_channel = resolve_peer_device_target(peer, false)
         .map(|v| v.channel)
         .unwrap_or_else(|_| peer.to_string());
-    let route_token = relay_peer_route_token(peer).unwrap_or_else(|code| print_error_marker(code));
+    let route_token = relay_peer_route_token(peer).map_err(|code| CliError::code(code))?;
     handshake_init_with_route(
         self_label,
         peer_channel.as_str(),
         relay,
         route_token.as_str(),
         suite_mode,
-    );
+    )?;
+    Ok(())
 }
 
-// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+// D581 KEEP -> NA-0646 (D582): part of the library's pub GUI surface, seeded for the GUI
+// phase; dormant until the GUI consumes it (dead_code allowance retained meanwhile).
 #[allow(dead_code)]
-pub fn handshake_init(self_label: &str, peer: &str, relay: &str) {
-    handshake_init_with_suite_mode(self_label, peer, relay, HandshakeSuiteMode::LegacyCompat);
+pub fn handshake_init(self_label: &str, peer: &str, relay: &str) -> CliResult {
+    handshake_init_with_suite_mode(self_label, peer, relay, HandshakeSuiteMode::LegacyCompat)?;
+    Ok(())
 }
 
 fn perform_handshake_poll_with_tokens(
@@ -2214,10 +2215,8 @@ fn handshake_poll_with_tokens(
     peer_route_token: &str,
     max: usize,
     suite_mode: HandshakeSuiteMode,
-) {
-    if !require_unlocked("handshake_poll") {
-        return;
-    }
+) -> CliResult {
+    require_unlocked("handshake_poll")?;
     if let Err(code) = perform_handshake_poll_with_tokens(
         self_label,
         peer,
@@ -2227,8 +2226,9 @@ fn handshake_poll_with_tokens(
         max,
         suite_mode,
     ) {
-        print_error_marker(code);
+        return Err(CliError::code(code));
     }
+    Ok(())
 }
 
 pub fn handshake_poll_with_suite_mode(
@@ -2237,14 +2237,14 @@ pub fn handshake_poll_with_suite_mode(
     relay: &str,
     max: usize,
     suite_mode: HandshakeSuiteMode,
-) {
+) -> CliResult {
     let peer_channel = resolve_peer_device_target(peer, false)
         .map(|v| v.channel)
         .unwrap_or_else(|_| peer.to_string());
     let inbox_route_token =
-        relay_self_inbox_route_token().unwrap_or_else(|code| print_error_marker(code));
+        relay_self_inbox_route_token().map_err(|code| CliError::code(code))?;
     let peer_route_token =
-        relay_peer_route_token(peer).unwrap_or_else(|code| print_error_marker(code));
+        relay_peer_route_token(peer).map_err(|code| CliError::code(code))?;
     handshake_poll_with_tokens(
         self_label,
         peer_channel.as_str(),
@@ -2253,19 +2253,22 @@ pub fn handshake_poll_with_suite_mode(
         peer_route_token.as_str(),
         max,
         suite_mode,
-    );
+    )?;
+    Ok(())
 }
 
-// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+// D581 KEEP -> NA-0646 (D582): part of the library's pub GUI surface, seeded for the GUI
+// phase; dormant until the GUI consumes it (dead_code allowance retained meanwhile).
 #[allow(dead_code)]
-pub fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
+pub fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) -> CliResult {
     handshake_poll_with_suite_mode(
         self_label,
         peer,
         relay,
         max,
         HandshakeSuiteMode::LegacyCompat,
-    );
+    )?;
+    Ok(())
 }
 
 #[cfg(test)]

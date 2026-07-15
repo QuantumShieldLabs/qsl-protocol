@@ -22,8 +22,8 @@ use qsc::handshake::{
     handshake_init_with_suite_mode, handshake_poll_with_suite_mode, handshake_status,
 };
 use qsc::output::{
-    emit_marker, init_output_policy, install_panic_redaction_hook, print_error_marker,
-    print_marker, qsc_mark, qsc_sanitize_terminal_text, redact_text_for_output,
+    CliError, CliResult,
+    emit_marker, init_output_policy, install_panic_redaction_hook, print_marker, qsc_mark, qsc_sanitize_terminal_text, redact_text_for_output,
     PANIC_DEMO_SENTINEL,
 };
 use qsc::protocol_state::{allow_unsafe_seed_fallback_for_tests, qsp_status_tuple};
@@ -39,15 +39,15 @@ fn bootstrap_unlock(passphrase_file: Option<&Path>, passphrase_env: Option<&str>
     if let Some(path) = passphrase_file {
         match vault::unlock_with_passphrase_file(path) {
             Ok(()) => set_vault_unlocked(true),
-            Err(code) => print_error_marker(code),
+            Err(code) => exit_on(CliError::code(code)),
         }
     } else if let Some(env_name) = passphrase_env {
         if env_name.trim().is_empty() {
-            print_error_marker("vault_locked");
+            exit_on(CliError::code("vault_locked"));
         }
         match vault::unlock_with_passphrase_env(Some(env_name)) {
             Ok(()) => set_vault_unlocked(true),
-            Err(code) => print_error_marker(code),
+            Err(code) => exit_on(CliError::code(code)),
         }
     } else if allow_unsafe_seed_fallback_for_tests() {
         // Explicit unsafe fixture mode keeps deterministic test workflows isolated.
@@ -65,6 +65,25 @@ fn main() {
         cli.unlock_passphrase_file.as_deref(),
         cli.unlock_passphrase_env.as_deref(),
     );
+    if let Err(err) = run(cli) {
+        exit_on(err);
+    }
+}
+
+// NA-0646 (D582) PR-B: the ONE Err->emit+exit adapter. The library returns
+// CliError; exit semantics live here and nowhere else (util_sanitize's usage
+// exit(2) and clap's own exit(2) are the bin-local exceptions).
+fn exit_on(err: CliError) -> ! {
+    match err {
+        CliError::Code(code) => {
+            emit_marker("error", Some(&code), &[]);
+            process::exit(1);
+        }
+        CliError::Emitted => process::exit(1),
+    }
+}
+
+fn run(cli: Cli) -> CliResult {
     match cli.cmd {
         None => {
             // Shell-first UX expects help by default.
@@ -108,21 +127,21 @@ fn main() {
         Some(Cmd::Config { cmd }) => match cmd {
             ConfigCmd::Set { key, value } => config_set(&key, &value),
             ConfigCmd::Get { key } => config_get(&key),
-        },
+        }?,
         Some(Cmd::Doctor {
             check_only,
             timeout_ms,
             export,
-        }) => doctor_check_only(check_only, timeout_ms, export),
+        }) => doctor_check_only(check_only, timeout_ms, export)?,
         Some(Cmd::Util { cmd }) => match cmd {
             UtilCmd::Sanitize { print } => util_sanitize(print),
-            UtilCmd::Queue { len } => util_queue(len),
-            UtilCmd::History { len } => util_history(len),
-            UtilCmd::Retry { fail } => util_retry(fail),
+            UtilCmd::Queue { len } => util_queue(len)?,
+            UtilCmd::History { len } => util_history(len)?,
+            UtilCmd::Retry { fail } => util_retry(fail)?,
             UtilCmd::Timeout {
                 wait_ms,
                 timeout_ms,
-            } => util_timeout(wait_ms, timeout_ms),
+            } => util_timeout(wait_ms, timeout_ms)?,
             UtilCmd::Envelope {
                 tick_count,
                 interval_ms,
@@ -137,7 +156,7 @@ fn main() {
                 max_bundle,
                 max_count,
                 payload_lens,
-            ),
+            )?,
             UtilCmd::PanicDemo => util_panic_demo(),
             UtilCmd::ReceiptApply {
                 peer,
@@ -145,7 +164,7 @@ fn main() {
                 msg_id,
                 file_id,
                 confirm_id,
-            } => util_receipt_apply(peer.as_str(), channel.as_str(), msg_id, file_id, confirm_id),
+            } => util_receipt_apply(peer.as_str(), channel.as_str(), msg_id, file_id, confirm_id)?,
         },
         Some(Cmd::Envelope { cmd }) => match cmd {
             EnvelopeCmd::PlanAck {
@@ -165,8 +184,8 @@ fn main() {
                 max_count,
                 small_len,
             ),
-        },
-        Some(Cmd::Vault { cmd }) => vault::cmd_vault(cmd),
+        }?,
+        Some(Cmd::Vault { cmd }) => vault::cmd_vault(cmd)?,
         Some(Cmd::Send {
             cmd,
             transport,
@@ -191,7 +210,7 @@ fn main() {
                 meta_seed,
                 receipt,
             }),
-        },
+        }?,
         Some(Cmd::Receive {
             transport,
             relay,
@@ -245,9 +264,9 @@ fn main() {
                     || receipt_jitter_ms.is_some()
                     || file_confirm_mode.is_some()
                 {
-                    print_error_marker("recv_file_conflict");
+                    return Err(CliError::code("recv_file_conflict"));
                 }
-                receive_file(&path);
+                receive_file(&path)?;
             } else {
                 let args = ReceiveArgs {
                     transport,
@@ -275,7 +294,7 @@ fn main() {
                     receipt_jitter_ms,
                     file_confirm_mode,
                 };
-                transport::receive_execute(args);
+                transport::receive_execute(args)?;
             }
         }
         Some(Cmd::Handshake { cmd }) => match cmd {
@@ -293,7 +312,7 @@ fn main() {
                 suite_mode,
             } => handshake_poll_with_suite_mode(&as_label, &peer, &relay, max, suite_mode),
             HandshakeCmd::Status { peer } => handshake_status(peer.as_deref()),
-        },
+        }?,
         Some(Cmd::Identity { cmd }) => match cmd {
             IdentityCmd::Show { as_label } => identity_show(&as_label),
             IdentityCmd::Rotate {
@@ -301,10 +320,10 @@ fn main() {
                 confirm,
                 reset_peers,
             } => identity_rotate(&as_label, confirm, reset_peers),
-        },
+        }?,
         Some(Cmd::Peers { cmd }) => match cmd {
             PeersCmd::List => peers_list(),
-        },
+        }?,
         Some(Cmd::Contacts { cmd }) => match cmd {
             ContactsCmd::Add {
                 label,
@@ -320,64 +339,64 @@ fn main() {
                 sig_pk.as_deref(),
                 route_token.as_deref(),
                 verify,
-            ),
-            ContactsCmd::Show { label } => contacts_show(&label),
-            ContactsCmd::List => contacts_list(),
-            ContactsCmd::Verify { label, fp, confirm } => contacts_verify(&label, &fp, confirm),
-            ContactsCmd::Block { label } => contacts_block(&label),
-            ContactsCmd::Unblock { label } => contacts_unblock(&label),
+            )?,
+            ContactsCmd::Show { label } => contacts_show(&label)?,
+            ContactsCmd::List => contacts_list()?,
+            ContactsCmd::Verify { label, fp, confirm } => contacts_verify(&label, &fp, confirm)?,
+            ContactsCmd::Block { label } => contacts_block(&label)?,
+            ContactsCmd::Unblock { label } => contacts_unblock(&label)?,
             ContactsCmd::RouteSet { label, route_token } => {
-                contacts_route_set(&label, &route_token)
+                contacts_route_set(&label, &route_token)?
             }
             ContactsCmd::Device { cmd } => match cmd {
                 ContactsDeviceCmd::Add {
                     label,
                     fp,
                     route_token,
-                } => contacts_device_add(&label, &fp, route_token.as_deref()),
-                ContactsDeviceCmd::List { label } => contacts_device_list(&label),
+                } => contacts_device_add(&label, &fp, route_token.as_deref())?,
+                ContactsDeviceCmd::List { label } => contacts_device_list(&label)?,
                 ContactsDeviceCmd::Status { label, device } => {
-                    contacts_device_status(&label, device.as_deref())
+                    contacts_device_status(&label, device.as_deref())?
                 }
                 ContactsDeviceCmd::Verify { label, device, fp } => {
-                    contacts_device_verify(&label, &device, &fp)
+                    contacts_device_verify(&label, &device, &fp)?
                 }
                 ContactsDeviceCmd::Trust {
                     label,
                     device,
                     confirm,
-                } => contacts_device_trust(&label, &device, confirm),
+                } => contacts_device_trust(&label, &device, confirm)?,
                 ContactsDeviceCmd::Revoke {
                     label,
                     device,
                     confirm,
-                } => contacts_device_revoke(&label, &device, confirm),
+                } => contacts_device_revoke(&label, &device, confirm)?,
                 ContactsDeviceCmd::Primary { cmd } => match cmd {
                     ContactsDevicePrimaryCmd::Set {
                         label,
                         device,
                         confirm,
-                    } => contacts_device_primary_set(&label, &device, confirm),
+                    } => contacts_device_primary_set(&label, &device, confirm)?,
                     ContactsDevicePrimaryCmd::Show { label } => {
-                        contacts_device_primary_show(&label)
+                        contacts_device_primary_show(&label)?
                     }
                 },
             },
             ContactsCmd::TrustMode { cmd } => match cmd {
-                ContactsTrustModeCmd::Show => contacts_trust_mode_show(),
-                ContactsTrustModeCmd::Set { mode } => contacts_trust_mode_set(mode),
+                ContactsTrustModeCmd::Show => contacts_trust_mode_show()?,
+                ContactsTrustModeCmd::Set { mode } => contacts_trust_mode_set(mode)?,
             },
             ContactsCmd::Request { cmd } => match cmd {
-                ContactsRequestCmd::List => contacts_request_list(),
-                ContactsRequestCmd::Accept { label } => contacts_request_accept(&label),
-                ContactsRequestCmd::Ignore { label } => contacts_request_ignore(&label),
-                ContactsRequestCmd::Block { label } => contacts_request_block(&label),
+                ContactsRequestCmd::List => contacts_request_list()?,
+                ContactsRequestCmd::Accept { label } => contacts_request_accept(&label)?,
+                ContactsRequestCmd::Ignore { label } => contacts_request_ignore(&label)?,
+                ContactsRequestCmd::Block { label } => contacts_request_block(&label)?,
             },
         },
         Some(Cmd::Timeline { cmd }) => match cmd {
-            TimelineCmd::List { peer, limit } => timeline_list(&peer, limit),
-            TimelineCmd::Show { peer, id } => timeline_show(&peer, &id),
-            TimelineCmd::Clear { peer, confirm } => timeline_clear(&peer, confirm),
+            TimelineCmd::List { peer, limit } => timeline_list(&peer, limit)?,
+            TimelineCmd::Show { peer, id } => timeline_show(&peer, &id)?,
+            TimelineCmd::Clear { peer, confirm } => timeline_clear(&peer, confirm)?,
         },
         Some(Cmd::File { cmd }) => match cmd {
             FileCmd::Send {
@@ -402,14 +421,15 @@ fn main() {
                 max_file_size,
                 max_chunks,
                 receipt,
-            }),
+            })?,
         },
-        Some(Cmd::Relay { cmd }) => relay_cmd(cmd),
-        Some(Cmd::Meta { cmd }) => meta_cmd(cmd),
+        Some(Cmd::Relay { cmd }) => relay_cmd(cmd)?,
+        Some(Cmd::Meta { cmd }) => meta_cmd(cmd)?,
     }
+    Ok(())
 }
 
-fn relay_cmd(cmd: RelayCmd) {
+fn relay_cmd(cmd: RelayCmd) -> CliResult {
     match cmd {
         RelayCmd::Serve {
             port,
@@ -422,7 +442,7 @@ fn relay_cmd(cmd: RelayCmd) {
             max_messages,
         } => {
             if drop_pct > 100 || dup_pct > 100 {
-                print_error_marker("relay_pct_invalid");
+                return Err(CliError::code("relay_pct_invalid"));
             }
             let cfg = RelayConfig {
                 seed,
@@ -432,7 +452,7 @@ fn relay_cmd(cmd: RelayCmd) {
                 fixed_latency_ms,
                 jitter_ms,
             };
-            transport::relay_serve(port, cfg, max_messages);
+            transport::relay_serve(port, cfg, max_messages)?;
         }
         RelayCmd::Send {
             to,
@@ -440,19 +460,15 @@ fn relay_cmd(cmd: RelayCmd) {
             relay,
             bucket_max,
         } => {
-            if !require_unlocked("relay_send") {
-                return;
-            }
-            transport::relay_send(&to, &file, &relay, None, bucket_max, None, None)
+            require_unlocked("relay_send")?;
+            transport::relay_send(&to, &file, &relay, None, bucket_max, None, None)?;
         }
         RelayCmd::InboxSet { token } => {
-            if !require_unlocked("relay_inbox_set") {
-                return;
-            }
+            require_unlocked("relay_inbox_set")?;
             let token = normalize_route_token(token.as_str())
-                .unwrap_or_else(|code| print_error_marker(code));
+                .map_err(|code| CliError::code(code))?;
             if vault::secret_set(TUI_RELAY_INBOX_TOKEN_SECRET_KEY, token.as_str()).is_err() {
-                print_error_marker("relay_inbox_token_store_failed");
+                return Err(CliError::code("relay_inbox_token_store_failed"));
             }
             let hash = route_token_hash8(token.as_str());
             emit_marker(
@@ -467,11 +483,9 @@ fn relay_cmd(cmd: RelayCmd) {
             println!("relay_inbox_token=set hash={}", hash);
         }
         RelayCmd::InboxClear => {
-            if !require_unlocked("relay_inbox_clear") {
-                return;
-            }
+            require_unlocked("relay_inbox_clear")?;
             if vault::secret_set(TUI_RELAY_INBOX_TOKEN_SECRET_KEY, "").is_err() {
-                print_error_marker("relay_inbox_token_store_failed");
+                return Err(CliError::code("relay_inbox_token_store_failed"));
             }
             emit_marker(
                 "relay_inbox_clear",
@@ -481,15 +495,13 @@ fn relay_cmd(cmd: RelayCmd) {
             println!("relay_inbox_token=cleared");
         }
         RelayCmd::TokenSet { token } => {
-            if !require_unlocked("relay_token_set") {
-                return;
-            }
+            require_unlocked("relay_token_set")?;
             let token = token.trim();
             if token.is_empty() {
-                print_error_marker("relay_token_missing");
+                return Err(CliError::code("relay_token_missing"));
             }
             if vault::secret_set(TUI_RELAY_TOKEN_SECRET_KEY, token).is_err() {
-                print_error_marker("relay_token_store_failed");
+                return Err(CliError::code("relay_token_store_failed"));
             }
             emit_marker(
                 "relay_token_set",
@@ -499,11 +511,9 @@ fn relay_cmd(cmd: RelayCmd) {
             println!("relay_token=set");
         }
         RelayCmd::TokenFileSet { path } => {
-            if !require_unlocked("relay_token_file_set") {
-                return;
-            }
+            require_unlocked("relay_token_file_set")?;
             if path.as_os_str().is_empty() {
-                print_error_marker("relay_token_file_missing");
+                return Err(CliError::code("relay_token_file_missing"));
             }
             let canonical = path
                 .canonicalize()
@@ -511,7 +521,7 @@ fn relay_cmd(cmd: RelayCmd) {
                 .to_string_lossy()
                 .to_string();
             if vault::secret_set(TUI_RELAY_TOKEN_FILE_SECRET_KEY, canonical.as_str()).is_err() {
-                print_error_marker("relay_token_file_store_failed");
+                return Err(CliError::code("relay_token_file_store_failed"));
             }
             emit_marker(
                 "relay_token_file_set",
@@ -521,9 +531,10 @@ fn relay_cmd(cmd: RelayCmd) {
             println!("relay_token_file=set");
         }
     }
+    Ok(())
 }
 
-fn meta_cmd(cmd: MetaCmd) {
+fn meta_cmd(cmd: MetaCmd) -> CliResult {
     match cmd {
         MetaCmd::Plan {
             deterministic,
@@ -544,8 +555,8 @@ fn meta_cmd(cmd: MetaCmd) {
                 meta_seed: None,
             }) {
                 Ok(Some(v)) => v,
-                Ok(None) => print_error_marker("meta_poll_invalid"),
-                Err(code) => print_error_marker(code),
+                Ok(None) => return Err(CliError::code("meta_poll_invalid")),
+                Err(code) => return Err(CliError::code(code)),
             };
             let deterministic_s = if cfg.deterministic { "true" } else { "false" };
             let ticks_s = cfg.ticks.to_string();
@@ -606,6 +617,7 @@ fn meta_cmd(cmd: MetaCmd) {
             }
         }
     }
+    Ok(())
 }
 
 fn util_sanitize(print: Option<Vec<String>>) {
@@ -624,27 +636,29 @@ fn util_panic_demo() {
     panic!("panic_demo {}", PANIC_DEMO_SENTINEL);
 }
 
-fn util_queue(len: usize) {
+fn util_queue(len: usize) -> CliResult {
     let mut q = BoundedQueue::new(MAX_QUEUE_LEN);
     for i in 0..len {
         if q.push(i).is_err() {
-            print_error_marker("queue_limit_exceeded");
+            return Err(CliError::code("queue_limit_exceeded"));
         }
     }
     print_marker("queue_limit", &[("ok", "true")]);
+    Ok(())
 }
 
-fn util_history(len: usize) {
+fn util_history(len: usize) -> CliResult {
     let mut h = BoundedQueue::new(MAX_HISTORY_LEN);
     for i in 0..len {
         if h.push(i).is_err() {
-            print_error_marker("history_limit_exceeded");
+            return Err(CliError::code("history_limit_exceeded"));
         }
     }
     print_marker("history_limit", &[("ok", "true")]);
+    Ok(())
 }
 
-fn util_retry(fail: u32) {
+fn util_retry(fail: u32) -> CliResult {
     let mut remaining = fail;
     let res = bounded_retry(MAX_RETRY_ATTEMPTS, || {
         if remaining > 0 {
@@ -659,15 +673,17 @@ fn util_retry(fail: u32) {
             let attempts_s = attempts.to_string();
             print_marker("retry_bound", &[("attempts", attempts_s.as_str())]);
         }
-        Err(()) => print_error_marker("retry_limit_exceeded"),
+        Err(()) => return Err(CliError::code("retry_limit_exceeded")),
     }
+    Ok(())
 }
 
-fn util_timeout(wait_ms: u64, timeout_ms: u64) {
+fn util_timeout(wait_ms: u64, timeout_ms: u64) -> CliResult {
     let limit = timeout_ms.clamp(1, MAX_TIMEOUT_MS);
     if wait_ms > limit {
-        print_error_marker("timeout_exceeded");
+        return Err(CliError::code("timeout_exceeded"));
     }
     let elapsed_s = wait_ms.to_string();
     print_marker("timeout_ok", &[("elapsed_ms", elapsed_s.as_str())]);
+    Ok(())
 }

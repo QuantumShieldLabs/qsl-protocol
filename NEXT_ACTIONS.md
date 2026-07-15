@@ -6,7 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0646 | HIGHEST_NA=0646 | HIGHEST_D=1268 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NONE | HIGHEST_NA=0646 | HIGHEST_D=1269 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- NA-0646 (extract qsc-core, D582) DONE 2026-07-15 (D-1269, result class CORE_EXTRACTION_PASS): qsc's messaging core is a LINKABLE LIBRARY with BYTE-IDENTICAL CLI, delivered as the two sequential PRs D582 prescribed. PR-A (#1573, merged abb10cab) = the crate split, PURE MOTION + 210 machine-verified visibility widenings (74 fn/30 enum/11 struct/8 const/72 field/15 mod lines): src/lib.rs 7→2,310 lines (all 17 modules incl. cmd/ wholesale; the 2,155 enumerated main.rs lines at the LIB ROOT so use-super globs kept resolving — module bodies untouched; purity machine-checked 2,836 verbatim + 94 widened + 46 wiring, 0 unexplained, 0 lost; color-moved 2,192/2,183), main.rs → the 642-line thin bin; the adversarial/envelope double-compile ended (the suite's 422→405 delta = exactly the 17 unit tests that ran twice, reconciled BY NAME). PR-B = exit→Result: the FIVE funnels return CliError and THE LIBRARY CONTAINS ZERO process::exit SITES — exit semantics only in the bin's single Err→emit+exit adapter (+ util_sanitize's bin-local usage exit(2), clap's own); the three kv/dynamic funnels emit AT SITE (already-emitted; file_xfer_reject both markers in the original order; the receive-loop session-store site's PRE-EXISTING double emission reproduced exactly); ~263 sites rewired, ~80 signatures cascaded; the soft/fatal fan-outs PRESERVED exactly where they coexisted (AttachmentSendError, ReceiptSendError, read_send_state → CliResult<Result<u64,()>>, fault_injector_from_env → CliResult<Option>); every dropped-Result chased to an explicit `?`. THE HARD SPOT: receive_pull_and_write's 8 in-loop exits land at the SAME control points (before/after extracted + diffed 1:1; docs/governance/evidence/NA-0646_rpw_equivalence.md; the diverging helpers ?-ed at the same statements; no flush/commit runs between any converted site and the fn exit in either version); ENG-0042 PRESERVED, NOT FIXED; destructor delta audited (two output-free Drops, no threads). THE PROVER (scripts/local_ops/na0646_byte_identity_prover.sh, 14 fixed cases, one per funnel shape + happy paths, persistent fixture, determinism double-run proven): PR-A BEFORE(pre-move)/AFTER byte-diff EMPTY 14/14; PR-B BEFORE(re-captured at PR-A MERGED abb10cab)/AFTER byte-diff EMPTY 14/14 FIRST RUN (exit(2) stayed 2); WF-0017 NON-VACUITY DEMONSTRATED (reversed require_unlocked kv → differ RED on exactly the vault-locked case; reverted; green re-proven). Gates: cargo check --all-targets 0/0 both PRs; full local suite (niced --test-threads=3 per operator load direction) 405/0/1-pre-existing-ignored across 107 result sets BOTH PRs (PR-B identical to the PR-A baseline; zero test-file changes in PR-B); the NA-0640 e2e green UNCHANGED both runs (2/0; 116.53s / 117.65s; zero e2e edits). The D581 KEEP items are the library's pub GUI surface (annotations updated). NO GUI code, NO CoreCtx de-globaling (the process globals STAY; NO state-dependent lib-level tests were added — the compiled binary remains the behavior-test vehicle), NO behavior change, NO protocol/crypto/wire change, NO ENG-0042 fix, NO dep change (Cargo.toml/lock untouched), NO tui.* rename, NO clap-enum package split, NO formal/vectors/canonical/.github change. Claim boundary UNCHANGED. NAMED RESIDUE: (a) CoreCtx de-globaling; (b) the ~30 raw println!/eprintln! marker-bypass sites (GUI lane); (c) the clap-value-enum split IF a separate qsc-core package is ever wanted; (d) blocking reqwest (Tauri spawn_blocking); (e) the KEEP dead_code allowances retire when the GUI consumes the surface. Queue returns to READY=NONE — the operator promotes the successor (natural: THE GUI LANE per DOC-PROG-003 §5 — this lane exists to serve it; it owes ENG-0044 restoration and consumes the KEEP pub surface; standing: ENG-0036, ENG-0039, ENG-0042/0043, 0b, 0c residue, NA-0635 GATED). The executor cannot self-promote. -->
+<!-- prior: STATE: READY=NA-0646 | HIGHEST_NA=0646 | HIGHEST_D=1268 (NA-0646 closed for D582 at D-1269; this lane PR) -->
 <!-- NA-0645 (retire the qsc TUI, D581) DONE 2026-07-14 (D-1268, result class RETIRE_TUI_PASS): the qsc TUI is DELETED — src/tui whole (18 files, 10,007 lines), Cmd::Tui + TuiTransport, the main.rs dispatch/imports/consts/normalize_tui_*/tui_perf_tests + the WHOLE vault attempt-limit machinery, the TUI-only helpers across identity/vault/contacts/transport/timeline/protocol_state/adversarial (~30 fns), the 4 TUI-only store keys (+ the orphaned tui.relay.endpoint + account.verification_seed_v1 consts + the vault-security consts/types), qsc's 4 TUI Cargo deps (crossterm, ratatui-core/-crossterm/-widgets), 44 whole TUI test files + 6 partial edits (~18.9k lines total). THE ORDER WAS THE LANE — RE-HOME FIRST: `relay token-set` + `relay token-file-set` added to the CLI (mirroring relay inbox-set; both auth sources were TUI-only-settable; canonicalize + redaction semantics preserved) and the token-file test PORTED (relay_auth_header.rs:681 drives the NEW setter) — proven green 4/4 WITH THE TUI STILL IN-TREE; the resolution order env → account-secret → token-file character-untouched. THE D581 CONTINGENCY FIRED ONCE, remedied as prescribed ("STOP and re-home it first"): relay_url_policy.rs was the ONLY coverage of the CORE relay URL policy (loopback-http/https accept; non-loopback http → QSC_ERR_RELAY_TLS_REQUIRED; bad scheme reject) — the matrix was PORTED to the hermetic CLI vehicle tests/NA_0645_relay_url_policy_cli.rs (2/2 green) BEFORE its TUI file died; the persisted-endpoint half died legitimately (TUI-only feature). KEEP intact: MarkerRouting::InApp + set_marker_routing + marker_queue + the InApp emit_marker branch (+ ONE new unit test — the GUI event sink is not zero-coverage); the core QSC_TUI_* emitters (named-marker, contact-request, delivery/file/receipt-ignored) PROVEN live from the CLI (receipt_policy_mvp_na0177 3/3); the 6 core-read persisted tui.* keys VERBATIM (rename = data migration, later). Three named-KEEP items turned out TUI-only-called (the handshake_init/poll wrappers — CLI uses *_with_suite_mode; the VaultSession session API; RelaySendOutcome.action/.delivered): KEPT per the D581 prohibition, annotated #[allow(dead_code)] "D581 KEEP (NA-0645)" — dormant by decision, flagged to the core-extraction lane. FILED: ENG-0044 (P2, ONE coherent item): vault failed-unlock ATTEMPT-LIMIT + idle AUTOLOCK + ACCOUNT-DESTROY co-deleted; THE GUI PHASE MUST NOT CLOSE without restoring all three or a recorded per-feature operator drop decision; git history preserves the implementations. DOCS: SUPERSEDED banners on the five TUI docs (history retained); DOC-PROG-003 truthed-up (retirement recorded; the co-deleted wipe limit no longer advertised; PQ-status + DOC-QSC pointers corrected). Directive-vs-reality deltas RECORDED: DOC-QSC-007 does not exist; DOC-PROG-002 has zero TUI mentions; the 4 deps are TUI-only at the QSC-CRATE level but the out-of-scope apps/qsl-tui demo client (separate refimpl demo, NOT the qsc TUI) still declares them — workspace lock keeps the packages for it (qsc's edges removed; hygiene candidate). Gates: cargo check --all-targets 0 errors/0 warnings; full cargo test -p qsc LOCALLY (the suite skips on PRs) 422/0/1-pre-existing-ignored across 107 result sets, exit 0; the NA-0640 e2e green UNCHANGED within it 2 passed / 0 failed (119.17s, dedicated re-run on the final tree; zero e2e edits this lane) (zero e2e edits). NO core-extraction/crate-split/exit->Result (the NEXT lane), NO GUI code, NO protocol/crypto/wire change, NO tui.* key rename, NO qsl-server/formal/vectors/canonical/.github change. Claim boundary UNCHANGED. Queue returns to READY=NONE — the operator promotes the successor (natural: THE CORE-EXTRACTION/CRATE-SPLIT LANE — the stated purpose of deleting the TUI first; the separability investigation's EXTRACT-FIRST verdict + the dormant-KEEP annotations feed it; then the GUI lane per DOC-PROG-003 §5; standing: ENG-0036, ENG-0039, ENG-0042/0043, 0b, 0c residue, NA-0635 GATED). The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0645 | HIGHEST_D=1268 (NA-0646 promoted for D582; PR #1572) -->
 <!-- prior: STATE: READY=NA-0645 | HIGHEST_NA=0645 | HIGHEST_D=1267 (NA-0645 closed for D581 at D-1268; this lane PR) -->
@@ -29,37 +31,31 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NA-0646** — the CORE-EXTRACTION lane (**D582 =
-QSL-DIR-2026-07-14-582, operator-approved**). The HINGE lane of the product phase: extract
-qsc's messaging core into the ALREADY-EXISTING src/lib.rs target and convert the five
-process-exit funnels to Result, so a future Tauri GUI can call the core IN-PROCESS (not
-shell out) and the core is testable at the library level. **ONE lane, TWO SEQUENTIAL PRs,
-never combined** (a single 7-9k-line PR would let the mechanical move CAMOUFLAGE the semantic
-hunks and give two unrelated failure classes one revert point): **PR-A = CRATE SPLIT, move +
-visibility ONLY, SEMANTIC-DELTA-ZERO** — the ONLY non-move edits are visibility widenings
-(pub(crate)/pub(super) → pub on the ~40-80 bin-crossed decls; changes what is CALLABLE, never
-what code DOES) + the mod lines; the funnels still exit; migrated main.rs items land at the
-lib ROOT so `use super::*` keeps module bodies untouched; cmd/ moves wholesale — **merges
-green + BYTE-IDENTICAL on its own FIRST. THEN PR-B = exit->Result** (the five funnels return
-Result; the ~263 exit-carrying sites incl. 54 in closures rewire; the signature cascade is
-expected; ONE bin Err->emit+exit adapter; the "already-emitted" pattern for the three
-kv/dynamic funnels — protocol_inactive_exit, require_unlocked, file_xfer_reject — emit at the
-site exactly as today; util_sanitize's usage exit(2) STAYS in the bin). THE CONTRACT:
-BYTE-IDENTICAL CLI (stdout/stderr/exit-codes), proven by the **BYTE-IDENTITY PROVER** (fixed
-command corpus, one case per converted funnel shape + happy paths; BEFORE at PR-A's merged
-state vs AFTER at PR-B, diffed byte-for-byte; **WF-0017 NON-VACUITY**: a deliberately
-reordered/altered emission must make the differ go RED — demonstrate, then revert). THE HARD
-SPOT: **transport::receive_pull_and_write** (8 exits INSIDE the stateful per-item pull loop
-carrying pending receipt batches, pending acks, per-item durable commits incl. the ENG-0042
-seam) — each converted exit's `?` early-return must land at the SAME control point the exit
-did; the response must show before/after with an EXPLICIT control-flow-equivalence argument;
-**ENG-0042 is PRESERVED, not fixed**. The D581 KEEP items become the seed pub GUI surface.
-The process globals STAY (⇒ NO state-dependent lib-level tests — drive the COMPILED BINARY).
-NO GUI, NO CoreCtx de-globaling, NO behavior change, NO ENG-0042 fix, NO dep add, NO tui.*
-rename, NO clap-enum package split. Phase 1 = design-lock CONFIRMATION (a confirmation
-checkpoint, not an open design; the ONE WF-0016 handoff) — STOP for operator sign-off before
-moving any code. Begins at **D-1269**. Full lane block at the end of section 2. NA-0645 (the
-RETIRE-TUI lane, D581) is DONE at D-1268, result class RETIRE_TUI_PASS — see its block below.
+**READY (exactly one — execute this): NONE.** NA-0646 (the CORE-EXTRACTION lane, D582) is
+**DONE** at D-1269, result class **CORE_EXTRACTION_PASS** — qsc's messaging core is a
+LINKABLE LIBRARY with BYTE-IDENTICAL CLI, in the two sequential PRs D582 prescribed:
+**PR-A** (#1573, merged `abb10cab`) the crate split — pure motion + 210 machine-verified
+visibility widenings; lib.rs 7→2,310 lines (all 17 modules; main.rs items at the lib ROOT,
+module bodies untouched; purity machine-checked, 0 unexplained/lost); main.rs → the
+642-line thin bin; the adversarial/envelope double-compile ended. **PR-B** (this lane PR)
+exit→Result — the five funnels return CliError and **the library contains ZERO
+process::exit sites**; exit semantics only in the bin's single Err→emit+exit adapter
+(util_sanitize's usage exit(2) stays bin-local); the three kv/dynamic funnels emit AT SITE
+(already-emitted); ~263 sites rewired, ~80 signatures cascaded; the soft/fatal fan-outs
+preserved exactly; **receive_pull_and_write's 8 in-loop exits land at the SAME control
+points** (equivalence doc in the evidence dir); **ENG-0042 PRESERVED, not fixed**. THE
+PROVER: BEFORE(PR-A merged)/AFTER byte-diff **EMPTY 14/14 on the first run** (exit(2)
+stayed 2); **WF-0017 non-vacuity demonstrated** (reversed kv → differ RED, reverted,
+green re-proven). Gates: check --all-targets 0/0; full local suite **405/0/1 across 107
+result sets — identical to the PR-A baseline**; the NA-0640 e2e green unchanged (2/0,
+zero edits). The D581 KEEP items are the pub GUI surface. Named residue: CoreCtx
+de-globaling; the ~30 raw println! marker-bypass sites (GUI lane); the clap-enum split;
+blocking reqwest. Its full block (now `Status: DONE` with the OUTCOME) is at the end of
+section 2. The queue returns to **READY=NONE**; the operator promotes the successor —
+natural: **the GUI lane** per DOC-PROG-003 §5 (this lane exists to serve it; it owes
+**ENG-0044** restoration and consumes the KEEP pub surface); standing: **ENG-0036**,
+**ENG-0039**, **ENG-0042**/**ENG-0043**, **0b**, the **0c residue**, **NA-0635** (GATED).
+The executor cannot self-promote.
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -35330,7 +35326,17 @@ See D581 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-14-581_retire_tui.md`
 Begins at D-1268. Deletion lane with ONE re-home and ONE filing. Re-home the capability BEFORE deleting; delete the TUI, not the core it called; file the security features so the GUI must restore them; keep the InApp routing for the GUI. Full suite + e2e green is the gate.
 
 ### NA-0646 — Extract qsc-core (D582): crate split into the existing lib target (PR-A, move + visibility only) then exit->Result on the five funnels (PR-B, byte-identity prover) — ONE lane, TWO sequential PRs
-Status: READY
+Status: DONE
+
+**DONE 2026-07-15 (D-1269, result class CORE_EXTRACTION_PASS).** Executed exactly to D582's
+two-PR structure: PR-A (#1573, merged `abb10cab`) pure motion + 210 machine-verified
+visibility widenings, byte-identical on the prover corpus, suite 405/0/1×107 reconciled BY
+NAME (the 17 double-compiled unit tests now run once); PR-B (this lane PR) exit→Result —
+the library contains ZERO process::exit sites; the prover BEFORE(PR-A merged)/AFTER
+byte-diff EMPTY 14/14 first run + the WF-0017 red-demo; receive_pull_and_write
+control-flow-equivalent at all 8 sites (evidence: `docs/governance/evidence/
+NA-0646_rpw_equivalence.md`); ENG-0042 preserved; suite identical to the PR-A baseline;
+e2e 2/0 unchanged. See `docs/governance/evidence/NA-0646_as_built.md` and D-1269.
 
 Goals: G4
 Wire/behavior change allowed? NO — BEHAVIOR-PRESERVING is the lane contract: the compiled qsc binary must produce BYTE-IDENTICAL stdout/stderr/exit-codes on the prover corpus and the existing suite stays green. PR-A is SEMANTIC-DELTA-ZERO (the ONLY non-move edits: visibility widenings pub(crate)/pub(super) → pub on the ~40-80 decls the bin crosses the new crate boundary to reach, + the mod-declaration lines in lib.rs/main.rs — both change what is CALLABLE, never what code DOES). PR-B changes error PLUMBING only (exit->Result; exit semantics move to ONE thin bin adapter) with byte-identical observable behavior, proven by the prover.

@@ -10,6 +10,7 @@
 
 #![allow(unexpected_cfgs)]
 
+use crate::output::{CliError, CliResult};
 use std::collections::BTreeMap;
 use std::fs;
 use std::io::{IsTerminal, Read, Write};
@@ -151,7 +152,7 @@ enum ProviderError {
     ProviderFailed,
 }
 
-pub fn cmd_vault(cmd: VaultCmd) {
+pub fn cmd_vault(cmd: VaultCmd) -> CliResult {
     match cmd {
         VaultCmd::Init(args) => vault_init(args),
         VaultCmd::Status => vault_status(),
@@ -223,7 +224,8 @@ pub fn secret_set(name: &str, value: &str) -> Result<(), &'static str> {
     Ok(())
 }
 
-// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+// D581 KEEP -> NA-0646 (D582): part of the library's pub GUI surface, seeded for the GUI
+// phase; dormant until the GUI consumes it (dead_code allowance retained meanwhile).
 #[allow(dead_code)]
 pub fn secret_set_with_passphrase(
     name: &str,
@@ -255,7 +257,8 @@ pub fn secret_set_with_passphrase(
     Ok(())
 }
 
-// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+// D581 KEEP -> NA-0646 (D582): part of the library's pub GUI surface, seeded for the GUI
+// phase; dormant until the GUI consumes it (dead_code allowance retained meanwhile).
 #[allow(dead_code)]
 pub fn open_session(passphrase_override: Option<&str>) -> Result<VaultSession, &'static str> {
     let (vault_path, runtime) = load_vault_runtime_with_passphrase(passphrase_override)?;
@@ -269,7 +272,8 @@ pub fn open_session(passphrase_override: Option<&str>) -> Result<VaultSession, &
     })
 }
 
-// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+// D581 KEEP -> NA-0646 (D582): part of the library's pub GUI surface, seeded for the GUI
+// phase; dormant until the GUI consumes it (dead_code allowance retained meanwhile).
 #[allow(dead_code)]
 pub fn open_session_with_passphrase(passphrase: &str) -> Result<VaultSession, &'static str> {
     if passphrase.is_empty() {
@@ -278,7 +282,8 @@ pub fn open_session_with_passphrase(passphrase: &str) -> Result<VaultSession, &'
     open_session(Some(passphrase))
 }
 
-// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+// D581 KEEP -> NA-0646 (D582): part of the library's pub GUI surface, seeded for the GUI
+// phase; dormant until the GUI consumes it (dead_code allowance retained meanwhile).
 #[allow(dead_code)]
 pub fn session_get(session: &VaultSession, name: &str) -> Result<Option<String>, &'static str> {
     if name.is_empty() {
@@ -287,7 +292,8 @@ pub fn session_get(session: &VaultSession, name: &str) -> Result<Option<String>,
     Ok(session.payload.secrets.get(name).cloned())
 }
 
-// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+// D581 KEEP -> NA-0646 (D582): part of the library's pub GUI surface, seeded for the GUI
+// phase; dormant until the GUI consumes it (dead_code allowance retained meanwhile).
 #[allow(dead_code)]
 pub fn session_set(
     session: &mut VaultSession,
@@ -304,7 +310,8 @@ pub fn session_set(
     persist_session(session)
 }
 
-// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+// D581 KEEP -> NA-0646 (D582): part of the library's pub GUI surface, seeded for the GUI
+// phase; dormant until the GUI consumes it (dead_code allowance retained meanwhile).
 #[allow(dead_code)]
 pub fn perf_snapshot() -> (u64, u64, u64, u64) {
     (
@@ -315,7 +322,8 @@ pub fn perf_snapshot() -> (u64, u64, u64, u64) {
     )
 }
 
-// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+// D581 KEEP -> NA-0646 (D582): part of the library's pub GUI surface, seeded for the GUI
+// phase; dormant until the GUI consumes it (dead_code allowance retained meanwhile).
 #[allow(dead_code)]
 pub fn persist_session(session: &mut VaultSession) -> Result<(), &'static str> {
     let write_epoch = VAULT_WRITE_EPOCH.load(Ordering::Relaxed);
@@ -360,7 +368,7 @@ pub fn persist_session(session: &mut VaultSession) -> Result<(), &'static str> {
     Ok(())
 }
 
-fn vault_init(args: VaultInitArgs) {
+fn vault_init(args: VaultInitArgs) -> CliResult {
     let noninteractive = args.non_interactive
         || std::env::var("QSC_NONINTERACTIVE").ok().as_deref() == Some("1")
         || !std::io::stdin().is_terminal();
@@ -368,40 +376,40 @@ fn vault_init(args: VaultInitArgs) {
     let mut args = args;
     let mut pass = match resolve_passphrase(&mut args) {
         Ok(pass) => pass,
-        Err(code) => crate::print_error_marker(code),
+        Err(code) => return Err(CliError::code(code)),
     };
     let pass_present = pass.as_ref().map(|p| !p.is_empty()).unwrap_or(false);
 
     let explicit_key_source = key_source_explicit(&args);
     let mut key_source = match resolve_key_source(&args) {
         Ok(src) => src,
-        Err(code) => fail_with_marker_pass(code, &mut pass),
+        Err(code) => return Err(fail_with_marker_pass(code, &mut pass)),
     };
 
     if key_source == KeySource::Keychain && !keychain_supported() {
         if explicit_key_source {
-            handle_provider_error_with_pass(ProviderError::TokenUnavailable, &mut pass);
+            return Err(handle_provider_error_with_pass(ProviderError::TokenUnavailable, &mut pass));
         } else if pass_present {
             // Deterministic passphrase fallback when keychain is unavailable.
             key_source = KeySource::Passphrase;
         } else if noninteractive {
-            fail_with_marker_pass("vault_passphrase_required_noninteractive", &mut pass);
+            return Err(fail_with_marker_pass("vault_passphrase_required_noninteractive", &mut pass));
         } else {
-            fail_with_marker_pass("vault_passphrase_required", &mut pass);
+            return Err(fail_with_marker_pass("vault_passphrase_required", &mut pass));
         }
     }
 
     if key_source == KeySource::Passphrase && !pass_present {
         if noninteractive {
-            fail_with_marker_pass("vault_passphrase_required_noninteractive", &mut pass);
+            return Err(fail_with_marker_pass("vault_passphrase_required_noninteractive", &mut pass));
         } else {
-            fail_with_marker_pass("vault_passphrase_required", &mut pass);
+            return Err(fail_with_marker_pass("vault_passphrase_required", &mut pass));
         }
     }
 
     let params = match Params::new(KDF_M_KIB, KDF_T, KDF_P, Some(32)) {
         Ok(p) => p,
-        Err(_) => fail_with_marker_pass("vault_kdf_params_invalid", &mut pass),
+        Err(_) => return Err(fail_with_marker_pass("vault_kdf_params_invalid", &mut pass)),
     };
     let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
 
@@ -414,7 +422,7 @@ fn vault_init(args: VaultInitArgs) {
     let mut salt = [0u8; 16];
     #[cfg(qsc_rng_failure_test_seam)]
     if let Err(code) = vault_rng_fill("QSC.VAULT.INIT.SALT", &mut salt) {
-        fail_with_marker_buffers(code, &mut pass_bytes, &mut key_bytes);
+        return Err(fail_with_marker_buffers(code, &mut pass_bytes, &mut key_bytes));
     }
     #[cfg(not(qsc_rng_failure_test_seam))]
     rand_core::OsRng.fill_bytes(&mut salt);
@@ -428,7 +436,7 @@ fn vault_init(args: VaultInitArgs) {
     ) {
         pass_bytes.zeroize();
         key_bytes.zeroize();
-        handle_provider_error(err);
+        return Err(handle_provider_error(err));
     }
 
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key_bytes));
@@ -436,7 +444,7 @@ fn vault_init(args: VaultInitArgs) {
     let mut nonce_bytes = [0u8; 12];
     #[cfg(qsc_rng_failure_test_seam)]
     if let Err(code) = vault_rng_fill("QSC.VAULT.INIT.NONCE", &mut nonce_bytes) {
-        fail_with_marker_buffers(code, &mut pass_bytes, &mut key_bytes);
+        return Err(fail_with_marker_buffers(code, &mut pass_bytes, &mut key_bytes));
     }
     #[cfg(not(qsc_rng_failure_test_seam))]
     rand_core::OsRng.fill_bytes(&mut nonce_bytes);
@@ -445,7 +453,7 @@ fn vault_init(args: VaultInitArgs) {
     #[cfg(qsc_rng_failure_test_seam)]
     let default_route_token = match generate_default_route_token() {
         Ok(token) => token,
-        Err(code) => fail_with_marker_buffers(code, &mut pass_bytes, &mut key_bytes),
+        Err(code) => return Err(fail_with_marker_buffers(code, &mut pass_bytes, &mut key_bytes)),
     };
     #[cfg(not(qsc_rng_failure_test_seam))]
     let default_route_token = generate_default_route_token();
@@ -458,49 +466,49 @@ fn vault_init(args: VaultInitArgs) {
     let plaintext = match serde_json::to_vec(&payload) {
         Ok(v) => v,
         Err(_) => {
-            fail_with_marker_buffers(
+            return Err(fail_with_marker_buffers(
                 "vault_payload_serialize_failed",
                 &mut pass_bytes,
                 &mut key_bytes,
-            );
+            ));
         }
     };
 
     let ciphertext = match cipher.encrypt(nonce, plaintext.as_ref()) {
         Ok(ct) => ct,
         Err(_) => {
-            fail_with_marker_buffers("encrypt_failed", &mut pass_bytes, &mut key_bytes);
+            return Err(fail_with_marker_buffers("encrypt_failed", &mut pass_bytes, &mut key_bytes));
         }
     };
 
     let (_cfg_dir, vault_path) = match vault_path_resolved() {
         Ok(v) => v,
-        Err(code) => fail_with_marker_buffers(code, &mut pass_bytes, &mut key_bytes),
+        Err(code) => return Err(fail_with_marker_buffers(code, &mut pass_bytes, &mut key_bytes)),
     };
 
     if vault_path.exists() {
-        fail_with_marker_buffers("vault_exists", &mut pass_bytes, &mut key_bytes);
+        return Err(fail_with_marker_buffers("vault_exists", &mut pass_bytes, &mut key_bytes));
     }
 
     let parent = match vault_path.parent() {
         Some(p) => p,
-        None => fail_with_marker_buffers("vault_path_invalid", &mut pass_bytes, &mut key_bytes),
+        None => return Err(fail_with_marker_buffers("vault_path_invalid", &mut pass_bytes, &mut key_bytes)),
     };
 
     // Only create directory after all crypto work succeeded to minimize mutation on reject.
     if fs::create_dir_all(parent).is_err() {
-        fail_with_marker_buffers(
+        return Err(fail_with_marker_buffers(
             "vault_parent_create_failed",
             &mut pass_bytes,
             &mut key_bytes,
-        );
+        ));
     }
 
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
         if fs::set_permissions(parent, fs::Permissions::from_mode(0o700)).is_err() {
-            fail_with_marker_buffers("vault_parent_perms_failed", &mut pass_bytes, &mut key_bytes);
+            return Err(fail_with_marker_buffers("vault_parent_perms_failed", &mut pass_bytes, &mut key_bytes));
         }
     }
 
@@ -527,7 +535,7 @@ fn vault_init(args: VaultInitArgs) {
         if let Err(err) = keychain_store_key(&key_bytes) {
             pass_bytes.zeroize();
             key_bytes.zeroize();
-            handle_provider_error(err);
+            return Err(handle_provider_error(err));
         }
     }
 
@@ -555,7 +563,7 @@ fn vault_init(args: VaultInitArgs) {
         if key_source == KeySource::Keychain {
             let _ = keychain_remove_key();
         }
-        fail_with_marker_buffers("vault_write_failed", &mut pass_bytes, &mut key_bytes);
+        return Err(fail_with_marker_buffers("vault_write_failed", &mut pass_bytes, &mut key_bytes));
     }
 
     // Zeroize secrets after successful commit.
@@ -563,10 +571,11 @@ fn vault_init(args: VaultInitArgs) {
     pass_bytes.zeroize();
 
     crate::print_marker("vault_init", &[("path", "redacted")]);
+    Ok(())
 }
 
 #[cfg(qsc_rng_failure_test_seam)]
-fn generate_default_route_token() -> Result<String, &'static str> {
+fn generate_default_route_token() -> CliResult<Result<String, &'static str>> {
     let mut bytes = [0u8; 16];
     vault_rng_fill("QSC.VAULT.INIT.DEFAULT_ROUTE_TOKEN", &mut bytes)?;
     let mut out = String::with_capacity(bytes.len() * 2);
@@ -587,25 +596,25 @@ fn generate_default_route_token() -> String {
     out
 }
 
-fn vault_status() {
+fn vault_status() -> CliResult {
     let (_cfg_dir, vault_path) = match vault_path_resolved() {
         Ok(v) => v,
-        Err(code) => crate::print_error_marker(code),
+        Err(code) => return Err(CliError::code(code)),
     };
     if !vault_path.exists() {
-        crate::print_error_marker("vault_missing");
+        return Err(CliError::code("vault_missing"));
     }
 
     let bytes = match fs::read(&vault_path) {
         Ok(b) => b,
-        Err(_) => crate::print_error_marker("vault_read_failed"),
+        Err(_) => return Err(CliError::code("vault_read_failed")),
     };
 
     if bytes.len() < 6 + 1 {
-        crate::print_error_marker("vault_parse_failed");
+        return Err(CliError::code("vault_parse_failed"));
     }
     if &bytes[..6] != VAULT_MAGIC {
-        crate::print_error_marker("vault_parse_failed");
+        return Err(CliError::code("vault_parse_failed"));
     }
     let key_source = key_source_name(bytes[6]);
 
@@ -613,9 +622,10 @@ fn vault_status() {
         "vault_status",
         &[("present", "true"), ("key_source", key_source)],
     );
+    Ok(())
 }
 
-fn vault_unlock(args: VaultUnlockArgs) {
+fn vault_unlock(args: VaultUnlockArgs) -> CliResult {
     let noninteractive = args.non_interactive
         || std::env::var("QSC_NONINTERACTIVE").ok().as_deref() == Some("1")
         || !std::io::stdin().is_terminal();
@@ -644,22 +654,23 @@ fn vault_unlock(args: VaultUnlockArgs) {
         eprint!("vault unlock passphrase: ");
         let _ = std::io::stderr().flush();
         if std::io::stdin().read_line(&mut passphrase_buf).is_err() {
-            crate::print_error_marker("vault_locked");
+            return Err(CliError::code("vault_locked"));
         }
         while passphrase_buf.ends_with('\n') || passphrase_buf.ends_with('\r') {
             passphrase_buf.pop();
         }
         if passphrase_buf.is_empty() {
-            crate::print_error_marker("vault_locked");
+            return Err(CliError::code("vault_locked"));
         }
         unlock_with_passphrase(passphrase_buf.as_str())
     };
 
     match unlock_result {
         Ok(()) => crate::print_marker("vault_unlock", &[("ok", "true"), ("state", "unlocked")]),
-        Err(code) => crate::print_error_marker(code),
+        Err(code) => return Err(CliError::code(code)),
     }
     passphrase_buf.zeroize();
+    Ok(())
 }
 
 #[derive(Clone)]
@@ -677,7 +688,8 @@ struct VaultRuntime {
     key: [u8; 32],
 }
 
-// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+// D581 KEEP -> NA-0646 (D582): part of the library's pub GUI surface, seeded for the GUI
+// phase; dormant until the GUI consumes it (dead_code allowance retained meanwhile).
 #[allow(dead_code)]
 pub struct VaultSession {
     vault_path: PathBuf,
@@ -1031,7 +1043,8 @@ pub fn set_process_passphrase(passphrase: Option<&str>) {
     *slot = passphrase.map(|value| value.to_string());
 }
 
-// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+// D581 KEEP -> NA-0646 (D582): part of the library's pub GUI surface, seeded for the GUI
+// phase; dormant until the GUI consumes it (dead_code allowance retained meanwhile).
 #[allow(dead_code)]
 pub fn has_process_passphrase() -> bool {
     process_passphrase_slot()
@@ -1112,20 +1125,12 @@ fn derive_key(
     Ok(())
 }
 
-fn handle_provider_error(err: ProviderError) -> ! {
+fn handle_provider_error(err: ProviderError) -> CliError {
     match err {
-        ProviderError::YubiKeyNotImplemented => {
-            crate::print_error_marker("vault_yubikey_not_implemented");
-        }
-        ProviderError::TokenMissing => {
-            crate::print_error_marker("vault_token_missing");
-        }
-        ProviderError::TokenUnavailable => {
-            crate::print_error_marker("vault_token_unavailable");
-        }
-        ProviderError::ProviderFailed => {
-            crate::print_error_marker("vault_provider_failed");
-        }
+        ProviderError::YubiKeyNotImplemented => CliError::code("vault_yubikey_not_implemented"),
+        ProviderError::TokenMissing => CliError::code("vault_token_missing"),
+        ProviderError::TokenUnavailable => CliError::code("vault_token_unavailable"),
+        ProviderError::ProviderFailed => CliError::code("vault_provider_failed"),
     }
 }
 
@@ -1135,20 +1140,20 @@ fn zeroize_passphrase(pass: &mut Option<String>) {
     }
 }
 
-fn fail_with_marker_pass(code: &str, pass: &mut Option<String>) -> ! {
+fn fail_with_marker_pass(code: &str, pass: &mut Option<String>) -> CliError {
     zeroize_passphrase(pass);
-    crate::print_error_marker(code);
+    CliError::code(code)
 }
 
-fn fail_with_marker_buffers(code: &str, pass_bytes: &mut Vec<u8>, key_bytes: &mut [u8; 32]) -> ! {
+fn fail_with_marker_buffers(code: &str, pass_bytes: &mut Vec<u8>, key_bytes: &mut [u8; 32]) -> CliError {
     pass_bytes.zeroize();
     key_bytes.zeroize();
-    crate::print_error_marker(code);
+    CliError::code(code)
 }
 
-fn handle_provider_error_with_pass(err: ProviderError, pass: &mut Option<String>) -> ! {
+fn handle_provider_error_with_pass(err: ProviderError, pass: &mut Option<String>) -> CliError {
     zeroize_passphrase(pass);
-    handle_provider_error(err);
+    handle_provider_error(err)
 }
 
 fn vault_path_resolved() -> Result<(PathBuf, PathBuf), &'static str> {

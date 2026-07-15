@@ -43355,6 +43355,32 @@ server sits in the dev-dep). Claim boundary unchanged. Queue back to
 READY=NONE at HIGHEST_D=1266; the operator promotes the successor (natural:
 ENG-0040, then ENG-0036/ENG-0039; standing: 0b, 0c residue, NA-0635, GUI).
 
+2026-07-14 — public-safety self-repair bootstrap (infrastructure repair;
+operator-authorized as a separate action, out of D581/NA-0645 scope; recorded
+here before the NA-0644 entry for merge-cleanliness — it happened LATER the
+same day, after NA-0644 closed and after the NA-0645 promotion merged). The
+incident: GitHub never emitted the push-triggered public-ci workflow run for
+the promotion merge `9018ae4f` (PR #1569) — every prior main merge received
+one — so main HEAD carried NO public-safety check-run, and the required
+public-safety gate on PR #1570 (NA-0645) failed closed with "latest main
+commit 9018ae4f is missing check 'public-safety'". Content was NOT the cause;
+goal-lint and all other non-skipped checks on PR #1570 were green. Full
+disclosure for an honest check-state history: before this bootstrap, a
+workflow_dispatch of public-ci with pr_number=1570 (run 29375806367) was
+attempted as a remedy; that dispatch path is designed for a different
+scenario (it requires the target PR's head to equal main HEAD) and failed its
+own validation — attaching advisories=failure and public-safety=failure
+check-runs to main@9018ae4f as a side effect. Those two failure check-runs
+record the dispatch validation's rejection, not any content, advisory, or
+safety failure on main. This bootstrap PR is the sanctioned self-repair loop:
+it modifies ONLY self-repair-allowed paths (this journal entry + an incident
+comment in scripts/ci/public_safety_gate.py), classifies workflow_security
+(not runtime_critical), and passes its own public-safety check via the
+bounded bootstrap eligibility; its merge push triggers a fresh public-ci run
+on the new main HEAD, restoring a legitimately green main. PR #1570 merges
+only after BOTH that fresh run is green AND its own
+formal-proverif-composition completes green — no override, no bypass.
+
 2026-07-14 — NA-0644 (ENG-0040 qsc ack-client, D580 → D-1267). The client half of
 delivery durability shipped OPT-IN. Design-lock first: the operator approved the
 flag-only selector (`--ack-mode lease`), the per-item durable dedup store, the

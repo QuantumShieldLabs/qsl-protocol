@@ -364,10 +364,10 @@ pub(crate) fn fsync_dir_best_effort(dir: &Path) {
 }
 
 #[cfg(not(unix))]
-pub(crate) fn set_umask_077() {}
+pub fn set_umask_077() {}
 
 #[cfg(unix)]
-pub(crate) fn set_umask_077() {
+pub fn set_umask_077() {
     unsafe {
         crate::umask(0o077);
     }

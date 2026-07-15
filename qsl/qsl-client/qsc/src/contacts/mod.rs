@@ -2,7 +2,7 @@
 
 use super::*;
 
-pub(super) fn route_token_hash8(token: &str) -> String {
+pub fn route_token_hash8(token: &str) -> String {
     let c = StdCrypto;
     let hash = c.sha512(token.as_bytes());
     hex_encode(&hash[..4])
@@ -48,7 +48,7 @@ pub(super) fn load_trust_onboarding_mode_from_account() -> TrustOnboardingMode {
         .unwrap_or(TrustOnboardingMode::Balanced)
 }
 
-pub(super) fn normalize_route_token(raw: &str) -> Result<String, &'static str> {
+pub fn normalize_route_token(raw: &str) -> Result<String, &'static str> {
     adversarial::route::normalize_route_token(raw)
 }
 
@@ -835,7 +835,7 @@ pub(super) fn enforce_peer_not_blocked(label: &str) -> Result<(), &'static str> 
     }
 }
 
-pub(super) fn contacts_add(
+pub fn contacts_add(
     label: &str,
     fp: &str,
     kem_pk: Option<&str>,
@@ -950,7 +950,7 @@ pub(super) fn contact_has_trusted_device(rec: &ContactRecord) -> bool {
         .any(|d| canonical_device_state(d.state.as_str()) == "TRUSTED")
 }
 
-pub(super) fn contacts_device_add(label: &str, fp: &str, route_token: Option<&str>) {
+pub fn contacts_device_add(label: &str, fp: &str, route_token: Option<&str>) {
     if !require_unlocked("contacts_device_add") {
         return;
     }
@@ -999,7 +999,7 @@ pub(super) fn contacts_device_add(label: &str, fp: &str, route_token: Option<&st
     );
 }
 
-pub(super) fn contacts_device_list(label: &str) {
+pub fn contacts_device_list(label: &str) {
     if !require_unlocked("contacts_device_list") {
         return;
     }
@@ -1030,7 +1030,7 @@ pub(super) fn contacts_device_list(label: &str) {
     }
 }
 
-pub(super) fn contacts_device_status(label: &str, device: Option<&str>) {
+pub fn contacts_device_status(label: &str, device: Option<&str>) {
     if !require_unlocked("contacts_device_status") {
         return;
     }
@@ -1091,7 +1091,7 @@ pub(super) fn contacts_device_status(label: &str, device: Option<&str>) {
     }
 }
 
-pub(super) fn contacts_device_verify(label: &str, device: &str, fp: &str) {
+pub fn contacts_device_verify(label: &str, device: &str, fp: &str) {
     if !require_unlocked("contacts_device_verify") {
         return;
     }
@@ -1173,7 +1173,7 @@ pub(super) fn contacts_device_verify(label: &str, device: &str, fp: &str) {
     print_error_marker("verification_mismatch");
 }
 
-pub(super) fn contacts_device_trust(label: &str, device: &str, confirm: bool) {
+pub fn contacts_device_trust(label: &str, device: &str, confirm: bool) {
     if !require_unlocked("contacts_device_trust") {
         return;
     }
@@ -1213,7 +1213,7 @@ pub(super) fn contacts_device_trust(label: &str, device: &str, confirm: bool) {
     );
 }
 
-pub(super) fn contacts_device_revoke(label: &str, device: &str, confirm: bool) {
+pub fn contacts_device_revoke(label: &str, device: &str, confirm: bool) {
     if !require_unlocked("contacts_device_revoke") {
         return;
     }
@@ -1243,7 +1243,7 @@ pub(super) fn contacts_device_revoke(label: &str, device: &str, confirm: bool) {
     );
 }
 
-pub(super) fn contacts_device_primary_set(label: &str, device: &str, confirm: bool) {
+pub fn contacts_device_primary_set(label: &str, device: &str, confirm: bool) {
     if !require_unlocked("contacts_device_primary_set") {
         return;
     }
@@ -1275,7 +1275,7 @@ pub(super) fn contacts_device_primary_set(label: &str, device: &str, confirm: bo
     );
 }
 
-pub(super) fn contacts_device_primary_show(label: &str) {
+pub fn contacts_device_primary_show(label: &str) {
     if !require_unlocked("contacts_device_primary_show") {
         return;
     }
@@ -1304,7 +1304,7 @@ pub(super) fn contacts_device_primary_show(label: &str) {
     );
 }
 
-pub(super) fn contacts_route_set(label: &str, route_token: &str) {
+pub fn contacts_route_set(label: &str, route_token: &str) {
     if !require_unlocked("contacts_route_set") {
         return;
     }
@@ -1347,7 +1347,7 @@ pub(super) fn contacts_route_set(label: &str, route_token: &str) {
     );
 }
 
-pub(super) fn contacts_show(label: &str) {
+pub fn contacts_show(label: &str) {
     if !require_unlocked("contacts_show") {
         return;
     }
@@ -1384,7 +1384,7 @@ pub(super) fn contacts_show(label: &str) {
     }
 }
 
-pub(super) fn contacts_list() {
+pub fn contacts_list() {
     if !require_unlocked("contacts_list") {
         return;
     }
@@ -1407,7 +1407,7 @@ pub(super) fn contacts_list() {
     }
 }
 
-pub(super) fn contacts_verify(label: &str, fp: &str, confirm: bool) {
+pub fn contacts_verify(label: &str, fp: &str, confirm: bool) {
     if !require_unlocked("contacts_verify") {
         return;
     }
@@ -1447,7 +1447,7 @@ pub(super) fn contacts_verify(label: &str, fp: &str, confirm: bool) {
     contacts_device_verify(label, primary.as_str(), fp);
 }
 
-pub(super) fn contacts_block(label: &str) {
+pub fn contacts_block(label: &str) {
     if !require_unlocked("contacts_block") {
         return;
     }
@@ -1458,7 +1458,7 @@ pub(super) fn contacts_block(label: &str) {
     }
 }
 
-pub(super) fn contacts_unblock(label: &str) {
+pub fn contacts_unblock(label: &str) {
     if !require_unlocked("contacts_unblock") {
         return;
     }
@@ -1473,7 +1473,7 @@ pub(super) fn contacts_unblock(label: &str) {
     }
 }
 
-pub(super) fn contacts_trust_mode_show() {
+pub fn contacts_trust_mode_show() {
     if !require_unlocked("contacts_trust_mode_show") {
         return;
     }
@@ -1482,7 +1482,7 @@ pub(super) fn contacts_trust_mode_show() {
     println!("trust_mode={}", mode.as_str());
 }
 
-pub(super) fn contacts_trust_mode_set(mode: TrustMode) {
+pub fn contacts_trust_mode_set(mode: TrustMode) {
     if !require_unlocked("contacts_trust_mode_set") {
         return;
     }
@@ -1496,7 +1496,7 @@ pub(super) fn contacts_trust_mode_set(mode: TrustMode) {
     }
 }
 
-pub(super) fn contacts_request_list() {
+pub fn contacts_request_list() {
     if !require_unlocked("contacts_request_list") {
         return;
     }
@@ -1517,7 +1517,7 @@ pub(super) fn contacts_request_list() {
     }
 }
 
-pub(super) fn contacts_request_accept(label: &str) {
+pub fn contacts_request_accept(label: &str) {
     if !require_unlocked("contacts_request_accept") {
         return;
     }
@@ -1564,7 +1564,7 @@ pub(super) fn contacts_request_accept(label: &str) {
     );
 }
 
-pub(super) fn contacts_request_ignore(label: &str) {
+pub fn contacts_request_ignore(label: &str) {
     if !require_unlocked("contacts_request_ignore") {
         return;
     }
@@ -1576,7 +1576,7 @@ pub(super) fn contacts_request_ignore(label: &str) {
     emit_cli_contact_request("ignore", label, None);
 }
 
-pub(super) fn contacts_request_block(label: &str) {
+pub fn contacts_request_block(label: &str) {
     if !require_unlocked("contacts_request_block") {
         return;
     }

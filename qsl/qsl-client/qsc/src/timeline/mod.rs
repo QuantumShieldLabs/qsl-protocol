@@ -623,7 +623,7 @@ pub(super) fn latest_outbound_file_id(peer: &str) -> Result<String, &'static str
     Ok(entry.id)
 }
 
-pub(super) fn timeline_list(peer: &str, limit: Option<usize>) {
+pub fn timeline_list(peer: &str, limit: Option<usize>) {
     if !require_unlocked("timeline_list") {
         return;
     }
@@ -642,7 +642,7 @@ pub(super) fn timeline_list(peer: &str, limit: Option<usize>) {
     }
 }
 
-pub(super) fn timeline_show(peer: &str, id: &str) {
+pub fn timeline_show(peer: &str, id: &str) {
     if !require_unlocked("timeline_show") {
         return;
     }
@@ -653,7 +653,7 @@ pub(super) fn timeline_show(peer: &str, id: &str) {
     timeline_emit_item(&entry);
 }
 
-pub(super) fn timeline_clear(peer: &str, confirm: bool) {
+pub fn timeline_clear(peer: &str, confirm: bool) {
     if !require_unlocked("timeline_clear") {
         return;
     }

@@ -1726,20 +1726,20 @@ fn relay_send_file_payload_with_retry(to: &str, payload: Vec<u8>, relay: &str) -
     }
 }
 
-pub(super) struct FileSendExec<'a> {
-    pub(super) transport: Option<SendTransport>,
-    pub(super) relay: Option<&'a str>,
-    pub(super) attachment_service: Option<&'a str>,
-    pub(super) legacy_in_message_stage: Option<LegacyInMessageStage>,
-    pub(super) to: &'a str,
-    pub(super) path: &'a Path,
-    pub(super) chunk_size: usize,
-    pub(super) max_file_size: Option<usize>,
-    pub(super) max_chunks: Option<usize>,
-    pub(super) receipt: Option<ReceiptKind>,
+pub struct FileSendExec<'a> {
+    pub transport: Option<SendTransport>,
+    pub relay: Option<&'a str>,
+    pub attachment_service: Option<&'a str>,
+    pub legacy_in_message_stage: Option<LegacyInMessageStage>,
+    pub to: &'a str,
+    pub path: &'a Path,
+    pub chunk_size: usize,
+    pub max_file_size: Option<usize>,
+    pub max_chunks: Option<usize>,
+    pub receipt: Option<ReceiptKind>,
 }
 
-pub(super) fn file_send_execute(args: FileSendExec<'_>) {
+pub fn file_send_execute(args: FileSendExec<'_>) {
     let FileSendExec {
         transport,
         relay,

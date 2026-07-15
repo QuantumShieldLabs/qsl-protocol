@@ -317,7 +317,7 @@ pub fn perf_snapshot() -> (u64, u64, u64, u64) {
 
 // D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
 #[allow(dead_code)]
-fn persist_session(session: &mut VaultSession) -> Result<(), &'static str> {
+pub fn persist_session(session: &mut VaultSession) -> Result<(), &'static str> {
     let write_epoch = VAULT_WRITE_EPOCH.load(Ordering::Relaxed);
     if write_epoch != session.write_epoch_seen {
         let latest_payload = fs::read(&session.vault_path)

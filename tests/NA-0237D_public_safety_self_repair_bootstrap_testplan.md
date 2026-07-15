@@ -27,3 +27,19 @@ Goals: G4
 - Traceability entries: `TRACEABILITY.md` entries for `NA-0237C blocked-on-bootstrap`, `NA-0237D READY`, and `NA-0237D implementation/evidence`
 - Workflow/script seam: `.github/workflows/public-ci.yml`; `scripts/ci/public_safety_gate.py`
 - Rolling journal entry: `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+
+## Invocation record — 2026-07-14 (PR #1571, operator-authorized)
+
+- Trigger: GitHub never emitted the push-triggered `public-ci` run for main merge
+  `9018ae4f` (the NA-0645 promotion, PR #1569) — main HEAD carried NO
+  `public-safety` check-run, so the required gate on PR #1570 (NA-0645) failed
+  closed. Content was not the cause (goal-lint and all non-skipped checks green).
+- Disclosure: an earlier mis-shaped `workflow_dispatch` (run 29375806367,
+  pr_number=1570) failed its own validation by design and attached
+  `advisories=failure` + `public-safety=failure` check-runs to main@`9018ae4f`;
+  those record the dispatch rejection, not any content or advisory failure.
+- This invocation: bootstrap PR #1571 modifies exactly the sanctioned scope
+  (`.github/workflows/public-ci.yml` comment, `scripts/ci/public_safety_gate.py`
+  comment, this stub, the rolling journal). Its merge push restores a
+  legitimately green `public-safety` run on the new main HEAD; PR #1570 merges
+  only after that run is green AND `formal-proverif-composition` is green.

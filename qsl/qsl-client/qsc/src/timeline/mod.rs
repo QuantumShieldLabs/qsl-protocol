@@ -1,3 +1,4 @@
+use crate::output::{CliError, CliResult};
 use serde::{Deserialize, Serialize};
 
 use crate::store::{FileTransferRecord, TimelineStore, TIMELINE_SECRET_KEY};
@@ -6,7 +7,7 @@ use crate::vault;
 use super::{
     attachment_journal_load, attachment_journal_save, attachment_record_key, channel_label_ok,
     confirm_target_matches_channel, emit_cli_named_marker, emit_marker, emit_tui_named_marker,
-    file_xfer_store_key, print_error_marker, require_unlocked, short_device_marker,
+    file_xfer_store_key, require_unlocked, short_device_marker,
     short_peer_marker,
 };
 
@@ -623,12 +624,10 @@ pub(super) fn latest_outbound_file_id(peer: &str) -> Result<String, &'static str
     Ok(entry.id)
 }
 
-pub fn timeline_list(peer: &str, limit: Option<usize>) {
-    if !require_unlocked("timeline_list") {
-        return;
-    }
+pub fn timeline_list(peer: &str, limit: Option<usize>) -> CliResult {
+    require_unlocked("timeline_list")?;
     let mut entries =
-        timeline_entries_for_peer(peer).unwrap_or_else(|code| print_error_marker(code));
+        timeline_entries_for_peer(peer).map_err(|code| CliError::code(code))?;
     entries.sort_by(|a, b| b.ts.cmp(&a.ts).then_with(|| a.id.cmp(&b.id)));
     let take_n = limit.unwrap_or(entries.len()).min(entries.len());
     let count_s = take_n.to_string();
@@ -640,37 +639,35 @@ pub fn timeline_list(peer: &str, limit: Option<usize>) {
     for entry in entries.into_iter().take(take_n) {
         timeline_emit_item(&entry);
     }
+    Ok(())
 }
 
-pub fn timeline_show(peer: &str, id: &str) {
-    if !require_unlocked("timeline_show") {
-        return;
-    }
-    let entries = timeline_entries_for_peer(peer).unwrap_or_else(|code| print_error_marker(code));
+pub fn timeline_show(peer: &str, id: &str) -> CliResult {
+    require_unlocked("timeline_show")?;
+    let entries = timeline_entries_for_peer(peer).map_err(|code| CliError::code(code))?;
     let Some(entry) = entries.into_iter().find(|v| v.id == id) else {
-        print_error_marker("timeline_item_missing");
+        return Err(CliError::code("timeline_item_missing"));
     };
     timeline_emit_item(&entry);
+    Ok(())
 }
 
-pub fn timeline_clear(peer: &str, confirm: bool) {
-    if !require_unlocked("timeline_clear") {
-        return;
-    }
+pub fn timeline_clear(peer: &str, confirm: bool) -> CliResult {
+    require_unlocked("timeline_clear")?;
     if !confirm {
         emit_marker(
             "error",
             Some("timeline_clear_confirm_required"),
             &[("peer", peer), ("reason", "explicit_confirm_required")],
         );
-        print_error_marker("timeline_clear_confirm_required");
+        return Err(CliError::code("timeline_clear_confirm_required"));
     }
     if !channel_label_ok(peer) {
-        print_error_marker("timeline_peer_invalid");
+        return Err(CliError::code("timeline_peer_invalid"));
     }
-    let mut store = timeline_store_load().unwrap_or_else(|code| print_error_marker(code));
+    let mut store = timeline_store_load().map_err(|code| CliError::code(code))?;
     let removed = store.peers.remove(peer).map(|v| v.len()).unwrap_or(0usize);
-    timeline_store_save(&store).unwrap_or_else(|code| print_error_marker(code));
+    timeline_store_save(&store).map_err(|code| CliError::code(code))?;
     let removed_s = removed.to_string();
     emit_marker(
         "timeline_clear",
@@ -681,4 +678,5 @@ pub fn timeline_clear(peer: &str, confirm: bool) {
             ("removed", removed_s.as_str()),
         ],
     );
+    Ok(())
 }

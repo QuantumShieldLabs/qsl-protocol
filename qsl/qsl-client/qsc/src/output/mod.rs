@@ -4,7 +4,6 @@ use std::env;
 use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::path::PathBuf;
-use std::process;
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::{Mutex, OnceLock};
 
@@ -113,12 +112,27 @@ pub fn print_marker(event: &str, kv: &[(&str, &str)]) {
     emit_marker(event, None, kv);
 }
 
-pub fn print_error_marker(code: &str) -> ! {
-    emit_marker("error", Some(code), &[]);
-    process::exit(1);
+// NA-0646 (D582) PR-B: the messaging core returns errors instead of exiting the
+// process (a library cannot exit its host). Exit semantics live ONLY in the bin's
+// single Err->emit+exit adapter. `Emitted` = the marker(s) were already emitted at
+// the error site (the byte-safest pattern for kv/dynamic markers); `Code` = the bin
+// adapter emits the plain error marker exactly as print_error_marker used to.
+#[derive(Debug)]
+pub enum CliError {
+    Code(String),
+    Emitted,
 }
 
-// D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
+impl CliError {
+    pub fn code(code: impl Into<String>) -> Self {
+        CliError::Code(code.into())
+    }
+}
+
+pub type CliResult<T = ()> = Result<T, CliError>;
+
+// D581 KEEP -> NA-0646 (D582): part of the library's pub GUI surface, seeded for the GUI
+// phase; dormant until the GUI consumes it (dead_code allowance retained meanwhile).
 #[allow(dead_code)]
 pub fn set_marker_routing(routing: MarkerRouting) {
     let value = match routing {
@@ -319,7 +333,8 @@ fn log_marker(event: &str, code: Option<&str>, kv: &[(&str, &str)]) {
         .and_then(|mut f| f.write_all(line.as_bytes()));
 }
 
-// NA-0645 (D581 KEEP): the InApp routing is dormant after the TUI retirement — its only
+// D581 KEEP -> NA-0646 (D582): the InApp routing is the GUI's event sink, pub since the
+// crate split — its only
 // producers were the TUI — but it is the event sink the GUI phase builds on. This test
 // keeps it off zero coverage until then.
 #[cfg(test)]

@@ -842,10 +842,8 @@ pub fn contacts_add(
     sig_pk: Option<&str>,
     route_token: Option<&str>,
     verify: bool,
-) {
-    if !require_unlocked("contacts_add") {
-        return;
-    }
+) -> CliResult {
+    require_unlocked("contacts_add")?;
     // NA-0633 / NA-0634 (ENG-0038 / D571 Decision 2a): provision and verify the peer's FULL identity
     // against the SINGLE human-comparable code BEFORE storing (fail-closed). When both the identity KEM
     // key and the signing key are supplied, the code MUST equal fingerprint(kem_pk, sig_pk); we store the
@@ -858,15 +856,15 @@ pub fn contacts_add(
         (Some(kem_raw), Some(sig_raw)) => {
             let kem_bytes = match hex_decode(kem_raw) {
                 Ok(b) => b,
-                Err(_) => print_error_marker("contacts_kem_pk_bad_hex"),
+                Err(_) => return Err(CliError::code("contacts_kem_pk_bad_hex")),
             };
             let sig_bytes = match hex_decode(sig_raw) {
                 Ok(b) => b,
-                Err(_) => print_error_marker("contacts_sig_pk_bad_hex"),
+                Err(_) => return Err(CliError::code("contacts_sig_pk_bad_hex")),
             };
             let computed = identity_fingerprint_from_identity(&kem_bytes, &sig_bytes);
             if !identity_pin_matches_seen(fp, &computed) {
-                print_error_marker("contacts_identity_fp_mismatch");
+                return Err(CliError::code("contacts_identity_fp_mismatch"));
             }
             (
                 Some(hex_encode(&kem_bytes)),
@@ -876,28 +874,28 @@ pub fn contacts_add(
         (Some(kem_raw), None) => {
             let bytes = match hex_decode(kem_raw) {
                 Ok(b) => b,
-                Err(_) => print_error_marker("contacts_kem_pk_bad_hex"),
+                Err(_) => return Err(CliError::code("contacts_kem_pk_bad_hex")),
             };
             let computed = identity_fingerprint_from_pk(&bytes);
             if !identity_pin_matches_seen(fp, &computed) {
-                print_error_marker("contacts_kem_pk_fp_mismatch");
+                return Err(CliError::code("contacts_kem_pk_fp_mismatch"));
             }
             (Some(hex_encode(&bytes)), None)
         }
-        (None, Some(_)) => print_error_marker("contacts_sig_pk_requires_kem_pk"),
+        (None, Some(_)) => return Err(CliError::code("contacts_sig_pk_requires_kem_pk")),
         (None, None) => (None, None),
     };
     let status = if verify { "verified" } else { "pinned" };
     let route_token = match route_token {
         Some(raw) => {
-            Some(normalize_route_token(raw).unwrap_or_else(|code| print_error_marker(code)))
+            Some(normalize_route_token(raw).map_err(|code| CliError::code(code))?)
         }
         None => {
             #[cfg(qsc_rng_failure_test_seam)]
             {
                 Some(
                     generate_route_token_with_label("QSC.CONTACT.ROUTE_TOKEN")
-                        .unwrap_or_else(|code| print_error_marker(code)),
+                        .map_err(|code| CliError::code(code))?,
                 )
             }
             #[cfg(not(qsc_rng_failure_test_seam))]
@@ -927,7 +925,7 @@ pub fn contacts_add(
         }],
     };
     if contacts_entry_upsert(label, rec).is_err() {
-        print_error_marker("contacts_store_unavailable");
+        return Err(CliError::code("contacts_store_unavailable"));
     }
     emit_marker(
         "contacts_add",
@@ -938,10 +936,11 @@ pub fn contacts_add(
     let state = if verify { "VERIFIED" } else { "DISCOVERED" };
     emit_cli_contact_flow("add", state, label, None, mode);
     println!("contact={} status={}", label, status);
+    Ok(())
 }
 
-pub(super) fn contact_device_find_index(rec: &ContactRecord, device_id: &str) -> Option<usize> {
-    rec.devices.iter().position(|d| d.device_id == device_id)
+pub(super) fn contact_device_find_index(rec: &ContactRecord, device_id: &str) -> CliResult<Option<usize>> {
+    Ok(rec.devices.iter().position(|d| d.device_id == device_id))
 }
 
 pub(super) fn contact_has_trusted_device(rec: &ContactRecord) -> bool {
@@ -950,18 +949,17 @@ pub(super) fn contact_has_trusted_device(rec: &ContactRecord) -> bool {
         .any(|d| canonical_device_state(d.state.as_str()) == "TRUSTED")
 }
 
-pub fn contacts_device_add(label: &str, fp: &str, route_token: Option<&str>) {
-    if !require_unlocked("contacts_device_add") {
-        return;
-    }
+pub fn contacts_device_add(label: &str, fp: &str, route_token: Option<&str>) -> CliResult {
+    require_unlocked("contacts_device_add")?;
     let mut rec = contacts_entry_read(label)
-        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
-        .unwrap_or_else(|| print_error_marker("peer_unknown"));
+        .map_err(|_| CliError::code("contacts_store_unavailable"))?
+        .ok_or_else(|| CliError::code("peer_unknown"))?;
     normalize_contact_record(label, &mut rec);
     let route_token = route_token
-        .map(|raw| normalize_route_token(raw).unwrap_or_else(|code| print_error_marker(code)));
+        .map(|raw| normalize_route_token(raw).map_err(|code| CliError::code(code)))
+        .transpose()?;
     let device_id = device_id_short(label, None, fp);
-    if contact_device_find_index(&rec, device_id.as_str()).is_some() {
+    if contact_device_find_index(&rec, device_id.as_str())?.is_some() {
         emit_marker(
             "contacts_device_add",
             Some("device_exists"),
@@ -971,7 +969,7 @@ pub fn contacts_device_add(label: &str, fp: &str, route_token: Option<&str>) {
                 ("device", device_id.as_str()),
             ],
         );
-        print_error_marker("device_exists");
+        return Err(CliError::code("device_exists"));
     }
     rec.devices.push(ContactDeviceRecord {
         device_id: device_id.clone(),
@@ -985,7 +983,7 @@ pub fn contacts_device_add(label: &str, fp: &str, route_token: Option<&str>) {
     });
     normalize_contact_record(label, &mut rec);
     if contacts_entry_upsert(label, rec).is_err() {
-        print_error_marker("contacts_store_unavailable");
+        return Err(CliError::code("contacts_store_unavailable"));
     }
     emit_marker(
         "contacts_device_add",
@@ -997,15 +995,14 @@ pub fn contacts_device_add(label: &str, fp: &str, route_token: Option<&str>) {
             ("state", "UNVERIFIED"),
         ],
     );
+    Ok(())
 }
 
-pub fn contacts_device_list(label: &str) {
-    if !require_unlocked("contacts_device_list") {
-        return;
-    }
+pub fn contacts_device_list(label: &str) -> CliResult {
+    require_unlocked("contacts_device_list")?;
     let rec = contacts_entry_read(label)
-        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
-        .unwrap_or_else(|| print_error_marker("peer_unknown"));
+        .map_err(|_| CliError::code("contacts_store_unavailable"))?
+        .ok_or_else(|| CliError::code("peer_unknown"))?;
     let mut rec = rec;
     normalize_contact_record(label, &mut rec);
     let count_s = rec.devices.len().to_string();
@@ -1028,15 +1025,14 @@ pub fn contacts_device_list(label: &str) {
             canonical_device_state(dev.state.as_str())
         );
     }
+    Ok(())
 }
 
-pub fn contacts_device_status(label: &str, device: Option<&str>) {
-    if !require_unlocked("contacts_device_status") {
-        return;
-    }
+pub fn contacts_device_status(label: &str, device: Option<&str>) -> CliResult {
+    require_unlocked("contacts_device_status")?;
     let rec = contacts_entry_read(label)
-        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
-        .unwrap_or_else(|| print_error_marker("peer_unknown"));
+        .map_err(|_| CliError::code("contacts_store_unavailable"))?
+        .ok_or_else(|| CliError::code("peer_unknown"))?;
     let mut rec = rec;
     normalize_contact_record(label, &mut rec);
     let primary = primary_device(&rec)
@@ -1045,8 +1041,8 @@ pub fn contacts_device_status(label: &str, device: Option<&str>) {
         .to_string();
     match device {
         Some(device_id) => {
-            let Some(idx) = contact_device_find_index(&rec, device_id) else {
-                print_error_marker("device_unknown");
+            let Ok(Some(idx)) = contact_device_find_index(&rec, device_id) else {
+                return Err(CliError::code("device_unknown"));
             };
             let dev = &rec.devices[idx];
             let state = canonical_device_state(dev.state.as_str());
@@ -1089,18 +1085,17 @@ pub fn contacts_device_status(label: &str, device: Option<&str>) {
             }
         }
     }
+    Ok(())
 }
 
-pub fn contacts_device_verify(label: &str, device: &str, fp: &str) {
-    if !require_unlocked("contacts_device_verify") {
-        return;
-    }
+pub fn contacts_device_verify(label: &str, device: &str, fp: &str) -> CliResult {
+    require_unlocked("contacts_device_verify")?;
     let mut rec = contacts_entry_read(label)
-        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
-        .unwrap_or_else(|| print_error_marker("peer_unknown"));
+        .map_err(|_| CliError::code("contacts_store_unavailable"))?
+        .ok_or_else(|| CliError::code("peer_unknown"))?;
     normalize_contact_record(label, &mut rec);
-    let Some(idx) = contact_device_find_index(&rec, device) else {
-        print_error_marker("device_unknown");
+    let Ok(Some(idx)) = contact_device_find_index(&rec, device) else {
+        return Err(CliError::code("device_unknown"));
     };
     let expected = rec.devices[idx].fp.to_ascii_uppercase();
     let provided = fp.to_ascii_uppercase();
@@ -1113,7 +1108,7 @@ pub fn contacts_device_verify(label: &str, device: &str, fp: &str) {
             rec.status = "PINNED".to_string();
         }
         if contacts_entry_upsert(label, rec).is_err() {
-            print_error_marker("contacts_store_unavailable");
+            return Err(CliError::code("contacts_store_unavailable"));
         }
         emit_marker(
             "contacts_device_verify",
@@ -1148,7 +1143,7 @@ pub fn contacts_device_verify(label: &str, device: &str, fp: &str) {
         } else {
             emit_cli_trust_promotion("verified_only", "strict_mode", label, Some(device), mode);
         }
-        return;
+        return Ok(());
     }
     rec.devices[idx].state = "CHANGED".to_string();
     rec.status = "CHANGED".to_string();
@@ -1170,27 +1165,25 @@ pub fn contacts_device_verify(label: &str, device: &str, fp: &str) {
         Some(device),
         load_trust_onboarding_mode_from_account(),
     );
-    print_error_marker("verification_mismatch");
+    return Err(CliError::code("verification_mismatch"));
 }
 
-pub fn contacts_device_trust(label: &str, device: &str, confirm: bool) {
-    if !require_unlocked("contacts_device_trust") {
-        return;
-    }
+pub fn contacts_device_trust(label: &str, device: &str, confirm: bool) -> CliResult {
+    require_unlocked("contacts_device_trust")?;
     if !confirm {
-        print_error_marker("trust_requires_confirm");
+        return Err(CliError::code("trust_requires_confirm"));
     }
     let mut rec = contacts_entry_read(label)
-        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
-        .unwrap_or_else(|| print_error_marker("peer_unknown"));
+        .map_err(|_| CliError::code("contacts_store_unavailable"))?
+        .ok_or_else(|| CliError::code("peer_unknown"))?;
     normalize_contact_record(label, &mut rec);
-    let Some(idx) = contact_device_find_index(&rec, device) else {
-        print_error_marker("device_unknown");
+    let Ok(Some(idx)) = contact_device_find_index(&rec, device) else {
+        return Err(CliError::code("device_unknown"));
     };
     rec.devices[idx].state = "TRUSTED".to_string();
     rec.status = "PINNED".to_string();
     if contacts_entry_upsert(label, rec).is_err() {
-        print_error_marker("contacts_store_unavailable");
+        return Err(CliError::code("contacts_store_unavailable"));
     }
     emit_marker(
         "contacts_device_trust",
@@ -1211,25 +1204,24 @@ pub fn contacts_device_trust(label: &str, device: &str, confirm: bool) {
         Some(device),
         mode,
     );
+    Ok(())
 }
 
-pub fn contacts_device_revoke(label: &str, device: &str, confirm: bool) {
-    if !require_unlocked("contacts_device_revoke") {
-        return;
-    }
+pub fn contacts_device_revoke(label: &str, device: &str, confirm: bool) -> CliResult {
+    require_unlocked("contacts_device_revoke")?;
     if !confirm {
-        print_error_marker("revoke_requires_confirm");
+        return Err(CliError::code("revoke_requires_confirm"));
     }
     let mut rec = contacts_entry_read(label)
-        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
-        .unwrap_or_else(|| print_error_marker("peer_unknown"));
+        .map_err(|_| CliError::code("contacts_store_unavailable"))?
+        .ok_or_else(|| CliError::code("peer_unknown"))?;
     normalize_contact_record(label, &mut rec);
-    let Some(idx) = contact_device_find_index(&rec, device) else {
-        print_error_marker("device_unknown");
+    let Ok(Some(idx)) = contact_device_find_index(&rec, device) else {
+        return Err(CliError::code("device_unknown"));
     };
     rec.devices[idx].state = "REVOKED".to_string();
     if contacts_entry_upsert(label, rec).is_err() {
-        print_error_marker("contacts_store_unavailable");
+        return Err(CliError::code("contacts_store_unavailable"));
     }
     emit_marker(
         "contacts_device_revoke",
@@ -1241,26 +1233,25 @@ pub fn contacts_device_revoke(label: &str, device: &str, confirm: bool) {
             ("state", "REVOKED"),
         ],
     );
+    Ok(())
 }
 
-pub fn contacts_device_primary_set(label: &str, device: &str, confirm: bool) {
-    if !require_unlocked("contacts_device_primary_set") {
-        return;
-    }
+pub fn contacts_device_primary_set(label: &str, device: &str, confirm: bool) -> CliResult {
+    require_unlocked("contacts_device_primary_set")?;
     if !confirm {
-        print_error_marker("primary_set_requires_confirm");
+        return Err(CliError::code("primary_set_requires_confirm"));
     }
     let mut rec = contacts_entry_read(label)
-        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
-        .unwrap_or_else(|| print_error_marker("peer_unknown"));
+        .map_err(|_| CliError::code("contacts_store_unavailable"))?
+        .ok_or_else(|| CliError::code("peer_unknown"))?;
     normalize_contact_record(label, &mut rec);
-    let Some(_) = contact_device_find_index(&rec, device) else {
-        print_error_marker("device_unknown");
+    let Ok(Some(_)) = contact_device_find_index(&rec, device) else {
+        return Err(CliError::code("device_unknown"));
     };
     rec.primary_device_id = Some(device.to_string());
     normalize_contact_record(label, &mut rec);
     if contacts_entry_upsert(label, rec).is_err() {
-        print_error_marker("contacts_store_unavailable");
+        return Err(CliError::code("contacts_store_unavailable"));
     }
     emit_marker(
         "contacts_device_primary_set",
@@ -1273,15 +1264,14 @@ pub fn contacts_device_primary_set(label: &str, device: &str, confirm: bool) {
             ("policy", "primary_only"),
         ],
     );
+    Ok(())
 }
 
-pub fn contacts_device_primary_show(label: &str) {
-    if !require_unlocked("contacts_device_primary_show") {
-        return;
-    }
+pub fn contacts_device_primary_show(label: &str) -> CliResult {
+    require_unlocked("contacts_device_primary_show")?;
     let mut rec = contacts_entry_read(label)
-        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
-        .unwrap_or_else(|| print_error_marker("peer_unknown"));
+        .map_err(|_| CliError::code("contacts_store_unavailable"))?
+        .ok_or_else(|| CliError::code("peer_unknown"))?;
     let implicit = rec.primary_device_id.is_none();
     normalize_contact_record(label, &mut rec);
     let primary = primary_device(&rec)
@@ -1302,15 +1292,14 @@ pub fn contacts_device_primary_show(label: &str) {
         "label={} primary_device={} selected={} policy=primary_only",
         label, primary, selected
     );
+    Ok(())
 }
 
-pub fn contacts_route_set(label: &str, route_token: &str) {
-    if !require_unlocked("contacts_route_set") {
-        return;
-    }
-    let token = normalize_route_token(route_token).unwrap_or_else(|code| print_error_marker(code));
+pub fn contacts_route_set(label: &str, route_token: &str) -> CliResult {
+    require_unlocked("contacts_route_set")?;
+    let token = normalize_route_token(route_token).map_err(|code| CliError::code(code))?;
     let mut rec = contacts_entry_read(label)
-        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
+        .map_err(|_| CliError::code("contacts_store_unavailable"))?
         .unwrap_or(ContactRecord {
             fp: "UNSET".to_string(),
             status: "UNVERIFIED".to_string(),
@@ -1338,21 +1327,20 @@ pub fn contacts_route_set(label: &str, route_token: &str) {
         primary.route_token = primary_route_token;
     }
     if contacts_entry_upsert(label, rec).is_err() {
-        print_error_marker("contacts_store_unavailable");
+        return Err(CliError::code("contacts_store_unavailable"));
     }
     emit_marker(
         "contacts_route_set",
         None,
         &[("ok", "true"), ("label", label)],
     );
+    Ok(())
 }
 
-pub fn contacts_show(label: &str) {
-    if !require_unlocked("contacts_show") {
-        return;
-    }
+pub fn contacts_show(label: &str) -> CliResult {
+    require_unlocked("contacts_show")?;
     let rec = contacts_entry_read(label)
-        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"));
+        .map_err(|_| CliError::code("contacts_store_unavailable"))?;
     let state = contact_state(rec.as_ref());
     let blocked = bool_str(rec.as_ref().map(|v| v.blocked).unwrap_or(false));
     let device_count = rec.as_ref().map(|v| v.devices.len()).unwrap_or(0);
@@ -1382,14 +1370,13 @@ pub fn contacts_show(label: &str) {
     } else {
         println!("label={} state=unknown blocked=false", label);
     }
+    Ok(())
 }
 
-pub fn contacts_list() {
-    if !require_unlocked("contacts_list") {
-        return;
-    }
+pub fn contacts_list() -> CliResult {
+    require_unlocked("contacts_list")?;
     let mut entries = contacts_list_entries()
-        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"));
+        .map_err(|_| CliError::code("contacts_store_unavailable"))?;
     entries.sort_by(|a, b| a.0.cmp(&b.0));
     let count_s = entries.len().to_string();
     emit_marker("contacts_list", None, &[("count", count_s.as_str())]);
@@ -1405,14 +1392,13 @@ pub fn contacts_list() {
             label, state, blocked, device_count, primary_id
         );
     }
+    Ok(())
 }
 
-pub fn contacts_verify(label: &str, fp: &str, confirm: bool) {
-    if !require_unlocked("contacts_verify") {
-        return;
-    }
+pub fn contacts_verify(label: &str, fp: &str, confirm: bool) -> CliResult {
+    require_unlocked("contacts_verify")?;
     let Some(mut rec) = contacts_entry_read(label)
-        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
+        .map_err(|_| CliError::code("contacts_store_unavailable"))?
     else {
         emit_marker(
             "contacts_verify",
@@ -1424,12 +1410,12 @@ pub fn contacts_verify(label: &str, fp: &str, confirm: bool) {
                 ("reason", "peer_unknown"),
             ],
         );
-        print_error_marker("peer_unknown");
+        return Err(CliError::code("peer_unknown"));
     };
     normalize_contact_record(label, &mut rec);
     let primary = primary_device(&rec).map(|d| d.device_id.clone());
     let Some(primary) = primary else {
-        print_error_marker("device_unknown");
+        return Err(CliError::code("device_unknown"));
     };
     if !confirm {
         emit_marker(
@@ -1442,66 +1428,60 @@ pub fn contacts_verify(label: &str, fp: &str, confirm: bool) {
                 ("reason", "confirm_required"),
             ],
         );
-        print_error_marker("verify_requires_confirm");
+        return Err(CliError::code("verify_requires_confirm"));
     }
-    contacts_device_verify(label, primary.as_str(), fp);
+    contacts_device_verify(label, primary.as_str(), fp)
 }
 
-pub fn contacts_block(label: &str) {
-    if !require_unlocked("contacts_block") {
-        return;
-    }
+pub fn contacts_block(label: &str) -> CliResult {
+    require_unlocked("contacts_block")?;
     match contacts_set_blocked(label, true) {
         Ok(true) => emit_marker("contacts_block", None, &[("label", label), ("ok", "true")]),
-        Ok(false) => print_error_marker("peer_unknown"),
-        Err(_) => print_error_marker("contacts_store_unavailable"),
+        Ok(false) => return Err(CliError::code("peer_unknown")),
+        Err(_) => return Err(CliError::code("contacts_store_unavailable")),
     }
+    Ok(())
 }
 
-pub fn contacts_unblock(label: &str) {
-    if !require_unlocked("contacts_unblock") {
-        return;
-    }
+pub fn contacts_unblock(label: &str) -> CliResult {
+    require_unlocked("contacts_unblock")?;
     match contacts_set_blocked(label, false) {
         Ok(true) => emit_marker(
             "contacts_unblock",
             None,
             &[("label", label), ("ok", "true")],
         ),
-        Ok(false) => print_error_marker("peer_unknown"),
-        Err(_) => print_error_marker("contacts_store_unavailable"),
+        Ok(false) => return Err(CliError::code("peer_unknown")),
+        Err(_) => return Err(CliError::code("contacts_store_unavailable")),
     }
+    Ok(())
 }
 
-pub fn contacts_trust_mode_show() {
-    if !require_unlocked("contacts_trust_mode_show") {
-        return;
-    }
+pub fn contacts_trust_mode_show() -> CliResult {
+    require_unlocked("contacts_trust_mode_show")?;
     let mode = load_trust_onboarding_mode_from_account();
     emit_cli_named_marker("QSC_TRUST_MODE", &[("mode", mode.as_str())]);
     println!("trust_mode={}", mode.as_str());
+    Ok(())
 }
 
-pub fn contacts_trust_mode_set(mode: TrustMode) {
-    if !require_unlocked("contacts_trust_mode_set") {
-        return;
-    }
+pub fn contacts_trust_mode_set(mode: TrustMode) -> CliResult {
+    require_unlocked("contacts_trust_mode_set")?;
     let mode = TrustOnboardingMode::from_arg(mode);
     match vault::secret_set(TUI_TRUST_MODE_SECRET_KEY, mode.as_str()) {
         Ok(()) => {
             emit_cli_named_marker("QSC_TRUST_MODE", &[("mode", mode.as_str()), ("ok", "true")]);
             println!("trust_mode={}", mode.as_str());
+            Ok(())
         }
-        Err(_) => print_error_marker("contacts_store_unavailable"),
+        Err(_) => return Err(CliError::code("contacts_store_unavailable")),
     }
 }
 
-pub fn contacts_request_list() {
-    if !require_unlocked("contacts_request_list") {
-        return;
-    }
+pub fn contacts_request_list() -> CliResult {
+    require_unlocked("contacts_request_list")?;
     let items =
-        contact_request_list().unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"));
+        contact_request_list().map_err(|_| CliError::code("contacts_store_unavailable"))?;
     let count_s = items.len().to_string();
     emit_cli_named_marker(
         "QSC_CONTACT_REQUEST",
@@ -1515,20 +1495,19 @@ pub fn contacts_request_list() {
             item.device_id.unwrap_or_else(|| "unknown".to_string())
         );
     }
+    Ok(())
 }
 
-pub fn contacts_request_accept(label: &str) {
-    if !require_unlocked("contacts_request_accept") {
-        return;
-    }
+pub fn contacts_request_accept(label: &str) -> CliResult {
+    require_unlocked("contacts_request_accept")?;
     let removed = contact_request_remove(label)
-        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"));
+        .map_err(|_| CliError::code("contacts_store_unavailable"))?;
     if !removed {
-        print_error_marker("request_unknown");
+        return Err(CliError::code("request_unknown"));
     }
     let fp = "UNSET".to_string();
     let mut rec = contacts_entry_read(label)
-        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
+        .map_err(|_| CliError::code("contacts_store_unavailable"))?
         .unwrap_or(ContactRecord {
             fp: fp.clone(),
             status: "UNVERIFIED".to_string(),
@@ -1552,7 +1531,7 @@ pub fn contacts_request_accept(label: &str) {
     normalize_contact_record(label, &mut rec);
     rec.status = "UNVERIFIED".to_string();
     if contacts_entry_upsert(label, rec).is_err() {
-        print_error_marker("contacts_store_unavailable");
+        return Err(CliError::code("contacts_store_unavailable"));
     }
     emit_cli_contact_request("accept", label, None);
     emit_cli_contact_flow(
@@ -1562,27 +1541,25 @@ pub fn contacts_request_accept(label: &str) {
         None,
         load_trust_onboarding_mode_from_account(),
     );
+    Ok(())
 }
 
-pub fn contacts_request_ignore(label: &str) {
-    if !require_unlocked("contacts_request_ignore") {
-        return;
-    }
+pub fn contacts_request_ignore(label: &str) -> CliResult {
+    require_unlocked("contacts_request_ignore")?;
     let removed = contact_request_remove(label)
-        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"));
+        .map_err(|_| CliError::code("contacts_store_unavailable"))?;
     if !removed {
-        print_error_marker("request_unknown");
+        return Err(CliError::code("request_unknown"));
     }
     emit_cli_contact_request("ignore", label, None);
+    Ok(())
 }
 
-pub fn contacts_request_block(label: &str) {
-    if !require_unlocked("contacts_request_block") {
-        return;
-    }
+pub fn contacts_request_block(label: &str) -> CliResult {
+    require_unlocked("contacts_request_block")?;
     let _ = contact_request_remove(label);
     let mut rec = contacts_entry_read(label)
-        .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
+        .map_err(|_| CliError::code("contacts_store_unavailable"))?
         .unwrap_or(ContactRecord {
             fp: "UNSET".to_string(),
             status: "REVOKED".to_string(),
@@ -1609,7 +1586,8 @@ pub fn contacts_request_block(label: &str) {
         primary.state = "REVOKED".to_string();
     }
     if contacts_entry_upsert(label, rec).is_err() {
-        print_error_marker("contacts_store_unavailable");
+        return Err(CliError::code("contacts_store_unavailable"));
     }
     emit_cli_contact_request("block", label, None);
+    Ok(())
 }

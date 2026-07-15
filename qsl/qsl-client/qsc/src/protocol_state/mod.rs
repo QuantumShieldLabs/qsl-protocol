@@ -15,11 +15,10 @@ use std::collections::BTreeSet;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process;
 
 use crate::fs_store::{check_parent_safe, config_dir, enforce_safe_parents, write_atomic};
 use crate::model::{ConfigSource, ErrorCode};
-use crate::output::emit_marker;
+use crate::output::{emit_marker, CliError};
 use crate::store::{
     QspStatusRecord, QSP_SESSIONS_DIR, QSP_SESSION_BLOB_MAGIC, QSP_SESSION_BLOB_VERSION,
     QSP_SESSION_LEGACY_TOMBSTONE, QSP_SESSION_STORE_KEY_SECRET,
@@ -957,9 +956,9 @@ pub(crate) fn emit_protocol_inactive(reason: &str) {
     emit_marker("error", Some("protocol_inactive"), &[("reason", reason)]);
 }
 
-pub(crate) fn protocol_inactive_exit(reason: &str) -> ! {
+pub(crate) fn protocol_inactive_error(reason: &str) -> CliError {
     emit_protocol_inactive(reason);
-    process::exit(1);
+    CliError::Emitted
 }
 
 pub fn allow_unsafe_seed_fallback_for_tests() -> bool {

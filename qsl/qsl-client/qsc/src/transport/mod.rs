@@ -1,9 +1,7 @@
 use super::*;
 
-pub fn send_execute(args: SendExecuteArgs) {
-    if !require_unlocked("send") {
-        return;
-    }
+pub fn send_execute(args: SendExecuteArgs) -> CliResult {
+    require_unlocked("send")?;
     let SendExecuteArgs {
         transport,
         relay,
@@ -17,35 +15,35 @@ pub fn send_execute(args: SendExecuteArgs) {
     } = args;
     let transport = match transport {
         Some(v) => v,
-        None => print_error_marker("send_transport_required"),
+        None => return Err(CliError::code("send_transport_required")),
     };
 
     match transport {
         SendTransport::Relay => {
             let relay = match relay {
                 Some(v) => v,
-                None => print_error_marker("send_relay_required"),
+                None => return Err(CliError::code("send_relay_required")),
             };
             let to = match to {
                 Some(v) => v,
-                None => print_error_marker("send_to_required"),
+                None => return Err(CliError::code("send_to_required")),
             };
             let file = match file {
                 Some(v) => v,
-                None => print_error_marker("send_file_required"),
+                None => return Err(CliError::code("send_file_required")),
             };
             let pad_cfg = match meta_pad_config_from_args(pad_to, pad_bucket, meta_seed) {
                 Ok(v) => v,
-                Err(code) => print_error_marker(code),
+                Err(code) => return Err(CliError::code(code)),
             };
             if let Err(code) = enforce_cli_send_contact_trust(to.as_str()) {
-                print_error_marker(code);
+                return Err(CliError::code(code));
             }
             if let Err(code) = enforce_peer_not_blocked(to.as_str()) {
-                print_error_marker(code);
+                return Err(CliError::code(code));
             }
             if let Err(reason) = protocol_active_or_reason_for_send_peer(to.as_str()) {
-                protocol_inactive_exit(reason.as_str());
+                return Err(protocol_inactive_error(reason.as_str()));
             }
             if let Some(seed) = meta_seed {
                 let seed_s = seed.to_string();
@@ -58,56 +56,57 @@ pub fn send_execute(args: SendExecuteArgs) {
             if receipt.is_none() {
                 emit_marker("receipt_disabled", None, &[]);
             }
-            relay_send(&to, &file, &relay, pad_cfg, bucket_max, meta_seed, receipt);
+            relay_send(&to, &file, &relay, pad_cfg, bucket_max, meta_seed, receipt)?;
+            Ok(())
         }
     }
 }
 
-pub fn send_abort() {
+pub fn send_abort() -> CliResult {
     let (dir, source) = match config_dir() {
         Ok(v) => v,
-        Err(e) => print_error(e),
+        Err(e) => return Err(cli_err(e)),
     };
     let _lock = match lock_store_exclusive(&dir, source) {
         Ok(v) => v,
-        Err(e) => print_error(e),
+        Err(e) => return Err(cli_err(e)),
     };
     if let Err(e) = ensure_store_layout(&dir, source) {
-        print_error(e);
+        return Err(cli_err(e));
     }
 
     let outbox_path = dir.join(OUTBOX_FILE_NAME);
     if let Err(e) = enforce_safe_parents(&outbox_path, source) {
-        print_error(e);
+        return Err(cli_err(e));
     }
 
     if outbox_path.exists() {
-        let outbox = outbox_record_load(&outbox_path).unwrap_or_else(|e| print_error_marker(e));
+        let outbox = outbox_record_load(&outbox_path).map_err(|e| CliError::code(e))?;
         if outbox.to.is_empty() {
-            print_error_marker("outbox_recovery_required");
+            return Err(CliError::code("outbox_recovery_required"));
         }
-        let next_state = outbox_next_state_load().unwrap_or_else(|e| print_error_marker(e));
+        let next_state = outbox_next_state_load().map_err(|e| CliError::code(e))?;
         if qsp_session_store(
             outbox.channel.as_deref().unwrap_or(outbox.to.as_str()),
             &next_state,
         )
         .is_err()
         {
-            print_error_marker("qsp_session_store_failed");
+            return Err(CliError::code("qsp_session_store_failed"));
         }
-        let next_seq = match read_send_state(&dir, source) {
+        let next_seq = match read_send_state(&dir, source)? {
             Ok(v) => v + 1,
-            Err(()) => print_error_marker("send_state_parse_failed"),
+            Err(()) => return Err(CliError::code("send_state_parse_failed")),
         };
         let state_bytes = format!("send_seq={}\n", next_seq).into_bytes();
         if write_atomic(&dir.join(SEND_STATE_NAME), &state_bytes, source).is_err() {
-            print_error_marker("send_commit_write_failed");
+            return Err(CliError::code("send_commit_write_failed"));
         }
         if fs::remove_file(&outbox_path).is_err() {
-            print_error_marker("outbox_abort_failed");
+            return Err(CliError::code("outbox_abort_failed"));
         }
         if let Err(code) = outbox_next_state_clear() {
-            print_error_marker(code);
+            return Err(CliError::code(code));
         }
         let seq_s = next_seq.to_string();
         emit_marker(
@@ -127,6 +126,7 @@ pub fn send_abort() {
             &[("ok", "true"), ("action", "absent")],
         );
     }
+    Ok(())
 }
 
 fn outbox_record_load(path: &Path) -> Result<OutboxRecord, &'static str> {
@@ -165,10 +165,8 @@ fn outbox_next_state_clear() -> Result<(), &'static str> {
     }
 }
 
-pub fn receive_execute(args: ReceiveArgs) {
-    if !require_unlocked("receive") {
-        return;
-    }
+pub fn receive_execute(args: ReceiveArgs) -> CliResult {
+    require_unlocked("receive")?;
     let ReceiveArgs {
         transport,
         relay,
@@ -219,43 +217,43 @@ pub fn receive_execute(args: ReceiveArgs) {
     );
     let transport = match transport {
         Some(v) => v,
-        None => print_error_marker("recv_transport_required"),
+        None => return Err(CliError::code("recv_transport_required")),
     };
     match transport {
         SendTransport::Relay => {
             let relay = match relay {
                 Some(v) => v,
-                None => print_error_marker("recv_relay_required"),
+                None => return Err(CliError::code("recv_relay_required")),
             };
-            let attachment_service = attachment_service.map(|v| {
-                normalize_relay_endpoint(v.as_str()).unwrap_or_else(|code| print_error_marker(code))
-            });
+            let attachment_service = attachment_service
+                .map(|v| normalize_relay_endpoint(v.as_str()).map_err(|code| CliError::code(code)))
+                .transpose()?;
             let legacy_receive_mode =
                 resolve_legacy_receive_mode(legacy_receive_mode, attachment_service.as_deref())
-                    .unwrap_or_else(|code| print_error_marker(code));
+                    .map_err(|code| CliError::code(code))?;
             // NA-0644 (D580): the default is LEGACY delete-on-pull; lease is explicit opt-in.
             let ack_mode = ack_mode.unwrap_or(AckMode::Legacy);
             if let Err(code) = normalize_relay_endpoint(relay.as_str()) {
-                print_error_marker(code);
+                return Err(CliError::code(code));
             }
             let from = match from {
                 Some(v) => v,
-                None => print_error_marker("recv_from_required"),
+                None => return Err(CliError::code("recv_from_required")),
             };
             let mailbox = match mailbox {
                 Some(raw) => normalize_route_token(raw.as_str())
-                    .unwrap_or_else(|code| print_error_marker(code)),
+                    .map_err(|code| CliError::code(code))?,
                 None => {
-                    relay_self_inbox_route_token().unwrap_or_else(|code| print_error_marker(code))
+                    relay_self_inbox_route_token().map_err(|code| CliError::code(code))?
                 }
             };
             let max = match max {
                 Some(v) if v > 0 => v,
-                _ => print_error_marker("recv_max_required"),
+                _ => return Err(CliError::code("recv_max_required")),
             };
             let max_file_size = match max_file_size {
                 Some(v) if v > 0 && v <= ATTACHMENT_DEFAULT_MAX_FILE_SIZE => v,
-                Some(_) => print_error_marker("recv_file_size_bound_invalid"),
+                Some(_) => return Err(CliError::code("recv_file_size_bound_invalid")),
                 None => {
                     if attachment_service.is_some() {
                         ATTACHMENT_DEFAULT_MAX_FILE_SIZE
@@ -266,7 +264,7 @@ pub fn receive_execute(args: ReceiveArgs) {
             };
             let max_file_chunks = match max_file_chunks {
                 Some(v) if v > 0 && v <= ATTACHMENT_DEFAULT_MAX_PARTS => v,
-                Some(_) => print_error_marker("recv_file_chunks_bound_invalid"),
+                Some(_) => return Err(CliError::code("recv_file_chunks_bound_invalid")),
                 None => {
                     if attachment_service.is_some() {
                         ATTACHMENT_DEFAULT_MAX_PARTS
@@ -277,7 +275,7 @@ pub fn receive_execute(args: ReceiveArgs) {
             };
             let out = match out {
                 Some(v) => v,
-                None => print_error_marker("recv_out_required"),
+                None => return Err(CliError::code("recv_out_required")),
             };
             let poll_cfg = match meta_poll_config_from_args(MetaPollArgs {
                 deterministic_meta,
@@ -290,24 +288,24 @@ pub fn receive_execute(args: ReceiveArgs) {
                 meta_seed,
             }) {
                 Ok(v) => v,
-                Err(code) => print_error_marker(code),
+                Err(code) => return Err(CliError::code(code)),
             };
             let source = ConfigSource::EnvOverride;
             if let Err(e) = ensure_dir_secure(&out, source) {
-                print_error(e);
+                return Err(cli_err(e));
             }
             let (cfg_dir, cfg_source) = match config_dir() {
                 Ok(v) => v,
-                Err(e) => print_error(e),
+                Err(e) => return Err(cli_err(e)),
             };
             if !check_symlink_safe(&cfg_dir) {
-                print_error(ErrorCode::UnsafePathSymlink);
+                return Err(cli_err(ErrorCode::UnsafePathSymlink));
             }
             if !check_parent_safe(&cfg_dir, cfg_source) {
-                print_error(ErrorCode::UnsafeParentPerms);
+                return Err(cli_err(ErrorCode::UnsafeParentPerms));
             }
             if let Err(reason) = protocol_active_or_reason_for_peer(from.as_str()) {
-                protocol_inactive_exit(reason.as_str());
+                return Err(protocol_inactive_error(reason.as_str()));
             }
 
             if let Some(seed) = meta_seed {
@@ -380,7 +378,7 @@ pub fn receive_execute(args: ReceiveArgs) {
                         file_max_chunks: max_file_chunks,
                         receipt_policy,
                     };
-                    let stats = receive_pull_and_write(&pull, cfg.batch_max_count);
+                    let stats = receive_pull_and_write(&pull, cfg.batch_max_count)?;
                     total = total.saturating_add(stats.count);
                     let count_s = stats.count.to_string();
                     let bytes_s = stats.bytes.to_string();
@@ -410,14 +408,15 @@ pub fn receive_execute(args: ReceiveArgs) {
                     file_max_chunks: max_file_chunks,
                     receipt_policy,
                 };
-                total = receive_pull_and_write(&pull, max).count;
+                total = receive_pull_and_write(&pull, max)?.count;
             }
             if total == 0 {
                 emit_marker("recv_none", None, &[]);
-                return;
+                return Ok(());
             }
             let count_s = total.to_string();
             emit_marker("recv_commit", None, &[("count", count_s.as_str())]);
+            Ok(())
         }
     }
 }
@@ -426,7 +425,7 @@ pub fn receive_execute(args: ReceiveArgs) {
 /// (advertisements), so `receive --max N` still yields up to N application messages.
 const RECV_CONTROL_ROUNDS_MAX: usize = 4;
 
-fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullStats {
+fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<ReceivePullStats> {
     let mut stats = ReceivePullStats { count: 0, bytes: 0 };
     let mut pending_receipts: Vec<PendingReceipt> = Vec::new();
     // NA-0644 (D580): lease-mode state. Legacy mode never constructs the seen store and
@@ -446,7 +445,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
         let want = max.saturating_sub(stats.count).max(1);
         let items = match relay_inbox_pull_mode(ctx.relay, ctx.mailbox, want, ctx.ack_mode) {
             Ok(v) => v,
-            Err(code) => print_error_marker(code),
+            Err(code) => return Err(CliError::code(code)),
         };
         if items.is_empty() {
             break 'pull;
@@ -498,14 +497,15 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                         .is_err()
                         {
                             emit_marker("error", Some("qsp_session_store_failed"), &[]);
-                            print_error_marker("qsp_session_store_failed");
+                            return Err(CliError::code("qsp_session_store_failed"));
                         }
+                        Ok(())
                     };
                     // NA-0624: an SCKA control message (peer advertisement) carries no application
                     // payload — commit the trigger/SCKA state and move on.
                     if outcome.is_control {
-                        commit_unpack_state();
-                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id);
+                        commit_unpack_state()?;
+                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
                         controls = controls.saturating_add(1);
                         continue;
                     }
@@ -516,7 +516,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                         let attachment_id = desc.attachment_id.clone();
                         match attachment_handle_descriptor(ctx, desc) {
                             Ok(Some((confirm_attachment_id, confirm_handle))) => {
-                                commit_unpack_state();
+                                commit_unpack_state()?;
                                 queue_or_send_receipt(
                                     ctx,
                                     &mut pending_receipts,
@@ -524,10 +524,10 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                                         attachment_id: confirm_attachment_id,
                                         confirm_handle,
                                     },
-                                );
+                                )?;
                             }
                             Ok(None) => {
-                                commit_unpack_state();
+                                commit_unpack_state()?;
                             }
                             Err(reason) => {
                                 emit_marker(
@@ -541,10 +541,10 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                                         ("reason", reason),
                                     ],
                                 );
-                                print_error_marker(reason);
+                                return Err(CliError::code(reason));
                             }
                         }
-                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id);
+                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
                         continue;
                     }
                     if let Some(file_payload) = parse_file_transfer_payload(&outcome.plaintext) {
@@ -575,7 +575,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                                     ("reason", "legacy_receive_retired_post_w0"),
                                 ],
                             );
-                            print_error_marker("legacy_receive_retired_post_w0");
+                            return Err(CliError::code("legacy_receive_retired_post_w0"));
                         }
                         let file_res = match file_payload {
                             FileTransferPayload::Chunk(v) => {
@@ -587,7 +587,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                         };
                         match file_res {
                             Ok(Some((confirm_file_id, confirm_id))) => {
-                                commit_unpack_state();
+                                commit_unpack_state()?;
                                 queue_or_send_receipt(
                                     ctx,
                                     &mut pending_receipts,
@@ -595,10 +595,10 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                                         file_id: confirm_file_id,
                                         confirm_id,
                                     },
-                                );
+                                )?;
                             }
                             Ok(None) => {
-                                commit_unpack_state();
+                                commit_unpack_state()?;
                             }
                             Err(reason) => {
                                 if reason == "manifest_mismatch" {
@@ -613,14 +613,14 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                                     Some(reason),
                                     &[("id", file_id.as_str()), ("reason", reason)],
                                 );
-                                print_error_marker(reason);
+                                return Err(CliError::code(reason));
                             }
                         }
-                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id);
+                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
                         continue;
                     }
                     if let Some(confirm) = parse_attachment_confirm_payload(&outcome.plaintext) {
-                        commit_unpack_state();
+                        commit_unpack_state()?;
                         match apply_attachment_peer_confirmation(
                             ctx.from,
                             confirm.attachment_id.as_str(),
@@ -660,11 +660,11 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                                 &[("reason", reason), ("ok", "false")],
                             ),
                         }
-                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id);
+                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
                         continue;
                     }
                     if let Some(file_confirm) = parse_file_confirm_payload(&outcome.plaintext) {
-                        commit_unpack_state();
+                        commit_unpack_state()?;
                         match apply_file_peer_confirmation(
                             ctx.from,
                             file_confirm.file_id.as_str(),
@@ -708,12 +708,12 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                                 &[("reason", reason), ("ok", "false")],
                             ),
                         }
-                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id);
+                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
                         continue;
                     }
                     if let Some(ctrl) = parse_receipt_payload(&outcome.plaintext) {
                         if ctrl.v == 1 && ctrl.kind == "delivered" && ctrl.t == "ack" {
-                            commit_unpack_state();
+                            commit_unpack_state()?;
                             match apply_message_peer_confirmation(
                                 ctx.from,
                                 ctrl.msg_id.as_str(),
@@ -753,7 +753,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                                     emit_message_state_reject(ctrl.msg_id.as_str(), reason)
                                 }
                             }
-                            record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id);
+                            record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
                             continue;
                         }
                         if ctrl.v == 1 && ctrl.kind == "delivered" && ctrl.t == "data" {
@@ -764,7 +764,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                             }
                         }
                     }
-                    commit_unpack_state();
+                    commit_unpack_state()?;
                     stats.count = stats.count.saturating_add(1);
                     stats.bytes = stats.bytes.saturating_add(envelope_len);
                     let bucket = meta_bucket_for_len(envelope_len, ctx.bucket_max);
@@ -788,7 +788,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                     let name = format!("recv_{}.bin", stats.count);
                     let path = ctx.out.join(name);
                     if write_atomic(&path, &payload, ctx.source).is_err() {
-                        print_error_marker("recv_write_failed");
+                        return Err(CliError::code("recv_write_failed"));
                     }
                     let idx_s = stats.count.to_string();
                     let size_s = payload.len().to_string();
@@ -823,9 +823,9 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                             PendingReceipt::Message {
                                 msg_id: request_msg_id,
                             },
-                        );
+                        )?;
                     }
-                    record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id);
+                    record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
                 }
                 Err(code) => {
                     let from_alias = peer_alias_from_channel(ctx.from);
@@ -859,11 +859,11 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
                                 Some(code),
                                 &[("id", item.id.as_str())],
                             );
-                            record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id);
+                            record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
                             continue;
                         }
                     }
-                    print_error_marker(code);
+                    return Err(CliError::code(code));
                 }
             }
         }
@@ -877,17 +877,11 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> ReceivePullSt
     // its pending-record commit, independent of the later content download.
     flush_pending_acks(ctx, &mut pending_acks);
     if let Some(service_url) = ctx.attachment_service {
-        match attachment_resume_pending_for_peer(ctx, service_url) {
-            Ok(resumed) => {
-                stats.count = stats.count.saturating_add(resumed);
-            }
-            Err(reason) => {
-                print_error_marker(reason);
-            }
-        }
+        let resumed = attachment_resume_pending_for_peer(ctx, service_url)?;
+        stats.count = stats.count.saturating_add(resumed);
     }
-    flush_batched_receipts(ctx, &mut pending_receipts);
-    stats
+    flush_batched_receipts(ctx, &mut pending_receipts)?;
+    Ok(stats)
 }
 
 // NA-0644 (D580): the lease-mode ordering invariant. An id becomes ack-eligible ONLY
@@ -899,13 +893,14 @@ fn record_seen_and_queue_ack(
     seen: &mut Option<dedup::RelaySeenIds>,
     pending_acks: &mut Vec<String>,
     id: &str,
-) {
+) -> CliResult {
     if let Some(store) = seen.as_mut() {
         if store.record(id).is_err() {
-            print_error_marker("dedup_store_write_failed");
+            return Err(CliError::code("dedup_store_write_failed"));
         }
         pending_acks.push(id.to_string());
     }
+    Ok(())
 }
 
 // qsl-server MAX_ACK_IDS: the ack route rejects larger id lists.
@@ -958,13 +953,13 @@ fn flush_pending_acks(ctx: &ReceivePullCtx<'_>, pending_acks: &mut Vec<String>) 
     pending_acks.clear();
 }
 
-pub fn relay_serve(port: u16, cfg: RelayConfig, max_messages: u64) {
+pub fn relay_serve(port: u16, cfg: RelayConfig, max_messages: u64) -> CliResult {
     let addr = format!("127.0.0.1:{}", port);
     let listener =
-        TcpListener::bind(&addr).unwrap_or_else(|_| print_error_marker("relay_bind_failed"));
+        TcpListener::bind(&addr).map_err(|_| CliError::code("relay_bind_failed"))?;
     let bound = listener
         .local_addr()
-        .unwrap_or_else(|_| print_error_marker("relay_bind_failed"));
+        .map_err(|_| CliError::code("relay_bind_failed"))?;
     let port_s = bound.port().to_string();
     let seed_s = cfg.seed.to_string();
     emit_marker(
@@ -1040,6 +1035,7 @@ pub fn relay_serve(port: u16, cfg: RelayConfig, max_messages: u64) {
             break;
         }
     }
+    Ok(())
 }
 
 fn relay_try_handle_http_inbox(
@@ -1287,50 +1283,54 @@ pub fn relay_send(
     bucket_max: Option<usize>,
     meta_seed: Option<u64>,
     receipt: Option<ReceiptKind>,
-) {
+) -> CliResult {
     if let Err(code) = enforce_cli_send_contact_trust(to) {
-        print_error_marker(code);
+        return Err(CliError::code(code));
     }
     if let Err(code) = enforce_peer_not_blocked(to) {
-        print_error_marker(code);
+        return Err(CliError::code(code));
     }
     if let Err(reason) = protocol_active_or_reason_for_send_peer(to) {
-        protocol_inactive_exit(reason.as_str());
+        return Err(protocol_inactive_error(reason.as_str()));
     }
     let payload = match fs::read(file) {
         Ok(v) => v,
-        Err(_) => print_error_marker("relay_payload_read_failed"),
+        Err(_) => return Err(CliError::code("relay_payload_read_failed")),
     };
     let outcome = relay_send_with_payload(RelaySendPayloadArgs {
         to,
         payload,
         relay,
-        injector: fault_injector_from_env(),
+        injector: fault_injector_from_env()?,
         pad_cfg,
         bucket_max,
         meta_seed,
         receipt,
         routing_override: None,
-    });
+    })?;
     if let Some(code) = outcome.error_code {
-        print_error_marker(code);
+        return Err(CliError::code(code));
     }
+    Ok(())
 }
 
-pub(super) fn fault_injector_from_env() -> Option<FaultInjector> {
-    let scenario = env::var("QSC_SCENARIO").ok()?;
+pub(super) fn fault_injector_from_env() -> CliResult<Option<FaultInjector>> {
+    let scenario = match env::var("QSC_SCENARIO") {
+        Ok(v) => v,
+        Err(_) => return Ok(None),
+    };
     if scenario == "happy-path" || scenario == "default" {
-        return None;
+        return Ok(None);
     }
     let seed_str = match env::var("QSC_SEED") {
         Ok(v) => v,
-        Err(_) => print_error_marker("fault_injection_seed_required"),
+        Err(_) => return Err(CliError::code("fault_injection_seed_required")),
     };
     let seed = seed_str
         .trim()
         .parse::<u64>()
-        .unwrap_or_else(|_| print_error_marker("fault_injection_seed_invalid"));
-    Some(FaultInjector { seed, scenario })
+        .map_err(|_| CliError::code("fault_injection_seed_invalid"))?;
+    Ok(Some(FaultInjector { seed, scenario }))
 }
 
 fn relay_auth_token() -> Option<String> {
@@ -1716,7 +1716,7 @@ fn next_fault_index() -> u64 {
     FAULT_IDX.fetch_add(1, Ordering::SeqCst).wrapping_add(1)
 }
 
-pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySendOutcome {
+pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> CliResult<RelaySendOutcome> {
     let RelaySendPayloadArgs {
         to,
         payload,
@@ -1729,22 +1729,22 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySe
         routing_override,
     } = args;
     if let Err(code) = normalize_relay_endpoint(relay) {
-        return RelaySendOutcome {
+        return Ok(RelaySendOutcome {
             action: "endpoint_reject".to_string(),
             delivered: false,
             error_code: Some(code),
-        };
+        });
     }
     let routing = match routing_override {
         Some(v) => v,
         None => match resolve_send_routing_target(to) {
             Ok(v) => v,
             Err(code) => {
-                return RelaySendOutcome {
+                return Ok(RelaySendOutcome {
                     action: "route_token_reject".to_string(),
                     delivered: false,
                     error_code: Some(code),
-                };
+                });
             }
         },
     };
@@ -1757,14 +1757,14 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySe
     let push_route_token = routing.route_token.clone();
     let (dir, source) = match config_dir() {
         Ok(v) => v,
-        Err(e) => print_error(e),
+        Err(e) => return Err(cli_err(e)),
     };
     let _lock = match lock_store_exclusive(&dir, source) {
         Ok(v) => v,
-        Err(e) => print_error(e),
+        Err(e) => return Err(cli_err(e)),
     };
     if let Err(e) = ensure_store_layout(&dir, source) {
-        print_error(e);
+        return Err(cli_err(e));
     }
 
     let outbox_path = dir.join(OUTBOX_FILE_NAME);
@@ -1773,30 +1773,30 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySe
             Ok(v) => v,
             Err(code) => {
                 emit_marker("error", Some(code), &[]);
-                return RelaySendOutcome {
+                return Ok(RelaySendOutcome {
                     action: "outbox_load_failed".to_string(),
                     delivered: false,
                     error_code: Some(code),
-                };
+                });
             }
         };
         if outbox.to.is_empty() || outbox.ciphertext.is_empty() {
             emit_marker("error", Some("outbox_recovery_required"), &[]);
-            return RelaySendOutcome {
+            return Ok(RelaySendOutcome {
                 action: "outbox_recovery_required".to_string(),
                 delivered: false,
                 error_code: Some("outbox_recovery_required"),
-            };
+            });
         }
         let next_state = match outbox_next_state_load() {
             Ok(v) => v,
             Err(code) => {
                 emit_marker("error", Some(code), &[]);
-                return RelaySendOutcome {
+                return Ok(RelaySendOutcome {
                     action: "outbox_state_missing".to_string(),
                     delivered: false,
                     error_code: Some(code),
-                };
+                });
             }
         };
         let replay_route_token = if outbox.to == routing.peer_alias {
@@ -1805,16 +1805,16 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySe
             match relay_peer_route_token(outbox.to.as_str()) {
                 Ok(v) => v,
                 Err(code) => {
-                    return RelaySendOutcome {
+                    return Ok(RelaySendOutcome {
                         action: "route_token_reject".to_string(),
                         delivered: false,
                         error_code: Some(code),
-                    };
+                    });
                 }
             }
         };
         print_marker("send_retry", &[("mode", "outbox_replay")]);
-        return match relay_inbox_push(relay, replay_route_token.as_str(), &outbox.ciphertext) {
+        return Ok(match relay_inbox_push(relay, replay_route_token.as_str(), &outbox.ciphertext) {
             Ok(()) => finalize_send_commit(
                 &dir,
                 source,
@@ -1832,7 +1832,7 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySe
                     message_id: outbox.message_id.as_deref(),
                     target_device_id: outbox.channel.as_deref().and_then(channel_device_id),
                 }),
-            ),
+            )?,
             Err(code) => {
                 print_marker("send_attempt", &[("ok", "false")]);
                 RelaySendOutcome {
@@ -1841,10 +1841,10 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySe
                     error_code: Some(code),
                 }
             }
-        };
+        });
     }
 
-    let (payload, receipt_msg_id) = encode_receipt_data_payload(payload, receipt);
+    let (payload, receipt_msg_id) = encode_receipt_data_payload(payload, receipt)?;
     let pack = match qsp_pack(routing.channel.as_str(), &payload, pad_cfg, meta_seed) {
         Ok(v) => {
             record_qsp_status(&dir, source, true, "pack_ok", true, false);
@@ -1880,11 +1880,11 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySe
             } else {
                 emit_marker("qsp_pack", Some(err.code), &[("ok", "false")]);
             }
-            return RelaySendOutcome {
+            return Ok(RelaySendOutcome {
                 action: err.code.to_string(),
                 delivered: false,
                 error_code: Some(err.code),
-            };
+            });
         }
     };
     let ciphertext = pack.envelope.clone();
@@ -1897,11 +1897,11 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySe
     }
     if let Some(max_bucket) = bucket_max {
         if max_bucket == 0 || max_bucket > META_BUCKET_MAX_CEILING {
-            return RelaySendOutcome {
+            return Ok(RelaySendOutcome {
                 action: "meta_bucket_invalid".to_string(),
                 delivered: false,
                 error_code: Some("meta_bucket_invalid"),
-            };
+            });
         }
         let bucket = meta_bucket_for_len(ciphertext.len(), max_bucket);
         let bucket_s = bucket.to_string();
@@ -1931,29 +1931,29 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySe
         Ok(v) => v,
         Err(_) => {
             emit_marker("error", Some("outbox_serialize_failed"), &[]);
-            return RelaySendOutcome {
+            return Ok(RelaySendOutcome {
                 action: "outbox_serialize_failed".to_string(),
                 delivered: false,
                 error_code: Some("outbox_serialize_failed"),
-            };
+            });
         }
     };
     if write_atomic(&outbox_path, &outbox_bytes, source).is_err() {
         emit_marker("error", Some("outbox_write_failed"), &[]);
-        return RelaySendOutcome {
+        return Ok(RelaySendOutcome {
             action: "outbox_write_failed".to_string(),
             delivered: false,
             error_code: Some("outbox_write_failed"),
-        };
+        });
     }
     if let Err(code) = outbox_next_state_store(&pack.next_state) {
         let _ = fs::remove_file(&outbox_path);
         emit_marker("error", Some(code), &[]);
-        return RelaySendOutcome {
+        return Ok(RelaySendOutcome {
             action: "outbox_state_store_failed".to_string(),
             delivered: false,
             error_code: Some(code),
-        };
+        });
     }
 
     if let Some(fi) = injector.as_ref() {
@@ -1974,11 +1974,11 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySe
                         ],
                     );
                     print_marker("send_attempt", &[("ok", "false")]);
-                    return RelaySendOutcome {
+                    return Ok(RelaySendOutcome {
                         action: "drop".to_string(),
                         delivered: false,
                         error_code: Some("relay_drop_injected"),
-                    };
+                    });
                 }
                 FaultAction::Reorder => {
                     emit_marker(
@@ -2007,16 +2007,16 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySe
         if let Err(code) = relay_inbox_push(relay, push_route_token.as_str(), pre) {
             emit_marker("relay_event", None, &[("action", "push_fail")]);
             print_marker("send_attempt", &[("ok", "false")]);
-            return RelaySendOutcome {
+            return Ok(RelaySendOutcome {
                 action: "push_fail".to_string(),
                 delivered: false,
                 error_code: Some(code),
-            };
+            });
         }
         emit_marker("relay_event", None, &[("action", "deliver_control")]);
     }
 
-    match relay_inbox_push(relay, push_route_token.as_str(), &ciphertext) {
+    Ok(match relay_inbox_push(relay, push_route_token.as_str(), &ciphertext) {
         Ok(()) => {
             emit_marker("relay_event", None, &[("action", "deliver")]);
             emit_cli_delivery_state_with_device(
@@ -2038,7 +2038,7 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySe
                     message_id: receipt_msg_id.as_deref(),
                     target_device_id: Some(routing.device_id.as_str()),
                 }),
-            )
+            )?
         }
         Err(code) => {
             emit_marker("relay_event", None, &[("action", "push_fail")]);
@@ -2049,7 +2049,7 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> RelaySe
                 error_code: Some(code),
             }
         }
-    }
+    })
 }
 
 fn finalize_send_commit(
@@ -2065,16 +2065,16 @@ fn finalize_send_commit(
     // outcome and preserves the stored trigger (None).
     send_trigger: Option<&QspTriggerState>,
     timeline_ingest: Option<TimelineSendIngest<'_>>,
-) -> RelaySendOutcome {
-    let next_seq = match read_send_state(dir, source) {
+) -> CliResult<RelaySendOutcome> {
+    let next_seq = match read_send_state(dir, source)? {
         Ok(v) => v + 1,
         Err(()) => {
             emit_marker("error", Some("send_state_parse_failed"), &[]);
-            return RelaySendOutcome {
+            return Ok(RelaySendOutcome {
                 action,
                 delivered: true,
                 error_code: Some("send_state_parse_failed"),
-            };
+            });
         }
     };
     if let Some((peer, st)) = session_update {
@@ -2084,11 +2084,11 @@ fn finalize_send_commit(
         };
         if stored.is_err() {
             emit_marker("error", Some("qsp_session_store_failed"), &[]);
-            return RelaySendOutcome {
+            return Ok(RelaySendOutcome {
                 action,
                 delivered: true,
                 error_code: Some("qsp_session_store_failed"),
-            };
+            });
         }
     }
     if let Some(ingest) = timeline_ingest {
@@ -2108,36 +2108,36 @@ fn finalize_send_commit(
     let state_bytes = format!("send_seq={}\n", next_seq).into_bytes();
     if write_atomic(&dir.join(SEND_STATE_NAME), &state_bytes, source).is_err() {
         emit_marker("error", Some("send_commit_write_failed"), &[]);
-        return RelaySendOutcome {
+        return Ok(RelaySendOutcome {
             action,
             delivered: true,
             error_code: Some("send_commit_write_failed"),
-        };
+        });
     }
     if fs::remove_file(outbox_path).is_err() {
         emit_marker("error", Some("outbox_remove_failed"), &[]);
-        return RelaySendOutcome {
+        return Ok(RelaySendOutcome {
             action,
             delivered: true,
             error_code: Some("outbox_remove_failed"),
-        };
+        });
     }
     if let Err(code) = outbox_next_state_clear() {
         emit_marker("error", Some(code), &[]);
-        return RelaySendOutcome {
+        return Ok(RelaySendOutcome {
             action,
             delivered: true,
             error_code: Some(code),
-        };
+        });
     }
     print_marker("send_attempt", &[("ok", "true")]);
     let seq_s = next_seq.to_string();
     print_marker("send_commit", &[("send_seq", seq_s.as_str())]);
-    RelaySendOutcome {
+    Ok(RelaySendOutcome {
         action,
         delivered: true,
         error_code: None,
-    }
+    })
 }
 
 fn read_frame<T: for<'de> Deserialize<'de>>(stream: &mut TcpStream) -> Result<T, ()> {
@@ -2164,24 +2164,32 @@ fn write_frame<T: Serialize>(stream: &mut TcpStream, value: &T) -> Result<(), ()
     Ok(())
 }
 
-fn read_send_state(dir: &Path, source: ConfigSource) -> Result<u64, ()> {
+fn read_send_state(dir: &Path, source: ConfigSource) -> CliResult<Result<u64, ()>> {
     let path = dir.join(SEND_STATE_NAME);
     if let Err(e) = enforce_safe_parents(&path, source) {
-        print_error(e);
+        return Err(cli_err(e));
     }
     if !path.exists() {
-        return Ok(0);
+        return Ok(Ok(0));
     }
-    let mut f = File::open(&path).map_err(|_| ())?;
+    let mut f = match File::open(&path) {
+        Ok(v) => v,
+        Err(_) => return Ok(Err(())),
+    };
     let mut buf = String::new();
-    f.read_to_string(&mut buf).map_err(|_| ())?;
+    if f.read_to_string(&mut buf).is_err() {
+        return Ok(Err(()));
+    }
     for line in buf.lines() {
         if let Some(rest) = line.trim().strip_prefix("send_seq=") {
-            let v = rest.trim().parse::<u64>().map_err(|_| ())?;
-            return Ok(v);
+            let v = match rest.trim().parse::<u64>() {
+                Ok(v) => v,
+                Err(_) => return Ok(Err(())),
+            };
+            return Ok(Ok(v));
         }
     }
-    Err(())
+    Ok(Err(()))
 }
 
 #[cfg(test)]

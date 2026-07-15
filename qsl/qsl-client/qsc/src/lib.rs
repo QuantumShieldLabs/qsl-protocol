@@ -1972,12 +1972,12 @@ impl RelayInboxStore {
 type HttpRelayTarget = adversarial::route::HttpRelayTarget;
 type HttpRequestParsed = adversarial::route::HttpRequestParsed;
 
-struct RelaySendOutcome {
+pub struct RelaySendOutcome {
     // D581 KEEP (NA-0645): only the retired TUI read these; the GUI phase re-consumes them.
     #[allow(dead_code)]
-    action: String,
+    pub action: String,
     #[allow(dead_code)]
-    delivered: bool,
+    pub delivered: bool,
     error_code: Option<&'static str>,
 }
 

@@ -19,7 +19,7 @@ enum MarkerFormat {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub(crate) enum MarkerRouting {
+pub enum MarkerRouting {
     Stdout,
     InApp,
 }
@@ -120,7 +120,7 @@ pub fn print_error_marker(code: &str) -> ! {
 
 // D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
 #[allow(dead_code)]
-pub(crate) fn set_marker_routing(routing: MarkerRouting) {
+pub fn set_marker_routing(routing: MarkerRouting) {
     let value = match routing {
         MarkerRouting::Stdout => 0,
         MarkerRouting::InApp => 1,
@@ -128,7 +128,7 @@ pub(crate) fn set_marker_routing(routing: MarkerRouting) {
     MARKER_ROUTING.store(value, Ordering::SeqCst);
 }
 
-pub(crate) fn marker_queue() -> &'static Mutex<VecDeque<String>> {
+pub fn marker_queue() -> &'static Mutex<VecDeque<String>> {
     MARKER_QUEUE.get_or_init(|| Mutex::new(VecDeque::new()))
 }
 

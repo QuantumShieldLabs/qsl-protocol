@@ -1508,7 +1508,7 @@ pub fn handshake_init_with_suite_mode(
 
 // D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
 #[allow(dead_code)]
-pub(crate) fn handshake_init(self_label: &str, peer: &str, relay: &str) {
+pub fn handshake_init(self_label: &str, peer: &str, relay: &str) {
     handshake_init_with_suite_mode(self_label, peer, relay, HandshakeSuiteMode::LegacyCompat);
 }
 
@@ -2258,7 +2258,7 @@ pub fn handshake_poll_with_suite_mode(
 
 // D581 KEEP (NA-0645): dormant since the TUI retirement; the GUI phase re-consumes this.
 #[allow(dead_code)]
-pub(crate) fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
+pub fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) {
     handshake_poll_with_suite_mode(
         self_label,
         peer,

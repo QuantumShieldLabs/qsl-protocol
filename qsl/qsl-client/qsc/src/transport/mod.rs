@@ -1,6 +1,6 @@
 use super::*;
 
-pub(super) fn send_execute(args: SendExecuteArgs) {
+pub fn send_execute(args: SendExecuteArgs) {
     if !require_unlocked("send") {
         return;
     }
@@ -63,7 +63,7 @@ pub(super) fn send_execute(args: SendExecuteArgs) {
     }
 }
 
-pub(super) fn send_abort() {
+pub fn send_abort() {
     let (dir, source) = match config_dir() {
         Ok(v) => v,
         Err(e) => print_error(e),
@@ -165,7 +165,7 @@ fn outbox_next_state_clear() -> Result<(), &'static str> {
     }
 }
 
-pub(super) fn receive_execute(args: ReceiveArgs) {
+pub fn receive_execute(args: ReceiveArgs) {
     if !require_unlocked("receive") {
         return;
     }
@@ -958,7 +958,7 @@ fn flush_pending_acks(ctx: &ReceivePullCtx<'_>, pending_acks: &mut Vec<String>) 
     pending_acks.clear();
 }
 
-pub(super) fn relay_serve(port: u16, cfg: RelayConfig, max_messages: u64) {
+pub fn relay_serve(port: u16, cfg: RelayConfig, max_messages: u64) {
     let addr = format!("127.0.0.1:{}", port);
     let listener =
         TcpListener::bind(&addr).unwrap_or_else(|_| print_error_marker("relay_bind_failed"));
@@ -1279,7 +1279,7 @@ fn write_http_response(stream: &mut TcpStream, status: u16, content_type: &str, 
     }
 }
 
-pub(super) fn relay_send(
+pub fn relay_send(
     to: &str,
     file: &Path,
     relay: &str,

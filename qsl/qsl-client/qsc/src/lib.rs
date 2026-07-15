@@ -4,7 +4,6 @@ use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
 use chacha20poly1305::aead::{Aead, KeyInit, Payload};
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
-use clap::Parser;
 use quantumshield_refimpl::crypto::stdcrypto::{
     runtime_pq_kem_ciphertext_bytes, runtime_pq_kem_keypair, runtime_pq_kem_public_key_bytes,
     runtime_pq_sig_keypair, runtime_pq_sig_public_key_bytes, runtime_pq_sig_signature_bytes,
@@ -50,13 +49,13 @@ const SEND_STATE_NAME: &str = "send.state";
 const QSE_ENV_VERSION_V1: u16 = 0x0100;
 const POLICY_KEY: &str = "policy_profile";
 const STORE_META_TEMPLATE: &str = "store_version=1\nvmk_status=unset\nkeyslots=0\n";
-const MAX_QUEUE_LEN: usize = 64;
-const MAX_HISTORY_LEN: usize = 128;
-const MAX_RETRY_ATTEMPTS: u32 = 5;
+pub const MAX_QUEUE_LEN: usize = 64;
+pub const MAX_HISTORY_LEN: usize = 128;
+pub const MAX_RETRY_ATTEMPTS: u32 = 5;
 const RETRY_BASE_MS: u64 = 20;
 const RETRY_MAX_MS: u64 = 200;
 const RETRY_JITTER_MS: u64 = 10;
-const MAX_TIMEOUT_MS: u64 = 2000;
+pub const MAX_TIMEOUT_MS: u64 = 2000;
 const RECEIPT_BATCH_WINDOW_MS_DEFAULT: u64 = 250;
 const RECEIPT_JITTER_MS_DEFAULT: u64 = 0;
 const RECEIPT_BATCH_WINDOW_MS_MAX: u64 = 60_000;
@@ -105,11 +104,9 @@ use contacts::*;
 use fs_store::{
     check_parent_safe, check_symlink_safe, config_dir, enforce_file_perms, enforce_safe_parents,
     ensure_dir_secure, ensure_store_layout, fsync_dir_best_effort, lock_store_exclusive,
-    lock_store_shared, normalize_profile, probe_dir_writable, read_policy_profile, set_umask_077,
-    write_atomic, write_config_atomic,
+    lock_store_shared, normalize_profile, probe_dir_writable, read_policy_profile, write_atomic, write_config_atomic,
 };
 use handshake::{
-    handshake_init_with_suite_mode, handshake_poll_with_suite_mode, handshake_status,
     hs_kem_keypair, hs_sig_keypair,
 };
 use identity::{
@@ -122,15 +119,12 @@ use identity::{
 };
 use model::*;
 use output::{
-    emit_cli_named_marker, emit_marker, emit_tui_named_marker, init_output_policy,
-    install_panic_redaction_hook, print_error_marker, print_marker, qsc_mark,
-    qsc_sanitize_terminal_text, redact_text_for_output, PANIC_DEMO_SENTINEL,
-};
+    emit_cli_named_marker, emit_marker, emit_tui_named_marker, print_error_marker, print_marker, };
 use protocol_state::{
-    allow_unsafe_seed_fallback_for_tests, kmac_out, protocol_active_or_reason_for_peer,
+    kmac_out, protocol_active_or_reason_for_peer,
     protocol_inactive_exit, qsp_scka_load, qsp_scka_store, qsp_send_ready_tuple,
     qsp_session_for_channel, qsp_session_load, qsp_session_store,
-    qsp_session_store_with_trigger, qsp_status_tuple, qsp_trigger_load, record_qsp_status,
+    qsp_session_store_with_trigger, qsp_trigger_load, record_qsp_status,
     zero32, QspTriggerState, SckaLocalState, SckaPeerAdv, QSP_DH_FALLBACK_N,
     QSP_DH_FALLBACK_T_SECS, QSP_PQ_RESEED_N, QSP_PQ_RESEED_T_SECS,
 };
@@ -144,21 +138,20 @@ use timeline::{
     emit_tui_file_delivery_with_device, emit_tui_receipt_ignored_wrong_device,
     file_delivery_short_id, file_transfer_confirm_id,
     file_transfer_upsert_outbound_record, latest_outbound_file_id,
-    timeline_append_entry, timeline_append_entry_for_target, timeline_clear, timeline_list,
-    timeline_show, timeline_store_load, timeline_store_save, ConfirmApplyOutcome, MessageState,
+    timeline_append_entry, timeline_append_entry_for_target, timeline_store_load, timeline_store_save, ConfirmApplyOutcome, MessageState,
 };
 
 static VAULT_UNLOCKED_THIS_RUN: AtomicBool = AtomicBool::new(false);
 
-fn set_vault_unlocked(unlocked: bool) {
+pub fn set_vault_unlocked(unlocked: bool) {
     VAULT_UNLOCKED_THIS_RUN.store(unlocked, Ordering::SeqCst);
 }
 
-fn vault_unlocked() -> bool {
+pub fn vault_unlocked() -> bool {
     VAULT_UNLOCKED_THIS_RUN.load(Ordering::SeqCst)
 }
 
-fn require_unlocked(op_name: &'static str) -> bool {
+pub fn require_unlocked(op_name: &'static str) -> bool {
     if vault_unlocked() {
         return true;
     }
@@ -196,7 +189,7 @@ fn normalize_relay_endpoint(value: &str) -> Result<String, &'static str> {
     adversarial::route::normalize_relay_endpoint(value)
 }
 
-fn identity_peer_status(peer: &str) -> (String, bool) {
+pub fn identity_peer_status(peer: &str) -> (String, bool) {
     match identity_read_pin(peer) {
         Ok(Some(fp)) => (fp, true),
         Ok(None) => ("untrusted".to_string(), false),
@@ -204,7 +197,7 @@ fn identity_peer_status(peer: &str) -> (String, bool) {
     }
 }
 
-fn identity_show(self_label: &str) {
+pub fn identity_show(self_label: &str) {
     let Some(rec) =
         identity_read_self_public(self_label).unwrap_or_else(|e| print_error_marker(e.as_str()))
     else {
@@ -232,7 +225,7 @@ fn identity_show(self_label: &str) {
     println!("identity_sig_pk={}", hex_encode(&rec.sig_pk));
 }
 
-fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
+pub fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
     if !require_unlocked("identity_rotate") {
         return;
     }
@@ -322,7 +315,7 @@ fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) {
     println!("identity_sig_pk={}", hex_encode(&sig_pk));
 }
 
-fn peers_list() {
+pub fn peers_list() {
     let mut peers = contacts_list_entries()
         .unwrap_or_else(|_| print_error_marker("contacts_store_unavailable"))
         .into_iter()
@@ -352,7 +345,7 @@ fn env_bool(key: &str) -> bool {
     )
 }
 
-fn config_set(key: &str, value: &str) {
+pub fn config_set(key: &str, value: &str) {
     if key != "policy-profile" {
         print_error(ErrorCode::ParseFailed);
     }
@@ -388,7 +381,7 @@ fn config_set(key: &str, value: &str) {
     );
 }
 
-fn config_get(key: &str) {
+pub fn config_get(key: &str) {
     if key != "policy-profile" {
         print_error(ErrorCode::ParseFailed);
     }
@@ -437,7 +430,7 @@ struct DoctorReport {
     redacted: bool,
 }
 
-fn doctor_check_only(check_only: bool, timeout_ms: u64, export: Option<PathBuf>) {
+pub fn doctor_check_only(check_only: bool, timeout_ms: u64, export: Option<PathBuf>) {
     if !check_only {
         print_error(ErrorCode::ParseFailed);
     }
@@ -559,16 +552,16 @@ const META_BATCH_MAX_COUNT_DEFAULT: u32 = 1;
 const META_BUCKET_MAX_DEFAULT: usize = 4_096;
 const META_BUCKET_MAX_CEILING: usize = 65_536;
 
-struct MetaPollConfig {
-    interval_ms: u64,
-    ticks: u32,
-    batch_max_count: usize,
-    bucket_max: usize,
-    deterministic: bool,
+pub struct MetaPollConfig {
+    pub interval_ms: u64,
+    pub ticks: u32,
+    pub batch_max_count: usize,
+    pub bucket_max: usize,
+    pub deterministic: bool,
 }
 
 #[derive(Clone, Copy)]
-struct MetaPadConfig {
+pub struct MetaPadConfig {
     target_len: Option<usize>,
     profile: Option<EnvelopeProfile>,
     label: Option<&'static str>,
@@ -595,7 +588,7 @@ fn bound_mkskipped(st: &mut Suite2RecvWireState) -> usize {
     excess
 }
 
-fn meta_poll_config_from_args(args: MetaPollArgs) -> Result<Option<MetaPollConfig>, &'static str> {
+pub fn meta_poll_config_from_args(args: MetaPollArgs) -> Result<Option<MetaPollConfig>, &'static str> {
     let MetaPollArgs {
         deterministic_meta,
         interval_ms,
@@ -652,18 +645,18 @@ fn meta_poll_config_from_args(args: MetaPollArgs) -> Result<Option<MetaPollConfi
     }))
 }
 
-struct MetaPollArgs {
-    deterministic_meta: bool,
-    interval_ms: Option<u64>,
-    poll_interval_ms: Option<u64>,
-    ticks: Option<u32>,
-    batch_max_count: Option<u32>,
-    poll_max_per_tick: Option<u32>,
-    bucket_max: Option<usize>,
-    meta_seed: Option<u64>,
+pub struct MetaPollArgs {
+    pub deterministic_meta: bool,
+    pub interval_ms: Option<u64>,
+    pub poll_interval_ms: Option<u64>,
+    pub ticks: Option<u32>,
+    pub batch_max_count: Option<u32>,
+    pub poll_max_per_tick: Option<u32>,
+    pub bucket_max: Option<usize>,
+    pub meta_seed: Option<u64>,
 }
 
-fn meta_bucket_for_len(orig_len: usize, bucket_max: usize) -> usize {
+pub fn meta_bucket_for_len(orig_len: usize, bucket_max: usize) -> usize {
     let capped = orig_len.min(bucket_max).max(1);
     let mut bucket = 1usize;
     while bucket < capped {
@@ -675,14 +668,14 @@ fn meta_bucket_for_len(orig_len: usize, bucket_max: usize) -> usize {
 type ReceiptControlPayload = adversarial::payload::ReceiptControlPayload;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum ReceiptEmitMode {
+pub enum ReceiptEmitMode {
     Off,
     Batched,
     Immediate,
 }
 
 impl ReceiptEmitMode {
-    fn as_str(self) -> &'static str {
+    pub fn as_str(self) -> &'static str {
         match self {
             Self::Off => "off",
             Self::Batched => "batched",
@@ -709,13 +702,13 @@ impl ReceiptEmitMode {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum FileConfirmEmitMode {
+pub enum FileConfirmEmitMode {
     Off,
     CompleteOnly,
 }
 
 impl FileConfirmEmitMode {
-    fn as_str(self) -> &'static str {
+    pub fn as_str(self) -> &'static str {
         match self {
             Self::Off => "off",
             Self::CompleteOnly => "complete_only",
@@ -739,11 +732,11 @@ impl FileConfirmEmitMode {
 }
 
 #[derive(Clone, Copy, Debug)]
-struct ReceiptPolicy {
-    mode: ReceiptEmitMode,
-    batch_window_ms: u64,
-    jitter_ms: u64,
-    file_confirm_mode: FileConfirmEmitMode,
+pub struct ReceiptPolicy {
+    pub mode: ReceiptEmitMode,
+    pub batch_window_ms: u64,
+    pub jitter_ms: u64,
+    pub file_confirm_mode: FileConfirmEmitMode,
 }
 
 impl Default for ReceiptPolicy {
@@ -792,7 +785,7 @@ fn account_secret_trimmed(key: &str) -> Option<String> {
         .filter(|v| !v.is_empty())
 }
 
-fn load_receipt_policy_from_account() -> ReceiptPolicy {
+pub fn load_receipt_policy_from_account() -> ReceiptPolicy {
     if !vault_unlocked() {
         return ReceiptPolicy::default();
     }
@@ -1876,31 +1869,31 @@ fn short_peer_marker(peer: &str) -> String {
     }
 }
 
-struct ReceiveArgs {
-    transport: Option<SendTransport>,
-    relay: Option<String>,
-    legacy_receive_mode: Option<LegacyReceiveMode>,
-    ack_mode: Option<AckMode>,
-    attachment_service: Option<String>,
-    from: Option<String>,
-    mailbox: Option<String>,
-    max: Option<usize>,
-    max_file_size: Option<usize>,
-    max_file_chunks: Option<usize>,
-    out: Option<PathBuf>,
-    deterministic_meta: bool,
-    interval_ms: Option<u64>,
-    poll_interval_ms: Option<u64>,
-    poll_ticks: Option<u32>,
-    batch_max_count: Option<u32>,
-    poll_max_per_tick: Option<u32>,
-    bucket_max: Option<usize>,
-    meta_seed: Option<u64>,
-    emit_receipts: Option<ReceiptKind>,
-    receipt_mode: Option<ReceiptMode>,
-    receipt_batch_window_ms: Option<u64>,
-    receipt_jitter_ms: Option<u64>,
-    file_confirm_mode: Option<FileConfirmMode>,
+pub struct ReceiveArgs {
+    pub transport: Option<SendTransport>,
+    pub relay: Option<String>,
+    pub legacy_receive_mode: Option<LegacyReceiveMode>,
+    pub ack_mode: Option<AckMode>,
+    pub attachment_service: Option<String>,
+    pub from: Option<String>,
+    pub mailbox: Option<String>,
+    pub max: Option<usize>,
+    pub max_file_size: Option<usize>,
+    pub max_file_chunks: Option<usize>,
+    pub out: Option<PathBuf>,
+    pub deterministic_meta: bool,
+    pub interval_ms: Option<u64>,
+    pub poll_interval_ms: Option<u64>,
+    pub poll_ticks: Option<u32>,
+    pub batch_max_count: Option<u32>,
+    pub poll_max_per_tick: Option<u32>,
+    pub bucket_max: Option<usize>,
+    pub meta_seed: Option<u64>,
+    pub emit_receipts: Option<ReceiptKind>,
+    pub receipt_mode: Option<ReceiptMode>,
+    pub receipt_batch_window_ms: Option<u64>,
+    pub receipt_jitter_ms: Option<u64>,
+    pub file_confirm_mode: Option<FileConfirmMode>,
 }
 
 struct ReceivePullCtx<'a> {
@@ -1925,7 +1918,7 @@ struct ReceivePullStats {
     bytes: usize,
 }
 
-fn receive_file(path: &Path) {
+pub fn receive_file(path: &Path) {
     if !require_unlocked("receive_file") {
         return;
     }
@@ -2063,7 +2056,7 @@ struct RelaySendPayloadArgs<'a> {
     routing_override: Option<SendRoutingTarget>,
 }
 
-fn util_receipt_apply(
+pub fn util_receipt_apply(
     peer: &str,
     channel: &str,
     msg_id: Option<String>,
@@ -2123,20 +2116,20 @@ fn util_receipt_apply(
     }
 }
 
-struct BoundedQueue<T> {
+pub struct BoundedQueue<T> {
     max: usize,
     items: VecDeque<T>,
 }
 
 impl<T> BoundedQueue<T> {
-    fn new(max: usize) -> Self {
+    pub fn new(max: usize) -> Self {
         Self {
             max,
             items: VecDeque::new(),
         }
     }
 
-    fn push(&mut self, item: T) -> Result<(), ()> {
+    pub fn push(&mut self, item: T) -> Result<(), ()> {
         if self.items.len() >= self.max {
             return Err(());
         }
@@ -2145,7 +2138,7 @@ impl<T> BoundedQueue<T> {
     }
 }
 
-fn bounded_retry<F>(mut attempts: u32, mut op: F) -> Result<u32, ()>
+pub fn bounded_retry<F>(mut attempts: u32, mut op: F) -> Result<u32, ()>
 where
     F: FnMut() -> Result<(), ()>,
 {
@@ -2170,7 +2163,7 @@ where
     Err(())
 }
 
-fn util_envelope(
+pub fn util_envelope(
     tick_count: usize,
     interval_ms: u64,
     max_ticks: usize,
@@ -2203,7 +2196,7 @@ fn util_envelope(
     );
 }
 
-fn envelope_plan_ack(
+pub fn envelope_plan_ack(
     deterministic: bool,
     tick_count: usize,
     interval_ms: u64,

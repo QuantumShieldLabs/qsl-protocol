@@ -75,7 +75,7 @@ pub(crate) fn record_qsp_status(
     write_qsp_status(dir, source, &status);
 }
 
-pub(crate) fn qsp_status_tuple(peer: &str) -> (String, String) {
+pub fn qsp_status_tuple(peer: &str) -> (String, String) {
     let (dir, source) = match config_dir() {
         Ok(v) => v,
         Err(_) => return ("INACTIVE".to_string(), "missing_home".to_string()),
@@ -962,7 +962,7 @@ pub(crate) fn protocol_inactive_exit(reason: &str) -> ! {
     process::exit(1);
 }
 
-pub(crate) fn allow_unsafe_seed_fallback_for_tests() -> bool {
+pub fn allow_unsafe_seed_fallback_for_tests() -> bool {
     env_bool("QSC_ALLOW_SEED_FALLBACK") && env_bool("QSC_UNSAFE_TEST_SEED_FALLBACK")
 }
 

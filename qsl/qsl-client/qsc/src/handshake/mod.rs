@@ -1264,7 +1264,7 @@ fn hs_status_truth(st: &Suite2SessionState) -> (&'static str, &'static str, Opti
     ("established", "yes", None)
 }
 
-pub(crate) fn handshake_status(peer: Option<&str>) {
+pub fn handshake_status(peer: Option<&str>) {
     if !require_unlocked("handshake_status") {
         return;
     }
@@ -1484,7 +1484,7 @@ fn handshake_init_with_route(
     }
 }
 
-pub(crate) fn handshake_init_with_suite_mode(
+pub fn handshake_init_with_suite_mode(
     self_label: &str,
     peer: &str,
     relay: &str,
@@ -2231,7 +2231,7 @@ fn handshake_poll_with_tokens(
     }
 }
 
-pub(crate) fn handshake_poll_with_suite_mode(
+pub fn handshake_poll_with_suite_mode(
     self_label: &str,
     peer: &str,
     relay: &str,

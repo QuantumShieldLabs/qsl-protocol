@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug)]
-pub(crate) struct RelayConfig {
-    pub(crate) seed: u64,
-    pub(crate) drop_pct: u8,
-    pub(crate) dup_pct: u8,
-    pub(crate) reorder_window: usize,
-    pub(crate) fixed_latency_ms: u64,
-    pub(crate) jitter_ms: u64,
+pub struct RelayConfig {
+    pub seed: u64,
+    pub drop_pct: u8,
+    pub dup_pct: u8,
+    pub reorder_window: usize,
+    pub fixed_latency_ms: u64,
+    pub jitter_ms: u64,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -102,14 +102,14 @@ pub(crate) fn relay_decide(cfg: &RelayConfig, seq: u64) -> RelayDecision {
     }
 }
 
-pub(crate) struct SendExecuteArgs {
-    pub(crate) transport: Option<crate::SendTransport>,
-    pub(crate) relay: Option<String>,
-    pub(crate) to: Option<String>,
-    pub(crate) file: Option<std::path::PathBuf>,
-    pub(crate) pad_to: Option<usize>,
-    pub(crate) pad_bucket: Option<crate::MetaPadBucket>,
-    pub(crate) bucket_max: Option<usize>,
-    pub(crate) meta_seed: Option<u64>,
-    pub(crate) receipt: Option<crate::ReceiptKind>,
+pub struct SendExecuteArgs {
+    pub transport: Option<crate::SendTransport>,
+    pub relay: Option<String>,
+    pub to: Option<String>,
+    pub file: Option<std::path::PathBuf>,
+    pub pad_to: Option<usize>,
+    pub pad_bucket: Option<crate::MetaPadBucket>,
+    pub bucket_max: Option<usize>,
+    pub meta_seed: Option<u64>,
+    pub receipt: Option<crate::ReceiptKind>,
 }

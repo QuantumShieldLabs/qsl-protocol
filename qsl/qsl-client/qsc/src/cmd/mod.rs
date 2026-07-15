@@ -3,22 +3,22 @@ use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
 #[command(name = "qsc", version, about = "QSC client (Phase 2 scaffold)")]
-pub(crate) struct Cli {
+pub struct Cli {
     /// Reveal sensitive output (non-default; demos should keep redaction).
     #[arg(long, global = true)]
-    pub(crate) reveal: bool,
+    pub reveal: bool,
     /// Explicit unlock source for this invocation (default is locked).
     #[arg(long, global = true, value_name = "PATH")]
-    pub(crate) unlock_passphrase_file: Option<PathBuf>,
+    pub unlock_passphrase_file: Option<PathBuf>,
     /// Desktop bridge compatibility only; operators should use --unlock-passphrase-file.
     #[arg(long, global = true, value_name = "ENV", hide = true)]
-    pub(crate) unlock_passphrase_env: Option<String>,
+    pub unlock_passphrase_env: Option<String>,
     #[command(subcommand)]
-    pub(crate) cmd: Option<Cmd>,
+    pub cmd: Option<Cmd>,
 }
 
 #[derive(Subcommand, Debug)]
-pub(crate) enum Cmd {
+pub enum Cmd {
     /// Print a deterministic status summary (no secrets, no timestamps).
     Status,
     /// Read/write config values.
@@ -207,13 +207,13 @@ pub(crate) enum Cmd {
 }
 
 #[derive(Subcommand, Debug)]
-pub(crate) enum SendCmd {
+pub enum SendCmd {
     /// Abort a pending send by clearing the outbox (idempotent).
     Abort,
 }
 
 #[derive(Subcommand, Debug)]
-pub(crate) enum FileCmd {
+pub enum FileCmd {
     /// Send a file transfer bundle using bounded chunks and manifest integrity.
     Send {
         /// Transport selection (explicit-only).
@@ -250,24 +250,24 @@ pub(crate) enum FileCmd {
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy)]
-pub(crate) enum SendTransport {
+pub enum SendTransport {
     Relay,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum ReceiptKind {
+pub enum ReceiptKind {
     Delivered,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum LegacyInMessageStage {
+pub enum LegacyInMessageStage {
     W0,
     W1,
     W2,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum LegacyReceiveMode {
+pub enum LegacyReceiveMode {
     Coexistence,
     Retired,
 }
@@ -278,26 +278,26 @@ pub(crate) enum LegacyReceiveMode {
 // deletes only after the client acks, and the client acks only after durable local
 // persistence. This lane does NOT flip the default.
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum AckMode {
+pub enum AckMode {
     Legacy,
     Lease,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum ReceiptMode {
+pub enum ReceiptMode {
     Off,
     Batched,
     Immediate,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum FileConfirmMode {
+pub enum FileConfirmMode {
     Off,
     CompleteOnly,
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy)]
-pub(crate) enum MetaPadBucket {
+pub enum MetaPadBucket {
     Standard,
     Enhanced,
     Private,
@@ -305,13 +305,13 @@ pub(crate) enum MetaPadBucket {
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum HandshakeSuiteMode {
+pub enum HandshakeSuiteMode {
     LegacyCompat,
     SuiteRequired,
 }
 
 #[derive(Subcommand, Debug)]
-pub(crate) enum HandshakeCmd {
+pub enum HandshakeCmd {
     /// Initiate a handshake (A1) to a peer inbox.
     Init {
         /// Local label (defaults to "self"; the canonical single self-identity).
@@ -354,7 +354,7 @@ pub(crate) enum HandshakeCmd {
 }
 
 #[derive(Subcommand, Debug)]
-pub(crate) enum IdentityCmd {
+pub enum IdentityCmd {
     /// Show local identity fingerprint.
     Show {
         /// Local label (defaults to "self").
@@ -376,13 +376,13 @@ pub(crate) enum IdentityCmd {
 }
 
 #[derive(Subcommand, Debug)]
-pub(crate) enum PeersCmd {
+pub enum PeersCmd {
     /// List pinned peers and fingerprints.
     List,
 }
 
 #[derive(Subcommand, Debug)]
-pub(crate) enum ContactsCmd {
+pub enum ContactsCmd {
     /// Add or update a contact pin.
     Add {
         #[arg(long, value_name = "LABEL")]
@@ -454,7 +454,7 @@ pub(crate) enum ContactsCmd {
 }
 
 #[derive(Subcommand, Debug)]
-pub(crate) enum ContactsTrustModeCmd {
+pub enum ContactsTrustModeCmd {
     /// Show current trust onboarding mode.
     Show,
     /// Set trust onboarding mode.
@@ -465,13 +465,13 @@ pub(crate) enum ContactsTrustModeCmd {
 }
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum TrustMode {
+pub enum TrustMode {
     Strict,
     Balanced,
 }
 
 #[derive(Subcommand, Debug)]
-pub(crate) enum ContactsRequestCmd {
+pub enum ContactsRequestCmd {
     /// List pending inbound requests.
     List,
     /// Accept an inbound request into contacts (still not trusted).
@@ -492,7 +492,7 @@ pub(crate) enum ContactsRequestCmd {
 }
 
 #[derive(Subcommand, Debug)]
-pub(crate) enum ContactsDeviceCmd {
+pub enum ContactsDeviceCmd {
     /// Add a device under an existing contact.
     Add {
         #[arg(long, value_name = "LABEL")]
@@ -549,7 +549,7 @@ pub(crate) enum ContactsDeviceCmd {
 }
 
 #[derive(Subcommand, Debug)]
-pub(crate) enum ContactsDevicePrimaryCmd {
+pub enum ContactsDevicePrimaryCmd {
     /// Set the primary device (primary_only routing target).
     Set {
         #[arg(long, value_name = "LABEL")]
@@ -567,7 +567,7 @@ pub(crate) enum ContactsDevicePrimaryCmd {
 }
 
 #[derive(Subcommand, Debug)]
-pub(crate) enum TimelineCmd {
+pub enum TimelineCmd {
     /// List timeline entries for a peer.
     List {
         #[arg(long, value_name = "LABEL")]
@@ -592,7 +592,7 @@ pub(crate) enum TimelineCmd {
 }
 
 #[derive(Subcommand, Debug)]
-pub(crate) enum RelayCmd {
+pub enum RelayCmd {
     /// Run a local relay server with deterministic fault injection.
     Serve {
         /// Port to bind (0 = auto-assign).
@@ -658,7 +658,7 @@ pub(crate) enum RelayCmd {
 }
 
 #[derive(Subcommand, Debug)]
-pub(crate) enum MetaCmd {
+pub enum MetaCmd {
     /// Plan deterministic metadata schedule (dry-run only; no network, no writes).
     Plan {
         /// Deterministic planning mode.
@@ -683,7 +683,7 @@ pub(crate) enum MetaCmd {
 }
 
 #[derive(Subcommand, Debug)]
-pub(crate) enum ConfigCmd {
+pub enum ConfigCmd {
     /// Set a config key to a value.
     Set { key: String, value: String },
     /// Get a config key.
@@ -691,7 +691,7 @@ pub(crate) enum ConfigCmd {
 }
 
 #[derive(Subcommand, Debug)]
-pub(crate) enum UtilCmd {
+pub enum UtilCmd {
     /// Sanitize untrusted text for terminal output.
     Sanitize {
         /// Text to sanitize and print (joined by spaces).
@@ -769,7 +769,7 @@ pub(crate) enum UtilCmd {
 }
 
 #[derive(Subcommand, Debug)]
-pub(crate) enum EnvelopeCmd {
+pub enum EnvelopeCmd {
     /// Plan an ACK/receipt envelope (deterministic; no send).
     PlanAck {
         /// Require deterministic planning (no wall clock).

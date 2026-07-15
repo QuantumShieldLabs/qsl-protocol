@@ -2,6 +2,37 @@ use clap::Parser;
 use std::path::Path;
 use std::process;
 
+use qsc::attachments::{file_send_execute, FileSendExec};
+use qsc::cmd::{
+    Cli, Cmd, ConfigCmd, ContactsCmd, ContactsDeviceCmd, ContactsDevicePrimaryCmd,
+    ContactsRequestCmd, ContactsTrustModeCmd, EnvelopeCmd, FileCmd, HandshakeCmd, IdentityCmd,
+    MetaCmd, PeersCmd, RelayCmd, SendCmd, TimelineCmd, UtilCmd,
+};
+use qsc::contacts::{
+    contacts_add, contacts_block, contacts_device_add, contacts_device_list,
+    contacts_device_primary_set, contacts_device_primary_show, contacts_device_revoke,
+    contacts_device_status, contacts_device_trust, contacts_device_verify, contacts_list,
+    contacts_request_accept, contacts_request_block, contacts_request_ignore,
+    contacts_request_list, contacts_route_set, contacts_show, contacts_trust_mode_set,
+    contacts_trust_mode_show, contacts_unblock, contacts_verify, normalize_route_token,
+    route_token_hash8,
+};
+use qsc::fs_store::set_umask_077;
+use qsc::handshake::{
+    handshake_init_with_suite_mode, handshake_poll_with_suite_mode, handshake_status,
+};
+use qsc::output::{
+    emit_marker, init_output_policy, install_panic_redaction_hook, print_error_marker,
+    print_marker, qsc_mark, qsc_sanitize_terminal_text, redact_text_for_output,
+    PANIC_DEMO_SENTINEL,
+};
+use qsc::protocol_state::{allow_unsafe_seed_fallback_for_tests, qsp_status_tuple};
+use qsc::relay::{RelayConfig, SendExecuteArgs};
+use qsc::store::{
+    TUI_RELAY_INBOX_TOKEN_SECRET_KEY, TUI_RELAY_TOKEN_FILE_SECRET_KEY,
+    TUI_RELAY_TOKEN_SECRET_KEY,
+};
+use qsc::timeline::{timeline_clear, timeline_list, timeline_show};
 use qsc::*;
 
 fn bootstrap_unlock(passphrase_file: Option<&Path>, passphrase_env: Option<&str>) {

@@ -10,7 +10,7 @@ use std::sync::{Mutex, OnceLock};
 
 const MARKER_SCHEMA_V1: u8 = 1;
 const PANIC_REDACTED_MARKER: &str = "QSC_MARK/1 event=panic code=panic_redacted";
-pub(crate) const PANIC_DEMO_SENTINEL: &str = "QSC_SECRET_PANIC_SENTINEL=SHOULD_NOT_LEAK";
+pub const PANIC_DEMO_SENTINEL: &str = "QSC_SECRET_PANIC_SENTINEL=SHOULD_NOT_LEAK";
 
 #[derive(Debug, Clone, Copy)]
 enum MarkerFormat {
@@ -34,7 +34,7 @@ struct OutputPolicy {
 
 static OUTPUT_POLICY: OnceLock<OutputPolicy> = OnceLock::new();
 
-pub(crate) fn install_panic_redaction_hook() {
+pub fn install_panic_redaction_hook() {
     std::panic::set_hook(Box::new(|_| {
         let _ = std::io::stderr().write_all(PANIC_REDACTED_MARKER.as_bytes());
         let _ = std::io::stderr().write_all(b"\n");
@@ -66,11 +66,11 @@ pub(crate) fn emit_cli_named_marker(label: &str, fields: &[(&str, &str)]) {
     println!("{}", line);
 }
 
-pub(crate) fn qsc_mark(event: &str, code: &str) {
+pub fn qsc_mark(event: &str, code: &str) {
     emit_marker(event, Some(code), &[]);
 }
 
-pub(crate) fn qsc_sanitize_terminal_text(input: &str) -> String {
+pub fn qsc_sanitize_terminal_text(input: &str) -> String {
     // Terminal-safe deterministic sanitizer:
     // - drop ESC (0x1b) and ASCII control chars (except \n and \t)
     // - drop DEL (0x7f)
@@ -109,11 +109,11 @@ pub(crate) fn qsc_sanitize_terminal_text(input: &str) -> String {
     out
 }
 
-pub(crate) fn print_marker(event: &str, kv: &[(&str, &str)]) {
+pub fn print_marker(event: &str, kv: &[(&str, &str)]) {
     emit_marker(event, None, kv);
 }
 
-pub(crate) fn print_error_marker(code: &str) -> ! {
+pub fn print_error_marker(code: &str) -> ! {
     emit_marker("error", Some(code), &[]);
     process::exit(1);
 }
@@ -132,11 +132,11 @@ pub(crate) fn marker_queue() -> &'static Mutex<VecDeque<String>> {
     MARKER_QUEUE.get_or_init(|| Mutex::new(VecDeque::new()))
 }
 
-pub(crate) fn init_output_policy(reveal: bool) {
+pub fn init_output_policy(reveal: bool) {
     let _ = OUTPUT_POLICY.set(OutputPolicy { reveal });
 }
 
-pub(crate) fn emit_marker(event: &str, code: Option<&str>, kv: &[(&str, &str)]) {
+pub fn emit_marker(event: &str, code: Option<&str>, kv: &[(&str, &str)]) {
     let line = format_marker_line(event, code, kv);
     match marker_routing() {
         MarkerRouting::Stdout => println!("{}", line),
@@ -148,7 +148,7 @@ pub(crate) fn emit_marker(event: &str, code: Option<&str>, kv: &[(&str, &str)]) 
     log_marker(event, code, kv);
 }
 
-pub(crate) fn redact_text_for_output(value: &str) -> String {
+pub fn redact_text_for_output(value: &str) -> String {
     if output_policy().reveal {
         return value.to_string();
     }

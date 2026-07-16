@@ -6,7 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0648 | HIGHEST_NA=0648 | HIGHEST_D=1270 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NONE | HIGHEST_NA=0648 | HIGHEST_D=1271 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- NA-0648 (reviewer-facing docs refresh, D584) DONE 2026-07-16 (D-1271, result class REVIEWER_DOCS_REFRESH_PASS): DOCS-ONLY + the local re-run of the package's Reproducible Commands, base 77576681. THE RE-RUN FIRST (Phase 1): every package command re-run at 77576681 and every "Local result" cell re-stamped from the ACTUAL output — all executed commands PASS (audit 386 deps/0 advisories; webpki path unchanged; send_commit 3/3; run_model_checks.py exit 0 in <2 s = SIX bounded models incl. QSC.HS handshake-auth 10,800+10,800 configs/0 unbound — the stale line-157 cell had recorded THREE models and D584 expected FIVE; the six-not-five delta recorded as benign, the suite-id model was the uncounted one; demo smoke DEMO_ACCEPTANCE_OK; metadata smoke + both phase-2 harnesses marker-green; the ProVerif gate re-run and re-stamped with actual wall-clock (as-built §2); refimpl 89 lib tests incl. the NA-0628 scan); the clean-host row NOT re-run (dated historical proof pinned 1e7d0a63be31, now stated in-cell); NO command failed, NO product problem surfaced, nothing new filed, ENG-0045 untouched. DOC 1 EXTERNAL_REVIEW_PACKAGE.md (blind-by-OMISSION confirmed — zero handshake/QSC.HS/ENG-0038 text pre-edit, so additions + framing only): the ENG-0038 arc as an Executive Summary paragraph + two Proven rows REUSING the operator-approved 2026-07-15 progress-entry wording verbatim-or-near (correction record NOT flaw-free evidence; INTERNAL adversarial trace-analysis, not a PoC; the ENG-0001/NA-0609B contradiction stated as a calibration point; the pinned-identity-KEM fix; the class retirement; the bounded model with zero unbound commitments, non-vacuity, and the FIVE named unmodeled slices on the ledger); ONE bounded current-handshake paragraph (expressly the bounded-model description, not new spec prose); the formal spine extended to TWO artifacts (DOC-G4-002 + the formal/README handshake-auth model) in the "How to read" route; five product-context Proven rows with the vetted per-lane bounded phrasing (NA-0640 dev-harness; NA-0642 repo-evidence-not-deployed-relay, ENG-0039 open; NA-0644 bounded ENG-0042 seam, not default; NA-0645 ENG-0044 owed; NA-0646 architecture-not-product/SDK); freshness (Last-Updated 2026-07-16; the line-92 main-run cell → 77576681 with public-safety+advisories verified green; the Recent-PR table extended #1545..#1576 with the stated omission decision — promotions/closeout-only PRs omitted; Progress routing → the 2026-07-15 entry; the line-301 Known-Gaps website row rewritten against WEB-0006/WCM-101..115, the stale prepare-a-handoff framing retired); the one-sentence ENG-0045 accuracy note on the demo row (recorded + flagged, not fixed; the in-repo smoke re-verified green). DOC 2 RELEASE_READINESS_EVIDENCE_MAP.md: the Formal Verification Readiness Map +2 rows (the ProVerif composition model with its DOC-G4-002 §2 abstraction bound + ENG-0035 limit; the QSC.HS handshake-auth bounded model with its bounds + five slices — the most reviewer-consequential gap paid); G1/G4 citations gain the ENG-0038 arc + NA-0640 e2e in the vetted phrasing; the gate rows re-stamped at 77576681; the service-hardening row STAYS NOT_READY and gains the bounded NA-0642/NA-0644 repo-evidence citation with ENG-0039 stated open; the two FALSE website rows ("external website changes remain future work") corrected to the executed WEB-0006 reality → PARTIAL-for-the-executed-accuracy-pass with explicit no-public-readiness boundary (a website-implementation status correction, not a protocol claim change); the line-240 STRUCTURAL MIS-MERGE repaired — the "What Changed After NA-0541" section relocated BYTE-IDENTICALLY to its chronological place, the Metadata/Privacy header now directly precedes its own table; ONE consolidated "What Changed After NA-0629 Through NA-0647" section instead of extending the per-lane chain. THE CLAIM-BOUNDARY BYTE-PROOF (the load-bearing discipline): ALL FOUR boundary regions sha256-IDENTICAL both sides — package "What Is Not Proven" 1,176 B f8ede7a1… + "Safe Public Wording" 994 B a8242ee0…; map "Claim Boundary Map" 1,717 B a17ee1d8… + "Do Not Claim Yet" 715 B db21db61… — byte-PRESERVED, the boundary did not move and was not even added to; "Not vulnerability-free" present, unchanged. Validation: scope guard clean (changed paths ⊆ the D584 allowed list; qsc_demo_local.sh/run_model_checks.py/run_proverif_checks.py UNTOUCHED — run only; no website-repo change); local gate pre-check with the gate's own denylist/credential/link patterns = 0/0/0 over both docs incl. every new link; public-safety gate + goal-lint at the PR, NO gate amendment made or needed. Claim boundary UNCHANGED, byte-proven. NOT claimed: external review completion (it remains THE release gate — this lane routes the reviewer, nothing more), the website's consolidated content pass (committed next, website repo, qsite governance — consumes the two docs this lane refreshed), an ENG-0045 fix (its own lane). Queue returns to READY=NONE — the operator promotes the successor. The executor cannot self-promote. -->
+<!-- prior: STATE: READY=NA-0648 | HIGHEST_NA=0648 | HIGHEST_D=1270 (NA-0648 closed for D584 at D-1271; this lane PR) -->
 <!-- NA-0647 (website-support public-docs refresh, D583) DONE 2026-07-15 (D-1270, result class WEBSITE_DOCS_REFRESH_STOP — the directive's OWN classification for "the smoke-run reveals a demo/site problem needing a fix out of scope: record + flag, do the rest, note in closeout"; every doc item COMPLETED, no wording/policy/scope stop): DOCS-ONLY + one verification run, base ac7e850c. ITEM 3 FIRST (Phase 2): scripts/demo/qsc_demo_local.sh smoke-run BARE at ac7e850c exactly as the site's RunDemos page instructs — SURPRISE FAILURE: exit 0 + "DEMO DONE" with ZERO deliveries (all four qsc calls emit vault_locked/explicit_unlock_required; the script pre-dates the qsc explicit vault-unlock requirement — no --unlock-passphrase-file/-env, no vault/identity bootstrap — and MASKS failure via `|| true` + an unconditional trailer + status=ok); recorded (as-built §2, artifacts preserved off-tree), FILED ENG-0045 (P2, the fix = its own lane: unlock bootstrap + fail-loud), matrix row WCM-110 OUTDATED/MUST_FIX; NOT fixed (D583 run-only boundary held — zero script edits). ITEM 1: docs/public/WEBSITE_CLAIM_MATRIX.md audit half RE-TARGETED from the retired .dev site (2026-05-03/NA-0245 era, zero shared pages) to the CURRENT quantumshieldlabs.org site — AUDIT-SOURCE DECISION stated in-doc (convention change: website-repo SOURCE at production commit 21a908a4, the WEB-0006 Phase-A closeout merge, vs live retrieval; reproducible; rows are date/commit-stamped snapshots, light Phase-B re-touch expected); Pages-Checked → the ten .org routes (incl. sections/modals/links.js); WCM-001..018 → WCM-101..115 stamped 21a908a4/ac7e850c/2026-07-15 = 11 SUPPORTED / 2 OUTDATED (WCM-110 the demo; WCM-112 the site's own "matrix refresh pending" cards — made stale BY this merge, expected Phase-B re-touch) / 1 OUT_OF_SCOPE (website legal/ops) / 1 SUPPORTED-absence (NO overclaim found in the full source sweep — protect through Phase B); evidence-consulted list → CURRENT (NA-0640 as-built+testplan, NA-0642 testplan+as-built, NA-0646 as-built, formal/README.md, DOC-G4-002, canonical drafts, qshield-ci); Top-MUST-FIX → 3 items; the 15 website src/links.js deep-link targets machine-verified 15/15 present at ac7e850c; THE POLICY HALF (NA-0539/NA-0541 wording-policy tables + required no-claim boundaries + the progress wording policy) BYTE-UNCHANGED — PROVEN: the NA-0539→NA-0541 region 5,220 bytes/57 lines diff-EMPTY vs HEAD, sha256 3566f215… identical both sides, zero PR hunks inside it. ITEM 2: docs/public/progress/2026-07-15.md (NEW, house format) = the FIRST PUBLIC RECORD of ENG-0038 — framed EXACTLY: found by INTERNAL adversarial review via protocol-trace analysis, not a PoC (NA-0632, D-1256; the ENG-0001/NA-0609B contradiction stated as a calibration point) → fixed by authenticating the responder against its PINNED identity KEM key (NA-0633, D-1257) → flaw-class retired (NA-0634, D-1258) → discharged by a BOUNDED machine-checked model (NA-0636/D572, D-1259; 10,800×10,800 configurations, zero unbound commitments, non-vacuity demonstrated) with the FIVE KNOWN UNMODELED SLICES on the public ledger; explicit negative sentences in the entry (does NOT establish vulnerability-free or all-flaws-found; NOT an unqualified formal verification; external review NOT yet commissioned, remains a release gate); reviewer records linked: formal/README.md + DOC-G4-002 — PLUS the product arc with per-lane bounded phrasing (NA-0640 e2e dev-harness; NA-0642 durable relay = repo evidence not a deployed-relay claim, ENG-0039 open; NA-0644 ack client opt-in with the bounded ENG-0042 seam stated; NA-0645 TUI retirement with ENG-0044 stated; NA-0646 core extraction = engineering architecture, not product/SDK) — PLUS a publication-time accuracy note on the demo failure; COUPLED same-diff touches: INDEX.md's hardcoded latest-entry sentence/list/inline-summary → 2026-07-15, PROGRESS.md list line + Last-Updated. Validation: policy byte-proof; 15/15 link check; offline markdown-link check 0 missing; scope guard clean (changed paths ⊆ the D583 allowed list; the demo script, EXTERNAL_REVIEW_PACKAGE.md, RELEASE_READINESS_EVIDENCE_MAP.md, the public-safety gate ALL untouched); public-safety gate + goal-lint green at the PR, NO gate amendment made or needed. Claim boundary UNCHANGED (the entry ADDS the bounded public record without moving any claim). NOT claimed: the review-package refresh (the COMMITTED NEXT lane, ENG-0038-blind, with its RELEASE_READINESS_EVIDENCE_MAP.md companion), website Phase B (website repo, qsite governance — consumes this lane's two refreshed docs, re-touches WCM-110/WCM-112), a working local demo path (ENG-0045 owed). Queue returns to READY=NONE — the operator promotes the successor. The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0647 | HIGHEST_D=1270 (NA-0648 promoted for D584; PR #1577) -->
 <!-- prior: STATE: READY=NA-0647 | HIGHEST_NA=0647 | HIGHEST_D=1269 (NA-0647 closed for D583 at D-1270; this lane PR) -->
@@ -35,61 +37,44 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NA-0648** — the REVIEWER-FACING DOCS REFRESH lane
-(**D584 = QSL-DIR-2026-07-16-584, operator-approved**). DOCS-ONLY + local command
-RE-RUNS (read-only of product): bring the TWO docs an external cryptographic reviewer is
-routed through current with the ENG-0038 found-fixed-modeled arc + the NA-0640..0646
-product arc — the last protocol-side prerequisite before the website's consolidated
-content pass (which will point reviewers at these docs). THE WORDING IS THE REAL COST,
-NOT THE DIFF SIZE: the audience is external cryptographers; every added sentence is a
-public claim; REUSE the 2026-07-15 progress entry's operator-approved sentences
-verbatim-or-near wherever the same fact is stated. **(DOC 3, Phase 1 — FIRST)** re-run
-the package's Reproducible Commands at current main and RE-STAMP the "Local result"
-cells from the ACTUAL outputs (esp. `formal/run_model_checks.py` — the runner now
-executes FIVE models incl. handshake-auth, not the recorded three, for the stale
-line-157 cell; the ProVerif command at line 164 if feasible + the wall-clock note); a
-failure/surprise is recorded truthfully + FLAGGED (the NA-0647 ENG-0045 disposition),
-never fixed here — running it FIRST stamps the cells from real runs and surfaces any
-surprise BEFORE the wording is drafted. **(DOC 1)**
-`docs/public/EXTERNAL_REVIEW_PACKAGE.md` (substantial; blind by OMISSION —
-grep-confirmed zero handshake/QSC.HS/ENG-0038 text, so the fix is ADDITION + framing,
-no wrong prose to excise): the ENG-0038 arc (a CORRECTION record, not flaw-free
-evidence; INTERNAL adversarial trace-analysis, not a PoC; the pinned-identity-KEM fix;
-the class retirement; the BOUNDED machine-checked model with the FIVE named unmodeled
-slices + non-vacuity; the ENG-0001/NA-0609B contradiction as a calibration point); ONE
-bounded current-handshake paragraph mirroring the progress entry (no new spec prose);
-the formal-spine update (the handshake-auth bounded-model row; the line-157 cell
-re-stamped from the re-run; the "How to read" route → a TWO-artifact formal spine:
-DOC-G4-002 + the formal/README handshake-auth model); the NA-0640..0646 product context
-(per-lane bounded phrasing: e2e = dev-harness; durability = repo evidence not a
-deployed relay, ENG-0039 open; ack client = bounded ENG-0042 seam, not default; TUI
-retirement = ENG-0044 owed; core extraction = architecture, not product/SDK); freshness
-(Last-Updated; the line-92 stale main-run ref; the Recent-PR-Evidence table — ends at
-#1541/NA-0630 — extended to ~#1576 or pruned with a stated decision; Progress routing →
-the 2026-07-15 entry; the line-301 Known-Gaps website row rewritten vs
-WEB-0006/WCM-101..115 reality; the recommended ONE-sentence ENG-0045 accuracy note on
-the demo rows 99-103). **(DOC 2)** `docs/public/RELEASE_READINESS_EVIDENCE_MAP.md`
-(moderate; nothing FALSE today, but under-cited and one generation staler): the Formal
-Verification Readiness Map (268-274) +2 rows (the ProVerif composition model AND the
-QSC.HS handshake-auth model with its bounds — the most reviewer-consequential gap);
-G1/G4 + gate-checklist citations (NA-0640 e2e, NA-0644 ack, NA-0642 durability
-[service-hardening stays NOT_READY, ENG-0039 open], NA-0646 core extraction as
-architecture); the now-FALSE website rows 56/116 → WEB-0006 / WCM-101..115; the
-line-240 STRUCTURAL FIX (the "What Changed After NA-0541" section mis-spliced BEFORE
-the Metadata/Privacy Readiness Map's own table — a mis-merge fossil); ONE consolidated
-"What Changed After NA-0629..NA-0647" section (not a longer per-lane chain) + the stale
-main-run refs (45/234). THE CLAIM-BOUNDARY PROOF: the package's "What Is Not Proven"
-(124-146) + "Safe Public Wording" (312-333) and the map's equivalents BYTE-PRESERVED or
-STRICTLY ADDITIVE, MACHINE-PROVEN at closeout (sha256 identical both sides or
-enumerated additions with zero deletion/reword — the NA-0631/NA-0647 precedents); the
-boundary does NOT move; needing to soften/move a boundary sentence is a STOP.
-FORBIDDEN: any code/vectors/workflow/formal-model change; editing ANY script (incl.
-`qsc_demo_local.sh`, `run_model_checks.py`, the demo scripts — ENG-0045 is its own
-lane); any website-repo change; any new claim beyond current repo truth; any
-"vulnerability-free / audited / formally-verified-unqualified" wording; amending the
-public-safety gate to pass wording. Begins at **D-1271**. Full lane block at the end of
-section 2. NA-0647 (the WEBSITE-SUPPORT PUBLIC-DOCS REFRESH lane, D583) is DONE at
-D-1270, result class WEBSITE_DOCS_REFRESH_STOP — see its block below.
+**READY (exactly one — execute this): NONE.** NA-0648 (the REVIEWER-FACING DOCS REFRESH
+lane, D584) is **DONE** at D-1271, result class **REVIEWER_DOCS_REFRESH_PASS** — the two
+docs an external cryptographic reviewer is routed through are now CURRENT, with the
+command cells honest and the claim boundary byte-proven unmoved. **(1) The re-run came
+FIRST:** every Reproducible-Command cell in the package re-stamped from an ACTUAL
+2026-07-16 run at `77576681` — all executed commands PASS; the stale line-157 cell
+(which recorded THREE models) now records the runner's actual SIX bounded models incl.
+the QSC.HS handshake-auth model (10,800+10,800 configurations, 0 unbound commits; D584
+expected five — the benign delta is recorded, the suite-id model was the uncounted
+one); the ProVerif gate re-run with actual wall-clock; the clean-host row marked as a
+dated historical proof, not re-run; NO command failed, NO product problem surfaced.
+**(2) The package** carries the ENG-0038 found-fixed-modeled arc in the vetted
+2026-07-15 progress-entry wording (correction record NOT flaw-free evidence; internal
+trace-analysis, not a PoC; the ENG-0001/NA-0609B calibration point; the FIVE named
+unmodeled slices), a bounded current-handshake paragraph (not new spec prose), the
+TWO-artifact formal spine (DOC-G4-002 + the formal/README handshake-auth model), five
+product-context Proven rows with per-lane bounded phrasing, full freshness (line-92 →
+`77576681`; the PR table extended #1545..#1576; Progress routing → 2026-07-15; the
+website Known-Gap rewritten vs WEB-0006/WCM-101..115), and the one-sentence ENG-0045
+accuracy note. **(3) The map** gains the two missing formal rows (ProVerif composition;
+QSC.HS handshake-auth with bounds), current G1/G4/gate citations (service-hardening
+STAYS NOT_READY, ENG-0039 open), corrected website rows (WEB-0006 executed and live),
+the line-240 mis-merge repair (byte-identical relocation), and ONE consolidated
+NA-0629..NA-0647 What-Changed section. **(4) The byte-proof:** all four claim-boundary
+regions sha256-IDENTICAL both sides (package: "What Is Not Proven" `f8ede7a1…`, "Safe
+Public Wording" `a8242ee0…`; map: "Claim Boundary Map" `a17ee1d8…`, "Do Not Claim Yet"
+`db21db61…`) — byte-preserved, not merely additive. Zero code/script/vector/workflow/
+formal change; no website-repo change; no gate amendment. NOT claimed: external review
+completion (it remains THE release gate — this lane routes the reviewer, nothing more),
+the website content pass (next), an ENG-0045 fix (its own lane). Its full block (now
+`Status: DONE` with the OUTCOME) is at the end of section 2. The queue returns to
+**READY=NONE**; the operator promotes the successor — COMMITTED next: **the website's
+consolidated content pass** (website repo, qsite governance — adds the frontier facts,
+drops the ENG-0045 demo framing, cleans the changelog-voice copy; consumes the two docs
+this lane refreshed), then **the GUI lane** per DOC-PROG-003 §5; new: **ENG-0045**;
+standing: **ENG-0036**, **ENG-0039**, **ENG-0042**/**ENG-0043**, **ENG-0044** (GUI
+phase), **0b**, the **0c residue**, **NA-0635** (GATED). The executor cannot
+self-promote.
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -35428,7 +35413,8 @@ See D583 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-15-583_website_suppor
 Begins at D-1270. DOCS-ONLY + one smoke-run. Smoke-run FIRST; preserve the POLICY sections verbatim; the ENG-0038 story is the first public record of a real found-and-fixed flaw — frame it honestly and boundedly, never as a clean bill of health; flag, don't fix, what the demo run surprises; the review-package refresh is the COMMITTED NEXT lane.
 
 ### NA-0648 — Reviewer-facing docs refresh (D584): bring EXTERNAL_REVIEW_PACKAGE.md + RELEASE_READINESS_EVIDENCE_MAP.md current with the ENG-0038 found-fixed-modeled arc + the NA-0640..0646 product arc; re-run + re-stamp the package's reproducible-command result cells; fix the map's line-240 structural mis-merge — docs-only + local command re-runs, claim-boundary sections byte-preserved
-Status: READY
+Status: DONE
+OUTCOME (2026-07-16, D-1271, result class REVIEWER_DOCS_REFRESH_PASS): every D584 work item completed; no STOP condition fired. THE RE-RUN FIRST: all package Reproducible Commands re-run at `77576681` and every "Local result" cell re-stamped from the actual output (all executed commands PASS; the stale three-model line-157 cell now records the runner's actual SIX bounded models incl. QSC.HS handshake-auth — the six-vs-five directive delta recorded as benign; the ProVerif gate re-run and re-stamped with actual wall-clock; the clean-host row marked dated-historical, not re-run; no product problem surfaced, nothing new filed). DOC 1: the ENG-0038 arc (Executive Summary paragraph + two Proven rows, vetted 2026-07-15 progress-entry wording verbatim-or-near), the bounded current-handshake paragraph, the TWO-artifact formal spine, five product-context Proven rows, freshness (line-92 → `77576681`; PR table #1545..#1576 with stated omissions; Progress routing → 2026-07-15; the website Known-Gap rewritten vs WEB-0006/WCM-101..115), the one-sentence ENG-0045 note. DOC 2: formal map +2 rows (ProVerif composition; QSC.HS handshake-auth with bounds + five slices); G1/G4/gate citations current (service-hardening STAYS NOT_READY, ENG-0039 open); website rows corrected to executed WEB-0006 reality; the line-240 mis-merge repaired (byte-identical relocation); ONE consolidated NA-0629..NA-0647 section. THE BYTE-PROOF: all four claim-boundary regions sha256-IDENTICAL both sides (f8ede7a1… / a8242ee0… / a17ee1d8… / db21db61… — as-built §5). Local gate pre-check 0/0/0; public-safety + goal-lint at the PR; no gate amendment. NOT claimed: external review completion, the website content pass, an ENG-0045 fix. See D-1271, `docs/governance/evidence/NA-0648_as_built.md`, `tests/NA-0648_reviewer_docs_refresh_testplan.md`.
 
 Goals: G4
 Wire/behavior change allowed? NO — a DOCS lane + local command RE-RUNS (read-only of product; the re-run exists to re-stamp the package's "Local result" cells from REAL runs); ZERO source/protocol/wire/crypto change; NO script is edited (`run_model_checks.py`, `qsc_demo_local.sh`, the demo scripts are READ/RUN only; a failing or surprising re-run is recorded truthfully + FLAGGED for a follow-up lane — the NA-0647 ENG-0045 disposition — never fixed here).

@@ -2,7 +2,7 @@ Goals: G1, G2, G3, G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-06-25
+Last-Updated: 2026-07-16
 Replaces: n/a
 Superseded-By: n/a
 
@@ -30,30 +30,30 @@ Status meanings:
 
 | Goal | Status | Evidence | Commands | Gaps | Next action |
 | --- | --- | --- | --- | --- | --- |
-| G1 - Always-hybrid per-message keys | PARTIAL | [GOALS.md](../../GOALS.md), [TRACEABILITY.md](../../TRACEABILITY.md), Suite-2 vectors, D-0462 claim-boundary mapping. Single-root DH+PQ composition (NA-0626); CI-gated ProVerif symbolic analysis of that composition ([DOC-G4-002](../design/DOC-G4-002_Suite2_DH_PQ_Composition_Symbolic_Analysis_ProVerif_v0.1.0_DRAFT.md), NA-0627); RFC 7748 §6.1 non-contributory-DH guard (NA-0628, D-1251/D-1252). | Existing Suite-2 CI/vector jobs; local NA-0250 proof included `cargo audit`, `send_commit`, formal, demo, metadata. | External release review and cross-host conformance reproduction remain open. | Keep public wording at research-stage Suite-2 / Triple-Ratchet-style until all G1-G5 release gates are green and reviewed. |
+| G1 - Always-hybrid per-message keys | PARTIAL | [GOALS.md](../../GOALS.md), [TRACEABILITY.md](../../TRACEABILITY.md), Suite-2 vectors, D-0462 claim-boundary mapping. Single-root DH+PQ composition (NA-0626); CI-gated ProVerif symbolic analysis of that composition ([DOC-G4-002](../design/DOC-G4-002_Suite2_DH_PQ_Composition_Symbolic_Analysis_ProVerif_v0.1.0_DRAFT.md), NA-0627); RFC 7748 §6.1 non-contributory-DH guard (NA-0628, D-1251/D-1252). The ENG-0038 handshake responder-authentication flaw found internally, fixed (the responder authenticated against the pinned identity KEM key, the encapsulated secret mixed into handshake key derivation; NA-0632/NA-0633), its class retired (NA-0634), and bounded-model-checked (NA-0636 / D572) — a correction record, not flaw-free evidence. First full-stack e2e scenario byte-verified in a development harness (NA-0640). | Existing Suite-2 CI/vector jobs; local NA-0250 proof included `cargo audit`, `send_commit`, formal, demo, metadata. | External release review and cross-host conformance reproduction remain open. | Keep public wording at research-stage Suite-2 / Triple-Ratchet-style until all G1-G5 release gates are green and reviewed. |
 | G2 - Explicit SCKA with epoch monotonicity and persistence safety | PARTIAL | D-0445, [NA-0240 evidence](../governance/evidence/NA-0240_scka_persistence_monotonicity_audit.md), [formal README](../../formal/README.md). | `python3 formal/run_model_checks.py`; Suite-2 SCKA vector runners in CI. | Current evidence is bounded to model/refimpl surfaces and does not prove every future SCKA implementation path. | Extend reproducible vector map and keep no-mutation proofs tied to durable snapshots. |
 | G3 - Fail-closed downgrade resistance | PARTIAL | D-0447, D-0464, [NA-0241 evidence](../governance/evidence/NA-0241_demo_downgrade_no_mutation_audit.md), [NA-0249 evidence](../governance/evidence/NA-0249_formal_downgrade_no_mutation_audit.md). | `python3 formal/run_model_checks.py`; demo smoke; Suite-2 downgrade/transcript vectors in CI. | Formal model abstracts authenticated transcript details; public demo downgrade surface is bounded. | Add more stateful reject no-mutation vectors where implementation surfaces expose safe harnesses. |
-| G4 - Verification as a release gate | PARTIAL | Formal model checks, goal-lint, protected required checks, recent evidence audits, testplans. A CI-gated ProVerif 2.05 symbolic model of the Suite-2 DH+PQ composition ([DOC-G4-002](../design/DOC-G4-002_Suite2_DH_PQ_Composition_Symbolic_Analysis_ProVerif_v0.1.0_DRAFT.md), NA-0627) with a mutation-tested fail-closed gate whose first assertion is a tool sanity pair. | `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; `python3 formal/proverif/run_proverif_checks.py`; required CI contexts. | External review is not complete; cross-host reproduction remains uneven. | Package reviewer commands and capture external findings as separate evidence. |
+| G4 - Verification as a release gate | PARTIAL | Formal model checks, goal-lint, protected required checks, recent evidence audits, testplans. A CI-gated ProVerif 2.05 symbolic model of the Suite-2 DH+PQ composition ([DOC-G4-002](../design/DOC-G4-002_Suite2_DH_PQ_Composition_Symbolic_Analysis_ProVerif_v0.1.0_DRAFT.md), NA-0627) with a mutation-tested fail-closed gate whose first assertion is a tool sanity pair. The bounded `QSC.HS.*` handshake-authentication model (NA-0636 / D572, [formal/README.md](../../formal/README.md)) discharging the filed ENG-0038 obligation within stated bounds, with non-vacuity counterfactuals. The standard suite's first full-stack e2e scenario (NA-0640, development harness, byte-verified). | `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1`; `python3 formal/run_model_checks.py`; `python3 formal/proverif/run_proverif_checks.py`; required CI contexts. | External review is not complete; cross-host reproduction remains uneven. | Package reviewer commands and capture external findings as separate evidence. |
 | G5 - Metadata minimization lane | PARTIAL | [DOC-G5-001](../privacy/DOC-G5-001_Metadata_Threat_Model_v1.0.0_DRAFT.md), [DOC-G5-003](../privacy/DOC-G5-003_Envelope_Transport_Profile_v0.1.0_DRAFT.md), D-0454, [NA-0244 evidence](../governance/evidence/NA-0244_metadata_conformance_negative_expansion_audit.md), [NA-0288 gap plan](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md), [NA-0290 identifier/padding design](../governance/evidence/NA-0290_metadata_phase2_identifier_padding_design.md), [NA-0291 identifier/padding harness](../governance/evidence/NA-0291_metadata_phase2_identifier_padding_harness.md), [NA-0292 sanitized-error/retention design](../governance/evidence/NA-0292_metadata_phase2_sanitized_errors_retention_design.md), and [NA-0293 sanitized-error/retention harness](../governance/evidence/NA-0293_metadata_phase2_sanitized_errors_retention_harness.md). | `scripts/ci/metadata_conformance_smoke.sh`; `scripts/ci/demo_cli_smoke.sh`; `scripts/ci/metadata_phase2_identifier_padding_harness.sh`; `scripts/ci/metadata_phase2_sanitized_errors_retention_harness.sh`. | Stable runtime ids, timing, size, relay-visible metadata, deployment metadata, contact graph, IP-level metadata, broader sanitized errors, and production retention/purge metadata remain observable or future-gated. The NA-0291 and NA-0293 harnesses prove policy fixtures only. They do not prove runtime anonymity or metadata elimination. | Close out NA-0293, then improve public evidence navigation without anonymity claims. |
 
 ## Release-Readiness Gate Checklist
 
 | Gate | Current status | Evidence / note |
 | --- | --- | --- |
-| Dependency/advisory scan clean | PROVEN for current lockfile at validation time | `cargo audit --deny warnings` passed locally during NA-0541 validation on 2026-06-25, and the root plus nested qsc fuzz lockfiles retained `quinn-proto 0.11.15`. Advisory posture remains time-sensitive. |
+| Dependency/advisory scan clean | PROVEN for current lockfile at validation time | `cargo audit --deny warnings` passed locally on 2026-07-16 at `77576681` (386 crate dependencies scanned, zero advisories). Advisory posture remains time-sensitive. |
 | Required `public-safety` present | PROVEN | Branch protection required contexts include `public-safety`. |
-| Latest main `public-safety` and `advisories` green | PROVEN at NA-0541 start | `origin/main` `9e7e389b6c42` completed `public-safety` and `advisories` successfully after PR #1354. |
+| Latest main `public-safety` and `advisories` green | PROVEN at NA-0648 refresh | `origin/main` `77576681` completed `public-safety` and `advisories` successfully (2026-07-16). |
 | G1-G5 evidence mapped | PARTIAL | This document and [external review package](EXTERNAL_REVIEW_PACKAGE.md). |
 | External cryptographic review complete | NOT_READY | No external review completion is recorded; [NA-0288](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md) keeps package existence separate from review completion. |
-| Production relay / service hardening complete | NOT_READY | Local qsl-server/qsl-attachments hardening evidence is mapped by [NA-0287](../governance/evidence/NA-0287_service_production_gate_evidence_map.md), but production operation remains future-gated. |
+| Production relay / service hardening complete | NOT_READY | Local qsl-server/qsl-attachments hardening evidence is mapped by [NA-0287](../governance/evidence/NA-0287_service_production_gate_evidence_map.md). `qsl-server` now has durable-queue repository evidence (NA-0642: SQLite persistence, opt-in acknowledged-pull, retention window, kill-based durability checks) and `qsc` an opt-in acknowledged-pull client (NA-0644, with the bounded ENG-0042 seam filed) — repository evidence about the codebases, not a claim that any deployed relay runs them. The production-hardening bundle (ENG-0039) remains open and production operation remains future-gated. |
 | Public internet service readiness | NOT_READY | NA-0287 records public ingress, TLS/proxy, firewall/ACL, source-IP, and public abuse proof as future gates. |
 | Production backup/restore readiness | NOT_READY | NA-0286 proves local qsl-attachments stopped/quiesced full-root recovery boundaries only; production automation, restore drills, hot/live backup, partial restore support, and cross-node recovery remain future gates. |
 | Metadata phase-2 complete | NOT_READY | [NA-0288](../governance/evidence/NA-0288_metadata_phase2_external_review_gap_plan.md) maps remaining gaps, [NA-0290](../governance/evidence/NA-0290_metadata_phase2_identifier_padding_design.md) designs the identifier/padding lane, [NA-0291](../governance/evidence/NA-0291_metadata_phase2_identifier_padding_harness.md) proves deterministic identifier/padding policy fixtures only, [NA-0292](../governance/evidence/NA-0292_metadata_phase2_sanitized_errors_retention_design.md) designs sanitized-error/retention-purge policy, and [NA-0293](../governance/evidence/NA-0293_metadata_phase2_sanitized_errors_retention_harness.md) proves deterministic sanitized-error/retention-purge policy fixtures only. Runtime rotation/default padding, broader runtime sanitized-error coverage, production retention/purge behavior, and broader phase-2 mitigations remain open. |
-| External review package refreshed | DOCS_ONLY | [External review package](EXTERNAL_REVIEW_PACKAGE.md), [NA-0289 audit](../governance/evidence/NA-0289_external_review_package_refresh_audit.md), and [NA-0289 testplan](../../tests/NA-0289_external_review_package_refresh_testplan.md) align evidence references and claim boundaries after NA-0287/NA-0288. Refresh is not review completion. |
+| External review package refreshed | DOCS_ONLY | [External review package](EXTERNAL_REVIEW_PACKAGE.md) refreshed 2026-07-16 (NA-0648) with the ENG-0038 found-fixed-modeled arc, the NA-0640..NA-0646 product context, the two-artifact formal spine, and reproducible-command result cells re-stamped from real re-runs; earlier alignment recorded by [NA-0289 audit](../governance/evidence/NA-0289_external_review_package_refresh_audit.md). Refresh is not review completion. |
 | Attachment demo readiness complete | PROVEN for non-production qshield demo only | [Attachment demo readiness](../demo/ATTACHMENT_PUBLIC_DEMO_READINESS.md) and [NA-0260 evidence](../governance/evidence/NA-0260_attachment_demo_readiness_audit.md) prove descriptor/fetch/decrypt/integrity behavior on the local demo surface. |
 | KT-negative demo acceptance complete | PROVEN for non-production demo verifier path only | [KT-negative demo readiness](../demo/KT_NEGATIVE_PUBLIC_DEMO_READINESS.md) and [NA-0259 evidence](../governance/evidence/NA-0259_kt_negative_demo_readiness_audit.md) prove bounded verifier rejects and accepted-state no-mutation. |
 | Native desktop package proof complete | PROVEN for bounded Linux AppImage/screenshot proof only | [NA-0258 evidence](../governance/evidence/NA-0258_native_desktop_package_screenshot_audit.md) records provisioned-host package and screenshot proof; it is not production desktop approval. |
-| Public website evidence-boundary implemented | NOT_READY | Website audit and plan exist; implementation handoff is a recommended successor. |
+| Public website evidence-boundary implemented | PARTIAL for the executed accuracy pass | Governed website changes have executed: the WEB-0006 urgent-accuracy pass is live on the current site, and [WEBSITE_CLAIM_MATRIX.md](WEBSITE_CLAIM_MATRIX.md) re-audited that site as WCM-101..115 (2026-07-15). The consolidated content pass remains future work in the website repository; this is not public readiness or a website-completeness claim. |
 | Public repository evidence sync | PROVEN for selected repository docs only | D-1068 and [NA-0539 evidence](../governance/evidence/NA-0539_qsl_website_repository_public_evidence_sync_implementation_harness.md) update README and public docs with bounded evidence, limits, and review invitation. This is not website implementation and not release readiness. |
 | Public Progress cadence and site-wide accuracy sweep | PROVEN for repository public docs only | D-1070, D-1071, D-1072, [Progress index](PROGRESS.md), and [June 25 Progress entry](progress/2026-06-25.md) create the first Progress log and correction ledger. This is not website implementation, public readiness, production readiness, public internet readiness, or external review completion. |
 | No production-readiness overclaim | PROVEN for this package | Safe/unsafe wording is explicit. |
@@ -80,7 +80,7 @@ Status meanings:
 | `cargo audit --deny warnings` | Confirms current advisory posture. |
 | `cargo tree -i rustls-webpki --locked` | Confirms locked dependency path for `rustls-webpki`. |
 | `cargo +stable test -p qsc --locked --test send_commit -- --test-threads=1` | Confirms qsc send/commit regression surface. |
-| `python3 formal/run_model_checks.py` | Confirms bounded SCKA and Suite-2 negotiation model checks. |
+| `python3 formal/run_model_checks.py` | Confirms the bounded explorer models: SCKA, Suite-2 negotiation, qsc handshake suite-id, qsc KEM/signature/transcript binding, Suite-2 root composition, and the `QSC.HS.*` handshake-authentication model. |
 | `scripts/ci/demo_cli_smoke.sh` | Confirms current one-command non-production demo acceptance. |
 | `scripts/ci/metadata_conformance_smoke.sh` | Confirms current metadata conformance negative baseline. |
 | `scripts/ci/metadata_phase2_identifier_padding_harness.sh` | Confirms deterministic metadata phase-2 identifier/opaque-handle and padding policy fixtures; design-only markers preserve runtime claim boundaries. |
@@ -113,7 +113,7 @@ Status meanings:
 | --- | --- | --- | --- |
 | qshield demo | PARTIAL | [NA-0246 evidence](../governance/evidence/NA-0246_one_command_demo_acceptance_audit.md), [NA-0259 evidence](../governance/evidence/NA-0259_kt_negative_demo_readiness_audit.md), and [NA-0260 evidence](../governance/evidence/NA-0260_attachment_demo_readiness_audit.md). | Demo proof is still non-production; live qshield KT evidence input, cross-host/private-network attachment proof, and production relay/service hardening remain open. |
 | qsc desktop GUI | PARTIAL | [NA-0247 evidence](../governance/evidence/NA-0247_desktop_gui_public_demo_readiness_audit.md) and [NA-0258 evidence](../governance/evidence/NA-0258_native_desktop_package_screenshot_audit.md). | Keychain active ops, handshake/session-establish UI, production packaging/release approval, and production desktop readiness remain open. |
-| Public website | NOT_READY for implementation | [WEBSITE_CLAIM_MATRIX.md](WEBSITE_CLAIM_MATRIX.md), [WEBSITE_UPDATE_PLAN.md](WEBSITE_UPDATE_PLAN.md), and [Suite-2 claim boundary](SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md). | Implementation handoff and external website repo changes remain future work. |
+| Public website | PARTIAL for the executed accuracy pass | [WEBSITE_CLAIM_MATRIX.md](WEBSITE_CLAIM_MATRIX.md) (the WCM-101..115 audit of the current site, 2026-07-15), [WEBSITE_UPDATE_PLAN.md](WEBSITE_UPDATE_PLAN.md), and [Suite-2 claim boundary](SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md). | The WEB-0006 urgent-accuracy pass executed and is live; the consolidated content pass (the newest repository facts) remains future work in the website repository, and the two matrix rows flagged OUTDATED (WCM-110, WCM-112) await it. |
 | Public repository evidence sync | PROVEN for selected repository docs only | D-1068, [NA-0539 evidence](../governance/evidence/NA-0539_qsl_website_repository_public_evidence_sync_implementation_harness.md), and [NA-0539 testplan](../../tests/NA-0539_qsl_website_repository_public_evidence_sync_implementation_testplan.md). | No website source, public/ path, website/ path, production service, public internet, or external-review-complete claim is added. |
 
 ## What Changed After NA-0259 And NA-0260
@@ -220,25 +220,6 @@ Status meanings:
 - qsl-server and qsl-attachments remain deferred from this repository public
   evidence sync.
 
-## Bounded qsc Evidence And Gaps
-
-| Evidence category | Current bounded evidence | Residual gap |
-| --- | --- | --- |
-| Same-host qsc tests | Current validation and prior qsc test lanes keep same-host client-to-client behavior in the evidence set. | Same-host tests do not prove public internet, service, or production operation. |
-| Direct remote qsc E2EE | D446 records repeated remote qsc E2EE success using synthetic data under controlled lab conditions. | Synthetic controlled-lab proof is not crypto completeness or production service proof. |
-| Retained qsc staging/restaging | D446 records retained qsc freshness and no stale state reuse across repeated runs. | This does not prove every future staging or release path. |
-| Reverse-forward marker/ACK | D439 records port 39176 marker traversal and ACK proof for the diagnostic path. | Marker/ACK proof is transport evidence, not qsl-server or qsl-attachments integration. |
-| Build-to-Inspiron qsc E2EE | D441 and D446 inheritance keep the Build-to-Inspiron remote qsc E2EE proof in the public evidence map. | The proof remains bounded to controlled synthetic data and selected hosts. |
-| Wrong-peer and stale/replaced-peer negatives | D441 and D446 record selected fail-closed negatives and selected-state no-mutation checks. | Selected negatives are not universal identity or trust completeness. |
-| Replay and corrupt-delivery negatives | D419 records selected replay/corrupt delivery negative boundaries. | Selected negatives are not a replay-proof or downgrade-proof claim. |
-| Public-safety and advisories | NA-0541 startup proof records green public-safety/advisories gates on `origin/main` `9e7e389b6c42` after PR #1354. | CI gates are required integrity checks, not external review completion. |
-| quinn-proto RUSTSEC-2026-0185 remediation | Startup proof confirms root and nested qsc fuzz lockfiles retain `quinn-proto 0.11.15`. | Advisory posture is time-sensitive and must stay gate-backed. |
-| Formal/model checks | Formal/model checks remain bounded evidence for modeled slices. | They are not full cryptographic secrecy, side-channel, or implementation-completeness proofs. |
-| Corpus validators and secret scans | Validation includes corpus/vector and private-material/secret-output scans where applicable. | Scans reduce exposure risk; they do not prove secret-material completeness. |
-| qsl-server and qsl-attachments | Deferred from NA-0539 public evidence sync and NA-0541 Progress publication; existing service evidence remains separate production-gate material. | No production relay, attachment service, or public internet readiness is claimed. |
-
-## Metadata / Privacy Readiness Map
-
 ## What Changed After NA-0541
 
 - NA-0541 creates the public [Progress index](PROGRESS.md) and the first dated
@@ -254,6 +235,56 @@ Status meanings:
   completeness, no replay-proof status, no downgrade-proof status, no
   secret-material completeness, no side-channel freedom, no vulnerability
   freedom, no bug freedom, and no perfect crypto.
+
+## What Changed After NA-0629 Through NA-0647
+
+One consolidated section for the 2026-07-10..2026-07-16 arc (the per-lane detail is in
+[the 2026-07-15 Progress entry](progress/2026-07-15.md), `DECISIONS.md`, and the cited evidence):
+
+- **ENG-0038 found-fixed-modeled (NA-0632, NA-0633, NA-0634, NA-0636 / D572).** An internal
+  adversarial re-analysis found the shipped `qsc` `QSC.HS.*` handshake did not authenticate the
+  responder to the initiator; the merged fix authenticates the responder against the pinned
+  responder identity KEM key (the encapsulated secret mixed into handshake key derivation); the
+  authentication-asymmetry class was retired; and a bounded, machine-checked model discharged the
+  filed verification obligation within its stated bounds, with five known unmodeled slices on the
+  public ledger. A correction record, not flaw-free evidence; the review was internal, and
+  independent external review remains a release gate.
+- **Product path (NA-0640, NA-0642, NA-0643, NA-0644, NA-0645, NA-0646).** The standard suite
+  gained its first full-stack end-to-end scenario (development harness, byte-verified);
+  `qsl-server`'s queue became durable (SQLite, opt-in acknowledged-pull, retention window,
+  kill-based durability checks — repository evidence, not a deployed-relay claim; ENG-0039 open);
+  the `qsc` dev-dependency pin advanced with the e2e re-run green unchanged; `qsc` gained an
+  opt-in acknowledged-pull mode with durable dedup (the bounded ENG-0042 seam filed; not the
+  default); the prototype TUI was retired with its load-bearing capabilities re-homed first
+  (ENG-0044 filed); and the `qsc` core became a linkable library with byte-identical CLI behavior
+  (architecture, not a product/SDK claim).
+- **Public docs (NA-0629, NA-0641, NA-0647).** Strategic/review-facing docs truthed up; the tiered
+  feature plan recorded as repo truth (authorizing no implementation); the website claim matrix
+  re-audited against the current site (WCM-101..115) and the 2026-07-15 Progress entry published
+  as the first public ENG-0038 record, with the demo-script failure found at publication time
+  filed as ENG-0045 (flagged, not fixed).
+- None of this changes the release claim boundary: no public readiness, no production readiness,
+  no public-internet readiness, no completed external review, no crypto completeness, no
+  vulnerability-free status, and no unqualified formal-verification claim.
+
+## Bounded qsc Evidence And Gaps
+
+| Evidence category | Current bounded evidence | Residual gap |
+| --- | --- | --- |
+| Same-host qsc tests | Current validation and prior qsc test lanes keep same-host client-to-client behavior in the evidence set. | Same-host tests do not prove public internet, service, or production operation. |
+| Direct remote qsc E2EE | D446 records repeated remote qsc E2EE success using synthetic data under controlled lab conditions. | Synthetic controlled-lab proof is not crypto completeness or production service proof. |
+| Retained qsc staging/restaging | D446 records retained qsc freshness and no stale state reuse across repeated runs. | This does not prove every future staging or release path. |
+| Reverse-forward marker/ACK | D439 records port 39176 marker traversal and ACK proof for the diagnostic path. | Marker/ACK proof is transport evidence, not qsl-server or qsl-attachments integration. |
+| Build-to-Inspiron qsc E2EE | D441 and D446 inheritance keep the Build-to-Inspiron remote qsc E2EE proof in the public evidence map. | The proof remains bounded to controlled synthetic data and selected hosts. |
+| Wrong-peer and stale/replaced-peer negatives | D441 and D446 record selected fail-closed negatives and selected-state no-mutation checks. | Selected negatives are not universal identity or trust completeness. |
+| Replay and corrupt-delivery negatives | D419 records selected replay/corrupt delivery negative boundaries. | Selected negatives are not a replay-proof or downgrade-proof claim. |
+| Public-safety and advisories | The NA-0648 refresh records green public-safety/advisories gates on `origin/main` `77576681` (2026-07-16). | CI gates are required integrity checks, not external review completion. |
+| quinn-proto RUSTSEC-2026-0185 remediation | Startup proof confirms root and nested qsc fuzz lockfiles retain `quinn-proto 0.11.15`. | Advisory posture is time-sensitive and must stay gate-backed. |
+| Formal/model checks | Formal/model checks remain bounded evidence for modeled slices. | They are not full cryptographic secrecy, side-channel, or implementation-completeness proofs. |
+| Corpus validators and secret scans | Validation includes corpus/vector and private-material/secret-output scans where applicable. | Scans reduce exposure risk; they do not prove secret-material completeness. |
+| qsl-server and qsl-attachments | Deferred from NA-0539 public evidence sync and NA-0541 Progress publication; existing service evidence remains separate production-gate material. | No production relay, attachment service, or public internet readiness is claimed. |
+
+## Metadata / Privacy Readiness Map
 
 | Topic | Current status | Boundary |
 | --- | --- | --- |
@@ -271,6 +302,8 @@ Status meanings:
 | --- | --- | --- |
 | SCKA bounded model | PARTIAL | State-machine invariant model, not cryptographic secrecy proof. |
 | Suite-2 negotiation downgrade/no-mutation model | PARTIAL | Abstracts authenticated capability evidence and transcript binding. |
+| Suite-2 DH+PQ composition — ProVerif symbolic analysis (NA-0627, [DOC-G4-002](../design/DOC-G4-002_Suite2_DH_PQ_Composition_Symbolic_Analysis_ProVerif_v0.1.0_DRAFT.md)) | PARTIAL | Symbolic (Dolev-Yao) result over the DOC-G4-002 §2 abstractions: idealized KDF/AEAD/X25519-group/ML-KEM, establishment authentication assumed, one session, in-order receives, one root-advancing DH epoch per model (the 2-boundary unrolling does not terminate — ENG-0035). Not a computational, implementation, or post-quantum proof. |
+| `QSC.HS.*` handshake-authentication bounded model (NA-0636 / D572, [formal/README.md](../../formal/README.md) §2 fifth model) | PARTIAL | Bounded authentication-binding search — 10,800 responder and 10,800 initiator configurations enumerated exhaustively, zero unbound commitments, with faithfulness and non-vacuity counterfactuals — discharging the filed ENG-0038 obligation within its bounds. Five known unmodeled slices are on the public ledger (contact-store device indirection — the substantive one, cross-session replay, concurrent pending handshakes, composition with suite negotiation, fingerprint collision-resistance held as an assumption). Not cryptographic security and not an unqualified formal verification. |
 | Full protocol proof | NOT_READY | No full AEAD/KDF/authentication/secrecy model is claimed. |
 
 ## External Review Readiness Map

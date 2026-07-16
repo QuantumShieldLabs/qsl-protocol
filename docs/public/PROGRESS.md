@@ -2,7 +2,7 @@ Goals: G1, G2, G3, G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-07-10
+Last-Updated: 2026-07-15
 Replaces: n/a
 Superseded-By: n/a
 
@@ -15,6 +15,7 @@ certificates.
 
 ## Latest entries
 
+- [QSL Progress - 2026-07-15](progress/2026-07-15.md)
 - [QSL Progress - 2026-07-10](progress/2026-07-10.md)
 - [QSL Progress - 2026-06-25](progress/2026-06-25.md)
 

@@ -43511,3 +43511,31 @@ PROGRESS entry) and NOT fixed here (run-only per D583). Result class is the dire
 shape for exactly this case — all doc items completed, the demo problem flagged for its own lane.
 Deferred set stated: the EXTERNAL_REVIEW_PACKAGE.md refresh (ENG-0038-blind, committed next) + its
 evidence-map companion, then website Phase B. Queue → READY=NONE (HIGHEST_NA=0647, HIGHEST_D=1270).
+
+## 2026-07-16 — NA-0648: reviewer-facing docs refresh (D584, D-1271, REVIEWER_DOCS_REFRESH_PASS)
+
+DOCS-ONLY lane + the local re-run of the package's Reproducible Commands
+(QSL-DIR-2026-07-16-584; promotion PR #1577; base `77576681`). The two reviewer-facing
+public docs — `EXTERNAL_REVIEW_PACKAGE.md` and `RELEASE_READINESS_EVIDENCE_MAP.md` — now
+route an external cryptographic reviewer to CURRENT reality: the ENG-0038
+found-fixed-modeled arc (in the operator-approved 2026-07-15 progress-entry wording,
+reused verbatim-or-near), a bounded current-handshake paragraph, the TWO-artifact formal
+spine (DOC-G4-002 + the formal/README `QSC.HS.*` handshake-authentication model), the
+NA-0640..0646 product context with per-lane bounded phrasing, and freshness throughout.
+The re-run came FIRST: every reproducible-command cell was re-stamped from an actual
+2026-07-16 run at `77576681` (all executed commands PASS; the stale three-model cell now
+records the runner's actual SIX bounded models — the directive expected five, the benign
+delta recorded; the clean-host row marked as a dated historical proof, not re-run). The
+map gained the two missing formal rows, current G1/G4/gate citations (service-hardening
+STAYS NOT_READY, ENG-0039 open), corrected website rows (WEB-0006 executed and live),
+the line-240 mis-merge repair, and ONE consolidated NA-0629..NA-0647 What-Changed
+section. THE LOAD-BEARING DISCIPLINE HELD: all four claim-boundary regions are
+sha256-identical both sides (byte-preserved, not merely additive) — package
+"What Is Not Proven" `f8ede7a1…` / "Safe Public Wording" `a8242ee0…`, map
+"Claim Boundary Map" `a17ee1d8…` / "Do Not Claim Yet" `db21db61…`. Zero
+code/script/vector/workflow/formal change; no website-repo change; no gate amendment
+(local pre-check with the gate's own patterns: 0 denylist, 0 credential, 0 broken
+links). NOT claimed: external review completion (it remains THE release gate), the
+website content pass (committed next, website repo), an ENG-0045 fix (its own lane).
+Queue → READY=NONE (HIGHEST_NA=0648, HIGHEST_D=1271); the operator promotes the
+successor.

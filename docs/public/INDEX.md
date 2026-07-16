@@ -27,18 +27,25 @@ Start with:
 
 ## Current Progress
 
-The current Progress log's latest entry is the July 10, 2026 workday entry:
+The current Progress log's latest entry is the July 15, 2026 catch-up entry:
 
 - [Progress index](PROGRESS.md)
+- [QSL Progress - 2026-07-15](progress/2026-07-15.md)
 - [QSL Progress - 2026-07-10](progress/2026-07-10.md)
 - [QSL Progress - 2026-06-25](progress/2026-06-25.md)
 
-The 2026-07-10 entry summarizes the Suite-2 cryptographic-core completion arc
-(single-root DH+PQ composition, the CI-gated ProVerif symbolic analysis, and the
-RFC 7748 §6.1 non-contributory-DH guard) and the docs truth-up that records it,
-with the claim boundary unchanged. The 2026-06-25 entry summarizes the remote qsc
-repeated-run cleanup/freshness closeout, public evidence synchronization, and the
-site-wide public accuracy sweep for that publication.
+The 2026-07-15 entry covers two arcs merged since 2026-07-10: the first public
+record of ENG-0038 — a handshake authentication flaw found by internal
+adversarial review, fixed, its class retired, and bounded-model-checked with
+known unmodeled slices on the public ledger (no vulnerability-free or
+unqualified formal-verification claim; external review remains uncommissioned) —
+and the NA-0640..NA-0646 product-path arc (bounded full-stack e2e, durable relay
+queue, opt-in acknowledged-pull client, TUI retirement, and the core extraction
+to a linkable library), each with its bounded framing and with the claim
+boundary unchanged. The 2026-07-10 entry summarizes the Suite-2
+cryptographic-core completion arc (single-root DH+PQ composition, the CI-gated
+ProVerif symbolic analysis, and the RFC 7748 §6.1 non-contributory-DH guard) and
+the docs truth-up that records it, with the claim boundary unchanged.
 
 Review is invited on the evidence, limits, claim boundaries, corrections,
 residual gaps, and next steps. This section is an engineering-evidence summary:

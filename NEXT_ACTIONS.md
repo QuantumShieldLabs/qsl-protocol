@@ -6,7 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0647 | HIGHEST_NA=0647 | HIGHEST_D=1269 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NONE | HIGHEST_NA=0647 | HIGHEST_D=1270 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- NA-0647 (website-support public-docs refresh, D583) DONE 2026-07-15 (D-1270, result class WEBSITE_DOCS_REFRESH_STOP — the directive's OWN classification for "the smoke-run reveals a demo/site problem needing a fix out of scope: record + flag, do the rest, note in closeout"; every doc item COMPLETED, no wording/policy/scope stop): DOCS-ONLY + one verification run, base ac7e850c. ITEM 3 FIRST (Phase 2): scripts/demo/qsc_demo_local.sh smoke-run BARE at ac7e850c exactly as the site's RunDemos page instructs — SURPRISE FAILURE: exit 0 + "DEMO DONE" with ZERO deliveries (all four qsc calls emit vault_locked/explicit_unlock_required; the script pre-dates the qsc explicit vault-unlock requirement — no --unlock-passphrase-file/-env, no vault/identity bootstrap — and MASKS failure via `|| true` + an unconditional trailer + status=ok); recorded (as-built §2, artifacts preserved off-tree), FILED ENG-0045 (P2, the fix = its own lane: unlock bootstrap + fail-loud), matrix row WCM-110 OUTDATED/MUST_FIX; NOT fixed (D583 run-only boundary held — zero script edits). ITEM 1: docs/public/WEBSITE_CLAIM_MATRIX.md audit half RE-TARGETED from the retired .dev site (2026-05-03/NA-0245 era, zero shared pages) to the CURRENT quantumshieldlabs.org site — AUDIT-SOURCE DECISION stated in-doc (convention change: website-repo SOURCE at production commit 21a908a4, the WEB-0006 Phase-A closeout merge, vs live retrieval; reproducible; rows are date/commit-stamped snapshots, light Phase-B re-touch expected); Pages-Checked → the ten .org routes (incl. sections/modals/links.js); WCM-001..018 → WCM-101..115 stamped 21a908a4/ac7e850c/2026-07-15 = 11 SUPPORTED / 2 OUTDATED (WCM-110 the demo; WCM-112 the site's own "matrix refresh pending" cards — made stale BY this merge, expected Phase-B re-touch) / 1 OUT_OF_SCOPE (website legal/ops) / 1 SUPPORTED-absence (NO overclaim found in the full source sweep — protect through Phase B); evidence-consulted list → CURRENT (NA-0640 as-built+testplan, NA-0642 testplan+as-built, NA-0646 as-built, formal/README.md, DOC-G4-002, canonical drafts, qshield-ci); Top-MUST-FIX → 3 items; the 15 website src/links.js deep-link targets machine-verified 15/15 present at ac7e850c; THE POLICY HALF (NA-0539/NA-0541 wording-policy tables + required no-claim boundaries + the progress wording policy) BYTE-UNCHANGED — PROVEN: the NA-0539→NA-0541 region 5,220 bytes/57 lines diff-EMPTY vs HEAD, sha256 3566f215… identical both sides, zero PR hunks inside it. ITEM 2: docs/public/progress/2026-07-15.md (NEW, house format) = the FIRST PUBLIC RECORD of ENG-0038 — framed EXACTLY: found by INTERNAL adversarial review via protocol-trace analysis, not a PoC (NA-0632, D-1256; the ENG-0001/NA-0609B contradiction stated as a calibration point) → fixed by authenticating the responder against its PINNED identity KEM key (NA-0633, D-1257) → flaw-class retired (NA-0634, D-1258) → discharged by a BOUNDED machine-checked model (NA-0636/D572, D-1259; 10,800×10,800 configurations, zero unbound commitments, non-vacuity demonstrated) with the FIVE KNOWN UNMODELED SLICES on the public ledger; explicit negative sentences in the entry (does NOT establish vulnerability-free or all-flaws-found; NOT an unqualified formal verification; external review NOT yet commissioned, remains a release gate); reviewer records linked: formal/README.md + DOC-G4-002 — PLUS the product arc with per-lane bounded phrasing (NA-0640 e2e dev-harness; NA-0642 durable relay = repo evidence not a deployed-relay claim, ENG-0039 open; NA-0644 ack client opt-in with the bounded ENG-0042 seam stated; NA-0645 TUI retirement with ENG-0044 stated; NA-0646 core extraction = engineering architecture, not product/SDK) — PLUS a publication-time accuracy note on the demo failure; COUPLED same-diff touches: INDEX.md's hardcoded latest-entry sentence/list/inline-summary → 2026-07-15, PROGRESS.md list line + Last-Updated. Validation: policy byte-proof; 15/15 link check; offline markdown-link check 0 missing; scope guard clean (changed paths ⊆ the D583 allowed list; the demo script, EXTERNAL_REVIEW_PACKAGE.md, RELEASE_READINESS_EVIDENCE_MAP.md, the public-safety gate ALL untouched); public-safety gate + goal-lint green at the PR, NO gate amendment made or needed. Claim boundary UNCHANGED (the entry ADDS the bounded public record without moving any claim). NOT claimed: the review-package refresh (the COMMITTED NEXT lane, ENG-0038-blind, with its RELEASE_READINESS_EVIDENCE_MAP.md companion), website Phase B (website repo, qsite governance — consumes this lane's two refreshed docs, re-touches WCM-110/WCM-112), a working local demo path (ENG-0045 owed). Queue returns to READY=NONE — the operator promotes the successor. The executor cannot self-promote. -->
+<!-- prior: STATE: READY=NA-0647 | HIGHEST_NA=0647 | HIGHEST_D=1269 (NA-0647 closed for D583 at D-1270; this lane PR) -->
 <!-- NA-0646 (extract qsc-core, D582) DONE 2026-07-15 (D-1269, result class CORE_EXTRACTION_PASS): qsc's messaging core is a LINKABLE LIBRARY with BYTE-IDENTICAL CLI, delivered as the two sequential PRs D582 prescribed. PR-A (#1573, merged abb10cab) = the crate split, PURE MOTION + 210 machine-verified visibility widenings (74 fn/30 enum/11 struct/8 const/72 field/15 mod lines): src/lib.rs 7→2,310 lines (all 17 modules incl. cmd/ wholesale; the 2,155 enumerated main.rs lines at the LIB ROOT so use-super globs kept resolving — module bodies untouched; purity machine-checked 2,836 verbatim + 94 widened + 46 wiring, 0 unexplained, 0 lost; color-moved 2,192/2,183), main.rs → the 642-line thin bin; the adversarial/envelope double-compile ended (the suite's 422→405 delta = exactly the 17 unit tests that ran twice, reconciled BY NAME). PR-B = exit→Result: the FIVE funnels return CliError and THE LIBRARY CONTAINS ZERO process::exit SITES — exit semantics only in the bin's single Err→emit+exit adapter (+ util_sanitize's bin-local usage exit(2), clap's own); the three kv/dynamic funnels emit AT SITE (already-emitted; file_xfer_reject both markers in the original order; the receive-loop session-store site's PRE-EXISTING double emission reproduced exactly); ~263 sites rewired, ~80 signatures cascaded; the soft/fatal fan-outs PRESERVED exactly where they coexisted (AttachmentSendError, ReceiptSendError, read_send_state → CliResult<Result<u64,()>>, fault_injector_from_env → CliResult<Option>); every dropped-Result chased to an explicit `?`. THE HARD SPOT: receive_pull_and_write's 8 in-loop exits land at the SAME control points (before/after extracted + diffed 1:1; docs/governance/evidence/NA-0646_rpw_equivalence.md; the diverging helpers ?-ed at the same statements; no flush/commit runs between any converted site and the fn exit in either version); ENG-0042 PRESERVED, NOT FIXED; destructor delta audited (two output-free Drops, no threads). THE PROVER (scripts/local_ops/na0646_byte_identity_prover.sh, 14 fixed cases, one per funnel shape + happy paths, persistent fixture, determinism double-run proven): PR-A BEFORE(pre-move)/AFTER byte-diff EMPTY 14/14; PR-B BEFORE(re-captured at PR-A MERGED abb10cab)/AFTER byte-diff EMPTY 14/14 FIRST RUN (exit(2) stayed 2); WF-0017 NON-VACUITY DEMONSTRATED (reversed require_unlocked kv → differ RED on exactly the vault-locked case; reverted; green re-proven). Gates: cargo check --all-targets 0/0 both PRs; full local suite (niced --test-threads=3 per operator load direction) 405/0/1-pre-existing-ignored across 107 result sets BOTH PRs (PR-B identical to the PR-A baseline; zero test-file changes in PR-B); the NA-0640 e2e green UNCHANGED both runs (2/0; 116.53s / 117.65s; zero e2e edits). The D581 KEEP items are the library's pub GUI surface (annotations updated). NO GUI code, NO CoreCtx de-globaling (the process globals STAY; NO state-dependent lib-level tests were added — the compiled binary remains the behavior-test vehicle), NO behavior change, NO protocol/crypto/wire change, NO ENG-0042 fix, NO dep change (Cargo.toml/lock untouched), NO tui.* rename, NO clap-enum package split, NO formal/vectors/canonical/.github change. Claim boundary UNCHANGED. NAMED RESIDUE: (a) CoreCtx de-globaling; (b) the ~30 raw println!/eprintln! marker-bypass sites (GUI lane); (c) the clap-value-enum split IF a separate qsc-core package is ever wanted; (d) blocking reqwest (Tauri spawn_blocking); (e) the KEEP dead_code allowances retire when the GUI consumes the surface. Queue returns to READY=NONE — the operator promotes the successor (natural: THE GUI LANE per DOC-PROG-003 §5 — this lane exists to serve it; it owes ENG-0044 restoration and consumes the KEEP pub surface; standing: ENG-0036, ENG-0039, ENG-0042/0043, 0b, 0c residue, NA-0635 GATED). The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0646 | HIGHEST_D=1269 (NA-0647 promoted for D583; PR #1575) -->
 <!-- prior: STATE: READY=NA-0646 | HIGHEST_NA=0646 | HIGHEST_D=1268 (NA-0646 closed for D582 at D-1269; this lane PR) -->
@@ -32,44 +34,36 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NA-0647** — the WEBSITE-SUPPORT PUBLIC-DOCS REFRESH
-lane (**D583 = QSL-DIR-2026-07-15-583, operator-approved**). DOCS-ONLY + ONE verification
-run: refresh the two public docs the website's upcoming Phase B content sync will point
-at, so the site's status/evidence links reference CURRENT repo truth. THREE ITEMS,
-smoke-run FIRST: **(ITEM 3, Phase 2 — first)** smoke-run `scripts/demo/qsc_demo_local.sh`
-at current main (the site's RunDemos page references it; unrun since the TUI retirement +
-core extraction; NA-0646 kept the CLI byte-identical) — RECORD the outcome in the
-evidence; a surprise failure = record + **FLAG for a follow-up lane, do NOT fix** the
-script or the site (running it first lets the PROGRESS entry cite a confirmed-current
-demo path if it passes). **(ITEM 1)** rewrite the AUDIT half of
-`docs/public/WEBSITE_CLAIM_MATRIX.md` against the current quantumshieldlabs.ORG site —
-it still audits the retired .DEV site (retrieval 2026-05-03, NA-0245 era; ZERO shared
-pages with the current site): replace the retrieval stamp, the Pages-Checked table (the
-ten current .org pages), all 18 WCM rows (re-audited post-Phase-A; most expected
-SUPPORTED — the matrix likely gets SHORTER), the Top-MUST-FIX list, and the
-Repo-Evidence-Consulted list (CURRENT evidence: the NA-0640 e2e, NA-0642 durability,
-DOC-G4-002, formal/README.md, the NA-0646 as-built); the **NA-0539/NA-0541
-wording-POLICY tables + required no-claim boundary sections are PRESERVED VERBATIM**
-(the diff must show them byte-unchanged — every other reference to the doc depends on
-them); the audit-source decision (live .org retrieval vs website-repo source at the
-production commit) is CONFIRMED at Phase 1 and stated on record. **(ITEM 2)** ONE
-catch-up PROGRESS entry covering BOTH arcs uncovered since 2026-07-10: the **ENG-0038
-arc** (NA-0632 finding → NA-0633 fix → NA-0634 class retirement → NA-0636/D572
-bounded-model discharge) — **the FIRST PUBLIC RECORD of ENG-0038**, framed EXACTLY as
-found by INTERNAL adversarial review (external review remains uncommissioned) + a
-BOUNDED machine-checked model with KNOWN UNMODELED SLICES on a public ledger, NEVER
-"vulnerability-free" / "formally verified" unqualified / "all flaws found" — and the
-**product arc** (NA-0640 e2e, NA-0642 durable relay, NA-0644 ack client, NA-0645 TUI
-retirement, NA-0646 core extraction — each with its bounded phrasing); plus the COUPLED
-same-diff touches: `docs/public/INDEX.md`'s hardcoded latest-entry pointer/summary and
-`docs/public/PROGRESS.md`'s list line + Last-Updated. FORBIDDEN: any
-code/script/vector/workflow/formal change; `EXTERNAL_REVIEW_PACKAGE.md` +
-`RELEASE_READINESS_EVIDENCE_MAP.md` (the COMMITTED NEXT lane — the ENG-0038-blind
-review-package refresh); any website-repo change (Phase B is separate, qsite
-governance); editing the POLICY sections; amending the public-safety gate to pass
-wording. Begins at **D-1270**. Full lane block at the end of section 2. NA-0646 (the
-CORE-EXTRACTION lane, D582) is DONE at D-1269, result class CORE_EXTRACTION_PASS — see
-its block below.
+**READY (exactly one — execute this): NONE.** NA-0647 (the WEBSITE-SUPPORT PUBLIC-DOCS
+REFRESH lane, D583) is **DONE** at D-1270, result class **WEBSITE_DOCS_REFRESH_STOP** —
+the directive's own classification for exactly what happened: every doc item COMPLETED,
+and the one verification run surfaced an out-of-scope demo problem that was recorded and
+FLAGGED, not fixed. The two public docs the website's Phase B will point at are now
+CURRENT: **(1)** the claim matrix audits the current quantumshieldlabs.ORG site
+(website-repo source at production commit `21a908a4` — an explicit in-doc convention
+change; WCM-101..115: 11 SUPPORTED / 2 OUTDATED / 1 OUT_OF_SCOPE / 1 SUPPORTED-absence;
+current evidence cited; the 15 site deep-links verified 15/15 at `ac7e850c`) with the
+**NA-0539/NA-0541 POLICY half BYTE-UNCHANGED** (5,220 bytes / 57 lines, diff-empty,
+sha256 `3566f215…` both sides); **(2)** `docs/public/progress/2026-07-15.md` is the
+**FIRST PUBLIC RECORD of ENG-0038** — internal adversarial finding (NA-0632) → pinned
+identity-KEM fix (NA-0633) → class retirement (NA-0634) → BOUNDED machine-checked
+discharge with known unmodeled slices on the public ledger (NA-0636/D572), with explicit
+no-vulnerability-free / not-unqualified-formal-verification / external-review-not-yet-
+commissioned sentences — plus the NA-0640..0646 product arc with per-lane bounded
+phrasing, and the coupled INDEX.md/PROGRESS.md touches. **(3)** the smoke-run:
+`qsc_demo_local.sh` at `ac7e850c` exits 0 / "DEMO DONE" with **ZERO deliveries**
+(vault_locked at every call; the script pre-dates the explicit vault-unlock requirement
+and masks failure) — **ENG-0045 FILED** (P2), WCM-110 OUTDATED/MUST_FIX, a
+publication-time accuracy note in the PROGRESS entry; the script untouched. Zero
+code/script/vector/workflow/formal change; the review-package files untouched; no gate
+amendment. Its full block (now `Status: DONE` with the OUTCOME) is at the end of section
+2. The queue returns to **READY=NONE**; the operator promotes the successor — COMMITTED
+next: **the EXTERNAL_REVIEW_PACKAGE.md refresh lane** (ENG-0038-blind;
+RELEASE_READINESS_EVIDENCE_MAP.md companion), then the website's **Phase B** (website
+repo, qsite governance — consumes this lane's two refreshed docs, re-touches
+WCM-110/WCM-112); new: **ENG-0045** (the demo-script fix); standing: **ENG-0036**,
+**ENG-0039**, **ENG-0042**/**ENG-0043**, **ENG-0044** (GUI phase), **0b**, the **0c
+residue**, **NA-0635** (GATED), the GUI lane. The executor cannot self-promote.
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -35380,7 +35374,8 @@ See D582 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-14-582_core_extractio
 Begins at D-1269. The hinge lane: TWO PRs, never combined — PR-A pure motion proven green + byte-identical FIRST, PR-B semantic, proven by the prover + the e2e + special care on the receive loop. Byte-identical CLI is the contract. Do NOT fix ENG-0042; do NOT de-global; keep the globals; keep the exit(2); keep emission ordering. The prover's green byte-diff (with non-vacuity) is the core proof of the whole lane.
 
 ### NA-0647 — Website-support public-docs refresh (D583): re-target the WEBSITE_CLAIM_MATRIX audit half to the current .org site (POLICY sections preserved verbatim); ONE catch-up PROGRESS entry covering the ENG-0038 arc + the NA-0640..0646 product arc (coupled INDEX.md touch); smoke-run the public demo script — docs-only + one verification run
-Status: READY
+Status: DONE
+OUTCOME (2026-07-15, D-1270, result class WEBSITE_DOCS_REFRESH_STOP): every doc item completed; the STOP records exactly the one flagged out-of-scope finding, per the directive's own classification. ITEM 3 (run FIRST): the smoke-run of `scripts/demo/qsc_demo_local.sh` at `ac7e850c` SURPRISED — exit 0 + "DEMO DONE" with ZERO deliveries (every qsc call `vault_locked/explicit_unlock_required`: the script pre-dates the qsc explicit vault-unlock requirement and masks failure via `|| true` + an unconditional trailer); recorded in `docs/governance/evidence/NA-0647_as_built.md` §2, FILED as ENG-0045 (P2), matrix row WCM-110 OUTDATED/MUST_FIX; the script UNTOUCHED (the D583 run-only boundary held). ITEM 1: the claim-matrix audit half re-targeted to the current .org site — audit source = website-repo SOURCE at production commit `21a908a4` (explicit in-doc convention change, stated with rationale); WCM-001..018 → WCM-101..115 (11 SUPPORTED / 2 OUTDATED / 1 OUT_OF_SCOPE / 1 SUPPORTED-absence); current evidence cited (NA-0640/NA-0642/NA-0646 evidence, formal/README.md, DOC-G4-002, qshield-ci); the 15 website src/links.js deep-links verified 15/15; THE POLICY HALF BYTE-UNCHANGED, PROVEN (the NA-0539→NA-0541 region: 5,220 bytes / 57 lines, diff-empty vs HEAD, sha256 `3566f215…` identical both sides, zero PR hunks inside). ITEM 2: `docs/public/progress/2026-07-15.md` (NEW) — the FIRST PUBLIC RECORD of ENG-0038, framed exactly per the D583 boundaries (internal adversarial review, trace-analysis not PoC, the prior-conclusion contradiction stated as a calibration point; the pinned-identity-KEM fix; the class retirement; the BOUNDED machine-checked discharge with the five known unmodeled slices on the public ledger; explicit not-vulnerability-free / not-unqualified-formally-verified / external-review-not-yet-commissioned sentences) + the NA-0640..0646 product arc with per-lane bounded phrasing + a publication-time accuracy note on the demo failure; coupled INDEX.md latest-entry sentence/list/summary + PROGRESS.md list line/Last-Updated in the same diff. Validation: scope guard clean (paths ⊆ the D583 allowed list; EXTERNAL_REVIEW_PACKAGE.md / RELEASE_READINESS_EVIDENCE_MAP.md / the demo script / the public-safety gate ALL untouched); offline markdown-link check 0 missing; public-safety gate + goal-lint at the PR (no gate amendment made or needed). Claim boundary UNCHANGED. Deferred set stated: the review-package refresh (COMMITTED NEXT lane), website Phase B, ENG-0045. See D-1270 and the as-built.
 
 Goals: G4
 Wire/behavior change allowed? NO — a DOCS lane + ONE verification run; ZERO source/protocol/wire/crypto change; the smoke-run is READ/RUN only (`scripts/demo/qsc_demo_local.sh` is NOT edited; a surprise failure is recorded + FLAGGED for a follow-up lane, never fixed here).

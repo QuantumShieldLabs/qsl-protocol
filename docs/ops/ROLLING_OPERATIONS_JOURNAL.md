@@ -43491,3 +43491,23 @@ Nothing here builds GUI code or touches protocol/crypto/wire; ENG-0042 and ENG-0
 stand as filed; the claim boundary is unchanged. Queue → READY=NONE (HIGHEST_D=1269);
 the operator promotes the successor — naturally the GUI lane per DOC-PROG-003 §5,
 which this lane exists to serve.
+
+## 2026-07-15 — NA-0647: website-support public-docs refresh (D583, D-1270, WEBSITE_DOCS_REFRESH_STOP)
+
+DOCS-ONLY lane + one verification run (QSL-DIR-2026-07-15-583; promotion PR #1575; base `ac7e850c`).
+The two public docs the website's Phase B will point at are now current: the claim matrix audits the
+CURRENT quantumshieldlabs.org site (website-repo source at production commit `21a908a4` — an explicit,
+in-doc convention change from live retrieval; WCM-101..115; policy half byte-preserved, sha256-proven)
+and the Progress log carries the 2026-07-15 catch-up entry — the FIRST PUBLIC RECORD of the ENG-0038
+arc (internal finding → pinned-KEM fix → class retirement → bounded machine-checked discharge with
+known unmodeled slices; explicitly NOT vulnerability-free, NOT unqualified formal verification,
+external review NOT yet commissioned) plus the NA-0640..0646 product arc, with the coupled
+INDEX.md/PROGRESS.md touches. The one verification run went FIRST and SURPRISED: the site-referenced
+`scripts/demo/qsc_demo_local.sh` at current main exits 0 and prints DEMO DONE with ZERO deliveries
+(every qsc call `vault_locked/explicit_unlock_required` — the script pre-dates the explicit
+vault-unlock requirement and masks the failure). Recorded honestly everywhere it matters (as-built §2,
+ledger **ENG-0045**, matrix WCM-110 OUTDATED/MUST_FIX, a publication-time accuracy note in the
+PROGRESS entry) and NOT fixed here (run-only per D583). Result class is the directive's own STOP
+shape for exactly this case — all doc items completed, the demo problem flagged for its own lane.
+Deferred set stated: the EXTERNAL_REVIEW_PACKAGE.md refresh (ENG-0038-blind, committed next) + its
+evidence-map companion, then website Phase B. Queue → READY=NONE (HIGHEST_NA=0647, HIGHEST_D=1270).

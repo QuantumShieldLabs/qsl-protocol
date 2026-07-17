@@ -6,7 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0650 | HIGHEST_NA=0650 | HIGHEST_D=1272 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NONE | HIGHEST_NA=0650 | HIGHEST_D=1273 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- NA-0650 (DOC-PROG-004 GUI Phase Roadmap landing, D586) DONE 2026-07-16 (D-1273, result class GUI_ROADMAP_DOC_PASS): DOCS-ONLY LITE lane (single PR + single decision, DOC-OPS-006 §9), base 6ae8e8ff (the #1581 seating merge; qwork-proven). The operator-approved (2026-07-16) QSC GUI Phase Roadmap is repo truth: NEW docs/program/DOC-PROG-004_QSC_GUI_Phase_Roadmap_v0.1.0_DRAFT.md = the D586 appendix VERBATIM under EXACTLY three adjustment classes (A the DOC-PROG-003-form house wrapper with the authorizes-NO-implementation provenance boundary + subordination footer; B the sibling-form title — the A1 approval amendment; C the landing-base parenthetical resolved to 6ae8e8ff, the historical fb1ef2bc retained). FIDELITY DIFF-PROVEN: exactly 2 hunks vs the extracted directive appendix (126 lines), every changed line mapped to A/B/C, the body byte-untouched between; manifest positively verified — 8 locked decisions (L1–L8), 4 standing constraints (incl. the ENG-0044 spine-lane rationale), 9 steps + the Completed record, gates D-A ×1 + D-B ×1, 6 parallel-track rows with triggers, 7 corrections, ZERO NA refs > 0650 (NA-0650 only in the wrapper provenance). Coupled wiring, D577 minimal-pointer pattern: DOC-CTRL-001 ONE §4.5 row + Last Updated bump; DOC-PROG-003 ONE §6 bullet + Last-Updated bump; IMPROVEMENT_LEDGER deliberately UNTOUCHED. A2 approval resolution recorded: THIS lane consumed NA-0650; the D585 "(retirement is its own lane, NA-0650)" parenthetical was a prediction at writing time that shifted; the sidecar-retirement lane takes the next free number. NO code, NO test-code, NO dep, NO .github/formal/vectors/canonical, NO docs/public, NO ledger, NO claim-boundary change. THE DOCUMENT AUTHORIZES NO IMPLEMENTATION — landing the plan is not starting it. NOT claimed: any GUI exists; any roadmap step started/authorized; the external-review gate moved (restated as THE gate, unchanged). See D-1273, docs/governance/evidence/NA-0650_as_built.md, tests/NA-0650_gui_phase_roadmap_doc_testplan.md. Queue returns to READY=NONE — the operator promotes the successor. The executor cannot self-promote. -->
+<!-- prior: STATE: READY=NA-0650 | HIGHEST_NA=0650 | HIGHEST_D=1272 (NA-0650 closed for D586 at D-1273; this lane PR) -->
 <!-- NA-0649 (qsc GUI-surface lane, D585) DONE 2026-07-16 (D-1272, result class QSC_GUI_SURFACE_PASS): qsc CLIENT-SOURCE lane, base fb1ef2bc (the #1579 seating merge, recorded from a FRESH clone; all nine D585 file:line anchors re-verified exact). LIBRARY surface ONLY, zero CLI behavior change — B1 pub vault_init_with_passphrase (in-memory passphrase through the existing private vault_init internals extracted VERBATIM into a shared private core; same envelope/route-token seeding/success marker/error codes as VALUES; zeroize on every path; NO unlock side effect — init/unlock orthogonal; retired-ingress NA-0216B untouched); B2 pub widenings with NO body changes (identity_read_self_public, IdentityPublicRecord + pub fields, identity_fingerprint_from_identity, format_verification_code_from_fingerprint; identity_show untouched); B3 thin pub identity_ensure (existing record returned unmutated, else the existing lazy path; the NA-0616 second-identity guard fires UNCHANGED — proven by test; vault-level unlock enforcement unchanged — locked store yields the existing identity_secret_unavailable/vault_locked behavior with zero mutation, proven). OPERATOR-APPROVED D585 SCOPE AMENDMENT (2026-07-16, in-session): src/model/mod.rs added to the allowed paths for EXACTLY the two-word visibility widening (pub(crate) enum ErrorCode → pub; pub(crate) fn as_str → pub) — no body/behavior/vocabulary change, no new variants; rationale: B2/B3's GUI-consumability purpose requires an externally nameable error type, and the private_interfaces lint empirically broke the cargo check 0/0 gate. Tests: NEW tests/NA_0649_gui_surface.rs (7 library-level tests, the external-crate-shaped consumer; markers observed via the KEEP InApp queue) — init→unlock roundtrip + vault_exists + NO-unlock-side-effect (has_process_passphrase false + vault_unlocked false after init alone) + route-token seeding; identity_ensure create/idempotent-with-store-bytes-stability/locked/second-identity-guard; accessors-as-data with fp cross-checked vs the identity_show marker + ErrorCode matched externally. CLI byte-identity spot-check (the NA-0646 prover pattern REDUCED to the touched neighborhoods, lane-run): 5/5 cases diff -r EMPTY (vault init prover-form + plain + vault_exists negative, identity show, relay token-set; base binary 713f4339… vs final 7ab1f5f7… — differing binaries, non-vacuous) + WF-0017 red-demo (success-marker perturbation → differ RED on exactly the vault-init cases; reverted; green re-proven). Gates: cargo check --all-targets 0/0; full local cargo test -p qsc 412/0/1-pre-existing-ignored across all 108 result sets, exit 0 = EXACTLY the NA-0646 baseline (405/0/1×107) + the 7 new tests as the one new set; the NA-0640 e2e within the run 2/0 (118.30s) UNCHANGED, zero e2e edits; root audit 386 deps/0 advisories + fuzz audit 287/0; cargo metadata --locked OK; Cargo.toml/lock UNTOUCHED; no new deps; no marker-vocabulary change (every code string pre-existing). NOT claimed: any GUI exists; onboarding works end-to-end; the server-info contract (separate cross-repo lane). Claim boundary UNCHANGED. Queue returns to READY=NONE — the operator promotes the successor. The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0649 | HIGHEST_D=1272 (NA-0650 promoted for D586; PR #1581) -->
 <!-- prior: STATE: READY=NA-0649 | HIGHEST_NA=0649 | HIGHEST_D=1271 (NA-0649 closed for D585 at D-1272; this lane PR) -->
@@ -41,36 +43,30 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NA-0650** — land the operator-approved QSC GUI Phase
-Roadmap as **DOC-PROG-004** (**D586 = QSL-DIR-2026-07-16-586, APPROVED 2026-07-16 as
-amended at approval**). Docs-only LITE-CEREMONY (single PR, single decision): the
-GUI-phase path becomes repo truth instead of chat context — the 8 locked decisions
-(L1–L8: Tauri v2 in-process; separate satellite repo; the sidecar prototype retired;
-`GET /v1/server-info` additive-only/auth-gated/features-never-security; vault→identity→
-server onboarding with "configure later"; the v1 slice with NO messaging UI; Signal's
-three-pane layout + settings architecture as the UX reference; the "This is you"
-fingerprint-purpose rule), the 4 standing constraints (ENG-0044 restoration is a qsc
-SPINE lane with its recorded rationale — L2 makes satellite-side restoration impossible;
-external review remains THE release gate; the R8 same-profile documentation requirement;
-lane discipline), the 9-step sequence with decision gates D-A (platform target, operator,
-before step 4) and D-B (contact-add/rendezvous design, before step 6), the 6-row
-parallel-tracks table with triggers (reviewer outreach starts NOW), and the 7 corrections
-vs the earlier sketch. The operator-approved text is the D586 APPENDIX and lands VERBATIM
-under exactly three adjustment classes (A the house wrapper; B the title line; C the one
-landing-base parenthetical resolved to the live Phase-0 hash); closeout DIFF-PROVES
-fidelity (every hunk mapped to A/B/C + the positive manifest check). Coupled wiring: the
-DOC-CTRL-001 §4.5 registry row + ONE DOC-PROG-003 §6 back-pointer bullet (+ Last-Updated
-bumps); the IMPROVEMENT_LEDGER deliberately untouched (D577 precedent). APPROVAL
-RESOLUTIONS recorded in the lane block below: A1 the landing filename follows the house
-sibling pattern (`DOC-PROG-004_QSC_GUI_Phase_Roadmap_v0.1.0_DRAFT.md`); A2 THIS lane
-seats as NA-0650 — the merged D585 "(retirement is its own lane, NA-0650)" parenthetical
-was a prediction at writing time that shifted (the NA-0649-block baseline-phrasing-
-correction precedent); the sidecar-retirement lane takes the next free number when
-promoted. NOT claimed: any GUI exists; any roadmap step is started or authorized (the
-document authorizes NO implementation); the external-review gate moved. Claim boundary
-UNCHANGED. Begins at **D-1273**. Full lane block at the end of section 2. NA-0649 (the
-qsc GUI-SURFACE lane, D585) is DONE at D-1272, result class QSC_GUI_SURFACE_PASS — see
-its block at the end of section 2 and the STATE comment above.
+**READY (exactly one — execute this): NONE.** NA-0650 (the DOC-PROG-004 GUI Phase
+Roadmap landing, D586) is **DONE** at D-1273, result class **GUI_ROADMAP_DOC_PASS** —
+the operator-approved (2026-07-16) QSC GUI Phase Roadmap is repo truth:
+`docs/program/DOC-PROG-004_QSC_GUI_Phase_Roadmap_v0.1.0_DRAFT.md` carries the 8 locked
+decisions (L1–L8), the 4 standing constraints (ENG-0044 restoration = a qsc SPINE lane
+with its recorded rationale; external review remains THE release gate; R8 same-profile
+documented for v1; lane discipline), the 9-step sequence with operator gates D-A
+(platform target, before step 4) and D-B (contact-add design, before step 6), the 6-row
+parallel-tracks table with triggers (reviewer outreach starts NOW), and the 7
+corrections — landed VERBATIM from the D586 appendix under exactly three adjustment
+classes, fidelity DIFF-PROVEN hunk-by-hunk (2 hunks, all A/B/C, body byte-untouched)
+with the manifest positively verified. Wiring minimal per D577: one DOC-CTRL-001 §4.5
+row, one DOC-PROG-003 §6 bullet (+ Last-Updated bumps); the ledger untouched. THE
+DOCUMENT AUTHORIZES NO IMPLEMENTATION. NOT claimed: any GUI exists; any roadmap step is
+started or authorized; the external-review gate moved. Claim boundary UNCHANGED. Its
+full block (now `Status: DONE` with the OUTCOME) is at the end of section 2. The queue
+returns to **READY=NONE**; the operator promotes the successor — natural, from the
+landed roadmap itself: **step 1** (qsc-desktop sidecar retirement, LITE, no dependency;
+takes the NEXT FREE NA number per the A2 resolution), **step 2** (the qsl-server
+`GET /v1/server-info` lane, cross-repo), with **gate D-A** (Linux-only vs Linux+macOS)
+the operator decision that shapes step 3; parallel tracks per the roadmap (reviewer
+outreach NOW; ENG-0039 before first real external operator or public release);
+standing: **ENG-0036**, **ENG-0039**, **ENG-0042**/**ENG-0043**, **ENG-0045**, **0b**,
+the **0c residue**, **NA-0635** (GATED). The executor cannot self-promote.
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -35463,7 +35459,8 @@ See D585 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-16-585_qsc_gui_surfac
 Begins at D-1272. Small additive client-source lane: three library entries, four test groups, zero CLI delta — the GUI's onboarding surface without argv/env/disk secrets. Prove the CLI unchanged byte-for-byte in the touched neighborhoods; the compiled-binary suite and the e2e stay untouched.
 
 ### NA-0650 — Land the operator-approved QSC GUI Phase Roadmap as DOC-PROG-004 (D586): the GUI-phase path — 8 locked decisions, 4 standing constraints, the 9-step sequence with gates D-A/D-B, the parallel-tracks table, the 7 corrections — becomes repo truth; docs-only LITE
-Status: READY
+Status: DONE
+OUTCOME (2026-07-16, D-1273, result class GUI_ROADMAP_DOC_PASS): every D586 work item completed; no STOP condition fired. The landing: DOC-PROG-004 = the D586 appendix VERBATIM under exactly the three adjustment classes (A wrapper / B sibling title / C landing-base → `6ae8e8ff`), fidelity diff-proven (2 hunks, all mapped A/B/C, 126-line body byte-untouched) with the manifest positively verified (8 decisions / 4 constraints / 9 steps / gates D-A+D-B / 6 track rows / 7 corrections / zero NA refs > 0650). Wiring: ONE DOC-CTRL-001 §4.5 row + ONE DOC-PROG-003 §6 bullet (+ Last-Updated bumps); ledger untouched (D577 precedent). Phase-1 citation liveness held (DOC-QSC-008/009/010 exist; ENG statuses match; no contradiction). Approval resolutions A1 (house filename) + A2 (this lane = NA-0650) recorded above and in D-1273. NOT claimed: any GUI; any step started/authorized; the external-review gate moved. See D-1273, `docs/governance/evidence/NA-0650_as_built.md`, `tests/NA-0650_gui_phase_roadmap_doc_testplan.md`.
 
 Goals: G4, G5
 Wire/behavior change allowed? NO — a DOCS-ONLY LITE-CEREMONY lane (DOC-OPS-006 §9, Director-certified in D586): one new program document + minimal registry/spine wiring + governance/closeout. ZERO source/protocol/wire/crypto change; ZERO test-code change; NO dep/Cargo/lock change; NO workflow/`.github` change; NO runtime/LAN/qscwork action.

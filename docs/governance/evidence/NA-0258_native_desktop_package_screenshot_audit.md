@@ -224,4 +224,4 @@ Cargo lockfiles, production relay/service code, or runtime protocol behavior.
 
 - [Native desktop readiness](../../demo/NATIVE_DESKTOP_PACKAGE_SCREENSHOT_READINESS.md)
 - [NA-0258 testplan](../../../tests/NA-0258_native_desktop_package_screenshot_testplan.md)
-- [QSC desktop prototype README](../../../qsl/qsl-client/qsc-desktop/README.md)
+- QSC desktop prototype README — retired at NA-0651 (D-1274, 2026-07-16); see git history and DOC-QSC-009/010 (superseded, retained as history)

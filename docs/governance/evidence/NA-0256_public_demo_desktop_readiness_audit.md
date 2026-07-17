@@ -178,4 +178,4 @@ This evidence supports only non-production public demo readiness and bounded des
 - [Public demo readiness document](../../demo/PUBLIC_DEMO_TOUCH_AND_FEEL_READINESS.md)
 - [NA-0256 testplan](../../../tests/NA-0256_public_demo_desktop_readiness_testplan.md)
 - [Demo acceptance criteria](../../demo/DEMO_ACCEPTANCE_CRITERIA.md)
-- [qsc desktop prototype README](../../../qsl/qsl-client/qsc-desktop/README.md)
+- qsc desktop prototype README — retired at NA-0651 (D-1274, 2026-07-16); see git history and DOC-QSC-009/010 (superseded, retained as history)

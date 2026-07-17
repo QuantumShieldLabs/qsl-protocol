@@ -139,7 +139,7 @@ Non-fatal warnings:
 - [Workday autopilot policy](../WORKDAY_AUTOPILOT_POLICY.md)
 - [Metadata threat model](../../privacy/DOC-G5-001_Metadata_Threat_Model_v1.0.0_DRAFT.md)
 - [Envelope transport profile](../../privacy/DOC-G5-003_Envelope_Transport_Profile_v0.1.0_DRAFT.md)
-- [qsc desktop README](../../../qsl/qsl-client/qsc-desktop/README.md)
+- qsc desktop README — retired at NA-0651 (D-1274, 2026-07-16); see git history and DOC-QSC-009/010 (superseded, retained as history)
 - [Desktop GUI active-ops boundary](../../design/DOC-QSC-010_Desktop_GUI_Prototype_Active_Ops_Boundary_v0.1.0_DRAFT.md)
 - [Formal README](../../../formal/README.md)
 - [TRACEABILITY.md](../../../TRACEABILITY.md)

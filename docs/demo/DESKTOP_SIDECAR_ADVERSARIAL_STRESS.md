@@ -170,4 +170,4 @@ Do not claim:
 - [NA-0264 testplan](../../tests/NA-0264_desktop_sidecar_stress_testplan.md)
 - [Native desktop package and screenshot readiness](NATIVE_DESKTOP_PACKAGE_SCREENSHOT_READINESS.md)
 - [Public demo touch-and-feel readiness](PUBLIC_DEMO_TOUCH_AND_FEEL_READINESS.md)
-- [QSC desktop prototype README](../../qsl/qsl-client/qsc-desktop/README.md)
+- QSC desktop prototype README — retired at NA-0651 (D-1274, 2026-07-16); see git history and DOC-QSC-009/010 (superseded, retained as history)

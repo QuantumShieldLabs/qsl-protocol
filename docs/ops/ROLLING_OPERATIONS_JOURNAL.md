@@ -43636,3 +43636,28 @@ merge — 7 historical docs still link the deleted qsc-desktop README; a micro-l
 candidate, not this lane's diff. Queue → READY=NONE (HIGHEST_NA=0652,
 HIGHEST_D=1275); the operator merges #62 and promotes the successor (natural:
 ENG-0046, gate D-A, then the GUI skeleton that consumes this contract).
+
+## 2026-07-17 — NA-0653: main-push public-ci restored by the seven-link history repair (D589, D-1276, PUBLIC_CI_LINK_REPAIR_PASS)
+
+The main-push public-ci gate had been red since the NA-0651 deletion merge: seven
+historical docs — three docs/demo readiness records and four NA-02xx evidence
+audits — still carried live relative references to the qsc-desktop README that
+NA-0651 deleted, and the push-only markdown link check correctly failed with
+TOTAL_MISSING=7 (DENY and HC both 0 — link residue, no content hit). NA-0652 had
+surfaced the residue for operator disposition; D589 (approved with F1 resolved to
+the fail-closed byte-proof rail) authorized exactly the repair. The fix set was
+re-enumerated live from the gate's own finding at Phase 0 — the CI run on the
+seating merge and a byte-copied replica of the workflow's embedded checker agreed
+exactly, and the seven were the only missing links across the full 721-file scan
+set. Each flagged bullet (all seven sit in end-of-doc reference lists, outside
+every boundary-styled section) became the D587-F2 as-merged history prose: display
+text preserved byte-for-byte, the byte-identical suffix pointing at git history
+and the superseded DOC-QSC-009/010, no link syntax introduced or reproduced. The
+byte-proof rail held: one changed line per file (+7/−7 total), all four doc-local
+boundary-styled sections sha256-identical both sides, the NA-0250 fenced command
+transcript untouched, and the replica at head printing TOTAL_MISSING 0 repo-wide.
+The gate itself is byte-untouched — content fixed, strictness unchanged. Landed as
+a single LITE PR with D-1276; the lane's exit condition — main-push public-ci
+GREEN on the merge commit — is verified post-merge (the link check never runs on
+PRs). Queue → READY=NONE (HIGHEST_NA=0653, HIGHEST_D=1276); the operator promotes
+the successor (natural: ENG-0046, then gate D-A toward the GUI skeleton).

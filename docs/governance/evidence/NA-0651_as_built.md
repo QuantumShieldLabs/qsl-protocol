@@ -88,14 +88,15 @@ documents.
 `docs/public/EXTERNAL_REVIEW_PACKAGE.md`, EXACTLY two references (each old string
 asserted unique before replacement):
 
-1. The "Desktop GUI guided demo readiness" evidence row: the live link
-   `` the [qsc desktop README](../../qsl/qsl-client/qsc-desktop/README.md), and `` →
+1. The "Desktop GUI guided demo readiness" evidence row: the live markdown link
+   labeled "qsc desktop README", targeting `../../qsl/qsl-client/qsc-desktop/README.md`
+   (link syntax not reproduced here — a deleted target must not appear in link form) →
    `the retired prototype's README (tree removed at NA-0651, D-1274, 2026-07-16 —
    DOC-PROG-004 step 1; retained in git history), and`. The row's other citations
    (NA-0247/NA-0258 evidence, DOC-QSC-010) and its claim-bounding column are
    untouched.
-2. The references-list line
-   `` - [qsc desktop prototype README](../../qsl/qsl-client/qsc-desktop/README.md) `` →
+2. The references-list bullet: the same live link form (label "qsc desktop
+   prototype README", same target) →
    `- qsc desktop prototype README — retired at NA-0651 (D-1274, 2026-07-16); see
    git history and DOC-QSC-009/010 (superseded, retained as history)`.
 
@@ -161,9 +162,14 @@ ZERO hits outside the manifest. The deleted tree itself: zero matches (gone).
 
 - `git diff --cached --check`: clean. Scope guard: every changed path ⊆ the D587
   allowed list (11 non-tree paths + the 22 tree deletions; list in the proof root).
-- Link check over all 6 touched docs: 0 broken (one self-inflicted finding fixed
-  in-flight: the as-built's §5 quotes of the OLD reference strings originally parsed
-  as live markdown links — neutralized to code spans; re-check clean).
+- Link check over all 6 touched docs: 0 broken. TWO self-inflicted findings fixed
+  in-flight, same root cause: the as-built's §5 quotes of the OLD reference strings
+  parsed as live markdown links to the deleted target — first caught by the local
+  offline checker (fixed to inline code spans), then by the public-safety gate's
+  stricter first PR run (its parser strips fenced blocks but not inline spans;
+  TOTAL_MISSING=2 with DENY_HITS_FILES=0 and HC_COUNT=0 — a link-integrity finding,
+  not a content violation). Final form DESCRIBES the old links without reproducing
+  link syntax; the gate re-run is recorded in the lane response. No gate amendment.
 - Publication scan (house tool, staged added lines + new files): overclaim hits 0;
   secret/ssh/token patterns 0; `long_hex` = 4 — the published proof hashes (the
   banner block sha256, the two boundary-region sha256s, the full head SHA), the

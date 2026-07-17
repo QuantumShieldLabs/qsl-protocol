@@ -6,7 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0651 | HIGHEST_NA=0651 | HIGHEST_D=1273 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NONE | HIGHEST_NA=0651 | HIGHEST_D=1274 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- NA-0651 (qsc-desktop sidecar retirement, D587) DONE 2026-07-16 (D-1274, result class QSC_DESKTOP_RETIRE_PASS): DELETION+DOCS LITE lane (single PR + single decision, DOC-OPS-006 §9), base bfa84b12 (the #1583 seating merge; qwork-proven). DOC-PROG-004 step 1 executed per the operator fresh-start decision L3; BOTH approval flags at the draft defaults (F1 delete the harness; F2 the minimal repair with byte-proof). THE DELETION: qsl/qsl-client/qsc-desktop/ wholesale — exactly 22 tracked files (the Tauri v2 scaffold + the src-tauri crate incl. its OWN Cargo.toml/Cargo.lock — a lockfile cargo-audit never audited, a strict surface reduction) — after the three preconditions were re-verified LIVE at Phase 0 (empty [workspace] at src-tauri/Cargo.toml:7; root members exclude the tree; zero .github/ references); PLUS scripts/ci/desktop_sidecar_stress_na0264.sh (F1: zero invokers anywhere — it existed solely to run cargo test inside the deleted tree). BANNERS: DOC-QSC-008/009/010 carry the IDENTICAL supersession banner (block sha256 0344b46d… ×3, the NA-0645 TUI-retirement form) + Last-Updated bumps; history retained, not deleted. F2 REPAIR: EXTERNAL_REVIEW_PACKAGE.md's two live README links → history prose; BOTH claim-boundary regions sha256-IDENTICAL both sides (What Is Not Proven 1,176 B f8ede7a1…; Safe Public Wording 995 B 56fbab6f… under the pinned extraction rule); zero live links to the tree remain. KEEP BOUNDARY HELD (anchor-defined): ZERO changes under qsl/qsl-client/qsc/** proven by git diff --stat — the QSC_DESKTOP_SESSION_PASSPHRASE env-ingress machinery (cmd/mod.rs hidden flag; main.rs bootstrap branch; vault/mod.rs DESKTOP_PASS_ENV_KEY + allowlist + unlock_with_passphrase_env + VaultUnlockArgs.passphrase_env) and ALL 16 anchor-carrying files byte-untouched; env-ingress retirement REMAINS the separately-tracked future decision (DOC-PROG-004 parallel-tracks row). ACCEPTANCE: (A) cargo check --all-targets 0/0 in 0.29 s — nothing recompiled, the workspace never saw the tree; (B) full local cargo test -p qsc 412/0/1-pre-existing-ignored across all 108 result sets exit 0 — BYTE-IDENTICAL to the base-derived baseline (412/0/1-pre-existing-ignored across all 108 result sets, exit 0 = exactly the NA-0649/D-1272 record; the NA-0640 e2e ok in BOTH runs; the desktop_gui_contract_na0215b tests pass — the kept ingress is exercised and works); (C) the residual case-sensitive qsc-desktop grep: EVERY hit mapped to the D587 10-class manifest, zero outside (full mapping in the as-built); (D) root Cargo.toml/Cargo.lock byte-identical; zero diff under .github/formal/vectors; cargo metadata --locked OK; KEEP-anchor count unchanged (16). NO qsc source change, NO test change, NO dep, NO GUI code, NO ledger edit beyond this decision, NO gate edit (the qsc_desktop_path classifier fixture row §9-protected, carved out). NOT claimed: any GUI exists; the satellite repo is created; the env-ingress is retired; the external-review gate moved. Claim boundary UNCHANGED, byte-proven. The R9 satellite naming/placement collision is CLEARED. See D-1274, docs/governance/evidence/NA-0651_as_built.md, tests/NA-0651_retire_qsc_desktop_sidecar_testplan.md. Queue returns to READY=NONE — the operator promotes the successor. The executor cannot self-promote. -->
+<!-- prior: STATE: READY=NA-0651 | HIGHEST_NA=0651 | HIGHEST_D=1273 (NA-0651 closed for D587 at D-1274; this lane PR) -->
 <!-- NA-0650 (DOC-PROG-004 GUI Phase Roadmap landing, D586) DONE 2026-07-16 (D-1273, result class GUI_ROADMAP_DOC_PASS): DOCS-ONLY LITE lane (single PR + single decision, DOC-OPS-006 §9), base 6ae8e8ff (the #1581 seating merge; qwork-proven). The operator-approved (2026-07-16) QSC GUI Phase Roadmap is repo truth: NEW docs/program/DOC-PROG-004_QSC_GUI_Phase_Roadmap_v0.1.0_DRAFT.md = the D586 appendix VERBATIM under EXACTLY three adjustment classes (A the DOC-PROG-003-form house wrapper with the authorizes-NO-implementation provenance boundary + subordination footer; B the sibling-form title — the A1 approval amendment; C the landing-base parenthetical resolved to 6ae8e8ff, the historical fb1ef2bc retained). FIDELITY DIFF-PROVEN: exactly 2 hunks vs the extracted directive appendix (126 lines), every changed line mapped to A/B/C, the body byte-untouched between; manifest positively verified — 8 locked decisions (L1–L8), 4 standing constraints (incl. the ENG-0044 spine-lane rationale), 9 steps + the Completed record, gates D-A ×1 + D-B ×1, 6 parallel-track rows with triggers, 7 corrections, ZERO NA refs > 0650 (NA-0650 only in the wrapper provenance). Coupled wiring, D577 minimal-pointer pattern: DOC-CTRL-001 ONE §4.5 row + Last Updated bump; DOC-PROG-003 ONE §6 bullet + Last-Updated bump; IMPROVEMENT_LEDGER deliberately UNTOUCHED. A2 approval resolution recorded: THIS lane consumed NA-0650; the D585 "(retirement is its own lane, NA-0650)" parenthetical was a prediction at writing time that shifted; the sidecar-retirement lane takes the next free number. NO code, NO test-code, NO dep, NO .github/formal/vectors/canonical, NO docs/public, NO ledger, NO claim-boundary change. THE DOCUMENT AUTHORIZES NO IMPLEMENTATION — landing the plan is not starting it. NOT claimed: any GUI exists; any roadmap step started/authorized; the external-review gate moved (restated as THE gate, unchanged). See D-1273, docs/governance/evidence/NA-0650_as_built.md, tests/NA-0650_gui_phase_roadmap_doc_testplan.md. Queue returns to READY=NONE — the operator promotes the successor. The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0650 | HIGHEST_D=1273 (NA-0651 promoted for D587; PR #1583) -->
 <!-- prior: STATE: READY=NA-0650 | HIGHEST_NA=0650 | HIGHEST_D=1272 (NA-0650 closed for D586 at D-1273; this lane PR) -->
@@ -44,35 +46,32 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NA-0651** — retire the NA-0215-era **qsc-desktop
-sidecar prototype** per **DOC-PROG-004 step 1** and the operator's recorded 2026-07-16
-fresh-start decision (locked decision L3) (**D587 = QSL-DIR-2026-07-16-587, APPROVED
-2026-07-16 with both flags resolved to the draft defaults**). Deletion + docs
-LITE-CEREMONY (single PR, single decision): DELETE `qsl/qsl-client/qsc-desktop/`
-wholesale (22 tracked files; NOT a workspace member — empty `[workspace]`
-self-isolation, root-members exclusion, zero workflow references, ALL re-verified at
-Phase 0 before deletion); DELETE `scripts/ci/desktop_sidecar_stress_na0264.sh` (**F1**,
-resolved at approval: it exists solely to exercise the deleted tree and has zero
-invokers — part of the prototype's support surface, it retires with it); identical
-house supersession banners on **DOC-QSC-008/009/010** (history retained, not deleted);
-the **F2** minimal two-reference repair in `docs/public/EXTERNAL_REVIEW_PACKAGE.md`
-(both stale README links retargeted to history, WITH the NA-0648 claim-boundary
-byte-proof repeated — What Is Not Proven / Safe Public Wording sha256-identical both
-sides); ONE DECISIONS retirement entry. KEEP boundary ANCHOR-DEFINED and fail-closed:
-ZERO changes under `qsl/qsl-client/qsc/**` proven by `git diff --stat` — the
-`QSC_DESKTOP_SESSION_PASSPHRASE` env-ingress machinery and its pinning tests UNTOUCHED
-(live contract surface, the test suite's unlock vehicle; its retirement is the
-separately-tracked future decision per DOC-PROG-004's parallel-tracks table).
-Acceptance: `cargo check --all-targets` 0/0; full `cargo test -p qsc` green with counts
-UNCHANGED at **412/0/1 across 108 result sets** (the NA-0649 baseline, derived live at
-base); the case-sensitive `qsc-desktop` residual grep clean per the directive's
-10-class manifest; the byte-proofs per acceptance D and F2 (root Cargo.toml/lock
-byte-identical; boundary regions sha-identical). NOT claimed: any GUI exists; the
-satellite is created; the env-ingress is retired; the external-review gate moved.
-Begins at **D-1274**. Full lane block at the end of section 2. NA-0650 (the
-DOC-PROG-004 GUI Phase Roadmap landing, D586) is DONE at D-1273, result class
-GUI_ROADMAP_DOC_PASS — see its block at the end of section 2 and the STATE comment
-above.
+**READY (exactly one — execute this): NONE.** NA-0651 (the qsc-desktop sidecar
+retirement, D587) is **DONE** at D-1274, result class **QSC_DESKTOP_RETIRE_PASS** —
+DOC-PROG-004 step 1 is executed and the operator's 2026-07-16 fresh-start decision (L3)
+is enacted in the tree: `qsl/qsl-client/qsc-desktop/` (22 tracked files, proven outside
+the workspace build graph three ways before deletion) and its zero-invoker companion
+harness `scripts/ci/desktop_sidecar_stress_na0264.sh` (F1) are deleted — history
+retained in git; DOC-QSC-008/009/010 carry the identical supersession banner (NA-0645
+form) and stay in place; the reviewer package's two live links to the deleted README
+are repaired to history-prose (F2) with BOTH claim-boundary regions sha256-identical
+both sides. The KEEP boundary held: ZERO changes under `qsl/qsl-client/qsc/**` — the
+`QSC_DESKTOP_SESSION_PASSPHRASE` env-ingress machinery and all 16 anchor-carrying files
+byte-untouched (its retirement is the separately-tracked future decision on the
+DOC-PROG-004 parallel-tracks table). Acceptance: `cargo check --all-targets` 0/0
+(nothing recompiled); the full suite byte-identical to the base-derived baseline
+(412/0/1 across 108 result sets); the residual grep manifest-clean; root
+Cargo.toml/lock byte-identical. NOT claimed: any GUI exists; the satellite is created;
+the env-ingress is retired; the external-review gate moved. Claim boundary UNCHANGED.
+The R9 satellite naming collision is CLEARED. Its full block (now `Status: DONE` with
+the OUTCOME) is at the end of section 2. The queue returns to **READY=NONE**; the
+operator promotes the successor — natural, from DOC-PROG-004: **step 2** (the
+qsl-server `GET /v1/server-info` lane, cross-repo), with **gate D-A** (Linux-only vs
+Linux+macOS) the operator decision that shapes step 3 (the GUI satellite bootstrap);
+parallel tracks per the roadmap (reviewer outreach NOW; ENG-0039 before first real
+external operator or public release); standing: **ENG-0036**, **ENG-0039**,
+**ENG-0042**/**ENG-0043**, **ENG-0045**, **0b**, the **0c residue**, **NA-0635**
+(GATED). The executor cannot self-promote.
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -35496,7 +35495,8 @@ See D586 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-16-586_gui_phase_road
 Begins at D-1273. Docs-only LITE: one program document + two minimal wiring touches; the content is operator-approved and lands verbatim under three named adjustment classes — diff-prove the fidelity, verify the manifest positively, wire the spine minimally, and stop. The plan is the deliverable; landing it authorizes nothing.
 
 ### NA-0651 — Retire the NA-0215-era qsc-desktop sidecar prototype (D587): DOC-PROG-004 step 1 executing the operator's 2026-07-16 fresh-start decision (L3) — tree deletion + F1 harness deletion + supersession banners + the F2 reviewer-package link repair + one retirement decision; deletion+docs LITE
-Status: READY
+Status: DONE
+OUTCOME (2026-07-16, D-1274, result class QSC_DESKTOP_RETIRE_PASS): every D587 work item completed; no STOP condition fired. The tree (exactly 22 tracked files) + the F1 harness deleted after the three preconditions re-verified live; the three identical banners placed (block sha256 0344b46d…, NA-0645 form, Last-Updated bumped); the F2 two-reference repair landed with BOTH boundary regions sha256-identical both sides (What Is Not Proven 1,176 B f8ede7a1…; Safe Public Wording 995 B 56fbab6f…); the KEEP boundary held (zero qsl/qsl-client/qsc/** changes by git diff --stat; all 16 anchor files untouched); acceptance A–D green (check 0/0 with nothing recompiled; suite 412/0/1 ×108 exit 0 byte-identical to the base baseline; residual grep manifest-clean; root Cargo.toml/lock byte-identical; cargo metadata --locked OK). See D-1274 and docs/governance/evidence/NA-0651_as_built.md.
 
 Goals: G4, G5
 Wire/behavior change allowed? NO — a DELETION+DOCS LITE-CEREMONY lane (DOC-OPS-006 §9, Director-certified in D587): the deleted tree is OUTSIDE the workspace build graph (empty `[workspace]` self-isolation at src-tauri/Cargo.toml:7 + root-members exclusion + zero workflow references — re-proven at Phase 0 before deletion, and proven again by the acceptance cargo gates); ZERO changes under `qsl/qsl-client/qsc/**` (source AND tests — proven by `git diff --stat`); NO workspace dep or lockfile change (root Cargo.toml/Cargo.lock byte-identical per acceptance D; the tree's OWN manifest+lockfile leave WITH the tree — a lockfile cargo-audit never saw, strict surface reduction); NO workflow/`.github` change; NO runtime/LAN/qscwork action.

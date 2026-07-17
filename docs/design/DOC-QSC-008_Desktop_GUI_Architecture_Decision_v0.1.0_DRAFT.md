@@ -2,9 +2,23 @@ Goals: G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-03-29
+Last-Updated: 2026-07-16 (NA-0651: superseded — sidecar prototype retired)
 
 # DOC-QSC-008 — Desktop GUI Architecture Decision (Linux/macOS) v0.1.0 DRAFT
+
+> **SUPERSEDED — the NA-0215-era qsc-desktop sidecar prototype was RETIRED
+> at NA-0651 (directive D587, D-1274, 2026-07-16).**
+> Operator product decision (2026-07-16 fresh start; DOC-PROG-004 locked
+> decisions L1/L3): the GUI is an in-process Tauri v2 consumer of the qsc
+> library in its own satellite repo — no sidecar, no subprocess, no marker
+> scraping. The prototype tree `qsl/qsl-client/qsc-desktop/` was removed
+> from the working tree and is retained in git history. This document is
+> retained as history and prior art; the in-process GUI's design documents
+> live with the GUI satellite (DOC-PROG-004 step 3). The
+> `QSC_DESKTOP_SESSION_PASSPHRASE` env-ingress this era reserved remains
+> LIVE contract surface in qsc (the NA-0216B reserved key; the test
+> suite's unlock vehicle); its retirement is a separately tracked future
+> decision (DOC-PROG-004, parallel tracks).
 
 Purpose:
 - execute `NA-0215` against the current qsc / qsl-attachments / qsl-server posture;

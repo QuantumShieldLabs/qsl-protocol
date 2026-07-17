@@ -43584,3 +43584,26 @@ was a prediction that shifted; the retirement takes the next free number. The do
 authorizes NO implementation. Queue → READY=NONE (HIGHEST_NA=0650, HIGHEST_D=1273); the
 operator promotes the successor (natural: roadmap step 1 sidecar retirement / step 2
 server-info cross-repo; gate D-A shapes step 3).
+
+## 2026-07-16 — NA-0651: qsc-desktop sidecar prototype retired (D587, D-1274, QSC_DESKTOP_RETIRE_PASS)
+
+DOC-PROG-004 step 1 executed — the first roadmap step, and the first act of the
+operator's 2026-07-16 fresh-start decision (L3): the NA-0215-era Tauri sidecar
+prototype left the working tree. The deletion was proven safe three ways before it
+happened (empty `[workspace]` self-isolation; root-members exclusion; zero workflow
+references) and twice after (cargo check --all-targets 0/0 with nothing recompiled;
+the full qsc suite byte-identical to the base-derived baseline, 412/0/1 across 108
+result sets). The companion stress harness went with it (F1, operator-resolved at
+approval: zero invokers — support surface retires with the thing it supported).
+History is retained, not deleted: the tree lives in git history, and
+DOC-QSC-008/009/010 carry the identical supersession banner (the NA-0645 TUI form)
+pointing at DOC-PROG-004 and the satellite. The reviewer package's two live links to
+the deleted README were repaired to history-prose (F2) with the NA-0648 discipline
+repeated — both claim-boundary regions sha256-identical both sides; the boundary did
+not move. The env-ingress the prototype era reserved (QSC_DESKTOP_SESSION_PASSPHRASE,
+NA-0216B) stays byte-untouched as live contract surface — the suite's own unlock
+vehicle, visibly earning its keep in the baseline run — and its retirement remains
+the separately-tracked future decision on the roadmap's parallel-tracks table. The
+R9 naming/placement collision blocking the GUI satellite is cleared. Queue →
+READY=NONE (HIGHEST_NA=0651, HIGHEST_D=1274); the operator promotes the successor
+(natural: roadmap step 2 server-info cross-repo; gate D-A shapes step 3).

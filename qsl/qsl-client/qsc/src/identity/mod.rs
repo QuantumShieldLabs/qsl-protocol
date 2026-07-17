@@ -12,10 +12,12 @@ pub(super) struct IdentityKeypair {
 
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(super) struct IdentityPublicRecord {
-    pub(super) kem_pk: Vec<u8>,
+// NA-0649 (D585 B2): pub visibility (type + fields) for the in-process GUI; the
+// serialized shape is unchanged — the fingerprint stays DERIVED, never a stored field.
+pub struct IdentityPublicRecord {
+    pub kem_pk: Vec<u8>,
     #[serde(default)]
-    pub(super) sig_pk: Vec<u8>,
+    pub sig_pk: Vec<u8>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -127,7 +129,7 @@ pub(super) fn identity_fingerprint_from_pk(pk: &[u8]) -> String {
 /// authenticates the whole identity, not just its KEM half (closing the ENG-0038 signing-key asymmetry
 /// that C1 left open). Both keys are fixed-length, so the ordered concatenation `kem_pk || sig_pk` is an
 /// unambiguous pre-image; both parties compute it identically.
-pub(super) fn identity_fingerprint_from_identity(kem_pk: &[u8], sig_pk: &[u8]) -> String {
+pub fn identity_fingerprint_from_identity(kem_pk: &[u8], sig_pk: &[u8]) -> String {
     let c = StdCrypto;
     let mut buf = Vec::with_capacity(kem_pk.len() + sig_pk.len());
     buf.extend_from_slice(kem_pk);
@@ -396,7 +398,7 @@ fn identity_read_self_kem_keypair(self_label: &str) -> Result<Option<IdentityKey
     Err(ErrorCode::ParseFailed)
 }
 
-pub(super) fn identity_read_self_public(
+pub fn identity_read_self_public(
     self_label: &str,
 ) -> Result<Option<IdentityPublicRecord>, ErrorCode> {
     if !channel_label_ok(self_label) {
@@ -502,7 +504,27 @@ pub(super) fn identity_self_kem_keypair(self_label: &str) -> Result<IdentityKeyp
     })
 }
 
-pub(super) fn format_verification_code_from_fingerprint(fingerprint: &str) -> String {
+/// NA-0649 (D585 B3): deliberate identity creation for the in-process GUI. Returns the
+/// existing identity's public record with no mutation; otherwise creates it via the
+/// existing lazy path (`identity_self_kem_keypair`), so the NA-0616 second-identity
+/// guard and the vault-level unlock requirement apply exactly as on that path.
+/// Rotation stays the separate, explicit `identity_rotate` flow.
+pub fn identity_ensure(self_label: &str) -> Result<IdentityPublicRecord, ErrorCode> {
+    if let Some(rec) = identity_read_self_public(self_label)? {
+        return Ok(rec);
+    }
+    let IdentityKeypair {
+        kem_pk,
+        mut kem_sk,
+        sig_pk,
+        mut sig_sk,
+    } = identity_self_kem_keypair(self_label)?;
+    kem_sk.zeroize();
+    sig_sk.zeroize();
+    Ok(IdentityPublicRecord { kem_pk, sig_pk })
+}
+
+pub fn format_verification_code_from_fingerprint(fingerprint: &str) -> String {
     const CROCKFORD: &[u8; 32] = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ";
     let mut chars = fingerprint
         .chars()

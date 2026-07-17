@@ -1,7 +1,11 @@
 use std::fs::File;
 
 #[derive(Debug, Clone, Copy)]
-pub(crate) enum ErrorCode {
+// NA-0649 (D585, operator-approved scope amendment): visibility only — the widened
+// identity accessors and `identity_ensure` carry this type in pub signatures, and an
+// external (GUI) crate must be able to name and match it. No variant, body, or
+// vocabulary change.
+pub enum ErrorCode {
     MissingHome,
     InvalidPolicyProfile,
     UnsafePathSymlink,
@@ -19,7 +23,7 @@ pub(crate) enum ErrorCode {
 }
 
 impl ErrorCode {
-    pub(crate) fn as_str(self) -> &'static str {
+    pub fn as_str(self) -> &'static str {
         match self {
             ErrorCode::MissingHome => "missing_home",
             ErrorCode::InvalidPolicyProfile => "invalid_policy_profile",

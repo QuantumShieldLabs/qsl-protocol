@@ -237,4 +237,4 @@ It does not claim:
 
 - [Desktop sidecar adversarial stress](../../demo/DESKTOP_SIDECAR_ADVERSARIAL_STRESS.md)
 - [NA-0264 testplan](../../../tests/NA-0264_desktop_sidecar_stress_testplan.md)
-- [QSC desktop prototype README](../../../qsl/qsl-client/qsc-desktop/README.md)
+- QSC desktop prototype README — retired at NA-0651 (D-1274, 2026-07-16); see git history and DOC-QSC-009/010 (superseded, retained as history)

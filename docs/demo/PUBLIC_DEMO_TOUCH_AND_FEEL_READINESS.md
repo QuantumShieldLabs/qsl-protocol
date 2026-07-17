@@ -236,4 +236,4 @@ The artifact package contains command transcripts, qshield help output, and the 
 - [NA-0260 audit](../governance/evidence/NA-0260_attachment_demo_readiness_audit.md)
 - [NA-0258 audit](../governance/evidence/NA-0258_native_desktop_package_screenshot_audit.md)
 - [NA-0256 testplan](../../tests/NA-0256_public_demo_desktop_readiness_testplan.md)
-- [qsc desktop prototype README](../../qsl/qsl-client/qsc-desktop/README.md)
+- qsc desktop prototype README — retired at NA-0651 (D-1274, 2026-07-16); see git history and DOC-QSC-009/010 (superseded, retained as history)

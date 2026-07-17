@@ -43607,3 +43607,32 @@ the separately-tracked future decision on the roadmap's parallel-tracks table. T
 R9 naming/placement collision blocking the GUI satellite is cleared. Queue →
 READY=NONE (HIGHEST_NA=0651, HIGHEST_D=1274); the operator promotes the successor
 (natural: roadmap step 2 server-info cross-repo; gate D-A shapes step 3).
+
+## 2026-07-17 — NA-0652: qsl-server capability document GET /v1/server-info (D588, D-1275, SERVER_INFO_PASS)
+
+DOC-PROG-004 step 2 executed, cross-repo per the NA-0642 model: the relay can now
+be ASKED what it offers. A client probing a bearer-gated relay without (or with a
+wrong) token gets one fixed answer — 401 with exactly
+`{"server":"qsl-server","auth":{"mode":"bearer"}}`, identical for missing and wrong
+tokens so the response is never a token oracle, and never more than "a QSL relay
+that requires auth". An authorized client (or anyone, on an open relay) gets the
+full document, every value from live configuration: name, version, the served API
+set, auth mode, body/queue limits, retention TTL, and the three operator-set
+RELAY_-form fields resolved at the D588 approval (RELAY_NAME,
+RELAY_ATTACHMENTS_SERVICE_URL, RELAY_MIN_CLIENT_VERSION — env-only like
+RELAY_TOKEN, never fatal when unset). DOC-SRV-006 pins the rules into the spec:
+additive-only evolution, features-never-security, same-gate serving, and the
+existing routes' error surface byte-identical. The qsl-server diff is purely
+additive (+116/−0; push/pull/ack handlers, storage schema, auth mechanism,
+dependencies all untouched; the ENG-0039 compare deliberately left as filed debt),
+proven by an 8-test matrix green on the first run — including wrong-token byte
+identity, exact-field-set guards at every level, injected-config tracking, and a
+real-binary environment-plumbing pass — with the full suite at 108/0 across 26
+sets (the NA-0642 baseline plus this file). Landed as qsl-server PR #62 with
+D-0012, stopped at the PR for the operator per instruction. ENG-0046 filed: the
+owed pin bump past this merge + the NA-0640 e2e re-run (the ENG-0041 shape).
+Flagged, pre-existing: main-push public-ci has been red since the NA-0651 deletion
+merge — 7 historical docs still link the deleted qsc-desktop README; a micro-lane
+candidate, not this lane's diff. Queue → READY=NONE (HIGHEST_NA=0652,
+HIGHEST_D=1275); the operator merges #62 and promotes the successor (natural:
+ENG-0046, gate D-A, then the GUI skeleton that consumes this contract).

@@ -43561,3 +43561,26 @@ Cargo untouched; audits clean. NOT claimed: a GUI, end-to-end onboarding, the
 server-info contract. Queue → READY=NONE (HIGHEST_NA=0649, HIGHEST_D=1272); the
 operator promotes the successor (natural: the GUI skeleton lane, NA-0650 qsc-desktop
 retirement, the server-info cross-repo lane).
+
+## 2026-07-16 — NA-0650: DOC-PROG-004 GUI Phase Roadmap landed (D586, D-1273, GUI_ROADMAP_DOC_PASS)
+
+The operator-approved GUI-phase path moved from chat context to repo truth — the same
+landing motion as DOC-PROG-003 at NA-0641/D577, one document later. The new program doc
+carries, verbatim under three named adjustment classes (house wrapper / sibling title
+form / landing-base resolution — hunk-by-hunk fidelity-proven against the directive
+appendix, body byte-untouched): the eight locked decisions (Tauri v2 in-process;
+satellite repo; sidecar prototype retired; server-info features-never-security;
+vault→identity→server onboarding; the v1 slice; Signal three-pane UX reference; the
+fingerprint-purpose rule), the four standing constraints (ENG-0044 restoration is a qsc
+SPINE lane — satellite placement makes satellite-side restoration impossible; external
+review remains THE release gate; R8 do-not-share-a-profile documented for v1; lane
+discipline), the 9-step sequence with operator gates D-A (platform target, before step
+4) and D-B (contact-add design, before step 6), the parallel tracks with triggers
+(reviewer outreach starts NOW), and the seven corrections vs the earlier sketch. Wiring
+minimal per the D577 pattern (one DOC-CTRL-001 §4.5 row, one DOC-PROG-003 §6 bullet);
+the ledger untouched. Approval resolutions recorded: A1 house filename pattern; A2 this
+lane consumed NA-0650 — the D585 "(retirement is its own lane, NA-0650)" parenthetical
+was a prediction that shifted; the retirement takes the next free number. The document
+authorizes NO implementation. Queue → READY=NONE (HIGHEST_NA=0650, HIGHEST_D=1273); the
+operator promotes the successor (natural: roadmap step 1 sidecar retirement / step 2
+server-info cross-repo; gate D-A shapes step 3).

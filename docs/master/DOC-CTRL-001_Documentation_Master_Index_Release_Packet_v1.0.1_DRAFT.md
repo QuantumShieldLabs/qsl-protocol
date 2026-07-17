@@ -1,6 +1,6 @@
 # QuantumShield Documentation Master Index & Release Packet
 Version: v1.0.1 (Draft)
-Last Updated: 2026-07-13
+Last Updated: 2026-07-16
 Goals: G4
 
 Scope: This document is the authoritative index of QuantumShield/QSL project documents and the minimum release packet required to claim implementation, interop, and security readiness. It defines (a) which documents are authoritative for governance and protocol semantics, and (b) which artifacts constitute a minimum “ship-quality” release.
@@ -191,6 +191,9 @@ execution queue.
 
 - DOC-PROG-003: QSC Feature Plan — Tiered Target Feature Set and Build Order — v0.1.0 — Supporting — Status: Draft
   Location: docs/program/DOC-PROG-003_QSC_Feature_Plan_Tiered_Feature_Set_and_Build_Order_v0.1.0_DRAFT.md
+
+- DOC-PROG-004: QSC GUI Phase Roadmap (v1) — v0.1.0 — Supporting — Status: Draft
+  Location: docs/program/DOC-PROG-004_QSC_GUI_Phase_Roadmap_v0.1.0_DRAFT.md
 
 (First program-document registry entry, added per D577/D-1264. DOC-PROG-001
 and DOC-PROG-002 predate program-doc indexing — see DOC-PROG-002's landing

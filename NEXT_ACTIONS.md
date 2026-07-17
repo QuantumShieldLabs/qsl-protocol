@@ -6,8 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0653 | HIGHEST_D=1276 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0654 | HIGHEST_NA=0654 | HIGHEST_D=1276 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 <!-- NA-0653 (public-ci link repair, D589) DONE 2026-07-17 (D-1276, result class PUBLIC_CI_LINK_REPAIR_PASS): DOCS-ONLY LITE lane (single PR + single decision, DOC-OPS-006 §9), base a2d7c1c1 (the #1587 seating merge; qwork-proven). D589 approved with F1 = the drafted default (the fail-closed byte-proof rail — none of the seven touched records is a public claim doc; the four doc-local historical boundary-styled sections provably untouched). THE FINDING (the gate's own, re-enumerated LIVE at Phase 0, never a remembered count): main-push public-ci RED since the NA-0651 deletion merge — its PUSH-ONLY markdown link check printed TOTAL_MISSING 7 with DENY_HITS_FILES=0 and HC_COUNT=0 (link residue only) at run 29617565812 on a2d7c1c1; the byte-copied local replica (extracted mechanically from the workflow step at base, sha256 fa5ec033…) reproduced it EXACTLY over the full 721-file scan set (README.md + docs/**/*.md) — seven historical docs (docs/demo DESKTOP_SIDECAR_ADVERSARIAL_STRESS :173, NATIVE_DESKTOP_PACKAGE_SCREENSHOT_READINESS :193, PUBLIC_DEMO_TOUCH_AND_FEEL_READINESS :239; evidence audits NA-0250 :142, NA-0256 :181, NA-0258 :227, NA-0264 :240) each carried exactly ONE live relative reference to the qsc-desktop README deleted at NA-0651 (D-1274), every one a Related Evidence / Evidence Consulted bullet OUTSIDE every boundary-styled section, and these seven were the ONLY missing links repo-wide. THE REPAIR: seven one-line edits, nothing else — each flagged bullet became the D587-F2 as-merged history prose (the reviewer-package references-list precedent copied byte-exactly: display text preserved byte-for-byte, the byte-identical 114-byte suffix ×7 retargeting to git history and the superseded DOC-QSC-009/010; ZERO markdown link syntax introduced; the old link syntax described, never reproduced, incl. inline code spans — the NA-0651 friction lesson). THE PROOF: replica at head TOTAL_MISSING 0 repo-wide, exit 0; numstat exactly 1 insertion / 1 deletion per file (+7/−7 total); the four boundary-styled sections sha256-IDENTICAL both sides (What Is Not Proven b30e99e4…; Safe public wording 921da69b…; Non-Production Claim Boundary ×2 29493706… / 6b0a12d7…); the NA-0250 line-96 fenced command transcript byte-untouched; suffix census exact (the seven repaired files + the reviewer-package precedent line, no strays); zero diff under .github/scripts/formal/vectors/any source tree; root Cargo.toml/Cargo.lock and docs/public/** absent from the diff; git diff --check clean; cargo metadata --locked OK; audits 386/0 + 287/0; fmt --check = the KNOWN 145 pre-existing diffs (zero lane Rust — recorded, not fixed); added-line private-material/prohibited/overclaim scans 0 hits; goal-lint local OK. THE GATE BYTE-UNTOUCHED — no public-ci/public_safety_gate.py amendment of any kind: the content was fixed, the gate stays exactly as strict. NO ledger edit (the issue was deliberately surfaced-unfiled by NA-0652 for operator disposition; this lane FIXES it — nothing remains owed). NOT claimed: any historical readiness claim re-validated (only dead reference lines moved); the gate weakened; any GUI exists; ENG-0046 moved. Claim boundary UNCHANGED, byte-proven per the F1 rail. EXIT CONDITION (Phase 5, operator-merge-pending at the PR stop): main-push public-ci GREEN printing TOTAL_MISSING 0 on the lane merge commit — the link check never runs on PRs; the replica is the pre-merge proof. See D-1276, docs/governance/evidence/NA-0653_as_built.md, tests/NA-0653_public_ci_link_repair_testplan.md. Queue returns to READY=NONE — the operator merges and promotes the successor (natural: ENG-0046; gate D-A). The executor cannot self-promote. -->
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0653 | HIGHEST_D=1276 (NA-0654 promoted for D590; PR #1589) -->
 <!-- prior: STATE: READY=NA-0653 | HIGHEST_NA=0653 | HIGHEST_D=1275 (NA-0653 closed for D589 at D-1276; this lane PR) -->
 <!-- NA-0652 (qsl-server capability document GET /v1/server-info, D588) DONE 2026-07-17 (D-1275, result class SERVER_INFO_PASS): CROSS-REPO lane per the NA-0642/D578 model (qsl-server CODE + spine governance), base 07c38254 (the #1585 seating merge; qwork-proven). DOC-PROG-004 step 2 executed per locked decision L4 (additive-only, auth-gated, features-never-security); D588 approved with F1 = the RELAY_ house form (RELAY_NAME / RELAY_ATTACHMENTS_SERVICE_URL / RELAY_MIN_CLIENT_VERSION, the RELAY_TOKEN precedent). THE CODE: qsl-server PR #62 (branch na-0652-server-info, commit 8c5627e3, off 8e4ea278 — verified unmoved at Phase 0 from a FRESH clone; OPEN at closeout per the operator stop-at-the-PRs instruction; operator merges, merge-commit + single required rust check; carries qsl-server DECISIONS D-0012). The route: bearer relay unauthorized (missing OR wrong token, BYTE-IDENTICAL both ways — never a token oracle) → 401 + EXACTLY {"server":"qsl-server","auth":{"mode":"bearer"}} (registry FIXED at impl name + auth mode, never grows operator config); authorized (or open relay, any request) → the FULL document from LIVE config, never constants (server; version CARGO_PKG_VERSION; name ""-safe; api push_v1/pull_v1/pull_ack_lease_v1; auth.mode per RELAY_TOKEN presence; limits.{max_body_bytes,max_queue_depth}; retention.ttl_secs = the store-enforced validated value; directory.mode "none"; attachments.service_url null-safe; kt.mode "none"; min_client_version null-safe ADVISORY-unenforced). DOC-SRV-006 (NEW) encodes the four rules IN THE SPEC: additive-only evolution (clients ignore unknown fields; fields never repurposed; ENG-0036 = anticipated ADDITIVE auth.mode evolution, not implemented); features-never-security (absence = "not offered", never "not enforced"); same-bearer-gate serving; probe-vs-full semantics with the three existing routes keeping plain ERR_UNAUTHORIZED byte-identical. The three env vars are lib-read at AppState construction (RELAY_TOKEN env-only precedent; absent/empty never fails startup; ZERO main.rs edits). THE PROOF: qsl-server diff PURELY ADDITIVE +116/−0 (src/lib.rs +96/−0 in exactly 4 insertion hunks; main.rs/store.rs/Cargo.toml/Cargo.lock/every existing test byte-untouched; no hunk touches push/pull/ack/auth_ok — the ENG-0039 non-constant-time compare stays FILED debt, untouched per the TRAP note); 8 new tests green FIRST run (probe-vs-full both auth modes; wrong-token BYTE-identity; exact-field-set guards at probe both-nesting-levels + full-doc top level = 11 keys pinning the additive baseline; injected-config value tracking 4096/9/3600 + all three info fields; ""-/null-safety; REAL-BINARY env-plumbing end-to-end incl. RETENTION_TTL_SECS=7200 reflected); full suite LOCAL 108/0 across 26 result sets = the NA-0642 baseline (100/25) + this file; fmt/clippy -D warnings/check 0-0 clean. SPINE side: D-1275, TRACEABILITY, journal, evidence (git add -f), testplan, ENG-0046 FILED (the owed pin bump past the #62 merge + local NA-0640 e2e re-run, the ENG-0041/D579 shape — NOT done in-lane; the pin stays green meanwhile, the route is additive), this flip. DOC-PROG-004 BYTE-UNTOUCHED (step-1 precedent). NO push/pull/ack change, NO storage schema change, NO auth-mechanism change (auth.mode REPORTS; ENG-0036 open), NO qsc change (client consumption = step 5, the GUI skeleton), NO GUI code, NO dependency change, NO claim-boundary change. FLAGGED (pre-existing, NOT this lane, out of scope by the debt rule): main-push public-ci red SINCE the NA-0651 merge — 7 historical docs (3 docs/demo + 4 NA-02xx evidence audits) still live-link the deleted qsc-desktop README (DENY/HC both 0, link residue only); micro-lane candidate (the D587-F2 history-prose repair ×7); surfaced for operator disposition, no unauthorized ledger filing. NOT claimed: production-hardening; TLS/sealed-sender/KT/directory; any qsc client consumption; the pin bump. The probe is a DELIBERATE minimal disclosure per L4. See D-1275, docs/governance/evidence/NA-0652_as_built.md, tests/NA-0652_server_info_capability_testplan.md. Queue returns to READY=NONE — the operator merges #62 and promotes the successor. The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0652 | HIGHEST_D=1275 (NA-0653 promoted for D589; PR #1587) -->
@@ -52,37 +53,37 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NONE.** NA-0653 (the public-ci link
-repair, D589) is **DONE** at D-1276, result class **PUBLIC_CI_LINK_REPAIR_PASS**
-— the seven historical docs that still referenced the qsc-desktop README
-deleted at NA-0651 (3 docs/demo readiness records + the NA-0250/0256/0258/0264
-evidence audits) are repaired: each flagged reference-list bullet became the
-D587-F2 as-merged history prose (display text preserved byte-for-byte; the
-byte-identical suffix ×7 retargeting to git history and the superseded
-DOC-QSC-009/010; zero link syntax introduced; the old syntax described, never
-reproduced). The fix set was the GATE'S OWN FINDING re-enumerated live at
-Phase 0 (run 29617565812 at `a2d7c1c1`: DENY/HC both 0, TOTAL_MISSING=7; the
-byte-copied replica agreed exactly over the 721-file scan set — the seven were
-the ONLY missing links repo-wide). The F1 byte-proof rail HELD: exactly one
-changed line per file (+7/−7 total); all four doc-local boundary-styled
-sections sha256-identical both sides; the NA-0250 fenced transcript
-byte-untouched. The replica at head prints TOTAL_MISSING 0 repo-wide. THE GATE
-IS BYTE-UNTOUCHED — content fixed, strictness unchanged. NO ledger edit (the
-NA-0652-surfaced issue is fixed by this lane; nothing remains owed).
-**EXIT CONDITION (Phase 5, pending the operator merge): main-push public-ci
-GREEN printing TOTAL_MISSING 0 on the lane merge commit** — the link check is
-push-only and never runs on the PR; the replica is the pre-merge proof. Its
-full block (now `Status: DONE` with the OUTCOME) is at the end of section 2.
-The queue returns to **READY=NONE**; the operator merges the lane PR, verifies
-the exit condition, and promotes the successor — natural: **ENG-0046** (the
-qsl-server dev-dep pin bump past the merged #62 + the local NA-0640 e2e
-re-run, the ENG-0041/D579 shape — small, owed, unblocks e2e currency); then
-**gate D-A** (platform target) → DOC-PROG-004 step 3 (GUI satellite bootstrap)
-→ the GUI skeleton (step 5, which consumes server-info); **ENG-0044** (step 4)
-before GUI lane 1 closes; parallel tracks per the roadmap (reviewer outreach
-NOW; ENG-0039 before first real external operator or public release);
-standing: **ENG-0036**, **ENG-0042**/**ENG-0043**, **ENG-0045**, **0b**, the
-**0c residue**, **NA-0635** (GATED). The executor cannot self-promote.
+**READY (exactly one — execute this): NA-0654** — the **ENG-0046 pin bump**:
+advance the qsl-server dev-dep to the NA-0652 server-info merge and re-run the
+NA-0640 full-stack e2e locally to green (**D590 = QSL-DIR-2026-07-17-590,
+APPROVED 2026-07-17 with F1 resolved: LITE STANDS** — per the executed
+D579/NA-0643 precedent and the merged ENG-0046 ledger recommendation, the §9
+"dependencies, lockfiles" clause targets PRODUCTION dependency movement,
+byte-proven absent here: a dev-dep rev advance only, zero transitive movement
+expected and STOP-enforced; the ruling + rationale recorded in the lane
+block). LITE (single PR + single decision, DOC-OPS-006 §9,
+Director-certified). The ENG-0041/NA-0643 pin-advance pattern applied to the
+server-info rev so the dev stack tracks the capability contract:
+`qsl/qsl-client/qsc/Cargo.toml` rev `8e4ea278` → `3cc551a8` (qsl-server main
+HEAD = the merged #62 server-info capability; Phase-0 STOP if qsl-server main
+has moved past it) + the root `Cargo.lock` delta EXACTLY the qsl_server rev
+advance (NA-0652 changed no qsl-server dependency, so ZERO transitive movement
+— anything else STOPs) + `cargo tree -p qsc -e normal` before/after
+byte-identity. THE GREEN LOCAL RUN IS THE DELIVERABLE: the NA-0640 e2e BOTH
+tests green UNCHANGED against the new rev (assertions byte-untouched — the e2e
+does not test server-info; the ledger's optional probe is DECLINED per the
+operator scope line, consumption belongs to the GUI skeleton, DOC-PROG-004
+step 5) + the full `cargo test -p qsc` suite green vs the repo-truth baseline
+**412/0/1 across 108 result sets** (the NA-0649 record; the e2e and the full
+suite do not gate PRs — the local run is the only gate). ENG-0046 flips DONE
+at closeout. NO qsc source change, NO test change, NO qsl-server change, NO
+other dep movement, NO GUI code, NO claim-boundary change. Begins at
+**D-1277**. Full lane block at the end of section 2. NA-0653 (the public-ci
+link repair, D589) is DONE at D-1276, result class PUBLIC_CI_LINK_REPAIR_PASS
+with the Phase-5 exit condition VERIFIED: main-push public-ci run 29618843033
+on the merge commit `fcae1f47` = SUCCESS, TOTAL_MISSING 0 — the gate is GREEN
+again; see its block at the end of section 2 and the STATE comment above. The
+executor cannot self-promote.
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -35599,3 +35600,31 @@ Result classes: PUBLIC_CI_LINK_REPAIR_PASS / PUBLIC_CI_LINK_REPAIR_STOP. A PASS 
 See D589 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-17-589_public_ci_link_repair.md`, as amended at approval; sha256 recorded in the Director readback) for the fix-set enumeration with line numbers, the acceptance rails in full, the guard, phases, required response sections, and STOP conditions.
 
 Begins at D-1276. Docs-only LITE: repair the seven dead reference lines in the precedent's exact prose, move zero other bytes, prove the gate replica clean at zero, land one decision, and prove the real gate green on main at Phase 5.
+
+### NA-0654 — ENG-0046 pin bump (D590, LITE): advance the qsl-server dev-dep to the NA-0652 server-info merge `3cc551a8`; re-run the NA-0640 full-stack e2e LOCALLY and prove it passes UNCHANGED
+Status: READY
+
+Goals: G4
+Wire/behavior change allowed? NO — a dev-dependency pin bump only: no wire, no protocol, no product-behavior change. The NA-0640 e2e must pass against the server-info-bearing server WITHOUT any change.
+Crypto/state-machine change allowed? NO. Storage/schema change? NO. Auth-mechanism change? NO.
+Docs-only allowed? NO — but minimal: the ONLY non-governance changes are the one-line dev-dep rev in `qsl/qsl-client/qsc/Cargo.toml` (line 34 at drafting) and the mechanical root `Cargo.lock` delta — EXACTLY the qsl_server rev advance (TIGHTER than NA-0643: NA-0652 changed no qsl-server dependency — its Cargo.toml/Cargo.lock are byte-identical to `8e4ea278` per the D-1275 closeout census — so ZERO transitive movement is expected; if the lock diff touches ANY package other than the qsl-server source/rev lines, STOP). Canonical change allowed? NO. qsl-protocol source/vector/`formal/`/`.github` change? NO. Test-FILE change? NO — HARD BOUNDARY (see the Objective). GUI code? NO.
+Claim change allowed? NO — a PASS asserts the CURRENT e2e scenarios pass against the server-info-bearing server; it does NOT exercise `/v1/server-info` itself (that coverage arrives with the GUI skeleton, DOC-PROG-004 step 5 — the ledger's optional e2e probe is DECLINED per the operator scope line). State that limit. Claim boundary UNCHANGED.
+
+APPROVAL RESOLUTION (operator, 2026-07-17 — the ruling and rationale recorded here per the promotion instruction):
+- F1 (LITE vs the DOC-OPS-006 §9 "dependencies, lockfiles" hard-boundary clause): **LITE STANDS**, per the EXECUTED NA-0643 precedent (D-1266, PR #1566, merged 2026-07-13 — the identical dev-edge-only pin-bump shape run LITE with operator approval after the clause existed) and the merged ENG-0046 ledger recommendation ("a LITE qsl-protocol lane", D-1275 repo truth). Rationale: the §9 clause targets PRODUCTION dependency movement; this lane byte-proves that absent — the change is a dev-dep rev advance only, with zero transitive movement expected AND STOP-enforced (the lock-delta census plus the `cargo tree -p qsc -e normal` before/after byte-identity are fail-closed rails, not aspirations). All other D590 rails stand as drafted.
+
+Scope (the D590 allowed paths ONLY):
+- `qsl/qsl-client/qsc/Cargo.toml` — the ONE dev-dep line (line 34 at drafting): rev `8e4ea27877db46a2b660b46c36ba60f3db73b38c` → `3cc551a8d9cfd8f8f53d51e0b98d10a5dc62c944` (qsl-server main HEAD = the NA-0652 server-info merge, PR #62; Phase 0 RE-CONFIRMS still main HEAD by FRESH `git ls-remote` — the qbuild mirror is STALE; **if qsl-server main has moved past `3cc551a8`, STOP** — a newer rev is a new Director decision)
+- `Cargo.lock` — mechanical, via scoped `cargo update -p qsl-server`; the delta must be EXACTLY the qsl_server rev advance (zero transitive movement; anything else STOPs); PLUS the production-graph proof: `cargo tree -p qsc -e normal` before/after sha256-identical — if the PRODUCTION dependency graph changes, STOP
+- `docs/ops/IMPROVEMENT_LEDGER.md` — flip ENG-0046 to DONE (cite the green e2e run + the new pin rev)
+- `docs/governance/evidence/NA-0654_as_built.md` (NEW; `git add -f` — the evidence dir is gitignored for new files), `tests/NA-0654_eng0046_pin_bump_testplan.md` (NEW)
+- `NEXT_ACTIONS.md` (this block + STATE flip), `DECISIONS.md` (one D-####, expected D-1277), `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`
+- FORBIDDEN: any test-FILE change (incl. `NA_0640_full_stack_e2e.rs` and `tests/common/`); any qsc/protocol/qsl-server SOURCE; any OTHER dependency movement; GUI code; server-info consumption or probing; `formal/`, vectors, canonical, `.github`; any claim-boundary change. If landing needs anything else, STOP.
+
+Objective:
+Execute **QSL-DIR-2026-07-17-590 (D590, APPROVED 2026-07-17; F1 resolved: LITE stands)** — pay ENG-0046: the ENG-0041/NA-0643 pin-advance pattern applied to the server-info rev so the dev stack tracks the capability contract. The NA-0640 full-stack e2e pins qsl-server at `8e4ea278` (pre-server-info), so the standard suite's ONLY real-server coverage exercises a relay that no longer represents qsl-server main. Bump the pin to `3cc551a8`, regenerate the lock (EXACTLY the rev advance), and RUN the e2e LOCALLY — it does NOT run on PRs, and qsc-linux-full-suite path-skips on PRs; the local run is the ONLY gate. **THE GREEN RUN IS THE DELIVERABLE, NOT THE EDIT:** `cargo test -p qsc --test NA_0640_full_stack_e2e` BOTH tests green (message round-trip with plaintext byte-match + >4 MiB attachment byte-verified; open AND bearer-token auth; the wrong-bearer NEGATIVE) UNCHANGED against the new server — assertions byte-untouched — then the full `cargo test -p qsc` suite green vs the REPO-TRUTH baseline: **412 passed / 0 failed / 1 pre-existing-ignored across all 108 result sets, exit 0** (the NA-0649 record at `tests/NA-0649_qsc_gui_surface_testplan.md`; niced `--test-threads=3` per that precedent; NA-0650..0653 were docs-only, no suite reshape — confirm at Phase 0). Record the e2e output, the full-suite result vs the baseline, the exact lock delta (numstat + changed-lines census), and the cargo-tree before/after dev-only proof (sha256 both sides). "Passes unchanged" is expected-by-analysis, and the analysis is STRONGER than ENG-0041's: the NA-0652 delta is PURELY ADDITIVE (+560/−0; the push/pull/ack handlers, store.rs, and every NA-0642 contract test byte-untouched per the D-1275 diff census), so the e2e surface is untouched by construction; the lane exists to CONVERT that analysis into an actual green artifact. **If the e2e does NOT pass unchanged, that is a REAL backward-compat finding (the NA-0652 additive guarantee did not hold end-to-end): STOP, file an ENG, report — do NOT edit the test to force green, do NOT patch product code.**
+Result classes: ENG0046_PIN_BUMP_PASS / ENG0046_PIN_BUMP_STOP. STOP conditions (class): the e2e does not pass unchanged (file the finding); the lock delta moves anything besides the qsl-server rev; the dev-dep alters the PRODUCTION dependency graph; qsl-server main moved past `3cc551a8` at Phase 0; any need to change a test file, any qsc/protocol/qsl-server source, or to add server-info consumption/probing; scope breach; queue/decision ambiguity; failed/pending check at merge; standing stops. Closeout flips ENG-0046 DONE and notes the successor stays the operator's decision (natural: gate D-A → DOC-PROG-004 step 3 → the GUI skeleton, step 5, the eventual real consumer of server-info).
+
+See D590 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-17-590_eng0046_pin_bump.md`, as amended at approval; sha256 recorded in the Director readback) for phases, required response sections, and STOP conditions.
+
+Begins at D-1277. LITE lane: one rev, one lock delta (exactly the rev advance), one green run. Prove; do not assume — the green run IS the deliverable; never edit the test to make it pass.

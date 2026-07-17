@@ -191,6 +191,20 @@ pub fn unlock_with_passphrase(passphrase: &str) -> Result<(), &'static str> {
     out
 }
 
+/// NA-0649 (D585 B1): in-process vault creation for the GUI — the passphrase arrives
+/// in memory (no argv/env/file/stdin/terminal ingress on this path; the NA-0216B
+/// retired-ingress decisions are untouched) and behavior matches a successful
+/// `vault init --passphrase-file`: same envelope, same default inbox route-token
+/// seeding, same `vault_init` success marker, same error codes returned as values
+/// (`vault_exists`, …). No process unlock-state side effect — init and unlock stay
+/// orthogonal; the caller decides whether to unlock after init.
+pub fn vault_init_with_passphrase(passphrase: &str) -> Result<(), &'static str> {
+    if passphrase.is_empty() {
+        return Err("vault_passphrase_required");
+    }
+    vault_init_core(KeySource::Passphrase, Some(passphrase.to_string()))
+}
+
 pub fn secret_get(name: &str) -> Result<Option<String>, &'static str> {
     if name.is_empty() {
         return Err("vault_secret_name_invalid");
@@ -407,9 +421,21 @@ fn vault_init(args: VaultInitArgs) -> CliResult {
         }
     }
 
+    vault_init_core(key_source, pass).map_err(CliError::code)
+}
+
+// NA-0649 (D585 B1): the ingress-independent tail of `vault init`, shared verbatim by
+// the CLI path (`vault_init`) and the in-process library entry
+// (`vault_init_with_passphrase`). No argv/env/file/stdin/terminal access here; errors
+// are returned as marker-code values; the only output is the existing `vault_init`
+// success marker.
+fn vault_init_core(key_source: KeySource, mut pass: Option<String>) -> Result<(), &'static str> {
     let params = match Params::new(KDF_M_KIB, KDF_T, KDF_P, Some(32)) {
         Ok(p) => p,
-        Err(_) => return Err(fail_with_marker_pass("vault_kdf_params_invalid", &mut pass)),
+        Err(_) => {
+            zeroize_passphrase(&mut pass);
+            return Err("vault_kdf_params_invalid");
+        }
     };
     let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
 
@@ -422,7 +448,7 @@ fn vault_init(args: VaultInitArgs) -> CliResult {
     let mut salt = [0u8; 16];
     #[cfg(qsc_rng_failure_test_seam)]
     if let Err(code) = vault_rng_fill("QSC.VAULT.INIT.SALT", &mut salt) {
-        return Err(fail_with_marker_buffers(code, &mut pass_bytes, &mut key_bytes));
+        return Err(fail_core_buffers(code, &mut pass_bytes, &mut key_bytes));
     }
     #[cfg(not(qsc_rng_failure_test_seam))]
     rand_core::OsRng.fill_bytes(&mut salt);
@@ -436,7 +462,7 @@ fn vault_init(args: VaultInitArgs) -> CliResult {
     ) {
         pass_bytes.zeroize();
         key_bytes.zeroize();
-        return Err(handle_provider_error(err));
+        return Err(provider_error_code(err));
     }
 
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key_bytes));
@@ -444,7 +470,7 @@ fn vault_init(args: VaultInitArgs) -> CliResult {
     let mut nonce_bytes = [0u8; 12];
     #[cfg(qsc_rng_failure_test_seam)]
     if let Err(code) = vault_rng_fill("QSC.VAULT.INIT.NONCE", &mut nonce_bytes) {
-        return Err(fail_with_marker_buffers(code, &mut pass_bytes, &mut key_bytes));
+        return Err(fail_core_buffers(code, &mut pass_bytes, &mut key_bytes));
     }
     #[cfg(not(qsc_rng_failure_test_seam))]
     rand_core::OsRng.fill_bytes(&mut nonce_bytes);
@@ -453,7 +479,7 @@ fn vault_init(args: VaultInitArgs) -> CliResult {
     #[cfg(qsc_rng_failure_test_seam)]
     let default_route_token = match generate_default_route_token() {
         Ok(token) => token,
-        Err(code) => return Err(fail_with_marker_buffers(code, &mut pass_bytes, &mut key_bytes)),
+        Err(code) => return Err(fail_core_buffers(code, &mut pass_bytes, &mut key_bytes)),
     };
     #[cfg(not(qsc_rng_failure_test_seam))]
     let default_route_token = generate_default_route_token();
@@ -466,7 +492,7 @@ fn vault_init(args: VaultInitArgs) -> CliResult {
     let plaintext = match serde_json::to_vec(&payload) {
         Ok(v) => v,
         Err(_) => {
-            return Err(fail_with_marker_buffers(
+            return Err(fail_core_buffers(
                 "vault_payload_serialize_failed",
                 &mut pass_bytes,
                 &mut key_bytes,
@@ -477,27 +503,27 @@ fn vault_init(args: VaultInitArgs) -> CliResult {
     let ciphertext = match cipher.encrypt(nonce, plaintext.as_ref()) {
         Ok(ct) => ct,
         Err(_) => {
-            return Err(fail_with_marker_buffers("encrypt_failed", &mut pass_bytes, &mut key_bytes));
+            return Err(fail_core_buffers("encrypt_failed", &mut pass_bytes, &mut key_bytes));
         }
     };
 
     let (_cfg_dir, vault_path) = match vault_path_resolved() {
         Ok(v) => v,
-        Err(code) => return Err(fail_with_marker_buffers(code, &mut pass_bytes, &mut key_bytes)),
+        Err(code) => return Err(fail_core_buffers(code, &mut pass_bytes, &mut key_bytes)),
     };
 
     if vault_path.exists() {
-        return Err(fail_with_marker_buffers("vault_exists", &mut pass_bytes, &mut key_bytes));
+        return Err(fail_core_buffers("vault_exists", &mut pass_bytes, &mut key_bytes));
     }
 
     let parent = match vault_path.parent() {
         Some(p) => p,
-        None => return Err(fail_with_marker_buffers("vault_path_invalid", &mut pass_bytes, &mut key_bytes)),
+        None => return Err(fail_core_buffers("vault_path_invalid", &mut pass_bytes, &mut key_bytes)),
     };
 
     // Only create directory after all crypto work succeeded to minimize mutation on reject.
     if fs::create_dir_all(parent).is_err() {
-        return Err(fail_with_marker_buffers(
+        return Err(fail_core_buffers(
             "vault_parent_create_failed",
             &mut pass_bytes,
             &mut key_bytes,
@@ -508,7 +534,7 @@ fn vault_init(args: VaultInitArgs) -> CliResult {
     {
         use std::os::unix::fs::PermissionsExt;
         if fs::set_permissions(parent, fs::Permissions::from_mode(0o700)).is_err() {
-            return Err(fail_with_marker_buffers("vault_parent_perms_failed", &mut pass_bytes, &mut key_bytes));
+            return Err(fail_core_buffers("vault_parent_perms_failed", &mut pass_bytes, &mut key_bytes));
         }
     }
 
@@ -535,7 +561,7 @@ fn vault_init(args: VaultInitArgs) -> CliResult {
         if let Err(err) = keychain_store_key(&key_bytes) {
             pass_bytes.zeroize();
             key_bytes.zeroize();
-            return Err(handle_provider_error(err));
+            return Err(provider_error_code(err));
         }
     }
 
@@ -563,7 +589,7 @@ fn vault_init(args: VaultInitArgs) -> CliResult {
         if key_source == KeySource::Keychain {
             let _ = keychain_remove_key();
         }
-        return Err(fail_with_marker_buffers("vault_write_failed", &mut pass_bytes, &mut key_bytes));
+        return Err(fail_core_buffers("vault_write_failed", &mut pass_bytes, &mut key_bytes));
     }
 
     // Zeroize secrets after successful commit.
@@ -1125,13 +1151,17 @@ fn derive_key(
     Ok(())
 }
 
-fn handle_provider_error(err: ProviderError) -> CliError {
+fn provider_error_code(err: ProviderError) -> &'static str {
     match err {
-        ProviderError::YubiKeyNotImplemented => CliError::code("vault_yubikey_not_implemented"),
-        ProviderError::TokenMissing => CliError::code("vault_token_missing"),
-        ProviderError::TokenUnavailable => CliError::code("vault_token_unavailable"),
-        ProviderError::ProviderFailed => CliError::code("vault_provider_failed"),
+        ProviderError::YubiKeyNotImplemented => "vault_yubikey_not_implemented",
+        ProviderError::TokenMissing => "vault_token_missing",
+        ProviderError::TokenUnavailable => "vault_token_unavailable",
+        ProviderError::ProviderFailed => "vault_provider_failed",
     }
+}
+
+fn handle_provider_error(err: ProviderError) -> CliError {
+    CliError::code(provider_error_code(err))
 }
 
 fn zeroize_passphrase(pass: &mut Option<String>) {
@@ -1145,10 +1175,14 @@ fn fail_with_marker_pass(code: &str, pass: &mut Option<String>) -> CliError {
     CliError::code(code)
 }
 
-fn fail_with_marker_buffers(code: &str, pass_bytes: &mut Vec<u8>, key_bytes: &mut [u8; 32]) -> CliError {
+fn fail_core_buffers(
+    code: &'static str,
+    pass_bytes: &mut Vec<u8>,
+    key_bytes: &mut [u8; 32],
+) -> &'static str {
     pass_bytes.zeroize();
     key_bytes.zeroize();
-    CliError::code(code)
+    code
 }
 
 fn handle_provider_error_with_pass(err: ProviderError, pass: &mut Option<String>) -> CliError {

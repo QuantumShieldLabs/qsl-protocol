@@ -43539,3 +43539,25 @@ links). NOT claimed: external review completion (it remains THE release gate), t
 website content pass (committed next, website repo), an ENG-0045 fix (its own lane).
 Queue → READY=NONE (HIGHEST_NA=0648, HIGHEST_D=1271); the operator promotes the
 successor.
+
+## 2026-07-16 — NA-0649: qsc GUI-surface lane (D585, D-1272, QSC_GUI_SURFACE_PASS)
+
+The first protocol-side lane of the GUI phase: the three blockers from the 2026-07-16
+GUI-readiness investigation are closed as LIBRARY surface only — in-process vault
+creation (`vault_init_with_passphrase`, in-memory passphrase through the existing
+private init internals, no unlock side effect), the identity payload readable AS DATA
+(the widened accessors; `identity_show` byte-identical), and deliberate identity
+creation (`identity_ensure`, the NA-0616 guard and unlock semantics proven unchanged).
+One operator-approved scope amendment: the two-word `ErrorCode`/`as_str` visibility
+widening in src/model/mod.rs (the fail-closed scope guard fired on a needed
+out-of-allowed-paths edit; the operator approved in-session with rationale recorded —
+an externally nameable error type is the point of B2/B3, and the private_interfaces
+lint broke the 0/0 gate). Zero CLI behavior change, byte-proven: the reduced NA-0646
+prover corpus (two vault-init forms, the vault_exists negative, identity show, relay
+token-set) diff-empty 5/5 against the base binary, with the WF-0017 red-demo shown.
+Full suite 412/0/1-pre-existing-ignored across all 108 result sets (= the NA-0646
+baseline + exactly the 7 new library-level tests); the NA-0640 e2e unchanged in-run;
+Cargo untouched; audits clean. NOT claimed: a GUI, end-to-end onboarding, the
+server-info contract. Queue → READY=NONE (HIGHEST_NA=0649, HIGHEST_D=1272); the
+operator promotes the successor (natural: the GUI skeleton lane, NA-0650 qsc-desktop
+retirement, the server-info cross-repo lane).

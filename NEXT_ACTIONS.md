@@ -6,8 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0654 | HIGHEST_D=1277 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0655 | HIGHEST_NA=0655 | HIGHEST_D=1277 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 <!-- NA-0654 (ENG-0046 pin bump, D590) DONE 2026-07-17 (D-1277, result class ENG0046_PIN_BUMP_PASS): LITE lane (single PR + single decision, DOC-OPS-006 §9; F1 LITE-stands ruling recorded in the promotion block), base e8bf93cc (the #1589 seating merge; qwork-proven). THE BUMP: qsc dev-dep qsl-server rev 8e4ea278 → 3cc551a8 (the NA-0652 server-info merge; re-confirmed CURRENT main HEAD at Phase 0 by fresh ls-remote — the Phase-0 STOP did not trigger) + the one Cargo.lock source line; THE LANDED DELTA EXACTLY THE REV ADVANCE (numstat 1/1 + 1/1, only the two rev strings — tighter than the NA-0643 precedent). MID-LANE RAIL EVENT, OPERATOR-RULED IN-SESSION (Option 1): the drafted scoped cargo update -p qsl-server produced the rev swap PLUS five unrequested windows-sys dependency-edge flips (errno, nu-ansi-term, quinn-udp, rustix, tempfile — Windows-only cfg edges) — the D590 zero-transitive rail FIRED and work STOPPED; the control diagnostic (toml reverted, same command, "Locking 0 packages") reproduced the identical flips at ZERO rev change = PRE-EXISTING RESOLVER DRIFT (cargo 1.95.0 vs the lock as last written at NA-0643), independent of the bump; ruled: hand-apply the single rev line, prove with cargo metadata --locked (exit 0, zero re-resolution) + the full head-side runs; the rail holds UNAMENDED; the drift stays OUT of the lane — surfaced for operator disposition (hygiene micro-lane candidate; deliberately NOT filed, no ENG without the operator's word); both diagnostic diffs in the proof root. THE PROOF: baseline derived LIVE at base pre-bump (no per-set record existed in repo truth) — full suite at e8bf93cc = 412/0/1 across all 108 result sets exit 0 = the repo-truth NA-0649 record EXACTLY (e2e within 2/0 115.97s against the OLD rev = the calibration point); THE DELIVERABLE — NA-0640 e2e FIRST post-bump invocation, zero edits, zero retries: 2/0 (118.47s), the compile line proving 3cc551a8 built and exercised (message + >4 MiB attachment round-trips byte-verified, open + bearer-token auth, wrong-bearer negative rejected; the NA-0652 additive guarantee held END-TO-END); head-side full suite 412/0/1 across all 108 result sets, exit 0 (e2e within: 2/0, 117.49s); per-set multiset comparison base-vs-head timing-stripped (the NA-0651 method) normalized per-set files sha256-IDENTICAL (`5ea8a2d2…` both sides, empty diff); cargo tree -p qsc -e normal BYTE-IDENTICAL before/after (sha256 b8206499… both sides — the production graph did not move). Validation: git diff --check clean; cargo metadata --locked OK; fmt --check = the known pre-existing residue only (zero lane Rust); audits 386/0 + 287/0, both exit 0; scope guard exact (zero tests/**/*.rs hunks); goal-lint local OK. ENG-0046 → DONE on the ledger. NO qsc source change, NO test change, NO qsl-server change, NO other dep movement, NO GUI code, NO server-info consumption or probing (the ledger's optional e2e probe DECLINED per the operator scope line at approval), NO claim-boundary change. NOT claimed: /v1/server-info exercised (client consumption = the GUI skeleton, DOC-PROG-004 step 5); the drift churn landed (NOT in this diff). See D-1277, docs/governance/evidence/NA-0654_as_built.md, tests/NA-0654_eng0046_pin_bump_testplan.md. Queue returns to READY=NONE — the operator promotes the successor (natural: gate D-A → step 3 → the GUI skeleton). The executor cannot self-promote. -->
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0654 | HIGHEST_D=1277 (NA-0655 promoted for D591; PR #1591) -->
 <!-- prior: STATE: READY=NA-0654 | HIGHEST_NA=0654 | HIGHEST_D=1276 (NA-0654 closed for D590 at D-1277; this lane PR) -->
 <!-- NA-0653 (public-ci link repair, D589) DONE 2026-07-17 (D-1276, result class PUBLIC_CI_LINK_REPAIR_PASS): DOCS-ONLY LITE lane (single PR + single decision, DOC-OPS-006 §9), base a2d7c1c1 (the #1587 seating merge; qwork-proven). D589 approved with F1 = the drafted default (the fail-closed byte-proof rail — none of the seven touched records is a public claim doc; the four doc-local historical boundary-styled sections provably untouched). THE FINDING (the gate's own, re-enumerated LIVE at Phase 0, never a remembered count): main-push public-ci RED since the NA-0651 deletion merge — its PUSH-ONLY markdown link check printed TOTAL_MISSING 7 with DENY_HITS_FILES=0 and HC_COUNT=0 (link residue only) at run 29617565812 on a2d7c1c1; the byte-copied local replica (extracted mechanically from the workflow step at base, sha256 fa5ec033…) reproduced it EXACTLY over the full 721-file scan set (README.md + docs/**/*.md) — seven historical docs (docs/demo DESKTOP_SIDECAR_ADVERSARIAL_STRESS :173, NATIVE_DESKTOP_PACKAGE_SCREENSHOT_READINESS :193, PUBLIC_DEMO_TOUCH_AND_FEEL_READINESS :239; evidence audits NA-0250 :142, NA-0256 :181, NA-0258 :227, NA-0264 :240) each carried exactly ONE live relative reference to the qsc-desktop README deleted at NA-0651 (D-1274), every one a Related Evidence / Evidence Consulted bullet OUTSIDE every boundary-styled section, and these seven were the ONLY missing links repo-wide. THE REPAIR: seven one-line edits, nothing else — each flagged bullet became the D587-F2 as-merged history prose (the reviewer-package references-list precedent copied byte-exactly: display text preserved byte-for-byte, the byte-identical 114-byte suffix ×7 retargeting to git history and the superseded DOC-QSC-009/010; ZERO markdown link syntax introduced; the old link syntax described, never reproduced, incl. inline code spans — the NA-0651 friction lesson). THE PROOF: replica at head TOTAL_MISSING 0 repo-wide, exit 0; numstat exactly 1 insertion / 1 deletion per file (+7/−7 total); the four boundary-styled sections sha256-IDENTICAL both sides (What Is Not Proven b30e99e4…; Safe public wording 921da69b…; Non-Production Claim Boundary ×2 29493706… / 6b0a12d7…); the NA-0250 line-96 fenced command transcript byte-untouched; suffix census exact (the seven repaired files + the reviewer-package precedent line, no strays); zero diff under .github/scripts/formal/vectors/any source tree; root Cargo.toml/Cargo.lock and docs/public/** absent from the diff; git diff --check clean; cargo metadata --locked OK; audits 386/0 + 287/0; fmt --check = the KNOWN 145 pre-existing diffs (zero lane Rust — recorded, not fixed); added-line private-material/prohibited/overclaim scans 0 hits; goal-lint local OK. THE GATE BYTE-UNTOUCHED — no public-ci/public_safety_gate.py amendment of any kind: the content was fixed, the gate stays exactly as strict. NO ledger edit (the issue was deliberately surfaced-unfiled by NA-0652 for operator disposition; this lane FIXES it — nothing remains owed). NOT claimed: any historical readiness claim re-validated (only dead reference lines moved); the gate weakened; any GUI exists; ENG-0046 moved. Claim boundary UNCHANGED, byte-proven per the F1 rail. EXIT CONDITION (Phase 5, operator-merge-pending at the PR stop): main-push public-ci GREEN printing TOTAL_MISSING 0 on the lane merge commit — the link check never runs on PRs; the replica is the pre-merge proof. See D-1276, docs/governance/evidence/NA-0653_as_built.md, tests/NA-0653_public_ci_link_repair_testplan.md. Queue returns to READY=NONE — the operator merges and promotes the successor (natural: ENG-0046; gate D-A). The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0653 | HIGHEST_D=1276 (NA-0654 promoted for D590; PR #1589) -->
@@ -55,40 +56,45 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NONE.** NA-0654 (the ENG-0046 pin bump,
-D590) is **DONE** at D-1277, result class **ENG0046_PIN_BUMP_PASS** — the qsc
-qsl-server dev-dep pin advanced `8e4ea278` → `3cc551a8` (the NA-0652
-server-info merge) with the landed delta EXACTLY the rev advance (one
-Cargo.toml line + one Cargo.lock source line, 1/1 + 1/1 — tighter than the
-NA-0643 precedent), and THE DELIVERABLE landed first-try: the NA-0640
-full-stack e2e 2/0 (118.47s) on the FIRST post-bump invocation, zero test
-edits, the compile line proving `3cc551a8` built — message + >4 MiB attachment
-round-trips byte-verified, open + bearer-token auth, wrong-bearer negative
-rejected; the NA-0652 additive guarantee held END-TO-END. Full suite green
-both sides of the bump: base-derived baseline at `e8bf93cc` pre-bump AND the
-post-bump head run each 412/0/1 across all 108 result sets, exit 0 = the repo-truth NA-0649 record
-EXACTLY, with the per-set multiset comparison (timing-stripped, the NA-0651
-method) sha256-IDENTICAL normalized per-set files (`5ea8a2d2…` both sides). Production graph byte-identical (`cargo tree -p qsc
--e normal`, sha256 `b8206499…` both sides). The lane's one event,
-operator-ruled in-session (Option 1): the drafted scoped `cargo update -p
-qsl-server` also flips five Windows-only windows-sys dependency edges —
-proven by a zero-rev-change control to be PRE-EXISTING cargo-1.95.0-vs-lock
-resolver drift, independent of the bump; ruled: hand-apply the single rev
-line (`cargo metadata --locked` exit 0), the zero-transitive rail holds
-UNAMENDED, and the drift is SURFACED for operator disposition (hygiene
-micro-lane candidate; deliberately un-filed — no ENG without the operator's
-word). ENG-0046 is DONE on the ledger. Its full block (now `Status: DONE`
-with the OUTCOME) is at the end of section 2. The queue returns to
-**READY=NONE**; the operator merges the lane PR and promotes the successor —
-natural: **gate D-A** (platform target) → DOC-PROG-004 step 3 (GUI satellite
-bootstrap) → the GUI skeleton (step 5, which consumes server-info — the
-pinned dev server now SERVES the route the skeleton will call); **ENG-0044**
-(step 4) before GUI lane 1 closes; parallel tracks per the roadmap (reviewer
-outreach NOW; ENG-0039 before first real external operator or public
-release); standing: **ENG-0036**, **ENG-0040 enrichment follow-ons**
-(**ENG-0042**/**ENG-0043**), **ENG-0045**, **0b**, the **0c residue**,
-**NA-0635** (GATED); the windows-sys lock-drift hygiene micro-lane awaits the
-operator's word. The executor cannot self-promote.
+**READY (exactly one — execute this): NA-0655** — **satellite community-health
+docs**: land SECURITY.md + CODE_OF_CONDUCT.md + CONTRIBUTING.md on the three
+satellites — qsl-server, qsl-attachments, and the QuantumShield website repo —
+adapted from the SPINE's files as the source of truth (**D591 =
+QSL-DIR-2026-07-18-591, APPROVED 2026-07-18 with BOTH flags resolved to the
+drafted defaults — F1: the website repo is INCLUDED, it is the one repo the
+org `.github` defaults cannot reach (different owner, private), its README
+already records the private status honestly, and the trio becomes reviewer
+surface at the deferred repo-public step; F2: the re-based rationale stands
+(per-repo scope lines, honest per-repo CONTRIBUTING, the org-default gap on
+the website repo), and the private-vulnerability-reporting toggles on
+qsl-server + qsl-attachments are the OPERATOR'S console companion step,
+outside the lane's docs-only boundary, flipped same-day; both rulings
+recorded in the lane block**). LITE (single spine PR + single spine decision,
+DOC-OPS-006 §9, Director-certified — docs-only in every repo) + the
+NA-0642/NA-0652 cross-repo shape: THREE satellite PRs (branch
+`na0655-community-health-docs`; delta EXACTLY four files each = the three new
+community-health files + one DECISIONS.md append — qsl-server **D-0013**,
+qsl-attachments **D-0011**, website **D-0018**; each gated by its EXISTING
+check: the required `rust` check on both code satellites, `website-validation`
+observed-green on the website PR, recorded as not-required) + ONE spine
+governance PR (**D-1278**). CODE_OF_CONDUCT.md byte-identical to the spine ×3
+(sha256-proven); SECURITY.md = the spine's reporting section VERBATIM + the
+prescribed per-repo scope line (REPORTING only, NO assurance language,
+grep-censused); CONTRIBUTING.md spine-adapted honestly (each repo's real
+single-check CI gate + the spine-governed lane reality, only local checks
+that EXIST in that repo). Recorded satellite heads with Phase-0
+STOP-if-moved (fresh ls-remote, never the stale mirror): qsl-server
+`3cc551a8`, qsl-attachments `a3ebad2f`, website `31558fa4`. NO
+README/LICENSE/NOTICE edit, NO code/test/dep/lockfile/workflow change, NO
+claim-boundary implication, NO repo-settings change, NO qsl-desktop touch
+(empty by design; its set lands in the bootstrap lane); the qsl-attachments
+`enforce_admins=false` asymmetry is SURFACED, not fixed. STOP AT FOUR OPEN
+PRS; the operator merges the satellites first (merge commits), then the
+spine closeout. Begins at **D-1278**. Full lane block at the end of
+section 2. NA-0654 (the ENG-0046 pin bump, D590) is DONE at D-1277, result
+class ENG0046_PIN_BUMP_PASS — pin `3cc551a8` live, the NA-0640 e2e green
+first-try, suite 412/0/1 ×108 both sides; see its block at the end of
+section 2 and the STATE comment above. The executor cannot self-promote.
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -35635,3 +35641,31 @@ Result classes: ENG0046_PIN_BUMP_PASS / ENG0046_PIN_BUMP_STOP. STOP conditions (
 See D590 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-17-590_eng0046_pin_bump.md`, as amended at approval; sha256 recorded in the Director readback) for phases, required response sections, and STOP conditions.
 
 Begins at D-1277. LITE lane: one rev, one lock delta (exactly the rev advance), one green run. Prove; do not assume — the green run IS the deliverable; never edit the test to make it pass.
+
+### NA-0655 — satellite community-health docs (D591, LITE, cross-repo docs): land SECURITY.md + CODE_OF_CONDUCT.md + CONTRIBUTING.md on qsl-server, qsl-attachments, and the QuantumShield website repo, adapted from the spine's files
+Status: READY
+
+Goals: G4
+Wire/behavior change allowed? NO — docs-only in every repo: no wire, no protocol, no product behavior, no runtime surface anywhere.
+Crypto/state-machine change allowed? NO. Storage/schema change? NO. Auth-mechanism change? NO.
+Docs-only allowed? YES — the ONLY changes anywhere are: per satellite (qsl-server, qsl-attachments, website) EXACTLY four files — the three NEW community-health files + ONE `DECISIONS.md` append (qsl-server **D-0013**, qsl-attachments **D-0011**, website **D-0018**; canonical form per each repo's existing entries, recording provenance D591/NA-0655/D-1278) — plus, spine side, governance/queue/decision records ONLY (**D-1278**). Canonical change allowed? NO. Source/vector/`formal/`/`.github` change? NO — in ANY repo (no workflow edit anywhere). Test-FILE change? NO. GUI code? NO. README/LICENSE/NOTICE edit? NO — HARD BOUNDARY, byte-untouched proof per repo. Dependency/lockfile change? NO. Repo-settings change? NO (F2 is the operator's console step). qsl-desktop? EXPLICITLY UNTOUCHED (confirmed EMPTY at drafting — no HEAD; its set lands in the bootstrap lane).
+Claim change allowed? NO — the SECURITY.md files describe REPORTING, not assurances: NO assurance language (no "audited"/"secure"/"hardened"/"production-ready"/"guarantee" or kin — grep census required at validation); each scope line's first sentence mirrors the repo's OWN README; nothing that is not already stated in the target repo's README/START_HERE. Claim boundary UNCHANGED.
+
+APPROVAL RESOLUTION (operator, 2026-07-18 — both rulings recorded here per the promotion instruction):
+- F1 (the website repo is PRIVATE vs the "three public satellites" premise): **INCLUDED, as drafted** — the website repo is the ONE repo the org `.github` defaults cannot reach (different owner, private); its README already records the private status honestly ("public availability ... is a separate operator decision"); the trio becomes reviewer surface at the deferred repo-public step.
+- F2 (the sharpest live gap is a settings toggle, not a file): **the re-based rationale is ACCEPTED as drafted** — the lane's value is the per-repo SECURITY scope lines, the honest per-repo CONTRIBUTING, and closing the org-default gap on the website repo (the PUBLIC org `QuantumShieldLabs/.github` already serves default SECURITY/CoC/CONTRIBUTING to the two org satellites and its SECURITY.md explicitly defers to per-repo files, so this lane COMPOSES with it). The private-vulnerability-reporting toggles on qsl-server and qsl-attachments (API-verified DISABLED at drafting; enabled only on qsl-protocol) are the OPERATOR'S console companion step, OUTSIDE the lane's docs-only boundary — the operator is flipping them same-day (2026-07-18). The executor may not change repo settings; Phase 0 records the PVR state AS FOUND, whichever way the toggles read by then.
+
+Scope (the D591 allowed paths ONLY):
+- qsl-server (branch `na0655-community-health-docs` off `3cc551a8d9cfd8f8f53d51e0b98d10a5dc62c944` — Phase 0 RE-CONFIRMS still main HEAD by FRESH `git ls-remote`, never the stale mirror; **if moved, STOP**): NEW `SECURITY.md` (the spine's reporting section VERBATIM + the D591-prescribed scope line: research-stage, transport-only relay server; protocol-level reports → qsl-protocol and its security policy) + NEW `CODE_OF_CONDUCT.md` (byte-identical to the spine's; sha256-proven) + NEW `CONTRIBUTING.md` (spine-adapted: satellite of qsl-protocol, changes land through spine-governed lanes, the single required `rust` check — fmt --check / clippy -D warnings / build / test — on every PR, merge commits only, only local checks that EXIST there) + `DECISIONS.md` append (**D-0013**)
+- qsl-attachments (same branch name off `a3ebad2fd19ae50b0f764fd44b7fc47fd5ca8723`; **if moved, STOP**): the same four files — SECURITY.md scope line: research-stage attachment service/runtime for the QSL opaque encrypted attachment plane, as defined by qsl-protocol; `DECISIONS.md` append (**D-0011**)
+- website Tebbens4832/QuantumShield (same branch name off `31558fa4930ddf24a80824536acbfaa4a745d1cd`; **if moved, STOP**): the same four files — SECURITY.md scope line: source of the QuantumShield Labs website, protocol- and implementation-level reports → qsl-protocol; CONTRIBUTING records `website-validation` (claim scans + build, runs on every PR, NOT a required check — private plan), claim-governed content, merge-to-main auto-deploys production, and the currently-private status mirrored from its README; `DECISIONS.md` append (**D-0018**). The three new root files are PROVEN outside both guards at drafting (the integrity script checks a STATIC tracked-file list only; scan-overclaims roots = README.md/index.html/package.json/public/src) and outside the Vite build — RE-PROVE at validation by running both guards WITH the files present, UNCHANGED; if either trips, STOP (never edit a guard in this lane)
+- Spine: `NEXT_ACTIONS.md` (this block + STATE flip), `DECISIONS.md` (one D-####, expected **D-1278**), `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, `docs/governance/evidence/NA-0655_as_built.md` (NEW; `git add -f` — the evidence dir is gitignored for new files), `tests/NA-0655_satellite_community_health_docs_testplan.md` (NEW)
+- FORBIDDEN: README/LICENSE/NOTICE in any repo; any code/test/dependency/lockfile/workflow change anywhere; repo settings (incl. the PVR toggles — the operator's step); qsl-desktop; `formal/`, vectors, canonical, `.github` in any repo; any assurance/claim language. If landing needs anything else, STOP.
+
+Objective:
+Execute **QSL-DIR-2026-07-18-591 (D591, APPROVED 2026-07-18; F1 + F2 resolved to the drafted defaults)** — the community-health surface for the reviewer-outreach track (DOC-PROG-004 parallel track): NINE new files across the three satellites, adapted from the SPINE's SECURITY.md / CODE_OF_CONDUCT.md / CONTRIBUTING.md as the source of truth. The per-repo SECURITY scope lines route protocol-level reports to the spine and name what each repo IS (each first sentence mirroring that repo's own README); CODE_OF_CONDUCT byte-identical ×3; CONTRIBUTING states each satellite's REAL single-check CI gate and the spine-governed lane reality honestly (never spine-only tool references in a repo that lacks them). The org-default finding is RECORDED, not fought: the org `.github` defaults already cover the two org satellites and defer to per-repo files; the website repo is the one repo they cannot reach. THREE satellite PRs + ONE spine governance PR; **STOP AT FOUR OPEN PRS** — the operator merges the satellites first (any order, merge commits), then the spine closeout. Do not implement the successor during closeout; successor selection stays the operator's (natural: gate D-A → DOC-PROG-004 step 3 → the GUI skeleton).
+Result classes: SATELLITE_COMMUNITY_DOCS_PASS / SATELLITE_COMMUNITY_DOCS_STOP. STOP conditions (class): any satellite main moved past its recorded head at Phase 0; any of the nine target files already exists; any wording need that would add a security/assurance claim; any website guard trips with the files present; any need to touch README/LICENSE/NOTICE, code, tests, dependencies, lockfiles, workflows, repo settings, or qsl-desktop; required check red/pending at a merge boundary; scope breach; queue/decision ambiguity; standing stops. Classify; do not overclaim: a PASS asserts the REPORTING-PATH files exist and are honest — NO claim about the security of any repo's contents, NO claim that private vulnerability reporting is enabled (the F2 toggle state is recorded AS FOUND), NO claim about website visibility. State those limits.
+
+See D591 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-18-591_satellite_community_health_docs.md`, as amended at approval; sha256 recorded in the Director readback) for the content spec with the exact per-repo scope lines, the CONFIRM-LIVE census, phases, required response sections, and STOP conditions.
+
+Begins at D-1278. LITE cross-repo docs lane: nine files, four PRs, zero claims added. The files describe reporting, not assurances.

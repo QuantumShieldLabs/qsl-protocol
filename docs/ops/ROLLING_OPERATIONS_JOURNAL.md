@@ -43661,3 +43661,30 @@ a single LITE PR with D-1276; the lane's exit condition — main-push public-ci
 GREEN on the merge commit — is verified post-merge (the link check never runs on
 PRs). Queue → READY=NONE (HIGHEST_NA=0653, HIGHEST_D=1276); the operator promotes
 the successor (natural: ENG-0046, then gate D-A toward the GUI skeleton).
+
+## 2026-07-17 — NA-0654: ENG-0046 pin bump (D590, D-1277) — ENG0046_PIN_BUMP_PASS
+
+The dev stack now tracks the capability contract: qsc's qsl-server dev-dep pin
+advanced `8e4ea278` → `3cc551a8` (the NA-0652 server-info merge), with the
+landed delta EXACTLY the rev advance — one Cargo.toml line + one Cargo.lock
+source line (1/1 + 1/1), tighter than the NA-0643 precedent's legitimate
+8-transitive delta. The deliverable was the GREEN LOCAL RUN, and it landed
+first-try: the NA-0640 full-stack e2e 2/0 in 118.47s against the new rev
+(compile line proving `3cc551a8` built), zero test edits; the full suite
+412/0/1 × 108, exit 0 (e2e within: 2/0, 117.49s); the per-set multiset comparison against the base-derived
+baseline (run pre-bump at `e8bf93cc`: 412/0/1 × 108, = the repo-truth NA-0649
+record exactly) came back sha256-identical, timing-stripped (`5ea8a2d2…` both sides). Production graph byte-identical
+(`cargo tree -p qsc -e normal`, sha256 `b8206499…` both sides).
+
+The lane's one event: the drafted scoped `cargo update -p qsl-server` produced
+the rev swap PLUS five Windows-only windows-sys dependency-edge flips — the
+D590 zero-transitive rail fired, work stopped, and a control diagnostic (same
+command at ZERO rev change, "Locking 0 packages") reproduced the identical
+flips: pre-existing cargo-1.95.0-vs-lock resolver drift, independent of the
+bump. The operator ruled in-session (Option 1): hand-apply the single rev
+line, prove with `cargo metadata --locked` (exit 0) + the full head-side runs;
+the rail holds unamended; the drift is surfaced for operator disposition
+(hygiene micro-lane candidate, deliberately un-filed). ENG-0046 → DONE.
+Queue → READY=NONE (HIGHEST_NA=0654, HIGHEST_D=1277); the operator promotes
+the successor (natural: gate D-A → DOC-PROG-004 step 3 → the GUI skeleton,
+step 5 being the route's real consumer).

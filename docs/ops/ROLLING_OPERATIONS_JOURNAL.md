@@ -43688,3 +43688,28 @@ the rail holds unamended; the drift is surfaced for operator disposition
 Queue → READY=NONE (HIGHEST_NA=0654, HIGHEST_D=1277); the operator promotes
 the successor (natural: gate D-A → DOC-PROG-004 step 3 → the GUI skeleton,
 step 5 being the route's real consumer).
+
+## 2026-07-18 — NA-0655: satellite community-health docs (D591, D-1278, SATELLITE_COMMUNITY_DOCS_PASS)
+
+The three public-facing satellites now carry their own community-health
+files, adapted from the spine's as source of truth: SECURITY.md (the spine's
+reporting section verbatim plus a per-repo scope line naming what each repo
+is and routing protocol-level reports to the spine), CODE_OF_CONDUCT.md
+(byte-identical to the spine, sha256-proven ×3), and CONTRIBUTING.md (each
+repo's real single-check CI gate stated in its CI's exact order, plus the
+spine-governed lane reality). Landed as three satellite PRs — qsl-server #63
+(D-0013), qsl-attachments #40 (D-0011), website #32 (D-0018) — each gated by
+its existing check, plus this spine closeout (D-1278). The drafting-time
+CONFIRM-LIVE findings held and are recorded: the org `.github` defaults
+already cover the two org satellites and defer to per-repo files (the lane
+composes with them); the website repo is the one repo those defaults cannot
+reach and is included per the F1 ruling; the sharpest live gap — private
+vulnerability reporting disabled on both code satellites — was the operator's
+F2 console step and is now verified ENABLED on all four org repos. Reporting
+only, zero assurance language (grep-censused over all nine files); README/
+LICENSE/NOTICE, code, deps, workflows, and settings untouched everywhere;
+qsl-desktop untouched (empty by design — bootstrap lane). Stopped at the
+four open PRs; the operator merges satellites first, then the spine.
+Queue → READY=NONE (HIGHEST_NA=0655, HIGHEST_D=1278); the successor is the
+operator's decision (natural: gate D-A → DOC-PROG-004 step 3 → the GUI
+skeleton).

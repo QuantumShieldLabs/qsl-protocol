@@ -48,6 +48,16 @@ pub const TUI_RELAY_INBOX_TOKEN_SECRET_KEY: &str = "tui.relay.inbox_token";
 pub(crate) const OUTBOX_NEXT_STATE_SECRET_KEY: &str = "outbox.next_state.v1";
 pub(crate) const CONTACT_REQUESTS_SECRET_KEY: &str = "contact_requests.json";
 pub(crate) const ATTACHMENT_JOURNAL_SECRET_KEY: &str = "attachments.json";
+// NA-0658 (D594, D-1281): the ENG-0044 vault-protection consts restored to where the
+// originals lived (deleted with the TUI at NA-0645/86c0858d). The bounds and the wipe
+// marker are pub — the GUI reads the bounds and compares the marker value; the state
+// file names stay crate-internal. TUI_AUTOLOCK_SECRET_KEY is NOT restored.
+pub(crate) const VAULT_SECURITY_CONFIG_NAME: &str = "vault_security.txt";
+pub(crate) const VAULT_UNLOCK_COUNTER_NAME: &str = "vault_unlock_failures.txt";
+pub const VAULT_ATTEMPT_LIMIT_MIN: u32 = 1;
+pub const VAULT_ATTEMPT_LIMIT_MAX: u32 = 100;
+pub const QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS: &str =
+    "QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS";
 pub(crate) const QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED: &str = "QSC_ERR_RELAY_INBOX_TOKEN_REQUIRED";
 pub(crate) const QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED: &str =
     "QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED";

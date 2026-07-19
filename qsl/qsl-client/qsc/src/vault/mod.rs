@@ -10,6 +10,11 @@
 
 #![allow(unexpected_cfgs)]
 
+// NA-0658 (D594, D-1281): the ENG-0044 vault-protection surface restored as a library
+// submodule — guarded unlock with escalating delay (default-on), wipe-after-N as an
+// explicit opt-in, the one-call lock(), and token-confirmed destroy.
+pub mod protection;
+
 use crate::output::{CliError, CliResult};
 use std::collections::BTreeMap;
 use std::fs;

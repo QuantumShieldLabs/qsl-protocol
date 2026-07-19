@@ -43713,3 +43713,37 @@ four open PRs; the operator merges satellites first, then the spine.
 Queue → READY=NONE (HIGHEST_NA=0655, HIGHEST_D=1278); the successor is the
 operator's decision (natural: gate D-A → DOC-PROG-004 step 3 → the GUI
 skeleton).
+
+## 2026-07-18 — NA-0656: qsl-desktop satellite registration + DOC-PROG-004 v0.2.0 (D592, D-1279, SATELLITE_REGISTRATION_PASS)
+
+DOC-PROG-004 step 3b is executed and the GUI phase's accumulated decisions
+are repo truth. The qsl-desktop repo — created empty by the operator at step
+3a — is now REGISTERED in the repo-authority model exactly as qsl-server was
+(D578/D-1265): a satellite with no independent directive authority, its
+cross-repo lanes spine-governed, qsc consumed as a rev-pinned git dependency
+under the established bump-lane pattern, and a four-item bootstrap debt
+recorded explicitly (CI gate + branch protection, community-health set,
+pointer CLAUDE.md, repo-local DECISIONS log). The registration lives in two
+halves by design: the step-3b Registration record inside the revised
+DOC-PROG-004, and decision D-1279 — the same decision-recorded form that
+registered qsl-server. The revision itself was a tracked rename to the
+versioned filename (F1 ruling) carrying the directive's Appendix-A text
+byte-exact: gate D-A recorded DECIDED (2026-07-17, v1 = Linux-only, new L9),
+the named Horizon section (multi-device sync Tier 1.5 with its design sketch
+and open questions, WebSocket push, mobile), the step-7 message-history
+design (verified against code: the timeline store carries no content field),
+the step-4 ENG-0044 refinement (escalating-delay default; wipe strictly
+opt-in; ENG-0044 itself stays open on the ledger), the step-5 skeleton/
+onboarding spec additions (the UNLOCK screen as a designed surface;
+no-recovery honesty; resume via the vault_exists error contract +
+identity_ensure idempotency; the app-scoped data dir; the certificate-not-
+trusted taxonomy with an owed runbook note; Settings-only identity export;
+idle auto-lock on by default), and the step statuses with their
+ancestry-proven merges. Fidelity: sixteen U0 hunks, every one mapped to the
+enumerated classes, the v0.1.0 text outside them byte-untouched. Phase 0 was
+clean end to end, including both directive STOP checks (qsl-desktop still
+empty at zero refs; PVR enabled). Per the operator's GH007 ruling this lane
+commits under the standing noreply identity. Stopped at the open PR; the
+operator merges. Queue → READY=NONE (HIGHEST_NA=0656, HIGHEST_D=1279); the
+successor is the operator's decision (natural: the qsl-desktop bootstrap
+lane → step 4 ENG-0044 restoration → step 5 the GUI skeleton).

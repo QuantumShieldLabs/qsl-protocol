@@ -6,7 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0656 | HIGHEST_NA=0656 | HIGHEST_D=1278 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NONE | HIGHEST_NA=0656 | HIGHEST_D=1279 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- NA-0656 (qsl-desktop satellite registration + DOC-PROG-004 v0.2.0, D592) DONE 2026-07-18 (D-1279, result class SATELLITE_REGISTRATION_PASS): DOCS-ONLY LITE lane (single PR + single decision, DOC-OPS-006 §9), base 557bb8b2 (the #1593 seating merge; qwork-proven); D592 executed UNAMENDED with all three approval flags at the drafted defaults (F1 tracked git-mv rename per the D586 A1 house pattern; F2 the Horizon fold-in dated 2026-07-17, confirmed; F3 the four-item owed-at-bootstrap list stands). PART 1 — QuantumShieldLabs/qsl-desktop REGISTERED as a SATELLITE exactly as qsl-server (D578/D-1265): no independent directive/queue/decision authority (all authority in this spine; no qwork, no directives dir, no queue-as-authority, no guardrail hooks); cross-repo lanes SPINE-GOVERNED (code as qsl-desktop PRs, the governance closeout here); qsc consumed as a REV-PINNED git dependency (deliberate bump lanes, the ENG-0041/D-1266 + ENG-0046/D-1277 pattern); OWED at the bootstrap lane, recorded NOT landed: the single-check CI gate + branch protection, the community-health set (NA-0655/D-1278), the pointer CLAUDE.md (NA-0608A), the repo-local DECISIONS log. Registration-time state live-verified at Phase 0: public, EMPTY (zero refs), PVR ENABLED — neither directive STOP fired. PART 2 — the tracked rename (51%) to docs/program/DOC-PROG-004_QSC_GUI_Phase_Roadmap_v0.2.0_DRAFT.md carrying the D592 Appendix-A text BYTE-EXACT (cmp-proven; sha256 7920fbf3...; 266 lines; LB -> 557bb8b2; LN not exercised): gate D-A DECIDED (2026-07-17: v1 = Linux-only; macOS first post-skeleton platform lane; Windows post-Tier-1; locked as L9); the named Horizon section (2026-07-17: multi-device sync Tier 1.5 with the design sketch + the two open questions, WebSocket push, mobile); the step-7 message-history design (2026-07-17; code-verified — TimelineEntry has no content field); the step-4 ENG-0044 refinement (2026-07-17; ENG-0044 stays OPEN on the ledger); the step-5 skeleton/onboarding additions (2026-07-17/18; vault_exists = the init error-code contract); the step statuses (steps 1/2/3a DONE with ancestry-proven merges b3cfd5df / 3cc551a8+e46cb6b3 / 0a8e0843; the NA-0655 parallel at D-1278). FIDELITY: 16 U0 hunks, every one mapped R0-R7 (+LB; hunk 10 = the anticipated contiguous R6+R7 composite, sub-mapped in the as-built); the v0.1.0 text outside them byte-untouched; manifest re-verified (L1-L9 / steps 1-9 / D-A DECIDED + D-B open / Horizon / 6 track rows / 7 corrections / zero NA refs > 0656). Coupled edits exactly Appendix B (DOC-CTRL-001 §4.5 row + Last Updated, Version stays v1.0.1; DOC-PROG-003 §6 bullet + Last-Updated). Boundaries: NO code/test/dep/lockfile/workflow change; NO qsl-desktop commit/settings; NO claim-boundary/public-docs/README/release-plan change (the refresh = the operator's named separate follow-up lane); NO ledger edit; NO DOC-CTRL-002 row. NOT claimed: any GUI; the bootstrap landed (all four owed items REMAIN OWED); any implementation authorized (the doc is the PATH, not the build). Claim boundary UNCHANGED. See D-1279, docs/governance/evidence/NA-0656_as_built.md, tests/NA-0656_qsl_desktop_satellite_registration_testplan.md. Queue returns to READY=NONE — the operator merges this PR and promotes the successor (natural: the qsl-desktop BOOTSTRAP lane -> step 4 ENG-0044 restoration -> step 5 the GUI skeleton). The executor cannot self-promote. -->
+<!-- prior: STATE: READY=NA-0656 | HIGHEST_NA=0656 | HIGHEST_D=1278 (NA-0656 closed for D592 at D-1279; this lane PR) -->
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0655 | HIGHEST_D=1278 (NA-0656 promoted for D592; PR #1593) -->
 <!-- NA-0655 (satellite community-health docs, D591) DONE 2026-07-18 (D-1278, result class SATELLITE_COMMUNITY_DOCS_PASS): LITE CROSS-REPO DOCS lane per the NA-0642/NA-0652 shape, base 35bd5fa8 (the #1591 seating merge; qwork-proven); D591 executed AS AMENDED AT APPROVAL (F1: website repo INCLUDED — the one repo the org .github defaults cannot reach; F2: re-based rationale accepted, the PVR toggles = the OPERATOR'S console step, verified ENABLED live on all four org repos at Phase 0). THE DELTA: per satellite EXACTLY four files on branch na0655-community-health-docs — SECURITY.md (spine reporting section VERBATIM cmp-proven + the prescribed per-repo scope line; REPORTING only, zero assurance language, grep-censused over all nine files), CODE_OF_CONDUCT.md byte-identical to the spine x3 (sha256 2cbf021e...), CONTRIBUTING.md (each repo's REAL gate in its CI's exact order + the spine-governed lane reality), one DECISIONS append in the repo's own canonical form (qsl-server D-0013 / qsl-attachments D-0011 / website D-0018, provenance D591/NA-0655/D-1278). THE PRS (ALL OPEN at closeout per the directive stop — the operator merges, satellites first, merge commits): qsl-server #63 (d0b69a1c, required rust PASS), qsl-attachments #40 (a99623ef, required rust PASS), website #32 (3e2fe499, website-validation PASS observed — not required on the private plan; both claim guards run locally WITH the files present UNCHANGED, scan set unchanged at 40 files; files outside the Vite build — zero rendered-content change). Phase 0: all three satellite heads UNMOVED from FRESH clones (3cc551a8 / a3ebad2f / 31558fa4 — the STOP did not trigger); file gap live x3; satellite decision counters next-and-absent. Boundaries: NO README/LICENSE/NOTICE edit anywhere, NO code/test/dep/lockfile/workflow change anywhere, NO repo-settings action in-lane, NO qsl-desktop touch (empty by design — bootstrap lane), NO ledger edit (operator-sourced lane), org .github defaults untouched (the per-repo files COMPOSE with them). NOT claimed: any security assurance about any repo's contents; website visibility; any rendered website content change. Claim boundary UNCHANGED. See D-1278, docs/governance/evidence/NA-0655_as_built.md, tests/NA-0655_satellite_community_health_docs_testplan.md. Queue returns to READY=NONE — the operator merges the four PRs and promotes the successor (natural: gate D-A -> DOC-PROG-004 step 3 -> the GUI skeleton). The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NA-0655 | HIGHEST_NA=0655 | HIGHEST_D=1277 (NA-0655 closed for D591 at D-1278; this lane PR) -->
@@ -59,45 +61,37 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NA-0656 — qsl-desktop satellite
-registration + DOC-PROG-004 v0.1.0 → v0.2.0 revision (D592, docs-only
-LITE).** Per **QSL-DIR-2026-07-18-592 (D592, APPROVED 2026-07-18; all three
-flags resolved to the drafted defaults — F1: tracked git-mv RENAME to the
-`_v0.2.0_DRAFT` filename per the D586 A1 house pattern; F2: the Horizon
-fold-in dates 2026-07-17, confirmed correct; F3: the FOUR-item
-owed-at-bootstrap list STANDS — CI gate, community-health set, pointer
-CLAUDE.md, repo-local DECISIONS log — the two convention additions wanted;
-the two code-truth adjustments accepted as drafted: `vault_exists` as the
-init ERROR-CODE contract, the TimelineEntry no-content-field verification)**.
-ONE spine PR on branch `na0656-satellite-registration`, the D592 allow-list
-ONLY: the tracked rename to
-`docs/program/DOC-PROG-004_QSC_GUI_Phase_Roadmap_v0.2.0_DRAFT.md` carrying
-the COMPLETE Appendix-A text BYTE-EXACT (fidelity diff-proof classes R0–R7 +
-the landing-base/renumber tokens at closeout). PART 1 — the step-3b
-Registration record + **D-1279** register `QuantumShieldLabs/qsl-desktop`
-exactly as qsl-server was registered (the D578/D-1265 pattern): SATELLITE,
-NO independent directive authority; spine-governed cross-repo lanes; qsc as
-a REV-PINNED git dependency (the ENG-0041/ENG-0046 bump-lane pattern); the
-four-item owed-at-bootstrap list recorded as OWED, not landed. PART 2 — gate
-D-A recorded DECIDED (2026-07-17: v1 = Linux-only; macOS the first
-post-skeleton platform lane; Windows post-Tier-1; new L9); the named HORIZON
-section (multi-device sync Tier 1.5 + WebSocket push + mobile); the step-7
-message-history design; the step-4 ENG-0044 refinement; the step-5
-skeleton/onboarding additions; the step-status updates (steps 1/2/3a DONE
-with their merges; the NA-0655 parallel recorded). Plus the coupled
-DOC-CTRL-001 §4.5 row + DOC-PROG-003 §6 edits per Appendix B, and the
-governance/closeout records. Boundaries: docs-only — NO code, NO test, NO
-dependency change, NO qsl-desktop commit (bootstrap is its own lane; Phase 0
-STOPs if the repo has ANY ref or PVR reads DISABLED — recorded EMPTY +
-ENABLED 2026-07-18), NO claim-boundary or public-docs change, NO
-README/release-plan touch (SEPARATE follow-up lane), NO ledger change beyond
-the lane's records (ENG-0044 stays open — its refinement lands in
-DOC-PROG-004 only). Begins **D-1279**. Base: the seating merge (this PR) or
-newer, qwork-proven. The operator merges this PR (merge commit) then runs
-`qwork NA-0656` in a FRESH session; the lane STOPS AT ITS OPEN PR — the
-operator merges. The successor after this lane stays the operator's decision
-(natural: the qsl-desktop BOOTSTRAP lane → step 4 ENG-0044 restoration →
-step 5 the GUI skeleton). The executor cannot self-promote.
+**READY (exactly one — execute this): NONE.** NA-0656 (qsl-desktop
+satellite registration + DOC-PROG-004 v0.2.0, D592) is **DONE** at D-1279,
+result class **SATELLITE_REGISTRATION_PASS** — DOC-PROG-004 step 3b is
+executed. `QuantumShieldLabs/qsl-desktop` is REGISTERED as a SATELLITE
+exactly as qsl-server (D578/D-1265): no independent directive/queue/decision
+authority; cross-repo lanes spine-governed; qsc consumed as a REV-PINNED git
+dependency (the ENG-0041/ENG-0046 bump-lane pattern); the FOUR owed
+bootstrap items recorded, NOT landed (the single-check CI gate + branch
+protection, the community-health set, the pointer CLAUDE.md, the repo-local
+DECISIONS log). The registration lives in the revised doc's step-3b
+Registration record + D-1279 (the decision-recorded house form).
+DOC-PROG-004 is now v0.2.0 (tracked rename per F1; the D592 Appendix-A text
+BYTE-EXACT, 16-hunk fidelity proof all mapped R0–R7): gate D-A DECIDED
+(2026-07-17, v1 = Linux-only, L9); the Horizon section (multi-device sync
+Tier 1.5 + WebSocket push + mobile); the step-7 message-history design; the
+step-4 ENG-0044 refinement (ENG-0044 itself stays open); the step-5
+skeleton/onboarding additions; the step statuses (1/2/3a DONE with their
+merges; the NA-0655 parallel). Phase 0 was clean end to end, including both
+directive STOP checks (qsl-desktop EMPTY at zero refs; PVR ENABLED).
+**STOPPED AT THE OPEN PR per D592 — the operator merges (merge commit).**
+Its full block (now `Status: DONE` with the OUTCOME) is at the end of
+section 2. The queue returns to **READY=NONE**; the operator merges and
+promotes the successor — natural: **the qsl-desktop BOOTSTRAP lane** (the
+four owed items, cross-repo) → **step 4** (ENG-0044 restoration — before GUI
+lane 1 closes) → **step 5** (the GUI skeleton, Linux-only per D-A); the
+README/release-plan refresh is the operator's named SEPARATE follow-up;
+parallel tracks per the roadmap (reviewer outreach NOW; ENG-0039 before
+first real external operator or public release); standing: **ENG-0036**,
+**ENG-0042**/**ENG-0043**, **ENG-0045**, **0b**, the **0c residue**,
+**NA-0635** (GATED); the windows-sys lock-drift hygiene micro-lane awaits
+the operator's word. The executor cannot self-promote.
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -35676,7 +35670,9 @@ See D591 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-18-591_satellite_comm
 Begins at D-1278. LITE cross-repo docs lane: nine files, four PRs, zero claims added. The files describe reporting, not assurances.
 
 ### NA-0656 — qsl-desktop satellite registration + DOC-PROG-004 v0.1.0 → v0.2.0 revision (D592, docs-only LITE): step 3b — the satellite registered in the repo-authority model; gate D-A, the Horizon, the message-history design, the ENG-0044 refinement, the skeleton/onboarding additions, and the step statuses become repo truth
-Status: READY
+Status: DONE
+
+OUTCOME (2026-07-18, D-1279, result class SATELLITE_REGISTRATION_PASS): every D592 work item completed; neither directive STOP fired; STOPPED AT THE OPEN PR per the directive — the operator merges (merge commit). Phase 0 all green (qwork proof OK — lane NA-0656, base 557bb8b2 = the #1593 seating merge, head==origin/main, ready_count=1, top=NA-0656; D-1279 next-and-absent — canonical count 0, the 7 pre-existing mentions all promotion text; disk 52%; /backup/qsl mounted; main health 7 SUCCESS + formal-ci/qsc-adversarial in their normal windows; qsl-desktop live-verified EMPTY — git ls-remote zero refs, size 0 — and PVR ENABLED; the four baked merges ancestry-proven; ENG-0044 open; the code facts re-verified — vault_init_with_passphrase/identity_ensure present, vault_exists an init error code, TimelineEntry no content field). THE DELTA: the tracked git-mv rename (51% similarity) to docs/program/DOC-PROG-004_QSC_GUI_Phase_Roadmap_v0.2.0_DRAFT.md carrying the Appendix-A text BYTE-EXACT (mechanical awk extraction from the directive; LB -> 557bb8b2; cmp exit 0; landed sha256 7920fbf3..., 266 lines; LN not exercised); the B1/B2 coupled edits EXACT (3 + 2 changed lines); D-1279 canonical x1; the TRACEABILITY row; the journal entry; the as-built + testplan; this flip. FIDELITY: 16 U0 hunks all mapped (R0 x6, R1 x2, R2/R3/R4/R5 x1 each, R6 x3 + the hunk-10 status parts, R7 = the hunk-10 Registration record; hunk 10 = the anticipated contiguous R6+R7 composite, sub-mapped line-level in the as-built §3); the v0.1.0 text outside the hunks byte-untouched; the landed manifest re-verified. Validation: scope guard EXACT (the 9-path allow-list; the rename counted as its two sides); git diff --check clean; validation defaults green (audits; cargo metadata --locked; fmt --check = the known pre-existing residue only, zero lane Rust); goal-lint local OK with the literal Goals: G4, G5 body line from creation. Commits under the operator's standing GH007 noreply identity. NOT claimed: any GUI exists; the bootstrap landed (all four owed items REMAIN OWED at the bootstrap lane); any qsl-desktop mutation; any implementation authorized (the doc's authorization-boundary paragraph landed verbatim). Claim boundary UNCHANGED. See D-1279, docs/governance/evidence/NA-0656_as_built.md, tests/NA-0656_qsl_desktop_satellite_registration_testplan.md, and the response file.
 
 Goals: G4, G5
 Wire/behavior change allowed? NO — docs-only: no wire, no protocol, no product behavior, no runtime surface; no code or test change anywhere.

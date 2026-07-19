@@ -2,7 +2,7 @@ Goals: G4, G5
 
 Status: Supporting (product planning; subordinate to canonical specs, GOALS, the queue, and independent review)
 Owner: QSL governance
-Last-Updated: 2026-07-16 (NA-0650/D586: DOC-PROG-004 back-pointer added, §6)
+Last-Updated: 2026-07-18 (NA-0656/D592: DOC-PROG-004 v0.2.0 back-pointer refresh, §6)
 Authority: Non-normative product planning. Does NOT override START_HERE, GOALS,
 the canonical specs, NEXT_ACTIONS, the IMPROVEMENT_LEDGER, or any recorded
 decision. Where this document and any of those disagree, THEY win and this
@@ -199,7 +199,7 @@ external claim.
   plan's build order feeds it at the product layer.
 - **DOC-PROG-004** (QSC GUI Phase Roadmap) — the GUI-phase path: how this
   plan's GUI-relevant §5 steps are sequenced and gated (the locked decisions,
-  decision gates D-A/D-B, and parallel tracks). Landed per D586 (NA-0650).
+  decision gates D-A/D-B, and parallel tracks). Landed per D586 (NA-0650); revised to v0.2.0 per D592 (NA-0656).
 - **The IMPROVEMENT_LEDGER** — the self-host build inputs are already filed
   there: **ENG-0036** (token-gated relay access / public-private toggle —
   the §3.2/§4 client-admission input) and **ENG-0037** (sealed-sender —

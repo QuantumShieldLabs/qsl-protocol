@@ -43876,3 +43876,34 @@ pin and binds its Settings Vault/Security pane to exactly this surface).
 - Zero networking code in slice A is TEST-ENFORCED (source scan over
   src-tauri/src + ui). Slice B (the server-connectivity surface) is OWED —
   the committed successor concern; promotion timing stays the operator's.
+
+## 2026-07-19 — NA-0660: GUI slice-A design pass (D596; D-1283 + D-0003)
+
+- The operator's first-flight design review, made real cross-repo: qsl-desktop
+  PR #3 (+864/−134, 8 files) + the spine governance closeout. Presentation and
+  the acknowledgment rule ONLY — the two slice-A test files are byte-identical
+  to base and green, re-proving the interruption matrix, unlock lifecycle, and
+  deferred path unchanged.
+- The design system landed FIRST as one :root token layer (type scale, spacing
+  scale, single accent, separate red family, status-only greens/ambers, button
+  tiers, the shared acknowledge() helper), then items 6–13 were expressed in
+  it. Additive tests (tests/design_system.rs) pin the disciplines so later
+  edits cannot silently drift out of the system.
+- The three encoded rules held: the failed-attempts value is captured at
+  unlock-screen ENTRY (the core resets its counter on success — a post-unlock
+  read would always show zero); the Identity pane consumes the existing
+  identity_show/settings_get surface only (17 commands unchanged; qsc-symbol
+  set head == base 23/23); the display name binds to window title + About only
+  (identifier = the data-dir anchor; changing it is a STOP).
+- The self-alias persists as a skip-when-empty settings.json key, so a fresh
+  profile keeps the slice-A key set exactly and the byte-frozen flows
+  assertion holds without modification.
+- Headless-visual: the four launch screenshots re-shot in the new design
+  (xvfb-run + dbus-run-session recipe); the window title "QuantumShield Chat"
+  asserted via xwininfo; input-driven surfaces enumerated for operator eyes —
+  the operator flies the redesigned app after the merges, before slice B.
+- INCIDENT (recorded, remedy owed to the operator): GitHub spawned zero
+  workflow runs for the seating merge 499be55b — the NA-0645-class missed
+  push run. The substantive tree equals 35948ec0 (9/9 push runs green incl.
+  formal-ci). The NA-0237D-shape sanctioned bootstrap PR remains the remedy;
+  it is never executor-initiated.

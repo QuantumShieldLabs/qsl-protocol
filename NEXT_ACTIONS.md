@@ -6,8 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0660 | HIGHEST_NA=0660 | HIGHEST_D=1282 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
-<!-- prior: STATE: READY=NONE | HIGHEST_NA=0659 | HIGHEST_D=1282 (NA-0660 promoted for D596; PR #1601) -->
+`STATE: READY=NONE | HIGHEST_NA=0660 | HIGHEST_D=1283 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- prior: STATE: READY=NA-0660 | HIGHEST_NA=0660 | HIGHEST_D=1282 (NA-0660 closed for D596 at D-1283; this lane PR) -->
+<!-- NA-0660 (GUI slice-A design pass, D596) DONE 2026-07-19 (D-1283 spine + D-0003 qsl-desktop, result class GUI_SLICE_A_DESIGN_PASS): FULL ritual cross-repo (security-relevant flow UI => no reduced class certified; implementation PR = qsl-desktop #3, governance closeout = spine), base 499be55b (the #1601 seating merge; qwork-proven; SEQUENCING PRECONDITION verified PAID: desktop main == cc906e54 EXACTLY then spine 35948ec0 with D-1282 x1); D596 executed AS AMENDED AT APPROVAL (sha256 508ac660..., 711 lines; F1 the DEDICATED Identity pane first in the Settings rail opened by both the rail dot and the rail entry; F2 the alias EDITABLE in Settings under the acknowledgment rule; the three encoded rules BINDING: unlock-entry capture / existing-IdentityDto-only / title+About-only with identifier changes = STOP). MAIN-HEALTH DEVIATION RECORDED: GitHub spawned ZERO workflow runs for 499be55b (the NA-0645-class missed-push-run incident; the substantive tree = 35948ec0 whose 9/9 push runs are GREEN incl. formal-ci; operator directed proceed at Phase 0; remedy = the NA-0237D-shape sanctioned bootstrap PR, OWED TO THE OPERATOR, never executor-initiated). THE PASS: qsl-desktop PR #3 (head 713f58a, +864/-134, 8 files = exactly the D596 allowed paths; Cargo.toml/Cargo.lock/ci.yml ABSENT; community-health byte-untouched) — the token design system built FIRST (one :root layer: type scale, spacing scale, ONE accent for actions/focus/active-rail, red family separate, greens/ambers status-only, colors confined to the token block; button tiers primary/secondary/danger every button exactly one tier or a named nav role; the NO-SILENT-STATE-CHANGES rule as ONE shared acknowledge() helper — flash on the control + the section status line — wired to autolock/wipe-arm/wipe-disarm/alias, binding on all future settings) then items 6-13 IN it: "QuantumShield Chat" title+About ONLY (identifier/productName/binary unchanged, test-pinned); the honest passphrase checklist (12+/match/not-common from a built-in 149-entry sorted lowercase array, test-anchored markers, zero composition theater) gating Create UI-side with meter + no-recovery box retained + the verbatim length line; the This-is-you redesign (verification-code HERO, ownership/private-part lines, the approved codes-catch-man-in-the-middle purpose line, the plain-English PQ line with ML-KEM/ML-DSA naming moved behind "Show technical details", optional local-only self-alias empty->"You", the verbatim reassurance line); the F1 Identity pane fed EXCLUSIVELY by existing identity_show+settings_get (17 commands unchanged; qsc-symbol set head==base 23/23 — ZERO new core calls) + the rail identity dot; one tooltip pattern + unmistakable accent active states both rails; V&S controls-first with the failed-attempts narration DELETED (silent at zero) and the amber "N failed unlock attempts since your last unlock" alert from the value CAPTURED AT UNLOCK-SCREEN ENTRY (never post-unlock — the core resets on success) with app-local dismiss; the shared destroy/erase pattern (heading "Destroy vault", the verbatim one-sentence prose, the one-line Type-to-confirm instruction, [Destroy permanently][Cancel]; erase inherits the identical form, own phrase, NO passphrase field); empty-state warmth (inline SVG, one line, one CTA, honest copy). settings.json gains ONLY self_alias (skip-when-empty: a fresh profile keeps the slice-A key set EXACTLY — the byte-frozen flows assertion HOLDS). PROOFS: the two slice-A test files BYTE-IDENTICAL to base and green (= the interruption matrix / unlock lifecycle / deferred path re-proven); suite 24/0/1 = baseline 16 + EXACTLY 8 additive (7 design-system source disciplines + 1 settings compat); fmt/clippy -D warnings/metadata --locked CLEAN; audit EXIT 0 unchanged lock (17 known gtk3 warnings); publication scan ZERO hits; zero-networking scan green; git diff --check clean. VISUAL: the four launch shots RE-SHOT in the new design (xvfb + dbus-run-session) with the window title "QuantumShield Chat" ASSERTED via xwininfo; input-driven surfaces enumerated for OPERATOR EYES (no input driver; the operator runs the redesigned app after the merges, before slice B is drafted). NOT claimed: any security property improved; server connectivity (slice B OWED); physical-display behavior. Claim boundary UNCHANGED. See D-1283, docs/governance/evidence/NA-0660_as_built.md, tests/NA-0660_gui_slice_a_design_testplan.md. STOPPED AT THE TWO OPEN PRS — the operator merges qsl-desktop #3 FIRST (merge commit, rust green), then this closeout, then flies the redesigned app. Queue returns to READY=NONE — slice B stays OWED (the committed successor concern, now born INTO the design system); promotion timing stays the operator's. The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NA-0659 | HIGHEST_NA=0659 | HIGHEST_D=1281 (NA-0659 closed for D595 at D-1282; this lane PR) -->
 <!-- NA-0659 (GUI skeleton slice A, D595) DONE 2026-07-19 (D-1282 spine + D-0002 qsl-desktop, result class GUI_SKELETON_SLICE_A_PASS): FULL ritual cross-repo (dependencies/lockfile/workflow => neither reduced class eligible; implementation PR = qsl-desktop #2, governance closeout = spine), base 81143dcd (the #1599 seating merge; qwork-proven; all 9 base push runs green); D595 executed AS AMENDED AT APPROVAL (sha256 d94f2b7b...; F1 the two-slice plan with slice B OWED; F2 the app-level vault.qsv probe + ENG-0047 filed at this closeout; F3 static vanilla zero-npm — no JS supply chain in a security product's build; F4 the textual spec binds). THE SLICE: qsl-desktop PR #2 (head 9a1f40c, +7346/−36, 25 files = exactly the allowed paths; community-health files byte-untouched) — the Tauri v2 shell REPLACES the placeholder crate (src-tauri joins the F3 empty [workspace]; tauri 2.11.5/wry 0.55.1/tao 0.35.3; one generated icon, a discovered generate_context! requirement); qsc rev-pinned at 81143dcd (ancestry over ba4099bd proven; TWELVE precise lock alignments hold the qsc-graph RustCrypto family AT the spine's locked versions after a LIVE ENG-0017-class refimpl compile break — standing rule recorded for every future pin advance); the core-call layer four startup rules EACH TEST-PROVEN (env+policy+InApp once before threads; drain-after-every-call into the bounded 1024 buffer with visible drop counter; raw unlock globals source-scan-FORBIDDEN, the NA-0658 one-call surface only; strictly-serial single-flight spawn_blocking, concurrency proven 1); the S0/S1/S2 launch state machine (no onboarding-complete flag; F2 probe + identity_read_self_public("self")); wizard 1-2 (no-recovery BEFORE commit; no false Back; fingerprint + purpose + PQ lines + verification code) + the CLI-vault courtesy notice; the unlock screen rendering TYPED retry-after/attempts VALUES incl. live countdown; the armed-wipe S0 landing; the TWO-STEP app-level forgotten-passphrase erase (file removal ONLY; CLI-dir guard proven; never the tokened destroy); idle autolock ON 15-min adjustable wizard-exempt via lock(); the empty three-pane main window with EXACTLY "no server configured" + the lane-2 stub CTA; Settings Vault/Security on the REAL NA-0658 surface (wipe arm/disarm in pub bounds + warnings; tokened destroy behind passphrase + typed phrase; identity export ABSENT); R8 verbatim in the README. PROOFS: cargo test 16/0/1-ignored (the four rules + zero-networking source scan + the acceptance matrix (c′)(d)(e) at the backend level with CLOCK-INJECTED timing); fmt/clippy -D warnings CLEAN; metadata --locked OK; cargo audit EXIT 0 on the new lock (0 vulnerabilities; 17 known gtk3-bindings unmaintained warnings, reported); scans zero-overclaim/zero-secret (review hits dispositioned = lock URLs/checksums + the DestroyConfirmToken binding); xvfb screenshots S0 / S0+CLI-notice / S1/S2 after the DIAGNOSED dbus requirement (no session bus under SSH/Xvfb: GTK blocks 25 s in g_application_register; recipe recorded: xvfb-run + dbus-run-session; gdb-backtrace-proven); NO input driver on the host => input-driven surfaces enumerated for OPERATOR EYES, all flows behind them test-proven; the extended ci keeps the required context EXACTLY `rust`. Boundaries held: ZERO networking code TEST-ENFORCED; NO messaging UI; NO add-contact beyond the stub; NO identity export; NO macOS/Windows CI; ZERO spine code. NOT claimed: live-relay onboarding (slice B's step-5 completion); physical-display behavior; any security assurance beyond factual description. Claim boundary UNCHANGED. See D-1282, docs/governance/evidence/NA-0659_as_built.md, tests/NA-0659_gui_skeleton_slice_a_testplan.md. STOPPED AT THE TWO OPEN PRS — the operator merges qsl-desktop #2 FIRST (merge commit, rust green), then this closeout. Queue returns to READY=NONE — slice B is OWED (the committed successor concern: wizard step 3, the full error taxonomy, the first-class Settings Server pane, the four-state status line; roadmap step-5 completion declared at B's close); promotion timing stays the operator's. The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NA-0658 | HIGHEST_NA=0658 | HIGHEST_D=1280 (NA-0658 closed for D594 at D-1281; this lane PR) -->
@@ -69,60 +70,55 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NA-0660 — GUI slice-A design pass
-(D596, FULL ritual, cross-repo).** Per **QSL-DIR-2026-07-19-596 (D596,
-APPROVED 2026-07-19; both flags resolved — F1: the DEDICATED Identity
-pane, first in the Settings rail, opened by both the rail identity dot
-and the Settings rail entry — identity is a first-class surface, not a
-card inside Vault & Security; F2: the self-alias IS editable in Settings
-under the no-silent-state-changes acknowledgment rule — wizard-only entry
-would make a cosmetic local label immutable for no security reason;
-directive amended in place at approval, sha256 `508ac660…`, 711 lines)**.
-The operator's first-flight design review made real: the app becomes
-DESIGNED rather than assembled — ONE app-wide design system built FIRST
-(the type scale; the spacing scale; button tiers primary/secondary/
-destructive; ONE accent carrying primary actions, focus states, and the
-active rail item; the NO-SILENT-STATE-CHANGES rule as ONE shared helper —
-momentary "✓ Saved"-style flash on the control + the section's persistent
-status line updated, binding on all future settings) — then every slice-A
-screen expressed IN it: "QuantumShield Chat" bound to window title +
-About ONLY (identifier/productName/binary changes = STOP); the passphrase
-step with the honest checklist (① 12+ characters ② passphrases match
-③ not a commonly-used password from a built-in ≥100-entry array — NO
-uppercase/symbol theater; strength meter + no-recovery box retained; the
-verbatim length line); the "This is you" redesign (verification-code
-HERO, optional local-only self-alias empty→"You", the approved
-identity-safety copy incl. the plain-English PQ line, full fingerprint
-behind "Show technical details", the verbatim reassurance line); the F1
-DEDICATED Identity pane + rail identity dot closing the
-identity-visibility gap (fed by the EXISTING IdentityDto — ZERO new core
-calls); rail hover tooltips + unmistakable accent active state on both
-rails; the Vault & Security restructure (controls first, prose trimmed;
-failed-attempts SILENT at zero, an AMBER alert when >0 rendered from the
-value captured at UNLOCK-SCREEN ENTRY — never a post-unlock read, the
-core resets the counter on success; wipe-after-N limit prominent; arm
-checkbox + consequence on one line); the shared destroy/erase
-confirmation pattern (heading "Destroy vault"; one-sentence prose; the
-ONE-line instruction — Type "destroy my vault" to confirm — above the
-input; [Destroy permanently] [Cancel]; the unlock-path "Erase everything"
-screen inherits the identical pattern with its own phrase and NO
-passphrase field); empty-state warmth with honest copy. Boundaries: NO
-slice-B surface (server connectivity stays OWED), NO new dependencies
-(STOP), NO core/qsc change, NO pin bump, NO new core calls or marker
-strings, NO state-machine/wizard/autolock/wipe/destroy/erase SEMANTICS
-change — presentation + the acknowledgment rule only; the two slice-A
-test files byte-unmodified and green = the acceptance re-proof
-(interruption matrix, unlock lifecycle, deferred path); claim-discipline
-wording binding on every line of new copy. Begins **D-1283** (spine) +
-**D-0003** (qsl-desktop). Base: the seating merge (this PR) or newer,
-qwork-proven; qsl-desktop main must be the PR #2 merge `cc906e54`
-EXACTLY. The operator merges this PR (merge commit) then runs
-`qwork NA-0660` in a FRESH session; the lane STOPS at its TWO open PRs
-(the operator merges qsl-desktop FIRST, merge commit, then the spine
-closeout). After this lane: slice B is OWED (the committed successor
-concern; promotion timing stays the operator's — its surfaces are now
-born INTO the design system); the README/release-plan refresh is the
-operator's named SEPARATE follow-up; parallel tracks per the roadmap
+**READY (exactly one — execute this): NONE.** NA-0660 (GUI slice-A design
+pass, D596) is **DONE** at **D-1283** (spine) + **D-0003** (qsl-desktop),
+result class **GUI_SLICE_A_DESIGN_PASS** — the operator's first-flight
+design review made real: qsl-desktop PR #3 (+864/−134, 8 files) builds the
+ONE token design system FIRST (type scale, spacing scale, single accent
+for actions/focus/active-rail, separate red family, status-only greens/
+ambers, colors confined to the :root block; button tiers with every button
+exactly one tier or a named nav role; the NO-SILENT-STATE-CHANGES rule as
+ONE shared acknowledge() helper — momentary "✓ Saved"-style flash on the
+control + the section's persistent status line — binding on all future
+settings) and expresses every slice-A screen IN it: "QuantumShield Chat"
+bound to window title + About ONLY (identifier/productName/binary
+unchanged, test-pinned); the honest passphrase checklist (12+ / match /
+not-common from a built-in 149-entry array; zero composition theater)
+gating Create UI-side; the This-is-you redesign (verification-code HERO,
+the approved identity-safety copy, the plain-English PQ line, fingerprint
++ mechanism naming behind "Show technical details", the optional
+local-only self-alias); the F1 DEDICATED Identity pane first in the
+Settings rail + the rail identity dot — fed exclusively by the EXISTING
+IdentityDto surface, ZERO new core calls (qsc-symbol set head == base,
+23/23), the alias editable there per F2; one tooltip pattern +
+unmistakable accent active states on both rails; Vault & Security
+controls-first with the failed-attempts line SILENT at zero and the amber
+alert rendered from the value CAPTURED AT UNLOCK-SCREEN ENTRY (the core
+resets its counter on success — never a post-unlock read), dismiss
+app-local; the shared destroy/erase one-line confirmation pattern
+("Destroy vault"; Type "destroy my vault" to confirm; the erase screen
+inherits the identical form with no passphrase field); empty-state warmth
+with honest copy. SEMANTICS BYTE-FOR-BYTE NA-0659: the two slice-A test
+files are byte-identical to base and green — the interruption matrix,
+unlock lifecycle, and deferred path re-proven; suite 24/0/1-ignored =
+baseline + exactly the 8 additive discipline tests; fmt/clippy/metadata/
+audit clean on the UNCHANGED lock; publication scan zero hits; the window
+title asserted live under xvfb.
+**MAIN-HEALTH DEVIATION recorded:** ZERO workflow runs spawned for the
+seating merge `499be55b` (the NA-0645-class missed-push-run incident; the
+substantive tree = `35948ec0`, 9/9 green incl. formal-ci; the operator
+directed proceed at Phase 0; remedy = the NA-0237D-shape sanctioned
+bootstrap PR — OWED TO THE OPERATOR, never executor-initiated).
+**STOPPED AT THE TWO OPEN PRS per D596 — the operator merges qsl-desktop
+PR #3 FIRST (merge commit; rust green), then this spine closeout, then
+FLIES THE REDESIGNED APP before slice B is drafted.** Its full block (now
+`Status: DONE` with the OUTCOME) is at the end of section 2. The queue
+returns to **READY=NONE**; **slice B is OWED — the COMMITTED successor
+concern** (wizard step 3, the full error taxonomy, the first-class
+Settings Server pane, the four-state status line — now born INTO the
+design system; roadmap step-5 completion is declared at B's close);
+promotion timing stays the operator's; the README/release-plan refresh is
+the operator's named SEPARATE follow-up; parallel tracks per the roadmap
 (reviewer outreach NOW; ENG-0039 before first real external operator or
 public release); standing: **ENG-0036**, **ENG-0042**/**ENG-0043**,
 **ENG-0045**, **ENG-0047** (the R11 pub-probe micro-lane, unblocked and
@@ -35832,7 +35828,9 @@ See D595 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-19-595_gui_skeleton_o
 Begins at D-1282 (spine) + D-0002 (qsl-desktop). FULL ritual, cross-repo: two PRs, two decisions (one per repo), zero spine code. The skeleton takes flight serverless; the server arrives with slice B — OWED.
 
 ### NA-0660 — GUI slice-A design pass (D596, FULL ritual, cross-repo): the app-wide design system (type scale, spacing scale, button tiers, accent discipline, the no-silent-state-changes acknowledgment rule) + the first-flight screen work ("QuantumShield Chat" naming bound to title+About, the honest passphrase checklist, the This-is-you redesign with verification-code hero, rail tooltips/active state, the Vault & Security restructure with counter-as-alert, the shared destroy/erase one-line confirmation pattern, empty-state warmth) + the F1 dedicated Identity pane closing the identity-visibility gap — presentation and the acknowledgment rule ONLY; slice B stays OWED
-Status: READY
+Status: DONE
+
+OUTCOME (2026-07-19, D-1283 spine + D-0003 qsl-desktop, result class GUI_SLICE_A_DESIGN_PASS): executed exactly as scoped, cross-repo — qsl-desktop PR #3 (head 713f58a, +864/−134, 8 files = exactly the D596 allowed paths; Cargo.toml/Cargo.lock/ci.yml ABSENT from the diff; community-health files byte-untouched) + this spine governance closeout. The design system landed FIRST (the :root token layer, button tiers, the shared acknowledge() helper) and every screen item 6–13 landed expressed IN it, per the D596 normative order. Both flag resolutions executed as ruled (F1 the dedicated Identity pane first in the Settings rail + the rail identity dot; F2 the alias editable there under the rule) and all three encoded rules held: the amber-alert value is captured at UNLOCK-SCREEN ENTRY and updated from the typed outcomes (never read post-unlock — the core resets on success); the Identity pane is fed exclusively by the existing identity_show + settings_get (17 commands unchanged; the qsc-symbol set at head EQUALS base, 23/23 — zero new core calls); the display name binds to window title + About only (identifier/productName/binary unchanged, test-pinned). The slice-A acceptance behaviors are RE-PROVEN UNBROKEN: the two slice-A test files byte-identical to base and green (interruption matrix / unlock lifecycle / deferred path; the fresh-profile settings-key assertion HOLDS because the empty alias is serialization-omitted); suite 24 passed / 0 failed / 1 ignored = the 16-test baseline + exactly the 8 additive discipline tests (password-list soundness, title+identifier binding, type/spacing/color token discipline, button tiers, Appendix A verbatim copy, settings alias compat); fmt --check / clippy --workspace -D warnings / cargo metadata --locked all clean; cargo audit exit 0 on the UNCHANGED lock (the same 17 known gtk3-bindings warnings); publication scan pass with ZERO pattern hits; the zero-networking scan stays green (the 149-entry password array screened against the scan tokens). The four launch screenshots were RE-SHOT in the new design under xvfb-run + dbus-run-session with the window title "QuantumShield Chat" asserted live via xwininfo (S1/S2 render identically pre-input by design); the input-driven surfaces (checklist gating, This-is-you, the Identity pane, the V&S restructure + amber alert, the destroy/erase forms, the acknowledgment flashes, tooltips/active states, the empty state) AWAIT OPERATOR EYES — the operator flies the redesigned app after the merges, before slice B is drafted. DEVIATION RECORDED HONESTLY: GitHub spawned ZERO workflow runs for the seating merge 499be55b (the NA-0645-class missed-push-run incident); the substantive tree equals 35948ec0 (9/9 push runs GREEN incl. formal-ci); the operator directed proceed at Phase 0; the remedy — the NA-0237D-shape sanctioned bootstrap PR — stays OWED TO THE OPERATOR and was not executor-initiated. STOPPED AT THE TWO OPEN PRS — the operator merges qsl-desktop PR #3 first (merge commit; rust green), then this closeout. Slice B is OWED — the committed successor concern, now born INTO the design system; promotion timing stays the operator's. See D-1283, docs/governance/evidence/NA-0660_as_built.md, tests/NA-0660_gui_slice_a_design_testplan.md.
 
 Goals: G4
 Wire/behavior change allowed? NO wire/protocol/crypto change anywhere. NO spine change of any kind (zero spine code; the spine PR is governance records only). The qsl-desktop change is PRESENTATION + the acknowledgment rule only: ui/**, app-layer src-tauri/src (copy constants, the tauri.conf.json windows title line, the AppSettings self-alias key, the unlock-entry capture for the item-11 alert), additive tests. ZERO networking code (unchanged; the zero-networking source scan stays green on the new prose incl. the password array).

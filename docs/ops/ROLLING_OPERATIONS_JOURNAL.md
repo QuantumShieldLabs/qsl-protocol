@@ -43794,3 +43794,57 @@ then merges the spine closeout. Queue → READY=NONE (HIGHEST_NA=0657,
 HIGHEST_D=1280); the successor is the operator's decision (natural: step 4
 ENG-0044 restoration → step 5 the GUI skeleton, which introduces Tauri and
 the qsc pin).
+
+## 2026-07-19 — NA-0658: ENG-0044 vault-protections restore (D594, D-1281, VAULT_PROTECTIONS_RESTORE_PASS)
+
+The three vault/account-protection features co-deleted with the TUI at NA-0645
+are back, as library surface the GUI will consume. Directive D594 (approved
+2026-07-19, both flags at the drafted defaults — the single-implementation-PR
+shape with one decision, and the typed-results rule that let the lane land with
+ZERO new marker strings; the escalating-delay schedule accepted and landed
+unchanged) ran the FULL ritual in its F1-ruled single-PR form: vault security
+semantics exclude reduced ceremony under DOC-OPS-006 §9.
+
+Git history was the starting point, not a scaffold to improvise from: the
+implementations were extracted read-only from `2efc9dab` (the parent of the
+deletion commit) and their contracts recorded before any new code was written.
+Where the landed surface differs from the TUI era, the difference is one of the
+eight enumerated deltas, and each is deliberate refinement the operator approved
+on 2026-07-17: the default posture inverts (tracking plus escalating delay is
+ALWAYS ON through the new guarded path, where the TUI-era feature was off unless
+configured); the default consequence is lock-and-delay rather than wipe (wipe
+survives as a separate, explicitly-armed opt-in with the historical 1..=100
+bounds and the historical tombstone dance, returning the restored
+QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS marker on the pre-existing
+vault_unlock event — the tui_* vocabulary stays deleted); every wrong attempt
+counts; the counter file gains one additive timestamp field the delay
+computation needs; the machinery moved from the deleted CLI binary into
+src/vault/protection.rs; and destroy now requires a passphrase-committed
+confirmation token so no single plain call can destroy an account by accident.
+The one-call lock() pays the R3 residue: process passphrase, unlocked flag, and
+live session cleared as one idempotent operation — the library half the GUI's
+idle timer needs, with the timer itself staying a step-5 concern.
+
+The proof discipline matched the stakes. Eleven new library-level tests (one
+new result set; the full suite went from 412/0/1 across 108 sets at the
+qwork-proven base to 423/0/1 across 109 at head, with the NA-0640 e2e green
+unchanged inside both runs) cover the schedule rails, the
+no-decrypt/no-increment window refusals, persistence across a simulated
+restart, clock rollback failing safe, the unarmed default proven harmless over
+ten straight failures, the armed wipe firing exactly at threshold, lock()'s
+postconditions, and destroy's refusal paths including the wrong-token value.
+None of the delay tests sleeps: the design-locked clock seam is a plain
+unix-seconds parameter, no cfg, no release-behavior difference. The CLI is
+proven unchanged the same way NA-0649 proved it: a seven-case byte-identity
+capture over the touched neighborhoods diffed EMPTY between the base and
+final-tree binaries, and the WF-0017 red-demo turned the differ red on exactly
+the predicted case before the revert was sha-proven byte-exact. Cargo.toml and
+Cargo.lock never entered the diff; the env-ingress KEEP anchors are
+sha-identical; lib.rs was not touched at all.
+
+ENG-0044 flips DONE on the ledger — the obligation filed the day the TUI was
+deleted is paid in full, feature by feature, with no operator drop decision
+needed. Stopped at the open PR for the operator merge decision. Queue →
+READY=NONE (HIGHEST_NA=0658, HIGHEST_D=1281); the successor is the operator's
+decision (natural: step 5, the GUI skeleton that introduces Tauri and the qsc
+pin and binds its Settings Vault/Security pane to exactly this surface).

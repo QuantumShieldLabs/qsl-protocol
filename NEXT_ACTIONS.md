@@ -6,7 +6,8 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0660 | HIGHEST_D=1283 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0661 | HIGHEST_NA=0661 | HIGHEST_D=1283 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0660 | HIGHEST_D=1283 (NA-0661 promoted for D597; PR #1604) -->
 <!-- prior: STATE: READY=NA-0660 | HIGHEST_NA=0660 | HIGHEST_D=1282 (NA-0660 closed for D596 at D-1283; this lane PR) -->
 <!-- NA-0660 (GUI slice-A design pass, D596) DONE 2026-07-19 (D-1283 spine + D-0003 qsl-desktop, result class GUI_SLICE_A_DESIGN_PASS): FULL ritual cross-repo (security-relevant flow UI => no reduced class certified; implementation PR = qsl-desktop #3, governance closeout = spine), base 499be55b (the #1601 seating merge; qwork-proven; SEQUENCING PRECONDITION verified PAID: desktop main == cc906e54 EXACTLY then spine 35948ec0 with D-1282 x1); D596 executed AS AMENDED AT APPROVAL (sha256 508ac660..., 711 lines; F1 the DEDICATED Identity pane first in the Settings rail opened by both the rail dot and the rail entry; F2 the alias EDITABLE in Settings under the acknowledgment rule; the three encoded rules BINDING: unlock-entry capture / existing-IdentityDto-only / title+About-only with identifier changes = STOP). MAIN-HEALTH DEVIATION RECORDED: GitHub spawned ZERO workflow runs for 499be55b (the NA-0645-class missed-push-run incident; the substantive tree = 35948ec0 whose 9/9 push runs are GREEN incl. formal-ci; operator directed proceed at Phase 0; remedy = the NA-0237D-shape sanctioned bootstrap PR, OWED TO THE OPERATOR, never executor-initiated). THE PASS: qsl-desktop PR #3 (head 713f58a, +864/-134, 8 files = exactly the D596 allowed paths; Cargo.toml/Cargo.lock/ci.yml ABSENT; community-health byte-untouched) — the token design system built FIRST (one :root layer: type scale, spacing scale, ONE accent for actions/focus/active-rail, red family separate, greens/ambers status-only, colors confined to the token block; button tiers primary/secondary/danger every button exactly one tier or a named nav role; the NO-SILENT-STATE-CHANGES rule as ONE shared acknowledge() helper — flash on the control + the section status line — wired to autolock/wipe-arm/wipe-disarm/alias, binding on all future settings) then items 6-13 IN it: "QuantumShield Chat" title+About ONLY (identifier/productName/binary unchanged, test-pinned); the honest passphrase checklist (12+/match/not-common from a built-in 149-entry sorted lowercase array, test-anchored markers, zero composition theater) gating Create UI-side with meter + no-recovery box retained + the verbatim length line; the This-is-you redesign (verification-code HERO, ownership/private-part lines, the approved codes-catch-man-in-the-middle purpose line, the plain-English PQ line with ML-KEM/ML-DSA naming moved behind "Show technical details", optional local-only self-alias empty->"You", the verbatim reassurance line); the F1 Identity pane fed EXCLUSIVELY by existing identity_show+settings_get (17 commands unchanged; qsc-symbol set head==base 23/23 — ZERO new core calls) + the rail identity dot; one tooltip pattern + unmistakable accent active states both rails; V&S controls-first with the failed-attempts narration DELETED (silent at zero) and the amber "N failed unlock attempts since your last unlock" alert from the value CAPTURED AT UNLOCK-SCREEN ENTRY (never post-unlock — the core resets on success) with app-local dismiss; the shared destroy/erase pattern (heading "Destroy vault", the verbatim one-sentence prose, the one-line Type-to-confirm instruction, [Destroy permanently][Cancel]; erase inherits the identical form, own phrase, NO passphrase field); empty-state warmth (inline SVG, one line, one CTA, honest copy). settings.json gains ONLY self_alias (skip-when-empty: a fresh profile keeps the slice-A key set EXACTLY — the byte-frozen flows assertion HOLDS). PROOFS: the two slice-A test files BYTE-IDENTICAL to base and green (= the interruption matrix / unlock lifecycle / deferred path re-proven); suite 24/0/1 = baseline 16 + EXACTLY 8 additive (7 design-system source disciplines + 1 settings compat); fmt/clippy -D warnings/metadata --locked CLEAN; audit EXIT 0 unchanged lock (17 known gtk3 warnings); publication scan ZERO hits; zero-networking scan green; git diff --check clean. VISUAL: the four launch shots RE-SHOT in the new design (xvfb + dbus-run-session) with the window title "QuantumShield Chat" ASSERTED via xwininfo; input-driven surfaces enumerated for OPERATOR EYES (no input driver; the operator runs the redesigned app after the merges, before slice B is drafted). NOT claimed: any security property improved; server connectivity (slice B OWED); physical-display behavior. Claim boundary UNCHANGED. See D-1283, docs/governance/evidence/NA-0660_as_built.md, tests/NA-0660_gui_slice_a_design_testplan.md. STOPPED AT THE TWO OPEN PRS — the operator merges qsl-desktop #3 FIRST (merge commit, rust green), then this closeout, then flies the redesigned app. Queue returns to READY=NONE — slice B stays OWED (the committed successor concern, now born INTO the design system); promotion timing stays the operator's. The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NA-0659 | HIGHEST_NA=0659 | HIGHEST_D=1281 (NA-0659 closed for D595 at D-1282; this lane PR) -->
@@ -70,60 +71,73 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NONE.** NA-0660 (GUI slice-A design
-pass, D596) is **DONE** at **D-1283** (spine) + **D-0003** (qsl-desktop),
-result class **GUI_SLICE_A_DESIGN_PASS** — the operator's first-flight
-design review made real: qsl-desktop PR #3 (+864/−134, 8 files) builds the
-ONE token design system FIRST (type scale, spacing scale, single accent
-for actions/focus/active-rail, separate red family, status-only greens/
-ambers, colors confined to the :root block; button tiers with every button
-exactly one tier or a named nav role; the NO-SILENT-STATE-CHANGES rule as
-ONE shared acknowledge() helper — momentary "✓ Saved"-style flash on the
-control + the section's persistent status line — binding on all future
-settings) and expresses every slice-A screen IN it: "QuantumShield Chat"
-bound to window title + About ONLY (identifier/productName/binary
-unchanged, test-pinned); the honest passphrase checklist (12+ / match /
-not-common from a built-in 149-entry array; zero composition theater)
-gating Create UI-side; the This-is-you redesign (verification-code HERO,
-the approved identity-safety copy, the plain-English PQ line, fingerprint
-+ mechanism naming behind "Show technical details", the optional
-local-only self-alias); the F1 DEDICATED Identity pane first in the
-Settings rail + the rail identity dot — fed exclusively by the EXISTING
-IdentityDto surface, ZERO new core calls (qsc-symbol set head == base,
-23/23), the alias editable there per F2; one tooltip pattern +
-unmistakable accent active states on both rails; Vault & Security
-controls-first with the failed-attempts line SILENT at zero and the amber
-alert rendered from the value CAPTURED AT UNLOCK-SCREEN ENTRY (the core
-resets its counter on success — never a post-unlock read), dismiss
-app-local; the shared destroy/erase one-line confirmation pattern
-("Destroy vault"; Type "destroy my vault" to confirm; the erase screen
-inherits the identical form with no passphrase field); empty-state warmth
-with honest copy. SEMANTICS BYTE-FOR-BYTE NA-0659: the two slice-A test
-files are byte-identical to base and green — the interruption matrix,
-unlock lifecycle, and deferred path re-proven; suite 24/0/1-ignored =
-baseline + exactly the 8 additive discipline tests; fmt/clippy/metadata/
-audit clean on the UNCHANGED lock; publication scan zero hits; the window
-title asserted live under xvfb.
-**MAIN-HEALTH DEVIATION recorded:** ZERO workflow runs spawned for the
-seating merge `499be55b` (the NA-0645-class missed-push-run incident; the
-substantive tree = `35948ec0`, 9/9 green incl. formal-ci; the operator
-directed proceed at Phase 0; remedy = the NA-0237D-shape sanctioned
-bootstrap PR — OWED TO THE OPERATOR, never executor-initiated).
-**STOPPED AT THE TWO OPEN PRS per D596 — the operator merges qsl-desktop
-PR #3 FIRST (merge commit; rust green), then this spine closeout, then
-FLIES THE REDESIGNED APP before slice B is drafted.** Its full block (now
-`Status: DONE` with the OUTCOME) is at the end of section 2. The queue
-returns to **READY=NONE**; **slice B is OWED — the COMMITTED successor
-concern** (wizard step 3, the full error taxonomy, the first-class
-Settings Server pane, the four-state status line — now born INTO the
-design system; roadmap step-5 completion is declared at B's close);
-promotion timing stays the operator's; the README/release-plan refresh is
-the operator's named SEPARATE follow-up; parallel tracks per the roadmap
-(reviewer outreach NOW; ENG-0039 before first real external operator or
-public release); standing: **ENG-0036**, **ENG-0042**/**ENG-0043**,
-**ENG-0045**, **ENG-0047** (the R11 pub-probe micro-lane, unblocked and
-unscheduled), **0b**, the **0c residue**, **NA-0635** (GATED); the
-windows-sys lock-drift hygiene micro-lane awaits the operator's word. The
+**READY (exactly one — execute this): NA-0661 — GUI slice-A design pass
+ROUND 2 (D597, FULL ritual, cross-repo).** Per **QSL-DIR-2026-07-19-597
+(D597, APPROVED 2026-07-19; F1 resolved to the ALTERNATIVE — the operator
+ATTACHED the reference markup as directive Appendix D: it BINDS item 14
+(the full-bleed shell) and supplies the visual DNA for ALL round-2
+surfaces (main window, Settings view, Identity pane, Vault and Security
+pane, both wizard cards), landing byte-exact beside the spec as
+docs/DESIGN_SPEC_AppendixD.md, acceptance per its §D.8 — screenshot each
+surface beside its D.x block; F2 resolved to the DRAFTED DEFAULT — full
+webview reload on destroy/erase completion PLUS the §5 ceremony rules
+independent of the reload, the trace's additional findings IN SCOPE (the
+persisted erase phrase, the surviving unlock guesses, the old vault's
+alias pre-filling the new vault's wizard, the stale alert counters)
+under the BINDING rule "no secret or prior-vault value may cross a
+destroy/erase boundary"; R1–R3 accepted as encoded — state-DISABLED menu
+entries are honest state, not placeholders; the attempts alert stays
+AMBER with red reserved for armed-erasure; round-2 item 11 supersedes
+the D596-F1 rail dot while the Identity pane stays first-class; the
+token-value migration CONFIRMED in scope — spec §1 governs (page
+#1D1D1F, 17px titles, radius 8/12) with the D596 discipline greps kept
+green; the design_system.rs amendment SANCTIONED — exactly
+common_passwords_list_is_sound removed; item 15 stands as drafted —
+tauri = "2" core menu API only, any feature/crate need a STOP; directive
+amended in place at approval, sha256 `0bdde81a…`, 1229 lines)**. The
+operator's round-2 review of the merged NA-0660 build made real: the
+operator-approved design spec lands as the LIVING DESIGN DOC
+(docs/DESIGN_SPEC.md + docs/DESIGN_SPEC_AppendixD.md, byte-exact from
+the directive appendices, binding on all future GUI lanes) and the build
+is corrected to it — twelve presentation/copy items (confirm directly
+below passphrase; the strength meter REMOVED; the checklist reduced to
+exactly two checks with the common-password list deleted; the step-2
+heading "Your identity"; the verification code on ONE line, never
+wrapping; the one-line-instruction ceremony pattern on destroy AND
+erase; the autolock helper no longer restating the number; Arm =
+destructive tier / Disarm = secondary; the duplicated erase warning
+prose deleted; the true disabled tier — never dimmed accent; NO identity
+dot in the main rail; the Vault and Security status lines as the colored
+status-banner component with red RESERVED for the armed-erasure state);
+the item-13 STATE-HYGIENE FIX (defect VERIFIED at drafting by code
+trace: the destroy success path never clears or collapses the ceremony
+and no webview reload exists anywhere, so the prior vault's typed
+passphrase + phrase — and more — survive into the next session; fixed
+per F2); the item-14 FULL-BLEED SHELL (no outer padding or inset frame;
+1px hairlines only; SETTINGS IS A VIEW, NOT A MODAL — the same
+three-column shell with the icon rail present, gear active; the wizard
+the one centered-card exception; Appendix D structure binding); and the
+item-15 NATIVE MENU BAR (File: Settings, Lock now, Quit / Edit: Cut,
+Copy, Paste, Select all / View: Reload, Full screen / Help: About —
+WORKING entries only, nothing greyed-as-placeholder). Boundaries: NO
+change to what destroy/erase DO; NO core/pin/dependency change; NO new
+core calls or marker strings; NO slice-B surface; the two slice-A test
+files byte-unmodified and green; claim-discipline wording binding on
+every new line including menu labels and banner copy. Begins **D-1284**
+(spine) + **D-0004** (qsl-desktop). Base: the seating merge (this PR) or
+newer, qwork-proven; qsl-desktop main must be the PR #3 merge `4f2a3d87`
+EXACTLY. The operator merges this PR (merge commit) then runs
+`qwork NA-0661` in a FRESH session; the lane STOPS at its TWO open PRs
+(the operator merges qsl-desktop FIRST, merge commit, then the spine
+closeout). After this lane: slice B is OWED (the committed successor
+concern; its surfaces now born INTO the corrected system and the landed
+spec); the README/release-plan refresh is the operator's named SEPARATE
+follow-up; parallel tracks per the roadmap (reviewer outreach NOW;
+ENG-0039 before first real external operator or public release);
+standing: **ENG-0036**, **ENG-0042**/**ENG-0043**, **ENG-0045**,
+**ENG-0047** (the R11 pub-probe micro-lane, unblocked and unscheduled),
+**0b**, the **0c residue**, **NA-0635** (GATED); the windows-sys
+lock-drift hygiene micro-lane awaits the operator's word. The
 executor cannot self-promote.
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
@@ -35855,3 +35869,35 @@ Result classes: GUI_SLICE_A_DESIGN_PASS / GUI_SLICE_A_DESIGN_STOP. STOP conditio
 See D596 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-19-596_gui_slice_a_design.md`; sha256 `508ac660…`, 711 lines, amended in place at approval — header, per-flag RESOLVED lines, precondition payment, END) for the design-system normative spec, the screen-work sections, the qsc facts (the reset-on-success capture rule), the SEQUENCING PRECONDITION record, phases, the wait-work packet, required response sections, STOP conditions, Appendix A binding copy, and the Appendix B acceptance matrix.
 
 Begins at D-1283 (spine) + D-0003 (qsl-desktop). FULL ritual, cross-repo: two PRs, two decisions (one per repo), zero spine code. Presentation and the acknowledgment rule only; slice B stays OWED.
+
+### NA-0661 — GUI slice-A design pass ROUND 2 (D597, FULL ritual, cross-repo): the operator's post-merge review of the NA-0660 build — the binding design spec landed as the living design doc (docs/DESIGN_SPEC.md + the Appendix-D reference markup), the :root token-value migration to spec §1, twelve presentation/copy corrections, the item-13 state-hygiene fix (webview reload + the §5 ceremony rules; no secret or prior-vault value crosses a destroy/erase boundary), the item-14 full-bleed shell (Settings as a view in the three-column shell), and the item-15 native menu bar (tauri core menu API only) — presentation/copy + state reset + layout + menu wiring ONLY; what destroy/erase DO is unchanged; slice B stays OWED
+Status: READY
+
+Goals: G4
+Wire/behavior change allowed? NO wire/protocol/crypto change anywhere. NO spine change of any kind (zero spine code; the spine PR is governance records only). The qsl-desktop change is PRESENTATION/COPY + the item-13 webview state reset + the item-14 shell layout + the item-15 native menu wiring: ui/**, app-layer src-tauri/src (menu construction + event wiring in lib.rs; no new qsc symbol), docs/DESIGN_SPEC.md + docs/DESIGN_SPEC_AppendixD.md (NEW, byte-exact from the directive appendices — the repo's living design authority), additive tests plus exactly ONE sanctioned design_system.rs amendment. ZERO networking code (unchanged; the zero-networking scan stays green).
+Crypto/state-machine change allowed? NO crypto change anywhere. What destroy, erase, unlock, wipe-after-N, and autolock DO — and the S0/S1/S2 launch machine and wizard order — are byte-for-byte the NA-0660 behavior: the two slice-A test files (slice_a_flows.rs, slice_a_rules.rs) are byte-unmodified and green (the acceptance re-proof: interruption matrix, unlock lifecycle, deferred path at the backend level). Item 13 resets WEBVIEW presentation state only — the defect VERIFIED at drafting by read-only code trace (the destroy success path calls only route(): fields cleared only on OPEN, collapse only on CANCEL, zero reload anywhere, so the prior vault's passphrase + confirm phrase render pre-filled after re-onboarding; same class: the persisted erase phrase, the surviving unlock guesses, the old alias pre-filling the new wizard, the stale alert counters; the BACKEND is clean). Storage/schema change? NONE (settings.json keys unchanged). Auth-mechanism change? NO.
+Docs-only allowed? NOT docs-only — but ZERO dependency/lockfile/workflow motion: Cargo.toml/Cargo.lock (both crates), ci.yml, and tauri.conf.json ABSENT from the diff (proof obligations); NO pin bump (qsc stays rev-pinned at `81143dcd`); the menu comes from the PINNED tauri 2 crate's built-in API — any feature-flag/crate/plugin need = STOP; capabilities/default.json byte-untouched UNLESS the menu event wiring needs one recorded core:* line (the single scoped exception). The lane touches the UI of security-relevant flows (unlock/wipe/destroy/erase) and fixes a state-hygiene defect on them, so FULL ritual in its cross-repo form is declared without reduced-class certification (implementation PR = qsl-desktop carrying repo-local D-0004; governance closeout PR = spine carrying D-1284; the executed NA-0657/D593, NA-0659/D595, NA-0660/D596 shape). Canonical change allowed? NO. Spine source/vector/`formal/`/`.github` change? NO. Dependency/lockfile change? NONE anywhere. GUI code? YES — presentation, the state reset, the shell, the menu. Ledger edit? ONLY if a new finding must be filed (expected NONE).
+Claim change allowed? NO — claim-discipline wording BINDING on every line of new/changed copy including menu labels, banner text, and the landed spec files; zero security-assurance claims, zero assurance adjectives. A PASS asserts the build MATCHES THE SPEC (items 1–15 demonstrated per §7 + §D.8) with semantics unchanged and the item-13 hygiene defect fixed — NOT that any security property improved, NOT that server connectivity exists (slice B, OWED), NOT that the external-review gate moved.
+
+APPROVAL RESOLUTION (operator, 2026-07-19 — all rulings recorded here per the promotion instruction):
+- F1 (item-14 reference markup): resolved to the ALTERNATIVE — the reference markup IS attached (QSC_DESIGN_SPEC_AppendixD_reference_markup.md); it becomes directive Appendix D, BINDS item 14 (full-bleed shell), and supplies the visual DNA for all round-2 surfaces (main window, Settings view, Identity pane, Vault and Security pane, both wizard cards); it lands beside the spec (the Director's house-pattern call: docs/DESIGN_SPEC_AppendixD.md, a separate file byte-exact per the Appendix C method so both cmp proofs stay clean); acceptance per its §D.8 — screenshot each surface beside its D.x block.
+- F2 (item-13 reset mechanism): resolved to the DRAFTED DEFAULT — full webview reload on destroy/erase completion, PLUS the §5 ceremony rules independent of the reload (forms always open collapsed and empty; fields cleared on collapse, cancel, completion, and state transitions). The drafting trace's additional findings are IN SCOPE and fixed under the same rule: the persisted erase phrase, the surviving unlock guesses, the old vault's alias pre-filling the new vault's wizard (main.js:207 at drafting), and the stale alert counters. BINDING: no secret or prior-vault value may cross a destroy/erase boundary.
+- R1 accepted: File > Settings / File > Lock now are state-DISABLED while locked — honest state; the omit-don't-grey rule targets unbuilt features, not unavailable states.
+- R2 accepted: the failed-attempts alert stays AMBER; red is reserved for the armed-erasure state.
+- R3 accepted: round-2 item 11 supersedes the D596-F1 rail identity dot; the Identity pane remains first-class and first in the nav.
+- TOKEN MIGRATION confirmed in scope: spec §1 values govern — page #1D1D1F (not #14161a), the §1 type scale (17px titles, not 21px), radius 8/12 (not 6/10); the landed :root migrates to the spec with the D596 discipline greps kept green.
+- TEST AMENDMENT sanctioned: item 3 deletes the common-password subject, so design_system.rs drops common_passwords_list_is_sound — the ONE sanctioned amendment; the two slice-A test files stay byte-frozen.
+- Item 15 stands as drafted: tauri = "2" core menu API only; any feature or crate need is a STOP (Cargo.toml forbidden).
+
+Scope (the D597 allowed paths ONLY — the fifteen operator items as the directive's normative sections; Appendices C/D land byte-exact; the Appendix A copy delta verbatim; the Appendix B demonstration mapping):
+- qsl-desktop PR (branch `na0661-gui-slice-a-design-round2`, off `4f2a3d87`): the two spec files + the :root token-value migration FIRST, then the items expressed in the corrected system — (1) Confirm passphrase directly below Passphrase, nothing between; (2) the strength meter (div, estimator, CSS) DELETED; (3) the checklist = exactly two checks, the COMMON_PASSWORDS array + markers + gate logic REMOVED; (4) wizard step-2 heading + step label → "Your identity"; (5) the verification code one-line-never-wrapping (17px mono shrink-to-fit, shared by wizard + Identity pane); (6) the spec-§5 ceremony pattern on destroy AND erase — the instruction as its own ONE line, the erase screen's extra hint paragraph deleted, no other prose in expanded forms, erase keeps NO passphrase field; (7) the autolock helper verbatim with no number restated; (8) Arm = destructive tier, Disarm = secondary; (9) the duplicated "Off by default. A guest…" paragraph deleted; (10) the true disabled tier (#2A2A2E bg, text-muted, never dimmed accent) on disabled Create; (11) the rail identity dot removed (rail = Chats, Contacts, gear; Settings still lands on Identity); (12) the spec-§2 status-banner component for the V&S status lines (ARMED danger + warning icon / OFF neutral + shield icon / AUTOLOCK accent + lock icon, copy verbatim, acknowledge() updates the banner as one component); (13) the state-hygiene fix per F2 + the §5 STATE RULE (reload on destroy/erase completion; ceremonies always open collapsed+empty; clear on collapse/cancel/completion/transitions; unlock field cleared on unlock-screen entry/exit; acceptance = the operator's exact repro shape); (14) the full-bleed shell per Appendix D.1–D.3 (no outer padding, 1px hairlines, Settings a three-column VIEW with the live icon rail, wizard the centered-card exception); (15) the native menu (File: Settings, Lock now, Quit / Edit: Cut, Copy, Paste, Select all / View: Reload, Full screen / Help: About via the predefined native items where applicable) with every entry wired and working, R1 state-gating, per-entry manual verification recorded; DECISIONS.md appends D-0004; new tests additive (round-2 pins) + the ONE sanctioned design_system.rs removal.
+- spine closeout PR (branch `na0661-gui-slice-a-design-round2`): governance/queue/decision records ONLY — `DECISIONS.md` (one D-####, expected **D-1284**), `NEXT_ACTIONS.md` (this block + STATE flip), `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, `docs/governance/evidence/NA-0661_as_built.md` (NEW; `git add -f` — the evidence dir is gitignored), `tests/NA-0661_gui_slice_a_design_round2_testplan.md` (NEW), `docs/ops/IMPROVEMENT_LEDGER.md` ONLY if a new finding must be filed.
+- FORBIDDEN: ANY change to what destroy/erase DO or to launch/wizard/autolock/wipe SEMANTICS; ANY new dependency (crate/feature-flag/plugin/npm/system — STOP); ANY core/qsc change, pin bump, or lockfile motion; ANY new core call (qsc-symbol set head ⊆ base, grep-proven) or new marker string; ANY slice-B surface; ANY identifier/productName/binary/title change; ANY workflow/protection/repo-settings motion (the required context `rust` must stay binding, API-verified post-PR); qsl-desktop Cargo.toml/Cargo.lock/.gitignore/build.rs/tauri.conf.json/icons/README/LICENSE/NOTICE/SECURITY.md/CODE_OF_CONDUCT.md/CONTRIBUTING.md/CLAUDE.md byte-untouched (the single scoped capabilities/default.json exception above); ANY spine code change; ANY claim-boundary change; DOC-PROG-004. If landing needs anything else, STOP.
+
+Objective:
+Execute **QSL-DIR-2026-07-19-597 (D597, APPROVED 2026-07-19; F1/F2 and the further rulings resolved as recorded above; directive amended in place at approval, sha256 `0bdde81a…`, 1229 lines)** — the operator's round-2 review of the flown build made real: the spec becomes the repo's living design authority and the build is corrected to it. Order of work is normative: the two spec files land byte-exact and the :root token values migrate to spec §1 FIRST, then every item is expressed IN the corrected system. The slice-A acceptance behaviors are re-proven UNBROKEN (the two test files byte-identical to base and green); acceptance = spec §7 (each item's build screenshot beside its spec definition, matching within reason, deviations with recorded reasons) PLUS §D.8 (each surface beside its D.x block), with the no-input-driver operator-eyes split recorded honestly per the NA-0659/NA-0660 precedent; item 13 is proven by the operator's exact repro shape (destroy → re-onboard → Vault and Security shows the ceremony collapsed and empty) plus the erase variant; item 15's entries are each manually verified functional with the method recorded; scope proofs green (no dependency/lockfile/workflow/protection/tauri.conf.json motion; the qsc-symbol subset grep; the zero-networking scan; the token-discipline greps; publication scans on every added/changed text surface).
+Result classes: GUI_SLICE_A_DESIGN_ROUND2_PASS / GUI_SLICE_A_DESIGN_ROUND2_STOP. STOP conditions (class): qwork invariant mismatch; qsl-desktop main != the PR #3 merge `4f2a3d87` EXACTLY at Phase 0 (anything newer = STOP and report); disk/mount gates; any red required check on either repo; the `rust` context detaching or protection weakening; any need for a new dependency, feature flag, crate, or plugin (menus must come from the pinned tauri build as-is); any need for a new core call, marker string, pin bump, or lockfile change; any need to change destroy/erase/unlock/wipe/autolock SEMANTICS or the launch state machine; the slice-A test files failing or needing modification; a design_system.rs change beyond the one sanctioned removal; any forbidden path (tauri.conf.json included); Appendix C or Appendix D failing byte-exact extraction; scope growth beyond items 1–15; standing stops. STOP AT THE TWO OPEN PRS — the operator merges qsl-desktop FIRST (merge commit), then the spine closeout. Do not implement the successor during closeout; slice B is OWED but its promotion stays the operator's decision.
+
+See D597 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-19-597_gui_slice_a_design_round2.md`; sha256 `0bdde81a…`, 1229 lines, amended in place at approval — header, per-flag RESOLVED lines, the R1–R3 preamble, item-13 rule e, the Appendix-D integration and §D.8 acceptance standard, END) for the item-13 verified defect trace, the normative items 1–15, the strict scope, phases, the wait-work packet, required response sections, STOP conditions, Appendix A (binding copy delta), Appendix B (acceptance matrix), Appendix C (the design spec, → docs/DESIGN_SPEC.md), and Appendix D (the reference markup, → docs/DESIGN_SPEC_AppendixD.md).
+
+Begins at D-1284 (spine) + D-0004 (qsl-desktop). FULL ritual, cross-repo: two PRs, two decisions (one per repo), zero spine code. Presentation/copy + the item-13 state reset + the item-14 layout + the item-15 menu wiring only; what destroy/erase DO is unchanged; slice B stays OWED.

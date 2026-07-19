@@ -43747,3 +43747,50 @@ commits under the standing noreply identity. Stopped at the open PR; the
 operator merges. Queue → READY=NONE (HIGHEST_NA=0656, HIGHEST_D=1279); the
 successor is the operator's decision (natural: the qsl-desktop bootstrap
 lane → step 4 ENG-0044 restoration → step 5 the GUI skeleton).
+
+## 2026-07-19 — NA-0657: qsl-desktop bootstrap (D593, D-1280 + D-0001, DESKTOP_BOOTSTRAP_PASS)
+
+The qsl-desktop satellite's first commits are governed work. Directive D593
+(approved 2026-07-18 with all three flags at the drafted defaults, amended in
+place at approval — sha256 `2ae6ad4b…`) ran as a FULL-ritual cross-repo lane:
+the DOC-OPS-006 §9 hard boundary excludes reduced ceremony for anything
+touching workflows, lockfiles, or branch protection, and this lane touches
+all three, so the implementation PR is the qsl-desktop side and the
+governance closeout is the spine side — the executed NA-0642/NA-0652/NA-0655
+shape.
+
+The F1 ruling resolved the genuinely novel mechanic: a zero-ref repository
+cannot take a pull request, so the first commit is necessarily a direct
+push. The sanctioned root anchor (`fc7c00d9…`) carries ONLY the pointer
+CLAUDE.md — the governance statement is literally the repository's first
+file — and the directive marks that sanction SPENT: every future change
+lands through PRs under the required gate. PR #1 carries the twelve
+remaining files: the single-`rust`-check workflow (the qsl-server form minus
+its two repo-specific enforcement steps), the community-health set widened
+by the operator from the registration's owed trio to the full house set
+(LICENSE and CODE_OF_CONDUCT as sha-proven spine byte-copies; the SECURITY
+reporting section verbatim with a desktop scope line; an honest pre-release
+README making zero capability claims and stating the v1 Linux-only gate
+D-A; a CONTRIBUTING that names the repo's real gate and spine-governed
+reality; a house-adapted NOTICE), the repo-local DECISIONS log opened at
+D-0001, and the F3 placeholder crate — package-at-root with the explicit
+empty [workspace] table so the skeleton lane adds src-tauri as a member
+without moving anything; zero dependencies, a version-line binary, one unit
+test, a committed single-package lock. The point of the crate is the
+pipeline, not the app: fmt, test, and clippy all run against something real,
+and the `rust` check ran and passed on the PR itself. Phase 0 was clean end
+to end — zero refs, private vulnerability reporting enabled, the qsl-server
+mirror unchanged since drafting — and every authored file is cmp-proven
+byte-exact against a copy extracted from the approved directive text.
+Publication scans over all thirteen files found zero overclaim or secret
+hits; the only review-class hits were the deliberate public canonical
+links. Per the operator's GH007 ruling every commit in both repositories
+carries the standing noreply identity, including the root anchor. Stopped
+at the two open PRs; the operator merges qsl-desktop first, applies the two
+console companion steps (the Appendix I branch protection requiring the
+`rust` context, and delete_branch_on_merge=true — the flip ruled wanted
+precisely because of the NA-0655 qsl-attachments manual-delete friction),
+then merges the spine closeout. Queue → READY=NONE (HIGHEST_NA=0657,
+HIGHEST_D=1280); the successor is the operator's decision (natural: step 4
+ENG-0044 restoration → step 5 the GUI skeleton, which introduces Tauri and
+the qsc pin).

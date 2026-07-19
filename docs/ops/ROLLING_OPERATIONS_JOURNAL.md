@@ -43848,3 +43848,31 @@ needed. Stopped at the open PR for the operator merge decision. Queue →
 READY=NONE (HIGHEST_NA=0658, HIGHEST_D=1281); the successor is the operator's
 decision (natural: step 5, the GUI skeleton that introduces Tauri and the qsc
 pin and binds its Settings Vault/Security pane to exactly this surface).
+
+## 2026-07-19 — NA-0659: GUI skeleton slice A (D595, D-1282 + D-0002, GUI_SKELETON_SLICE_A_PASS)
+
+- Cross-repo FULL ritual: qsl-desktop PR #2 = the implementation (the Tauri v2
+  shell replacing the placeholder crate; +7346/−36 over 25 files); this spine
+  PR = the governance closeout (D-1282; queue flip; the ENG-0047 filing per
+  the F2 ruling).
+- The qsc pin: rev `81143dcd` (the #1599 seating merge = spine main at Phase
+  0). First-build discovery, recorded honestly: the fresh workspace lock
+  floated the RustCrypto pre-release family to newer releases and
+  quantumshield_refimpl FAILED TO COMPILE (the ENG-0017 class observed
+  live) — remedied by twelve precise lock alignments, every one TOWARD the
+  spine's locked version; future qsl-desktop pin advances must hold this
+  family at the spine's lock.
+- The four startup rules are each test-proven; the acceptance matrix
+  (c′)(d)(e) is test-proven at the backend level with clock-injected delay
+  timing; (g) runs on the extended workflow with the required context name
+  kept exactly `rust`.
+- Headless-visual acceptance: the SSH/Xvfb context has NO session D-Bus and
+  GTK blocks 25 s in g_application_register — diagnosed by gdb backtrace;
+  `xvfb-run … dbus-run-session --` is the working recipe (recorded for every
+  future GUI lane). Screenshots: S0 wizard, S0 + CLI-vault courtesy notice,
+  S1/S2 unlock. No input driver exists on the host (xdotool/xte absent), so
+  input-driven surfaces await operator eyes — enumerated in the response;
+  every flow behind them is test-proven.
+- Zero networking code in slice A is TEST-ENFORCED (source scan over
+  src-tauri/src + ui). Slice B (the server-connectivity surface) is OWED —
+  the committed successor concern; promotion timing stays the operator's.

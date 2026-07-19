@@ -6,7 +6,8 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0657 | HIGHEST_D=1280 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0658 | HIGHEST_NA=0658 | HIGHEST_D=1280 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0657 | HIGHEST_D=1280 (NA-0658 promoted for D594; PR #1597) -->
 <!-- NA-0657 (qsl-desktop bootstrap, D593) DONE 2026-07-19 (D-1280 spine + D-0001 qsl-desktop, result class DESKTOP_BOOTSTRAP_PASS): FULL ritual cross-repo (workflow/lockfile/branch-protection => neither reduced class eligible; implementation PR = qsl-desktop, governance closeout = spine), base 131e1cdc (the #1595 seating merge; qwork-proven); D593 executed AS AMENDED AT APPROVAL (sha256 2ae6ad4b...; F1 the sanctioned root anchor; F2 operator console companion steps with the delete_branch_on_merge flip WANTED; F3 package-at-root + explicit empty [workspace] table). THE BOOTSTRAP pays the D-1279 registration's owed list: root anchor fc7c00d9... = ONLY the pointer CLAUDE.md direct-pushed to main (the repo's ONLY-ever direct push, sanction SPENT; GH007 noreply identity); qsl-desktop PR #1 (head 31198b2..., +858 lines) = EXACTLY the 12 remaining files — (a) .github/workflows/ci.yml single rust job (qsl-server form minus its two repo-specific steps: fmt + cargo test -q + clippy -q -D warnings; protection + flip = the OPERATOR'S post-merge console companion, Appendix I); (b) the community-health set WIDENED to the full house set: LICENSE (spine byte-copy 459cd3e0..., cmp 0) + CODE_OF_CONDUCT.md (spine byte-copy 2cbf021e..., cmp 0) + NOTICE (house-adapted) + SECURITY.md (spine reporting section VERBATIM cmp 0 + desktop scope) + README.md (honest pre-release, ZERO capability claims, v1 Linux-only per gate D-A/L9) + CONTRIBUTING.md (the repo's REAL gate + spine-governed reality); (c) the pointer CLAUDE.md (the anchor itself); (d) DECISIONS.md OPENED at D-0001; (e) the F3 placeholder crate: zero deps, src/main.rs version line + one unit test, committed SINGLE-PACKAGE Cargo.lock (asserted), /target gitignore. PROOFS: 9 appendix files cmp-proven byte-exact vs the directive-extracted copies (DECISIONS.md exact after the single <DATE> substitution); local gate fmt CLEAN / test 1-0 / clippy -D warnings CLEAN / metadata --locked OK (rustc 1.95.0); publication scans 13/13: zero overclaim/secret hits, 4 review-class on http_url = the deliberate canonical links, dispositioned pass; the rust check RAN and PASSED on PR #1. Phase 0: zero refs + PVR ENABLED (neither STOP fired); mirror unchanged (qsl-server ci.yml sha-identical; protection rust/strict/enforce_admins). Boundaries: NO Tauri, NO GUI code, NO qsc dep (the skeleton lane introduces the pin), NO spine code change, NO claim-boundary change, NO DOC-PROG-004 edit (statuses fold at next revision), NO ledger edit, NO executor settings mutation. NOT claimed: any GUI/application functionality; the protection applied (owed to the operator companion at merge). See D-1280, docs/governance/evidence/NA-0657_as_built.md, tests/NA-0657_qsl_desktop_bootstrap_testplan.md. STOPPED AT THE TWO OPEN PRS — the operator merges qsl-desktop PR #1 FIRST (merge commit), applies the F2 companion (I1 protection + I2 flip), then the spine closeout. Queue returns to READY=NONE — the successor is the operator's decision (natural: step 4 ENG-0044 restoration -> step 5 the GUI skeleton; the README/release-plan refresh = the named separate follow-up). The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NA-0657 | HIGHEST_NA=0657 | HIGHEST_D=1279 (NA-0657 closed for D593 at D-1280; this lane PR) -->
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0656 | HIGHEST_D=1279 (NA-0657 promoted for D593; PR #1595) -->
@@ -64,34 +65,48 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NONE.** NA-0657 (qsl-desktop
-bootstrap, D593) is **DONE** at **D-1280** (spine) + **D-0001**
-(qsl-desktop), result class **DESKTOP_BOOTSTRAP_PASS** — the satellite's
-first commits are governed work and the D-1279 registration's owed list is
-PAID. The F1 root anchor (`fc7c00d9…`, ONLY the pointer CLAUDE.md, the
-repo's ONLY-ever direct push — sanction SPENT) plus qsl-desktop PR #1 (head
-`31198b2…`, the 12 remaining files) land: the single-`rust`-check workflow
-(fmt + `cargo test -q` + `clippy -q -- -D warnings`); the community-health
-set widened to the full house set (LICENSE + CoC as sha-proven spine
-byte-copies; NOTICE; SECURITY with the verbatim reporting section + desktop
-scope; honest zero-claims README, v1 Linux-only per gate D-A/L9;
-CONTRIBUTING with the repo's real gate); the repo-local DECISIONS log opened
-at D-0001; and the F3 placeholder crate (zero deps, version-line binary, one
-unit test, committed single-package lock) — the pipeline proven before Tauri
-arrives. The `rust` check RAN and PASSED on PR #1; every appendix file
-cmp-proven byte-exact; publication scans clean (the only review-class hits =
-the deliberate canonical links). Phase 0 was clean end to end (zero refs;
-PVR enabled; mirror unchanged). **STOPPED AT THE TWO OPEN PRS per D593 —
-the operator merges qsl-desktop PR #1 FIRST (merge commit), applies the F2
-console companion steps (Appendix I1 branch protection: required `rust`,
-strict, enforce_admins; I2 delete_branch_on_merge=true — the flip ruled
-WANTED at approval), then merges the spine closeout.** Its full block (now
-`Status: DONE` with the OUTCOME) is at the end of section 2. The queue
-returns to **READY=NONE**; the successor is the operator's decision —
-natural: **step 4** (ENG-0044 restoration — before GUI lane 1 closes) →
-**step 5** (the GUI skeleton, Linux-only per D-A, introducing Tauri + the
-qsc pin); the README/release-plan refresh is the operator's named SEPARATE
-follow-up; parallel tracks per the roadmap (reviewer outreach NOW; ENG-0039
+**READY (exactly one — execute this): NA-0658 — ENG-0044 vault-protections
+restoration (D594, FULL ritual, single implementation PR per F1).** Per
+**QSL-DIR-2026-07-19-594 (D594, APPROVED 2026-07-19; both flags resolved to
+the drafted defaults — F1: the executed D585/NA-0649 shape, ONE
+implementation PR carrying the governance closeout, ONE decision (D-1281),
+the §9 certification standing as drafted (LITE/WAVE INELIGIBLE — vault
+security semantics); F2: the typed-results default — new pub results carry
+retry-after/attempt data as VALUES, code strings limited to pre-existing +
+the enumerated restored originals (QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS
+returns with the opt-in wipe; tui_* stays deleted), a mid-lane STOP on a
+real vocabulary conflict PREFERRED over pre-authorization; the
+escalating-delay draft schedule ACCEPTED as design-lock starting values;
+directive amended in place at approval, sha256 `7a70f6bf…`)**. DOC-PROG-004
+step 4: restore the three ENG-0044 vault/account-protection features
+(co-deleted with the TUI at NA-0645; implementations at git-history
+`2efc9dab`, deleted by `86c0858d`) as qsc LIBRARY surface per the v0.2.0
+refinement, so the GUI's Settings Vault/Security pane binds to real
+functions — (1) the guarded-unlock surface with escalating delay DEFAULT-ON
+(failures 1–2 free, then 5 s doubling capped at 300 s; persisted counter +
+last-failure timestamp, restart-proof; clock-rollback fails safe); (2)
+wipe-after-N as a SEPARATE explicit OPT-IN (historical bounds 1..=100;
+unarmed default proven safe); (3) the one-call lock() with the R3
+postconditions (process passphrase + unlocked flag + live session
+cleared/zeroized as ONE operation; the idle TIMER is GUI-side, step 5); (4)
+destroy with a REQUIRED confirmation token (historical erase-then-remove
+ordering kept). Restore-vs-redesign per the directive's eight enumerated
+deltas (git history the STARTING POINT; the refinement governs where they
+differ — notably default-on inverting the TUI-era off). Five test families
+incl. persistence-across-simulated-restart, unarmed-default safety, lock()
+postconditions, destroy irreversibility + token requirement, and the CLI
+byte-identity spot-check + WF-0017 red-demo. ENG-0044 flips DONE at
+closeout. Boundaries: library surface only; NO CLI flag/output/behavior
+change; NO protocol/crypto/wire change; NO dependency change (STOP if
+needed); NO GUI code; NO qsl-desktop touch; NO DOC-PROG-004 edit. Begins
+**D-1281**. Base: the seating merge (this PR) or newer, qwork-proven. The
+operator merges this PR (merge commit) then runs `qwork NA-0658` in a FRESH
+session; the lane STOPS at its open PR for the operator merge decision. The
+successor after this lane stays the operator's decision (natural: **step
+5** — the GUI skeleton, Linux-only per D-A, introducing Tauri + the qsc
+pin, binding its Vault/Security pane to THIS surface; the
+README/release-plan refresh is the operator's named SEPARATE
+follow-up); parallel tracks per the roadmap (reviewer outreach NOW; ENG-0039
 before first real external operator or public release); standing:
 **ENG-0036**, **ENG-0042**/**ENG-0043**, **ENG-0045**, **0b**, the **0c
 residue**, **NA-0635** (GATED); the windows-sys lock-drift hygiene
@@ -35737,3 +35752,31 @@ Result classes: DESKTOP_BOOTSTRAP_PASS / DESKTOP_BOOTSTRAP_STOP. STOP conditions
 See D593 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-18-593_qsl_desktop_bootstrap.md`; sha256 `2ae6ad4b…`, 722 lines, amended in place at approval — header/END + the F2 flip made non-optional) for the appendices (A ci.yml; B README; C SECURITY; D CONTRIBUTING; E CLAUDE.md; F DECISIONS/D-0001; G crate; H NOTICE; I operator companion commands), phases, required response sections, and STOP conditions.
 
 Begins at D-1280 (spine) and D-0001 (qsl-desktop). FULL ritual, cross-repo: one sanctioned root anchor, two PRs, two decisions (one per repo), operator console companion steps recorded. The pipeline is proven before the app exists.
+
+### NA-0658 — ENG-0044 vault-protections restoration (D594, FULL ritual, single implementation PR per F1): the three TUI-era vault/account-protection features return as qsc library surface per the v0.2.0 refinement — guarded unlock with escalating delay DEFAULT-ON, wipe-after-N as a separate explicit opt-in, the one-call lock(), and account-destroy with a required confirmation token; ENG-0044 flips DONE
+Status: READY
+
+Goals: G4
+Wire/behavior change allowed? NO wire/protocol/crypto change anywhere. NO CLI flag/output/behavior change (main.rs and cmd/ untouched; the CLI byte-identity spot-check + WF-0017 red-demo are REQUIRED acceptance). The lane ADDS library surface only: the guarded-unlock policy wrapper, arm/disarm/query for the wipe opt-in, the one-call lock(), destroy-with-confirmation-token, restored consts, and new typed pub result shapes.
+Crypto/state-machine change allowed? NO cipher/KDF/envelope/handshake change — the vault crypto is UNTOUCHED; the lane adds protection LOGIC around the existing unlock/decrypt paths (which is exactly why DOC-OPS-006 §9 makes reduced ceremony INELIGIBLE; FULL ritual, in its F1-ruled single-PR form). Storage/schema change? The two protection-state files restored (vault_security.txt `attempt_limit=<1..=100|off>`; vault_unlock_failures.txt `failed_unlocks=<n>`) with an ADDITIVE last-failure-timestamp field (delta Δ4); the vault envelope format UNCHANGED. Auth-mechanism change? NO — `unlock_with_passphrase` and the CLI ingresses byte-identical; the guarded path is a NEW wrapper.
+Docs-only allowed? NOT docs-only — qsc library source + new NA_0658-prefixed tests. Canonical change allowed? NO. Vector/`formal/`/`.github` change? NO. Dependency/lockfile change? NO — Cargo.toml/Cargo.lock byte-identical (STOP if a dependency seems needed). ErrorCode variant? NO. GUI code? NO. qsl-desktop touch? NO. Ledger edit? YES — EXACTLY the ENG-0044 status flip to DONE, nothing else.
+Claim change allowed? NO — claim boundary UNCHANGED. A PASS asserts the three protections EXIST AS LIBRARY SURFACE per the refinement — NOT that any GUI exists, NOT that an idle timer runs anywhere, NOT that an offline vault copy is defended (the roadmap honesty note stands: passphrase strength + Argon2id only), NOT that the external-review gate moved.
+
+APPROVAL RESOLUTION (operator, 2026-07-19 — both rulings recorded here per the promotion instruction):
+- F1 (lane shape): the executed D585/NA-0649 precedent — ONE implementation PR carrying the governance closeout, ONE decision (**D-1281**); the §9 certification stands as drafted (LITE/WAVE ineligible — vault security semantics; the FULL ritual runs in its executed single-PR form).
+- F2 (delay-lockout vocabulary): the typed-results default — new pub results carry retry-after/attempt data as VALUES; code strings limited to pre-existing + the enumerated restored originals (QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS returns with the opt-in wipe; tui_* stays deleted); a mid-lane STOP on a real vocabulary conflict is PREFERRED over pre-authorization.
+- SCHEDULE: the escalating-delay draft schedule (failures 1–2 free, then 5 s doubling per failure capped at 300 s; restart-proof; clock-rollback fails safe) is ACCEPTED as the design-lock STARTING VALUES (Phase 1 may tune within the drafted rails, recorded in the response).
+
+Scope (the D594 allowed paths ONLY):
+- Implementation: `qsl/qsl-client/qsc/src/vault/mod.rs` (and optionally a NEW `qsl/qsl-client/qsc/src/vault/protection.rs`); `qsl/qsl-client/qsc/src/store/mod.rs` (restored consts ONLY); `qsl/qsl-client/qsc/src/lib.rs` (pub re-exports / the lock() seam ONLY — no behavior change to existing items). The machinery uses the EXISTING pub(crate) fs_store infrastructure (config_dir / store locks / write_atomic / safe-parents / perms / fsync — already library-visible since NA-0646); NO main.rs access needed or permitted.
+- Tests: NEW `qsl/qsl-client/qsc/tests/NA_0658_vault_protections*.rs` (existing test files untouched). The five families: (1) ESCALATING DELAY — wrong attempts increment the persisted counter, the delay engages and grows per the locked schedule, in-window refusal decrypts nothing and does NOT increment, retry-after exposed as data, correct-passphrase-after-window unlocks and resets; PERSISTENCE ACROSS SIMULATED RESTART (fresh load from disk continues count + delay); clock-rollback fails safe. (2) OPT-IN WIPE — UNARMED DEFAULT PROVEN SAFE (many failures leave the vault intact + unlockable); arm (bounds 1..=100) + trigger at N (tombstone dance + both state files cleared + the restored marker observed via the queue + the lock() postconditions); disarm persists off. (3) lock() AS ONE OPERATION — has_process_passphrase() false + vault_unlocked() false + session disposed/zeroized after the single call; idempotent; re-unlock works. (4) DESTROY — wrong/empty passphrase refused with state unchanged; wrong/absent confirmation-token value refused with NO destruction; correct passphrase + token → erase-then-remove, post-destroy unlock fails, data unreadable, protection state cleared, process left locked. (5) CLI BYTE-IDENTITY spot-check (the NA-0646 prover pattern reduced to the touched neighborhoods; base binary vs head binary; diff EMPTY every case) + the WF-0017 red-demo (perturb → RED → revert → green re-proven).
+- Governance/closeout (in the SAME PR per F1): `DECISIONS.md` (one **D-1281**), `TRACEABILITY.md`, `docs/ops/IMPROVEMENT_LEDGER.md` (the ENG-0044 flip to DONE ONLY), `NEXT_ACTIONS.md` (this block + STATE flip), `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, `docs/governance/evidence/NA-0658_as_built.md` (NEW; `git add -f` — the evidence dir is gitignored), `tests/NA-0658_eng0044_vault_protections_testplan.md` (NEW).
+- FORBIDDEN: any main.rs/cmd/ change; any change to existing pub item bodies (unlock_with_passphrase, the env/file ingresses, VaultSession semantics beyond consuming it in lock(), secret_get/secret_set, transport/identity/handshake); any Cargo.toml/Cargo.lock motion; any ErrorCode variant; any .github/formal/vectors/canonical change; any docs/public or program-doc edit (incl. DOC-PROG-004 — step statuses fold at the doc's next revision, the D586/D592 pattern); the NA-0651 KEEP anchor (env-ingress) files byte-identical; any GUI code; any qsl-desktop/qsl-server/website change; any queue promotion. If landing needs anything else, STOP.
+
+Objective:
+Execute **QSL-DIR-2026-07-19-594 (D594, APPROVED 2026-07-19; both flags resolved to the drafted defaults; the schedule accepted as design-lock starting values; directive amended in place at approval, sha256 `7a70f6bf…`, 550 lines)** — DOC-PROG-004 step 4: the ENG-0044 vault protections restored as LIBRARY surface per the v0.2.0 refinement so the GUI's Vault/Security pane binds to real functions (the GUI consumes; the CLI need not re-expose). Git history is the STARTING POINT (implementations last present at `2efc9dab`, deleted by `86c0858d` at NA-0645; extracted read-only at Phase 1 and recorded against the directive's HISTORY RECORD); the landed surface follows the refinement where they differ, with the differences enumerated in the response per the directive's eight drafted deltas Δ1–Δ8 (notably Δ1 escalating-delay tracking DEFAULT-ON inverts the TUI-era default-OFF; Δ2 wipe demoted from sole consequence to explicit opt-in; Δ3 every wrong attempt counts, always; Δ5 machinery re-homed from the deleted main.rs into the library; Δ6 the confirmation token; Δ7 tui_* vocabulary NOT restored). Phase-1 DESIGN LOCK fixes signatures/placement/schedule/file-format/token-shape/marker-set within the drafted rails and STOPs on anything outside scope (dependency, ErrorCode variant, new code string per the F2 ruling, main.rs touch). Acceptance: cargo check --all-targets 0/0; full local `cargo test -p qsc` = the base-derived baseline (expect 412/0/1 ×108) + exactly the new sets; the NA-0640 e2e 2/0 within the run, zero e2e edits; Cargo.toml/lock byte-identical; the CLI byte-identity spot-check + red-demo; validation defaults; public-safety + advisories green.
+Result classes: VAULT_PROTECTIONS_RESTORE_PASS / VAULT_PROTECTIONS_RESTORE_STOP. STOP conditions (class): any Phase-0 check fails (qwork invariants; base older than 660050fb or merge-base unclear; ENG-0044 not OPEN; any deleted symbol unexpectedly present; a live-surface anchor missing; suite-baseline mismatch at base); the design lock needs a dependency / an ErrorCode variant / a new code string (the F2 ruling) / a main.rs touch / any out-of-scope path; any CLI byte-identity delta (the no-CLI-change boundary is absolute); any KEEP-anchor touch; any Cargo.toml/lock motion; any suite-count delta beyond exactly the new sets; failed/pending required check at a merge boundary; queue/decision ambiguity; standing stops. The lane STOPS at its open PR for the operator merge decision. Do not implement the successor during closeout; the successor stays the operator's decision (natural: step 5 the GUI skeleton — binding its Settings Vault/Security pane to this surface, introducing Tauri + the qsc pin; the README/release-plan refresh is the operator's named separate follow-up).
+
+See D594 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-19-594_eng0044_vault_protections_restore.md`; sha256 `7a70f6bf…`, 550 lines, amended in place at approval — header/flags/END) for the HISTORY RECORD (the TUI-era contracts extracted from `2efc9dab`), THE DESIGN (requirements + the Δ-enumeration + the marker/vocabulary boundary), STRICT SCOPE, the five test families, acceptance A–E, THE GUARD (incl. the testable-clock rule: no real wall-clock sleeps; no cfg leakage into release behavior), phases, required response sections, and STOP conditions.
+
+Begins at D-1281. FULL ritual in its F1-ruled single-PR form: one implementation PR carrying the governance closeout, one decision. Library surface only; the GUI consumes; the CLI must not change behavior — byte-proven.

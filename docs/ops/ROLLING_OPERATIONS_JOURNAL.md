@@ -43907,3 +43907,28 @@ pin and binds its Settings Vault/Security pane to exactly this surface).
   push run. The substantive tree equals 35948ec0 (9/9 push runs green incl.
   formal-ci). The NA-0237D-shape sanctioned bootstrap PR remains the remedy;
   it is never executor-initiated.
+
+## 2026-07-19 — Sanctioned bootstrap: the 499be55b missed push runs (NA-0660 incident closure)
+
+- INCIDENT (recorded at the NA-0660 closeout, finalized here): GitHub never
+  emitted the push-triggered workflow runs for the NA-0660 seating merge
+  `499be55b` (PR #1601) — API total_count stayed 0 for the commit's entire
+  life as main HEAD (>50 minutes, watched to the poll ceiling). The
+  NA-0645/NA-0237D incident class. No check on that commit ever ran or
+  failed; the substantive tree equaled `35948ec0`, whose 9/9 push runs were
+  green including formal-ci.
+- SANCTION (operator, 2026-07-19, recorded verbatim per instruction): "The
+  499be55b remedy is SANCTIONED: execute the NA-0237D-shape sanctioned
+  bootstrap PR for the missed push runs, riding alongside the closeout
+  merge per the house precedent — record the sanction in the incident
+  note."
+- REMEDY MECHANICS (no override, no bypass, no re-run of any failed check —
+  no check existed to re-run): this journal-only PR merges by merge commit;
+  the merge push gives main a fresh push event whose full run set certifies
+  the tree, which contains everything `499be55b` carried. The queue is NOT
+  touched (READY=NONE stands; no promotion).
+- SPAWN REPORT at this PR's creation: the qsl-desktop PR #3 merge
+  `4f2a3d87` spawned its push run normally (ci in progress at
+  observation); the spine closeout PR #1602 merge `07dde283` spawned ALL
+  NINE push runs immediately. The miss remains unique to `499be55b`;
+  this bootstrap closes its record.

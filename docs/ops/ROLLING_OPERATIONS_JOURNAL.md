@@ -43932,3 +43932,41 @@ pin and binds its Settings Vault/Security pane to exactly this surface).
   observation); the spine closeout PR #1602 merge `07dde283` spawned ALL
   NINE push runs immediately. The miss remains unique to `499be55b`;
   this bootstrap closes its record.
+
+## 2026-07-19 — NA-0661: GUI slice-A design pass ROUND 2 (D597; D-1284 + D-0004)
+
+- The operator's post-merge review of the NA-0660 build, made real
+  cross-repo: qsl-desktop PR #4 (9 files) + the spine governance
+  closeout. Presentation/copy + the item-13 state reset + the full-bleed
+  shell + the menu wiring ONLY — the two slice-A test files are
+  byte-identical to base and green.
+- The design authority now lives IN-REPO: docs/DESIGN_SPEC.md (directive
+  Appendix C, byte-exact) + docs/DESIGN_SPEC_AppendixD.md (the
+  operator's reference markup, byte-exact) — binding on every future GUI
+  lane until revised; the :root token values migrated to spec §1 with
+  the D596 discipline greps kept green.
+- The item-13 defect (typed secrets surviving destroy/erase in the
+  living webview — the destroy ceremony re-rendering EXPANDED and
+  PRE-FILLED after re-onboarding) is fixed by full webview reload on
+  completion plus the §5 ceremony rules on every transition; the wizard
+  never pre-fills a prior alias. ENG-0048 files the honest residue:
+  destroy leaves the non-secret settings.json on disk by landed
+  semantics — the operator decides whether destroy should clear it.
+- The §7 screenshot standard earned its keep: the first s0 capture
+  showed the disabled Create button accent-filled — an equal-specificity
+  cascade bug no grep test caught — fixed by rule order and re-shot.
+- The headless rig REGRESSED mid-day and was diagnosed to root cause:
+  the seat0 session now exposes wayland-0, so GDK inside Xvfb opens the
+  window on the REAL compositor unless GDK_BACKEND=x11 is pinned;
+  WebKitGTK needs the software-render knobs and ~20 s to first paint;
+  an xwd roundtrip before scrot makes captures deterministic; scrot
+  never overwrites an existing file. The full recipe is in the
+  NA-0661 testplan for every future GUI lane.
+- The native menu (item 15) came from the pinned tauri 2 core API with
+  zero dependency motion; the two state-dependent File entries are
+  live-disabled while locked (R1: honest state, not placeholders),
+  driven by the frontend's surface reports through the new app-layer
+  ui_surface_changed command.
+- STOPPED at the two open PRs — desktop #4 first (merge commit; rust
+  green), then the spine closeout; the operator then FLIES the corrected
+  build before round-3 findings.

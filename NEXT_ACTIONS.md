@@ -6,7 +6,8 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0661 | HIGHEST_D=1284 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0662 | HIGHEST_NA=0662 | HIGHEST_D=1284 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0661 | HIGHEST_D=1284 (NA-0662 promoted for D598; this promotion PR) -->
 <!-- prior: STATE: READY=NA-0661 | HIGHEST_NA=0661 | HIGHEST_D=1283 (NA-0661 closed for D597 at D-1284; this lane PR) -->
 <!-- NA-0661 (GUI slice-A design pass ROUND 2, D597) DONE 2026-07-19 (D-1284 spine + D-0004 qsl-desktop, result class GUI_SLICE_A_DESIGN_ROUND2_PASS): FULL ritual cross-repo (security-relevant flow UI + a state-hygiene fix => no reduced class; implementation PR = qsl-desktop #4, governance closeout = spine), base a5af1b49 (the #1604 seating merge; qwork-proven; 9/9 push runs SUCCESS incl. formal-ci — no missed-push-run recurrence); D597 executed AS APPROVED/AMENDED (sha256 0bdde81a..., 1229 lines; F1 = the operator-ATTACHED Appendix-D reference markup binding item 14 + the round-2 visual DNA, landed byte-exact as docs/DESIGN_SPEC_AppendixD.md beside docs/DESIGN_SPEC.md (Appendix C, sha 34ced51b...) — the LIVING DESIGN AUTHORITY, binding on all future GUI lanes; F2 = full webview reload on destroy/erase completion + the §5 ceremony rules with the WHOLE survivor inventory in scope under the binding rule 'no secret or prior-vault value may cross a destroy/erase boundary'; R1-R3 accepted; the token migration to spec §1 confirmed; EXACTLY one sanctioned test removal — common_passwords_list_is_sound; item 15 tauri-core-menu-only). THE PASS: qsl-desktop PR #4 (branch na0661-gui-slice-a-design-round2 off 4f2a3d87 EXACTLY, head 415b357, 9 files = exactly the D597 allowed paths; Cargo.toml/Cargo.lock/tauri.conf.json/workflows/capabilities ABSENT) — the :root token-value migration (page #1D1D1F, card #252528, field #1A1A1C, hairline #3A3A3E, 17px/600 titles, 13px body, radius 12/8, the accent/danger role trios + fill #3D7BC4; discipline greps green) then items 1-15 IN it: confirm-directly-below; meter REMOVED; two checks (the 149-entry list deleted); 'Your identity'; the one-line shrink-to-fit code (nowrap + fitCode, shared both surfaces); the §5 one-line-instruction ceremony destroy AND erase (extra erase prose deleted; no passphrase field on erase — semantics unchanged); the verbatim autolock helper (no number); Arm=danger/Disarm=secondary; the guest-warning paragraph deleted; the TRUE disabled tier (the first s0 shot CAUGHT the equal-specificity cascade bug rendering disabled-Create accent-filled — fixed by rule order; the §7 screenshot standard did its job); the rail dot REMOVED (rail = Chats/Contacts/gear; Identity pane stays first — R3 supersession recorded); both V&S status lines as the §2 status-banner component (danger warning-triangle 'Armed — erases after N failed attempts' / neutral shield 'Off — wrong attempts never erase the vault' / accent lock 'Locks after N minutes of inactivity'; one setBanner() component swap; red RESERVED for armed-erasure; the amber alert unchanged per R2); the ITEM-13 FIX (the operator-verified defect: destroy success called only route() — fields cleared only on OPEN, collapse only on CANCEL, zero reload anywhere, so the prior vault's passphrase + phrase re-rendered EXPANDED + PRE-FILLED after re-onboarding, and in-memory alias/alert state crossed the boundary): window.location.reload() on destroy AND erase completion + clearCeremonyState() on EVERY screen transition (six sensitive fields + collapse) + resetDestroyFlow() on pane navigation + the wizard alias NEVER pre-filled; in-memory survivors die with the document; HONEST RESIDUE FILED as ENG-0048 — destroy_vault leaves non-secret settings.json (alias + autolock minutes) on disk by landed D-0002 semantics while erase_all removes it; the boundary consistency is the OPERATOR'S semantics decision, not fixed in-lane; the FULL-BLEED SHELL per Appendix D.1-D.3 (grids 52|210|1fr and 52|160|1fr, 1px #3A3A3E hairlines ONLY, status bar the full-width last row 6x14 micro; SETTINGS IS A VIEW — the icon rail PRESENT and LIVE, gear active, Chats returns to main; rail items 34x34 r8 with 19px inline-SVG icons; the D.2 list-header + NON-INTERACTIVE search affordance as drawn + welcome pane; the wizard card max-440 the ONE centered exception); the NATIVE MENU from the PINNED tauri 2 core menu API ONLY (zero crate/feature motion — proven by the untouched manifests): File Settings/Lock now/Quit[predefined], Edit native Cut/Copy/Paste/Select all, View Reload[the item-13 mechanism]/Full screen, Help About[predefined; factual name+version+honesty line]; R1: the two state-dependent entries START DISABLED and enable exactly on unlocked surfaces via the NEW app-layer ui_surface_changed command (zero qsc symbols, zero markers); menubar VISIBLE in all four screenshots. PROOFS: suite 40/0/1-ignored (lib 5 + design_round2 17 NEW + design_system 6 + slice_a_flows 7+1 + slice_a_rules 5); the two slice-A files BYTE-IDENTICAL to base (sha be700518.../a53137ec...); fmt/clippy -D warnings/metadata --locked CLEAN; audit EXIT 0 unchanged lock (17 known gtk3 warnings); qsc-symbol set head == base; no new marker strings; zero-networking scan green; publication scan class pass zero overclaims; git diff --check clean; protection [rust]/strict/enforce_admins intact post-PR. VISUAL: four launch shots re-shot in the migrated tokens (menubar visible; window title asserted via xwininfo); THE RIG REGRESSED MID-DAY AND WAS DIAGNOSED TO ROOT CAUSE — the seat0 session now exposes wayland-0 so GDK inside Xvfb opens on the REAL compositor unless GDK_BACKEND=x11 is pinned (diagnostic windows killed immediately; nothing persisted); WebKitGTK needs WEBKIT_DISABLE_COMPOSITING_MODE=1 + WEBKIT_DISABLE_DMABUF_RENDERER=1 + LIBGL_ALWAYS_SOFTWARE=1 + ~20 s first paint; an xwininfo+xwd roundtrip before scrot makes captures deterministic; scrot NEVER overwrites (writes _000 siblings) — the full recipe recorded in tests/NA-0661_gui_slice_a_design_round2_testplan.md for every future GUI lane; a stale xdg-document-portal FUSE mount was found and unmounted during diagnosis (host-state repair, recorded). Input-driven surfaces enumerated for OPERATOR EYES with the EXACT item-13 repro script (as-built §3). NOT claimed: any security property improved; server connectivity (slice B OWED); physical-display behavior. Claim boundary UNCHANGED. See D-1284, docs/governance/evidence/NA-0661_as_built.md, tests/NA-0661_gui_slice_a_design_round2_testplan.md. STOPPED AT THE TWO OPEN PRS — the operator merges qsl-desktop #4 FIRST (merge commit, rust green), then this closeout, then FLIES THE CORRECTED BUILD before round-3. Queue returns to READY=NONE — slice B stays OWED (born INTO the landed spec); promotion timing stays the operator's. The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0660 | HIGHEST_D=1283 (NA-0661 promoted for D597; PR #1604) -->
@@ -73,61 +74,93 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NONE.** NA-0661 (GUI slice-A design
-pass ROUND 2, D597) is **DONE** at **D-1284** (spine) + **D-0004**
-(qsl-desktop), result class **GUI_SLICE_A_DESIGN_ROUND2_PASS** — the
-operator's post-merge review made real: the approved design spec now
-lives IN-REPO as the LIVING DESIGN AUTHORITY (docs/DESIGN_SPEC.md =
-directive Appendix C byte-exact, sha `34ced51b…`; docs/
-DESIGN_SPEC_AppendixD.md = the operator's reference markup byte-exact,
-sha `a7d45a0a…`; binding on all future GUI lanes) and qsl-desktop PR #4
-(9 files, head `415b357`) corrects the build to it — the :root tokens
-migrated to spec §1 (page #1D1D1F, 17px/600 titles, radius 12/8, the
-role trios); items 1–12 landed (two-check checklist with the
-common-password list DELETED — the one sanctioned design_system.rs
-removal; the strength meter REMOVED; "Your identity"; the one-line
-shrink-to-fit verification code; the §5 one-line-instruction ceremony on
-destroy AND erase; the verbatim autolock helper; Arm=destructive/
-Disarm=secondary; the duplicated guest warning deleted; the TRUE
-disabled tier — the first acceptance screenshot CAUGHT the cascade bug
-rendering disabled-Create accent-filled, fixed by rule order; no rail
-identity dot per R3; both V&S status lines as the §2 status-banner
-component with red RESERVED for armed-erasure); the ITEM-13
-STATE-HYGIENE FIX (the operator-verified defect — typed secrets
-surviving destroy/erase in the living webview — closed by full reload on
-completion + the §5 ceremony rules on every transition + the wizard
-never pre-filling a prior alias; ENG-0048 FILED for the honest residue:
-destroy leaves non-secret settings.json by landed semantics, the
-operator decides); the FULL-BLEED SHELL per Appendix D.1–D.3 (Settings
-is a VIEW with the live icon rail; the wizard card the one exception);
-and the NATIVE MENU from the pinned tauri 2 core API only (R1: Settings/
-Lock now live-DISABLED while locked via the app-layer ui_surface_changed
-command; zero dependency motion). SEMANTICS BYTE-FOR-BYTE NA-0660: the
-two slice-A test files byte-identical to base (sha `be700518…`/
-`a53137ec…`) and green; suite 40/0/1-ignored; fmt/clippy/metadata/audit
-clean on the UNCHANGED lock; qsc-symbol set head == base; publication
-scan zero hits; the menubar visible and the window title asserted in all
-four re-shot launch screenshots (the headless rig regressed mid-day and
-was diagnosed to root cause — GDK_BACKEND=x11 now MANDATORY, the webkit
-software knobs + ~20 s + xwd-sync + fresh-scrot-filename recipe recorded
-in the NA-0661 testplan for every future GUI lane).
-**STOPPED AT THE TWO OPEN PRS per D597 — the operator merges qsl-desktop
-PR #4 FIRST (merge commit; rust green), then this spine closeout, then
-FLIES THE CORRECTED BUILD before round-3 findings (the merged-first
-review rule).** Its full block (now `Status: DONE` with the OUTCOME) is
-at the end of section 2. The queue returns to **READY=NONE**; **slice B
-is OWED — the COMMITTED successor concern** (wizard step 3, the full
-error taxonomy, the first-class Settings Server pane, the four-state
-status line — now born INTO the landed spec; roadmap step-5 completion
-is declared at B's close); promotion timing stays the operator's; the
-README/release-plan refresh is the operator's named SEPARATE follow-up;
-parallel tracks per the roadmap (reviewer outreach NOW; ENG-0039 before
-first real external operator or public release); standing: **ENG-0036**,
-**ENG-0042**/**ENG-0043**, **ENG-0045**, **ENG-0047** (unblocked and
-unscheduled), **ENG-0048** (NEW — the destroy/settings.json boundary
-consistency, the operator's semantics call), **0b**, the **0c residue**,
-**NA-0635** (GATED); the windows-sys lock-drift hygiene micro-lane
-awaits the operator's word. The executor cannot self-promote.
+**READY (exactly one — execute this): NA-0662 — GUI slice-A design pass
+ROUND 3 (D598, FULL ritual, cross-repo).** Per **QSL-DIR-2026-07-19-598
+(D598, APPROVED 2026-07-19; F1 resolved to the ALTERNATIVE — ONE
+sanctioned tauri.conf.json amendment, the windows[0] object ONLY:
+visible: false plus the compact initial size, the window shown by the
+backend after first paint (rationale recorded: the 1024x700 → compact
+snap on every launch is the exact prototype artifact round 3 exists to
+remove, and it is the first thing a user sees every session; ANY other
+key in that file = STOP); F2 resolved to the DEFAULT — the 1440
+autolock cap is UI-side visible validation ONLY, settings.rs changes
+stay exactly the item-2 set (rationale recorded: 0 is already a
+sanctioned "never", so a backend cap adds no security while widening a
+core-adjacent change); both encoded rules ACCEPTED as BINDING — the
+item-2 never-fire guard is a PROVEN correctness requirement (the idle
+timer must not fire at 0; the minutes*60000 path would lock
+immediately) and the countdown gates WHEN not WHAT (erase_all, the
+phrase check, and the scope stay byte-untouched; the gate wraps the
+invoke); the autolock decision stands as encoded — 60 default, 0 =
+never, SUPERSEDING DOC-PROG-004 v0.2.0's ~15 min, with the
+roadmap-revision note a REQUIRED ledger filing at closeout and the
+DOC-PROG-004 edit itself out of scope; directive amended in place at
+approval, sha256 `bb9dc338…`, 1073 lines)**. The operator's flight of
+the merged NA-0661 build made real: the round-3 appendix lands
+byte-exact as docs/DESIGN_SPEC_AppendixE.md (sha `5175f3bc…`, 128
+lines; the NEWER decision — where it disagrees with the landed spec
+files, Appendix E governs; §1 tokens still govern values) and the
+build is corrected to it — twelve items, presentation and
+window-sizing behavior only: (1) number spinners removed on erase
+Limit and autolock Lock-after — plain styled boxes ~64px with VISIBLE
+validation (Limit 1–100, autolock 0–1440; never silently clamped or
+ignored); (2) autolock default → 60 with 0 VALID meaning NEVER
+AUTO-LOCK and the danger-banner state ("Never locks — anyone with
+access to this device can open your vault"); (3) confirm phrases
+rendered in quotes and danger mono; (4) destroy form field widths
+equal, both full width; (5) both destructive surfaces share the
+red-bordered ceremony card; (6) the arm checkbox hit area >=16px with
+the label on one line; (7) the autolock helper directly under its
+banner and the banner gaps on the 12/16/24 scale; (8) the Settings
+verification-code box max-width 420px centered; (9) rail icons ~21px
+and the status-bar text 12px #A8A8A8; (10) COMPACT WINDOWS — wizard
+560x660, unlock/erase 460x420, resized ON STATE TRANSITION to the
+main size on entering the main view, menu bar HIDDEN on compact
+screens and PRESENT in the main window, shortcuts and the context
+menu still working (backend-side on the pinned tauri 2 core API via
+the landed ui_surface_changed carrier; zero capability motion
+expected); (11) the unlock screen's "Forgot your passphrase?" RENAMED
+to "Delete vault?" in danger color opening Erase everything directly,
+the error inline with no reserved gap, PLUS the 30-SECOND COUNTDOWN
+GATE before the erase commits (the form REPLACED by the countdown;
+Cancel or closing the window ABORTS with nothing erased; erase_all
+INVOKED ONLY at zero); (12) the landed docs/DESIGN_SPEC.md +
+docs/DESIGN_SPEC_AppendixD.md AMENDED so the three-file authority is
+self-consistent (window modes, menu-bar rule, number inputs, autolock
+semantics, ceremony treatment, code-box width, spacing corrections;
+minimal surgical amendments, new shas recorded). Boundaries:
+presentation + window-sizing + the countdown gate ONLY; the TWO
+sanctioned behavior deltas are EXACTLY autolock 60/0-never and the
+countdown commit gate; NO other change to what destroy/erase DO; NO
+core/pin/dependency change; NO new core calls or marker strings; NO
+slice-B surface; the two slice-A test files byte-frozen and green,
+design_system.rs + design_round2.rs byte-unmodified and green
+(collision-checked at drafting); settings.rs exactly the item-2 set;
+tauri.conf.json bounded to windows[0]; claim-discipline wording
+binding on all new copy. Acceptance per Appendix E §E.8: every item
+screenshot-demonstrated (the honest operator-eyes split where
+input-locked); the countdown proven both aborting and completing;
+autolock 0 proven to show the danger banner AND never to lock;
+invalid number entries visibly rejected; compact windows with no menu
+bar and no vertical void and the resize proven on entering the main
+view; fmt/clippy/test green; the `rust` context intact. Begins
+**D-1285** (spine) + **D-0005** (qsl-desktop). Base: the seating merge
+(this PR) or newer, qwork-proven; qsl-desktop main must be the PR #4
+merge `e818ad9a` EXACTLY. The operator merges this PR (merge commit)
+then runs `qwork NA-0662` in a FRESH session; the lane STOPS at its
+TWO open PRs (the operator merges qsl-desktop FIRST, merge commit,
+then the spine closeout). After this lane: slice B is OWED (the
+committed successor concern; its surfaces born INTO the three-file
+authority); the DOC-PROG-004 revision micro-lane is OWED (the filed
+roadmap note); the README/release-plan refresh is the operator's
+named SEPARATE follow-up; parallel tracks per the roadmap (reviewer
+outreach NOW; ENG-0039 before first real external operator or public
+release); standing: **ENG-0036**, **ENG-0042**/**ENG-0043**,
+**ENG-0045**, **ENG-0047** (unblocked and unscheduled), **ENG-0048**
+(the destroy/settings.json boundary consistency, the operator's
+semantics call), **0b**, the **0c residue**, **NA-0635** (GATED); the
+windows-sys lock-drift hygiene micro-lane awaits the operator's word.
+The executor cannot self-promote.
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -35892,3 +35925,32 @@ See D597 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-19-597_gui_slice_a_de
 Begins at D-1284 (spine) + D-0004 (qsl-desktop). FULL ritual, cross-repo: two PRs, two decisions (one per repo), zero spine code. Presentation/copy + the item-13 state reset + the item-14 layout + the item-15 menu wiring only; what destroy/erase DO is unchanged; slice B stays OWED.
 
 OUTCOME (2026-07-19, result class GUI_SLICE_A_DESIGN_ROUND2_PASS): executed as promoted — qsl-desktop PR #4 (head 415b357, 9 files, D-0004) + the spine closeout PR (D-1284); the design authority landed byte-exact (docs/DESIGN_SPEC.md sha 34ced51b… + docs/DESIGN_SPEC_AppendixD.md sha a7d45a0a…); tokens migrated to §1; items 1–15 landed with the two slice-A test files byte-identical to base and green (suite 40/0/1); the item-13 defect fixed (reload + §5 rules; wizard alias never pre-filled) with ENG-0048 filed for the destroy/settings.json residue; the full-bleed shell + native menu landed with zero dependency motion; four re-shot launch screenshots with the menubar visible (the rig's wayland/webkit/scrot findings recorded in the testplan); STOPPED at the two open PRs, desktop first; the operator flies the corrected build before round-3.
+
+### NA-0662 — GUI slice-A design pass ROUND 3 (D598, FULL ritual, cross-repo): the operator's flight of the merged NA-0661 build — twelve items, presentation and window-sizing behavior only (number inputs de-spinnered with visible validation; autolock 60-default with 0 = never-auto-lock and the danger banner; quoted danger confirm phrases; equal full-width destroy fields; the shared red-bordered ceremony card; the arm checkbox hit area; helper/banner spacing; the 420px settings code box; the rail/status-bar legibility bump; COMPACT WINDOWS with menu-bar visibility rules; the unlock "Delete vault?" rename + inline error + the 30-second erase countdown gate; the landed spec files amended to Appendix-E consistency) — the round-3 appendix lands byte-exact as docs/DESIGN_SPEC_AppendixE.md; what destroy/erase DO is unchanged beyond the two sanctioned deltas; slice B stays OWED
+Status: READY
+
+Goals: G4
+Wire/behavior change allowed? NO wire/protocol/crypto change anywhere. NO spine change of any kind (zero spine code; the spine PR is governance records only). The qsl-desktop change is PRESENTATION + WINDOW-SIZING + the countdown commit gate: ui/** (items 1–9, 11, the countdown UI, the compact layouts), app-layer src-tauri/src/lib.rs (item 10: runtime sizing + menu visibility riding the landed ui_surface_changed carrier and the setup path; no new qsc symbol), src-tauri/src/settings.rs (EXACTLY the item-2 set: AUTOLOCK_DEFAULT_MINUTES 15 → 60; the save() 0-reject and its autolock_minimum_one_minute error REMOVED — 0 valid = never-auto-lock; the in-file unit tests amended to pin the NEW semantics; the doc comment updated; nothing else), src-tauri/tauri.conf.json bounded to the windows[0] object ONLY (the F1 resolution: visible: false + the compact initial size, shown after first paint; ANY other key = STOP), docs/DESIGN_SPEC_AppendixE.md (NEW, byte-exact from directive Appendix E), docs/DESIGN_SPEC.md + docs/DESIGN_SPEC_AppendixD.md (item-12 minimal amendments only; old → new shas recorded), additive tests/design_round3.rs. ZERO networking code (unchanged; the zero-networking scan stays green).
+Crypto/state-machine change allowed? NO crypto change anywhere. What destroy, erase, unlock, and wipe-after-N DO — and the S0/S1/S2 launch machine and wizard order — are byte-for-byte the NA-0661 behavior; the TWO sanctioned behavior deltas are EXACTLY: (a) item 2's autolock semantics — default 60, 0 valid meaning NEVER AUTO-LOCK with the PROVEN never-fire guard (the landed minutes*60000 idle comparison would lock IMMEDIATELY at 0 — the guard is a correctness requirement, proven by test) and the danger-banner state; (b) item 11's 30-second countdown gate — the gate wraps the INVOKE (erase_all, its phrase check, and its scope byte-untouched; Cancel or window close aborts with nothing erased; the erase executes only at zero; abort restores the empty form per the D597 hygiene rules). The two slice-A test files (slice_a_flows.rs, slice_a_rules.rs) are BYTE-FROZEN and green; design_system.rs + design_round2.rs byte-unmodified and green (collision-checked at drafting: nothing pins the old default, the 0-reject, the forgot wording, or the number inputs). Storage/schema change? NONE (settings.json keys unchanged; only the default VALUE of autolock_minutes moves). Auth-mechanism change? NO.
+Docs-only allowed? NOT docs-only — but ZERO dependency/lockfile/workflow motion: Cargo.toml/Cargo.lock (both crates) and ci.yml ABSENT from the diff (proof obligations); NO pin bump (qsc stays rev-pinned at `81143dcd`); window sizing and menu visibility come from the PINNED tauri 2 build's built-in window/menu API — any feature-flag/crate/plugin need = STOP; capabilities/default.json byte-untouched EXPECTED (backend-side window calls need no capability; one recorded core:* line only if strictly necessary); commands.rs byte-untouched ALWAYS. The lane touches the UI of security-relevant flows (unlock/erase/destroy/autolock) with an app-layer settings semantic and a commit-timing gate, so FULL ritual in its cross-repo form is declared without reduced-class certification (implementation PR = qsl-desktop carrying repo-local D-0005; governance closeout PR = spine carrying D-1285; the executed NA-0657/D593 … NA-0661/D597 shape). Canonical change allowed? NO. Spine source/vector/`formal/`/`.github` change? NO. Dependency/lockfile change? NONE anywhere. GUI code? YES — presentation, window sizing, the countdown gate, the spec amendments. Ledger edit? REQUIRED this lane: the OWED DOC-PROG-004 roadmap-revision note (the operator's recorded autolock decision — default 60, 0 = never — supersedes v0.2.0's "~15 min"; the doc revision itself is a separate owed micro-lane), plus any new finding.
+Claim change allowed? NO — claim-discipline wording BINDING on every line of new/changed copy including the danger-banner sentence, the countdown copy, "Delete vault?", and every spec amendment; zero security-assurance claims, zero assurance adjectives. A PASS asserts the build MATCHES APPENDIX E (items 1–12 demonstrated per §E.8) with semantics unchanged beyond the two sanctioned deltas — NOT that any security property improved, NOT that server connectivity exists (slice B, OWED), NOT that the external-review gate moved.
+
+APPROVAL RESOLUTION (operator, 2026-07-19 — all rulings recorded here per the promotion instruction):
+- F1 (tauri.conf.json / compact windows): resolved to the ALTERNATIVE — ONE sanctioned tauri.conf.json amendment, the windows[0] object ONLY: `visible: false` plus the compact initial size, with the window shown by the backend after first paint. Rationale recorded: a 1024x700 → compact snap on every launch is the exact prototype artifact round 3 exists to remove, and it is the first thing a user sees every session; the amendment is bounded to windows[0] and any other key in that file is a STOP. The exact key-level diff lands in D-0005.
+- F2 (the autolock upper bound): resolved to the DEFAULT — UI-side visible validation only; settings.rs changes stay exactly the item-2 set. Rationale recorded: 0 is already a sanctioned "never", so a backend cap adds no security while widening a core-adjacent change.
+- ENCODED RULE accepted as BINDING: the item-2 never-fire guard is a PROVEN correctness requirement — the idle timer must not fire at 0; the minutes*60000 path would lock immediately.
+- ENCODED RULE accepted as BINDING: the countdown gates WHEN not WHAT — erase_all, the phrase check, and the scope stay byte-untouched; the gate wraps the invoke.
+- The autolock decision stands as encoded: 60 default, 0 = never, superseding DOC-PROG-004 v0.2.0's ~15 min, with the roadmap-revision note as a REQUIRED ledger filing at closeout and the DOC-PROG-004 edit itself out of scope.
+
+Scope (the D598 allowed paths ONLY — the twelve operator items as the directive's normative sections; Appendix E lands byte-exact; the Appendix A copy delta verbatim; the Appendix B demonstration mapping):
+- qsl-desktop PR (branch `na0662-gui-slice-a-design-round3`, off `e818ad9a`): docs/DESIGN_SPEC_AppendixE.md + the item-12 amendments FIRST (so every item is expressed against the self-consistent authority), then items 1–11 per the directive's THE WORK; DECISIONS.md appends D-0005; new pins additive in tests/design_round3.rs (minimum set per the directive: type="number" absent; min/max 0–1440; default-60 + zero-valid; the never-fire source pin; the rename pins; the countdown-only invoke pin; the quoted phrases; the ceremony card; the token bumps; the no-surviving-contradiction-needle greps on the amended spec files).
+- spine closeout PR (branch `na0662-gui-slice-a-design-round3`): governance/queue/decision records ONLY — `DECISIONS.md` (one D-####, expected **D-1285**), `NEXT_ACTIONS.md` (this block + STATE flip), `TRACEABILITY.md`, `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`, `docs/governance/evidence/NA-0662_as_built.md` (NEW; `git add -f` — the evidence dir is gitignored), `tests/NA-0662_gui_slice_a_design_round3_testplan.md` (NEW), `docs/ops/IMPROVEMENT_LEDGER.md` (the REQUIRED DOC-PROG-004 note + any new finding).
+- FORBIDDEN: ANY change to what destroy/erase DO beyond the two sanctioned deltas; ANY launch-state-machine change; ANY new dependency (crate/feature-flag/plugin/npm/system — STOP); ANY core/qsc change, pin bump, or lockfile motion; ANY new core call (qsc-symbol set head ⊆ base, grep-proven) or new marker string; ANY slice-B surface; ANY identifier/productName/binary/title change; ANY workflow/protection/repo-settings motion (the required context `rust` must stay binding, API-verified post-PR); qsl-desktop Cargo.toml/Cargo.lock/.gitignore/build.rs/commands.rs/icons/README/LICENSE/NOTICE/SECURITY.md/CODE_OF_CONDUCT.md/CONTRIBUTING.md/CLAUDE.md byte-untouched; tauri.conf.json beyond the windows[0] object; a design_system.rs or design_round2.rs change of ANY kind; ANY spine code change; ANY claim-boundary change; DOC-PROG-004 itself. If landing needs anything else, STOP.
+
+Objective:
+Execute **QSL-DIR-2026-07-19-598 (D598, APPROVED 2026-07-19; F1/F2 resolved as recorded above; directive amended in place at approval, sha256 `bb9dc338…`, 1073 lines)** — the operator's round-3 flight of the corrected build made real: the round-3 appendix becomes part of the living design authority (byte-exact landing + the item-12 self-consistency amendments with old → new shas recorded) and the build is corrected to it. Order of work is normative: the spec landing + amendments FIRST, then the items expressed against the self-consistent authority. The slice-A acceptance behaviors are re-proven UNBROKEN (the two frozen test files byte-identical to base and green; design_system.rs + design_round2.rs unmodified and green); acceptance = Appendix E §E.8 (each item's screenshot beside its E.x block, the honest operator-eyes split recorded) with the directive's Appendix B mapping — the countdown proven BOTH aborting (nothing erased, state restored) AND completing (the erase fires only at zero); autolock 0 proven to show the danger banner AND never to lock (the never-fire guard test-proven); invalid number entries visibly rejected; compact windows with no menu bar and no vertical void, per-mode xwininfo geometry recorded, the resize proven on entering the main view; shortcuts + context-menu paste availability on compact screens recorded per the honest split; scope proofs green (no dependency/lockfile/workflow/protection motion; the tauri.conf.json diff confined to windows[0]; the qsc-symbol subset grep; the zero-networking scan; the token-discipline greps; publication scans on every added/changed text surface).
+Result classes: GUI_SLICE_A_DESIGN_ROUND3_PASS / GUI_SLICE_A_DESIGN_ROUND3_STOP. STOP conditions (class): qwork invariant mismatch; qsl-desktop main != the PR #4 merge `e818ad9a` EXACTLY at Phase 0 (anything newer = STOP and report); disk/mount gates; any red required check on either repo; the `rust` context detaching or protection weakening; any need for a new dependency, feature flag, crate, or plugin (window sizing and menus must come from the pinned tauri build as-is); any need for a new core call, marker string, pin bump, or lockfile change; any need to change destroy/erase/unlock/wipe SEMANTICS beyond the two sanctioned deltas or to touch the launch state machine; the frozen slice-A test files failing or needing modification; design_system.rs or design_round2.rs needing ANY change; any forbidden path (tauri.conf.json beyond windows[0]; commands.rs always); Appendix E failing byte-exact extraction or its sha256 mismatching `5175f3bc…`; an item-12 amendment that cannot stay minimal; scope growth beyond items 1–12; standing stops. STOP AT THE TWO OPEN PRS — the operator merges qsl-desktop FIRST (merge commit), then the spine closeout. Do not implement the successor during closeout; slice B is OWED but its promotion stays the operator's decision.
+
+See D598 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-19-598_gui_slice_a_design_round3.md`; sha256 `bb9dc338…`, 1073 lines, amended in place at approval — header, per-flag RESOLVED lines, the scope/proof/STOP lines for the windows[0] amendment, item 10a, END) for the verified current-state anchors (the settings.rs 0-reject and default-15 pins; the never-fire trace; the frozen-test collision check; the ui_surface_changed carrier), the normative items 1–12, the strict scope, phases, the wait-work packet, required response sections, STOP conditions, Appendix A (binding copy delta), Appendix B (acceptance matrix), and Appendix E (the round-3 binding appendix, → docs/DESIGN_SPEC_AppendixE.md).
+
+Begins at D-1285 (spine) + D-0005 (qsl-desktop). FULL ritual, cross-repo: two PRs, two decisions (one per repo), zero spine code. Presentation + window-sizing + the countdown gate only; what destroy/erase DO is unchanged beyond the two sanctioned deltas; slice B stays OWED.

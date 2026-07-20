@@ -6,7 +6,8 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0662 | HIGHEST_D=1285 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0663 | HIGHEST_NA=0663 | HIGHEST_D=1285 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0662 | HIGHEST_D=1285 (NA-0663 promoted for D599; this promotion PR) -->
 <!-- prior: STATE: READY=NA-0662 | HIGHEST_NA=0662 | HIGHEST_D=1284 (NA-0662 closed for D598 at D-1285; this lane PR) -->
 <!-- NA-0662 (GUI slice-A design pass ROUND 3, D598) DONE 2026-07-20 (D-1285 spine + D-0005 qsl-desktop, result class GUI_SLICE_A_DESIGN_ROUND3_PASS): FULL ritual cross-repo (security-relevant flow UI + an app-layer settings semantic + a commit-timing gate => no reduced class; implementation PR = qsl-desktop #5, governance closeout = spine), base 17bba8bc (the #1606 seating merge; qwork-proven; 9/9 push runs SUCCESS — formal-ci and qsc-adversarial WAITED OUT to green before any push); D598 executed AS APPROVED/AMENDED (sha256 bb9dc338..., 1073 lines; F1 = the ALTERNATIVE, the sanctioned tauri.conf.json windows[0]-ONLY amendment — exact key-level diff visible:(absent)->false, width:1024->560, height:700->660, minWidth/minHeight untouched (pre-show-only) and every other key byte-identical, the window shown by the backend on the first sized surface report so no launch snap ever renders, plus a 5-second fail-open fallback show; F2 = the DEFAULT, the 0-1440 range as UI-side VISIBLE validation only with settings.rs exactly the item-2 set; both encoded rules landed as BINDING). THE AUTHORITY: docs/DESIGN_SPEC_AppendixE.md BYTE-EXACT (cmp-proven; sha 5175f3bc..., 128 l; governs on disagreement) + the item-12 minimal amendments each citing [E.x] — DESIGN_SPEC.md 34ced51b...(113 l)->074244be...(143 l), AppendixD a7d45a0a...(222 l)->5f5d3a2e...(244 l); zero surviving contradiction needles (grep-pinned); the THREE-FILE authority is self-consistent and binding on future GUI lanes. THE TWO SANCTIONED DELTAS EXACTLY: (a) autolock default 60, 0 VALID = never-auto-lock (settings.rs item-2 set only: 15->60, 0-reject + autolock_minimum_one_minute REMOVED, in-file tests amended default-60+zero-valid; the BINDING never-fire guard landed BEFORE the minutes*60000 comparison, source-pinned with ordering; the E.3 banner state machine with the VERBATIM danger copy at 0) SUPERSEDING DOC-PROG-004 v0.2.0's ~15 min — the REQUIRED roadmap-revision note FILED as WF-0024, the DOC-PROG-004 edit itself a separate owed micro-lane; (b) the 30-second erase countdown gate (the form REPLACED by the E.5 panel; 30->0 number+label; Cancel/window-close/ANY state transition aborts with nothing erased, form restored empty per D597 hygiene; erase_all INVOKED ONLY at zero — source-pinned exactly ONE invoke inside the interval after the zero gate; commands.rs BYTE-ABSENT from the diff — the gate changes WHEN, never WHAT). ITEMS 1-11: de-spinnered numeric fields (type=text+inputmode, E.2 CSS, ~64px) with visible validation (1-100/0-1440, inline message + danger border, never clamped/ignored; the 720 attr gone); quoted danger phrases as CSS content on .instruction code in danger mono (the round-2 BYTE-FROZEN markup needles survive — the .phrase selector adapted per the spec's adaptation rule); full-width destroy fields, field-label above; ONE .ceremony-card on BOTH destructive surfaces (E.4 tokens; the settings head keeps the frozen h3); the 16px one-line arm checkbox; helper DIRECTLY under the autolock banner (error to the validation slot; reserved min-heights removed — no voids); the 420px centered settings code box; rail 21px + status bar 12px A8A8A8; COMPACT WINDOWS resized on MODE transition riding ui_surface_changed (wizard 560x660, unlock/erase/wiped 460x420 — wiped recorded as the total-mapping completion; main+Settings 1024x700 min 800x600; set_min_size->set_size->center, pinned tauri 2 core window API; per-mode xwininfo geometry PROVEN — 560 against the conf's minWidth 800 is itself the runtime-sizing proof); MENU BY ATTACHMENT, a NEW RECORDED FINDING: tao set_visible(true) == gtk show_all() RESURRECTS a merely-hidden menubar on the deferred first show (hide_menu returned Ok yet the bar re-rendered; the race spans two dispatch queues) — compact modes remove_menu(), Full re-attaches (set_menu+show_menu; still the pinned core menu API; zero dependency motion); the compact card FILLS its window (padding 20, stretch — no void); 'Delete vault?' as .link-danger (#C87A7A tokenized; destination unchanged; old wording REMOVED everywhere; unlock error inline-only, reserved gap gone). PROOFS: suite 56/0/1 (lib 5 + round2 17 + round3 16 NEW additive + system 6 + flows 7+1 + rules 5); the FOUR existing test files BYTE-IDENTICAL to base (be700518.../a53137ec...) and green — the drafting collision check HELD; fmt/clippy -D warnings/metadata --locked CLEAN; audit EXIT 0 unchanged lock; qsc-symbol set head == base 23/23; no new markers; zero-networking green; publication scan class pass zero overclaims; git diff --check clean; protection [rust]/strict/enforce_admins intact post-PR; the rust check SUCCESS on PR #5 head 2647864. VISUAL: four launch shots beside their E.x blocks with per-mode geometry (NO menu bar on all four compact shots); countdown abort/complete, banner both states, invalid-entry rejection, Full-mode resize+menu, compact paste/context-menu = input-driven -> source/test-proven + OPERATOR EYES at flight (testplan §3 = the flight checklist; no shortened-interval hook — not sanctioned). NOT claimed: any security property improved; server connectivity (slice B OWED); physical-display behavior. Claim boundary UNCHANGED. See D-1285, docs/governance/evidence/NA-0662_as_built.md, tests/NA-0662_gui_slice_a_design_round3_testplan.md. STOPPED AT THE TWO OPEN PRS — the operator merges qsl-desktop #5 FIRST (merge commit, rust green), then this closeout, then FLIES THE BUILD. Queue returns to READY=NONE — slice B stays OWED (born INTO the three-file authority); the DOC-PROG-004 revision micro-lane is OWED (WF-0024); promotion timing stays the operator's. The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0661 | HIGHEST_D=1284 (NA-0662 promoted for D598; this promotion PR) -->
@@ -76,40 +77,72 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NONE.** NA-0662 (GUI slice-A design
-pass ROUND 3, D598) is **DONE** at **D-1285** (spine) + **D-0005**
-(qsl-desktop), result class **GUI_SLICE_A_DESIGN_ROUND3_PASS** — the
-operator's flight of the merged NA-0661 build made real: Appendix E now
-lives IN-REPO byte-exact as docs/DESIGN_SPEC_AppendixE.md (sha
-`5175f3bc…`, 128 l; the NEWER decision, governing on disagreement) and
-the landed spec files are amended to it (DESIGN_SPEC.md → `074244be…`
-143 l; AppendixD → `5f5d3a2e…` 244 l; zero surviving contradiction
-needles) — the THREE-FILE authority is self-consistent and binding;
-qsl-desktop PR #5 (10 files, off `e818ad9a` EXACTLY, carrying D-0005)
-corrects the build to it: de-spinnered inputs with visible validation,
-autolock 60 with 0 = never-auto-lock (the never-fire guard BINDING and
-pinned; the danger banner at 0; the DOC-PROG-004 supersession filed as
-WF-0024), quoted danger phrases, full-width destroy fields, the shared
-ceremony card, the 16px one-line arm checkbox, helper-under-banner with
-no reserved voids, the 420px settings code box, rail 21px + status bar
-12px, COMPACT WINDOWS (wizard 560x660; unlock/erase 460x420; main
-1024x700; geometry xwininfo-proven; menu-bar visibility BY ATTACHMENT —
-the recorded tao show_all() resurrection finding; F1 executed as the
-windows[0]-only amendment with the exact key diff in D-0005),
-"Delete vault?" + inline unlock error, and the 30-SECOND ERASE
-COUNTDOWN GATE (erase_all byte-untouched, invoked ONLY at zero; abort
-on Cancel/close/any transition). The four existing test files are
-BYTE-IDENTICAL to base and green; suite 56/0/1 with 16 additive
-round-3 pins; every scope proof green. The operator merges qsl-desktop
-PR #5 FIRST (merge commit; rust green), then the spine closeout, then
-FLIES THE BUILD (testplan §3 is the flight checklist — the countdown
-complete/abort, the autolock-0 banner + never-locks, the invalid-entry
-rejection, the Full-mode resize + menu, compact paste). After this
-lane: slice B is OWED (the committed successor concern, born INTO the
-three-file authority); the DOC-PROG-004 revision micro-lane is OWED
-(WF-0024); the README/release-plan refresh is the operator's named
-SEPARATE follow-up; parallel tracks per the roadmap (reviewer outreach
-NOW; ENG-0039 before first real external operator or public release);
+**READY (exactly one — execute this): NA-0663 — qsc client TLS trust
+(D599, FULL ritual, two-PR, spine-only).** Per **QSL-DIR-2026-07-20-599
+(D599, APPROVED 2026-07-20; ALL THREE FLAGS resolved to the drafted
+defaults — F1 = UNION: the webpki baked-in roots + the OS native roots
++ the explicit CA additive on top (rationale recorded: nothing
+regresses and the working tailscale/LE path keeps working); F2 = TYPED
+DETECTION via the types-only direct rustls dependency,
+default-features = false MANDATORY (defaults dragging aws-lc-rs in is
+a STOP), with the enumerated vocabulary approved EXACTLY as scoped —
+relay_tls_untrusted plus the relay_ca_file_missing/_unreadable/
+_invalid trio, NO ErrorCode variant, anything beyond the set =
+mid-lane STOP per the D594 ruling (rationale recorded: string
+classification is precisely the fragility this lane exists to retire);
+F3 = the rcgen + tokio-rustls DEV-dep rig with runtime-generated
+certs — no committed key material, no bypass anywhere, the untrusted
+case asserts failure; PART-1 LOCKFILE RULING: "new crate" meant a new
+DIRECT dependency — the enumerated transitive set rustls-native-certs
++ openssl-probe + schannel is EXPECTED and approved, the lockfile
+delta verified line-by-line against that EXACT expectation, any entry
+outside it = STOP; SHAPE RULING: the literal TWO-PR full ritual
+stands — do not collapse; directive amended in place at approval,
+sha256 `925b56cd…`, 611 lines)**. The 2026-07-19 inspiron private-CA
+finding closed at the qsc dependency level — ONE concern, client TLS
+trust, three parts: (1) the reqwest line gains rustls-tls-native-roots
+(UNION per F1) and ONE house constructor replaces ALL EIGHT
+blocking-Client construction sites (transport push/pull/ack + the five
+attachments sites; no panic path); (2) the explicit ADDITIVE CA-file
+option mirroring the token precedent — env QSC_RELAY_CA_FILE →
+RELAY_CA_FILE → vault secret (candidate tui.relay.ca_file), pub
+GUI-reachable library surface + additive CLI verbs (candidates
+relay_ca_set/relay_ca_clear/relay_ca_show), the path redacted in all
+markers, fail-closed on a configured-but-unloadable file, NO 0600 gate
+(public material — the recorded asymmetry vs the token file); (3) the
+DISTINGUISHABLE typed trust outcome relay_tls_untrusted on
+push/pull/ack — distinct from unreachable, DNS failure, timeout, and
+relay_unauthorized — via the F2 typed source-chain match on rustls
+InvalidCertificate, landing as a pure classifier beside the existing
+_from_parts family with the existing diagnostic classes byte-identical
+(the DOC-PROG-004:182 "certificate not trusted" taxonomy enabler for
+the slice-B Server pane). HARD BOUNDARY: NO insecure-skip-verify /
+accept-any-certificate option in ANY form, for any reason, including
+tests — the explicit CA path is the sanctioned escape; a test
+appearing to need a bypass = STOP. Acceptance: (a) a system-trusted CA
+accepted (the SSL_CERT_FILE seam), (b) an explicit CA file accepted
+via all three ingresses + the additivity pins, (c) an untrusted cert →
+the typed outcome, NOT the opaque relay_inbox_push_failed, (d) the
+no-bypass needle scan pinned as a test + the all-knobs-wrong
+fail-closed proof; the full suite green vs the Phase-0 baseline; the
+NA-0640 e2e byte-identical AND green; audits green with the lockfile
+delta line-by-line == the enumerated expectation; every pre-existing
+test file byte-identical; base-binary A/B byte-identity on the touched
+CLI neighborhoods; the qsl-tui feature-unification consequence
+RECORDED AND REPORTED at closeout (source untouched — a known side
+effect of workspace feature unification, not a change to that binary).
+ENG-0049 filed AND paid in-lane. Begins **D-1286** (implementation PR)
++ **D-1287** (governance closeout PR); branch
+na0663-qsc-client-tls-trust off the seating merge (this PR) or newer,
+qwork-proven. The operator merges this PR (merge commit) then runs
+`qwork NA-0663` in a FRESH session; the lane STOPS at its TWO open PRs
+(implementation first, then the closeout). After this lane: slice B is
+OWED (the committed successor concern — its Server pane consumes THIS
+surface); the DOC-PROG-004 revision micro-lane is OWED (WF-0024); the
+NA-0662 operator flight stays OWED (independent of this lane); the
+README/release-plan refresh is the operator's named SEPARATE
+follow-up; parallel tracks per the roadmap (reviewer outreach NOW;
+ENG-0039 before first real external operator or public release);
 standing: **ENG-0036**, **ENG-0042**/**ENG-0043**, **ENG-0045**,
 **ENG-0047** (unblocked and unscheduled), **ENG-0048** (the
 destroy/settings.json boundary consistency, the operator's semantics
@@ -35909,3 +35942,33 @@ Result classes: GUI_SLICE_A_DESIGN_ROUND3_PASS / GUI_SLICE_A_DESIGN_ROUND3_STOP.
 See D598 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-19-598_gui_slice_a_design_round3.md`; sha256 `bb9dc338…`, 1073 lines, amended in place at approval — header, per-flag RESOLVED lines, the scope/proof/STOP lines for the windows[0] amendment, item 10a, END) for the verified current-state anchors (the settings.rs 0-reject and default-15 pins; the never-fire trace; the frozen-test collision check; the ui_surface_changed carrier), the normative items 1–12, the strict scope, phases, the wait-work packet, required response sections, STOP conditions, Appendix A (binding copy delta), Appendix B (acceptance matrix), and Appendix E (the round-3 binding appendix, → docs/DESIGN_SPEC_AppendixE.md).
 
 Begins at D-1285 (spine) + D-0005 (qsl-desktop). FULL ritual, cross-repo: two PRs, two decisions (one per repo), zero spine code. Presentation + window-sizing + the countdown gate only; what destroy/erase DO is unchanged beyond the two sanctioned deltas; slice B stays OWED.
+
+### NA-0663 — qsc client TLS trust (D599, FULL ritual, two-PR, spine-only): honor the OS trust store (reqwest rustls-tls-native-roots, UNION with the baked-in webpki roots), the explicit ADDITIVE CA-file option as pub library + additive CLI surface mirroring the relay-token pattern, and the DISTINGUISHABLE typed certificate-trust outcome relay_tls_untrusted — the DOC-PROG-004:182 "certificate not trusted" taxonomy enabler; closes the 2026-07-19 inspiron private-CA finding; files ENG-0049 and pays it in-lane; NO bypass in any form anywhere
+Status: READY
+
+Goals: G4
+Wire/behavior change allowed? NO wire/protocol/crypto change. NO relay (qsl-server) change. NO GUI code and NO qsl-desktop touch (the Server-pane UI is slice B's). The qsc change is CLIENT TLS TRUST ONLY: qsl/qsl-client/qsc/Cargo.toml (EXACTLY: the reqwest feature addition rustls-tls-native-roots; the F2 types-only `rustls = { version = "0.23", default-features = false }` line; the F3 dev-dependency lines rcgen + tokio-rustls; nothing else on the manifest), Cargo.lock (the mechanical consequence ONLY — the delta verified line-by-line against the enumerated expectation: rustls-native-certs + openssl-probe + schannel + rcgen and rcgen's enumerated transitives; the rustls types-only line and the tokio-rustls dev-dep contribute ZERO entries; any entry outside the expectation = STOP), src/transport/mod.rs (the ONE house constructor replacing all eight Client::new() sites + the CA plumbing + the pure classifier + the new outcome arms), src/attachments/mod.rs (the five constructor swaps ONLY), src/store/mod.rs (the new secret-key const), src/lib.rs (pub surface/re-exports as design-locked), src/main.rs (the ADDITIVE CLI verbs only; every existing arm byte-identical), additive tests/NA_0663_relay_tls_trust.rs. The CLI's existing behavior is byte-identical everywhere (base-binary A/B on the touched neighborhoods); the plain-http loopback rules are untouched.
+Crypto/state-machine change allowed? NO crypto change anywhere — trust-anchor composition and error classification only; the handshake, ratchet, envelope, vault, and protocol state machines are byte-untouched. The TLS layer is transport/carriage (the DOC-OPS-006 terminology discipline); nothing about the QSL protocol moves. Auth-mechanism change? NO (relay_unauthorized and the token plumbing byte-identical; the CA option is trust configuration, not authentication). Storage/schema change? The vault secret store gains ONE new key (candidate tui.relay.ca_file — the existing namespace; the token precedent's require_unlocked CLI discipline; the path redacted in all markers).
+Docs-only allowed? NOT docs-only — dependency/feature/lockfile motion IS the lane (the §9 hard boundary; hence the literal TWO-PR FULL RITUAL, no reduced class, per the SHAPE RULING). Vocabulary is BOUNDED to the approved enumerated set: relay_tls_untrusted + relay_ca_file_missing/_unreadable/_invalid; NO ErrorCode variant (model/mod.rs untouched); the existing diagnostic class strings (incl. "tls_error") byte-identical; anything beyond the set = mid-lane STOP per the D594 ruling. adversarial/route.rs is READ-ONLY (Phase 1 verifies loopback-https admissibility for the rig or STOPs). apps/** and tools/** byte-untouched — the qsl-tui feature-unification consequence (workspace builds gain native roots; standalone builds don't) is RECORDED AND REPORTED, not a change to that binary. .github/**, scripts/**, formal/**, specs/**, schemas/**, docs/program/** untouched. Ledger edit? REQUIRED this lane: ENG-0049 (the client TLS trust gap) filed AND closed-as-paid at closeout (the WF-0021/WF-0023 precedent), plus any new finding.
+Claim change allowed? NO — a PASS asserts qsc trusts what the OS trusts, an operator CA file is an additive sanctioned escape, and certificate-verification failure is a distinguishable typed outcome — NOT that any GUI exists, NOT that the inspiron LAN path was exercised (slice-B acceptance owns the live-rig demo), NOT that transport security improved beyond the stated trust change, NOT that the external-review gate moved. No public/production/crypto-complete/attachment-complete/bug-free/vulnerability-free claims. Raw private values remain proof-root-only; publish class summaries only.
+
+APPROVAL RESOLUTION (operator, 2026-07-20 — all rulings recorded here per the promotion instruction):
+- F1 (root-store composition): resolved to the DEFAULT — UNION (the webpki baked-in roots + the OS native roots + the explicit CA additive on top). Rationale recorded: nothing regresses and the working tailscale/LE path keeps working.
+- F2 (trust-error detection + vocabulary): resolved to the DEFAULT — TYPED DETECTION via the types-only direct rustls dependency with default-features = false MANDATORY (defaults dragging aws-lc-rs in is a STOP); the enumerated vocabulary approved EXACTLY as scoped — relay_tls_untrusted plus the relay_ca_file_missing/_unreadable/_invalid trio, NO ErrorCode variant, anything beyond that set is a mid-lane STOP per the D594 ruling. Rationale recorded: string classification is precisely the fragility this lane exists to retire.
+- F3 (test rig): resolved to the DEFAULT — the rcgen + tokio-rustls DEV-dep rig with runtime-generated certs; no committed key material, no bypass anywhere, the untrusted case asserts failure.
+- PART-1 LOCKFILE RULING: proceed — "new crate" meant a new DIRECT dependency, not transitive lock entries; the enumerated set rustls-native-certs + openssl-probe + schannel is EXPECTED and approved; the lockfile delta is verified line-by-line against that exact expectation and any entry outside it is a STOP.
+- SHAPE RULING: the literal TWO-PR FULL RITUAL as drafted — dependency and lockfile motion trips the §9 hard boundary, and the D594 single-PR precedent was a library-surface lane with no manifest movement. Do not collapse.
+- The two pre-encoded traps ACCEPTED as drafted: Phase 1 verifies loopback-https admissibility for the rig against the read-only adversarial/route.rs or STOPs; the qsl-tui feature-unification consequence is RECORDED AND REPORTED with its source untouched — noted in the closeout as a known side effect of workspace feature unification, not a change to that binary.
+
+Scope (the D599 allowed paths ONLY):
+- Implementation PR (branch `na0663-qsc-client-tls-trust`, off the seating merge or newer): the D599 STRICT SCOPE implementation paths exactly (the qsc Cargo.toml bounded to the three ruled movements; Cargo.lock mechanical; transport/attachments/store/lib/main as bounded above; the additive test file); DECISIONS.md appends D-1286 (the implementation decision: the three parts, the flags as ruled, the lockfile delta, the acceptance proofs, the NOT-claimed set); evidence + testplan in-PR (git add -f — the evidence dir is gitignored).
+- Governance closeout PR (after the implementation merge is verified): DECISIONS.md appends D-1287; NEXT_ACTIONS.md (this block's OUTCOME + the STATE flip: READY=NONE, HIGHEST_NA/HIGHEST_D advance); docs/ops/IMPROVEMENT_LEDGER.md (ENG-0049 filed + closed-as-paid); TRACEABILITY.md; docs/ops/ROLLING_OPERATIONS_JOURNAL.md; docs/governance/evidence/NA-0663_as_built.md; tests/NA-0663_qsc_client_tls_trust_testplan.md.
+- FORBIDDEN (STOP on touch): ANY bypass (insecure-skip-verify / accept-any-certificate / danger-accept-invalid-certs, any spelling) ANYWHERE including tests; any vocabulary beyond the enumerated set; any ErrorCode variant; any lockfile entry outside the enumerated expectation; adversarial/route.rs; model/mod.rs; vault/, fs_store/, handshake/, identity/, protocol_state/, envelope.rs, contacts/, dedup/, relay/, cmd/, output/, timeline/ (read-only use of existing pub surface only); .github/**, scripts/**, formal/**, specs/**, schemas/**, docs/program/**; apps/**, tools/**; both satellite repos; committed key material of any kind; any workflow/protection/settings motion. If landing needs anything else, STOP.
+
+Objective:
+Execute **QSL-DIR-2026-07-20-599 (D599, APPROVED 2026-07-20; all rulings as recorded above; directive amended in place at approval, sha256 `925b56cd…`, 611 lines)** — close the client TLS-trust gap: the OS trust store honored (UNION per F1) through ONE house constructor at all eight construction sites; the explicit ADDITIVE CA-file option landed as pub library surface + additive CLI verbs on the token precedent (env → vault secret; redacted; fail-closed on a configured-but-unloadable file); certificate-verification failure DISTINGUISHABLE as the typed relay_tls_untrusted outcome (typed source-chain detection per F2; the pure-classifier house pattern; the existing diagnostic classes byte-identical). Acceptance = the lane intent's (a)-(d) as test families 1-4 (the F3 runtime-cert rig; the SSL_CERT_FILE seam; all three CA ingresses + the additivity pins; the untrusted-cert typed refusal distinct from refused/DNS/timeout/401; the needle scan pinned as a test + the all-knobs-wrong fail-closed proof) + the full suite green vs the Phase-0 base-derived baseline + the NA-0640 e2e byte-identical and green + audits green with the lockfile delta line-by-line == the enumerated expectation + base-binary A/B byte-identity on the touched CLI neighborhoods.
+Result classes: QSC_CLIENT_TLS_TRUST_PASS / QSC_CLIENT_TLS_TRUST_STOP. STOP conditions (class): any qwork invariant mismatch; base regression or an unclear merge-base; any Phase-0 anchor moved; the design lock needing any path/vocabulary/crate beyond the rulings; loopback-https inadmissible for the rig under the read-only route rules; ANY bypass appearing necessary anywhere; any lockfile entry outside the enumerated expectation; the rustls types-only line contributing ANY lockfile entry; any byte-identity delta (existing tests, existing CLI arms, qsl-tui, adversarial rules, diagnostic classes, the NA-0640 e2e file); any suite-count delta beyond the new sets; committed key material; a failed or pending required check at a merge boundary; disk/mount gates; scope breach; queue/decision ambiguity; standing stops. STOP AT THE TWO OPEN PRS — the operator merges the implementation PR FIRST (merge commit), verifies, then the governance closeout PR. Do not implement the successor during closeout; slice B stays OWED but its promotion is the operator's decision.
+
+See D599 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-20-599_qsc_client_tls_trust.md`; sha256 `925b56cd…`, 611 lines, amended in place at approval — header, the part-1 lockfile ruling, per-flag RESOLVED lines, the shape ruling, END) for the draft-time CONFIRM-LIVE anchors (the verbatim dependency line; the eight construction sites; the token-precedent plumbing; the diagnostic classifier lines; the 386-entry lock census), THE DESIGN (the three parts + the hard boundary), TESTS AND ACCEPTANCE (families 1-6), STRICT SCOPE, PHASES (the two-PR full ritual), the wait-work packet, required response sections, and STOP CONDITIONS.
+
+Begins at D-1286 (implementation) + D-1287 (governance closeout). FULL ritual, spine-only, two PRs, two decisions. Client TLS trust only; no protocol/relay/GUI motion; ENG-0049 filed and paid in-lane; slice B stays OWED.

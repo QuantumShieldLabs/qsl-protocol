@@ -45,6 +45,11 @@ pub(crate) const TUI_TRUST_MODE_SECRET_KEY: &str = "tui.trust.mode";
 pub const TUI_RELAY_TOKEN_SECRET_KEY: &str = "tui.relay.token";
 pub const TUI_RELAY_TOKEN_FILE_SECRET_KEY: &str = "tui.relay.token_file";
 pub const TUI_RELAY_INBOX_TOKEN_SECRET_KEY: &str = "tui.relay.inbox_token";
+// NA-0663 (D599, D-1286): the explicit CA-file path for relay TLS trust. The existing
+// tui.relay namespace, no new one invented. The VALUE is a filesystem path, not a
+// secret -- but it is stored here because the vault secret store is the house settings
+// surface, and it is redacted in markers exactly like the token file's path.
+pub const TUI_RELAY_CA_FILE_SECRET_KEY: &str = "tui.relay.ca_file";
 pub(crate) const OUTBOX_NEXT_STATE_SECRET_KEY: &str = "outbox.next_state.v1";
 pub(crate) const CONTACT_REQUESTS_SECRET_KEY: &str = "contact_requests.json";
 pub(crate) const ATTACHMENT_JOURNAL_SECRET_KEY: &str = "attachments.json";

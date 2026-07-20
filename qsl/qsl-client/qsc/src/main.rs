@@ -530,6 +530,63 @@ fn relay_cmd(cmd: RelayCmd) -> CliResult {
             );
             println!("relay_token_file=set");
         }
+        // NA-0663 (D599, D-1286): the explicit CA-file verbs. The CA is PUBLIC
+        // material, so there is no 0600 gate here -- but the PATH is redacted in
+        // marker output exactly like the token file's, per house discipline.
+        RelayCmd::CaSet { path } => {
+            require_unlocked("relay_ca_set")?;
+            if path.as_os_str().is_empty() {
+                return Err(CliError::code("relay_ca_file_missing"));
+            }
+            let canonical = path
+                .canonicalize()
+                .unwrap_or(path)
+                .to_string_lossy()
+                .to_string();
+            if transport::relay_ca_file_set(canonical.as_str()).is_err() {
+                return Err(CliError::code("relay_ca_file_store_failed"));
+            }
+            let hash = route_token_hash8(canonical.as_str());
+            emit_marker(
+                "relay_ca_set",
+                None,
+                &[
+                    ("ok", "true"),
+                    ("path", "redacted"),
+                    ("path_hash", hash.as_str()),
+                ],
+            );
+            println!("relay_ca_file=set hash={}", hash);
+        }
+        RelayCmd::CaClear => {
+            require_unlocked("relay_ca_clear")?;
+            if transport::relay_ca_file_clear().is_err() {
+                return Err(CliError::code("relay_ca_file_store_failed"));
+            }
+            emit_marker(
+                "relay_ca_clear",
+                None,
+                &[("ok", "true"), ("path", "cleared")],
+            );
+            println!("relay_ca_file=cleared");
+        }
+        RelayCmd::CaShow => {
+            require_unlocked("relay_ca_show")?;
+            let status = transport::relay_ca_file_show();
+            let configured = if status.configured { "true" } else { "false" };
+            let hash = status.path_hash.unwrap_or_default();
+            emit_marker(
+                "relay_ca_show",
+                None,
+                &[
+                    ("ok", "true"),
+                    ("configured", configured),
+                    ("path", "redacted"),
+                    ("path_hash", hash.as_str()),
+                ],
+            );
+            println!("relay_ca_file={} hash={}", configured, hash);
+        }
     }
     Ok(())
 }

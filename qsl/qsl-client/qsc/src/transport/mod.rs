@@ -1364,6 +1364,203 @@ fn relay_auth_token_from_token_file() -> Option<String> {
     read_relay_token_file(token_file.as_str()).ok()
 }
 
+// ===========================================================================
+// NA-0663 (D599, D-1286): client TLS trust.
+//
+// Part 1 — the OS trust store is honored via the reqwest feature
+// "rustls-tls-native-roots", held in UNION with the baked-in webpki roots
+// ("rustls-tls"). Part 2 — an operator CA file is ADDITIVE on top of both.
+// Part 3 — a certificate-verification failure is a DISTINGUISHABLE typed
+// outcome instead of the opaque per-op failure value.
+//
+// THE HARD BOUNDARY: this crate exposes NO certificate-verification bypass of
+// any kind — no option to skip verification, to trust every certificate, or to
+// tolerate one that fails to verify — in any form, for any reason, including
+// tests. An explicit CA file is the sanctioned escape; a blanket bypass is not.
+// The bypass-needle scan in tests/NA_0663_relay_tls_trust.rs is fail-closed and
+// admits no exemptions, so the needles are deliberately not spelled here.
+// ===========================================================================
+
+/// The one new caller-visible relay outcome: the peer's certificate did not
+/// verify. Distinct from unreachable, DNS failure, timeout, and
+/// `relay_unauthorized`.
+pub const RELAY_TLS_UNTRUSTED: &str = "relay_tls_untrusted";
+/// A CA file was configured but is not present.
+pub const RELAY_CA_FILE_MISSING: &str = "relay_ca_file_missing";
+/// A CA file was configured and exists but could not be read.
+pub const RELAY_CA_FILE_UNREADABLE: &str = "relay_ca_file_unreadable";
+/// A CA file was configured and read but holds no parsable PEM certificate.
+pub const RELAY_CA_FILE_INVALID: &str = "relay_ca_file_invalid";
+
+const RELAY_CA_FILE_ENV: &str = "QSC_RELAY_CA_FILE";
+const RELAY_CA_FILE_ENV_FALLBACK: &str = "RELAY_CA_FILE";
+
+/// Why a house relay client could not be built.
+///
+/// This is an internal Rust type, NOT a caller-visible outcome: `CaFile`
+/// carries one of the enumerated values above, which the call site returns
+/// verbatim, and `Build` carries nothing so the call site reports its OWN
+/// pre-existing failure value. No new vocabulary reaches a caller through it.
+pub(crate) enum RelayHttpClientError {
+    CaFile(&'static str),
+    Build,
+}
+
+/// The configured CA-file path, resolved exactly like the auth token:
+/// env `QSC_RELAY_CA_FILE` -> env `RELAY_CA_FILE` -> vault secret
+/// `tui.relay.ca_file`. `None` means no CA file is configured, which is the
+/// ordinary case and NOT an error.
+fn relay_ca_file() -> Option<String> {
+    if let Some(path) = relay_ca_file_from_env() {
+        return Some(path);
+    }
+    relay_ca_file_from_account_secret()
+}
+
+fn relay_ca_file_from_env() -> Option<String> {
+    relay_trimmed_nonempty(env::var(RELAY_CA_FILE_ENV).ok())
+        .or_else(|| relay_trimmed_nonempty(env::var(RELAY_CA_FILE_ENV_FALLBACK).ok()))
+}
+
+fn relay_ca_file_from_account_secret() -> Option<String> {
+    let value = match vault::secret_get(TUI_RELAY_CA_FILE_SECRET_KEY) {
+        Ok(Some(v)) => Some(v),
+        _ => None,
+    };
+    relay_trimmed_nonempty(value)
+}
+
+/// Read a configured CA bundle from disk, FAIL-CLOSED.
+///
+/// Deliberate, recorded asymmetry vs `read_relay_token_file`: there is NO 0600
+/// permission gate here. A CA certificate is PUBLIC material and a
+/// world-readable CA file is correct; readability is the only requirement.
+fn read_relay_ca_file(path: &str) -> Result<Vec<u8>, &'static str> {
+    let p = Path::new(path);
+    let md = fs::metadata(p).map_err(|_| RELAY_CA_FILE_MISSING)?;
+    if !md.is_file() {
+        return Err(RELAY_CA_FILE_UNREADABLE);
+    }
+    fs::read(p).map_err(|_| RELAY_CA_FILE_UNREADABLE)
+}
+
+/// The ONE house relay HTTP client. Replaces every `HttpClient::new()` site.
+///
+/// Built through `ClientBuilder` rather than `Client::new()`, which panics on a
+/// TLS backend failure; this form must not panic. Root composition:
+///
+///   * webpki/Mozilla roots  — from the "rustls-tls" feature (UNCHANGED)
+///   * OS trust store        — from the "rustls-tls-native-roots" feature (NEW)
+///   * the operator CA file  — added here when configured (NEW, ADDITIVE)
+///
+/// The built-in roots are NEVER disabled: this function does not call
+/// `tls_built_in_root_certs(false)`, and that absence is the webpki-continuity
+/// pin (an in-suite public-endpoint probe would breach the zero-external-
+/// networking discipline, so the source pin is the honest substitute).
+pub(crate) fn relay_http_client() -> Result<HttpClient, RelayHttpClientError> {
+    let mut builder = reqwest::blocking::Client::builder();
+    if let Some(path) = relay_ca_file() {
+        // Fail closed: a configured CA that cannot be loaded is an error. We
+        // never silently proceed without the operator's CA and never fall back
+        // to ignoring the option.
+        let pem = read_relay_ca_file(path.as_str()).map_err(RelayHttpClientError::CaFile)?;
+        let certs = reqwest::Certificate::from_pem_bundle(pem.as_slice())
+            .map_err(|_| RelayHttpClientError::CaFile(RELAY_CA_FILE_INVALID))?;
+        if certs.is_empty() {
+            return Err(RelayHttpClientError::CaFile(RELAY_CA_FILE_INVALID));
+        }
+        for cert in certs {
+            builder = builder.add_root_certificate(cert);
+        }
+    }
+    builder.build().map_err(|_| RelayHttpClientError::Build)
+}
+
+/// Does this error chain report a certificate-verification refusal?
+///
+/// Typed, not string-matched: walks the std source chain and matches the
+/// `rustls::Error::InvalidCertificate` class by VALUE, so it is robust to
+/// upstream message wording. rustls reports the whole verification class here
+/// (unknown issuer, name mismatch, expiry) — that class IS "certificate not
+/// trusted" for taxonomy purposes.
+fn relay_error_is_tls_untrusted(err: &(dyn std::error::Error + 'static)) -> bool {
+    let mut cursor: Option<&(dyn std::error::Error + 'static)> = Some(err);
+    while let Some(current) = cursor {
+        if let Some(tls_err) = current.downcast_ref::<rustls::Error>() {
+            return matches!(tls_err, rustls::Error::InvalidCertificate(_));
+        }
+        // std::io::Error is the load-bearing hop: tokio-rustls reports a handshake
+        // refusal as io::Error::new(InvalidData, rustls::Error), and io::Error's
+        // `source()` delegates to the INNER error's source rather than yielding the
+        // inner error itself. Without `get_ref()` the walk steps straight past the
+        // rustls value and the trust failure collapses back into the opaque outcome.
+        if let Some(io_err) = current.downcast_ref::<std::io::Error>() {
+            if let Some(inner) = io_err.get_ref() {
+                if let Some(tls_err) = inner.downcast_ref::<rustls::Error>() {
+                    return matches!(tls_err, rustls::Error::InvalidCertificate(_));
+                }
+                cursor = Some(inner);
+                continue;
+            }
+        }
+        cursor = current.source();
+    }
+    false
+}
+
+/// Pure classifier, socket-free and testable — the house `_from_parts` shape.
+/// Returns the trust outcome when the failure was a certificate refusal, and
+/// otherwise the caller's OWN pre-existing failure value, unchanged.
+fn relay_send_outcome_from_parts(tls_untrusted: bool, fallback: &'static str) -> &'static str {
+    if tls_untrusted {
+        RELAY_TLS_UNTRUSTED
+    } else {
+        fallback
+    }
+}
+
+/// Classify a live send error against a call site's existing failure value.
+fn relay_send_outcome_for_error(err: &reqwest::Error, fallback: &'static str) -> &'static str {
+    relay_send_outcome_from_parts(relay_error_is_tls_untrusted(err), fallback)
+}
+
+/// Presence class + redacted hash of the configured CA path. The raw path is
+/// never published — the `relay_token_set` redaction precedent.
+pub struct RelayCaFileStatus {
+    pub configured: bool,
+    pub path_hash: Option<String>,
+}
+
+/// Set the explicit relay CA-file path (vault-backed; env still takes
+/// precedence at resolution time). Pub for the GUI Server pane (slice B).
+pub fn relay_ca_file_set(path: &str) -> Result<(), &'static str> {
+    let trimmed = path.trim();
+    if trimmed.is_empty() {
+        return Err(RELAY_CA_FILE_MISSING);
+    }
+    vault::secret_set(TUI_RELAY_CA_FILE_SECRET_KEY, trimmed)
+}
+
+/// Clear the explicit relay CA-file path.
+pub fn relay_ca_file_clear() -> Result<(), &'static str> {
+    vault::secret_set(TUI_RELAY_CA_FILE_SECRET_KEY, "")
+}
+
+/// Inspect the configured CA-file path: presence + hash only, never the path.
+pub fn relay_ca_file_show() -> RelayCaFileStatus {
+    match relay_ca_file_from_account_secret() {
+        Some(path) => RelayCaFileStatus {
+            configured: true,
+            path_hash: Some(route_token_hash8(path.as_str())),
+        },
+        None => RelayCaFileStatus {
+            configured: false,
+            path_hash: None,
+        },
+    }
+}
+
+
 const RELAY_PUSH_DIAGNOSTIC_ENV: &str = "QSC_RELAY_PUSH_DIAGNOSTIC";
 const RELAY_PUSH_DIAGNOSTIC_MODE_REDACTED: &str = "redacted";
 
@@ -1560,7 +1757,11 @@ pub(super) fn relay_inbox_push(
     let base = normalize_relay_endpoint(relay_base)?;
     let base = base.trim_end_matches('/');
     let url = format!("{}/v1/push", base);
-    let client = HttpClient::new();
+    let client = match relay_http_client() {
+        Ok(v) => v,
+        Err(RelayHttpClientError::CaFile(code)) => return Err(code),
+        Err(RelayHttpClientError::Build) => return Err("relay_inbox_push_failed"),
+    };
     let mut req = client
         .post(url)
         .header("X-QSL-Route-Token", route_token.as_str())
@@ -1573,17 +1774,21 @@ pub(super) fn relay_inbox_push(
     let resp = match req.send() {
         Ok(v) => v,
         Err(err) => {
+            // NA-0663: the certificate-verification class becomes distinguishable.
+            // error_class / diagnostic_class / timeout_phase_class are UNCHANGED --
+            // the new outcome flows through the EXISTING qsc_error field only.
+            let outcome = relay_send_outcome_for_error(&err, "relay_inbox_push_failed");
             emit_relay_push_diagnostic(RelayPushDiagnostic {
                 status: None,
                 body_len: None,
                 error_class: relay_push_error_class_for_send_error(&err),
                 diagnostic_class: relay_push_diagnostic_class_for_send_error(&err),
                 timeout_phase_class: relay_push_timeout_phase_class_for_send_error(&err),
-                qsc_error: "relay_inbox_push_failed",
+                qsc_error: outcome,
                 route_header_present: true,
                 auth_present,
             });
-            return Err("relay_inbox_push_failed");
+            return Err(outcome);
         }
     };
     let status = resp.status();
@@ -1629,7 +1834,11 @@ fn relay_inbox_pull_mode(
         AckMode::Legacy => format!("{}/v1/pull?max={}", base, max),
         AckMode::Lease => format!("{}/v1/pull?max={}&ack=lease", base, max),
     };
-    let client = HttpClient::new();
+    let client = match relay_http_client() {
+        Ok(v) => v,
+        Err(RelayHttpClientError::CaFile(code)) => return Err(code),
+        Err(RelayHttpClientError::Build) => return Err("relay_inbox_pull_failed"),
+    };
     let mut req = client
         .get(url)
         .header("X-QSL-Route-Token", route_token.as_str());
@@ -1638,7 +1847,7 @@ fn relay_inbox_pull_mode(
     }
     let resp = match req.send() {
         Ok(v) => v,
-        Err(_) => return Err("relay_inbox_pull_failed"),
+        Err(err) => return Err(relay_send_outcome_for_error(&err, "relay_inbox_pull_failed")),
     };
     match resp.status() {
         HttpStatus::OK => {
@@ -1673,7 +1882,11 @@ fn relay_inbox_ack(
         Ok(v) => v,
         Err(_) => return Err("relay_ack_failed"),
     };
-    let client = HttpClient::new();
+    let client = match relay_http_client() {
+        Ok(v) => v,
+        Err(RelayHttpClientError::CaFile(code)) => return Err(code),
+        Err(RelayHttpClientError::Build) => return Err("relay_ack_failed"),
+    };
     let mut req = client
         .post(url)
         .header("X-QSL-Route-Token", route_token.as_str())
@@ -1684,7 +1897,7 @@ fn relay_inbox_ack(
     }
     let resp = match req.send() {
         Ok(v) => v,
-        Err(_) => return Err("relay_ack_failed"),
+        Err(err) => return Err(relay_send_outcome_for_error(&err, "relay_ack_failed")),
     };
     match resp.status() {
         HttpStatus::OK => {

@@ -13,7 +13,18 @@ keyring = { version = "3.6.3", optional = true, features = ["apple-native", "win
 rand_core = "0.6"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
+# NA-0663 (D599, D-1286) movement 1: "rustls-tls-native-roots" ADDED so the OS trust
+# store is honored (SSL_CERT_FILE/SSL_CERT_DIR then behave as standard). "rustls-tls"
+# STAYS — the roots are a UNION of the baked-in webpki set and the system set, so no
+# certificate trusted before this change stops being trusted.
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls", "rustls-tls-native-roots"] }
+# NA-0663 (D599, D-1286) movement 2: TYPES-ONLY. Used solely to match
+# rustls::Error::InvalidCertificate by VALUE when classifying a transport failure, so
+# "certificate not trusted" is a typed outcome rather than a matched substring. Already
+# in the lockfile at 0.23.36 via reqwest -> hyper-rustls, so this contributes ZERO new
+# lock entries. default-features = false is MANDATORY: rustls's defaults would drag the
+# aws-lc-rs provider stack in (the active provider here is ring).
+rustls = { version = "0.23", default-features = false }
 sha2 = "0.10"
 zeroize = { version = "1.7", features = ["zeroize_derive"] }
 quantumshield_refimpl = { path = "../../../tools/refimpl/quantumshield_refimpl", features = ["pqcrypto"] }
@@ -32,5 +43,11 @@ proptest = "1"
 qsl_attachments = { package = "qsl-attachments", git = "https://github.com/QuantumShieldLabs/qsl-attachments.git", rev = "1e1ae272a4cbfbb5d76fab634b2cda0fe9b12b34" }
 # NA-0640 (D576): test-only — run the REAL relay in-process for the full-stack e2e round-trip.
 qsl_server = { package = "qsl-server", git = "https://github.com/QuantumShieldLabs/qsl-server.git", rev = "3cc551a8d9cfd8f8f53d51e0b98d10a5dc62c944" }
+# NA-0663 (D599, D-1286) movement 3: the TLS trust rig, dev-only. Certificates are
+# generated at RUNTIME (rcgen) and served over a loopback listener (tokio-rustls) — no
+# key material is ever committed, and no test reaches an external host. tokio-rustls is
+# already locked via hyper-rustls, so only rcgen and its transitives are new.
+rcgen = "0.13"
 tempfile = "3"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "sync", "time"] }
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring"] }

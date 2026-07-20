@@ -494,7 +494,13 @@ fn attachment_service_create_session(
     record: &AttachmentTransferRecord,
 ) -> Result<AttachmentServiceCreateSessionResponse, String> {
     let url = format!("{service_url}/v1/attachments/sessions");
-    let client = HttpClient::new();
+    let client = match transport::relay_http_client() {
+        Ok(v) => v,
+        Err(transport::RelayHttpClientError::CaFile(code)) => return Err(code.to_string()),
+        Err(transport::RelayHttpClientError::Build) => {
+            return Err("attachment_service_create_failed".to_string())
+        }
+    };
     let request = AttachmentServiceCreateSessionRequest {
         attachment_id: record.attachment_id.clone(),
         ciphertext_len: record.ciphertext_len,
@@ -526,7 +532,13 @@ fn attachment_service_status(
     resume_token: &str,
 ) -> Result<AttachmentServiceSessionStatusResponse, String> {
     let url = format!("{service_url}/v1/attachments/sessions/{session_ref}");
-    let client = HttpClient::new();
+    let client = match transport::relay_http_client() {
+        Ok(v) => v,
+        Err(transport::RelayHttpClientError::CaFile(code)) => return Err(code.to_string()),
+        Err(transport::RelayHttpClientError::Build) => {
+            return Err("attachment_service_status_failed".to_string())
+        }
+    };
     let token = env::var("QSC_ATTACHMENT_RESUME_TOKEN_OVERRIDE")
         .ok()
         .filter(|v| !v.trim().is_empty())
@@ -555,7 +567,13 @@ fn attachment_service_upload_part(
     bytes: Vec<u8>,
 ) -> Result<(), String> {
     let url = format!("{service_url}/v1/attachments/sessions/{session_ref}/parts/{part_index}");
-    let client = HttpClient::new();
+    let client = match transport::relay_http_client() {
+        Ok(v) => v,
+        Err(transport::RelayHttpClientError::CaFile(code)) => return Err(code.to_string()),
+        Err(transport::RelayHttpClientError::Build) => {
+            return Err("attachment_service_upload_failed".to_string())
+        }
+    };
     let token = env::var("QSC_ATTACHMENT_RESUME_TOKEN_OVERRIDE")
         .ok()
         .filter(|v| !v.trim().is_empty())
@@ -582,7 +600,13 @@ fn attachment_service_commit(
     record: &AttachmentTransferRecord,
 ) -> Result<AttachmentServiceCommitResponse, String> {
     let url = format!("{service_url}/v1/attachments/sessions/{session_ref}/commit");
-    let client = HttpClient::new();
+    let client = match transport::relay_http_client() {
+        Ok(v) => v,
+        Err(transport::RelayHttpClientError::CaFile(code)) => return Err(code.to_string()),
+        Err(transport::RelayHttpClientError::Build) => {
+            return Err("attachment_service_commit_failed".to_string())
+        }
+    };
     let token = env::var("QSC_ATTACHMENT_RESUME_TOKEN_OVERRIDE")
         .ok()
         .filter(|v| !v.trim().is_empty())
@@ -1284,7 +1308,13 @@ fn attachment_fetch_ciphertext(
         .or_else(|| record.fetch_capability.clone())
         .ok_or_else(|| "REJECT_ATT_DESC_LOCATOR_PLACEMENT".to_string())?;
     let url = format!("{service_url}/v1/attachments/objects/{locator_ref}");
-    let client = HttpClient::new();
+    let client = match transport::relay_http_client() {
+        Ok(v) => v,
+        Err(transport::RelayHttpClientError::CaFile(code)) => return Err(code.to_string()),
+        Err(transport::RelayHttpClientError::Build) => {
+            return Err("attachment_fetch_failed".to_string())
+        }
+    };
     let mut req = client
         .get(url)
         .header("X-QATT-Fetch-Capability", fetch_capability);

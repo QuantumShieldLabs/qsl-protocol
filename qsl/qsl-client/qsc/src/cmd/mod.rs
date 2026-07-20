@@ -655,6 +655,17 @@ pub enum RelayCmd {
         #[arg(long, value_name = "PATH")]
         path: PathBuf,
     },
+    /// Set path to an explicit CA certificate (PEM) trusted IN ADDITION to the
+    /// system and built-in roots (env CA file takes precedence).
+    CaSet {
+        /// Path to the PEM CA certificate or bundle.
+        #[arg(long, value_name = "PATH")]
+        path: PathBuf,
+    },
+    /// Clear the explicit relay CA certificate path.
+    CaClear,
+    /// Show whether an explicit relay CA certificate is configured (redacted).
+    CaShow,
 }
 
 #[derive(Subcommand, Debug)]

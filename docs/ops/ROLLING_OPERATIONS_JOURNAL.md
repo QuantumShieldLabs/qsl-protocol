@@ -43970,3 +43970,49 @@ pin and binds its Settings Vault/Security pane to exactly this surface).
 - STOPPED at the two open PRs — desktop #4 first (merge commit; rust
   green), then the spine closeout; the operator then FLIES the corrected
   build before round-3 findings.
+
+## 2026-07-20 — NA-0662: GUI slice-A design pass ROUND 3 (D598; D-1285 + D-0005)
+
+- The operator's flight findings on the merged NA-0661 build landed as
+  round 3: Appendix E byte-exact in-repo (sha `5175f3bc…`; the newer
+  decision, governing on disagreement) with the item-12 amendments
+  making the three-file design authority self-consistent; the twelve
+  items delivered as presentation + window sizing + the two sanctioned
+  deltas ONLY (autolock 60/0-never; the 30-second erase countdown gate
+  — the gate changes WHEN the erase commits, never what it erases;
+  commands.rs is byte-absent from the diff).
+- F1 executed as the operator-ruled windows[0]-only tauri.conf.json
+  amendment (visible:false + the 560x660 compact initial size; width/
+  height/visible are the ONLY changed keys). The window is shown by the
+  backend on the first sized surface report, so the 1024x700→compact
+  launch snap is structurally impossible; a 5-second fail-open fallback
+  show guards a frontend boot fault.
+- NEW RIG/API FINDING, recorded for every future GUI lane: tao's Linux
+  `set_visible(true)` is gtk `show_all()` — it RESURRECTS hidden child
+  widgets, the menubar included. `hide_menu()` returned Ok (and read
+  back hidden) yet the bar re-rendered when the deferred show
+  processed; the race spans two dispatch queues and no bounded wait
+  closes it. The deterministic mechanism is menu visibility BY
+  ATTACHMENT: compact modes `remove_menu()` (a destroyed widget cannot
+  be resurrected), the full mode re-attaches the app-wide menu — still
+  exclusively the pinned tauri 2 core menu API. The headless captures
+  proved it: the menubar was present in the first wizard capture and
+  ABSENT in all four compact captures after the change.
+- The rig itself held on the NA-0661 recipe verbatim; two additive
+  notes: the WM-less Xvfb server parks the window ORIGIN at screen
+  center (bump the screen to 2560x1600 and crop to the xwininfo rect),
+  and per-mode geometry is the honest sizing proof (560 wide against
+  the conf's untouched minWidth 800 can only come from the backend
+  path).
+- The round-2 byte-frozen pins shaped two adaptation decisions, both
+  recorded in D-0005: the E.4 quoted phrases render via CSS content on
+  the frozen `<code>` markup, and the settings ceremony head keeps its
+  frozen h3 form with the ceremony-head class.
+- The REQUIRED DOC-PROG-004 roadmap-revision note is filed as WF-0024
+  (the autolock 60/0 operator decision supersedes v0.2.0's "~15 min";
+  the doc edit is a separate owed micro-lane).
+- STOPPED at the two open PRs — desktop #5 first (merge commit; rust
+  green, verified SUCCESS on head 2647864), then the spine closeout;
+  the operator then FLIES the build (the testplan §3 flight checklist
+  covers the countdown complete/abort, autolock-0, the visible
+  rejections, the Full-mode resize + menu, and compact paste).

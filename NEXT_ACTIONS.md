@@ -6,7 +6,8 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0663 | HIGHEST_D=1287 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0664 | HIGHEST_NA=0664 | HIGHEST_D=1287 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0663 | HIGHEST_D=1287 (NA-0664 promoted for D600; this promotion PR) -->
 <!-- prior: STATE: READY=NA-0663 | HIGHEST_NA=0663 | HIGHEST_D=1285 (NA-0663 closed for D599 at D-1286 implementation + D-1287 closeout; this closeout PR) -->
 <!-- NA-0663 (qsc client TLS trust, D599) DONE 2026-07-21 (D-1286 implementation + D-1287 closeout, result class QSC_CLIENT_TLS_TRUST_PASS for the implementation half): FULL ritual two-PR spine-only lane; implementation PR #1609 merged `b2dc23bf` (true merge commit, 34/34 PR checks green). THREE PARTS LANDED per the ruled flags: (1) F1 UNION — the reqwest feature line gains `rustls-tls-native-roots` with `rustls-tls` RETAINED, so roots are the union of the baked-in webpki set and the OS trust store and nothing previously trusted stops being trusted; SSL_CERT_FILE/SSL_CERT_DIR now behave as standard; (2) an ADDITIVE explicit CA-file option resolving env QSC_RELAY_CA_FILE -> env RELAY_CA_FILE -> vault secret `tui.relay.ca_file`, FAIL-CLOSED on a configured-but-unusable CA, the raw path never published (presence + hash only), pub GUI-reachable surface `qsc::transport::relay_ca_file_set/clear/show` plus the additive CLI verbs `relay ca-set`/`ca-clear`/`ca-show`, and NO 0600 gate (a deliberate recorded asymmetry vs the token file: a CA is public material); (3) F2 TYPED DETECTION — `relay_tls_untrusted` on push/pull/ack matched BY VALUE on `rustls::Error::InvalidCertificate` rather than by substring, distinct from unreachable/DNS/timeout/`relay_unauthorized`, plus the `relay_ca_file_missing`/`_unreadable`/`_invalid` trio; NO ErrorCode variant. ONE house constructor `relay_http_client()` replaced ALL EIGHT `HttpClient::new()` sites. FOUR OPERATOR RULINGS at execution: `src/cmd/mod.rs` ADMITTED to strict scope bounded to the three additive RelayCmd variants (the directive required additive CLI verbs while forbidding the only file where a clap verb can be DECLARED — the executor STOPPED at the design lock rather than improvise); `pem`+`yasna` accepted as rcgen dev-only transitives; `relay_ca_file_store_failed` accepted as an explicit vocabulary expansion four->five (the F2 bound governs the TRANSPORT contract, not CLI setter store failures); `require_unlocked` confirmed on all three verbs. A REAL BUG THE TESTS CAUGHT, not review: the first typed detection walked `source()` alone and DID NOT FIRE, because tokio-rustls reports a refusal as `io::Error::new(InvalidData, rustls::Error)` and `io::Error::source()` delegates to the INNER error's source rather than yielding it — `get_ref()` is load-bearing. PROOFS: suite 110 binaries / 434 passed / 0 failed / 1 ignored EXIT 0 vs base 109/423/0/1 — delta EXACTLY +1 binary and +11 tests, the new file and nothing else; every pre-existing test file BYTE-IDENTICAL to base including NA_0640_full_stack_e2e.rs (green at head); base-binary A/B over the existing relay verbs byte-for-byte IDENTICAL; both audits exit 0; lockfile 386->392 with `aws-lc-rs`/`aws-lc-sys` 0 at base AND head and `ring` unchanged. NO insecure-skip-verify / accept-any-certificate / accept-invalid-certificate path exists in any form, including tests; the needle scan is pinned as an executable test with NO exemption list. POST-MERGE, MAIN IS NOT GREEN AND THAT IS RECORDED HONESTLY: `macos-build` CANCELLED by a 120-minute timeout on `macos-qsc-full-serial` (NOT a designed supersession — main had not advanced) and `public-ci` FAILED as the designed consequence via its `public-safety` watchdog; `qsc-linux-full-suite` PASSED (2h37m08s, 15/15 jobs). A measurement on the PARENT commit established the macOS suite fit in 105m52s with only 14m08s of margin, so the ceiling was NOT already breached and this lane consumed the remaining headroom. THREE HYPOTHESES were then tested from outside: Argon2id-per-subprocess REFUTED (serial 78.38s vs parallel 19.98s); trust-store loading per construction REFUTED (122 certs -> 1 cert changed nothing); the per-construction VAULT READ in `relay_ca_file()` ESTABLISHED as the LOCATION of a +311/+329/+372 ms per-operation cost that scales super-linearly — but NOT established as the root cause, since a `vault::secret_get` should cost tens of milliseconds, so it stands as a PROXY for something below it. Filed: ENG-0049 (this gap, CLOSED AS PAID in-lane), ENG-0050 (fmt/clippy validation-default hazard), ENG-0051 (bearer token sent to an open-mode relay), ENG-0052 (push-only full-suite exercise gap / macOS ceiling), ENG-0053 (the per-construction vault read). The macOS ceiling remains UNRESOLVED and that is DELIBERATE: it is a separate lane and the operator ruled it should wait for the instrumentation result rather than be papered over with a config knob. Queue returns to READY=NONE — GUI slice B stays OWED (its Server pane consumes THIS surface), the WF-0024 DOC-PROG-004 micro-lane stays OWED, and the NA-0662 operator flight stays OWED and untouched. The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0662 | HIGHEST_D=1285 (NA-0663 promoted for D599; this promotion PR) -->
@@ -79,78 +80,71 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NA-0663 — qsc client TLS trust
-(D599, FULL ritual, two-PR, spine-only).** Per **QSL-DIR-2026-07-20-599
-(D599, APPROVED 2026-07-20; ALL THREE FLAGS resolved to the drafted
-defaults — F1 = UNION: the webpki baked-in roots + the OS native roots
-+ the explicit CA additive on top (rationale recorded: nothing
-regresses and the working tailscale/LE path keeps working); F2 = TYPED
-DETECTION via the types-only direct rustls dependency,
-default-features = false MANDATORY (defaults dragging aws-lc-rs in is
-a STOP), with the enumerated vocabulary approved EXACTLY as scoped —
-relay_tls_untrusted plus the relay_ca_file_missing/_unreadable/
-_invalid trio, NO ErrorCode variant, anything beyond the set =
-mid-lane STOP per the D594 ruling (rationale recorded: string
-classification is precisely the fragility this lane exists to retire);
-F3 = the rcgen + tokio-rustls DEV-dep rig with runtime-generated
-certs — no committed key material, no bypass anywhere, the untrusted
-case asserts failure; PART-1 LOCKFILE RULING: "new crate" meant a new
-DIRECT dependency — the enumerated transitive set rustls-native-certs
-+ openssl-probe + schannel is EXPECTED and approved, the lockfile
-delta verified line-by-line against that EXACT expectation, any entry
-outside it = STOP; SHAPE RULING: the literal TWO-PR full ritual
-stands — do not collapse; directive amended in place at approval,
-sha256 `925b56cd…`, 611 lines)**. The 2026-07-19 inspiron private-CA
-finding closed at the qsc dependency level — ONE concern, client TLS
-trust, three parts: (1) the reqwest line gains rustls-tls-native-roots
-(UNION per F1) and ONE house constructor replaces ALL EIGHT
-blocking-Client construction sites (transport push/pull/ack + the five
-attachments sites; no panic path); (2) the explicit ADDITIVE CA-file
-option mirroring the token precedent — env QSC_RELAY_CA_FILE →
-RELAY_CA_FILE → vault secret (candidate tui.relay.ca_file), pub
-GUI-reachable library surface + additive CLI verbs (candidates
-relay_ca_set/relay_ca_clear/relay_ca_show), the path redacted in all
-markers, fail-closed on a configured-but-unloadable file, NO 0600 gate
-(public material — the recorded asymmetry vs the token file); (3) the
-DISTINGUISHABLE typed trust outcome relay_tls_untrusted on
-push/pull/ack — distinct from unreachable, DNS failure, timeout, and
-relay_unauthorized — via the F2 typed source-chain match on rustls
-InvalidCertificate, landing as a pure classifier beside the existing
-_from_parts family with the existing diagnostic classes byte-identical
-(the DOC-PROG-004:182 "certificate not trusted" taxonomy enabler for
-the slice-B Server pane). HARD BOUNDARY: NO insecure-skip-verify /
-accept-any-certificate option in ANY form, for any reason, including
-tests — the explicit CA path is the sanctioned escape; a test
-appearing to need a bypass = STOP. Acceptance: (a) a system-trusted CA
-accepted (the SSL_CERT_FILE seam), (b) an explicit CA file accepted
-via all three ingresses + the additivity pins, (c) an untrusted cert →
-the typed outcome, NOT the opaque relay_inbox_push_failed, (d) the
-no-bypass needle scan pinned as a test + the all-knobs-wrong
-fail-closed proof; the full suite green vs the Phase-0 baseline; the
-NA-0640 e2e byte-identical AND green; audits green with the lockfile
-delta line-by-line == the enumerated expectation; every pre-existing
-test file byte-identical; base-binary A/B byte-identity on the touched
-CLI neighborhoods; the qsl-tui feature-unification consequence
-RECORDED AND REPORTED at closeout (source untouched — a known side
-effect of workspace feature unification, not a change to that binary).
-ENG-0049 filed AND paid in-lane. Begins **D-1286** (implementation PR)
-+ **D-1287** (governance closeout PR); branch
-na0663-qsc-client-tls-trust off the seating merge (this PR) or newer,
-qwork-proven. The operator merges this PR (merge commit) then runs
-`qwork NA-0663` in a FRESH session; the lane STOPS at its TWO open PRs
-(implementation first, then the closeout). After this lane: slice B is
-OWED (the committed successor concern — its Server pane consumes THIS
-surface); the DOC-PROG-004 revision micro-lane is OWED (WF-0024); the
-NA-0662 operator flight stays OWED (independent of this lane); the
-README/release-plan refresh is the operator's named SEPARATE
-follow-up; parallel tracks per the roadmap (reviewer outreach NOW;
-ENG-0039 before first real external operator or public release);
-standing: **ENG-0036**, **ENG-0042**/**ENG-0043**, **ENG-0045**,
-**ENG-0047** (unblocked and unscheduled), **ENG-0048** (the
-destroy/settings.json boundary consistency, the operator's semantics
-call), **0b**, the **0c residue**, **NA-0635** (GATED); the
-windows-sys lock-drift hygiene micro-lane awaits the operator's word.
-The executor cannot self-promote.
+**READY (exactly one — execute this): NA-0664 — macOS CI capacity
+correction + per-construction vault-read instrumentation (D600, FULL
+ritual, two-PR, spine-only, `.github/**` + `docs/**` ONLY — NO src/
+diff).** Per **QSL-DIR-2026-07-21-600 (D600, APPROVED 2026-07-21; ALL
+FOUR FLAGS RULED — F1 = the macOS `timeout-minutes` on
+`macos-qsc-full-serial` goes 120 -> **180**, = 1.70x the measured
+105m52s pre-lane runtime (rationale recorded: the Linux suite's +17.3%
+across the regression, 133m55s -> 157m08s, measurable ONLY because
+Linux has no ceiling, extrapolates macOS post-regression to ~124m, and
+150 would clear that by only ~26m — re-committing the thin-margin
+defect at a different number; the extrapolation evidence is REQUIRED in
+the PR body as the strongest line in the justification); F2 = the Linux
+ceiling is **IN at 240** — it is clause (c) of ENG-0052's OWN filed
+recommendation and therefore NOT scope creep, and the counter-argument
+(it introduces a failure mode that does not exist today; Linux has
+never timed out) is ACKNOWLEDGED AND OVERRULED and REQUIRED in the PR
+body so the tradeoff stays visible, on the ground that a 6-hour default
+on a 2h37m job is the same inadequate-margin defect inverted and an
+unceilinged job that quietly grows is exactly how the macOS situation
+was created; F3 = **SHIP NOTHING** — the lane's product is the ANSWER
+in the response file, evidenced by the ALREADY EXISTING
+`vault::perf_snapshot()` with temporary timing removed before the PR,
+and THE ACCEPTANCE QUESTION IS RULED TO BE THE SPLIT: of the ~350-400
+ms per relay operation, how much is Argon2id and how much is
+read+decrypt, with >=80% attributed, because the two costs have
+DIFFERENT remedies (a cached derived key vs a cached parsed store) with
+DIFFERENT ENG-0055 census consequences — a verdict that says only "the
+vault read is expensive" DOES NOT MEET ACCEPTANCE; F4 = TWO PRs,
+CEILING-FIRST, load-bearing on the verified fact that
+`.github/workflows/*` classifies `docs_only=false` so PR-1's OWN merge
+exercises `macos-qsc-full-serial` under the new ceiling before anything
+else lands; LANE SHAPE RULED — there is NO `src/` diff, the earlier
+"src/ AND .github/**" framing is SUPERSEDED, and a TEMPORARY
+branch-local source edit is permitted for measurement ONLY and MUST be
+reverted with the PR diff PROVING `src/` untouched)**. The lane's
+product is **A MEASUREMENT AND A CAPACITY CORRECTION, NOT A PERFORMANCE
+FIX** — any remedy for the vault-read cost is a SUCCESSOR lane,
+DELIBERATELY, because ENG-0055's zeroization census must see the final
+shape of any cached secret handle; if the instrumentation makes a fix
+look trivial the executor STOPS AND REPORTS rather than applying it.
+Discharges **ENG-0052 (PARTIAL — clauses (a)/(b)/(c); clause (d), the
+periodic scheduled exercise, is EXPLICITLY NOT this lane and stays
+OWED)** and **ENG-0053 (MEASUREMENT ONLY)**, and folds in the ledger
+amendment owed from NA-0663 (in PR-1's ledger touch, with its two
+approved corrections and the masking-effect description preserved
+UNCHANGED). A green main-push under the new ceiling is **NOT** evidence
+the regression is resolved; a RED at 180 is **NEW INFORMATION ABOUT THE
+REGRESSION'S SIZE, NOT a remediation failure**, and is NOT a
+raise-again outcome. **STANDING HOUSE CONVENTION (operator rule,
+2026-07-21): the OPERATOR RELAY FILE
+`/srv/qbuild/operator/relay/LATEST.md` is written EVERY turn
+(overwritten, plus a timestamped `RELAY_<UTC>.md` copy), self-contained
+— the relay file IS the response and terminal output is only a
+preview.** The lane STOPS at its TWO open PRs (PR-1 the ceiling +
+amendment, then PR-2 the closeout); the operator merges PR-1 first and
+verifies the macOS run under the new ceiling. After this lane: the
+ENG-0053 REMEDY is the named successor, sequenced against **ENG-0055**;
+ENG-0052 clause (d) stays OWED; slice B stays OWED; the DOC-PROG-004
+revision micro-lane is OWED (WF-0024); the NA-0662 operator flight
+stays OWED; standing: **ENG-0036**, **ENG-0042**/**ENG-0043**,
+**ENG-0045**, **ENG-0047**, **ENG-0048**, **ENG-0050**, **ENG-0051**,
+**ENG-0054**, **ENG-0056**, **ENG-0057**, **ENG-0058**, **0b**, the
+**0c residue**, **NA-0635** (GATED). Begins at **D-1288**
+(implementation) + **D-1289** (closeout). The executor cannot
+self-promote.
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -35974,3 +35968,36 @@ Result classes: QSC_CLIENT_TLS_TRUST_PASS / QSC_CLIENT_TLS_TRUST_STOP. STOP cond
 See D599 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-20-599_qsc_client_tls_trust.md`; sha256 `925b56cd…`, 611 lines, amended in place at approval — header, the part-1 lockfile ruling, per-flag RESOLVED lines, the shape ruling, END) for the draft-time CONFIRM-LIVE anchors (the verbatim dependency line; the eight construction sites; the token-precedent plumbing; the diagnostic classifier lines; the 386-entry lock census), THE DESIGN (the three parts + the hard boundary), TESTS AND ACCEPTANCE (families 1-6), STRICT SCOPE, PHASES (the two-PR full ritual), the wait-work packet, required response sections, and STOP CONDITIONS.
 
 Begins at D-1286 (implementation) + D-1287 (governance closeout). FULL ritual, spine-only, two PRs, two decisions. Client TLS trust only; no protocol/relay/GUI motion; ENG-0049 filed and paid in-lane; slice B stays OWED.
+
+
+### NA-0664 — macOS CI capacity correction + per-construction vault-read instrumentation (ENG-0052 partial + ENG-0053 measurement)
+
+Status: READY
+Goals: G4
+
+Wire/behavior change allowed? NO. NO protocol/wire/crypto change. NO relay (qsl-server) change. NO qsl-desktop touch. NO GUI code. **NO src/ DIFF AT ALL** — the F3 ship-nothing ruling means this lane's only repository changes are `.github/**` and `docs/**` (plus DECISIONS.md / NEXT_ACTIONS.md / TRACEABILITY.md). `vault::secret_get` behavior is UNCHANGED. `relay_ca_file()`'s resolution order is UNCHANGED. NO caching, NO cached key handle, NO cached parsed store — those are the SUCCESSOR lane's subject matter and landing any of them here is a STOP. A TEMPORARY branch-local source edit is permitted SOLELY to take the measurements; it MUST be reverted before the PR and the PR diff MUST prove `src/` untouched (`git diff --stat` against the base showing zero src/ paths, recorded in the response).
+Crypto/state-machine change allowed? NO — nothing in the handshake, ratchet, envelope, vault, or protocol state machines moves. The Argon2id parameters (KDF_M_KIB=19456, KDF_T=2, KDF_P=1 at `qsl/qsl-client/qsc/src/vault/mod.rs:37-39`) are MEASURED, not changed. Auth-mechanism change? NO. Storage/schema change? NO.
+Docs-only allowed? NOT docs-only — the workflow touch trips the DOC-OPS-006 §9 hard boundary, hence FULL ritual, two PRs, two decisions. This is DELIBERATE and LOAD-BEARING: `scripts/ci/classify_ci_scope.sh:20` matches `.github/workflows/*` and sets `docs_only=false` (`:61`) + `workflow_security=true` (`:62`), while docs paths `continue` WITHOUT clearing anything (`:64-66`) — so PR-1's merge, ledger and DECISIONS edits included, yields `docs_only=false, workflow_security=true, runtime_critical=false` (`scope_class=workflow_security`) and DOES run both push-only full suites. That is the entire point of the ceiling-first ordering, and it must be re-confirmed on the live PR before merge. Ledger edit? REQUIRED this lane: the ENG-0052/ENG-0053 amendment owed from NA-0663 lands in PR-1's ledger touch, plus the ENG-0053 verdict, plus the Linux pre/post pair.
+Claim change allowed? NO — a PASS asserts that the macOS ceiling now fits measured reality and that the ~350-400 ms per-relay-op cost has been APPORTIONED between Argon2id and read+decrypt; it does NOT assert that ENG-0053 is fixed, that the regression is smaller, that any performance improved, or that main's prior green history was meaningful. **A green main-push under the new ceiling is NOT evidence the regression is resolved.** No public/production/crypto-complete/attachment-complete/bug-free/vulnerability-free claims. Raw private values remain proof-root-only; publish class summaries only.
+
+APPROVAL RESOLUTION (operator, 2026-07-21 — all rulings recorded here per the promotion instruction):
+- F1 (macOS ceiling): APPROVED — **180**. The argument against 150 accepted as the better argument: the Linux suite's +17.3% across the regression (133m55s -> 157m08s, measurable only because Linux has no ceiling) extrapolates macOS post-regression to ~124m, and 150 would clear that by ~26m — re-committing the thin-margin defect at a different number. 180 = 1.70x the measured pre-lane runtime. The extrapolation evidence MUST be carried into the PR body; the operator names it "the strongest line in the justification."
+- F2 (Linux ceiling): APPROVED — **IN at 240**. Clause (c) of ENG-0052's own recommendation, not scope creep. The counter-argument (introduces a failure mode that does not exist today; Linux has never timed out) is ACKNOWLEDGED AND OVERRULED — a 6-hour default on a 2h37m job is the same inadequate-margin defect inverted, and an unceilinged job that quietly grows is exactly how the macOS situation was created. The counter-argument MUST be recorded in the PR body so the tradeoff is visible. The deliberate asymmetry is recorded: macOS 1.70x its baseline, Linux 1.53x its measured 157m08s — justified because the macOS baseline is a PRE-regression number while the Linux figure is a COMPLETE POST-regression measurement, and less uncertainty needs less margin.
+- F3 (instrumentation): RULED — **SHIP NOTHING**. The product is the ANSWER in the response file, evidenced by `perf_snapshot()` (which ALREADY EXISTS at `qsl/qsl-client/qsc/src/vault/mod.rs:335`, is pub, and counts KDF calls / vault file reads / decrypts / encrypt-writes, incrementing at `:758` / `:790` / `:815`) with temporary timing removed before the PR. The Director's code-reading — every `load_vault_runtime_with_passphrase` (`:754-764`) does a whole-file read plus a FULL 19 MiB t=2 Argon2id with NO cached key handle, and `secret_get` (`:213`) adds a whole-store ChaCha20Poly1305 decrypt via `decrypt_payload` (`:814`), so filed candidates 1 AND 2 are BOTH structurally present — reframes the lane correctly: **APPORTION, DO NOT DISCOVER.** THE ACCEPTANCE QUESTION IS THE SPLIT: of the ~350-400 ms, how much is Argon2id and how much is read+decrypt, with >=80% attributed, plus the disposition of the third candidate (lock contention / per-access re-open) and of "something else". That split is exactly what the successor fix lane needs, because the two costs have DIFFERENT remedies (a cached derived key vs a cached parsed store) with DIFFERENT ENG-0055 census consequences. A verdict that says "the vault read is expensive" without apportioning DOES NOT MEET ACCEPTANCE. If the cost cannot be attributed at that level, an HONEST INCONCLUSIVE stating what was ruled out is an ACCEPTABLE result — do NOT force a verdict.
+- LANE SHAPE: RULED — the coupling accepted. With F3 ship-nothing there is NO `src/` diff; the shape is `.github/**` + `docs/**` only. Still FULL ritual (the workflow touch mandates it). The "src/ AND .github/**" framing is SUPERSEDED.
+- F4 (PR shape): APPROVED — TWO PRs, CEILING-FIRST. The verification that `.github/workflows/*` classifies `docs_only=false` is the load-bearing fact: PR-1's own merge exercises `macos-qsc-full-serial` under the new ceiling before any other change lands.
+- AMENDMENT CORRECTIONS: APPROVED. The staged text at `/srv/qbuild/tmp/NA0663_qsc_client_tls_trust_20260720T075119Z/ENG0052_ENG0053_AMENDMENT_PENDING.md` is substantively accurate; its "options, none pre-selected" is RESOLVED by this directive (the ceiling is raised as a separately justified precondition) and its "circularity unresolved" is CLOSED by the ceiling-first shape (state how). Update both, PRESERVE THE MASKING-EFFECT DESCRIPTION UNCHANGED, and carry it in PR-1's ledger touch.
+- STANDING HOUSE CONVENTION (operator rule, 2026-07-21, all lanes and all future directives): the OPERATOR RELAY FILE `/srv/qbuild/operator/relay/LATEST.md` is written at the END OF EVERY TURN (overwritten each turn, same path, plus a timestamped `RELAY_<UTC>.md` copy in the same directory so history survives). It carries current phase and lane state, what was done that turn, full results and evidence summaries, any questions or flags awaiting a ruling CLEARLY MARKED, exact file paths and shas for anything placed, and the stop reason. It MUST be SELF-CONTAINED — assume the reader never saw the terminal. THE RELAY FILE IS THE RESPONSE; terminal output is a preview. For this lane that means the Phase 3 apportionment verdict, its measurements, and the Phase 10 observed macOS duration appear IN FULL in the relay file, not merely referenced.
+
+Scope (the D600 allowed paths ONLY):
+- Implementation PR (PR-1, branch `na0664-macos-ceiling-and-vault-read-measurement`, off the seating merge or newer): `.github/workflows/macos-build.yml` (`timeout-minutes` on `macos_qsc_full_serial`, 120 -> 180, at line 104 — that value ONLY); `.github/workflows/ci.yml` (ADD `timeout-minutes: 240` to `qsc_linux_full_suite` — that addition ONLY); `docs/ops/IMPROVEMENT_LEDGER.md` (the ENG-0052/ENG-0053 amendment as staged and corrected, the ENG-0053 apportionment verdict, the Linux pre/post pair); `DECISIONS.md` appends D-1288. The PR body carries the verbatim capacity-correction justification, the six-row measurement table, the extrapolation evidence (F1) and the overruled counter-argument (F2).
+- Governance closeout PR (PR-2, after the implementation merge is verified): `DECISIONS.md` appends D-1289; `NEXT_ACTIONS.md` (this block's OUTCOME + the STATE flip: READY=NONE, HIGHEST_NA=0664, HIGHEST_D=1289); `TRACEABILITY.md`; `docs/ops/ROLLING_OPERATIONS_JOURNAL.md`; `docs/governance/evidence/NA-0664_as_built.md`; `docs/ops/IMPROVEMENT_LEDGER.md` (the OBSERVED post-merge macOS duration ONLY). Do NOT duplicate the amendment or the verdict — they landed in PR-1.
+- FORBIDDEN (STOP on touch): ANY performance fix, cache, or cached handle of any kind; `vault::secret_get` behavior; `relay_ca_file()` resolution order; `docs_only` gating; the `pull_request` exclusion on either full suite; any scheduled/periodic trigger (ENG-0052 clause (d) is NOT this lane); any `.github/**` change beyond the two `timeout-minutes` values; `src/` in any committed diff; the `#[allow(dead_code)]` / D581-D582 KEEP annotation on `perf_snapshot()`; protocol/wire/crypto; apps/**, tools/**, formal/**, specs/**, schemas/**, docs/program/**; both satellite repos; NA-0663's proof root (`/srv/qbuild/tmp/NA0663_qsc_client_tls_trust_20260720T075119Z/` is READ-ONLY — copy forward, never write into it); any workflow/protection/settings motion beyond the two ceilings. If landing needs anything else, STOP.
+
+Objective:
+Execute **QSL-DIR-2026-07-21-600 (D600, APPROVED 2026-07-21; all rulings as recorded above; directive amended in place at approval, sha256 `6b99f2502a315c82…`)** — deliver A MEASUREMENT AND A CAPACITY CORRECTION. (1) Raise the macOS ceiling to 180 and add a 240-minute Linux ceiling, as a CAPACITY CORRECTION to fit measured reality and explicitly NOT an absorption of NA-0663's regression, which remains open as ENG-0053. (2) APPORTION the ~350-400 ms per-relay-op vault-read cost between Argon2id and read+decrypt, >=80% attributed, using the existing `perf_snapshot()` counters for EXACT per-operation multiplicities plus temporary local timing for unit costs, under the interleaved-A/B discipline the NA-0663 probes established (interleaved iteration-by-iteration; both sides verified to reach the instrumented path before any timing is recorded; at least three N values so the per-op term separates from a fixed offset). (3) Fold in the owed ENG-0052/ENG-0053 ledger amendment with its two approved corrections. Acceptance = the two ceilings landed with the verbatim justification and both required PR-body records + the apportionment verdict at >=80% (or an HONEST INCONCLUSIVE stating what was ruled out) + the amendment folded in + `src/` proven byte-untouched + all required checks green.
+Result classes: CI_CAPACITY_CORRECTION_AND_VAULT_READ_MEASUREMENT_PASS / CI_CAPACITY_CORRECTION_AND_VAULT_READ_MEASUREMENT_STOP. STOP conditions (class): any qwork invariant mismatch; main advanced past `00c80db1`; READY count != 1; disk/mount gates; **the instrumentation revealing a trivial fix (REPORT; DO NOT APPLY — the fix is the successor lane, deliberately, because ENG-0055's census must see the final shape of any cached secret handle)**; any need to touch a forbidden surface to complete the measurement; the staged amendment being materially wrong beyond the two approved corrections; **`macos-qsc-full-serial` RED at 180 — that is NEW INFORMATION ABOUT THE REGRESSION'S SIZE, NOT a remediation failure, and it is NOT a raise-again outcome: STOP AND REPORT, do not propose a higher ceiling**; any required check red at any point for any reason; scope breach; queue/decision ambiguity; standing stops. STOP AT THE TWO OPEN PRS — the operator merges PR-1 FIRST (merge commit), verifies the macOS run under the new ceiling, then PR-2. Do not implement the successor during closeout.
+
+See D600 (`/srv/qbuild/operator/directives/QSL-DIR-2026-07-21-600_macos_ceiling_and_vault_read_instrumentation.md`; sha256 `6b99f2502a315c82…`, amended in place at approval — header, EXECUTION NOTES (the operator relay-file convention), APPROVAL RESOLUTION, per-flag RESOLVED lines, the LANE SHAPE ruling, Tier 2/3/4, STRICT SCOPE, the Phase 2 PR-body requirements, the Phase 3 acceptance split, the Phase 4 amendment placement + two corrections, the Phase 9 classifier re-verification, Phase 10 green/red, Phase 11, response section 10, END) for the draft-time CONFIRM-LIVE anchors (the six-row measurement table; the `perf_snapshot()` and `load_vault_runtime` code-reading with line numbers; the classifier trace), THE DESIGN (the three parts + the hard boundaries), the three-tier instrumentation shape (counter census -> local unit-cost microbench -> attribution arithmetic), STRICT SCOPE, PHASES (the two-PR full ritual, ceiling-first), the wait-work packet (PR-1's merge triggers a ~2-hour macOS suite), required response sections, and STOP CONDITIONS.
+
+Begins at D-1288 (implementation) + D-1289 (governance closeout). FULL ritual, spine-only, two PRs, two decisions. `.github/**` + `docs/**` only, NO src/ diff. Measurement and ceiling only; the ENG-0053 remedy is a SUCCESSOR lane sequenced against ENG-0055; ENG-0052 clause (d) (periodic exercise) stays OWED.

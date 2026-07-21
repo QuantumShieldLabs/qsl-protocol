@@ -101,7 +101,12 @@ jobs:
     needs: classify
     if: github.event_name != 'pull_request' && needs.classify.outputs.docs_only != 'true'
     runs-on: macos-latest
-    timeout-minutes: 120
+    # ENG-0052 capacity correction (NA-0664, D-1288): raised 120 -> 180.
+    # The pre-lane suite measured 105m52s (workflow_dispatch on e5313fa3,
+    # 2026-07-21) = 88% of the old 120-minute budget. 180 is 1.70x that
+    # measured runtime. This fits the ceiling to measured reality; it does
+    # NOT absorb the NA-0663 regression, which remains open as ENG-0053.
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v5
 

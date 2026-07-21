@@ -373,6 +373,10 @@ jobs:
     needs: classify
     if: github.event_name != 'pull_request' && needs.classify.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
+    # ENG-0052 clause (c) (NA-0664, D-1288): this job previously inherited the
+    # 360-minute GitHub default. Measured 157m08s at b2dc23bf; 240 is 1.53x that,
+    # so an overrun surfaces as a bounded failure rather than a six-hour hang.
+    timeout-minutes: 240
     steps:
       - uses: actions/checkout@v5
       - name: Run full qsc Linux suite outside the PR critical path

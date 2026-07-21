@@ -44016,3 +44016,105 @@ pin and binds its Settings Vault/Security pane to exactly this surface).
   the operator then FLIES the build (the testplan §3 flight checklist
   covers the countdown complete/abort, autolock-0, the visible
   rejections, the Full-mode resize + menu, and compact paste).
+
+## 2026-07-21 — NA-0663: qsc client TLS trust (D599; D-1286 + D-1287)
+
+- The lane closed a real deployability gap: qsc trusted ONLY the CAs
+  compiled into the binary, so installing a private CA on the client
+  machine could not make it trust a self-hosted relay, SSL_CERT_FILE
+  had no effect, and the observable was the opaque
+  relay_inbox_push_failed — indistinguishable from "relay down" or
+  "token rejected". Three parts landed: the OS trust store honored in
+  UNION with the retained webpki roots; an ADDITIVE explicit CA-file
+  option (env -> env -> vault secret) reachable as pub library surface
+  and via additive CLI verbs; and relay_tls_untrusted as a typed
+  outcome matched BY VALUE on rustls::Error::InvalidCertificate.
+- A DIRECTIVE SCOPE CONTRADICTION stopped the lane at the design lock,
+  correctly. D599 mandated additive CLI verbs while FORBIDDING
+  src/cmd/mod.rs — the only file in which a clap verb can be DECLARED
+  (all 17 Subcommand enums live there; main.rs only consumes them).
+  NA-0645 (2efc9dab), the lane that created the very token setters D599
+  said to mirror, had touched both files for the same reason. The
+  executor wrote ZERO implementation and stopped for a ruling rather
+  than improvising. Lesson for drafting: for any CLI-verb requirement,
+  confirm the DECLARATION file is in scope, not just the handler file.
+- A REAL BUG THE TESTS CAUGHT, not review: the first typed-detection
+  implementation walked std::error::Error::source() alone and SILENTLY
+  DID NOT FIRE — untrusted certs still reported the opaque value.
+  tokio-rustls reports a handshake refusal as
+  io::Error::new(InvalidData, rustls::Error), and io::Error::source()
+  delegates to the INNER error's source rather than yielding the inner
+  error itself, so the walk steps straight past the rustls value.
+  get_ref() is load-bearing. Found by family 3 failing; the fix is
+  pinned with its reasoning in a source comment.
+- `cargo fmt --all` IS UNSAFE IN THIS TREE and this is now ENG-0050.
+  Run as a stated validation default, it reformatted 45 FILES in one
+  command — including FORBIDDEN paths (lib.rs, vault/, handshake/,
+  contacts/, timeline/, adversarial/) and tests/NA_0640_full_stack_e2e.rs
+  — simultaneously a scope breach and a byte-identity STOP, produced by
+  following the directive exactly. Caught before commit and fully
+  reverted (in-scope files restored to base and the lane's edits
+  re-applied surgically). Cause: the base tree is NOT rustfmt-clean and
+  there is NO fmt gate in .github/workflows at all. clippy -D warnings
+  is likewise RED AT BASE. Until that is fixed, format only the touched
+  region.
+- THE POST-MERGE INCIDENT, and why main is still red. The merge spawned
+  9 push runs (no missed-push-run). macos-build was CANCELLED by a
+  120-minute ceiling on macos-qsc-full-serial at 2h00m18s, and public-ci
+  FAILED as the DESIGNED consequence — its public-safety step is
+  literally "Fail main public-safety when push-only full suites are
+  red". The cancellation was explicitly determined NOT to be a designed
+  supersession: origin/main had not advanced, so nothing could have
+  superseded it, and qsc-adversarial (the workflow that DOES carry
+  per-ref cancel-in-progress) ran to completion green. A timeout on an
+  unsuperseded run is a REAL red and must not be folded into a green
+  summary.
+- ROOT CAUSE OF THE RED (ENG-0052): both push-only full suites are gated
+  off pull requests AND off docs-only pushes. The preceding main pushes
+  were all governance/docs-only, so NEITHER suite had run on main across
+  the recent window — corroborated by recent macos-build main runs
+  completing in 21-29 SECONDS, only possible with the full-serial job
+  skipped. This lane was the first CODE push to exercise them cold.
+- MEASURE, DO NOT ARGUE. The attribution question ("did this lane tip
+  the ceiling, or was it already over?") was unanswerable from history,
+  so it was measured: macos-build was dispatched manually on the PARENT
+  commit via an inert ref (verified to spawn zero runs, deleted after;
+  main never touched). Result: the pre-lane macOS suite completed in
+  105m52s with only 14m08s of margin. The ceiling was NOT already
+  breached; this lane consumed the remaining headroom. Step-level
+  attribution put +2s on the release build and the ENTIRE delta in test
+  execution. An earlier executor assessment leaning the other way was
+  REVERSED by that data, and the reversal is recorded rather than
+  quietly dropped.
+- THREE HYPOTHESES, LABELLED VERDICTS. (1) Argon2id-per-subprocess under
+  serial execution: REFUTED — the new test file runs 78.38s serial vs
+  19.98s parallel, ~1.3 min of a >=14m42s deficit. (2) Trust-store
+  loading per client construction: REFUTED by a discriminator holding
+  the binary fixed and varying only the store — 122 certs -> 1 cert
+  changed nothing (-23 ms/op, noise); this also RETIRED the concern that
+  the lane had introduced a production regression via trust-store
+  reloading. (3) The per-construction VAULT READ in relay_ca_file():
+  ESTABLISHED AS THE LOCATION (+311/+329/+372 ms per relay operation
+  across three interleaved samples, 180 operations, scaling
+  linear-trending-SUPER-linear, with a confound that runs CONSERVATIVE)
+  but explicitly NOT established as the ROOT CAUSE — a vault::secret_get
+  should cost tens of milliseconds, not ~350-400, so it stands as a
+  PROXY for something below it. ENG-0053 scopes the successor
+  INSTRUMENT-FIRST and warns that the fix may NOT be caching the CA
+  path: if the cost is inside vault::secret_get, every other secret
+  accessor pays it too.
+- A METHOD NOTE WORTH KEEPING: two probes in this lane produced
+  confident-looking numbers while measuring NOTHING — one exited at
+  unknown_contact and one at protocol_inactive, both BEFORE reaching
+  relay_http_client(). Neither was caught by reading the numbers; both
+  were caught by verifying the probe reached the code path first. Every
+  later probe was verified (send_attempt ok=true + send_commit) BEFORE
+  any timing was recorded, and base/head were interleaved
+  iteration-by-iteration because per-send state growth otherwise favours
+  whichever side runs first.
+- The macOS ceiling is left UNRESOLVED DELIBERATELY. Raising
+  timeout-minutes would absorb this lane's cost and leave the next lane
+  in the same position — and if the cost is really in vault::secret_get,
+  it would bury a product-facing efficiency regression inside CI
+  headroom where nobody would look for it again. The operator ruled it
+  waits for the instrumentation result rather than a config knob.

@@ -509,14 +509,85 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
+          # ENG-0052 (NA-0664, D-1289) — THE WATCHDOG BUDGET IS DERIVED, NOT HARDCODED.
+          #
+          # This step waits for two push-only full suites that live in OTHER workflow
+          # files, so GitHub's `needs:` cannot express the dependency and the wait has
+          # to be polled. A poll needs a budget, and that budget is logically DERIVED
+          # from the ceilings of the suites it waits on: it must outlast the slowest
+          # one, or it reports a false red while the suite is still running.
+          #
+          # It was previously the literal `--max-iterations 390` (~130m at 20s). When
+          # NA-0664 raised the suite ceilings to 180m/240m, that literal was left
+          # behind and became the binding constraint: on merge `ca6897fc` the watchdog
+          # exhausted 390/390 iterations and failed while `qsc-linux-full-suite` was
+          # still in_progress — which then PASSED, 20m52s later. Both suites were
+          # green; main went red anyway.
+          #
+          # So the count is now COMPUTED from the ceilings at run time. Raising either
+          # ceiling raises this automatically; removing one, or setting a ceiling this
+          # job cannot cover, fails LOUDLY here instead of silently 130 minutes later.
+          # Do not replace this with a literal.
+
+          INTERVAL_SECONDS=20
+          QUEUE_MARGIN_MINUTES=60
+          JOB_TIMEOUT_MINUTES=360   # GitHub default; this job declares no timeout-minutes
+          SAFETY_GAP_MINUTES=20
+
+          ceiling_of() {
+            local file="$1" job="$2" value
+            value="$(awk -v job="  ${job}:" '
+              $0 == job { injob = 1; next }
+              injob && /^  [a-zA-Z_]+:[ \t]*$/ { exit }
+              injob && $1 == "timeout-minutes:" { print $2; exit }
+            ' "$file")"
+            if [ -z "$value" ]; then
+              echo "ERROR: no timeout-minutes found for job '${job}' in ${file}." >&2
+              echo "       The public-safety watchdog budget is DERIVED from that ceiling." >&2
+              echo "       If the ceiling was removed, this watchdog can no longer be sized." >&2
+              exit 2
+            fi
+            printf '%s' "$value"
+          }
+
+          MACOS_CEILING="$(ceiling_of .github/workflows/macos-build.yml macos_qsc_full_serial)"
+          LINUX_CEILING="$(ceiling_of .github/workflows/ci.yml qsc_linux_full_suite)"
+
+          MAX_CEILING="$MACOS_CEILING"
+          if [ "$LINUX_CEILING" -gt "$MAX_CEILING" ]; then
+            MAX_CEILING="$LINUX_CEILING"
+          fi
+
+          COVERAGE_MINUTES=$(( MAX_CEILING + QUEUE_MARGIN_MINUTES ))
+          MAX_ITERATIONS=$(( COVERAGE_MINUTES * 60 / INTERVAL_SECONDS ))
+          SAFE_BOUND=$(( JOB_TIMEOUT_MINUTES - SAFETY_GAP_MINUTES ))
+
+          if [ "$COVERAGE_MINUTES" -gt "$SAFE_BOUND" ]; then
+            echo "ERROR: derived watchdog coverage ${COVERAGE_MINUTES}m exceeds the safe bound ${SAFE_BOUND}m." >&2
+            echo "       This job inherits GitHub's ${JOB_TIMEOUT_MINUTES}-minute default; a longer poll" >&2
+            echo "       would be killed mid-wait, reproducing the ENG-0052 failure it exists to prevent." >&2
+            echo "       Raise this job's timeout-minutes deliberately, or lower a suite ceiling." >&2
+            exit 2
+          fi
+
+          echo "public-safety watchdog budget — DERIVED from the suite ceilings:"
+          echo "  macos-qsc-full-serial ceiling : ${MACOS_CEILING}m"
+          echo "  qsc-linux-full-suite ceiling  : ${LINUX_CEILING}m"
+          echo "  binding ceiling               : ${MAX_CEILING}m"
+          echo "  + queue/jitter margin         : ${QUEUE_MARGIN_MINUTES}m"
+          echo "  = coverage                    : ${COVERAGE_MINUTES}m  (safe bound ${SAFE_BOUND}m)"
+          echo "  interval                      : ${INTERVAL_SECONDS}s"
+          echo "  => --max-iterations           : ${MAX_ITERATIONS}"
+
           python3 scripts/ci/public_safety_gate.py \
             wait-commit-checks \
             --repo "$GITHUB_REPOSITORY" \
             --sha "$GITHUB_SHA" \
             --required qsc-linux-full-suite \
             --required macos-qsc-full-serial \
-            --interval-seconds 20 \
-            --max-iterations 390
+            --interval-seconds "$INTERVAL_SECONDS" \
+            --max-iterations "$MAX_ITERATIONS"
 
       - name: Skip full-suite wait for docs/governance-only main push
         if: github.event_name == 'push' && needs.classify.outputs.docs_only == 'true'

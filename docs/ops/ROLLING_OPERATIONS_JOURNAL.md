@@ -44118,3 +44118,306 @@ pin and binds its Settings Vault/Security pane to exactly this surface).
   it would bury a product-facing efficiency regression inside CI
   headroom where nobody would look for it again. The operator ruled it
   waits for the instrumentation result rather than a config knob.
+
+## 2026-07-21 — NA-0664: macOS ceiling + vault-read measurement (D600; D-1288 + D-1289 + D-1290)
+
+### A NEW STANDING HOUSE RULE, EARNED BY A NEAR-MISS
+
+> **⚑ A measurement that lands suspiciously close to the expected value gets a second look UNDER CHANGED CONDITIONS before it is reported, not after.**
+
+**Why this rule exists, stated plainly because the lesson is in the detail.** The first
+apportionment run of this lane was a **debug** build. It gave **401.3 ms per `secret_get`**
+against an expected **350-400 ms**. The numbers did not merely look plausible — they
+**matched the hypothesis almost exactly**.
+
+**A result that CONFIRMS the hypothesis is the hardest kind to catch, because nothing feels
+wrong.** Reporting it would have produced a **confident, wrong verdict**: it would have
+steered the successor lane toward the store-size / quadratic framing and **away from
+Argon2id, which is where the cost actually is**. The ledger, the decision record, and the
+successor's directive would all have inherited the error, and each restatement would have
+made it harder to question.
+
+**What caught it was re-running under a second profile (release) BEFORE reporting.** Not
+extra scrutiny — **a changed condition**. Scrutiny applied to a self-consistent debug
+measurement returns the same self-consistent debug measurement. **This is recorded as the
+most valuable methodological result of NA-0664**, above any of its measurements.
+
+### THE TWO OPERATOR-SANCTIONED RE-RUNS
+
+**What happened.** D-1288 (PR #1613, merge `ca6897fc`) raised the macOS ceiling to 180m and
+gave the Linux suite an explicit 240m, but left `public-safety`'s `--max-iterations 390`
+(~130 min at a 20 s interval) untouched. On that merge **both full suites PASSED** —
+`macos-qsc-full-serial` 132m15s (run 29850711825) and `qsc-linux-full-suite` 157m45s (run
+29850711783) — while the watchdog (run 29850712015) **exhausted 390/390 iterations at
+19:13:03Z** and failed with `qsc-linux-full-suite` still `in_progress`. That suite succeeded
+**20m52s later**. `public-safety` is a REQUIRED context, so **main went RED on a merge where
+nothing was broken.**
+
+**The remedy PR was itself blocked, and BOTH designed escape hatches were unavailable.**
+PR-1b (D-1289, PR #1614) derives the watchdog budget from the ceilings; being
+`workflow_security`-classified it was blocked by the PR-side red-main gate — **the fix for
+the red main, blocked by the red main.** The **red-main-repair path** is non-functional (an
+unhandled 403 on `branches/main/protection/required_status_checks` at
+`public_safety_gate.py:599` under a `contents: read` grant, plus the incident-specific
+profile `send_commit_vault_mock_provider_retired`, which does not generalise). The
+**sanctioned self-repair bootstrap** was found **INELIGIBLE on three independent
+conditions**: main must be red *because `advisories` is failing* (ours was **green**), the PR
+must modify `scripts/ci/public_safety_gate.py`, and exactly one `tests/NA-*public_safety*.md`
+stub is required. **The repository had NO working sanctioned automated route from that red
+main back to green.** Both gaps are filed as **ENG-0059**.
+
+**The sanction, and the test that bounds it.** The operator explicitly authorised a re-run of
+`public-safety` on `ca6897fc`, recording that this is **not** a prohibited chase-to-green: the
+check **never reached a verdict** — its log reads `CHECK qsc-linux-full-suite:
+status=in_progress conclusion=None` — so it is a **broken measurement, not a negative
+result**, the same distinction NA-0663 established for probes that never reach the code path.
+
+> **THE DISTINGUISHING TEST, RECORDED AS A STANDING RULE:** *has the condition the check
+> evaluates CHANGED STATE since the run, verifiably and independently? If NO, re-running is
+> chasing green and remains PROHIBITED. If YES, and the change is independently verifiable,
+> re-running COMPLETES an evaluation and is permitted WITH explicit operator sanction and a
+> recorded rationale. **Never self-authorised.***
+
+Here the change was to `completed/success` and readable from the API **independent of the
+re-run**. **Had either suite FAILED, no re-run would have been authorised** — that is what
+keeps the rule from being results-driven. **Bound on the sanction:** a second failure of any
+kind was to be treated as a new fact, not a retry opportunity.
+
+**The second sanction.** After main went green at 20:54:00Z, PR #1614 remained BLOCKED by its
+own `public-safety` check from run 29863513624, created **19:54:46Z — 59m14s before main went
+green**. That check had evaluated *"is main red?"* correctly **for its time** and could not
+re-evaluate on its own (branch frozen). The executor **identified that the operator's
+distinguishing test applied, explicitly declined to act on its own reading, and asked.** The
+operator extended the sanction and recorded: *"You were right not to self-authorise on your
+own reading of my test. That is exactly the condition holding, and it is the behaviour I
+want."* PR head was unchanged at `88bdadd2` throughout — **nothing re-scoped, re-pushed, or
+amended.**
+
+**Also recorded:** an admin merge or a branch-protection adjustment would have been the
+**LARGER** bypass — merging past a red required check by removing the requirement — whereas
+the re-run causes a check that would now legitimately pass to pass. The executor **surfaced
+that option without recommending it and declined to self-authorise.**
+
+### ⚑ RETROSPECTIVE vs CONTEMPORANEOUS — THE DISTINCTION MATTERS IF THIS SANCTION IS EVER AUDITED
+
+- **CONTEMPORANEOUS (the primary record):** `RERUN_JUSTIFICATION_PRE_RESULT.md` and
+  `RERUN2_JUSTIFICATION_PRE_RESULT.md` in the NA-0664 proof root, both written **before**
+  their triggers, with checkable filesystem mtimes.
+- **RETROSPECTIVE (this entry):** it lands in the D-1290 closeout because PR-1b was frozen
+  and PR-2 had not begun — **there was no vehicle to commit it earlier.** A journal entry is a
+  repository file and cannot precede the event it describes.
+
+**An auditor should treat the proof-root artifacts as the primary record and this entry as a
+faithful but later transcription.** This was flagged rather than papered over.
+
+### ⚑ A RECORD-KEEPING DEFECT FOUND AT CLOSEOUT, AND THE PRACTICE CHANGE IT FORCES
+
+**DEFECT: the operator-relay headers written during this lane run 8–26 minutes AHEAD of
+their own file mtimes.** The session-handoff relay is headed `2026-07-21T22:05:00Z` but was
+written at **21:43:52Z** — **~21 minutes forward-dated** — and the drift is present across
+that session's entire relay series, growing as the session went on. The cause appears to be
+composing a header time rather than reading the clock at write time.
+
+**CONSEQUENCE, STATED PLAINLY: every header timestamp in this lane's relay record is an
+ESTIMATE, NOT AN OBSERVATION, and NOTHING MAY REST ON ONE.** Relay headers are not evidence
+of when anything happened and must not be cited as such — not for ordering, not for
+reconstructing a sequence, not for auditing a sanction.
+
+> **PRACTICE CHANGE, effective immediately and inherited by every lane: read the clock at
+> write time (`date -u`). Do NOT compose a header time.**
+
+**The sanction artifacts are NOT affected by this defect, because they were checked against
+the filesystem rather than against any narrative.** Verified at closeout by a different
+session: `RERUN_JUSTIFICATION_PRE_RESULT.md` mtime **20:53:01Z** against a trigger of
+**20:53:36Z** (on disk **35 s before**), and `RERUN2_JUSTIFICATION_PRE_RESULT.md` mtime
+**20:59:08Z** against a trigger of **20:59:16Z** (on disk **8 s before**). **Both orderings
+HOLD on evidence independent of the narrative** — **but sanction 2's margin is EIGHT
+SECONDS, and that is thin enough that it must NOT be presented as decisive on its own.**
+
+**THE STRONGER ARGUMENT — AND THE ONE THAT SHOULD CARRY THE WEIGHT: the anti-reconstruction
+evidence is primarily the CONTENT of the predictions, not their timestamps.** Sanction 1's
+justification predicted resolution *"within the first poll iterations… well under a
+minute"* — **a falsifiable RANGE, not a restatement of an observed value.** The observed
+result was **iteration 1 of 390, 18 seconds**. **A justification reconstructed after the
+fact would have named the observed value**; it would have said "18 seconds", or "the first
+iteration", because that is what a writer working backwards from a known outcome produces.
+It predicted a band and the outcome fell inside it. **The timestamps CORROBORATE; the
+prediction content is what makes these sanctions defensible.** An auditor who distrusts every
+timestamp in this record — which, given the defect above, is a defensible starting position —
+can still evaluate the sanctions on the falsifiability of what was written.
+
+### THE PRE-RECORDED PREDICTIONS — WHY THIS IS NOT POST-HOC RATIONALISATION
+
+| Sanction | Self-reported write time | **mtime (checked)** | Trigger | Prediction | Observed |
+|---|---|---|---|---|---|
+| 1 — main `ca6897fc` | 20:52:38Z | **20:53:01Z** | 20:53:36Z | "within the first poll iterations… well under a minute" | **iteration 1 of 390, 18 s** |
+| 2 — PR #1614 | 20:58:49Z | **20:59:08Z** | 20:59:16Z | "~24 s, single main-state query, not a poll" | **24 s** |
+
+**The self-reported column is shown only for completeness — per the record-keeping defect
+above, self-reported times in this lane are ESTIMATES. The mtime column is the evidence.**
+Both files were on disk before their triggers, by 35 s and by 8 s respectively.
+
+**Both predictions held — and the PREDICTIONS THEMSELVES, not their ordering, are the
+primary evidence that these rationales were not reconstructed from their outcomes.** Each
+names a **falsifiable band** rather than a value: "within the first poll iterations, well
+under a minute" against an observed **18 s**, and "~24 s, single main-state query, not a
+poll" against an observed **24 s**. **Someone writing backwards from a known result names
+the result.** These name ranges and mechanisms, and the outcomes fell inside them. **The
+timestamps corroborate that reading; they do not carry it** — which matters, because one of
+those margins is 8 seconds.
+
+### OUTCOME
+
+Main `ca6897fc`: **30/30 check-runs success**, all seven push runs success, both push-only
+full suites genuinely executed (macOS 132m15s, Linux 157m45s) and passed **on their merits**.
+PR #1614: 31 pass / 2 skipping / 0 fail, `mergeStateStatus = CLEAN`, merged `67110be7`.
+
+### ⚑ THE `evidence/` FORCE-ADD FOOTGUN BIT TWICE IN THIS LANE — AND IT IS NOT A ONE-OFF
+
+`docs/governance/evidence/` is ignored by `.gitignore:65` (`**/evidence/`), so
+`docs/governance/evidence/NA-0664_as_built.md` was **silently absent from the first staged
+diff** and had to be `git add -f`'d. **It then bit a SECOND time on the amend**, because the
+ignore rule applies to **every** commit carrying the file, not only the first. **A closeout
+that did not re-check after amending would have shipped without its evidence document, and
+nothing would have failed.**
+
+**This is a recurring hazard, and the recurrence is measurable rather than anecdotal — but
+the measurement needs stating honestly, because the count is phrasing-sensitive.** Successive
+keyword searches of this journal returned **41, 42, 175, and 35** depending on how the
+markers were framed: loose patterns caught unrelated recovery notes (an overclaim-scanner
+false positive, a `ss`-header parser bug) merely because the word "evidence" appeared on the
+line, while narrow ones missed real variants ("Recovered staging command-shape issue",
+"Failing command:", "Operational recovery:", "Recovered proof issue RF-006"). **No single
+figure survives scrutiny, so none is cited as one.**
+
+**THE DEFENSIBLE FIGURE IS A FLOOR: AT LEAST 31 DISTINCT PRIOR INSTANCES**, each inspected at
+the line level and each explicitly recording that a new evidence document was **hidden,
+skipped, rejected, or required `-f`** on a failed attempt. They span **NA-0245 through
+NA-0580** — years of operation, many lanes, many executors. **The true number is higher than
+31; 31 is what was hand-verified.** **The recurrence is unambiguous; only its exact
+magnitude is not.**
+
+**A convention forgotten at least 31 recorded times is not a mitigation — it is a defect with
+a workaround.** Recorded against **WF-0016**, which already names this footgun but frames it
+as specific to design-lock handoffs; **NA-0664's instance was an as-built**, so the hazard
+covers **every** artifact under `evidence/` and that item's "put handoffs outside `evidence/`"
+recommendation addresses only part of it.
+
+**⚠ THE ARGUMENT IS UNCHANGED BY THE NUMBER, AND THIS IS RECORDED HERE SO THE CORRECTION IS
+NOT MISREAD AS A RETRACTION.** The finding below — that a flawlessly-recovered defect
+generates no pressure to fix it — **was never rate-dependent.** It holds at 31 exactly as it
+held at the erroneous 41, and **it would hold at 5.** The mechanism is the *silence of the
+failure mode*, not the frequency of the failures. **A reader who sees the figure corrected
+downward must not discount the finding along with it.**
+
+**⚠ THE REFRAMING THAT MAKES THE FIX CHEAP (operator-directed): IF THE CONVENTION IS "ALWAYS
+`git add -f`", THEN THE IGNORE RULE IS WRONG.** A path that is **unconditionally
+force-added is not a path anyone intends to ignore.** Exactly one of two things is true, and
+**both have one-line answers**: either **`.gitignore:65` is too broad** and wants a negation
+for the subpaths that must be tracked, or **evidence genuinely should not be tracked** and the
+standing force-add convention contradicts that intent. **WF-0016 currently frames this as a
+remembering problem. It is a MISCALIBRATED RULE** — and that reframing moves the item from
+"add tooling" to "fix the line."
+
+**FOR THE NEXT EXECUTOR, PLAINLY: after every `git commit` or `git commit --amend` that is
+supposed to carry an evidence document, re-run `git diff --stat` against the base and
+confirm the evidence path is actually present.** Staging success is not proof; the file
+disappears without an error.
+
+### ⚑ A HOUSE-LEVEL LESSON, STATED IN GENERAL FORM
+
+> **A RECOVERY CONVENTION THAT ALWAYS WORKS REMOVES THE PRESSURE TO FIX WHAT IT RECOVERS
+> FROM.**
+
+The `evidence/` footgun is the instance that revealed it, but the lesson is not about
+`.gitignore`. **At least 31 journal entries record this defect being caught, recovered, and
+documented. Every single one is a success — the executor noticed, force-added, and journalled
+it.** That is exactly why it has survived for years: **a hazard that is always caught produces
+no visible failure, and therefore no pressure to eliminate it.** The recovery note makes the
+catch read as **diligence** rather than as **evidence of a defect**, and diligence is what
+pays for it — every time, forever, at the cost of an executor's attention.
+
+**Those entries are not 31 demonstrations of diligence. They are 31 recurrences of one
+defect, with the diligence covering the bill.**
+
+**This generalizes, and it is recorded here because other conventions in this system may be
+masking other defects the same way.** The diagnostic question, for any standing convention
+that exists to work around a known behaviour: **is this convention preventing a problem, or
+is it silently paying for one that should be fixed?** A convention that must be **remembered
+every time**, whose failure mode is **silent**, and whose recovery is **always successful**,
+is the exact profile of a defect that will never be prioritised on its own merits.
+**Recording only — no audit of other conventions was performed in NA-0664.**
+
+### ⚑ A GOVERNANCE-OBSERVABILITY GAP, FOUND BY ACCIDENT: THIS JOURNAL CANNOT ANSWER "HOW OFTEN HAS X HAPPENED"
+
+**Not a note about the `evidence/` footgun — a finding about this journal, for ANY class of
+event.** While trying to count one recurring failure, four reasonable marker framings were
+applied to the same corpus and returned four different answers:
+
+| framing | yield |
+|---|---|
+| `Recovered (failure\|staging issue\|discovery outcome\|command-shape issue)` near `evidence\|ignore\|add -f` | **41** |
+| distinct journal entries containing any failure-framed evidence-ignore line | **42** |
+| loosened failure markers (`failing command`, `failed because`, `warned`, `refused`, …) | **175** |
+| strict conjunction — ignore-mechanism AND failure indicator on the SAME line | **35** |
+| **hand-inspected, line by line** | **≥31 (the floor actually cited)** |
+
+**The spread is not a grep-skill problem. It is the absence of a consistent marker vocabulary
+for recovery events.** This journal records them under at least these headings — *Recovered
+failure*, *Recovered staging issue*, *Recovered discovery outcome*, *Recovered command-shape
+issue*, *Recovered staging command-shape issue*, *Recovered proof issue RF-###*, *Recovered
+scope-proof issue*, *Failing command*, *Failing staging command*, *Failing proof check*,
+*Operational recovery*, *Operational friction*, *Evidence-path staging note* — with no
+controlled field distinguishing **a defect that bit** from **a hazard correctly anticipated**
+from **an unrelated one-off**, and no stable identifier for the *class* of thing that failed.
+
+**CONSEQUENCE, STATED GENERALLY: any future attempt to quantify anything from this journal —
+how often a class of failure recurs, whether a fix worked, whether a hazard is getting better
+or worse — will produce a number whose value depends on the phrasing of the search rather
+than on the history.** That makes the journal excellent as a *narrative* record and unreliable
+as a *countable* one. **Prioritisation arguments that rest on "this has happened N times" are
+therefore not currently supportable from this source without hand-inspection**, which does not
+scale and which is exactly what this lane had to fall back on.
+
+**FOUND BY ACCIDENT and RECORDED ONLY — NOT ACTED ON.** It is not NA-0664's, and it is not a
+one-line fix. It plausibly belongs with the **DOC-AUD-001 §6 `Sequencing` field question** in
+the same governance-schema docs-only LITE lane: both are "the record has the information but
+not in a form anyone can find or count."
+
+### ⚑ A PROCESS LAPSE, RECORDED FROM BOTH SIDES
+
+**The erroneous 41 reached three governance documents before anyone checked it, and the
+check-what-it-measures discipline had already been invoked in the same session — twice.**
+
+- **The executor** derived 41 from a single keyword search and wrote it into WF-0016, this
+  journal, and the as-built **without verifying what the pattern actually matched** — having,
+  in the same lane, explicitly declined to bank a watchdog-iteration estimate for precisely
+  that reason.
+- **The operator** quoted the unverified 41 back approvingly and **built a ruling on it**,
+  having just instructed the executor to verify what the watchdog estimate measured.
+  **Recorded because a one-sided account of this would be inaccurate:** the figure was
+  amplified into a ruling before it was checked, and the correction came only when the
+  operator later demanded the verification.
+
+**THE DURABLE LESSON IS ABOUT THE HOLD, AND IT IS AN ARGUMENT FOR THE DISCIPLINE INDEPENDENT
+OF CI.** The wrong number sat in three governance documents in a **committed but UNPUSHED**
+patch. **Because the closeout was held until main was confirmed green, the error was
+RECALLABLE — corrected in place by amendment, with no trace in the repository's history.** Had
+the lane pushed on drafting completion, correcting a figure already merged into WF-0016, the
+journal and an as-built would have required **its own follow-up PR and its own decision
+record.** **The hold-until-green rule exists to keep a closeout honest about CI results; this
+lane demonstrates it also keeps a closeout CORRIGIBLE.** That second benefit is independent of
+CI and should be weighed when anyone proposes relaxing the rule.
+
+### WHAT THIS LANE LEAVES BEHIND
+
+**The lane broke main and repaired it in flight, and that is the most instructive thing about
+it.** Correcting two unmeasured CI budgets simply moved the failure to **a third that nobody
+had counted** — one that had been latent and unobservable for the entire governance-heavy
+window, because the `docs_only` gate meant the contradiction between a 240-minute ceiling and
+a ~130-minute watchdog **never once got exercised**. The repair was made by **derivation
+rather than by a bump**, at operator direction, precisely so a fourth hardcoded constant was
+not created in the act of fixing the third. **ENG-0052's defect class now stands at five
+recorded instances**, of which **only one has been given a derivation** — the other four,
+including the two ceilings this lane itself set, **remain literals today.** That is recorded
+as a limitation of the remedy, not as a success.

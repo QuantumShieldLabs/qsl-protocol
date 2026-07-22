@@ -324,4 +324,12 @@ $ echo $?
 > (verified: exit 0 with the flag). **The substance that matters — both layers agreeing at
 > zero — is proven above.**
 
+**FILED AS WF-0025 at operator direction:** the helper cannot distinguish `READY_COUNT 0`
+*correct at closeout* from `READY_COUNT 0` *because the queue is malformed* — both are exit 2.
+Every lane closing to `READY=NONE` hits it, so closeout verification cannot be a hard gate
+without a mode that separates the two. The entry also records that the qwork/workspace-hardening
+cluster it belongs to (the both-directions queue lint, the FAIL-artifact problem, the workspace
+`user.email` hazard) **has no ledger entries yet** — WF-0025 opens that cluster rather than
+joining one.
+
 The executor cannot self-promote. **The operator promotes the successor.**

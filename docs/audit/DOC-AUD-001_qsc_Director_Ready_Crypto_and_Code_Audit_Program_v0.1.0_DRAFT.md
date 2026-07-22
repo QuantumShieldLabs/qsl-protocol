@@ -177,10 +177,36 @@ Every serious audit finding should be reported in this shape:
   - what should change without designing the whole solution in the audit lane
 - Proof gap:
   - which regression, vector, property, or fuzz check is missing
+- Sequencing (optional; required whenever one exists):
+  - a deadline or ordering constraint set by something OTHER than severity — when
+    the item must land relative to another event, and why
 - Recommended directive shape:
   - implementation-only
   - docs/evidence-only
   - audit follow-on
+
+**On `Sequencing`, because it is the field most likely to be dropped as
+redundant with severity.** *Severity is an impact scale; sequencing is a
+calendar.* **An item may be low-severity and still deadline-bearing**, and the
+two do not substitute for each other in either direction. Record the constraint
+here rather than inflating severity to express urgency — inflated severity
+corrupts the one scale the triage discipline reads, and it still does not say
+*when*.
+
+The worked example is **`ENG-0053`** in `docs/ops/IMPROVEMENT_LEDGER.md`: its
+deadline is set by the vault **FORMAT change**, not by the latency it describes.
+Migration is free while no vaults exist in the field and becomes permanently
+harder at first release. Its severity — `P2` — is correct on an impact scale and
+would be *wrong* if raised to express the deadline. The entry's own text states
+the failure mode this field exists to prevent: **"a successor weighing latency
+instead of the deadline will correctly conclude the latency does not justify the
+work — and reach the wrong answer."** A reader who sees only the severity gets a
+defensible decision from a complete misreading of the constraint.
+
+The field is scannable by design: `grep '^- Sequencing:'` over the ledger
+returns every deadline-bearing item, which is the whole point of making it
+first-class rather than leaving it in prose. Keep the literal `- Sequencing:`
+opening so that scan stays honest.
 
 Reject anti-patterns such as:
 

@@ -44384,6 +44384,16 @@ one-line fix. It plausibly belongs with the **DOC-AUD-001 §6 `Sequencing` field
 the same governance-schema docs-only LITE lane: both are "the record has the information but
 not in a form anyone can find or count."
 
+> **→ ACTED ON 2026-07-22 by NA-0666 (D-1292), and the prediction above was correct — both
+> questions were taken by the same governance-schema docs-only LITE lane.** The controlled
+> marker is now specified at **`DOC-OPS-003 §3a`** (`REC-<NNN> · <CLASS> · <class-key>`, with
+> `CLASS` one of `DEFECT` / `HAZARD` / `ONE-OFF` — the three-way distinction this analysis
+> identified as missing), and `Sequencing` is a first-class field at **`DOC-AUD-001 §6`**.
+> **The marker is FORWARD-ONLY: nothing above this line is retro-labelled**, so the counting
+> problem described here remains true of the historical corpus and any count from the new
+> marker is a count since D-1292. **This analysis is referenced by §3a rather than restated
+> there** — it stays the authoritative description of the gap.
+
 ### ⚑ A PROCESS LAPSE, RECORDED FROM BOTH SIDES
 
 **The erroneous 41 reached three governance documents before anyone checked it, and the
@@ -44465,3 +44475,40 @@ as a limitation of the remedy, not as a success.
 ### Standing conventions
 - **GH007 held per-commit.** This workspace's `git config user.email` still reads `tebbens@proton.me`; every commit passed `-c user.email=238594419+Tebbens4832@users.noreply.github.com` **explicitly** and repo config was left unmutated. Verified on the merged desktop PR by querying the PR, not the local tree. The underlying config-vs-identity hazard remains an owed item.
 - `docs/governance/evidence/` is **gitignored** (`.gitignore:65`, `**/evidence/`) — `git add -f` required, as ever.
+
+## 2026-07-22 — NA-0666 (governance-schema hardening; D602 → D-1292)
+
+- Lane shape: **spine-only, docs-only LITE — single PR, single decision.** Branch `na-0666-governance-schema-hardening` off `e03c11d4` (== `origin/main` at Phase 0, the #1619 promotion merge). Directive `QSL-DIR-2026-07-22-602`, sha256 `e538212a…`, 324 lines, verified on disk at Phase 0.
+- **THIS LANE FILED AND RECORDED. IT FIXED NOTHING**, by construction and by STOP condition 11. Every defect it names is still broken on merge; the entries say so themselves.
+- Phase 0, all verified live and not asserted: qwork proof `startup_result=OK`, `ready_count=1`, `queue_top_ready=NA-0666`, `shared_target_ready=yes`; `HEAD == origin/main == main == e03c11d4`; worktree/index/untracked clean; `queue` → `READY_COUNT 1 / READY NA-0666`, **exit 0**; D-1291 present exactly once, D-1292 absent; WF-0025 present, all eight target IDs free; root 47% and `/backup/qsl` mounted; `public-safety` and `advisories` both SUCCESS on the main tip.
+
+### What landed — eight filings, four rules, one repair
+- **Eight ledger entries**, each exactly once: **WF-0026** (queue lint + the `parse_queue` two-letter widening as ONE item), **WF-0027** (`qwork` FAIL artifact), **WF-0028** (GitHub cancelled-run litter), **WF-0029** (`user.email` at source), **WF-0030** (`qsl-desktop` not qbuild-known), **WF-0031** (`/srv/qbuild/tools/` unversioned, reporting-only), **WF-0032** (`CLAUDE.md` not a docs path), **ENG-0062** (`measure.py` durable home + `fitCode` silent-drift seam).
+- **WF-0025's cluster note amended MINIMALLY** — its census text is preserved verbatim because it was accurate when made; the amendment only maps its three members onto the new IDs and records the fourth the census had merged into member (2).
+- **`DOC-OPS-006 §4a`** now carries the operator relay file, proactive observations, queue verification (with its own WF-0025 limitation written into the rule), and the relay-vs-response reconciliation. **`§2`'s directive-counter source repaired** to the directives directory.
+- **`DOC-AUD-001 §6`** gains `Sequencing` as a first-class field; **`DOC-OPS-003 §3a`** gains the forward-only recovery marker.
+
+### Measurements taken live rather than inherited — two of them corrected the directive
+- **WF-0026: 718 headings / 711 parser-visible / 7 invisible**, against D602's draft-time 717/710/7. The delta is the NA-0666 promotion heading itself; **the seven invisible IDs and the invisible count are unchanged**, and all seven are `Status: DONE`, so the defect is **LATENT, not live**.
+- **The `Sequencing` migration set was misattributed in the directive.** D602 named "ENG-0052 (:1645)"; line 1645 belongs to **ENG-0051**. The four line numbers were all correct and a `grep` census found exactly four pre-existing bullets, so the SET was never ambiguous — **only the label was wrong.** The four are **ENG-0051 / ENG-0053 / ENG-0054 / ENG-0058**. Recorded rather than silently corrected, because a successor reading D602 will hit the same mismatch.
+- **Three of the four were already in canonical `- Sequencing:` shape; only ENG-0053 required an edit** (its field name was inside a bold span with a parenthetical, so `^- Sequencing:` did not match it). Content, deadline, and severity unchanged. Ten bullets now scan uniformly.
+- **§2's defect is worse than drafted:** 34 of 575 response files carry four-digit decision-ID suffixes (D602 said 28), so a naive max returns **1287** — and even restricting to three-digit suffixes the directory tops out at **573** against a true counter of **602**. The old source was **stale as well as poisoned**.
+- **ENG-0062:** `measure.py` is 5,708 bytes (exact) and **151 lines by `wc -l`**, not 152; the byte count is authoritative. Companions match D602 exactly.
+
+### The relay-vs-response question was settled on evidence, and the answer was the third branch
+- **They are genuinely DISTINCT, and the response file is STILL OWED.** The relay rule's own words contrast it with *terminal output*; what it displaced is the terminal/chat response, not the archival response file. Nothing retired the latter: `CLAUDE.md` step 6 still mandates it, and **D600, D601, and D602 — all drafted after the relay convention — each still name a `Response file target:`.**
+- The discrepancy is recorded as an **unpaid obligation, not a retirement**: newest response file is NA-0663's at `2026-07-21T04:04Z`, the relay convention began at `2026-07-21T15:32Z`, and **NA-0664 and NA-0665 wrote none.** Both still owe one.
+- **A supersession was NOT manufactured to make the discrepancy disappear** — that would have been this lane's own stated failure mode, committed while preventing it.
+
+### Failures / recoveries (first use of the DOC-OPS-003 §3a marker — this entry is its first honest test)
+- **REC-001 · HAZARD · commit-identity** (**WF-0029**): the workspace git identity is `tebbens@proton.me` from `/home/victor/.gitconfig` with no local override, so the GH007 noreply identity had to be supplied per-commit — recoverable because the `-c user.email=…` override always works; corrected by applying it explicitly on every commit of this lane; final result all commits carry the noreply identity. **This is the canonical instance of the meta-finding, paid once more by the lane that filed it** — and the marker class is `HAZARD` precisely because the recovery never fails, which is why it never generated pressure to fix.
+- **REC-002 · ONE-OFF · helper-module-import**: an attempt to import `qsl_evidence_helper.py` as a module to reuse `parse_queue` failed with a dataclass/`__module__` `AttributeError` — recoverable because the regex is readable directly from the source; corrected by copying the compiled pattern read-only out of `:222-234` and applying it to `NEXT_ACTIONS.md` in a separate process; final result the 718/711/7 measurement above. **No file was modified.** Classed `ONE-OFF` because it is a property of an ad-hoc probe technique, not of the helper.
+
+### Bounds held
+- **`classify_ci_scope.sh` over the full changed set printed `docs_only=true`** — the lane's cheapest and most direct scope guard, and its mechanical proof that nothing forbidden entered the diff.
+- **Zero forbidden paths touched:** no `scripts/**`, no `.github/**`, no `CLAUDE.md`, no `src/**`, no `Cargo.*`, no `tests/**.rs`, no `formal/`, `specs/`, `schemas/`, `.claude/`, no hook, **no `/srv/qbuild/tools/**` mutation**, no `qsl-desktop` path. `/srv/qbuild/tools/` and `measure.py` were **read only**, for evidence.
+- **OBS-O honoured narrowly:** the ledger's own `Last-Updated` moved `2026-07-06` → `2026-07-22` — **one field, one file.** No other front matter was touched anywhere, including `TEMPLATE_Rolling_Operations_Journal`'s `2026-04-04`, which this lane edited in body but deliberately left alone in front matter.
+
+### Queue-helper readback at closeout — exit 2, pre-recorded, and CORRECT
+- Both layers moved together and **agree**: STATE `READY=NONE | HIGHEST_NA=0666 | HIGHEST_D=1292`, and the `### NA-0666` section reads `Status: DONE`.
+- `python3 scripts/ci/qsl_evidence_helper.py queue` → `READY_COUNT 0`, **exit 2** — the WF-0025 behaviour, anticipated by D602's OBS-N and satisfiable under the §4a rule this lane just wrote. **`--allow-nonready-count` was NOT passed**, per operator ruling. **The self-consistency gate passes because the rule as written is satisfiable in this state, not because the exit code is 0.**

@@ -54,10 +54,65 @@ Minimum meaning of each field:
 - `repo SHAs`: active branch `HEAD` plus the governing `main` / remote refs needed to resume truthfully
 - `READY proof`: the observed READY count and the exact item that authorized the work
 - `worktree/branch/PR`: the qbuild worktree path, local branch name, PR number or URL, and merge commit when applicable
-- `failures/recoveries`: every recoverable failure, why it was recoverable, what changed, and the final result
+- `failures/recoveries`: every recoverable failure, why it was recoverable, what changed, and the final result — **each recorded with the controlled marker defined in §3a**
 - `validation/CI notes`: local validation commands, protected-check status, and any bounded retries
 - `disk watermark`: the filesystem, total/used/free GiB, and used percent for the host that carried the work
 - `next-watch items`: open risks, pending observations, or follow-up evidence still worth monitoring
+
+### 3a. Recovery-event marker (FORWARD-ONLY, added by D-1292)
+
+**Why this exists.** The `failures/recoveries` field has always been REQUIRED,
+but the **marker was never specified** — so thirteen distinct phrasings bloomed,
+and four reasonable framings applied to the same corpus returned **41 / 42 /
+175 / 35** while counting one recurring hazard. **The full analysis is already
+in the repository at `docs/ops/ROLLING_OPERATIONS_JOURNAL.md` (the section
+"⚑ A GOVERNANCE-OBSERVABILITY GAP, FOUND BY ACCIDENT: THIS JOURNAL CANNOT ANSWER
+'HOW OFTEN HAS X HAPPENED'", recorded by NA-0664) and is NOT restated here.**
+Read it there; this section is the rule that answers it.
+
+**Shape.** Modelled on the `RF-###` precedent — the only stable identifier the
+existing vocabulary produced (37 references across 8 ids, in the form "Recovered
+proof issue RF-###"). Every recovery event gets one line:
+
+```
+- REC-<NNN> · <CLASS> · <class-key>: <what failed> — recoverable because
+  <reason>; corrected by <action>; final result <result>.
+```
+
+- `REC-<NNN>` — monotonic **within the entry**, starting at `001`, as `RF-###`
+  numbers already are. It makes an event citable ("REC-003 of the NA-0666
+  entry") without implying a global registry that nothing maintains.
+- `<CLASS>` — **exactly one of three**, which is the distinction the current
+  vocabulary cannot express:
+  - **`DEFECT`** — *a defect that bit.* Something known-broken, latent, or
+    previously filed produced this failure. **A `DEFECT` marker should name its
+    ledger ID where one exists**, and its absence from the ledger is itself
+    worth noticing.
+  - **`HAZARD`** — *a hazard correctly anticipated.* A known trap the lane
+    expected and paid; the recovery worked as designed. **This class is the one
+    that matters most for prioritisation and the one the old vocabulary hid
+    best** — a hazard whose recovery always succeeds generates no pressure to
+    fix itself, and counting these is how that becomes visible.
+  - **`ONE-OFF`** — *unrelated and non-recurring.* Transient or external, with
+    no standing defect implied. **Claiming `ONE-OFF` is a claim**; if the same
+    `class-key` appears as `ONE-OFF` repeatedly, it was never one.
+- `<class-key>` — a short stable kebab-case slug naming **the class of thing
+  that failed**, reused verbatim across entries for the same underlying thing
+  (for example `evidence-gitignore`, `commit-identity`, `gh-5xx`,
+  `queue-parse`). **This is the part that makes counting possible:** the class
+  is what recurs; the individual failure is not.
+
+**What it buys.** `grep -c 'REC-.* · HAZARD ·'` counts anticipated hazards;
+`grep -o '· [a-z0-9-]*:' | sort | uniq -c` ranks failure classes by frequency.
+**"How often has X happened" becomes answerable from the record instead of from
+the phrasing of the search.**
+
+**⚠ LIMITATION, STATED PLAINLY: this makes the journal countable FORWARD ONLY.**
+The ~44,000 lines of existing entries are **NOT retro-labelled** — that is a
+separate and much larger job, and **mislabelling history is worse than leaving
+it uncounted.** Any count derived from this marker is a count *since D-1292*,
+and must be reported as such. The historical corpus remains exactly what
+NA-0664 found it to be: excellent as narrative, unreliable as arithmetic.
 
 ## 4. Cadence and update responsibility
 

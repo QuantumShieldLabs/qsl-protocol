@@ -6,8 +6,9 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0664 | HIGHEST_NA=0664 | HIGHEST_D=1287 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
-<!-- prior: STATE: READY=NONE | HIGHEST_NA=0663 | HIGHEST_D=1287 (NA-0664 promoted for D600; this promotion PR) -->
+`STATE: READY=NONE | HIGHEST_NA=0664 | HIGHEST_D=1290 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- prior: STATE: READY=NA-0664 | HIGHEST_NA=0664 | HIGHEST_D=1287 (NA-0664 closed for D600 at D-1288 ceilings + D-1289 watchdog repair + D-1290 closeout; this closeout PR) -->
+<!-- NA-0664 (macOS CI capacity correction + vault-read instrumentation, D600) DONE 2026-07-21 (D-1288 implementation + D-1289 in-lane repair + D-1290 closeout, result class CI_CAPACITY_CORRECTION_AND_VAULT_READ_MEASUREMENT_PASS): a FULL-ritual spine-only lane that ran to THREE PRs rather than the drafted two, because the lane broke main and repaired it in flight. WHAT LANDED: (1) D-1288 (PR #1613, merge `ca6897fc`) — `macos-qsc-full-serial` `timeout-minutes` 120 -> 180 (1.70x the measured 105m52s pre-lane baseline) and an explicit `timeout-minutes: 240` on `qsc-linux-full-suite` replacing the inherited 360-minute GitHub default, PLUS the ENG-0052/ENG-0053 amendment owed from NA-0663. VERIFIED BY THE MERGE ITSELF: because `.github/workflows/*` classifies `docs_only=false`, that PR's own merge was the first genuine exercise of the macOS suite since NA-0663 and the first ever under the corrected ceiling — it PASSED at 132m15s = 73.5% of the 180 ceiling (against the old 120 it would have been 110.2% and cancelled again; against a 150 it would have been 88.2%, the identical thin margin the lane rejected at F1). Linux passed at 157m45s = 65.7% of 240. (2) D-1289 (PR #1614, merge `67110be7`) — AN UNPLANNED IN-LANE REPAIR OF A BREAKAGE THIS LANE SHIPPED: D-1288 corrected two CI budgets but left `public-safety`'s `--max-iterations 390` (~130 min at 20 s) untouched, and that THIRD budget — named in no filing, no directive, and no analysis — became binding the instant the first two were corrected, exhausting 390/390 while the Linux suite was still `in_progress` (it succeeded 20m52s later) and turning MAIN RED ON A MERGE WHERE NOTHING WAS BROKEN. The repair is DERIVATION, NOT A BUMP, at operator direction: the step now READS both ceilings from the checked-out workflow files at run time, takes the maximum, adds a stated 60-minute queue/jitter margin, and computes the budget (240+60 = 300m = 900 iterations at 20 s), so raising either ceiling raises the watchdog automatically; a missing ceiling and a ceiling this job cannot cover both fail LOUDLY and immediately rather than silently 130 minutes later. (3) D-1290 (this closeout) — the Phase 3 verdict and the ledger disposition. THE MEASUREMENT VERDICT: one release `vault::secret_get` costs 18.137 ms (near-empty store) / 18.554 ms (414 KB, 4000 msgs), apportioned across four buckets at 97.6% / 101.4% attribution — Argon2id 97.4% / 95.4%, file read 0.1% / 0.3%, AEAD decrypt 0.0% / 1.6%, payload parse 0.0% / 4.1%. The required (c)/(d) split is uneven: (d) deserialization outweighs (c) decryption by ~2.6x. Floor and growth are stated separately as acceptance demanded: the Argon2id FLOOR is FLAT at ~17.7 ms across a 2700x store-size increase, while the GROWTH term moves 0.005 -> 1.048 ms (~6% of the call at 4000 messages). Tier 1 measured a `secret_get` multiplicity of EXACTLY 1 per `relay_http_client()` construction, linear at N=10, so "call it less" is not the remedy. THE HEADLINE CORRECTION: the ~350-400 ms in ENG-0053's own title is a DEBUG-PROFILE measurement — release is ~18 ms — confirmed three ways (the probe binary carries `.debug_info` at 89.3 MB vs a release 8.85 MB; BOTH CI suites run their TESTS in debug; the 22.1x debug/release ratio accounts for the observed ~21x gap with nothing left over). The item's PRODUCT severity was OVERSTATED by the filing, by the operator's ranking, and by the executor's own hypothesis, and the ledger now says so in the heading itself — NO READER MAY CARRY 350 ms INTO A PRODUCT DECISION. The debug figure remains correct for CI, which genuinely runs debug, so NO CEILING CHANGE FOLLOWS. NOTHING WAS FIXED AND NO REMEDY WAS CHOSEN: the remedy space is recorded as OPTIONS with envelope encryption leading on the merits (it targets the ~95-97% term directly; its true cost is a vault FORMAT change with migration), and the prior objection that it "targets the wrong term" is REFUTED by this lane's data. ENG-0052 clauses (a)/(b)/(c) DISCHARGED and clause (d) — the periodic scheduled exercise — EXPLICITLY OWED, so the masking note is unretired: governance merges still skip both suites and main's green history is still not evidence about ceiling health. The defect class is recorded with ALL FIVE instances (macOS 120, Linux's inherited 360, the watchdog's 390, the incident-specific repair profile, and the bootstrap's advisories-only trigger — the last RULED IN by the operator), demonstrating the class is not confined to numbers or to CI timing; and it is recorded as a LIMITATION that only instance 3 was given a derivation while 1 and 2 remain literals. ENG-0055 gains a RECORDING-ONLY bullet: `vault/mod.rs` has exactly ONE `impl Drop`, on `VaultSession`, which `secret_get` does not use, so every `secret_get` abandons the full plaintext corpus and a derived key unwiped on the hot path — the hardened path and the hot path have DIVERGED in the same module, the entry's own "the house DOES zeroize at the vault seam" claim is `VaultSession`-ONLY, the census widens INDEPENDENTLY of whether any cache lands, and the tradeoff INVERTS (caching may IMPROVE memory hygiene; "cache = corpus in the clear" is WITHDRAWN). ENG-0059 FILED: BOTH sanctioned routes from a red main back to green are unusable — the repair path via an unhandled 403 plus a non-generalizing incident-specific profile, the bootstrap because it is scoped exclusively to advisories-driven reds — so the repository has NO working sanctioned automated recovery, and PR-1b was unblocked by an explicit ad-hoc OPERATOR SANCTION recorded by hand, NOT by any automated route. OWED AND DELIBERATELY NOT GUESSED: the MEASURED `secret_get` count per FULL relay operation (Tier 1 measured per CONSTRUCTION; the 16 tree-wide call sites are STATIC INSPECTION, not measurement) — judged NOT CHEAP because `perf_snapshot()` has zero consumers, its counters are process-global while the only working full-operation harness is subprocess-based, and `relay_send` needs an established two-party session. Also owed: the `key_source = 2` (keychain) profile, where bucket (b) is ~0 and these figures do not generalize. BOUNDS HELD: zero `src/` paths in all three PR diffs, temporary measurement edits reverted from byte-exact copies and proven absent. A METHODOLOGICAL RESULT was recorded as a standing house rule after a near-miss: a measurement landing suspiciously close to the expected value gets a second look UNDER CHANGED CONDITIONS before it is reported — the first apportionment run was a debug build giving 401.3 ms/call against an expected 350-400 ms, a near-exact match that would have produced a CONFIDENT WRONG VERDICT steering the successor toward the store-size framing and away from Argon2id, and only re-running under release exposed it. Queue returns to READY=NONE — the operator promotes the successor (the ENG-0053 remedy sequenced against ENG-0055, ENG-0052 clause (d), ENG-0059, slice B, or another ledger item). The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NA-0663 | HIGHEST_NA=0663 | HIGHEST_D=1285 (NA-0663 closed for D599 at D-1286 implementation + D-1287 closeout; this closeout PR) -->
 <!-- NA-0663 (qsc client TLS trust, D599) DONE 2026-07-21 (D-1286 implementation + D-1287 closeout, result class QSC_CLIENT_TLS_TRUST_PASS for the implementation half): FULL ritual two-PR spine-only lane; implementation PR #1609 merged `b2dc23bf` (true merge commit, 34/34 PR checks green). THREE PARTS LANDED per the ruled flags: (1) F1 UNION — the reqwest feature line gains `rustls-tls-native-roots` with `rustls-tls` RETAINED, so roots are the union of the baked-in webpki set and the OS trust store and nothing previously trusted stops being trusted; SSL_CERT_FILE/SSL_CERT_DIR now behave as standard; (2) an ADDITIVE explicit CA-file option resolving env QSC_RELAY_CA_FILE -> env RELAY_CA_FILE -> vault secret `tui.relay.ca_file`, FAIL-CLOSED on a configured-but-unusable CA, the raw path never published (presence + hash only), pub GUI-reachable surface `qsc::transport::relay_ca_file_set/clear/show` plus the additive CLI verbs `relay ca-set`/`ca-clear`/`ca-show`, and NO 0600 gate (a deliberate recorded asymmetry vs the token file: a CA is public material); (3) F2 TYPED DETECTION — `relay_tls_untrusted` on push/pull/ack matched BY VALUE on `rustls::Error::InvalidCertificate` rather than by substring, distinct from unreachable/DNS/timeout/`relay_unauthorized`, plus the `relay_ca_file_missing`/`_unreadable`/`_invalid` trio; NO ErrorCode variant. ONE house constructor `relay_http_client()` replaced ALL EIGHT `HttpClient::new()` sites. FOUR OPERATOR RULINGS at execution: `src/cmd/mod.rs` ADMITTED to strict scope bounded to the three additive RelayCmd variants (the directive required additive CLI verbs while forbidding the only file where a clap verb can be DECLARED — the executor STOPPED at the design lock rather than improvise); `pem`+`yasna` accepted as rcgen dev-only transitives; `relay_ca_file_store_failed` accepted as an explicit vocabulary expansion four->five (the F2 bound governs the TRANSPORT contract, not CLI setter store failures); `require_unlocked` confirmed on all three verbs. A REAL BUG THE TESTS CAUGHT, not review: the first typed detection walked `source()` alone and DID NOT FIRE, because tokio-rustls reports a refusal as `io::Error::new(InvalidData, rustls::Error)` and `io::Error::source()` delegates to the INNER error's source rather than yielding it — `get_ref()` is load-bearing. PROOFS: suite 110 binaries / 434 passed / 0 failed / 1 ignored EXIT 0 vs base 109/423/0/1 — delta EXACTLY +1 binary and +11 tests, the new file and nothing else; every pre-existing test file BYTE-IDENTICAL to base including NA_0640_full_stack_e2e.rs (green at head); base-binary A/B over the existing relay verbs byte-for-byte IDENTICAL; both audits exit 0; lockfile 386->392 with `aws-lc-rs`/`aws-lc-sys` 0 at base AND head and `ring` unchanged. NO insecure-skip-verify / accept-any-certificate / accept-invalid-certificate path exists in any form, including tests; the needle scan is pinned as an executable test with NO exemption list. POST-MERGE, MAIN IS NOT GREEN AND THAT IS RECORDED HONESTLY: `macos-build` CANCELLED by a 120-minute timeout on `macos-qsc-full-serial` (NOT a designed supersession — main had not advanced) and `public-ci` FAILED as the designed consequence via its `public-safety` watchdog; `qsc-linux-full-suite` PASSED (2h37m08s, 15/15 jobs). A measurement on the PARENT commit established the macOS suite fit in 105m52s with only 14m08s of margin, so the ceiling was NOT already breached and this lane consumed the remaining headroom. THREE HYPOTHESES were then tested from outside: Argon2id-per-subprocess REFUTED (serial 78.38s vs parallel 19.98s); trust-store loading per construction REFUTED (122 certs -> 1 cert changed nothing); the per-construction VAULT READ in `relay_ca_file()` ESTABLISHED as the LOCATION of a +311/+329/+372 ms per-operation cost that scales super-linearly — but NOT established as the root cause, since a `vault::secret_get` should cost tens of milliseconds, so it stands as a PROXY for something below it. Filed: ENG-0049 (this gap, CLOSED AS PAID in-lane), ENG-0050 (fmt/clippy validation-default hazard), ENG-0051 (bearer token sent to an open-mode relay), ENG-0052 (push-only full-suite exercise gap / macOS ceiling), ENG-0053 (the per-construction vault read). The macOS ceiling remains UNRESOLVED and that is DELIBERATE: it is a separate lane and the operator ruled it should wait for the instrumentation result rather than be papered over with a config knob. Queue returns to READY=NONE — GUI slice B stays OWED (its Server pane consumes THIS surface), the WF-0024 DOC-PROG-004 micro-lane stays OWED, and the NA-0662 operator flight stays OWED and untouched. The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0662 | HIGHEST_D=1285 (NA-0663 promoted for D599; this promotion PR) -->
@@ -80,71 +81,47 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY (exactly one — execute this): NA-0664 — macOS CI capacity
-correction + per-construction vault-read instrumentation (D600, FULL
-ritual, two-PR, spine-only, `.github/**` + `docs/**` ONLY — NO src/
-diff).** Per **QSL-DIR-2026-07-21-600 (D600, APPROVED 2026-07-21; ALL
-FOUR FLAGS RULED — F1 = the macOS `timeout-minutes` on
-`macos-qsc-full-serial` goes 120 -> **180**, = 1.70x the measured
-105m52s pre-lane runtime (rationale recorded: the Linux suite's +17.3%
-across the regression, 133m55s -> 157m08s, measurable ONLY because
-Linux has no ceiling, extrapolates macOS post-regression to ~124m, and
-150 would clear that by only ~26m — re-committing the thin-margin
-defect at a different number; the extrapolation evidence is REQUIRED in
-the PR body as the strongest line in the justification); F2 = the Linux
-ceiling is **IN at 240** — it is clause (c) of ENG-0052's OWN filed
-recommendation and therefore NOT scope creep, and the counter-argument
-(it introduces a failure mode that does not exist today; Linux has
-never timed out) is ACKNOWLEDGED AND OVERRULED and REQUIRED in the PR
-body so the tradeoff stays visible, on the ground that a 6-hour default
-on a 2h37m job is the same inadequate-margin defect inverted and an
-unceilinged job that quietly grows is exactly how the macOS situation
-was created; F3 = **SHIP NOTHING** — the lane's product is the ANSWER
-in the response file, evidenced by the ALREADY EXISTING
-`vault::perf_snapshot()` with temporary timing removed before the PR,
-and THE ACCEPTANCE QUESTION IS RULED TO BE THE SPLIT: of the ~350-400
-ms per relay operation, how much is Argon2id and how much is
-read+decrypt, with >=80% attributed, because the two costs have
-DIFFERENT remedies (a cached derived key vs a cached parsed store) with
-DIFFERENT ENG-0055 census consequences — a verdict that says only "the
-vault read is expensive" DOES NOT MEET ACCEPTANCE; F4 = TWO PRs,
-CEILING-FIRST, load-bearing on the verified fact that
-`.github/workflows/*` classifies `docs_only=false` so PR-1's OWN merge
-exercises `macos-qsc-full-serial` under the new ceiling before anything
-else lands; LANE SHAPE RULED — there is NO `src/` diff, the earlier
-"src/ AND .github/**" framing is SUPERSEDED, and a TEMPORARY
-branch-local source edit is permitted for measurement ONLY and MUST be
-reverted with the PR diff PROVING `src/` untouched)**. The lane's
-product is **A MEASUREMENT AND A CAPACITY CORRECTION, NOT A PERFORMANCE
-FIX** — any remedy for the vault-read cost is a SUCCESSOR lane,
-DELIBERATELY, because ENG-0055's zeroization census must see the final
-shape of any cached secret handle; if the instrumentation makes a fix
-look trivial the executor STOPS AND REPORTS rather than applying it.
-Discharges **ENG-0052 (PARTIAL — clauses (a)/(b)/(c); clause (d), the
-periodic scheduled exercise, is EXPLICITLY NOT this lane and stays
-OWED)** and **ENG-0053 (MEASUREMENT ONLY)**, and folds in the ledger
-amendment owed from NA-0663 (in PR-1's ledger touch, with its two
-approved corrections and the masking-effect description preserved
-UNCHANGED). A green main-push under the new ceiling is **NOT** evidence
-the regression is resolved; a RED at 180 is **NEW INFORMATION ABOUT THE
-REGRESSION'S SIZE, NOT a remediation failure**, and is NOT a
-raise-again outcome. **STANDING HOUSE CONVENTION (operator rule,
-2026-07-21): the OPERATOR RELAY FILE
-`/srv/qbuild/operator/relay/LATEST.md` is written EVERY turn
-(overwritten, plus a timestamped `RELAY_<UTC>.md` copy), self-contained
-— the relay file IS the response and terminal output is only a
-preview.** The lane STOPS at its TWO open PRs (PR-1 the ceiling +
-amendment, then PR-2 the closeout); the operator merges PR-1 first and
-verifies the macOS run under the new ceiling. After this lane: the
-ENG-0053 REMEDY is the named successor, sequenced against **ENG-0055**;
-ENG-0052 clause (d) stays OWED; slice B stays OWED; the DOC-PROG-004
-revision micro-lane is OWED (WF-0024); the NA-0662 operator flight
-stays OWED; standing: **ENG-0036**, **ENG-0042**/**ENG-0043**,
-**ENG-0045**, **ENG-0047**, **ENG-0048**, **ENG-0050**, **ENG-0051**,
-**ENG-0054**, **ENG-0056**, **ENG-0057**, **ENG-0058**, **0b**, the
-**0c residue**, **NA-0635** (GATED). Begins at **D-1288**
-(implementation) + **D-1289** (closeout). The executor cannot
-self-promote.
+**READY: NONE.** NA-0664 is DONE (D-1288 ceilings + D-1289 in-lane watchdog
+repair + D-1290 closeout; result class
+`CI_CAPACITY_CORRECTION_AND_VAULT_READ_MEASUREMENT_PASS`). **The queue is
+empty and the Director promotes the next lane** — the executor cannot
+self-promote. **Candidates, in no ruled order:** the **ENG-0053 remedy**
+(now measured and re-framed — envelope encryption leads on the merits, but
+**nothing is decided** and its true cost is a vault FORMAT change with
+migration), which must be **sequenced against ENG-0055** so that item's
+zeroization census sees the final shape of any cached secret handle rather
+than auditing a structure about to change; **ENG-0052 clause (d)** (the
+periodic scheduled exercise of both push-only suites — **still the only
+defense against the masking effect, and still absent**); **ENG-0059** (both
+red-main escape hatches unusable); **ENG-0055** itself. **Owed measurements
+carried out of NA-0664:** the MEASURED `secret_get` count per FULL relay
+operation (the 16 tree-wide call sites are **static inspection, not
+measurement**; judged NOT CHEAP and deliberately not guessed) and the
+`key_source = 2` profile, where bucket (b) is ~0 and NA-0664's figures do
+not generalize. **Standing owed:** ENG-0052 clause (d); the CLAUDE.md
+`## Session procedure` capture of the operator-relay and
+proactive-observations conventions (a docs-only LITE lane) — **and, plausibly
+in that same LITE lane, whether `Sequencing` should be FORMALIZED in
+DOC-AUD-001 §6 as a FIRST-CLASS ledger field** so deadline-bearing items can
+be found by SCANNING rather than by reading every entry. The mechanism already
+exists as an informal bullet convention (ENG-0054 "resolve BEFORE reviewer
+outreach", ENG-0058 "settle BEFORE GUI slice B's Logs pane is drafted", and
+now ENG-0053's pre-release envelope-encryption deadline — **three items want
+it**), but it is neither first-class nor scannable. **And, with it, whether the
+ROLLING OPERATIONS JOURNAL needs a CONTROLLED MARKER VOCABULARY for recovery
+events** — four reasonable framings returned **41 / 42 / 175 / 35** over the
+same corpus while counting a single recurring hazard, because recoveries are
+recorded under a dozen-plus headings with no controlled field separating *a
+defect that bit* from *a hazard correctly anticipated*. **Consequence: the
+journal cannot answer "how often has X happened" for ANY class of event, so
+prioritisation arguments of that shape are unsupportable from it without
+hand-inspection.** **Both are governance-schema questions: RECORDED AS OWED,
+NOT ACTED ON in NA-0664**; slice B; the
+DOC-PROG-004 revision micro-lane (WF-0024); the NA-0662 operator flight;
+and **ENG-0036**, **ENG-0042**/**ENG-0043**, **ENG-0045**, **ENG-0047**,
+**ENG-0048**, **ENG-0050**, **ENG-0051**, **ENG-0054**, **ENG-0056**,
+**ENG-0057**, **ENG-0058**, **0b**, the **0c residue**, **NA-0635**
+(GATED).
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**
@@ -35972,7 +35949,7 @@ Begins at D-1286 (implementation) + D-1287 (governance closeout). FULL ritual, s
 
 ### NA-0664 — macOS CI capacity correction + per-construction vault-read instrumentation (ENG-0052 partial + ENG-0053 measurement)
 
-Status: READY
+Status: DONE 2026-07-21 (D-1288 implementation + D-1289 in-lane watchdog repair + D-1290 closeout; result class `CI_CAPACITY_CORRECTION_AND_VAULT_READ_MEASUREMENT_PASS`). THREE PRs, not the drafted two — PR #1613 merged `ca6897fc` (the two ceilings + the owed ENG-0052/0053 amendment), PR #1614 merged `67110be7` (the derived `public-safety` watchdog budget, repairing a red main THIS LANE SHIPPED), and this closeout. Ceilings VERIFIED IN FORCE by the merges that landed them: `macos-qsc-full-serial` 132m15s = 73.5% of 180 (PASSED; would have been 110.2% of the old 120 and 88.2% of a 150), `qsc-linux-full-suite` 157m45s = 65.7% of 240. VERDICT: one RELEASE `vault::secret_get` = 18.137/18.554 ms at 153 B / 414 KB, four-bucket attribution 97.6%/101.4%, Argon2id 97.4%/95.4% and FLAT across a 2700x store increase, growth term (c)+(d) 0.005 -> 1.048 ms with (d) beating (c) by ~2.6x, Tier 1 multiplicity EXACTLY 1 per `relay_http_client()`. THE ~350-400 ms IN ENG-0053's TITLE IS A DEBUG-PROFILE FIGURE — release is ~18 ms; the item's PRODUCT severity was overstated and the ledger now says so in its heading. NO fix, NO cache, NO remedy chosen; ZERO `src/` paths in all three diffs. ENG-0052 (a)/(b)/(c) DISCHARGED, (d) OWED; five-instance defect class recorded; ENG-0055 census widened (recording only); ENG-0059 FILED. OWED, not guessed: the MEASURED per-full-relay-operation `secret_get` count (the 16 call sites are INSPECTION) and the `key_source = 2` profile.
 Goals: G4
 
 Wire/behavior change allowed? NO. NO protocol/wire/crypto change. NO relay (qsl-server) change. NO qsl-desktop touch. NO GUI code. **NO src/ DIFF AT ALL** — the F3 ship-nothing ruling means this lane's only repository changes are `.github/**` and `docs/**` (plus DECISIONS.md / NEXT_ACTIONS.md / TRACEABILITY.md). `vault::secret_get` behavior is UNCHANGED. `relay_ca_file()`'s resolution order is UNCHANGED. NO caching, NO cached key handle, NO cached parsed store — those are the SUCCESSOR lane's subject matter and landing any of them here is a STOP. A TEMPORARY branch-local source edit is permitted SOLELY to take the measurements; it MUST be reverted before the PR and the PR diff MUST prove `src/` untouched (`git diff --stat` against the base showing zero src/ paths, recorded in the response).

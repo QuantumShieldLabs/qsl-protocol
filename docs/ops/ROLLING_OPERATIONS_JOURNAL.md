@@ -44421,3 +44421,47 @@ not created in the act of fixing the third. **ENG-0052's defect class now stands
 recorded instances**, of which **only one has been given a derivation** — the other four,
 including the two ceilings this lane itself set, **remain literals today.** That is recorded
 as a limitation of the remedy, not as a success.
+
+## 2026-07-22 — NA-0665 (GUI round 4a, pre-main screen chrome; D601 → D-0006 + D-1291)
+
+- Lane shape: qsl-desktop SATELLITE, DESIGN/FRONTEND only. Two PRs as drafted — qsl-desktop **PR #6** (D-0006, merge `02cc9b96`, true merge commit, `rust` PASS 4m43s, post-merge push run SUCCESS) plus this spine closeout (D-1291). Result class `GUI_ROUND4A_PRE_MAIN_CHROME_PASS`.
+- Base held exactly: qsl-desktop main was `8db2b2a5` at drafting **and** at execution, so no re-anchor was needed and every directive line number was valid. Spine base `58f0fade` (the #1617 queue-correction merge), clean.
+- **Phase-1 census: 5-for-5 CONFIRMED, nothing contradicted.** The mid-lane checkpoint worked as designed — it surfaced two things before any pixel moved (below) rather than after.
+- **FINDING C2 settled empirically and it went AGAINST the motivating screenshots.** Main was built unchanged and captured under the NA-0661 rig: the top rows of both compact screens measure **exactly RGB(29,29,31) = `--bg` #1D1D1F**. There is no white menu strip on the pre-main screens at `8db2b2a5`; the screenshots that motivated work item C **predate NA-0662 and are superseded**. Recorded because the approval explicitly ruled the before-shots to be ground truth over the uploads where the two disagree, and they did disagree.
+- **Measured dead space that justified the sizing work:** 153px = **23.2%** of the wizard-1 window, 164px = **39.0%** of the unlock window, with per-screen `xwininfo` geometry confirming the round-3 table (560x660 / 460x420) was real.
+- **Why the void survived round 3 — a rule that looked satisfied and was not.** Appendix E §E.1 already forbade "no vertical void", and round 3 satisfied its **letter** by **stretching the card** to fill the window, which kept the void and merely moved it **inside** the card. **A rule can be satisfiable without fixing the thing it was written to prevent.** [E.1] is amended so the formulation cannot be satisfied that way again.
+
+### Two operator rulings changed mid-lane; both are recorded in D-1291 so the directive and the build do not appear to contradict
+- **F2 was OVERRIDDEN at census review.** The readback ruling stripped the neutral outer `.card` only and **kept** the E.4 red ceremony chrome. The operator revised it to strip **all** chrome including the danger border, red **text** carrying danger.
+- **The acceptance vehicle was amended** to operator-flown review with **no executor rendering or screenshots**.
+
+### The derived-table miss, and what it cost
+- The no-rendering amendment collided head-on with D601/F1's explicit instruction to *"render it, read the content height."* The conflict was **recorded rather than silently resolved**, the amendment was followed, and the literals were **derived** from Phase-1 arithmetic and structural estimates, **flagged in the relay as unmeasured and as upper bounds**.
+- They were wrong, and **operator eyes caught it**: at the 360px reading width the copy wraps into more lines, so content is **taller**, not shorter. The derived table **undershot wizard-2 by 100px and wizard-1 by 83px and CLIPPED both**.
+- **Lesson recorded: when width changes, height is not a constant to be carried over — it is coupled and must be re-measured.** The derived numbers were honest about being estimates, which is why the correction cost one round trip and no rework beyond a table. **An estimate labelled as an estimate is recoverable; an estimate reported as a measurement is not.**
+- The operator then authorised the headless measurement explicitly as *measurement, not render-for-review*, which satisfied F1 without violating the amendment.
+
+### The measurement harness — the reusable result
+- Heights measured **headlessly in WebKit2 4.1 (the same engine tauri uses on Linux)** against the real `ui/index.html` over `file://`, read-only, with `fitCode`'s shrink/wrap **replicated** so the verification code's rendered size is included.
+- **Corroboration: the harness predicted 620 for wizard-2 against the operator's independent hand measurement of 621.** All five literals then matched the operator's after-shots **to the pixel** once the **constant 66px** GNOME titlebar offset was removed (captured 651/691/321/341/286 vs literals 585/625/255/275/220; 388 wide = 360 + frame). A **uniform** offset across all five is itself evidence the sizing path does what the table says.
+- Harness at `/srv/qbuild/tmp/NA0665_gui_round4a_20260722T051031Z/measure.py`. **It lives only in a sweepable lane tmp directory**; round 4b and slice B will both want it.
+
+### Two defects caught by newly written assertions rather than by review
+- **The floor bug.** The compact minimum was first set to 360x**280**, but the wiped window is **210** tall — *below* that floor — so `set_min_size(280)` would have silently overridden `set_size(210)` and the wiped screen would never have taken its literal. Invisible in code review; visible only as "the wiped screen is oddly tall". **The floor must sit at or below the shortest window**, and an assertion now enforces it.
+- **The frozen-needle trap.** Naming `.verify-code.wrapped` in the **comment above** the base rule relocated the STOP-class `design_round2.rs` needle's **first-occurrence slice** — and it **still PASSED, by luck**, because the displaced slice ran through to the base rule's closing brace anyway. Only a newly written test exposed it. **Generalized hazard, now recorded in the CSS itself: in `ui/style.css`, a pinned selector mentioned even in a COMMENT before its rule can silently relocate a frozen needle's slice.**
+
+### Filings and dispositions
+- **ENG-0060** — the native GTK menubar: item C's drop **confirmed**. A Tao/GTK widget outside the DOM, unreachable by any frontend change; the light strip is the **ambient GTK theme**, not an app choice. **Owned by the future Appearance-pane / dark-frame story, NOT a frontend lane** — recorded so no roadmap implies otherwise.
+- **ENG-0061** — the wiped screen ships with **no danger colour**, because its heading was **never** red (a plain `<h1>` inheriting `--fg`, unlike erase's `.ceremony-head`), so the border strip left it with no signal. **The F2 override's own stated rationale is false for that one screen.** **RULED ACCEPTED AS-IS** — a calm post-hoc notice, nothing mis-triggers, pixels approved on sight — and **deliberately not fixed forward**; deferred to round 4c.
+- **Discharged in passing, that item only:** the NA-0662 flight's **compact-mode menu-visibility** item, on **operator-accepted mode-sharing inference** (two of four compact screens observed, covering both compact mode classes; attachment is per-**mode**, not per-surface). **The executor declined to claim it on its own authority and the operator ruled it.** The rest of that flight stays **owed and untouched**.
+- **A pre-existing clippy finding was reported and NOT fixed**: `--all-targets` fails on `design_round3.rs:100` (round-3 code). CI runs clippy **without** `--all-targets`, so it gates nothing. Recorded rather than "fixed" outside scope.
+
+### Queue-helper readback — the exit code is 2 and that is CORRECT
+- Both layers were moved together and **agree**: STATE `READY=NONE | HIGHEST_NA=0665 | HIGHEST_D=1291`, and the `### NA-0665` section `Status: DONE`. Zero sections remain `Status: READY`.
+- `python3 scripts/ci/qsl_evidence_helper.py queue --file NEXT_ACTIONS.md` → `READY_COUNT 0`, **exit 2**.
+- **The closeout instruction anticipated `READY_COUNT 0, exit 0`, which this helper cannot produce.** `queue_command` returns 2 whenever `READY_COUNT != 1` (`qsl_evidence_helper.py:249-251`) because its contract is the **qwork precondition**: *exactly one lane ready to start*. At a closeout, `READY_COUNT 0` is the intended end state, so **exit 2 is the helper correctly reporting "no lane is ready to start."** Exit 0 alongside `READY_COUNT 0` is obtainable **only** with `--allow-nonready-count` (verified). **The discrepancy is in the acceptance phrasing, not in the queue**, and the substance the instruction was protecting — both layers agreeing, no STATE-vs-section mismatch — is proven.
+- Recorded because a successor reading "exit 2" in a closeout could mistake a correct terminal state for a broken queue.
+
+### Standing conventions
+- **GH007 held per-commit.** This workspace's `git config user.email` still reads `tebbens@proton.me`; every commit passed `-c user.email=238594419+Tebbens4832@users.noreply.github.com` **explicitly** and repo config was left unmutated. Verified on the merged desktop PR by querying the PR, not the local tree. The underlying config-vs-identity hazard remains an owed item.
+- `docs/governance/evidence/` is **gitignored** (`.gitignore:65`, `**/evidence/`) — `git add -f` required, as ever.

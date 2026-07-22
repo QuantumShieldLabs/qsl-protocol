@@ -6,7 +6,8 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NONE | HIGHEST_NA=0664 | HIGHEST_D=1290 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0665 | HIGHEST_NA=0665 | HIGHEST_D=1290 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- prior: STATE: READY=NONE | HIGHEST_NA=0664 | HIGHEST_D=1290 (NA-0665 promoted for D601; this promotion PR) -->
 <!-- prior: STATE: READY=NA-0664 | HIGHEST_NA=0664 | HIGHEST_D=1287 (NA-0664 closed for D600 at D-1288 ceilings + D-1289 watchdog repair + D-1290 closeout; this closeout PR) -->
 <!-- NA-0664 (macOS CI capacity correction + vault-read instrumentation, D600) DONE 2026-07-21 (D-1288 implementation + D-1289 in-lane repair + D-1290 closeout, result class CI_CAPACITY_CORRECTION_AND_VAULT_READ_MEASUREMENT_PASS): a FULL-ritual spine-only lane that ran to THREE PRs rather than the drafted two, because the lane broke main and repaired it in flight. WHAT LANDED: (1) D-1288 (PR #1613, merge `ca6897fc`) — `macos-qsc-full-serial` `timeout-minutes` 120 -> 180 (1.70x the measured 105m52s pre-lane baseline) and an explicit `timeout-minutes: 240` on `qsc-linux-full-suite` replacing the inherited 360-minute GitHub default, PLUS the ENG-0052/ENG-0053 amendment owed from NA-0663. VERIFIED BY THE MERGE ITSELF: because `.github/workflows/*` classifies `docs_only=false`, that PR's own merge was the first genuine exercise of the macOS suite since NA-0663 and the first ever under the corrected ceiling — it PASSED at 132m15s = 73.5% of the 180 ceiling (against the old 120 it would have been 110.2% and cancelled again; against a 150 it would have been 88.2%, the identical thin margin the lane rejected at F1). Linux passed at 157m45s = 65.7% of 240. (2) D-1289 (PR #1614, merge `67110be7`) — AN UNPLANNED IN-LANE REPAIR OF A BREAKAGE THIS LANE SHIPPED: D-1288 corrected two CI budgets but left `public-safety`'s `--max-iterations 390` (~130 min at 20 s) untouched, and that THIRD budget — named in no filing, no directive, and no analysis — became binding the instant the first two were corrected, exhausting 390/390 while the Linux suite was still `in_progress` (it succeeded 20m52s later) and turning MAIN RED ON A MERGE WHERE NOTHING WAS BROKEN. The repair is DERIVATION, NOT A BUMP, at operator direction: the step now READS both ceilings from the checked-out workflow files at run time, takes the maximum, adds a stated 60-minute queue/jitter margin, and computes the budget (240+60 = 300m = 900 iterations at 20 s), so raising either ceiling raises the watchdog automatically; a missing ceiling and a ceiling this job cannot cover both fail LOUDLY and immediately rather than silently 130 minutes later. (3) D-1290 (this closeout) — the Phase 3 verdict and the ledger disposition. THE MEASUREMENT VERDICT: one release `vault::secret_get` costs 18.137 ms (near-empty store) / 18.554 ms (414 KB, 4000 msgs), apportioned across four buckets at 97.6% / 101.4% attribution — Argon2id 97.4% / 95.4%, file read 0.1% / 0.3%, AEAD decrypt 0.0% / 1.6%, payload parse 0.0% / 4.1%. The required (c)/(d) split is uneven: (d) deserialization outweighs (c) decryption by ~2.6x. Floor and growth are stated separately as acceptance demanded: the Argon2id FLOOR is FLAT at ~17.7 ms across a 2700x store-size increase, while the GROWTH term moves 0.005 -> 1.048 ms (~6% of the call at 4000 messages). Tier 1 measured a `secret_get` multiplicity of EXACTLY 1 per `relay_http_client()` construction, linear at N=10, so "call it less" is not the remedy. THE HEADLINE CORRECTION: the ~350-400 ms in ENG-0053's own title is a DEBUG-PROFILE measurement — release is ~18 ms — confirmed three ways (the probe binary carries `.debug_info` at 89.3 MB vs a release 8.85 MB; BOTH CI suites run their TESTS in debug; the 22.1x debug/release ratio accounts for the observed ~21x gap with nothing left over). The item's PRODUCT severity was OVERSTATED by the filing, by the operator's ranking, and by the executor's own hypothesis, and the ledger now says so in the heading itself — NO READER MAY CARRY 350 ms INTO A PRODUCT DECISION. The debug figure remains correct for CI, which genuinely runs debug, so NO CEILING CHANGE FOLLOWS. NOTHING WAS FIXED AND NO REMEDY WAS CHOSEN: the remedy space is recorded as OPTIONS with envelope encryption leading on the merits (it targets the ~95-97% term directly; its true cost is a vault FORMAT change with migration), and the prior objection that it "targets the wrong term" is REFUTED by this lane's data. ENG-0052 clauses (a)/(b)/(c) DISCHARGED and clause (d) — the periodic scheduled exercise — EXPLICITLY OWED, so the masking note is unretired: governance merges still skip both suites and main's green history is still not evidence about ceiling health. The defect class is recorded with ALL FIVE instances (macOS 120, Linux's inherited 360, the watchdog's 390, the incident-specific repair profile, and the bootstrap's advisories-only trigger — the last RULED IN by the operator), demonstrating the class is not confined to numbers or to CI timing; and it is recorded as a LIMITATION that only instance 3 was given a derivation while 1 and 2 remain literals. ENG-0055 gains a RECORDING-ONLY bullet: `vault/mod.rs` has exactly ONE `impl Drop`, on `VaultSession`, which `secret_get` does not use, so every `secret_get` abandons the full plaintext corpus and a derived key unwiped on the hot path — the hardened path and the hot path have DIVERGED in the same module, the entry's own "the house DOES zeroize at the vault seam" claim is `VaultSession`-ONLY, the census widens INDEPENDENTLY of whether any cache lands, and the tradeoff INVERTS (caching may IMPROVE memory hygiene; "cache = corpus in the clear" is WITHDRAWN). ENG-0059 FILED: BOTH sanctioned routes from a red main back to green are unusable — the repair path via an unhandled 403 plus a non-generalizing incident-specific profile, the bootstrap because it is scoped exclusively to advisories-driven reds — so the repository has NO working sanctioned automated recovery, and PR-1b was unblocked by an explicit ad-hoc OPERATOR SANCTION recorded by hand, NOT by any automated route. OWED AND DELIBERATELY NOT GUESSED: the MEASURED `secret_get` count per FULL relay operation (Tier 1 measured per CONSTRUCTION; the 16 tree-wide call sites are STATIC INSPECTION, not measurement) — judged NOT CHEAP because `perf_snapshot()` has zero consumers, its counters are process-global while the only working full-operation harness is subprocess-based, and `relay_send` needs an established two-party session. Also owed: the `key_source = 2` (keychain) profile, where bucket (b) is ~0 and these figures do not generalize. BOUNDS HELD: zero `src/` paths in all three PR diffs, temporary measurement edits reverted from byte-exact copies and proven absent. A METHODOLOGICAL RESULT was recorded as a standing house rule after a near-miss: a measurement landing suspiciously close to the expected value gets a second look UNDER CHANGED CONDITIONS before it is reported — the first apportionment run was a debug build giving 401.3 ms/call against an expected 350-400 ms, a near-exact match that would have produced a CONFIDENT WRONG VERDICT steering the successor toward the store-size framing and away from Argon2id, and only re-running under release exposed it. Queue returns to READY=NONE — the operator promotes the successor (the ENG-0053 remedy sequenced against ENG-0055, ENG-0052 clause (d), ENG-0059, slice B, or another ledger item). The executor cannot self-promote. -->
 <!-- prior: STATE: READY=NA-0663 | HIGHEST_NA=0663 | HIGHEST_D=1285 (NA-0663 closed for D599 at D-1286 implementation + D-1287 closeout; this closeout PR) -->
@@ -81,47 +82,132 @@ Goals: G4 (primary), drives G1–G3 delivery
 <!-- prior: STATE: READY=NONE | HIGHEST_NA=0639 | HIGHEST_D=1262 (NA-0640 promoted for D576; PR #1559) -->
 <!-- prior: STATE: READY=NA-0639 | HIGHEST_NA=0639 | HIGHEST_D=1261 (NA-0639 promoted for D575; PR #1557) -->
 
-**READY: NONE.** NA-0664 is DONE (D-1288 ceilings + D-1289 in-lane watchdog
-repair + D-1290 closeout; result class
-`CI_CAPACITY_CORRECTION_AND_VAULT_READ_MEASUREMENT_PASS`). **The queue is
-empty and the Director promotes the next lane** — the executor cannot
-self-promote. **Candidates, in no ruled order:** the **ENG-0053 remedy**
-(now measured and re-framed — envelope encryption leads on the merits, but
-**nothing is decided** and its true cost is a vault FORMAT change with
-migration), which must be **sequenced against ENG-0055** so that item's
-zeroization census sees the final shape of any cached secret handle rather
-than auditing a structure about to change; **ENG-0052 clause (d)** (the
-periodic scheduled exercise of both push-only suites — **still the only
-defense against the masking effect, and still absent**); **ENG-0059** (both
-red-main escape hatches unusable); **ENG-0055** itself. **Owed measurements
+**READY (exactly one — execute this): NA-0665 — GUI round 4a, pre-main screen
+chrome (D601, qsl-desktop SATELLITE lane, DESIGN/FRONTEND ONLY; ONE desktop PR
+(D-0006) + spine closeout (D-1291); vanilla HTML/CSS/JS, ZERO npm/node, ZERO
+dependency motion).** Per **QSL-DIR-2026-07-22-601 (D601, APPROVED 2026-07-22;
+the drafting code census was ACCEPTED IN FULL and the lane is ruled WITH it —
+ALL FIVE FLAGS RESOLVED. F3, STOP-CLASS = USE THE SHIPPED TOKENS; the
+`#22262c`/`#16181c` values in the lane intent came from `qsl-tokens.css` and
+were HANDED TO THE DRAFTER IN ERROR — that file is on a DIFFERENT palette
+than the build ships, and neither value appears anywhere in the repository. NO
+token value changes; `design_round2.rs` is UNTOUCHED and stays STOP-class; and
+the ruled consequence BINDS ACCEPTANCE — mockup 01 is authoritative for LAYOUT
+AND STRUCTURE ONLY, NEVER FOR COLOR, so screenshot-vs-mockup matches structure
+and spacing and a color difference is EXPECTED, not a defect. A palette
+migration, if ever wanted, is round 4c and explicitly NOT this lane. F1 =
+per-surface LITERALS (measurement is the truer reading of "sized to content"
+but puts an async round-trip inside the exact launch path NA-0662 stabilized and
+is far harder to test; pre-main copy is not churning; re-picking a literal later
+is an accepted one-line follow-up). F2 = strip the OUTER `.card` ONLY — the
+mockup removes the neutral CONTAINER, not the danger SIGNALLING; the E.4 red
+ceremony chrome on erase STAYS, the SPEC WINS OVER THE MOCKUP on danger
+signalling if the markup shows erase flat, and the flex column the `.card`
+provided MUST be re-homed, not lost. F4 = the real fix for B is AUTHORIZED and
+the lane intent's "same root cause as A" framing is WITHDRAWN AS REFUTED BY THE
+CENSUS — re-fit on resize plus a below-floor behavior that never silently clips,
+WRAPPING at a group boundary preferred, horizontal scroll with a VISIBLE
+AFFORDANCE as the flagged fallback. F5 = one desktop PR + the spine closeout,
+matching how NA-0659 through NA-0662 closed)**.
+
+**THE CENSUS IS THE REASON THIS LANE IS THE SHAPE IT IS.** Three answers, from
+qsl-desktop main `8db2b2a5`, read-only at drafting: **(1)** there is ONE window
+and ONE shared sizing path (`ui_surface_changed` → `mode_for_surface` →
+`window_mode_spec` → `apply_window_mode`, `lib.rs:55-134`) with **THREE modes
+serving FIVE pre-main surfaces** — wizard 1+2 share 560x660, unlock+erase+wiped
+share 460x420 — and **that sharing IS the dead space**, which is why unlock and
+erase are worst and the wizard steps subtler; so **A is ONE shared table change,
+not four per-screen ones**. **(2)** the card is a REAL element
+(`index.html:12,33,58,69,90`) whose chrome is CSS at `style.css:122-129`, so
+removal is a **RESTYLE, not a deletion** — that div is also the flex column
+laying out every screen. **(3)** the File/Edit/View/Help bar is a **NATIVE
+Tao/GTK menubar** (`lib.rs:19-22,173-218`, `app.set_menu`), outside the DOM and
+unreachable from any frontend CSS; the measured ~RGB(202,222,233) is the
+**ambient GTK light theme, not an app choice** — so **the scope gate FIRED and
+work item C DROPPED**, filed at closeout with the ruled future path recorded:
+theming or hiding a native menubar is PLATFORM-SPECIFIC work owned by the
+eventual **Appearance-pane / dark-frame story, NOT a frontend lane**.
+
+**TWO CENSUS FINDINGS NOBODY ASKED FOR, BOTH RULED.** **FINDING B:** a
+shrink-to-fit helper ALREADY exists (`fitCode`, `main.js:215-222`) but **floors
+at 11px**, is **invoked only at render**, and `ui/main.js` contains **ZERO resize
+listeners** while `resizable` defaults TRUE — so with `.verify-code` at
+`overflow: hidden`, the code **clips silently** and **window sizing cannot
+deliver the stated acceptance**. F4 authorizes the actual fix. **FINDING C2
+(inference):** NA-0662 ALREADY removes the menu on every compact mode
+(`lib.rs:98-100`, asserted `design_round3.rs:302-321`) and its evidence recorded
+"NO menu bar on all four compact shots" — so the operator's screenshots
+**plausibly predate `8db2b2a5`**. RULED EMPIRICAL: **Phase 1 builds main
+UNCHANGED, captures the before-shots, and those are GROUND TRUTH — the uploaded
+screenshots are SUPERSEDED by them where they disagree.** And the overlap is
+banked: if the before-shots confirm the menu absent on all four compact screens,
+**the still-OWED NA-0662 operator flight's compact-mode MENU-VISIBILITY item is
+SATISFIED-IN-PASSING and is not re-flown — THAT ITEM ONLY**, with the rest of the
+flight still owed and overclaiming it a reporting defect.
+
+**THE WORK:** **A** — strip the outer card chrome so the window IS the card
+(uniform 28px padding, content directly on `var(--bg)`), and widen `WindowMode`
+to **one variant per pre-main surface** with content-sized literals, **including
+the FIFTH pre-main screen (`wiped`)**, RULED IN SCOPE because leaving it in the
+old class would ship one visibly inconsistent screen. **B** — per F4, both call
+sites. **D** — the Settings destroy-vault rider: the "Destroy vault…" button is
+**REPLACED** by the confirm fields and RESTORED by Cancel, matching how the erase
+ceremony already behaves; **behavior only**, with the confirmation logic, the
+passphrase requirement, and the typed-phrase gate **confirmed unchanged at build,
+shown not asserted**, and `commands.rs` **byte-absent from the diff**. **C** —
+NOT DONE, dropped by the gate. **`docs/DESIGN_SPEC_AppendixE.md` §E.1 takes a
+minimal amendment citing [E.1]** (same pattern D598 used) because the landed
+table pins the very sizes this lane supersedes — the authority moves with the
+build or the build does not move; **bounded to the size table**, and **no token
+value is amended anywhere**.
+
+**TWO HARD STOPS, as the operator ordered:** the lane **STOPS at the Phase 1
+census checkpoint before any visual change** (re-verify all five census points,
+grep the resize listener, capture before-shots + `xwininfo` geometry so the dead
+space is **MEASURED, not described**) and **STOPS again at the open PR**.
+Acceptance is the operator's **manual 12-shot walkthrough** — there is no input
+driver on the host — including two explicit regression shots (main window,
+Settings > Identity) and the small-size and mid-drag verification-code shots that
+F4 exists to make passable. **OUT OF SCOPE, flag if tempted:** the rail toggle
+(round 4b), the main window's three-pane layout, the status row and empty-state
+CTA (slice B, mockup 03), system-theme/light-mode (a future Appearance-pane
+feature — this lane's dark palette is HARDCODED), and any spine, protocol,
+crypto, or vault-internal change. **STOP-class files:** `design_round2.rs`,
+`design_system.rs`, `commands.rs`, `gateway.rs`, `settings.rs`, `Cargo.toml`/
+`Cargo.lock`, any `tauri.conf.json` key but `windows[0]`'s initial size, and
+NA-0662's show/menu sequence. **No security property is improved by this lane
+and none may be claimed.**
+
+**Standing owed, UNCHANGED by this promotion:** the **ENG-0053 remedy** (measured
+and re-framed — envelope encryption leads on the merits, **nothing is decided**,
+its true cost a vault FORMAT change with migration, with a **pre-release
+deadline**), which must be **sequenced against ENG-0055** so that item's
+zeroization census sees the final shape of any cached secret handle; **ENG-0052
+clause (d)** (the periodic scheduled exercise of both push-only suites — still
+the only defense against the masking effect, and still absent); **ENG-0059**
+(both red-main escape hatches unusable); **ENG-0055**. **Owed measurements
 carried out of NA-0664:** the MEASURED `secret_get` count per FULL relay
 operation (the 16 tree-wide call sites are **static inspection, not
 measurement**; judged NOT CHEAP and deliberately not guessed) and the
-`key_source = 2` profile, where bucket (b) is ~0 and NA-0664's figures do
-not generalize. **Standing owed:** ENG-0052 clause (d); the CLAUDE.md
-`## Session procedure` capture of the operator-relay and
-proactive-observations conventions (a docs-only LITE lane) — **and, plausibly
-in that same LITE lane, whether `Sequencing` should be FORMALIZED in
-DOC-AUD-001 §6 as a FIRST-CLASS ledger field** so deadline-bearing items can
-be found by SCANNING rather than by reading every entry. The mechanism already
-exists as an informal bullet convention (ENG-0054 "resolve BEFORE reviewer
-outreach", ENG-0058 "settle BEFORE GUI slice B's Logs pane is drafted", and
-now ENG-0053's pre-release envelope-encryption deadline — **three items want
-it**), but it is neither first-class nor scannable. **And, with it, whether the
-ROLLING OPERATIONS JOURNAL needs a CONTROLLED MARKER VOCABULARY for recovery
-events** — four reasonable framings returned **41 / 42 / 175 / 35** over the
-same corpus while counting a single recurring hazard, because recoveries are
-recorded under a dozen-plus headings with no controlled field separating *a
-defect that bit* from *a hazard correctly anticipated*. **Consequence: the
-journal cannot answer "how often has X happened" for ANY class of event, so
-prioritisation arguments of that shape are unsupportable from it without
-hand-inspection.** **Both are governance-schema questions: RECORDED AS OWED,
-NOT ACTED ON in NA-0664**; slice B; the
-DOC-PROG-004 revision micro-lane (WF-0024); the NA-0662 operator flight;
-and **ENG-0036**, **ENG-0042**/**ENG-0043**, **ENG-0045**, **ENG-0047**,
+`key_source = 2` profile, where bucket (b) is ~0 and NA-0664's figures do not
+generalize. **Standing owed:** the CLAUDE.md `## Session procedure` capture of
+the operator-relay and proactive-observations conventions (a docs-only LITE
+lane) — **and, plausibly in that same LITE lane, whether `Sequencing` should be
+FORMALIZED in DOC-AUD-001 §6 as a FIRST-CLASS ledger field** so deadline-bearing
+items can be found by SCANNING rather than by reading every entry (ENG-0054,
+ENG-0058, and ENG-0053's pre-release deadline — **three items want it**) — **and
+whether the ROLLING OPERATIONS JOURNAL needs a CONTROLLED MARKER VOCABULARY for
+recovery events**, four reasonable framings having returned **41 / 42 / 175 / 35**
+over the same corpus while counting a single recurring hazard, so **the journal
+cannot answer "how often has X happened" for ANY class of event**. **Both are
+governance-schema questions: RECORDED AS OWED, NOT ACTED ON.** Also owed:
+**ON-DECK 2d, whose 24.1-min ProVerif baseline is now stale by ~50%** (measured
+36m10s on the NA-0664 closeout merge); **GUI slice B**; the DOC-PROG-004
+revision micro-lane (**WF-0024**); **the NA-0662 operator flight** (partially
+discharged in passing by this lane's before-shots — see FINDING C2); and
+**ENG-0036**, **ENG-0042**/**ENG-0043**, **ENG-0045**, **ENG-0047**,
 **ENG-0048**, **ENG-0050**, **ENG-0051**, **ENG-0054**, **ENG-0056**,
-**ENG-0057**, **ENG-0058**, **0b**, the **0c residue**, **NA-0635**
-(GATED).
+**ENG-0057**, **ENG-0058**, **0b**, the **0c residue**, **NA-0635** (GATED).
 
 **ON DECK (priority order; not yet READY — the Director promotes the top item to READY at
 each closeout, per WF-0003 triage against `docs/ops/IMPROVEMENT_LEDGER.md`):**

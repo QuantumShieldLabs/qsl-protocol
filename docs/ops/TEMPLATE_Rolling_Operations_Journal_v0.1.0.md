@@ -44,6 +44,9 @@ Use this template for one active directive entry. Replace placeholders with real
 - Merge commit:
 
 ## Failures / recoveries
+<!-- Per DOC-OPS-003 §3a, one line per event, CLASS = DEFECT | HAZARD | ONE-OFF:
+     - REC-<NNN> · <CLASS> · <class-key>: <what failed> — recoverable because
+       <reason>; corrected by <action>; final result <result>. -->
 - None yet
 
 ## Validation / CI notes
@@ -98,7 +101,7 @@ Use this template for one active directive entry. Replace placeholders with real
 - Merge commit: <sha12 or n/a>
 
 ## Failures / recoveries
-- <command> -> recoverable because <reason>; corrected by <action>; final result <pass>
+- REC-001 · HAZARD · <class-key>: <command> — recoverable because <reason>; corrected by <action>; final result <pass>.
 
 ## Validation / CI notes
 - Local validation: <goal-lint, link-check, leak-safe scan>

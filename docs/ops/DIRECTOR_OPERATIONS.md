@@ -57,11 +57,24 @@ Mandatory phrasing conventions:
 
 Directive ID `QSL-DIR-YYYY-MM-DD-NNN` and short form `D###`:
 - NNN/D### is a monotonic counter across all directives; never reuse.
-- Authoritative source: the highest `_D###.md` suffix present in
-  `/srv/qbuild/operator/responses/` (legacy history from the Codex era is
-  copied into that directory so the counter is continuous), cross-checked
-  against directives committed to the repo. Derive it mechanically; never
-  trust memory.
+- Authoritative source: the highest `QSL-DIR-YYYY-MM-DD-NNN` filename present in
+  `/srv/qbuild/operator/directives/`, cross-checked against directives committed
+  to the repo. Derive it mechanically; never trust memory.
+- **⚠ CORRECTED BY D-1292 — the previous rule named
+  `/srv/qbuild/operator/responses/` (highest `_D###.md` suffix) and that
+  derivation is BROKEN in two independent ways.** Measured 2026-07-22 over 575
+  response files: **(1)** the response-file suffix convention has DRIFTED to
+  carry the four-digit **decision** ID rather than the three-digit **directive**
+  ID — **34 of 575** files now do, and the newest do, so a naive maximum over
+  that directory returns **`1287`**, a decision ID, not a directive number.
+  **(2)** Even restricting the scan to three-digit suffixes, the directory tops
+  out at **`573`** while the true directive counter is **`602`** — the response
+  archive lags the directive archive, so it is stale as well as poisoned. The
+  directives directory is the only source that is both complete and unambiguous.
+- The drifted response-file suffix convention is recorded here as an **observed
+  fact, not a defect to repair**: the 575 existing files are NOT to be renamed.
+  Read a response filename's `_D####` suffix as a decision ID and `_D###` as a
+  directive ID, and derive counters from the directories that own them.
 - Handoff state: last issued D539; next is D540 unless D539 is explicitly
   reissued with recorded explanation.
 
@@ -162,6 +175,112 @@ broad scans, or second executor on the laptop.
 Terminology discipline: QSL/qsc is the cryptographic/content protocol;
 HTTP/HTTPS/SSH/Tailnet are transport/carriage layers; SSH loopback-forward
 is a LAN test transport, not the QSL security protocol.
+
+### 4a. Reporting and queue-verification conventions (recorded by D-1292)
+
+**These four rules were operator conventions in force across every lane before
+they were written down anywhere findable.** Rules 1 and 2 existed only in a
+`NEXT_ACTIONS.md` archive block and in each session's hand-pasted prompt; rules
+3 and 4 existed nowhere in the tree. They are recorded here, in the
+authoritative source, rather than in `CLAUDE.md`, which declares itself a
+"convenience pointer only" that loses to the authoritative sources — a rule
+placed only there has the weakest standing in the tree.
+
+**1. OPERATOR RELAY FILE.** Write `/srv/qbuild/operator/relay/LATEST.md` at the
+**END OF EVERY TURN** — overwritten at the same path, plus a timestamped
+`RELAY_<UTC>.md` copy in the same directory so history survives the overwrite.
+It carries: phase and lane state; what was done this turn; full results and
+evidence summaries; any question or flag awaiting a ruling, CLEARLY MARKED;
+exact paths and SHAs; and the stop reason. **It MUST be SELF-CONTAINED —
+written on the assumption that the reader never saw the terminal.** **THE RELAY
+FILE IS THE RESPONSE; terminal output is a preview.** Source: operator rule,
+2026-07-21, binding on all lanes and all future directives.
+
+> **⚠ The convention's own burial is an instance of the defect this subsection
+> fixes.** Its only prior home was `NEXT_ACTIONS.md:36054` — **inside a DONE
+> lane's archive block**, where nothing indexes it and no procedure points at
+> it. It survived only by being re-pasted into each session's prompt by hand.
+> That is the mechanism by which **a rule everyone follows can still be
+> unfindable to a fresh reader**: compliance is no evidence that a rule is
+> written down anywhere. The archive block is historical record and is left
+> exactly as it is; this entry is additive.
+
+**2. PROACTIVE OBSERVATIONS.** Material, decision-bearing engineering
+observations go into a marked `OBSERVATIONS` section of that turn's relay file
+**the moment they form** — not held back for a closeout, a summary, or a
+convenient stopping point. **Inference is labelled as inference.** **Report;
+never act:** an observation is surfaced for a ruling, and the lane does not
+widen its own scope to address what it noticed. This was recorded **nowhere** in
+the tree before D-1292. It is a different rule from `DOC-DEV-003:140`
+("Proactive Improvement & Tooling Defaults"), which governs drive-by
+improvements becoming new NA items and does not cover in-flight reporting.
+
+**3. QUEUE VERIFICATION.** Queue state is proven with
+`python3 scripts/ci/qsl_evidence_helper.py queue` — **the way `qwork` reads it —
+never with a `STATE:` grep.** The `STATE:` line is a human summary; the helper
+is the parser that actually gates, and the two can disagree (that disagreement
+broke `qwork` on 2026-07-21 and required the #1617 correction merge).
+
+> **⚠ THE RULE CARRIES ITS OWN KNOWN LIMITATION, so that it stays satisfiable
+> and honest.** Per **WF-0025**, the subcommand returns `0` **only** at
+> `READY_COUNT == 1`; every other count returns **2**. **At a correct
+> `READY=NONE` closeout it therefore exits 2 while being entirely correct.**
+> Until WF-0025 and WF-0026 land: **a closeout proves the queue by recording
+> `READY_COUNT 0` together with the `Status: DONE` section agreeing — the two
+> layers agreeing IS the proof — and a closeout instruction MUST NOT be written
+> to require exit 0.** **Do not pass `--allow-nonready-count` to obtain a green
+> exit code: it suppresses the very check being invoked**, reporting the flag's
+> behaviour instead of the queue's. **A gate that cannot pass teaches bypass**
+> (established at NA-0665, confirmed by the operator).
+>
+> Per **WF-0026**, the parser is additionally blind to two-letter-suffix
+> headings (`### NA-0215BA` and six others). **A `READY_COUNT 0` on a lane that
+> was genuinely promoted is that bug, not an empty queue** — check the heading
+> before concluding the queue is clear.
+
+**4. RELAY FILE VERSUS RESPONSE FILE — the two are DISTINCT, and the response
+file is STILL OWED.** Determined from evidence at D-1292, not assumed:
+
+| | operator relay file | numbered-section response file |
+|---|---|---|
+| cadence | **every turn** (58 files in ~2 days) | **per lane milestone** (NA-0663 produced 7) |
+| key | UTC timestamp only; `LATEST.md` is mutable | lane + UTC + decision ID; immutable |
+| scope | all activity, **including Director-only turns with no lane executing** | lane execution under a decision |
+| retrieval | by time | **by lane and decision** |
+| shape | headings vary per turn | fixed numbered sections, incl. response-safety and response-file proofs |
+| mandate | operator standing rule, 2026-07-21 | `CLAUDE.md` step 6, **and every directive's `Response file target:` line** |
+
+**The relay file did NOT supersede the response file.** The relay rule's own
+words contrast it with *terminal output* — "the relay file IS the response;
+terminal output is a preview" — and what it displaced is the **terminal/chat
+response**, which the operator's advisor cannot see. Nothing retired the
+response file: it remains mandated by `CLAUDE.md` step 6, and **every directive
+drafted after the relay convention was adopted — D600, D601, and D602 itself —
+still names a `Response file target:`.**
+
+**The measured discrepancy, recorded rather than explained away:** the newest
+response file is NA-0663's, `2026-07-21T04:04Z`; the relay convention began
+`2026-07-21T15:32Z`; **NA-0664 and NA-0665 wrote no response file at all.**
+That is displacement **in practice** and an **unpaid obligation** — it is not a
+retirement, and it must not be recorded as one. **Both lanes still owe a
+response file.** A supersession invented here to make the discrepancy disappear
+would be the exact failure this subsection exists to prevent, committed while
+preventing it.
+
+> **⚠ SPLIT AUTHORITY, STATED SO IT IS NOT MISTAKEN FOR A SECOND
+> CONTRADICTION.** The reconciliation above is **authoritative here and settled
+> now** — this document is an authoritative source and wins over `CLAUDE.md`,
+> which declares itself a convenience pointer. **`CLAUDE.md` step 6 (`:47-50`)
+> is deliberately NOT edited by D-1292** (`CLAUDE.md` is not a docs path, so
+> touching it fires both full suites — see **WF-0032**), and its text is
+> therefore **known-stale in one respect only**: it presents the response file
+> as the reporting artifact without mentioning the relay file. **A reader who
+> finds `CLAUDE.md:47-50` still mandating a response file is reading a
+> requirement that is still LIVE — it is the relay convention that is missing
+> there, not the response file that is dead.** The pointer to this subsection
+> and any correction to that text ride **WF-0032**'s sequencing: free once
+> `CLAUDE.md` is a docs path, or carried by the first future lane already
+> paying `docs_only=false`.
 
 ## 5. Verified state replaces asserted state
 

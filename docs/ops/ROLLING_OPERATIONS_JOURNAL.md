@@ -44513,3 +44513,28 @@ as a limitation of the remedy, not as a success.
 ### Queue-helper readback at closeout — exit 2, pre-recorded, and CORRECT
 - Both layers moved together and **agree**: STATE `READY=NONE | HIGHEST_NA=0666 | HIGHEST_D=1292`, and the `### NA-0666` section reads `Status: DONE`.
 - `python3 scripts/ci/qsl_evidence_helper.py queue` → `READY_COUNT 0`, **exit 2** — the WF-0025 behaviour, anticipated by D602's OBS-N and satisfiable under the §4a rule this lane just wrote. **`--allow-nonready-count` was NOT passed**, per operator ruling. **The self-consistency gate passes because the rule as written is satisfiable in this state, not because the exit code is 0.**
+
+## 2026-07-22 — NA-0667 (D-1293): qbuild tooling custody and `qsl-desktop` registration
+
+**Result class:** `QBUILD_TOOLS_CUSTODY_AND_DESKTOP_REGISTRATION_PASS` — **partial on acceptance D.**
+**Directive:** QSL-DIR-2026-07-22-603 (D603), sha256 `40388993…`, 309 lines. **Base:** `7fdcde6c`.
+
+**THIS LANE FIXED, and the fix is not in this repository.** Three commits at `/srv/qbuild/tools/`: `8978a2f` baseline, `af3e426` registration + mirror, `dafea7f` dispatch fix + census check. WF-0031 and WF-0030 resolved in the filed dependency order; WF-0035 filed and resolved in the same motion.
+
+### ⚠ The green is not validation, and the record says so three times
+The spine diff is governance markdown → `docs_only=true` → **both full suites SKIP**, while the changed tooling sits at `/srv/qbuild/tools/` where **no CI system can see it.** Stated independently in the PR body, in D-1293, and in the as-built — not by cross-reference, because a reader arriving at any one of them should not have to follow a link to learn that the check they are looking at proves nothing. **This is the NA-0664 masking mechanism, named in advance rather than discovered afterwards.**
+
+### Failures / recoveries
+- **REC-003 · DEFECT · census-grep-blindness**: the first draft of `check_repo_registration.sh` tested the two known-repo predicates by grepping for `"|<repo>)"`. **That pattern silently misses whichever name is FIRST in a case arm**, so the check reported **6 false failures** against three correctly-registered repos on its first run — recoverable because the failures were self-evidently wrong (it claimed `qsl-protocol` was not in `qwork_known_repo()`); corrected by extracting each predicate with `sed` and **executing** it rather than pattern-matching its text; final result 4 repos checked, 1 issue, that issue being true (WF-0033). Classed `DEFECT` because it bit: had the arm ordering been different it would have passed while checking nothing. **Recorded prominently because this lane's own subject is silent wrongness — a census that returns confident wrong answers is worse than no census, which is the same standard ENG-0062 sets for `measure.py`.**
+- **REC-004 · HAZARD · target-root-permission**: `install -d /srv/qbuild/cache/targets/qsl-desktop` failed `Permission denied` — the parent is `drwxr-sr-x root victor` and the operating account cannot create a fourth per-repo root — recoverable only by a privileged command, **which the lane did not run**; corrected by filing **WF-0033** with the exact command and completing every other acceptance item; final result acceptance D not met, everything else met. Classed `HAZARD` because it was correctly anticipated as a class (the directive knew item 6 provisioned a directory) but not as a permission problem.
+
+### Bounds held
+Nothing deleted (17.2 GB of WF-0034 untouched, STOP-8). `measure.py` not moved. The guardrail hook neither wired nor removed; `settings.json` unmodified. No `qsl-desktop` commit — the repo was read only through the mirror. No privileged command. `qwork.sh:142`, `qwork.sh:445`, `qshell.sh:104` byte-unchanged. The only executor `qwork` invocation was the deliberate pre-registration FAIL capture, which **provably seats nothing** — verified: no workspace, no lock, no proof.
+
+### Two corrections of record
+**WF-0031's "no backup" was false when filed** — `/srv/qbuild/tools` is source #33 in `/usr/local/sbin/qsl-backup`, `DAILY_KEEP=30`, last run SUCCESS 2026-07-22 02:36 — while "no diff, no history, no review path, no revert" was true and was the real gap. **Corrected, not erased.** The reason is procedural rather than pedantic: this entry was filed as the blocker gating WF-0027, WF-0029 and WF-0030, and **the census that disproved its backup clause is what allowed all four to be sequenced into a single lane instead of a custody negotiation.** An item that overstates its own severity distorts every sequencing decision that reads it.
+
+**ENG-0062's "blocked by WF-0030" was over-stated** — the easy half needs only a desktop PR (nine desktop lanes landed PRs from tmp directories), the hard half is independent of WF-0030 in both directions — **and it now carries a hard deadline discovered by this lane's census: the only copy of `measure.py` is deletion-eligible on/after 2026-07-29 under `qbuild-ssd-maintenance --tmp-days 7`, and `/srv/qbuild/tmp` is in `qsl-backup`'s EXCLUDES, so there is no restore path.** A copy placed anywhere outside `/srv/qbuild/tmp/` defuses it immediately, independent of any lane.
+
+### Queue-helper readback at closeout — exit 2, correct
+`READY_COUNT 0`, exit 2, with this lane's block reading `Status: DONE` and STATE at `READY=NONE`. Pre-recorded as correct by D602/OBS-N; `--allow-nonready-count` was **not** passed.

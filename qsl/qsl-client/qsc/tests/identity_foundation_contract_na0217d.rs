@@ -130,9 +130,17 @@ fn relay_inbox_set(cfg: &Path, token: &str) {
     );
 }
 
+/// Second deliberate private reimplementation of
+/// `qsc::identity::format_verification_code_from_fingerprint` (the first is in
+/// `tests/identity_binding.rs`). Kept as a duplicate — NOT an import — for the same reason: the
+/// test computes its own expected code and feeds it to the CLI, so the separateness is what makes
+/// this a real check that the CLI and the formula agree rather than a tautology. It must be updated
+/// in LOCKSTEP with the production function — NA-0669 (C-1a) added the prefix strip below.
 fn verification_code_from_fingerprint(fingerprint: &str) -> String {
     const CROCKFORD: &[u8; 32] = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-    let mut chars = fingerprint
+    const FP_PREFIX: &str = "QSCFP-";
+    let body = fingerprint.strip_prefix(FP_PREFIX).unwrap_or(fingerprint);
+    let mut chars = body
         .chars()
         .filter(|ch| ch.is_ascii_alphanumeric())
         .map(|ch| ch.to_ascii_uppercase())

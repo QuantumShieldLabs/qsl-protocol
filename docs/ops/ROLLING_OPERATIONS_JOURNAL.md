@@ -44538,3 +44538,26 @@ Nothing deleted (17.2 GB of WF-0034 untouched, STOP-8). `measure.py` not moved. 
 
 ### Queue-helper readback at closeout — exit 2, correct
 `READY_COUNT 0`, exit 2, with this lane's block reading `Status: DONE` and STATE at `READY=NONE`. Pre-recorded as correct by D602/OBS-N; `--allow-nonready-count` was **not** passed.
+
+## 2026-07-23 — NA-0668 (D-1294, directive D604): mirror freshness assertion + operator backup coverage
+
+Result class `MIRROR_FRESHNESS_AND_BACKUP_COVERAGE_PASS`. Two commits in `/srv/qbuild/tools/` (`b8ec4e9` §3a, `e16b3f9` §3b) on top of `dafea7f`, plus B0 — one operator-run privileged `install` adding two `daily_sources` lines to `/usr/local/sbin/qsl-backup` (new sha `4230eccd…`). **The spine PR is governance markdown, `docs_only=true`, both suites SKIP, and a green PR proves nothing** — the validating evidence is the freshness check observed failing.
+
+### ⚠ OBSERVATION — NOT A PRINCIPLE, AND DELIBERATELY NOT PROMOTED TO CANON
+
+Recorded at operator ruling, in these terms: **the four siblings this lane found were all surfaced by asking "WHAT CURRENTLY PASSES, AND WHAT EXACTLY DOES ITS PASSING MEAN?" rather than by any incident or failure.** `check_repo_registration.sh` was reporting `4 repos checked, 0 issue(s)` against a mirror set that had been months stale; the backup was running green nightly while omitting the entire directive corpus; the packet's change procedure was correct to follow and would have regressed three backup sources. None of these produced a failure, an alert, or a complaint. **The productive audit question may therefore not be "what failed?" but that one.**
+
+**⚠ THIS IS RECORDED AND DATED AS AN OBSERVATION ONLY. It is expressly NOT filed as a house principle and NOT promoted to canon: one lane's pattern is not a rule.** The operator's stated position is that it must earn that over a second lane. It is written here so a second lane can test it, not so a second lane can cite it.
+
+### The check caught a real stale mirror on its first live run — before any fixture existed
+
+`qsl-protocol`'s mirror was at `0b396fc8` while origin was at `8a05c1a3`: **exactly two commits behind, strictly behind not diverged, and the two commits are this lane's own queue promotion and its merge.** The directive's §0 had recorded all four mirrors CURRENT after the operator's 02:13Z refresh — so the gap re-opened within hours of the directive that specified the fix. **The live mirror was left stale** (§7 out of scope, STOP-3), reported to the operator, and acceptance §5.B.6 is recorded **NOT MET** at 3/4 rather than being quietly satisfied by a refresh.
+
+### Bounds held
+No live mirror modified — all four `refs/heads/main` byte-identical before and after the lane, the fixture being a copy under `/srv/qbuild/tmp` since deleted. No privileged command run by the executor. `new_checkout.sh` byte-unchanged (WF-0037, file-only). `preflight_clean.sh`, `env_qbuild.sh`, `refresh_mirrors.sh` byte-unchanged. Nothing deleted — WF-0034's 17.2 GB and both `.incomplete-*` directories untouched. B1 not drafted, scoped, or half-built. `PRIVATE_VALUES_DO_NOT_PASTE.md` contents never read or reproduced.
+
+### Correction of record — the ENG-0062 deadline is dead
+`measure.py`'s 2026-07-29 date **stops being a loss deadline** the moment B0 lands: the operator's `preserved/gui-measure/` copies are inside `/srv/qbuild/operator` and are now backed up, verified byte-identical in the checkpoint. **The durable `qsl-desktop/tools/` home is owed as good practice, not as risk mitigation**, and the date must not be carried forward as urgency. The `fitCode` drift seam — the hard half — is untouched by any of this.
+
+### ⚠ A SIXTH INSTANCE OF THE LANE'S OWN SUBJECT, COMMITTED BY THE EXECUTOR
+While writing up costume 4, the executor referenced the B0 checkpoint by a path missing its `-after-operator-source-added` label suffix. The directory did not exist, so `test -f … && echo COVERED || echo MISSING` printed **MISSING** for every file and `find … 2>/dev/null | wc -l` printed **0** — producing a confident, fully-formatted, entirely false report that B0's second source line had silently failed, which was nearly recorded as a material finding against the operator's completed work. **`test -f` cannot distinguish "file absent" from "parent directory absent," and `2>/dev/null` erased the signal that would have exposed it.** Caught by cross-checking an earlier run that used the full path. **The standing method is narrowed accordingly: a negative result is only evidence if the path it was measured against exists.**

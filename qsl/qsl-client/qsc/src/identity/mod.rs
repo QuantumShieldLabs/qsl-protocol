@@ -526,7 +526,18 @@ pub fn identity_ensure(self_label: &str) -> Result<IdentityPublicRecord, ErrorCo
 
 pub fn format_verification_code_from_fingerprint(fingerprint: &str) -> String {
     const CROCKFORD: &[u8; 32] = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-    let mut chars = fingerprint
+    // NA-0669 (C-1a): strip the constant `QSCFP-` prefix BEFORE the alphanumeric filter. The
+    // filter drops the prefix's hyphen but KEEPS its five letters, so five of the sixteen
+    // displayed characters were constant and every code ever shown began `QSCF-P`. Stripping
+    // first takes the code from 11 varying hex characters (44 bits) to 16 (64 bits) at unchanged
+    // target width and unchanged `4-4-4-4-checksum` grouping. This function is `pub` and
+    // reachable from qsl-desktop, so a fingerprint that does NOT carry the prefix is left alone
+    // rather than assumed; the match is case-sensitive, exact parity with the `starts_with`
+    // guards at the two in-crate call sites.
+    let body = fingerprint
+        .strip_prefix(IDENTITY_FP_PREFIX)
+        .unwrap_or(fingerprint);
+    let mut chars = body
         .chars()
         .filter(|ch| ch.is_ascii_alphanumeric())
         .map(|ch| ch.to_ascii_uppercase())

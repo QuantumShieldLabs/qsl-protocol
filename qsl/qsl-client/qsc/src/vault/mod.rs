@@ -868,6 +868,11 @@ fn write_vault_atomic(path: &PathBuf, content: &[u8]) -> Result<(), &'static str
             .map_err(|_| "vault_write_failed")?;
     }
     fs::rename(&tmp, path).map_err(|_| "vault_write_failed")?;
+    // NA-0669 (C-6): `sync_all()` above persists the tmp file's CONTENTS, but not the directory
+    // entry the rename creates. Without this the rename can be lost on power failure while the
+    // data it points at is durable. Exact parity with `vault_init_core` (see the identical call
+    // after its rename); best-effort by construction, so it adds no error path.
+    crate::fsync_dir_best_effort(parent);
     Ok(())
 }
 
@@ -1106,7 +1111,14 @@ pub fn passphrase_from_allowed_env(env_name: &str) -> Result<String, &'static st
 
 pub fn read_passphrase_file(path: &Path) -> Result<String, &'static str> {
     let bytes = fs::read(path).map_err(|_| "vault_passphrase_file_read_failed")?;
-    let mut passphrase = String::from_utf8_lossy(&bytes).to_string();
+    // NA-0669 (C-4): REJECT non-UTF-8 rather than transforming it. `from_utf8_lossy` collapsed
+    // every invalid byte to U+FFFD, so `head -c 32 /dev/urandom > pass.txt` produced a vault the
+    // operator believed held 256 bits and which held ~144 (measured: one random byte retains
+    // Shannon H = 4.500 bits of 8). That silent degradation is the defect; failing loudly at the
+    // moment of use is the fix. This also removes the ingress asymmetry that was the tell —
+    // `read_passphrase_from_stdin` already errors on invalid UTF-8 via `read_to_string`.
+    let mut passphrase =
+        String::from_utf8(bytes).map_err(|_| "vault_passphrase_file_read_failed")?;
     while passphrase.ends_with('\n') || passphrase.ends_with('\r') {
         passphrase.pop();
     }

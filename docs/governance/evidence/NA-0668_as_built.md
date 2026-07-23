@@ -153,7 +153,7 @@ exit 1
 
 **The live mirror was NOT refreshed.** §7 puts mirror refresh out of scope and §6 STOP-3 forbids touching `/srv/qbuild/mirrors/*`. It is left stale, reported here, and is an operator action.
 
-**Consequence for acceptance §5.B.6 — "4/4 currency against live origin" IS NOT MET, and is not claimed:** live state is **3/4 current, 1 genuinely stale**, for the reason above.
+**Consequence for acceptance §5.B.6 at implementation time — "4/4 currency against live origin" was NOT MET, and was not claimed:** live state was **3/4 current, 1 genuinely stale**, for the reason above. **It was closed at 4/4 by the operator after merge — see §10, which also records the pass half of the evidence pair.**
 
 ### 4.2 — PASS baseline (§5.B.1)
 
@@ -273,7 +273,7 @@ mirror AFTER  create: 02cc9b9651f43c8c3d26e73561dafbb7ca018628   (== live origin
 
 `qwork_ensure_checkout` with an **existing** checkout returns `created_or_existing=existing` and never reaches the change — the common path is untouched.
 
-**⚠ ONE JUDGMENT CALL, FLAGGED FOR THE OPERATOR TO OVERRULE.** The directive says to refresh whenever a new worktree is created but does not say whether a *refresh failure* against an already-present mirror should be fatal. It is implemented as **non-fatal (warn and proceed)**, on §3a's own stated principle that a gate which cannot pass teaches bypass, and because the downstream origin assertions are the real gate. This makes the change strictly additive: **it cannot break anything that works today**, and it preserves the existing offline creation path exactly. An **absent** mirror keeps the old fatal behaviour, because there the refresh *is* the clone.
+**⚠ ONE JUDGMENT CALL, FLAGGED FOR THE OPERATOR — SINCE AFFIRMED (§10.2).** The directive says to refresh whenever a new worktree is created but does not say whether a *refresh failure* against an already-present mirror should be fatal. It is implemented as **non-fatal (warn and proceed)**, on §3a's own stated principle that a gate which cannot pass teaches bypass, and because the downstream origin assertions are the real gate. This makes the change strictly additive: **it cannot break anything that works today**, and it preserves the existing offline creation path exactly. An **absent** mirror keeps the old fatal behaviour, because there the refresh *is* the clone.
 
 ### Measured cost (§5.C — a number, not an assertion)
 
@@ -298,7 +298,7 @@ One `git remote update --prune` per newly created worktree, against an already-c
 | **B.3** | restore, re-prove PASS | **MET** — exit 0, fixture deleted |
 | **B.4** | UNREACHABLE distinct, exit 2 | **MET** |
 | **B.5** | precedence: stale + unreachable → exit 1 | **MET** |
-| **B.6** | 4/4 currency against live origin | **NOT MET, and not claimed** — 3/4; `qsl-protocol` genuinely 2 commits stale, left unrefreshed per §7/STOP-3 (§4.1) |
+| **B.6** | 4/4 currency against live origin | **MET at closeout (§10).** Was 3/4 at implementation — `qsl-protocol` genuinely 2 commits stale, left unrefreshed per §7/STOP-3. The operator refreshed and re-ran: **`4 repos checked, 0 issue(s), 0 unverified`, exit 0.** |
 | **C** | three sites as diffs, cost as a number | **MET** — 0.35–0.56 s |
 | **D** | revertibility | **MET** — `git revert` clean on both commits, reverted script returns to `4 repos checked, 0 issue(s)`; reset back to `e16b3f9`. **B0's asymmetry recorded (§3)** |
 | **E** | no regression | **MET** — five original assertions 4/4; `qwork` seats (existing + created paths exercised); `preflight_clean.sh` byte-identical |
@@ -357,3 +357,76 @@ One `git remote update --prune` per newly created worktree, against an already-c
 - **Did not change `new_checkout.sh`** (WF-0037), `preflight_clean.sh`, or the `.incomplete-*` prune bug (WF-0040).
 - **Did not delete anything** except its own test fixture, and the ENG-0062 originals were not moved.
 - **Did not observe the scheduled daily** carrying `operator/` — first opportunity 2026-07-24 ~02:38 CDT (§3).
+
+---
+
+## 10. CLOSEOUT ADDENDUM (2026-07-23, after PR #1624 merged as `565d480c`)
+
+### 10.1 — ⚠ THE EVIDENCE PAIR IS NOW COMPLETE ON A REAL MIRROR
+
+§4.1 recorded the fail half. The operator refreshed `qsl-protocol` and re-ran the check:
+
+```
+4 repos checked, 0 issue(s), 0 unverified          exit 0
+```
+
+with each repo printing `mirror CURRENT at <sha>`.
+
+**So the lane holds a complete FAIL → refresh → PASS pair against PRODUCTION mirrors, not only against the throwaway fixture** — and the fail half was caught **unprompted, on the check's first live run**, against a staleness created by this lane's own promotion and merge. **That is precisely the acceptance this lane was defined by.** §5.B.6 is **CLOSED at 4/4**.
+
+### 10.2 — ⚠ AND IT WENT STALE A THIRD TIME WITHIN THE HOUR. THAT IS DATA, NOT A DEFECT.
+
+Merging PR #1624 advanced origin `8a05c1a3` → `565d480c`. The same check now reports `qsl-protocol` STALE again:
+
+```
+FAIL  qsl-protocol: mirror is STALE -- mirror refs/heads/main is 8a05c1a3… but origin is 565d480c…
+4 repos checked, 1 issue(s), 0 unverified          exit 1
+```
+
+**Three staleness events in one day** — 02:13Z refresh → stale at #1623's merge → refreshed, 4/4 → stale at #1624's merge. **Every spine merge re-stales the spine mirror.**
+
+**This needs no chasing and is deliberately not chased here.** §3b self-heals it at the next lane seat, and the downstream origin asserts mean it cannot produce a wrong checkout in any case. It is recorded because it is the **measured decay rate** behind **WF-0041**, and because it means *"is the mirror set 4/4 right now?"* is a question with a **shelf life of one merge** — which is the strongest available argument that a point-in-time 4/4 is not the same thing as an owned detector.
+
+### 10.3 — the non-fatal refresh ruling: AFFIRMED, with the reasoning recorded
+
+The §5 judgment call is affirmed. The reasoning belongs in the record because **fatal is the superficially safer-looking choice**:
+
+> `qwork.sh:372` and `qshell.sh:137` already fetch origin and hard-assert `head_equals_origin_main` **after** the mirror seeds the clone, so **a stale mirror CANNOT produce a wrong checkout — the refresh is hygiene, not a correctness gate.** Fatal would block work on a network blip for **zero correctness gain**, which is *"a gate that cannot pass teaches bypass"* **arriving inside the fix for it.** Absent-mirror staying fatal preserves the real invariant.
+
+### 10.4 — costumes 6 and 7 share one shape, and the narrowing is generalized
+
+**In both cases the tool answered a question ADJACENT to the one intended, and the answer was shaped like an answer to the intended question.**
+
+| costume | what was asked | **what the tool actually answered** | direction of failure |
+|---|---|---|---|
+| 6 | *did B0 back up these files?* | *does this nonexistent path exist?* → **no** | **false alarm** against completed work |
+| 7 | *is this directory ignored?* | *is this **tracked** file ignored?* → **no, tracked files are exempt** | **false all-clear**, nearly shipped a PR with no as-built |
+
+**Opposite directions, same defect: the instrument was pointed slightly off the question.** Neither was catchable by re-reading the output — both outputs were well-formed and internally consistent. Only the *question* was wrong.
+
+**The standing method's final clause is therefore generalized, superseding the narrower first draft:**
+
+> **A NEGATIVE RESULT IS ONLY EVIDENCE IF THE INSTRUMENT COULD HAVE RETURNED POSITIVE.**
+
+The earlier wording — *"only evidence if the PATH it was measured against exists"* — covers costume 6 and **misses costume 7 entirely**, since `check-ignore`'s path existed and the instrument was still incapable of answering the question asked. **Discharge it with a positive control:** point the same instrument at a known-positive case and trust the negative only if the control returns positive.
+
+### 10.5 — ⚠ THE DETECTOR HAS NO OWNER (answered, filed as WF-0041, deliberately not fixed)
+
+**Question asked by the operator: does anything run `check_repo_registration.sh` automatically? ANSWER: NO — and nothing even tells anyone to run it.**
+
+| candidate | result |
+|---|---|
+| systemd system timers | 14 present; the only two project timers run `qsl-backup daily` and `qbuild-ssd-maintenance`. **Neither invokes it.** |
+| systemd user timers | 2, both OS/snap |
+| `crontab -l` | `no crontab for victor` |
+| `/etc/cron.d`, `/etc/cron.daily` | OS defaults only |
+| Claude Code hooks | `settings.json` has **no `hooks` key at all** — the same gap as **WF-0036** |
+| spine CI | no `.github/**` reference |
+| all 15 tools scripts | **zero non-comment references.** The only two mentions in `/srv/qbuild/tools/` are **comments this lane wrote** at `qwork.sh:111` and `qshell.sh:177` |
+| `CLAUDE.md` / `START_HERE.md` / `AGENTS.md` / `DIRECTOR_OPERATIONS.md` / DOC-OPS-003 | **zero mentions** — every spine reference is *narrative*, never a procedural step |
+
+**⚠ The negative was validated with positive controls, per §10.4.** The identical greps returned **8** references for `refresh_mirrors.sh` and **3** for `new_checkout.sh`; the identical doc sweep returned **3** `qwork` mentions in `CLAUDE.md` and **2** in `START_HERE.md`. **The instrument was demonstrably capable of returning positive and did not.**
+
+**So the detector inherits the exact shape of the artifact it replaced.** WF-0038's defect was a check that read as health and meant presence; its replacement reads as health **whenever nobody looks — and nobody looks until something is already wrong.** §3a made the assertion correct; **it did not give it an owner.**
+
+**Honest bounding, so this is not inflated:** §3b substantially defuses the operational consequence — a stale mirror self-heals at the next lane seat and cannot produce a wrong checkout regardless. **The residual risk is narrower: a repo in which no lane is ever seated receives no §3b refresh at all** (`qsl-attachments` is the live candidate), so only §3a would ever notice its drift, and only if somebody runs it. **That is the gap WF-0041 names, with four unchosen options and a recommendation to decide it alongside WF-0036.**

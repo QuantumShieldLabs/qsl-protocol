@@ -119,7 +119,23 @@ FAIL  qsl-protocol: mirror is STALE -- mirror refs/heads/main is 0b396fc85da0397
 
 The mirror is **exactly two commits behind** — `11a0fa70` (this lane's queue promotion) and `8a05c1a3` (its merge) — and `git merge-base --is-ancestor` confirms **strictly behind, not diverged**. D604 §0 had recorded all four mirrors CURRENT after the operator's 02:13Z refresh, so **the gap re-opened within hours of the directive that specified the check.**
 
-**The live mirror was left stale.** Refreshing it is out of scope (§7) and forbidden (STOP-3). **Acceptance §5.B.6 — "4/4 currency against live origin" — is therefore recorded NOT MET at 3/4**, rather than being quietly satisfied by an out-of-scope refresh. It is an operator action.
+**The live mirror was left stale.** Refreshing it was out of scope (§7) and forbidden (STOP-3), so acceptance §5.B.6 was recorded NOT MET at 3/4 rather than being quietly satisfied by an out-of-scope refresh.
+
+### 6.1 — CLOSED AT 4/4 BY THE OPERATOR (2026-07-23, post-merge)
+
+The operator refreshed `qsl-protocol` and re-ran:
+
+```
+4 repos checked, 0 issue(s), 0 unverified          exit 0
+```
+
+each repo printing `mirror CURRENT at <sha>`. **§5.B.6 is CLOSED.**
+
+**The lane therefore holds a complete FAIL → refresh → PASS pair on PRODUCTION mirrors, not only on the fixture** — with the fail half caught unprompted on the first live run.
+
+### 6.2 — and stale again one merge later
+
+Merging PR #1624 advanced origin `8a05c1a3` → `565d480c`; the check reports `qsl-protocol` STALE again, exit 1. **Three staleness events in one day.** Every spine merge re-stales the spine mirror. Not chased — §3b self-heals it at the next lane seat — but it is the measured decay rate behind **WF-0041**, and it means a point-in-time 4/4 has **a shelf life of one merge.**
 
 ---
 
@@ -129,3 +145,14 @@ The mirror is **exactly two commits behind** — `11a0fa70` (this lane's queue p
 - **`new_checkout.sh`** — WF-0037, file-only; byte-unchanged and untested here.
 - **The scheduled daily backup** under the new script — first opportunity 2026-07-24 ~02:38 CDT. The post-install checkpoint is the evidence; the daily is confirmation still outstanding.
 - **Any off-machine or disaster-recovery property.** The machine remains **same-machine only**.
+
+
+---
+
+## 8. Detector reachability (added at closeout — WF-0041)
+
+**Question: does anything run this check automatically? Answer: NO.** Not cron, not any systemd timer, not a Claude Code hook (`settings.json` has no `hooks` key), not CI, not any of the 15 tools scripts, and it is named in **zero** read-first documents or checklists.
+
+**Method note, because this table is a negative result:** each sweep was run with a **positive control** first — the same greps returned 8 real references for `refresh_mirrors.sh`, 3 for `new_checkout.sh`, and 3 / 2 `qwork` mentions in `CLAUDE.md` / `START_HERE.md`. **A negative result is only evidence if the instrument could have returned positive**; here it demonstrably could.
+
+**Not fixed in this lane.** Filed as WF-0041 with four unchosen options.

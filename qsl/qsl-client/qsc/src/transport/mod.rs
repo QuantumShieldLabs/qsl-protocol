@@ -1560,6 +1560,310 @@ pub fn relay_ca_file_show() -> RelayCaFileStatus {
     }
 }
 
+// ===========================================================================
+// NA-0672 (D608, D-1300): server-info consumer + relay token trio.
+//
+// GUI slice B's Server pane and the `relay server-info` CLI verb both call
+// `relay_server_info`, which returns a PRE-CLASSIFIED typed outcome. An open
+// relay answers push/pull with a byte-identical 200, so ONLY `auth.mode`
+// separates connected/open from connected/bearer: the taxonomy MUST live here,
+// tested against the real DOC-SRV-006 / NA-0652 contract, and NOT be re-derived
+// in slice-B JS.
+//
+// This adds a NEW probe. It does NOT touch the send/pull/ack `Authorization`
+// attach points in `relay_inbox_push` / `relay_inbox_pull_mode` /
+// `relay_inbox_ack` -- that is ENG-0051, a later messaging-slice lane. Zero
+// dependency motion: it reuses `relay_http_client()` (native-roots ∪ webpki ∪
+// operator-CA, fail-closed) and `resp.json()` (the reqwest `json` feature is
+// already on).
+// ===========================================================================
+
+/// The relay's advertised authentication posture (`auth.mode`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RelayAuthMode {
+    Open,
+    Bearer,
+}
+
+/// The per-request ceiling on the server-info probe. FLAG-4: it lives on the
+/// PROBE request only, NEVER on `relay_http_client()`, which the send/pull/ack
+/// path shares -- a client-level timeout would reach those callers.
+const RELAY_SERVER_INFO_TIMEOUT_SECS: u64 = 10;
+
+fn relay_auth_mode_from_str(mode: &str) -> Option<RelayAuthMode> {
+    match mode {
+        "open" => Some(RelayAuthMode::Open),
+        "bearer" => Some(RelayAuthMode::Bearer),
+        _ => None,
+    }
+}
+
+/// The qsl-relay contract boundary (FLAG-2): a body IS a QSL relay challenge iff
+/// it carries `auth.mode ∈ {open, bearer}`. Read straight off the JSON `Value`,
+/// so a cosmetic type quirk in any OTHER field never changes the classification.
+///
+/// TOLERANT BY DESIGN: deliberately does NOT require `server == "qsl-server"`. A
+/// protocol-compatible AGPL fork self-hosting a relay is a legitimate outcome; a
+/// strict identifier check would reject it for no security gain.
+fn relay_auth_mode_from_body(body: &serde_json::Value) -> Option<RelayAuthMode> {
+    let mode = body.get("auth")?.get("mode")?.as_str()?;
+    relay_auth_mode_from_str(mode)
+}
+
+// The nested wire shape of GET /v1/server-info exactly as the server emits it
+// (DOC-SRV-006 / NA-0652 as-built). Every field `serde(default)` and unknown
+// fields are tolerated (serde ignores them) -- the additive-only rule (OBS-H):
+// a newer relay may add fields and an older client must still parse.
+//
+// `auth` is deliberately ABSENT here: the auth-mode challenge is read straight
+// off the JSON `Value` by `relay_auth_mode_from_body`, so the classification
+// never depends on the full-document deserialize succeeding (FLAG-2).
+#[derive(Debug, Clone, Default, Deserialize)]
+struct ServerInfoLimitsWire {
+    #[serde(default)]
+    max_body_bytes: u64,
+    #[serde(default)]
+    max_queue_depth: u64,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+struct ServerInfoRetentionWire {
+    #[serde(default)]
+    ttl_secs: u64,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+struct ServerInfoModeWire {
+    #[serde(default)]
+    mode: String,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+struct ServerInfoAttachmentsWire {
+    #[serde(default)]
+    service_url: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+struct ServerInfoWire {
+    #[serde(default)]
+    version: String,
+    #[serde(default)]
+    name: String,
+    #[serde(default)]
+    api: Vec<String>,
+    #[serde(default)]
+    limits: ServerInfoLimitsWire,
+    #[serde(default)]
+    retention: ServerInfoRetentionWire,
+    #[serde(default)]
+    directory: ServerInfoModeWire,
+    #[serde(default)]
+    attachments: ServerInfoAttachmentsWire,
+    #[serde(default)]
+    kt: ServerInfoModeWire,
+    #[serde(default)]
+    min_client_version: Option<String>,
+}
+
+/// The parsed server-info document (the FULL documented contract, DOC-SRV-006).
+/// Flat and ergonomic for the GUI/CLI; built from the nested wire shape. Present
+/// only inside `Reachable`, i.e. only when `auth.mode` was a valid QSL challenge.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ServerInfoDoc {
+    pub name: String,
+    pub version: String,
+    pub api: Vec<String>,
+    pub auth_mode: RelayAuthMode,
+    pub max_body_bytes: u64,
+    pub max_queue_depth: u64,
+    pub retention_ttl_secs: u64,
+    pub directory_mode: String,
+    pub attachments_service_url: Option<String>,
+    pub kt_mode: String,
+    pub min_client_version: Option<String>,
+}
+
+impl ServerInfoDoc {
+    fn from_wire(wire: ServerInfoWire, auth_mode: RelayAuthMode) -> Self {
+        ServerInfoDoc {
+            name: wire.name,
+            version: wire.version,
+            api: wire.api,
+            auth_mode,
+            max_body_bytes: wire.limits.max_body_bytes,
+            max_queue_depth: wire.limits.max_queue_depth,
+            retention_ttl_secs: wire.retention.ttl_secs,
+            directory_mode: wire.directory.mode,
+            attachments_service_url: wire.attachments.service_url,
+            kt_mode: wire.kt.mode,
+            min_client_version: wire.min_client_version,
+        }
+    }
+}
+
+/// The pre-classified server-info probe outcome. Five variants; two carry an
+/// inner field, together yielding the seven observable network states the GUI
+/// mockup enumerates: Reachable{Open}, Reachable{Bearer},
+/// AuthRequired{token_was_sent:true} (token rejected),
+/// AuthRequired{token_was_sent:false} (token required, none configured),
+/// CertNotTrusted, Unreachable, NotAQslRelay.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RelayServerInfoOutcome {
+    /// 200 + a valid QSL contract. `doc.auth_mode` equals `auth_mode`.
+    Reachable {
+        auth_mode: RelayAuthMode,
+        doc: ServerInfoDoc,
+    },
+    /// 401 + a parseable QSL challenge (`auth.mode` present). `token_was_sent`
+    /// distinguishes "token rejected" (true) from "token required, none sent"
+    /// (false).
+    AuthRequired { token_was_sent: bool },
+    /// The host answered, but the body is not a QSL relay contract: a 200 whose
+    /// body lacks `auth.mode`, a generic reverse-proxy 401 with no QSL challenge,
+    /// or any other status. This is the claim-discipline boundary (FLAG-2 RULE):
+    /// the app NEVER tells a user "this relay requires a token" about a 401 that
+    /// is not a relay.
+    NotAQslRelay,
+    /// TLS certificate verification refused (unknown issuer, name mismatch,
+    /// expiry). Reuses the NA-0663 typed rustls downcast.
+    CertNotTrusted,
+    /// Connection/DNS failure or timeout -- nothing answered.
+    Unreachable,
+}
+
+/// Pure, socket-free classifier -- the house `_from_parts` shape and the unit the
+/// suite exercises. `status` is the HTTP status; `body` is the response body
+/// parsed as JSON (`None` when the body was absent or not JSON); `token_was_sent`
+/// records whether the probe attached an Authorization header.
+///
+/// PUB, not the private `fn` sketched in the directive: the directive's own named
+/// integration test (`tests/NA_0672_relay_server_info.rs`) drives this classifier
+/// socket-free, and an integration test can reach only `pub` items. Exposing the
+/// pure taxonomy also serves the slice-B rationale directly -- a future GUI that
+/// fetches server-info on its own runtime reuses this exact classification rather
+/// than re-deriving it. `relay_server_info` remains the ordinary entry point.
+///
+/// FLAG-2 RULE: `AuthRequired` requires BOTH a 401 AND a parseable QSL challenge
+/// (`auth.mode` present). A generic reverse-proxy 401 with no QSL body therefore
+/// classifies `NotAQslRelay`, so the app never mislabels a non-relay as "requires
+/// a token" (the §7.4 wrong-error-mapping bug that mocks would hide).
+pub fn relay_server_info_from_parts(
+    status: u16,
+    body: Option<&serde_json::Value>,
+    token_was_sent: bool,
+) -> RelayServerInfoOutcome {
+    let auth_mode = body.and_then(relay_auth_mode_from_body);
+    match status {
+        200 => match auth_mode {
+            Some(mode) => {
+                // auth.mode is present (a valid QSL contract), so this IS a
+                // reachable relay. Parse the rest best-effort: a field-type
+                // quirk falls back to defaults rather than losing the Reachable
+                // classification, which keys ONLY on auth.mode.
+                let doc = body
+                    .and_then(|v| serde_json::from_value::<ServerInfoWire>(v.clone()).ok())
+                    .unwrap_or_default();
+                RelayServerInfoOutcome::Reachable {
+                    auth_mode: mode,
+                    doc: ServerInfoDoc::from_wire(doc, mode),
+                }
+            }
+            None => RelayServerInfoOutcome::NotAQslRelay,
+        },
+        401 => match auth_mode {
+            Some(_) => RelayServerInfoOutcome::AuthRequired { token_was_sent },
+            None => RelayServerInfoOutcome::NotAQslRelay,
+        },
+        _ => RelayServerInfoOutcome::NotAQslRelay,
+    }
+}
+
+/// Probe `GET {relay_base}/v1/server-info` and return a PRE-CLASSIFIED outcome.
+///
+/// `Err` carries ONLY a LOCAL-CONFIGURATION code, never a network result: the
+/// `normalize_relay_endpoint` codes for a malformed/inadmissible typed address,
+/// or -- like `relay_inbox_push` -- a CA-file code when a configured operator CA
+/// cannot be loaded. Both mean "we could not even form the request." Every
+/// reachable-network result -- success, auth challenge, non-relay answer, TLS
+/// refusal, timeout -- is `Ok(variant)`.
+///
+/// The probe SENDS the resolved bearer token (env -> vault -> token-file) when
+/// one is configured, so `AuthRequired` can distinguish token-rejected from
+/// token-absent. Per-request 10s timeout (FLAG-4); never mutates the shared
+/// `relay_http_client()`.
+pub fn relay_server_info(relay_base: &str) -> Result<RelayServerInfoOutcome, &'static str> {
+    let base = normalize_relay_endpoint(relay_base)?;
+    let url = format!("{}/v1/server-info", base);
+    let client = match relay_http_client() {
+        Ok(client) => client,
+        Err(RelayHttpClientError::CaFile(code)) => return Err(code),
+        Err(RelayHttpClientError::Build) => return Err("relay_server_info_failed"),
+    };
+    let bearer_token = relay_auth_token();
+    let token_was_sent = bearer_token.is_some();
+    let mut req = client.get(url).timeout(std::time::Duration::from_secs(
+        RELAY_SERVER_INFO_TIMEOUT_SECS,
+    ));
+    if let Some(token) = bearer_token {
+        req = req.header("Authorization", format!("Bearer {}", token));
+    }
+    let resp = match req.send() {
+        Ok(resp) => resp,
+        Err(err) => {
+            // Same typed rustls downcast the send path uses (NA-0663); a
+            // certificate refusal is distinguishable from a plain unreachable.
+            if relay_error_is_tls_untrusted(&err) {
+                return Ok(RelayServerInfoOutcome::CertNotTrusted);
+            }
+            return Ok(RelayServerInfoOutcome::Unreachable);
+        }
+    };
+    let status = resp.status().as_u16();
+    // `None` when the body was absent or not JSON -- which, at 401, is exactly a
+    // generic reverse-proxy challenge and classifies NotAQslRelay (FLAG-2 RULE).
+    let body = resp.json::<serde_json::Value>().ok();
+    Ok(relay_server_info_from_parts(
+        status,
+        body.as_ref(),
+        token_was_sent,
+    ))
+}
+
+/// Presence class ONLY -- no hash, no bytes. See the RULE on `relay_token_show`.
+pub struct RelayTokenStatus {
+    pub configured: bool,
+}
+
+/// Set the relay bearer token (account secret; the env token still takes
+/// precedence at resolution time). Trims; empty is rejected. This is the ONE
+/// writer -- the CLI `relay token-set` verb now routes through it, so there is a
+/// single code path and no behaviour change.
+pub fn relay_token_set(token: &str) -> Result<(), &'static str> {
+    let trimmed = token.trim();
+    if trimmed.is_empty() {
+        return Err("relay_token_missing");
+    }
+    vault::secret_set(TUI_RELAY_TOKEN_SECRET_KEY, trimmed)
+}
+
+/// Clear the relay bearer token (account secret).
+pub fn relay_token_clear() -> Result<(), &'static str> {
+    vault::secret_set(TUI_RELAY_TOKEN_SECRET_KEY, "")
+}
+
+/// Inspect the configured relay bearer token: PRESENCE ONLY.
+///
+/// ⚠ RULE (FLAG-3), not an implementation note. `relay_ca_file_show` returns a
+/// `path_hash` because a CA path is PUBLIC material. A bearer token is SECRET, so
+/// `relay_token_show` returns a BARE BOOL -- even a truncated hash of a secret is
+/// a needless oracle. The two SHOULD look inconsistent. Do NOT "fix" the
+/// asymmetry by adding a hash here: doing so reintroduces the oracle.
+pub fn relay_token_show() -> RelayTokenStatus {
+    let configured = relay_auth_token_from_account_secret().is_some();
+    RelayTokenStatus { configured }
+}
+
 
 const RELAY_PUSH_DIAGNOSTIC_ENV: &str = "QSC_RELAY_PUSH_DIAGNOSTIC";
 const RELAY_PUSH_DIAGNOSTIC_MODE_REDACTED: &str = "redacted";

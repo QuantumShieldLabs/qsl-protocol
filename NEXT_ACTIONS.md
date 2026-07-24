@@ -36267,7 +36267,7 @@ Begins at D-1298. MEASUREMENT lane, spine-only, zero cross-repo. TWO PRs, two de
 
 ### NA-0672 — qsc server-info consumer + relay token trio (D608, CODE, spine-only qsc): add the typed `GET /v1/server-info` client + `relay_token_set/clear/show` + a CLI `relay server-info` verb — the primitive GUI slice B pins to, DOC-PROG-004 step 5, deferred by NA-0652's own closeout. NO messaging change; ENG-0051 is a later lane.
 
-Status: READY
+Status: DONE
 Goals: G4 (drives G1 GUI delivery)
 Wire/behavior change allowed? NO NEW wire/protocol/schema/env. This lane adds a NEW read-only client of the EXISTING `GET /v1/server-info` endpoint (shipped NA-0652) plus pub library setters for the ALREADY-STORED token secret. It does NOT change push/pull/ack, the endpoint, or any stored format.
 Crypto/state-machine change allowed? NO. No KDF/handshake/ratchet/vault-format change. The probe reuses `relay_http_client()` (native-roots ∪ webpki ∪ operator-CA, fail-closed) unchanged.

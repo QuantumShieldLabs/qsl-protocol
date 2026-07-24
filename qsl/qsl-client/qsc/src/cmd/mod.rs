@@ -666,6 +666,19 @@ pub enum RelayCmd {
     CaClear,
     /// Show whether an explicit relay CA certificate is configured (redacted).
     CaShow,
+    /// Clear the relay auth bearer token (account secret).
+    TokenClear,
+    /// Show whether a relay auth bearer token is configured. Presence ONLY: the
+    /// token is a secret, so -- unlike `ca-show` -- NO hash is emitted.
+    TokenShow,
+    /// Probe a relay's GET /v1/server-info: reachability, auth mode, and the
+    /// advertised capabilities. A self-hoster diagnostic -- and the cleanest way
+    /// to reproduce a GUI connection-panel issue without driving the GUI.
+    ServerInfo {
+        /// Relay address (https://host[:port]).
+        #[arg(long)]
+        relay: String,
+    },
 }
 
 #[derive(Subcommand, Debug)]

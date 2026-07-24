@@ -28,10 +28,7 @@ use qsc::output::{
 };
 use qsc::protocol_state::{allow_unsafe_seed_fallback_for_tests, qsp_status_tuple};
 use qsc::relay::{RelayConfig, SendExecuteArgs};
-use qsc::store::{
-    TUI_RELAY_INBOX_TOKEN_SECRET_KEY, TUI_RELAY_TOKEN_FILE_SECRET_KEY,
-    TUI_RELAY_TOKEN_SECRET_KEY,
-};
+use qsc::store::{TUI_RELAY_INBOX_TOKEN_SECRET_KEY, TUI_RELAY_TOKEN_FILE_SECRET_KEY};
 use qsc::timeline::{timeline_clear, timeline_list, timeline_show};
 use qsc::*;
 
@@ -496,12 +493,13 @@ fn relay_cmd(cmd: RelayCmd) -> CliResult {
         }
         RelayCmd::TokenSet { token } => {
             require_unlocked("relay_token_set")?;
-            let token = token.trim();
-            if token.is_empty() {
-                return Err(CliError::code("relay_token_missing"));
-            }
-            if vault::secret_set(TUI_RELAY_TOKEN_SECRET_KEY, token).is_err() {
-                return Err(CliError::code("relay_token_store_failed"));
+            // Routed through the single writer (NA-0672). The two observable error
+            // codes are preserved exactly: empty -> relay_token_missing (the
+            // wrapper's own code), any store failure -> relay_token_store_failed.
+            match transport::relay_token_set(token.as_str()) {
+                Ok(()) => {}
+                Err("relay_token_missing") => return Err(CliError::code("relay_token_missing")),
+                Err(_) => return Err(CliError::code("relay_token_store_failed")),
             }
             emit_marker(
                 "relay_token_set",
@@ -587,8 +585,130 @@ fn relay_cmd(cmd: RelayCmd) -> CliResult {
             );
             println!("relay_ca_file={} hash={}", configured, hash);
         }
+        RelayCmd::TokenClear => {
+            require_unlocked("relay_token_clear")?;
+            if transport::relay_token_clear().is_err() {
+                return Err(CliError::code("relay_token_store_failed"));
+            }
+            emit_marker(
+                "relay_token_clear",
+                None,
+                &[("ok", "true"), ("token", "cleared")],
+            );
+            println!("relay_token=cleared");
+        }
+        RelayCmd::TokenShow => {
+            require_unlocked("relay_token_show")?;
+            let status = transport::relay_token_show();
+            let configured = if status.configured { "true" } else { "false" };
+            // FLAG-3 RULE: presence ONLY. A bearer token is SECRET, so -- unlike
+            // relay_ca_show, whose PUBLIC path yields a path_hash -- NO hash is
+            // emitted. Even a truncated hash of a secret is a needless oracle.
+            emit_marker(
+                "relay_token_show",
+                None,
+                &[
+                    ("ok", "true"),
+                    ("configured", configured),
+                    ("token", "redacted"),
+                ],
+            );
+            println!("relay_token={}", configured);
+        }
+        RelayCmd::ServerInfo { relay } => {
+            // A diagnostic probe: it reads the vault-resolved bearer token (so it
+            // can send it), hence the unlock gate, matching every relay verb.
+            require_unlocked("relay_server_info")?;
+            let outcome = transport::relay_server_info(relay.as_str()).map_err(CliError::code)?;
+            emit_relay_server_info(&outcome);
+        }
     }
     Ok(())
+}
+
+/// Render a server-info probe outcome: one marker + one human line (FLAG-5). The
+/// bearer token is NEVER printed or hashed; only the relay's own non-secret
+/// advertisements appear.
+fn emit_relay_server_info(outcome: &transport::RelayServerInfoOutcome) {
+    use transport::RelayServerInfoOutcome;
+    match outcome {
+        RelayServerInfoOutcome::Reachable { auth_mode, doc } => {
+            let mode = relay_auth_mode_label(*auth_mode);
+            let max_body = doc.max_body_bytes.to_string();
+            let max_queue = doc.max_queue_depth.to_string();
+            let ttl = doc.retention_ttl_secs.to_string();
+            let api = doc.api.join(",");
+            let svc = doc.attachments_service_url.clone().unwrap_or_default();
+            let minver = doc.min_client_version.clone().unwrap_or_default();
+            emit_marker(
+                "relay_server_info",
+                None,
+                &[
+                    ("ok", "true"),
+                    ("outcome", "reachable"),
+                    ("auth_mode", mode),
+                    ("name", doc.name.as_str()),
+                    ("version", doc.version.as_str()),
+                    ("api", api.as_str()),
+                    ("max_body_bytes", max_body.as_str()),
+                    ("max_queue_depth", max_queue.as_str()),
+                    ("retention_ttl_secs", ttl.as_str()),
+                    ("directory_mode", doc.directory_mode.as_str()),
+                    ("kt_mode", doc.kt_mode.as_str()),
+                    ("attachments_service_url", svc.as_str()),
+                    ("min_client_version", minver.as_str()),
+                ],
+            );
+            println!(
+                "relay_server_info=reachable auth_mode={} name={:?} version={} api={}",
+                mode, doc.name, doc.version, api
+            );
+        }
+        RelayServerInfoOutcome::AuthRequired { token_was_sent } => {
+            let sent = if *token_was_sent { "true" } else { "false" };
+            emit_marker(
+                "relay_server_info",
+                None,
+                &[
+                    ("ok", "true"),
+                    ("outcome", "auth_required"),
+                    ("token_was_sent", sent),
+                ],
+            );
+            println!("relay_server_info=auth_required token_was_sent={}", sent);
+        }
+        RelayServerInfoOutcome::NotAQslRelay => {
+            emit_marker(
+                "relay_server_info",
+                None,
+                &[("ok", "true"), ("outcome", "not_a_qsl_relay")],
+            );
+            println!("relay_server_info=not_a_qsl_relay");
+        }
+        RelayServerInfoOutcome::CertNotTrusted => {
+            emit_marker(
+                "relay_server_info",
+                None,
+                &[("ok", "true"), ("outcome", "cert_not_trusted")],
+            );
+            println!("relay_server_info=cert_not_trusted");
+        }
+        RelayServerInfoOutcome::Unreachable => {
+            emit_marker(
+                "relay_server_info",
+                None,
+                &[("ok", "true"), ("outcome", "unreachable")],
+            );
+            println!("relay_server_info=unreachable");
+        }
+    }
+}
+
+fn relay_auth_mode_label(mode: transport::RelayAuthMode) -> &'static str {
+    match mode {
+        transport::RelayAuthMode::Open => "open",
+        transport::RelayAuthMode::Bearer => "bearer",
+    }
 }
 
 fn meta_cmd(cmd: MetaCmd) -> CliResult {

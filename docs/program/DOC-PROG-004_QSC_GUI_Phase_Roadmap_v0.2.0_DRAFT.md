@@ -188,6 +188,18 @@ R8 constraint documented. **Acceptance: a fresh machine onboards to a live relay
   step-4 autolock restoration.
 - Onboarding order CONFIRMED: vault → identity → server (L5 stands).
 
+- **PROGRESS (NA-0673, D609, 2026-07-24) — the Settings SERVER PANE (slice B) landed.**
+  Relay-address / access-token / CA-file inputs; Test (qsc `relay_server_info`
+  through the serial blocking gate); the connection-results taxonomy (the 8
+  results-panel states, incl. the "certificate not trusted" state named above and
+  its distinct "CA file couldn't be read" local-config sibling); the R8 no-bypass
+  constraint enforced and documented (Appendix F). Server connectivity is now
+  BUILT and CI-green (GATE 1 pin bump, qsl-desktop #7; GATE 2 pane, qsl-desktop #8;
+  spine closeout D-1302/D-1303). ⚠ Step 5's **"a fresh machine onboards to a live
+  relay" acceptance is the OWED operator flight** — not yet flown; the instrument
+  is `tests/NA-0673_server_connectivity_testplan.md §B`. NOT in slice B: contacts,
+  messaging, the Logs pane (ENG-0058), the rail toggle (round-4b).
+
 **Decision gate D-B (design conversation, before step 6): the contact-add /
 rendezvous problem.** Resolve or explicitly adopt the baseline (out-of-band
 verification codes + route token) with the fancier scheme as a later upgrade.

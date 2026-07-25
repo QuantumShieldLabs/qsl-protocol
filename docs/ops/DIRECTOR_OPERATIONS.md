@@ -14,7 +14,11 @@ NEXT_ACTIONS.md, those sources win.
 
 ## 1. Canonical directive template
 
-Section order (sections vary by lane; core order is fixed):
+Section order (sections vary by lane; core order is fixed).
+**⚠ The `response file target` element of the identity line is RETIRED** —
+see the retirement note at the end of §4a.4 (2026-07-25, D-1306). The line
+below is left as written for the same reason that subsection is: it records
+the template as it stood. **A new directive names no response-file target.**
 
     identity (Directive ID, title, response file target)
     ROLE (READY lane, objective, result boundary, explicit non-goals)
@@ -90,7 +94,10 @@ Directive IDs and decision IDs are distinct namespaces.
 
 ## 3. File and path conventions
 
-    Response files:
+    Response files (⚠ NO LONGER WRITTEN — the obligation is RETIRED, see the
+    note at the end of §4a.4, 2026-07-25 / D-1306. The path and its 575
+    archived files REMAIN as readable history; nothing here is renamed or
+    removed. New lanes add nothing to this directory.):
       /srv/qbuild/operator/responses/
       NA####_<lane_slug>_<timestamp>_D###.md
       (legacy Codex-era responses are copied here from
@@ -186,7 +193,11 @@ authoritative source, rather than in `CLAUDE.md`, which declares itself a
 "convenience pointer only" that loses to the authoritative sources — a rule
 placed only there has the weakest standing in the tree.
 
-**1. OPERATOR RELAY FILE.** Write `/srv/qbuild/operator/relay/LATEST.md` at the
+**1. OPERATOR RELAY FILE — since 2026-07-25 the SOLE required reporting
+artifact** (the numbered-section response file is retired; see the note at the
+end of this subsection). Its rules below are unchanged and undiminished by that
+retirement — if anything it now carries the whole obligation alone.
+Write `/srv/qbuild/operator/relay/LATEST.md` at the
 **END OF EVERY TURN** — overwritten at the same path, plus a timestamped
 `RELAY_<UTC>.md` copy in the same directory so history survives the overwrite.
 It carries: phase and lane state; what was done this turn; full results and
@@ -281,6 +292,65 @@ preventing it.
 > and any correction to that text ride **WF-0032**'s sequencing: free once
 > `CLAUDE.md` is a docs path, or carried by the first future lane already
 > paying `docs_only=false`.
+
+#### ⚠ RETIRED 2026-07-25 (operator ruling, NA-0675 / D611 §2a / D-1306) — the numbered-section response file is no longer required
+
+**Everything above this heading is left exactly as written and remains the
+record of what was true on 2026-07-22.** It is not corrected, softened, or
+deleted. Read it as history: at D-1292 the response file was live, the debts
+were real, and the reconciliation was right on the evidence then available.
+**A reversal that erases the reasoning it reverses reads as drift**; this note
+reverses the ruling and keeps the argument.
+
+**The ruling.** The operator has retired the numbered-section response file
+as a required artifact. **Relay files have de facto superseded it and are the
+better instrument.** The reasoning, as given: the relay file is written **every
+turn** rather than per milestone, is **self-contained for a reader who never saw
+the terminal**, and — decisively — **is actually written**, which the response
+file demonstrably no longer was.
+
+**What the evidence above shows in hindsight.** §4a.4 recorded the discrepancy
+honestly and refused to invent a supersession to make it disappear. That refusal
+was correct: **an executor must not retire an operator's convention by noticing
+that it has lapsed.** What was missing was not analysis but authority, and the
+authority has now been exercised. **The lapse was evidence for a decision; it
+was never a decision.**
+
+**Debts discharged BY THIS RETIREMENT — not by being written:**
+
+| owed by | for |
+|---|---|
+| **NA-0664** | the response file §4a.4 records as unpaid |
+| **NA-0665** | the response file §4a.4 records as unpaid |
+| **D611** (NA-0675) | its `Response file target:` line |
+| **D612** (NA-0676) | its `Response file target:` line |
+| **D613** (NA-0677) | its `Response file target:` line |
+
+All five are **closed by this note.** No lane owes a numbered-section response
+file for work completed before this date, and no future directive should name a
+`Response file target:`. Those three directives are the last to carry the field
+at all; their headers read `NONE — discharged by this retirement`, which is a
+footprint of the change and **not** a sign that the field is optional.
+
+**Consequences elsewhere in this document, applied:**
+- **§1** (canonical directive template) — the `identity` line no longer requires
+  a response-file target; see the note there.
+- **§3** (file and path conventions) — the `/srv/qbuild/operator/responses/`
+  path and its **575 archived files stay exactly where they are, readable
+  history.** Retiring the obligation does not retire the archive, and nothing in
+  it is to be renamed or removed.
+- **§4a.1** — the operator relay file is now the **sole** required reporting
+  artifact. Its rules are unchanged and undiminished by this note.
+
+**⚠ `CLAUDE.md` step 6 (`:47-50`) is NOT edited by this lane, and its text is now
+wrong rather than merely incomplete.** It still mandates a response file. **A
+reader who finds it is reading a RETIRED requirement — this subsection is the
+authority** (this document wins over `CLAUDE.md`, which declares itself a
+convenience pointer). The edit itself continues to ride **WF-0032**'s
+sequencing, unchanged: free once `CLAUDE.md` is a docs path, or carried by the
+first future lane already paying `docs_only=false`. **Note the direction of the
+staleness has flipped** — before this note, `CLAUDE.md` stated a live
+requirement while omitting the relay convention; now it states a dead one.
 
 ## 5. Verified state replaces asserted state
 

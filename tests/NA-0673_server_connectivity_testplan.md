@@ -2,11 +2,13 @@
 
 ## Status
 - **Automated coverage (§A): DONE** — merged and CI-green (qsl-desktop #7, #8).
-- **Live GUI acceptance (§B): OWED — the operator flies it.** This section is the
-  INSTRUMENT for that flight; it is not a record of a passed run. The build host
-  cannot drive the GUI (xdotool absent). Until §B is flown and its results are
-  recorded in `docs/governance/evidence/NA-0673_as_built.md`, the overall
-  `GUI_SLICE_B_SERVER_CONNECTIVITY_PASS` is not asserted.
+- **Live GUI acceptance (§B): FLOWN AND PASSED** (operator-flown, 2026-07-24). All
+  12 checks / 7 probe outcomes matched the exact shipped card text against the
+  tserver rig over real TLS — no mocks. Per-check results + screenshot references
+  are recorded in `docs/governance/evidence/NA-0673_as_built.md §4` (screenshots in
+  `/srv/qbuild/evidence/NA-0673/flight/`). ⟹ the overall
+  `GUI_SLICE_B_SERVER_CONNECTIVITY_PASS` is ASSERTED. §B below is retained as the
+  instrument that was flown.
 
 ## §A — Automated coverage (in-suite, socket-free; qsl-desktop `cargo test`)
 - `server_pane.rs` (4) — pane presence & controls; no-bypass guard (R8); results

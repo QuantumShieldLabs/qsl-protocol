@@ -5,11 +5,11 @@ per **QSL-DIR-2026-07-24-609 (D609, APPROVED 2026-07-24, sha256
 `eb6f9da01fc3f338df20f52baa8a4ae3569643ec4d795e26c8cca62a705473b9`, 678 lines)**,
 all eight observations ruled and folded as binding R1–R8. Three gates.
 
-> ⚠ **THE LIVE GUI ACCEPTANCE FLIGHT HAS NOT BEEN FLOWN.** It is the operator's
-> (the build host cannot drive the GUI — xdotool is absent), and it had not run
-> at the time this closeout was opened. This as-built records what was BUILT and
-> PROVED IN CI; it does NOT claim the acceptance passed. The pending claims are
-> enumerated in §4. The testplan `tests/NA-0673_server_connectivity_testplan.md`
+> ✅ **THE LIVE GUI ACCEPTANCE FLIGHT WAS FLOWN AND PASSED** (operator-flown,
+> 2026-07-24; the closeout was opened before it, per the operator's hold-for-the-
+> flight ruling, then this as-built + D-1303 were finalized once it landed). All
+> 12 checks / 7 probe outcomes verified against the exact shipped card text on the
+> real relay — see §4. The testplan `tests/NA-0673_server_connectivity_testplan.md`
 > is the INSTRUMENT for that flight.
 
 ## §0 — What shipped, and where the evidence is
@@ -21,8 +21,9 @@ all eight observations ruled and folded as binding R1–R8. Three gates.
 | GATE 2 addendum — Appendix F reasons | qsl-desktop #9 (D-0009) | *(open at closeout)* | docs-only | the ratified OBS-1/OBS-2 reasons |
 | GATE 3 — this spine closeout | qsl-protocol *(this PR)* (D-1302 + D-1303) | *(this PR)* | governance | this file + the testplan |
 
-The overall `GUI_SLICE_B_SERVER_CONNECTIVITY_PASS` is **PENDING the operator
-acceptance flight** (§4). GATE 1 and GATE 2 are proved and merged.
+The overall `GUI_SLICE_B_SERVER_CONNECTIVITY_PASS` is **ASSERTED** — GATE 1 and
+GATE 2 proved and merged, and the operator acceptance flight FLOWN and PASSED
+(§4, all 12 checks on the real relay).
 
 ## §1 — GATE 1: the pin bump (D-0007), the delta ENUMERATED
 
@@ -92,24 +93,58 @@ claims"** and **"Adding contacts arrives in a future update"** — only the netw
 clause changed. A regression test asserts the stale clauses are gone AND the
 surviving clauses remain.
 
-## §4 — ⚠ PENDING: the live acceptance flight (OWED, operator-flown)
-The following are NOT yet proved and are the operator's to fly, per the testplan,
-against **tserver over real TLS** (NA-0672 proved every state producible there):
-1. The 8 results-panel states rendered correctly against the real relay (the 7
-   probe outcomes + the "Not saved yet" save-state), each at its expected rig
-   auth mode.
-2. The R2(b) distinction LIVE: an unreadable configured CA renders as its own
-   line, NOT as "Certificate not trusted".
-3. The two-message 401 LIVE (token-rejected vs token-required), phrased as local
-   observations.
-4. The claim-discipline surfaces read correctly in the running app.
-5. No connect-anyway control on any state (R8).
+## §4 — LIVE ACCEPTANCE FLIGHT — FLOWN AND PASSED (operator-flown, 2026-07-24)
+The operator flew the full 12-check walkthrough
+(`tests/NA-0673_server_connectivity_testplan.md §B`) against the tserver rig over
+real TLS, driving the GUI himself (the build host cannot — xdotool absent).
+Screenshots captured to `/srv/qbuild/evidence/NA-0673/flight/` (durable). Each
+result was compared to the EXACT shipped card text, not by eye. **All 7 probe
+outcomes + every state PASS.**
 
-Until the flight is flown and its results appended here, the overall
-`GUI_SLICE_B_SERVER_CONNECTIVITY_PASS` is **not asserted**. GATE 1 and GATE 2 are
-independently proved (CI-green, merged); this closeout does not borrow the pane's
-correctness from a mock (§7.4 discipline) — it records exactly what CI proved and
-names the rest as owed.
+⚠ Rig note: tserver had moved networks and died on an overnight shutdown; it was
+rebuilt UNPRIVILEGED on the current LAN address `https://192.168.1.170:8443` (the
+NA-0672 `172.20.10.2` is dead), Caddy `tls internal` front + qsl-server on
+`127.0.0.1:8080`, bearer↔open flipped via the `RELAY_TOKEN` env. A mid-flight
+timeline question was resolved clock-independently (process elapsed time): bearer
+`12:13:53–12:53:16 CDT`, open after — so the bearer "Connected / Token required —
+accepted" cards provably predate the flip, and a bearer card cannot be produced
+by an open relay (deterministic classification).
+
+| # | Check | Result vs the shipped copy | Evidence (CDT) |
+|---|---|---|---|
+| 1 | Reachable/Bearer | ✅ "Connected" · "Token required — accepted. Certificate trusted." · rows Trusted / Token required — accepted / 7 days / 1 MB / 0.1.0 | 12-49-19 |
+| 8 | Save-state | ✅ "Not saved yet." + Save accent → Save clears | 12-49-19, 12-51-56 |
+| 2 | Reachable/Open | ✅ "Connected" · "Open relay — anyone who can reach this address can use it…" · Access = Open — no token needed | 12-55-09, 12-55-55 |
+| 6 | Unreachable | ✅ "Couldn't reach the server" · "Nothing answered at that address…" | 12-56-27 |
+| 5 | CertNotTrusted | ✅ "Certificate not trusted" · "…what an interception attack looks like…" — **accent, not red (R7)** | 12-59-30 |
+| 9 | ⚠ CA-unreadable (R2b) | ✅✅ **"Certificate authority file couldn't be read"** — NOT "Certificate not trusted" (false-diagnosis rule holds LIVE) | 22-49-42 |
+| 3 | AuthRequired/token-rejected | ✅ "Token rejected" · "…didn't accept the one this app sent…" | 23-11-23 |
+| 4 | AuthRequired/token-required | ✅ "This relay requires an access token" · "This app sent no token, and the relay requires one…" | 23-41-16 |
+| 7 | NotAQslRelay | ✅ "Not a QSL relay" · "Something answered, but it isn't a QSL relay…" (`https://example.com`) | 23-14-23 |
+| 10 | Bad address (R2a) | ✅ inline "Enter a valid relay address…" + red field, NO results card | 23-15-18 |
+| 11 | Claim surfaces | ✅ About "Slice B … makes no security-assurance claims"; footer "Relay: https://192.168.1.170:8443"; stub "Adding contacts arrives in a future update." | 23-16-31, 23-18-16 |
+| 12 | No-bypass (R8) | ✅ no connect-anyway / trust-cert control on any failing state (observable) | all failing-state shots |
+| — | idle / clear-on-edit | ✅ idle panel on open; editing a field clears the results | 12-37-51, 12-55-33 |
+
+**The two headline rules are confirmed LIVE, on the real relay:** the R2(b)
+false-diagnosis rule (check 9 — an unreadable configured CA reads "couldn't be
+read", never "Certificate not trusted"; the distinct check 5 confirms the true
+cert-refusal path) and the two-message 401 (checks 3 vs 4 — the byte-identical
+relay 401 distinguished by whether the CLIENT sent a token, phrased as local
+observations). R7 colour confirmed: Connected renders `neutral`, all failures
+render `accent`, none red. The real `ServerInfoDoc` fields render correctly.
+
+**⚠ ACCEPTANCE OBSERVATION → ENG-0073:** the two identically-labelled **"Clear"**
+buttons (token vs CA) are easy to confuse — the operator hit it twice, and each
+mis-click produced a PLAUSIBLE-LOOKING wrong outcome ("Certificate not trusted",
+because clearing the CA drops TLS trust *before* the 401 auth check). NOT a code
+defect (the app rendered correctly every time) and not a blocker, but a genuine
+usability finding a mock could never have surfaced — filed **ENG-0073** (label the
+buttons "Clear token" / "Clear CA").
+
+**⟹ The overall `GUI_SLICE_B_SERVER_CONNECTIVITY_PASS` is ASSERTED.** The flight
+used the REAL relay, not a mock (§7.4) — the wrong-error-mapping cases (R2b, the
+two 401s, NotAQslRelay) were each exercised and each rendered correctly.
 
 ## §5 — Filings & notes
 - **ENG-0072** (filed here) — the qsl-desktop qwork seat does not set the GH007

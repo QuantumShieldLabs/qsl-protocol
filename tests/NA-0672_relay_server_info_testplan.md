@@ -13,7 +13,7 @@ CertNotTrusted / Unreachable are NOT in-suite (zero-external-networking); they a
 - qsc lib unit (47/47) — includes the transport inline diagnostic tests.
 - ⚠ The token trio (`relay_token_set/_show/_clear`) has **no automated regression test** — proven live only (§C.2). Filed **ENG-0071**.
 
-## C. Live acceptance — vs the tserver rig over real TLS (`https://172.20.10.2:8443`)
+## C. Live acceptance — vs the LAN relay rig over real TLS (`https://<lan-address>:8443`)
 Rig: qsl-server `5235c2bfe518` (current main, the C-2 fix), built on the build box and copied; plain-HTTP behind a user Caddy `tls internal` front; executor drives the auth-mode flip unprivileged. **Expected rig mode per check is stated.**
 
 ### C.1 The seven outcomes

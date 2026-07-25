@@ -175,7 +175,7 @@ cargo fmt --check; sh -n and bash -n on scripts/ci/qsc_adversarial.sh.
 Runtime evidence: raw logs proof-root-only; published responses class-only.
 
 LAN/qscwork model (only when a directive explicitly authorizes it): SSH alias
-qscremote; account qscwork; verify whoami == qscwork; operate only inside
+<ssh-alias>; account qscwork; verify whoami == qscwork; operate only inside
 qscwork-owned test workspace; no sudo, system install, personal file access,
 broad scans, or second executor on the laptop.
 

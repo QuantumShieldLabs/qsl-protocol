@@ -70,7 +70,7 @@ NA0257_MODE2_TAILSCALE_SAME_HOST_PROOF_OK
 
 ## Network Assumptions
 
-- Hostname: `ideacentre`.
+- Hostname: `<build-host>`.
 - Tailscale command: available at `/usr/bin/tailscale`.
 - Local Tailscale address used for the relay bind: `100.82.111.69`.
 - Proof relay bind: `100.82.111.69:33821`.

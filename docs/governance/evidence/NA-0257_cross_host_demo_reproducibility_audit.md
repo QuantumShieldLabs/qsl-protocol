@@ -34,10 +34,10 @@ semantics.
 
 ## Environment / Network Preflight
 
-- Hostname: `ideacentre`.
+- Hostname: `<build-host>`.
 - Disk watermark at start: `/srv/qbuild` total `468G`, used `37G`, free `407G`,
   used `9%`.
-- Local LAN address observed: `192.168.1.117/24`.
+- Local LAN address observed: `<lan-address>/24` (a private RFC-1918 address; the literal is operator infrastructure and is not published).
 - Tailscale interface address observed: `100.82.111.69/32`.
 - Tailscale status: authenticated with visible online Linux peers and a DNS
   health warning.

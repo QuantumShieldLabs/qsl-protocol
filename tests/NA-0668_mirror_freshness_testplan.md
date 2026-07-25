@@ -8,7 +8,7 @@
 
 Every artifact under test lives at **`/srv/qbuild/tools/`**, outside every repository. GitHub runners have no `/srv/qbuild`, no mirrors, and no `origin` to compare against, so a spine CI test asserting any of this would either fail on every runner or be a silent no-op there. **This spine PR is `docs_only=true`; both full suites SKIP; a green check proves nothing about any row below.**
 
-Every row was **executed locally on `ideacentre`, 2026-07-23**, and the recorded result is the observed output — not the expected output. That distinction is the entire point of the lane: a freshness check never observed rejecting anything is exactly the artifact this lane exists to replace.
+Every row was **executed locally on the build host, 2026-07-23**, and the recorded result is the observed output — not the expected output. That distinction is the entire point of the lane: a freshness check never observed rejecting anything is exactly the artifact this lane exists to replace.
 
 ---
 

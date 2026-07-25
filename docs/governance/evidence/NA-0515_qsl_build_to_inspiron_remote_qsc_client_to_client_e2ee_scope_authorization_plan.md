@@ -102,7 +102,7 @@ Residual risk: the remote binary may be replaced or removed before NA-0516. Ther
 
 The future NA-0516 goal is one bounded Build-to-Inspiron qsc client-to-client E2EE implementation using synthetic messages and isolated roots:
 
-- Build / ideacentre side uses local qsc from the current clean checkout or a proof-root-local build.
+- Build-host side uses local qsc from the current clean checkout or a proof-root-local build.
 - Inspiron side uses retained qsc at `$HOME/qsl-remote-test/bin/qsc`.
 - Local Build root lives under `$PROOF_DIR/remote_e2ee/local_build_root`.
 - Remote Inspiron root lives under `$HOME/qsl-remote-test/e2ee/<PROOF_ID>/`.

@@ -120,7 +120,7 @@ first. Evidence: `/srv/qbuild/evidence/NA-0674/eng0072_positive_control.txt`.
 
 | | reading |
 |---|---|
-| BEFORE — both seats `qwork NA-0674` had just created | `(unset)` → inheriting `tebbens@proton.me`. **Both** — including the SPINE seat the filing claimed was correct |
+| BEFORE — both seats `qwork NA-0674` had just created | `(unset)` → inheriting the machine's global personal address. **Both** — including the SPINE seat the filing claimed was correct |
 | AFTER — a freshly created checkout | GH007 |
 | AFTER — the same two existing seats, re-seated (`created_or_existing=existing`) | GH007 |
 
@@ -162,7 +162,7 @@ here.
 
 ## §6 — THE LIVE ACCEPTANCE FLIGHT — FLOWN AND PASSED
 
-Operator-flown 2026-07-25 against the tserver rig (the operator's LAN host —
+Operator-flown 2026-07-25 against the LAN relay rig (the operator's LAN host —
 its address is in the operator-side runsheet and is deliberately NOT restated in
 this public repository; qsl-server behind a user Caddy `tls internal`) **over real TLS. No mocks (§7.4).**
 The build host cannot drive the GUI (xdotool absent) — the executor enumerated

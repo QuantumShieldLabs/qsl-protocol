@@ -195,10 +195,28 @@ R8 constraint documented. **Acceptance: a fresh machine onboards to a live relay
   its distinct "CA file couldn't be read" local-config sibling); the R8 no-bypass
   constraint enforced and documented (Appendix F). Server connectivity is now
   BUILT and CI-green (GATE 1 pin bump, qsl-desktop #7; GATE 2 pane, qsl-desktop #8;
-  spine closeout D-1302/D-1303). ⚠ Step 5's **"a fresh machine onboards to a live
-  relay" acceptance is the OWED operator flight** — not yet flown; the instrument
+  spine closeout D-1302/D-1303). ✅ Step 5's **"a fresh machine onboards to a live
+  relay" acceptance was FLOWN and PASSED** (operator, 2026-07-24); the instrument
   is `tests/NA-0673_server_connectivity_testplan.md §B`. NOT in slice B: contacts,
   messaging, the Logs pane (ENG-0058), the rail toggle (round-4b).
+
+- **PROGRESS (NA-0674, D610, 2026-07-25) — the Server pane's INTERACTION MODEL is
+  now flight-proven.** The pane built at NA-0673 worked, but its split commit
+  model carried a trap: the probe reads the token from the vault, so typing a new
+  token and pressing Test probed the OLD one and reported that result truthfully.
+  This lane reversed `[F.1-COMMIT]` — ONE unified Save, **Test-saves-first**, the
+  four per-field Set/Clear buttons replaced by "remove it" prose links, three
+  hairline-separated sections, results state 8 folded into a dirty helper and
+  state 14 added. Appendix F revised with the superseded passages **marked, not
+  deleted**. ⚠ **The live acceptance flight found THREE defects the 70-test suite
+  did not** (all fixed in qsl-desktop D-0011, each with a regression pin verified
+  as a positive control) — the standing rule that **CI green is not the
+  acceptance** now has evidence behind it, not just precedent. ⚠ Results **state
+  13 is NOT EXERCISED** — no reachable trigger was found; carried into the step-7
+  intent as a look-at note, since messaging will build the client on more paths
+  and may reveal it as dead code rather than a state. Still NOT in scope:
+  contacts, messaging, the Logs pane, the rail toggle. See D-1304/D-1305,
+  `docs/governance/evidence/NA-0674_as_built.md`.
 
 **Decision gate D-B (design conversation, before step 6): the contact-add /
 rendezvous problem.** Resolve or explicitly adopt the baseline (out-of-band

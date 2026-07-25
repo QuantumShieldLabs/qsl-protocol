@@ -1,0 +1,160 @@
+# NA-0673 as-built — GUI slice B: server connectivity (D609)
+
+Cross-repo lane, qsl-desktop PRIMARY + this spine governance closeout. Executed
+per **QSL-DIR-2026-07-24-609 (D609, APPROVED 2026-07-24, sha256
+`eb6f9da01fc3f338df20f52baa8a4ae3569643ec4d795e26c8cca62a705473b9`, 678 lines)**,
+all eight observations ruled and folded as binding R1–R8. Three gates.
+
+> ✅ **THE LIVE GUI ACCEPTANCE FLIGHT WAS FLOWN AND PASSED** (operator-flown,
+> 2026-07-24; the closeout was opened before it, per the operator's hold-for-the-
+> flight ruling, then this as-built + D-1303 were finalized once it landed). All
+> 12 checks / 7 probe outcomes verified against the exact shipped card text on the
+> real relay — see §4. The testplan `tests/NA-0673_server_connectivity_testplan.md`
+> is the INSTRUMENT for that flight.
+
+## §0 — What shipped, and where the evidence is
+
+| Gate | PR | Merge | Result class | Evidence |
+|---|---|---|---|---|
+| GATE 1 — qsc pin bump ALONE | qsl-desktop #7 (D-0007) | `c6536aa` | `GUI_SLICE_B_PIN_BUMP_PASS` | `[rust]` CI green (5m09s); the delta enumerated (§1) |
+| GATE 2 — the Server pane | qsl-desktop #8 (D-0008) | `5239d96e` | `GUI_SLICE_B_SERVER_PANE_PASS` | `[rust]` CI green (4m29s); `cargo test` 128/0 (§2) |
+| GATE 2 addendum — Appendix F reasons | qsl-desktop #9 (D-0009) | *(open at closeout)* | docs-only | the ratified OBS-1/OBS-2 reasons |
+| GATE 3 — this spine closeout | qsl-protocol *(this PR)* (D-1302 + D-1303) | *(this PR)* | governance | this file + the testplan |
+
+The overall `GUI_SLICE_B_SERVER_CONNECTIVITY_PASS` is **ASSERTED** — GATE 1 and
+GATE 2 proved and merged, and the operator acceptance flight FLOWN and PASSED
+(§4, all 12 checks on the real relay).
+
+## §1 — GATE 1: the pin bump (D-0007), the delta ENUMERATED
+
+`src-tauri/Cargo.toml` qsc `rev` `81143dcd` → `ab5041cd` (the NA-0672 server-info
+consumer). `Cargo.lock` **513 → 518 crates, five added, zero removed** — the
+D599-sanctioned native-roots union: `rustls-native-certs` 0.8.4, `openssl-probe`
+0.2.1 (Linux), `security-framework` 3.7.0 + `-sys` 2.17.0 (macOS), `schannel`
+0.1.29 (Windows). `qsc` + `quantumshield_refimpl` rev lines → `ab5041cd`; the 32
+other resolved deps and all 12 RustCrypto pins UNCHANGED (no cargo-1.95 resolver
+drift; verified against a before/after lock diff). **rustls stays on the ring
+backend (`default-features=false`); `aws-lc-rs` is ABSENT** — the precise failure
+GATE 1 exists to catch. Hand-applied via `cargo update -p qsc` (the minimal
+update was clean, so no drifted-pin hand-correction was needed).
+
+## §2 — GATE 2: the Server pane (D-0008), automated coverage
+
+`#pane-server` → the full pane (relay-address + access-token + CA disclosure +
+Test/Save + results panel), in the existing fixed rail, no hamburger. Backend:
+9 thin `relay_*` Tauri commands forwarding onto the qsc surface, **every qsc call
+inside `st.gw.call(...)`** — no HTTP client on FE/BE, no `relay_server_info_from_parts`
+(R1). `settings.rs` `relay_url` (the `self_alias` pattern; allowlist test → 3rd
+case; `deny_unknown_fields` downgrade property KNOWINGLY untouched, R6).
+
+- `cargo test -q --locked` — **128 passed, 0 failed** (1 ignored). Includes the
+  design_round2/round3/system suites (unchanged), the new `server_pane.rs` guards
+  (pane presence, no-bypass R8, status-banner reuse / no-invented-classes R7,
+  claim-discipline regression), the `settings_key_allowlist` third case, and the
+  refined slice-A R1 test.
+- `cargo clippy -q --locked -- -D warnings` (the CI command) — clean.
+  (`RelayTestDto`'s large variant was boxed for `large_enum_variant`.)
+- `cargo fmt --all -- --check` — clean. `cargo metadata --locked` — OK (no dep
+  motion since GATE 1). `git diff --check` — clean.
+- STOP-class `gateway.rs`, `design_round2.rs`, `design_system.rs` — BYTE-UNCHANGED
+  (`git diff --quiet` verified). `ui/style.css` — untouched.
+
+### §2.1 — Ratified design calls (operator, 2026-07-24; reasons in Appendix F, D-0009)
+- **R7 — the results panel uses NO red.** DESIGN_SPEC §2 reserves `status-danger`
+  (red) for irreversible vault-loss (armed erasure, autolock-0, destroy ceremony).
+  A connection failure is an inconvenience, not a danger, so failures render
+  `status-accent`; Connected renders `status-neutral`; severity is carried by the
+  message. The mockup's red "bad" / amber "warn" coding is deliberately not
+  copied — that would be reading a mockup colour (the R7 STOP).
+- **"Save persists ONLY the URL" → token & CA commit via their own Set/Clear
+  controls** (the vault trios), because the probe reads them from the vault; this
+  is a ruling-refinement (the only shape consistent with "URL to settings,
+  secrets to the vault"), not a deviation.
+
+### §2.2 — Three NECESSARY scope refinements (all recorded, all accepted)
+- **lib.rs** was scoped "About comment ONLY", but the 9 new Tauri commands MUST be
+  registered in `generate_handler` (also lib.rs) — unregistered commands cannot be
+  invoked. Unavoidable, not discretionary.
+- **ui/style.css** was not in the MAY-touch list; the pane's structural needs (the
+  470px form cap, the results layout) were met with inline styles in index.html
+  (shipped tokens only, no mockup hex) to stay within scope.
+- **the slice-A `zero_networking_in_src_and_ui` test** asserted an invariant slice
+  B is DEFINED to break. It was **REFINED, not deleted**, to the surviving R1
+  invariant: the desktop crate builds no `reqwest`/`hyper` client of its own — all
+  networking goes through qsc. **RULE (reusable): a test whose premise a lane
+  intentionally invalidates is REFINED to its surviving invariant, never deleted —
+  the opposite of weakening an assertion.**
+
+## §3 — Claim-discipline sweep (R4) — five surfaces, two compound kept surgical
+About in-app (`main.js` + the `commands.rs` slice string), About native menu
+(`lib.rs`), footer (`index.html` + `main.js`), welcome stub (`index.html`). The
+two compound surfaces kept their surviving true clause — **"no security-assurance
+claims"** and **"Adding contacts arrives in a future update"** — only the network
+clause changed. A regression test asserts the stale clauses are gone AND the
+surviving clauses remain.
+
+## §4 — LIVE ACCEPTANCE FLIGHT — FLOWN AND PASSED (operator-flown, 2026-07-24)
+The operator flew the full 12-check walkthrough
+(`tests/NA-0673_server_connectivity_testplan.md §B`) against the tserver rig over
+real TLS, driving the GUI himself (the build host cannot — xdotool absent).
+Screenshots captured to `/srv/qbuild/evidence/NA-0673/flight/` (durable). Each
+result was compared to the EXACT shipped card text, not by eye. **All 7 probe
+outcomes + every state PASS.**
+
+⚠ Rig note: tserver had moved networks and died on an overnight shutdown; it was
+rebuilt UNPRIVILEGED on the current LAN address `https://192.168.1.170:8443` (the
+NA-0672 `172.20.10.2` is dead), Caddy `tls internal` front + qsl-server on
+`127.0.0.1:8080`, bearer↔open flipped via the `RELAY_TOKEN` env. A mid-flight
+timeline question was resolved clock-independently (process elapsed time): bearer
+`12:13:53–12:53:16 CDT`, open after — so the bearer "Connected / Token required —
+accepted" cards provably predate the flip, and a bearer card cannot be produced
+by an open relay (deterministic classification).
+
+| # | Check | Result vs the shipped copy | Evidence (CDT) |
+|---|---|---|---|
+| 1 | Reachable/Bearer | ✅ "Connected" · "Token required — accepted. Certificate trusted." · rows Trusted / Token required — accepted / 7 days / 1 MB / 0.1.0 | 12-49-19 |
+| 8 | Save-state | ✅ "Not saved yet." + Save accent → Save clears | 12-49-19, 12-51-56 |
+| 2 | Reachable/Open | ✅ "Connected" · "Open relay — anyone who can reach this address can use it…" · Access = Open — no token needed | 12-55-09, 12-55-55 |
+| 6 | Unreachable | ✅ "Couldn't reach the server" · "Nothing answered at that address…" | 12-56-27 |
+| 5 | CertNotTrusted | ✅ "Certificate not trusted" · "…what an interception attack looks like…" — **accent, not red (R7)** | 12-59-30 |
+| 9 | ⚠ CA-unreadable (R2b) | ✅✅ **"Certificate authority file couldn't be read"** — NOT "Certificate not trusted" (false-diagnosis rule holds LIVE) | 22-49-42 |
+| 3 | AuthRequired/token-rejected | ✅ "Token rejected" · "…didn't accept the one this app sent…" | 23-11-23 |
+| 4 | AuthRequired/token-required | ✅ "This relay requires an access token" · "This app sent no token, and the relay requires one…" | 23-41-16 |
+| 7 | NotAQslRelay | ✅ "Not a QSL relay" · "Something answered, but it isn't a QSL relay…" (`https://example.com`) | 23-14-23 |
+| 10 | Bad address (R2a) | ✅ inline "Enter a valid relay address…" + red field, NO results card | 23-15-18 |
+| 11 | Claim surfaces | ✅ About "Slice B … makes no security-assurance claims"; footer "Relay: https://192.168.1.170:8443"; stub "Adding contacts arrives in a future update." | 23-16-31, 23-18-16 |
+| 12 | No-bypass (R8) | ✅ no connect-anyway / trust-cert control on any failing state (observable) | all failing-state shots |
+| — | idle / clear-on-edit | ✅ idle panel on open; editing a field clears the results | 12-37-51, 12-55-33 |
+
+**The two headline rules are confirmed LIVE, on the real relay:** the R2(b)
+false-diagnosis rule (check 9 — an unreadable configured CA reads "couldn't be
+read", never "Certificate not trusted"; the distinct check 5 confirms the true
+cert-refusal path) and the two-message 401 (checks 3 vs 4 — the byte-identical
+relay 401 distinguished by whether the CLIENT sent a token, phrased as local
+observations). R7 colour confirmed: Connected renders `neutral`, all failures
+render `accent`, none red. The real `ServerInfoDoc` fields render correctly.
+
+**⚠ ACCEPTANCE OBSERVATION → ENG-0073:** the two identically-labelled **"Clear"**
+buttons (token vs CA) are easy to confuse — the operator hit it twice, and each
+mis-click produced a PLAUSIBLE-LOOKING wrong outcome ("Certificate not trusted",
+because clearing the CA drops TLS trust *before* the 401 auth check). NOT a code
+defect (the app rendered correctly every time) and not a blocker, but a genuine
+usability finding a mock could never have surfaced — filed **ENG-0073** (label the
+buttons "Clear token" / "Clear CA").
+
+**⟹ The overall `GUI_SLICE_B_SERVER_CONNECTIVITY_PASS` is ASSERTED.** The flight
+used the REAL relay, not a mock (§7.4) — the wrong-error-mapping cases (R2b, the
+two 401s, NotAQslRelay) were each exercised and each rendered correctly.
+
+## §5 — Filings & notes
+- **ENG-0072** (filed here) — the qsl-desktop qwork seat does not set the GH007
+  identity; it recurred on BOTH the GATE-1 and GATE-2 seats (handed back
+  `tebbens@proton.me`), caught only because the executor checked. Not a one-off.
+- **OBS-5 (observed, not fixed)** — `cargo clippy --all-targets` flags a
+  pre-existing `field_reassign_with_default` in the settings test module; CI runs
+  clippy without `--all-targets`, so it is not gated. Belongs with the fmt/clippy
+  cleanup lane (roadmap 6a), not here.
+- **R6 record** — the `settings.rs` `deny_unknown_fields` downgrade property was
+  KNOWINGLY left untouched: a slice-B file carrying `relay_url` fails to parse on a
+  slice-A reader and falls back to the default; a pre-existing class (`self_alias`
+  already carries it), and downgrades are not a supported path.

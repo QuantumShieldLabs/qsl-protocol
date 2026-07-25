@@ -107,7 +107,7 @@ The proof reviewed here was supplied by the operator in the directive body. It i
 
 The operator proof asserts:
 
-- dedicated forwarding key generated on Build / ideacentre for user victor;
+- dedicated forwarding key generated on the build host for its operator account;
 - public key installed for target Inspiron account qslcodex;
 - relevant forwarding key fingerprint `SHA256:7guT/Hd72vuu+u1Jrwpuy0hSFETVrxYaXHwupuFfaPM`;
 - relevant forwarding key comment `qsl-inspiron-qslcodex-forward-20260622`;

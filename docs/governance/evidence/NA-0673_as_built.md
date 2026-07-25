@@ -95,15 +95,15 @@ surviving clauses remain.
 
 ## §4 — LIVE ACCEPTANCE FLIGHT — FLOWN AND PASSED (operator-flown, 2026-07-24)
 The operator flew the full 12-check walkthrough
-(`tests/NA-0673_server_connectivity_testplan.md §B`) against the tserver rig over
+(`tests/NA-0673_server_connectivity_testplan.md §B`) against the LAN relay rig over
 real TLS, driving the GUI himself (the build host cannot — xdotool absent).
 Screenshots captured to `/srv/qbuild/evidence/NA-0673/flight/` (durable). Each
 result was compared to the EXACT shipped card text, not by eye. **All 7 probe
 outcomes + every state PASS.**
 
-⚠ Rig note: tserver had moved networks and died on an overnight shutdown; it was
-rebuilt UNPRIVILEGED on the current LAN address `https://192.168.1.170:8443` (the
-NA-0672 `172.20.10.2` is dead), Caddy `tls internal` front + qsl-server on
+⚠ Rig note: the LAN relay host had moved networks and died on an overnight shutdown; it was
+rebuilt UNPRIVILEGED on its current LAN address (the
+NA-0672 address is dead), Caddy `tls internal` front + qsl-server on
 `127.0.0.1:8080`, bearer↔open flipped via the `RELAY_TOKEN` env. A mid-flight
 timeline question was resolved clock-independently (process elapsed time): bearer
 `12:13:53–12:53:16 CDT`, open after — so the bearer "Connected / Token required —
@@ -122,7 +122,7 @@ by an open relay (deterministic classification).
 | 4 | AuthRequired/token-required | ✅ "This relay requires an access token" · "This app sent no token, and the relay requires one…" | 23-41-16 |
 | 7 | NotAQslRelay | ✅ "Not a QSL relay" · "Something answered, but it isn't a QSL relay…" (`https://example.com`) | 23-14-23 |
 | 10 | Bad address (R2a) | ✅ inline "Enter a valid relay address…" + red field, NO results card | 23-15-18 |
-| 11 | Claim surfaces | ✅ About "Slice B … makes no security-assurance claims"; footer "Relay: https://192.168.1.170:8443"; stub "Adding contacts arrives in a future update." | 23-16-31, 23-18-16 |
+| 11 | Claim surfaces | ✅ About "Slice B … makes no security-assurance claims"; footer "Relay: <the configured relay URL>"; stub "Adding contacts arrives in a future update." | 23-16-31, 23-18-16 |
 | 12 | No-bypass (R8) | ✅ no connect-anyway / trust-cert control on any failing state (observable) | all failing-state shots |
 | — | idle / clear-on-edit | ✅ idle panel on open; editing a field clears the results | 12-37-51, 12-55-33 |
 
@@ -149,7 +149,8 @@ two 401s, NotAQslRelay) were each exercised and each rendered correctly.
 ## §5 — Filings & notes
 - **ENG-0072** (filed here) — the qsl-desktop qwork seat does not set the GH007
   identity; it recurred on BOTH the GATE-1 and GATE-2 seats (handed back
-  `tebbens@proton.me`), caught only because the executor checked. Not a one-off.
+  the machine's global personal address), caught only because the executor
+  checked. Not a one-off.
 - **OBS-5 (observed, not fixed)** — `cargo clippy --all-targets` flags a
   pre-existing `field_reassign_with_default` in the settings test module; CI runs
   clippy without `--all-targets`, so it is not gated. Belongs with the fmt/clippy

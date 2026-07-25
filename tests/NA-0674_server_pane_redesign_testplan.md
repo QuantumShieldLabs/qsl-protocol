@@ -4,7 +4,7 @@
 - **Automated coverage (§A): DONE** — merged and CI-green (qsl-desktop #10, #11).
 - **Live GUI acceptance (§B): FLOWN AND PASSED** (operator-flown, 2026-07-25).
   All seven probe outcomes plus states 9, 10, 11, 12 and 14 exercised against the
-  tserver rig over real TLS — no mocks. ⚠ **State 13 NOT EXERCISED** (no reachable
+  LAN relay rig over real TLS — no mocks. ⚠ **State 13 NOT EXERCISED** (no reachable
   trigger). ⚠ **The flight found THREE defects** the automated suite did not; all
   three were fixed in D-0011 / PR #11 and the two user-visible ones were
   re-flown. Per-state results, verdicts and screenshot timestamps are in
@@ -53,9 +53,9 @@ invisible to a socket-free structural test: (a) requires the typed address to
 differ from its normalized form; (b) requires a slow probe still holding the
 serial blocking gate when the next action starts. **This is why §B exists.**
 
-## §B — Live GUI acceptance — the operator flies it, against tserver over real TLS
+## §B — Live GUI acceptance — the operator flies it, against the LAN relay host over real TLS
 
-**Rig:** the tserver LAN host — qsl-server on `127.0.0.1:8080` behind a user
+**Rig:** the LAN relay host — qsl-server on `127.0.0.1:8080` behind a user
 Caddy `tls internal`, unprivileged. (The address lives in the operator-side
 runsheet and is deliberately NOT restated here: this repository is PUBLIC, and a
 testplan is not a reason to publish a private host.) Resting state **BEARER**; the executor

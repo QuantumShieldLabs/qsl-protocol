@@ -141,7 +141,7 @@ files, and did not read or mutate SSH configuration.
 
 Reviewed operator proof findings:
 
-- local host was documented as `ideacentre` and local user as `victor`.
+- local host and local user were documented as the build host and its operator account.
 - remote host was documented as `Inspiron`.
 - remote alias was documented as `inspiron`.
 - optional generic alias `remote` was not approved and not configured.

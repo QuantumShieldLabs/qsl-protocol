@@ -42,7 +42,7 @@ predicates = "3"
 proptest = "1"
 qsl_attachments = { package = "qsl-attachments", git = "https://github.com/QuantumShieldLabs/qsl-attachments.git", rev = "1e1ae272a4cbfbb5d76fab634b2cda0fe9b12b34" }
 # NA-0640 (D576): test-only — run the REAL relay in-process for the full-stack e2e round-trip.
-qsl_server = { package = "qsl-server", git = "https://github.com/QuantumShieldLabs/qsl-server.git", rev = "3cc551a8d9cfd8f8f53d51e0b98d10a5dc62c944" }
+qsl_server = { package = "qsl-server", git = "https://github.com/QuantumShieldLabs/qsl-server.git", rev = "131d63f4865544addd2784c305970b21ddbeb69c" }
 # NA-0663 (D599, D-1286) movement 3: the TLS trust rig, dev-only. Certificates are
 # generated at RUNTIME (rcgen) and served over a loopback listener (tokio-rustls) — no
 # key material is ever committed, and no test reaches an external host. tokio-rustls is

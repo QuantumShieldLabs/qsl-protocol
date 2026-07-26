@@ -124,6 +124,17 @@ Directive IDs and decision IDs are distinct namespaces.
       queue_top_ready=requested lane; requested_lane_status=READY;
       shared_target_ready=yes
 
+    ⚠ THE OPERATOR-SIDE PUBLICATION SCANNER IS NO LONGER THE SOURCE OF TRUTH
+    for operator-infrastructure literals (NA-0677, D-1309, 2026-07-25). Its
+    pattern set was adapted into `scripts/ci/infra_literal_scan.py`, which is
+    COMMITTED and byte-identical in all four repositories and runs as a CI job on
+    every pull request. The operator-side copy remains for historical reference
+    and for ad-hoc runs; when the two disagree, THE COMMITTED SCRIPT WINS. Do not
+    add a pattern to one without the other — two pattern sets for one question is
+    the drift this note exists to prevent. The plaintext name list behind the
+    committed script's salted digests is operator-held, alongside the procedure
+    for regenerating them.
+
     Durable proof tooling (promoted from NA-0607 recovery work):
       /srv/qbuild/tools/na0607-proof-tools/
         decision_id_counter.py

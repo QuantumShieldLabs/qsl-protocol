@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Pre-commit call site for the infra-literal gate (NA-0677 / D613 §2f).
+#
+# Same instrument as CI, second call site: scripts/ci/infra_literal_scan.py in
+# --mode staged. The pattern set is NOT forked — one source of truth.
+#
+# WHY THIS EXISTS: four consecutive lanes caught fresh operator-infrastructure
+# literals in artifacts written BY THE LANE THAT WAS REMOVING THEM. A record of a
+# redaction has to refer to what it redacted, and the shortest way to refer to
+# something is to name it. Every one of those was caught by a human remembering to
+# re-scan before committing. This makes it mechanical.
+#
+# INSTALL (opt-in, per clone — hooks are not cloned with the repository):
+#
+#     git config core.hooksPath scripts/hooks
+#
+# ⚠ A hook is NOT the enforcement. CI is. This runs earlier and saves a round
+# trip; the `public-safety` job is what actually gates the branch.
+set -euo pipefail
+repo_root="$(git rev-parse --show-toplevel)"
+exec python3 "$repo_root/scripts/ci/infra_literal_scan.py" --mode staged

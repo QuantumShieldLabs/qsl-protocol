@@ -1,0 +1,59 @@
+name: infra-literal-scan
+
+# NA-0677 / D613. The operator-infrastructure literal gate for the spine.
+#
+# ⚠ THIS IS A SEPARATE WORKFLOW, AND THE JOB IS DELIBERATELY *NOT* NAMED
+# `public-safety` OR `advisories`.
+#
+# This repository already has required status contexts with both of those names,
+# produced by public-ci.yml. Reusing either name would put two check runs with
+# one name in front of branch protection, on the single repository where that
+# protection is actually enforced across fourteen contexts. The cost of a clash
+# there is far higher than the cost of a third name, so this gate is entirely
+# additive: new file, new job id, nothing in public-ci.yml touched.
+#
+# WHY THIS GATE EXISTS AT ALL, IN THIS REPOSITORY SPECIFICALLY:
+# the existing `public-safety` job scans for private keys and cloud tokens. It has
+# never contained an address, path or host pattern -- and this is the repository
+# whose tracked files published a private LAN address across nine files, on pull
+# requests that this same gate passed green. The failure was the pattern set, not
+# the scan's scope. This job is that missing pattern set.
+#
+# ⚠ ADVISORY UNTIL BRANCH PROTECTION CHANGES: `infra-literal-scan` is not in the
+# required-contexts list. It runs and reports on every PR but cannot block a merge
+# until the operator adds it. Green is not the same as blocking.
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  infra-literal-scan:
+    name: infra-literal-scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # Pattern provenance: adapted 2026-07-25 from the operator-side publication
+      # scanner; scripts/ci/infra_literal_scan.py is now the source of truth, and
+      # is byte-identical across all four repositories. The name values in it are
+      # salted digests -- the plaintext list is operator-held, along with how to
+      # regenerate them.
+      #
+      # TIER 1 runs over the whole tracked tree. TIER 2a (the build-root and home
+      # paths) is deliberately NOT scanned: the governance convention cites every
+      # directive and lane intent by absolute path, so those literals appear in
+      # roughly 60% of this repository's commits and a gate on them would be
+      # switched off within a week. They are published as recorded residue instead.
+      - name: infra-literal scan (Tier 1, whole tracked tree)
+        run: python3 scripts/ci/infra_literal_scan.py --mode tree
+      - name: infra-literal scan (Tier 2b, added lines)
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+          python3 scripts/ci/infra_literal_scan.py --mode diff --base "origin/${{ github.base_ref }}"

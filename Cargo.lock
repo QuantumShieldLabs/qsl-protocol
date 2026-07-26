@@ -1999,7 +1999,7 @@ dependencies = [
 [[package]]
 name = "qsl-server"
 version = "0.1.0"
-source = "git+https://github.com/QuantumShieldLabs/qsl-server.git?rev=3cc551a8d9cfd8f8f53d51e0b98d10a5dc62c944#3cc551a8d9cfd8f8f53d51e0b98d10a5dc62c944"
+source = "git+https://github.com/QuantumShieldLabs/qsl-server.git?rev=131d63f4865544addd2784c305970b21ddbeb69c#131d63f4865544addd2784c305970b21ddbeb69c"
 dependencies = [
  "axum",
  "clap",

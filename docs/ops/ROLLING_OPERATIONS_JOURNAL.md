@@ -44811,3 +44811,29 @@ Recorded at operator instruction as a **general practice, not a one-off** (2026-
 **Phase 0 found its own STOP condition unmet, and the executor said so rather than walking past it.** The directive made executing against the uncorrected design authority a STOP; the corrected file had not yet landed. The reasoning for proceeding was recorded at the time — the binding construction was already in the directive, and neither stale line governed a byte the relay writes — and the re-verification was logged as owed and performed before the PR opened.
 
 **Three carry-forwards were ruled into Slice 2 rather than retrofitted here:** the hand-rolled base64 codec's agreement with the client is a Slice-2 acceptance gate (with the dependency pre-approved there if a shared crate is the clean answer), because "the relay stores opaque bytes" is only true if a client round-trip proves the transport preserved them exactly; both interception-race defences — the new relay-side rejection and the design's client-side refusal, which is the one that survives a hostile relay — must be separately constructed and tested; and two wire details a client author infers wrongly from the happy path (the ticket is a header, and `expiry` is clamped rather than rejected).
+
+## 2026-07-27 — NA-0681, messaging epic Slice 2: the invite system's client half
+
+Slice 2 shipped (PR #1666 → `2155f459`, D-1315 + D-1316, `QSC_INVITE_HANDSHAKE_PASS`). Two
+strangers turn one invite code into a session against the real Slice-1 relay, two vaults, no
+mocks.
+
+**Worth carrying forward, in the order it cost the most:**
+
+1. **Three gates the directive named were dead at base and the census never ran them** —
+   `fmt --all --check` (RED, 146 locations), the full `cargo test -p qsc` (HANGS, ENG-0079),
+   and the two-PR split (refused by `goal-lint`, because D616 copied Slice 1's arrangement
+   without the property that made it work). The census produced eleven measured corrections
+   about the code and zero about the process that would judge it. **Run every named gate once,
+   at base, during the census.**
+2. **Three of the lane's own assertions could never have passed.** §3b named only the
+   can't-fail direction; a test that cannot PASS is the same defect inverted. §3b amended.
+3. **A file-level sweep cannot see a call-site-level property.** The §2m collateral arrived one
+   90-minute suite run at a time until the query was re-asked at the right granularity — eight
+   files in the end, against a predicted five.
+4. **`qsc receive` blocks forever against an unanswering relay** (ENG-0079), found because a
+   base-level test hung the baseline. The second time this epic a real defect sat underneath a
+   test's misbehaviour — the first was Slice 1's fsync proof.
+5. **A PENDING contact prints `state=PINNED` and `device … state=TRUSTED` together**
+   (ENG-0080). Nothing is wrong underneath; Slice 4 renders exactly this record and must key
+   its badge on the contact state or it inverts I5.

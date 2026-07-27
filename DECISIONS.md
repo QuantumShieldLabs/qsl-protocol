@@ -33921,3 +33921,77 @@ Evidence: PR #107 (https://github.com/QuantumShieldLabs/qsl-protocol/pull/107) m
   - **Not claimed:** anything about the invite subsystem's client side — no qsc code calls `/v1/invite/*` and none was added. That is Slice 2. No public, production, security-complete or bug-free claim.
   - **References:** NA-0679; NA-0678 / D614 / D-1310 / D-1311; qsl-server D-0016 and #66 (`131d63f4…`); ENG-0041 / NA-0640 (the pin-bump discipline); NA-0654 / D-1277 (the hand-applied-line method and the original drift finding); `docs/governance/evidence/NA-0679_as_built.md`
 
+## D-1313 — NA-0680 implementation evidence: onboarding & settings polish shipped across six qsl-desktop PRs, and the census retired two of the intent's own premises
+
+**Date:** 2026-07-26. **Lane:** NA-0680. **Directive:** D615 (sha256 `32a15f3f…c32c9bda7195de8e9c`, 399 lines).
+
+The polish landed: focus ring, the two onboarding steps, the Identity and Vault & Security panes,
+content-driven window sizing, per-site error wordings, the guarded-unlock dead-field fix, and the
+armed-erasure remaining counter. Desktop decisions **D-0015 … D-0020**; five PRs plus the contract
+revision below.
+
+**⚠ THE CENSUS CHANGED THE LANE BEFORE ANY CODE WAS WRITTEN.** Three of nineteen rulings rested on
+premises the tree contradicts and a fourth would have shipped a false sentence — all four written
+from the running app rather than the source. **R-15's highest-priority question answers NO** (the
+wipe counter increments at exactly one place, inside `unlock_guarded`; the destroy pane never
+routes through it — no backend, no split). **R-19 presumes an existing strength meter; there is
+none** (D597 deleted it, a test enforces the absence), so it was REMOVED from the lane entirely and
+owes its own design session. **R-1's premise is wrong**: there is no focus `box-shadow`, only a 2px
+`outline`, so a lane that faithfully "removed the glow" would have edited nothing. **R-17's
+suggested wording would have been FALSE** at the site the finding named — in the destroy pane
+`vault_locked` means *wrong passphrase*, so Appendix F.8 maps by SITE, not by code.
+
+**R-16 is CLOSED "not reproducible; redirect verified present"** — expectation written first, and
+the operator's flight matched it. **No redirect code was written**, which was the point of refusing
+to pre-write one.
+
+**F1 was ruled a REFINEMENT, not a reversal:** danger *chrome* stays absolute to the destroy
+ceremony, danger *text* is permitted, and `design_round3.rs:144`'s property HOLDS — its assertion
+mechanism moved to the status-line renderer rather than the test being deleted.
+
+## D-1314 — NA-0680 CLOSEOUT: `ONBOARDING_SETTINGS_POLISH_PASS`, and the lane that measured the gap between a green suite and a working app
+
+**Date:** 2026-07-26. **Result class:** `ONBOARDING_SETTINGS_POLISH_PASS`, asserted on the
+operator's final spot-check. **As-built:** `docs/governance/evidence/NA-0680_as_built.md`.
+**Testplan:** `tests/NA-0680_onboarding_settings_polish_testplan.md`.
+
+**97 tests pass / 1 ignored / 0 fail. 26 negative controls. 8 defects found by a human looking at
+the screen that CI could not see.**
+
+**⚠ R-14 TOOK FOUR FIXES AND THREE DIAGNOSES, AND ONLY THE LAST WAS STRUCTURAL.** The real cause was
+never height: `.screen` is `align-items: stretch`, so the card is stretched to the window and
+`scrollHeight` **measured the window itself** (a feedback loop that could grow but never shrink);
+and nothing in the stylesheet ever set `flex-shrink`, so a short window **squashed** content instead
+of scrolling — which is why "Delete vault?" clipped. **Both causes are a CSS default and an
+inherited layout rule; neither appears in any diff.** ⚠ An intermediate "fix" of mine — a per-surface
+height FLOOR — **caused six of the seven instances the first flight found**, and it came from an
+inference the operator never stated. The final occurrence was different again: the sync existed and
+was simply **not called from five of six writers**, because *the class was written into the directive
+and the instance was implemented*. Fixed structurally — one writer, which resizes — and the needle
+pins the CLASS (exactly one reference to the element may exist) rather than today's writers.
+
+**⚠ D-0018 IS A D595 CONTRACT REVISION, AUTHORISED AS ONE.** ENG-0076: R-7 made the name mandatory
+while the identity record is written when the step OPENS, so a kill before Continue bypassed the
+gate. Fixed by gating S2 on `settings.json` existing. The obvious signal (`self_alias` absent) was
+**withdrawn** because `skip_serializing_if` omits an empty alias, making key-absent match both a
+cleared name and every pre-R-7 profile — including the operator's own, which D615's F4 forbids
+re-routing. ⚠ **The scope was corrected 7 → 2 by the operator's stop condition**: five of the
+"seven failing tests" were a mutex-poisoning **cascade** (ENG-0077), and five behavioural contracts
+were about to be loosened to accommodate an artefact.
+
+**⚠ THE STANDING EVIDENCE THIS LANE PRODUCES.** A green suite coexisted with six visibly wrong
+windows; the clearest case fed a function synthetic values and passed while the defect sat in what
+*reached* it. **Three negative controls caught defects in the NEEDLES rather than the code**, all
+green beforehand, all the same shape — a substring ban applied too widely. And **one control
+silently no-opped and reported GREEN**, which is indistinguishable from a test that cannot fail.
+The build host has **no input driver**, so every behavioural GUI defect here is discoverable only by
+the operator. **This is the evidence for the owed input-driver lane and the owed negative-control
+audit** — measured, not asserted.
+
+**Filed:** ENG-0075, ENG-0077, ENG-0078 — grouped deliberately as ONE family, *instruments that do
+not instrument*: a pipe's exit status, a test total, a failure list and a code comment are all
+proxies that represent without enforcing. **ENG-0076 closed** by D-0018.
+
+**Queue:** `READY=NONE`. The Director triages the next item against `docs/ops/IMPROVEMENT_LEDGER.md`
+per WF-0003.
+

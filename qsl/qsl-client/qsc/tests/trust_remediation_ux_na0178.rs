@@ -185,8 +185,7 @@ fn no_trusted_device_remediation_cli_no_mutation() {
             "bob",
             "--fp",
             "ABCD-EFGH-JKMP-QRST-V",
-            "--verify",
-        ])
+            "--verify", "--route-token", "route_token_na0681_fixed_value_"])
         .output()
         .expect("contacts add");
     assert!(add.status.success(), "{}", output_text(&add));
@@ -251,8 +250,7 @@ fn changed_device_remediation_cli_no_mutation() {
             "bob",
             "--fp",
             "ABCD-EFGH-JKMP-QRST-V",
-            "--verify",
-        ])
+            "--verify", "--route-token", "route_token_na0681_fixed_value_"])
         .output()
         .expect("contacts add");
     assert!(add.status.success(), "{}", output_text(&add));
@@ -329,8 +327,7 @@ fn revoked_device_remediation_cli_no_mutation() {
             "bob",
             "--fp",
             "ABCD-EFGH-JKMP-QRST-V",
-            "--verify",
-        ])
+            "--verify", "--route-token", "route_token_na0681_fixed_value_"])
         .output()
         .expect("contacts add");
     assert!(add.status.success(), "{}", output_text(&add));

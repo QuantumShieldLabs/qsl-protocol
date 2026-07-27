@@ -87,6 +87,10 @@ pub mod envelope;
 pub mod fs_store;
 pub mod handshake;
 pub mod identity;
+// NA-0681 (D616) messaging-epic Slice 2: the invite system's client half --
+// canonical encodings, commitment, signature, state machine, handshake envelope.
+// Sockets stay in `transport` (D616 F4).
+pub mod invite;
 pub mod model;
 pub mod output;
 pub mod protocol_state;
@@ -2027,7 +2031,7 @@ struct TimelineSendIngest<'a> {
     target_device_id: Option<&'a str>,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 struct InboxPullItem {
     id: String,
     data: Vec<u8>,

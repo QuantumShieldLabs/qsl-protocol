@@ -52,23 +52,10 @@ pub fn normalize_route_token(raw: &str) -> Result<String, &'static str> {
     adversarial::route::normalize_route_token(raw)
 }
 
-pub(super) fn generate_route_token() -> String {
-    let mut bytes = [0u8; 32];
-    OsRng.fill_bytes(&mut bytes);
-    hex_encode(&bytes)
-}
-
-#[cfg(qsc_rng_failure_test_seam)]
-pub(super) fn generate_route_token_with_label(label: &str) -> Result<String, &'static str> {
-    if std::env::var("QSC_RNG_FAILURE_TEST_SEAM")
-        .ok()
-        .map(|v| v == label || v == "all")
-        .unwrap_or(false)
-    {
-        return Err("rng_failure_forced");
-    }
-    Ok(generate_route_token())
-}
+// NA-0681 (D616 §2m): `generate_route_token` and `generate_route_token_with_label` were
+// REMOVED with the auto-mint path. They minted a route token the peer had never seen, so
+// the contact was unreachable by construction. `vault/mod.rs`'s `generate_default_route_token`
+// is a DIFFERENT seam (the account's own inbox token) and is untouched.
 
 pub(super) fn relay_self_inbox_route_token() -> Result<String, &'static str> {
     let raw = vault::secret_get(TUI_RELAY_INBOX_TOKEN_SECRET_KEY)
@@ -835,6 +822,76 @@ pub(super) fn enforce_peer_not_blocked(label: &str) -> Result<(), &'static str> 
     }
 }
 
+/// NA-0681 (D616 §2m): adding a contact needs a route token the PEER agreed to. Redeem an
+/// invite, or supply one explicitly (the superseded operator/test path).
+pub const CONTACTS_ROUTE_TOKEN_REQUIRED: &str = "contacts_route_token_required";
+
+/// NA-0681: provision a PENDING contact from a redeemed invite.
+///
+/// I5: redemption yields a PENDING contact, NEVER a trusted one -- `status` is `"pinned"`,
+/// and trust comes only from the human verification-code ceremony. Messaging a pending
+/// contact is allowed (operator ruling) behind a persistent "Not verified" badge, which is
+/// Slice 4's surface.
+///
+/// The fingerprint is DERIVED from the two keys, never accepted from the wire: it is the
+/// same `identity_fingerprint_from_identity` the verification ceremony compares, so what
+/// the user reads out loud and what was authenticated by the commitment are the same value.
+pub(crate) fn contacts_provision_from_invite(
+    alias: &str,
+    kem_pk: &[u8],
+    sig_pk: &[u8],
+    route_token: &str,
+    relay_ep: &str,
+    invite_id: &str,
+) -> Result<String, &'static str> {
+    if !channel_label_ok(alias) {
+        return Err("contacts_alias_invalid");
+    }
+    let route_token = normalize_route_token(route_token)?;
+    let fp = identity_fingerprint_from_identity(kem_pk, sig_pk);
+    let sig_fp = identity_fingerprint_from_pk(sig_pk);
+    let rec = ContactRecord {
+        fp: fp.clone(),
+        status: "pinned".to_string(),
+        blocked: false,
+        seen_at: None,
+        sig_fp: Some(sig_fp.clone()),
+        kem_pk: Some(hex_encode(kem_pk)),
+        route_token: Some(route_token.clone()),
+        primary_device_id: None,
+        devices: vec![ContactDeviceRecord {
+            device_id: device_id_short(alias, Some(sig_fp.as_str()), fp.as_str()),
+            fp: fp.clone(),
+            sig_fp: Some(sig_fp),
+            kem_pk: Some(hex_encode(kem_pk)),
+            state: legacy_contact_status_to_device_state("pinned").to_string(),
+            route_token: Some(route_token),
+            seen_at: None,
+            label: None,
+        }],
+        relay_endpoints: vec![relay_ep.to_string()],
+        // Dormant until the relay-pinning feature exists.
+        pinned_cert_fp: None,
+        invite_id: Some(invite_id.to_string()),
+    };
+    contacts_entry_upsert(alias, rec).map_err(|_| "contacts_store_unavailable")?;
+    Ok(fp)
+}
+
+/// NA-0681: record the peer's route token once it arrives in the handshake RESPONSE
+/// envelope. Until then the initiator only had the one-shot invite slot, which is burned.
+pub(crate) fn contacts_set_route_token(alias: &str, route_token: &str) -> Result<(), &'static str> {
+    let route_token = normalize_route_token(route_token)?;
+    let mut rec = contacts_entry_read(alias)
+        .map_err(|_| "contacts_store_unavailable")?
+        .ok_or("contacts_unknown")?;
+    rec.route_token = Some(route_token.clone());
+    for d in rec.devices.iter_mut() {
+        d.route_token = Some(route_token.clone());
+    }
+    contacts_entry_upsert(alias, rec).map_err(|_| "contacts_store_unavailable")
+}
+
 pub fn contacts_add(
     label: &str,
     fp: &str,
@@ -886,23 +943,23 @@ pub fn contacts_add(
         (None, None) => (None, None),
     };
     let status = if verify { "verified" } else { "pinned" };
+    // NA-0681 (D616 §2m, operator-ruled): the AUTO-MINT path is RETIRED.
+    //
+    // It used to mint a random route token when none was supplied. That is strictly worse
+    // than the out-of-band presumption it looked like: a locally minted token is one the
+    // peer has NEVER SEEN, so the contact is unreachable by construction and the failure
+    // only surfaces later, as silence. The invite flow is now the only way to obtain a
+    // route token the other side actually agreed to.
+    //
+    // The EXPLICIT `--route-token` form is deliberately KEPT and marked superseded: 73 test
+    // files and 111 call sites use it, among them `NA_0640_full_stack_e2e` and
+    // `NA_0644_ack_client` -- the spine's only real-server coverage, i.e. the instrument
+    // that proves this slice broke nothing. Removing that instrument inside this slice
+    // would invert the epic's own dependency-chain safety property. It retires once
+    // messaging is proven end to end and the invite path can provision those tests.
     let route_token = match route_token {
-        Some(raw) => {
-            Some(normalize_route_token(raw).map_err(|code| CliError::code(code))?)
-        }
-        None => {
-            #[cfg(qsc_rng_failure_test_seam)]
-            {
-                Some(
-                    generate_route_token_with_label("QSC.CONTACT.ROUTE_TOKEN")
-                        .map_err(|code| CliError::code(code))?,
-                )
-            }
-            #[cfg(not(qsc_rng_failure_test_seam))]
-            {
-                Some(generate_route_token())
-            }
-        }
+        Some(raw) => Some(normalize_route_token(raw).map_err(|code| CliError::code(code))?),
+        None => return Err(CliError::code(CONTACTS_ROUTE_TOKEN_REQUIRED)),
     };
     let rec = ContactRecord {
         fp: fp.to_string(),
@@ -923,6 +980,8 @@ pub fn contacts_add(
             seen_at: None,
             label: None,
         }],
+        // NA-0681 (D616 §2f): additive P3 fields.
+        ..Default::default()
     };
     if contacts_entry_upsert(label, rec).is_err() {
         return Err(CliError::code("contacts_store_unavailable"));
@@ -1319,6 +1378,8 @@ pub fn contacts_route_set(label: &str, route_token: &str) -> CliResult {
                 seen_at: None,
                 label: None,
             }],
+            // NA-0681 (D616 §2f): additive P3 fields.
+            ..Default::default()
         });
     rec.route_token = Some(token);
     normalize_contact_record(label, &mut rec);
@@ -1527,6 +1588,8 @@ pub fn contacts_request_accept(label: &str) -> CliResult {
                 seen_at: None,
                 label: Some("request".to_string()),
             }],
+            // NA-0681 (D616 §2f): additive P3 fields.
+            ..Default::default()
         });
     normalize_contact_record(label, &mut rec);
     rec.status = "UNVERIFIED".to_string();
@@ -1579,6 +1642,8 @@ pub fn contacts_request_block(label: &str) -> CliResult {
                 seen_at: None,
                 label: Some("blocked_request".to_string()),
             }],
+            // NA-0681 (D616 §2f): additive P3 fields.
+            ..Default::default()
         });
     normalize_contact_record(label, &mut rec);
     rec.blocked = true;

@@ -180,6 +180,11 @@ pub enum Cmd {
         cmd: PeersCmd,
     },
     /// Contacts + verify/block management.
+    /// NA-0681 (D616): invite create / redeem / accept — the contact-add crypto.
+    Invite {
+        #[command(subcommand)]
+        cmd: InviteCmd,
+    },
     Contacts {
         #[command(subcommand)]
         cmd: ContactsCmd,
@@ -817,5 +822,63 @@ pub enum EnvelopeCmd {
         /// Payload length that defines the small-message class.
         #[arg(long, default_value_t = 1)]
         small_len: usize,
+    },
+}
+
+/// NA-0681 (D616 §2i). `create`/`revoke`/`list` are Alice's side; `redeem` is Bob's;
+/// `accept` and `finish` collect the two handshake legs. Every one of them takes the relay
+/// explicitly, matching every other qsc command — the relay URL is per-invocation
+/// configuration, never ambient state.
+#[derive(Subcommand, Debug)]
+pub enum InviteCmd {
+    /// Mint an invite and print the QSLI-1- code.
+    Create {
+        #[arg(long, value_name = "LABEL", default_value = "self")]
+        self_label: String,
+        #[arg(long, value_name = "URL")]
+        relay: String,
+        /// Requested lifetime in seconds. The relay's advertised ceiling clamps this, and a
+        /// clamp is a NORMAL outcome, never an error.
+        #[arg(long, default_value_t = 259_200)]
+        ttl_secs: u64,
+    },
+    /// List this account's invites and their states.
+    List,
+    /// Kill a slot. Recorded locally too, so a late redemption is refused even if the relay lies.
+    Revoke {
+        #[arg(long, value_name = "INVITE_ID")]
+        invite_id: String,
+    },
+    /// Redeem a pasted code: verify, provision a PENDING contact, hand shake into the slot.
+    Redeem {
+        #[arg(long, value_name = "QSLI_CODE")]
+        code: String,
+        /// Local-only alias. Required, user-typed, never pre-populated.
+        #[arg(long, value_name = "ALIAS")]
+        alias: String,
+        #[arg(long, value_name = "LABEL", default_value = "self")]
+        self_label: String,
+    },
+    /// Collect the handshake left in one of our own invite slots and answer it.
+    Accept {
+        #[arg(long, value_name = "INVITE_ID")]
+        invite_id: String,
+        #[arg(long, value_name = "ALIAS")]
+        alias: String,
+        #[arg(long, value_name = "LABEL", default_value = "self")]
+        self_label: String,
+        #[arg(long, default_value_t = 1)]
+        max: usize,
+    },
+    /// Collect the wrapped reply, learn the peer's real route token, finish the handshake.
+    Finish {
+        #[arg(long, value_name = "ALIAS")]
+        alias: String,
+        #[arg(long, value_name = "URL")]
+        relay: String,
+        #[arg(long, value_name = "LABEL", default_value = "self")]
+        self_label: String,
+        #[arg(long, default_value_t = 1)]
+        max: usize,
     },
 }

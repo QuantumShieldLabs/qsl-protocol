@@ -38,7 +38,7 @@ fn self_identity_path(cfg: &Path, label: &str) -> PathBuf {
 fn add_contact(cfg: &Path, peer: &str, fp: &str) {
     let out = common::qsc_assert_command()
         .env("QSC_CONFIG_DIR", cfg)
-        .args(["contacts", "add", "--label", peer, "--fp", fp, "--verify"])
+        .args(["contacts", "add", "--label", peer, "--fp", fp, "--verify", "--route-token", "route_token_na0681_fixed_value_"])
         .output()
         .expect("contacts add");
     assert!(

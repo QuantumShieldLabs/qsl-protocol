@@ -4,6 +4,7 @@ use std::process;
 
 use qsc::attachments::{file_send_execute, FileSendExec};
 use qsc::cmd::{
+    InviteCmd,
     Cli, Cmd, ConfigCmd, ContactsCmd, ContactsDeviceCmd, ContactsDevicePrimaryCmd,
     ContactsRequestCmd, ContactsTrustModeCmd, EnvelopeCmd, FileCmd, HandshakeCmd, IdentityCmd,
     MetaCmd, PeersCmd, RelayCmd, SendCmd, TimelineCmd, UtilCmd,
@@ -321,6 +322,66 @@ fn run(cli: Cli) -> CliResult {
         Some(Cmd::Peers { cmd }) => match cmd {
             PeersCmd::List => peers_list(),
         }?,
+        // NA-0681 (D616 §2i). Thin over the library entry points: F6 rules BOTH, because
+        // Slice 4's add-contact modal calls these directly and a CLI-only slice would force
+        // a visibility lane in between.
+        // NA-0681 (D616 §2i). Thin over the library entry points: F6 rules BOTH, because
+        // Slice 4's add-contact modal calls these directly and a CLI-only slice would force
+        // a visibility lane in between.
+        Some(Cmd::Invite { cmd }) => match cmd {
+            InviteCmd::Create {
+                self_label,
+                relay,
+                ttl_secs,
+            } => {
+                let code = qsc::invite::invite_create(&self_label, &relay, ttl_secs)
+                    .map_err(CliError::code)?;
+                println!("{code}");
+            }
+            InviteCmd::List => {
+                for r in qsc::invite::invite_list().map_err(CliError::code)? {
+                    println!(
+                        "invite={} state={:?} expiry={}",
+                        r.invite_id, r.state, r.expiry
+                    );
+                }
+            }
+            InviteCmd::Revoke { invite_id } => {
+                qsc::invite::invite_revoke(&invite_id).map_err(CliError::code)?;
+                println!("invite={invite_id} revoked=true");
+            }
+            InviteCmd::Redeem {
+                code,
+                alias,
+                self_label,
+            } => {
+                let fp = qsc::invite::invite_redeem(&code, &alias, &self_label)
+                    .map_err(CliError::code)?;
+                // I5: PENDING, never trusted. The badge and the ceremony are Slice 4's.
+                println!("contact={alias} status=pinned fp={fp}");
+            }
+            InviteCmd::Accept {
+                invite_id,
+                alias,
+                self_label,
+                max,
+            } => match qsc::invite::invite_accept(&self_label, &invite_id, &alias, max)
+                .map_err(CliError::code)?
+            {
+                Some(fp) => println!("contact={alias} status=pinned fp={fp}"),
+                None => println!("invite={invite_id} accepted=none"),
+            },
+            InviteCmd::Finish {
+                alias,
+                relay,
+                self_label,
+                max,
+            } => {
+                let done = qsc::invite::invite_finish(&self_label, &alias, &relay, max)
+                    .map_err(CliError::code)?;
+                println!("invite_finish={}", if done { "ok" } else { "none" });
+            }
+        },
         Some(Cmd::Contacts { cmd }) => match cmd {
             ContactsCmd::Add {
                 label,

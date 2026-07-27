@@ -179,8 +179,7 @@ fn cli_send_unpinned_contact_blocked() {
 
     let add = qsc(&cfg)
         .args([
-            "contacts", "add", "--label", "bob", "--fp", "fp-bob-1", "--verify",
-        ])
+            "contacts", "add", "--label", "bob", "--fp", "fp-bob-1", "--verify", "--route-token", "route_token_na0681_fixed_value_"])
         .output()
         .expect("contacts add");
     assert!(add.status.success(), "contacts add should succeed");

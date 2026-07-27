@@ -412,8 +412,7 @@ fn no_trusted_device_still_blocks_no_mutation() {
             "bob",
             "--fp",
             "ABCD-EFGH-JKMP-QRST-V",
-            "--verify",
-        ])
+            "--verify", "--route-token", "route_token_na0681_fixed_value_"])
         .output()
         .expect("contacts add");
     assert!(add.status.success(), "{}", output_text(&add));

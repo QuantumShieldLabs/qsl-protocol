@@ -1339,12 +1339,29 @@ pub fn handshake_status(peer: Option<&str>) -> CliResult {
     Ok(())
 }
 
-fn perform_handshake_init_with_route(
+/// NA-0681 (D616 F1): how the A1 frame is delivered.
+///
+/// `Direct` is the shipped behaviour, byte-identical. `InviteSlot` wraps the SAME A1 bytes
+/// in a `QSLH-1` envelope alongside the initiator's bundle and route token, and pushes to
+/// the invite slot with its one-shot ticket. The A1 frame itself is never re-encoded --
+/// `hs_transcript_mac` binds those bytes, so the wrapper is transparent to the transcript,
+/// which is the entire reason wrapping is safe where changing the frame would not be.
+pub(crate) enum A1Delivery<'a> {
+    Direct,
+    InviteSlot {
+        bundle: &'a [u8],
+        self_route_token: &'a str,
+        ticket: &'a str,
+    },
+}
+
+pub(crate) fn perform_handshake_init_with_route(
     self_label: &str,
     peer: &str,
     relay: &str,
     route_token: &str,
     suite_mode: HandshakeSuiteMode,
+    delivery: A1Delivery<'_>,
 ) -> Result<(), &'static str> {
     enforce_peer_not_blocked(peer)?;
     let peer_fp = match identity_read_pin(peer) {
@@ -1462,7 +1479,23 @@ fn perform_handshake_init_with_route(
             ("suite_context", suite_context.mode_label()),
         ],
     );
-    transport::relay_inbox_push(relay, route_token, &bytes)?;
+    match delivery {
+        A1Delivery::Direct => transport::relay_inbox_push(relay, route_token, &bytes)?,
+        A1Delivery::InviteSlot {
+            bundle,
+            self_route_token,
+            ticket,
+        } => {
+            let env = crate::invite::HandshakeEnvelope {
+                bundle: bundle.to_vec(),
+                route_token: self_route_token.to_string(),
+                // VERBATIM. Not re-encoded, not inspected.
+                a1: bytes.clone(),
+            };
+            let wrapped = crate::invite::encode_envelope(&env)?;
+            transport::relay_inbox_push_with_ticket(relay, route_token, &wrapped, Some(ticket))?
+        }
+    }
     Ok(())
 }
 
@@ -1475,7 +1508,15 @@ fn handshake_init_with_route(
 ) -> CliResult {
     require_unlocked("handshake_init")?;
     if let Err(code) =
-        perform_handshake_init_with_route(self_label, peer, relay, route_token, suite_mode)
+        // The shipped path: bare A1 to the peer's route token. Byte-identical to before.
+        perform_handshake_init_with_route(
+            self_label,
+            peer,
+            relay,
+            route_token,
+            suite_mode,
+            A1Delivery::Direct,
+        )
     {
         return Err(CliError::code(code));
     }
@@ -1513,7 +1554,33 @@ pub fn handshake_init(self_label: &str, peer: &str, relay: &str) -> CliResult {
     Ok(())
 }
 
-fn perform_handshake_poll_with_tokens(
+/// NA-0681 (D616 F1): where the poll's frames come from.
+///
+/// The invite flow needs the responder logic to run over frames it has ALREADY pulled and
+/// unwrapped from a `QSLH-1` envelope, because the peer's route token is inside that
+/// envelope and is not known until it is opened -- so it cannot be passed in before the
+/// pull. `Relay` is the shipped behaviour, byte-identical.
+pub(crate) enum HsPollSource<'a> {
+    Relay,
+    Provided(&'a [crate::InboxPullItem]),
+}
+
+/// NA-0681 (D616 F1): how the reply leaves.
+///
+/// `None` is the shipped behaviour -- B1 goes bare to the peer's route token. `Envelope`
+/// wraps it, VERBATIM, in a `QSLH-1` response carrying the responder's own route token, so
+/// the initiator learns where to send A2. Without this the invite handshake dead-ends after
+/// B1: the initiator reached the responder through a one-shot invite slot whose ticket is
+/// now burned, and has no other address for them.
+///
+/// This is the "authenticated in-session announcement" P3 already names as the mechanism by
+/// which endpoints are exchanged -- never by re-invite.
+pub(crate) struct HsReplyWrap<'a> {
+    pub(crate) self_route_token: &'a str,
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn perform_handshake_poll_with_tokens(
     self_label: &str,
     peer: &str,
     relay: &str,
@@ -1521,14 +1588,19 @@ fn perform_handshake_poll_with_tokens(
     peer_route_token: &str,
     max: usize,
     suite_mode: HandshakeSuiteMode,
+    source: HsPollSource<'_>,
+    reply_wrap: Option<HsReplyWrap<'_>>,
 ) -> Result<(), &'static str> {
     enforce_peer_not_blocked(peer)?;
-    let items = match transport::relay_inbox_pull(relay, inbox_route_token, max) {
-        Ok(v) => v,
-        Err(code) => {
-            emit_marker("handshake_recv", Some(code), &[("ok", "false")]);
-            return Err(code);
-        }
+    let items = match source {
+        HsPollSource::Provided(v) => v.to_vec(),
+        HsPollSource::Relay => match transport::relay_inbox_pull(relay, inbox_route_token, max) {
+            Ok(v) => v,
+            Err(code) => {
+                emit_marker("handshake_recv", Some(code), &[("ok", "false")]);
+                return Err(code);
+            }
+        },
     };
     if items.is_empty() {
         emit_marker("handshake_recv", None, &[("msg", "none"), ("ok", "true")]);
@@ -2195,7 +2267,17 @@ fn perform_handshake_poll_with_tokens(
                         ("suite_context", init.suite_context.mode_label()),
                     ],
                 );
-                transport::relay_inbox_push(relay, peer_route_token, &bytes)?;
+                // NA-0681: the B1 FRAME is unchanged; only its framing on the wire differs.
+                match &reply_wrap {
+                    None => transport::relay_inbox_push(relay, peer_route_token, &bytes)?,
+                    Some(w) => {
+                        let wrapped = crate::invite::encode_envelope_resp(
+                            w.self_route_token,
+                            &bytes,
+                        )?;
+                        transport::relay_inbox_push(relay, peer_route_token, &wrapped)?
+                    }
+                }
                 return Ok(());
             }
             Err(reason) => {
@@ -2225,6 +2307,9 @@ fn handshake_poll_with_tokens(
         peer_route_token,
         max,
         suite_mode,
+        // The shipped path: pull from the relay, reply bare. Byte-identical to before.
+        HsPollSource::Relay,
+        None,
     ) {
         return Err(CliError::code(code));
     }

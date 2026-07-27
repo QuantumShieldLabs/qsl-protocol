@@ -1624,6 +1624,21 @@ struct ServerInfoLimitsWire {
     max_body_bytes: u64,
     #[serde(default)]
     max_queue_depth: u64,
+    // NA-0681 (D616 C9): additive. Slice 1 advertises this; the client did not read it.
+    #[serde(default)]
+    max_invite_bundle_bytes: u64,
+}
+
+/// NA-0681 (D616 C9): the `invite` object Slice 1 added to `/v1/server-info`.
+/// Additive per DOC-SRV-006 rule 1 -- nothing removed, renamed or repurposed. Read so the
+/// client can pre-clamp its own expiry against the relay's advertised ceiling (F3) instead
+/// of discovering the clamp only when a redeemer is told the invite expired.
+#[derive(Debug, Clone, Default, Deserialize)]
+struct ServerInfoInviteWire {
+    #[serde(default)]
+    max_expiry_secs: u64,
+    #[serde(default)]
+    max_slots: u64,
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]
@@ -1662,6 +1677,9 @@ struct ServerInfoWire {
     attachments: ServerInfoAttachmentsWire,
     #[serde(default)]
     kt: ServerInfoModeWire,
+    // NA-0681 (D616 C9): additive.
+    #[serde(default)]
+    invite: ServerInfoInviteWire,
     #[serde(default)]
     min_client_version: Option<String>,
 }
@@ -1682,6 +1700,12 @@ pub struct ServerInfoDoc {
     pub attachments_service_url: Option<String>,
     pub kt_mode: String,
     pub min_client_version: Option<String>,
+    /// NA-0681 (D616 C9/F3). Zero means "not advertised" -- an older relay, or one that
+    /// does not offer invites. The caller must treat zero as UNKNOWN and not as a ceiling
+    /// of zero seconds.
+    pub invite_max_expiry_secs: u64,
+    pub invite_max_slots: u64,
+    pub max_invite_bundle_bytes: u64,
 }
 
 impl ServerInfoDoc {
@@ -1698,6 +1722,9 @@ impl ServerInfoDoc {
             attachments_service_url: wire.attachments.service_url,
             kt_mode: wire.kt.mode,
             min_client_version: wire.min_client_version,
+            invite_max_expiry_secs: wire.invite.max_expiry_secs,
+            invite_max_slots: wire.invite.max_slots,
+            max_invite_bundle_bytes: wire.limits.max_invite_bundle_bytes,
         }
     }
 }
@@ -1708,6 +1735,14 @@ impl ServerInfoDoc {
 /// AuthRequired{token_was_sent:true} (token rejected),
 /// AuthRequired{token_was_sent:false} (token required, none configured),
 /// CertNotTrusted, Unreachable, NotAQslRelay.
+// NA-0681 (D616 C9): the three additive invite fields on `ServerInfoDoc` push `Reachable`
+// past clippy's variant-size threshold — 225 bytes against a 1-byte second-largest. The
+// lint's remedy is to box the payload, but `RelayServerInfoOutcome` is PUBLIC and already
+// consumed by the GUI slice-B path and `tests/NA_0672_relay_server_info.rs`, so boxing
+// would be a public API change with a wider blast radius than the lint it silences. The
+// enum is returned once per probe and never held in a collection, so the size difference
+// costs nothing measurable. Allowed deliberately, with the reason, rather than reshaped.
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RelayServerInfoOutcome {
     /// 200 + a valid QSL contract. `doc.auth_mode` equals `auth_mode`.
@@ -2057,6 +2092,22 @@ pub(super) fn relay_inbox_push(
     route_token: &str,
     payload: &[u8],
 ) -> Result<(), &'static str> {
+    relay_inbox_push_with_ticket(relay_base, route_token, payload, None)
+}
+
+/// NA-0681 (D616 §2e): the same push, optionally presenting the one-shot invite ticket.
+///
+/// The ticket is a HEADER, not a body field, because `/v1/push`'s body IS the opaque
+/// handshake payload and cannot be repurposed -- the relay's own contract says so, matching
+/// the `X-QSL-Route-Token` precedent. `relay_inbox_push` delegates here with `None`, so
+/// every existing call site keeps byte-identical behaviour and no ticket header is ever
+/// sent on an ordinary push.
+pub(super) fn relay_inbox_push_with_ticket(
+    relay_base: &str,
+    route_token: &str,
+    payload: &[u8],
+    ticket: Option<&str>,
+) -> Result<(), &'static str> {
     let route_token = normalize_route_token(route_token)?;
     let base = normalize_relay_endpoint(relay_base)?;
     let base = base.trim_end_matches('/');
@@ -2070,6 +2121,9 @@ pub(super) fn relay_inbox_push(
         .post(url)
         .header("X-QSL-Route-Token", route_token.as_str())
         .body(payload.to_vec());
+    if let Some(t) = ticket {
+        req = req.header("X-QSL-Invite-Ticket", t);
+    }
     let bearer_token = relay_auth_token();
     let auth_present = bearer_token.is_some();
     if let Some(token) = bearer_token {
@@ -2108,6 +2162,12 @@ pub(super) fn relay_inbox_push(
     });
     match status {
         HttpStatus::OK => Ok(()),
+        // NA-0681: an invite slot refuses a push that presents no live ticket, and says so
+        // with its own code. Only reachable when a ticket was offered, i.e. on the invite
+        // handshake path -- an ordinary push never sends the header and a 403 there stays
+        // `relay_unauthorized`, byte-identical to before.
+        HttpStatus::FORBIDDEN if ticket.is_some() => Err(crate::invite::INVITE_TICKET_INVALID),
+        HttpStatus::GONE if ticket.is_some() => Err(crate::invite::INVITE_EXPIRED_AT_RELAY),
         HttpStatus::UNAUTHORIZED | HttpStatus::FORBIDDEN => Err("relay_unauthorized"),
         HttpStatus::PAYLOAD_TOO_LARGE => Err("relay_inbox_too_large"),
         HttpStatus::TOO_MANY_REQUESTS => Err("relay_inbox_queue_full"),
@@ -2709,6 +2769,176 @@ fn read_send_state(dir: &Path, source: ConfigSource) -> CliResult<Result<u64, ()
     Ok(Err(()))
 }
 
+// ---------------------------------------------------------------------------
+// NA-0681 (D616) — the three invite-slot calls.
+//
+// They live HERE, not in `invite/`, so every socket in qsc stays in one file and these
+// reuse `relay_http_client()`, the operator-CA handling and the NA-0663 TLS taxonomy for
+// free (D616 F4). What they do NOT do is interpret anything: the bundle and signature are
+// opaque bytes to this layer, exactly as they are to the relay.
+//
+// ⚠ Failure mapping keys on the relay's BODY CODE, not on the status alone. Two statuses
+// are ambiguous by design -- 429 is both `ERR_INVITE_CAP_FULL` and `ERR_RATE_LIMITED`, and
+// 410 is both `ERR_INVITE_REVOKED` and `ERR_INVITE_EXPIRED` -- and the failure taxonomy
+// requires those causes to stay distinct. Mapping on status alone would collapse exactly
+// the distinctions DESIGN §6 exists to preserve.
+// ---------------------------------------------------------------------------
+
+/// Map a relay error body to this client's taxonomy. Unknown codes fall back to the status
+/// class rather than to a generic failure, so a newer relay does not become "something went
+/// wrong".
+fn invite_err_for(status: HttpStatus, body: &str) -> &'static str {
+    use crate::invite as inv;
+    match body.trim() {
+        "ERR_INVITE_NOT_FOUND" => inv::INVITE_NOT_FOUND,
+        "ERR_INVITE_REVOKED" => inv::INVITE_REVOKED,
+        "ERR_INVITE_EXPIRED" => inv::INVITE_EXPIRED_AT_RELAY,
+        "ERR_INVITE_ALREADY_USED" => inv::INVITE_ALREADY_USED,
+        "ERR_INVITE_CAP_INVALID" => inv::INVITE_CAP_INVALID,
+        "ERR_INVITE_TICKET_INVALID" => inv::INVITE_TICKET_INVALID,
+        "ERR_INVITE_REVOKE_INVALID" => inv::INVITE_REVOKE_INVALID,
+        "ERR_INVITE_CAP_FULL" => inv::INVITE_SLOT_CAP_FULL,
+        "ERR_RATE_LIMITED" => inv::INVITE_RATE_LIMITED,
+        "ERR_INVITE_TOO_LARGE" => inv::INVITE_TOO_LARGE,
+        "ERR_INVITE_DUPLICATE" => inv::INVITE_CREATE_FAILED,
+        "ERR_INVITE_BAD_BODY" => inv::INVITE_MALFORMED,
+        "ERR_UNAUTHORIZED" => "relay_unauthorized",
+        _ => match status {
+            HttpStatus::UNAUTHORIZED => "relay_unauthorized",
+            HttpStatus::NOT_FOUND => inv::INVITE_NOT_FOUND,
+            HttpStatus::GONE => inv::INVITE_EXPIRED_AT_RELAY,
+            HttpStatus::CONFLICT => inv::INVITE_ALREADY_USED,
+            HttpStatus::FORBIDDEN => inv::INVITE_CAP_INVALID,
+            HttpStatus::PAYLOAD_TOO_LARGE => inv::INVITE_TOO_LARGE,
+            HttpStatus::TOO_MANY_REQUESTS => inv::INVITE_RATE_LIMITED,
+            _ => inv::INVITE_CREATE_FAILED,
+        },
+    }
+}
+
+fn invite_post(
+    relay_base: &str,
+    path: &str,
+    body: serde_json::Value,
+    fallback: &'static str,
+) -> Result<serde_json::Value, &'static str> {
+    let base = normalize_relay_endpoint(relay_base)?;
+    let url = format!("{}{}", base.trim_end_matches('/'), path);
+    let client = match relay_http_client() {
+        Ok(v) => v,
+        Err(RelayHttpClientError::CaFile(code)) => return Err(code),
+        Err(RelayHttpClientError::Build) => return Err(fallback),
+    };
+    let mut req = client.post(url).json(&body);
+    // ⚠ ENG-0051 (D616 F5, operator-confirmed REPLICATE): the bearer token is attached
+    // whenever one is configured, with no consultation of the relay's advertised auth mode
+    // -- exactly as the three existing relay operations do. This is the SHIPPED behaviour
+    // replicated, not a new decision, and it grows the ENG-0051 surface. Recorded there.
+    if let Some(token) = relay_auth_token() {
+        req = req.header("Authorization", format!("Bearer {}", token));
+    }
+    let resp = match req.send() {
+        Ok(v) => v,
+        Err(err) => return Err(relay_send_outcome_for_error(&err, fallback)),
+    };
+    let status = resp.status();
+    if status != HttpStatus::OK {
+        let text = resp.text().unwrap_or_default();
+        return Err(invite_err_for(status, &text));
+    }
+    resp.json::<serde_json::Value>().map_err(|_| fallback)
+}
+
+/// `POST /v1/invite/create` -> the relay's one-time `revoke_token`.
+///
+/// `expiry` is sent as the client computed it and the relay CLAMPS rather than rejects; the
+/// response cannot report that it did. That is why the caller pre-clamps against the
+/// advertised ceiling and why a clamp is never an error (D616 F3/C7).
+pub(super) fn invite_create_call(
+    relay_base: &str,
+    invite_id_wire: &str,
+    cap_hash_hex: &str,
+    expiry: u64,
+    bundle: &[u8],
+    invite_sig: &[u8],
+) -> Result<String, &'static str> {
+    let body = serde_json::json!({
+        "invite_id": invite_id_wire,
+        "cap_hash": cap_hash_hex,
+        "expiry": expiry,
+        // URL_SAFE_NO_PAD -- the engine the crate already uses and the one the relay's
+        // hand-rolled codec emits. Measured byte-identical at Phase 0.
+        "bundle_b64": URL_SAFE_NO_PAD.encode(bundle),
+        "invite_sig_b64": URL_SAFE_NO_PAD.encode(invite_sig),
+    });
+    let v = invite_post(
+        relay_base,
+        "/v1/invite/create",
+        body,
+        crate::invite::INVITE_CREATE_FAILED,
+    )?;
+    v.get("revoke_token")
+        .and_then(|t| t.as_str())
+        .map(|t| t.to_string())
+        .ok_or(crate::invite::INVITE_CREATE_FAILED)
+}
+
+/// `POST /v1/invite/redeem` -> the bundle, its signature, and the one-shot handshake ticket.
+///
+/// ⚠ Returns DECODED BYTES. The base64 strings are never handed upward and are never
+/// compared against what was sent: the relay accepts padded input and emits unpadded, so a
+/// string comparison would pass every same-implementation test and break against a relay
+/// that re-encodes. The commitment is computed over these bytes.
+pub(super) fn invite_redeem_call(
+    relay_base: &str,
+    invite_id_wire: &str,
+    cap_wire: &str,
+) -> Result<(Vec<u8>, Vec<u8>, String), &'static str> {
+    let body = serde_json::json!({ "invite_id": invite_id_wire, "cap": cap_wire });
+    let v = invite_post(
+        relay_base,
+        "/v1/invite/redeem",
+        body,
+        crate::invite::INVITE_CREATE_FAILED,
+    )?;
+    let get_b64 = |k: &str| -> Result<Vec<u8>, &'static str> {
+        let s = v.get(k).and_then(|x| x.as_str()).ok_or(crate::invite::INVITE_MALFORMED)?;
+        URL_SAFE_NO_PAD
+            .decode(s)
+            .map_err(|_| crate::invite::INVITE_MALFORMED)
+    };
+    let bundle = get_b64("bundle_b64")?;
+    let sig = get_b64("invite_sig_b64")?;
+    let ticket = v
+        .get("ticket")
+        .and_then(|x| x.as_str())
+        .filter(|t| !t.trim().is_empty())
+        .ok_or(crate::invite::INVITE_MALFORMED)?
+        .to_string();
+    Ok((bundle, sig, ticket))
+}
+
+/// `POST /v1/invite/revoke`. Idempotent at the relay: a second revoke succeeds.
+pub(super) fn invite_revoke_call(
+    relay_base: &str,
+    invite_id_wire: &str,
+    revoke_token: &str,
+) -> Result<(), &'static str> {
+    let body =
+        serde_json::json!({ "invite_id": invite_id_wire, "revoke_token": revoke_token });
+    let v = invite_post(
+        relay_base,
+        "/v1/invite/revoke",
+        body,
+        crate::invite::INVITE_CREATE_FAILED,
+    )?;
+    if v.get("revoked").and_then(|x| x.as_bool()) == Some(true) {
+        Ok(())
+    } else {
+        Err(crate::invite::INVITE_REVOKE_INVALID)
+    }
+}
+
 #[cfg(test)]
 mod relay_push_diagnostic_tests {
     use super::*;
@@ -2829,3 +3059,4 @@ mod relay_push_diagnostic_tests {
         );
     }
 }
+

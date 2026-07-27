@@ -33995,3 +33995,73 @@ proxies that represent without enforcing. **ENG-0076 closed** by D-0018.
 **Queue:** `READY=NONE`. The Director triages the next item against `docs/ops/IMPROVEMENT_LEDGER.md`
 per WF-0003.
 
+## D-1315 — NA-0681 implementation evidence: MESSAGING EPIC SLICE 2, the invite system's client half, proven two-party against the real Slice-1 relay
+
+**Date:** 2026-07-27. **Lane:** NA-0681. **Directive:** D616 (amended, sha256 `7c1dd575…c4b8bccd4`, 798 lines).
+
+Two strangers now turn one invite code into a session. `qsc invite create` mints a client-minted
+capability, commits to the identity bundle and signs the payload; `redeem` verifies commitment THEN
+signature and hand-shakes into the slot; `accept` and `finish` carry the two handshake legs.
+Verified end to end against qsl-server's actual router in process at the pinned Slice-1 commit
+`131d63f4`, with two vaults and two identities and no mocks.
+
+**THE CENSUS FOUND THE CRYPTOGRAPHY SETTLED AND EVERY REAL RISK TO BE AN ENCODING RISK**, each with
+a failure mode that presents as an attack or as *success* rather than as an honest error, and three
+of the four invisible until the relay's SOURCE was read rather than its contract. `§2a` therefore
+defines four canonical encodings exactly once each, one writer and one verifier apiece:
+`wire_id` (lowercase hex — `invite_id` **is** the relay route token, and a rendering mismatch makes
+the slot lookup miss so the push is accepted into an unread route with **HTTP 200**, the only
+failure in this slice that returns success); `cap_hash_hex` (SHA-256 over the capability **string**,
+which the relay never validates, so a case mismatch reads as a wrong capability); the canonical
+bundle (an **explicit** layout built from the keys, **never** a re-serialization of the on-disk
+record); and the `QSLI-1-` payload codec (`URL_SAFE_NO_PAD`; the commitment is computed over
+**decoded bytes**, because the relay accepts padded input and emits unpadded and a string
+comparison would pass every same-implementation test).
+
+**F1 — WRAPPING, NOT A PROTOCOL CHANGE.** The shipped handshake frame is fixed-length positional
+with no route-token field, so DESIGN P2's "versioned TLV" described a state that did not exist —
+ruled a Director error and corrected in both authorities. The invite handshake is a new versioned
+TLV `QSLH-1` envelope carrying the A1 frame **verbatim**, plus a response envelope carrying B1 and
+the responder's route token. Safe for a checkable reason: `hs_transcript_mac` binds the A1 **bytes**,
+so the wrapper is transparent to the transcript. **ZERO bytes of any frame changed.** The response
+envelope is load-bearing rather than symmetric decoration — the initiator reached the responder
+through a one-shot slot whose ticket its own push burned, and without an address coming back the
+session dead-ends after B1.
+
+**§2m — the auto-mint contact-add path is RETIRED.** It minted a route token the peer had never
+seen, so the contact was unreachable by construction; the explicit `--route-token` form is marked
+**superseded-but-functional** as a named residue, because 73 test files depend on it including the
+spine's only real-server e2e — the instrument that proves this slice broke nothing.
+
+**§2k — the clock is a parameter**, in the `_at` seam `vault/protection.rs` already documents as
+"the test-visible clock seam", so negative controls force an expired invite by passing a value
+rather than sleeping. **The privacy line struck `created_at` from the canonical bundle**: those
+bytes are uploaded to the relay, and the only relay-visible timestamp in v1 is the invite expiry.
+
+**EVIDENCE.** 34 authored tests: `NA_0681_invite_encodings` (23), `NA_0681_invite_relay_contract`
+(8, real relay), `NA_0681_two_party_handshake` (3, two vaults + real relay). **Five negative
+controls run and observed RED**, output recorded, sources restored byte-identical — including the
+cross-implementation codec gate, which goes red on a standard-alphabet encoder with
+`ERR_INVITE_BAD_BODY` **from the relay**. Known-answer vectors were computed in Python **before the
+Rust existed**, and pin the two FORBIDDEN values as well as the right one, so a drift is diagnosed
+rather than merely detected. Full suite `EXIT=0`, **111 targets / 472 passed / 0 failed / 2
+ignored** at `RUST_TEST_THREADS=2`. `clippy` delta vs base **ZERO**; `rustfmt --check` clean on this
+lane's four files; `infra_literal_scan` clean staged and tree; `git diff Cargo.toml Cargo.lock`
+**EMPTY**.
+
+⚠ **THREE `aws_file_*` SUITES ARE EXCLUDED AND NAMED** (`…_na0192a`, `…_na0192b`, `…_na0186`): they
+hang **at base** on **ENG-0079** — `qsc receive` has no overall timeout and retries forever against
+an unanswering relay — measured at 17 minutes of 0.2% CPU with a respawning child. Operator-ruled
+exclude-and-document; §5.9's "full green" holds modulo those three, and ENG-0079 carries the fix.
+
+⚠ **TWO OF THIS DIRECTIVE'S OWN GATES WERE NOT GATES**, both established by stashing the lane and
+re-running at base: `cargo fmt --all -- --check` is RED at base at **146 locations** (ENG-0050), and
+`clippy -D warnings` is RED at base at **26 sites**. Neither had been executed at base when D616
+specified them. **An acceptance item never run at base is a hypothesis, not a gate.**
+
+**Filed:** ENG-0079 (receive has no timeout), ENG-0080 (a Slice-4 landmine — a PENDING contact
+prints `state=PINNED` *and* `device … state=TRUSTED`, so the GUI must key its badge on the contact
+state or it inverts I5), ENG-0081 (house defaults that differ from tool defaults; its own
+micro-lane). **`LANE_INTENT` §3b amended** with the operator's bidirectional rule: a load-bearing
+test must be shown it can BOTH fail on wrong code AND pass on right code — this lane wrote three
+assertions that could never have passed.

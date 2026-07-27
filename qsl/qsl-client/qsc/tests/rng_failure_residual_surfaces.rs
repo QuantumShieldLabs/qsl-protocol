@@ -327,9 +327,14 @@ fn route_default_token_rng_failure_writes_no_vault_file() {
     println!("NA0452_ROUTE_RNG_FAILURE_NO_PARTIAL_STATE_OK");
 }
 
+/// NA-0681 (D616 §2m): the route-token RNG seam this test used to force is RETIRED --
+/// `contacts add` no longer mints a route token, so that RNG call site no longer exists on
+/// this path. The PROPERTY the test exists for is unchanged and still worth asserting: a
+/// REFUSED contact-add must write no partial state and must not touch the vault. Only the
+/// cause moved, from a forced RNG failure to the missing-route-token refusal.
 #[cfg(qsc_rng_failure_test_seam)]
 #[test]
-fn contact_route_token_rng_failure_writes_no_contact_state() {
+fn contact_add_without_route_token_writes_no_contact_state() {
     let iso = common::TestIsolation::new("na0452_contact_route_token_rng_failure");
     let cfg = iso.root.join("contact-route-rng-failure");
     ensure_dir_700(&cfg);
@@ -344,15 +349,15 @@ fn contact_route_token_rng_failure_writes_no_contact_state() {
     );
     assert_failure(&out);
     let text = output_text(&out);
-    assert!(text.contains("rng_failure_forced"), "{text}");
+    assert!(text.contains("contacts_route_token_required"), "{text}");
     assert!(
         read_mock_vault_secret(&cfg, CONTACTS_SECRET_KEY).is_none(),
-        "forced contact route-token RNG failure wrote contacts state"
+        "a refused contact-add wrote contacts state"
     );
     assert_eq!(
         fs::read(cfg.join("vault.qsv")).expect("vault after"),
         vault_before,
-        "forced contact route-token RNG failure changed vault bytes"
+        "a refused contact-add changed vault bytes"
     );
 
     println!("NA0452_CONTACT_RNG_FAILURE_NO_PARTIAL_STATE_OK");

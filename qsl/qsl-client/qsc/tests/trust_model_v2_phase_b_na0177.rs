@@ -116,8 +116,7 @@ fn no_trusted_device_blocks_send_no_mutation() {
             "bob",
             "--fp",
             "ABCD-EFGH-JKMP-QRST-V",
-            "--verify",
-        ])
+            "--verify", "--route-token", "route_token_na0681_fixed_value_"])
         .output()
         .expect("contacts add");
     assert!(add.status.success(), "{}", output_text(&add));
@@ -171,8 +170,7 @@ fn changed_device_blocks_until_reapproved() {
             "bob",
             "--fp",
             "ABCD-EFGH-JKMP-QRST-V",
-            "--verify",
-        ])
+            "--verify", "--route-token", "route_token_na0681_fixed_value_"])
         .output()
         .expect("contacts add");
     assert!(add.status.success(), "{}", output_text(&add));
@@ -275,8 +273,7 @@ fn revoked_device_blocks_send() {
             "bob",
             "--fp",
             "ABCD-EFGH-JKMP-QRST-V",
-            "--verify",
-        ])
+            "--verify", "--route-token", "route_token_na0681_fixed_value_"])
         .output()
         .expect("contacts add");
     assert!(add.status.success(), "{}", output_text(&add));
@@ -351,8 +348,7 @@ fn second_device_does_not_break_existing_trusted_primary() {
             "bob",
             "--fp",
             "ABCD-EFGH-JKMP-QRST-V",
-            "--verify",
-        ])
+            "--verify", "--route-token", "route_token_na0681_fixed_value_"])
         .output()
         .expect("contacts add");
     assert!(add.status.success(), "{}", output_text(&add));

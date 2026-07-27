@@ -127,13 +127,13 @@ fn contacts_add_list_deterministic() {
     init_vault(&cfg);
 
     let add_bob = qsc_with_unlock(&cfg)
-        .args(["contacts", "add", "--label", "bob", "--fp", "fp-bob-1"])
+        .args(["contacts", "add", "--label", "bob", "--fp", "fp-bob-1", "--route-token", "route_token_na0681_fixed_value_"])
         .output()
         .expect("contacts add bob");
     assert!(add_bob.status.success(), "{}", output_text(&add_bob));
 
     let add_alice = qsc_with_unlock(&cfg)
-        .args(["contacts", "add", "--label", "alice", "--fp", "fp-alice-1"])
+        .args(["contacts", "add", "--label", "alice", "--fp", "fp-alice-1", "--route-token", "route_token_na0681_fixed_value_"])
         .output()
         .expect("contacts add alice");
     assert!(add_alice.status.success(), "{}", output_text(&add_alice));
@@ -350,7 +350,7 @@ fn verify_requires_confirm_no_mutation() {
     init_vault(&cfg);
 
     let add = qsc_with_unlock(&cfg)
-        .args(["contacts", "add", "--label", "bob", "--fp", "fp-old"])
+        .args(["contacts", "add", "--label", "bob", "--fp", "fp-old", "--route-token", "route_token_na0681_fixed_value_"])
         .output()
         .expect("contacts add");
     assert!(add.status.success(), "{}", output_text(&add));
@@ -379,7 +379,7 @@ fn no_plaintext_contacts_on_disk() {
     init_vault(&cfg);
 
     let add = qsc_with_unlock(&cfg)
-        .args(["contacts", "add", "--label", "bob", "--fp", "fp-bob-1"])
+        .args(["contacts", "add", "--label", "bob", "--fp", "fp-bob-1", "--route-token", "route_token_na0681_fixed_value_"])
         .output()
         .expect("contacts add");
     assert!(add.status.success(), "{}", output_text(&add));
@@ -412,8 +412,7 @@ fn no_secrets_in_output() {
 
     let add = qsc_with_unlock(&cfg)
         .args([
-            "contacts", "add", "--label", "bob", "--fp", "fp-bob-1", "--verify",
-        ])
+            "contacts", "add", "--label", "bob", "--fp", "fp-bob-1", "--verify", "--route-token", "route_token_na0681_fixed_value_"])
         .output()
         .expect("contacts add");
     let list = qsc_with_unlock(&cfg)

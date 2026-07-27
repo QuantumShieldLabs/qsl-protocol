@@ -50,6 +50,12 @@ pub const TUI_RELAY_INBOX_TOKEN_SECRET_KEY: &str = "tui.relay.inbox_token";
 // secret -- but it is stored here because the vault secret store is the house settings
 // surface, and it is redacted in markers exactly like the token file's path.
 pub const TUI_RELAY_CA_FILE_SECRET_KEY: &str = "tui.relay.ca_file";
+
+// NA-0681 (D616 §2h): invite state, in the vault, as a JSON blob under one key -- exactly
+// the shape contacts already use (`contacts_store_load`/`_save`). Two keys, because the two
+// sides have different lifetimes: what Alice CREATED, and what Bob REDEEMED.
+pub const INVITES_SECRET_KEY: &str = "invite.created";
+pub const REDEMPTIONS_SECRET_KEY: &str = "invite.redeemed";
 pub(crate) const OUTBOX_NEXT_STATE_SECRET_KEY: &str = "outbox.next_state.v1";
 pub(crate) const CONTACT_REQUESTS_SECRET_KEY: &str = "contact_requests.json";
 pub(crate) const ATTACHMENT_JOURNAL_SECRET_KEY: &str = "attachments.json";
@@ -194,7 +200,7 @@ pub(crate) struct ContactRequestRecord {
     pub(crate) seen_at: Option<u64>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Default, Serialize, Deserialize, Clone, Debug)]
 pub(crate) struct ContactRecord {
     pub(crate) fp: String,
     pub(crate) status: String,
@@ -215,6 +221,21 @@ pub(crate) struct ContactRecord {
     pub(crate) primary_device_id: Option<String>,
     #[serde(default)]
     pub(crate) devices: Vec<ContactDeviceRecord>,
+    // ---- NA-0681 (D616 §2f / DESIGN P3): laid from contact #1, additive, `serde(default)`
+    // so every existing record loads unchanged.
+    /// PLURAL from day one. Relay migration later happens by authenticated in-session
+    /// announcement, never by re-invite -- so the field that will hold the second endpoint
+    /// exists before there is a second endpoint.
+    #[serde(default)]
+    pub(crate) relay_endpoints: Vec<String>,
+    /// Captured at redemption, DORMANT. Relay-pinning is explicitly not in this epic; the
+    /// hook exists so pinning is later a feature rather than a migration.
+    #[serde(default)]
+    pub(crate) pinned_cert_fp: Option<String>,
+    /// Which invite produced this contact. Provenance, and the key the client-side
+    /// single-use check reads.
+    #[serde(default)]
+    pub(crate) invite_id: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

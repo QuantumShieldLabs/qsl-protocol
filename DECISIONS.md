@@ -34065,3 +34065,67 @@ state or it inverts I5), ENG-0081 (house defaults that differ from tool defaults
 micro-lane). **`LANE_INTENT` §3b amended** with the operator's bidirectional rule: a load-bearing
 test must be shown it can BOTH fail on wrong code AND pass on right code — this lane wrote three
 assertions that could never have passed.
+
+## D-1316 — NA-0681 CLOSEOUT: `QSC_INVITE_HANDSHAKE_PASS`, and the lane where every real risk turned out to be an encoding risk
+
+**Date:** 2026-07-27. **Lane:** NA-0681. **Directive:** D616 (amended, sha256 `7c1dd575…c4b8bccd4`, 798 lines).
+**Code PR:** #1666 merged `2155f45981b1410bcf42e5d5855792b0e5784fd5`. **Impl evidence:** D-1315.
+
+Slice 2 ships. Two strangers turn one invite code into a session against the REAL Slice-1 relay
+in process — two vaults, two identities, no mocks — and both ends finish holding a PENDING
+contact carrying the other's identity and route token.
+
+**THE CENSUS WAS THE REASON THIS LANE HAS THE SHAPE IT DOES.** Eleven corrections, of which
+three changed what got built. **C5:** DESIGN P2 and the LANE_INTENT both described a
+versioned-TLV handshake payload that **does not exist** — the shipped frame is fixed-length
+positional with no route-token field — so F1 ruled **wrapping**, real in-frame TLV became a
+Tier-1.5 concern with its own lane, and both authorities were corrected mark-don't-rewrite.
+**C1:** the operator's pre-approved `base64` dependency was **moot** — it was already a
+production dependency and `URL_SAFE_NO_PAD` already the house engine. **C11:** the identity
+bundle DESIGN §2 described **does not exist**, so the canonical bundle is an explicit layout
+built from the keys and never a re-serialization.
+
+**THE STANDING EVIDENCE THIS LANE PRODUCES IS ABOUT ITS OWN INSTRUMENTS.**
+
+⚠ **Three of this lane's assertions could never have passed.** A check that `invite_id` "must
+not appear anywhere" in the contact record would have failed against every correct
+implementation, because §2f stores it deliberately as provenance; a `"pinned"` comparison
+failed on a `PINNED` output; a reused identifier made the relay's correct refusal look like a
+codec failure. **§3b named only the can't-fail direction. A test that cannot PASS is the same
+defect pointing the other way**, and the epic's §3b is amended by operator ruling to require
+both directions.
+
+⚠ **Three gates this directive specified were dead at base, and the census never ran them.**
+`cargo fmt --all -- --check` is RED at base at **146 locations** (ENG-0050). The full
+`cargo test -p qsc` **hangs at base** (ENG-0079 — `qsc receive` has no overall timeout;
+measured at 17 minutes of 0.2% CPU with a respawning child). The two-PR split was **forbidden
+by `goal-lint`**, because D616 §3 copied Slice 1's arrangement without the property that made
+it work — Slice 1's code PR lived in `qsl-server`, a repository with no `goal-lint`. **The
+census measured the code deeply and the process not at all.**
+
+⚠ **The §2m collateral was found one full-suite run at a time**, because every sweep was
+FILE-level ("which files never pass `--route-token`") when the property lives on CALL SITES.
+Two files surfaced ~90 minutes apart before a call-site sweep closed the set at eight files.
+
+**EVIDENCE.** 34 authored tests, all green: 23 encodings/verify-order, 8 relay-contract, 3
+two-party. **Five negative controls run and observed RED**, restored byte-identical, including
+the cross-implementation codec gate going red on a standard-alphabet encoder with
+`ERR_INVITE_BAD_BODY` **from the relay**. Known-answer vectors computed in **Python before the
+Rust existed**, pinning the two FORBIDDEN values as well as the right one. Full suite `EXIT=0`,
+**111 targets / 472 passed / 0 failed / 2 ignored**, with the three `aws_file_*` suites
+**excluded, named, and verified absent from the log**. `clippy` delta **ZERO**; `Cargo.*`
+untouched; **zero handshake frame bytes changed**.
+
+**NOT CLAIMED.** Nothing about messaging or delivery states (Slice 3) or the GUI (Slice 4); no
+timing or constant-time claim; the tested topology is **two vaults on one host**, the ruled
+acceptance topology, which is not two machines; the interruption-safety ordering is asserted by
+construction and by reading, **with no test that kills the process in the window**; the
+`pinned_cert_fp` hook is captured and dormant.
+
+**Filed:** ENG-0079 (receive has no timeout — carries the fix for the excluded suites),
+ENG-0080 (a Slice-4 landmine: a PENDING contact prints `state=PINNED` *and*
+`device … state=TRUSTED`, so the GUI must key its badge on the contact state or it inverts I5),
+ENG-0081 (house defaults that differ from tool defaults; its own micro-lane).
+
+**Queue:** `READY=NONE`. Slice 3 (qsc outbox + delivery + acks) is next in the epic and is
+drafted at its turn per epic §4 Q3.

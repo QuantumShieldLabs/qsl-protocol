@@ -194,6 +194,11 @@ pub enum Cmd {
         #[command(subcommand)]
         cmd: TimelineCmd,
     },
+    /// NA-0682: the durable message queue — status, retry, and the named discard.
+    Outbox {
+        #[command(subcommand)]
+        cmd: OutboxCmd,
+    },
     /// File transfer MVP (bounded + integrity checked).
     File {
         #[command(subcommand)]
@@ -568,6 +573,41 @@ pub enum ContactsDevicePrimaryCmd {
     Show {
         #[arg(long, value_name = "LABEL")]
         label: String,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum OutboxCmd {
+    /// Show each contact's queue as data, plus the honest one-line status.
+    ///
+    /// ⚠ §2h is claims-honesty, not UX: a paused queue must never read as a sending one,
+    /// so each line names its cause ("unlock to send") rather than implying work in flight.
+    Status,
+    /// Drain now — the manual "Retry now" trigger (DESIGN §2).
+    Retry {
+        /// Relay base URL.
+        #[arg(long)]
+        relay: String,
+    },
+    /// ⚠ DESTROY one specifically-identified queued message.
+    ///
+    /// F2: recovery means drain or fail visibly, NEVER destroy — so this is deliberately
+    /// off the generic recovery path and requires naming the exact message. It routes
+    /// through the ratchet barrier (`retire_packed`), because discarding a packed message
+    /// without committing its advance is nonce reuse.
+    Discard {
+        /// Contact label.
+        #[arg(long)]
+        to: String,
+        /// The message id to discard.
+        #[arg(long)]
+        msg_id: String,
+        /// Relay base URL (needed to commit the ratchet advance).
+        #[arg(long)]
+        relay: String,
+        /// Required: destroying a user's message is never implicit.
+        #[arg(long, default_value_t = false)]
+        confirm: bool,
     },
 }
 

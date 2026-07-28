@@ -712,7 +712,30 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                         continue;
                     }
                     if let Some(ctrl) = parse_receipt_payload(&outcome.plaintext) {
-                        if ctrl.v == 1 && ctrl.kind == "delivered" && ctrl.t == "ack" {
+                        // NA-0682 (D617 C6): classify ONCE, here, so the "unknown control"
+                        // arm exists at all. Before this, an unrecognised control payload
+                        // fell through and was written to `recv_N.bin` and the timeline as
+                        // a user message -- which made DESIGN F2's "a new ack type is a new
+                        // type, no format break" false as built.
+                        let class = crate::adversarial::payload::classify_control(&ctrl);
+                        if class == crate::adversarial::payload::ControlClass::UnknownControl {
+                            // Ours (it carries the namespace marker) but of a type this
+                            // build does not know. IGNORE IT -- this is the seam a future
+                            // read-receipt rides on, and rendering it would be the bug.
+                            //
+                            // ⚠ Only payloads carrying the marker reach here, so a user
+                            // message that merely looks like this JSON is NOT swallowed --
+                            // it classifies as NotControl and is delivered as before.
+                            commit_unpack_state()?;
+                            emit_marker(
+                                "control_ignored",
+                                None,
+                                &[("reason", "unknown_control_type"), ("v", "redacted")],
+                            );
+                            record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
+                            continue;
+                        }
+                        if class == crate::adversarial::payload::ControlClass::DeliveredAck {
                             commit_unpack_state()?;
                             match apply_message_peer_confirmation(
                                 ctx.from,
@@ -756,7 +779,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                             record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
                             continue;
                         }
-                        if ctrl.v == 1 && ctrl.kind == "delivered" && ctrl.t == "data" {
+                        if class == crate::adversarial::payload::ControlClass::DataEnvelope {
                             if let Some(body) = ctrl.body {
                                 payload = body;
                                 request_receipt = true;
@@ -801,7 +824,59 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                             ("id", item.id.as_str()),
                         ],
                     );
-                    if let Err(code) = timeline_append_entry(
+                    // NA-0682 (D617 §2f / F5): dedup by (session, msg_id) BEFORE storing.
+                    //
+                    // Duplicate deliveries are EXPECTED -- at-least-once delivery plus retry
+                    // races -- and DESIGN §4 requires them to be invisible to the user. A
+                    // duplicate is still ACKED (idempotently): the sender's ack may be what
+                    // was lost, and refusing to re-ack would strand them on SENT forever.
+                    if !request_msg_id.is_empty() {
+                        match msgqueue::inbound_already_seen(ctx.cfg_dir, ctx.from, &request_msg_id)
+                        {
+                            Ok(true) => {
+                                commit_unpack_state()?;
+                                emit_marker(
+                                    "recv_dup_msg_id_skipped",
+                                    None,
+                                    &[("msg_id", "<redacted>")],
+                                );
+                                if request_receipt {
+                                    queue_or_send_receipt(
+                                        ctx,
+                                        &mut pending_receipts,
+                                        PendingReceipt::Message {
+                                            msg_id: request_msg_id.clone(),
+                                        },
+                                    )?;
+                                }
+                                record_seen_and_queue_ack(
+                                    &mut seen_ids,
+                                    &mut pending_acks,
+                                    &item.id,
+                                )?;
+                                continue;
+                            }
+                            Ok(false) => {}
+                            // Fail-closed: if we cannot tell whether it is a duplicate, do
+                            // NOT guess. Leave it for redelivery rather than risk either a
+                            // double-render or a silent drop.
+                            Err(code) => return Err(CliError::code(code)),
+                        }
+                    }
+
+                    // NA-0682 (D617 census C16): STORE DURABLY, **THEN** ACK.
+                    //
+                    // ⚠ Before this lane the timeline failure below was non-fatal and the
+                    // ack fired regardless, so THE SENDER COULD BE TOLD "DELIVERED" WHILE
+                    // THE RECIPIENT HAD NO STORED MESSAGE. That is an O3 violation by
+                    // omission: "delivered" is supposed to mean the recipient's device has
+                    // it, and an ack is the only evidence the sender ever gets.
+                    //
+                    // Fail-closed: if the row does not store, DO NOT ack. The relay still
+                    // holds the message (it is not acked at the lease layer either), so it
+                    // is redelivered and tried again -- visibly stuck rather than silently
+                    // claimed as delivered.
+                    let stored = timeline_append_entry(
                         ctx.from,
                         "in",
                         payload.len(),
@@ -812,11 +887,29 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                         } else {
                             Some(request_msg_id.as_str())
                         },
-                    ) {
+                    );
+                    if let Err(code) = stored {
                         emit_message_state_reject("<redacted>", code);
                         emit_marker("error", Some(code), &[("op", "timeline_receive_ingest")]);
                     }
-                    if request_receipt {
+                    // ⚠ Record the id only AFTER the row is durably stored. Recording
+                    // first would let a crash in between turn a real message into permanent
+                    // duplicate-suppression -- a silent loss dressed up as dedup.
+                    let deduped = if stored.is_ok() && !request_msg_id.is_empty() {
+                        msgqueue::record_inbound_seen(
+                            ctx.cfg_dir,
+                            ctx.cfg_source,
+                            ctx.from,
+                            &request_msg_id,
+                            msgqueue::now_unix_s(),
+                        )
+                    } else {
+                        Ok(())
+                    };
+                    if let Err(code) = deduped {
+                        emit_marker("error", Some(code), &[("op", "msgqueue_seen_inbound")]);
+                    }
+                    if request_receipt && stored.is_ok() && deduped.is_ok() {
                         queue_or_send_receipt(
                             ctx,
                             &mut pending_receipts,
@@ -824,6 +917,13 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 msg_id: request_msg_id,
                             },
                         )?;
+                    } else if request_receipt {
+                        // Say so, rather than letting a missing ack look like a lost one.
+                        emit_marker(
+                            "receipt_suppressed",
+                            Some("receive_store_failed"),
+                            &[("reason", "not_stored_so_not_acked")],
+                        );
                     }
                     record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
                 }
@@ -1297,19 +1397,137 @@ pub fn relay_send(
         Ok(v) => v,
         Err(_) => return Err(CliError::code("relay_payload_read_failed")),
     };
-    let outcome = relay_send_with_payload(RelaySendPayloadArgs {
-        to,
-        payload,
-        relay,
-        injector: fault_injector_from_env()?,
-        pad_cfg,
-        bucket_max,
-        meta_seed,
-        receipt,
-        routing_override: None,
-    })?;
-    if let Some(code) = outcome.error_code {
-        return Err(CliError::code(code));
+
+    // NA-0682 (D617 §2b/§2c, operator-ruled Option A): ENQUEUE FIRST, THEN DRAIN.
+    //
+    // ⚠ THIS IS O1, AND IT IS WHY IT LIVES ON THE DEFAULT PATH. The message is committed
+    // durably to the message queue BEFORE anything is packed or pushed, so a crash at any
+    // later point leaves a QUEUED row -- never nothing. Putting this behind an opt-in verb
+    // would have made "no silent loss" true only of a path nobody uses, which is the
+    // claims-honesty failure this project exists to prevent.
+    //
+    // It also closes census C4: the old path replayed a single GLOBAL in-flight slot and
+    // RETURNED, so a second send while one was stuck was never even packed -- silently
+    // dropped, with `send_semantics::outbox_recovery_via_send_abort` asserting the drop as
+    // correct. Now the second message is durably queued before any of that can happen.
+    let (dir, source) = match config_dir() {
+        Ok(v) => v,
+        Err(e) => return Err(cli_err(e)),
+    };
+    let now = msgqueue::now_unix_s();
+    let rec = msgqueue::enqueue_at(&dir, source, to, payload, now).map_err(CliError::code)?;
+    let queued_len = rec.body.len().to_string();
+    emit_marker(
+        "msgqueue_enqueued",
+        None,
+        &[
+            ("state", rec.state.as_str()),
+            ("payload_len", queued_len.as_str()),
+            // ⚠ never the raw msg_id: it is inner, and DESIGN §4 keeps it off the wire and
+            // out of anything a log might carry.
+            ("msg_id", "<redacted>"),
+        ],
+    );
+
+    // DESIGN §9 Q4: a SOFT warning at 50 queued for this contact. Never a cap -- refusing
+    // to enqueue would itself be the silent loss O1 forbids.
+    if let Ok(all) = msgqueue::load_contact(&dir, to) {
+        let queued = all
+            .iter()
+            .filter(|r| r.state == msgqueue::MsgState::Queued)
+            .count();
+        if queued >= msgqueue::QUEUE_WARN_THRESHOLD {
+            let n = queued.to_string();
+            emit_marker("msgqueue_backlog_warning", None, &[("queued", n.as_str())]);
+        }
+    }
+
+    let mut sender =
+        RelayMessageSender::new(relay).with_meta(pad_cfg, bucket_max, meta_seed, receipt);
+    let outcome = msgqueue::drain_at(
+        &dir,
+        source,
+        msgqueue::DrainTrigger::Scheduled,
+        now,
+        &mut sender,
+    )
+    .map_err(CliError::code)?;
+
+    // ⚠ Report honestly. The message is SAFE (durably queued) but that is not the same as
+    // SENT, and saying "sent" when it is queued would be exactly the false claim §2h
+    // forbids. So a message that did not reach the relay still exits non-zero -- and says
+    // why, and says it will be retried.
+    if outcome.sent == 0 {
+        let state = msgqueue::load_contact(&dir, to)
+            .ok()
+            .and_then(|v| v.into_iter().find(|r| r.msg_id == rec.msg_id));
+        // A9: when a 413 named a limit, say it. "too large" alone is not actionable.
+        let too_large_line = match sender.last_limit() {
+            Some(n) => format!("too large — this relay accepts up to {} bytes", n),
+            None => "too large for this relay".to_string(),
+        };
+        // ⚠ NA-0682 (operator-ruled, STOP 020). A LOCAL relay-config fault -- a CA file that
+        // is missing, unreadable or not a certificate -- is MESSAGE-INDEPENDENT and needs no
+        // network to detect. It must be NAMED even when this particular message was never
+        // attempted, because per-contact FIFO can hold it behind an earlier one.
+        //
+        // ⚠ WHY THIS IS A SAFETY FIX, NOT TIDINESS: reporting "will send when the relay is
+        // reachable" for a broken CA file is a FALSE DIAGNOSIS. It makes a TRUST failure
+        // indistinguishable from a flaky network, so an operator facing an untrusted
+        // certificate -- possibly an active interception -- is told to wait. That is exactly
+        // the confusion `NA_0663_relay_tls_trust` exists to prevent.
+        //
+        // The message is already durably enqueued (O1) and NOTHING is transmitted, so
+        // fail-closed is untouched: zero bytes leave while trust is broken.
+        let local_relay_cfg_fault = match relay_http_client() {
+            Err(RelayHttpClientError::CaFile(code)) => Some(code),
+            _ => None,
+        };
+        // DESIGN: PAUSED is a sub-state of QUEUED that names WHY retries are not running.
+        // A trust fault pauses rather than fails -- saving relay settings resumes it.
+        if local_relay_cfg_fault.is_some() {
+            if let Some(mut r) = state.clone() {
+                if r.state == msgqueue::MsgState::Queued && r.paused_cause.is_none() {
+                    r.paused_cause = Some(msgqueue::PausedCause::Cert);
+                    let _ = msgqueue::save(&dir, source, &r);
+                }
+            }
+        }
+        // If THIS message was not attempted, the reason lives at the HEAD of the contact's
+        // FIFO. Report that reason rather than a generic line about this message.
+        let head_pause = msgqueue::load_contact(&dir, to).ok().and_then(|v| {
+            v.into_iter()
+                .filter(|r| r.state == msgqueue::MsgState::Queued)
+                .min_by_key(|r| r.seq)
+                .and_then(|r| r.paused_cause)
+        });
+        let (code, cause) = if let Some(c) = local_relay_cfg_fault {
+            (c, msgqueue::PausedCause::Cert.human())
+        } else {
+            match state.as_ref() {
+                Some(r) if r.state == msgqueue::MsgState::FailedPermanent => {
+                    ("msgqueue_failed_permanent", "session revoked")
+                }
+                Some(r) if r.state == msgqueue::MsgState::Failed => {
+                    ("msgqueue_failed", too_large_line.as_str())
+                }
+                Some(r) => match r.paused_cause {
+                    Some(c) => ("msgqueue_paused", c.human()),
+                    // ⚠ "will send when the relay is reachable" is RESERVED for the
+                    // TRANSIENT class. A paused head is not transient, so say what is
+                    // actually holding the queue (O5: visibly moving or visibly stuck).
+                    None => match head_pause {
+                        Some(c) => ("msgqueue_paused", c.human()),
+                        None => ("msgqueue_queued", "will send when the relay is reachable"),
+                    },
+                },
+                None => ("msgqueue_queued", "will send when the relay is reachable"),
+            }
+        };
+        emit_marker("msgqueue_not_sent", Some(code), &[("cause", cause)]);
+        // Report the SPECIFIC transport cause when there is one; fall back to the queue's
+        // own state otherwise. A queued message still exits non-zero -- safe is not sent.
+        return Err(CliError::code(sender.last_code().unwrap_or(code)));
     }
     Ok(())
 }
@@ -2087,12 +2305,79 @@ fn emit_relay_push_diagnostic(diag: RelayPushDiagnostic) {
     );
 }
 
+/// D617 census C11, resolved by **Option B** (operator-ruled 2026-07-28, STOP 007).
+///
+/// The message queue must tell a **401 token rejection** (a fixable PAUSE that resumes on a
+/// settings save) from a **403** (which is not a pause at all -- on the invite path it is a
+/// ticketless push to a consumed slot). The shipped DIAGNOSTIC code cannot carry that
+/// distinction: `relay_push_qsc_error_for_status` collapses `UNAUTHORIZED | FORBIDDEN` into
+/// the single marker `relay_unauthorized`, and four test files depend on that string --
+/// including `NA_0663_relay_tls_trust.rs`, whose assertion exists precisely to stop a 401
+/// being misreported as a TLS trust failure.
+///
+/// **Option A -- renaming the 401 code -- was REJECTED**: it would have required rewriting
+/// that guard, and rewriting a guard to match new behaviour silently weakens a safety
+/// assertion. The tree already establishes the safer pattern (NA-0681 refined this same
+/// match *conditionally* and kept the 403 default "byte-identical to before").
+///
+/// So the classification rides **beside** the code rather than replacing it: every existing
+/// caller still sees exactly the `&'static str` it saw before, no marker string moves, and
+/// the queue derives its PAUSE cause from the class. The remaining marker-layer collapse
+/// (401 and 403 indistinguishable in raw logs) is a narrow diagnostic-observability gap and
+/// is FILED, not silenced.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum PushFailClass {
+    /// 401 — the relay refused the access token. Fixable, so it PAUSES rather than fails.
+    TokenRejected,
+    /// 403 — refused for a reason that is not the bearer token.
+    Forbidden,
+    /// 413 — larger than this relay accepts. Fails THAT MESSAGE ONLY.
+    TooLarge,
+    /// 429 — the mailbox is full. Retryable.
+    QueueFull,
+    /// The certificate could not be trusted. Fail-closed, PAUSES.
+    CertUntrusted,
+    /// Unreachable, timeout, 5xx — retryable.
+    Transient,
+    /// Anything else. Retryable, because O4 forbids surfacing a retryable failure as
+    /// permanent and "unknown" is not evidence of permanence.
+    Other,
+}
+
+pub(crate) struct PushFailure {
+    /// The UNCHANGED shipped code. Existing callers see only this.
+    pub(crate) code: &'static str,
+    pub(crate) class: PushFailClass,
+}
+
+fn push_fail_class_for_status(status: HttpStatus) -> PushFailClass {
+    match status {
+        HttpStatus::UNAUTHORIZED => PushFailClass::TokenRejected,
+        HttpStatus::FORBIDDEN => PushFailClass::Forbidden,
+        HttpStatus::PAYLOAD_TOO_LARGE => PushFailClass::TooLarge,
+        HttpStatus::TOO_MANY_REQUESTS => PushFailClass::QueueFull,
+        s if s.is_server_error() => PushFailClass::Transient,
+        _ => PushFailClass::Other,
+    }
+}
+
 pub(super) fn relay_inbox_push(
     relay_base: &str,
     route_token: &str,
     payload: &[u8],
 ) -> Result<(), &'static str> {
     relay_inbox_push_with_ticket(relay_base, route_token, payload, None)
+}
+
+/// The classified form the message queue uses. Same request, same diagnostics, same codes --
+/// it just also reports WHICH failure it was, so a PAUSE cause can be derived from the
+/// status instead of from a string that deliberately collapses two causes.
+pub(crate) fn relay_inbox_push_classified(
+    relay_base: &str,
+    route_token: &str,
+    payload: &[u8],
+) -> Result<(), PushFailure> {
+    relay_inbox_push_inner(relay_base, route_token, payload, None)
 }
 
 /// NA-0681 (D616 §2e): the same push, optionally presenting the one-shot invite ticket.
@@ -2108,14 +2393,32 @@ pub(super) fn relay_inbox_push_with_ticket(
     payload: &[u8],
     ticket: Option<&str>,
 ) -> Result<(), &'static str> {
-    let route_token = normalize_route_token(route_token)?;
-    let base = normalize_relay_endpoint(relay_base)?;
+    // Every pre-existing caller sees exactly the code it saw before; the class is dropped.
+    relay_inbox_push_inner(relay_base, route_token, payload, ticket).map_err(|f| f.code)
+}
+
+fn relay_inbox_push_inner(
+    relay_base: &str,
+    route_token: &str,
+    payload: &[u8],
+    ticket: Option<&str>,
+) -> Result<(), PushFailure> {
+    let fail = |code: &'static str, class: PushFailClass| PushFailure { code, class };
+    let route_token =
+        normalize_route_token(route_token).map_err(|c| fail(c, PushFailClass::Other))?;
+    let base = normalize_relay_endpoint(relay_base).map_err(|c| fail(c, PushFailClass::Other))?;
     let base = base.trim_end_matches('/');
     let url = format!("{}/v1/push", base);
     let client = match relay_http_client() {
         Ok(v) => v,
-        Err(RelayHttpClientError::CaFile(code)) => return Err(code),
-        Err(RelayHttpClientError::Build) => return Err("relay_inbox_push_failed"),
+        // A configured CA that cannot be read is a LOCAL file problem, not a trust failure --
+        // the distinction NA-0674 states for states 12 vs 3. Either way it pauses.
+        Err(RelayHttpClientError::CaFile(code)) => {
+            return Err(fail(code, PushFailClass::CertUntrusted))
+        }
+        Err(RelayHttpClientError::Build) => {
+            return Err(fail("relay_inbox_push_failed", PushFailClass::Other))
+        }
     };
     let mut req = client
         .post(url)
@@ -2146,7 +2449,14 @@ pub(super) fn relay_inbox_push_with_ticket(
                 route_header_present: true,
                 auth_present,
             });
-            return Err(outcome);
+            // The cert class is already distinguishable here (NA-0663); everything else on
+            // this branch is a transport failure, which is retryable by definition.
+            let class = if outcome == "relay_tls_untrusted" {
+                PushFailClass::CertUntrusted
+            } else {
+                PushFailClass::Transient
+            };
+            return Err(fail(outcome, class));
         }
     };
     let status = resp.status();
@@ -2160,18 +2470,27 @@ pub(super) fn relay_inbox_push_with_ticket(
         route_header_present: true,
         auth_present,
     });
+    // ⚠ The CODES below are unchanged from before NA-0682. Only the CLASS is added, and it
+    // is derived from the status rather than from the code -- which is the whole point of
+    // Option B, because `relay_unauthorized` deliberately covers two different causes.
+    let class = push_fail_class_for_status(status);
     match status {
         HttpStatus::OK => Ok(()),
         // NA-0681: an invite slot refuses a push that presents no live ticket, and says so
         // with its own code. Only reachable when a ticket was offered, i.e. on the invite
         // handshake path -- an ordinary push never sends the header and a 403 there stays
         // `relay_unauthorized`, byte-identical to before.
-        HttpStatus::FORBIDDEN if ticket.is_some() => Err(crate::invite::INVITE_TICKET_INVALID),
-        HttpStatus::GONE if ticket.is_some() => Err(crate::invite::INVITE_EXPIRED_AT_RELAY),
-        HttpStatus::UNAUTHORIZED | HttpStatus::FORBIDDEN => Err("relay_unauthorized"),
-        HttpStatus::PAYLOAD_TOO_LARGE => Err("relay_inbox_too_large"),
-        HttpStatus::TOO_MANY_REQUESTS => Err("relay_inbox_queue_full"),
-        _ => Err("relay_inbox_push_failed"),
+        HttpStatus::FORBIDDEN if ticket.is_some() => {
+            Err(fail(crate::invite::INVITE_TICKET_INVALID, class))
+        }
+        HttpStatus::GONE if ticket.is_some() => Err(fail(
+            crate::invite::INVITE_EXPIRED_AT_RELAY,
+            PushFailClass::Other,
+        )),
+        HttpStatus::UNAUTHORIZED | HttpStatus::FORBIDDEN => Err(fail("relay_unauthorized", class)),
+        HttpStatus::PAYLOAD_TOO_LARGE => Err(fail("relay_inbox_too_large", class)),
+        HttpStatus::TOO_MANY_REQUESTS => Err(fail("relay_inbox_queue_full", class)),
+        _ => Err(fail("relay_inbox_push_failed", class)),
     }
 }
 
@@ -2939,6 +3258,440 @@ pub(super) fn invite_revoke_call(
     }
 }
 
+
+
+
+// ---------------------------------------------------------------------------
+// NA-0682 (D617 §2e): the crypto + network half of the drain.
+//
+// `msgqueue` owns the FIFO/backoff POLICY and knows nothing about ratchets or HTTP; this
+// type is the other half. Keeping them apart is what lets the policy be unit-tested with a
+// fake sender -- which is how "packed exactly once across four attempts" became a one-line
+// assertion instead of an argument about ratchet internals.
+// ---------------------------------------------------------------------------
+
+pub(crate) struct RelayMessageSender<'a> {
+    relay: &'a str,
+    /// Captured at pack time and replayed at commit. On a REPLAY there is no pack outcome,
+    /// so this stays `None` and the stored trigger is preserved -- the same rule
+    /// `finalize_send_commit` already follows for the outbox-replay path.
+    trigger: Option<QspTriggerState>,
+    /// SCKA control envelopes that must be pushed BEFORE the message envelope, in order.
+    pre_envelopes: Vec<Vec<u8>>,
+    /// The routed device, captured at pack time for the timeline entry at commit.
+    device_id: Option<String>,
+    /// ⚠ METADATA-PRIVACY CONFIG, threaded through to `qsp_pack`.
+    ///
+    /// These four were silently DROPPED when `qsc send` was rewired around
+    /// `relay_send_with_payload` — and the whole test suite stayed green, because no test
+    /// asserts padding. Clippy's unused-variable warning was the only thing that noticed.
+    /// `pad_cfg` and `bucket_max` are metadata padding/bucketing, `meta_seed` is
+    /// deterministic-meta mode, and `receipt` is the requested receipt kind: dropping them
+    /// is a privacy regression, not a tidiness one.
+    pad_cfg: Option<MetaPadConfig>,
+    bucket_max: Option<usize>,
+    meta_seed: Option<u64>,
+    receipt_kind: Option<ReceiptKind>,
+    /// The relay's advertised body limit, fetched only when a 413 actually happens.
+    last_limit: Option<u64>,
+    /// ⚠ The PRECISE failure code from the last attempt.
+    ///
+    /// `AttemptResult` deliberately carries only the queue's coarse vocabulary (retry /
+    /// pause / fail), because that is all the FIFO policy needs. But the CLI must still
+    /// report the specific cause -- `relay_drop_injected` is not `relay_inbox_push_failed`,
+    /// and collapsing them would be exactly the "distinct causes, distinct words" failure
+    /// this project keeps finding. So the code rides alongside, not inside, the result.
+    last_code: Option<&'static str>,
+}
+
+impl<'a> RelayMessageSender<'a> {
+    /// The precise code from the most recent failed attempt, if any.
+    pub(crate) fn last_code(&self) -> Option<&'static str> {
+        self.last_code
+    }
+
+    /// The relay's advertised `max_body_bytes`, if a 413 caused us to look it up.
+    pub(crate) fn last_limit(&self) -> Option<u64> {
+        self.last_limit
+    }
+
+    pub(crate) fn new(relay: &'a str) -> Self {
+        Self {
+            relay,
+            trigger: None,
+            pre_envelopes: Vec::new(),
+            device_id: None,
+            pad_cfg: None,
+            bucket_max: None,
+            meta_seed: None,
+            receipt_kind: None,
+            last_limit: None,
+            last_code: None,
+        }
+    }
+
+    /// Carry the caller's metadata-privacy settings into the pack.
+    pub(crate) fn with_meta(
+        mut self,
+        pad_cfg: Option<MetaPadConfig>,
+        bucket_max: Option<usize>,
+        meta_seed: Option<u64>,
+        receipt: Option<ReceiptKind>,
+    ) -> Self {
+        self.pad_cfg = pad_cfg;
+        self.bucket_max = bucket_max;
+        self.meta_seed = meta_seed;
+        // ⚠ F6 DEFERRED (operator-ruled 2026-07-28): the SENDER half defaults OFF too.
+        // No receipt requested => the body goes on the wire RAW, exactly as pre-NA-0682, so
+        // the wire is pre-F6-quiet by default and no ack can be provoked. A half-flip (this
+        // side on, the honour side off) would leave the wire noisy while the feature looked
+        // disabled.
+        self.receipt_kind = receipt;
+        self
+    }
+
+    /// Map a push failure class to the queue's vocabulary.
+    ///
+    /// ⚠ This is where C11/Option B pays off: the PAUSE cause is derived from the HTTP
+    /// STATUS CLASS, not from the marker string -- which deliberately collapses 401 and 403
+    /// into one code and therefore cannot express this distinction.
+    ///
+    /// ⚠ O4 governs the default: anything unrecognised is RETRYABLE. "Unknown" is not
+    /// evidence of permanence, and surfacing a retryable failure as permanent is the exact
+    /// thing O4 forbids.
+    fn classify(class: PushFailClass) -> msgqueue::AttemptResult {
+        use msgqueue::{AttemptResult, PausedCause};
+        match class {
+            PushFailClass::TokenRejected => AttemptResult::Pause(PausedCause::TokenRejected),
+            PushFailClass::CertUntrusted => AttemptResult::Pause(PausedCause::Cert),
+            // 413: terminal for THIS message (it cannot succeed against this relay), but NOT
+            // permanent -- it heals against a relay with a larger limit.
+            PushFailClass::TooLarge => AttemptResult::Fail,
+            PushFailClass::QueueFull | PushFailClass::Transient | PushFailClass::Forbidden => {
+                AttemptResult::Retry
+            }
+            PushFailClass::Other => AttemptResult::Retry,
+        }
+    }
+}
+
+impl<'a> msgqueue::MessageSender for RelayMessageSender<'a> {
+    fn pack(
+        &mut self,
+        rec: &msgqueue::QueuedMessage,
+    ) -> Result<(Vec<u8>, Vec<u8>, String), msgqueue::AttemptResult> {
+        // ⚠ A REVOKED session is the ONLY permanent cause in v1 (O4/A10), and it is detected
+        // LOCALLY -- the relay has no session-revoked signal on the push path. The contact
+        // record's device state carries it, and `resolve_send_routing_target` already
+        // refuses with `device_revoked`. That makes the one permanent state deterministic
+        // and testable without a hostile relay.
+        let routing = match resolve_send_routing_target(rec.peer.as_str()) {
+            Ok(v) => v,
+            Err("device_revoked") => return Err(msgqueue::AttemptResult::FailPermanent),
+            // Anything else about routing is a local configuration problem that can heal.
+            Err(_) => return Err(msgqueue::AttemptResult::Retry),
+        };
+        emit_cli_routing_marker(
+            routing.peer_alias.as_str(),
+            routing.device_id.as_str(),
+            routing.implicit_primary,
+        );
+        emit_cli_confirm_policy();
+        // ⚠ Wrap the body in the data control envelope carrying THIS RECORD'S msg_id.
+        //
+        // This is what makes the delivery-ack correlate to the queued row: the peer echoes
+        // the id back and the sender flips exactly that record SENT -> DELIVERED. The old
+        // path minted an id here that the queue knew nothing about; unifying them is what
+        // lets A4 work against the store rather than against the timeline alone.
+        // Wrap in the data control envelope ONLY when a receipt was explicitly requested.
+        // The envelope is what carries the `msg_id` an ack echoes back, so no request means
+        // no envelope, no ack, and a byte-for-byte pre-NA-0682 wire.
+        let wire_body = match self.receipt_kind {
+            Some(kind) => match crate::encode_data_payload_with_id(
+                rec.body.clone(),
+                kind,
+                rec.msg_id.as_str(),
+            ) {
+                Ok(v) => v,
+                Err(_) => return Err(msgqueue::AttemptResult::Retry),
+            },
+            None => rec.body.clone(),
+        };
+        match qsp_pack(
+            routing.channel.as_str(),
+            &wire_body,
+            self.pad_cfg,
+            self.meta_seed,
+        ) {
+            Ok(v) => {
+                // Same markers, same points, AND the same disk writes as the pre-NA-0682
+                // path. Enumerated from the side-effect inventory rather than discovered
+                // one failing test at a time.
+                if let Ok((dir, source)) = config_dir() {
+                    // ⚠ A PERSISTENT WRITE, not a marker. The QSP status record on disk is
+                    // what anything asking "is the protocol healthy" reads; skipping it left
+                    // that record stale on every send. Found by the inventory, not a test.
+                    record_qsp_status(&dir, source, true, "pack_ok", true, false);
+                }
+                emit_marker("qsp_pack", None, &[("ok", "true"), ("version", "5.0")]);
+                if let Some(label) = v.pad_label {
+                    let len_s = v.padded_len.to_string();
+                    emit_marker(
+                        "meta_pad",
+                        None,
+                        &[("bucket", label), ("padded_len", len_s.as_str())],
+                    );
+                }
+                let msg_idx_s = v.msg_idx.to_string();
+                let ck_idx_s = v.ck_idx.to_string();
+                emit_marker(
+                    "ratchet_send_advance",
+                    None,
+                    &[
+                        ("msg_idx", msg_idx_s.as_str()),
+                        ("ck_idx", ck_idx_s.as_str()),
+                    ],
+                );
+                let len_s = rec.body.len().to_string();
+                print_marker("send_prepare", &[("payload_len", len_s.as_str())]);
+                if self.receipt_kind.is_some() {
+                    emit_marker(
+                        "receipt_request",
+                        None,
+                        &[("kind", "delivered"), ("msg_id", "<redacted>")],
+                    );
+                }
+                if let Some(max_bucket) = self.bucket_max {
+                    let bucket = meta_bucket_for_len(v.envelope.len(), max_bucket);
+                    let bucket_s = bucket.to_string();
+                    let orig_s = v.envelope.len().to_string();
+                    let capped_s = v.envelope.len().min(max_bucket).to_string();
+                    emit_marker(
+                        "meta_bucket",
+                        None,
+                        &[
+                            ("bucket", bucket_s.as_str()),
+                            ("orig", orig_s.as_str()),
+                            ("capped", capped_s.as_str()),
+                            ("metric", "envelope_len"),
+                        ],
+                    );
+                }
+                self.trigger = Some(v.trigger);
+                self.pre_envelopes = v.pre_envelopes.clone();
+                self.device_id = Some(routing.device_id.clone());
+                Ok((v.envelope, v.next_state.snapshot_bytes(), routing.channel))
+            }
+            Err(err) => {
+                if let Ok((dir, source)) = config_dir() {
+                    record_qsp_status(&dir, source, false, err.code, false, false);
+                }
+                if let Some(reason) = err.reason {
+                    emit_marker(
+                        "qsp_pack",
+                        Some(err.code),
+                        &[("ok", "false"), ("reason", reason)],
+                    );
+                } else {
+                    emit_marker("qsp_pack", Some(err.code), &[("ok", "false")]);
+                }
+                Err(msgqueue::AttemptResult::Retry)
+            }
+        }
+    }
+
+    fn push(&mut self, rec: &msgqueue::QueuedMessage) -> Result<(), msgqueue::AttemptResult> {
+        let Some(ciphertext) = rec.ciphertext.as_ref() else {
+            // Unreachable by construction: the drain only pushes what it packed.
+            return Err(msgqueue::AttemptResult::Retry);
+        };
+        let routing = match resolve_send_routing_target(rec.peer.as_str()) {
+            Ok(v) => v,
+            Err("device_revoked") => return Err(msgqueue::AttemptResult::FailPermanent),
+            Err(_) => return Err(msgqueue::AttemptResult::Retry),
+        };
+        // ⚠ Fault injection must stay reachable on the DEFAULT send path. It lives at the
+        // push boundary, and the `relay_{drop,dup,reorder}_no_mutation` guards drive the
+        // adversarial surface through it -- bypassing it would quietly delete the project's
+        // ability to simulate a lossy relay at all.
+        if let Ok(Some(fi)) = fault_injector_from_env() {
+            let idx = next_fault_index();
+            let idx_s = idx.to_string();
+            let seed_s = fi.seed.to_string();
+            if let Some(action) = fault_action_for(&fi, idx) {
+                match action {
+                    FaultAction::Drop => {
+                        emit_marker(
+                            "relay_event",
+                            None,
+                            &[
+                                ("action", "drop"),
+                                ("idx", idx_s.as_str()),
+                                ("seed", seed_s.as_str()),
+                                ("scenario", fi.scenario.as_str()),
+                            ],
+                        );
+                        print_marker("send_attempt", &[("ok", "false")]);
+                        self.last_code = Some("relay_drop_injected");
+                        return Err(msgqueue::AttemptResult::Retry);
+                    }
+                    FaultAction::Reorder => {
+                        emit_marker(
+                            "relay_event",
+                            None,
+                            &[
+                                ("action", "reorder"),
+                                ("idx", idx_s.as_str()),
+                                ("seed", seed_s.as_str()),
+                                ("scenario", fi.scenario.as_str()),
+                            ],
+                        );
+                    }
+                }
+            }
+        }
+
+        // NA-0624: SCKA advertisements go first, in order. Their secret material is already
+        // durable and the chain advance rides in the record's next_state, so a failure here
+        // is recovered by the ordinary retry.
+        for pre in self.pre_envelopes.iter() {
+            if let Err(f) =
+                relay_inbox_push_classified(self.relay, routing.route_token.as_str(), pre)
+            {
+                emit_marker("relay_event", None, &[("action", "push_fail")]);
+                print_marker("send_attempt", &[("ok", "false")]);
+                self.last_code = Some(f.code);
+                return Err(Self::classify(f.class));
+            }
+            emit_marker("relay_event", None, &[("action", "deliver_control")]);
+        }
+        match relay_inbox_push_classified(self.relay, routing.route_token.as_str(), ciphertext) {
+            Ok(()) => {
+                emit_marker("relay_event", None, &[("action", "deliver")]);
+                emit_cli_delivery_state_with_device(
+                    rec.peer.as_str(),
+                    "accepted_by_relay",
+                    Some(routing.device_id.as_str()),
+                );
+                Ok(())
+            }
+            Err(f) => {
+                emit_marker("relay_event", None, &[("action", "push_fail")]);
+                print_marker("send_attempt", &[("ok", "false")]);
+                self.last_code = Some(f.code);
+                // A9 / DESIGN §2: a too-large failure must NAME THE RELAY'S LIMIT, not just
+                // say "too large" -- the user cannot act on the latter. Looked up only when
+                // a 413 actually happens, so the ordinary path pays nothing, and treated as
+                // best-effort: an unavailable server-info must not turn a clear failure into
+                // a confusing one.
+                if f.class == PushFailClass::TooLarge {
+                    if let Ok(RelayServerInfoOutcome::Reachable { doc, .. }) =
+                        relay_server_info(self.relay)
+                    {
+                        self.last_limit = Some(doc.max_body_bytes);
+                    }
+                }
+                Err(Self::classify(f.class))
+            }
+        }
+    }
+
+    fn commit(&mut self, rec: &msgqueue::QueuedMessage) -> Result<(), &'static str> {
+        // O2: only now -- the relay durably accepted the bytes (200 == fsynced, NA-0644
+        // lineage). Committing the ratchet earlier would advance state for a message the
+        // relay never took.
+        let (Some(next_state), Some(channel)) = (rec.next_state.as_ref(), rec.channel.as_ref())
+        else {
+            return Err("msgqueue_inflight_incomplete");
+        };
+        let st = Suite2SessionState::restore_bytes(next_state)
+            .map_err(|_| "outbox_state_parse_failed")?;
+        let stored = match self.trigger.as_ref() {
+            Some(trig) => qsp_session_store_with_trigger(channel.as_str(), &st, trig),
+            None => qsp_session_store(channel.as_str(), &st),
+        };
+        stored.map_err(|_| "qsp_session_store_failed")?;
+
+        // The send counter is maintained exactly as before: advanced once per accepted
+        // message, on the commit path only. Keeping it means `send.state` stays meaningful
+        // for every observer that already reads it, and the exactly-once property is now
+        // ALSO guarded directly at the ratchet
+        // (`a_successful_send_commits_the_ratchet_exactly_once`).
+        let (dir, source) = config_dir().map_err(|_| "send_commit_write_failed")?;
+        let next_seq = match read_send_state(&dir, source) {
+            Ok(Ok(v)) => v + 1,
+            _ => return Err("send_state_parse_failed"),
+        };
+        let state_bytes = format!("send_seq={}\n", next_seq).into_bytes();
+        write_atomic(&dir.join(SEND_STATE_NAME), &state_bytes, source)
+            .map_err(|_| "send_commit_write_failed")?;
+        // The timeline entry is still written HERE, at commit -- so
+        // `timeline_written_on_send_commit_only` keeps holding. The O1 row lives in the
+        // message queue (a separate store, per F4); the timeline remains the record of what
+        // was actually SENT. Two stores, two meanings, neither pretending to be the other.
+        if let Err(code) = timeline_append_entry_for_target(
+            rec.peer.as_str(),
+            "out",
+            rec.body.len(),
+            "file",
+            MessageState::Sent,
+            // Only carry the id when an ack could actually reference it (pre-NA-0682 shape).
+            self.receipt_kind.map(|_| rec.msg_id.as_str()),
+            self.device_id.as_deref(),
+        ) {
+            emit_message_state_reject("<redacted>", code);
+            emit_marker("error", Some(code), &[("op", "timeline_send_ingest")]);
+        }
+        print_marker("send_attempt", &[("ok", "true")]);
+        let seq_s = next_seq.to_string();
+        print_marker("send_commit", &[("send_seq", seq_s.as_str())]);
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod receipt_sender_default_tests {
+    use super::{ReceiptKind, RelayMessageSender};
+
+    /// NA-0682 (D617 F6, DEFERRED — operator Condition 4). ⚠ PIN THE DEFAULT, SENDER HALF.
+    ///
+    /// The recipient-honours half is pinned in `lib.rs::message_state_tests`. This is the other
+    /// half, and it is pinned separately ON PURPOSE: F6 has two independent switches, and
+    /// flipping only one leaves the wire noisy while the feature looks disabled. `receipt_kind`
+    /// of `None` is what makes the body go out RAW — no data control envelope, no `msg_id` on
+    /// the wire, nothing an ack can be provoked by.
+    #[test]
+    fn sender_requests_no_receipt_by_default() {
+        let s = RelayMessageSender::new("https://relay.invalid");
+        assert!(
+            s.receipt_kind.is_none(),
+            "the sender must request NO receipt by default"
+        );
+    }
+
+    /// And carrying metadata settings must not quietly turn it on: `with_meta` takes the
+    /// caller's choice verbatim, including "no receipt".
+    #[test]
+    fn with_meta_does_not_enable_receipts() {
+        let s = RelayMessageSender::new("https://relay.invalid").with_meta(None, None, None, None);
+        assert!(
+            s.receipt_kind.is_none(),
+            "with_meta must not enable receipts when the caller asked for none"
+        );
+        let on = RelayMessageSender::new("https://relay.invalid").with_meta(
+            None,
+            None,
+            None,
+            Some(ReceiptKind::Delivered),
+        );
+        assert!(
+            on.receipt_kind.is_some(),
+            "and an EXPLICIT request must still be honoured -- the mechanism ships, only the \
+             default waits"
+        );
+    }
+}
+
 #[cfg(test)]
 mod relay_push_diagnostic_tests {
     use super::*;
@@ -3059,4 +3812,3 @@ mod relay_push_diagnostic_tests {
         );
     }
 }
-

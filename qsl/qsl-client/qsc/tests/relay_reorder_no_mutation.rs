@@ -115,7 +115,9 @@ fn relay_reorder_no_implicit_recovery() {
     assert!(out.contains("event=send_attempt ok=false"));
     assert!(out.contains("code=relay_inbox_push_failed"));
     assert_no_implicit_recovery(&out);
-    assert!(cfg.join("outbox.json").exists());
+    // ⚠ NA-0682 MIGRATION (D617 §2b/§2c, Option A). Was the single global in-flight slot;
+    // the default send path now commits to the per-contact MESSAGE QUEUE before packing.
+    assert_eq!(common::queued_record_count(&cfg), 1);
     assert!(!cfg.join("send.state").exists());
 }
 
@@ -129,7 +131,9 @@ fn relay_drop_plus_reorder_no_mutation() {
     let drop_out = send_once(&drop_cfg, "0");
     assert!(drop_out.contains("event=relay_event action=drop"));
     assert!(drop_out.contains("code=relay_drop_injected"));
-    assert!(drop_cfg.join("outbox.json").exists());
+    // ⚠ NA-0682 MIGRATION (D617 §2b/§2c, Option A). Was the single global in-flight slot;
+    // the default send path now commits to the per-contact MESSAGE QUEUE before packing.
+    assert_eq!(common::queued_record_count(&drop_cfg), 1);
     assert!(!drop_cfg.join("send.state").exists());
 
     let reorder_cfg = base.join("cfg_reorder");
@@ -137,6 +141,8 @@ fn relay_drop_plus_reorder_no_mutation() {
     let reorder_out = send_once(&reorder_cfg, "3");
     assert!(reorder_out.contains("event=relay_event action=reorder"));
     assert!(reorder_out.contains("code=relay_inbox_push_failed"));
-    assert!(reorder_cfg.join("outbox.json").exists());
+    // ⚠ NA-0682 MIGRATION (D617 §2b/§2c, Option A). Was the single global in-flight slot;
+    // the default send path now commits to the per-contact MESSAGE QUEUE before packing.
+    assert_eq!(common::queued_record_count(&reorder_cfg), 1);
     assert!(!reorder_cfg.join("send.state").exists());
 }

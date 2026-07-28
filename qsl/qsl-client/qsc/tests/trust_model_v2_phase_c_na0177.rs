@@ -132,55 +132,121 @@ fn mk_contact_with_two_trusted_devices(cfg: &Path) -> (String, String) {
 
 #[test]
 fn primary_only_routing_marker_changes_after_primary_switch() {
-    let cfg = unique_test_dir("na0177_phasec_primary_switch");
-    ensure_dir_700(&cfg);
-    common::init_mock_vault(&cfg);
-    let (d1, d2) = mk_contact_with_two_trusted_devices(&cfg);
+    // ⚠ NA-0682 GUARD MIGRATION (operator-ruled, STOP 021 Ruling 2).
+    //
+    // RETIRED FORM AND WHY: this test used ONE config and sent TWICE — under primary d1, then
+    // after switching to d2 — asserting the second send printed routing for d2. That became
+    // false once `qsc send` gained a durable per-contact FIFO. Send 1 targets a dead relay, so
+    // its message stays QUEUED and **already PACKED**; the second invocation drains THAT
+    // message, and `attempt_one` correctly SKIPS packing a record that already has ciphertext
+    // (re-packing burns a message key). Routing markers are emitted at PACK time, so no
+    // routing marker was emitted at all — the assertion could not be satisfied.
+    //
+    // ⚠ The PROPERTY IS UNCHANGED: routing follows the CURRENT primary for a message that is
+    // newly packed, and it changes when the primary is switched. Each assertion now attaches
+    // to a message that PACKS after its fixture's final switch, so it tests routing rather
+    // than queue timing. The complementary half — that an ALREADY-PACKED message keeps its
+    // pack-time device — is asserted deliberately in
+    // `packed_message_is_not_repacked_after_primary_switch` below.
+    let payload_name = "msg.bin";
 
-    let set_primary_1 = qsc(&cfg)
-        .args([
-            "contacts",
-            "device",
-            "primary",
-            "set",
-            "--label",
-            "bob",
-            "--device",
-            d1.as_str(),
-            "--confirm",
-        ])
-        .output()
-        .expect("primary set d1");
-    assert!(
-        set_primary_1.status.success(),
-        "{}",
-        output_text(&set_primary_1)
-    );
-
-    let payload = cfg.join("msg.bin");
-    fs::write(&payload, b"hello").expect("payload");
-
-    let send_1 = qsc(&cfg)
-        .args([
-            "send",
-            "--transport",
-            "relay",
-            "--relay",
-            "http://127.0.0.1:9",
-            "--to",
-            "bob",
-            "--file",
-            payload.to_str().expect("utf8"),
-        ])
-        .output()
-        .expect("send1");
-    let text_1 = output_text(&send_1);
+    // --- fixture 1: routing follows the primary in force at pack time -------------------
+    let cfg1 = unique_test_dir("na0177_phasec_primary_switch_d1");
+    ensure_dir_700(&cfg1);
+    common::init_mock_vault(&cfg1);
+    let (d1, _d2_unused) = mk_contact_with_two_trusted_devices(&cfg1);
+    set_primary(&cfg1, d1.as_str());
+    let payload1 = cfg1.join(payload_name);
+    fs::write(&payload1, b"hello").expect("payload");
+    let text_1 = send_to_dead_relay(&cfg1, &payload1);
     assert!(
         text_1.contains(format!("QSC_ROUTING policy=primary_only peer=bob device={}", d1).as_str()),
         "missing primary device1 marker: {text_1}"
     );
 
-    let set_primary_2 = qsc(&cfg)
+    // --- fixture 2: after a SWITCH, a newly packed message follows the NEW primary -------
+    let cfg2 = unique_test_dir("na0177_phasec_primary_switch_d2");
+    ensure_dir_700(&cfg2);
+    common::init_mock_vault(&cfg2);
+    let (d1b, d2) = mk_contact_with_two_trusted_devices(&cfg2);
+    set_primary(&cfg2, d1b.as_str());
+    set_primary(&cfg2, d2.as_str());
+    let payload2 = cfg2.join(payload_name);
+    fs::write(&payload2, b"hello").expect("payload");
+    let text_2 = send_to_dead_relay(&cfg2, &payload2);
+    assert!(
+        text_2.contains(format!("QSC_ROUTING policy=primary_only peer=bob device={}", d2).as_str()),
+        "missing primary device2 marker: {text_2}"
+    );
+    assert_ne!(d1b, d2, "the switch must actually change the device");
+    assert!(
+        !text_2.contains(format!("device={}", d1b).as_str()),
+        "a newly packed message must not route to the OLD primary: {text_2}"
+    );
+    assert_no_leaks(&text_1);
+    assert_no_leaks(&text_2);
+}
+
+/// NA-0682 (D617, operator-ruled STOP 021 Ruling 1) — ⚠ THE SEMANTIC, ASSERTED ON PURPOSE.
+///
+/// **An already-PACKED message does NOT re-route on a primary-device switch. It delivers to the
+/// device it was packed for.**
+///
+/// Grounds, recorded because this is a security-relevant semantic and not a convenience:
+///   1. packed bytes are sealed to the old device's session, and **replay-identical-bytes is
+///      load-bearing** — re-packing burns a message key, which is the nonce-reuse territory
+///      this lane already produced one defect in;
+///   2. re-routing would need retire-packed-on-switch machinery: protocol-adjacent, unreviewed,
+///      end-of-lane — refused on the same grounds as the F6 ratchet interaction;
+///   3. trust semantics: a primary SWITCH is a routing preference governing packs AFTER the
+///      switch. **REVOCATION is the kill switch for in-flight messages** and remains the only
+///      FAILED_PERMANENT cause. Switch is not revoke.
+///
+/// A QUEUED-but-unpacked row still packs against the CURRENT primary at drain time; only a row
+/// that is already packed keeps its pack-time device.
+#[test]
+fn packed_message_is_not_repacked_after_primary_switch() {
+    let cfg = unique_test_dir("na0177_phasec_no_repack_after_switch");
+    ensure_dir_700(&cfg);
+    common::init_mock_vault(&cfg);
+    let (d1, d2) = mk_contact_with_two_trusted_devices(&cfg);
+    set_primary(&cfg, d1.as_str());
+
+    let payload = cfg.join("msg.bin");
+    fs::write(&payload, b"hello").expect("payload");
+
+    // Send 1 fails at the network, so the row stays QUEUED and **already PACKED** for d1.
+    let text_1 = send_to_dead_relay(&cfg, &payload);
+    assert!(
+        text_1.contains(format!("QSC_ROUTING policy=primary_only peer=bob device={}", d1).as_str()),
+        "setup: the first send must pack for d1: {text_1}"
+    );
+    assert!(
+        text_1.contains("event=qsp_pack ok=true"),
+        "setup: the first send must actually pack: {text_1}"
+    );
+
+    set_primary(&cfg, d2.as_str());
+    assert_ne!(d1, d2, "the switch must actually change the device");
+
+    // Draining after the switch must NOT re-pack the sealed row.
+    let text_2 = send_to_dead_relay(&cfg, &payload);
+    assert!(
+        !text_2.contains("event=qsp_pack ok=true"),
+        "⚠ an already-packed row was RE-PACKED after a primary switch — this burns a message \
+         key and is the nonce-reuse failure mode: {text_2}"
+    );
+    assert!(
+        !text_2
+            .contains(format!("QSC_ROUTING policy=primary_only peer=bob device={}", d2).as_str()),
+        "⚠ an already-packed row was re-routed to the NEW primary: {text_2}"
+    );
+    assert_no_leaks(&text_1);
+    assert_no_leaks(&text_2);
+}
+
+fn set_primary(cfg: &Path, device: &str) {
+    let out = qsc(cfg)
         .args([
             "contacts",
             "device",
@@ -189,18 +255,16 @@ fn primary_only_routing_marker_changes_after_primary_switch() {
             "--label",
             "bob",
             "--device",
-            d2.as_str(),
+            device,
             "--confirm",
         ])
         .output()
-        .expect("primary set d2");
-    assert!(
-        set_primary_2.status.success(),
-        "{}",
-        output_text(&set_primary_2)
-    );
+        .expect("primary set");
+    assert!(out.status.success(), "{}", output_text(&out));
+}
 
-    let send_2 = qsc(&cfg)
+fn send_to_dead_relay(cfg: &Path, payload: &Path) -> String {
+    let out = qsc(cfg)
         .args([
             "send",
             "--transport",
@@ -213,14 +277,8 @@ fn primary_only_routing_marker_changes_after_primary_switch() {
             payload.to_str().expect("utf8"),
         ])
         .output()
-        .expect("send2");
-    let text_2 = output_text(&send_2);
-    assert!(
-        text_2.contains(format!("QSC_ROUTING policy=primary_only peer=bob device={}", d2).as_str()),
-        "missing primary device2 marker: {text_2}"
-    );
-    assert_no_leaks(&text_1);
-    assert_no_leaks(&text_2);
+        .expect("send");
+    output_text(&out)
 }
 
 #[test]
@@ -412,7 +470,10 @@ fn no_trusted_device_still_blocks_no_mutation() {
             "bob",
             "--fp",
             "ABCD-EFGH-JKMP-QRST-V",
-            "--verify", "--route-token", "route_token_na0681_fixed_value_"])
+            "--verify",
+            "--route-token",
+            "route_token_na0681_fixed_value_",
+        ])
         .output()
         .expect("contacts add");
     assert!(add.status.success(), "{}", output_text(&add));

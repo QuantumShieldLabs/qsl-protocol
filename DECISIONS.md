@@ -34129,3 +34129,207 @@ ENG-0081 (house defaults that differ from tool defaults; its own micro-lane).
 
 **Queue:** `READY=NONE`. Slice 3 (qsc outbox + delivery + acks) is next in the epic and is
 drafted at its turn per epic §4 Q3.
+
+## D-1319 — NA-0682: a primary-device SWITCH does not re-route an ALREADY-PACKED message; REVOCATION is the mechanism that stops delivery
+
+- **Date:** 2026-07-28
+- **Lane:** NA-0682 · **Directive:** QSL-DIR-2026-07-27-617 (D617) · **Operator ruling:** STOP 021, Ruling 1
+- **Goals:** G1 (product lane — messaging epic Slice 3), supports G4
+- **Class:** semantic ruling, recorded because a guard surfaced it and a side effect is not a decision
+
+### The ruling
+
+**An already-PACKED message does NOT re-route when the peer's primary device is switched. It is
+delivered to the device it was packed for.** A QUEUED-but-**unpacked** row still packs against the
+**current** primary at drain time; only a row that already holds ciphertext keeps its pack-time
+device.
+
+### Grounds (recorded verbatim, per the ruling)
+
+1. **Packed bytes are sealed to the old device's session, and replay-identical-bytes is
+   load-bearing** — re-packing burns a message key. That is the nonce-reuse territory this lane
+   already produced one defect in.
+2. **Re-routing would require retire-packed-on-switch machinery** — protocol-adjacent, unreviewed,
+   and proposed at the end of a long lane. Refused on the same grounds as the F6 ratchet
+   interaction (STOP 016).
+3. **Trust semantics: a primary SWITCH is a routing preference governing packs AFTER the switch.
+   REVOCATION is the kill switch for in-flight messages**, and remains the only cause of
+   `FAILED_PERMANENT`. ⚠ **Switch is not revoke.**
+
+### How it is enforced and observed
+
+- `msgqueue::attempt_one` packs at most once per record (`if !rec.is_packed()`), so a retry replays
+  the same bytes and never re-resolves routing.
+- Asserted deliberately by
+  `trust_model_v2_phase_c_na0177::packed_message_is_not_repacked_after_primary_switch`, with a
+  red-capable control that disables the skip-pack logic so a retry re-packs — which reddens the
+  guard **and** guards the replay-identical-bytes property itself.
+- The complementary half — routing follows the **current** primary for a **newly packed** message —
+  is asserted by `primary_only_routing_marker_changes_after_primary_switch` (migrated to isolated
+  fixtures; control: make routing ignore the configured primary → red).
+
+### How it was found
+
+⚠ **Not by design review.** It surfaced as a red guard in the lane's final full suite, because
+routing markers are emitted at pack time and the second send in a shared fixture drained an
+already-packed row. **The behaviour was correct; what was missing was the decision.**
+
+**Slice 4 surfacing of this** — if any UI exposes device switching — **is FILED to the Slice 4
+design session, not built here.**
+
+## D-1317 — NA-0682 implementation evidence: MESSAGING EPIC SLICE 3, the message queue that makes "no silent loss" true of the default send path — and the nonce-reuse bug this lane nearly shipped
+
+- **Date:** 2026-07-28
+- **Lane:** NA-0682 · **Directive:** QSL-DIR-2026-07-27-617 (D617), sha256
+  `f4cca70cf78f85346a0afdf2745d5aeb03ce353bfc4c0fc37f96f4d3e3f7be34`, 642 lines
+- **Goals:** G1 (product lane — Slice 3 of the messaging epic), supports G4
+- **Result class:** `QSC_OUTBOX_DELIVERY_PASS`
+
+### ⚠ DIRECTIVE AMENDMENT — D617 §4 F6 is DEFERRED, not executed (operator-ruled 2026-07-28, Option D)
+
+**Mark-don't-rewrite. F6 as ruled stands on the record; this records what the lane actually
+built and why it differs.**
+
+**F6 ruled delivery acks ON by default.** This lane ships the **mechanism** and leaves the
+default **OFF — both halves**: the recipient-honours side (`ReceiptPolicy::default().mode`)
+and the sender-requests side (`RelayMessageSender::receipt_kind`). With no receipt requested
+the body goes on the wire **raw**, so the wire is byte-for-byte pre-NA-0682 by default. A
+half-flip was explicitly rejected: it would leave the wire noisy while the feature looked
+disabled.
+
+⚠ **This is F6's own revisitability clause firing, not an overturn.** F6 recorded itself as
+**"REVISITABLE under real testing — a config default, not a structural choice."** Real testing
+arrived and proved the opposite of the premise: the flip is a **protocol-cadence change**, not
+a UX default. Measured, by single-variable experiment:
+
+| receipt default | `handshake_mvp::dh_ratchet_e2e_roundtrip_over_real_handshake` |
+|---|---|
+| `Batched` (F6 as ruled) | **FAILS** |
+| `Off` (as shipped) | **PASSES** |
+
+Turning acks on makes the recipient's automatic ack their first send, so it **consumes the DH
+ratchet-on-reply boundary** and **triggers a PQ reseed per received message** — moving the most
+expensive operation in the system from once-per-exchange to once-per-receive, at a cost nobody
+measured. It also makes every receive produce a send (a structural timing signal) and changes
+envelope shape at a boundary.
+
+**Precedent:** F5 of this same directive kept **ENG-0043's lease-default flip out of scope** for
+exactly this reason — a default flip that changes protocol behaviour deserves its own deliberate
+step. Applying that rule to one flag and not the other, one paragraph apart, would have been the
+inconsistency.
+
+**Filed as ENG-0086** with all four findings, the design question the flip lane must answer *by
+design session and measurement rather than by a default value* (**should a delivery ack originate
+a DH boundary / count as PCS liveness?**), and the binding sequencing note: **the flip must
+conclude BEFORE Slice 4's DELIVERED-rendering design settles.**
+
+**Pinned, so the default cannot drift silently:**
+`message_state_tests::receipt_default_is_off_recipient_half` and
+`transport::receipt_sender_default_tests::sender_requests_no_receipt_by_default`. ⚠ Both are
+**designed to go red when the flip lands** — that is the signal, not a regression.
+
+### ⚠ A FALSE DIAGNOSIS ON A TIER-1 TRUST PROPERTY, FOUND AND FIXED IN-LANE
+
+**Making O1 true briefly cost the user the truth about WHY a send failed.** A TLS
+trust-configuration failure (unreadable CA file) and a rejected access token (401) were both
+reported as **"queued — will send when the relay is reachable."** `NA_0663_relay_tls_trust` was
+green at base (11/11) and red in the lane — caught by an operator stop condition placed on exactly
+this file.
+
+⚠ **Why it mattered:** an operator whose relay presents an untrusted certificate — possibly an
+active interception — was told to wait for the network. Distinguishing that from a flaky link is
+the entire purpose of that guard.
+
+**Cause:** not a lost code. The classifier was correct throughout. O1 put a durable **per-contact
+FIFO** between the transport and the user, and a message queued *behind* a not-due or paused
+message is **never attempted**, so the send path had no cause to report and fell back to a generic
+line. `relay_ca_file_missing` survived only because it happened to be the first sub-case in its
+test. Full map: `docs/governance/evidence/NA-0682_send_path_swallow_map.md`.
+
+**Fix (operator-ruled):** enqueue stays **unconditional** — refusing to enqueue would make the
+user's typed message lossable, the exact silent loss O1 prevents, and fail-closed governs
+*transmission*, which enqueueing does not perform. Local, message-independent relay-config faults
+are now classified **without any network attempt** and named with the existing taxonomy codes; the
+row is **PAUSED with the trust cause named**, which saving relay settings resumes; and when a
+message was not attempted, the **head's** cause is reported. ⚠ *"Will send when the relay is
+reachable"* is now **reserved for the transient class only** (O5). Four controls, each breaking the
+**classification** rather than a string, each red (testplan §B rows 13-16).
+
+**One guard sub-case migrated** (`NA_0663_relay_tls_trust.rs:494`) because under the new queue it
+was attempted only if a retry backoff had expired — ⚠ **a FLAKE, not a clean failure: identical
+source passed 11/11 twice and failed a third run.** It now runs on its own config; the asserted
+property is unchanged and red-capability was re-proven after the migration.
+
+### ⚠ CORRECTION TO THIS LANE'S OWN RECORD — a reported defect that was not one
+
+**NA-0682 reported a "7th dropped capability" (the timeline entry `kind` hardcoded to `"file"`)
+and it was WRONG.** At base, every writer of that field on the relay send path is the literal
+`"file"` (`transport/mod.rs:2504`, `:2614`; `:2408` reads back the field only `:2504` writes).
+The replacement is **behaviour-identical**; an indirection was mistaken for a capability, by
+tracing the old value to its call site and not to its **writer**.
+
+The Director issued an authorization on the strength of that report; it was withdrawn once the
+error surfaced, and **no fix and no regression test were written**. Recorded here because a
+correction that only lives in a stop file is not on the record. See **OBS-FB**.
+
+### What shipped
+
+`qsc send` now **commits a durable QUEUED row to an encrypted per-contact message queue
+before anything is packed or pushed**, then drains it. **O1 ("no silent loss") is therefore
+true of the path users actually use** — not of an opt-in verb, which is the claims-honesty
+failure the alternative would have been.
+
+- **`src/msgqueue/`** (new): one file per message, so an enqueue is a single `write_atomic`
+  and a record is committed or absent, never partial. Records are AEAD-encrypted under a
+  32-byte store key **held in the vault and cached once per process** (F4), with **AAD
+  binding `contact_key || msg_id || seq`** so a record cannot be moved between contacts or
+  renumbered. States `QUEUED → SENT → DELIVERED`, plus `FAILED` and `FAILED_PERMANENT`;
+  **PAUSED is a sub-state of QUEUED**, never terminal. Backoff 5s→15s→45s→2m→5m with jitter.
+- **Per-contact strict FIFO with independent contacts** (§2c): a stuck message blocks its own
+  contact only. In-flight ratchet state moved **per message** to make that true.
+- **The drain is a callable, not a loop** (F3): Slice 4 owns the timer.
+- **Receive**: store durably **then** ack (C16 — previously the sender could be told
+  DELIVERED while the recipient had no stored message); `(session, msg_id)` dedup in the new
+  store (F5); control payload at **`v:2`** with a **128-bit CSPRNG `msg_id`** (F1, and the
+  derived `sha512(plaintext)[..8]` id is **deleted**); unknown control types **ignored**
+  rather than rendered as messages (C6).
+- **`qsc outbox status|retry|discard`**: §2h's honest surface (the no-daemon limitation is
+  emitted unconditionally), F3's drain entry point, and F2's named discard.
+- **C11 via Option B**: the queue derives its PAUSE cause from the HTTP **status class**; no
+  shipped diagnostic code moved and no existing test changed.
+
+### ⚠ The finding that mattered most: a nonce-reuse bug, caught before it shipped
+
+`qsp_pack` advances the ratchet, and that advance lives only in the record's `next_state`
+until committed. **The terminal-failure paths dropped it** — so the next pack would reuse the
+abandoned message key, and if that ciphertext had reached the relay (push sent, response
+lost) **two ciphertexts would exist under one AEAD key**. Fixed by `retire_packed`: commit
+the advance, **then** drop the bytes, **fail-closed** (a failed commit keeps the message
+QUEUED — a queued message is recoverable, a lost advance is not). Proven by reverting the fix
+and observing `left: 0, right: 1` commits.
+
+**It was found by reading a shipped test's NAME** —
+`abort_burns_state_and_prevents_nonce_reuse_on_next_send` — before editing near it. Neither
+the code, the census, nor the design said the `send abort` "burn" was a nonce barrier;
+`action=burned` reads like cleanup.
+
+### Evidence
+
+**Nine bidirectional negative controls, nine observed RED**, each restored byte-identical
+(§B of the testplan). 32 msgqueue unit tests, 5 classifier tests, A1+A2 killing a real
+process inside the window. Full suite result recorded in the as-built.
+
+### Decisions folded in (all operator-ruled)
+
+`msgqueue` naming (the crate already had an `outbox`, and it is a nonce barrier, not a queue)
+· `MsgState::Failed` distinct from `FailedPermanent`, with DESIGN §1 amended · C11 Option B ·
+§2c Option 1 · Option A send wiring **under a binding condition** (per guard: old RED-then-
+retired, new RED-then-GREEN, so no property was ever unguarded) · F6 acks ON by default,
+**Batched** so the timing mitigation ships engaged · the `ns` namespace marker, folded into
+DESIGN F2.
+
+### Limits, stated
+
+A1 proves crash-safety against **process death, not power loss**. **A12 is argued
+structurally and not exercised by a test.** A9's "name the relay's limit" is not wired.
+Relay-level at-least-once still does not run at default settings. See testplan §C.

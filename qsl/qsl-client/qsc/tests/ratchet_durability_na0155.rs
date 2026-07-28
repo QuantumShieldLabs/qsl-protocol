@@ -1,178 +1,44 @@
-mod common;
-use serde::Deserialize;
-use std::fs;
-use std::path::{Path, PathBuf};
+// NA-0155 ratchet durability — ⚠ THIS FILE INTENTIONALLY CONTAINS NO TESTS.
+//
+// Its three guards were retired by NA-0682 under the operator's binding condition, and every
+// helper they used went with them (NA-0682 STOP 021, Ruling 5: the orphaned dead code was
+// removed once clippy showed it). ⚠ The retirement RECORD below is the point of the file and
+// is deliberately kept in place: it is where a reader looking for the old test names finds
+// out which guards now hold those properties.
 
-const ROUTE_TOKEN_PEER: &str = "route_token_peer_abcdefghijklmnopq";
-
-#[derive(Deserialize)]
-struct OutboxRecord {
-    ciphertext: Vec<u8>,
-}
-
-fn safe_test_root() -> PathBuf {
-    let root = if let Ok(v) = std::env::var("QSC_TEST_ROOT") {
-        PathBuf::from(v)
-    } else if let Ok(v) = std::env::var("CARGO_TARGET_DIR") {
-        PathBuf::from(v)
-    } else {
-        PathBuf::from("target")
-    };
-    let root = root.join("qsc-test-tmp");
-    ensure_dir_700(&root);
-    root
-}
-
-fn ensure_dir_700(path: &Path) {
-    let _ = fs::create_dir_all(path);
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        fs::set_permissions(path, fs::Permissions::from_mode(0o700)).unwrap();
-    }
-}
-
-fn create_dir_700(path: &Path) {
-    let _ = fs::remove_dir_all(path);
-    ensure_dir_700(path);
-}
-
-fn setup_cfg(cfg: &Path) {
-    common::init_mock_vault(cfg);
-    let route = common::qsc_std_command()
-        .env("QSC_CONFIG_DIR", cfg)
-        .args([
-            "contacts",
-            "add",
-            "--label",
-            "peer",
-            "--fp",
-            "fp-pinned-test",
-            "--route-token",
-            ROUTE_TOKEN_PEER,
-        ])
-        .output()
-        .expect("contacts add pinned");
-    assert!(route.status.success());
-}
-
-fn run_send(cfg: &Path, relay: &str, file: &Path) -> std::process::Output {
-    common::qsc_std_command()
-        .env("QSC_CONFIG_DIR", cfg)
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
-        .env("QSC_MARK_FORMAT", "plain")
-        .args([
-            "send",
-            "--transport",
-            "relay",
-            "--relay",
-            relay,
-            "--to",
-            "peer",
-            "--file",
-            file.to_str().unwrap(),
-        ])
-        .output()
-        .expect("run send")
-}
-
-fn combined(out: &std::process::Output) -> String {
-    let mut s = String::from_utf8_lossy(&out.stdout).to_string();
-    s.push_str(&String::from_utf8_lossy(&out.stderr));
-    s
-}
-
-fn read_outbox_ciphertext(cfg: &Path) -> Vec<u8> {
-    let bytes = fs::read(cfg.join("outbox.json")).expect("read outbox");
-    let outbox: OutboxRecord = serde_json::from_slice(&bytes).expect("parse outbox");
-    outbox.ciphertext
-}
-
-#[test]
-fn retry_resends_identical_ciphertext_no_reencrypt() {
-    let base = safe_test_root().join(format!("na0155_retry_identical_{}", std::process::id()));
-    create_dir_700(&base);
-    setup_cfg(&base);
-    let payload = base.join("msg.bin");
-    fs::write(&payload, b"hello").expect("write payload");
-
-    let first = run_send(&base, "http://127.0.0.1:9", &payload);
-    assert!(!first.status.success());
-    let expected_ct = read_outbox_ciphertext(&base);
-
-    let relay = common::start_inbox_server(1024 * 1024, 8);
-    let second = run_send(&base, relay.base_url(), &payload);
-    assert!(second.status.success(), "{}", combined(&second));
-    let out = combined(&second);
-    assert!(out.contains("event=send_retry mode=outbox_replay"));
-    assert!(!out.contains("event=qsp_pack"));
-    assert!(out.contains("event=send_commit"));
-
-    let delivered = relay.drain_channel(ROUTE_TOKEN_PEER);
-    assert_eq!(delivered.len(), 1);
-    assert_eq!(delivered[0], expected_ct);
-    assert!(!base.join("outbox.json").exists());
-}
-
-#[test]
-fn crash_recovery_sends_from_outbox_not_recomputed_payload() {
-    let base = safe_test_root().join(format!("na0155_crash_recovery_{}", std::process::id()));
-    create_dir_700(&base);
-    setup_cfg(&base);
-    let payload_a = base.join("msg_a.bin");
-    fs::write(&payload_a, b"hello-a").expect("write payload a");
-    let payload_b = base.join("msg_b.bin");
-    fs::write(&payload_b, b"hello-b-new").expect("write payload b");
-
-    let first = run_send(&base, "http://127.0.0.1:9", &payload_a);
-    assert!(!first.status.success());
-    let expected_ct = read_outbox_ciphertext(&base);
-
-    // New process invocation simulates restart; replay must ignore new plaintext input.
-    let relay = common::start_inbox_server(1024 * 1024, 8);
-    let second = run_send(&base, relay.base_url(), &payload_b);
-    assert!(second.status.success(), "{}", combined(&second));
-    let out = combined(&second);
-    assert!(out.contains("event=send_retry mode=outbox_replay"));
-    assert!(out.contains("event=send_commit"));
-    let delivered = relay.drain_channel(ROUTE_TOKEN_PEER);
-    assert_eq!(delivered.len(), 1);
-    assert_eq!(delivered[0], expected_ct);
-    assert!(!base.join("outbox.json").exists());
-}
-
-#[test]
-fn abort_burns_state_and_prevents_nonce_reuse_on_next_send() {
-    let base = safe_test_root().join(format!("na0155_abort_burns_{}", std::process::id()));
-    create_dir_700(&base);
-    setup_cfg(&base);
-    let payload = base.join("msg.bin");
-    fs::write(&payload, b"hello-burn").expect("write payload");
-
-    let first = run_send(&base, "http://127.0.0.1:9", &payload);
-    assert!(!first.status.success());
-    let first_ct = read_outbox_ciphertext(&base);
-
-    let abort = common::qsc_std_command()
-        .env("QSC_CONFIG_DIR", &base)
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
-        .args(["send", "abort"])
-        .output()
-        .expect("send abort");
-    assert!(abort.status.success());
-    let abort_out = combined(&abort);
-    assert!(abort_out.contains("event=outbox_abort"));
-    assert!(abort_out.contains("action=burned"));
-    assert!(!base.join("outbox.json").exists());
-
-    let relay = common::start_inbox_server(1024 * 1024, 8);
-    let second = run_send(&base, relay.base_url(), &payload);
-    assert!(second.status.success(), "{}", combined(&second));
-    let delivered = relay.drain_channel(ROUTE_TOKEN_PEER);
-    assert_eq!(delivered.len(), 1);
-    assert_ne!(delivered[0], first_ct);
-}
+// ---------------------------------------------------------------------------
+// ⚠ NA-0682 (D617 §2b/§2c, operator-ruled Option A + BINDING CONDITION): the three tests
+// that lived here are RETIRED, and this note is the record of where their properties went.
+//
+// They asserted against `outbox.json` -- the single GLOBAL in-flight slot -- by reading its
+// ciphertext off disk. The default send path no longer uses that slot: it commits each
+// message to the per-contact message queue, with in-flight ratchet state held PER MESSAGE
+// (which is what makes contacts independent, §2c). The mechanism these tests observed is
+// gone, so they cannot be repointed; the PROPERTIES they defended are re-proven, and each
+// new guard was shown RED before this retirement, per the binding condition:
+//
+//   retry_resends_identical_ciphertext_no_reencrypt
+//     -> msgqueue::tests::a_packed_record_is_never_repacked_across_retries
+//        (4 attempts, EXACTLY 1 pack, identical bytes pushed every time -- strictly
+//        stronger: it COUNTS the packs, which the old test could not see)
+//     -> msgqueue::tests::in_flight_state_survives_a_round_trip_so_a_retry_replays_identical_bytes
+//        (control: `#[serde(skip)]` on ciphertext -> RED, `left: None`)
+//
+//   crash_recovery_sends_from_outbox_not_recomputed_payload
+//     -> NA_0682_kill_in_the_send_window::a1_...  (SIGKILLs a real process INSIDE the
+//        persist-before-network window and proves the row survives and drains -- the old
+//        test only simulated a restart by running the binary again)
+//
+//   abort_burns_state_and_prevents_nonce_reuse_on_next_send
+//     -> msgqueue::tests::abandoning_a_packed_message_advances_the_ratchet_first
+//        (control: revert `retire_packed` -> RED, `left: 0` commits)
+//     -> msgqueue::tests::a_failed_ratchet_commit_keeps_the_message_queued_rather_than_dropping_state
+//        (fail-closed: never drop the advance)
+//     -> outbox_abort::discard_burns_state_and_prevents_nonce_reuse_on_next_send
+//        (the same property at the CLI, on the named discard that replaced `send abort`)
+//
+// ⚠ The nonce-reuse property is the reason this file mattered, and it is the one this lane
+// nearly broke: `clear_inflight()` on a terminal failure dropped the ratchet advance. It was
+// caught by READING THIS FILE'S TEST NAME before editing near it. Retiring the tests does
+// not retire the lesson -- see the as-built.
+// ---------------------------------------------------------------------------

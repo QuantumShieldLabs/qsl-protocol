@@ -483,6 +483,20 @@ fn family3_trust_failure_is_distinct_from_refused_dns_and_auth() {
     );
 
     // (iii) auth rejection over a TRUSTED certificate.
+    //
+    // ⚠ NA-0682 GUARD MIGRATION (operator-ruled, STOP 020 clause C). This sub-case runs on
+    // its OWN config. It previously shared `cfg` with (i) and (ii), which became
+    // TIMING-DEPENDENT once `qsc send` gained a durable per-contact FIFO: (i) leaves a
+    // message queued behind a ~5s retry backoff, and a later send to the same contact is not
+    // attempted until that backoff expires. Whether the 401 was ever observed then depended
+    // on how long TLS key generation took between sub-cases -- the same source passed 11/11
+    // twice and failed this assertion on a third, byte-identical run.
+    //
+    // ⚠ The PROPERTY is unchanged and is NOT weakened: an auth rejection must still be
+    // reported distinctly from a trust failure, and (i) and (ii) still assert that a refused
+    // connection and a DNS failure are not reported as trust failures. Only the fixture is
+    // isolated, so the assertion tests CAUSE DISTINCTNESS rather than queue timing.
+    let (cfg, payload) = prepared_cfg("family3_distinct_auth");
     let ca = make_ca("NA-0663 distinct auth CA");
     let (chain, key) = make_leaf(&ca);
     let server = start_tls_server(chain, key, "401 Unauthorized");

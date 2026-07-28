@@ -139,7 +139,62 @@ fn set_primary(cfg: &Path, device: &str) {
     assert!(out.status.success(), "{}", output_text(&out));
 }
 
-fn timeline_first_item_id_and_state(cfg: &Path) -> (String, String) {
+/// NA-0682 (D617, operator-ruled STOP 021) — FIRST-PARTY message-id acquisition.
+///
+/// ⚠ RETIRED FORM AND WHY. This file used to learn the message id by scraping `id=` out of the
+/// `event=timeline_item` DIAGNOSTIC MARKER. The marker layer redacts any value of >= 24 chars
+/// containing a digit (`should_redact_value` -> `looks_high_cardinality`,
+/// `src/output/mod.rs:292`). NA-0682 widened `msg_id` to 32 hex chars precisely to stop
+/// emitting the old `sha512(plaintext)[..8]` id — a fingerprint OF THE MESSAGE BODY (the C17
+/// leak, closed by F1) — and the widened id crosses that threshold. The scrape therefore
+/// returned the literal string `<redacted>`, and `qsc util receipt-apply --msg-id <redacted>`
+/// failed with `state_unknown`.
+///
+/// ⚠ This is the SECOND confirmed instance of that class (ENG-0087); the first was
+/// `message_state_model::replay_ack_does_not_advance_state`. It presented completely
+/// differently — a `state_unknown` from a CLI verb rather than a wrong reject code — which is
+/// why the class needs enumerating rather than fixing one symptom at a time.
+///
+/// The test IS the sender, so it reads the id IT MINTED from its OWN store: records live at
+/// `msgqueue_v1/<contact>/<seq:020>_<msg_id>.rec` and persist after a successful send. No
+/// marker, no redactor, no new shipped surface.
+fn first_party_sent_msg_id(cfg: &Path) -> String {
+    let root = cfg.join("msgqueue_v1");
+    let mut found: Vec<String> = Vec::new();
+    let contacts = fs::read_dir(&root).expect("msgqueue_v1 exists after a successful send");
+    for contact in contacts.flatten() {
+        let Ok(entries) = fs::read_dir(contact.path()) else {
+            continue;
+        };
+        for e in entries.flatten() {
+            let name = e.file_name().to_string_lossy().to_string();
+            let Some(stem) = name.strip_suffix(".rec") else {
+                continue;
+            };
+            let Some((_seq, id)) = stem.split_once('_') else {
+                continue;
+            };
+            found.push(id.to_string());
+        }
+    }
+    assert_eq!(
+        found.len(),
+        1,
+        "expected exactly one message record to read the id from, got {:?}",
+        found
+    );
+    // ⚠ Guard the migration itself: never accept the redaction sentinel as an id again.
+    assert_ne!(
+        found[0], "<redacted>",
+        "first-party acquisition must never yield the redaction sentinel"
+    );
+    found.pop().expect("one record")
+}
+
+/// ⚠ STATE ONLY. The id is deliberately NOT returned: an identifier read from a diagnostic
+/// marker is coupled to redaction policy (above), so this file acquires ids first-party and
+/// scrapes only `state=`, which the marker layer does not redact.
+fn timeline_first_item_state(cfg: &Path) -> String {
     let out = run(cfg, &["timeline", "list", "--peer", "bob", "--limit", "10"]);
     assert!(out.status.success(), "{}", output_text(&out));
     let text = output_text(&out);
@@ -147,18 +202,10 @@ fn timeline_first_item_id_and_state(cfg: &Path) -> (String, String) {
         if !line.contains("event=timeline_item") {
             continue;
         }
-        let mut id = None;
-        let mut state = None;
         for part in line.split_whitespace() {
-            if let Some(value) = part.strip_prefix("id=") {
-                id = Some(value.to_string());
-            }
             if let Some(value) = part.strip_prefix("state=") {
-                state = Some(value.to_string());
+                return value.to_string();
             }
-        }
-        if let (Some(id), Some(state)) = (id, state) {
-            return (id, state);
         }
     }
     panic!("missing timeline item: {text}");
@@ -202,7 +249,9 @@ fn receipt_apply_ignores_wrong_device_without_mutation_then_confirms_primary_tar
         send_text
     );
 
-    let (msg_id, before_state) = timeline_first_item_id_and_state(&cfg);
+    let before_state = timeline_first_item_state(&cfg);
+    // NA-0682: id acquired FIRST-PARTY (see `first_party_sent_msg_id`), never scraped.
+    let msg_id = first_party_sent_msg_id(&cfg);
     assert_eq!(before_state, "SENT", "{}", send_text);
 
     let wrong_channel = format!("bob#{wrong_device}");
@@ -227,7 +276,7 @@ fn receipt_apply_ignores_wrong_device_without_mutation_then_confirms_primary_tar
         wrong_text
     );
 
-    let (_, after_wrong_state) = timeline_first_item_id_and_state(&cfg);
+    let after_wrong_state = timeline_first_item_state(&cfg);
     assert_eq!(after_wrong_state, "SENT");
 
     let right_channel = format!("bob#{primary_device}");
@@ -252,6 +301,6 @@ fn receipt_apply_ignores_wrong_device_without_mutation_then_confirms_primary_tar
         right_text
     );
 
-    let (_, final_state) = timeline_first_item_id_and_state(&cfg);
+    let final_state = timeline_first_item_state(&cfg);
     assert_eq!(final_state, "DELIVERED", "{}", right_text);
 }

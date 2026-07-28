@@ -41,6 +41,60 @@ fn output_text(out: &std::process::Output) -> String {
     s
 }
 
+/// NA-0682 (D617, ruled on STOP 019) — FIRST-PARTY message-id acquisition.
+///
+/// ⚠ THE RETIRED FORM, AND WHY IT WAS RETIRED. This test used to learn the message id by
+/// scraping `id=` out of the `event=timeline_item` DIAGNOSTIC MARKER
+/// (`timeline_first_item_id_and_state`). That coupled the test to REDACTION POLICY: the marker
+/// layer redacts any value of >= 24 chars containing a digit
+/// (`should_redact_value` -> `looks_high_cardinality`, `src/output/mod.rs:292`).
+///
+/// NA-0682 widened `msg_id` from 16 to 32 hex chars precisely to stop emitting the OLD id,
+/// which was `sha512(plaintext)[..8]` — a fingerprint OF THE MESSAGE BODY, printed raw, that
+/// slipped under the redactor only because 16 < 24 (the C17 leak, closed by F1). The widened
+/// id crosses the threshold, so the scrape silently returned the literal string `<redacted>`
+/// and the test built its acks against THAT.
+///
+/// ⚠ The failure mode is the lesson: a redaction sentinel that PARSES AS A VALID IDENTIFIER is
+/// a trap, not an error. The test did not fail at the scrape — it proceeded, and failed later,
+/// in a different subsystem, with a misleading code (OBS-EY, OBS-FA).
+///
+/// The test IS the sender, so it now reads the id IT MINTED from its OWN store: message records
+/// are `msgqueue_v1/<contact>/<seq:020>_<msg_id>.rec` and persist in state SENT after a
+/// successful send. No marker, no redactor, no new shipped surface.
+fn first_party_sent_msg_id(cfg: &Path) -> String {
+    let root = cfg.join("msgqueue_v1");
+    let mut found: Vec<String> = Vec::new();
+    let contacts = fs::read_dir(&root).expect("msgqueue_v1 exists after a successful send");
+    for contact in contacts.flatten() {
+        let Ok(entries) = fs::read_dir(contact.path()) else {
+            continue;
+        };
+        for e in entries.flatten() {
+            let name = e.file_name().to_string_lossy().to_string();
+            let Some(stem) = name.strip_suffix(".rec") else {
+                continue;
+            };
+            let Some((_seq, id)) = stem.split_once('_') else {
+                continue;
+            };
+            found.push(id.to_string());
+        }
+    }
+    assert_eq!(
+        found.len(),
+        1,
+        "expected exactly one message record to read the id from, got {:?}",
+        found
+    );
+    // ⚠ Guard the migration itself: never accept the redaction sentinel as an id again.
+    assert_ne!(
+        found[0], "<redacted>",
+        "first-party acquisition must never yield the redaction sentinel"
+    );
+    found.pop().expect("one record")
+}
+
 fn qsc_base(cfg: &Path) -> Command {
     let mut cmd = common::qsc_std_command();
     cmd.env("QSC_CONFIG_DIR", cfg)
@@ -447,12 +501,8 @@ fn replay_ack_does_not_advance_state() {
         .expect("send");
     assert!(send.status.success(), "{}", output_text(&send));
 
-    let list1 = qsc_base(&alice_cfg)
-        .args(["timeline", "list", "--peer", "bob", "--limit", "10"])
-        .output()
-        .expect("timeline list sent");
-    let list1_text = output_text(&list1);
-    let (msg_id, _) = timeline_first_item_id_and_state(&list1_text).expect("timeline item");
+    // NA-0682: id acquired FIRST-PARTY (see `first_party_sent_msg_id`), not scraped.
+    let msg_id = first_party_sent_msg_id(&alice_cfg);
 
     let bob_recv = qsc_base(&bob_cfg)
         .args([
@@ -585,12 +635,28 @@ fn replay_ack_does_not_advance_state() {
         .expect("replay recv");
     let replay_recv_text = output_text(&replay_recv);
     assert!(replay_recv.status.success(), "{}", replay_recv_text);
+    // NA-0682 (D617, ruled on STOP 019) — second half of the same migration, recorded
+    // rather than made silently. The RETIRED assertion embedded the raw id into the
+    // expected MARKER text (`... reason=state_duplicate id={msg_id}`). That could only
+    // ever pass while the marker layer PRINTED the id — i.e. it asserted the C17 leak
+    // (`sha512(plaintext)[..8]`, raw in the logs) that F1 closed. With a properly
+    // redacted id it is unsatisfiable by construction.
+    //
+    // The PROPERTY is unchanged and is asserted in three parts, none of which depend on
+    // an identifier reaching the diagnostic surface:
+    //   (a) the replay is rejected, and rejected AS A DUPLICATE (not as unknown);
+    //   (b) ⚠ the marker does NOT echo the raw id — the leak must stay closed, so this
+    //       is now asserted ON PURPOSE instead of depended upon;
+    //   (c) the entry does not move: still exactly one item, still DELIVERED (below).
     assert!(
-        replay_recv_text.contains(&format!(
-            "event=message_state_reject code=state_duplicate reason=state_duplicate id={}",
-            msg_id
-        )),
+        replay_recv_text
+            .contains("event=message_state_reject code=state_duplicate reason=state_duplicate"),
         "{}",
+        replay_recv_text
+    );
+    assert!(
+        !replay_recv_text.contains(msg_id.as_str()),
+        "the reject marker must not print the raw message id (C17/F1): {}",
         replay_recv_text
     );
 
@@ -602,6 +668,189 @@ fn replay_ack_does_not_advance_state() {
     let (_, final_state) =
         timeline_first_item_id_and_state(&list3_text).expect("timeline item final");
     assert_eq!(final_state, "DELIVERED", "{}", list3_text);
+}
+
+/// NA-0682 (D617, ruled on STOP 019, item 2) — an ack that identifies NO message must
+/// transition NOTHING.
+///
+/// ⚠ WHY THIS TEST EXISTS, recorded because the reason is the point. The property is real and
+/// the shipped code already held it — but it was evidenced **only by an accident**: a test
+/// whose id-scrape had silently degraded to the literal string `<redacted>` fed that garbage id
+/// into ack-apply, and the correct refusal (`state_unknown`, zero mutation) appeared as an
+/// incidental line inside a FAILING run. **Sole-evidence-by-accident is exactly what the audit
+/// discipline exists to eliminate**, so the property is now asserted on purpose.
+///
+/// This is the honest-delivery-claim guard for the ack path: an ack naming an id this client
+/// never sent must not be able to mark ANY message DELIVERED. `state_unknown` (no such id) and
+/// `state_duplicate` (known id, already delivered) are DISTINCT causes and stay distinct words —
+/// `replay_ack_does_not_advance_state` covers the other one.
+#[test]
+fn ack_for_unknown_msg_id_transitions_nothing() {
+    let server = common::start_inbox_server(1024 * 1024, 16);
+    let base = safe_test_root().join(format!("na0682_unknown_ack_{}", std::process::id()));
+    create_dir_700(&base);
+    let alice_cfg = base.join("alice_cfg");
+    let bob_cfg = base.join("bob_cfg");
+    let alice_out = base.join("alice_out");
+    let bob_out = base.join("bob_out");
+    create_dir_700(&alice_cfg);
+    create_dir_700(&bob_cfg);
+    create_dir_700(&alice_out);
+    create_dir_700(&bob_out);
+    common::init_mock_vault(&alice_cfg);
+    common::init_mock_vault(&bob_cfg);
+    contacts_route_set(&alice_cfg, "bob", ROUTE_TOKEN_BOB);
+    contacts_route_set(&bob_cfg, "alice", ROUTE_TOKEN_ALICE);
+    contacts_route_set(&bob_cfg, "bob", ROUTE_TOKEN_BOB);
+    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
+
+    let payload = base.join("msg.bin");
+    fs::write(&payload, b"na0682-unknown-ack").unwrap();
+    let send = qsc_base(&alice_cfg)
+        .args([
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--to",
+            "bob",
+            "--file",
+            payload.to_str().unwrap(),
+            "--receipt",
+            "delivered",
+        ])
+        .output()
+        .expect("send");
+    assert!(send.status.success(), "{}", output_text(&send));
+
+    let real_msg_id = first_party_sent_msg_id(&alice_cfg);
+
+    // Bob consumes the message WITHOUT `--emit-receipts`, so no genuine ack is ever produced.
+    // The ONLY ack in the mailbox is the forged one below — that is what makes this test
+    // non-vacuous rather than a race between two acks.
+    let bob_recv = qsc_base(&bob_cfg)
+        .args([
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--mailbox",
+            ROUTE_TOKEN_BOB,
+            // ⚠ `"bob"`, not `"alice"`: in this fixture the peer label `bob` resolves to
+            // ROUTE_TOKEN_BOB — the same mailbox both sides use — so the session is keyed on
+            // that label at both ends. Same shape the sibling tests in this file use.
+            "--from",
+            "bob",
+            "--max",
+            "1",
+            "--out",
+            bob_out.to_str().unwrap(),
+        ])
+        .output()
+        .expect("bob recv");
+    assert!(bob_recv.status.success(), "{}", output_text(&bob_recv));
+
+    // An id of the SAME SHAPE as a real one (32 lowercase hex) that this client never minted.
+    // Same shape matters: the refusal must be because the id is UNKNOWN, not because it is
+    // malformed or because it tripped a length check.
+    let unknown_id = "0123456789abcdef0123456789abcdef";
+    assert_eq!(
+        unknown_id.len(),
+        real_msg_id.len(),
+        "same shape as a real id"
+    );
+    assert_ne!(
+        unknown_id,
+        real_msg_id.as_str(),
+        "and genuinely not the real one"
+    );
+
+    let forged = base.join("unknown_ack.json");
+    write_ack_payload(&forged, unknown_id);
+    let forged_send = qsc_base(&bob_cfg)
+        .args([
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--to",
+            "bob",
+            "--file",
+            forged.to_str().unwrap(),
+        ])
+        .output()
+        .expect("forged ack send");
+    assert!(
+        forged_send.status.success(),
+        "{}",
+        output_text(&forged_send)
+    );
+
+    let alice_recv = qsc_base(&alice_cfg)
+        .args([
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--mailbox",
+            ROUTE_TOKEN_BOB,
+            "--from",
+            "bob",
+            "--max",
+            "1",
+            "--out",
+            alice_out.to_str().unwrap(),
+        ])
+        .output()
+        .expect("alice recv forged");
+    let recv_text = output_text(&alice_recv);
+    assert!(alice_recv.status.success(), "{}", recv_text);
+
+    // (a) it is REFUSED, and refused as UNKNOWN -- not as a duplicate.
+    assert!(
+        recv_text.contains("event=message_state_reject code=state_unknown"),
+        "{}",
+        recv_text
+    );
+    assert!(
+        !recv_text.contains("code=state_duplicate"),
+        "an unknown id must not be reported as a duplicate: {}",
+        recv_text
+    );
+    // (b) NOTHING is claimed delivered -- no receipt is recognised, no peer confirmation.
+    assert!(
+        !recv_text.contains("event=receipt_recv"),
+        "a forged ack must not register as a receipt: {}",
+        recv_text
+    );
+    assert!(
+        !recv_text.contains("event=delivered_to_peer"),
+        "a forged ack must not claim delivery: {}",
+        recv_text
+    );
+    assert!(
+        !recv_text.contains("QSC_DELIVERY state=peer_confirmed"),
+        "a forged ack must not confirm the peer: {}",
+        recv_text
+    );
+
+    // (c) ZERO MUTATION: the real message is still SENT, never advanced to DELIVERED.
+    let list = qsc_base(&alice_cfg)
+        .args(["timeline", "list", "--peer", "bob", "--limit", "10"])
+        .output()
+        .expect("timeline list");
+    let list_text = output_text(&list);
+    let (_, state) = timeline_first_item_id_and_state(&list_text).expect("timeline item");
+    assert_eq!(
+        state, "SENT",
+        "a forged ack moved a real message's state: {}",
+        list_text
+    );
 }
 
 #[test]

@@ -221,3 +221,80 @@ measured 16. **The map was also line-number-keyed and had already drifted**
 than re-derive, while this project's own instrument already carries the
 counter-rule: *key on content needles, never on a line number.* The map is
 annotated in place with content needles.
+
+---
+
+## 12. ADDENDUM (NA-0686A) — the OBS-C split, and the precondition now satisfied
+
+**Operator-authorized after the four main PRs merged. OBS-C first half only.**
+Three workflow-only PRs, all merged: `qsl-desktop` **#23** (`a727ad02`),
+`qsl-server` **#68** (`8d77cc6c`), `qsl-attachments` **#44** (`a74c3afc`).
+
+### What changed
+
+The literal scan now reports under its own context, **`infra-literal-scan`**,
+byte-consistent with `qsl-protocol`'s job (verified by comparing parsed step
+signatures, not by eye). An infrastructure literal and a leaked private key no
+longer fail as the same word.
+
+⚠ **THE INSTRUCTION'S PREMISE DID NOT HOLD, AND THE MEASUREMENT CHANGED THE SHAPE
+OF THE FIX.** The addendum was authorized as a split *"leaving `public-safety`'s
+remaining duties intact"*. Measured before editing: **in all three satellites
+`public-safety` had NO other duties — the scan was its entire content.** So
+*moving* the steps would have left a **required context that never reports**,
+and a required context that never reports **blocks every pull request
+indefinitely** — the NA-0653 failure. The change is therefore **additive**: the
+scan runs in the new job **and** stays in `public-safety` for the length of the
+transition. Duplicating a scan over 42–81 files is cheap; stranding three
+repositories is not.
+
+⚠ **A `needs:`-gated aggregate was considered and REJECTED on safety grounds:** a
+skipped job can count as SUCCESS for a required context in GitHub, which would
+turn a scan failure into a green `public-safety`. **Fail-open is not an option
+for this gate**, and "it looks tidier" is not a reason to accept one.
+
+The stale comment was the second half, and it had **inverted** rather than merely
+drifted: it claimed the repo required only `rust` and that both jobs were
+advisory, when live protection required three and both had been blocking. **A
+comment that understates a gate is worse than no comment** — it invites someone
+to merge past a red they were told was advisory.
+
+### ⚠ THE PRECONDITION FOR THE OPERATOR'S PROTECTION SWAP IS NOW SATISFIED
+
+Verified post-merge, on each satellite's **`main`**:
+
+| repo | main | `infra-literal-scan` on main |
+|---|---|---|
+| `qsl-desktop` | `a727ad02` | **SUCCESS** (run `30484653176`) |
+| `qsl-server` | `8d77cc6c` | **SUCCESS** (run `30484627994`) |
+| `qsl-attachments` | `a74c3afc` | **SUCCESS** (run `30484668141`) |
+
+`public-safety` reported SUCCESS beside it in all three, so **no required context
+stopped reporting at any point.**
+
+**The remaining step is operator-only and is now unblocked:** add
+`infra-literal-scan` to the required set and remove `public-safety`, then a later
+lane deletes the redundant job. It was correct to wait — adding a context that
+had never reported would have blocked every PR in three repositories.
+
+### The flake, resolved by one predicted experiment
+
+`qsl-server` **#68** went red once on `rust` —
+`na0347_secret_env_public_ingress_and_log_redaction_boundaries_hold`,
+`assertion failed: text.contains("channel_id=")`. **The lane STOPPED rather than
+rerunning**, diagnosed from evidence (branch differed from `main` in one workflow
+file, +59/−4; `main` green on the same tree eight minutes earlier; prior flake
+history in the suite; only the *positive* assertion failing), and predicted a
+log-capture race.
+
+**The operator ran the discriminating experiment: close/reopen produced a fresh
+run on a BYTE-IDENTICAL head — same SHA, no new commit. Run 1 RED, run 2 GREEN
+4/4.** Same tree, different outcome: a flake **demonstrated**, not assumed.
+
+⚠ **Never rerun into silence.** A green obtained by repeating until the noise
+stops is indistinguishable from a green obtained by fixing something, and it
+destroys the evidence that a flake existed at all. Filed as **ENG-0091**, with
+both data points — and it **disproved ENG-0065's reassuring half**, which had
+argued the defect was low-pressure *because* it never fails on the runner that
+decides merges. It has now failed there twice.
+

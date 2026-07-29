@@ -1209,6 +1209,29 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   with content needles for all three surfaces, since it is the artifact later lanes were told
   to cite rather than re-derive.
 
+### ENG-0091 — qsl-server log-capture assertions read the buffer without synchronising on the write, and they now flake ON THE RUNNER THAT DECIDES MERGES — **NEW; filed 2026-07-29 by NA-0686A (D-1325), at operator instruction**
+- Severity: **P2** (test-synchronisation correctness; **no runtime, protocol or security impact** — but it blocks merges non-deterministically, and a gate that fails at random teaches reviewers to disbelieve reds, which is the expensive part)
+- Status: open — filed 2026-07-29. **Nothing was fixed.** Filed at operator instruction after the second instance blocked an in-flight PR.
+- Exact surfaces, both in `qsl-server`, both the *capture-then-assert-immediately* shape:
+
+| # | date | test | site | assertion that failed |
+|---|---|---|---|---|
+| 1 | 2026-07-26 | `bundle_is_opaque_bytes_in_bytes_out_and_never_logged` | `tests/na0678_invite_slots.rs:562` | (log-capture assertion, run on `main` at `131d63f4`) |
+| 2 | 2026-07-29 | `na0347_secret_env_public_ingress_and_log_redaction_boundaries_hold` | `tests/qsl_attachments_integration_contract.rs:362` | `assertion failed: text.contains("channel_id=")` |
+
+- ⚠ **THE DISCRIMINATING EXPERIMENT, AND IT IS THE WHOLE EVIDENCE.** Instance 2 was resolved by **one predicted experiment, not by repetition**: the PR was closed and reopened, producing a fresh `pull_request` run **on a byte-identical head — the same SHA, no new commit**. **Run 1 RED (`30483439679`), run 2 GREEN 4/4 (`30484212181`).** Same tree, same command, different outcome. That is a flake demonstrated rather than assumed, and it is what distinguishes this from a real regression.
+- ⚠ **WHY THE ASSERTION IS THE POSITIVE ONE, EVERY TIME.** In instance 2 the *negative* assertions in the same block — that the route token, the auth token and the payload sentinel are **absent** from the log — all passed. Only the assertion that a line is **present** failed. A missing-flush race can only break the positive direction, which is both the signature of the defect and the reason it is not a redaction regression.
+- **Remedy sketch (NOT implemented):** replace **capture-then-assert** with either
+  **(a) poll-with-deadline** — await the expected line for a bounded interval and fail with a named timeout, or
+  **(b) flush-then-read** — synchronise on the subscriber/server having emitted before reading the buffer.
+  ⚠ **Red-capable, and the control is the point:** race it deliberately — assert immediately with no synchronisation, or run at high `--test-threads` — and the fixed form must still pass while the unfixed form fails. **A fix whose control cannot be made to fire has not been shown to fix anything.**
+- ⚠ **THIS IS ENG-0065's DEFECT, AND IT DISPROVES ENG-0065's REASSURING HALF.** ENG-0065 named this exact pattern (down to the `channel_id=` assertion) in `src/lib.rs::tests::logs_do_not_contain_raw_channel`, and argued it was low-pressure **because** it *"always passes on the 2-vCPU runner that decides merges"*. It has now failed on that runner twice. **The population is at least three tests across three files, not one**, so the fix is a pattern sweep rather than a one-line change.
+- **Family: ENG-0065 (same defect, now with runner evidence), ENG-0077, ENG-0078** — *instruments that do not instrument*. This is the family's shape on the synchronisation surface: **an assertion whose truth depends on TIMING rather than on the property it names.** A test that passes because the log happened to flush in time is measuring the scheduler, exactly as a test that scrapes a redacted marker measures redaction policy (ENG-0087).
+- ⚠ **DISCIPLINE NOTE, recorded because the handling is as reusable as the finding.** The lane **STOPPED** on the red rather than reruning it; **diagnosed from evidence** (branch differs from `main` in one workflow file, +59/−4; `main` green on the same tree eight minutes earlier; prior flake history in the same suite; only the positive assertion failing); **predicted flake**; and the operator then **resolved it with one experiment that could have falsified the prediction**. ⚠ **Never rerun into silence** — a green obtained by repetition until the noise stops is indistinguishable from a green obtained by fixing something, and it destroys the evidence that a flake existed at all.
+- Proof gap: nothing asserts these tests synchronise before reading their capture buffer; nothing runs the suite at a thread count where the race is visible; and **nothing tracks flake recurrence**, so instance 1 was forgotten until instance 2 made someone look.
+- Sequencing: independent; a `qsl-server` test-hardening micro-lane, implementation-only (test-only), naturally taken **together with ENG-0065** since they are one defect.
+- Cross-reference: ENG-0065; ENG-0077; ENG-0078; ENG-0087 (the same "asserting a proxy rather than the property" shape, one surface over); NA-0686 / D-1325.
+
 ## Workflow / process items
 
 ### WF-0001 — Cross-lane continuity requires an in-repo ledger
@@ -2265,6 +2288,9 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Proof gap: nothing awaits the server's on-response log before the buffer assertion; nothing runs the suite at high `--test-threads` where the race is visible.
 - Sequencing: independent; a `qsl-server` test-hardening micro-lane. Recommended directive shape: implementation-only (test-only).
 - Status: open — filed 2026-07-23 by NA-0670 (D-1297). **NOT fixed — NA-0670 touched only `auth_ok`, the `ct_eq_secret` helper, and the one same-length test.**
+- ⚠ **THIS ENTRY'S CENTRAL CLAIM IS DISPROVEN, 2026-07-29 by NA-0686A — annotated, not rewritten.** The headline says the defect *"always passes on the 2-vCPU runner that decides merges, so it generates no pressure to fix"*. **It has now failed on that runner twice**, on two different tests, blocking a merge each time (see **ENG-0091** for both data points and the discriminating experiment). The mechanism analysis here is sound and is what made the diagnosis quick; only the *reassuring half* was wrong.
+- ⚠ **AND THE SEVERITY ARGUMENT INVERTS WITH IT.** This was filed as a defect that generates no pressure to fix **because** it never fails where it counts. It now fails where it counts, so the "latent indefinitely" reasoning no longer holds — the pressure exists, and the cost is paid in stopped lanes and diagnostic cycles rather than in a silent latent risk. **A finding filed as low-priority BECAUSE it is invisible must be re-read the moment it becomes visible.**
+- Cross-reference: **ENG-0091** (the same missing-synchronisation pattern, measured on the GitHub runner, in two *further* test files — so the population is at least three, not one).
 
 ### ENG-0066 — qsl-server `TRACEABILITY.md` stopped tracking at NA-0012, so three accepted satellite decisions (D-0011/D-0012/D-0013) have no traceability row
 - Severity: P3 (traceability completeness; **no runtime, protocol, or security impact** — but "documented but not asserted" back-fills only get scheduled if written down, the WF-0041/WF-0042 class one repo over)

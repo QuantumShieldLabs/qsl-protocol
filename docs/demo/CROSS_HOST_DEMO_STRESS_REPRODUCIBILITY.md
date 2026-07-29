@@ -38,10 +38,10 @@ Host roles:
 
 Private addresses used:
 
-- Host A Tailscale IP: `100.82.111.69`.
-- Host B Tailscale IP: `100.99.234.5`.
-- Relay bind: `100.82.111.69:38685`.
-- Relay URL: `http://100.82.111.69:38685`.
+- Host A Tailscale IP: `<host-a-tailscale-ip>`.
+- Host B Tailscale IP: `<host-b-tailscale-ip>`.
+- Relay bind: `<host-a-tailscale-ip>:38685`.
+- Relay URL: `http://<host-a-tailscale-ip>:38685`.
 
 No public internet target was used. No router, firewall, Tailscale admin/API,
 VPN, DNS, or branch-protection setting was changed. SSH host-key verification
@@ -123,7 +123,7 @@ ssh remote 'chmod 700 /home/qslcodex/qsl-na0263/bin/qshield /home/qslcodex/qsl-n
 Run the proof from Host A using an unprinted generated relay token:
 
 ```bash
-export RELAY_URL="http://100.82.111.69:38685"
+export RELAY_URL="http://<host-a-tailscale-ip>:38685"
 export QSHIELD_BIN="/srv/qbuild/cache/targets/qsl-protocol/debug/qshield"
 export QSHIELD_ACTOR="/srv/qbuild/cache/targets/qsl-protocol/debug/refimpl_actor"
 export REMOTE_QSHIELD="/home/qslcodex/qsl-na0263/bin/qshield"
@@ -131,7 +131,7 @@ export REMOTE_ACTOR="/home/qslcodex/qsl-na0263/bin/refimpl_actor"
 export QSHIELD_RELAY_TOKEN="<generated but not printed>"
 
 "$QSHIELD_BIN" relay serve \
-  --listen "100.82.111.69:38685" \
+  --listen "<host-a-tailscale-ip>:38685" \
   --allow-public \
   --i-understand-this-is-unsafe
 ```

@@ -1094,6 +1094,41 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 
 ---
 
+### ENG-0088 — the claim-discipline guard family covers neither Cargo metadata nor module docs, and a retired claim survives in both — **NEW; filed 2026-07-29 by NA-0683 (D-1321; directive D618 F5, operator-ruled LEAVE-and-FILE)**
+- Severity: P3 (claim discipline / assurance; a published crate description states something the product outgrew)
+- Status: open — filed 2026-07-29. **Deliberately not fixed in-lane**: it needs a wording decision NA-0683 was not authorised to make, and the naming lane changed exactly one word per line.
+- Exact surfaces: `qsl-desktop` `src-tauri/Cargo.toml:6` (`description = "QSL desktop client — slice A: serverless skeleton …"`) and `src-tauri/src/lib.rs:1` (module doc, same phrase). The guard that retired this phrase is `src-tauri/tests/server_pane.rs::claim_discipline_five_surfaces_swept` (`:403-422`).
+- Claim violated: slice B shipped relay connectivity; "serverless skeleton" is no longer true of the crate it describes.
+- ⚠ **Why it matters, and why it is a needle gap rather than a typo:** the guard asserts the phrase is absent from `ui/index.html` and `src-tauri/src/commands.rs` **and nowhere else**. Cargo metadata is published (it reaches package registries and any bundle manifest) and module docs reach `cargo doc`. **The defect is the gap in the needle set, not the word** — a claim-discipline sweep that stops at the two files a previous lane happened to name will keep missing the surfaces nobody thought of.
+- Minimal fix direction: extend the claim-discipline needles to `Cargo.toml` and to `src/**.rs` module docs, then correct both strings in the same lane. Do not fix the strings without extending the needles, or the next stale claim lands in the same blind spot.
+- Proof gap: no test reads `Cargo.toml` or any module doc for claim discipline.
+- Recommended shape: **CI/tooling lane**, implementation-only, alongside ENG-0089.
+- ⚠ It is visible rather than hidden today: NA-0683's naming gate prints it as its single `RULED-LEAVE` entry on every run, by operator ruling F5.
+- Cross-reference: D-1320; D-1321; D618 §4 F5; NA-0683 as-built §2.1 and §9.
+
+### ENG-0089 — `host_retired_rig` fires on ADDED LINES ONLY, so the tree is only as clean as its last edit — **NEW; filed 2026-07-29 by NA-0683 (D-1321; OBS-8)**
+- Severity: P2 (gate design; it blocks correct work and its clean signal is weaker than it reads)
+- Status: open — filed 2026-07-29, with an operator question attached (below).
+- Exact surfaces: `scripts/ci/infra_literal_scan.py` (byte-identical across the four repos) in `--mode diff` / `--mode staged`; the pattern class `host_retired_rig`; the Tier-1 `--mode tree` class set that omits it. Observed instance: `qsl-desktop` `docs/DESIGN_SPEC_AppendixF.md:239`.
+- ⚠ **The failure shape, measured:** NA-0683's one-word edit to that line was refused by the pre-commit gate for a literal **already present on `main`**. `--mode tree` reports the same tree **clean**, because the class applies only to added lines. **Any lane that touches a legacy line inherits a gate failure it did not create**, and is then pushed toward either an out-of-scope redaction or a bypass.
+- Why it matters: a gate whose clean signal means "nobody has edited the dirty lines yet" is weaker than it reads, and the incentive it creates on a correct change is to work around it.
+- ⚠ **OPERATOR QUESTION FOR THE CI/TOOLING LANE (ruled 2026-07-29):** **promote `host_retired_rig` to Tier-1 tree-wide once the known instances are zeroed.** Sequencing matters — promoting first would turn every repo red on content already published.
+- Minimal fix direction: (1) the approved sanitization micro-lane zeroes the known instances, taking `AppendixF:239` **whole** — hostname → placeholder **and** NA-0683's deferred one-word relay fix (D-1320); (2) then Tier-1 adopts the class tree-wide; (3) the scanner reports which tier caught a hit so the two signals are never conflated.
+- Proof gap: no control proves the diff-mode class can fire on a line the tree-mode class ignores — NA-0683 produced that evidence by accident rather than by design.
+- Recommended shape: **CI/tooling lane**, implementation-only, sequenced **after** the sanitization micro-lane.
+- Cross-reference: D-1320 (F1's deferred 14th line); D-1321; NA-0683 as-built §3; D613 (the gate's origin).
+
+### ENG-0090 — the naming ruling's cross-repo remainder: five user-facing "Server" surfaces outside qsl-desktop — **NEW; filed 2026-07-29 by NA-0683 (D-1320's map)**
+- Severity: P3 (product vocabulary consistency; no correctness or security impact)
+- Status: open — filed 2026-07-29. NA-0683 was **fix-in-qsl-desktop, enumerate-only elsewhere**, by directive.
+- Exact surfaces, measured read-only against the bare mirrors: `qsl-protocol` `qsl/qsl-client/qsc/src/cmd/mod.rs:601` (⚠ **CLI help text** — clap derives `--help` from the doc comment, so a user reads it), `apps/qsl-tui/README.md:4`, ~10 prose lines under `docs/public/**` using "Server" for the service; `qsl-server` `README.md:7`; org `.github` `profile/README.md:70`.
+- Claim violated: none. This is the D-1320 ruling's remainder, not a defect.
+- ⚠ **Boundaries that are NOT in scope and must never be swept:** `"server": "qsl-server"` in the `/v1/server-info` body (**wire field**), the `relay_server_info=` CLI markers, `GET /v1/server-info`, and `qsl-server` the repo/crate/service name. `profile/README.md:33-34`'s "server-side" is **ruled LEAVE** — it is doing security-model work, not naming our pane.
+- Minimal fix direction: one small docs rider; the org profile line rides the operator's manual org-README rewrite instead.
+- Proof gap: none of these surfaces has a naming guard; `qsl-desktop`'s `relay_naming.rs` is the only one.
+- Recommended shape: **docs-evidence-only rider**, likely attached to the CI/tooling lane.
+- Cross-reference: D-1320 (the map — cite it, do not re-derive the enumeration); NA-0683 as-built §8.
+
 ## Workflow / process items
 
 ### WF-0001 — Cross-lane continuity requires an in-repo ledger

@@ -34414,3 +34414,158 @@ Nothing on merged `main` is rewritten to fix the one commit that already carries
 
 **Queue:** `READY=NONE | HIGHEST_NA=0682 | HIGHEST_D=1319`. The operator promotes; the
 executor cannot self-promote.
+
+## D-1320 — THE NAMING RULING, project-wide: the user-facing term is **RELAY**, never **SERVER** — with the follow-up map every later lane cites rather than re-derives
+
+**Date:** 2026-07-29. **Lane:** NA-0683. **Directive:** D618 (amended, sha256
+`48d77b12…f9d8b390`, 445 lines). **Implementation:** qsl-desktop PR #20 merged
+`d3d46c8e1e71ff951b85bf8ebfbff37f65aa5cef` (lane commit `9bb598b7`, repo-local **D-0021**).
+
+**THE RULING (operator, 2026-07-27), recorded with the reason that makes it right:**
+
+> The user-facing term is **"Relay", never "Server"**. *Relay* **teaches the security model**
+> — a dumb pipe forwarding opaque bytes, not a trust-holding service — it **matches the
+> protocol docs and the invite system**, and it **suits a privacy-conscious audience**.
+
+⚠ **The first clause is the property, and it is what bounds every future application of this
+ruling.** The word does security-model work **on surfaces a user reads**. It does none inside
+`#pane-server`, `relay_server_info`, `GET /v1/server-info` or `"server": "qsl-server"`, where
+a rename would cost compatibility and buy the reader nothing. **A lane that cites this
+decision to rename an identifier has misread it.**
+
+⚠ **THE RULING WAS ALREADY ~90% SHIPPED WHEN IT WAS MADE.** "Relay address", "Relay name",
+"Open relay", "Not a QSL relay" and `Relay: {url}` were in the product already — **in the same
+pane** as "No server configured" and "Couldn't reach the server". NA-0683 finished a word the
+product had chosen; it did not introduce one.
+
+**SCOPE APPLIED IN NA-0683:** `qsl-desktop` only — 16 user-facing lines at one word each, plus
+13 live normative lines in the design authority (F1), plus a guard (F4). Everything
+identifier-, key-, route- or wire-shaped was left alone, and the desktop's settings key was
+already `relay_url`.
+
+### The follow-up map — cite this, do not re-derive it
+
+Measured by read-only enumeration over the bare mirrors and a read-only clone of the org
+profile repo (`git grep -n -I -i 'server'`), 2026-07-29:
+
+| surface | raw hits | user-facing | disposition (operator, 2026-07-29) |
+|---|---|---|---|
+| `qsl-protocol` | 13 708 | **3** — `qsc` CLI **help text** (`qsl/qsl-client/qsc/src/cmd/mod.rs:601`, "Run a local relay server"); `apps/qsl-tui/README.md:4`; ~10 `docs/public` prose lines | **one small docs follow-up rider**, likely on the CI/tooling lane |
+| `qsl-server` | 541 | **1** — `README.md:7` "the transport-only **server** boundary" | same rider |
+| `qsl-attachments` | 66 | **0** | nothing to do |
+| org `.github` | 4 | **1** — `profile/README.md:70` "**server** configuration" | rides the operator's **manual org-README rewrite**; the Director drafts it |
+| org `.github` | — | `profile/README.md:33-34` "**server-side** user record" | ⚠ **LEAVE AFFIRMED** — it is doing **security-model work**, not naming our pane; "relay-side" would be a coinage |
+
+⚠ **NEVER TOUCHED BY ANY NAMING WORK, EVER — a named boundary:** `"server": "qsl-server"` in
+the relay's `/v1/server-info` body (a **wire field** that `qsc` reads and `qsl-desktop`
+renders), the `relay_server_info=` diagnostic markers in the `qsc` CLI, and the endpoint path
+itself. `qsl-server` the repo/crate/service name is a proper noun and stays.
+
+### F1's deferred 14th line
+
+`qsl-desktop`'s `docs/DESIGN_SPEC_AppendixF.md:239` is **F1's fourteenth line and it did not
+land.** It carries an operator-infrastructure literal already present on `main`; the class
+fires on **added lines only**, so the tree reads clean until a lane *touches* that line, and
+the one-word edit re-adds it. The pre-commit gate refused the commit and the edit was reverted
+rather than worked around.
+
+⚠ **Operator ruling: the line transfers WHOLE to the already-approved sanitization
+micro-lane, which makes BOTH edits to it — hostname → placeholder AND the one-word relay
+fix.** It is recorded here, in this map, as F1's deferred 14th line so that neither lane can
+lose it. Related instrument finding: **ENG-0089**.
+
+### Also filed from this lane
+
+**OBS-2** — `AppendixF:79` names reference markup `02-settings-server-pane.html` that is **not
+tracked in the repo** → the **Slice 4 spec refresh**.
+**F2** — `AppendixD:60`'s retired second clause ("server setup arrives in a future update"),
+which a one-word substitution would make **false** → the **Slice 4 spec refresh**.
+
+---
+
+## D-1321 — NA-0683 CLOSEOUT: `RELAY_NAMING_PASS`, and the lane whose gate had to count its own paperwork
+
+**Date:** 2026-07-29. **Lane:** NA-0683. **Directive:** D618 (amended, `48d77b12…f9d8b390`,
+445 lines). **Merged:** qsl-desktop PR **#20** → `d3d46c8e1e71ff951b85bf8ebfbff37f65aa5cef`,
+one lane commit `9bb598b7`, repo-local **D-0021**. **Ruling:** D-1320.
+**Evidence:** `docs/governance/evidence/NA-0683_as_built.md`;
+**instrument record:** `tests/NA-0683_relay_naming_testplan.md`.
+
+**WHAT SHIPPED.** 16 user-facing lines at one word each across 8 files; 13 live normative
+lines in the design authority, each edited file carrying **exactly one** dated revision line
+and no other added prose; a new guard `src-tauri/tests/relay_naming.rs` (5 tests). Every
+`⛔ SUPERSEDED` block untouched, per Appendix F's own mark-don't-rewrite convention.
+
+**THE CENSUS CORRECTED FOUR OF THE LANE INTENT'S OWN PREMISES**, each measured: the repo
+**does** have a public-safety scan (it simply cannot block — one required context, `rust`);
+the config-key stop condition **could not fire** (`relay_url`); **no existing test asserted
+any string the lane changed**, so the "update the expectations" work set was **empty**; and
+one user-facing string lived in **Rust, not `ui/`**.
+
+**EVIDENCE.** Gate run **RED first** (`GATE FAIL: 21`). Final sweep matched a written-first
+expectation exactly: **223** occurrences · `USER-FACING` **0** · `RULED-LEAVE` **1**, printed ·
+`TEST-NEEDLE` 24 · `DESIGN-SPEC` 6 · `IDENTIFIER` 62 · `COMMENT` 52 · `LEAVE-FILE` 78. Suite
+**11 targets / 102 passed / 0 failed / 1 ignored** (97 + N, **N = 5 stated before the run**).
+`fmt` and `clippy --all-targets` clean. `infra-literal-scan` clean in both modes, locally and
+in CI, **with identical examined-line counts**. PHASE 0 reproduced the base to the figure
+before any edit, and **37 line anchors re-verified with zero drift**. F4's red-capability
+control: one retired string reintroduced → **RED on two independent tests**; restored
+byte-identical (`cmp` + clean `git status`) → green.
+
+**OPERATOR LIVE ACCEPTANCE: PASS 5/5** — the rail item and pane heading read **Relay**, the
+status line reads "No relay configured." / "No relay configured — add one in Settings ›
+Relay." at steady state, and an unroutable Test connection produced **"Couldn't reach the
+relay"** verbatim.
+
+⚠ **NOT CLAIMED:** the `Relay version` row renders only on a **successful** probe and the rig
+is retired, so it was **not verifiable live**. Covered by the guard and both mockups, and
+recorded as unverifiable rather than counted as a pass.
+
+⚠ **STANDING RULE ADOPTED FROM THIS FLIGHT — operator acceptance always runs against a
+REBUILD from the committed tree, with `git status` empty at build time, and the flight note
+records it.** `tauri.conf.json` sets `frontendDist: "../ui"`, so the frontend is compiled
+**into** the binary: the cached binary from the test runs had been built **during the
+red-capability control**, while `index.html` temporarily said "No server configured." again.
+**Flying a stale Tauri binary shows the operator a different application than the one under
+review, and would have produced a false RED.**
+
+⚠ **THE GUARD FAILED ON ITS FIRST RUN AGAINST THE CORRECT TREE, AND IT WAS RIGHT TO.** Its
+needle `!cmds.contains("server connectivity")` also matched `commands.rs:319`'s **section
+comment** — internal prose the ruling leaves alone. It was testing the **mechanism** (the word
+appears in this file) rather than the **property** (the rendered string says it), and is now
+the literal `slice: "B (server connectivity:`. **Files contain prose about strings as well as
+strings**; a negative needle scoped to a whole file is almost always broader than the property
+it defends.
+
+⚠ **THE LANE'S OWN PAPERWORK WAS INSIDE WHAT ITS GATE MEASURED.** The guard must spell the
+strings it forbids, and the decision entry describes the rename at length — so the confirmed
+acceptance arithmetic had to be **restated three times** (the guard: +24, measured in a
+sandbox with the seat untouched; the guard's fix: +1; the deferred 14th line: +1) plus
+***d* = 24** for D-0021, counted from its written text before the run. **The Director's rule
+survived intact — every class movement named in advance — but two of the named things were
+artifacts the lane itself created.** Obfuscating the guard's literals would have matched the
+original numbers and made the guard unreadable: the same defect as a safety property that
+lives only in a test's name.
+
+**CARRIED FORWARD.** **ENG-0088** (the claim-discipline needle gap: neither Cargo metadata nor
+module docs are covered; `Cargo.toml:6` and `lib.rs:1` still say "serverless skeleton") ·
+**ENG-0089** (`host_retired_rig` fires on **added lines only**, so the tree is only as clean as
+its last edit — with the operator's question: **promote it to Tier-1 tree-wide once known
+instances are zeroed**) · **ENG-0090** (the cross-repo naming rider) · **F1's deferred 14th
+line**, transferred whole to the sanitization micro-lane (D-1320) · **OBS-2 and F2** to the
+Slice 4 spec refresh.
+
+⚠ **OBS-10 — ROUTED TO THE SLICE 4 DESIGN SESSION as motivating evidence for
+`DESIGN_status_bar_v1`, NOT as a new design item.** `#status-line` is a `<footer>` inside
+`#scr-main`, so the app's only persistent "what am I pointed at" indicator **disappears
+exactly while the user is in Settings › Relay changing the thing it reports**. The operator
+raised it unprompted, twice — which is itself the evidence that it reads as missing rather
+than as scoped.
+
+✅ **OBS-FK IS CLOSED BY MEASUREMENT.** Four merge commits landed under the space-dash title
+form `NA-XXXX — …` and **all four report `trailers=[]`**: `4a32fc82` (#1671), `03d2a496`
+(#1672), `ac66ca50` (#1673) and `d3d46c8e` (#20), against NA-0682's colon-titled `1847811d`
+which did not. Identity intact on every one. **The convention is now evidence, not inference.**
+
+**Queue:** `READY=NONE | HIGHEST_NA=0683 | HIGHEST_D=1321`. The operator promotes; the
+executor cannot self-promote.

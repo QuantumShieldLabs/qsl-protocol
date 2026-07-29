@@ -204,9 +204,9 @@ proof because no remote positive/negative client flow completed.
 NA-0265 remote preflight verified the trusted `remote` endpoint:
 
 ```text
-hostname: lawrence-Inspiron-3647
+hostname: <remote-test-host>
 user: qslcodex
-Tailscale IPv4: 100.99.234.5
+Tailscale IPv4: <tailnet-addr>
 CPUs: 4
 memory: 15Gi total
 disk: 842G available on /home and /tmp

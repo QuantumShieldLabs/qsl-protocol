@@ -23,7 +23,7 @@ cargo run -p qsl-tui --release -- \
 ```bash
 QSL_ALLOW_REMOTE=1 cargo run -p qsl-tui --release -- \
   demo --privacy padded --mode relay \
-  --relay-base-url http://qsl.ddnsfree.com:8080 \
+  --relay-base-url http://<relay-public-host>:8080 \
   --relay-channel demo-$(date -u +%Y%m%dT%H%M%SZ)
 ```
 

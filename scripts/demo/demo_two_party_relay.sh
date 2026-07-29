@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [ -z "${QSL_RELAY_BASE_URL:-}" ]; then
+  echo "QSL_RELAY_BASE_URL is required" >&2
+  exit 2
+fi
+
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_DIR"
 
@@ -8,7 +13,7 @@ TS="$(date -u +%Y%m%dT%H%M%SZ)"
 OUT="${OUT_DIR:-${REPO_DIR}/_forensics/demo_two_party_relay_${TS}}"
 mkdir -p "$OUT"
 
-BASE_URL="${QSL_RELAY_BASE_URL:-http://qsl.ddnsfree.com:8080}"
+BASE_URL="$QSL_RELAY_BASE_URL"
 CHANNEL="demo-relay-${TS}"
 RECEIVER_LOG="${OUT}/receiver.log"
 SENDER_LOG="${OUT}/sender.log"

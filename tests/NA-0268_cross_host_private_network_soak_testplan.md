@@ -38,7 +38,7 @@ Out of scope:
 
 - Worktree is clean and based on expected `origin/main`.
 - `public-safety` is required and green before proof starts.
-- Remote SSH alias `remote` resolves to `lawrence-Inspiron-3647`.
+- Remote SSH alias `remote` resolves to `<remote-test-host>`.
 - Remote user is `qslcodex`.
 - Remote Tailscale IP is `100.99.234.5` unless Tailscale has changed it.
 - Remote has lightweight runtime tools already present: shell, `curl`, `tar`,

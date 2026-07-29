@@ -69,7 +69,7 @@ Notes:
 ### Remote demo (explicit opt-in)
 Remote relay use must be explicit and optional:
 - QSL_ALLOW_REMOTE=1
-- QSL_RELAY_BASE_URL=http://qsl.ddnsfree.com:8080
+- QSL_RELAY_BASE_URL=http://<relay-public-host>:8080
 - QSL_TRANSPORT=relay_http
 - QSL_RELAY_CHANNEL=har-<RUN_ID>
 
@@ -91,15 +91,15 @@ Local mode (default):
 Headless mode (non-interactive shells/CI-safe):
 - `cargo run -p qsl-tui -- --headless --mode local`
 - `QSL_ALLOW_REMOTE=1 \
-   QSL_RELAY_BASE_URL=http://qsl.ddnsfree.com:8080 \
+   QSL_RELAY_BASE_URL=http://<relay-public-host>:8080 \
    QSL_RELAY_CHANNEL=demo \
-   cargo run -p qsl-tui -- --headless --mode relay --relay-base-url http://qsl.ddnsfree.com:8080 --relay-channel demo`
+   cargo run -p qsl-tui -- --headless --mode relay --relay-base-url http://<relay-public-host>:8080 --relay-channel demo`
 
 Interactive relay mode (opt-in required; needs real TTY/PTY):
 - `QSL_ALLOW_REMOTE=1 \
-   QSL_RELAY_BASE_URL=http://qsl.ddnsfree.com:8080 \
+   QSL_RELAY_BASE_URL=http://<relay-public-host>:8080 \
    QSL_RELAY_CHANNEL=demo \
-   cargo run -p qsl-tui -- --mode relay --relay-base-url http://qsl.ddnsfree.com:8080 --relay-channel demo`
+   cargo run -p qsl-tui -- --mode relay --relay-base-url http://<relay-public-host>:8080 --relay-channel demo`
 
 Notes:
 - Relay is transport-only; encryption/decryption happens client-side.
@@ -171,7 +171,7 @@ Local (no relay):
 
 Relay (explicit opt-in required):
 
-- QSL_ALLOW_REMOTE=1 qsl-tui --headless --mode relay --relay-base-url http://qsl.ddnsfree.com:8080 --relay-channel demo-na0053-<UTC>
+- QSL_ALLOW_REMOTE=1 qsl-tui --headless --mode relay --relay-base-url http://<relay-public-host>:8080 --relay-channel demo-na0053-<UTC>
 
 Expected output markers:
 
@@ -195,7 +195,7 @@ Padded mode (bucketed padding inside ciphertext):
 
 Relay (explicit opt-in required; padded mode):
 
-- QSL_ALLOW_REMOTE=1 qsl-tui --headless --mode relay --privacy-mode padded --relay-base-url http://qsl.ddnsfree.com:8080 --relay-channel demo-na0054-<UTC>
+- QSL_ALLOW_REMOTE=1 qsl-tui --headless --mode relay --privacy-mode padded --relay-base-url http://<relay-public-host>:8080 --relay-channel demo-na0054-<UTC>
 
 Expected output markers:
 
@@ -218,16 +218,16 @@ Local (two-party, no relay):
 Relay (explicit opt-in required; padded mode):
 
 - Receiver:
-  - QSL_ALLOW_REMOTE=1 qsl-tui --headless --role receiver --mode relay --relay-base-url http://qsl.ddnsfree.com:8080 --relay-channel demo-na0056-relay-<UTC> --privacy-mode padded
+  - QSL_ALLOW_REMOTE=1 qsl-tui --headless --role receiver --mode relay --relay-base-url http://<relay-public-host>:8080 --relay-channel demo-na0056-relay-<UTC> --privacy-mode padded
 - Sender:
-  - QSL_ALLOW_REMOTE=1 qsl-tui --headless --role sender --mode relay --relay-base-url http://qsl.ddnsfree.com:8080 --relay-channel demo-na0056-relay-<UTC> --privacy-mode padded --message "hello"
+  - QSL_ALLOW_REMOTE=1 qsl-tui --headless --role sender --mode relay --relay-base-url http://<relay-public-host>:8080 --relay-channel demo-na0056-relay-<UTC> --privacy-mode padded --message "hello"
 
 Relay + proxy/Tor (optional; Tor example uses socks5h):
 
 - Receiver:
-  - QSL_ALLOW_REMOTE=1 qsl-tui --headless --role receiver --mode relay --relay-base-url http://qsl.ddnsfree.com:8080 --relay-channel demo-na0056-proxy-<UTC> --privacy-mode padded --proxy socks5h://127.0.0.1:9050
+  - QSL_ALLOW_REMOTE=1 qsl-tui --headless --role receiver --mode relay --relay-base-url http://<relay-public-host>:8080 --relay-channel demo-na0056-proxy-<UTC> --privacy-mode padded --proxy socks5h://127.0.0.1:9050
 - Sender:
-  - QSL_ALLOW_REMOTE=1 qsl-tui --headless --role sender --mode relay --relay-base-url http://qsl.ddnsfree.com:8080 --relay-channel demo-na0056-proxy-<UTC> --privacy-mode padded --message "hello" --proxy socks5h://127.0.0.1:9050
+  - QSL_ALLOW_REMOTE=1 qsl-tui --headless --role sender --mode relay --relay-base-url http://<relay-public-host>:8080 --relay-channel demo-na0056-proxy-<UTC> --privacy-mode padded --message "hello" --proxy socks5h://127.0.0.1:9050
 
 Expected output markers (sender and receiver):
 

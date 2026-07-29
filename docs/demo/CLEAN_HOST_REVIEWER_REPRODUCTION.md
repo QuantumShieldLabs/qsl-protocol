@@ -206,7 +206,7 @@ NA-0265 remote preflight verified the trusted `remote` endpoint:
 ```text
 hostname: <remote-test-host>
 user: qslcodex
-Tailscale IPv4: <tailnet-addr>
+Tailscale IPv4: <host-b-tailscale-ip>
 CPUs: 4
 memory: 15Gi total
 disk: 842G available on /home and /tmp

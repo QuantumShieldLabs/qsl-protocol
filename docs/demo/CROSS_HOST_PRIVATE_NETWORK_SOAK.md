@@ -35,12 +35,12 @@ Host roles:
 
 Private addresses used:
 
-- Host A Tailscale IP: `100.82.111.69`.
-- Host B Tailscale IP: `100.99.234.5`.
+- Host A Tailscale IP: `<host-a-tailscale-ip>`.
+- Host B Tailscale IP: `<host-b-tailscale-ip>`.
 - Relay binds used across the counted run set:
-  - `100.82.111.69:34431`
-  - `100.82.111.69:46239`
-  - `100.82.111.69:57183`
+  - `<host-a-tailscale-ip>:34431`
+  - `<host-a-tailscale-ip>:46239`
+  - `<host-a-tailscale-ip>:57183`
 
 No public internet target was used. No router, firewall, Tailscale admin/API,
 VPN, DNS, branch-protection, or public-safety setting was changed. SSH host-key
@@ -129,14 +129,14 @@ kept local store logs under the runtime root:
 ```bash
 QSHIELD_RELAY_TOKEN="<generated but not printed>" \
   qshield relay serve \
-  --listen "100.82.111.69:<run-port>" \
+  --listen "<host-a-tailscale-ip>:<run-port>" \
   --allow-public \
   --i-understand-this-is-unsafe
 
 QSHIELD_RELAY_TOKEN="<generated but not printed>" \
 QSHIELD_ACTOR="/srv/qbuild/cache/targets/qsl-protocol/debug/refimpl_actor" \
   qshield init --store "<runtime-root>/run_<n>/alice-store" \
-  --relay-url "http://100.82.111.69:<run-port>"
+  --relay-url "http://<host-a-tailscale-ip>:<run-port>"
 
 QSHIELD_RELAY_TOKEN="<generated but not printed>" \
 QSHIELD_ACTOR="/srv/qbuild/cache/targets/qsl-protocol/debug/refimpl_actor" \

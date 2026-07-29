@@ -72,9 +72,9 @@ NA0257_MODE2_TAILSCALE_SAME_HOST_PROOF_OK
 
 - Hostname: `<build-host>`.
 - Tailscale command: available at `/usr/bin/tailscale`.
-- Local Tailscale address used for the relay bind: `100.82.111.69`.
-- Proof relay bind: `100.82.111.69:33821`.
-- Client relay URL: `http://100.82.111.69:33821`.
+- Local Tailscale address used for the relay bind: `<host-a-tailscale-ip>`.
+- Proof relay bind: `<host-a-tailscale-ip>:33821`.
+- Client relay URL: `http://<host-a-tailscale-ip>:33821`.
 - Client endpoints: separate local Alice and Bob stores and separate qshield
   process invocations.
 - Firewall/router changes: none.

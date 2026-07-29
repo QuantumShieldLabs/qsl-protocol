@@ -34788,3 +34788,128 @@ carrying the rig token, and the record class) is the **allowlist input** that la
    HIGHEST_D=1323`.
 
 **Goals:** G4 (primary), G1, G5. **Result:** `INFRA_HOSTNAME_SANITIZATION_PASS`.
+
+---
+
+## D-1324 — NA-0685: TAILNET-ADDRESS SANITIZATION — the successor lane, and the rule that a lane adopts the vocabulary the tree already uses
+
+**Date:** 2026-07-29. **Lane:** NA-0685. **Directive:** D620 (sha256 `9323e7e7…9389e0f9`, 239
+lines). **Implementation:** qsl-protocol PR **#TBD**. **Authority:** D-1322's ruling and D-1323's
+handoff-out, operator-approved 2026-07-29 with the two-placeholder scheme confirmed in advance.
+**Evidence:** `docs/governance/evidence/NA-0685_as_built.md`. **Instrument record:**
+`tests/NA-0685_tailnet_sanitization_testplan.md`.
+
+**WHAT SHIPPED.** Three cross-host reproduction runbooks stopped teaching a private operator
+address in the commands a reader copies — exported relay URLs, `--listen` binds, `--relay-url`
+flags, and the parameter blocks those commands consume. **16 live-instruction occurrences became
+placeholders; 23 dated-record occurrences were left byte-identical and are printed by the gate in
+every run.** The other three repositories and the org profile repo were **measured** clean over
+examined trees and got no PR.
+
+    base       raw 39 = A 0 + B 16 + C 23   GATE FAIL: A+B=16 ruled_additions=1 personal_name=0
+    post-fix   raw 23 = A 0 + B  0 + C 23   GATE PASS  (0 / 0 / 0, c_delta EMPTY)
+
+**Class A — script defaults — was measured EMPTY**, as the intent predicted and required be
+checked: no script defaults a tailnet address anywhere.
+
+**The exposure, recorded verbatim and deliberately not inflated:** *CGNAT (100.64/10) is not
+publicly routable. The class reveals tailnet-internal topology, not a public route — lower
+urgency than the DNS names, still operator infrastructure that public repos must not teach.*
+
+### The property held without amendment, and the split it produced was the cleanest yet
+
+D-1322's property — *directs traffic today* vs *reports what was true* — decided all 39
+occurrences with **no new ruling needed**, and three independent pieces of evidence agreed:
+
+**1. ⚠ The runbook's own author had already placeholdered the value**, at three sites, in **the
+commit that created the document**. The author treated the relay address as a reader-supplied
+parameter from day one; the literal lines in the same file were the same parameter, left literal
+by inconsistency. *The strongest classification evidence available is a document arguing with
+itself — and it argued for B.*
+
+**2. ⚠ THE RECORD TWINS ALREADY EXISTED, IN DIFFERENT FILES.** The runbook's parameter block and
+the dated audit's measurement block record the same facts. **Nothing measured is lost by fixing
+the runbook, because the measurement lives in the audit.** *The record and the runbook are
+DIFFERENT FILES* — mark-don't-rewrite and the sanitization are not in tension here; they are
+doing different jobs on different documents.
+
+**3.** `docs/demo/` was already ruled: NA-0684 classified a sibling in the same directory, same
+front matter, same opening sentence, as class B and edited it.
+
+⚠ **Two record-class lines LOOK like commands** — a relay-serve invocation in an audit and two
+ping lines in a testplan. They are **captures inside dated records**, and NA-0684's F5 ruled
+exactly this shape: *commands direct; a frozen capture reports.* **Precedent applied, not
+re-litigated.**
+
+### The one flag, ruled — and the standing rule it produces
+
+The lane intent proposed two new placeholder tokens. **The census found the tree already carried
+a token for this class**, minted by the runbook's own author, plus a second generic one left by
+NA-0684's F3. Minting the proposed pair would have left one file carrying **two different tokens
+for one value** — reintroducing, through the fix, the hazard the two-placeholder scheme exists to
+prevent.
+
+> **RULED (operator, 2026-07-29): adopt the existing pair and unify the predecessor's site, on
+> two conditions.**
+>
+> **(a) The A/B letter mapping is DERIVED from the runbook's own usage, not inherited from the
+> intent's assignment**, and stated in the written expectation. ⚠ **The derivation agreed with
+> the intent — reported as a RESULT, not assumed as a premise.** It is the one place the two
+> could have silently diverged, and only a measurement could tell.
+>
+> **(b) The unification is ONE placeholder→placeholder edit, no literal involved**, carried as a
+> **named ruled addition** with the arithmetic restated — per NA-0684's method: **an edit no
+> number covers is an edit a green gate would hide.**
+
+> **STANDING RULE FORWARD: A LANE ADOPTS THE VOCABULARY THE TREE ALREADY USES, AND DERIVES ITS
+> MAPPING FROM THAT USAGE.** NA-0684's F2 gave the positive form — *a placeholder is added
+> because the ROLE differs, not because the vocabulary is short.* **This is its converse, and it
+> is the census that turns "which token?" from a matter of taste into a measurement.**
+
+### ⚠ The predecessor's prediction, confirmed by the successor
+
+D-1323 disclosed one line it re-added that still carried such an address, and **predicted its
+class**: *a journal capture may legitimately classify C, and the durable fix is the scanner class,
+not the record edit.* **It classified C and was left.** *A prediction written by the predecessor
+and confirmed by the successor is the strongest form a handoff can take* — the disclosure was a
+ruling made in advance, not an omission discovered later.
+
+### ⚠ The prediction that missed, reported rather than absorbed
+
+    PREDICTED   raw 39 = A 0 + B 14 + C 25     GATE 14
+    MEASURED    raw 39 = A 0 + B 16 + C 23     GATE 16
+
+The 14 came from **D619 §11.2's own parenthetical** — "about 14 … are B-shaped" — an estimate
+made while measuring a different class, naming three files without counting their occurrences.
+
+> **METHOD NOTE, RULED IN: a figure inherited from a prior lane's parenthetical is an ESTIMATE,
+> and restating it as a POINT prediction is what made the miss visible.** A range would have
+> hidden it. **Everything else held exactly**, including the total derived by subtraction
+> (predecessor's census minus its one ruled removal) and the **per-address split** — the check
+> that would have caught a right total reached with a wrong mix.
+
+### The controls
+
+**RED at base was run TWICE** — before and after the ruling changed what was counted — so the
+control answered the question that was actually asked each time. **C was expected byte-stable and
+was**: with nothing outranking the property, the expected-delta table is **empty**, which is a
+*stronger* check than NA-0684's named table — **any** C movement fails, not merely an unnamed one.
+The personal-name census returned **0** against a positive control of 39 address hits over the
+same trees: *a negative result counts only if the instrument could have returned positive.*
+
+⚠ **The repo's own gate refused a vacuous pass.** Run in `--mode diff` before the commit existed,
+it reported *"NOTHING EXAMINED — refusing to report a pass over an empty input"* and exited 2.
+**The standing rule against silent skips, enforced by an instrument rather than by discipline** —
+and the reason every green in this lane is stated with the size of the input that produced it.
+
+### Handoff out
+
+**This census is the SECOND ALLOWLIST INPUT for ENG-0089** — 23 record-class occurrences in 8
+named files, to be met as **known exceptions rather than discoveries** when the CI/tooling lane
+adds a **CGNAT structural class** beside the `host_retired_rig` Tier-1 promotion. ⚠ **The
+sequencing precondition ENG-0089 records is now satisfied: the known instances are zeroed**, so
+the promotion can no longer turn a gate red on already-published content. The CI/tooling lane
+(ENG-0088 / ENG-0089 / ENG-0090) is next.
+
+**Goals:** G4 (primary), G1, G5. **Result:** `TAILNET_ADDRESS_SANITIZATION_PASS`.
+**Queue:** `READY=NONE | HIGHEST_NA=0685 | HIGHEST_D=1324`.

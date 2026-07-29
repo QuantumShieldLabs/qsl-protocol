@@ -12,6 +12,7 @@ use qsl_server::{
 };
 use serde::Serialize;
 use std::collections::{HashMap, VecDeque};
+use std::fs;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
@@ -977,4 +978,37 @@ fn status_line(code: u16) -> &'static str {
         429 => "429 Too Many Requests",
         _ => "500 Internal Server Error",
     }
+}
+
+/// NA-0682: count QUEUED message records in the message store.
+///
+/// ⚠ MIGRATION HELPER. Before NA-0682 an unsent message left `outbox.json` on disk, and
+/// several tests asserted `outbox.exists()` to mean "the message survived a failed send".
+/// The default send path now commits to the per-contact message queue instead (D617 §2b/§2c,
+/// operator-ruled Option A), so the same property is observed here.
+///
+/// Deliberately structural, not cryptographic: it counts `.rec` files without decrypting
+/// them, because the property under test is "the message is still on disk, recoverable",
+/// not "the bytes are X". The byte-level properties (replay-identical ciphertext, pack
+/// exactly once, ratchet-advance-before-drop) are guarded by unit tests inside the module,
+/// which can see the plaintext and count the operations.
+pub fn queued_record_count(cfg: &Path) -> usize {
+    let root = cfg.join("msgqueue_v1");
+    let Ok(contacts) = fs::read_dir(&root) else {
+        return 0;
+    };
+    let mut n = 0;
+    for c in contacts.flatten() {
+        if !c.path().is_dir() {
+            continue;
+        }
+        if let Ok(files) = fs::read_dir(c.path()) {
+            for f in files.flatten() {
+                if f.path().extension().and_then(|v| v.to_str()) == Some("rec") {
+                    n += 1;
+                }
+            }
+        }
+    }
+    n
 }

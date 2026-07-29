@@ -136,7 +136,9 @@ fn send_failure_no_commit() {
 
     // No mutation on reject: send state must not advance.
     assert!(!send_state.exists());
-    assert!(outbox.exists());
+    // ⚠ NA-0682 MIGRATION (D617 §2b/§2c, Option A). Was the single global in-flight slot;
+    // the default send path now commits to the per-contact MESSAGE QUEUE before packing.
+    assert_eq!(common::queued_record_count(&cfg), 1);
 }
 
 #[test]

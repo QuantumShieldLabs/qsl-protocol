@@ -2306,3 +2306,81 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Recommended change: one short section, three to five bullets, each stating the tool default, the house rule, and the observable failure if you follow the default. No enforcement, no gate — the value is entirely in being read first.
 - Sequencing: **NOT a code lane.** A `CLAUDE.md` edit triggers both full suites, so it rides its own micro-lane or is folded into the CI/tooling family (ENG-0075/0077/0078).
 - Status: open — FILING ONLY. Cross-reference ENG-0050 (the fmt/clippy trap this generalises) and the GH007 identity ruling (NA-0656) which is where the trailers rule is currently recorded.
+
+### ENG-0082 — the 401/403 collapse at the DIAGNOSTIC-MARKER layer: raw logs cannot tell a token rejection from a ticketless-push refusal — **NEW; filed 2026-07-28 by NA-0682 (D-1317; directive D617)**
+- Severity: P3 (diagnostic observability only; NO user-facing correctness impact — the user-visible PAUSE cause IS distinct, because the queue derives it from the HTTP status class)
+- Status: open — filed 2026-07-28
+- The fact: `relay_push_qsc_error_for_status` (`qsl/qsl-client/qsc/src/transport/mod.rs`) maps `UNAUTHORIZED | FORBIDDEN` to the single marker code `relay_unauthorized`. 401 is a fixable token rejection; 403 on the invite path is a ticketless push to a consumed slot. An operator reading raw markers cannot separate them.
+- Why it was NOT fixed in NA-0682 (operator-ruled, STOP 007, Option B): changing the shipped code requires rewriting `tests/NA_0663_relay_tls_trust.rs`'s assertion that *"a 401 must stay `relay_unauthorized`, not a trust error"* — **a guard whose whole purpose is to stop a 401 being misreported**. Rewriting a guard to match new behaviour silently weakens a safety assertion, which is the most dangerous edit class. The tree already establishes the safer pattern: NA-0681 refined this same match CONDITIONALLY and kept the 403 default "byte-identical to before".
+- Recommended shape: a diagnostics/CI-tooling lane. Split the marker codes with the guard's INTENT preserved explicitly (a 401 is still not a trust error), and re-point `NA_0663`'s assertion deliberately rather than incidentally.
+- Cross-reference: D-1317; D617 census C11; NA-0682 testplan §C.9; the `PushFailClass` type that already carries the distinction internally.
+
+### ENG-0083 — in-flight ratchet state is persisted in TWO places (msgqueue records for messages, `outbox.json` for attachments) — **NEW; filed 2026-07-28 by NA-0682 (D-1317; directive D617)**
+- Severity: P3 (duplication/hygiene; no correctness impact today — both paths preserve replay-identical-bytes)
+- Status: open — filed 2026-07-28. **Accepted knowingly** as the trade against amending acceptance item A3 downward (operator-ruled, STOP 008 Option 1).
+- The fact: NA-0682 moved in-flight ciphertext + next ratchet state INTO each message-queue record, because a single global slot head-of-line-blocks every contact when one message is stuck. The legacy global `outbox.json` remains for the attachment/file-transfer paths.
+- ⚠ **What a convergence lane MUST preserve, or it will reintroduce a crypto defect:** (1) **replay-identical-bytes** — `qsp_pack` advances the ratchet, so a failed push must replay the SAME packed bytes; re-packing burns a message key and desyncs the session. (2) **The nonce barrier** — abandoning a PACKED message must COMMIT its ratchet advance before dropping the bytes, fail-closed; a plain delete is nonce reuse (see the `retire_packed` guards). (3) ⚠ **F4's SEPARATE store is the only reason `timeline_store::timeline_written_on_send_commit_only` does not collide with O1** — the O1 row is a msgqueue record while the timeline entry still appears only at commit. **A lane that merges the two stores reintroduces that collision head-on.**
+- Cross-reference: D-1317; D617 §2c/F4; NA-0682 testplan §C.3; ENG-0042 (the receive-side seam, still open).
+
+### ENG-0084 — `msg_id` is emitted UNREDACTED at one site, against a redaction discipline that is consistent everywhere else — **NEW; filed 2026-07-28 by NA-0682 (D-1317; directive D617)**
+- Severity: P4 (local log hygiene; **the exploitable half is already closed** — NA-0682 replaced the content-derived `msg_id` with a 128-bit CSPRNG value, so the emitted id is no longer a fingerprint of the message body)
+- Status: open — filed 2026-07-28
+- The fact: `qsl/qsl-client/qsc/src/transport/mod.rs` passes `ctrl.msg_id.as_str()` raw to `emit_message_state_reject` on the ack-reject path. Every other emission site — `lib.rs`, and the two other `emit_message_state_reject` call sites — passes `"<redacted>"`. `attachments/mod.rs` passes a raw `file_id` through the same helper (a different identifier class, same asymmetry).
+- Why it matters less than it did: while `msg_id` was `sha512(plaintext)[..8]`, that emission was a **plaintext-confirmation oracle** for anyone holding the log and a candidate message. F1's CSPRNG id removed that. What remains is an inconsistency in the redaction discipline, not a leak of content.
+- ⚠ **AMENDED 2026-07-28 (STOP 019 Phase 1), mark-don't-rewrite — the raw pass-through is DEFUSED BY ACCIDENT, not by design.** Measurement: the marker layer redacts by VALUE SHAPE, not by key — `should_redact_value` -> `looks_high_cardinality` (`src/output/mod.rs:292`) redacts any value of `len() >= 24` containing a digit. F1's id is 32 hex chars, so it is redacted on output **despite** being passed raw. The old 16-char `sha512(plaintext)[..8]` id fell UNDER that threshold, which is the mechanical reason the C17 leak printed in the clear for as long as it did.
+- ⚠ **So the remaining risk is not the current id — it is the COUPLING.** Any future change that narrows an identifier below 24 chars silently re-opens a raw emission at this site, with no test and no declaration anywhere connecting the two. Fixing the call site (pass `"<redacted>"`, as every sibling does) removes the dependence on a length heuristic. See ENG-0087, which covers the same coupling from the test side.
+- Cross-reference: D-1317; D617 census C17; NA-0682 testplan; ENG-0087; OBS-FA.
+
+### ENG-0085 — suspected hollow proof: `receipts_delivered::delivered_receipt_roundtrip` observes an emitted MARKER, never the stored state — **NEW; filed 2026-07-28 by NA-0682 (D-1317; directive D617); running "suspected hollow proofs" item per LANE_INTENT §3b OPPORTUNISTIC**
+- Severity: P3 (assurance; the test is NOT hollow today — the marker it asserts is emitted only inside the `Confirmed` arm, which is reached only after the timeline transition persists)
+- Status: open — filed 2026-07-28. **Logged, deliberately NOT fixed in-lane** per §3b.
+- The fact: the test asserts `event=receipt_recv` / `event=delivered_to_peer` and never reads the timeline back to confirm the row is actually `DELIVERED`. It is **marker-coupled**: a change that kept emitting the marker while failing to persist would not be caught by it.
+- Recommended shape: the post-epic hollow-proof audit inherits this. The fix is one read-back assertion, but it belongs with the audit rather than smuggled into a product lane.
+- Cross-reference: D-1317; LANE_INTENT §3b; NA-0682 testplan §A.4.
+
+### ENG-0086 — turn delivery acks ON by default (the F6 flip NA-0682 deferred) — **NEW; filed 2026-07-28 by NA-0682 (D-1317; directive D617, operator-ruled Option D)**
+- Severity: P2 (product capability + protocol cadence; the MECHANISM ships in NA-0682, only its DEFAULT waits)
+- Status: open — filed 2026-07-28. **Deliberately deferred, not dropped.** F6 ruled acks ON and recorded itself as "REVISITABLE under real testing — a config default, not a structural choice"; full-suite testing is that clause firing.
+- ⚠ **The question this lane must answer, and it must be answered BY DESIGN SESSION AND MEASUREMENT — never by picking a default value:** *should a delivery ack originate a DH ratchet boundary, and should it count as post-compromise-security liveness?* An ack genuinely does prove the device is live, so "no boundary" is **not** obviously correct — which is exactly why it needs a ruling rather than an implementation.
+- **The four findings NA-0682 measured, all of which the flip lane inherits:**
+  1. ⚠ **The ack CONSUMES the DH ratchet-on-reply boundary.** The recipient's automatic ack becomes their first send, so the ratchet rotates on a control message instead of a human reply. Proven by single-variable experiment: acks `Batched` -> `handshake_mvp::dh_ratchet_e2e_roundtrip_over_real_handshake` FAILS; acks `Off` -> PASSES.
+  2. ⚠ **It triggers a PQ RESEED per RECEIVED MESSAGE** (`qsp_pq_reseed dir=send` on the ack path). Post-quantum reseeds are the most expensive operation in the system; this moves them from once-per-exchange to once-per-receive. **Battery, latency and CPU cost: UNMEASURED.** Measuring it is a precondition of the flip, not a follow-up.
+  3. **Every receive produces a send** — a structural per-message timing signal, only partly blunted by the batch window and jitter.
+  4. **Envelope shape differs** between a boundary-originating send and a non-boundary one.
+- ⚠ **SEQUENCING — binding:** the flip decision must **CONCLUDE BEFORE Slice 4's DELIVERED-rendering design settles.** Slice 4 renders the `✓✓` glyph; designing that UI against a default that is still undecided would bake the assumption in backwards.
+- Precedent this follows: **F5 kept ENG-0043's lease-default flip OUT of NA-0682** on exactly this reasoning — a default flip that changes protocol behaviour deserves its own deliberate step. The epic stays internally consistent by treating both the same way.
+- What already ships and must NOT be rebuilt: the fields, both knobs, the honour path, `delivered_receipt_roundtrip` (A4), the A12 forged-ack refusal, the `ack_for_unknown_msg_id_transitions_nothing` guard, and the two default PINS (`message_state_tests::receipt_default_is_off_recipient_half`, `transport::receipt_sender_default_tests::sender_requests_no_receipt_by_default`). ⚠ **Those two pins are designed to go RED when the flip lands** — flip them in the same commit, with the measurement above attached.
+- Cross-reference: D-1317; D617 §4 F6 (amended); STOP 016/017/018; ENG-0043 (the precedent); OBS-ET, OBS-EV, OBS-EW, OBS-EZ.
+
+### ENG-0087 — tests that learn IDENTIFIERS by scraping DIAGNOSTIC MARKERS are coupled to redaction policy — **NEW; filed 2026-07-28 by NA-0682 (D-1317; directive D617, operator-ruled STOP 019 item 3)**
+- Severity: P2 (assurance, suite-wide; one confirmed instance, population UNKNOWN and unenumerated)
+- Status: open — filed 2026-07-28. **FILING ONLY — deliberately not swept in NA-0682**, which is a product lane. Belongs to the CI/tooling–audit family (ENG-0075/0077/0078).
+- **The confirmed instance:** `message_state_model::replay_ack_does_not_advance_state` learned a message id by parsing `id=` out of the `event=timeline_item` marker. NA-0682 widened `msg_id` from 16 to 32 hex chars — to stop emitting `sha512(plaintext)[..8]`, the C17 leak — which crossed the marker layer's `len() >= 24` redaction threshold (`src/output/mod.rs:292`). The scrape then returned the literal string `<redacted>`, and the test used it as an id.
+- ⚠ **Why this class is nastier than a normal broken test: the sentinel PARSES AS A VALID IDENTIFIER.** The scrape did not fail, so the test proceeded and failed much later, in a different subsystem, with a misleading reject code (`state_unknown` instead of `state_duplicate`) — which cost a full diagnostic cycle to trace back. A test that fails at the point of the defect is cheap; this one failed three steps downstream.
+- **Rule going forward (the thing this ENG exists to establish):**
+  1. tests acquire identifiers **FIRST-PARTY** — from the store, the return value, or the fixture that minted them. NA-0682's `first_party_sent_msg_id` reads the id from the sender's own queue record filename and is the reference shape;
+  2. any legacy scrape that remains must **FAIL FAST if the scraped value equals the redaction sentinel**, rather than proceed on `<redacted>` as data.
+- **Work required:** enumerate every marker-scraping test in the suite. ⚠ **NA-0682 fixed one and did not count the rest** — the population is genuinely unknown, and a passing suite is NOT evidence that the rest are healthy, because a scraped sentinel can leave a test green while it silently asserts nothing.
+- ⚠ **Carries OBS-FA:** a redactor keyed on VALUE SHAPE (`len() >= 24 && has_digit`) makes **any change to an identifier's width a behavioural change to the diagnostic surface**. Nothing in the code, the tests, or the docs declares that coupling today. That is the root condition; the scraping tests are just where it surfaced first.
+- ⚠ **ENUMERATION (operator-ruled, STOP 021 Ruling 4 — completed 2026-07-28, READ-ONLY).** Instance #2 surfacing inside the same lane settled that filing without enumerating was not enough.
+
+**What was searched** (recorded because an empty result would be a failure of the grep, not evidence of absence), across `qsl/qsl-client/qsc/tests/`:
+  - `strip_prefix("id=")` and `strip_prefix("msg_id=")`
+  - files containing `event=timeline_item`
+  - helper names implying id extraction: `*_id_and_state`, `*first_item_id*`, `*_msg_id(`
+  - `split`/`splitn`/`after` on `"id="`
+  - every test passing `"--msg-id"` to a CLI verb (the place a scraped value does damage)
+
+**The population, with measured status:**
+
+| # | instance | status |
+|---|---|---|
+| 1 | `message_state_model::replay_ack_does_not_advance_state` | **WAS RED → FIXED in-lane** (first-party via `first_party_sent_msg_id`) |
+| 2 | `timeline_delivery_contract_na0217f::receipt_apply_ignores_wrong_device_…` | **WAS RED → FIXED in-lane** (same remedy; the file's scrape helper now returns STATE ONLY, so the class cannot recur there) |
+| 3 | `message_state_model::wrong_peer_ack_rejected_no_mutation` (`:406`) | ⚠ **GREEN, coupled, NOT vacuous.** Its send uses `--receipt delivered`, so the scraped id *does* degrade to `<redacted>` — but the assertion lands at `event=qsp_unpack code=qsp_hdr_auth_failed`, i.e. the forged ack is refused by the AEAD before any id is consulted. The property is genuinely exercised. **It would become vacuous if the assertion were ever moved to a state-machine-level rejection.** |
+| 4 | `peer_confirm_policy_primary_only_na0177.rs:216` → `--msg-id` at `:292`, `:323`, `:390` | ⚠ **GREEN, coupled.** Green only because that test does **not** request a receipt, so its timeline id is the short `out-<ts>` form and escapes the `len() >= 24` redactor. **It breaks the moment that test requests a receipt, or ids widen again.** |
+| 5 | `desktop_gui_contract_na0215b.rs:643`, `timeline_store.rs:136` | **NOT in the class** — they `contains()`-assert on `event=timeline_item` and extract no identifier. |
+| — | `outbox_abort.rs:120` | **NOT in the class** — passes a literal `--msg-id deadbeef`, nothing scraped. |
+
+**Confirmed count: 4 in the class (2 fixed, 2 green-but-coupled).** Per the ruling, the two green ones are **enumerated, not swept** — they belong to this ENG's own lane. ⚠ **#4 is the one to fix first**: it is one flag away from failing, and it feeds a scraped value straight into a CLI verb.
+- Cross-reference: D-1317; STOP 018/019/021; ENG-0084 (the same coupling, seen from the emission side); OBS-EC (marker layer vs user-cause layer); OBS-EY; OBS-FG.

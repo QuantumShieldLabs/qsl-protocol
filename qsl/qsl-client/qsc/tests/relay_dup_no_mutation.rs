@@ -66,7 +66,6 @@ fn relay_push_fail_no_mutation() {
         String::from_utf8_lossy(&add_contact.stdout)
     );
 
-    let outbox = cfg.join("outbox.json");
     let send_state = cfg.join("send.state");
 
     let output = common::qsc_std_command()
@@ -101,5 +100,11 @@ fn relay_push_fail_no_mutation() {
     assert!(combined.contains("code=relay_inbox_push_failed"));
 
     assert!(!send_state.exists());
-    assert!(outbox.exists());
+    // ⚠ NA-0682 MIGRATION (D617 §2b/§2c, Option A; binding condition satisfied).
+    // Was: `assert!(outbox.exists())` -- the single global in-flight slot.
+    // Now: the default send path commits to the per-contact MESSAGE QUEUE before packing,
+    // so the same property ("the message survived a failed send, on disk, recoverable") is
+    // observed there. The byte-level guards this file used to carry are re-proven, and
+    // shown red-capable, in `msgqueue`'s unit tests.
+    assert_eq!(common::queued_record_count(&cfg), 1);
 }

@@ -45,6 +45,10 @@ const CONFIG_FILE_NAME: &str = "config.txt";
 const STORE_META_NAME: &str = "store.meta";
 const LOCK_FILE_NAME: &str = ".qsc.lock";
 const OUTBOX_FILE_NAME: &str = "outbox.json";
+/// NA-0682 (D617 F1): control payloads are emitted at v2 (CSPRNG `msg_id` + `ns` marker).
+/// ⚠ v1 is still ACCEPTED on receive -- see `classify_control`, which matches the legacy
+/// shapes exactly and unchanged before it consults the marker.
+const CTRL_VERSION: u8 = 2;
 const SEND_STATE_NAME: &str = "send.state";
 const QSE_ENV_VERSION_V1: u16 = 0x0100;
 const POLICY_KEY: &str = "policy_profile";
@@ -92,6 +96,7 @@ pub mod identity;
 // Sockets stay in `transport` (D616 F4).
 pub mod invite;
 pub mod model;
+pub mod msgqueue;
 pub mod output;
 pub mod protocol_state;
 pub mod relay;
@@ -753,6 +758,28 @@ pub struct ReceiptPolicy {
 }
 
 impl Default for ReceiptPolicy {
+    /// ⚠ NA-0682 (D617 §4 F6 — **DEFERRED 2026-07-28, operator-ruled**): delivery acks default
+    /// **OFF**. The MECHANISM ships; the ON-BY-DEFAULT FLIP is its own future lane.
+    ///
+    /// F6 originally ruled acks ON, and that ruling recorded itself as **"REVISITABLE under real
+    /// testing — a config default, not a structural choice."** This is that clause firing, not an
+    /// overturn: full-suite testing proved the flip is a **protocol-cadence change**, not a UX
+    /// default. Turning acks on means:
+    ///   1. the ack becomes the recipient's first send, so it CONSUMES the DH ratchet-on-reply
+    ///      boundary — the ratchet rotates on an automatic control message, not a human reply;
+    ///   2. it triggers a **PQ RESEED per received message** (`qsp_pq_reseed dir=send`), moving
+    ///      the most expensive operation in the system from once-per-exchange to once-per-receive
+    ///      — a cost never measured;
+    ///   3. every receive produces a send — a structural per-message timing signal;
+    ///   4. a boundary-originating send differs in envelope shape from a non-boundary one.
+    ///
+    /// Proven by single-variable experiment: acks Batched → the DH ratchet guard fails; acks Off →
+    /// it passes. Same precedent as F5 keeping ENG-0043's lease-default flip out of this lane.
+    ///
+    /// ⚠ **BOTH HALVES default Off** — this recipient-honours side AND the sender-requests side
+    /// (`relay_send`'s `receipt` argument). A half-flip would leave the wire noisy while the
+    /// feature looked disabled. See the filed ENG for the question the flip lane must answer by
+    /// design session and measurement, never by a default value.
     fn default() -> Self {
         Self {
             mode: ReceiptEmitMode::Off,
@@ -857,10 +884,27 @@ fn receipt_kind_str(kind: ReceiptKind) -> &'static str {
     }
 }
 
-fn receipt_msg_id(payload: &[u8]) -> String {
-    let c = StdCrypto;
-    let h = c.sha512(payload);
-    hex_encode(&h[..8])
+
+/// NA-0682: wrap a body in the data control envelope using a CALLER-SUPPLIED `msg_id`.
+///
+/// ⚠ The id must be the MESSAGE QUEUE RECORD's `msg_id`, not a fresh mint. That is what
+/// makes the delivery-ack correlate to the queued row: the peer echoes this id back, and
+/// the sender flips exactly that record SENT -> DELIVERED. Minting a second id here would
+/// leave the ack pointing at nothing.
+pub(crate) fn encode_data_payload_with_id(
+    payload: Vec<u8>,
+    kind: ReceiptKind,
+    msg_id: &str,
+) -> CliResult<Vec<u8>> {
+    let ctrl = ReceiptControlPayload {
+        v: CTRL_VERSION,
+        t: "data".to_string(),
+        kind: receipt_kind_str(kind).to_string(),
+        msg_id: msg_id.to_string(),
+        body: Some(payload),
+        ns: Some(adversarial::payload::CTRL_NS.to_string()),
+    };
+    serde_json::to_vec(&ctrl).map_err(|_| CliError::code("receipt_encode_failed"))
 }
 
 fn encode_receipt_data_payload(
@@ -870,13 +914,21 @@ fn encode_receipt_data_payload(
     let Some(kind) = receipt else {
         return Ok((payload, None));
     };
-    let msg_id = receipt_msg_id(&payload);
+    // NA-0682 (D617 F1): a 128-bit CSPRNG id, NOT `sha512(plaintext)[..8]`.
+    //
+    // ⚠ The derived id was a correctness AND a privacy defect: two identical messages to
+    // the same peer shared an id, so an ack flipped the wrong row and DESIGN §4's own dedup
+    // rule would have discarded the second copy as a duplicate; and because the id is a
+    // fingerprint of the body, the one unredacted emission site turned it into a
+    // plaintext-confirmation oracle. A random id closes both.
+    let msg_id = crate::msgqueue::mint_msg_id();
     let ctrl = ReceiptControlPayload {
-        v: 1,
+        v: CTRL_VERSION,
         t: "data".to_string(),
         kind: receipt_kind_str(kind).to_string(),
         msg_id: msg_id.clone(),
         body: Some(payload),
+        ns: Some(adversarial::payload::CTRL_NS.to_string()),
     };
     let encoded =
         serde_json::to_vec(&ctrl).map_err(|_| CliError::code("receipt_encode_failed"))?;
@@ -925,11 +977,12 @@ fn parse_receipt_payload(plaintext: &[u8]) -> Option<ReceiptControlPayload> {
 
 fn build_delivered_ack(msg_id: &str) -> CliResult<Vec<u8>> {
     let ack = ReceiptControlPayload {
-        v: 1,
+        v: CTRL_VERSION,
         t: "ack".to_string(),
         kind: "delivered".to_string(),
         msg_id: msg_id.to_string(),
         body: None,
+        ns: Some(adversarial::payload::CTRL_NS.to_string()),
     };
     serde_json::to_vec(&ack).map_err(|_| CliError::code("receipt_encode_failed"))
 }
@@ -959,6 +1012,27 @@ fn queue_or_send_receipt(
         PendingReceipt::FileComplete { .. } => "file_complete",
         PendingReceipt::AttachmentComplete { .. } => "attachment_complete",
     };
+    // NA-0682 (D617 F6): with acks ON by default, we now attempt them for every received
+    // message -- including from peers we have no route BACK to.
+    //
+    // ⚠ Do not attempt an ack that cannot be sent. A one-way contact (added without a route
+    // token, or still pending) has no reverse route, so the attempt can only ever fail. It
+    // failed SOFTLY and non-fatally, but it emitted `receipt_send_failed
+    // code=QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED` into the receive stream on every message --
+    // noise that says nothing a caller can act on, and that a substring-based secret scan
+    // reasonably flags because the CODE NAME contains "TOKEN".
+    //
+    // Skipping quietly is both quieter and more correct: an ack we structurally cannot
+    // deliver is not a failure to report, it is a thing not to attempt. The sender simply
+    // stays at SENT, which is the honest state -- we have no way to tell them otherwise.
+    if matches!(item, PendingReceipt::Message { .. }) && relay_peer_route_token(ctx.from).is_err() {
+        emit_marker(
+            "receipt_skipped",
+            None,
+            &[("reason", "no_reverse_route"), ("kind", kind)],
+        );
+        return Ok(());
+    }
     match ctx.receipt_policy.mode {
         ReceiptEmitMode::Off => {
             emit_cli_receipt_policy_event(ctx.receipt_policy.mode, "skipped", kind, ctx.from);
@@ -2275,7 +2349,6 @@ pub fn envelope_plan_ack(
     Ok(())
 }
 
-
 fn bool_str(v: bool) -> &'static str {
     if v {
         "true"
@@ -2316,9 +2389,172 @@ fn write_doctor_export(path: &Path, report: &DoctorReport) -> Result<(), ErrorCo
     Ok(())
 }
 
+// ---------------------------------------------------------------------------
+// NA-0682 (D617 §2h / §2i) — the message-queue surface.
+//
+// ⚠ §2i: these return / emit STRUCTURED state, not parsed marker text. Today's
+// `timeline_list` prints markers and `TimelineEntry`'s fields are `pub(super)`, so a GUI
+// can call it but cannot read it -- Slice 4 would have had to parse stdout. This is the
+// shape that does not repeat that.
+// ---------------------------------------------------------------------------
+
+/// Per-contact queue state, as data. The GUI consumes this; the CLI renders it.
+pub fn outbox_summary() -> CliResult<Vec<msgqueue::ContactQueueSummary>> {
+    require_unlocked("outbox_status")?;
+    let (dir, _source) = config_dir().map_err(cli_err)?;
+    msgqueue::summarize_at(&dir, msgqueue::now_unix_s()).map_err(CliError::code)
+}
+
+/// `qsc outbox status` — the honest one-line status per contact.
+///
+/// ⚠ §2h is CLAIMS-HONESTY, not UX. v1 has NO BACKGROUND DAEMON: messages move only while
+/// the app is open and the vault unlocked, and a locked vault means the queue is PAUSED
+/// because the store key lives in the vault. So a paused queue says what to do about it
+/// ("unlock to send") and an unreachable relay says it will send later -- neither may read
+/// as work in progress. A paused outbox that looks like a sending one is a FALSE CLAIM.
+pub fn outbox_status() -> CliResult {
+    let summaries = outbox_summary()?;
+    let total: usize = summaries.iter().map(|s| s.queued).sum();
+    let total_s = total.to_string();
+    let n_s = summaries.len().to_string();
+    emit_marker(
+        "outbox_status",
+        None,
+        &[
+            ("contacts", n_s.as_str()),
+            ("queued_total", total_s.as_str()),
+        ],
+    );
+    // Stated once, unconditionally, so the limitation is never inferable only from silence.
+    emit_marker(
+        "outbox_limitation",
+        None,
+        &[
+            ("background_daemon", "false"),
+            ("sends_while", "app_open_and_vault_unlocked"),
+        ],
+    );
+    for s in summaries.iter() {
+        let q = s.queued.to_string();
+        let sent = s.sent.to_string();
+        let del = s.delivered.to_string();
+        let failed = s.failed.to_string();
+        let line = s.honest_line().unwrap_or_else(|| "idle".to_string());
+        emit_marker(
+            "outbox_contact",
+            None,
+            &[
+                ("peer_key", s.peer_key.as_str()),
+                ("queued", q.as_str()),
+                ("sent", sent.as_str()),
+                ("delivered", del.as_str()),
+                ("failed", failed.as_str()),
+                ("paused", s.paused.map(|c| c.as_str()).unwrap_or("none")),
+                ("status", line.as_str()),
+            ],
+        );
+    }
+    Ok(())
+}
+
+/// `qsc outbox retry` — the manual "Retry now" trigger (DESIGN §2).
+///
+/// ⚠ F3: this is the DRAIN ENTRY POINT, not a loop. Slice 3 ships the callable and the
+/// trigger vocabulary; Slice 4 owns the timer that calls it on unlock, settings-save,
+/// manual retry, and after any successful send.
+pub fn outbox_retry(relay: &str) -> CliResult {
+    require_unlocked("outbox_retry")?;
+    let (dir, source) = config_dir().map_err(cli_err)?;
+    let mut sender = transport::RelayMessageSender::new(relay);
+    let out = msgqueue::drain_at(
+        &dir,
+        source,
+        msgqueue::DrainTrigger::ManualRetry,
+        msgqueue::now_unix_s(),
+        &mut sender,
+    )
+    .map_err(CliError::code)?;
+    let (a, s, p, f, q) = (
+        out.attempted.to_string(),
+        out.sent.to_string(),
+        out.paused.to_string(),
+        out.failed.to_string(),
+        out.still_queued.to_string(),
+    );
+    emit_marker(
+        "outbox_drain",
+        None,
+        &[
+            ("trigger", msgqueue::DrainTrigger::ManualRetry.as_str()),
+            ("attempted", a.as_str()),
+            ("sent", s.as_str()),
+            ("paused", p.as_str()),
+            ("failed", f.as_str()),
+            ("still_queued", q.as_str()),
+        ],
+    );
+    Ok(())
+}
+
+/// `qsc outbox discard` — ⚠ DESTROY one specifically-identified queued message.
+///
+/// ⚠ F2: recovery means DRAIN OR FAIL VISIBLY, NEVER DESTROY. This is deliberately off the
+/// generic recovery path, requires naming the exact message, and requires `--confirm`.
+///
+/// ⚠ It routes through `msgqueue::discard_at`, which commits the ratchet advance BEFORE
+/// dropping the bytes. A plain delete here would be NONCE REUSE: the next pack would reuse
+/// the abandoned message key, and if that ciphertext reached the relay (push sent, response
+/// lost) two ciphertexts would exist under one key.
+pub fn outbox_discard(to: &str, msg_id: &str, relay: &str, confirm: bool) -> CliResult {
+    require_unlocked("outbox_discard")?;
+    if !confirm {
+        emit_marker(
+            "error",
+            Some("outbox_discard_confirm_required"),
+            &[("reason", "explicit_confirm_required")],
+        );
+        return Err(CliError::code("outbox_discard_confirm_required"));
+    }
+    let (dir, _source) = config_dir().map_err(cli_err)?;
+    let mut sender = transport::RelayMessageSender::new(relay);
+    msgqueue::discard_at(&dir, to, msg_id, &mut sender).map_err(CliError::code)?;
+    emit_marker(
+        "outbox_discard",
+        None,
+        &[
+            ("ok", "true"),
+            ("action", "burned"),
+            ("msg_id", "<redacted>"),
+        ],
+    );
+    Ok(())
+}
+
 #[cfg(test)]
 mod message_state_tests {
     use super::timeline::{message_state_transition_allowed, MessageState};
+
+    /// NA-0682 (D617 F6, DEFERRED 2026-07-28 — operator Condition 4). ⚠ PIN THE DEFAULT.
+    ///
+    /// The ack MECHANISM ships in this lane; the ON-BY-DEFAULT FLIP does not. That decision is
+    /// a **wire-behaviour** decision, not a style one — turning acks on consumes the DH
+    /// ratchet-on-reply boundary and triggers a PQ reseed per received message — so the default
+    /// is pinned by a test rather than left to whoever next edits the struct literal.
+    ///
+    /// ⚠ This asserts the RECIPIENT-HONOURS half. The SENDER-REQUESTS half is pinned in
+    /// `transport::receipt_sender_default_tests`; a half-flip would leave the wire noisy while
+    /// the feature looked disabled, so both are pinned separately and deliberately.
+    ///
+    /// If a future lane flips this ON, this test SHOULD go red — that is the point. Flip it in
+    /// the same commit, with the measurement the flip ENG requires.
+    #[test]
+    fn receipt_default_is_off_recipient_half() {
+        assert_eq!(
+            super::ReceiptPolicy::default().mode,
+            super::ReceiptEmitMode::Off,
+            "delivery acks must be OFF by default until the flip lane rules otherwise"
+        );
+    }
 
     #[test]
     fn failed_state_is_terminal() {

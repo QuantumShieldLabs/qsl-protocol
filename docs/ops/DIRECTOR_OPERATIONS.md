@@ -363,6 +363,27 @@ first future lane already paying `docs_only=false`. **Note the direction of the
 staleness has flipped** — before this note, `CLAUDE.md` stated a live
 requirement while omitting the relay convention; now it states a dead one.
 
+### 4b. Where a lane's executable block is born (operator ruling, 2026-07-28, NA-0682 OBS-DY)
+
+**A lane's executable `### NA-####` block is created at PROMOTION, not at enqueue.**
+
+- **Enqueue** writes the **ON DECK entry only**, plus the `STATE:` line bump and the `prior:`
+  record. It does NOT create a `### NA-####` block.
+- **Promotion** creates the executable block (`Status: READY`, the change-permission lines,
+  `Scope` with MAY/FORBIDDEN, `Objective`, `Result classes`, `Begins at PHASE 0`) and retires
+  the ON DECK entry in place with a strikethrough.
+
+**Why (the reason is the part that must survive):** the block is what promotion AUTHORIZES,
+so it exists at the moment of authorization. `BACKLOG → READY` should read as **"the block
+appears"**, not as "the block mutates" — a block that exists while a lane is BACKLOG
+describes authority that has not been granted.
+
+**How it was found:** two live precedents had diverged. NA-0681 created its block at
+promotion; NA-0682 created a lighter `Status: BACKLOG` block at enqueue and the promotion
+then upgraded it. Both were defensible in isolation, so the queue held two patterns for one
+question and the next Director turn would have copied whichever it read first. NA-0682's own
+history keeps its as-executed shape; nothing is retro-edited.
+
 ## 5. Verified state replaces asserted state
 
 Because the Director and Executor now share one seat with live repo access,

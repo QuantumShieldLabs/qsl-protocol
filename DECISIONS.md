@@ -34695,3 +34695,96 @@ re-leaks what it redacts*. **Redaction records name FIELDS, never VALUES** — e
 instrument rather than by discipline.
 
 **Goals:** G4 (primary), G1, G5. **Queue:** `READY=NA-0684`; the closeout (D-1323) is owed.
+
+---
+
+## D-1323 — NA-0684 CLOSEOUT: `INFRA_HOSTNAME_SANITIZATION_PASS`, and the lane whose own gate refused it twice — correctly, both times
+
+**Date:** 2026-07-29. **Lane:** NA-0684. **Directive:** D619 (amended three times in place,
+sha256 `de0a8472…955b5603`, 583 lines). **Ruling:** D-1322.
+**Merged:** `qsl-protocol` **#1677** → `0509aae36177bce8a35299f3d3cdad9e76c01e63` (lane commits
+`05abbecb` + `ed6c07e5`) · `qsl-attachments` **#42** → `a71d348ae4613dd97215a75f6c45d9fbf4a9bc9a`
+(**D-0013**) · `qsl-desktop` **#21** → `f91fc75f142fcf1b70c04a9809e1b9292975eb0d` (**D-0022**).
+**Evidence:** `docs/governance/evidence/NA-0684_as_built.md`.
+**Instrument record:** `tests/NA-0684_hostname_sanitization_testplan.md`.
+
+**WHAT SHIPPED.** Three demo scripts lost a hostname default and gained a fail-fast guard
+requiring `QSL_RELAY_BASE_URL`; 28 live-instruction occurrences became angle-bracket
+placeholders; seven personal-name sites and one tailnet literal were redacted by ruling; **796
+dated-record occurrences were left byte-identical and are printed by the gate in every run.**
+`qsl-server` was **measured** clean of live instructions (8 occurrences, all record) and got no
+PR; the org profile repo was a zero over an examined tree.
+
+    base       raw 833 = A 3 + B 28 + C 802   GATE FAIL: A+B=31 ruled_additions=1 personal_name=7
+    post-fix   raw 796 = A 0 + B 0 + C 796    GATE PASS  (0 / 0 / 0, c_delta as ruled)
+    post-merge identical, re-measured against all three merged mains
+
+CI at merge: spine **35 pass / 2 skipping / 0 fail**, satellites **3/3** each; **`trailers=[]`
+on all three merge commits.** Desktop suite **102 passed / 0 failed / 1 ignored**.
+
+### The rulings this lane is remembered for (recorded in full at D-1322)
+
+The **property** — *directs traffic today* vs *reports what was true* — decided all 833
+occurrences; **when the enumeration and the property disagree, the property governs**. **Two
+classes outrank it:** personal identity (D612's tier), which is why the lane edited the
+**append-only journal**; and **Tier-2b on added lines**, which overrode a flag of this same
+lane. **Two standing rules:** the mitigation for what is already published is the
+**registration hold**, not scrubbing; and **any line a lane re-adds carries no Tier-2b
+literal** — the gate and *name the field, never the value* are one policy, and **on an added
+line the gate wins**.
+
+### ⚠ The lane's own gate refused it twice, and was right twice
+
+Once on **paperwork** — a queue block quoting the two remote account names *while listing what
+must not be touched* — and once on the **product edits**, where five re-added lines carried
+that same class. **The first was a defect in the record; the second was a collision between two
+rulings that only an instrument could have surfaced.** Neither was found by reading the diff.
+
+**The closing measurement is that same gate reading clean.** A gate reversing its own verdict is
+worth more than a gate that was never asked.
+
+### ⚠ Method note, adopted: a pipeline reported success for a truncated log
+
+`cargo test | tail -40` **truncated the suite log and reported the pipe's exit status**,
+yielding a false "25 passed"; the true figure came from an unpiped re-run. **Suite numbers are
+read from unpiped runs or from the log file, never through a pipeline that can truncate output
+or mask an exit status.** Same family as the standing rule against piping the check that gates
+you.
+
+### Disclosed and deferred — the tailnet class
+
+**40 occurrences / 12 files / two distinct addresses**, ~14 **B-shaped by this lane's own
+property** (live reproduction commands), the whole class **invisible to the committed scanner**
+because CGNAT matches no structural pattern. ⚠ **Exposure stated honestly rather than inflated:
+CGNAT is NOT publicly routable — the class reveals tailnet TOPOLOGY, not a public route**, which
+is why it could wait one lane where the DNS names could not.
+
+⚠ **One line this lane re-added still carries such an address** — the journal capture it edited
+for the personal-name tier. **Disclosed and deferred, not overlooked:** it trips no gate, it is
+inside the successor's census, and **the successor rules its class**, with the stated
+expectation that **a journal capture may legitimately classify C (leave)** and that the durable
+fix is a **CGNAT Tier-2b scanner class**, so that future edits to such lines ship clean.
+
+### ENG-0089, sharpened
+
+The ledger entry is updated with the question this lane actually posed: **not "promote
+`host_retired_rig` to Tier-1 or not" but "what does a lane do when it must re-add a line it is
+not allowed to change?"** — and **Option B is the recorded answer**: placeholder the Tier-2b
+literal **as part of the edit**; **grandfathered lines stay**; the gate and the name-the-field
+rule are **one policy**. This lane's census (the historical proof labels, the 10 tracked paths
+carrying the rig token, and the record class) is the **allowlist input** that lane must meet as
+**known exceptions rather than discoveries**.
+
+### HANDOFF-OUT — settled, so the fresh session does not re-open it
+
+1. **The tailnet successor micro-lane is OPERATOR-APPROVED**, sequenced immediately after
+   NA-0684 and **before ENG-0089's Tier-1 promotion**. ⚠ **It uses TWO placeholders, one per
+   address** — the cross-host runbooks use them as **a talking pair** (host A and host B), and a
+   single token would make the instructions **unreproducible**. Its starting input is this
+   lane's census, archived operator-side with the instrument.
+2. **The CI/tooling lane** takes ENG-0088, **ENG-0089 as sharpened above**, and ENG-0090 —
+   sequenced **after** the tailnet lane.
+3. **Nothing else is owed by this lane.** Queue → `READY=NONE | HIGHEST_NA=0684 |
+   HIGHEST_D=1323`.
+
+**Goals:** G4 (primary), G1, G5. **Result:** `INFRA_HOSTNAME_SANITIZATION_PASS`.

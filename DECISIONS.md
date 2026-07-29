@@ -34461,6 +34461,45 @@ the relay's `/v1/server-info` body (a **wire field** that `qsc` reads and `qsl-d
 renders), the `relay_server_info=` diagnostic markers in the `qsc` CLI, and the endpoint path
 itself. `qsl-server` the repo/crate/service name is a proper noun and stays.
 
+### ⚠ ANNOTATION added 2026-07-29 by NA-0686 (D-1325) — mark-don't-rewrite
+
+**The table above is CORRECT in its ruling and WRONG in two of its coordinates.**
+It is annotated rather than edited, because the ruling is what later lanes cite
+and a silently-corrected map teaches nothing.
+
+**(1) LINE NUMBERS HAVE ALREADY DRIFTED — key on CONTENT, not position.** The
+`qsc` CLI help text cited as `cmd/mod.rs:601` was measured at **`:641`** on
+2026-07-29, forty lines below where this map put it; `:601` is now an unrelated
+`msg_id` field. One intervening lane moved it. ⚠ This map is the artifact later
+lanes were told to *"cite, do not re-derive"* — so a stale coordinate in it is
+more expensive than a stale coordinate anywhere else. **The counter-rule is
+already written in this project's own instrument**, `scripts/ci/infra_literal_scan.py`'s
+sibling sweep: *"Every class is keyed on the file path and on CONTENT NEEDLES,
+never on a line number — NA-0683 paid for that lesson twice."* The map should
+have been keyed the same way. Cite these surfaces **by their sentence**:
+
+| surface | content needle (use this, not a line number) |
+|---|---|
+| `qsc` CLI help | "Run a local relay … with deterministic fault injection" |
+| `apps/qsl-tui/README.md` | "The relay … is transport-only and forwards **opaque bytes**" |
+| `qsl-server/README.md` | "operator documentation for the transport-only … boundary" |
+
+**(2) "~10 `docs/public` prose lines" WAS AN ESTIMATE, AND IT MEASURED 2 — both
+LEAVE.** NA-0686 measured 88 raw `server` hits under `docs/public/**`; after
+excluding `qsl-server`, `server-info`, `server-side` and `serverless`, **two**
+lines remain, both in `PUBLIC_ATTENTION_AND_VISIBILITY_STRATEGY.md` (`:110`,
+`:139`), and both use "Server" for the **`qsl-server` workstream** paired with
+"attachment" — the proper-noun sense this very ruling protects. **The docs/public
+remainder is ZERO**, and Phase 7 of NA-0686 was therefore three edits, not
+thirteen.
+
+⚠ **This is the parenthetical-estimate lesson recurring in a DIRECTOR artifact.**
+NA-0685 recorded it against a predecessor's *"about 14"* that measured 16; here a
+map's *"~10"* measured 2. The direction differs, the mechanism does not: **a
+figure written in passing is an estimate, and a later lane that inherits it
+without re-measuring inherits the error.** The remedy is unchanged — state the
+figure as a POINT PREDICTION and let the measurement correct it in public.
+
 ### F1's deferred 14th line
 
 `qsl-desktop`'s `docs/DESIGN_SPEC_AppendixF.md:239` is **F1's fourteenth line and it did not
@@ -34913,3 +34952,157 @@ the promotion can no longer turn a gate red on already-published content. The CI
 
 **Goals:** G4 (primary), G1, G5. **Result:** `TAILNET_ADDRESS_SANITIZATION_PASS`.
 **Queue:** `READY=NONE | HIGHEST_NA=0685 | HIGHEST_D=1324`.
+
+---
+
+## D-1325 — NA-0686: THE CI/TOOLING & TEST-INSTRUMENT AUDIT — and the lane where measurement contradicted the instruction three times, correctly each time
+
+**Date:** 2026-07-29. **Lane:** NA-0686. **Base:** `qsl-protocol` `d2bf480e`,
+`qsl-desktop` `f91fc75`, `qsl-server` `131d63f`, `qsl-attachments` `a71d348`.
+**Authority:** the operator-approved lane intent of 2026-07-29 and the STOP-001
+rulings recorded below. **Impl evidence:** `docs/governance/evidence/NA-0686_as_built.md`.
+
+Seven ledger findings closed or dispositioned — **ENG-0082, 0084, 0085, 0087,
+0088, 0089, 0090**, plus a narrow authorised fold of **ENG-0075**. No product
+behaviour changed. One diagnostic surface gained a distinction it always had
+internally.
+
+### The ruling this lane will be remembered for
+
+> **A filed reason to AVOID an edit is itself a claim, and it can be measured.**
+
+ENG-0082 recorded that splitting the 401/403 marker collapse *"requires rewriting
+`NA_0663`'s assertion"*, and rejected the safest option on that basis — sound
+reasoning, because rewriting a guard to match new behaviour is the most dangerous
+edit class. **The premise was false.** `NA_0663_relay_tls_trust.rs` contains no
+403 case at all. Splitting only the 403 arm left every assertion true and
+byte-identical, and **NA_0663 passing UNTOUCHED (11 passed, exit 0) is the
+measurement that proves the split kept the 401 intact.** A finding's stated reason
+for deferral deserves the same scepticism as its stated defect.
+
+### Three times the instruction was wrong and the code was right
+
+⚠ **1. The ENG-0084 fix as specified was a NO-OP.** The intent directed
+field-name-keyed redaction of the `msg_id` field. **All eight marker fields named
+`msg_id` already carry the literal `"<redacted>"`**; the field carrying real
+message ids is keyed `id`. The specified rule would have redacted the sentinel and
+left the finding's own site untouched — a green control proving nothing. Ruled to
+**Option C**: the emitting helper stops accepting an identifier at all. **Zero
+redactor edits.** A parameter that does not exist cannot be passed raw.
+
+⚠ **2. The ENG-0087 remedy does not transfer to instance #4 — measured RED.**
+`receipt-apply --msg-id` keys on the **timeline entry id**, and the send path
+forces that id from the receipt id **only when a receipt was requested**. The two
+tests in question request none, so their entry id is the short form, not the queue
+record's 128-bit `msg_id`, and the queue record carries no timeline id to read
+instead. Substituting the first-party helper produced `event=error
+code=state_unknown`. Instance #4 therefore takes ENG-0087's **second** clause:
+the scrape remains and is made LOUD, failing at the defect instead of three steps
+downstream. **First-party acquisition is the rule; where it is genuinely
+unavailable, the sentinel guard is not a consolation prize but the other half of
+the same rule.**
+
+⚠ **3. The red control the ruling specified could not fire — and that WAS the
+finding.** Re-accepting the id and passing it raw still prints `<redacted>`,
+because the 32-hex value crosses the marker layer's shape rule: the pass-through
+was **defused by accident**, exactly as ENG-0084 says. The control had to vary
+what the coupling actually depends on — the id's WIDTH. Narrowed test-only:
+**fix in place → the C17 guard GREEN; old form restored → RED.** The pair proves a
+DEPENDENCE was removed, not an instance: that guard's greenness used to be a
+function of an unrelated constant's value.
+
+### The gate caught the lane three times, and was right every time
+
+1. The first draft of the `lib.rs` claim note **quoted** the retired claim; the
+   newly extended claim-discipline needle failed on it.
+2. The scanner's own new CGNAT class fired on a **comment in the scanner naming
+   the CIDR** — the self-matching hazard its docstring warns about, met in
+   practice.
+3. Instance #4's attempted migration went red rather than silently proving less.
+
+**An instrument that never inconveniences its author is not being tested by them.**
+
+### The allowlist is a BUDGET, not an exemption
+
+`host_retired_rig` is promoted to Tier-1 tree-wide, meeting its **771-occurrence,
+79-file** history as a **per-path expected count**: a file may keep what it has
+and may lose it, but may not gain one. ⚠ A path-only allowlist would have let a
+new occurrence into an already-listed file silently — **the exact hole ENG-0089
+was filed about**. Option B stops being a habit and becomes a tree invariant.
+The intended bite is real: a future lane writing the retired name into any record
+goes red and takes the placeholder as part of that edit.
+
+⚠ **Keys are salted digests of `<repo>:<path>` because ten allowlisted paths carry
+the token IN THE PATH.** Plaintext would have republished, inside the gate file,
+what two sanitization lanes removed — and the Tier-1 scan would have hit its own
+allowlist. The scan prints the real paths at run time instead.
+
+### The census reconciled EXACTLY
+
+**771** host-token occurrences **+ 25** public-DDNS = **796**, byte-identical to
+NA-0684's recorded final-gate total. The ledger's "796-occurrence record class" is
+**two needles summed**; a first pass measuring one of them read 771 and looked
+like drift. ⚠ **NA-0685 added ZERO new occurrences of either token** although the
+tree grew by 12 files and 3 508 lines — the arithmetic is the proof.
+
+### Rulings recorded
+
+- **§2 Phase 3a → Option C**, with clause (b) extended to
+  `emit_message_state_transition` only because its precondition was **measured**
+  (zero consumers of that field in qsc tests, in qsc, or in `qsl-desktop`).
+  Attachment `file_id` and `timeline_item` ids stay out of scope, named as the
+  remaining population.
+- **§3 Phase 2 → NA_0663 IS NOT TOUCHED.** 401 keeps `relay_unauthorized`; 403
+  becomes `relay_forbidden` at the marker-code site and `access_forbidden` at the
+  error-class site — **each site takes its own neighbours' vocabulary** rather
+  than importing the other's (D-1324 applied inside one file).
+- ⚠ **FLAG 2, ruled in mid-lane: a THIRD collapse site was found and fixed.**
+  `relay_push_diagnostic_class_for_status` also mapped both statuses to
+  `bearer_auth_failed`. **Operator grounds, and the generalisable rule: ENG-0082
+  cannot close with one collapse standing — the ledger claim would be false.** A
+  finding that closes while its own defect survives one layer out is a FALSE
+  CLOSURE. ⚠ And the token was not merely imprecise: this function's neighbours
+  name WHICH CREDENTIAL failed, and a 403 is the case where the bearer was
+  **accepted** — so `bearer_auth_failed` **sent an operator to re-check a token
+  that was never the problem.** A diagnostic that misdirects is worse than one
+  that under-informs. 403 → **`access_refused`**, which keeps the shape while
+  deliberately not saying `auth_failed`. Three layers, three vocabularies, each
+  from its own neighbours. The guard asserts distinctness at all three and that
+  the 403 diagnostic class contains no `auth_failed` at all.
+- ⚠ **The chained final suite was INVALIDATED by that edit and was killed before
+  it started** (verified by PID, no `final_*` artifact ever created, the base run
+  untouched and still advancing). **The run that ships is the run on the tree that
+  ships** — a final suite measuring a superseded tree is not evidence, it is a
+  number with the wrong provenance.
+- **RATIFIED:** the Phase-3a control substitution (the ruled control was
+  unfireable *for the exact reason ENG-0084 exists*, and the width-varying pair is
+  strictly stronger); **five call sites over the ruled four — measurement
+  governs**; and the acceptance of `emit_message_state_transition`'s attachment
+  overlap without revert, on the house direction that redaction names the field
+  and never the value.
+- **§5 Phase 7 → the `docs/public` remainder is ZERO**, not "~10". Three edits,
+  not five.
+- **OBS-B approved:** D-1320's map is annotated in place with content needles.
+  ⚠ It was **line-number-keyed and had already drifted** (`cmd/mod.rs:601` →
+  `:641`) — in the artifact later lanes were told to cite rather than re-derive,
+  while this project's own instrument already carried the counter-rule: *key on
+  content needles, never on a line number.* And its "~10" measured **2**, both
+  LEAVE — **the parenthetical-estimate lesson recurring in a Director artifact**,
+  the same mechanism NA-0685 recorded against a predecessor's "about 14" that
+  measured 16.
+
+### The instruments now have instruments
+
+`scripts/ci/infra_literal_scan_selftest.py` (13 checks) pins the scan's refusal to
+report a pass over an empty input — **behaviour that was correct, valuable and
+completely unguarded** — and the deliberate asymmetry that `staged` mode does NOT
+refuse, since a deletion-only commit legitimately has no added lines. It runs
+**before** the scan in all four repositories, so a broken instrument fails before
+it can report clean, and it carries **no operator literal**: every needle is
+assembled at run time so the file cannot fail the gate it tests.
+
+`qsl-desktop` loses `cargo test -q` and gains a **pinned test inventory** compared
+by NAME (ENG-0075, narrow authorised fold): deleting a test file drops the
+enumeration from 103 to 98 and fails **naming the five missing tests**.
+
+**Goals:** G4 (primary), G1, G5.

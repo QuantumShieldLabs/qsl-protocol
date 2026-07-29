@@ -204,24 +204,76 @@ pub(super) fn message_state_transition_allowed(
     }
 }
 
-pub(super) fn emit_message_state_transition(id: &str, from: MessageState, to: MessageState) {
+/// NA-0686 / D-1325 (ENG-0084, operator-ruled Option C clause (b)) — the same
+/// structural treatment as `emit_message_state_reject`, applied because the
+/// precondition was MEASURED rather than assumed.
+///
+/// The clause was authorised "if and only if every consumer of this field is
+/// gone". Measured across the whole surface, not just the files this lane
+/// touched: **zero** consumers read `id` from this marker — not in
+/// `qsl/qsl-client/qsc/tests/` (the only test naming this event,
+/// `attachment_streaming_na0197c.rs`, asserts `contains("event=…")` and reads no
+/// field), not in `qsc` itself, and not in `qsl-desktop`, which consumes qsc
+/// markers and parses no `id=` at all. So the field was carrying an identifier
+/// to nobody, at the cost of a live coupling to the shape-keyed redactor.
+///
+/// ⚠ ONE THING THE NAME HIDES, recorded because it is decision-bearing: despite
+/// "message_state", this marker is **shared with the attachment path** —
+/// `timeline_append_entry_for_target` and `timeline_transition_entry_state` both
+/// serve file transfers, so an attachment's timeline id previously appeared here
+/// too. Redacting it is therefore a (diagnostic-only) change to the attachment
+/// surface as well. It is NOT the `attachments/mod.rs` `file_id` population that
+/// the ruling placed out of scope — those sites are untouched — but the overlap
+/// is real and is reported rather than absorbed.
+pub(super) fn emit_message_state_transition(from: MessageState, to: MessageState) {
     emit_marker(
         "message_state_transition",
         None,
         &[
             ("from", from.as_str()),
             ("to", to.as_str()),
-            ("id", id),
+            ("id", "<redacted>"),
             ("ok", "true"),
         ],
     );
 }
 
-pub(super) fn emit_message_state_reject(id: &str, reason: &'static str) {
+/// NA-0686 / D-1325 (ENG-0084, operator-ruled Option C) — this helper NO LONGER
+/// ACCEPTS AN IDENTIFIER, and that is the fix.
+///
+/// ⚠ WHAT WAS ACTUALLY WRONG, because the ledger's premise turned out to be
+/// false. ENG-0084 was filed as "`msg_id` is emitted UNREDACTED at one site" and
+/// proposed a field-name-keyed redactor rule for the `msg_id` field.
+/// MEASUREMENT: **every marker field literally named `msg_id` already carries
+/// the literal string `"<redacted>"`** (eight sites). The field that carries
+/// real message ids is this one — keyed `id` — so a rule on the name `msg_id`
+/// would have been a **no-op**, and a rule on `id` would also have re-keyed the
+/// attachment and timeline-listing markers, which this lane does not audit.
+///
+/// So the coupling is removed WITHOUT touching the redactor at all. Three of the
+/// four call sites already passed `"<redacted>"` by hand; the fourth
+/// (`transport/mod.rs`, the ack-reject path) passed `ctrl.msg_id` raw and was
+/// defused only BY ACCIDENT — NA-0682's 32-hex id happens to cross the marker
+/// layer's `len() >= 24` shape rule. **Any future identifier narrower than that
+/// re-opened a raw emission here, with no test and no declaration connecting the
+/// two.** A parameter that does not exist cannot be passed raw: the property is
+/// now structural rather than a policy that happens to hold.
+///
+/// The emitted marker is BYTE-IDENTICAL to what the three correct sites produced
+/// before, so no consumer moves. `message_state_model.rs` asserts that this
+/// marker never echoes a raw id (the C17/F1 regression tripwire); that guard is
+/// deliberately left untouched and is now structurally true rather than
+/// shape-dependent.
+///
+/// Remaining population, named rather than silently left (ENG-0084 closure): the
+/// attachment `file_id` asymmetry (`attachments/mod.rs`) and the `timeline_item`
+/// entry id both still reach the marker layer as `id` and remain governed by the
+/// shape-keyed redactor. Out of scope here by ruling; recorded for a later lane.
+pub(super) fn emit_message_state_reject(reason: &'static str) {
     emit_marker(
         "message_state_reject",
         Some(reason),
-        &[("reason", reason), ("id", id)],
+        &[("reason", reason), ("id", "<redacted>")],
     );
 }
 
@@ -466,7 +518,7 @@ pub(super) fn timeline_append_entry_for_target(
         .or_default()
         .push(entry.clone());
     timeline_store_save(&store)?;
-    emit_message_state_transition(id.as_str(), MessageState::Created, final_state);
+    emit_message_state_transition(MessageState::Created, final_state);
     Ok(entry)
 }
 
@@ -494,7 +546,7 @@ fn timeline_transition_entry_state(
     entry.status = to.as_status().to_string();
     let out = entry.clone();
     timeline_store_save(&store)?;
-    emit_message_state_transition(id, from, to);
+    emit_message_state_transition(from, to);
     Ok(out)
 }
 

@@ -2029,7 +2029,7 @@ pub fn file_send_execute(args: FileSendExec<'_>) -> CliResult {
         Some(file_id.as_str()),
         Some(routing.device_id.as_str()),
     ) {
-        emit_message_state_reject(file_id.as_str(), code);
+        emit_message_state_reject(code);
         return Err(file_xfer_reject(file_id.as_str(), code));
     }
     let outbound = FileTransferRecord {

@@ -512,13 +512,29 @@ fn family3_trust_failure_is_distinct_from_refused_dns_and_auth() {
 }
 
 #[test]
-fn family3_ca_config_failures_are_each_enumerated_and_fail_closed() {
+/// NA-0686 / D-1325 (Phase 6) — SPLIT from
+/// `family3_ca_config_failures_are_each_enumerated_and_fail_closed`, which ran
+/// all three CA-configuration failures against ONE `prepared_cfg` fixture.
+///
+/// ⚠ The asserted property here IS CAUSE-DISTINCTNESS — the retired name said so
+/// ("are_each_enumerated") — and three sub-cases sharing one config is the exact
+/// coupling mechanism this lane enumerated. Two concrete costs, not hypothetical
+/// ones: the sub-cases accumulated state in the shared cfg (the second wrote a
+/// directory into it, the third a junk file), and a failure in the first
+/// SILENCED the other two, so a regression in `relay_ca_file_invalid` could hide
+/// behind an unrelated break in `relay_ca_file_missing`.
+///
+/// Every other test in this file already takes one fixture per cause
+/// (`family2_env`, `family2_fallback`, `family2_cli`, `family3_untrusted` …).
+/// This is the file's own established pattern, not a new one — adopting it is
+/// D-1324's vocabulary rule applied inside a single file. The three asserted
+/// properties are BYTE-IDENTICAL to before; only the fixtures were separated.
+fn family3_ca_config_missing_fails_closed() {
     let ca = make_ca("NA-0663 config-failure CA");
     let (chain, key) = make_leaf(&ca);
     let server = start_tls_server(chain, key, "200 OK");
-    let (cfg, payload) = prepared_cfg("family3_config");
+    let (cfg, payload) = prepared_cfg("family3_config_missing");
 
-    // missing
     let mut cmd = base_send_command(&cfg);
     cmd.env("QSC_RELAY_CA_FILE", cfg.join("absent_ca.pem"));
     let (ok, text) = run_send(cmd, &payload, server.base_url.as_str());
@@ -527,8 +543,16 @@ fn family3_ca_config_failures_are_each_enumerated_and_fail_closed() {
         text.contains("relay_ca_file_missing"),
         "expected relay_ca_file_missing, got: {text}"
     );
+}
 
-    // unreadable (a directory is not a readable file)
+#[test]
+fn family3_ca_config_unreadable_fails_closed() {
+    let ca = make_ca("NA-0663 config-failure CA");
+    let (chain, key) = make_leaf(&ca);
+    let server = start_tls_server(chain, key, "200 OK");
+    let (cfg, payload) = prepared_cfg("family3_config_unreadable");
+
+    // a directory is not a readable file
     let dir_path = cfg.join("ca_dir");
     ensure_dir_700(&dir_path);
     let mut cmd = base_send_command(&cfg);
@@ -539,8 +563,16 @@ fn family3_ca_config_failures_are_each_enumerated_and_fail_closed() {
         text.contains("relay_ca_file_unreadable"),
         "expected relay_ca_file_unreadable, got: {text}"
     );
+}
 
-    // invalid (readable, but not PEM)
+#[test]
+fn family3_ca_config_invalid_fails_closed() {
+    let ca = make_ca("NA-0663 config-failure CA");
+    let (chain, key) = make_leaf(&ca);
+    let server = start_tls_server(chain, key, "200 OK");
+    let (cfg, payload) = prepared_cfg("family3_config_invalid");
+
+    // readable, but not PEM
     let junk = cfg.join("not_a_cert.pem");
     write_file(&junk, b"this is definitely not a certificate\n");
     let mut cmd = base_send_command(&cfg);

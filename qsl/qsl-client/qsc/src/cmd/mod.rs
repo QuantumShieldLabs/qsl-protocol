@@ -638,7 +638,7 @@ pub enum TimelineCmd {
 
 #[derive(Subcommand, Debug)]
 pub enum RelayCmd {
-    /// Run a local relay server with deterministic fault injection.
+    /// Run a local relay with deterministic fault injection.
     Serve {
         /// Port to bind (0 = auto-assign).
         #[arg(long, default_value_t = 0)]

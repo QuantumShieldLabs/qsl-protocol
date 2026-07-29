@@ -30,6 +30,53 @@ pub const TEST_MOCK_VAULT_PASSPHRASE_ENV: &str = "QSC_DESKTOP_SESSION_PASSPHRASE
 pub const TEST_MOCK_VAULT_PASSPHRASE: &str = "qsc-test-mock-vault-passphrase";
 pub const UNSAFE_TEST_SEED_FALLBACK_ENV: &str = "QSC_UNSAFE_TEST_SEED_FALLBACK";
 
+/// The string the marker layer substitutes for a value it redacts
+/// (`src/output/mod.rs`, `redact_value_for_output`).
+pub const REDACTION_SENTINEL: &str = "<redacted>";
+
+/// NA-0686 / D-1325 (ENG-0087) — THE SENTINEL FAIL-FAST RULE.
+///
+/// A test that learns a value by scraping a DIAGNOSTIC MARKER is coupled to
+/// REDACTION POLICY. The marker layer redacts by VALUE SHAPE, not by key
+/// (`should_redact_value` -> `looks_high_cardinality`: `len() >= 24` and
+/// contains a digit), so **any change to a value's WIDTH is a behavioural
+/// change to every scrape that reads it** — and nothing in the code declares
+/// that coupling. That is OBS-FA, and it is the root condition; the scrapes are
+/// only where it surfaces.
+///
+/// ⚠ The failure mode this exists to stop is NOT a broken scrape. It is a
+/// scrape that **succeeds and returns the literal string `<redacted>`**. The
+/// sentinel PARSES AS A VALID IDENTIFIER, so the test proceeds and fails much
+/// later, in a different subsystem, with a misleading code — NA-0682 spent a
+/// full diagnostic cycle tracing exactly that, from `state_unknown` back to a
+/// scrape three steps upstream. **A test that fails at the point of the defect
+/// is cheap; this one was not.**
+///
+/// FIRST-PARTY acquisition is the remedy and is always preferred: read the
+/// value from the store, from the return value, or from the fixture that minted
+/// it (`first_party_sent_msg_id` is the reference shape). Where a legacy scrape
+/// must remain, it routes through here so it **fails AT the defect** instead of
+/// handing policy output onward as data.
+///
+/// ⚠ Deliberately **FIELD-AGNOSTIC**: `field` names the failure and nothing
+/// else. The id class is the only caller today, but the same scrape pattern
+/// appears across the suite for `identity_fp=`, `identity_kem_pk=`,
+/// `identity_sig_pk=`, `device=`, `state=`, `invite=`, `send_seq=` and `max=`.
+/// None of those crosses the redactor today; all of them would adopt this
+/// without redesign if one ever did. That population is enumerated in the
+/// ENG-0087 annex rather than fixed here.
+pub fn scraped_marker_value(field: &str, value: &str) -> String {
+    assert_ne!(
+        value, REDACTION_SENTINEL,
+        "scraped `{field}=` and got the redaction sentinel. The marker layer \
+         redacted this value, so the scrape returned REDACTION POLICY OUTPUT, \
+         not data — and the sentinel would have parsed as a valid `{field}`. \
+         Acquire `{field}` FIRST-PARTY (store / return value / minting fixture) \
+         instead of scraping a marker. See ENG-0087."
+    );
+    value.to_string()
+}
+
 #[allow(dead_code)]
 pub fn add_unsafe_seed_fallback_env(cmd: &mut StdCommand) {
     cmd.env("QSC_ALLOW_SEED_FALLBACK", "1")

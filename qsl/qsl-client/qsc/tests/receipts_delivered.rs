@@ -277,6 +277,50 @@ fn delivered_receipt_roundtrip() {
     assert!(alice_recv.contains("event=receipt_recv kind=delivered msg_id=<redacted>"));
     assert!(alice_recv.contains("event=delivered_to_peer kind=delivered msg_id=<redacted>"));
     assert!(!alice_out.join("recv_1.bin").exists());
+
+    // NA-0686 / D-1325 (ENG-0085) — THE READ-BACK. Everything above this line
+    // asserts on EMITTED MARKERS, never on stored state.
+    //
+    // ⚠ The test was NOT hollow: `event=delivered_to_peer` is emitted only
+    // inside the `Confirmed` arm, which is reached only after the timeline
+    // transition persists — so the marker did imply the state. But it implied it
+    // THROUGH AN IMPLEMENTATION DETAIL. A change that kept emitting the marker
+    // while failing to persist would have left this test green, and "the proof
+    // holds because of where the emit happens to sit" is the shape of a proof
+    // that stops holding without anyone noticing.
+    //
+    // So the state is now read back and asserted directly. One assertion; it
+    // does not weaken or replace anything above it, it removes the inference.
+    let mut timeline_cmd = common::qsc_std_command();
+    timeline_cmd
+        .env("QSC_CONFIG_DIR", &alice_cfg)
+        .env("QSC_QSP_SEED", "1")
+        .env("QSC_ALLOW_SEED_FALLBACK", "1")
+        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
+        .env("QSC_MARK_FORMAT", "plain")
+        .args(["timeline", "list", "--peer", "bob", "--limit", "10"]);
+    let timeline = timeline_cmd
+        .output()
+        .expect("timeline list after delivered receipt");
+    let timeline_text = combined_output(&timeline);
+    assert!(
+        timeline.status.success(),
+        "timeline list must succeed: {timeline_text}"
+    );
+    let state = timeline_text
+        .lines()
+        .find(|line| line.contains("event=timeline_item"))
+        .and_then(|line| {
+            line.split_whitespace()
+                .find_map(|tok| tok.strip_prefix("state="))
+        })
+        .unwrap_or_else(|| panic!("no timeline item to read back: {timeline_text}"));
+    // ENG-0087 rule 2: a scrape may never proceed on the redaction sentinel.
+    let state = common::scraped_marker_value("state", state);
+    assert_eq!(
+        state, "DELIVERED",
+        "the receipt round-trip emitted its marker but the stored row is {state}: {timeline_text}"
+    );
 }
 
 #[test]

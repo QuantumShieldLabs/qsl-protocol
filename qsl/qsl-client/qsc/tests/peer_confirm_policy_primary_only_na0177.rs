@@ -200,6 +200,33 @@ fn set_primary(cfg: &Path, label: &str, device: &str) {
     assert!(out.status.success(), "{}", output_text(&out));
 }
 
+/// NA-0686 / D-1325 (ENG-0087 instance #4) — a LEGACY SCRAPE THAT MUST REMAIN,
+/// hardened under ENG-0087's second clause instead of migrated under its first.
+///
+/// ⚠ WHY FIRST-PARTY ACQUISITION IS NOT AVAILABLE HERE — measured, not assumed,
+/// because the obvious remedy looks like it should work and does not.
+/// `qsc util receipt-apply --msg-id` keys on the **TIMELINE ENTRY id**:
+/// `apply_message_peer_confirmation` -> `timeline_outbound_target_device(peer,
+/// msg_id)`. That id is minted by `timeline_append_entry_for_target` as
+/// `forced_id.unwrap_or_else(|| format!("{dir}-{ts}"))`, and the send path's
+/// only `forced_id` is `message_id: receipt_msg_id` — populated **only when the
+/// send requested a receipt**. Neither test here requests one, so the entry id
+/// is the short `out-<ts>` form, which is NOT the msgqueue record's 128-bit
+/// `msg_id`, and `QueuedMessage` carries no timeline id to read instead.
+///
+/// Substituting `first_party_sent_msg_id` here — the remedy NA-0682 proved
+/// twice, and the one this lane's intent prescribed — was tried and **measured
+/// RED**: `event=error code=state_unknown`, the id-not-found rejection. The two
+/// identifiers coincide only when a receipt was requested, which is exactly the
+/// condition these tests lack. Making them request one would change the
+/// scenario and would pre-empt ENG-0086's pending default flip.
+///
+/// So the scrape stays, and ENG-0087's rule 2 applies: it may no longer proceed
+/// on the sentinel as data. The coupling to redaction policy is NOT removed —
+/// it is made **loud**. When ENG-0086's flip lands and these ids widen, this
+/// fails AT THE SCRAPE with a named message, instead of three steps downstream
+/// in a different subsystem with a misleading code, which is what cost NA-0682
+/// a full diagnostic cycle.
 fn timeline_first_out_id(cfg: &Path, peer: &str) -> String {
     let out = run(cfg, &["timeline", "list", "--peer", peer, "--limit", "20"]);
     assert!(out.status.success(), "{}", output_text(&out));
@@ -215,7 +242,8 @@ fn timeline_first_out_id(cfg: &Path, peer: &str) -> String {
             .split_whitespace()
             .find_map(|tok| tok.strip_prefix("id=").map(|v| v.to_string()))
         {
-            return id;
+            // ⚠ ENG-0087 rule 2: fail AT the defect, never on `<redacted>` as data.
+            return common::scraped_marker_value("id", id.as_str());
         }
     }
     panic!("missing outbound timeline item: {text}");

@@ -37,7 +37,7 @@ and no protocol/crypto state-machine changes.
 ## Remote Preflight
 
 - SSH alias: `remote`.
-- Hostname: `lawrence-Inspiron-3647`.
+- Hostname: `<remote-test-host>`.
 - User: `qslcodex`.
 - Groups included `sudo`.
 - Remote Tailscale IP: `100.99.234.5`.

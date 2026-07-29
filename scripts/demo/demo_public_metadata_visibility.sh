@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [ -z "${QSL_RELAY_BASE_URL:-}" ]; then
+  echo "QSL_RELAY_BASE_URL is required" >&2
+  exit 2
+fi
+
 # DEMO-PUBLIC-001 helper: build + run metadata visibility demo
 # Output artifacts go to /home/victor/work/qsl/_forensics
 
@@ -28,7 +33,7 @@ set -e
 echo "RC_LOCAL=$RC_LOCAL" | tee -a "$OUT/10_local_basic.txt"
 
 # Relay mode (padded) requires explicit opt-in
-BASE="http://qsl.ddnsfree.com:8080"
+BASE="$QSL_RELAY_BASE_URL"
 CH="demo-${RUN_ID}"
 set +e
 QSL_ALLOW_REMOTE=1 cargo run -p qsl-tui --release -- \

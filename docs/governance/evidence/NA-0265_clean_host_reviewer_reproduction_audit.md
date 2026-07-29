@@ -148,7 +148,7 @@ Underlying positive/negative proof included:
 Remote host:
 
 ```text
-hostname: lawrence-Inspiron-3647
+hostname: <remote-test-host>
 user: qslcodex
 Tailscale IPv4: 100.99.234.5
 sudo proof: SUDO_OK

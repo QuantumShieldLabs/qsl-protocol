@@ -72,7 +72,7 @@ ssh remote 'ping -c 1 -W 2 100.82.111.69'
 
 Expected:
 
-- hostname `lawrence-Inspiron-3647`;
+- hostname `<remote-test-host>`;
 - user `qslcodex`;
 - sudo group present;
 - remote Tailscale IP `100.99.234.5`;

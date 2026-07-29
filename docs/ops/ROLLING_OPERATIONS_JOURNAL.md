@@ -22104,7 +22104,7 @@ Directive: QSL-DIR-2026-05-10-058 - Optional NA-0261 closeout and NA-0262 restor
 
 ## Packet A Remote Preflight
 
-- `ssh remote 'hostname; whoami; id; tailscale ip -4'` returned hostname `lawrence-Inspiron-3647`, user `qslcodex`, sudo group membership, and Tailscale IP `100.99.234.5`.
+- `ssh remote 'hostname; whoami; id; tailscale ip -4'` returned hostname `<remote-test-host>`, user `<remote-account>`, sudo group membership, and Tailscale IP `100.99.234.5`.
 - `ssh remote 'sudo -n true && echo SUDO_OK'` returned `SUDO_OK`.
 - Remote platform: Ubuntu 24.04.4 LTS, Linux `6.17.0-23-generic`, x86_64.
 - Remote basic tools found: `/usr/bin/bash`, `/usr/bin/sh`, `/usr/bin/tar`, `/usr/bin/curl`.
@@ -22475,7 +22475,7 @@ Repo: qsl-protocol
 
 ## Remote preflight / attempted proof
 
-- Remote host: `lawrence-Inspiron-3647`.
+- Remote host: `<remote-test-host>`.
 - Remote user: `qslcodex`.
 - Remote Tailscale IP: `100.99.234.5`.
 - Remote resources: 4 CPUs, 15Gi memory, 842G available on `/home` and `/tmp`.

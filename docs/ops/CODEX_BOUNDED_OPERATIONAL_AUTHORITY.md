@@ -181,7 +181,7 @@ authority. Codex must stop rather than infer.
 
 Current approved test registry:
 
-- host label: `inspiron`
+- host label: `<remote-test-host>`
 - workspace: `/home/qslcodex/qsl-remote-test/`
 - purpose: QSL/QSC remote relay testing
 - allowed tiers only when an active directive opts in: Tier 1 and Tier 2
@@ -394,9 +394,9 @@ authorizes a privileged lane. Codex must stop before privileged action rather
 than converting Tier 1 or Tier 2 into sudo/systemd/firewall/Tailscale/account
 authority.
 
-## 26. Example: inspiron / qslcodex test workspace
+## 26. Example: <remote-test-host> / <remote-account> test workspace
 
-The `inspiron` host label and `/home/qslcodex/qsl-remote-test/` workspace may
+The `<remote-test-host>` host label and `/home/<remote-account>/qsl-remote-test/` workspace may
 be used for QSL/QSC remote relay testing only when the active directive opts in
 to Tier 1 or Tier 2 and names exact boundaries. The registry entry does not
 authorize blanket remote action, privileged action, qsl-server start, qsc
@@ -406,7 +406,7 @@ send/receive, qsl-attachments work, or private-value publication.
 
 ```text
 Authority tier: Tier 1 redacted diagnostics.
-Host/workspace: inspiron, /home/qslcodex/qsl-remote-test/.
+Host/workspace: <remote-test-host>, /home/<remote-account>/qsl-remote-test/.
 Command family: exact read-only diagnostic script through SSH stdin.
 Raw-output quarantine: proof root only.
 Publication policy: publish safe enums/classes only.
@@ -419,7 +419,7 @@ Final response boundary: no raw output or private values.
 
 ```text
 Authority tier: Tier 2 bounded test action.
-Host/workspace: inspiron, /home/qslcodex/qsl-remote-test/.
+Host/workspace: <remote-test-host>, /home/<remote-account>/qsl-remote-test/.
 Command family: exact non-root reversible test start command named here.
 Allowed mutation paths: only generated files under the named test workspace.
 Preflight: no-secret, no-sudo, no-systemd, no-firewall, no-Tailscale,

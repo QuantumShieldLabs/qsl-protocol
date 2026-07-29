@@ -34333,3 +34333,84 @@ DESIGN F2.
 A1 proves crash-safety against **process death, not power loss**. **A12 is argued
 structurally and not exercised by a test.** A9's "name the relay's limit" is not wired.
 Relay-level at-least-once still does not run at default settings. See testplan §C.
+
+## D-1318 — NA-0682 CLOSEOUT: `QSC_OUTBOX_DELIVERY_PASS`, and the nonce-reuse bug that was found by reading a test's NAME
+
+**Date:** 2026-07-29. **Lane:** NA-0682. **Directive:** D617 (amended, sha256 `f4cca70c…e3f7be34`, 642 lines).
+**Code + governance PR:** #1670 merged `1847811d7f6742702f7c2f04db604f9eb39e1834`, lane commit `7438bf2f` (27 files).
+**Impl evidence:** D-1317. **In-lane ruling:** D-1319.
+
+⚠ **RECORDED BY THE FOLLOWING SESSION (NA-0683), NOT BY THE LANE'S OWN.** NA-0682 ended with
+its code merged and D-1317/D-1319 written, but without the queue closeout: `D-1318` was
+reserved for it in D617 §0 and left empty, and `NEXT_ACTIONS.md` went on reading
+`READY=NA-0682 | HIGHEST_D=1316` on a lane that had already merged — a queue describing a
+state that no longer existed, which the next session reads first. Every figure below is
+either **re-verified here** (`gh pr checks 1670` → 35 pass / 0 fail / 2 skipping;
+`gh pr view 1670` → MERGED 2026-07-29T00:39:28Z, one commit) or **quoted from artifacts
+already on `main`** (`docs/governance/evidence/NA-0682_as_built.md`,
+`tests/NA-0682_qsc_outbox_delivery_testplan.md`) and from the lane's own closeout record.
+**This session added no evaluation of its own to the lane's result.**
+
+**WHAT SHIPPED.** `qsc send` commits a durable QUEUED row to an **encrypted per-contact
+message queue before anything is packed or pushed**, then drains it — so **O1 ("no silent
+loss") is true of the default send path** rather than of an opt-in verb. Per-contact strict
+FIFO with genuinely independent contacts; in-flight ratchet state held **per message**;
+`QUEUED → SENT → DELIVERED` plus `FAILED` and `FAILED_PERMANENT`, with **PAUSED a sub-state
+of QUEUED** so a paused row can never read as terminal. Receive **stores durably THEN acks**;
+`(session, msg_id)` dedup; control payload **v:2 with a 128-bit CSPRNG `msg_id`** and the
+derived `sha512(plaintext)[..8]` id deleted; unknown control types ignored rather than
+rendered. New `qsc outbox status|retry|discard`.
+
+⚠ **A NONCE-REUSE BUG WAS CAUGHT AND FIXED BEFORE SHIPPING.** Abandoning a **packed** message
+without committing its ratchet advance would let the next pack reuse the message key —
+catastrophic under AEAD, and on the **common** path (push sent, ack lost). The named discard
+now routes through `retire_packed`, fail-closed. **It was found by reading a test's NAME**,
+which was the only place the property had been written down.
+
+⚠ **TWO REGRESSIONS, BOTH FOUND BY GUARDS RATHER THAN BY REVIEW.** A TLS trust-config failure
+and a 401 were each being reported as *"queued — will send when the relay is reachable"* — a
+false diagnosis on a Tier-1 trust property; local relay-config faults are now classified with
+no network attempt and named, and the transient wording is reserved for the transient class.
+And **D-1319**: a primary-device **switch does not re-route an already-packed message** —
+revocation, not switching, is what stops delivery.
+
+⚠ **F6 (delivery acks ON by default) WAS DEFERRED, NOT EXECUTED**, and the deferral is the
+lane's most consequential decision. Testing proved the flip is a **protocol-cadence change**:
+it consumes the DH ratchet-on-reply boundary, triggers a **PQ reseed per received message
+(cost UNMEASURED)**, makes every receive produce a send, and changes the envelope shape at a
+boundary. The mechanism ships with **both halves default OFF**, and the question is filed as
+**ENG-0086** to be answered *by design session and measurement, never by a default value*.
+⚠ **It must conclude BEFORE Slice 4's DELIVERED-rendering design settles** — two tests pin
+the current default and are **designed to go red** when the flip lands; they are flipped in
+the same commit.
+
+**EVIDENCE.** Full suite on the exact committed tree, against an expectation written before
+the run and matched exactly: **EXIT 0 · 112 targets · 514 passed · 0 failed · 2 ignored**,
+failures list EMPTY. **Twenty negative controls run, twenty observed RED**, each restored
+byte-identical (`cmp`-verified). **Clippy delta ZERO (55 = 55)** and **fmt delta ZERO
+(41 = 41)** against a fresh base checkout.
+
+⚠ **NOT CLAIMED, and stated in the PR body so no reviewer conflates them:**
+`qsc-linux-full-suite` **SKIPS on PRs**, so #1670's green CI does **not** contain a full `qsc`
+suite — the suite figures above are the recorded LOCAL run.
+
+**CARRIED FORWARD.** ENG-0086 (the F6 flip; sequencing above) · ENG-0087 (marker-scraping
+tests coupled to redaction policy — 4 enumerated, 2 fixed in-lane, 2 remain, **#4
+`peer_confirm_policy_primary_only_na0177:216` first**) · ENG-0082 (401/403 collapse at the
+diagnostic-marker layer) · ENG-0083 (in-flight ratchet state persisted in two places) ·
+ENG-0084 (raw `msg_id` at one emission site, defused only because the redactor is
+length-keyed) · ENG-0085 (`delivered_receipt_roundtrip` is marker-coupled) · **OBS-EC to
+Slice 4** (marker layer vs user-cause layer: Slice 4 renders delivery state and must not read
+its truth from diagnostic markers).
+
+⚠ **OBS-FK — A FINDING FROM THE MERGE ITSELF, reported by the lane and acted on here.** The
+merge commit's `%(trailers)` is **not empty**: a PR title of the form `NA-XXXX: …` is a single
+token followed by a colon, so git parses GitHub's merge-commit body (which is the PR title) as
+a trailer. `1847811d` shows it; the lane commit `7438bf2f` is clean, and the identity is intact
+on both. The earlier promotion PR escaped only because its title read `NA-0682 queue
+promotion: …` — the space before the colon makes an invalid trailer token. **The standing PR
+title convention is therefore the space-dash form `NA-XXXX — …`**, first applied by NA-0683.
+Nothing on merged `main` is rewritten to fix the one commit that already carries it.
+
+**Queue:** `READY=NONE | HIGHEST_NA=0682 | HIGHEST_D=1319`. The operator promotes; the
+executor cannot self-promote.

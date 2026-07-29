@@ -50,6 +50,13 @@ jobs:
       # directive and lane intent by absolute path, so those literals appear in
       # roughly 60% of this repository's commits and a gate on them would be
       # switched off within a week. They are published as recorded residue instead.
+      # NA-0686 / D-1325 (ENG-0089). The gate now has a gate. The scan's refusal
+      # to report a pass over an empty input -- "NOTHING EXAMINED", exit 2 -- was
+      # correct behaviour that NOTHING PROVED, which is how a CI gate silently
+      # becomes a no-op when a base ref is not fetched. This step runs first so
+      # that a broken instrument fails before it can report clean.
+      - name: infra-literal scan SELFTEST (the gate's own controls)
+        run: python3 scripts/ci/infra_literal_scan_selftest.py
       - name: infra-literal scan (Tier 1, whole tracked tree)
         run: python3 scripts/ci/infra_literal_scan.py --mode tree
       - name: infra-literal scan (Tier 2b, added lines)

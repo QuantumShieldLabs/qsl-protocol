@@ -773,7 +773,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                     );
                                 }
                                 Err(reason) => {
-                                    emit_message_state_reject(ctrl.msg_id.as_str(), reason)
+                                    emit_message_state_reject(reason)
                                 }
                             }
                             record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
@@ -889,7 +889,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                         },
                     );
                     if let Err(code) = stored {
-                        emit_message_state_reject("<redacted>", code);
+                        emit_message_state_reject(code);
                         emit_marker("error", Some(code), &[("op", "timeline_receive_ingest")]);
                     }
                     // ⚠ Record the id only AFTER the row is durably stored. Recording
@@ -2158,20 +2158,53 @@ fn relay_push_body_presence(body_len: Option<u64>) -> &'static str {
     }
 }
 
+/// NA-0686 / D-1325 (ENG-0082) — the 401/403 collapse ENDS HERE, at the marker layer.
+///
+/// ⚠ **401 IS DELIBERATELY UNCHANGED.** `relay_unauthorized` still means exactly
+/// what it meant, and `NA_0663_relay_tls_trust.rs` — whose assertion exists to
+/// stop a 401 being misreported as a TLS trust failure — is NOT touched by this
+/// split and must pass byte-identical afterwards. That is the measurement which
+/// proves the split kept its promise. ENG-0082 was filed believing this fix
+/// "requires rewriting NA_0663's assertion"; measurement showed otherwise —
+/// NA_0663 contains no 403 case at all, so splitting only the 403 arm leaves
+/// every existing assertion true. Rewriting a guard to match new behaviour is
+/// the dangerous edit class, and it turned out to be unnecessary.
+///
+/// The two causes are genuinely different and now say so: **401** is a fixable
+/// token rejection that PAUSES and resumes on a settings save; **403** on the
+/// invite path is a ticketless push to a consumed slot, which is not a pause at
+/// all. `PushFailClass` has carried that distinction internally since NA-0682
+/// (Option B) — this makes it legible in a raw log, which is the whole of what
+/// ENG-0082 asked for.
+///
+/// ⚠ DIAGNOSTIC ONLY: these strings feed `emit_relay_push_diagnostic`. Pause
+/// cause, retry policy and the C11 classification all derive from
+/// `push_fail_class_for_status`, which is untouched. No behaviour moves.
 fn relay_push_qsc_error_for_status(status: HttpStatus) -> &'static str {
     match status {
         HttpStatus::OK => "none",
-        HttpStatus::UNAUTHORIZED | HttpStatus::FORBIDDEN => "relay_unauthorized",
+        HttpStatus::UNAUTHORIZED => "relay_unauthorized",
+        HttpStatus::FORBIDDEN => "relay_forbidden",
         HttpStatus::PAYLOAD_TOO_LARGE => "relay_inbox_too_large",
         HttpStatus::TOO_MANY_REQUESTS => "relay_inbox_queue_full",
         _ => "relay_inbox_push_failed",
     }
 }
 
+/// NA-0686 / D-1325 (ENG-0082) — the second of the two named collapse sites.
+///
+/// ⚠ The token is `access_forbidden`, NOT `relay_forbidden`, and the difference
+/// is deliberate: this function's vocabulary is `<subject>_<disposition>`
+/// (`auth_rejected`, `route_rejected`, `endpoint_not_found`,
+/// `payload_rejected`), while the marker-code function's is `relay_*`. D-1324's
+/// standing rule is that a lane **adopts the vocabulary the tree already uses**
+/// and derives its mapping from that usage, so each site takes the form its own
+/// neighbours take rather than importing the other's.
 fn relay_push_error_class_for_status(status: HttpStatus) -> &'static str {
     match status {
         HttpStatus::OK => "unknown",
-        HttpStatus::UNAUTHORIZED | HttpStatus::FORBIDDEN => "auth_rejected",
+        HttpStatus::UNAUTHORIZED => "auth_rejected",
+        HttpStatus::FORBIDDEN => "access_forbidden",
         HttpStatus::BAD_REQUEST => "route_rejected",
         HttpStatus::NOT_FOUND => "endpoint_not_found",
         HttpStatus::PAYLOAD_TOO_LARGE => "payload_rejected",
@@ -2180,9 +2213,37 @@ fn relay_push_error_class_for_status(status: HttpStatus) -> &'static str {
     }
 }
 
+/// NA-0686 / D-1325 (ENG-0082) — the THIRD collapse site, ruled in mid-lane.
+///
+/// ⚠ Why it could not be left: ENG-0082 cannot close while one collapse still
+/// stands, or the ledger's closure claim would be false. This lane found it while
+/// fixing the two named sites and reported it; the operator ruled it in.
+///
+/// ⚠ **`bearer_auth_failed` was not merely imprecise for a 403 — it was WRONG.**
+/// The neighbours in this function name WHICH CREDENTIAL failed
+/// (`bearer_auth_failed`, `route_token_auth_failed`). A 403 is the case where the
+/// bearer token was ACCEPTED and the request was refused anyway — on the invite
+/// path, a ticketless push to a consumed slot. Reporting that as a bearer failure
+/// sends an operator to re-check a token that was never the problem.
+///
+/// So the token here is **`access_refused`**, which keeps this function's
+/// `<subject>_<outcome>` shape while deliberately NOT saying `auth_failed` —
+/// because "auth failed" is precisely the false statement the collapse was
+/// making. This is D-1324's rule applied per layer: the marker-code site took
+/// `relay_forbidden` and the error-class site took `access_forbidden`, each from
+/// its own neighbours; this site takes its own too rather than importing either.
+///
+/// ⚠ 401 IS UNCHANGED, again. Both existing consumers of this field
+/// (`relay_push_diagnostics.rs`, `secret_material_diagnostic_boundary.rs`) are
+/// driven by a 401 and assert `diagnostic_class=bearer_auth_failed`; splitting
+/// only the 403 arm leaves both true and byte-identical, exactly as with NA_0663.
+///
+/// DIAGNOSTIC ONLY: this string feeds `emit_relay_push_diagnostic` and nothing
+/// else. No pause cause, retry policy or classification reads it.
 fn relay_push_diagnostic_class_for_status(status: HttpStatus) -> &'static str {
     match status {
-        HttpStatus::UNAUTHORIZED | HttpStatus::FORBIDDEN => "bearer_auth_failed",
+        HttpStatus::UNAUTHORIZED => "bearer_auth_failed",
+        HttpStatus::FORBIDDEN => "access_refused",
         HttpStatus::BAD_REQUEST => "route_token_auth_failed",
         _ => "http_status_received",
     }
@@ -2997,7 +3058,7 @@ fn finalize_send_commit(
             ingest.message_id,
             ingest.target_device_id,
         ) {
-            emit_message_state_reject("<redacted>", code);
+            emit_message_state_reject(code);
             emit_marker("error", Some(code), &[("op", "timeline_send_ingest")]);
         }
     }
@@ -3639,7 +3700,7 @@ impl<'a> msgqueue::MessageSender for RelayMessageSender<'a> {
             self.receipt_kind.map(|_| rec.msg_id.as_str()),
             self.device_id.as_deref(),
         ) {
-            emit_message_state_reject("<redacted>", code);
+            emit_message_state_reject(code);
             emit_marker("error", Some(code), &[("op", "timeline_send_ingest")]);
         }
         print_marker("send_attempt", &[("ok", "true")]);
@@ -3714,9 +3775,10 @@ mod relay_push_diagnostic_tests {
             relay_push_error_class_for_status(HttpStatus::UNAUTHORIZED),
             "auth_rejected"
         );
+        // NA-0686 (ENG-0082): 403 no longer collapses into the 401 class.
         assert_eq!(
             relay_push_error_class_for_status(HttpStatus::FORBIDDEN),
-            "auth_rejected"
+            "access_forbidden"
         );
         assert_eq!(
             relay_push_error_class_for_status(HttpStatus::BAD_REQUEST),
@@ -3743,9 +3805,11 @@ mod relay_push_diagnostic_tests {
             relay_push_diagnostic_class_for_status(HttpStatus::UNAUTHORIZED),
             "bearer_auth_failed"
         );
+        // NA-0686 (ENG-0082): the THIRD collapse site. A 403 is not a bearer
+        // failure -- the bearer was accepted and the request refused anyway.
         assert_eq!(
             relay_push_diagnostic_class_for_status(HttpStatus::FORBIDDEN),
-            "bearer_auth_failed"
+            "access_refused"
         );
         assert_eq!(
             relay_push_diagnostic_class_for_status(HttpStatus::BAD_REQUEST),
@@ -3754,6 +3818,68 @@ mod relay_push_diagnostic_tests {
         assert_eq!(
             relay_push_diagnostic_class_for_status(HttpStatus::PAYLOAD_TOO_LARGE),
             "http_status_received"
+        );
+    }
+
+    /// NA-0686 / D-1325 (ENG-0082) — THE GUARD FOR THE SPLIT ITSELF.
+    ///
+    /// ⚠ Asserting the two new strings would not be enough, because the defect
+    /// ENG-0082 names is not "403 has the wrong word" — it is **"403 and 401 are
+    /// the SAME word"**. A test that pins each value independently would still
+    /// pass if some later edit collapsed them back onto a shared constant. So
+    /// the property asserted here is DISTINCTNESS, stated directly.
+    ///
+    /// The second clause is the one NA_0663 cares about and is why it is here
+    /// rather than left implicit: an auth rejection of either kind must never be
+    /// reported as a TLS TRUST failure. NA_0663 asserts that for the 401; the
+    /// 403 arm is new, so it gets the same protection at birth rather than after
+    /// an incident.
+    #[test]
+    fn forbidden_is_distinct_from_unauthorized_and_from_every_trust_code() {
+        let unauthorized = relay_push_qsc_error_for_status(HttpStatus::UNAUTHORIZED);
+        let forbidden = relay_push_qsc_error_for_status(HttpStatus::FORBIDDEN);
+
+        // (a) 401 is byte-identical to what it has always been. NA_0663 depends
+        //     on this string and is deliberately NOT touched by the split.
+        assert_eq!(
+            unauthorized, "relay_unauthorized",
+            "the 401 code must not move: NA_0663_relay_tls_trust asserts it verbatim"
+        );
+        assert_eq!(forbidden, "relay_forbidden");
+
+        // (b) THE PROPERTY: the two causes are distinct words.
+        assert_ne!(
+            unauthorized, forbidden,
+            "a 401 token rejection and a 403 ticketless push are different causes \
+             and must not collapse to one marker code (ENG-0082)"
+        );
+
+        // (c) neither is a trust failure — the NA_0663 invariant, extended to 403.
+        assert_ne!(forbidden, RELAY_TLS_UNTRUSTED);
+        assert_ne!(unauthorized, RELAY_TLS_UNTRUSTED);
+
+        // (d) the same distinctness at BOTH remaining layers. ENG-0082 cannot be
+        //     closed while any one of the three still collapses -- a split that
+        //     stops at two layers leaves the ledger's closure claim false, which
+        //     is why this asserts all three rather than the one it started with.
+        assert_ne!(
+            relay_push_error_class_for_status(HttpStatus::UNAUTHORIZED),
+            relay_push_error_class_for_status(HttpStatus::FORBIDDEN),
+            "the error class must carry the distinction too, or the split is half-made"
+        );
+        assert_ne!(
+            relay_push_diagnostic_class_for_status(HttpStatus::UNAUTHORIZED),
+            relay_push_diagnostic_class_for_status(HttpStatus::FORBIDDEN),
+            "the diagnostic class must carry the distinction too (the third site)"
+        );
+
+        // (e) the 403 diagnostic class must not CLAIM a credential failed, which
+        //     is the specific falsehood the collapse was asserting.
+        assert!(
+            !relay_push_diagnostic_class_for_status(HttpStatus::FORBIDDEN)
+                .contains("auth_failed"),
+            "a 403 accepted the bearer token; reporting an auth failure sends an \
+             operator to re-check a credential that was never the problem"
         );
     }
 

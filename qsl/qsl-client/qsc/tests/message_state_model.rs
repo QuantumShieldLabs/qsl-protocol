@@ -88,10 +88,9 @@ fn first_party_sent_msg_id(cfg: &Path) -> String {
         found
     );
     // ⚠ Guard the migration itself: never accept the redaction sentinel as an id again.
-    assert_ne!(
-        found[0], "<redacted>",
-        "first-party acquisition must never yield the redaction sentinel"
-    );
+    // NA-0686: routed through the shared, field-agnostic helper so there is ONE
+    // implementation of this rule in the suite rather than a copy per site.
+    common::scraped_marker_value("msg_id", found[0].as_str());
     found.pop().expect("one record")
 }
 
@@ -105,23 +104,31 @@ fn qsc_base(cfg: &Path) -> Command {
     cmd
 }
 
-fn timeline_first_item_id_and_state(text: &str) -> Option<(String, String)> {
+/// NA-0686 / D-1325 (ENG-0087) — REPLACES `timeline_first_item_id_and_state`,
+/// which returned the scraped `id=` alongside the state.
+///
+/// ⚠ The id half is GONE, deliberately, and that is the whole point: this file
+/// acquires ids FIRST-PARTY (`first_party_sent_msg_id`) and scrapes only
+/// `state=`, which the marker layer does not redact. A helper that cannot
+/// return an id cannot leak the redaction sentinel into one — **the class
+/// cannot recur here by construction**, which is stronger than a helper that
+/// merely happens to be called correctly today. This is the shape
+/// `timeline_delivery_contract_na0217f::timeline_first_item_state` already
+/// established; adopting it rather than inventing a variant is D-1324's
+/// vocabulary rule.
+///
+/// The `state=` scrape still routes through the sentinel guard, because "this
+/// field is not redacted today" is a statement about redaction policy, and
+/// depending on it silently is precisely OBS-FA.
+fn timeline_first_item_state(text: &str) -> Option<String> {
     for line in text.lines() {
         if !line.contains("event=timeline_item") {
             continue;
         }
-        let mut id = None;
-        let mut state = None;
         for part in line.split_whitespace() {
-            if let Some(v) = part.strip_prefix("id=") {
-                id = Some(v.to_string());
-            }
             if let Some(v) = part.strip_prefix("state=") {
-                state = Some(v.to_string());
+                return Some(common::scraped_marker_value("state", v));
             }
-        }
-        if let (Some(i), Some(s)) = (id, state) {
-            return Some((i, s));
         }
     }
     None
@@ -276,7 +283,7 @@ fn honest_delivery_requires_explicit_ack() {
         .expect("timeline list before");
     let before_text = output_text(&alice_list_before);
     assert!(alice_list_before.status.success(), "{}", before_text);
-    let (_, state_before) = timeline_first_item_id_and_state(&before_text).expect("timeline item");
+    let state_before = timeline_first_item_state(&before_text).expect("timeline item");
     assert_eq!(state_before, "SENT", "{}", before_text);
 
     let bob_recv = qsc_base(&bob_cfg)
@@ -350,7 +357,7 @@ fn honest_delivery_requires_explicit_ack() {
         .expect("timeline list after");
     let after_text = output_text(&alice_list_after);
     assert!(alice_list_after.status.success(), "{}", after_text);
-    let (_, state_after) = timeline_first_item_id_and_state(&after_text).expect("timeline item");
+    let state_after = timeline_first_item_state(&after_text).expect("timeline item");
     assert_eq!(state_after, "SENT", "{}", after_text);
 }
 
@@ -403,7 +410,21 @@ fn wrong_peer_ack_rejected_no_mutation() {
         .output()
         .expect("timeline list");
     let list_text = output_text(&list);
-    let (msg_id, state_before) = timeline_first_item_id_and_state(&list_text).expect("timeline");
+    // NA-0686 / D-1325 (ENG-0087 instance #3): id acquired FIRST-PARTY, state still scraped.
+    //
+    // ⚠ The ASSERTED PROPERTY IS UNCHANGED and the migration is why it is now
+    // asserted honestly. This send uses `--receipt delivered`, so its id crosses
+    // the redactor and the old scrape returned the literal `<redacted>` — the
+    // forged ack was therefore built against the SENTINEL, not against a real
+    // id. The refusal still landed (`qsp_hdr_auth_failed`, below) because the
+    // AEAD rejects the frame before any id is consulted, so the test was green
+    // and NOT vacuous. But it proved the weaker thing: that a forgery carrying
+    // GARBAGE is refused. With a first-party id it proves the stronger and
+    // intended thing — that a forgery carrying the CORRECT message id is refused
+    // just the same, which is the property `wrong_peer_ack_rejected_no_mutation`
+    // is named for.
+    let msg_id = first_party_sent_msg_id(&alice_cfg);
+    let state_before = timeline_first_item_state(&list_text).expect("timeline");
     assert_eq!(state_before, "SENT", "{}", list_text);
 
     let forged = base.join("forged_ack.json");
@@ -455,7 +476,7 @@ fn wrong_peer_ack_rejected_no_mutation() {
         .output()
         .expect("timeline list after");
     let after_text = output_text(&list_after);
-    let (_, state_after) = timeline_first_item_id_and_state(&after_text).expect("timeline after");
+    let state_after = timeline_first_item_state(&after_text).expect("timeline after");
     assert_eq!(state_after, "SENT", "{}", after_text);
 }
 
@@ -589,8 +610,8 @@ fn replay_ack_does_not_advance_state() {
         .output()
         .expect("timeline list delivered");
     let list2_text = output_text(&list2);
-    let (_, delivered_state) =
-        timeline_first_item_id_and_state(&list2_text).expect("timeline item delivered");
+    let delivered_state =
+        timeline_first_item_state(&list2_text).expect("timeline item delivered");
     assert_eq!(delivered_state, "DELIVERED", "{}", list2_text);
 
     let replay = base.join("replay_ack.json");
@@ -665,8 +686,8 @@ fn replay_ack_does_not_advance_state() {
         .output()
         .expect("timeline list after replay");
     let list3_text = output_text(&list3);
-    let (_, final_state) =
-        timeline_first_item_id_and_state(&list3_text).expect("timeline item final");
+    let final_state =
+        timeline_first_item_state(&list3_text).expect("timeline item final");
     assert_eq!(final_state, "DELIVERED", "{}", list3_text);
 }
 
@@ -845,7 +866,7 @@ fn ack_for_unknown_msg_id_transitions_nothing() {
         .output()
         .expect("timeline list");
     let list_text = output_text(&list);
-    let (_, state) = timeline_first_item_id_and_state(&list_text).expect("timeline item");
+    let state = timeline_first_item_state(&list_text).expect("timeline item");
     assert_eq!(
         state, "SENT",
         "a forged ack moved a real message's state: {}",
@@ -957,5 +978,50 @@ fn state_markers_are_deterministic_and_secret_safe() {
         a, b,
         "state markers not deterministic\nA:\n{}\nB:\n{}",
         a, b
+    );
+}
+
+/// NA-0686 / D-1325 — RED-CAPABLE CONTROL for ENG-0087's sentinel fail-fast rule.
+///
+/// ⚠ This test exists because the rule it guards is the kind that silently stops
+/// working. `scraped_marker_value` is a one-line assertion; if it were ever
+/// weakened to a no-op, every scrape in the suite would go back to accepting
+/// `<redacted>` as data and nothing else would notice — the tests would still be
+/// green, which is exactly the failure NA-0682 traced for a full cycle.
+///
+/// So the refusal itself is asserted, in both directions:
+///   (a) a legitimate value passes through UNCHANGED (no over-eager rejection);
+///   (b) the redaction sentinel is REFUSED, and refused with a message that
+///       names the field and points at the remedy.
+#[test]
+fn scraped_marker_value_refuses_the_redaction_sentinel() {
+    // (a) a real value survives byte-identical.
+    let ok = common::scraped_marker_value("id", "out-17");
+    assert_eq!(ok, "out-17", "a legitimate scraped value must pass through");
+    let ok_wide = common::scraped_marker_value("msg_id", "9f2c4ab7e15d08c36a4be9107d25fc3b");
+    assert_eq!(ok_wide, "9f2c4ab7e15d08c36a4be9107d25fc3b");
+
+    // (b) the sentinel is refused. Silence the panic hook so a DELIBERATE panic
+    // does not print an alarming backtrace into a passing run's log.
+    let prior = std::panic::take_hook();
+    std::panic::set_hook(Box::new(|_| {}));
+    let refused = std::panic::catch_unwind(|| {
+        common::scraped_marker_value("id", common::REDACTION_SENTINEL)
+    });
+    std::panic::set_hook(prior);
+
+    let err = refused.expect_err("the sentinel MUST be refused, not returned as data");
+    let msg = err
+        .downcast_ref::<String>()
+        .cloned()
+        .or_else(|| err.downcast_ref::<&str>().map(|s| s.to_string()))
+        .unwrap_or_default();
+    assert!(
+        msg.contains("redaction sentinel") && msg.contains("FIRST-PARTY"),
+        "the refusal must NAME the defect and the remedy, or it teaches nothing: {msg}"
+    );
+    assert!(
+        msg.contains("`id=`"),
+        "the refusal must name the FIELD it was scraping: {msg}"
     );
 }

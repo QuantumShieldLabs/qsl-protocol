@@ -1106,6 +1106,26 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - ⚠ It is visible rather than hidden today: NA-0683's naming gate prints it as its single `RULED-LEAVE` entry on every run, by operator ruling F5.
 - Cross-reference: D-1320; D-1321; D618 §4 F5; NA-0683 as-built §2.1 and §9.
 
+- ⚠ **CLOSED 2026-07-29 by NA-0686 (D-1325).** Both surfaces corrected to the
+  operator-pre-approved wording, and — per this entry's own instruction — **the needles were
+  extended FIRST**: `claim_discipline_covers_cargo_metadata_and_module_docs` covers
+  `src-tauri/Cargo.toml` and `src-tauri/src/lib.rs`, asserting both the absence of the retired
+  claim and the PRESENCE of the research-stage / no-security-assurance boundary.
+- ⚠ **This entry's description of the gap was slightly wrong, and the correction sharpens the
+  lesson.** It recorded that the old guard asserts absence from `ui/index.html` and
+  `src-tauri/src/commands.rs` *"and nowhere else"*. Measured: the guard reads **five** files —
+  `index.html`, `main.js`, `lib.rs`, `commands.rs`, `README.md`. **`lib.rs` WAS in the needle
+  set**, but only for the phrase *"makes no network connections"*, never for the retired
+  slice-A phrase. So the gap was not "a file nobody looked at"; it was **a file looked at for
+  the wrong needle** — harder to spot, and a better argument for this entry's own conclusion
+  that the defect is the needle SET rather than the word.
+- Red control, both directions: reintroducing the retired phrase into either surface turns the
+  new guard red, naming the surface; both restored byte-identical (`cmp`).
+- ⚠ **The guard caught the lane writing the defect back in.** The first draft of the
+  explanatory comment in `lib.rs` QUOTED the retired phrase, and the new guard failed on it —
+  the same trap the older guard's comment warns about. Recorded because it is direct evidence
+  the needle works on live content, not just on the case it was written for.
+
 ### ENG-0089 — `host_retired_rig` fires on ADDED LINES ONLY, so the tree is only as clean as its last edit — **NEW; filed 2026-07-29 by NA-0683 (D-1321; OBS-8)**
 - Severity: P2 (gate design; it blocks correct work and its clean signal is weaker than it reads)
 - Status: open — filed 2026-07-29, with an operator question attached (below).
@@ -1126,6 +1146,43 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - ⚠ **A VOCABULARY NOTE THIS LANE MUST NOT RE-DERIVE (D-1324):** the tailnet class now speaks with **one pair of placeholder tokens** across the tree — NA-0685 adopted the tokens the tree already used rather than minting new ones, and **derived the host-A/host-B mapping from the runbook's own usage**. A scanner class matching the literals will therefore never fire on the fixed lines; a lane that must re-add such a line takes the placeholder as part of the edit, per Option B. **Standing rule recorded at D-1324: a lane adopts the vocabulary the tree already uses, and derives its mapping from that usage** — the converse of NA-0684's F2, and the reason "which token?" is a measurement rather than a matter of taste.
 - ⚠ **A PROOF GAP THIS LANE SHOULD CLOSE, observed by NA-0685:** running the scan in `--mode diff` over an empty input made it **refuse a vacuous pass** (*"NOTHING EXAMINED — refusing to report a pass over an empty input"*, exit 2). That behaviour is correct and valuable, and **it is currently unguarded** — no test proves the scan refuses an empty input rather than reporting clean. Cheap to add alongside the promotion work.
 
+- ⚠ **CLOSED 2026-07-29 by NA-0686 (D-1325).** Three classes landed, each proven fail-closed
+  with a synthetic added line and green again on removal:
+  **(i) `host_retired_rig` PROMOTED to Tier-1 tree-wide.** Its pre-existing population is met
+  as a **per-path expected-count baseline**, not a per-path exemption: a file may KEEP the
+  occurrences it has and may LOSE them, but may not GAIN one. ⚠ A path-only allowlist would
+  have let a new occurrence into an already-listed file silently, which is the very hole this
+  finding was filed about. **Option B is now a tree invariant rather than a habit.**
+  **(ii) NEW `tailnet_cgnat` (100.64/10), Tier-2b** — the class NA-0684 found the gate could
+  not see. **(iii) NEW `public_ddns_host`, Tier-2b** — the retired names' provider domain.
+- **The census reconciled EXACTLY, and correcting it corrected the record.** Measured at
+  `d2bf480e`: **771** rig occurrences (79 files, `qsl-protocol` only) + **25** public-DDNS
+  (11 files across three repos) = **796**, byte-identical to NA-0684's recorded final-gate
+  total. ⚠ The "796-occurrence record class" in this entry is **two needles summed**, not the
+  rig alone — a first pass measuring only the rig read 771 and looked like drift. CGNAT
+  measured **23 occurrences / 8 files** and the tracked token-carrying paths measured
+  **10**, both exactly as censused. **NA-0685 added zero new occurrences of either token**
+  even though the tree grew by 12 files and 3 508 lines between the two measurements.
+- ⚠ **Allowlist keys are salted digests of `<repo>:<path>`, and that is not decoration:**
+  **ten of the allowlisted paths carry the token IN THE PATH ITSELF**, so a plaintext list
+  would have republished in this file exactly what two sanitization lanes removed — and the
+  Tier-1 scan would then have hit its own allowlist. The scan **prints the real paths it met
+  at run time** (771 occurrences across 79 files, listed), because an exception you cannot
+  see is not an exception.
+- **The gate file stays BYTE-IDENTICAL across all four repositories** (md5 verified); the
+  repo is derived at run time from the origin remote, so the allowlist is repo-aware without
+  a per-repo copy.
+- **THE VACUOUS-PASS GUARD NOW EXISTS** — `scripts/ci/infra_literal_scan_selftest.py`, 13
+  checks, wired into CI in all four repos AHEAD of the scan itself so a broken instrument
+  fails before it can report clean. It pins the `NOTHING EXAMINED` / exit-2 refusal in `tree`
+  and `diff` mode **and the deliberate asymmetry that `staged` mode does NOT refuse** (a
+  deletion-only commit legitimately has no added lines). ⚠ The self-test carries **no
+  operator literal**: every needle is assembled at run time from fragments that never appear
+  contiguously in its source, so the file cannot fail the gate it tests.
+- **Phase 4d:** the remediation help now prints Option B (a)/(b)/(c) and the
+  adopt-the-tree's-vocabulary rule at the moment the gate fires — a ruling that lives only in
+  `DECISIONS.md` gets re-derived by whoever trips the gate at 2am.
+
 ### ENG-0090 — the naming ruling's cross-repo remainder: five user-facing "Server" surfaces outside qsl-desktop — **NEW; filed 2026-07-29 by NA-0683 (D-1320's map)**
 - Severity: P3 (product vocabulary consistency; no correctness or security impact)
 - Status: open — filed 2026-07-29. NA-0683 was **fix-in-qsl-desktop, enumerate-only elsewhere**, by directive.
@@ -1136,6 +1193,21 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Proof gap: none of these surfaces has a naming guard; `qsl-desktop`'s `relay_naming.rs` is the only one.
 - Recommended shape: **docs-evidence-only rider**, likely attached to the CI/tooling lane.
 - Cross-reference: D-1320 (the map — cite it, do not re-derive the enumeration); NA-0683 as-built §8.
+
+- ⚠ **CLOSED 2026-07-29 by NA-0686 (D-1325) — as THREE edits, not five.** Applied:
+  the `qsc` CLI help doc-comment ("Run a local relay **server** …" → "Run a local relay …"),
+  `apps/qsl-tui/README.md:4`, and `qsl-server/README.md:7`. The org `.github` line remains
+  with the operator's manual org-README rewrite, as filed.
+- ⚠ **The "~10 `docs/public` prose lines" measured TWO, and both are LEAVE.** Of 88 raw
+  `server` hits under `docs/public/**`, essentially all are `qsl-server` — the proper noun
+  D-1320 itself rules stays. The two survivors (`PUBLIC_ATTENTION_AND_VISIBILITY_STRATEGY.md`
+  `:110`, `:139`) use "Server" for the **qsl-server workstream**, paired with "attachment",
+  which is the repo sense and not our pane. Operator-confirmed: **the docs/public remainder
+  is ZERO.**
+- ⚠ **D-1320's map was keyed on LINE NUMBERS and had already drifted** — the CLI help cited
+  at `cmd/mod.rs:601` measured at `:641`. The map is annotated in place (mark-don't-rewrite)
+  with content needles for all three surfaces, since it is the artifact later lanes were told
+  to cite rather than re-derive.
 
 ## Workflow / process items
 
@@ -2295,6 +2367,23 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Proposed remedy (one line): drop `-q`. Cost: log volume. Buys per-test names permanently.
 - Status: FILED 2026-07-26 by NA-0680 (D-1314). **Operator-ruled: log, do not fix inline** — rides a CI/tooling lane with ENG-0077 and ENG-0078 as ONE family.
 
+- ⚠ **CLOSED 2026-07-29 by NA-0686 (D-1325), as a NARROW authorised fold** — the
+  ENG-0075/0077/0078 family otherwise stays out of that lane's closure list.
+  Grounds recorded by the operator: **NA-0686's own acceptance reads the desktop suite
+  figure, and an acceptance number that can lie by omission is not evidence.**
+- `cargo test -q` → `cargo test`, plus `scripts/ci/test_inventory.sh`, which PINS every test
+  NAME in `scripts/ci/EXPECTED_TEST_INVENTORY.txt` and fails the build when one disappears.
+  ⚠ **Printing is not checking** — enumerating counts into a log nobody diffs is the same
+  defect wearing longer output — so the pin is COMPARED, and a removal is reported **by
+  name**, not as a number that moved. Growth is allowed (a gate that fires on new tests gets
+  switched off within a week); shrinkage and disappearance are what it catches.
+- Baseline: **103 tests pinned**, matching the measured suite exactly (102 passed + 1 ignored
+  across 11 binaries). Red control: deleting `src-tauri/tests/relay_naming.rs` drops the
+  enumeration to 98 and the check fails **naming the five missing tests**; restored
+  byte-identical (`cmp`).
+- The script refuses a pass when it enumerates zero tests, on the same principle as the
+  literal scan's `NOTHING EXAMINED`.
+
 ### ENG-0076 — R-7 made the onboarding name mandatory, but resume could bypass the gate: a nameless identity on disk resolved to S2
 - Severity: P2 (correctness of an onboarding gate; recoverable — Settings can still set the name — but the gate was silently skipped)
 - Exact surfaces: `qsl-desktop` `src-tauri/src/state.rs::resolve_launch_state`; `ui/main.js` (the identity step opens by calling `identity_ensure`).
@@ -2310,6 +2399,13 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Proposed remedy (one line, and the codebase already uses it): `env_lock().lock().unwrap_or_else(|p| p.into_inner())` — precisely the pattern `src-tauri/src/lib.rs` uses for `WindowModeState` and `AppliedHeight`. The test file is the outlier.
 - Status: FILED 2026-07-26 by NA-0680 (D-1314). **Log, do not fix inline.**
 
+- **REPORTED, not fixed, by NA-0686 (D-1325); closure belongs to a later ruled lane against
+  this entry's recorded acceptance.** ⚠ Note the pattern to reuse: **NA-0686's vacuous-pass
+  guard is this family's template** — `infra_literal_scan_selftest.py` proves the instrument
+  reports what it examined and refuses to pass over an empty input. An `env_lock()` that
+  poisons on panic is the same class (a proxy that represents without enforcing), and it
+  wants the same treatment: a control that makes the instrument's failure mode observable.
+
 ### ENG-0078 — a WARNING is not a REMEDY: `style.css`'s in-file caution was violated by the very lane that read it
 - Severity: P3 (maintainability / test-integrity; the failure is loud but its cause is opaque)
 - Exact surfaces: `qsl-desktop` `ui/style.css` (the `.verify-code` base rule) ↔ `src-tauri/tests/design_round2.rs::verify_code_single_line`.
@@ -2320,6 +2416,12 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Status: FILED 2026-07-26 by NA-0680 (D-1314). **Log, do not fix inline.**
 
 > ⚠ **ENG-0075, ENG-0077 and ENG-0078 are ONE FAMILY and should ride ONE lane: *instruments that do not instrument*.** A pipe's exit status (the standing `| tail` rule), a test total, a failure list and a code comment are all **proxies that represent without enforcing**. An aggregate summarises; a comment warns; **neither checks.** Fix three instruments and leave the principle unnamed, and the next proxy gets trusted the same way. Acceptance should include a control proving each instrument now reports what it examined — the discipline NA-0677 applied to `infra-literal-scan`, whose `clean (tree; N files, M lines examined)` output is exactly why every gate result in NA-0680 was cross-checkable and every test total was not.
+
+- **REPORTED, not fixed, by NA-0686 (D-1325).** Same note as ENG-0077: the family's principle
+  — *an aggregate summarises, a comment warns, neither checks* — now has a worked example in
+  `scripts/ci/infra_literal_scan_selftest.py` and `scripts/ci/test_inventory.sh`, both of
+  which turn a warning into a control. A later lane should close 0077/0078 against that
+  shape rather than re-deriving it.
 
 ### ENG-0079 — `qsc receive` has no overall timeout: pointed at a relay that never answers it blocks forever, and a test that spawns it inherits the hang — **NEW; filed 2026-07-27 by NA-0681 (messaging epic Slice 2), operator-ruled as a real product bug, at BASE and unrelated to that lane's changes**
 - Severity: P2 (availability/UX, no confidentiality or integrity impact; the process is stuck, not wrong)
@@ -2358,6 +2460,52 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Recommended shape: a diagnostics/CI-tooling lane. Split the marker codes with the guard's INTENT preserved explicitly (a 401 is still not a trust error), and re-point `NA_0663`'s assertion deliberately rather than incidentally.
 - Cross-reference: D-1317; D617 census C11; NA-0682 testplan §C.9; the `PushFailClass` type that already carries the distinction internally.
 
+- ⚠ **CLOSED 2026-07-29 by NA-0686 (D-1325). The 401 and 403 now say different words.**
+  `relay_push_qsc_error_for_status` splits `FORBIDDEN` out as **`relay_forbidden`**;
+  `relay_push_error_class_for_status` splits it as **`access_forbidden`** (each site takes
+  its OWN neighbours' vocabulary rather than importing the other's — D-1324's rule applied
+  inside one file). Guard: `transport::relay_push_diagnostic_tests::forbidden_is_distinct_from_unauthorized_and_from_every_trust_code`,
+  which asserts DISTINCTNESS rather than pinning each value, because the defect was never
+  "403 has the wrong word" — it was "403 and 401 are the SAME word". Red control:
+  collapsing the split turns that guard red; restored byte-identical (`cmp`).
+- ⚠ **THIS ENTRY'S OWN PREMISE WAS DISPROVEN, and is annotated rather than rewritten.**
+  It recorded that the fix *"requires rewriting `NA_0663`'s assertion"*, and that Option A
+  was rejected because rewriting a guard to match new behaviour weakens a safety assertion.
+  **The reasoning was right; the factual premise was wrong.** `NA_0663_relay_tls_trust.rs`
+  contains **no 403 case at all** (measured: zero hits for `403|FORBIDDEN|Forbidden`), so
+  splitting only the 403 arm left every one of its assertions true and byte-identical.
+  **NA_0663 was NOT touched, and passing it untouched (11 passed, exit 0) is the measurement
+  that proves the split kept 401 intact.** The lesson generalises: *a filed reason to avoid
+  an edit is itself a claim, and it can be measured.*
+- Behaviour: UNCHANGED. Both strings feed `emit_relay_push_diagnostic` only; pause cause,
+  retry and the C11 classification all derive from `push_fail_class_for_status`, which
+  already distinguished `TokenRejected` from `Forbidden` and was not modified.
+- ⚠ **Residue, named rather than silently left:** `relay_push_diagnostic_class_for_status`
+  still maps both statuses to `bearer_auth_failed`. That is a THIRD collapse site, one layer
+  further out, and arguably wrong for a 403 on the invite path (a ticketless push is not a
+  bearer failure). The ruling named two sites; this one is reported, not changed.
+- ⚠ **SUPERSEDED SAME DAY — the third site was RULED IN mid-lane and is FIXED.** The operator's
+  grounds are worth keeping verbatim in effect: *ENG-0082 cannot close with one collapse
+  standing; the ledger claim would be false.* A finding that closes while its own defect
+  survives one layer out is a false closure, and the bullet above would have been the record
+  of it. **403 → `access_refused`** at that site.
+- ⚠ **And `bearer_auth_failed` for a 403 was not merely imprecise — it was WRONG.** This
+  function's neighbours name WHICH CREDENTIAL failed (`bearer_auth_failed`,
+  `route_token_auth_failed`). A 403 is the case where the bearer was **accepted** and the
+  request refused anyway. Reporting it as a bearer failure **sends an operator to re-check a
+  token that was never the problem** — a diagnostic that actively misdirects is worse than one
+  that merely under-informs. `access_refused` keeps the function's `<subject>_<outcome>` shape
+  while deliberately NOT saying `auth_failed`, because that was the false statement.
+- **Three layers, three vocabularies, each from its own neighbours** (D-1324 applied per
+  layer): marker code `relay_forbidden`, error class `access_forbidden`, diagnostic class
+  `access_refused`. The guard now asserts distinctness at **all three**, plus that the 403
+  diagnostic class does not contain `auth_failed` at all. Red control: collapsing the third
+  site turns the guard red naming it; restored byte-identical (`cmp`).
+- ⚠ **401 untouched a third time, and the consumers prove it:** both tests asserting
+  `diagnostic_class=bearer_auth_failed` (`relay_push_diagnostics.rs`,
+  `secret_material_diagnostic_boundary.rs`) are **401-driven**, and both pass unmodified
+  (3 passed / 4 passed), as does `NA_0663_relay_tls_trust` (13 passed).
+
 ### ENG-0083 — in-flight ratchet state is persisted in TWO places (msgqueue records for messages, `outbox.json` for attachments) — **NEW; filed 2026-07-28 by NA-0682 (D-1317; directive D617)**
 - Severity: P3 (duplication/hygiene; no correctness impact today — both paths preserve replay-identical-bytes)
 - Status: open — filed 2026-07-28. **Accepted knowingly** as the trade against amending acceptance item A3 downward (operator-ruled, STOP 008 Option 1).
@@ -2374,12 +2522,75 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - ⚠ **So the remaining risk is not the current id — it is the COUPLING.** Any future change that narrows an identifier below 24 chars silently re-opens a raw emission at this site, with no test and no declaration anywhere connecting the two. Fixing the call site (pass `"<redacted>"`, as every sibling does) removes the dependence on a length heuristic. See ENG-0087, which covers the same coupling from the test side.
 - Cross-reference: D-1317; D617 census C17; NA-0682 testplan; ENG-0087; OBS-FA.
 
+- ⚠ **CLOSED 2026-07-29 by NA-0686 (D-1325), operator-ruled Option C — and THE FILED FIX
+  WOULD HAVE BEEN A NO-OP.** The lane intent proposed field-name-keyed redaction for the
+  `msg_id` field. **Measurement: every marker field literally named `msg_id` already carries
+  the literal string `"<redacted>"`** — all eight sites (`lib.rs:1069`, `:2527`;
+  `transport/mod.rs:757`, `:762`, `:841`, `:1428`, `:2791`, `:3461`). A rule keyed on that
+  name would have redacted the sentinel and left this finding's actual site untouched. The
+  field that carries real message ids is keyed **`id`**, and re-keying `id` would also have
+  re-keyed the attachment and timeline-listing markers — out of scope.
+- **What was done instead, with ZERO redactor edits:** `emit_message_state_reject` no longer
+  ACCEPTS an identifier. It emits `("id", "<redacted>")` hardcoded inside itself, so the
+  marker is byte-identical to what the three already-correct call sites produced, and the
+  raw pass-through is impossible by construction rather than defused by a length heuristic.
+  **Five call sites updated** (the ruling said four; `attachments/mod.rs:2032`,
+  `transport/mod.rs:776`, `:892`, `:3033`, `:3675` — measured).
+- Clause (b) applied: `emit_message_state_transition` received the same treatment, its
+  precondition MEASURED not assumed — **zero consumers** read that marker's `id` in qsc
+  tests, in qsc itself, or in `qsl-desktop`.
+- ⚠ **THE RED CONTROL THE RULING SPECIFIED COULD NOT FIRE, AND THAT IS THE FINDING.**
+  Re-accepting the id and passing it raw still prints `<redacted>`, because the 32-hex value
+  crosses the shape rule — the pass-through was **defused by accident**, exactly as this
+  entry says. The control therefore had to vary the thing the coupling depends on: the id's
+  WIDTH. With `MSG_ID_LEN` narrowed test-only from 16 bytes to 8: **fix in place → C17 guard
+  GREEN; old form restored → C17 guard RED** (`"the reject marker must not print the raw
+  message id (C17/F1)"`). Both files restored byte-identical (`cmp`). The pair proves a
+  DEPENDENCE was removed, not merely an instance: the guard's greenness used to be a
+  function of an unrelated constant's value.
+- ⚠ **THE CONTROL WAS SUBSTITUTED, WITH REASON — recorded because the substitution is itself
+  the evidence.** The ruling specified: *re-accept the id, pass a raw value, the C17 guard goes
+  red*. **That control cannot fire**, and the reason is this finding's own content: a raw
+  32-hex id is redacted anyway by the shape rule, so the old code was defused by WIDTH, not by
+  correctness. A control that cannot fire proves nothing, and passing it off as green would
+  have been the exact failure class this lane exists to remove. The substituted control varies
+  the property the coupling actually depends on — the id's width — and is **strictly stronger**:
+  it demonstrates the DEPENDENCE is gone, not that one instance was patched. Operator-ratified.
+- ⚠ **`emit_message_state_transition`'s NAME IS MISLEADING, and the next lane must not be
+  surprised by it.** Despite "message_state", it serves the **attachment path** too:
+  `timeline_append_entry_for_target` and `timeline_transition_entry_state` are both on the file
+  transfer route. So clause (b) **did change the attachment diagnostics surface** — an
+  attachment's timeline id now emits as the sentinel. Operator-ruled ACCEPTED, no revert:
+  strictly-more-redaction is the house direction (name the field, never the value) and the
+  consumer count was measured at zero. ⚠ **The `attachments/mod.rs` `file_id` sites remain
+  UNTOUCHED and out of scope.** The future attachments-diagnostics lane meets this as a known
+  fact rather than a discovery.
+- ⚠ **Remaining population, for a later ruled lane:** the attachment `file_id` sites
+  (~14 `emit_marker("id", …)` in `attachments/mod.rs`) and the `timeline_item` entry id both
+  still reach the marker layer as `id` under the shape-keyed redactor. Out of scope by
+  ruling; the coupling is named here so it is inherited rather than rediscovered.
+
 ### ENG-0085 — suspected hollow proof: `receipts_delivered::delivered_receipt_roundtrip` observes an emitted MARKER, never the stored state — **NEW; filed 2026-07-28 by NA-0682 (D-1317; directive D617); running "suspected hollow proofs" item per LANE_INTENT §3b OPPORTUNISTIC**
 - Severity: P3 (assurance; the test is NOT hollow today — the marker it asserts is emitted only inside the `Confirmed` arm, which is reached only after the timeline transition persists)
 - Status: open — filed 2026-07-28. **Logged, deliberately NOT fixed in-lane** per §3b.
 - The fact: the test asserts `event=receipt_recv` / `event=delivered_to_peer` and never reads the timeline back to confirm the row is actually `DELIVERED`. It is **marker-coupled**: a change that kept emitting the marker while failing to persist would not be caught by it.
 - Recommended shape: the post-epic hollow-proof audit inherits this. The fix is one read-back assertion, but it belongs with the audit rather than smuggled into a product lane.
 - Cross-reference: D-1317; LANE_INTENT §3b; NA-0682 testplan §A.4.
+
+- ⚠ **DISPOSITIONED 2026-07-29 by NA-0686 (D-1325): FIXED, not deferred.** The filing routed
+  this to the post-epic hollow-proof audit on the grounds that it should not be "smuggled
+  into a product lane" — but NA-0686 IS the test-instrument lane, so the one read-back
+  assertion belongs here rather than being passed on again.
+- `delivered_receipt_roundtrip` now reads the timeline back and asserts the row is
+  `DELIVERED`, in addition to every marker assertion it already made. Nothing was weakened
+  or replaced; an INFERENCE was removed.
+- The entry's own judgement is confirmed and worth keeping: the test was **not hollow** —
+  `event=delivered_to_peer` is emitted only inside the `Confirmed` arm. But it held *through
+  an implementation detail*, and "the proof holds because of where the emit happens to sit"
+  is the shape of a proof that stops holding without anyone noticing.
+- Control: flipping the expected state to `SENT` fails and prints the real stored row
+  (`state=DELIVERED`), proving the assertion reads actual state rather than passing
+  vacuously. Restored byte-identical (`cmp`).
 
 ### ENG-0086 — turn delivery acks ON by default (the F6 flip NA-0682 deferred) — **NEW; filed 2026-07-28 by NA-0682 (D-1317; directive D617, operator-ruled Option D)**
 - Severity: P2 (product capability + protocol cadence; the MECHANISM ships in NA-0682, only its DEFAULT waits)
@@ -2393,7 +2604,22 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - ⚠ **SEQUENCING — binding:** the flip decision must **CONCLUDE BEFORE Slice 4's DELIVERED-rendering design settles.** Slice 4 renders the `✓✓` glyph; designing that UI against a default that is still undecided would bake the assumption in backwards.
 - Precedent this follows: **F5 kept ENG-0043's lease-default flip OUT of NA-0682** on exactly this reasoning — a default flip that changes protocol behaviour deserves its own deliberate step. The epic stays internally consistent by treating both the same way.
 - What already ships and must NOT be rebuilt: the fields, both knobs, the honour path, `delivered_receipt_roundtrip` (A4), the A12 forged-ack refusal, the `ack_for_unknown_msg_id_transitions_nothing` guard, and the two default PINS (`message_state_tests::receipt_default_is_off_recipient_half`, `transport::receipt_sender_default_tests::sender_requests_no_receipt_by_default`). ⚠ **Those two pins are designed to go RED when the flip lands** — flip them in the same commit, with the measurement above attached.
-- Cross-reference: D-1317; D617 §4 F6 (amended); STOP 016/017/018; ENG-0043 (the precedent); OBS-ET, OBS-EV, OBS-EW, OBS-EZ.
+- ⚠ **BINDING ANNOTATION added 2026-07-29 by NA-0686 (D-1325), operator-ruled, verbatim:**
+
+  > The flip commit migrates #4 in the same commit as the default flip: fixture requests an
+  > explicit receipt (mechanism-by-explicit-flag, the intended Option D shape), making the
+  > timeline id equal the queue msg_id, then first-party acquisition per the proven remedy,
+  > binding condition in full. Until then the loud sentinel is the interim guard — if the
+  > default flips without the migration, #4's sentinel check fires red BY DESIGN. That red is
+  > the tripwire working, not a surprise.
+
+  Context, so the annotation is actionable rather than cryptic: NA-0686 could not migrate
+  ENG-0087 instance #4 (`peer_confirm_policy_primary_only_na0177`) to first-party acquisition,
+  because `qsc util receipt-apply --msg-id` keys on the **timeline entry id**, which equals the
+  queue record's `msg_id` **only when the send requested a receipt** — and that test requests
+  none. Measured RED: `event=error code=state_unknown`. The flip is precisely the flag that
+  changes this, which is why the migration belongs to the flip commit and not before it.
+- Cross-reference: D-1317; D617 §4 F6 (amended); STOP 016/017/018; ENG-0043 (the precedent); OBS-ET, OBS-EV, OBS-EW, OBS-EZ; **NA-0686 / D-1325 (the binding annotation above); ENG-0087 instance #4**.
 
 ### ENG-0087 — tests that learn IDENTIFIERS by scraping DIAGNOSTIC MARKERS are coupled to redaction policy — **NEW; filed 2026-07-28 by NA-0682 (D-1317; directive D617, operator-ruled STOP 019 item 3)**
 - Severity: P2 (assurance, suite-wide; one confirmed instance, population UNKNOWN and unenumerated)
@@ -2427,3 +2653,50 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 
 **Confirmed count: 4 in the class (2 fixed, 2 green-but-coupled).** Per the ruling, the two green ones are **enumerated, not swept** — they belong to this ENG's own lane. ⚠ **#4 is the one to fix first**: it is one flag away from failing, and it feeds a scraped value straight into a CLI verb.
 - Cross-reference: D-1317; STOP 018/019/021; ENG-0084 (the same coupling, seen from the emission side); OBS-EC (marker layer vs user-cause layer); OBS-EY; OBS-FG.
+
+- ⚠ **RE-ENUMERATED AND RESOLVED 2026-07-29 by NA-0686 (D-1325).** The population was
+  **re-measured, not inherited** (the STOP-021 table was taken at an older head). Searched
+  across `qsl/qsl-client/qsc/tests/`: `strip_prefix("id="/"msg_id=")`, files containing
+  `event=timeline_item`, helper names implying id extraction, `split`/`splitn`/`find_map` on
+  `"id="`, every test passing `--msg-id`, plus an EXTENDED probe for marker scrapes of any
+  `key=` form. **Result: the id class has exactly TWO remaining scrape sites**
+  (`message_state_model.rs:116`, `peer_confirm_policy_primary_only_na0177.rs:216`).
+- **Instance #3 (`wrong_peer_ack_rejected_no_mutation`): MIGRATED.** Id now acquired
+  first-party; `timeline_first_item_id_and_state` replaced by `timeline_first_item_state`,
+  which **cannot return an id at all**, so the class cannot recur in that file by
+  construction. ⚠ The asserted property is byte-identical AND the test got stronger: it used
+  to forge an ack carrying the SENTINEL, so it proved a forgery carrying garbage is refused;
+  it now proves a forgery carrying the CORRECT id is refused, which is what its name claims.
+- ⚠ **Instance #4: THE PRESCRIBED REMEDY DOES NOT TRANSFER, measured RED.** The intent
+  directed `first_party_sent_msg_id` here too. But `qsc util receipt-apply --msg-id` keys on
+  the **TIMELINE ENTRY id**, minted as `forced_id.unwrap_or_else(|| "{dir}-{ts}")`, and the
+  send path's only `forced_id` is `receipt_msg_id` — populated **only when a receipt was
+  requested**. These two tests request none, so their entry id is the short `out-<ts>` form,
+  which is NOT the queue record's 128-bit `msg_id`, and `QueuedMessage` carries no timeline
+  id to read instead. Substituting the first-party helper was tried and measured
+  **`event=error code=state_unknown`**. First-party acquisition is genuinely unavailable
+  without changing the scenario (requesting a receipt would pre-empt ENG-0086's flip).
+  **So instance #4 takes this entry's OWN rule 2 instead: the scrape stays and is made
+  loud.** The coupling is not removed; it is made to fail AT the defect.
+- **THE SENTINEL FAIL-FAST RULE IS LIVE**, as one field-agnostic implementation:
+  `common::scraped_marker_value(field, value)` refuses `<redacted>` with a message naming the
+  field and the remedy. Red control: disabling the rule turns its guard
+  (`scraped_marker_value_refuses_the_redaction_sentinel`) red; restored byte-identical.
+  NA-0682's hand-rolled copy inside `first_party_sent_msg_id` now routes through it, so there
+  is ONE implementation of the rule rather than a copy per site.
+
+**ANNEX — the wider same-pattern population (enumerated, NOT fixed; scope held by ruling).**
+The id class is two sites, but the *same scrape shape* appears at roughly **60 further sites**
+across ~45 test files, for these fields:
+
+| field scraped | approx. sites | crosses the redactor today? |
+|---|---|---|
+| `identity_fp=`, `identity_kem_pk=`, `identity_sig_pk=` | ~45 | no — `fp` keys are explicitly ALLOWED by `should_redact_value` |
+| `device=` | ~20 | no — short device markers |
+| `state=` | 3 | no |
+| `invite=`, `send_seq=`, `max=` | 3 | no |
+
+⚠ **None is an ENG-0087 instance today, and every one of them is the same latent coupling:**
+their safety is a fact about VALUE WIDTH, not about the code. The remedy is ready and costs
+one call each — `scraped_marker_value` was deliberately written field-agnostic so this
+population can adopt it without redesign. Left for a later ruled lane.

@@ -1,7 +1,7 @@
 # qsl-tui (Linux TUI demo client)
 
 This is a Linux TUI demo client intended to exercise existing QSL protocol behavior.
-The relay server is transport-only and forwards **opaque bytes**; it does not encrypt or interpret protocol messages.
+The relay is transport-only and forwards **opaque bytes**; it does not encrypt or interpret protocol messages.
 
 ## Modes
 

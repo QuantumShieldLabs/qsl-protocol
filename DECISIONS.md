@@ -34569,3 +34569,129 @@ which did not. Identity intact on every one. **The convention is now evidence, n
 
 **Queue:** `READY=NONE | HIGHEST_NA=0683 | HIGHEST_D=1321`. The operator promotes; the
 executor cannot self-promote.
+
+---
+
+## D-1322 — INFRA-HOSTNAME SANITIZATION: the property that decides what a redaction lane touches, and the two classes that outrank it
+
+**Date:** 2026-07-29. **Lane:** NA-0684. **Directive:** D619 (amended three times in place,
+sha256 `de0a8472…955b5603`, 583 lines). **Implementation:** qsl-protocol PR **#1677**,
+qsl-attachments PR **#42** (repo-local **D-0013**), qsl-desktop PR **#21** (repo-local
+**D-0022**). **Authority:** the operator disposition of 2026-07-28 recorded in D-1320's map.
+
+**THE DISPOSITION.** The two retired public hostnames are **operator-owned, retired from
+service, and their registrations are HELD INDEFINITELY**. Live instructions and script defaults
+in public repos must stop referencing them; **dated governance history stays intact**.
+
+> **STANDING RULE — the mitigation for what is already published is the REGISTRATION HOLD, a
+> standing operator action, not scrubbing.** No history is rewritten, in this lane or any
+> successor. A future reader finding these names in `DECISIONS.md` is seeing the ruling work,
+> not a leak that was missed.
+
+### The property (recorded verbatim, so later lanes cite it rather than re-derive it)
+
+> **A line is in scope when, read today, it DIRECTS TRAFFIC** — a default, a command, a
+> configuration a reader copies. **A line is out of scope when it REPORTS WHAT WAS TRUE** — a
+> measurement, a decision, an evidence capture.
+
+**That single test produced the whole split of 833 measured occurrences: 31 fixed, 802 left.**
+
+⚠ **THE PRECEDENT THAT GOES WITH IT (ruled at F1): when the operator's ENUMERATION and this
+PROPERTY disagree, THE PROPERTY GOVERNS.** The lane intent's file list was an enumeration aid
+drafted before the property existed; a dated soak baseline recording *which endpoint was
+measured* is a record, and removing the endpoint would subtract meaning from a measurement.
+
+### Two classes outrank the property, and both were ruled
+
+**1. PERSONAL IDENTITY — D612's own tier — outranks BOTH mark-don't-rewrite AND the property.**
+A census for the personal-name token returned **7 sites, not the zero expected**: one in the
+block already in scope and **six inside class C**. They were not occurrences the sweep missed —
+all seven carried the rig token and were already counted; what the check found is that **six
+C-class occurrences carry a person's name**, a sensitivity the rig-token classification could
+not see. **All seven are redacted.** *Applying a precedent to one occurrence and not six would
+be precedent à la carte.* ⚠ **This is why the lane edits the append-only journal** — two lines,
+one substitution each. Nothing else in the lane may touch a record; **this class may, and only
+because the tier outranks the convention.**
+
+**2. TIER-2b ON ADDED LINES — and here the gate overrode a ruling of this same lane.** Five
+edits were **refused by the repository's own pre-commit gate**: those lines also carry a remote
+account name, a class that fires on **added lines only**. They had read clean on `main` for
+months and became *added* lines the moment the lane touched them — while **F2 had ruled that
+account name STAYS**.
+
+> **RULED (Option B): the account name is placeholdered on EXACTLY the lines the lane re-adds,
+> and nowhere else. This is NOT a reversal of D612 Tier 2 — it is Tier-2b's DESIGNED MIGRATION
+> SEMANTICS: the tier fires on added lines so that legacy content GRANDFATHERS while every edit
+> ships clean.** "Report-don't-touch" governed the **mass** class (763 occurrences); the
+> untouched **~758 remain governed by it**.
+>
+> **STANDING RULE FORWARD: any line a lane re-adds carries NO Tier-2b literal** — the account
+> name is placeholdered on that line **as part of the edit**. **The gate and the redaction rule
+> — *name the field, never the value* — are the same policy, and when a prior ruling's wording
+> collides with them on an added line, THE GATE WINS.**
+
+⚠ **The visible artifact, predicted in advance rather than discovered:** the bounded-authority
+doc carries that token on five lines and the lane re-adds four, so **the fifth stays, directly
+beneath a placeholdered line.** Adjacent lines, one redacted and one not — grandfathering
+working exactly as designed.
+
+### What shipped
+
+**Class A (3) — the sharp class.** Three demo scripts defaulted their base URL to the
+operator's endpoint, so **a stranger running the demo sent traffic there having chosen
+nothing.** Each now requires `QSL_RELAY_BASE_URL` and fails fast naming it, in the idiom two
+sibling scripts in the same directory already used — adopted **for the property that makes it
+right: the message names the variable and the failure happens before any work.** ⚠ The guard
+sits above every side effect because one script dies at a hard-coded `cd`; a guard below it
+could never be reached by the unset-variable test.
+**Class B (28)** — placeholders, command structure unchanged, one substitution per line, with
+one ruled exception: qsl-desktop's Appendix F line, which took **both** edits (**NA-0683's
+deferred fourteenth F1 line**, whose literal is exactly what had blocked it — the two edits are
+**mutually enabling**).
+**Class C (802 → 796)** — printed by the gate in every run, edited only where the
+personal-identity tier reached.
+
+### The measurements
+
+    base      raw 833 = A 3 + B 28 + C 802   GATE FAIL: A+B=31 ruled_additions=1 personal_name=7
+    post-fix  raw 796 = A 0 + B 0 + C 796    GATE PASS: 0 / 0 / 0, c_delta as ruled
+
+⚠ **C MOVED this lane, so the total stopped being evidence on its own** — 796 is reachable by
+removing the wrong six. The instrument keeps a **per-file C baseline (91 files)** and compares
+the change set against a **named table**; **an unnamed mover fails the gate even when the total
+is right.** **The closing measurement is the gate that refused the first attempt:** `--mode
+staged` **clean, exit 0**. Fail-fast was **verified by running each script twice** — unset gives
+the named message on stderr and exit 2 with no output directory; a dummy value **crosses the
+guard and fails for a different reason**, which is what proves the guard was crossed rather
+than absent.
+
+### Filed, not fixed
+
+**The tailnet class → a SUCCESSOR MICRO-LANE**, sequenced immediately after NA-0684 and
+**before ENG-0089's Tier-1 promotion**, because *a promoted gate must not go red on published
+content*. Measured: **40 occurrences / 12 files / two addresses**, ~14 of them B-shaped by this
+lane's own property (live reproduction commands), and **the whole class is invisible to the
+committed scanner** — CGNAT matches no structural pattern. ⚠ **The exposure, stated honestly
+rather than inflated: CGNAT is NOT publicly routable. The class reveals tailnet TOPOLOGY, not a
+public route — which is why it can wait one lane where the DNS names could not.**
+
+**ENG-0089 gains a sharper question** than the one it was filed with: not *"promote Tier-1 or
+not"* but **"what does a lane do when it must re-add a line it is not allowed to change?"**
+Option B above is that answer, and this census — the labels, the 10 tracked paths, the C class
+— is the **allowlist input** the CI/tooling lane must meet as **known exceptions rather than
+discoveries**.
+
+### Two method corrections this lane paid for
+
+⚠ **`cargo test | tail -40` reported the PIPE's exit status and truncated the log**, yielding a
+false "5 targets / 25 passed"; the real figure — **102 passed / 0 failed / 1 ignored** — came
+from an unpiped re-run. **Suite numbers are read from unpiped runs or from the log file, never
+through a pipeline that can truncate output or mask an exit status.**
+
+⚠ **The gate enforced the redaction rule on this lane's own paperwork, twice.** A queue block
+quoted the two account names *while listing what must not be touched*, and the staged scan
+refused the commit, printing its own standing advice: *a redaction record written naively
+re-leaks what it redacts*. **Redaction records name FIELDS, never VALUES** — enforced by an
+instrument rather than by discipline.
+
+**Goals:** G4 (primary), G1, G5. **Queue:** `READY=NA-0684`; the closeout (D-1323) is owed.

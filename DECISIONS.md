@@ -35106,3 +35106,289 @@ by NAME (ENG-0075, narrow authorised fold): deleting a test file drops the
 enumeration from 103 to 98 and fails **naming the five missing tests**.
 
 **Goals:** G4 (primary), G1, G5.
+
+---
+
+## D-1326 — NA-0687: THE LOG-CAPTURE SYNCHRONISATION SWEEP — and the lane whose own fix revealed that the diagnosis it was given was incomplete
+
+**Status:** Accepted 2026-07-29; **AMENDED and re-classified 2026-07-30** (§ "The extension"). **Lane:** NA-0687. **Directive:** `QSL-DIR-2026-07-29-621`
+(D621, APPROVED 2026-07-29, all seven flags ruled at their drafted defaults, three riders
+folded in; sha256 `fb4a3ac2…77c73285`, 556 lines). **Implementation:** qsl-server PR **#69**, merged
+2026-07-30T00:45:15Z as `37ec8207` (two commits: `51bb2a3` the sweep, `1b6df98` the ruled
+extension), repo-local **D-0017**. **Result class:** **`LOG_CAPTURE_SYNC_SWEEP_PASS`** — re-derived 2026-07-30 against §8's
+**original** gate after the extension below made every criterion pass, M6 included. ⚠ The interim
+class `LOG_CAPTURE_SYNC_SWEEP_PASS_WITH_SECOND_MECHANISM_FILED` was authorised while ENG-0094 was
+**filed and unfixed**; ENG-0094 being **fixed in-lane supersedes it**. The paragraph below recording
+why neither original class was honest **at that time** is left standing, because the reasoning is the
+part worth inheriting.
+
+**Goals:** G4 (primary — the instruments that verify log redaction now actually instrument),
+supports G5.
+
+### The ruled deviation from the declared result-class binary, and why it was ruled
+
+D621 §8 declared two classes, `LOG_CAPTURE_SYNC_SWEEP_PASS` and `…_STOP`. **Neither is honest
+about what happened, so the operator authorised a third**, recorded here with its grounds:
+
+- **`_STOP` misstates a sweep that completed with every in-scope expectation met.** All 12
+  census sites were fixed; the post-fix suite at the house thread count matched its written
+  prediction **exactly**; all four permanent controls passed and the temporary red control
+  fired and was reverted with the revert **proved**; `fmt` and `clippy --all-targets
+  -D warnings` are clean.
+- **Unqualified `_PASS` is barred by §8's own gate as written**, which requires M6 to be 5/5
+  at full parallelism. **M6 measured 4/5.** A lane does not get to soften the gate it wrote.
+
+⚠ **The operator also ruled: do NOT re-run M6 hoping for 5/5. The 4/5 stands as the
+measurement.** *A green obtained by repeating until the noise stops is indistinguishable from
+one obtained by fixing something, and it destroys the evidence that a flake existed.*
+
+### What shipped
+
+Twelve log-capture assertion sites in `qsl-server` — **every** one in the repository —
+**synchronise on the relay having emitted before they read the capture buffer**, through one
+shared helper (`tests/common/mod.rs`). The wait polls for the site's own positive sentinel and
+on expiry fails with a **named** error naming the needle, the wait, **and the size of the
+buffer it examined**. 5 s deadline, 50 ms poll, both **derived** from this project's existing
+readiness idiom rather than invented (rider R-b). **Not one assertion about redaction or log
+content was changed — only WHEN the buffer is read.**
+
+⚠ **Both directions of the defect were in scope, and only one of them had ever been seen to
+fail.** A **positive** assertion fails when the emit loses the race; a **negative** assertion
+passes **vacuously** when the read happens before the buffer is populated — it can never fail
+and therefore never measured anything. `tests::payload_not_logged` was that case in its pure
+form: one assertion, negative, read after `abort()`. **It acquired its first failure mode by
+operator ruling (F6+R4), and that is recorded in D-0017 so a future red there traces to this
+decision rather than surprising anyone.** *A test that cannot fail is not a weaker instrument;
+it is not an instrument.*
+
+### The census corrected the ledger's population by 4×, and its own predictions six times
+
+**12 sites, not the "at least three" ENG-0091 recorded** — reconciled across three independent
+mechanism-keyed searches (capture-writer definitions, subscriber installs, buffer reads), all
+12 classified **FIX**, with **zero** already-synchronised and **zero** not-this-pattern.
+
+Ten point predictions were written before the enumeration. **Four held exactly; six missed, and
+the shape of the miss was consistent: the population was over-predicted and its uniformity
+under-predicted.** ⚠ **The instructive miss: NOT-THIS-PATTERN, predicted 3, measured 0.** The
+prediction came from reasoning about how such a test *would plausibly* be written; the
+measurement came from tracing all 28 positive needles to their emitters and finding **every one
+server-emitted**. *A sweep measures what tests ASSERT, not what the code plausibly does.*
+
+⚠ **A CENSUS-SURFACE GAP THE BASELINE CAUGHT, recorded because the catch was accidental.** The
+M1 baseline measured **129 passed** against a predicted **115**. The +14 was `src/main.rs`'s
+`mod cli_tests`, which the executor's static attribute count had never included — **so the
+census's second search had examined a narrower surface than its first.** The enumeration was
+re-run over all of `src/` and `tests/`: `main.rs` and `store.rs` carry no capture mechanism, so
+the population of 12 stood, **now proven over the complete surface instead of assumed over a
+partial one.** The count was wrong; the census was not — but that could not have been known
+without re-checking.
+
+### The controls, because a fix whose control cannot fire has fixed nothing
+
+Deterministic, test-side, no dependence on thread count or luck: a gated writer that stages
+bytes and reveals them only on release, so the lost race becomes a **state** rather than a
+scheduler accident.
+
+| control | shape | expected | measured |
+|---|---|---|---|
+| **A** (temporary) | unfixed shape, gate withheld | RED | **RED**, `assertion failed: text.contains(NEEDLE)`, exit 101 — reverted, revert **proved byte-identical by sha256** |
+| **A′** | the gate itself withholds, then reveals | GREEN | GREEN |
+| **B** | fixed shape, released late from another task | GREEN | GREEN, and the wait **provably waited ≥150 ms** |
+| **C** | fixed shape, never released | RED with the named timeout | GREEN as an assertion on `Err(Timeout{..})`, **empty** buffer reported |
+| **C2** | fixed shape, populated buffer lacking the needle | timeout reporting a **populated** buffer | GREEN, `bytes > 0` |
+
+⚠ **A′ exists because the control instrument needs a control** — if the gate silently released,
+control A would go green and "prove" the defect cannot happen. ENG-0089's lesson, one surface
+over.
+
+### ⚠ THE FINDING THIS LANE IS REMEMBERED FOR: THE FIX REVEALED THAT THE DIAGNOSIS WAS INCOMPLETE
+
+M6 predicted 5/5 at full parallelism. **Run 3 was RED — but legibly:**
+
+```
+LOG_SYNC_TIMEOUT: needle "channel_id=" not observed within 5027ms (buffer 0 bytes, 0 lines)
+```
+
+**`0 bytes` after the full 5 s deadline falsifies slow-emit outright.** A lost race yields the
+needle inside the deadline, or a **populated** buffer missing it; it cannot yield a buffer still
+empty after 100 reads. **Nothing was ever captured.** One discriminating experiment, prediction
+written first, **both arms confirmed**: 1 of 20 whole-binary runs red, **0 of 20** with that test
+alone — so the failure **requires sibling tests in the same process**, which is inconsistent with
+a per-emit race. Filed as **ENG-0094**, hypothesis labelled as inference (global callsite
+`Interest` caching vs thread-local `set_default`), **deliberately not fixed**: the experiment
+that would confirm the mechanism *is* the candidate fix, and the remedy needs a test-harness
+design decision. ⚠ **Ruled on the same grounds as D-1319 — an unreviewed design proposed late in
+a long lane gets its own lane, not a paragraph in this one.**
+
+⚠ **AND THE PRE-FIX INSTRUMENT COULD NOT HAVE TOLD ANYONE THIS.** Both mechanisms printed the
+identical `assertion failed: ...contains("channel_id=")`, whether the buffer held the wrong lines
+or **no** lines. **So ENG-0091's two recorded runner instances may include the ENG-0094 mechanism,
+and there is no way to tell retrospectively.** *A fix that improves an error message can reveal
+that the diagnosis behind it was incomplete — which is the strongest argument this project has yet
+produced for naming what an instrument EXAMINED, not only whether it liked what it saw.*
+
+### The measurements, each with its expectation written first
+
+| | predicted | measured |
+|---|---|---|
+| M1 baseline, `RUST_TEST_THREADS=2` | 27 binaries / 115 passed | **28 / 129 / 0 failed / 0 ignored / exit 0** (the +14 explained above) |
+| M2 pre-fix, full parallelism ×5 | ≥1 red matching the pre-declared signature | **1 of 5 RED** — **both** ENG-0091 instances in one run, **both positive assertions**, **zero** negative failures in any run |
+| M5 post-fix, `RUST_TEST_THREADS=2` | 29 / 134 / 0 / 0 / exit 0 | **exact match** |
+| M6 post-fix, full parallelism ×5 | 5/5 exit 0 | **4/5** — one red, the ENG-0094 mechanism |
+
+⚠ **M2 IS AN ADDITION TO THE APPROVED INTENT (F3), AND IT IS WHAT MAKES M6 READABLE.** A negative
+result is evidence only if the instrument could have returned positive. Because the pre-fix suite
+was measured red on this box, the post-fix comparison is a genuine before/after rather than an
+assertion about an instrument never shown able to fail. **It also produced the first local
+reproduction of this flake in the project's history**, and it landed on the runner's two
+instances rather than ENG-0065's.
+
+⚠ **NO CLAIM IS MADE THAT THE FULL-SUITE FLAKE RATE FELL — it was 1-in-5 before and 1-in-5
+after.** What is claimed, and measured: **failing sites in the red run went 2 → 1**, and **the
+failure became diagnosable**. The 1-in-20 figure has a different denominator (one 16-test binary,
+not the 29-binary suite) and cannot be compared with the 1-in-5 figures. ⚠ **This arithmetic is
+the ANNOTATION-CORRECTED version**: `STOP_NA0687_002` originally said the rate "fell", the
+executor caught it while checking its own summary against the run logs, and the stop-file carries
+an append-only correction with the original sentence left byte-identical. *The
+parenthetical-estimate lesson, recurring inside the lane's own record.*
+
+### The ledger gains a queryable state machine, and its first two uses prove the hard half
+
+**The `Resolution:` convention is adopted** (`docs/ops/IMPROVEMENT_LEDGER.md` header): closure is
+recorded by **appending** a `Resolution:` line; original `Status:` lines are **never** edited; a
+grep for open items keys on the **absence** of `Resolution:`. Applied to the seven entries NA-0686
+closed — ENG-0075, 0082, 0084, 0085, 0088, 0089, 0090 — each verified against its own annotation
+before the line was written.
+
+⚠ **Why it was needed, measured rather than asserted: NA-0686's seven closures opened with THREE
+DIFFERENT VERBS** — `CLOSED`, `DISPOSITIONED … FIXED, not deferred` (ENG-0085) and
+`RE-ENUMERATED AND RESOLVED` (ENG-0087) — while every `Status:` line still read `open`. No grep
+could find them; a reader had to read all 91 entries in full. **A backlog whose own state cannot
+be queried is an instrument that does not instrument** — the ENG-0077/0078/0091 family, on the
+governance surface. **No CI script parses this ledger** (`git grep` over `scripts/` and
+`.github/`), so the convention cannot break a gate; it fixes a human instrument.
+
+⚠ **THE PARTIAL-CLOSURE RULE IS THE LOAD-BEARING HALF, and both live cases needed it
+immediately.** An entry with any part still open **never** receives a `Resolution:` line, however
+emphatic its annotation. **ENG-0087** is annotated *"RE-ENUMERATED AND RESOLVED"* but its
+~60-scrape annex is owed. **ENG-0091** had its pattern fixed at all twelve sites by the very lane
+adopting the convention, and still gets none, because one of its two instances fails by
+ENG-0094's mechanism. *Had the rule gone the other way, the convention's first two uses would
+both have reported open work as closed — failing at exactly the job it was adopted to do.*
+
+**Ledger disposition (as amended 2026-07-30):** **ENG-0065 CLOSED**. ⚠ **ENG-0091 also CLOSED** —
+it was held open on ENG-0094, and ENG-0094 was fixed in-lane, so both halves are done; its earlier
+"stays open" annotation is superseded in place rather than rewritten. **ENG-0094 filed AND fixed in
+this lane**, with the falsified mechanism annotated and the experiment recorded. **ENG-0092** filed (this repo's `qsl-server` CI still runs
+`cargo test -q` — ENG-0075 one repo over, remedy already worked; rider R-c, filing only, a
+workflow edit was out of scope). **ENG-0093** filed (the infra-literal scanner leaves an
+untracked, **not**-gitignored `scripts/ci/__pycache__/`, so a lane staging with `git add -A`
+after running its own gate commits bytecode; byte-identical scanner in all four repos, so the
+hazard is tree-wide). **ENG-0094** filed (the second mechanism).
+
+### Two mechanism findings recorded so no successor pays for them twice
+
+⚠ **A `#[path]` module declared inside an INLINE module resolves relative to `<dir of this
+file>/<inline module name>/`** — for `mod tests` in `src/lib.rs`, the **phantom** directory
+`src/tests/`. Because it does not exist, the kernel cannot resolve `..` through it, so **no**
+relative path escapes it: `#[path = "../tests/common/mod.rs"]` fails with `couldn't read
+src/tests/../tests/common/mod.rs`, and `../../` fails identically. `mod common {
+include!("../tests/common/mod.rs"); }` fails differently — `an inner attribute is not permitted
+in this context` plus `E0753: expected outer doc comment` ×6 — because the helper's
+`#![allow(dead_code)]` and `//!` docs are exactly what make it a proper module file. **F2's ruled
+fallback was therefore taken**: the integration tests share one definition; `src/lib.rs`'s test
+module carries a second copy naming the source of truth, **with its own control** so a drift into
+vacuity fails a test rather than passing quietly. ⚠ **A third option — a top-level `#[cfg(test)]
+#[path]` module — resolves correctly and was DELIBERATELY NOT TAKEN**, because it sits outside
+D621 §6's permission and an authorised fallback existed. **Named here as a deliberate non-choice
+a later lane may revisit if the duplication bites.**
+
+⚠ **Six of the twelve sites carried a single `tokio::task::yield_now().await` before the
+abort/read — a nudge, not a synchronisation**: it grants the server task exactly one scheduling
+opportunity and neither waits for nor detects the emit. **This corrected the census's own record
+of "sync: none" for all 12**; the precise statement is *0 of 12 carried a sufficient
+synchronisation, 6 of 12 carried a nudge*. ⚠ **Every observed failure, pre-fix and post-fix,
+landed in the six UN-nudged sites** — including both ENG-0091 instances and ENG-0065's original.
+*The nudge was never a synchronisation, but it was the difference between a defect that fires and
+one that had not yet been seen to.*
+
+### The extension — ENG-0094 fixed in-lane, and a design ruled from measurement
+
+⚠ **THE SWEEP WAS CORRECT AND COMPLETE FOR THE ORDERING DEFECT, AND IT STILL COULD NOT MERGE.** PR
+#69's required `rust` check went **RED** at census site 5 with
+`LOG_SYNC_TIMEOUT: needle "push channel_id=" not observed within 5018ms (buffer 83 bytes, 1 lines)` —
+a **POPULATED** buffer, where site 10's had been `0 bytes`. **The defect was blocking its own fix**,
+which is the fact that changed the calculus: deferring ENG-0094 is only cheap if the sweep can land
+without it. It could not, and re-running a red to green is forbidden. The operator therefore
+**superseded** the earlier "file, don't fix" ruling (annotated in place at `STOP_NA0687_002`) and
+admitted the remedy as a **scoped extension**.
+
+⚠ **THE DESIGN WAS RULED FROM MEASUREMENT, NOT PICKED.** A scratch reproducer of the exposure pattern
+— 15 sibling tests driving the shared callsite with no subscriber, plus 1 capture test — failed **16
+of 20**. Four candidates, **20 runs each, predictions written first**:
+
+| arm | mechanism | red / 20 |
+|---|---|---|
+| base | `set_default` alone (the shipped sweep) | **16** |
+| D3 | `set_default` + `rebuild_interest_cache()` | **19** |
+| D2 | `WithSubscriber` on the **emitting future** | **20** |
+| D1 | global default carrying data + thread-local routing | **0** |
+| **D4 — RULED** | permissive global default → `io::sink`, capture untouched | **0** |
+
+⚠ **BOTH HYPOTHESES THE LANE WROTE DOWN IN ADVANCE WERE FALSIFIED.** D3's red rules out stale
+per-callsite `Interest` that a rebuild repairs — the account `STOP_NA0687_004` had recorded, now
+annotated there. D2's red rules out thread-local dispatcher visibility, **OBS-10's family**, which had
+been the standing suspicion since the census. **D4 is decisive because its subscriber discards
+everything**: it cannot be doing any capturing, so the only thing it can have changed is
+**process-global filter state**. That account of the internals stays **INFERENCE**; the five outcomes
+are the claims. **D1 measured identically and is recorded as the runner-up rejected on blast radius** —
+it would route every event in the binary through one writer and rely on per-thread bookkeeping to keep
+tests apart, whereas D4 **cannot** capture, leak or misroute, and if it ever stops working the flake
+returns **loudly** as `LOG_SYNC_TIMEOUT`.
+
+**Shipped with the extension:** `install_permissive_global_once()` in both helper copies and one call
+at each of the twelve sites — **with not one assertion changed**; a **bounded excerpt** of buffer
+content in the timeout message (240 bytes, newlines flattened, **test-data surface only**), because
+size separated *empty* from *populated* but only content names **which** line arrived — its absence is
+why identifying this mechanism cost a five-arm experiment instead of one CI log; and
+**`control_d4_the_permissive_global_is_installed_and_permissive`**, a control for **the fix's own
+failure mode**, RED if no global default is set or if the global max level would drop the relay's INFO
+lines. *A fix needs a control for its own failure mode, not only for the one it replaced.*
+
+**Measured after the extension, each predicted first:** M5 **29 binaries / 135 passed / 0 failed / 0
+ignored / exit 0** — exact; **M6 5 of 5 exit 0**; and **confirmatory 20-run arms on both exposed
+binaries, 0 of 20 red each**. ⚠ **The arms were load-bearing, not ceremonial**: the reproducer never
+produced site 5's populated-buffer presentation (all 16 of its reds were `0 bytes`), so it modelled
+the mechanism but not both faces of it.
+
+⚠ **TWO OPTIONS WERE REFUSED, and the refusals belong in the record.** **Weakening the two exposed
+waits** — a needle chosen because it is un-poisoned, or a non-fatal wait — was **REFUSED**: choosing
+needles to pass reintroduces exactly the vacuity this lane removes. **Splitting the PR** to land only
+"unexposed" sites is recorded **unsound**: exposure is a property of the callsite and the binary's test
+mix, not of a site's own code, so "unexposed" could only ever mean "has not failed yet".
+
+### STANDING RULE — scratch-space investigation is pre-authorised (operator-ratified 2026-07-30, first exercised in this lane)
+
+> **An executor may build and run throwaway experiment code OUTSIDE tracked repo paths to diagnose a
+> mechanism, provided nothing is committed, tracked trees stay clean, and the revert is proved. Repo
+> edits — including test code — still require a ruling.**
+
+**Why it was ratified here:** the five-arm matrix that ruled this design could not have been produced
+under a reading where every experiment needs its own approval round, and the alternative — choosing a
+design from theory — is what the matrix went on to prove wrong **twice**. The boundary is the point:
+**diagnosis is free, changes to the tree are not.** ⚠ To be folded into the house-defaults document
+when **ENG-0081**'s micro-lane runs; **no `CLAUDE.md` edit in this lane**, because that file's edit
+fires both full suites and is out of scope here.
+
+### Queue
+
+`READY=NONE` at Phase 0 and at close; **enqueue, promotion and execution in one act** on the
+NA-0678 / NA-0685 precedent, the intent having been operator-approved with its rulings already
+made. `HIGHEST_NA` 0686 → **0687**; `HIGHEST_D` 1325 → **1326**. **Successor selection is the
+operator's**; the ledger's live items now include ENG-0086 (the F6 ack flip, still gating Slice
+4), ENG-0094 (this lane's finding), ENG-0092/0093, and the pre-existing P2s.
+
+**Evidence:** `docs/governance/evidence/NA-0687_as_built.md`. **Instrument record:**
+`tests/NA-0687_log_capture_sync_testplan.md`. **Stop-files:** `STOP_NA0687_001` (census +
+baseline), `STOP_NA0687_002` (the M6 red, with its 23:04Z append-only arithmetic correction),
+`STOP_NA0687_003` (pre-PR).

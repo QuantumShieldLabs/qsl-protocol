@@ -36,6 +36,36 @@ addressing it) → `promoted` (turned into canon/decision) or `done` (resolved w
 evidence) — or `wontfix` (closed with a recorded reason). Never delete entries;
 close them.
 
+### Recording closure: the `Resolution:` line (adopted 2026-07-29 by NA-0687 / D-1326)
+
+**Closure is recorded by APPENDING a `Resolution:` line to the entry. Original `Status:`
+lines are never edited.** A grep for open items therefore keys on the **absence** of a
+`Resolution:` line, never on the text of `Status:`.
+
+⚠ **Why this exists.** Because the house rule is *mark-don't-rewrite*, closures were being
+recorded as prose annotations while the original `Status: open` stayed put — so the field
+that looks authoritative was wrong for every closed entry. It was worse than a stale field:
+NA-0686's seven closures opened with **three different verbs** — `CLOSED` (ENG-0075, 0082,
+0084, 0088, 0089, 0090), `DISPOSITIONED … FIXED, not deferred` (ENG-0085) and
+`RE-ENUMERATED AND RESOLVED` (ENG-0087) — so no grep could find them and a reader had to
+read all 91 entries in full to learn which were live. A backlog whose own state cannot be
+queried is an instrument that does not instrument, which is the defect family
+ENG-0077/0078/0091 belong to. This convention makes the state machine above **greppable**
+without rewriting a single historical claim.
+
+⚠ **THE PARTIAL-CLOSURE RULE, and it is the load-bearing half: an entry with ANY part still
+open NEVER receives a `Resolution:` line, however emphatic its annotation.** Two live cases
+decided this at adoption. **ENG-0087** is annotated *"RE-ENUMERATED AND RESOLVED"* but its
+~60-scrape annex is still owed, so it gets an annotation and **no** `Resolution:`.
+**ENG-0091** had its pattern fixed at all twelve sites by the very lane that adopted this
+convention, and still gets **no** `Resolution:` because one of its two recorded instances
+still fails by a second, separately filed mechanism (ENG-0094). *Had the rule been the
+other way, the convention's first two uses would both have reported open work as closed —
+failing at exactly the job it was adopted to do.*
+
+Closing an entry therefore means: append `Resolution:` naming the lane, the decision id and
+what was measured; leave `Status:` and every prior annotation byte-identical.
+
 ## Entry ID convention
 
 `ENG-####` for engineering findings, `WF-####` for workflow/process items;
@@ -1125,6 +1155,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   explanatory comment in `lib.rs` QUOTED the retired phrase, and the new guard failed on it —
   the same trap the older guard's comment warns about. Recorded because it is direct evidence
   the needle works on live content, not just on the case it was written for.
+- Resolution: CLOSED 2026-07-29 by NA-0686 (D-1325) — the claim-discipline needles now cover Cargo metadata and module docs, and both stale strings were corrected; the needle was proved against live content, not only the case it was written for. (This `Resolution:` line was applied 2026-07-29 by **NA-0687 / D-1326** when the convention was adopted; the closure itself is NA-0686's and its annotation above is unchanged.)
 
 ### ENG-0089 — `host_retired_rig` fires on ADDED LINES ONLY, so the tree is only as clean as its last edit — **NEW; filed 2026-07-29 by NA-0683 (D-1321; OBS-8)**
 - Severity: P2 (gate design; it blocks correct work and its clean signal is weaker than it reads)
@@ -1182,6 +1213,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - **Phase 4d:** the remediation help now prints Option B (a)/(b)/(c) and the
   adopt-the-tree's-vocabulary rule at the moment the gate fires — a ruling that lives only in
   `DECISIONS.md` gets re-derived by whoever trips the gate at 2am.
+- Resolution: CLOSED 2026-07-29 by NA-0686 (D-1325) — `host_retired_rig` promoted Tier-1 tree-wide with a per-path expected-count BUDGET (not an exemption), two new Tier-2b classes each proven fail-closed, and the vacuous-pass refusal guarded by a 13-check selftest that runs before the scan in all four repos. (This `Resolution:` line was applied 2026-07-29 by **NA-0687 / D-1326** when the convention was adopted; the closure itself is NA-0686's and its annotation above is unchanged.)
 
 ### ENG-0090 — the naming ruling's cross-repo remainder: five user-facing "Server" surfaces outside qsl-desktop — **NEW; filed 2026-07-29 by NA-0683 (D-1320's map)**
 - Severity: P3 (product vocabulary consistency; no correctness or security impact)
@@ -1208,6 +1240,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   at `cmd/mod.rs:601` measured at `:641`. The map is annotated in place (mark-don't-rewrite)
   with content needles for all three surfaces, since it is the artifact later lanes were told
   to cite rather than re-derive.
+- Resolution: CLOSED 2026-07-29 by NA-0686 (D-1325) — as THREE one-word edits, not the five filed; the `docs/public` remainder measured ZERO, not the estimated ~10. (This `Resolution:` line was applied 2026-07-29 by **NA-0687 / D-1326** when the convention was adopted; the closure itself is NA-0686's and its annotation above is unchanged.)
 
 ### ENG-0091 — qsl-server log-capture assertions read the buffer without synchronising on the write, and they now flake ON THE RUNNER THAT DECIDES MERGES — **NEW; filed 2026-07-29 by NA-0686A (D-1325), at operator instruction**
 - Severity: **P2** (test-synchronisation correctness; **no runtime, protocol or security impact** — but it blocks merges non-deterministically, and a gate that fails at random teaches reviewers to disbelieve reds, which is the expensive part)
@@ -1231,6 +1264,63 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Proof gap: nothing asserts these tests synchronise before reading their capture buffer; nothing runs the suite at a thread count where the race is visible; and **nothing tracks flake recurrence**, so instance 1 was forgotten until instance 2 made someone look.
 - Sequencing: independent; a `qsl-server` test-hardening micro-lane, implementation-only (test-only), naturally taken **together with ENG-0065** since they are one defect.
 - Cross-reference: ENG-0065; ENG-0077; ENG-0078; ENG-0087 (the same "asserting a proxy rather than the property" shape, one surface over); NA-0686 / D-1325.
+- ⚠ **PATTERN FIXED AT ALL TWELVE SITES, BUT THIS ENTRY STAYS OPEN — annotated 2026-07-29 by NA-0687 (D-1326), NO `Resolution:` line, per the partial-closure rule this lane wrote into the ledger header.** The census measured the population at **12 sites, not "at least three"** — every log-capture assertion site in `qsl-server`, reconciled across three independent mechanism-keyed searches — and all 12 now synchronise before asserting, with every absence assertion anchored on a server-emitted positive sentinel. **Instance 2's site (`na0347_secret_env_public_ingress_and_log_redaction_boundaries_hold`, the merge-blocker) is clean in every measurement NA-0687 took after the fix.** ⚠ **Instance 1's site (`bundle_is_opaque_bytes_in_bytes_out_and_never_logged`) STILL FAILS**, at a lower rate, by a **different mechanism** now separately filed as **ENG-0094**: it times out with `buffer 0 bytes, 0 lines` after the full 5 s deadline, which falsifies slow-emit outright — nothing was ever captured — and it reproduces only with sibling tests in the same process (1 of 20 whole-binary runs; 0 of 20 for the test alone).
+- ⚠ **THE PART THAT MATTERS FOR THIS ENTRY'S OWN EVIDENCE: THE PRE-FIX INSTRUMENT COULD NOT DISTINGUISH THE TWO MECHANISMS.** Both produced the identical text `assertion failed: ...contains("channel_id=")`, whether the buffer held the wrong lines or **no** lines. **So the two data points recorded in this entry's table may include the ENG-0094 mechanism rather than the missing-flush race, and there is no way to tell retrospectively.** The distinction only became visible because NA-0687's remedy reports the size of the buffer it examined — the fix is what revealed that the diagnosis was incomplete. **This entry's `Status:` line and its table are unchanged; nothing above is rewritten.**
+- Sequencing after NA-0687: this entry closes when **ENG-0094** closes. The synchronisation half needs no further work.
+- ⚠ **SUPERSEDED 2026-07-30 — ENG-0094 WAS FIXED IN NA-0687 AFTER ALL, so the condition above is met.** The annotation above is left byte-identical: it was correct when written, when the operator had ruled the second mechanism to its own later lane. **That ruling was superseded when the mechanism blocked this lane's own merge** (PR #69's required check went red at a third site), the fix was admitted as a scoped extension, and its design was **ruled from a five-arm experiment rather than chosen**.
+- Resolution: CLOSED 2026-07-30 by **NA-0687 (D-1326)**, result class `LOG_CAPTURE_SYNC_SWEEP_PASS`. Both halves are done: the **synchronisation** half at all **12** sites (the population this entry recorded as "at least three"), and the **capture-visibility** half via ENG-0094's fix. Measured after both: M5 **135 passed / 0 failed / exit 0** at the house thread count (exact match to prediction), M6 **5 of 5 exit 0** at full parallelism, and **0 of 20 red** on each of the two binaries that had failed — including instance 1's `na0678_invite_slots` and the site-5 binary whose red blocked the merge. ⚠ **`Status:` above and every prior annotation are unchanged, per the convention this lane adopted; this entry's original two-instance table remains legible and its caveat stands — the pre-fix instrument could not distinguish the two mechanisms, so those data points may include ENG-0094's.**
+
+### ENG-0092 — `qsl-server` CI runs `cargo test -q`, so "the totals match" is not evidence that the binaries it should have run did run — **NEW; filed 2026-07-29 by NA-0687 (D-1326), at operator instruction (rider R-c)**
+- Severity: **P3** (assurance legibility; **no runtime, protocol or security impact** — the tests that run are unaffected. The defect is that a MISSING binary is invisible)
+- Status: open — filed 2026-07-29. **Nothing was changed**: `.github/workflows/**` is a FORBIDDEN path in NA-0687's directive (§6), so this is a filing only.
+- Exact surface: `qsl-server` `.github/workflows/ci.yml`, the `rust` job's `test` step — `run: cargo test -q`.
+- Claim violated: that a green `rust` check demonstrates the suite ran. Under `-q`, libtest prints no per-binary `Running …` / `test result:` lines, so a binary that silently ran **zero** tests, or a test target that vanished from the build, produces the same output as one that passed. **A silent skip is a vacuous pass**, and `-q` is what makes the skip silent.
+- ⚠ **THIS IS ENG-0075 ONE REPO OVER, WITH THE REMEDY ALREADY WORKED.** ENG-0075 was filed against `qsl-desktop` for this exact invocation and closed by NA-0686 (D-1325) with a two-part fix: drop `-q`, and **pin the test inventory by NAME** so a matching total cannot hide a missing binary. Nothing about that remedy is specific to the desktop repo.
+- How it surfaced: NA-0687 measured the `qsl-server` suite locally and needed per-binary counts to derive a point prediction. **The prediction (115) missed the measurement (129) because `src/main.rs` carries 14 CLI tests that the executor's static count had not included — and the per-binary breakdown is what made that diagnosable in one read.** CI, running `-q`, would have shown neither number.
+- Proof gap: nothing asserts the set of `qsl-server` test binaries CI executes; nothing would fail if one disappeared.
+- Recommended change (**NOT implemented**): `cargo test` without `-q`, plus a name-pinned inventory in the ENG-0075 shape (see `qsl-desktop`'s `test_inventory.sh`, which pins `LC_ALL=C` because test names containing `::` sort differently under other locales, and treats an unsorted `comm` warning as fatal).
+- Sequencing: independent; a `qsl-server` CI micro-lane. **Fix home: a later ruled lane** — a workflow edit was outside NA-0687's scope by directive.
+- Cross-reference: **ENG-0075** (the same defect, fixed in `qsl-desktop`, remedy reusable); ENG-0077/0078/0091 (the *instruments that do not instrument* family); NA-0687 / D-1326 (OBS-2).
+
+### ENG-0093 — the infra-literal scanner leaves an UNTRACKED, NOT-GITIGNORED `scripts/ci/__pycache__/`, so a lane that runs its own gate and stages with `git add -A` commits Python bytecode — **NEW; filed 2026-07-29 by NA-0687 (D-1326), at operator instruction (rider R-c/OBS-11)**
+- Severity: **P3** (repo hygiene / accidental-commit hazard; **no runtime, protocol or security impact**, and the gate's verdict is unaffected)
+- Status: open — filed 2026-07-29. **Nothing was changed**: `.gitignore` was not touched (out of NA-0687's scope); the executor deleted the directory to restore a clean tree and recorded the fact.
+- Exact surface: running `python3 scripts/ci/infra_literal_scan.py` (or `infra_literal_scan_selftest.py`) from a repo checkout writes `scripts/ci/__pycache__/*.pyc`. Measured in `qsl-server` at NA-0687 Phase 0.3: `git status --porcelain` reported `?? scripts/ci/__pycache__/`, and `git check-ignore -v` confirmed **no ignore rule matches it**.
+- Why it matters: the local pre-commit call site (`scripts/hooks/pre-commit`, D-0015) and every executor verifying the gate before a PR run this scanner **inside the tree it measures**. The hazard is the ordinary one — `git add -A` after a local gate run — and the failure is silent: bytecode in a public repository, in a directory named after the CI scripts.
+- ⚠ **TREE-WIDE, not one repo.** The scanner file is **byte-identical in all four repositories** and must stay so (D-1325), so the same untracked directory appears wherever the gate is run locally. Any fix should be applied in the same four places, in the same shape.
+- Proof gap: nothing asserts that running the repo's own gates leaves the working tree clean.
+- Recommended change (**NOT implemented**): add `__pycache__/` (and `*.pyc`) to `.gitignore` in all four repositories — or set `PYTHONDONTWRITEBYTECODE=1` in the hook and the workflow steps, which leaves no artifact to ignore. ⚠ Prefer the `.gitignore` route only after checking `git check-ignore` behaviour on **tracked** files (it skips them — NA-0668's gotcha).
+- Sequencing: independent; a four-repo hygiene micro-lane, or a free rider on any lane already touching `.gitignore`.
+- Cross-reference: D-0015 / NA-0677 (the gate and its pre-commit call site); D-1325 / ENG-0089 (the scanner's Tier-1 promotion and its selftest); NA-0687 / D-1326 (OBS-11).
+
+### ENG-0094 — a log-capture buffer can stay COMPLETELY EMPTY for the whole deadline, and it only happens with sibling tests in the same process: a second mechanism, distinct from the missing-flush race — **NEW; filed 2026-07-29 by NA-0687 (D-1326)**
+- Severity: **P2** (test-instrument correctness; **no runtime, protocol or security impact** — but it makes a redaction assertion unfailable-or-unpassable for reasons unrelated to redaction, and it is the surviving half of the flake that blocks merges)
+- Status: open — filed 2026-07-29. **Deliberately NOT fixed**: the remedy requires a test-harness design decision (below) that NA-0687 was not authorised to make; the operator ruled it to its own lane rather than let an unreviewed design land late in a long lane.
+- Exact surface: `qsl-server` `tests/na0678_invite_slots.rs` — `bundle_is_opaque_bytes_in_bytes_out_and_never_logged` (ENG-0091's instance 1). One capture site in a **16-test** binary.
+- **The measurement, and it is the whole finding.** After NA-0687 synchronised all twelve capture sites, this one still fails — but now it fails *legibly*:
+  `LOG_SYNC_TIMEOUT: needle "channel_id=" not observed within 5027ms (buffer 0 bytes, 0 lines)`.
+  ⚠ **`0 bytes` after the full 5 s deadline FALSIFIES the slow-emit hypothesis outright.** A lost race yields either the needle arriving inside the deadline or a **populated** buffer missing it; it cannot yield a buffer still empty after 100 reads at 50 ms. **Nothing was ever captured.**
+- **ONE DISCRIMINATING EXPERIMENT, prediction written first, both arms confirmed:**
+
+| arm | scope | runs | predicted | measured |
+|---|---|---|---|---|
+| A | whole binary, full parallelism | 20 | ≥1 red with `0 bytes` | **1 red**, `…within 5022ms (buffer 0 bytes, 0 lines)` |
+| B | that test ALONE (`--exact`) | 20 | 0 red | **0 red** (`15 filtered out` confirms the filter matched exactly 1 test — not a silent skip) |
+
+  **The failure REQUIRES sibling tests in the same process** — consistent with process-global state, **inconsistent with a per-emit race**, which would not care what else is in the binary.
+- **HYPOTHESIS — LABELLED AS INFERENCE, NOT MEASURED.** `tracing` caches callsite `Interest` **globally per process**, while `set_default` installs a **thread-local** dispatcher. The other 15 tests drive the same relay paths with **no** subscriber on their threads; if one reaches the relay's `push channel_id=` callsite first, `NoSubscriber`'s `Interest::never()` can be cached process-wide, after which the event is skipped **without consulting any dispatcher** — including the real one on the capture test's thread.
+- **Supporting code evidence (measured, read-only):** 16 tests in the binary, **15 of which drive relay pushes/redeems** (37 call sites), **exactly one** installs a subscriber, and the relay logs through **one** `info!("push channel_id={} id={} bytes={}", …)` callsite in `src/lib.rs` shared by all of them. In the failing run all 15 siblings passed.
+- ⚠ **HONEST LIMIT, and the reason this is filed rather than fixed: the experiment that would CONFIRM the mechanism — install a process-global subscriber and watch the failure vanish — IS the candidate fix.** Running it would have been implementing an unruled remedy, so NA-0687 stopped instead. The behaviour is measured; the mechanism is inference.
+- ⚠ **THIS IS WHY ENG-0091 STAYS OPEN, AND IT IS ALSO A LESSON ABOUT EVIDENCE.** The pre-fix instrument printed `assertion failed: ...contains("channel_id=")` for **both** mechanisms, so ENG-0091's two recorded runner instances **may include this one** and there is no way to tell retrospectively. **A fix that improves an error message can reveal that the diagnosis behind it was incomplete** — which is what happened here, and it is the strongest argument available for naming what an instrument examined rather than only whether it liked what it saw.
+- Recommended change (**NOT implemented — design required**): make the capture subscriber visible to the emitting task regardless of global interest caching. Candidates, none ruled: a process-global subscriber installed once per test binary with a per-test switchable writer; `tracing_subscriber`'s test-writer support; or routing the emit through a subscriber attached to the spawned task (`WithSubscriber`) rather than the thread. ⚠ Whichever is chosen must keep the twelve sites' assertions byte-identical and must arrive with its own red-capable control — a version of NA-0687's gated writer that fails when the capture is never wired up at all.
+- Proof gap: nothing asserts that a capture site's subscriber actually receives the relay's events; a site whose buffer stays empty is indistinguishable, to every assertion in the population, from a site whose relay logged nothing.
+- Sequencing: independent of the synchronisation work, which is done. **ENG-0091 closes when this closes.** Natural pairing with ENG-0077/0078 (same family) and with ENG-0092, since both concern what a test instrument can be trusted to have examined.
+- Cross-reference: **ENG-0091** (closed once this was fixed); ENG-0065 (closed — its own site was unaffected); ENG-0077, ENG-0078, ENG-0087 (the family); NA-0687 / D-1326 and `STOP_NA0687_002`, `STOP_NA0687_004`, `STOP_NA0687_005`.
+- ⚠ **FIXED IN NA-0687 AFTER ALL — 2026-07-30. Everything above is left byte-identical**, including the "deliberately NOT fixed" status line and the hypothesis this experiment went on to falsify. **What changed: a third observation, and then this defect blocked the fixing lane's own merge.** PR #69's required `rust` check went red at census **site 5** with `LOG_SYNC_TIMEOUT … (buffer 83 bytes, 1 lines)` — a **POPULATED** buffer, where this entry's own instance reported `0 bytes`.
+- ⚠ **THE MECHANISM RECORDED ABOVE IS WRONG, AND THE EXPERIMENT IS WHAT SHOWED IT.** A scratch reproducer of the exposure pattern (15 sibling tests driving the shared callsite with no subscriber + 1 capture test) failed **16 of 20**. Four candidates, 20 runs each: **`rebuild_interest_cache()` after `set_default` → 19/20 RED**, so it is **not** stale per-callsite `Interest` that a rebuild repairs; **`WithSubscriber` on the emitting future → 20/20 RED**, so it is **not** thread-local dispatcher visibility either (OBS-10's family); **a global default carrying data + thread-local routing → 0/20**; **a permissive global default writing to `io::sink` → 0/20**. ⚠ **BOTH HYPOTHESES WRITTEN DOWN IN ADVANCE WERE FALSIFIED.** The `io::sink` arm is decisive **because it discards everything**: it cannot be doing any capturing, so the only thing it can have changed is **process-global filter state**. That account of the internals remains **INFERENCE**; the five outcomes are the claims.
+- **The remedy as shipped (D4):** `install_permissive_global_once()` — a permissive process-global default that discards every event — called once at each capture site, **with not one assertion changed at any of the twelve**. The data-carrying global (D1) measured identically and was **rejected on blast radius**: it would route every event in the binary through one writer and depend on per-thread bookkeeping to keep tests apart, while this one **cannot capture, leak or misroute**, and if it ever stops working the flake returns **loudly** as `LOG_SYNC_TIMEOUT`. Shipped with **`control_d4_the_permissive_global_is_installed_and_permissive`**, a control for **the fix's own failure mode** (RED if no global default is set, or if the global max level would drop the relay's INFO lines) — because without it that regression would reappear only as the original defect returning at random.
+- **Also shipped, operator-authorised:** the timeout message now carries a **bounded excerpt** of the buffer's content (240 bytes, newlines flattened, test-data surface only). ⚠ **This entry is the argument for it:** reporting the buffer's SIZE is what separated "nothing captured" from "the wrong thing captured", but only the CONTENT names which line arrived — and its absence is why identifying this mechanism took a five-arm experiment instead of one CI log.
+- Resolution: FIXED 2026-07-30 by **NA-0687 (D-1326)** as a ruled scoped extension. Measured after the fix: M5 **29 binaries / 135 passed / 0 failed / exit 0** (exact match to prediction), M6 **5 of 5 exit 0** at full parallelism, and **0 of 20 RED** on each of the two exposed binaries — `hardening_auth_reject_logging` (site 5) and `na0678_invite_slots` (site 10, this entry's own instance). ⚠ The confirmatory arms were **load-bearing, not ceremonial**: the reproducer never produced the populated-buffer presentation, so it modelled the mechanism but not both of its faces.
 
 ## Workflow / process items
 
@@ -2291,6 +2381,8 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - ⚠ **THIS ENTRY'S CENTRAL CLAIM IS DISPROVEN, 2026-07-29 by NA-0686A — annotated, not rewritten.** The headline says the defect *"always passes on the 2-vCPU runner that decides merges, so it generates no pressure to fix"*. **It has now failed on that runner twice**, on two different tests, blocking a merge each time (see **ENG-0091** for both data points and the discriminating experiment). The mechanism analysis here is sound and is what made the diagnosis quick; only the *reassuring half* was wrong.
 - ⚠ **AND THE SEVERITY ARGUMENT INVERTS WITH IT.** This was filed as a defect that generates no pressure to fix **because** it never fails where it counts. It now fails where it counts, so the "latent indefinitely" reasoning no longer holds — the pressure exists, and the cost is paid in stopped lanes and diagnostic cycles rather than in a silent latent risk. **A finding filed as low-priority BECAUSE it is invisible must be re-read the moment it becomes visible.**
 - Cross-reference: **ENG-0091** (the same missing-synchronisation pattern, measured on the GitHub runner, in two *further* test files — so the population is at least three, not one).
+- ⚠ **THIS ENTRY'S MECHANISM ANALYSIS WAS RIGHT, AND ITS PREDICTED FIX WORKS — annotated 2026-07-29 by NA-0687 (D-1326).** The inference recorded here (a current-thread runtime, cooperatively scheduled, whose server task lags so its on-response log lands after the immediate buffer read) is what the census confirmed at all twelve sites, and the poll-with-deadline remedy this entry recommended is what shipped. ⚠ **One thing this entry could not have known:** the site it names, `src/lib.rs::tests::logs_do_not_contain_raw_channel`, carried **no** `yield_now()` nudge, and NA-0687 measured that **every** observed failure — its own M2/M6 reds and both of ENG-0091's runner instances — landed in the six un-nudged sites of twelve. The nudge was never a synchronisation, but it was the difference between a defect that fires and one that had not yet been seen to.
+- Resolution: CLOSED 2026-07-29 by **NA-0687 (D-1326)**, result class `LOG_CAPTURE_SYNC_SWEEP_PASS_WITH_SECOND_MECHANISM_FILED`. The named defect at the named site is fixed: `logs_do_not_contain_raw_channel` now awaits the relay's `channel_id=` line before aborting the server task and asserting, via the shared `await_log` helper (5 s deadline, 50 ms poll, named `LOG_SYNC_TIMEOUT` on expiry). **This site failed in no measurement NA-0687 took** — clean in M1 (129 passed), M5 (134 passed, an exact match to prediction), M2's five full-parallelism runs and M6's five. The class was proven red-capable before it was proven fixed: the unfixed shape under a withheld gate goes RED with exit 101 (control A, reverted with the revert proved byte-identical by sha256), and the fixed shape is green under a released gate (control B) and reports a **named** bounded timeout when the line never arrives (controls C/C2). ⚠ **`Status:` above and both prior annotations are unchanged, per the convention this lane adopted.**
 
 ### ENG-0066 — qsl-server `TRACEABILITY.md` stopped tracking at NA-0012, so three accepted satellite decisions (D-0011/D-0012/D-0013) have no traceability row
 - Severity: P3 (traceability completeness; **no runtime, protocol, or security impact** — but "documented but not asserted" back-fills only get scheduled if written down, the WF-0041/WF-0042 class one repo over)
@@ -2409,6 +2501,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   byte-identical (`cmp`).
 - The script refuses a pass when it enumerates zero tests, on the same principle as the
   literal scan's `NOTHING EXAMINED`.
+- Resolution: CLOSED 2026-07-29 by NA-0686 (D-1325), as a narrow authorised fold — `qsl-desktop` CI runs `cargo test` instead of `cargo test -q`, with a test inventory pinned by NAME so a silently missing binary cannot hide behind a matching total. (This `Resolution:` line was applied 2026-07-29 by **NA-0687 / D-1326** when the convention was adopted; the closure itself is NA-0686's and its annotation above is unchanged.)
 
 ### ENG-0076 — R-7 made the onboarding name mandatory, but resume could bypass the gate: a nameless identity on disk resolved to S2
 - Severity: P2 (correctness of an onboarding gate; recoverable — Settings can still set the name — but the gate was silently skipped)
@@ -2531,6 +2624,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   `diagnostic_class=bearer_auth_failed` (`relay_push_diagnostics.rs`,
   `secret_material_diagnostic_boundary.rs`) are **401-driven**, and both pass unmodified
   (3 passed / 4 passed), as does `NA_0663_relay_tls_trust` (13 passed).
+- Resolution: CLOSED 2026-07-29 by NA-0686 (D-1325) — 403 now splits from 401 at all three layers (`relay_forbidden` marker code, `access_forbidden` error class, `access_refused` diagnostic class); `NA_0663_relay_tls_trust` passed untouched (13 passed), which is what proved the 401 intact. (This `Resolution:` line was applied 2026-07-29 by **NA-0687 / D-1326** when the convention was adopted; the closure itself is NA-0686's and its annotation above is unchanged.)
 
 ### ENG-0083 — in-flight ratchet state is persisted in TWO places (msgqueue records for messages, `outbox.json` for attachments) — **NEW; filed 2026-07-28 by NA-0682 (D-1317; directive D617)**
 - Severity: P3 (duplication/hygiene; no correctness impact today — both paths preserve replay-identical-bytes)
@@ -2595,6 +2689,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   (~14 `emit_marker("id", …)` in `attachments/mod.rs`) and the `timeline_item` entry id both
   still reach the marker layer as `id` under the shape-keyed redactor. Out of scope by
   ruling; the coupling is named here so it is inherited rather than rediscovered.
+- Resolution: CLOSED 2026-07-29 by NA-0686 (D-1325), operator-ruled Option C — `emit_message_state_reject` no longer accepts an identifier at all, so the raw pass-through is impossible by construction; ZERO redactor edits. The filed fix was measured to be a provable no-op first. (This `Resolution:` line was applied 2026-07-29 by **NA-0687 / D-1326** when the convention was adopted; the closure itself is NA-0686's and its annotation above is unchanged.)
 
 ### ENG-0085 — suspected hollow proof: `receipts_delivered::delivered_receipt_roundtrip` observes an emitted MARKER, never the stored state — **NEW; filed 2026-07-28 by NA-0682 (D-1317; directive D617); running "suspected hollow proofs" item per LANE_INTENT §3b OPPORTUNISTIC**
 - Severity: P3 (assurance; the test is NOT hollow today — the marker it asserts is emitted only inside the `Confirmed` arm, which is reached only after the timeline transition persists)
@@ -2617,6 +2712,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Control: flipping the expected state to `SENT` fails and prints the real stored row
   (`state=DELIVERED`), proving the assertion reads actual state rather than passing
   vacuously. Restored byte-identical (`cmp`).
+- Resolution: CLOSED 2026-07-29 by NA-0686 (D-1325), dispositioned FIXED rather than deferred — `delivered_receipt_roundtrip` reads the timeline back instead of inferring state from an emitted marker, so the proof is no longer hollow. (This `Resolution:` line was applied 2026-07-29 by **NA-0687 / D-1326** when the convention was adopted; the closure itself is NA-0686's and its annotation above is unchanged.)
 
 ### ENG-0086 — turn delivery acks ON by default (the F6 flip NA-0682 deferred) — **NEW; filed 2026-07-28 by NA-0682 (D-1317; directive D617, operator-ruled Option D)**
 - Severity: P2 (product capability + protocol cadence; the MECHANISM ships in NA-0682, only its DEFAULT waits)

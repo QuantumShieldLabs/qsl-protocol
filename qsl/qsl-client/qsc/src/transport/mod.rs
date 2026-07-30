@@ -1,3 +1,4 @@
+use crate::protocol_state::SendOrigination;
 use super::*;
 
 pub fn send_execute(args: SendExecuteArgs) -> CliResult {
@@ -2684,6 +2685,7 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> CliResu
         meta_seed,
         receipt,
         routing_override,
+        origination,
     } = args;
     if let Err(code) = normalize_relay_endpoint(relay) {
         return Ok(RelaySendOutcome {
@@ -2802,7 +2804,7 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> CliResu
     }
 
     let (payload, receipt_msg_id) = encode_receipt_data_payload(payload, receipt)?;
-    let pack = match qsp_pack(routing.channel.as_str(), &payload, pad_cfg, meta_seed) {
+    let pack = match qsp_pack(routing.channel.as_str(), &payload, pad_cfg, meta_seed, origination) {
         Ok(v) => {
             record_qsp_status(&dir, source, true, "pack_ok", true, false);
             emit_marker("qsp_pack", None, &[("ok", "true"), ("version", "5.0")]);
@@ -3483,6 +3485,8 @@ impl<'a> msgqueue::MessageSender for RelayMessageSender<'a> {
             &wire_body,
             self.pad_cfg,
             self.meta_seed,
+            // The msgqueue drains USER messages; receipts never enter this queue.
+            SendOrigination::User,
         ) {
             Ok(v) => {
                 // Same markers, same points, AND the same disk writes as the pre-NA-0682

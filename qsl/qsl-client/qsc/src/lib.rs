@@ -157,7 +157,7 @@ use protocol_state::{
     protocol_inactive_error, qsp_scka_load, qsp_scka_store, qsp_send_ready_tuple,
     qsp_session_for_channel, qsp_session_load, qsp_session_store,
     qsp_session_store_with_trigger, qsp_trigger_load, record_qsp_status,
-    zero32, QspTriggerState, SckaLocalState, SckaPeerAdv, QSP_DH_FALLBACK_N,
+    zero32, QspTriggerState, SckaLocalState, SckaPeerAdv, SendOrigination, QSP_DH_FALLBACK_N,
     QSP_DH_FALLBACK_T_SECS, QSP_PQ_RESEED_N, QSP_PQ_RESEED_T_SECS,
 };
 use relay::*;
@@ -1165,6 +1165,8 @@ fn send_pending_receipt(ctx: &ReceivePullCtx<'_>, item: PendingReceipt) -> CliRe
                 meta_seed: None,
                 receipt: None,
                 routing_override: None,
+                // ⚠ A RECEIPT. Machine traffic: originates nothing, counts toward nothing.
+                origination: SendOrigination::Control,
             })?;
             if let Some(code) = outcome.error_code {
                 emit_marker(
@@ -1286,7 +1288,8 @@ fn send_delivered_receipt_ack(relay: &str, to: &str, msg_id: &str) -> Result<(),
     // A push failure now BURNS the index: same semantics as the user send path, absorbed by
     // the recipient's skipped-key machinery, and self-healing once lease is the default (C4).
     let route_token = relay_peer_route_token(to)?;
-    let pack = qsp_pack(to, &payload, pad_cfg, None).map_err(|e| e.code)?;
+    let pack = qsp_pack(to, &payload, pad_cfg, None, SendOrigination::Control)
+        .map_err(|e| e.code)?;
     qsp_session_store_with_trigger(to, &pack.next_state, &pack.trigger)
         .map_err(|_| "qsp_session_store_failed")?;
     for pre in pack.pre_envelopes.iter() {
@@ -1312,7 +1315,8 @@ fn send_file_completion_ack(
     // Route token first, pack, COMMIT fail-closed, only then push. Both receipt kinds move
     // together, because a barrier covering one of two sibling paths is not a barrier.
     let route_token = relay_peer_route_token(to)?;
-    let pack = qsp_pack(to, &payload, pad_cfg, None).map_err(|e| e.code)?;
+    let pack = qsp_pack(to, &payload, pad_cfg, None, SendOrigination::Control)
+        .map_err(|e| e.code)?;
     qsp_session_store_with_trigger(to, &pack.next_state, &pack.trigger)
         .map_err(|_| "qsp_session_store_failed")?;
     for pre in pack.pre_envelopes.iter() {
@@ -1512,6 +1516,7 @@ fn qsp_pack(
     plaintext: &[u8],
     pad_cfg: Option<MetaPadConfig>,
     meta_seed: Option<u64>,
+    origination: SendOrigination,
 ) -> Result<QspPackOutcome, QspPackError> {
     let st =
         qsp_session_for_channel(channel).map_err(|code| QspPackError { code, reason: None })?;
@@ -1542,6 +1547,7 @@ fn qsp_pack(
     if scka_on
         && !zero32(&st_cur.send.ck_ec)
         && !zero32(&st_cur.send.ck_pq)
+        && origination.may_originate()
         && qsp_scka_advertise_due(&scka, now)
     {
         let max_known = st_cur
@@ -1564,7 +1570,9 @@ fn qsp_pack(
                 scka_dirty = true;
                 pre_envelopes.push(qsp_wrap_standard_envelope(&c, out.wire, meta_seed)?);
                 st_cur = out.state;
-                trig.msgs_since_ratchet = trig.msgs_since_ratchet.saturating_add(1);
+                if origination.counts_toward_rotation() {
+                    trig.msgs_since_ratchet = trig.msgs_since_ratchet.saturating_add(1);
+                }
                 let id_s = adv_id.to_string();
                 emit_marker(
                     "qsp_scka_adv",
@@ -1579,16 +1587,46 @@ fn qsp_pack(
             }
         }
     }
-    let (wire, next_state, msg_n) = if qsp_should_ratchet(&st_cur, &trig, now) {
+    // ⚠ NA-0688 C2 (R1a as amended, ruling A6) — THE ESTABLISHMENT EXCEPTION.
+    //
+    // A control send never originates a ROTATION. But `qsp_should_ratchet` returns true
+    // unconditionally when the sending chain is unseeded, and that is not the cadence — it is
+    // chain ESTABLISHMENT, the thing `send_boundary` exists to do. A send that skips it has no
+    // chain to send on at all, and ENG-0086 finding 1 makes this the COMMON case for a
+    // receipt: "the recipient's automatic ack becomes their first send."
+    //
+    // Establishment is a NECESSITY, permitted to every send; rotation is an OPPORTUNITY,
+    // reserved to user sends. The two are distinguishable in the emitted marker —
+    // establishment reports `reason=first_send`, rotation reports `reply` or `fallback` — and
+    // the guards assert on exactly that distinction.
+    //
+    // ⚠ When rotation is DUE but forbidden, falling through leaves `trig` UNTOUCHED. That is
+    // the deferred-rotation semantics: the due-state survives byte-identical and the next
+    // USER send honours it. An ack that cleared the due-state without rotating would be worse
+    // than an ack that rotated, and it is guarded in both directions.
+    let chain_unseeded = zero32(&st_cur.send.ck_ec) || zero32(&st_cur.send.ck_pq);
+    let rotation_permitted = chain_unseeded || origination.may_originate();
+    let (wire, next_state, msg_n) = if qsp_should_ratchet(&st_cur, &trig, now) && rotation_permitted
+    {
         let out =
             send_boundary(&c, &c, &c, &c, st_cur.clone(), plaintext).map_err(|e| QspPackError {
                 code: "qsp_pack_failed",
                 reason: Some(e),
             })?;
-        let reason = if trig.pending_send_ratchet {
-            "reply"
-        } else if zero32(&st_cur.send.ck_ec) || zero32(&st_cur.send.ck_pq) {
+        // ⚠ NA-0688 C2: ESTABLISHMENT IS REPORTED FIRST, and the order matters.
+        //
+        // `pending_send_ratchet` used to win this label, so a boundary that ESTABLISHED an
+        // unseeded chain was reported as `reason=reply` whenever a reply also happened to be
+        // pending — which is the normal state of a recipient about to ack. The marker named
+        // the opportunity rather than the cause, and under passivation that is exactly the
+        // distinction the guards turn on: a control send may ESTABLISH but may never ROTATE.
+        // Measured: before this fix a first ack reported `reason=reply` while doing
+        // establishment, which would have made the ruled first-send guard unsatisfiable and
+        // left the marker saying something untrue.
+        let reason = if chain_unseeded {
             "first_send"
+        } else if trig.pending_send_ratchet {
+            "reply"
         } else {
             "fallback"
         };
@@ -1607,7 +1645,7 @@ fn qsp_pack(
             scka_dirty = true;
         }
         (out.wire, out.state, 0u32)
-    } else if scka_on && qsp_scka_reseed_due(&scka, now) {
+    } else if scka_on && origination.may_originate() && qsp_scka_reseed_due(&scka, now) {
         // NA-0624: PQ reseed (DOC-CAN-003 §8.5.3) — encapsulate to the peer's advertised key and
         // originate the FLAG_PQ_CTXT boundary via the FROZEN Stage-2a sender. The consumed peer
         // advertisement is persisted fail-closed BEFORE the reseed wire exists (re-targeting a
@@ -1641,7 +1679,9 @@ fn qsp_pack(
                     &[("dir", "send"), ("target_id", target_s.as_str())],
                 );
                 let n = st_cur.send.ns;
-                trig.msgs_since_ratchet = trig.msgs_since_ratchet.saturating_add(1);
+                if origination.counts_toward_rotation() {
+                    trig.msgs_since_ratchet = trig.msgs_since_ratchet.saturating_add(1);
+                }
                 (out.wire, out.state, n)
             }
             Err(_) => {
@@ -1663,7 +1703,9 @@ fn qsp_pack(
                 )?;
                 let mut ns = st_cur.clone();
                 ns.send = out.state;
-                trig.msgs_since_ratchet = trig.msgs_since_ratchet.saturating_add(1);
+                if origination.counts_toward_rotation() {
+                    trig.msgs_since_ratchet = trig.msgs_since_ratchet.saturating_add(1);
+                }
                 (out.wire, ns, out.n)
             }
         }
@@ -1676,7 +1718,13 @@ fn qsp_pack(
         })?;
         let mut ns = st_cur.clone();
         ns.send = out.state;
-        trig.msgs_since_ratchet = trig.msgs_since_ratchet.saturating_add(1);
+        // ⚠ RULING A. Without this gate four received messages produce four acks,
+        // `msgs_since_ratchet` reaches QSP_DH_FALLBACK_N, and the ratchet rotates on machine
+        // traffic in a conversation where the human replied to nothing. Suppressing
+        // origination alone does NOT close that: the counter is a second, quieter channel.
+        if origination.counts_toward_rotation() {
+            trig.msgs_since_ratchet = trig.msgs_since_ratchet.saturating_add(1);
+        }
         (out.wire, ns, out.n)
     };
     let mut env = Envelope {
@@ -2217,6 +2265,9 @@ struct RelaySendPayloadArgs<'a> {
     meta_seed: Option<u64>,
     receipt: Option<ReceiptKind>,
     routing_override: Option<SendRoutingTarget>,
+    /// ⚠ NA-0688 C2: this path carries BOTH user messages and the attachment-completion
+    /// receipt, so the caller must say which it is. There is deliberately no default.
+    origination: SendOrigination,
 }
 
 pub fn util_receipt_apply(

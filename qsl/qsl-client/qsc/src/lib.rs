@@ -60,6 +60,27 @@ const RETRY_BASE_MS: u64 = 20;
 const RETRY_MAX_MS: u64 = 200;
 const RETRY_JITTER_MS: u64 = 10;
 pub const MAX_TIMEOUT_MS: u64 = 2000;
+// ⚠ NA-0688 / D622 (R2a THIRD AMENDMENT) — WHAT THESE TWO ACTUALLY DO, MEASURED.
+//
+// Neither of them defers anything in time, and the prose that said otherwise has been
+// corrected rather than left standing:
+//
+//   RECEIPT_BATCH_WINDOW_MS_DEFAULT is INERT at runtime. It is read at exactly two sites,
+//   and BOTH only echo it into a diagnostic marker. No code waits on it, sleeps on it, or
+//   schedules against it. It survives as a configurable value, not as a delay.
+//
+//   RECEIPT_JITTER_MS_DEFAULT is an ORDERING knob, not a delay. `flush_batched_receipts`
+//   uses it solely as a stable-sort key bias, so it permutes the order receipts are flushed
+//   in and changes nothing about WHEN.
+//
+// The real cadence is therefore: receipts are QUEUED IN MEMORY during a receive-pull and
+// COALESCED INTO THE END-OF-PULL FLUSH — one batch per pull, ordered by the jitter bias.
+// There is no wall-clock deferral in v1. That property is pinned by
+// `na0688_eng0095_ack_nonce_barrier::receipt_sends_are_coalesced_into_the_end_of_pull_flush`.
+//
+// ⚠ ANY honest-limit wording (R2d) must be written against THIS mechanism and must never
+// claim a timing window that does not exist. Removing the inert constant is a later
+// cleanup, deliberately out of scope for the lane that measured it.
 const RECEIPT_BATCH_WINDOW_MS_DEFAULT: u64 = 250;
 const RECEIPT_JITTER_MS_DEFAULT: u64 = 0;
 const RECEIPT_BATCH_WINDOW_MS_MAX: u64 = 60_000;
@@ -1244,14 +1265,33 @@ fn send_delivered_receipt_ack(relay: &str, to: &str, msg_id: &str) -> Result<(),
         profile: Some(EnvelopeProfile::Standard),
         label: Some("small"),
     });
-    let pack = qsp_pack(to, &payload, pad_cfg, None).map_err(|e| e.code)?;
+    // ⚠ ENG-0095 — THE ORDER OF THE NEXT FOUR STATEMENTS IS A CRYPTO INVARIANT.
+    //
+    // This used to pack, push, and only THEN commit. A push failure therefore abandoned a
+    // PACKED receipt whose ratchet advance was never durable, and the next send on the chain
+    // was handed the same message key back -- two plaintexts under one AEAD key if the
+    // abandoned ciphertext reached the relay (push sent, response lost: the common path).
+    // The failure is SOFT, so nothing reported it and `flush_batched_receipts` carried on.
+    //
+    // MEASURED, not argued: `na0688_eng0095_ack_nonce_barrier` was RED on the old order,
+    // both arms of a single-variable experiment landing on `msg_idx=0`.
+    //
+    // The rule `msgqueue::retire_packed` enforces on the queue path, now enforced here:
+    // nothing abandons a packed message without first committing its ratchet advance.
+    //   1. route token FIRST -- fallible, and must not sit between pack and commit;
+    //   2. pack;
+    //   3. COMMIT, fail-closed -- a failed commit attempts NO push;
+    //   4. only then push.
+    // A push failure now BURNS the index: same semantics as the user send path, absorbed by
+    // the recipient's skipped-key machinery, and self-healing once lease is the default (C4).
     let route_token = relay_peer_route_token(to)?;
+    let pack = qsp_pack(to, &payload, pad_cfg, None).map_err(|e| e.code)?;
+    qsp_session_store_with_trigger(to, &pack.next_state, &pack.trigger)
+        .map_err(|_| "qsp_session_store_failed")?;
     for pre in pack.pre_envelopes.iter() {
         transport::relay_inbox_push(relay, route_token.as_str(), pre)?;
     }
     transport::relay_inbox_push(relay, route_token.as_str(), &pack.envelope)?;
-    qsp_session_store_with_trigger(to, &pack.next_state, &pack.trigger)
-        .map_err(|_| "qsp_session_store_failed")?;
     Ok(())
 }
 
@@ -1267,14 +1307,17 @@ fn send_file_completion_ack(
         profile: Some(EnvelopeProfile::Standard),
         label: Some("small"),
     });
-    let pack = qsp_pack(to, &payload, pad_cfg, None).map_err(|e| e.code)?;
+    // ⚠ ENG-0095: the same barrier and the same reasoning as `send_delivered_receipt_ack`.
+    // Route token first, pack, COMMIT fail-closed, only then push. Both receipt kinds move
+    // together, because a barrier covering one of two sibling paths is not a barrier.
     let route_token = relay_peer_route_token(to)?;
+    let pack = qsp_pack(to, &payload, pad_cfg, None).map_err(|e| e.code)?;
+    qsp_session_store_with_trigger(to, &pack.next_state, &pack.trigger)
+        .map_err(|_| "qsp_session_store_failed")?;
     for pre in pack.pre_envelopes.iter() {
         transport::relay_inbox_push(relay, route_token.as_str(), pre)?;
     }
     transport::relay_inbox_push(relay, route_token.as_str(), &pack.envelope)?;
-    qsp_session_store_with_trigger(to, &pack.next_state, &pack.trigger)
-        .map_err(|_| "qsp_session_store_failed")?;
     Ok(())
 }
 

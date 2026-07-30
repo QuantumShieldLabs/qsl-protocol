@@ -36,7 +36,6 @@ use crate::store::{
 use std::fs;
 use std::fs::File;
 use std::io::Read;
-use std::time::{SystemTime, UNIX_EPOCH};
 use zeroize::Zeroize;
 
 /// Outcome of one attempt through the guarded unlock path. Retry-after and attempt
@@ -110,10 +109,8 @@ pub fn unlock_delay_schedule_s(failed_unlocks: u32) -> u64 {
 }
 
 fn now_unix_s() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0)
+    // NA-0688 C1 (R4a): delegates to the ONE clock. See `crate::clock`.
+    crate::clock::now_unix_s()
 }
 
 /// Remaining wait before the next attempt is allowed. A clock reading EARLIER than

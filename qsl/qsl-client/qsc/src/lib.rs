@@ -105,6 +105,7 @@ const QSC_LEGACY_IN_MESSAGE_STAGE_ENV: &str = "QSC_LEGACY_IN_MESSAGE_STAGE";
 // binding fuzz helper exports live behind qsc_binding_fuzz_helper only.
 pub mod adversarial;
 pub mod attachments;
+pub mod clock;
 pub mod cmd;
 pub mod contacts;
 pub mod dedup;
@@ -1403,10 +1404,14 @@ fn map_qsp_pack_reason(err: &RefimplError) -> &'static str {
 
 /// NA-0622 (ENG-0012 Stage 1b-ii): wall-clock seconds for the bounded DH-ratchet time fallback.
 fn qsp_now_unix_secs() -> u64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0)
+    // NA-0688 C1 (R4a): delegates to the ONE clock. See `crate::clock`.
+    //
+    // ⚠ This is the sixth and last of the private clocks C1 consolidated, and the only one
+    // that feeds a CRYPTO cadence rather than a policy deadline: it drives
+    // `QSP_DH_FALLBACK_T_SECS` and `QSP_PQ_RESEED_T_SECS`. Pinning the clock therefore makes
+    // the ratchet's time-fallback deterministic in a test, which is what C2's
+    // deferred-rotation guards will need.
+    crate::clock::now_unix_s()
 }
 
 /// NA-0622 (ENG-0012 Stage 1b-ii): decide whether this send performs a classical DH ratchet.

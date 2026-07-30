@@ -425,10 +425,8 @@ fn decrypt_record(
 /// The clock is a PARAMETER on every `_at` entry point (the NA-0681 §2k seam). Tests force
 /// backoff and stuck-threshold behaviour by passing a value, never by sleeping.
 pub(crate) fn now_unix_s() -> u64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0)
+    // NA-0688 C1 (R4a): delegates to the ONE clock. See `crate::clock`.
+    crate::clock::now_unix_s()
 }
 
 // ---------------------------------------------------------------------------

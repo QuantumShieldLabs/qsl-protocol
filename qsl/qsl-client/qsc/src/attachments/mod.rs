@@ -472,10 +472,8 @@ struct AttachmentServiceErrorBody {
 }
 
 fn attachment_now_unix_s() -> u64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs()
+    // NA-0688 C1 (R4a): delegates to the ONE clock. See `crate::clock`.
+    crate::clock::now_unix_s()
 }
 
 fn attachment_service_reason(

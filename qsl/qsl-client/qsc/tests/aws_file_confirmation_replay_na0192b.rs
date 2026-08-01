@@ -221,26 +221,46 @@ fn receive_confirmation(
     from: &str,
     out_dir: &Path,
 ) -> std::process::Output {
+    receive_confirmation_mode(cfg, relay, mailbox, from, out_dir, None)
+}
+
+/// NA-0688 C4 (D622): the same receive with an EXPLICIT `--ack-mode`.
+///
+/// ⚠ `None` means "pass no flag", which after C4 is the LEASE default — not legacy. A test that
+/// needs the legacy delete-on-pull contract must now ask for it by name.
+fn receive_confirmation_mode(
+    cfg: &Path,
+    relay: &str,
+    mailbox: &str,
+    from: &str,
+    out_dir: &Path,
+    ack_mode: Option<&str>,
+) -> std::process::Output {
+    let mut args = vec![
+        "receive",
+        "--transport",
+        "relay",
+        "--relay",
+        relay,
+        "--mailbox",
+        mailbox,
+        "--from",
+        from,
+        "--max",
+        "1",
+        "--max-file-size",
+        "2000000",
+        "--max-file-chunks",
+        "80",
+        "--out",
+        out_dir.to_str().unwrap(),
+    ];
+    if let Some(mode) = ack_mode {
+        args.push("--ack-mode");
+        args.push(mode);
+    }
     qsc_base(cfg)
-        .args([
-            "receive",
-            "--transport",
-            "relay",
-            "--relay",
-            relay,
-            "--mailbox",
-            mailbox,
-            "--from",
-            from,
-            "--max",
-            "1",
-            "--max-file-size",
-            "2000000",
-            "--max-file-chunks",
-            "80",
-            "--out",
-            out_dir.to_str().unwrap(),
-        ])
+        .args(&args)
         .output()
         .expect("receive confirmation")
 }
@@ -443,12 +463,21 @@ fn duplicate_confirmation_still_rejects_without_state_mutation() {
     server.enqueue_raw(ROUTE_TOKEN_BOB, ack_frames[0].clone());
     server.enqueue_raw(ROUTE_TOKEN_BOB, ack_frames[0].clone());
 
-    let first = receive_confirmation(
+    // ⚠ NA-0688 C4 (D622): both receives ask for LEGACY EXPLICITLY. Every assertion below is
+    // unchanged; only the trigger moved. This test pins the legacy delete-on-pull contract, in
+    // which a replay reject HARD-EXITS non-zero. Under C4's lease default the NA-0644 backstop
+    // acks the unrecoverable envelope loudly and exits 0, so the assertion on `second` is no
+    // longer true on the default path — a real behaviour change, not a broken test. The legacy
+    // contract still exists and is still reachable, so the guard is re-aimed, not deleted.
+    // ⚠ The LEASE side of this mechanism is pinned once, in NA_0644's
+    // `commit_before_write_seam_acked_loudly_no_poison_loop`, and deliberately not duplicated here.
+    let first = receive_confirmation_mode(
         &bob_cfg,
         server.base_url(),
         ROUTE_TOKEN_BOB,
         "bob",
         &bob_out,
+        Some("legacy"),
     );
     let first_text = output_text(&first);
     assert!(first.status.success(), "{}", first_text);
@@ -466,12 +495,13 @@ fn duplicate_confirmation_still_rejects_without_state_mutation() {
     let before_text = output_text(&before);
     assert!(before.status.success(), "{}", before_text);
 
-    let second = receive_confirmation(
+    let second = receive_confirmation_mode(
         &bob_cfg,
         server.base_url(),
         ROUTE_TOKEN_BOB,
         "bob",
         &bob_out,
+        Some("legacy"),
     );
     let second_text = output_text(&second);
     assert!(!second.status.success(), "{}", second_text);

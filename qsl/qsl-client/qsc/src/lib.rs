@@ -52,6 +52,12 @@ const CTRL_VERSION: u8 = 2;
 const SEND_STATE_NAME: &str = "send.state";
 const QSE_ENV_VERSION_V1: u16 = 0x0100;
 const POLICY_KEY: &str = "policy_profile";
+// NA-0688 C4 (D622 R7): the per-install acknowledged-pull preference, in the CONFIG FILE rather
+// than the vault. It is not a secret, and a config-file preference cannot silently fail to apply
+// when the vault happens to be locked -- which is the whole reason R7 chose this store.
+// ⚠ Deliberately NOT named `tui.*`: that namespace belongs to a subsystem that was retired and
+// stripped (NA-0645), and four of its keys are dead reads with no writer at all.
+pub(crate) const ACK_MODE_KEY: &str = "ack_mode";
 const STORE_META_TEMPLATE: &str = "store_version=1\nvmk_status=unset\nkeyslots=0\n";
 pub const MAX_QUEUE_LEN: usize = 64;
 pub const MAX_HISTORY_LEN: usize = 128;
@@ -136,7 +142,8 @@ use contacts::*;
 use fs_store::{
     check_parent_safe, check_symlink_safe, config_dir, enforce_file_perms, enforce_safe_parents,
     ensure_dir_secure, ensure_store_layout, fsync_dir_best_effort, lock_store_exclusive,
-    lock_store_shared, normalize_profile, probe_dir_writable, read_policy_profile, write_atomic, write_config_atomic,
+    lock_store_shared, normalize_ack_mode, normalize_profile, probe_dir_writable, read_ack_mode,
+    read_policy_profile, write_atomic, write_config_key,
 };
 use handshake::{
     hs_kem_keypair, hs_sig_keypair,
@@ -383,13 +390,23 @@ fn env_bool(key: &str) -> bool {
     )
 }
 
+/// NA-0688 C4 (D622 R7): `config set` now accepts `ack-mode` alongside `policy-profile`.
+///
+/// ⚠ The CLI spelling is hyphenated (`ack-mode`) and the on-disk spelling is underscored
+/// (`ack_mode`), which is not an inconsistency but the existing convention: `policy-profile` is
+/// stored as `policy_profile` and reported in markers as `policy_profile`. The new key follows it
+/// rather than inventing a second style.
 pub fn config_set(key: &str, value: &str) -> CliResult {
-    if key != "policy-profile" {
-        return Err(cli_err(ErrorCode::ParseFailed));
-    }
-    let profile = match normalize_profile(value) {
-        Ok(v) => v,
-        Err(e) => return Err(cli_err(e)),
+    let (store_key, normalized) = match key {
+        "policy-profile" => match normalize_profile(value) {
+            Ok(v) => (POLICY_KEY, v),
+            Err(e) => return Err(cli_err(e)),
+        },
+        "ack-mode" => match normalize_ack_mode(value) {
+            Ok(v) => (ACK_MODE_KEY, v),
+            Err(e) => return Err(cli_err(e)),
+        },
+        _ => return Err(cli_err(ErrorCode::ParseFailed)),
     };
 
     let (dir, source) = match config_dir() {
@@ -405,25 +422,24 @@ pub fn config_set(key: &str, value: &str) -> CliResult {
     if let Err(e) = ensure_store_layout(&dir, source) {
         return Err(cli_err(e));
     }
-    if let Err(e) = write_config_atomic(&file, &profile, source) {
+    // ⚠ Read-modify-write: setting one key must not delete the other.
+    if let Err(e) = write_config_key(&file, store_key, &normalized, source) {
         return Err(cli_err(e));
     }
 
     print_marker(
         "config_set",
-        &[
-            ("key", "policy_profile"),
-            ("value", &profile),
-            ("ok", "true"),
-        ],
+        &[("key", store_key), ("value", &normalized), ("ok", "true")],
     );
     Ok(())
 }
 
 pub fn config_get(key: &str) -> CliResult {
-    if key != "policy-profile" {
-        return Err(cli_err(ErrorCode::ParseFailed));
-    }
+    let store_key = match key {
+        "policy-profile" => POLICY_KEY,
+        "ack-mode" => ACK_MODE_KEY,
+        _ => return Err(cli_err(ErrorCode::ParseFailed)),
+    };
     let (dir, source) = match config_dir() {
         Ok(v) => v,
         Err(e) => return Err(cli_err(e)),
@@ -444,7 +460,12 @@ pub fn config_get(key: &str) -> CliResult {
         }
     }
 
-    let value = match read_policy_profile(&file) {
+    let read = if store_key == ACK_MODE_KEY {
+        read_ack_mode(&file)
+    } else {
+        read_policy_profile(&file)
+    };
+    let value = match read {
         Ok(Some(v)) => v,
         Ok(None) => "unset".to_string(),
         Err(e) => return Err(cli_err(e)),
@@ -452,7 +473,7 @@ pub fn config_get(key: &str) -> CliResult {
 
     print_marker(
         "config_get",
-        &[("key", "policy_profile"), ("value", &value), ("ok", "true")],
+        &[("key", store_key), ("value", &value), ("ok", "true")],
     );
     Ok(())
 }
@@ -877,6 +898,52 @@ fn account_secret_trimmed(key: &str) -> Option<String> {
         .flatten()
         .map(|v| v.trim().to_string())
         .filter(|v| !v.is_empty())
+}
+
+/// THE ACK-MODE RULE, IN ONE PLACE — NA-0688 C4 (D622). **Every production pull resolves its
+/// `AckMode` here**, whether it came from `--ack-mode` or from no flag at all.
+///
+/// ⚠ **THE DEFAULT IS NOW `Lease`, AND THAT IS THE POINT OF C4.** Under the previous `Legacy`
+/// default the relay DELETES ON PULL, so anything a pull collected but could not process was
+/// destroyed with no witness and no way back — while the command reported success. Under
+/// `Lease` the relay holds the item until it is acked after a durable persist, so an item that
+/// was pulled collaterally is redelivered rather than lost.
+///
+/// ⚠ **This mitigates the TRIGGER, it does not fix the underlying defect.** The defect is that
+/// a pull path can collect an item it will not process; the general remedy is
+/// quarantine-instead-of-drop, which is a separate owed lane. C4 only removes the destruction
+/// that made the defect unrecoverable.
+///
+/// | input | result | why |
+/// |---|---|---|
+/// | `Some(mode)` | that mode, verbatim | an explicit `--ack-mode legacy` is the escape hatch and beats everything |
+/// | `None` + `ack_mode` set in `config.txt` | the stored mode | the per-install choice, for paths that take no flag |
+/// | `None` + nothing stored | `Lease` | the new default |
+///
+/// ⚠ **THE PREFERENCE LIVES IN THE CONFIG FILE, NOT THE VAULT (D622 R7).** An ack mode is not a
+/// secret, so the vault buys nothing — and it would cost something real: a vault-backed preference
+/// is unreadable while the vault is locked, so the user's persistent choice would silently fail to
+/// apply on some invocations and not others, with no witness. That is the exact silent-divergence
+/// class this lane exists to remove, so the store that cannot exhibit it was chosen. Vault keys
+/// remain the pattern for actual secrets (relay tokens, CA paths).
+///
+/// An unreadable or malformed config falls back to the default rather than failing the command:
+/// resolving a transport preference must not be able to break an unrelated `receive`.
+fn resolve_ack_mode(explicit: Option<AckMode>) -> AckMode {
+    if let Some(mode) = explicit {
+        return mode;
+    }
+    stored_ack_mode().unwrap_or(AckMode::Lease)
+}
+
+fn stored_ack_mode() -> Option<AckMode> {
+    let (dir, _source) = config_dir().ok()?;
+    let raw = read_ack_mode(&dir.join(CONFIG_FILE_NAME)).ok()??;
+    match raw.as_str() {
+        "legacy" => Some(AckMode::Legacy),
+        "lease" => Some(AckMode::Lease),
+        _ => None,
+    }
 }
 
 pub fn load_receipt_policy_from_account() -> ReceiptPolicy {

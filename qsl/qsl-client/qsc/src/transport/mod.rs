@@ -240,8 +240,13 @@ pub fn receive_execute(args: ReceiveArgs) -> CliResult {
             let legacy_receive_mode =
                 resolve_legacy_receive_mode(legacy_receive_mode, attachment_service.as_deref())
                     .map_err(|code| CliError::code(code))?;
-            // NA-0644 (D580): the default is LEGACY delete-on-pull; lease is explicit opt-in.
-            let ack_mode = ack_mode.unwrap_or(AckMode::Legacy);
+            // NA-0688 C4 (D622) SITE 1 of 2. ⚠ THIS LINE'S DEFAULT WAS INVERTED, not tidied.
+            // It read `ack_mode.unwrap_or(AckMode::Legacy)` under NA-0644 (D580), where legacy
+            // delete-on-pull was the default and lease the explicit opt-in. Both default-carrying
+            // sites flipped together; a half-flip was refused, because the two of them are reached
+            // by different commands and leaving one behind means the same relay behaves one way
+            // under `receive` and the other under `invite`/`handshake`.
+            let ack_mode = crate::resolve_ack_mode(ack_mode);
             if let Err(code) = normalize_relay_endpoint(relay.as_str()) {
                 return Err(CliError::code(code));
             }
@@ -1031,7 +1036,19 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                         // between commit_unpack_state and write_atomic), so the plaintext
                         // is unrecoverable no matter how often the relay redelivers it.
                         // Ack it (loudly) to end the redelivery loop instead of hard-
-                        // exiting the whole batch. Legacy behavior is unchanged.
+                        // exiting the whole batch.
+                        //
+                        // ⚠ NA-0688 C4 (D622): THIS BRANCH IS NOW THE DEFAULT PATH. This
+                        // comment used to end "Legacy behavior is unchanged", which was true
+                        // only while Legacy was the default -- it meant "the ordinary user is
+                        // unaffected". C4 flipped the default to Lease, so that reassurance
+                        // became false and the comment would have argued against its own code.
+                        // What is actually true after C4: a replay reject no longer fails the
+                        // command. It is acked, reported by the ack_replay_unrecoverable
+                        // marker, and the run continues to a normal exit. The rejection and
+                        // the no-state-mutation guarantee are unchanged; only the EXIT CODE
+                        // moved, and only on the default path. `--ack-mode legacy` still
+                        // hard-exits, and that contract is pinned explicitly.
                         if ctx.ack_mode == AckMode::Lease {
                             emit_marker(
                                 "ack_replay_unrecoverable",
@@ -2634,12 +2651,34 @@ fn relay_inbox_push_inner(
     }
 }
 
+/// NA-0688 C4 (D622) SITE 2 of 2 — the flag-less pull.
+///
+/// ⚠ **THIS ONE HARDCODED `AckMode::Legacy` AND NOW RESOLVES LIKE EVERY OTHER PULL.** It takes no
+/// `AckMode` parameter because none of its callers has a flag to pass, which is exactly why the
+/// hardcode was dangerous: it was unreachable by `--ack-mode` and so could not be escaped.
+///
+/// ⚠ **THREE PRODUCTION COMMANDS MOVE TOGETHER HERE, and that is intended.** Ratified membership:
+///   1. `invite accept`  — `invite_accept_at`, pulls the invite's OWN mailbox (`invite_id_wire`), `--max 1`
+///   2. `invite finish`  — `invite_finish`, ⚠ pulls the user's **ORDINARY inbox**, `--max 1`
+///   3. `handshake poll` — `perform_handshake_poll*`, `--max 4`
+///
+/// ⚠ **`invite redeem` IS NOT AMONG THEM.** `invite_redeem_at` reaches the relay only through
+/// `invite_redeem_call` (`POST /v1/invite/redeem`) — a different route, no inbox pull, no
+/// `AckMode` — so it is untouched by this default. It is named here **because C4's own census
+/// wrongly listed it**, having identified the two `invite/mod.rs` call sites by line number
+/// instead of bracketing them to their enclosing functions. **A line number identifies a
+/// location, never a function.**
+///
+/// Only `handshake poll` had been named before the census. ⚠ **`invite finish` matters most**:
+/// it pulls the mailbox where a peer's ordinary messages sit, under a command the user is
+/// required to run — and it processes only `.next()`, so under the old delete-on-pull default
+/// anything else it collected was destroyed with no witness, at exit 0.
 pub(super) fn relay_inbox_pull(
     relay_base: &str,
     route_token: &str,
     max: usize,
 ) -> Result<Vec<InboxPullItem>, &'static str> {
-    relay_inbox_pull_mode(relay_base, route_token, max, AckMode::Legacy)
+    relay_inbox_pull_mode(relay_base, route_token, max, crate::resolve_ack_mode(None))
 }
 
 fn relay_inbox_pull_mode(

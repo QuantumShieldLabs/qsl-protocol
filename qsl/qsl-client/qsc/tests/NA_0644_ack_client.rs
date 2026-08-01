@@ -229,6 +229,19 @@ fn receive_args<'a>(relay_url: &'a str, out: &'a str, lease: bool) -> Vec<&'a st
     args
 }
 
+/// NA-0688 C4 (D622): the same receive, with legacy delete-on-pull requested EXPLICITLY.
+///
+/// ⚠ Before C4 the legacy path was reached by passing no flag at all. C4 flipped the default to
+/// lease, so "absent" now means lease and the legacy path has exactly one spelling left:
+/// `--ack-mode legacy`. This helper is that spelling, and it exists so the legacy contract keeps a
+/// guard instead of being retired by a default change.
+fn receive_args_explicit_legacy<'a>(relay_url: &'a str, out: &'a str) -> Vec<&'a str> {
+    let mut args = receive_args(relay_url, out, false);
+    args.push("--ack-mode");
+    args.push("legacy");
+    args
+}
+
 fn recv_file_count(out: &Path) -> usize {
     fs::read_dir(out)
         .expect("read out dir")
@@ -421,22 +434,34 @@ fn start_relay_proxy(upstream: &str, mode: ProxyMode) -> RelayProxy {
 }
 
 // ---------------------------------------------------------------------------
-// (a) Legacy default: without --ack-mode the pull URL is the exact pre-lane one
-//     (no ack param) and the ack route is never touched.
+// (a) EXPLICIT legacy: `--ack-mode legacy` gives the exact pre-lane pull URL
+//     (no ack param) and never touches the ack route.
+//
+// ⚠ NA-0688 C4 (D622) INVERTED THIS TEST'S TRIGGER, AND DELIBERATELY DID NOT DELETE IT.
+// It was `legacy_default_sends_no_ack_param_and_never_acks` and reached the legacy path by
+// passing NO flag, because under NA-0644 (D580) legacy was the default. C4 flipped the default
+// to lease, which made this test red — and a red guard is guilty until proven cosmetic. It was
+// not cosmetic: it is the only guard on the legacy wire contract, and that contract still
+// exists and is still reachable. So the ASSERTIONS are untouched and only the TRIGGER moved,
+// from "no flag" to `--ack-mode legacy`. Deleting it would have retired a live guarantee under
+// cover of a default change. Its counterpart below pins what "no flag" means now.
 // ---------------------------------------------------------------------------
 #[test]
-fn legacy_default_sends_no_ack_param_and_never_acks() {
+fn explicit_legacy_sends_no_ack_param_and_never_acks() {
     let _guard = test_guard();
     let server = common::start_qsl_server(2 * 1024 * 1024, 512, None);
     let proxy = start_relay_proxy(server.base_url(), ProxyMode::Record);
-    let base = safe_test_root("na0644_legacy_default");
+    let base = safe_test_root("na0644_legacy_explicit");
     let (alice_cfg, bob_cfg, bob_out) = setup_pair(&base);
 
-    let msg: &[u8] = b"na0644 legacy default message";
+    let msg: &[u8] = b"na0644 explicit legacy message";
     send_message(&alice_cfg, proxy.base_url(), &base, "msg.txt", msg);
 
     let out_s = bob_out.to_str().expect("out").to_string();
-    let text = run_ok(&bob_cfg, &receive_args(proxy.base_url(), out_s.as_str(), false));
+    let text = run_ok(
+        &bob_cfg,
+        &receive_args_explicit_legacy(proxy.base_url(), out_s.as_str()),
+    );
 
     let received = fs::read(bob_out.join("recv_1.bin")).expect("read received");
     assert_eq!(received, msg, "legacy plaintext differs");
@@ -454,6 +479,109 @@ fn legacy_default_sends_no_ack_param_and_never_acks() {
             && !text.contains("event=relay_ack")
             && !text.contains("event=recv_dup_skipped"),
         "lease-mode markers leaked into legacy output: {text}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// (a2) NA-0688 C4 (D622) — THE DEFAULT IS NOW LEASE. The counterpart to (a):
+//      with NO --ack-mode flag the pull URL carries ack=lease and the ack route
+//      IS exercised.
+//
+// ⚠ THIS IS THE PIN THAT MAKES THE FLIP A GUARANTEE RATHER THAN AN ACCIDENT. Without it the
+// default could silently regress to legacy and every remaining test in this file would still
+// pass, because they all request lease EXPLICITLY. It is red-capable in the obvious direction:
+// revert either flip site and it fails on the first assertion.
+// ---------------------------------------------------------------------------
+#[test]
+fn absent_ack_mode_now_defaults_to_lease_and_acks() {
+    let _guard = test_guard();
+    let server = common::start_qsl_server(2 * 1024 * 1024, 512, None);
+    let proxy = start_relay_proxy(server.base_url(), ProxyMode::Record);
+    let base = safe_test_root("na0644_default_lease");
+    let (alice_cfg, bob_cfg, bob_out) = setup_pair(&base);
+
+    let msg: &[u8] = b"na0688 c4 default lease message";
+    send_message(&alice_cfg, proxy.base_url(), &base, "msg.txt", msg);
+
+    let out_s = bob_out.to_str().expect("out").to_string();
+    // No --ack-mode: this is the whole point of the test.
+    let text = run_ok(&bob_cfg, &receive_args(proxy.base_url(), out_s.as_str(), false));
+
+    let received = fs::read(bob_out.join("recv_1.bin")).expect("read received");
+    assert_eq!(received, msg, "default-path plaintext differs");
+
+    let pulls = proxy.pull_uris();
+    assert!(!pulls.is_empty(), "no pull observed");
+    for uri in &pulls {
+        assert!(
+            uri.contains("ack=lease"),
+            "default pull must carry ack=lease after C4: {uri}"
+        );
+    }
+    assert!(
+        proxy.ack_posts() > 0,
+        "default receive must ack after a durable persist"
+    );
+    assert!(
+        text.contains("event=recv_ack_mode"),
+        "default receive must report its ack mode: {text}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// (a3) NA-0688 C4 (D622 R7/R11) — PRECEDENCE, measured on the wire:
+//      explicit --ack-mode  >  stored `ack_mode` in config.txt  >  the Lease default.
+//
+// ⚠ ALL THREE RUNGS ARE EXERCISED IN ONE TEST ON PURPOSE. Precedence is a claim about ORDER, and
+// an order cannot be pinned by three separate tests that each observe one rung — each would pass
+// against an implementation that ignored the other two. Red-capable at every rung: drop the config
+// lookup and rung 2 fails; let the stored value win over the flag and rung 3 fails; drop the
+// default and rung 1 fails.
+//
+// ⚠ The preference is read from the CONFIG FILE, not the vault, and it is written here through the
+// real `qsc config set` rather than by planting a file — so this also pins that the key a user can
+// actually type is the key the resolver actually reads. That link was the entire defect behind
+// STOP #037: a key that resolved correctly and that nothing on earth could set.
+// ---------------------------------------------------------------------------
+#[test]
+fn ack_mode_precedence_flag_then_config_then_default() {
+    let _guard = test_guard();
+    let server = common::start_qsl_server(2 * 1024 * 1024, 512, None);
+    let proxy = start_relay_proxy(server.base_url(), ProxyMode::Record);
+    let base = safe_test_root("na0688_c4_precedence");
+    let (alice_cfg, bob_cfg, bob_out) = setup_pair(&base);
+    let out_s = bob_out.to_str().expect("out").to_string();
+
+    // --- RUNG 1: nothing stored, no flag -> the Lease DEFAULT ------------------
+    send_message(&alice_cfg, proxy.base_url(), &base, "m1.txt", b"c4 rung1");
+    run_ok(&bob_cfg, &receive_args(proxy.base_url(), out_s.as_str(), false));
+    let after_default = proxy.pull_uris();
+    assert!(
+        after_default.iter().all(|u| u.contains("ack=lease")),
+        "rung 1: with nothing stored and no flag the default must be lease: {after_default:?}"
+    );
+
+    // --- RUNG 2: store legacy, still no flag -> the STORED value wins over the default
+    run_ok(&bob_cfg, &["config", "set", "ack-mode", "legacy"]);
+    let before = proxy.pull_uris().len();
+    send_message(&alice_cfg, proxy.base_url(), &base, "m2.txt", b"c4 rung2");
+    run_ok(&bob_cfg, &receive_args(proxy.base_url(), out_s.as_str(), false));
+    let rung2: Vec<String> = proxy.pull_uris().into_iter().skip(before).collect();
+    assert!(!rung2.is_empty(), "rung 2 produced no pull");
+    assert!(
+        rung2.iter().all(|u| !u.contains("ack=")),
+        "rung 2: a stored ack_mode=legacy must beat the lease default: {rung2:?}"
+    );
+
+    // --- RUNG 3: stored legacy, but --ack-mode lease -> the FLAG wins ----------
+    let before = proxy.pull_uris().len();
+    send_message(&alice_cfg, proxy.base_url(), &base, "m3.txt", b"c4 rung3");
+    run_ok(&bob_cfg, &receive_args(proxy.base_url(), out_s.as_str(), true));
+    let rung3: Vec<String> = proxy.pull_uris().into_iter().skip(before).collect();
+    assert!(!rung3.is_empty(), "rung 3 produced no pull");
+    assert!(
+        rung3.iter().all(|u| u.contains("ack=lease")),
+        "rung 3: an explicit --ack-mode must beat the stored value: {rung3:?}"
     );
 }
 

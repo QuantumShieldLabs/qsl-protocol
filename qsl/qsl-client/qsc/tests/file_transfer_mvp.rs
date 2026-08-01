@@ -848,6 +848,17 @@ fn file_confirm_replay_rejected_no_mutation() {
             "1",
             "--out",
             alice_out.to_str().unwrap(),
+            // ⚠ NA-0688 C4 (D622): LEGACY REQUESTED EXPLICITLY, on both of Alice's receives.
+            // Every assertion in this test is unchanged; only the trigger moved. The test pins
+            // the legacy delete-on-pull contract, in which a replay reject HARD-EXITS non-zero.
+            // Under C4's lease default the NA-0644 backstop acks the unrecoverable envelope
+            // loudly and exits 0, so the assertion on `second` below is no longer true on the
+            // default path — a real behaviour change, not a broken test. The legacy contract
+            // still exists and is still reachable, so this guard is re-aimed, not deleted.
+            // ⚠ The LEASE side is pinned once, in NA_0644's
+            // `commit_before_write_seam_acked_loudly_no_poison_loop`, not duplicated here.
+            "--ack-mode",
+            "legacy",
         ])
         .output()
         .expect("alice receive first");
@@ -881,6 +892,9 @@ fn file_confirm_replay_rejected_no_mutation() {
             "1",
             "--out",
             alice_out.to_str().unwrap(),
+            // Legacy, for the same reason as the first receive above.
+            "--ack-mode",
+            "legacy",
         ])
         .output()
         .expect("alice receive replay");

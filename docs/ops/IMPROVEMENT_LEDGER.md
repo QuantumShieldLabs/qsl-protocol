@@ -2916,3 +2916,37 @@ population can adopt it without redesign. Left for a later ruled lane.
 - **Route:** the negative-control audit track (with ENG-0075/0077/0078).
 - ⚠ **NA-0625's decision text is UNTOUCHED**; this filing is the cross-reference, and D-1327 carries the pointer at closeout.
 - Cross-reference: NA-0625 / Operator Decision 2; D622 RULING 3 and R1e; ENG-0099; D622 STOP 022/023/024/025/030.
+
+### ENG-0101 — the `tui.*` vault namespace is a FOSSIL: four keys are read by nothing that can write them, and the prefix names a subsystem that was deleted — **NEW; filed 2026-08-01 by NA-0688 (D-1327; directive D622 C4, ruling R9)**
+- Severity: P3 (no v1 consumer — see the scope note below; the defect is latent, not active)
+- Status: open — filed 2026-08-01. **Both instances recorded deliberately**, so that fixing one cannot look like fixing the class.
+- **The measurement.** Every `tui.*` key, counted by reader (`secret_get`/`account_secret_trimmed`) and writer (`secret_set`) across the whole repository — not just `qsc`:
+
+  | key | reads | writes | status |
+  |---|---|---|---|
+  | `tui.receipt.mode` | 1 | **0** | ⚠ dead read |
+  | `tui.receipt.batch_window_ms` | 1 | **0** | ⚠ dead read |
+  | `tui.receipt.jitter_ms` | 1 | **0** | ⚠ dead read |
+  | `tui.file_confirm.mode` | 1 | **0** | ⚠ dead read |
+  | `tui.trust.mode` | 1 | 1 | live (`contacts/mod.rs`) |
+  | `tui.relay.token` / `.token_file` / `.inbox_token` / `.ca_file` | 1 each | 1–2 each | live |
+
+  ⚠ **The split is exact: every LIVE key has a dedicated writer; the four dead ones are precisely the receipt-policy group.** There is no generic setter — `qsc config set` was allowlisted to `policy-profile` alone — no `settings` verb, and **no exported `pub fn`** a GUI could call. Confirmed by a repo-wide scan including `qsl-desktop`.
+- **Consequence.** `load_receipt_policy_from_account()` reads four keys that **nothing in the product can set**. The receipt policy is therefore not user-persistable: per-invocation flags (`--receipt`, `--emit-receipts`, `--receipt-mode`) all work, but a choice cannot be made to survive one command.
+- ⚠ **What this does NOT mean.** C3 (`cdd5b1eb`) did **not** create this: the keys and their reader are TUI-era and predate it. C3's actual claim — that **both halves consult one policy**, so disabling receipts stops the asking as well as the answering — is **true and pinned by tests**. The gap is persistence alone. **The honest-claims consequence is carried by D-1327 (R10): the coherence mechanism is real; a user-facing persistent switch does not exist in v1; no UI text or doc may imply that it does.**
+- ⚠ **The prefix is itself the fossil.** `tui.` names the terminal UI **retired and stripped in NA-0645** (~18.9k lines deleted). Any new key minted into that namespace carries a deleted subsystem's name into fresh code.
+- **How this was found, and the second instance.** NA-0688 C4 needed a per-install ack-mode preference and added `tui.ack.mode` **by following the nearest precedent — which turned out to be the only unwritable subset of the namespace.** The key resolved correctly and nothing could set it. D622 R7 moved it to the **config file** as plain `ack_mode`, on three grounds: an ack mode is not a secret; a config-file preference **cannot silently fail to apply when the vault is locked**, which a vault-backed one can; and the GUI's future settings surface wants an unlock-independent store. ⚠ **A vault-backed transport preference would have shipped exactly the silent-divergence class this lane exists to remove** — applying on some invocations and not others, with no witness.
+- **Scope note (D622 R9).** **v1 ships NO receipts toggle** (ruled in the Slice-4 session), so the receipt-persistence gap **has no v1 consumer** and this is not release-blocking. Recorded now so it cannot be rediscovered as a surprise.
+- **Migration vs removal is the future lane's call**, not this one's: whether the four dead keys gain writers, move to the config file beside `ack_mode`, or are deleted outright. Natural rider on the already-queued naming/consistency sweep.
+- **Route:** the naming/consistency sweep track.
+- ⚠ **Precedent set by C4, and the one thing to carry forward:** per-install **preferences** live in the config file; the vault remains the pattern for actual **secrets** (relay tokens, CA paths). `src/store/mod.rs` carries an inline warning at the old key's site so the next person to add a preference does not repeat the copy.
+- Cross-reference: D622 R7/R8/R9/R10/R11; D622 STOP 037; NA-0645 (TUI retirement); ENG-0083 (persistence homes); C3 `cdd5b1eb`.
+
+### ENG-0102 — `config.txt` had two data-integrity defects that only a second key could reach: a clobbering writer and a false-corruption reader — **NEW; filed 2026-08-01 by NA-0688 (D-1327; directive D622 C4, ruling R12), RESOLVED IN NA-0688/C4**
+- Severity: P2 (data integrity — one silently destroys a user setting, the other makes a valid store report as corrupt)
+- Status: **RESOLVED in NA-0688 C4.** Filed with its own number because **a defect fixed inside a large diff without one disappears from the searchable record.**
+- ⚠ **Latency note, preserved.** Both were present in the tree **before C4** and were **unreachable while `config.txt` held exactly one key**. C4 is what supplied a second key (`ack_mode`, per D622 R7), which is what made them reachable. Neither was named by D622, by STOP #037, or by R7 — implementing R7 literally would have *introduced* both.
+- **(i) The old writer CLOBBERED the file — silent, bidirectional data loss.** `write_config_atomic` emitted exactly one line, `policy_profile=<value>`, and rewrote the whole file. Correct while that was the only key; the moment there are two, **setting the profile deletes the user's ack-mode preference and vice versa**, with no error. Now a **read-modify-write** preserving existing key order. ⚠ **`write_config_atomic` was REMOVED, not kept as a wrapper** — its only job was to hide a single-key format that no longer exists, and as a wrapper it would still have been the clobbering path anyone reached for.
+- **(ii) `read_policy_profile` reported a valid file as CORRUPT.** It returned `Err(ParseFailed)` whenever the file lacked a `policy_profile=` line — and ⚠ **`doctor`'s `file_parseable` check calls it**. So `qsc config set ack-mode legacy` on a fresh install would have produced a config containing only `ack_mode=`, and **`qsc doctor` would then have reported the config store corrupt.** A user following the documented way to set the new preference would have broken their own diagnostics.
+- ⚠ **The fix does NOT weaken corruption detection, and that was checked specifically because the easy fix does.** Parsing moved to one shared `read_config_kv`, which **still errors on any malformed line**. What changed is only that a *well-formed* file not mentioning a given key is no longer "corrupt" — it is a file that does not set that key. `config_get` already printed `unset` for that case and `doctor` already counted it parseable, so both callers were **already written for the tolerant reading**; only the reader disagreed with them.
+- Cross-reference: D622 R7/R12; D622 STOP 038 §1a; ENG-0101 (the preference-store move that reached these).

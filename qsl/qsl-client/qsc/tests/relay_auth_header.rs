@@ -692,10 +692,28 @@ fn relay_auth_with_token_send_receive_ok_and_no_secret_leak() {
         "the receive must actually pull, or the rest of this is vacuous: {reqs:?}"
     );
     // THE PULL ITSELF stays the canonical, token-free path — no credential in the URL.
+    //
+    // ⚠ NA-0688 C4 — SHARPENED, NOT RELAXED, for the second time and for the same reason as C3
+    // above. This was `assert_eq!(target, "/v1/pull?max=1")`. C4 flipped the ack-mode default to
+    // lease, so the canonical path became `/v1/pull?max=1&ack=lease` and the equality broke —
+    // but equality was only ever the MECHANISM. The PROPERTY this test exists to defend, stated
+    // in its own comment, is that no credential rides in the URL. So the credential check is now
+    // made DIRECTLY against the token rather than inferred from an exact-match literal, which is
+    // strictly stronger: the old assertion would have passed a URL that embedded some OTHER
+    // secret, and would keep breaking on every future query parameter. The canonical prefix is
+    // still pinned, so this has not become a wildcard.
+    //
+    // ⚠ The ack-mode default itself is NOT pinned here on purpose — that belongs to NA_0644's
+    // `absent_ack_mode_now_defaults_to_lease_and_acks`, and duplicating it in an auth test would
+    // put a second, quieter home for a contract that must have exactly one.
     for (target, route) in &pulls {
-        assert_eq!(
-            target, "/v1/pull?max=1",
-            "receive must use the canonical token-free pull path: {reqs:?}"
+        assert!(
+            target.starts_with("/v1/pull?max=1"),
+            "receive must use the canonical pull path: {reqs:?}"
+        );
+        assert!(
+            !target.contains(ROUTE_TOKEN_BOB),
+            "the route token must never appear in the pull URL: {reqs:?}"
         );
         assert_eq!(
             route.as_deref(),

@@ -569,10 +569,16 @@ pub(crate) fn drop_entry(cfg_dir: &Path, entry_id: &str) -> Result<(), &'static 
     Err(QUARANTINE_NOT_FOUND)
 }
 
-/// Entry count, for `doctor`'s one-line rider.
-pub(crate) fn count(cfg_dir: &Path) -> usize {
-    scan(cfg_dir).len()
-}
+// NA-0689 D-1328 Ruling 10: `count()` was built here for a `doctor` one-line rider that did not
+// land, and it was dead code. REMOVED rather than given a caller, and never silenced with an
+// `#[allow]`. Two reasons, both measured:
+//
+//   1. The rider is NOT free. `doctor` emits ONE `print_marker` line, and `tests/cli.rs`
+//      (`doctor_check_only_no_dir`) pins that line with `predicate::eq` — an EXACT stdout equality.
+//      Adding a key means editing a pinned CLI contract in a file this lane otherwise does not
+//      touch. D623 §P4: a rider that grows is not a rider.
+//   2. It was redundant anyway. `quarantine_list` already derives and emits `count=N` from
+//      `list()`, so the count a user can ask for is not lost with this function.
 
 #[cfg(test)]
 mod tests {

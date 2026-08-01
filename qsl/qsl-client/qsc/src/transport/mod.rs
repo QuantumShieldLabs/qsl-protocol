@@ -884,7 +884,9 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                         }
                         if class == crate::adversarial::payload::ControlClass::DeliveredAck {
                             commit_unpack_state()?;
-                            // ⚠ See D2: `None` means the peer confirmation applied cleanly.
+                            // ⚠ See D2: `None` means the peer confirmation was APPLIED. It is set
+                            // by BOTH non-success arms below -- the reject AND the wrong-device
+                            // ignore -- so success here means `Confirmed` and nothing else.
                             let mut discard_reason: Option<&str> = None;
                             match apply_message_peer_confirmation(
                                 ctx.from,
@@ -895,6 +897,20 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                     let dev = channel_device_marker(channel.as_str());
                                     emit_cli_receipt_ignored_wrong_device(ctx.from, dev.as_str());
                                     emit_tui_receipt_ignored_wrong_device(ctx.from, dev.as_str());
+                                    // NA-0689 D-1328 RULING 9. ⚠ THIS LINE WAS MISSING WHILE THE
+                                    // IDENTICAL ARMS AT D2 AND D3 HAD IT, and the census that
+                                    // enumerated those two sub-arms did not enumerate this third
+                                    // one -- three lines above a needle it DID read. The class was
+                                    // identified and still under-enumerated, which is Ruling 6
+                                    // recurring after the rule that named it.
+                                    //
+                                    // It belongs to the destruction class by the census's own
+                                    // definition: `commit_unpack_state()?` above consumed the key
+                                    // BEFORE this outcome was known, nothing was applied, and the
+                                    // ack below would leave a marker as the only witness. It is
+                                    // NOT "already-processed" -- that requires a durable record
+                                    // proving prior application, and there is none.
+                                    discard_reason = Some("ignored_wrong_device");
                                 }
                                 Ok((ConfirmApplyOutcome::Confirmed, target)) => {
                                     let device = target

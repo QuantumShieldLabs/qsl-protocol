@@ -141,6 +141,14 @@ fn invalid_policy_profile_set_is_no_mutation() {
     assert!(!cfg.exists(), "config file must not be created");
 }
 
+/// ⚠ NA-0688 C3 (R1b): `receipt_mode=` reports **`batched`**, not `off`.
+///
+/// This is a DIAGNOSTIC-SURFACE pin, and the whole value of pinning the doctor line as an exact
+/// string is that a default flip cannot pass through it unnoticed — it went red on the flip
+/// exactly as designed. The assertion is NOT weakened to a substring or a "contains" to make it
+/// survive: it is still full-line equality, so the next default that moves will be caught the
+/// same way. Only the pinned value changed, and it changed to what a user running
+/// `qsc doctor --check-only` now actually sees.
 #[test]
 fn doctor_check_only_no_dir() {
     let base = safe_test_dir("doctor-nodir");
@@ -149,7 +157,7 @@ fn doctor_check_only_no_dir() {
     cmd.env("QSC_CONFIG_DIR", &dir)
         .args(["doctor", "--check-only"]);
     let expected = format!(
-        "QSC_MARK/1 event=doctor check_only=true ok=true checked_dir={} dir_writable_required=false dir_exists=false dir_writable=false file_parseable=true symlink_safe=true parent_safe=true receipt_mode=off file_confirm_mode=complete_only receipt_batch_window_ms=250 receipt_jitter_ms=0\n",
+        "QSC_MARK/1 event=doctor check_only=true ok=true checked_dir={} dir_writable_required=false dir_exists=false dir_writable=false file_parseable=true symlink_safe=true parent_safe=true receipt_mode=batched file_confirm_mode=complete_only receipt_batch_window_ms=250 receipt_jitter_ms=0\n",
         dir.display()
     );
     cmd.assert().success().stdout(predicate::eq(expected));

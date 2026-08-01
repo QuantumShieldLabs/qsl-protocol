@@ -147,10 +147,8 @@ pub const HANDSHAKE_ENVELOPE_VERSION_NEWER: &str = "handshake_envelope_version_n
 /// each of which has its own private copy of this function and its own frozen tests. That
 /// four-way consolidation is a named follow-up micro-lane (D616 §11), not this slice.
 pub fn now_unix_s() -> u64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0)
+    // NA-0688 C1 (R4a): delegates to the ONE clock. See `crate::clock`.
+    crate::clock::now_unix_s()
 }
 
 // ---------------------------------------------------------------------------

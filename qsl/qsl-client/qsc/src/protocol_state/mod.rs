@@ -220,6 +220,44 @@ fn qsp_session_store_key_get_or_create(peer: &str) -> Result<[u8; 32], ErrorCode
 pub(crate) const QSP_TRIGGER_MAGIC: &[u8; 4] = b"QTRG";
 pub(crate) const QSP_TRIGGER_LEN: usize = 13;
 /// Bounded fallback: force a DH ratchet after this many messages without a reply.
+/// NA-0688 / D622 C2 (R1a) — MAY THIS SEND ORIGINATE A RATCHET BOUNDARY?
+///
+/// The explicit answer to the question ENG-0086 said had to be ruled by design rather than
+/// implied by a default. A **user** send is a human act and is the thing the ratchet cadence
+/// is designed around; a **control** send (a delivery receipt, a file or attachment confirm)
+/// is machine traffic that happens to travel the same path, and it must not be able to move
+/// the ratchet.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum SendOrigination {
+    /// A human-originated message. May originate an SCKA advertisement, a DH boundary or a
+    /// PQ reseed, and counts toward the N/T rotation cadence.
+    User,
+    /// A control message. Originates NOTHING and counts toward NOTHING.
+    Control,
+}
+
+impl SendOrigination {
+    /// May this send ORIGINATE a boundary (advertisement, DH rotation, PQ reseed)?
+    ///
+    /// ⚠ This does NOT govern chain ESTABLISHMENT. A send whose chain is unseeded must
+    /// still seed it, control or not — that is a necessity, not a rotation opportunity, and
+    /// suppressing it would leave the sender with no chain to send on at all. See `qsp_pack`.
+    pub(crate) fn may_originate(self) -> bool {
+        matches!(self, SendOrigination::User)
+    }
+
+    /// Does this send count toward the N/T rotation cadence (`msgs_since_ratchet`)?
+    ///
+    /// ⚠ RULING A: control sends do NOT. Without this, four received messages produce four
+    /// acks, `msgs_since_ratchet` reaches QSP_DH_FALLBACK_N, and the ratchet rotates on
+    /// machine traffic in a conversation where the human replied to nothing — R1a's own
+    /// sentence ("only a human reply rotates the ratchet") would be false even with
+    /// origination suppressed, because the COUNTER is a second, quieter channel.
+    pub(crate) fn counts_toward_rotation(self) -> bool {
+        matches!(self, SendOrigination::User)
+    }
+}
+
 pub(crate) const QSP_DH_FALLBACK_N: u32 = 4;
 /// Bounded fallback: force a DH ratchet after this many seconds without a reply.
 pub(crate) const QSP_DH_FALLBACK_T_SECS: u64 = 900;

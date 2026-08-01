@@ -57,10 +57,8 @@ fn mailbox_store_key(route_token: &str) -> String {
 }
 
 fn seen_now_unix() -> u64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0)
+    // NA-0688 C1 (R4a): delegates to the ONE clock. See `crate::clock`.
+    crate::clock::now_unix_s()
 }
 
 impl RelaySeenIds {

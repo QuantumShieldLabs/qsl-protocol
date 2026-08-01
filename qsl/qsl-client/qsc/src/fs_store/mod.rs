@@ -1,5 +1,5 @@
 use crate::model::{ConfigSource, ErrorCode, LockGuard, LockMode};
-use crate::{LOCK_FILE_NAME, POLICY_KEY, STORE_META_NAME, STORE_META_TEMPLATE};
+use crate::{ACK_MODE_KEY, LOCK_FILE_NAME, POLICY_KEY, STORE_META_NAME, STORE_META_TEMPLATE};
 use std::env;
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
@@ -37,27 +37,78 @@ pub(crate) fn normalize_profile(value: &str) -> Result<String, ErrorCode> {
     }
 }
 
-pub(crate) fn read_policy_profile(path: &Path) -> Result<Option<String>, ErrorCode> {
-    if !path.exists() {
-        return Ok(None);
+pub(crate) fn normalize_ack_mode(value: &str) -> Result<String, ErrorCode> {
+    match value {
+        "legacy" => Ok("legacy".to_string()),
+        "lease" => Ok("lease".to_string()),
+        _ => Err(ErrorCode::ParseFailed),
     }
+}
+
+/// NA-0688 C4 (D622 R7): parse `config.txt` as an ordered `key=value` list.
+///
+/// ⚠ **THIS FILE BECAME MULTI-KEY IN C4, AND THAT IS WHY THIS FUNCTION EXISTS.** It previously held
+/// exactly one line, `policy_profile=…`, written by a writer that rewrote the whole file. R7 put
+/// per-install preferences here (they are not secrets, and unlike the vault this store cannot
+/// silently fail to apply when locked), so a second key had to coexist with the first.
+///
+/// ⚠ A MALFORMED LINE IS STILL AN ERROR. Corruption detection is not weakened by going multi-key:
+/// any non-empty line without `=` fails the parse, which is what `doctor`'s `file_parseable` check
+/// depends on. What changed is only that a *well-formed* file which happens not to mention a
+/// particular key is no longer "corrupt" — it is simply a file that does not set that key.
+fn read_config_kv(path: &Path) -> Result<Vec<(String, String)>, ErrorCode> {
     let mut f = File::open(path).map_err(|_| ErrorCode::IoReadFailed)?;
     let mut buf = String::new();
     f.read_to_string(&mut buf)
         .map_err(|_| ErrorCode::IoReadFailed)?;
+    let mut out = Vec::new();
     for line in buf.lines() {
         let line = line.trim();
         if line.is_empty() {
             continue;
         }
-        if let Some(rest) = line.strip_prefix("policy_profile=") {
-            return match normalize_profile(rest.trim()) {
+        let (k, v) = line.split_once('=').ok_or(ErrorCode::ParseFailed)?;
+        let k = k.trim();
+        if k.is_empty() {
+            return Err(ErrorCode::ParseFailed);
+        }
+        out.push((k.to_string(), v.trim().to_string()));
+    }
+    Ok(out)
+}
+
+/// ⚠ NA-0688 C4: `Ok(None)` now means "this file does not set the profile", where it previously
+/// meant `Err(ParseFailed)`. Both callers already handle `Ok(None)` — `config_get` prints "unset"
+/// and `doctor` counts it parseable — so a config that sets only `ack_mode` no longer reports the
+/// store as corrupt. **A genuinely malformed file still errors**, via `read_config_kv`.
+pub(crate) fn read_policy_profile(path: &Path) -> Result<Option<String>, ErrorCode> {
+    if !path.exists() {
+        return Ok(None);
+    }
+    for (k, v) in read_config_kv(path)? {
+        if k == POLICY_KEY {
+            return match normalize_profile(v.as_str()) {
                 Ok(v) => Ok(Some(v)),
                 Err(_) => Err(ErrorCode::ParseFailed),
             };
         }
     }
-    Err(ErrorCode::ParseFailed)
+    Ok(None)
+}
+
+pub(crate) fn read_ack_mode(path: &Path) -> Result<Option<String>, ErrorCode> {
+    if !path.exists() {
+        return Ok(None);
+    }
+    for (k, v) in read_config_kv(path)? {
+        if k == ACK_MODE_KEY {
+            return match normalize_ack_mode(v.as_str()) {
+                Ok(v) => Ok(Some(v)),
+                Err(_) => Err(ErrorCode::ParseFailed),
+            };
+        }
+    }
+    Ok(None)
 }
 
 pub(crate) fn ensure_dir_secure(dir: &Path, source: ConfigSource) -> Result<(), ErrorCode> {
@@ -72,12 +123,41 @@ pub(crate) fn ensure_dir_secure(dir: &Path, source: ConfigSource) -> Result<(), 
     Ok(())
 }
 
-pub(crate) fn write_config_atomic(
+/// NA-0688 C4 (D622 R7): set one key in `config.txt`, **preserving every other key**.
+///
+/// ⚠ This REPLACED `write_config_atomic`, which is gone rather than kept as a wrapper: its only
+/// purpose was to hide the single-key file format, and once the file is multi-key it hid nothing
+/// while still being able to clobber the other key.
+///
+/// ⚠ **THE OLD WRITER CLOBBERED THE WHOLE FILE.** It emitted a single `policy_profile=…` line, which
+/// was correct while that was the only key and becomes silent data loss the moment there are two:
+/// setting the profile would have deleted the user's ack-mode preference, and vice versa. That is
+/// why this is a read-modify-write rather than a second single-key writer.
+///
+/// The existing key order is preserved and a new key is appended, so the file stays diffable and a
+/// rewrite does not churn unrelated lines.
+pub(crate) fn write_config_key(
     path: &Path,
+    key: &str,
     value: &str,
     source: ConfigSource,
 ) -> Result<(), ErrorCode> {
-    let content = format!("{}={}\n", POLICY_KEY, value);
+    let mut entries = if path.exists() {
+        read_config_kv(path)?
+    } else {
+        Vec::new()
+    };
+    match entries.iter_mut().find(|(k, _)| k == key) {
+        Some(slot) => slot.1 = value.to_string(),
+        None => entries.push((key.to_string(), value.to_string())),
+    }
+    let mut content = String::new();
+    for (k, v) in &entries {
+        content.push_str(k);
+        content.push('=');
+        content.push_str(v);
+        content.push('\n');
+    }
     write_atomic(path, content.as_bytes(), source)
 }
 

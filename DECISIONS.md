@@ -35392,3 +35392,289 @@ operator's**; the ledger's live items now include ENG-0086 (the F6 ack flip, sti
 `tests/NA-0687_log_capture_sync_testplan.md`. **Stop-files:** `STOP_NA0687_001` (census +
 baseline), `STOP_NA0687_002` (the M6 red, with its 23:04Z append-only arithmetic correction),
 `STOP_NA0687_003` (pre-PR).
+
+## D-1327 — NA-0688: THE DELIVERY-RECEIPT / ACKNOWLEDGED-PULL LANE — and the lane where every structural claim that was reasoned rather than measured turned out wrong
+
+**Status:** Accepted 2026-08-01. **Lane:** NA-0688. **Directive:** `QSL-DIR-2026-07-30-622` (D622).
+**Implementation:** five commits on the lane series, base `9945b64e` (promotion PR #1683) —
+`a4db20fd` (C0), `c72d9187` (C1), `6f48f5d8` (C2), `cdd5b1eb` (C3), `f6d6fcba` (C4).
+**Result class:** `ACK_DEFAULT_AND_RECEIPT_FLIP_PASS`.
+**Final gate:** **559 passed / 0 failed / 2 ignored across 122 result sets, cargo exit 0** — three
+independent aggregations agreeing (summed result lines · individual outcome lines · distinct test
+names), the exit code read from its own status file and never piped, reconciling exactly against the
+**553** measured before the work (553 + 6 added = 559). **Clippy `-D warnings`: 28 against a base of
+28**, with the error *distribution* checked as well as the total, so a matching count could not hide
+a substitution of new errors for vanished ones.
+
+**Goals:** G2, G5.
+
+---
+
+### 1. WHAT SHIPPED
+
+**C0 — the delivery-receipt nonce barrier.** ENG-0095 (abandoning a PACKED message without
+committing the ratchet advance is nonce reuse — catastrophic under AEAD, and it hits on the *common*
+path where a push is sent and the ack is lost) was filed and fixed: commit-then-drop, fail-closed.
+
+**C1 — one injectable clock**, consolidating six private accessors.
+
+**C2 — passivation:** a control send originates no rotation, **and does not count toward the N/T
+cadence either** — the counter was a second, quieter channel that would have kept the coupling alive.
+
+**C3 — receipts default ON (both halves); A6 reversed; owed receipts held durably.** The sender half
+resolves through a **single function** consulted by all three `RelayMessageSender` construction
+sites, so a row queued by a default send carries the same semantics whether it drains via send, retry
+or discard.
+
+⚠ **A6 WAS REVERSED MID-LANE**, after measurement, and this is the substance of C3 rather than a
+detail of it. A6 had permitted a control send to establish its own chain, on the reasonable ground
+that a send with no chain has nothing to send on. Measured, that exception **broke sessions**: the
+only way to seed a send chain is a boundary that mints a fresh DH keypair and advances the shared
+root, so an establishing ack moved the recipient's key and a sender who had not yet pulled that ack
+computed their next boundary against a stale one. The result was a **permanent, bidirectional
+wedge** — the sender could not decrypt, the recipient could not decrypt the sender's acks either, the
+rejected message did not come back, and **pulling did not cure it, because the pull itself failed.**
+So a control send now originates **nothing at all, including establishment.**
+
+Refusing alone was not acceptable: measured, it **lost the first receipt of every conversation**,
+leaving the sender on SENT forever for everything sent before the peer's first reply. The difference
+between refusing and deferring is a **durable owed-receipt hold** — its own vault secret, per-peer
+cap **256** so one contact's flood cannot evict another's obligation, TTL **604800 s** taken from the
+`retention.ttl_secs` both deployed relays report (⚠ **measured, not chosen**, so an owed receipt
+cannot outlive the message it acknowledges), with a **witness marker on both expiry and eviction**,
+because a drop with no witness is the defect rather than the drop.
+
+**C4 — acknowledged-pull by default, on both sites at once.** Both default-carrying sites moved
+together; **the half-flip stayed refused**, because the two are reached by different commands and
+leaving one behind means the same relay behaves one way under `receive` and another under `invite`
+and `handshake`. ⚠ **SITE 2 mattered disproportionately to its size**: it was a hardcode inside the
+flag-less pull helper, **unreachable by `--ack-mode`**, so the delete-on-pull behaviour it selected
+was **inescapable**.
+
+### 2. ⚠ THE CALLER MEMBERSHIP — CORRECTED TWICE, AND THE RULE THAT CAME OUT OF IT
+
+**Three commands move under lease: `invite accept`, `invite finish`, `handshake poll`.**
+
+⚠ **`invite redeem` is NOT among them.** It reaches the relay through `POST /v1/invite/redeem` and
+**never pulls an inbox**, so it is untouched by this default. It is named explicitly — in the code and
+here — **because both prior sources said otherwise**: D622's census found the line but did not
+enumerate reach, and the lane's **own first census misnamed both invite callers.**
+
+⚠ **THE RULE: A LINE NUMBER IDENTIFIES A LOCATION, NEVER A FUNCTION.** The census correctly used a
+**content needle** for the *sites* — which is exactly what caught the `:235`→`:244` and
+`:2563`→`:2642` drift introduced by C3 — and then identified the *callers* by line proximity.
+**Bracket every call site to its enclosing `fn` before naming it.**
+
+⚠ **The decision-bearing consequence**, which neither source stated: one of the three, **`invite
+finish`, pulls the user's ORDINARY inbox** — the mailbox where a peer's ordinary messages sit — at
+`--max 1`, processing only the first item and discarding anything else it collected.
+
+### 3. THE EVIDENCE BASE
+
+Three arms, against the **real relay** through **real invite and handshake flows, no mocks** (⚠ the
+test-local mock cannot be used: it parses only `max=` and always pops on pull, so it cannot express
+lease semantics and would make every arm vacuous). Each arm has a **legacy control that must fire**
+before its lease treatment is permitted to mean anything.
+
+| | under LEGACY (control) | under LEASE |
+|---|---|---|
+| `handshake poll` (`--max 4`) | **destroyed** the peer's ordinary message | **survived, redelivered** |
+| `invite finish` (`--max 1`) | **destroyed** it, from the user's OWN inbox, at exit 0 | **survived, redelivered** |
+
+⚠ `invite finish` is the one to read twice: the destruction happened **at exit 0**, on a command a
+user is **required** to run to complete an invite.
+
+⚠ **RED-CAPABILITY IS CLOSED INSIDE THE MEASUREMENT.** The probe returned `false` in the legacy leg
+and `true` in the lease leg **of the same test**, so its ability to report both outcomes is
+*demonstrated within the run* rather than asserted beside it. **A negative result is only evidence if
+the instrument could have returned positive.**
+
+#### 3a. ⚠ THE `invite finish` STALL — A NEGATIVE MEASUREMENT, AND A CORRECTED MECHANISM READING
+
+Reasoning from the code predicted that an unparseable item at the head of the ordinary inbox would be
+redelivered forever under lease and **wedge `invite finish` permanently**, since nothing in that path
+acks. This was reported to the Director as **read-from-code and explicitly unmeasured**, and flagged
+as the most likely place in the lane for a surprise.
+
+**Measured, it does not happen.** The command errors (`handshake_envelope_malformed`) and **the
+message comes back on redelivery.**
+
+⚠ **THE MECHANISM WAS REAL; THE CONCLUSION WAS INVERTED. REDELIVERY IS THE RECOVERY PROPERTY, NOT
+THE WEDGE.** A redelivered item is one `qsc receive` away from being drained; a deleted one is simply
+gone. Per D622 R5's second branch, **the negative is recorded and nothing was added for it** — no
+witness carve, no ENG, no scope growth.
+
+#### 3b. ⚠ THE TOPOLOGY CLAIM HELD IN ITS **STRONG** FORM
+
+The lane's census asserted collateral was *"less likely"* in `invite accept`'s dedicated mailbox. The
+Director ruled — correctly — that **a topology claim must be measured or not made.**
+
+**Measured: `invite accept` pulls the invite's own mailbox and DID NOT TOUCH the ordinary inbox —
+even under LEGACY.** Not "less likely": **it does not happen.** ⚠ The test was written to be able to
+report **"not demonstrated"** rather than **"not possible"** if the negative could not be
+constructed; **that fallback was available and was not needed.** The assumption is **retired
+permanently**.
+
+### 4. TRIGGER-MITIGATION VS UNDERLYING-DEFECT — KEPT EXPLICIT
+
+The **defect** is that a pull path can collect an item it will not process. The **remedy** is
+quarantine-instead-of-drop, which **remains a separate owed lane**. C4 changes only that the item is
+**no longer destroyed on the way**. ⚠ These are not the same thing, and the record must not let them
+merge into "the pull bug was fixed."
+
+### 5. THE PREFERENCE STORE, AND TWO DEFECTS ONE KEY HAD KEPT UNREACHABLE
+
+Per-install preferences live in the **config file, not the vault** (D622 R7). Grounds, on the record:
+an ack mode **is not a secret**; and a vault-backed preference **stops applying whenever the vault is
+locked** — it would have shipped the very **silent-divergence** class this lane exists to remove,
+applying on some invocations and not others with no witness. Naming is plain **`ack-mode`** (R8);
+⚠ **no `tui.` prefix on anything new.** Vault keys remain the pattern for actual secrets (relay
+tokens, CA-file paths).
+
+Giving `config.txt` a second key exposed two defects — **both latent before C4 and reachable only
+once a second key existed**, both **filed as ENG-0102 and fixed in this lane**:
+1. the writer **rewrote the whole file**, so setting either key would have **silently deleted the
+   other**;
+2. the reader reported a file lacking its *own* key as **corrupt** — and `doctor`'s parseability
+   check consumed that, so **following the documented way to set the new preference would have
+   broken the user's own diagnostics.**
+
+⚠ **Corruption detection was NOT weakened**, and that was checked specifically because the easy fix
+does weaken it: a **malformed line still fails the parse**; only *well-formed-but-absent* became
+tolerable — which is how both existing callers were already written.
+
+**ENG-0101** records that **four vault keys are read by nothing that can write them**, in a namespace
+named for a subsystem **already deleted** (the TUI, retired in NA-0645). ⚠ That group **includes the
+receipt-policy keys C3 depends on**, so **both instances are filed together** — fixing only the one
+this lane introduced would have looked like fixing the class.
+
+### 6. ⚠ HONEST CLAIMS ABOUT THE RECEIPTS SWITCH (D622 R10)
+
+The coherence mechanism is **real and pinned**: both halves consult one policy, and per-invocation
+flags (`--receipt off` / `--receipt delivered` / `--emit-receipts`) work. **A user-facing PERSISTENT
+switch does not exist in v1.** ⚠ **No UI text and no document may imply that it does.** v1 ships no
+receipts toggle, so the persistence gap has **no v1 consumer** and is not release-blocking.
+
+### 7. SUPERSESSION
+
+⚠ **D-0207's invariant — *"`qsc send --receipt delivered` requests delivery ACK; default remains
+receipt-disabled"* — is SUPERSEDED by C3.** The default is now **ON, both halves**, and
+**`--receipt off`** is the explicit spelling for disabling it per message. (That spelling had to be
+*added*: the flag was an `Option` over a one-variant enum, so "absent" was the only way to mean
+"none", and absent now means the policy default.)
+
+### 8. ⚠ THE DELIVERED-WINDOW PRODUCT STATEMENT
+
+**DELIVERED is not available for a message until its recipient has sent at least once.** Until then
+the sender sees SENT, the receipt waits in the hold, and it flushes to DELIVERED on the recipient's
+first send. **Both halves of that window are pinned** — the SENT state during it, and the transition
+after it — so the window is guarded as **correct behaviour** rather than left as an absence.
+
+Slice 4's ratified Candidate C — the inviter's app-generated connect notice — is the product-level
+mitigation of this window: it makes the recipient-side first send automatic, shrinking the window to
+one poll cycle (`DESIGN_slice4_connect_verify_receipts_v1`, operator-ratified 2026-08-01). The
+protocol statement above remains true; the GUI makes it invisible in the invite flow.
+
+### 9. CARRIED FROM C0–C3
+
+⚠ Six findings from the earlier commits that are **not** recorded anywhere else in this document and
+would otherwise be lost with the lane's working files.
+
+1. ⚠ **The Director premise correction (STOP #017).** The ruling's premise — *"silent vanish /
+   tolerance without witness"* — was **falsified by instrumentation**. The payload was not vanishing
+   silently and was not being tolerated without a witness; instrumenting the path showed a different
+   mechanism entirely, which is what redirected the fix. **The correction came from measurement, not
+   from argument.**
+2. **The receive-path scope widening**, forced by the ruled wire change. Making framing transparent
+   moved work onto the **receive** path that the directive had scoped to the sender, widening the
+   lane beyond its written boundary. Recorded because the widening was a **consequence of a ruling**,
+   not scope creep by the lane.
+3. ⚠ **The frozen-fixture re-derivation (STOP #021).** The refimpl-pin split kept the frozen
+   fixture's arithmetic with **not one expected value changed**, and the new default-configuration
+   sibling was green on its first run **and proven red-capable**. That pairing is **what keeps the
+   split from being a coverage trade** rather than a coverage loss dressed as a split.
+4. ⚠ **The OBS-ES sharpening (STOP #022).** OBS-ES as originally written — *"any test that counts
+   items, uses `--max N`, or drains a channel"* — **understates its blast radius: the consequence is
+   not always a count.** `dh_ratchet_e2e_pcs_healing` failed with a **header-authentication failure**
+   (`REJECT_S2_HDR_AUTH_FAIL`), because a `--max 1` pull consumed an ack and left the real message
+   unread until the two sides' ratchets diverged. **A displacement can surface as a crypto failure,
+   arbitrarily far from the pull that caused it.**
+5. ⚠ **The clock-forcing impossibility.** The ruling named clock forcing as the preferred instrument
+   for producing a co-pack. It is **structurally incapable of it**: any clock advance large enough to
+   arm the advertisement (≥3600 s) is **necessarily** large enough to also destroy the coincidence
+   being forced. The substitution — **force by CONSUMPTION, not by clock** — was put to the Director
+   rather than taken, and is a **reusable fact about these three constants**. ⚠ Recorded here with
+   the **corrected** argument: the original one offered in STOP #023 was itself reasoning presented
+   as measurement, and was self-corrected.
+6. ⚠ **The self-contradicting unit pair.** Two `owed_receipts` unit tests **disagreed with each
+   other** about the `<=` TTL boundary — one asserting inclusion, one exclusion — so one of them had
+   to be wrong regardless of the implementation. ⚠ **The FIXTURE was fixed, not the logic.** A test
+   pair that cannot both be right is a defect in the tests, and "make it green" would have silently
+   chosen a boundary semantics by accident.
+
+### 10. STANDING LESSONS — each paid for by a measurement that contradicted a belief
+
+1. ⚠ **A correct prediction is not a fix, and a green pin is not a guard — the probe is the
+   difference.** The precedence pin was proven red-capable by suppressing the config lookup and
+   watching the middle rung fail with its own diagnostic, then restoring the tree **byte-identical,
+   verified by `cmp`**.
+2. ⚠ **Precedence is a claim about ORDER, so it takes ONE ordered test, not three.** Three
+   single-rung tests would each pass against an implementation that ignored the other two.
+3. ⚠ **When a mechanism already has working tests, DERIVE the instrument from them rather than
+   re-deriving beside them.** Three consecutive harness defects in the arms — a duplicated CLI flag,
+   a **guessed** flag name (`--fingerprint` for `--fp`), and a probe measuring **immediate
+   visibility** where the claim was **survival** — all came from writing the instrument from a mental
+   model. Every fix was adopting existing scaffolding wholesale. ⚠ The third nearly became a false
+   alarm reading **"lease does not preserve collateral"** — the exact opposite of the truth.
+4. ⚠ **THE RUNTIME IS THE HONEST TELL: an all-clear counter on an impossible runtime is not
+   reassurance.** `0 CONTROL FAILED` appeared in **every** failed arm run, including those where
+   setup died before any control executed. Runtimes across attempts: **1.37 → 17.64 → 145.81 →
+   165.80 s.**
+5. ⚠ **Known population vs guess.** Four estimates of unknown populations were wrong every time
+   (33-vs-5, wrong in kind · 3-vs-22, wrong 7× · 16-vs-14 · 3-vs-6). The one **enumerated from the
+   actual failing set** was **exact**.
+6. ⚠ **Its refinement, new in C4: "CORRECT METHOD, WRONG SUM."** The final gating prediction missed
+   by **+2** — not by guessing: the population was enumerated, every delta counted from the tree and
+   cross-checked, and **every other field was exact**. The prediction document **stated the rule
+   correctly and violated it four lines later**, subtracting the 2 ignored tests from a total that
+   never contained them. **A distinct failure class, and the tell was free — the rule and its
+   violation sat in one short document.** The miss stands on the record unrevised.
+7. ⚠ **A behavioural class cannot be enumerated by grepping ONE marker literal.** Two class-size
+   claims were volunteered and **both were wrong** (class B was 3 not 2; class A was 2 not 1), each
+   sized by a single spelling of a behaviour rather than by the behaviour.
+8. ⚠ **A sweep measures what tests ASSERT, not what the code does — and a red guard is guilty until
+   proven cosmetic.** Five tests encoded the old default; **none were deleted.** Each legacy contract
+   was re-aimed at its now-only spelling, `--ack-mode legacy`, with the new default **pinned
+   separately** so it cannot regress silently.
+9. ⚠ **Pin the PROPERTY, not the MECHANISM.** One test asserted a pull URL **by equality** where the
+   property it existed to defend was *no credential in the URL*. The equality broke on an added query
+   parameter; the property replaced it and is **strictly stronger** — the old form would have passed
+   a URL embedding some *other* secret.
+10. ⚠ **A migration that goes green with NO EDIT is the most dangerous shape there is.** The
+    full-stack e2e passed under the new default **without a single change** — which would have
+    quietly cost it **all** of its legacy coverage, since after the flip no test in that file
+    exercised the legacy path. It was migrated **deliberately**, and a third test now pins the legacy
+    path **by name**.
+11. ⚠ **Reasoning presented as measurement was this lane's recurring failure**, in at least four
+    costumes: the census misnaming, two broken extraction instruments, the class sizing, and the
+    stall that did not reproduce. **State the measurement; do not upgrade it into a theorem.**
+
+### 11. ENGINEERING LEDGER OUTCOMES
+
+| id | disposition |
+|---|---|
+| **ENG-0095** | delivery-receipt nonce barrier — **FIXED in C0** and stays fixed |
+| **ENG-0096** | receipts on the retry queue — **residual recorded**: a queue row cannot express the sender's per-invocation receipt choice, though the normal case is covered because a packed record replays its bytes verbatim |
+| **ENG-0098** | an ack is distinguishable from a user reply **by envelope size**; the prescribed remedy was measured and found unable to close it |
+| **ENG-0099** | typed payload written out as user content — **fixed by C3's transparent framing**; ⚠ the failure was the **inverse** of the one first assumed (the payload was *delivered*, not dropped) |
+| **ENG-0100** | the NA-0625 receiver property is pinned against **our** sender, not an arbitrary conformant one — **deferred, not delivered**, with the trade named |
+| **ENG-0101** | the `tui.*` fossil namespace — four dead reads + a prefix naming a deleted subsystem; **both instances named** (C3's receipt keys and C4's own) |
+| **ENG-0102** | the two `config.txt` data-integrity defects (§5) — **RESOLVED in C4** |
+| **ENG-0083** | pre-existing: multiple persistence homes for in-flight state; C3's owed-receipt hold is a **third**, accepted deliberately and recorded — consolidation explicitly not this lane's |
+
+⚠ **NA-0625's decision text is UNTOUCHED**; this lane cross-references it only.
+
+### 12. REFERENCES
+D622 rulings R1–R15 · lane STOP-files 001–041 · the commits listed in the header · D-0207
+(superseded, §7) · NA-0645 (TUI retirement) · NA-0625 (cross-referenced only) ·
+`DESIGN_slice4_connect_verify_receipts_v1` (§8).

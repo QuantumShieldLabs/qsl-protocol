@@ -1,5 +1,6 @@
 #![allow(unexpected_cfgs)]
 
+use crate::protocol_state::SendOrigination;
 use super::*;
 
 type FileConfirmPayload = adversarial::payload::FileConfirmPayload;
@@ -472,10 +473,8 @@ struct AttachmentServiceErrorBody {
 }
 
 fn attachment_now_unix_s() -> u64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs()
+    // NA-0688 C1 (R4a): delegates to the ONE clock. See `crate::clock`.
+    crate::clock::now_unix_s()
 }
 
 fn attachment_service_reason(
@@ -1098,6 +1097,8 @@ fn attachment_send_execute(args: AttachmentSendExec<'_>) -> Result<(), Attachmen
         meta_seed: None,
         receipt: None,
         routing_override: None,
+        // The attachment DESCRIPTOR is the user's own act of sending a file.
+        origination: SendOrigination::User,
     })?;
     if let Some(code) = outcome.error_code {
         return Err(code.to_string().into());
@@ -1764,6 +1765,8 @@ fn relay_send_file_payload_with_retry(to: &str, payload: Vec<u8>, relay: &str) -
             meta_seed: None,
             receipt: None,
             routing_override: None,
+            // The file PAYLOAD is the user's own act of sending a file.
+            origination: SendOrigination::User,
         })?;
         let Some(code) = outcome.error_code else {
             return Ok(outcome);

@@ -308,6 +308,29 @@ fn seeded_runtime_state_matches_refimpl_send_receive_roundtrip() {
             "peer",
             "--file",
             msg_a_path.to_str().unwrap(),
+            // ⚠ NA-0688 C3 — EXPLICIT `--receipt off`, AND IT IS A DELIBERATE CHOICE.
+            //
+            // This fixture pins the FROZEN CRYPTO CORE: same plaintext in -> same wire out,
+            // qsc == refimpl, over a multi-step chain whose expected values were derived and
+            // reviewed once. Its worth IS that frozen arithmetic.
+            //
+            // With delivery receipts on by default, every RECEIVE also emits a SEND (the ack),
+            // so each receiver's send chain advances mid-fixture and all seven chain-arithmetic
+            // sites here would have to be re-derived. Re-deriving them at this depth risks the
+            // one failure that matters most in a conformance pin -- a test that is GREEN AND
+            // PROVES NOTHING -- and would permanently couple the crypto-core pin to
+            // control-plane behaviour, so every future receipt change would cascade back in.
+            //
+            // So the concerns are SPLIT: this fixture keeps its arithmetic untouched (not one
+            // expected value changed), and the DEFAULT-CONFIGURATION composition is pinned by
+            // its named sibling, `na0688_c3_default_wire_conformance.rs`. That sibling carries
+            // the framing round-trip, the refimpl wire equivalence on the FRAMED plaintext, and
+            // the ack's determined plaintext -- so the default path keeps refimpl coverage and
+            // this split is not a coverage trade.
+            //
+            // ⚠ IF THIS FIXTURE EVER NEEDS RE-DERIVATION, THAT IS ITS OWN REVIEWED LANE.
+            "--receipt",
+            "off",
         ])
         .output()
         .expect("send a");
@@ -408,6 +431,29 @@ fn seeded_runtime_state_matches_refimpl_send_receive_roundtrip() {
             "peer",
             "--file",
             msg_b_path.to_str().unwrap(),
+            // ⚠ NA-0688 C3 — EXPLICIT `--receipt off`, AND IT IS A DELIBERATE CHOICE.
+            //
+            // This fixture pins the FROZEN CRYPTO CORE: same plaintext in -> same wire out,
+            // qsc == refimpl, over a multi-step chain whose expected values were derived and
+            // reviewed once. Its worth IS that frozen arithmetic.
+            //
+            // With delivery receipts on by default, every RECEIVE also emits a SEND (the ack),
+            // so each receiver's send chain advances mid-fixture and all seven chain-arithmetic
+            // sites here would have to be re-derived. Re-deriving them at this depth risks the
+            // one failure that matters most in a conformance pin -- a test that is GREEN AND
+            // PROVES NOTHING -- and would permanently couple the crypto-core pin to
+            // control-plane behaviour, so every future receipt change would cascade back in.
+            //
+            // So the concerns are SPLIT: this fixture keeps its arithmetic untouched (not one
+            // expected value changed), and the DEFAULT-CONFIGURATION composition is pinned by
+            // its named sibling, `na0688_c3_default_wire_conformance.rs`. That sibling carries
+            // the framing round-trip, the refimpl wire equivalence on the FRAMED plaintext, and
+            // the ack's determined plaintext -- so the default path keeps refimpl coverage and
+            // this split is not a coverage trade.
+            //
+            // ⚠ IF THIS FIXTURE EVER NEEDS RE-DERIVATION, THAT IS ITS OWN REVIEWED LANE.
+            "--receipt",
+            "off",
         ])
         .output()
         .expect("send b");

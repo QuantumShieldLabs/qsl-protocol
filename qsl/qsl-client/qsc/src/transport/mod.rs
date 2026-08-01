@@ -1,3 +1,4 @@
+use crate::protocol_state::SendOrigination;
 use super::*;
 
 pub fn send_execute(args: SendExecuteArgs) -> CliResult {
@@ -53,10 +54,18 @@ pub fn send_execute(args: SendExecuteArgs) -> CliResult {
                     &[("deterministic", "true"), ("seed", seed_s.as_str())],
                 );
             }
+            // ⚠ NA-0688 C3: report the RESOLVED request, not the flag's absence. Before the
+            // flip those were the same thing; now an absent flag means "follow the policy", so
+            // keying the marker on `receipt.is_none()` would announce `receipt_disabled` on
+            // precisely the sends that DO request one.
+            let receipt = crate::resolve_sender_receipt_request(receipt);
             if receipt.is_none() {
                 emit_marker("receipt_disabled", None, &[]);
             }
             relay_send(&to, &file, &relay, pad_cfg, bucket_max, meta_seed, receipt)?;
+            // ⚠ NA-0688: the send just established our chain if it was unseeded, so anything we
+            // owed this peer can go out now. See `flush_owed_receipts` for why this lives here.
+            crate::flush_owed_receipts(&to, &relay);
             Ok(())
         }
     }
@@ -231,8 +240,13 @@ pub fn receive_execute(args: ReceiveArgs) -> CliResult {
             let legacy_receive_mode =
                 resolve_legacy_receive_mode(legacy_receive_mode, attachment_service.as_deref())
                     .map_err(|code| CliError::code(code))?;
-            // NA-0644 (D580): the default is LEGACY delete-on-pull; lease is explicit opt-in.
-            let ack_mode = ack_mode.unwrap_or(AckMode::Legacy);
+            // NA-0688 C4 (D622) SITE 1 of 2. ⚠ THIS LINE'S DEFAULT WAS INVERTED, not tidied.
+            // It read `ack_mode.unwrap_or(AckMode::Legacy)` under NA-0644 (D580), where legacy
+            // delete-on-pull was the default and lease the explicit opt-in. Both default-carrying
+            // sites flipped together; a half-flip was refused, because the two of them are reached
+            // by different commands and leaving one behind means the same relay behaves one way
+            // under `receive` and the other under `invite`/`handshake`.
+            let ack_mode = crate::resolve_ack_mode(ack_mode);
             if let Err(code) = normalize_relay_endpoint(relay.as_str()) {
                 return Err(CliError::code(code));
             }
@@ -512,7 +526,38 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                     let mut payload = outcome.plaintext.clone();
                     let mut request_receipt = false;
                     let mut request_msg_id = String::new();
-                    if let Some(desc) = parse_attachment_descriptor_payload(&outcome.plaintext) {
+                    // ⚠ NA-0688 C3 — TRANSPARENT FRAMING: UNWRAP BEFORE DISPATCH.
+                    //
+                    // The data control envelope is FRAMING, not a payload type. It used to be
+                    // classified LAST, after every typed-payload sniff had already run against
+                    // the still-wrapped bytes and missed -- so once receipts became the default,
+                    // a `file_manifest` sent through `qsc send` was unwrapped here and then fell
+                    // straight through to the generic user-message path. MEASURED, not argued:
+                    // the manifest was written to `recv_1.bin`, counted in `recv_commit`, and
+                    // entered the timeline as RECEIVED. It was not dropped -- it was DELIVERED
+                    // TO THE USER AS MESSAGE CONTENT, which is the very failure the `ns` marker
+                    // was introduced to prevent for unknown control types. The envelope and the
+                    // typed dispatch had simply never been composed.
+                    //
+                    // So the unwrap moves to the FRONT and everything below dispatches on
+                    // `payload`. For traffic that was never wrapped, `payload` IS
+                    // `outcome.plaintext` and every branch behaves byte-identically to before.
+                    //
+                    // ⚠ ONE HOP, BY CONSTRUCTION. The unwrap happens exactly once, here; nothing
+                    // below unwraps again. Our own control sends go out with `receipt: None` and
+                    // are therefore never wrapped, so a wrapped body can only be one deep.
+                    if let Some(ctrl) = parse_receipt_payload(&outcome.plaintext) {
+                        if crate::adversarial::payload::classify_control(&ctrl)
+                            == crate::adversarial::payload::ControlClass::DataEnvelope
+                        {
+                            if let Some(body) = ctrl.body.clone() {
+                                payload = body;
+                                request_receipt = true;
+                                request_msg_id = ctrl.msg_id.clone();
+                            }
+                        }
+                    }
+                    if let Some(desc) = parse_attachment_descriptor_payload(&payload) {
                         let attachment_id = desc.attachment_id.clone();
                         match attachment_handle_descriptor(ctx, desc) {
                             Ok(Some((confirm_attachment_id, confirm_handle))) => {
@@ -544,10 +589,16 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 return Err(CliError::code(reason));
                             }
                         }
+                        queue_envelope_receipt(
+                            ctx,
+                            &mut pending_receipts,
+                            request_receipt,
+                            request_msg_id.as_str(),
+                        )?;
                         record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
                         continue;
                     }
-                    if let Some(file_payload) = parse_file_transfer_payload(&outcome.plaintext) {
+                    if let Some(file_payload) = parse_file_transfer_payload(&payload) {
                         let file_id = match &file_payload {
                             FileTransferPayload::Chunk(v) => v.file_id.clone(),
                             FileTransferPayload::Manifest(v) => v.file_id.clone(),
@@ -616,10 +667,16 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 return Err(CliError::code(reason));
                             }
                         }
+                        queue_envelope_receipt(
+                            ctx,
+                            &mut pending_receipts,
+                            request_receipt,
+                            request_msg_id.as_str(),
+                        )?;
                         record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
                         continue;
                     }
-                    if let Some(confirm) = parse_attachment_confirm_payload(&outcome.plaintext) {
+                    if let Some(confirm) = parse_attachment_confirm_payload(&payload) {
                         commit_unpack_state()?;
                         match apply_attachment_peer_confirmation(
                             ctx.from,
@@ -660,10 +717,16 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 &[("reason", reason), ("ok", "false")],
                             ),
                         }
+                        queue_envelope_receipt(
+                            ctx,
+                            &mut pending_receipts,
+                            request_receipt,
+                            request_msg_id.as_str(),
+                        )?;
                         record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
                         continue;
                     }
-                    if let Some(file_confirm) = parse_file_confirm_payload(&outcome.plaintext) {
+                    if let Some(file_confirm) = parse_file_confirm_payload(&payload) {
                         commit_unpack_state()?;
                         match apply_file_peer_confirmation(
                             ctx.from,
@@ -708,10 +771,16 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 &[("reason", reason), ("ok", "false")],
                             ),
                         }
+                        queue_envelope_receipt(
+                            ctx,
+                            &mut pending_receipts,
+                            request_receipt,
+                            request_msg_id.as_str(),
+                        )?;
                         record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
                         continue;
                     }
-                    if let Some(ctrl) = parse_receipt_payload(&outcome.plaintext) {
+                    if let Some(ctrl) = parse_receipt_payload(&payload) {
                         // NA-0682 (D617 C6): classify ONCE, here, so the "unknown control"
                         // arm exists at all. Before this, an unrecognised control payload
                         // fell through and was written to `recv_N.bin` and the timeline as
@@ -732,6 +801,12 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 None,
                                 &[("reason", "unknown_control_type"), ("v", "redacted")],
                             );
+                            queue_envelope_receipt(
+                                ctx,
+                                &mut pending_receipts,
+                                request_receipt,
+                                request_msg_id.as_str(),
+                            )?;
                             record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
                             continue;
                         }
@@ -776,16 +851,25 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                     emit_message_state_reject(reason)
                                 }
                             }
+                            queue_envelope_receipt(
+                                ctx,
+                                &mut pending_receipts,
+                                request_receipt,
+                                request_msg_id.as_str(),
+                            )?;
                             record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
                             continue;
                         }
-                        if class == crate::adversarial::payload::ControlClass::DataEnvelope {
-                            if let Some(body) = ctrl.body {
-                                payload = body;
-                                request_receipt = true;
-                                request_msg_id = ctrl.msg_id;
-                            }
-                        }
+                        // ⚠ NO `DataEnvelope` ARM HERE ANY MORE — the unwrap moved to the FRONT
+                        // of this chain (see the transparent-framing comment above), so by the
+                        // time control reaches this point `payload` is already the inner body
+                        // and cannot be an envelope. Unwrapping a second time here is what
+                        // would turn "one hop by construction" into an unbounded claim.
+                        //
+                        // The one shape that still classifies as `DataEnvelope` here is an
+                        // envelope whose `body` was absent, which the front unwrap leaves
+                        // untouched on purpose; it falls through to the generic path exactly as
+                        // it did before this lane.
                     }
                     commit_unpack_state()?;
                     stats.count = stats.count.saturating_add(1);
@@ -952,7 +1036,19 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                         // between commit_unpack_state and write_atomic), so the plaintext
                         // is unrecoverable no matter how often the relay redelivers it.
                         // Ack it (loudly) to end the redelivery loop instead of hard-
-                        // exiting the whole batch. Legacy behavior is unchanged.
+                        // exiting the whole batch.
+                        //
+                        // ⚠ NA-0688 C4 (D622): THIS BRANCH IS NOW THE DEFAULT PATH. This
+                        // comment used to end "Legacy behavior is unchanged", which was true
+                        // only while Legacy was the default -- it meant "the ordinary user is
+                        // unaffected". C4 flipped the default to Lease, so that reassurance
+                        // became false and the comment would have argued against its own code.
+                        // What is actually true after C4: a replay reject no longer fails the
+                        // command. It is acked, reported by the ack_replay_unrecoverable
+                        // marker, and the run continues to a normal exit. The rejection and
+                        // the no-state-mutation guarantee are unchanged; only the EXIT CODE
+                        // moved, and only on the default path. `--ack-mode legacy` still
+                        // hard-exits, and that contract is pinned explicitly.
                         if ctx.ack_mode == AckMode::Lease {
                             emit_marker(
                                 "ack_replay_unrecoverable",
@@ -2555,12 +2651,34 @@ fn relay_inbox_push_inner(
     }
 }
 
+/// NA-0688 C4 (D622) SITE 2 of 2 — the flag-less pull.
+///
+/// ⚠ **THIS ONE HARDCODED `AckMode::Legacy` AND NOW RESOLVES LIKE EVERY OTHER PULL.** It takes no
+/// `AckMode` parameter because none of its callers has a flag to pass, which is exactly why the
+/// hardcode was dangerous: it was unreachable by `--ack-mode` and so could not be escaped.
+///
+/// ⚠ **THREE PRODUCTION COMMANDS MOVE TOGETHER HERE, and that is intended.** Ratified membership:
+///   1. `invite accept`  — `invite_accept_at`, pulls the invite's OWN mailbox (`invite_id_wire`), `--max 1`
+///   2. `invite finish`  — `invite_finish`, ⚠ pulls the user's **ORDINARY inbox**, `--max 1`
+///   3. `handshake poll` — `perform_handshake_poll*`, `--max 4`
+///
+/// ⚠ **`invite redeem` IS NOT AMONG THEM.** `invite_redeem_at` reaches the relay only through
+/// `invite_redeem_call` (`POST /v1/invite/redeem`) — a different route, no inbox pull, no
+/// `AckMode` — so it is untouched by this default. It is named here **because C4's own census
+/// wrongly listed it**, having identified the two `invite/mod.rs` call sites by line number
+/// instead of bracketing them to their enclosing functions. **A line number identifies a
+/// location, never a function.**
+///
+/// Only `handshake poll` had been named before the census. ⚠ **`invite finish` matters most**:
+/// it pulls the mailbox where a peer's ordinary messages sit, under a command the user is
+/// required to run — and it processes only `.next()`, so under the old delete-on-pull default
+/// anything else it collected was destroyed with no witness, at exit 0.
 pub(super) fn relay_inbox_pull(
     relay_base: &str,
     route_token: &str,
     max: usize,
 ) -> Result<Vec<InboxPullItem>, &'static str> {
-    relay_inbox_pull_mode(relay_base, route_token, max, AckMode::Legacy)
+    relay_inbox_pull_mode(relay_base, route_token, max, crate::resolve_ack_mode(None))
 }
 
 fn relay_inbox_pull_mode(
@@ -2684,6 +2802,7 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> CliResu
         meta_seed,
         receipt,
         routing_override,
+        origination,
     } = args;
     if let Err(code) = normalize_relay_endpoint(relay) {
         return Ok(RelaySendOutcome {
@@ -2802,7 +2921,7 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> CliResu
     }
 
     let (payload, receipt_msg_id) = encode_receipt_data_payload(payload, receipt)?;
-    let pack = match qsp_pack(routing.channel.as_str(), &payload, pad_cfg, meta_seed) {
+    let pack = match qsp_pack(routing.channel.as_str(), &payload, pad_cfg, meta_seed, origination) {
         Ok(v) => {
             record_qsp_status(&dir, source, true, "pack_ok", true, false);
             emit_marker("qsp_pack", None, &[("ok", "true"), ("version", "5.0")]);
@@ -3385,7 +3504,22 @@ impl<'a> RelayMessageSender<'a> {
             pad_cfg: None,
             bucket_max: None,
             meta_seed: None,
-            receipt_kind: None,
+            // ⚠ NA-0688 C3 — THE FLIP, AND IT CHANGES THE VALUE ASSIGNED HERE, NEVER THE
+            // MEANING OF `None`. `receipt_kind: None` still means "request no receipt, put the
+            // body on the wire raw" everywhere it appears — which is exactly what keeps a
+            // control send from asking for a receipt of its own. Reinterpreting `None`
+            // downstream instead would arm unbounded ack recursion, since the receipt paths
+            // pass `receipt: None` explicitly; `an_ack_never_provokes_an_ack_in_reply` pins it.
+            // ⚠ NA-0688 C3 — RESOLVED, NOT HARD-CODED, and that is the whole correction.
+            //
+            // Writing `Some(ReceiptKind::Delivered)` here looked like the flip and was not: the
+            // `qsc send` path immediately overwrites this field via `with_meta`, so the value
+            // only ever reached the wire on the paths that DON'T call `with_meta` — `outbox
+            // retry` and `outbox discard`. The same queued row therefore went out differently
+            // depending on which command drained it. Going through the shared resolver instead
+            // gives all three production construction sites one rule, so a row queued by a
+            // default `qsc send` drains identically via send, retry and discard.
+            receipt_kind: crate::resolve_sender_receipt_request(None),
             last_limit: None,
             last_code: None,
         }
@@ -3402,11 +3536,20 @@ impl<'a> RelayMessageSender<'a> {
         self.pad_cfg = pad_cfg;
         self.bucket_max = bucket_max;
         self.meta_seed = meta_seed;
-        // ⚠ F6 DEFERRED (operator-ruled 2026-07-28): the SENDER half defaults OFF too.
-        // No receipt requested => the body goes on the wire RAW, exactly as pre-NA-0682, so
-        // the wire is pre-F6-quiet by default and no ack can be provoked. A half-flip (this
-        // side on, the honour side off) would leave the wire noisy while the feature looked
-        // disabled.
+        // ⚠ VERBATIM, IN BOTH DIRECTIONS — AND DELIBERATELY NOT CONDITIONAL.
+        //
+        // Swept at NA-0688 C3: this comment used to say the sender half defaults OFF, which
+        // stopped being true when the default flipped and was the only description of this
+        // assignment in the file.
+        //
+        // The obvious-looking repair for the flip was to make this assignment skip a `None`
+        // caller so the constructor's default survived. That would be WRONG: `receipt: None`
+        // is how a caller says "no receipt — put the body on the wire RAW, no data control
+        // envelope, no `msg_id`, nothing an ack can be provoked by", and the receipt paths
+        // depend on exactly that to avoid asking for receipts of their own (unbounded ack
+        // recursion, which `an_ack_never_provokes_an_ack_in_reply` pins). So this stays a
+        // straight assignment, and the CALLER's absent-vs-explicit distinction is resolved
+        // BEFORE it gets here, by `resolve_sender_receipt_request`.
         self.receipt_kind = receipt;
         self
     }
@@ -3483,6 +3626,8 @@ impl<'a> msgqueue::MessageSender for RelayMessageSender<'a> {
             &wire_body,
             self.pad_cfg,
             self.meta_seed,
+            // The msgqueue drains USER messages; receipts never enter this queue.
+            SendOrigination::User,
         ) {
             Ok(v) => {
                 // Same markers, same points, AND the same disk writes as the pre-NA-0682
@@ -3714,30 +3859,47 @@ impl<'a> msgqueue::MessageSender for RelayMessageSender<'a> {
 mod receipt_sender_default_tests {
     use super::{ReceiptKind, RelayMessageSender};
 
-    /// NA-0682 (D617 F6, DEFERRED — operator Condition 4). ⚠ PIN THE DEFAULT, SENDER HALF.
+    /// ⚠ PIN THE DEFAULT, SENDER HALF — MIGRATED at NA-0688 C3 (R1b), not rewritten down.
     ///
-    /// The recipient-honours half is pinned in `lib.rs::message_state_tests`. This is the other
-    /// half, and it is pinned separately ON PURPOSE: F6 has two independent switches, and
-    /// flipping only one leaves the wire noisy while the feature looks disabled. `receipt_kind`
-    /// of `None` is what makes the body go out RAW — no data control envelope, no `msg_id` on
-    /// the wire, nothing an ack can be provoked by.
+    /// This pin was `sender_requests_no_receipt_by_default` and asserted `is_none()`. It was
+    /// DESIGNED to go red when the flip landed, and it did. It is still pinned separately from
+    /// the recipient half ON PURPOSE: F6 has two independent switches, and flipping only one
+    /// would leave the wire noisy while the feature looked disabled.
+    ///
+    /// ⚠ WHAT MOVED IS THE VALUE ASSIGNED AT CONSTRUCTION, NOT THE MEANING OF `None`.
+    /// `receipt_kind: None` still means "request no receipt; body goes out RAW — no data
+    /// control envelope, no `msg_id` on the wire, nothing an ack can be provoked by", and the
+    /// receipt paths rely on exactly that when they pass `receipt: None` to avoid asking for a
+    /// receipt of their own. `an_ack_never_provokes_an_ack_in_reply` pins that consequence.
     #[test]
-    fn sender_requests_no_receipt_by_default() {
+    fn sender_requests_a_delivered_receipt_by_default() {
         let s = RelayMessageSender::new("https://relay.invalid");
-        assert!(
-            s.receipt_kind.is_none(),
-            "the sender must request NO receipt by default"
+        assert_eq!(
+            s.receipt_kind,
+            Some(ReceiptKind::Delivered),
+            "the sender must request a DELIVERED receipt by default as of NA-0688 C3"
         );
     }
 
-    /// And carrying metadata settings must not quietly turn it on: `with_meta` takes the
-    /// caller's choice verbatim, including "no receipt".
+    /// `with_meta` takes the caller's choice VERBATIM — in both directions.
+    ///
+    /// ⚠ MIGRATED at NA-0688 C3, and this pin is named in no prior record: ENG-0086 and R1b
+    /// both say "the two default pins", but there are THREE assertions that a
+    /// default-constructed sender requests no receipt, and this was the third. The census
+    /// found it; it went red with the other two.
+    ///
+    /// The property is unchanged — `with_meta` must not OVERRIDE the caller's choice — but
+    /// with the default now ON, proving "does not ENABLE" requires a sender that has been
+    /// EXPLICITLY DISABLED first. Passing a default-constructed sender would assert nothing,
+    /// because it now arrives with receipts already on.
     #[test]
-    fn with_meta_does_not_enable_receipts() {
-        let s = RelayMessageSender::new("https://relay.invalid").with_meta(None, None, None, None);
+    fn with_meta_takes_the_callers_receipt_choice_verbatim() {
+        let mut disabled = RelayMessageSender::new("https://relay.invalid");
+        disabled.receipt_kind = None;
+        let s = disabled.with_meta(None, None, None, None);
         assert!(
             s.receipt_kind.is_none(),
-            "with_meta must not enable receipts when the caller asked for none"
+            "with_meta must not re-enable receipts on a sender the caller disabled"
         );
         let on = RelayMessageSender::new("https://relay.invalid").with_meta(
             None,

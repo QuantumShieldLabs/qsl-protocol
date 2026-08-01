@@ -201,6 +201,11 @@ pub enum Cmd {
         #[command(subcommand)]
         cmd: OutboxCmd,
     },
+    /// NA-0689: items the client kept instead of destroying — list and delete.
+    Quarantine {
+        #[command(subcommand)]
+        cmd: QuarantineCmd,
+    },
     /// File transfer MVP (bounded + integrity checked).
     File {
         #[command(subcommand)]
@@ -601,6 +606,34 @@ pub enum ContactsDevicePrimaryCmd {
     Show {
         #[arg(long, value_name = "LABEL")]
         label: String,
+    },
+}
+
+/// NA-0689 P4: the MINIMAL inspection surface over the quarantine store.
+///
+/// ⚠ `show` and `export` are deliberately ABSENT and are out of scope. A quarantined item is
+/// undelivered content the user never chose to receive; a verb that printed it would make this
+/// store a way to read things the normal path refused, which is not what it is for.
+#[derive(Subcommand, Debug)]
+pub enum QuarantineCmd {
+    /// List captured items as REDACTED METADATA — the names of fields, never their values.
+    ///
+    /// ⚠ No content is printed and none is printable: the summary type carries no accessor for
+    /// the stored bytes.
+    List,
+    /// ⚠ DESTROY one specifically-identified quarantined item.
+    ///
+    /// A stored item must always be deletable — otherwise this lane would have replaced
+    /// "destroyed without consent" with "kept without consent". Naming the exact id is required,
+    /// following the `outbox discard` shape.
+    ///
+    /// ⚠ Unlike `outbox discard` this does NOT route through a ratchet barrier, and that is
+    /// correct rather than an omission: an incoming item's message key was already consumed at
+    /// `commit_unpack_state` before capture, so no advance is owed.
+    Drop {
+        /// The quarantine entry id, as shown by `quarantine list`.
+        #[arg(long)]
+        id: String,
     },
 }
 

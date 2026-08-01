@@ -678,6 +678,9 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                     }
                     if let Some(confirm) = parse_attachment_confirm_payload(&payload) {
                         commit_unpack_state()?;
+                        // ⚠ Set by the reject/ignore arms only. `None` means the confirm was
+                        // APPLIED and the item was genuinely processed -- nothing to quarantine.
+                        let mut discard_reason: Option<&str> = None;
                         match apply_attachment_peer_confirmation(
                             ctx.from,
                             confirm.attachment_id.as_str(),
@@ -710,12 +713,16 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 let dev = channel_device_marker(channel.as_str());
                                 emit_cli_receipt_ignored_wrong_device(ctx.from, dev.as_str());
                                 emit_tui_receipt_ignored_wrong_device(ctx.from, dev.as_str());
+                                discard_reason = Some("ignored_wrong_device");
                             }
-                            Err(reason) => emit_marker(
-                                "attachment_confirm_reject",
-                                Some(reason),
-                                &[("reason", reason), ("ok", "false")],
-                            ),
+                            Err(reason) => {
+                                emit_marker(
+                                    "attachment_confirm_reject",
+                                    Some(reason),
+                                    &[("reason", reason), ("ok", "false")],
+                                );
+                                discard_reason = Some(reason);
+                            }
                         }
                         queue_envelope_receipt(
                             ctx,
@@ -723,11 +730,34 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                             request_receipt,
                             request_msg_id.as_str(),
                         )?;
-                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
+                        // NA-0689 D2. ⚠ THIS ACK IS SHARED WITH THE SUCCESS ARM, so the capture
+                        // is conditional: only a rejected or ignored confirm is quarantined. A
+                        // blanket capture here would store every SUCCESSFULLY applied confirm
+                        // too -- turning the store into a copy of ordinary traffic.
+                        match discard_reason {
+                            Some(reason) => quarantine_then_ack(
+                                ctx,
+                                &mut seen_ids,
+                                &mut pending_acks,
+                                item.id.as_str(),
+                                crate::quarantine::Subclass::Unrecoverable,
+                                crate::quarantine::ContentKind::InnerPayload,
+                                reason,
+                                "transport::receive_pull_and_write/attachment_confirm",
+                                &payload,
+                            )?,
+                            None => record_seen_and_queue_ack(
+                                &mut seen_ids,
+                                &mut pending_acks,
+                                &item.id,
+                            )?,
+                        }
                         continue;
                     }
                     if let Some(file_confirm) = parse_file_confirm_payload(&payload) {
                         commit_unpack_state()?;
+                        // ⚠ See D2: `None` means applied, so only rejects/ignores are captured.
+                        let mut discard_reason: Option<&str> = None;
                         match apply_file_peer_confirmation(
                             ctx.from,
                             file_confirm.file_id.as_str(),
@@ -764,12 +794,16 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 let dev = channel_device_marker(channel.as_str());
                                 emit_cli_receipt_ignored_wrong_device(ctx.from, dev.as_str());
                                 emit_tui_receipt_ignored_wrong_device(ctx.from, dev.as_str());
+                                discard_reason = Some("ignored_wrong_device");
                             }
-                            Err(reason) => emit_marker(
-                                "file_confirm_reject",
-                                Some(reason),
-                                &[("reason", reason), ("ok", "false")],
-                            ),
+                            Err(reason) => {
+                                emit_marker(
+                                    "file_confirm_reject",
+                                    Some(reason),
+                                    &[("reason", reason), ("ok", "false")],
+                                );
+                                discard_reason = Some(reason);
+                            }
                         }
                         queue_envelope_receipt(
                             ctx,
@@ -777,7 +811,25 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                             request_receipt,
                             request_msg_id.as_str(),
                         )?;
-                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
+                        // NA-0689 D3 — same shared-ack shape as D2.
+                        match discard_reason {
+                            Some(reason) => quarantine_then_ack(
+                                ctx,
+                                &mut seen_ids,
+                                &mut pending_acks,
+                                item.id.as_str(),
+                                crate::quarantine::Subclass::Unrecoverable,
+                                crate::quarantine::ContentKind::InnerPayload,
+                                reason,
+                                "transport::receive_pull_and_write/file_confirm",
+                                &payload,
+                            )?,
+                            None => record_seen_and_queue_ack(
+                                &mut seen_ids,
+                                &mut pending_acks,
+                                &item.id,
+                            )?,
+                        }
                         continue;
                     }
                     if let Some(ctrl) = parse_receipt_payload(&payload) {
@@ -807,11 +859,33 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 request_receipt,
                                 request_msg_id.as_str(),
                             )?;
-                            record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
+                            // NA-0689 D5. ⚠ SEPARATELY WITNESSED (D-1328 Ruling 2) -- this is
+                            // judged NOT-FOR-THIS-BUILD, not unrecoverable, and a forward-compat
+                            // capture must never read as a decrypt failure. ⚠ And it is the
+                            // INNER PAYLOAD (Ruling 7): the key is already consumed above, so
+                            // storing the ciphertext would make this capture VACUOUS -- no future
+                            // build could ever read the thing it was kept for.
+                            //
+                            // ⚠ Redelivery cannot save this item: every current build acks it
+                            // away on sight, so the store is the only thing that preserves it.
+                            // No re-ingestion tooling is promised or built.
+                            quarantine_then_ack(
+                                ctx,
+                                &mut seen_ids,
+                                &mut pending_acks,
+                                item.id.as_str(),
+                                crate::quarantine::Subclass::Unsupported,
+                                crate::quarantine::ContentKind::InnerPayload,
+                                "unknown_control_type",
+                                "transport::receive_pull_and_write/unknown_control",
+                                &payload,
+                            )?;
                             continue;
                         }
                         if class == crate::adversarial::payload::ControlClass::DeliveredAck {
                             commit_unpack_state()?;
+                            // ⚠ See D2: `None` means the peer confirmation applied cleanly.
+                            let mut discard_reason: Option<&str> = None;
                             match apply_message_peer_confirmation(
                                 ctx.from,
                                 ctrl.msg_id.as_str(),
@@ -848,7 +922,8 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                     );
                                 }
                                 Err(reason) => {
-                                    emit_message_state_reject(reason)
+                                    emit_message_state_reject(reason);
+                                    discard_reason = Some(reason);
                                 }
                             }
                             queue_envelope_receipt(
@@ -857,7 +932,25 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 request_receipt,
                                 request_msg_id.as_str(),
                             )?;
-                            record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
+                            // NA-0689 D4 — same shared-ack shape as D2/D3.
+                            match discard_reason {
+                                Some(reason) => quarantine_then_ack(
+                                    ctx,
+                                    &mut seen_ids,
+                                    &mut pending_acks,
+                                    item.id.as_str(),
+                                    crate::quarantine::Subclass::Unrecoverable,
+                                    crate::quarantine::ContentKind::InnerPayload,
+                                    reason,
+                                    "transport::receive_pull_and_write/delivered_ack",
+                                    &payload,
+                                )?,
+                                None => record_seen_and_queue_ack(
+                                    &mut seen_ids,
+                                    &mut pending_acks,
+                                    &item.id,
+                                )?,
+                            }
                             continue;
                         }
                         // ⚠ NO `DataEnvelope` ARM HERE ANY MORE — the unwrap moved to the FRONT
@@ -1055,7 +1148,22 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 Some(code),
                                 &[("id", item.id.as_str())],
                             );
-                            record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
+                            // NA-0689 D1. ⚠ THE WIRE ENVELOPE IS ALL THERE IS HERE (D-1328
+                            // Ruling 7): this is the decrypt-failure path, so the message key
+                            // was consumed in an EARLIER run and the ciphertext is permanently
+                            // undecryptable by everyone. It is kept for correlation and as the
+                            // only surviving artefact -- never for recovery.
+                            quarantine_then_ack(
+                                ctx,
+                                &mut seen_ids,
+                                &mut pending_acks,
+                                item.id.as_str(),
+                                crate::quarantine::Subclass::Unrecoverable,
+                                crate::quarantine::ContentKind::WireEnvelope,
+                                code,
+                                "transport::receive_pull_and_write/qsp_replay_reject",
+                                &item.data,
+                            )?;
                             continue;
                         }
                     }
@@ -1085,6 +1193,58 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
 // only — and (b) the seen-store entry for it is durably on disk (`record` returning Ok).
 // A failed seen-write is fail-closed: the id is never acked, the lease expires, and the
 // redelivery lands in the seen store or the replay-reject backstop. No-op in legacy mode.
+/// NA-0689 P2: **capture, then ack.** The one place a censused discard point goes.
+///
+/// ⚠ **FAIL-CLOSED, AND THE CONSEQUENCE IS RATIFIED (D-1328).** If the capture fails we do
+/// **NOT** ack, so the relay redelivers the item and the command reports it. That redelivery
+/// loop is a **DECISION, not a regression** — a loud, witnessed availability degradation chosen
+/// over silent destruction. ⚠ A future reader will feel strong pull to "fix" the loop, because
+/// NA-0644's backstop exists precisely to END a poison redelivery loop and D-1327 §3a records a
+/// lane that predicted a wedge from redelivery and was wrong. **This loop is the point.**
+///
+/// The wire behaviour is otherwise unchanged: the same ack, at the same moment, for every item
+/// whose capture succeeded — which is every item, absent a filesystem or vault failure.
+#[allow(clippy::too_many_arguments)]
+fn quarantine_then_ack(
+    ctx: &ReceivePullCtx<'_>,
+    seen_ids: &mut Option<dedup::RelaySeenIds>,
+    pending_acks: &mut Vec<String>,
+    item_id: &str,
+    subclass: crate::quarantine::Subclass,
+    content: crate::quarantine::ContentKind,
+    reason: &str,
+    site: &str,
+    data: &[u8],
+) -> CliResult<()> {
+    match crate::quarantine::capture_at(
+        ctx.cfg_dir,
+        ctx.cfg_source,
+        item_id,
+        subclass,
+        content,
+        reason,
+        site,
+        data,
+        crate::clock::now_unix_s(),
+    ) {
+        Ok(_) => record_seen_and_queue_ack(seen_ids, pending_acks, item_id),
+        Err(code) => {
+            // ⚠ LOUD. The item is NOT acked and will come back; say so rather than letting a
+            // missing ack look like a lost one.
+            emit_marker(
+                "quarantine_capture_failed",
+                Some(code),
+                &[
+                    ("id", item_id),
+                    ("site", site),
+                    ("action", "not_acked_will_redeliver"),
+                ],
+            );
+            Ok(())
+        }
+    }
+}
+
 fn record_seen_and_queue_ack(
     seen: &mut Option<dedup::RelaySeenIds>,
     pending_acks: &mut Vec<String>,

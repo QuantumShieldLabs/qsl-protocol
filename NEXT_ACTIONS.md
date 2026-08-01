@@ -36773,7 +36773,7 @@ OUTCOME (2026-07-29, **D-1326**, amended 2026-07-30, result class **`LOG_CAPTURE
 
 ### NA-0688 — qsc FLIPS LANE (D622, SINGLE-REPO qsl-protocol / qsc, ONE PR series then a closeout): delivery receipts become crypto-passive and default ON (ENG-0086/F6), the receive default flips to lease (ENG-0043), and one injectable time-source replaces six private clocks. ⚠ The census corrected **five** of the intent's premises and found a **Tier-1 defect on the very path this lane makes default**: the ack path commits its ratchet advance AFTER the push, where the user send path commits BEFORE it and documents why. ⚠ **That is both a nonce-reuse hazard and a departure from ratified design** — `DESIGN_outbox_delivery_v1` §5 already requires the ack to ride the recipient's OWN outbox.
 
-Status: READY
+Status: DONE 2026-08-01 (D-1327; ACK_DEFAULT_AND_RECEIPT_FLIP_PASS; PR #1684 merged b70d8ccc)
 Goals: G4 (primary — delivery state becomes true of the default path, and the control path stops spending the system's most expensive operation), supports G1, G3
 Wire/behavior change allowed? **YES — and that IS the lane, bounded to defaults plus the passivation input.** Both F6 halves flip Off→On; `--ack-mode` flips legacy→lease; `qsp_pack` gains a "may this send originate a boundary?" input. ⚠ **No wire FORMAT change beyond what ENG-0086's shipped mechanism already carries.** The `"server"` wire field is untouched by any lane.
 

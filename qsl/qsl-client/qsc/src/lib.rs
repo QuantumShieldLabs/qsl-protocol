@@ -128,6 +128,7 @@ pub mod model;
 pub mod msgqueue;
 pub mod output;
 pub mod protocol_state;
+pub mod quarantine;
 pub mod relay;
 pub mod store;
 pub mod timeline;

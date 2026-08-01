@@ -678,15 +678,18 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                     }
                     if let Some(confirm) = parse_attachment_confirm_payload(&payload) {
                         commit_unpack_state()?;
-                        // ⚠ Set by the reject/ignore arms only. `None` means the confirm was
-                        // APPLIED and the item was genuinely processed -- nothing to quarantine.
-                        let mut discard_reason: Option<&str> = None;
-                        match apply_attachment_peer_confirmation(
+                        // ⚠ The capture decision is `confirm_capture_reason`'s alone (Ruling 11.1);
+                        // these arms EMIT, they do not decide. The arms below and D3's and D4's
+                        // used to each carry their own copy of that decision, and one copy was
+                        // wrong.
+                        let outcome = apply_attachment_peer_confirmation(
                             ctx.from,
                             confirm.attachment_id.as_str(),
                             confirm.confirm_handle.as_str(),
                             channel.as_str(),
-                        ) {
+                        );
+                        let discard_reason = confirm_capture_reason(&outcome);
+                        match &outcome {
                             Ok((ConfirmApplyOutcome::Confirmed, target)) => {
                                 let device = target
                                     .as_deref()
@@ -713,7 +716,6 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 let dev = channel_device_marker(channel.as_str());
                                 emit_cli_receipt_ignored_wrong_device(ctx.from, dev.as_str());
                                 emit_tui_receipt_ignored_wrong_device(ctx.from, dev.as_str());
-                                discard_reason = Some("ignored_wrong_device");
                             }
                             Err(reason) => {
                                 emit_marker(
@@ -721,7 +723,6 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                     Some(reason),
                                     &[("reason", reason), ("ok", "false")],
                                 );
-                                discard_reason = Some(reason);
                             }
                         }
                         queue_envelope_receipt(
@@ -756,14 +757,15 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                     }
                     if let Some(file_confirm) = parse_file_confirm_payload(&payload) {
                         commit_unpack_state()?;
-                        // ⚠ See D2: `None` means applied, so only rejects/ignores are captured.
-                        let mut discard_reason: Option<&str> = None;
-                        match apply_file_peer_confirmation(
+                        // ⚠ See D2: the decision is `confirm_capture_reason`'s; these arms emit.
+                        let outcome = apply_file_peer_confirmation(
                             ctx.from,
                             file_confirm.file_id.as_str(),
                             file_confirm.confirm_id.as_str(),
                             channel.as_str(),
-                        ) {
+                        );
+                        let discard_reason = confirm_capture_reason(&outcome);
+                        match &outcome {
                             Ok((ConfirmApplyOutcome::Confirmed, target)) => {
                                 let device = target
                                     .as_deref()
@@ -794,7 +796,6 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 let dev = channel_device_marker(channel.as_str());
                                 emit_cli_receipt_ignored_wrong_device(ctx.from, dev.as_str());
                                 emit_tui_receipt_ignored_wrong_device(ctx.from, dev.as_str());
-                                discard_reason = Some("ignored_wrong_device");
                             }
                             Err(reason) => {
                                 emit_marker(
@@ -802,7 +803,6 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                     Some(reason),
                                     &[("reason", reason), ("ok", "false")],
                                 );
-                                discard_reason = Some(reason);
                             }
                         }
                         queue_envelope_receipt(
@@ -884,33 +884,31 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                         }
                         if class == crate::adversarial::payload::ControlClass::DeliveredAck {
                             commit_unpack_state()?;
-                            // ⚠ See D2: `None` means the peer confirmation was APPLIED. It is set
-                            // by BOTH non-success arms below -- the reject AND the wrong-device
-                            // ignore -- so success here means `Confirmed` and nothing else.
-                            let mut discard_reason: Option<&str> = None;
-                            match apply_message_peer_confirmation(
+                            // ⚠ See D2: the decision is `confirm_capture_reason`'s; these arms
+                            // emit. Success here means `Confirmed` and nothing else -- BOTH
+                            // non-success arms capture, which is the asymmetry Ruling 9 closed
+                            // and Ruling 11.1 made structural.
+                            let outcome = apply_message_peer_confirmation(
                                 ctx.from,
                                 ctrl.msg_id.as_str(),
                                 channel.as_str(),
-                            ) {
+                            );
+                            let discard_reason = confirm_capture_reason(&outcome);
+                            match &outcome {
                                 Ok((ConfirmApplyOutcome::IgnoredWrongDevice, _)) => {
                                     let dev = channel_device_marker(channel.as_str());
                                     emit_cli_receipt_ignored_wrong_device(ctx.from, dev.as_str());
                                     emit_tui_receipt_ignored_wrong_device(ctx.from, dev.as_str());
-                                    // NA-0689 D-1328 RULING 9. ⚠ THIS LINE WAS MISSING WHILE THE
-                                    // IDENTICAL ARMS AT D2 AND D3 HAD IT, and the census that
-                                    // enumerated those two sub-arms did not enumerate this third
-                                    // one -- three lines above a needle it DID read. The class was
-                                    // identified and still under-enumerated, which is Ruling 6
-                                    // recurring after the rule that named it.
-                                    //
-                                    // It belongs to the destruction class by the census's own
-                                    // definition: `commit_unpack_state()?` above consumed the key
-                                    // BEFORE this outcome was known, nothing was applied, and the
-                                    // ack below would leave a marker as the only witness. It is
-                                    // NOT "already-processed" -- that requires a durable record
-                                    // proving prior application, and there is none.
-                                    discard_reason = Some("ignored_wrong_device");
+                                    // NA-0689 D-1328 RULING 9: this arm's capture was MISSING while
+                                    // D2's and D3's identical arms had it. It belongs to the
+                                    // destruction class by the census's own definition --
+                                    // `commit_unpack_state()?` above consumed the key BEFORE this
+                                    // outcome was known, nothing was applied, and the ack below
+                                    // would leave a marker as the only witness. It is NOT
+                                    // "already-processed": that needs a durable record proving
+                                    // prior application, and there is none. The decision now lives
+                                    // in `confirm_capture_reason`, so it cannot go missing at one
+                                    // site again.
                                 }
                                 Ok((ConfirmApplyOutcome::Confirmed, target)) => {
                                     let device = target
@@ -939,7 +937,6 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 }
                                 Err(reason) => {
                                     emit_message_state_reject(reason);
-                                    discard_reason = Some(reason);
                                 }
                             }
                             queue_envelope_receipt(
@@ -1221,6 +1218,36 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
 /// The wire behaviour is otherwise unchanged: the same ack, at the same moment, for every item
 /// whose capture succeeded — which is every item, absent a filesystem or vault failure.
 #[allow(clippy::too_many_arguments)]
+/// NA-0689 D-1328 RULING 11.1 — **THE CAPTURE DECISION FOR THE THREE SHARED-ACK CONFIRM SITES.**
+///
+/// D2 (`attachment_confirm`), D3 (`file_confirm`) and D4 (`delivered_ack`) each share one ack with
+/// a success arm, so each must decide per-outcome whether to capture. That decision used to be
+/// written out three times — and one of the three was written **wrong**: D4's `IgnoredWrongDevice`
+/// arm set no reason while its two structurally identical siblings did, so a wrong-device
+/// `delivered_ack` was destroyed rather than kept (Ruling 9). ⚠ **The three cannot stay split, so
+/// they no longer CAN be** — this is the only place the decision is made, and the symmetry is now
+/// structural rather than three tests agreeing.
+///
+/// ⚠ **THE `IgnoredWrongDevice` AND `Err` CAPTURES ARE HOSTILE-PEER WITNESSES.** A stock `qsc` peer
+/// cannot produce either: it would have to confirm an item it never received (the confirm must
+/// arrive on a **device-qualified** session for a device that is not the item's target), or name an
+/// item the receiver holds no record of. **That is not a gap — it is what these two captures are
+/// FOR.** It is also why they cannot be reached from an end-to-end arm, which is why the decision
+/// is pinned HERE, exhaustively, instead (D-1328 Ruling 11.5).
+///
+/// `None` means the confirm **APPLIED** and the item was genuinely processed — nothing to
+/// quarantine. Returning `Some` for a confirm that applied would turn the store into a copy of
+/// ordinary traffic.
+fn confirm_capture_reason(
+    outcome: &Result<(ConfirmApplyOutcome, Option<String>), &'static str>,
+) -> Option<&'static str> {
+    match outcome {
+        Ok((ConfirmApplyOutcome::Confirmed, _)) => None,
+        Ok((ConfirmApplyOutcome::IgnoredWrongDevice, _)) => Some("ignored_wrong_device"),
+        Err(reason) => Some(reason),
+    }
+}
+
 fn quarantine_then_ack(
     ctx: &ReceivePullCtx<'_>,
     seen_ids: &mut Option<dedup::RelaySeenIds>,

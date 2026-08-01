@@ -839,7 +839,9 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                         // a user message -- which made DESIGN F2's "a new ack type is a new
                         // type, no format break" false as built.
                         let class = crate::adversarial::payload::classify_control(&ctrl);
-                        if class == crate::adversarial::payload::ControlClass::UnknownControl {
+                        // NA-0689 D-1328 Ruling 12: the branch condition and the capture reason
+                        // now come from ONE place, so they cannot drift apart.
+                        if let Some(class_reason) = control_class_capture_reason(class) {
                             // Ours (it carries the namespace marker) but of a type this
                             // build does not know. IGNORE IT -- this is the seam a future
                             // read-receipt rides on, and rendering it would be the bug.
@@ -851,7 +853,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                             emit_marker(
                                 "control_ignored",
                                 None,
-                                &[("reason", "unknown_control_type"), ("v", "redacted")],
+                                &[("reason", class_reason), ("v", "redacted")],
                             );
                             queue_envelope_receipt(
                                 ctx,
@@ -876,7 +878,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 item.id.as_str(),
                                 crate::quarantine::Subclass::Unsupported,
                                 crate::quarantine::ContentKind::InnerPayload,
-                                "unknown_control_type",
+                                class_reason,
                                 "transport::receive_pull_and_write/unknown_control",
                                 &payload,
                             )?;
@@ -1245,6 +1247,34 @@ fn confirm_capture_reason(
         Ok((ConfirmApplyOutcome::Confirmed, _)) => None,
         Ok((ConfirmApplyOutcome::IgnoredWrongDevice, _)) => Some("ignored_wrong_device"),
         Err(reason) => Some(reason),
+    }
+}
+
+/// NA-0689 D-1328 RULING 12 — **D5's CAPTURE DECISION**, pinned where it is reachable.
+///
+/// D5 is the forward-compat seam: a payload that carries our namespace marker but whose type this
+/// build does not know. `classify_control` decides WHAT the payload is (and is exhaustively pinned
+/// by NA-0682's own tests); this decides what the SITE does about it. Splitting the two is what
+/// makes the second half testable at all.
+///
+/// ⚠ **THE MATCH IS EXHAUSTIVE ON PURPOSE.** A new `ControlClass` variant will fail to compile here
+/// rather than defaulting into "capture" or "ignore" by omission — the same protection the
+/// `ConfirmApplyOutcome` table gives D2/D3/D4.
+///
+/// ⚠ **LIKE D2–D4's NON-SUCCESS ARMS, D5's CAPTURE IS UNREACHABLE FROM A STOCK PEER — and for a
+/// reason that is the site's PURPOSE.** `UnknownControl` needs the marker plus an unknown `t`/`kind`
+/// or a version above `CTRL_VERSION_MAX`, and a sender of *this* build emits neither. It is the
+/// **forward-compat witness**: only a FUTURE build can trigger it. That is why the decision is
+/// pinned here instead of by an end-to-end arm (D-1328 Rulings 11.5 and 12).
+fn control_class_capture_reason(
+    class: crate::adversarial::payload::ControlClass,
+) -> Option<&'static str> {
+    use crate::adversarial::payload::ControlClass;
+    match class {
+        ControlClass::UnknownControl => Some("unknown_control_type"),
+        // Known to this build, or not ours at all: each is handled on its own path and none of
+        // them is a discard. Capturing here would store ordinary traffic.
+        ControlClass::DeliveredAck | ControlClass::DataEnvelope | ControlClass::NotControl => None,
     }
 }
 
@@ -4395,5 +4425,80 @@ mod confirm_capture_reason_tests {
         assert!(confirm_capture_reason(&applied).is_none());
         assert!(confirm_capture_reason(&ignored).is_some());
         assert!(confirm_capture_reason(&rejected).is_some());
+    }
+}
+
+// NA-0689 D-1328 RULING 12 — D5's CAPTURE DECISION, PINNED EXHAUSTIVELY AT THE DECISION LAYER.
+//
+// ⚠ WHY A UNIT TABLE AND NOT AN END-TO-END ARM -- THE SAME REASON AS D2/D3/D4, AND IT IS THE
+// SITE'S PURPOSE RATHER THAN A GAP. `UnknownControl` needs our namespace marker PLUS either an
+// unknown `t`/`kind` pair or a version above CTRL_VERSION_MAX. A sender of THIS build emits
+// neither: same binary, same version ceiling, same three known shapes. There is no env override,
+// and all three ReceiptControlPayload builders are crate-private, so no integration test can craft
+// one either. D5's capture is the FORWARD-COMPAT WITNESS -- only a FUTURE build can trigger it.
+//
+// ⚠ THE HONEST SHAPE OF THE WHOLE CAPTURE SURFACE, recorded above the test names because it is the
+// thing a later reader most needs and least expects: FOUR OF THE FIVE SITES' POSITIVES ARE
+// UNREACHABLE FROM A STOCK PEER, EACH FOR A REASON THAT IS THE SITE'S PURPOSE -- hostile-peer
+// witnesses at D2-D4, the forward-compat witness at D5. D1 alone is stock-reachable, because D1's
+// trigger is OUR OWN CRASH rather than the peer's behaviour.
+//
+// What a payload IS is `classify_control`'s call and is exhaustively pinned by NA-0682's own tests
+// (all four classes, both UnknownControl routes, and the silent-loss guard). What the SITE DOES
+// about it is pinned here.
+#[cfg(test)]
+mod control_class_capture_tests {
+    use super::control_class_capture_reason;
+    use crate::adversarial::payload::ControlClass;
+
+    /// THE ONE CLASS THAT IS CAPTURED. Judged not-for-this-build, NOT unrecoverable: a future build
+    /// could read it, but redelivery cannot save it because every current build acks it away on
+    /// sight -- so the store is the only thing that preserves it.
+    #[test]
+    fn an_unknown_control_is_captured_under_its_own_reason() {
+        assert_eq!(
+            control_class_capture_reason(ControlClass::UnknownControl),
+            Some("unknown_control_type"),
+            "the forward-compat seam must be KEPT, not acked away with a marker as the only witness"
+        );
+    }
+
+    /// ⚠ THE ZEROS, EXHAUSTIVE OVER EVERY OTHER VARIANT. Each of these has its own handling path and
+    /// none is a discard; capturing any of them would store ordinary traffic. `NotControl` matters
+    /// most: it is the silent-loss guard's class -- a user message that merely LOOKS like a control
+    /// payload -- and capturing it would swallow real user mail into the quarantine.
+    #[test]
+    fn every_class_this_build_understands_captures_nothing() {
+        for class in [
+            ControlClass::DeliveredAck,
+            ControlClass::DataEnvelope,
+            ControlClass::NotControl,
+        ] {
+            assert_eq!(
+                control_class_capture_reason(class),
+                None,
+                "{class:?} is handled on its own path and must never be quarantined"
+            );
+        }
+    }
+
+    /// ⚠ THE PARTITION ITSELF, asserted as a partition rather than as four independent facts:
+    /// exactly one class captures. A helper that captured two, or none, would satisfy neither.
+    #[test]
+    fn exactly_one_control_class_reaches_the_capture() {
+        let all = [
+            ControlClass::DeliveredAck,
+            ControlClass::DataEnvelope,
+            ControlClass::UnknownControl,
+            ControlClass::NotControl,
+        ];
+        let captured = all
+            .iter()
+            .filter(|c| control_class_capture_reason(**c).is_some())
+            .count();
+        assert_eq!(
+            captured, 1,
+            "exactly one of the four classes may reach the D5 capture"
+        );
     }
 }

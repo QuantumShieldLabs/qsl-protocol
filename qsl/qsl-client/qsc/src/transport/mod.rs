@@ -4303,3 +4303,97 @@ mod relay_push_diagnostic_tests {
         );
     }
 }
+
+// NA-0689 D-1328 RULING 11.2 — THE CAPTURE DECISION, PINNED EXHAUSTIVELY AT THE DECISION LAYER.
+//
+// ⚠ WHY THESE ARE UNIT TESTS AND NOT END-TO-END ARMS, STATED SO NOBODY "FIXES" IT LATER.
+// The two non-success outcomes CANNOT be produced by a stock `qsc` peer over the wire:
+// `IgnoredWrongDevice` needs a confirm arriving on a DEVICE-QUALIFIED session for a device that is
+// not the item's target -- i.e. the peer's second device confirming an item it never received --
+// and `Err` needs the peer to name an item the receiver holds no record of. Both are HOSTILE-PEER
+// behaviours, which is exactly what those captures exist to witness. An integration arm therefore
+// cannot reach them without a test seam inside the receive path, which was refused: if such a seam
+// is ever built it belongs on the SENDER side, so a crafted hostile frame feeds an UNMODIFIED
+// receive path. Filed as its own ENG against the negative-control audit track.
+//
+// So the decision is pinned HERE, where every arm IS reachable and each is trivially red-capable:
+// delete any one line of `confirm_capture_reason` and exactly one of these goes red.
+//
+// ⚠ THE TABLE IS EXHAUSTIVE OVER `ConfirmApplyOutcome`, which has exactly two variants, plus the
+// `Err` case -- three rows, closed. A new variant makes the helper's `match` fail to compile, so
+// this table cannot silently fall behind the enum.
+#[cfg(test)]
+mod confirm_capture_reason_tests {
+    use super::confirm_capture_reason;
+    use crate::timeline::ConfirmApplyOutcome;
+
+    /// SUCCESS CAPTURES NOTHING. This is the whole point of the shared-ack split: D2/D3/D4 ack the
+    /// same way whether or not the confirm applied, so a blanket capture would store every
+    /// successfully applied confirm and turn the quarantine into a copy of ordinary traffic.
+    #[test]
+    fn an_applied_confirm_is_never_captured() {
+        let applied = Ok((ConfirmApplyOutcome::Confirmed, Some("device-1".to_string())));
+        assert_eq!(
+            confirm_capture_reason(&applied),
+            None,
+            "a confirm that APPLIED must not be quarantined"
+        );
+        // The target device is carried for the emit arms, never for the decision.
+        let applied_no_target = Ok((ConfirmApplyOutcome::Confirmed, None));
+        assert_eq!(
+            confirm_capture_reason(&applied_no_target),
+            None,
+            "the decision must not depend on whether a target device was resolved"
+        );
+    }
+
+    /// POSITIVE 1 — the wrong-device ignore. ⚠ This is the arm that was MISSING at D4 while D2 and
+    /// D3 had it (Ruling 9); nothing was applied and the message key was already consumed, so the
+    /// item is unrecoverable at the moment it is acked.
+    #[test]
+    fn a_wrong_device_confirm_is_captured_with_its_own_reason() {
+        let ignored = Ok((
+            ConfirmApplyOutcome::IgnoredWrongDevice,
+            Some("device-2".to_string()),
+        ));
+        assert_eq!(
+            confirm_capture_reason(&ignored),
+            Some("ignored_wrong_device"),
+            "a confirm from the wrong device must be captured, not destroyed"
+        );
+    }
+
+    /// POSITIVE 2 — the apply reject. The reason is the callee's own, passed through UNCHANGED, so
+    /// the quarantine record says why rather than flattening every failure to one word.
+    #[test]
+    fn a_rejected_confirm_is_captured_under_the_callees_reason() {
+        let rejected: Result<(ConfirmApplyOutcome, Option<String>), &'static str> =
+            Err("timeline_entry_not_found");
+        assert_eq!(
+            confirm_capture_reason(&rejected),
+            Some("timeline_entry_not_found"),
+            "the reject reason must reach the quarantine record unflattened"
+        );
+        let other: Result<(ConfirmApplyOutcome, Option<String>), &'static str> =
+            Err("invalid_state_transition");
+        assert_eq!(
+            confirm_capture_reason(&other),
+            Some("invalid_state_transition"),
+            "a DIFFERENT reject must carry a DIFFERENT reason -- otherwise this pin would pass \
+             against a helper that returned one hardcoded string for every failure"
+        );
+    }
+
+    /// ⚠ THE SEPARATION ITSELF. Success and non-success must not merely differ in the reason they
+    /// carry -- one captures and one does not. Asserted as the partition, because that is the
+    /// property the three sites share and the one Ruling 9 found broken at a single site.
+    #[test]
+    fn success_and_non_success_land_on_opposite_sides_of_the_capture_boundary() {
+        let applied = Ok((ConfirmApplyOutcome::Confirmed, None));
+        let ignored = Ok((ConfirmApplyOutcome::IgnoredWrongDevice, None));
+        let rejected: Result<(ConfirmApplyOutcome, Option<String>), &'static str> = Err("nope");
+        assert!(confirm_capture_reason(&applied).is_none());
+        assert!(confirm_capture_reason(&ignored).is_some());
+        assert!(confirm_capture_reason(&rejected).is_some());
+    }
+}

@@ -224,7 +224,12 @@ fn ratchet_replay_reject_no_mutation() {
     assert!(recv1.status.success(), "receive 1 failed");
 
     server.enqueue_raw(ROUTE_TOKEN_BOB, ct);
-    let recv2 = receive_cmd(&cfg, server.base_url(), "bob", &out_dir, "1");
+    // ⚠ NA-0688 C3: DRAIN, and the reason is measured. With receipts on, the peer's ack is an
+    // extra envelope in this mailbox, so a `--max 1` pull consumes the ACK and the replayed
+    // ciphertext is never examined at all — the rejection below was not weakened, it was never
+    // reached. Probe: green at `--max 4`, red at `--max 1`. The replay rejection itself is
+    // untouched and still asserted at full strength.
+    let recv2 = receive_cmd(&cfg, server.base_url(), "bob", &out_dir, "4");
     assert!(!recv2.status.success(), "replay should fail");
     let out2 = combined_output(&recv2);
     assert!(out2.contains("event=ratchet_replay_reject"));

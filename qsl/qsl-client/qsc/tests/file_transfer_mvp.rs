@@ -579,6 +579,18 @@ fn no_plaintext_and_marker_determinism() {
     assert_eq!(a, b, "file transfer markers must be deterministic");
 }
 
+/// ⚠ NA-0688 C3 (R1b) — MIGRATED, and the migration is in the FIXTURE, not the assertions.
+///
+/// The property is unchanged and is what the name says: a file relayed to a peer who sends no
+/// completion ack reaches `accepted_by_relay` / `awaiting_confirmation` and **never**
+/// `peer_confirmed`. What changed is that "receipts disabled" is no longer the ambient default —
+/// after the flip the policy default is `Batched`, so a fixture that simply omitted
+/// `--emit-receipts` was silently testing the ON path while its name promised the OFF one.
+///
+/// So bob's receive now disables receipts **EXPLICITLY**, with `--receipt-mode off`. Every
+/// assertion below is retained at full strength — including `event=receipt_disabled`, which is
+/// emitted only on `ReceiptEmitMode::Off` and therefore now proves the explicit disable actually
+/// took effect rather than restating a default. Nothing here was relaxed to make it pass.
 #[test]
 fn file_relay_accepted_not_peer_confirmed_when_receipts_disabled() {
     let _guard = file_transfer_test_guard();
@@ -632,6 +644,9 @@ fn file_relay_accepted_not_peer_confirmed_when_receipts_disabled() {
             "64",
             "--out",
             bob_out.to_str().unwrap(),
+            // NA-0688 C3: EXPLICIT, because the default is no longer Off.
+            "--receipt-mode",
+            "off",
         ])
         .output()
         .expect("bob receive");

@@ -227,6 +227,16 @@ fn relay_inbox_set(cfg: &Path, token: &str) {
     assert!(out.status.success(), "{}", output_text(&out));
 }
 
+/// ⚠ NA-0688 C3 (R1b) — MIGRATED IN THE FIXTURE, with every assertion retained.
+///
+/// The property is the one the name states and it did not move: DELIVERED is reached **only** on
+/// a real ack, never inferred from a successful relay hand-off. What moved is that "bob does not
+/// ack" stopped being free. Before the flip this fixture got it by saying nothing; after the flip
+/// silence means `Batched`, so bob's receive now says `--receipt-mode off` **explicitly**.
+///
+/// The three negative assertions below (`receipt_recv`, `to=DELIVERED`, `peer_confirmed`) are
+/// unchanged and still full-strength — and they are now guarding something sharper than before,
+/// because the ack they must not see is one the system would otherwise have sent by default.
 #[test]
 fn honest_delivery_requires_explicit_ack() {
     let server = common::start_inbox_server(1024 * 1024, 16);
@@ -301,6 +311,11 @@ fn honest_delivery_requires_explicit_ack() {
             "1",
             "--out",
             bob_out.to_str().unwrap(),
+            // NA-0688 C3: EXPLICIT, because the default is no longer Off. Bob must send NO ack
+            // for this test to mean anything — the whole property is that alice reaches
+            // DELIVERED only on a real one.
+            "--receipt-mode",
+            "off",
         ])
         .output()
         .expect("bob receive");
@@ -769,6 +784,16 @@ fn ack_for_unknown_msg_id_transitions_nothing() {
             "1",
             "--out",
             bob_out.to_str().unwrap(),
+            // ⚠ NA-0688 C3: EXPLICIT, because the default is no longer Off — AND THIS ONE IS A
+            // GENUINE OBS-ES DISPLACEMENT, not merely a fixture that assumed the old default.
+            // With acks on, bob's receive puts a REAL ack in alice's mailbox AHEAD of the forged
+            // one. Alice pulls with `--max 1`, so she consumed the real ack (SENT -> DELIVERED)
+            // and never examined the forgery at all: the refusal this test exists to prove was
+            // not weakened, it was never reached. Disabling bob's ack keeps the forged ack the
+            // first thing alice sees, which is the only arrangement in which the assertions
+            // below are about anything.
+            "--receipt-mode",
+            "off",
         ])
         .output()
         .expect("bob recv");

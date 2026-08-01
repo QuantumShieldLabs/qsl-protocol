@@ -200,53 +200,69 @@ fn set_primary(cfg: &Path, label: &str, device: &str) {
     assert!(out.status.success(), "{}", output_text(&out));
 }
 
-/// NA-0686 / D-1325 (ENG-0087 instance #4) — a LEGACY SCRAPE THAT MUST REMAIN,
-/// hardened under ENG-0087's second clause instead of migrated under its first.
+/// ENG-0087 instance #4 — **MIGRATED to FIRST-PARTY acquisition at NA-0688 C3 (D-1327),
+/// in the same commit as the default flip, exactly as NA-0686 / D-1325 bound it.**
 ///
-/// ⚠ WHY FIRST-PARTY ACQUISITION IS NOT AVAILABLE HERE — measured, not assumed,
-/// because the obvious remedy looks like it should work and does not.
-/// `qsc util receipt-apply --msg-id` keys on the **TIMELINE ENTRY id**:
-/// `apply_message_peer_confirmation` -> `timeline_outbound_target_device(peer,
-/// msg_id)`. That id is minted by `timeline_append_entry_for_target` as
-/// `forced_id.unwrap_or_else(|| format!("{dir}-{ts}"))`, and the send path's
-/// only `forced_id` is `message_id: receipt_msg_id` — populated **only when the
-/// send requested a receipt**. Neither test here requests one, so the entry id
-/// is the short `out-<ts>` form, which is NOT the msgqueue record's 128-bit
-/// `msg_id`, and `QueuedMessage` carries no timeline id to read instead.
+/// ⚠ WHAT THIS REPLACED, AND WHY IT COULD NOT BE REPLACED EARLIER. The previous
+/// acquisition scraped `id=` out of `event=timeline_item` and hardened it under
+/// ENG-0087's *second* clause (fail loudly on the redaction sentinel) rather than
+/// its *first* (acquire first-party). That was not a preference: `qsc util
+/// receipt-apply --msg-id` keys on the **timeline entry id**, minted by
+/// `timeline_append_entry_for_target` as `forced_id.unwrap_or_else(|| format!("{dir}-{ts}"))`,
+/// and the send path's only `forced_id` is `message_id: receipt_msg_id` — populated
+/// **only when the send requested a receipt**. Neither test requested one, so the
+/// entry id was the short `out-<ts>` form and NOT the msgqueue record's 128-bit
+/// `msg_id`. NA-0686 measured the substitution RED (`event=error code=state_unknown`)
+/// and correctly declined to force it.
 ///
-/// Substituting `first_party_sent_msg_id` here — the remedy NA-0682 proved
-/// twice, and the one this lane's intent prescribed — was tried and **measured
-/// RED**: `event=error code=state_unknown`, the id-not-found rejection. The two
-/// identifiers coincide only when a receipt was requested, which is exactly the
-/// condition these tests lack. Making them request one would change the
-/// scenario and would pre-empt ENG-0086's pending default flip.
+/// **The flip is the flag that changes this**, which is why D-1325 bound the migration to
+/// this commit. Both fixtures now request a receipt EXPLICITLY (`--receipt delivered`,
+/// the Option D mechanism-by-explicit-flag shape), the timeline entry id therefore
+/// equals the queue record's `msg_id`, and the id is read from the sender's own store.
 ///
-/// So the scrape stays, and ENG-0087's rule 2 applies: it may no longer proceed
-/// on the sentinel as data. The coupling to redaction policy is NOT removed —
-/// it is made **loud**. When ENG-0086's flip lands and these ids widen, this
-/// fails AT THE SCRAPE with a named message, instead of three steps downstream
-/// in a different subsystem with a misleading code, which is what cost NA-0682
-/// a full diagnostic cycle.
-fn timeline_first_out_id(cfg: &Path, peer: &str) -> String {
-    let out = run(cfg, &["timeline", "list", "--peer", peer, "--limit", "20"]);
-    assert!(out.status.success(), "{}", output_text(&out));
-    let text = output_text(&out);
-    for line in text.lines() {
-        if !line.contains("event=timeline_item") {
+/// ⚠ **BOTH REDS WERE DEMONSTRATED, and the property was never unguarded.**
+///   * **OLD, red-then-retired:** with the fixtures requesting a receipt and the scrape
+///     still in place, both tests fail AT THE SCRAPE — *"scraped `id=` and got the
+///     redaction sentinel"* — because the widened id crosses the marker layer's
+///     `len() >= 24` threshold. That is NA-0686's interim tripwire firing exactly as it
+///     was designed to, and it is the reason the scrape is retired rather than kept.
+///     Recorded at `census/c3_eng0087_OLD_RED.log`.
+///   * **NEW, red-then-green:** feeding this acquisition an id the sender never minted
+///     makes `receipt-apply` reject with `code=state_unknown` and the confirmation
+///     assertions fail, so the new path is red-capable and not merely passing.
+///
+/// This is the third copy of NA-0682's `first_party_sent_msg_id` shape in the suite
+/// (`message_state_model.rs`, `timeline_delivery_contract_na0217f.rs`). The duplication is
+/// the suite's existing convention for it and is left as found rather than refactored from
+/// inside a defaults lane; the shared piece — the sentinel refusal — is already centralised
+/// in `common::scraped_marker_value` and is called below.
+fn first_party_sent_msg_id(cfg: &Path) -> String {
+    let root = cfg.join("msgqueue_v1");
+    let mut found: Vec<String> = Vec::new();
+    let contacts = fs::read_dir(&root).expect("msgqueue_v1 exists after a successful send");
+    for contact in contacts.flatten() {
+        let Ok(entries) = fs::read_dir(contact.path()) else {
             continue;
-        }
-        if !line.contains(" dir=out ") {
-            continue;
-        }
-        if let Some(id) = line
-            .split_whitespace()
-            .find_map(|tok| tok.strip_prefix("id=").map(|v| v.to_string()))
-        {
-            // ⚠ ENG-0087 rule 2: fail AT the defect, never on `<redacted>` as data.
-            return common::scraped_marker_value("id", id.as_str());
+        };
+        for e in entries.flatten() {
+            let name = e.file_name().to_string_lossy().to_string();
+            let Some(stem) = name.strip_suffix(".rec") else {
+                continue;
+            };
+            let Some((_seq, id)) = stem.split_once('_') else {
+                continue;
+            };
+            found.push(id.to_string());
         }
     }
-    panic!("missing outbound timeline item: {text}");
+    assert_eq!(
+        found.len(),
+        1,
+        "expected exactly one message record to read the id from, got {found:?}"
+    );
+    // ⚠ Guard the migration itself: never accept the redaction sentinel as an id again.
+    common::scraped_marker_value("msg_id", found[0].as_str());
+    found.pop().expect("one record")
 }
 
 #[test]
@@ -285,6 +301,11 @@ fn message_wrong_device_receipt_ignored_then_correct_device_confirms() {
             "bob",
             "--file",
             msg_path.to_str().expect("utf8"),
+            // NA-0688 C3 (ENG-0087 instance #4): request a receipt EXPLICITLY. This is what
+            // makes the timeline entry id equal the msgqueue record's `msg_id`, which is the
+            // precondition first-party acquisition needs and the one NA-0686 measured missing.
+            "--receipt",
+            "delivered",
         ],
     );
     assert!(send.status.success(), "{}", output_text(&send));
@@ -300,7 +321,7 @@ fn message_wrong_device_receipt_ignored_then_correct_device_confirms() {
         "{}",
         send_text
     );
-    let msg_id = timeline_first_out_id(&alice_cfg, "bob");
+    let msg_id = first_party_sent_msg_id(&alice_cfg);
 
     let wrong_ack_path = root.join("wrong_ack.json");
     let wrong_ack = format!(
@@ -399,10 +420,13 @@ fn message_primary_switch_does_not_rebind_outstanding_item() {
             "bob",
             "--file",
             payload.to_str().expect("utf8"),
+            // NA-0688 C3 (ENG-0087 instance #4): explicit receipt, same reason as the sibling.
+            "--receipt",
+            "delivered",
         ],
     );
     assert!(send1.status.success(), "{}", output_text(&send1));
-    let msg_id = timeline_first_out_id(&alice_cfg, "bob");
+    let msg_id = first_party_sent_msg_id(&alice_cfg);
 
     set_primary(&alice_cfg, "bob", d2.as_str());
 

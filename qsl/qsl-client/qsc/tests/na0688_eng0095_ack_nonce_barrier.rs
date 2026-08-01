@@ -142,6 +142,12 @@ fn recv_msg(
         ]);
     if emit_receipts {
         cmd.args(["--emit-receipts", "delivered"]);
+    } else {
+        // ⚠ NA-0688 C3: EXPLICIT, because the default is no longer Off. This arm's whole job is
+        // to attempt NO ack, so the two arms differ in exactly ONE variable. Inheriting a
+        // default would quietly turn the control into a second subject arm, and the
+        // single-variable experiment — the thing that proves the nonce barrier — would be gone.
+        cmd.args(["--receipt-mode", "off"]);
     }
     let out = cmd.output().expect("receive output");
     assert!(

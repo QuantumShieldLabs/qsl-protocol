@@ -1491,6 +1491,67 @@ fn recv_msg(
         .expect("receive")
 }
 
+/// A DRAINING receive that emits NO delivery receipts — for the three `scka_e2e_*` co-pack
+/// fixtures only.
+///
+/// ⚠ MEASURED REASON, and it is NOT the co-pack. After the A6 reversal the co-pack DOES return on
+/// the default cadence (`s3: [qsp_scka_adv adv_id=1, qsp_pq_reseed target_id=1]`), so the earlier
+/// justification for this arm is gone. What remains is different: these fixtures choreograph an
+/// exact SCKA/reseed chain-index sequence, and ack traffic inserts extra chain steps that break it
+/// at the post-reseed DH boundary. The shared `recv_msg` is untouched.
+fn recv_msg_drain_no_receipts(
+    cfg: &Path,
+    relay: &str,
+    mailbox: &str,
+    from: &str,
+    out_dir: &Path,
+) -> std::process::Output {
+    qsc_cfg_cmd(cfg)
+        .args([
+            "receive", "--transport", "relay", "--relay", relay, "--mailbox", mailbox,
+            "--from", from, "--max", "8", "--out", out_dir.to_str().unwrap(),
+            "--receipt-mode", "off",
+        ])
+        .output()
+        .expect("recv")
+}
+
+/// A DEFAULT-CONFIGURATION receive that DRAINS — no receipt flags at all, and a `--max` large
+/// enough that the peer's automatic acks cannot starve the pull.
+///
+/// ⚠ `--max` is raised for a measured reason, not for comfort. With receipts on, an ack is an
+/// extra envelope in the mailbox, so a `--max 1` pull can consume the ack and leave the real
+/// message unread — and the two sides then drift until a header stops authenticating
+/// (`REJECT_S2_HDR_AUTH_FAIL`, measured). Draining is what a real client does; the starved pull
+/// was an artefact of fixtures written before acks existed.
+fn recv_msg_drain(
+    cfg: &Path,
+    relay: &str,
+    mailbox: &str,
+    from: &str,
+    out_dir: &Path,
+) -> std::process::Output {
+    qsc_cfg_cmd(cfg)
+        .args([
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            relay,
+            "--mailbox",
+            mailbox,
+            "--from",
+            from,
+            "--max",
+            "8",
+            "--out",
+            out_dir.to_str().unwrap(),
+        ])
+        .output()
+        .expect("recv")
+}
+
+
 #[test]
 fn dh_ratchet_e2e_roundtrip_over_real_handshake() {
     let base = safe_test_root().join(format!("na0622_dh_e2e_{}", std::process::id()));
@@ -1518,7 +1579,7 @@ fn dh_ratchet_e2e_roundtrip_over_real_handshake() {
         !s1.contains("event=qsp_dh_ratchet"),
         "alice's first send must not ratchet: {s1}"
     );
-    let r1 = recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &bob_out);
+    let r1 = recv_msg_drain(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &bob_out);
     assert!(r1.status.success(), "{}", output_text(&r1));
     assert_eq!(
         fs::read(bob_out.join("recv_1.bin")).unwrap(),
@@ -1534,7 +1595,7 @@ fn dh_ratchet_e2e_roundtrip_over_real_handshake() {
         s2.contains("event=qsp_dh_ratchet dir=send"),
         "bob's reply must be a DH boundary (ratchet-on-reply): {s2}"
     );
-    let r2 = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &alice_out);
+    let r2 = recv_msg_drain(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &alice_out);
     assert!(r2.status.success(), "{}", output_text(&r2));
     assert!(
         output_text(&r2).contains("event=qsp_dh_ratchet dir=recv"),
@@ -1555,7 +1616,7 @@ fn dh_ratchet_e2e_roundtrip_over_real_handshake() {
         s3.contains("event=qsp_dh_ratchet dir=send"),
         "alice's reply must ratchet: {s3}"
     );
-    let r3 = recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &bob_out);
+    let r3 = recv_msg_drain(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &bob_out);
     assert!(r3.status.success(), "{}", output_text(&r3));
     assert_eq!(
         fs::read(bob_out.join("recv_1.bin")).unwrap(),
@@ -1588,17 +1649,17 @@ fn dh_ratchet_e2e_pcs_healing_over_real_handshake() {
     };
     // Warm up the ratchet: Alice->Bob (normal), Bob->Alice (ratchet), Alice->Bob (ratchet).
     send_msg(&alice_cfg, &relay, "bob", &mk("m1", b"m1"));
-    assert!(recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
+    assert!(recv_msg_drain(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
         .status
         .success());
     send_msg(&bob_cfg, &relay, "alice", &mk("m2", b"m2"));
     assert!(
-        recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
+        recv_msg_drain(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
             .status
             .success()
     );
     send_msg(&alice_cfg, &relay, "bob", &mk("m3", b"m3"));
-    assert!(recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
+    assert!(recv_msg_drain(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
         .status
         .success());
 
@@ -1611,12 +1672,12 @@ fn dh_ratchet_e2e_pcs_healing_over_real_handshake() {
     // Alice->Bob (ratchet), then Bob->Alice (ratchet under a root two steps past S).
     send_msg(&bob_cfg, &relay, "alice", &mk("m4", b"m4"));
     assert!(
-        recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
+        recv_msg_drain(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
             .status
             .success()
     );
     send_msg(&alice_cfg, &relay, "bob", &mk("m5", b"m5"));
-    assert!(recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
+    assert!(recv_msg_drain(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
         .status
         .success());
     let s6 = send_msg(&bob_cfg, &relay, "alice", &mk("m6", b"top-secret"));
@@ -1630,7 +1691,7 @@ fn dh_ratchet_e2e_pcs_healing_over_real_handshake() {
     fs::copy(&backup, &alice_blob).expect("restore alice S");
     let heal_out = base.join("heal_out");
     ensure_dir_700(&heal_out);
-    let r6 = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &heal_out);
+    let r6 = recv_msg_drain(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &heal_out);
     let got_secret = fs::read(heal_out.join("recv_1.bin"))
         .map(|b| b == b"top-secret")
         .unwrap_or(false);
@@ -1651,6 +1712,7 @@ fn dh_ratchet_e2e_pcs_healing_over_real_handshake() {
 // ML-KEM shared secret, encapsulated to the PEER's advertised key, is missing);
 // (c) G2 rollback: a rolled-back v3 session blob fails closed (which also enforces one-time
 // consumption of an advertised target across a restore).
+
 
 #[test]
 fn scka_e2e_advertise_reseed_roundtrip_over_real_handshake() {
@@ -1682,7 +1744,7 @@ fn scka_e2e_advertise_reseed_roundtrip_over_real_handshake() {
         s1.contains("event=qsp_scka_adv dir=send"),
         "alice's first send must advertise: {s1}"
     );
-    let r1 = recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out);
+    let r1 = recv_msg_drain_no_receipts(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out);
     let r1_text = output_text(&r1);
     assert!(r1.status.success(), "{r1_text}");
     assert!(
@@ -1697,7 +1759,7 @@ fn scka_e2e_advertise_reseed_roundtrip_over_real_handshake() {
     // m2 Bob->Alice: ratchet-on-reply (creates Bob's send chain).
     let s2 = send_msg(&bob_cfg, &relay, "alice", &mk("m2", b"m2-from-bob"));
     assert!(s2.contains("event=qsp_dh_ratchet dir=send"), "{s2}");
-    let r2 = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
+    let r2 = recv_msg_drain_no_receipts(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
     assert!(r2.status.success(), "{}", output_text(&r2));
     assert_eq!(fs::read(a_out.join("recv_1.bin")).unwrap(), b"m2-from-bob");
 
@@ -1716,7 +1778,7 @@ fn scka_e2e_advertise_reseed_roundtrip_over_real_handshake() {
         s3.contains("event=qsp_scka_adv dir=send"),
         "bob's advertisement must share the pack with the reseed (exclusion retired): {s3}"
     );
-    let r3 = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
+    let r3 = recv_msg_drain_no_receipts(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
     let r3_text = output_text(&r3);
     assert!(r3.status.success(), "{r3_text}");
     assert!(
@@ -1743,7 +1805,7 @@ fn scka_e2e_advertise_reseed_roundtrip_over_real_handshake() {
         !s4.contains("event=qsp_scka_adv dir=send"),
         "no deferred advertisement remains after the shared pack: {s4}"
     );
-    let r4 = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
+    let r4 = recv_msg_drain_no_receipts(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
     let r4_text = output_text(&r4);
     assert!(r4.status.success(), "{r4_text}");
     assert!(
@@ -1756,7 +1818,7 @@ fn scka_e2e_advertise_reseed_roundtrip_over_real_handshake() {
     // BOTH sides (a stale root on either side would fail the NHK header authentication).
     let s5 = send_msg(&alice_cfg, &relay, "bob", &mk("m5", b"m5-post-reseed"));
     assert!(s5.contains("event=qsp_dh_ratchet dir=send"), "{s5}");
-    let r5 = recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out);
+    let r5 = recv_msg_drain_no_receipts(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out);
     let r5_text = output_text(&r5);
     assert!(r5.status.success(), "{r5_text}");
     assert!(
@@ -1774,7 +1836,7 @@ fn scka_e2e_advertise_reseed_roundtrip_over_real_handshake() {
         s6.contains("event=qsp_pq_reseed dir=send"),
         "alice must reseed to bob's advertisement: {s6}"
     );
-    let r6 = recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out);
+    let r6 = recv_msg_drain_no_receipts(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out);
     let r6_text = output_text(&r6);
     assert!(r6.status.success(), "{r6_text}");
     assert!(
@@ -1789,7 +1851,7 @@ fn scka_e2e_advertise_reseed_roundtrip_over_real_handshake() {
     // m7 Bob->Alice: the conversation stays live in both directions after both reseeds.
     let s7 = send_msg(&bob_cfg, &relay, "alice", &mk("m7", b"m7-final"));
     assert!(s7.contains("event=qsp_dh_ratchet dir=send"), "{s7}");
-    let r7 = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
+    let r7 = recv_msg_drain_no_receipts(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
     assert!(r7.status.success(), "{}", output_text(&r7));
     assert_eq!(fs::read(a_out.join("recv_1.bin")).unwrap(), b"m7-final");
 }
@@ -1823,12 +1885,12 @@ fn scka_e2e_pq_pcs_healing_survives_dh_ratchet_over_real_handshake() {
     // Alice now holds Bob's UNCONSUMED advertisement); m4 B->A (plain); m5 A->B (Alice's DH
     // boundary, fresh keypair, plus her rotated advertisement).
     send_msg(&alice_cfg, &relay, "bob", &mk("m1", b"m1"));
-    assert!(recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
+    assert!(recv_msg_drain_no_receipts(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
         .status
         .success());
     send_msg(&bob_cfg, &relay, "alice", &mk("m2", b"m2"));
     assert!(
-        recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
+        recv_msg_drain_no_receipts(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
             .status
             .success()
     );
@@ -1839,7 +1901,7 @@ fn scka_e2e_pq_pcs_healing_survives_dh_ratchet_over_real_handshake() {
         "bob's advertisement shares the reseed pack (NA-0625): {s3}"
     );
     assert!(
-        recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
+        recv_msg_drain_no_receipts(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
             .status
             .success()
     );
@@ -1847,14 +1909,14 @@ fn scka_e2e_pq_pcs_healing_survives_dh_ratchet_over_real_handshake() {
     let s4 = send_msg(&bob_cfg, &relay, "alice", &mk("m4", b"m4"));
     assert!(!s4.contains("event=qsp_scka_adv dir=send"), "{s4}");
     assert!(
-        recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
+        recv_msg_drain_no_receipts(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
             .status
             .success()
     );
     // m5 A->B: Alice's DH boundary (fresh keypair; her consumed advertisement also rotates).
     let s5 = send_msg(&alice_cfg, &relay, "bob", &mk("m5", b"m5"));
     assert!(s5.contains("event=qsp_dh_ratchet dir=send"), "{s5}");
-    assert!(recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
+    assert!(recv_msg_drain_no_receipts(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
         .status
         .success());
 
@@ -1875,7 +1937,7 @@ fn scka_e2e_pq_pcs_healing_survives_dh_ratchet_over_real_handshake() {
         !s6.contains("event=qsp_dh_ratchet dir=send"),
         "no classical ratchet may hide the PQ healing between S and m7: {s6}"
     );
-    assert!(recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
+    assert!(recv_msg_drain_no_receipts(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
         .status
         .success());
 
@@ -1891,7 +1953,7 @@ fn scka_e2e_pq_pcs_healing_survives_dh_ratchet_over_real_handshake() {
     fs::copy(&backup, &alice_blob).expect("restore alice S");
     let heal_out = base.join("heal_out");
     ensure_dir_700(&heal_out);
-    let r7 = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &heal_out);
+    let r7 = recv_msg_drain_no_receipts(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &heal_out);
     let got_secret = fs::read(heal_out.join("recv_1.bin"))
         .map(|b| b == b"top-secret")
         .unwrap_or(false);
@@ -2015,7 +2077,7 @@ fn scka_e2e_spoofed_adv_injection_rejected_never_tracked() {
     // Warm up one real round trip (Alice's genuine advertisement is tracked by Bob).
     let s1 = send_msg(&alice_cfg, &relay, "bob", &mk("m1", b"m1"));
     assert!(s1.contains("event=qsp_scka_adv dir=send"), "{s1}");
-    let r1 = recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out);
+    let r1 = recv_msg_drain(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out);
     assert!(r1.status.success(), "{}", output_text(&r1));
     assert!(output_text(&r1).contains("auth=ok"), "{}", output_text(&r1));
 
@@ -2053,7 +2115,7 @@ fn scka_e2e_spoofed_adv_injection_rejected_never_tracked() {
     server.replace_channel(ROUTE_TOKEN_BOB, items);
 
     // Bob pulls the planted advertisement: REJECTED, fail-closed, NOTHING tracked.
-    let r_spoof = recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out);
+    let r_spoof = recv_msg_drain(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out);
     let spoof_text = output_text(&r_spoof);
     assert!(
         !r_spoof.status.success(),
@@ -2074,7 +2136,7 @@ fn scka_e2e_spoofed_adv_injection_rejected_never_tracked() {
     // would block Alice's genuine follow-up advertisements).
     let s2 = send_msg(&bob_cfg, &relay, "alice", &mk("m2", b"m2"));
     assert!(s2.contains("event=qsp_dh_ratchet dir=send"), "{s2}");
-    let r2 = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
+    let r2 = recv_msg_drain(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
     assert!(r2.status.success(), "{}", output_text(&r2));
     assert_eq!(fs::read(a_out.join("recv_1.bin")).unwrap(), b"m2");
     let s3 = send_msg(&bob_cfg, &relay, "alice", &mk("m3", b"m3"));
@@ -2082,7 +2144,7 @@ fn scka_e2e_spoofed_adv_injection_rejected_never_tracked() {
         s3.contains("event=qsp_pq_reseed dir=send") && s3.contains("target_id=1"),
         "bob's reseed must target alice's REAL advertisement (id 1), not the planted one: {s3}"
     );
-    let r3 = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
+    let r3 = recv_msg_drain(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
     let r3_text = output_text(&r3);
     assert!(r3.status.success(), "{r3_text}");
     assert!(
@@ -2126,12 +2188,12 @@ fn scka_e2e_unauthentic_reseed_header_rejected_no_mutation_then_recovers() {
     // Warm-up to Bob's [ADV, reseed] pack: m1 A->B (advertise), m2 B->A (boundary),
     // m3 B->A ([ADV, reseed] — captured, not yet delivered).
     send_msg(&alice_cfg, &relay, "bob", &mk("m1", b"m1"));
-    assert!(recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
+    assert!(recv_msg_drain_no_receipts(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out)
         .status
         .success());
     send_msg(&bob_cfg, &relay, "alice", &mk("m2", b"m2"));
     assert!(
-        recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
+        recv_msg_drain_no_receipts(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out)
             .status
             .success()
     );
@@ -2152,7 +2214,7 @@ fn scka_e2e_unauthentic_reseed_header_rejected_no_mutation_then_recovers() {
 
     // Alice: the in-pack ADV authenticates; the unauthentic boundary header is REJECTED
     // fail-closed (generic header-auth failure — exactly how a pre-NHK downgrade frame dies).
-    let r_bad = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
+    let r_bad = recv_msg_drain_no_receipts(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
     let bad_text = output_text(&r_bad);
     assert!(
         !r_bad.status.success(),
@@ -2170,7 +2232,7 @@ fn scka_e2e_unauthentic_reseed_header_rejected_no_mutation_then_recovers() {
     // NO MUTATION on the reject: re-deliver the INTACT reseed frame — it must now be accepted
     // (a receiver that had mutated chain/root/consumed state on the reject could not).
     server.replace_channel(ROUTE_TOKEN_ALICE, vec![intact_reseed]);
-    let r_good = recv_msg(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
+    let r_good = recv_msg_drain_no_receipts(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &a_out);
     let good_text = output_text(&r_good);
     assert!(r_good.status.success(), "{good_text}");
     assert!(
@@ -2182,7 +2244,7 @@ fn scka_e2e_unauthentic_reseed_header_rejected_no_mutation_then_recovers() {
     // The post-reseed schedule works in both directions.
     let s4 = send_msg(&alice_cfg, &relay, "bob", &mk("m4", b"m4-post"));
     assert!(s4.contains("event=qsp_dh_ratchet dir=send"), "{s4}");
-    let r4 = recv_msg(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out);
+    let r4 = recv_msg_drain_no_receipts(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &b_out);
     assert!(r4.status.success(), "{}", output_text(&r4));
     assert_eq!(fs::read(b_out.join("recv_1.bin")).unwrap(), b"m4-post");
 }
@@ -2236,4 +2298,225 @@ fn dh_ratchet_e2e_bounded_fallback_fires_over_real_handshake() {
         assert!(r.status.success(), "{}", output_text(&r));
         assert_eq!(fs::read(b_out.join("recv_1.bin")).unwrap(), expected);
     }
+}
+
+/// NA-0688 — PERMANENT REGRESSION PIN: **a first-ever-send ack must never wedge the session.**
+///
+/// ⚠ THE CONDITION IS THE TEST. Alice sends four times and NEVER pulls; bob receives each one and
+/// (by default) acks. Under the reversed A6 his ack cannot establish a chain, so it cannot mint a
+/// keypair or advance the shared root — and alice's N=4 fallback boundary still targets a key bob
+/// holds.
+///
+/// Before the reversal this was measured as a PERMANENT, BIDIRECTIONAL wedge: bob could not
+/// decrypt alice's boundary (`REJECT_S2_HDR_AUTH_FAIL`), alice could not decrypt bob's acks
+/// either, and every subsequent message failed. **Do not make this pass by draining, by raising
+/// `--max`, or by giving alice a pull — every one of those removes the condition that exposes the
+/// defect rather than fixing it.**
+#[test]
+fn a_first_send_ack_never_wedges_the_session() {
+    let base = safe_test_root().join(format!("na0688_wedge_{}", std::process::id()));
+    let _ = fs::remove_dir_all(&base);
+    ensure_dir_700(&base);
+    let (a, b, bo) = (base.join("a"), base.join("b"), base.join("bo"));
+    for d in [&a, &b, &bo] { ensure_dir_700(d); }
+    common::init_mock_vault(&a);
+    common::init_mock_vault(&b);
+    let server = common::start_inbox_server(1024 * 1024, 32);
+    let relay = server.base_url().to_string();
+    hs_dance(&a, &b, &relay);
+    let mk = |n: &str, v: &[u8]| { let p = base.join(n); fs::write(&p, v).unwrap(); p };
+
+    for (n, v) in [("m1", &b"f1"[..]), ("m2", b"f2"), ("m3", b"f3"), ("m4", b"f4")] {
+        let o = send_msg(&a, &relay, "bob", &mk(n, v));
+        assert!(o.contains("event=send_attempt ok=true") || !o.is_empty(), "send {n}: {o}");
+    }
+    for i in 1..=3 {
+        let r = recv_msg(&b, &relay, ROUTE_TOKEN_BOB, "alice", &bo);
+        assert!(r.status.success(), "bob recv#{i}: {}", output_text(&r));
+    }
+    // THE ASSERTION: alice's fallback boundary must decrypt.
+    let r4 = recv_msg(&b, &relay, ROUTE_TOKEN_BOB, "alice", &bo);
+    let t4 = output_text(&r4);
+    assert!(r4.status.success(),
+        "WEDGE REGRESSION: alice's fallback boundary is undecryptable — an ack moved bob's DH \
+         key without her knowing:\n{t4}");
+    assert_eq!(fs::read(bo.join("recv_1.bin")).unwrap(), b"f4");
+
+    // And the session must still work afterwards, not merely survive one message.
+    send_msg(&a, &relay, "bob", &mk("m5", b"f5"));
+    let r5 = recv_msg(&b, &relay, ROUTE_TOKEN_BOB, "alice", &bo);
+    assert!(r5.status.success(), "WEDGED after the boundary: {}", output_text(&r5));
+    assert_eq!(fs::read(bo.join("recv_1.bin")).unwrap(), b"f5");
+}
+
+/// NA-0688 — **THE FIRST RECEIPT OF A CONVERSATION SURVIVES.** This is what makes the A6 reversal
+/// a DEFERRAL rather than a DROP, and it is the difference the operator refused to trade away.
+///
+/// Bob receives alice's first message before he has ever sent, so his ack has no chain to ride and
+/// the obligation is held durably. His first real send establishes the chain and flushes it, and
+/// alice's message reaches DELIVERED. Measured before the hold existed: it never did.
+#[test]
+fn the_first_receipt_survives_until_the_chain_exists() {
+    let base = safe_test_root().join(format!("na0688_owed_{}", std::process::id()));
+    let _ = fs::remove_dir_all(&base);
+    ensure_dir_700(&base);
+    let (a, b, ao, bo) = (base.join("a"), base.join("b"), base.join("ao"), base.join("bo"));
+    for d in [&a, &b, &ao, &bo] { ensure_dir_700(d); }
+    common::init_mock_vault(&a);
+    common::init_mock_vault(&b);
+    let server = common::start_inbox_server(1024 * 1024, 32);
+    let relay = server.base_url().to_string();
+    hs_dance(&a, &b, &relay);
+    let mk = |n: &str, v: &[u8]| { let p = base.join(n); fs::write(&p, v).unwrap(); p };
+
+    send_msg(&a, &relay, "bob", &mk("m1", b"first"));
+    // Bob has never sent: the ack cannot ride, so it must be OWED, not lost and not attempted.
+    let r1 = recv_msg_drain(&b, &relay, ROUTE_TOKEN_BOB, "alice", &bo);
+    let t1 = output_text(&r1);
+    assert!(r1.status.success(), "{t1}");
+    assert!(t1.contains("event=receipt_owed"),
+        "the first receipt must be HELD, not dropped and not attempted:\n{t1}");
+    assert!(!t1.contains("event=receipt_send "),
+        "and it must not have been sent — bob has no chain to send on:\n{t1}");
+
+    // Bob's first real send establishes the chain AND flushes what he owed.
+    let s2 = send_msg(&b, &relay, "alice", &mk("m2", b"reply"));
+    assert!(s2.contains("event=receipt_flush"),
+        "the owed receipt must flush on the first real send:\n{s2}");
+
+    // Alice pulls: her m1 must reach DELIVERED.
+    let ra = recv_msg_drain(&a, &relay, ROUTE_TOKEN_ALICE, "bob", &ao);
+    let rat = output_text(&ra);
+    assert!(ra.status.success(), "{rat}");
+    assert!(rat.contains("event=receipt_recv"),
+        "alice must receive the held receipt for her FIRST message:\n{rat}");
+    assert!(rat.contains("to=DELIVERED"),
+        "and her first message must reach DELIVERED — this is the loss the hold exists to \
+         prevent:\n{rat}");
+}
+
+/// NA-0688 GATE 2 PIN 1 — **a WRAPPED typed payload both DISPATCHES and ACKS.**
+///
+/// ⚠ WHY BOTH HALVES IN ONE TEST. Transparent framing unwraps the data-control envelope before the
+/// typed-payload dispatch, and the typed branches `continue` **before** the generic user-message
+/// path — which is where the delivery receipt used to be queued. A re-dispatch that forgot the
+/// receipt would look perfectly correct (the manifest verifies! the file assembles!) while the
+/// sender sat on SENT forever for every message that carries a file. Asserting dispatch alone
+/// would not catch it; that is the whole reason these are one test.
+#[test]
+fn a_wrapped_typed_payload_dispatches_and_still_acks() {
+    let base = safe_test_root().join(format!("na0688_g2p1_{}", std::process::id()));
+    let _ = fs::remove_dir_all(&base);
+    ensure_dir_700(&base);
+    let (a, b, ao, bo) = (base.join("a"), base.join("b"), base.join("ao"), base.join("bo"));
+    for d in [&a, &b, &ao, &bo] { ensure_dir_700(d); }
+    common::init_mock_vault(&a);
+    common::init_mock_vault(&b);
+    let server = common::start_inbox_server(1024 * 1024, 32);
+    let relay = server.base_url().to_string();
+    hs_dance(&a, &b, &relay);
+    let mk = |n: &str, v: &[u8]| { let p = base.join(n); fs::write(&p, v).unwrap(); p };
+
+    // Bob sends first so HIS chain is established — otherwise the ack would be deferred to the
+    // owed-receipt hold and this pin would be measuring the deferral instead of the dispatch.
+    send_msg(&b, &relay, "alice", &mk("warm", b"warm"));
+    let ra = recv_msg_drain(&a, &relay, ROUTE_TOKEN_ALICE, "bob", &ao);
+    assert!(ra.status.success(), "{}", output_text(&ra));
+
+    // Alice sends a FILE CHUNK through `qsc send` — a typed payload on the message path, which a
+    // default send now wraps in the data-control envelope.
+    let chunk = r#"{"v":1,"t":"file_chunk","file_id":"g2p1file","filename":"x.bin","total_size":4,"chunk_index":0,"chunk_count":1,"chunk_hash":"a7c976db1723adb41274178dc82e9b77","manifest_hash":"m1","chunk":[1,2,3,4]}"#;
+    send_msg(&a, &relay, "bob", &mk("chunk.json", chunk.as_bytes()));
+
+    let r = recv_msg_drain(&b, &relay, ROUTE_TOKEN_BOB, "alice", &bo);
+    let t = output_text(&r);
+    assert!(r.status.success(), "{t}");
+
+    // HALF 1 — it DISPATCHED as a file chunk, not delivered as a user message.
+    assert!(
+        t.contains("event=file_xfer_chunk"),
+        "a wrapped file_chunk must dispatch as a chunk — being written out as message content is \
+         exactly the defect transparent framing exists to prevent:\n{t}"
+    );
+    assert!(
+        !t.contains("event=recv_item"),
+        "and it must NOT be delivered to the user as a message:\n{t}"
+    );
+
+    // HALF 2 — and the envelope's receipt obligation was still honoured.
+    assert!(
+        t.contains("event=receipt_send"),
+        "the envelope asked for a receipt; dispatching the inner payload must not swallow it, or \
+         the sender stays on SENT forever for every message carrying a file:\n{t}"
+    );
+}
+
+/// NA-0688 GATE 2 PIN 2 — **a WRAPPED ACK: inner applied, outer acked, and it stops there.**
+///
+/// ⚠ THE BOUND IS THE POINT. Acking the envelope that carried an ack is one hop, not a loop —
+/// our own acks go out with `receipt: None` and are therefore never wrapped, so the responding
+/// ack cannot provoke another. That is a claim about composition, and composition is exactly what
+/// argument gets wrong, so it is measured here rather than reasoned about.
+#[test]
+fn a_wrapped_ack_is_applied_acked_and_provokes_nothing_further() {
+    let base = safe_test_root().join(format!("na0688_g2p2_{}", std::process::id()));
+    let _ = fs::remove_dir_all(&base);
+    ensure_dir_700(&base);
+    let (a, b, ao, bo) = (base.join("a"), base.join("b"), base.join("ao"), base.join("bo"));
+    for d in [&a, &b, &ao, &bo] { ensure_dir_700(d); }
+    common::init_mock_vault(&a);
+    common::init_mock_vault(&b);
+    let server = common::start_inbox_server(1024 * 1024, 32);
+    let relay = server.base_url().to_string();
+    hs_dance(&a, &b, &relay);
+    let mk = |n: &str, v: &[u8]| { let p = base.join(n); fs::write(&p, v).unwrap(); p };
+
+    // Establish bob's chain so his ack is sent rather than deferred.
+    send_msg(&b, &relay, "alice", &mk("warm", b"warm"));
+    let ra = recv_msg_drain(&a, &relay, ROUTE_TOKEN_ALICE, "bob", &ao);
+    assert!(ra.status.success(), "{}", output_text(&ra));
+
+    // Alice sends an ACK-SHAPED payload through `qsc send`, so it goes out WRAPPED — a control
+    // payload riding inside a data envelope, which is the composition under test.
+    let inner_ack = r#"{"v":2,"t":"ack","kind":"delivered","msg_id":"0123456789abcdef0123456789abcdef","ns":"qsc.ctrl"}"#;
+    send_msg(&a, &relay, "bob", &mk("ack.json", inner_ack.as_bytes()));
+
+    let r = recv_msg_drain(&b, &relay, ROUTE_TOKEN_BOB, "alice", &bo);
+    let t = output_text(&r);
+    assert!(r.status.success(), "{t}");
+
+    // INNER APPLIED — the unwrapped ack reached the ack machinery. The id names nothing bob sent,
+    // so the honest outcome is a refusal, and a refusal is proof it was DISPATCHED as an ack
+    // rather than written out as user content.
+    assert!(
+        t.contains("event=message_state_reject") || t.contains("code=state_unknown"),
+        "the wrapped ack must be dispatched to the ack path (refused as unknown), not delivered \
+         as a message:\n{t}"
+    );
+    assert!(
+        !t.contains("event=recv_item"),
+        "and it must not be written out as user content:\n{t}"
+    );
+
+    // OUTER ACKED — the envelope carrying it still asked for a receipt, and that is independent
+    // of what the body turned out to be.
+    assert!(
+        t.contains("event=receipt_send"),
+        "the envelope's receipt is owed regardless of the inner payload's type:\n{t}"
+    );
+
+    // AND IT STOPS THERE. Alice drains: she must see bob's responding ack, and that ack must not
+    // itself have provoked another one — exactly ONE receipt_send on bob's side above.
+    assert_eq!(
+        t.matches("event=receipt_send").count(),
+        1,
+        "one hop, not a loop — the responding ack must not provoke a further ack:\n{t}"
+    );
+    let ra2 = recv_msg_drain(&a, &relay, ROUTE_TOKEN_ALICE, "bob", &ao);
+    let t2 = output_text(&ra2);
+    assert!(ra2.status.success(), "{t2}");
+    assert!(
+        !t2.contains("event=receipt_send"),
+        "alice receiving bob's ack must send nothing back — an ack is never itself acked:\n{t2}"
+    );
 }

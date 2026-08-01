@@ -104,6 +104,7 @@ const QSC_LEGACY_IN_MESSAGE_STAGE_ENV: &str = "QSC_LEGACY_IN_MESSAGE_STAGE";
 // NA0487_HELPER_API_NO_PRODUCTION_BEHAVIOR_CHANGE_OK:
 // binding fuzz helper exports live behind qsc_binding_fuzz_helper only.
 pub mod adversarial;
+mod owed_receipts;
 pub mod attachments;
 pub mod clock;
 pub mod cmd;
@@ -780,31 +781,62 @@ pub struct ReceiptPolicy {
 }
 
 impl Default for ReceiptPolicy {
-    /// ⚠ NA-0682 (D617 §4 F6 — **DEFERRED 2026-07-28, operator-ruled**): delivery acks default
-    /// **OFF**. The MECHANISM ships; the ON-BY-DEFAULT FLIP is its own future lane.
+    /// ⚠ NA-0688 C3 (R1b): delivery acks default **ON**, mode **Batched**, BOTH HALVES.
     ///
-    /// F6 originally ruled acks ON, and that ruling recorded itself as **"REVISITABLE under real
-    /// testing — a config default, not a structural choice."** This is that clause firing, not an
-    /// overturn: full-suite testing proved the flip is a **protocol-cadence change**, not a UX
-    /// default. Turning acks on means:
-    ///   1. the ack becomes the recipient's first send, so it CONSUMES the DH ratchet-on-reply
-    ///      boundary — the ratchet rotates on an automatic control message, not a human reply;
-    ///   2. it triggers a **PQ RESEED per received message** (`qsp_pq_reseed dir=send`), moving
-    ///      the most expensive operation in the system from once-per-exchange to once-per-receive
-    ///      — a cost never measured;
-    ///   3. every receive produces a send — a structural per-message timing signal;
-    ///   4. a boundary-originating send differs in envelope shape from a non-boundary one.
+    /// ⚠ THIS COMMENT IS A BEHAVIOUR-ENCODER, NOT DECORATION. It previously carried NA-0682's
+    /// deferral and the four findings that justified it, and every one of those findings has
+    /// now been ANSWERED BY MEASUREMENT rather than by picking a value. Rewriting it to the
+    /// new truth is part of the flip; leaving it would have left the file arguing against its
+    /// own code.
     ///
-    /// Proven by single-variable experiment: acks Batched → the DH ratchet guard fails; acks Off →
-    /// it passes. Same precedent as F5 keeping ENG-0043's lease-default flip out of this lane.
+    /// What each of NA-0682's four deferral findings turned into:
+    ///   1. "the ack CONSUMES the DH ratchet-on-reply boundary" — TRUE, and measured: before
+    ///      passivation an ack originated `qsp_dh_ratchet dir=send reason=reply`. C2 closed
+    ///      it: a control send originates no ROTATION, and does not count toward the N/T
+    ///      cadence either (the counter was a second, quieter channel). It still ESTABLISHES
+    ///      its own chain if it has none — a necessity, reported `reason=first_send`.
+    ///   2. "a PQ RESEED per received message" — closed by the same suppression;
+    ///      `boundaries_since_reseed` only advances on a rotation an ack no longer takes.
+    ///   3. "every receive produces a send" — TRUE and UNCHANGED. Receipts are coalesced into
+    ///      the end-of-pull flush, so it is one send per PULL rather than per message, and
+    ///      there is no wall-clock deferral in v1. Stated honestly rather than mitigated.
+    ///   4. "envelope shape differs" — MEASURED from the relay's stored bytes, three arms,
+    ///      each drained separately so every number is labelled rather than positional:
+    ///      **ack 1024 · SHORT user reply (20-byte body) 1024 · LONG user reply (4096-byte
+    ///      body) 17682.** An ack is ALWAYS padded up to the Standard 1024 floor; a user message
+    ///      is UNBUCKETED, so it coincides with the floor only while its body fits under it and
+    ///      takes its natural size otherwise. **So the two are distinguishable by size for any
+    ///      message that does not fit under the floor**, and the prescribed remedy cannot close
+    ///      it: the ack is already the padded one, and no amount of padding a receipt makes it
+    ///      resemble an unbucketed message of arbitrary size. Only bucketing the USER path
+    ///      would — see ENG-0098. ⚠ A user send that also mints an SCKA advertisement emits
+    ///      TWO envelopes (1320 + 1024) where an ack emits one, so envelope COUNT is a second
+    ///      distinguishing signal alongside size. Recorded, not papered over.
     ///
-    /// ⚠ **BOTH HALVES default Off** — this recipient-honours side AND the sender-requests side
-    /// (`relay_send`'s `receipt` argument). A half-flip would leave the wire noisy while the
-    /// feature looked disabled. See the filed ENG for the question the flip lane must answer by
-    /// design session and measurement, never by a default value.
+    /// ⚠ **BOTH HALVES ARE ON — AND THIS FIELD IS ONLY THE RECIPIENT-HONOURS HALF.**
+    /// The sender-requests half lives in `resolve_sender_receipt_request`, which consults THIS
+    /// policy, so turning receipts off here turns off both asking and answering.
+    ///
+    /// ⚠ HOW THE SENDER HALF WAS NEARLY SHIPPED BROKEN, kept because the failure shape is the
+    /// reusable part. It was first flipped by giving `RelayMessageSender::new` a new default —
+    /// which is where D622 §1b.4 located it — and MEASUREMENT showed that value never reached
+    /// the wire: `qsc send` builds its sender with `.with_meta(…, receipt)`, and `with_meta`
+    /// assigns the caller's choice UNCONDITIONALLY, so an absent `--receipt` overwrote the new
+    /// default microseconds after it was set. `qsc outbox retry` and `qsc outbox discard`, which
+    /// do not call `with_meta`, DID inherit it. Both halves were pinned in isolation — a unit
+    /// test on the constructor's field, integration tests on the recipient's behaviour — and
+    /// nothing asserted that the constructor's value survives to the WIRE.
+    ///
+    /// The evidence was a NEGATIVE result from an instrument that could have gone positive:
+    /// ENG-0087 instance #4 carries a sentinel NA-0686 recorded as firing red BY DESIGN if this
+    /// default flipped, and under the full flip it **did not fire**.
+    ///
+    /// Ruled (STOP #016 option (a)) and closed: an absent `--receipt` means the policy default,
+    /// resolved at every construction site by one function. `na0688_c3_sender_default` pins it
+    /// end-to-end via the peer's ack rather than any sender-side field.
     fn default() -> Self {
         Self {
-            mode: ReceiptEmitMode::Off,
+            mode: ReceiptEmitMode::Batched,
             batch_window_ms: RECEIPT_BATCH_WINDOW_MS_DEFAULT,
             jitter_ms: RECEIPT_JITTER_MS_DEFAULT,
             file_confirm_mode: FileConfirmEmitMode::CompleteOnly,
@@ -873,6 +905,58 @@ pub fn load_receipt_policy_from_account() -> ReceiptPolicy {
         }
     }
     policy
+}
+
+/// THE SENDER-SIDE RULE, IN ONE PLACE — NA-0688 C3 (D622 R1b; operator ruling on STOP #016,
+/// option (a)). **Every production `RelayMessageSender` gets its receipt request from here.**
+///
+/// ⚠ WHY IT HAS TO BE ONE FUNCTION, AND WHY IT LIVES HERE RATHER THAN IN `with_meta`.
+/// The C3 flip was first written as a new default on `RelayMessageSender::new`, and MEASUREMENT
+/// showed it never reached the wire: `qsc send` builds its sender with `.with_meta(…, receipt)`,
+/// and `with_meta` assigns the caller's choice UNCONDITIONALLY, so an absent `--receipt`
+/// overwrote the new default microseconds after it was set. Meanwhile `qsc outbox retry` and
+/// `qsc outbox discard`, which do NOT call `with_meta`, DID inherit it — so the very same queued
+/// row could go out with or without a receipt request depending on which command drained it.
+///
+/// The fix is NOT to make `with_meta` conditional. `with_meta` takes the caller's choice
+/// **verbatim in both directions**, that contract is pinned, and it is what lets a caller
+/// deliberately disable a receipt. The fix is to resolve the caller's choice BEFORE handing it
+/// over, at every construction site, through this one function — so "absent" cannot mean
+/// different things on different paths.
+///
+/// | input | result | why |
+/// |---|---|---|
+/// | `None` (no flag) | the POLICY default | R1b: the sender half is only ON if a default send actually asks |
+/// | `Some(Off)` | `None` | explicit off is verbatim and beats the policy |
+/// | `Some(Delivered)` | `Some(Delivered)` | explicit on is verbatim and beats the policy |
+///
+/// ⚠ **The policy consulted is the SAME `ReceiptPolicy` the recipient half honours**, so a user
+/// who turns receipts off persistently turns off both asking and answering with one setting —
+/// rather than discovering that a switch labelled "delivery receipts" only moved one half.
+/// `load_receipt_policy_from_account` returns the compiled-in default when the vault is locked,
+/// so this is safe to call before unlock and in unit tests.
+///
+/// ⚠ **RESIDUAL, recorded not solved — and NARROWER than it first looked.** This resolves per
+/// INVOCATION and a queued row carries no field for the caller's choice, so the obvious worry is
+/// that an explicit `--receipt off` is forgotten by a later retry. **Measurement says otherwise
+/// for the normal case:** `msgqueue::attempt_one` packs a record **at most once in its life** and
+/// every later attempt REPLAYS the same bytes verbatim (a crypto-safety invariant — re-packing
+/// would burn a second message key), and `receipt_kind` is consumed at PACK time. So the caller's
+/// choice is already persisted, as packed ciphertext rather than as a field, and a retry cannot
+/// change it.
+///
+/// The gap is only this: a record whose FIRST PACK FAILED is still unpacked when a retry runs, so
+/// that retry resolves against the policy and an explicit `off` would be lost. Filed under
+/// ENG-0096, where the row schema gains fields anyway.
+pub(crate) fn resolve_sender_receipt_request(explicit: Option<ReceiptRequest>) -> Option<ReceiptKind> {
+    match explicit {
+        Some(ReceiptRequest::Off) => None,
+        Some(ReceiptRequest::Delivered) => Some(ReceiptKind::Delivered),
+        None => match load_receipt_policy_from_account().mode {
+            ReceiptEmitMode::Off => None,
+            ReceiptEmitMode::Batched | ReceiptEmitMode::Immediate => Some(ReceiptKind::Delivered),
+        },
+    }
 }
 
 fn resolve_receipt_policy(overrides: ReceiptPolicyOverrides) -> ReceiptPolicy {
@@ -1024,6 +1108,38 @@ enum PendingReceipt {
     },
 }
 
+/// The DATA-ENVELOPE receipt obligation, honoured independently of what the inner body turned
+/// out to be — NA-0688 C3 (D622; operator ruling on STOP #018, Gate 2 item 1).
+///
+/// ⚠ WHY THIS EXISTS AS ITS OWN CALL. Under transparent framing the envelope is unwrapped before
+/// the typed-payload dispatch runs, and the typed branches (`attachment_descriptor`,
+/// `file_chunk`/`file_manifest`, the two confirms) all `continue` **before** the generic
+/// user-message path — which is where the delivery receipt used to be queued. Re-dispatching
+/// without this call would have silently dropped the receipt for every wrapped typed payload:
+/// the sender would sit on SENT forever for exactly the messages that carry a file.
+///
+/// **The rule, ruled rather than improvised: acking is INDEPENDENT of inner dispatch.** If the
+/// envelope asked for a receipt, the receipt is owed, whatever the body turned out to be — a
+/// manifest, a confirm, an ack, or an ordinary message. `request_msg_id` is the ENVELOPE's id,
+/// never anything read out of the body.
+fn queue_envelope_receipt(
+    ctx: &ReceivePullCtx<'_>,
+    queue: &mut Vec<PendingReceipt>,
+    request_receipt: bool,
+    request_msg_id: &str,
+) -> CliResult {
+    if request_receipt && !request_msg_id.is_empty() {
+        queue_or_send_receipt(
+            ctx,
+            queue,
+            PendingReceipt::Message {
+                msg_id: request_msg_id.to_string(),
+            },
+        )?;
+    }
+    Ok(())
+}
+
 fn queue_or_send_receipt(
     ctx: &ReceivePullCtx<'_>,
     queue: &mut Vec<PendingReceipt>,
@@ -1077,9 +1193,100 @@ fn queue_or_send_receipt(
     Ok(())
 }
 
+/// Is our SENDING chain to this peer still unseeded (i.e. we have never sent to them)?
+///
+/// ⚠ Read-only, and it must stay that way — this is consulted on the receive path purely to
+/// decide whether an ack can ride at all. A missing session reads as "unseeded", which is the
+/// conservative answer: it defers the receipt rather than attempting a send that cannot work.
+fn qsp_send_chain_unseeded(peer: &str) -> bool {
+    match qsp_session_for_channel(peer) {
+        Ok(st) => zero32(&st.send.ck_ec) || zero32(&st.send.ck_pq),
+        Err(_) => true,
+    }
+}
+
+/// Flush every receipt owed to a peer, now that our sending chain exists.
+///
+/// ⚠ CALLED FROM THE SEND PATH, AND THAT COUPLING IS INTRINSIC RATHER THAN INCIDENTAL: the first
+/// real send is the exact moment an owed receipt becomes sendable, because it is the thing that
+/// establishes the chain. The consult is read-only from the send path's point of view apart from
+/// the removal, and the common case (nothing owed) costs one read and no write.
+///
+/// A receipt that still cannot be sent is RE-RECORDED rather than dropped — a failed flush must
+/// not be a silent loss, which is the whole reason the hold exists.
+pub(crate) fn flush_owed_receipts(peer: &str, relay: &str) {
+    if !owed_receipts::any_owed(peer) {
+        return;
+    }
+    let owed = match owed_receipts::take_for_peer(peer) {
+        Ok(v) => v,
+        Err(code) => {
+            // Vault locked between receive and send: degrade like msgqueue ("unlock to send"),
+            // never fail the send itself over a receipt.
+            emit_marker("receipt_flush_deferred", Some(code), &[("code", code)]);
+            return;
+        }
+    };
+    let mut sent = 0usize;
+    for msg_id in owed {
+        match send_delivered_receipt_ack(relay, peer, &msg_id) {
+            Ok(()) => {
+                sent += 1;
+                emit_marker(
+                    "receipt_send",
+                    None,
+                    &[
+                        ("kind", "delivered"),
+                        ("bucket", "small"),
+                        ("msg_id", "<redacted>"),
+                        ("held", "true"),
+                    ],
+                );
+            }
+            Err(_) => {
+                // Put it back. Losing it here would reintroduce exactly the drop this store
+                // exists to prevent.
+                let _ = owed_receipts::record(peer, &msg_id);
+            }
+        }
+    }
+    if sent > 0 {
+        let n = sent.to_string();
+        emit_marker("receipt_flush", None, &[("count", n.as_str())]);
+    }
+}
+
 fn send_pending_receipt(ctx: &ReceivePullCtx<'_>, item: PendingReceipt) -> CliResult {
     match item {
         PendingReceipt::Message { msg_id } => {
+            // ⚠ NA-0688 — THE DEFERRAL, AND IT IS THE REASON THE A6 REVERSAL IS SAFE.
+            //
+            // With A6 reversed an ack can no longer establish a chain, so a message from a peer
+            // we have never sent to has nowhere to ride. Dropping it here was MEASURED to lose
+            // the first receipt of every conversation — the sender sits on SENT forever. Instead
+            // the obligation is written down durably and flushed on our first real send.
+            //
+            // The check is cheap and read-only in the common case: an established chain skips it
+            // entirely.
+            if qsp_send_chain_unseeded(ctx.from) {
+                match owed_receipts::record(ctx.from, &msg_id) {
+                    Ok(()) => {
+                        emit_marker(
+                            "receipt_owed",
+                            None,
+                            &[("reason", "chain_unseeded"), ("msg_id", "<redacted>")],
+                        );
+                        return Ok(());
+                    }
+                    // ⚠ A locked vault is a PAUSE, not a failure — the same degrade msgqueue
+                    // uses. The receipt stays owed in spirit but unrecorded; say so rather than
+                    // failing the receive, which would strand the MESSAGE as well as the ack.
+                    Err(code) => {
+                        emit_marker("receipt_owed_failed", Some(code), &[("code", code)]);
+                        return Ok(());
+                    }
+                }
+            }
             match send_delivered_receipt_ack(ctx.relay, ctx.from, &msg_id) {
                 Ok(()) => {
                     emit_marker(
@@ -1605,8 +1812,29 @@ fn qsp_pack(
     // USER send honours it. An ack that cleared the due-state without rotating would be worse
     // than an ack that rotated, and it is guarded in both directions.
     let chain_unseeded = zero32(&st_cur.send.ck_ec) || zero32(&st_cur.send.ck_pq);
-    let rotation_permitted = chain_unseeded || origination.may_originate();
-    let (wire, next_state, msg_n) = if qsp_should_ratchet(&st_cur, &trig, now) && rotation_permitted
+    // ⚠ NA-0688 — A6 IS REVERSED. A CONTROL SEND ORIGINATES NOTHING, INCLUDING ESTABLISHMENT.
+    //
+    // A6 originally carved out chain ESTABLISHMENT as a necessity every send could perform,
+    // including an ack. That exception was measured to break sessions: `send_boundary` MINTS A
+    // FRESH DH KEYPAIR AND ADVANCES THE SHARED ROOT (it is the only way the refimpl can seed a
+    // send chain), so an ack moved the recipient's key — and a sender who had not pulled that
+    // ack then computed a boundary against a stale key. Measured result: a PERMANENT,
+    // BIDIRECTIONAL wedge — the sender could not decrypt, the recipient could not decrypt the
+    // sender's acks either, and subsequent messages failed too.
+    //
+    // So R1a is restored to its literal meaning: an ack requires an ALREADY-ESTABLISHED sending
+    // chain. When there is none the receipt is not dropped — it is written to the durable
+    // owed-receipt hold and flushed on the peer's first real send, which establishes normally.
+    // That distinction between REFUSING and DEFERRING is the whole design; refusing alone was
+    // measured to lose the first receipt of every conversation.
+    let boundary_permitted = origination.may_originate();
+    if chain_unseeded && !boundary_permitted {
+        return Err(QspPackError {
+            code: "qsp_chain_unseeded",
+            reason: Some("CONTROL_SEND_CANNOT_ESTABLISH"),
+        });
+    }
+    let (wire, next_state, msg_n) = if qsp_should_ratchet(&st_cur, &trig, now) && boundary_permitted
     {
         let out =
             send_boundary(&c, &c, &c, &c, st_cur.clone(), plaintext).map_err(|e| QspPackError {
@@ -1635,11 +1863,37 @@ fn qsp_pack(
             None,
             &[("dir", "send"), ("reason", reason)],
         );
-        trig = QspTriggerState {
-            pending_send_ratchet: false,
-            msgs_since_ratchet: 0,
-            last_ratchet_unix_secs: now,
-        };
+        // ⚠ NA-0688 C3 — THE ESTABLISHMENT MUST NOT EAT THE HUMAN'S OWED REPLY.
+        //
+        // This reset used to be unconditional, and C2's establishment exception therefore had
+        // a hole: a CONTROL send that established an unseeded chain cleared
+        // `pending_send_ratchet`, silently consuming the rotation the human's reply was owed —
+        // the exact outcome RULING A's deferred-rotation semantics exist to prevent, arriving
+        // through the one branch a control send is still allowed to take.
+        //
+        // Found by C3's flip: with receipts on by default, `a_user_reply_still_rotates_the_
+        // ratchet` went red, because bob's ack established his chain and his real reply then
+        // had nothing left to rotate on. C2's own guard caught C2's own defect, one commit later.
+        //
+        // ⚠ THE PREDICATE IS `may_originate()`, NOT THE BOUNDARY PERMISSION. The first attempt
+        // at this fix keyed on `boundary_permitted` (then misnamed `rotation_permitted`), which
+        // is TRUE for an establishing control send — so it read as correct and changed nothing
+        // on the only path it was written for. Instrumenting the trigger state at each pack
+        // measured `orig=control ... rot_perm=1` and `pending 1 -> 0` across the establishing
+        // ack; the fix is keyed on the question actually being asked. Only a send permitted to
+        // ROTATE consumes the due-state.
+        //
+        // The WHOLE reset is skipped, not just the flag: `msgs_since_ratchet` and
+        // `last_ratchet_unix_secs` are the N and T fallbacks' due-state by the same argument,
+        // and an establishing boundary must not consume any of it. A USER send is unaffected —
+        // `may_originate()` is true for `User`, so it resets exactly as it always has.
+        if origination.may_originate() {
+            trig = QspTriggerState {
+                pending_send_ratchet: false,
+                msgs_since_ratchet: 0,
+                last_ratchet_unix_secs: now,
+            };
+        }
         if scka_on && !scka.is_default() {
             scka.boundaries_since_reseed = scka.boundaries_since_reseed.saturating_add(1);
             scka_dirty = true;
@@ -2647,11 +2901,19 @@ mod message_state_tests {
     /// If a future lane flips this ON, this test SHOULD go red — that is the point. Flip it in
     /// the same commit, with the measurement the flip ENG requires.
     #[test]
-    fn receipt_default_is_off_recipient_half() {
+    fn receipt_default_is_batched_recipient_half() {
+        // NA-0688 C3 (R1b) — MIGRATED, not rewritten down. This pin was
+        // `receipt_default_is_off_recipient_half` and asserted `Off`; it was DESIGNED to go red
+        // when the flip landed, and it did. The property it defends is unchanged — the
+        // recipient-honours default must be pinned so it cannot drift silently — only the
+        // pinned value moved, and the name now states what is true.
+        //
+        // ⚠ `Batched`, not `Immediate`: receipts are coalesced into the end-of-pull flush
+        // (R2a as amended). `Immediate` would put a send on the wire per received message.
         assert_eq!(
             super::ReceiptPolicy::default().mode,
-            super::ReceiptEmitMode::Off,
-            "delivery acks must be OFF by default until the flip lane rules otherwise"
+            super::ReceiptEmitMode::Batched,
+            "delivery acks are ON (Batched) by default as of NA-0688 C3"
         );
     }
 

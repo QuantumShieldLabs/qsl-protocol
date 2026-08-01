@@ -24,6 +24,10 @@ struct Store {
     last_target: Option<String>,
     last_route_token_header: Option<String>,
     last_auth: Option<String>,
+    /// ⚠ NA-0688 C3: EVERY request, not just the last. A default receive now performs a PULL
+    /// *and* an ack PUSH, so "the last request" no longer identifies the pull — and asserting on
+    /// the last one would silently start asserting about the ack instead.
+    requests: Vec<(String, Option<String>)>,
 }
 
 impl Store {
@@ -35,6 +39,7 @@ impl Store {
             last_target: None,
             last_route_token_header: None,
             last_auth: None,
+            requests: Vec::new(),
         }
     }
 }
@@ -58,6 +63,10 @@ impl AuthRelayServer {
 
     fn last_target(&self) -> Option<String> {
         self.store.lock().expect("store lock").last_target.clone()
+    }
+
+    fn requests(&self) -> Vec<(String, Option<String>)> {
+        self.store.lock().expect("store lock").requests.clone()
     }
 
     fn last_route_token_header(&self) -> Option<String> {
@@ -397,6 +406,7 @@ fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<Store>>) {
         let mut s = store.lock().expect("store lock");
         s.last_target = Some(target.to_string());
         s.last_route_token_header = route_token_header.clone();
+        s.requests.push((target.to_string(), route_token_header.clone()));
         s.last_auth = Some(auth.clone());
         drop(s);
         let _ = write_plain(&mut stream, 401, "ERR_UNAUTHORIZED");
@@ -414,6 +424,7 @@ fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<Store>>) {
         let mut s = store.lock().expect("store lock");
         s.last_target = Some(target.to_string());
         s.last_route_token_header = route_token_header.clone();
+        s.requests.push((target.to_string(), route_token_header.clone()));
         s.last_auth = Some(auth.clone());
         let id = s.next_id.to_string();
         s.next_id = s.next_id.saturating_add(1);
@@ -452,6 +463,7 @@ fn handle_conn(mut stream: TcpStream, store: Arc<Mutex<Store>>) {
         };
         let mut s = store.lock().expect("store lock");
         s.last_target = Some(target.to_string());
+        s.requests.push((target.to_string(), route_token_header.clone()));
         s.last_route_token_header = route_token_header;
         s.last_auth = Some(auth);
         let mut items = Vec::new();
@@ -665,16 +677,49 @@ fn relay_auth_with_token_send_receive_ok_and_no_secret_leak() {
         "missing recv_commit marker"
     );
     assert!(out_dir.join("recv_1.bin").exists(), "expected recv file");
-    assert_eq!(
-        server.last_target().as_deref(),
-        Some("/v1/pull?max=1"),
-        "receive should use canonical token-free pull path"
+    // ⚠ NA-0688 C3 — SHARPENED, NOT RELAXED. This asserted `last_target()` was the pull; with
+    // receipts on by default a receive performs a PULL **and then an ack PUSH**, so the last
+    // request is the push and the old assertion would have started asserting about the ack while
+    // still claiming to be about the pull. Both operations are now named and checked separately,
+    // which is strictly more than before.
+    let reqs = server.requests();
+    let pulls: Vec<&(String, Option<String>)> =
+        reqs.iter().filter(|(t, _)| t.starts_with("/v1/pull")).collect();
+    let pushes: Vec<&(String, Option<String>)> =
+        reqs.iter().filter(|(t, _)| t.starts_with("/v1/push")).collect();
+    assert!(
+        !pulls.is_empty(),
+        "the receive must actually pull, or the rest of this is vacuous: {reqs:?}"
     );
-    assert_eq!(
-        server.last_route_token_header().as_deref(),
-        Some(ROUTE_TOKEN_BOB),
-        "receive should carry route token in X-QSL-Route-Token"
+    // THE PULL ITSELF stays the canonical, token-free path — no credential in the URL.
+    for (target, route) in &pulls {
+        assert_eq!(
+            target, "/v1/pull?max=1",
+            "receive must use the canonical token-free pull path: {reqs:?}"
+        );
+        assert_eq!(
+            route.as_deref(),
+            Some(ROUTE_TOKEN_BOB),
+            "the pull must carry the route token in X-QSL-Route-Token, not in the URL: {reqs:?}"
+        );
+    }
+    // THE ACK is a SEPARATE PUSH, and it carries the standard peer route token — it does not
+    // ride the pull, and it invents no other credential path.
+    assert!(
+        !pushes.is_empty(),
+        "a default receive must ack, so a push must appear: {reqs:?}"
     );
+    for (target, route) in &pushes {
+        assert_eq!(
+            target, "/v1/push",
+            "the ack must use the canonical push path: {reqs:?}"
+        );
+        assert_eq!(
+            route.as_deref(),
+            Some(ROUTE_TOKEN_BOB),
+            "the ack push must carry the standard peer route token: {reqs:?}"
+        );
+    }
 
     assert!(!send_out.contains(token), "send output leaked token");
     assert!(!recv_out.contains(token), "recv output leaked token");

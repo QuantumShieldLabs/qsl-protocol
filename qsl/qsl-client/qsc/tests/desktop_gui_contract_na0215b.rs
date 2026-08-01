@@ -602,6 +602,69 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
         bob_recv_text
     );
 
+    // =====================================================================================
+    // ARM 1 — ⚠ THE WINDOW, PINNED AS CORRECT BEHAVIOUR RATHER THAN LEFT AS AN ABSENCE.
+    //
+    // Bob is `established_recv_only` with `chainkey_unset` — a state this fixture asserts
+    // DELIBERATELY above, and one the surface must handle. After NA-0688 reversed A6 an ack can
+    // no longer establish a chain, so bob CANNOT confirm delivery yet: his receipt is written to
+    // the durable owed-receipt hold instead of sent.
+    //
+    // The message is therefore SENT and not DELIVERED, and that is **correct**, not a failure.
+    // Asserting it explicitly is the point: a bare "peer_confirmed is absent" would also pass if
+    // the receipt had been silently LOST, which is the one outcome this design exists to prevent.
+    let alice_recv_pre = qsc_with_unlock(&alice_cfg)
+        .args([
+            "receive", "--transport", "relay", "--relay", server.base_url(),
+            "--mailbox", ROUTE_TOKEN_ALICE, "--from", "bob", "--max", "4",
+            "--out", alice_out.to_str().unwrap(),
+        ])
+        .output()
+        .expect("alice receive (pre-reply)");
+    assert!(alice_recv_pre.status.success(), "{}", output_text(&alice_recv_pre));
+    assert!(
+        !output_text(&alice_recv_pre).contains("QSC_DELIVERY state=peer_confirmed"),
+        "a recipient who has never sent cannot confirm delivery yet: {}",
+        output_text(&alice_recv_pre)
+    );
+    let timeline_pre = qsc_with_unlock(&alice_cfg)
+        .args(["timeline", "list", "--peer", "bob", "--limit", "8"])
+        .output()
+        .expect("timeline list (pre-reply)");
+    assert!(timeline_pre.status.success(), "{}", output_text(&timeline_pre));
+    let timeline_pre_text = output_text(&timeline_pre);
+    assert!(
+        timeline_pre_text.contains("state=SENT"),
+        "the surface must show the message SENT while the receipt is owed — the window is real \
+         and it is correct: {timeline_pre_text}"
+    );
+    assert!(
+        !timeline_pre_text.contains("state=peer_confirmed"),
+        "and it must not claim delivery it has no evidence for: {timeline_pre_text}"
+    );
+
+    // =====================================================================================
+    // ARM 2 — ⚠ AND THE CONFIRMATION DOES ARRIVE, ON BOB'S FIRST REAL SEND.
+    //
+    // His send lights the chain and flushes what he owed. The receipt alice then receives is the
+    // one owed for HER ORIGINAL message — this is the durable hold delivering, proven end to end
+    // at the GUI-contract layer rather than only in the protocol tests.
+    let bob_reply = base.join("bob_reply.bin");
+    fs::write(&bob_reply, b"bob-first-reply").expect("write bob reply");
+    let bob_send = qsc_with_unlock(&bob_cfg)
+        .args([
+            "send", "--transport", "relay", "--relay", server.base_url(),
+            "--to", "alice", "--file", bob_reply.to_str().unwrap(),
+        ])
+        .output()
+        .expect("bob first send");
+    assert!(bob_send.status.success(), "{}", output_text(&bob_send));
+    let bob_send_text = output_text(&bob_send);
+    assert!(
+        bob_send_text.contains("event=receipt_flush"),
+        "bob's first send must flush the receipt he owed: {bob_send_text}"
+    );
+
     let alice_recv = qsc_with_unlock(&alice_cfg)
         .args([
             "receive",

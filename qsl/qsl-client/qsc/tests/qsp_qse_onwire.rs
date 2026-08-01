@@ -219,7 +219,31 @@ fn on_wire_is_envelope_not_raw() {
         None,
     )
     .expect("recv_wire");
-    assert_eq!(out.plaintext, plaintext);
+    // ⚠ NA-0688 C3 — MIGRATED TO THE NEW TRUTH, AND IT ASSERTS MORE THAN BEFORE.
+    //
+    // This was `assert_eq!(out.plaintext, plaintext)`. Under the ruled TRANSPARENT FRAMING a
+    // default send wraps its body in the data-control envelope, so the QSP plaintext IS the
+    // frame — the old equality would now assert something false about the wire rather than
+    // something true about the client.
+    //
+    // The property this test is named for is untouched and still proven above: what goes on the
+    // wire is an ENVELOPE, not raw plaintext (`env_version`, and `payload.len() > plaintext`).
+    // What is ADDED is the framing round-trip — and it asserts the receiver's own
+    // CLASSIFICATION, not a substring, so a frame that stopped being recognisable would fail
+    // here rather than merely one whose bytes moved.
+    let ctrl = qsc::adversarial::payload::parse_receipt_payload(&out.plaintext)
+        .expect("the QSP plaintext must parse as the data-control frame");
+    assert_eq!(
+        qsc::adversarial::payload::classify_control(&ctrl),
+        qsc::adversarial::payload::ControlClass::DataEnvelope,
+        "a default send must frame its body as a DataEnvelope, not as something the receiver \
+         would deliver as a user message"
+    );
+    assert_eq!(
+        ctrl.body.as_deref(),
+        Some(plaintext.as_slice()),
+        "and the frame must round-trip the ORIGINAL body byte-for-byte"
+    );
 }
 
 #[test]

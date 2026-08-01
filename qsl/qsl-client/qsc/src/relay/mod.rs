@@ -111,5 +111,5 @@ pub struct SendExecuteArgs {
     pub pad_bucket: Option<crate::MetaPadBucket>,
     pub bucket_max: Option<usize>,
     pub meta_seed: Option<u64>,
-    pub receipt: Option<crate::ReceiptKind>,
+    pub receipt: Option<crate::ReceiptRequest>,
 }

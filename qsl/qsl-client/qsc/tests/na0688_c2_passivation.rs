@@ -11,12 +11,15 @@
 // dance is replicated here from `handshake_mvp.rs`. A dead guard is worse than an expensive
 // fixture; the cost is recorded rather than absorbed silently.
 //
-// WHAT IS BEING GUARDED (R1a as amended by ruling A6):
-//   A control send never originates a ROTATION — no reply boundary, no N/T fallback, no PQ
-//   reseed, no advertisement — BUT it establishes its own sending chain if it has none.
-//   Establishment is a NECESSITY, not a rotation opportunity: a send with no chain has
-//   nothing to send on. ENG-0086 finding 1 makes that the COMMON case, not an edge one —
-//   "the recipient's automatic ack becomes their first send".
+// WHAT IS BEING GUARDED — ⚠ A6 HAS SINCE BEEN REVERSED, AND THIS HEADER IS SWEPT TO MATCH.
+//   A control send originates NOTHING: no reply boundary, no N/T fallback, no PQ reseed, no
+//   advertisement — AND no establishment either. A6 originally carved establishment out as a
+//   necessity every send could perform; that exception was measured to mint a fresh DH keypair
+//   and advance the shared root, wedging sessions permanently and bidirectionally, so it was
+//   reversed by operator ruling.
+//   ENG-0086 finding 1 still holds — "the recipient's automatic ack becomes their first send" —
+//   which is precisely why the receipt cannot simply be dropped: it is written to the durable
+//   owed-receipt hold and flushed on the peer's first real send. See `crate::owed_receipts`.
 
 mod common;
 
@@ -382,11 +385,34 @@ fn e2_measure_what_an_ack_originates() {
 // actually reachable. On the seeded fixture they would pass without any suppression at all.
 // ---------------------------------------------------------------------------
 
+/// Give bob an ESTABLISHED sending chain, by the only route that now exists — and keep BOTH sides
+/// in step while doing it.
+///
+/// ⚠ THE ROUND-TRIP IS NOT OPTIONAL, and a one-sided warm-up was measured to break these fixtures
+/// outright (`qsp_scka_adv code=qsp_auth_failed dir=recv`). Bob's first send is a DH boundary that
+/// moves the shared root; if alice never receives it, her already-sent advertisement was
+/// authenticated under the OLD root and bob can no longer verify it. That is the same shape as the
+/// wedge this lane exists to close, arriving from the other side — so the warm-up drains bob's
+/// message on alice's side before any guard runs.
+///
+/// A6 was REVERSED: an ack no longer establishes, so bob's first receive DEFERS its receipt to the
+/// owed-receipt hold. Every guard here is about what an ack does OVER AN ESTABLISHED CHAIN, so the
+/// fixture must hand bob one. **This changes the fixture only — not one assertion below moves.**
+/// Without it the guards would not weaken, they would go VACUOUS, and each says so itself ("the
+/// fixture must actually ack, or this guard is vacuous").
+fn warm_up_bobs_chain(f: &Fixture) {
+    // Bob drains alice's opening message; his receipt is OWED, not sent (no chain yet).
+    recv_msg(&f.bob, &f.relay, ROUTE_TOKEN_BOB, "alice", &f.bob_out, true);
+    // Bob's own send establishes the chain and flushes what he owed.
+    send_msg(&f.bob, &f.relay, "alice", b"c2-warmup", "warm", false);
+    // ⚠ Alice MUST take bob's boundary, or the two roots diverge and nothing below authenticates.
+    recv_msg(&f.alice, &f.relay, ROUTE_TOKEN_ALICE, "bob", &f.alice_out, false);
+}
+
 /// Drive bob to an ESTABLISHED chain, then have him ack again. Returns (ack output, fixture).
 fn established_chain_ack(tag: &str) -> (String, Fixture) {
     let f = fixture(tag);
-    // First receive: establishes bob's chain (and acks).
-    recv_msg(&f.bob, &f.relay, ROUTE_TOKEN_BOB, "alice", &f.bob_out, true);
+    warm_up_bobs_chain(&f);
     // Alice sends again; bob acks over an ESTABLISHED chain.
     send_msg(&f.alice, &f.relay, "bob", b"c2-second", "m2", true);
     let out = recv_msg(&f.bob, &f.relay, ROUTE_TOKEN_BOB, "alice", &f.bob_out, true);
@@ -450,39 +476,65 @@ fn an_ack_over_an_established_chain_writes_nothing_persistent_from_pack() {
     );
 }
 
-/// GUARD — the ESTABLISHMENT exception (ruling A6 item 3), asserted in BOTH directions:
-/// an ack on an unseeded chain DOES establish, and establishes ONLY.
+/// GUARD — **THE POST-REVERSAL LAW: an ack on an unseeded chain ORIGINATES NOTHING and OWES the
+/// receipt.**
+///
+/// ⚠⚠ THIS GUARD WAS INVERTED, NOT WEAKENED, AND THE DISTINCTION IS THE WHOLE POINT.
+///
+/// It was `an_ack_on_an_unseeded_chain_establishes_and_only_establishes`, and it pinned **ruling
+/// A6**: that an ack on an unseeded chain DOES establish, reporting `reason=first_send`. **A6 was
+/// REVERSED by operator ruling**, so its subject law no longer exists — and a guard whose subject
+/// has been overturned is not migrated by moving a value, it is turned to face the other way.
+///
+/// **Why A6 was reversed, in one line:** `send_boundary` is the only way the refimpl can seed a
+/// send chain, and it MINTS A FRESH DH KEYPAIR AND ADVANCES THE SHARED ROOT — so an establishing
+/// ack moved the recipient's key, and a sender who had not pulled that ack then computed a
+/// boundary against a stale one. Measured: a **permanent, bidirectional wedge**, with the sender's
+/// own pull failing too. `handshake_mvp::a_first_send_ack_never_wedges_the_session` is the
+/// regression pin for that.
+///
+/// ⚠ RED-CAPABLE IN **BOTH** DIRECTIONS, which is what stops an inversion from becoming a hole:
+///   * it fails if an unseeded-chain ack **establishes** again (a regression back to A6), and
+///   * it fails if the receipt is **silently dropped** instead of owed — the failure mode that
+///     made plain refusal unacceptable, since alice would sit on SENT forever.
+/// Asserting only the first would let the receipt vanish; asserting only the second would let the
+/// keypair mint return.
 #[test]
-fn an_ack_on_an_unseeded_chain_establishes_and_only_establishes() {
+fn an_ack_on_an_unseeded_chain_originates_nothing_and_owes_the_receipt() {
     let _g = lane_lock();
     let f = fixture("na0688_c2_g3");
     let out = recv_msg(&f.bob, &f.relay, ROUTE_TOKEN_BOB, "alice", &f.bob_out, true);
-    assert!(
-        out.contains("event=receipt_send"),
-        "the fixture must actually ack:\n{out}"
-    );
+
+    // DIRECTION 1 — NOTHING is originated. Not a boundary, not a reseed, not an advertisement.
     let o = count_origination(&out);
     assert_eq!(
-        o.dh_first_send, 1,
-        "an ack on an UNSEEDED chain must establish it — suppressing this would leave the \
-         sender with no chain to send on at all:\n{out}"
+        o.dh_boundaries, 0,
+        "an ack on an UNSEEDED chain must originate NO boundary — establishment mints a keypair          and advances the shared root, which is exactly what wedged the session:
+{out}"
     );
     assert_eq!(
-        o.dh_reply, 0,
-        "establishment must be reported as `first_send`, NEVER as `reply`. Before C2 this \
-         reported `reply`, because a pending reply flag won the label over the actual cause:\n{out}"
+        o.dh_first_send, 0,
+        "and specifically no `reason=first_send`, the marker A6 used to require here:
+{out}"
     );
     assert_eq!(
-        o.dh_fallback, 0,
-        "establishment is not a fallback rotation:\n{out}"
+        (o.dh_reply, o.dh_fallback, o.pq_reseeds, o.advertisements),
+        (0, 0, 0, 0),
+        "a control send originates nothing at all — no rotation, no reseed, no advertisement:
+{out}"
     );
-    assert_eq!(
-        o.pq_reseeds, 0,
-        "establishment must not drag a PQ reseed with it:\n{out}"
+
+    // DIRECTION 2 — the receipt is OWED, not dropped. Without this the guard above would be
+    // satisfied by a client that simply threw the ack away.
+    assert!(
+        out.contains("event=receipt_owed"),
+        "the receipt must be recorded to the durable hold — a client that dropped it would pass          the origination assertions above while losing the first receipt of every          conversation:
+{out}"
     );
-    assert_eq!(
-        o.advertisements, 0,
-        "establishment must not mint an advertisement:\n{out}"
+    assert!(
+        !out.contains("event=receipt_send"),
+        "and it must NOT have been sent: there is no chain to send it on:
+{out}"
     );
 }
 
@@ -497,8 +549,7 @@ fn a_due_rotation_survives_an_ack_and_is_taken_by_the_next_user_send() {
     let _g = lane_lock();
     let f = fixture("na0688_c2_g4");
 
-    // Establish bob's chain and drain the first message.
-    recv_msg(&f.bob, &f.relay, ROUTE_TOKEN_BOB, "alice", &f.bob_out, true);
+    warm_up_bobs_chain(&f);
 
     // Alice sends again. Bob receiving this sets `pending_send_ratchet`: a rotation is DUE.
     send_msg(
@@ -573,13 +624,38 @@ fn a_user_reply_still_rotates_the_ratchet() {
 ///
 /// The comparison is like-with-like: both envelopes are bob's, both leave the same session,
 /// and they are compared as they sat in the same mailbox.
+///
+/// ⚠ TWO CORRECTIONS MADE AT C3, BOTH BECAUSE THE FIRST FORM OF THIS INSTRUMENT MISLED.
+///
+///  1. **It read positionally and reported a subset.** The C2 run measured `[1024, 1320, 1212]`
+///     and was recorded as "ack 1024 vs user reply 1212" — the 1320 (an SCKA advertisement
+///     PRE-envelope) was dropped without comment, and nothing in the instrument said which
+///     index was which. It now DRAINS BETWEEN STEPS, so every number is labelled by
+///     construction rather than by the reader's assumption.
+///  2. **It took one user-message sample, and that sample was not representative.** At C2 bob's
+///     reply happened to carry a PQ RESEED (1212 bytes), because the establishing ack had eaten
+///     his due rotation. With that defect fixed his reply takes a plain DH boundary and measures
+///     **1024 — identical to the ack** — purely because a 20-byte body pads up to the same
+///     Standard floor. A one-sample instrument would have flipped the R2b conclusion on what is
+///     an artefact of the body size chosen. It now takes a SHORT sample (under the floor) and a
+///     LONG one (over it), so the answer does not depend on which body the fixture picked.
 #[test]
 fn e3_measure_envelope_distinguishability() {
     let _g = lane_lock();
     let f = fixture("na0688_c2_e3");
 
-    // Bob acks alice's message (establishing his chain), then sends a user reply.
+    // ⚠ NA-0688 WARM-UP: after the A6 reversal an ack cannot establish, so bob needs a chain of
+    // his own before his ack can exist at all — the earlier form measured `ack=[]`.
+    warm_up_bobs_chain(&f);
+    send_msg(&f.alice, &f.relay, "bob", b"e3-trigger", "e3t", true);
+    let _ = drained_lens(&f, ROUTE_TOKEN_ALICE); // discard everything the warm-up put on the wire
+
+    // STEP 1 — bob acks alice's message over his established chain. Drained immediately, so what
+    // comes back is unambiguously the ack.
     recv_msg(&f.bob, &f.relay, ROUTE_TOKEN_BOB, "alice", &f.bob_out, true);
+    let ack_lens = drained_lens(&f, ROUTE_TOKEN_ALICE);
+
+    // STEP 2 — a SHORT user reply: 20 bytes, well under the Standard 1024 floor.
     send_msg(
         &f.bob,
         &f.relay,
@@ -588,18 +664,38 @@ fn e3_measure_envelope_distinguishability() {
         "e3r",
         false,
     );
+    let short_lens = drained_lens(&f, ROUTE_TOKEN_ALICE);
 
-    // Raw bytes as the relay holds them — an observer's view.
-    let stored = f.server.drain_channel(ROUTE_TOKEN_ALICE);
-    let lens: Vec<usize> = stored.iter().map(|e| e.len()).collect();
+    // STEP 3 — a LONG user reply: 4096 bytes, unambiguously over the floor.
+    let long_body = vec![b'x'; 4096];
+    send_msg(&f.bob, &f.relay, "alice", &long_body, "e3l", false);
+    let long_lens = drained_lens(&f, ROUTE_TOKEN_ALICE);
 
     println!("=== E3 MEASUREMENT — envelope lengths as they sat on the relay ===");
-    println!("bob -> alice envelopes: {lens:?}");
+    println!("bob -> alice  ack only         : {ack_lens:?}");
+    println!("bob -> alice  SHORT user reply : {short_lens:?}");
+    println!("bob -> alice  LONG user reply  : {long_lens:?}");
     println!("=== END E3 ===");
 
-    // ⚠ A single sample cannot answer R2b. Refuse a comparison that was never made.
+    // ⚠ Refuse a comparison that was never made. Every arm must have produced something, or the
+    // numbers above are a conclusion drawn from an empty mailbox.
     assert!(
-        lens.len() >= 2,
-        "E3 needs at least bob's ack AND his user reply to compare; got {lens:?}"
+        !ack_lens.is_empty() && !short_lens.is_empty() && !long_lens.is_empty(),
+        "E3 needs all three arms to compare; got ack={ack_lens:?} short={short_lens:?} \
+         long={long_lens:?}"
     );
+}
+
+/// The raw bytes the mock relay holds for a channel, drained — an observer's view.
+///
+/// ⚠ A send may push PRE-ENVELOPES (an SCKA advertisement) ahead of its main envelope, so an arm
+/// can legitimately return more than one length. The MAIN envelope is the LAST one pushed
+/// (`qsp_pack` pushes `pre_envelopes` first, then `pack.envelope`), and the whole vector is
+/// printed so that reading is checkable instead of asserted.
+fn drained_lens(f: &Fixture, channel: &str) -> Vec<usize> {
+    f.server
+        .drain_channel(channel)
+        .iter()
+        .map(|e| e.len())
+        .collect()
 }

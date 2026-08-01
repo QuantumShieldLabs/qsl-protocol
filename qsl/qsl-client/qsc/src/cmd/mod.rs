@@ -82,9 +82,10 @@ pub enum Cmd {
         /// Metadata bucket ceiling in bytes (marker-only).
         #[arg(long)]
         bucket_max: Option<usize>,
-        /// Request delivered receipt (explicit-only; default off).
+        /// Delivered-receipt request: omit to follow the configured receipt policy,
+        /// `off` to request none for this message, `delivered` to request one.
         #[arg(long, value_enum)]
-        receipt: Option<ReceiptKind>,
+        receipt: Option<ReceiptRequest>,
     },
     /// Receive an inbound envelope (explicit-only).
     Receive {
@@ -148,7 +149,8 @@ pub enum Cmd {
         /// Deterministic metadata seed (explicit-only).
         #[arg(long)]
         meta_seed: Option<u64>,
-        /// Emit delivered receipts after successful unpack (explicit-only; default off).
+        /// Force IMMEDIATE delivered-receipt emission after unpack. Receipts are emitted by
+        /// default (batched); use --receipt-mode off to suppress them.
         #[arg(long, value_enum)]
         emit_receipts: Option<ReceiptKind>,
         /// Receipt emission mode (default from account policy).
@@ -266,6 +268,32 @@ pub enum SendTransport {
 
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReceiptKind {
+    Delivered,
+}
+
+/// What the CALLER of `qsc send` asked for, as a THREE-state value — NA-0688 C3 (D622 R1b,
+/// operator ruling on STOP #016 option (a)).
+///
+/// ⚠ THE THIRD STATE IS THE POINT, AND IT DID NOT EXIST BEFORE THIS COMMIT. `--receipt` used to
+/// be `Option<ReceiptKind>` over a one-variant enum, so "absent" was the only way to say "no
+/// receipt". Once absent means **the policy default**, that spelling is taken — and without an
+/// explicit `off` the per-message opt-out would simply disappear. The ruling requires that
+/// *"explicit `--receipt off` must still mean off, verbatim, end to end"*, so the spelling has to
+/// exist for the sentence to be true.
+///
+/// | value | meaning |
+/// |---|---|
+/// | absent | resolve against `ReceiptPolicy` — ON unless the user turned receipts off |
+/// | `off` | request NO receipt, verbatim, whatever the policy says |
+/// | `delivered` | request one, verbatim, whatever the policy says |
+///
+/// ⚠ This is the CLI's vocabulary, not the wire's. It resolves to `Option<ReceiptKind>` at one
+/// place (`resolve_sender_receipt_request`) and `ReceiptKind` keeps meaning exactly what it
+/// meant: a kind of receipt that exists on the wire. `None` downstream still means "raw body, no
+/// data control envelope, nothing an ack can be provoked by".
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ReceiptRequest {
+    Off,
     Delivered,
 }
 

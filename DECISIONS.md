@@ -35678,3 +35678,129 @@ would otherwise be lost with the lane's working files.
 D622 rulings R1–R15 · lane STOP-files 001–041 · the commits listed in the header · D-0207
 (superseded, §7) · NA-0645 (TUI retirement) · NA-0625 (cross-referenced only) ·
 `DESIGN_slice4_connect_verify_receipts_v1` (§8).
+
+## D-1328 — NA-0689: PULL DURABILITY, QUARANTINE INSTEAD OF DESTROY — and the lane whose own census, having earned the rule, broke it once more
+
+**Status:** Accepted 2026-08-02. **Lane:** NA-0689. **Directive:** `QSL-DIR-2026-08-01-623` (D623,
+post-amendment sha256 `82c981b6…5a9a622e`, 428 lines; A1.1 supersedes the masthead Goals line, A1.3
+makes the ENG filing unconditional). **Base:** `5888c686`.
+**Result class:** `QSC_PULL_QUARANTINE_PASS`.
+
+**Final gate, stated with its scope because that is this lane's hardest-won lesson:**
+**581 passed / 0 failed / 2 ignored at the BASE's scope**, reconciling exactly against the **559**
+measured before the work (**559 + 22 = 581**, the 22 enumerated per source), the exit code read from
+its own status file and never piped. The same tree under `cargo test --workspace` reports
+**779 / 0 / 2, exit 0** — recorded **alongside, with its scope stated**, because the base run
+excluded `quantumshield_refimpl` and the two totals are not comparable. **Clippy `-D warnings`:
+`qsc`'s distribution 26 = 18 `redundant_closure` / 6 `needless_return` / 2 `result_unit_err`,
+IDENTICAL to base**, plus the stated deltas — 2 introduced by this lane and argued-allowed, 1
+pre-existing surfaced in an untouched crate.
+
+### 1. THE CHANGE
+
+Everywhere the client had **judged a pulled item unrecoverable and destroyed it**, it now **writes
+the item to a local encrypted quarantine first, then acks** — same wire behaviour, same loop-ending,
+**zero client-side data destruction**. D-1327 §4 kept this defect explicitly on the record when
+NA-0688/C4 mitigated its trigger; this lane pays it.
+
+⚠ **The sharp boundary held and was never crossed.** Quarantine replaces **destruction only, never
+redelivery**. The three flag-less `relay_inbox_pull` callers (`invite accept`, `invite finish`,
+`handshake poll`) ack nothing, and converting them would have **stolen ordinary messages from
+`qsc receive`** — the very items C4 measured as destroyed-under-legacy and survived-under-lease.
+They were named in the census and **refused**, deliberately and in writing.
+
+### 2. ⚠ RULING 6, AND THE CENSUS THAT BROKE IT AFTER EARNING IT
+
+The census predicted **1** destruction site and measured **5**; four were named in no prior record,
+and all four were **inside the function that had been read**. The cause was characterising sites by
+their **last lines** rather than reading the match arms above, and it produced the standing rule:
+
+> **Bracket a site to its enclosing BRANCH and read that branch's exits. A marker's proximity
+> identifies a LOCATION, never a BEHAVIOUR.**
+
+⚠ **Then the same census broke the same rule once more.** It characterised D4 by its `Err` needle and
+enumerated the `IgnoredWrongDevice` sub-arm at D2 and D3 **only** — missing the third instance
+**inside a `match` it had already opened, three lines above a needle it did read**. The population
+was **six**, not five, and the missing sub-arm was **still destroying items** until Ruling 9 wired it.
+**The class was identified and still under-enumerated.** Recorded as its own lesson: *a rule that
+names a failure class does not immunise the person who wrote it.* Ruling 3's principle extends
+verbatim — **the census is the instrument, the CLASS is the scope; five was a measurement, not a
+boundary.**
+
+### 3. THE SHAPE OF THE CAPTURE SURFACE — STATED AFFIRMATIVELY
+
+⚠ **Four of the five sites' positives are unreachable from a stock peer, EACH FOR A REASON THAT IS
+THE SITE'S PURPOSE** — **hostile-peer witnesses** at D2–D4 (`IgnoredWrongDevice` needs the peer's
+second device to confirm an item it never received; `Err` needs it to name an item the receiver holds
+no record of) and the **forward-compat witness** at D5 (`UnknownControl` needs a marker plus an
+unknown type or a version above `CTRL_VERSION_MAX`, which only a FUTURE build emits). **D1 alone is
+stock-reachable, because D1's trigger is OUR OWN CRASH rather than the peer's behaviour.**
+
+**That is the honest shape of the whole surface**, and it belongs above the test names rather than
+inferred from missing arms. Consequently the decisions are pinned **where they are reachable**:
+exhaustive unit tables over `ConfirmApplyOutcome` and `ControlClass`, each **proven red-capable by
+probe** (predicted-2-measured-2, both times) with the tree restored **byte-identical by `cmp`**;
+end-to-end **zeros at every site**; and a full end-to-end **pair** at D1 whose store reads
+**0 → 1 → 0** in one run. The missing wire-level positives are **ENG-0105**, routed to the
+negative-control audit track. ⚠ **If that seam is ever built it belongs on the SENDER side** — so a
+crafted hostile frame feeds an **UNMODIFIED** receive path; a hook inside `receive_pull_and_write`
+was refused, because it would make the arm measure the thing it exists to exercise.
+
+### 4. THE STRUCTURAL FIX, AND WHY IT SUPERSEDED A RULING OF THIS RECORD'S OWN
+
+Ruling 9's grounds were that **three structurally identical producers cannot stay split**. Ruling 9
+first asked for the symmetry to be held by **three tests agreeing**; Ruling 11 **superseded that
+wording** — the intent was *cannot re-break*, and **structural sharing serves it strictly better**.
+`confirm_capture_reason` is now the only place D2/D3/D4 decide; the arms **emit** and no longer
+**decide**. ⚠ **The extraction's diff is symmetric across all three sites — each losing exactly one
+`let mut` and two assignments — which is itself the measured evidence that the three were ONE
+DECISION WRITTEN THREE TIMES.** That symmetry is adopted as the **evidence standard for extraction
+commits**. ⚠ The sketched `context` parameter **proved unnecessary and was dropped**: the reason is
+site-independent, an unused parameter would have been noise, and **the measurement outranked the
+sketch** — correct precedence, recorded as such.
+
+### 5. TWO LESSONS ABOUT MEASUREMENT, BOTH LEARNED THE SAME WAY
+
+⚠ **A DELTA NEEDS ITS ENDPOINTS NAMED.** The final count was predicted at **571** and measured
+**581** — wrong by exactly the **10 unit tests P1 added**. The rule applied was right (*enumerate
+from the tests actually added*); it was applied to the **wrong population boundary**, enumerating
+from *this session* while the base sat **before P1 and P2**. This is **"correct method, wrong sum" in
+its third distinct costume**, and the disease is not arithmetic — it is **failing to state which two
+trees the delta spans**.
+
+⚠ **A BASELINE IS ONLY A BASELINE IF ITS SCOPE IS STATED.** Two of this lane's gates were specified
+against baselines whose scope nobody had stated: the suite base **excluded a whole workspace crate**,
+and the clippy base was **a census of whatever cargo finished before it gave up** (under
+`-D warnings` cargo stops scheduling after a crate fails, so a May-2026 defect in `qshield-cli` was
+invisible to it and surfaced only when the abort point moved). ⚠ **The Director's acceptance of D623
+shares parentage — the gate spec was scope-silent and passed review.** **BINDING going forward: no
+asymmetric re-baselining. If either side is re-taken, both are, the same way.**
+
+### 6. RULINGS RECORDED
+
+**R1** home = the `msgqueue` pattern, caps **global not per-peer** · **R2** D5 in scope, separately
+witnessed · **R3** P2 covers all five sites · **R4** the `:1012` fail-open gets its own ENG,
+**filing-only — the comment stays**, because editing prose to match broken behaviour would launder
+the defect · **R5** vocabulary adopted from the tree · **R6** the branch-bracketing rule above ·
+**R7** subclass and content kind partition the population **at different boundaries, so neither is
+derivable from the other** — both are carried, and the interaction of two rulings is itself a surface
+to check · **R8** a within-lane reorder needs independence **argued**, cost **stated**, and
+**declaration in the immediate next stop-file** — *the declaration is the load-bearing part* ·
+**R9** D4's wrong-device sub-arm wired · **R10** dead code is **removed or given a caller, never
+silenced** · **R11** the layered pin, superseding R9's three-test wording · **R12** D5's decision
+pinned at `classify_control → capture` · **R13** an **argued** `#[allow]` is permitted where removal
+or refactor is disproportionate, **provided the reason is written at the site** — ⚠ **SILENT was
+always the load-bearing word in R10**; the params-struct form is **deferred, not rejected**, with the
+transposition-hazard counter-argument kept and a **"revisit at a TENTH argument" tripwire** left in
+the comment to keep the allow honest · **R14** the unrelated crate's defect is **filed, not fixed** —
+a lane that reaches into an untouched crate at its own gate is how a freeze stops meaning anything ·
+**R15** the gate formulation above.
+
+### 7. RESIDUE
+
+**ENG-0103** (a directive's masthead `Goals:` line is inherited template text; NA-0688's three
+artifacts gave three answers) · **ENG-0104** (the `:1012` fail-open — **filing only**) ·
+**ENG-0105** (the four unreachable positives, plus the clippy-baseline addendum). **ENG-0083 stays
+open**, with this lane's store recorded as a **deliberate, recorded acceptance** of a fourth
+in-flight-state home — consolidation is not this lane's. **No re-ingestion tooling is promised or
+built**, and the store says so unconditionally rather than leaving it inferable from silence.

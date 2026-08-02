@@ -5,6 +5,7 @@ use std::process;
 use qsc::attachments::{file_send_execute, FileSendExec};
 use qsc::cmd::{
     OutboxCmd,
+    QuarantineCmd,
     InviteCmd,
     Cli, Cmd, ConfigCmd, ContactsCmd, ContactsDeviceCmd, ContactsDevicePrimaryCmd,
     ContactsRequestCmd, ContactsTrustModeCmd, EnvelopeCmd, FileCmd, HandshakeCmd, IdentityCmd,
@@ -456,6 +457,10 @@ fn run(cli: Cli) -> CliResult {
             TimelineCmd::List { peer, limit } => timeline_list(&peer, limit)?,
             TimelineCmd::Show { peer, id } => timeline_show(&peer, &id)?,
             TimelineCmd::Clear { peer, confirm } => timeline_clear(&peer, confirm)?,
+        },
+        Some(Cmd::Quarantine { cmd }) => match cmd {
+            QuarantineCmd::List => qsc::quarantine_list()?,
+            QuarantineCmd::Drop { id } => qsc::quarantine_drop(&id)?,
         },
         Some(Cmd::Outbox { cmd }) => match cmd {
             OutboxCmd::Status => qsc::outbox_status()?,

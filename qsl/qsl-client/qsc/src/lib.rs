@@ -128,6 +128,7 @@ pub mod model;
 pub mod msgqueue;
 pub mod output;
 pub mod protocol_state;
+pub mod quarantine;
 pub mod relay;
 pub mod store;
 pub mod timeline;
@@ -2832,6 +2833,67 @@ pub fn outbox_summary() -> CliResult<Vec<msgqueue::ContactQueueSummary>> {
 /// because the store key lives in the vault. So a paused queue says what to do about it
 /// ("unlock to send") and an unreachable relay says it will send later -- neither may read
 /// as work in progress. A paused outbox that looks like a sending one is a FALSE CLAIM.
+/// NA-0689 P4: list quarantined items as **redacted metadata only**.
+///
+/// ⚠ **FIELD NAMES, NEVER VALUES.** `reason` and `site` are our own diagnostic constants, not
+/// user or peer data; `bytes` is a length. **No captured content is printed, and none is
+/// printable** — `QuarantineSummary` carries no accessor for the stored bytes at all, so this is
+/// a property of the type rather than a discipline of this function.
+pub fn quarantine_list() -> CliResult {
+    require_unlocked("quarantine_list")?;
+    let (dir, _source) = match config_dir() {
+        Ok(v) => v,
+        Err(e) => return Err(cli_err(e)),
+    };
+    let items = quarantine::list(&dir).map_err(CliError::code)?;
+    let n_s = items.len().to_string();
+    emit_marker("quarantine_list", None, &[("count", n_s.as_str())]);
+    for it in &items {
+        let ts_s = it.captured_at_unix.to_string();
+        let bytes_s = it.bytes.to_string();
+        emit_marker(
+            "quarantine_item",
+            None,
+            &[
+                ("id", it.entry_id.as_str()),
+                // ⚠ Both discriminators are shown because neither implies the other
+                // (D-1328 Rulings 2 and 7): subclass says WHY it was kept, content says WHAT
+                // the bytes are. A reader given one of them alone cannot infer the other.
+                ("subclass", it.subclass),
+                ("content", it.content),
+                ("reason", it.reason.as_str()),
+                ("site", it.site.as_str()),
+                ("captured_at", ts_s.as_str()),
+                ("bytes", bytes_s.as_str()),
+            ],
+        );
+    }
+    // Stated unconditionally, so the boundary is never inferable only from silence.
+    emit_marker(
+        "quarantine_limitation",
+        None,
+        &[
+            ("content_readable", "false"),
+            ("reingestion", "not_supported"),
+        ],
+    );
+    Ok(())
+}
+
+/// NA-0689 P4: delete one quarantined item by id.
+///
+/// **A stored item must always be deletable** — otherwise this lane would have traded
+/// "destroyed without consent" for "kept without consent".
+pub fn quarantine_drop(id: &str) -> CliResult {
+    require_unlocked("quarantine_drop")?;
+    let (dir, _source) = match config_dir() {
+        Ok(v) => v,
+        Err(e) => return Err(cli_err(e)),
+    };
+    quarantine::drop_entry(&dir, id).map_err(CliError::code)?;
+    Ok(())
+}
+
 pub fn outbox_status() -> CliResult {
     let summaries = outbox_summary()?;
     let total: usize = summaries.iter().map(|s| s.queued).sum();

@@ -678,12 +678,18 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                     }
                     if let Some(confirm) = parse_attachment_confirm_payload(&payload) {
                         commit_unpack_state()?;
-                        match apply_attachment_peer_confirmation(
+                        // ⚠ The capture decision is `confirm_capture_reason`'s alone (Ruling 11.1);
+                        // these arms EMIT, they do not decide. The arms below and D3's and D4's
+                        // used to each carry their own copy of that decision, and one copy was
+                        // wrong.
+                        let outcome = apply_attachment_peer_confirmation(
                             ctx.from,
                             confirm.attachment_id.as_str(),
                             confirm.confirm_handle.as_str(),
                             channel.as_str(),
-                        ) {
+                        );
+                        let discard_reason = confirm_capture_reason(&outcome);
+                        match &outcome {
                             Ok((ConfirmApplyOutcome::Confirmed, target)) => {
                                 let device = target
                                     .as_deref()
@@ -711,11 +717,13 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 emit_cli_receipt_ignored_wrong_device(ctx.from, dev.as_str());
                                 emit_tui_receipt_ignored_wrong_device(ctx.from, dev.as_str());
                             }
-                            Err(reason) => emit_marker(
-                                "attachment_confirm_reject",
-                                Some(reason),
-                                &[("reason", reason), ("ok", "false")],
-                            ),
+                            Err(reason) => {
+                                emit_marker(
+                                    "attachment_confirm_reject",
+                                    Some(reason),
+                                    &[("reason", reason), ("ok", "false")],
+                                );
+                            }
                         }
                         queue_envelope_receipt(
                             ctx,
@@ -723,17 +731,41 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                             request_receipt,
                             request_msg_id.as_str(),
                         )?;
-                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
+                        // NA-0689 D2. ⚠ THIS ACK IS SHARED WITH THE SUCCESS ARM, so the capture
+                        // is conditional: only a rejected or ignored confirm is quarantined. A
+                        // blanket capture here would store every SUCCESSFULLY applied confirm
+                        // too -- turning the store into a copy of ordinary traffic.
+                        match discard_reason {
+                            Some(reason) => quarantine_then_ack(
+                                ctx,
+                                &mut seen_ids,
+                                &mut pending_acks,
+                                item.id.as_str(),
+                                crate::quarantine::Subclass::Unrecoverable,
+                                crate::quarantine::ContentKind::InnerPayload,
+                                reason,
+                                "transport::receive_pull_and_write/attachment_confirm",
+                                &payload,
+                            )?,
+                            None => record_seen_and_queue_ack(
+                                &mut seen_ids,
+                                &mut pending_acks,
+                                &item.id,
+                            )?,
+                        }
                         continue;
                     }
                     if let Some(file_confirm) = parse_file_confirm_payload(&payload) {
                         commit_unpack_state()?;
-                        match apply_file_peer_confirmation(
+                        // ⚠ See D2: the decision is `confirm_capture_reason`'s; these arms emit.
+                        let outcome = apply_file_peer_confirmation(
                             ctx.from,
                             file_confirm.file_id.as_str(),
                             file_confirm.confirm_id.as_str(),
                             channel.as_str(),
-                        ) {
+                        );
+                        let discard_reason = confirm_capture_reason(&outcome);
+                        match &outcome {
                             Ok((ConfirmApplyOutcome::Confirmed, target)) => {
                                 let device = target
                                     .as_deref()
@@ -765,11 +797,13 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 emit_cli_receipt_ignored_wrong_device(ctx.from, dev.as_str());
                                 emit_tui_receipt_ignored_wrong_device(ctx.from, dev.as_str());
                             }
-                            Err(reason) => emit_marker(
-                                "file_confirm_reject",
-                                Some(reason),
-                                &[("reason", reason), ("ok", "false")],
-                            ),
+                            Err(reason) => {
+                                emit_marker(
+                                    "file_confirm_reject",
+                                    Some(reason),
+                                    &[("reason", reason), ("ok", "false")],
+                                );
+                            }
                         }
                         queue_envelope_receipt(
                             ctx,
@@ -777,7 +811,25 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                             request_receipt,
                             request_msg_id.as_str(),
                         )?;
-                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
+                        // NA-0689 D3 — same shared-ack shape as D2.
+                        match discard_reason {
+                            Some(reason) => quarantine_then_ack(
+                                ctx,
+                                &mut seen_ids,
+                                &mut pending_acks,
+                                item.id.as_str(),
+                                crate::quarantine::Subclass::Unrecoverable,
+                                crate::quarantine::ContentKind::InnerPayload,
+                                reason,
+                                "transport::receive_pull_and_write/file_confirm",
+                                &payload,
+                            )?,
+                            None => record_seen_and_queue_ack(
+                                &mut seen_ids,
+                                &mut pending_acks,
+                                &item.id,
+                            )?,
+                        }
                         continue;
                     }
                     if let Some(ctrl) = parse_receipt_payload(&payload) {
@@ -787,7 +839,9 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                         // a user message -- which made DESIGN F2's "a new ack type is a new
                         // type, no format break" false as built.
                         let class = crate::adversarial::payload::classify_control(&ctrl);
-                        if class == crate::adversarial::payload::ControlClass::UnknownControl {
+                        // NA-0689 D-1328 Ruling 12: the branch condition and the capture reason
+                        // now come from ONE place, so they cannot drift apart.
+                        if let Some(class_reason) = control_class_capture_reason(class) {
                             // Ours (it carries the namespace marker) but of a type this
                             // build does not know. IGNORE IT -- this is the seam a future
                             // read-receipt rides on, and rendering it would be the bug.
@@ -799,7 +853,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                             emit_marker(
                                 "control_ignored",
                                 None,
-                                &[("reason", "unknown_control_type"), ("v", "redacted")],
+                                &[("reason", class_reason), ("v", "redacted")],
                             );
                             queue_envelope_receipt(
                                 ctx,
@@ -807,20 +861,56 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 request_receipt,
                                 request_msg_id.as_str(),
                             )?;
-                            record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
+                            // NA-0689 D5. ⚠ SEPARATELY WITNESSED (D-1328 Ruling 2) -- this is
+                            // judged NOT-FOR-THIS-BUILD, not unrecoverable, and a forward-compat
+                            // capture must never read as a decrypt failure. ⚠ And it is the
+                            // INNER PAYLOAD (Ruling 7): the key is already consumed above, so
+                            // storing the ciphertext would make this capture VACUOUS -- no future
+                            // build could ever read the thing it was kept for.
+                            //
+                            // ⚠ Redelivery cannot save this item: every current build acks it
+                            // away on sight, so the store is the only thing that preserves it.
+                            // No re-ingestion tooling is promised or built.
+                            quarantine_then_ack(
+                                ctx,
+                                &mut seen_ids,
+                                &mut pending_acks,
+                                item.id.as_str(),
+                                crate::quarantine::Subclass::Unsupported,
+                                crate::quarantine::ContentKind::InnerPayload,
+                                class_reason,
+                                "transport::receive_pull_and_write/unknown_control",
+                                &payload,
+                            )?;
                             continue;
                         }
                         if class == crate::adversarial::payload::ControlClass::DeliveredAck {
                             commit_unpack_state()?;
-                            match apply_message_peer_confirmation(
+                            // ⚠ See D2: the decision is `confirm_capture_reason`'s; these arms
+                            // emit. Success here means `Confirmed` and nothing else -- BOTH
+                            // non-success arms capture, which is the asymmetry Ruling 9 closed
+                            // and Ruling 11.1 made structural.
+                            let outcome = apply_message_peer_confirmation(
                                 ctx.from,
                                 ctrl.msg_id.as_str(),
                                 channel.as_str(),
-                            ) {
+                            );
+                            let discard_reason = confirm_capture_reason(&outcome);
+                            match &outcome {
                                 Ok((ConfirmApplyOutcome::IgnoredWrongDevice, _)) => {
                                     let dev = channel_device_marker(channel.as_str());
                                     emit_cli_receipt_ignored_wrong_device(ctx.from, dev.as_str());
                                     emit_tui_receipt_ignored_wrong_device(ctx.from, dev.as_str());
+                                    // NA-0689 D-1328 RULING 9: this arm's capture was MISSING while
+                                    // D2's and D3's identical arms had it. It belongs to the
+                                    // destruction class by the census's own definition --
+                                    // `commit_unpack_state()?` above consumed the key BEFORE this
+                                    // outcome was known, nothing was applied, and the ack below
+                                    // would leave a marker as the only witness. It is NOT
+                                    // "already-processed": that needs a durable record proving
+                                    // prior application, and there is none. The decision now lives
+                                    // in `confirm_capture_reason`, so it cannot go missing at one
+                                    // site again.
                                 }
                                 Ok((ConfirmApplyOutcome::Confirmed, target)) => {
                                     let device = target
@@ -848,7 +938,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                     );
                                 }
                                 Err(reason) => {
-                                    emit_message_state_reject(reason)
+                                    emit_message_state_reject(reason);
                                 }
                             }
                             queue_envelope_receipt(
@@ -857,7 +947,25 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 request_receipt,
                                 request_msg_id.as_str(),
                             )?;
-                            record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
+                            // NA-0689 D4 — same shared-ack shape as D2/D3.
+                            match discard_reason {
+                                Some(reason) => quarantine_then_ack(
+                                    ctx,
+                                    &mut seen_ids,
+                                    &mut pending_acks,
+                                    item.id.as_str(),
+                                    crate::quarantine::Subclass::Unrecoverable,
+                                    crate::quarantine::ContentKind::InnerPayload,
+                                    reason,
+                                    "transport::receive_pull_and_write/delivered_ack",
+                                    &payload,
+                                )?,
+                                None => record_seen_and_queue_ack(
+                                    &mut seen_ids,
+                                    &mut pending_acks,
+                                    &item.id,
+                                )?,
+                            }
                             continue;
                         }
                         // ⚠ NO `DataEnvelope` ARM HERE ANY MORE — the unwrap moved to the FRONT
@@ -1055,7 +1163,22 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 Some(code),
                                 &[("id", item.id.as_str())],
                             );
-                            record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
+                            // NA-0689 D1. ⚠ THE WIRE ENVELOPE IS ALL THERE IS HERE (D-1328
+                            // Ruling 7): this is the decrypt-failure path, so the message key
+                            // was consumed in an EARLIER run and the ciphertext is permanently
+                            // undecryptable by everyone. It is kept for correlation and as the
+                            // only surviving artefact -- never for recovery.
+                            quarantine_then_ack(
+                                ctx,
+                                &mut seen_ids,
+                                &mut pending_acks,
+                                item.id.as_str(),
+                                crate::quarantine::Subclass::Unrecoverable,
+                                crate::quarantine::ContentKind::WireEnvelope,
+                                code,
+                                "transport::receive_pull_and_write/qsp_replay_reject",
+                                &item.data,
+                            )?;
                             continue;
                         }
                     }
@@ -1085,6 +1208,130 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
 // only — and (b) the seen-store entry for it is durably on disk (`record` returning Ok).
 // A failed seen-write is fail-closed: the id is never acked, the lease expires, and the
 // redelivery lands in the seen store or the replay-reject backstop. No-op in legacy mode.
+/// NA-0689 P2: **capture, then ack.** The one place a censused discard point goes.
+///
+/// ⚠ **FAIL-CLOSED, AND THE CONSEQUENCE IS RATIFIED (D-1328).** If the capture fails we do
+/// **NOT** ack, so the relay redelivers the item and the command reports it. That redelivery
+/// loop is a **DECISION, not a regression** — a loud, witnessed availability degradation chosen
+/// over silent destruction. ⚠ A future reader will feel strong pull to "fix" the loop, because
+/// NA-0644's backstop exists precisely to END a poison redelivery loop and D-1327 §3a records a
+/// lane that predicted a wedge from redelivery and was wrong. **This loop is the point.**
+///
+/// The wire behaviour is otherwise unchanged: the same ack, at the same moment, for every item
+/// whose capture succeeded — which is every item, absent a filesystem or vault failure.
+#[allow(clippy::too_many_arguments)]
+/// NA-0689 D-1328 RULING 11.1 — **THE CAPTURE DECISION FOR THE THREE SHARED-ACK CONFIRM SITES.**
+///
+/// D2 (`attachment_confirm`), D3 (`file_confirm`) and D4 (`delivered_ack`) each share one ack with
+/// a success arm, so each must decide per-outcome whether to capture. That decision used to be
+/// written out three times — and one of the three was written **wrong**: D4's `IgnoredWrongDevice`
+/// arm set no reason while its two structurally identical siblings did, so a wrong-device
+/// `delivered_ack` was destroyed rather than kept (Ruling 9). ⚠ **The three cannot stay split, so
+/// they no longer CAN be** — this is the only place the decision is made, and the symmetry is now
+/// structural rather than three tests agreeing.
+///
+/// ⚠ **THE `IgnoredWrongDevice` AND `Err` CAPTURES ARE HOSTILE-PEER WITNESSES.** A stock `qsc` peer
+/// cannot produce either: it would have to confirm an item it never received (the confirm must
+/// arrive on a **device-qualified** session for a device that is not the item's target), or name an
+/// item the receiver holds no record of. **That is not a gap — it is what these two captures are
+/// FOR.** It is also why they cannot be reached from an end-to-end arm, which is why the decision
+/// is pinned HERE, exhaustively, instead (D-1328 Ruling 11.5).
+///
+/// `None` means the confirm **APPLIED** and the item was genuinely processed — nothing to
+/// quarantine. Returning `Some` for a confirm that applied would turn the store into a copy of
+/// ordinary traffic.
+fn confirm_capture_reason(
+    outcome: &Result<(ConfirmApplyOutcome, Option<String>), &'static str>,
+) -> Option<&'static str> {
+    match outcome {
+        Ok((ConfirmApplyOutcome::Confirmed, _)) => None,
+        Ok((ConfirmApplyOutcome::IgnoredWrongDevice, _)) => Some("ignored_wrong_device"),
+        Err(reason) => Some(reason),
+    }
+}
+
+/// NA-0689 D-1328 RULING 12 — **D5's CAPTURE DECISION**, pinned where it is reachable.
+///
+/// D5 is the forward-compat seam: a payload that carries our namespace marker but whose type this
+/// build does not know. `classify_control` decides WHAT the payload is (and is exhaustively pinned
+/// by NA-0682's own tests); this decides what the SITE does about it. Splitting the two is what
+/// makes the second half testable at all.
+///
+/// ⚠ **THE MATCH IS EXHAUSTIVE ON PURPOSE.** A new `ControlClass` variant will fail to compile here
+/// rather than defaulting into "capture" or "ignore" by omission — the same protection the
+/// `ConfirmApplyOutcome` table gives D2/D3/D4.
+///
+/// ⚠ **LIKE D2–D4's NON-SUCCESS ARMS, D5's CAPTURE IS UNREACHABLE FROM A STOCK PEER — and for a
+/// reason that is the site's PURPOSE.** `UnknownControl` needs the marker plus an unknown `t`/`kind`
+/// or a version above `CTRL_VERSION_MAX`, and a sender of *this* build emits neither. It is the
+/// **forward-compat witness**: only a FUTURE build can trigger it. That is why the decision is
+/// pinned here instead of by an end-to-end arm (D-1328 Rulings 11.5 and 12).
+fn control_class_capture_reason(
+    class: crate::adversarial::payload::ControlClass,
+) -> Option<&'static str> {
+    use crate::adversarial::payload::ControlClass;
+    match class {
+        ControlClass::UnknownControl => Some("unknown_control_type"),
+        // Known to this build, or not ours at all: each is handled on its own path and none of
+        // them is a discard. Capturing here would store ordinary traffic.
+        ControlClass::DeliveredAck | ControlClass::DataEnvelope | ControlClass::NotControl => None,
+    }
+}
+
+// ⚠ ARGUED, NOT SILENT (D-1328 Ruling 10's standard, settled by Ruling 13). These nine arguments
+// ARE the capture call's own fields -- the receive context, the two ack-path accumulators it must
+// thread through, the relay item id, the two independent discriminators (subclass and content kind,
+// which by Rulings 2 and 7 neither implies), the reason, the site, and the bytes. A params struct
+// here would add a type whose only purpose is to satisfy a lint: it would remove no decision, no
+// argument, and no call site, and would put a second name on the same nine fields. Revisit if a
+// TENTH is ever wanted -- that would be evidence the function is accreting responsibilities rather
+// than fields.
+//
+// ⚠ The params-struct form is DEFERRED, NOT REJECTED (Ruling 13 rider i), and the counter-argument
+// is kept rather than buried: positional same-typed discriminators are a standing TRANSPOSITION
+// hazard that named-field construction would remove. Today that line is held by the Ruling 11.2 and
+// 11.3 pins instead; the refactor is natural to the ENG-0083 consolidation context.
+#[allow(clippy::too_many_arguments)]
+fn quarantine_then_ack(
+    ctx: &ReceivePullCtx<'_>,
+    seen_ids: &mut Option<dedup::RelaySeenIds>,
+    pending_acks: &mut Vec<String>,
+    item_id: &str,
+    subclass: crate::quarantine::Subclass,
+    content: crate::quarantine::ContentKind,
+    reason: &str,
+    site: &str,
+    data: &[u8],
+) -> CliResult<()> {
+    match crate::quarantine::capture_at(
+        ctx.cfg_dir,
+        ctx.cfg_source,
+        item_id,
+        subclass,
+        content,
+        reason,
+        site,
+        data,
+        crate::clock::now_unix_s(),
+    ) {
+        Ok(_) => record_seen_and_queue_ack(seen_ids, pending_acks, item_id),
+        Err(code) => {
+            // ⚠ LOUD. The item is NOT acked and will come back; say so rather than letting a
+            // missing ack look like a lost one.
+            emit_marker(
+                "quarantine_capture_failed",
+                Some(code),
+                &[
+                    ("id", item_id),
+                    ("site", site),
+                    ("action", "not_acked_will_redeliver"),
+                ],
+            );
+            Ok(())
+        }
+    }
+}
+
 fn record_seen_and_queue_ack(
     seen: &mut Option<dedup::RelaySeenIds>,
     pending_acks: &mut Vec<String>,
@@ -4097,6 +4344,175 @@ mod relay_push_diagnostic_tests {
         assert_eq!(
             relay_push_diagnostic_class_from_error_parts(false, false, "other error"),
             "not_timeout"
+        );
+    }
+}
+
+// NA-0689 D-1328 RULING 11.2 — THE CAPTURE DECISION, PINNED EXHAUSTIVELY AT THE DECISION LAYER.
+//
+// ⚠ WHY THESE ARE UNIT TESTS AND NOT END-TO-END ARMS, STATED SO NOBODY "FIXES" IT LATER.
+// The two non-success outcomes CANNOT be produced by a stock `qsc` peer over the wire:
+// `IgnoredWrongDevice` needs a confirm arriving on a DEVICE-QUALIFIED session for a device that is
+// not the item's target -- i.e. the peer's second device confirming an item it never received --
+// and `Err` needs the peer to name an item the receiver holds no record of. Both are HOSTILE-PEER
+// behaviours, which is exactly what those captures exist to witness. An integration arm therefore
+// cannot reach them without a test seam inside the receive path, which was refused: if such a seam
+// is ever built it belongs on the SENDER side, so a crafted hostile frame feeds an UNMODIFIED
+// receive path. Filed as its own ENG against the negative-control audit track.
+//
+// So the decision is pinned HERE, where every arm IS reachable and each is trivially red-capable:
+// delete any one line of `confirm_capture_reason` and exactly one of these goes red.
+//
+// ⚠ THE TABLE IS EXHAUSTIVE OVER `ConfirmApplyOutcome`, which has exactly two variants, plus the
+// `Err` case -- three rows, closed. A new variant makes the helper's `match` fail to compile, so
+// this table cannot silently fall behind the enum.
+#[cfg(test)]
+mod confirm_capture_reason_tests {
+    use super::confirm_capture_reason;
+    use crate::timeline::ConfirmApplyOutcome;
+
+    /// SUCCESS CAPTURES NOTHING. This is the whole point of the shared-ack split: D2/D3/D4 ack the
+    /// same way whether or not the confirm applied, so a blanket capture would store every
+    /// successfully applied confirm and turn the quarantine into a copy of ordinary traffic.
+    #[test]
+    fn an_applied_confirm_is_never_captured() {
+        let applied = Ok((ConfirmApplyOutcome::Confirmed, Some("device-1".to_string())));
+        assert_eq!(
+            confirm_capture_reason(&applied),
+            None,
+            "a confirm that APPLIED must not be quarantined"
+        );
+        // The target device is carried for the emit arms, never for the decision.
+        let applied_no_target = Ok((ConfirmApplyOutcome::Confirmed, None));
+        assert_eq!(
+            confirm_capture_reason(&applied_no_target),
+            None,
+            "the decision must not depend on whether a target device was resolved"
+        );
+    }
+
+    /// POSITIVE 1 — the wrong-device ignore. ⚠ This is the arm that was MISSING at D4 while D2 and
+    /// D3 had it (Ruling 9); nothing was applied and the message key was already consumed, so the
+    /// item is unrecoverable at the moment it is acked.
+    #[test]
+    fn a_wrong_device_confirm_is_captured_with_its_own_reason() {
+        let ignored = Ok((
+            ConfirmApplyOutcome::IgnoredWrongDevice,
+            Some("device-2".to_string()),
+        ));
+        assert_eq!(
+            confirm_capture_reason(&ignored),
+            Some("ignored_wrong_device"),
+            "a confirm from the wrong device must be captured, not destroyed"
+        );
+    }
+
+    /// POSITIVE 2 — the apply reject. The reason is the callee's own, passed through UNCHANGED, so
+    /// the quarantine record says why rather than flattening every failure to one word.
+    #[test]
+    fn a_rejected_confirm_is_captured_under_the_callees_reason() {
+        let rejected: Result<(ConfirmApplyOutcome, Option<String>), &'static str> =
+            Err("timeline_entry_not_found");
+        assert_eq!(
+            confirm_capture_reason(&rejected),
+            Some("timeline_entry_not_found"),
+            "the reject reason must reach the quarantine record unflattened"
+        );
+        let other: Result<(ConfirmApplyOutcome, Option<String>), &'static str> =
+            Err("invalid_state_transition");
+        assert_eq!(
+            confirm_capture_reason(&other),
+            Some("invalid_state_transition"),
+            "a DIFFERENT reject must carry a DIFFERENT reason -- otherwise this pin would pass \
+             against a helper that returned one hardcoded string for every failure"
+        );
+    }
+
+    /// ⚠ THE SEPARATION ITSELF. Success and non-success must not merely differ in the reason they
+    /// carry -- one captures and one does not. Asserted as the partition, because that is the
+    /// property the three sites share and the one Ruling 9 found broken at a single site.
+    #[test]
+    fn success_and_non_success_land_on_opposite_sides_of_the_capture_boundary() {
+        let applied = Ok((ConfirmApplyOutcome::Confirmed, None));
+        let ignored = Ok((ConfirmApplyOutcome::IgnoredWrongDevice, None));
+        let rejected: Result<(ConfirmApplyOutcome, Option<String>), &'static str> = Err("nope");
+        assert!(confirm_capture_reason(&applied).is_none());
+        assert!(confirm_capture_reason(&ignored).is_some());
+        assert!(confirm_capture_reason(&rejected).is_some());
+    }
+}
+
+// NA-0689 D-1328 RULING 12 — D5's CAPTURE DECISION, PINNED EXHAUSTIVELY AT THE DECISION LAYER.
+//
+// ⚠ WHY A UNIT TABLE AND NOT AN END-TO-END ARM -- THE SAME REASON AS D2/D3/D4, AND IT IS THE
+// SITE'S PURPOSE RATHER THAN A GAP. `UnknownControl` needs our namespace marker PLUS either an
+// unknown `t`/`kind` pair or a version above CTRL_VERSION_MAX. A sender of THIS build emits
+// neither: same binary, same version ceiling, same three known shapes. There is no env override,
+// and all three ReceiptControlPayload builders are crate-private, so no integration test can craft
+// one either. D5's capture is the FORWARD-COMPAT WITNESS -- only a FUTURE build can trigger it.
+//
+// ⚠ THE HONEST SHAPE OF THE WHOLE CAPTURE SURFACE, recorded above the test names because it is the
+// thing a later reader most needs and least expects: FOUR OF THE FIVE SITES' POSITIVES ARE
+// UNREACHABLE FROM A STOCK PEER, EACH FOR A REASON THAT IS THE SITE'S PURPOSE -- hostile-peer
+// witnesses at D2-D4, the forward-compat witness at D5. D1 alone is stock-reachable, because D1's
+// trigger is OUR OWN CRASH rather than the peer's behaviour.
+//
+// What a payload IS is `classify_control`'s call and is exhaustively pinned by NA-0682's own tests
+// (all four classes, both UnknownControl routes, and the silent-loss guard). What the SITE DOES
+// about it is pinned here.
+#[cfg(test)]
+mod control_class_capture_tests {
+    use super::control_class_capture_reason;
+    use crate::adversarial::payload::ControlClass;
+
+    /// THE ONE CLASS THAT IS CAPTURED. Judged not-for-this-build, NOT unrecoverable: a future build
+    /// could read it, but redelivery cannot save it because every current build acks it away on
+    /// sight -- so the store is the only thing that preserves it.
+    #[test]
+    fn an_unknown_control_is_captured_under_its_own_reason() {
+        assert_eq!(
+            control_class_capture_reason(ControlClass::UnknownControl),
+            Some("unknown_control_type"),
+            "the forward-compat seam must be KEPT, not acked away with a marker as the only witness"
+        );
+    }
+
+    /// ⚠ THE ZEROS, EXHAUSTIVE OVER EVERY OTHER VARIANT. Each of these has its own handling path and
+    /// none is a discard; capturing any of them would store ordinary traffic. `NotControl` matters
+    /// most: it is the silent-loss guard's class -- a user message that merely LOOKS like a control
+    /// payload -- and capturing it would swallow real user mail into the quarantine.
+    #[test]
+    fn every_class_this_build_understands_captures_nothing() {
+        for class in [
+            ControlClass::DeliveredAck,
+            ControlClass::DataEnvelope,
+            ControlClass::NotControl,
+        ] {
+            assert_eq!(
+                control_class_capture_reason(class),
+                None,
+                "{class:?} is handled on its own path and must never be quarantined"
+            );
+        }
+    }
+
+    /// ⚠ THE PARTITION ITSELF, asserted as a partition rather than as four independent facts:
+    /// exactly one class captures. A helper that captured two, or none, would satisfy neither.
+    #[test]
+    fn exactly_one_control_class_reaches_the_capture() {
+        let all = [
+            ControlClass::DeliveredAck,
+            ControlClass::DataEnvelope,
+            ControlClass::UnknownControl,
+            ControlClass::NotControl,
+        ];
+        let captured = all
+            .iter()
+            .filter(|c| control_class_capture_reason(**c).is_some())
+            .count();
+        assert_eq!(
+            captured, 1,
+            "exactly one of the four classes may reach the D5 capture"
         );
     }
 }

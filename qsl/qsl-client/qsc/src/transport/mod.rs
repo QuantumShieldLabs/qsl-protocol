@@ -1278,6 +1278,20 @@ fn control_class_capture_reason(
     }
 }
 
+// ⚠ ARGUED, NOT SILENT (D-1328 Ruling 10's standard, settled by Ruling 13). These nine arguments
+// ARE the capture call's own fields -- the receive context, the two ack-path accumulators it must
+// thread through, the relay item id, the two independent discriminators (subclass and content kind,
+// which by Rulings 2 and 7 neither implies), the reason, the site, and the bytes. A params struct
+// here would add a type whose only purpose is to satisfy a lint: it would remove no decision, no
+// argument, and no call site, and would put a second name on the same nine fields. Revisit if a
+// TENTH is ever wanted -- that would be evidence the function is accreting responsibilities rather
+// than fields.
+//
+// ⚠ The params-struct form is DEFERRED, NOT REJECTED (Ruling 13 rider i), and the counter-argument
+// is kept rather than buried: positional same-typed discriminators are a standing TRANSPOSITION
+// hazard that named-field construction would remove. Today that line is held by the Ruling 11.2 and
+// 11.3 pins instead; the refactor is natural to the ENG-0083 consolidation context.
+#[allow(clippy::too_many_arguments)]
 fn quarantine_then_ack(
     ctx: &ReceivePullCtx<'_>,
     seen_ids: &mut Option<dedup::RelaySeenIds>,

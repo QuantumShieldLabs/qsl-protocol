@@ -337,3 +337,327 @@ fn a_clean_receive_captures_nothing_and_the_replay_backstop_captures_exactly_one
          without consent' for 'kept without consent'.\nlisting:\n{listing_drop}"
     );
 }
+
+// ---------------------------------------------------------------------------
+// D4 and D5 — THE ZEROS, through the real delivered-receipt round-trip.
+//
+// One flow exercises both sites' success paths: the ack Alice receives back is classified
+// `DeliveredAck` -- a class this build UNDERSTANDS -- so it passes D5's forward-compat branch
+// without capture and lands on D4's apply, which confirms. Neither may capture anything.
+//
+// ⚠ THE MOCK RELAY IS CORRECT HERE, AND THE GROUND IS MEASURED RATHER THAN CONVENIENT: capture at
+// D2-D5 is ack-mode-independent, because `quarantine::capture_at` runs UNCONDITIONALLY and
+// UPSTREAM of `record_seen_and_queue_ack` (which is itself a no-op under legacy). Only D1 is gated
+// on `AckMode::Lease`, and D1 has its own real-relay arm above.
+// ---------------------------------------------------------------------------
+#[test]
+fn a_delivered_receipt_that_applies_captures_nothing_at_d4_or_d5() {
+    let _g = guard();
+    let relay = common::start_inbox_server(1024 * 1024, 64);
+    let base = relay.base_url().to_string();
+    let root = test_root("na0689_capture_boundary_d4d5");
+    let (alice, bob) = setup(&root);
+
+    // Alice sends and REQUESTS a delivered receipt. Without the explicit request no ack is ever
+    // produced, and the arm would measure an empty mailbox instead of an applied confirm.
+    let msg = root.join("receipted.txt");
+    fs::write(&msg, b"na0689 a message that asks for a receipt").expect("write msg");
+    let sent = run_ok(
+        &alice,
+        &[
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            &base,
+            "--to",
+            "bob",
+            "--file",
+            msg.to_str().expect("msg path"),
+            "--receipt",
+            "delivered",
+        ],
+    );
+    assert!(
+        sent.contains("event=receipt_request kind=delivered"),
+        "the receipt must actually be requested, or no ack is ever sent: {sent}"
+    );
+
+    // Bob receives it and, per the NA-0688 C3 default, sends the delivered ack back.
+    let bob_out = root.join("bob_out");
+    ensure_dir_700(&bob_out);
+    let bob_recv = run_ok(
+        &bob,
+        &[
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            &base,
+            "--mailbox",
+            BOB_INBOX,
+            "--from",
+            "bob",
+            "--max",
+            "8",
+            "--out",
+            bob_out.to_str().expect("out"),
+        ],
+    );
+    assert!(
+        bob_recv.contains("event=receipt_send kind=delivered"),
+        "the recipient must actually emit the ack: {bob_recv}"
+    );
+    let (bob_captured, bob_listing) = quarantine_entries(&bob);
+    assert_eq!(
+        bob_captured, 0,
+        "receiving an ordinary message must capture nothing: {bob_listing}"
+    );
+
+    // Alice collects the ack. It classifies as DeliveredAck -- known to this build -- so D5 does
+    // not capture it, and D4's apply confirms, so D4 does not either.
+    let alice_out = root.join("alice_out");
+    ensure_dir_700(&alice_out);
+    let alice_recv = run_ok(
+        &alice,
+        &[
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            &base,
+            "--mailbox",
+            ALICE_INBOX,
+            "--from",
+            "bob",
+            "--max",
+            "8",
+            "--out",
+            alice_out.to_str().expect("out"),
+        ],
+    );
+    assert!(
+        alice_recv.contains("event=delivered_to_peer"),
+        "the ack must APPLY -- this marker is emitted only inside D4's Confirmed arm, so without \
+         it the zero below would be measuring an ack that never arrived: {alice_recv}"
+    );
+
+    let (alice_captured, alice_listing) = quarantine_entries(&alice);
+    assert_eq!(
+        alice_captured, 0,
+        "AN APPLIED CONFIRM MUST CAPTURE NOTHING. D4 shares its ack with a success arm, so a \
+         blanket capture here would store every successfully applied confirm and turn the store \
+         into a copy of ordinary traffic.\nreceive:\n{alice_recv}\nlisting:\n{alice_listing}"
+    );
+
+    // ⚠ The zero above is only evidence because the SAME instrument counted 1 at D1 in this file's
+    // other arm, against the same verb and the same parser. A count that can only ever read zero
+    // would satisfy this assertion on every possible tree.
+    assert!(
+        alice_listing.contains("event=quarantine_list count=0"),
+        "the listing must positively report an empty store rather than printing nothing: \
+         {alice_listing}"
+    );
+}
+
+/// D3 — the FILE-confirm site's success arm.
+///
+/// Alice sends a file requesting a delivered receipt; Bob receives it and emits the file confirm;
+/// Alice collects that confirm and it APPLIES. `file_confirm_recv` is emitted only inside D3's
+/// `Confirmed` arm, so it is what proves the zero below is measuring an applied confirm rather
+/// than an empty mailbox.
+#[test]
+fn a_file_confirm_that_applies_captures_nothing_at_d3() {
+    let _g = guard();
+    let relay = common::start_inbox_server(1024 * 1024, 256);
+    let base = relay.base_url().to_string();
+    let root = test_root("na0689_capture_boundary_d3");
+    let (alice, bob) = setup(&root);
+
+    let payload = root.join("file.bin");
+    fs::write(&payload, vec![0x51; 12_288]).expect("write payload");
+    run_ok(
+        &alice,
+        &[
+            "file",
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            &base,
+            "--to",
+            "bob",
+            "--path",
+            payload.to_str().expect("path"),
+            "--chunk-size",
+            "4096",
+            "--receipt",
+            "delivered",
+        ],
+    );
+
+    let bob_out = root.join("bob_out");
+    ensure_dir_700(&bob_out);
+    let bob_text = run_ok(
+        &bob,
+        &[
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            &base,
+            "--mailbox",
+            BOB_INBOX,
+            "--from",
+            "bob",
+            "--max",
+            "64",
+            "--out",
+            bob_out.to_str().expect("out"),
+            "--emit-receipts",
+            "delivered",
+        ],
+    );
+    assert!(
+        bob_text.contains("event=file_confirm_send"),
+        "the recipient must emit the file confirm: {bob_text}"
+    );
+    let (bob_n, bob_listing) = quarantine_entries(&bob);
+    assert_eq!(bob_n, 0, "receiving a file must capture nothing: {bob_listing}");
+
+    let alice_out = root.join("alice_out");
+    ensure_dir_700(&alice_out);
+    let alice_text = run_ok(
+        &alice,
+        &[
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            &base,
+            "--mailbox",
+            ALICE_INBOX,
+            "--from",
+            "bob",
+            "--max",
+            "64",
+            "--out",
+            alice_out.to_str().expect("out"),
+        ],
+    );
+    assert!(
+        alice_text.contains("event=file_confirm_recv"),
+        "the confirm must APPLY, or the zero below measures an ack that never arrived: {alice_text}"
+    );
+    let (alice_n, alice_listing) = quarantine_entries(&alice);
+    assert_eq!(
+        alice_n, 0,
+        "AN APPLIED FILE CONFIRM MUST CAPTURE NOTHING -- D3 shares its ack with this success arm.\n\
+         receive:\n{alice_text}\nlisting:\n{alice_listing}"
+    );
+}
+
+/// D2 — the ATTACHMENT-confirm site's success arm. Identical in shape to D3 but routed through a
+/// real attachment service, which is what makes it the attachment path rather than the inline one.
+#[test]
+fn an_attachment_confirm_that_applies_captures_nothing_at_d2() {
+    let _g = guard();
+    let relay = common::start_inbox_server(2 * 1024 * 1024, 512);
+    let service = common::start_attachment_server(100 * 1024 * 1024);
+    let base = relay.base_url().to_string();
+    let svc = service.base_url().to_string();
+    let root = test_root("na0689_capture_boundary_d2");
+    let (alice, bob) = setup(&root);
+
+    let payload = root.join("stream.bin");
+    // ⚠ SIZE IS WHAT SELECTS THE PATH, not the --attachment-service flag alone. Below the
+    // streaming threshold the send takes the inline file_chunk route, which post-W0 receive
+    // rejects outright -- so a small payload makes this arm fail in SETUP rather than measure D2.
+    // 6 MiB + 321 is the reference size `attachments_contract_na0217h` uses.
+    fs::write(&payload, vec![0x62; 6 * 1024 * 1024 + 321]).expect("write payload");
+    run_ok(
+        &alice,
+        &[
+            "file",
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            &base,
+            "--attachment-service",
+            &svc,
+            "--to",
+            "bob",
+            "--path",
+            payload.to_str().expect("path"),
+            // ⚠ NO --chunk-size HERE, and that is the difference between this arm and D3's: a
+            // chunk size forces the legacy inline file_chunk path, which post-W0 receive REJECTS
+            // outright (legacy_receive_retired_post_w0) -- so the attachment confirm would never
+            // be produced and this arm would fail in setup rather than measure D2.
+            "--receipt",
+            "delivered",
+        ],
+    );
+
+    let bob_out = root.join("bob_out");
+    ensure_dir_700(&bob_out);
+    let bob_text = run_ok(
+        &bob,
+        &[
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            &base,
+            "--attachment-service",
+            &svc,
+            "--mailbox",
+            BOB_INBOX,
+            "--from",
+            "bob",
+            "--max",
+            "64",
+            "--out",
+            bob_out.to_str().expect("out"),
+            "--emit-receipts",
+            "delivered",
+        ],
+    );
+    assert!(
+        bob_text.contains("attachment_confirm_send"),
+        "the recipient must emit the attachment confirm: {bob_text}"
+    );
+
+    let alice_out = root.join("alice_out");
+    ensure_dir_700(&alice_out);
+    let alice_text = run_ok(
+        &alice,
+        &[
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            &base,
+            "--attachment-service",
+            &svc,
+            "--mailbox",
+            ALICE_INBOX,
+            "--from",
+            "bob",
+            "--max",
+            "64",
+            "--out",
+            alice_out.to_str().expect("out"),
+        ],
+    );
+    assert!(
+        alice_text.contains("event=attachment_confirm_recv"),
+        "the confirm must APPLY, or the zero below measures nothing: {alice_text}"
+    );
+    let (alice_n, alice_listing) = quarantine_entries(&alice);
+    assert_eq!(
+        alice_n, 0,
+        "AN APPLIED ATTACHMENT CONFIRM MUST CAPTURE NOTHING -- D2 shares its ack with this success \
+         arm.\nreceive:\n{alice_text}\nlisting:\n{alice_listing}"
+    );
+}

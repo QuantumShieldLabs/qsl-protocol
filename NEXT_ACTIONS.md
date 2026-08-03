@@ -6,7 +6,7 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0692 | HIGHEST_NA=0692 | HIGHEST_D=1331 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0692 | HIGHEST_NA=0692 | HIGHEST_D=1332 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
 **FORWARD ORDER — Director decision 2026-08-02, operator-approved.**
 **as of: 2026-08-03** · **superseded by: _none — this is current_**
@@ -36964,7 +36964,7 @@ Begins at the recordings (D625 §2–§4). ⚠ **NO census/probe stop — the wo
 
 ### NA-0692 — VAULT-INTEGRITY SLICE A: ENG-0109 — ONE CONFIG-DIRECTORY RESOLVER (D626, SINGLE-REPO qsl-protocol / qsc, ONE PR): `vault_path_resolved` re-implements `config_dir` without its trim guard, so a blank or whitespace config-dir variable puts the **vault** at the RELATIVE path `vault.qsv` in the process working directory while the **lock, the protection state and the store metadata** fall through to the XDG or home location — **the vault and the lock that is supposed to protect it end up in different directories, and the unlock counter and attempt limit stop travelling with the vault they govern.** The vault's resolver is **DELETED and delegated**, which also produces the `ConfigSource` that `fs_store::write_atomic` and `lock_store_exclusive` require. ⚠ **THIS IS SLICE A OF FIVE** (A ENG-0109 → B ENG-0106 → C ENG-0107 → D ENG-0108 → E ENG-0110/0111): **Slice A PRODUCES the `ConfigSource`; it does not CONSUME it.** Every consumer is Slice B or later.
 
-Status: READY
+Status: MERGING (PR #1693)
 Goals: G2 (deterministic, fail-closed accept/reject — GOALS.md G2's *"deterministic accept/reject semantics (fail-closed)"* bullet. ⚠ **The property, stated rather than cited: the vault and the protection state that gates access to it must resolve to the SAME directory, so the unlock counter and the attempt limit travel with the vault they govern.** A vault reachable at a relative path while its counter sits in `$HOME/.config/qsc` is a brute-force limit that resets when the caller changes directory), G4 (the three red-capable instruments and the governance record). ⚠ **G1, G3 and G5 are NOT claimed** — no key derivation, no negotiation, no metadata surface. Stated as negatives because ENG-0103 records that an inherited masthead goals line is a claim nobody checked.
 
 Directive: `/srv/qbuild/operator/directives/QSL-DIR-2026-08-03-626_qsc_eng0109_config_resolver_unification.md`, sha256 `9a6ee09358dd160033c81ab0b4beeea4929d526fac403327550c178416168db7`, **607 lines**. Base measured at formalization and re-derived from `main` at this promotion: `dfbb113c`. Source finding: **ENG-0109**, filed 2026-08-02 by AUDIT-TRIAGE #001 (external verification record **N-08**; **absent from the audit itself**) as FILING ONLY. **D626 ACCEPTED by the Director with all three requested rulings taken at approval: A = A1 (all three instruments), B = CONFIRMED (all three behaviour changes ride), C = CONFIRMED harmless.**

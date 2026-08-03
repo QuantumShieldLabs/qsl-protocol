@@ -15,6 +15,7 @@
 // explicit opt-in, the one-call lock(), and token-confirmed destroy.
 pub mod protection;
 
+use crate::model::ConfigSource;
 use crate::output::{CliError, CliResult};
 use std::collections::BTreeMap;
 use std::fs;
@@ -512,7 +513,8 @@ fn vault_init_core(key_source: KeySource, mut pass: Option<String>) -> Result<()
         }
     };
 
-    let (_cfg_dir, vault_path) = match vault_path_resolved() {
+    // `_source` is BOUND AND DROPPED: Slice A produces the ConfigSource, Slice B consumes it.
+    let (_cfg_dir, vault_path, _source) = match vault_path_resolved() {
         Ok(v) => v,
         Err(code) => return Err(fail_core_buffers(code, &mut pass_bytes, &mut key_bytes)),
     };
@@ -628,7 +630,7 @@ fn generate_default_route_token() -> String {
 }
 
 fn vault_status() -> CliResult {
-    let (_cfg_dir, vault_path) = match vault_path_resolved() {
+    let (_cfg_dir, vault_path, _source) = match vault_path_resolved() {
         Ok(v) => v,
         Err(code) => return Err(CliError::code(code)),
     };
@@ -754,7 +756,7 @@ fn load_vault_runtime() -> Result<(PathBuf, VaultRuntime), &'static str> {
 fn load_vault_runtime_with_passphrase(
     passphrase_override: Option<&str>,
 ) -> Result<(PathBuf, VaultRuntime), &'static str> {
-    let (_cfg_dir, vault_path) = vault_path_resolved()?;
+    let (_cfg_dir, vault_path, _source) = vault_path_resolved()?;
     PERF_VAULT_FILE_READS.fetch_add(1, Ordering::Relaxed);
     let bytes = fs::read(&vault_path).map_err(|_| "vault_missing")?;
     let envelope = parse_envelope(&bytes)?;
@@ -1207,15 +1209,175 @@ fn handle_provider_error_with_pass(err: ProviderError, pass: &mut Option<String>
     handle_provider_error(err)
 }
 
-fn vault_path_resolved() -> Result<(PathBuf, PathBuf), &'static str> {
-    let cfg = if let Ok(v) = std::env::var("QSC_CONFIG_DIR") {
-        PathBuf::from(v)
-    } else if let Ok(v) = std::env::var("XDG_CONFIG_HOME") {
-        PathBuf::from(v).join("qsc")
-    } else if let Ok(home) = std::env::var("HOME") {
-        PathBuf::from(home).join(".config").join("qsc")
-    } else {
-        return Err("vault_config_missing");
-    };
-    Ok((cfg.clone(), cfg.join("vault.qsv")))
+// NA-0692 (ENG-0109): ONE config-directory resolver in the crate.
+//
+// This used to re-implement `fs_store::config_dir` without its `!v.trim().is_empty()`
+// guard, so a blank or whitespace config-dir variable put the vault at a RELATIVE path
+// while the lock, the protection state and the store metadata — which all resolve
+// through `config_dir` — fell through to the XDG or home location. The vault and the
+// unlock counter that limits attempts against it ended up in different directories.
+// Delegating (rather than copying the guard in) is the fix, because the defect is the
+// DUPLICATION: a copied guard would close the symptom and leave two resolvers behind.
+//
+// ⚠ `config_dir` has exactly ONE `Err` return, measured at NA-0692:
+// `ErrorCode::MissingHome` (`fs_store/mod.rs:29`). There are no `?` operators and no
+// other early returns in its body, so the blanket `map_err` below is total and lossless
+// AS MEASURED. If a second `Err` variant is ever added to `config_dir`, THIS SITE MUST
+// MAP IT EXPLICITLY — a wildcard arm would launder a new variant exactly as silently as
+// `|_|` does, and `ErrorCode` is too large for an exhaustive match to be practical.
+fn vault_path_resolved() -> Result<(PathBuf, PathBuf, ConfigSource), &'static str> {
+    let (cfg, source) = crate::fs_store::config_dir().map_err(|_| "vault_config_missing")?;
+    Ok((cfg.clone(), cfg.join("vault.qsv"), source))
+}
+
+// NA-0692 (D626, D-1332): ENG-0109 — the `ConfigSource` pin.
+//
+// `vault_path_resolved` is PRIVATE and stays private, and `ConfigSource` is
+// `pub(crate)`, so a same-file `#[cfg(test)] mod` is the ONLY place in the tree that
+// can observe what this resolver returns. That is the property that made the
+// `confirm_capture_reason_tests` precedent (`transport/mod.rs:4394`) the right shape:
+// the function under test is private, so only a module inside the same file can call
+// it directly. Exporting the resolver to make an external test compile would trade
+// the encapsulation for the instrument.
+//
+// ⚠ `ConfigSource` derives only `Debug, Clone, Copy` (`model/mod.rs:44`) — there is
+// NO `PartialEq`. Assert with `matches!`; adding a derive to a shared crate-wide type
+// to make one assertion compile would widen a type this lane does not own.
+//
+// ⚠ These are the FIRST env-mutating tests in the lib unit-test binary (measured at
+// NA-0692: 111 `#[test]` functions across 14 files in `qsc/src`, zero `set_var` /
+// `remove_var`, and none of them resolves the config directory from the environment).
+// They carry their OWN `ENV_LOCK`, every test takes it, and every variable touched is
+// snapshotted and restored including the unset case. `set_var` is safe without an
+// `unsafe` block on this crate — `edition = "2021"` (`qsc/Cargo.toml:4`).
+#[cfg(test)]
+mod na0692_config_resolver_tests {
+    use super::vault_path_resolved;
+    use crate::model::ConfigSource;
+    use std::sync::{Mutex, MutexGuard, OnceLock};
+
+    /// Every variable these tests write. `HOME` is deliberately NOT in the set: both
+    /// cases set a non-blank earlier-precedence variable, so no branch reaches it.
+    const TOUCHED_VARS: [&str; 2] = ["QSC_CONFIG_DIR", "XDG_CONFIG_HOME"];
+
+    static ENV_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+
+    fn env_lock() -> MutexGuard<'static, ()> {
+        ENV_LOCK
+            .get_or_init(|| Mutex::new(()))
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+    }
+
+    /// Restores on `Drop`, including the unset case, so a panicking assertion cannot
+    /// leak a mutated environment into the rest of this binary.
+    struct EnvSnapshot {
+        vars: Vec<(&'static str, Option<String>)>,
+    }
+
+    impl EnvSnapshot {
+        fn take() -> Self {
+            Self {
+                vars: TOUCHED_VARS
+                    .iter()
+                    .map(|k| (*k, std::env::var(k).ok()))
+                    .collect(),
+            }
+        }
+    }
+
+    impl Drop for EnvSnapshot {
+        fn drop(&mut self) {
+            for (key, value) in &self.vars {
+                match value {
+                    Some(v) => std::env::set_var(key, v),
+                    None => std::env::remove_var(key),
+                }
+            }
+        }
+    }
+
+    /// THE NEGATIVE CONTROL — the two resolvers must not diverge.
+    ///
+    /// A blank `QSC_CONFIG_DIR` is exactly the input that used to split them: the
+    /// vault took `PathBuf::from("")` and landed at a relative path while the store,
+    /// the lock and the protection state fell through to XDG. Nothing here touches
+    /// the filesystem; the paths need not exist to be resolved.
+    #[test]
+    fn a_blank_config_dir_override_resolves_the_vault_and_the_store_to_the_same_directory() {
+        let _guard = env_lock();
+        let _snapshot = EnvSnapshot::take();
+
+        let xdg = std::env::temp_dir().join(format!("na0692-xdg-{}", std::process::id()));
+        std::env::set_var("QSC_CONFIG_DIR", "");
+        std::env::set_var("XDG_CONFIG_HOME", &xdg);
+
+        let (cfg, vault_path, source) = vault_path_resolved().expect("the resolver must succeed");
+        let (store_cfg, store_source) =
+            crate::fs_store::config_dir().expect("config_dir must succeed");
+
+        assert_eq!(
+            cfg, store_cfg,
+            "the vault and the store must resolve to the SAME directory"
+        );
+        assert_eq!(
+            cfg,
+            xdg.join("qsc"),
+            "a blank QSC_CONFIG_DIR must fall through to XDG_CONFIG_HOME"
+        );
+        assert_eq!(vault_path, cfg.join("vault.qsv"));
+        assert!(
+            matches!(source, ConfigSource::XdgConfigHome),
+            "the vault's source must be XdgConfigHome, got {:?}",
+            source
+        );
+        assert!(
+            matches!(store_source, ConfigSource::XdgConfigHome),
+            "the store's source must be XdgConfigHome, got {:?}",
+            store_source
+        );
+    }
+
+    /// THE POSITIVE CONTROL — the instrument sees AGREEMENT, not merely the absence
+    /// of divergence.
+    ///
+    /// Without this, a resolver that returned the same wrong answer twice, or a test
+    /// that never exercised the override branch at all, would look identical to a
+    /// correct one. `XDG_CONFIG_HOME` is set to a value that must NOT be chosen, so
+    /// precedence is observed rather than assumed.
+    #[test]
+    fn an_absolute_config_dir_override_resolves_both_resolvers_to_that_path() {
+        let _guard = env_lock();
+        let _snapshot = EnvSnapshot::take();
+
+        let override_dir =
+            std::env::temp_dir().join(format!("na0692-override-{}", std::process::id()));
+        assert!(
+            override_dir.is_absolute(),
+            "the override under test must be an absolute path"
+        );
+        std::env::set_var("QSC_CONFIG_DIR", &override_dir);
+        std::env::set_var("XDG_CONFIG_HOME", "/na0692/must/not/be/chosen");
+
+        let (cfg, vault_path, source) = vault_path_resolved().expect("the resolver must succeed");
+        let (store_cfg, store_source) =
+            crate::fs_store::config_dir().expect("config_dir must succeed");
+
+        assert_eq!(cfg, override_dir, "the vault must honour the override");
+        assert_eq!(
+            store_cfg, override_dir,
+            "the store must honour the override"
+        );
+        assert_eq!(vault_path, override_dir.join("vault.qsv"));
+        assert!(
+            matches!(source, ConfigSource::EnvOverride),
+            "the vault's source must be EnvOverride, got {:?}",
+            source
+        );
+        assert!(
+            matches!(store_source, ConfigSource::EnvOverride),
+            "the store's source must be EnvOverride, got {:?}",
+            store_source
+        );
+    }
 }

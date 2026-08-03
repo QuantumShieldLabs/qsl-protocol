@@ -36179,3 +36179,126 @@ keeps operator-side.
 **References:** NA-0691; D625 §3; the audit-triage errand and PR #1687 (`f853a125`), where the
 decision was taken and where it had no repo home; **ENG-0106 … ENG-0116** (the findings, already
 filed); DOC-OPS-006 §4a (the discoverability failure this record avoids); D-1330 (same lane).
+
+## D-1332 — NA-0692: ONE CONFIG-DIRECTORY RESOLVER — and the lane where the fix that closes the symptom is the wrong fix
+
+**Status:** Accepted 2026-08-03. **Lane:** NA-0692. **Directive:** `QSL-DIR-2026-08-03-626` (D626,
+sha256 `9a6ee093…16168db7`, 607 lines). **Base:** `250c2b71` (re-derived by fetch; the merge of
+PR #1692). **Class:** `QSC_CONFIG_RESOLVER_UNIFIED_PASS`. **Source finding:** **ENG-0109**
+(external verification record **N-08**; absent from the audit itself). **Slice A of five**
+(A ENG-0109 → B ENG-0106 → C ENG-0107 → D ENG-0108 → E ENG-0110/0111).
+
+**THE RULING.** `vault_path_resolved` (`vault/mod.rs:1210`) **stops resolving the config directory
+itself and delegates to `fs_store::config_dir`**, adopting its trim guard and returning the
+`ConfigSource` that Slice B requires. The three `std::env::var` calls are **DELETED, not guarded**;
+the signature widens from a 2-tuple to `Result<(PathBuf, PathBuf, ConfigSource), &'static str>`; the
+three callers (`:515`, `:631`, `:757`) bind the source as `_source`. `vault_path_resolved` stays
+**private**; `ConfigSource` keeps its existing derives.
+
+⚠ **THE DEFECT IS DUPLICATION, NOT A MISSING GUARD, AND THAT DISTINCTION DECIDED THE FIX.** Copying
+`if !v.trim().is_empty()` into the vault's resolver would have closed the reported symptom and left
+**two resolvers** in the crate — the condition ENG-0109 is filed against and the reason it blocks
+Slice B. **No behavioural test can tell a delegation from a copied guard.** The instrument that can
+is structural, and it is the reason the lane can claim unification rather than a bug fix:
+`env::var("QSC_CONFIG_DIR")`, `env::var("XDG_CONFIG_HOME")` and `env::var("HOME")` each occurred
+**exactly 2× in `qsc/src`** at base and each occurs **exactly 1×** after. Measured both times.
+
+**THE PROPERTY, stated rather than cited (G2, fail-closed accept/reject):** the vault and the
+protection state that gates access to it must resolve to the **same directory**, so the unlock
+counter and the attempt limit travel with the vault they govern. A vault reachable at a relative
+path while its counter sits in `$HOME/.config/qsc` is a brute-force limit that resets when the
+caller changes directory.
+
+### ⚠ THE BEHAVIOUR DELTA IS THREE ROWS, NOT ONE
+
+The filing and the lane intent both named **one** case. Measured over all three variables ×
+set / blank / unset, there are **three**, all in the same direction, and all three ride this one
+delegation because it cannot be adopted selectively:
+
+| case | before | after |
+|---|---|---|
+| blank/whitespace `QSC_CONFIG_DIR` | relative `vault.qsv` **in the process CWD** | falls through to XDG, then HOME |
+| blank `XDG_CONFIG_HOME` | relative `qsc/vault.qsv` | falls through to HOME |
+| blank `HOME` | relative `.config/qsc/vault.qsv` | **`Err`** |
+
+⚠ **THE ERROR STRING IS UNCHANGED; THE ERROR CONDITION WIDENS.** That is the honest statement of
+the third row and it is the one a reader is most likely to miss.
+
+⚠ **`vault_config_missing` has ONE producer and ZERO consumers tree-wide.** No test asserts it and
+no document names it, so "the user-facing error surface is unchanged" is satisfied **by
+construction** and **cannot be proven by a suite delta**. Recorded as an observation, not a task.
+
+⚠ **THE LEDGER'S PARENT-SAFETY WARNING DOES NOT FIRE IN SLICE A.** ENG-0109 warns that adopting
+`config_dir()`'s source means the vault inherits a parent-safety policy — *"correct, but a change in
+what gets rejected."* **That is about the moment the source is USED.** Here it is bound as `_source`
+and dropped; `enforce_safe_parents` is never called on the vault path and **nothing new is
+rejected**. Parent safety arrives in Slice B by construction (N-04).
+
+⚠ **ONE PRE-EXISTING QUIRK IS INHERITED AS-IS AND WAS DELIBERATELY NOT "FIXED":** `config_dir`
+guards on `!v.trim().is_empty()` but builds `PathBuf::from(v)` **untrimmed**, so
+`QSC_CONFIG_DIR=" /tmp/x "` keeps its spaces. That is already live for the store, the lock and the
+protection state; **unification means the vault inherits it.** Changing it would alter store
+behaviour from inside a vault lane.
+
+⚠ **THE `map_err` IS TOTAL AS MEASURED, AND THE CODE CARRIES ITS OWN MEASUREMENT.** `config_dir` has
+exactly one `Err` return — `ErrorCode::MissingHome` at `fs_store/mod.rs:29` — with no `?` operators
+and no other early returns, so the blanket `map_err(|_| "vault_config_missing")` is lossless
+**today**. `ErrorCode` is too large for an exhaustive match and a wildcard arm would launder a new
+variant just as silently as `|_|`, so the delegation carries a comment recording the measured fact,
+its anchor, and the instruction that **a second `Err` variant obliges an explicit mapping at that
+site**. A comment is the only durable guard available here, and that is why it is a ruling.
+
+### THE THREE INSTRUMENTS, EACH MEASURING WHAT THE OTHER TWO CANNOT
+
+1. **`tests/na0692_config_resolver_unified.rs`** (2 tests) — the observable property: with a blank
+   or whitespace `QSC_CONFIG_DIR` the vault is created under the resolved config dir, never as a
+   relative path in the CWD. Reaches the private resolver through the pub surface
+   (`vault_init_with_passphrase` → `vault_init_core` → `vault_path_resolved`).
+2. **the in-`src` `#[cfg(test)] mod`** (2 tests) — the only place that can observe the `pub(crate)`
+   `ConfigSource`, with a **positive control** proving the instrument sees *agreement* and not
+   merely the *absence of divergence*. **`matches!`, never `assert_eq!`** — `ConfigSource` derives
+   only `Debug, Clone, Copy`, and adding `PartialEq` to a shared type to make one assertion compile
+   would widen a type this lane does not own.
+3. **the structural 2→1 count** — the only one that pins *unification*.
+
+**RED-CAPABILITY, PROVEN AGAINST A SINGLE REVERT.** With the delegation reverted (body only, so the
+revert is the *copied-resolver* state rather than a compile error): the `tests/` file went **0
+passed / 2 failed**, the in-`src` negative control **failed** (`left: ""` vs the real config dir —
+the two resolvers disagreeing, displayed directly), the positive control **correctly stayed green**,
+and the structural count went back to **2, 2, 2**. Restored, both files **byte-identical by `cmp`**,
+and green again.
+
+⚠ **THE RED CONTROL IS DESTRUCTIVE WITHOUT THE CWD MOVE, AND IT WAS CAUGHT IN THE ACT.** A cargo
+integration test's working directory is the crate root. Under the revert the whitespace case created
+a directory **literally named `"   "` containing a real `vault.qsv`** — inside the temp CWD, because
+the test moves the process CWD under the same lock. `git status` was clean after the red run.
+
+### ⚠ ONE FILING RIDES THIS PR BY DIRECTOR RULING — WF-0045
+
+**`scripts/ci/preflight_qsc_impl.sh` cannot pass at base on either of its two static gates.**
+Measured at `250c2b71` **before any edit of this lane existed**: `cargo fmt -p qsc -- --check`
+(`:39`) is **RED across 236 files**, and `cargo clippy -p qsc --all-targets -- -D warnings`
+(`:41`) would fail on **53 warnings**. Its third gate, `cargo test -p qsc --locked` (`:40`),
+**passes** — so the script is not uniformly stale, which is what distinguishes drift from
+abandonment. ⚠ **No workflow invokes the script, and `clippy` / `cargo fmt` / `rustfmt` appear
+nowhere in `.github/`** — so no CI signal exists for either gate.
+
+⚠ ***Inference, labelled as inference:*** this has the shape of a gate written, never wired, and
+left to drift until unpassable — **the WF-0044 pattern, second instance in two consecutive
+lanes**. The alternative reading, that both static gates were advisory from the start, is not
+settled by the record. **The measurement is fact; the diagnosis is not.**
+
+**FILING ONLY.** `scripts/ci/**` was not touched and **`cargo fmt` was never run to write** — it
+would rewrite 236 files, a severe scope violation for any lane. **This lane's own deltas are
+zero**: fmt file-set 236 → 236 (identical set by `diff`) and clippy 53 → 53 (identical
+distribution), after reformatting **only this lane's own two newly-added lines**.
+
+⚠ **It was found by running the gate at base before trusting it as a delta** (D626 §11). The
+written expectation was *"exit 0, empty output"* and it was **falsified on the first run**. Taken
+only after editing, the 236 files would have looked like this lane's doing.
+
+**References:** NA-0692; D626 §1, §2a, §5, §7; ENG-0109 and external record N-08; D-1330
+(reconciliation as an impl-PR responsibility, under which this PR advances `HIGHEST_D` 1331→1332);
+**WF-0044** (open, untouched — and the sibling pattern WF-0045 is the second instance of);
+**WF-0045** (filed by this PR, filing-only, per Director ruling — precedent: NA-0690's ENG-0117);
+**ENG-0112** (the full suite skips on PRs — the green recorded for this lane is the LOCAL run).

@@ -87,8 +87,34 @@ Decision ID `D-####`:
   (canonical form `- **ID:** D-####`; count canonical lines, not prose
   mentions). Never reuse; must exist exactly once, dated, accepted, mapped
   to Goals.
+- **⚠ CORRECTED BY D-1330 (NA-0691, 2026-08-03) — the rule above was
+  SEVENTEEN BEHIND, and it was wrong in kind as well as in value.** The text
+  above is left exactly as written and remains the record of what was true
+  when it was adopted; read it as history. **Measured at `4bd987a2`:** the
+  `- **ID:** D-####` form gives **1301 lines, maximum D-1312**, while the
+  `^## D-####` heading form gives **25 headings, maximum D-1329**
+  (D-0001…D-0008, then D-1313…D-1329), with **zero overlap across
+  D-1305…D-1312 — the record form SWITCHED at D-1313.** Applied literally the
+  rule therefore returns **1312**, and would have mis-derived every lane since
+  D-1313. It is also wrong in kind: it says **count**, and a count of headings
+  is **25**, not 1329.
+- **⚠ THE CORRECTED DERIVATION: the MAXIMUM over the UNION of both record
+  forms — `^## D-####` headings AND `- **ID:** D-####` lines. Never a count of
+  either form. Never the `STATE:` line**, which is the value being *checked*
+  and therefore cannot also be its own source (the same distinction §4a.3 draws
+  between a human summary and the parser that gates). **Both forms are real
+  records and neither alone is the set.**
+- **Why this correction rides D-1330 rather than a lane of its own:** it *is*
+  the derivation D-1330 rules on. A ruling that says "advance the counter in the
+  impl PR" is worth nothing if the rule for computing the counter returns the
+  wrong number. **A counter is a claim about a tree — and the rule that derives
+  it is also a claim, which is how this one went seventeen behind without
+  anyone noticing.**
 - Handoff state: D-1205/D-1206 accepted; D-1207 is next and must be absent
   until NA-0608 implements.
+  - ⚠ **This handoff line is dated history, not a live claim, and is
+    deliberately NOT swept** (D-1330). It is named here so a later reader does
+    not tidy it and record that as a fix.
 
 Directive IDs and decision IDs are distinct namespaces.
 
@@ -363,6 +389,61 @@ first future lane already paying `docs_only=false`. **Note the direction of the
 staleness has flipped** — before this note, `CLAUDE.md` stated a live
 requirement while omitting the relay convention; now it states a dead one.
 
+**5. READ THE LOG, NOT THE CHECK MARK** (added 2026-08-03 by NA-0691 / D625 §4.6).
+
+> ⚠ **PLACEMENT NOTE, so the numbering is not read as an accident.** This is
+> **rule 5 of §4a**, a sibling of rules 1–4 above and of §4a.3 in particular.
+> It is written **below** the retirement note rather than beside rule 4 because
+> that note's first sentence claims *"everything above this heading is left
+> exactly as written and remains the record of what was true on 2026-07-22"* —
+> **inserting a 2026-08-03 rule above it would silently make that sentence
+> false.** Additive-only beats adjacency.
+
+**A green summary is a claim about a process, and the process that reports it is
+not always the process you asked about. The exit status you cite must be the
+exit status of the thing you are claiming about — read from its own output or
+its own status file, never inferred from a wrapper, a pipeline, or a completion
+notification.**
+
+**Vector 1 — the pipe.** `cmd | tail` reports the **pipe's** exit status, not
+`cmd`'s. Precedent on record: NA-0684, where `cargo test | tail` reported
+`tail`'s status (`docs/governance/evidence/NA-0684_as_built.md:186`).
+**Never pipe the check that gates you.**
+
+**Vector 2 — the completion notification.** A background task's **wrapper**
+exited 0 and was briefly read as "clippy clean" while **clippy's own exit was
+101** (NA-0690 §6.1). Caught within one step by reading the log. **Same hazard,
+different clothes** — and the reason this rule is stated with both vectors
+rather than as a rule about pipes.
+
+> **⚠ WHY THIS IS RECORDED HERE RATHER THAN IN `AGENTS.md` OR `CLAUDE.md`.**
+> Measured at NA-0691's base: `grep -rn "check mark\|checkmark"` over the tree
+> returned **9 hits, none of them a rule** — two testplans use the phrase in
+> passing prose, the rest are evidence and journal entries recording individual
+> incidents. **There was no canon line about this to extend**, so this rule
+> **establishes** it. §4a is the right home on the merits: §4a.3 is exactly this
+> genus ("the `STATE:` line is a human summary; the helper is the parser that
+> actually gates"), and D-1292 recorded such rules here because `CLAUDE.md`
+> declares itself a convenience pointer, so a rule placed only there has the
+> weakest standing in the tree. **Corroborated by measurement, and stated in
+> that order deliberately — "it is cheaper here" is not a reason to put a rule
+> somewhere it does not belong:** `AGENTS.md` is absent from
+> `scripts/ci/classify_ci_scope.sh`'s `is_docs_path()` allowlist, so adding it to
+> a docs-only change yields `docs_only=false / runtime_critical=true` and fires
+> **both full suites** — **WF-0032's exact shape**, whose own sequencing says
+> such edits ride a lane already paying `docs_only=false`.
+
+> **⚠ THE RULE WAS LOAD-BEARING ON THE LANE THAT WROTE IT, TWICE, ON ONE
+> SCRIPT.** NA-0691's promotion ran `preflight_governance.sh` and got **exit 1 —
+> exactly the number predicted** — but the log said
+> `FAIL: --require-clean set and working tree is dirty`: `hygiene_sentinel` had
+> failed first and **the check being claimed about was never reached.** The impl
+> pass ran the same script and got **the same exit 1**, this time with
+> `hygiene_sentinel … OK` followed by `FAIL: READY_COUNT=2 (>1)` — the genuine
+> failure. **The exit code was identical in both cases and distinguished
+> nothing.** Matching on it alone would have recorded a prediction as confirmed
+> by a run that never tested it.
+
 ### 4b. Where a lane's executable block is born (operator ruling, 2026-07-28, NA-0682 OBS-DY)
 
 **A lane's executable `### NA-####` block is created at PROMOTION, not at enqueue.**
@@ -383,6 +464,67 @@ promotion; NA-0682 created a lighter `Status: BACKLOG` block at enqueue and the 
 then upgraded it. Both were defensible in isolation, so the queue held two patterns for one
 question and the next Director turn would have copied whichever it read first. NA-0682's own
 history keeps its as-executed shape; nothing is retro-edited.
+
+### 4c. Where reconciliation happens (operator ruling, 2026-08-03, NA-0691 / D-1330)
+
+**The impl PR that introduces a lane's D-record also advances the `STATE:` line's `HIGHEST_D` to
+match. The impl PR marks its OWN block as merging when the PR opens, rather than leaving it at its
+promoted state. Promotion continues to create the new lane's block, set the ready state and
+`HIGHEST_NA`, and finalize the predecessor's block to DONE-with-merge-SHA.**
+
+**The principle, which is the ruling and outranks every field value below:**
+
+- **`HIGHEST_D` must never lag the `DECISIONS.md` records after a merge.**
+- **A merged or merging block must never read as still available for promotion.**
+
+**Why (the reason is the part that must survive):** the impl PR knows its own D-number at the moment
+it writes it, so a counter that lags the record it counts is lag with no cause. Reconciliation that
+rides *the next lane's* promotion makes every subsequent lane pay to discover the discrepancy and
+re-derive the counter before it can begin — a cost with no upper bound, since it recurs until someone
+breaks the cycle.
+
+**Ownership, by act:**
+
+| act | owner | writes |
+|---|---|---|
+| **PROMOTION** | operator | `READY=<new lane>`, `HIGHEST_NA=<new>`; **creates** the `### NA-####` block (§4b); **finalizes the predecessor** to `Status: DONE <YYYY-MM-DD> (D-####; <RESULT_CLASS>; PR #N merged <sha>)`; writes the `prior:` comment |
+| **IMPL PR** | the lane | **`HIGHEST_D`** ← the maximum over the `DECISIONS.md` records (§2, as corrected by D-1330), in the same PR that adds the record; **its own block's status** ← `MERGING (PR #N)` |
+| **CLOSEOUT** (when a lane has one) | the lane | unchanged; adds nothing here |
+
+**The status value is `MERGING (PR #N)`, verified against the parser rather than chosen for looks.**
+`scripts/ci/qsl_evidence_helper.py:231` matches `^\s*-?\s*Status:\s*([A-Z_]+)\b`, so
+`Status: MERGING (PR #1691)` parses cleanly to `MERGING`. The `DONE <date> (…)` form already in the
+tree parses the same way, so this is the tree's existing shape, not a new one. **`MERGING` is
+transient** — it exists between PR-open and the next promotion, which resolves it to `DONE …`, and
+that is exactly what makes "a merged block never reads as available" true for the whole interval.
+
+**⚠ The PR number arrives after the first commit, so the conforming sequence is TWO COMMITS.** §4
+forbids amend after PR creation and forbids squash/rebase/force-push. The only conforming order is:
+(1) commit the work with `HIGHEST_D` already advanced; (2) push, open the PR, read #N; (3) **a second
+commit** setting `Status: MERGING (PR #N)`; push. ⚠ **A directive must AUTHORIZE that second commit
+by name**, as D625 §2.2(f) did, so R16 does not fire on it — *"obviously required" is what makes an
+unauthorized push feel safe.*
+
+**⚠ The known cost, stated rather than discovered later.** While a block reads `MERGING`, the anchored
+ready-state count is **0**. Measured: `preflight_governance.sh` fails only at `> 1`, so 0 passes;
+`qsl_evidence_helper.py queue` returns **exit 2** at count 0 (**WF-0025**, correct-but-nonzero), and
+the queue is proved by that count **together with** the block's `Status:` line agreeing, per §4a.3 —
+**do not pass `--allow-nonready-count`, which suppresses the check being invoked**; and ⚠ **`qwork`
+and `qresume` cannot re-provision a seat once the block reads `MERGING`**, because their invariants
+require `requested_lane_status=READY` (§3). The flip is the last commit before the merge, so nothing
+needs re-provisioning in the normal flow — but a lane that lost its seat mid-merge would be stuck,
+and that edge is recorded rather than smoothed over.
+
+**How it was found:** three consecutive lanes — NA-0688 → NA-0689 → NA-0690 — each inherited a stale
+`HIGHEST_D` **and** a merged predecessor block that still read as available, because reconciliation
+kept riding the next lane's promotion. NA-0690's directive recorded the second instance as *"a
+pattern rather than an incident"* and left the question open; NA-0691 is the third, and closes it.
+⚠ **NA-0691 is both the last lane under the old convention and the one that establishes the new one,
+and the two are not in tension:** its promotion performed NA-0690's catch-up under the old rule
+because that catch-up is a fact about a merge that had already happened, while this ruling governs
+merges after it. **D-1330 self-applies to NA-0691** by Director ruling — exempting it would have left
+`HIGHEST_D` lagging its own two records, which is the defect this subsection forbids, committed by
+the lane that forbids it.
 
 ## 5. Verified state replaces asserted state
 

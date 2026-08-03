@@ -36923,7 +36923,7 @@ Begins at PHASE 0 (D624 §4). ⚠ **STOP 1 — THE CENSUS STOP-FILE, BEFORE ANY 
 
 ### NA-0691 — GOVERNANCE CONSOLIDATION (D625, SINGLE-REPO qsl-protocol, ONE PR): the governance debt of NA-0688→NA-0690 and the audit-triage errand is paid in ONE place, and TWO operator-approved decisions are recorded — **D-1330** (reconciliation is an IMPL-PR responsibility, not deferred to the next promotion) and **D-1331** (external audit document publication is DEFERRED). ⚠ **This is the LAST lane under the old reconciliation convention AND the lane that establishes the new one** — the two are not in tension: the catch-up is a fact about a merge that already happened, and D-1330 governs merges after it.
 
-Status: READY
+Status: MERGING (PR #1691)
 Goals: G4 (primary — **the property is that the queue counters, the ledger and the canon ARE the release-gate's own state**: a counter that lags the record it counts, and a ledger that reports merged work as open, make the gate report a state the tree does not have). ⚠ **G1, G2, G3 and G5 are NOT claimed** — no key derivation, no state machine, no negotiation, no metadata surface, **no code at all**. Stated as negatives because ENG-0103 records that an inherited masthead goals line is a claim nobody checked.
 
 Directive: `/srv/qbuild/operator/directives/QSL-DIR-2026-08-03-625_governance_consolidation.md`, sha256 `eaf709a74b3dc5396f413e4d7821d89c572c36abac84790249be434c518dae20`, **684 lines**. Base measured at drafting and re-derived from `main`: `4bd987a2`. Source: operator-approved lane intent 2026-08-02; **D625 ACCEPTED by the Director with all three requested rulings taken at approval.**

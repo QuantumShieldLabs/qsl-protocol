@@ -91,13 +91,26 @@ Decision ID `D-####`:
   SEVENTEEN BEHIND, and it was wrong in kind as well as in value.** The text
   above is left exactly as written and remains the record of what was true
   when it was adopted; read it as history. **Measured at `4bd987a2`:** the
-  `- **ID:** D-####` form gives **1301 lines, maximum D-1312**, while the
+  `- **ID:** D-####` form gives **1300 lines, maximum D-1312**, while the
   `^## D-####` heading form gives **25 headings, maximum D-1329**
   (D-0001…D-0008, then D-1313…D-1329), with **zero overlap across
   D-1305…D-1312 — the record form SWITCHED at D-1313.** Applied literally the
   rule therefore returns **1312**, and would have mis-derived every lane since
   D-1313. It is also wrong in kind: it says **count**, and a count of headings
   is **25**, not 1329.
+- **⚠ AND THE COUNT ITSELF IS A WORKED EXAMPLE OF WHY A COUNT IS THE WRONG
+  QUANTITY.** A naive `^- \*\*ID` grep returns **1301**, not 1300 — because it
+  also catches **`DECISIONS.md:9`, `- **ID:** D-XXXX`, which is the TEMPLATE
+  PLACEHOLDER at the top of the file and not a decision at all.** ⚠ **The
+  needle that produces the number and the needle named in the sentence are
+  different questions**, and one line of drift between them is enough to make a
+  counter wrong. **D625 §0a itself carried the 1301 figure, and NA-0691
+  propagated it into this document before catching it against the tree**
+  (corrected here by Director ruling, 2026-08-03, in a separate authorized
+  commit). **A maximum is immune to this and a count is not:** the placeholder
+  contributes to a tally but cannot move a maximum, which is the concrete
+  reason the corrected derivation below is stated as a maximum over a union
+  rather than as any count.
 - **⚠ THE CORRECTED DERIVATION: the MAXIMUM over the UNION of both record
   forms — `^## D-####` headings AND `- **ID:** D-####` lines. Never a count of
   either form. Never the `STATE:` line**, which is the value being *checked*

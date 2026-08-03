@@ -36096,13 +36096,26 @@ said the decision counter *"increments by 1 from the highest accepted decision i
 
 | form | count | maximum |
 |---|---|---|
-| `- **ID:** D-####` | **1301 lines** | **D-1312** |
+| `- **ID:** D-####` | **1300 lines** | **D-1312** |
 | `^## D-####` headings | **25 headings** | **D-1329** (D-0001…D-0008, then D-1313…D-1329) |
 | overlap across D-1305…D-1312 | **zero** | **the record form switched at D-1313** |
 
 **Applied literally the rule returns `1312` — seventeen behind — and would have mis-derived every
 lane since D-1313.** It is also wrong in kind: it says **count**, and a count of headings is **25**,
 not 1329.
+
+⚠ **THE FIRST ROW'S COUNT IS ITSELF A WORKED EXAMPLE OF WHY A COUNT IS THE WRONG QUANTITY, AND IT IS
+RECORDED RATHER THAN QUIETLY CORRECTED.** A naive `^- \*\*ID` grep returns **1301**, not 1300 —
+because it also catches **`DECISIONS.md:9`, `- **ID:** D-XXXX`**, the **template placeholder** at the
+top of this file, which is not a decision. ⚠ **The needle that produced the number and the needle
+named in the sentence were different questions**, and one line of drift between them is enough to
+make a counter wrong. **D625 §0a carried the 1301 figure and this record reproduced it**, in a
+document whose whole subject is a miscounted counter; it was caught by re-deriving against the tree
+and corrected under Director ruling 2026-08-03 in a separate authorized commit. ⚠ **A MAXIMUM IS
+IMMUNE TO THIS AND A COUNT IS NOT** — the placeholder contributes to a tally but cannot move a
+maximum. **That is the concrete argument for the corrected derivation below**, and it is stronger
+evidence than the original error was. **Neither `D-1312` as this form's maximum, nor the corrected
+derivation, nor `HIGHEST_D=1331` depends on the count at all.**
 
 ⚠ **THE CORRECTED DERIVATION: the MAXIMUM over the UNION of both record forms. Never a count of
 either. Never the `STATE:` line** — the `STATE:` line is the value being *checked*, so it cannot also

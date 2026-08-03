@@ -6,18 +6,41 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0691 | HIGHEST_NA=0691 | HIGHEST_D=1329 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0691 | HIGHEST_NA=0691 | HIGHEST_D=1331 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
-**FORWARD ORDER — Director decision 2026-08-02, operator-approved.** ⚠ **This is a recorded
+**FORWARD ORDER — Director decision 2026-08-02, operator-approved.**
+**as of: 2026-08-03** · **superseded by: _none — this is current_**
+⚠ **This is a recorded
 sequencing INTENT, NOT a promotion.** Each lane below is born at **its own** promotion when its
 turn comes; nothing here authorizes a branch, an edit, or a commit, and no `NA-` id is claimed by
 appearing in this list. It is written down because it existed nowhere in the tree and would not
 otherwise survive.
 
-After **NA-0690** (ENG-0104, the ack-gating fix — the lane that is READY now), the intended order is:
+> **⚠ Why this note carries a dated header (added 2026-08-03 by NA-0691, D625 §4.5).** This note is
+> **the only place sequencing exists** — its own text above says it "existed nowhere in the tree and
+> would not otherwise survive" — **and it has no cross-check.** A bare authorship date tells a reader
+> when it was written but not whether it is still current, so a stale order would read exactly like a
+> fresh one. **The `superseded by:` line is a slot to fill rather than a paragraph to rewrite:** a
+> future revision names its successor there instead of silently editing the list. ⚠ **The
+> "sequencing INTENT, NOT a promotion" sentence above is preserved verbatim** — it is the
+> load-bearing sentence of this note and was not NA-0691's to reword.
+
+After **NA-0691** (governance consolidation, D625 — the lane in flight), the intended order is
+— ⚠ **item numbering below is UNCHANGED from the 2026-08-02 original, deliberately: a reader who
+remembers "item 1" must be able to find what happened to it**: 
 
 1. **CI/suite** — ENG-0112 (the relay-TLS trust family does not run on pull requests) **+ the TLS
    feature-set guard**.
+   - ⚠ **AMENDED 2026-08-03 (NA-0691, D625 §4.2/§4.3) — this item is now MOSTLY DEFERRED, and the
+     number is kept so it can be found.** ENG-0112's **PR-gating half is DEFERRED to a contributor /
+     pre-release trigger**: it is moot while the operator is the sole author, and the full suite
+     still runs on every push. **Deferred is not resolved — ENG-0112 stays open.** Its **one live
+     cleanup, N-01** — the NA-0628 scan's stale *"does not run on PRs"* comment at
+     `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs:3622-3625` — **moves to item 5,
+     crypto hygiene**, alongside **ENG-0115**, which corrects the same scan's self-description from
+     the other side. ⚠ **The entry's larger open question — *which OTHER security-property tests are
+     full-suite-only and therefore PR-unprotected?* — is NOT deferred** and remains the bigger half
+     of ENG-0112.
 2. **Vault integrity** — **ENG-0109 → ENG-0106 → ENG-0107** in that order (0109 unifies the two
    config-dir resolvers and is a *prerequisite*; 0107 rewrites the write path 0106 fixes, so it
    lands after), plus **ENG-0108**, **ENG-0110** (with the **ENG-0048** fold, cross-repo), and
@@ -27,7 +50,11 @@ After **NA-0690** (ENG-0104, the ack-gating fix — the lane that is READY now),
 3. **Polish micro-lane + GUI input driver** — paired.
 4. **Slice 4 build lane** — the finish line for GUI messaging.
 5. **Crypto hygiene** — ENG-0113 / ENG-0114 / ENG-0115, **plus the ENG-0055 addendum** (which
-   carries the external audit's F-01, F-07 and N-05 under one coverage statement).
+   carries the external audit's F-01, F-07 and N-05 under one coverage statement), **plus N-01**
+   (folded in 2026-08-03 by NA-0691, D625 §4.3 — from item 1). ⚠ **N-01 and ENG-0115 touch the SAME
+   NA-0628 scan from opposite sides**, and ENG-0115 already carries the pairing note; they are named
+   together here so **neither silently rewrites what the other depends on.** ⚠ **No lane is promoted
+   by this recording.**
 6. **Naming / consistency sweep.**
 
 **Rationale, recorded so the ordering is not re-litigated from scratch:** the queue is ordered by
@@ -36896,7 +36923,7 @@ Begins at PHASE 0 (D624 §4). ⚠ **STOP 1 — THE CENSUS STOP-FILE, BEFORE ANY 
 
 ### NA-0691 — GOVERNANCE CONSOLIDATION (D625, SINGLE-REPO qsl-protocol, ONE PR): the governance debt of NA-0688→NA-0690 and the audit-triage errand is paid in ONE place, and TWO operator-approved decisions are recorded — **D-1330** (reconciliation is an IMPL-PR responsibility, not deferred to the next promotion) and **D-1331** (external audit document publication is DEFERRED). ⚠ **This is the LAST lane under the old reconciliation convention AND the lane that establishes the new one** — the two are not in tension: the catch-up is a fact about a merge that already happened, and D-1330 governs merges after it.
 
-Status: READY
+Status: MERGING (PR #1691)
 Goals: G4 (primary — **the property is that the queue counters, the ledger and the canon ARE the release-gate's own state**: a counter that lags the record it counts, and a ledger that reports merged work as open, make the gate report a state the tree does not have). ⚠ **G1, G2, G3 and G5 are NOT claimed** — no key derivation, no state machine, no negotiation, no metadata surface, **no code at all**. Stated as negatives because ENG-0103 records that an inherited masthead goals line is a claim nobody checked.
 
 Directive: `/srv/qbuild/operator/directives/QSL-DIR-2026-08-03-625_governance_consolidation.md`, sha256 `eaf709a74b3dc5396f413e4d7821d89c572c36abac84790249be434c518dae20`, **684 lines**. Base measured at drafting and re-derived from `main`: `4bd987a2`. Source: operator-approved lane intent 2026-08-02; **D625 ACCEPTED by the Director with all three requested rulings taken at approval.**

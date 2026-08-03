@@ -36018,3 +36018,164 @@ the replay backstop); D-0883 (the cfg-gated RNG seam and its non-default build);
 **ENG-0104** (source finding, now resolved), **ENG-0117** (filed by this lane),
 **ENG-0105** (the negative-control-reachability position this lane's route selection follows),
 **ENG-0112** (the full suite skips on pull requests, so this lane's suite green is the LOCAL run).
+
+## D-1330 — NA-0691: RECONCILIATION IS AN IMPL-PR RESPONSIBILITY — and the counter rule that was seventeen behind because nobody checked the derivation itself
+
+**Status:** Accepted 2026-08-03. **Lane:** NA-0691. **Directive:** `QSL-DIR-2026-08-03-625` (D625,
+sha256 `eaf709a7…c518dae20`, 684 lines), at
+`/srv/qbuild/operator/directives/QSL-DIR-2026-08-03-625_governance_consolidation.md`.
+**Base:** `d804d455` (the merge of PR #1690, re-derived by fetch at execution start rather than
+inheriting the pre-promotion `4bd987a2`). **Result class:** `GOVERNANCE_CONSOLIDATION_PASS`.
+**Class:** governance-only — no code, no test, no `/src/`, no workflow, no dependency.
+
+**THE RULING.** **The impl PR that introduces a lane's D-record also advances the `STATE:` line's
+`HIGHEST_D` to match. The impl PR marks its OWN block as merging when the PR opens, rather than
+leaving it at its promoted state. Promotion continues to create the new lane's block, set the ready
+state and `HIGHEST_NA`, and finalize the predecessor's block to DONE-with-merge-SHA.**
+
+**The principle, which outranks every field value below:**
+
+- **`HIGHEST_D` must never lag the `DECISIONS.md` records after a merge.**
+- **A merged or merging block must never read as still available for promotion.**
+
+**Why.** Three consecutive lanes — NA-0688 → NA-0689 → NA-0690 — inherited a stale `HIGHEST_D` and
+a merged-but-not-retired predecessor block, because reconciliation kept riding *the next lane's*
+promotion. The cost was paid every time: **every lane's §0 had to re-derive `HIGHEST_D` from the
+`DECISIONS.md` records and say so in its directive.** The impl PR knows its own D-number at the
+moment it writes it. There is no reason for the lag.
+
+**Ownership, by act:**
+
+| act | owner | writes |
+|---|---|---|
+| **PROMOTION** | operator | `READY=<new lane>`, `HIGHEST_NA=<new>`; **creates** the `### NA-####` block (DOC-OPS-006 §4b); **finalizes the predecessor** to `Status: DONE <YYYY-MM-DD> (D-####; <RESULT_CLASS>; PR #N merged <sha>)`; writes the `prior:` comment |
+| **IMPL PR** | the lane | **`HIGHEST_D`** ← the maximum over the `DECISIONS.md` records, in the same PR that adds the record; **its own block's status** ← `MERGING (PR #N)` |
+| **CLOSEOUT** (when a lane has one) | the lane | unchanged; adds nothing here |
+
+**The status value is `MERGING (PR #N)` — verified against the parser, not chosen for looks.**
+`scripts/ci/qsl_evidence_helper.py:231` matches `^\s*-?\s*Status:\s*([A-Z_]+)\b`, so
+`Status: MERGING (PR #1691)` parses to `MERGING`. The `DONE <date> (…)` form already in the tree
+parses the same way, so this is the tree's existing shape rather than a new one. `MERGING` is
+**transient**: it exists between PR-open and the next promotion, which resolves it to `DONE …`.
+
+⚠ **THE PR NUMBER ARRIVES AFTER THE FIRST COMMIT, SO THE CONFORMING SEQUENCE IS TWO COMMITS.**
+DOC-OPS-006 §4 forbids amend after PR creation, and forbids squash/rebase/force-push. So: commit the
+work with `HIGHEST_D` already advanced; push; open the PR; read #N; **a second commit** sets
+`Status: MERGING (PR #N)`; push. **D625 §2.2(f) authorizes that second commit by name**, which is
+why it is not an R16 violation — "obviously required" is exactly what makes an unauthorized push
+feel safe.
+
+⚠ **THE KNOWN COST, STATED RATHER THAN DISCOVERED LATER.** While a block reads `MERGING`, the
+anchored ready-state count is **0**. Measured consequences: `preflight_governance.sh` fails only at
+`> 1`, so 0 passes; `qsl_evidence_helper.py queue` returns **exit 2** at count 0 (WF-0025, already
+documented as correct-but-nonzero), and the queue is proved by that count **together with** the
+block's own `Status:` line — **never by passing `--allow-nonready-count`, which suppresses the check
+being invoked**; and ⚠ **`qwork`/`qresume` cannot re-provision a seat after the flip**, because their
+invariants require `requested_lane_status=READY` (DOC-OPS-006 §3). The flip is the last commit before
+the merge, so nothing needs re-provisioning in the normal flow — but the edge is real and is recorded
+rather than smoothed over.
+
+**⚠ D-1330 SELF-APPLIES TO NA-0691 — Director ruling at approval.** The alternative was to exempt the
+lane, which would have left `HIGHEST_D=1329` on `main` while `## D-1330` and `## D-1331` sat in
+`DECISIONS.md` — **the exact defect this record forbids, committed by the record that forbids it** —
+and handed NA-0692's promotion a fourth consecutive stale counter. So this lane's impl PR advances
+`HIGHEST_D` **1329 → 1331** and flips its own block to `MERGING (PR #N)`.
+
+⚠ **NA-0691 IS BOTH THE LAST LANE UNDER THE OLD CONVENTION AND THE ONE THAT ESTABLISHES THE NEW ONE,
+AND THE TWO ARE NOT IN TENSION.** Its promotion performed NA-0690's catch-up reconciliation
+(`HIGHEST_D` 1328 → 1329, and NA-0690's block retired to `DONE 2026-08-02 (D-1329;
+QSC_ACK_GATED_ON_STORE_PASS; PR #1689 merged 4bd987a2)`) under the old rule. **The catch-up is a fact
+about a merge that already happened; this ruling governs merges after it.**
+
+### ⚠ THE DERIVATION RULE ITSELF WAS WRONG, AND CORRECTING IT IS PART OF THIS RULING
+
+**A counter is a claim about a tree, and the rule that derives it is also a claim.** `DOC-OPS-006 §2`
+said the decision counter *"increments by 1 from the highest accepted decision in DECISIONS.md
+(canonical form `- **ID:** D-####`; count canonical lines, not prose mentions)."* Measured at
+`4bd987a2`:
+
+| form | count | maximum |
+|---|---|---|
+| `- **ID:** D-####` | **1300 lines** | **D-1312** |
+| `^## D-####` headings | **25 headings** | **D-1329** (D-0001…D-0008, then D-1313…D-1329) |
+| overlap across D-1305…D-1312 | **zero** | **the record form switched at D-1313** |
+
+**Applied literally the rule returns `1312` — seventeen behind — and would have mis-derived every
+lane since D-1313.** It is also wrong in kind: it says **count**, and a count of headings is **25**,
+not 1329.
+
+⚠ **THE FIRST ROW'S COUNT IS ITSELF A WORKED EXAMPLE OF WHY A COUNT IS THE WRONG QUANTITY, AND IT IS
+RECORDED RATHER THAN QUIETLY CORRECTED.** A naive `^- \*\*ID` grep returns **1301**, not 1300 —
+because it also catches **`DECISIONS.md:9`, `- **ID:** D-XXXX`**, the **template placeholder** at the
+top of this file, which is not a decision. ⚠ **The needle that produced the number and the needle
+named in the sentence were different questions**, and one line of drift between them is enough to
+make a counter wrong. **D625 §0a carried the 1301 figure and this record reproduced it**, in a
+document whose whole subject is a miscounted counter; it was caught by re-deriving against the tree
+and corrected under Director ruling 2026-08-03 in a separate authorized commit. ⚠ **A MAXIMUM IS
+IMMUNE TO THIS AND A COUNT IS NOT** — the placeholder contributes to a tally but cannot move a
+maximum. **That is the concrete argument for the corrected derivation below**, and it is stronger
+evidence than the original error was. **Neither `D-1312` as this form's maximum, nor the corrected
+derivation, nor `HIGHEST_D=1331` depends on the count at all.**
+
+⚠ **THE CORRECTED DERIVATION: the MAXIMUM over the UNION of both record forms. Never a count of
+either. Never the `STATE:` line** — the `STATE:` line is the value being *checked*, so it cannot also
+be the source. **Both forms are real records and neither alone is the set.**
+
+This correction rides D-1330 rather than a lane of its own because **it is the derivation D-1330
+rules on**: a ruling that says "advance the counter in the impl PR" is worth nothing if the rule for
+computing the counter returns the wrong number. `DOC-OPS-006 §2` is corrected in place by an
+additive, marked amendment — **mark-don't-rewrite**, on the model of §4a's own retirement note,
+because *a reversal that erases the reasoning it reverses reads as drift*.
+
+⚠ **§2's stale handoff line — *"Handoff state: D-1205/D-1206 accepted; D-1207 is next"* — is left
+exactly as written.** It is dated history, not a live claim, and sweeping it is not this lane's
+business. It is named here so a later reader does not tidy it and call that a fix.
+
+**References:** NA-0691; D625 §2, §0a; DOC-OPS-006 §2, §4b (the born-at-promotion precedent this
+ruling's shape follows), §4a.3 (queue verification), §3; WF-0025 (the correct-but-nonzero exit);
+WF-0032 (the `docs_only` sequencing that kept the canon rider out of `AGENTS.md`); D-1292 (why such
+rules live in DOC-OPS-006 rather than `CLAUDE.md`); **WF-0044** (filed by this lane); D-1328 and
+D-1329 (the second and third instances of the lag this ruling ends).
+
+## D-1331 — NA-0691: EXTERNAL AUDIT DOCUMENT PUBLICATION IS DEFERRED
+
+**Status:** Accepted 2026-08-03. **Lane:** NA-0691. **Directive:** `QSL-DIR-2026-08-03-625` (D625,
+sha256 `eaf709a7…c518dae20`, 684 lines). **Base:** `d804d455`. **Class:** governance-only.
+
+**THE RULING.** **Both external-audit artifacts stay operator-side. Publication is DEFERRED to the
+legal-readiness / reviewer-outreach track, AFTER remediation.**
+
+| artifact | sha256 (prefix, as supplied at intent) |
+|---|---|
+| `QSL_QSC_Security_Audit_v2.docx` | `c7b87b88…` |
+| `QSL_QSC_Audit_Remediation_Plan.md` | `77c10e99…` |
+
+⚠ **The artifacts were NOT located, copied, fetched, digested or published by this lane, and the
+digest prefixes above are reproduced exactly as supplied at intent** — the record states what was
+decided about them, and computing a digest would have required handling the very files the ruling
+keeps operator-side.
+
+**The rationale, recorded because the reasoning is the durable part:**
+
+- **The repos are public and `docs/` ships.** An external audit enumerating *unremediated* defects —
+  several of them data-loss — in a **pre-release** security tool is an attacker's roadmap and a legal
+  exposure.
+- ⚠ **Honest-claims discipline forbids over-claiming; it does not compel publishing the attack
+  surface. Stated affirmatively, because the two obligations are distinct and conflating them is how
+  a deferral gets mistaken for concealment.** Nothing in this deferral permits a claim the tree
+  cannot support; the claim boundary is untouched by it.
+- **The findings are already repo-truth.** **ENG-0106 … ENG-0116** carry them, filed at PR #1687,
+  several with the audit's own premises **corrected by measurement** — so deferring publication of
+  the documents defers neither the findings nor the work.
+- ⚠ **This D-record is the durable home, and that is the point of writing it.** The decision
+  previously lived **only** in the audit-triage stop-files (operator-side, outside git) and in the
+  body of PR #1687. **A decision whose only home is a PR body is one archive sweep from being
+  undiscoverable** — the same failure `DOC-OPS-006 §4a` exists to fix.
+- **The forward obligation, stated here so the future lane inherits it:** cross-reference this record
+  from the release-readiness docs **when that track materializes** — ⚠ **not now.** Those docs are
+  outside this lane's scope, and forward-referencing a track that does not yet exist would create the
+  dangling reference this record is meant to prevent.
+
+**References:** NA-0691; D625 §3; the audit-triage errand and PR #1687 (`f853a125`), where the
+decision was taken and where it had no repo home; **ENG-0106 … ENG-0116** (the findings, already
+filed); DOC-OPS-006 §4a (the discoverability failure this record avoids); D-1330 (same lane).

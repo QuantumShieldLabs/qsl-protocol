@@ -35804,3 +35804,217 @@ artifacts gave three answers) · **ENG-0104** (the `:1012` fail-open — **filin
 open**, with this lane's store recorded as a **deliberate, recorded acceptance** of a fourth
 in-flight-state home — consolidation is not this lane's. **No re-ingestion tooling is promised or
 built**, and the store says so unconditionally rather than leaving it inferable from silence.
+
+---
+
+## D-1329 — NA-0690: THE ACK IS GATED ON DURABLE CAPTURE — and the fix whose honest value is narrower than it first looks
+
+**Status:** Accepted 2026-08-02. **Lane:** NA-0690. **Directive:** `QSL-DIR-2026-08-02-624` (D624,
+sha256 `3fb33768…72a6bfdd`, 352 lines), at
+`/srv/qbuild/operator/directives/QSL-DIR-2026-08-02-624_qsc_eng0104_ack_gated_on_store.md`.
+**Base:** `17ac70ea` (the merge of PR #1688, re-derived at Phase 0 rather than inheriting the
+pre-merge `f853a125`). **Source finding:** **ENG-0104**, filed 2026-08-01 by NA-0689 (D-1328 R4) as
+FILING ONLY. **Result class:** `QSC_ACK_GATED_ON_STORE_PASS`.
+
+**Final gate: 582 passed / 0 failed / 2 ignored across 125 binaries, exit 0**, on the **LOCAL** run.
+⚠ **`qsc-linux-full-suite` SKIPS ON PULL REQUESTS (ENG-0112), so the PR's green CI wall is NOT this
+suite** — the local run is the only place it executed, and the PR body says so. The figure
+reconciles exactly against **581 / 0 / 2 across 124 binaries** measured at base `17ac70ea` **before
+any edit**: **+1 passed, +1 binary — the new test file, and nothing else moved.** The exit code was
+read from its own status file and **never piped**. ⚠ **Scope stated, because a baseline is only a
+baseline if its scope is:** both runs are `cargo test -p qsc --locked` (not `--workspace`, which
+includes `quantumshield_refimpl` and is not comparable); the suite was measured on the tree carrying
+the **code and test** changes, and the only delta to the committed tree is governance markdown
+(`DECISIONS.md`, `TRACEABILITY.md`, `docs/ops/IMPROVEMENT_LEDGER.md`), which the suite does not
+compile.
+
+**Clippy `-D warnings` on `qsc`: 26 = 18 `redundant_closure` / 6 `needless_return` /
+2 `result_unit_err` — IDENTICAL to the distribution D-1328 recorded at base. Zero delta from this
+lane.** Stated as a distribution rather than a total per D-1328 Rulings 14/15.
+
+⚠ **`cargo fmt --check` is RED on this crate, and it is PRE-EXISTING — 57 files, none of them this
+lane's doing.** Neither `fmt` nor `clippy` is a CI gate in this repository (measured: no workflow
+invokes either), so both are lane-discipline checks. **`transport/mod.rs`'s fmt diffs sit at lines
+1, 255, 1423 … 4310 — none inside this lane's `1120-1145` range**, so none is attributable here. The
+**one** diff that *was* this lane's, in the new test file, was fixed **in that file alone**; the
+other 56 were left untouched, because reaching into untouched files at one's own gate is the
+D-1328 Ruling 14 failure. The single test was **re-run after formatting** rather than assumed
+cosmetic.
+
+### 1. THE CHANGE
+
+In `receive_pull_and_write`, the ack that lets the relay **consume** a pulled item now fires only
+when the timeline row actually stored: `record_seen_and_queue_ack` at `transport/mod.rs:1120` is
+gated on `stored.is_ok()`. **One gating condition and one test.** No wire change, no dependency
+change, no new claim; `Cargo.toml` and `Cargo.lock` are untouched.
+
+⚠ **THE FIX MOVED THE CODE, NOT THE PROSE.** Two artifacts already in the tree asserted the correct
+behaviour and were **false**: the comment at `:1059-1070` (*"Fail-closed: if the row does not store,
+DO NOT ack"*) and the marker literal **`not_stored_so_not_acked`** at `:1112-1119`, which the very
+next statement contradicted. **D-1328 Ruling 4 forbade editing either**, and neither was edited —
+both regions are **byte-identical to base, proven by `cmp`**, as is the receipt gate at `:1104`. The
+fix is what makes the existing marker true.
+
+### 2. THE CENSUS, AND ITS MANDATED VERDICT
+
+D624 §4 required this record to state whether `:1120` is the only fail-open or a class.
+**IT IS THE ONLY ONE. NOT A CLASS. The ENG-0101 class-fix precedent does not trigger.**
+
+All nine `record_seen_and_queue_ack` call sites were bracketed to their enclosing arm at base. The
+eight others are fail-closed by **three structurally distinct mechanisms** — `?`-propagation before
+the ack (`:522`, `:598`, `:676`); routed to a fail-closed sibling by an exhaustive `match`
+(`:750`, `:827`, `:963` → `quarantine_then_ack`, whose `Err` arm emits `not_acked_will_redeliver`
+and does **not** ack); and gated on a durable proof that already exists (`:1044`
+`inbound_already_seen == Ok(true)`, `:1317` `capture_at == Ok`). The definition at `:1335` is itself
+fail-closed at the seen-store layer, because `pending_acks.push` follows the record.
+
+⚠ **A CENSUS OF A NAME IS NOT A CENSUS OF A PROPERTY, and this one nearly was.** D624 asked for
+`record_seen_and_queue_ack` sites — nine. The property *"is `item.id` in `pending_acks`"* has **ten**
+producers: a bare `pending_acks.push` at **`:475`** (the dup-skip path) bypasses the helper entirely.
+It is fail-closed (gated on `seen.contains`), so the verdict is unchanged — **but it is unchanged by
+measurement, not by the question's framing.**
+
+⚠ **THE STRUCTURAL TELL THAT `:1120` WAS AN OVERSIGHT AND NOT A DESIGN.** `stored` is bound at
+`:1071`; its `Err` is consumed at `:1083-1086` by an `if let` that **only emits**; and the value is
+then consulted **twice below** — at `:1090` (dedup) and `:1104` (receipt) — but not at `:1120`. The
+site sat **between its own two consumers**, and the two that were gated are the reversible
+consequences while the one that was not is the irreversible one.
+
+⚠ **THE DEFECT WAS LEASE-MODE-ONLY**, which D624 did not state. `record_seen_and_queue_ack` is a
+no-op when the seen store is absent, and it is absent in legacy mode — so the property is
+*unobservable* there, not merely untested. Lease has been the default since NA-0688 C4; the test
+passes `--ack-mode lease` **explicitly** so the arm cannot be retired by a future default flip.
+
+### 3. RULING 2 — `stored.is_ok()` ALONE, AND WHY THE STRICTER GATE IS NOT MERELY UNNECESSARY
+
+The gate is **`stored.is_ok()`**, never `stored.is_ok() && deduped.is_ok()`. D624 named this as the
+ruling most likely to be "helpfully" strengthened during execution. **The census established a
+sharper reason than the directive gave, so it is recorded here:** `deduped` at `:1090` is *itself*
+already gated on `stored.is_ok()`, so on the store-failure path it is `Ok(())` **from the `else`
+branch rather than from a successful write**. Adding `&& deduped.is_ok()` would therefore change
+**nothing at all except in the single case where it does damage** — store succeeded, dedup write
+failed — where it would keep the relay redelivering an **already-stored** message, re-storing it
+each cycle (the double-render dedup exists to prevent) and stranding the sender on SENT.
+
+**The RECEIPT keeps its stricter `stored && deduped` gate, unchanged.** The asymmetry is deliberate:
+a suppressed receipt only makes the sender **wait**, which is no data harm, so the stricter condition
+is free there and costly at the ack.
+
+### 4. ⚠ THE CLAIM BOUNDARY — WHAT THIS FIX DOES **NOT** BUY
+
+**Stated first and in as many words, because the attractive overclaim is available and wrong.**
+`commit_unpack_state` consumes the ratchet key **above** the store. A store failure therefore loses
+the **plaintext** whether the failure is transient or permanent, and the redelivered envelope
+**cannot be decrypted again** — it can only be a replay-reject.
+
+⚠ **REDELIVERY DOES NOT RECOVER THE MESSAGE. This decision does not claim, and the test does not
+assert, that the message is preserved or delivered.** What the gate buys is exactly four things:
+
+1. **The ack — the sender's only evidence of delivery — is WITHHELD when the store fails**, so the
+   sender is never falsely told DELIVERED for a message the recipient does not hold. **This is the
+   O3 property, and it is the whole of ENG-0104.**
+2. **The loss is made LOUD and WITNESSED** by the existing markers, rather than silent.
+3. **What survives downstream is the OPAQUE redelivered envelope**, quarantined by NA-0689 with a
+   witness — **not** the plaintext, and not the conversation record.
+4. **The loop is BOUNDED to one cycle** — not acked → redelivered → replay-rejected → quarantined →
+   acked — which also **bounds D624 §6's "redelivers forever"** characterisation. ⚠ D624 §6
+   described a *persistent* store failure as redelivering indefinitely; **measured, it does not**,
+   because NA-0644's replay backstop ends it on the second delivery. Recorded as a correction to the
+   directive's own text, not as a change of posture.
+
+**The honest value is: no false DELIVERED claim, and a loss surfaced instead of hidden. Not
+recovery.**
+
+### 5. THE FAIL-CLOSED POSTURE IS THE DESIGN, NOT A BUG TO WORK AROUND
+
+A store failure means the item is not acked and comes back — **visibly stuck rather than silently
+claimed as delivered**, ratified at D-1328 and loud via the existing markers. **It is NOT to be
+"fixed" by acking anyway.** The alternative to a visible, bounded, witnessed failure here is silent
+data loss. Recorded in as many words so a later reader meeting the redelivery does not reopen the
+fail-open to stop it.
+
+### 6. THE NEGATIVE CONTROL, AND THE THREE ROUTES THAT WERE REFUSED
+
+**The property pinned:** a timeline-store failure at this site leaves `item.id` **out** of the ack
+set, so the relay redelivers rather than consuming. Pinned end-to-end against the **real qsl-server
+in-process** with a 1-second lease, in
+`qsl/qsl-client/qsc/tests/na0690_ack_gated_on_store.rs`.
+
+⚠ **A ZERO ALONE WOULD HAVE BEEN THE VACUOUS HALF** (NA-0689's doctrine, adopted): *"the item was
+not acked"* is exactly what a run that never reached the site also reports. So both arms are read by
+**one instrument in one setup** — a healthy message that stores **is** acked and does **not** come
+back; the unstored one **does**. A broken instrument cannot green both, because they require it to
+answer *differently* about the same relay and session.
+
+**Red-capability, proven the house way:** with Ruling 1 reverted the test goes **RED**, failing at
+the property assertion **specifically** (the two earlier assertions — that the store failed, and
+that the `not_stored_so_not_acked` marker fired — still passed, confirming they are independent of
+the gate); restored → **GREEN**; and `transport/mod.rs` verified **byte-identical across the probe
+by `cmp`** (sha256 `d00a1ca6…`).
+
+⚠ **THE INJECTION MECHANISM WAS PROBED AND REPORTED BEFORE ANY ASSERTION WAS WRITTEN** (D624 §5a),
+and all three preferred routes were measured **closed**:
+
+- **An existing fault seam.** `qsc_rng_failure_test_seam` *does* reach the store (a labelled nonce
+  draw inside `vault::secret_set`), **but compiles only under a non-default `--cfg`** — D-0883:
+  *"Normal builds without the custom cfg must not read the seam selector."* The gate run is the
+  no-cfg build, so a test resting on it would **assert nothing there**: a vacuous pass.
+- **A deterministic environmental failure.** ⚠ **Actively defeated by the code**:
+  `write_vault_atomic` calls `create_dir_all(parent)` and then **`set_permissions(parent, 0o700)` on
+  every write** — the vault writer restores its own writability, so a read-only directory does not
+  survive it, and a read-only file never blocked temp+rename.
+- **A test-only production seam.** Refused as a scope question, consistent with **ENG-0105**'s
+  standing position that a hook inside `receive_pull_and_write` would make the arm measure a
+  modified receive path — the one thing the arm exists to exercise.
+
+**What was used instead needs no production change and asserts in the default build:**
+`timeline_store_load` maps an unparseable stored value to `timeline_tampered`, so poisoning the
+recipient's timeline vault secret through the shipped library fails `timeline_append_entry`
+**deterministically at exactly the target site**. ⚠ **It cannot displace, and that was measured:**
+the entire receive path reads the timeline **once** — `receive_execute` not at all, and the confirm
+arms that do are reachable only by control payloads a `send --file` never produces.
+
+⚠ **A PREDICTION ON RECORD THAT WAS WRONG.** `timeline_tampered` was the executor's leading
+candidate *because* it looked already-exercised; it has **zero occurrences in the test tree** — one
+hit in `src`, the definition. It became usable only after the vault-library route was found. **The
+wrong prediction is the useful datum: the mechanism was adopted on measurement, not on the reason it
+was first liked.**
+
+### 7. ENG-0117 FILED, AND WHY IT RIDES THIS LANE
+
+The injection probe surfaced a **separate, pre-existing defect**: `transport/mod.rs:1025` guards a
+peer-supplied `msg_id` with `!is_empty()` while `timeline/mod.rs:492` rejects on
+`trim().is_empty()`, so a `msg_id` of `" "` passes the first and fails the second, forcing a store
+failure for that message. Filed as **ENG-0117, FILING ONLY, routed to a future guard-consistency
+lane** and deliberately **not fixed here** (outside D624 §7).
+
+⚠ **It is filed alongside this decision because THIS FIX CHANGES ITS BLAST RADIUS.** Before D-1329
+such a message was silently acked away and lost; after, it is not acked, redelivered once,
+replay-rejected and quarantined. The posture is strictly better and the behaviour is **louder** — and
+a reader meeting the new behaviour without ENG-0117 would reasonably suspect a regression in this
+fix rather than a pre-existing input-validation gap. ⚠ **The bound is stated in the entry as
+INFERRED from the identical mechanism** (measured for the sibling cause, not for the whitespace input
+itself, which no test exercises).
+
+⚠ **SCOPE NOTE:** `docs/ops/IMPROVEMENT_LEDGER.md` is **not** in D624 §7's IN list. The ENG-0117
+filing rides this lane's implementation PR by **explicit Director ruling**, recorded here as a
+directive scope **extended by ruling** rather than widened by the executor.
+
+### 8. LESSONS
+
+- **A census of a name is not a census of a property** (§2, the tenth producer at `:475`).
+- **The instrument decides what is visible** — three injection routes, three different reasons for
+  being closed, none of them the one predicted.
+- **State what a fix does NOT buy** (§4). The available overclaim here — *"the message is
+  preserved"* — would have been written by the very lane that fixed the last piece of
+  false-but-plausible prose, and would have been the same class of defect D-1328 R4 exists to
+  prevent.
+- **A correction to a directive's own text belongs in the record, not in silence** (§4.4, the
+  "redelivers forever" bound).
+
+**References:** NA-0690; D624; D-1328 (rulings 4, 7 and the ratified posture); D-1327 (OBS-ES —
+measure the property, not an incidental count); NA-0644/D580 (the persist-before-ack ordering and
+the replay backstop); D-0883 (the cfg-gated RNG seam and its non-default build);
+**ENG-0104** (source finding, now resolved), **ENG-0117** (filed by this lane),
+**ENG-0105** (the negative-control-reachability position this lane's route selection follows),
+**ENG-0112** (the full suite skips on pull requests, so this lane's suite green is the LOCAL run).

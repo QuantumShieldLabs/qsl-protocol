@@ -1117,7 +1117,32 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                             &[("reason", "not_stored_so_not_acked")],
                         );
                     }
-                    record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
+                    // NA-0690 (D-1329, ENG-0104): THE GATE THE COMMENT ABOVE ALREADY DESCRIBES.
+                    //
+                    // The ack is what lets the relay DELETE the item, so it must not fire unless
+                    // the row is durably stored. This statement used to be unconditional, which
+                    // made the `not_stored_so_not_acked` marker directly above it FALSE at the
+                    // moment it was emitted. The prose was right and the code was wrong; the code
+                    // moved (D-1328 Ruling 4 forbade the reverse).
+                    //
+                    // ⚠ `stored.is_ok()` ALONE -- never `&& deduped.is_ok()`. The stricter-looking
+                    // condition is the wrong one: it would keep the relay redelivering a message
+                    // that IS ALREADY STORED whenever the dedup-record write failed, re-storing it
+                    // on every redelivery -- the double-render dedup exists to prevent -- and
+                    // strand the sender on SENT. Note `deduped` is itself already gated on
+                    // `stored.is_ok()` above, so on the store-failure path it is `Ok(())` from the
+                    // `else` branch rather than from a real write: adding it here would change
+                    // NOTHING except in the one case where it does damage.
+                    //
+                    // ⚠ What this buys is bounded, and overstating it would be its own defect: the
+                    // ratchet key is consumed by `commit_unpack_state` well above, so a store
+                    // failure loses the PLAINTEXT either way and the redelivery can only be a
+                    // replay-reject. It is NOT recovery. It is that the sender is never falsely
+                    // told DELIVERED for a message the recipient does not hold, and that the loss
+                    // is loud and witnessed instead of silent.
+                    if stored.is_ok() {
+                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
+                    }
                 }
                 Err(code) => {
                     let from_alias = peer_alias_from_channel(ctx.from);

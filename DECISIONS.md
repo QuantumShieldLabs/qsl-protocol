@@ -36302,3 +36302,235 @@ only after editing, the 236 files would have looked like this lane's doing.
 **WF-0044** (open, untouched — and the sibling pattern WF-0045 is the second instance of);
 **WF-0045** (filed by this PR, filing-only, per Director ruling — precedent: NA-0690's ENG-0117);
 **ENG-0112** (the full suite skips on PRs — the green recorded for this lane is the LOCAL run).
+
+## D-1333 — NA-0693: THE VAULT WRITE TAKES THE STORE LOCK — and the probe that kept the fix from installing a silent self-denial
+
+**Status:** Accepted 2026-08-03. **Lane:** NA-0693. **Directive:** `QSL-DIR-2026-08-03-627` (D627,
+sha256 `7a353c19…4b033c3`, 562 lines). **Base:** `87b9dbe6` (re-derived by fetch; the merge of
+PR #1695; compiled tree byte-identical to `d081cf9d`). **Class:** `QSC_VAULT_WRITE_LOCKED_PASS`.
+**Source finding:** **ENG-0106** (external audit **F-09** + verification records
+**N-02/N-03/N-04/N-07**). **Slice B of five** (A ENG-0109 DONE → **B ENG-0106** → C ENG-0107 →
+D ENG-0108 → E ENG-0110/0111). **Probe-gated: every design decision below was ruled by the
+Director at STOP 0 on the Phase-0 probe report, before any edit.**
+
+**THE RULING — STRATEGY = LOCK-AT-THE-TOP, confirmed clean by the probe.** Each of the four vault
+write operations — `secret_set`, `secret_set_with_passphrase` (pub-dormant), `vault_init_core`,
+`destroy_with_passphrase` — resolves `(cfg_dir, vault_path, source)` through the ONE resolver
+Slice A produced (`vault_path_resolved` → `fs_store::config_dir`; destroy reaches it as
+`super::vault_path_resolved()` — protection is a child module, no visibility change) and takes
+`lock_store_exclusive` ONCE, spanning the whole read-modify-write (load → decrypt → mutate →
+encrypt → write — the ledger's `:3049` remedy sentence, never the write alone). The probe
+(STOP-0 stop-file, `STOP_NA0693_003_20260803T223105Z.md`) confirmed empirically that `flock`
+attaches to the open file description — EX-under-EX **and SH-under-EX** both denied
+`errno 11 EWOULDBLOCK` across separate opens in one process, release clean — and that of the four
+ops **only destroy nests a protection call** (`protection_state_clear_files`, the one conversion).
+**The reentrant-lock fallback was NOT used.** `protection_state_clear_files` splits into the
+locking entry (unchanged signature, still used standalone from `unlock_guarded_at`) and
+`protection_state_clear_files_locked(&dir, source)`, which assumes the caller holds the lock;
+destroy calls the inner one. ⚠ **Every serialization claim is Unix-conditional**: on non-Unix the
+`flock` call is compiled out (`model/mod.rs`, ENG-0111(a)) and the lock is ordering-only.
+
+**THE DUPLICATE PRIMITIVE IS DELETED.** `write_vault_atomic` (tree hits 4 → 0): its three callers
+route through `fs_store::write_atomic` — unique tmp name by construction (**N-02 closed** on the
+RMW paths), `enforce_safe_parents` on the write (**N-04 arrives — this is the moment D626
+Ruling 3 deferred, firing here by design**: symlink refusal and parent-perms policy per
+`ConfigSource` are NEW rejection conditions on these writes). `PERF_VAULT_ENCRYPT_WRITES`
+relocates to the call sites, incremented BEFORE each write attempt exactly as the deleted
+function did — count semantics unchanged, still observed by pub `perf_snapshot`.
+`persist_session`'s redirect is **mechanical only** (banked §3.2): re-resolved `source`, no lock,
+no semantic change — **the refuse-not-merge semantic is DECIDED and its code rides Slice 4**,
+which consumes `VAULT_WRITE_EPOCH` — the reason the epoch is **KEPT unchanged** (deleting it here
+would delete the instrument a banked decision depends on; no new epoch assertions on live paths).
+
+**RULING C = C1 — `vault_init_core` KEEPS ITS INLINE WRITER, SERIALIZED-NOT-ELIMINATED.**
+Measured basis: `fs_store::write_atomic` has NO failure-cleanup hook (on write/sync/rename
+failure it leaves its pid-suffixed tmp behind), so C2 would either couple vault code to the
+internal `{name}.tmp.{pid}` naming or orphan tmps on failure — a restructuring of init's
+load-bearing both-files cleanup; the keychain-before-write ordering was measured caller-side and
+was NOT an obstacle. Under the lock, init-vs-init and init-vs-RMW collisions on the fixed tmp
+name are serialized away: **the fixed `vault.qsv.tmp` remains, harmless-under-lock — recorded
+here as serialized, not eliminated.** **Init's lock placement (ruled):** immediately after
+`vault_path_resolved()`, AFTER all pure-crypto work (minimal-mutation-on-reject preserved for
+every pre-resolve reject) and BEFORE `exists()` — the lock covers the `exists()`→rename window
+(**N-03 closed**) and the write. ⚠ Recorded delta, inherent to lock-before-check: on the
+`vault_exists` reject path the lock acquisition may newly create a byte-empty `.qsc.lock` in the
+already-existing config dir. Init's own late `create_dir_all`+0700 block is kept
+(redundant-but-harmless under the lock; minimal diff).
+
+**THE ERROR MAPPING (ledger `:3051`: deliberate, never collapsed).** `store_err_marker`:
+`IoWriteFailed → "vault_write_failed"` (the vault's pinned write-path marker, preserved); every
+other `ErrorCode` passes through its own tree-wide `as_str` name — `"lock_contended"`,
+`"lock_open_failed"`, `"lock_failed"`, `"unsafe_path_symlink"`, `"unsafe_parent_perms"`,
+`"io_read_failed"`, … — the exact strings the config/transport store surfaces already emit for
+the same causes. **No two causes share a marker; no cause loses its name.** ⚠ Seven of these are
+NEW to the vault surface, each naming a condition that could not previously occur on these paths
+(**contention is now an observable fail-closed error** — no retry loop; retry policy is
+ENG-0111's design space). ⚠ Recorded micro-shift, unreachable by construction: the deleted
+writer returned `"vault_path_invalid"` for a parent-less path; `write_atomic` folds that case
+into `IoWriteFailed` → `"vault_write_failed"` (`vault_path` is always `cfg_dir/vault.qsv`).
+
+**THE THREE UN-SWALLOWS — per-site dispositions (ruled):**
+- `unlock_guarded_at`, success path (was `:159`): **surface loudly, DO NOT fail the unlock** —
+  the documented semantic (*"a persist failure must not undo the unlock"*) holds; `emit_marker`
+  on the existing `vault_unlock` event with the failure's `as_str` code.
+- `unlock_guarded_at`, wipe path (was `:170`): **surface loudly, DO NOT alter the `Wiped`
+  outcome** — the wipe marker has already been earned.
+- `destroy_with_passphrase` (was `:281`, THE reentrancy site): **surface loudly, DO NOT
+  hard-fail destroy** — the vault file and any keychain entry are already gone; an `Err` would
+  misreport a completed destroy; the residue stays observable via
+  `wipe_after_failed_unlocks_limit()`.
+⚠ **CONSEQUENCE FOR THE TESTS, stated so a later reader does not mis-locate the guard:** under
+the `:281` loud-not-fail disposition, the naive self-colliding variant still returns `Ok` from
+destroy — so `destroy_clears_protection_state_observed_via_pub_surface` (test (ii)) **is the
+load-bearing reentrancy regression proof** (it goes red against the restored `let _ =` + naive
+lock), while test (i) documents the success property. (i) alone does NOT guard the fix.
+⚠ Claim-adjacent new strings, flagged: the `vault_destroy` marker EVENT (destroy previously had
+no marker surface) and the kv keys `protection_clear` / `counter_reset`; values reuse
+`ErrorCode::as_str` names.
+
+**THE STOP-004 CORRECTION AND RULING (R16 — the census that was one-directional).** The first
+full-suite run on the fixed tree went RED (`NA_0640_full_stack_e2e`, attachment round-trip,
+deterministic): **`relay_send_with_payload` holds the store lock (`transport/mod.rs:3110`) and
+persists the outbox next-state through `vault::secret_set`** (`:149`, reached from `:3297`) —
+the §2c trap in the direction the drafting census never took. §2c measured vault-ops-nesting-
+lock-calls (correct: only destroy); it never measured lock-HOLDERS-nesting-vault-writes. The
+bidirectional census, closed before commit: locked-context vault-write reach-throughs are
+exactly `outbox_next_state_store:149` (sole caller `:3297`, under the `:3110` lock) and
+`outbox_next_state_clear:170` (callers `:117`/`:131` under `send_abort:79`'s lock and `:3473`
+in `finalize_send_commit`, called `:3166`/`:3375` under `:3110`), plus ONE latent mixed-context
+corner (below). Every other `secret_set` caller (attachments, contacts, handshake, identity,
+invite, main, msgqueue, owed_receipts, quarantine, timeline, the four transport CA/token
+setters), every `vault_init*` caller, and every `destroy_with_passphrase` caller runs under NO
+held lock; `config_set`/`config_get` call no vault function; plain message sends use the
+UNLOCKED `relay_send:1746` — a pre-existing locking asymmetry between the message and file send
+paths, recorded in ENG-0118. **The Director ruled R1**: `secret_set` splits exactly as
+`clear_files` did — pub entry (locks; unchanged for every unlocked caller) + `pub(crate)
+secret_set_locked` assuming the held lock (re-resolves via the same resolver, the executor's
+stated choice) — and **`transport/mod.rs` was brought IN SCOPE for exactly two one-line body
+changes** (`:149`, `:170` → `secret_set_locked`) by **D627 Amendment 1** (appended
+mark-don't-rewrite; pre-amendment sha `7a353c19…4b033c3`/562 lines is the promotion-pinned
+document, post-amendment sha `88ecefa6ba860cc30130496c61d4e260b45a966a1022bdc705bff9cb124b6b89`/
+601 lines). **The latent corner is FILED, not fixed: ENG-0118** —
+`qsp_session_store_key_get_or_create:191`'s create arm under a held lock (first-ever key
+creation only; mixed-context, so a variant swap would delete the lock from the real unlocked
+creations; under R1 it fails closed, `IdentitySecretUnavailable`, exactly as a locked vault
+fails closed today — not a regression; honest fix = ENG-0111's space). The NA_0640 attachment
+round-trip is the red-capable instrument for this defect class — red on record pre-R1, green
+after. ⚠ Instrument label correction, recorded per the same ruling: the base "fmt file-set
+236" figure is **236 diff HUNKS across 56 unique files** (the WF-0045-era label miscounts
+hunks as files; the instrument reproduces 236 exactly on both sides and the delta-zero gate
+compares both the hunk count and the identical 56-file set).
+
+**THE STOP-005 CORRECTION AND RULING (the second fresh stop, and the one that set the census
+standard).** The post-R1 rerun stayed RED one assertion later: `finalize_send_commit` — called
+inside `relay_send_with_payload`'s held lock — reaches `vault::secret_set` through a THIRD
+channel, the **timeline ingest** (`timeline_append_entry_for_target` → `timeline_store_save` →
+the plain locking `secret_set`, `timeline/mod.rs`), whose error arm emits and CONTINUES — a
+silently lost timeline write on every locked send, surfacing downstream as the e2e's
+`state_duplicate` confirm reject. The STOP-004 census missed it because it hand-traced windows
+around known sites; **the STOP-005 method — every call in every locked region MECHANICALLY
+extracted and classified — is now the standard, and a window-read census is not acceptable.**
+The Director ruled **T1, the inner-variant pattern's third and final application** (D627
+**Amendment 2**, post-A2 sha
+`ae4d7f666b3fca1b8185509bc0b4b725c906667f940fb837270ff54f001ff0c0`/648 lines; post-A1
+`88ecefa6…24b6b89`/601; the promotion-pinned pre-amendment document `7a353c19…4b033c3`/562):
+`timeline/mod.rs` gains exactly the locked ingest chain
+(`timeline_append_entry_for_target_locked` → `timeline_store_save_locked` →
+`vault::secret_set_locked`; one shared body, the pub entries LOCKING and behavior-unchanged for
+every receive-path caller — the timeline fns are mixed-context), and `transport/mod.rs` extends
+by EXACTLY ONE further body line (finalize's ingest call, **fully qualified
+`crate::timeline::…` at the call site so no import line and no `lib.rs` touch exists**). The
+re-closed mechanical sweep (relay+finalize, send_abort, destroy — evidence
+`phase1c_sweep.log`): **ZERO unconverted channels remain** — the four ever found are outbox
+store/clear [R1], the timeline ingest [T1], and the `:191` create-arm [LATENT, ENG-0118].
+⚠ Labeled observation, deliberately not chased (Director ruling): the e2e's reject read
+`state_duplicate` (entry present at `Delivered`) where a lost ingest alone predicts
+`state_unknown` — the micro-path is unresolved and not load-bearing; the locked region lost its
+timeline write either way.
+
+**THE STOP-006 CORRECTION AND RULING (the third fresh stop — a mis-dispositioned channel, not a
+missed one).** The T1 full suite died at binary 22: **11 base-green tests in
+`attachment_streaming_na0197c`, every one `qsp_session_store_failed`** — the FILED ENG-0118
+channel firing. The mechanical sweep's table HAD the channel; its **"latent/pathological"
+reachability judgment was wrong**: seeded-session harnesses reach a locked file-send as the
+channel's FIRST session persist (`msg_idx=0`), so the session-store key's create-arm
+(`protocol_state/mod.rs:191` — verified the module's SOLE `vault::secret_set`) ran under the
+held lock, self-denied (`lock_contended` lands in the `Err(_)` arm; the seed-fallback arms
+match only `vault_missing`/`vault_locked`), and every such send failed closed after relay
+acceptance. **The STOP-004 prediction "no existing test changes outcome" is falsified — owned
+by the ruling.** The Director ruled **U3 — pre-lock key provisioning, NOT a fourth
+inner-variant** (D627 **Amendment 3**, post-A3 sha
+`6abdb49f2e91236a30dda2b99c2239f7f16780da7ba4597e5f8f6dc3ba513ad4`/694 lines):
+`qsp_session_store_key_ensure()` — a thin best-effort wrapper whose only must-succeed case is
+create-when-creatable (every failure it can hit is re-surfaced by the in-lock path) — called on
+EXACTLY TWO new PRE-LOCK transport lines, one before each locked transaction's acquisition; the
+six-function session-store chain untouched. **The sweep standard TIGHTENS:** no vault write —
+including any get-or-create CREATE-ARM — reachable under ANY held lock, for EVERY caller,
+production or seeded. **ENG-0118 is corrected and NARROWED** (test-reachable as found — the 11
+tests named in the ledger; under U3 what remains is the pre-existing concurrent-first-sender
+create race, which U3 neither widens nor narrows). ⚠ **THE TRIPWIRE (Director-armed):** if the
+U3 full suite reds again — any fifth surprise — the remedy switches to **U2, the reentrant
+lock pulled forward**, not a fifth patch.
+
+**THE STOP-007/008 CORRECTIONS AND RULINGS (the N-04-vs-fixtures class — NOT nesting, and the
+tripwire deliberately NOT fired).** The U3 full suite cleared both prior kill points and died at
+binary 69: NA-0692's own two fallthrough tests red with `unsafe_parent_perms` at init's lock
+acquisition — **N-04 behaving CORRECTLY** (the §2d.1-enumerated by-design change: measured in
+full, `enforce_safe_parents` checks the immediate target dir for EnvOverride/XdgConfigHome and
+the FULL ancestry for DefaultHome) meeting umask-default 0775 fixture dirs. The Director ruled
+the STOP-006 tripwire NOT fired (no nesting anywhere; U2 would re-run to the identical red) and
+ruled **W1** (the na0692 fixtures chmod their fixture-owned dirs 0700 — property asserted
+unchanged) plus **the vault.rs DefaultHome test INVERTED** (D627 **Amendment 4**): renamed
+`vault_init_on_unsafe_default_home_ancestry_refuses_with_unsafe_parent_perms`, asserting the
+refusal on a deterministically group-writable HOME — **N-04's first red-capable positive
+coverage** (`fs_store` has zero in-file tests; revert the routing and this assertion fails).
+⚠ Recorded honestly: **the DefaultHome-write-SUCCESS property is untestable in a CI sandbox**
+(loose-perm ancestry by construction, no root) and is covered only in real deployments. At
+STOP 008 the same class surfaced once more — the na0061-era init test's fixture-owned cfg dir
+(0775) — because **the STOP-007 corpus census was under-scoped by its class definition
+(fallthrough-source only; owned by the executor)**; the corrected census is MECHANICAL and
+whole-corpus (`QSC_CONFIG_DIR` use ∧ vault-write ops ∧ no in-file 0700 hygiene, dispositioned
+by MEASURED on-disk perms): exactly two candidate files, `relay_push_diagnostics.rs` clean
+(fixtures via `common`'s `ensure_dir_700`, dirs measured `drwx------`), and ONE remaining red —
+ruled **X1** (D627 **Amendment 5**, post-A5 sha
+`490b7103e519ab86d9f3dea066230ae5ac76fdae6719abe504841dad9b3b17e9`/764 lines; post-A4
+`2d8bf5f6…40c8550`/733): the same W1 chmod shape on that fixture (vault binary 10/0 measured
+after). ⚠ **THE CENSUS-CLASS LESSONS, now standard:** (1) a behavior-change ENUMERATION (§2d)
+is not a TEST-CORPUS SWEEP for tests asserting the displaced behavior; (2) a corpus sweep's
+CLASS DEFINITION must be mechanical (measured perms), not judgment. Diagnostic full-suite runs
+use `--no-fail-fast` from Amendment 5 on, so any remaining red set surfaces complete in one
+pass.
+
+⚠ **BINDING FORWARD REQUIREMENT — ENG-0111 / SLICE E (recorded here AND in the ledger against
+ENG-0111; Director-ruled at STOP 005, WIDENED at STOP 006, NOT optional):** four serial
+demands in one slice (outbox, timeline, the ENG-0118 create-arm, and its create race) prove the
+lock-nesting class is a STRUCTURAL fragility that the per-site pattern treats one site at a
+time. **Slice E must take an explicit first-class design decision: whether the store lock
+becomes REENTRANT (per-process path-keyed nesting at the `LockGuard`/`fs_store` layer) to
+eliminate the class outright — and if adopted, RETIRE the per-site `_locked` inner-variants
+(`protection_state_clear_files_locked`, `secret_set_locked`, the timeline locked chain) AND the
+U3 pre-lock ensure in favor of it. ENG-0118 — including the concurrent-create race an atomic
+create or the reentrant lock would close — folds into the same decision.** ⚠ **Cross-slice note
+for Slice C (ENG-0107):** it rewrites this same write path for AAD and must treat the `_locked`
+variants AND the pre-lock ensure as LOAD-BEARING — and re-run the mechanical sweep (tightened
+standard) if it alters any locked region.
+
+**Behaviour changes only as enumerated in D627 §2d** (N-04 rejections; N-02/N-03 closed;
+contention observable fail-closed; the mapping above; perf counter preserved; dir creation at
+lock acquisition). One ordering note recorded: `protection_state_clear_files`' standalone entry
+now takes the lock BEFORE `ensure_store_layout`/parents checks (previously after) — same end
+state, error-precedence may differ when multiple faults coexist; destroy's path runs the
+identical body under its own held lock. **No wire change, no dependency change
+(`Cargo.toml`/`Cargo.lock` diff EMPTY — the serialization test's `flock` comes from its own
+`extern "C"` like `lib.rs`'s), no new claim.**
+
+**References:** D627 §2c (the 8-acquisition inventory the probe re-derived and confirmed), §4
+(probe), §5 (fix shapes), §12 rulings A/B/C, **Amendment 1** (the STOP-004 ruling: R1 + the
+two-line transport scope amendment); the STOP-0 stop-file (probe report + ruling); the STOP-004
+stop-file (the R16 stop, the failure evidence, the bidirectional census); ENG-0106;
+**ENG-0118** (filed by this lane: the latent first-creation-under-lock corner + the send-path
+locking asymmetry observation); N-02/N-03/N-04/N-07; ENG-0111 (contention retry policy +
+non-Unix + the ENG-0118 corner's honest fix, open); ENG-0112 (full suite skips on PRs — the
+suite green is the LOCAL run); WF-0044/WF-0045 (open, measured, not chased); D626 Ruling 3 (the
+deferred N-04 moment, fired here); D-1330 (this PR advances `HIGHEST_D` 1332→1333 with this
+record).

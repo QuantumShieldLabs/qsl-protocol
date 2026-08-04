@@ -76,6 +76,7 @@ pub fn send_abort() -> CliResult {
         Ok(v) => v,
         Err(e) => return Err(cli_err(e)),
     };
+    crate::protocol_state::qsp_session_store_key_ensure();
     let _lock = match lock_store_exclusive(&dir, source) {
         Ok(v) => v,
         Err(e) => return Err(cli_err(e)),
@@ -146,7 +147,7 @@ fn outbox_record_load(path: &Path) -> Result<OutboxRecord, &'static str> {
 fn outbox_next_state_store(st: &Suite2SessionState) -> Result<(), &'static str> {
     let bytes = st.snapshot_bytes();
     let secret = hex_encode(&bytes);
-    match vault::secret_set(OUTBOX_NEXT_STATE_SECRET_KEY, &secret) {
+    match vault::secret_set_locked(OUTBOX_NEXT_STATE_SECRET_KEY, &secret) {
         Ok(()) => Ok(()),
         Err("vault_missing" | "vault_locked") => Err("outbox_state_vault_unavailable"),
         Err(_) => Err("outbox_state_store_failed"),
@@ -167,7 +168,7 @@ fn outbox_next_state_load() -> Result<Suite2SessionState, &'static str> {
 }
 
 fn outbox_next_state_clear() -> Result<(), &'static str> {
-    match vault::secret_set(OUTBOX_NEXT_STATE_SECRET_KEY, "") {
+    match vault::secret_set_locked(OUTBOX_NEXT_STATE_SECRET_KEY, "") {
         Ok(()) => Ok(()),
         Err("vault_missing" | "vault_locked") => Err("outbox_state_vault_unavailable"),
         Err(_) => Err("outbox_state_clear_failed"),
@@ -3107,6 +3108,7 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> CliResu
         Ok(v) => v,
         Err(e) => return Err(cli_err(e)),
     };
+    crate::protocol_state::qsp_session_store_key_ensure();
     let _lock = match lock_store_exclusive(&dir, source) {
         Ok(v) => v,
         Err(e) => return Err(cli_err(e)),
@@ -3440,7 +3442,7 @@ fn finalize_send_commit(
         }
     }
     if let Some(ingest) = timeline_ingest {
-        if let Err(code) = timeline_append_entry_for_target(
+        if let Err(code) = crate::timeline::timeline_append_entry_for_target_locked(
             ingest.peer,
             "out",
             ingest.byte_len,

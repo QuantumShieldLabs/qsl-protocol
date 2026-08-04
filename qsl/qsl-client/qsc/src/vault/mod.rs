@@ -15,6 +15,7 @@
 // explicit opt-in, the one-call lock(), and token-confirmed destroy.
 pub mod protection;
 
+use crate::adversarial::vault_format::{classify_vault_magic, VaultMagicClass, VAULT_MAGIC};
 use crate::fs_store::{lock_store_exclusive, write_atomic};
 use crate::model::{ConfigSource, ErrorCode};
 use crate::output::{CliError, CliResult};
@@ -26,7 +27,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Mutex, OnceLock};
 
 use argon2::{Algorithm, Argon2, Params, Version};
-use chacha20poly1305::aead::{Aead, AeadCore, KeyInit};
+use chacha20poly1305::aead::{Aead, AeadCore, KeyInit, Payload};
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use clap::{Args, Subcommand};
 #[cfg(feature = "keychain")]
@@ -35,7 +36,12 @@ use rand_core::{OsRng, RngCore};
 use serde::{Deserialize, Serialize};
 use zeroize::Zeroize;
 
-const VAULT_MAGIC: &[u8; 6] = b"QSCV01";
+// NA-0694 (D628, D-1334): the magic const's single owner is
+// `crate::adversarial::vault_format` (imported above); the envelope header layout's single
+// owner is `envelope_header_bytes` below. HEADER_LEN covers every pre-ciphertext byte:
+// magic(6) + key_source(1) + salt_len(1) + nonce_len(1) + 3×KDF(4 LE) + ct_len(4 LE) +
+// salt(16) + nonce(12).
+const HEADER_LEN: usize = 53;
 const KDF_M_KIB: u32 = 19456;
 const KDF_T: u32 = 2;
 const KDF_P: u32 = 1;
@@ -253,9 +259,27 @@ pub(crate) fn secret_set_locked(name: &str, value: &str) -> Result<(), &'static 
     let nonce = vault_rng_nonce("QSC.VAULT.SECRET_SET.NONCE")?;
     #[cfg(not(qsc_rng_failure_test_seam))]
     let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
+    // NA-0694 (D628 §5.2, ENG-0107): AAD = the exact 53-byte header the serializer writes
+    // below — ct_len is plaintext + the 16-byte Poly1305 tag, known before the cipher call.
+    let aad = envelope_header_bytes(
+        env.envelope.key_source,
+        env.envelope.kdf_m_kib,
+        env.envelope.kdf_t,
+        env.envelope.kdf_p,
+        plaintext.len() as u32 + 16,
+        &env.envelope.salt,
+        nonce.as_slice().try_into().map_err(|_| "encrypt_failed")?,
+    );
     let ciphertext = cipher
-        .encrypt(&nonce, plaintext.as_ref())
+        .encrypt(
+            &nonce,
+            Payload {
+                msg: plaintext.as_ref(),
+                aad: &aad,
+            },
+        )
         .map_err(|_| "encrypt_failed")?;
+    debug_assert_eq!(ciphertext.len(), plaintext.len() + 16);
     let bytes = encode_envelope(&env, nonce.as_slice(), &ciphertext);
     PERF_VAULT_ENCRYPT_WRITES.fetch_add(1, Ordering::Relaxed);
     write_atomic(&vault_path, &bytes, source).map_err(store_err_marker)?;
@@ -290,9 +314,25 @@ pub fn secret_set_with_passphrase(
     let nonce = vault_rng_nonce("QSC.VAULT.SECRET_SET_WITH_PASSPHRASE.NONCE")?;
     #[cfg(not(qsc_rng_failure_test_seam))]
     let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
+    let aad = envelope_header_bytes(
+        env.envelope.key_source,
+        env.envelope.kdf_m_kib,
+        env.envelope.kdf_t,
+        env.envelope.kdf_p,
+        plaintext.len() as u32 + 16,
+        &env.envelope.salt,
+        nonce.as_slice().try_into().map_err(|_| "encrypt_failed")?,
+    );
     let ciphertext = cipher
-        .encrypt(&nonce, plaintext.as_ref())
+        .encrypt(
+            &nonce,
+            Payload {
+                msg: plaintext.as_ref(),
+                aad: &aad,
+            },
+        )
         .map_err(|_| "encrypt_failed")?;
+    debug_assert_eq!(ciphertext.len(), plaintext.len() + 16);
     let bytes = encode_envelope(&env, nonce.as_slice(), &ciphertext);
     PERF_VAULT_ENCRYPT_WRITES.fetch_add(1, Ordering::Relaxed);
     write_atomic(&vault_path, &bytes, source).map_err(store_err_marker)?;
@@ -396,9 +436,25 @@ pub fn persist_session(session: &mut VaultSession) -> Result<(), &'static str> {
     let nonce = vault_rng_nonce("QSC.VAULT.SESSION_PERSIST.NONCE")?;
     #[cfg(not(qsc_rng_failure_test_seam))]
     let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
+    let aad = envelope_header_bytes(
+        session.envelope.key_source,
+        session.envelope.kdf_m_kib,
+        session.envelope.kdf_t,
+        session.envelope.kdf_p,
+        plaintext.len() as u32 + 16,
+        &session.envelope.salt,
+        nonce.as_slice().try_into().map_err(|_| "encrypt_failed")?,
+    );
     let ciphertext = cipher
-        .encrypt(&nonce, plaintext.as_ref())
+        .encrypt(
+            &nonce,
+            Payload {
+                msg: plaintext.as_ref(),
+                aad: &aad,
+            },
+        )
         .map_err(|_| "encrypt_failed")?;
+    debug_assert_eq!(ciphertext.len(), plaintext.len() + 16);
     let bytes = encode_envelope(
         &VaultRuntime {
             envelope: session.envelope.clone(),
@@ -536,12 +592,31 @@ fn vault_init_core(key_source: KeySource, mut pass: Option<String>) -> Result<()
         }
     };
 
-    let ciphertext = match cipher.encrypt(nonce, plaintext.as_ref()) {
+    // NA-0694 (D628 §5.2, ENG-0107): here the encrypt runs BEFORE the header bytes are
+    // written, so the AAD is built first from the same inputs the serializer below uses —
+    // ct_len is plaintext + the 16-byte Poly1305 tag.
+    let aad = envelope_header_bytes(
+        key_source_tag(key_source),
+        KDF_M_KIB,
+        KDF_T,
+        KDF_P,
+        plaintext.len() as u32 + 16,
+        &salt,
+        &nonce_bytes,
+    );
+    let ciphertext = match cipher.encrypt(
+        nonce,
+        Payload {
+            msg: plaintext.as_ref(),
+            aad: &aad,
+        },
+    ) {
         Ok(ct) => ct,
         Err(_) => {
             return Err(fail_core_buffers("encrypt_failed", &mut pass_bytes, &mut key_bytes));
         }
     };
+    debug_assert_eq!(ciphertext.len(), plaintext.len() + 16);
 
     // NA-0693 (D627, D-1333): Slice A produced the ConfigSource; consumed here. The lock is
     // taken AFTER the pure-crypto work (every earlier reject still touches nothing on disk)
@@ -590,17 +665,16 @@ fn vault_init_core(key_source: KeySource, mut pass: Option<String>) -> Result<()
         }
     }
 
-    let mut buf = Vec::with_capacity(6 + 1 + 1 + 1 + 4 * 4 + 16 + 12 + ciphertext.len());
-    buf.extend_from_slice(VAULT_MAGIC);
-    buf.push(key_source_tag(key_source));
-    buf.push(16);
-    buf.push(12);
-    buf.extend_from_slice(&KDF_M_KIB.to_le_bytes());
-    buf.extend_from_slice(&KDF_T.to_le_bytes());
-    buf.extend_from_slice(&KDF_P.to_le_bytes());
-    buf.extend_from_slice(&(ciphertext.len() as u32).to_le_bytes());
-    buf.extend_from_slice(&salt);
-    buf.extend_from_slice(&nonce_bytes);
+    let mut buf = Vec::with_capacity(HEADER_LEN + ciphertext.len());
+    buf.extend_from_slice(&envelope_header_bytes(
+        key_source_tag(key_source),
+        KDF_M_KIB,
+        KDF_T,
+        KDF_P,
+        ciphertext.len() as u32,
+        &salt,
+        &nonce_bytes,
+    ));
     buf.extend_from_slice(&ciphertext);
 
     let tmp = vault_path.with_extension("qsv.tmp");
@@ -691,8 +765,12 @@ fn vault_status() -> CliResult {
     if bytes.len() < 6 + 1 {
         return Err(CliError::code("vault_parse_failed"));
     }
-    if &bytes[..6] != VAULT_MAGIC {
-        return Err(CliError::code("vault_parse_failed"));
+    // NA-0694 (D628 §5.4, Ruling A): the same three-way version arm as the unlock parser,
+    // AFTER this site's own min-length gate — an old dev vault names itself here too.
+    match classify_vault_magic(&bytes[..6]) {
+        VaultMagicClass::Current => {}
+        VaultMagicClass::KnownOld => return Err(CliError::code("vault_version_unsupported")),
+        VaultMagicClass::Unknown => return Err(CliError::code("vault_parse_failed")),
     }
     let key_source = key_source_name(bytes[6]);
 
@@ -812,11 +890,11 @@ fn load_vault_runtime_with_passphrase(
 
 fn parse_envelope(bytes: &[u8]) -> Result<VaultRuntimeEnvelope, &'static str> {
     let parsed = crate::adversarial::vault_format::parse_vault_envelope(bytes)?;
-    // Passphrase vaults currently have one truthful on-disk KDF profile.
-    // Reject any other stored profile rather than deriving under attacker-supplied params.
-    if parsed.key_source == 1
-        && (parsed.kdf_m_kib != KDF_M_KIB || parsed.kdf_t != KDF_T || parsed.kdf_p != KDF_P)
-    {
+    // The vault has one truthful on-disk KDF profile, for BOTH key sources — init writes
+    // canonical params unconditionally (NA-0694 / N-06: the former passphrase-only gate
+    // accepted keychain envelopes' params unread). Reject any other stored profile rather
+    // than deriving under attacker-supplied params.
+    if parsed.kdf_m_kib != KDF_M_KIB || parsed.kdf_t != KDF_T || parsed.kdf_p != KDF_P {
         return Err("vault_parse_failed");
     }
     Ok(VaultRuntimeEnvelope {
@@ -866,25 +944,73 @@ fn decrypt_payload(env: &VaultRuntime) -> Result<VaultPayload, &'static str> {
     let (nonce_bytes, ciphertext) = env.envelope.ciphertext.split_at(12);
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&env.key));
     let nonce = Nonce::from_slice(nonce_bytes);
+    // NA-0694 (D628 §2b, ENG-0107): the AAD is rebuilt byte-exactly from parsed state —
+    // the parser fixed the field widths and `ct_len == ciphertext.len() - nonce(12)` by
+    // construction, so any altered header byte fails authentication here.
+    let aad = envelope_header_bytes(
+        env.envelope.key_source,
+        env.envelope.kdf_m_kib,
+        env.envelope.kdf_t,
+        env.envelope.kdf_p,
+        ciphertext.len() as u32,
+        &env.envelope.salt,
+        nonce_bytes.try_into().map_err(|_| "vault_parse_failed")?,
+    );
     let plaintext = cipher
-        .decrypt(nonce, ciphertext)
+        .decrypt(
+            nonce,
+            Payload {
+                msg: ciphertext,
+                aad: &aad,
+            },
+        )
         .map_err(|_| "vault_locked")?;
     serde_json::from_slice(&plaintext).map_err(|_| "vault_parse_failed")
 }
 
-fn encode_envelope(env: &VaultRuntime, nonce: &[u8], ciphertext: &[u8]) -> Vec<u8> {
-    debug_assert_eq!(nonce.len(), 12);
-    let mut buf = Vec::with_capacity(6 + 1 + 1 + 1 + (4 * 4) + 16 + 12 + ciphertext.len());
+// NA-0694 (D628 §5.2, D-1334): the ONE header serializer — every envelope byte layout in
+// src routes through this builder, and the same 53 bytes are the AEAD associated data at
+// every encrypt and the decrypt (ENG-0107; the Slice-A one-owner-for-one-layout property).
+// PURE byte assembly: no locks, no I/O, no call edges — the D-1333 locked-region boundary
+// depends on this staying true.
+fn envelope_header_bytes(
+    key_source: u8,
+    kdf_m_kib: u32,
+    kdf_t: u32,
+    kdf_p: u32,
+    ct_len: u32,
+    salt: &[u8; 16],
+    nonce: &[u8; 12],
+) -> Vec<u8> {
+    let mut buf = Vec::with_capacity(HEADER_LEN);
     buf.extend_from_slice(VAULT_MAGIC);
-    buf.push(env.envelope.key_source);
+    buf.push(key_source);
     buf.push(16);
     buf.push(12);
-    buf.extend_from_slice(&env.envelope.kdf_m_kib.to_le_bytes());
-    buf.extend_from_slice(&env.envelope.kdf_t.to_le_bytes());
-    buf.extend_from_slice(&env.envelope.kdf_p.to_le_bytes());
-    buf.extend_from_slice(&(ciphertext.len() as u32).to_le_bytes());
-    buf.extend_from_slice(&env.envelope.salt);
+    buf.extend_from_slice(&kdf_m_kib.to_le_bytes());
+    buf.extend_from_slice(&kdf_t.to_le_bytes());
+    buf.extend_from_slice(&kdf_p.to_le_bytes());
+    buf.extend_from_slice(&ct_len.to_le_bytes());
+    buf.extend_from_slice(salt);
     buf.extend_from_slice(nonce);
+    debug_assert_eq!(buf.len(), HEADER_LEN);
+    buf
+}
+
+fn encode_envelope(env: &VaultRuntime, nonce: &[u8], ciphertext: &[u8]) -> Vec<u8> {
+    debug_assert_eq!(nonce.len(), 12);
+    let mut nonce_arr = [0u8; 12];
+    nonce_arr.copy_from_slice(nonce);
+    let mut buf = Vec::with_capacity(HEADER_LEN + ciphertext.len());
+    buf.extend_from_slice(&envelope_header_bytes(
+        env.envelope.key_source,
+        env.envelope.kdf_m_kib,
+        env.envelope.kdf_t,
+        env.envelope.kdf_p,
+        ciphertext.len() as u32,
+        &env.envelope.salt,
+        &nonce_arr,
+    ));
     buf.extend_from_slice(ciphertext);
     buf
 }

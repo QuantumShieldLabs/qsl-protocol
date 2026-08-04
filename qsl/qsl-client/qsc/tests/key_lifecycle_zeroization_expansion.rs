@@ -1,7 +1,7 @@
 mod common;
 
 use argon2::{Algorithm, Argon2, Params, Version};
-use chacha20poly1305::aead::{Aead, KeyInit};
+use chacha20poly1305::aead::{Aead, KeyInit, Payload};
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use serde_json::Value;
 use std::fs;
@@ -193,7 +193,7 @@ fn assert_bytes_do_not_contain(bytes: &[u8], needle: &[u8], context: &str) {
 
 fn derive_mock_vault_key(bytes: &[u8]) -> ([u8; 32], usize, usize) {
     assert!(bytes.len() > 25, "vault envelope too short");
-    assert_eq!(&bytes[0..6], b"QSCV01");
+    assert_eq!(&bytes[0..6], b"QSCV02");
     assert_eq!(bytes[6], 1, "expected passphrase vault");
     let salt_len = bytes[7] as usize;
     let nonce_len = bytes[8] as usize;
@@ -226,7 +226,15 @@ fn read_mock_vault_json(cfg: &Path) -> Value {
     let ciphertext = &bytes[off..off + ct_len];
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key));
     let plaintext = cipher
-        .decrypt(Nonce::from_slice(nonce), ciphertext)
+        .decrypt(
+            Nonce::from_slice(nonce),
+            Payload {
+                msg: ciphertext,
+                // NA-0694 (D628 §2e F3): the product now binds the 53-byte header as
+                // AEAD AAD; the header prefix of the file is that AAD verbatim.
+                aad: &bytes[..53],
+            },
+        )
         .expect("vault decrypt");
     serde_json::from_slice(&plaintext).expect("vault json")
 }

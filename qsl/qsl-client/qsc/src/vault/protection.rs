@@ -27,7 +27,7 @@ use crate::fs_store::{
     config_dir, enforce_safe_parents, ensure_store_layout, fsync_dir_best_effort,
     lock_store_exclusive, lock_store_shared, write_atomic,
 };
-use crate::model::ErrorCode;
+use crate::model::{ConfigSource, ErrorCode};
 use crate::output::emit_marker;
 use crate::store::{
     QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS, VAULT_ATTEMPT_LIMIT_MAX, VAULT_ATTEMPT_LIMIT_MIN,
@@ -36,6 +36,7 @@ use crate::store::{
 use std::fs;
 use std::fs::File;
 use std::io::Read;
+use std::path::Path;
 use zeroize::Zeroize;
 
 /// Outcome of one attempt through the guarded unlock path. Retry-after and attempt
@@ -156,7 +157,15 @@ pub fn unlock_guarded_at(
         if state.failed_unlocks != 0 || state.last_failure_unix_s.is_some() {
             state.failed_unlocks = 0;
             state.last_failure_unix_s = None;
-            let _ = protection_state_store(&state);
+            // Un-swallowed (D-1333): loud, and the unlock stands — the documented
+            // semantic above ("a persist failure must not undo the unlock") holds.
+            if let Err(code) = protection_state_store(&state) {
+                emit_marker(
+                    "vault_unlock",
+                    None,
+                    &[("ok", "true"), ("counter_reset", code.as_str())],
+                );
+            }
         }
         crate::set_vault_unlocked(true);
         return Ok(GuardedUnlockOutcome::Unlocked);
@@ -167,7 +176,14 @@ pub fn unlock_guarded_at(
     if let Some(limit) = state.attempt_limit {
         if state.failed_unlocks >= limit {
             wipe_vault_file_best_effort().map_err(|_| "vault_wipe_failed")?;
-            let _ = protection_state_clear_files();
+            // Un-swallowed (D-1333): loud, and the Wiped outcome stands unchanged.
+            if let Err(code) = protection_state_clear_files() {
+                emit_marker(
+                    "vault_unlock",
+                    None,
+                    &[("ok", "false"), ("protection_clear", code.as_str())],
+                );
+            }
             lock(None);
             emit_marker(
                 "vault_unlock",
@@ -254,6 +270,13 @@ pub fn destroy_with_passphrase(
     if token.commitment != passphrase {
         return Err("vault_locked");
     }
+    // NA-0693 (D627, D-1333): destroy is one locked transaction — resolved through the SAME
+    // resolver as every vault write op, the exclusive store lock held across
+    // validate → keychain-remove → erase → remove → protection-clear. The nested clear below
+    // MUST use the `_locked` inner variant: `flock` attaches to the open file description, so
+    // the locking entry point would be denied by destroy's own lock (`LockContended`).
+    let (cfg_dir, _, source) = super::vault_path_resolved()?;
+    let _lock = lock_store_exclusive(&cfg_dir, source).map_err(super::store_err_marker)?;
     let (vault_path, mut runtime) = super::load_vault_runtime_with_passphrase(Some(passphrase))?;
     let _ = super::decrypt_payload(&runtime)?;
     let key_source = runtime.envelope.key_source;
@@ -278,7 +301,16 @@ pub fn destroy_with_passphrase(
             fsync_dir_best_effort(parent);
         }
     }
-    let _ = protection_state_clear_files();
+    // Un-swallowed (D-1333): loud, NOT fatal — the vault file and any keychain entry are
+    // already gone, so an Err here would misreport a completed destroy. The residue stays
+    // observable through `wipe_after_failed_unlocks_limit()`.
+    if let Err(code) = protection_state_clear_files_locked(&cfg_dir, source) {
+        emit_marker(
+            "vault_destroy",
+            None,
+            &[("ok", "true"), ("protection_clear", code.as_str())],
+        );
+    }
     lock(None);
     Ok(())
 }
@@ -416,15 +448,23 @@ fn protection_state_store(state: &VaultProtectionState) -> Result<(), ErrorCode>
 
 fn protection_state_clear_files() -> Result<(), ErrorCode> {
     let (dir, source) = config_dir()?;
-    ensure_store_layout(&dir, source)?;
+    let _lock = lock_store_exclusive(&dir, source)?;
+    protection_state_clear_files_locked(&dir, source)
+}
+
+/// NA-0693 (D627, D-1333): the unlocked inner variant — assumes the caller already holds
+/// the exclusive store lock for `dir`. `flock` attaches to the open file description, so a
+/// locked caller reaching the entry point above would be denied by its own lock; destroy's
+/// transaction calls this one instead.
+fn protection_state_clear_files_locked(dir: &Path, source: ConfigSource) -> Result<(), ErrorCode> {
+    ensure_store_layout(dir, source)?;
     let config_path = dir.join(VAULT_SECURITY_CONFIG_NAME);
     let counter_path = dir.join(VAULT_UNLOCK_COUNTER_NAME);
     enforce_safe_parents(&config_path, source)?;
     enforce_safe_parents(&counter_path, source)?;
-    let _lock = lock_store_exclusive(&dir, source)?;
     let _ = fs::remove_file(config_path);
     let _ = fs::remove_file(counter_path);
-    fsync_dir_best_effort(&dir);
+    fsync_dir_best_effort(dir);
     Ok(())
 }
 

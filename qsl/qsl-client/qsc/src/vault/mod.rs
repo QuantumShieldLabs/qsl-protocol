@@ -15,7 +15,8 @@
 // explicit opt-in, the one-call lock(), and token-confirmed destroy.
 pub mod protection;
 
-use crate::model::ConfigSource;
+use crate::fs_store::{lock_store_exclusive, write_atomic};
+use crate::model::{ConfigSource, ErrorCode};
 use crate::output::{CliError, CliResult};
 use std::collections::BTreeMap;
 use std::fs;
@@ -225,6 +226,24 @@ pub fn secret_set(name: &str, value: &str) -> Result<(), &'static str> {
     if name.is_empty() {
         return Err("vault_secret_name_invalid");
     }
+    // NA-0693 (D627, D-1333): the exclusive store lock spans the WHOLE read-modify-write
+    // (load → decrypt → mutate → encrypt → write), never the write alone. Unix-conditional:
+    // on non-Unix the flock call is compiled out (ENG-0111(a)).
+    let (cfg_dir, _, source) = vault_path_resolved()?;
+    let _lock = lock_store_exclusive(&cfg_dir, source).map_err(store_err_marker)?;
+    secret_set_locked(name, value)
+}
+
+/// NA-0693 STOP-004 ruling (D627 Amendment 1, D-1333): the unlocked inner variant — assumes
+/// the caller ALREADY HOLDS the exclusive store lock. `flock` attaches to the open file
+/// description, so a locked caller (transport's send/abort transactions persisting the outbox
+/// next-state) reaching the pub entry above would be denied by its own lock. Resolves through
+/// the same resolver as the entry, so path agreement holds by construction.
+pub(crate) fn secret_set_locked(name: &str, value: &str) -> Result<(), &'static str> {
+    if name.is_empty() {
+        return Err("vault_secret_name_invalid");
+    }
+    let (_cfg_dir, _, source) = vault_path_resolved()?;
     let (vault_path, mut env) = load_vault_runtime()?;
     let mut payload = decrypt_payload(&env)?;
     payload.secrets.insert(name.to_string(), value.to_string());
@@ -238,7 +257,8 @@ pub fn secret_set(name: &str, value: &str) -> Result<(), &'static str> {
         .encrypt(&nonce, plaintext.as_ref())
         .map_err(|_| "encrypt_failed")?;
     let bytes = encode_envelope(&env, nonce.as_slice(), &ciphertext);
-    write_vault_atomic(&vault_path, &bytes)?;
+    PERF_VAULT_ENCRYPT_WRITES.fetch_add(1, Ordering::Relaxed);
+    write_atomic(&vault_path, &bytes, source).map_err(store_err_marker)?;
     VAULT_WRITE_EPOCH.fetch_add(1, Ordering::Relaxed);
     env.key.zeroize();
     Ok(())
@@ -258,6 +278,9 @@ pub fn secret_set_with_passphrase(
     if passphrase.is_empty() {
         return Err("vault_locked");
     }
+    // NA-0693 (D627, D-1333): same locked read-modify-write transaction as `secret_set`.
+    let (cfg_dir, _, source) = vault_path_resolved()?;
+    let _lock = lock_store_exclusive(&cfg_dir, source).map_err(store_err_marker)?;
     let (vault_path, mut env) = load_vault_runtime_with_passphrase(Some(passphrase))?;
     let mut payload = decrypt_payload(&env)?;
     payload.secrets.insert(name.to_string(), value.to_string());
@@ -271,7 +294,8 @@ pub fn secret_set_with_passphrase(
         .encrypt(&nonce, plaintext.as_ref())
         .map_err(|_| "encrypt_failed")?;
     let bytes = encode_envelope(&env, nonce.as_slice(), &ciphertext);
-    write_vault_atomic(&vault_path, &bytes)?;
+    PERF_VAULT_ENCRYPT_WRITES.fetch_add(1, Ordering::Relaxed);
+    write_atomic(&vault_path, &bytes, source).map_err(store_err_marker)?;
     VAULT_WRITE_EPOCH.fetch_add(1, Ordering::Relaxed);
     env.key.zeroize();
     Ok(())
@@ -383,7 +407,13 @@ pub fn persist_session(session: &mut VaultSession) -> Result<(), &'static str> {
         nonce.as_slice(),
         &ciphertext,
     );
-    write_vault_atomic(&session.vault_path, &bytes)?;
+    // NA-0693 (D627 §3.2): MECHANICAL redirect only, forced by the duplicate-writer
+    // deletion — no lock and no semantic change on this dead path. The refuse-not-merge
+    // semantic for the epoch mismatch above is DECIDED and its code rides the Slice-4
+    // GUI-wiring lane, which consumes `VAULT_WRITE_EPOCH` (the reason the epoch is kept).
+    let (_, _, source) = vault_path_resolved()?;
+    PERF_VAULT_ENCRYPT_WRITES.fetch_add(1, Ordering::Relaxed);
+    write_atomic(&session.vault_path, &bytes, source).map_err(store_err_marker)?;
     session.write_epoch_seen = VAULT_WRITE_EPOCH.fetch_add(1, Ordering::Relaxed) + 1;
     Ok(())
 }
@@ -513,10 +543,25 @@ fn vault_init_core(key_source: KeySource, mut pass: Option<String>) -> Result<()
         }
     };
 
-    // `_source` is BOUND AND DROPPED: Slice A produces the ConfigSource, Slice B consumes it.
-    let (_cfg_dir, vault_path, _source) = match vault_path_resolved() {
+    // NA-0693 (D627, D-1333): Slice A produced the ConfigSource; consumed here. The lock is
+    // taken AFTER the pure-crypto work (every earlier reject still touches nothing on disk)
+    // and BEFORE exists(), so it covers the exists()→rename window (N-03) and the write.
+    // Acquisition itself may create the config dir and a byte-empty `.qsc.lock` — the one
+    // recorded mutation a post-lock reject (e.g. vault_exists) can now leave behind.
+    let (cfg_dir, vault_path, source) = match vault_path_resolved() {
         Ok(v) => v,
         Err(code) => return Err(fail_core_buffers(code, &mut pass_bytes, &mut key_bytes)),
+    };
+
+    let _lock = match lock_store_exclusive(&cfg_dir, source) {
+        Ok(guard) => guard,
+        Err(code) => {
+            return Err(fail_core_buffers(
+                store_err_marker(code),
+                &mut pass_bytes,
+                &mut key_bytes,
+            ));
+        }
     };
 
     if vault_path.exists() {
@@ -844,38 +889,19 @@ fn encode_envelope(env: &VaultRuntime, nonce: &[u8], ciphertext: &[u8]) -> Vec<u
     buf
 }
 
-fn write_vault_atomic(path: &PathBuf, content: &[u8]) -> Result<(), &'static str> {
-    PERF_VAULT_ENCRYPT_WRITES.fetch_add(1, Ordering::Relaxed);
-    let parent = path.parent().ok_or("vault_path_invalid")?;
-    fs::create_dir_all(parent).map_err(|_| "vault_write_failed")?;
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        fs::set_permissions(parent, fs::Permissions::from_mode(0o700))
-            .map_err(|_| "vault_write_failed")?;
+// NA-0693 (D627, D-1333): the vault-local duplicate writer is DELETED — `fs_store::write_atomic`
+// is the one hardened write primitive (unique tmp name closes N-02; `enforce_safe_parents` is
+// N-04 arriving by design; dir creation and 0700 enforcement moved to exclusive-lock acquisition
+// at transaction start; the NA-0669 dir-fsync survives inside `write_atomic`). This mapper is
+// the ruled `ErrorCode` → vault-marker translation: `IoWriteFailed` keeps the vault's pinned
+// write-path marker; every other cause keeps its own tree-wide `as_str` name — no two causes
+// share a marker, and contention surfaces fail-closed as `lock_contended` (no retry loop;
+// retry policy is ENG-0111's design space).
+fn store_err_marker(code: ErrorCode) -> &'static str {
+    match code {
+        ErrorCode::IoWriteFailed => "vault_write_failed",
+        other => other.as_str(),
     }
-    let tmp = path.with_extension("qsv.tmp");
-    let _ = fs::remove_file(&tmp);
-    let mut f = fs::OpenOptions::new()
-        .create_new(true)
-        .write(true)
-        .open(&tmp)
-        .map_err(|_| "vault_write_failed")?;
-    f.write_all(content).map_err(|_| "vault_write_failed")?;
-    f.sync_all().map_err(|_| "vault_write_failed")?;
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        fs::set_permissions(&tmp, fs::Permissions::from_mode(0o600))
-            .map_err(|_| "vault_write_failed")?;
-    }
-    fs::rename(&tmp, path).map_err(|_| "vault_write_failed")?;
-    // NA-0669 (C-6): `sync_all()` above persists the tmp file's CONTENTS, but not the directory
-    // entry the rename creates. Without this the rename can be lost on power failure while the
-    // data it points at is durable. Exact parity with `vault_init_core` (see the identical call
-    // after its rename); best-effort by construction, so it adds no error path.
-    crate::fsync_dir_best_effort(parent);
-    Ok(())
 }
 
 fn resolve_key_source(args: &VaultInitArgs) -> Result<KeySource, &'static str> {

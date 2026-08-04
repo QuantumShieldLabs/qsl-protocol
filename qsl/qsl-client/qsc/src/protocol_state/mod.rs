@@ -805,6 +805,18 @@ pub(crate) fn qsp_session_store_with_trigger_scka(
     qsp_scka_mono_update(&dir, source, peer, &st.recv, scka)
 }
 
+/// NA-0693 STOP-006 ruling (D627 Amendment 3, D-1333): pre-lock provisioning of the session
+/// store key. The transport's locked transactions call this BEFORE taking the store lock, so
+/// `qsp_session_store_key_get_or_create`'s create-arm — the module's ONLY vault write — can
+/// never run under a held lock (where its `vault::secret_set` would self-deny). Best-effort by
+/// construction: the peer label feeds only the test-fallback arm (the create-arm ignores it),
+/// and every failure this call can hit (vault missing/locked) is re-encountered and properly
+/// surfaced by the in-lock path moments later — the only case that must succeed here, and does,
+/// is create-when-creatable.
+pub(crate) fn qsp_session_store_key_ensure() {
+    let _ = qsp_session_store_key_get_or_create("");
+}
+
 fn qsp_session_encrypt_blob(peer: &str, plaintext: &[u8]) -> Result<Vec<u8>, ErrorCode> {
     let key = qsp_session_store_key_get_or_create(peer)?;
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key));

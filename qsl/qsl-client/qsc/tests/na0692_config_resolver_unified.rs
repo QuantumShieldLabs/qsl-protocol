@@ -120,6 +120,15 @@ fn a_blank_like_override_puts_the_vault_under_the_config_dir(tag: &str, blank_va
     let cwd = root.join("cwd");
     for dir in [&xdg, &home, &cwd] {
         fs::create_dir_all(dir).expect("create case dir");
+        // NA-0693 (D627 Amendment 4): since ENG-0106, the vault write's lock acquisition
+        // enforces N-04 on the resolved dir's immediate parent — a umask-default (0775,
+        // group-writable) fixture dir is now correctly refused. Secure the fixture; the
+        // asserted PROPERTY (fallthrough lands in XDG, never the CWD) is unchanged.
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(dir, fs::Permissions::from_mode(0o700)).expect("chmod case dir");
+        }
     }
 
     std::env::set_var("QSC_CONFIG_DIR", blank_value);

@@ -458,6 +458,19 @@ pub(super) fn timeline_store_save(store: &TimelineStore) -> Result<(), &'static 
     }
 }
 
+/// NA-0693 STOP-005 ruling (D627 Amendment 2, D-1333): the locked-save variant — assumes the
+/// caller ALREADY HOLDS the exclusive store lock (the transport send transaction's timeline
+/// ingest; the plain save above would be denied by that transaction's own lock). Every
+/// receive-path caller stays on the locking `timeline_store_save`.
+fn timeline_store_save_locked(store: &TimelineStore) -> Result<(), &'static str> {
+    let json = serde_json::to_string(store).map_err(|_| "timeline_unavailable")?;
+    match vault::secret_set_locked(TIMELINE_SECRET_KEY, &json) {
+        Ok(()) => Ok(()),
+        Err("vault_missing" | "vault_locked") => Err("timeline_unavailable"),
+        Err(_) => Err("timeline_unavailable"),
+    }
+}
+
 pub(super) fn timeline_append_entry(
     peer: &str,
     direction: &str,
@@ -485,6 +498,53 @@ pub(super) fn timeline_append_entry_for_target(
     final_state: MessageState,
     forced_id: Option<&str>,
     target_device_id: Option<&str>,
+) -> Result<TimelineEntry, &'static str> {
+    timeline_append_entry_for_target_with_save(
+        peer,
+        direction,
+        byte_len,
+        kind,
+        final_state,
+        forced_id,
+        target_device_id,
+        timeline_store_save,
+    )
+}
+
+/// NA-0693 STOP-005 ruling (D627 Amendment 2, D-1333): the locked ingest — same append, saved
+/// through the locked chain because the caller (the transport send transaction) already holds
+/// the exclusive store lock.
+pub(super) fn timeline_append_entry_for_target_locked(
+    peer: &str,
+    direction: &str,
+    byte_len: usize,
+    kind: &str,
+    final_state: MessageState,
+    forced_id: Option<&str>,
+    target_device_id: Option<&str>,
+) -> Result<TimelineEntry, &'static str> {
+    timeline_append_entry_for_target_with_save(
+        peer,
+        direction,
+        byte_len,
+        kind,
+        final_state,
+        forced_id,
+        target_device_id,
+        timeline_store_save_locked,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn timeline_append_entry_for_target_with_save(
+    peer: &str,
+    direction: &str,
+    byte_len: usize,
+    kind: &str,
+    final_state: MessageState,
+    forced_id: Option<&str>,
+    target_device_id: Option<&str>,
+    save: fn(&TimelineStore) -> Result<(), &'static str>,
 ) -> Result<TimelineEntry, &'static str> {
     if !channel_label_ok(peer) {
         return Err("timeline_peer_invalid");
@@ -517,7 +577,7 @@ pub(super) fn timeline_append_entry_for_target(
         .entry(peer.to_string())
         .or_default()
         .push(entry.clone());
-    timeline_store_save(&store)?;
+    save(&store)?;
     emit_message_state_transition(MessageState::Created, final_state);
     Ok(entry)
 }

@@ -161,6 +161,14 @@ fn vault_init_with_passphrase_creates_encrypted_file_and_redacts() {
 
     let cfg = base.join("cfg");
     fs::create_dir_all(&cfg).unwrap();
+    // NA-0693 (D627 Amendment 5): since ENG-0106 the vault write's lock acquisition enforces
+    // N-04 on the config dir — a umask-default (group-writable) fixture dir is correctly
+    // refused. Secure the fixture; the asserted property is unchanged.
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(&cfg, fs::Permissions::from_mode(0o700)).unwrap();
+    }
 
     let pass = "correct horse battery staple";
     let mut cmd = qsc_cmd();
@@ -389,8 +397,19 @@ fn vault_unlock_rejects_noncanonical_passphrase_profile_without_mutation() {
     assert_eq!(before, fs::read(&vault_file).unwrap());
 }
 
+// NA-0693 (D627 Amendment 4, D-1333): INVERTED by Director ruling at STOP 007. This test
+// previously asserted that a DefaultHome-resolved `vault init` SUCCEEDS — an assertion of the
+// exact acceptance N-04 (ENG-0106) retires: since the vault write goes through the store lock,
+// `enforce_safe_parents` walks the FULL DefaultHome ancestry and REFUSES group/world-writable
+// directories. A CI sandbox cannot provide a clean DefaultHome ancestry (its roots are
+// group-writable by construction), so the write-SUCCESS property is untestable here and is
+// recorded in D-1333 as covered only in real deployments. What IS deterministically testable —
+// and was previously uncovered anywhere — is the refusal itself: the fixture makes its own
+// `home` explicitly group-writable (umask-independent), resolution still lands on
+// HOME/.config/qsc (never the CWD), and init must fail closed with `unsafe_parent_perms`.
+// Red-capable: route the write around the lock/parent walk again and this test fails.
 #[test]
-fn vault_init_without_qsc_config_dir_uses_xdg_or_home_not_cwd() {
+fn vault_init_on_unsafe_default_home_ancestry_refuses_with_unsafe_parent_perms() {
     let mut base = test_root().join("na0109_vault_default_path");
     if base.is_relative() {
         base = std::env::current_dir().unwrap().join(base);
@@ -402,6 +421,12 @@ fn vault_init_without_qsc_config_dir_uses_xdg_or_home_not_cwd() {
     let home = base.join("home");
     fs::create_dir_all(&cwd).unwrap();
     fs::create_dir_all(&home).unwrap();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        // Deterministic regardless of the runner's umask: the ancestry N-04 must refuse.
+        fs::set_permissions(&home, fs::Permissions::from_mode(0o775)).unwrap();
+    }
 
     let expected = home.join(".config").join("qsc").join("vault.qsv");
     let unexpected = cwd.join("vault.qsv");
@@ -420,9 +445,9 @@ fn vault_init_without_qsc_config_dir_uses_xdg_or_home_not_cwd() {
         .args(["vault", "init", "--passphrase-stdin"])
         .write_stdin(pass);
     cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("QSC_MARK/1 event=vault_init"));
+        .failure()
+        .stdout(predicate::str::contains("unsafe_parent_perms"));
 
-    assert!(expected.exists());
+    assert!(!expected.exists());
     assert!(!unexpected.exists());
 }

@@ -283,7 +283,7 @@ pub fn destroy_with_passphrase(
     runtime.key.zeroize();
 
     if key_source == 2 {
-        super::keychain_remove_key().map_err(|_| "vault_erase_failed")?;
+        super::keychain_remove_key(&runtime.envelope.salt).map_err(|_| "vault_erase_failed")?;
     }
 
     // Best-effort cryptographic erase path: remove wrapped material and then delete file.

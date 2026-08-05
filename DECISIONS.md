@@ -36684,3 +36684,174 @@ decision untouched); D-1330 (this PR advances `HIGHEST_D` 1333→1334 with this 
 ENG-0112 (full suite skips on PRs — the suite green is the LOCAL run); WF-0044/WF-0045 (open,
 measured, never chased); ENG-0108 (keychain — Slice D), ENG-0110/ENG-0111 (destroy/store —
 Slice E), both untouched.
+
+## D-1335 — NA-0695: THE KEYCHAIN ACCOUNT IS PER-VAULT — salt-derived addressing through one owner, and init refuses an existing entry instead of overwriting it
+
+**Status:** Accepted 2026-08-04. **Lane:** NA-0695. **Directive:** `QSL-DIR-2026-08-04-629` (D629
+AS AMENDED — post-A1 sha256 `f4194d0b…f7f1689`, 593 lines; all seven §12 rulings CONFIRMED at
+acceptance plus four binding Director elevations E-A…E-D). **Base:** `7f0ad3d0` (re-derived by
+fetch; the merge of promotion PR #1700; compiled tree byte-identical to `7dc5704d ≡ ef029c57` —
+endpoints-diff re-run at execution: two `.md` only, so the base-suite skip stayed EARNED).
+**Class:** `QSC_VAULT_KEYCHAIN_PER_VAULT_ADDRESSING_PASS`. **Source finding:** **ENG-0108**
+(external audit F-13's DATA-LOSS half — the half its own recommendation does not reach, kept
+severed from ENG-0107 deliberately; filed P2 by explicit ruling above the audit's LOW).
+**Slice D of five** (A ENG-0109 DONE → B ENG-0106 DONE → C ENG-0107 DONE → **D ENG-0108** →
+E ENG-0110/0111). **Single-stop: every design question was ruled at acceptance (R1–R7 +
+E-A…E-D), the D626/D628 shape.**
+
+**THE DEFECT (measured, §2).** Both keychain address constants were fixed literals derived from
+nothing (`VAULT_KEYCHAIN_SERVICE = "qsc"`, `VAULT_KEYCHAIN_ACCOUNT = "vault"`), and
+`keychain_store_key` called `set_password` unconditionally — ONE OS-keychain slot for every
+vault on the machine, no existence check. A second profile's `vault init --key-source keychain`
+(the config-dir override is a first-class knob) REPLACED the first profile's key: both inits
+print success, both envelopes stay individually valid, and profile 1's `secret get` reads
+`vault_locked` — silent, permanent, user-triggerable data loss. D-1334 made the header
+tamper-EVIDENT and did nothing for this: the key one profile needs is simply gone. Three
+shields hid it from every instrument: the `keychain` feature is NON-DEFAULT and no CI job
+builds it; the harness convention forces `QSC_DISABLE_KEYCHAIN=1` (24 sites); keyring's
+built-in mock is `CredentialPersistence::EntryOnly` and CANNOT represent cross-call collision
+(§0.5 — a mock-based test could never have returned positive).
+
+**THE FIX (R1/R2/R4/R5, all confirmed).** The keychain ACCOUNT becomes per-vault BY
+CONSTRUCTION: `vault_keychain_account(salt) = "vault-" + hex(salt)` — RAW HEX (R1; the salt is
+already plaintext in the on-disk header, so the account name discloses nothing new), ONE
+derivation fn, and `keychain_store_key/load/remove` take `salt: &[u8; 16]` and derive INSIDE —
+one owner, zero callers assembling addresses (the D-1332 property applied to an address).
+Feasibility was the §0.4 fact: the salt is ALREADY live at all three lifecycle sites — init
+draws it before the store call, the load side receives it through THE parser
+(`parse_vault_envelope`, D-1334's one owner), destroy parses before removing — so the fix
+needs ZERO new parsing and ZERO format change; `vault_format.rs` is untouched. Init REFUSES an
+existing entry (R4): `get_password` on the derived entry before `set_password` — `Ok` →
+`ProviderError::EntryExists` → `vault_keychain_entry_exists` (string measured FREE tree-wide;
+a new cause gets its own name, no existing cause loses one); `NoEntry` → proceed; any other
+read error → `ProviderFailed`, FAIL CLOSED — an unreadable store never fails open into an
+overwrite. Init's ordering is unchanged (keychain store still precedes the file write; a
+refuse rejects with zero file mutation). ⚠ Recorded honestly (§5b): check-then-set is not
+atomic — keyring offers no create-if-absent and the store lock cannot span profiles — but the
+residual window requires two inits drawing THE SAME 16-byte salt (2⁻¹²⁸); per-vault
+addressing is the real fix and the refuse is belt-and-suspenders against derivation
+regressions, its unit instrument the in-src seam test. **R2 — HARD BREAK on addressing:** no
+legacy `("qsc","vault")` fallback read, no legacy-entry cleanup at destroy (cleanup would
+resurrect the fixed slot as a live address); a pre-D keychain vault reads `vault_locked`
+post-D and its entry is orphaned residue, recorded. **R5:** `keychain_supported` keeps a
+FIXED `VAULT_KEYCHAIN_PROBE_ACCOUNT = "qsc-availability-probe"` — constructor-only, never
+addresses the store, scoped OUT of the no-fixed-account structural gate so ENG-0116's
+availability-semantics surface moves not one inch. `VAULT_KEYCHAIN_ACCOUNT` is DELETED.
+
+**E-A — THE SALT-STABILITY PIN (measured both sides).** Salt-fill sites in src = EXACTLY 1
+(init's OsRng arm; the rng-seam twin is cfg-gated), `.salt =` reassignments = 0, all encrypt
+sites reuse the envelope salt — **1 → 1**, the fact that makes the derived account
+vault-lifetime-stable; any future re-salt would orphan-break the keychain address LOUDLY at
+this gate instead of silently.
+
+**R3/E-B — THE SEAM, AND ITS CONTAINMENT.** The acceptance instrument is a cfg-fenced
+FILE-BACKED test seam (`--cfg qsc_keychain_test_seam`, env `QSC_KEYCHAIN_TEST_SEAM`, one file
+per (service, account); file-backed because the corpus drives spawned binaries and a real
+keychain IS cross-process state). ⚠ E-B held BY CONSTRUCTION and ENFORCED by Control B's
+one-edit-one-site red: the seam swaps ONLY the raw storage reads/writes/deletes — the account
+DERIVATION and the exists→refuse DECISION live exactly once in the shared helper bodies,
+exercised identically by both backends (the property is stated in the seam's code comment).
+Twin-armed inert: the env read itself is cfg-fenced, so a production build cannot reach a
+file-backed store under ANY environment — pinned by test (ii) AND by the strings-proxy
+(`strings` on the default-built binary: `QSC_KEYCHAIN_TEST_SEAM` occurrences = 0; seam build
+= 1). The seam-armed acceptance run is a NAMED LANE GATE outside CI, recorded against
+ENG-0112's open half (no CI job builds the feature — observation, not this lane's task).
+
+**THE D-1333 BOUNDARY, HELD.** Both keychain mutation sites sit inside locked regions (init's
+`:687`→now`:695` store and `:716`→`:724` cleanup under init's lock; destroy's
+`protection.rs:286` under destroy's lock) — the edits there are the salt ARGUMENT on the two
+pre-existing call tokens plus the `EntryExists` reject flowing through init's PRE-EXISTING
+`provider_error_code` arm; no signature, no lock acquisition, no `_locked`-variant, no
+pre-lock-ensure edit. **The mandatory tightened-standard mechanical call-sweep re-ran on the
+final tree: the call-token SET of EVERY locked region is IDENTICAL to the D-1334-classified
+sweep — ZERO new lock-acquisition or vault-write channels.** The only new TRANSITIVE edges
+inside the keychain helpers are `vault_keychain_account` (PURE string assembly — body printed
+in the sweep log; no lock, no I/O, no get-or-create) and the refuse's `get_password` read
+(keyring I/O, the SAME class as the pre-existing in-region `set_password` edge); the seam
+primitives are cfg-fenced test-only. Ensure-vs-lock ordering probe identical; outbox ×2
+`_locked`, timeline locked ingest, destroy's inner clear, and the U3 pre-lock ensure all
+byte-unchanged.
+
+**E-D — TWO OBSERVATIONS RECORDED FOR SLICE E (one sentence each, labeled, NOT chased).**
+(1) Keychain-vault destroy accepts ANY non-empty passphrase — the derivation ignores it and
+only the decrypt validates — ENG-0110/ENG-0116 space, recorded not chased. (2)
+`derive_runtime_key`'s keychain arm maps EVERY load failure to `vault_locked` via `|_|`,
+erasing missing-entry vs wrong-key vs daemon-down — pre-existing, contrary to the
+distinct-errors principle, ENG-0116/Slice-E space, not this lane's to touch.
+
+**THE INSTRUMENTS (`tests/na0695_vault_keychain_addressing.rs` — gate-required, goal-lint is
+path-based; NA-0693/0694 harness, fixture dirs chmod 0700).** Default arm (in the suite):
+(i) `keychain_explicit_unsupported_refuses_without_mutation` — exit fail, marker
+`vault_token_unavailable`, config dir COMPLETELY untouched (the refusal fires before the
+resolve and the lock) — the FIRST headless pin of that refusal (§0.6: zero tests asserted it
+before); honest story: pre-existing behavior, NOT red at base. (ii)
+`keychain_seam_inert_without_cfg` — seam env on a default binary: refusal identical to (i),
+seam dir EMPTY. Seam-armed arm (the lane gate): (iii) ⚠ THE ACCEPTANCE
+`two_profiles_both_stay_openable` — one seam store outside both config dirs, init keychain
+in `/a` then `/b`, per-profile secret roundtrip (`/a` FIRST) + `vault status
+key_source=keychain`, exactly 2 distinct `vault-<32 hex>` entries; (iv)
+`reinit_after_manual_vault_delete_creates_disjoint_entry` — fresh salt → disjoint entry, the
+orphan byte-untouched and its key never reused (R2 observed); (v)
+`destroy_removes_exactly_its_own_entry` — `/b` survives, exactly `/b`'s entry remains. In-src
+seam unit (`vault/mod.rs`, cfg-gated; the collision `tests/` cannot construct because init
+always draws a fresh salt): same-salt store ×2 → second returns `EntryExists`, marker string
+asserted, stored key UNCHANGED. **Recorded untestable-headless (D627-A4, applied):** the real
+keyring plumbing against a live Secret Service / macOS Keychain / Credential Manager is not
+exercised and NOT claimed — covered by the structural gates (derivation and refuse sit in the
+SAME product functions the real backend uses), the feature compile gate, and the real-OS
+runbook posture.
+
+**NEGATIVE CONTROLS — red sets committed EXACTLY at Phase 0 (E-C, no run-time hedges), all
+measured AS WRITTEN, restores `cmp`-identical.** Control A (derivation reverted at the ONE
+owner — fn body returns the fixed `"vault"`; refuse KEPT): red EXACTLY {(iii), (iv), (v)} in
+the REFUSAL mode (`vault_keychain_entry_exists` observed at the colliding inits); (i) and the
+unit GREEN. Control B (the refuse decision removed — ONE edit at ONE site, the E-B
+enforcement; derivation KEPT): red EXACTLY {the in-src unit} — "second same-salt store must
+refuse, got Ok(())" — and NOTHING else (distinct salts never collide). Control AB (both = the
+base shape made literal): red EXACTLY {(iii), (iv), (v), unit}, with (iii) red in the
+OVERWRITE mode — profile 2's init SUCCEEDED silently and profile 1's roundtrip read
+**`secret set: "vault_locked"`** — **the ledger's P2 sentence, observed on the record; the
+banked "RED at base" made literal.**
+
+**THE GATE FIGURES (base measured at `7f0ad3d0` ≡ `7dc5704d`, after measured on the final
+tree — all predictions met exactly).** Structural: `VAULT_KEYCHAIN_ACCOUNT` in src **5 → 0**
+(def DELETED) · `VAULT_KEYCHAIN_PROBE_ACCOUNT` **0 → 2** · `vault_keychain_account(` call
+sites **0 → 3** (one owner; the in-src unit deliberately never calls it) · `set_password(`
+**1 → 1** · `get_password(` **1 → 2** (load + the refuse) · `vault_keychain_entry_exists` in
+src **0 → 2** · `Entry::new` **4 → 4** (the seam short-circuits, never replaces) · salt-fill
+sites **1 → 1** (E-A) · `.salt =` **0 → 0** · seam strings in the default binary **0** (seam
+build 1). Full suite **local** (⚠ ENG-0112: `qsc-linux-full-suite`/`macos-qsc-full-serial`
+skip on PRs — this green is the LOCAL run): **596 passed / 0 failed / 2 ignored across 129
+binaries, exit 0** vs base **594 / 0 / 2 across 128, exit 0** (skip EARNED, endpoints named:
+`7dc5704d..7f0ad3d0` = two `.md` files, re-measured this session) — reconciled BY NAME: +1
+binary / +2 passed from `na0695_vault_keychain_addressing` (tests (i)+(ii)); nothing else
+moved; scope `-p qsc` both sides; the seam-armed arm is cfg'd out of this run BY DESIGN and
+its green lives in the lane-gate evidence, never claimed as suite/CI. clippy delta **ZERO
+(53 → 53, distribution identical order-normalized)**. fmt delta **ZERO (236 diff hunks
+across 56 files both sides, file set identical by `diff`; the lane's three self-added
+deviations reformatted individually — `cargo fmt` never run to write; WF-0045 open, not
+chased)**. `Cargo.toml`/`Cargo.lock` diff **EMPTY** (keyring 3.6.3 already locked).
+`cargo check -p qsc --features keychain --locked` **exit 0** both sides (the feature build
+stays green and UNWATCHED by CI — ENG-0112's open half, recorded). `classify_ci_scope.sh`:
+`docs_only=false / runtime_critical=true` (expected).
+
+**GOALS.** **G2** (persistence safety): *one OS-keychain slot per vault by construction; a
+second keychain init can no longer destroy the first vault's key; init refuses an existing
+entry with its own name; the explicit-keychain-unsupported refusal gains its first headless
+pin.* **G4**: the red-capable instruments and this record. ⚠ **G1, G3, G5 NOT claimed** — no
+per-message keys; no suite negotiation; no metadata surface. Also NOT claimed (ENG-0103
+negatives): keychain-mode passphrase posture (ENG-0116 — a keychain vault still has no
+passphrase factor, not this lane's to change); destroy semantics (ENG-0110); real-OS keyring
+plumbing (untestable headless, recorded); cross-process create-race closure beyond
+salt-disjointness (2⁻¹²⁸; the refuse is belt-and-suspenders, recorded).
+
+**References:** NA-0695; D629 §0 (the nine premise measurements), §2, §5, §7, §12 + Amendment
+1 (E-A…E-D); ENG-0108 → RESOLVED with this record (the ledger's first `Resolution:` line in
+the slice family); D-1334 (one parser; hard-break posture property carried), D-1333 (locked
+bodies load-bearing; the tightened sweep re-run — ZERO new channels; the Slice-E reentrancy
+decision untouched), D-1332 (one owner for one layout, applied to an address); D-1330 (this
+PR advances `HIGHEST_D` 1334→1335 with this record); ENG-0112 (CI skips the full suite on
+PRs; zero feature builds in CI — both recorded, neither chased); WF-0044/WF-0045 (open,
+measured, never chased); WF-0047 (the CodeQL false-positive class — expected on this PR,
+per-site verification owed, dismissal an OPERATOR act); ENG-0110/0111/0116 (Slice E and the
+posture boundary, untouched).

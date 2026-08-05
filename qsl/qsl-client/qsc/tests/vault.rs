@@ -1,7 +1,7 @@
 mod common;
 
 use argon2::{Algorithm, Argon2, Params, Version};
-use chacha20poly1305::aead::{Aead, KeyInit};
+use chacha20poly1305::aead::{Aead, KeyInit, Payload};
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use predicates::prelude::*;
 use std::fs;
@@ -32,7 +32,7 @@ fn rewrite_passphrase_vault_profile(
     let vault_file = cfg.join("vault.qsv");
     let bytes = fs::read(&vault_file).unwrap();
     assert!(bytes.len() > 39, "vault envelope too short");
-    assert_eq!(&bytes[0..6], b"QSCV01");
+    assert_eq!(&bytes[0..6], b"QSCV02");
     assert_eq!(bytes[6], 1, "expected passphrase vault");
 
     let salt_len = bytes[7] as usize;
@@ -59,7 +59,15 @@ fn rewrite_passphrase_vault_profile(
         .unwrap();
     let old_cipher = ChaCha20Poly1305::new(Key::from_slice(&old_key));
     let plaintext = old_cipher
-        .decrypt(Nonce::from_slice(nonce), ciphertext)
+        .decrypt(
+            Nonce::from_slice(nonce),
+            Payload {
+                msg: ciphertext,
+                // NA-0694 (D628 §2e F3): the product now binds the 53-byte header as
+                // AEAD AAD; the header prefix of the file is that AAD verbatim.
+                aad: &bytes[..53],
+            },
+        )
         .unwrap();
 
     let new_params = Params::new(kdf_m_kib, kdf_t, kdf_p, Some(32)).unwrap();
@@ -69,22 +77,29 @@ fn rewrite_passphrase_vault_profile(
         .hash_password_into(passphrase.as_bytes(), salt, &mut new_key)
         .unwrap();
     let new_cipher = ChaCha20Poly1305::new(Key::from_slice(&new_key));
-    let new_ciphertext = new_cipher
-        .encrypt(Nonce::from_slice(nonce), plaintext.as_ref())
-        .unwrap();
-
+    // NA-0694 (D628 §2e F2): the new header is assembled FIRST so it can be bound as the
+    // encrypt AAD (ct_len = plaintext + 16-byte tag), exactly as the product writes it.
     let mut out =
-        Vec::with_capacity(6 + 1 + 1 + 1 + 4 * 4 + salt_len + nonce_len + new_ciphertext.len());
-    out.extend_from_slice(b"QSCV01");
+        Vec::with_capacity(6 + 1 + 1 + 1 + 4 * 4 + salt_len + nonce_len + plaintext.len() + 16);
+    out.extend_from_slice(b"QSCV02");
     out.push(1);
     out.push(16);
     out.push(12);
     out.extend_from_slice(&kdf_m_kib.to_le_bytes());
     out.extend_from_slice(&kdf_t.to_le_bytes());
     out.extend_from_slice(&kdf_p.to_le_bytes());
-    out.extend_from_slice(&(new_ciphertext.len() as u32).to_le_bytes());
+    out.extend_from_slice(&((plaintext.len() + 16) as u32).to_le_bytes());
     out.extend_from_slice(salt);
     out.extend_from_slice(nonce);
+    let new_ciphertext = new_cipher
+        .encrypt(
+            Nonce::from_slice(nonce),
+            Payload {
+                msg: plaintext.as_ref(),
+                aad: &out,
+            },
+        )
+        .unwrap();
     out.extend_from_slice(&new_ciphertext);
 
     fs::write(&vault_file, out).unwrap();

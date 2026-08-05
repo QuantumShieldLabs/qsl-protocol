@@ -76,7 +76,6 @@ pub fn send_abort() -> CliResult {
         Ok(v) => v,
         Err(e) => return Err(cli_err(e)),
     };
-    crate::protocol_state::qsp_session_store_key_ensure();
     let _lock = match lock_store_exclusive(&dir, source) {
         Ok(v) => v,
         Err(e) => return Err(cli_err(e)),
@@ -147,7 +146,7 @@ fn outbox_record_load(path: &Path) -> Result<OutboxRecord, &'static str> {
 fn outbox_next_state_store(st: &Suite2SessionState) -> Result<(), &'static str> {
     let bytes = st.snapshot_bytes();
     let secret = hex_encode(&bytes);
-    match vault::secret_set_locked(OUTBOX_NEXT_STATE_SECRET_KEY, &secret) {
+    match vault::secret_set(OUTBOX_NEXT_STATE_SECRET_KEY, &secret) {
         Ok(()) => Ok(()),
         Err("vault_missing" | "vault_locked") => Err("outbox_state_vault_unavailable"),
         Err(_) => Err("outbox_state_store_failed"),
@@ -168,7 +167,7 @@ fn outbox_next_state_load() -> Result<Suite2SessionState, &'static str> {
 }
 
 fn outbox_next_state_clear() -> Result<(), &'static str> {
-    match vault::secret_set_locked(OUTBOX_NEXT_STATE_SECRET_KEY, "") {
+    match vault::secret_set(OUTBOX_NEXT_STATE_SECRET_KEY, "") {
         Ok(()) => Ok(()),
         Err("vault_missing" | "vault_locked") => Err("outbox_state_vault_unavailable"),
         Err(_) => Err("outbox_state_clear_failed"),
@@ -3108,7 +3107,6 @@ pub(super) fn relay_send_with_payload(args: RelaySendPayloadArgs<'_>) -> CliResu
         Ok(v) => v,
         Err(e) => return Err(cli_err(e)),
     };
-    crate::protocol_state::qsp_session_store_key_ensure();
     let _lock = match lock_store_exclusive(&dir, source) {
         Ok(v) => v,
         Err(e) => return Err(cli_err(e)),
@@ -3442,7 +3440,7 @@ fn finalize_send_commit(
         }
     }
     if let Some(ingest) = timeline_ingest {
-        if let Err(code) = crate::timeline::timeline_append_entry_for_target_locked(
+        if let Err(code) = crate::timeline::timeline_append_entry_for_target(
             ingest.peer,
             "out",
             ingest.byte_len,
@@ -4086,6 +4084,16 @@ impl<'a> msgqueue::MessageSender for RelayMessageSender<'a> {
         };
         let st = Suite2SessionState::restore_bytes(next_state)
             .map_err(|_| "outbox_state_parse_failed")?;
+        // NA-0696 (D630 D1(c), D-1336): the plain-send drain commit is ONE locked
+        // transaction — the session blob store, the `send.state` `write_atomic` (itself
+        // non-lock-taking), and the timeline ingest all land under one held EX lock, the
+        // vault writes nesting through the reentrant registry. This ends the send-path
+        // locking asymmetry (ENG-0118's census observation: file sends locked, plain sends
+        // not). A lock failure surfaces under its own cause name (`lock_contended` etc.,
+        // the D-1333 mapping discipline) and is never retried here — retry is a UI
+        // decision (the D-1336 contention contract).
+        let (dir, source) = config_dir().map_err(|_| "send_commit_write_failed")?;
+        let _lock = lock_store_exclusive(&dir, source).map_err(crate::vault::store_err_marker)?;
         let stored = match self.trigger.as_ref() {
             Some(trig) => qsp_session_store_with_trigger(channel.as_str(), &st, trig),
             None => qsp_session_store(channel.as_str(), &st),
@@ -4097,7 +4105,6 @@ impl<'a> msgqueue::MessageSender for RelayMessageSender<'a> {
         // for every observer that already reads it, and the exactly-once property is now
         // ALSO guarded directly at the ratchet
         // (`a_successful_send_commits_the_ratchet_exactly_once`).
-        let (dir, source) = config_dir().map_err(|_| "send_commit_write_failed")?;
         let next_seq = match read_send_state(&dir, source) {
             Ok(Ok(v)) => v + 1,
             _ => return Err("send_state_parse_failed"),

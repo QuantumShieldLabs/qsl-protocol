@@ -16,7 +16,9 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use crate::fs_store::{check_parent_safe, config_dir, enforce_safe_parents, write_atomic};
+use crate::fs_store::{
+    check_parent_safe, config_dir, enforce_safe_parents, lock_store_exclusive, write_atomic,
+};
 use crate::model::{ConfigSource, ErrorCode};
 use crate::output::{emit_marker, CliError};
 use crate::store::{
@@ -179,6 +181,20 @@ fn qsp_session_store_key_load(peer: &str) -> Result<[u8; 32], ErrorCode> {
 }
 
 fn qsp_session_store_key_get_or_create(peer: &str) -> Result<[u8; 32], ErrorCode> {
+    // NA-0696 (D630 D1(b), D-1336; ENG-0118): the WHOLE get-generate-set runs under the
+    // store EX lock — nested legally under a transport transaction via the reentrant
+    // registry, a real serializing flock otherwise. Two first-sender processes serialize;
+    // the loser re-reads the winner's key — the concurrent-create race closes by lock
+    // exclusivity. Resolve/lock failures map through the existing catch-all
+    // (`IdentitySecretUnavailable`) — no new error surface on this path (§5c as decided).
+    let (lock_dir, lock_source) = match config_dir() {
+        Ok(v) => v,
+        Err(_) => return Err(ErrorCode::IdentitySecretUnavailable),
+    };
+    let _lock = match lock_store_exclusive(&lock_dir, lock_source) {
+        Ok(guard) => guard,
+        Err(_) => return Err(ErrorCode::IdentitySecretUnavailable),
+    };
     match vault::secret_get(QSP_SESSION_STORE_KEY_SECRET) {
         Ok(Some(v)) => qsp_session_decode_key(&v),
         Ok(None) => {
@@ -803,18 +819,6 @@ pub(crate) fn qsp_session_store_with_trigger_scka(
     qsp_session_store_inner(peer, &qsp_join_plaintext(trig, scka, &st.snapshot_bytes()))?;
     let (dir, source) = config_dir()?;
     qsp_scka_mono_update(&dir, source, peer, &st.recv, scka)
-}
-
-/// NA-0693 STOP-006 ruling (D627 Amendment 3, D-1333): pre-lock provisioning of the session
-/// store key. The transport's locked transactions call this BEFORE taking the store lock, so
-/// `qsp_session_store_key_get_or_create`'s create-arm — the module's ONLY vault write — can
-/// never run under a held lock (where its `vault::secret_set` would self-deny). Best-effort by
-/// construction: the peer label feeds only the test-fallback arm (the create-arm ignores it),
-/// and every failure this call can hit (vault missing/locked) is re-encountered and properly
-/// surfaced by the in-lock path moments later — the only case that must succeed here, and does,
-/// is create-when-creatable.
-pub(crate) fn qsp_session_store_key_ensure() {
-    let _ = qsp_session_store_key_get_or_create("");
 }
 
 fn qsp_session_encrypt_blob(peer: &str, plaintext: &[u8]) -> Result<Vec<u8>, ErrorCode> {

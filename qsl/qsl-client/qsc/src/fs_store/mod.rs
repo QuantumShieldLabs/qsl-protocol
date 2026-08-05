@@ -331,24 +331,26 @@ pub(crate) fn lock_store_exclusive(
     if !dir.exists() {
         fs::create_dir_all(dir).map_err(|_| ErrorCode::IoWriteFailed)?;
     }
-    #[cfg(unix)]
-    {
-        enforce_dir_perms(dir)?;
-    }
+    enforce_dir_perms(dir)?;
     let lock_path = dir.join(LOCK_FILE_NAME);
     enforce_safe_parents(&lock_path, source)?;
-    let file = OpenOptions::new()
-        .create(true)
-        .truncate(false)
-        .read(true)
-        .write(true)
-        .open(&lock_path)
-        .map_err(|_| ErrorCode::LockOpenFailed)?;
-    #[cfg(unix)]
+    // NA-0696 (D630 D1, D-1336): the lock file is created (never truncated) BEFORE the
+    // perms check, preserving the pre-registry order; `LockGuard::acquire` re-opens it with
+    // the same flags at depth 0 only (a nested acquisition opens nothing — the registry
+    // carries it). The full enforce chain above and below runs on EVERY acquisition,
+    // nested ones included. D6: the helper is straight-line — the lock-claim cfg masks
+    // are deleted; non-Unix refuses at compile time.
+    drop(
+        OpenOptions::new()
+            .create(true)
+            .truncate(false)
+            .read(true)
+            .write(true)
+            .open(&lock_path)
+            .map_err(|_| ErrorCode::LockOpenFailed)?,
+    );
     enforce_file_perms(&lock_path)?;
-    #[cfg(unix)]
-    LockGuard::lock(&file, LockMode::Exclusive)?;
-    Ok(LockGuard { file })
+    LockGuard::acquire(dir, &lock_path, LockMode::Exclusive)
 }
 
 pub(crate) fn lock_store_shared(
@@ -359,24 +361,22 @@ pub(crate) fn lock_store_shared(
     if !dir.exists() {
         return Ok(None);
     }
-    #[cfg(unix)]
-    {
-        enforce_dir_perms(dir)?;
-    }
+    enforce_dir_perms(dir)?;
     let lock_path = dir.join(LOCK_FILE_NAME);
     enforce_safe_parents(&lock_path, source)?;
-    let file = OpenOptions::new()
-        .create(true)
-        .truncate(false)
-        .read(true)
-        .write(true)
-        .open(&lock_path)
-        .map_err(|_| ErrorCode::LockOpenFailed)?;
-    #[cfg(unix)]
+    // NA-0696 (D630 D1, D-1336): same create-before-perms order as the exclusive helper;
+    // the no-dir `Ok(None)` arm above stays a no-registry non-entry (Q1, as ruled).
+    drop(
+        OpenOptions::new()
+            .create(true)
+            .truncate(false)
+            .read(true)
+            .write(true)
+            .open(&lock_path)
+            .map_err(|_| ErrorCode::LockOpenFailed)?,
+    );
     enforce_file_perms(&lock_path)?;
-    #[cfg(unix)]
-    LockGuard::lock(&file, LockMode::Shared)?;
-    Ok(Some(LockGuard { file }))
+    LockGuard::acquire(dir, &lock_path, LockMode::Shared).map(Some)
 }
 
 pub(crate) fn probe_dir_writable(dir: &Path, timeout_ms: u64) -> bool {
@@ -435,16 +435,14 @@ pub(crate) fn enforce_file_perms(path: &Path) -> Result<(), ErrorCode> {
     Ok(())
 }
 
-#[cfg(not(unix))]
-pub(crate) fn fsync_dir_best_effort(_dir: &Path) {}
-
+// NA-0696 (D630 D6): the non-Unix no-op stubs are deleted — a non-Unix build now refuses
+// at compile time (`model/mod.rs`) instead of silently skipping durability and hygiene.
+// The platform-API cfg-unix attributes below stay (the §0.12 boundary): vacuous under
+// the compile refusal, and churning them is not this lane's scope.
 #[cfg(unix)]
 pub(crate) fn fsync_dir_best_effort(dir: &Path) {
     let _ = File::open(dir).and_then(|d| d.sync_all());
 }
-
-#[cfg(not(unix))]
-pub fn set_umask_077() {}
 
 #[cfg(unix)]
 pub fn set_umask_077() {

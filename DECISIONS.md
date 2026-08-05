@@ -36855,3 +36855,284 @@ PRs; zero feature builds in CI — both recorded, neither chased); WF-0044/WF-00
 measured, never chased); WF-0047 (the CodeQL false-positive class — expected on this PR,
 per-site verification owed, dismissal an OPERATOR act); ENG-0110/0111/0116 (Slice E and the
 posture boundary, untouched).
+
+## D-1336 — NA-0696: THE STORE LOCK IS REENTRANT AND THE PER-SITE REGIME RETIRES — destroy earns its erase and its boundary, the keychain load error splits, and non-Unix fails closed at compile time
+
+**Status:** Accepted 2026-08-05. **Lane:** NA-0696. **Directive:** `QSL-DIR-2026-08-05-630` (D630
+AS AMENDED — post-A2 sha256 `24bee1c0…237b`, 1182 lines; post-A1 `e5990fd3…7b0c91`/1116; the
+pre-amendment 870-line document is `540c9207…0593`; Amendment 1 carries the STOP-004 rulings
+R1–R8, two premise corrections, and the BANKED D1–D6 block verbatim as its annex — the canonical
+text now lives on disk; Amendment 2 carries the STOP-006 ruling — the §2d.5 census falsification,
+the na0694 repin, the mandatory re-run, and SR-18's adoption record). **Base:**
+`a61c53fb` (re-derived by fetch; the merge of promotion PR #1702; `b8a74a93..a61c53fb` =
+`NEXT_ACTIONS.md` only, so the 596/0/2-across-129 suite figures and the fmt/clippy figures attach
+by identity). **Class:** `QSC_VAULT_REENTRANT_LOCK_HONESTY_PASS`. **Source findings:** **ENG-0111**
+(external audit F-10, Linux half — carrying D-1333's BINDING forward requirement) · **ENG-0110**
+(external audit F-08 + the unlisted fsync defect) · **ENG-0118** (FOLDED by its own filing).
+**Design authority:** the STOP-001 probe (F1–F6, consequences 1–8 adopted as premises), the
+STOP-002 ruling (Q1–Q6 + the Observation-1 deferral), the STOP-004 ruling (R1–R8 + PC1/PC2).
+**Slice E of five** (A ENG-0109 DONE → B ENG-0106 DONE → C ENG-0107 DONE → D ENG-0108 DONE →
+**E ENG-0110/0111 + ENG-0118**).
+
+**THE REENTRANCY DECISION, FIRST-CLASS (ENG-0111's binding requirement DISCHARGED: adopted, and
+the per-site regime retired).** Four serial discoveries in one slice (outbox store, outbox clear,
+the timeline ingest, the session-store-key create-arm) proved the lock-nesting class structural:
+the per-site `_locked` inner-variants and the U3 pre-lock ensure treat one site at a time and
+leave discovery to a sweep. The store lock is now REENTRANT: a per-process, PATH-KEYED, panic-safe
+depth registry at the `LockGuard` layer — `thread_local! RefCell<HashMap<PathBuf, Held{file, mode,
+depth}>>`, keyed on THE resolver's dir (F6) — and the ENTIRE per-site regime retires: the four
+`_locked` defs 4→0; textual use-sites of the four names 8→0; `qsp_session_store_key_ensure` 3→0;
+the `_with_save` save-fn indirection folded away (R6, `timeline_store_save` called direct).
+⚠ **The Q6 census wording GOVERNS and this record says so: the measured decomposition is 8
+textual use-sites = 7 call expressions + 1 fn-value (the `_with_save` parameter), the two
+pub-entry delegations retiring by body-merge; the banked "call sites 7→0" sentence is SUPERSEDED
+by the measured census — enumeration-is-not-the-record, applied to our own banked text.** The
+`protection.rs:276` comment token is its own row under its own needle (the STOP-005 two-needle
+reconciliation: 12 four-name occurrences + 1 bare-comment token = the "13 retirement tokens",
+TWO separate greps, each independently → 0, never summed).
+
+**THE NESTING RULES (Q1, empirical, two kernels):** EX-under-EX and SH-under-EX = nested grant
+with held mode EXCLUSIVE; SH-under-SH = nested grant; **EX-under-SH = fail-closed
+`ErrorCode::LockUpgradeRefused` → `"lock_upgrade_refused"` with the OS lock UNTOUCHED** — a
+forwarded same-fd conversion measurably LOSES the held lock (F3, replicated by the Director on a
+second kernel; Control U demonstrated the loss in-tree), so the registry never issues a
+conversion flock. **A grant may EXCEED the requested strength, never fall below.** The
+`Ok(None)` no-dir shared arm survives as a no-registry non-entry. **Q2:** the refusal name is
+MINTED distinct (`lock_upgrade_refused`, measured free at drafting) and is **NOT on the Slice-4
+copy list** — F4 proved no production flow reaches it (both SH regions swept call-by-call:
+file reads and pure parsers only); it is a developer-facing invariant signal, and reaching it
+from a production flow is itself a defect, which the distinct name makes diagnosable.
+
+**THE THREE-PHASE BORROW DISCIPLINE (Q3, BINDING — stated here AND as the code comment at the
+site):** no registry borrow is ever live across a syscall or any point where user code
+(including a Guard drop) can run. Phase 1: nested-check + increment under a short `borrow_mut`
+that ends before return. Phase 2 (depth 0 only, NO borrow live): open the lock file with the
+exact pre-registry flags and `flock(op | LOCK_NB)`. Phase 3: insert under a fresh short borrow.
+Drop: one short `borrow_mut` decrements and at 0 removes the entry; the `flock(LOCK_UN)` runs
+AFTER the borrow ends. Panic-safety follows by construction (F2: unwind through a nested guard
+restores depth; through the last guard releases the OS lock; RefCell has no poisoning).
+**Cross-thread posture, fail-CLOSED:** a second thread sees its OWN empty registry, performs a
+REAL flock, and is denied EWOULDBLOCK — today's exact self-denial, never a false nested grant
+(zero `thread::spawn` in src, measured). `mem::forget` in the lock layer: 0 both sides (Q5;
+recorded non-hazard, no runtime canary). **F6's aliasing residue, recorded fail-closed:**
+symlinked paths are refused BEFORE any flock by `enforce_safe_parents`/`enforce_dir_perms` at
+every acquisition (the full enforce chains run on EVERY acquisition, nested ones included);
+residual aliasing (bind mounts, hardlinks, un-normalized `..`) MISSES the registry and
+self-denies at the real flock — false contention only, never phantom nesting; the safe
+direction, recorded not solved. The Q4 instrument: debug-only `eprintln` on NESTED acquires
+only, stable prefix `qsc_lock_nested_acquire ` (stderr, log-not-assert, never `emit_marker` —
+the claim and diagnostic vocabularies stay separate) + the always-compiled `pub(crate)
+lock_depth` reader.
+
+**THE TWO NEW LOCKED REGIONS.** **D1(b) — ENG-0118's closure mechanism:** the session-store-key
+get-generate-set runs UNDER the store EX lock inside `qsp_session_store_key_get_or_create`
+(nested legally under a transport transaction; a real serializing flock otherwise) — the
+concurrent-first-sender create race closes BY LOCK EXCLUSIVITY: two processes serialize and the
+loser re-reads the winner's key. Resolve/lock failures map through the existing catch-all
+(`IdentitySecretUnavailable`) — no new error surface on this path (§5c as decided). **D1(c) —
+the send-path locking asymmetry ends:** the plain-send drain `commit` is ONE locked transaction
+— the session blob store, the `send.state` `write_atomic` (named NON-lock-taking), and the
+timeline ingest under one held EX; a lock failure surfaces under its own cause name through
+`store_err_marker` (widened `pub(crate)` — one owner for the mapping; no cause loses its name)
+and is never retried by the library.
+
+**THE CONTENTION CONTRACT (closing ENG-0111(b)):** *"Every acquisition is LOCK_NB; nothing ever
+blocks. On `lock_contended` the caller SURFACES the error and does not retry — there is no
+backoff loop anywhere in the tree; retry is a human's or a supervisor's decision, made where the
+failure is visible. Contention is expected only cross-process (same-process nesting is a grant
+by D-1336's registry). `lock_upgrade_refused` is a DISTINCT condition — a same-process EX
+request under a held SH — and reaching it from a production flow is itself a defect (F4: the
+hazard set is empty)."* **The advisory-flock/NFS operator sentence rides HERE and the ENG-0111
+`Resolution:` line (A1.6 — no new doc file this lane; the standalone operator one-pager is
+recorded OWED to the operator-docs track):** *"the store lock is advisory `flock` — it excludes
+only other flock callers, not a rogue open-and-write — and flock is unreliable on NFS and some
+overlay/container filesystems; place the config dir on a local filesystem."* **D6:** a non-Unix
+build now FAILS AT COMPILE TIME with a named message (`compile_error!` at the top of model)
+where it previously built a silently succeeding no-op lock; the two `#[cfg(not(unix))]` stubs
+and the eight lock-claim cfg masks (model :62/:87; the six fs_store lock-helper gates) are
+DELETED — the helpers are straight-line. ⚠ **The compile gate is STRUCTURAL-ONLY this lane
+(D627-A4 applied): the cross-check dies in `ring`'s cc build script (`x86_64-w64-mingw32-gcc`
+absent) BEFORE qsc compiles, so a live false-green control is not establishable on this box; the
+upgrade path is NAMED — install `gcc-mingw-w64-x86-64` and a future micro-lane runs the real
+gate (base-shape check exits 0, post-fix check fails WITH our message, comment-out control flips
+it).** ⚠ Reconciliation recorded: the §7.1 row "`#[cfg(not(unix))]` 2→0" counts the STUBS; the
+refusal's own `#[cfg(not(unix))]` gate is the one deliberate survivor (total 2→1) — the row's
+intent (no non-Unix code path remains) holds; the surviving attr IS the refusal.
+
+**D4 — DESTROY EARNS ITS ERASE.** `zero_fill_in_place`: stat (inode + length recorded) → open
+`write(true)` NO-truncate NO-create → **the INODE-EQUALITY PIN** (fstat must equal the pre-open
+inode; mismatch → `vault_erase_failed` — a swapped file is an impostor whose zeroing would erase
+nothing) → zeros over `[0, len)` on the SAME inode → `sync_all` → then unlink → then the
+directory fsync. This replaces `fs::write`, whose O_TRUNC freed the original blocks first — the
+historical overwrite touched the old data on NO filesystem, and nothing was ever synced. The
+rewritten doc comment carries the banked sentences: the erase that is GUARANTEED is
+cryptographic (key zeroize + keychain-entry removal); the zero pass is filesystem-level
+zeroization on non-CoW filesystems and explicitly NOT physical-flash (FTL) or CoW-snapshot
+erasure; a passphrase vault's ultimate backstop is passphrase strength plus full-disk
+encryption. (The pin is factored onto the opened fd — `zero_fill_opened` — so the swapped-inode
+refusal is deterministically constructible by the in-src unit; a true stat-to-open interleave is
+not reachable single-threaded.)
+
+**THE DESTROY BOUNDARY (A1.4/R2, settled once).** The RULE: *"Vault-derived and vault-keyed
+artifacts die with the vault; vault-independent app configuration survives. Every existing
+artifact is classified here BY NAME; any future satellite store classifies itself against this
+rule in its own lane — vault-keyed means it joins the gone-set."* **GONE** = {`vault.qsv`
+(zero-filled, synced, unlinked via the helper), `vault_security.txt`,
+`vault_unlock_failures.txt`, the keychain entry (key_source 2), process key material,
+`send.state`, `msgqueue_v1/`, `quarantine_v1/`, `attachments/`}. **SURVIVORS BY DESIGN** =
+{`.qsc.lock` (held by destroy itself), `config.txt`, `store.meta`}. The satellite deletions run
+UNDER the held destroy lock, AFTER the vault erase, best-effort (absent entries fine),
+referencing the EXISTING consts crate-visibly — no `lib.rs` edit, no new files, no duplicated
+literals. Rationale on record: post-destroy ciphertext queues and send counters are
+seizure-relevant residue with metadata value; "undecryptable but present" is not the boundary
+this product's destroy exists to draw. `store.meta` is classified vault-independent (execution
+found no vault-derived content in it). The desktop's `settings.json` is NOT prejudged — the
+paired ENG-0048 micro-lane classifies it against the rule. **The process is left LOCKED
+post-destroy.** The residue test asserts BOTH sets BY NAME as a directory-listing equality.
+
+**D5a — THE CEREMONY (A1.3/R1, the banked shape).** Scope: key_source == 2 ONLY; passphrase
+vaults BYTE-UNCHANGED (commitment == passphrase is real authentication; every existing
+`vault_locked` refusal marker untouched). Destroy peeks key_source FIRST via a light read +
+`parse_vault_envelope` (the one parser; read/parse failures map to the existing markers); ks2
+requires the commitment to equal the ceremony literal `"DESTROY"`
+(`VAULT_DESTROY_INTENT_PHRASE`), refusing `vault_destroy_confirm_mismatch` with no destruction.
+The constructor is RENAMED `DestroyConfirmToken::confirm(typed)`; the 7 census sites adopted
+(na0693 :99/:120, NA_0658 :476/:481/:487/:515, na0695 test (v) — whose token value becomes the
+ceremony word; the ONLY corpus edits). **The banked framing, VERBATIM:** *"The keychain-destroy
+ceremony is a DELIBERATENESS GUARD, NOT AUTHENTICATION (the GitHub-delete-repo model); a
+keychain vault's same-machine security rests on the OS keychain and idle-autolock, never on the
+destroy word."* What the ceremony guarantees is that no caller — human, GUI, or script — can
+reach the erase path without stating the intent in its own words; the passphrase check remains
+what it always really was: proof you can OPEN what you are about to destroy, where the key
+source allows such proof at all (for a keychain vault the derivation ignores the passphrase
+entirely — E-D(1) — which made the auth reading hollow).
+
+**D5 — THE LOAD SPLIT (R3/A1.5; E-B extension BINDING).** `keychain_load_key`: the real
+backend's `keyring::Error::NoEntry` → `ProviderError::TokenMissing`; every other get error →
+`TokenUnavailable`. **The seam's absent-entry outcome → `TokenMissing` TOO — the classification
+lives ONCE, expressed identically for both backends (the seam primitive now reports raw
+absent-vs-unreadable; an unreadable seam dir stays `TokenUnavailable`, and the store-side
+exists-check now fails CLOSED on an unreadable seam store exactly as the real backend does —
+R4's rule, previously unexpressible through the Option-collapsing primitive).**
+`derive_runtime_key`'s keychain arm: the `|_| "vault_locked"` collapse is replaced by the
+explicit per-variant map through EXISTING names — `vault_token_missing` /
+`vault_token_unavailable` / `vault_provider_failed` (defensive arms fail closed under the
+provider's own name); ONLY decrypt failures still read `vault_locked`. ZERO new error strings.
+**The D-1335 R2 successor sentence:** a pre-D (fixed-account) keychain vault now reads
+`vault_token_missing` post-load-split where D-1335 recorded `vault_locked` — MORE honest: the
+key is genuinely not at the derived address. **The D-1334 successor sentence (Amendment 2, the
+same class — the STOP-006 episode):** na0694's key_source-byte tamper drill now observes its
+refusal at KEY LOAD (`vault_token_unavailable` on the headless suite build) instead of the
+retired `vault_locked` collapse — the tamper is intercepted one layer EARLIER, and every tamper
+that reaches decrypt still fails the AAD as `vault_locked` (the D-1334 property intact, its
+coverage story restated in the repinned test's doc comment). The repinned marker is deliberately
+EXACT: the headless-build premise is itself pinned, and a future keychain-enabled suite build
+SHOULD turn the pin red and force the re-census. The §2d.5 census that missed this pin is
+FALSIFIED on the record (the third census-narrower-than-its-claim instance in this lane's
+ancestry), and its structural cure is SR-18 (adopted at the STOP-006 ruling, effective D631:
+an observable-changing directive owes a mechanical corpus-wide census of every test pinning
+that observable, producing the pre-authorized edit set at drafting). **The Slice-4 honest-copy list (named inherited
+obligation):** `vault_token_missing`, `vault_provider_failed`, and `vault_destroy_confirm_mismatch`
+join it (alongside the D-1333 lock markers, `vault_version_unsupported`,
+`vault_keychain_entry_exists`, `vault_token_unavailable`); **`lock_upgrade_refused` is
+explicitly NOT on it** (Q2). The GUI copy contract the banked block created for Slice 4 stands:
+destroy confirmation copy branches on key_source; missing/unavailable/locked are three
+user-distinguishable conditions with three different next actions; `lock_contended` is
+busy-class copy, never readable as a wrong passphrase.
+
+**THE READ-PATH DEFERRAL (STOP 002 Observation 1, VERBATIM):** *"reads take no store lock
+today; this is presently safe because every writer lands via atomic rename (a reader sees
+old-or-new complete bytes, never torn) and QSCV02's AAD turns any inconsistent read into a loud
+vault_locked rather than silent corruption; the residual races are freshness-class with no
+unsafe outcome identified. Read-side locking is deferred until a demonstrated anomaly and is
+explicitly NOT Slice E's — the honesty frame is completed by the sentence, not by scope
+growth."*
+
+**THE SWEEP (bidirectional, tightened standard, on the final tree — evidence
+`/srv/qbuild/logs/NA-0696/p3_sweep.log`).** Region direction: every call in every lock region
+mechanically extracted; the token set equals D-1335's classified sweep MODULO exactly the
+enumerated renames (the `_locked` tokens → their pub names; the U3 ensure gone; the D5 match
+restructure) plus the two new regions' enumerated interiors — ZERO unclassified lock-acquisition
+or vault-write channels. Retirement direction: each of the 7 former sites proven by extraction
+to sit inside a held lock on the final tree; U3's former create-arm now sits inside D1(b)'s OWN
+lock — closed by construction, not by pre-lock provisioning. The na0693 serialization pin
+(raw-fd, out-of-registry = cross-process by mechanism) survives byte-identical; the cli.rs and
+na0217b contention pins survive by the same mechanism.
+
+**INSTRUMENTS.** `tests/na0696_vault_honesty.rs` default arm: (i)
+`nested_commit_emits_debug_instrument_and_transaction_lands` (the D1(c) transaction observed
+end-to-end on a spawned DEBUG binary — commit lands AND stderr carries the emit); (ii)
+`destroy_residue_set_enumerated_by_name` (the boundary as a directory-listing EQUALITY); (iii)
+`destroy_passphrase_vault_flow_unchanged` (ks1 pin, honestly not red at base); (iv)
+`keychain_unsupported_load_split_headless` (behavior pin). Seam-armed lane gate (outside CI,
+ENG-0112 recorded): (v) `keychain_missing_entry_reads_token_missing` — **RED at base** (the
+collapse read it `vault_locked`) — plus the daemon-down arm; (vi)
+`keychain_destroy_ceremony_requires_destroy_word` — wrong word refuses with the mismatch marker
+and the vault intact, the word destroys. Six in-src units (goal-lint-invisible by design; the
+`tests/` binary is the path-based gate instrument): `nested_grants_and_depth`,
+`drop_order_commutative`, `panic_unwind_restores_depth`, `upgrade_refused_fail_closed` (its
+collect-then-assert shape reports wrong-error AND held-SH-lost together),
+`no_dir_shared_arm_takes_no_registry_entry`, `zero_fill_refuses_swapped_inode`. **NEGATIVE
+CONTROLS (E-C: exact red sets committed at Phase 0, all measured AS WRITTEN, restores
+`cmp`-identical):** Control R (nested-check → `LockContended`; the per-site-denial world): red
+EXACTLY the na0197c 11 + NA_0640 all 3 + na0693 (ii) + new (i)/(ii) + 4 registry units — **with
+two Phase-0-NAMED deviations from the directive's sketch, both confirmed: na0693 (i) and new
+(iii) stay GREEN under the D-1333 loud-not-fail disposition (destroy still returns Ok with the
+vault gone; the sketch predates that composition)** — the proof the retirement is load-bearing.
+Control U (conversion forwarded): `upgrade_refused_fail_closed` alone, the F3 loss observed
+in-tree (`probe_rc=0` after the co-holder released). Control I: the inode unit alone. Control C
+(seam): the ceremony pin alone. Control L (seam): the missing-entry pin alone. Control V: new
+(i) red at its stderr assertion, scenario asserts green first.
+
+**RECORDED UNTESTABLE-HEADLESS (D627-A4):** the real Secret-Service/macOS/Windows keyring
+plumbing (unchanged posture); the non-Unix compile refusal's live demonstration
+(structural-only, upgrade path above); the DefaultHome-write-success property.
+
+**GATE FIGURES (base measured at `a61c53fb` before any edit; after measured on the final
+tree).** Structural: the retirement rows above; `thread_local!` in model 0→1;
+`LockUpgradeRefused` production-code 0→3 (variant + `as_str` + refusal; +1 comment occurrence
+FORCED by the verbatim-class §5a discipline comment, +2 unit-module — decomposed in advance);
+`"lock_upgrade_refused"` production 0→1 (+1 unit assert); `qsc_lock_nested_acquire` 0→1;
+`lock_depth` defs 0→1; `mem::forget` 0→0; `compile_error!` 0→1; `#[cfg(unix)]` model 2→0,
+fs_store lock helpers 6→0, elsewhere unchanged; `fs::write(&vault_path` 1→0;
+`zero_fill_in_place` production 0→2; `sync_all` in protection.rs 0→1; `confirm_with_passphrase`
+8→0; boundary-anchored `confirm(` in src + the three census files 0→8 (the new test file's own
+5 calls counted separately, stated in advance); `VAULT_DESTROY_INTENT_PHRASE` 0→2; `"DESTROY"`
+in src 0→1 (the const); `vault_destroy_confirm_mismatch` src 0→2 (refusal site + the rewritten
+destroy doc naming it — stated in advance), tests ≥1; `vault_destroy_not_confirmed` stays 0
+(name dropped by A1.3); the keychain-arm `|_| "vault_locked"` 1→0 (the other four
+`vault_locked` map sites are decrypt/env-class and survive); `vault_token_missing` src 1→2; the
+`Ok(None)` arm 1→1; the na0693 pin hunk byte-identical (`git diff` on the pin fn: no hunks).
+Full suite **local** (⚠ ENG-0112: CI skips the full suite on PRs; this green is the LOCAL run):
+**606 / 0 / 2 across 130 binaries, exit 0** vs base 596 / 0 / 2 across 129 (skip EARNED by
+identity, endpoints named) — reconciled BY NAME: +1 binary `na0696_vault_honesty` (its 4
+default-arm tests) and +6 in-src units in the lib binary; the edited na0693/NA_0658/na0695
+binaries keep their counts; the 2 seam-armed tests are cfg'd out BY DESIGN and their green
+lives in the lane-gate evidence. The na0197c 11 and NA_0640's 3 measured green on the fixed
+tree BEFORE the final suite (targeted, then again inside the suite). fmt delta **ZERO** (236
+diff hunks across 56 files both sides, file set identical; the lane's own new lines reformatted
+individually; `cargo fmt` never a writer). clippy delta **ZERO** (53 → 53, distribution
+identical). `Cargo.toml`/`Cargo.lock` diff **EMPTY** (std only). `cargo check -p qsc --features
+keychain --locked` exit 0 on the final tree. `classify_ci_scope.sh`: `docs_only=false /
+runtime_critical=true`.
+
+**GOALS.** **G2** (persistence safety): same-process lock nesting is a GRANT, not a
+self-denial — the class that took Slice B four serial discoveries is eliminated by
+construction; destroy's documented erase is real and its boundary is stated once; a missing
+keychain key names itself. **G4**: the red-capable instruments and this record. ⚠ **G1, G3, G5
+NOT claimed.** ENG-0103 negatives: read-side locking (deferred by ruling, sentence above);
+real-OS keyring plumbing (untestable headless, unchanged); the non-Unix compile refusal's live
+demonstration (structural-only); physical-block erasure on SSD/CoW (the cryptographic erase is
+the guarantee); retry/backoff machinery (the contract says never).
+
+**References:** NA-0696 stops 001–005 (probe, Q-ruling, draft, R-ruling + annex, promotion);
+D630 as amended §§0–12, A1.1–A1.9; ENG-0110 → RESOLVED, ENG-0111 → RESOLVED, ENG-0118 →
+RESOLVED (this lane's ledger lines); ENG-0109 (D-1332) and ENG-0107 (D-1334) `Resolution:`
+lines ride this lane per R5, with ENG-0106 annotated-not-resolved (partial-closure rule: its
+N-07 code rides Slice 4); D-1333 (the binding forward requirement discharged; the loud-not-fail
+destroy disposition the Control-R deviations rest on); D-1334 (the one parser the peek reads
+through); D-1335 (the seam/E-B containment; the R2 successor sentence above); D-1330 (this PR
+advances `HIGHEST_D` 1335→1336 with this record); ENG-0112 (the seam-armed lane gate outside
+CI, recorded); ENG-0048 (the paired desktop micro-lane the boundary rule feeds); WF-0044/0045/
+0047 (open, measured, never chased); the operator-docs track (OWES the store-lock operational
+one-pager, A1.6).

@@ -27,7 +27,7 @@ use crate::fs_store::{
     config_dir, enforce_safe_parents, ensure_store_layout, fsync_dir_best_effort,
     lock_store_exclusive, lock_store_shared, write_atomic,
 };
-use crate::model::{ConfigSource, ErrorCode};
+use crate::model::ErrorCode;
 use crate::output::emit_marker;
 use crate::store::{
     QSC_ERR_VAULT_WIPED_AFTER_FAILED_UNLOCKS, VAULT_ATTEMPT_LIMIT_MAX, VAULT_ATTEMPT_LIMIT_MIN,
@@ -71,18 +71,20 @@ pub struct VaultProtectionStatus {
     pub retry_after_s: u64,
 }
 
-/// The second, distinct, visible arming step destroy requires: the token commits to
-/// the passphrase it was built for and is consumed by the destroy call. Tokenless
-/// destroy calls do not compile; a token built for a different passphrase is refused
-/// with no destruction.
+/// The second, distinct, visible arming step destroy requires: the token carries what the
+/// caller's human actually TYPED, and is consumed by the destroy call. Tokenless destroy
+/// calls do not compile. NA-0696 (D630 A1.3/R1, D-1336): the constructor takes the typed
+/// word alone — what the commitment must equal branches on the key source at the destroy
+/// site (passphrase vaults: the passphrase, real authentication, unchanged; keychain
+/// vaults: the ceremony word, a deliberateness guard).
 pub struct DestroyConfirmToken {
     commitment: String,
 }
 
 impl DestroyConfirmToken {
-    pub fn confirm_with_passphrase(passphrase: &str) -> DestroyConfirmToken {
+    pub fn confirm(typed: &str) -> DestroyConfirmToken {
         DestroyConfirmToken {
-            commitment: passphrase.to_string(),
+            commitment: typed.to_string(),
         }
     }
 }
@@ -253,31 +255,70 @@ pub fn lock(session: Option<VaultSession>) {
     drop(session);
 }
 
-/// Deliberate, instant account destroy: the historical machinery (validate by full
-/// decrypt; wrong passphrase refused with state unchanged; runtime-key zeroize;
-/// keychain removal when key_source == 2; zero-overwrite at recorded length THEN
-/// remove THEN fsync — the erase-then-remove ordering) with the REFINED call shape:
-/// the confirmation token is required and must match the passphrase. Post-destroy the
-/// protection-state files are cleared and the process is left locked. Independent of,
+/// NA-0696 (D630 A1.3/R1): the keychain-destroy ceremony word. A keychain-vault destroy
+/// (key_source 2) requires the confirmation token's commitment to equal this literal —
+/// a deliberateness guard, not authentication; see `destroy_with_passphrase`.
+pub const VAULT_DESTROY_INTENT_PHRASE: &str = "DESTROY";
+
+/// Deliberate, instant account destroy — the honest contract (NA-0696, D630 D4/D5a,
+/// D-1336):
+///
+/// WHAT DESTROY GUARANTEES: the cryptographic erase. The runtime key is zeroized; for a
+/// keychain vault (key_source 2) the OS-keychain entry is removed — everything keyed off
+/// the vault becomes permanently undecryptable when the key dies. The zero pass below is
+/// defense-in-depth on top of that, and it is now actually ordered: the vault file is
+/// zeroed IN PLACE on its recorded inode (no truncate — `fs::write`'s O_TRUNC freed the
+/// original blocks first, so the historical overwrite touched the old data on NO
+/// filesystem), synced to disk, THEN unlinked, then the directory fsynced. That is
+/// filesystem-level zeroization on non-CoW filesystems; it is explicitly NOT
+/// physical-flash (FTL) or CoW-snapshot erasure. A passphrase vault's ultimate backstop
+/// is passphrase strength plus full-disk encryption.
+///
+/// THE CEREMONY branches on the key source, peeked FIRST through the one parser: a
+/// passphrase vault keeps the historical checks verbatim — commitment == passphrase is
+/// real authentication. A keychain vault requires the commitment to equal the ceremony
+/// word (the const above), refusing `vault_destroy_confirm_mismatch` with no
+/// destruction — deliberateness, not authentication: the derivation ignores the
+/// passphrase entirely, and same-machine security rests on the OS keychain and
+/// idle-autolock, never on the destroy word.
+///
+/// THE BOUNDARY: vault-derived and vault-keyed artifacts die with the vault
+/// (`vault.qsv`, the protection-state files, the keychain entry, process key material,
+/// `send.state`, `msgqueue_v1/`, `quarantine_v1/`, `attachments/`); vault-independent
+/// app configuration survives by design (`.qsc.lock` — held by destroy itself,
+/// `config.txt`, `store.meta`). Post-destroy the process is left locked. Independent of,
 /// and not armed by, the wipe-after-N opt-in.
 pub fn destroy_with_passphrase(
     passphrase: &str,
     token: DestroyConfirmToken,
 ) -> Result<(), &'static str> {
-    if passphrase.is_empty() {
-        return Err("vault_locked");
-    }
-    if token.commitment != passphrase {
-        return Err("vault_locked");
+    // The key-source peek: a light read through THE parser (D-1334's one owner);
+    // read/parse failures map to the existing markers.
+    let (cfg_dir, vault_path, source) = super::vault_path_resolved()?;
+    let peek_bytes = fs::read(&vault_path).map_err(|_| "vault_missing")?;
+    let peeked_key_source =
+        crate::adversarial::vault_format::parse_vault_envelope(&peek_bytes)?.key_source;
+    if peeked_key_source == 2 {
+        // Keychain vault: the ceremony word, checked before any other work.
+        if token.commitment != VAULT_DESTROY_INTENT_PHRASE {
+            return Err("vault_destroy_confirm_mismatch");
+        }
+    } else {
+        // Passphrase vault: the historical checks, byte-for-byte (real authentication).
+        if passphrase.is_empty() {
+            return Err("vault_locked");
+        }
+        if token.commitment != passphrase {
+            return Err("vault_locked");
+        }
     }
     // NA-0693 (D627, D-1333): destroy is one locked transaction — resolved through the SAME
     // resolver as every vault write op, the exclusive store lock held across
-    // validate → keychain-remove → erase → remove → protection-clear. The nested clear below
-    // MUST use the `_locked` inner variant: `flock` attaches to the open file description, so
-    // the locking entry point would be denied by destroy's own lock (`LockContended`).
-    let (cfg_dir, _, source) = super::vault_path_resolved()?;
+    // validate → keychain-remove → erase → remove → satellite-clear → protection-clear.
+    // NA-0696 (D630 D1(a), D-1336): the nested protection-clear below reaches the plain
+    // entry and nests legally through the reentrant registry.
     let _lock = lock_store_exclusive(&cfg_dir, source).map_err(super::store_err_marker)?;
-    let (vault_path, mut runtime) = super::load_vault_runtime_with_passphrase(Some(passphrase))?;
+    let (_, mut runtime) = super::load_vault_runtime_with_passphrase(Some(passphrase))?;
     let _ = super::decrypt_payload(&runtime)?;
     let key_source = runtime.envelope.key_source;
     runtime.key.zeroize();
@@ -286,25 +327,30 @@ pub fn destroy_with_passphrase(
         super::keychain_remove_key(&runtime.envelope.salt).map_err(|_| "vault_erase_failed")?;
     }
 
-    // Best-effort cryptographic erase path: remove wrapped material and then delete file.
+    // The erase, ordered (D630 D4): zero in place on the recorded inode, sync, unlink,
+    // then the directory fsync ordering the unlink.
     if vault_path.exists() {
-        let len = fs::metadata(&vault_path)
-            .ok()
-            .map(|md| md.len() as usize)
-            .unwrap_or(0usize);
-        if len > 0 {
-            let zeros = vec![0u8; len];
-            fs::write(&vault_path, zeros).map_err(|_| "vault_erase_failed")?;
-        }
+        zero_fill_in_place(&vault_path)?;
         fs::remove_file(&vault_path).map_err(|_| "vault_erase_failed")?;
         if let Some(parent) = vault_path.parent() {
             fsync_dir_best_effort(parent);
         }
     }
+    // The destroy boundary (D630 A1.4/R2, D-1336): the vault-keyed satellite stores die
+    // with the vault — their content is undecryptable once the key is gone, and
+    // post-destroy ciphertext queues and send counters are seizure-relevant residue with
+    // metadata value. Best-effort under the held lock, after the vault erase; absent
+    // entries are fine. The consts are the one existing owner of each name — no
+    // duplicated literals.
+    let _ = fs::remove_file(cfg_dir.join(crate::SEND_STATE_NAME));
+    let _ = fs::remove_dir_all(cfg_dir.join(crate::msgqueue::MSGQUEUE_DIR));
+    let _ = fs::remove_dir_all(cfg_dir.join(crate::quarantine::QUARANTINE_DIR));
+    let _ = fs::remove_dir_all(cfg_dir.join(crate::ATTACHMENT_STAGING_DIR));
+    fsync_dir_best_effort(&cfg_dir);
     // Un-swallowed (D-1333): loud, NOT fatal — the vault file and any keychain entry are
     // already gone, so an Err here would misreport a completed destroy. The residue stays
     // observable through `wipe_after_failed_unlocks_limit()`.
-    if let Err(code) = protection_state_clear_files_locked(&cfg_dir, source) {
+    if let Err(code) = protection_state_clear_files() {
         emit_marker(
             "vault_destroy",
             None,
@@ -313,6 +359,45 @@ pub fn destroy_with_passphrase(
     }
     lock(None);
     Ok(())
+}
+
+/// NA-0696 (D630 D4, D-1336; ENG-0110): filesystem-level zeroization IN PLACE. Stat first
+/// (inode and length recorded), open `write(true)` with NO truncate and NO create, then
+/// the INODE-EQUALITY PIN: the opened fd must carry the inode the stat saw — on mismatch
+/// the file was swapped underneath us, and zeroing the impostor (then unlinking the path)
+/// would erase nothing, so refuse. Zeros land over `[0, len)` on the SAME inode and are
+/// synced to disk before the caller unlinks.
+fn zero_fill_in_place(path: &Path) -> Result<(), &'static str> {
+    use std::os::unix::fs::MetadataExt;
+    let md = fs::metadata(path).map_err(|_| "vault_erase_failed")?;
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .open(path)
+        .map_err(|_| "vault_erase_failed")?;
+    zero_fill_opened(md.ino(), md.len() as usize, &mut file)
+}
+
+/// The pin + the zero pass, on an already-opened fd (factored so the swapped-inode
+/// refusal is deterministically constructible by the in-src unit — a true TOCTOU
+/// interleave is not reachable from a single-threaded test).
+fn zero_fill_opened(
+    expected_ino: u64,
+    len: usize,
+    file: &mut fs::File,
+) -> Result<(), &'static str> {
+    use std::io::{Seek, SeekFrom, Write};
+    use std::os::unix::fs::MetadataExt;
+    let opened = file.metadata().map_err(|_| "vault_erase_failed")?;
+    if opened.ino() != expected_ino {
+        return Err("vault_erase_failed");
+    }
+    if len > 0 {
+        let zeros = vec![0u8; len];
+        file.seek(SeekFrom::Start(0))
+            .map_err(|_| "vault_erase_failed")?;
+        file.write_all(&zeros).map_err(|_| "vault_erase_failed")?;
+    }
+    file.sync_all().map_err(|_| "vault_erase_failed")
 }
 
 fn parse_vault_attempt_limit_config(raw: &str) -> Result<Option<u32>, ErrorCode> {
@@ -446,25 +531,20 @@ fn protection_state_store(state: &VaultProtectionState) -> Result<(), ErrorCode>
     Ok(())
 }
 
+// NA-0696 (D630 D1(a), D-1336): one entry, one lock — a caller already holding the store
+// lock (destroy's transaction) nests legally through the reentrant registry, so the
+// per-site inner variant is retired.
 fn protection_state_clear_files() -> Result<(), ErrorCode> {
     let (dir, source) = config_dir()?;
     let _lock = lock_store_exclusive(&dir, source)?;
-    protection_state_clear_files_locked(&dir, source)
-}
-
-/// NA-0693 (D627, D-1333): the unlocked inner variant — assumes the caller already holds
-/// the exclusive store lock for `dir`. `flock` attaches to the open file description, so a
-/// locked caller reaching the entry point above would be denied by its own lock; destroy's
-/// transaction calls this one instead.
-fn protection_state_clear_files_locked(dir: &Path, source: ConfigSource) -> Result<(), ErrorCode> {
-    ensure_store_layout(dir, source)?;
+    ensure_store_layout(&dir, source)?;
     let config_path = dir.join(VAULT_SECURITY_CONFIG_NAME);
     let counter_path = dir.join(VAULT_UNLOCK_COUNTER_NAME);
     enforce_safe_parents(&config_path, source)?;
     enforce_safe_parents(&counter_path, source)?;
     let _ = fs::remove_file(config_path);
     let _ = fs::remove_file(counter_path);
-    fsync_dir_best_effort(dir);
+    fsync_dir_best_effort(&dir);
     Ok(())
 }
 
@@ -485,4 +565,75 @@ fn wipe_vault_file_best_effort() -> Result<(), ErrorCode> {
     }
     fsync_dir_best_effort(&dir);
     Ok(())
+}
+
+// NA-0696 (D630 §4c, D-1336): the inode-equality pin's unit — `zero_fill_*` is private
+// to this module, so a same-file `#[cfg(test)] mod` is the only place that can drive it
+// (the na0692/na0696 in-src precedent). No env, no config resolution: direct paths only.
+// Does NOT satisfy goal-lint (path-based); the gate instrument is the `tests/` binary.
+#[cfg(test)]
+mod na0696_zero_fill_tests {
+    use super::*;
+    use std::os::unix::fs::MetadataExt;
+    use std::path::PathBuf;
+
+    fn unit_dir(tag: &str) -> PathBuf {
+        let root = if let Ok(v) = std::env::var("QSC_TEST_ROOT") {
+            PathBuf::from(v)
+        } else if let Ok(v) = std::env::var("CARGO_TARGET_DIR") {
+            PathBuf::from(v)
+        } else {
+            PathBuf::from("target")
+        };
+        let dir = root
+            .join("qsc-test-tmp")
+            .join("na0696-zero-fill")
+            .join(format!("{}_{}", tag, std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    /// Green half: the zero pass lands on the SAME inode (no truncate, no recreate),
+    /// same length, all zeros. Refusal half: a swapped inode — the stat saw file A, the
+    /// opened fd carries file B — refuses `vault_erase_failed` and writes NOTHING (the
+    /// deterministic construction of the swap the pin exists for; a true stat-to-open
+    /// interleave is not reachable single-threaded, which is why the pin is factored
+    /// onto the opened fd).
+    #[test]
+    fn zero_fill_refuses_swapped_inode() {
+        let dir = unit_dir("swapped_inode");
+        // Green half.
+        let pattern = dir.join("pattern.bin");
+        fs::write(&pattern, [0xA5u8; 4096]).unwrap();
+        let ino_before = fs::metadata(&pattern).unwrap().ino();
+        zero_fill_in_place(&pattern).expect("zero pass on an unswapped file succeeds");
+        let md_after = fs::metadata(&pattern).unwrap();
+        assert_eq!(md_after.ino(), ino_before, "zeroed IN PLACE — same inode");
+        assert_eq!(md_after.len(), 4096, "same length");
+        let bytes = fs::read(&pattern).unwrap();
+        assert!(bytes.iter().all(|b| *b == 0), "every byte zeroed");
+        // Refusal half: stat records file A's inode; the opened fd is file B.
+        let file_a = dir.join("original.bin");
+        let file_b = dir.join("impostor.bin");
+        fs::write(&file_a, [0x5Au8; 128]).unwrap();
+        fs::write(&file_b, [0xC3u8; 128]).unwrap();
+        let recorded = fs::metadata(&file_a).unwrap();
+        let mut opened_impostor = fs::OpenOptions::new().write(true).open(&file_b).unwrap();
+        let refused = zero_fill_opened(
+            recorded.ino(),
+            recorded.len() as usize,
+            &mut opened_impostor,
+        );
+        assert_eq!(
+            refused,
+            Err("vault_erase_failed"),
+            "a swapped inode must refuse — zeroing the impostor would erase nothing"
+        );
+        let impostor_bytes = fs::read(&file_b).unwrap();
+        assert!(
+            impostor_bytes.iter().all(|b| *b == 0xC3),
+            "the refusal must land BEFORE any write"
+        );
+    }
 }

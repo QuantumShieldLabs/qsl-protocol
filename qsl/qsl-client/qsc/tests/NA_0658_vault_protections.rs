@@ -473,18 +473,18 @@ fn destroy_refuses_wrong_passphrase_empty_passphrase_and_wrong_token() {
 
     // Wrong passphrase (even with a token committed to it): refused, state unchanged.
     assert_eq!(
-        destroy_with_passphrase(WRONG, DestroyConfirmToken::confirm_with_passphrase(WRONG)),
+        destroy_with_passphrase(WRONG, DestroyConfirmToken::confirm(WRONG)),
         Err("vault_locked")
     );
     // Empty passphrase: refused (the historical guard).
     assert_eq!(
-        destroy_with_passphrase("", DestroyConfirmToken::confirm_with_passphrase("")),
+        destroy_with_passphrase("", DestroyConfirmToken::confirm("")),
         Err("vault_locked")
     );
     // Correct passphrase but a token committed to a DIFFERENT value: the wrong-VALUE
     // path — refused with NO destruction (the absent-token call does not compile).
     assert_eq!(
-        destroy_with_passphrase(PASS, DestroyConfirmToken::confirm_with_passphrase(WRONG)),
+        destroy_with_passphrase(PASS, DestroyConfirmToken::confirm(WRONG)),
         Err("vault_locked")
     );
 
@@ -512,7 +512,7 @@ fn destroy_with_token_is_irreversible_and_leaves_locked() {
     unlock_guarded_at(WRONG, T0).expect("guarded attempt seeds state files");
     assert!(cfg.join(COUNTER_FILE).is_file());
 
-    destroy_with_passphrase(PASS, DestroyConfirmToken::confirm_with_passphrase(PASS))
+    destroy_with_passphrase(PASS, DestroyConfirmToken::confirm(PASS))
         .expect("deliberate destroy with matching token");
 
     // The vault file is gone (erase-then-remove) and everything it protected is

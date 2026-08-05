@@ -241,23 +241,11 @@ pub fn secret_set(name: &str, value: &str) -> Result<(), &'static str> {
         return Err("vault_secret_name_invalid");
     }
     // NA-0693 (D627, D-1333): the exclusive store lock spans the WHOLE read-modify-write
-    // (load → decrypt → mutate → encrypt → write), never the write alone. Unix-conditional:
-    // on non-Unix the flock call is compiled out (ENG-0111(a)).
+    // (load → decrypt → mutate → encrypt → write), never the write alone. NA-0696 (D630
+    // D1, D-1336): a caller already inside a locked transaction (the transport send paths)
+    // nests legally through the reentrant registry — the per-site inner variant is retired.
     let (cfg_dir, _, source) = vault_path_resolved()?;
     let _lock = lock_store_exclusive(&cfg_dir, source).map_err(store_err_marker)?;
-    secret_set_locked(name, value)
-}
-
-/// NA-0693 STOP-004 ruling (D627 Amendment 1, D-1333): the unlocked inner variant — assumes
-/// the caller ALREADY HOLDS the exclusive store lock. `flock` attaches to the open file
-/// description, so a locked caller (transport's send/abort transactions persisting the outbox
-/// next-state) reaching the pub entry above would be denied by its own lock. Resolves through
-/// the same resolver as the entry, so path agreement holds by construction.
-pub(crate) fn secret_set_locked(name: &str, value: &str) -> Result<(), &'static str> {
-    if name.is_empty() {
-        return Err("vault_secret_name_invalid");
-    }
-    let (_cfg_dir, _, source) = vault_path_resolved()?;
     let (vault_path, mut env) = load_vault_runtime()?;
     let mut payload = decrypt_payload(&env)?;
     payload.secrets.insert(name.to_string(), value.to_string());
@@ -938,7 +926,17 @@ fn derive_runtime_key(
             pass_bytes.zeroize();
             res.map_err(|_| "vault_locked")
         }
-        2 => keychain_load_key(&env.salt, out).map_err(|_| "vault_locked"),
+        2 => keychain_load_key(&env.salt, out).map_err(|err| match err {
+            // NA-0696 (D630 §5f/R3, D-1336): the three-way split — a missing keychain
+            // entry no longer reads as a wrong passphrase; ONLY decrypt failures
+            // (downstream of key load) keep `vault_locked`. Defensive arms fail closed
+            // under the provider's own name. Zero new strings — every name pre-existed.
+            ProviderError::TokenMissing => "vault_token_missing",
+            ProviderError::TokenUnavailable => "vault_token_unavailable",
+            ProviderError::ProviderFailed
+            | ProviderError::EntryExists
+            | ProviderError::YubiKeyNotImplemented => "vault_provider_failed",
+        }),
         4 => Err("vault_mock_provider_retired"),
         _ => Err("vault_locked"),
     }
@@ -1031,7 +1029,9 @@ fn encode_envelope(env: &VaultRuntime, nonce: &[u8], ciphertext: &[u8]) -> Vec<u
 // write-path marker; every other cause keeps its own tree-wide `as_str` name — no two causes
 // share a marker, and contention surfaces fail-closed as `lock_contended` (no retry loop;
 // retry policy is ENG-0111's design space).
-fn store_err_marker(code: ErrorCode) -> &'static str {
+// NA-0696 (D630 §5c, D-1336): pub(crate) so the D1(c) commit transaction maps its lock
+// acquisition through the ONE owner of the cause-name mapping — no cause loses its name.
+pub(crate) fn store_err_marker(code: ErrorCode) -> &'static str {
     match code {
         ErrorCode::IoWriteFailed => "vault_write_failed",
         other => other.as_str(),
@@ -1122,10 +1122,17 @@ fn keychain_store_key(salt: &[u8; 16], key: &[u8]) -> Result<(), ProviderError> 
         let account = vault_keychain_account(salt);
 
         // Raw existence read — the seam swaps exactly this read (E-B); the refuse DECISION
-        // below is the single shared copy both backends feed.
+        // below is the single shared copy both backends feed. NA-0696 (D630 §5f): the raw
+        // primitive now reports absent-vs-unreadable; an unreadable seam store fails
+        // CLOSED here exactly as the real backend's arm below does (R4).
         #[cfg(qsc_keychain_test_seam)]
-        let seam_existing: Option<bool> =
-            keychain_seam_dir().map(|dir| keychain_seam_get(&dir, &account).is_some());
+        let seam_existing: Option<bool> = match keychain_seam_dir() {
+            Some(dir) => match keychain_seam_get(&dir, &account) {
+                Ok(found) => Some(found.is_some()),
+                Err(()) => return Err(ProviderError::ProviderFailed),
+            },
+            None => None,
+        };
         #[cfg(not(qsc_keychain_test_seam))]
         let seam_existing: Option<bool> = None;
         let mut entry_slot: Option<Entry> = None;
@@ -1185,11 +1192,18 @@ fn keychain_load_key(salt: &[u8; 16], out: &mut [u8; 32]) -> Result<(), Provider
     {
         let account = vault_keychain_account(salt);
         // Raw read — the seam swaps exactly this read (E-B); the decode below is shared.
+        // NA-0696 (D630 §5f, D-1336; E-B extension, BINDING): the CLASSIFICATION lives
+        // once, expressed identically for both backends — an ABSENT entry is
+        // `TokenMissing` (this arm and the real backend's NoEntry arm below are the same
+        // decision); an unreadable seam dir stays `TokenUnavailable` (the daemon-down
+        // class).
         #[cfg(qsc_keychain_test_seam)]
         let seam_secret: Option<String> = match keychain_seam_dir() {
-            Some(dir) => {
-                Some(keychain_seam_get(&dir, &account).ok_or(ProviderError::TokenUnavailable)?)
-            }
+            Some(dir) => match keychain_seam_get(&dir, &account) {
+                Ok(Some(value)) => Some(value),
+                Ok(None) => return Err(ProviderError::TokenMissing),
+                Err(()) => return Err(ProviderError::TokenUnavailable),
+            },
             None => None,
         };
         #[cfg(not(qsc_keychain_test_seam))]
@@ -1199,9 +1213,10 @@ fn keychain_load_key(salt: &[u8; 16], out: &mut [u8; 32]) -> Result<(), Provider
             None => {
                 let entry = Entry::new(VAULT_KEYCHAIN_SERVICE, &account)
                     .map_err(|_| ProviderError::ProviderFailed)?;
-                entry
-                    .get_password()
-                    .map_err(|_| ProviderError::TokenUnavailable)?
+                entry.get_password().map_err(|err| match err {
+                    keyring::Error::NoEntry => ProviderError::TokenMissing,
+                    _ => ProviderError::TokenUnavailable,
+                })?
             }
         };
         let bytes = hex_decode(&secret).ok_or(ProviderError::ProviderFailed)?;
@@ -1267,8 +1282,15 @@ fn keychain_seam_entry_path(dir: &Path, account: &str) -> PathBuf {
 }
 
 #[cfg(all(feature = "keychain", qsc_keychain_test_seam))]
-fn keychain_seam_get(dir: &Path, account: &str) -> Option<String> {
-    fs::read_to_string(keychain_seam_entry_path(dir, account)).ok()
+fn keychain_seam_get(dir: &Path, account: &str) -> Result<Option<String>, ()> {
+    // Raw storage outcome ONLY (E-B): present → the value; absent (NotFound) → Ok(None);
+    // any other read failure (an unreadable seam dir modeling daemon-down) → Err. What
+    // these outcomes MEAN is decided once, in `keychain_load_key`, for both backends.
+    match fs::read_to_string(keychain_seam_entry_path(dir, account)) {
+        Ok(value) => Ok(Some(value)),
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(_) => Err(()),
+    }
 }
 
 #[cfg(all(feature = "keychain", qsc_keychain_test_seam))]

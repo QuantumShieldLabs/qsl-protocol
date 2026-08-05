@@ -378,7 +378,7 @@ mod seam_armed {
         std::env::remove_var("QSC_DISABLE_KEYCHAIN");
         qsc::vault::protection::destroy_with_passphrase(
             "na0695-destroy",
-            qsc::vault::protection::DestroyConfirmToken::confirm_with_passphrase("na0695-destroy"),
+            qsc::vault::protection::DestroyConfirmToken::confirm("DESTROY"),
         )
         .expect("destroy profile A");
 

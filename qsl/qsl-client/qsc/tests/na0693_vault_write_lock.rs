@@ -96,7 +96,7 @@ fn destroy_under_lock_succeeds_with_armed_limit() {
     vault_init_with_passphrase(PASS).expect("init");
     wipe_after_failed_unlocks_arm(3).expect("arm the wipe-after-N limit");
 
-    destroy_with_passphrase(PASS, DestroyConfirmToken::confirm_with_passphrase(PASS))
+    destroy_with_passphrase(PASS, DestroyConfirmToken::confirm(PASS))
         .expect("destroy must succeed while holding the store lock");
 
     assert!(!cfg.join("vault.qsv").exists(), "vault file removed");
@@ -117,8 +117,7 @@ fn destroy_clears_protection_state_observed_via_pub_surface() {
     );
     vault_init_with_passphrase(PASS).expect("init");
 
-    destroy_with_passphrase(PASS, DestroyConfirmToken::confirm_with_passphrase(PASS))
-        .expect("destroy");
+    destroy_with_passphrase(PASS, DestroyConfirmToken::confirm(PASS)).expect("destroy");
 
     assert_eq!(
         wipe_after_failed_unlocks_limit(),

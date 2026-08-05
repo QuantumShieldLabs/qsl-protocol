@@ -137,6 +137,13 @@ fn qscv02_roundtrip_unlocks_and_reads_back() {
 /// key-derivation path — fails closed and mutates nothing. Honest detection story:
 /// keychain load fails headless BEFORE the AAD is consulted, so this pin is not
 /// red-capable against Ruling 1 alone (§0.4); post-change the AAD also refuses it.
+/// NA-0696 (D630 A2.2, D-1336): the refusal is TWO-LAYER — a key_source tamper is
+/// intercepted at KEY LOAD, and on a headless build that reads the load-class marker
+/// `vault_token_unavailable` (the D5 split retired the `vault_locked` collapse); every
+/// tamper that reaches decrypt still fails the AAD as `vault_locked`. The pinned
+/// marker is deliberately EXACT: the suite build being headless is itself a pinned
+/// premise, and a future keychain-enabled suite build SHOULD turn this red and force
+/// the re-census.
 #[test]
 fn qscv02_key_source_byte_tamper_fails_closed() {
     let _g = env_lock();
@@ -152,7 +159,7 @@ fn qscv02_key_source_byte_tamper_fails_closed() {
     unlock_cmd(&base, &cfg, PASS)
         .assert()
         .failure()
-        .stdout(predicate::str::contains("code=vault_locked"));
+        .stdout(predicate::str::contains("code=vault_token_unavailable"));
 
     assert_eq!(
         bytes,

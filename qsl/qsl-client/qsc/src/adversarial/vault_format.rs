@@ -1,4 +1,26 @@
-pub const VAULT_MAGIC: &[u8; 6] = b"QSCV01";
+pub const VAULT_MAGIC: &[u8; 6] = b"QSCV02";
+
+// NA-0694 (D628, D-1334): the ONE owner of vault-magic recognition, shared by the unlock
+// parser below and `vault_status` — the same anti-divergence property as the single header
+// builder. A recognized-but-old envelope must refuse with its own name at BOTH sites
+// (Ruling A), never read as corrupt or wrong-passphrase; QSCV01 is a hard break (no
+// migration, no dual-format read — Ruling 2).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum VaultMagicClass {
+    Current,
+    KnownOld,
+    Unknown,
+}
+
+pub fn classify_vault_magic(magic: &[u8]) -> VaultMagicClass {
+    if magic == VAULT_MAGIC {
+        VaultMagicClass::Current
+    } else if magic == b"QSCV01" {
+        VaultMagicClass::KnownOld
+    } else {
+        VaultMagicClass::Unknown
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VaultEnvelopeView {
@@ -15,8 +37,13 @@ pub fn parse_vault_envelope(bytes: &[u8]) -> Result<VaultEnvelopeView, &'static 
     if bytes.len() < min {
         return Err("vault_parse_failed");
     }
-    if &bytes[..6] != VAULT_MAGIC {
-        return Err("vault_parse_failed");
+    // NA-0694 (D628 §5.4): the version distinction sits AT the existing magic-check
+    // position, AFTER the min-length gate above — undersized inputs (including 6-byte
+    // magic-only blobs) keep refusing as vault_parse_failed before any magic logic.
+    match classify_vault_magic(&bytes[..6]) {
+        VaultMagicClass::Current => {}
+        VaultMagicClass::KnownOld => return Err("vault_version_unsupported"),
+        VaultMagicClass::Unknown => return Err("vault_parse_failed"),
     }
     let key_source = bytes[6];
     let salt_len = bytes[7] as usize;

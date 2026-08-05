@@ -36534,3 +36534,153 @@ non-Unix + the ENG-0118 corner's honest fix, open); ENG-0112 (full suite skips o
 suite green is the LOCAL run); WF-0044/WF-0045 (open, measured, not chased); D626 Ruling 3 (the
 deferred N-04 moment, fired here); D-1330 (this PR advances `HIGHEST_D` 1332→1333 with this
 record).
+
+## D-1334 — NA-0694: THE VAULT ENVELOPE IS AUTHENTICATED — the whole header becomes AEAD associated data, the format bumps hard to QSCV02, and a recognized-old vault refuses with its own name
+
+**Status:** Accepted 2026-08-04. **Lane:** NA-0694. **Directive:** `QSL-DIR-2026-08-04-628` (D628,
+sha256 `1c1a06cd…2db2115`, 574 lines). **Base:** `0fc7ac12` (re-derived by fetch; the merge of
+promotion PR #1697; compiled tree byte-identical to `d33a6a41` ≡ `51ea5107` — endpoint diff
+`NEXT_ACTIONS.md` only, measured, so the base-suite skip was EARNED). **Class:**
+`QSC_VAULT_ENVELOPE_AUTHENTICATED_PASS`. **Source finding:** **ENG-0107** (external audit
+**F-06**, the tamper-evidence half of **F-13**, and **N-06**). **Slice C of five** (A ENG-0109
+DONE → B ENG-0106 DONE → **C ENG-0107** → D ENG-0108 → E ENG-0110/0111). **Single-stop: every
+design question was ruled at approval (Rulings A/B/C confirmed on D628 §12), the D626 shape.**
+
+**⚠ THE LEDGER'S OPEN OPERATOR DECISION IS TAKEN AND RECORDED HERE.** ENG-0107 carried
+*"envelope break vs rewrap-on-unlock — must be taken explicitly and recorded before the lane
+designs against either"*. The operator ruled **HARD BREAK**: `VAULT_MAGIC` becomes `b"QSCV02"`,
+a `QSCV01` vault is undecryptable under the bound decrypt — intended; zero installed base,
+pre-v1. **NO migration shim, NO dual-format read, NO rewrap.**
+
+**THE CHANGE.** All five vault AEAD calls — encrypt in `secret_set_locked` (live),
+`secret_set_with_passphrase` (pub-dormant), `persist_session` (pub-dormant GUI path — mechanical
+same treatment; leaving it empty-AAD would write envelopes the bound decrypt refuses), and
+`vault_init_core`; decrypt in `decrypt_payload` — previously used the two-argument (empty-AAD)
+**`ChaCha20Poly1305`** form (the real primitive, D628 §0.1's premise correction: the intent said
+AES-GCM; tag length 16 drives the pre-encrypt arithmetic below). Now every call passes
+`chacha20poly1305::aead::Payload { msg, aad }` — the API pattern already in-crate (qsp session
+store, `attachment_part_aad`, `record_aad`), whose precedent property carries: **the AAD is
+reconstructible on the decrypt side purely from data the decryptor already holds** — the parser
+validates the fixed widths and constructs `ciphertext = nonce ‖ exactly-ct_len bytes`, so
+`nonce = ciphertext[..12]` and `ct_len = len − 12` reproduce the header byte-exactly (D628 §2b).
+
+**ONE BUILDER, ONE CONSTANT — the anti-divergence property this lane exists to hold (Slice A's
+own one-owner-for-one-layout shape).** The tree carried TWO independent magic constants
+(`vault/mod.rs:38`, `adversarial/vault_format.rs:1` — the REAL parser lives in the latter, the
+intent's scope was one file short) and TWO hand-duplicated header serializers (init's inline
+block, `encode_envelope`). Now: `envelope_header_bytes(key_source, m, t, p, ct_len, salt, nonce)`
++ `const HEADER_LEN: usize = 53` is the single serializer both writers route through (init's
+WRITER stays inline per D-1333 C1 — only its header-bytes assembly became a builder call), and
+`vault_format.rs`'s pub `VAULT_MAGIC = b"QSCV02"` is the single constant (`vault/mod.rs:38`
+DELETED; the module imports the unified one — the adversarial module is always compiled).
+**Pre-encrypt AAD arithmetic:** at every encrypt site the AAD is built BEFORE the cipher call
+with `ct_len = plaintext.len() + 16` (the Poly1305 tag — exact for this AEAD), `debug_assert`ed
+against the actual ciphertext length after the call; the serializer then writes the same bytes.
+**The builder is PURE byte assembly — no locks, no I/O, no call edges** — which is what lets C
+edit inside Slice B's locked bodies without touching the D-1333 boundary (below).
+
+**RULING A AS EXECUTED — `vault_version_unsupported` at BOTH sites through ONE recognition
+owner.** The three-way version arm (QSCV02 → proceed; QSCV01 → `vault_version_unsupported`,
+quiet/distinct/fail-closed — "created by an older pre-release build; recreate the vault";
+other → `vault_parse_failed`) exists at both magic checks — the unlock parser
+(`vault_format.rs`) and `vault_status` (`vault/mod.rs`) — but the RECOGNITION lives once:
+`vault_format.rs` gains `VaultMagicClass {Current, KnownOld, Unknown}` +
+`classify_vault_magic()`, and both sites match on it, each surfacing the error name at its own
+surface. This is the same single-owner shape as the builder, and it is what holds the structural
+gate pair simultaneously: `b"QSCV01"` in src = **2** (the classifier's recognized-old arm + the
+length-shielded test literal at `vault_format.rs`'s own `#[cfg(test)]`), and
+`vault_version_unsupported` in src = **2** (parser arm + status arm). The string was measured
+FREE tree-wide; no contract test pins vault error codes. ⚠ **Check-order constraint honored
+(Director-elevated, Ruling C):** at both sites the version distinction sits AT the existing
+magic-check position, AFTER each min-length gate — the three §2e F4 parser-input literals and
+the fuzz corpus depend on undersized inputs refusing as `vault_parse_failed` before any magic
+logic; all three F4 sites are UNTOUCHED and stay green under either magic.
+
+**N-06 FIXED.** The `parsed.key_source == 1 &&` conjunct is deleted from the KDF-profile check
+in `parse_envelope` — the canonical-profile comparison now applies to BOTH key sources. Safe for
+every legitimately-written envelope (init writes canonical params unconditionally for both
+sources); no `key_source == 2` fixture exists anywhere in tests (keychain "not exercisable
+headless", NA_0658:536), so the widening reds nothing and **its headless instrument is the
+structural count (1 → 0), recorded honestly per the D627-A4 precedent** — belt-and-suspenders
+under the AAD, and the keychain exemption was the bug.
+
+**WHAT THIS LANE DELIBERATELY DOES NOT DO (banked in D628 §5, recorded here).** No per-field
+distinct tamper errors on QSCV02 envelopes: AEAD authentication failure surfaces as the existing
+`vault_locked`, ONE cause-class — the AEAD cannot and should not name which byte moved, and
+pre-AEAD per-field validation is exactly the unauthenticated-parse pattern this lane removes
+trust from. This is a recorded deviation from the ledger's NON-prescriptive gate-shape sketch;
+the distinct-cause principle lands where parsing is structural — the version arm. ⚠ Recorded
+observation, unchanged by this lane: the parser tolerates trailing bytes past `need` (`<`, not
+`!=`); those bytes are ignored at parse, excluded from the ct, and remain outside the AAD —
+benign, not silently "fixed".
+
+**THE D-1333 BOUNDARY, HELD.** Encrypt site `:257` lives inside `secret_set_locked`'s body, so C
+edited locked-region bodies — **cipher-call AAD argument and serialization lines ONLY**.
+Signatures, lock acquisitions, the pub/`_locked` split, the U3 pre-lock ensure, and the timeline
+`_locked` chain are untouched (LOAD-BEARING per D-1333). Consequence honored: **the mandatory
+tightened-standard mechanical call-sweep re-ran on the final tree — **ZERO new channels** — the only call edges reachable from any locked region that are new to this lane are the pure header builder (`Vec::with_capacity`/`extend_from_slice`/`push`/`to_le_bytes` only — no lock, no I/O, no get-or-create) and std conversions (`try_into`/`as_slice`); the ensure-before-lock ordering (`:79`→`:80`, `:3111`→`:3112`) and every previously-classified channel (outbox ×2 `_locked`, timeline locked ingest, destroy's inner clear, the U3 pre-lock ensure) unchanged.**
+
+**RULING C AS EXECUTED — the §2e fixture disposition table, and the executor's bounded choice.**
+The whole-corpus census (done AT formalization, the Slice-B lesson front-loaded) enumerated 21
+affected test files; the record matched the enumeration exactly: **25 `b"QSCV01"` literal flips
+across the 20 F1/F2 files** (19 one-line asserts, 2 `starts_with`, 1 local const, 3
+builder-internal writes), **5 F2 test-side builders** now assemble their header FIRST and bind
+it as the encrypt AAD (`ct_len = plaintext + 16`), **20 F3 test-side decrypt helpers** now pass
+`aad: &bytes[..53]` — the file's header prefix, which IS the encrypt-time AAD verbatim for a
+product-written envelope. **Bounded choice: per-site INLINE updates, no shared `tests/common`
+helper** — the helpers are copy-pasted per file by existing corpus idiom, the inline edit is
+2-5 lines each, and a new cross-file coupling for a one-expression AAD was not worth the
+divergence from that idiom. F4 (3 parser-input literals) and F5 (fuzz corpus) untouched, as
+ruled. ⚠ Enumeration-vs-label note, owned by the record: D628 §2e's F1 header label reads
+"20 sites / 19 files" while its own enumerated list (and the measured record, which matched it
+1:1) is 22 sites / 20 files — the label arithmetic was off; the SET was exact; nothing outside
+the table was touched.
+
+**RULING B AS EXECUTED — the instruments (tests/na0694_vault_envelope_aad.rs, 5, gate-required —
+goal-lint is path-based).** (i) `qscv02_roundtrip_unlocks_and_reads_back` — the positive
+control through the pub surface (init → magic assert → unlock → `secret_set` → magic assert →
+`secret_get`), red if encrypt-AAD and decrypt-AAD ever diverge; (ii)
+`qscv02_key_source_byte_tamper_fails_closed` and (iii) `qscv02_kdf_param_byte_tamper_fails_closed`
+— behavior pins with their honest detection stories IN the test comments (keychain-load /
+profile-check fire before AAD headless; deliberately NOT red-capable against Ruling 1 alone —
+the intent's tamper-red derivation was checked and found FALSE, D628 §0.4); (iv)
+`qscv02_unauthenticated_envelope_refused` — ⚠ **THE load-bearing Ruling-1 instrument**: a
+hand-built, structurally canonical, correctly-keyed QSCV02 envelope encrypted with EMPTY AAD is
+refused as `vault_locked` — every pre-AEAD check accepts it; (v)
+`qscv01_vault_refused_with_distinct_error` — exactly `vault_version_unsupported` (not
+`vault_locked`, not `vault_parse_failed`) at unlock AND status. Harness: the NA-0693 pattern —
+ENV_LOCK serialization, fresh per-test dirs chmod 0700 after `create_dir_all` (the Slice-B
+W1/X1 lesson baked in), CLI/pub surface only. **Negative controls, red sets exactly as written
+in advance:** Control A (all five cipher calls reverted to the empty-AAD form, all else kept) →
+exactly test (iv) red — 4 passed / 1 failed, exit 101; Control B (both three-way version arms reverted) → exactly test (v) red — 4 passed / 1 failed, exit 101;
+restores byte-identical by `cmp` both times.
+
+**THE GATE FIGURES.** Structural (base → after, both measured): `VAULT_MAGIC` defs in src
+**2 → 1** · `b"QSCV01"` in src **3 → 2** · `b"QSCV02"` in src **0 → 1** · two-argument
+`.encrypt(`/`.decrypt(` in `vault/mod.rs` **5 → 0** · header-assembly sites **2 → 1** (the
+builder) · the `key_source == 1` conjunct **1 → 0** · `vault_version_unsupported` in src
+**0 → 2**. Full suite **local** (⚠ ENG-0112: `qsc-linux-full-suite` and `macos-qsc-full-serial`
+skip on PRs; this green is the LOCAL run): **594 passed / 0 failed / 2 ignored across 128 binaries, exit 0** vs base **589 / 0 / 2 across 127,
+exit 0** (skip earned, endpoints named) — reconciled BY NAME: +1 binary / +5 passed from
+`na0694_vault_envelope_aad.rs`, nothing else moved; scope `-p qsc` both sides. clippy delta
+**ZERO (53 → 53, distribution identical order-normalized)** (53 base, compiled-identity endpoints); fmt delta **ZERO (236 diff hunks across 56 files both sides, file set identical by `diff`; the lane's one self-added over-width assert reformatted individually, never `cargo fmt`)** (base
+236 diff hunks across 56 files — D-1333's label correction; WF-0045 open, not chased; `cargo
+fmt` never run to write). `Cargo.toml`/`Cargo.lock` diff **EMPTY** (the `Payload` API was
+already in-crate). `classify_ci_scope.sh`: `docs_only=false / runtime_critical=true` (expected).
+
+**GOALS.** **G2** (persistence safety): *the envelope's header — including the `key_source` byte
+that selects the ENTIRE key-derivation path and the KDF parameters that steer Argon2 — can no
+longer be altered without breaking decryption; a recognized-old format refuses with its own
+name; the KDF check no longer exempts a key source.* **G4**: the red-capable instruments and
+this record. ⚠ **G1, G3, G5 NOT claimed** — no per-message keys; the KDF-profile check is
+at-rest tamper refusal, NOT suite negotiation (G3's domain); no metadata surface (ENG-0103
+negatives stated).
+
+**References:** NA-0694; D628 §0 (the seven premise corrections), §2b/§2e, §3 (banked rulings),
+§5, §6, §7, §12 (Rulings A/B/C taken at approval); ENG-0107 (external audit F-06, the
+tamper-evidence half of F-13, N-06 — the ledger's open break-vs-rewrap decision TAKEN here);
+D-1333 (the locked-body boundary + the mandatory tightened sweep re-run; the Slice-E reentrancy
+decision untouched); D-1330 (this PR advances `HIGHEST_D` 1333→1334 with this record);
+ENG-0112 (full suite skips on PRs — the suite green is the LOCAL run); WF-0044/WF-0045 (open,
+measured, never chased); ENG-0108 (keychain — Slice D), ENG-0110/ENG-0111 (destroy/store —
+Slice E), both untouched.

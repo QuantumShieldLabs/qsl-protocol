@@ -1,5 +1,5 @@
 use argon2::{Algorithm, Argon2, Params, Version};
-use chacha20poly1305::aead::Aead;
+use chacha20poly1305::aead::{Aead, Payload};
 use chacha20poly1305::KeyInit;
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use quantumshield_refimpl::crypto::stdcrypto::{
@@ -328,7 +328,7 @@ fn read_mock_vault_secret(cfg: &Path, name: &str) -> String {
     let vault_path = cfg.join("vault.qsv");
     let bytes = fs::read(&vault_path).expect("vault read");
     assert!(bytes.len() > 39, "vault envelope too short");
-    assert_eq!(&bytes[0..6], b"QSCV01");
+    assert_eq!(&bytes[0..6], b"QSCV02");
     let salt_len = bytes[7] as usize;
     let nonce_len = bytes[8] as usize;
     assert_eq!(salt_len, 16);
@@ -354,7 +354,15 @@ fn read_mock_vault_secret(cfg: &Path, name: &str) -> String {
         .expect("vault key derive");
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key));
     let plaintext = cipher
-        .decrypt(Nonce::from_slice(nonce), ciphertext)
+        .decrypt(
+            Nonce::from_slice(nonce),
+            Payload {
+                msg: ciphertext,
+                // NA-0694 (D628 §2e F3): the product now binds the 53-byte header as
+                // AEAD AAD; the header prefix of the file is that AAD verbatim.
+                aad: &bytes[..53],
+            },
+        )
         .expect("vault decrypt");
     let root: serde_json::Value = serde_json::from_slice(&plaintext).expect("vault json");
     root.get("secrets")

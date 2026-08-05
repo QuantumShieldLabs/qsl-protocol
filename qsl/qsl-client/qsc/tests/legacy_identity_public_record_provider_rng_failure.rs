@@ -4,7 +4,7 @@
 mod common;
 
 use argon2::{Algorithm, Argon2, Params, Version};
-use chacha20poly1305::aead::{Aead, KeyInit};
+use chacha20poly1305::aead::{Aead, KeyInit, Payload};
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use serde_json::{json, Value};
 use std::fs;
@@ -204,7 +204,7 @@ fn path_bytes(path: &Path) -> Option<Vec<u8>> {
 
 fn derive_mock_vault_key(bytes: &[u8]) -> ([u8; 32], usize, usize) {
     assert!(bytes.len() > 25, "vault envelope too short");
-    assert_eq!(&bytes[0..6], b"QSCV01");
+    assert_eq!(&bytes[0..6], b"QSCV02");
     assert_eq!(bytes[6], 1, "expected passphrase vault");
     let salt_len = bytes[7] as usize;
     let nonce_len = bytes[8] as usize;
@@ -237,7 +237,15 @@ fn read_mock_vault_json(cfg: &Path) -> Value {
     let ciphertext = &bytes[off..off + ct_len];
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key));
     let plaintext = cipher
-        .decrypt(Nonce::from_slice(nonce), ciphertext)
+        .decrypt(
+            Nonce::from_slice(nonce),
+            Payload {
+                msg: ciphertext,
+                // NA-0694 (D628 §2e F3): the product now binds the 53-byte header as
+                // AEAD AAD; the header prefix of the file is that AAD verbatim.
+                aad: &bytes[..53],
+            },
+        )
         .expect("vault decrypt");
     serde_json::from_slice(&plaintext).expect("vault json")
 }
@@ -250,15 +258,23 @@ fn write_mock_vault_json(cfg: &Path, payload: &Value) {
     let plaintext = serde_json::to_vec(payload).expect("vault payload serialize");
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key));
     let nonce = [0x4e_u8; 12];
-    let ciphertext = cipher
-        .encrypt(Nonce::from_slice(&nonce), plaintext.as_ref())
-        .expect("vault encrypt");
+    // NA-0694 (D628 §2e F2): the header (carried from the product-written file, with the
+    // new ct_len and nonce) is assembled FIRST so it can be bound as the encrypt AAD.
     let mut out = Vec::new();
     out.extend_from_slice(&bytes[0..9]);
     out.extend_from_slice(&bytes[9..21]);
-    out.extend_from_slice(&(ciphertext.len() as u32).to_le_bytes());
+    out.extend_from_slice(&((plaintext.len() + 16) as u32).to_le_bytes());
     out.extend_from_slice(&bytes[25..25 + salt_len]);
     out.extend_from_slice(&nonce);
+    let ciphertext = cipher
+        .encrypt(
+            Nonce::from_slice(&nonce),
+            Payload {
+                msg: plaintext.as_ref(),
+                aad: &out,
+            },
+        )
+        .expect("vault encrypt");
     out.extend_from_slice(&ciphertext);
     fs::write(&vault_path, out).expect("vault write");
     #[cfg(unix)]

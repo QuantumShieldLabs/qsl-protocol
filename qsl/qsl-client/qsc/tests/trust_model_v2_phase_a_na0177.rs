@@ -1,7 +1,7 @@
 mod common;
 
 use argon2::{Algorithm, Argon2, Params, Version};
-use chacha20poly1305::aead::{Aead, KeyInit};
+use chacha20poly1305::aead::{Aead, KeyInit, Payload};
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -13,7 +13,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 const CONTACTS_SECRET_KEY: &str = "contacts.json";
 const ROUTE_TOKEN_BOB: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-const VAULT_MAGIC: &[u8; 6] = b"QSCV01";
+const VAULT_MAGIC: &[u8; 6] = b"QSCV02";
 
 #[derive(Serialize, Deserialize)]
 struct VaultPayload {
@@ -135,7 +135,15 @@ fn parse_vault(path: &Path) -> (VaultEnvelope, VaultPayload) {
     });
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key_bytes));
     let plaintext = cipher
-        .decrypt(Nonce::from_slice(&nonce), ciphertext)
+        .decrypt(
+            Nonce::from_slice(&nonce),
+            Payload {
+                msg: ciphertext,
+                // NA-0694 (D628 §2e F3): the product now binds the 53-byte header as
+                // AEAD AAD; the header prefix of the file is that AAD verbatim.
+                aad: &bytes[..53],
+            },
+        )
         .expect("decrypt vault");
     let payload: VaultPayload = serde_json::from_slice(&plaintext).expect("parse payload");
     (
@@ -155,9 +163,8 @@ fn write_vault(path: &Path, env: &VaultEnvelope, payload: &VaultPayload) {
     let key_bytes = derive_vault_key(env);
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key_bytes));
     let plaintext = serde_json::to_vec(payload).expect("serialize payload");
-    let ciphertext = cipher
-        .encrypt(Nonce::from_slice(&env.nonce), plaintext.as_slice())
-        .expect("encrypt payload");
+    // NA-0694 (D628 §2e F2): the header is assembled FIRST so it can be bound as the
+    // encrypt AAD (ct_len = plaintext + 16-byte tag), matching the product's envelopes.
     let mut out = Vec::new();
     out.extend_from_slice(VAULT_MAGIC);
     out.push(env.key_source);
@@ -166,9 +173,18 @@ fn write_vault(path: &Path, env: &VaultEnvelope, payload: &VaultPayload) {
     out.extend_from_slice(&env.kdf_m_kib.to_le_bytes());
     out.extend_from_slice(&env.kdf_t.to_le_bytes());
     out.extend_from_slice(&env.kdf_p.to_le_bytes());
-    out.extend_from_slice(&(ciphertext.len() as u32).to_le_bytes());
+    out.extend_from_slice(&((plaintext.len() + 16) as u32).to_le_bytes());
     out.extend_from_slice(&env.salt);
     out.extend_from_slice(&env.nonce);
+    let ciphertext = cipher
+        .encrypt(
+            Nonce::from_slice(&env.nonce),
+            Payload {
+                msg: plaintext.as_slice(),
+                aad: &out,
+            },
+        )
+        .expect("encrypt payload");
     out.extend_from_slice(&ciphertext);
     fs::write(path, out).expect("write vault");
 }

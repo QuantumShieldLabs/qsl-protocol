@@ -75,8 +75,13 @@ fn vault_rng_nonce(label: &str) -> Result<Nonce, &'static str> {
 
 #[cfg(feature = "keychain")]
 const VAULT_KEYCHAIN_SERVICE: &str = "qsc";
+// NA-0695 (D629 R5, D-1335): probe-only, DELIBERATELY fixed — `keychain_supported`'s
+// availability probe is constructor-only and never addresses the store, and pinning its
+// account fixed keeps ENG-0116's availability-semantics surface untouched. Store entries
+// are addressed per-vault via `vault_keychain_account` (R1); no fixed account reaches the
+// store anywhere.
 #[cfg(feature = "keychain")]
-const VAULT_KEYCHAIN_ACCOUNT: &str = "vault";
+const VAULT_KEYCHAIN_PROBE_ACCOUNT: &str = "qsc-availability-probe";
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct VaultPayload {
@@ -163,6 +168,9 @@ enum ProviderError {
     TokenMissing,
     TokenUnavailable,
     ProviderFailed,
+    // NA-0695 (D629 R4, D-1335): init REFUSES an existing keychain entry rather than
+    // overwriting it; a new cause gets its own name (D-1333 mapping discipline).
+    EntryExists,
 }
 
 pub fn cmd_vault(cmd: VaultCmd) -> CliResult {
@@ -684,7 +692,7 @@ fn vault_init_core(key_source: KeySource, mut pass: Option<String>) -> Result<()
 
     // For keychain provider, store the key *before* file write to avoid mutation on reject.
     if key_source == KeySource::Keychain {
-        if let Err(err) = keychain_store_key(&key_bytes) {
+        if let Err(err) = keychain_store_key(&salt, &key_bytes) {
             pass_bytes.zeroize();
             key_bytes.zeroize();
             return Err(provider_error_code(err));
@@ -713,7 +721,7 @@ fn vault_init_core(key_source: KeySource, mut pass: Option<String>) -> Result<()
         let _ = fs::remove_file(&tmp);
         let _ = fs::remove_file(&vault_path);
         if key_source == KeySource::Keychain {
-            let _ = keychain_remove_key();
+            let _ = keychain_remove_key(&salt);
         }
         return Err(fail_core_buffers("vault_write_failed", &mut pass_bytes, &mut key_bytes));
     }
@@ -930,7 +938,7 @@ fn derive_runtime_key(
             pass_bytes.zeroize();
             res.map_err(|_| "vault_locked")
         }
-        2 => keychain_load_key(out).map_err(|_| "vault_locked"),
+        2 => keychain_load_key(&env.salt, out).map_err(|_| "vault_locked"),
         4 => Err("vault_mock_provider_retired"),
         _ => Err("vault_locked"),
     }
@@ -1082,9 +1090,13 @@ fn keychain_supported() -> bool {
     if std::env::var("QSC_DISABLE_KEYCHAIN").ok().as_deref() == Some("1") {
         return false;
     }
+    #[cfg(all(feature = "keychain", qsc_keychain_test_seam))]
+    if keychain_seam_dir().is_some() {
+        return true;
+    }
     #[cfg(feature = "keychain")]
     {
-        Entry::new(VAULT_KEYCHAIN_SERVICE, VAULT_KEYCHAIN_ACCOUNT).is_ok()
+        Entry::new(VAULT_KEYCHAIN_SERVICE, VAULT_KEYCHAIN_PROBE_ACCOUNT).is_ok()
     }
     #[cfg(not(feature = "keychain"))]
     {
@@ -1092,34 +1104,106 @@ fn keychain_supported() -> bool {
     }
 }
 
-fn keychain_store_key(key: &[u8]) -> Result<(), ProviderError> {
+// NA-0695 (D629 R1, E-A, D-1335): the ONE account-derivation site — the keychain account is
+// per-vault BY CONSTRUCTION ("vault-" + raw hex of the envelope salt, 38 chars). Every salt
+// this reads was either drawn by init before the store call or parsed through
+// `parse_vault_envelope` (D-1334's one parser), and no code path ever re-salts an existing
+// vault (E-A: salt-fill sites = 1), so the address is vault-lifetime-stable. No caller
+// assembles an address (the D-1332 one-owner property). The account string is an ADDRESS,
+// not key material — deliberately not zeroized (§5a).
+#[cfg(feature = "keychain")]
+fn vault_keychain_account(salt: &[u8; 16]) -> String {
+    format!("vault-{}", hex_encode(salt))
+}
+
+fn keychain_store_key(salt: &[u8; 16], key: &[u8]) -> Result<(), ProviderError> {
     #[cfg(feature = "keychain")]
     {
-        let entry = Entry::new(VAULT_KEYCHAIN_SERVICE, VAULT_KEYCHAIN_ACCOUNT)
-            .map_err(|_| ProviderError::ProviderFailed)?;
+        let account = vault_keychain_account(salt);
+
+        // Raw existence read — the seam swaps exactly this read (E-B); the refuse DECISION
+        // below is the single shared copy both backends feed.
+        #[cfg(qsc_keychain_test_seam)]
+        let seam_existing: Option<bool> =
+            keychain_seam_dir().map(|dir| keychain_seam_get(&dir, &account).is_some());
+        #[cfg(not(qsc_keychain_test_seam))]
+        let seam_existing: Option<bool> = None;
+        let mut entry_slot: Option<Entry> = None;
+        let existing = match seam_existing {
+            Some(found) => found,
+            None => {
+                let entry = Entry::new(VAULT_KEYCHAIN_SERVICE, &account)
+                    .map_err(|_| ProviderError::ProviderFailed)?;
+                let found = match entry.get_password() {
+                    Ok(mut prior) => {
+                        prior.zeroize();
+                        true
+                    }
+                    Err(keyring::Error::NoEntry) => false,
+                    // Fail CLOSED (R4): an unreadable store must never fail open into an
+                    // overwrite.
+                    Err(_) => return Err(ProviderError::ProviderFailed),
+                };
+                entry_slot = Some(entry);
+                found
+            }
+        };
+
+        // THE refuse (R4): one decision, exercised identically by the real and seam
+        // backends (E-B — the seam must never carry its own copy of this).
+        if existing {
+            return Err(ProviderError::EntryExists);
+        }
+
         let mut enc = hex_encode(key);
-        let res = entry
-            .set_password(&enc)
-            .map_err(|_| ProviderError::ProviderFailed);
+        // Raw write — the seam swaps exactly this write (E-B).
+        #[cfg(qsc_keychain_test_seam)]
+        if let Some(dir) = keychain_seam_dir() {
+            let res = keychain_seam_set(&dir, &account, &enc);
+            enc.zeroize();
+            return res;
+        }
+        let res = match entry_slot {
+            Some(entry) => entry
+                .set_password(&enc)
+                .map_err(|_| ProviderError::ProviderFailed),
+            None => Err(ProviderError::ProviderFailed),
+        };
         enc.zeroize();
         res?;
         Ok(())
     }
     #[cfg(not(feature = "keychain"))]
     {
-        let _ = key;
+        let _ = (salt, key);
         Err(ProviderError::TokenUnavailable)
     }
 }
 
-fn keychain_load_key(out: &mut [u8; 32]) -> Result<(), ProviderError> {
+fn keychain_load_key(salt: &[u8; 16], out: &mut [u8; 32]) -> Result<(), ProviderError> {
     #[cfg(feature = "keychain")]
     {
-        let entry = Entry::new(VAULT_KEYCHAIN_SERVICE, VAULT_KEYCHAIN_ACCOUNT)
-            .map_err(|_| ProviderError::ProviderFailed)?;
-        let secret = entry
-            .get_password()
-            .map_err(|_| ProviderError::TokenUnavailable)?;
+        let account = vault_keychain_account(salt);
+        // Raw read — the seam swaps exactly this read (E-B); the decode below is shared.
+        #[cfg(qsc_keychain_test_seam)]
+        let seam_secret: Option<String> = match keychain_seam_dir() {
+            Some(dir) => {
+                Some(keychain_seam_get(&dir, &account).ok_or(ProviderError::TokenUnavailable)?)
+            }
+            None => None,
+        };
+        #[cfg(not(qsc_keychain_test_seam))]
+        let seam_secret: Option<String> = None;
+        let secret = match seam_secret {
+            Some(value) => value,
+            None => {
+                let entry = Entry::new(VAULT_KEYCHAIN_SERVICE, &account)
+                    .map_err(|_| ProviderError::ProviderFailed)?;
+                entry
+                    .get_password()
+                    .map_err(|_| ProviderError::TokenUnavailable)?
+            }
+        };
         let bytes = hex_decode(&secret).ok_or(ProviderError::ProviderFailed)?;
         if bytes.len() != 32 {
             return Err(ProviderError::ProviderFailed);
@@ -1129,15 +1213,21 @@ fn keychain_load_key(out: &mut [u8; 32]) -> Result<(), ProviderError> {
     }
     #[cfg(not(feature = "keychain"))]
     {
-        let _ = out;
+        let _ = (salt, out);
         Err(ProviderError::TokenUnavailable)
     }
 }
 
-fn keychain_remove_key() -> Result<(), ProviderError> {
+fn keychain_remove_key(salt: &[u8; 16]) -> Result<(), ProviderError> {
     #[cfg(feature = "keychain")]
     {
-        let entry = Entry::new(VAULT_KEYCHAIN_SERVICE, VAULT_KEYCHAIN_ACCOUNT)
+        let account = vault_keychain_account(salt);
+        // Raw delete — the seam swaps exactly this delete (E-B).
+        #[cfg(qsc_keychain_test_seam)]
+        if let Some(dir) = keychain_seam_dir() {
+            return keychain_seam_delete(&dir, &account);
+        }
+        let entry = Entry::new(VAULT_KEYCHAIN_SERVICE, &account)
             .map_err(|_| ProviderError::ProviderFailed)?;
         entry
             .delete_credential()
@@ -1146,8 +1236,56 @@ fn keychain_remove_key() -> Result<(), ProviderError> {
     }
     #[cfg(not(feature = "keychain"))]
     {
+        let _ = salt;
         Err(ProviderError::TokenUnavailable)
     }
+}
+
+// NA-0695 (D629 §5c, R3, D-1335): the cfg-fenced FILE-BACKED keychain test seam — the
+// instrument that makes the banked two-profiles acceptance red-capable headless (keyring's
+// built-in mock is EntryOnly and cannot model cross-call collision, §0.5). One file per
+// (service, account) under the env-named directory; the store survives process boundaries
+// because the corpus drives spawned binaries and a real keychain IS cross-process state.
+// ⚠ E-B (BINDING): these functions are RAW STORAGE PRIMITIVES ONLY — get/set/delete on an
+// already-derived (service, account) key. The account derivation and the exists→refuse
+// decision live exactly once, in the shared helper bodies above; this seam must never
+// carry its own copy of either. ⚠ Plaintext store, test-only: compiled solely under
+// `--cfg qsc_keychain_test_seam` (never a default or release build), and the env var alone
+// can never conjure a store where the cfg is absent — the env read itself is cfg-fenced
+// (the rng-seam twin-arm property; test (ii) pins it).
+#[cfg(all(feature = "keychain", qsc_keychain_test_seam))]
+fn keychain_seam_dir() -> Option<PathBuf> {
+    match std::env::var("QSC_KEYCHAIN_TEST_SEAM") {
+        Ok(v) if !v.trim().is_empty() => Some(PathBuf::from(v)),
+        _ => None,
+    }
+}
+
+#[cfg(all(feature = "keychain", qsc_keychain_test_seam))]
+fn keychain_seam_entry_path(dir: &Path, account: &str) -> PathBuf {
+    dir.join(format!("{}__{}", VAULT_KEYCHAIN_SERVICE, account))
+}
+
+#[cfg(all(feature = "keychain", qsc_keychain_test_seam))]
+fn keychain_seam_get(dir: &Path, account: &str) -> Option<String> {
+    fs::read_to_string(keychain_seam_entry_path(dir, account)).ok()
+}
+
+#[cfg(all(feature = "keychain", qsc_keychain_test_seam))]
+fn keychain_seam_set(dir: &Path, account: &str, value: &str) -> Result<(), ProviderError> {
+    if fs::create_dir_all(dir).is_err() {
+        return Err(ProviderError::ProviderFailed);
+    }
+    fs::write(keychain_seam_entry_path(dir, account), value)
+        .map_err(|_| ProviderError::ProviderFailed)
+}
+
+#[cfg(all(feature = "keychain", qsc_keychain_test_seam))]
+fn keychain_seam_delete(dir: &Path, account: &str) -> Result<(), ProviderError> {
+    // Mirrors the real backend's remove mapping: any failure (including a missing entry)
+    // surfaces as ProviderFailed.
+    fs::remove_file(keychain_seam_entry_path(dir, account))
+        .map_err(|_| ProviderError::ProviderFailed)
 }
 
 #[cfg(feature = "keychain")]
@@ -1328,6 +1466,7 @@ fn provider_error_code(err: ProviderError) -> &'static str {
         ProviderError::TokenMissing => "vault_token_missing",
         ProviderError::TokenUnavailable => "vault_token_unavailable",
         ProviderError::ProviderFailed => "vault_provider_failed",
+        ProviderError::EntryExists => "vault_keychain_entry_exists",
     }
 }
 
@@ -1531,5 +1670,51 @@ mod na0692_config_resolver_tests {
             "the store's source must be EnvOverride, got {:?}",
             store_source
         );
+    }
+}
+
+// NA-0695 (D629 §4c, D-1335): the one collision `tests/` cannot construct — init always
+// draws a fresh salt, so the same-salt second store (the §5b refuse, directly) is reachable
+// only here. Runs ONLY under the seam-armed lane build (R3); goal-lint is path-based and an
+// in-src test never satisfies it — the gate-satisfying instruments live in
+// `tests/na0695_vault_keychain_addressing.rs`. Deliberately never calls
+// `vault_keychain_account` (the §7.1 one-owner call-site count stays at the three helpers).
+#[cfg(all(test, feature = "keychain", qsc_keychain_test_seam))]
+mod na0695_keychain_refuse_unit {
+    use super::*;
+
+    #[test]
+    fn same_salt_second_store_refuses_with_entry_exists() {
+        let dir = std::env::temp_dir().join(format!("na0695-seam-unit-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).expect("seam dir");
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(&dir, fs::Permissions::from_mode(0o700)).expect("seam perms");
+        }
+        std::env::set_var("QSC_KEYCHAIN_TEST_SEAM", &dir);
+
+        let salt = [0x5a_u8; 16];
+        let first_key = [0x11_u8; 32];
+        let second_key = [0x22_u8; 32];
+        keychain_store_key(&salt, &first_key).expect("first store");
+        let second = keychain_store_key(&salt, &second_key);
+        assert!(
+            matches!(second, Err(ProviderError::EntryExists)),
+            "second same-salt store must refuse, got {:?}",
+            second
+        );
+        assert_eq!(
+            provider_error_code(ProviderError::EntryExists),
+            "vault_keychain_entry_exists"
+        );
+        // Refuse means ZERO mutation: the first key is still the stored one.
+        let mut out = [0u8; 32];
+        keychain_load_key(&salt, &mut out).expect("load after refuse");
+        assert_eq!(out, first_key, "refuse must not overwrite the stored key");
+
+        std::env::remove_var("QSC_KEYCHAIN_TEST_SEAM");
+        let _ = fs::remove_dir_all(&dir);
     }
 }

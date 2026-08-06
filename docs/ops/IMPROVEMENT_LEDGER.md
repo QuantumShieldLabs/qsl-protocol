@@ -3238,3 +3238,13 @@ the audit's **F-07** and **N-05**. Filing a new id would have duplicated a stric
 - **Recommended change (NOT made here) — the durable fix, an operator-decided choice for a future authorized micro-lane (it must NOT ride NA-0694; D628 §0a.(3) spent that lane's only post-PR commit):** **either** (a) retire the literal at the four sites — array-from-slice `try_into` for the parser and `encode_envelope`, a seam-compatible `random_array::<N>()` helper for init's salt/nonce — so no `[0u8; N]` remains on a crypto path (efficacy plausible-not-certain against the model; a draft PR would show the verdict cheaply since CodeQL runs on PRs), **or** (b) a CodeQL query-filter/suppression config for this query over these idioms — a workflow-path, security-posture choice. **This item belongs alongside the ENG-0112 / CI-migration cluster — the CI configuration is due a pass anyway.**
 - **Proof gap: nothing distinguishes a relocated false positive from a NEW real alert at merge time** — each recurrence presents as a fresh critical security finding on a blocked PR and costs a full diagnosis cycle (this instance cost NA-0694 a stop). A recorded disposition per site (the dismissal justifications) plus the durable fix closes the loop; the dismissals alone do not.
 - Cross-reference: **ENG-0112** (required/full-suite gates that skip or block other than as intended — the CI-migration cluster this joins); **WF-0025** (a gate that cannot pass teaches bypass); **WF-0044 / WF-0045** (the gate-integrity family — an instrument whose red does not mean what it says); **NA-0694 / D-1334** (the lane whose AAD builder surfaced the class); `STOP_NA0694_005_20260804T235518Z.md` (the diagnosis of record, with per-alert justification texts).
+
+### WF-0048 — the method constitution is repo truth: docs/ops/STANDING_RULES.md + docs/ops/PREDICTION_LEDGER.md — **NEW; filed 2026-08-05 by the post-NA-0696 governance errand (operator adoption 2026-08-05)**
+the method constitution is repo truth: docs/ops/STANDING_RULES.md (SR-01..13 BINDING
+consolidations; SR-14 R-BANK / SR-15 adversarial second read / SR-16 prediction ledger
+ACTIVATED by this merge; SR-17 tiered ceremony pending SR-16 data; SR-18 observable-remap
+census effective D631) + docs/ops/PREDICTION_LEDGER.md (rows through NA-0696). Adoption
+ladder recorded in the file's §C: gate-manifest micro-lane → control harness → GUI
+evidence tooling (folds into the input-driver lane intent) → CI-migration (queued). Repo
+copy is canonical from this merge; the handoff-packet copies mirror it. Origin records:
+NA-0696 STOPs 004 (R-BANK), 006/007 (SR-18); operator adoption 2026-08-05.

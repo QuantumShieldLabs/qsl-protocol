@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""qsc_shard_check.py — the D632 shard-manifest gate (Amendment 1 prototype).
+r"""qsc_shard_check.py — the D632 shard-manifest gate (Amendment 1 prototype).
 
 Census truth: qsl/qsl-client/qsc/tests/*.rs (depth 1) + the three fixed targets
 lib, bin:qsc, doc:qsc. The committed manifest must cover the census EXACTLY —
@@ -20,6 +20,20 @@ so the doc target must be ALONE in its shard. That rule is enforced HERE, in the
 gate, not preserved by memory in the generated manifest: a manifest that packs
 doc:qsc with any other target is a named FAIL in BOTH the default mode and
 --emit-args.
+
+SR-20 EXTENSION (D-1338, ruled after this gate's first real CI run went red): THE
+EMITTING STEP'S ENVIRONMENT IS PART OF THE ARTIFACT'S IDENTITY. A fixture borrowed
+from a differently-configured job is not the artifact under test. Measured:
+dtolnay/rust-toolchain writes CARGO_TERM_COLOR=always into $GITHUB_ENV, so cargo
+emits SGR colour EVEN WHEN REDIRECTED TO A FILE, and the marker lines --verify-log
+keys on arrive wrapped:
+
+    '\x1b[1m\x1b[92m   Doc-tests\x1b[0m qsc'
+    '\x1b[1m\x1b[92m     Running\x1b[0m tests/foo.rs (target/debug/deps/foo-...)'
+
+which breaks a '^\s+' anchor twice over. This gate therefore strips SGR before
+matching, so it works whether or not cargo colourises -- a ruled gate must not
+depend on an environment variable a third-party action can flip behind us.
 
 OUTPUT CHANNELS (contract): STDOUT is the machine channel — only --emit-args
 writes to it, and it writes exactly one line, the cargo argument string. STDERR
@@ -208,9 +222,14 @@ def mode_verify_log(assign, shard, path):
         die(f"log file is EMPTY: {path} — empty input fails")
     ran = set()
     lines = 0
+    # SGR strip (see the SR-20 extension in this file's docstring). Deliberately
+    # narrow: it removes colour only. It does NOT strip a leading timestamp, so a
+    # raw runner console stream still FAILS CLOSED, which is the contract.
+    sgr = re.compile(r"\x1b\[[0-9;]*m")
     with open(path, encoding="utf-8", errors="replace") as fh:
         for line in fh:
             lines += 1
+            line = sgr.sub("", line)
             if re.search(r"^\s+Running unittests src/lib\.rs", line):
                 ran.add("lib")
                 continue

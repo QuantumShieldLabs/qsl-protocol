@@ -10,12 +10,22 @@ citing this file; entries are never silently rewritten (mark-don't-rewrite).
 ## A. BINDING (consolidated; origin cited; the origin record governs on any conflict)
 - **SR-01 — Read the file, not the summary.** Rulings issue against the stop-file
   artifact, never a chat paraphrase. (Root-cause record, succession packet.)
+  **EXTENSION (ruled NA-0698 RBANK 004 R15; recorded in D-1338, whose GENERAL
+  form governs per §D's conflict rule — delta from RBANK 004's Director-facing
+  phrasing flagged per SR-09):** A finding of fact about specific lines of
+  executable text requires a sealed artifact and a measured sha, not a chat
+  rendering at an approval prompt. Observations at a prompt are observations;
+  findings require the file.
 - **SR-02 — R16, widened.** Any surprise = stop with diagnosis + proposal, never
   self-fix. An edit to any file OUTSIDE a directive's enumeration is a scope expansion
   and stops BEFORE the edit — even pre-push, even obvious. (NA-0695 STOP 006 §3.)
 - **SR-03 — Stop-file convention.** Immutable, timestamped, self-contained; the stop
   CONTAINS its documents; LATEST.md is a pointer only; corrections to ruled stops go in
-  new files. (Standing.)
+  new files. (Standing.) **Every stop-file states in one plain sentence, before the
+  machinery, what the work buys.** (Added at D-1339 from operator direction 2026-08-07;
+  origin recorded in D-1339. Folded in here rather than numbered, because its content
+  already binds through operator communication preferences and the gap it closes is
+  seat-side reporting.)
 - **SR-04 — D-1330 two-PR shape.** Promotion PR (predecessor finalized DONE, block born,
   STATE advanced, named gates once at base) then impl PR (record + counter + flip as the
   only post-PR commit). Merge commits only; operator merges everything.
@@ -49,7 +59,17 @@ citing this file; entries are never silently rewritten (mark-don't-rewrite).
   existing cause loses one; claim-adjacent strings are measured free before mint.
   (D-1333 mapping discipline, applied through D630.)
 
-## B. PROPOSED (become binding when this file lands in repo truth; adopt one per checkpoint)
+## B. ADOPTED AND PROPOSED RULES (status per entry; adoption from this list one per checkpoint)
+**RESTRAINT (convention, unnumbered).** At most ONE new NUMBERED rule is
+minted per governance lane. Transcriptions of already-ruled law, ruled
+extensions recorded in D-records, and unnumbered conventions do not count
+against it. (Codified at D-1339, correcting a mis-citation: D-1338 and prior
+invoked this as "SR-17 restraint" — SR-17's text contains no such clause; the
+practice was real, its citation was not. Distinct from this file's
+per-CHECKPOINT adoption and scheduling headers, which govern different acts.
+The convention's own birth-breach is recorded, not hidden: WF-0048's single
+merge activated SR-14/15/16 together.)
+
 - **SR-14 — R-BANK: banked decisions land on disk immediately.** The moment the operator
   blesses a design block, the receiving CC session files it VERBATIM as an immutable
   timestamped file under /srv/qbuild/operator/<lane>/ BEFORE any probe, formalization, or
@@ -69,6 +89,16 @@ citing this file; entries are never silently rewritten (mark-don't-rewrite).
   identity rule) for single-file, non-lock, non-crypto changes; ANY surprise
   auto-upgrades the lane to full ceremony. NOT active until SR-16 has enough rows to
   draw the tier line; first candidate class: docs-only and ENG-0048-class one-liners.
+  **⚠ ANNOTATION (D-1339, 2026-08-07): the data this entry deferred to has
+  arrived, and the FIRST tiering design drafted on it (D633 STOP 001 §6.3)
+  FAILED its operator-mandated SR-15 adversarial read (findings sha
+  570e546ef264ae63535220da2c92f84ba1fdcb215b578bdfc0b0d5172d87d3d3: 2 BLOCKER /
+  11 MAJOR — tiers named with no defined content; "blast radius" announced but a
+  domain-keyed enumeration delivered; the substrate arithmetic wrong in the
+  direction favouring the rule) and is REMANDED. The findings are BINDING DESIGN
+  CONSTRAINTS on any successor design, which requires its own SR-15 read before
+  it binds. This entry's own text — the minimum gate set and the
+  any-surprise-auto-upgrades clause — remains the operative interim guidance.**
 
 - **SR-18 — Observable-remap census (ADOPTED by Director ruling, NA-0696 STOP 007; effective D631).**
   Any directive that changes what an existing OBSERVABLE maps to — a marker string, an
@@ -78,6 +108,44 @@ citing this file; entries are never silently rewritten (mark-don't-rewrite).
   new expected value. A census's needle must be as wide as its claim. (Origin: NA-0696
   STOP 006 — the na0694 key_source-tamper pin meeting the D5 load split; the third
   census-narrower-than-its-claim instance.)
+
+- **SR-19 — Delta symbol (ADOPTED by Director ruling, NA-0697 STOP 005 §D R6; effective
+  D632).** Every red-capable BEHAVIORAL instrument in a directive names its DELTA SYMBOL —
+  the specific symbol inside the authorized edit set whose change flips the instrument
+  red→green — and formalization verifies at drafting that (a) the instrument compiles and
+  runs at base and (b) the delta symbol is reachable from it. An instrument whose delta
+  symbol cannot be named is redesigned at drafting, not discovered at execution.
+
+- **SR-20 — Consumer-validated emission (ADOPTED by Director ruling, NA-0698 RBANK 003 R2;
+  effective D632).** Any instrument, script, or manifest whose output is consumed by
+  another tool (compiler, test runner, CI engine, shell) is validated at drafting AGAINST
+  THAT TOOL — the drafting control EXECUTES the consumer on the emitted artifact and
+  records its exit — never against the author's model of the tool. Evidence that an emitter
+  produced SOMETHING is never evidence that what it produced is ACCEPTED. (Origin: NA-0698
+  STOP 001 — E8 verified shard args non-empty while I3 claimed the emit path verified;
+  SR-15 measured cargo rejecting shard 6's args outright, exit 101.)
+  **EXTENSION (ruled NA-0698 RBANK 008 R41; recorded in D-1338): THE EMITTING STEP'S
+  ENVIRONMENT IS PART OF THE ARTIFACT'S IDENTITY. A fixture borrowed from a
+  differently-configured job is not the artifact under test.** SR-20 already requires the
+  consumer to be executed on the emitted artifact; this says WHICH emitted artifact — the
+  one produced by the step that will actually produce it in production, under its real
+  configuration. (Origin of the extension: NA-0698's first Control G run went red across
+  all twelve shards because the reconciler was validated against a runner log from the one
+  `ci.yml` job that does not use `dtolnay/rust-toolchain`, and therefore the one job whose
+  cargo output is not colour-wrapped.)
+
+- **SR-21 — An instrument's scope must equal its claim's scope (ADOPTED by Director ruling,
+  NA-0698 RBANK 010 R55; effective D633).** Wider confounds; narrower misses. **THE
+  OPERATIVE CHECK, applied BEFORE any figure is offered as evidence: does what I measured
+  span exactly what I am asserting?** Five measured instances, all of which fail that
+  question in advance: a needle wider than its claim (a `shard:` key matching a job named
+  `shard`) · a census narrower than its claim (a literal-only `env::var` needle missing the
+  dynamic site) · a fixture from the wrong producer (SR-20's extension above) · a re-run
+  wider than its side effects (re-running a sealed series overwrote its own evidence
+  because the OUTPUT root was not re-pointed) · an instrument wider than its claim (a
+  repo-wide cache total offered as proof about ONE workflow's cache behaviour).
+  **Corollary, from the fifth: when re-running a sealed series, re-point the OUTPUT root
+  FIRST and prove it by listing the sealed directory's mtimes before and after.**
 
 ## C. ADOPTION LADDER (machinery items; one per checkpoint; each ships with its own red-capable proof)
 1. **Post-NA-0696 governance errand** (docs-only PR, with the ENG-0048 pairing window):

@@ -131,3 +131,4 @@ tests/trust_remediation_ux_na0178.rs	10
 tests/two_client_local_runbook_na0182.rs	9
 tests/unlock_gate.rs	5
 tests/vault.rs	10
+tests/ci_phase1_probe.rs	4

@@ -37395,6 +37395,43 @@ anything the reader does not recognise is a named FAIL, never a silent pass. A g
 stops working reds; it does not go quiet.** Weigh that property before trading the import bar
 for a richer parser.
 
+**SR-20 EXTENDS: THE EMITTING STEP'S ENVIRONMENT IS PART OF THE ARTIFACT'S IDENTITY.**
+A fixture borrowed from a differently-configured job is not the artifact under test. SR-20
+already requires the consumer to be executed on the emitted artifact; this says WHICH emitted
+artifact — the one produced by the step that will actually produce it in production, under its
+real configuration. Recorded as an SR-20 extension, not a new SR number (SR-17 restraint;
+SR-20 already states the property one level up). **Origin, measured:** this lane's first
+Control G run went red across all twelve shards because `--verify-log` could not parse the log
+its own workflow produces. `dtolnay/rust-toolchain` writes `CARGO_TERM_COLOR=always` into
+`$GITHUB_ENV`, so cargo emits SGR colour EVEN WHEN REDIRECTED TO A FILE, and the marker lines
+arrive wrapped, breaking a `^\s+` anchor twice over. The parser had been validated at drafting
+against a real runner log — from `qsc_linux_full_suite`, the ONE `ci.yml` job that does not use
+that action and therefore the one job whose output is not coloured. The consumer WAS executed;
+it was executed on an artifact from the wrong PRODUCER CONFIGURATION. **This is the third
+member of the family this lane has named: a needle wider than its claim, a census narrower than
+its claim, a fixture from the wrong producer.**
+
+**RE-RUNNING A SEALED SERIES: RE-POINT THE OUTPUT ROOT FIRST.** When a sealed control series is
+re-executed, re-point its OUTPUT root before the run and prove it by listing the sealed
+directory's file list and mtimes BEFORE and AFTER, diffing the two. **Origin, measured:** this
+lane's execution seat re-pointed the two INPUT constants it noticed and not the harness's output
+root, so the re-run overwrote the previous run's per-control `.out` evidence in the sealed
+directory. The preserved RED run was untouched and the verdict log was byte-identical, so
+nothing load-bearing was lost — but the loss was bounded only after the fact, by arithmetic, not
+prevented. **The family's fourth member: a re-run narrower than its side effects.** The practice
+was applied to the very next run of the same instrument and the sealed directory proved
+byte-identical before and after.
+
+**CONTROL P's SHARD-MATE COUNT, CORRECTED AGAINST THE TREE (SR-09).** Shard 4 holds **13**
+targets as committed, so with the probe row it runs 14 and the probe has **THIRTEEN**
+shard-mates. The pre-execution text said "twelve" while the same sentence called shard 4 "a
+13-target shard"; the two halves disagreed and the measured record governs. Control P's expected
+RED SET was unaffected, being defined by contexts (`{qsc-shard-4, qsc-sharded-suite}`) rather
+than by mate count. **Confirmed in CI:** `shard 4 expected 14 / observed 14 / missing 0 /
+extra 0`, measured WITH the probe failing mid-shard — which is `--no-fail-fast` earning its
+place, since without it cargo stops at the first failure and the thirteen shard-mates never run,
+defeating by-name reconciliation on exactly the runs where a gate matters.
+
 **FOLD-IN DISPOSITIONS.** **ENG-0112 — ADDRESSED AT THE ADVISORY LEVEL:** the whole hermetic
 suite, the `NA_0663_relay_tls_trust.rs` family included, now runs on every pull request, and
 the entry's larger question — *which OTHER security-property tests are full-suite-only and

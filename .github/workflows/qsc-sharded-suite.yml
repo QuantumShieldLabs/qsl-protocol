@@ -1,0 +1,164 @@
+name: qsc-sharded-suite
+
+# NA-0698 (D632 as amended, D-1338) — CI PHASE 1: the hermetic qsc suite, sharded,
+# on PRs.
+# ADVISORY BY CONSTRUCTION: no context this workflow mints is in branch
+# protection's required set; promotion to required is the OPERATOR's
+# branch-protection act (the banked CI Phase 1 ruling, 2026-08-06).
+# STANDARD RUNNERS ONLY (ruled): every runs-on in this file is ubuntu-latest.
+# <=20 SHARDS (ruled): K=12 via scripts/ci/QSC_SHARD_MANIFEST.txt; the manifest
+# gate enforces the ceiling mechanically AND proves this file's matrix runs
+# exactly the shard ids the manifest assigns and that every runs-on value is
+# ubuntu-latest (--assert-workflow; the matrix check runs in both directions).
+# HERMETIC: every test binds 127.0.0.1 in-process; no secrets, no external
+# endpoints, no operator infrastructure in any form.
+# CACHE: ONE shared cache entry for the whole workflow, written only from
+# main and only by shard 0 — a per-shard key would multiply a ~0.3-0.4 GB
+# dependency cache twelvefold inside a 10 GB repo budget already 39% consumed,
+# evicting caches that REQUIRED checks depend on.
+
+on:
+  pull_request: {}
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qsc-sharded-suite-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  classify:
+    name: classify-qsc-sharded-scope
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.classify.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: classify
+        name: Classify pull request scope
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            paths=()
+            case "${PUSH_BEFORE:-}" in
+              ""|0000000000000000000000000000000000000000)
+                echo "WARN: push before SHA missing; classifying fail-closed"
+                ;;
+              *)
+                mapfile -t paths < <(git diff --name-only "$PUSH_BEFORE" "$GITHUB_SHA" | LC_ALL=C sort)
+                ;;
+            esac
+            if [ "${#paths[@]}" -eq 0 ]; then
+              scripts/ci/classify_ci_scope.sh >> "$GITHUB_OUTPUT"
+            else
+              printf 'Changed files for push %s..%s:\n' "$PUSH_BEFORE" "$GITHUB_SHA"
+              printf '%s\n' "${paths[@]}"
+              scripts/ci/classify_ci_scope.sh "${paths[@]}" >> "$GITHUB_OUTPUT"
+            fi
+            exit 0
+          fi
+          scripts/ci/classify_ci_scope.sh >> "$GITHUB_OUTPUT"
+
+  manifest_gate:
+    name: qsc-shard-manifest-gate
+    needs: classify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve docs/governance-only PRs cheaply
+        if: needs.classify.outputs.docs_only == 'true'
+        run: echo "docs/governance-only change; qsc-shard-manifest-gate resolved without runtime lane"
+      - uses: actions/checkout@v5
+        if: needs.classify.outputs.docs_only != 'true'
+      - name: Verify the shard manifest covers the census exactly
+        if: needs.classify.outputs.docs_only != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/ci/qsc_shard_check.py
+      - name: Verify this workflow's matrix matches the manifest and its runners are standard
+        if: needs.classify.outputs.docs_only != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/ci/qsc_shard_check.py --assert-workflow .github/workflows/qsc-sharded-suite.yml
+
+  shard:
+    name: qsc-shard-${{ matrix.shard }}
+    needs: [classify, manifest_gate]
+    if: needs.classify.outputs.docs_only != 'true'
+    runs-on: ubuntu-latest
+    # DERIVED, with the derivation on the record (D632 A1). Measured on the
+    # runner's own log for run 31058005573: build phase 3.0 min, test phase
+    # 216.3 min, against the local full run's 157.5 min => CI/local 1.373x. The
+    # worst shard is 24.43 local min (tests/aws_file_medium_boundary_na0192a.rs,
+    # which floors the makespan at any K) => ~33.5 CI-min of tests + ~3.0 min
+    # build => ~36.5 min projected worst shard. 90 is ~2.5x that, so an overrun
+    # is a bounded failure rather than a six-hour hang (the ENG-0052 clause-(c)
+    # shape). Control G records every shard's measured wall-clock on the impl PR;
+    # any shard over 60 minutes is a STOP and the partition is revisited --
+    # 36.5 projected against 60 is the signal band.
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: qsc-sharded-suite
+          save-if: ${{ github.ref == 'refs/heads/main' && matrix.shard == 0 }}
+      - name: Run this shard's targets (own exit; log kept for reconciliation)
+        shell: bash
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          set -euo pipefail
+          ARGS="$(python3 scripts/ci/qsc_shard_check.py --emit-args "$SHARD")"
+          test -n "$ARGS"
+          started="$SECONDS"
+          set +e
+          # shellcheck disable=SC2086
+          cargo +stable test -p qsc --locked --no-fail-fast $ARGS > shard.log 2>&1
+          code="$?"
+          set -e
+          cat shard.log
+          echo "shard $SHARD cargo wall-clock: $(( SECONDS - started ))s (exit $code)"
+          python3 scripts/ci/qsc_shard_check.py --verify-log "$SHARD" shard.log
+          test "$code" -eq 0
+
+  aggregate:
+    name: qsc-sharded-suite
+    needs: [classify, manifest_gate, shard]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce every dependency green (docs-only resolves cheaply)
+        shell: bash
+        env:
+          DOCS_ONLY: ${{ needs.classify.outputs.docs_only }}
+          MANIFEST_RESULT: ${{ needs.manifest_gate.result }}
+          SHARD_RESULT: ${{ needs.shard.result }}
+        run: |
+          set -euo pipefail
+          echo "docs_only=$DOCS_ONLY manifest=$MANIFEST_RESULT shards=$SHARD_RESULT"
+          test "$MANIFEST_RESULT" = "success"
+          if [ "$DOCS_ONLY" = "true" ]; then
+            echo "docs/governance-only change; qsc-sharded-suite resolved without runtime lane"
+            exit 0
+          fi
+          test "$SHARD_RESULT" = "success"

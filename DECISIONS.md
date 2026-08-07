@@ -37270,3 +37270,192 @@ D-0018/ENG-0076 (the signal role the §5 finding rests on); D-1330 (the two-comm
 ownership shape this lane maps cross-repo); ENG-0048 → RESOLVED, ENG-0119 → FILED
 (this lane's ledger lines); SR-14/SR-18 (exercised), SR-19 (originates here,
 effective D632).
+
+## D-1338 — NA-0698: THE HERMETIC qsc SUITE RUNS ON EVERY PULL REQUEST, SHARDED AND ADVISORY — its coverage enumerated BY NAME, its ruled constraints machine-enforced, and its gate proven red-capable end to end
+
+**Status:** Accepted 2026-08-06. **Lane:** NA-0698 (CI PHASE 1; the banked
+`BANKED_CI_PHASE1_ORDERING_20260806T014127Z.md` sha `1514f0db…8169` is the canonical
+design source). **Directive:** `QSL-DIR-2026-08-06-632` (D632 AS TWICE AMENDED — post-A2
+sha256 `b9fdac99337cf223167bfbaf268c60ac3f84758e09a05368a3c48f962a4e76ee`, 1646 lines;
+post-A1 `bd3605de…5432d`/1386; the pre-amendment draft is STOP 001, `3e8ba033…9611e`,
+embedded at lines 14–607 and byte-provable there). **Base:** spine `3f2380d8` (the #1707
+promotion merge). **Class:** `QSL_CI_PHASE1_HERMETIC_SHARD_PASS`. **Source findings:**
+ENG-0112 (advisory half), ENG-0052. **Design authority:** STOP 001 (the draft), STOP 002,
+STOP 003 (Amendment 1 + the 37-control series), STOP 004 (Amendment 2), and the Director's
+five rulings (RBANKs 003–006).
+
+**THE DESIGN.** Three new files, one workflow, K=12, ADVISORY.
+`.github/workflows/qsc-sharded-suite.yml` — classify (the full house idiom, including the
+`github.event.before..$GITHUB_SHA` positional push diff so docs-only governance merges
+cheap-resolve) + manifest gate + 12 shards + aggregate; plain `pull_request`;
+`permissions: contents: read`; zero secrets; no `-q`; `--no-fail-fast`, so one early
+failure cannot suppress the rest of a shard and defeat by-name reconciliation.
+`scripts/ci/qsc_shard_check.py` — census↔manifest EXACT cover; scope reported on every
+path; EMPTY INPUT FAILS; `--emit-args` / `--verify-log` BY NAME (the ENG-0092 remedy shape
+at shard granularity); DOC-EXCLUSIVITY; `--assert-workflow`; stdlib-only imports by rule.
+`scripts/ci/QSC_SHARD_MANIFEST.txt` — 130 rows, greedy-LPT, `doc:qsc` ALONE in shard 11.
+
+**THE RULED CONSTRAINTS ARE GATES, NOT HABITS — and the two that were preserved by memory
+are now preserved by machine.** STANDARD runners only: every `runs-on:` in that one
+workflow file must equal `ubuntu-latest`, asserted by `--assert-workflow`, red-proven. ≤20
+shards: the ceiling is checked mechanically. The workflow lands NON-REQUIRED; the aggregate
+context `qsc-sharded-suite` is the SINGLE future-required anchor, so the operator's
+eventual promotion act adds exactly one context, not thirteen — **and that promotion is the
+operator's branch-protection act alone.** Rig-dependent surfaces stay LOCAL; Phase 2 (the
+ephemeral in-job relay) stays QUEUED, unmoved.
+
+**K = 12, DERIVED.** With `doc:qsc` held alone, greedy-LPT over the measured per-binary
+durations gives makespan **24.43 min at K=12, 13 and 14 alike** — the makespan is floored
+by the single slowest binary (`tests/aws_file_medium_boundary_na0192a.rs`, 1465.77 s), so a
+larger K buys zero wall-clock and costs one more runner and one more cold compile.
+
+**THE SCOPE READING, AS RULED.** The hermetic shard is the FULL 130-target `-p qsc` suite —
+127 `tests/*.rs` + `lib` + `bin:qsc` + `doc:qsc` — and "the qsl-server tests" is read as
+the qsc-side family that runs the real relay IN PROCESS via the pinned dev-dependency. The
+narrow reading was rejected: it leaves most of the suite PR-unprotected and contradicts the
+banked record's "hermetic-majority". Hermeticity measured, and the sentence is as wide as
+its needle: **7 env names READ across 4 sites, 13 TOUCHED** (the 4th site is a dynamic
+`std::env::var(k)` snapshot/restore helper that sets its own temp values and restores on
+`Drop`, including the unset case), 9 `TcpListener::bind` sites every one `127.0.0.1:0`, 70
+IPv4 literals all loopback, and ZERO `CI` / `GITHUB_*` / `RUNNER_*` reads anywhere in qsc.
+**No test depends on an externally supplied value.**
+
+**THE TIMEOUT IS DERIVED, WITH ITS DERIVATION SHOWN.** Runner build ≈3.0 min + test
+≈216.3 min against the local full run's 157.5 min gives CI/local **1.373×**; the worst
+shard's 24.43 local min projects to **~33.5 CI-min + ~3.0 build = ~36.5 min** against
+`timeout-minutes: 90` — a **~2.5× derived margin**. The ENG-0052 157m08s figure is retained
+as the historical datapoint and labelled as such. **Control G records every shard's measured
+wall-clock, and ANY shard over 60 minutes is a STOP with the partition revisited — never a
+silent pass.**
+
+**CACHE ECONOMICS — an advisory lane must not degrade required ones.** A per-shard cache key
+would multiply a ~0.3–0.4 GB dependency cache twelvefold inside a 10 GB repo budget already
+~40% consumed, evicting caches REQUIRED checks depend on. Mechanism: ONE
+`shared-key: qsc-sharded-suite` for all twelve shards plus
+`save-if: github.ref == 'refs/heads/main' && matrix.shard == 0` — a single writer,
+main-scope only, so PRs restore and never write and there is no twelve-way save race.
+**THE MEASUREMENT DUTY, AS CORRECTED (R34): the BEFORE figure — bytes AND active entry
+count — rides the impl stop; the AFTER figure is a NAMED POST-MERGE OBLIGATION discharged at
+the lane close. A lane that ends without it is NOT CLOSED.** R27 as originally written could
+not be discharged at the planned stop, because this workflow's push trigger fires only on
+`main` and so its first main-branch run happens only after the merge; `workflow_dispatch`
+does not rescue it, since dispatching requires the workflow to exist on main. **Moving the
+cache-writer shard is PRE-AUTHORIZED as a STATED FINDING with its measurement, never a
+silent tune** — shard 0 is also the longest shard and therefore the most exposed to
+cancellation; the doc shard is the obvious candidate to EVALUATE, not to assume.
+
+**THE MANIFEST-MAINTENANCE DUTY, COVERING ROWS *AND* K.** Every future lane that adds or
+removes a qsc test target owes the manifest row in the same commit, and any change to K owes
+the workflow matrix in the same commit — `--assert-workflow` couples them in BOTH
+directions, which is what closes the matrix-SHRINK hole that a hand-copied literal leaves
+open. **While the gate is ADVISORY a red manifest gate is the originating lane's duty to fix
+IN ITS OWN LANE — it is never normalized — and a persistently red advisory gate is itself a
+stop condition for the next Director touching this repo.**
+
+**THE MANIFEST'S GENERATION METHOD IS RECORDED HERE, AND THE GENERATOR IS DELIBERATELY NOT
+COMMITTED.** Method: greedy-LPT over measured per-binary durations with the doc target held
+alone; input: the lane's local timing table, which stays in evidence. The generator consumes
+that uncommitted table and it WILL go stale — **a committed generator that cannot run
+without uncommitted, ageing input is a half-artifact, worse than none, because someone will
+run it and get a bad partition.** Rebalancing is therefore a deliberate lane act with fresh
+measurements, never a script anyone runs. The seed times in the manifest header are labelled
+ESTIMATES; the partition itself is exact and deterministic.
+
+**THE GATE-LIVENESS CONTROL — a class named here.** A control that proves a NEWLY ADDED gate
+can report failure. Its delta lives OUTSIDE the authorized edit set by construction (the
+probe must never merge) and its polarity is green→red, so it is NOT an SR-19 instrument and
+must not be described as one; SR-19 binds the manifest gate and the by-name reconciliation,
+which satisfy it as measured. Conflating the two is what produced a strained base-reading at
+drafting. Recorded as a CANDIDATE standing rule and minted only if a second instance appears
+(SR-17 restraint: one rule minted per lane).
+
+**SR-01 EXTENDS TO EXECUTABLE TEXT.** A finding of fact about specific lines of executable
+text requires a sealed artifact and a measured sha, not a chat rendering at an approval
+prompt. Observations at a prompt are observations; findings require the file. Recorded as an
+extension of SR-01 rather than a new SR number, because SR-01 already states the property
+and rule inflation is its own cost.
+
+**THE INSTRUMENT-DEFECT BOUNDARY.** A defect in a DRAFTING INSTRUMENT is fixed and the full
+control series re-run; it does not warrant its own stop — the freeze governs the TREE, not
+the scratchpad. **THE SAFEGUARD AGAINST FIX-UNTIL-GREEN IS NOT A STOP; IT IS THE
+PRESERVATION OF THE RED: a red run may never be discarded, overwritten, or summarized away,
+because the red is the evidence that the controls CAN fail, which is the only thing that
+makes the green mean anything.** THE BOUNDARY WHERE A STOP *IS* OWED: if fixing an
+instrument would change the gate's RULED CONTRACT — what the gate promises, not how it keeps
+the promise — that is a design change and it stops for a ruling.
+
+**ONE ACCEPTED RESIDUAL RISK, with its reasoning recorded so a future Director does not have
+to rediscover it.** The checker parses the workflow with a hand-rolled, stdlib-only,
+indentation-tracking reader (mandated by the third-party import bar), and that reader has
+already been wrong once — its `shard:` needle initially matched the JOB named `shard`, a
+needle wider than its claim, found inside the very gate that exists to catch that class, by
+the gate's own controls. It can in principle diverge from real YAML semantics on a future
+workflow edit. **ACCEPTED, because the divergence mode is FAIL-CLOSED BY CONSTRUCTION:
+anything the reader does not recognise is a named FAIL, never a silent pass. A gate that
+stops working reds; it does not go quiet.** Weigh that property before trading the import bar
+for a richer parser.
+
+**SR-20 EXTENDS: THE EMITTING STEP'S ENVIRONMENT IS PART OF THE ARTIFACT'S IDENTITY.**
+A fixture borrowed from a differently-configured job is not the artifact under test. SR-20
+already requires the consumer to be executed on the emitted artifact; this says WHICH emitted
+artifact — the one produced by the step that will actually produce it in production, under its
+real configuration. Recorded as an SR-20 extension, not a new SR number (SR-17 restraint;
+SR-20 already states the property one level up). **Origin, measured:** this lane's first
+Control G run went red across all twelve shards because `--verify-log` could not parse the log
+its own workflow produces. `dtolnay/rust-toolchain` writes `CARGO_TERM_COLOR=always` into
+`$GITHUB_ENV`, so cargo emits SGR colour EVEN WHEN REDIRECTED TO A FILE, and the marker lines
+arrive wrapped, breaking a `^\s+` anchor twice over. The parser had been validated at drafting
+against a real runner log — from `qsc_linux_full_suite`, the ONE `ci.yml` job that does not use
+that action and therefore the one job whose output is not coloured. The consumer WAS executed;
+it was executed on an artifact from the wrong PRODUCER CONFIGURATION. **This is the third
+member of the family this lane has named: a needle wider than its claim, a census narrower than
+its claim, a fixture from the wrong producer.**
+
+**RE-RUNNING A SEALED SERIES: RE-POINT THE OUTPUT ROOT FIRST.** When a sealed control series is
+re-executed, re-point its OUTPUT root before the run and prove it by listing the sealed
+directory's file list and mtimes BEFORE and AFTER, diffing the two. **Origin, measured:** this
+lane's execution seat re-pointed the two INPUT constants it noticed and not the harness's output
+root, so the re-run overwrote the previous run's per-control `.out` evidence in the sealed
+directory. The preserved RED run was untouched and the verdict log was byte-identical, so
+nothing load-bearing was lost — but the loss was bounded only after the fact, by arithmetic, not
+prevented. **The family's fourth member: a re-run narrower than its side effects.** The practice
+was applied to the very next run of the same instrument and the sealed directory proved
+byte-identical before and after.
+
+**CONTROL P's SHARD-MATE COUNT, CORRECTED AGAINST THE TREE (SR-09).** Shard 4 holds **13**
+targets as committed, so with the probe row it runs 14 and the probe has **THIRTEEN**
+shard-mates. The pre-execution text said "twelve" while the same sentence called shard 4 "a
+13-target shard"; the two halves disagreed and the measured record governs. Control P's expected
+RED SET was unaffected, being defined by contexts (`{qsc-shard-4, qsc-sharded-suite}`) rather
+than by mate count. **Confirmed in CI:** `shard 4 expected 14 / observed 14 / missing 0 /
+extra 0`, measured WITH the probe failing mid-shard — which is `--no-fail-fast` earning its
+place, since without it cargo stops at the first failure and the thirteen shard-mates never run,
+defeating by-name reconciliation on exactly the runs where a gate matters.
+
+**FOLD-IN DISPOSITIONS.** **ENG-0112 — ADDRESSED AT THE ADVISORY LEVEL:** the whole hermetic
+suite, the `NA_0663_relay_tls_trust.rs` family included, now runs on every pull request, and
+the entry's larger question — *which OTHER security-property tests are full-suite-only and
+therefore PR-unprotected?* — is answered by the manifest census: all 130 targets, enumerated
+BY NAME, are PR-covered at the advisory level. **The entry STAYS OPEN with no `Resolution:`
+line** (partial-closure rule): required-level protection arrives only at the operator's
+promotion act. **ENG-0092 — DEFERRED**, its surface being another repository's own workflow,
+though its remedy shape is adopted wholesale here. **WF-0046 — DEFERRED**, another repo,
+another instrument class. **WF-0047 — DEFERRED:** the durable fix is either a qsc src edit at
+four named sites or a CodeQL query-filter config, both outside this enumeration, and coupling
+a CodeQL-config change to a lane already adding CI machinery would join two risk classes in
+one diff. **ENG-0120 — FILED** (A1.12/R9(b)): the monolith's timeout margin has decayed to
+~1.09×, an existing required-adjacent job approaching failure independent of this lane.
+
+**BOUNDARIES.** Zero Rust source edits; zero existing-workflow edits; zero required-context
+changes; `qsc_linux_full_suite` untouched (its retirement is a post-promotion operator
+decision with stability data); macOS lane out; the qsl-server and qsl-desktop repos
+untouched; the rig untouched and unreferenced.
+
+**GOALS.** **G4** (verification as a release gate) — the property: *the full hermetic qsc
+suite runs on every pull request with its coverage ENUMERATED BY NAME and its gate PROVEN
+red-capable end to end — the manifest census fails on empty or mismatched input, every shard
+reconciles its executed set by name, and a deliberately failing probe demonstrated a red
+context before the workflow is trusted.* ⚠ **G1, G2, G3, G5 are NOT claimed.** ENG-0103
+negatives: required-status promotion (the operator's later act, with stability data); the
+monolith's retirement; Phase 2; any qsl-server-repo remedy; the WF-0047 durable fix; any
+qsc/refimpl source change.

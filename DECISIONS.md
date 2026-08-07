@@ -37459,3 +37459,194 @@ context before the workflow is trusted.* ⚠ **G1, G2, G3, G5 are NOT claimed.**
 negatives: required-status promotion (the operator's later act, with stability data); the
 monolith's retirement; Phase 2; any qsl-server-repo remedy; the WF-0047 durable fix; any
 qsc/refimpl source change.
+
+## D-1339 — NA-0699: THE CONSTITUTION INHERITS THE LAW THE PROGRAM IS ALREADY RUN UNDER — and the first rule written to govern how much scrutiny a lane receives FAILED its own mandated adversarial read and was REMANDED
+
+**Status:** Accepted 2026-08-07. **Lane:** NA-0699 (THE GOVERNANCE ERRAND). **Directive:**
+`QSL-DIR-2026-08-07-633` (D633 AS AMENDED — the canonical file is
+`…_633_qsl_protocol_governance_standing_rules_inheritance.md`, sha256
+`e4f847952721d6a0aa2e7aecfe11d98787fe3e4e269a16b9dd6f023fad8868c1`, 820 lines; head-27
+prefix `7077ae71…6877`; the pre-amendment draft is STOP 001, `cc30c4d7…2bdf4`, embedded at
+lines 28–568 and byte-provable there). ⚠ **THE SIBLING
+`…_633_qsl_protocol_governance_standing_rules_additions.md` (sha256 `57673cc1…b9a5`) IS THE
+SEALED PRE-AMENDMENT ASSEMBLY AND IS SUPERSEDED AS CANONICAL BY THIS FILE** — both remain on
+disk at chmod 444, the record naming which governs, per the expectations-file chain
+precedent (v1→v4). **Base:** spine `a2dae58f` (the #1710 promotion merge). **Class:**
+`QSL_GOVERNANCE_STANDING_RULES_INHERITANCE_PASS`. **Design authority:** STOP 001 (the
+draft), the operator-mandated SR-15 findings (`570e546e…d3d3`), STOP 002 (Amendment 1),
+STOP 003 (the self-audit addendum), STOP 004 (the promotion), and the Director's rulings
+R63–R86 (RBANKs 003–005).
+
+**1. THE REMAND (R63).** The drafted SR-17 replacement — "Tiered ritual, untiered rigor" —
+is **WITHDRAWN ENTIRE**. It failed the adversarial read the operator mandated before it
+could bind: **2 BLOCKER / 11 MAJOR / 13 MINOR / 9 NOTE**, findings sha
+`570e546ef264ae63535220da2c92f84ba1fdcb215b578bdfc0b0d5172d87d3d3`, which is **the binding
+constraint document** and governs the full statement of what a successor owes. The existing
+`SR-17 — Tiered ceremony (design pending data)` entry **STANDS UNTOUCHED and remains the
+operative interim guidance**, on the read's measurement that it is MORE operative than what
+would have replaced it; it gains one annotation, appended mark-don't-rewrite. Nothing is
+superseded, so the mark-don't-rewrite obligation to preserve superseded text is **discharged
+by non-occurrence**. Measured at execution: the entry is byte-identical to base, and both
+`Tiered ceremony (design pending data)` and the any-surprise-auto-upgrades clause survive at
+1 → 1. **A remand that left either at 0 would be a rewrite wearing a remand's name.**
+
+**2. THE SUCCESSOR'S BINDING CONSTRAINT SET, and the interim ruling.** Any successor tiering
+design is bound by, and **requires its own SR-15 read before it binds**: define the ritual
+content of every tier as **enumerable acts** · key on **consequence** or drop the
+blast-radius claim · state a **default tier** plus exhaustive/exclusive status, tested
+against the **six hard cases** · disambiguate the untiered floor · **chain-integrity
+conventions (SR-01, SR-03, SR-14) are exempt from any tiering** · the **auto-escalation
+clause survives** into any successor · a **mechanical declaration syntax and a check path** ·
+reconcile MIDDLE against **NA-0698's actual ritual** · a vocabulary that is **not TIER** —
+`infra-literal-scan`, a REQUIRED gate, owns that word · **self-compliance at first
+application** · and the substrate arithmetic is **B2's reconciliation, no other**. The
+findings file governs the full statement; the above is the compression this record carries.
+**RULED FOR THE INTERIM (M3):** reading **(i)** is the meaning — *each rule's own trigger
+gates; nothing is required BY tier.* This resolves the §6.3-vs-§9 contradiction the read
+found, and it is what STOP 001 §9 already assumed when it declared SR-06 does not bite.
+
+**3. B2 IS THE CANONICAL CEREMONY ARITHMETIC (R64), superseding BOTH prior Director sums.**
+*"The five instrument defects"* names **two unreconciled sets sharing 2 of 5 members** — any
+future citation must name its membership. On Set A there were **at most 2** pre-commit
+defects in the deliverable; **execution caught ≥5**. *"One required-check hazard"* is
+**RETIRED as unnamed**, and **no required check was ever degraded**. The catching instrument
+was the **37**-control series; E32 postdates the commits. ⚠ **The direction of the error is
+part of the record: both wrong sums FAVORED the Director's own tier-down preference — the
+exact conflict the operator's mandatory red-team existed to test, and it fired.** The
+superseded sums, named so the correction is auditable: *"7 pre-commit / execution caught 1"*
+(R61e), then *"7 honest / 1 fortune; 5 pre / 3 after"* (the first packet correction).
+
+**4. RESTRAINT IS CODIFIED, AND THE MIS-CITATION IS CLOSED (R65).** A titled, unnumbered
+convention now stands at §B's head: at most ONE new NUMBERED rule is minted per governance
+lane; transcriptions, ruled extensions recorded in D-records, and unnumbered conventions do
+not count against it. **Every prior "SR-17 restraint" citation refers to THIS paragraph** —
+which closes `DECISIONS.md:37370` and `:37402` without editing either immutable line. SR-17's
+text contains no such clause; **the practice was real, its citation was not.** The
+convention's own birth-breach is recorded, not hidden: WF-0048's single merge activated
+SR-14/15/16 together.
+
+**5. §B's HEADER IS CORRECTED TO PER-ENTRY STATUS HONESTY (R69).** The section carried
+adopted rules under a header that called them all proposed. The superseded header is
+preserved verbatim here, mark-don't-rewrite:
+
+```
+## B. PROPOSED (become binding when this file lands in repo truth; adopt one per checkpoint)
+```
+
+**§D's merging-PR clause is discharged via the TRACEABILITY entry and git history** — the
+WF-0048 precedent, now **stated instead of silently repeated**.
+
+**6. NO `IMPROVEMENT_LEDGER.md` EDIT IS OWED (R67), and the reasoning is recorded so nobody
+re-derives it.** Its clause 1 (*"SR-01..13 BINDING consolidations"*) was **never falsified** —
+§A's roster is unchanged by this lane, measured: the SR-01 and SR-03 edits land INSIDE §A and
+the new entries append to §B. Its clause 2 (*"SR-17 tiered ceremony pending SR-16 data"*) is
+**RE-TRUED by the remand**: the design is again pending. The edit set therefore stays CLOSED
+at five files, and the drafted request to widen an operator-closed edit set is **MOOT rather
+than answered** (R77). `docs/ops/PREDICTION_LEDGER.md:4`'s purpose sentence likewise **stands
+unchanged** (R68) — the first tiering attempt was drafted, read and remanded at this
+decision, which is the ledger's stated purpose operating correctly.
+
+**7. THE HONEST COUNT (R71), stated as wide as the effect.** This lane lands **ONE numbered
+mint — SR-21** — and **TWO unnumbered codifications: the SR-03 payoff sentence and the
+RESTRAINT paragraph.** The boundary is no longer narrower than what the lane does.
+
+**8. THE TRANSCRIPTION/MINT BOUNDARY (as corrected by R66).** SR-19, SR-20 with its D-1338
+extension, and SR-01's extension are **transcriptions of already-binding law, not mints** —
+they were law by their origin records and were merely absent from the repo copy. SR-01's
+extension lands in **D-1338's GENERAL form**, which governs per §D's conflict rule; the
+Director-facing narrowing is not landed, and the entry therefore no longer loses under §D's
+own conflict rule. SR-20's extension carries D-1338's explanatory sentence verbatim, so the
+two repo-truth statements do not diverge.
+
+**9. SR-23 — RECORDED OPERATIONAL PRACTICE, minted as a numbered rule at the next governance
+touch.** Its origin, verbatim:
+
+   > **When blocked, enumerate and try; do not poll one signal.** A block is not discharged by
+   > watching a single indicator. Name the paths that may not be blocked, try the cheap ones, and
+   > report what each measured; offer the options rather than repeating "no change". **A single
+   > indicator can be lagging, confounded, or measuring something other than what blocks you.**
+   > (Origin: during an 8h18m GitHub Actions outage, NA-0698 polled the status page and fired probes
+   > that were *all* `rerun`, concluding the platform was unusable. `workflow_dispatch` — a different
+   > TRIGGER — was never throttled and recovered the lane immediately at the operator's suggestion to
+   > try anyway. Generalised and ruled: during a degradation a different trigger or path may be
+   > unthrottled even when the obvious one is not — **measure more than one door before concluding
+   > the building is locked**. Corollary, same lane: a status page can lag real capacity in BOTH
+   > directions, so use it as a cheap trigger for the real measurement, never as the measurement.)
+
+**10. SR-22's ORIGIN, recorded with its fold-in to SR-03.** NA-0698 reported controls, shas
+and rulings for ~19 hours and never said, unprompted, that the lane turns a 3.7-hour
+post-merge suite into a ~31-minute check on every pull request; **the operator learned it
+only by asking.** Folded into SR-03 rather than numbered, because its content already binds
+through operator communication preferences and the gap it closes is seat-side reporting.
+
+**11. THE R55 RESPONSIBILITY PRECEDENT, verbatim: owned at every link, absolved at none.**
+
+**12. R81 — A FINDING THAT BECOMES TRUE FOR A DIFFERENT REASON THAN ITS AUTHOR GAVE IS
+RECORDED WITH THE REAL REASON.** STOP 001 §9's finding that SR-15's own triggers are unmet is
+TRUE — **but BY THE REMAND, not by §9's reasoning.** Nothing is superseded and the
+auto-escalation clause survives (measured 1 → 1), so no safety mechanism is retired and
+SR-15's third trigger is genuinely unmet.
+
+**13. THREE FORWARD CONVENTIONS AND ONE INTERPRETATION.**
+**R75 — ASSEMBLY FOLLOWS THE RULING, NOT THE SEAL.** The pre-ruling assembly of a directive
+file was premature against the D632 precedent (the directive file is created AT the amendment
+act, after the ruling); it did no harm but manufactured a name collision and cost a stop.
+**R83 — findings seats do not compose remedies absent explicit Director direction, and a seat
+receiving a ruling addressed to a different seat SAYS SO BEFORE ACTING.**
+**R85 (an interpretation, not a mint) — SR-03's containment is DISCHARGED BY SEALED-SOURCE
+REFERENCE** when (i) the byte source is a sealed chmod-444 artifact in the operator tree,
+(ii) its sha is stated in the stop, (iii) the extraction is mechanical and proven, and
+(iv) the deviation is NAMED. Retyping a byte-verbatim target to satisfy containment's letter
+is the F9/R10 defect and is never the right trade.
+**RECORDED PRACTICE, two instruments (R85 preamble, R76(a) 8.5): BUILD A NEEDLE FROM THE
+TARGET LINE'S MEASURED BYTES, NEVER FROM YOUR MODEL OF THE TEXT** — a literal spanning a
+line wrap returns a silent 0, and the **wrap-safe (whitespace-tolerant) needle is the house
+instrument for any sentence-presence claim**. Both the seat and the Director reproduced this
+defect independently in this lane.
+
+**14. THE LEDGER INHERITANCE.** `docs/ops/PREDICTION_LEDGER.md` inherits the Director's
+**NA-0697 and NA-0698 close-row sets — 20 rows and 2 provenance comments, landed
+BYTE-VERBATIM** by mechanical extraction between the BEGIN/END markers of the banked ruling
+`RBANK_NA0699_003` (sha `6c267d0e…7dd3`). **This seat composed no row and altered no
+character.** The pending-rows comment is updated to record the NA-0696 discharge and this
+append.
+
+**15. R76(c)/(d) — WHAT THIS RECORD ADOPTS BY REFERENCE.** The six reserved identifiers were
+measured FREE at `3fcda47d` and **re-measured among the promotion PR's pre-write asserts**,
+never carried on the drafting measurement alone. **STOP 003 §3.7's survival map is ADOPTED as
+the authoritative map** of what stands / is amended / superseded / withdrawn across STOP 001,
+cited by seal (`c199efdd…0922`) rather than restated. All six of STOP 001 §14's requests are
+answered: §14.1→R65 · §14.2→R67 · §14.3→R68 · §14.4→R69 · §14.5→R63+R64 · §14.6→R74.
+
+**16. R60 — THIS LANE DOES NOT COUNT TOWARD THE PROMOTION THREE, and the property is now
+MEASURED, not merely traced.** Predicted from the workflow file at drafting and confirmed by
+direct observation at the promotion run: on a docs-only pull request the shard job is skipped
+at job level, **the matrix expression is skipped uninterpolated and zero numbered
+`qsc-shard-N` contexts are minted**, and `qsc-sharded-suite` cheap-resolves green. Direct
+observation of the mechanism is better evidence than the trace, and the sequence —
+**predict from the file at drafting, confirm from the run at execution** — is the pattern to
+keep. **THE PROMOTION-TO-REQUIRED COUNT REMAINS 0 of 3**; only compiled-code lanes count, and
+the count starts at the first of them.
+
+**17. R86 — THE PACKET-INHERITANCE OBLIGATION IS ASSIGNED, NOT LEFT OWNERLESS.** After this
+lane's impl PR merges, the CLOSE-OUT step copies repo-truth `docs/ops/STANDING_RULES.md` and
+`docs/ops/PREDICTION_LEDGER.md` over the on-box operator `method/` copies and states both
+shas; the Director refreshes the packet from repo truth at the same checkpoint. **A named
+gate — a lane that ends without it is not closed.** Measured at drafting: the on-box copy
+carried none of SR-19/SR-20/SR-21 and was `cmp`-identical to repo truth, i.e. two ruled
+appends had gone untaken for two days; `cmp`-identity was offered as reassurance when it
+proved the omission.
+
+**18. HIGHEST_D advances 1338→1339** on the impl commit.
+
+**BOUNDARIES.** Zero source changes · zero CI/workflow changes · zero behavioral instruments
+· no second repo · `docs/ops/IMPROVEMENT_LEDGER.md` OUT and owing nothing · SR-22 and SR-23
+NOT minted as numbered rules · **no tiering rule of any kind lands** · required-status
+promotion not sought · no row of the PREDICTION_LEDGER composed by this seat.
+
+**GOALS.** **G4** (verification as a release gate) — the property: *the rules the program's
+gates and records already cite are present in the constitution those citations point at; and
+the rule governing how much scrutiny a lane receives is not adopted until a design survives
+an adversarial read.* ⚠ **G1, G2, G3, G5 are NOT claimed.** Also NOT claimed: any behavioral
+change, any source change, any CI configuration change, required-status promotion, a tiering
+rule of any kind, and SR-22/SR-23 as numbered rules.

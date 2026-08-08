@@ -994,7 +994,7 @@ pub fn contacts_add(
     let mode = load_trust_onboarding_mode_from_account();
     let state = if verify { "VERIFIED" } else { "DISCOVERED" };
     emit_cli_contact_flow("add", state, label, None, mode);
-    println!("contact={} status={}", label, status);
+    crate::output::emit_raw_payload_line(&format!("contact={} status={}", label, status));
     Ok(())
 }
 
@@ -1073,16 +1073,16 @@ pub fn contacts_device_list(label: &str) -> CliResult {
     let primary = primary_device(&rec)
         .map(|d| d.device_id.as_str())
         .unwrap_or("none");
-    println!(
+    crate::output::emit_raw_payload_line(&format!(
         "label={} device_count={} primary_device={}",
         label, count_s, primary
-    );
+    ));
     for dev in rec.devices {
-        println!(
+        crate::output::emit_raw_payload_line(&format!(
             "device={} state={}",
             dev.device_id,
             canonical_device_state(dev.state.as_str())
-        );
+        ));
     }
     Ok(())
 }
@@ -1115,13 +1115,13 @@ pub fn contacts_device_status(label: &str, device: Option<&str>) -> CliResult {
                     ("primary", bool_str(primary == device_id)),
                 ],
             );
-            println!(
+            crate::output::emit_raw_payload_line(&format!(
                 "label={} device={} state={} primary={}",
                 label,
                 device_id,
                 state,
                 bool_str(primary == device_id)
-            );
+            ));
         }
         None => {
             let count_s = rec.devices.len().to_string();
@@ -1130,17 +1130,17 @@ pub fn contacts_device_status(label: &str, device: Option<&str>) -> CliResult {
                 None,
                 &[("label", label), ("count", count_s.as_str())],
             );
-            println!(
+            crate::output::emit_raw_payload_line(&format!(
                 "label={} device_count={} primary_device={}",
                 label, count_s, primary
-            );
+            ));
             for dev in rec.devices.iter() {
-                println!(
+                crate::output::emit_raw_payload_line(&format!(
                     "device={} state={} primary={}",
                     dev.device_id,
                     canonical_device_state(dev.state.as_str()),
                     bool_str(dev.device_id == primary)
-                );
+                ));
             }
         }
     }
@@ -1347,10 +1347,10 @@ pub fn contacts_device_primary_show(label: &str) -> CliResult {
             ("policy", "primary_only"),
         ],
     );
-    println!(
+    crate::output::emit_raw_payload_line(&format!(
         "label={} primary_device={} selected={} policy=primary_only",
         label, primary, selected
-    );
+    ));
     Ok(())
 }
 
@@ -1420,16 +1420,16 @@ pub fn contacts_show(label: &str) -> CliResult {
         let primary_id = primary_device(&v)
             .map(|d| d.device_id.as_str())
             .unwrap_or("none");
-        println!(
+        crate::output::emit_raw_payload_line(&format!(
             "label={} state={} blocked={} device_count={} primary_device={}",
             label, state, blocked, device_count, primary_id
-        );
+        ));
         for dev in v.devices.iter() {
             let state = canonical_device_state(dev.state.as_str());
-            println!("device={} state={}", dev.device_id, state);
+            crate::output::emit_raw_payload_line(&format!("device={} state={}", dev.device_id, state));
         }
     } else {
-        println!("label={} state=unknown blocked=false", label);
+        crate::output::emit_raw_payload_line(&format!("label={} state=unknown blocked=false", label));
     }
     Ok(())
 }
@@ -1448,10 +1448,10 @@ pub fn contacts_list() -> CliResult {
         let primary_id = primary_device(&rec)
             .map(|d| d.device_id.as_str())
             .unwrap_or("none");
-        println!(
+        crate::output::emit_raw_payload_line(&format!(
             "label={} state={} blocked={} device_count={} primary_device={}",
             label, state, blocked, device_count, primary_id
-        );
+        ));
     }
     Ok(())
 }
@@ -1522,7 +1522,7 @@ pub fn contacts_trust_mode_show() -> CliResult {
     require_unlocked("contacts_trust_mode_show")?;
     let mode = load_trust_onboarding_mode_from_account();
     emit_cli_named_marker("QSC_TRUST_MODE", &[("mode", mode.as_str())]);
-    println!("trust_mode={}", mode.as_str());
+    crate::output::emit_raw_payload_line(&format!("trust_mode={}", mode.as_str()));
     Ok(())
 }
 
@@ -1532,7 +1532,7 @@ pub fn contacts_trust_mode_set(mode: TrustMode) -> CliResult {
     match vault::secret_set(TUI_TRUST_MODE_SECRET_KEY, mode.as_str()) {
         Ok(()) => {
             emit_cli_named_marker("QSC_TRUST_MODE", &[("mode", mode.as_str()), ("ok", "true")]);
-            println!("trust_mode={}", mode.as_str());
+            crate::output::emit_raw_payload_line(&format!("trust_mode={}", mode.as_str()));
             Ok(())
         }
         Err(_) => return Err(CliError::code("contacts_store_unavailable")),
@@ -1549,12 +1549,12 @@ pub fn contacts_request_list() -> CliResult {
         &[("action", "list"), ("count", count_s.as_str())],
     );
     for item in items {
-        println!(
+        crate::output::emit_raw_payload_line(&format!(
             "request alias={} state={} device={}",
             item.alias,
             item.state,
             item.device_id.unwrap_or_else(|| "unknown".to_string())
-        );
+        ));
     }
     Ok(())
 }

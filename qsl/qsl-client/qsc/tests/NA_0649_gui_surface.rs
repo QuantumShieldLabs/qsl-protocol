@@ -286,6 +286,51 @@ fn identity_ensure_preserves_second_identity_guard() {
 }
 
 // ---------------------------------------------------------------------------
+// NA-0700 (D634 A2-FINAL; D-1340) — I-1: the routed named-marker sink's queue
+// arm, driven end-to-end through a real contacts operation.
+// ---------------------------------------------------------------------------
+
+/// AM-5/R153(a): after a driven trust-mode operation under InApp, the named
+/// line `QSC_TRUST_MODE mode=balanced` is IN the queue — the needle anchors on
+/// the label plus a closed-set field the R144 redaction census passes WHOLE,
+/// never on an alias value redaction may rewrite; and its base expectation is
+/// "that line ABSENT from the queue", never "the queue is empty" (at base
+/// `emit_marker` lines are already queued). RED at base
+/// (`emit_cli_named_marker` bypassed routing; the line went to raw stdout);
+/// GREEN with the sink routed. Delta symbol: the InApp arm of the routed
+/// named-marker sink. The payload twin (`trust_mode=`) is asserted DROPPED
+/// (R143) in the same drive.
+#[test]
+fn routed_trust_mode_line_lands_in_queue_under_inapp() {
+    let _g = env_lock();
+    fresh_test_env("na0700_trust_mode_queue");
+
+    vault_init_with_passphrase(PASS_A).expect("init");
+    unlock_with_passphrase(PASS_A).expect("unlock");
+    // `require_unlocked` gates on the process-wide unlocked FLAG (lib.rs:199),
+    // which the bin's unlock adapter sets after a guarded unlock — mirrored
+    // here, reset in the tail like the rest of this binary's global state.
+    set_vault_unlocked(true);
+    drain_markers();
+
+    qsc::contacts::contacts_trust_mode_show().expect("trust-mode show");
+    let lines = drain_markers();
+    assert!(
+        lines.iter().any(|l| l == "QSC_TRUST_MODE mode=balanced"),
+        "the routed named-marker line must land in the queue under InApp, got: {:?}",
+        lines
+    );
+    assert!(
+        !lines.iter().any(|l| l.starts_with("trust_mode=")),
+        "payload lines must not enter the queue under InApp (R143), got: {:?}",
+        lines
+    );
+
+    set_vault_unlocked(false);
+    set_process_passphrase(None);
+}
+
+// ---------------------------------------------------------------------------
 // D585 test group 3 — widened accessors as an external-crate consumer
 // ---------------------------------------------------------------------------
 

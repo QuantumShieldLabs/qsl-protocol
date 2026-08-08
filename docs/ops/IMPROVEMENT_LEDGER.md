@@ -3320,3 +3320,8 @@ NA-0696 STOPs 004 (R-BANK), 006/007 (SR-18); operator adoption 2026-08-05.
 - Status: open — filed 2026-08-08 by NA-0702. FILING ONLY; nothing fixed (D637 §6/§10: countdown code byte-untouched, measured at the committed tree — no changed line in the diff touches countdown code).
 - Originating/last lane: NA-0702 (D-1342; R174 A1.1).
 - Last-updated: 2026-08-08.
+
+### ENG-0125 — the rail-toggle (hamburger) design exists ONLY in operator-side mockup 02, which is SUPERSEDED-HISTORY and never ships: the pattern is one operator-side file away from being lost — **NEW; filed 2026-08-08 by NA-0703 (D-1343; R180 §2.5, ordered) — FILING-ONLY**
+- Severity: P4 (a design-preservation horizon, not a defect; nothing shipped is wrong)
+- The pattern as recorded in mockup 02 (Signal-style): the hamburger toggles the RAIL; rail shown = hamburger at top of rail, columns shift right; rail hidden = the hamburger MOVES INTO the column header so recovery is one click (hamburger, then destination icon) — the control relocates rather than disappearing. NOT implemented; mockup-11 carries no rail-toggle content, so NA-0703's committed set does not preserve it. Mockup 02 stays operator-side because it carries a live tailnet hostname (its SUPERSEDED-HISTORY class is load-bearing).
+- Remedy horizon: a future rail-touching lane (Slice 4) re-draws these two states as a SANITIZED mockup before the pattern is lost. Rationale on the record (R180): NA-0703 MOVES ratified design and does not draw new design; this filing costs nothing and is what stops the pattern disappearing.

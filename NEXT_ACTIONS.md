@@ -6,7 +6,7 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0702 | HIGHEST_NA=0702 | HIGHEST_D=1341 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0702 | HIGHEST_NA=0702 | HIGHEST_D=1342 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
 **FORWARD ORDER — Director decision 2026-08-02, operator-approved.**
 **as of: 2026-08-03** · **superseded by: _none — this is current_**

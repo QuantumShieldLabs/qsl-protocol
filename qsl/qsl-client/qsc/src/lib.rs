@@ -260,14 +260,14 @@ pub fn identity_show(self_label: &str) -> CliResult {
         None,
         &[("ok", "true"), ("fp", fp.as_str())],
     );
-    println!("identity_fp={}", fp);
+    output::emit_raw_payload_line(&format!("identity_fp={}", fp));
     // NA-0633 (ENG-0038): also emit the full identity KEM public key so a peer can provision it
     // (`contacts add --fp <this fp> --kem-pk <this>`) and thereby authenticate this side as the
     // handshake responder. The fingerprint stays the human-comparable element.
-    println!("identity_kem_pk={}", hex_encode(&rec.kem_pk));
+    output::emit_raw_payload_line(&format!("identity_kem_pk={}", hex_encode(&rec.kem_pk)));
     // NA-0634 (D571 Decision 2a): also emit the signing key so a peer provisions BOTH keys against the
     // single verification code (`contacts add --fp <fp> --kem-pk <kem> --sig-pk <sig>`).
-    println!("identity_sig_pk={}", hex_encode(&rec.sig_pk));
+    output::emit_raw_payload_line(&format!("identity_sig_pk={}", hex_encode(&rec.sig_pk)));
     Ok(())
 }
 
@@ -352,11 +352,11 @@ pub fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) -> Cl
         None,
         &[("ok", "true"), ("fp", fp.as_str())],
     );
-    println!("identity_fp={}", fp);
+    output::emit_raw_payload_line(&format!("identity_fp={}", fp));
     // NA-0633 (ENG-0038): emit the full identity KEM public key for peer provisioning (see identity_show).
-    println!("identity_kem_pk={}", hex_encode(&kem_pk));
+    output::emit_raw_payload_line(&format!("identity_kem_pk={}", hex_encode(&kem_pk)));
     // NA-0634 (D571 Decision 2a): emit the signing key for full-identity peer provisioning.
-    println!("identity_sig_pk={}", hex_encode(&sig_pk));
+    output::emit_raw_payload_line(&format!("identity_sig_pk={}", hex_encode(&sig_pk)));
     Ok(())
 }
 
@@ -379,7 +379,7 @@ pub fn peers_list() -> CliResult {
                 ("status", "pinned"),
             ],
         );
-        println!("peer={} fp={} status=pinned", peer, fp);
+        output::emit_raw_payload_line(&format!("peer={} fp={} status=pinned", peer, fp));
     }
     Ok(())
 }

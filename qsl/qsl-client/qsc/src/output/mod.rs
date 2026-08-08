@@ -40,29 +40,85 @@ pub fn install_panic_redaction_hook() {
     }));
 }
 
+// ---------------------------------------------------------------------------
+// NA-0700 (D634 A2-FINAL item 1a; D-1340) — the routed raw-line sink.
+//
+// The 23 raw print statements (the 21 payload sites in contacts/lib plus the
+// two named-marker emitters below) route through here instead of bypassing
+// the output layer. Four constraints, ruled verbatim (R132):
+//   - bypass `format_marker_line` — no `QSC_MARK/1` prefix, no kv redaction
+//     on the raw Stdout path;
+//   - bypass `marker_format()` — raw lines ignore QSC_MARK_FORMAT (a
+//     jsonl-honouring sink would reshape them unseen);
+//   - bypass `log_marker` — no new QSC_LOG side effects;
+//   - EMIT SYNCHRONOUSLY AT THE CALL POINT via `println!` — same LineWriter,
+//     same lock, same line-atomic write; a queue-then-flush sink would
+//     reorder against unbuffered stderr for every `2>&1` consumer.
+// Under default Stdout routing the emitted bytes are IDENTICAL to the direct
+// prints these calls replace (the golden-output control is the instrument).
+//
+// InApp arms, ruled semantics (D-1340):
+//   - payload lines are DROPPED (R143) — the desktop consumes return values,
+//     not payload; fingerprints and public keys are a correlation surface in
+//     shareable debug artifacts (ring buffer → debug log → bug report) even
+//     though they are not secrets;
+//   - CLI and TUI named-marker lines are queued REDACT-ON-QUEUE (R148/R152):
+//     each field value passes through `redact_value_for_output` — the SAME
+//     shared gate the formatted `QSC_MARK/1` vocabulary already uses
+//     (`format_marker_line`), never a bespoke copy (R156) — before line
+//     assembly. One mechanism, both vocabularies, no carve-out. The queue's
+//     resulting two-vocabulary shape (`QSC_MARK/1 event=…` + `LABEL k=v`) is
+//     a stated decision; the first token discriminates.
+// ---------------------------------------------------------------------------
+
+/// Raw payload line (the `key=value` data lines the CLI prints for scripts
+/// and peers): Stdout = byte-identical synchronous print; InApp = DROPPED
+/// (R143 — the routing decision the bypass never made).
+pub(crate) fn emit_raw_payload_line(line: &str) {
+    match marker_routing() {
+        MarkerRouting::Stdout => println!("{}", line),
+        MarkerRouting::InApp => {}
+    }
+}
+
+fn emit_named_marker_line(label: &str, fields: &[(&str, &str)]) {
+    match marker_routing() {
+        MarkerRouting::Stdout => {
+            let mut line = String::from(label);
+            for (k, v) in fields {
+                line.push(' ');
+                line.push_str(k);
+                line.push('=');
+                line.push_str(v);
+            }
+            println!("{}", line);
+        }
+        MarkerRouting::InApp => {
+            let mut line = String::from(label);
+            for (k, v) in fields {
+                line.push(' ');
+                line.push_str(k);
+                line.push('=');
+                line.push_str(&redact_value_for_output(k, v));
+            }
+            let mut queue = marker_queue().lock().expect("marker queue lock");
+            queue.push_back(line);
+        }
+    }
+}
+
 pub(crate) fn emit_tui_named_marker(label: &str, fields: &[(&str, &str)]) {
+    // I-5 (R119(c)): the env gate stays the FIRST statement of the routed
+    // path — with the TUI envs unset this emits NOTHING to either
+    // destination, so the desktop's silence is unchanged.
     if !(env_bool("QSC_TUI_HEADLESS") || env_bool("QSC_TUI_TEST_MODE")) {
         return;
     }
-    let mut line = String::from(label);
-    for (k, v) in fields {
-        line.push(' ');
-        line.push_str(k);
-        line.push('=');
-        line.push_str(v);
-    }
-    println!("{}", line);
+    emit_named_marker_line(label, fields);
 }
 
 pub(crate) fn emit_cli_named_marker(label: &str, fields: &[(&str, &str)]) {
-    let mut line = String::from(label);
-    for (k, v) in fields {
-        line.push(' ');
-        line.push_str(k);
-        line.push('=');
-        line.push_str(v);
-    }
-    println!("{}", line);
+    emit_named_marker_line(label, fields);
 }
 
 pub fn qsc_mark(event: &str, code: &str) {
@@ -339,10 +395,108 @@ fn log_marker(event: &str, code: Option<&str>, kv: &[(&str, &str)]) {
 // keeps it off zero coverage until then.
 #[cfg(test)]
 mod inapp_routing_tests {
-    use super::{emit_marker, marker_queue, set_marker_routing, MarkerRouting};
+    use super::{
+        emit_marker, emit_raw_payload_line, emit_tui_named_marker, marker_queue,
+        set_marker_routing, MarkerRouting,
+    };
+    use std::sync::{Mutex, MutexGuard, OnceLock};
+
+    /// Marker ROUTING is process-global (one AtomicU8), and every test in
+    /// this mod toggles it — so they ALL serialize here, or the parallel
+    /// runner can flip a sibling's routing mid-test (a latent race the C4
+    /// perturbation control exposed by shifting timings). The TUI-env
+    /// mutations ride the same lock.
+    static ROUTING_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+
+    fn routing_lock() -> MutexGuard<'static, ()> {
+        ROUTING_LOCK
+            .get_or_init(|| Mutex::new(()))
+            .lock()
+            .unwrap_or_else(|p| p.into_inner())
+    }
+
+    /// Extract exactly this test's lines from the process-global queue (the
+    /// retain pattern the existing test set), leaving other tests' lines.
+    fn drain_matching(needle: &str) -> Vec<String> {
+        let mut queue = marker_queue().lock().expect("marker queue lock");
+        let mut out = Vec::new();
+        queue.retain(|line| {
+            if line.contains(needle) {
+                out.push(line.clone());
+                false
+            } else {
+                true
+            }
+        });
+        out
+    }
+
+    /// NA-0700 AM-3/R143 (control C2's target): payload lines are DROPPED
+    /// under InApp — raw payload never enters the redaction-disciplined
+    /// queue. Red-capable; delta symbol: `emit_raw_payload_line`'s InApp arm.
+    #[test]
+    fn payload_lines_dropped_under_inapp() {
+        let _g = routing_lock();
+        set_marker_routing(MarkerRouting::InApp);
+        emit_raw_payload_line("identity_fp=QSCFP-na0700-payload-probe-0123456789");
+        set_marker_routing(MarkerRouting::Stdout);
+        assert!(
+            drain_matching("na0700-payload-probe").is_empty(),
+            "InApp must DROP payload lines (R143), not queue them"
+        );
+    }
+
+    /// NA-0700 AM-6 (the fourth matrix cell; controls C1/C4's target): envs
+    /// SET + InApp routes the TUI line into the queue REDACTED per AM-3 — the
+    /// long digit-bearing thread value arrives as `<redacted>` through the
+    /// SAME `redact_value_for_output` gate the formatted vocabulary uses; the
+    /// short mode value passes verbatim. Delta symbol: the routed TUI emit
+    /// call (`emit_named_marker_line`'s InApp arm).
+    #[test]
+    fn tui_named_line_queues_redacted_when_envs_set() {
+        let _g = routing_lock();
+        std::env::set_var("QSC_TUI_TEST_MODE", "1");
+        set_marker_routing(MarkerRouting::InApp);
+        emit_tui_named_marker(
+            "QSC_TUI_NA0700_CELL4",
+            &[
+                ("mode", "immediate"),
+                ("thread", "dr-smith-oncology-2024-line"),
+            ],
+        );
+        set_marker_routing(MarkerRouting::Stdout);
+        std::env::remove_var("QSC_TUI_TEST_MODE");
+        let got = drain_matching("QSC_TUI_NA0700_CELL4");
+        assert_eq!(
+            got,
+            vec!["QSC_TUI_NA0700_CELL4 mode=immediate thread=<redacted>".to_string()],
+            "envs SET + InApp must queue the TUI line redact-on-queue"
+        );
+    }
+
+    /// NA-0700 I-5 queue-empty half (control C3's target): with the TUI envs
+    /// UNSET the routed TUI path emits NOTHING — the env gate stays the FIRST
+    /// statement of the routed path (the delta symbol), so the desktop's
+    /// silence is unchanged. The stdout-empty half of I-5 is carried by the
+    /// golden control's envs-unset scenario (an in-process test cannot read
+    /// its own stdout).
+    #[test]
+    fn tui_path_queues_nothing_when_envs_unset() {
+        let _g = routing_lock();
+        std::env::remove_var("QSC_TUI_TEST_MODE");
+        std::env::remove_var("QSC_TUI_HEADLESS");
+        set_marker_routing(MarkerRouting::InApp);
+        emit_tui_named_marker("QSC_TUI_NA0700_SILENCE", &[("mode", "off")]);
+        set_marker_routing(MarkerRouting::Stdout);
+        assert!(
+            drain_matching("QSC_TUI_NA0700_SILENCE").is_empty(),
+            "envs UNSET: the routed TUI path must queue nothing"
+        );
+    }
 
     #[test]
     fn inapp_routing_queues_markers_and_stdout_routing_bypasses_queue() {
+        let _g = routing_lock();
         set_marker_routing(MarkerRouting::InApp);
         emit_marker("na0645_inapp_probe", Some("keep"), &[("field", "value")]);
         set_marker_routing(MarkerRouting::Stdout);

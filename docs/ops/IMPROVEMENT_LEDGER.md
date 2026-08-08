@@ -3293,3 +3293,12 @@ NA-0696 STOPs 004 (R-BANK), 006/007 (SR-18); operator adoption 2026-08-05.
 - Status: open — filed 2026-08-07 by NA-0700. FILING ONLY; nothing resolved.
 - Originating/last lane: NA-0700 (D-1340; R144/R148/R150/R151).
 - Last-updated: 2026-08-07.
+
+### WF-0050 — qsl-desktop's `public-safety` context is no longer in branch protection's required set: a required context silently dropped, dating instrument = the operator's audit log — **NEW; filed 2026-08-08 by NA-0700 (D-1340; RBANK_NA0700_012 ruling R167(c)) — FILING-ONLY**
+- Severity: P2 (gate integrity; NO current failure — the job still runs and passes on every PR, and the safe-direction reading is on the record: nothing this lane relies on became less gated)
+- Measured current REQUIRED set, live at the server (`branches/main/protection/required_status_checks/contexts`, 2026-08-08): **{rust, advisories, infra-literal-scan}** — 3 contexts. The prose it contradicts: qsl-desktop `ci.yml`'s own recorded comment (and STOP-001 §5.5's census carrying it, and D634 §6's enumeration built on that census) said **{advisories, public-safety, rust}** required with `infra-literal-scan` advisory.
+- The two deltas, ruled at R167: `infra-literal-scan` REQUIRED — **confirmed deliberate by the Director** (R167(b): the correct posture for a public repo). `public-safety` NOT required — **NOT confirmed** (R167(c)): it was required at the NA-0653 lesson ("kept per the NA-0653 lesson", the census's own words) and something removed it. Whether that was a deliberate operator act or drift cannot be dated from a seat — **the operator's audit-log check is the only instrument that can date a branch-protection change**, and this entry names it for exactly that check.
+- Root-cause class (R167, in the ruling's words): a FILE claim (the ci.yml comment) carried through a census as if it were a server measurement — the enumeration-is-not-the-record lesson, fourth instance. The measured set supersedes the prose per SR-09; RBANK_NA0700_012 R167(a) is the superseding record.
+- Status: open — filed 2026-08-08 by NA-0700. FILING ONLY; branch protection is operator-only and nothing was changed by this lane (measured: the lane's PRs touch no CI file and mint no context; all four desktop jobs ran and passed on PR #25 regardless of the required subset).
+- Originating/last lane: NA-0700 (D-1340; R167).
+- Last-updated: 2026-08-08.

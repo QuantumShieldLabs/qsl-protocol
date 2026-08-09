@@ -37718,3 +37718,100 @@ rule of any kind, and SR-22/SR-23 as numbered rules.
 **4. THE OPERATOR-NAME SANITIZATION (A2.1' as corrected by R178 §3; the R16 catch that shaped it).** The whole-tree sweep the amendment itself mandates found a FOURTH site the ruling's enumeration missed — a byte-verbatim TEST PIN (`design_polish.rs:251`) that made the ruled edit set unsatisfiable ({ui edit} ⇒ suite red; count-zero unreachable with src-tauri/ EMPTY); the seat stopped BEFORE the fold, the corrected A2' was ratified at R178, and the Director's enumeration-narrower-than-the-mandated-instrument error is owned on the Director's ledger. Executed: four sites, the ui and test edits in ONE commit (they pin each other), the C-PIN control pre-commit (ui alone → RED at exactly the pinned assertion, 24/1 exit 101 → test edit → 25/25 green), whole-tree tracked case-insensitive operator-name count 4→0. ⚠ The before-literal is NOT respelled in any tree the gate counts (the D625 §0b.3 class — caught live when the first D-0028 draft tripped the gate at 4 and was rebuilt pre-push); the literal values live in the operator-side NA-0703 record. Honest limit (R177 §3.5, in the desktop PR body): the name is removed from CURRENT truth; the string remains in public commit history, which no lane rewrites.
 
 **5. RECORD.** NA-0702 retired MERGING → DONE from RE-VERIFIED merge shas (desktop `b3de4848`, spine `6caf5137`), class `QSLD_ERASE_ERROR_ONE_RESIZING_WRITER_PASS` landed; HIGHEST_NA 0702→0703; HIGHEST_D 1342→1343 this commit; TRACEABILITY row; ENG-0125 filed (R180 §2.5, the rail-toggle horizon: the pattern exists only in operator-side mockup 02, which never ships — a future rail-touching lane re-draws it sanitized). The promotion-three count re-derived: docs_only moves nothing — **1 of 3, unmoved**. NA-0703's class `QSLD_MOCKUP_TRUTH_REFRESH_PASS` is reserved; its DONE finalization belongs to the NEXT lane's promotion. Successors filed, not claimed: the mockup-03 empty-states design gap · the ENG-0125 redraw · the ENG-0124 countdown near-miss lane.
+
+## D-1344 — NA-0705: THE qsc PIN BUMP — the desktop advances `ab5041cd` → `32e572c7`, and the `QSCV01` vault-format hard break it crosses is refused BY NAME on both doors before it can destroy a vault (desktop D-0029); R185 §2.2's `send_ready` composer gate is SUSPENDED on a post-bump re-measure
+
+**1. THE DECISION.** The desktop's `qsc` pin advances to `32e572c7`. Because that
+crosses the `QSCV01` → `QSCV02` vault-format HARD BREAK (D628 Ruling 2 — no
+migration, no dual-format read), the desktop now CLASSIFIES the on-disk envelope
+before it touches any guarded vault path, on **both** doors, and refuses a
+recognized-but-old vault by its own name.
+
+**2. WHY IT IS NOT OPTIONAL — MEASURED, NOT ARGUED.** qsc names the refusal
+correctly (`vault_version_unsupported`) at both parse sites, but
+`vault/protection.rs:156` collapses every `Err` into one branch, increments the
+failure counter at `:175`, and at an armed wipe-after-N limit calls
+`wipe_vault_file_best_effort()` at `:180`. On a real build at the new pin, before
+the remediation, **three consecutive CORRECT passphrases against a `QSCV01` vault
+produced `rejected`, `rejected`, `wiped` with `vault_exists=false`** and
+`failed_unlocks` 0→1. The user is told "Wrong passphrase" while entering the right
+one, and the vault is destroyed. ⚠ **No other gate in the lane could fail on this**:
+the compile passes (no signature moved), and the suite, the gui-driver flows and
+the rig e2e walk all create FRESH vaults, which are `QSCV02`.
+
+**3. BOTH DOORS.** `unlock_attempt_impl` and `destroy_vault_impl` each return the
+refusal WITHOUT CALLING the guarded or destroy path at all — the classification
+GATES the call, it does not interpret its result, because the counting and the wipe
+happen inside the call. Destroy needed its own gate: at the new pin
+`destroy_with_passphrase` peeks the envelope through the same parser BEFORE
+examining the passphrase, an independent route the drafting seat's chain never
+traced and the commissioned SR-15 read found (F-2). The class fix — teaching the
+guard itself to distinguish non-passphrase errors — is FILED as a spine successor
+and is not this lane's (Q8.5: the instance is already two instances).
+
+**4. THE INSTRUMENT IS THE EVIDENCE.** `src-tauri/tests/na0705_qscv01_refusal.rs`,
+5 tests, both doors: a `QSCV02` vault with its 6-byte magic rewound to `QSCV01`
+(faithful — the version arm sits before any key derivation), asserting the refusal
+is named and distinct, that `failed_unlocks` does NOT increment, and that with wipe
+armed at N, N correct-passphrase attempts do NOT wipe. **Watched RED before the
+remediation existed**, pre-registered red set **3 red / 2 green-at-base**, measured
+exactly; the destroy pins were green at base and are recorded as regression pins
+rather than manufactured red. A fix whose test was never seen red is not proven, and
+this is the one place in the program where an unproven fix costs a vault.
+
+**5. `confirm(typed)` WAS READ, NOT RENAMED INTO.** `confirm_with_passphrase` does
+not exist at the new pin (E0599 at `commands.rs:265` + `tests/slice_a_flows.rs:352`
+/`:356` — the adaptation D-0024 foresaw). The replacement is value-neutral; what the
+commitment must equal is decided at the destroy site by a runtime branch on the
+peeked `key_source`. The desktop passes the passphrase, and that is correct ONLY
+because it can never hold a keychain vault (no `features` key; qsc `default = []`;
+`keyring` absent from `Cargo.lock`). That precondition, and `vault_create`'s S0
+file-existence precondition (`state.rs:71`), now ride as comments at their call
+sites. A value-identical line whose warrant moved is exactly what a rename buries.
+
+**6. ⚠ F6 RE-MEASURED POST-BUMP, AND R185 §2.2 IS SUSPENDED.** R184 §2.5 ordered the
+re-measure precisely because an F6 answer carried across the bump would be a carried
+figure. Measured at `32e572c7`: at the pin the responder flipped to
+`send_ready=yes` immediately after the msg1 FETCH; **at main it does not** — it
+stays `established_recv_only / send_ready=no / chainkey_unset` through the fetch and
+reports ready only after its OWN send, **which SUCCEEDS while `send_ready=no`**
+(msg2 delivered byte-identical, `QSC_DELIVERY state=peer_confirmed` at the
+initiator). New C3 machinery observed live and absent at the pin: `receipt_owed
+reason=chain_unseeded` on the responder's receive, then `receipt_send … held=true`
++ `receipt_flush count=1` on its send — the owed-receipt hold is what keeps the
+chain unseeded across the fetch. ⇒ **`send_ready=no` does not mean "cannot send" at
+this pin; it UNDER-REPORTS capability, and a composer gated on it would be disabled
+for a responder who can send — the mirror image of the defect R185 §2.2 was written
+to prevent. That ruling is SUSPENDED, NOT AMENDED**: no replacement gate is minted
+from a single post-bump observation, which would repeat the error that produced it.
+The design lane inherits the MEASUREMENT and the open question (filed), not a rule,
+and owes a composer-gate rule derived from post-bump measurement at n>1, ruled with
+the operator. Scope of this claim: **n=1 pair, this box and this rig, at this rev.**
+
+**7. THE PREDICTION THAT MISSED, RECORDED AS A MISS.** E-1 pre-registered that the
+`Cargo.lock` delta would be exactly 2 changed lines. Measured: **8** — the two
+`source =` lines plus six `windows-sys 0.59.0 → 0.61.2` dependency-EDGE re-points;
+zero packages added or removed HELD (518 → 518). Collateral re-resolution against a
+house index advanced since 2026-07-24, not qsc-driven (qsc's `[dependencies]` is
+byte-identical pin→main), corroborated by the NA-0673 precedent moving the same
+edges the other way, and `cfg(windows)` hence irrelevant to this Linux target.
+**The lock was NOT hand-edited back to match the prediction** — forcing an artifact
+into the shape a prediction wanted is the worse outcome. F-9's residual is resolved:
+`cargo update -p qsc --precise <sha>` works against a manifest-level `rev =`.
+
+**8. THE READ EARNED ITS COMMISSION.** The out-of-memory-scope SR-15 read returned
+14 findings and 11 explicit null results against a delta two lanes had already
+measured. It found the compile break (F-1), the destroy door (F-2), a new
+production-compiled clock override under the unlock path (F-3), and corrected two
+of the lane's own claims — the census (36 path-strings is not 75 reached items,
+F-5) and the linked delta (23 files + manifest, not 92, F-8). Its own largest gap,
+"I did not compile anything", was corroborated by the filesystem: no `target/`, no
+`.rlib`, no `Cargo.lock` in its read root.
+
+**9. RECORD.** NA-0703 retired MERGING → DONE from RE-VERIFIED merge shas (desktop
+`11e8e17c`, spine `32e572c7`), class `QSLD_MOCKUP_TRUTH_REFRESH_PASS`. `### NA-0704`
+allocated RETROSPECTIVELY (R191 §5) as a no-edit measurement lane — no class, no PR;
+a probe has no promotion, so nothing ever allocated it, and that is recorded so the
+next probe lane is allocated deliberately rather than discovered missing.
+HIGHEST_NA 0703→0705; HIGHEST_D 1343→1344 in this commit. Class at close:
+`QSLD_QSC_PIN_BUMP_QSCV01_REFUSAL_PASS`.

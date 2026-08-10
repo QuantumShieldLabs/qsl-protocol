@@ -454,6 +454,59 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
     } else {
         None
     };
+    // NA-0708 (D-1345): **THE STRUCTURAL ACK FLUSH — ADD, DO NOT MOVE.**
+    //
+    // The pull rounds now live in their own function, so EVERY early exit out of them — all 41
+    // of them (7 explicit `return Err` and 34 `?` propagations over the old `:458-1218`) — lands
+    // here, where the acks earned before the failure are flushed exactly once. Before this, the
+    // only flush sat AFTER the loop and every early exit jumped clean over it, stranding the
+    // acks of items that had already been durably committed.
+    //
+    // ⚠ THE WRAPPER ENCLOSES THE WHOLE `'pull:` LOOP, NOT THE `for` BODY. The pull failure at
+    // the top of a round returns from OUTSIDE the `for` — reachable with a plain network blip
+    // once a control envelope has queued an ack in an earlier round — so a wrapper around the
+    // item loop would leave that exit still stranding. `na0708_ack_flush.rs`'s second arm exists
+    // to hold that boundary.
+    //
+    // ⚠ ADD-NOT-MOVE: the flush below at its original position is UNTOUCHED. Its placement
+    // BEFORE `attachment_resume_pending_for_peer` is D580's own ruling — a long content download
+    // must not hold acks past the server's lease clock — so this fix adds a flush on the failure
+    // paths rather than relocating the success-path one. On the success path the vector is
+    // already drained here and the original call is a no-op; that redundancy is the deliberate
+    // price of not re-opening a ruled ordering.
+    let rounds_result = receive_pull_rounds(
+        ctx,
+        max,
+        &mut stats,
+        &mut pending_receipts,
+        &mut pending_acks,
+        &mut seen_ids,
+    );
+    flush_pending_acks(ctx, &mut pending_acks, &seen_ids);
+    rounds_result?;
+    // NA-0644 (D580): flush the acks before attachment resume — a long content download
+    // must not hold acks past the server's lease clock; a descriptor item is durable at
+    // its pending-record commit, independent of the later content download.
+    flush_pending_acks(ctx, &mut pending_acks, &seen_ids);
+    if let Some(service_url) = ctx.attachment_service {
+        let resumed = attachment_resume_pending_for_peer(ctx, service_url)?;
+        stats.count = stats.count.saturating_add(resumed);
+    }
+    flush_batched_receipts(ctx, &mut pending_receipts)?;
+    Ok(stats)
+}
+
+/// NA-0708 (D-1345): the pull rounds, extracted so that every early exit is a return to ONE
+/// place that flushes the pending acks. Behaviour inside is byte-for-byte the previous loop;
+/// only the enclosing scope changed.
+fn receive_pull_rounds(
+    ctx: &ReceivePullCtx<'_>,
+    max: usize,
+    stats: &mut ReceivePullStats,
+    pending_receipts: &mut Vec<PendingReceipt>,
+    pending_acks: &mut Vec<String>,
+    seen_ids: &mut Option<dedup::RelaySeenIds>,
+) -> CliResult<()> {
     let mut rounds = 0usize;
     'pull: loop {
         let want = max.saturating_sub(stats.count).max(1);
@@ -519,7 +572,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                     // payload — commit the trigger/SCKA state and move on.
                     if outcome.is_control {
                         commit_unpack_state()?;
-                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
+                        record_seen_and_queue_ack(seen_ids, pending_acks, &item.id)?;
                         controls = controls.saturating_add(1);
                         continue;
                     }
@@ -564,7 +617,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 commit_unpack_state()?;
                                 queue_or_send_receipt(
                                     ctx,
-                                    &mut pending_receipts,
+                                    pending_receipts,
                                     PendingReceipt::AttachmentComplete {
                                         attachment_id: confirm_attachment_id,
                                         confirm_handle,
@@ -591,11 +644,11 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                         }
                         queue_envelope_receipt(
                             ctx,
-                            &mut pending_receipts,
+                            pending_receipts,
                             request_receipt,
                             request_msg_id.as_str(),
                         )?;
-                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
+                        record_seen_and_queue_ack(seen_ids, pending_acks, &item.id)?;
                         continue;
                     }
                     if let Some(file_payload) = parse_file_transfer_payload(&payload) {
@@ -641,7 +694,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 commit_unpack_state()?;
                                 queue_or_send_receipt(
                                     ctx,
-                                    &mut pending_receipts,
+                                    pending_receipts,
                                     PendingReceipt::FileComplete {
                                         file_id: confirm_file_id,
                                         confirm_id,
@@ -669,11 +722,11 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                         }
                         queue_envelope_receipt(
                             ctx,
-                            &mut pending_receipts,
+                            pending_receipts,
                             request_receipt,
                             request_msg_id.as_str(),
                         )?;
-                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
+                        record_seen_and_queue_ack(seen_ids, pending_acks, &item.id)?;
                         continue;
                     }
                     if let Some(confirm) = parse_attachment_confirm_payload(&payload) {
@@ -727,7 +780,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                         }
                         queue_envelope_receipt(
                             ctx,
-                            &mut pending_receipts,
+                            pending_receipts,
                             request_receipt,
                             request_msg_id.as_str(),
                         )?;
@@ -738,8 +791,8 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                         match discard_reason {
                             Some(reason) => quarantine_then_ack(
                                 ctx,
-                                &mut seen_ids,
-                                &mut pending_acks,
+                                seen_ids,
+                                pending_acks,
                                 item.id.as_str(),
                                 crate::quarantine::Subclass::Unrecoverable,
                                 crate::quarantine::ContentKind::InnerPayload,
@@ -747,11 +800,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 "transport::receive_pull_and_write/attachment_confirm",
                                 &payload,
                             )?,
-                            None => record_seen_and_queue_ack(
-                                &mut seen_ids,
-                                &mut pending_acks,
-                                &item.id,
-                            )?,
+                            None => record_seen_and_queue_ack(seen_ids, pending_acks, &item.id)?,
                         }
                         continue;
                     }
@@ -807,7 +856,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                         }
                         queue_envelope_receipt(
                             ctx,
-                            &mut pending_receipts,
+                            pending_receipts,
                             request_receipt,
                             request_msg_id.as_str(),
                         )?;
@@ -815,8 +864,8 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                         match discard_reason {
                             Some(reason) => quarantine_then_ack(
                                 ctx,
-                                &mut seen_ids,
-                                &mut pending_acks,
+                                seen_ids,
+                                pending_acks,
                                 item.id.as_str(),
                                 crate::quarantine::Subclass::Unrecoverable,
                                 crate::quarantine::ContentKind::InnerPayload,
@@ -824,11 +873,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 "transport::receive_pull_and_write/file_confirm",
                                 &payload,
                             )?,
-                            None => record_seen_and_queue_ack(
-                                &mut seen_ids,
-                                &mut pending_acks,
-                                &item.id,
-                            )?,
+                            None => record_seen_and_queue_ack(seen_ids, pending_acks, &item.id)?,
                         }
                         continue;
                     }
@@ -857,7 +902,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                             );
                             queue_envelope_receipt(
                                 ctx,
-                                &mut pending_receipts,
+                                pending_receipts,
                                 request_receipt,
                                 request_msg_id.as_str(),
                             )?;
@@ -873,8 +918,8 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                             // No re-ingestion tooling is promised or built.
                             quarantine_then_ack(
                                 ctx,
-                                &mut seen_ids,
-                                &mut pending_acks,
+                                seen_ids,
+                                pending_acks,
                                 item.id.as_str(),
                                 crate::quarantine::Subclass::Unsupported,
                                 crate::quarantine::ContentKind::InnerPayload,
@@ -943,7 +988,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                             }
                             queue_envelope_receipt(
                                 ctx,
-                                &mut pending_receipts,
+                                pending_receipts,
                                 request_receipt,
                                 request_msg_id.as_str(),
                             )?;
@@ -951,8 +996,8 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                             match discard_reason {
                                 Some(reason) => quarantine_then_ack(
                                     ctx,
-                                    &mut seen_ids,
-                                    &mut pending_acks,
+                                    seen_ids,
+                                    pending_acks,
                                     item.id.as_str(),
                                     crate::quarantine::Subclass::Unrecoverable,
                                     crate::quarantine::ContentKind::InnerPayload,
@@ -960,11 +1005,9 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                     "transport::receive_pull_and_write/delivered_ack",
                                     &payload,
                                 )?,
-                                None => record_seen_and_queue_ack(
-                                    &mut seen_ids,
-                                    &mut pending_acks,
-                                    &item.id,
-                                )?,
+                                None => {
+                                    record_seen_and_queue_ack(seen_ids, pending_acks, &item.id)?
+                                }
                             }
                             continue;
                         }
@@ -1035,17 +1078,13 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                                 if request_receipt {
                                     queue_or_send_receipt(
                                         ctx,
-                                        &mut pending_receipts,
+                                        pending_receipts,
                                         PendingReceipt::Message {
                                             msg_id: request_msg_id.clone(),
                                         },
                                     )?;
                                 }
-                                record_seen_and_queue_ack(
-                                    &mut seen_ids,
-                                    &mut pending_acks,
-                                    &item.id,
-                                )?;
+                                record_seen_and_queue_ack(seen_ids, pending_acks, &item.id)?;
                                 continue;
                             }
                             Ok(false) => {}
@@ -1104,7 +1143,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                     if request_receipt && stored.is_ok() && deduped.is_ok() {
                         queue_or_send_receipt(
                             ctx,
-                            &mut pending_receipts,
+                            pending_receipts,
                             PendingReceipt::Message {
                                 msg_id: request_msg_id,
                             },
@@ -1141,7 +1180,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                     // told DELIVERED for a message the recipient does not hold, and that the loss
                     // is loud and witnessed instead of silent.
                     if stored.is_ok() {
-                        record_seen_and_queue_ack(&mut seen_ids, &mut pending_acks, &item.id)?;
+                        record_seen_and_queue_ack(seen_ids, pending_acks, &item.id)?;
                     }
                 }
                 Err(code) => {
@@ -1195,8 +1234,8 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
                             // only surviving artefact -- never for recovery.
                             quarantine_then_ack(
                                 ctx,
-                                &mut seen_ids,
-                                &mut pending_acks,
+                                seen_ids,
+                                pending_acks,
                                 item.id.as_str(),
                                 crate::quarantine::Subclass::Unrecoverable,
                                 crate::quarantine::ContentKind::WireEnvelope,
@@ -1216,16 +1255,7 @@ fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<Rec
             break 'pull;
         }
     }
-    // NA-0644 (D580): flush the acks before attachment resume — a long content download
-    // must not hold acks past the server's lease clock; a descriptor item is durable at
-    // its pending-record commit, independent of the later content download.
-    flush_pending_acks(ctx, &mut pending_acks);
-    if let Some(service_url) = ctx.attachment_service {
-        let resumed = attachment_resume_pending_for_peer(ctx, service_url)?;
-        stats.count = stats.count.saturating_add(resumed);
-    }
-    flush_batched_receipts(ctx, &mut pending_receipts)?;
-    Ok(stats)
+    Ok(())
 }
 
 // NA-0644 (D580): the lease-mode ordering invariant. An id becomes ack-eligible ONLY
@@ -1379,7 +1409,39 @@ enum AckFlushOutcome {
     LegacyComplete,
 }
 
-fn flush_pending_acks(ctx: &ReceivePullCtx<'_>, pending_acks: &mut Vec<String>) {
+fn flush_pending_acks(
+    ctx: &ReceivePullCtx<'_>,
+    pending_acks: &mut Vec<String>,
+    seen_ids: &Option<dedup::RelaySeenIds>,
+) {
+    // NA-0708 (D-1345): **D580's ORDERING INVARIANT, ASSERTED WHERE THE ACKS ACTUALLY GO OUT.**
+    //
+    // The invariant is the one stated below at the ack-eligibility comment: an id is ack-eligible
+    // ONLY after its own durable commit AND after its seen-store entry is durably on disk. That
+    // holds at this rev — but it holds because **13 independent caller-side gates** each get it
+    // right, not by construction. The structural flush makes all 13 load-bearing at 41 exits
+    // instead of 1, so the invariant is CHECKED here rather than assumed: an id that is not
+    // durably in the seen store is **not acked**, and the violation is witnessed.
+    //
+    // Fail-closed on purpose. Dropping the ack costs one lease-expiry redelivery, which the
+    // seen store then dedups; acking an item that is not durably recorded would tell the relay
+    // to delete something this client cannot prove it holds.
+    //
+    // Under Legacy `seen_ids` is `None` and `pending_acks` is always empty, so this is inert
+    // there — the whole stranded-ack class is Lease-only.
+    if let Some(seen) = seen_ids.as_ref() {
+        let before = pending_acks.len();
+        pending_acks.retain(|id| seen.contains(id.as_str()));
+        let dropped = before.saturating_sub(pending_acks.len());
+        if dropped > 0 {
+            let dropped_s = dropped.to_string();
+            emit_marker(
+                "ack_eligibility_violation",
+                None,
+                &[("dropped", dropped_s.as_str())],
+            );
+        }
+    }
     if pending_acks.is_empty() {
         return;
     }

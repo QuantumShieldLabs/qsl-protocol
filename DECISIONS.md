@@ -37719,6 +37719,138 @@ rule of any kind, and SR-22/SR-23 as numbered rules.
 
 **5. RECORD.** NA-0702 retired MERGING → DONE from RE-VERIFIED merge shas (desktop `b3de4848`, spine `6caf5137`), class `QSLD_ERASE_ERROR_ONE_RESIZING_WRITER_PASS` landed; HIGHEST_NA 0702→0703; HIGHEST_D 1342→1343 this commit; TRACEABILITY row; ENG-0125 filed (R180 §2.5, the rail-toggle horizon: the pattern exists only in operator-side mockup 02, which never ships — a future rail-touching lane re-draws it sanitized). The promotion-three count re-derived: docs_only moves nothing — **1 of 3, unmoved**. NA-0703's class `QSLD_MOCKUP_TRUTH_REFRESH_PASS` is reserved; its DONE finalization belongs to the NEXT lane's promotion. Successors filed, not claimed: the mockup-03 empty-states design gap · the ENG-0125 redraw · the ENG-0124 countdown near-miss lane.
 
+## D-1345 — NA-0708: THE STRANDED-ACK FLUSH — acks earned inside the receive pull now survive every exit from it; and the reject-class taxonomy this lane was chartered to ship was WITHDRAWN before it could destroy a handshake frame the tree had already measured as recoverable
+
+**1. THE DECISION.** `receive_pull_and_write`'s `'pull:` loop is extracted into
+`receive_pull_rounds`, so every early exit out of the pull returns to ONE place that flushes the
+pending acks. Before this, the only flush sat AFTER the loop and every early exit jumped over it,
+stranding the acks of items that had already been durably committed. **ADD-NOT-MOVE**: the
+original flush keeps its position ahead of `attachment_resume_pending_for_peer`, because that
+placement is D580's own ruling (a long content download must not hold acks past the server's lease
+clock) and this lane does not re-open it.
+
+**2. WHAT THIS LANE DOES NOT DO, STATED FIRST BECAUSE IT IS THE HEADLINE.** It does **NOT** close
+the poison-pill wedge and it does **NOT** close the ENG-0134 message loss. It was chartered to:
+the lane began as "extend quarantine-and-continue from the replay class to a measured
+reject-class taxonomy". **The taxonomy was withdrawn in full at R203** after a commissioned cold
+read (SR-15, `FINDINGS_SR15_D643` `f508c17e…d012`, 20 findings) measured that four of the ten
+classifications ruled "clean" were wrong, and that two more were one condition counted twice —
+eight conditions, four of them wrong.
+
+**3. ⚠ THE FINDING THAT DID IT, RECORDED BECAUSE THE NEAR-MISS IS THE POINT (SR-15 F-1).**
+`tests/na0689_p3_a2_stranding.rs`, written 2026-08-01 for a different question, already recorded
+the answer in its own prose: a bare handshake A2 frame **"is not an envelope at all, so it dies at
+envelope decode … which queues no ack"**, and under lease that unacked frame is redelivered and the
+handshake COMPLETES. ⇒ **the handshake completes BECAUSE the frame is not acked.** Classifying
+`qsp_env_decode_failed` as unrecoverable — which this lane had ruled — would have acked the A2, let
+the relay delete it, left `handshake poll` seeing `msg=none`, and preserved the only copy in a
+quarantine store with **no re-ingestion tooling**. ⚠ **And the gate would not have caught it**: the
+ordered measurement (R6) tested a *truncated* envelope, which is genuinely unrecoverable, so R6
+goes GREEN while the destructive row ships. **A gate aimed at a measurement that cannot decide the
+question it gates is not a gate.**
+
+**4. ⚠ THE AXIS CORRECTION — the arc's reusable result.** The lane's own taxonomy asked *"can
+redelivery to THIS call site succeed?"* The correct question is **"can redelivery to ANY CONSUMER
+succeed?"** — an ack is not a local decision: it destroys the item for every other command on the
+box, and three other commands pull the same mailboxes (`invite accept`, `invite finish`,
+`handshake poll`). **Any future taxonomy is derived on the corrected axis or not at all.**
+
+**5. THE CONSTRUCTION, AND THE ONE REJECTED ALTERNATIVE RECORDED SO IT IS NOT RE-PROPOSED.** The
+wrapper encloses the **whole `'pull:` loop, not the `for` body**: the pull failure at the top of a
+round returns from OUTSIDE the item loop and is reachable with a plain network blip once a control
+envelope has queued an ack. A `Drop` guard was **rejected** for three measured reasons: it cannot
+hold `&mut pending_acks` across the 13 existing `&mut` borrows without routing all 13 through the
+guard (the per-site churn the structural ruling exists to avoid); it **flushes during panic
+unwinding**, acking items while the process is failing; and it would make `flush_pending_acks`'s
+clear-on-ack-failure run at every exit.
+
+**6. THE PIN IS AN ASSERTION AT THE FLUSH, NOT A COUNT OF PUSH SITES.** The eligibility invariant
+holds at this rev — `dedup/mod.rs`'s `record` is a full atomic rewrite per call, so `Ok` genuinely
+means on-disk — **but it is maintained by 13 independent caller-side gates, not by construction.**
+The drafting seat's "ack-eligible by construction, three push sites" answered a *syntactic*
+question; there are two push statements and thirteen gates. A structural flush makes all thirteen
+load-bearing at 41 exits instead of one, so `flush_pending_acks` now **checks** the invariant where
+the acks go out: an id not durably in the seen store is **not acked**, and the violation is
+witnessed by `ack_eligibility_violation`. Fail-closed — dropping an ack costs one lease-expiry
+redelivery that the seen store dedups; acking an unrecorded item would tell the relay to delete
+something this client cannot prove it holds.
+
+**7. ⚠ THE EXIT CENSUS WAS WRONG IN BOTH COUNT AND MEMBERSHIP, AND THE ERROR STRENGTHENS THE
+RULING IT UNDERMINES.** The lane argued for a structural fix on the ground that "thirty-five exits
+is not a set anyone maintains correctly by hand". Measured by the cold reader: **41, not 35** — the
+`?` count was 34 not 28; `:514` was a return from the `commit_unpack_state` CLOSURE, not a function
+exit, and was double-counted through its own eleven `?` call sites; and `:462`, a **real** strand
+site, was missing entirely. **The hand-count was itself wrong, which is the argument for the
+structural fix made by demonstration.**
+
+**8. SEVERITY, STATED HONESTLY.** A stranded ack is **self-healing under Lease**: every queued id
+is already in the durable seen store, so the redelivery is dup-skipped and acked next time. The
+cost is a lease-expiry round trip and a redundant redelivery — **not loss, not reprocessing** —
+except for a strand that outlives the seen store's own retention, which then reprocesses into a
+replay-reject. ⚠ **Legacy cannot strand at all**: both push sites sit inside `if let Some(seen)`
+and `seen_ids` is `None` under Legacy, so the accumulator is always empty there. **The defect and
+its fix are Lease-only by construction.**
+
+**9. THE INSTRUMENT.** `tests/na0708_ack_flush.rs`, two arms, both asserting **ACK STATE** at the
+wire (a recording proxy counting POSTs to `/v1/pull/ack`) in front of the **real in-process
+`qsl-server`** — never the `common` mock, which cannot express lease semantics and would make both
+arms vacuous. **R3a** covers the reject exit inside the item loop; **R3b** covers the pull-failure
+exit outside it. Watched **RED first** (both `ack_posts=0`, every scaffolding guard passing ahead of
+the ack assert), then GREEN, then **RED again under two regressions**: deleting the added flush
+turned both red, and simulating a wrapper around only the `for` body turned **R3a green and R3b
+red** — so R3b, and only R3b, holds the construction boundary. ⚠ Neither arm asserts that the
+receive SUCCEEDS: it still exits non-zero, because this lane does not fix the abort.
+
+**10. ⚠ FOUR SCAFFOLDING PREMISES MEASURED FALSE BEFORE THE RED WAS EARNED.** Recorded because
+each is a fact about the tree a future lane will need: (i) SCKA is **off in every seed-derived
+session** (`qsp_scka_enabled` is `dhr != dhs_pub`; the seed derivation sets both to the same
+value), so no control envelope can exist there; (ii) the invite dance leaves a **bare handshake
+frame** in each party's ordinary inbox, consumed through the flag-less pull that acks nothing, so
+under lease it redelivers and wedges that mailbox — **this lane's own unfixed wedge blocked the
+measurement of its own fix**, and the arm clears it with a deliberate `--ack-mode legacy` drain;
+(iii) `contacts route-set` did not retarget the send; (iv) at establishment **only role A gets
+seeded send chains** (role B gets `ZERO32` for both), and the ADV guard needs both non-zero, so
+**only the handshake INITIATOR can advertise** — a responder is `chainkey_unset` until it has sent,
+the same surface as NA-0705's F6.
+
+**11. WHAT THE SUCCESSOR INHERITS.** The measured taxonomy stands **as a record only** — no row of
+it is a ruled disposition. The vocabulary-normalisation lane is now **the lane that closes the
+wedge**, and it carries: the corrected axis as its first premise; `map_qsp_recv_reason` matching by
+`contains` over sometimes-**composite** strings, so a future refimpl token embedding a classified
+substring lands in a classified bucket; `qsp_unpack_for_peer`'s `first_err` masking a
+right-channel transient behind a wrong-channel permanent failure; the raw `REJECT_S2_*` strings
+being **ten, not five**, and the population **25, not 20**; row 17's origins both being permanent,
+so a transient disposition there would create unbounded redelivery; the requirement that any
+transient disposition carry a **bound**; and that `invite finish` reaches the wedge through a
+command no classifier in `receive` would ever see.
+
+**12. THE GROUND, KEPT.** R201 §2.3 justified shipping ten classes now on the ground that "a lane
+that fixes 10 of 20 and says so is worth more than one that fixes 20 and guessed at 4." That
+ground assumed the ten were safe. Measured, they were not, and the ground inverted. **The lane
+ships a single function extraction — smaller than any version of it that was ever drafted, and the
+only version nothing has been able to break.**
+
+**13. THE FILINGS — THE UNION MEASURED, NOT APPENDED (R205 §1.3).** Two lists arrived here: the
+NA-0706/0707 hand-off (**17 ENG + 1 WF**) and this lane's own (**21**) — **38 ENG + 1 WF
+mentions**. Measured, the union is **36 ENG + 1 WF**, `ENG-0134`…`ENG-0169` and `WF-0051`, with
+two reductions, each named:
+- **the inherited *abort's-scope* entry LEAVES** (R205 §1.2): it is this lane's D-4, and D-4 is
+  what NA-0708 **fixes** — it is this decision's subject, not a ledger row. Filing a defect you
+  close in the same commit is how a ledger accumulates ghosts.
+- **this lane's "the wedge survives the withdrawal" MERGES into `ENG-0142`** (the inherited
+  poison-pill wedge): one defect, two measurements of it. The merge note inside `ENG-0142` also
+  records that F-2's *strand* half is not filed there either, for the same reason as above.
+
+⚠ **AND THE IDS COLLIDED, WHICH IS THE REUSABLE PART.** The ledger's high-water was `ENG-0133`, so
+"next free" arithmetic put this lane's own filings at `ENG-0134`… — but the record had **already
+spoken for `ENG-0134`…`ENG-0141`**: `ENG-0134`…`ENG-0140` are the seven original hand-off filings
+and `ENG-0141` is the steady-state crossing, both named in NA-0707's stop-files and cross-referenced
+from its filing list. Seven ids were squatting on reserved names, and the collision was found only
+by grepping the RECORD rather than the ledger. **An id referenced across the record is load-bearing
+before it is filed: check whether the next id is already SPOKEN FOR, not merely absent from the
+ledger.** The inherited block now sits at its reserved ids and this lane's own filings begin at
+`ENG-0150`; every cross-reference was re-verified to resolve after the renumbering.
+
 ## D-1344 — NA-0705: THE qsc PIN BUMP — the desktop advances `ab5041cd` → `32e572c7`, and the `QSCV01` vault-format hard break it crosses is refused BY NAME on both doors before it can destroy a vault (desktop D-0029); R185 §2.2's `send_ready` composer gate is SUSPENDED on a post-bump re-measure
 
 **1. THE DECISION.** The desktop's `qsc` pin advances to `32e572c7`. Because that

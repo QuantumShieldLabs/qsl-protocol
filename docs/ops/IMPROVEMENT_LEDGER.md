@@ -3354,6 +3354,159 @@ At `32e572c7` the doc carries `invite_max_expiry_secs`, `invite_max_slots`, `max
 
 The runbook's client recipe covers `relay ca-set --path`, `vault init --passphrase-file` vs `--unlock-passphrase-file`, and the `chmod 700` requirement on a setgid work root — but not the route token, which `qsl/qsl-client/qsc/src/adversarial/route.rs:21` requires to be **22–128 characters** of `[A-Za-z0-9_-]`. NA-0705's first pair used an 18-character token and was correctly refused `QSC_ERR_ROUTE_TOKEN_INVALID` on both sides. Carry the rule into the runbook's next revision so the next seat does not rediscover it by refusal, alongside the already-owed cold-start-certs note (R184 §5).
 
-### ENG-0133 — what signal truthfully reports send capability at `32e572c7`? — **NEW; filed 2026-08-09 by NA-0705 (D-1344; R191 §3, ordered) — FILING-ONLY, THE DESIGN LANE'S QUESTION**
+### ENG-0133 — what signal truthfully reports send capability at `32e572c7`? — **✅ ANSWERED 2026-08-09 by NA-0708 (D-1345), enriched — filed 2026-08-09 by NA-0705 (D-1344; R191 §3)**
+
+⚠ **ANSWERED, AND THE QUESTION ITSELF WAS AIMED SLIGHTLY WRONG.** Three things settle it. (i) `send_ready` is **UNRELATED to capability** — it is a state-of-the-store predicate (`protocol_state/mod.rs:108`), which is why it can report `no` while the send succeeds. (ii) The signal the design actually needed was **SAFETY, not capability**: whether sending now is safe, not whether it is possible. (iii) ⚠ **The deeper point, and it redirects the whole question:** the harm this filing circled is a **RECEIVE-PATH loss, not a send-capability gap** — the payload was never cryptographically destroyed (`ratchet_skip_store count=2`); it died because the receive pull aborted and the frame behind it was never unpacked. See ENG-0134 and the reject-vocabulary normalisation successor for where the real defect and its remedy live. ⚠ The mechanism behind the `chainkey_unset` window is now measured and filed separately as **ENG-0168**: only the handshake INITIATOR has seeded send chains at establishment.
 
 `send_ready` UNDER-REPORTS for the responder between its first inbound message and its first outbound one: measured at the new pin, the responder reports `send_ready=no / send_ready_reason=chainkey_unset` and **sends successfully**. R185 §2.2's composer gate is SUSPENDED as a result (D-1344 §6). Candidates to MEASURE, not assume: whether `chainkey_unset` is distinguishable from a real cannot-send state; whether the owed-receipt hold (`receipt_owed reason=chain_unseeded`) has an observable that closes the window; whether attempting a send and handling the refusal is more honest than predicting capability. ⚠ **Nobody derives a UI rule from NA-0705's n=1.** The design lane measures at n>1 and rules with the operator.
+
+
+### ENG-0134 — ⚠ P1 — a premature user send silently destroys the peer's next message — **NEW; filed 2026-08-09 by NA-0708 (D-1345) — id reserved by the NA-0706/0707 arc, which names it throughout**
+
+Measured by NA-0706 n=5 with zero variance: a user send issued before the channel is established returns **rc 0, IS DELIVERED**, and destroys exactly ONE of the peer's messages, while `peer_confirmed` regresses yes→no and never heals. ⚠ The SAFE send emits the **identical** marker, so "attempt and handle the refusal" has no refusal to handle — the design must PREDICT. ⚠ NA-0707's cold read then established that the payload is **not cryptographically destroyed** (`ratchet_skip_store count=2`): it dies because the receive pull aborts and the frame behind it is never unpacked. **The remedy is receive-side**; the send-side guard is origination discipline, and returns with NA-0707 re-formalized. ⚠ **NA-0708 does NOT close this** — it ships only the ack flush.
+
+### ENG-0135 — the class-narrowed-to-instance pattern — a remedy's scope is the OPERATION, not the reporter — **NEW; filed 2026-08-09 by NA-0708 (D-1345; the NA-0706/0707 hand-off, ruled onto this PR at R205 §1.1)**
+
+D-1327 C3 fixed the unseeded-chain wedge for **CONTROL** sends only; user-initiated sends reach it through the same door. NA-0705's `QSCV01` trap is the same shape, and SR-15 F-3 supplied a third instance — the ENG-0134 ruling itself narrowed to the measured *origination* rather than the *loss class*. ⚠ **STANDING FORM:** when a fix is scoped to the caller that exhibited the defect rather than to the operation that permits it, the door stays open for every other caller.
+
+### ENG-0136 — `ready` is computed and then unreachable — **NEW; filed 2026-08-09 by NA-0708 (D-1345; NA-0706 STOP_005 §3, hand-off) — FILING-ONLY**
+
+`protocol_state/mod.rs:108` computes it; `handshake/mod.rs:1290-1291` prints it only on the `established_recv_only` arm, so it is absent from 73 sampled runs. A value nobody can observe is not a signal.
+
+### ENG-0137 — a shadowed, byte-equivalent duplicate predicate — **NEW; filed 2026-08-09 by NA-0708 (D-1345; NA-0706 STOP_005 §3, hand-off) — FILING-ONLY**
+
+`hs_send_ready_from_session` (`handshake/mod.rs:1253`) duplicates the send-ready tuple's zero-check, and the **printed reason is a hard-coded literal shadowing the computed value** — so the human reads a constant while the code decides on something else.
+
+### ENG-0138 — `peer_confirmed` is derived, non-monotonic, and never heals — **NEW; filed 2026-08-09 by NA-0708 (D-1345; NA-0706 STOP_005 §3, hand-off) — FILING-ONLY**
+
+Derived from `st.recv.nr == 0` at `handshake/mod.rs:1257-1264`, so it moves BACKWARDS under the m2 send and never recovers. It is a derivation presented as a latch. ⚠ Renumbered on filing to avoid colliding with the SR-15 finding also called F-5.
+
+### ENG-0139 — the marker-consumption gap in the desktop's `MarkerBuffer` — **NEW; filed 2026-08-09 by NA-0708 (D-1345; NA-0706 STOP_005 §3, hand-off) — SPINE FILING WITH DESKTOP CITATIONS, no desktop edit**
+
+At desktop `c52fd51b`, `src-tauri/src/markers.rs:12` holds an opaque buffer with no parsing and a 1024-entry drop-oldest cap — a hazard for anything that treats it as a safety gate, since the evidence a gate needs can be evicted by ordinary traffic.
+
+### ENG-0140 — the rig `qsl-server` advance is a prerequisite for measuring the invite path — **NEW; filed 2026-08-09 by NA-0708 (D-1345; NA-0706 STOP_005 §3, hand-off) — FILING-ONLY**
+
+`POST /v1/invite/create` returns **404** on the rig while `GET /v1/server-info` returns 200: the deployed relay advertises no invite capability, so **the invite path the GUI will ship is UNMEASURED end to end.** Any lane claiming invite behaviour on the rig advances the relay first or states the gap.
+
+### ENG-0141 — the steady-state ADV/boundary crossing class — ⚠ **MEASURED**, not analysis-derived — **NEW; filed 2026-08-09 by NA-0708 (D-1345; RELABELLED at R199 §4 from the NA-0707 hand-off)**
+
+⚠ **The prior label was wrong on a false premise.** "Lockstep harnesses cannot cross frames" is FALSE: the crossing is a ~40-line test against the refimpl's existing public API and runs in 0.01s. **Measured:** a peer's in-flight re-advertisement crossing a local reply/fallback DH boundary in an ESTABLISHED session rejects with `REJECT_S2_BODY_AUTH_FAIL` → `qsp_auth_failed` → `qsp_scka_adv_reject` (`ratchet.rs:2140-2146`), fail-closed with the receiver state asserted byte-identical. ⚠ A filing that understates a reachable defect on an untrue premise prices a future lane wrongly.
+
+### ENG-0142 — ⚠ P1 — THE POISON-PILL WEDGE: one unprocessable frame wedges a mailbox, with an adversarial trigger — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15/D642 F-2, ⚠ MERGED with this lane's own post-withdrawal refinement — see the merge note)**
+
+`transport/mod.rs:1147-1211`: one bad frame aborts the whole pull at `:1210`; only `qsp_replay_reject` under Lease escapes (`:1161`, `:1185`, `:1196`). Under **Legacy** the trailing frames are destroyed outright; under **Lease** (the default) the failing item is never acked or quarantined, redelivers, and re-aborts every `qsc receive` until the relay's 7-day retention expires it (`quarantine/mod.rs:77`). ⚠ **ADVERSARIAL TRIGGER: anyone who can post one unparseable frame wedges that mailbox.**
+
+⚠ **MERGE NOTE (R205 §1.3).** Two things folded into this one entry rather than becoming separate filings. (i) **The strand half of the original F-2 — "already-processed items' acks strand behind the `return`" — is NOT filed here: it is what NA-0708 FIXES**, and it is D-1345's subject. (ii) This lane's own measurement that **the wedge survives the withdrawn taxonomy** folds in: the cheapest wedge is any structurally valid envelope with garbage inside, which surfaces as `qsp_verify_failed` — an UNCLASSIFIED code — so even the classifier as ruled would not have closed the wedge it was justified by. ⚠ **This is the successor lane's headline.**
+
+### ENG-0143 — P-1 (`scka.peer_adv_max_seen > 0`) is UNSAFE across a re-handshake — it PERMITS the defect it was meant to refuse — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15/D642 F-1) — ⚠ SETTLES NA-0707's PREDICATE**
+
+`qsp_session_store_with_trigger` (`protocol_state/mod.rs:802-809`) preserves the SCKA section verbatim across a fresh session, so a **fossil** `peer_adv_max_seen` survives a re-handshake while the new send chain is unseeded ⇒ P-1 permits the unsafe seed exactly where it must refuse. **P-2 (`st.recv.nr > 0`) refuses correctly** (fresh `nr == 0`). ⚠ **P-1 is REJECTED outright, not deprioritised.** And the instrument is amended with it: first-handshake rows cannot distinguish the two candidates, so **any lane shipping a predicate here owes a RE-HANDSHAKE row** — an instrument that cannot separate the candidates is not a tiebreaker.
+
+### ENG-0144 — the deferred send emits a FALSE human diagnosis — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15/D642 F-5) — FILING-ONLY, returns with NA-0707**
+
+Under a `Retry` disposition a refused send lands `Queued` with `paused_cause=None`, so reporting falls through to `("msgqueue_queued", "will send when the relay is reachable")` (`transport/mod.rs:1889,1892`) — **but the relay IS reachable; the local side refused to seed.** ⚠ The code three lines above (`:1884-1886`) RESERVES that string for the transient class and names its misuse "a FALSE DIAGNOSIS". The tree forbids the diagnosis and then emits it.
+
+### ENG-0145 — a distinct error code never reaches the durable consumer artefact — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15/D642 F-6) — FILING-ONLY**
+
+`msgqueue/mod.rs:918` records the STAGE string `"pack_failed"` into `last_error`, not `err.code`, so a distinct pack-error code survives only in a transient marker and a per-config-dir (not per-message) status record. Census: the existing distinct codes appear only at their definition sites — **no consumer reads them either.** Any argument that a new distinct code buys diagnosis is defeated at the queue boundary until a consumer exists.
+
+### ENG-0146 — the attachment and file paths get NO deferral — same protocol condition, two contracts, neither documented — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15/D642 F-7) — FILING-ONLY**
+
+Both pass `SendOrigination::User` (`attachments/mod.rs:1101,1769`), neither uses the msgqueue, and a new pack-refusal code would not be in `file_push_retryable`'s five-code allow-list ⇒ **immediate terminal failure on the file path** while first-contact TEXT defers silently. No silent drop was found (the failure is surfaced, not lost). ⚠ **The allow-list has never been reviewed for a new code.**
+
+### ENG-0147 — a re-handshake after a completed PQ reseed BRICKS the channel permanently — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15/D642 F-8) — PRE-EXISTING, MEDIUM**
+
+`qsp_scka_mono_update` max-merges and never decreases (`protocol_state/mod.rs:600-639`), so a fresh session's `peer_max_adv_id_seen=0` against a non-zero side-record trips the rollback guard (`:580`, `:925-941`) → `session_rollback_detected` **permanently, with no path anywhere that clears `qsp_scka_mono_path`.** ⚠ It also bounds ENG-0143 honestly: the completed-reseed case bricks before any predicate is consulted.
+
+### ENG-0148 — a safety predicate would be read outside the exclusive store lock the commit path takes — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15/D642 F-9) — PRE-EXISTING, LOW-MEDIUM, fail-safe direction**
+
+`transport/mod.rs`'s pack path takes no lock; the commit path takes `lock_store_exclusive`. There is no intra-`qsp_pack` TOCTOU (single snapshot), and the cross-seam race **fails SAFE** for a safety predicate (staler state ⇒ more likely to refuse). Recorded because a lost receive-commit across the seam can silently undo the state that made seeding safe.
+
+### ENG-0149 — instrument validity: whether a trailing frame is DISCARDED or DEFERRED is decided by ACK MODE, not the ratchet — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15/D642 F-10) — ⚠ SATISFIED BY THIS LANE'S INSTRUMENT, recorded for the successor**
+
+An in-process fixture that does not model lease vs delete-on-deliver pins its own transport stub rather than the protocol. ⚠ **NA-0708 discharged this for its own instrument**: `tests/na0708_ack_flush.rs` drives the **real in-process `qsl-server`** with an explicit `--ack-mode lease`, records that **Legacy cannot strand at all** (the ack accumulator is empty there by construction), and refuses the `common` mock by name. **It stays filed because the constraint binds the SUCCESSOR too** — the lane that closes the wedge must state and drive both modes, or its proof can be green for a reason unrelated to its fix.
+
+### ENG-0150 — the DH-boundary arm returns the refimpl's RAW reason, bypassing `map_qsp_recv_reason` — **NEW; filed 2026-08-09 by NA-0708 (D-1345; divergence D-3 as corrected by SR-15 F-8)**
+
+`qsl/qsl-client/qsc/src/lib.rs:2319` returns `out.reason` unmapped, so **ten** raw `REJECT_S2_*` strings reach `transport/mod.rs:1147` outside the `qsp_*` namespace — not five, as first censused: `REJECT_S2_LOCAL_UNSUPPORTED`, `_HDR_AUTH_FAIL`, `_BODY_AUTH_FAIL`, `_DH_NONCONTRIBUTORY`, `_BOUNDARY_NOT_IN_ORDER`, plus five parse errors reaching via `ratchet.rs:1410`. **The total reject population is 25, not 20** (15 `qsp_*` + 10 raw). Any taxonomy keyed on the `qsp_*` namespace silently misses a whole arm. ⚠ For the wedge this is bad news: a malformed DH-boundary frame is unprocessable and still wedges.
+
+### ENG-0151 — `qsp_no_session` conflates a transient I/O failure with a genuinely absent session — **NEW; filed 2026-08-09 by NA-0708 (D-1345; divergence D-5, Director-verified at R203 §1)**
+
+`protocol_state/mod.rs:1045` is `if let Ok(Some(st)) = qsp_session_load(channel)`, so `Err(ErrorCode::IoReadFailed)` (`:893`) and `Err(ParseFailed)` fall through to the same `qsp_no_session` at `:1049` as a real absence. An `if let Ok(Some(_))` that discards an error class. ⚠ Any future disposition that treats `qsp_no_session` as unrecoverable would convert a transient disk error into **mailbox-wide permanent data destruction**. Give the I/O failure its own code.
+
+### ENG-0152 — `qsp_verify_failed` is the terminal `else` of `map_qsp_recv_reason` — a residual class, not a code — **NEW; filed 2026-08-09 by NA-0708 (D-1345; divergence D-7, Director-verified at R203 §1)**
+
+`lib.rs:1662-1663`. Every reason not matching the four named patterns becomes `qsp_verify_failed`, **including reasons that do not exist yet**. It cannot be given a disposition as a unit, and routing a residual class to quarantine would auto-quarantine every reject reason ever added. ⚠ Distinct from ENG-0153: this is things falling INTO the residual; ENG-0153 is things falling OUT of it into a classified bucket. Collapsing the two loses the direction, which is the finding.
+
+### ENG-0153 — `map_qsp_recv_reason` matches by `contains`, over strings that are sometimes composite — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15 F-5, Q1's named sub-question answered in the negative)**
+
+The mapper's fail-closed protection sits one layer too low: a future refimpl reason **embedding** a classified substring lands in a **classified** bucket rather than the residual. Compounded by composite reason strings of the form `REJECT_S2_X; reason_code=REJECT_S2_X`. ⚠ An allow-list built on this guards SPELLING, not semantics.
+
+### ENG-0154 — `qsp_recv_failed` carries eight distinct origins spanning local-config and frame-structural causes — **NEW; filed 2026-08-09 by NA-0708 (D-1345; divergence D-8)**
+
+`lib.rs:2205, 2209, 2211, 2212, 2273, 2277, 2279, 2280` — `qsp_scka_enabled` false (local configuration) sits in the same code as a missing `adv_id`/`adv_pub`/`target_id`/`ct` (a property of the frame). One disposition cannot be right for both. Split at the source before any classification is attached.
+
+### ENG-0155 — `qsp_channel_invalid` is a local-state fault that would fire for EVERY item in a mailbox — **NEW; filed 2026-08-09 by NA-0708 (D-1345; divergence #11)**
+
+Two origins — a bad channel label (`protocol_state/mod.rs:1043`) and an empty channel list (`lib.rs:2174`) — both functions of LOCAL state, not of the frame. ⚠ Quarantining it would convert a local misconfiguration into mailbox-wide destruction, since it fires identically for every item.
+
+### ENG-0156 — `qsp_unpack_for_peer` returns `first_err` across channels: a wrong-channel PERMANENT failure masks a right-channel TRANSIENT one — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15 F-4)**
+
+`lib.rs:2159-2175` iterates the peer's channels and returns the FIRST error seen. The code that reaches the caller may therefore describe a channel the frame was never for. ⚠ Any classifier keyed on that code is classifying the wrong failure.
+
+### ENG-0157 — `REJECT_S2_BOUNDARY_NOT_IN_ORDER` is a COMPOSITE string, so no `==` classifier can ever match it — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15 F-2)**
+
+Emitted at `ratchet.rs:1432, 1476` in the form `REJECT_S2_BOUNDARY_NOT_IN_ORDER; reason_code=…`. ⚠ It is also the reason the withdrawn taxonomy's row 17 could never have matched — a classification that was ruled and would have been dead code.
+
+### ENG-0158 — the withdrawn row 17's origins are BOTH permanent, so a transient disposition there would create unbounded redelivery — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15 F-3)**
+
+The taxonomy ruled `REJECT_S2_BOUNDARY_NOT_IN_ORDER` transient by analogy with `qsp_ooo_reject`. Measured, both of its origins are permanent, so *continue without ack* would leave the frame redelivering forever, bounded only by relay retention. ⚠ **Any transient disposition must carry a BOUND** — an attempt counter with escalation, or at minimum a witnessed marker. "No ack, no quarantine, no seen-store record" has no client-side bound at all.
+
+### ENG-0159 — row 7 (`qsp_scka_target_unknown`) carries the exact conflation used to disqualify `qsp_no_session` — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15 F-6)**
+
+Four distinct local failure modes collapse onto "advkey absent". The taxonomy disqualified `qsp_no_session` for precisely this shape and then ruled row 7 clean. ⚠ Recorded as evidence that a rule naming a failure class does not immunise the author applying it.
+
+### ENG-0160 — row 1 (`qsp_scka_adv_reject`) — the withdrawn taxonomy's HEADLINE — is itself a conflated bundle with a transient member — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15 F-7)**
+
+The one row the whole lane was justified by. One of its members is transient, so the classification that would have shipped was wrong on its own flagship case.
+
+### ENG-0161 — ten stock-reachable quarantine classes would make the 256-slot global store attacker-floodable, with oldest-first eviction — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15 F-11, charter (b)/(c))**
+
+NA-0689's capture surface is four hostile-peer-only sites plus one reachable only by our own crash. Widening it to ten stock-reachable classes changes the store's threat model: an attacker who can post can evict prior evidence. ⚠ Any future quarantine widening prices the store first.
+
+### ENG-0162 — `quarantine_then_ack` swallows capture failure, turning a loud abort into a silent exit-0 loop — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15 F-12, charter (g))**
+
+The capture path returns `Ok(())` on failure, so a persistent capture failure across many classes would ack-and-continue silently rather than failing loudly. Today it is reachable for one class; a widened classifier multiplies it.
+
+### ENG-0163 — `invite finish` pulls the ordinary inbox and hard-fails on whatever is at its head — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15 F-13, charter (a))**
+
+⚠ **The wedge is reachable through a command no classifier inside `receive` would ever see.** D-1328 §1 deliberately refused to convert the three flag-less pull callers; that refusal's grounds must be re-derived, not inherited, by the lane that closes the wedge. Measured live by NA-0708's own instrument: the invite dance leaves a bare handshake frame in each party's inbox, and it wedged the arm until a legacy drain cleared it.
+
+### ENG-0164 — raw `REJECT_S2_*` codes flow into the status record and the marker `code=` field, and the composite one breaks the plain marker grammar — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15 F-14) — ⚠ LIVE TODAY, independent of any classifier**
+
+`transport/mod.rs:1159-1160` writes whatever code arrives into `record_qsp_status` and the `qsp_unpack` marker, in a field that everywhere else carries `qsp_*`. The composite string additionally contains `; reason_code=` and breaks the plain marker grammar for any consumer parsing it. ⚠ **This one does not wait on the successor** — it is happening at this rev.
+
+### ENG-0165 — the seen store and the quarantine store are whole-file rewrites with no locking — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15 F-17, charter (e))**
+
+Two concurrent `qsc receive` processes on the same mailbox can lose an update. The structural flush widens the window slightly by making the flush point later on failure paths. Pre-existing; recorded with its direction stated.
+
+### ENG-0166 — row 18's `Subclass::Unsupported` promise is bounded by a 7-day TTL and a 256-slot cap while the ack deletes the relay's copy — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15 F-18)**
+
+"A future build could read it" is the subclass's stated value, but the retained copy expires at `quarantine/mod.rs:77`'s `604800` seconds and can be evicted by cap — after the ack has already deleted the only other copy. ⚠ A forward-compat promise that outlives neither the TTL nor a flood.
+
+### ENG-0167 — a duplicate `msg_id` is written to `recv_N.bin` and counted before it is detected, and `commit_unpack_state()` runs twice on that path — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15 F-19) — PRE-EXISTING, adjacent**
+
+Found by the cold read while tracing the receive loop; not this lane's to fix and not touched by it. Recorded so the next receive-path lane inherits it rather than rediscovering it.
+
+### ENG-0168 — only the handshake INITIATOR can advertise SCKA — a responder is `chainkey_unset` until it has sent — **NEW; filed 2026-08-09 by NA-0708 (D-1345) — measured while building this lane's instrument**
+
+At establishment `tools/refimpl/quantumshield_refimpl/src/suite2/establish.rs:75-98` gives **role A** `ck_ec: ck0_a2b, ck_pq: pq0_a2b` and **role B** `ZERO32` for both; the advertisement guard (`lib.rs:1822-1826`) requires both non-zero. ⚠ Since `invite accept` makes the INVITER the handshake RESPONDER, an inviter cannot advertise until it has sent. Same surface as ENG-0133 / NA-0705's F6, and it cost this lane four instrument iterations to discover. Also recorded: **SCKA is off entirely in every seed-derived session** (`qsp_scka_enabled` is `dhr != dhs_pub`; the seed derivation sets both to the same value), so no house fixture using the seed fallback can produce a control envelope.
+
+### ENG-0169 — the Legacy ack mode's weaker guarantee — deprecate, or keep and document? — **NEW; filed 2026-08-09 by NA-0708 (D-1345; RS-B, ruled accept-and-record at R201 §2) — FILING-ONLY, AN OPEN OPERATOR QUESTION**
+
+Lease has been the default since D-1327 C4, and under Legacy the relay delete-on-delivers, so a client that cannot process an item has already lost it. NA-0708's own fix is **Lease-only by construction** (the ack accumulator is always empty under Legacy). ⚠ The question is whether Legacy still earns its place, and it is its own lane, not a side effect of one.
+
+### WF-0051 — a cold-seat commission granting a repo tree must name the tree's agent-memory file — **NEW; filed 2026-08-09 by NA-0708 (D-1345; R199 §5, the method record) — RECIPE AMENDMENT, not a code defect**
+
+A commission that grants a clone must **NAME the tree's `CLAUDE.md` for pre-emptive removal before the reader's first content read**, or state that its injection is accepted and recorded. "Outside project memory scope" cannot be satisfied by instruction alone while the clone lives inside the seat. ⚠ Third seating hole found by having readers **ATTEST rather than assert**. Applied at NA-0708's own SR-15 commission, where the reader removed the file and disclosed the resulting ` D CLAUDE.md` rather than claiming a clean tree it did not have — and the expectation was corrected to carve the deletion out (R203 §7.2).

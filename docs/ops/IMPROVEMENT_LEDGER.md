@@ -1327,6 +1327,58 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 
 ## Workflow / process items
 
+### ENG-0170 — `packaging/caddy/Caddyfile.example` 404s EVERY request as documented and never proxies to the relay; `caddy validate` passes it — **NEW; filed 2026-08-11 by NA-0710 (D-1347; R225B §2.1)**
+
+- Severity: **P2** (a documented example that silently does nothing; ⚠ **worse than one that fails loudly, because every user debugs their own configuration first**)
+- Status: open — filed 2026-08-11. **FILING ONLY; nothing in `qsl-server` was edited.**
+- Exact surface: `packaging/caddy/Caddyfile.example` — a bare `handle { respond 404 }` written **after** `reverse_proxy 127.0.0.1:8080`.
+- The defect: **caddy sorts by DIRECTIVE ORDER, not file order.** The bare `handle` is ordered first, matches everything, and terminates. `reverse_proxy` is never reached.
+- ⚠ **EVIDENCE — static, and reproducible WITHOUT a running server:** `caddy adapt --config <file> --adapter caddyfile` expands the shipped example and NA-0710's pre-fix copy to the **IDENTICAL** route tree — `… encode -> [route match=None -> static_response] -> reverse_proxy`, with `reverse_proxy` unreachable. ⚠ **That identity is what makes this the product's defect rather than the lane's.**
+- Measured symptom in production: every request over TLS returned `HTTP/1.1 404 Not Found`, including `/v1/server-info` and `/v1/pull`.
+- ⚠ **`caddy validate` returns `Valid configuration` on the broken file.** It proves the config PARSES and ADAPTS; **it says nothing about ROUTING.** The consumer that matters is a request.
+- Remedy, **verified in production by NA-0710**: mutually-exclusive handles — `handle @relay_api { reverse_proxy 127.0.0.1:8080 }` followed by `handle { respond 404 }` — which preserves the example's intent and fixes the ordering.
+- ⚠ Related, same file, different failure: a site keyed by an **IP** serves **no certificate** to a client that sends no SNI (RFC 6066 forbids an IP literal in SNI). `default_sni` is required. Not a defect in the example, which uses a hostname — but it bites any IP-addressed deployment.
+- Cross-reference: `docs/ops/RIG_PROVISION_RUNBOOK.md` §2. Originating/last lane: NA-0710 (D-1347). Last-updated: 2026-08-11.
+
+### ENG-0173 — ⚠⚠ THE INVITE PATH DOES NOT COMPLETE FOR THE PARTY WHO CREATED THE INVITE: all four steps return rc 0, the redeemer gets a session, the creator never does — **NEW; filed 2026-08-11 by NA-0710 (D-1347; R229 §3)**
+
+- Severity: **P1** — ⚠ **ruled the program's top defect (R229 §3.1).** ENG-0134 loses one message inside an established conversation; **this means two people cannot establish a conversation at all by the flow the GUI will ship.**
+- Status: open — filed 2026-08-11. **FILING ONLY.** ⚠ Not fixed here: NA-0710 is a provisioning lane and is barred from client work.
+- Measured against a **live relay** (`qsl-server` `37ec8207`, invite API advertised as `invite_v1`), 2026-08-11.
+- What works: `invite create` → a `QSLI-1-` code in 0.62 s · `invite redeem` → `handshake_send msg=A1 size=4279` · `invite accept` → `msg=B1 size=6436` · `invite finish` → `msg=A2 size=3364`, `invite_finish=ok`, `handshake_complete`. **All four rc 0.**
+- ⚠ **The asymmetry:** redeemer ends `awaiting_peer_confirm` / `send_ready=yes`; **the accepter (invite creator) ends `no_session` / `peer_confirmed=no` / `send_ready=no` / `send_ready_reason=no_session`.** No message can be sent in either direction.
+- ⚠ **All three documented collectors refuse, each differently:** `handshake poll` → `handshake_reject reason=decode_failed` · `invite accept` again → `invite_already_redeemed` · `receive` → `protocol_inactive reason=missing_seed`.
+- ⚠⚠ **NOT the client rev, and NOT a relay defect.** Reproduced at the desktop pin `32e572c7` **and** at spine main across **three independent walks** with fresh vaults; **frame sizes byte-identical across revs.** The control's own premise was measured: the `qsl/qsl-client/qsc` subtree hash is **identical** at `b845e678` and `b44909f5` (`a15275455138ab2f6050767e97de2885ba0c5958`). ⚠ **The relay accepted the push and delivered the frame — the rejection is client-side decode.**
+- ⚠ **THE LIMIT OF THIS CLAIM, CARRIED VERBATIM PER R229 §4:** *"Absence of a path I could find is not proof that no path exists."* Every command was read from `--help` before use and all three plausible collectors were tried. ⚠ **If a completing command exists, that the documented surface does not lead a reader to it is ITSELF the finding.** Either way there is a defect; only its name changes.
+- Cross-reference: **ENG-0174** (the frame is destroyed), **ENG-0175** (no retry), **ENG-0176** (the likely mechanism); NA-0704's *"asymmetric establishing window"*; NA-0706's Arm I, which this unblocks and then re-blocks one step later.
+- Originating/last lane: NA-0710 (D-1347). Last-updated: 2026-08-11.
+
+### ENG-0174 — a handshake frame that fails to decode is DESTROYED, not quarantined — **NEW; filed 2026-08-11 by NA-0710 (D-1347; R229 §3.4)**
+
+- Severity: **P1** (⚠ *"may be the deeper one"* — R229 §3.4: **a hole in a mechanism this program already believed it had**)
+- Status: open — filed 2026-08-11. **FILING ONLY.**
+- Measured: `handshake poll` pulls A2, emits `handshake_reject reason=decode_failed`, and ⚠ **a second poll returns `handshake_recv msg=none`** — the frame is gone. The pull acked it; the relay deleted it; the client kept nothing.
+- ⚠ **NA-0689 built a quarantine for exactly this class and it did not catch this frame.** A frame that cannot be decoded is precisely the case quarantine exists for.
+- ⚠ Note the near-miss recorded elsewhere: NA-0708's SR-15 read (F-1) withdrew a reject-class taxonomy **because classifying `qsp_env_decode_failed` would have destroyed a handshake A2 frame**. **This entry is that hazard measured live, by a different route.**
+- Cross-reference: **ENG-0173**, NA-0689 (quarantine), NA-0708 F-1. Originating/last lane: NA-0710 (D-1347). Last-updated: 2026-08-11.
+
+### ENG-0175 — `invite accept` is not re-runnable, so the accepter has no retry even in principle — **NEW; filed 2026-08-11 by NA-0710 (D-1347; R229 §3.5)**
+
+- Severity: **P2**
+- Status: open — filed 2026-08-11. **FILING ONLY.**
+- Measured: a second `invite accept` on the same slot returns `invite_already_redeemed`, rc 1. Combined with **ENG-0174** (the frame is consumed and destroyed on the first poll), **a single failed collection is terminal for that invite.**
+- ⚠ Why it matters beyond convenience: a retry would have **masked** ENG-0173 intermittently rather than deterministically. **Its absence is why the defect is reproducible — and why it is also unrecoverable.**
+- Cross-reference: **ENG-0173**, **ENG-0174**. Originating/last lane: NA-0710 (D-1347). Last-updated: 2026-08-11.
+
+### ENG-0176 — the accepter holds a pinned contact but NO pending handshake record, so there is no context to decode A2 against — **NEW; filed 2026-08-11 by NA-0710 (D-1347; R229 §3.5)**
+
+- Severity: **P1** (⚠ **the likely mechanism of ENG-0173**, filed separately so the mechanism survives even if the symptom is re-described)
+- Status: open — filed 2026-08-11. **FILING ONLY.**
+- Measured: immediately after a **successful** `invite accept`, the accepter's poll emits `handshake_pending peer=<alias> present=false role=none` **before** `decode_failed`, while `contacts` shows the peer **pinned** with a fingerprint.
+- ⚠ **The contact is persisted; the handshake state that would let the client interpret the reply is not.** This is the concrete form of `missing_seed`, which NA-0704 located at `protocol_state/mod.rs:94` from source without ever observing it fire.
+- ⚠ **Stated as the LIKELY mechanism, not a proven root cause** — this lane read markers, not the state store.
+- Cross-reference: **ENG-0173**, **ENG-0174**, NA-0704 F2(b). Originating/last lane: NA-0710 (D-1347). Last-updated: 2026-08-11.
+
 ### WF-0001 — Cross-lane continuity requires an in-repo ledger
 - Status: done — lane NA-0609A (D-1211); last-updated 2026-07-06
 - Problem: each lane is a fresh assistant in a different qwork workspace path, so
@@ -3559,3 +3611,14 @@ A commission that grants a clone must **NAME the tree's `CLAUDE.md` for pre-empt
 - ⚠ **Independently corroborated**: a second cold reader, on another lane, in another tree, with no contact, found the same gap from the other side — `.claude/settings.json` carries an executing hook and a permissions deny-list. **Two readers, two trees, same gap: evidence, not coincidence.**
 - Recommended change: enumerate the injection surface once — every file and directory a harness reads at seat time — and make the seating recipe name the **enumeration**, not a list of filenames.
 - Status: open — **FILING ONLY**, and stated as a **named unknown** rather than a defect with a known extent. Originating/last lane: NA-0709 (D-1346). Last-updated: 2026-08-10.
+
+### WF-0059 — a directive can grant privileged authority that the HARNESS refuses, and neither document knows about the other — **NEW; filed 2026-08-11 by NA-0710 (D-1347; R215 §4.4)**
+
+- Problem: `.claude/settings.json` in this repo carries a permissions **deny-list** including `Bash(sudo:*)`, `Bash(apt:*)`, `Bash(apt-get:*)`, `Bash(systemctl:*)`. ⚠ **Those are exactly the acts a provisioning directive authorizes.** A lane can be approved to install a service and then be refused by the harness **mid-execution, with root already held** — the worst place to discover a gap.
+- ⚠ **NOT an argument for removing the guardrail.** The deny-list is a deliberate safety mechanism. **The defect is the mutual ignorance of the two documents.**
+- Measured (NA-0710, 2026-08-11): a bare local `sudo -n true` was **NOT refused** by the harness for a seat whose session directory was **outside** a repo checkout — ⚠ so the deny-list's applicability **depends on settings resolution and working directory, which nobody in this program has measured.** That is the fact worth having: **it is conditional, and the condition is unmeasured.**
+- ⚠ **Untested inference, recorded as such:** the deny entries are keyed to a command's **leading token**, so `ssh host 'sudo …'` presents as `Bash(ssh:*)`. **If** that is how matching works, a guardrail keyed to spelling rather than effect **can be defeated without intent** (`bash -c 'sudo …'`, a script calling sudo internally). ⚠ **This was NOT confirmed** — nothing was denied, so no spelling comparison was possible.
+- Recommended change: before a directive authorizes privileged acts, **measure whether the executing seat's harness permits them**, and record the answer with the authorization. A one-command no-op probe settles it and costs nothing.
+- ⚠ Distinct from **WF-0058**, which is about *blinding a cold reader*. This is about *a lane's authorized acts being refused at execution* — different failure, different consequence.
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0710 (D-1347). Last-updated: 2026-08-11.
+

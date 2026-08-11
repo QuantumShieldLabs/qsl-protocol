@@ -38058,7 +38058,7 @@ HIGHEST_NA 0703→0705; HIGHEST_D 1343→1344 in this commit. Class at close:
     accepter — only that none of the three documented collectors works, and that if one exists the
     documented surface does not lead a reader to it.**
 
-## D-1348 — NA-0712: THE ASSURANCE SWEEP — a second dimension over the ranked defect set, and the measured finding that the ledger is not a reliable instrument about the tree in either direction
+## D-1349 — NA-0712: THE ASSURANCE SWEEP — a second dimension over the ranked defect set, and the measured finding that the ledger is not a reliable instrument about the tree in either direction
 
   - **Status:** Accepted (R239 approved D648 with amendment A1 and ruled R1–R6; R240 ruled the
     third candidacy state IN; R241 authorized the eleven-entry source pass; R243 ruled the track and
@@ -38115,7 +38115,7 @@ HIGHEST_NA 0703→0705; HIGHEST_D 1343→1344 in this commit. Class at close:
     **Reliable where a fix changes an existing path; unreliable where it introduces a new named
     artifact the test references.**
   - **Governance:** **SR-22 (two-pass figures)** adopted into `docs/ops/STANDING_RULES.md`;
-    **`WF-0060`** filed (five agent-memory channels where the standing rule names two, and a
+    **`WF-0064`** filed (five agent-memory channels where the standing rule names two, and a
     guardrail whose hook path binds only on one host); ⚠ **a SECOND INSTANCE appended to `WF-0059`
     rather than filed as a new id** — this lane's own commission ordered deletions against a binding
     `CODEX_RULES.md`, removing the human authorization gate **by instruction rather than by

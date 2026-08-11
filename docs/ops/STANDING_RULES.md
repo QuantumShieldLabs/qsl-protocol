@@ -148,7 +148,7 @@ merge activated SR-14/15/16 together.)
   FIRST and prove it by listing the sealed directory's mtimes before and after.**
 
 - **SR-22 — Two-pass figures (ADOPTED by Director ruling, NA-0712 RBANK 009 R248; effective
-  D-1348).** ⚠ **Never write a figure about an artifact in the same pass that creates the
+  D-1349).** ⚠ **Never write a figure about an artifact in the same pass that creates the
   artifact.** Two passes, always: **(1) write with the figure ABSENT · (2) measure · (3) insert.**
   ⚠ **A figure that cannot be measured at the instant it is typed MUST NOT BE TYPED** — leave the
   slot empty and fill it, or point at the listing **without asserting a value**. ⚠ **A hedge is not

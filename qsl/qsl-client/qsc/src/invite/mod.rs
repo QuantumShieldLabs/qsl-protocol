@@ -797,12 +797,16 @@ fn csprng_16() -> [u8; ID_LEN] {
 ///
 /// Gates on CONFIGURATION, never on probe results (L3-1): an unlocked vault and a relay
 /// endpoint. A failed reachability probe does not block creation.
-pub fn invite_create(self_label: &str, relay: &str, ttl_secs: u64) -> Result<String, &'static str> {
+pub fn invite_create(
+    self_label: Option<&str>,
+    relay: &str,
+    ttl_secs: u64,
+) -> Result<String, &'static str> {
     invite_create_at(self_label, relay, ttl_secs, now_unix_s())
 }
 
 pub fn invite_create_at(
-    self_label: &str,
+    self_label: Option<&str>,
     relay: &str,
     ttl_secs: u64,
     now: u64,
@@ -810,6 +814,10 @@ pub fn invite_create_at(
     if !vault_unlocked() {
         return Err("vault_locked");
     }
+    // NA-0711: resolved BEFORE the network, and propagated (D647 A4 Δ36/Δ37).
+    let self_label =
+        crate::identity::identity_resolved_self_label(self_label).map_err(|e| e.as_str())?;
+    let self_label = self_label.as_str();
     let relay_ep = crate::adversarial::route::normalize_relay_endpoint(relay)?;
 
     // DESIGN §8 Q2: a soft cap on LIVE doors, client-side. The relay's 256-slot cap bounds
@@ -921,19 +929,27 @@ pub fn invite_list() -> Result<Vec<InviteRecord>, &'static str> {
 }
 
 /// Bob: redeem an invite and hand shake into the slot. DESIGN §5.2, in order.
-pub fn invite_redeem(code: &str, alias: &str, self_label: &str) -> Result<String, &'static str> {
+pub fn invite_redeem(
+    code: &str,
+    alias: &str,
+    self_label: Option<&str>,
+) -> Result<String, &'static str> {
     invite_redeem_at(code, alias, self_label, now_unix_s())
 }
 
 pub fn invite_redeem_at(
     code: &str,
     alias: &str,
-    self_label: &str,
+    self_label: Option<&str>,
     now: u64,
 ) -> Result<String, &'static str> {
     if !vault_unlocked() {
         return Err("vault_locked");
     }
+    // NA-0711: resolved BEFORE the network, and propagated (D647 A4 Δ36/Δ37).
+    let self_label =
+        crate::identity::identity_resolved_self_label(self_label).map_err(|e| e.as_str())?;
+    let self_label = self_label.as_str();
     // (1) PARSE -- entirely local.
     let payload = decode_invite_code(code)?;
     let payload_bytes = encode_payload(&payload)?;
@@ -1038,7 +1054,7 @@ pub fn invite_redeem_at(
 /// was left there. Client-side single use lives HERE: the first valid handshake per
 /// `invite_id` is accepted and subsequent ones refused, independent of the relay (I2).
 pub fn invite_accept(
-    self_label: &str,
+    self_label: Option<&str>,
     invite_id_wire: &str,
     alias: &str,
     max: usize,
@@ -1047,7 +1063,7 @@ pub fn invite_accept(
 }
 
 pub fn invite_accept_at(
-    self_label: &str,
+    self_label: Option<&str>,
     invite_id_wire: &str,
     alias: &str,
     max: usize,
@@ -1056,6 +1072,16 @@ pub fn invite_accept_at(
     if !vault_unlocked() {
         return Err("vault_locked");
     }
+    // NA-0711 (D647 A4 Δ36/Δ37, R238 §5.3): THIS PATH NEEDS ITS OWN PRE-PULL SITE. Its pull is
+    // below, in THIS function, not in `perform_handshake_poll_with_tokens` -- a check placed only
+    // there would leave the accept path (the path the defect was found on) uncovered. And it
+    // RETURNS Err rather than emitting a marker and carrying on: a refusal that is downgraded to a
+    // marker is not a refusal. Because it lands BEFORE the pull, it also lands before the slot is
+    // marked Redeemed, so a mislabelled accept stays RETRYABLE -- a PARTIAL on ENG-0175 (R238 §2),
+    // never a closure: every other failure mode still burns the slot.
+    let self_label =
+        crate::identity::identity_resolved_self_label(self_label).map_err(|e| e.as_str())?;
+    let self_label = self_label.as_str();
     let store = invite_store_load()?;
     let rec = store.invites.get(invite_id_wire).ok_or(INVITE_NOT_FOUND)?;
     match rec.state {
@@ -1094,7 +1120,8 @@ pub fn invite_accept_at(
         data: env.a1,
     };
     crate::handshake::perform_handshake_poll_with_tokens(
-        self_label,
+        // Already resolved above, pre-pull; the poll re-checks it idempotently.
+        Some(self_label),
         alias,
         &relay_ep,
         "",
@@ -1120,7 +1147,7 @@ pub fn invite_accept_at(
 /// Bob: collect the wrapped B1 from his own inbox, learn the peer's real route token, and
 /// let the existing initiator logic finish the handshake.
 pub fn invite_finish(
-    self_label: &str,
+    self_label: Option<&str>,
     alias: &str,
     relay: &str,
     max: usize,
@@ -1128,6 +1155,10 @@ pub fn invite_finish(
     if !vault_unlocked() {
         return Err("vault_locked");
     }
+    // NA-0711: resolved BEFORE this path's own pull, and propagated (D647 A4 Δ36/Δ37).
+    let self_label =
+        crate::identity::identity_resolved_self_label(self_label).map_err(|e| e.as_str())?;
+    let self_label = self_label.as_str();
     let relay_ep = crate::adversarial::route::normalize_relay_endpoint(relay)?;
     let self_inbox = crate::contacts::relay_self_inbox_route_token()?;
     let items = crate::transport::relay_inbox_pull(&relay_ep, &self_inbox, max)?;
@@ -1143,7 +1174,8 @@ pub fn invite_finish(
         data: b1,
     };
     crate::handshake::perform_handshake_poll_with_tokens(
-        self_label,
+        // Already resolved above, pre-pull; the poll re-checks it idempotently.
+        Some(self_label),
         alias,
         &relay_ep,
         &self_inbox,

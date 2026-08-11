@@ -1143,7 +1143,17 @@ fn handshake_a2_replay_rejects_no_mutation() {
     assert!(out_bob_replay.status.success());
     let out_bob_replay_str = String::from_utf8_lossy(&out_bob_replay.stdout);
     assert!(out_bob_replay_str.contains("handshake_reject"));
-    assert!(out_bob_replay_str.contains("reason=decode_failed"));
+    // NA-0711 (D647 A4 Δ38): the reason is no longer collapsed to `decode_failed`; it prints the
+    // one the decoder actually produced. ⚠ SAID PLAINLY, BECAUSE IT MATTERS: `handshake_type`
+    // carries NO replay information — a replay and a "no context to decode against" miss are the
+    // SAME branch emitting the SAME reason, and separating them means touching the replay guard,
+    // which this lane refuses as a fourth change (the reject-vocabulary normalisation lane owns
+    // it). What DOES distinguish this case is the state field below.
+    assert!(out_bob_replay_str.contains("reason=handshake_type"));
+    // ⚠ THE PART THAT CARRIES THE INFORMATION: this replay follows a COMPLETED handshake, so the
+    // pending record was cleared rather than never written. Before NA-0711 the client collapsed
+    // "cleared" and "absent" into one unattributable `present=false`.
+    assert!(out_bob_replay_str.contains("state=cleared"));
     assert!(session_path(&bob_cfg, "alice").exists());
     let sess_after = fs::read(session_path(&bob_cfg, "alice")).expect("read bob session after");
     assert_eq!(sess_before, sess_after);

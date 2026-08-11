@@ -2,6 +2,11 @@
 
 use super::*;
 
+/// NA-0711 (D647 A4): the canonical single self-identity label, and the only default. It exists as
+/// a constant so the CLI surface and the resolver cannot drift apart the way `--as` and
+/// `--self-label` did.
+pub(crate) const DEFAULT_SELF_LABEL: &str = "self";
+
 #[derive(Serialize, Deserialize)]
 pub(super) struct IdentityKeypair {
     pub(super) kem_pk: Vec<u8>,
@@ -423,6 +428,80 @@ pub fn identity_read_self_public(
         }));
     }
     Err(ErrorCode::ParseFailed)
+}
+
+/// NA-0711 (D647 as amended by A4, Δ33/Δ34; R238 §1): resolve the self label a path must use, so a
+/// caller can consult NA-0616's property BEFORE it acts instead of meeting it afterwards with its
+/// error discarded.
+///
+/// ⚠ This is the SAME ratified property `identity_self_kem_keypair` enforces below
+/// ("a config dir is meant to hold one self-identity"), EXTRACTED rather than re-authored — the
+/// house's own answer to this defect class, reused instead of a new one invented beside it.
+///
+/// | `requested` | `self_*.json` present | result |
+/// |---|---|---|
+/// | `None` | exactly one | **that label** — the derivation |
+/// | `None` | none | `self`, the canonical default (first-run auto-create stays allowed) |
+/// | `None` | two or more | `Err(IdentitySelfAmbiguous)` — derivation is ambiguous, so it refuses |
+/// | `Some(l)` | a record for `l` exists, or none exist at all | `l` |
+/// | `Some(l)` | records exist but none is `l` | `Err(IdentitySelfAmbiguous)` — the safety net |
+///
+/// ⚠ **RESIDUAL HOLE, STATED HERE RATHER THAN DISCOVERED LATER (R238 §1.1):** in a dir that
+/// legitimately holds two or more identities, an explicit **wrong-but-existing** label passes this
+/// check and the caller's lookup can still miss silently. That is the same class the "one
+/// vocabulary" shape was refused for — narrowed to multi-identity dirs, **not closed**. The
+/// whole-key `handshake_pending` marker is the compensating control.
+pub(crate) fn identity_resolved_self_label(requested: Option<&str>) -> Result<String, ErrorCode> {
+    if let Some(l) = requested {
+        if !channel_label_ok(l) {
+            return Err(ErrorCode::ParseFailed);
+        }
+    }
+    let (dir, source) = config_dir()?;
+    let identities = identities_dir(&dir);
+    ensure_dir_secure(&identities, source)?;
+    let mut existing: Vec<String> = Vec::new();
+    if let Ok(entries) = std::fs::read_dir(&identities) {
+        for entry in entries.flatten() {
+            if let Some(name) = entry.file_name().to_str() {
+                if let Some(stem) = name
+                    .strip_prefix("self_")
+                    .and_then(|stem| stem.strip_suffix(".json"))
+                {
+                    existing.push(stem.to_string());
+                }
+            }
+        }
+    }
+    existing.sort();
+    match (requested, existing.len()) {
+        (Some(l), 0) => Ok(l.to_string()),
+        (Some(l), _) => {
+            if existing.iter().any(|e| e == l) {
+                Ok(l.to_string())
+            } else {
+                emit_marker(
+                    "identity_self_ambiguous",
+                    None,
+                    &[("existing", existing.join(",").as_str()), ("requested", l)],
+                );
+                Err(ErrorCode::IdentitySelfAmbiguous)
+            }
+        }
+        (None, 0) => Ok(DEFAULT_SELF_LABEL.to_string()),
+        (None, 1) => Ok(existing[0].clone()),
+        (None, _) => {
+            emit_marker(
+                "identity_self_ambiguous",
+                None,
+                &[
+                    ("existing", existing.join(",").as_str()),
+                    ("requested", "<derive>"),
+                ],
+            );
+            Err(ErrorCode::IdentitySelfAmbiguous)
+        }
+    }
 }
 
 pub(super) fn identity_self_kem_keypair(self_label: &str) -> Result<IdentityKeypair, ErrorCode> {

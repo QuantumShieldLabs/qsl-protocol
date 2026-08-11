@@ -310,7 +310,7 @@ fn run(cli: Cli) -> CliResult {
                 relay,
                 max,
                 suite_mode,
-            } => handshake_poll_with_suite_mode(&as_label, &peer, &relay, max, suite_mode),
+            } => handshake_poll_with_suite_mode(as_label.as_deref(), &peer, &relay, max, suite_mode),
             HandshakeCmd::Status { peer } => handshake_status(peer.as_deref()),
         }?,
         Some(Cmd::Identity { cmd }) => match cmd {
@@ -336,7 +336,7 @@ fn run(cli: Cli) -> CliResult {
                 relay,
                 ttl_secs,
             } => {
-                let code = qsc::invite::invite_create(&self_label, &relay, ttl_secs)
+                let code = qsc::invite::invite_create(self_label.as_deref(), &relay, ttl_secs)
                     .map_err(CliError::code)?;
                 println!("{code}");
             }
@@ -357,7 +357,7 @@ fn run(cli: Cli) -> CliResult {
                 alias,
                 self_label,
             } => {
-                let fp = qsc::invite::invite_redeem(&code, &alias, &self_label)
+                let fp = qsc::invite::invite_redeem(&code, &alias, self_label.as_deref())
                     .map_err(CliError::code)?;
                 // I5: PENDING, never trusted. The badge and the ceremony are Slice 4's.
                 println!("contact={alias} status=pinned fp={fp}");
@@ -367,7 +367,7 @@ fn run(cli: Cli) -> CliResult {
                 alias,
                 self_label,
                 max,
-            } => match qsc::invite::invite_accept(&self_label, &invite_id, &alias, max)
+            } => match qsc::invite::invite_accept(self_label.as_deref(), &invite_id, &alias, max)
                 .map_err(CliError::code)?
             {
                 Some(fp) => println!("contact={alias} status=pinned fp={fp}"),
@@ -379,7 +379,7 @@ fn run(cli: Cli) -> CliResult {
                 self_label,
                 max,
             } => {
-                let done = qsc::invite::invite_finish(&self_label, &alias, &relay, max)
+                let done = qsc::invite::invite_finish(self_label.as_deref(), &alias, &relay, max)
                     .map_err(CliError::code)?;
                 println!("invite_finish={}", if done { "ok" } else { "none" });
             }

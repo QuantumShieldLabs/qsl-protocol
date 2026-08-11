@@ -3914,8 +3914,19 @@ A commission that grants a clone must **NAME the tree's `CLAUDE.md` for pre-empt
 
 ### ENG-0181 — the platter already holds 30 hardlinked snapshots containing that build output, and pruning them is a separate destructive act — **NEW; filed 2026-08-11 by NA-0714 (D-1351; R255 §3.5, FLAG-5)**
 
-- Problem: fixing **ENG-0180** stops the accretion but reclaims nothing already written. ⚠ **Measured so the successor inherits a number rather than a worry:** `NA-0700/targets` alone is **35G**, retained across **30 daily snapshots** (`DAILY_KEEP=30`), hardlinked — so the true incremental cost is well below 30 × 35G but is **not** 35G either, and must be measured with a hardlink-aware sweep before anything is deleted.
-- Platter state at filing: `/dev/sda1` 916G, **465G used / 442G free / 52%** — ⚠ **not urgent**, which is precisely why it should be ruled deliberately rather than folded into a cleanup.
+- Problem: fixing **ENG-0180** stops the accretion but reclaims nothing already written. `NA-0700/targets` alone is **35G**, retained across **30 daily snapshots** (`DAILY_KEEP=30`), hardlinked.
+- ⚠ **MEASURED, so the successor inherits numbers rather than a worry** (hardlink-aware `du`, read-only, platter untouched by this lane). `/dev/sda1` 916G, **465G used / 442G free / 52%**:
+
+  | path | size | note |
+  |---|---|---|
+  | `snapshots/` | **189G** | all 30 dailies **together**, hardlink-aware — *not* 30 × 35G |
+  | `qbuild-tmp-archive/` | **148G** | where the cleaner archives `tmp` proof-roots |
+  | `qbuild-archives/` | **130G** | |
+  | everything else | <4M | `incoming`, `restores`, `logs`, `manifests`, rollback |
+
+- ⚠⚠ **The snapshots are NOT the largest thing on the platter.** `qbuild-tmp-archive` + `qbuild-archives` total **278G — more than the 30 snapshots combined** — and neither has been examined by any lane. **A ruling aimed only at snapshot pruning would address the smaller half.**
+- ⚠ **STILL UNMEASURED, and stated so rather than estimated:** how much of the 189G is build output versus evidence. The 35G figure is one directory in one snapshot; **the hardlinked share across 30 is not derivable from it.** That sweep is the precondition for any pruning decision.
+- ⚠ **Not urgent** at 52% used — which is precisely why it should be ruled deliberately rather than folded into a cleanup.
 - ⚠⚠ **This is a destructive act on the BACKUP ITSELF**, the artifact that protects everything else. It was explicitly **not** authorized to NA-0714 and is recorded here so it is not quietly absorbed into a later lane.
 - Cross-reference: **ENG-0180** (the cause), **WF-0070**.
 - Status: **open — awaiting a ruling of its own.** Originating/last lane: NA-0714 (D-1351). Last-updated: 2026-08-11.

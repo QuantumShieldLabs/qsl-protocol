@@ -147,6 +147,25 @@ merge activated SR-14/15/16 together.)
   **Corollary, from the fifth: when re-running a sealed series, re-point the OUTPUT root
   FIRST and prove it by listing the sealed directory's mtimes before and after.**
 
+- **SR-22 — Two-pass figures (ADOPTED by Director ruling, NA-0712 RBANK 009 R248; effective
+  D-1349).** ⚠ **Never write a figure about an artifact in the same pass that creates the
+  artifact.** Two passes, always: **(1) write with the figure ABSENT · (2) measure · (3) insert.**
+  ⚠ **A figure that cannot be measured at the instant it is typed MUST NOT BE TYPED** — leave the
+  slot empty and fill it, or point at the listing **without asserting a value**. ⚠ **A hedge is not
+  a measurement:** *"(see listing)"* beside an asserted value **disguises the assertion rather than
+  softening it**. **WHY ITS OWN CLAUSE:** six measured instances in one lane — a needle mismatching
+  twice, two verification greps that "found" absences that did not exist (`FRESHLY` vs `freshly`,
+  `20 shards` vs `≤20 concurrent shards`), a commission line-count (139 vs 153), and a banked
+  ruling's line-count-and-sha **written into the header of the stop that catalogued the first
+  five**. ⚠ **Diligence failed six times, so the cause is not diligence: a document that cites its
+  own metrics is written in one pass, and at the instant the figure is typed the artifact does not
+  finish existing.** The structure guarantees the defect. ⚠ **Every instance was in a GOVERNANCE
+  artifact, and a governance artifact's numbers are the only thing a later reader can check
+  cheaply — a wrong sha in a header is the field a successor uses to decide whether a document IS
+  the document.** This is SR-09/SR-10's *build it from the bytes, not from your model of them*
+  applied to the act of **WRITING** rather than **READING**; the reading half has been ratified for
+  weeks and the writing half is the one that failed.
+
 ## C. ADOPTION LADDER (machinery items; one per checkpoint; each ships with its own red-capable proof)
 1. **Post-NA-0696 governance errand** (docs-only PR, with the ENG-0048 pairing window):
    lands THIS FILE at docs/ops/STANDING_RULES.md + PREDICTION_LEDGER.md + a ledger WF

@@ -38057,3 +38057,82 @@ HIGHEST_NA 0703→0705; HIGHEST_D 1343→1344 in this commit. Class at close:
     deliberately not run and not read**) · ⚠ **that no completing command exists for the invite
     accepter — only that none of the three documented collectors works, and that if one exists the
     documented surface does not lead a reader to it.**
+
+## D-1349 — NA-0712: THE ASSURANCE SWEEP — a second dimension over the ranked defect set, and the measured finding that the ledger is not a reliable instrument about the tree in either direction
+
+  - **Status:** Accepted (R239 approved D648 with amendment A1 and ruled R1–R6; R240 ruled the
+    third candidacy state IN; R241 authorized the eleven-entry source pass; R243 ruled the track and
+    the headline; R245 issued the SR-15 commission; R246 accepted the read; R248 adopted SR-22;
+    R249 authorized derive-at-push and this record).
+  - **Context:** D-1346 ranked 99 defects on *can this hurt a user's data or privacy, and can they
+    tell?*, and a later sweep for *does this remedy get harder with time?* found nine entries, **none
+    above T4**. This lane swept a third dimension — **evidentiary status** — because an unverified
+    authentication property in a post-quantum messenger causes no observable harm today and is the
+    thing the product's claim rests on. ⚠ **The harm axis cannot see "we believe this is sound" as a
+    defect.**
+  - **Decision:** every entry in a frozen population of **129** carries an assurance verdict with
+    its reasoning, recorded as **ONE table in ONE section** of `docs/ops/IMPROVEMENT_LEDGER.md` —
+    ⚠ **not a per-entry field, which would have made that file four ledgers wearing one file, the
+    defect `WF-0054` already names.** Entry text is left **byte-identical**. **Result: PROVEN 15 ·
+    ARGUED 13 · ASSUMED 61 · UNDECIDABLE 4 · NOT-APPLICABLE 36.** ⚠ **The brief predicted
+    NOT-APPLICABLE would be the largest bucket; it is 36 against ASSUMED's 61.**
+  - ⚠⚠ **THE PRINCIPAL FINDING — THE LEDGER IS NOT A RELIABLE INSTRUMENT ABOUT THE TREE, IN EITHER
+    DIRECTION**, measured three ways: **pessimistic** — 29 closed entries record an argument or no
+    check at all; **optimistic** — `Proof gap:` is **write-once**, so 12 closed entries still
+    advertise a gap and two were refuted on contact with source; and ⚠ **largest — of eleven entries
+    the ledger recorded NO check for, TEN have real, often adversarial guards in the tree.**
+    ⚠ **`Status:` is write-once too** (nine entries `Status: open` beside a closing `Resolution:`),
+    so the unreliability is in **at least two fields**. ⇒ **verdicts about the tree must be settled
+    against the tree**, which is what the table is.
+  - **The population:** the 99 ranked LIVE entries + **ENG-0170** + **29 closed candidates**, the
+    closed set having been triaged by asking only *does this closure rest on an ARGUMENT rather than
+    a mechanical check?* ⚠ **A third state was measured that the ruling's enumeration had no cell
+    for — 16 entries whose closure names NO check at all — and it was ruled IN**, on the ground that
+    a closure naming nothing rests on nothing stronger than an argument. **ENG-0173–0176 were
+    excluded BY NAME with the reason recorded** (NA-0711 was rewriting them; a verdict about a text
+    being rewritten is a verdict about a document that will not exist).
+  - ⚠ **THE DISAGREEMENT WITH THE HARM RANKING IS THE DELIVERED PRODUCT.** The separable assurance
+    track is **20 rows**: **2 above T4**, **9 at T4**, **9 with no harm rank at all**. ⇒ **eighteen
+    of twenty sit at the bottom of the harm ranking or are invisible to it** — harm and assurance are
+    **very nearly disjoint**, as harm and deadline were. ⚠⚠ **Three axes, three near-disjoint
+    results, and the pattern is the finding: an axis measures what it was built to measure.**
+    ⚠⚠ **The all-three-tracks set is exactly ONE entry — `ENG-0056` — ranked T4 by the axis that
+    governs the queue, and its remedy is an observer over one constant.**
+  - **The track is ordered by INSTRUMENT, not by entry**, because that is where the leverage is:
+    **ENG-0003 + 0005 + 0008 are ONE keyed-comparison scan**; **ENG-0038 and ENG-0172's model half
+    are ONE model**; **ENG-0115 is ENG-0034's stated `scope:`**. ⚠ **`ENG-0172` leads: a P1
+    authentication property whose regression condition its own text states verbatim, watched by
+    nothing, remediable by an observer over one format constant.**
+  - **54 rows ride their own fixes** — for an open, unfixed defect the proof is the regression test
+    its fix already owes under red-before-green, so pricing it here would double-count the fix
+    backlog; **all 54 are enumerated so the omission is auditable rather than a silent narrowing.**
+    ⚠ **`ENG-0105` is the one exception and it bounds the premise**: its own severity reads *"test
+    coverage — a negative-control gap, not a product defect"*, so **fix and proof are the same
+    object**, and its test **cannot be written until the injection seam is built.**
+  - ⚠ **Red-before-green fails when the RED comes from the absence of an ARTIFACT rather than the
+    absence of the BEHAVIOUR** — `ENG-0003`'s test was red because a helper did not compile, so the
+    discipline passed a test proving **functional equivalence to `==`** for a **timing** property.
+    **Reliable where a fix changes an existing path; unreliable where it introduces a new named
+    artifact the test references.**
+  - **Governance:** **SR-22 (two-pass figures)** adopted into `docs/ops/STANDING_RULES.md`;
+    **`WF-0064`** filed (five agent-memory channels where the standing rule names two, and a
+    guardrail whose hook path binds only on one host); ⚠ **a SECOND INSTANCE appended to `WF-0059`
+    rather than filed as a new id** — this lane's own commission ordered deletions against a binding
+    `CODEX_RULES.md`, removing the human authorization gate **by instruction rather than by
+    amendment**. **A class filed one day and recurring the next is stronger evidence than a fresh
+    id.**
+  - **Evidence:** an SR-15 adversarial read (`RBANK_NA0712_007_FINDINGS`, 451 lines, `e5b38f23…41e4`,
+    banked `cmp` rc 0) whose own verdict was **"nothing I found changes the shape of the
+    classification"** — it moved one row, corrected one `PROVEN` citation, and reported **three
+    corrections against itself**. ⚠ **It caught this lane committing the ENG-0003 trap inside a
+    `PROVEN` citation**: the cited vector asserts process **exit status**, not decryption, and the
+    test itself relies on a non-decrypting receive still exiting 0.
+  - ⚠ **NOT CLAIMED:** that any property is proven · that the assurance ordering is the operator's
+    priority order — **it is a recommendation the operator rules** · that the classification is
+    complete where an entry is UNDECIDABLE · anything about the WF register beyond the two filings
+    above · ⚠ **that the 54 track-A rows are correctly bounded — that boundary is a FLOOR, not a
+    ceiling**, measured from severity and status text by an instrument this lane's own principal
+    finding calls unreliable · ⚠ **the basis split is part of the result, not a caveat: 23 of 129
+    verdicts are source-settled and 106 rest on entry text**, of which every one is an open defect or
+    a NOT-APPLICABLE row where text is decisive · ⚠ **the seating experiment is UNRUN, not failed**,
+    and `bypassPermissions` being machine-wide makes the question **unanswerable by any lane**.

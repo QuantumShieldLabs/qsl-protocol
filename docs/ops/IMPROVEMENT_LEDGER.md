@@ -114,6 +114,252 @@ some are now wrong by hundreds of lines or point at deleted files. **Any lane ac
 entry must re-derive its surfaces from the entry's DESCRIPTION, never from its citation.**
 
 
+## The NA-0712 assurance classification (D-1349, 2026-08-11) — a second dimension over the ranked set
+
+**Every entry below carries an ASSURANCE verdict**: *is the property this entry guards PROVEN,
+ARGUED, ASSUMED, NOT-APPLICABLE, or UNDECIDABLE?* The harm ranking established at D-1346 is
+**unchanged** — this is a separate dimension, not a re-ranking.
+
+⚠ **WHY IT IS ONE TABLE AND NOT A PER-ENTRY FIELD.** A fourth per-entry convention would have made
+this file four ledgers wearing one file, which is the open defect `WF-0054` already names. **One
+section, one greppable form, and every entry's text left byte-identical.**
+
+### ⚠⚠ THE PRINCIPAL FINDING — THE LEDGER IS NOT A RELIABLE INSTRUMENT ABOUT THE TREE, IN EITHER DIRECTION
+
+Measured three ways in one lane:
+
+- **Pessimistic — closure recorded with no evidence.** Of 51 closed entries, **13** closed on an
+  argument and **16** record **no check of any kind** — a `STATUS: DONE` and a description of what
+  was built.
+- **Optimistic — `Proof gap:` is WRITE-ONCE.** Nothing retires the line when a later lane closes the
+  gap, so **a `Proof gap:` is evidence a gap was ONCE NAMED, never that it is still open.** **12
+  entries are closed and still advertise one.** Two rows (**ENG-0001**, **ENG-0012**) were refuted on
+  contact with source.
+- ⚠ **`Status:` is write-once too** — **nine** entries carry `Status: open` beside a closing
+  `Resolution:` (`ENG-0065, 0082, 0084, 0085, 0088, 0089, 0090, 0091, 0094`), six of them also
+  carrying a stale `Proof gap:`. *(A looser needle returns 22; the difference is partial-closure
+  entries, where an open `Status:` beside a `Resolution:` is CORRECT under this file's own rule at
+  `:57-64`. **Nine is the number.**)*
+- ⚠⚠ **AND THE LARGEST: of eleven entries this file recorded NO check for, TEN have real — often
+  adversarial — guards in the tree.** The checks were simply never written down.
+
+⇒ ⚠ **VERDICTS ABOUT THE TREE MUST BE SETTLED AGAINST THE TREE.** That is what this table is, and it
+is why it was worth building. **No `PROVEN` verdict was issued from an entry's prose: every one names
+a check located and read in the tree.**
+
+### The vocabulary
+
+`PROVEN` — a model-checked result, a machine-verified proof, or a test shown able to fail on the
+property. ⚠ **Every `PROVEN` row carries a mandatory `scope:` naming what its proof does NOT reach**
+(SR-21 applied to a verdict rather than to a needle; it is what makes a `PROVEN` row auditable).
+`ARGUED` — a reasoned case in the record, never mechanically checked. `ASSUMED` — relied upon,
+nowhere argued or checked. `NOT-APPLICABLE` — guards no security or correctness property.
+`UNDECIDABLE` — not determinable, **with the reason**; ⚠ *"read and found undecidable"* is a
+different state from *"unread"* and is recorded as such.
+
+**Result: PROVEN 15 · ARGUED 13 · ASSUMED 61 · UNDECIDABLE 4 · NOT-APPLICABLE 36 = 129.**
+⚠ **The brief predicted NOT-APPLICABLE would be the largest bucket. It is 36; ASSUMED is 61**, and
+the frame was not stretched to reach it.
+
+### ⚠ Column meanings, and the bound on the ASSUMED figure
+
+`basis`: **S** = settled by a source read · **T** = from entry text alone. **23 source-settled, 106
+text** — ⚠ **carried as part of the result, not as a caveat.** Of the 106, every one is an open
+defect or a NOT-APPLICABLE row where text is decisive.
+⚠ **60 of the 61 ASSUMED rows are OPEN, UNFIXED defects, where the verdict rests on a mechanical
+ground: a standing green test asserting the property CANNOT exist for an unfixed defect — the suite
+would be red.**
+
+`track`: **A** = the proof rides the entry's own fix (its regression test under red-before-green) ·
+**B·I<n>·<class>** = the separable assurance track, grouped by INSTRUMENT, cost class **M** model /
+**T** test / **O** observer · **+D** = also in the D-1346 deadline set.
+
+### ⚠⚠ THE DISAGREEMENT WITH THE HARM RANKING — THE POINT OF THE EXERCISE
+
+The separable track is **20 rows**. Of them: **2 above T4** (ENG-0055, ENG-0172) · **9 at T4** ·
+**9 with no harm rank at all** (closed entries, untiered by construction).
+⇒ ⚠⚠ **EIGHTEEN OF TWENTY SIT AT THE BOTTOM OF THE HARM RANKING OR ARE INVISIBLE TO IT.** Harm and
+assurance are **very nearly disjoint** — as harm and deadline were at D-1346. **Three axes, three
+near-disjoint results.**
+
+⚠⚠ **THE ALL-THREE-TRACKS SET IS EXACTLY ONE ENTRY: `ENG-0056`** — harm **T4**, a deadline item (a
+fingerprint-width change breaks every verification code any user has already compared out of band),
+and **ARGUED**. **The one item every axis agrees on is ranked in the bottom tier by the axis that
+governs the queue, and its remedy is an observer over one constant.**
+
+⚠ **Six deadline items sit in track A**, so deadline pressure lands on the FIX lanes, not on this
+track; the two are not contending for one slot.
+
+### ⚠ The instrument groups — where the leverage is
+
+**I1** ENG-0172 alone (**O**, a P1 authentication property whose regression condition its own text
+states verbatim and nothing watches) · **I2** ENG-0003 + 0005 + 0008 = **ONE** keyed-comparison scan
+· **I3** ENG-0115, which is **ENG-0034's stated `scope:`** · **I4** ENG-0056 (leads) + 0057 + 0009,
+constant observers · **I5** ENG-0015 + 0100 + 0010 + 0149 on one existing suite-2 harness · **I6**
+ENG-0038 = **ONE** model shared with ENG-0172's model half · **I7** ENG-0004 · **I8** ENG-0170 +
+0071 · **I9** ENG-0006 + 0007 · **I10** ENG-0055, priced per surface, **(c) is redesign, not a test**
+· **I11** ENG-0105.
+
+⚠ **ENG-0105 is in track B, not A, and the reason bounds track A's whole premise:** its own severity
+reads *"P3 (test coverage — a negative-control gap, not a product defect)"* ⇒ **fix and proof are the
+same object**, so removing it would delete assurance work rather than de-duplicate it. **And its test
+cannot be written until the injection seam is built** — four of five capture sites are unreachable —
+so **red-before-green cannot produce a test for an unreachable trigger.**
+⚠ **Track A's boundary is a FLOOR, not a ceiling**: the instrument was severity and status text, and
+this section's own principal finding is that this file is unreliable about the tree. **A source-level
+pass over the other 54 could find more; it could not find fewer.**
+
+### ⚠ Where red-before-green does NOT guarantee the property
+
+**It fails when the RED comes from the absence of an ARTIFACT rather than the absence of the
+BEHAVIOUR.** `ENG-0003`'s test was red because `hs_ct_eq_32` did not compile — not because timing was
+unchecked — so the discipline passed a test that proves **functional equivalence to `==`** and says
+nothing about constant time. ⚠ **The discipline is reliable wherever a fix changes an EXISTING path,
+and unreliable only where it introduces a NEW NAMED ARTIFACT the test references.**
+
+### ⚠ Assertion rigor is not uniform across test families
+
+The **refimpl unit family** (`suite2_*`, `na_0071_*`) asserts whole-state byte identity on reject and
+cross-party key convergence — the strongest evidence in the tree. The **qsc e2e/CLI family**
+(`handshake_mvp.rs`) asserts **process exit status** for intermediate steps. ⚠ **A citation that
+borrows e2e-family confidence for a claim only the unit family's style supports is the same error as
+`ENG-0003`'s** — and this lane committed it once, inside a `PROVEN` citation, before an adversarial
+read caught it. **The shape to watch in every future `PROVEN` verdict.**
+
+### The table
+
+| id | verdict | basis | tier | track | reasoning / `scope:` |
+|---|---|---|---|---|---|
+| **ENG-0012** | PROVEN | S | — | — | ⚠⚠ ITS OWN Proof gap IS STALE. `scka_e2e_pq_pcs_healing_survives_dh_ratchet_over_real_handshake` (handshake_mvp.rs:1868) runs a real two-party session over a real handshake, fires the DH ratchet (m5,m7) AND the PQ reseed (m3,m6) mid-conversation through the real client send path, asserts decrypt at every step, and adds an adversarial PCS arm. Three siblings besides. <br>⚠ **scope:** the vector covers DH+PQ interleaving; it does NOT cover ENG-0035 two consecutive root-advancing DH EPOCHS, which is a MODEL gap, not a vector gap |
+| **ENG-0023** | PROVEN | S | — | — | `na_0071_header_key_derivation.rs::boundary_header_wrong_rk_rejects_and_no_mutation` + `header_keys_depend_on_rk`; the ADVAUTH MAC is live at `suite2/ratchet.rs:1658` with `recv_pq_adv` enforcing flags exactly; qsc adds spoofed-ADV and unauthentic-boundary-header e2e rejection. <br>⚠ **scope:** the NHK boundary header and authenticated ADV receive are pinned; the §8.5.1/§8.5.4 editorial tension is recorded in DOC-G5-008, not closed |
+| **ENG-0024** | PROVEN | S | — | — | ⚠ STRUCTURAL, not guarded: `recv.rk`/`dh.rk` are REMOVED and `session_root()` deleted — `Suite2SessionState` carries exactly ONE root (`state.rs:28-31`: their coherence 'can no longer be a caller obligation'). QS2S v2→v3; `restore_bytes` rejects non-v3. Pinned at `suite2_scka_sender.rs:177` ('there is no second slot'). <br>⚠ **scope:** the duplication cannot recur by construction; pre-v3 stored sessions are UNRECOVERABLE by design (`session_unsupported_version`) |
+| **ENG-0026** | PROVEN | S | — | — | `tests/suite2_combined_boundary.rs` — five tests: round-trip converges on DH-then-PQ composition, healing survives a subsequent DH ratchet, and out-of-order / anti-spoof / replay each reject WITHOUT MUTATION. <br>⚠ **scope:** the refimpl receiver is covered; the qsc-side combined arm rides the same entry points |
+| **ENG-0028** | PROVEN | S | — | — | four ProVerif models present with RESULT lines (`suite2_dhpq_main.pv` 7, q3 3, q4 3, q5 2) plus `run_proverif_checks.py`. <br>⚠ **scope:** ⚠ the 2-boundary unrolling does NOT terminate — that residual is ENG-0035, which is LIVE and states it honestly |
+| **ENG-0030** | PROVEN | S | — | — | `reseed_receiver_send_schedule_must_be_refreshed_from_advanced_root` (`suite2_scka_sender.rs:407`), whose assertion strings name 'the ENG-0030 fix' for both the send header key and the send PQ chain; `suite2_combined_boundary.rs:212` extends it to the combined path. <br>⚠ **scope:** structural — the NA-0625 regression INVERTED into a standing guard |
+| **ENG-0031** | PROVEN | S | — | — | the spec question was ANSWERED in canon — DOC-CAN-003's sentence amended under Operator Decision 4's bounded unfreeze — and the resulting behaviour is pinned by ENG-0023's guards. <br>⚠ **scope:** the canonical sentence is unambiguous; the recommended §8.5 combined-step editorial note is filed, not written |
+| **ENG-0034** | PROVEN | S | — | — | low-order DH tests live at `suite2/ratchet.rs:3486+` with a `LowOrderPubDh` stub driving the reject arms. <br>⚠ **scope:** ⚠ `ratchet.rs:3674` records that 'the guard under test lives in its CALLERS' — centralising it into the primitive is ENG-0115, which is LIVE and open |
+| **ENG-0035** | PROVEN | S | T4 | — | a real machine-checked result: 4 ProVerif models present with RESULT lines (main 7, q3 3, q4 3, q5 2); no query text weakened; the combined boundary has its own terminating model. <br>⚠ **scope:** no single model exercises TWO CONSECUTIVE root-advancing DH epochs (abstraction A6 as reduced) — stated by the entry, carried as data |
+| **ENG-0040** | PROVEN | S | — | — | `NA_0644_ack_client.rs` — eight tests incl. `lost_ack_redelivery_is_deduped_not_reprocessed`, `crash_between_persist_and_ack_redelivery_deduped`, `old_server_ack_404_is_legacy_complete`, `commit_before_write_seam_acked_loudly_no_poison_loop`. <br>⚠ **scope:** the lease contract and its crash/redelivery arms are pinned; the default-flip disposition is ENG-0043, which is LIVE |
+| **ENG-0044** | PROVEN | S | — | — | `NA_0658_vault_protections.rs` — eight tests incl. `armed_wipe_triggers_exactly_at_threshold_with_restored_marker`, `clock_rollback_fails_safe`, `unarmed_default_never_wipes`, `persistence_across_simulated_restart_continues_count_and_delay`. <br>⚠ **scope:** ⚠ the unlock-attempt COUNTING defect ENG-0126 (T1, LIVE) sits on this same surface and is NOT covered by these tests |
+| **ENG-0049** | PROVEN | S | — | — | `NA_0663_relay_tls_trust.rs` — eight tests over three families incl. `family2_explicit_ca_is_additive_and_never_narrows_existing_trust`, `family3_trust_failure_is_distinct_from_refused_dns_and_auth`, `family3_ca_config_unreadable_fails_closed`. <br>⚠ **scope:** ⚠ this family does NOT run on pull requests — ENG-0112, LIVE |
+| **ENG-0086** | PROVEN | S | — | — | names `delivered_receipt_roundtrip` and `ack_for_unknown_msg_id_transitions_nothing`, both present in the tree. <br>⚠ **scope:** default-flip behaviour pinned; no adversarial arm named |
+| **ENG-0087** | PROVEN | S | T4 | — | names four scrape-helper tests all present in the tree, incl. `scraped_marker_value_refuses_the_redaction_sentinel`. <br>⚠ **scope:** the ~60-scrape annex the entry still owes is NOT covered — the entry is open for that reason |
+| **ENG-0099** | PROVEN | S | — | — | names `a_wrapped_ack_is_applied_acked_and_provokes_nothing_further`, present in the tree; closure records the framing fix. <br>⚠ **scope:** the typed-payload dispatch is pinned; the wider envelope-type space is not enumerated |
+| **ENG-0003** | ARGUED | S | — | **B·I2·O** | ⚠ the archetype, CONFIRMED by source: `hs_ct_eq_32` is used at both MAC sites and its co-located test (handshake/mod.rs:2361-2397) asserts BIT-FOR-BIT EQUIVALENCE TO `==`. A tree-wide search for any test named for constant_time/const_time/timing returns ZERO. The entry's own Proof gap still stands. |
+| **ENG-0004** | ARGUED | S | — | **B·I7·T** | ⚠ NOT-A-DEFECT by a CODE READ of two cfg-gated definitions. A crash-window test family exists (NA_0639_wf0022) but its own header excludes the relevant mode: 'power-loss / page-cache / fsync-lying semantics are out'. The named gap stands. |
+| **ENG-0005** | ARGUED | T | — | **B·I2·O** | a SWEEP VERDICT — 'found NO keyed-secret/MAC comparison outside the seam … posture sound'. Reasoned enumeration; nothing observes a newly-added secret comparison. |
+| **ENG-0006** | ARGUED | T | — | **B·I9·M** | an ANALYSIS VERDICT — 'no remotely-observable failure-cause oracle'. No check named, no observer. |
+| **ENG-0007** | ARGUED | T | — | **B·I9·M** | a FEASIBILITY STUDY recorded in DOC-G5-006; the claim is argued in a document. |
+| **ENG-0010** | ARGUED | T | — | **B·I5·T** | a design description (padding ladder); 'the observer now sees only a bucketed object size' is asserted, not checked. |
+| **ENG-0038** | ARGUED | T | — | **B·I6·M** | ⚠ its own residue ENG-0172 records the verdict as REASONED, NOT MODEL-VERIFIED, and the entry fires I3 alone. |
+| **ENG-0055** | ARGUED | S | T1 | **B·I10·T/redesign** | the census claim reproduces at main: `zeroize` appears in EXACTLY ONE file under the refimpl's src/ (`crypto/traits.rs`). No test asserts key material reads as zero after drop. |
+| **ENG-0056** | ARGUED | T | T4 | **B·I4·O**·+D | the 128-bit width is 'assessed DEFENSIBLE on the merits' in prose; the reasoning is the finding's own subject and nothing checks the width. |
+| **ENG-0057** | ARGUED | T | T4 | **B·I4·O** | two AEAD primitives in the trust base 'with no recorded rationale' — the choice is argued nowhere and checked nowhere. |
+| **ENG-0100** | ARGUED | T | T4 | **B·I5·T** | the [ADV,reseed] receiver property is 'pinned against OUR sender, not against an arbitrary conformant one' — the entry states the limit of its own evidence. |
+| **ENG-0149** | ARGUED | T | T4 | **B·I5·T** | an instrument-validity argument about what a trailing frame's disposition proves; no check exists for the distinction it draws. |
+| **ENG-0172** | ARGUED | T | T1 | **B·I1·O** | ⚠ SELF-CLASSIFYING: 'rests on a REASONED, NOT MODEL-VERIFIED argument, and the regression guard it names is observed by nothing'. |
+| **ENG-0008** | ASSUMED | S | T4 | **B·I2·O** | constant-time posture on a further surface; the tree contains NO test named for constant-time behaviour anywhere (same search as ENG-0003). |
+| **ENG-0009** | ASSUMED | T | T4 | **B·I4·O** | a client/transport-surface property the entry names as unguarded; ENG-0071 says so in its own title ('LIVE proof but no automated regression test'). |
+| **ENG-0015** | ASSUMED | S | T4 | **B·I5·T** | constant-time posture on a further surface; the tree contains NO test named for constant-time behaviour anywhere (same search as ENG-0003). |
+| **ENG-0016** | ASSUMED | T | T4 | A | a crypto-core/wire property named by the entry with no test, model or observer recorded and none named in the entry. |
+| **ENG-0018** | ASSUMED | T | T1 | A | the entry states its only test 'passes vacuously' — an instrument that cannot fail is not evidence. |
+| **ENG-0020** | ASSUMED | T | T4 | A | a crypto-core/wire property named by the entry with no test, model or observer recorded and none named in the entry. |
+| **ENG-0025** | ASSUMED | T | T4 | A | a client/transport-surface property the entry names as unguarded; ENG-0071 says so in its own title ('LIVE proof but no automated regression test'). |
+| **ENG-0042** | ASSUMED | T | T1 | A | a receive-path correctness/ordering property; NA-0708 filed these as analysis-derived FILING ONLY, and none names a pinning test. |
+| **ENG-0051** | ASSUMED | T | T4 | A | a client/transport-surface property the entry names as unguarded; ENG-0071 says so in its own title ('LIVE proof but no automated regression test'). |
+| **ENG-0053** | ASSUMED | T | T4 | A·+D | a persistence/format/latency property whose remedy is a migration; nothing observes the current shape. |
+| **ENG-0058** | ASSUMED | T | T2 | A | a quarantine/dedup/seen-store durability or flood-resistance property; no test, and ENG-0105 records that four of five capture sites cannot be exercised end-to-end at all. |
+| **ENG-0071** | ASSUMED | T | T4 | **B·I8·T** | a client/transport-surface property the entry names as unguarded; ENG-0071 says so in its own title ('LIVE proof but no automated regression test'). |
+| **ENG-0079** | ASSUMED | T | T3 | A | a client/transport-surface property the entry names as unguarded; ENG-0071 says so in its own title ('LIVE proof but no automated regression test'). |
+| **ENG-0080** | ASSUMED | T | T4 | A·+D | a persistence/format/latency property whose remedy is a migration; nothing observes the current shape. |
+| **ENG-0083** | ASSUMED | T | T2 | A·+D | a metadata/persistence/redaction property with no guard; ENG-0171 records its 14 sites are redacted only 'by accident of value shape'. |
+| **ENG-0096** | ASSUMED | T | T2 | A·+D | a metadata/persistence/redaction property with no guard; ENG-0171 records its 14 sites are redacted only 'by accident of value shape'. |
+| **ENG-0098** | ASSUMED | T | T2 | A | a metadata/persistence/redaction property with no guard; ENG-0171 records its 14 sites are redacted only 'by accident of value shape'. |
+| **ENG-0101** | ASSUMED | T | T4 | A·+D | a persistence/format/latency property whose remedy is a migration; nothing observes the current shape. |
+| **ENG-0105** | ASSUMED | T | T4 | **B·I11·T** | a quarantine/dedup/seen-store durability or flood-resistance property; no test, and ENG-0105 records that four of five capture sites cannot be exercised end-to-end at all. |
+| **ENG-0106** | ASSUMED | T | T1 | A | a vault posture/locking property; no test named, and ENG-0106's own reentrancy probe is recorded as still owed. |
+| **ENG-0113** | ASSUMED | T | T4 | A | a crypto-core/wire property named by the entry with no test, model or observer recorded and none named in the entry. |
+| **ENG-0114** | ASSUMED | T | T4 | A | a crypto-core/wire property named by the entry with no test, model or observer recorded and none named in the entry. |
+| **ENG-0115** | ASSUMED | T | T4 | **B·I3·O** | a crypto-core/wire property named by the entry with no test, model or observer recorded and none named in the entry. |
+| **ENG-0116** | ASSUMED | T | T1 | A·+D | a vault posture/locking property; no test named, and ENG-0106's own reentrancy probe is recorded as still owed. |
+| **ENG-0117** | ASSUMED | T | T1 | A | a receive-path correctness/ordering property; NA-0708 filed these as analysis-derived FILING ONLY, and none names a pinning test. |
+| **ENG-0122** | ASSUMED | T | T2 | A | a metadata/persistence/redaction property with no guard; ENG-0171 records its 14 sites are redacted only 'by accident of value shape'. |
+| **ENG-0126** | ASSUMED | T | T1 | A | a vault posture/locking property; no test named, and ENG-0106's own reentrancy probe is recorded as still owed. |
+| **ENG-0127** | ASSUMED | T | T4 | A | a vault posture/locking property; no test named, and ENG-0106's own reentrancy probe is recorded as still owed. |
+| **ENG-0134** | ASSUMED | T | T1 | A | ⚠ the defect's EXISTENCE was measured by NA-0706/NA-0708 probes, but no STANDING guard exists; a one-time lane measurement is evidence about a past tree, not a property. |
+| **ENG-0136** | ASSUMED | T | T2 | A | an identity/status-truthfulness predicate; ENG-0141 alone is flagged MEASURED, and none names a standing guard. |
+| **ENG-0137** | ASSUMED | T | T2 | A | an identity/status-truthfulness predicate; ENG-0141 alone is flagged MEASURED, and none names a standing guard. |
+| **ENG-0138** | ASSUMED | T | T2 | A | an identity/status-truthfulness predicate; ENG-0141 alone is flagged MEASURED, and none names a standing guard. |
+| **ENG-0141** | ASSUMED | T | T2 | A | an identity/status-truthfulness predicate; ENG-0141 alone is flagged MEASURED, and none names a standing guard. |
+| **ENG-0142** | ASSUMED | T | T1 | A | ⚠ the defect's EXISTENCE was measured by NA-0706/NA-0708 probes, but no STANDING guard exists; a one-time lane measurement is evidence about a past tree, not a property. |
+| **ENG-0143** | ASSUMED | T | T2 | A | an identity/status-truthfulness predicate; ENG-0141 alone is flagged MEASURED, and none names a standing guard. |
+| **ENG-0144** | ASSUMED | T | T3 | A | ⚠ the defect's EXISTENCE was measured by NA-0706/NA-0708 probes, but no STANDING guard exists; a one-time lane measurement is evidence about a past tree, not a property. |
+| **ENG-0145** | ASSUMED | T | T2 | A | ⚠ the defect's EXISTENCE was measured by NA-0706/NA-0708 probes, but no STANDING guard exists; a one-time lane measurement is evidence about a past tree, not a property. |
+| **ENG-0146** | ASSUMED | T | T3 | A | a client/transport-surface property the entry names as unguarded; ENG-0071 says so in its own title ('LIVE proof but no automated regression test'). |
+| **ENG-0147** | ASSUMED | T | T1 | A | a receive-path correctness/ordering property; NA-0708 filed these as analysis-derived FILING ONLY, and none names a pinning test. |
+| **ENG-0148** | ASSUMED | T | T2 | A | a receive-path correctness/ordering property; NA-0708 filed these as analysis-derived FILING ONLY, and none names a pinning test. |
+| **ENG-0150** | ASSUMED | T | T2 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0151** | ASSUMED | T | T2 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0152** | ASSUMED | T | T2 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0153** | ASSUMED | T | T2 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0154** | ASSUMED | T | T2 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0155** | ASSUMED | T | T2 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0156** | ASSUMED | T | T1 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0157** | ASSUMED | T | T2 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0158** | ASSUMED | T | T2 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0159** | ASSUMED | T | T2 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0160** | ASSUMED | T | T2 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0161** | ASSUMED | T | T1 | A | a quarantine/dedup/seen-store durability or flood-resistance property; no test, and ENG-0105 records that four of five capture sites cannot be exercised end-to-end at all. |
+| **ENG-0162** | ASSUMED | T | T1 | A | a quarantine/dedup/seen-store durability or flood-resistance property; no test, and ENG-0105 records that four of five capture sites cannot be exercised end-to-end at all. |
+| **ENG-0163** | ASSUMED | T | T1 | A | a receive-path correctness/ordering property; NA-0708 filed these as analysis-derived FILING ONLY, and none names a pinning test. |
+| **ENG-0164** | ASSUMED | T | T3 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0165** | ASSUMED | T | T1 | A | a quarantine/dedup/seen-store durability or flood-resistance property; no test, and ENG-0105 records that four of five capture sites cannot be exercised end-to-end at all. |
+| **ENG-0166** | ASSUMED | T | T2 | A | a receive-path correctness/ordering property; NA-0708 filed these as analysis-derived FILING ONLY, and none names a pinning test. |
+| **ENG-0167** | ASSUMED | T | T1 | A | a receive-path correctness/ordering property; NA-0708 filed these as analysis-derived FILING ONLY, and none names a pinning test. |
+| **ENG-0168** | ASSUMED | T | T2 | A | an identity/status-truthfulness predicate; ENG-0141 alone is flagged MEASURED, and none names a standing guard. |
+| **ENG-0170** | ASSUMED | S | — | **B·I8·T** | ⚠ its OWN evidence is exemplary (`caddy adapt` shows reverse_proxy unreachable) but that is a ONE-TIME adapt, not a standing check — and `caddy validate` returns Valid on the broken file, so the gate that exists cannot see it. |
+| **ENG-0171** | ASSUMED | T | T1 | A | a metadata/persistence/redaction property with no guard; ENG-0171 records its 14 sites are redacted only 'by accident of value shape'. |
+| **ENG-0001** | UNDECIDABLE | S | — | — | ⚠⚠ ITS NON-CORRESPONDENCE IS REFUTED BY SOURCE: `handshake_accepts_verification_code_pin_without_peer_mismatch` (identity_binding.rs:420) and `verification_code_pin_preserves_handshake_contract` DO pin that the operator-compared code is the one the handshake authenticates. UNDECIDABLE only on the residual clause — whether identity-show and handshake-verify fingerprints are asserted CONSISTENT — which needs a read of both tests' assertions, not their names. |
+| **ENG-0017** | UNDECIDABLE | T | T4 | — | 'pre-1.0 crates and ml-dsa version skew' names a currency risk, not a property; deciding it needs a read of the interop actor this tree does not contain. |
+| **ENG-0019** | UNDECIDABLE | T | T4 | — | ⚠ refimpl/spec-alignment entries closed with `- **STATUS: DONE**` and a description of what was built. Their properties are real, but NO closure names a check and this lane did not read the refimpl to decide them. C2 by construction — and R240 §1.2 binds: 'no check recorded' is NOT 'no check exists'. |
+| **ENG-0076** | UNDECIDABLE | S | — | — | ⚠ SETTLED AS UNDECIDABLE BY SOURCE, not left unread: the property is a **qsl-desktop** one (D-0018 — `settings.json`'s existence is the onboarding-complete S2 signal). **qsl-desktop is a SEPARATE REPO and is not in this tree** (`src-tauri` absent). Deciding it needs the desktop checkout. |
+| **ENG-0032** | NOT-APPLICABLE | T | T4 | —·+D | CI, gates, tooling ergonomics — no user-facing security or correctness property. |
+| **ENG-0033** | NOT-APPLICABLE | T | T4 | — | CI, gates, tooling ergonomics — no user-facing security or correctness property. |
+| **ENG-0043** | NOT-APPLICABLE | T | T4 | — | demo scripts, CI hygiene, log-capture synchronisation and desktop residue — instrument and hygiene work, not a shipped security property. |
+| **ENG-0045** | NOT-APPLICABLE | T | T3 | — | demo scripts, CI hygiene, log-capture synchronisation and desktop residue — instrument and hygiene work, not a shipped security property. |
+| **ENG-0047** | NOT-APPLICABLE | T | T4 | — | demo scripts, CI hygiene, log-capture synchronisation and desktop residue — instrument and hygiene work, not a shipped security property. |
+| **ENG-0048** | NOT-APPLICABLE | T | — | — | demo scripts, CI hygiene, log-capture synchronisation and desktop residue — instrument and hygiene work, not a shipped security property. |
+| **ENG-0050** | NOT-APPLICABLE | T | T4 | — | CI, gates, tooling ergonomics — no user-facing security or correctness property. |
+| **ENG-0052** | NOT-APPLICABLE | T | T4 | — | CI, gates, tooling ergonomics — no user-facing security or correctness property. |
+| **ENG-0054** | NOT-APPLICABLE | T | T4 | — | demo scripts, CI hygiene, log-capture synchronisation and desktop residue — instrument and hygiene work, not a shipped security property. |
+| **ENG-0059** | NOT-APPLICABLE | T | T4 | — | CI, gates, tooling ergonomics — no user-facing security or correctness property. |
+| **ENG-0060** | NOT-APPLICABLE | T | UNTIERED | — | desktop/GUI ergonomics, dead surface, or harness readability; ENG-0060 states 'NO runtime, protocol, or security impact'. |
+| **ENG-0062** | NOT-APPLICABLE | T | T4 | — | desktop/GUI ergonomics, dead surface, or harness readability; ENG-0060 states 'NO runtime, protocol, or security impact'. |
+| **ENG-0064** | NOT-APPLICABLE | T | — | — | seat tooling, test-harness scoping and cross-repo naming — ⚠ ENG-0064/0090 carry a §2.3 non-correspondence, which is a RECORD defect and not an assurance one. |
+| **ENG-0067** | NOT-APPLICABLE | T | T4 | — | CI, gates, tooling ergonomics — no user-facing security or correctness property. |
+| **ENG-0068** | NOT-APPLICABLE | T | T4 | — | governance, templates, runbooks and record-keeping. |
+| **ENG-0069** | NOT-APPLICABLE | T | T4 | — | governance, templates, runbooks and record-keeping. |
+| **ENG-0072** | NOT-APPLICABLE | T | — | — | seat tooling, test-harness scoping and cross-repo naming — ⚠ ENG-0064/0090 carry a §2.3 non-correspondence, which is a RECORD defect and not an assurance one. |
+| **ENG-0073** | NOT-APPLICABLE | T | — | — | desktop/GUI ergonomics, dead surface, or harness readability; ENG-0060 states 'NO runtime, protocol, or security impact'. |
+| **ENG-0077** | NOT-APPLICABLE | T | T4 | — | seat tooling, test-harness scoping and cross-repo naming — ⚠ ENG-0064/0090 carry a §2.3 non-correspondence, which is a RECORD defect and not an assurance one. |
+| **ENG-0078** | NOT-APPLICABLE | T | T4 | — | desktop/GUI ergonomics, dead surface, or harness readability; ENG-0060 states 'NO runtime, protocol, or security impact'. |
+| **ENG-0081** | NOT-APPLICABLE | T | T4 | — | governance, templates, runbooks and record-keeping. |
+| **ENG-0090** | NOT-APPLICABLE | T | — | — | seat tooling, test-harness scoping and cross-repo naming — ⚠ ENG-0064/0090 carry a §2.3 non-correspondence, which is a RECORD defect and not an assurance one. |
+| **ENG-0091** | NOT-APPLICABLE | T | — | — | demo scripts, CI hygiene, log-capture synchronisation and desktop residue — instrument and hygiene work, not a shipped security property. |
+| **ENG-0093** | NOT-APPLICABLE | T | T4 | — | CI, gates, tooling ergonomics — no user-facing security or correctness property. |
+| **ENG-0102** | NOT-APPLICABLE | T | — | — | demo scripts, CI hygiene, log-capture synchronisation and desktop residue — instrument and hygiene work, not a shipped security property. |
+| **ENG-0103** | NOT-APPLICABLE | T | T4 | — | governance, templates, runbooks and record-keeping. |
+| **ENG-0112** | NOT-APPLICABLE | T | T4 | —·+D | CI, gates, tooling ergonomics — no user-facing security or correctness property. |
+| **ENG-0119** | NOT-APPLICABLE | T | T3 | — | desktop/GUI ergonomics, dead surface, or harness readability; ENG-0060 states 'NO runtime, protocol, or security impact'. |
+| **ENG-0120** | NOT-APPLICABLE | T | T4 | — | CI, gates, tooling ergonomics — no user-facing security or correctness property. |
+| **ENG-0121** | NOT-APPLICABLE | T | T4 | — | desktop/GUI ergonomics, dead surface, or harness readability; ENG-0060 states 'NO runtime, protocol, or security impact'. |
+| **ENG-0129** | NOT-APPLICABLE | T | T4 | — | desktop/GUI ergonomics, dead surface, or harness readability; ENG-0060 states 'NO runtime, protocol, or security impact'. |
+| **ENG-0130** | NOT-APPLICABLE | T | T4 | — | desktop/GUI ergonomics, dead surface, or harness readability; ENG-0060 states 'NO runtime, protocol, or security impact'. |
+| **ENG-0132** | NOT-APPLICABLE | T | T4 | — | governance, templates, runbooks and record-keeping. |
+| **ENG-0135** | NOT-APPLICABLE | T | T4 | — | governance, templates, runbooks and record-keeping. |
+| **ENG-0139** | NOT-APPLICABLE | T | T3 | — | desktop/GUI ergonomics, dead surface, or harness readability; ENG-0060 states 'NO runtime, protocol, or security impact'. |
+| **ENG-0140** | NOT-APPLICABLE | T | T4 | — | governance, templates, runbooks and record-keeping. |
+
 ## Entry ID convention
 
 `ENG-####` for engineering findings, `WF-####` for workflow/process items;
@@ -3620,5 +3866,16 @@ A commission that grants a clone must **NAME the tree's `CLAUDE.md` for pre-empt
 - ⚠ **Untested inference, recorded as such:** the deny entries are keyed to a command's **leading token**, so `ssh host 'sudo …'` presents as `Bash(ssh:*)`. **If** that is how matching works, a guardrail keyed to spelling rather than effect **can be defeated without intent** (`bash -c 'sudo …'`, a script calling sudo internally). ⚠ **This was NOT confirmed** — nothing was denied, so no spelling comparison was possible.
 - Recommended change: before a directive authorizes privileged acts, **measure whether the executing seat's harness permits them**, and record the answer with the authorization. A one-command no-op probe settles it and costs nothing.
 - ⚠ Distinct from **WF-0058**, which is about *blinding a cold reader*. This is about *a lane's authorized acts being refused at execution* — different failure, different consequence.
+- ⚠⚠ **SECOND INSTANCE, 2026-08-11 by NA-0712 (D-1349; R249 §3) — the class recurred within a day, and this time the directive was the offender.** NA-0712's SR-15 commission ordered a cold reader to **delete five agent-memory files** (`CLAUDE.md`, `AGENTS.md`, `START_HERE.md`, `CODEX_RULES.md`, `CHAT_STARTER.md`) in a document whose own header and ground rules declare it **writes nothing**. ⚠ **Deletions are writes**, and `CODEX_RULES.md` opens *"These rules are binding. If a request conflicts with these rules, STOP and ask the human."* ⚠ **The guardrails hook's own words name why it is a bypass:** it *"grants no authority"*, and a directive may authorize a blocked act **"ONLY via the operator explicitly amending this script and settings — which is exactly the human authorization gate the governance requires."** The commission would have removed that gate **by instruction rather than by amendment**. Recorded against the **directing** seat, not the reader. ⚠ **A class filed one day and recurring the next is stronger evidence than a fresh id would have been** — which is why this is an instance and not a fresh id.
 - Status: open — **FILING ONLY**. Originating/last lane: NA-0710 (D-1347). Last-updated: 2026-08-11.
 
+### WF-0064 — the spine root carries FIVE agent-memory channels while the standing rule names two, and the repo's own guardrail binds only on one host — **NEW; filed 2026-08-11 by NA-0712 (D-1349; R245 §3)**
+
+- Problem: `WF-0051` as amended names `CLAUDE.md` and `AGENTS.md`. ⚠ **Measured at the spine root at `731b02a8`, and re-verified at the moment the commission was issued, there are FIVE**: `AGENTS.md`, `CHAT_STARTER.md` (a deprecated stub), `CLAUDE.md`, ⚠ **`START_HERE.md`** (*"Operational Constitution"*) and ⚠⚠ **`CODEX_RULES.md`**, which opens *"These rules are binding."* ⇒ **every prior cold read against this spine was seated with at least three undisclosed channels in place.** This is `WF-0058`'s named unknown, measured at this root.
+- ⚠ **NOTHING IN ANY PRIOR READ IS INVALIDATED.** Discipline held every time and each reader disclosed what it knew to disclose. **The recipe was wrong, not the readers.**
+- ⚠⚠ **The sharper half is the guardrail, not the memory.** `<repo>/.claude/settings.json` declares **17** deny rules and a `PreToolUse` hook, but the hook's script path — `/srv/qbuild/tools/claude/qsl_guardrails_hook.sh` — is **absolute and outside the repository**, so the guardrail travels with one host rather than with the repo. ⚠ **A declared protection is not an enforced one, and the distinction is invisible to anyone who reads the config instead of testing it.** ⚠ **Third instance of "declared but not in force"** after **ENG-0170** (`caddy validate` returns *Valid* on a config that routes nothing) and **ENG-0112** (a test family that exists and passes but is not scheduled on PRs).
+- ⚠⚠ **THE SEATING EXPERIMENT IS UNRUN, NOT FAILED — and the question is now measured-and-unanswerable.** NA-0712 commissioned a reader seated INSIDE the clone to test whether the repo guardrails bind. **The commissioned seat was never provisioned**, so the fix under test was never applied. And `bypassPermissions` is set **machine-wide**, so ⚠ **no seating arrangement any lane can make will measure this** — it requires an operator change to machine configuration and is **outside any lane's reach**. Recorded so it is not later read as a failed experiment.
+- ⚠ The binding failure was **not** the one the commission anticipated: on this host the hook's absolute path exists, so it was never the problem — **the config declaring the hook is what never loaded.**
+- Recommended change: a commission granting a tree **ENUMERATES the tree at drafting** rather than naming files; **any attestation about a protection reports whether it FIRED, never whether it is configured**; and consider making the hook path repo-relative so the guardrail travels with the repository. ⚠ The `bypassPermissions` half is an **operator action**, not a lane's.
+- Cross-reference: **WF-0051** (amended), **WF-0058** (the named unknown this measures), **WF-0059** (the authority collision, whose second instance this lane also supplied), **ENG-0170**, **ENG-0112**.
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0712 (D-1349). Last-updated: 2026-08-11.

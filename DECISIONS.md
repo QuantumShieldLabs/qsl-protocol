@@ -37947,3 +37947,54 @@ a probe has no promotion, so nothing ever allocated it, and that is recorded so 
 next probe lane is allocated deliberately rather than discovered missing.
 HIGHEST_NA 0703→0705; HIGHEST_D 1343→1344 in this commit. Class at close:
 `QSLD_QSC_PIN_BUMP_QSCV01_REFUSAL_PASS`.
+
+
+## D-1346 — NA-0709: THE LEDGER TRIAGE — every engineering entry gets a status established by MEASUREMENT, the non-defects leave the defect ledger, and the survivors are ranked and grouped into fix lanes
+
+  - **Status:** Accepted (R209 approved D644 with Amendment A1; R218 authorized Phase 2 after the
+    SR-15 read; R221 authorized Phase 3; R222 authorized the edit phase).
+  - **Context:** `docs/ops/IMPROVEMENT_LEDGER.md` (DOC-OPS-007) had grown to 169 `ENG` entries with
+    no reliable way to say which were open. The brief's premise was that a large fraction was
+    already quietly fixed.
+  - **Decision:** status every `ENG` entry by measurement at spine main `b845e678`; separate the
+    non-defects into a new register; rank what survives on a stated harm axis; group the survivors
+    into fix lanes by region.
+  - ⚠ **THE INSTRUMENT WAS THE FIRST FINDING.** The brief scoped the lane by a status keyword in
+    each entry's heading. Measured: **that marker is a FILING STAMP, not a status field** — 97 of
+    110 bold heading spans read `NEW`, and 21 of them sit on entries closed by another instrument.
+    The brief's arithmetic (169 / 109 / 60) reproduced exactly and still meant nothing, because the
+    thing being counted was not a status. **Three closure instruments exist — a heading verb, an
+    appended `Resolution:` line, and a `Status:` bullet verb — and `I1+I2+I3` = 0: no entry is
+    closed by all three. They are three ERAS laid down in sequence and never reconciled.**
+  - ⚠ **THE RESULT IS THE OPPOSITE OF THE ONE HOPED FOR, AND IT IS THE POINT.** The union gave
+    CLOSED 51 / OPEN 118. Phase 1 cold-read 82 of the open set and produced **exactly one**
+    closure — and the lane's own commissioned adversarial read withdrew it (its R-1 reproduction
+    note could not fire, and the row asserted two dispositions the directive defines as exclusive).
+    **The closure column is EMPTY. Nothing in this ledger closes by re-reading; the open set is
+    real, and a kill plan now has a true number to plan against rather than an inflated one.**
+  - ⚠ **RESIDUE SURVIVES ONLY IF IT HAS AN ID** — the standing form this decision enters. The
+    SR-15 read found two entries closed while their own text named live remaining work in **prose**
+    (`ENG-0084`'s attachment `file_id` population, reproducing at 14 measured sites;
+    `ENG-0038`'s reasoned-not-verified argument guarding a **P1 authentication property**, whose
+    stated regression guard **nothing observes**). Both closures stand as to their titled defects;
+    both residues are now **`ENG-0171`** and **`ENG-0172`**. *A paragraph inside a closed entry is
+    not a queue item, and a defect that is not in the queue is not looked for.*
+  - ⚠ **A RANKING AXIS MEASURES ONE DIMENSION; SWEEP FOR THE ONE IT CANNOT SEE.** The ruled harm
+    axis cannot see a **deadline**. A sweep found **nine** entries whose remedy gets harder with
+    time — six by their own text, three by labelled inference — and **not one is above T4**. A
+    rank-ordered plan would have scheduled every one of them last and made each permanently more
+    expensive.
+  - **Implications for spec/impl/tests:** **no source file is edited and no test is added.**
+    `docs/ops/IMPROVEMENT_LEDGER.md` gains the triage record, 13 move stubs, two residue pointers,
+    `ENG-0171`/`ENG-0172` and `WF-0052`…`WF-0058`, and an amendment to `WF-0051`; the new
+    `docs/ops/DESIGN_QUESTIONS.md` (**DOC-OPS-008**) carries the 13 moved entries **verbatim** with
+    the register's reason for existing in its front matter; `NEXT_ACTIONS.md` marks NA-0708 DONE
+    from the RE-VERIFIED merge sha `b845e678` (class `QSC_RECEIVE_ACK_FLUSH_STRUCTURAL_PASS`) and
+    enqueues `### NA-0709` (LIVE QUEUE STATE: READY=NA-0709, HIGHEST_NA=0709, HIGHEST_D=1346);
+    `TRACEABILITY.md` records the lane. ⚠ **Promotion count 1 → 2 of 3 is carried by NA-0708's
+    retirement; THIS PR is docs_only and RECORD-ONLY, and does not itself count toward the three.**
+  - ⚠ **NOT CLAIMED:** that any defect is fixed · that the 99 live entries are all worth fixing
+    (**only that they are all real** — a smaller claim, and the only one the evidence supports) ·
+    that a closure proves absence · that the 51 `WF` entries were triaged (out of scope, filed as
+    `WF-0057`) · that the 7 cross-repo entries were decided (a read-only scope grant was issued to
+    a successor).

@@ -66,6 +66,54 @@ failing at exactly the job it was adopted to do.*
 Closing an entry therefore means: append `Resolution:` naming the lane, the decision id and
 what was measured; leave `Status:` and every prior annotation byte-identical.
 
+### The NA-0709 triage (D-1346, 2026-08-10) — how every entry got its status
+
+**Every ENG entry in this file carries a status established by MEASUREMENT at spine main
+`b845e678`.** The method, so it can be re-run rather than trusted:
+
+**Three closure instruments exist in this file, and they are three ERAS, not three fields.**
+**I1** a bold closure verb in the `###` heading (pre-convention) · **I2** an appended
+`Resolution:` line (the documented convention, NA-0687/D-1326) · **I3** a closure verb opening
+the `- Status:` bullet. Measured totals **I1=10 · I2=27 · I3=30**, and the agreement matrix is
+`none` 118 · `I2` 19 · `I3` 14 · `I2+I3` 8 · `I1+I3` 8 · `I1` 2 — ⚠ **`I1+I2+I3` = 0. No entry
+is closed by all three, and I1 and I2 never co-occur.** An entry is CLOSED if ANY fires ⇒
+**CLOSED 51 · OPEN 118** of 169 ENG entries.
+
+⚠ **Every instrument used in the direction it supports and no further.** The partial-closure
+rule below means **I2 firing is sound evidence of CLOSED, while I2 NOT firing is not evidence
+of open.**
+
+⚠ **THE DOCUMENTED QUERY AT `:41-43` OVER-REPORTS OPEN BY 24.** Keying on the absence of a
+`Resolution:` line returns **142** open; the three-instrument union returns **118**. The
+difference is **pre-convention closure plus an unaudited residue**: 24 entries were closed by
+instruments the document's own query rejects, and **they have not been individually re-read.**
+The convention was adopted 2026-07-29 and never back-applied. ⚠ **Recorded, deliberately NOT
+repaired** — back-applying `Resolution:` lines is itself a closure act, and a lane that both
+performs and adjudicates its own closures has no gate.
+
+⚠ **A calibration note for anyone re-deriving the matrix:** I1 and I3 do not use the same
+vocabulary. I1 needs four verbs; **I3 needs eight** lead tokens (adding `wontfix`,
+`remediated`, `superseded`, `resolved-into-findings`). With I1's four-verb list, I3 measures
+24, not 30 — and a reader would wrongly conclude this record is broken.
+
+**Result of the triage:** 82 open entries were cold-read against source; 36 filed the previous
+day were statused from their own filing text. **LIVE 99 · moved to DOC-OPS-008 13 ·
+UNDECIDABLE 7 · SUPERSEDED 1 · CLOSED 0.**
+
+⚠ **THE CLOSURE COLUMN IS EMPTY, AND THAT IS THE RESULT.** The triage produced exactly one
+closure and its own adversarial read withdrew it. **Nothing in this ledger closes by
+re-reading; the open set is real.**
+
+⚠ **A STANDING FORM THIS TRIAGE ENTERED — residue survives only if it has an ID.** A paragraph
+inside a closed entry is not a queue item, and a defect that is not in the queue is not looked
+for. Two entries had orphaned residue and it now has ids: **ENG-0084 → ENG-0171** and
+**ENG-0038 → ENG-0172**.
+
+⚠ **AND CITATION ROT IS THE NORM, NOT THE EXCEPTION.** Line numbers in these entries drift and
+some are now wrong by hundreds of lines or point at deleted files. **Any lane acting on an
+entry must re-derive its surfaces from the entry's DESCRIPTION, never from its citation.**
+
+
 ## Entry ID convention
 
 `ENG-####` for engineering findings, `WF-####` for workflow/process items;
@@ -309,15 +357,9 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   deterministic bucketed-size vectors, fail-closed decrypt/truncation preserved, and
   explicit bandwidth/storage-overhead accounting. No metadata-free claim.
 
-### ENG-0011 — Attachment upload/fetch timing and cover-traffic (deferred, cross-repo)
-- Severity: P3 (metadata; deferred)
-- Status: open — originating lane NA-0613 (D-1223); last-updated 2026-07-07
-- Surface: qsl-attachments service/deployment (primary); optional qsc send/fetch jitter.
-- Why it matters: upload/fetch timing and access pattern (C4) are observable by the
-  service/network and are largely a qsl-attachments/deployment property, not a qsc-only
-  concern; cover traffic is high-cost.
-- Recommended directive shape: separate cross-repo design/implementation in
-  qsl-attachments; optional small qsc-side jitter follow-up. Lower priority than ENG-0010.
+### ENG-0011 — MOVED to `docs/ops/DESIGN_QUESTIONS.md` (DOC-OPS-008) by NA-0709 (D-1346)
+
+⚠ **MOVED, NOT CLOSED.** This entry is not a defect; it is a design question, a product call, or an item accepted by ruling. Its **id and its text are preserved verbatim** in DOC-OPS-008. Nothing was discarded, and it is not resolved. See DOC-OPS-008 → `ENG-0011`.
 
 ### ENG-0012 — Suite-2 send-side ratchet liveness gap (no DH ratchet + no boundary/PQ-reseed sender)
 - Severity: P1 (blocks the G1/G2 release gates; top-priority engineering finding)
@@ -669,20 +711,9 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Cross-repo note: qsl-attachments (+ qsl-server); driving queue TBD. Low priority.
 - Recommended directive shape: small caller-invariant/docs lane; low priority.
 
-### ENG-0022 — DH-boundary cadence is an observable metadata distinguisher (G5)
-- Severity: P3 (metadata; no confidentiality/integrity impact) — filed D-1239 from the NA-0622
-  (ENG-0012 Stage 1b-ii) metadata decision
-- Problem: with ratchet-on-reply, a Suite-2 DH boundary (FLAG_BOUNDARY + a fresh on-wire DH_pub)
-  is observable and correlates with conversation turn-taking; these are the first boundary
-  messages on the wire (PQ-reseed boundaries are Stage 2). The NA-0622 operator decision was
-  ACCEPT + DOCUMENT (the leak is minor beyond what message timing/direction already exposes, and
-  the bounded fallback prevents long silent gaps); the observable is recorded in DOC-G5-004.
-- Recommended change: boundary-cadence obfuscation / cover traffic to blur the reply-correlation —
-  e.g., decouple some ratchets from replies, or emit occasional cover boundaries. This is a
-  protocol-wide G5 decision best made AFTER Stage 2 (PQ reseed) lands, alongside a holistic
-  metadata pass; premature to bolt onto the ratchet lane.
-- Recommended directive shape: G5 design lane (DOC-G5-004/DOC-G5-005 family) + a scoped
-  qsc/refimpl source lane; sequence after ENG-0012 Stage 2. Deferred (consciously), tracked here.
+### ENG-0022 — MOVED to `docs/ops/DESIGN_QUESTIONS.md` (DOC-OPS-008) by NA-0709 (D-1346)
+
+⚠ **MOVED, NOT CLOSED.** This entry is not a defect; it is a design question, a product call, or an item accepted by ruling. Its **id and its text are preserved verbatim** in DOC-OPS-008. Nothing was discarded, and it is not resolved. See DOC-OPS-008 → `ENG-0022`.
 
 ### ENG-0023 — Spec-alignment: PQ-CTXT boundary header under HK (not §8.5.1 NHK) + no authenticated ADV receive path
 - **STATUS: DONE (NA-0625; D-1245 impl, D-1246 closeout; PR #1528, merge `4b3e4fda`).** Both gaps closed. (1) The PQ-CTXT boundary header now seals
@@ -819,27 +850,9 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Recommended directive shape: refimpl lane with new conformance vectors; sequence after (or
   with) ENG-0023/ENG-0024 since it touches the same receiver surface. last-updated 2026-07-08
 
-### ENG-0027 — Chunked / erasure-coded PQ control-plane transport (SPQR-style) with an always-progress state machine
-- Severity: P3 (robustness + metadata; supersedes part of ENG-0022's scope) — filed 2026-07-09
-  from the operator-directed Signal comparison study at the NA-0624 closeout (D-1244)
-- Problem: our SCKA control plane ships MONOLITHIC envelopes (~1184 B FLAG_PQ_ADV, ~1088 B
-  FLAG_PQ_CTXT). Consequences accepted at NA-0624: a lost/dropped ADV or reseed degrades to the
-  classical status quo until the T_pq rotation; PQ control messages are size-distinguishable on
-  the wire (the DOC-G5-004 §3.1 observable); cadence has idle gaps. Signal's production PQ
-  ratchet (SPQR, signalapp/SparsePostQuantumRatchet) instead ERASURE-CODES the ML-KEM key and
-  ciphertext into small chunks piggybacked on EVERY message header — any sufficient subset
-  reconstructs, so an attacker must drop ALL traffic to suppress an epoch (loss-suppression
-  becomes full DoS), per-message overhead is near-uniform (the distinguisher shrinks toward
-  timing-only), and an explicit per-epoch state machine (SendingEK/ReceivingCT analogues) keeps
-  both parties always making progress.
-- Recommended change: a chunked PQ-transport design for the SCKA plane — polynomial/erasure
-  encoding of ADV pubkeys + reseed ciphertexts across ratchet-message headers, an epoch state
-  machine replacing the timer-only cadence, and (per SPQR's `SecretOutput::{Send,Recv}` shape)
-  an API that tells the caller which chain the epoch secret mixes into. Wire-format change —
-  a major design lane (DOC-CAN-004 §3 revision + refimpl + qsc + vectors), NOT a bolt-on.
-- Recommended directive shape: a design lane first (DOC-G5-008/DOC-CAN-004 family, folding in
-  what remains of ENG-0022's cadence-obfuscation scope), then staged implementation lanes;
-  sequence after ENG-0023 (the frozen-receiver unfreeze it depends on). last-updated 2026-07-09
+### ENG-0027 — MOVED to `docs/ops/DESIGN_QUESTIONS.md` (DOC-OPS-008) by NA-0709 (D-1346)
+
+⚠ **MOVED, NOT CLOSED.** This entry is not a defect; it is a design question, a product call, or an item accepted by ruling. Its **id and its text are preserved verbatim** in DOC-OPS-008. Nothing was discarded, and it is not resolved. See DOC-OPS-008 → `ENG-0027`.
 
 ### ENG-0028 — ProVerif model of the DH+PQ composition (+ root-composition slice for the bounded explorer) — **CLOSED (NA-0627, D-1249/D-1250; PR #1533, merge `a43c0af2`)**
 - Severity: P2 (assurance; the standing claim boundary REQUIRES independent analysis of the
@@ -860,19 +873,9 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   the ProVerif model is its own full lane, ideally sequenced alongside ENG-0023 so the model
   covers the NHK-corrected receiver. last-updated 2026-07-09
 
-### ENG-0029 — Evaluate migrating ML-KEM to a formally verified implementation (libcrux-ml-kem)
-- Severity: P3 (assurance hardening; no known defect in the current dependency) — filed
-  2026-07-09 from the Signal comparison study at the NA-0624 closeout (D-1244)
-- Problem: we use the RustCrypto `ml-kem` crate; Signal's libsignal uses Cryspen's
-  `libcrux-ml-kem`, whose ML-KEM implementation carries machine-checked functional-correctness
-  and secret-independence proofs. Our KEM sits under every PQ epoch secret.
-- Recommended change: an evaluation lane — API/feature fit (encap/decap/keygen surfaces used by
-  `PqKem768` + `runtime_pq_kem_keypair`), maturity/audit trail, build/lockfile impact, and a
-  byte-compatibility check against the existing SCKA-KEM conformance vectors; migrate only if
-  the evaluation is clean (dependency mutation requires its own operator-approved lane under
-  the standing rules).
-- Recommended directive shape: a bounded dependency-evaluation lane (read/evaluate + report,
-  then a migration lane on operator approval). last-updated 2026-07-09
+### ENG-0029 — MOVED to `docs/ops/DESIGN_QUESTIONS.md` (DOC-OPS-008) by NA-0709 (D-1346)
+
+⚠ **MOVED, NOT CLOSED.** This entry is not a defect; it is a design question, a product call, or an item accepted by ruling. Its **id and its text are preserved verbatim** in DOC-OPS-008. Nothing was discarded, and it is not resolved. See DOC-OPS-008 → `ENG-0029`.
 
 ### ENG-0030 — Reseed RECEIVE leaves the receiver's SEND key schedule stale (caller-owned coherence)
 - **STATUS: DONE (NA-0626; D-1247 impl, D-1248 closeout; impl PR #1530, merge `fb2f1c21`).**
@@ -1679,17 +1682,9 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Recommended directive shape: docs/process (DOC-OPS-006 directive template gains a "negative claims"
   box; AGENTS.md gains the mechanism list). Cheap. Pairs naturally with WF-0016.
 
-### ENG-0036 — Token-gated relay access for a private/self-hosted deployment (closed-network authorization) — **NEW; filed 2026-07-10 (operator product direction)**
-- Severity: P3 (feature / deployment-hardening; NOT a confidentiality/integrity gap in the shipped E2EE — it is an ACCESS-CONTROL layer at the relay, orthogonal to message security)
-- Status: open — filed 2026-07-10 from an operator product-direction note during NA-0628; last-updated 2026-07-10
-- Idea (operator, verbatim intent): the relay/server generates an access token at install/setup; only apps that hold the token AND the server address can connect. Target: a niche "run-your-own highly-secure server" product for a small trusted group, paired with the forthcoming TUI/GUI.
-- **Setup-time mode toggle (operator refinement, 2026-07-10):** server setup asks *"will this be a PUBLIC accessible server or PRIVATE?"* and drives the config from the answer. PRIVATE ⇒ token-gating ON (this ENG); PUBLIC ⇒ open relay (the default Signal-like posture, no token wall). The operator judges this "codes easy enough for both" — plausible, since it is a config branch over the EXISTING `relay_auth_header` path rather than a new transport. This toggle is also the natural seam for the metadata posture: it is where a deployment decides which protections apply (see ENG-0037 sealed-sender — high-value in PUBLIC mode, nice-to-have in PRIVATE where the operator is trusted). The UX MUST make each mode's security implications explicit so neither is mistaken for the other's guarantees. **These are options to weigh WHEN we reach that point, not a committed design.**
-- **Grounding — this EXTENDS existing architecture, it does not start from zero.** The client/relay already carry a route-token / relay-auth-header mechanism (`qsl/qsl-client/qsc/tests/relay_auth_header.rs`; `route-token/header discipline`; auth-token resolution in the transport subsystem; a fail-closed `relay_unauthorized` state). ENG-0036 is the formalization of that into an install-time PROVISIONED, closed-network access credential with a specified lifecycle.
-- **What it buys (state honestly):** a closed relay — unauthorized clients cannot connect/enqueue; reduced spam/DoS/enumeration surface; a "private network" property analogous to a WireGuard pre-shared key or a self-hosted-server registration token. Strong fit for the self-hosted niche where the operator runs the relay.
-- **What it does NOT buy (must be stated in any spec/UX so it creates no false security):** it is NOT end-to-end security — the Suite-2 E2EE already protects message confidentiality/integrity against the relay. It does NOT hide who-talks-to-whom from the relay operator (that is the sealed-sender gap, still unfiled). It is a BEARER credential: whoever holds it can connect, so distribution, rotation, and revocation are load-bearing, and a leaked token opens the network until rotated.
-- **Threat-model discipline (per the metadata roadmap rule "name the adversary"):** ENG-0036 answers "outsiders connecting to my private relay." It does NOT answer "the relay operator is the adversary" (in a self-hosted deployment the operator IS the relay, so that is an accepted posture) or "a global passive adversary" (mixnet territory, out of scope). It must not be marketed as more than closed-network authorization.
-- Design questions for a future directive: token generation + entropy + storage at rest on the server; provisioning/enrollment UX (QR / paste / file) into the app alongside the server address; rotation + revocation + multi-token (per-device) support; interaction with the existing `relay_auth_header` path (extend vs replace); rate-limiting / lockout; and the exact "no false security" wording for the claim matrix.
-- Recommended directive shape: a design-lock-first lane (threat model + token lifecycle spec before code), sequenced AFTER the crypto core is at its completion point and alongside the TUI/GUI work it serves. Cross-repo (qsl-server + qsc client).
+### ENG-0036 — MOVED to `docs/ops/DESIGN_QUESTIONS.md` (DOC-OPS-008) by NA-0709 (D-1346)
+
+⚠ **MOVED, NOT CLOSED.** This entry is not a defect; it is a design question, a product call, or an item accepted by ruling. Its **id and its text are preserved verbatim** in DOC-OPS-008. Nothing was discarded, and it is not resolved. See DOC-OPS-008 → `ENG-0036`.
 
 ### WF-0018 — Strategic/program/review-facing docs drift behind live truth — **DONE at NA-0629 (D-1253, 2026-07-10); directive D566**
 - Severity: P2 (process/assurance; the external-review package understates the project's own evidence, and stale "current posture" is where a claim can silently move)
@@ -1699,14 +1694,9 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Fix: execute D566 — the [SAFE] bulk (formal-plan ENG-0034 update, review-package/evidence-map/progress additions, STATUS.md deprecation-to-stub per the QSL_PUBLIC_RELEASE_PLAN.md precedent, superseded-by pointers) plus the two [CLAIM-ADJ] posture edits (ROADMAP, DOC-PROG-001) presented as exact before/after for operator approval. Optional: a lightweight doc-staleness lint so this does not silently recur (WF-0012 theme).
 - Recommended directive shape: docs/governance single-PR lane, claim-adjacent, fail-closed on any claim movement. Strong successor candidate — arguably BEFORE commissioning external review, since you do not hand a reviewer a package that omits your formal analysis.
 
-### ENG-0037 — Sealed-sender: hide sender↔recipient (the social graph) from the relay/qsl-server — **NEW; filed 2026-07-10 (was owed since NA-0622, never filed)**
-- Severity: P3 (metadata; deferred post-Stage-2) — but it is the **flagship metadata item**: it is the concrete mechanism behind the operator's standing "eventually beat Signal on metadata" goal. Message content is already fully protected by Suite-2 E2EE; this closes a WHO-TALKS-TO-WHOM exposure to the relay operator, not a content break.
-- Status: open — **filed 2026-07-10**; previously owed off a promised relay/sender-metadata audit since NA-0622 and never converted into a tracked item (the gap my own ENG-0036 entry flagged as "still unfiled"); last-updated 2026-07-10.
-- The gap: today the relay/qsl-server observes enough to reconstruct the sender↔recipient social graph (route tokens, delivery routing, timing). Suite-2 hides message CONTENT from the relay; it does not hide the communicants' relationship from it. Signal's Sealed Sender is the precedent (studied — see the ROLLING_OPERATIONS_JOURNAL source-verification entry).
-- **Prerequisite (operator's own stated plan): a relay/sender-metadata audit FIRST.** Enumerate exactly what qsl-server currently learns about who talks to whom (extend `docs/design/DOC-G5-004` the metadata-leakage surface review), THEN design sealed-sender off concrete findings rather than assuming the mechanism. "Prove; do not assume" applies to the threat surface too.
-- Threat model it answers (name the adversary): **the relay operator / a party with relay logs.** This is EXACTLY the adversary that ENG-0036's access token does NOT address — the two are complementary, not substitutes. It does NOT answer a global passive network adversary (mixnet/Loopix territory, ENG-0022, far higher cost).
-- **Interaction with the public/private server mode (ENG-0036):** in a PRIVATE self-hosted deployment for a trusted group, the operator IS the relay, so sealed-sender is lower-value (nice-to-have). In a PUBLIC deployment it is HIGH-value, because untrusted users + an untrusted operator see the full graph. The public/private setup toggle is the natural seam at which "which metadata protections apply" is decided.
-- Recommended directive shape: analysis-first — the relay-metadata audit as its own lane (findings + severity), then a sealed-sender DESIGN lane (cross-repo: qsl-server routing + qsc client), then implementation. Do NOT collapse these; the audit may reshape the design. Sequenced post-crypto-core, alongside/after the metadata batch (ENG-0022/0027) and the private-server work (ENG-0036).
+### ENG-0037 — MOVED to `docs/ops/DESIGN_QUESTIONS.md` (DOC-OPS-008) by NA-0709 (D-1346)
+
+⚠ **MOVED, NOT CLOSED.** This entry is not a defect; it is a design question, a product call, or an item accepted by ruling. Its **id and its text are preserved verbatim** in DOC-OPS-008. Nothing was discarded, and it is not resolved. See DOC-OPS-008 → `ENG-0037`.
 
 ### ENG-0038 — `qsc` handshake: the responder is NOT authenticated to the initiator (asymmetric auth; active-MITM responder impersonation) — **NEW; filed 2026-07-11 by NA-0632 (D-1256)**
 - Severity: **P1** — an authentication bypass in the SHIPPED establishment path. An active on-path attacker (the relay is a natural position; the product's self-hosted-relay niche puts it on path) can impersonate the responder to the initiator, and the out-of-band verification code a user checks does NOT prevent it. Remote-reachable, deterministic, no secret knowledge required. **Fix BEFORE the GUI** (report §6). Rated P1 as an analysis finding; the operator sets the final priority and picks the fix.
@@ -1737,6 +1727,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Proof gap (why it was not caught): `src/adversarial/binding_fuzz.rs` covers only frame decoding + pin-string comparison; `tests/kem_signature_transcript_binding_negative.rs` must hand-inject `sig_fp` (no product path sets it) and only tests a wrong-pinned value; the ProVerif model (DOC-G4-002) covers the ratchet composition, NOT the `qsc` handshake authentication (UNMODELED). Report §2.3.
 - Minimal fix direction (design-lock-first; operator chooses): (a) wire `sig_fp` into contact provisioning so the responder's signing key IS pinned and the optional check becomes effective/required; AND/OR (b) cryptographically bind the responder's identity into the B→A direction (carry+pin the responder's identity KEM key so the KEM handshake authenticates BOTH directions, or certify the responder's signing key under the pinned identity); (c) make the initiator's primary pin non-tautological. Add the report §B proof-of-issue test (un-`#[ignore]` on fix) + a regression guard that the shipped path yields a non-empty responder `sig_fp` (or otherwise binds the responder) before committing a session.
 - Recommended directive shape: a before-GUI remediation lane (design-lock-first: the authentication model for BOTH directions, then the minimal wiring), plus — to decide the residual — a ProVerif/Tamarin model of `QSC.HS.*` (extends the ENG-0035 formal track). Honest caveat: this is an internal code-trace corroborated by the test infrastructure, NOT a running PoC; independently confirm before acting, though the trace is unambiguous.
+- ⚠ **RESIDUE GIVEN AN ID 2026-08-10 by NA-0709 (D-1346) — NOT a `Resolution:` line and not a re-closure.** The undischarged verification claim recorded above (*"a claim to be discharged, not as a result"*), and the regression guard that **nothing observes**, are now **ENG-0172**. ⚠ This entry's sole closure signal is its `Status:` line — the field this ledger's own rule at `:41-43` says closure must never be read from. The remediation as titled is not in doubt; the verification that it is complete is.
 
 ### WF-0019 — An audit "no P0/P1"/"verified sound" certification is only as strong as its EXERCISED coverage — NA-0609B certified sound the seam that carried ENG-0038 — **NEW; filed 2026-07-12 by NA-0637 (D-1260; directive D573, paying D571 Decision 4)**
 - Severity: P2 (process/audit-methodology; the false assurance was load-bearing — ENG-0001/NA-0609B's "no KEM-vs-SIG binding flaw" stood as grounds not to suspect the seam until D569 mandated re-testing exactly such claims, and NA-0632 then contradicted it)
@@ -2073,15 +2064,9 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Proof gap: no test asserts menubar COLOUR anywhere, and none can from the frontend — the widget is not in the DOM and is not reachable by the existing CSS-text assertions. Menu **visibility** is asserted (`design_round3.rs`), colour is not.
 - Status: open — filed 2026-07-22 by NA-0665 (D-1291) as the recorded disposition of D601 work item C. **FILING ONLY; deliberately not executed in-lane — the drop was ruled at approval and this lane was DESIGN/FRONTEND only.**
 
-### ENG-0061 — the wiped / "Vault erased" screen ships with no danger colour, because its heading was never red and the round-4a chrome strip removed its only signal
-- Severity: P3 (cosmetic / signalling; NO runtime, protocol, or security impact — and **nothing can be mis-triggered by it**, see the acceptance ruling below)
-- Exact surfaces: `qsl-desktop ui/index.html` — the wiped screen at **`:89-95`**, whose heading is a **plain** `<h1>Vault erased</h1>` carrying no danger class; `qsl-desktop ui/style.css` — `.card h1` sets size and weight but **no colour**, so it inherits `--fg` (#E8E8E8); the round-4a chrome strip that removed `.danger-card`'s border on that screen
-- Description: **the F2 override's own stated rationale is factually false on this one screen, and that is why the item exists.** The override reasoned that stripping the danger border was safe because *"the 'Erase everything' / 'Vault erased' headings and the warning copy are already red."* **That premise holds for erase and NOT for wiped.** Erase is `<h1 class="ceremony-head">`, coloured `var(--danger-text)` by `.ceremony-card .ceremony-head` — a rule NA-0665 left untouched, and the operator's after-shot confirms it renders red. **Wiped's heading was NEVER red**; its only danger signal was the **`.danger-card` BORDER**, which the override instructed be stripped. The result, visible in the operator's own 11-44-34 after-shot: **a white heading and no border — no red anything.**
-- **RULED ACCEPTED AS-IS by the operator (2026-07-22), and the reasoning is recorded because it bounds the severity:** the wiped screen is a **calm post-hoc NOTICE**, not an armed destructive gate. The data is **already gone**, nothing is being confirmed, and the only control is a primary "Start over". **Nothing can be mis-triggered by under-signalling it.** The operator's acceptance rested on **seeing the actual rendered pixels**, so what shipped is what was approved — **the error was in the verbal rationale, not in the approval.**
-- Consequence: one pre-main screen conveys a destructive OUTCOME with no colour cue. Arguably correct for a neutral notice; arguably a gap against the override's stated intent. **The point of the filing is that the two readings differ and the choice should be deliberate rather than accidental.**
-- Recommended change / scope for the future lane: **round 4c, revisited with the Settings-pane pass.** If red is wanted it is **one attribute plus one selector** — give the wiped `<h1>` the danger class and add the matching rule; if the calm-notice reading is preferred, **say so explicitly in Appendix E** so a later reader does not "fix" it back. **Do not fix it in isolation** — decide it alongside the rest of the danger-signalling vocabulary, so the app has one answer rather than per-screen accidents.
-- Proof gap: no test asserts danger COLOUR on the wiped screen, in either direction. Whichever way round 4c rules, **the ruling should land as an assertion**, because this defect arrived precisely by a rule being changed with no test to notice the consequence on one screen.
-- Status: open — filed 2026-07-22 by NA-0665 (D-1291), **ACCEPTED AS-IS by operator ruling and DELIBERATELY NOT FIXED FORWARD in-lane** (fixing it would have been scope the lane was not given). Deferred to round 4c.
+### ENG-0061 — MOVED to `docs/ops/DESIGN_QUESTIONS.md` (DOC-OPS-008) by NA-0709 (D-1346)
+
+⚠ **MOVED, NOT CLOSED.** This entry is not a defect; it is a design question, a product call, or an item accepted by ruling. Its **id and its text are preserved verbatim** in DOC-OPS-008. Nothing was discarded, and it is not resolved. See DOC-OPS-008 → `ENG-0061`.
 
 ### WF-0025 — the queue helper cannot distinguish "READY_COUNT 0, correct at closeout" from "the queue is malformed" — both are exit 2, so closeout verification cannot be a hard gate
 - Severity: P3 (governance-process/tooling; NO runtime, protocol, or security impact — but it makes a class of closeout instruction unsatisfiable as written, and invites the one workaround that reports a flag's behavior instead of the queue's)
@@ -2707,6 +2692,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   still reach the marker layer as `id` under the shape-keyed redactor. Out of scope by
   ruling; the coupling is named here so it is inherited rather than rediscovered.
 - Resolution: CLOSED 2026-07-29 by NA-0686 (D-1325), operator-ruled Option C — `emit_message_state_reject` no longer accepts an identifier at all, so the raw pass-through is impossible by construction; ZERO redactor edits. The filed fix was measured to be a provable no-op first. (This `Resolution:` line was applied 2026-07-29 by **NA-0687 / D-1326** when the convention was adopted; the closure itself is NA-0686's and its annotation above is unchanged.)
+- ⚠ **RESIDUE GIVEN AN ID 2026-08-10 by NA-0709 (D-1346) — NOT a `Resolution:` line and not a re-closure.** This entry's *"Remaining population, for a later ruled lane"* (the attachment `file_id` sites) existed **nowhere else in this ledger** and reproduces in source at `b845e678`. It is now **ENG-0171**. The closure of this entry's *titled* defect is unchanged.
 
 ### ENG-0085 — suspected hollow proof: `receipts_delivered::delivered_receipt_roundtrip` observes an emitted MARKER, never the stored state — **NEW; filed 2026-07-28 by NA-0682 (D-1317; directive D617); running "suspected hollow proofs" item per LANE_INTENT §3b OPPORTUNISTIC**
 - Severity: P3 (assurance; the test is NOT hollow today — the marker it asserts is emitted only inside the `Confirmed` arm, which is reached only after the timeline transition persists)
@@ -2882,14 +2868,9 @@ population can adopt it without redesign. Left for a later ruled lane.
   - Guarded as far as it can be without that field: `na0688_c3_sender_default::a_default_send_and_an_outbox_retry_agree_on_the_wire` pins the end-to-end agreement for the normal (packed) path and says in its own doc-comment what it does not reach.
 - Cross-reference: ENG-0095 (the barrier that made the direct path safe); ENG-0043 (the lease default this depends on); ENG-0083 (in-flight ratchet state persisted in two places — the same two-path split, seen from the storage side); **D622 STOP #016's ruling (option (a)) and the §4 correction above**; D622 STOP 008/009.
 
-### ENG-0097 — file-completion receipts create `kind="file"` TIMELINE ENTRIES via the direct send path; whether that is intended is unresolved — **NEW; filed 2026-07-30 by NA-0688 (D-1327; directive D622), OBSERVATION ONLY, PRE-EXISTING**
-- Severity: P3 (UI truth; **pre-existing, not introduced by NA-0688**, and no behaviour was changed by this lane)
-- Status: open — filed 2026-07-30, **observation only**.
-- **The fact.** `PendingReceipt::AttachmentComplete` routes through `transport::relay_send_with_payload`, which passes a `TimelineSendIngest { kind: "file", … }` **unconditionally on a successful push**, appending a timeline row in state `Sent`. So attachment-confirmation receipts have been writing timeline entries for as long as that path has existed.
-- **The unresolved question.** `DESIGN_outbox_delivery_v1` §5 requires a delivery ack be *"invisible in their UI"*. A **file completion confirm** is arguably a different thing from a delivery ack and may legitimately belong in the timeline — but nothing states which reading is intended, and no test pins either.
-- **Route:** Slice 4 live acceptance, where the operator sees the rendered timeline directly and can rule on what should appear. Cheaper to answer by looking than by argument.
-- ⚠ Found while enumerating the side effects of the path D622 C0 originally proposed to move ALL receipts onto. Message-kind receipts do **not** create timeline entries — pinned by `na0688_eng0095_ack_nonce_barrier::an_ack_creates_no_timeline_entry_on_the_sender_of_the_ack`, which exists precisely so a future "let us use one send path" refactor cannot start writing them silently.
-- Cross-reference: ENG-0095; ENG-0096; `DESIGN_outbox_delivery_v1` §5/§6; OBS-EC (marker layer vs user-cause layer).
+### ENG-0097 — MOVED to `docs/ops/DESIGN_QUESTIONS.md` (DOC-OPS-008) by NA-0709 (D-1346)
+
+⚠ **MOVED, NOT CLOSED.** This entry is not a defect; it is a design question, a product call, or an item accepted by ruling. Its **id and its text are preserved verbatim** in DOC-OPS-008. Nothing was discarded, and it is not resolved. See DOC-OPS-008 → `ENG-0097`.
 
 ### ENG-0098 — an observer can tell a DELIVERY ACK from a USER REPLY by envelope size, because acks are padded to a fixed floor and user messages are not bucketed by default — **NEW; filed 2026-07-30 by NA-0688 (D-1327; directive D622 C3, R2b), DEFERRED-OWED**
 - Severity: P2 (metadata privacy; **no confidentiality impact** — the distinction is in envelope LENGTH, never in plaintext, and every payload stays inside the session AEAD)
@@ -3312,19 +3293,13 @@ NA-0696 STOPs 004 (R-BANK), 006/007 (SR-18); operator adoption 2026-08-05.
 - Last-updated: 2026-08-08.
 - **Resolution: RESOLVED at NA-0702 (D-1342, directive D637 as amended — A1).** The structural remedy applied exactly as this entry's own candidate named: `setEraseError(text)` is the ONE RESIZING WRITER of `#erase-error` (TOTAL — null-guard retained, resize unconditional), all four base reference sites absorbed (:488 entry-clear · :515–:516 abort-clear · :520–:523 handler clear + wrong-phrase write · :549 catch write; comment-stripped count 4→1, `syncWindowHeight` call sites 7→8), pinned by `design_polish.rs::erase_error_has_exactly_one_writer_and_it_resizes` on the unlock-feedback template (helper exists · writes AND resizes in one call · reference count == 1 · the empty-element HTML pin). The fix-lane acceptance was DISCHARGED IN FULL: **the restored in-place wrong→correct click is a committed F-E row again** (leg C deliberately re-enters the error state; leg B gains the REAL Cancel click at the error state — the driver's own in-view-centre refusal, now required to pass), and the corrected scenario was proven by the THREE-POINT ordering proof (A1.2): RED against the unfixed app at exactly the committed pair {leg-B Cancel click, leg-C in-place click} both rc=2 `element not interactable`; RED again under the C2 regression (the resize line deleted) at the SAME pair row-for-row; GREEN with the fix via the real consumers (gui driver 6/6; desktop full bare suite 113 names 106/0/7, inventory 112→113 BY NAME). Countdown code BYTE-UNTOUCHED — the FORK B measurement ruled it out of this lane's scope; its near-miss is FILED as ENG-0124 below WITH THE NUMBERS. See D-1342, desktop D-0027.
 
-### ENG-0124 — the erase-countdown writers perform NO resize and stay unclipped only by a 20.0px accident: any countdown-block growth beyond 20px clips the ONLY abort affordance on a LIVE 30-second erase countdown — **NEW; filed 2026-08-08 by NA-0702 (D-1342; A1.1, the numbers verbatim) — FILING-ONLY**
-- Severity: P3 (a NEAR-MISS, not a present defect — measured NOT clipping today; severity assigned at filing by the seat, labeled as such)
-- The measurement (NA-0702 formalization, STOP_NA0702_001 §4 — the landed runner on a throwaway scenario, predictions written BEFORE the run, instrument positive capability proven in-run by capture 1 returning the button names on a clean form): the countdown block is SHORTER than the form it replaces — card **scrollHeight 217 == computed height 217, ZERO overflow**; `#btn-erase-countdown-cancel` measured bottom **225.0** vs the card clip at **245.0** = **20.0px margin**; ticks are TEXT-ONLY (geometry pixel-identical across 30→18→13); the REAL cancel click PASSES at the measured geometry.
-- The near-miss, in plain words (A1.1): the countdown writers (base main.js :531–:532 swap-in, :509–:512 swap-back, :501–:502 tick) perform NO resize — **the safety is an accident of the current copy, not a property** — so **any growth of the countdown block beyond 20px clips THE ONLY ABORT AFFORDANCE ON A LIVE 30-SECOND ERASE COUNTDOWN, with no test to catch it.** A filed row recording only "does not clip" would justify inaction; the margin is what makes this a queued lane (A1.1's rationale, adopted verbatim).
-- Remedy candidate, not this lane: extend the one-resizing-writer property to the countdown swap, or pin the countdown geometry with a test that fails when the block outgrows the clip. Successor QUEUED BY THIS FILING per the NA-0702 block.
-- Status: open — filed 2026-08-08 by NA-0702. FILING ONLY; nothing fixed (D637 §6/§10: countdown code byte-untouched, measured at the committed tree — no changed line in the diff touches countdown code).
-- Originating/last lane: NA-0702 (D-1342; R174 A1.1).
-- Last-updated: 2026-08-08.
+### ENG-0124 — MOVED to `docs/ops/DESIGN_QUESTIONS.md` (DOC-OPS-008) by NA-0709 (D-1346)
 
-### ENG-0125 — the rail-toggle (hamburger) design exists ONLY in operator-side mockup 02, which is SUPERSEDED-HISTORY and never ships: the pattern is one operator-side file away from being lost — **NEW; filed 2026-08-08 by NA-0703 (D-1343; R180 §2.5, ordered) — FILING-ONLY**
-- Severity: P4 (a design-preservation horizon, not a defect; nothing shipped is wrong)
-- The pattern as recorded in mockup 02 (Signal-style): the hamburger toggles the RAIL; rail shown = hamburger at top of rail, columns shift right; rail hidden = the hamburger MOVES INTO the column header so recovery is one click (hamburger, then destination icon) — the control relocates rather than disappearing. NOT implemented; mockup-11 carries no rail-toggle content, so NA-0703's committed set does not preserve it. Mockup 02 stays operator-side because it carries a live tailnet hostname (its SUPERSEDED-HISTORY class is load-bearing).
-- Remedy horizon: a future rail-touching lane (Slice 4) re-draws these two states as a SANITIZED mockup before the pattern is lost. Rationale on the record (R180): NA-0703 MOVES ratified design and does not draw new design; this filing costs nothing and is what stops the pattern disappearing.
+⚠ **MOVED, NOT CLOSED.** This entry is not a defect; it is a design question, a product call, or an item accepted by ruling. Its **id and its text are preserved verbatim** in DOC-OPS-008. Nothing was discarded, and it is not resolved. See DOC-OPS-008 → `ENG-0124`.
+
+### ENG-0125 — MOVED to `docs/ops/DESIGN_QUESTIONS.md` (DOC-OPS-008) by NA-0709 (D-1346)
+
+⚠ **MOVED, NOT CLOSED.** This entry is not a defect; it is a design question, a product call, or an item accepted by ruling. Its **id and its text are preserved verbatim** in DOC-OPS-008. Nothing was discarded, and it is not resolved. See DOC-OPS-008 → `ENG-0125`.
 
 ### ENG-0126 — `unlock_guarded_at`'s `is_ok()` collapse counts EVERY non-passphrase error as a failed unlock attempt, and at an armed limit wipes the vault — **NEW; filed 2026-08-09 by NA-0705 (D-1344; R185 §2.4 / R187 §3 F-2 / Q8.5, ordered) — FILING-ONLY**
 
@@ -3334,9 +3309,9 @@ NA-0696 STOPs 004 (R-BANK), 006/007 (SR-18); operator adoption 2026-08-05.
 
 `qsl/qsl-client/qsc/src/clock/mod.rs:49` declares `CLOCK_OVERRIDE_ENV = "QSC_UNSAFE_TEST_CLOCK_UNIX_S"` with **no `cfg(test)` and no feature gate** on the public path (`clock/mod.rs:58`), and `parse_override` panics by design on a malformed value (`clock/mod.rs:89`). It is honored by production builds and now backs `vault::protection::now_unix_s`, hence both `unlock_guarded` and `protection_status` — the unlock lockout schedule. It is the THIRD such variable in the crate (`QSC_UNSAFE_TEST_SEED_FALLBACK`, `QSC_RNG_FAILURE_TEST_SEAM`, and this one). Each is individually reasoned in its own source; nobody has asked whether the SET should be gated off release builds. ⚠ Threat modelling is explicitly NOT ordered by this filing and the reach judgment stays open and stated: reachability and crash behaviour are established, who can realistically set the variable on a target's session is not.
 
-### ENG-0128 — whether existing `QSCV01` vaults deserve a migration path at all — **NEW; filed 2026-08-09 by NA-0705 (D-1344; R185 §2.5) — FILING-ONLY, PRODUCT CALL**
+### ENG-0128 — MOVED to `docs/ops/DESIGN_QUESTIONS.md` (DOC-OPS-008) by NA-0709 (D-1346)
 
-`QSCV01` → `QSCV02` is a hard break with no migration and no dual-format read (D628 Ruling 2, stated verbatim in `qsl/qsl-client/qsc/src/adversarial/vault_format.rs:6-7`). NA-0705 made the refusal HONEST on both desktop doors, which is owed regardless of population; whether anyone should be able to OPEN such a vault again is a separate product question. Pre-release, the population is plausibly developer and operator vaults only — but that reach judgment has not been measured and is not this lane's to make.
+⚠ **MOVED, NOT CLOSED.** This entry is not a defect; it is a design question, a product call, or an item accepted by ruling. Its **id and its text are preserved verbatim** in DOC-OPS-008. Nothing was discarded, and it is not resolved. See DOC-OPS-008 → `ENG-0128`.
 
 ### ENG-0129 — `ServerInfoDoc` gained three invite limits the desktop Server pane does not surface — **NEW; filed 2026-08-09 by NA-0705 (D-1344; SR-15 F-4) — FILING-ONLY**
 
@@ -3354,12 +3329,9 @@ At `32e572c7` the doc carries `invite_max_expiry_secs`, `invite_max_slots`, `max
 
 The runbook's client recipe covers `relay ca-set --path`, `vault init --passphrase-file` vs `--unlock-passphrase-file`, and the `chmod 700` requirement on a setgid work root — but not the route token, which `qsl/qsl-client/qsc/src/adversarial/route.rs:21` requires to be **22–128 characters** of `[A-Za-z0-9_-]`. NA-0705's first pair used an 18-character token and was correctly refused `QSC_ERR_ROUTE_TOKEN_INVALID` on both sides. Carry the rule into the runbook's next revision so the next seat does not rediscover it by refusal, alongside the already-owed cold-start-certs note (R184 §5).
 
-### ENG-0133 — what signal truthfully reports send capability at `32e572c7`? — **✅ ANSWERED 2026-08-09 by NA-0708 (D-1345), enriched — filed 2026-08-09 by NA-0705 (D-1344; R191 §3)**
+### ENG-0133 — MOVED to `docs/ops/DESIGN_QUESTIONS.md` (DOC-OPS-008) by NA-0709 (D-1346)
 
-⚠ **ANSWERED, AND THE QUESTION ITSELF WAS AIMED SLIGHTLY WRONG.** Three things settle it. (i) `send_ready` is **UNRELATED to capability** — it is a state-of-the-store predicate (`protocol_state/mod.rs:108`), which is why it can report `no` while the send succeeds. (ii) The signal the design actually needed was **SAFETY, not capability**: whether sending now is safe, not whether it is possible. (iii) ⚠ **The deeper point, and it redirects the whole question:** the harm this filing circled is a **RECEIVE-PATH loss, not a send-capability gap** — the payload was never cryptographically destroyed (`ratchet_skip_store count=2`); it died because the receive pull aborted and the frame behind it was never unpacked. See ENG-0134 and the reject-vocabulary normalisation successor for where the real defect and its remedy live. ⚠ The mechanism behind the `chainkey_unset` window is now measured and filed separately as **ENG-0168**: only the handshake INITIATOR has seeded send chains at establishment.
-
-`send_ready` UNDER-REPORTS for the responder between its first inbound message and its first outbound one: measured at the new pin, the responder reports `send_ready=no / send_ready_reason=chainkey_unset` and **sends successfully**. R185 §2.2's composer gate is SUSPENDED as a result (D-1344 §6). Candidates to MEASURE, not assume: whether `chainkey_unset` is distinguishable from a real cannot-send state; whether the owed-receipt hold (`receipt_owed reason=chain_unseeded`) has an observable that closes the window; whether attempting a send and handling the refusal is more honest than predicting capability. ⚠ **Nobody derives a UI rule from NA-0705's n=1.** The design lane measures at n>1 and rules with the operator.
-
+⚠ **MOVED, NOT CLOSED.** This entry is not a defect; it is a design question, a product call, or an item accepted by ruling. Its **id and its text are preserved verbatim** in DOC-OPS-008. Nothing was discarded, and it is not resolved. See DOC-OPS-008 → `ENG-0133`.
 
 ### ENG-0134 — ⚠ P1 — a premature user send silently destroys the peer's next message — **NEW; filed 2026-08-09 by NA-0708 (D-1345) — id reserved by the NA-0706/0707 arc, which names it throughout**
 
@@ -3503,10 +3475,87 @@ Found by the cold read while tracing the receive loop; not this lane's to fix an
 
 At establishment `tools/refimpl/quantumshield_refimpl/src/suite2/establish.rs:75-98` gives **role A** `ck_ec: ck0_a2b, ck_pq: pq0_a2b` and **role B** `ZERO32` for both; the advertisement guard (`lib.rs:1822-1826`) requires both non-zero. ⚠ Since `invite accept` makes the INVITER the handshake RESPONDER, an inviter cannot advertise until it has sent. Same surface as ENG-0133 / NA-0705's F6, and it cost this lane four instrument iterations to discover. Also recorded: **SCKA is off entirely in every seed-derived session** (`qsp_scka_enabled` is `dhr != dhs_pub`; the seed derivation sets both to the same value), so no house fixture using the seed fallback can produce a control envelope.
 
-### ENG-0169 — the Legacy ack mode's weaker guarantee — deprecate, or keep and document? — **NEW; filed 2026-08-09 by NA-0708 (D-1345; RS-B, ruled accept-and-record at R201 §2) — FILING-ONLY, AN OPEN OPERATOR QUESTION**
+### ENG-0169 — MOVED to `docs/ops/DESIGN_QUESTIONS.md` (DOC-OPS-008) by NA-0709 (D-1346)
 
-Lease has been the default since D-1327 C4, and under Legacy the relay delete-on-delivers, so a client that cannot process an item has already lost it. NA-0708's own fix is **Lease-only by construction** (the ack accumulator is always empty under Legacy). ⚠ The question is whether Legacy still earns its place, and it is its own lane, not a side effect of one.
+⚠ **MOVED, NOT CLOSED.** This entry is not a defect; it is a design question, a product call, or an item accepted by ruling. Its **id and its text are preserved verbatim** in DOC-OPS-008. Nothing was discarded, and it is not resolved. See DOC-OPS-008 → `ENG-0169`.
 
 ### WF-0051 — a cold-seat commission granting a repo tree must name the tree's agent-memory file — **NEW; filed 2026-08-09 by NA-0708 (D-1345; R199 §5, the method record) — RECIPE AMENDMENT, not a code defect**
 
 A commission that grants a clone must **NAME the tree's `CLAUDE.md` for pre-emptive removal before the reader's first content read**, or state that its injection is accepted and recorded. "Outside project memory scope" cannot be satisfied by instruction alone while the clone lives inside the seat. ⚠ Third seating hole found by having readers **ATTEST rather than assert**. Applied at NA-0708's own SR-15 commission, where the reader removed the file and disclosed the resulting ` D CLAUDE.md` rather than claiming a clean tree it did not have — and the expectation was corrected to carve the deletion out (R203 §7.2).
+
+⚠ **AMENDED 2026-08-10 by NA-0709 (D-1346; R211 §2.3) — the rule as first written names ONE file and that is the hole.** The spine root carries **TWO** agent-memory files, `CLAUDE.md` **and** `AGENTS.md`; the desktop carries only `CLAUDE.md`. Every prior cold read against the spine was therefore seated with `AGENTS.md` in place and none disclosed it — **because the recipe never told them it existed. A commission failure, not a reader failure.** The amended rule: **a commission granting a tree ENUMERATES EVERY agent-memory file in that tree, measured at drafting, and names each for pre-emptive removal** — never a single named file. ⚠ **The enumeration is the instrument; a name is a needle, and this program has a long record of needles that stopped matching.** See **WF-0058** for the wider unknown this exposed.
+
+### ENG-0171 — the attachment `file_id` marker population is orphaned: 14 sites reach the shape-keyed redactor as `id`, and the population was recorded only inside a CLOSED entry — **NEW; filed 2026-08-10 by NA-0709 (D-1346; R218 §2.2(a)) — the ENG-0084 residue given an ID**
+
+- Severity: **P2** (privacy exposure in shareable diagnostics; redaction here holds by a value-shape accident, not by a rule)
+- Status: open — filed 2026-08-10. **FILING ONLY; nothing executed.**
+- Exact surfaces: `qsl/qsl-client/qsc/src/attachments/mod.rs` — **exactly 14** `("id", …)` marker tuples at `:884`, `:1086`, `:1601`, `:1668`, `:1744`, `:1930`, `:1948`, `:1996`, `:2024`, `:2066`, `:2141`, `:2166`, `:2247`, `:2252`; the coupling at `qsl/qsl-client/qsc/src/output/mod.rs:316` (`should_redact_value` carries **no rule for the key `id`**) falling through to `looks_high_cardinality` at `:349` (`value.len() >= 24 && …is_ascii_digit()`)
+- Claim at stake: that a diagnostic artifact a user is invited to share carries no identifier that links them to an object or a peer.
+- Why it matters: these values are redacted **by accident of their current width and digit content**, not by rule. A future change that shortens an attachment `file_id` below 24 characters, or drops its digits, makes all 14 sites emit the raw identifier in the clear. Nothing detects it.
+- ⚠ **Why this entry exists at all — and it is the general lesson, not a bookkeeping note.** The population was named in prose inside **ENG-0084** (`docs/ops/IMPROVEMENT_LEDGER.md:2705-2708`) beneath a `Resolution:` line, and **nowhere else**: `file_id` appears at exactly three lines in this whole file, **all inside ENG-0084**. The *"future attachments-diagnostics lane"* it names has no id and no entry. **Residue survives only if it has an ID. A paragraph inside a closed entry is not a queue item, and a defect that is not in the queue is not looked for.**
+- Proof gap: nothing asserts that a marker key of `id` is redacted independently of its value's shape.
+- Recommended directive shape: implementation-only, **with ENG-0122** — the same shape-vs-semantics gap for the key `peer`, same file, same function, one adversarial read.
+- Cross-reference: **ENG-0084** (the closed parent, which now points here), **ENG-0122**, AUDIT-TRIAGE #001.
+- Originating/last lane: NA-0709 (D-1346). Last-updated: 2026-08-10.
+
+### ENG-0172 — ENG-0038's P1 authentication remediation rests on a REASONED, NOT MODEL-VERIFIED argument, and the regression guard it names is observed by nothing — **NEW; filed 2026-08-10 by NA-0709 (D-1346; R218 §2.2(b)) — the ENG-0038 residue given an ID**
+
+- Severity: **P2** (assurance depth on a **P1 authentication property**; the remediation as titled is not in doubt — what is undischarged is the verification that it is complete)
+- Status: open — filed 2026-08-10. **FILING ONLY; nothing executed.**
+- Exact surfaces: `docs/ops/IMPROVEMENT_LEDGER.md:1721` — *"the P3 verdict is ARGUED to survive this, and that argument is REASONED — NOT MODEL-VERIFIED … recorded as a claim to be discharged, not as a result"*, with the named-but-never-filed follow-up *"extend the bounded model to the device indirection + primary-device selection"*; the **KNOWN UNMODELED SLICES** block at `:1719-1722`, including *"Cross-session replay"*
+- Claim at stake: peer authentication — the property ENG-0038 was filed against.
+- ⚠ Why it matters, in the parent entry's own words: **the regression guard has no observer.** `:1721` records *"if the verification-code format is ever narrowed back to the KEM half, this discharge is VOID"* — and **no test, gate, or witness observes that condition**, so an ordinary future change can void the discharge with nothing failing.
+- ⚠ Why this entry exists: ENG-0038 fires **I3 alone** — its sole closure signal is its `- Status:` line at `:1713`, with **no `Resolution:` line anywhere in the entry** — against this ledger's own rule at `:41-43` that closure is **never** read from `Status:`. The named follow-up has no id: `device indirection` / `primary-device` / `primary_device_id` appear at `:1720-1721` only.
+- ⚠ Scope note: **part of this residue lives in `WF-0019`** (`:1741-1749`), a register the NA-0709 triage ruled out of scope. The crossing is recorded; WF was not triaged.
+- Proof gap: no model-checked result covers the device indirection + primary-device selection, and nothing observes the format-narrowing precondition that would void the discharge.
+- Recommended directive shape: a formal-methods lane extending the bounded model, **or** an explicit operator acceptance of a reasoned-not-verified argument on a P1 property — recorded either way. ⚠ **An observer for the format-narrowing condition is cheap and separable from the model work**, and is worth taking first.
+- Cross-reference: **ENG-0038** (the closed parent, which now points here), **WF-0019**, **ENG-0035** (the ProVerif termination limit that bounds what a model can reach).
+- Originating/last lane: NA-0709 (D-1346). Last-updated: 2026-08-10.
+
+### WF-0052 — `goal-lint`'s `Goals:` requirement is enforced only post-hoc, and the hint it prints when it fails is broader than the truth — **NEW; filed 2026-08-10 by NA-0709 (D-1346), inherited from NA-0708 §6**
+
+- Problem: `tools/goal_lint.py` requires a literal `Goals: G#` line in the **PR body** and can only say so **after** a PR exists, with a template nobody is forced through. Caught twice (NA-0650, NA-0708). ⚠ **And its own remedy text is wrong in the expensive direction**: `tools/goal_lint.py:61` prints *"If the PR body was edited and rerun still fails, close + reopen the PR to trigger a fresh pull_request event payload."*
+- ⚠ The measured fact, narrower than both that hint and the NA-0650 record imply: **a body edit alone does not re-trigger; a body edit FOLLOWED BY A PUSH does.** A lane with a further commit to make never needs the close+reopen; only a lane with none does.
+- Recommended change: correct the hint at `tools/goal_lint.py:61` to state the narrow rule, and consider a pre-PR check so the requirement is met before a PR exists rather than after.
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0708 (D-1345) → filed by NA-0709 (D-1346). Last-updated: 2026-08-10.
+
+### WF-0053 — a rule that must be remembered at every invocation will be missed at some invocation: the pipe/exit-status discipline wants a MECHANISM, not more memory — **NEW; filed 2026-08-10 by NA-0709 (D-1346), inherited from NA-0708 §6**
+
+- Problem: the house rule *"never pipe the check that gates you — a pipe reports the pipe's exit status"* was recorded twice and promoted once, and was then violated **three times in a single lane** (NA-0708). ⚠ **That is not a discipline failure; it is evidence the rule is in the wrong place.**
+- Recommended change: a house wrapper that runs a gate **bare**, captures its exit to an artifact, and **cannot report a status it did not read from that artifact**. ⚠ Same argument the program already accepted for structural sharing over "N sites agreeing" (D-1328 Ruling 11), applied to instruments instead of code.
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0708 (D-1345) → filed by NA-0709 (D-1346). Last-updated: 2026-08-10.
+
+### WF-0054 — this ledger is three ledgers wearing one file: three closure instruments, three eras, and no canonical form — **NEW; filed 2026-08-10 by NA-0709 (D-1346; R209 §3.3)**
+
+- Problem: measured across all 169 `ENG` entries at `b845e678` — **I1** (a bold closure verb in the heading) fires 10 times, **I2** (an appended `Resolution:` line) 27, **I3** (a closure verb opening `Status:`) 30. ⚠ **`I1+I2+I3` = 0 and `I1+I2` = 0: no entry is closed by all three, and the documented instrument never co-occurs with the pre-convention one.** They are not three fields; they are **three eras laid down in sequence and never reconciled**. 35 of the 51 closures are closed by exactly one. Three of the six documented lifecycle states (`queued`, `in-lane`, `promoted`) have **zero** occurrences, and the `Status:` field carries **14 distinct spellings**.
+- Why it matters: a backlog whose own state cannot be queried is an instrument that does not instrument — the defect family this ledger already tracks. It is why the same defect was filed twice (see WF-0055) and why residue was orphaned twice.
+- Recommended change: **not** a mass rewrite — that is a closure act. Either adopt one canonical closure form going forward and record the eras as history, or give the file a machine-checked schema.
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0709 (D-1346). Last-updated: 2026-08-10.
+
+### WF-0055 — a ledger nobody can query produces the same defect twice: ENG-0131 duplicated ENG-0077 fourteen days apart — **NEW; filed 2026-08-10 by NA-0709 (D-1346; R210 §2)**
+
+- Problem: **ENG-0131** (filed 2026-08-09 by NA-0705) and **ENG-0077** (filed 2026-07-26 by NA-0680) are **one defect** — same file, same function, same mechanism, same one-line remedy — filed fourteen days apart by two lanes that could not see each other's work. ENG-0131 is now recorded SUPERSEDED and the defect survives under ENG-0077.
+- ⚠ **The finding is not the duplicate; it is what produced it.** With ~99 live entries and no working query (WF-0054), ENG-0131 is unlikely to be the only one, and a duplicate splits a defect's evidence across two ids so that fixing one looks like fixing the class.
+- Recommended change: a pre-filing check — before a lane mints an id, search the ledger for the same **surface**, not the same words.
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0709 (D-1346). Last-updated: 2026-08-10.
+
+### WF-0056 — one entry records another entry's closure and the closed entry never learns: the ledger has no cross-reference discipline — **NEW; filed 2026-08-10 by NA-0709 (D-1346; R210 §3)**
+
+- Problem: **ENG-0063's own text states that NA-0670 / D-1297 C-2 shipped the constant-time bearer comparison — which is the defect ENG-0014 was filed against. ENG-0014 carries no annotation and is still open.** Nothing propagates a closure to the entries that describe the same defect.
+- ⚠ Consequence, and it runs in the direction that wastes work rather than the one that loses it: **the true closed count is unknown, and the ledger may be carrying defects already fixed elsewhere.** Deciding ENG-0014 needs a read of a repository the triage lane was not granted.
+- Recommended change: when a lane closes an entry, it greps the ledger for other entries naming the same surface and annotates them; the cross-repo block (ENG-0014/0021/0039/0063/0066/0070/0092) is the first place to apply it.
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0709 (D-1346). Last-updated: 2026-08-10.
+
+### WF-0057 — the 51 `WF` entries have never been triaged, and the same status defect lives one register over — **NEW; filed 2026-08-10 by NA-0709 (D-1346; R209 §5)**
+
+- Problem: NA-0709 triaged all 169 `ENG` entries and **ruled the 51 `WF` entries explicitly out of scope**, so the claim boundary says ENG. ⚠ Those 51 have the same three-era status problem (WF-0054) and have never been measured. **Recording the omission is what makes it deliberate rather than discovered later.**
+- ⚠ Known crossing already: part of **ENG-0172**'s residue lives in **WF-0019**, so the two registers are not independent.
+- Recommended change: a WF triage lane in the NA-0709 shape — the same three-instrument union, the same per-entry verdict schema.
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0709 (D-1346). Last-updated: 2026-08-10.
+
+### WF-0058 — the injection surface of a cold seat has never been enumerated: we know two channels and assume that is the set — **NEW; filed 2026-08-10 by NA-0709 (D-1346; R211 §2.4)**
+
+- Problem: SR-15 commissions name agent-memory files for pre-emptive removal so a blinded reader is genuinely blinded. ⚠ **Nobody has measured what a harness actually injects.** `CLAUDE.md` was the known channel; **`AGENTS.md` was found only because a commission was drafted fresh and its author enumerated the tree root** (WF-0051's amendment). The NA-0709 reader then disclosed a **third** surface unprompted: the spine also carries a **`.claude/` directory** of harness configuration that *"delete the agent-memory files"* does not cover.
+- ⚠ **Independently corroborated**: a second cold reader, on another lane, in another tree, with no contact, found the same gap from the other side — `.claude/settings.json` carries an executing hook and a permissions deny-list. **Two readers, two trees, same gap: evidence, not coincidence.**
+- Recommended change: enumerate the injection surface once — every file and directory a harness reads at seat time — and make the seating recipe name the **enumeration**, not a list of filenames.
+- Status: open — **FILING ONLY**, and stated as a **named unknown** rather than a defect with a known extent. Originating/last lane: NA-0709 (D-1346). Last-updated: 2026-08-10.

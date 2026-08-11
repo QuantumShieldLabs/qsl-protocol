@@ -37998,3 +37998,62 @@ HIGHEST_NA 0703→0705; HIGHEST_D 1343→1344 in this commit. Class at close:
     that a closure proves absence · that the 51 `WF` entries were triaged (out of scope, filed as
     `WF-0057`) · that the 7 cross-repo entries were decided (a read-only scope grant was issued to
     a successor).
+
+## D-1347 — NA-0710: THE AWS RELAY PROVISIONING LANE — a relay built, hardened, reboot-proven and identified; its invite API proven live; and the client flow above it proven broken
+
+  - **Status:** Accepted (R212 approved D645 with Amendment A1; R219 **REMANDED** it after an SR-15
+    read returned 2 BLOCKER / 4 MAJOR / 3 MINOR; R220 ruled Shape A and the corrected sizing lever;
+    R223 approved **D646**, the re-formalized directive superseding D645 in full; R224/R226/R227/
+    R228/R229 authorized the phases in sequence).
+  - **Context:** every "rig" fact in the program's record described a **retired laptop** that was
+    manual, unrecorded, and died on shutdown — and NA-0706's Arm I was blocked because that rig's
+    relay predated the invite API. NA-0709 measured the program's #1 and #2 defects as **rig-blocked**.
+  - **Decision:** provision a 24/7 AWS relay from current `qsl-server` source, under **Shape A** —
+    the product's **own hardened systemd unit and paths**, adopted byte-identical rather than
+    re-authored — with a runbook written as a **delta** on the product's shipped one.
+  - ⚠ **The method change that made the directive correct:** D645's authorized-acts list was built by
+    asking *what could go wrong*, and an SR-15 read found **two blockers** it could not have caught
+    that way — **no row authorized WRITING A FILE, and none authorized a PRIVILEGED READ**. Both land
+    after root is held. D646's §1 is instead **derived from the required-acts side and cross-checked
+    against the product's own `scripts/install_ubuntu.sh`**. ⚠ **Standing form: enumerate an authority
+    from the REQUIRED-ACTS side; the dangerous-acts side is a check on that list, never its source.**
+  - ⚠ **The invert deleted the widest grant:** package installation was **removed**, not left unused —
+    `rusqlite` is `features=["bundled"]`, the dependency set is pure Rust, the build is cross-compiled,
+    and caddy is a verified static binary, so **no package was needed on the box at all.**
+  - ⚠ **Sizing was re-derived against the BINDING resource.** `PEAK(one pull) = max_queue_depth ×
+    max_body_bytes × 4.5703125` — `serde_json` renders `PullItem.data: Vec<u8>` as a JSON integer
+    array while the raw bytes stay resident. **At shipped defaults that is 1174.6 MiB on a 908 MiB box
+    with ZERO swap, from ONE authenticated pull, with no limit violated.** Two of three knobs are
+    unavailable: route count buys **zero** memory, and `max_queue_depth` is **PINNED at 257** by the
+    attachment design — ⚠ **cutting it, the obvious fix, would have silently broken 4 MiB attachment
+    delivery.** `max_body_bytes = 65536` is the only load-bearing lever; **fixing RAM fixed disk as a
+    side effect** (64.25 GiB → 4.02 GiB worst case).
+  - **What was proven:** cross-built from `qsl-server` `37ec8207` (binary sha `3439aa04…ce72`,
+    identical at three points; max required symbol `GLIBC_2.34` against the target's 2.43) · installed
+    under the product's unit **byte-identical** · auth proven ON over loopback **before** the TLS edge
+    was ever started (401 unauthenticated / 204 authenticated) · **reboot-proven**: both units returned
+    **unaided in 19 s**, store byte-identical, certificate not re-minted · **auth enforced end-to-end
+    through the edge**, evidenced by the relay's own `ERR_UNAUTHORIZED` body · ⚠ **`POST /v1/invite/create`
+    returns a code where the retired rig returned HTTP 404 — the NA-0706 Arm-I gap is CLOSED.**
+  - ⚠⚠ **AND THE CENTRAL FINDING: the invite path does not complete.** All four invite steps return
+    rc 0 and move real frames, but **the party who creates the invite never obtains a session** —
+    `handshake poll` rejects A2 `decode_failed` **and destroys it**, `invite accept` is not re-runnable,
+    `receive` reports `missing_seed`. **Reproduced at the desktop pin AND at spine main across three
+    walks**, so it is neither the client rev nor NA-0708's known receive-side defect; the relay accepted
+    the push and delivered the frame. Filed as **ENG-0173**…**ENG-0176**, with ENG-0173 ruled the
+    program's top defect (R229 §3.1). **The two-party message walk never ran.**
+  - **Implications for spec/impl/tests:** **no product source is edited and no test is added.**
+    `docs/ops/RIG_PROVISION_RUNBOOK.md` is new and is a **delta** on `qsl-server`'s shipped runbook,
+    carrying the **four non-problems** and the **producer identity**; `docs/ops/IMPROVEMENT_LEDGER.md`
+    gains **ENG-0170** (the shipped Caddyfile example 404s every request as documented, evidenced by a
+    `caddy adapt` route-tree identity that reproduces without a running server) plus **ENG-0173–0176**
+    and **WF-0059**; `NEXT_ACTIONS.md` marks NA-0709 DONE from the re-verified merge sha `b44909f5`
+    and records `### NA-0710`; `TRACEABILITY.md` records the lane.
+  - ⚠ **NOT CLAIMED:** any security-group or network-security property (the operator's, settled) ·
+    that the relay is safe to expose publicly — ⚠ there is an **unauthenticated memory-exhaustion path
+    no configuration can close** · that any client defect is fixed · **that the 64 KiB body limit is
+    validated — it is UNFALSIFIED, since no message envelope was ever sent** · that historical timings
+    transfer to this producer · that the shipped installer scripts are correct or safe (**they were
+    deliberately not run and not read**) · ⚠ **that no completing command exists for the invite
+    accepter — only that none of the three documented collectors works, and that if one exists the
+    documented surface does not lead a reader to it.**

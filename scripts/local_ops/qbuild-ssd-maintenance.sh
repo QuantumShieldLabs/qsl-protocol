@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-VERSION="NA-0543-qbuild-ssd-maintenance-v0.1.0"
+VERSION="NA-0714-qbuild-ssd-maintenance-v0.2.0"
 
 MODE="dry-run"
 TARGET_DAYS=7
@@ -22,6 +22,21 @@ EXIT_FAILURE=2
 EXIT_SAFE_SKIP_ACTIVE=3
 EXIT_WARNING=4
 EXIT_SUCCESS_RECLAIMED=10
+
+# NA-0714 / R255 §6.6 — thresholds are STATED, not implied by scattered literals.
+# ACT: at or above this, the cleaner runs even if a build is active.
+# ALARM: at or above this, the run ends RED regardless of what it reclaimed.
+ACT_PERCENT=80
+ALARM_PERCENT=90
+# Set by check_disk_pressure() BEFORE detect_active_build() runs. This is the fix for
+# the NA-0714 root cause: the build guard used to preempt the disk alarm entirely.
+disk_pressure_override=0
+# A single stable path the operator can read without journalctl. Derived from
+# BACKUP_ROOT *at call time* so fixture mode cannot write into real state — a literal
+# here would be remapped for every other root but this one, and under systemd (uid 0)
+# a fixture run would have silently written to the live path.
+# NEVER under /srv/qbuild/operator/**.
+status_file_path() { printf '%s/qbuild-tmp-archive/QBUILD_SSD_MAINTENANCE_STATUS.md' "$BACKUP_ROOT"; }
 
 classification="NOT_STARTED"
 safe_skip_reason=""
@@ -64,6 +79,7 @@ die() {
   classification="HARD_FAILURE"
   printf 'ERROR: %s\n' "$failure_reason" >&2
   write_summary "$EXIT_FAILURE" || true
+  write_status_file "$EXIT_FAILURE" || true
   exit "$EXIT_FAILURE"
 }
 
@@ -221,6 +237,14 @@ parse_args() {
         TMP_DAYS="${2:?missing --tmp-days value}"
         shift
         ;;
+      --act-percent)
+        ACT_PERCENT="${2:?missing --act-percent value}"
+        shift
+        ;;
+      --alarm-percent)
+        ALARM_PERCENT="${2:?missing --alarm-percent value}"
+        shift
+        ;;
       --log-retention-days)
         LOG_RETENTION_DAYS="${2:?missing --log-retention-days value}"
         shift
@@ -252,6 +276,8 @@ parse_args() {
   require_uint TARGET_DAYS "$TARGET_DAYS"
   require_uint TMP_DAYS "$TMP_DAYS"
   require_uint LOG_RETENTION_DAYS "$LOG_RETENTION_DAYS"
+  require_uint ACT_PERCENT "$ACT_PERCENT"
+  require_uint ALARM_PERCENT "$ALARM_PERCENT"
   if [ -n "$NOW_EPOCH" ]; then
     require_uint NOW_EPOCH "$NOW_EPOCH"
   fi
@@ -323,6 +349,52 @@ capture_disk_after() {
   fi
 }
 
+check_disk_pressure() {
+  # NA-0714 / R255 §6.6 — this runs BEFORE detect_active_build, by design.
+  # The whole NA-0714 defect was that the build guard returned first and the
+  # disk alarm below was never evaluated. Order is the fix.
+  local root_use
+  root_use="$(root_use_percent)"
+  printf 'DISK_PRESSURE_CHECK root_use=%s%% act=%s%% alarm=%s%%\n' \
+    "${root_use:-unknown}" "$ACT_PERCENT" "$ALARM_PERCENT"
+  if [ "${root_use:-100}" -ge "$ACT_PERCENT" ]; then
+    disk_pressure_override=1
+    printf 'DISK_PRESSURE_OVERRIDE_ARMED yes\n'
+  else
+    printf 'DISK_PRESSURE_OVERRIDE_ARMED no\n'
+  fi
+}
+
+write_status_file() {
+  # R255 §6.6 — "report where the operator sees it". A single stable path, rewritten
+  # every run, readable without journalctl. Best-effort: never fail the run over it.
+  local exit_code="${1:-?}" root_use sf
+  root_use="$(root_use_percent)"
+  sf="$(status_file_path)"
+  { printf '# qbuild SSD maintenance — last run\n\n'
+    printf -- '- when (UTC): %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+    printf -- '- version: %s\n' "$VERSION"
+    printf -- '- classification: **%s**\n' "$classification"
+    printf -- '- exit code: **%s**\n' "$exit_code"
+    printf -- '- root use: **%s%%** (act >= %s%%, alarm >= %s%%)\n' \
+      "${root_use:-unknown}" "$ACT_PERCENT" "$ALARM_PERCENT"
+    printf -- '- reclaimed: %s bytes (%s deleted, %s archived)\n' \
+      "$reclaimed_bytes" "$deleted_count" "$archived_count"
+    printf -- '- build-guard overridden by pressure: %s\n' \
+      "$([ "$disk_pressure_override" -eq 1 ] && printf yes || printf no)"
+    [ -n "$safe_skip_reason" ] && printf -- '- SKIP reason: %s\n' "$safe_skip_reason"
+    [ -n "$failure_reason" ] && printf -- '- FAILURE reason: **%s**\n' "$failure_reason"
+    printf -- '\n⚠ A SKIP is NOT a success. Exit 3 is no longer in SuccessExitStatus,\n'
+    printf -- 'so `systemctl --failed` shows this unit when it skips or alarms.\n'
+  } > "$sf" 2>/dev/null || {
+    # ⚠ Best-effort, but NEVER silent: a status writer that fails without saying so is
+    # the same defect class as the skip this whole change exists to fix.
+    printf 'STATUS_FILE_WRITE_FAILED %s\n' "$sf" >&2
+    return 0
+  }
+  printf 'STATUS_FILE_WRITTEN %s\n' "$sf"
+}
+
 is_ancestor_pid() {
   local candidate="${1:?missing pid}" current parent
   current="$$"
@@ -365,6 +437,17 @@ detect_active_build() {
     esac
   done < <(active_process_lines)
 
+  if [ "$active" -eq 1 ] && [ "$disk_pressure_override" -eq 1 ]; then
+    # NA-0714: the build guard MUST NOT preempt the disk alarm. Under pressure the
+    # cleaner proceeds and says so loudly, rather than deferring and reporting success.
+    printf 'BUILD_GUARD_OVERRIDDEN_BY_DISK_PRESSURE root_use=%s%% >= ACT_PERCENT=%s%%\n' \
+      "$(root_use_percent)" "$ACT_PERCENT"
+    printf 'ACTIVE_BUILD_PRESENT_BUT_PROCEEDING\n'
+    sed -n '1,40p' "$active_tmp"
+    rm -f "$active_tmp"
+    return 0
+  fi
+
   if [ "$active" -eq 1 ]; then
     safe_skip_reason="active cargo/rustc/sccache/qwork/qstart/qresume process detected"
     classification="SAFE_SKIP_ACTIVE_BUILD"
@@ -372,6 +455,7 @@ detect_active_build() {
     sed -n '1,40p' "$active_tmp"
     rm -f "$active_tmp"
     write_summary "$EXIT_SAFE_SKIP_ACTIVE"
+    write_status_file "$EXIT_SAFE_SKIP_ACTIVE"
     exit "$EXIT_SAFE_SKIP_ACTIVE"
   fi
   rm -f "$active_tmp"
@@ -399,9 +483,16 @@ validate_target_candidate() {
   real="$(safe_realpath "$target")"
   require_under "$WORK_ROOT" "$real"
   case "$real" in
-    "$WORK_ROOT"/*/qsl-protocol/target) ;;
-    *) die "invalid target cleanup candidate: $target" ;;
+    "$WORK_ROOT"/*) ;;
+    *) die "invalid target cleanup candidate (outside WORK_ROOT): $target" ;;
   esac
+  # NA-0714 / R255 §4.2 — the old rule was `*/qsl-protocol/target`, matching by NAME.
+  # Measured: five of the seven largest consumers were 113 BYTES at that path, while the
+  # real mass sat in targets/, target-base/, p7target/, target_exec/. The property that
+  # actually identifies a cargo build directory is the CACHEDIR.TAG cargo writes into it.
+  if [ ! -f "$real/CACHEDIR.TAG" ]; then
+    die "refusing candidate without CACHEDIR.TAG (not a cargo build dir): $target"
+  fi
   case "$real" in
     "$CACHE_ROOT"|"$CACHE_ROOT"/*) die "refusing shared cache target cleanup: $target" ;;
   esac
@@ -445,7 +536,7 @@ collect_candidates() {
       target_candidates+=("$target")
       target_candidate_bytes=$((target_candidate_bytes + bytes))
     fi
-  done < <(find "$WORK_ROOT" -path '*/qsl-protocol/target' -type d -prune -print0 2>/dev/null)
+  done < <(find "$WORK_ROOT" -type d -exec test -f '{}/CACHEDIR.TAG' \; -print0 -prune 2>/dev/null)
   target_candidate_count="${#target_candidates[@]}"
 
   while IFS= read -r -d '' dir; do
@@ -462,7 +553,10 @@ collect_candidates() {
 
 entry_count_and_bytes() {
   local path="${1:?missing path}"
-  find "$path" -mindepth 1 -printf '%y %s\n' 2>/dev/null | awk '{count += 1; bytes += $2} END {printf "%s %s\n", count + 0, bytes + 0}'
+  # Count every entry, but only sum regular-file bytes: directory inode
+  # sizes are allocation artifacts that differ between the source tree
+  # and a fresh copy on another filesystem, failing valid copies.
+  find "$path" -mindepth 1 -printf '%y %s\n' 2>/dev/null | awk '{count += 1; if ($1 == "f") bytes += $2} END {printf "%s %s\n", count + 0, bytes + 0}'
 }
 
 verify_copy_equivalent() {
@@ -582,16 +676,18 @@ print_report() {
 finish_with_policy_exit() {
   local root_use exit_code
   root_use="$(root_use_percent)"
-  if [ "${root_use:-100}" -ge 95 ]; then
-    classification="HARD_FAILURE_ROOT_USAGE_95_PLUS"
-    failure_reason="root filesystem usage ${root_use}% is at or above hard stop"
+  if [ "${root_use:-100}" -ge "$ALARM_PERCENT" ]; then
+    classification="HARD_FAILURE_ROOT_USAGE_ALARM"
+    failure_reason="root filesystem usage ${root_use}% is at or above ALARM_PERCENT=${ALARM_PERCENT}% AFTER this run reclaimed ${reclaimed_bytes} bytes"
     write_summary "$EXIT_FAILURE"
+    write_status_file "$EXIT_FAILURE"
     printf 'HARD_STOP_ROOT_USAGE_PERCENT=%s\n' "$root_use"
     exit "$EXIT_FAILURE"
   fi
-  if [ "${root_use:-100}" -ge 80 ]; then
+  if [ "${root_use:-100}" -ge "$ACT_PERCENT" ]; then
     classification="WARNING_DISK_PRESSURE"
     write_summary "$EXIT_WARNING"
+    write_status_file "$EXIT_WARNING"
     printf 'WARNING_ROOT_USAGE_PERCENT=%s\n' "$root_use"
     exit "$EXIT_WARNING"
   fi
@@ -607,6 +703,7 @@ finish_with_policy_exit() {
     exit_code="$EXIT_SUCCESS_NO_CANDIDATES"
   fi
   write_summary "$exit_code"
+  write_status_file "$exit_code"
   exit "$exit_code"
 }
 
@@ -618,6 +715,7 @@ main() {
   printf '=== qbuild SSD maintenance ===\n'
   date -u
   capture_disk_before
+  check_disk_pressure
   detect_active_build
   collect_candidates
   print_report

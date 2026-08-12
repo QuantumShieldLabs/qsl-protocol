@@ -114,6 +114,252 @@ some are now wrong by hundreds of lines or point at deleted files. **Any lane ac
 entry must re-derive its surfaces from the entry's DESCRIPTION, never from its citation.**
 
 
+## The NA-0712 assurance classification (D-1349, 2026-08-11) — a second dimension over the ranked set
+
+**Every entry below carries an ASSURANCE verdict**: *is the property this entry guards PROVEN,
+ARGUED, ASSUMED, NOT-APPLICABLE, or UNDECIDABLE?* The harm ranking established at D-1346 is
+**unchanged** — this is a separate dimension, not a re-ranking.
+
+⚠ **WHY IT IS ONE TABLE AND NOT A PER-ENTRY FIELD.** A fourth per-entry convention would have made
+this file four ledgers wearing one file, which is the open defect `WF-0054` already names. **One
+section, one greppable form, and every entry's text left byte-identical.**
+
+### ⚠⚠ THE PRINCIPAL FINDING — THE LEDGER IS NOT A RELIABLE INSTRUMENT ABOUT THE TREE, IN EITHER DIRECTION
+
+Measured three ways in one lane:
+
+- **Pessimistic — closure recorded with no evidence.** Of 51 closed entries, **13** closed on an
+  argument and **16** record **no check of any kind** — a `STATUS: DONE` and a description of what
+  was built.
+- **Optimistic — `Proof gap:` is WRITE-ONCE.** Nothing retires the line when a later lane closes the
+  gap, so **a `Proof gap:` is evidence a gap was ONCE NAMED, never that it is still open.** **12
+  entries are closed and still advertise one.** Two rows (**ENG-0001**, **ENG-0012**) were refuted on
+  contact with source.
+- ⚠ **`Status:` is write-once too** — **nine** entries carry `Status: open` beside a closing
+  `Resolution:` (`ENG-0065, 0082, 0084, 0085, 0088, 0089, 0090, 0091, 0094`), six of them also
+  carrying a stale `Proof gap:`. *(A looser needle returns 22; the difference is partial-closure
+  entries, where an open `Status:` beside a `Resolution:` is CORRECT under this file's own rule at
+  `:57-64`. **Nine is the number.**)*
+- ⚠⚠ **AND THE LARGEST: of eleven entries this file recorded NO check for, TEN have real — often
+  adversarial — guards in the tree.** The checks were simply never written down.
+
+⇒ ⚠ **VERDICTS ABOUT THE TREE MUST BE SETTLED AGAINST THE TREE.** That is what this table is, and it
+is why it was worth building. **No `PROVEN` verdict was issued from an entry's prose: every one names
+a check located and read in the tree.**
+
+### The vocabulary
+
+`PROVEN` — a model-checked result, a machine-verified proof, or a test shown able to fail on the
+property. ⚠ **Every `PROVEN` row carries a mandatory `scope:` naming what its proof does NOT reach**
+(SR-21 applied to a verdict rather than to a needle; it is what makes a `PROVEN` row auditable).
+`ARGUED` — a reasoned case in the record, never mechanically checked. `ASSUMED` — relied upon,
+nowhere argued or checked. `NOT-APPLICABLE` — guards no security or correctness property.
+`UNDECIDABLE` — not determinable, **with the reason**; ⚠ *"read and found undecidable"* is a
+different state from *"unread"* and is recorded as such.
+
+**Result: PROVEN 15 · ARGUED 13 · ASSUMED 61 · UNDECIDABLE 4 · NOT-APPLICABLE 36 = 129.**
+⚠ **The brief predicted NOT-APPLICABLE would be the largest bucket. It is 36; ASSUMED is 61**, and
+the frame was not stretched to reach it.
+
+### ⚠ Column meanings, and the bound on the ASSUMED figure
+
+`basis`: **S** = settled by a source read · **T** = from entry text alone. **23 source-settled, 106
+text** — ⚠ **carried as part of the result, not as a caveat.** Of the 106, every one is an open
+defect or a NOT-APPLICABLE row where text is decisive.
+⚠ **60 of the 61 ASSUMED rows are OPEN, UNFIXED defects, where the verdict rests on a mechanical
+ground: a standing green test asserting the property CANNOT exist for an unfixed defect — the suite
+would be red.**
+
+`track`: **A** = the proof rides the entry's own fix (its regression test under red-before-green) ·
+**B·I<n>·<class>** = the separable assurance track, grouped by INSTRUMENT, cost class **M** model /
+**T** test / **O** observer · **+D** = also in the D-1346 deadline set.
+
+### ⚠⚠ THE DISAGREEMENT WITH THE HARM RANKING — THE POINT OF THE EXERCISE
+
+The separable track is **20 rows**. Of them: **2 above T4** (ENG-0055, ENG-0172) · **9 at T4** ·
+**9 with no harm rank at all** (closed entries, untiered by construction).
+⇒ ⚠⚠ **EIGHTEEN OF TWENTY SIT AT THE BOTTOM OF THE HARM RANKING OR ARE INVISIBLE TO IT.** Harm and
+assurance are **very nearly disjoint** — as harm and deadline were at D-1346. **Three axes, three
+near-disjoint results.**
+
+⚠⚠ **THE ALL-THREE-TRACKS SET IS EXACTLY ONE ENTRY: `ENG-0056`** — harm **T4**, a deadline item (a
+fingerprint-width change breaks every verification code any user has already compared out of band),
+and **ARGUED**. **The one item every axis agrees on is ranked in the bottom tier by the axis that
+governs the queue, and its remedy is an observer over one constant.**
+
+⚠ **Six deadline items sit in track A**, so deadline pressure lands on the FIX lanes, not on this
+track; the two are not contending for one slot.
+
+### ⚠ The instrument groups — where the leverage is
+
+**I1** ENG-0172 alone (**O**, a P1 authentication property whose regression condition its own text
+states verbatim and nothing watches) · **I2** ENG-0003 + 0005 + 0008 = **ONE** keyed-comparison scan
+· **I3** ENG-0115, which is **ENG-0034's stated `scope:`** · **I4** ENG-0056 (leads) + 0057 + 0009,
+constant observers · **I5** ENG-0015 + 0100 + 0010 + 0149 on one existing suite-2 harness · **I6**
+ENG-0038 = **ONE** model shared with ENG-0172's model half · **I7** ENG-0004 · **I8** ENG-0170 +
+0071 · **I9** ENG-0006 + 0007 · **I10** ENG-0055, priced per surface, **(c) is redesign, not a test**
+· **I11** ENG-0105.
+
+⚠ **ENG-0105 is in track B, not A, and the reason bounds track A's whole premise:** its own severity
+reads *"P3 (test coverage — a negative-control gap, not a product defect)"* ⇒ **fix and proof are the
+same object**, so removing it would delete assurance work rather than de-duplicate it. **And its test
+cannot be written until the injection seam is built** — four of five capture sites are unreachable —
+so **red-before-green cannot produce a test for an unreachable trigger.**
+⚠ **Track A's boundary is a FLOOR, not a ceiling**: the instrument was severity and status text, and
+this section's own principal finding is that this file is unreliable about the tree. **A source-level
+pass over the other 54 could find more; it could not find fewer.**
+
+### ⚠ Where red-before-green does NOT guarantee the property
+
+**It fails when the RED comes from the absence of an ARTIFACT rather than the absence of the
+BEHAVIOUR.** `ENG-0003`'s test was red because `hs_ct_eq_32` did not compile — not because timing was
+unchecked — so the discipline passed a test that proves **functional equivalence to `==`** and says
+nothing about constant time. ⚠ **The discipline is reliable wherever a fix changes an EXISTING path,
+and unreliable only where it introduces a NEW NAMED ARTIFACT the test references.**
+
+### ⚠ Assertion rigor is not uniform across test families
+
+The **refimpl unit family** (`suite2_*`, `na_0071_*`) asserts whole-state byte identity on reject and
+cross-party key convergence — the strongest evidence in the tree. The **qsc e2e/CLI family**
+(`handshake_mvp.rs`) asserts **process exit status** for intermediate steps. ⚠ **A citation that
+borrows e2e-family confidence for a claim only the unit family's style supports is the same error as
+`ENG-0003`'s** — and this lane committed it once, inside a `PROVEN` citation, before an adversarial
+read caught it. **The shape to watch in every future `PROVEN` verdict.**
+
+### The table
+
+| id | verdict | basis | tier | track | reasoning / `scope:` |
+|---|---|---|---|---|---|
+| **ENG-0012** | PROVEN | S | — | — | ⚠⚠ ITS OWN Proof gap IS STALE. `scka_e2e_pq_pcs_healing_survives_dh_ratchet_over_real_handshake` (handshake_mvp.rs:1868) runs a real two-party session over a real handshake, fires the DH ratchet (m5,m7) AND the PQ reseed (m3,m6) mid-conversation through the real client send path, asserts decrypt at every step, and adds an adversarial PCS arm. Three siblings besides. <br>⚠ **scope:** the vector covers DH+PQ interleaving; it does NOT cover ENG-0035 two consecutive root-advancing DH EPOCHS, which is a MODEL gap, not a vector gap |
+| **ENG-0023** | PROVEN | S | — | — | `na_0071_header_key_derivation.rs::boundary_header_wrong_rk_rejects_and_no_mutation` + `header_keys_depend_on_rk`; the ADVAUTH MAC is live at `suite2/ratchet.rs:1658` with `recv_pq_adv` enforcing flags exactly; qsc adds spoofed-ADV and unauthentic-boundary-header e2e rejection. <br>⚠ **scope:** the NHK boundary header and authenticated ADV receive are pinned; the §8.5.1/§8.5.4 editorial tension is recorded in DOC-G5-008, not closed |
+| **ENG-0024** | PROVEN | S | — | — | ⚠ STRUCTURAL, not guarded: `recv.rk`/`dh.rk` are REMOVED and `session_root()` deleted — `Suite2SessionState` carries exactly ONE root (`state.rs:28-31`: their coherence 'can no longer be a caller obligation'). QS2S v2→v3; `restore_bytes` rejects non-v3. Pinned at `suite2_scka_sender.rs:177` ('there is no second slot'). <br>⚠ **scope:** the duplication cannot recur by construction; pre-v3 stored sessions are UNRECOVERABLE by design (`session_unsupported_version`) |
+| **ENG-0026** | PROVEN | S | — | — | `tests/suite2_combined_boundary.rs` — five tests: round-trip converges on DH-then-PQ composition, healing survives a subsequent DH ratchet, and out-of-order / anti-spoof / replay each reject WITHOUT MUTATION. <br>⚠ **scope:** the refimpl receiver is covered; the qsc-side combined arm rides the same entry points |
+| **ENG-0028** | PROVEN | S | — | — | four ProVerif models present with RESULT lines (`suite2_dhpq_main.pv` 7, q3 3, q4 3, q5 2) plus `run_proverif_checks.py`. <br>⚠ **scope:** ⚠ the 2-boundary unrolling does NOT terminate — that residual is ENG-0035, which is LIVE and states it honestly |
+| **ENG-0030** | PROVEN | S | — | — | `reseed_receiver_send_schedule_must_be_refreshed_from_advanced_root` (`suite2_scka_sender.rs:407`), whose assertion strings name 'the ENG-0030 fix' for both the send header key and the send PQ chain; `suite2_combined_boundary.rs:212` extends it to the combined path. <br>⚠ **scope:** structural — the NA-0625 regression INVERTED into a standing guard |
+| **ENG-0031** | PROVEN | S | — | — | the spec question was ANSWERED in canon — DOC-CAN-003's sentence amended under Operator Decision 4's bounded unfreeze — and the resulting behaviour is pinned by ENG-0023's guards. <br>⚠ **scope:** the canonical sentence is unambiguous; the recommended §8.5 combined-step editorial note is filed, not written |
+| **ENG-0034** | PROVEN | S | — | — | low-order DH tests live at `suite2/ratchet.rs:3486+` with a `LowOrderPubDh` stub driving the reject arms. <br>⚠ **scope:** ⚠ `ratchet.rs:3674` records that 'the guard under test lives in its CALLERS' — centralising it into the primitive is ENG-0115, which is LIVE and open |
+| **ENG-0035** | PROVEN | S | T4 | — | a real machine-checked result: 4 ProVerif models present with RESULT lines (main 7, q3 3, q4 3, q5 2); no query text weakened; the combined boundary has its own terminating model. <br>⚠ **scope:** no single model exercises TWO CONSECUTIVE root-advancing DH epochs (abstraction A6 as reduced) — stated by the entry, carried as data |
+| **ENG-0040** | PROVEN | S | — | — | `NA_0644_ack_client.rs` — eight tests incl. `lost_ack_redelivery_is_deduped_not_reprocessed`, `crash_between_persist_and_ack_redelivery_deduped`, `old_server_ack_404_is_legacy_complete`, `commit_before_write_seam_acked_loudly_no_poison_loop`. <br>⚠ **scope:** the lease contract and its crash/redelivery arms are pinned; the default-flip disposition is ENG-0043, which is LIVE |
+| **ENG-0044** | PROVEN | S | — | — | `NA_0658_vault_protections.rs` — eight tests incl. `armed_wipe_triggers_exactly_at_threshold_with_restored_marker`, `clock_rollback_fails_safe`, `unarmed_default_never_wipes`, `persistence_across_simulated_restart_continues_count_and_delay`. <br>⚠ **scope:** ⚠ the unlock-attempt COUNTING defect ENG-0126 (T1, LIVE) sits on this same surface and is NOT covered by these tests |
+| **ENG-0049** | PROVEN | S | — | — | `NA_0663_relay_tls_trust.rs` — eight tests over three families incl. `family2_explicit_ca_is_additive_and_never_narrows_existing_trust`, `family3_trust_failure_is_distinct_from_refused_dns_and_auth`, `family3_ca_config_unreadable_fails_closed`. <br>⚠ **scope:** ⚠ this family does NOT run on pull requests — ENG-0112, LIVE |
+| **ENG-0086** | PROVEN | S | — | — | names `delivered_receipt_roundtrip` and `ack_for_unknown_msg_id_transitions_nothing`, both present in the tree. <br>⚠ **scope:** default-flip behaviour pinned; no adversarial arm named |
+| **ENG-0087** | PROVEN | S | T4 | — | names four scrape-helper tests all present in the tree, incl. `scraped_marker_value_refuses_the_redaction_sentinel`. <br>⚠ **scope:** the ~60-scrape annex the entry still owes is NOT covered — the entry is open for that reason |
+| **ENG-0099** | PROVEN | S | — | — | names `a_wrapped_ack_is_applied_acked_and_provokes_nothing_further`, present in the tree; closure records the framing fix. <br>⚠ **scope:** the typed-payload dispatch is pinned; the wider envelope-type space is not enumerated |
+| **ENG-0003** | ARGUED | S | — | **B·I2·O** | ⚠ the archetype, CONFIRMED by source: `hs_ct_eq_32` is used at both MAC sites and its co-located test (handshake/mod.rs:2361-2397) asserts BIT-FOR-BIT EQUIVALENCE TO `==`. A tree-wide search for any test named for constant_time/const_time/timing returns ZERO. The entry's own Proof gap still stands. |
+| **ENG-0004** | ARGUED | S | — | **B·I7·T** | ⚠ NOT-A-DEFECT by a CODE READ of two cfg-gated definitions. A crash-window test family exists (NA_0639_wf0022) but its own header excludes the relevant mode: 'power-loss / page-cache / fsync-lying semantics are out'. The named gap stands. |
+| **ENG-0005** | ARGUED | T | — | **B·I2·O** | a SWEEP VERDICT — 'found NO keyed-secret/MAC comparison outside the seam … posture sound'. Reasoned enumeration; nothing observes a newly-added secret comparison. |
+| **ENG-0006** | ARGUED | T | — | **B·I9·M** | an ANALYSIS VERDICT — 'no remotely-observable failure-cause oracle'. No check named, no observer. |
+| **ENG-0007** | ARGUED | T | — | **B·I9·M** | a FEASIBILITY STUDY recorded in DOC-G5-006; the claim is argued in a document. |
+| **ENG-0010** | ARGUED | T | — | **B·I5·T** | a design description (padding ladder); 'the observer now sees only a bucketed object size' is asserted, not checked. |
+| **ENG-0038** | ARGUED | T | — | **B·I6·M** | ⚠ its own residue ENG-0172 records the verdict as REASONED, NOT MODEL-VERIFIED, and the entry fires I3 alone. |
+| **ENG-0055** | ARGUED | S | T1 | **B·I10·T/redesign** | the census claim reproduces at main: `zeroize` appears in EXACTLY ONE file under the refimpl's src/ (`crypto/traits.rs`). No test asserts key material reads as zero after drop. |
+| **ENG-0056** | ARGUED | T | T4 | **B·I4·O**·+D | the 128-bit width is 'assessed DEFENSIBLE on the merits' in prose; the reasoning is the finding's own subject and nothing checks the width. |
+| **ENG-0057** | ARGUED | T | T4 | **B·I4·O** | two AEAD primitives in the trust base 'with no recorded rationale' — the choice is argued nowhere and checked nowhere. |
+| **ENG-0100** | ARGUED | T | T4 | **B·I5·T** | the [ADV,reseed] receiver property is 'pinned against OUR sender, not against an arbitrary conformant one' — the entry states the limit of its own evidence. |
+| **ENG-0149** | ARGUED | T | T4 | **B·I5·T** | an instrument-validity argument about what a trailing frame's disposition proves; no check exists for the distinction it draws. |
+| **ENG-0172** | ARGUED | T | T1 | **B·I1·O** | ⚠ SELF-CLASSIFYING: 'rests on a REASONED, NOT MODEL-VERIFIED argument, and the regression guard it names is observed by nothing'. |
+| **ENG-0008** | ASSUMED | S | T4 | **B·I2·O** | constant-time posture on a further surface; the tree contains NO test named for constant-time behaviour anywhere (same search as ENG-0003). |
+| **ENG-0009** | ASSUMED | T | T4 | **B·I4·O** | a client/transport-surface property the entry names as unguarded; ENG-0071 says so in its own title ('LIVE proof but no automated regression test'). |
+| **ENG-0015** | ASSUMED | S | T4 | **B·I5·T** | constant-time posture on a further surface; the tree contains NO test named for constant-time behaviour anywhere (same search as ENG-0003). |
+| **ENG-0016** | ASSUMED | T | T4 | A | a crypto-core/wire property named by the entry with no test, model or observer recorded and none named in the entry. |
+| **ENG-0018** | ASSUMED | T | T1 | A | the entry states its only test 'passes vacuously' — an instrument that cannot fail is not evidence. |
+| **ENG-0020** | ASSUMED | T | T4 | A | a crypto-core/wire property named by the entry with no test, model or observer recorded and none named in the entry. |
+| **ENG-0025** | ASSUMED | T | T4 | A | a client/transport-surface property the entry names as unguarded; ENG-0071 says so in its own title ('LIVE proof but no automated regression test'). |
+| **ENG-0042** | ASSUMED | T | T1 | A | a receive-path correctness/ordering property; NA-0708 filed these as analysis-derived FILING ONLY, and none names a pinning test. |
+| **ENG-0051** | ASSUMED | T | T4 | A | a client/transport-surface property the entry names as unguarded; ENG-0071 says so in its own title ('LIVE proof but no automated regression test'). |
+| **ENG-0053** | ASSUMED | T | T4 | A·+D | a persistence/format/latency property whose remedy is a migration; nothing observes the current shape. |
+| **ENG-0058** | ASSUMED | T | T2 | A | a quarantine/dedup/seen-store durability or flood-resistance property; no test, and ENG-0105 records that four of five capture sites cannot be exercised end-to-end at all. |
+| **ENG-0071** | ASSUMED | T | T4 | **B·I8·T** | a client/transport-surface property the entry names as unguarded; ENG-0071 says so in its own title ('LIVE proof but no automated regression test'). |
+| **ENG-0079** | ASSUMED | T | T3 | A | a client/transport-surface property the entry names as unguarded; ENG-0071 says so in its own title ('LIVE proof but no automated regression test'). |
+| **ENG-0080** | ASSUMED | T | T4 | A·+D | a persistence/format/latency property whose remedy is a migration; nothing observes the current shape. |
+| **ENG-0083** | ASSUMED | T | T2 | A·+D | a metadata/persistence/redaction property with no guard; ENG-0171 records its 14 sites are redacted only 'by accident of value shape'. |
+| **ENG-0096** | ASSUMED | T | T2 | A·+D | a metadata/persistence/redaction property with no guard; ENG-0171 records its 14 sites are redacted only 'by accident of value shape'. |
+| **ENG-0098** | ASSUMED | T | T2 | A | a metadata/persistence/redaction property with no guard; ENG-0171 records its 14 sites are redacted only 'by accident of value shape'. |
+| **ENG-0101** | ASSUMED | T | T4 | A·+D | a persistence/format/latency property whose remedy is a migration; nothing observes the current shape. |
+| **ENG-0105** | ASSUMED | T | T4 | **B·I11·T** | a quarantine/dedup/seen-store durability or flood-resistance property; no test, and ENG-0105 records that four of five capture sites cannot be exercised end-to-end at all. |
+| **ENG-0106** | ASSUMED | T | T1 | A | a vault posture/locking property; no test named, and ENG-0106's own reentrancy probe is recorded as still owed. |
+| **ENG-0113** | ASSUMED | T | T4 | A | a crypto-core/wire property named by the entry with no test, model or observer recorded and none named in the entry. |
+| **ENG-0114** | ASSUMED | T | T4 | A | a crypto-core/wire property named by the entry with no test, model or observer recorded and none named in the entry. |
+| **ENG-0115** | ASSUMED | T | T4 | **B·I3·O** | a crypto-core/wire property named by the entry with no test, model or observer recorded and none named in the entry. |
+| **ENG-0116** | ASSUMED | T | T1 | A·+D | a vault posture/locking property; no test named, and ENG-0106's own reentrancy probe is recorded as still owed. |
+| **ENG-0117** | ASSUMED | T | T1 | A | a receive-path correctness/ordering property; NA-0708 filed these as analysis-derived FILING ONLY, and none names a pinning test. |
+| **ENG-0122** | ASSUMED | T | T2 | A | a metadata/persistence/redaction property with no guard; ENG-0171 records its 14 sites are redacted only 'by accident of value shape'. |
+| **ENG-0126** | ASSUMED | T | T1 | A | a vault posture/locking property; no test named, and ENG-0106's own reentrancy probe is recorded as still owed. |
+| **ENG-0127** | ASSUMED | T | T4 | A | a vault posture/locking property; no test named, and ENG-0106's own reentrancy probe is recorded as still owed. |
+| **ENG-0134** | ASSUMED | T | T1 | A | ⚠ the defect's EXISTENCE was measured by NA-0706/NA-0708 probes, but no STANDING guard exists; a one-time lane measurement is evidence about a past tree, not a property. |
+| **ENG-0136** | ASSUMED | T | T2 | A | an identity/status-truthfulness predicate; ENG-0141 alone is flagged MEASURED, and none names a standing guard. |
+| **ENG-0137** | ASSUMED | T | T2 | A | an identity/status-truthfulness predicate; ENG-0141 alone is flagged MEASURED, and none names a standing guard. |
+| **ENG-0138** | ASSUMED | T | T2 | A | an identity/status-truthfulness predicate; ENG-0141 alone is flagged MEASURED, and none names a standing guard. |
+| **ENG-0141** | ASSUMED | T | T2 | A | an identity/status-truthfulness predicate; ENG-0141 alone is flagged MEASURED, and none names a standing guard. |
+| **ENG-0142** | ASSUMED | T | T1 | A | ⚠ the defect's EXISTENCE was measured by NA-0706/NA-0708 probes, but no STANDING guard exists; a one-time lane measurement is evidence about a past tree, not a property. |
+| **ENG-0143** | ASSUMED | T | T2 | A | an identity/status-truthfulness predicate; ENG-0141 alone is flagged MEASURED, and none names a standing guard. |
+| **ENG-0144** | ASSUMED | T | T3 | A | ⚠ the defect's EXISTENCE was measured by NA-0706/NA-0708 probes, but no STANDING guard exists; a one-time lane measurement is evidence about a past tree, not a property. |
+| **ENG-0145** | ASSUMED | T | T2 | A | ⚠ the defect's EXISTENCE was measured by NA-0706/NA-0708 probes, but no STANDING guard exists; a one-time lane measurement is evidence about a past tree, not a property. |
+| **ENG-0146** | ASSUMED | T | T3 | A | a client/transport-surface property the entry names as unguarded; ENG-0071 says so in its own title ('LIVE proof but no automated regression test'). |
+| **ENG-0147** | ASSUMED | T | T1 | A | a receive-path correctness/ordering property; NA-0708 filed these as analysis-derived FILING ONLY, and none names a pinning test. |
+| **ENG-0148** | ASSUMED | T | T2 | A | a receive-path correctness/ordering property; NA-0708 filed these as analysis-derived FILING ONLY, and none names a pinning test. |
+| **ENG-0150** | ASSUMED | T | T2 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0151** | ASSUMED | T | T2 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0152** | ASSUMED | T | T2 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0153** | ASSUMED | T | T2 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0154** | ASSUMED | T | T2 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0155** | ASSUMED | T | T2 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0156** | ASSUMED | T | T1 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0157** | ASSUMED | T | T2 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0158** | ASSUMED | T | T2 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0159** | ASSUMED | T | T2 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0160** | ASSUMED | T | T2 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0161** | ASSUMED | T | T1 | A | a quarantine/dedup/seen-store durability or flood-resistance property; no test, and ENG-0105 records that four of five capture sites cannot be exercised end-to-end at all. |
+| **ENG-0162** | ASSUMED | T | T1 | A | a quarantine/dedup/seen-store durability or flood-resistance property; no test, and ENG-0105 records that four of five capture sites cannot be exercised end-to-end at all. |
+| **ENG-0163** | ASSUMED | T | T1 | A | a receive-path correctness/ordering property; NA-0708 filed these as analysis-derived FILING ONLY, and none names a pinning test. |
+| **ENG-0164** | ASSUMED | T | T3 | A | the reject-vocabulary family: a transient-vs-permanent classification property with, per ENG-0145's sibling finding, NO test asserting the marker at all. |
+| **ENG-0165** | ASSUMED | T | T1 | A | a quarantine/dedup/seen-store durability or flood-resistance property; no test, and ENG-0105 records that four of five capture sites cannot be exercised end-to-end at all. |
+| **ENG-0166** | ASSUMED | T | T2 | A | a receive-path correctness/ordering property; NA-0708 filed these as analysis-derived FILING ONLY, and none names a pinning test. |
+| **ENG-0167** | ASSUMED | T | T1 | A | a receive-path correctness/ordering property; NA-0708 filed these as analysis-derived FILING ONLY, and none names a pinning test. |
+| **ENG-0168** | ASSUMED | T | T2 | A | an identity/status-truthfulness predicate; ENG-0141 alone is flagged MEASURED, and none names a standing guard. |
+| **ENG-0170** | ASSUMED | S | — | **B·I8·T** | ⚠ its OWN evidence is exemplary (`caddy adapt` shows reverse_proxy unreachable) but that is a ONE-TIME adapt, not a standing check — and `caddy validate` returns Valid on the broken file, so the gate that exists cannot see it. |
+| **ENG-0171** | ASSUMED | T | T1 | A | a metadata/persistence/redaction property with no guard; ENG-0171 records its 14 sites are redacted only 'by accident of value shape'. |
+| **ENG-0001** | UNDECIDABLE | S | — | — | ⚠⚠ ITS NON-CORRESPONDENCE IS REFUTED BY SOURCE: `handshake_accepts_verification_code_pin_without_peer_mismatch` (identity_binding.rs:420) and `verification_code_pin_preserves_handshake_contract` DO pin that the operator-compared code is the one the handshake authenticates. UNDECIDABLE only on the residual clause — whether identity-show and handshake-verify fingerprints are asserted CONSISTENT — which needs a read of both tests' assertions, not their names. |
+| **ENG-0017** | UNDECIDABLE | T | T4 | — | 'pre-1.0 crates and ml-dsa version skew' names a currency risk, not a property; deciding it needs a read of the interop actor this tree does not contain. |
+| **ENG-0019** | UNDECIDABLE | T | T4 | — | ⚠ refimpl/spec-alignment entries closed with `- **STATUS: DONE**` and a description of what was built. Their properties are real, but NO closure names a check and this lane did not read the refimpl to decide them. C2 by construction — and R240 §1.2 binds: 'no check recorded' is NOT 'no check exists'. |
+| **ENG-0076** | UNDECIDABLE | S | — | — | ⚠ SETTLED AS UNDECIDABLE BY SOURCE, not left unread: the property is a **qsl-desktop** one (D-0018 — `settings.json`'s existence is the onboarding-complete S2 signal). **qsl-desktop is a SEPARATE REPO and is not in this tree** (`src-tauri` absent). Deciding it needs the desktop checkout. |
+| **ENG-0032** | NOT-APPLICABLE | T | T4 | —·+D | CI, gates, tooling ergonomics — no user-facing security or correctness property. |
+| **ENG-0033** | NOT-APPLICABLE | T | T4 | — | CI, gates, tooling ergonomics — no user-facing security or correctness property. |
+| **ENG-0043** | NOT-APPLICABLE | T | T4 | — | demo scripts, CI hygiene, log-capture synchronisation and desktop residue — instrument and hygiene work, not a shipped security property. |
+| **ENG-0045** | NOT-APPLICABLE | T | T3 | — | demo scripts, CI hygiene, log-capture synchronisation and desktop residue — instrument and hygiene work, not a shipped security property. |
+| **ENG-0047** | NOT-APPLICABLE | T | T4 | — | demo scripts, CI hygiene, log-capture synchronisation and desktop residue — instrument and hygiene work, not a shipped security property. |
+| **ENG-0048** | NOT-APPLICABLE | T | — | — | demo scripts, CI hygiene, log-capture synchronisation and desktop residue — instrument and hygiene work, not a shipped security property. |
+| **ENG-0050** | NOT-APPLICABLE | T | T4 | — | CI, gates, tooling ergonomics — no user-facing security or correctness property. |
+| **ENG-0052** | NOT-APPLICABLE | T | T4 | — | CI, gates, tooling ergonomics — no user-facing security or correctness property. |
+| **ENG-0054** | NOT-APPLICABLE | T | T4 | — | demo scripts, CI hygiene, log-capture synchronisation and desktop residue — instrument and hygiene work, not a shipped security property. |
+| **ENG-0059** | NOT-APPLICABLE | T | T4 | — | CI, gates, tooling ergonomics — no user-facing security or correctness property. |
+| **ENG-0060** | NOT-APPLICABLE | T | UNTIERED | — | desktop/GUI ergonomics, dead surface, or harness readability; ENG-0060 states 'NO runtime, protocol, or security impact'. |
+| **ENG-0062** | NOT-APPLICABLE | T | T4 | — | desktop/GUI ergonomics, dead surface, or harness readability; ENG-0060 states 'NO runtime, protocol, or security impact'. |
+| **ENG-0064** | NOT-APPLICABLE | T | — | — | seat tooling, test-harness scoping and cross-repo naming — ⚠ ENG-0064/0090 carry a §2.3 non-correspondence, which is a RECORD defect and not an assurance one. |
+| **ENG-0067** | NOT-APPLICABLE | T | T4 | — | CI, gates, tooling ergonomics — no user-facing security or correctness property. |
+| **ENG-0068** | NOT-APPLICABLE | T | T4 | — | governance, templates, runbooks and record-keeping. |
+| **ENG-0069** | NOT-APPLICABLE | T | T4 | — | governance, templates, runbooks and record-keeping. |
+| **ENG-0072** | NOT-APPLICABLE | T | — | — | seat tooling, test-harness scoping and cross-repo naming — ⚠ ENG-0064/0090 carry a §2.3 non-correspondence, which is a RECORD defect and not an assurance one. |
+| **ENG-0073** | NOT-APPLICABLE | T | — | — | desktop/GUI ergonomics, dead surface, or harness readability; ENG-0060 states 'NO runtime, protocol, or security impact'. |
+| **ENG-0077** | NOT-APPLICABLE | T | T4 | — | seat tooling, test-harness scoping and cross-repo naming — ⚠ ENG-0064/0090 carry a §2.3 non-correspondence, which is a RECORD defect and not an assurance one. |
+| **ENG-0078** | NOT-APPLICABLE | T | T4 | — | desktop/GUI ergonomics, dead surface, or harness readability; ENG-0060 states 'NO runtime, protocol, or security impact'. |
+| **ENG-0081** | NOT-APPLICABLE | T | T4 | — | governance, templates, runbooks and record-keeping. |
+| **ENG-0090** | NOT-APPLICABLE | T | — | — | seat tooling, test-harness scoping and cross-repo naming — ⚠ ENG-0064/0090 carry a §2.3 non-correspondence, which is a RECORD defect and not an assurance one. |
+| **ENG-0091** | NOT-APPLICABLE | T | — | — | demo scripts, CI hygiene, log-capture synchronisation and desktop residue — instrument and hygiene work, not a shipped security property. |
+| **ENG-0093** | NOT-APPLICABLE | T | T4 | — | CI, gates, tooling ergonomics — no user-facing security or correctness property. |
+| **ENG-0102** | NOT-APPLICABLE | T | — | — | demo scripts, CI hygiene, log-capture synchronisation and desktop residue — instrument and hygiene work, not a shipped security property. |
+| **ENG-0103** | NOT-APPLICABLE | T | T4 | — | governance, templates, runbooks and record-keeping. |
+| **ENG-0112** | NOT-APPLICABLE | T | T4 | —·+D | CI, gates, tooling ergonomics — no user-facing security or correctness property. |
+| **ENG-0119** | NOT-APPLICABLE | T | T3 | — | desktop/GUI ergonomics, dead surface, or harness readability; ENG-0060 states 'NO runtime, protocol, or security impact'. |
+| **ENG-0120** | NOT-APPLICABLE | T | T4 | — | CI, gates, tooling ergonomics — no user-facing security or correctness property. |
+| **ENG-0121** | NOT-APPLICABLE | T | T4 | — | desktop/GUI ergonomics, dead surface, or harness readability; ENG-0060 states 'NO runtime, protocol, or security impact'. |
+| **ENG-0129** | NOT-APPLICABLE | T | T4 | — | desktop/GUI ergonomics, dead surface, or harness readability; ENG-0060 states 'NO runtime, protocol, or security impact'. |
+| **ENG-0130** | NOT-APPLICABLE | T | T4 | — | desktop/GUI ergonomics, dead surface, or harness readability; ENG-0060 states 'NO runtime, protocol, or security impact'. |
+| **ENG-0132** | NOT-APPLICABLE | T | T4 | — | governance, templates, runbooks and record-keeping. |
+| **ENG-0135** | NOT-APPLICABLE | T | T4 | — | governance, templates, runbooks and record-keeping. |
+| **ENG-0139** | NOT-APPLICABLE | T | T3 | — | desktop/GUI ergonomics, dead surface, or harness readability; ENG-0060 states 'NO runtime, protocol, or security impact'. |
+| **ENG-0140** | NOT-APPLICABLE | T | T4 | — | governance, templates, runbooks and record-keeping. |
+
 ## Entry ID convention
 
 `ENG-####` for engineering findings, `WF-####` for workflow/process items;
@@ -964,6 +1210,9 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
 - Recommended directive shape: apps-only LITE lane (no refimpl/qsc change; workspace build +
   clippy are the gates). last-updated 2026-07-09
 
+- ⚠ **2026-08-11, NA-0713 (D-1350) — RESTATED, NOT CLOSED. ARM (a) CLOSED BY CONSTRUCTION:** `apps/qsl-tui` was removed from the workspace and deleted, so the `apps/**` wire-level boundary leak this entry was filed for no longer exists — closed by the *"or retires the demo outright"* half of this entry's own recommendation, not the re-point half.
+- ⚠⚠ **ARM (b) REMAINS OPEN AND WAS MEASURED, NOT ASSUMED:** `cargo clippy -p qshield-cli --all-targets --locked -- -D warnings` → **exit 101**, `needless_borrow` at `apps/qshield-cli/tests/na_0318_qshield_ack_commit.rs:150`. **THIS ENTRY THEREFORE STAYS OPEN on arm (b).**
+- ⚠ **AND THIS ENTRY'S OWN RECOMMENDED SHAPE WAS CONTRADICTED, DELIBERATELY:** it says *"apps-only LITE lane (no refimpl/qsc change; workspace build + clippy are the gates)"*. NA-0713 **had** to edit `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`, because **ENG-0034's anti-regression scan pins `.dh(` site counts INSIDE the very crate this entry proposes deleting** and fails on drift in either direction. ⇒ **two ledger entries disagreed about who pays for the removal.** NA-0713 paid, and records it here rather than leaving the contradiction for the next reader. See **ENG-0179** for the demo-surface residue the removal left.
 ### ENG-0033 — public-safety PR gate: broken "unless" fallback (403), cancelled-vs-failed conflation, cancellable main runs
 - Severity: P3 (CI availability/process; no security delta — the gate fails CLOSED) — filed
   2026-07-09, operator-directed, from the NA-0626 Phase-5 finding (D-1248 records the recovery)
@@ -1093,6 +1342,9 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   check on that arm. NOT done in NA-0627: D564 is an ANALYSIS lane ("the FIX, if warranted, stays
   out of scope"). last-updated 2026-07-09
 
+- ⚠ **2026-08-11, NA-0713 (D-1350) — ONE ALLOWLISTED SITE RETIRED WITH THE FILE THAT HELD IT.** The `AllowedUnguardedDh` entry for `apps/qsl-tui/src/demo.rs` (`init_states_for_channel`) and its `PINNED_DH_SITE_COUNTS` row were removed when the crate was deleted from the workspace (−6 lines, 292 bytes). ⚠ **The pin's own `reason` string already read *"retirement tracked by ENG-0032"* — the pin anticipated this.**
+- ⚠⚠ **THE SCAN WAS WATCHED FAILING ON EXACTLY THIS DELETION BEFORE IT WAS TRUSTED:** un-de-pinned, it fails at `ratchet.rs:3887` with *"the set of `.dh(` call sites changed"*, **exit 101**; de-pinned, it passes. **Its red capability was re-proven on a change it was not written for** — and that, not anything NA-0713 authored, is what makes that lane's removal trustworthy. **No guard weakened: every remaining site and count is byte-untouched.**
+- ⚠ See **WF-0065** — this scan's own in-source KNOWN LIMITATION comment is STALE (it denies the PR coverage `ci.yml:369` gives it).
 ### ENG-0035 — ProVerif does not terminate on the 2-boundary unrolling of the Suite-2 composition — **OPEN; filed NA-0627 (PR #1533, merge `a43c0af2`)**
 - Severity: P3 (assurance-coverage limit; no security delta — the reduced-scope model proves the
   same queries, and nothing was weakened) — filed 2026-07-09 from NA-0627 (ENG-0028), per D564
@@ -1245,6 +1497,7 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   to cite rather than re-derive.
 - Resolution: CLOSED 2026-07-29 by NA-0686 (D-1325) — as THREE one-word edits, not the five filed; the `docs/public` remainder measured ZERO, not the estimated ~10. (This `Resolution:` line was applied 2026-07-29 by **NA-0687 / D-1326** when the convention was adopted; the closure itself is NA-0686's and its annotation above is unchanged.)
 
+- ⚠ **2026-08-11, NA-0713 (D-1350): `apps/qsl-tui/README.md` — one of the THREE surfaces this entry's closure records as edited — was DELETED with its crate.** ⚠ **This is NOT a regression of this entry and must not be read as one:** the naming correction it recorded was applied and is preserved in git history; the file that carried it is simply gone. Stated so a later reader does not re-open a closed entry over a deletion. See **ENG-0179** (the rest of that surface, filed).
 ### ENG-0091 — qsl-server log-capture assertions read the buffer without synchronising on the write, and they now flake ON THE RUNNER THAT DECIDES MERGES — **NEW; filed 2026-07-29 by NA-0686A (D-1325), at operator instruction**
 - Severity: **P2** (test-synchronisation correctness; **no runtime, protocol or security impact** — but it blocks merges non-deterministically, and a gate that fails at random teaches reviewers to disbelieve reds, which is the expensive part)
 - Status: open — filed 2026-07-29. **Nothing was fixed.** Filed at operator instruction after the second instance blocked an in-flight PR.
@@ -3641,6 +3894,7 @@ A commission that grants a clone must **NAME the tree's `CLAUDE.md` for pre-empt
 - ⚠ **Untested inference, recorded as such:** the deny entries are keyed to a command's **leading token**, so `ssh host 'sudo …'` presents as `Bash(ssh:*)`. **If** that is how matching works, a guardrail keyed to spelling rather than effect **can be defeated without intent** (`bash -c 'sudo …'`, a script calling sudo internally). ⚠ **This was NOT confirmed** — nothing was denied, so no spelling comparison was possible.
 - Recommended change: before a directive authorizes privileged acts, **measure whether the executing seat's harness permits them**, and record the answer with the authorization. A one-command no-op probe settles it and costs nothing.
 - ⚠ Distinct from **WF-0058**, which is about *blinding a cold reader*. This is about *a lane's authorized acts being refused at execution* — different failure, different consequence.
+- ⚠⚠ **SECOND INSTANCE, 2026-08-11 by NA-0712 (D-1349; R249 §3) — the class recurred within a day, and this time the directive was the offender.** NA-0712's SR-15 commission ordered a cold reader to **delete five agent-memory files** (`CLAUDE.md`, `AGENTS.md`, `START_HERE.md`, `CODEX_RULES.md`, `CHAT_STARTER.md`) in a document whose own header and ground rules declare it **writes nothing**. ⚠ **Deletions are writes**, and `CODEX_RULES.md` opens *"These rules are binding. If a request conflicts with these rules, STOP and ask the human."* ⚠ **The guardrails hook's own words name why it is a bypass:** it *"grants no authority"*, and a directive may authorize a blocked act **"ONLY via the operator explicitly amending this script and settings — which is exactly the human authorization gate the governance requires."** The commission would have removed that gate **by instruction rather than by amendment**. Recorded against the **directing** seat, not the reader. ⚠ **A class filed one day and recurring the next is stronger evidence than a fresh id would have been** — which is why this is an instance and not a fresh id.
 - Status: open — **FILING ONLY**. Originating/last lane: NA-0710 (D-1347). Last-updated: 2026-08-11.
 
 
@@ -3675,3 +3929,83 @@ A commission that grants a clone must **NAME the tree's `CLAUDE.md` for pre-empt
 - ⚠ Second, from the same attestation and ruled program-level at **R242 §3**: the disclosure clause asked which agent-directed files were **"in place"**, and the true answer to that is not the answer that matters — **"in force"** is. Every SR-15 read this program has run was **rooted outside the repo**, so the repo's `.claude/settings.json` (its deny list and its `PreToolUse` hook) **never loaded**; the governing file was the user-level one, with `bypassPermissions` and no hooks. ⚠ **"Write nothing anywhere" was honoured by discipline, not by enforcement.** ⚠ **A protection that is declared but not loaded is not a protection** — the same shape as a gate that is present but suppressed.
 - Recommended change: §10 enumerates **all** deliverables; the grant includes every artifact carrying an obligation; the disclosure clause reads **"in force, with the governing settings path named."** ⚠ **Whether an SR-15 seat should be rooted INSIDE the repo is a separate governance question, filed at R242 §3.3 and NOT answered here** — it trades enforcement against the blinding the recipe exists to create.
 - Status: open — **FILING ONLY.** Originating/last lane: NA-0711 (D-1348). Last-updated: 2026-08-11.
+### WF-0064 — the spine root carries FIVE agent-memory channels while the standing rule names two, and the repo's own guardrail binds only on one host — **NEW; filed 2026-08-11 by NA-0712 (D-1349; R245 §3)**
+
+- Problem: `WF-0051` as amended names `CLAUDE.md` and `AGENTS.md`. ⚠ **Measured at the spine root at `731b02a8`, and re-verified at the moment the commission was issued, there are FIVE**: `AGENTS.md`, `CHAT_STARTER.md` (a deprecated stub), `CLAUDE.md`, ⚠ **`START_HERE.md`** (*"Operational Constitution"*) and ⚠⚠ **`CODEX_RULES.md`**, which opens *"These rules are binding."* ⇒ **every prior cold read against this spine was seated with at least three undisclosed channels in place.** This is `WF-0058`'s named unknown, measured at this root.
+- ⚠ **NOTHING IN ANY PRIOR READ IS INVALIDATED.** Discipline held every time and each reader disclosed what it knew to disclose. **The recipe was wrong, not the readers.**
+- ⚠⚠ **The sharper half is the guardrail, not the memory.** `<repo>/.claude/settings.json` declares **17** deny rules and a `PreToolUse` hook, but the hook's script path — `/srv/qbuild/tools/claude/qsl_guardrails_hook.sh` — is **absolute and outside the repository**, so the guardrail travels with one host rather than with the repo. ⚠ **A declared protection is not an enforced one, and the distinction is invisible to anyone who reads the config instead of testing it.** ⚠ **Third instance of "declared but not in force"** after **ENG-0170** (`caddy validate` returns *Valid* on a config that routes nothing) and **ENG-0112** (a test family that exists and passes but is not scheduled on PRs).
+- ⚠⚠ **THE SEATING EXPERIMENT IS UNRUN, NOT FAILED — and the question is now measured-and-unanswerable.** NA-0712 commissioned a reader seated INSIDE the clone to test whether the repo guardrails bind. **The commissioned seat was never provisioned**, so the fix under test was never applied. And `bypassPermissions` is set **machine-wide**, so ⚠ **no seating arrangement any lane can make will measure this** — it requires an operator change to machine configuration and is **outside any lane's reach**. Recorded so it is not later read as a failed experiment.
+- ⚠ The binding failure was **not** the one the commission anticipated: on this host the hook's absolute path exists, so it was never the problem — **the config declaring the hook is what never loaded.**
+- Recommended change: a commission granting a tree **ENUMERATES the tree at drafting** rather than naming files; **any attestation about a protection reports whether it FIRED, never whether it is configured**; and consider making the hook path repo-relative so the guardrail travels with the repository. ⚠ The `bypassPermissions` half is an **operator action**, not a lane's.
+- Cross-reference: **WF-0051** (amended), **WF-0058** (the named unknown this measures), **WF-0059** (the authority collision, whose second instance this lane also supplied), **ENG-0170**, **ENG-0112**.
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0712 (D-1349). Last-updated: 2026-08-11.
+
+### ENG-0179 — the retired `apps/qsl-tui` demo surface: six artifacts still describe and drive a crate this lane deleted — **NEW; filed 2026-08-11 by NA-0713 (D-1350; R250 FLAG-1 as ruled, confirmed R252 §4.1)**
+
+- Severity: P3 (documentation/tooling coherence; no runtime, correctness or security impact — nothing in CI builds, runs or reads any of it)
+- Problem: NA-0713 removed `apps/qsl-tui` from the workspace and deleted the crate, because it was the only path to RUSTSEC-2026-0253 and it was **not** the TUI NA-0645 retired. ⚠ **The crate is gone; the surface that describes and drives it is not.** Six artifacts remain, and they form ONE coherent "public demo" surface whose retirement is a larger lane than the advisory unblock was:
+  1. `scripts/demo/demo_two_party_local.sh` — `cargo run -p qsl-tui` ×2
+  2. `scripts/demo/demo_two_party_relay.sh` — `cargo run -p qsl-tui` ×2
+  3. `scripts/demo/demo_two_party_relay_proxy_tor.sh` — `cargo run -p qsl-tui` ×2
+  4. `scripts/demo/demo_public_metadata_visibility.sh` — `cargo run -p qsl-tui` ×2
+  5. `docs/dev/DOC-DEV-004_Public_Demo_Runbook_v0.1.0_DRAFT.md` — the runbook those four scripts implement
+  6. `docs/demo/DEMO-PUBLIC-001_Metadata_Visibility.md` — the demo the fourth script produces
+- ⚠ **Measured, and it is why the residue was left rather than swept:** **no CI job invokes any of the four scripts.** `demo-packaging.yml` runs only `scripts/demo/qsc_demo_local.sh`, which is the **qsc** demo and is untouched; `bash -n` is applied to that script alone. ⇒ **the four scripts fail only when a human runs them, and no gate can catch it.**
+- ⚠ **Also stale rather than broken:** `scripts/ci/metadata_runtime_identifier_padding_harness_plan.sh` requires the fixture to list `apps/qsl-tui/src/` as a forbidden prefix and to carry a candidate runtime surface named `"qsl-tui padded demo metadata"`. It validates **strings inside a fixture, not paths in the tree**, so it keeps passing while asserting a surface that no longer exists. **Not CI-invoked either.** Left deliberately; naming it here is the point.
+- ⚠ **THE REASON THIS IS ONE ENTRY AND NOT FOUR:** R250 FLAG-1 ruled leave-and-file precisely because *"deleting the scripts while orphaning their runbook would be a half-retirement, which is the shape that produced this lane in the first place."* **A fragment of a surface is what NA-0645 left behind, and this lane exists because of it.** The successor must inherit all six.
+- Recommended change: ONE demo-surface retirement lane that decides the whole surface at once — either re-point the four scripts at `qsc`/`qshield-cli` equivalents and truth up both documents, or retire all six together and supersede (never destroy) the two docs per NA-0645's own doc-archival precedent. ⚠ **Either way the fixture strings go in the same lane**, or the next reader inherits a fragment again.
+- Proof gap: none of the six has any guard. ⚠ A `cargo run -p <pkg>` against a non-member is caught by no scan in this tree; the class was found by reading, not by a gate.
+- Cross-reference: NA-0645's testplan (which named `apps/qsl-tui` out of scope and filed it as *"a hygiene candidate for a later lane"*); **ENG-0032** (restated by this lane); D-1350.
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0713 (D-1350). Last-updated: 2026-08-11.
+
+### WF-0065 — a gate's own "KNOWN LIMITATION" comment can outlive the limitation, and then it UNDERSTATES its own coverage — **NEW; filed 2026-08-11 by NA-0713 (D-1350; STOP 001 Δ9, ruled R250 §6)**
+
+- Type: workflow; Status: open — filed 2026-08-11 by NA-0713
+- Problem: the ENG-0034 non-contributory-DH anti-regression scan carries this in its own source at `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs`:
+  > KNOWN LIMITATION, stated rather than papered over: no CI job runs `cargo test -p quantumshield_refimpl`, so this scan guards the lane gate and local runs, NOT pull requests.
+  ⚠ **`.github/workflows/ci.yml:369`, in job `ci-4a`, runs exactly that** — and its adjacent comment says why: *"ENG-0019 (NA-0630): run the refimpl crate tests so the NA-0628 non-contributory-DH anti-regression scan and the DH-guard tests are enforced on every code PR."* ⇒ **the limitation was lifted by NA-0630 and the comment was never retired.**
+- ⚠ **The comment does not overstate the gate — it UNDERSTATES it**, which is the unusual and dangerous direction: a reader deciding how much to trust the scan is told it does not cover PRs, and so a lane may build a redundant instrument, decline to rely on the real one, or treat its red as advisory.
+- Measured by this lane, and it mattered: NA-0713 deletes a file the scan pins. Un-de-pinned, the scan **FAILS at `ratchet.rs:3887`, exit 101** (*"the set of `.dh(` call sites changed"*), and because `ci-4a` runs it, **that red is CI-enforced on every code PR — not merely local.** Trusting the stale comment would have mis-scoped this lane's own gate analysis.
+- ⚠⚠ **THE CLASS, AND IT IS THE SECOND SIGHTING IN TWO DAYS:** NA-0712 measured that ledger `Proof gap:` lines are **WRITE-ONCE** — nothing retires one when a later lane closes the gap — and that `Status:` is write-once too. **This is the same shape in a third field, in SOURCE rather than in the ledger: a self-assessment nobody retires when the assessment stops being true.** Two lanes, three fields, one mechanism.
+- Recommended change: when a lane lifts a limitation, **retiring the limitation's own statement is part of lifting it** — and where that statement lives in source beside the thing it describes, it is a one-line edit in the same commit. ⚠ The general remedy is a **sweep**, not more diligence: a limitation/gap/status line asserting a negative about the tree is a claim, and claims in this program are measured. NA-0712's write-once finding and this one want the same sweep.
+- ⚠ **NOT FIXED IN THIS LANE, deliberately:** NA-0713's edit set is closed at 12 paths and correcting the comment is not required to clear the advisory. **Growth is a STOP** (R250 §7.1). The correction is this entry's to carry.
+- Cross-reference: NA-0712's `Proof gap:`/`Status:` write-once findings (D-1349); **ENG-0034** (CLOSED, whose scan this is); NA-0630/ENG-0019 (which lifted the limitation).
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0713 (D-1350). Last-updated: 2026-08-11.
+
+### WF-0066 — DOC-OPS-006 §2's named authoritative source for the directive counter is TEN BEHIND, and the document has now been wrong about its own counters three times — **NEW; filed 2026-08-11 by NA-0713 (D-1350; STOP 001 Δ10, ruled R250 §6)**
+
+- Type: workflow; Status: open — filed 2026-08-11 by NA-0713
+- Problem: `docs/ops/DIRECTOR_OPERATIONS.md` §2 names the authoritative source for the directive counter as *"the highest `QSL-DIR-YYYY-MM-DD-NNN` filename present in `/srv/qbuild/operator/directives/`"*. ⚠ **Measured 2026-08-11: that directory tops out at `638`. The true counter is `648`.** Directives from **639** onward are banked in the **per-lane** operator directories, which the named rule does not read. **Ten behind.**
+- ⚠ **THIS IS THE THIRD TIME THIS DOCUMENT'S COUNTER RULES HAVE BEEN MEASURED STALE, AND §2 ALREADY RECORDS THE FIRST TWO:** (i) the response-file derivation was found **both poisoned and stale** — returning `1287`, a *decision* id, from a directory topping out at `573` while the true counter was `602` — corrected by D-1292; (ii) the decision-id rule was **seventeen behind and wrong in kind** (it said *count*, and a count of headings is 25, not 1329) — corrected by D-1330. **This is (iii), and it is identical in shape to (i): the banking convention moved and the derivation rule did not follow it.**
+- ⚠ **The pattern is the finding:** each of the three named a **directory or a form** rather than a **question**, and each broke when the convention it named drifted. §2's corrected decision-id rule survives precisely because it is stated as *"the maximum over the union of both record forms"* — a question about a tree, not a path.
+- Measured this lane: applying §2 literally returns **638**, which would have collided with the directives of NA-0704 through NA-0712. NA-0713's own directive id (**649**) was derived by scanning the whole operator tree instead.
+- Recommended change: state the rule as a question over **every** location directives are banked in, and record the per-lane banking convention as the current one — the repair D-1292 applied to (i). ⚠ **AND record the drift as an observed fact, not a defect to repair**: the files already in `/srv/qbuild/operator/directives/` are **not to be moved**, exactly as the 575 response files were not to be renamed.
+- ⚠ Related but DISTINCT from **WF-0068**: that entry is a correct rule with an unavoidable blind spot; this one is a rule pointed at the wrong place.
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0713 (D-1350). Last-updated: 2026-08-11.
+
+### WF-0067 — a branch's own `.cargo/audit.toml` ignore is INVISIBLE to its own `advisories` gate, so an advisory-silencing remedy can never prove itself green before merge — **NEW; filed 2026-08-11 by NA-0713 (D-1350; STOP 001 Δ6, ruled worth filing on its own at R250 §3.4)**
+
+- Type: workflow; Status: open — filed 2026-08-11 by NA-0713
+- Problem: NA-0713 evaluated an audit-config ignore as one of three remedies for RUSTSEC-2026-0253 and measured that **it cannot turn its own PR green**, on two independent mechanisms:
+  1. `public-ci.yml` triggers on **`pull_request_target`**, and the `advisories` job's checkout step — named, in the workflow itself, *"Checkout workflow definition ref"* — passes **no `ref:`**. `actions/checkout` therefore takes `github.ref`, which for `pull_request_target` is the **BASE** branch. ⚠ **Corroborating design evidence in the same job:** it then fetches the PR head's lockfile through the API into `/tmp/pr-Cargo.lock` and audits **that**, which is only necessary *because* the checkout is not the head. ⇒ `cargo audit --deny warnings --file /tmp/pr-Cargo.lock` runs with **CWD = a base-ref checkout**, reading **main's** `.cargo/audit.toml` while auditing **the PR head's** `Cargo.lock`.
+  2. `scripts/ci/classify_ci_scope.sh`: `.cargo/audit.toml` is neither a docs path nor a workflow path (`.github/workflows/*`, `.github/actions/*` and `scripts/ci/*` are; `.cargo/*` is not) ⇒ **`runtime_critical=true`** ⇒ the *"Sanctioned self-repair bootstrap advisories noop"* is **ineligible** (it requires `workflow_security == 'true' && runtime_critical != 'true'`), so the real audit step runs rather than being skipped.
+- ⚠⚠ **CONSEQUENCE: an ignore takes effect only once it is ON main, and getting it onto main requires the gate it is meant to satisfy.** The remedy is structurally self-blocking, and lands only by an operator override of branch protection — which the house rule ("never bypass or re-run a failed required check to green") forbids.
+- ⚠ **THE SAME MECHANISM IS WHY LOCKFILE REMEDIES DO WORK, and that asymmetry is the useful half:** removing or bumping the vulnerable dependency changes `Cargo.lock` — **which the PR lane reads from the head** — so those remedies prove themselves on their own PR. NA-0713 relied on exactly this. ⇒ **the gate can see your dependencies but not your configuration.**
+- ⚠ Measured for the measurable half: with `RUSTSEC-2026-0253` added to the existing ignore list, `cargo audit --deny warnings` exits **0** and still scans **392** crates (nothing removed) — so cargo-audit does read `.cargo/audit.toml` from CWD, which is the premise the base-ref checkout then defeats. ⚠ **The checkout-ref half is inference from two sources — the step's own name, and the API fetch that would otherwise be unnecessary — and is labelled as such**: no lane can execute GitHub Actions to confirm it.
+- Recommended change: make the intended behaviour explicit rather than emergent. Either the `advisories` job should read audit configuration from the **same ref it audits the lockfile from** (fetch `.cargo/audit.toml` via the API beside `Cargo.lock`), **or** DOC-OPS-006 should state plainly that **an audit-ignore remedy is an operator act on main and never a lane's PR**, so no future lane spends a cycle discovering it. ⚠ The second is cheaper and is probably right; the first is what a reader would assume.
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0713 (D-1350). Last-updated: 2026-08-11.
+
+### WF-0068 — the id derivation reads the RECORD, the record advances only at MERGE, so concurrent drafting seats are structurally unable to see each other's claims — **NEW; filed 2026-08-11 by NA-0713 (D-1350; STOP 002 §7, ORDERED FILED at R252 §2.2, sharpened R254 §2)**
+
+- Type: workflow; Status: open — filed 2026-08-11 by NA-0713
+- Problem: DOC-OPS-006 §2's corrected derivations are each a **maximum over a tree** — the union of `^## D-####` and `- **ID:** D-####` for decisions, and the analogous heading scans for `ENG-`/`WF-`/`NA-`. ⚠ **Every one of them reads the merged record, and the merged record does not contain an open PR's claims.** With more than one drafting seat live, each derives the same next value, correctly, and independently.
+- ⚠⚠ **MEASURED AS A LIVE COLLISION, NOT AS A HAZARD:** on 2026-08-11 at 16:55Z, with main at `731b02a8` (max D **1347**, WF **0059**), **PR #1723 (NA-0711) and PR #1724 (NA-0712) each added `## D-1348` AND each added `### WF-0060`** — two ids wide. #1724 was `CLEAN` and mergeable at the moment of measurement, so whichever merged second would have landed a **duplicate heading**, against §2's own *"Never reuse; must exist exactly once."* ⚠ **Neither lane erred:** 1348/0060 was the right answer for each against the record they were told to read.
+- ⚠ **AND THE COLLISION WAS WIDER THAN THE FIRST TWO READERS SAW.** The `D` collision was caught first and the `WF` one was missed by both the reporting seat's initial pass and the Director (R252 §1: *"I caught the D collision and missed the WF one"*). ⇒ **a two-id collision was found only because a third seat re-derived every id class rather than the one it had been told about.**
+- ⚠ **THE PROXIMATE CAUSE IS A RULE, NOT A SEAT** (R252 §2.4, recorded against its author): the derive-at-push discipline named at R249 §2.1 reads *the headings at main*. **Derive-at-push is sound against a moving main and blind to a parallel unmerged branch.**
+- ⚠⚠ **THE SECOND HALF IS SHARPER (R252 §2.1): reserving above the in-flight set is a workaround each seat must INVENT FOR ITSELF, and two seats already failed to.** A discipline that holds only if every seat independently reinvents it is not a discipline. NA-0713 would have been the **third lane in three days** performing the act that produced the collision.
+- ⚠⚠ **IT RECURRED INSIDE THIS LANE'S OWN RULING WINDOW, WHICH IS THE PROOF THE REMEDY MUST BE MECHANICAL:** R252 §4 confirmed **`WF-0064`** as NA-0713's floor, Director-verified; **within the hour, #1724 re-derived and took `WF-0064` itself**, moving NA-0713 to `WF-0065`. The re-derivation R252 §4.2 mandated caught it immediately. **A reservation is a measurement with a timestamp, never a claim.**
+- ⚠⚠ **AND THE FOURTH INSTANCE IS THE SHARPEST, BECAUSE IT SHOWS THE AXIS IS TIME, NOT CONCURRENCY (R254 §2):** #1724 merged at 17:11:46Z while **#1723 sat `BLOCKED` behind the `advisories` gate NA-0713 exists to clear.** Main advanced to `READY=NA-0712 | HIGHEST_NA=0712 | HIGHEST_D=1349`, while #1723 still carries `NA-0711 | 0711 | 1348` — so **merging #1723 as it stands would REGRESS all three counters.** ⇒ **the structural gap is not merely concurrent drafting; it is TIME IN THE QUEUE. The longer a blocked PR waits, the further its counters fall behind, and nothing tells it.**
+- Recommended change (R252 §2.3 — **mechanism, not memory**, the same conclusion the pipe rule reached after three violations and the `Goals:` trap after two): **a derivation script that reads main AND every open PR's added headings**, emitting the next free id per class, and **warning when an open PR's `STATE:` line has fallen below main's**. ⚠ **Named here and deliberately NOT built here** — NA-0713's edit set is closed at 12 paths and growth is a STOP. Its natural home is `scripts/ci/` beside `qsc_shard_check.py`, callable by a drafting seat and by a pre-push hook.
+- ⚠ Interim discipline until the script exists: **re-derive against main and every open PR at the edit AND again at push** (R252 §3.2/§4.2), and treat a Director-confirmed reservation as a floor measured at a moment. NA-0713 did exactly this and it fired twice — once on `WF-0064`, once when main moved under R252 §3.1's `HIGHEST_D` value (R254 §1).
+- ⚠ Related but DISTINCT from **WF-0066**: that entry is a rule pointed at the wrong location; this one is a correct rule with an unavoidable blind spot.
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0713 (D-1350). Last-updated: 2026-08-11.

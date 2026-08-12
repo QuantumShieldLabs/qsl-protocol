@@ -38136,3 +38136,117 @@ HIGHEST_NA 0703→0705; HIGHEST_D 1343→1344 in this commit. Class at close:
     verdicts are source-settled and 106 rest on entry text**, of which every one is an open defect or
     a NOT-APPLICABLE row where text is decisive · ⚠ **the seating experiment is UNRUN, not failed**,
     and `bypassPermissions` being machine-wide makes the question **unanswerable by any lane**.
+
+## D-1350 — NA-0713: THE RUSTSEC-2026-0253 UNBLOCK — a required gate goes green because the exposure was REMOVED from the workspace rather than silenced, and the crate that carried it was a second TUI no retirement lane ever owned
+
+  - **Status:** Accepted (R250 approved the formalized directive **QSL-DIR-2026-08-11-649**, ruling
+    option **A2** and answering all three flags; R252 kept `D-1350`, confirmed the id reservations and
+    ordered the structural filing; Note **N-03** recorded the reservation recurrence and asked
+    nothing; **R254** ruled the `STATE:` line after its premise moved). Directive sha256
+    `62f63d5567fe9791f91078dff018e1ce74e7da18e1e30d1d418b690b05cdc728`, 315 lines. Rulings banked
+    `RBANK_NA0713_002`/`003`/`004`/`005`.
+  - **Context:** the required `advisories` check went red on **RUSTSEC-2026-0253** — *unsound:
+    potential use-after-free in `LruCache::pop()`*, `lru 0.16.3`, patched `>= 0.18.2`. ⚠ **The
+    failure was TIME-BASED, not change-based:** `cargo audit` reads only the lockfile, the lockfile
+    had not moved, and main passed the same gate 12 hours earlier. `advisories` failing takes
+    required `public-safety` with it, so **PR #1723 — the ENG-0173 invite-path fix, the program's
+    ruled #1 defect, proven on the real relay — could not merge.**
+  - **Decision:** remove `apps/qsl-tui` from the workspace **and delete the crate**, retiring
+    ENG-0034's allowlist entry and site pin for it in the same commit. The advisory becomes
+    unreachable; nothing is silenced; no dependency is bumped.
+  - ⚠⚠ **THE AUTHORIZING BRIEF'S OWN INSTRUMENT MEASURED THE RED TREE AS CLEAN, AND THAT IS THIS
+    LANE'S FIRST FINDING.** Its constraint 3 named **bare `cargo audit`**. Measured at `731b02a8`,
+    bare `cargo audit` exits **0** — `warning: 1 allowed warning found` — printing
+    RUSTSEC-2026-0253 in full while being unable to fail on it, because `unsound` is an *allowed*
+    class. **The gate is `cargo audit --deny warnings`** (`public-ci.yml:222` push lane, `:235` PR
+    lane) → **exit 1**, `error: 1 denied warning found!`. ⇒ **a lane obeying the authorizing document
+    literally would have reported a fix it never made.** Both runs ship: the bare one as an exhibit,
+    because `exit 0` beside the advisory's own text **is** the finding. ⚠ **Standing form (R250
+    §1.2): the instrument is the one the GATE runs, not the one the brief names — a brief that names
+    a command has asserted a claim about that command, and it gets measured like any other.**
+  - ⚠⚠ **THE SECOND FINDING IS THAT THE CRATE WAS NEVER NA-0645's.** NA-0645 retired
+    `qsl/qsl-client/qsc/src/tui/` (~18.9k lines) and cleaned **qsc's** manifest. `apps/qsl-tui` is a
+    **different 889-line refimpl demo crate**, and NA-0645's own testplan names it **out of scope**,
+    records that *"the lockfile keeps the packages for it"*, and files it as **"a hygiene candidate
+    for a later lane."** ⇒ **the residue was FORESEEN, RECORDED AND DEFERRED — not overlooked — and
+    this lane is the later lane that testplan named.** NA-0645 is the witness, not the cause. **That
+    is a stronger warrant for removal than the brief claimed.**
+  - **Reachability, measured:** `cargo tree -i` proves `qsl-tui` was the **sole consumer** of
+    `crossterm`, `ratatui-core`, `ratatui-crossterm` and `ratatui-widgets`, so the whole subtree
+    leaves with it: **392 → 347 crates scanned**, lock delta **+1 / −459** across 45 packages with
+    **zero version changes** — the single insertion being cargo collapsing `"foldhash 0.1.5"` →
+    `"foldhash"` because the second `foldhash` left with the subtree.
+  - ⚠ **WHICH REGENERATION IS THE WHOLE OF THE LOCKFILE CONSTRAINT.** `cargo metadata
+    --format-version 1 --offline` gives the pure-removal delta above. `cargo generate-lockfile` gives
+    **+389 / −1019** — it re-resolves the entire graph and would silently bump `reqwest`, `sha3` and
+    `thiserror` **in the same act that forbids other dependency bumps.** ⚠ **"Regenerate the
+    lockfile" is not one instruction.**
+  - ⚠⚠ **THE INSTRUMENT THIS LANE'S TRUST RESTS ON IS NOT ITS OWN.** ENG-0034's
+    non-contributory-DH anti-regression scan pins per-file `.dh(` site counts and fails on drift in
+    **either** direction. Un-de-pinned, deleting the crate makes it **FAIL at `ratchet.rs:3887`,
+    exit 101** — *"the set of `.dh(` call sites changed"* — and it **passes** after the 292-byte
+    de-pin. ⇒ **red-capability proven on precisely the change being made, by a gate built earlier
+    for a different reason** — stronger evidence than an instrument the lane writes for itself. ⚠ It
+    is **CI-enforced on every code PR** via `ci.yml:369` in `ci-4a`, which is exactly what the scan's
+    own stale KNOWN LIMITATION comment denies (**WF-0065**).
+  - **The three remedies refused, on measurement rather than taste:**
+    ⚠ **B (bump) WORKS, and the lane's written prediction that it would not was WRONG and is recorded
+    as such.** `cargo update -p lru --precise 0.18.2` fails (exit 101 — `ratatui-core 0.1.0` requires
+    `lru ^0.16`), **but `cargo update -p ratatui-core` (0.1.0 → 0.1.2) carries `lru` to 0.18.2 with no
+    manifest edit at all** and the audit exits 0. Refused on **cost**: it grows the tree **392 →
+    402**, adding 10 packages, and bumps **`bitflags 2.10.0 → 2.13.1`, which `cargo tree -i` shows
+    reached by `proptest` (a qsc dev-dependency) and by `rusqlite` via `qsl-server`** ⇒ **not
+    confinable to the retired subtree.** Growing a product's dependency surface to patch a demo
+    nothing builds is the wrong trade (R250 §3.2).
+    ⚠⚠ **C (audit-config ignore) IS NOT A REMEDY AT ALL, on mechanism** — see **WF-0067**. Its PR
+    classifies `runtime_critical`, so the sanctioned bootstrap noop is ineligible; and
+    `pull_request_target` with a no-`ref:` checkout means the audit reads **main's**
+    `.cargo/audit.toml` while auditing **the PR head's** lockfile. **A branch's own ignore is
+    invisible to its own gate.** ⚠ **The same mechanism is why this lane proves itself:** A2 changes
+    `Cargo.lock`, which the PR lane reads from the head.
+    ⚠ **A1 (unlist the member, keep the files) reaches the identical audit green in 2 paths and was
+    refused** because it turns a crate that compiles and runs 3 passing tests into **889 lines
+    nothing compiles, nothing tests and no gate covers**, while the ENG-0034 scan keeps pinning
+    `.dh(` sites inside it. **A1 makes the residue worse than the state the brief called the
+    defect**, and the Director's literal wording was overruled by the measurement it asked for
+    (R250 §3.1).
+  - **Coverage surrendered, measured honestly:** the 3 deleted tests assert only `qsl_tui::demo`'s
+    own API, and `choose_bucket` is the crate's **own private fn** whose ladder
+    `{256,512,1024,2048,4096,8192}` differs from `qshield-cli`'s 12-step ladder, which has its own
+    tests. ⇒ **no product or protocol property loses its only assertion.**
+  - **Obligations discharged by measurement rather than by an edit:** `scripts/ci/QSC_SHARD_MANIFEST.txt`
+    **does not change** — `qsc_shard_check.py`'s census truth is `qsl/qsl-client/qsc/tests/*.rs`
+    (depth 1) plus `lib`, `bin:qsc`, `doc:qsc`; it holds **zero** `qsl-tui` targets and no manifest
+    target lives under `apps/`; the gate itself returns **exit 0, census 131 / manifest 131 / missing
+    0 / unknown 0**. Reconciled **by name in both directions**, re-measured at the edit.
+  - ⚠ **A DISK FAULT, NOT A REGRESSION, AND RECORDED SO IT IS NOT MISREAD LATER:** the first
+    after-suite run exited **101 with ZERO test result sets** — `rust-lld` died on **signal 7 (Bus
+    error)** at the LINK step with the filesystem at **100% (9.0M free)**. **No test ran, so nothing
+    about the change was measured in either direction.** The build directory was **deleted rather
+    than reused** — *artifacts linked while the disk was exhausted cannot be trusted, and a green
+    built on them would not be a green* (R254 §3.1) — and `git fsck` (exit 0, zero output) proved
+    the repository survived, because **a full disk is exactly how a repository corrupts.** ⚠ The
+    harness's own completion signal reported *"exit code 0"* for that run: **the wrapper's status,
+    not the gate's 101**, recovered from the deliberately captured exit — WF-0062's fifth instance,
+    **not ours**.
+  - ⚠ **COUNTER NOTE (R250 FLAG-2 → R252 §3.1 → R254 §1):** this lane's `STATE:` line was ruled
+    **twice**, because its premise moved underneath it. R252 ruled `HIGHEST_D` stay at **1347** on the
+    premise that main was 1347; **PR #1724 then merged (`a54cb50a`), taking main to `HIGHEST_D=1349`**,
+    which made 1347 a **two-step regression** — the exact failure that ruling existed to prevent.
+    R254 ruled the **intent governs over the value**: `READY=NA-0713 | HIGHEST_NA=0713 |
+    HIGHEST_D=1350`. ⚠ **`D-1350` is gap-free**: #1724 landed in 1349, exactly the slot R252 §3
+    reserved for whichever PR renumbered. See **WF-0068**.
+  - **Filed, not fixed:** **ENG-0179** (the six-artifact demo surface, per the ruled leave-and-file) ·
+    **WF-0065** (a gate's KNOWN LIMITATION comment outliving the limitation) · **WF-0066**
+    (DOC-OPS-006 §2's directive-counter source ten behind) · **WF-0067** (a branch's `audit.toml` is
+    invisible to its own gate) · **WF-0068** (the id derivation cannot see an unmerged claim, and the
+    axis is TIME IN THE QUEUE). **ENG-0032 RESTATED, NOT CLOSED** — arm (a) closes by construction,
+    **arm (b) measured still open at clippy exit 101**. **ENG-0034** and **ENG-0090** annotated; both
+    stay closed.
+  - **Goals:** G4. ⚠ **G1, G2, G3, G5 NOT claimed** — no key derivation, no state machine, no
+    negotiation, no metadata surface.
+  - **Not claimed:** that the tree is free of other advisories · that the advisory database will not
+    name another crate tomorrow · that any lane other than #1723 is unblocked · that the demo-surface
+    residue is removed (**ENG-0179**) · that ENG-0032 is closed · that PR #1723 will merge, which is
+    the operator's act — ⚠ **and #1723 needs its own counter re-derivation first, which is not this
+    lane's to perform.**

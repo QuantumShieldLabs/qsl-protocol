@@ -3693,17 +3693,11 @@ mod tests {
             function: "dispatch",
             reason: "conformance actor's deterministic DhDet plumbing; boundary-FORBIDDEN path (tools/actors/**)",
         },
-        AllowedUnguardedDh {
-            file: "apps/qsl-tui/src/demo.rs",
-            function: "init_states_for_channel",
-            reason: "demo establishment secret; boundary-FORBIDDEN path (apps/**); retirement tracked by ENG-0032",
-        },
     ];
 
     /// Total `.dh(` call sites per file. Drift in EITHER direction fails the scan: a new site cannot
     /// hide inside an allowlisted file, and a removed site must be de-pinned deliberately.
     const PINNED_DH_SITE_COUNTS: &[(&str, usize)] = &[
-        ("apps/qsl-tui/src/demo.rs", 2),
         ("qsl/qsl-client/qsc/src/handshake/mod.rs", 1),
         ("tools/actors/refimpl_actor_rs/src/main.rs", 1),
         (

@@ -3956,3 +3956,54 @@ A commission that grants a clone must **NAME the tree's `CLAUDE.md` for pre-empt
 - ⚠ Interim discipline until the script exists: **re-derive against main and every open PR at the edit AND again at push** (R252 §3.2/§4.2), and treat a Director-confirmed reservation as a floor measured at a moment. NA-0713 did exactly this and it fired twice — once on `WF-0064`, once when main moved under R252 §3.1's `HIGHEST_D` value (R254 §1).
 - ⚠ Related but DISTINCT from **WF-0066**: that entry is a rule pointed at the wrong location; this one is a correct rule with an unavoidable blind spot.
 - Status: open — **FILING ONLY**. Originating/last lane: NA-0713 (D-1350). Last-updated: 2026-08-11.
+
+### ENG-0182 — the red-main repair profile's failure markers are naive substring tests over a whole job log, and one of this profile's two markers is currently satisfied by an unrelated **passing** test — **NEW; filed 2026-08-12 by NA-0716 (D-1352; STOP 001 F-1, ORDERED FILED at R262 §4.1)**
+
+- Severity: P3 (no live exposure today — the bound is stated below and was measured, not assumed; the weakness is in the strength of the evidence, not in a reachable bypass)
+- Problem: `validate_red_main_repair_evidence` proves that main's failure is *the* failure the repair profile describes by testing `marker not in failure_log` — a **substring test over the entire job log**, with no anchoring to a test name, a result line, or a failure block.
+- ⚠⚠ **MEASURED, NOT HYPOTHESISED.** At main `5b43eefe` the profile `send_commit_vault_mock_provider_retired` requires markers `send_commit` and `vault_mock_provider_retired` in `macos-qsc-full-serial`'s log. That job **is** failing — on four `model::na0696_lock_registry_tests` tests, nothing to do with the profile. And `send_commit` **matches anyway**, exactly once, inside the name of a **passing** test:
+
+      test msgqueue::tests::a_successful_send_commits_the_ratchet_exactly_once ... ok
+
+  ⇒ **one of the two evidence markers of a safety gate is satisfied by a test that passed.**
+- ⚠ **THE BOUND, STATED PLAINLY (R262 §4.1 required it):** this is **not exploitable today.** The second marker `vault_mock_provider_retired` is **absent** (count 0), so `missing_markers` is non-empty and the attempt refuses; and independently, the profile's `required_paths` demands `qsl/qsl-client/qsc/tests/send_commit.rs`, which no current PR changes. ⚠ **But that is three independent refusals deep, and only the outermost one is doing the work the marker was supposed to do.**
+- ⚠ The failure mode is not "an attacker crafts a log" — the log is GitHub's. It is that **a future profile whose markers are short or generic could match incidental text**, and the gate would report the main failure as *identified* when it was merely *mentioned*.
+- Recommended change: anchor the marker test to the failing region rather than the whole log — match against the `FAILED`/`panicked at` lines or the `test result: FAILED` block, or require the marker to appear on a line that also carries a failure token. ⚠ **Named here and deliberately NOT built here** — NA-0716's edit set is one file and one error-handling branch; growth is a STOP.
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0716 (D-1352). Last-updated: 2026-08-12.
+
+### ENG-0183 — one admission attempt's uncaught exception aborts the whole `public-safety` gate, so a single broken attempt hides every later one — **NEW; filed 2026-08-12 by NA-0716 (D-1352; the Shape-C class, ORDERED FILED at R262 §3.4)**
+
+- Severity: P3 (the one instance that was reachable is fixed by this lane; the class is not)
+- Problem: `check_main_public_safety` runs its bounded admission attempts in a loop, and every helper below them raises `SystemExit` on any GitHub API error. **An exception in attempt *n* terminates the process, so attempts *n+1…* never run and never print.** The gate reports "exit code 1" — indistinguishable, from outside, from "every admission path refused".
+- ⚠⚠ **THIS IS THE CLASS NA-0716's DEFECT BELONGED TO, MEASURED LIVE:** a 403 on `branches/main/protection/required_status_checks` inside the red-main-repair attempt killed the step before the advisory-remediation attempt was tried, on PR #1723, job `93978788776`. ⚠ **The proof it aborted rather than refused is that not one `PUBLIC_SAFETY_ATTEMPT <name> rc=<n>` line printed** — the loop prints one per attempt.
+- ⚠ **NA-0716 fixed the INSTANCE, not the CLASS**, and did so deliberately. It made that one endpoint report a condition instead of exiting. **Any other API call under any other attempt still aborts the whole gate.**
+- ⚠⚠ **AND THE OBVIOUS REMEDY WAS REFUSED ON PURPOSE (R262 §3.4).** Containing `SystemExit` per attempt — catch, print `rc=1`, continue — fixes the class in four lines and **converts every future crash into a quiet "attempt failed"**. That is more permissive than the defect requires: a genuine bug in attempt 1 would be silently downgraded into a refusal, and the gate would look like it was working. **The brief for NA-0716 prohibited exactly this shape, and the ruling upheld it.**
+- Recommended change: a lane that can weigh containment against silent-crash-masking **without a merge waiting on the answer** — e.g. contain only a named allowlist of conditions (permission, not-found) while letting anything else abort loudly, and make the per-attempt line distinguish `rc=1 (refused)` from `rc=1 (errored: <reason>)`.
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0716 (D-1352). Last-updated: 2026-08-12.
+
+### WF-0071 — the `public-safety` gate's own fixture suites are invoked by ZERO CI jobs, so every proof they provide is local and voluntary — **NEW; filed 2026-08-12 by NA-0716 (D-1352; STOP 001 F-2, ORDERED FILED at R262 §4.2)**
+
+- Type: workflow; Status: open — filed 2026-08-12 by NA-0716
+- Problem: `scripts/ci/public_safety_gate.py` carries four deterministic fixture suites — `run-na0239-fixture-proofs`, `selftest-timeout-resilience`, `selftest-full-suite-cost-control`, `selftest-advisories-resilience`. They are the executable proof of the admission logic that decides **what may merge**.
+- ⚠⚠ **MEASURED: none of the four appears anywhere in `.github/`.** `grep -rn` across the whole workflow directory returns **rc=1, zero hits**. Every reference to them lives in `TRACEABILITY.md`, `NEXT_ACTIONS.md`, the rolling journal and the testplans — **records of humans having run them, not a gate running them.**
+- ⚠ **A seat that edits this gate and forgets to run the fixtures gets a green PR.** Nothing in the required-context set exercises the admission logic offline; `public-safety` itself only runs the *live* path against the real API.
+- ⚠⚠ **THE SHAPE IS THE ONE NA-0714 NAMED (R258): an instrument nobody runs is not a gate.** There the cleanup unit reported `Result=success` while skipping; here a fixture suite reports nothing at all because it is never invoked. ⚠ **Both are "the check exists" standing in for "the check ran".**
+- ⚠ NA-0716 ran all four by hand, banked the before/after logs, and reconciled **by fixture name**, precisely because no job would do it. That is the discipline this entry exists to make unnecessary.
+- Recommended change: invoke the four selftests in a job on any PR touching `scripts/ci/public_safety_gate.py` — they are pure, offline, and complete in under a second. ⚠ **Named here and deliberately NOT built here**: NA-0716's edit set excludes `.github/**` by ruling (R262 §8.1), and adding a workflow job to the lane that repairs the gate would be exactly the growth the brief forbade.
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0716 (D-1352). Last-updated: 2026-08-12.
+
+### WF-0072 — WF-0068's own text is wrong about itself: a main-plus-open-PRs sweep DOES catch an operator-consumed id, provided the sweep is regex-shaped rather than counter-shaped — **NEW; filed 2026-08-12 by NA-0716 (D-1352; STOP 001 F-3, ORDERED FILED at R262 §4.3)**
+
+- Type: workflow; Status: open — filed 2026-08-12 by NA-0716
+- Problem: **WF-0068**'s fifth-instance paragraph states, of an id consumed by an operator-side lane that files nothing: *"A derivation script reading main + open PRs **would not catch this one either**; catching it needs the operator lane directory in the derivation's input set."*
+- ⚠⚠ **MEASURED FALSE, and the counter-example is that paragraph itself.** The text naming `NA-0715` **lives in `docs/ops/IMPROVEMENT_LEDGER.md` on PR #1723's head** (`961cf2f6`, line 4008). So a sweep of main + every open PR **does** contain the string `NA-0715`. NA-0716 derived its own id this way and got the right answer: `max(NA) = 0715` ⇒ lane **NA-0716**.
+- ⚠ **WHAT ACTUALLY MISSES IT IS THE SHAPE OF THE READ, NOT THE INPUT SET.** The three counter-shaped reads all return 0713/0714 and never see 0715:
+  - the `STATE:` line (`HIGHEST_NA=0713` on main, `0714` on #1725),
+  - `^### NA-####` headings in `NEXT_ACTIONS.md`,
+  - `^### NA-####` headings in `TRACEABILITY.md`.
+
+  A plain `grep -oE 'NA-[0-9]{4}'` over the same files on the same refs **does** see it.
+- ⚠ **THIS MAKES WF-0068's REMEDY CHEAPER THAN IT CLAIMED** (R262 §4.3): the proposed derivation script does **not** need the operator lane directory in its inputs. It needs to scan **id-shaped tokens across the record files**, not just the headings that declare them — main and every open PR remains the right input set.
+- ⚠ **Bounded honestly:** this holds because NA-0715 happened to write prose naming itself onto an open branch. **A lane that consumes an id and writes nothing anywhere is still invisible**, and WF-0068's underlying concern survives for that case. ⇒ **the correction is to WF-0068's claim about its own remedy, not to its existence.**
+- ⚠ This entry is filed **by a lane correcting a finding it inherited**, in the same shape D-1339 R102 requires of a ruling built on a false premise: the correction is stated plainly and attributed, not tidied away.
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0716 (D-1352). Last-updated: 2026-08-12.

@@ -38250,3 +38250,84 @@ HIGHEST_NA 0703→0705; HIGHEST_D 1343→1344 in this commit. Class at close:
     residue is removed (**ENG-0179**) · that ENG-0032 is closed · that PR #1723 will merge, which is
     the operator's act — ⚠ **and #1723 needs its own counter re-derivation first, which is not this
     lane's to perform.**
+
+## D-1352 — NA-0716: THE PUBLIC-SAFETY 403 — a gate that decides what may merge must REFUSE for a stated reason when it cannot read its evidence, not abort before its own admission logic
+
+  - **Status:** Accepted (**R262** approved the formalized directive **QSL-DIR-2026-08-12-652**,
+    ruling Shape **A′**, ordering the three findings filed, and **declining SR-15** on the ground
+    that the divergence table already answered the question a cold read would attack). Ruling
+    banked `RBANK_NA0716_002_R262`, sha256
+    `f1148a72f3ba8fde841df1bbd377e281301cae048c9b4e16aa987a1e8549b190`, 124 lines. Brief banked
+    `RBANK_NA0716_001`, sha256
+    `f92aaefd8819a93b0d1525ac396ce8fc2926203e2b740e8c6983a1debcd4e13e`, 123 lines.
+  - **Context:** the required `public-safety` check failed on PR #1723 with
+    **403 `Resource not accessible by integration`** from
+    `GET /repos/{repo}/branches/main/protection/required_status_checks`. The helper behind that
+    call raises `SystemExit` on any HTTP error, so the exception **terminated the step before the
+    gate's admission attempts ran.** ⚠ **The proof it aborted rather than refused is that not one
+    `PUBLIC_SAFETY_ATTEMPT <name> rc=<n>` line printed** — the loop prints one per attempt
+    (job `93978788776`, preserved as the red control).
+  - ⚠⚠ **Why it was latent until now:** `check_main_public_safety` orders its admission attempts
+    by whether main's `advisories` is red. While it **was** red, advisory-remediation ran first and
+    short-circuited, so the red-main path — and its 403 — were never entered. **D-1350 cleared the
+    advisory, the order flipped, and a second, older defect became load-bearing.**
+  - ⚠⚠ **THE LANE REFUTED ITS OWN MOTIVE BEFORE MUTATING ANYTHING, AND THE RECORD CARRIES IT AS A
+    NOT-CLAIMED:** the authorizing brief existed to unblock **PR #1723**. **Repairing the 403 does
+    not admit it.** Once the crash is removed both attempts refuse on their merits —
+    advisory-remediation requires main's `advisories` to be **failing** and **D-1350 made it
+    succeed**; red-main-repair refuses on a missing profile marker, a missing profile-required
+    path, and a profile describing a different repair entirely. ⇒ **the fix that unmasked this
+    defect also removed the precondition of the path that would have admitted the PR.** The brief's
+    own clause — *"#1723's merge is the motive, never the acceptance criterion"* — governed, and
+    R262 §1 ruled that the clause working rather than the lane failing.
+  - **Decision — Shape A′:** `github_get_or_http_error` reports an HTTP failure as a **condition**
+    instead of exiting; `branch_required_checks` returns an `unreadable` reason alongside the
+    contexts; and `validate_red_main_repair_evidence` appends its **own named refusal** for that
+    condition, **as an independent check rather than one chained to the existing membership test.**
+  - ⚠⚠ **THE ARGUMENT FOR THAT INDEPENDENCE IS THE DECISION'S SUBSTANCE (R262 §3.2, adopted
+    verbatim from the formalization):** the same empty `required_contexts` list is consumed twice
+    with **opposite** meanings — the membership check **refuses** on it, while the required-PR-check
+    loop **iterates** it and therefore verifies **zero** of the PR's required checks. Today the
+    refusal fires first, so an empty list is safe **by coincidence of ordering, not by
+    construction**; a future edit reordering or relaxing that check would convert an API permission
+    error into a **silent, total bypass of PR-check verification.** A safety gate must not rest on
+    that coincidence.
+  - ⚠ **A′ is not an invention.** `scripts/ci/qsl_bounded_check_poll.py:447` already calls this
+    exact endpoint, records the failure as a condition, and **fails closed with a named reason**
+    (`ambiguous_required_state_no_required_contexts`). **A′ makes an outlier consistent with the
+    convention its sibling already follows** — a stronger warrant than a design preference.
+  - **Alternatives refused, on measurement rather than taste:**
+    - ⛔ **Shape B — `administration: read` on the workflow token — is UNWRITABLE.**
+      `administration` is **not a valid `GITHUB_TOKEN` workflow permission scope**, on any trigger.
+      ⚠ The brief asked whether it was grantable under `pull_request_target`; the correct answer is
+      that the scope does not exist, so the forked-PR question was moot (R262 §3.5).
+    - ⛔ **B′ — a PAT or App token in a secret** — not recommended and not requested: it places a
+      privileged credential in a `pull_request_target` workflow, a far larger surface than the
+      defect.
+    - ⛔ **Shape C — contain `SystemExit` per attempt** — refused as the primary fix although it
+      addresses the whole class, because it **converts every future crash into a quiet "attempt
+      failed"**, which is more permissive than the defect requires. **Filed as ENG-0183 instead.**
+  - **Instrument, proven able to go red before it was trusted:** six fixtures added to the NA-0239
+    suite. ⚠⚠ **The decisive one — `unreadable_protection_does_not_bypass_pr_check_verification` —
+    was first run against a deliberately-broken variant (the plausible wrong A′: catch the 403,
+    return empty contexts, omit the named refusal) and FAILED with `observed_ok=True`: the broken
+    variant ADMITTED a PR whose required check was failing.** The hazard above was therefore
+    demonstrated, not merely argued. Against the correct code the suite exits **0**, and
+    reconciliation **by fixture name** shows **zero regressions** and **exactly six additions**.
+    ⚠ `branch_protection_403_non_bypass` still passes — **A′ refuses, it does not retry.**
+  - **Consequences:** the gate reaches its admission logic and refuses with a stated reason; the
+    per-attempt lines print, which is the positive proof of the repair. ⚠ **No new admission path
+    is created:** red-main-repair *is* the designed merge-while-main-is-red path, its evidence
+    arguments are **hardcoded literals** in `public-ci.yml`, and **a PR cannot steer its own profile
+    or markers.**
+  - **Filed, not fixed:** **ENG-0182** (profile failure markers are naive substring tests over a
+    whole job log, and one is currently satisfied by an unrelated **passing** test) · **ENG-0183**
+    (the Shape-C class) · **WF-0071** (the gate's four fixture suites are invoked by **zero** CI
+    jobs) · **WF-0072** (**WF-0068's own text is wrong about itself** — a main-plus-open-PRs sweep
+    *does* catch an operator-consumed id when the sweep is regex-shaped rather than counter-shaped,
+    which makes its proposed remedy cheaper than it claimed).
+  - **NOT claimed:** ⛔ **that PR #1723 becomes mergeable — it does not** · that `main` is healthy
+    (⚠ it is not: four `model::na0696_lock_registry_tests` tests fail on `macos-qsc-full-serial`, a
+    **push-only** job **no PR can see**, and R262 §9 makes that — not this 403 — the gating question
+    for #1723) · that those tests fail for the reason their names suggest · that the Shape-C class
+    is fixed · that any other lane is unblocked.

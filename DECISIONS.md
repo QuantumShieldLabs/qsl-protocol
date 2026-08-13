@@ -38458,3 +38458,50 @@ HIGHEST_NA 0703→0705; HIGHEST_D 1343→1344 in this commit. Class at close:
     stand as re-audited) · that ENG-0185's cure advances here — this merge only
     re-greens the admission signal the door reads, for the successor gate lane R282
     names; #1723/#1725/#1727 wait per R283.
+
+## D-1357 — NA-0721: THE DOOR-2 CLOSEOUT-RECORDS ERRAND — NA-0717's eleven execution SR-16 prediction rows and its ENG-0185 filing land in repo truth byte-verbatim, so the arc that documented an eighteen-lane records debt does not itself become one
+
+  - **Status:** Accepted (ordered by the Director's DOOR-2 order, 2026-08-13, under R284's
+    canonical text as banked at R286 — door 2 of the three ruled doors: "NA-0717's closeout
+    records (the eleven execution SR-16 rows + ENG-0185's filing text) landing in repo
+    truth". In the WF-0074 door INVENTORY this is the FOURTH recorded use, on the record
+    here as the first three were — #1728, #1730, #1732. Ids re-derived at the edit per
+    WF-0068: sweep banked in the NA-0721 lane record; NA-0721 and D-1357 free across main
+    `28860f25` and both remaining open PRs #1725/#1727; STATE advanced 0720/1356 →
+    0721/1357.)
+  - **Context:** NA-0717 closed with two records written on-box at its close and
+    deliberately left for a successor to enter: §4's eleven execution SR-16 rows — written
+    there, in that lane's own words, "so they can never join the STILL-OWED list this arc
+    documented" — and §3's ENG-0185 filing, whose text was to land "in repo truth via the
+    successor's records". Until this errand, both survive only in that lane's final stop.
+    Source, cited by FILENAME and sha256 as public truth requires:
+    `STOP_NA0717_011_20260813T152737Z.md`, sha256
+    `809acf1aea29198268c0918e59ff283b89882e6c79e1b38fe58e562e62085118`, banked 444 in the
+    NA-0721 lane record; its FINAL-STOP sentinel was verified present before any extraction
+    was taken.
+  - **Decision:** (a) append §4's ELEVEN rows — five `NA-0717 exec` and six `NA-0717 arc`,
+    source lines 47-57, TWO extraction instruments agreeing byte-for-byte — to
+    `docs/ops/PREDICTION_LEDGER.md` byte-verbatim: rows only, order preserved, beneath
+    everything existing, no other edit to that ledger (pipe-line total 71 → 82; all eleven
+    proven ABSENT at base by exact full-line match, zero hits; the appended block proven
+    cmp-identical to the extraction and the whole base file proven unchanged beneath it).
+    (b) file ENG-0185 in `docs/ops/IMPROVEMENT_LEDGER.md` in house entry form, its text
+    byte-faithful to §3 (source lines 30-42, through `Status: open — FILING ONLY.`
+    inclusive): the wrapped bold-heading block becomes the house `###` heading plus one
+    unwrapped body line — a transformation PROVEN against this program's immediately
+    preceding instance of it (ENG-0184's own landing, A1 §7 lines 216-227 →
+    IMPROVEMENT_LEDGER.md:4014/:4016, cmp rc 0) rather than assumed, with the
+    reconstruction proven to lose nothing (round-trip whitespace-normalized identity).
+    ENG-0185 is filed open — FILING ONLY; its cure is R282's successor gate lane and does
+    not advance here.
+  - **Goals:** G4. ⚠ G1, G2, G3, G5 NOT claimed — docs-only; no source, no CI, no
+    dependency change.
+  - **Not claimed:** that ENG-0185 is fixed, or that any wrapper, ceiling or runner
+    behaviour changes · that main's public-safety check-run passes on its own merits — it is
+    red at exactly the defect ENG-0185 names, and this merge only re-greens the admission
+    signal the door reads · that NA-0717/NA-0718/NA-0719/NA-0720's MERGING blocks are
+    retired (successor promotions' acts per MINOR-6, deliberately untouched here) · that the
+    sixteen-lane close-row debt NA-0701..NA-0716 moves (D-1356 scoped its discharge to
+    NA-0699 and NA-0700; the remainder stays STILL-OWED) · that the prediction ledger's
+    debt-audit comment is amended (R286 deferred that to the retrospective; its bytes are
+    untouched here) · that R284's doors 1 and 3 are this seat's work.

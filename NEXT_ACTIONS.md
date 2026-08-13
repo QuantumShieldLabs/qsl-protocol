@@ -6,7 +6,7 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0721 | HIGHEST_NA=0721 | HIGHEST_D=1357 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0722 | HIGHEST_NA=0722 | HIGHEST_D=1358 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
 **FORWARD ORDER — Director decision 2026-08-02, operator-approved.**
 **as of: 2026-08-03** · **superseded by: _none — this is current_**
@@ -37221,3 +37221,8 @@ Goals: G4 (verification and record as a release gate — **the property: a measu
 
 Status: MERGING (PR #1733)
 Goals: G4 (verification and record as a release gate — **the property: a record written at a lane's close is not yet a record — it becomes one only where the program actually reads it, so the arc that measured an eighteen-lane records debt does not silently become the nineteenth**). ⚠ **G1, G2, G3 and G5 are NOT claimed** — docs-only, zero source bytes.
+
+### NA-0722 — THE DOC-PROG-004 AUTOLOCK REVISION (R284's door 3, and REAL owed work 24 days old): the GUI phase roadmap's "~15 minutes" idle-autolock wording — superseded by the operator's D598 round-3 decision on 2026-07-19 and flagged the next day as WF-0024 — is corrected to **60 minutes, adjustable, with 0 VALID and meaning never-auto-lock** (the idle timer never fires at 0, behind a danger banner), carrying its provenance inline (D598 → NA-0662/D-1285 → test-pinned in qsl-desktop at D-0005); **WF-0024 is closed as DONE**, its filing text preserved and only the status marker replaced (D-1358; ids re-derived at the edit per WF-0068 — NA-0722/D-1358 free across main `b9aebb2a` + the one open PR #1727). ⚠ **DV-1: the version stays v0.2.0 and the file is NOT renamed** — the two revisions since D592 edited in place without a bump, and three of the four filename references are historical records that must keep saying v0.2.0; the rename question is REFERRED, not decided. Docs-only by construction (classify_ci_scope.sh over the exact name-only diff, sealed first, run unpiped). NOT CLAIMED: any behaviour change (the semantics landed at NA-0662) · that WF-0024's open-ended "any other status folds" is discharged — only the autolock correction is claimed · that the doc's private-CA runbook note, still OWED, is touched.
+
+Status: MERGING (PR #PRNUM)
+Goals: G4, G5 (verification and record as a release gate — **the property: a planning document that trails an operator decision it postdates is a false record with a version number on it; the correction carries what it corrected, so the trail is legible rather than erased**). ⚠ **G1, G2 and G3 are NOT claimed** — docs-only, zero source bytes.

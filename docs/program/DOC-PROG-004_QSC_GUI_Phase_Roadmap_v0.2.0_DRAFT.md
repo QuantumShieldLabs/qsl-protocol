@@ -2,7 +2,7 @@ Goals: G4, G5
 
 Status: Supporting (product planning; subordinate to canonical specs, GOALS, the queue, and independent review)
 Owner: QSL governance
-Last-Updated: 2026-07-18 (NA-0656/D592: v0.2.0 — qsl-desktop registration (step 3b), gate D-A, accumulated GUI-phase design decisions)
+Last-Updated: 2026-08-13 (NA-0722/D-1358: WF-0024 — the idle-autolock default corrected to the D598 decision, 60 minutes with 0 = never-auto-lock; text revision only, version unchanged at v0.2.0)
 Authority: Non-normative product planning. Does NOT override START_HERE, GOALS,
 the canonical specs, NEXT_ACTIONS, the IMPROVEMENT_LEDGER, or any recorded
 decision. Where this document and any of those disagree, THEY win and this
@@ -184,8 +184,12 @@ R8 constraint documented. **Acceptance: a fresh machine onboards to a live relay
   not landed by this revision).
 - Identity export is Settings-only in v1 and NEVER part of onboarding; off by
   default, loud warnings; revisit after tester feedback.
-- Idle auto-lock ON by default (~15 minutes, adjustable) — binds to the
-  step-4 autolock restoration.
+- Idle auto-lock ON by default (**60 minutes**, adjustable; **0 is valid and
+  means never-auto-lock** — at 0 the idle timer never fires, behind a danger
+  banner) — binds to the step-4 autolock restoration. Corrected at
+  NA-0722/D-1358 from this revision's superseded "~15 minutes": the operator's
+  round-3 decision (D598, approved 2026-07-19) landed at NA-0662/D-1285 and is
+  test-pinned in qsl-desktop (D-0005). WF-0024 paid.
 - Onboarding order CONFIRMED: vault → identity → server (L5 stands).
 
 - **PROGRESS (NA-0673, D609, 2026-07-24) — the Settings SERVER PANE (slice B) landed.**

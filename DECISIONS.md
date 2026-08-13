@@ -38546,3 +38546,49 @@ HIGHEST_NA 0703→0705; HIGHEST_D 1343→1344 in this commit. Class at close:
     NA-0699 and NA-0700; the remainder stays STILL-OWED) · that the prediction ledger's
     debt-audit comment is amended (R286 deferred that to the retrospective; its bytes are
     untouched here) · that R284's doors 1 and 3 are this seat's work.
+
+## D-1358 — NA-0722: THE DOC-PROG-004 AUTOLOCK REVISION (R284's door 3) — the roadmap's "~15 min" idle-autolock wording, superseded by the D598 operator decision since 2026-07-19, is corrected to 60 minutes with 0 meaning never-auto-lock, and WF-0024 is paid after 24 days open
+
+  - **Status:** Accepted (ordered by the operator, 2026-08-13, as R284's **door 3** —
+    "the owed DOC-PROG-004 revision" — canonical text banked at R286. In the WF-0074 door
+    INVENTORY this is the FIFTH recorded use, on the record here as the first four were:
+    #1728, #1730, #1732, #1733. Ids re-derived at the edit per WF-0068: NA-0722 and D-1358
+    free across main `b9aebb2a` and the one remaining open PR #1727; STATE advanced
+    0721/1357 → 0722/1358.)
+  - **Context:** **WF-0024**, filed 2026-07-20 by NA-0662 (D-1285; directive D598) as that
+    lane's REQUIRED closeout filing, recorded that `docs/program/DOC-PROG-004_QSC_GUI_Phase_
+    Roadmap_v0.2.0_DRAFT.md` describes idle auto-lock as "~15 minutes" while the operator's
+    round-3 decision — approved 2026-07-19, landed by NA-0662 and test-pinned in qsl-desktop
+    at D-0005 — sets the default to **60 minutes**, with **0 VALID and meaning
+    never-auto-lock** (danger banner; the idle timer never fires at 0). The filing named the
+    remedy and put it out of its own scope by directive: *"the DOC-PROG-004 edit itself is
+    NOT this lane"*. It has been open 24 days — one of the five oldest open filings in the
+    ledger, all filed 2026-07-12/20.
+  - **Decision:** correct the roadmap's autolock bullet to the landed decision, in the doc's
+    own voice, carrying its provenance inline (D598 → NA-0662/D-1285 → qsl-desktop D-0005)
+    so a later reader can see what was corrected and from what; advance the doc's
+    `Last-Updated`; and close **WF-0024 as DONE at this lane**, its original filing text
+    preserved and only the status marker replaced (mark-don't-rewrite). The superseded
+    "~15 minutes" survives ONLY as a quoted citation inside the correction note — the claim
+    is gone, the history of the claim is not.
+  - ⚠ **Deviation, enumerated (DV-1): the version is deliberately UNCHANGED at v0.2.0 and
+    the file is NOT renamed.** WF-0024's remedy sentence cites "the D592 rename/fidelity
+    pattern", and D592 (NA-0656) did rename v0.1.0 → v0.2.0. Measured against that: the two
+    revisions of this document SINCE D592 — NA-0673 (`b739400f`, +12) and NA-0674
+    (`f22ad590`, +20/−2), both larger than this one — edited it **in place with no version
+    bump and no rename**. A rename's only live consumer is `DOC-CTRL-001`'s Location field;
+    its other three references are historical records (the NA-0656 prior-comment, that
+    lane's queue block, and `NA-0656_as_built.md`) which correctly say v0.2.0 and must not
+    be rewritten to point at a file NA-0656 never produced. **The minimal, reversible act is
+    taken and the version question is REFERRED, not decided** — if the Director wants the
+    bump, it is a clean follow-on that this lane does not foreclose.
+  - **Goals:** G4, G5. ⚠ G1, G2, G3 NOT claimed — docs-only; no source, no CI, no
+    dependency change.
+  - **Not claimed:** that any autolock BEHAVIOUR changes here — the semantics landed at
+    NA-0662 and are test-pinned in qsl-desktop; this lane moves documentation only · that
+    any other "status fold due at that revision" (WF-0024's open-ended parenthetical) is
+    discharged — **only the autolock correction is claimed**, and the doc's other OWED note
+    (the private-CA runbook note at its own bullet) is untouched and still owed · that the
+    version/rename question is settled (DV-1 refers it) · that DOC-CTRL-001's index entry
+    needed changing (it did not; the filename is unchanged) · anything about #1727's
+    contents, which wait on this door's merge to re-green main's admission signal.

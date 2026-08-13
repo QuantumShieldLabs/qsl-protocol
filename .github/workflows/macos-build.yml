@@ -101,12 +101,15 @@ jobs:
     needs: classify
     if: github.event_name != 'pull_request' && needs.classify.outputs.docs_only != 'true'
     runs-on: macos-latest
-    # ENG-0052 capacity correction (NA-0664, D-1288): raised 120 -> 180.
-    # The pre-lane suite measured 105m52s (workflow_dispatch on e5313fa3,
-    # 2026-07-21) = 88% of the old 120-minute budget. 180 is 1.70x that
-    # measured runtime. This fits the ceiling to measured reality; it does
+    # Ceiling correction (NA-0719, D-1355): raised 180 -> 300. The suite outgrew
+    # NA-0664's ceiling, measured twice at the kill: dispatch run 31643260667
+    # (2026-08-12, 117/~130 target sets green in 180m, zero failures, cancelled)
+    # and main push run 31661853338 (2026-08-13, 127/~130 sets green in 180m,
+    # zero failures, cancelled) - full-suite projection ~200-215m. 300 is ~1.4x
+    # that projection (the NA-0664 fit-to-measured method) and stays under the
+    # public-safety watchdog's 360m job cap with its 20m safety gap. It does
     # NOT absorb the NA-0663 regression, which remains open as ENG-0053.
-    timeout-minutes: 180
+    timeout-minutes: 300
     steps:
       - uses: actions/checkout@v5
 

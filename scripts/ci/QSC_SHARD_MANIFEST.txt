@@ -76,6 +76,7 @@ tests/na0694_vault_envelope_aad.rs	3
 tests/na0695_vault_keychain_addressing.rs	8
 tests/na0696_vault_honesty.rs	4
 tests/na0708_ack_flush.rs	7
+tests/na0711_invite_label_resolution.rs	4
 tests/na_0302_suite2_negotiation_cross_surface.rs	4
 tests/na_0303_handshake_activation_negotiation.rs	8
 tests/na_0304_handshake_suite_id_negotiation.rs	6

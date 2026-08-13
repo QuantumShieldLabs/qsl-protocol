@@ -228,6 +228,17 @@ mod na0696_lock_registry_tests {
     use std::fs;
     use std::os::unix::io::AsRawFd;
 
+    // Raw flock() denial errno, per platform: EWOULDBLOCK == EAGAIN is 11 on Linux and
+    // 35 on Darwin (where 11 is EDEADLK). Production classifies via
+    // ErrorKind::WouldBlock and stays portable; these tests probe the RAW value on a
+    // separate open file description, so they must name the platform's own constant —
+    // pinned here the way LOCK_* are, no libc dependency. An unlisted target_os fails
+    // to compile at the use sites: fail-closed by construction.
+    #[cfg(target_os = "linux")]
+    const EWOULDBLOCK_RAW: i32 = 11;
+    #[cfg(target_os = "macos")]
+    const EWOULDBLOCK_RAW: i32 = 35;
+
     fn unit_dir(tag: &str) -> PathBuf {
         let root = if let Ok(v) = std::env::var("QSC_TEST_ROOT") {
             PathBuf::from(v)
@@ -287,12 +298,16 @@ mod na0696_lock_registry_tests {
         assert_eq!(lock_depth(&dir), 3);
         // Held mode stays EXCLUSIVE: even a shared probe from another OFD is denied.
         let (rc, errno, _probe) = raw_flock(&dir, LOCK_SH);
-        assert_eq!((rc, errno), (-1, 11), "cross-OFD exclusion preserved");
+        assert_eq!(
+            (rc, errno),
+            (-1, EWOULDBLOCK_RAW),
+            "cross-OFD exclusion preserved"
+        );
         drop(g3);
         drop(g2);
         assert_eq!(lock_depth(&dir), 1);
         let (rc, errno, _probe2) = raw_flock(&dir, LOCK_EX);
-        assert_eq!((rc, errno), (-1, 11), "still held at depth 1");
+        assert_eq!((rc, errno), (-1, EWOULDBLOCK_RAW), "still held at depth 1");
         drop(g1);
         assert_eq!(lock_depth(&dir), 0);
         let (rc, _errno, probe3) = raw_flock(&dir, LOCK_EX);
@@ -318,10 +333,14 @@ mod na0696_lock_registry_tests {
         assert_eq!(lock_depth(&dir), 3);
         drop(g1); // the OUTER guard first
         let (rc, errno, _p1) = raw_flock(&dir, LOCK_EX);
-        assert_eq!((rc, errno), (-1, 11), "held after out-of-order outer drop");
+        assert_eq!(
+            (rc, errno),
+            (-1, EWOULDBLOCK_RAW),
+            "held after out-of-order outer drop"
+        );
         drop(g2); // the middle guard next
         let (rc, errno, _p2) = raw_flock(&dir, LOCK_EX);
-        assert_eq!((rc, errno), (-1, 11), "held at depth 1");
+        assert_eq!((rc, errno), (-1, EWOULDBLOCK_RAW), "held at depth 1");
         drop(g3); // the last guard releases
         let (rc, _errno, p3) = raw_flock(&dir, LOCK_EX);
         assert_eq!(rc, 0, "released when the last guard dropped");
@@ -344,7 +363,11 @@ mod na0696_lock_registry_tests {
         assert!(caught.is_err());
         assert_eq!(lock_depth(&dir), 1, "depth restored to the outer guard");
         let (rc, errno, _probe) = raw_flock(&dir, LOCK_EX);
-        assert_eq!((rc, errno), (-1, 11), "outer guard still holds the OS lock");
+        assert_eq!(
+            (rc, errno),
+            (-1, EWOULDBLOCK_RAW),
+            "outer guard still holds the OS lock"
+        );
         let renested = acquire(&dir, LockMode::Exclusive).expect("registry usable");
         assert_eq!(lock_depth(&dir), 2);
         drop(renested);
@@ -391,7 +414,10 @@ mod na0696_lock_registry_tests {
             raw_unlock(&probe);
         }
         assert!(
-            wrong_error.is_none() && depth_after == 1 && probe_rc == -1 && probe_errno == 11,
+            wrong_error.is_none()
+                && depth_after == 1
+                && probe_rc == -1
+                && probe_errno == EWOULDBLOCK_RAW,
             "EX-under-SH must refuse fail-closed with the OS lock untouched: \
              wrong_error={:?} depth_after={} probe_rc={} probe_errno={} (probe acquiring \
              means the held SH was LOST — the F3 conversion hazard)",

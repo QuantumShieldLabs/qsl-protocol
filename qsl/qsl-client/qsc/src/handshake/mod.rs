@@ -199,12 +199,17 @@ fn hs_suite_context_for_mode(mode: HandshakeSuiteMode) -> HsSuiteContext {
     }
 }
 
+// NA-0711 (D647 A4 Δ38): the collapse is GONE. Every reason now prints under its own name.
+//
+// ⚠ WHAT THIS DOES NOT DO, SAID PLAINLY: it does NOT make a REPLAY distinguishable from "I have no
+// context". Those are the SAME branch emitting the SAME reason -- the no-pending arm decodes the
+// frame as a confirm, cannot reach the replay guard (which needs an explicit suite context, and the
+// invite path hardcodes LegacyCompat), and falls through to the init decoder, which rejects on the
+// frame-type byte. Both print `handshake_type`. Separating them means touching the replay guard
+// itself, which is a FOURTH change and is refused here; the reject-vocabulary normalisation lane
+// NA-0708 filed owns it.
 fn hs_decode_reason_label(reason: &'static str) -> &'static str {
-    if reason.starts_with("REJECT_QSC_HS_") {
-        reason
-    } else {
-        "decode_failed"
-    }
+    reason
 }
 
 fn hs_emit_suite_reject(reason: &'static str) {
@@ -1159,23 +1164,63 @@ fn hs_pending_secret_key(self_label: &str, peer: &str) -> String {
     format!("handshake.pending.{}.{}", self_label, peer)
 }
 
-fn hs_pending_load(self_label: &str, peer: &str) -> Result<Option<HandshakePending>, ErrorCode> {
+/// NA-0711 (D647 A4 Δ35): what the lookup actually SAW, because "absent" and "cleared" are
+/// different facts that the client collapsed into one. ⚠ Three eras of this program have now
+/// produced the identical `present=false` + reject marker pair from three DIFFERENT causes -- a
+/// vault clobber that destroyed the record, a lookup under the wrong key with the record intact,
+/// and a completed handshake whose record was cleared on purpose (a test that is green in CI right
+/// now). A marker that cannot tell them apart is what made each of those an investigation.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum HsPendingState {
+    Absent,
+    Cleared,
+    Present,
+}
+
+impl HsPendingState {
+    fn as_str(self) -> &'static str {
+        match self {
+            HsPendingState::Absent => "absent",
+            HsPendingState::Cleared => "cleared",
+            HsPendingState::Present => "present",
+        }
+    }
+}
+
+fn hs_pending_load_state(
+    self_label: &str,
+    peer: &str,
+) -> Result<(Option<HandshakePending>, HsPendingState), ErrorCode> {
     let secret_key = hs_pending_secret_key(self_label, peer);
+    let mut seen_cleared = false;
     match vault::secret_get(&secret_key) {
         Ok(Some(v)) if !v.is_empty() => {
             let pending: HandshakePending =
                 serde_json::from_str(&v).map_err(|_| ErrorCode::ParseFailed)?;
-            return Ok(Some(pending));
+            return Ok((Some(pending), HsPendingState::Present));
+        }
+        Ok(Some(_)) => {
+            // An EMPTY value is a record that was cleared on completion, not one that never
+            // existed. `hs_pending_clear` writes "" rather than deleting.
+            seen_cleared = true;
         }
         Ok(_) => {}
         Err("vault_missing" | "vault_locked") => return Err(ErrorCode::IdentitySecretUnavailable),
         Err(_) => return Err(ErrorCode::IoReadFailed),
     }
 
+    // The legacy on-disk arm is keyed by the SAME label, so it diverges by the same mechanism.
     let (dir, source) = config_dir()?;
     let path = hs_pending_legacy_path(&dir, self_label, peer);
     if !path.exists() {
-        return Ok(None);
+        return Ok((
+            None,
+            if seen_cleared {
+                HsPendingState::Cleared
+            } else {
+                HsPendingState::Absent
+            },
+        ));
     }
     enforce_safe_parents(&path, source)?;
     let bytes = fs::read(&path).map_err(|_| ErrorCode::IoReadFailed)?;
@@ -1189,7 +1234,7 @@ fn hs_pending_load(self_label: &str, peer: &str) -> Result<Option<HandshakePendi
         Err("vault_missing" | "vault_locked") => return Err(ErrorCode::IdentitySecretUnavailable),
         Err(_) => return Err(ErrorCode::IoWriteFailed),
     }
-    Ok(Some(pending))
+    Ok((Some(pending), HsPendingState::Present))
 }
 
 fn hs_pending_store(pending: &HandshakePending) -> Result<(), ErrorCode> {
@@ -1581,7 +1626,7 @@ pub(crate) struct HsReplyWrap<'a> {
 
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn perform_handshake_poll_with_tokens(
-    self_label: &str,
+    self_label: Option<&str>,
     peer: &str,
     relay: &str,
     inbox_route_token: &str,
@@ -1592,6 +1637,41 @@ pub(crate) fn perform_handshake_poll_with_tokens(
     reply_wrap: Option<HsReplyWrap<'_>>,
 ) -> Result<(), &'static str> {
     enforce_peer_not_blocked(peer)?;
+    // NA-0711 (D647 A4 Δ36/Δ37, R238 §5.1): PRE-PULL, and it RETURNS Err.
+    //
+    // ⚠ Placement is the point. At the lookup below, the frame has already been pulled and leased;
+    // a refusal there is a better error message, not a fix. Here it sits beside
+    // `enforce_peer_not_blocked` -- this function's own precedent for a fail-closed precondition.
+    //
+    // ⚠ AND THE STYLE IS THE POINT TOO. The prevailing idiom in this function is
+    // `emit_marker(...); continue;` and `return Ok(())` (22 of them against one `return Err`), and
+    // NA-0616's ratified refusal is ALREADY defeated on this path by exactly that: the identity
+    // gate IS called below, and both call sites discard its error. A gate written in the local
+    // idiom would be swallowed identically. This one propagates.
+    let self_label = match crate::identity::identity_resolved_self_label(self_label) {
+        Ok(v) => v,
+        Err(e) => {
+            // ⚠ THE REFUSAL NAMES THE KEY IT WOULD HAVE LOOKED UNDER (D647 A4 Δ35, R238 §5.2).
+            // A refusal that says only "no" reproduces the very defect this lane exists to fix:
+            // three eras of `present=false` with nothing to attribute it to.
+            emit_marker(
+                "handshake_pending",
+                None,
+                &[
+                    ("peer", peer),
+                    ("present", "false"),
+                    ("role", "none"),
+                    (
+                        "key",
+                        hs_pending_secret_key(self_label.unwrap_or("<derive>"), peer).as_str(),
+                    ),
+                    ("state", "unresolved"),
+                ],
+            );
+            return Err(e.as_str());
+        }
+    };
+    let self_label = self_label.as_str();
     let items = match source {
         HsPollSource::Provided(v) => v.to_vec(),
         HsPollSource::Relay => match transport::relay_inbox_pull(relay, inbox_route_token, max) {
@@ -1607,7 +1687,10 @@ pub(crate) fn perform_handshake_poll_with_tokens(
         return Ok(());
     }
 
-    if let Some(pending) = hs_pending_load(self_label, peer).map_err(|e| e.as_str())? {
+    let (pending, pending_state) =
+        hs_pending_load_state(self_label, peer).map_err(|e| e.as_str())?;
+    let pending_key = hs_pending_secret_key(self_label, peer);
+    if let Some(pending) = pending {
         emit_marker(
             "handshake_pending",
             None,
@@ -1615,6 +1698,8 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                 ("peer", peer),
                 ("present", "true"),
                 ("role", pending.role.as_str()),
+                ("key", pending_key.as_str()),
+                ("state", pending_state.as_str()),
             ],
         );
         if pending.role == "initiator" {
@@ -2072,10 +2157,18 @@ pub(crate) fn perform_handshake_poll_with_tokens(
         }
     }
 
+    // NA-0711 (D647 A4 Δ35, R238 §5.2): NAME THE WHOLE KEY AND WHICH OF THE THREE STATES.
+    // ⚠ `present=false` alone is what cost this program three investigations across three eras.
     emit_marker(
         "handshake_pending",
         None,
-        &[("peer", peer), ("present", "false"), ("role", "none")],
+        &[
+            ("peer", peer),
+            ("present", "false"),
+            ("role", "none"),
+            ("key", pending_key.as_str()),
+            ("state", pending_state.as_str()),
+        ],
     );
 
     for item in items {
@@ -2290,7 +2383,7 @@ pub(crate) fn perform_handshake_poll_with_tokens(
 }
 
 fn handshake_poll_with_tokens(
-    self_label: &str,
+    self_label: Option<&str>,
     peer: &str,
     relay: &str,
     inbox_route_token: &str,
@@ -2317,7 +2410,7 @@ fn handshake_poll_with_tokens(
 }
 
 pub fn handshake_poll_with_suite_mode(
-    self_label: &str,
+    self_label: Option<&str>,
     peer: &str,
     relay: &str,
     max: usize,
@@ -2345,7 +2438,12 @@ pub fn handshake_poll_with_suite_mode(
 // D581 KEEP -> NA-0646 (D582): part of the library's pub GUI surface, seeded for the GUI
 // phase; dormant until the GUI consumes it (dead_code allowance retained meanwhile).
 #[allow(dead_code)]
-pub fn handshake_poll(self_label: &str, peer: &str, relay: &str, max: usize) -> CliResult {
+pub fn handshake_poll(
+    self_label: Option<&str>,
+    peer: &str,
+    relay: &str,
+    max: usize,
+) -> CliResult {
     handshake_poll_with_suite_mode(
         self_label,
         peer,

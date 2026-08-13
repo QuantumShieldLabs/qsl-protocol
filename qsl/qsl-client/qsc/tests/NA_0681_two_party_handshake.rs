@@ -225,6 +225,33 @@ fn two_strangers_become_a_session_through_one_invite() {
         bob_contacts.contains("relay_endpoints"),
         "the plural endpoint list must be laid from contact #1: {bob_contacts}"
     );
+
+    // ⚠⚠ NA-0711 (D647 A4 Δ40): THE STEP THIS TEST WAS MISSING, AND ITS ABSENCE IS WHY A
+    // BROKEN INVITE PATH SURVIVED TO A LIVE RELAY.
+    //
+    // Everything above asserts CONTACT state. Neither party was ever asked whether it holds a
+    // SESSION, and the accepter's own `handshake poll` -- the step that ingests A2 and the step
+    // that failed on the real rig for three walks across two client revs -- was never run here at
+    // all. A green on contact state says two strangers exchanged identities; it does not say they
+    // can talk.
+    let poll = run_ok(
+        &alice,
+        &["handshake", "poll", "--peer", "bob", "--relay", &base],
+    );
+    assert!(
+        poll.contains("handshake_complete") && poll.contains("role=responder"),
+        "the accepter must COMPLETE the handshake, not merely hold a contact:\n{poll}"
+    );
+    let alice_status = run_ok(&alice, &["handshake", "status", "--peer", "bob"]);
+    assert!(
+        !alice_status.contains("status=no_session"),
+        "the accepter must hold a session after its own poll:\n{alice_status}"
+    );
+    let bob_status = run_ok(&bob, &["handshake", "status", "--peer", "alice"]);
+    assert!(
+        !bob_status.contains("status=no_session"),
+        "the redeemer must hold a session:\n{bob_status}"
+    );
 }
 
 /// §5.3 arm (b): CLIENT-SIDE single use. The relay is not consulted — this is the arm that

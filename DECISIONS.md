@@ -38332,3 +38332,4 @@ HIGHEST_NA 0703→0705; HIGHEST_D 1343→1344 in this commit. Class at close:
     about #1723/#1725/#1727's contents · that a dispatch result equals a push result (mitigated,
     not erased, by 4a) · that goal-lint's design is right or wrong (the cure is passage, not
     remedy) · that the evidence chain is attestable beyond same-box content hashes.
+  - **Impl PR:** #1729 — PR-B of the R269 two-PR shape (the §4 fix, this addendum, the TRACEABILITY pointer, the tests/ evidence note, and the MERGING flip; records PR #1728 merged as `807f8f7d`).

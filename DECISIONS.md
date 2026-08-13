@@ -38266,6 +38266,47 @@ HIGHEST_NA 0703→0705; HIGHEST_D 1343→1344 in this commit. Class at close:
     the operator's act — ⚠ **and #1723 needs its own counter re-derivation first, which is not this
     lane's to perform.**
 
+## D-1351 — NA-0714: THE STORAGE HYGIENE LANE — the build box's cleanup job was not failing but skipping, its own unit declared the skip a success, and the disk alarm it already contained was unreachable
+
+  - **Status:** Accepted (R255 approved D650 as amended and ruled all six flags; N-04 confirmed the
+    P4 install by measurement and authorized the filings).
+  - **Context:** `/` stood at **468G total, 4.3G available, 100%** and had blocked NA-0713's
+    after-suite, which died at the **link step** with `rust-lld` on **signal 7 (bus error)**. A full
+    workspace build needs ~14G. The brief's hypothesis was that a backup or cleanup job had been
+    **failing silently for weeks**.
+  - **Decision:** the hypothesis was **measured false and replaced by a better one**. The job does
+    not fail — it exits **3 = `SAFE_SKIP_ACTIVE_BUILD`** whenever any `cargo`/`rustc` process is
+    alive, and its unit's **`SuccessExitStatus=3 10`** made systemd report `Result=success`.
+    ⚠⚠ **The script already contained the loud disk alarm the brief wanted added** (hard-stop at
+    ≥95%), **but the build guard returned before it was ever evaluated.** ⇒ the fix is **ordering
+    and honesty**, not a second alarm. See **WF-0069**.
+  - ⚠ **A second, independent defect was live at the same time**: the candidate matcher accepted only
+    `*/qsl-protocol/target`, a path measuring **113 bytes** for five of the seven largest consumers.
+    **Fixing the skip alone would not have fixed the disk.** See **WF-0070**.
+  - **Reclaim:** **352.3 GiB across 71 paths, 71/71 exits zero**, `/` **4.3G/100% → 359G/20%**. The
+    delete list was **frozen to a file before execution and iterated from it** — no glob evaluated at
+    delete time — with six safety guards measured **zero** beforehand, including *no symlinks*.
+    ⚠ **The selector was a PROPERTY (`CACHEDIR.TAG`), not a name**, and a control lacking the marker
+    was **spared**. ⚠⚠ **The entire reclaim required NO root**; only the P4 install did.
+  - **Build re-proven:** a fresh clone at `a54cb50a`, a target directory that did not previously
+    exist, `cargo build --workspace --all-targets --locked` → **`EXIT_STATUS=0` read from the log,
+    never from the harness signal** · 307 crates · **190 linked executables** · a 68M `qsc` test
+    binary listing **122 tests**. ⚠ `--all-targets` was chosen **because it links test binaries** —
+    the step that actually died.
+  - **Evidence class verified at both ends:** **3830 files sha256-identical**, SSD vs platter;
+    0 unexplained mismatches, 0 unexplained absences. ⚠ It totals ≈91M — **0.02% of the problem, and
+    already replicated nightly** — so the brief's most careful paragraph was about its smallest part.
+  - **Two premises of the governing brief measured false and are recorded as such:** *"this lane has
+    sudo"* (`sudo -n true` → *a password is required*, rc 1) and *"the platter must be mounted and
+    put in fstab"* (already mounted, already in `/etc/fstab` with `nofail`).
+  - ⚠ **Deliberately NOT done:** the backup exclude was **not** patched — its premise measured false
+    and no glob can express it (**ENG-0180**); the 30 existing snapshots were **not** pruned
+    (**ENG-0181**); the 6.7G of `.git` directories under `work/` were **left and listed** as
+    unclassifiable, since a seat may hold unpushed commits.
+  - ⚠ **The fix is not yet confirmed in production.** The unit's last activation was
+    **2026-08-11 03:37:39 CDT — the defective run itself.** The next activation is the first real
+    test, and **a green must not be read from it without checking `reclaimed_bytes`.**
+
 ## D-1353 — NA-0717: THE MACOS LOCK-REGISTRY ERRNO FIX — four tests hardcoded Linux's raw EWOULDBLOCK and failed on every macOS serial execution since their introduction merge, five silent reds nobody saw; the fix names the platform's own constant with assertion strength preserved exactly, and the lane ships as TWO PRs because the gate that would admit the fix reads a health signal any docs merge re-greens
 
   - **Status:** Accepted (R264 ratified diagnosis **C-2** and the §4 edit; R266 ruled Phase 4a IN;

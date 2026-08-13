@@ -4011,6 +4011,57 @@ A commission that grants a clone must **NAME the tree's `CLAUDE.md` for pre-empt
 - ⚠ Related but DISTINCT from **WF-0066**: that entry is a rule pointed at the wrong location; this one is a correct rule with an unavoidable blind spot.
 - Status: open — **FILING ONLY**. Originating/last lane: NA-0713 (D-1350). Last-updated: 2026-08-11.
 
+### WF-0069 — a guard placed before an alarm PREEMPTS it, and a `SuccessExitStatus` that absolves the guard's exit makes the whole failure read as health — **NEW; filed 2026-08-11 by NA-0714 (D-1351; R255 §1.4)**
+
+- Problem: `qbuild-ssd-maintenance` protects active builds by exiting **3 = `SAFE_SKIP_ACTIVE_BUILD`** whenever a `cargo`/`rustc`/`sccache` process is alive. ⚠⚠ **The script ALSO already contained a loud disk alarm** — `finish_with_policy_exit` exits 2 at root ≥95% and 4 at ≥80% — **but `detect_active_build` returned first, so the alarm was never evaluated.** The build-protection guard preempted the very alarm that would have made the crisis visible.
+- ⚠⚠ **And the unit laundered the skip into health:** `SuccessExitStatus=3 10` made systemd report `Result=success` / *"Deactivated successfully"* / *"Finished"*. **Any monitor watching unit health saw green while the disk filled to 100%.**
+- ⚠ **The measured proof, quoted from the last defective run** (`qbuild-ssd-maintenance_20260811T083732Z.json`): `"classification": "SAFE_SKIP_ACTIVE_BUILD"`, `"exit_code": 3`, `"reclaimed_bytes": 0`, `"disk_before": "… use=96% …"`, `"disk_after": ""`. **It saw 96% and stopped anyway**, deferring to a Claude Code seat running `cargo test`.
+- ⚠⚠ **The failure mode STRENGTHENS with the condition it fails to fix**: a fuller disk makes suites run longer, which makes a build likelier to be alive at the 03:30–03:50 timer window, which makes the skip likelier. Self-reinforcing, and it ran this way for weeks.
+- ⚠ **Fifth recorded instance of "a silent skip is a vacuous pass"** — after a test, a marker, a config and a permissions file, now **a cleanup job in production**.
+- Fix landed: the disk-pressure check runs **before** the build guard and arms an override at `ACT_PERCENT`; `3` is **removed from `SuccessExitStatus`** so a skip surfaces in `systemctl --failed`; thresholds are **stated** (`--act-percent 80 --alarm-percent 90`) rather than scattered literals; a status file is written where the operator can read it without `journalctl`.
+- ⚠ **Proven able to go RED before being trusted** (five fixture arms, all confined to `--fixture-root`): candidate deleted (exit 10) · a lookalike **without** the marker **spared** · skip preserved when unarmed (exit 3) · **override fired and deleted when armed** · **alarm exit 2 `HARD_FAILURE_ROOT_USAGE_ALARM`**. ⚠ **The decisive combination was skip-when-unarmed AND proceed-when-armed** — one arm alone cannot distinguish *fixed* from *broken*.
+- ⚠ **THE FIX IS NOT YET CONFIRMED IN PRODUCTION.** The unit's last activation was **2026-08-11 03:37:39 CDT — the defective run.** The next activation is the first real test. ⚠⚠ **Nobody should read a green from it without checking `reclaimed_bytes`**: a run that reports success having reclaimed 0 is the exact shape this entry describes.
+- Cross-reference: **WF-0070** (the sibling defect that made the cleaner ineffective even when it ran), **ENG-0180**, **ENG-0181**, **ENG-0170** and **ENG-0112** (the "declared but not in force" family), **WF-0064**.
+- Status: **FIX LANDED, PRODUCTION CONFIRMATION PENDING.** Originating/last lane: NA-0714 (D-1351). Last-updated: 2026-08-11.
+
+### WF-0070 — a selector keyed to a directory NAME cannot see the thing it is for; the PROPERTY can — **NEW; filed 2026-08-11 by NA-0714 (D-1351; R255 §4.2)**
+
+- Problem: `validate_target_candidate` accepted exactly `$WORK_ROOT/*/qsl-protocol/target`. ⚠ **Measured, that path is 113 BYTES for five of the seven largest consumers** (NA-0700, NA-0708, D642-formalize, NA-0711-formalize, NA-0696/0695/0692) — **so even a fully-running cleaner would have reclaimed ~0 from most of the mass.** Both defects were live simultaneously: fixing the skip alone would not have fixed the disk.
+- ⚠⚠ **The mass sat under names no pattern was ever going to enumerate.** The build directories actually reclaimed were named `target`, `targets`, `target-base`, `target_base`, `target_exec`, `target-clippy`, `target-formalize`, `target-gate`, `target_pin`, `target-promo`, `target_qsc_main`, `target-seam`, `target-sr15`, `p7target`, `qsctarget`, `qscmaintarget` — **and `p02`, `probes`, `proto-base`, `proto-work`, `desktop-base`, which contain no `target` substring at all.** Every seat that sets its own `CARGO_TARGET_DIR` invents a new name.
+- ⚠⚠ **The property that identifies a cargo build directory is the `CACHEDIR.TAG` cargo writes into it.** NA-0714's reclaim selected on that property and freed **352.3 GiB across 71 paths with zero non-zero exits**. ⚠ **A control is what made it a measurement:** a fixture directory of the same shape *without* the marker was **spared**, proving the instrument discriminates rather than matching everything.
+- ⚠ **Generalisation:** when a selector must find a *kind* of thing, prefer a marker the producing tool writes over a name a human chose. A name is a convention that every new caller is free to break; a marker is written by the thing itself.
+- Cross-reference: **WF-0069** (the sibling defect), **ENG-0180** (the same root defect in the backup, where it is **not** fixable), **ENG-0181**.
+- Status: open — **FILING ONLY** (the cleaner half is fixed under WF-0069; the backup half is ENG-0180). Originating/last lane: NA-0714 (D-1351). Last-updated: 2026-08-11.
+
+### ENG-0180 — the nightly backup copies build output to the platter, and the exclude CANNOT be repaired by widening the glob — **NEW; filed 2026-08-11 by NA-0714 (D-1351; R255 §3.2, FLAG-7)**
+
+- Problem: `/usr/local/sbin/qsl-backup` excludes `--exclude='*/target/***'` — **singular**. ⚠⚠ **`NA-0700/targets/` (35G, plural) is therefore present on the platter in all 30 daily snapshots.** ⚠ **The control is what makes this a measurement, not a guess:** `NA-0693/qsl-protocol/target` **is** correctly absent, so the pattern works exactly as written and the directory name defeats it.
+- ⚠⚠ **THE OBVIOUS FIX DOES NOT WORK, AND THAT IS THE ENTRY'S POINT.** R255 §3.2 ruled "fix the exclude bug"; **the premise measured false.** Five of the build directories NA-0714 reclaimed — `p02`, `probes`, `proto-base`, `proto-work`, `desktop-base` — **contain no `target` substring**, so no widened glob can catch them. Widening the pattern would reproduce **WF-0070** inside the backup.
+- ⚠ **And the property that does work cannot be expressed as an rsync flag**: rsync has **no `CACHEDIR.TAG` support** (`tar --exclude-caches` exists; rsync has no equivalent).
+- Recommended change (**proposed, not executed** — it changes what the backup covers and wants its own ruling): generate the exclude list with the same instrument and feed it in — `find /srv/qbuild/work -type d -exec test -f '{}/CACHEDIR.TAG' \; -print -prune | sed 's#^/##' > <list>` then `rsync … --exclude-from=<list>`.
+- ⚠ Verified separately: the **evidence** class is intact on the platter — **3830 files sha256-identical at both ends**, 0 unexplained mismatches, 0 unexplained absences.
+- Cross-reference: **WF-0070**, **ENG-0181** (the snapshots this already produced), **WF-0069**.
+- Status: **open — remanded for a ruling, no patch written.** Originating/last lane: NA-0714 (D-1351). Last-updated: 2026-08-11.
+
+### ENG-0181 — the platter already holds 30 hardlinked snapshots containing that build output, and pruning them is a separate destructive act — **NEW; filed 2026-08-11 by NA-0714 (D-1351; R255 §3.5, FLAG-5)**
+
+- Problem: fixing **ENG-0180** stops the accretion but reclaims nothing already written. `NA-0700/targets` alone is **35G**, retained across **30 daily snapshots** (`DAILY_KEEP=30`), hardlinked.
+- ⚠ **MEASURED, so the successor inherits numbers rather than a worry** (hardlink-aware `du`, read-only, platter untouched by this lane). `/dev/sda1` 916G, **465G used / 442G free / 52%**:
+
+  | path | size | note |
+  |---|---|---|
+  | `snapshots/` | **189G** | all 30 dailies **together**, hardlink-aware — *not* 30 × 35G |
+  | `qbuild-tmp-archive/` | **148G** | where the cleaner archives `tmp` proof-roots |
+  | `qbuild-archives/` | **130G** | |
+  | everything else | <4M | `incoming`, `restores`, `logs`, `manifests`, rollback |
+
+- ⚠⚠ **The snapshots are NOT the largest thing on the platter.** `qbuild-tmp-archive` + `qbuild-archives` total **278G — more than the 30 snapshots combined** — and neither has been examined by any lane. **A ruling aimed only at snapshot pruning would address the smaller half.**
+- ⚠ **STILL UNMEASURED, and stated so rather than estimated:** how much of the 189G is build output versus evidence. The 35G figure is one directory in one snapshot; **the hardlinked share across 30 is not derivable from it.** That sweep is the precondition for any pruning decision.
+- ⚠ **Not urgent** at 52% used — which is precisely why it should be ruled deliberately rather than folded into a cleanup.
+- ⚠⚠ **This is a destructive act on the BACKUP ITSELF**, the artifact that protects everything else. It was explicitly **not** authorized to NA-0714 and is recorded here so it is not quietly absorbed into a later lane.
+- Cross-reference: **ENG-0180** (the cause), **WF-0070**.
+- Status: **open — awaiting a ruling of its own.** Originating/last lane: NA-0714 (D-1351). Last-updated: 2026-08-11.
+
 ### ENG-0184 — na0696 lock-registry tests encode Linux's EWOULDBLOCK as literal 11 — **NEW; filed 2026-08-12 by NA-0717 (D-1353; text as amended at A1 §7, ruled R267/R271)**
 
 Four raw-probe tests fail deterministically on Darwin (EWOULDBLOCK==EAGAIN==35; 11 is EDEADLK); failed on every ENUMERATED macOS serial execution since their introduction merge: the five main-push runs a0b18d66→5b43eefe (identical signature, logs banked NA-0717; push-side enumeration complete — 21 first-parent pushes, exactly those five non-docs), and the event-unfiltered run enumeration banked at execution (MACOS_RUN_ENUM.log; if it surfaces executions beyond the five-plus-this-lane's-dispatches, this sentence's scope is that enumerated set). Production classifier portable (ErrorKind::WouldBlock, mod.rs:161-166). Base already encodes Linux silently for unlisted Unix targets (would runtime-pass where EAGAIN==11, runtime-fail where 35); post-fix those targets fail to COMPILE the test module — fail-closed made visible. Test-side defect; addressed by D-1353 (this lane, PR-B). Status: fixed-by-D-1353 on merge.

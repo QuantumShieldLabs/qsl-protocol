@@ -38333,3 +38333,29 @@ HIGHEST_NA 0703→0705; HIGHEST_D 1343→1344 in this commit. Class at close:
     not erased, by 4a) · that goal-lint's design is right or wrong (the cure is passage, not
     remedy) · that the evidence chain is attestable beyond same-box content hashes.
   - **Impl PR:** #1729 — PR-B of the R269 two-PR shape (the §4 fix, this addendum, the TRACEABILITY pointer, the tests/ evidence note, and the MERGING flip; records PR #1728 merged as `807f8f7d`).
+
+## D-1354 — NA-0718: THE GOVERNANCE DOCS ERRAND — the DIRECTOR_OWED record re-audited from on-box artifacts only, and the prediction ledger's eighteen-lane close-row debt measured and recorded as debt rather than reconstructed
+
+  - **Status:** Accepted (ordered by the NA-0717 ruling packet R277–R279, ORDER 3 leg 2: the
+    errand is REAL owed work AND the door that re-greens main's public-safety signal after
+    PR #1729's merge push — the WF-0074 mechanism's second recorded use, both uses on the
+    record). Ids re-derived at the edit per WF-0068 (sweep banked in the NA-0717 lane
+    record: NA-0718 and D-1354 free across main and all three open PRs; STATE advanced
+    0717/1353 → 0718/1354).
+  - **Context:** the Director's owed-acts record (`DIRECTOR_OWED_AT_NA0698_CLOSE.md`,
+    operator-side, 2026-08-06) enumerates obligations that outlive any one chat window; the
+    NA-0717 arc surfaced that the prediction ledger's close rows stopped at NA-0698. The
+    packet's harvest rule: source rows from on-box closeout records only; anything
+    unfindable is LISTED AS STILL-OWED, never reconstructed from memory.
+  - **Decision:** ship `docs/ops/DIRECTOR_OWED_REAUDIT_2026-08-13.md` — per-item statuses
+    established from on-box artifacts with every instrument stated (1 DISCHARGED by
+    NA-0699/D-1339 · items 2/3/4c UNDISCHARGED · 4 PENDING with the ceiling-bridge
+    interaction named openly · 4b partially evidenced · 5 evolved) — plus the ledger's
+    debt-audit comment: **NA-0699 through NA-0716, eighteen lanes, ZERO close rows in repo
+    truth and ZERO transcribable on-box sources** (six candidate files all classified false
+    positives in the note) ⇒ recorded as STILL-OWED at each lane's retrospective close.
+  - **Goals:** G4. ⚠ G1, G2, G3, G5 NOT claimed — docs-only.
+  - **Not claimed:** that anything closes by re-reading · that chat-window acts did not
+    occur (outside the instrument's scope) · that the ceiling bridge alters the ratified
+    promotion/retirement plan · that this errand discharges any owed item other than
+    making the debt measurable.

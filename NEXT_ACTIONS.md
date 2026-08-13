@@ -6,7 +6,7 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0720 | HIGHEST_NA=0720 | HIGHEST_D=1356 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0721 | HIGHEST_NA=0721 | HIGHEST_D=1357 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
 **FORWARD ORDER — Director decision 2026-08-02, operator-approved.**
 **as of: 2026-08-03** · **superseded by: _none — this is current_**
@@ -37215,3 +37215,8 @@ Goals: G4 (verification and record as a release gate — **the property: a CI ce
 
 Status: MERGING (PR #1732)
 Goals: G4 (verification and record as a release gate — **the property: a measured debt is paid the way it was measured — rows land only from a surviving artifact, byte-verbatim, the discharge scoped to exactly what the artifact contains, and the unpaid remainder restated rather than erased**). ⚠ **G1, G2, G3 and G5 are NOT claimed** — docs-only; no source, no CI, no dependency change.
+
+### NA-0721 — THE DOOR-2 CLOSEOUT-RECORDS ERRAND (R284's door 2, canonical text banked at R286; the WF-0074 door inventory's FOURTH recorded use, and REAL owed work): NA-0717's closeout records land in repo truth — §4's ELEVEN execution SR-16 prediction rows appended to docs/ops/PREDICTION_LEDGER.md byte-verbatim (rows only, order preserved, beneath everything existing; pipe-line total 71 → 82; all eleven proven ABSENT at base by exact full-line match, two extraction instruments agreeing byte-for-byte), and §3's ENG-0185 filing entered in docs/ops/IMPROVEMENT_LEDGER.md in house entry form, its text byte-faithful to the source with the wrapped-source → house-form transformation PROVEN against ENG-0184's own landing rather than assumed (D-1357; ordered by the Director's DOOR-2 order 2026-08-13; ids re-derived at the edit per WF-0068 — sweep banked in the NA-0721 lane record, NA-0721/D-1357 free across main `28860f25` + both remaining open PRs #1725/#1727). Source: `STOP_NA0717_011_20260813T152737Z.md` (sha256 `809acf1aea29198268c0918e59ff283b89882e6c79e1b38fe58e562e62085118`, banked 444), its FINAL-STOP sentinel verified before extraction. Docs-only by construction (classify_ci_scope.sh over the exact name-only diff, sealed first, run unpiped → docs_only=true). NOT CLAIMED: that ENG-0185 is fixed · that main's public-safety passes on its own merits · that any MERGING block is retired · that the sixteen-lane close-row remainder moves · ⚠ #1725/#1727 do NOT ride this door (R283).
+
+Status: MERGING (PR #1733)
+Goals: G4 (verification and record as a release gate — **the property: a record written at a lane's close is not yet a record — it becomes one only where the program actually reads it, so the arc that measured an eighteen-lane records debt does not silently become the nineteenth**). ⚠ **G1, G2, G3 and G5 are NOT claimed** — docs-only, zero source bytes.

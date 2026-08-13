@@ -6,7 +6,7 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0717 | HIGHEST_NA=0717 | HIGHEST_D=1353 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0718 | HIGHEST_NA=0718 | HIGHEST_D=1354 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
 **FORWARD ORDER — Director decision 2026-08-02, operator-approved.**
 **as of: 2026-08-03** · **superseded by: _none — this is current_**
@@ -37172,3 +37172,8 @@ Goals: G4 (verification and record as a release gate — **the property: an advi
 
 Status: MERGING (PR #1729)
 Goals: G4 (verification and record as a release gate — **the property: a test that probes a RAW platform value must name the platform's own constant, exact per platform and fail-closed on unlisted platforms, never one platform's integer hardcoded for all; proven by the same binary at the same sha reading 122/0 on Linux and 118/4 on macOS with the failure spelled in the platform's own errno, then watched green on the platform that failed**). ⚠ **G1, G2, G3 and G5 are NOT claimed** — no key derivation, no state machine, no negotiation, no metadata surface; the code change is six assertion literals inside one `#[cfg(test)]` module.
+
+### NA-0718 — THE GOVERNANCE DOCS ERRAND (ORDER 3's door, and REAL owed work): the DIRECTOR_OWED re-audit — one obligation DISCHARGED, four UNDISCHARGED with instruments stated, one pending act with its ceiling-bridge interaction named — and the ledger's eighteen-lane close-row debt measured, recorded as debt, and deliberately NOT reconstructed (D-1354; ordered by the NA-0717 ruling packet R277-R279 ORDER 3 leg 2; ids re-derived at the edit: sweep banked in the NA-0717 lane record, NA-0718/D-1354 free across main + all three open PRs). Contents: `docs/ops/DIRECTOR_OWED_REAUDIT_2026-08-13.md` (the per-item status table with every status established from on-box artifacts only) + the PREDICTION_LEDGER debt-audit comment (18 lanes NA-0699..NA-0716 STILL-OWED at their retrospective closes; the on-box harvest found ZERO transcribable rows — six candidate files, all false positives, classified in the note). Docs-only by construction; its merge is the WF-0074 door's SECOND recorded use (re-greening main's public-safety signal after PR #1729's push, whose serial run red/cancel is PRE-DECLARED per R277), on the record here as the first was. NOT CLAIMED: that anything closes by re-reading · that chat-window acts did not occur (outside the instrument's scope) · that the ceiling bridge alters the ratified promotion/retirement plan.
+
+Status: MERGING (PR #1730)
+Goals: G4 (verification and record as a release gate — **the property: an obligation ledger is only trustworthy if its gaps are measured with a stated instrument and recorded as debt, never papered over by reconstruction from memory**). ⚠ **G1, G2, G3 and G5 are NOT claimed** — docs-only; no source, no CI, no dependency change.

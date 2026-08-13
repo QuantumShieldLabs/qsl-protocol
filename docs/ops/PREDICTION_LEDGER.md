@@ -61,3 +61,9 @@ STOP 008 / R59; class QSL_CI_PHASE1_HERMETIC_SHARD_PASS; impl PR #1708 merged 3f
 | NA-0717 draft | Linux lib baseline at 5b43eefe: 122 passed / 0 failed, four tests ok by name | exact | HIT | both platforms measured at one sha |
 | NA-0717 draft | 653 Phase 3 sealed "goal-lint PASS" for the single-PR shape; the R269/R270 packet sealed it again for PR-B | goal_lint.py:90-93 fails BOTH shapes — core path, no tests/-dir path; unsatisfiable as sealed | MISS (three chairs: 653's author, SR-15 T4, the Director's ruling packet) | caught by the amending seat re-verifying every consumer against the new shape; a sealed expectation is not sealed until its consumer has been executed or read against the exact shape it seals |
 | NA-0717 draft | 653 Phase 1 sealed "cargo fmt --check clean on the file" jointly with §4(b)'s exact one-line site forms | rustfmt rewraps 4 of 6 sites (symbol +13 chars; only one rewrapped site crosses max_width=100 — the operative trigger is an inner call-width heuristic, unmeasured; governing evidence = measured rc chain + the four-hunk diff); the seal pair is unsatisfiable as written — base file clean, instrument valid | MISS (653's author; SR-15 and the ruling packet did not execute the post-edit fmt consumer either) | row 5's lesson, second instance in one lane: a sealed expectation is not sealed until its consumer has been executed against the exact shape it seals |
+<!-- LEDGER DEBT AUDIT 2026-08-13 (NA-0718, D-1354): close rows exist through NA-0698 and
+drafting rows for NA-0717 ONLY. For NA-0699..NA-0716 (18 lanes) NO close rows exist here
+AND no on-box source contains them (instrument and per-file classification in
+docs/ops/DIRECTOR_OWED_REAUDIT_2026-08-13.md): they are STILL-OWED at each lane's
+retrospective close — recorded as debt, deliberately NOT reconstructed from memory.
+NA-0717's execution rows enter at its close per the standing deferral. -->

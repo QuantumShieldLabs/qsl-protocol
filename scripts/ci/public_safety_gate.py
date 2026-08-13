@@ -12,6 +12,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections.abc import Callable
 from pathlib import PurePosixPath
 
 
@@ -339,6 +340,33 @@ def github_get(path: str, query: dict[str, str] | None = None) -> dict:
     return json.loads(body)
 
 
+def github_get_or_http_error(
+    path: str, query: dict[str, str] | None = None
+) -> tuple[dict | None, str | None]:
+    """GET that reports an HTTP failure as a condition instead of exiting.
+
+    The caller decides whether an unreadable endpoint is fatal, so a permission error
+    can refuse with a named reason instead of aborting the whole gate. Same shape as
+    qsl_bounded_check_poll.gh_api_or_error.
+    """
+    url = api_url(path, query=query)
+    req = urllib.request.Request(
+        url,
+        headers={
+            "Accept": "application/vnd.github+json",
+            "Authorization": f"Bearer {github_token()}",
+            "User-Agent": "qsl-public-safety-gate",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req) as resp:
+            return json.loads(resp.read()), None
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        print(f"NOTE: GitHub API {exc.code} for {url}\n{body}", file=sys.stderr)
+        return None, f"HTTP {exc.code}"
+
+
 def github_get_for_wait(path: str, query: dict[str, str] | None = None) -> dict:
     url = api_url(path, query=query)
     req = urllib.request.Request(
@@ -596,8 +624,23 @@ def github_job_log_text(repo: str, job_id: int) -> str:
     return body.decode("utf-8", errors="replace")
 
 
-def branch_required_checks(repo: str, branch: str) -> tuple[list[str], dict[str, int]]:
-    data = github_get(f"/repos/{repo}/branches/{branch}/protection/required_status_checks")
+def branch_required_checks(
+    repo: str, branch: str
+) -> tuple[list[str], dict[str, int], str | None]:
+    """Read a branch's required status checks.
+
+    Returns (contexts, app_ids, unreadable). ``unreadable`` is None on success and an
+    HTTP reason otherwise: the workflow token is not guaranteed to hold the permission
+    this endpoint needs, and a gate that dies on a permission it may not have cannot
+    reach the admission logic that would refuse — or admit — the PR on its merits.
+    Callers MUST treat a non-None ``unreadable`` as a refusal in its own right and never
+    as an empty required-check set.
+    """
+    data, error = github_get_or_http_error(
+        f"/repos/{repo}/branches/{branch}/protection/required_status_checks"
+    )
+    if error is not None or data is None:
+        return [], {}, error or "unreadable"
     contexts = list(data.get("contexts") or [])
     app_ids: dict[str, int] = {}
     for check in data.get("checks") or []:
@@ -605,7 +648,7 @@ def branch_required_checks(repo: str, branch: str) -> tuple[list[str], dict[str,
         app_id = check.get("app_id")
         if context and app_id is not None:
             app_ids[context] = int(app_id)
-    return contexts, app_ids
+    return contexts, app_ids, None
 
 
 def check_completed_non_failing(run: dict | None) -> bool:
@@ -743,6 +786,17 @@ def validate_red_main_repair_evidence(
         )
 
     required_contexts = list(evidence.get("required_contexts") or [])
+    required_unreadable = evidence.get("required_contexts_unreadable")
+    if required_unreadable:
+        # Deliberately independent of the membership check below. An unreadable
+        # protection set is refused for its own stated reason, so this refusal does not
+        # depend on that check surviving a future edit: the required-PR-check loop at the
+        # end of this function iterates required_contexts, and an empty list would
+        # silently verify none of them.
+        errors.append(
+            "branch protection required checks are unreadable "
+            f"({required_unreadable}); cannot verify required PR checks"
+        )
     if "public-safety" not in required_contexts:
         errors.append("branch protection required checks do not include public-safety")
 
@@ -902,7 +956,9 @@ def build_live_red_main_repair_evidence(
     profile = red_main_profile(profile_name)
     branch_sha = branch_head_sha(repo, branch)
     main_check_runs = latest_run_map(commit_check_runs(repo, branch_sha))
-    required_contexts, required_app_ids = branch_required_checks(repo, branch)
+    required_contexts, required_app_ids, required_unreadable = branch_required_checks(
+        repo, branch
+    )
     next_actions = repo_file_text(repo, branch, "NEXT_ACTIONS.md")
     active, ready_items = active_ready_entry(next_actions)
     active_data = None
@@ -950,6 +1006,7 @@ def build_live_red_main_repair_evidence(
         "branch_sha": branch_sha,
         "required_contexts": required_contexts,
         "required_app_ids": required_app_ids,
+        "required_contexts_unreadable": required_unreadable,
         "ready_items": ready_items,
         "active_ready": active_data,
         "main_checks": main_check_runs,
@@ -1157,6 +1214,22 @@ def validate_self_repair_bootstrap_pr(
     return 0
 
 
+def run_admission_attempts(attempts: list[tuple[str, Callable[[], int]]]) -> int | None:
+    """Run each bounded admission attempt in order, printing one line per attempt.
+
+    Returns 0 as soon as an attempt admits the PR, else None. The per-attempt line is the
+    gate's evidence that the attempt was actually reached: its ABSENCE means the process
+    died before the attempt ran, not that the attempt refused. Keeping the loop separate
+    keeps that distinction provable offline.
+    """
+    for name, attempt in attempts:
+        rc = attempt()
+        print(f"PUBLIC_SAFETY_ATTEMPT {name} rc={rc}")
+        if rc == 0:
+            return 0
+    return None
+
+
 def check_main_public_safety(args: argparse.Namespace) -> int:
     sha = branch_head_sha(args.repo, args.branch)
     main_check_runs = commit_check_runs(args.repo, sha)
@@ -1213,11 +1286,8 @@ def check_main_public_safety(args: argparse.Namespace) -> int:
     if not advisory_is_blocker and args.allow_advisory_remediation_pr is not None:
         attempts.append(("advisory-remediation", advisory_attempt))
 
-    for name, attempt in attempts:
-        rc = attempt()
-        print(f"PUBLIC_SAFETY_ATTEMPT {name} rc={rc}")
-        if rc == 0:
-            return 0
+    if run_admission_attempts(attempts) == 0:
+        return 0
     if attempts:
         print(
             f"ERROR: latest {args.branch} public safety is not green and no bounded "
@@ -1785,6 +1855,109 @@ def run_fixture_proofs(args: argparse.Namespace) -> int:
             expected_active_ready_na="NA-0239",
         )
         ok = expect_fixture_result(name, expected_ok, errors) and ok
+
+    # NA-0716: branch protection can be unreadable (the workflow token is not guaranteed
+    # to hold the permission that endpoint needs). The gate must REFUSE for that stated
+    # reason instead of aborting, and must never read "unreadable" as "no required checks".
+    unreadable_errors = validate_red_main_repair_evidence(
+        fixture_red_main_evidence(
+            required_contexts=[],
+            required_app_ids={},
+            required_contexts_unreadable="HTTP 403",
+        ),
+        profile_name=profile,
+        pr_number=721,
+        expected_sha="abc123",
+        expected_markers=markers,
+        expected_active_ready_na="NA-0239",
+    )
+    ok = expect_fixture_result(
+        "branch_protection_unreadable_rejected", False, unreadable_errors
+    ) and ok
+    named = [error for error in unreadable_errors if "unreadable (HTTP 403)" in error]
+    if named:
+        print("FIXTURE branch_protection_unreadable_names_true_reason: PASS")
+        print(f"FIXTURE branch_protection_unreadable_names_true_reason: reason={named[0]}")
+    else:
+        print(
+            "FIXTURE branch_protection_unreadable_names_true_reason: FAIL "
+            "refusal does not name the unreadable condition"
+        )
+        ok = False
+
+    # The control that matters (R262 8.2): unreadable protection must not become a bypass
+    # of PR-check verification. The required-check loop iterates required_contexts, so an
+    # empty list verifies NOTHING -- here a required PR check is FAILING and the fixture
+    # must still be refused.
+    bypass_errors = validate_red_main_repair_evidence(
+        fixture_red_main_evidence(
+            required_contexts=[],
+            required_app_ids={},
+            required_contexts_unreadable="HTTP 403",
+            pr={
+                "checks": fixture_checks(
+                    fixture_required_contexts(), failing={"ci-4a"}
+                )
+            },
+        ),
+        profile_name=profile,
+        pr_number=721,
+        expected_sha="abc123",
+        expected_markers=markers,
+        expected_active_ready_na="NA-0239",
+    )
+    ok = expect_fixture_result(
+        "unreadable_protection_does_not_bypass_pr_check_verification",
+        False,
+        bypass_errors,
+    ) and ok
+
+    # Readable protection still refuses a PR it should refuse -- the change must not have
+    # made the gate lenient when the endpoint works.
+    ok = expect_fixture_result(
+        "readable_protection_still_refuses_bad_pr",
+        False,
+        validate_red_main_repair_evidence(
+            fixture_red_main_evidence(pr={"files": ["README.md"]}),
+            profile_name=profile,
+            pr_number=721,
+            expected_sha="abc123",
+            expected_markers=markers,
+            expected_active_ready_na="NA-0239",
+        ),
+    ) and ok
+
+    # The attempt lines are the proof the gate REACHED its admission logic. Their absence
+    # was the proof of the abort, so their presence is the proof of the repair.
+    attempt_log: list[str] = []
+
+    def stub(name: str, rc: int) -> tuple[str, Callable[[], int]]:
+        def run() -> int:
+            attempt_log.append(name)
+            return rc
+        return name, run
+
+    attempt_log.clear()
+    continued = run_admission_attempts([stub("red-main-repair", 1), stub("advisory", 0)])
+    if continued == 0 and attempt_log == ["red-main-repair", "advisory"]:
+        print("FIXTURE admission_attempts_continue_after_refusal: PASS")
+    else:
+        print(
+            "FIXTURE admission_attempts_continue_after_refusal: FAIL "
+            f"rc={continued} ran={attempt_log}"
+        )
+        ok = False
+
+    attempt_log.clear()
+    exhausted = run_admission_attempts([stub("red-main-repair", 1), stub("advisory", 1)])
+    if exhausted is None and attempt_log == ["red-main-repair", "advisory"]:
+        print("FIXTURE admission_attempts_all_refuse_prints_every_line: PASS")
+    else:
+        print(
+            "FIXTURE admission_attempts_all_refuse_prints_every_line: FAIL "
+            f"rc={exhausted} ran={attempt_log}"
+        )
+        ok = False
 
     advisory_evidence = {
         "main_checks": {

@@ -38393,3 +38393,53 @@ HIGHEST_NA 0703→0705; HIGHEST_D 1343→1344 in this commit. Class at close:
   - **Not claimed:** that the suites stop growing · that the ratchet exists · that the
     demotion tally advances · that a completed run under the new ceiling has happened yet —
     the first lands on this lane's own merge push (Phase 6's relocated seal, R279).
+
+## D-1356 — NA-0720: THE DOOR-1 OWED-ROWS ERRAND — the succession packet's 23 surviving NA-0699/NA-0700 prediction rows land byte-verbatim, and the eighteen-lane debt note is discharged exactly as far as the surviving artifact reaches: two lanes paid, sixteen restated as still owed
+
+  - **Status:** Accepted (ordered by the Director's DOOR-1 order, 2026-08-13, under the
+    admission R282 ruled — "the Director-attributed owed-rows docs errand (door use #3,
+    ruled, real work)", RBANK_NA0717_010 — the WF-0074 door's THIRD recorded use, on the
+    record here as the first two were. Ids re-derived at the edit per WF-0068: sweep
+    banked in the NA-0720 lane record; NA-0720 and D-1356 free across main `f54d3b82`
+    and all three open PRs #1723/#1725/#1727; STATE advanced 0719/1355 → 0720/1356.)
+  - **Context:** D-1354's re-audit (`docs/ops/DIRECTOR_OWED_REAUDIT_2026-08-13.md`)
+    recorded the prediction ledger's close-row debt: eighteen lanes NA-0699..NA-0716
+    with zero rows in repo truth and zero transcribable ON-BOX sources. The succession
+    packet `QSL_HANDOFF_20260812_1530` — off-box, outside that instrument's scope at the
+    SR-01 boundary — is the sole surviving artifact carrying any of them: the rows
+    composed at NA-0699's and NA-0700's actual closes. The source document's provenance,
+    verbatim from its header (sha256
+    `b2f5fde542a4b8246f20b7b1912d059ccbcce46f6584bdf5842e063c0900dc3d`, banked 444 in
+    the NA-0720 lane record):
+
+```
+# Provenance: extracted by the Director 2026-08-13 from the succession packet's
+# PREDICTION_LEDGER.md (QSL_HANDOFF_20260812_1530), diffed verbatim against
+# docs/ops/PREDICTION_LEDGER.md at current main — 23 rows present in the packet,
+# absent from repo truth. Director-attributed (SR-01 boundary: the on-box record
+# holds no source for these; the packet is the sole surviving artifact — recorded
+# as such in NA-0718's STILL-OWED note, which this errand discharges).
+```
+
+  - **Decision:** append the 23 rows to `docs/ops/PREDICTION_LEDGER.md` byte-verbatim —
+    rows only, order preserved, beneath everything existing, no other edit to the ledger
+    (pipe-line total 48 → 71; all 23 proven ABSENT at base by exact full-line match,
+    zero hits; the appended block proven cmp-identical to the source rows, both
+    extraction routes agreeing byte-for-byte). **NA-0718's STILL-OWED note (D-1354; the
+    'STILL-OWED close rows (18 lanes)' list in the re-audit) is DISCHARGED AS TO NA-0699
+    AND NA-0700 by this record** — ten NA-0699 rows and thirteen NA-0700 rows, the
+    packet's entire surviving content. ⚠ **The note's remaining sixteen lanes
+    (NA-0701..NA-0716) stay STILL-OWED, unaltered, under the note's own
+    retrospective-close rule** — no surviving artifact is known to hold their rows, and
+    nothing here is reconstructed from memory. The ledger's 2026-08-13 debt-audit
+    comment ("NO close rows exist here AND no on-box source contains them") is
+    SUPERSEDED IN PART by the rows now standing beneath it for exactly these two lanes;
+    its bytes are deliberately untouched — the ledger edit is rows-only by order.
+  - **Goals:** G4. ⚠ G1, G2, G3, G5 NOT claimed — docs-only; no source, no CI, no
+    dependency change.
+  - **Not claimed:** that any lane beyond NA-0699/NA-0700 gains rows · that the
+    sixteen-lane remainder is payable (no artifact is known to hold it) · that any other
+    D-1354 re-audit item moves (the cache AFTER figure and the packet-refresh history
+    stand as re-audited) · that ENG-0185's cure advances here — this merge only
+    re-greens the admission signal the door reads, for the successor gate lane R282
+    names; #1723/#1725/#1727 wait per R283.

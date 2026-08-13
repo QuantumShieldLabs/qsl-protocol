@@ -6,7 +6,7 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0719 | HIGHEST_NA=0719 | HIGHEST_D=1355 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0720 | HIGHEST_NA=0720 | HIGHEST_D=1356 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
 **FORWARD ORDER — Director decision 2026-08-02, operator-approved.**
 **as of: 2026-08-03** · **superseded by: _none — this is current_**
@@ -37182,3 +37182,8 @@ Goals: G4 (verification and record as a release gate — **the property: an obli
 
 Status: MERGING (PR #1731)
 Goals: G4 (verification and record as a release gate — **the property: a CI ceiling is a measured artifact with its basis in the file beside it, re-fitted when the measurement moves, never a number that quietly decides for us by expiring**). ⚠ **G1, G2, G3 and G5 are NOT claimed** — two workflow scalars and records; zero product bytes.
+
+### NA-0720 — THE DOOR-1 OWED-ROWS ERRAND (door use #3, ruled at R282, and REAL owed work): the succession packet's 23 surviving NA-0699/NA-0700 prediction rows land in docs/ops/PREDICTION_LEDGER.md byte-verbatim — the eighteen-lane debt note discharged exactly as far as the artifact reaches, two lanes paid, sixteen restated as still owed (D-1356; ordered by the Director's DOOR-1 order 2026-08-13 under R282's ruled admission, RBANK_NA0717_010; ids re-derived at the edit per WF-0068 — sweep banked in the NA-0720 lane record, NA-0720/D-1356 free across main `f54d3b82` + all three open PRs #1723/#1725/#1727). Source: `DOOR1_owed_prediction_rows_20260813.md` (sha256 `b2f5fde542a4b8246f20b7b1912d059ccbcce46f6584bdf5842e063c0900dc3d`, banked 444); all 23 rows proven ABSENT at base by exact full-line match (zero hits), appended rows-only, order preserved, cmp-identical to the source (pipe-line total 48 → 71); the ledger's debt-audit comment is superseded IN PART for exactly these two lanes, its bytes untouched. Docs-only by construction (classify_ci_scope.sh over the exact name-only diff, sealed first, run unpiped → docs_only=true); this merge is the WF-0074 door's THIRD recorded use, re-greening the admission signal for the successor gate lane R282 names — ⚠ #1723/#1725/#1727 do NOT ride it (R283). NOT CLAIMED: that any lane beyond NA-0699/NA-0700 gains rows · that the sixteen-lane remainder is payable · that ENG-0185's cure advances here.
+
+Status: MERGING (PR #PRNUM)
+Goals: G4 (verification and record as a release gate — **the property: a measured debt is paid the way it was measured — rows land only from a surviving artifact, byte-verbatim, the discharge scoped to exactly what the artifact contains, and the unpaid remainder restated rather than erased**). ⚠ **G1, G2, G3 and G5 are NOT claimed** — docs-only; no source, no CI, no dependency change.

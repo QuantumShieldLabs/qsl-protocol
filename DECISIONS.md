@@ -38058,6 +38058,21 @@ HIGHEST_NA 0703→0705; HIGHEST_D 1343→1344 in this commit. Class at close:
     accepter — only that none of the three documented collectors works, and that if one exists the
     documented surface does not lead a reader to it.**
 
+## D-1348 — NA-0711: THE INVITE-PATH DIAGNOSIS AND FIX — the program's #1 defect was two flag names for one key, and a client that hid the mismatch; closed by DERIVING what was being asked for, and proven on the producer it was found on
+
+- **Date:** 2026-08-11. **Lane:** NA-0711. **Directive:** D647 as amended by A1–A4 (precedence A4 > A3 > A2 > A1 > base). **Rulings:** R231, R232 (re-issued after a delivery gap), R233, R234, R235, R236, R237, R238, R242, R244. **SR-15 read:** `FINDINGS_SR15_D647_20260811T052330Z.md` — **4 BLOCKER / 4 MAJOR / 6 MINOR**, with its attestation.
+- **Decision:** ENG-0173 is **re-characterized and CLOSED**. The invite path did not fail in the crypto, the frames or the relay: `invite accept --self-label` and `handshake poll --as` took **the same component of the pending-record key under two different names, both silently defaulting to `self`**, and when they disagreed the client emitted `present=false role=none` and `decode_failed` — **for a frame it had already successfully decoded.** The remedy derives the label from the config dir's single self identity, refuses an inconsistent explicit label **before the relay pull**, and makes the marker name **the whole key and which of three states** it found.
+- ⚠ **THE DIAGNOSIS OVERTURNED THE FILING IT INHERITED.** ENG-0176 said the accepter's handshake state was *"never persisted"*. **The source said otherwise and the vault proved it**: the record was present, complete, 9322/9350 bytes, with all eight fields — **under the explicit label, and absent under the default.** ⚠ The probe carried a **negative control** (`identity.kem_sk.self` absent) *because a presence result without one would have been an assertion*, and a third outcome — **cleared** — which is how "consumed" was separated from "missing".
+- ⚠ **THE PROGRAM HAD ALREADY RULED THIS PROPERTY AND NOT EXTENDED IT.** NA-0616/ENG-0001 ratified *"an inconsistent self label must FAIL CLOSED"* — and the gate that enforces it **is called on the poll path and has its error discarded** (`handshake/mod.rs:2127`/`:2183`, where the init path at `:1417` propagates). ⚠ **The property was ratified and then defeated by suppression at the site that needed it.** The fix reuses the ratified predicate rather than authoring a new one, and is written to propagate against a file whose prevailing idiom is 22 `return Ok(())` to one `return Err`.
+- ⚠ **THE SR-15 READ CHANGED THE SHAPE BEFORE ANY CODE WAS WRITTEN.** Its Q0 answered **against the ruling**: *"S2 is the right safety property and the wrong sufficient shape"* — a refusal-only fix could never turn an outcome-asserting instrument from RED to GREEN, and the default-label instrument the directive specified **could not go RED at all**, because a passing test already covered that shape. **Both were the Director's own, and both were caught at the cheapest possible moment.**
+- **Proven in both halves, neither substituting for the other:** the in-process instrument (`tests/na0711_invite_label_resolution.rs`, three rows, **each watched RED first** — one of them by regression, because it passed at base for the wrong reason) **and** the two-party walk against the live AWS relay with **no label flag on any command and identities under non-default labels**, returning `handshake_pending … present=true role=responder key=handshake.pending.G.h-from-g state=present` → `handshake_complete role=responder peer_confirmed=yes`. ⚠ **NA-0710 got `present=false role=none` and no key, three walks running, across two client revs.**
+- ⚠ **THE FIRST MESSAGES EVER SENT THROUGH THIS PRODUCER** went both directions, `cmp` rc 0 byte-identical, with the delivery receipt round-tripping. **Measured envelope: 1024 B.** ⚠ **THE 64 KiB CEILING REMAINS UNFALSIFIED — 1024 B is 64× under it, and nothing was sent near the edge; the successor that ships attachments owes that measurement.**
+- ⚠ **NA-0704's "asymmetric establishing window", carried unexplained for a week, is reproduced and EXPLAINED:** the accepter ends `established_recv_only` (`send_ready=no reason=chainkey_unset`) and **closes on first inbound traffic**.
+- **Corrections and filings:** **ENG-0174** corrected to *"retained under a 60-second lease, not destroyed"* — on source, ⚠ **with an independent second basis the lane did not arrange: `na0689_p3_a2_stranding`, a test predating this lane, already encodes that an A2 survives under lease** — and with its limit written INTO the entry (*"refuted from SOURCE, unrefuted ON THE WIRE"*) · **ENG-0176** corrected, saying what replaced it · **ENG-0175** **partially** fixed (a mislabelled accept is now retryable; ⚠ **every other failure mode still burns the slot** — stated rather than closed) · new: **ENG-0177** (a second consumption path at `invite_finish`), **ENG-0178** (replay and no-context share a reason; the normalisation successor owns it), **WF-0060**, **WF-0061**, **WF-0062**, **WF-0063**.
+- **Edit set:** `qsc/src/{cmd,handshake,identity,invite,main}` · `qsc/tests/na0711_invite_label_resolution.rs` (new) · `qsc/tests/NA_0681_two_party_handshake.rs` (the missing session assertions) · `qsc/tests/handshake_mvp.rs` (the replay pin, updated to literals read off the wire) · `scripts/ci/QSC_SHARD_MANIFEST.txt` · the spine record. **`--self-label` is DROPPED with no alias** — measured unused in the tree and by the only downstream consumer at its true head.
+- **Gates:** full suite **132/132 targets reconciled BY NAME in both directions, 615 passed, 0 failed** · clippy **65 at base, 65 after — zero new** · fmt drift **zero measured against base** (base dirty in 56 files, WF-0045, deliberately not chased) · shard census 132/132.
+- ⚠ **NOT CLAIMED:** that a config dir holding **two or more** identities is protected — an explicit wrong-but-existing label still passes the gate there, stated in ENG-0173 rather than discovered later · that ENG-0175 is closed · that the 64 KiB ceiling is validated · that replay is distinguishable from no-context after the narrowing · that anything holds for a producer other than this box.
+- ⚠ **THREE SELF-INFLICTED INSTRUMENT FAULTS, ALL SELF-REPORTED AND ALL FILED (WF-0062):** a watcher that matched its own command line and read RUNNING for 4 h 40 m after the suite finished · a `pkill` that matched its own argv and killed its shell · a logger that overwrote its own first 1359 bytes and destroyed three rows of walk transcript. ⚠ **The transcript was NOT restored: doing so would have re-used the operator's bearer beyond "the authorized walk and nothing else", and a better record is not worth an unauthorized act.**
 ## D-1349 — NA-0712: THE ASSURANCE SWEEP — a second dimension over the ranked defect set, and the measured finding that the ledger is not a reliable instrument about the tree in either direction
 
   - **Status:** Accepted (R239 approved D648 with amendment A1 and ruled R1–R6; R240 ruled the
@@ -38137,6 +38152,120 @@ HIGHEST_NA 0703→0705; HIGHEST_D 1343→1344 in this commit. Class at close:
     a NOT-APPLICABLE row where text is decisive · ⚠ **the seating experiment is UNRUN, not failed**,
     and `bypassPermissions` being machine-wide makes the question **unanswerable by any lane**.
 
+## D-1350 — NA-0713: THE RUSTSEC-2026-0253 UNBLOCK — a required gate goes green because the exposure was REMOVED from the workspace rather than silenced, and the crate that carried it was a second TUI no retirement lane ever owned
+
+  - **Status:** Accepted (R250 approved the formalized directive **QSL-DIR-2026-08-11-649**, ruling
+    option **A2** and answering all three flags; R252 kept `D-1350`, confirmed the id reservations and
+    ordered the structural filing; Note **N-03** recorded the reservation recurrence and asked
+    nothing; **R254** ruled the `STATE:` line after its premise moved). Directive sha256
+    `62f63d5567fe9791f91078dff018e1ce74e7da18e1e30d1d418b690b05cdc728`, 315 lines. Rulings banked
+    `RBANK_NA0713_002`/`003`/`004`/`005`.
+  - **Context:** the required `advisories` check went red on **RUSTSEC-2026-0253** — *unsound:
+    potential use-after-free in `LruCache::pop()`*, `lru 0.16.3`, patched `>= 0.18.2`. ⚠ **The
+    failure was TIME-BASED, not change-based:** `cargo audit` reads only the lockfile, the lockfile
+    had not moved, and main passed the same gate 12 hours earlier. `advisories` failing takes
+    required `public-safety` with it, so **PR #1723 — the ENG-0173 invite-path fix, the program's
+    ruled #1 defect, proven on the real relay — could not merge.**
+  - **Decision:** remove `apps/qsl-tui` from the workspace **and delete the crate**, retiring
+    ENG-0034's allowlist entry and site pin for it in the same commit. The advisory becomes
+    unreachable; nothing is silenced; no dependency is bumped.
+  - ⚠⚠ **THE AUTHORIZING BRIEF'S OWN INSTRUMENT MEASURED THE RED TREE AS CLEAN, AND THAT IS THIS
+    LANE'S FIRST FINDING.** Its constraint 3 named **bare `cargo audit`**. Measured at `731b02a8`,
+    bare `cargo audit` exits **0** — `warning: 1 allowed warning found` — printing
+    RUSTSEC-2026-0253 in full while being unable to fail on it, because `unsound` is an *allowed*
+    class. **The gate is `cargo audit --deny warnings`** (`public-ci.yml:222` push lane, `:235` PR
+    lane) → **exit 1**, `error: 1 denied warning found!`. ⇒ **a lane obeying the authorizing document
+    literally would have reported a fix it never made.** Both runs ship: the bare one as an exhibit,
+    because `exit 0` beside the advisory's own text **is** the finding. ⚠ **Standing form (R250
+    §1.2): the instrument is the one the GATE runs, not the one the brief names — a brief that names
+    a command has asserted a claim about that command, and it gets measured like any other.**
+  - ⚠⚠ **THE SECOND FINDING IS THAT THE CRATE WAS NEVER NA-0645's.** NA-0645 retired
+    `qsl/qsl-client/qsc/src/tui/` (~18.9k lines) and cleaned **qsc's** manifest. `apps/qsl-tui` is a
+    **different 889-line refimpl demo crate**, and NA-0645's own testplan names it **out of scope**,
+    records that *"the lockfile keeps the packages for it"*, and files it as **"a hygiene candidate
+    for a later lane."** ⇒ **the residue was FORESEEN, RECORDED AND DEFERRED — not overlooked — and
+    this lane is the later lane that testplan named.** NA-0645 is the witness, not the cause. **That
+    is a stronger warrant for removal than the brief claimed.**
+  - **Reachability, measured:** `cargo tree -i` proves `qsl-tui` was the **sole consumer** of
+    `crossterm`, `ratatui-core`, `ratatui-crossterm` and `ratatui-widgets`, so the whole subtree
+    leaves with it: **392 → 347 crates scanned**, lock delta **+1 / −459** across 45 packages with
+    **zero version changes** — the single insertion being cargo collapsing `"foldhash 0.1.5"` →
+    `"foldhash"` because the second `foldhash` left with the subtree.
+  - ⚠ **WHICH REGENERATION IS THE WHOLE OF THE LOCKFILE CONSTRAINT.** `cargo metadata
+    --format-version 1 --offline` gives the pure-removal delta above. `cargo generate-lockfile` gives
+    **+389 / −1019** — it re-resolves the entire graph and would silently bump `reqwest`, `sha3` and
+    `thiserror` **in the same act that forbids other dependency bumps.** ⚠ **"Regenerate the
+    lockfile" is not one instruction.**
+  - ⚠⚠ **THE INSTRUMENT THIS LANE'S TRUST RESTS ON IS NOT ITS OWN.** ENG-0034's
+    non-contributory-DH anti-regression scan pins per-file `.dh(` site counts and fails on drift in
+    **either** direction. Un-de-pinned, deleting the crate makes it **FAIL at `ratchet.rs:3887`,
+    exit 101** — *"the set of `.dh(` call sites changed"* — and it **passes** after the 292-byte
+    de-pin. ⇒ **red-capability proven on precisely the change being made, by a gate built earlier
+    for a different reason** — stronger evidence than an instrument the lane writes for itself. ⚠ It
+    is **CI-enforced on every code PR** via `ci.yml:369` in `ci-4a`, which is exactly what the scan's
+    own stale KNOWN LIMITATION comment denies (**WF-0065**).
+  - **The three remedies refused, on measurement rather than taste:**
+    ⚠ **B (bump) WORKS, and the lane's written prediction that it would not was WRONG and is recorded
+    as such.** `cargo update -p lru --precise 0.18.2` fails (exit 101 — `ratatui-core 0.1.0` requires
+    `lru ^0.16`), **but `cargo update -p ratatui-core` (0.1.0 → 0.1.2) carries `lru` to 0.18.2 with no
+    manifest edit at all** and the audit exits 0. Refused on **cost**: it grows the tree **392 →
+    402**, adding 10 packages, and bumps **`bitflags 2.10.0 → 2.13.1`, which `cargo tree -i` shows
+    reached by `proptest` (a qsc dev-dependency) and by `rusqlite` via `qsl-server`** ⇒ **not
+    confinable to the retired subtree.** Growing a product's dependency surface to patch a demo
+    nothing builds is the wrong trade (R250 §3.2).
+    ⚠⚠ **C (audit-config ignore) IS NOT A REMEDY AT ALL, on mechanism** — see **WF-0067**. Its PR
+    classifies `runtime_critical`, so the sanctioned bootstrap noop is ineligible; and
+    `pull_request_target` with a no-`ref:` checkout means the audit reads **main's**
+    `.cargo/audit.toml` while auditing **the PR head's** lockfile. **A branch's own ignore is
+    invisible to its own gate.** ⚠ **The same mechanism is why this lane proves itself:** A2 changes
+    `Cargo.lock`, which the PR lane reads from the head.
+    ⚠ **A1 (unlist the member, keep the files) reaches the identical audit green in 2 paths and was
+    refused** because it turns a crate that compiles and runs 3 passing tests into **889 lines
+    nothing compiles, nothing tests and no gate covers**, while the ENG-0034 scan keeps pinning
+    `.dh(` sites inside it. **A1 makes the residue worse than the state the brief called the
+    defect**, and the Director's literal wording was overruled by the measurement it asked for
+    (R250 §3.1).
+  - **Coverage surrendered, measured honestly:** the 3 deleted tests assert only `qsl_tui::demo`'s
+    own API, and `choose_bucket` is the crate's **own private fn** whose ladder
+    `{256,512,1024,2048,4096,8192}` differs from `qshield-cli`'s 12-step ladder, which has its own
+    tests. ⇒ **no product or protocol property loses its only assertion.**
+  - **Obligations discharged by measurement rather than by an edit:** `scripts/ci/QSC_SHARD_MANIFEST.txt`
+    **does not change** — `qsc_shard_check.py`'s census truth is `qsl/qsl-client/qsc/tests/*.rs`
+    (depth 1) plus `lib`, `bin:qsc`, `doc:qsc`; it holds **zero** `qsl-tui` targets and no manifest
+    target lives under `apps/`; the gate itself returns **exit 0, census 131 / manifest 131 / missing
+    0 / unknown 0**. Reconciled **by name in both directions**, re-measured at the edit.
+  - ⚠ **A DISK FAULT, NOT A REGRESSION, AND RECORDED SO IT IS NOT MISREAD LATER:** the first
+    after-suite run exited **101 with ZERO test result sets** — `rust-lld` died on **signal 7 (Bus
+    error)** at the LINK step with the filesystem at **100% (9.0M free)**. **No test ran, so nothing
+    about the change was measured in either direction.** The build directory was **deleted rather
+    than reused** — *artifacts linked while the disk was exhausted cannot be trusted, and a green
+    built on them would not be a green* (R254 §3.1) — and `git fsck` (exit 0, zero output) proved
+    the repository survived, because **a full disk is exactly how a repository corrupts.** ⚠ The
+    harness's own completion signal reported *"exit code 0"* for that run: **the wrapper's status,
+    not the gate's 101**, recovered from the deliberately captured exit — WF-0062's fifth instance,
+    **not ours**.
+  - ⚠ **COUNTER NOTE (R250 FLAG-2 → R252 §3.1 → R254 §1):** this lane's `STATE:` line was ruled
+    **twice**, because its premise moved underneath it. R252 ruled `HIGHEST_D` stay at **1347** on the
+    premise that main was 1347; **PR #1724 then merged (`a54cb50a`), taking main to `HIGHEST_D=1349`**,
+    which made 1347 a **two-step regression** — the exact failure that ruling existed to prevent.
+    R254 ruled the **intent governs over the value**: `READY=NA-0713 | HIGHEST_NA=0713 |
+    HIGHEST_D=1350`. ⚠ **`D-1350` is gap-free**: #1724 landed in 1349, exactly the slot R252 §3
+    reserved for whichever PR renumbered. See **WF-0068**.
+  - **Filed, not fixed:** **ENG-0179** (the six-artifact demo surface, per the ruled leave-and-file) ·
+    **WF-0065** (a gate's KNOWN LIMITATION comment outliving the limitation) · **WF-0066**
+    (DOC-OPS-006 §2's directive-counter source ten behind) · **WF-0067** (a branch's `audit.toml` is
+    invisible to its own gate) · **WF-0068** (the id derivation cannot see an unmerged claim, and the
+    axis is TIME IN THE QUEUE). **ENG-0032 RESTATED, NOT CLOSED** — arm (a) closes by construction,
+    **arm (b) measured still open at clippy exit 101**. **ENG-0034** and **ENG-0090** annotated; both
+    stay closed.
+  - **Goals:** G4. ⚠ **G1, G2, G3, G5 NOT claimed** — no key derivation, no state machine, no
+    negotiation, no metadata surface.
+  - **Not claimed:** that the tree is free of other advisories · that the advisory database will not
+    name another crate tomorrow · that any lane other than #1723 is unblocked · that the demo-surface
+    residue is removed (**ENG-0179**) · that ENG-0032 is closed · that PR #1723 will merge, which is
+    the operator's act — ⚠ **and #1723 needs its own counter re-derivation first, which is not this
+    lane's to perform.**
+
 ## D-1351 — NA-0714: THE STORAGE HYGIENE LANE — the build box's cleanup job was not failing but skipping, its own unit declared the skip a success, and the disk alarm it already contained was unreachable
 
   - **Status:** Accepted (R255 approved D650 as amended and ruled all six flags; N-04 confirmed the
@@ -38177,3 +38306,243 @@ HIGHEST_NA 0703→0705; HIGHEST_D 1343→1344 in this commit. Class at close:
   - ⚠ **The fix is not yet confirmed in production.** The unit's last activation was
     **2026-08-11 03:37:39 CDT — the defective run itself.** The next activation is the first real
     test, and **a green must not be read from it without checking `reclaimed_bytes`.**
+
+## D-1353 — NA-0717: THE MACOS LOCK-REGISTRY ERRNO FIX — four tests hardcoded Linux's raw EWOULDBLOCK and failed on every macOS serial execution since their introduction merge, five silent reds nobody saw; the fix names the platform's own constant with assertion strength preserved exactly, and the lane ships as TWO PRs because the gate that would admit the fix reads a health signal any docs merge re-greens
+
+  - **Status:** Accepted (R264 ratified diagnosis **C-2** and the §4 edit; R266 ruled Phase 4a IN;
+    R267 replaced the ENG-0184/WF-0074 filing texts; **R268 RESCINDED** — its premise "no PR
+    admissible by any path" measured FALSE at mechanism level (BLOCKER-1, verified three times
+    independently); **R269 ruled the two-PR shape with NO operator bypass**; R270 confirmed
+    finding coverage; **R271 RATIFIED Amendment A1** as 653's governing amendment; **R272 adopted
+    the NEW-1 goal-lint cure** (the tests/-md evidence note + one-line addenda, PR-B) and ordered
+    WF-0075 + prediction row 5; **R273 adopted the NEW-2 canonical byte form** (four
+    whitespace-only rustfmt hunks over §4(b), zero token changes); R274 ordered prediction row 6.
+    Directive `QSL-DIR-2026-08-12-653_na0717_macos_lock_registry_errno.md` sha256
+    `236ed8463202ef600afd49747f0672ae21cbe471853df545b293558a8685d130` (233 ln, sealed, never
+    rewritten) + `QSL-DIR-2026-08-12-653_AMENDMENT_A1.md` sha256
+    `879f0f541aba1079c8db7259306fcbe1e0868da01fd037ea446a05446b42a0f8` (392 ln) — **A1 governs on
+    conflict**. SR-15 cold read `SR15_READ_001_FINDINGS.md` sha256
+    `244202e7482cfe1d5e11748f0b87c33f5e7e683aaa832cc4eae58f3a43b12275` (349 ln: 1 BLOCKER /
+    5 MAJOR / 6 MINOR / 5 NOTE; the diagnosis and the edit SURVIVED intact).
+  - **Context:** `macos-qsc-full-serial` (push-only, no PR event ever runs it) has failed on
+    **every** main push that executed it since the na0696 lock-registry tests landed — five runs
+    over 7 days (a0b18d66 2026-08-05, the introduction merge itself · 3fcda47d · 6680a468 ·
+    b845e678 · 5b43eefe), identical four-test signature, zero green ever, and nobody saw
+    (WF-0074). The four tests probe raw `flock` denials on a second open file description and
+    assert `(rc, errno) == (-1, 11)`; 11 is EWOULDBLOCK/EAGAIN **on Linux only** — on Darwin
+    EWOULDBLOCK == EAGAIN == **35** (11 is EDEADLK). Every macOS probe returned `(-1, 35)`: the
+    denial the tests demand, spelled in the platform's own integer. Exclusion, depth, drop-order
+    and unwind-restore all HELD; production is portable (`ErrorKind::WouldBlock`,
+    mod.rs:161-166) and untouched. C-1 (regression) dead by enumeration — no last-green sha
+    exists; C-3's signature (a probe acquiring) appears in no failure log, scoped honestly per
+    A1 §6.1: the failure-log instrument is structurally blind to silent acquisitions, and :295/
+    :324 first execute on macOS at Phase 4b.
+  - **Decision:** a per-platform `const EWOULDBLOCK_RAW: i32` via `cfg(target_os)` INSIDE the
+    `#[cfg(test)]` module (11 on linux, 35 on macos — pinned the way LOCK_* are, no libc
+    dependency; an unlisted target_os fails to COMPILE at the six use sites, fail-closed by
+    construction), six literal sites re-pointed at it. **The assertion is NOT weakened: rc == -1
+    AND errno == the platform's would-block value, exact per platform.** Byte form: §4(b) as
+    amended by R273 — rustfmt-canonical at the four long sites (STOP_003 §4 is the byte
+    authority), §4(b)-exact at the insert and the two short sites. Zero production bytes.
+  - **The two-PR shape (R269):** PR-A (this PR) is the records commit, docs-only BY CONSTRUCTION
+    (classify_ci_scope.sh:9), proven pre-open by running the consumer classifier itself over the
+    exact name-only diff. Its normal merge re-greens main's public-safety check-run via the
+    docs-push skip step (public-ci.yml:592-597) — **the docs door, used ONCE, on record, for the
+    cure, and FILED (WF-0074)**; no operator bypass anywhere. PR-B (impl) then takes post-PR-A
+    main by merge and faces the gate's first check GREEN. #1723/#1725/#1727 do NOT ride PR-A's
+    re-greened gate: they wait for truly-green main after PR-B's merge push, then R260 §3.5
+    order.
+  - **Evidence:** five banked failure logs + fresh pull (118/4, image macos-26-arm64) · source
+    at 5b43eefe (exactly six literal-11 sites, all inside the module; mod.rs untouched since
+    4fb7fe89 by path-scoped log) · both platforms at ONE sha (Linux lib 122/0 with the four
+    tests ok by name; macOS 118/4 with the errno signature) · event-unfiltered run enumeration
+    (MACOS_RUN_ENUM.log: zero dispatches since 2026-08-05; the five push failures are the ONLY
+    serial executions containing the tests — "never passed on macOS" stands outright) ·
+    qsc-linux-full-suite GREEN on all five red pushes (LINUX_SUITE_HISTORY.log) — main's only
+    red is the macOS serial suite · needle table exact after the edit (`(-1, 11)` 5→0 ·
+    `probe_errno == 11` 1→0 · `EWOULDBLOCK_RAW` 0→8 · `(-1, EWOULDBLOCK_RAW)` 0→5 · cfg-adjacency
+    linux→`= 11;` 0→1, macos→`= 35;` 0→1) · Linux by-name run on the shipped bytes IDENTICAL to
+    baseline (122 names) · `rustfmt --check` rc=0 on the shipped file.
+  - **Two sealed-consumer defects found at execution, both cured by ruling, both entered as
+    prediction rows 5 and 6:** NEW-1 — goal_lint.py:82-88/:90-93 fails BOTH the ruled PR-B shape
+    AND 653's original single-PR shape (an in-lib `#[cfg(test)]` edit is invisible to its
+    tests/-path heuristic; WF-0075); cure = the repo's own tests/-markdown evidence convention +
+    one-line addenda, R272. NEW-2 — 653 Phase 1's fmt seal and §4(b)'s exact one-line forms were
+    jointly unsatisfiable (rustfmt rewraps 4 of 6 sites; symbol +13 chars; only one rewrapped
+    site crosses max_width=100, the operative trigger for the others is an inner call-width
+    heuristic, unmeasured — governing evidence is the measured rc chain base 0 · sealed-form 1 ·
+    canonical 0 plus the four-hunk diff); cure = the canonical form, R273.
+  - **Filed, not fixed:** **WF-0073** (the gate cannot validate its own repair — no-`ref:`
+    checkout runs MAIN's copy) · **WF-0074** (push-only suite failures invisible until they
+    block the queue; the docs door re-launders the signal) · **WF-0075** (goal-lint's
+    tests-heuristic blind spot). **ENG-0184 → fixed-by-D-1353 on PR-B's merge.**
+  - **Goals:** G4. ⚠ **G1, G2, G3, G5 NOT claimed** — no key derivation, no state machine, no
+    negotiation, no metadata surface; the code change is six assertion literals inside one test
+    module.
+  - **Not claimed** (A1 §14): that the REST of the macOS serial suite is green — it has not
+    completed since 2026-07-21 and runs for the first time behind this fix; any new failure is a
+    fresh finding, not this lane's scope · that any PR merges — every merge is the operator's
+    act · that main's public-safety greens on a schedule (it needs BOTH push-only suites green
+    post-merge; qsc-linux-full-suite's color is not this lane's claim) · that the gate's other
+    defects (the 403/F-2, A′/#1727, WF-0073, ENG-0182's marker substring) are altered · anything
+    about #1723/#1725/#1727's contents · that a dispatch result equals a push result (mitigated,
+    not erased, by 4a) · that goal-lint's design is right or wrong (the cure is passage, not
+    remedy) · that the evidence chain is attestable beyond same-box content hashes.
+  - **Impl PR:** #1729 — PR-B of the R269 two-PR shape (the §4 fix, this addendum, the TRACEABILITY pointer, the tests/ evidence note, and the MERGING flip; records PR #1728 merged as `807f8f7d`).
+
+## D-1354 — NA-0718: THE GOVERNANCE DOCS ERRAND — the DIRECTOR_OWED record re-audited from on-box artifacts only, and the prediction ledger's eighteen-lane close-row debt measured and recorded as debt rather than reconstructed
+
+  - **Status:** Accepted (ordered by the NA-0717 ruling packet R277–R279, ORDER 3 leg 2: the
+    errand is REAL owed work AND the door that re-greens main's public-safety signal after
+    PR #1729's merge push — the WF-0074 mechanism's second recorded use, both uses on the
+    record). Ids re-derived at the edit per WF-0068 (sweep banked in the NA-0717 lane
+    record: NA-0718 and D-1354 free across main and all three open PRs; STATE advanced
+    0717/1353 → 0718/1354).
+  - **Context:** the Director's owed-acts record (`DIRECTOR_OWED_AT_NA0698_CLOSE.md`,
+    operator-side, 2026-08-06) enumerates obligations that outlive any one chat window; the
+    NA-0717 arc surfaced that the prediction ledger's close rows stopped at NA-0698. The
+    packet's harvest rule: source rows from on-box closeout records only; anything
+    unfindable is LISTED AS STILL-OWED, never reconstructed from memory.
+  - **Decision:** ship `docs/ops/DIRECTOR_OWED_REAUDIT_2026-08-13.md` — per-item statuses
+    established from on-box artifacts with every instrument stated (1 DISCHARGED by
+    NA-0699/D-1339 · items 2/3/4c UNDISCHARGED · 4 PENDING with the ceiling-bridge
+    interaction named openly · 4b partially evidenced · 5 evolved) — plus the ledger's
+    debt-audit comment: **NA-0699 through NA-0716, eighteen lanes, ZERO close rows in repo
+    truth and ZERO transcribable on-box sources** (six candidate files all classified false
+    positives in the note) ⇒ recorded as STILL-OWED at each lane's retrospective close.
+  - **Goals:** G4. ⚠ G1, G2, G3, G5 NOT claimed — docs-only.
+  - **Not claimed:** that anything closes by re-reading · that chat-window acts did not
+    occur (outside the instrument's scope) · that the ceiling bridge alters the ratified
+    promotion/retirement plan · that this errand discharges any owed item other than
+    making the debt measurable.
+
+## D-1355 — NA-0719: THE SUITE-CEILING CORRECTION — both push-only suite ceilings re-fitted to current measured runtime by the NA-0664 method, because the macOS suite was killed at its ceiling twice with everything green and the Linux suite is silently at 91% of its own
+
+  - **Status:** Accepted (ordered at R278, sequenced by R279 ORDER 3 leg 3, as the sibling
+    micro-lane of NA-0717/D-1353; ids re-derived at the edit per WF-0068 — sweep banked in
+    the NA-0717 lane record, NA-0719/D-1355/WF-0076 free across main and all three open
+    PRs; A-minimal 240 was REJECTED at ruling: "1.15× headroom is how we got here").
+  - **Context:** `macos-qsc-full-serial` was cancelled at its 180-minute ceiling on two
+    consecutive full executions with ZERO test failures — dispatch run 31643260667
+    (2026-08-12: 117/~130 target sets green) and main push run 31661853338 (2026-08-13:
+    127/~130 green, the run that also proved the NA-0717 fix by name on main) — full-suite
+    projection ~200-215 min; NA-0664's 180 was 1.70× a 2026-07-21 measurement the suite
+    has outgrown. `qsc-linux-full-suite` measures ~220 min across five consecutive banked
+    main runs vs its 240 ceiling — margin eroded 1.53× → 1.09×.
+  - **Decision:** `macos-build.yml` timeout-minutes 180→**300** (~1.4× projection) ·
+    `ci.yml` timeout-minutes 240→**330** (1.5× measured), each with a measured-basis
+    comment in the file citing the runs above. Both values verified by executing the
+    CONSUMER'S OWN extraction — public-ci.yml's `ceiling_of()` awk, verbatim — against the
+    edited files (→ 300/330), and both fit the public-safety watchdog's 360-min job cap
+    with its 20-min safety gap (320/350): an overrun still surfaces as a bounded failure,
+    never a hang. Needle tables exact (`180` 1→0 / `300` 0→1; `240` 1→0 / `330` 0→1,
+    per file).
+  - **Filed, not fixed:** **WF-0076** — the runtime-vs-ceiling ratchet (WARN ≥80%,
+    ceiling-review obligation FAILS ≥90%); evidence: macOS killed at 100% twice, Linux at
+    91% now. FILING ONLY.
+  - **Interaction stated openly** (per the D-1354 re-audit): the Linux raise is a BRIDGE
+    for a job whose demotion to workflow_dispatch-only is operator-ratified pending the
+    sharded suite's three green lanes; that plan is unaltered here and its tally is the
+    Director's.
+  - **Goals:** G4. ⚠ G1, G2, G3, G5 NOT claimed — two workflow scalars and records; zero
+    product bytes.
+  - **Not claimed:** that the suites stop growing · that the ratchet exists · that the
+    demotion tally advances · that a completed run under the new ceiling has happened yet —
+    the first lands on this lane's own merge push (Phase 6's relocated seal, R279).
+
+## D-1356 — NA-0720: THE DOOR-1 OWED-ROWS ERRAND — the succession packet's 23 surviving NA-0699/NA-0700 prediction rows land byte-verbatim, and the eighteen-lane debt note is discharged exactly as far as the surviving artifact reaches: two lanes paid, sixteen restated as still owed
+
+  - **Status:** Accepted (ordered by the Director's DOOR-1 order, 2026-08-13, under the
+    admission R282 ruled — "the Director-attributed owed-rows docs errand (door use #3,
+    ruled, real work)", RBANK_NA0717_010 — the WF-0074 door's THIRD recorded use, on the
+    record here as the first two were. Ids re-derived at the edit per WF-0068: sweep
+    banked in the NA-0720 lane record; NA-0720 and D-1356 free across main `f54d3b82`
+    and all three open PRs #1723/#1725/#1727; STATE advanced 0719/1355 → 0720/1356.)
+  - **Context:** D-1354's re-audit (`docs/ops/DIRECTOR_OWED_REAUDIT_2026-08-13.md`)
+    recorded the prediction ledger's close-row debt: eighteen lanes NA-0699..NA-0716
+    with zero rows in repo truth and zero transcribable ON-BOX sources. The succession
+    packet `QSL_HANDOFF_20260812_1530` — off-box, outside that instrument's scope at the
+    SR-01 boundary — is the sole surviving artifact carrying any of them: the rows
+    composed at NA-0699's and NA-0700's actual closes. The source document's provenance,
+    verbatim from its header (sha256
+    `b2f5fde542a4b8246f20b7b1912d059ccbcce46f6584bdf5842e063c0900dc3d`, banked 444 in
+    the NA-0720 lane record):
+
+```
+# Provenance: extracted by the Director 2026-08-13 from the succession packet's
+# PREDICTION_LEDGER.md (QSL_HANDOFF_20260812_1530), diffed verbatim against
+# docs/ops/PREDICTION_LEDGER.md at current main — 23 rows present in the packet,
+# absent from repo truth. Director-attributed (SR-01 boundary: the on-box record
+# holds no source for these; the packet is the sole surviving artifact — recorded
+# as such in NA-0718's STILL-OWED note, which this errand discharges).
+```
+
+  - **Decision:** append the 23 rows to `docs/ops/PREDICTION_LEDGER.md` byte-verbatim —
+    rows only, order preserved, beneath everything existing, no other edit to the ledger
+    (pipe-line total 48 → 71; all 23 proven ABSENT at base by exact full-line match,
+    zero hits; the appended block proven cmp-identical to the source rows, both
+    extraction routes agreeing byte-for-byte). **NA-0718's STILL-OWED note (D-1354; the
+    'STILL-OWED close rows (18 lanes)' list in the re-audit) is DISCHARGED AS TO NA-0699
+    AND NA-0700 by this record** — ten NA-0699 rows and thirteen NA-0700 rows, the
+    packet's entire surviving content. ⚠ **The note's remaining sixteen lanes
+    (NA-0701..NA-0716) stay STILL-OWED, unaltered, under the note's own
+    retrospective-close rule** — no surviving artifact is known to hold their rows, and
+    nothing here is reconstructed from memory. The ledger's 2026-08-13 debt-audit
+    comment ("NO close rows exist here AND no on-box source contains them") is
+    SUPERSEDED IN PART by the rows now standing beneath it for exactly these two lanes;
+    its bytes are deliberately untouched — the ledger edit is rows-only by order.
+  - **Goals:** G4. ⚠ G1, G2, G3, G5 NOT claimed — docs-only; no source, no CI, no
+    dependency change.
+  - **Not claimed:** that any lane beyond NA-0699/NA-0700 gains rows · that the
+    sixteen-lane remainder is payable (no artifact is known to hold it) · that any other
+    D-1354 re-audit item moves (the cache AFTER figure and the packet-refresh history
+    stand as re-audited) · that ENG-0185's cure advances here — this merge only
+    re-greens the admission signal the door reads, for the successor gate lane R282
+    names; #1723/#1725/#1727 wait per R283.
+
+## D-1357 — NA-0721: THE DOOR-2 CLOSEOUT-RECORDS ERRAND — NA-0717's eleven execution SR-16 prediction rows and its ENG-0185 filing land in repo truth byte-verbatim, so the arc that documented an eighteen-lane records debt does not itself become one
+
+  - **Status:** Accepted (ordered by the Director's DOOR-2 order, 2026-08-13, under R284's
+    canonical text as banked at R286 — door 2 of the three ruled doors: "NA-0717's closeout
+    records (the eleven execution SR-16 rows + ENG-0185's filing text) landing in repo
+    truth". In the WF-0074 door INVENTORY this is the FOURTH recorded use, on the record
+    here as the first three were — #1728, #1730, #1732. Ids re-derived at the edit per
+    WF-0068: sweep banked in the NA-0721 lane record; NA-0721 and D-1357 free across main
+    `28860f25` and both remaining open PRs #1725/#1727; STATE advanced 0720/1356 →
+    0721/1357.)
+  - **Context:** NA-0717 closed with two records written on-box at its close and
+    deliberately left for a successor to enter: §4's eleven execution SR-16 rows — written
+    there, in that lane's own words, "so they can never join the STILL-OWED list this arc
+    documented" — and §3's ENG-0185 filing, whose text was to land "in repo truth via the
+    successor's records". Until this errand, both survive only in that lane's final stop.
+    Source, cited by FILENAME and sha256 as public truth requires:
+    `STOP_NA0717_011_20260813T152737Z.md`, sha256
+    `809acf1aea29198268c0918e59ff283b89882e6c79e1b38fe58e562e62085118`, banked 444 in the
+    NA-0721 lane record; its FINAL-STOP sentinel was verified present before any extraction
+    was taken.
+  - **Decision:** (a) append §4's ELEVEN rows — five `NA-0717 exec` and six `NA-0717 arc`,
+    source lines 47-57, TWO extraction instruments agreeing byte-for-byte — to
+    `docs/ops/PREDICTION_LEDGER.md` byte-verbatim: rows only, order preserved, beneath
+    everything existing, no other edit to that ledger (pipe-line total 71 → 82; all eleven
+    proven ABSENT at base by exact full-line match, zero hits; the appended block proven
+    cmp-identical to the extraction and the whole base file proven unchanged beneath it).
+    (b) file ENG-0185 in `docs/ops/IMPROVEMENT_LEDGER.md` in house entry form, its text
+    byte-faithful to §3 (source lines 30-42, through `Status: open — FILING ONLY.`
+    inclusive): the wrapped bold-heading block becomes the house `###` heading plus one
+    unwrapped body line — a transformation PROVEN against this program's immediately
+    preceding instance of it (ENG-0184's own landing, A1 §7 lines 216-227 →
+    IMPROVEMENT_LEDGER.md:4014/:4016, cmp rc 0) rather than assumed, with the
+    reconstruction proven to lose nothing (round-trip whitespace-normalized identity).
+    ENG-0185 is filed open — FILING ONLY; its cure is R282's successor gate lane and does
+    not advance here.
+  - **Goals:** G4. ⚠ G1, G2, G3, G5 NOT claimed — docs-only; no source, no CI, no
+    dependency change.
+  - **Not claimed:** that ENG-0185 is fixed, or that any wrapper, ceiling or runner
+    behaviour changes · that main's public-safety check-run passes on its own merits — it is
+    red at exactly the defect ENG-0185 names, and this merge only re-greens the admission
+    signal the door reads · that NA-0717/NA-0718/NA-0719/NA-0720's MERGING blocks are
+    retired (successor promotions' acts per MINOR-6, deliberately untouched here) · that the
+    sixteen-lane close-row debt NA-0701..NA-0716 moves (D-1356 scoped its discharge to
+    NA-0699 and NA-0700; the remainder stays STILL-OWED) · that the prediction ledger's
+    debt-audit comment is amended (R286 deferred that to the retrospective; its bytes are
+    untouched here) · that R284's doors 1 and 3 are this seat's work.

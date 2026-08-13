@@ -372,9 +372,11 @@ pub enum HandshakeCmd {
     },
     /// Poll inbox and process handshake messages.
     Poll {
-        /// Local label (defaults to "self"; the canonical single self-identity).
-        #[arg(long = "as", value_name = "LABEL", default_value = "self")]
-        as_label: String,
+        /// Local label. ⚠ NA-0711 (D647 A4): OMIT IT and the client derives the config dir's
+        /// single self-identity; give it and it must agree with that identity or the poll fails
+        /// closed BEFORE the relay pull.
+        #[arg(long = "as", value_name = "LABEL")]
+        as_label: Option<String>,
         /// Peer label.
         #[arg(long, value_name = "LABEL")]
         peer: String,
@@ -934,8 +936,11 @@ pub enum EnvelopeCmd {
 pub enum InviteCmd {
     /// Mint an invite and print the QSLI-1- code.
     Create {
-        #[arg(long, value_name = "LABEL", default_value = "self")]
-        self_label: String,
+        /// Local label. ⚠ NA-0711 (D647 A4): OMIT IT and the client derives the config dir's
+        /// single self-identity; give it and it must agree with that identity or the command
+        /// fails closed. Was `--self-label`, which had no help text and no pin anywhere.
+        #[arg(long = "as", value_name = "LABEL")]
+        self_label: Option<String>,
         #[arg(long, value_name = "URL")]
         relay: String,
         /// Requested lifetime in seconds. The relay's advertised ceiling clamps this, and a
@@ -957,8 +962,11 @@ pub enum InviteCmd {
         /// Local-only alias. Required, user-typed, never pre-populated.
         #[arg(long, value_name = "ALIAS")]
         alias: String,
-        #[arg(long, value_name = "LABEL", default_value = "self")]
-        self_label: String,
+        /// Local label. ⚠ NA-0711 (D647 A4): OMIT IT and the client derives the config dir's
+        /// single self-identity; give it and it must agree with that identity or the command
+        /// fails closed. Was `--self-label`, which had no help text and no pin anywhere.
+        #[arg(long = "as", value_name = "LABEL")]
+        self_label: Option<String>,
     },
     /// Collect the handshake left in one of our own invite slots and answer it.
     Accept {
@@ -966,8 +974,11 @@ pub enum InviteCmd {
         invite_id: String,
         #[arg(long, value_name = "ALIAS")]
         alias: String,
-        #[arg(long, value_name = "LABEL", default_value = "self")]
-        self_label: String,
+        /// Local label. ⚠ NA-0711 (D647 A4): OMIT IT and the client derives the config dir's
+        /// single self-identity; give it and it must agree with that identity or the command
+        /// fails closed. Was `--self-label`, which had no help text and no pin anywhere.
+        #[arg(long = "as", value_name = "LABEL")]
+        self_label: Option<String>,
         #[arg(long, default_value_t = 1)]
         max: usize,
     },
@@ -977,8 +988,11 @@ pub enum InviteCmd {
         alias: String,
         #[arg(long, value_name = "URL")]
         relay: String,
-        #[arg(long, value_name = "LABEL", default_value = "self")]
-        self_label: String,
+        /// Local label. ⚠ NA-0711 (D647 A4): OMIT IT and the client derives the config dir's
+        /// single self-identity; give it and it must agree with that identity or the command
+        /// fails closed. Was `--self-label`, which had no help text and no pin anywhere.
+        #[arg(long = "as", value_name = "LABEL")]
+        self_label: Option<String>,
         #[arg(long, default_value_t = 1)]
         max: usize,
     },

@@ -38673,3 +38673,214 @@ HIGHEST_NA 0703→0705; HIGHEST_D 1343→1344 in this commit. Class at close:
     version/rename question is settled (DV-1 refers it) · that DOC-CTRL-001's index entry
     needed changing (it did not; the filename is unchanged) · anything about #1727's
     contents, which wait on this door's merge to re-green main's admission signal.
+
+## D-1359 — NA-0723: THE R288–R293 RECORDS ERRAND — the Director's canonical ruling text lands in repo truth under D-3's own rule, and every stale `MERGING` block in the queue is retired against its own merged PR number and merge sha
+
+  - **Status:** Accepted (ordered by the RECORDS ERRAND ORDER, 2026-08-13, as amended the
+    same day by AMENDMENT A1; both banked 444 in the NA-0723 lane record. **R292** ruled the
+    sweep; **R293** adopted D-3, under which this record exists. Ids re-derived at the edit
+    per WF-0068: NA-0723 and D-1359 free across main `0ad65a58` and an open-PR set MEASURED
+    EMPTY — sweep banked at `ID_SWEEP_NA0723.log`, its four above-threshold hits enumerated
+    and classified as `NA-9999`/trust-code fixtures, with a positive control proving the
+    instrument could return a hit; STATE advanced 0722/1358 → 0723/1359.)
+  - **Context:** R293 adopts **D-3** — *a chat ruling is not a ruling until banked as
+    canonical text* — and binds it to this document, which exists because of it. R292
+    separately ruled the queue's `MERGING` blocks retired in one sweep, amending MINOR-6 so
+    that *where no promotion is queued, a records errand may sweep them*. R288 moves state
+    premises — mergeability, freshness, ids, what a gate reads when it runs — to the seat's
+    chair, and this errand is the first to execute under that boundary: **the order's own
+    six-lane enumeration was replaced by a measurement, which returned TEN.**
+  - **Provenance of the text below:** `DIRECTOR_RULINGS_R288-R293_2026-08-13.md`, sha256
+    `06cbadcc1d5613d7d10e2a1920d31fbbea9812a4c48e462ce1dafc44f1a784db`, **125 lines / 9242
+    bytes**, banked 444 in the NA-0723 lane record and reproduced here **IN FULL and
+    BYTE-VERBATIM** — not summarised, reflowed or abridged (D-3). It is carried in a fenced
+    block for two measured reasons, following the precedent D-1356 set for the same act: the
+    source's `## R###` headings would otherwise become SIBLINGS of this `## D-1359` heading
+    rather than its content, and **a sha256 taken over the whole file verifies the fenced
+    bytes only if the fence IS the whole file** — a subset would leave the hash above
+    uncheckable by the reader it is written for.
+
+```
+# DIRECTOR RULINGS R288–R293 — canonical text — 2026-08-13
+# Issued against STOP NA-0722 003 (THE HANDOVER). State verified independently by the
+# Director at main 0ad65a58: STATE line, D-1350..D-1358 (9 present, no gaps), ledger 82
+# pipe-lines — all matching the handover's figures.
+# THIS DOCUMENT IS THE RULINGS' CANONICAL TEXT (practicing D-3, adopted at R293): it
+# lands in DECISIONS.md via the next records lane. Chat is not the record.
+
+## R288 — THE CHAIR BOUNDARY IS ADOPTED; SR-24 GOES TO A COLD READ FIRST
+**Adopted immediately, no lane required — the boundary as STOP_003 §V.2 states it.** The
+Director keeps scope, priority, accepted risk, ratification of departures, the standing
+rules, and program direction. The ONE row that moves: **state premises — mergeability,
+freshness, ids, what a gate reads at the moment it runs — are OWNED BY THE SEAT, measured
+and handed up.** The Director stops vouching for facts he has no instrument to check.
+Basis, named plainly: the 2026-08-13 pairing plan (door 2 → #1725 "Update branch" →
+merge) was authored by the Director on the belief that #1725 was cleanly behind main. It
+had been CONFLICTING since 5b43eefe, two days and five merges earlier. The Director could
+not measure it; the seat could and did. **The failure was structural and the ruling is the
+structural answer.**
+**Operator lever ratified (STOP_003 §V.3):** the operator may refuse any pairing plan
+whose merge ask carries no pre-flight verdict. It does not overstep; it is recorded here
+as endorsed.
+**SR-24 itself is NOT yet adopted.** It is a rule that would govern the Director's own
+discretion, which is an explicit SR-15 trigger, and its drafting seat correctly declared
+itself a non-neutral judge of its own proposal (and shipped a false-clean path in its own
+instrument). Disposition: **a FRESH-seat SR-15 cold read of QSL-DIR-2026-08-13-654 before
+adoption.** If adopted, D-1's condition binds: `preflight_pairing.sh` lands in
+`scripts/local_ops/` IN THE SAME LANE, or the rule is adopted without its consumer and
+joins the 132 open filings. A refusal recorded is as useful as an adoption.
+
+## R289 — ENG-0185: THE ARITHMETIC PATH IS TRIED FIRST; R282's ARCHITECTURAL CURE IS
+## RETAINED BUT DEFERRED (amends R282 on measurement)
+R282 ruled the cure to be the workflow_run-completion redesign. **The Director amends his
+own ruling: that cure is retained as the eventual architecture but is NOT the first act.**
+Measurement that forces the amendment — the guard's inequality is
+`MAX_CEILING + QUEUE_MARGIN(60) ≤ JOB_TIMEOUT(360, platform) − SAFETY_GAP(20)`, i.e.
+`MAX_CEILING ≤ 280`. Today MAX_CEILING is 330 because the push suites run SERIALLY on one
+runner each (Linux 229m measured, macOS 206.5m measured).
+**Sharding the two push suites moves MAX_CEILING below 280 without touching the gate at
+all.** The mechanism is already proven in-house (NA-0698's 12-shard manifest + by-name
+reconciler, running on the Linux PR suite today). Projected: macOS ~4-5 shards → ~40-50m
+wall → honest ceiling ~75; Linux 12 shards → ~25-35m wall → honest ceiling ~60;
+MAX_CEILING 75 ⇒ COVERAGE 135 ≤ 340 with ~145 minutes of headroom.
+Why this ordering, stated as properties rather than preference:
+- It does not touch `public-ci.yml`, so **WF-0073 never applies** — the gate is not asked
+  to validate its own repair, which is the single riskiest shape available to us.
+- It needs **no new trigger pattern** (`workflow_run` appears in zero workflows here), no
+  cross-workflow join, no race/idempotency design, no check-run posting via API for a sha
+  the job did not run on — the five sharp edges STOP_003 §IV.3 enumerates all go away.
+- It **also** delivers the operator's stated grievance: 3.5-hour feedback becomes under an
+  hour. The ENG-0185 fix and the velocity fix are the same act.
+- The refused turns stay refused: this does NOT shrink QUEUE_MARGIN and does NOT
+  re-tighten a ceiling below its measured runtime. Ceilings are re-fitted to NEWLY
+  MEASURED sharded runtimes by NA-0664's method, or they are not moved.
+**Conditions binding on the sharding lane:** ceilings are re-fitted only from measured
+sharded runs, never projected · WF-0076's ratchet is folded in or explicitly deferred with
+a reason · the by-name reconciler's coverage is proven complete (no target silently
+unassigned) · `cargo-nextest` remains forbidden · SR-15 applies if the edit set exceeds
+five source files.
+**R282's redesign is NOT withdrawn.** It stands as the architectural answer, revisited
+after the sharding lane measures. If sharded ceilings hold under 280 with the ratchet
+watching, the redesign may prove permanently unnecessary — that is a measurement, not a
+prediction. Until either lands, doors remain the admission mechanism and their supply of
+real owed work is finite; R292 is a deliberate replenishment of that supply, not an
+accident.
+
+## R290 — THE STATE-LINE RESOLUTIONS ARE RATIFIED, AS A PROPERTY
+Both #1725 and #1727 resolutions kept **main's STATE bytes verbatim** rather than
+asserting the lane's superseded counter, with each lane's prior line preserved in its own
+`<!-- prior: … -->` record and non-collision measured before the merge.
+**Ratified — and the governing property, stated so it survives its precedent (D-4): a
+conflict resolution asserts nothing it does not need to assert. Where the branch's value
+is superseded by the base's, the base's bytes stand; the branch records its own history in
+its own block.** The standing "stale counter is a STOP" rule is NOT weakened: it fires
+when a merge would REGRESS a counter. Keeping the higher base value regresses nothing,
+and the proof that it was minimal arrived one merge later when door 3's advance
+fast-forwarded that line with no conflict at all.
+**What `READY=` should read after several intervening lanes remains an open queue
+question** — deliberately unanswered by those merges, and it is the retrospective's.
+
+## R291 — DV-1 RATIFIED: NO VERSION BUMP; THE REFERRAL IS CORRECT
+DOC-PROG-004's autolock correction lands in place, no bump, no rename. The measurement
+governs: the two revisions since D592 (NA-0673 +12, NA-0674 +20/−2) — **both larger than
+this one** — edited in place without bumping, and three of the four filename references
+are HISTORICAL records that correctly name v0.2.0 and must not be rewritten to point at a
+file NA-0656 never produced.
+**Property (D-4):** a version identifier changes when a document's IDENTITY changes for a
+live consumer. The only live consumer here is `DOC-CTRL-001`'s Location field; historical
+citations are not consumers. Content revision inside a version is in-place.
+The doc's private-CA runbook note and WF-0024's open-ended "any other status folds" remain
+OWED and are correctly not claimed as discharged.
+
+## R292 — THE SIX MERGING BLOCKS ARE RETIRED IN ONE SWEEP
+NA-0717 · NA-0718 · NA-0719 · NA-0720 · NA-0721 · NA-0722 all sit at `MERGING` because
+MINOR-6 assigns the flip to a successor promotion and no successor took them. Six is no
+longer a tail; it is a wrong record — those lanes are merged and done.
+**Ruled: one docs-only records errand retires all six**, each flip proven against its own
+merged PR number and merge sha, no other content change. It is real owed work and
+therefore also a valid door under R284's condition if admission is needed while ENG-0185
+stands. MINOR-6 is amended to this extent: **a promotion may retire its predecessors'
+blocks; where no promotion is queued, a records errand may sweep them.**
+
+## R293 — DURABILITY: D-1 THROUGH D-4 ADOPTED; D-3 EFFECTIVE IMMEDIATELY
+STOP_003 §VI's four durability rules are adopted as the program's substrate doctrine:
+**D-1** the repo is the only authoritative substrate, `/srv` is a workspace · **D-2** a
+rule without an executable consumer decays; prefer one gated rule to three prose ones ·
+**D-3** a chat ruling is not a ruling until banked as canonical text · **D-4** state the
+PROPERTY, not just the precedent.
+**D-3 binds from now, including this document — which exists because of it.** R284's near
+evaporation (decided the entire three-door plan; existed in no on-box artifact until R286
+banked it) is the proof case and is cited in the adoption.
+Standing consequence: **every Director ruling that changes what future lanes may do gets
+its canonical text into `DECISIONS.md`, same day.** The Director drafts that text; a seat
+lands it. Chat is where rulings are ISSUED, never where they LIVE.
+**Live failure named for the record (D-1, present tense):** `preflight_pairing.sh` exists
+only in `/srv`. If SR-24 survives its cold read, the script lands in the repo in the same
+lane or the rule is not adopted.
+
+---
+## THE ORDER OF WORK THAT FOLLOWS FROM THESE RULINGS
+1. Records errand: land THIS document's canonical texts in `DECISIONS.md` + retire the six
+   MERGING blocks (R292) — one docs-only PR, also a door.
+2. Sharding lane (R289) — the ENG-0185 fix and the velocity fix, one act.
+3. SR-15 cold read of directive 654 (R288) → adopt or refuse SR-24, script included.
+4. Then the product line per FORWARD PLAN v2, finalized against the current tree.
+END OF RULINGS — canonical text; lands in DECISIONS.md per D-3.
+```
+
+  - **Decision:** (a) land the canonical text above, discharging D-3 for R288–R293 on the day
+    they were issued; (b) retire **ALL TEN** anchored `Status: MERGING` blocks in
+    `NEXT_ACTIONS.md` — NA-0711, NA-0712, NA-0713, NA-0716, NA-0717, NA-0718, NA-0719,
+    NA-0720, NA-0721, NA-0722 — each to the §4c house form
+    `DONE <date> (D-####; <class>; PR #N merged <sha>)`, every PR number and merge sha read
+    from the API at this edit and never from prose or memory; and (c) reconstruct the ABSENT
+    `### NA-0714` block (A1-2), which the file had lost although D-1351 and TRACEABILITY both
+    record the lane. The merged-ness test is **`merged_at`, not `merge_commit_sha`** — GitHub
+    populates the latter for CLOSED-UNMERGED PRs too, and #1709 is exactly that trap sitting
+    in this repo's own history.
+  - ⚠ **Deviations and findings, enumerated:**
+    **DV-1 — the retire set is TEN, not six.** The base order named NA-0717..NA-0722; A1-1
+    replaced that with a measurement. NA-0711 (#1723), NA-0712 (#1724), NA-0713 (#1726) and
+    NA-0716 (#1727) were equally stale. All ten measured MERGED ⇒ all ten retirable; the
+    non-retirable set is empty.
+    **DV-2 — the Director's PR list was a SUPERSET, and NA-0717's block names #1729.** Seven
+    PRs were listed for six lanes because NA-0717 shipped as the ruled two-PR shape: #1728
+    (`807f8f7d`, records, PR-A) and #1729 (`e4cb73dc`, impl, PR-B). The block's own text
+    names #1729, so the flip is proven against #1729. **Every sha in the Director's list
+    matched the API exactly — there is no sha mismatch to report.**
+    **DV-3 — the `<RESULT_CLASS>` slot is empty for all ten and is filled `no class
+    declared`.** Measured: the last `**Class:**` declaration in this file is D-1339's; none
+    of D-1348..D-1358 declares one. The tree's precedent for the empty slot is NA-0704's
+    `(no class — …)`. NA-0714 is the exception and keeps its real class,
+    `STORAGE_HYGIENE_RECLAIM_PASS`, recovered from the on-box tree at `NEXT_ACTIONS.md:67`.
+    **DV-4 — A1-3's whole-file arithmetic measures 1, not 0, and the tree is right.** A1-3
+    seals `MERGING` count N−retired = 0; the file measures **1**, because this errand's own
+    `### NA-0723` block is BORN at `MERGING (PR #PRNUM)` — DOC-OPS-006 §4c requires exactly
+    that, and the ratified two-commit shape flips it to the real number afterwards. The base
+    order's narrower wording (*occurrences for those lanes* → 0) had it right. The sealed
+    expectation is what surfaced this: **suspect the instrument before the tree.**
+    **DV-5 — `### NA-0715` is ALSO absent, and is deliberately NOT reconstructed.** It has no
+    block and no TRACEABILITY row; its only mention in either file is prose inside NA-0716's.
+    A1-3 bounds the moved set to {retired set, NA-0723, NA-0714}, so NA-0715 is reported and
+    left untouched rather than swept in on the same reasoning that justified NA-0714.
+    **DV-6 — placement follows A1-2 (append-order) against a contrary measurement, recorded
+    for ruling.** Measured across all 771 blocks, this file is predominantly
+    NUMERIC-ascending — 26 inversions in 770 adjacencies — and the one true precedent for a
+    RETROSPECTIVELY allocated block, NA-0704 (allocated by NA-0705's commit), went to its
+    NUMERIC slot. No placement rule is documented anywhere: §4b governs WHEN a block is born,
+    never WHERE. A1-2 names append-order and forecloses numeric; that is a convention call in
+    the Director's chair and is followed, with the measurement carried here rather than
+    quietly resolved.
+  - **Goals:** G4. ⚠ G1, G2, G3, G5 NOT claimed — docs-only; no source, no CI, no dependency
+    change.
+  - **Not claimed:** that SR-24 is adopted (R288 sends it to a fresh-seat SR-15 cold read of
+    directive 654, and `preflight_pairing.sh` still exists only in `/srv` — R293's named live
+    D-1 failure, unfixed here) · that ENG-0185 advances (R289's sharding lane is the next act;
+    this docs merge only re-greens the admission signal a door reads) · that R282's redesign
+    is withdrawn (R289 retains it as the architecture, deferred) · that the prediction
+    ledger's debt comment is amended (R286 deferred it; its bytes are untouched here) · that
+    any ledger filing is made by this errand · that `READY=` is answered as a queue question
+    (R290 leaves it deliberately open for the retrospective; the STATE line follows the
+    measured convention of every prior lane and nothing more) · that NA-0715's absence is
+    cured · that any lane's substance is restated — NA-0714's block reconstructs a record,
+    not a result.

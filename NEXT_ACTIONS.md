@@ -6,7 +6,7 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0718 | HIGHEST_NA=0718 | HIGHEST_D=1354 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0719 | HIGHEST_NA=0719 | HIGHEST_D=1355 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
 **FORWARD ORDER — Director decision 2026-08-02, operator-approved.**
 **as of: 2026-08-03** · **superseded by: _none — this is current_**
@@ -37177,3 +37177,8 @@ Goals: G4 (verification and record as a release gate — **the property: a test 
 
 Status: MERGING (PR #1730)
 Goals: G4 (verification and record as a release gate — **the property: an obligation ledger is only trustworthy if its gaps are measured with a stated instrument and recorded as debt, never papered over by reconstruction from memory**). ⚠ **G1, G2, G3 and G5 are NOT claimed** — docs-only; no source, no CI, no dependency change.
+
+### NA-0719 — THE SUITE-CEILING CORRECTION (ORDER 3 leg 3, R278): macos-qsc-full-serial 180→300 and qsc-linux-full-suite 240→330, each fitted to CURRENT measured runtime by the NA-0664 method — because the macOS suite was killed at its ceiling TWICE with everything green (117/~130 sets then 127/~130, zero failures both times) and Linux is silently at 91% of its own (D-1355; sibling micro-lane of NA-0717, ordered at R278 and sequenced by R279 ORDER 3; ids re-derived at the edit — sweep banked in the NA-0717 lane record, NA-0719/D-1355/WF-0076 free across main + all three open PRs). The evidence: dispatch run 31643260667 (2026-08-12) and main push run 31661853338 (2026-08-13) both cancelled at 180m with zero failures — full-suite projection ~200-215m; Linux measured ~220m across five consecutive banked main runs vs 240. Both new values verified by executing the CONSUMER'S OWN extraction (public-ci.yml ceiling_of() awk, verbatim) against the edited files → 300/330, and both fit the public-safety watchdog's 360m job cap with its 20m safety gap (320/350). The growth is the finding, not just the fix: **WF-0076 filed (FILING ONLY)** — suites approach their ceilings silently; a runtime-vs-ceiling ratchet (WARN ≥80%, ceiling-review obligation FAILS ≥90%) would have signaled macOS at ~89% three weeks ago and names Linux today. ⚠ INTERACTION, stated openly (per the D-1354 re-audit): the Linux raise is a BRIDGE for a job whose demotion to workflow_dispatch-only is already operator-ratified pending the sharded suite's three green lanes — the ratified plan is unaltered by this bridge. Phase 6's conditional public-safety-success seal lands on THIS lane's merge push (relocation ruled at R279): the first FULL serial run on a main that carries the NA-0717 fix. NOT CLAIMED: that the suites stop growing · that the ratchet exists (filed, not built) · that the demotion plan's green-lane tally advances here.
+
+Status: MERGING (PR #1731)
+Goals: G4 (verification and record as a release gate — **the property: a CI ceiling is a measured artifact with its basis in the file beside it, re-fitted when the measurement moves, never a number that quietly decides for us by expiring**). ⚠ **G1, G2, G3 and G5 are NOT claimed** — two workflow scalars and records; zero product bytes.

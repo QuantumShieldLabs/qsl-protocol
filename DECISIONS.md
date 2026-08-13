@@ -38359,3 +38359,37 @@ HIGHEST_NA 0703→0705; HIGHEST_D 1343→1344 in this commit. Class at close:
     occur (outside the instrument's scope) · that the ceiling bridge alters the ratified
     promotion/retirement plan · that this errand discharges any owed item other than
     making the debt measurable.
+
+## D-1355 — NA-0719: THE SUITE-CEILING CORRECTION — both push-only suite ceilings re-fitted to current measured runtime by the NA-0664 method, because the macOS suite was killed at its ceiling twice with everything green and the Linux suite is silently at 91% of its own
+
+  - **Status:** Accepted (ordered at R278, sequenced by R279 ORDER 3 leg 3, as the sibling
+    micro-lane of NA-0717/D-1353; ids re-derived at the edit per WF-0068 — sweep banked in
+    the NA-0717 lane record, NA-0719/D-1355/WF-0076 free across main and all three open
+    PRs; A-minimal 240 was REJECTED at ruling: "1.15× headroom is how we got here").
+  - **Context:** `macos-qsc-full-serial` was cancelled at its 180-minute ceiling on two
+    consecutive full executions with ZERO test failures — dispatch run 31643260667
+    (2026-08-12: 117/~130 target sets green) and main push run 31661853338 (2026-08-13:
+    127/~130 green, the run that also proved the NA-0717 fix by name on main) — full-suite
+    projection ~200-215 min; NA-0664's 180 was 1.70× a 2026-07-21 measurement the suite
+    has outgrown. `qsc-linux-full-suite` measures ~220 min across five consecutive banked
+    main runs vs its 240 ceiling — margin eroded 1.53× → 1.09×.
+  - **Decision:** `macos-build.yml` timeout-minutes 180→**300** (~1.4× projection) ·
+    `ci.yml` timeout-minutes 240→**330** (1.5× measured), each with a measured-basis
+    comment in the file citing the runs above. Both values verified by executing the
+    CONSUMER'S OWN extraction — public-ci.yml's `ceiling_of()` awk, verbatim — against the
+    edited files (→ 300/330), and both fit the public-safety watchdog's 360-min job cap
+    with its 20-min safety gap (320/350): an overrun still surfaces as a bounded failure,
+    never a hang. Needle tables exact (`180` 1→0 / `300` 0→1; `240` 1→0 / `330` 0→1,
+    per file).
+  - **Filed, not fixed:** **WF-0076** — the runtime-vs-ceiling ratchet (WARN ≥80%,
+    ceiling-review obligation FAILS ≥90%); evidence: macOS killed at 100% twice, Linux at
+    91% now. FILING ONLY.
+  - **Interaction stated openly** (per the D-1354 re-audit): the Linux raise is a BRIDGE
+    for a job whose demotion to workflow_dispatch-only is operator-ratified pending the
+    sharded suite's three green lanes; that plan is unaltered here and its tally is the
+    Director's.
+  - **Goals:** G4. ⚠ G1, G2, G3, G5 NOT claimed — two workflow scalars and records; zero
+    product bytes.
+  - **Not claimed:** that the suites stop growing · that the ratchet exists · that the
+    demotion tally advances · that a completed run under the new ceiling has happened yet —
+    the first lands on this lane's own merge push (Phase 6's relocated seal, R279).

@@ -39447,3 +39447,130 @@ at D-1292) is the pre-existing ledger record of the same trap and is **not dupli
 lane lands the *step* the ledger entry has been waiting for, and leaves that entry's bytes
 untouched. **Docs-only:** five files, zero source bytes, no `.github/**`, no workflow, no
 dependency, no test.
+
+## D-1362 — NA-0726: THE SR-24 REFUSAL RECORD — the pairing pre-flight standing rule is considered and REFUSED on the cold read's measurements, the refusal enters repo truth so no successor re-proposes it blind, and the durability property the episode taught becomes house practice
+
+**Status:** Accepted (ordered by the SR-24 REFUSAL RECORD + D-3 GAP MEASUREMENT order of
+2026-08-14, banked 444 in the NA-0726 lane record as `ORDER_NA0726_SR24_REFUSAL_20260814.md`,
+sha256 `49690a12f6762ed59236189a2d313e27868daa66813030c2214dee741b9ebc1a`, 95 lines. Ids
+re-derived at the edit per WF-0068 against main `b4e342e6` **and an open-PR set measured
+EMPTY** (`gh pr list --state open` → `[]`): **NA-0726**, **D-1362** and **WF-0078** each
+returned **zero** occurrences across the tree's `*.md`, with a positive control — `NA-0725`,
+firing in all four record files — proving the instrument could return a hit. Every id space
+was swept, not only the ones in use: `## D-` max 1361, `### NA-` max 0725, `WF-` max 0077,
+`ENG-` max 0187, `SR-` max 24. STATE advanced 0725/1361 → 0726/1362.)
+
+**Context:** R288 sent SR-24 — the pairing pre-flight rule proposed by
+`QSL-DIR-2026-08-13-654` — to a fresh-seat SR-15 adversarial cold read before any adoption
+decision, and wrote in the same ruling that *"a refusal recorded is as useful as an
+adoption."* The read executed 2026-08-14 and returned 21 findings (2 BLOCKER / 9 MAJOR /
+6 MINOR / 4 NOTE). This record is the disposition: the refuse arm of R288's order-of-work
+item 3, taken on the read's measurements rather than on impressions, and landed under D-3 so
+the decision is repo truth rather than operator-area archaeology.
+
+**Provenance.** The rulings below cite `SR15_D654_FINDINGS.md` — that cold read's findings
+file — sha256 `54ca291f97b5aeca71dc68d1a56f4d61850a2ef67f6608e0da500ef0229749fc` (389 lines
+/ 29377 bytes, banked 444 in the operator record, its own END line present). The
+finding-level premises that are claims about THIS repository were re-measured at this seat
+at `b4e342e6` before this record landed: `git grep local_ops -- .github/` returns zero and
+`scripts/local_ops/` holds exactly three scripts, each wired to nothing in CI (M5); a grep
+for the string R287 over this file returned zero at base (M4 — this record's own fence
+quotes that measurement, so the string exists below from this merge on; the CLAIM, that
+R287's canonical text is absent from repo truth, is unchanged by a quotation of its
+absence); and R288's sentence quoted above stands at its recorded line. The Director's
+canonical text R305–R308 lands byte-verbatim in the column-0 fence below (the D-1356/D-1359
+precedent); the fence body is the WHOLE banked extract `RULINGS_R305-R308_EXTRACT.md`
+(order lines 11–60), sha256
+`d0f906b5299d3f634e51e2cafe309d2549630e6907fb1020d9bb6b32e91102e0`, 50 lines / 4135 bytes,
+so that sha verifies exactly these bytes:
+```
+R305 — **SR-24 IS REFUSED as a numbered standing rule.** Grounds, measured in
+  SR15_D654_FINDINGS: (a) M5 — `git grep local_ops` over `.github/` returns ZERO; no lint,
+  gate or hook fires when a pairing plan is authored without a pre-flight, so §3's
+  "a consumer that refuses" — the entire case for rule-over-filing — does not exist in the
+  shipped design; (b) the actual enforcement, the operator's right to refuse a merge ask
+  carrying no pre-flight verdict, was ratified at R288 INDEPENDENTLY of SR-24 and survives
+  this refusal intact; (c) M9 — D-1360 shrank the governed workflow from every-runtime-PR to
+  a rare rollback path, so the rule would bind rarely and its consumer would run rarely,
+  which is D-2's decay case beside three `scripts/local_ops/` files already wired to nothing;
+  (d) B1 — as drafted the rule deadlocks its own canonical scenario: pre-door, no runtime PR
+  can return READY, so SR-24 read literally freezes every pairing plan and read practically
+  is violated by its first use, as the author's own trial already did. **A numbered rule that
+  cannot fail closed implies enforcement it does not have, which is worse than no rule.**
+  R288 contemplated this outcome: a refusal recorded is as useful as an adoption.
+  **NOT refused: the discipline.** "A measurable premise is measured, never believed" is
+  already carried by R288's adopted chair boundary and by SR-21; it needs no new number.
+
+R306 — **THE INSTRUMENT SURVIVES, AS AN UNBLESSED TOOL, AND ONLY AFTER ITS MEASURED DEFECTS
+  ARE FIXED.** It serves R288's ratified operator lever, which is real. A later small lane may
+  land it in `scripts/local_ops/` — NOT this lane — and must first close, each demonstrated in
+  the cold read: B2's stale-ref false-clean path (the fetch refspec is non-forcing with stderr
+  suppressed, so a leftover `pfpr$PR` branch makes the verdict assert head B while measuring
+  head A, up to a false `READY TO PAIR`; the fix shape is a forcing refspec, a loud fetch
+  failure, and a `rev-parse pfpr$PR == HEAD_SHA` identity cross-check) · M6's three
+  unmeasured-premise paths (absent classifier ⇒ `unmeasured` with no blocker; null mergeable
+  concluded after five retries despite the code's own comment; environment failure reported in
+  the NOT-READY vocabulary instead of the documented exit 2) · M7's wrong-operand scope
+  reading (a two-dot diff against CURRENT main, which CI does not compute and which
+  misclassifies a behind PR) · B1's verdict semantics (READY must mean
+  READY-MODULO-WHAT-THE-DOOR-ITSELF-CURES; a door-clearable main-red is not a pairing blocker)
+  · m1's mode ambiguity. ⚠ Until then the script stays unblessed and its verdict is
+  information, never authority.
+
+R307 — **THE DURABILITY PROPERTY IS ADOPTED AS HOUSE PRACTICE** (M3, and a B-list SR
+  candidate): **every referent in a permanent text must be immutable at the moment the text
+  lands** — a past ruling, a dated measurement, a sha — **or be bound in the same atomic
+  commit.** Survey evidence: every adopted rule that cites an id (SR-18 D631, SR-19/SR-20
+  D632, SR-21 D633, SR-22 D-1349) cites a record that already existed. Structural half:
+  **the WF-0068 sweep spans main plus every OPEN PR and is therefore blind to ids reserved in
+  banked-but-unruled directives**, so any directive awaiting a ruling can lose its ids to a
+  faster lane — as this one did, 51 minutes after banking. ⇒ **a draft may not pre-bind any
+  adoption-record id; ids are derived-at-edit parameters, never text.**
+
+R308 — **TWO DIRECTOR ERRORS, RECORDED.** (a) R288 calls a rule governing the Director's
+  discretion "an explicit SR-15 trigger"; SR-15's text lists three mechanical triggers and
+  discretion is not among them. The read was validly ordered — the disposition power is the
+  Director's — but "explicit" was belief, not measurement, inside a ruling about measuring.
+  (b) **R287 resolves nowhere in repo truth** (`git grep R287 -- DECISIONS.md` ⇒ 0), so the
+  refused rule's own text cited a dangling authority. That is a D-3 violation by the chair
+  that adopted D-3. See Part 2.
+```
+
+**What this discharges, and what it deliberately does not.** R288's order-of-work item 3
+(*"adopt or refuse SR-24, script included"*) is DISCHARGED on the refuse arm: the rule is
+refused (R305); the script's disposition is ruled (R306 — `preflight_pairing.sh` stays an
+UNBLESSED operator-area tool whose verdict is information, never authority; it may land in
+`scripts/local_ops/` only in a later small lane and only after the five measured defect
+classes named in R306 are closed and demonstrated); the durability property is adopted as
+house practice (R307); and two Director errors are recorded rather than smoothed (R308).
+`docs/ops/STANDING_RULES.md` is deliberately untouched: it runs SR-01..SR-22, a refusal
+mints no entry, and the SR-23 reservation (*"minted as a numbered rule at the next
+governance touch"*, recorded earlier in this file) is left undisturbed — the
+settle-now-or-defer options are reported at the merge-ask stop, none taken, per the order's
+ALSO clause.
+
+**The sweep for the claim, not the location** (the NA-0725 §III lesson, ordered by this
+lane's own gates): every tracked sentence matching SR-24 / SR24, `preflight_pairing`,
+"pairing pre-flight", the bare number 654, or "cold read" was enumerated at `b4e342e6` and
+classified. Every hit sits inside already-landed records — D-1359's fenced ruling text and
+its record prose, and NA-0724's as-built "not claimed" list — and none asserts as live
+state that SR-24 is pending or unread; so ZERO corrections were owed, and none was made.
+*"SR-24 itself is NOT yet adopted"* (inside D-1359's fenced text) remains true of a refused
+rule; an order-of-work item does not become false by being discharged; and the three
+sentences in this file recording that `preflight_pairing.sh` exists only in `/srv` remain
+true on this merge, because R306 lands nothing.
+
+**Part 2 of the order — the D-3 gap measurement over every issued R-number — lands NOTHING
+here by design.** It is reported at the merge-ask stop as a scoping input for a separate
+ruling.
+
+**This record deliberately carries no `**Class:**` field.** Declaring a result class is a
+Director act (R297.3; the R303.2 precedent is a lane that stopped rather than invent one
+and was ruled correct for it); the flag rides the merge-ask stop.
+
+**Base:** spine `b4e342e6` (the #1740 promotion merge). **Source finding:** SR-24, proposed
+by `QSL-DIR-2026-08-13-654`; the refusal is filed to the ledger as **WF-0078** with the
+findings file's sha as evidence, born closed (`wontfix` plus a `Resolution:` line) because
+a completed consideration filed open would be a false state. **Docs-only:** four files,
+zero source bytes, no `.github/**`, no workflow, no dependency, no test. The operator
+merges; the seat does not.

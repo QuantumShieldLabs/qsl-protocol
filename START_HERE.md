@@ -206,6 +206,20 @@ Supporting artifact:
 3) Open NEXT_ACTIONS.md and identify the top-most item with Status = READY.
 4) Read docs/ops/IMPROVEMENT_LEDGER.md (DOC-OPS-007) — the cross-lane
    engineering-findings and process-improvement backlog.
+5) **Set this clone's commit identity, locally, BEFORE your first commit.** It is not
+   inherited correctly, and the failure arrives only at the push:
+
+       git config user.name  Tebbens4832
+       git config user.email 238594419+Tebbens4832@users.noreply.github.com
+
+   `~/.gitconfig` carries a **private personal address** — per-user config legitimately
+   lives in the home directory (DOC-OPS-006 §5a), so a fresh clone inherits it and GitHub
+   rejects the first push with `GH007: Your push would publish a private email address`.
+   Existing workspaces work only because this was already set in each of them; a new clone
+   is not covered by that. Run it per clone, and confirm with `git config --local user.email`
+   — an empty result means you are still inheriting. If a commit already exists,
+   `git commit --amend --reset-author` is safe **only before the PR exists** (§4 of
+   DOC-OPS-006 forbids amend after PR creation).
 
 ### Step 2 — Confirm scope and constraints
 Before touching code or docs, write down (in your working notes / PR description):

@@ -39302,3 +39302,134 @@ re-measure (PROC-1 and the class-drift filing must both still be UNLANDED). The 
 you do not. Ambiguity → fail closed, stop, report.
 END OF RULING R299 — if this line is missing, the paste is truncated; request a re-send.
 ```
+
+## D-1361 — NA-0725: THE PROC-1 / CLASS-DRIFT RECORDS ERRAND — the seat-provisioning step that stops a fresh clone publishing a private address enters repo truth, and the decision record's silent result-class drift is filed with the range measured rather than inherited
+
+**Status:** Accepted (ordered by the RECORDS ERRAND ORDER of 2026-08-14, banked 444 in the
+NA-0725 lane record as `ORDER_NA0725_RECORDS_ERRAND_20260814.md`, sha256
+`6d674583ba3076ff25a0240bfc93a1a4be0408372bbf1ccd06235ca33513a70c`. Both items are **T9's
+reserved supply**, held by **R297.5** until NA-0724 was proven post-merge and **released at
+R302**; NA-0724 merged as PR #1738 at `324f076b` and its Phase 7 was observed green on that
+push, so the reservation's condition is satisfied by measurement, not by assertion. Ids
+re-derived at the edit per WF-0068 against main `324f076b` **and an open-PR set measured
+EMPTY** (`gh pr list --state open` → `[]`): **NA-0725**, **D-1361** and **WF-0077** each
+returned **zero** occurrences across the tree's `*.md`, with a positive control — `NA-0724`,
+23 occurrences — proving the instrument could return a hit. Every id space was swept, not
+only the one in use: `## D-` max 1360, `### NA-` max 0724, `WF-` max 0076, `ENG-` max 0187,
+`SR-` max 24. STATE advanced 0724/1360 → 0725/1361.)
+
+**Context:** this errand lands two things the program has been carrying without a home, and
+retires one stale queue status. Neither item is a remedy: **PROC-1 is a step**, and **the
+class-drift filing is a filing**. What to *do* about the drift is deliberately left to a
+later lane, so that call is made against a measurement instead of an impression.
+
+**1. PROC-1 — THE SEAT-PROVISIONING STEP, AND WHY `START_HERE.md` §4 STEP 1 IS ITS HOME.**
+A fresh clone of this repo has **no local `user.email`**; it inherits `~/.gitconfig`, which
+carries a **private personal address**, and GitHub rejects the first push with `GH007: Your
+push would publish a private email address`. Existing workspaces work only because the house
+identity was already set locally in each of them — which is exactly why the trap is invisible
+until a new clone appears. ⚠ **This was re-measured live by the seat that landed this record,
+before its own first commit**: the fresh clone's `git config --local user.email` returned
+empty (rc 1) and the effective address resolved to the global private one. The lane therefore
+paid the very cost it is filing the cure for, and says so rather than presenting a step it did
+not need.
+
+**The placement was decided from the candidate files' own stated scope, not from preference.**
+All four candidates named in the order — `START_HERE.md`, `AGENTS.md`, `CODEX_RULES.md`,
+`docs/ops/DIRECTOR_OPERATIONS.md` — were measured at `324f076b` to contain **zero** mentions
+of `GH007`, `noreply`, `user.email` or "commit identity"; so does `CLAUDE.md`, which the
+measurement added to the candidate set because it is what a Claude seat actually loads first.
+**`START_HERE.md` §4 Step 1 wins on three properties the other files do not have:**
+(a) §0 states its own purpose as *"the single entry point for anyone (human or AI)… the
+required workflow to prevent drift"*, and §4 is titled *"Standard workflow for every work
+session (mandatory)"* with **Step 1 named "Bootstrap"** — a before-first-commit provisioning
+act is Step-1 material by that section's own title;
+(b) it is reached by **both** entry paths — `CLAUDE.md`'s read-first list names it **#1**, and
+`AGENTS.md` is itself reached from Step 1 item 2 — so a step placed there is read before the
+first commit under either route;
+(c) it is **authoritative**, where `CLAUDE.md` is not: `CLAUDE.md`'s own §Precedence declares
+it *"a convenience pointer only"*, so a mandatory step whose only home were that file would
+not durably bind. ⚠ **The others were refused on their own scope statements, not on taste:**
+`docs/ops/DIRECTOR_OPERATIONS.md` is titled *Director Operations* and governs the directive
+template, counters and standing conventions — the commit identity is set by whoever makes the
+commit, i.e. the executor seat, and that file's nearest section (§6 *Environment facts*) is
+explicitly a **record of facts**, not a required step; `AGENTS.md` is the *Repository Agent
+Policy* and carries no session-bootstrap sequence, only *Mandatory reads*; `CODEX_RULES.md`
+scopes itself to authority, immutable inputs, change discipline and allowed edit paths — what
+may be changed, not how a seat is provisioned. **One home, not several**, because a mandatory
+step duplicated across documents drifts and then two texts disagree; the step cites
+DOC-OPS-006 §5a for the *reason* the trap exists — per-user config legitimately lives in the
+home directory, so the repo identity must be set per clone rather than fixed globally.
+
+⚠ **The private address is named as a CLASS and never spelled** (NA-0703's standing practice:
+a record of a sanitization must not respell what it sanitized). Proven with the
+**infra-literal scan's own needle**, `infra_literal_scan.py:101`
+(`[A-Za-z0-9._%+-]+@proton\.me`, case-insensitive) rather than a wider one of the seat's own:
+zero hits across the added lines, against a positive control proving the needle fires. The
+**house** identity is not in this class — it is already public in every commit in this
+repository.
+
+**2. THE CLASS-DRIFT FILING — `WF-0077`, WITH THE RANGE MEASURED AND TWO DEPARTURES RECORDED.**
+Filed as a **workflow/process item** on the ledger's own taxonomy (*`ENG-####` for engineering
+findings, `WF-####` for workflow/process items*): a convention drift in the decision record is
+a process item. Measured at `324f076b`: **D-1340 through D-1359 — twenty consecutive
+decisions, all present, zero gaps — carry no `**Class:**` field**; the last decision to
+declare one in that field is **D-1339**; **D-1360 ends the drift** by declaring
+`SUITE_ECONOMICS_SHARDING_PASS` (R297.3), so the range is closed and exact.
+
+⚠ **DV-1 — the naive-grep count is FIFTEEN at this base, not the twelve the order records.**
+Twelve was true at `f8370bce`. **D-1360 has merged since**, adding three occurrences — one
+real declaration plus two inside its own column-0 fence — so the same naive needle returns
+**15** here. The instrument note's *substance* is unaltered and still true; only the count
+moved, and the filing states the figure measured at its own base while attributing twelve to
+R297 at `f8370bce`. ⚠ **The fenced R297 text inside `## D-1360` is NOT edited** — a fenced
+ruling is never rewritten, even when a later measurement supersedes a figure in it, because
+editing inside the fence would break the whole-file sha256 its provenance cites and would
+rewrite a ruling as issued.
+
+⚠⚠ **DV-2 — "declare no result class" is true OF THE `**Class:**` FIELD, and four of the
+twenty declare a class in another form.** Per-decision measurement over the range found
+**D-1340** (`QSL_OUTPUT_IPC_BOUNDARY_CLOSURE_PASS`), **D-1341**
+(`QSLD_GUI_INPUT_DRIVER_PASS`) and **D-1342** (`QSLD_ERASE_ERROR_ONE_RESIZING_WRITER_PASS`)
+declaring inline in their own Date/Lane metadata bullet, and **D-1344**
+(`QSLD_QSC_PIN_BUMP_QSCV01_REFUSAL_PASS`) declaring as `Class at close:`; three further
+inline hits in the range name a *different* lane's class in a retirement note and are
+correctly not counted. **The field reading is what the order and the record both mean**, and
+the order is self-consistent only under it: its companion clause *"the last declaring decision
+is D-1339"* is true of the field and false of any-form, and D-1359's own DV-3 says *"the last
+`**Class:**` declaration in this file"*. ⇒ **the filing states the field claim — the ruled
+range, unchanged — and carries the four inline declarations as a measured qualification**, so
+no false sentence enters repo truth and the remedy lane inherits the more useful fact: the
+field did not merely lapse, an undocumented second spelling partly replaced it.
+
+**The decisive instrument, with its control.** A `**Class:**` census of this file counts the
+file's own prose about itself, so the needle excludes column-0 fenced regions (this record
+carries whole ruling documents in them) and excludes code-quoted mentions. Within
+D-1340..D-1359: occurrences **1**, of which code-quoted **1** ⇒ **zero declaration-shaped
+fields**; **positive control 10** over D-1330..D-1339, proving the needle can fire. Two
+governing documents cite **eleven** (D-1359 DV-3 over D-1348..D-1358; R296.5) — each true of
+the range it named, each honestly scoped to its own act — so **a cited enumeration is not the
+maximal one; measure it.**
+
+**3. `### NA-0724` RETIRED.** Its `MERGING (PR #1738)` status is resolved to the §4c house
+form from the **API**, on `merged_at` and never on `merge_commit_sha` alone (#1709 is this
+repository's own instance of that trap): PR **#1738**, `state=MERGED`,
+`mergedAt=2026-08-14T16:21:33Z`, merge commit
+`324f076bb95ce0d73f28992e78593febe94db099`. It was verified by measurement to be the **only**
+anchored `^Status: MERGING` line in the file. Its result class is real and is carried —
+`SUITE_ECONOMICS_SHARDING_PASS`, ruled at R297.3 — unlike the ten NA-0723 retired, whose slots
+correctly read *no class declared*.
+
+**4. WHAT IS NOT CLAIMED, AND ONE THING THIS RECORD IS AN INSTANCE OF.** No remedy for the
+drift is chosen here — whether the `**Class:**` field is revived, formally retired in favour
+of the inline form, or enforced by a lint is a later lane's call. Nothing is claimed about
+whether other repositories' seats hit `GH007`. ⚠ **And this record declares no result class
+itself**, because none was ruled for NA-0725 — so the drift is still live at the moment it is
+filed. That is stated rather than smoothed over, and it is the state a successor inherits.
+
+**Base:** spine `324f076b` (the #1738 promotion merge). **Source finding:** **WF-0077**, filed
+by this decision; **WF-0029** (the workspace `user.email` hazard, filed 2026-07-22 by NA-0666
+at D-1292) is the pre-existing ledger record of the same trap and is **not duplicated** — this
+lane lands the *step* the ledger entry has been waiting for, and leaves that entry's bytes
+untouched. **Docs-only:** five files, zero source bytes, no `.github/**`, no workflow, no
+dependency, no test.

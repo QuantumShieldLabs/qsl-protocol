@@ -39420,14 +39420,28 @@ anchored `^Status: MERGING` line in the file. Its result class is real and is ca
 `SUITE_ECONOMICS_SHARDING_PASS`, ruled at R297.3 — unlike the ten NA-0723 retired, whose slots
 correctly read *no class declared*.
 
-**4. WHAT IS NOT CLAIMED, AND ONE THING THIS RECORD IS AN INSTANCE OF.** No remedy for the
-drift is chosen here — whether the `**Class:**` field is revived, formally retired in favour
-of the inline form, or enforced by a lint is a later lane's call. Nothing is claimed about
-whether other repositories' seats hit `GH007`. ⚠ **And this record declares no result class
-itself**, because none was ruled for NA-0725 — so the drift is still live at the moment it is
-filed. That is stated rather than smoothed over, and it is the state a successor inherits.
+**4. WHAT IS NOT CLAIMED, AND THE REMEDY QUESTION THIS LANE HANDS ON.** No remedy for the
+drift is chosen here. ⚠⚠ **And the question is not the one the drift first looks like.**
+Because a second, ungoverned spelling **partly replaced** the field rather than the field simply
+lapsing, *"revive or retire `**Class:**`"* is the wrong framing: a remedy must decide **which
+spelling is canonical**, **what becomes of the four decisions written in the other one**, and
+whether either is enforced by a lint over `DECISIONS.md`. That distinction reaches the remedy
+lane only because the range was measured rather than transcribed (**R303.1**). Nothing is
+claimed about whether other repositories' seats hit `GH007`, and **`WF-0029` is not closed by
+this lane** — its bytes are untouched and it keeps its own status.
 
-**Base:** spine `324f076b` (the #1738 promotion merge). **Source finding:** **WF-0077**, filed
+**5. THIS RECORD DECLARES A RESULT CLASS, AND WHY THAT IS NOT A SELF-SERVING CHOICE.** The lane
+**stopped rather than invent one**: declaring a result class is a Director act (R297.3), and
+minting one inside the very lane that files the drift would be the wrong way to end it. The
+Director exercised it at **R303.2**, and the grounds are a property rather than a preference:
+*leaving it undeclared would write a twenty-first driftless decision into the permanent record
+inside the very lane that files the drift; the honest state is not better than the useful one
+when the useful one is also true.* ⚠ **Declaring in the `**Class:**` FIELD prejudges nothing
+about the remedy** — the remedy lane may still formalize either spelling. It only declines to
+extend the lapse while filing it.
+
+**Base:** spine `324f076b` (the #1738 promotion merge). **Class:**
+`RECORDS_SEAT_PROVISIONING_PASS` (ruled at **R303.2**). **Source finding:** **WF-0077**, filed
 by this decision; **WF-0029** (the workspace `user.email` hazard, filed 2026-07-22 by NA-0666
 at D-1292) is the pre-existing ledger record of the same trap and is **not duplicated** — this
 lane lands the *step* the ledger entry has been waiting for, and leaves that entry's bytes

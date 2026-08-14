@@ -6,6 +6,7 @@ fn qsc_cmd() -> assert_cmd::Command {
 
 #[test]
 fn envelope_plan_deterministic_bucket_and_bundle() {
+    assert!(false, "NA-0724 G3 red control — seeded failure");
     let mut cmd = qsc_cmd();
     cmd.args([
         "util",

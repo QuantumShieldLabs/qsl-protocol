@@ -368,27 +368,6 @@ jobs:
           # anti-regression scan and the DH-guard tests are enforced on every code PR.
           cargo +stable test -p quantumshield_refimpl --locked
 
-  qsc_linux_full_suite:
-    name: qsc-linux-full-suite
-    needs: classify
-    if: github.event_name != 'pull_request' && needs.classify.outputs.docs_only != 'true'
-    runs-on: ubuntu-latest
-    # Ceiling correction (NA-0719, D-1355): raised 240 -> 330. The suite grew to
-    # ~220m per push (five consecutive main runs, a0b18d66..5b43eefe, banked in
-    # the NA-0717 lane record) = 91% of NA-0664's 240 - margin eroded from 1.53x
-    # to 1.09x. 330 is 1.5x the measured runtime (the fit-to-measured method) and
-    # stays under the public-safety watchdog's 360m job cap with its 20m safety
-    # gap, so an overrun still surfaces as a bounded failure, never a hang.
-    timeout-minutes: 330
-    steps:
-      - uses: actions/checkout@v5
-      - name: Run full qsc Linux suite outside the PR critical path
-        shell: bash
-        run: |
-          set -euo pipefail
-          cargo +stable build -p qsc --release --locked
-          cargo +stable test -p qsc --locked
-
   ci_4b:
     name: ci-4b
     needs: classify

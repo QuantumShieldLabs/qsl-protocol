@@ -41,7 +41,6 @@ DOCS_ONLY_SKIP_NAMES = {
     "macos-qsc-qshield-build",
     "metadata-conformance-smoke",
     "qsc-adversarial-smoke",
-    "qsc-linux-full-suite",
     "suite2-vectors",
 }
 

@@ -403,8 +403,8 @@ def public_safety_status_command(args: argparse.Namespace) -> int:
     by_name = latest_by_name(runs)
     names = [
         "public-safety",
-        "qsc-linux-full-suite",
-        "macos-qsc-full-serial",
+        "qsc-sharded-suite",
+        "macos-qsc-sharded-suite",
         "qsc-adversarial-smoke",
     ]
     public_safety_red = False

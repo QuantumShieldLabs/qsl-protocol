@@ -1,0 +1,158 @@
+# QSC_SHARD_MANIFEST_MACOS v1 — target<TAB>shard (K=5) — NA-0724 (D-1360).
+# SEED: MEASURED, not estimated. Per-target wall-clock mined from the newest completed
+# macos-qsc-full-serial run at execution time — job 94606278726 (run 31747736537, sha
+# 0ad65a58), 180.95 min, whose log carries 132 `Running`/`Doc-tests` lines and 132
+# `test result:` lines: an EXACT COVER of the 132-target census. Test phase 175.91 min;
+# fixed overhead (checkout + toolchain + build, before the first Running) 5.05 min.
+# Two INDEPENDENT attributions were computed and cross-checked: cargo's own
+# `finished in Ns` values, and deltas between consecutive `Running` timestamps. They
+# agree on ALL 132 targets (zero disagree by >5s), so this capture carries none of the
+# stdout/stderr interleaving that limited the earlier seed (11 of 131 targets there).
+# Partition: greedy-LPT over the 131 non-doc targets into 4 working shards; the four
+# loads land within 0.153 s of each other (43.97 min each), the ideal. Largest single
+# target is tests/handshake_mvp.rs at 29.36 min — the floor no partition can beat.
+# Projected worst shard ~49.0 min warm = 54.5% of the 90-minute ceiling.
+# ⚠ THE 90-MINUTE CEILING IS AN INITIAL HANG-BOUND, NOT A FITTED CEILING. It is re-fitted
+# only from the FIRST MEASURED SHARDED macOS main run (R289: a projection may not fit a
+# ceiling). The first such run has a COLD cache — shared-key macos-qsc-sharded-suite has
+# never been saved — so it is EXPECTED to exceed the 60-minute signal band on a healthy
+# partition, and that is recorded, not a finding.
+# INVARIANT, gate-enforced: doc:qsc is ALONE in shard 4. cargo refuses --doc mixed with
+# any other target selector ("error: can't mix --doc with other target selecting options",
+# exit 101), so a doc target sharing a shard emits an argument set cargo rejects outright.
+# qsc_shard_check.py fails closed on it.
+# The shard ids here MUST equal the workflow's matrix; qsc_shard_check.py --assert-workflow
+# proves it in both directions, asserts every runs-on value is in the caller-declared set,
+# and asserts shard's own runner is macos-latest.
+lib	0
+bin:qsc	3
+doc:qsc	4
+tests/NA_0633_eng0038_reproduction.rs	2
+tests/NA_0634_full_identity_provisioning.rs	3
+tests/NA_0639_wf0022_atomic_write_crash_window.rs	2
+tests/NA_0640_full_stack_e2e.rs	2
+tests/NA_0644_ack_client.rs	2
+tests/NA_0645_relay_url_policy_cli.rs	1
+tests/NA_0649_gui_surface.rs	0
+tests/NA_0658_vault_protections.rs	1
+tests/NA_0663_relay_tls_trust.rs	0
+tests/NA_0671_vault_kdf_cost.rs	2
+tests/NA_0672_relay_server_info.rs	3
+tests/NA_0681_invite_encodings.rs	3
+tests/NA_0681_invite_relay_contract.rs	0
+tests/NA_0681_two_party_handshake.rs	0
+tests/NA_0682_kill_in_the_send_window.rs	1
+tests/a2_signature_provider_rng_failure.rs	3
+tests/ack_camouflage.rs	3
+tests/adversarial_miri.rs	0
+tests/adversarial_properties.rs	0
+tests/attachment_streaming_na0197c.rs	2
+tests/attachments_contract_na0217h.rs	1
+tests/aws_file_confirmation_replay_na0192b.rs	1
+tests/aws_file_medium_boundary_na0192a.rs	1
+tests/aws_file_robustness_na0186.rs	1
+tests/aws_r2_file_integrity_na0189.rs	0
+tests/b1_signature_provider_rng_failure.rs	3
+tests/binding_negative_vector_consumer.rs	0
+tests/cli.rs	2
+tests/cli_identity_rotation_provider_rng_failure.rs	0
+tests/common_isolation_na0171.rs	0
+tests/contacts_verify_block.rs	1
+tests/desktop_gui_contract_na0215b.rs	2
+tests/diagnostics.rs	2
+tests/envelope.rs	3
+tests/file_transfer_mvp.rs	3
+tests/fs_store_contract_na0217b.rs	2
+tests/handshake_contract_na0217i.rs	1
+tests/handshake_mvp.rs	0
+tests/handshake_provider_error_no_mutation.rs	0
+tests/handshake_security_closure.rs	2
+tests/identity_binding.rs	3
+tests/identity_foundation_contract_na0217d.rs	3
+tests/identity_secret_at_rest.rs	3
+tests/identity_ux.rs	3
+tests/kem_provider_rng_failure.rs	3
+tests/kem_signature_transcript_binding_negative.rs	3
+tests/key_lifecycle_zeroization.rs	2
+tests/key_lifecycle_zeroization_expansion.rs	0
+tests/lazy_identity_provider_rng_failure.rs	3
+tests/legacy_identity_public_record_provider_rng_failure.rs	1
+tests/lifecycle.rs	3
+tests/limits.rs	3
+tests/message_state_model.rs	1
+tests/meta_min.rs	2
+tests/meta_phase2.rs	3
+tests/mock_relay_transport_na0173.rs	0
+tests/modularization_na0158.rs	0
+tests/na0688_c1_clock.rs	1
+tests/na0688_c2_passivation.rs	3
+tests/na0688_c3_default_wire_conformance.rs	1
+tests/na0688_c3_sender_default.rs	0
+tests/na0688_c4_collateral_arms.rs	0
+tests/na0688_eng0095_ack_nonce_barrier.rs	3
+tests/na0689_capture_boundary_arms.rs	1
+tests/na0689_p3_a2_stranding.rs	1
+tests/na0690_ack_gated_on_store.rs	1
+tests/na0692_config_resolver_unified.rs	2
+tests/na0693_vault_write_lock.rs	1
+tests/na0694_vault_envelope_aad.rs	1
+tests/na0695_vault_keychain_addressing.rs	2
+tests/na0696_vault_honesty.rs	2
+tests/na0708_ack_flush.rs	3
+tests/na0711_invite_label_resolution.rs	2
+tests/na_0302_suite2_negotiation_cross_surface.rs	3
+tests/na_0303_handshake_activation_negotiation.rs	2
+tests/na_0304_handshake_suite_id_negotiation.rs	2
+tests/na_0313_handshake_suite_id_parameter_block.rs	2
+tests/na_0591_true_triple_ratchet_path.rs	3
+tests/na_0593_seed_fallback_hardening.rs	3
+tests/na_0616_self_label_footgun.rs	2
+tests/na_0617_attachment_single_send_per_session.rs	3
+tests/outbox_abort.rs	0
+tests/output_marker_contract_na0217a.rs	0
+tests/peer_confirm_policy_primary_only_na0177.rs	3
+tests/protocol_state_contract_na0217c.rs	3
+tests/qsp_protocol_gate.rs	1
+tests/qsp_qse_onwire.rs	3
+tests/qsp_status_truthy.rs	0
+tests/ratchet_durability_na0155.rs	0
+tests/ratchet_step.rs	3
+tests/receipt_policy_mvp_na0177.rs	1
+tests/receipts_delivered.rs	3
+tests/receive_e2e.rs	1
+tests/receive_no_mutation.rs	0
+tests/relay_auth_header.rs	2
+tests/relay_drop_no_mutation.rs	1
+tests/relay_dup_no_mutation.rs	2
+tests/relay_push_diagnostics.rs	2
+tests/relay_reorder_no_mutation.rs	0
+tests/remote_fault_injection.rs	0
+tests/remote_soak_backpressure_na0168.rs	2
+tests/remote_soak_diag_mapping_na0168.rs	2
+tests/remote_soak_diag_na0168.rs	3
+tests/remote_soak_mode_na0168.rs	3
+tests/remote_soak_smoke_na0165.rs	3
+tests/remote_soak_state_root_na0167.rs	0
+tests/rng_failure_behavior.rs	3
+tests/rng_failure_residual_surfaces.rs	2
+tests/route_header_migration_docs_na0195a.rs	3
+tests/same_host_client_to_client_e2e.rs	2
+tests/sanitize.rs	2
+tests/secret_material_diagnostic_boundary.rs	1
+tests/send_commit.rs	0
+tests/send_ready_markers_na0168.rs	3
+tests/send_semantics.rs	1
+tests/session_state_at_rest.rs	2
+tests/suite2_runtime_equivalence_na0198.rs	0
+tests/timeline_delivery_contract_na0217f.rs	1
+tests/timeline_store.rs	0
+tests/transport_contract_na0217g.rs	0
+tests/trust_gate_unify_na0177.rs	2
+tests/trust_model_v2_phase_a_na0177.rs	2
+tests/trust_model_v2_phase_b_na0177.rs	2
+tests/trust_model_v2_phase_c_na0177.rs	0
+tests/trust_onboarding_mainstream_flow_na0187.rs	2
+tests/trust_remediation_ux_na0178.rs	1
+tests/two_client_local_runbook_na0182.rs	0
+tests/unlock_gate.rs	2
+tests/vault.rs	3

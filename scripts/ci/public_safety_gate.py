@@ -63,7 +63,7 @@ REQUIRED_CONTEXT_NEUTRAL_ALLOWED = {"CodeQL"}
 TRANSIENT_WAIT_HTTP_CODES = {502, 503, 504}
 RED_MAIN_REPAIR_PROFILES = {
     "send_commit_vault_mock_provider_retired": {
-        "failure_check": "macos-qsc-full-serial",
+        "failure_check": "macos-qsc-sharded-suite",
         "required_markers": ("send_commit", "vault_mock_provider_retired"),
         "required_paths": ("qsl/qsl-client/qsc/tests/send_commit.rs",),
         "kt_blocked_prefixes": (
@@ -1646,7 +1646,7 @@ def fixture_red_main_evidence(**overrides) -> dict:
         "main_checks": {
             "public-safety": {"status": "completed", "conclusion": "failure"},
             "advisories": {"status": "completed", "conclusion": "success"},
-            "macos-qsc-full-serial": {
+            "macos-qsc-sharded-suite": {
                 "status": "completed",
                 "conclusion": "failure",
                 "log": "tests/send_commit.rs send_commit vault_mock_provider_retired",
@@ -1770,7 +1770,7 @@ def run_fixture_proofs(args: argparse.Namespace) -> int:
             False,
             fixture_red_main_evidence(
                 main_checks={
-                    "macos-qsc-full-serial": {
+                    "macos-qsc-sharded-suite": {
                         "status": "completed",
                         "conclusion": "failure",
                         "log": "tests/send_commit.rs send_commit",
@@ -1824,7 +1824,7 @@ def run_fixture_proofs(args: argparse.Namespace) -> int:
             False,
             fixture_red_main_evidence(
                 main_checks={
-                    "macos-qsc-full-serial": {
+                    "macos-qsc-sharded-suite": {
                         "status": "completed",
                         "conclusion": "failure",
                         "log": "unrelated panic",
@@ -2027,14 +2027,14 @@ def run_fixture_proofs(args: argparse.Namespace) -> int:
 
 
 PUSH_SUITE_CHECKS = [
-    "qsc-linux-full-suite",
-    "macos-qsc-full-serial",
+    "qsc-sharded-suite",
+    "macos-qsc-sharded-suite",
     "qsc-adversarial-smoke",
 ]
 
 FULL_SUITE_COST_CONTROL_CHECKS = [
-    "qsc-linux-full-suite",
-    "macos-qsc-full-serial",
+    "qsc-sharded-suite",
+    "macos-qsc-sharded-suite",
 ]
 
 
@@ -2144,8 +2144,8 @@ def run_timeout_resilience_selftest(args: argparse.Namespace) -> int:
     ok = run_wait_fixture(
         "watched_suite_missing_budget_expires",
         [
-            push_suite_runs(missing={"macos-qsc-full-serial"}, start_id=40),
-            push_suite_runs(missing={"macos-qsc-full-serial"}, start_id=50),
+            push_suite_runs(missing={"macos-qsc-sharded-suite"}, start_id=40),
+            push_suite_runs(missing={"macos-qsc-sharded-suite"}, start_id=50),
         ],
         2,
     ) and ok
@@ -2153,9 +2153,9 @@ def run_timeout_resilience_selftest(args: argparse.Namespace) -> int:
         "stale_failure_ignored_for_latest_success",
         [
             [
-                fixture_check_run("qsc-linux-full-suite", run_id=1, conclusion="failure"),
-                fixture_check_run("qsc-linux-full-suite", run_id=2, conclusion="success"),
-                fixture_check_run("macos-qsc-full-serial", run_id=3, conclusion="success"),
+                fixture_check_run("qsc-sharded-suite", run_id=1, conclusion="failure"),
+                fixture_check_run("qsc-sharded-suite", run_id=2, conclusion="success"),
+                fixture_check_run("macos-qsc-sharded-suite", run_id=3, conclusion="success"),
                 fixture_check_run("qsc-adversarial-smoke", run_id=4, conclusion="success"),
             ]
         ],
@@ -2165,9 +2165,9 @@ def run_timeout_resilience_selftest(args: argparse.Namespace) -> int:
         "stale_success_ignored_for_latest_failure",
         [
             [
-                fixture_check_run("qsc-linux-full-suite", run_id=1, conclusion="success"),
-                fixture_check_run("qsc-linux-full-suite", run_id=2, conclusion="failure"),
-                fixture_check_run("macos-qsc-full-serial", run_id=3, conclusion="success"),
+                fixture_check_run("qsc-sharded-suite", run_id=1, conclusion="success"),
+                fixture_check_run("qsc-sharded-suite", run_id=2, conclusion="failure"),
+                fixture_check_run("macos-qsc-sharded-suite", run_id=3, conclusion="success"),
                 fixture_check_run("qsc-adversarial-smoke", run_id=4, conclusion="success"),
             ]
         ],

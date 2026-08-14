@@ -1,0 +1,219 @@
+name: macos-qsc-sharded-suite
+
+# NA-0724 (D-1360) — directive QSL-DIR-2026-08-14-655 as amended by AMENDMENT A1.
+# The macOS half of the suite-economics lane: the hermetic qsc suite, sharded, on
+# macOS. This file is `qsc-sharded-suite.yml` with the deltas below and NOTHING
+# else; each delta carries its reason here so the mirror stays auditable.
+#
+# D1 RENAMES. `name:`, the aggregate's check name and the concurrency group all
+#    become `macos-qsc-sharded-suite`, AND every job DISPLAY name is renamed
+#    (`classify-macos-qsc-sharded-scope`, `macos-qsc-shard-manifest-gate`,
+#    `macos-qsc-shard-<n>`). Leaving the display names alone would mint check
+#    runs colliding with the Linux shards' on the SAME sha, so one name would
+#    mean two different jobs and every by-name reader would be ambiguous.
+# D2 CONCURRENCY IS KEYED PER-SHA ON PUSH. `github.ref` is `refs/heads/main` for
+#    EVERY main push, so a ref-keyed group lets a later merge CANCEL an earlier
+#    merge's suite — measured on main b9aebb2a (run 31740533267, qsc-shard-4
+#    cancelled). Once this check is in the public-safety watchdog's --required
+#    set a cancellation is an immediate RED unrelated to test health. This file
+#    is BORN with the cure the Linux file receives in the same commit; it never
+#    carries the defect. Residual, named and accepted: two workflow_dispatch runs
+#    on one ref still cancel each other.
+# D3 macOS SHARDS, K=5. `shard.runs-on: macos-latest`, matrix [0,1,2,3,4] = four
+#    working shards plus the doc shard, which must be ALONE (cargo refuses --doc
+#    mixed with any other target selector). The macOS pool on this org's measured
+#    `free` plan is 5 concurrent jobs, shared with the REQUIRED
+#    macos-qsc-qshield-build — so this workflow's own per-push demand is 6 jobs
+#    against 5 slots. That is where the watchdog's FANOUT_WAVES literal in
+#    public-ci.yml comes from; it is structural demand, not a contention
+#    allowance. Growing this matrix past --max-shards fails the gate closed and
+#    forces that literal to be revisited.
+# D4 shard AND aggregate DO NOT RUN ON ORDINARY PULL REQUESTS. A
+#    workflow_dispatch can only target a workflow that exists on the DEFAULT
+#    branch, so this file cannot be dispatched before it merges; the
+#    `pull_request:` trigger is therefore KEPT so this lane's own PR can watch
+#    the arrangement go red once, and the guard below makes every OTHER PR skip
+#    both jobs — the 5-slot macOS pool is never drawn on by routine PR work and
+#    the REQUIRED macos-qsc-qshield-build is never starved. The aggregate carries
+#    the SAME guard deliberately: with `if: always()` and its shards skipped it
+#    would read `needs.shard.result == 'skipped'` and fail every ordinary PR red.
+#    `manifest_gate` is deliberately NOT guarded — it runs on ubuntu, and it is
+#    where this file's runners are proven macOS MECHANICALLY, on every PR.
+# D5 THE SHARD COMMAND IS THE RETIRED macos_qsc_full_serial JOB'S COMMAND with
+#    the shard's targets inserted and nothing else changed — `--jobs 1`,
+#    `-- --test-threads=1` and the workspace TMPDIR are the arrangement the macOS
+#    suite is known green under (NA-0717's lock registry). Nothing about HOW the
+#    macOS suite runs changes here; only how many runners run it.
+# D6 MANIFEST. Every call that reads the census or the manifest carries
+#    `--manifest scripts/ci/QSC_SHARD_MANIFEST_MACOS.txt`. `--ratchet` reads
+#    neither and carries none.
+# ADVISORY BY CONSTRUCTION until the operator's branch-protection act: the only
+# consumer of the context this file mints is the public-safety push-arm wait.
+# HERMETIC: every test binds 127.0.0.1 in-process; no secrets, no external
+# endpoints, no operator infrastructure in any form.
+# CACHE: ONE shared cache entry for the whole workflow, written only from main
+# and only by shard 0, under its OWN key so it never evicts the Linux entry.
+
+on:
+  pull_request: {}
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-qsc-sharded-suite-${{ github.event_name == 'push' && github.sha || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  classify:
+    name: classify-macos-qsc-sharded-scope
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.classify.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: classify
+        name: Classify pull request scope
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            paths=()
+            case "${PUSH_BEFORE:-}" in
+              ""|0000000000000000000000000000000000000000)
+                echo "WARN: push before SHA missing; classifying fail-closed"
+                ;;
+              *)
+                mapfile -t paths < <(git diff --name-only "$PUSH_BEFORE" "$GITHUB_SHA" | LC_ALL=C sort)
+                ;;
+            esac
+            if [ "${#paths[@]}" -eq 0 ]; then
+              scripts/ci/classify_ci_scope.sh >> "$GITHUB_OUTPUT"
+            else
+              printf 'Changed files for push %s..%s:\n' "$PUSH_BEFORE" "$GITHUB_SHA"
+              printf '%s\n' "${paths[@]}"
+              scripts/ci/classify_ci_scope.sh "${paths[@]}" >> "$GITHUB_OUTPUT"
+            fi
+            exit 0
+          fi
+          scripts/ci/classify_ci_scope.sh >> "$GITHUB_OUTPUT"
+
+  manifest_gate:
+    name: macos-qsc-shard-manifest-gate
+    needs: classify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve docs/governance-only PRs cheaply
+        if: needs.classify.outputs.docs_only == 'true'
+        run: echo "docs/governance-only change; macos-qsc-shard-manifest-gate resolved without runtime lane"
+      - uses: actions/checkout@v5
+        if: needs.classify.outputs.docs_only != 'true'
+      - name: Verify the macOS shard manifest covers the census exactly
+        if: needs.classify.outputs.docs_only != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/ci/qsc_shard_check.py --manifest scripts/ci/QSC_SHARD_MANIFEST_MACOS.txt
+      - name: Verify this workflow's matrix matches the manifest and its runners are macOS
+        if: needs.classify.outputs.docs_only != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/ci/qsc_shard_check.py \
+            --manifest scripts/ci/QSC_SHARD_MANIFEST_MACOS.txt \
+            --assert-workflow .github/workflows/macos-qsc-sharded-suite.yml \
+            --expect-runners ubuntu-latest,macos-latest \
+            --expect-job-runner shard=macos-latest \
+            --max-shards 5
+
+  shard:
+    name: macos-qsc-shard-${{ matrix.shard }}
+    needs: [classify, manifest_gate]
+    if: >-
+      needs.classify.outputs.docs_only != 'true' &&
+      (github.event_name != 'pull_request' ||
+      startsWith(github.head_ref, 'na0724-'))
+    runs-on: macos-latest
+    # INITIAL HANG-BOUND, not a fitted ceiling, and the derivation is on the
+    # record (D-1360). Seed data from the retired serial job's own log (job
+    # 94366331136, 206.5 min): 200.5 min of test time over that commit's census,
+    # greedy-LPT over four working shards = 50.1 min, plus 4-6 min of per-shard
+    # fixed overhead => ~55 min projected worst shard. 90 is ~1.6x that, in the
+    # shape NA-0698 ruled for the Linux 90: an overrun is a bounded failure
+    # rather than a six-hour hang. It is re-fitted from the FIRST MEASURED
+    # sharded macOS main run by NA-0664's method and from nothing else -- a
+    # projection may not fit a ceiling (R289). The first run also has a COLD
+    # cache and is expected to exceed the 60-minute signal band for that reason.
+    # This literal is bound to the --ratchet argument below: the manifest gate
+    # FAILS if the two disagree, so a re-fit cannot move one without the other.
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: macos-qsc-sharded-suite
+          save-if: ${{ github.ref == 'refs/heads/main' && matrix.shard == 0 }}
+      - name: Run this shard's targets (own exit; log kept for reconciliation)
+        shell: bash
+        env:
+          SHARD: ${{ matrix.shard }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          mkdir -p "${GITHUB_WORKSPACE}/.tmp"
+          export TMPDIR="${GITHUB_WORKSPACE}/.tmp"
+          echo "runner host: $(uname -sm)"
+          ARGS="$(python3 scripts/ci/qsc_shard_check.py --manifest scripts/ci/QSC_SHARD_MANIFEST_MACOS.txt --emit-args "$SHARD")"
+          test -n "$ARGS"
+          started="$SECONDS"
+          set +e
+          # shellcheck disable=SC2086
+          cargo test -p qsc --locked --no-fail-fast --jobs 1 $ARGS -- --test-threads=1 > shard.log 2>&1
+          code="$?"
+          set -e
+          cat shard.log
+          echo "shard $SHARD cargo wall-clock: $(( SECONDS - started ))s (exit $code)"
+          python3 scripts/ci/qsc_shard_check.py --manifest scripts/ci/QSC_SHARD_MANIFEST_MACOS.txt --verify-log "$SHARD" shard.log
+          python3 scripts/ci/qsc_shard_check.py --ratchet "$(( SECONDS - started ))" 90 --ratchet-arm "$EVENT_NAME"
+          test "$code" -eq 0
+
+  aggregate:
+    name: macos-qsc-sharded-suite
+    needs: [classify, manifest_gate, shard]
+    if: >-
+      always() &&
+      (github.event_name != 'pull_request' ||
+      startsWith(github.head_ref, 'na0724-'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce every dependency green (docs-only resolves cheaply)
+        shell: bash
+        env:
+          DOCS_ONLY: ${{ needs.classify.outputs.docs_only }}
+          MANIFEST_RESULT: ${{ needs.manifest_gate.result }}
+          SHARD_RESULT: ${{ needs.shard.result }}
+        run: |
+          set -euo pipefail
+          echo "docs_only=$DOCS_ONLY manifest=$MANIFEST_RESULT shards=$SHARD_RESULT"
+          test "$MANIFEST_RESULT" = "success"
+          if [ "$DOCS_ONLY" = "true" ]; then
+            echo "docs/governance-only change; macos-qsc-sharded-suite resolved without runtime lane"
+            exit 0
+          fi
+          test "$SHARD_RESULT" = "success"

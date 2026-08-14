@@ -551,13 +551,40 @@ jobs:
             printf '%s' "$value"
           }
 
-          MACOS_CEILING="$(ceiling_of .github/workflows/macos-build.yml macos_qsc_full_serial)"
-          LINUX_CEILING="$(ceiling_of .github/workflows/ci.yml qsc_linux_full_suite)"
+          # NA-0724 (D-1360) — THE PARSE TARGET IS THE `shard` JOB KEY, NEVER THE
+          # AGGREGATE. Each sharded workflow's aggregate job mints the CHECK NAME
+          # this watchdog waits on, but bounds no work: its own timeout is tiny or
+          # absent. Reading it would collapse MAX_CEILING to a false-small number
+          # that PASSES this guard while UNDER-COVERING the wait -- strictly worse
+          # than an honest refusal. The `shard` key is the job whose timeout bounds
+          # the work the aggregate waits for.
+          #
+          # FANOUT_WAVES: a matrix of K shards against a platform slot budget S
+          # completes in ceil(K/S) waves and the aggregate waits for the LAST one.
+          # Measured: org plan `free` => 20 concurrent standard jobs, 5 macOS.
+          # THIS REPO'S OWN PER-PUSH DEMAND IS ALREADY TWO macOS WAVES BEFORE ANY
+          # CONTENDER EXISTS: 5 macos-qsc-sharded-suite shards + the REQUIRED
+          # macos-qsc-qshield-build = 6 jobs against 5 slots, so ceil(6/5) = 2 is
+          # STRUCTURAL, not an allowance. The third wave is the allowance, and it
+          # buys exactly ONE concurrent contender -- a second PR's or push's macOS
+          # matrix, or a dispatch. The pool is ORG-WIDE across this org's repos, so
+          # foreign demand consumes that same third wave.
+          # 3 is the LARGEST value this guard admits at a 90-minute shard ceiling:
+          # 4 * 90 = 360 > 280 and the guard would refuse. If a fourth wave is ever
+          # needed, the arithmetic path is exhausted and R282's workflow_run
+          # redesign is the remedy -- that is a measurement, not a prediction.
+          # `qsc_shard_check.py --max-shards` fails closed if a matrix outgrows its
+          # platform budget, forcing this literal to be revisited.
+          FANOUT_WAVES=3
 
-          MAX_CEILING="$MACOS_CEILING"
-          if [ "$LINUX_CEILING" -gt "$MAX_CEILING" ]; then
-            MAX_CEILING="$LINUX_CEILING"
+          MACOS_SHARD_CEILING="$(ceiling_of .github/workflows/macos-qsc-sharded-suite.yml shard)"
+          LINUX_SHARD_CEILING="$(ceiling_of .github/workflows/qsc-sharded-suite.yml shard)"
+
+          MAX_SHARD_CEILING="$MACOS_SHARD_CEILING"
+          if [ "$LINUX_SHARD_CEILING" -gt "$MAX_SHARD_CEILING" ]; then
+            MAX_SHARD_CEILING="$LINUX_SHARD_CEILING"
           fi
+          MAX_CEILING=$(( FANOUT_WAVES * MAX_SHARD_CEILING ))
 
           COVERAGE_MINUTES=$(( MAX_CEILING + QUEUE_MARGIN_MINUTES ))
           MAX_ITERATIONS=$(( COVERAGE_MINUTES * 60 / INTERVAL_SECONDS ))
@@ -571,10 +598,12 @@ jobs:
             exit 2
           fi
 
-          echo "public-safety watchdog budget — DERIVED from the suite ceilings:"
-          echo "  macos-qsc-full-serial ceiling : ${MACOS_CEILING}m"
-          echo "  qsc-linux-full-suite ceiling  : ${LINUX_CEILING}m"
-          echo "  binding ceiling               : ${MAX_CEILING}m"
+          echo "public-safety watchdog budget — DERIVED from the SHARD ceilings:"
+          echo "  macos-qsc-sharded-suite shard : ${MACOS_SHARD_CEILING}m"
+          echo "  qsc-sharded-suite shard       : ${LINUX_SHARD_CEILING}m"
+          echo "  binding shard ceiling         : ${MAX_SHARD_CEILING}m"
+          echo "  x fan-out waves               : ${FANOUT_WAVES}"
+          echo "  = binding ceiling             : ${MAX_CEILING}m"
           echo "  + queue/jitter margin         : ${QUEUE_MARGIN_MINUTES}m"
           echo "  = coverage                    : ${COVERAGE_MINUTES}m  (safe bound ${SAFE_BOUND}m)"
           echo "  interval                      : ${INTERVAL_SECONDS}s"
@@ -584,8 +613,8 @@ jobs:
             wait-commit-checks \
             --repo "$GITHUB_REPOSITORY" \
             --sha "$GITHUB_SHA" \
-            --required qsc-linux-full-suite \
-            --required macos-qsc-full-serial \
+            --required qsc-sharded-suite \
+            --required macos-qsc-sharded-suite \
             --interval-seconds "$INTERVAL_SECONDS" \
             --max-iterations "$MAX_ITERATIONS"
 

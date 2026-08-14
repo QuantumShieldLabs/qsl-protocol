@@ -210,6 +210,24 @@ instrument rather than by reading.**
    branch was cut. **The successor that removes the now-dead `if:` clause (A2 §8.4) also owes this
    branch-name coupling.**
 
+4. ⚠⚠ **A macOS FLAKE SURFACED ON THE LANE'S OWN PR, AND IT WAS NOT RE-RUN (ENG-0187, R300).**
+   `macos-qsc-shard-2` went red on `relay_auth_uses_account_token_file_when_env_missing` — a test
+   this lane never touched — with `code=relay_inbox_bad_request`. **The failed job was preserved,
+   not replayed** (ENG-0091's precedent: *the lane STOPPED on the red rather than rerunning it*),
+   and both the red and the green logs are banked 444 in the lane record.
+   **One failure in three macOS sharded runs; every other context measured is green** — the same
+   shard on the G3 run, the same commit on Linux, and four banked macOS *serial* runs that reached
+   the binary (4/4 tests ok each). The seven red-era macOS logs are **silent, not exonerating**:
+   they died in the lib unit tests before any integration target ran.
+   **R300.2 ordered ONE predicted experiment**, not a rate hunt: a byte-identical tree on a new
+   head, the prediction sealed before the branch existed, with the *failing* arm as the informative
+   one. The test passed. ⚠ **That FAILED TO REFUTE non-determinism; it did not prove independence**,
+   and three runs is not a rate. **Do NOT attribute it to §4b row 9** — co-residency was identical
+   between the passing and failing runs.
+   ⚠⚠ **The consequence is accepted knowingly:** after this lane, `macos-qsc-sharded-suite` is in
+   the watchdog's `--required` list, so **a macOS flake that was previously invisible can red
+   MAIN** on a non-docs push, with repair running through §T9's two-step door.
+
 ## 8. CLAIM BOUNDARY
 
 **CLAIMED, and only these:** `MAX_CEILING` **270** and `COVERAGE` **330 ≤ 340**, under 280, by the

@@ -39574,3 +39574,716 @@ findings file's sha as evidence, born closed (`wontfix` plus a `Resolution:` lin
 a completed consideration filed open would be a false state. **Docs-only:** four files,
 zero source bytes, no `.github/**`, no workflow, no dependency, no test. The operator
 merges; the seat does not.
+
+## D-1363 — NA-0727: THE D-3 SWEEP — the nine forward-binding rulings the program has been enforcing from memory land byte-verbatim from their banked sources, the ruling that ordered the sweep lands with them, and SR-23's reservation is retired as a decision rather than re-deferred
+
+**Status:** Accepted (ordered at **R311**, banked 444 in the NA-0726 lane record as
+`RBANK_NA0726_001_R309-R312_20260814.md`, sha256
+`bd986875b35a78b88d8315cb9cfb988c29c6d37bdfbecad90ff07f78b037ff6f`, 48 lines. Ids re-derived
+at the edit per WF-0068 against main `29dff9b4` **and an open-PR set measured EMPTY**
+(`gh pr list --state open` → `[]`): **NA-0727** and **D-1363** each returned **zero**
+occurrences across the tree's `*.md`, with a positive control — `NA-0726`, firing in all four
+record files — proving the instrument could return a hit. Id-space maxima at derivation:
+`## D-` 1362, `### NA-` 0726, `WF-` 0078, `ENG-` 0187. STATE advanced 0726/1362 → 0727/1363.)
+
+**Context:** D-1362's Part 2 measured the D-3 gap — nine forward-binding rulings enforced as
+live law while their canonical text lived only in the operator area. R311's grounds, quoted
+from the fenced ruling below: *"these nine are LIVE LAW that has been enforced this week from
+the Director's memory alone — the same failure shape as M4's dangling R287 citation, inside
+the chair that adopted D-3."* This record pays that debt. **STILL-OWED: none** — every one of
+the nine texts was sourced byte-verbatim from a banked artifact; R311's unsourceable branch
+(report, never invent) was not exercised.
+
+**Sourcing discipline.** Every fence below is a WHOLE banked file (the D-1359/D-1360 shape),
+so each stated sha256 verifies its fence's exact bytes. The one ruling that lives inside a
+multi-ruling bank — R102, inside the R98–R102 bank — lands via the D-1362 extract pattern:
+a mechanical extract produced by two independent routes with `cmp` rc 0, banked 444, fenced
+whole, its parent named with its own sha and line range — because R311 forbids sweeping
+class (iii) and the bank's other rulings are class (iii). Nothing inside any fence is
+reflowed, abridged, or corrected.
+
+⚠ **One deliberate inclusion beyond R311's enumerated nine, recorded in the open:** the fence
+set opens with the R309–R312 ruling itself. R310 orders the SR-23 retirement RECORDED; the
+D-1359 precedent lands the rulings that order the errand; and landing nine cures for dangling
+ruling citations under four fresh dangling numbers would recreate the exact defect this lane
+exists to close.
+
+**R309–R312 — `RBANK_NA0726_001_R309-R312_20260814.md`, sha256
+`bd986875b35a78b88d8315cb9cfb988c29c6d37bdfbecad90ff07f78b037ff6f`, 48 lines / 3735 bytes.
+The fence below is that whole file.** It declares D-1362's result class (R309 — landed on the
+`### NA-0726` DONE line in this same commit), retires the SR-23 reservation (R310 — see the
+section after the fences), orders this sweep (R311), and ratifies NA-0726's DV table (R312).
+
+```
+# NA-0726 — DIRECTOR RULING R309–R312 — and the D-3 SWEEP LANE — 2026-08-14
+# Bank verbatim (444). Write NA-0726's terminal stop. THEN open a SECOND, separate lane
+# for Part 2's debt — new ids, new branch, new PR, its own sealed gates.
+
+R309 — D-1362's result class is **`SR24_REFUSAL_RECORDS_PASS`**, the candidate you offered.
+  Offering rather than declaring was correct (R297.3); declaring is mine. It lands with the
+  next promotion's DONE line, not by reopening #1741.
+
+R310 — **SR-23: OPTION C. The reservation is RETIRED, not paid.** Its reserved content —
+  *enumerate and try; do not poll one signal* — is already recorded practice, was
+  independently re-derived by the docs-door discovery, and has no executable consumer.
+  Minting a number for an unenforceable rule is precisely what R305 just refused SR-24 for;
+  doing it one number lower would be incoherent. Record that SR-23 stays permanently
+  reserved-and-unminted, with this reasoning, so the dangling commitment ends rather than
+  recurring at every governance touch. The constitution ends at SR-22 and that is now a
+  decision, not a gap.
+
+R311 — **THE NINE CLASS-(ii) RULINGS ARE LANDED**, in a SEPARATE lane (ids at edit): R102 ·
+  R186 · R192 §2.2 · R217 · R222 §7.2 · R253 §4 · R294 · R303.5 · R304. Canonical text in a
+  column-0 fence under a provenance sentence, the D-1359/D-1360/D-1362 shape. ⚠ SOURCE THEM
+  FROM THE BANKED /srv ARTIFACTS, byte-verbatim, never reconstructed from summary — and where
+  a banked text does not exist, say so plainly and land the operator-area record's own words
+  with that provenance stated, rather than composing new text. Any ruling whose canonical text
+  cannot be sourced is REPORTED AS STILL-OWED, not invented (the NA-0718 STILL-OWED precedent).
+  ⚠ Do NOT sweep class (iii); its substance is already in repo truth via its lanes' D-records,
+  and re-landing it would bloat the constitution for no gain.
+  Grounds for the record: these nine are LIVE LAW that has been enforced this week from the
+  Director's memory alone — the same failure shape as M4's dangling R287 citation, inside the
+  chair that adopted D-3.
+
+R312 — **DV-1 THROUGH DV-5 ARE RATIFIED AS EXECUTED.** DV-1: retiring NA-0725's MERGING with
+  the promotion was right — §4c defines promotion as atomically including predecessor
+  finalization, and advancing STATE while leaving MERGING would recreate the very class
+  NA-0723 was built to retire. DV-2: **born-closed is the true state** — a completed
+  consideration filed `open` would be false, and `wontfix` + a greppable `Resolution:` line is
+  the ledger's own lifecycle vocabulary; the property is *file the state that is true, not the
+  form the precedent used*. DV-3: the two-surface check-count artifact is a known third
+  instance, not drift. DV-4: the diff arm's rc 2 "NOTHING EXAMINED — refusing to report a pass
+  over an empty input" is the fail-on-empty contract demonstrating itself live, and reading the
+  preflight failure's cause from the log rather than its name is R287's lesson applied.
+  DV-5: the provenance boundary is stated honestly and is the general condition of every pasted
+  order in this program — which is itself an argument for the banking discipline you followed.
+
+ALSO RECORDED, no act owed: the local mirror is stale by 62 commits (fresh seats must use the
+`github` remote for a true base) · R284 survives only as a chat transcript, the pre-SR-14-reach
+era · the seven zero-record R-numbers (103–107, 247, 285) cannot be distinguished between
+never-issued and issued-but-unbanked, and are left as measured.
+END OF RULING R309–R312 — if this line is missing, the paste is truncated; request a re-send.
+```
+
+**R102 — the false-premise widening of R16** (an authorized act whose PREMISE measures false
+is a stop, not a judgment call; the seat proposes the corrected act and the Director rules
+it) — `EXTRACT_R102_from_RBANK_NA0699_009.md`, sha256
+`d02f23d5366eb7d48df53380e5614b1a33c91fdb9552fb89845ff4427e02395f`, 8 lines / 646 bytes: the
+mechanical extract of lines 54–61 of `RBANK_NA0699_009_20260807T181625Z.md` (sha256
+`f2cfb9c2790f164c2b8cca7dfe6468246c4123a93b782ac85c49b98978433203`, 79 lines — the NA-0699
+STOP-006 ruling, which banks R98–R102 together). The fence below is that whole extract file.
+
+```
+R102 — THE STOP ITSELF IS THE PRECEDENT. You stopped on a surprise in a PREMISE
+of an authorized act, diagnosed it with red-capable instruments, proposed rather
+than composed unbidden, and cost the lane nothing because the act was gated on a
+merge that had not happened. R89's ruling (an inherited figure is re-derived, not
+copied) and R83's (a seat does not compose remedies absent direction) are both
+correctly applied — and the general form is now ruled: **AN AUTHORIZED ACT WHOSE
+PREMISE MEASURES FALSE IS AN R16 STOP, NOT A JUDGMENT CALL — the seat proposes
+the corrected act and the Director rules it.** Recorded in the close record.
+```
+
+**R186 — the filing rule: every cited line number carries its FILE** (a bare `:156` is
+ambiguous across files) — `RBANK_NA0705_003_20260809T022304Z.md`, sha256
+`2f2998536fc2df0db0e793028b2c4bb79d7e4f804a8e39612bda15c8b863d00d`, 55 lines / 3335 bytes.
+The fence below is that whole file.
+
+```
+# DIRECTOR RULING R186 — THE FOLD AND THE COMMISSION ACCEPTED — ISSUE THE
+# READ — 2026-08-09
+Bank verbatim (next RBANK). Then hold for the read.
+
+## 1. ACCEPTED
+The three §7 acts are discharged. R185 banked (dc3ddd7c…), D640 base+A1 filed
+(11b3c335…, 148 lines), the commission proposal sealed (55fc7ad7…).
+The fold's proof is accepted and its shape commended: a uniform mechanical
+transform (the quote strip) declared, and its REVERSIBILITY proven by
+re-adding the prefix and cmp-ing to rc 0 — that is how a mechanical transform
+is made auditable instead of asserted. The 24-line prefix cmp at rc 0 closes it.
+
+## 2. THREE THINGS ON THE RECORD
+2.1 Q7 IS THE ROW OF THIS STOP. The seat swept for format breaks, found the
+    sweep clean, and then stated what its own needle CANNOT see — serde-shape
+    moves (renamed or retyped fields) in settings, protection state,
+    contacts.json, timeline.json, qsp_status.json, outbox.json, send.state,
+    identity, and the session store — and handed that to the read as its own
+    gap rather than leaving it to be discovered. That is the same failure
+    class as the QSCV01 break: a persisted shape whose reader moved. Naming
+    your own blind spot is worth more than a clean sweep, and this ruling
+    records it as such.
+2.2 THE `:156` AMBIGUITY CATCH IS ADOPTED AS A FILING RULE: every cited line
+    number carries its FILE. protection.rs:156 is the is_ok collapse;
+    commands.rs:156 is the desktop's unlock_attempt call site. A bare `:156`
+    in a filing read months from now points at the wrong file. Applies to the
+    Option-A successor filing and every citation in this lane.
+2.3 THE COMMISSION'S DESIGN IS RATIFIED, specifically: withholding the NA-0704
+    record so the read re-derives from two trees and two shas; naming B1–B3
+    the OBJECT of the read rather than its premises; declaring that adopting a
+    figure and reporting it back is a NULL RESULT; stating that the QSCV01
+    break is the WORKED EXAMPLE, not the answer, so a read returning only it
+    has found nothing new and must say so rather than pad; and requiring null
+    results to be stated explicitly, since a silent question is
+    indistinguishable from an unasked one. That last rule should outlive this
+    lane — it goes to the numbering candidates at the next governance lane.
+
+## 3. ISSUE THE READ
+The commission is APPROVED AS PROPOSED, with Q7 included as the seat framed it
+(the drafting seat's declared gap, handed over rather than concealed). Issue it
+to a seat launched with CLAUDE_CODE_DISABLE_AUTO_MEMORY=1 from a neutral
+directory outside the project scope, with the pre-flight attestation quoting
+any QSL/NA-07xx context present. Findings, not rulings; one sealed findings
+file; then that seat stops.
+⚠ THE OPERATOR PASTES THE COMMISSION TO THE FRESH SEAT — this seat does not
+launch it and must not brief it further; any additional context from here would
+be the drafting seat's answer key, which is the whole thing the read exists to
+avoid.
+
+## 4. SEAT DIRECTION
+HOLD. No execution until the read's findings are dispositioned by the Director.
+No repo edit, no branch, no commit, no rig contact — the mutation-set fidelity
+reported at STOP 001 §7 continues to bind.
+
+END OF RULING — if this line is missing, the paste is truncated; request a re-send.
+```
+
+**R192 — §2.2: a seat's push is verified against the NAMED GitHub remote with ls-remote,
+never against `origin` (the local mirror), never through a pipe** — flagged at issue as a
+numbering candidate and never numbered — `RBANK_NA0705_011_20260809T095716Z.md`, sha256
+`ccb10b5c08705f051270a88ca2866725920127a807bde5369109ef2d62320f1d`, 61 lines / 3839 bytes.
+The fence below is that whole file.
+
+```
+# DIRECTOR RULING R192 — STOP NA-0705-005 ACCEPTED — BANK AND FREEZE — 2026-08-09
+Bank verbatim (next RBANK), report the sha, then FREEZE.
+
+## 1. VERDICT
+STOP 005 ACCEPTED; both PRs Director-verified from the fetched refs. #29:
+parent 11e8e17c, nine files inside the closed set, the pin literal moved
+ab5041cd → 32e572c7, the Cargo.lock delta exactly 8 changed lines with ZERO
+package additions or removals, the two-door remediation present, and
+`DestroyConfirmToken::confirm(passphrase)` carrying its keychain precondition
+comment — including the "if that ever changes, this line becomes wrong"
+warning. That comment is the artifact R188 §3 was written to produce.
+
+## 2. THE THREE SELF-CAUGHT ERRORS — ACCEPTED, AND ONE PROMOTED
+2.1 THE SANITIZATION CATCH is the one that mattered: two literals bound for a
+    PUBLIC repo — the rig's hostname and LAN IP in the NA-0704 block, and an
+    operator path in ENG-0132 — found by the seat's own sweep BEFORE the push,
+    rewritten to state the fact without the literal, re-swept with a widened
+    needle, and then agreed with by CI's independent scan. Two instruments
+    agreeing is the standard; the first one being trusted is not.
+2.2 THE PIPE DEFECT, disclosed rather than buried: `git push … | tail -3` read
+    TAIL's status, not git's, and the push went to the local MIRROR because
+    `origin` in the seat checkouts is the mirror. The follow-up `ls-remote
+    origin` then "confirmed" a branch that existed only there — an instrument
+    whose scope did not equal its claim ("pushed to GitHub"). Caught by PR
+    creation failing, fixed with an explicit `github` remote and an unpiped
+    push with the exit captured directly.
+    ⚠ PROMOTED TO STANDING PRACTICE: **`origin` in a seat checkout is the
+    MIRROR, not GitHub. A push is verified against the named GitHub remote by
+    `ls-remote`, never against `origin`, and never through a pipe.** This is
+    the never-pipe-a-gating-check rule meeting a second trap — the wrong
+    remote — and the combination reported success twice while nothing had
+    reached GitHub. Numbering candidate at the next governance lane.
+2.3 The CI poller's `|| echo 99` fallback appending a stray value because
+    `grep -c` exits 1 on a zero count: harmless, recorded, and the right
+    instinct — a loop that cannot exit is a loop that cannot report.
+
+## 3. THE CARRIED-FIGURE CORRECTION
+The expected cheap-resolve shape "32 SUCCESS + 10 SKIPPED" measured 31 + 10.
+The handling is the model: rather than accept or explain it away, the seat
+diffed like-for-like against NA-0703's own record PR #1718 — also 31 + 10, with
+an EMPTY name-level diff. Same check set, same states; the carried 32 came from
+a different counting surface. The measurement governs and the carried figure is
+retired. WF-0044's preflight red remains pre-named and unchased.
+
+## 4. THE LANE, IN ONE LINE FOR THE RECORD
+A routine dependency bump crossed a vault-format break that would have told
+users their correct passphrase was wrong and destroyed the vault at the armed
+limit — found by an adversarial read, demonstrated on a real build (three
+correct passphrases, vault gone), fixed on both doors, and proven by an
+instrument watched RED first. Nothing in the original brief's gate set could
+have failed on it.
+
+## 5. CLOSE
+On the merges NA-0705's execution is COMPLETE and this seat FREEZES. The DONE
+finalization and `QSLD_QSC_PIN_BUMP_QSCV01_REFUSAL_PASS` ride the NEXT lane's
+promotion from re-verified merge shas. Promotion count stands 1 of 3,
+re-derived. The design lane inherits ENG-0126 through ENG-0133 and, per R191,
+the F6 MEASUREMENT rather than a rule — R185 §2.2 stays SUSPENDED until
+re-measured at n>1 and ruled with the operator.
+
+END OF RULING — if this line is missing, the paste is truncated; request a re-send.
+```
+
+**R217 — sealed expectations state the DECISIVE COMBINATION in advance** (the specific
+pattern of outcomes that settles the question; companion: the reading that suits the reader
+requires the MOST evidence) — `RBANK_NA0710_007_R217_20260810T185048Z.md`, sha256
+`5ff46df001a9404ea0b60eaafe3937e5a1e92b484d7f5ab31c333c29c96d3fa9`, 78 lines / 4906 bytes.
+The fence below is that whole file.
+
+```
+# DIRECTOR RULING R217 — THE PROBE RESULTS ARE ACCEPTED — U-1 STAYS OPEN AND
+# BECOMES AN OPERATOR MEASUREMENT — 2026-08-10
+Bank verbatim (next RBANK). Then HOLD. The build gate is unchanged.
+
+## 1. THE READING IS ACCEPTED, AND THE REFUSAL TO OVERCLAIM IS THE RESULT
+The sealed expectations named the decisive combination — probe 1 REFUSED plus
+probe 2 succeeding — and probe 1 returned 1c, not 1a. ⚠ THE ANTECEDENT IS FALSE,
+SO §4'S INFERENCE IS UNTESTED. Both spellings were permitted; there is no
+refusal to compare against; and the pair cannot distinguish "the `ssh` wrapper
+slipped past a token-keyed rule" from "the rules were never in force here."
+⚠ A SEAT WANTING THE CONVENIENT ANSWER WOULD HAVE READ 2a AS VINDICATION. This
+one wrote down why that reading claims more than the instrument spans, and
+added the sentence that makes it credible: **"it would also be the reading that
+suits this lane, which is the reason to distrust it."** That is the strongest
+single line in the lane and it is ratified as standing form: **a reading that
+happens to suit the reader is the one that requires the most evidence, not the
+least.**
+⚠ AND THE EXPECTATIONS FILE IS WHAT MADE THIS POSSIBLE. Sealed at 18:43:16Z,
+before either probe, naming the combination that would settle the question.
+Without it, "probe 2 succeeded" would have looked like an answer. **Writing the
+decisive combination down in advance is what converted a suggestive result into
+a measured non-result.**
+
+## 2. WHAT IS ESTABLISHED — ACCEPTED WITH ITS SCOPES
+E-1/E-2 accepted with their scope stated as **this seat only**. E-4 accepted as
+a producer fact costing this lane nothing, since every privileged act it needs
+is remote.
+⚠ E-3 IS THE ONE THAT MATTERS AND IT IS NEW GROUND: **the relay box grants
+`ubuntu` passwordless sudo, measured directly for the first time in this
+program.** The operator's stated fact "CC has sudo" was carried as an
+operator-supplied premise through a brief, a directive, and three rulings, and
+had never been measured until now. **It holds.** That is how an operator-supplied
+fact should end — verified, not assumed indefinitely.
+⇒ §1.2's A2–A5 are performable at the SUDOERS layer. ⚠ That is a green light at
+one layer only, and not at the harness layer for any seat but this one.
+
+## 3. U-1 STAYS OPEN, AND I AM NOT ORDERING A SEAT TO SETTLE IT
+U-1 — whether a token-keyed deny-list constrains spelling rather than effect —
+is the finding I promoted at R216 §1.1, and the probes could not reach it
+because nothing was denied.
+3.1 ⚠ IT IS NOT ORDERED IN THIS LANE. Settling it needs a seat where the
+    deny-list IS in force, which is U-2, which R215 §2.3 assigned to the
+    operator, and which no phase of this directive measures. A lane that
+    arranged its own guardrail conditions to test its own guardrail is not an
+    instrument I would trust.
+3.2 ⚠ N-4 KEEPS BOTH READINGS, as R216 §1.2 required and as §5 restates. The
+    probes narrowed WHICH SEAT is affected; they did not narrow WHAT THE
+    GUARDRAIL DOES.
+3.3 THE FILING TEXT GAINS ONE LINE: **the deny-list was measured NOT IN FORCE
+    for a seat whose session directory was outside a spine checkout.** That is
+    a fact about settings resolution obtained without measuring settings
+    resolution, and it is the most useful thing anyone knows about the guardrail
+    today.
+
+## 4. THE TWO DISCIPLINE DISCLOSURES — BOTH RATIFIED
+4.1 ⚠ THE TRANSCRIPTION DISCLOSURE IS EXACTLY RIGHT. Re-running the probes to
+    capture them into a log would have been a third and fourth invocation
+    against a grant of two. The seat took the weaker evidence form and DISCLOSED
+    it rather than quietly exceeding the grant to get a stronger one.
+    ⚠ STANDING FORM: **when a bounded grant and a preferred evidence form
+    conflict, the grant wins and the weaker form is disclosed.** The alternative
+    — exceeding a grant to produce better evidence — is how grants stop meaning
+    anything.
+4.2 R216 §2.5 HELD, and the verification is the proof: passwordless sudo was
+    demonstrated on the box and used for nothing, with `/home/ubuntu` unchanged
+    afterward — same seven entries, same sizes, same mtimes. **"A no-op left no
+    trace, which is what a no-op is for."**
+
+## 5. THE HOLD — UNCHANGED
+Nothing is authorized. The build gate remains the DISPOSITION of the reader's
+findings — not these probes, not E-3, not the reader finishing. NOT authorized:
+the build · the transfer · any sudo act · the reboot · the service user · the
+service root · the units · the token · any TLS act · the walk · the runbook ·
+any repo edit · and no further probe of any kind.
+HOLD. The next artifact this seat produces is a response to my disposition of
+the reader's findings, and nothing before it.
+
+END OF RULING — if this line is missing, the paste is truncated; request a re-send.
+```
+
+**R222 — §7.2: of two parallel open lanes, whichever merges SECOND re-derives its counters;
+a stale counter is a STOP, never a hand-resolved conflict** —
+`RBANK_NA0709_009_20260811T015535Z.md`, sha256
+`e855ba544292ee1ac9580462f81a65792671b1b7589293ab9cd45c8945b4bbcc`, 109 lines / 6936 bytes.
+The fence below is that whole file.
+
+```
+# DIRECTOR RULING R222 — THE KILL PLAN IS ACCEPTED — L13's SCOPE GRANT ISSUED —
+# THE EDIT PHASE IS AUTHORIZED — 2026-08-11
+Bank verbatim (next RBANK), then execute the edit phase.
+
+## 1. VERDICT
+PHASE 3 ACCEPTED. 15 lanes, 99 entries, **coverage PROVEN by script rather than
+by eye** — 99 assigned, 0 duplicates, 0 unassigned, 0 assigned-but-not-live.
+⚠ A kill plan that silently drops entries is the failure this whole lane exists
+to end, and checking the plan with the same class of instrument the lane applied
+to the ledger is the correct closing move.
+
+## 2. ⚠ THE SEQUENCING SWEEP IS THE RESULT, AND IT IS BIGGER THAN THE RULING
+## THAT ORDERED IT
+Nine items, **not one above T4**. ⇒ **THE HARM AXIS AND THE DEADLINE AXIS ARE
+ALMOST DISJOINT.** I ordered the sweep expecting to catch a stray; it found that
+a whole class was invisible to the axis I ruled, and that a rank-ordered plan
+would have scheduled every member last and made each permanently more expensive.
+⚠ STANDING FORM, ENTERED: **a ranking axis measures ONE dimension. Before a plan
+is built on it, sweep for the dimension it cannot see.** Harm cannot see time;
+this one cost nine entries and I would have shipped without them.
+2.1 THE SIX MEASURED MEMBERS ARE ADOPTED. ENG-0056 and ENG-0101 are the sharpest
+    after ENG-0053, and both have the same shape: ⚠ **a window that closes on a
+    USER ACTION, not a date** — the first time anyone compares a verification
+    code, the first time a vault carries the dead keys. **A deadline you cannot
+    see coming is worse than one on a calendar.**
+2.2 ⚠ ENG-0032 STAYS IN, and the reason it was included is why: the seat judged
+    it weakest and put it in front of me **so I could strike it rather than
+    never see it.** That is the right disposition for a marginal call, and the
+    marginal call costs nothing to carry. Not struck.
+2.3 THE THREE INFERRED MEMBERS ARE ACCEPTED, labelled INFERENCE in the record.
+    ENG-0096, 0116 and 0083 are schema/format/state migrations, and a migration
+    is free exactly until data exists. ⚠ The label stays — an inferred deadline
+    is still a deadline, but a future lane must know which are measured.
+
+## 3. THE TWO DEPARTURES FROM RANK — BOTH ADOPTED, BOTH FOR THEIR STATED REASONS
+3.1 **L5 (vault) AT #3, ABOVE ITS HARM RANK.** ⚠ **It is the strongest UNBLOCKED
+    lane: 4× T1, 2 deadline items, no rig, runnable today.** L1 and L2 outrank
+    it and are **both rig-blocked** — which surfaces the real dependency: ⚠
+    **relay provisioning is on the critical path for the top of the queue and
+    for nothing else.** That is now the single most consequential fact about
+    NA-0710's schedule and it was not visible before this plan.
+3.2 **L13 AT #5 ALTHOUGH IT FIXES NOTHING.** Adopted for the reason given:
+    it needs only a scope grant and **may CLOSE entries rather than fix them.**
+    ⚠ ENG-0014 may already be fixed — ENG-0063's own text says NA-0670/D-1297
+    C-2 shipped that constant-time comparison — and **one read decides it.**
+    **The cheapest available reduction of the open count in the entire plan.**
+
+## 4. L13's SCOPE GRANT — ISSUED
+4.1 GRANTED: read `qsl-server` and `qsl-attachments`, at named revs, to decide
+    the seven — ENG-0014, 0021, 0039, 0063, 0066, 0070, 0092.
+4.2 ⚠ BOUNDS: READ ONLY. No edit, branch, commit, or PR in either repo. The
+    lane produces VERDICTS with evidence, in Phase 1's row schema — LIVE ·
+    CLOSED-BY-MEASUREMENT (with its R-1 reproduction note) · SUPERSEDED ·
+    UNDECIDABLE-still, with why.
+4.3 ⚠ ENG-0070 IS EXCLUDED FROM THE GRANT — it needs rig contact, and the rig
+    does not exist yet. It stays undecidable with that reason recorded, and
+    joins the provisioning lane's aftermath.
+4.4 ⚠ A CLOSURE HERE CARRIES R-1's NOTE OR IT IS NOT A CLOSURE. The lane that
+    just measured its own closure column to zero does not get a looser standard
+    for someone else's repo.
+4.5 ⚠ AND THE PRIOR IS STATED SO IT CAN BE DISAPPOINTED: ENG-0014 is EXPECTED
+    to close. If it does not, that is the more interesting result and it is
+    reported as such — an expectation written down before the read, per house
+    practice.
+
+## 5. THE THREE SENTENCE-SIZED CLOSURES
+ENG-0043, ENG-0052, ENG-0112's trigger-class deferral. ⚠ **"Some of this ledger
+closes by writing a sentence"** is worth carrying into the plan's own text: an
+obligation discharged and never recorded reads identically to one never
+discharged, and this program has now found that shape four times.
+L12 at #6 — seven entries, all docs, no gate risk — is correctly the cheapest
+lane and correctly early.
+
+## 6. THREE LANE-SPECIFIC WARNINGS I WANT PRESERVED IN THE PLAN
+6.1 ⚠ **L10: ENG-0077's population is CLOSED at 10 sites across 2 files.** A
+    lane converting only the 4 originally cited sites **closes the entry with
+    the defect live.** That is the citation-rot rule made concrete, and it is
+    the exact failure mode C.0's rule exists to prevent.
+6.2 ⚠ **L11: ENG-0093 is half-fixed** — the spine has `__pycache__/`,
+    qsl-desktop does not. The lane is four-repo or **explicitly partial**; a
+    spine-only fix would close a live defect in three repos.
+6.3 ⚠ **L9: a predicate fix must reach BOTH copies.** `send_ready` is
+    duplicated, and a fix at one site does not reach the other.
+These three share one shape — **a fix that looks complete against a partial
+census** — and it is the same shape as the two orphaned residues. Name it once
+in the plan.
+
+## 7. THE EDIT PHASE — AUTHORIZED
+7.1 The §9 edit set: `IMPROVEMENT_LEDGER.md` · the new `DOC-OPS-008` · 
+    `DECISIONS.md` (+D-13xx) · `NEXT_ACTIONS.md` · `TRACEABILITY.md`.
+7.2 ⚠ **COUNTERS RE-DERIVED AT THE EDIT, NOT ADOPTED.** Main still reads
+    HIGHEST_NA=0708 | HIGHEST_D=1345, and **NA-0710 is in flight against the
+    same two files.** Re-derive against the RECORD, not the ledger alone — the
+    rule that caught ENG-0170 today. ⚠ A stale counter is a STOP, not a merge
+    conflict to resolve by hand.
+7.3 The ten accumulated filings land with the edit; ids re-derived there.
+7.4 ⚠ THE R-2 REGISTER CARRIES ITS REASON FOR EXISTING in its front matter, per
+    R221 §6: the verdict vocabulary has no state for "reproduces but is not a
+    defect" and none for "accepted by ruling", so both landed in LIVE by
+    default — the same gap that grew a P4 outside the schema.
+7.5 STOP at the open PR. The operator merges; the seat never merges.
+
+## 8. WHAT THE PLAN CLAIMS — RATIFIED VERBATIM
+⚠ **"It does not claim the 99 are all worth fixing. It claims they are all REAL
+— a different and smaller claim, and the only one Phase 1 and the SR-15 read
+actually support."** That sentence is the honest boundary of three phases' work
+and it goes into the record unchanged.
+
+END OF RULING — if this line is missing, the paste is truncated; request a re-send.
+```
+
+**R253 — §4: goal-lint's fresh-payload bound, precisely** (a push carries the current PR
+body; only a body-edit-without-push needs close+reopen; `rerun --failed` replays the stale
+payload) — `RBANK_NA0712_012_R253_20260811T171500Z.md`, sha256
+`4d6cf0f6837a892754ea9847c3c6eda2b27409344f2d7bb698347a8da875d97c`, 70 lines / 4178 bytes.
+The fence below is that whole file.
+
+```
+# DIRECTOR RULING R253 — #1724 ACCEPTED — BANK AND FREEZE — 2026-08-11
+Bank verbatim (SR-22), report the sha, then FREEZE.
+
+## 1. VERDICT
+ACCEPTED. Director-verified at the new head: `## D-1349`, `### WF-0064`, and
+**the duplicate `## D-1348` is CLEARED** — present in #1723 only. No collision
+with #1723 on any id space.
+
+## 2. ⚠⚠ THE SECOND COLLISION WAS FOUND BY THE INSTRUMENT, NOT BY INSPECTION
+R251 §2.3 warned the D number might not be the only one. **It was not** — #1723
+claims `WF-0060` through `WF-0063`, and this PR had taken `WF-0060`.
+⚠ **IT WOULD HAVE BEEN A SILENT DUPLICATE: two lanes filing different
+`WF-0060`s, in the register whose entire purpose is that ids are never reused.**
+A duplicate decision heading is loud; a duplicate WF id is not, and nothing
+downstream would have caught it.
+⇒ ⚠ **THAT IS THE ARGUMENT FOR MAKING THE WIDENED DERIVATION STANDING RATHER
+THAN A ONE-OFF CORRECTION**, and it is now the strongest one available:
+**applying the instrument to all four id spaces rather than the one known broken
+is what found it.**
+
+## 3. THREE PIECES OF CRAFT WORTH THE RECORD
+3.1 ⚠ **THE PRECONDITION, NOT THE CHECK:** every replaced string was measured to
+    have **zero pre-existing occurrences at main** before anything was touched —
+    so a global replace could not rewrite another lane's text. **Measuring
+    first is what made the replacement safe; measuring after would only have
+    told you what you had already done.**
+3.2 ⚠ **A NEW COMMIT, NOT AN AMEND.** `920cd079` was pushed, so rewriting it
+    would have broken the no-rewrite property. **The collision and its fix are
+    both legible in the branch history rather than erased** — a successor can
+    see that this happened, which is worth more than a clean-looking branch.
+3.3 ⚠ **THE PR BODY'S DERIVATION WAS REPLACED, NOT APPENDED TO.** Leaving a
+    superseded derivation with a correction bolted on **leaves a reader two
+    derivations and no way to tell which governs.** That is the same reasoning
+    that keeps a corrected stop-file in a new file rather than an edited one,
+    applied to a mutable surface where it is easier to get wrong.
+
+## 4. §A.3 — THE `goal-lint` TRAP, NOW PRECISELY BOUNDED
+⚠ **"A push re-triggers `goal-lint` with a fresh payload; the trap is specific
+to a body edit WITHOUT a push."** That is narrower and more useful than the form
+the record has carried since NA-0708, which implied close+reopen was generally
+required. **Correct the standing note to this version** — a rule stated too
+broadly sends the next lane to a close+reopen it does not need.
+
+## 5. THE RECORD — UNCHANGED IN SUBSTANCE
+Ten lines moved across five files; **no finding, no verdict, no count, no claim
+touched.** 15 / 13 / 61 / 4 / 36 = 129, track 20, basis 23 source-settled / 106
+text. ⚠ **The ledger diff is still +257 / −0 — a pure addition with every entry
+byte-identical**, which is what "one table, one section" was chosen to
+guarantee. The convention proved itself twice now, across a re-derivation.
+
+## 6. WHAT THIS LANE PRODUCED
+An assurance dimension the harm axis could not see, over 129 entries, with a
+mandatory `scope:` on every PROVEN verdict and the basis split carried as part
+of the result.
+⚠ **AND ITS PRINCIPAL FINDING IS THE ONE THAT CHANGES HOW THE LEDGER IS READ:
+the ledger is not a reliable instrument about the tree in EITHER direction** —
+measured three ways, the largest being **ten of eleven entries with no recorded
+check that have real guards in the tree.**
+⚠ **The delivered product is the disagreement column: 18 of 20 track rows sit at
+the bottom of the harm ranking or are invisible to it, and the all-three-tracks
+set is exactly ONE entry — ENG-0056, ranked T4 by the axis that governs the
+queue, with a remedy of watching one constant.**
+
+## 7. FREEZE
+On the merge, NA-0712 is COMPLETE and this seat FREEZES. It retires to DONE at
+the next lane's promotion from the RE-VERIFIED merge sha.
+⚠ #1723 remains blocked on the advisories gate; NA-0713 is fixing it. Its
+`D-1348` is now uncontested.
+
+END OF RULING — if this line is missing, the paste is truncated; request a re-send.
+```
+
+**R294 — the NA-0723 ratification: DV-4 named a DIRECTOR error; queue-insert placement =
+the RECENT ERA governs; NA-0715 ruled a consumed id, not a lost record** —
+`RBANK_NA0723_001_RATIFICATION_R294_20260814T002053Z.md`, sha256
+`3c1e016b762e646322576426ba10b467f0671196fa7498ac035fcfe88b193b0b`, 41 lines / 3339 bytes.
+The fence below is that whole file.
+
+```
+# NA-0723 RATIFICATION — Director R294 — 2026-08-14
+# ONE act: bank this verbatim (444) AND write the lane's terminal stop recording it — the
+# door-1/door-2 convention. No tree change; PR #1735 stands as built. Then the seat is done.
+
+R294 — the DV/SD/PROC table is RATIFIED AS EXECUTED. Item by item:
+  DV-1 — TEN was the right closure. Refusing both lists and enumerating the file is R288
+    working on its first outing: the seat owned the state premise and the Director's list
+    was correctly treated as recollection.
+  DV-2 — no mismatch existed; the Director's list was a superset because NA-0717 shipped
+    the ruled two-PR shape. Every sha matched the API. Noted, nothing owed.
+  DV-3 — `no class declared` STANDS as landed; no churn for cosmetics. ⚠ The underlying
+    finding is the real one and is FILED at the next records touch: D-1348..D-1358 —
+    ELEVEN consecutive decisions — declare no result class, the last being D-1339. That
+    is a silent convention drift in the decision record, not a property of these lanes.
+  DV-4 — the Director's amendment A1-3 restated the gate wrongly (`MERGING → 0`); the base
+    order's narrower wording was right, and the tree is right: NA-0723's own block is BORN
+    at MERGING by DOC-OPS-006 §4c. Director error, recorded. The seat sealing BOTH readings
+    in advance is why it surfaced before the edit rather than after.
+  DV-5 — NA-0715 is NOT a lost record: Director-measured, ZERO mentions in DECISIONS.md —
+    no D-record, no TRACEABILITY row, no merged PR, prose only inside NA-0716's block. It
+    is a consumed lane id whose diagnosis fed NA-0716. Correctly reported and left
+    untouched. Its absence is now EXPLAINED in the record so no future seat re-discovers
+    it as an anomaly; carry that sentence into the closeout.
+  DV-6 — placement STANDS as executed (append). The global numeric measurement is accepted
+    as true and non-governing: Director-measured, the tail reads 0712, 0710, 0709, 0711,
+    0713, 0717..0722, 0716 — four inversions in one stretch, with NA-0716's block placed
+    TODAY sitting last. ⚠ The durable resolution of the "four conventions" trap, to be
+    carried forward: NEXT_ACTIONS is HISTORICALLY numeric-leaning and CURRENTLY
+    append-order; the recent era governs a new insert. Cross-file consistency remains the
+    wrong instinct.
+  DV-7 — the whole-file fence is CORRECT and its property is adopted: a cited sha256 is only
+    checkable if the fence is the whole file. D-3 forbids abridging, not completeness.
+  SD-1 — another SR-21 instance, self-caught: a needle built from a model of the text rather
+    than the file's bytes. The decisive instruments were already green. No tree defect.
+  SD-2 — cosmetic label error in the seat's own script; recorded, not tidied. Correct call.
+  PROC-1 — ADOPTED as a standing seat-provisioning step: every fresh seat sets the house
+    commit identity (repo noreply) clone-locally BEFORE its first commit, because
+    ~/.gitconfig carries a private address. Per D-1 this belongs in the REPO, not in a
+    seat's memory — it lands with the next records touch alongside DV-3's filing.
+Nothing else is owed by this lane. The merge is the operator's act.
+END OF RATIFICATION — if this line is missing, the paste is truncated; request a re-send.
+```
+
+**R303 — the NA-0725 STOP-001 ruling, including R303.5: lane-local `LATEST.md` pointers are
+CANONICAL and the relay pointer is a convenience** (also R303.2's class-declaration form and
+R303.4's one-home ratification, whose substance D-1361 already records) —
+`DIRECTOR_RULING_R303_2026-08-14.md`, sha256
+`2f38fa5532c82a8687aced7b42ff545f3191928e4d9688ca5a0ddd0256e95423`, 53 lines / 4132 bytes.
+The fence below is that whole file.
+
+```
+# NA-0725 — DIRECTOR RULING R303 — 2026-08-14
+# Bank verbatim (444). One line of rework, then re-settle and re-ask.
+
+R303.1 — DV-1, DV-2 and DV-3 are RATIFIED AS EXECUTED.
+  DV-2 is the important one and the credit is yours: the order's sentence "twenty consecutive
+  decisions declare no result class" is WRONG AS WRITTEN — Director-verified independently at
+  324f076b, D-1340 (`QSL_OUTPUT_IPC_BOUNDARY_CLOSURE_PASS`), D-1341
+  (`QSLD_GUI_INPUT_DRIVER_PASS`), D-1342 (`QSLD_ERASE_ERROR_ONE_RESIZING_WRITER_PASS`) and
+  D-1344 declare classes inline in an undocumented form. Landing my shorthand would have put a
+  false sentence into repo truth permanently. The field claim is correct and governs; the four
+  inline declarations belong in the entry as a measured qualification. ⚠ The substance change
+  matters to the remedy lane and must survive into it: THE FIELD DID NOT MERELY LAPSE — A
+  SECOND, UNGOVERNED SPELLING PARTLY REPLACED IT. That is a different remedy question than
+  "revive or retire a field", and it is now on the record because you measured instead of
+  transcribing.
+  DV-1 (naive count 15 at this base, 12 at f8370bce) — ratified, and refusing to edit inside
+  D-1360's fence is exactly right. DV-3 — ratified; identical shape to NA-0723's DV-4: the
+  order's whole-file arithmetic was the wrong instrument, the tree was right, and sealing both
+  readings in advance is what surfaced it before the edit rather than after.
+
+R303.2 — NA-0725 DOES GET A RESULT CLASS: **`RECORDS_SEAT_PROVISIONING_PASS`**, declared in the
+  `**Class:**` FIELD, matching D-1360's ruled form. You were right not to invent one — that is a
+  Director act (R297.3) — and I am exercising it. Grounds, stated as a property: leaving it
+  undeclared would write a twenty-first driftless decision into the permanent record inside the
+  very lane that files the drift; the honest state is not better than the useful one when the
+  useful one is also true. Declaring in the FIELD does not prejudge the remedy — the remedy lane
+  may still formalize either spelling; it only declines to extend the lapse while filing it.
+  ⚠ REWORK, one line: amend `## D-1361` so it declares the class rather than declaring none, and
+  adjust the accompanying sentence that explains the absence. Everything else in the PR stands.
+  Re-run the sealed gate set over the amended head (classify, the name set, goal-lint,
+  infra-literal-scan both arms with its own needle), re-settle, and re-verify step 15 SKIPPED
+  from the step list. Then re-ask; the merge is still the operator's.
+
+R303.3 — WF-0029: correct call, no duplicate filed. Record the relationship explicitly in
+  WF-0077's text if it is not already there — the ledger has carried the FINDING since
+  2026-07-22 (NA-0666, D-1292) and what was missing was the STEP. That distinction is the
+  single most useful sentence for whoever reads both entries.
+
+R303.4 — PROC-1's placement at `START_HERE.md` §4 Step 1 is RATIFIED, and the one-home decision
+  with it: a mandatory step duplicated across documents drifts, and then two texts disagree about
+  a rule whose whole value is being unambiguous. Deciding it from the files' own stated scope
+  rather than from preference is the standard this program wants. The `CLAUDE.md` candidate you
+  added and then eliminated on its own precedence declaration is the sharpest part of that
+  analysis.
+  ⚠ The DOC-OPS-006 §4c cross-reference is NOT taken now — it would grow the enumerated edit set,
+  and one home was just ruled correct. Carry it as a NOTE for the next records touch.
+
+R303.5 — LANE-LOCAL `LATEST.md` POINTERS ARE CANONICAL; the relay pointer is a convenience that
+  demonstrably goes stale (two weeks, eight lanes). Your rewrite of it is ratified as a /srv
+  housekeeping act. Carry as a note for a future records touch: either the relay pointer is
+  maintained by ritual or it is retired — a pointer that is right sometimes is worse than none,
+  which is the same property that made the stale one a hazard.
+END OF RULING R303 — if this line is missing, the paste is truncated; request a re-send.
+```
+
+**R304 — the NA-0725 close ruling, including R304.2 (a ruled one-line change is a change to a
+CLAIM — sweep for the ASSERTION, not the location; a B-list standing-rule candidate) and
+R304.3 (a ledger figure is written BASE-SCOPED, `"N at <sha>"`, never as a bare count —
+adopted as house practice effective immediately)** — `DIRECTOR_RULING_R304_2026-08-14.md`,
+sha256 `bb7458f873d0f6e134a051a6734f98e684b70939c719e098abb631c1fdd60c74`, 37 lines /
+2713 bytes. The fence below is that whole file.
+
+```
+# NA-0725 — DIRECTOR RULING R304 — LANE CLOSED — 2026-08-14
+# ONE act: bank this verbatim (444) AND write the lane's terminal stop recording it — the
+# standing convention that a ratification turn ends in an immutable stop-file, never only a
+# pointer. Then this seat is done.
+
+R304.1 — NA-0725 IS CLOSED. Result class `RECORDS_SEAT_PROVISIONING_PASS` ratified. Base and
+  head verified independently by the Director at the merge ask (324f076b / 7a35dd9b). R303 is
+  discharged in full.
+
+R304.2 — §III IS COMMENDED TO THE RECORD AND BECOMES A B-LIST STANDING-RULE CANDIDATE:
+  **"A ruled one-line change is a change to a CLAIM, and a claim can be asserted in more places
+  than the order names — sweep for the assertion, not for the location."** The order said
+  "amend ## D-1361"; obeying its letter would have left the same absence asserted as fact in
+  `docs/ops/IMPROVEMENT_LEDGER.md` and `TRACEABILITY.md`, landing two false sentences in repo
+  truth. Third instance in two days of an order's letter being narrower than its claim (with
+  DV-2 and NA-0723's DV-1). Correctly leaving `NEXT_ACTIONS.md` alone — its "result class"
+  mention is about THE TWENTY, not this lane — is the discriminating half and is what makes it
+  a sweep rather than a blunt replace.
+
+R304.3 — §VIII's property is ADOPTED as house practice, effective immediately and carried to the
+  B-list: **a ledger figure is written BASE-SCOPED ("N at <sha>"), never as a bare count**, so
+  that later edits to the record cannot falsify a figure the record itself cites. Your sealed
+  "16" measuring 22 is recorded as a seat instrument error — modelled, not measured, SR-21 again
+  — with the load-bearing claim untouched precisely because it was base-scoped. The arithmetic
+  closing exactly (15 + 7 = 22) is what turns an error into evidence.
+
+R304.4 — R303.1's substance is confirmed as carried into all three records, in the terms
+  required: the field did not merely lapse; a second, ungoverned spelling partly replaced it, so
+  the remedy question is WHICH SPELLING IS CANONICAL, what becomes of the four decisions written
+  in the other one, and whether either is lint-enforced. That reframing is the lane's most
+  durable output and it now survives without this conversation.
+
+R304.5 — the three carried notes stand, no act owed by this seat: the DOC-OPS-006 §4c
+  cross-reference for the next records touch · the relay `LATEST.md` maintained-or-retired
+  decision (lane-local pointers canonical) · the `MERGING → DONE` flip for `### NA-0725`,
+  belonging to the next promotion and now carrying a real class.
+END OF RULING R304 — if this line is missing, the paste is truncated; request a re-send.
+```
+
+**SR-23, RETIRED (R310).** The reservation recorded earlier in this file at D-1339 — *"SR-23
+— RECORDED OPERATIONAL PRACTICE, minted as a numbered rule at the next governance touch"* —
+is retired by R310's fenced text above: **permanently reserved-and-unminted; the constitution
+ends at SR-22 as a decision, not a gap.** The D-1339 sentence is HISTORICAL and is not edited
+(mark-don't-rewrite); this record supersedes it in the open, which is what ends the
+commitment's recurrence at every future governance touch. `docs/ops/STANDING_RULES.md` is
+deliberately untouched — nothing is minted, which is R310's own point.
+
+**What is deliberately NOT landed.** Class (iii) is not swept: R311 forbids it, and its
+substance is already repo truth via the lanes' D-records. The seven zero-record ruling
+numbers (103–107, 247, 285) and R284's transcript-only state are recorded facts (D-1362's
+Part-2 report and the R309–R312 text above) and are left as measured.
+
+**`### NA-0726` RETIRED** to the §4c house form against PR **#1741**,
+`mergedAt=2026-08-14T21:09:07Z`, merge commit `29dff9b4`, resolved from the API on
+`merged_at` and verified to be the only anchored `^Status: MERGING` line in the file at this
+edit; its result class **`SR24_REFUSAL_RECORDS_PASS`** lands on the DONE line exactly as R309
+directs — with the next promotion, never by reopening the merged PR.
+
+**This record deliberately carries no `**Class:**` field.** Declaring one is a Director act
+(R297.3; the R303.2 precedent); the flag rides the merge-ask stop.
+
+**Base:** spine `29dff9b4` (the #1741 promotion merge). **Source:** R311, fenced above with
+its whole ruling. **Docs-only:** three files, zero source bytes, no `.github/**`, no
+workflow, no dependency, no test, and no ledger entry — zero STILL-OWED items and no new
+finding to file. The operator merges; the seat does not.

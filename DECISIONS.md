@@ -38884,3 +38884,421 @@ END OF RULINGS — canonical text; lands in DECISIONS.md per D-3.
     measured convention of every prior lane and nothing more) · that NA-0715's absence is
     cured · that any lane's substance is restated — NA-0714's block reconstructs a record,
     not a result.
+
+
+## D-1360 — NA-0724: THE SUITE-ECONOMICS LANE — ENG-0185 is cured by ARITHMETIC, the two serial
+## push suites are retired for sharded ones on both platforms, and push-suite feedback collapses
+## from ~3.5 hours to under an hour in one act
+
+**Status:** Accepted (ordered at **R289**, whose canonical text is in `## D-1359`; formalized as
+`QSL-DIR-2026-08-14-655` and amended twice). **Lane:** NA-0724. **Directive:**
+`QSL-DIR-2026-08-14-655` (sha256 `1d5e35d3d5a2ba4579fbf2306fd198626e52a2508eb3711bd6f81d76558610da`,
+879 lines) **as amended by AMENDMENT A1** (`452b81b5963a0fb301a08b1e06b7c36ec7307af92e53f8427dd808e14ce93f9a`,
+1001 lines, formalizing R295) **and AMENDMENT A2** (`dadd37457e97c1bfa90824da88d1a3c09e6c63e3420be73fbdccf58f0872d3ea`,
+394 lines, formalizing R296) — **precedence A2 > A1 > base**, every earlier file byte-frozen, never
+rewritten. **Base:** spine `f8370bce` (the #1735 promotion merge). **Class:**
+`SUITE_ECONOMICS_SHARDING_PASS`. **Source finding:** **ENG-0185**; **WF-0076** folded in;
+**ENG-0186** filed by this decision. **Adversarial read:** SR-15 findings
+`826c1a1f364b5a7402acc5f23fd51ec499346996bdc10b733a795f4d1a8eb328` (262 lines; 3 BLOCKER /
+6 MAJOR / 5 MINOR / 6 NOTE, all dispositioned). Ids re-derived at the edit per WF-0068 against
+main `f8370bce` **and an open-PR set measured EMPTY**: NA-0724, D-1360 and ENG-0186 each returned
+**zero** occurrences across the four record files, with a positive control proving the instrument
+could return a hit.
+
+**THE DEFECT.** The push-arm `public-safety` watchdog derives its poll budget from the suite
+ceilings — `COVERAGE = MAX_CEILING + QUEUE_MARGIN(60)` — and refuses when coverage exceeds
+`JOB_TIMEOUT(360) - SAFETY_GAP(20) = 340`. With honest ceilings fitted to measured runtimes
+(300 macOS / 330 Linux) coverage is **390 > 340**, so the guard refuses: `ERROR: derived watchdog
+coverage 390m exceeds the safe bound 340m`. The guard is CORRECT — it refuses rather than hang
+into the ENG-0052 failure it exists to prevent. **The architecture is the defect: a single polling
+job cannot outlive the suites it waits for.**
+
+**THE CURE, AND WHAT IT IS NOT.** R282 ruled the remedy to be a `workflow_run`-completion
+redesign; R289 **amended its own ruling** — that cure is retained as the eventual architecture but
+is not the first act, because sharding the two push suites moves `MAX_CEILING` under 280 by
+arithmetic alone. **This lane buys arithmetic headroom, not a new architecture. R282's redesign is
+NOT withdrawn; it stands, retained and deferred.**
+
+**⚠ R289's OWN PREMISE MEASURED FALSE, AND THE DIRECTIVE SAYS SO.** R289 held that sharding
+"does not touch `public-ci.yml`, so **WF-0073 never applies**". Measured: `ceiling_of()` parses the
+**job keys** `qsc_linux_full_suite` and `macos_qsc_full_serial`, hard-coded at `public-ci.yml`, and
+`wait-commit-checks` is given the **check names**. Retire either job and the parser returns EMPTY
+and exits 2; keep them and `MAX_CEILING` stays 330. **No sharding arrangement exists that leaves
+`public-ci.yml` untouched — WF-0073 APPLIES.** Because `public-ci.yml` fires on
+`pull_request_target` (so a PR runs **main's** copy) and its sizing step is `if: push`, **no PR can
+ever execute the changed code.** The central claim is therefore proven by EXECUTING the consumer
+against the edited tree, not by any green check.
+
+**WHAT WAS PROVEN, BY THE CONSUMER'S OWN CODE.** `MAX_CEILING` **270 ≤ 280** and `COVERAGE`
+**330 ≤ 340**, with `FANOUT_WAVES = 3` and shard ceilings 90/90. **The guard was watched REFUSING
+before it was watched passing:** a counterfactual macOS ceiling of 150 yields `COVERAGE 510` and
+rc 2. **And its refusal boundary is now a measured fact — 94 ⇒ COVERAGE 342, rc 2; 93 ⇒ COVERAGE
+339, rc 0.** ⚠ **93 is therefore the largest admissible shard ceiling, and a future re-fit to 94 or
+above reds main on the next non-docs push with NO pre-merge detection** (the sizing step is
+push-only) and a repair that classifies `workflow_security` — the class the admission freeze
+refuses. A successor inherits that boundary as a number, not as an argument.
+
+**`FANOUT_WAVES = 3` IS A THRESHOLD, NOT A COMFORT.** Two waves are STRUCTURAL — 5 macOS shards
+plus the REQUIRED `macos-qsc-qshield-build` is 6 jobs against a 5-slot pool, before any contender
+exists — and the third buys exactly ONE concurrent contender against an **org-wide** pool.
+`4 x 90 = 360 > 280`, so a fourth wave is unreachable: **if one is ever needed the arithmetic path
+is spent and R282's redesign becomes NECESSARY rather than deferred.** Headroom is **10 minutes,
+not 100** — the honest cost of replacing a margin that never covered the lane's own demand.
+
+**THE ESCALATION TRIGGER, WITH ITS DISCRIMINATOR MEASURED AT SOURCE.** `wait_for_required_checks`
+fails the step on both rc 1 and rc 2, so the check colour cannot discriminate — **the discriminator
+is a log line.** rc 1 = a required check completed non-success, returned immediately, naming the
+check and its conclusion. rc 2 = exhaustion, and **rc 2 has THREE causes**: genuine wave exhaustion
+(`transient_poll_errors=0` **and** the final iteration printing `status=in_progress`) — **the only
+one that is the trigger** — versus API flake (`transient_poll_errors > 0`, each error consuming an
+iteration without evaluating a check) versus a check that never existed (`CHECK <name>: missing`).
+Stated as one line the trigger would fire on infrastructure.
+
+**CENSUS EQUIVALENCE, BOTH DIRECTIONS.** `cargo metadata --no-deps` over `qsc`: 1 lib
+(test+doctest) + 1 bin + 129 test targets + 0 examples + 0 benches + 0 `required-features` +
+0 `test=false` = **132 target sets**, matched exactly by both manifests in both directions at one
+census, with `doc:qsc` ALONE in its shard on each platform (cargo refuses `--doc` mixed with any
+other target selector). Over the last 30 first-parent main commits the two arrangements ran
+comparably on 8 shas and agreed green on 6; **both disagreements are classified and neither is a
+test outcome** — one a `cancelled` shard (the defect this lane cures), one an `actions/checkout`
+TLS failure before any test ran.
+
+**THE macOS PARTITION IS SEEDED FROM A MEASURED RUN, AND ITS INSTRUMENT WAS DOUBLED.** Per-target
+durations were mined from the newest completed `macos-qsc-full-serial` run at execution time
+(job 94606278726, sha `0ad65a58`, 180.95 min), whose log carries 132 `Running` and 132
+`test result:` lines — an exact cover of the current census. **Two independent attributions were
+computed — cargo's own `finished in Ns` values, and deltas between consecutive `Running`
+timestamps, the latter immune to stdout/stderr transposition because it never pairs the two
+streams — and they agree on all 132 targets, none differing by more than 5 s.** The earlier seed's
+interleaving caveat therefore does not bind this capture. Greedy-LPT lands four working shards
+within **0.153 s** of each other (43.97 min each); the floor is `tests/handshake_mvp.rs` at
+29.36 min; the projected worst shard is **~49.0 min warm = 54.5 %** of the 90-minute ceiling.
+⚠ **The 90 is an initial hang-bound, NOT a fitted ceiling** — it is re-fitted only from the first
+measured *sharded* macOS main run, and **the first such run has a cold cache and may exceed the
+60-minute signal band while perfectly healthy.**
+
+**THE ADMISSION PATH THIS LANE LEAVES INERT, STATED PLAINLY.** `RED_MAIN_REPAIR_PROFILES`'
+`failure_check` is repointed from `macos-qsc-full-serial` to `macos-qsc-sharded-suite` for
+**referential integrity only**. The gate fetches the job log of the named check and requires every
+profile marker to appear in it; under sharding that check is an **aggregate**, whose log carries
+only `docs_only=/manifest=/shards=` and can never contain a test name — the markers live in the
+shard jobs' logs, which nothing fetches. **That admission arm is INERT. It is filed as ENG-0186**,
+and its repair is a gate-logic change this lane's non-goals forbid. A dangling name would be worse
+than an inert one, but the record must not carry a name that looks live and is not.
+
+**WHAT THIS DECISION DOES NOT CLAIM:** that ENG-0185's architecture is fixed · that the macOS
+shard ceiling is fitted · that queueing was measured (the wave model is a ceiling-basis worst-case
+bound) · that suites stop growing (the census grew 131 to 132 in eight days) · that cross-target
+co-residency is covered (an accepted, named loss: a test that passes only because another target
+ran first in the same workspace is observable in the serial arrangement and in no other) · that
+macOS suite growth is ENFORCED (post-merge the macOS ratchet can only WARN; the Linux FAIL arm
+stays live) · that the rollback door is available unconditionally (it is inert if the break is in
+`public-ci.yml`'s own parseability, whose only exit is an operator branch-protection act) · or
+anything about WF-0073, WF-0074, WF-0075, ENG-0120 or SR-24.
+
+**THE RULINGS, CANONICAL TEXT.** Five rulings govern this lane. Each fence below **IS THE WHOLE
+FILE** whose sha256 is cited beside it, so the hash is checkable by the reader it is written for
+(the D-1356 / D-1359 precedent for exactly this act). ⚠ **They land BYTE-VERBATIM and are never
+edited — not even where a later ruling supersedes a figure inside an earlier one.** R296.5's text
+says the class-declaration drift is "eleven"; **R297.2 supersedes that with twenty
+(D-1340..D-1359, measured 20/20 with no gaps)** — and it does so in the open, beside R296, because
+editing the figure inside R296's fence would break the sha256 its own provenance sentence cites
+and would rewrite a ruling as issued. Mark-don't-rewrite governs fenced rulings exactly as it kept
+A1 untouched while A2 amended it.
+
+**R295 — `DIRECTOR_RULING_R295_2026-08-14.md`, sha256 `d138ecc49fcc5227b0c6ea90a415b2821e66e07ba2905229ef0227056527aaa0`, 61 lines / 5286 bytes. The fence below is that whole file.**
+
+```
+# NA-0724 — DIRECTOR RULING R295 ON SR15_D655_FINDINGS — AMENDMENT A1 ORDERED — 2026-08-14
+# Fresh seat. Author QSL-DIR-2026-08-14-655_AMENDMENT_A1.md — a NEW file (655 is never
+# rewritten), header citing 655's sha 1d5e35d3…10da and the findings file's sha.
+# STOP with A1's full text + sha. NO repo edit, NO PR, NO dispatch. You do not merge.
+# FIRST: read the findings file, directive 655, its STOP 001, and DECISIONS.md ## D-1359.
+
+R295 — all 20 findings dispositioned. The design SURVIVES (F17/F18 independently reproduced
+  census equivalence and the SR-18 blast radius). Cures:
+  F1 BLOCKER — arithmetic corrected: the counterfactual 150 ceiling yields COVERAGE 360, not
+    420. Re-derive every G1b figure from the consumer's own formula and re-seal.
+  F2 BLOCKER — ⚠ THE DIRECTOR'S T8(b) RULING IS RESCINDED. Repointing failure_check is NOT
+    behavior-preserving: the gate fetches the JOB LOG of the named check
+    (public_safety_gate.py:972-977) and requires markers in it (:824-827); the aggregate's log
+    is structurally incapable of carrying a test name. NEW RULING: repoint the NAME for
+    referential integrity (a dangling name is worse), AND state plainly in A1's claim boundary
+    that the red-main-repair MARKER arm is INERT under sharding, AND file that inertness as
+    its own ledger entry (id at edit) for a future gate lane. NO gate-logic change here — the
+    non-goal holds. The record must not carry a name that looks live and is not.
+  F3 BLOCKER — ⚠ THE DIRECTOR'S T8(a) RULING IS RESCINDED. workflow_dispatch can only trigger
+    workflows present on the DEFAULT branch; the new macOS workflow does not exist on main
+    until this lane merges, so no pre-merge dispatch can fire. (Director error: reasoned from
+    NA-0717's precedent without checking that ITS workflow already existed on main — the R281
+    platform-contract rider, ignored by its own author.) NEW RULING: the macOS workflow KEEPS
+    `pull_request:`, with shard/aggregate guarded by an `if:` that is FALSE for ordinary PRs
+    (so the 5-slot macOS pool is never consumed by routine work, and the REQUIRED
+    macos-qsc-qshield-build is never starved) and TRUE for this lane's own PR by a mechanism
+    A1 names explicitly. The red control runs ONCE, on that PR. VERIFY the default-branch
+    dispatch behavior with one read-only `gh api` call at drafting and report it.
+  F4 MAJOR — D-3 debt, acknowledged: these rulings live only in chat. A1 carries their
+    canonical text verbatim, and the lane's promotion PR lands it in DECISIONS.md.
+  F5 MAJOR — re-derive the wave model. BINDING CONSTRAINT: the lane's OWN per-push demand is
+    STRUCTURAL, not contention allowance — 5 macOS shards + the required qshield build is 6
+    jobs against a 5-slot pool before any contender exists; the pool is ORG-WIDE across four
+    repos. Prove the new arithmetic by EXECUTING the consumer, not by modelling it. ⚠ If the
+    cure changes FANOUT_WAVES' SEMANTICS rather than its value, STOP for a Director ruling
+    before proceeding. REFUSED, unchanged: shrinking QUEUE_MARGIN, raising JOB_TIMEOUT, and
+    re-tightening any ceiling below the NA-0664 band over its measured runtime.
+  F6 MAJOR — ADD A GATE, mandatory: YAML parse (actionlint if available, else yaml.safe_load)
+    over EVERY edited workflow, plus one execution of the existing
+    run-timeout-resilience-selftest against the edited public_safety_gate.py. Rationale for
+    the record: a parse break on main means public-ci never starts for any event, the required
+    public-safety context is never minted, and EVERY PR waits forever — including the reserved
+    rollback door. That failure has no exit but an admin bypass no artifact names.
+  F7 MAJOR — supply §6.2(E) VERBATIM like (A)-(D), including the job display names, so the
+    macOS file cannot mint check names colliding with the Linux shards on the same sha.
+  F8 MAJOR — make macOS-ness MECHANICAL: a per-job runner expectation, or a G3 addendum
+    asserting the host triple from the shard's own log. A ruled constraint preserved by memory
+    is not preserved — the house's own words.
+  F9 MAJOR — the ratchet WARNs on push and FAILs on PR (or is otherwise advisory on the push
+    arm). Growth must not red main, because the repair for growth is a workflow_security PR —
+    the exact class the admission freeze refuses. Alarm and freeze must not share a trigger.
+  F10-F14 MINOR — all adopted. F11 in particular: state the first-run cold-cache expectation
+    explicitly so the executor expects the 60-minute band to trip on a HEALTHY partition, or
+    make the band first-run-aware. F14: bind the ratchet literal and timeout-minutes so a
+    re-fit cannot move one without the other.
+  F15-F20 NOTE — recorded. F19's correction is ADOPTED into the record: watchdog exhaustion is
+    a false-RED (rc 2), not a false-safe; the Director's tasking premise was wrong and the
+    fail-closed direction is better than stated.
+A1 must be complete in itself: a reader of 655 + A1 needs no chat context. Mark-don't-rewrite
+throughout. No second SR-15 read is ordered; F5's cure carries its own consumer-executed proof.
+END OF RULING PACKET — if this line is missing, the paste is truncated; request a re-send.
+```
+
+**R296 — `DIRECTOR_RULING_R296_2026-08-14.md`, sha256 `612e316edf99c3ff17dda25a734af0022711a131b3beb06f6bb699125600edb6`, 67 lines / 5281 bytes. The fence below is that whole file.**
+
+```
+# NA-0724 — DIRECTOR RULING R296 — A1 RATIFIED, THE TWO OWED RULINGS SUPPLIED — 2026-08-14
+# Bank this verbatim (444). Fold §T9 and §NA0723 into A1 as an addendum (mark-don't-rewrite,
+# A1 is not rewritten), then STOP. No repo edit, no PR.
+
+R296.1 — AMENDMENT A1 IS RATIFIED as authored. The 510 seal is CORRECT: executing R295's
+  "re-derive from the consumer's own formula" at FANOUT_WAVES=3 supersedes the worked example
+  in R295's own text, and sealing the measured value while flagging the interaction is the
+  right call. The gate-name correction is ACCEPTED — R295 named the function, not the CLI
+  subcommand; `selftest-timeout-resilience` is the invocation, and the Director's string was
+  wrong. The `on:` → boolean-True YAML trap is a genuine save; the parse gate must not assert
+  an "on" key.
+
+R296.2 — WAVES=3 IS ACCEPTED, AND ITS CEILING IS RECORDED AS A THRESHOLD, NOT A COMFORT.
+  Basis: 2 structural waves (5 macOS shards + the REQUIRED qshield build = 6 jobs, 5 slots) +
+  1 contender. MAX_CEILING 270 ≤ 280; COVERAGE 330 ≤ 340; ten minutes of headroom, honestly
+  derived rather than falsely large. A fourth wave is unreachable (4 × 90 = 360 > 280) and every
+  cheaper turn stays refused. ⚠ ESCALATION TRIGGER, recorded now so it is a decision and not a
+  discovery: if `wait_for_required_checks` is ever observed returning rc 2 (EXHAUSTION —
+  distinguishable from rc 1, a real check failure) on a push whose suites were green, that is
+  the measured signal that the arithmetic path is spent and R282's workflow_run redesign is
+  NECESSARY rather than deferred. A1 must name that trigger and the rc-2/rc-1 discriminator.
+  Also record for successors: a future shard-ceiling raise past 93 minutes reds main AFTER
+  merge and cannot be caught pre-merge (the sizing step is push-only) — which is precisely
+  what G1b′ documents.
+
+R296.3 — THE FOUR OPTIONAL ADDITIONS ARE RULED **IN**: G1b′ (the guard's refusal boundary
+  watched at 93 green / 94 red — a gate is not trusted until watched red, and this one also
+  documents the successor trap above) · G1d (the two timeout-minutes parsers gated into
+  agreement — F14's cure) · G2b (call-site invariance across the argparse restructure, against
+  baselines captured BEFORE the edit — V.1's risk) · G3b (the PR guard's FALSE arm watched).
+  Each has earned its place; none is struck.
+
+R296.4 — T9, CANONICAL TEXT (the ruling A1 correctly refused to invent):
+  "T9 — THE PRE-AUTHORIZED ROLLBACK PATH FOR NA-0724. If the merged arrangement misbehaves,
+  main goes red on the next non-docs push, and a revert PR classifies workflow_security — the
+  class every admission path refuses while main is red. The rollback is therefore a TWO-STEP,
+  pre-authorized here: (1) merge a docs-only PR drawn from the RESERVED work below, which
+  re-greens main's admission signal; (2) open and merge the revert. RESERVED WORK, not to be
+  spent on any other door until this lane is proven post-merge: the PROC-1 seat-identity
+  provisioning step landing in the repo (D-1 obligation, currently unbanked), and the
+  result-class convention filing (D-1348..D-1358 declare no class; last was D-1339). Both are
+  real, owed, docs-only. THE REVERT MUST RESTORE THE SIZING BLOCK AND THE --required NAMES
+  TOGETHER: per F15, a names-only partial revert fails instead by wait exhaustion — later and
+  quieter, but still red. ⚠ ONE CASE THE DOOR CANNOT REACH: if the break is in public-ci.yml's
+  own parseability, no PR receives a public-safety context at all and the docs door is inert;
+  the only exit is an operator branch-protection act, which is OPERATOR-ONLY and is named here
+  as the last resort rather than left to be discovered. The new mandatory parse gate (F6)
+  exists to make that case unreachable — it is prevention, not a rollback path."
+
+R296.5 — NA-0723'S RESULT CLASS: **`no class declared`**, exactly the tree's own precedent that
+  D-1359 applied to all ten blocks it retired in the same file. Canonical text: "R296.5 —
+  NA-0723 carries no result class. This is consistency with D-1348..D-1358, not an oversight;
+  the convention drift by which eleven consecutive decisions declare no class is filed
+  separately and is not fixed by inventing a one-off class here."
+
+R296.6 — V.2's consequence is ACCEPTED AND RECORDED: after merge the macOS ratchet can only
+  WARN, its FAIL arm exercised exactly once on this lane's own PR, while the Linux FAIL arm
+  stays live. That is the correct trade under R295 (alarm and freeze must not share a trigger),
+  and A1 must state it plainly so no successor mistakes a quiet macOS ratchet for an enforced
+  one. V.1's `--ratchet` short-circuit ahead of the census, V.3's directory merge at promotion,
+  and V.4's dead `if:` text owed to a successor are all accepted as recorded.
+
+NO SECOND SR-15 READ IS ORDERED. The design's shape did not change — values, gates and one
+verbatim block did — and each cure carries its own consumer-executed proof.
+EXECUTION IS AUTHORIZED on ratification of this addendum: a FRESH seat executes; the operator
+performs every `.github/**` edit from A1's copy-exact blocks; the operator merges.
+END OF RULING R296 — if this line is missing, the paste is truncated; request a re-send.
+```
+
+**R297 — `DIRECTOR_RULING_R297_2026-08-14.md`, sha256 `2a524df8b2f94f70568bde4ba89c54f218f91907a8cb79538abcbc825f28eb82`, 45 lines / 3373 bytes. The fence below is that whole file.**
+
+```
+# NA-0724 — DIRECTOR RULING R297 — A2 RATIFIED; EXECUTION AUTHORIZED — 2026-08-14
+# ONE act: bank this verbatim (444) AND write the lane's terminal governance stop recording
+# it (the door-1/door-2 convention: a ratification turn ends in an immutable stop-file, never
+# only a pointer). Then this seat is done — no edit, no PR, no execution here.
+
+R297.1 — AMENDMENT A2 IS RATIFIED. The governing set is 655 + A1 + A2, precedence A2 > A1 >
+  base. The `_A2` filename is accepted with its stated property: a new file amending the base
+  as amended by its predecessor, explicit precedence chain, every earlier file byte-frozen at
+  its recorded sha — that IS mark-don't-rewrite, and naming the property rather than citing the
+  precedent is D-4 working as intended.
+
+R297.2 — THE CLASS-DRIFT FILING IS SCOPED TO **TWENTY**, not eleven: D-1340 through D-1359,
+  the maximal run since the last declaring decision D-1339. The Director's "eleven" was the
+  range D-1359's own act needed and is superseded by this measurement. The seat's instrument
+  note is adopted into the filing's evidence: a naive `**Class:**` grep returns twelve hits and
+  misattributes the twelfth to D-1359, which is D-1359's own prose quoting the token — needle
+  wider than its claim, tree right, instrument wrong.
+
+R297.3 — D-1360 DECLARES A RESULT CLASS: **`SUITE_ECONOMICS_SHARDING_PASS`**, as 655 §1
+  proposed. Grounds: it is the house convention, it is honest for what this lane delivers, and
+  it ENDS the twenty-decision drift with this lane rather than extending it — which also closes
+  the filing's range at D-1359 instead of leaving it open-ended.
+
+R297.4 — THE ESCALATION TRIGGER IS CORRECTED to the seat's three-discriminator form, which
+  supersedes R296.2's one-line version: R282's redesign becomes NECESSARY only on (a) genuine
+  exhaustion — rc 2 WITH `transient_poll_errors=0` AND the final iteration printing
+  `status=in_progress`. NOT on (b) rc 2 with `transient_poll_errors > 0` (API flake consuming
+  iterations without evaluating a check) or (c) rc 2 with `CHECK <name>: missing` (the
+  2026-07-14 trigger-defect class). The rc-1 side is unambiguous and is not a capacity signal.
+  Stated as one line the trigger would have fired on infrastructure; A2's form is the ruling.
+
+R297.5 — THE RESERVED SUPPLY IS PROTECTED BY RULING AS WELL AS BY S15: the Director will NOT
+  authorize `PROC-1`'s seat-identity provisioning step or the class-drift filing as a door for
+  any other lane until NA-0724 is proven post-merge. S15 (re-measure the reserved supply
+  immediately before the merge ask; stop rather than merge on a theoretical exit) stands as the
+  mechanical backstop, because a ruling that lives only in a Director's memory is exactly what
+  D-3 exists to prevent — and this one is now banked.
+
+R297.6 — V.1–V.4, S15, S16, S17 and the discharge of S13 are all ACCEPTED as A2 records them.
+  The edit set stays at ELEVEN paths; T9's reserved work is reserved, not authored.
+
+**EXECUTION IS AUTHORIZED** on the banking of this ruling. A FRESH seat executes. The operator
+performs every `.github/**` edit from A1 §9's copy-exact blocks (A)–(E) — the seat is denied
+`Write(.github/**)` — and the operator merges. No second SR-15 read is ordered.
+END OF RULING R297 — if this line is missing, the paste is truncated; request a re-send.
+```
+
+**R298 — `DIRECTOR_RULING_R298_2026-08-14.md`, sha256 `3237d86db783e6c0bf19c442c8bdc3134749a3dc8f42c47398fee73c274d92de`, 45 lines / 3664 bytes. The fence below is that whole file.**
+
+```
+# NA-0724 — DIRECTOR RULING R298 — THE G2b CONTRADICTION — 2026-08-14
+# Bank verbatim (444). Then RESUME execution under the clarified gate.
+
+R298.1 — READING B IS ADOPTED, and G2b is CLARIFIED in the seat's strengthened form (STOP_005
+  §III (a)–(d), verbatim). Grounds: R296.3's own operative words are "call-site invariance
+  across the argparse restructure", and A1 §9(C) CHANGES the Linux call site from bare
+  `--assert-workflow FILE` to the flagged form — a gate defined against the call site cannot
+  mean the superseded call site. The gate exists for V.1's risk (a hand-rolled positional
+  dispatcher restructured under six new flags), not to freeze a contract the same amendment
+  deliberately tightens. Reading A is REFUSED with its cost named: it would buy byte-identity
+  on one shape by withdrawing 655 §5.4's fail-closed property and striking G2's R4/R6 red arms,
+  re-opening F8 exactly as filed — a ruled constraint preserved by default is not preserved.
+  ⚠ THE CONTRADICTION IS THE DIRECTOR'S: R296.3 ruled G2b in by its short name without checking
+  that name against A1 §10's operative sentence and 655 §5.4. Same class as F1. Recorded as a
+  Director miss in the lane's SR-16 rows, with the seat's catch credited — it surfaced only
+  because the baselines were actually captured and compared against the new contract.
+  The clarified G2b tests TWELVE shapes, not four; it is a STRENGTHENING, and S16 now attaches
+  to the clarified form. A1 and A2 are NOT rewritten; this ruling governs over A1 §10's G2b
+  sentence, and the promotion PR lands both texts with this one naming which governs.
+
+R298.2 — THE USAGE RIDER: clause (b)'s byte-identity is scoped to BEHAVIOUR, not documentation.
+  `USAGE` MAY be updated to document the six new flags. Compare B6–B12 with rc byte-identical
+  and stdout/stderr byte-identical MODULO the USAGE block, and — because a change nobody watches
+  is a change nobody proved — assert the new USAGE actually names all six new flags. If that
+  comparison proves awkward against the interpolation, take the docstring path the seat proposed
+  instead AND FILE the usage-message gap (id at edit) rather than leaving a script that gained
+  six flags whose own usage text omits them.
+
+R298.3 — THE PHASE-3 METHOD IMPROVEMENT IS ADOPTED. Two independent duration instruments —
+  cargo's `finished in Ns` and deltas between consecutive `Running` timestamps, the latter immune
+  to stream transposition because it never pairs stdout with stderr — agreeing on all 132 targets
+  within 5 s RETIRES §4c's interleaving caveat FOR THIS CAPTURE. The partition stands on the
+  better seed; the projected worst shard (~49.0 min warm, 54.5% of the 90 ceiling, comfortably
+  under the ratchet's 80% warn) is recorded as SEED DATA, not a fitted ceiling — R289's condition
+  and S17 are untouched. ⚠ The technique goes to the B-list as a reusable candidate: when two
+  output streams interleave, prefer a metric that never pairs them over refining the pairing.
+
+R298.4 — F11's expectation STANDS unchanged: the first macOS run has a cold cache on a
+  never-saved shared-key and may trip the 60-minute band while HEALTHY. Anticipated, not a
+  finding. The better partition does not retire that expectation.
+
+RESUME: proceed to the remaining Tier-1 edit under the clarified G2b, then to STOP-EDIT with the
+operator's copy-exact Tier-2 blocks. All prior rulings and stop conditions unchanged; A2 > A1 >
+base, with R298 governing over A1 §10's G2b sentence. Ambiguity → fail closed, stop, report.
+END OF RULING R298 — if this line is missing, the paste is truncated; request a re-send.
+```
+
+**R299 — `DIRECTOR_RULING_R299_2026-08-14.md`, sha256 `90257388510273172aba6a3cfc6f62f2ef1d8ce5eef3f5b874d808e0b83abf83`, 54 lines / 3903 bytes. The fence below is that whole file.**
+
+```
+# NA-0724 — OPERATOR TIER-2 EDITS APPLIED — Director R299 — RESUME — 2026-08-14
+# Bank verbatim (444), then resume.
+
+OPERATOR CONFIRMATION, measured and reported:
+  · Lane branch `na0724-suite-economics-sharding` CREATED from HEAD f8370bce (verified == main
+    before creation; branch confirmed absent locally AND on github first). Your five Tier-1
+    edits were shown present before and after the switch — they rode across intact.
+  · All five .github/** files applied from the staged blocks. Pre-flight verified the staged
+    SOURCES against their expected result shas AND the destinations against their expected
+    STARTING shas before anything was written; all four starting shas were independently
+    verified against main by the Director earlier. Post-apply `cmp` + sha256: 5/5 PASS —
+    9ff24c22…257f · a305541a…f07e · ab8f781e…fd65 · 8196eac8…f281 · dd8d5129…bd32.
+  · Working tree = 9 modified + 2 untracked, exactly the eleven-path edit set, nothing else.
+  · NOT committed, NOT pushed.
+  Verify by your own `cmp` as ordered — a mismatch is a STOP, not a fixup.
+
+R299.1 — CLAUSE (c)'s ADDED LINE STAYS. The new assertions' own `scope examined:` line is KEPT,
+  not suppressed. Whole-stream byte-identity is explicitly NOT required for clause (c); its
+  ruled purpose is that the assert path's OUTPUT did not DRIFT, which the byte-identical
+  reproduction modulo the accounted +10 line-number delta already proves. Suppressing a new
+  check's own report to win identity would make the new checks unreportable — the vacuous-pass
+  shape this program refuses. Surfacing it rather than burying it was the right call.
+
+R299.2 — R298.2 DISCHARGED THE FIRST WAY: `USAGE` was updated, names all six new flags, asserted
+  mechanically. No usage-message gap exists; no filing owed; the docstring fallback correctly
+  not taken.
+
+R299.3 — THE MEASURED BOUNDARY IS RECORDED AS FACT: the guard refuses at 342 (macOS ceiling 94)
+  and passes at 339 (ceiling 93). A2 §6's number is now measured, not reasoned, and S17 has its
+  evidence. Carry both figures into the as-built and the D-1360 record so a successor inherits
+  the boundary rather than the argument.
+
+R299.4 — the second SR-21 instrument error (a `--ratchet` needle matching the macOS workflow
+  header's own prose) is ACCEPTED as recorded — tree right, needle wrong, caught by the
+  two-sided gate. It joins the lane's SR-16 rows beside the Director's G2b contradiction. The
+  cure is the standing one: build needles from the invocation's own bytes, never from a model
+  of the text.
+
+R299.5 — the branch-name dependency you surfaced is COMMENDED to the record: the macOS guard
+  `startsWith(github.head_ref, 'na0724-')` means a PR opened from `mainwork` would evaluate it
+  FALSE and skip the macOS shard + aggregate jobs, silently killing G3's macOS red control —
+  the exact capability F3's cure exists to create. Catching that before the branch was cut is
+  why the lane still has a red control. Carry it into the as-built as a named near-miss, and
+  note in the closeout that A2's dead-`if:`-text cleanup owed to a successor now also owes the
+  branch-name coupling.
+
+RESUME: `cmp` the five applied files → re-run G1/G2/G2b/G6 against the REAL tree (they have so
+far run against a scratch tree) → Phase 5 governance patch (`## D-1360` with R295/R296/R297/
+R298/R299 canonical text, `**Class:** SUITE_ECONOMICS_SHARDING_PASS`, the `### NA-0724` block,
+NA-0723's stale MERGING retired, TRACEABILITY, ledger incl. ENG-0186, evidence via `git add -f`,
+testplan) → Phase 6 PR with G3 and G3b → ⛔ STOP-MERGE including S15's reserved-supply
+re-measure (PROC-1 and the class-drift filing must both still be UNLANDED). The operator merges;
+you do not. Ambiguity → fail closed, stop, report.
+END OF RULING R299 — if this line is missing, the paste is truncated; request a re-send.
+```

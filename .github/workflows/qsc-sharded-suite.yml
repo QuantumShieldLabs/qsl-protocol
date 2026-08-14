@@ -27,7 +27,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: qsc-sharded-suite-${{ github.ref }}
+  # NA-0724: keyed per-SHA on push. `github.ref` is `refs/heads/main` for EVERY
+  # main push, so the old group let a later merge CANCEL an earlier merge's suite
+  # -- measured on main b9aebb2a (run 31740533267, qsc-shard-4 cancelled). Once
+  # this check is in the public-safety watchdog's --required set, a cancellation
+  # is an immediate RED for a reason unrelated to test health. PR heads keep the
+  # per-ref group, so a force-push still supersedes its own earlier run.
+  group: qsc-sharded-suite-${{ github.event_name == 'push' && github.sha || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -91,7 +97,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/ci/qsc_shard_check.py --assert-workflow .github/workflows/qsc-sharded-suite.yml
+          python3 scripts/ci/qsc_shard_check.py \
+            --assert-workflow .github/workflows/qsc-sharded-suite.yml \
+            --expect-runners ubuntu-latest \
+            --expect-job-runner shard=ubuntu-latest \
+            --max-shards 12
 
   shard:
     name: qsc-shard-${{ matrix.shard }}
@@ -126,6 +136,7 @@ jobs:
         shell: bash
         env:
           SHARD: ${{ matrix.shard }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
           ARGS="$(python3 scripts/ci/qsc_shard_check.py --emit-args "$SHARD")"
@@ -139,6 +150,7 @@ jobs:
           cat shard.log
           echo "shard $SHARD cargo wall-clock: $(( SECONDS - started ))s (exit $code)"
           python3 scripts/ci/qsc_shard_check.py --verify-log "$SHARD" shard.log
+          python3 scripts/ci/qsc_shard_check.py --ratchet "$(( SECONDS - started ))" 90 --ratchet-arm "$EVENT_NAME"
           test "$code" -eq 0
 
   aggregate:

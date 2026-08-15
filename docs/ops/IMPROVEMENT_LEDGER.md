@@ -4183,7 +4183,7 @@ SR-24 was proposed by `QSL-DIR-2026-08-13-654` (no pairing plan issues until `pr
 
 `docs/ops/STANDING_RULES.md:79` escalates any directive that "exceeds five source files" to an adversarial second read, and **nothing in the spine defines what a source file is.** Measured at spine main `fbcf2869`: the string's only normative occurrence is SR-15's own text; every other occurrence across the record means **code** (`"the alternative fix touches 236 source files"`, `"the two qsc source files"`, `"a scratch source file"`, `"no source files were changed"`), and NA-0724's own edit-set arithmetic separated **"10 code"** from **"the 6-file governance bundle"**. The gap is not theoretical: **one edit set in this lane admitted three defensible counts — 2 (code/workflow), 4 (code plus spine-process docs), 8 (every file) — straddling the threshold**, so the same directive both did and did not trigger a mandatory read depending on a reading the rule never supplies. R315.1 ruled the narrow reading correct on that evidence, which settles this instance and not the rule. ⚠ **The hazard is that the ambiguity resolves in whichever direction suits the lane doing the counting**, and the lane is the party with the least standing to choose; the only reason it did not resolve that way here is that the lane referred it rather than taking it, which is a discipline and not a mechanism. Remedy options for a future governance lane (named, not chosen): define the term in SR-15's own text · replace the file count with a scope-class test the classifier already computes (`runtime_critical` / `workflow_security` / `docs_only`) · keep the count and enumerate exclusions. ⚠ **Defining it is a governance touch and the RESTRAINT convention holds one mint per lane, so this entry deliberately files the ambiguity without resolving it.** Status: open — FILING ONLY. Originating/last lane: NA-0728 (D-1364). Last-updated: 2026-08-14.
 
-### ENG-0188 — the two nightly relay workflows have failed every run for 187 days, and they do NOT share a cause: an untrusted relay CA stops `remote-relay-tests` only, and only since 2026-08-14 — the newest of three sequential causes — while `remote-handshake-tests` fails locally at `peer_identity_key_missing` before any network act — **filed 2026-08-14 by NA-0728 (D-1364; observation measured in-lane, cause supplied by the Director at R315 and CORRECTED at R316 after the operator challenged the mechanism); FIGURE AND CAUSE-STRUCTURE CORRECTED 2026-08-15 by NA-0730 (D-1366; ordered at R325.4)**
+### ENG-0188 — the two nightly relay workflows have failed every run for 187 days, and they do NOT share a cause: an untrusted relay CA stops `remote-relay-tests` only, and only since 2026-08-14 — the newest of three sequential causes — while `remote-handshake-tests` fails locally at `peer_identity_key_missing` before any network act — **filed 2026-08-14 by NA-0728 (D-1364; observation measured in-lane, cause supplied by the Director at R315 and CORRECTED at R316 after the operator challenged the mechanism); FIGURE AND CAUSE-STRUCTURE CORRECTED 2026-08-15 by NA-0730 (D-1366; ordered at R325.4); M6 MEASURED LIVE AND ITS HAZARD CORRECTED 2026-08-15 by NA-0731 (D-1367; R328.3)**
 
 - Severity: **P2** (no runtime, protocol or security defect in the shipped client — the trust policy behaving as designed is the *cause* of the relay half only; the defect is that two scheduled instruments have been dark for **187 days at `50bb5703`** and nothing said so)
 - Status: open — **partly discharged by NA-0730 (D-1366)**: the relay half's newest cause is remedied (a CA secret is staged and a preflight proves trust *in the job log*), and `remote-relay-tests` is expected to go green. **The handshake half is deliberately NOT repaired** — its cause is unrelated and no CA can fix it; that repair is **ENG-0189**'s own script-only lane. ⚠ The relay fix discharges the NEWEST of three sequential causes only; whether a fourth waits behind it is unknown until a run gets past TLS.
@@ -4197,6 +4197,21 @@ SR-24 was proposed by `QSL-DIR-2026-08-13-654` (no pairing plan issues until `pr
 **THE CAUSE OF THE RELAY HALF, supplied at R315 and corrected at R316, so a successor does not re-derive it.** `relay_http_client()` composes trust roots **ADDITIVELY**: the webpki/Mozilla roots and the OS trust store are **NEVER disabled** — the function deliberately does not call `tls_built_in_root_certs(false)`, and that absence is the webpki-continuity pin — and an operator CA is **ADDED** when configured (`QSC_RELAY_CA_FILE` → `RELAY_CA_FILE` → vault secret). A configured-but-unloadable CA is a hard error; it never silently proceeds. **Neither nightly workflow configures a CA file** — measured: `RELAY_URL` and `RELAY_TOKEN` are the only secrets referenced anywhere under `.github/` — and the endpoint presents a certificate that chains to no public root, so **verification fails correctly** and the suites cannot pass until a CA is pinned. ⇒ **Not a dead destination, not a bad token, and not a client that refuses public roots: no CA is configured for an endpoint that needs one.** ⚠ **The endpoint's address, host, port and hosting arrangement are deliberately NOT recorded here** — operator infrastructure details are never written into repo truth; the class is what a successor needs and the class is what this entry carries. ⚠ **This mechanism sentence was wrong in its first drafting and is recorded as corrected rather than silently replaced**: the earlier text said the client "trusts only pinned CAs", which read a code comment *naming* `tls_built_in_root_certs(false)` as evidence the function *calls* it, when the comment exists precisely to record that it does not (`qsl/qsl-client/qsc/src/transport/mod.rs:2095-2125`). ⚠ **The tree could have refuted it before it was ever written** — `NEXT_ACTIONS.md`'s NA-0663 record already stated the true mechanism, *"UNION with the baked-in webpki roots"* and *"the explicit ADDITIVE CA-file option"* — and it was not consulted. The correction was prompted by the operator challenging the claim, which is the instrument that fired here.
 
 **Remedy sketch (NOT implemented; its own lane).** Supply the trust anchor to both workflows through the existing `RELAY_CA_FILE` path as a repository secret, then prove the fix by watching a run go green that is red at base — a nightly that has failed **195 times in a row at `50bb5703`** is an unusually well-controlled starting point, and **a green with no watched red proves only that something changed**. ⚠ **Two constraints the successor must weigh BEFORE pointing unattended nightly load at the relay**, both named at R315: the relay runs on a small free-tier box, and there is an ENG-0186-adjacent `max_body_bytes` hazard. ⚠ **Sequencing: these two workflows ARE the first half of the nightly endurance window already on the roadmap**, so whoever repairs them is doing that work — plan the lanes as one rather than as two.
+
+⚠⚠ **AMENDED 2026-08-15 by NA-0731 (D-1367; R328.3) — THE `max_body_bytes` CONSTRAINT NAMED JUST
+ABOVE IS NOW MEASURED, AND THE SENTENCE THAT STATES IT IS LEFT STANDING RATHER THAN REWRITTEN**
+(mark-don't-rewrite: it truthfully records what was known when it was written). **M6 was measured
+LIVE on 2026-08-15 at `max_body_bytes=65536`**, captured independently in **both** dispatched runs
+from the relay's own `outcome=reachable` advertisement, and it **AGREES with NA-0710's recorded
+figure** — so the number a successor would have inherited was right, and it is now a *measurement*
+rather than an inheritance. ⇒ the ~1.17 GiB exhaustion path is bounded to roughly **73 MiB** peak and
+**that hazard is CORRECTED**. ⚠ **The endurance gate is clear on THIS AXIS ONLY.** The other
+constraint named in the same sentence — the relay running on a small free-tier box — stands
+untouched, and **the endurance lane still owes its own baseline capture**; inheriting this figure
+instead of measuring one is precisely the failure this correction exists to close. ⚠ Measured on the
+same occasion: **`remote-relay-tests` went GREEN — its first success since 2026-02-09**, ending a
+195-run / 187-day streak. The relay half is fixed; **the handshake half is not** (ENG-0189's lane),
+and **#1745 stays OPEN until both are**. Last lane: NA-0731 (D-1367). Last-updated: 2026-08-15.
 
 ⚠ **Why this entry exists at all, recorded as evidence rather than as decoration:** it was found by the *first measurement* of a lane built to end silent failures — WF-0074's own remedy design — in a class nobody had looked at. **The occasion that motivated WF-0074 was five failures over seven days; this is **392 over 187 at `50bb5703`**, and unlike the occasion it had not been noticed by anything at all.** It is also the sharpest argument for that lane's scope decision: an alarm keyed on *push-event* suites, which is how the work was first framed, would have caught **none** of these. Cross-reference: WF-0074; ENG-0091 (nothing tracks flake or failure recurrence); ENG-0186; D-1364; R315; **ENG-0189** (the handshake half — a different cause entirely); **ENG-0190** (why 187 days passed: the job log never carried the cause); **WF-0081**/**WF-0082** (the two instrument traps met while building this remedy); D-1366; R325. Originating lane: NA-0728 (D-1364). Last lane: NA-0730 (D-1366). Last-updated: 2026-08-15.
 
@@ -4215,7 +4230,7 @@ Three separate lanes have observed the same off-by-one between the two surfaces 
 
 **THE REPAIR, fully specified so the successor lane does not re-derive it — script-only, no product change.** `contacts add` already accepts `--kem-pk <hex>` and `--sig-pk <hex>` (`qsl/qsl-client/qsc/src/cmd/mod.rs:437-445`, documented for exactly this purpose); the values are already printed by `identity rotate` as `identity_kem_pk=` / `identity_sig_pk=` (`lib.rs:267`, `:357`) and are already present in the uploaded artifacts; and the script already carries the extraction idiom (`extract_identity_fp`). ⚠ **The acceptance criterion is INVERTED until this lands** (R325.2): while ENG-0189 is open, a **green** `remote-handshake-tests` falsifies this entry and is a **STOP**, not a bonus — it would mean the attribution above is wrong. Cross-reference: ENG-0188; ENG-0190; NA-0633; D-1366; R325.2; R325.3. Originating/last lane: NA-0730 (D-1366). Last-updated: 2026-08-15.
 
-### ENG-0190 — the diagnosis defect: both remote smoke workflows hide every `qsc` error inside an uploaded artifact, so the job log carries a symptom and never a cause — **this, not TLS, is why 187 days passed** — **NEW; filed 2026-08-15 by NA-0730 (D-1366; §7 F-2)**
+### ENG-0190 — the diagnosis defect: both remote smoke workflows hide every `qsc` error inside an uploaded artifact, so the job log carries a symptom and never a cause — **this, not TLS, is why 187 days passed** — **NEW; filed 2026-08-15 by NA-0730 (D-1366; §7 F-2); SHARPENED 2026-08-15 by NA-0731 (D-1367; R328.2) — a second measured instance, and the more extreme one**
 
 - Severity: **P2** (no defect in the shipped client; a diagnosability defect in the instruments — and the one that made a 187-day outage survivable)
 - Status: open — **partly mitigated, for trust failures only**, by the preflight NA-0730 adds to both workflows; the general defect is untouched.
@@ -4223,6 +4238,23 @@ Three separate lanes have observed the same off-by-one between the two surfaces 
 **MEASURED at `50bb5703`.** Latest relay run `31861928563`, job `94956721494`, log fetched with `--allow-escape-sequences`, **53529 bytes printed** (the byte count is the only tell against the empty-file trap). Steps 1–4 `success`, step 5 `Run remote relay smoke` **failure**, step 6 upload `success`. The **entire** failure text in the job log is two lines: `counts failed happy-path expectations` and `##[error]Process completed with exit code 1.` — that is `qsc_remote_relay_smoke.sh:326`, a **symptom** (`deliver_count == 0`). Both smoke scripts redirect every `qsc` invocation into files under `$out` and only `cat` them into per-step **files**, so the cause reaches the uploaded artifact and never the log. ⇒ **A reader of the check mark — or of the entire job log — cannot learn why.** For 187 days nobody could, and the three distinct causes behind that streak (ENG-0188) were indistinguishable from one another at every surface a human actually reads.
 
 ⚠ **The general remedy is NOT the preflight.** NA-0730's preflight makes *trust* failures legible and nothing else; a fourth cause would be exactly as opaque as the first three. The remedy this entry asks for is that a failing smoke step **emit the decisive marker lines to stdout** as well as to `$out` — bounded, and subject to the design constraint that `$out` is uploaded **publicly**, so whatever is echoed must be class-only (see WF-0083). Cross-reference: ENG-0188; ENG-0189; WF-0083; D-1366; R325.1. Originating/last lane: NA-0730 (D-1366). Last-updated: 2026-08-15.
+
+⚠⚠ **SHARPENED 2026-08-15 by NA-0731 (D-1367; R328.2) — A SECOND MEASURED INSTANCE, AND THE MORE
+EXTREME ONE. NOT DISCHARGED.** R325.2 set as its acceptance that the handshake suite's cause would be
+*"now VISIBLE in the job log"* once the preflight landed. Measured after #1746 merged:
+`peer_identity_key_missing` appears **ZERO** times in that job log, and the smoke step's **entire**
+output is `##[error]Process completed with exit code 1` — **worse than the state this entry
+documented**, since the relay script at least printed a symptom (`counts failed happy-path
+expectations`). ⚠ **R328.2 rules this the Director's own error, not a shortfall in execution**: the
+ruling assumed a legibility cure would extend to a failure it never covered. **This entry's own text
+was right as written** — it says in terms that the preflight makes trust failures legible *and
+nothing else* — so what overreached was the acceptance criterion, not the finding.
+⚠⚠ **The property, which is the transferable part: a remedy's scope is set by what it INSTRUMENTS,
+not by what a ruling hopes it reaches.** ⇒ **ENG-0190 is SHARPENED, not discharged**, and reporting
+three-of-four rather than scoring a pass is the reason the surrounding record is worth trusting.
+⚠ The entry keeps **no `Resolution:` line**: the partial-closure rule is the load-bearing half, and
+this finding is not merely open — it just got worse. Cross-reference: D-1367; R328.2; ENG-0189.
+Last lane: NA-0731 (D-1367). Last-updated: 2026-08-15.
 
 ### WF-0081 — `relay ca-show` answers "is a CA **stored**", not "will a CA be **used**", and reports `configured=false` while an env-supplied CA is in force — contradicting its own help text — **NEW; filed 2026-08-15 by NA-0730 (D-1366; §7 F-3, DV-7)**
 
@@ -4239,3 +4271,79 @@ Measured at `50bb5703` by reading historical artifacts: relay artifacts up to ~2
 ### WF-0084 — `infra-literal-scan.yml:22-24` still declares itself ADVISORY and unable to block a merge, but the check has been **required** on main for some time — and because the header is stale, the R319 sentinel body gate it now hosts is undocumented as **BLOCKING** — **NEW; filed 2026-08-15 by NA-0730 (D-1366; owed by this lane's promotion, ordered at R323.4 and R323.4(a))**
 
 Measured at `50bb5703`, against the live API rather than the record: `repos/QuantumShieldLabs/qsl-protocol/branches/main/protection/required_status_checks/contexts` returns **15** contexts and **`infra-literal-scan` is among them**. The workflow's own header nevertheless reads *"⚠ ADVISORY UNTIL BRANCH PROTECTION CHANGES: `infra-literal-scan` is not in the required-contexts list. It runs and reports on every PR but cannot block a merge until the operator adds it. Green is not the same as blocking."* — **the operator has since added it, and the file never learned.** ⚠ **The consequence is not cosmetic.** The R319 sentinel body gate (`scripts/ci/sentinel_body_selftest.py`) runs as a step of that same job (`infra-literal-scan.yml:73-74`), the job's `name:` is exactly the required context, and the step carries **no `continue-on-error`** ⇒ a refusal fails the job, fails the required context, and **blocks the merge**. ⇒ **R323.4(a)'s correction, now measured rather than asserted: the R319 body gate is BLOCKING, not advisory.** A reader trusting the header would conclude the opposite about the one gate standing between a runtime-generated body and a public issue tracker. ⚠ **Deliberately FILED, not fixed:** the repair edits `.github/workflows/infra-literal-scan.yml`, which is (a) outside this lane's edit set — R325.3 rules growth a STOP — and (b) an operator act, since `Write(.github/**)` is denied to seats. ⚠ Same family as the stale-figure defect this lane corrected in ENG-0188 and as R324.2: **a status written once and never re-measured drifts silently, and a comment claiming a gate is toothless is more dangerous than no comment.** Status: open — FILING ONLY. Cross-reference: WF-0083; ENG-0089; R319; R323.4. Originating/last lane: NA-0730 (D-1366). Last-updated: 2026-08-15.
+### WF-0085 — the metadata-mitigation defaults were chosen against a rule-based analyst, and the threat has moved to learned traffic classifiers; and nothing in the record measures the CURRENT WIRE BEHAVIOUR — **NEW; filed 2026-08-15 by NA-0731 (D-1367; Director filing text of 2026-08-15, `FILING_metadata_classifier_threat_2026-08-15.md` sha256 `5e1711aa812d9fdd955159b108d7768c03b8cc62a22233852721fafdde986f2e`, 78 lines)**
+
+⚠ **This entry is FILING ONLY. No remedy is chosen and none may be inferred from it.**
+
+**What is NOT being filed: a gap in the catalogue.** The program's metadata work is real and already
+mapped, and all of it is present and re-measured at spine main `04affcc9`:
+`docs/audit/THREAT_MODEL_PROTOCOL_METADATA.md`, the NA-0134 leakage audit
+(`docs/audit/METADATA_LEAKAGE_AUDIT_NA-0134.md`), and the NA-0137 mitigations roadmap
+(`docs/audit/METADATA_MITIGATIONS_ROADMAP_NA-0137.md`). ⚠ **A precision correction measured while
+filing: the NA-0138 MVP selection is not a separate artifact** — it is §E and §F of the NA-0137
+roadmap (`:78-106`), so a successor should not go looking for a document that does not exist.
+NA-0137 §A names five leakage drivers — traffic timing/cadence, size/volume patterns, delivered-receipt
+timing correlating sender and receiver, file-chunking patterns leaking size class and transfer rhythm,
+and error timing/classes. Receipt shaping has shipped with operator controls: `--receipt-mode`
+(default **batched**, `qsl/qsl-client/qsc/src/cmd/mod.rs:153`), `receipt_batch_window_ms` (`:161`)
+and `receipt_jitter_ms` (`:164`).
+
+**What IS being filed: a challenge to NA-0137 §D's default policy.** Measured at `04affcc9`, §D rules
+fixed-interval mode, padding/bucketing, receipt shaping and file-chunk normalization each `Optional`,
+and rules cover traffic separately: *"Cover traffic/constant-rate behavior: `Not recommended` for
+default mode at this stage due to high operational cost."* Two reasons to think that basis has
+weakened. ⚠⚠ **BOTH ARE STATED AS ARGUMENTS, NOT AS FINDINGS. Neither is a measurement taken here,
+and nothing below should be read as one** — letting an argument read as a finding is the precise
+failure shape `docs/ops/PREDICTION_LEDGER.md`'s ten SR-16 rows (landed by this same lane) record ten
+times over.
+
+1. **ARGUMENT — an opt-in metadata defence identifies the user who opts in.** Metadata defences have
+   a property encryption does not: they work only in aggregate. If padding and fixed-interval polling
+   are off by default, the users who enable them form a distinguishable class, and a defence that
+   marks its user can have negative value against an adversary doing classification rather than
+   decryption. §D's stance — auditable opt-in controls, minimal default burden — is coherent against
+   a per-target analyst and weaker against a population-level classifier. *General knowledge; not
+   measured against this program.*
+2. **ARGUMENT — "reduced" leakage is not the operative bar for a learned classifier.** Size bucketing
+   that defeats a human reading sizes may not defeat a model trained on bucket SEQUENCES; residual
+   signal in transition patterns is often sufficient. Measured at `04affcc9`, NA-0137 §C's
+   cost/impact table scores Bandwidth, Latency, Battery/CPU and Complexity/Risk — it has **no column
+   for whether a mitigation survives a learned classifier**, which was not the pressing question when
+   it was written. *The absence of the column is measured; the claim about learned classifiers is
+   general knowledge and is not.*
+
+**A consideration that may cut the program's way, and it is UNMEASURED:** QSL's relays are
+self-hosted, so the expected observer is usually a network-level adversary rather than a relay
+operator, and there is no per-byte provider cost. **The "high operational cost" basis for refusing
+constant-rate behaviour may therefore not hold for this architecture** and deserves re-measuring
+against the real deployment rather than inheriting. Stated as a consideration, not as a conclusion.
+
+⚠⚠ **THE DECISIVE MISSING ARTIFACT: nothing in the record measures the CURRENT WIRE BEHAVIOUR.**
+NA-0134 is an analytic audit; there is no captured baseline of packet sizes, inter-arrival timings or
+flow shape from a real two-party session. **A defence cannot be evaluated against an unmeasured
+baseline**, and any successor lane that proposes mitigations before capturing one would be
+re-deriving NA-0137 rather than advancing it. ⚠ This is a negative claim about the record as it
+stands at `04affcc9`; a successor that finds such a capture should amend this entry rather than
+assume it never existed.
+
+**What a successor lane owes, in order:** (1) capture and characterise a real two-party session
+against a live relay — sizes, timings, flow shape — as the baseline artifact this entry says is
+missing; (2) re-ask NA-0137 §D's default-mode question with the classifier threat stated explicitly,
+rather than re-deriving the catalogue; (3) decide defaults on that evidence.
+**Dependencies already on the roadmap:** the injectable time source (fixed-interval and batching
+cannot be tested deterministically without it) and the nightly endurance window (sustained sessions
+are the traffic worth characterising). **Sequencing: after Slice 4** — a metadata defence for a
+messenger that cannot yet be used is optimising the wrong thing, and the analysis perishes less
+quickly than the product opportunity.
+
+**NOT CLAIMED:** that any mitigation is wrong · that NA-0137's catalogue is incomplete · that any
+classifier has been demonstrated against QSL traffic — no such measurement exists here and none is
+implied · that self-hosting eliminates the observer · that changing a default is cheap.
+
+⚠ **The duplicate check was run before filing** (WF-0029's precedent: a finding existed for three
+weeks and only the STEP was missing). Measured at `04affcc9`, the nearest existing entry is
+**ENG-0098** — an observer can distinguish a delivery ack from a user reply by envelope size — which
+is a *specific distinguishability defect* with its own route note, not a challenge to §D's default
+policy and not the missing-baseline finding. **Related, not duplicate.** Status: open — FILING ONLY.
+Cross-reference: NA-0134; NA-0137 (§A, §C, §D, and §E/§F for the NA-0138 MVP selection); NA-0138;
+ENG-0098; ENG-0007; ENG-0010; D-1367. Originating/last lane: NA-0731 (D-1367). Last-updated: 2026-08-15.

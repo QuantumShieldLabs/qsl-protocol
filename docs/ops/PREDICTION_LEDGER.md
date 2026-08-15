@@ -101,3 +101,34 @@ NA-0717's execution rows enter at its close per the standing deferral. -->
 | NA-0717 arc | 653 Phase 3 sealed "goal-lint PASS"; the ruling packet resealed it for PR-B | goal_lint.py fails BOTH shapes (NEW-1); unsatisfiable as sealed | MISS ×3 chairs | the sealed-consumer lesson, instance 1; cured R272; WF-0075 |
 | NA-0717 arc | 653 Phase 1 sealed fmt-clean JOINTLY with §4(b)'s exact bytes | rustfmt rewraps 4 of 6 sites (NEW-2); pair unsatisfiable | MISS (653's author; SR-15 + packet did not execute the consumer) | instance 2; cured R273 |
 | NA-0717 arc | RECO §2 modeled the watchdog fit as "ceiling+20 ≤ 360"; R278 sealed that arithmetic (Director, authorship named); STOP_009's gate executed the sealed arithmetic after running only the consumer's EXTRACTION | the consumer's sizing adds a 60m queue margin (coverage 390) AND the platform kills hosted jobs at 360 regardless of declared timeout — the Director's R281 measurement that also refused the seat's 420/420 cure | MISS ×3 chairs (RECO's model · R278's arithmetic · STOP_009's half-consumer gate), instance 3 in ONE arc | **the rider (R281): THE CONSUMER INCLUDES THE PLATFORM CONTRACT — runner-class limits are part of any CI consumer, and no local execution reveals them** |
+<!-- NA-0731 (D-1367) — THE RECORDS SWEEP, 2026-08-15. The rows below are the Director's own
+SR-16 error rows for the 2026-08-14/15 working session, landed BYTE-VERBATIM from
+`QSL_CARRY_FORWARD_PRE_SWEEP_2026-08-15.md` (whole-file sha256
+`7dd6de8009adb1b7a7550ca31baec1dda9e8658627e26512ad81c71365de65ff`, 151 lines), lines 119-135,
+extract sha256 `b42a23b2b9617e202c62801da763d8570275976d155ed3158664e8e0b74d301c`, 17 lines.
+⚠ SHAPE DIVERGENCE, reported not tidied: these are a FOUR-column table (`# | the assertion |
+the measurement | the instrument that caught it`) while the running table above is FIVE-column.
+Reshaping them to fit would have broken the byte-verbatim requirement, so they land as their own
+table with their own header. The bytes are unaltered; only the placement is a decision.
+⚠⚠ THE CLOSING PARAGRAPH IS LANDED WITH THEM AND IS THE TRANSFERABLE PART. A successor who
+inherits ten rulings without it inherits confidence where the record meant to leave caution.
+⚠ Ten instances in ~30 hours, NONE of which reached main — the rows are evidence for a structural
+property (seats measuring, the operator challenging), not a tally against a person. -->
+
+| # | the assertion | the measurement | the instrument that caught it |
+|---|---|---|---|
+| 1 | "No PR is admissible by any path while main is red" (R268) | FALSE — the docs door; the claim missed the conditional deciding whether the gate is INVOKED | SR-15 cold read |
+| 2 | "Press Update branch on #1725" | It had been CONFLICTING for two days and five merges; the button does not exist on a conflicted PR | the seat, at the edit |
+| 3 | "This lane will not touch the gate file" (R289) | It must — the parser reads job keys, the wait takes check names | the drafting seat, first hour |
+| 4 | "Prove the macOS arrangement by workflow_dispatch" | Impossible — dispatch only fires workflows present on the DEFAULT branch | SR-15 cold read |
+| 5 | "Repointing `failure_check` is behaviour-preserving" | FALSE — the gate reads that check's JOB LOG, and an aggregate's log can never carry a test name | SR-15 cold read |
+| 6 | "`qsc` trusts ONLY pinned CAs" | FALSE — roots compose ADDITIVELY; the comment naming `tls_built_in_root_certs(false)` exists to record that it is NOT called. ⚠ **`NEXT_ACTIONS.md:36204` already documented this correctly and was not consulted** | **the operator's challenge** — no automated gate covers a prose mechanism claim |
+| 7 | "120 failures / 51 days" | 392 / 187. A 60-run API PAGE read as a DURATION | the drafting seat, by bisection |
+| 8 | "Ten lines fewer" bound as a STOP constraint (R318) | Unreachable while executing the same ruling's other orders; the figure came from a read that measured only two of five changes | the executing seat |
+| 9 | "The `ci-red` label" ordered without checking it existed | It did not; `gh issue create --label` fails the ENTIRE create on a missing label — literal compliance would have made the first real red record NOTHING | the executing seat |
+| 10 | "Discretion is an explicit SR-15 trigger" (R288) | SR-15 lists three mechanical triggers; discretion is not among them. The read was validly ordered — the disposition power is the Director's — but "explicit" was belief | SR-15 cold read |
+**THE PATTERN, which is the point: every one is the same failure — a claim adopted from a
+fragment, a summary, another document, or memory, instead of measured at the moment of assertion.
+Ten instances in ~30 hours by the chair whose recorded failure mode is exactly this. NONE reached
+main. What stopped them was seats measuring and the operator challenging — a structural property,
+not a personal one, and the single most valuable thing in this program.**

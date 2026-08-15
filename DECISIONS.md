@@ -40942,3 +40942,457 @@ No weakening of TLS verification anywhere — the remedy is purely **additive** 
 function does **not** call it. No product source change. No unattended load against the relay. No
 schedule change. **#1745 is not closed.** The handshake fixture is **not** repaired here. The
 endpoint is **not** written into repo truth in any record this lane lands.
+
+## D-1367 — NA-0731: THE RECORDS SWEEP — the three same-day rulings, a ten-candidate B-list and ten Director error rows become repo truth; six of the nine owed items measure ALREADY DISCHARGED before anything is written; and no standing rule is minted
+
+**Status:** Accepted (ordered by the Director's records-sweep order of 2026-08-15, which states its
+own subject: *"Everything that currently exists ONLY in a Director's conversation or in a sibling
+lane's /srv record becomes repo truth, and the owed-items list stops growing."*).
+**Lane:** NA-0731. **Base:** main `04affcc9`, verified UNMOVED by `git ls-remote` against the NAMED
+GitHub remote, run **BARE and UNPIPED**, rc 0, exactly one line (R192 §2.2); the open-PR set was
+re-derived and **measured EMPTY**, so the id derivation below rests on a measurement and not on an
+assumption. **Ids re-derived at the edit** per WF-0068, all spaces swept: `NA-0730 / D-1366 /
+WF-0084 / ENG-0190 / SR-22` ⇒ this lane takes **NA-0731**, **D-1367** and **WF-0085**, mints no ENG
+and **mints no SR**.
+**Primary source:** `QSL_CARRY_FORWARD_PRE_SWEEP_2026-08-15.md`, sha256
+`7dd6de8009adb1b7a7550ca31baec1dda9e8658627e26512ad81c71365de65ff`, 151 lines, `END OF CARRY-FORWARD
+RECORD` present ⇒ not truncated (SR-14). ⚠ **That file states, on its own first lines, that its
+contents exist nowhere else** — which is precisely why this record CARRIES its blocks in column-0
+fences rather than citing a path no future reader can open.
+⚠ **This record carries no `**Class:**` field.** Declaring a result class is a Director act
+(R297.3 / R303.2), so the class is **OWED** and lands on the NEXT promotion's DONE line.
+
+### ⚠⚠ The finding that changed this lane's act: six of the nine owed items were ALREADY DISCHARGED
+
+The order listed nine owed items and instructed that each be **measured before acting rather than
+assumed still owed**. Measured at `04affcc9`, **six of the nine had already landed** — four of them
+in `9c0535da` (NA-0728 / D-1364) and two inside `## D-1366` itself, all after the carry-forward
+record was written. Landing them again would have written six duplicate claims into repo truth and
+inflated a records lane into a re-filing lane.
+
+| # | owed item as recorded | measured verdict at `04affcc9` | evidence |
+|---|---|---|---|
+| 1 | `DOC-OPS-006` §4c cross-reference to `START_HERE.md` §4 Step 1 | ✅ **ALREADY DISCHARGED** | `docs/ops/DIRECTOR_OPERATIONS.md:521-526`, landed at `9c0535da` (NA-0728 / D-1364) |
+| 2 | the relay `LATEST.md`: maintained-by-ritual or RETIRED | ⚠ **OWED — the property is stated below** | R303.5 (`DECISIONS.md:40209`), carried at R304.5 (`:40258`) |
+| 3 | the two-surface check-count artifact | ✅ **ALREADY DISCHARGED** as **WF-0080** | `docs/ops/IMPROVEMENT_LEDGER.md:4203` — and it carries the OBSERVATION with **no invented mechanism**, which is exactly the form the order required |
+| 4 | `infra-literal-scan.yml:22-24`'s stale ADVISORY header | ⚠ **OWED — operator block supplied below; not written by this seat** | the header is live at `:22-24`, and its claim measures **FALSE** |
+| 5 | the D-record correction: the R319 body gate BLOCKS | ✅ **ALREADY DISCHARGED** | `DECISIONS.md:40739-40751` — a titled section of `## D-1366` — plus **WF-0084** at `docs/ops/IMPROVEMENT_LEDGER.md:4241` |
+| 6 | the `Status: DONE` flips | **HALF.** NA-0729 ✅ already carries the exact line; **NA-0730 ⚠ OWED** — it read `Status: MERGING (PR #1746)` | `NEXT_ACTIONS.md`; flipped by this lane |
+| 7 | the corrected delivery DISTRIBUTION into ENG-0188's successor | ✅ **ALREADY DISCHARGED** | `DECISIONS.md:40753-40763`, a titled section of `## D-1366` whose heading names ENG-0188's successor as that lane itself |
+| 8 | SR-15's undefined "source files" — FILING ONLY | ✅ **ALREADY DISCHARGED** as **WF-0079** | `docs/ops/IMPROVEMENT_LEDGER.md:4182` |
+| 9 | the session-label convention | ✅ **ALREADY DISCHARGED** | `START_HERE.md:224-237` — §4 Step 1 **item 6** — landed at `9c0535da` (NA-0728 / D-1364) |
+
+⚠ **The property worth keeping, because it is the second time in three lanes that a records list
+went stale between its writing and its execution:** an owed-items list is a claim about a tree at a
+moment, and the tree moved underneath it. **A records lane must MEASURE its own list before it
+writes, or it re-lands what a sibling lane already landed** — and the duplicate is harder to detect
+than the omission, because nothing goes red. The order anticipated this and instructed the
+measurement; recording the result rather than quietly skipping six items is what makes the next
+list checkable.
+
+**The PR facts, read on `merged_at` and never on `merge_commit_sha`** — the sha field is populated
+for closed-but-UNMERGED PRs and would report a merge that never happened:
+**#1744** `merged_at=2026-08-15T04:12:59Z`, merge sha `50bb57033721dcff526c852388c98c29bafec643`;
+**#1746** `merged_at=2026-08-15T07:37:15Z`, merge sha `04affcc9d94ed21282d0fe2501598e8836e53d76`.
+
+### PART 1 — the three rulings, banked verbatim from their sources
+
+R326, R327 and R328 closed the relay-CA lane and were **banked but never landed** — correctly, since
+R326.5 bounded that lane's records growth to three fences and landing R326 would have exceeded the
+bound R326 itself set. R328.5 carried all three to this sweep. Each fence below **is the whole file**
+named beside it, which is the only shape a whole-file provenance sha can actually be checked
+against; each sha was re-verified at the moment of splicing, not at the moment of reading.
+
+⚠ **Each is landed UNALTERED even where a later measurement supersedes a figure inside it**
+(R327.2 governs): a banked ruling is landed byte-verbatim and is NEVER edited to agree with the
+present. Corrections sit BESIDE the fence, never inside it. Editing a fenced ruling would break the
+whole-file sha the provenance sentence cites **and** rewrite a ruling as issued.
+
+**R326 — ratified the relay-CA lane's four divergences and its R304.2 sweep boundary, promoted
+DV-13 to the B-list, and authorized the bounded three-fence scope growth in `## D-1366`** —
+`RBANK_RELAYCA_001_R326_20260815.md`, sha256
+`81a21512ed07e0c104bc85516d474a151ed4db5874f4d2e3a4cd2b93dae8523f`, 49 lines, `END OF RULING R326`
+present ⇒ not truncated. The fence below is that whole file.
+
+```
+# RELAY-CA LANE — DIRECTOR RULING R326 — 2026-08-15
+# Bank verbatim (444), then proceed.
+
+R326.1 — **DV-11 AND DV-12 ARE RATIFIED AS CORRECTED.** The drafting seat's delta figures
+  (+51/−0, +52/−0) are wrong; yours (+53/−0, +54/−0), measured by two agreeing instruments,
+  govern. ⚠ **The load-bearing property is untouched — purely additive, zero removed** — and
+  saying so rather than letting a count correction masquerade as a finding is the right framing.
+  Same for ANNEX B's off-by-one step indices: the SET is right, the numbering was not.
+
+R326.2 — ⚠⚠ **DV-13 IS THE LANE'S MOST DURABLE OUTPUT AND GOES TO THE B-LIST AS A STANDING-RULE
+  CANDIDATE: A GATE DESCRIBED IN A RECORD IS NOT A GATE THE NEXT SEAT INHERITS.** The drafting
+  seat reported building a hardened YAML gate and watching it red; the artifact existed nowhere —
+  not on disk, not inline. **An instrument is inherited only if its BYTES are banked at a named
+  path with a sha.** Rebuilding it, re-watching it red (`safe_load` accepting the duplicate at
+  rc 0; the hardened loader refusing by line and column), and banking it at
+  `/srv/qbuild/operator/_relay_ca/yaml_workflow_gate.py` is exactly right. ⚠ Corollary to carry:
+  every stop that CLAIMS an instrument must name the path and sha where its bytes live, or the
+  claim is unverifiable by construction.
+
+R326.3 — **THE VACUOUS CONTROL IS COMMENDED.** `cp` inheriting 444, the injection dying with
+  `PermissionError`, and the gate reporting green on an unmodified file is exactly the failure the
+  non-vacuity discipline exists to catch — and the SEALED assertion caught it mid-run, not the
+  reasoning. Record it as evidence for why controls are asserted before their instrument runs.
+
+R326.4 — **YOUR R304.2 SWEEP CALL IS RATIFIED, AND ITS DISCRIMINATION IS THE RULING.** Amending
+  the ledger's five live sites while leaving `D-1364`, TRACEABILITY's dated row, and the
+  prior-STATE comment intact is correct: **a dated record of what was FILED on a given day is not
+  falsified by a later, better measurement** — it truthfully states what was believed then — and
+  rewriting it would destroy the very provenance R325.4 ordered preserved. Not overruled. ⚠ Your
+  first needle missing two of five sites ("dark for seven weeks", "failed 120 times in a row"),
+  found only by ENUMERATING rather than refining, is the same lesson a fourth time this week.
+
+R326.5 — **R323 AND R324 ARE BANKED AND FINDABLE. LAND ALL THREE IN D-1366.** Not missing, only
+  elsewhere: `RBANK_..._R323_...` sha `7a22ac1abd6ced5190da495f69b9d843d5d6d12eaf24011231f6c4967
+  1730f26` (46 lines) and `RBANK_..._R324_...` sha `080fada1fc2d733b7536f397ecc3f4133927e9690cc9b
+  465b120db6b9f915a1c` (45 lines), both 444 in the WF-0074 tranche-1 lane record
+  (`_wf0074_protective`). Verify each sha before use; if either does not resolve, report it as
+  STILL-OWED and land only what you can source. **Not inventing them was correct.** ⚠ This is
+  scope growth I am authorizing explicitly and bounding: THREE fenced rulings inside a
+  `DECISIONS.md` edit you are already making, nothing else — because deferring D-3 debt is exactly
+  what produced the nine-ruling sweep two lanes ago, and R323/R324 were issued TODAY.
+
+R326.6 — PROCEED: `cmp`+sha verify the two installs → re-run the YAML gate and
+  `infra-literal-scan` with the blocks in place → commit → push → PR → ⛔ merge ask in STOP 003.
+  ⚠ ASK C (the two dispatches) is POST-MERGE and remains the operator's act. M6 stays UNMEASURED
+  and recorded as such. ⚠ **A green `remote-handshake-tests` is a STOP, not a bonus** — its
+  acceptance is: preflight PASSES, suite still fails at `peer_identity_key_missing`, now VISIBLE
+  in the job log.
+END OF RULING R326 — if this line is missing, the paste is truncated; request a re-send.
+```
+
+**R327 — commended the execute-the-consumer finding, ruled that a banked ruling lands unaltered
+beside a later measurement, ratified the search-sibling-records correction, and declared the result
+class `RELAY_CA_PREFLIGHT_PASS`** — `RBANK_RELAYCA_002_R327_20260815.md`, sha256
+`c387027f8c7a6b3e663b29f52785f751e8fcbcc3e60d17f19345352d6344c607`, 46 lines, `END OF RULING R327`
+present ⇒ not truncated. The fence below is that whole file.
+
+```
+# THE RELAY-CA LANE — DIRECTOR RULING R327 — MERGED; OBSERVE ASK C — 2026-08-15
+# Bank verbatim (444). The operator has merged #1746 and dispatched both workflows.
+
+R327.1 — **§5 IS COMMENDED TO THE RECORD AS THIS LANE'S MOST TRANSFERABLE OUTPUT.** A needle that
+  looked broken against every artifact the lane had read was settled by EXECUTING the consumer
+  against a dead loopback rather than by reasoning from the artifacts. **The artifacts were a
+  PARTIAL VIEW of the tool's output, and reasoning from them alone would have produced a
+  confident, wrong blocker** — one that would also have made R325.2's handshake acceptance
+  unreachable and sent the lane chasing a defect that did not exist. ⚠ B-list property, and it
+  sharpens B1's rider: **an artifact is a SAMPLE of a tool's output, not its contract; when a
+  needle disagrees with the artifacts, execute the tool.** Printing the 93-byte count against the
+  empty-file trap is the same discipline one level down.
+
+R327.2 — **R324.1 LANDING UNALTERED WITH ITS SUPERSEDED FIGURE IS CORRECT AND IS THE RULING.** A
+  banked ruling is landed byte-verbatim and is NEVER edited to agree with a later measurement;
+  the correct count (197 at `50bb5703`) sits beside it in D-1366 §2 and in ENG-0188. **Editing a
+  fenced ruling to agree with the present destroys the thing that makes it a record** — the same
+  property that kept R296's "eleven" untouched beside R297's "twenty."
+
+R327.3 — **THE STOP 002 CORRECTION IS RATIFIED AND ITS LESSON CARRIED: SEARCH SIBLING LANE RECORDS
+  BEFORE DECLARING A SOURCE ABSENT.** R323/R324 were banked 444 the whole time, in
+  `_wf0074_protective`, and both shas resolved exactly. The half that was true — not in
+  `DECISIONS.md` — is now discharged. ⚠ Note the near-miss: had the Director not held their shas,
+  two rulings issued the same day would have been reported STILL-OWED and possibly reconstructed.
+
+R327.4 — **OBSERVE ASK C AND REPORT. The decisive combination is R217-sealed and unchanged:**
+  preflight `outcome=reachable` on BOTH · `remote-relay-tests` **GREEN** (first success since
+  2026-02-09) · `remote-handshake-tests` **STILL RED at `peer_identity_key_missing`, now VISIBLE
+  in the job log**. ⛔ **A GREEN handshake FALSIFIES finding 3 and is a STOP — report it, do not
+  celebrate it.** ⚠ Read every outcome from the LOG with its byte count printed, never from a
+  check mark. If the relay preflight passes but its smoke fails for a NEW reason, that is the
+  fourth cause: report it, do not fix it. `outcome=cert_not_trusted` after the secret is set means
+  the CA does not match the endpoint — operator-side, not a code defect.
+  ⚠ **M6 discharges free on the first green preflight** — the relay prints its own advertised
+  `max_body_bytes` on `reachable`. Capture it; it gates the nightly-endurance work.
+
+R327.5 — **THE RESULT CLASS: `RELAY_CA_PREFLIGHT_PASS`.** Declared now so it is not owed; per
+  R313.2 it lands on the NEXT promotion's DONE line, never by reopening #1746. R326 remains
+  correctly unlanded — R326.5 bounded the growth to three fences and landing R326 would have
+  exceeded the bound it set; it is owed to the next promotion's record, and the sweep will carry it.
+
+R327.6 — OWED, unchanged: ENG-0189's successor lane (the handshake fixture repair, script-only,
+  enqueued at R325.3) · **#1745 stays OPEN** until BOTH suites are fixed — for the handshake half
+  that is ENG-0189's lane, not this one · the rebuilt YAML gate stays out of the repo, correctly,
+  with its path and sha on the record per R326.2's corollary.
+END OF RULING R327 — if this line is missing, the paste is truncated; request a re-send.
+```
+
+**R328 — closed the lane, named a clause of R325.2 as the Director's own measured error, discharged
+M6, and carried the residue to this sweep** — `RBANK_RELAYCA_003_R328_20260815.md`, sha256
+`11762d39803e04f2ef38551c9a77127c24c4016f057d8ca8ce6175f41319a4c5`, 42 lines, `END OF RULING R328`
+present ⇒ not truncated. The fence below is that whole file.
+
+```
+# THE RELAY-CA LANE — DIRECTOR RULING R328 — LANE CLOSED — 2026-08-15
+# ONE act: bank verbatim (444) AND write the lane's terminal stop recording it. Then done.
+
+R328.1 — **THE LANE IS CLOSED. Result class `RELAY_CA_PREFLIGHT_PASS`** (R327.5), landing on the
+  next promotion's DONE line. Verified independently by the Director: main `04affcc9`, STATE
+  `READY=NA-0730 | HIGHEST_NA=0730 | HIGHEST_D=1366`. **`remote-relay-tests` GREEN — its first
+  success since 2026-02-09, ending a 195-run / 187-day streak** — proven from the log and the
+  artifact with both byte counts stated, never from a check mark.
+
+R328.2 — ⚠⚠ **CLAUSE (c) OF R325.2 MEASURES FALSE AND THAT IS THE DIRECTOR'S ERROR, NOT A
+  SHORTFALL IN EXECUTION.** I ordered the handshake suite's cause "now VISIBLE in the job log."
+  Measured: `peer_identity_key_missing` appears ZERO times there; step 7's entire output is
+  `##[error]Process completed with exit code 1` — **worse than the state ENG-0190 documented**,
+  since the relay script at least printed a symptom. **The ruling assumed the preflight's
+  legibility cure would extend to a failure it never covered.** ENG-0190's own text is correct as
+  written — the cure is for TRUST failures only — and my acceptance criterion overreached it. The
+  property, for the record: **a remedy's scope is set by what it instruments, not by what a ruling
+  hopes it reaches.** ⇒ **ENG-0190 is NOT discharged; it is SHARPENED by a second measured
+  instance, and the more extreme one.** Reporting it rather than scoring three-of-four as a pass
+  is the right call and is the reason the record is worth trusting.
+
+R328.3 — **M6 IS DISCHARGED, MEASURED LIVE AT `max_body_bytes=65536`**, captured independently in
+  both runs from the relay's own `outcome=reachable` advertisement, and **it AGREES with NA-0710's
+  recorded figure** — so the ~1.17 GiB exhaustion path is bounded to roughly 73 MiB peak and the
+  hazard is CORRECTED. ⚠ The nightly-endurance gate is clear **on this axis only**; that lane still
+  owes its own baseline capture. The measured value lands with the next promotion, together with
+  the agreement, so a successor inherits a measurement rather than an inherited number.
+
+R328.4 — **THE cert_not_trusted ECHO CATCH IS COMMENDED.** Two hits in the job log that a raw
+  count would have reported as errors were GitHub's own command ECHO of the preflight script,
+  identified by the `^[[36;1m` prefix. **Checked rather than counted** — and had they been counted,
+  this stop would have reported a trust failure in a run whose preflight passed. Same family as
+  §5's dead-loopback execution, and the second time in two stops that reading rather than counting
+  prevented a confident, wrong report.
+
+R328.5 — OWED, carried to the sweep, none blocking: **R326 and R327 banked but NOT landed** —
+  correctly, since landing them would have exceeded the bound R326.5 itself set; the sweep carries
+  both · the result class and M6's measured value, to the next promotion · **ENG-0190 sharpened,
+  open** · **ENG-0189's successor lane, now the ONLY thing between the second suite and green** ·
+  **#1745 stays OPEN** — one suite is fixed, the issue closes when both are · the rebuilt YAML gate
+  stays out of the repo with its path and sha on the record.
+END OF RULING R328 — if this line is missing, the paste is truncated; request a re-send.
+```
+
+### PART 2 — the B-list lands as RECORDED PROPERTIES, and this lane mints NOTHING
+
+⚠⚠ **NO STANDING RULE IS MINTED HERE, and the refusal is the ruling.** R305 refused SR-24 precisely
+because it had **no executable consumer**, and D-2 holds that a rule without one decays. Ten new
+unenforced numbers would be ten new decaying filings — the failure mode the constitution already
+paid for once. The ten candidates therefore land as **PROPERTIES with their instances attached**,
+which is what makes them useful to a successor: a property with a measured instance can be
+recognised in the wild, whereas a number with no gate is a thing to be cited and not obeyed.
+**RESTRAINT holds one governance mint per lane; this lane spends none.**
+
+⚠ **B1 is the only candidate with a plausible enforcer** — a drafting-time check that a sealed
+expectation names a consumer that was actually executed — and that is recorded here rather than
+acted on. **The minting question is left open to a future governance touch**, which is the lane that
+can afford the one mint and can build the consumer in the same act.
+
+The block below is **lines 25–83** of the primary source (whole-file sha256 `7dd6de80…65ff`),
+extract sha256 `4ec00a4e030259493238f0f6f3a1759bcea6fd6234e6040b862005fd69131ea4`, 59 lines. A block
+that is a SECTION of a file cannot be checked by a whole-file digest, so it is sealed by explicit
+range **and** its own extract digest.
+
+```
+**B1 — THE SEALED-CONSUMER RULE (four sightings + a rider).** "A sealed expectation is not sealed
+until its consumer has been executed against the exact shape it seals — the WHOLE consumer, not
+the half that is easy to run." ⚠ RIDER (R281): **the consumer includes the PLATFORM CONTRACT** —
+runner-class limits, hosted-job caps, default-branch trigger semantics. No local execution
+reveals them. Sightings: goal-lint rejecting the fix's shape (NEW-1) · rustfmt rewrapping sealed
+bytes (NEW-2) · the watchdog's queue margin plus the 360-min hosted cap (R281) · the G2b ruling
+contradiction (R298). **This is the strongest candidate and the one with a plausible consumer.**
+
+**B2 — SWEEP FOR THE CLAIM, NOT THE LOCATION (R304.2).** "A ruled one-line change is a change to
+a CLAIM, and a claim can be asserted in more places than the order names." Three instances: the
+D-1361 absence asserted in three files · the ENG-0188 mechanism error in four · the 120/51 figure
+in five ledger sites, two of which a refined needle missed and only enumeration found.
+
+**B3 — A STEP'S NAME IS NOT ITS FAILURE REASON (R287).** "A step's NAME is a summary of purpose;
+only its LOG reports its cause." Nearly cost a true record: main's public-safety failed at a step
+named *"Fail main public-safety when push-only full suites are red"* while the actual cause was
+the sizing guard inside it.
+
+**B4 — A WRAPPER'S EXIT IS THE WRAPPER'S, NOT ITS WORK'S.** Four distinct shapes this week:
+`grep … | head` reporting head's rc · a backgrounded poller dying at iteration 1 while the
+harness reported exit 0 · `relay server-info` returning rc 0 for `outcome=unreachable` ·
+`gh` reporting a successful push whose commits had not yet appeared. **Merged form with B9.**
+
+**B5 — MEASURE AT THE MOMENT YOU ASSERT (R324.2).** "Do not inherit a figure across time." Extends
+R304.3's base-scoped rule to a NEW AXIS: **a figure can go stale in MINUTES.** Instance: a
+delivery window extrapolated from an n=5 cluster measured 42 minutes earlier, asserted without
+re-measuring; both nightlies had already run and failed.
+
+**B6 — A FIGURE IS BASE-SCOPED, NEVER A BARE COUNT (R304.3).** "N at `<sha>`" survives the record
+that cites it; a bare count does not. Proven by WF-0077's figure surviving its own lane's later
+edits. ⚠ Companion instance: **a page size is not a total** — a 60-run API page was read as a
+duration, producing "120 failures / 51 days" for what measured **392 / 187**.
+
+**B7 — A GUARD EXCLUDES WHAT IS UNSAFE, NOT WHAT IS MERELY ASYMMETRIC (R324.3).** A condition
+added for tidiness discards capability that later turns out to be the only way to prove the thing
+works. Instance: declining to constrain `workflow_run.event` to {push, schedule} is the only
+reason the sentinel could be proven at all, twenty minutes after merge.
+
+**B8 — ⚠ A GATE DESCRIBED IN A RECORD IS NOT A GATE THE NEXT SEAT INHERITS (R326.2).** An
+instrument is inherited only if its BYTES are banked at a named path with a sha. Instance: a
+hardened YAML gate reported built and watched red existed nowhere — not on disk, not inline — and
+had to be rebuilt and re-watched. **Corollary: every stop claiming an instrument must name the
+path and sha where its bytes live, or the claim is unverifiable by construction.**
+
+**B9 — WHEN A TOOL REPORTS STATUS IN ITS OUTPUT, ITS EXIT CODE MAY NOT CARRY IT (R325.5).**
+Assert on the reported VALUE, never on `$?`. Instances: `relay server-info` rc 0 for
+`outcome=unreachable` (a green pass against a dead relay) · `relay ca-show` reading the vault only
+and reporting `configured=false` while an env CA is in force (a false RED on a correct run).
+
+**B10 — THE TWO-INSTRUMENT TECHNIQUE (R298.3).** When two output streams interleave, prefer a
+metric that NEVER PAIRS THEM over refining the pairing. Instance: cargo's `finished in Ns` versus
+deltas between consecutive `Running` timestamps agreeing on all 132 targets, retiring an
+interleaving caveat outright.
+
+**ALSO CARRIED, not yet candidates:** instrument-shaped standing freedom (RECO §3 shapes 2/3, the
+seat's own text, adopted as candidate wording at NA-0717 close) · *an act must not violate the
+rule it is landing* (R322.3, from the refusal to widen a body in the same act declaring widening
+a ruled decision) · *a dated record of what was FILED is not falsified by a later, better
+measurement* (R326.4).
+```
+
+### PART 3 — the ten Director error rows
+
+Carried **byte-verbatim, including the closing paragraph that names the pattern**, into
+`docs/ops/PREDICTION_LEDGER.md` under SR-16 rather than into this file, because that ledger is where
+predicted-vs-measured rows live and where a future ceremony-tiering decision will read them. ⚠ **The
+closing paragraph is the transferable part** — a successor who inherits ten rulings and not the
+paragraph inherits confidence where the record meant to leave caution.
+
+⚠ A shape divergence, reported rather than tidied: the source rows are a **four-column** table
+(`# | the assertion | the measurement | the instrument that caught it`) and the prediction ledger's
+running table is **five-column**. Reshaping them would have broken byte-verbatimness, so they land
+as their **own table with its own header**, immediately below the running one. The bytes are
+unaltered; only the placement is a decision.
+
+### PART 4 — the owed items that measured STILL OWED, discharged here
+
+**Item 2 — the relay `LATEST.md`, and the property is stated rather than left implicit.**
+R303.5 ruled lane-local `LATEST.md` pointers **CANONICAL** and called the relay pointer a
+convenience that had demonstrably gone stale (two weeks, eight lanes); R304.5 carried the
+maintained-or-retired question forward. **Measured 2026-08-15: it is MAINTAINED, and the hazard
+R303.5 named has been cured by a ritual rather than by a rule.** Every stop since that ruling writes
+its immutable stop-file into the lane-local record **and** mirrors it into the relay directory, and
+rewrites the relay `LATEST.md` as a pointer naming the lane-local canonical copy; the pointer's own
+first line now carries its subordination (*"convenience copy; the lane-local `LATEST.md` is CANONICAL
+per R303.5"*), so a reader learns its status from the artifact instead of from this record.
+⇒ **The answer is MAINTAINED-BY-RITUAL, not RETIRED**, and the property that decides it is stated
+for the next reader: **a pointer that is right only sometimes is worse than none** — so what makes
+this one safe is not that it is currently fresh but that it *names what outranks it*, which stays
+true even on a day the ritual is missed.
+
+**Item 4 — `infra-literal-scan.yml:22-24`, filed with a copy-exact operator block and NOT written
+here.** `.github/**` is the operator's act (`Write(.github/**)` is denied to seats), so this lane
+supplies the change and does not attempt it. **The header's claim measures FALSE**: read live
+against `branches/main/protection/required_status_checks/contexts`, `infra-literal-scan` **IS** among
+main's **15** required contexts. The full block, with starting and resulting shas and quoted anchors,
+is banked 444 at `/srv/qbuild/operator/_records_sweep/OPERATOR_BLOCK_NA0731_infra_literal_scan_header.md`,
+sha256 `6987f84a6ac777ed869788b96a022c31c54695a2e7f06ad138608f8292f49f8e`, 65 lines, and is reproduced
+in full inside this lane's stop-file — because **an instrument is inherited only if its BYTES are
+banked at a named path with a sha**, which is R326.2's corollary and lands in this record's own
+Part 1. It replaces three comment lines with three, leaving the file at **74 lines**, starting sha
+`91f5e8587558d41dd145142528f5038b60b1b289ef21cb4e56de7050432c58ab` ⇒ resulting sha
+`10c43aa53adcc3cf382e62bbf6dbc2a76ecef98927216ef8b3ff1a6a466b749a`. ⚠ Until it is applied, the file
+tells every reader that the one gate standing between a runtime-generated issue body and a public
+tracker cannot block a merge, when it can — **and a comment claiming a gate is toothless is more
+dangerous than no comment at all.**
+
+**Item 6 — the `Status: DONE` flip for `### NA-0730`**, discharged in this lane's own promotion
+against PR **#1746** merged **`04affcc9`** with class **`RELAY_CA_PREFLIGHT_PASS`**, both read from
+the API on `merged_at`. ⚠ **NA-0729's flip was NOT re-landed**: it already carried
+`Status: DONE 2026-08-15 (D-1365; MAIN_RED_SENTINEL_PASS; PR #1744 merged 50bb5703)`, byte-identical
+to what was owed, having ridden NA-0730's promotion.
+
+**M6 — `max_body_bytes=65536`, MEASURED LIVE 2026-08-15**, captured independently in both dispatched
+runs from the relay's own `outcome=reachable` advertisement, and it **AGREES with NA-0710's recorded
+figure** (R328.3). ⇒ the ~1.17 GiB exhaustion path is bounded to roughly **73 MiB** peak and the
+hazard is **CORRECTED**. ⚠ `## D-1366` records M6 as UNMEASURED and as *"recorded, not live"*; that
+record is **not rewritten** — it was true of the lane that wrote it — and the measurement is recorded
+FORWARD here. ⚠ **The nightly-endurance gate is clear on this axis ONLY**; that lane still owes its
+own baseline capture, and inheriting this number instead of measuring one is the error this very
+record spends ten rows on.
+
+**ENG-0190 is SHARPENED, not discharged.** R325.2's clause (c) promised the handshake suite's cause
+would be *"now VISIBLE in the job log"*; measured, `peer_identity_key_missing` appears **ZERO** times
+there and the step's entire output is `##[error]Process completed with exit code 1` — **worse than
+the state ENG-0190 documented**, since the relay script at least printed a symptom. R328.2 rules this
+the **Director's own error, not a shortfall in execution**, and states the property:
+⚠⚠ **a remedy's scope is set by what it INSTRUMENTS, not by what a ruling hopes it reaches.** The
+preflight cures **trust** failures only; ENG-0190 is open, with a second measured instance and the
+more extreme one.
+
+### PART 5 — the metadata-classifier filing
+
+Filed as **WF-0085** in `docs/ops/IMPROVEMENT_LEDGER.md`, one entry, id derived at the edit.
+⚠ **Its two numbered arguments are labelled ARGUMENTS, not findings** — they are general knowledge,
+not measurements taken here, and letting them read as findings is the exact failure shape Part 3's
+ten rows record. ⚠ **The duplicate check was run before filing** (WF-0029's precedent, where a
+finding existed for three weeks and only the step was missing): the nearest existing entry is
+**ENG-0098** — an observer distinguishing a delivery ack from a user reply by envelope size — which
+is a *specific distinguishability defect*, not a challenge to NA-0137 §D's default policy and not the
+missing-baseline finding. **Related, not duplicate**; cross-referenced rather than merged.
+
+### PART 6 — the five open questions, CARRIED and ANSWERED NONE
+
+⚠ **None of these is settled by this lane, and none may be read as settled by its silence.** They
+are recorded with their ages so a retrospective has a subject that outlives the conversation they
+were raised in — which is this record's whole purpose. **C1 gates C5:** the sixteen-lane close-row
+debt must be answered before the branch-hygiene question can be, because the unmerged branches are a
+plausible source for exactly the rows C1 is missing, and deleting them would orphan the commits that
+might hold them. ⚠ C1 is visible in the tree today: `docs/ops/PREDICTION_LEDGER.md` carries rows for
+NA-0700 and then jumps to NA-0717, with **nothing for NA-0701..NA-0716**.
+
+Ages, measured against 2026-08-15: **C1 — 2 days** (unanswered since 2026-08-13) · **C2, C3, C4, C5
+— stated at the carry-forward's writing, 2026-08-15, and each records a condition older than its
+statement**. The block below is **lines 103–113** of the primary source, extract sha256
+`d691a50481d34eeccd75e400d848cfc0cb24e155b43588d4496b0c24b197cab9`, 11 lines.
+
+```
+1. **The sixteen-lane close-row debt** (NA-0701..NA-0716): no prediction rows exist and no on-box
+   source holds them. D-1356 discharged only NA-0699/0700. **Retrospectively composable from
+   stop-files, or accepted as permanently owed?** Unanswered since 2026-08-13.
+2. **The seven zero-record R-numbers** {103–107, 247, 285}: cannot be distinguished between
+   never-issued and issued-but-unbanked. Left as measured.
+3. **R284 survives only as a chat transcript** — the pre-SR-14-reach era. It decided the entire
+   three-door plan.
+4. **NA-0429** is the only lane in any repo carrying `Status: BLOCKED`, with an abandoned branch.
+5. **29 leftover-but-merged branches in `qsl-attachments`**; 11 abandoned branches across the
+   repos. ⚠ Deleting the unmerged ones orphans commits — hold until the close-row question (C1)
+   is answered, since those branches are a plausible source.
+```
+
+### The owed-items list as it was recorded, carried so the next lane can audit this one
+
+⚠ Landed **because the list itself existed nowhere but the source file**, and because a record of
+what was *believed owed* is what makes the six already-discharged verdicts above checkable by
+someone who was not here. It is a dated claim about a tree at a moment, not a live list. The block
+is **lines 88–98** of the primary source, extract sha256
+`d6e7ada2d1ca956eb3533de486086aaabca1a9a53e20e8605b074ad982734408`, 11 lines.
+
+```
+| # | item | source |
+|---|---|---|
+| 1 | The `DOC-OPS-006` §4c cross-reference to `START_HERE.md` §4 Step 1 | R303.4, carried since 2026-08-14 |
+| 2 | The relay `LATEST.md`: maintained-by-ritual or RETIRED. Lane-local pointers are canonical; a pointer that is right *sometimes* is worse than none | R303.5 |
+| 3 | The two-surface check-count artifact — `gh pr checks` and the check-runs API disagree by one on the same PR; **three lanes deep, no cause named**. ⚠ Carry the OBSERVATION; do not invent a mechanism | E16, NA-0728 |
+| 4 | `infra-literal-scan.yml:22-24` still says *"ADVISORY UNTIL BRANCH PROTECTION CHANGES … cannot block a merge"* — branch protection has since falsified it. **A file whose comment contradicts its measured behaviour** | R323.4(b) |
+| 5 | D-record correction: the R319 body gate sits inside a REQUIRED context and therefore **BLOCKS**. A3 §A3.4 and R320 both understated it | R323.4(a) |
+| 6 | `Status: DONE 2026-08-15 (D-1365; MAIN_RED_SENTINEL_PASS; PR #1744 merged 50bb5703)` | NA-0729, owed to the next promotion |
+| 7 | The corrected delivery **DISTRIBUTION** into ENG-0188's successor: 29–157 min (relay), 34–164 min (handshake), n=10 each, ~128–130 min spread — **not an offset**; UTC cron ignores DST on top of it | R324.2 |
+| 8 | SR-15's threshold turns on "source files", a term the spine never defines; three defensible counts existed for one edit set | R315.1, FILING ONLY |
+| 9 | The session-label convention — `claude -n` VERIFIED at all three levels (declared, executed, persisted as structured `customTitle`/`agentName`). Landed at `START_HERE.md` §4 Step 1 item 6. ⚠ **Confirm it landed**; if so this item is DISCHARGED | R315.4 |
+```
+
+### Non-goals held
+
+**No standing rule minted.** No product source byte changed — the edit set is five documents, all
+inside the docs classifier's allowlist, `docs_only=true` measured against the consumer itself. No
+dependency, no test weakened or skipped or deleted, no new required context, no schedule change.
+**No fenced ruling edited** to agree with a later measurement. **`## D-1365` and `## D-1364` are not
+rewritten**, nor is `TRACEABILITY.md`'s dated row or `NEXT_ACTIONS.md`'s `<!-- prior: STATE … -->`
+comment — each states what was FILED on its day and remains true as such (R326.4). **No `.github/**`
+file written.** **None of Part C's five questions answered.** **#1745 stays OPEN** — one suite is
+fixed; it closes when both are. The relay endpoint is not written into repo truth in any record this
+lane lands. The operator merges; the seat does not.

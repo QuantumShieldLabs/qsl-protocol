@@ -41396,3 +41396,109 @@ comment — each states what was FILED on its day and remains true as such (R326
 file written.** **None of Part C's five questions answered.** **#1745 stays OPEN** — one suite is
 fixed; it closes when both are. The relay endpoint is not written into repo truth in any record this
 lane lands. The operator merges; the seat does not.
+
+## D-1368 — NA-0732: THE `infra-literal-scan` HEADER CORRECTION — a required, blocking gate stops telling every reader it is advisory; the operator's applied bytes are VERIFIED four ways rather than trusted; and the parse gate protecting that required context is proven live rather than assumed
+
+**Status:** Accepted (ordered by the Director's NA-0731 follow-up order of 2026-08-15, which set the
+verification standard in its own words: *"The operator has applied the edit by script. ⚠ Verify it
+yourself; do not trust the report."*).
+**Lane:** NA-0732. **Base:** main **`b78c6f051b784ddcbc62fe09779d557904791923`**, read by
+`git ls-remote` against the **NAMED GitHub remote**, run **BARE and UNPIPED**, rc 0, exactly one line
+(R192 §2.2), and confirmed to be **#1747's merge commit on `merged_at`** (`2026-08-15T15:05:56Z`) —
+never on `merge_commit_sha`, which is populated for closed-but-UNMERGED PRs. **Ids re-derived at the
+edit** per WF-0068 with the open-PR set **MEASURED EMPTY**; every space swept —
+`NA-0731 / D-1367 / WF-0085 / ENG-0190 / SR-22` — so this lane takes **NA-0732** and **D-1368**,
+**mints no WF** (WF-0084 is amended, not duplicated), **no ENG** and **no SR**.
+**Source finding:** **WF-0084**, filed by NA-0730 and carried as owed through NA-0731.
+⚠ **This record carries no `**Class:**` field.** Declaring a result class is a Director act
+(R297.3 / R303.2), so the class is **OWED** and lands on the NEXT promotion's DONE line.
+
+### What changed, and the one-sentence reason
+
+Three comment lines. `.github/workflows/infra-literal-scan.yml:22-24` asserted *"⚠ ADVISORY UNTIL
+BRANCH PROTECTION CHANGES: `infra-literal-scan` is not in the required-contexts list. It runs and
+reports on every PR but cannot block a merge until the operator adds it."* **Branch protection
+falsified that**: measured live against
+`branches/main/protection/required_status_checks/contexts`, the check **is** among main's **15**
+required contexts. ⚠ **The consequence was never cosmetic** — the R319 sentinel body gate runs as a
+step of that same job at `:73-74` with no `continue-on-error`, so **a reader trusting the header
+would conclude the opposite about the one gate standing between a runtime-generated issue body and a
+public issue tracker.** **A comment claiming a gate is toothless is more dangerous than no comment.**
+
+### ⚠⚠ The operator's bytes were VERIFIED, not trusted — and the verification is the record
+
+`.github/**` is the operator's act (`Write(.github/**)` is denied to seats), so this lane **carries**
+the change rather than authoring it. The applied file was **preserved to a copy before anything could
+disturb it**, then checked four independent ways, **a mismatch on any of which was a STOP and not a
+fixup**:
+
+1. **sha256 EXACT** — `10c43aa53adcc3cf382e62bbf6dbc2a76ecef98927216ef8b3ff1a6a466b749a`, the value
+   NA-0731 computed and banked *before* the operator acted.
+2. **`cmp` against that pre-computed expected-after file: rc 0.** ⚠ **The non-vacuity control was
+   asserted FIRST** — `cmp` against a one-byte-tampered copy returned *"differ: byte 201, line 6"*,
+   rc 1. The copy was `chmod 644` before injection, because `cp` inherits 444 from a sealed source
+   and the injection would otherwise die with `PermissionError`, leave the fixture unmodified, and
+   let the control pass green over an unchanged file (R326.3 / R328.3's measured failure).
+3. **The diff is exactly three comment lines replaced by three**, at 22-24, every added and removed
+   line beginning `#`, **74 lines before and after**; the pre-edit sha `91f5e858…58ab` confirmed.
+4. ⚠ **Structural identity, which is the check that actually proves the claim.** Both revisions were
+   parsed with a **duplicate-rejecting loader** and compared: **the parsed structures are IDENTICAL**.
+   ⇒ *no key, step, trigger or job-name change* is proven **structurally**, not inferred by reading a
+   diff. The job's `name:` is still exactly `infra-literal-scan` — the required context's own string —
+   and all **5** steps survive, step 5 being the R319 body gate.
+
+### ⚠ The parse gate is load-bearing, not ceremonial — and two traps that would have made it fake
+
+**This PR edits the very workflow that hosts a required context. A file that fails to parse on main
+means no PR receives that context and every merge stalls.** Two failure modes were closed by
+executing the instrument rather than reasoning about it:
+
+- ⚠ **Never assert an `"on"` key.** YAML 1.1 parses the bare token `on` as boolean `True`, so the
+  trigger block is keyed by `True`. Measured, this file's top-level keys are
+  **`['name', True, 'permissions', 'jobs']`**. An assertion written against the string `"on"` fails
+  on a **correct** file — a gate that reds on health is worse than none.
+- ⚠⚠ **`yaml.safe_load` is not a gate: it silently accepts duplicate keys.** Demonstrated on this
+  file rather than argued — a duplicate top-level `name:` was injected into a copy, **`safe_load`
+  accepted it and exited 0**, while the hardened loader **REFUSED**, naming the key, the line and the
+  column (*"duplicate key 'name' at line 2, column 1 (first seen at line 1)"*). The applied file then
+  passed the same gate: *"clean … 74 lines examined, 1 job(s), 5 step(s), duplicate-key check
+  ENFORCED"*.
+
+⚠ **The instrument was INHERITED, not rebuilt** — `/srv/qbuild/operator/_relay_ca/yaml_workflow_gate.py`,
+sha256 `24f3d7e0c4ba8be99fc873c6dcdcf15327d5c1c3cfb7137f6ef9929039607714`, 121 lines, 444, re-verified
+before use. **That is R326.2's corollary paying off one lane after it was written:** the relay-CA lane
+banked the BYTES at a named path with a sha precisely so the next seat would not have to rebuild a
+gate from a claim that one existed. This is the first lane to collect on it.
+
+### WF-0084 is AMENDED, not duplicated
+
+The finding was already filed and already describes this exact defect, so a new entry would have been
+a duplicate of a live filing (**WF-0029's precedent**: a finding existed for three weeks and only the
+STEP was missing). Its current text was **measured before writing**. It receives a `Resolution:` line
+recording the fix — the ledger's own convention, where closure is recorded by APPENDING and original
+`Status:` lines are never edited, so a grep for open items keys on the **absence** of a `Resolution:`
+line and no historical claim is rewritten. ⚠ Both halves of WF-0084 close together: the header now
+states the enforcement strength **and** names the R319 step it covers, so the partial-closure rule —
+which forbids a `Resolution:` line while any part is still open — is satisfied rather than bypassed.
+
+### NA-0731's `Status: DONE` flip, and its class
+
+`### NA-0731` read `Status: MERGING (PR #1747)`, and **`MERGING` is transient — it exists between
+PR-open and the next promotion, which resolves it** (DOC-OPS-006 §4c), so this promotion owes the
+flip: PR **#1747** merged **`b78c6f05`**, read on `merged_at`.
+⚠ **Its result class was offered at that lane's stop and never ruled, and this seat does not invent
+one** — declaring a class is a Director act (R297.3 / R303.2). The flip therefore uses **the
+vocabulary the tree already carries** for exactly this state, `no class declared`, measured at
+**four** existing sites (D-1352, D-1357, D-1358, D-1359) rather than spelled anew. ⚠ **This matters
+because NA-0725 measured the cost of the alternative:** a second, ungoverned spelling partly replacing
+a lapsed field is harder to repair than an honest gap, and it leaves no way to ask which spelling is
+canonical. If the Director rules a class, the line is correctable in one edit.
+
+### Non-goals held
+
+**No standing rule minted.** **Zero product source bytes.** The workflow change is **comment-only and
+structurally proven so** — no key, step, trigger or job-name change, no new required context, no
+schedule change, no dependency, no test weakened, skipped or deleted. **#1747 is merged and is not
+touched, reopened or amended.** No fenced ruling edited. **`## D-1367` is not rewritten** — it records
+the operator block as owed, which is what was true when it was written (R326.4), and this record
+discharges it forward. The operator merges; the seat does not.

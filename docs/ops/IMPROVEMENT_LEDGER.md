@@ -4268,9 +4268,34 @@ Measured at `50bb5703`, executed rather than modelled: with a valid PEM and with
 
 Measured at `50bb5703` by reading historical artifacts: relay artifacts up to ~2026-06 contain the **plaintext endpoint URL**, because `cargo run` echoed `--relay <url>` into files under `$out` — and `$out` is uploaded as a **public** artifact (`path: ./_remote_relay_out`, `./_remote_handshake_out`). The pre-build change closed it incidentally; **current artifacts contain zero URLs, hosts or IPs**, and the old ones have expired. ⚠ **This is filed for the PROPERTY, not the incident**, which is already closed: **nothing infrastructure-related may land under `$out`.** Both smoke scripts already honour it for secret material by using `${RUNNER_TEMP:-${TMPDIR:-/tmp}}`, and NA-0730's CA step follows that existing convention rather than inventing one — but the rule lived only in the scripts' behaviour, so a future author adding a diagnostic echo (exactly what **ENG-0190** asks for) could reopen it without ever seeing a rule. ⚠ `infra-literal-scan` cannot catch this: it examines repo **files**, never runtime-generated artifact contents — the same structural hole R319 closed for the sentinel's issue bodies. Status: open — FILING ONLY. Cross-reference: ENG-0190; WF-0084; ENG-0089. Originating/last lane: NA-0730 (D-1366). Last-updated: 2026-08-15.
 
-### WF-0084 — `infra-literal-scan.yml:22-24` still declares itself ADVISORY and unable to block a merge, but the check has been **required** on main for some time — and because the header is stale, the R319 sentinel body gate it now hosts is undocumented as **BLOCKING** — **NEW; filed 2026-08-15 by NA-0730 (D-1366; owed by this lane's promotion, ordered at R323.4 and R323.4(a))**
+### WF-0084 — `infra-literal-scan.yml:22-24` still declares itself ADVISORY and unable to block a merge, but the check has been **required** on main for some time — and because the header is stale, the R319 sentinel body gate it now hosts is undocumented as **BLOCKING** — **NEW; filed 2026-08-15 by NA-0730 (D-1366; owed by this lane's promotion, ordered at R323.4 and R323.4(a)); **FIXED 2026-08-15 by NA-0732 (D-1368)** — the operator applied the corrected header and this lane verified the applied bytes four ways before landing them**
 
 Measured at `50bb5703`, against the live API rather than the record: `repos/QuantumShieldLabs/qsl-protocol/branches/main/protection/required_status_checks/contexts` returns **15** contexts and **`infra-literal-scan` is among them**. The workflow's own header nevertheless reads *"⚠ ADVISORY UNTIL BRANCH PROTECTION CHANGES: `infra-literal-scan` is not in the required-contexts list. It runs and reports on every PR but cannot block a merge until the operator adds it. Green is not the same as blocking."* — **the operator has since added it, and the file never learned.** ⚠ **The consequence is not cosmetic.** The R319 sentinel body gate (`scripts/ci/sentinel_body_selftest.py`) runs as a step of that same job (`infra-literal-scan.yml:73-74`), the job's `name:` is exactly the required context, and the step carries **no `continue-on-error`** ⇒ a refusal fails the job, fails the required context, and **blocks the merge**. ⇒ **R323.4(a)'s correction, now measured rather than asserted: the R319 body gate is BLOCKING, not advisory.** A reader trusting the header would conclude the opposite about the one gate standing between a runtime-generated body and a public issue tracker. ⚠ **Deliberately FILED, not fixed:** the repair edits `.github/workflows/infra-literal-scan.yml`, which is (a) outside this lane's edit set — R325.3 rules growth a STOP — and (b) an operator act, since `Write(.github/**)` is denied to seats. ⚠ Same family as the stale-figure defect this lane corrected in ENG-0188 and as R324.2: **a status written once and never re-measured drifts silently, and a comment claiming a gate is toothless is more dangerous than no comment.** Status: open — FILING ONLY. Cross-reference: WF-0083; ENG-0089; R319; R323.4. Originating/last lane: NA-0730 (D-1366). Last-updated: 2026-08-15.
+
+⚠ **FIXED 2026-08-15 by NA-0732 (D-1368). The header now states its real enforcement strength.** The
+three comment lines at `:22-24` were replaced by three: they now read **`⚠ REQUIRED AND BLOCKING`**,
+state that `infra-literal-scan` **IS** in main's required-contexts list so a refusal fails the job,
+fails the required context and blocks the merge, and say in terms that this **covers the R319 step
+below** — which is the half a reader most needed and the half the stale text most misled them about.
+⚠ **`.github/**` is the operator's act** (`Write(.github/**)` is denied to seats), so the operator
+applied the change and this lane **verified rather than trusted it**: sha256 EXACT against the value
+banked *before* the operator acted; `cmp` rc 0 against that pre-computed expected-after with a
+**one-byte-tamper control asserted to differ FIRST**; the diff exactly **three comment lines for
+three**, 74 lines either side; and — the check that actually proves the claim — **both revisions
+parsed with a duplicate-rejecting loader and compared IDENTICAL**, so *no key, step, trigger or
+job-name change* is established structurally rather than inferred from reading a diff.
+⚠ **The parse gate was load-bearing here, not ceremonial:** this is the workflow that hosts a
+required context, so a file that fails to parse on main means no PR receives that context and every
+merge stalls. Two traps were closed by executing the instrument — **YAML 1.1 parses the bare token
+`on` as boolean `True`** (measured: top-level keys `['name', True, 'permissions', 'jobs']`), so an
+assertion written against `"on"` reds a correct file; and **`yaml.safe_load` silently accepts
+duplicate keys**, demonstrated on this very file, where `safe_load` accepted an injected duplicate at
+rc 0 while the hardened loader refused it by line and column.
+- Resolution: CLOSED 2026-08-15 by NA-0732 (D-1368) — both halves of this entry close together, so
+  the partial-closure rule is satisfied rather than bypassed: the stale ADVISORY text is gone
+  (R323.4(b)) **and** the R319 body gate's BLOCKING strength is now documented in the file itself
+  rather than only in the records that measured it (R323.4(a)). Last lane: NA-0732 (D-1368).
+  Last-updated: 2026-08-15.
 ### WF-0085 — the metadata-mitigation defaults were chosen against a rule-based analyst, and the threat has moved to learned traffic classifiers; and nothing in the record measures the CURRENT WIRE BEHAVIOUR — **NEW; filed 2026-08-15 by NA-0731 (D-1367; Director filing text of 2026-08-15, `FILING_metadata_classifier_threat_2026-08-15.md` sha256 `5e1711aa812d9fdd955159b108d7768c03b8cc62a22233852721fafdde986f2e`, 78 lines)**
 
 ⚠ **This entry is FILING ONLY. No remedy is chosen and none may be inferred from it.**

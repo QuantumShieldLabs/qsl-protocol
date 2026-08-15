@@ -19,9 +19,9 @@ name: infra-literal-scan
 # requests that this same gate passed green. The failure was the pattern set, not
 # the scan's scope. This job is that missing pattern set.
 #
-# ⚠ ADVISORY UNTIL BRANCH PROTECTION CHANGES: `infra-literal-scan` is not in the
-# required-contexts list. It runs and reports on every PR but cannot block a merge
-# until the operator adds it. Green is not the same as blocking.
+# ⚠ REQUIRED AND BLOCKING (measured 2026-08-15 at main `04affcc9`, NA-0731 / D-1367):
+# `infra-literal-scan` IS in main's required-contexts list, so a refusal here fails the
+# job, fails the required context, and blocks the merge. This covers the R319 step below.
 
 on:
   push:

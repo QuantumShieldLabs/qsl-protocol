@@ -20,10 +20,63 @@ jobs:
       - name: Build qsc (locked)
         run: cargo build -p qsc --locked
 
+      - name: Stage relay CA (fail closed)
+        env:
+          RELAY_CA_PEM: ${{ secrets.RELAY_CA_PEM }}
+        run: |
+          ca="${RUNNER_TEMP}/relay-ca.pem"
+          printf '%s' "${RELAY_CA_PEM}" > "$ca"
+          if [ ! -s "$ca" ]; then
+            echo "RELAY_CA_PEM secret is empty or unset: refusing to run against an untrusted relay" >&2
+            exit 1
+          fi
+          if ! grep -q "BEGIN CERTIFICATE" "$ca"; then
+            echo "RELAY_CA_PEM does not contain a PEM certificate" >&2
+            exit 1
+          fi
+          echo "relay CA staged: bytes=$(wc -c < "$ca") certs=$(grep -c 'BEGIN CERTIFICATE' "$ca")"
+
+      - name: Verify relay trust (preflight)
+        env:
+          RELAY_URL: ${{ secrets.RELAY_URL }}
+          QSC_RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
+          QSC_RELAY_CA_FILE: ${{ runner.temp }}/relay-ca.pem
+        run: |
+          # Asserts on the probe's OUTCOME, never on its exit code: `relay
+          # server-info` returns rc 0 for `unreachable` (measured at base), so a
+          # step that trusted $? would pass green against a dead relay.
+          home="${RUNNER_TEMP}/preflight"
+          mkdir -p "$home/.config" "$home/.local/share" "$home/.local/state" "$home/.cache" "$home/.qsc"
+          # 0700 is REQUIRED: qsc refuses a group/world-writable leaf with
+          # `unsafe_parent_perms`, and a default umask yields 0775.
+          chmod 700 "$home" "$home/.config" "$home/.local/share" "$home/.local/state" "$home/.cache" "$home/.qsc"
+          export XDG_CONFIG_HOME="$home/.config" XDG_DATA_HOME="$home/.local/share"
+          export XDG_STATE_HOME="$home/.local/state" XDG_CACHE_HOME="$home/.cache"
+          export QSC_CONFIG_DIR="$home/.qsc"
+          pp="${RUNNER_TEMP}/preflight.passphrase"
+          printf '%s\n' "preflight-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" > "$pp"
+          chmod 600 "$pp"
+          ./target/debug/qsc vault init --non-interactive --key-source passphrase --passphrase-file "$pp" > /dev/null
+          url="$(printf '%s' "${RELAY_URL}" | sed -E 's/^[[:space:]]*RELAY_URL[[:space:]]*=[[:space:]]*//')"
+          case "$url" in http://*|https://*) : ;; *) url="https://$url" ;; esac
+          ./target/debug/qsc --unlock-passphrase-file "$pp" relay server-info --relay "$url" > "${RUNNER_TEMP}/preflight.out" 2>&1 || true
+          outcome="$(sed -n -E 's/^relay_server_info=([a-z_]+).*/\1/p' "${RUNNER_TEMP}/preflight.out" | tail -n1)"
+          echo "relay preflight outcome=${outcome:-none}"
+          grep -o 'max_body_bytes=[0-9]*' "${RUNNER_TEMP}/preflight.out" || true
+          case "$outcome" in
+            reachable) echo "relay trust OK" ;;
+            cert_not_trusted) echo "relay certificate is NOT trusted: RELAY_CA_PEM does not match the endpoint" >&2; exit 1 ;;
+            auth_required) echo "relay rejected the bearer token (RELAY_TOKEN)" >&2; exit 1 ;;
+            not_a_qsl_relay) echo "endpoint answered but is not a QSL relay contract (routing/proxy)" >&2; exit 1 ;;
+            unreachable) echo "relay unreachable (network/DNS)" >&2; exit 1 ;;
+            *) echo "preflight produced no outcome line; probe did not run" >&2; exit 1 ;;
+          esac
+
       - name: Run remote handshake smoke (happy-path seed=1)
         env:
           RELAY_URL: ${{ secrets.RELAY_URL }}
           RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
+          QSC_RELAY_CA_FILE: ${{ runner.temp }}/relay-ca.pem
         run: |
           ./scripts/demo/qsc_remote_handshake_smoke.sh \
             --scenario happy-path \
@@ -34,6 +87,7 @@ jobs:
         env:
           RELAY_URL: ${{ secrets.RELAY_URL }}
           RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
+          QSC_RELAY_CA_FILE: ${{ runner.temp }}/relay-ca.pem
         run: |
           ./scripts/demo/qsc_remote_handshake_smoke.sh \
             --scenario drop-reorder \

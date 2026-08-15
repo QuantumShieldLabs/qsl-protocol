@@ -40615,6 +40615,14 @@ never needed the operator tree. **Ruling banked** as `PACKET_RELAYCA_EXEC_202608
 PACKET` present ⇒ not truncated, SR-14). **Base:** main `50bb5703`, verified UNMOVED by
 `git ls-remote` against the NAMED GitHub remote, run BARE and UNPIPED, rc 0, exactly one line
 (R192 §2.2); open-PR set re-derived and measured **EMPTY**. **Source finding:** **ENG-0188**.
+**Also ordered at R326**, which ratified this lane's four measured divergences and its R304.2 sweep
+boundary, and **explicitly authorized and bounded** the one piece of scope growth in this record:
+landing **R323 and R324** alongside R325 as three fenced rulings — *"nothing else"* — because both
+were issued the same day and deferring D-3 debt is what produced the nine-ruling sweep two lanes ago.
+R326 is banked as `RBANK_RELAYCA_001_R326_20260815.md`, sha256
+`81a21512ed07e0c104bc85516d474a151ed4db5874f4d2e3a4cd2b93dae8523f`, 49 lines, `END OF RULING R326`
+present ⇒ not truncated; ⚠ **R326 itself is NOT landed here** — that would exceed the bound it set —
+and is **OWED to the next promotion's record**.
 ⚠ **This record carries no `**Class:**` field.** Declaring a result class is a Director act
 (R297.3 / R303.2), so the class is **OWED** and lands on the NEXT promotion's DONE line.
 
@@ -40728,7 +40736,153 @@ surfaced for ruling rather than settled here.** Issue **#1745** carries no figur
 **stays OPEN** — it is telling the truth until the suites are actually fixed, which for the handshake
 half is ENG-0189's lane and not this one.
 
-### The ruling, banked verbatim from `PACKET_RELAYCA_EXEC_20260815.md` (sha256 `29a05485…8505`)
+### R323.4(a)'s D-RECORD CORRECTION, DISCHARGED HERE
+
+R323.4(a) ordered the D-record corrected to the measured strength of the R319 sentinel body gate,
+and R324.5 carried it as owed to a successor. ⚠ **Stated precisely, because the precise statement is
+different from the loose one:** `## D-1365` is **SILENT** on the gate's enforcement strength — it
+records that the gate is "wired in by one step appended to `.github/workflows/infra-literal-scan.yml`"
+and says nothing about whether that job is required. It is not wrong and is **not rewritten**; the
+understatement lived in AMENDMENT A3 §A3.4 and in R320's framing. **The measured strength, recorded
+forward:** `infra-literal-scan` is among main's **15 required contexts** (measured live against
+`branches/main/protection/required_status_checks/contexts`), the hosting job's `name:` is exactly
+that context, and the gate's step at `infra-literal-scan.yml:73-74` carries **no
+`continue-on-error`** ⇒ **the R319 body gate is BLOCKING, not advisory.** Filed as **WF-0084**
+together with R323.4(b)'s stale header.
+
+### R324.2's DELIVERY-LAG DISTRIBUTION, CARRIED INTO ENG-0188's SUCCESSOR — which is this lane
+
+R324.2 orders the **distribution** carried, never a central estimate. Measured n=10 each:
+**29–157 minutes** (`remote-relay-tests`) and **34–164 minutes** (`remote-handshake-tests`) between
+the cron request and actual delivery — ~130 minutes of spread, not the ≈1h40m offset R323.2 first
+recorded, whose number R324.2 supersedes while keeping its property. ⚠ **A cron expression is a
+REQUEST, not a run time**, and UTC cron does not observe daylight saving, so a fixed expression
+shifts an hour twice a year. ⇒ **the operator's 3am–7am CENTRAL nightly-endurance window cannot be
+derived from a cron expression, nor from any single lag figure.** This lane proposes **no schedule
+change**; the property is recorded so the endurance lane inherits it. It is also why R325.6's ASK C
+is two dispatches rather than a night's wait: dispatches settle in minutes, a schedule does not.
+
+### The three rulings, banked verbatim from their sources (R326.5)
+
+⚠ Landed here rather than deferred because **R323 and R324 were issued the same day and deferring
+D-3 debt is exactly what produced the nine-ruling sweep two lanes ago**. Scope growth explicitly
+authorized and bounded by R326.5 to these three fences and nothing else.
+
+**R323 — the NA-0729 ruling that declared `MAIN_RED_SENTINEL_PASS`, recorded the cron-delivery
+property, set G24 as a two-night observation, and ratified the unprompted `infra-literal-scan`
+finding in both halves** — `RBANK_WF0074T1_007_R323_20260815.md`, sha256
+`7a22ac1abd6ced5190da495f69b9d843d5d6d12eaf24011231f6c49671730f26`, 46 lines, `END OF RULING R323`
+present ⇒ not truncated. The fence below is that whole file.
+
+```
+# WF-0074 T1 ITEM B / NA-0729 — DIRECTOR RULING R323 — 2026-08-15
+# Bank verbatim (444), then run G24. Do not close the lane until G24 is reported.
+
+R323.1 — **THE RESULT CLASS IS DECLARED: `MAIN_RED_SENTINEL_PASS`.** Stopping rather than
+  inventing one was correct (R303.2). Per R313.2 it lands on the NEXT promotion's DONE line,
+  never by reopening #1744.
+
+R323.2 — ⚠ **THE DELIVERY-LAG MEASUREMENT IS THE MOST REUSABLE THING IN THIS STOP AND IS RECORDED
+  AS A PROPERTY: A CRON EXPRESSION IS A REQUEST, NOT A RUN TIME.** Measured across five nights,
+  Actions delivered these schedules ≈1h40m late (03:00/03:20Z requested → 04:09–04:43Z /
+  04:39–05:04Z actual). ⚠ Two consequences that must survive into the roadmap: (a) the nightly
+  ENDURANCE window the operator specified as 3am–7am CENTRAL cannot be built from a cron
+  expression alone — the request time and the delivery time are different quantities, and only
+  the second one matters; (b) combined with the standing DST hazard (cron is UTC and does not
+  observe daylight saving, so a fixed expression shifts an hour twice a year), any lane that
+  schedules work must state BOTH the requested time and the measured delivery distribution.
+  Carry this into ENG-0188's successor lane, which will have those two workflows open anyway.
+
+R323.3 — **G24 IS A TWO-NIGHT OBSERVATION AND THE LANE IS NOT CLOSED UNTIL IT IS REPORTED.** Your
+  discrimination is ratified and is the reason it is two nights: relay-red and handshake-red are
+  DIFFERENT watched workflows, so the correct outcome is TWO issues — that proves arm (i) twice
+  and proves arm (ii) not at all. Dedup requires the SAME workflow failing twice, i.e. the
+  following night. Do not score one night as complete. ⚠ An earlier subject takes priority if it
+  appears: the merge push runs the other ten watched workflows on main, and any failure there is
+  a genuine red, not a drill — report it as the subject if it fires.
+  Report: issue opened · `ci-red` applied (first exercise of the idempotent `gh label create`,
+  since the label does not exist) · body matching the template · dedup engaging on the same
+  workflow's second failure · **and NO auto-close** — that last one is the whole point of the
+  cold read and is the property most worth watching.
+
+R323.4 — **THE UNPROMPTED FINDING IS RATIFIED, BOTH HALVES.** (a) `infra-literal-scan` IS a
+  required context, so the R319 body gate is **BLOCKING, not advisory** — materially stronger
+  than A3 §A3.4 claimed, and the Director's own R320 framing understated it. Correct the D-record
+  to the measured strength. (b) That file's header at lines 22–24 now asserts the OPPOSITE of its
+  own enforcement status: a stale "ADVISORY UNTIL BRANCH PROTECTION CHANGES" notice that branch
+  protection has since falsified. **Not fixing it here is correct** — `.github/**` is the
+  operator's act and it is outside the three authorized changes. **FILE IT** (id at edit) so it
+  does not rot: a file whose comment contradicts its measured behaviour will mislead the next
+  reader exactly as the Director's own CA claim did. Fold the one-line correction into whatever
+  next touches that file.
+
+R323.5 — RECORDED: the guard-skip demonstration repeating on a `na0729-` branch is the same live
+  evidence item A produced for WF-0076's dead `na0724-` guard, now twice-witnessed · the gate
+  proven from the LOG with a printed byte count against the empty-file trap, not from the check
+  mark · the two-read settle with a tamper control that correctly failed.
+END OF RULING R323 — if this line is missing, the paste is truncated; request a re-send.
+```
+
+**R324 — PATH B, and the ruling that turned a seat's own correction into the program's
+measure-at-the-moment-you-assert rule** — `RBANK_WF0074T1_008_R324_20260815.md`, sha256
+`080fada1fc2d733b7536f397ecc3f4133927e9690cc9b465b120db6b9f915a1c`, 45 lines, `END OF RULING R324`
+present ⇒ not truncated. The fence below is that whole file.
+
+```
+# NA-0729 — DIRECTOR RULING R324 — PATH B — 2026-08-15
+# Bank verbatim (444). The operator is dispatching remote-handshake-tests twice. Observe and
+# report G24 from the LOGS and the API, never from a check mark.
+
+R324.1 — **PATH B IS RULED.** Two dispatches of the SAME workflow prove arm (i) and arm (ii)
+  deterministically in minutes, in a controlled sequence, versus a two-night wait that proves
+  arm (ii) only if the same workflow fails on consecutive nights. The red is REAL — that suite
+  has failed 120 consecutive times — so nothing is fabricated. Path A remains free background
+  confirmation; report it if it fires first.
+
+R324.2 — ⚠ **YOUR OWN CORRECTION IS RATIFIED AND IS THE LANE'S MOST REUSABLE OUTPUT.** Recording
+  the mechanism, not just the miss: you measured correctly at 03:20Z, summarised five samples as
+  a "consistent ≈1h40m lag", and then ASSERTED A WINDOW FROM THE SUMMARY AT 04:02Z WITHOUT
+  RE-MEASURING. **Measure at the moment you assert; do not inherit a figure across time** — the
+  same family as this program's base-scoped-figure rule (R304.3), extended to a new axis: a
+  figure can go stale in MINUTES, not just across edits. **R323.2's property stands; its number
+  is SUPERSEDED by yours:** the delivery lag is a DISTRIBUTION with ~128–130 minutes of spread
+  (29–157 / 34–164 over n=10 each), not an offset. ⚠ Carry the DISTRIBUTION, never a central
+  estimate, into ENG-0188's successor and into the nightly-endurance lane — the operator's
+  3am–7am CENTRAL window cannot be derived from a cron expression, nor from any single lag
+  figure, and the DST shift compounds it.
+
+R324.3 — **THE R318.2 JUDGMENT IS COMMENDED, WITH ITS PROPERTY STATED:** declining to constrain
+  `workflow_run.event` to {push, schedule} "for symmetry" is why a dispatched red is visible at
+  all and why Path B exists. **A guard should exclude what is unsafe, not what is merely
+  asymmetric** — a condition added for tidiness discards capability that later turns out to be
+  the only way to prove the thing works.
+
+R324.4 — **G24's REPORT, what it must contain**, each read from the log or the API:
+  ARM (i), first dispatch: the sentinel ran (not skipped) · an issue OPENED · **`ci-red` applied
+  — the first exercise of the idempotent `gh label create`, since the label does not exist** ·
+  the body matching the template, field for field.
+  ARM (ii), second dispatch: **exactly ONE issue still**, updated rather than duplicated · the
+  matching-set counter reading 1, not 0 · the immutable marker matched.
+  AND THE PROPERTY THE COLD READ WAS WRITTEN FOR: **NO AUTO-CLOSE**, verified across any
+  intervening green run on main. If a green run happens between the two dispatches, say so — it
+  is the strongest possible evidence, because the frozen version would have closed the issue at
+  exactly that moment.
+  ⚠ Print byte counts on every log fetch (the empty-file trap) and state what you examined.
+
+R324.5 — the four other owed items stand and ride successors, none dischargeable by reopening
+  #1744: the DONE flip · R323.4(b)'s filing for the stale `infra-literal-scan.yml:22-24` header ·
+  R323.4(a)'s D-record correction to the measured (BLOCKING) strength · the corrected
+  distribution into ENG-0188's successor.
+END OF RULING R324 — if this line is missing, the paste is truncated; request a re-send.
+```
+
+⚠ **R324.1 contains the superseded figure** — *"that suite has failed 120 consecutive times"* — and
+it is landed **unaltered**, because a banked ruling is landed byte-verbatim and never edited to
+agree with a later measurement. The correct count at `50bb5703` is **197** for that workflow; §2 of
+this decision and ENG-0188 carry the correction. **The ruling's reasoning is unaffected: the red was
+real, which is the only property R324.1 relied on.**
+
+**R325 — this lane's ruling, banked verbatim from `PACKET_RELAYCA_EXEC_20260815.md` (sha256 `29a05485…8505`)**
 
 ```
 R325.1 — **SHAPE B.** The preflight is not a convenience, it is the remedy for F-2, which is the

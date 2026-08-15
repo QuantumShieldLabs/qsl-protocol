@@ -42168,3 +42168,227 @@ designed, and no script, workflow or product file was touched.**
   dependency, no test weakened, skipped or deleted, and **zero product source bytes**.
 - ⚠ The result class for THIS lane is **OFFERED, not declared** — a Director act. **The operator
   merges; the seat does not.**
+
+## D-1371 — NA-0736: THE RECEIVE-SIDE DELIVERY LANE — the frame the relay holds is not delivered because `receive` was polling a mailbox nobody writes to; the cause is a fixture passing an identity LABEL where a raw ROUTE TOKEN is required, and it is neither of the two P1 defects it was expected to be
+
+**Status:** Accepted (ordered by **R335**, ruled from the artifacts against base `5201c275`).
+**Lane:** NA-0736. **Base:** main `5201c275`, verified UNMOVED by `git ls-remote` against the
+**NAMED** GitHub remote, run **BARE and UNPIPED**, rc 0, exactly one line; the open-PR set was
+re-derived and **measured EMPTY**. **Ids re-derived at the edit** per WF-0068, every space swept
+across **all three input sets** — main, every open PR head, and **the operator lane directory**,
+which is R260 §3.4's own named blind spot and the reason `NA-0735` is *not* free despite measuring
+**zero occurrences tree-wide**: `NA-0735 / D-1370 / WF-0085 / ENG-0191 / SR-24` ⇒ this lane takes
+**NA-0736**, **D-1371**, **ENG-0192**, **ENG-0193** and **WF-0086**, and **mints no SR**.
+D-max was taken across **all four record forms** (`- **ID:** D-` 1300 rows, max 1312 · `## D-` 124,
+max 1370 · `### D-` 7, max 0116 · `**D-` 4, max 1340), because a form-specific needle is right only
+by luck; `NA-9999` is a fixture placeholder and was **classified, not counted**.
+
+**Artifacts, all mode 444 and mirrored byte-identical to the operator relay directory:** brief
+`06b19bbad775174226147423f054dfb5f09ca171f1ac83e19be5866f867f1205` (105 lines) · **STOP 001**
+`b69e81a12eaf64ae61c85cfdd01d12b68b3f7e79070858175bd0a6143db45f70` (437 lines) · **STOP 002**
+`b76bd561c68e508c21fca7f0899ef7b1b1154e86ef17903d62ef889ef128bfad` (143 lines) · **R335 banked**
+`1ba8777f8af52385fb64803131a6a1b85e711458a06225b58c7cc17610321527` (122 lines).
+
+### PART 1 — THE FINDING
+
+**The pull returned ZERO items. Nothing was filtered and nothing was destroyed.** `receive` polled a
+mailbox nobody ever pushed to, because `scripts/demo/qsc_remote_handshake_smoke.sh:375`/`:388` pass
+`--mailbox "$proto_bob"` — a protocol identity **label** — into an argument that
+`qsc/src/transport/mod.rs:257-263` uses **verbatim as the relay route token**, while every sender
+addresses by the **contact's** route token (`qsc/src/lib.rs:1565`,`:1592` →
+`relay_peer_route_token`). The full measurement, the exhaustive marker elimination that refutes the
+"filtered before unpack" branch, the 22–128-character guard that lets a realistic label through, and
+the consumer census are in **ENG-0192**.
+
+⛳ **THE CENTRAL CLAIM IS PROVEN BY HASH AND WAS RECOMPUTED INDEPENDENTLY BY THE DIRECTOR** (R335 §0)
+from the marker's own function, `route_token_hash8 = hex(sha512(token)[0..4])`
+(`qsc/src/contacts/mod.rs:5-9`): `f4c89d20` = `bob-<run_tag>` **==** `bob_recv.log`'s
+`mailbox_hash`, and `a53c4170` = `alice-<run_tag>` **==** `alice_recv.log`'s, while the
+two route-token candidates (`f9fa4170`, `f20f7f9f`) are **absent from every log**. **This is a
+cryptographic match against a sealed artifact, not a reading.** ⚠ `a53c4170` and `f9fa4170` share the
+trailing `4170`, so all eight digits must be compared — a four-digit comparison crosses the
+candidates.
+
+⚠ **WHY THE HANDSHAKE COMPLETED WHILE DELIVERY DID NOT, which is the part that makes the whole outage
+legible:** `handshake poll` resolves the self-inbox token and **has no `--mailbox` override at all**
+(`qsc/src/handshake/mod.rs:2422-2425`). **The one command that can be misaddressed is the one that
+was.**
+
+### PART 2 — THE CLASSIFICATION: A THIRD DEFECT, BOTH CANDIDATES REFUTED
+
+Ruled at **R335 §1**, as proposed by the lane. **ENG-0134 is REFUTED** — its recorded mechanism is an
+**aborting** pull, and the pull measurably did not abort; nothing was destroyed. **ENG-0142 is
+REFUTED** — it lives inside the per-item loop, which zero items never entered. **Neither is widened
+and neither is duplicated** (WF-0029's amend-never-duplicate rule is satisfied by adding notes beside
+their unaltered text, not by rewriting either entry).
+
+⚠ **NA-0735's carried ENG-0134 attribution is CORRECTED IN THE OPEN, not quietly dropped.** It was
+offered as a candidate and explicitly **not** ruled, which is why it cost nothing; the note added to
+ENG-0134 records that the candidate was refused **and by what measurement**.
+
+⚠⚠ **A DIRECTOR ERROR IS RECORDED WITH IT, AND IT IS THE SECOND OF ITS SHAPE IN TWO BRIEFS** (R335
+§1, the Director's own words): the brief's §5 offered a dichotomy — *"either ENG-0134 is BROADER than
+its filing states, or this is a sibling"* — **and the true answer was NEITHER, which the option set
+excluded.** The predecessor brief did the same thing, assuming a round trip that does not complete.
+**THE PROPERTY, carried because two measured instances is a pattern and not an anecdote: A
+DIRECTOR-SUPPLIED OPTION SET IS AN INSTRUMENT, AND SR-21 GOVERNS IT — its scope must equal the
+claim's scope. An enumerated candidate set that omits "neither" or "some third thing" is an
+instrument narrower than its claim, and it exerts real pull on the seat that consumes it.**
+⚠ **NO RULE IS MINTED** (R305 / D-2: a rule without an executable consumer decays, and this one has
+none). The property is carried with its two instances attached, and the SR-16 row lands in
+`docs/ops/PREDICTION_LEDGER.md`.
+
+### PART 3 — THE FIELD REPAIR ON ENG-0134 AND ENG-0142, AND WHAT IT EXPOSES
+
+**Measured:** within `ENG-0134` and `ENG-0142`, `- Severity:` occurs **0** times and `Status:` occurs
+**0** times. Their **P1 is declared only in the heading**, so a triage needle keyed on the bullet
+cannot see them. Ruled **in scope** at R335 §2 as a records-only act, under a constraint this lane
+followed exactly:
+
+- `- Severity: **P1**` is **TRANSCRIBED FROM EACH ENTRY'S OWN HEADING**, with that provenance stated
+  inline. **It is transcription, not a new judgment.**
+- `- Status:` records **what is measured** — that no status was declared at filing on 2026-08-09 and
+  none has been declared since; the entry has been **neither closed nor ruled open**. ⚠ **"open" is
+  deliberately NOT written.** Nobody ruled it open, and *a status invented to make a count work is
+  the defect this repair exists to fix.*
+- **Neither entry's existing text is edited.** The notes sit beside it (R327.2's beside-not-inside
+  discipline, here applied to a ledger entry rather than a fence).
+
+⚠⚠ **THE CONSEQUENCE, RECORDED AND NOT RESOLVED HERE.** `ROADMAP.md:13` asserts *"No open P1 remains
+and there is no known correctness gap in the crypto core"*, quoted forward into
+`docs/governance/evidence/NA-0629_design_lock.md:79`. **That claim is NOT SUPPORTED as written:** two
+heading-declared P1s have been open since 2026-08-09 and a `- Severity:` bullet needle structurally
+cannot see them. ⚠ **The honest reading is stated rather than smoothed:** the sentence's second clause
+is explicitly scoped to the crypto core and its first clause is not, so it is ambiguous whether "no
+open P1" was ever meant tree-wide — **and on either reading it is worth flagging, because ENG-0134
+and ENG-0142 are transport/receive defects that no crypto-core scoping would cover.** This is the
+mirror of the known-issues G2 correction, which repaired a heading-only needle by installing a
+bullet-only one: **both instruments are narrower than the claim they serve.** ⚠ **Neither
+`ROADMAP.md` nor the design-lock evidence doc is edited here** — the two entries' actual disposition,
+and any consequent correction to that sentence, need their own act and are **NOT** ruled at R335.
+
+### PART 4 — THE COVERAGE AND INSTRUMENTATION FILINGS, SPLIT
+
+Ruled at R335 §3: the coverage gap and the instrumentation gap are **two filings, not one**, on the
+ground that *"a gate tells you THAT it broke; instrumentation tells you WHY"* and that burying the
+second inside the first loses it.
+
+- **WF-0086 — coverage.** Landed in **STOP 002's replaced form**, which supersedes STOP 001 §6's. ⚠
+  **The first form of that filing was wrong and is recorded as wrong inside the entry:** STOP 001
+  asserted *"the `--mailbox` override has ZERO green coverage anywhere in the tree"*, and measured,
+  that is **FALSE** — 40 test files, **99** call sites, with delivery assertions. The claim had been
+  quantified over *the tree* from a sweep of two directories. **The corrected finding is narrower and
+  stronger: `--mailbox` is well covered against an in-process test relay with the correct value type;
+  what nothing covers is a REAL remote relay round trip**, and **no CI job asserts a received
+  message** — one runs `receive` behind `|| true` with no assertion and no step after it in a 55-line
+  workflow, the other asserts correctly but has not reached those lines in 187 days.
+- **ENG-0193 — instrumentation.** `relay_push_diagnostic` **28** occurrences,
+  `relay_pull_diagnostic` **0 tree-wide**, re-measured by the Director. The send half of the relay
+  boundary is richly instrumented and the receive half is mute, and **the 187-day blindness is a
+  direct consequence of that asymmetry, not of the missing gate.** ⚠ **FILING ONLY — instrumenting
+  the pull path is an edit to the receive region and remains a STOP.**
+
+**Successor lane, framing CONFIRMED as re-aimed:** the gate must exercise a **REMOTE relay round trip
+end to end**; a further in-process `--mailbox` test buys nothing. ⚠ **Both remaining questions are the
+OPERATOR's, not a seat's:** does the gate ship **REQUIRED or ADVISORY** while the defect is open, and
+**which addressing does it exercise** — a gate asserting delivery with `--mailbox` omitted would go
+green today and still not cover the override that broke this run.
+
+### PART 5 — TWO BRIEF PREMISES MEASURED FALSE, AND ONE SEAT NEEDLE THAT DID
+
+Ruled at R335 §4 to land **beside** the findings rather than be dropped.
+
+1. ⚠ **The retained mailbox items are HANDSHAKE frames, not the user messages.** The brief cited
+   *"exactly 1 item each — bob's 15250 B, alice's 23043 B"*; measured, **15250 / 23043 are the JSON
+   response-body file sizes**. Parsed, each body holds exactly one item whose `data` is a byte
+   **array** of **4279** (bob's) and **6436** (alice's) — matching `event=handshake_send msg=A1
+   size=4279` and `msg=B1 size=6436` exactly, against user payloads of **17 B** and **15 B**.
+   ⚠ **The Director repeated the wrong version of this to the operator in chat** — *"the user's
+   message sitting in bob's mailbox"* — and that is corrected here, on the record.
+2. ⚠ **The script census.** *"Three demo scripts DO receive and NO workflow runs them"* measures
+   false: exactly **two** invoke `qsc receive` and **both are workflow-run**. ⛳ **The conclusion
+   survives for a better reason**, which is what WF-0086 now files.
+3. ⛳ **AND A SEAT NEEDLE THAT MISSED AND WAS CAUGHT — recorded as a HIT, not only as a miss** (R335
+   §4). The lane's first grep for the literal `send_ab_1` returned **zero** and nearly recorded the
+   brief's `:372` as absent; the script writes `"send_ab_${i}"` inside a `while` loop. Re-measured
+   from bytes, **all four of the brief's line numbers are correct** and so is its claim that no
+   handshake poll runs between a send and its paired receive. **The needle was built from a model of
+   the text rather than its bytes, and the house method caught it in one measurement.**
+4. ⚠⚠ **AND A DISCLOSURE THE LANE CAUGHT IN ITSELF, BEFORE COMMITTING RATHER THAN AFTER.** The first
+   drafts of `ENG-0192` and of this decision quoted the **concrete route tokens and the run tag** from
+   the sealed run, because they are what makes the hash argument checkable. `AGENTS.md:121` holds that
+   ledger entries are **class-only — "no secrets, endpoints, tokens, capabilities, keys, plaintext, or
+   ciphertext bodies"** — and ⚠ **the product had already ruled on this by its own behaviour: `qsc`
+   redacts `mailbox=redacted` and `from=<redacted>` in the very markers this lane reads**, precisely
+   because those markers are uploaded as public CI artifacts. **A route token is an addressing
+   capability, not a label.** ⇒ every concrete token and the run tag were **parameterized out of repo
+   truth** to the committed script's own shapes (`:59-62`), with the hashes retained — those the
+   product publishes itself — and the concrete values left in the sealed operator stop, so a reader
+   holding it can still recompute every digit. **The argument survives; the capability is not
+   published.** ⚠ The lesson generalises past this lane: *the strongest evidence for a finding is
+   often the exact string you are least entitled to publish, and the fix is to publish the SHAPE and
+   cite where the instance lives* — never to weaken the finding, and never to quietly widen what the
+   record discloses.
+
+### PART 6 — ⚠⚠ WHAT IS **NOT** ESTABLISHED
+
+Ordered recorded at **R335 §5**, unasked, and stated in **ENG-0192** in full. This suite's documented
+history is **four causes, each hiding the next**; this lane found the fifth. **Nothing entitles
+anyone to assume it is the last, and the record says so rather than leaving the next chair to infer
+it.** Two threads are open and neither is answered: **(a)** the **user messages' fate is
+unestablished** — both were pushed (HTTP 200, `send_commit send_seq=1`), and *a max-limited
+diagnostic pull is not a mailbox census*, so it is established that **at least one** handshake frame
+was present and **not** established that the payloads are either present or lost; **(b)** **why the
+A1 frame is still in bob's mailbox at all**, when the handshake completed on both sides — with
+lease-without-ack, dedup-on-redelivery and consumption-leaves-the-item all live candidates and ⚠ **no
+mechanism invented** (WF-0080's precedent: record the observation, refuse the invented cause).
+
+### PART 7 — CARRIED DEBTS, DISCHARGED HERE
+
+- **NA-0735's findings** per its STOP 003 §13, which had no home and would not have survived machine
+  loss under D-1 — the exact damage done at the last tenure boundary (R331.1). Its §12 delivery
+  failure is now **ENG-0192**; its ENG-0134 candidate is refused on the record; its §8/C3/§9 handshake
+  state-machine material remains **ENG-0191's** to carry and is **not** re-filed here.
+- ⚠ **The 0664 `relay.env` finding is CLOSED BY OPERATOR RULING of 2026-08-15**, recorded so the next
+  seat that walks that directory does not re-raise it: a `RELAY_TOKEN=` key sat world-readable at
+  `/srv/qbuild/work/NA-0710/caddy/relay.env` on the build box. **Operator ruling: single-operator box,
+  exposure ACCEPTED, mode corrected, NO ROTATION.** The token was **never read** by any lane that
+  reported it.
+
+### PART 8 — ⚠⚠ R335 IS **NOT** LANDED BYTE-VERBATIM HERE, AND THE REASON IS A LIVE QUESTION
+
+**R335 is banked 444 as `RBANK_NA0736_001_R335_20260815.md`, whole-file sha256
+`1ba8777f8af52385fb64803131a6a1b85e711458a06225b58c7cc17610321527`, 122 lines, and is cited by that
+sha rather than reproduced.** The precedent (D-1367, D-1369, D-1370) is to land a ruling as a
+column-0 fence carrying the whole file, and this lane **drafted exactly that and then refused it on
+a gate of its own**:
+
+⚠⚠ **R335 §0's verification table contains the four CONCRETE ROUTE TOKENS and the sealed run's
+`run_tag` in plaintext** — necessarily, because recomputing the hashes independently is what makes
+that section proof rather than assent. **Landing the fence would publish live relay addressing
+capabilities into a public repository**, which is the exact class `AGENTS.md:121` excludes and the
+exact class `qsc` itself redacts (`mailbox=redacted`, `from=<redacted>`) because those markers upload
+publicly. ⚠ **And it would make this very decision false about its own contents:** PART 5 item 4
+states that every concrete token was parameterized out of repo truth. *An act must not violate the
+rule it is landing.*
+
+**Measured, so the question is decided on facts rather than caution:** the redaction gate found the
+banned strings **4 times, all four inside the fence**, and **0 times** in every file this lane
+authored — `IMPROVEMENT_LEDGER.md`, `NEXT_ACTIONS.md`, `TRACEABILITY.md`, `PREDICTION_LEDGER.md` and
+the evidence doc are all clean.
+
+⚠ **The seat does not resolve this, because it is a DISCLOSURE decision and those are the operator's.**
+It is also **not a departure from the order**: R335 §6 enumerates *"this ruling's SR-16 rows"* among
+the things to carry and **never orders the ruling text itself landed** — the fence was this lane's own
+addition, and the vehicle discriminator is whether a ruling names its own destination. **Every
+substantive holding of R335 is carried in PARTS 1–7 above and in `PREDICTION_LEDGER.md` rows 12–15**,
+so nothing is lost to machine loss except the verbatim wording, which is banked and hashed.
+
+**PROPOSED, for the Director to rule — the lane recommends (a):**
+**(a)** re-issue R335 with §0's four preimages replaced by their shapes (`bob-${run_tag}` etc.),
+keeping every hash, and land THAT byte-verbatim — the argument stays fully checkable because the
+hashes are what carries it; or
+**(b)** rule that the fence lands as issued, accepting the disclosure explicitly and on the record,
+in which case PART 5 item 4 is reworded in the same act so this decision stays true about itself; or
+**(c)** rule that the ruling is cited by sha and not landed, in which case this PART 8 stands as the
+record of why.

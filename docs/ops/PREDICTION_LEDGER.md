@@ -166,3 +166,38 @@ their absence is by design; R329 was issued *before* #1748 existed and declared 
 should have carried. ⇒ ***absence is not by itself evidence of a records failure; the discriminator
 is whether the ruling existed before an act that could have carried it.*** All three are landed by
 `## D-1369`, and `### NA-0731`'s DONE line now carries the class R329.1 ruled.
+
+<!-- NA-0736 (D-1371) — SR-16 ROWS 12-15, 2026-08-15, ORDERED AT R335 §1 and §4.
+⚠ LANDED BESIDE THE TEN BYTE-VERBATIM ROWS AND THE NA-0733 ROW, AND DELIBERATELY NOT INSIDE EITHER.
+Lines 118-134 of this file are the Director's byte-verbatim block (extract sha256
+b42a23b2b9617e202c62801da763d8570275976d155ed3158664e8e0b74d301c, 17 lines, landed by D-1367); they
+were RE-HASHED UNCHANGED as a gate of this lane, exactly as NA-0733 did. Inserting a row into that
+table would break the digest D-1367's provenance sentence cites (R327.2: corrections sit BESIDE a
+fence, never inside it).
+⚠⚠ ROW 12 IS THE DIRECTOR'S OWN AND IS THE REASON THIS BLOCK EXISTS. It is not a measurement error
+of the kind the ten rows describe -- nothing was measured wrongly. It is an INSTRUMENT error one
+level up: the option set a ruling offers is itself an instrument, and an enumerated candidate list
+that omits "neither" is narrower than the claim it invites. R335 §1 names it the SECOND instance of
+that shape in two consecutive briefs, which is why the property is carried here rather than left as
+an anecdote. ⚠ NO RULE IS MINTED (R305/D-2: a rule without an executable consumer decays).
+⚠ ROW 15 IS RECORDED AS A HIT, NOT A MISS, ON THE DIRECTOR'S EXPLICIT ORDER (R335 §4) -- "that is
+the house method working, and it is worth having on the record as a hit rather than only recording
+misses." A ledger that records only failures teaches that measuring is a tax rather than a tool. -->
+
+| # | the assertion | the measurement | the instrument that caught it |
+|---|---|---|---|
+| 12 | "Either ENG-0134 is BROADER than its filing states, or this is a sibling" (Director's brief §5) | **NEITHER** — measured, the pull did not abort and nothing was destroyed, so ENG-0134's mechanism does not fit; and ENG-0142's region sits inside a loop zero items never entered. The true answer was excluded by the option set | the seat, refusing the frame and saying so |
+| 13 | "The user's message is sitting in bob's mailbox" (Director, repeated to the operator in chat) | FALSE — the retained items measure **4279 B** and **6436 B**, matching `handshake_send` **A1** and **B1** exactly; the user payloads were **17 B** and **15 B**. The cited 15250/23043 are the **JSON response-body file sizes**, not item sizes | the seat, parsing the artifact instead of reading its `ls -l` |
+| 14 | "The `--mailbox` override has ZERO green coverage anywhere in the tree" (this lane, STOP 001 §6) | FALSE — **40 test files, 99 call sites**, with `recv_commit` and `qsp_unpack ok=true` assertions through it. The claim was quantified over *the tree* from a sweep of `scripts/demo/` and `.github/workflows/` alone — **an instrument narrower than its claim (SR-21)** | the seat, asking whether the Rust suite already covered it before letting "zero" stand |
+| 15 | ⛳ **A HIT.** "`send_ab_1` is absent from the committed script, so the brief's `:372` is wrong" (this lane, first pass) | The brief was **RIGHT**: the script writes `"send_ab_${i}"` inside a `while` loop, so a literal needle returns 0. Re-measured from bytes, **all four** of the brief's line numbers are correct | the seat's own re-measurement, before the claim reached any record |
+
+**⚠ THE SHAPE THESE FOUR ADD, which the ten above do not contain.** The ten are all *"a claim adopted
+from a fragment, a summary, another document, or memory, instead of measured at the moment of
+assertion."* **Rows 12 and 14 are a different failure: a claim whose INSTRUMENT was narrower than its
+SCOPE** — an option set that excluded the true answer, and a two-directory sweep quantified over a
+whole tree. Measuring at the moment of assertion does not prevent either; **checking that the
+instrument's scope equals the claim's scope does.** ⚠ And row 12 is the Director's, row 14 the
+seat's — **the same defect from both chairs in one lane**, which is the argument for treating it as
+structural rather than as a lapse. Row 13 is a transport failure of the NA-0733 row-11 kind: the
+figure was never measured, only repeated. **Row 15 is here to keep the ledger honest in the other
+direction** — the method caught a *correct* record before a lane could "correct" it.

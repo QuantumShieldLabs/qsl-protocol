@@ -221,6 +221,21 @@ Supporting artifact:
    `git commit --amend --reset-author` is safe **only before the PR exists** (§4 of
    DOC-OPS-006 forbids amend after PR creation).
 
+6) **Label the session after the SEAT, never after the lane.** The CLI accepts
+   `-n/--name <name>` ("Set a display name for this session"); the name is persisted
+   with the session, so it is what a later reader sees when picking between several
+   open seats:
+
+       claude -n records-a          # role plus ordinal
+       claude -n 0814-records       # or role plus date
+
+   **Use a role, not a lane id.** A seat routinely outlives the lane it was opened
+   for — the seat opened as `na0726-sr24-refusal` went on to build the NEXT lane's PR
+   — so a lane-named label is correct for an hour and misleading afterwards, and it
+   misleads *silently*: nothing rejects a stale name, and the reader has no way to
+   tell that the label stopped being true. A role name stays true for the life of the
+   seat, which is the thing the label is actually identifying.
+
 ### Step 2 — Confirm scope and constraints
 Before touching code or docs, write down (in your working notes / PR description):
 - Which NEXT_ACTIONS item you are executing (ID + title).

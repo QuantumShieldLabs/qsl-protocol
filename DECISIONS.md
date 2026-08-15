@@ -40287,3 +40287,134 @@ directs — with the next promotion, never by reopening the merged PR.
 its whole ruling. **Docs-only:** three files, zero source bytes, no `.github/**`, no
 workflow, no dependency, no test, and no ledger entry — zero STILL-OWED items and no new
 finding to file. The operator merges; the seat does not.
+
+## D-1364 — NA-0728: WF-0074 TRANCHE 1, ITEM A — the required macOS PR check was structurally blind to the target where every failure landed, and one cargo line closes it; the notification half is designed, ruled and deliberately held for an adversarial read
+
+**Status:** Accepted (ordered at **R314**, which disposed the formalization's four flags, and at
+**R315**, which ruled Q5, split the lane and authorized this half alone). **Lane:** NA-0728.
+**Directive:** `QSL-DIR-2026-08-14-656` (sha256
+`f513a6be6e58caf8007b5b5339ebac6de26cad6f929d646c744fdaf530ec1f9b`, 575 lines) **as amended by
+AMENDMENT A1** (`b2f95c2cc36adec44e3ad2713ffc9db3b1d2356ca0cda79fc853322057ceb0b2`, 320 lines,
+formalizing R314) **and AMENDMENT A2**
+(`37ef259ee3a38a05aeb976cf774046c0ea940eefd02cdea59ce8771f1df9d89b`, 162 lines, formalizing R315) —
+**precedence A2 > A1 > base**, every earlier file byte-frozen and never rewritten; each amendment
+NAMES the clauses it supersedes rather than editing them. **Base:** spine `fbcf2869` (the #1742
+promotion merge). **Class:** `MACOS_PR_SMOKE_LIB_TARGET_PASS`. **Source finding:** **WF-0074**,
+partially remedied here; **WF-0076** re-scoped, not advanced.
+
+**Context — the occasion, verified rather than restated.** `macos-qsc-full-serial` failed on five
+consecutive main pushes over seven days (`a0b18d66`, `3fcda47d`, `6680a468`, `b845e678`,
+`5b43eefe`) and nobody noticed until it blocked the queue. Verified two independent ways: NA-0717's
+banked run enumeration (26 push rows in window, 21 in range, failure conclusions **exactly** those
+five, every other in-range row success), and the live API. All five carry the same signature —
+`test result: FAILED. 115|118 passed; 4 failed` with **zero** `Running tests/` lines — so they died
+in the **lib** unit tests before any integration target ran.
+
+**The finding this lane adds, and it changed the remedy from a new job to one line.**
+`macos-qsc-full-serial` was a **job inside `.github/workflows/macos-build.yml`**, not a workflow of
+its own, and its sibling in that same file is **`macos-qsc-qshield-build`** — already **required**
+(one of main's fifteen branch-protection contexts), already running on **every** PR, and already
+running `cargo test -p qsc --locked`. It runs three `--test` targets and **not `--lib`**, while the
+defect lives in `#[cfg(test)] mod na0696_lock_registry_tests` at
+`qsl/qsl-client/qsc/src/model/mod.rs:226` — an in-`src` module **no `--test` selector can reach**.
+⇒ **the required macOS check was structurally blind to the one target where every failure landed.**
+The decisive row, measured from the jobs API: on `b845e678`, in the same workflow file, on the same
+runner pool and the same commit, **`macos-qsc-qshield-build` concluded `success` at 15:09:45Z**
+while **`macos-qsc-full-serial` concluded `failure` at 15:11:06Z** — eighty-one seconds apart, and
+the required one passed because it does not run the target that failed.
+
+**What lands.** One line, `cargo test -p qsc --locked --lib -- --test-threads=1`, inserted into that
+job's *Run qsc smoke subset (locked)* step with a comment recording why, applied by the operator
+from a byte-exact block (`Write(.github/**)` is denied to seats; starting sha256
+`a305541acac1b7ef5cf0aa2b0302202716249dfabc2c148e0e06fc8af78ff07e` → resulting
+`e6a34df9ec2abfab1ac599cf744c2128396180d0f0755f047bde39c9a56b0839`). It adds **no macOS job**, so
+the five-slot platform budget, `FANOUT_WAVES=3`, `MAX_CEILING 270` and `COVERAGE 330` are untouched
+and **nothing is starved** — the constraint that made the obvious design expensive is routed around
+rather than paid. `public-ci.yml` is **not touched**.
+
+**Why it lands GREEN and what a flake would cost.** The lib target is measured green on macOS in a
+sharded run: `macos-qsc-shard-0` — the shard the manifest assigns `lib` — concluded **success** on
+main `324f076b` (run `31818951944`), and a green shard cannot hide a red lib given `--no-fail-fast`
+plus by-name `--verify-log` reconciliation. Independently, the banked green serial run records the
+lib target at `test result: ok. 122 passed; 0 failed; … finished in 1.46s`. **ENG-0187's live flake
+cannot fire at this scope** — it is `qsl/qsl-client/qsc/tests/relay_auth_header.rs:815`, an
+integration target — so the occasion's failure mode and the known live flake are **disjoint target
+sets**. ⚠ **A provenance correction, recorded rather than smoothed:** the figure `131/131` belongs
+to NA-0717's **serial** run (`f54d3b82`), not to the sharded run, and the macOS census is **132**
+(131 non-doc plus one doc). **The conclusion it supported is unaffected** — this corrects an
+attribution, not a claim.
+
+**⚠ What deliberately does NOT land, and the limit is stated rather than papered over.** The
+notification half — a `workflow_run` sentinel that opens, updates and closes **one** standing issue
+per watched workflow — is fully designed, its de-duplication selector executed at drafting against
+four fixtures (4/4, including a near-miss control that must not match and did not), and its operator
+block frozen at `dca74e2a9321c0e5e6b796b78ecfaf9a3f23aaffa5928aa64eaf177665a46647`. **It is NOT in
+this edit set.** R315.2 ordered an SR-15 adversarial read on it **at Director's discretion and
+explicitly NOT on a trigger** — all three mechanical triggers measure negative — because it would be
+the first workflow in this repository that writes automatically to a **public** surface, and because
+`infra-literal-scan` examines repo files and **not runtime-generated issue bodies**, so the net that
+guards public disclosure does not cover it. R315.3 split the lane so the measured, low-risk half was
+not held hostage to the unread half. ⚠ **Also not discharged: the seeded-defect control.** Proving
+the new line RED-capable would mean flipping `EWOULDBLOCK_RAW` (`src/model/mod.rs:238-240`) from 35
+to 11 on the macOS arm — an edit to product source, which is a lane non-goal. **This half ships
+proven GREEN, not proven RED-capable, and no reader should infer a watched-red that did not happen.**
+
+**The measurement that reclassified the notification problem.** The gap was never "no signal":
+over a 21h55m window the account's notification stream carried **250 notifications, 100 % of reason
+`ci_activity`** — **226 "succeeded" against 11 "failed"**, a failure arriving at **1 in 22** — with
+**zero** repository webhooks. GitHub announced all five silent failures identically to the ~90 % of
+traffic saying everything was fine. ⇒ the remedy class is **selectivity plus a durable in-repo
+artifact**, and a notification-preference toggle, while worth doing, is **complementary and cannot
+be the remedy**: it is invisible to the repo, unverifiable by a successor, and gone if the account
+changes.
+
+**Q5, ruled at R315.1 and recorded because the next lane will meet it.** SR-15's escalation
+threshold turns on "source files", **a term the spine never defines**, and one edit set here
+admitted **three defensible counts — 2, 4 and 8 — straddling the five-file threshold**. The narrow
+reading is correct: the term's only normative occurrence is `docs/ops/STANDING_RULES.md:79`, every
+other use in the record means code, and NA-0724's own arithmetic separated "10 code" from "the
+6-file governance bundle". **Count is 2; the trigger does not fire.** The lane **referred** the
+question rather than taking the reading that suited it, and R315.1 recorded that as the correct act.
+The ambiguity itself is filed as **WF-0079**, filing-only — defining the term is a governance touch
+and RESTRAINT holds one mint per lane.
+
+**Filed with this decision, none of it fixed here.** **WF-0079** (the undefined SR-15 threshold
+term) · **ENG-0188** (the two nightly relay workflows red on **120 consecutive runs across 51 days**,
+found by this lane's first measurement, with the cause supplied at R315 and **corrected at R316**:
+`relay_http_client()` composes trust roots **additively** and **never disables** the built-in
+webpki/Mozilla and OS roots, but **neither workflow configures** the additive CA-file option and the
+endpoint chains to no public root, so verification fails correctly and the suites cannot pass until
+a CA is pinned; the entry states the **class** and never the endpoint, because operator
+infrastructure details are never written into repo truth. ⚠ The first drafting of that mechanism
+sentence was **false** — it read a code comment *naming* `tls_built_in_root_certs(false)` as evidence
+the function *calls* it, when the comment exists to record that it does not — and the entry carries
+the correction in the open rather than the replacement in silence; the tree already held the true
+mechanism in NA-0663's record and was not consulted) · **WF-0080** (the two-surface check-count artifact, carried across
+three lanes **without a mechanism**, because none has named one and inventing one would be worse
+than carrying the observation).
+
+**Carried notes discharged here.** The **session-label convention** lands in `START_HERE.md` §4
+Step 1 beside PROC-1 — **the label names the SEAT, not the lane**, because a seat routinely outlives
+its opening lane and a stale label misleads silently; the `-n/--name` flag was **measured before the
+rule was written** (declared, executed, and persisted as structured session fields rather than
+echoed text), so SR-20 is satisfied rather than assumed. The **DOC-OPS-006 §4c cross-reference** to
+that same step lands, naming it rather than restating it, since a mandatory step duplicated across
+documents drifts.
+
+**Two self-catches, recorded as method evidence.** The drafting validation **refused its own
+author**: the first sentinel draft did not parse, because a multi-line `python3 -c` inside a `run:`
+block scalar breaks out of the YAML indentation — rebuilt with `jq --arg`, which also binds the
+value as data rather than program text. And a persistence check written `grep -rl … | head` reported
+**head's** exit status while listing nothing; re-run bare it returned the real hits. **A wrapper's
+exit is the wrapper's, not its work's.**
+
+**Ids re-derived AT THE EDIT** per WF-0068 against main `fbcf2869` **and an open-PR set measured
+EMPTY** (`gh pr list --state open` → `[]`): **NA-0728**, **D-1364**, **WF-0079**, **ENG-0188** and
+**WF-0080** each returned **zero** occurrences across the tree's `*.md`, with positive controls —
+`NA-0727`, `D-1363`, `WF-0078`, `ENG-0187` — firing in 3, 3, 4 and 1 files respectively, proving the
+instrument could return a hit. All five id spaces swept. STATE advanced 0727/1363 → 0728/1364.
+
+**Base:** spine `fbcf2869` (the #1742 promotion merge). **Source finding:** WF-0074. **Edit set:**
+seven files — one workflow (`.github/workflows/macos-build.yml`, operator-applied), two spine
+documents, and the four records — **zero product source bytes**, no dependency change, no test
+weakened, skipped or deleted, and **no `public-ci.yml`**. The operator merges; the seat does not.

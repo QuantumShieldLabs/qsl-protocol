@@ -85,6 +85,12 @@ jobs:
           set -euo pipefail
           mkdir -p "${GITHUB_WORKSPACE}/.tmp"
           export TMPDIR="${GITHUB_WORKSPACE}/.tmp"
+          # WF-0074 tranche 1 - the lib target is the PR-visible smoke check. All five
+          # macos-qsc-full-serial push failures (a0b18d66 3fcda47d 6680a468 b845e678
+          # 5b43eefe) died HERE, in qsc's in-src #[cfg(test)] modules, which no --test
+          # selector can reach; this job passed beside every one of them. It runs first
+          # because it is the cheapest and highest-signal target: 122 tests in 1.46s.
+          cargo test -p qsc --locked --lib -- --test-threads=1
           cargo test -p qsc --locked --test vault -- --test-threads=1
           cargo test -p qsc --locked --test handshake_contract_na0217i -- --test-threads=1
           cargo test -p qsc --locked --test qsp_protocol_gate -- --test-threads=1

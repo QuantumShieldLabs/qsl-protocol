@@ -518,6 +518,13 @@ commit** setting `Status: MERGING (PR #N)`; push. ⚠ **A directive must AUTHORI
 by name**, as D625 §2.2(f) did, so R16 does not fire on it — *"obviously required" is what makes an
 unauthorized push feel safe.*
 
+**Cross-reference — the step that must already have happened before commit (1).** Both commits above
+are made by a lane seat, and a **fresh clone does not inherit a usable commit identity**: the push is
+rejected with `GH007` and the failure arrives only at the push, after both commits exist. The
+provisioning step lives in **`START_HERE.md` §4 Step 1 (*Bootstrap*), item 5**, which is its single
+home — it is named here rather than restated, because a mandatory step duplicated across documents
+drifts, and then two texts disagree about a rule whose whole value is being unambiguous (D-1361).
+
 **⚠ The known cost, stated rather than discovered later.** While a block reads `MERGING`, the anchored
 ready-state count is **0**. Measured: `preflight_governance.sh` fails only at `> 1`, so 0 passes;
 `qsl_evidence_helper.py queue` returns **exit 2** at count 0 (**WF-0025**, correct-but-nonzero), and

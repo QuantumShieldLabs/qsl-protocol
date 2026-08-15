@@ -3663,6 +3663,25 @@ The runbook's client recipe covers `relay ca-set --path`, `vault init --passphra
 
 Measured by NA-0706 n=5 with zero variance: a user send issued before the channel is established returns **rc 0, IS DELIVERED**, and destroys exactly ONE of the peer's messages, while `peer_confirmed` regresses yes→no and never heals. ⚠ The SAFE send emits the **identical** marker, so "attempt and handle the refusal" has no refusal to handle — the design must PREDICT. ⚠ NA-0707's cold read then established that the payload is **not cryptographically destroyed** (`ratchet_skip_store count=2`): it dies because the receive pull aborts and the frame behind it is never unpacked. **The remedy is receive-side**; the send-side guard is origination discipline, and returns with NA-0707 re-formalized. ⚠ **NA-0708 does NOT close this** — it ships only the ack flush.
 
+- Severity: **P1** — ⚠ **TRANSCRIBED FROM THIS ENTRY'S OWN HEADING**, which has read `⚠ P1` since the
+  entry was filed 2026-08-09. This bullet is a transcription of an existing declaration into the
+  field a triage needle can read. **It is not a new judgment and must not be read as one.**
+- Status: ⚠ **no status was declared when this entry was filed on 2026-08-09, and none has been
+  declared since.** It has been neither closed nor ruled open. **This bullet records that absence; it
+  does not resolve it** (R335 §2) — a status invented to make a count work is the defect this repair
+  exists to fix. The entry's disposition needs its own act.
+- ⚠⚠ **A CANDIDATE ATTRIBUTION TO THIS ENTRY WAS OFFERED AND IS REFUTED BY MEASUREMENT — added
+  2026-08-15 by NA-0736 (D-1371; ruled at R335 §1).** NA-0735 offered this entry as a candidate for
+  the non-delivery it measured, on the strength of the recorded mechanism *"the receive pull aborts
+  and the frame behind it is never unpacked"*, while flagging that the **trigger** differed (neither
+  send was premature). **Measured at `5201c275`, the mechanism differs too: the pull did not abort.**
+  It completed, returned an empty item vector, and broke out of the loop at `transport/mod.rs:517-518`
+  — the real cause being a mailbox-addressing mismatch, now filed as **ENG-0192**. **Nothing was
+  destroyed and no frame was skipped**; the frames remained on the relay, which is how the diagnostic
+  pull found them. ⇒ **this entry is NOT widened, and NA-0735's run is NOT evidence that it is broader
+  than its filing.** ⚠ The candidate was explicitly offered-not-ruled, which is why it cost nothing —
+  it is recorded as refused, and by what. **The text above is unaltered; this note sits beside it.**
+
 ### ENG-0135 — the class-narrowed-to-instance pattern — a remedy's scope is the OPERATION, not the reporter — **NEW; filed 2026-08-09 by NA-0708 (D-1345; the NA-0706/0707 hand-off, ruled onto this PR at R205 §1.1)**
 
 D-1327 C3 fixed the unseeded-chain wedge for **CONTROL** sends only; user-initiated sends reach it through the same door. NA-0705's `QSCV01` trap is the same shape, and SR-15 F-3 supplied a third instance — the ENG-0134 ruling itself narrowed to the measured *origination* rather than the *loss class*. ⚠ **STANDING FORM:** when a fix is scoped to the caller that exhibited the defect rather than to the operation that permits it, the door stays open for every other caller.
@@ -3696,6 +3715,21 @@ At desktop `c52fd51b`, `src-tauri/src/markers.rs:12` holds an opaque buffer with
 `transport/mod.rs:1147-1211`: one bad frame aborts the whole pull at `:1210`; only `qsp_replay_reject` under Lease escapes (`:1161`, `:1185`, `:1196`). Under **Legacy** the trailing frames are destroyed outright; under **Lease** (the default) the failing item is never acked or quarantined, redelivers, and re-aborts every `qsc receive` until the relay's 7-day retention expires it (`quarantine/mod.rs:77`). ⚠ **ADVERSARIAL TRIGGER: anyone who can post one unparseable frame wedges that mailbox.**
 
 ⚠ **MERGE NOTE (R205 §1.3).** Two things folded into this one entry rather than becoming separate filings. (i) **The strand half of the original F-2 — "already-processed items' acks strand behind the `return`" — is NOT filed here: it is what NA-0708 FIXES**, and it is D-1345's subject. (ii) This lane's own measurement that **the wedge survives the withdrawn taxonomy** folds in: the cheapest wedge is any structurally valid envelope with garbage inside, which surfaces as `qsp_verify_failed` — an UNCLASSIFIED code — so even the classifier as ruled would not have closed the wedge it was justified by. ⚠ **This is the successor lane's headline.**
+
+- Severity: **P1** — ⚠ **TRANSCRIBED FROM THIS ENTRY'S OWN HEADING**, which has read `⚠ P1` since the
+  entry was filed 2026-08-09. This bullet is a transcription of an existing declaration into the
+  field a triage needle can read. **It is not a new judgment and must not be read as one.**
+- Status: ⚠ **no status was declared when this entry was filed on 2026-08-09, and none has been
+  declared since.** It has been neither closed nor ruled open. **This bullet records that absence; it
+  does not resolve it** (R335 §2). The entry's disposition needs its own act.
+- ⚠ **A CANDIDATE ATTRIBUTION TO THIS ENTRY WAS OFFERED AND IS REFUTED BY MEASUREMENT — added
+  2026-08-15 by NA-0736 (D-1371; ruled at R335 §1).** This entry was weighed as a candidate for
+  NA-0735's non-delivery and does not fit: the wedge it describes lives at `transport/mod.rs:1147-1211`,
+  **inside the per-item loop**, which is entered only after a pull returns a non-empty vector. The
+  measured pull returned **zero** items, so that region never executed — confirmed by the absence of
+  `qsp_unpack` in either polarity from both sealed receive logs. The real cause is filed as
+  **ENG-0192**. ⇒ **this entry is neither widened nor duplicated. The text above is unaltered; this
+  note sits beside it.**
 
 ### ENG-0143 — P-1 (`scka.peer_adv_max_seen > 0`) is UNSAFE across a re-handshake — it PERMITS the defect it was meant to refuse — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15/D642 F-1) — ⚠ SETTLES NA-0707's PREDICATE**
 
@@ -4418,3 +4452,179 @@ ENG-0098; ENG-0007; ENG-0010; D-1367. Originating/last lane: NA-0731 (D-1367). L
 ⚠ **THE DESIGN QUESTION, STATED AND DELIBERATELY NOT ANSWERED (R333.2).** There are at least two shapes a repair could take, and **they do not prove the same thing**: (a) assert a status that is *true at that point* — accepting `awaiting_peer_confirm` / `established_recv_only` as the correct post-handshake states and checking the `peer_confirmed` / `send_ready` fields instead; or (b) **send first and then assert**, so that `recv.nr != 0` and the existing `established` assertion becomes reachable. **(a) tests that the handshake completed; (b) tests that a session can carry traffic.** Choosing between them changes what this smoke test is for, which is why the choice belongs to a lane with a directive and not to a filing. ⚠ A third possibility must not be excluded by the framing above: that the product **should** reach `established` here and does not — nothing in this filing rules that out, and the two readings (stale fixture vs product gap) are both live.
 
 ⚠ **What this entry does NOT claim.** It does not claim the product is wrong; the introducing commit's own title — *"fix handshake status and marker **honesty**"* — is evidence the richer states were deliberate. It does not claim the fix is trivial. And it does not claim this is the last cause: that claim has now been wrong four times, and **the only instrument that has ever settled it is a run.** Cross-reference: ENG-0188; ENG-0189; ENG-0190; NA-0222 (`a5f235b3`); NA-0168 (`c9ce4b4e`); D-1369; D-1370; R325; R333.2; issue **#1745**, which stays OPEN and is telling the truth. Originating/last lane: NA-0734 (D-1370). Last-updated: 2026-08-15.
+
+### ENG-0192 — `receive --mailbox` takes a RAW ROUTE TOKEN and the remote smoke fixture hands it an IDENTITY LABEL, so the client politely polls a mailbox nobody ever writes to and reports an empty inbox at rc 0 — **the FIFTH cause behind the 187-day outage** — **NEW; filed 2026-08-15 by NA-0736 (D-1371; measured from NA-0735's sealed evidence and from source at `5201c275`; classification ruled at R335 §1 after ENG-0134 and ENG-0142 were both REFUTED)**
+
+- Severity: **P2** — a FIXTURE defect, not a shipped defect, on the same reading ENG-0191 records for itself. The product behaved correctly at every step; one consumer is wrong about what an argument means. ⚠ It is nevertheless the thing standing between this suite and a *proven* round trip, and it sits **behind** ENG-0191 in the failure order, so clearing ENG-0191 alone will not produce a delivered message.
+- Status: open — **FILING ONLY.** No repair is designed here and none is proposed: the natural remedy touches either the committed script or the receive path, and the latter is transport-adjacent (ENG-0142 already places a defect inside it), so any proposed edit is a STOP and the repair lane carries its own cold read by construction.
+
+**THE DEFECT.** `scripts/demo/qsc_remote_handshake_smoke.sh:375` and `:388` invoke
+`receive … --mailbox "$proto_bob"` / `--mailbox "$proto_alice"`, where `proto_bob` is the *protocol
+identity label* `bob-${run_tag}`. **`--mailbox` is not a label. It is the relay route token, used
+verbatim.** `qsc/src/transport/mod.rs:257-263`:
+
+    let mailbox = match mailbox {
+        Some(raw) => normalize_route_token(raw.as_str()).map_err(|code| CliError::code(code))?,
+        None => relay_self_inbox_route_token().map_err(|code| CliError::code(code))?,
+    };
+
+There is no contacts lookup and no identity resolution on the `Some` arm. Meanwhile every sender
+addresses by the *contact's* route token — `qsc/src/lib.rs:1565` and `:1592` call
+`relay_peer_route_token(to)` (`qsc/src/contacts/mod.rs:70-81`), which reads what
+`contacts add --route-token` wrote. **The two strings differ, so the pull is addressed to a mailbox
+nothing has ever pushed to, the relay answers empty, and `receive` correctly reports `recv_none`.**
+
+**PROVEN BY HASH, NOT BY READING.** The `recv_start` marker publishes
+`route_token_hash8(mailbox)` = `hex(sha512(mailbox)[0..4])` (`qsc/src/contacts/mod.rs:5-9`) of the
+**resolved** value. Computed over the four candidates at the sealed run's `run_tag`, and
+independently recomputed by the Director at R335 §0. ⚠ **The concrete route tokens and the run tag
+are deliberately NOT reproduced here** — a route token is an addressing capability, this file is
+class-only per `AGENTS.md:121`, and the product itself redacts `mailbox=` in its own markers because
+they land in publicly-uploaded CI artifacts. The shapes below are the committed script's own
+(`:59-62`); the concrete values live in the sealed operator stop cited above and a reader with it can
+recompute every digit:
+
+    f4c89d20  <-  bob-<run_tag>                 == bob_recv.log   mailbox_hash  ✅
+    f9fa4170  <-  route_token_bob_<run_tag>        (absent from every log)
+    a53c4170  <-  alice-<run_tag>               == alice_recv.log mailbox_hash  ✅
+    f20f7f9f  <-  route_token_alice_<run_tag>      (absent from every log)
+
+⚠ **Compare all eight digits.** `a53c4170` and `f9fa4170` share the trailing `4170`; a four-digit
+comparison crosses the two candidates.
+
+**THE PULL RETURNED ZERO ITEMS — an exhaustive elimination, not an inference.** `recv_none` fires at
+`transport/mod.rs:428` only when `total == 0`, and the pull loop breaks at `:517-518` on
+`items.is_empty()`. **Every path an item can take emits a marker before it can be dropped:** a dedup
+skip emits `recv_dup_skipped` (`:527`), a successful unpack emits `qsp_unpack ok=true` (`:544`), a
+failed unpack emits `qsp_unpack ok=false` (`:1199`). The sealed `bob_recv.log` and `alice_recv.log`
+carry `recv_ack_mode` — emitted at `:349`, **before** the pull — then `recv_none`, **with nothing
+between them**, at rc 0. ⇒ the item loop never executed.
+
+**WHY NOTHING WENT RED.** `route_token_is_valid` (`qsc/src/adversarial/route.rs:21-28`) requires only
+a non-empty ASCII `[A-Za-z0-9_-]` string of length **22..=128**. Measured: `bob` (3 chars) is
+REFUSED with `QSC_ERR_ROUTE_TOKEN_INVALID`; the sealed run's `bob-${run_tag}` label measures
+**25 characters** and is ACCEPTED, passing through `normalize_route_token` unchanged. In CI the label
+is longer still, `run_tag` being
+`${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${scenario}-${seed}`. **The guard catches the toy case and
+misses every realistic one.** Then
+`transport/mod.rs:3056` maps HTTP 204 to `Ok(Vec::new())`, so **"this is not your mailbox" and "your
+mailbox is empty" are the same observable at the client.**
+
+**WHY THE HANDSHAKE COMPLETED WHILE DELIVERY DID NOT.** `handshake poll` resolves
+`relay_self_inbox_route_token()` and **has no `--mailbox` override at all**
+(`qsc/src/handshake/mod.rs:2422-2425`); `relay inbox-set --token` writes exactly the key that
+function reads (`qsc/src/main.rs:544` → `tui.relay.inbox_token`, read at
+`qsc/src/contacts/mod.rs:60-68`). **The one command that can be misaddressed is the one that was.**
+
+⚠ **THE SHAPE OF THE MISTAKE, worth more than the instance.** On a single script line, `--to` and
+`--from` take a peer **LABEL** (resolved through contacts) while `--mailbox` takes a raw **ROUTE
+TOKEN** (used as-is). `send --to "$proto_bob"` is correct; `receive --mailbox "$proto_bob"` is not.
+**Two argument namespaces that look identical, adjacent, with no type distinction and no error.**
+
+**THE CONSUMER CENSUS, which is why this is filed as a fixture defect and not a product defect.**
+Measured at `5201c275`: **99 `--mailbox` call sites across 40 test files**, and every site that
+reaches a pull passes a route-token-shaped value (`ROUTE_TOKEN_BOB` is literally
+`"route_token_bob_abcdefghijklmnopqr"`). `tests/receive_e2e.rs` asserts `event=recv_commit` at
+`:257`, `:311`, `:487` and `qsp_unpack ok=true` at `:486`, `:528` **through** `--mailbox`. The single
+bare-label site, `tests/unlock_gate.rs:170`, is a locked-vault negative control asserting
+`code=vault_locked` — it refuses before addressing anything. ⇒ **`qsc_remote_handshake_smoke.sh` is
+the ONLY consumer in the entire tree that passes an identity label to `--mailbox`.** The contract is
+settled and green-tested; one fixture is wrong about it.
+
+### ⚠⚠ WHAT THIS ENTRY DOES **NOT** ESTABLISH — ordered recorded at R335 §5
+
+This suite's history is **four causes, each hiding the next**; this is the fifth. **Nothing entitles
+a reader to assume it is the last.** Two threads are open and neither is answered:
+
+- ⚠ **(a) THE USER MESSAGES' FATE IS UNESTABLISHED.** Both sends returned HTTP 200 with
+  `send_commit send_seq=1`, so both were pushed to the route-token mailboxes. The diagnostic pull of
+  those mailboxes returned "exactly 1 item" each — **and a max-limited pull is not a mailbox
+  census.** What is established is that **at least one handshake frame was present**. It is **NOT**
+  established that the user payloads are present, and **NOT** established that they are absent.
+  ⚠ Do not write "the user messages are sitting in the mailbox", and do not write that they are lost.
+- ⚠ **(b) WHY IS THE A1 HANDSHAKE FRAME STILL IN BOB'S MAILBOX AT ALL?** The handshake completed on
+  both sides — four messages, `handshake_complete` on each — yet the retained item measures **4279 B**,
+  matching `event=handshake_send msg=A1 size=4279` exactly (alice's retained item measures **6436 B**,
+  matching `msg=B1 size=6436`). Lease-without-ack, dedup-on-redelivery, and
+  consumption-leaves-the-item are all candidate explanations. ⚠ **NO MECHANISM IS INVENTED HERE**
+  (WF-0080's precedent: record the observation, refuse the invented cause). Open observation.
+
+**Cross-references.** **ENG-0134** and **ENG-0142** — both REFUTED as candidates for this defect at
+R335 §1, see the note added to each. **ENG-0191** — fails first, at `:351`, so it must clear before
+this defect can even be reached by a run. **ENG-0189** — the same family: a smoke fixture that
+mis-provisions the client and fails closed in silence. **WF-0086** — why no gate could see this.
+**ENG-0193** — why no artifact could show it.
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0736 (D-1371). Last-updated: 2026-08-15.
+
+### ENG-0193 — the relay boundary is instrumented on the SEND half and MUTE on the RECEIVE half: `relay_push_diagnostic` 28 occurrences, `relay_pull_diagnostic` ZERO tree-wide — **NEW; filed 2026-08-15 by NA-0736 (D-1371; observed at STOP 001 §8 obs 1, re-measured by the Director, ORDERED SPLIT INTO ITS OWN FILING at R335 §3(b))**
+
+- Severity: **P2** — a **diagnosability** defect, not a functional one: nothing misbehaves because of
+  it. It is filed at P2 rather than lower on the Director's stated ground that *"a gate tells you
+  THAT it broke; instrumentation tells you WHY"*, and that **the 187-day blindness is a direct
+  consequence of this asymmetry, not of the missing gate** (R335 §3(b)).
+- Status: open — **FILING ONLY.** ⚠ **Instrumenting the pull path is an edit to the receive region
+  and remains a STOP**; this entry deliberately proposes no patch.
+
+**MEASURED at `5201c275`, by the lane and independently by the Director:** `relay_push_diagnostic`
+appears **28** times in `qsc/src/transport/mod.rs`; `relay_pull_diagnostic` appears **0** times
+**tree-wide**. The push marker carries status class, status code, error class, diagnostic class,
+timeout phase, response-body presence and length, route-header presence, auth presence, qsc error and
+attempt number — e.g. `api=relay_push_v1 status_class=2xx status_code=200 … route_header_present=true
+auth_present=true qsc_error=none attempt=1`. **The pull emits none of this.** Its entire observable
+surface is `recv_start` (which publishes an 8-hex hash of the mailbox and nothing else), an optional
+`recv_ack_mode`, and then either `recv_none` or `recv_commit`.
+
+⚠ **THE CONSEQUENCE, MEASURED RATHER THAN ARGUED.** ENG-0192 was found by *computing sha512 over four
+candidate strings and comparing the leading four bytes against a marker* — because that hash is the
+only thing the receive path publishes about where it looked. **A single `relay_pull_diagnostic`
+carrying what the push marker already carries would have named the defect on the first failing run in
+February.** Instead the mailbox mismatch was invisible for 187 days behind four other causes.
+
+⚠ **AND THE ASYMMETRY IS ITSELF THE ARGUMENT.** The two halves of one boundary, in one file, written
+to one relay, disagree about whether a failure should be legible. Nothing about the pull is harder to
+instrument than the push; `transport/mod.rs:3048-3062` already distinguishes 200 / 204 / 401 / 403 /
+400 / 413 / 429 / other, and discards all of it except the item vector.
+
+**Cross-references.** **ENG-0192** (found *despite* this entry, not with its help), **ENG-0190** (the
+sibling class: a failure whose cause never reaches the artifact), **WF-0086** (the coverage half of
+the same blindness — a gate and an instrument are different things and this program needs both).
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0736 (D-1371). Last-updated: 2026-08-15.
+
+### WF-0086 — `--mailbox` is well covered against an in-process test relay with the correct value type; what nothing covers is a REAL remote relay round trip, and the one consumer that gets the value wrong has never reached its own receive — **NEW; filed 2026-08-15 by NA-0736 (D-1371; STOP 002 §4's replaced text, confirmed at R335 §3(a))**
+
+- Type: workflow; Status: open — filed 2026-08-15 by NA-0736
+- ⚠ **THE FIRST FORM OF THIS FILING WAS WRONG AND IS RECORDED AS WRONG.** STOP 001 §6 asserted *"the
+  `--mailbox` override has ZERO green coverage anywhere in the tree."* **Measured, that is FALSE:**
+  40 test files, **99** call sites, with delivery assertions. The claim had been quantified over *the
+  tree* from a sweep of `scripts/demo/` and `.github/workflows/` alone — **an instrument narrower
+  than its claim (SR-21)**. The corrected finding below is narrower, better-aimed and stronger.
+- **Problem.** No CI job **asserts** that a message was received over a **real relay**.
+  **(i)** `.github/workflows/demo-packaging.yml:55` runs `scripts/demo/qsc_demo_local.sh`, whose two
+  receives at `:235` and `:241` end in **`|| true`** — the exit status is discarded — against a
+  loopback relay, and the script carries **0** golden comparisons, **0** `exit 1`, and **0**
+  assertions on `recv_commit` or `qsp_unpack`. ⚠ `demo-packaging.yml` is **55 lines**: that run is
+  the **last step in the file**, so nothing downstream compares anything. **The job is green iff the
+  script exits 0 within 60 s.**
+  **(ii)** `.github/workflows/remote-handshake-tests.yml` runs `qsc_remote_handshake_smoke.sh`, which
+  **does** carry the right assertions — `qsp_unpack ok=true` at `:395` and `:396` — but they sit
+  behind `:351`, unsatisfiable by construction since April (**ENG-0191**), and **have not executed in
+  187 days**.
+  **(iii)** `qsc_remote_relay_smoke.sh` (340 lines) never receives at all: the tokens `receive`,
+  `unpack` and `handshake` each appear **0** times in it.
+- ⚠⚠ **THE DECISIVE ASYMMETRY.** The receive that *is* exercised omits `--mailbox` and therefore takes
+  the correct self-inbox resolution; the only consumer that *supplies* `--mailbox` has never reached
+  its own receive. **So the override path has never once been observed green against a real relay** —
+  which is exactly how **ENG-0192** survived every gate.
+- ⚠ **The in-process suite cannot close this.** Its 99 sites all pass a correct route token to a test
+  server in the same process. Adding a 100th buys nothing: **a fixture that misaddresses a real
+  mailbox is not a thing an in-process test is positioned to catch.**
+- **Recommended change — NAMED AND DELIBERATELY NOT BUILT HERE** (R335 §3): a gate that fails when a
+  message is sent and not received, exercising a **REMOTE relay round trip end to end**.
+  ⚠ **A gate over this path is BORN RED while ENG-0192 and ENG-0191 are open.** Two questions are the
+  **OPERATOR's**, not a seat's, and must be answered before it is written: **(1)** does it ship
+  **REQUIRED or ADVISORY** while the defect is open? **(2)** **which addressing does it exercise?** —
+  a gate asserting delivery with `--mailbox` omitted would go green today and still not cover the
+  override that broke this run.
+- Cross-references: **ENG-0192** (the defect it could not see), **ENG-0193** (the instrumentation half
+  of the same blindness), **ENG-0191** (why (ii) never runs), **ENG-0190** (artifact legibility).
+- Status: open — **FILING ONLY**. Originating/last lane: NA-0736 (D-1371). Last-updated: 2026-08-15.

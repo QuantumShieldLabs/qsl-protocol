@@ -1,0 +1,167 @@
+name: main-red-sentinel
+
+# WF-0074 tranche 1, item B — ruled at R314.2, REDUCED at R318. A SIGNAL, NEVER A GATE.
+#
+# WHY IT EXISTS. Main's health was announced only through GitHub's own notification
+# stream, and that stream is 90% green: measured over 21h55m, 250 notifications, ALL
+# of reason ci_activity, 226 "succeeded" against 11 "failed" — a failure is 1 item in
+# 22. Five macos-qsc-full-serial failures over seven days were announced exactly that
+# way and nobody saw them (WF-0074), and the same measurement found remote-handshake-
+# tests and remote-relay-tests red on 60 of 60 consecutive runs each. This workflow
+# converts "one more green-looking notification" into ONE open issue that persists
+# until a HUMAN closes it.
+#
+# ⚠ IT NEVER CLOSES AN ISSUE ITSELF — RULED DESIGN (R318.1), not an omission to fix.
+# An auto-close arm, replayed against this lane's own occasion, opened five issues and
+# closed all five within hours, EVERY closing run a docs-only merge that ran ZERO macOS
+# tests: the seven-day episode would have ended with an empty tracker and dedup never
+# once engaging. 64% of merges to main are docs-only.
+#
+# IT GATES NOTHING, BY CONSTRUCTION. It runs on workflow_run completion, so it cannot
+# be a required check and cannot block a PR; it never calls `set -e`; and every failure
+# path exits 0 after saying loudly what it could not do. A signal that can break the
+# build is a gate wearing a signal's name.
+#
+# DE-DUPLICATION IS MANDATORY (R314.2), and this is the clause that earns it: without
+# it the 120 nightly failures above would have opened 120 issues — the same drowning
+# failure in a new costume. There is AT MOST ONE open issue per watched workflow. The
+# first failure opens it; every later failure COMMENTS on it.
+# ⚠ Keyed on the IMMUTABLE body MARKER plus the `ci-red` label, never the title, which
+# anyone with triage can edit — orphaning it (R318.3). The MATCHING set is counted.
+# ⚠ If the search that proves dedup cannot be run, this workflow records NOTHING
+# rather than risk a duplicate — it fails closed on the property it exists to hold.
+#
+# ⚠ ONLY THIS REPOSITORY'S OWN RUNS COUNT (R318.2). `head_branch` names the HEAD REF,
+# not the base, and a fork's default branch is also `main` — hence head_repository below.
+#
+# PERMISSIONS BLAST RADIUS, stated because it is a widening (R314.2). `issues: write`
+# lets THIS workflow's token create, comment on and label issues in THIS repository,
+# for the duration of THIS workflow's run, and nothing else. No other workflow's
+# permissions change; every other workflow in this repo stays `contents: read`.
+#
+# ⚠ THE REPOSITORY IS PUBLIC (measured: visibility "public"), so every issue this
+# workflow opens is PUBLIC. It therefore emits ONLY facts that are already public on
+# the Actions tab — workflow name, conclusion, commit sha, run URL — and never an
+# operator path, hostname, address, secret name or log excerpt. Widening what this
+# body prints is a PUBLIC-DISCLOSURE DECISION requiring a Director ruling, never a
+# formatting change — and that is now held by a GATE, not by this comment (R319):
+# `scripts/ci/sentinel_body_selftest.py` renders the body below from fixtures and runs
+# infra-literal-scan's own needles over it. Widen the body and that test refuses you.
+#
+# ⚠ CANCELLED AND SKIPPED ARE NOT HEALTH SIGNALS. D-1360's D2 measured a concurrency
+# cancellation reading as an immediate red unrelated to test health; treating one as a
+# failure would teach the reader to disbelieve this issue, which is the whole cost this
+# lane is trying to avoid. Only `failure` and `timed_out` are red here.
+
+on:
+  workflow_run:
+    workflows:
+      - public-ci
+      - qsc-sharded-suite
+      - macos-qsc-sharded-suite
+      - macos-build
+      - qshield-ci
+      - formal-ci
+      - suite2-ci
+      - qsc-adversarial
+      - demo-packaging
+      - infra-literal-scan
+      - remote-handshake-tests
+      - remote-relay-tests
+    types: [completed]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sentinel:
+    name: main-red-sentinel
+    if: github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Open, update or close the standing issue for this workflow's health on main
+        shell: bash
+        env:
+          # Every workflow_run field is passed through the environment, never
+          # interpolated into the script body: a `${{ }}` expansion inside `run:` is a
+          # script-injection surface, and a workflow name is attacker-influenceable on
+          # a public repo.
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          WF_NAME: ${{ github.event.workflow_run.name }}
+          WF_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          WF_URL: ${{ github.event.workflow_run.html_url }}
+          WF_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          # No `set -e`: this step must never fail, because failing would make a signal
+          # into a gate. Errors are handled explicitly and always exit 0.
+          set -uo pipefail
+
+          case "$WF_CONCLUSION" in
+            failure|timed_out) STATE=red ;;
+            success)           STATE=green ;;
+            *)
+              echo "scope examined: conclusion '${WF_CONCLUSION}' is not a health signal; nothing to do"
+              exit 0
+              ;;
+          esac
+
+          TITLE="CI RED: ${WF_NAME} on main"
+          # The dedup key: invisible when rendered, and it survives a retitle (R318.3).
+          MARKER="<!-- main-red-sentinel:watch=${WF_NAME} -->"
+
+          # The dedup search runs BARE and its own exit status is read — never through a
+          # pipe, which would report the pipe's status and hide a failed search.
+          if ! gh issue list --repo "$REPO" --state open --limit 200 \
+                 --json number,body > open_issues.json; then
+            echo "WARN: could not list open issues, so DE-DUPLICATION CANNOT BE PROVEN."
+            echo "      Recording nothing: opening an issue blind is how a de-duplicating"
+            echo "      sentinel turns into the duplicate flood it exists to prevent."
+            exit 0
+          fi
+
+          # `--arg` binds the marker as DATA, so a workflow name can never be read as jq
+          # program text. Same reason the workflow_run fields are passed via `env:`.
+          EXISTING="$(jq -r --arg m "$MARKER" '[.[] | select((.body // "") | contains($m))] | .[0].number // ""' open_issues.json)"
+          MATCH_COUNT="$(jq -r --arg m "$MARKER" '[.[] | select((.body // "") | contains($m))] | length' open_issues.json)"
+
+          echo "scope examined: workflow='${WF_NAME}' conclusion='${WF_CONCLUSION}' state=${STATE} matching_open_issues=${MATCH_COUNT} existing='${EXISTING:-none}'"
+
+          if [ "$STATE" = "red" ]; then
+            # >>> BODY RENDER — extracted verbatim and executed against fixtures by
+            # >>> scripts/ci/sentinel_body_selftest.py (R319). Keep both marker lines.
+            BODY="$(printf '%s\n\n%s\n\n%s\n%s\n%s\n\n%s\n\n%s\n' \
+              "\`${WF_NAME}\` concluded \`${WF_CONCLUSION}\` on \`main\`." \
+              "- commit: \`${WF_SHA}\`" \
+              "- run: ${WF_URL}" \
+              "" \
+              "Read the run log for the cause. A step's NAME states its purpose, not its failure reason." \
+              "Opened by \`main-red-sentinel\` (WF-0074 tranche 1). This issue is UPDATED, never duplicated: every later failure of this workflow on main comments here. ⚠ It is NEVER closed automatically — a human closes it after looking (R318.1). It gates nothing." \
+              "${MARKER}")"
+            # <<< BODY RENDER
+
+            if [ -n "$EXISTING" ]; then
+              if gh issue comment "$EXISTING" --repo "$REPO" --body "$BODY"; then
+                echo "UPDATED existing issue #${EXISTING} (de-duplication arm)"
+              else
+                echo "WARN: could not comment on #${EXISTING}; nothing recorded"
+              fi
+            else
+              # `--label` is resolved before the create and fails it if missing, and
+              # `ci-red` does not exist in this repo yet: ensure it in repo truth rather
+              # than as an invisible setting, so it also self-heals if deleted.
+              gh label create ci-red --repo "$REPO" --color B60205 --force \
+                   --description "Main is red; opened by main-red-sentinel" \
+                || echo "WARN: could not ensure the ci-red label exists"
+              if gh issue create --repo "$REPO" --title "$TITLE" --body "$BODY" --label ci-red; then
+                echo "OPENED a new sentinel issue (first-failure arm)"
+              else
+                echo "WARN: could not create the issue; nothing recorded"
+              fi
+            fi
+            exit 0
+          fi
+
+          exit 0

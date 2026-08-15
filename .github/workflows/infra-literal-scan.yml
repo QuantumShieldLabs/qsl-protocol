@@ -64,3 +64,11 @@ jobs:
         run: |
           git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
           python3 scripts/ci/infra_literal_scan.py --mode diff --base "origin/${{ github.base_ref }}"
+      # WF-0074 tranche 1 item B / R319. `main-red-sentinel` writes text to a PUBLIC
+      # issue tracker and nothing examined that text: this workflow scans repo FILES,
+      # never runtime-generated issue bodies, and that hole sits exactly where the new
+      # capability lands. The step below renders the sentinel's body from fixtures --
+      # adversarial ones included -- and runs the needles above over the result, so
+      # what the body omits is held by a gate instead of by a comment.
+      - name: main-red-sentinel body gate (rendered issue text, R319)
+        run: python3 scripts/ci/sentinel_body_selftest.py

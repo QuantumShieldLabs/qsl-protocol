@@ -40418,3 +40418,183 @@ instrument could return a hit. All five id spaces swept. STATE advanced 0727/136
 seven files — one workflow (`.github/workflows/macos-build.yml`, operator-applied), two spine
 documents, and the four records — **zero product source bytes**, no dependency change, no test
 weakened, skipped or deleted, and **no `public-ci.yml`**. The operator merges; the seat does not.
+
+## D-1365 — NA-0729: WF-0074 TRANCHE 1, ITEM B, REDUCED — the sentinel lands without the arm that would have erased its own alarm, and the text it publishes to the world gets the gate nothing had
+
+**Status:** Accepted (ordered at **R318**, which refused the frozen block on the SR-15 cold read's
+measurements and authorized the reduced form; **R319**, which orders the missing gate as new and
+non-optional work; **R320**, the disclosure record; **R321**, the seating recipe; and **R322**, which VACATED R318's line-count bound as the Director's own error and created the post-merge first-firing obligation). **Lane:** NA-0729.
+**Directive:** `QSL-DIR-2026-08-14-656` (sha256
+`f513a6be6e58caf8007b5b5339ebac6de26cad6f929d646c744fdaf530ec1f9b`, 575 lines) **as amended by
+AMENDMENT A1** (`b2f95c2cc36adec44e3ad2713ffc9db3b1d2356ca0cda79fc853322057ceb0b2`, 320 lines),
+**AMENDMENT A2** (`37ef259ee3a38a05aeb976cf774046c0ea940eefd02cdea59ce8771f1df9d89b`, 162 lines)
+**and AMENDMENT A3**
+(`64c69fdc974e51f25e94a4d2897b61b94a77a4b59a7b89ce7a2890c448bda0ae`, 369 lines, formalizing
+R318–R321 and, at its §A3.10 addendum, R322 — the carried 255-line prefix byte-identical to the
+pre-addendum file, `cmp` rc 0) — **precedence A3 > A2 > A1 > base**, every earlier file byte-frozen and never
+rewritten; each amendment NAMES the clauses it supersedes rather than editing them.
+**Base:** spine `769ee8b4` (the #1743 promotion merge). **Source finding:** **WF-0074**, second half.
+⚠ **This record carries no `**Class:**` field.** Declaring a result class is a Director act
+(R297.3 / R303.2), so the class is **OWED** and lands on the NEXT promotion's DONE line.
+
+**The read that governs it.** `SR15_ITEMB_FINDINGS.md`, sha256
+`7c1614b3ba6e8e33e14bc2cd615b7d919c0fd0e09d7e690f6c71ae978eaee84e`, 504 lines — an SR-15
+adversarial cold read ordered at R315.2 **by Director's discretion, not by any trigger**, all three
+mechanical triggers measuring negative. It returned **2 BLOCKER, 4 MAJOR, 2 MINOR, 4 NOTE**, plus
+one verified negative and one provenance correction, and answered its own central question **NO —
+not these bytes**, while ratifying the capability class and the drafting quality. R318 adopted
+exactly its three changes.
+
+### ⚠ THE DISCLOSURE PROPERTY, RECORDED VERBATIM AS R320 DIRECTS
+
+> item B's output is the first text in this program published automatically to a public surface
+> with no gate between the program and the world; the body carries only the four named fields, and
+> widening it is a PUBLIC-DISCLOSURE DECISION requiring a Director ruling, never a formatting
+> change.
+
+The workflow's own header comment states the same constraint and now **cites the gate below by
+path**, so the next editor meets the rule and the instrument that enforces it in one paragraph.
+
+### What was refused, and why each refusal is a measurement rather than a preference
+
+**1. The recovery arm is DELETED (`:141-150` of the frozen block).** Base §6.2's own word was
+*"closable"*, never *"self-closing"* — a human closes it. Replayed against this lane's own occasion,
+the arm opens five issues and closes all five within **1h37m–19h50m**, and **every one of the five
+closing runs is a docs-only merge that executed ZERO macOS tests.** Verified two independent ways:
+each closing commit's changed paths fall entirely inside `scripts/ci/classify_ci_scope.sh`'s docs
+allowlist, and `.github/workflows/macos-build.yml:63-99` guards every test step on
+`needs.classify.outputs.docs_only != 'true'`, so the job concludes `success` having run nothing.
+⇒ the seven-day red episode would have ended with an **empty tracker**, and the de-duplication
+arm — the ruled property of R314.2 — would **never once have engaged**. **64%** of recent
+first-parent merges to main are docs-only. **The alarm would have been erased by the very
+laundering base §5.4 had already named**, in the lane built to end exactly that.
+
+**2. The branch guard is TYPED.** `github.event.workflow_run.head_branch == 'main'` tests **what the
+head ref is named**, not what it is: for every `pull_request` and `pull_request_target` run the field
+carries the **source** branch, and **a fork's default branch is also called `main`** — the most
+ordinary drive-by shape there is. Ten of the twelve watched workflows run on `pull_request` and
+`public-ci` runs on `pull_request_target`, the fork-reachable trigger. The consequence that decides
+it is not the false alarm but the **suppression**: a *passing* fork run would have closed a genuine
+standing alarm. `head_repository.full_name == github.repository` closes both halves in **one
+condition**. `workflow_run.event` was deliberately **not** additionally constrained: it would
+discard `workflow_dispatch` reds on main, which are real, and the narrower condition already
+suffices.
+
+**3. De-duplication is re-keyed onto something immutable.** The frozen block keyed on the exact
+issue title, which **anyone with triage on a public repo can edit** — including the operator tidying
+the tracker — silently orphaning the standing issue so the next failure opens a second one, with
+nothing able to detect it because the printed counter was `length` of *all* open issues. The key is
+now an **HTML-comment marker in the body** plus the **`ci-red` label base ANNEX B originally
+specified**, and the **matching set** is counted, so a duplicate is visible in the log instead of
+permanent and invisible.
+
+### What R319 builds, and why it is the part that outlives everyone
+
+The read's central question — *which existing gate would catch operator infrastructure reaching a
+public issue?* — answered **NONE**, and stayed None after all three fixes, because
+`infra-literal-scan` examines repo **files** and nothing in the program examines runtime-generated
+issue bodies. The only control on the body was a comment.
+
+**`scripts/ci/sentinel_body_selftest.py`** replaces that comment with a gate, wired in by one step
+appended to `.github/workflows/infra-literal-scan.yml`. Two properties make it worth the file:
+
+- **It executes the template; it does not model it.** The body-building bytes are extracted from
+  `main-red-sentinel.yml` between two anchor comments and run under `bash` with fixture values in
+  the environment. A gate that re-implemented the `printf` in Python would drift from the workflow
+  silently and pass while the real body leaked.
+- **The needles are `infra-literal-scan`'s own.** `_scan_line(line, tier1=True, tier2b=True)` is
+  imported from `scripts/ci/infra_literal_scan.py`, so the two gates can never disagree about what
+  an operator literal is, and a class added there is enforced here for free.
+
+**It was watched RED before it was watched GREEN**, decisive combination sealed in advance, 5/5:
+the body template widened with a log tail carrying a CGNAT literal — *"it should say WHY it
+failed"*, the single most obvious feature request this issue will attract — is **refused, exit 1,
+class named**; the real template passes **exit 0, 26 checks, 0 failed**; deleting the anchors and
+deleting the `MARKER=` assignment each return **exit 2, `NOTHING EXAMINED`**, keeping *the instrument
+is broken* distinguishable from *a literal was found*; and with the sentinel workflow absent
+altogether it refuses the same way rather than raising a traceback that would read as a broken
+test rather than a missing subject. Coverage places one literal class in **each
+of the four body fields**, exercises all **12** watched workflows with the watch list **parsed from
+the workflow file** rather than retyped, and adds seven adversarial fixtures. ⚠ The body carries no
+branch, log, actor or job name, so R319's *"hostile branch names"* and *"empty log"* are applied to
+the fields that **exist** — stated rather than quietly narrowed.
+
+### ⚠ A measured collision inside the ruling, and the arithmetic it did not count
+
+**The `ci-red` label does not exist in this repository** (measured: the nine GitHub defaults and
+nothing else), and `gh issue create --label` resolves the label before creating and **fails the
+whole create** if it is missing. Applied literally, R318.3 would have made the sentinel's first real
+red **record nothing at all**. The create arm therefore ensures the label idempotently before using
+it — keeping the precondition **in repo truth** rather than in an invisible repo setting that would
+vanish on deletion with no trace, which is A1 §A1.2's own substrate rule applied to this lane's file.
+
+**R318's "ten lines fewer" measures false, and is named rather than laundered.** The reduced block is
+**167 lines against the frozen 151** — but the **executable delta is −5** (13 added, 18 removed) and
+the entire **+16 is commentary**. The figure originates in the read's §5 sentence, which counted
+changes 1 and 2 and did **not** count change 3's re-keying, R319's two extraction anchors, or R320's
+mandated header citation. Every line outside the three ordered changes is **byte-identical to the
+frozen, already-reviewed block**: no prose was rewritten to buy line budget, because that would
+itself have been a change beyond the three. The property the ruling names — **strictly less
+surface** — holds and is measured: arms 3 → 2, the automatic-suppression capability removed
+entirely, fork runs excluded, the dedup key made immutable, and duplicate state made visible.
+
+### A provenance correction to this directive's own earlier text
+
+A1 §A1.7 and A2 §A2.2 both supported *"it gates nothing"* with the claim that **a `workflow_run`
+workflow cannot be a required status check**. That is stronger than the evidence: such a job **does**
+mint a check run against `head_sha`, and nothing structurally forbids an admin adding that context
+to branch protection. **The conclusion stands; the stated reason was not the load-bearing one.** The
+real protections are the three measured ones — `scripts/ci/public_safety_gate.py:1398`
+`wait_for_required_checks` iterates only its explicit list and never enumerates a commit's check
+runs; that list is the static pair `qsc-sharded-suite` / `macos-qsc-sharded-suite`; and main's
+required contexts are unchanged at **15** with no sentinel name among them. Recorded because a
+successor relying on the structural claim would believe a guarantee that is not there.
+
+### R322: the Director's two rows, a named property, and the obligation this record leaves open
+
+**R322.1 VACATED R318's line-count bound as the Director's own error**, and the vacatur is recorded
+here rather than quietly dropped. R318 lifted *"ten lines fewer"* from the read's §5 sentence —
+which measured changes 1 and 2 — and made it binding (*"any growth beyond that is a STOP"*)
+**without re-deriving it against change 3's re-keying, R319's anchors, or R320's own mandated header
+citation, all ordered in the same act.** The measured decomposition governs: **executable −5,
+commentary +21.** ⚠ **No further trim was ordered and the commentary stays**, because reaching 141
+required deleting the *"do not re-add auto-close"* warning — the only thing standing between a
+future editor and BLOCKER-1's return. **Director row, in the same idiom this lane uses for its own
+errors:** *a figure adopted from another document and bound as a constraint without measuring it
+against the constraints imposed in the same act* — SR-21's shape (an instrument's scope must equal
+its claim's scope) applied to a ruling rather than to a grep.
+
+**R322.2 ratified the label resolution and produced the second Director row**, which is this
+program's own sealed-consumer lesson turned around: **a label was ordered used without executing the
+consumer that would use it.** *Execute the consumer, don't model it* (NA-0724) binds rulings exactly
+as it binds seats. Net effect on the token is a **reduction** — it gains `label-create` and loses
+`close`.
+
+**R322.3 promoted a decline into a property.** Refusing MAJOR-3's body line because it would widen
+the body in the same act that declares widening a public-disclosure decision is recorded as:
+
+> **an act must not violate the rule it is landing.**
+
+**⚠ R322.4 CREATES G24 AND THIS LANE IS NOT CLOSED UNTIL IT IS REPORTED.** Item B cannot execute on
+its own PR, so its firing behaviour is unproven in situ. **After merge, the first real firing must
+be observed and reported**: the issue opened, the `ci-red` label applied, the body matching the
+template, dedup engaging on a second failure of the **same** workflow, and **no auto-close**.
+The trigger set, measured rather than assumed: `remote-relay-tests` and `remote-handshake-tests`
+are **both watched**, both `schedule`-driven on `main` so both satisfy the typed guard, and both are
+**effectively certain to be red** (120 consecutive failures; the five most recent runs of each are
+`failure`). ⚠ **Their cron is 03:00 / 03:20 UTC but their measured start times over the last five
+nights are 04:09–04:43Z and 04:39–05:04Z** — a consistent ≈1h40m Actions delivery lag, so the
+honest first-firing window is **≈04:10–05:05 UTC**. ⚠ **Two different workflows failing is not a
+dedup test**: it proves arm (i) twice and yields two separate issues, one per watched workflow, which
+is the correct behaviour. **Arm (ii) needs the same workflow failing twice**, i.e. the following
+night — so G24 is a **two-night** observation and must not be declared complete after one.
+
+### What this record does NOT claim
+
+G9's arms are **not** watched here. A `workflow_run` workflow always executes the **default
+branch's** copy, so item B **cannot run on its own PR**: its first execution is necessarily on main,
+after merge. There is no advisory period available for this half — which is precisely the argument
+for landing the conservative form. G9 is also **reduced to two arms**, its third describing a
+recovery arm that no longer exists. The two nightly workflows red on 120 consecutive runs remain the
+free real red on which arms (i) and (ii) can be watched without seeding anything, and **ENG-0188's
+remedy is still a successor's**.

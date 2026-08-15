@@ -41895,3 +41895,276 @@ made the record self-contradicting. It is landed here because that constraint ha
   stated copy-ready in the lane's stop instead of being attempted.
 - ⚠ **The result class is OFFERED, never declared** — a candidate is carried in the stop and none is
   declared here. **The operator merges; the seat does not.**
+
+## D-1370 — NA-0734: THE ENG-0189 CLOSE-OUT — the fixture repair is proven in CI, the suite is still red for a FOURTH and OLDER cause which is filed and deliberately not repaired, and the three rulings that closed this Director's tenure become repo truth
+
+**Status:** Accepted (ordered by **R332** and **R333**, the closing rulings of ENG-0189's lane and
+the last of this Director's tenure).
+**Lane:** NA-0734. **Base:** main `ea5bb95f`, verified UNMOVED by `git ls-remote` against the
+**NAMED** GitHub remote, run **BARE and UNPIPED**, rc 0, exactly one line; the open-PR set was
+re-derived and **measured EMPTY**. **Ids re-derived at the edit** per WF-0068, regex-shaped per
+WF-0072, every space swept: `NA-0733 / D-1369 / WF-0085 / ENG-0190 / SR-24` ⇒ this lane takes
+**NA-0734**, **D-1370** and **ENG-0191**, and **mints no WF and no SR**.
+⚠ **This record carries no `**Class:**` field.** Declaring a result class is a Director act, so the
+class is **OWED** and lands on the NEXT promotion's DONE line.
+
+### ⛳ THE OUTCOME IN ONE PLACE — for a reader who has just met a suite that is still red
+
+**`remote-handshake-tests` is still failing. The repair NA-0733 shipped did not fail — it worked,
+and CI proves it.** Anyone reading only the red check will draw the wrong conclusion, so the
+evidence is stated here rather than left to inference.
+
+| measured, pre-fix `04affcc9` vs post-fix `ea5bb95f` | before | after |
+|---|---|---|
+| `peer_identity_key_missing`, job log | 0 *(hidden — see ENG-0190)* | **0** *(genuinely absent)* |
+| `peer_identity_key_missing`, artifact | **4** | **0** |
+| `event=handshake_reject` | 1 | **0** |
+| `event=error` | 1 | **0** |
+| `$out/markers` lines | 20 | **50** |
+| artifact bytes | 16922 | **25022** |
+| the four-message handshake | died at `hs_init` | **completes both sides** |
+
+⚠ **The single most direct piece of evidence is `resp_kem_ct_len=1088` on message A1**: that
+ciphertext exists **only because the initiator had the peer's identity KEM key to encapsulate to** —
+the exact absence that raised `peer_identity_key_missing` for 35 days. **R333.1 rules the lane a
+success on that ground, and the result class `HANDSHAKE_FIXTURE_IDENTITY_KEYS_PASS` stands.**
+
+### ⚠⚠ THE FOUR-CAUSE TIMELINE, IN ONE PLACE — and the fourth is the OLDEST
+
+The 187-day outage was never one failure repeated. It is **four** distinct causes, and each repair
+was necessary and none was sufficient:
+
+| # | cause | live from | discharged by |
+|---|---|---|---|
+| — | **last GREEN run** | **2026-02-09** | — |
+| **4** | **`status=established` asserted before any message is received — UNREACHABLE BY CONSTRUCTION** | **2026-02-27 / 2026-04-05** (`c9ce4b4e`, `a5f235b3`) | ⚠ **OPEN — filed as ENG-0191 by this record** |
+| 1 | `contacts_store_invalid` | ~May 2026 | superseded |
+| 2 | `dns_timeout` | → 2026-08-14T04:40Z | superseded |
+| 3 | `relay_tls_untrusted` | 2026-08-15T03:28Z | **NA-0730 / D-1366** (the relay CA + preflight) |
+| — | `peer_identity_key_missing` (**ENG-0189**) | **2026-07-11** (`eaf39aa4`) | **NA-0733 / D-1369**, proven in CI above |
+
+⚠⚠ **Cause 4 pre-dates every other cause and post-dates the last green**, so it has been
+unsatisfiable since **April at the latest** while three later causes and ENG-0189 stacked on top of
+it. It could not be observed until a run got past all four — which is precisely the risk R325
+recorded when it wrote that *whether a fourth cause waits behind the third is unknown until a run
+gets past TLS*. **One did.**
+
+### PART 1 — ENG-0191, the fourth cause: FILED, NOT REPAIRED
+
+`hs_status_truth` (`qsl/qsl-client/qsc/src/handshake/mod.rs:1302-1310`) returns `established` **only
+when `st.recv.nr != 0`** — after a message has been *received*. The smoke script asserts
+`event=handshake_status status=established` at `scripts/demo/qsc_remote_handshake_smoke.sh:351`,
+**before it sends any payload**. ⇒ **unreachable by construction**, which is a stronger and
+different claim than "not observed" and was available only by reading the FUNCTION rather than
+repeating the RUN.
+
+⚠ **The precision that explains why 187 days of artifacts never pointed here:** `:351` and `:352`
+share the identical needle, matched as a substring, and **`status=established` is a PREFIX of
+`status=established_recv_only`** — so bob's assertion **passes** and only alice's can fail. The log
+therefore names only alice, and a reader could wrongly conclude the defect is one-sided.
+
+⚠ **The full filing lives in `docs/ops/IMPROVEMENT_LEDGER.md` under ENG-0191**, with both peers'
+measured status values, the attributing commits, the timeline, and — per R333.2 — **the design
+question stated and deliberately NOT answered**: whether the script should assert a status that is
+true at that point, or send first and then assert, *because one of those changes what the test
+proves*. **No repair was designed. Both readings — stale fixture and product gap — are left live.**
+
+### PART 2 — the two closing rulings, banked verbatim from their sources
+
+Each fence below **is the whole file** named beside it, which is the only shape a whole-file
+provenance sha can be checked against; each sha was re-verified at the moment of splicing. ⚠ **Each
+is landed UNALTERED** (R327.2): a banked ruling is never edited to agree with a later measurement,
+and corrections sit BESIDE the fence.
+
+**R332 — authorized the `public-safety` re-run against a three-condition test, filed the race,
+commended the 403 catch, and declared the result class** — `RBANK_ENG0189_001_R332_20260815.md`,
+sha256 `ca05c2080c74919cd5e45f65f235baec7010301ae3c27a86c1ab272ee7b4e549`, 63 lines,
+`END OF RULING R332` present ⇒ not truncated (SR-14). The fence below is that whole file.
+
+```
+# ENG-0189 / NA-0733 — DIRECTOR RULING R332 — 2026-08-15
+# Bank verbatim (444), then proceed. The operator has re-run public-safety and merged #1749.
+
+R332.1 — **THE RE-RUN IS AUTHORIZED AND IS NOT A BYPASS — and the distinguishing property is
+  stated mechanically so it cannot become a loophole.** The rule against re-running a failed
+  required check exists because re-running LAUNDERS A FINDING. This check made **no finding about
+  #1749**: its only failing assertion was `main sha=6f6b72e9 check=public-safety
+  status=in_progress` — a timestamp, not a judgment. **The test is not "does this failure feel
+  benign" — it is three MEASURABLE conditions, and all three are met here:**
+  (a) the failure's own log NAMES an external input; (b) that input's value has MEASURABLY changed
+  (main's public-safety completed `success` at 17:00:43Z, 2m27s after step 15 read it — Director-
+  verified: main's `public-ci` reads `passing` at 17:09Z); (c) the check RE-READS that input on
+  every execution (`check_main_public_safety` passes only on `completed`+`success`, source-verified).
+  **If any one were absent the answer would be no.** ⚠ Re-run ONLY the `public-safety` job —
+  option (b), an empty commit, adds a contentless commit to repo truth, and (c) close/reopen is a
+  state change disguised as a retry. ⚠ **Verify the re-run passes FOR THE RIGHT REASON**: step 15
+  must EXECUTE and return 0 against a `completed`/`success` main, read from the step list. A pass
+  by any other route is a finding, not a relief.
+  **Refusing to make this call yourself was correct** — *a reading that suits me needs more
+  evidence, not less* is exactly why granting it is safe.
+
+R332.2 — ⚠⚠ **THE RACE IS FILED, AS AN AMENDMENT — this is an AUTHORIZED addition to your edit
+  set, bounded to one amendment on the EXISTING entry, no new id.** Amend the ENG-0052 / ENG-0185
+  entry (ledger `:4138`, which already carries R282's redesign) with the **third measured
+  consequence**: main's `public-safety` is a polling job that waited **52m08s** on the macOS
+  shards, so **any `runtime_critical` or `workflow_security` PR opened inside that window hits step
+  15 against an UNSETTLED main and fails for a reason unrelated to itself.** Earlier lanes missed
+  it only by timing — #1748 merged 35 minutes before #1749 opened. ⚠ **State it as forward-facing:
+  Slice 4 will be runtime-class PR after runtime-class PR, so this will recur** — and it is
+  another argument for R282's redesign, not a new defect. No WF minted (WF-0029 precedent: the
+  finding exists; only the consequence is new).
+
+R332.3 — **THE 403 CATCH IS COMMENDED.** `ERROR: branch protection required checks do not include
+  public-safety` is FALSE as a standalone claim — `public-safety` IS among main's 15 required
+  contexts — and it fires only because a sibling 403 empties the list a membership test then runs
+  against. **You checked it rather than repeating it.** A successor reading that log line cold
+  would reasonably conclude the gate was misconfigured; record the explanation where they will
+  meet it. Same family as the `cert_not_trusted` echo catch two lanes ago: **reading rather than
+  counting, twice now, has prevented a confident wrong report.**
+
+R332.4 — **THE INVERTED CRITERION WAS HONOURED IN THE ONLY ORDER THAT PROVES ANYTHING** — the
+  suite was measured RED at `04affcc9`, *after* the CA preflight landed, BEFORE the edit was made.
+  Had it been green, no edit would have been made. That sequencing is the whole of R325.2's value
+  and it is now demonstrated rather than asserted.
+
+R332.5 — **THE `--kem-pk`-ALONE ANALYSIS IS THE LANE'S SHARPEST WORK.** Two independent checks fail
+  closed — the NA-0633/ENG-0038 C1 KEM-possession construction at `:1435` and the NA-0634/D571 B1
+  sig-pin at `:1843-1847` — so a KEM-only contact would have **MOVED the failure rather than fixed
+  it**, and the binary refuses `--sig-pk` without `--kem-pk` outright. Confirmed from the running
+  binary, not source alone. ⚠ And **generalising the extraction idiom rather than duplicating it**
+  — `extract_identity_fp` preserved byte-identical as a wrapper — is the order followed in spirit,
+  not just in letter.
+
+R332.6 — **RESULT CLASS: `HANDSHAKE_FIXTURE_IDENTITY_KEYS_PASS`.** Declared now so none is owed;
+  lands on the next promotion's DONE line per R313.2.
+
+AFTER THE MERGE: verify the dispatch against your sealed acceptance — preflight `reachable` · the
+suite **GREEN** · `peer_identity_key_missing` ABSENT from log AND artifact · **the drop-reorder step
+now EXECUTES** (its running at all is evidence the happy path passed). ⚠ Read from the LOG and the
+ARTIFACT with byte counts printed. ⚠ **#1745 stays OPEN — closing it is the operator's act.** Then
+STOP with the report; this is the last lane before the Director handoff and its record must be
+readable by someone with no memory of this conversation.
+END OF RULING R332 — if this line is missing, the paste is truncated; request a re-send.
+```
+
+**R333 — closed the lane as a success, ratified the fourth cause and ordered it filed, and recorded
+the Director's own sequencing error** — `RBANK_ENG0189_002_R333_20260815.md`, sha256
+`ea227cda4eaecb3dac95ace64672fa3a3fdd36a180b3a779e4fd187dd6275c9d`, 51 lines, `END OF RULING R333`
+present ⇒ not truncated (SR-14). The fence below is that whole file.
+
+```
+# ENG-0189 / NA-0733 — DIRECTOR RULING R333 — LANE CLOSED — 2026-08-15
+# ONE act: bank verbatim (444) AND write the lane's terminal stop recording it. Then done.
+
+R333.1 — **THE LANE CLOSES AS A SUCCESS, and the suite being red does not diminish it.** The
+  repair is PROVEN IN CI: the full four-message handshake completes, `event=handshake_reject` and
+  `event=error` both drop to **0**, and `resp_kem_ct_len=1088` on A1 exists **only because the
+  initiator had the peer's identity KEM key to encapsulate to** — the exact absence that raised
+  `peer_identity_key_missing` for 35 days. **2 of 4 sealed conditions met, and the 2 unmet are
+  attributable to a defect this lane did not ship and correctly refused to touch.** Result class
+  `HANDSHAKE_FIXTURE_IDENTITY_KEYS_PASS` (R332.6) stands.
+
+R333.2 — ⚠⚠ **THE FOURTH CAUSE IS RATIFIED AS MEASURED, AND ITS ATTRIBUTION IS THE DECISIVE
+  PART.** Director-verified at `ea5bb95f`: `hs_status_truth` returns `established` only when
+  `st.recv.nr != 0`, and the script asserts it at `:351` **before any payload is sent** ⇒
+  **UNREACHABLE BY CONSTRUCTION**, which is a stronger and different claim than "not observed" and
+  was available only because you read the FUNCTION rather than repeated the RUN.
+  ⚠ **The prefix detail is why 187 days of artifacts never pointed at it:** both `:351` and `:352`
+  use the identical needle `status=established`, which matches bob's `established_recv_only` as a
+  SUBSTRING — so bob passes, alice cannot, and the log names only alice.
+  ⚠⚠ **The timeline is the finding:** last green **2026-02-09**; `established_recv_only` landed
+  **2026-02-27**; `awaiting_peer_confirm` **2026-04-05**. **Both post-date the last green.** ⇒ this
+  assertion has been unsatisfiable since **April at the latest**, and the three later causes
+  (`contacts_store_invalid`, `dns_timeout`, `relay_tls_untrusted`) plus ENG-0189 stacked ON TOP of
+  an already-dead assertion. **This is cause four of four and it is the OLDEST.**
+  **FILE IT** (id at edit) with: the two peers' actual status values, the function and line, the
+  prefix-masking precision, both attributing commits, and the timeline against the last green.
+  ⚠ **FILING ONLY — do not repair it.** The remedy is a successor's and it carries a real design
+  question the filing must NOT pre-answer: whether the script should assert a status that is true
+  at that point, or send first and then assert — because one of those changes what the test proves.
+
+R333.3 — **#1745 STAYS OPEN AND IS NOW FACTUALLY CORRECT TO STAY OPEN.** ⚠ Record plainly that the
+  Director's sequencing expectation was WRONG: this lane was briefed as the one that would let
+  #1745 close, and it does not. The alarm is telling the truth about a suite that is still red for
+  a fourth, older reason. **Closing it is the operator's act and is not yet earned.**
+
+R333.4 — **R332.1's VERIFICATION IS ACCEPTED**: step 15 executed and returned 0 against a settled
+  main, read from the step list — the re-run passed FOR THE RIGHT REASON, which was the condition
+  of the authorization and not a formality.
+
+R333.5 — **THE UNPROMPTED ENG-0190 REFINEMENT IS COMMENDED AND SHARPENS THE FILING AGAIN: the
+  diagnosis defect is NOT UNIFORM.** Pre-fix, `peer_identity_key_missing` appeared 0 times in the
+  job log and 4 in the artifact — hidden. Carry whatever you measured about how THIS failure's
+  visibility differs, because a non-uniform defect is a materially different remedy problem than a
+  blanket redirection, and ENG-0190's successor would otherwise assume uniformity.
+
+R333.6 — ⚠ **THIS IS THE LAST LANE OF THIS DIRECTOR'S TENURE.** Your terminal stop is the final
+  artifact a successor will read from this arc. Make it self-contained for someone with **no
+  memory of this conversation**: what the lane fixed, what it proved, what it deliberately did not
+  touch, and the four-cause timeline in one place — because the next reader will meet a suite that
+  is still red and must not conclude the repair failed.
+END OF RULING R333 — if this line is missing, the paste is truncated; request a re-send.
+```
+
+### PART 3 — R333.3: the Director's sequencing expectation was WRONG, recorded plainly
+
+ENG-0189's lane was briefed as *"the lane that lets issue #1745 become closable by a human."*
+**It does not, and the brief was wrong to expect that** — not because the repair failed, but
+because a fourth and older cause sat behind it that nobody could see until a run got past the
+third. ⚠ **Issue #1745 stays OPEN and is now factually correct to stay open**: it says
+`CI RED: remote-handshake-tests on main`, and that is true. **The alarm is telling the truth about
+a suite that is still red for a reason this lane did not ship and correctly refused to touch.**
+Closing it is the operator's act and **is not yet earned**.
+
+⚠ Recorded here rather than softened, because R333.3 ordered it plainly and because the same
+pattern — *a repair correctly predicted to work, inside a brief that over-predicted its
+consequence* — is the kind of thing a successor should be able to find. **The property: proving a
+cause is discharged is not the same as proving an outcome is reached, and a brief that conflates
+them will be wrong exactly when the outage is layered.**
+
+### PART 4 — what else this record lands
+
+- **R332.2's amendment** to the ENG-0052 / ENG-0185 entry: the `public-safety` **race**, a third
+  measured consequence of an architecture R282 already proposed retiring — main's poll waited
+  **52m08s**, and #1749's step 15 read main **2m27s** before it settled. ⚠ **Forward-facing: Slice 4
+  is runtime-class PR after runtime-class PR, so this becomes the normal case.** No WF minted
+  (WF-0029 precedent). R332.1's three-condition re-run test is recorded there so it cannot become a
+  loophole.
+- **R332.3's explanation**, beside it: `ERROR: branch protection required checks do not include
+  public-safety` is **FALSE as a standalone claim** — `public-safety` IS among main's 15 required
+  contexts — and fires only because a sibling **HTTP 403** empties the list a membership test then
+  runs against. Recorded where a reader meets it.
+- **R333.5's refinement** to ENG-0190: ⚠⚠ **the diagnosis defect is NOT UNIFORM.** A failure through
+  a bare `run_qsc_step` emits **zero** log bytes; one through `assert_marker_present` **does** echo —
+  and the post-fix run is **the first time in over 35 days this suite's job log named its own
+  cause**, with no instrument changed. That narrows the remedy to exactly the silent class.
+- **ENG-0189 CLOSED**, with a correction made **in the open** rather than by rewriting: its
+  `- Resolution:` line had tied closure to *"the suite GREEN"*, a bar set before the fourth cause
+  was known. **This entry's defect is `peer_identity_key_missing`, and it is measurably gone.**
+- **`### NA-0733` retired** to the §4c DONE form against PR **#1749** merged **`ea5bb95f`**, read on
+  **`merged_at`**, with the class **`HANDSHAKE_FIXTURE_IDENTITY_KEYS_PASS`** (R332.6 / R313.2).
+
+### PART 5 — ⚠ THE DEPARTURE, DECLARED: this record exists at all
+
+R333's header reads *"ONE act: bank verbatim (444) AND write the lane's terminal stop recording it.
+Then done."* — which alone forbids a repo edit. **R333.2's body orders `FILE IT (id at edit)`**, a
+discipline that has no meaning except for a repo edit, and enumerates exactly the content to file.
+**Both cannot be followed literally.** The reading adopted, and its grounds: **R331's header said
+`No repo edit` explicitly when that was meant, and R333's does not**; `(id at edit)` addresses an
+editor; and the risk is asymmetric — **an unfiled fourth cause would exist only in a `/srv` record
+the successor Director cannot read, which is R331.1's exact failure committed knowingly at a tenure
+boundary, by the very arc that ruled such a thing a defect.** ⚠ **Reported, not smoothed.** The
+scope is bounded strictly to what R332 and R333 enumerate; **nothing was invented, no repair was
+designed, and no script, workflow or product file was touched.**
+
+### PART 6 — what this lane did NOT do
+
+- ⚠ **ENG-0191 is FILED and NOT REPAIRED**, and its design question is **stated and not answered**.
+- ⚠ **ENG-0190 is refined, not remedied**; the one-line cure remains a measurement.
+- ⚠ **Issue #1745 is NOT closed** (R333.3) — the operator's act, and not yet earned.
+- **#1749 is merged, untouched and not reopened.** `## D-1369` is not rewritten and **no fenced
+  ruling is edited**.
+- No standing rule minted, no new WF, no new SR, no `.github/**` file, no workflow, no schedule, no
+  dependency, no test weakened, skipped or deleted, and **zero product source bytes**.
+- ⚠ The result class for THIS lane is **OFFERED, not declared** — a Director act. **The operator
+  merges; the seat does not.**

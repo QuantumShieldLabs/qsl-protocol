@@ -132,3 +132,37 @@ fragment, a summary, another document, or memory, instead of measured at the mom
 Ten instances in ~30 hours by the chair whose recorded failure mode is exactly this. NONE reached
 main. What stopped them was seats measuring and the operator challenging — a structural property,
 not a personal one, and the single most valuable thing in this program.**
+
+<!-- NA-0733 (D-1369) — SR-16 ROW 11, 2026-08-15, ORDERED AT R331.1.
+⚠ LANDED BESIDE THE TEN ROWS ABOVE AND DELIBERATELY NOT INSIDE THEM. Lines 118-134 of this file
+are the Director's byte-verbatim block (extract sha256
+b42a23b2b9617e202c62801da763d8570275976d155ed3158664e8e0b74d301c, 17 lines, landed by D-1367);
+they were re-hashed UNCHANGED as a gate of this lane. Inserting a row into that table would have
+edited a landed byte-verbatim block and broken the digest D-1367's provenance sentence cites
+(R327.2: corrections sit BESIDE a fence, never inside it).
+⚠⚠ AND THE PLACEMENT IS NOT MERELY MECHANICAL, WHICH IS THE PART WORTH READING. The closing
+paragraph above names the pattern of the ten: "a claim adopted from a fragment, a summary, another
+document, or memory, instead of measured at the moment of assertion." THIS ROW IS NOT THAT. The
+claim was never wrong -- it was never DELIVERED. Folding it into a table whose own closing
+paragraph does not cover it would have made that paragraph false about its own contents, and would
+have quietly widened a pattern statement that is the transferable half of the block.
+⚠ Its sibling is R329.2's CORRECT FIGURE THAT EXPIRED, landed as B12 in ## D-1369. Together they
+are the two shapes this arc produced that the original ten do not contain: a TRANSPORT failure and
+a FRESHNESS failure. NEITHER IS A MEASUREMENT ERROR, and measuring at the moment of assertion
+prevents neither -- which is exactly why they are recorded as distinct shapes rather than as an
+eleventh instance of the same one.
+Composed at STOP_NA0732_004 §2, on the ground that a row about a ruling which existed only in a
+conversation must not itself be left only in a conversation. -->
+
+| # | the assertion | the measurement | the instrument that caught it |
+|---|---|---|---|
+| 11 | "R329 was issued, therefore R329 is ruled" | FALSE as a claim about repo truth — measured at `6f6b72e9`, `R329` appears **ZERO** times tree-wide, and `### NA-0731`'s DONE line still read `no class declared` two hours after issuance; the ruling reached no seat and no file | the Director's own re-measurement at R331.1 — **second instance for this chair**, after R287 was found by the SR-24 cold read as a dangling citation |
+
+**⚠ THE ROW ABOVE IS INDEPENDENTLY CONFIRMED, and the confirmation carries a distinction a sweep
+would otherwise get wrong.** Measured at `6f6b72e9` by the executing seat as well as by the
+Director, `R329`, `R330` AND `R331` each appear **ZERO** times tree-wide — but **only R329 is a
+defect.** R330 and R331 were issued *after* #1748 merged and were routed forward by R331.5, so
+their absence is by design; R329 was issued *before* #1748 existed and declared a result class it
+should have carried. ⇒ ***absence is not by itself evidence of a records failure; the discriminator
+is whether the ruling existed before an act that could have carried it.*** All three are landed by
+`## D-1369`, and `### NA-0731`'s DONE line now carries the class R329.1 ruled.

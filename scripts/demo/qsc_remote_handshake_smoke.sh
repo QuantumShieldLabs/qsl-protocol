@@ -279,16 +279,26 @@ run_required_qsc_step() {
   assert_marker_present "$expected_marker" "$log_file" "$msg"
 }
 
-extract_identity_fp() {
+# `identity rotate` prints three column-0 payload lines for the identity it just minted --
+# identity_fp=, identity_kem_pk=, identity_sig_pk= (qsc/src/lib.rs) -- so ONE extractor serves all
+# three: the key is a parameter, and the existing idiom is generalised rather than copied.
+# extract_identity_fp keeps its name, its signature and its message unchanged.
+extract_identity_field() {
   local log_file="$1"
   local actor="$2"
-  local fp=""
-  fp="$(sed -n -E 's/^identity_fp=([^[:space:]]+).*/\1/p' "$log_file" | tail -n1)"
-  if [ -z "$fp" ]; then
-    echo "identity fingerprint missing for $actor before relay interaction" >&2
+  local key="$3"
+  local what="$4"
+  local value=""
+  value="$(sed -n -E "s/^${key}=([^[:space:]]+).*/\1/p" "$log_file" | tail -n1)"
+  if [ -z "$value" ]; then
+    echo "$what missing for $actor before relay interaction" >&2
     exit 1
   fi
-  printf '%s\n' "$fp"
+  printf '%s\n' "$value"
+}
+
+extract_identity_fp() {
+  extract_identity_field "$1" "$2" identity_fp "identity fingerprint"
 }
 
 # initialize secure stores and clear stale outboxes
@@ -304,12 +314,24 @@ run_required_qsc_step bob identity_rotate "$bob_log" 'event=identity_rotate ok=t
   "identity initialization failed for bob before handshake" identity rotate --as "$proto_bob" --confirm
 alice_fp="$(extract_identity_fp "$alice_log" alice)"
 bob_fp="$(extract_identity_fp "$bob_log" bob)"
+# NA-0633 (ENG-0038 C1) / NA-0634 (D571 Decision 2a): the initiator encapsulates to the peer's
+# PINNED identity KEM key and pins the peer's signing identity, so a contact carrying only the
+# fingerprint fails closed at hs_init with reason=peer_identity_key_missing -- and a KEM-only
+# contact still fails closed at the B1 sig-pin. Both keys are therefore provisioned, not one.
+# They are verified against the SAME single code the fingerprint already carries: contacts add
+# refuses with contacts_identity_fp_mismatch unless --fp equals fingerprint(kem_pk, sig_pk).
+alice_kem_pk="$(extract_identity_field "$alice_log" alice identity_kem_pk "identity KEM public key")"
+alice_sig_pk="$(extract_identity_field "$alice_log" alice identity_sig_pk "identity signing public key")"
+bob_kem_pk="$(extract_identity_field "$bob_log" bob identity_kem_pk "identity KEM public key")"
+bob_sig_pk="$(extract_identity_field "$bob_log" bob identity_sig_pk "identity signing public key")"
 run_required_qsc_step alice contacts_add_bob "$alice_log" 'event=contacts_add ok=true' \
   "contact route setup failed for alice before handshake" \
-  contacts add --label "$proto_bob" --fp "$bob_fp" --route-token "$bob_route_token"
+  contacts add --label "$proto_bob" --fp "$bob_fp" \
+  --kem-pk "$bob_kem_pk" --sig-pk "$bob_sig_pk" --route-token "$bob_route_token"
 run_required_qsc_step bob contacts_add_alice "$bob_log" 'event=contacts_add ok=true' \
   "contact route setup failed for bob before handshake" \
-  contacts add --label "$proto_alice" --fp "$alice_fp" --route-token "$alice_route_token"
+  contacts add --label "$proto_alice" --fp "$alice_fp" \
+  --kem-pk "$alice_kem_pk" --sig-pk "$alice_sig_pk" --route-token "$alice_route_token"
 run_required_qsc_step alice contacts_device_list_bob "$alice_log" 'event=contacts_device_list .* count=1' \
   "contact route validation failed for alice before handshake" contacts device list --label "$proto_bob"
 run_required_qsc_step bob contacts_device_list_alice "$bob_log" 'event=contacts_device_list .* count=1' \

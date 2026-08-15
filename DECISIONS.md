@@ -42254,18 +42254,29 @@ followed exactly:
 - **Neither entry's existing text is edited.** The notes sit beside it (R327.2's beside-not-inside
   discipline, here applied to a ledger entry rather than a fence).
 
-⚠⚠ **THE CONSEQUENCE, RECORDED AND NOT RESOLVED HERE.** `ROADMAP.md:13` asserts *"No open P1 remains
-and there is no known correctness gap in the crypto core"*, quoted forward into
-`docs/governance/evidence/NA-0629_design_lock.md:79`. **That claim is NOT SUPPORTED as written:** two
-heading-declared P1s have been open since 2026-08-09 and a `- Severity:` bullet needle structurally
-cannot see them. ⚠ **The honest reading is stated rather than smoothed:** the sentence's second clause
-is explicitly scoped to the crypto core and its first clause is not, so it is ambiguous whether "no
-open P1" was ever meant tree-wide — **and on either reading it is worth flagging, because ENG-0134
-and ENG-0142 are transport/receive defects that no crypto-core scoping would cover.** This is the
-mirror of the known-issues G2 correction, which repaired a heading-only needle by installing a
-bullet-only one: **both instruments are narrower than the claim they serve.** ⚠ **Neither
-`ROADMAP.md` nor the design-lock evidence doc is edited here** — the two entries' actual disposition,
-and any consequent correction to that sentence, need their own act and are **NOT** ruled at R335.
+⚠⚠ **THE CONSEQUENCE, RECORDED AND NOT RESOLVED HERE — AND RE-SCOPED AT R336 §B, THIS LANE HAVING
+FIRST RECORDED IT TOO WIDE.** What is **NOT SUPPORTED** is the **LEDGER-WIDE** *"zero open P1s"* claim
+carried by the succession packet and the known-issues document (R335 §2): it is measured with a
+`- Severity:` bullet needle that **structurally cannot see a heading-declared P1**, and two such P1s
+have been open since 2026-08-09. **That is what is unsupported, and it is all that is unsupported.**
+This is the mirror of the known-issues G2 correction, which repaired a heading-only needle by
+installing a bullet-only one: **both instruments are narrower than the claim they serve.**
+
+⚠ **`ROADMAP.md:13` is NOT among it, and this lane's first recording of it was an instrument wider
+than its claim.** Measured at `5201c275`, that sentence reads *"No open P1 remains and there is no
+known correctness gap **in the crypto core**"*, and its paragraph opens *"The cryptographic core is
+now correctness-complete:"* — every clause scoped to the cryptographic core (NA-0626's Suite-2
+composition, NA-0627's CI-gated ProVerif model, NA-0628's RFC 7748 §6.1 closure). **ENG-0134 and
+ENG-0142 are TRANSPORT-layer defects** ⇒ **this lane's finding does NOT falsify that sentence**, and
+recording it as NOT SUPPORTED widened a finding the Director had scoped to the ledger-wide claims.
+⚠⚠ **Nor is that sentence asserted TRUE here:** nobody has measured whether an untracked P1 is
+crypto-core, and inventing that verdict would be **the same defect in the opposite direction**.
+**Neither `ROADMAP.md` nor the design-lock evidence doc is edited**; the two entries' actual
+disposition needs its own act and is **NOT** ruled at R335 or R336.
+
+⚠ **This was the THIRD instrument-wider-than-its-claim error in this lane and the FIRST not caught
+in-lane** (R336 §B). It is recorded in `docs/ops/PREDICTION_LEDGER.md` alongside the two that were,
+because the pattern is this lane's own subject and a silently-fixed instance teaches nothing.
 
 ### PART 4 — THE COVERAGE AND INSTRUMENTATION FILINGS, SPLIT
 
@@ -42392,3 +42403,22 @@ hashes are what carries it; or
 in which case PART 5 item 4 is reworded in the same act so this decision stays true about itself; or
 **(c)** rule that the ruling is cited by sha and not landed, in which case this PART 8 stands as the
 record of why.
+
+### ⚖ RULED AT R336 §A — **(c)**. THE FENCE DOES NOT LAND; THE RULING IS CITED BY SHA.
+
+⚠⚠ **AND (a) — THE OPTION THIS LANE RECOMMENDED — WAS REFUSED BECAUSE ITS RATIONALE MEASURED FALSE.**
+The lane argued that replacing §0's preimages with their shapes would keep the argument *"fully
+checkable, since the hashes carry it."* **That is false. A reader given `bob-${run_tag}` cannot
+recompute `f4c89d20`; a hash is not checkable without its preimage.** (a) would therefore have bought
+**the appearance of a byte-verbatim landing while destroying the property that makes byte-verbatim
+landing worth doing** — ⚠ **a redaction of an artifact must not be called the artifact.** Refused on
+that ground, not on cost. **(b)** was refused for publishing the class `qsc` itself redacts in order
+to repair a wording defect — trading a permanent disclosure for a sentence.
+
+⚠ **AND (c) IS NOT FREE. THE GAP IS NAMED RATHER THAN GLOSSED** (R336 §A): R335's **verbatim wording**
+now exists **only under `/srv`**, which is precisely the **D-1 / R331.1 exposure** — findings that do
+not survive machine loss, the exact damage done at the last tenure boundary. **It is accepted HERE,
+and only here, on a bounded ground: every substantive HOLDING of R335 is carried in PARTS 1–7 above
+and in `docs/ops/PREDICTION_LEDGER.md` rows 12–15. What is lost is WORDING, not LAW.** ⚠ That
+reasoning does not generalise to a ruling whose holdings are not otherwise carried, and it must not
+be cited as licence for one that is not.

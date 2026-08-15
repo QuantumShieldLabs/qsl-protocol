@@ -201,3 +201,31 @@ seat's — **the same defect from both chairs in one lane**, which is the argume
 structural rather than as a lapse. Row 13 is a transport failure of the NA-0733 row-11 kind: the
 figure was never measured, only repeated. **Row 15 is here to keep the ledger honest in the other
 direction** — the method caught a *correct* record before a lane could "correct" it.
+
+<!-- NA-0736 (D-1371) — SR-16 ROWS 16-18, 2026-08-15, ORDERED AT R336 §A, §B and §D.
+⚠ LANDED BESIDE the sealed ten (lines 118-134, b42a23b2…d301c, re-hashed UNCHANGED again as a gate
+of this amendment) and beside rows 11-15. Nothing above is edited.
+⚠⚠ ROWS 16 AND 17 ARE BOTH THIS SEAT'S, AND ROW 16 IS THE FIRST ERROR IN THIS LANE THAT THE SEAT DID
+NOT CATCH ITSELF. Rows 12 and 14 were caught in-lane; row 16 reached a PUSHED PR and was caught by
+the Director. That distinction is the point of recording it: the in-lane catch rate is not 100%, and
+a ledger that only shows caught errors would imply it is.
+⚠ ROW 18 IS A HIT, ORDERED AT R336 §D. It is not decoration. The three failures it names were each
+caught by the SAME mechanism -- an expectation written before the run -- and a ledger that records
+only failures teaches that measuring is a tax rather than a tool. -->
+
+| # | the assertion | the measurement | the instrument that caught it |
+|---|---|---|---|
+| 16 | "`ROADMAP.md:13`'s *No open P1 remains* is NOT SUPPORTED" (this lane, D-1371 PART 3 as first pushed) | **TOO WIDE.** That sentence reads "…and there is no known correctness gap **in the crypto core**", inside a paragraph opening "The cryptographic core is now correctness-complete:". ENG-0134/ENG-0142 are **transport**-layer ⇒ the finding does **not** falsify it. What is unsupported is the **ledger-wide** "zero open P1s" claim, and **only** that | ⚠ **the Director, at R336 §B — NOT caught in-lane, and it had already been pushed** |
+| 17 | "Replacing §0's preimages with their shapes keeps the argument fully checkable, since the hashes carry it" (this lane, D-1371 PART 8, recommending option (a)) | **FALSE.** A reader given `bob-${run_tag}` **cannot** recompute `f4c89d20` — **a hash is not checkable without its preimage.** The option would have bought the APPEARANCE of a byte-verbatim landing while destroying the property that makes one worth doing | the Director, at R336 §A, applying R335 §1's own option-set property to the seat's option set |
+| 18 | ⛳ **A HIT — three instrument failures, none of which reached a record.** (i) a uniqueness assert counting the bare token `NA-0736`, which the evidence-doc **path** also contains; (ii) a `- Severity: **P1**` count taken over the **whole file** where the claim was a **delta**; (iii) `classify_ci_scope.sh` invoked with two **SHAs** where it takes **paths** | Each was wrong in a way that would have shipped a false figure or a false CI-scope claim. **All three were caught by the same mechanism: the expected result was written down before the command ran** | the seat, in-lane, before any record — the method working |
+
+**⚠ WHAT ROWS 16–18 ADD, taken together.** Rows 12 and 14 established that *an instrument narrower or
+wider than its claim* is this program's live failure shape, from both chairs. **Row 16 shows the shape
+surviving an entire lane's discipline and reaching a pushed PR** — caught only because the ruling
+chair re-measured a claim it had not itself made. **Row 17 shows it one level up again:** the seat
+supplied the Director an option set whose recommended branch rested on a false property, and it was
+caught only because R335 §1's own rule — *a supplied option set is an INSTRUMENT* — was turned on the
+seat that supplied it. ⚠⚠ **The rule generalises in both directions, and this lane is the proof: it
+was minted against the Director's option set and it next caught the seat's.** Row 18 is the
+counterweight — **the same discipline caught three of the seat's own errors before any of them
+reached a record**, which is what the ledger exists to make visible.

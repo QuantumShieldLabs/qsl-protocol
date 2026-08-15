@@ -40598,3 +40598,193 @@ for landing the conservative form. G9 is also **reduced to two arms**, its third
 recovery arm that no longer exists. The two nightly workflows red on 120 consecutive runs remain the
 free real red on which arms (i) and (ii) can be watched without seeding anything, and **ENG-0188's
 remedy is still a successor's**.
+
+## D-1366 — NA-0730: THE RELAY-CA LANE — the CA remedy lands for the one workflow a CA can fix, the other is proved to have a different cause and is left red on purpose, and the 187-day outage's real defect turns out to be that the job log never carried the reason
+
+**Status:** Accepted (ordered at **R325**, which answered the four §11 open questions: R325.1 selects
+Shape B, R325.2 edits the handshake workflow now under an **inverted** acceptance criterion, R325.3
+enqueues F-1 as its own lane rather than folding it in, R325.4 rides DV-1's figure correction on this
+lane, R325.5 declines SR-15 with the substituting adversarial work named, R325.6 states the operator
+asks including an explicitly UNMEASURED item, and R325.7 records the fail-closed taxonomy result).
+**Lane:** NA-0730 **Directive:** `QSL-DIR-2026-08-15-657.md` (sha256
+`a8aca8e5b6e267c9705d4e70c9d243d6c0b745a1355acfcf926d802cfcf6e85a`, 559 lines), carried in full
+inside `STOP_RELAYCA_001_20260815T051450Z.md` (sha256
+`b4d55f029d2df7d2b80b5dbe49dc35f6f30663d21dc78e8d96cae53ff2fbc91c`, 687 lines) so the ruling seat
+never needed the operator tree. **Ruling banked** as `PACKET_RELAYCA_EXEC_20260815.md` (sha256
+`29a05485ad81583a00290c289c1cccad394127173127ac9322afe6b709668505`, 89 lines, `END OF EXECUTION
+PACKET` present ⇒ not truncated, SR-14). **Base:** main `50bb5703`, verified UNMOVED by
+`git ls-remote` against the NAMED GitHub remote, run BARE and UNPIPED, rc 0, exactly one line
+(R192 §2.2); open-PR set re-derived and measured **EMPTY**. **Source finding:** **ENG-0188**.
+⚠ **This record carries no `**Class:**` field.** Declaring a result class is a Director act
+(R297.3 / R303.2), so the class is **OWED** and lands on the NEXT promotion's DONE line.
+
+### The three findings that redefined the lane, all measured at `50bb5703`, none inherited
+
+**1. The occasion is 392 failures over 187 days, not 120 over 51.** Last green for both workflows was
+**2026-02-09**; consecutive failures at head are **195** (`remote-relay-tests`) and **197**
+(`remote-handshake-tests`), measured over a 200-run window per workflow. The superseded figure was a
+**60-run API default page read as a duration** — the predecessor lane's own sentence, *"all 60 of
+their most recent runs"*, was accurate, and 51 days is simply how far 60 nightly runs reach back.
+R325.4 orders the provenance stated because it is instructive, and it is the same family as R324.2:
+**a figure must not claim what its sample can support, and a page size is not a total.**
+
+**2. The CA cause is ~1 day old and is the newest of three sequential causes.** Bisected artifact by
+artifact: `contacts_store_invalid` (May) → `dns_timeout` (through 2026-08-14T04:40Z) →
+`relay_tls_untrusted` (2026-08-15T03:28Z onward). Confirmed from a **second, independent surface**:
+the repository secrets' `updated_at` falls exactly between the last two runs (names and timestamps
+only; no value read). ⇒ **the remedy discharges the newest layer only**, and a fourth cause behind it
+cannot be excluded until a run gets past TLS. §8's acceptance is built so that a *different*
+subsequent failure cannot be mistaken for this fix failing.
+
+**3. ⚠⚠ The two workflows do not share a cause, and no CA can fix the second.**
+`remote-handshake-tests` fails at `hs_init` with `reason=peer_identity_key_missing`, **before any
+network act**; a needle for every TLS/relay error class over its whole artifact returns **ZERO**.
+Grounded in `handshake/mod.rs:1432-1444` and attributed exactly to commit **`eaf39aa4`, 2026-07-11**
+(NA-0633 C1 responder-authentication): the first nightly after that merge is the first occurrence,
+unchanged for 35 days through both the endpoint migration and the secret repoint. **The product is
+correct; the smoke fixture predates the hardening.** Filed as **ENG-0189** with the repair fully
+specified, and **NOT folded in** — R325.3 rules the edit set is exactly the two workflows and growth
+is a STOP.
+
+### ⚠ Why 187 days passed — the defect behind the defect
+
+The job log never carried the cause. Both smoke scripts redirect every `qsc` invocation into files
+under `$out`; the *only* failure text in the job log is `counts failed happy-path expectations`, a
+symptom. **A reader of the check mark, or of the entire job log, could not learn why** — for 187
+days, across three distinct causes that were indistinguishable at every surface a human reads. Filed
+as **ENG-0190**. R325.1 makes this the reason Shape B was selected over the minimum diff: *"a fix
+that leaves the next failure equally illegible would repeat the defect."*
+
+### ⚠⚠ The inverted acceptance criterion, ratified at R325.2 and binding
+
+The two workflows get the **same** edit and **different** acceptance:
+
+- **`remote-relay-tests` — expected GREEN.** From the log: `relay preflight outcome=reachable`; then,
+  in the artifact, `action=deliver` markers present and `qsc_error=relay_tls_untrusted` absent. A
+  green here is the **first success since 2026-02-09**.
+- **`remote-handshake-tests` — expected to REMAIN RED, and that is a PASS for this lane.** From the
+  log: `relay preflight outcome=reachable` (⇒ the CA works there too), **and** the artifact still
+  failing at `peer_identity_key_missing` (⇒ ENG-0189, untouched, as predicted).
+  ⛔ **A GREEN `remote-handshake-tests` FALSIFIES finding 3 and is a STOP, not a bonus. Report it; do
+  not celebrate it.**
+
+**R217 decisive combination, stated in advance:** preflight `outcome=reachable` on **both** workflows
+**plus** the relay suite green **plus** the handshake suite still red at `peer_identity_key_missing`
+⇒ the remedy is proven and correctly scoped. **Any other combination is reported as measured, never
+reconciled** — in particular `outcome=cert_not_trusted` after the secret is set means the CA supplied
+does not match the endpoint, which is an operator-side mismatch and not a code defect.
+
+### Two instrument traps, either of which would have shipped a broken gate
+
+`relay ca-show` reads the **vault secret only** and reports `configured=false` while an env-supplied
+CA is in force, so the obvious "prove the CA is configured" gate produces a **false red on a correct
+run** (**WF-0081**). `relay server-info` returns **rc 0** for `outcome=unreachable`, so a step
+asserting on `$?` — the obvious shape — **passes green against a dead relay** (**WF-0082**). The
+preflight therefore asserts on the reported `outcome=` value and never on the exit code. ⚠⚠ **The
+general property, promoted at R325.5: when a tool reports status in its OUTPUT, its EXIT CODE may not
+carry it.**
+
+### SR-15 declined, with what substitutes for it named
+
+R325.5 rules **no SR-15**: neither trigger fires (the edit set is exactly the two workflows; no
+product source is touched), the new steps write to no public surface, and both sit within authority
+the workflows already hold. What substitutes is the drafting seat's own adversarial work, named so
+the decision is auditable — the hardened YAML gate caught a duplicate-key defect in that seat's own
+first draft, and the two instrument traps above were found by **executing the consumer rather than
+modelling it**.
+
+### Divergences this lane measured against its own directive — reported, not tidied away
+
+- **DV-11 — the delta figures.** §6 and G3 state `+51/−0` and `+52/−0`; measured by two agreeing
+  instruments (`diff` and `git diff --numstat`), with non-vacuity asserted and a self-diff positive
+  control, the deltas are **`+53/−0` and `+54/−0`**. The arithmetic closes against the directive's own
+  line counts (51+53=104, 48+54=102), which are correct. **The load-bearing property — purely
+  additive, ZERO removed — holds in both files**; only the convenience counts were off by two.
+- **DV-12 — ANNEX B's step indices.** It states `QSC_RELAY_CA_FILE` is present on "steps 4, 5 and 6";
+  parsed from the resulting file the set is **steps 5, 6 and 7** (preflight plus **both** smoke
+  steps). The *set* is right and the *indices* are off by one against ANNEX B's own 8-item layout.
+- **DV-13 — the drafting seat's most valuable instrument was preserved nowhere.** The hardened
+  duplicate-key YAML gate — the one that caught a real defect in the block being shipped — exists in
+  neither the operator record nor the work tree nor inline in the stop or directive; only the *claim*
+  that it existed survived. It was **rebuilt and banked** for this lane, and re-watched RED before
+  GREEN. ⇒ **a gate described in a record is not a gate the next seat inherits.**
+- **DV-14 — the drafting seat's own recorded error stands uncorrected by design.** The directive and
+  stop record `SEAL_RELAY_CA_REDFIRST` as 44 lines; it measures **45**. Sealed 444 artifacts are not
+  edited to correct themselves; the correction is reported beside them.
+
+### The R304.2 sweep, and where it was ruled to stop
+
+R325.4's letter names ENG-0188, but **R304.2 binds a ruled one-line change to the CLAIM, not the
+location**. Swept: the superseded figure is asserted in **four** files. It was amended in
+`docs/ops/IMPROVEMENT_LEDGER.md` (five distinct sites inside ENG-0188, including two — *"dark for
+seven weeks"* and *"failed 120 times in a row"* — that a needle built on "120 consecutive / 51 days"
+**missed**, found only by enumerating rather than refining). It was **deliberately NOT rewritten** in
+`DECISIONS.md` D-1364, `TRACEABILITY.md`'s dated 2026-08-14 row, or `NEXT_ACTIONS.md`'s
+`<!-- prior: STATE … -->` comment, on a stated discriminator: **each of those asserts what was FILED
+on 2026-08-14, and each remains true as a statement about that filing event**, whereas the ledger
+entry asserts the workflows' present state. Rewriting them would also destroy the provenance R325.4
+expressly orders preserved. ⚠ **This boundary is the seat's reading, not the Director's order, and is
+surfaced for ruling rather than settled here.** Issue **#1745** carries no figure, needs no edit, and
+**stays OPEN** — it is telling the truth until the suites are actually fixed, which for the handshake
+half is ENG-0189's lane and not this one.
+
+### The ruling, banked verbatim from `PACKET_RELAYCA_EXEC_20260815.md` (sha256 `29a05485…8505`)
+
+```
+R325.1 — **SHAPE B.** The preflight is not a convenience, it is the remedy for F-2, which is the
+  actual reason 187 days passed: the cause never reached the job log — both smoke scripts redirect
+  every `qsc` invocation into artifact files, so the only visible text was
+  `counts failed happy-path expectations`, a symptom. **A fix that leaves the next failure equally
+  illegible would repeat the defect.** Shape B converts an opaque red into a diagnosed one.
+
+R325.2 — **EDIT THE HANDSHAKE WORKFLOW NOW**, accepting it stays red — and for a stronger reason
+  than avoiding a second round-trip: the preflight makes ITS failure legible in the job log too,
+  which is F-2's cure applied to the suite that most needs it, its cause having been invisible for
+  35 days. ⚠ **THE INVERTED CRITERION IS RATIFIED AND BINDING: a GREEN `remote-handshake-tests`
+  FALSIFIES finding 3 and is a STOP, not a bonus.** Report it; do not celebrate it. Its acceptance
+  is: the preflight PASSES (proving the CA works there), and the suite still fails at
+  `peer_identity_key_missing`, now VISIBLE in the job log.
+
+R325.3 — **F-1 IS ENQUEUED as its own scoped script-only lane, immediately after this one.** Fully
+  specified, small, and the only thing standing between the second suite and green. ⚠ NOT folded
+  in — the edit set is exactly the two workflows and growth is a STOP.
+
+R325.4 — **DV-1's CORRECTION RIDES THIS LANE.** Amend ENG-0188 to **392 failures / 187 days, last
+  green 2026-02-09**, with the three sequential causes and their transition evidence. ⚠ State the
+  provenance of the error, because it is instructive: **a 60-run API PAGE was read as a DURATION.**
+  The predecessor seat's sentence ("all 60 of their most recent runs") was accurate; the Director's
+  restatement was not — same family as R324.2: **a figure must not claim what its sample can
+  support, and a page size is not a total.** Issue #1745's body carries no figure, needs no edit,
+  and stays OPEN — it is telling the truth until this is fixed.
+
+R325.5 — **NO SR-15.** Neither trigger fires (edit set is exactly the two workflows; no product
+  source), the new steps write to no public surface, and both sit within authority the workflows
+  already hold. What substitutes is the drafting seat's own adversarial work, named so the decision
+  is auditable: the hardened YAML gate caught a duplicate-key defect in its own first draft, and it
+  found the two instrument traps above, either of which would have shipped a bad gate. ⚠ B-list
+  property: **when a tool reports status in its OUTPUT, its EXIT CODE may not carry it.**
+
+R325.6 — OPERATOR ASKS, stated copy-ready in your stop: (a) the secret, by the name the directive
+  chose, set from a FILE REDIRECT, never pasted; (b) each `.github/**` install with starting and
+  resulting shas and quoted anchors. ⚠ (c) **M6 stays UNMEASURED and must be stated as such in the
+  record**: the deployed relay's `max_body_bytes`. It does not gate this lane — the smoke suites
+  are bounded — but it gates any later unattended nightly load on a small free-tier host with no swap.
+
+R325.7 — RECORDED: the taxonomy watched RED before GREEN 6/6 with non-vacuity asserted first, and
+  the absent-secret case failing LOUDLY as `relay_ca_file_invalid` rather than skipping green, is
+  the fail-closed property this program requires — proven, not argued.
+```
+
+⚠ **M6 IS UNMEASURED AND IS RECORDED AS UNMEASURED (R325.6c).** The deployed relay's
+`max_body_bytes` was **not** measured by this lane. A prior lane recorded `65536` in the deployed
+configuration **as recorded, not as live**. It does not gate this lane — the smoke suites are
+bounded — but it gates any later unattended nightly load. The preflight prints the relay's own
+advertised value once trust succeeds, so the first green run discharges it for free.
+
+### Non-goals held
+
+No weakening of TLS verification anywhere — the remedy is purely **additive** trust, and
+`tls_built_in_root_certs` occurs exactly once in the crate, in the comment recording that the
+function does **not** call it. No product source change. No unattended load against the relay. No
+schedule change. **#1745 is not closed.** The handshake fixture is **not** repaired here. The
+endpoint is **not** written into repo truth in any record this lane lands.

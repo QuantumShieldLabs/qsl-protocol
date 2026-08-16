@@ -292,3 +292,41 @@ premise measured false; here a SEAL's own logic did — ⇒ **a sealed expectati
 CONDITIONS as well as in its VALUES, and only a second, independent record of the antecedent can tell
 you which.** **Row 25 is the argument for the practice itself**: it is cheaper than any repair it
 would decide between, and it is the first time this program can show it working *upward*.
+
+<!-- NA-0739 (D-1374) — SR-16 ROWS 29-34, 2026-08-16, ORDERED AT §5 of the NA-0739 brief.
+⚠ LANDED BESIDE the sealed ten (lines 118-134) and beside rows 11-22 and 23-28. Nothing above is edited.
+⚠⚠ ROWS 29 AND 30 ARE THE DIRECTOR'S CHAIR, and row 29 is the one that mattered: an attribution that was
+too NARROW rather than wrong, widened by the seat's measurement from one caller to three -- including one
+that pulls the user's ORDINARY inbox under a command the user is required to run.
+⚠ ROW 31 IS NA-0738's SEAT, already corrected in the open at its own STOP 003 and recorded here so the
+correction survives in repo truth rather than only in a /srv stop-file.
+⛳ ROWS 32 AND 33 ARE HITS. Row 33 is the second appearance of the property that an informative MISS can
+be worth more than the hit: the seal failed, and reporting the failure produced the stronger finding.
+⚠⚠ ROW 34 IS THIS LANE'S OWN, AND IT IS THE ENTRY THE LANE WOULD MOST LIKE NOT TO HAVE EARNED: the brief
+required a negative control, the control FAILED, and enumerating the failure rather than refining the
+needle exposed a search tool blind to 514 TRACKED FILES. SR-21 fired three times in one lane, all three
+against the seat, and all three were caught by required controls rather than by care. -->
+
+| # | the assertion | the measurement | the instrument that caught it |
+|---|---|---|---|
+| 29 | "The poison is deposited by **`handshake poll`**" (**R337 §B**, the ruling that identified the block as ENG-0142) | **TOO NARROW — and the record says so.** `relay_inbox_pull` contains **no ack call at all**, so it never acks **BY CONSTRUCTION** rather than merely in the runs observed, and the tree's OWN ratified census (NA-0688 C4 / D622, in the function's doc comment) names **THREE** production callers: `invite accept`, ⚠ **`invite finish` — pulling the user's ORDINARY inbox under a command the user is REQUIRED to run** — and `handshake poll`. ⚠ The bound is kept: undecodability is measured only for `handshake poll`. | Reading the function at source instead of adopting the ruling's attribution — the ruling itself ordered *verify, don't adopt*, and the verification returned a WIDER claim than the one it checked |
+| 30 | ENG-0142's trigger is *"anyone who can post one **unprocessable** frame"* (**R337**, quoting the entry) | **A MISQUOTE, and it SHARPENS rather than weakens.** "unprocessable" is the wording of the entry's **heading** (`:3713`); its **trigger sentence** (`:3715`) reads **"unparseable"**. Both words are in the entry, in those two different places. It changes nothing — and the measured failure is at envelope **parsing** (`qsp_env_decode_failed`), which is the trigger sentence's word exactly | Diffing the quotation against the entry's own bytes rather than against its heading |
+| 31 | "**PR #1753 still OPEN, unmerged**, head `e1026170…`, still green" and "Base main `62752adf` — verified UNMOVED" (**NA-0738 STOP 002's header**, the seat's own) | **BOTH FALSE WHEN WRITTEN.** #1753 merged 02:50:20Z; the header was written 02:57:12Z — **false by 6 min 52 s** — and main had already advanced to `64c60dc3`. Cause: **a correctly-measured figure carried across seven minutes into a sentence written later, instead of re-measured at the moment of assertion (R324.2)** | A final `git ls-remote` + `gh pr view` verification pass the seat **could have skipped**. ⚠ Nothing downstream depended on it; recorded because the record should be right even when the error was harmless |
+| 32 | ⛳ **A HIT.** "A material difference in MECHANISM would outrank the ENG-0142 identification" (R337 §B's own test, handed to the seat to apply against itself) | **NO MECHANISM DIFFERENCE — verified clause for clause against the entry's filed text**, six clauses, all identical, with the retention bound independently confirmed from the relay's own advertised `retention.ttl_secs = 604800`. ⇒ do not file a sibling, do not widen ENG-0134, **amend** (WF-0029) | A clause table built from the entry's own text, with the two things verification ADDED — stale coordinates and a wider trigger — reported as additions rather than folded silently into agreement |
+| 33 | ⛳ **A HIT, AND THE MISS BEAT THE HIT.** "Delete the head poison row and the blocked message ARRIVES" (**NA-0738's own sealed P4**) | **MISSED — `REJECT_S2_HDR_AUTH_FAIL`.** The blocked message was **already unreadable**, because a re-handshake had REPLACED the receiver's session while the mailbox was wedged. ⇒ ENG-0142's *"delayed until retention expires"* becomes **destroyed** — a **stronger** statement about impact and a **weaker** one about retrievability, ⚠ both halves stated, ⚠ marked an inference from a measured A/B and NOT source-proven, ⚠ with the clean demonstration explicitly NOT run | Reporting a sealed sub-check's failure instead of quietly re-scoping it — and an A/B the seat already owned, so the stronger claim cost no new experiment |
+| 34 | ⚠⚠ **THIS LANE'S OWN, THREE TIMES.** "The id-freeness instrument measures what freeness means" (NA-0739, sweeping declaring forms as the brief required) | **THE REQUIRED NEGATIVE CONTROL FAILED — `SR-24` measured 5 files / 1 declaring against the brief's stated 6 / 0** — and enumerating rather than refining decomposed it into **two independent seat defects**: (i) an over-broad `^**SR-` alternative matching the **bold sentence opener** `**SR-24 itself is NOT yet adopted.**`, and (ii) ⚠⚠ **a recursive search that honours `.gitignore` and therefore CANNOT SEE 514 TRACKED FILES** — 483 under `docs/governance/evidence/`, 18 under `tests/`, 3 under `scripts/ci/` — returning **0** files for a glob where `git grep` returns **18**. A **third** instance followed in the same lane: the novelty claim *"0 files record the read half"* was first asserted on two narrow needles, then measured across all 100 `gitignore` mentions in 24 files | **THE CONTROL THE BRIEF REQUIRED, FAILING.** ⛳ Had the brief not demanded a negative control, this lane would have derived correct ids from a defective instrument **and filed a hazard entry while standing in it**. All three defects were caught by required controls, **not by care** |
+
+**⚠ WHAT ROWS 29–34 ADD.** Rows 12/14/16/17/21/27 and now **34** are one shape — *an instrument narrower
+or wider than its claim* — recorded from every chair the program has. **Row 34 moves it one level deeper
+than any predecessor: not the instrument of a lane's finding, but the instrument of the RECORDS PROCEDURE
+ITSELF**, the id-derivation step every lane runs; and it is the first entry where the failing measurement
+was ordered by the directive **as a control** rather than discovered afterwards. ⇒ **the cure for this
+shape is not more care, it is a control whose expected value is written down before it runs** — which is
+what turned a silent 514-file blind spot into a filing. **Row 29 is the counterpart to row 24**: there a
+Director's option SET was incomplete, here a Director's ATTRIBUTION was too narrow, and in both cases the
+correction ran **upward** from seat to Director, as the standing rule requires. **Row 31 is row 21's
+lesson in the time domain** — there a hash attested to the wrong bytes, here a measurement attested to
+the wrong *moment*; ⇒ **a figure has a timestamp whether or not you write one down.** **Row 33 pairs with
+row 26**: row 26 showed a seal can be wrong in its CONDITIONS, row 33 shows a seal can be wrong in its
+VALUES and still be the most productive thing in the lane — ⇒ **the value of a sealed expectation does
+not depend on its being right, only on its being reported.**

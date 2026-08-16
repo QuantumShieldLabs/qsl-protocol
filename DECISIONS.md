@@ -42731,3 +42731,233 @@ Zero product source bytes. No `.github/**`, no workflow, no dependency, no lock 
 weakened, skipped or deleted**, **no standing rule minted**, no fenced ruling edited, `## D-1372` not
 rewritten. **ENG-0191 NOT repaired. ENG-0194's assertion NOT repaired. #1745 NOT closed.** The
 operator merges; the seat does not.
+
+## D-1374 — NA-0739: THE ENG-0142 AMENDMENT RECORDS LANE — a P1 defect's reachability amendment moves out of a `/srv` stop-file into repo truth, and the records procedure's own measuring instrument is filed as defective
+
+**Status:** Accepted (ordered by the Director's NA-0739 formalization brief of 2026-08-16, banked
+verbatim under SR-14 **before anything consumed it**, sha256
+`0c93193a645921febe10014e87ba570474639c9abed67e38a12da753c9b318bc`, 118 lines, sealed 444, mirrored
+to `/srv/qbuild/operator/relay/`).
+**Lane:** NA-0739. **Base:** main `64c60dc3ed5c6ca130567ab3048243bd214b86e7`, verified UNMOVED by
+`git ls-remote` against the **NAMED** GitHub remote (`github`, not the seat's `origin`, which is a
+local mirror), run **BARE and UNPIPED**, rc 0, exactly one line. Open-PR set **measured EMPTY** —
+and measured with a **positive control**, because an empty set from an instrument that cannot return
+rows is not evidence: the same `gh pr list` invocation against `--state merged` returned three rows
+(#1753/#1752/#1751 with their `mergedAt` values), so the empty open set is a measurement.
+⚠ **A carried premise corrected:** the open item tracked as "#1745" is an **ISSUE**, not a pull
+request — `gh pr view 1745` fails to resolve while `gh issue view 1745` returns *"CI RED:
+remote-handshake-tests on main"*, **OPEN**. It is therefore not part of any open-PR id sweep, and
+the "derive counters against main AND every open PR" hazard has no unmerged branch to be blind to
+here. **#1745 is not closed by this lane.**
+
+**Ids re-derived at the edit** per WF-0068 across all three input sets — main, the open-PR set
+(empty), and the operator lane directory (max `NA-0738`) — corroborated by `NEXT_ACTIONS.md`'s own
+`STATE:` line (`HIGHEST_NA=0738 | HIGHEST_D=1373`) and by independent maxima of each declaring space
+(`### NA-` 0738 · `### ENG-` 0195 · `### WF-` 0086 · `D-` 1373 across **all four** record forms ·
+`- **SR-` 22). ⇒ this lane takes **NA-0739** and **D-1374** and mints **WF-0087**; **no ENG** (the
+primary act AMENDS ENG-0142 rather than filing a sibling, per WF-0029) and **no SR**.
+
+⚠⚠ **THE ID INSTRUMENT WAS PROVEN, IT FAILED ITS OWN NEGATIVE CONTROL, AND THAT IS WHY THIS LANE
+FILED WF-0087.** The brief required a positive control (an id known taken must return a declaring
+hit) and a negative control (`SR-24` measures 6 files and 0 declaring headings). Both were run.
+**Six positive controls returned `declaring=1`** — `NA-0738`, `D-1373`, `ENG-0195`, `WF-0086`,
+`WF-0085`, `SR-21` — exercising every family the lane sweeps, so the instrument demonstrably returns
+positive when the id is taken. **The negative control did NOT return its expected value:** it
+measured `SR-24` at **5 files / 1 declaring** against the brief's stated **6 / 0**. Per SR-21 the
+disagreement was **enumerated and classified rather than the needle refined**, and it decomposed
+into **two independent defects, both the seat's**:
+1. The lone "declaring" hit was `DECISIONS.md:38725`, `**SR-24 itself is NOT yet adopted.**` — a
+   **bold sentence opener**, matched by an over-broad `^\*\*SR-` alternative. A mention, not a
+   declaration.
+2. ⚠⚠ The missing sixth file was `docs/governance/evidence/NA-0724_as_built.md`, which is **tracked
+   and present**, and which the recursive search **could not see**. Cause: the search tool honours
+   `.gitignore`, and `.gitignore:65`'s broad `**/evidence/` rule matches **514 tracked files** (483
+   under `docs/governance/evidence/`, 18 under `tests/`, 3 under `scripts/ci/`, 10 elsewhere; the ten
+   directories sum to exactly 514). Proof by construction: a root-anchored search for
+   `--include='*_as_built.md'` returns **0** files where `git grep` over the same glob returns **18**.
+   **Same bytes, same tree, one instrument silently blind, no error anywhere.**
+Corrected on both counts, the sweep reproduces the brief's figure exactly — `SR-24` = **6 files / 0
+declaring, FREE** — and every candidate measures `declaring=0`: `NA-0739` (0 files), `D-1374` (0),
+`ENG-0196` (0), `WF-0087` (**2 files**, both mentions), `SR-25` (**2 files**, both mentions).
+⇒ ⛳ **A CONTROL THAT FAILS IS THE CONTROL WORKING.** Had the brief not required one, this lane would
+have derived correct ids from a defective instrument and filed a hazard entry while standing in it.
+
+### PART 1 — WHAT WAS BOUGHT
+
+**A P1 defect's amendment existed only in a `/srv` stop-file; it is now repo truth.** ENG-0142 — the
+poison-pill wedge — was filed on 2026-08-09 with an **adversarial** trigger. NA-0738 measured that
+**no attacker is required: the product supplies the poison itself, in normal operation, to every
+user.** That amendment was drafted verbatim at NA-0738 STOP 002 §5, RULED, and deliberately not
+filed. It is now landed beside ENG-0142's existing text.
+
+⚠⚠ **THIS LANE IS FILING ONLY. NOTHING IS REPAIRED.** ENG-0142's repair touches the receive region,
+**SR-15 triggers for it**, and it is a separate lane the operator has not promoted. **ENG-0142 stays
+OPEN.** ENG-0191's options (a)–(e) stay **unruled** — the choice is the operator's. ENG-0194's inert
+assertion is **not repaired**. ENG-0193's pull-path instrumentation is **not built**. WF-0086's gate
+is **not built**. `invite finish` is **not measured**. **Zero product source bytes.**
+
+### PART 2 — THE AMENDMENT LANDED WITH NO DRIFT, AND THE NO-DRIFT IS PROVEN
+
+`docs/ops/IMPROVEMENT_LEDGER.md`, inside ENG-0142's entry, **beside** its existing text and beside
+NA-0736's 2026-08-15 note — **nothing above edited** (mark-don't-rewrite; `git diff --numstat` on the
+amendment insertion measured **24 insertions / 0 deletions**, a single hunk `@@ -3732,0 +3733,24 @@`).
+
+⚠ **The ruled draft was not retyped — it was EXTRACTED FROM STOP 002's BYTES** (lines 175–195),
+the stop-file's blockquote device stripped, and the **two** `<lane>` and **two** `<D-id>`
+placeholders resolved to `NA-0739` / `D-1374`, leaving **0** residual placeholders. The landed text
+was then read back out of the ledger and diffed against the resolved draft: **identical, rc 0, zero
+differences, sha256 `8dd5d54019717ca6fec5722bbd30f429b7d31815280d11c918f4ddf142685c3d` on both
+sides**. ⚠ And the diff is not a vacuous pass: the same comparison against the **unresolved** draft
+**does** report differences, so the instrument can return non-zero. ⇒ **the only differences between
+what was ruled and what landed are the two placeholder substitutions and the removal of the quoting
+device — every other byte is the draft's.** This matters because the substitution defect this
+program recorded at ENG-0191 (a "retarget" that became a "delete" with no note) is exactly what an
+unproven landing hides.
+
+The amendment carries, each because it is measured and each because it changes what a reader
+concludes: the **non-adversarial trigger** (`relay_inbox_pull` contains **no ack call at all** — it
+never acks **by construction**, not merely in the runs observed); **three production callers, not
+one**, per the ratified census in the function's own doc comment (NA-0688 C4 / D622) — `invite
+accept`, **`invite finish`, which pulls the user's ORDINARY inbox under a command the user is
+REQUIRED to run**, and `handshake poll`; the **bound**, stated so the claim cannot be read wider than
+the measurement — undecodability is measured **only** for `handshake poll`, and for the invite pair
+**only the never-acks property is established**; the **stale coordinates**; **"re-aborts every `qsc
+receive`" MEASURED** (3 attempts, 3 aborts, out dir empty throughout, all five rows still present);
+the **compounding consequence** — a wedge outliving a re-handshake makes the blocked traffic
+permanently undecryptable — ⚠ **stated as an inference from a measured A/B, NOT source-proven, and
+with the clean demonstration explicitly NOT run**; **severity UNCHANGED at P1** (a reachability
+amendment, not an escalation); and the **records loop** — this entry carried no severity field and
+no status from 2026-08-09 until NA-0736 repaired it on 2026-08-15, so **the most consequential open
+defect in this program was uncountable by the triage instrument for six days.**
+
+⛳ **AND THE COORDINATES WERE RE-VERIFIED AT THE LANDING BASE RATHER THAN TRUSTED.** The amendment
+was drafted against `62752adf` and lands at `64c60dc3`. A lane filing a stale-line-number finding
+must not itself land stale line numbers. Measured: `qsl/qsl-client/qsc/src/transport/mod.rs` is
+**byte-identical across the two bases** (blob `0c5e1bcc18fd523dd92824237290b9140547f4f8` at both;
+PR #1753 changed only six records files), and each site was re-read at `64c60dc3` — `:1186`
+`Err(code) => {` · `:1200` `if code == "qsp_replay_reject" {` · **`:1210` the comment `// Ack it
+(loudly) to end the redelivery loop instead of hard-`, INSIDE that branch** · `:1224`–`:1247` the
+`AckMode::Lease` quarantine block ending `continue;` at `:1246` · `:1249`
+`return Err(CliError::code(code));`, **after** the escape branch closes. ⇒ **the entry's own `:1210`
+does land a reader inside the one branch that does not abort — confirmed by reading the ENCLOSURE,
+not just the line.** That re-verification is recorded as its own note, attributed to NA-0739, beside
+the amendment; **the amendment's own text was not edited to carry it.**
+
+### PART 3 — THE SECOND FILING: WF-0087
+
+**WF-0087** files the hazard NA-0738 measured and recorded but did not file: **recording a freeness
+sweep plants the swept ids in the tree, so the next lane's sweep measures the previous lane's record
+of its own sweep.** Filed as **pre-existing and general, NOT NA-0738's creation** — NA-0738 added two
+instances and was the first to measure it. Carried instances: `WF-0087` and `SR-25` free at 2 files /
+0 declaring; ⛳ `SR-24` **free the whole time while measuring 6 files**; `WF-0085` genuinely taken at
+4 files / 1 declaring — the positive and negative cases separate cleanly under declaring forms and
+not at all under a token count.
+
+The cure is filed in **two** parts, and the second is this lane's own measurement rather than
+NA-0738's: **(1) sweep DECLARING forms, not token counts** — building the form from the tree's own
+bytes, since `DECISIONS.md` alone has four record forms; and **(2) name the search tool, because a
+gitignore-honouring recursive search cannot see 514 tracked files in this repo.** ⚠ Part 2 was found
+by *executing the brief's required negative control*, and without it part 1 is insufficient: sweeping
+declaring forms with a blind tool is still blind. **The tree records the write half of this rule in
+many places (`git add -f` past `**/evidence/`) and the read half nowhere** — measured across all 100
+`gitignore` mentions in 24 files, 34 of which carry read-side vocabulary within ±350 characters and
+none of which state the property; two independent routes return exactly three matches tree-wide and
+all three are WF-0087's own new sentences, which is a positive control by construction. ⇒ **the same
+ignore rule that defeats `git add` also defeats the search used to derive ids and census the tree,
+and only the second failure is silent.**
+
+⚠ **Per D-2 / R305 the entry states plainly whether an executable consumer is plausible — and no
+consumer was built.** It is plausible in principle (the id-derivation step is already scripted, so a
+gate could re-derive a PR's claimed ids against declaring forms via `git grep` and fail closed on a
+disagreement), and the entry records **two honest obstacles** so the plausibility is not overstated:
+the declaring forms are conventions rather than schema and therefore drift, and the gate would have
+to read the PR's prose to know which ids were claimed. **Building it was out of scope and nothing was
+built.**
+
+### PART 4 — DIRECTOR CORRECTIONS, AND THE SEAT'S OWN
+
+1. ⚠ **THE DIRECTOR'S ATTRIBUTION WAS TOO NARROW, AND THE RECORD SAYS SO.** R337 §B attributed the
+   poison to `handshake poll`. Measured: `relay_inbox_pull` never acks **by construction** and has
+   **three** production callers, of which **`invite finish`** — pulling the **ordinary** inbox under a
+   command the user is **required** to run — is the most consequential. **The seat's measurement
+   widened the Director's claim.**
+2. ⚠ **THE DIRECTOR MISQUOTED ENG-0142's TRIGGER** as *"unprocessable"*, which is the wording of the
+   entry's **heading** (`:3713`); the **trigger sentence** (`:3715`) reads *"unparseable"*. Verified
+   against the entry's own bytes: both words are present, in those two different places. **It changes
+   nothing, and it SHARPENS the identity** — the measured failure is at envelope **parsing**
+   (`qsp_env_decode_failed`), which is the trigger sentence's word exactly.
+3. **THE SEAT'S OWN FALSE HEADER, ALREADY CORRECTED IN THE OPEN AT NA-0738 STOP 003 AND RECORDED HERE
+   SO IT SURVIVES IN REPO TRUTH.** STOP 002's header said PR #1753 was *"still OPEN, unmerged"* —
+   **false by 6 min 52 s** (merged 02:50:20Z, written 02:57:12Z) — and called the base `62752adf`
+   UNMOVED when main had already advanced to `64c60dc3`. Cause: **a correctly-measured figure carried
+   across seven minutes into a sentence written later, instead of re-measured at the moment of
+   assertion (R324.2).** Caught only by a final verification pass the seat could have skipped.
+   **Harmless downstream — nothing was decided on it — and recorded anyway.**
+4. ⛳ **A HIT.** The seat **verified** the Director's ENG-0142 identification **clause for clause
+   against the entry's own filed text** rather than adopting it, and returned a **widened** result.
+   The ruling asked for *verify, don't adopt*, and that is what it got.
+5. ⛳ **A HIT, AND THE MISS BEAT THE HIT.** NA-0738's sealed P4 **failed**: the counterfactual
+   expected the blocked message to arrive and instead measured `REJECT_S2_HDR_AUTH_FAIL`. Reporting
+   the failure produced a **stronger** finding than the hit would have — permanent undecryptability
+   after a re-handshake — while **weakening** the retrievability claim, and both halves are stated.
+
+⚠ **A FOURTH SEAT DEFECT, THIS LANE'S OWN, AND IT FIRED THREE TIMES IN ONE LANE.** SR-21 — an
+instrument's scope must equal its claim's scope — caught this seat at (i) the over-broad `^\*\*SR-`
+declaring needle, (ii) the gitignore-blind recursive search, and (iii) a novelty claim
+(*"0 files record the read half"*) first asserted on two narrow needles and only then measured across
+all 100 mentions. ⚠ **All three were caught by controls the brief required, not by care**, which is
+the argument for the controls.
+
+### PART 5 — THE NEXT MEASUREMENT, NAMED AND NOT PERFORMED
+
+⚠⚠ **THE HIGHEST-VALUE UNMEASURED QUESTION THIS FINDING OPENS IS WHETHER `invite finish`'s RESIDUE IS
+SPECIFICALLY UNDECODABLE.** Undecodability is measured **only** for `handshake poll`; for `invite
+accept` and `invite finish` only the never-acks property is established. **If `invite finish`'s
+residue is undecodable, the invite flow wedges the user's ordinary mailbox on first use** — under a
+command the user is required to run — which is a materially worse statement than anything measured so
+far. **Named here as the successor measurement. It was NOT run in this lane, and the record does not
+guess its answer.**
+
+### PART 6 — CLAIM BOUNDARY, CARRIED VERBATIM FROM NA-0738 AND NOT SMOOTHED
+
+The amendment's own boundary sentence, as landed: *"loopback plain HTTP, `qsl-server` rev
+`37ec8207`, **not CI**, not through TLS; the wedge demonstration is n=3 aborts on n=1 wedged mailbox;
+scenario `happy-path` seed 1, **`drop-reorder` not run**."* And NA-0738 STOP 001 §11's boundary,
+which governs the experiment the amendment rests on: **loopback, NOT CI**, plain **HTTP**, no TLS,
+`RELAY_CA_PEM` not involved, `qsl-server` rev `37ec8207`, **zero secrets read**; **n=2** for the
+relocated arrangement, **n=1** for the control; scenario **`happy-path`, seed 1**, ⚠ **`drop-reorder`
+NOT run**; the relocated arrangement reached X4 **only with the relay's visibility timeout raised**;
+and ⚠ **the AWS relay's rev and its `PULL_LEASE_SECS` were NOT measured by that seat — the AWS lease
+value is UNKNOWN.** ⚠⚠ **A GREEN PR IS NOT A GREEN SUITE:** `remote-handshake-tests` is a scheduled
+workflow, not a PR check; **issue #1745 stays OPEN** and nothing here turns it green.
+
+### PART 7 — THE REST OF THE RECORDS
+
+1. **The ENG-0142 amendment** landed beside the entry's existing text, no-drift proven (Part 2).
+2. **WF-0087** filed (Part 3).
+3. **SR-16 rows 29–34** landed in `docs/ops/PREDICTION_LEDGER.md`, **beside** the sealed rows and
+   beside rows 23–28; nothing above edited.
+4. **NA-0738 flipped `MERGING` → `DONE`** with the result class **declared by the Director**:
+   **`ONE_SESSION_ROUNDTRIP_ESTABLISHED_PASS`** — it names what was proven (a one-session round trip
+   reaches `established` on both peers) and asserts nothing about the environment. ⚠ **No loopback or
+   CI qualifier is appended to the label; the claim boundary belongs in the record (Part 6), not in
+   the class name.**
+5. **NA-0739 promoted**, `STATE:` moved (`READY=NA-0739 | HIGHEST_NA=0739 | HIGHEST_D=1374`).
+6. **NA-0738 STOP 002/003's substance** landed in
+   `docs/governance/evidence/NA-0739_as_built.md` (gitignored; **force-added**, presence confirmed in
+   `git diff --cached --name-only`), so the amendment's basis no longer lives only under `/srv`
+   (D-1 / R331.1).
+7. ⚠ **`docs_only` was MEASURED, not assumed, by EXECUTING the tree's own classifier.**
+   `scripts/ci/classify_ci_scope.sh` over this lane's exact six-path edit set returns
+   `docs_only=true / workflow_security=false / runtime_critical=false / scope_class=docs_only`, and
+   **it discriminates**: the same set plus one product source file returns
+   `scope_class=runtime_critical`, plus one `scripts/ci/` path returns `scope_class=workflow_security`,
+   and the gitignored evidence doc alone returns `docs_only=true` (so `docs/*` does cover it).
+   ⇒ **SR-15's "not triggered" premise is corroborated by the tree's own instrument.**
+
+Zero product source bytes. No script, no test, no workflow, no `.github/**`, no dependency and no
+lock change, **no test weakened, skipped or deleted**, **no standing rule minted**, no fenced ruling
+edited, `## D-1373` not rewritten, ENG-0142's pre-existing text not rewritten. **ENG-0142 NOT
+repaired. ENG-0191 NOT ruled. ENG-0194's assertion NOT repaired. ENG-0193 NOT built. WF-0086's gate
+NOT built. `invite finish` NOT measured. Issue #1745 NOT closed.** No secret read. The operator
+merges; the seat does not.

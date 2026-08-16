@@ -229,3 +229,33 @@ seat that supplied it. ⚠⚠ **The rule generalises in both directions, and thi
 was minted against the Director's option set and it next caught the seat's.** Row 18 is the
 counterweight — **the same discipline caught three of the seat's own errors before any of them
 reached a record**, which is what the ledger exists to make visible.
+
+<!-- NA-0737 (D-1372) — SR-16 ROWS 19-22, 2026-08-15, ORDERED AT §B and §D of the NA-0737 ruling.
+⚠ LANDED BESIDE the sealed ten (lines 118-134, b42a23b2…d301c) and beside rows 11-18. Nothing above
+is edited.
+⚠⚠ ROW 19 IS A PRIOR DIRECTOR RULING'S PREMISE MEASURING FALSE -- not a seat error and not a brief
+error, but a RULED ANSWER that the next run falsified. It is recorded because the alternative is a
+successor lane executing it as written.
+⚠⚠ ROW 20 IS THE DIRECTOR'S CHAIR AGAIN, AND IT IS A NEW SHAPE: not an option set and not a figure,
+but a brief that CONTRADICTED ITS OWN ENUMERATION and then asked the seat for something the seat
+structurally could not measure. The seat's STOP was the correct outcome.
+⚠ ROW 21 IS THE SEAT'S, AND IT IS THE MOST DANGEROUS ARTIFACT IN THE SET: a preserved file whose
+`ls -l` and sha256 both reported health over bytes that carried nothing.
+⚠ ROW 22 IS A HIT. As with row 18, a ledger that records only failures teaches that measuring is a
+tax rather than a tool. -->
+
+| # | the assertion | the measurement | the instrument that caught it |
+|---|---|---|---|
+| 19 | "The assertion moves to AFTER the first message exchange, where `established` is genuinely reachable" (**R334.2**, the ruled repair for ENG-0191) | **FALSE AT ITS PREMISE.** With delivery repaired and working both directions, `status=established` occurs **0 times in 12/12** observations; at C5, after both directions have delivered, alice reads `established_recv_only` and bob `awaiting_peer_confirm`. **Moving the assertion just after `:388` would still fail.** NA-0735 called it unimplementable *because there was no successful exchange* — there now is one, and it still is | NA-0737's run — the first in which a receive SUCCEEDED, which is exactly the measurement NA-0735 named as its successor's first act |
+| 20 | "File §9's `qsl-desktop` Slice-4 measurement as a ledger entry" (the NA-0737 brief §9, against its own §1) | **THE BRIEF CONTRADICTED ITSELF.** §1 enumerated **ONE file**; a ledger entry drags a queue block, a `STATE` move and an evidence doc. ⚠ And the figure was one the seat **structurally could not measure** — no desktop checkout, from a seat that same §1 bounded to one file in this repo. ⇒ **a brief's enumeration binds the brief's own later sections** | the seat, STOPPING rather than reconciling the contradiction — ruled CORRECT, the defect being the Director's, twice over |
+| 21 | "The relay store is preserved: `cp` copied it and its sha256 is recorded" (this lane, first preservation pass) | **FALSE — the copy was a 4096-byte, COMPLETELY EMPTY database.** Every row was in the `-wal`; opening it returned *"no such table: messages"*. ⚠⚠ **Both `ls -l` and `sha256sum` reported a healthy preserved artifact.** A clean hash over the wrong bytes is indistinguishable from evidence until you open it | the seat, **OPENING THE COPY AND QUERYING IT** rather than trusting the hash — nothing else in the set would have found it. Cured with `VACUUM INTO` + a row-count assertion before the copy is trusted |
+| 22 | ⛳ **A HIT — two further instrument defects, neither of which reached a record.** (i) the harness builder's prefix anchor matched a **tampered** step name (`recv_from_alice_TAMPERED_X`) and returned **rc 0**, so a drifted anchor would have been wrapped **silently** — the exact "silent skip" the order forbade; (ii) the relay's `route_key = hex(sha256(tok))` was compared against the client's `hex(sha512(tok)[..4])` | (i) caught by a **negative control asserted to differ first**, then cured with a word boundary and re-proven `rc 1` against three tamper classes; (ii) the "none of the four candidates" result **was itself the finding** — it exposed that `route_key` is a derivation, not the token | the seat, in-lane, before any record — **an expectation written before the run**, twice |
+
+**⚠ WHAT ROWS 19–22 ADD.** Rows 12/14/16/17 established *instrument narrower or wider than its claim*
+as this program's live failure shape, from both chairs. **Row 19 moves it up one more level again: a
+RULING's premise, falsified by a later measurement** — and the correction runs upward, as the standing
+rule requires. **Row 20 names a shape not previously recorded** — internal inconsistency *within a
+single directive*, where the correct seat behaviour is to stop rather than to reconcile. **Row 21 is
+the counterpart to row 17's lesson about hashes**: there, a hash without its preimage was not
+checkable; here, a hash *with* its preimage was checkable and still worthless, because it was taken
+over the wrong bytes. ⇒ **a sha256 attests to what you hashed, never to what you meant to hash.**

@@ -372,7 +372,7 @@ while [ "$i" -le "$send_attempts" ]; do
   run_qsc_step alice "send_ab_${i}" "$alice_log" send --transport relay --relay "$relay_addr" --to "$proto_bob" --file "$alice_payload"
   i=$((i + 1))
 done
-run_qsc_step bob recv_from_alice "$bob_recv_log" receive --transport relay --relay "$relay_addr" --mailbox "$proto_bob" --from "$proto_alice" --max "$recv_max" --out "$out_bob"
+run_qsc_step bob recv_from_alice "$bob_recv_log" receive --transport relay --relay "$relay_addr" --mailbox "$bob_route_token" --from "$proto_alice" --max "$recv_max" --out "$out_bob"
 
 # Re-handshake with bob as initiator to validate reverse-direction live session before bob->alice send.
 run_qsc_step bob hs2_init "$bob_log" handshake init --as "$proto_bob" --peer "$proto_alice" --relay "$relay_addr"
@@ -385,7 +385,7 @@ while [ "$i" -le "$send_attempts" ]; do
   run_qsc_step bob "send_ba_${i}" "$bob_log" send --transport relay --relay "$relay_addr" --to "$proto_alice" --file "$bob_payload"
   i=$((i + 1))
 done
-run_qsc_step alice recv_from_bob "$alice_recv_log" receive --transport relay --relay "$relay_addr" --mailbox "$proto_alice" --from "$proto_bob" --max "$recv_max" --out "$out_alice"
+run_qsc_step alice recv_from_bob "$alice_recv_log" receive --transport relay --relay "$relay_addr" --mailbox "$alice_route_token" --from "$proto_bob" --max "$recv_max" --out "$out_alice"
 
 # fail-closed assertions
 assert_not_present 'event=error code=protocol_inactive' "$markers" "protocol_inactive encountered"

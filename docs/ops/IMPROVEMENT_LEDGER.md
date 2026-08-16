@@ -4453,6 +4453,35 @@ ENG-0098; ENG-0007; ENG-0010; D-1367. Originating/last lane: NA-0731 (D-1367). L
 
 ⚠ **What this entry does NOT claim.** It does not claim the product is wrong; the introducing commit's own title — *"fix handshake status and marker **honesty**"* — is evidence the richer states were deliberate. It does not claim the fix is trivial. And it does not claim this is the last cause: that claim has now been wrong four times, and **the only instrument that has ever settled it is a run.** Cross-reference: ENG-0188; ENG-0189; ENG-0190; NA-0222 (`a5f235b3`); NA-0168 (`c9ce4b4e`); D-1369; D-1370; R325; R333.2; issue **#1745**, which stays OPEN and is telling the truth. Originating/last lane: NA-0734 (D-1370). Last-updated: 2026-08-15.
 
+⚠⚠ **AMENDED 2026-08-15 by NA-0737 (D-1372) — R334.2's RULED REPAIR HAS A PREMISE THAT MEASURES FALSE, AND THE ENTRY NOW CARRIES THREE CANDIDATE REPAIRS WITH NONE RULED.** *Nothing above is edited; this is added beside it (mark-don't-rewrite).*
+
+**WHAT CHANGED.** NA-0735 could not settle this entry's design question because **no message was ever delivered** — `established` is gated on `recv.nr != 0`, and with delivery broken nobody could tell "unreachable because of where the assertion sits" from "unreachable because nothing arrives". **NA-0737 repaired the addressing defect (ENG-0192) and delivery now WORKS**, both directions, unpacked, committed and acked. ⇒ **the question is now measurable, and it has been measured.**
+
+⚠⚠ **THE MEASUREMENT: `status=established` STILL OCCURS 0 TIMES IN 12/12 OBSERVATIONS, WITH DELIVERY WORKING.** Values extracted and compared for **EQUALITY**, never grepped as a substring — `established` is a PREFIX of `established_recv_only`, the precision that hid this defect for 187 days. Observed at all six checkpoints on both peers:
+
+| CP | alice | bob |
+|---|---|---|
+| C0 / C1 | `awaiting_peer_confirm` `send_ready=yes` | `established_recv_only` `send_ready=no` `chainkey_unset` |
+| **C2** (immediately after bob's **successful** receive) | `awaiting_peer_confirm` `send_ready=yes` | **`established_recv_only` `send_ready=no` `chainkey_unset` — UNCHANGED** |
+| C3 / C4 | `established_recv_only` `send_ready=no` | `awaiting_peer_confirm` `send_ready=yes` |
+| **C5** (immediately after alice's **successful** receive) | **`established_recv_only` `send_ready=no` — UNCHANGED** | `awaiting_peer_confirm` `send_ready=yes` |
+
+⇒ **A SUCCESSFUL RECEIVE DOES NOT SEED THE RECEIVER'S SEND CHAIN.** NA-0735 named exactly this as *"the one fact that decides the whole lane"* and as its successor's first act; it is now answered by measurement rather than by source reading. Corroborated by the product's own marker: **`event=receipt_owed reason=chain_unseeded` fires in BOTH receive logs** after a successful unpack — R334.3's mechanism observed live, the ack being a CONTROL send that a peer with an unseeded chain may not originate.
+
+⇒ ⚠⚠ **R334.2's ruled repair — *"the assertion moves to AFTER the first message exchange, where `established` is genuinely reachable"* — is FALSE AT ITS PREMISE.** At C5, after **both** directions have delivered, alice reads `established_recv_only` and bob reads `awaiting_peer_confirm`. **Moving the assertion to just after `:388` would still fail.** NA-0735 recorded the repair as unimplementable *because there was no successful exchange*; **there now is one and it is still unimplementable** — a different and stronger statement, and the ruled answer must not be executed as written.
+
+⚠ **A DIRECTOR ELIMINATION, TAGGED AS SUCH — NOT A MECHANISM, NOT MEASURED, AND NOT A FINDING.** Recorded verbatim at the Director's own instruction so its status cannot drift: at C5 alice reads `established_recv_only`, so by `hs_status_truth`'s FIRST branch her send chain is **unseeded** — *though she sent at C1*; and bob reads `awaiting_peer_confirm`, so his `recv.nr` is **zero** — *though he received at C2*. **Both are about events that already happened and have been undone. The only event between C2 and C5 is `hs2` at `:378-381`.** ⇒ the elimination is that **the assertion may be unreachable not because of WHERE IT SITS but because a second handshake sits mid-flow and resets what is being asserted.** ⚠ **The Director did not measure this**, grepped the handshake module for a reset and **found none by those needles**, and claims no mechanism. **It is the successor lane's first target, and it is an elimination over another seat's numbers — never a finding.**
+
+⚠ **THREE CANDIDATE REPAIRS, STATED WITHOUT RULING** (the choice is the OPERATOR's; neither the seat nor the Director chooses alone):
+
+- **(a) Drop the `established` assertion.** The `qsp_unpack ok=true` assertions at `:395`/`:396` already assert the outcome that actually matters, and NA-0737 has now **PROVEN THEM REACHABLE** — they passed on a real relay round trip.
+- **(b) Add ONE MORE exchange after `hs2`, then assert.** ⛳ The operator's own proposal, applied to the **FIXTURE** rather than the product: **zero product change, zero wire-signature change.**
+- **(c) Remove `hs2`.** ⚠ Changes what the test proves — `hs2` exists to validate the reverse direction — and is recorded for completeness, not as a recommendation.
+
+⚠ **The Director offered three and explicitly checked for a fourth** before recording them, per the property that a supplied option set is an INSTRUMENT and SR-21 governs it (R335 §1, first minted against a Director option set that excluded the true answer).
+
+⚠ **What this amendment does NOT change:** ENG-0191 stays **OPEN**; `:351`/`:352` are **untouched** in the committed script; **#1745 stays OPEN and is correctly open**; and the two readings this entry has always carried — stale fixture vs product gap — are **both still live**, since nothing here establishes that the product *should* reach `established` at that point. ⚠ The residual NA-0734 flagged is now the leading candidate rather than a footnote, and it is still **unmeasured**. Amending lane: NA-0737 (D-1372). Last-updated: 2026-08-15.
+
 ### ENG-0192 — `receive --mailbox` takes a RAW ROUTE TOKEN and the remote smoke fixture hands it an IDENTITY LABEL, so the client politely polls a mailbox nobody ever writes to and reports an empty inbox at rc 0 — **the FIFTH cause behind the 187-day outage** — **NEW; filed 2026-08-15 by NA-0736 (D-1371; measured from NA-0735's sealed evidence and from source at `5201c275`; classification ruled at R335 §1 after ENG-0134 and ENG-0142 were both REFUTED)**
 
 - Severity: **P2** — a FIXTURE defect, not a shipped defect, on the same reading ENG-0191 records for itself. The product behaved correctly at every step; one consumer is wrong about what an argument means. ⚠ It is nevertheless the thing standing between this suite and a *proven* round trip, and it sits **behind** ENG-0191 in the failure order, so clearing ENG-0191 alone will not produce a delivered message.
@@ -4555,6 +4584,35 @@ this defect can even be reached by a run. **ENG-0189** — the same family: a sm
 mis-provisions the client and fails closed in silence. **WF-0086** — why no gate could see this.
 **ENG-0193** — why no artifact could show it.
 - Status: open — **FILING ONLY**. Originating/last lane: NA-0736 (D-1371). Last-updated: 2026-08-15.
+
+⚠⚠ **CLOSED 2026-08-15 by NA-0737 (D-1372) — THE REPAIR IS PROVEN ON A REAL RELAY ROUND TRIP, AND THE SUITE REMAINING RED DOES NOT REOPEN THIS ENTRY.** *Nothing above is edited; this is added beside it.*
+
+⚠⚠ **SAID PLAINLY, BECAUSE THIS IS THE READER-TRAP D-1370 HAD TO DEFUSE FOR ENG-0189 AND IT MUST NOT RECUR: THIS LANE DOES NOT TURN CI GREEN AND WAS NEVER EXPECTED TO. The committed script still fails at `:351`, which is ENG-0191 — an OLDER and SEPARATE cause. A STILL-RED SUITE IS NOT EVIDENCE THAT THIS REPAIR FAILED, and it does not reopen this entry. This entry's defect is the mailbox argument, and that defect is measurably gone.**
+
+**THE REPAIR — two argument values, `+2/−2`, in the file this entry names.** `:375` and `:388` now pass `--mailbox "$bob_route_token"` / `--mailbox "$alice_route_token"` in place of the identity labels. Both variables **already existed** (`:61`/`:62`) and were **already used correctly** at `relay inbox-set --token` (`:308`/`:310`) and `contacts add --route-token` (`:330`/`:334`) — **nothing new was introduced; the correct value was on the same page the whole time.** ⚠ **`--from` was NOT touched** — it takes a peer LABEL by design — and this was *verified* rather than intended: the splice asserts the `--from` token byte-identical on both changed lines. ⛳ The run then **proved `--from` right to leave alone**: both receipts resolved the peer label.
+
+⛳ **THE PROOF — A MESSAGE CROSSED A RELAY END TO END, BOTH DIRECTIONS, AND THE PAYLOADS ARRIVED BYTE-IDENTICAL** (`cmp` rc 0 each way). Measured against a **red control produced first in the same environment**, on the same relay process and store, with two distinct run tags so neither run could confound the other:
+
+| observable | BEFORE (unfixed) | AFTER (repaired) |
+|---|---|---|
+| `mailbox_hash` (bob / alice) | the **LABEL** hashes | the **ROUTE TOKEN** hashes |
+| `event=recv_none` | 2 | **0** |
+| `event=qsp_unpack ok=true` | 0 | **4** |
+| `event=recv_commit` | 0 | **2** |
+| `event=relay_ack` | 0 | **2** (`sent=2 acked=2`) |
+| output dirs | **empty** | one received payload each |
+| `summary.txt` | **0 bytes** | **`status=pass`** |
+| script exit | **1** | **0** |
+
+The delta symbol is the marker's own `mailbox_hash` = `route_token_hash8(mailbox)` — the one observable that distinguishes the two candidate strings. Expected values were **computed for this lane's own run tags and SEALED BEFORE THE RUN**, never carried from NA-0735, and all eight hex digits were compared. **Every one HIT.** ⚠ The hash instrument was itself validated first, by reproducing all four of NA-0735's sealed values plus a tamper control.
+
+⛳ **AND A SECOND, INDEPENDENT PROOF FROM THE RELAY'S OWN STORE, WITH NO LEASE TAKEN.** NA-0736 proved this defect by hashing against sealed **client** logs; NA-0737 proves it again from the **server** side, read-only, issuing no `/v1/pull` (NA-0735 had to disclose a lease for the equivalent evidence). `qsl-server` persists `route_key = hex(sha256(token))`, so each candidate mailbox is identifiable: **the two LABEL mailboxes never existed as routes at all**, in either run, while the ROUTE TOKEN mailboxes held **5 and 5 undrained** before the repair and **3 and 4, consumed and acked**, after. **Four routes across both runs and ZERO unexplained by the four candidates — the accounting is complete, not a sample.**
+
+⛳ **THE BRIEF'S OTHER QUESTION IS ANSWERED: THERE IS NO SIXTH CAUSE.** Everything downstream of the addressing passed on the first attempt. ⚠ A marker-event census bounds the change: **every handshake-phase count is IDENTICAL** across the two runs while every changed count sits on the receive path ⇒ the two values changed exactly what they should. ⚠ **One thing that looks like a new failure and is not:** `event=handshake_reject reason=handshake_type` appears **2** times after the repair and **4** times before it — pre-existing, it went **DOWN**, it is in no asserted set, and the run exited 0.
+
+⚠⚠ **THE CLAIM BOUNDARY, CARRIED VERBATIM AND NOT SMOOTHED IN THE RETELLING.** SR-20's extension binds: **the emitting step's ENVIRONMENT is part of the artifact's identity.** This ran on **loopback plain HTTP** against a `qsl-server` at rev `37ec8207` — the same rev the AWS box runs — with a locally generated bearer and **zero secrets read**. It is **NOT a CI claim**, **not** proven against the AWS relay, and **not** proven through TLS; `max_body_bytes` even differs (1048576 vs 65536). The run used a harness that demotes `:351`/`:352` **only**, so the precise claim is *everything from `:353` to the end of the script passes on loopback*. **n=1, `happy-path` seed 1; `drop-reorder` was NOT run.** The remote proof is unavailable until ENG-0191 unblocks the suite. **These are the honest limits of a real result.**
+
+- Resolution: **CLOSED — the fixture now addresses the mailbox the sender uses, and a round trip is proven.** Result class offered and **not declared here** (a Director act); candidate `REMOTE_RELAY_ROUND_TRIP_PROVEN_PASS`. Cross-reference: **ENG-0191** (why the suite is still red, and why that is not this entry's business — now AMENDED by this same lane), **ENG-0193** (why no artifact could show this), **WF-0086** (why no gate could see it), **ENG-0189**/**D-1370** (the closure precedent this entry follows, including its reader-trap), NA-0735, NA-0736 (D-1371, the filing lane). ⚠ **Issue #1745 stays OPEN and is correctly open.** Closing lane: NA-0737 (D-1372). Last-updated: 2026-08-15.
 
 ### ENG-0193 — the relay boundary is instrumented on the SEND half and MUTE on the RECEIVE half: `relay_push_diagnostic` 28 occurrences, `relay_pull_diagnostic` ZERO tree-wide — **NEW; filed 2026-08-15 by NA-0736 (D-1371; observed at STOP 001 §8 obs 1, re-measured by the Director, ORDERED SPLIT INTO ITS OWN FILING at R335 §3(b))**
 

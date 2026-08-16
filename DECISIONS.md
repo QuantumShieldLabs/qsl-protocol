@@ -42422,3 +42422,148 @@ and only here, on a bounded ground: every substantive HOLDING of R335 is carried
 and in `docs/ops/PREDICTION_LEDGER.md` rows 12–15. What is lost is WORDING, not LAW.** ⚠ That
 reasoning does not generalise to a ruling whose holdings are not otherwise carried, and it must not
 be cited as licence for one that is not.
+
+## D-1372 — NA-0737: ENG-0192, THE FIXTURE ADDRESSING REPAIR — two argument values, and a message crosses a relay end to end for the first time in this suite's recorded history; there is no sixth cause, and the ruled repair for the cause that remains is measured FALSE at its premise
+
+**Status:** Accepted (ordered by the Director's NA-0737 STOP 001 ruling of 2026-08-15, §A–§E, ruled
+from the artifact per SR-01 and verified independently at `ac5cf636`).
+**Lane:** NA-0737. **Base:** main `ac5cf636b93d46a38692ab8f707c3c4cec83f64b`, verified UNMOVED by
+`git ls-remote` against the **NAMED** GitHub remote, run **BARE and UNPIPED**, rc 0, exactly one
+line; the open-PR set was re-derived and **measured EMPTY** at every measurement. **Ids re-derived at
+the edit** per WF-0068 across **all three input sets** — main, every open PR head, and the operator
+lane directory (R260 §3.4's named blind spot) — with `D-` swept across **all four record forms**
+(`## D-` max 1371 · `- **ID:** D-` max 1312 · `### D-` max 0116 · `**D-` max 1340) and both
+`NA-0737` and `D-1372` measured **0 occurrences tree-wide**: `NA-0736 / D-1371 / WF-0086 /
+ENG-0193 / SR-24` ⇒ this lane takes **NA-0737 / D-1372**, mints **no** WF, **no** ENG and **no** SR.
+
+### PART 1 — WHAT WAS BOUGHT, IN ONE SENTENCE
+
+The smoke fixture was telling `receive` to poll a mailbox nobody ever wrote to; **two argument values
+now point it at the mailbox the sender actually uses**, and with that corrected a message crossed a
+relay **end to end, in both directions, with the payloads byte-identical** — the first proven round
+trip in this suite's recorded history.
+
+⚠⚠ **AND THE READER-TRAP, IN THIS RECORD'S OWN WORDS: THIS LANE DOES NOT TURN CI GREEN AND WAS NEVER
+EXPECTED TO.** The committed script still fails at `:351` — ENG-0191, an older and separate cause,
+unreachable by construction since April. **A still-red suite does NOT mean this repair failed**, and
+it does not reopen ENG-0192. **Issue #1745 stays OPEN and is correctly open.** This is the same trap
+D-1370 had to defuse for ENG-0189, recorded here so it does not recur a third time.
+
+### PART 2 — THE EDIT
+
+`scripts/demo/qsc_remote_handshake_smoke.sh:375` and `:388`: `--mailbox "$proto_bob"` →
+`"$bob_route_token"`, `--mailbox "$proto_alice"` → `"$alice_route_token"`. **One file, two values,
+`+2/−2`, zero product source bytes.** Both variables already existed (`:61`/`:62`) and were already
+used correctly at `relay inbox-set --token` (`:308`/`:310`) and `contacts add --route-token`
+(`:330`/`:334`). ⚠ **`--from` was NOT touched** — it takes a peer LABEL by design — and this was
+**verified rather than intended**: the splice parses the `--from` token out of each changed line
+before and after and asserts byte-identity. ⛳ The run then proved it right to leave alone, both
+receipts resolving the peer label. The edit was applied by an **asserted splice** with an idempotence
+guard, a pre-state sha guard, a byte-exact uniqueness guard, and a post-state guard that
+**reconstructs the original from the result** to prove the diff is confined to the two values.
+`bash -n` rc 0; `shellcheck -S error` rc 0 — both bare and unpiped.
+
+### PART 3 — RED FIRST, THEN GREEN, IN AN ENVIRONMENT THAT HAD NO RED CONTROL
+
+NA-0735's sealed red run exists but ran against the AWS relay; **loopback had none, so one was
+produced.** The unfixed script, same harness delta, same relay, reproduced NA-0736's signature
+exactly: `recv_ack_mode` — emitted **before** the pull — straight into `recv_none` **with nothing
+between**, at rc 0, `mailbox_hash` equal to the **LABEL's** hash, output dirs empty, `qsp_unpack` 0
+in both polarities, `summary.txt` 0 bytes, exit 1.
+After the repair: `mailbox_hash` equal to the **ROUTE TOKEN's** hash on both peers, `qsp_unpack
+ok=true` ×4, `recv_commit` ×2, `relay_ack sent=2 acked=2` ×2, one received payload in each output
+dir, `summary.txt` **`status=pass`**, exit **0**, and both payloads `cmp` rc 0 against what was sent.
+**Ten sealed expectations, ten HITs, none adjusted** — including E-9, the delivery branch, which was
+**deliberately NOT predicted** so that neither outcome could be rationalised after the fact.
+
+⛳ **A SECOND, INDEPENDENT PROOF FROM THE SERVER SIDE, WITH NO LEASE TAKEN.** `qsl-server` persists
+`route_key = hex(sha256(token))`, so the store identifies each candidate mailbox: **the two LABEL
+mailboxes never existed as routes at all**, in either run, while the ROUTE TOKEN mailboxes held
+**5 and 5 undrained** before and **3 and 4, consumed and acked**, after. **Four routes across both
+runs and ZERO unexplained — the accounting is complete, not a sample.** NA-0736 proved this defect
+from sealed client logs; this proves it again from the relay's own persistence, and unlike NA-0735's
+`/v1/pull` probe it **mutates nothing**.
+
+### PART 4 — THE INSTRUMENT WAS RE-DERIVED, AND THE RE-DERIVATION IS PROVEN EXACT
+
+The committed script **cannot reach `:375`/`:388` at this pin** — `:351` kills it — so the run used
+NA-0735's checkpoint harness, which demotes **those two assertions only**. ⚠ The committed script's
+`:351`/`:352` are **untouched by this lane**. A builder written from scratch, applied to the base
+script, produces a file **byte-identical to NA-0735's banked harness** (`cmp` rc 0) — it *reproduces
+a sealed instrument* rather than reusing it blind.
+⚠ **ANCHOR-COUNT HONESTY, recorded because the alternative is the defect:** NA-0735 reported **12**
+anchors and its builder is not banked, so that decomposition cannot be reproduced by reading and is
+**not claimed**; this builder uses **8**. **The equivalence rests on the `cmp`, not on the count
+matching.** ⚠⚠ **The anchor gate was proven able to fail — and proving it caught a defect in this
+lane's own builder**: a prefix anchor without a word boundary matched a tampered step name and
+returned **rc 0**, which would have wrapped a drifted anchor **silently**. Cured, then re-measured
+against three tamper classes, each asserted to differ from the original first so none is vacuous:
+**rc 1 on all three**, rc 0 and byte-identical output on the untampered input.
+
+### PART 5 — ⚠⚠ THE CONSEQUENCE FOR ENG-0191, WHICH IS THE MOST CONSEQUENTIAL THING THIS LANE PRODUCED
+
+NA-0735 named one fact as deciding its whole lane and as its successor's first act: **does a
+successful receive SEED the receiver's send chain?** It could not answer, because at that pin no
+receive succeeded. **Receives now succeed. The answer is NO.**
+`status=established` occurs **0 times in 12/12 observations even with delivery working** — values
+extracted and compared for **EQUALITY**, never grepped, since `established` is a PREFIX of
+`established_recv_only`. Bob is **unchanged at C2 immediately after successfully receiving and
+unpacking**; alice likewise at C5. Corroborated by the product's own
+`event=receipt_owed reason=chain_unseeded` in **both** receive logs.
+⇒ ⚠⚠ **R334.2's ruled repair — *"the assertion moves to AFTER the first message exchange, where
+`established` is genuinely reachable"* — is FALSE AT ITS PREMISE and must not be executed as
+written.** At C5, after both directions have delivered, alice reads `established_recv_only` and bob
+`awaiting_peer_confirm`; moving the assertion just after `:388` would still fail. NA-0735 called it
+unimplementable *because there was no successful exchange* — **there now is one, and it is still
+unimplementable**, which is a different and stronger statement.
+**ENG-0191 is AMENDED accordingly** and now carries **three candidate repairs with none ruled** —
+(a) drop the assertion, since `:395`/`:396` already assert the outcome that matters and this lane
+**proved them reachable**; (b) **the operator's own proposal**, one more exchange after `hs2`,
+applied to the FIXTURE — zero product change, zero wire signature; (c) remove `hs2`, which changes
+what the test proves. ⚠ **The Director offered three and explicitly checked for a fourth**, per the
+option-set-is-an-instrument property. **The OPERATOR rules which.**
+⚠ A **Director ELIMINATION** rides with it, tagged as such — that the assertion may be unreachable
+not because of *where it sits* but because **a second handshake sits mid-flow and resets what is
+being asserted** (`hs2` at `:378-381` is the only event between C2 and C5). **The Director did not
+measure this and claims no mechanism**; it is the successor lane's first target and is recorded as
+an elimination, **never as a finding**.
+
+### PART 6 — ⚠⚠ THE CLAIM BOUNDARY, CARRIED VERBATIM
+
+**SR-20's extension binds: the emitting step's ENVIRONMENT is part of the artifact's identity.** This
+ran on **loopback plain HTTP** against `qsl-server` at rev `37ec8207` (the rev the AWS box runs), a
+locally generated bearer, **zero secrets read** — `relay.env` was not opened, no `ssh relay`, no
+sudo. It is **NOT a CI claim**, not proven against the AWS relay, not proven through TLS;
+`max_body_bytes` differs (1048576 vs 65536). The run used a harness, so the precise claim is
+*everything from `:353` to the end of the script passes on loopback*. **n=1, `happy-path` seed 1;
+`drop-reorder` was NOT run.** The remote proof is unavailable until ENG-0191 unblocks the suite.
+**A loopback green must not be read as a CI claim, and these limits are not to be smoothed in the
+retelling.**
+
+### PART 7 — ⚠⚠ A DIRECTOR ERROR IS RECORDED, AND IT IS A NEW SHAPE
+
+The brief's **§1 enumerated ONE file**; its **§9 then demanded a ledger filing**, which drags a queue
+block, a `STATE` move and an evidence doc. **The seat STOPPED rather than reconcile the contradiction,
+and the Director ruled the stop CORRECT** — the brief was internally inconsistent and the defect was
+the chair's. ⚠ Worse, and recorded plainly: **the seat was asked to file a figure it structurally
+COULD NOT MEASURE** — a `qsl-desktop` measurement, from a seat the same §1 bounded to one file in
+this repo. **That is the shape NA-0736 was caught by, ordered by the chair that had spent the session
+enforcing it.**
+⇒ **THE PROPERTY, distinct from the option-set one and recorded separately: A BRIEF'S ENUMERATION
+BINDS THE BRIEF'S OWN LATER SECTIONS. A directive whose §9 demands what its §1 excludes is
+internally inconsistent, and the seat's stop is the correct outcome, not an obstruction.**
+⇒ **The Slice-4 measurement is OUT of NA-0737 entirely** and will be filed by an act that can measure
+it, with provenance stating that the filing seat did not re-measure. It is held meanwhile in the
+sealed operator stop, which discharges R331.1. **No standing rule is minted** for any of this.
+
+### PART 8 — WHAT WAS NOT DONE
+
+`--from` untouched · `:351`/`:352` untouched in the committed script · **ENG-0191 filed and AMENDED
+but NOT repaired** · WF-0086's coverage gate **NOT built** · the pull path **NOT instrumented**
+(ENG-0193) · **#1745 NOT closed** · NA-0735's sealed evidence not modified · no secret read · no
+failed step re-run to green · no `.github/**` · no workflow, dependency or lock change · no test
+weakened, skipped or deleted · **no standing rule minted** · no fenced ruling edited ·
+`## D-1371` not rewritten · ENG-0191's and ENG-0192's existing text **added beside, never rewritten**
+(mark-don't-rewrite) · **zero product source bytes**. ⚠ **This PR is `runtime_critical`, NOT
+docs-only** — measured by **EXECUTING** `classify_ci_scope.sh` with a docs-path control returning
+`docs_only` — so `public-safety` step 15 **EXECUTES**. The operator merges; the seat does not.

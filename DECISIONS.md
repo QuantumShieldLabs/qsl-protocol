@@ -42567,3 +42567,167 @@ weakened, skipped or deleted · **no standing rule minted** · no fenced ruling 
 (mark-don't-rewrite) · **zero product source bytes**. ⚠ **This PR is `runtime_critical`, NOT
 docs-only** — measured by **EXECUTING** `classify_ci_scope.sh` with a docs-path control returning
 `docs_only` — so `public-safety` step 15 **EXECUTES**. The operator merges; the seat does not.
+
+## D-1373 — NA-0738: THE ONE-SESSION ROUND-TRIP EXPERIMENT — a peer reads bare `established`, both peers read it at once, and the cause was the ORDERING all along; the "product gap" reading is dead and no option is ruled
+
+**Status:** Accepted (ordered by the Director's NA-0738 formalization brief of 2026-08-16, banked
+verbatim under SR-14 before anything consumed it, sha256
+`8ab993b93b660517ee95b7b6d2d2eb2c0178b91434cab188ecedd8d8ba8a43f3`, 149 lines, sealed 444).
+**Lane:** NA-0738. **Base:** main `62752adfae34dbfc667ddb6e822085029ceed305`, verified UNMOVED by
+`git ls-remote` against the **NAMED** GitHub remote, run **BARE and UNPIPED**, rc 0, exactly one
+line; the open-PR set was re-derived and **measured EMPTY** at every measurement, including at the
+edit. **Ids re-derived at the edit** per WF-0068 across **all three input sets** — main, every open
+PR head, and the operator lane directory (R260 §3.4's named blind spot) — with `D-` swept across
+**all four record forms** (`## D-` max 1372 · `- **ID:** D-` max 1312 · `### D-` max 0116 · `**D-`
+max 1340), placeholders `NA-9999` / `D-9876` **classified rather than counted**, and `NA-0738` /
+`D-1373` / `ENG-0194` / `ENG-0195` each **0 occurrences tree-wide** against a positive control
+(`ENG-0193` = 6 files) proving the instrument could return a hit: free at this base were
+`NA-0738 / D-1373 / WF-0087 / ENG-0194 / SR-25` ⇒ this lane takes **NA-0738 / D-1373 / ENG-0194 /
+ENG-0195**, mints **no** WF and **no** SR.
+
+### PART 1 — WHAT WAS BOUGHT, IN ONE SENTENCE
+
+For 187 days the remote smoke suite has asserted a handshake state nobody had ever seen, and three
+consecutive lanes concluded it was unreachable. **It is reachable. A peer reads bare `established`
+the moment it has both sent and received on one session, and both peers read it together after a
+complete round trip** — with **zero product bytes changed**. What made it unreachable was never
+where the assertion sits: it was the **re-handshake sitting between the two halves of the round
+trip**, so that no session had ever carried both directions.
+
+⚠⚠ **AND THE READER-TRAP, IN THIS RECORD'S OWN WORDS: THIS LANE RULES NOTHING AND REPAIRS NOTHING.**
+It produces the datum that lets the operator choose among five live candidate repairs. `:351`/`:352`
+are **untouched**; **ENG-0191 stays OPEN**; **#1745 stays OPEN**. A lane that arrived at a repair
+would have been out of scope.
+
+### PART 2 — THE DATUM
+
+Six checkpoints × two peers, values **EXTRACTED and compared for EQUALITY** — never grepped as a
+substring, because `established` is a PREFIX of `established_recv_only` and that precision is the
+whole defect class. The arrangement: `hs1 → alice→bob send/receive → bob→alice send/receive`, with
+**no handshake between the halves**, and the re-handshake **relocated to after the round trip**.
+
+| CP | alice (hs1 initiator) | bob (hs1 responder) |
+|---|---|---|
+| X0 after `hs1` | `awaiting_peer_confirm` `send_ready=yes` `peer_confirmed=no` | `established_recv_only` `send_ready=no` `chainkey_unset` `peer_confirmed=yes` |
+| X1 after alice's send | unchanged | unchanged |
+| X2 after bob's **successful** receive | unchanged | **unchanged** |
+| **X3** after bob's **first USER send** | unchanged | ⛳ **`established` `send_ready=yes` `peer_confirmed=yes`** |
+| **X4** after alice's **successful** receive | ⛳ **`established`** | ⛳ **`established`** |
+| X5 after the RELOCATED re-handshake | `established_recv_only` `send_ready=no` `chainkey_unset` | `awaiting_peer_confirm` `send_ready=yes` |
+
+**`established` occurs 3 times in 12 observations, and at X4 on BOTH peers at once.** Reproduced
+**byte-identically** on a second run (**n=2**), script exit 0 both times, payloads `cmp` rc 0 in both
+directions, `summary.txt` `status=pass`.
+
+### PART 3 — THE CONTROL, WHICH IS WHAT MAKES IT A CAUSE RATHER THAN A CORRELATION
+
+The committed arrangement was re-run in the **identical** environment — same relay process, same
+store, same `qsc` binary, same base, same scenario and seed — using an instrument **byte-identical
+to NA-0737's banked harness** (`cmp` rc 0 against `harness_AFTER.sh`; the control was rebuilt by
+running **NA-0737's own banked builder**, not by re-writing one).
+
+| arrangement | `established` by EQUALITY | script exit |
+|---|---|---|
+| committed — `hs2` between the halves | **0 / 12** | 0 |
+| relocated — `hs2` after the round trip | **3 / 12** | 0 |
+
+**The only variable is where the re-handshake sits.** NA-0737's 0/12 is reproduced exactly, C3 swap
+included, with delivery working in both arms. ⇒ **the ordering is the cause.**
+
+### PART 4 — WHAT THIS SETTLES, AND WHAT IT EXPLICITLY DOES NOT
+
+**Settled:**
+1. **`hs_status_truth`'s third branch is LIVE CODE.** Never observed before, anywhere — and
+   **ENG-0194** records why: all four consumers of `status=established` in this repository match it
+   as a substring, so the state had **zero distinguishing coverage tree-wide**.
+2. **The "product gap" reading is DEAD.** This entry carried *stale fixture vs product gap* as both
+   live since it was filed. The product reaches `established` exactly when its own predicate says it
+   should. What is stale is the fixture's **ordering**.
+3. **The Director's ELIMINATION is REFUTED** — see SR-16 row 23. A reset cannot key a chain; ENG-0143
+   says the session is *fresh*; and there is no reset anywhere, the mechanism being an unconditional
+   whole-session overwrite that no needle for "reset" could match.
+4. **The option set was incomplete on two independent axes** — SR-16 row 24. It contained no MOVE for
+   an ORDERING defect **(d)**, and it had silently dropped the filing's own retarget option **(e)**.
+5. **X5 is ENG-0143's owed RE-HANDSHAKE row**, and it constrains every repair: from **both** peers
+   `established`, the re-handshake drives **both** out of it ⇒ **any repair asserting `established`
+   after a re-handshake fails.**
+
+**NOT settled, and stated so it cannot drift:**
+- **No option is ruled.** Five are live — (a) drop, (b) one more exchange, (c) remove `hs2`,
+  (d) MOVE `hs2` and the assertion, (e) RETARGET to the role-dual pair. **The operator chooses.**
+- **This is not a CI claim.** Loopback plain HTTP, no TLS, `RELAY_CA_PEM` not involved.
+- **n=2** for the relocated arrangement, **n=1** for the control; scenario `happy-path` seed 1;
+  **`drop-reorder` NOT run**; the instrument is a HARNESS COPY, never the committed script, which is
+  re-verified byte-identical (`c885dcf0…0eef`, 482 lines, blob `0fa7f8cf…`) after all four runs.
+- **The relocated arrangement was reached only with the relay's visibility timeout raised** — see
+  PART 5, which is the part a repair lane must read before implementing (d).
+
+### PART 5 — ⚠⚠ THE BLOCKER MEASURED ON THE WAY, WHICH IS A PRODUCT PROPERTY AND NOT A FIXTURE ONE
+
+The **first** run of the relocated arrangement FAILED: alice's `receive` returned **rc 1** with
+`qsp_unpack code=qsp_env_decode_failed`, and bob's message was never reached. Measured to a source
+line and a store row, not inferred:
+
+1. **`handshake poll` NEVER ACKS** — `event=relay_ack` measures **0** in `alice.log`, **0** in
+   `bob.log`, **1** in `bob_recv.log`. Across four runs **every** handshake frame (A1 4279 B,
+   B1 6436 B, A2 3364 B) is still resident in the relay store at run end; only `receive` acks.
+   Complete accounting: **8 routes, 31 residual rows, 0 unexplained.**
+2. Those frames survive on a **visibility timeout** alone — `PULL_LEASE_SECS_DEFAULT = 60`
+   (`qsl-server/src/store.rs:7`).
+3. hs1's B1 was enqueued on alice's route at 21:00:36; her `receive` ran at **21:01:55 — 79 s
+   later**, past the timeout ⇒ **the stale handshake frame was redelivered at the HEAD of her queue.**
+4. `receive` pulled it, could not decode it, and **`qsc/src/transport/mod.rs:1249`
+   `return Err(CliError::code(code))` aborted the ENTIRE receive.** Only `qsp_replay_reject` has a
+   quarantine-and-continue arm; **every other code aborts**, the item is never acked, and it is
+   redelivered — permanently at the head.
+
+⇒ **A HEAD-OF-LINE BLOCK: one undecodable frame at the head of a mailbox blocks every message behind
+it.** It is latent on the committed arrangement too — it fires whenever a `receive` runs more than
+the visibility timeout after a handshake frame was last pulled; the committed order masks it by
+running `hs2`'s polls immediately beforehand. ⚠ **It is recorded and deliberately NOT filed as its
+own ledger entry**: prioritising the backlog is the operator's act, and NA-0738's brief did not
+enumerate it. Drafted filing text and a swept id are carried in NA-0738 STOP 001 for the operator to
+rule.
+
+⚠⚠ **AND PART OF THE CONFOUND WAS THIS LANE'S OWN INSTRUMENT — SR-16 row 28.** The harness adds
+**12 `qsc` invocations** (6 checkpoints × 2 peers), each a debug-build process with a passphrase-KDF
+vault unlock; run 1's enqueue span measured **107 s** against the 60 s timeout. **The observer's cost
+was of the same order as the timeout it caused to expire.** Run 2 changed exactly one named
+environment value — `PULL_LEASE_SECS=3600`, the server's own ceiling (`store.rs:8`) — with the
+harness **byte-identical** (`68032fa7…2810`), and the effect was proven non-vacuous from the store
+(`leased_until` ≈ 3550 s ahead, against expired leases on run 1's rows), since `/v1/server-info` does
+not advertise the lease. R332.1's three conditions were applied to that re-run and **all three hold
+measurably**; it is a controlled variation with a named changed input, not a re-run until green.
+
+### PART 6 — ⚠⚠ THE SEAT'S OWN SEAL WAS DEFECTIVE, AND THAT IS RECORDED RATHER THAN TIDIED
+
+Run 1's sealed decisive combination read *"X0 reproduces AND X4 reads anything else ⇒ the theorem is
+REFUTED."* **Read mechanically it would have declared REFUTED a theorem the very next run confirmed**
+— because it had no branch for **its own antecedent failing**, and alice had never received. The only
+reason it produced no false refutation is that the harness independently captured each step's rc.
+⇒ **A sealed expectation can be wrong in its CONDITIONS as well as in its VALUES**; NA-0715's
+property — that seals are worth keeping because they can themselves be caught — fires a second time.
+Recorded as **SR-16 row 26**, with the mechanical cure: state the antecedent as its own branch.
+
+### PART 7 — RECORDS THIS LANE LANDS
+
+1. **ENG-0191 AMENDED** — the datum, the control, the refuted elimination, options **(d)** and
+   **(e)** recorded as live candidates, and the (a)-substitution corrected **beside** both texts,
+   neither rewritten.
+2. **ENG-0194 FILED** — the inert `contains("status=established")` assertion and the corrected
+   tree-wide census (**four** substring consumers, not three).
+3. **ENG-0195 FILED** — the Director's `qsl-desktop` Slice-4 gateway measurement, **independently
+   re-measured** by this seat, with a unit mismatch in the original figures corrected in the open.
+4. **SR-16 rows 23–28** — landed **beside** the sealed ten and beside rows 11–22; nothing edited.
+5. **The cold read's substance** landed in `docs/governance/evidence/NA-0738_as_built.md`, cited by
+   sha, so it no longer lives only under `/srv` (D-1 / R331.1).
+6. **NA-0737 flipped to DONE** with the result class the Director declared:
+   **`FIXTURE_MAILBOX_ADDRESSING_PASS`** — replacing the candidate
+   `REMOTE_RELAY_ROUND_TRIP_PROVEN_PASS`, **DECLINED because it asserts the remote/CI claim that
+   lane's own boundary explicitly disclaims.**
+7. **NA-0738 promoted**, `STATE:` moved.
+
+Zero product source bytes. No `.github/**`, no workflow, no dependency, no lock change, **no test
+weakened, skipped or deleted**, **no standing rule minted**, no fenced ruling edited, `## D-1372` not
+rewritten. **ENG-0191 NOT repaired. ENG-0194's assertion NOT repaired. #1745 NOT closed.** The
+operator merges; the seat does not.

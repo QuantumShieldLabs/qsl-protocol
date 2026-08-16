@@ -4482,6 +4482,62 @@ ENG-0098; ENG-0007; ENG-0010; D-1367. Originating/last lane: NA-0731 (D-1367). L
 
 ⚠ **What this amendment does NOT change:** ENG-0191 stays **OPEN**; `:351`/`:352` are **untouched** in the committed script; **#1745 stays OPEN and is correctly open**; and the two readings this entry has always carried — stale fixture vs product gap — are **both still live**, since nothing here establishes that the product *should* reach `established` at that point. ⚠ The residual NA-0734 flagged is now the leading candidate rather than a footnote, and it is still **unmeasured**. Amending lane: NA-0737 (D-1372). Last-updated: 2026-08-15.
 
+⚠⚠ **AMENDED 2026-08-16 by NA-0738 (D-1373) — THE DECIDING DATUM EXISTS AT LAST: A PEER *CAN* READ BARE `established`, BOTH PEERS CAN READ IT SIMULTANEOUSLY, AND THE ORDERING — NOT THE PLACEMENT — IS WHAT MADE IT UNREACHABLE.** *Nothing above is edited; this is added beside it (mark-don't-rewrite).*
+
+**WHAT CHANGED.** Every prior lane measured the committed *arrangement*: `hs1 → A→B → hs2 → B→A`. NA-0738 measured a **different arrangement of the same bytes** — the re-handshake RELOCATED to after the round trip — on a loopback relay, and observed the state this entry has called unreachable since it was filed.
+
+⛳⛳ **THE DATUM, MEASURED, n=2, byte-identical between runs.** Values EXTRACTED and compared for **EQUALITY**, never grepped as a substring:
+
+| CP | alice (hs1 initiator) | bob (hs1 responder) |
+|---|---|---|
+| X0 (after `hs1`) | `awaiting_peer_confirm` `send_ready=yes` | `established_recv_only` `send_ready=no` `chainkey_unset` |
+| X1 (after alice's send) | unchanged | unchanged |
+| X2 (after bob's **successful** receive) | unchanged | **unchanged** — receiving seeds nothing |
+| **X3** (after bob's **first USER send**) | `awaiting_peer_confirm` `send_ready=yes` | ⛳ **`established` `send_ready=yes` `peer_confirmed=yes`** |
+| **X4** (after alice's **successful** receive) | ⛳ **`established` `send_ready=yes`** | ⛳ **`established` `send_ready=yes`** |
+| X5 (after the RELOCATED `hs2`) | `established_recv_only` `send_ready=no` `chainkey_unset` | `awaiting_peer_confirm` `send_ready=yes` |
+
+⇒ **`hs_status_truth`'s THIRD BRANCH IS LIVE CODE.** Bare `established` had never been observed anywhere in this program — not in a run, not in a test (see **ENG-0194**). It is observed here **three times in twelve observations**, and at X4 **on both peers at once**.
+
+⇒ ⚠⚠ **THE "PRODUCT GAP" READING IS DEAD.** This entry has carried *stale fixture vs product gap* as both-live since it was filed. The product reaches `established` exactly when its own predicate says it should, with **zero product bytes changed**. What is stale is the fixture's **ORDERING**.
+
+⛳ **AND THE CAUSE IS ESTABLISHED BY CONTROL, NOT BY INFERENCE.** In the **identical** environment — same relay process, same store, same `qsc` binary, same base, same scenario and seed, with delivery working in both — the committed arrangement was re-run using an instrument **byte-identical to NA-0737's banked harness** (`cmp` rc 0 against `harness_AFTER.sh`):
+
+| arrangement | `established` by EQUALITY | script exit |
+|---|---|---|
+| committed (`hs2` mid-flow) — NA-0737's own instrument | **0 / 12** | 0 |
+| relocated (`hs2` after the round trip) | **3 / 12**, incl. BOTH peers at X4 | 0 |
+
+**The only variable is where `hs2` sits.** NA-0737's 0/12 is reproduced exactly, C3 swap included; the relocation alone produces the state.
+
+⇒ **WHY 0/12 WAS ALWAYS THE ANSWER, mechanically:** `hs2` **REPLACES** the session (`hs_build_session` `:1129` → `qsp_session_store` `:1883`/`:2098`, one blob per peer). Sitting between the two halves, it means **session-1 carried only A→B and session-2 only B→A. No session has ever seen both directions.** The assertion was unreachable because **the script never completes a round trip on any single session** — not because of where the assertion sits, and not because anything is reset.
+
+⚠⚠ **THE DIRECTOR'S ELIMINATION IS THEREFORE REFUTED, AND BY ITS OWN EVIDENCE.** The elimination recorded above — *"a second handshake sits mid-flow and **resets** what is being asserted"* — is refuted three ways: **(1) a reset cannot key a chain**, yet at C3/X5 bob reads `send_ready=yes`, which by branch 1 REQUIRES a keyed send chain; **(2) ENG-0143, the elimination's own cited support, says the session is FRESH** — the surviving SCKA fossil is the exception it files as a bug, and it states *"fresh `nr == 0`"* outright; **(3) the grep could not have found it** — there is no reset in any module, the mechanism being an unconditional whole-session OVERWRITE, which no needle for "reset" can match. **The instinct pointed at the right line; the model was wrong, and the wrong model is what closed the option set.**
+
+⚠ **X5 IS ENG-0143's OWED RE-HANDSHAKE ROW, AND IT CONSTRAINS EVERY REPAIR.** From a state where **both** peers read `established`, the re-handshake drives **both** back out of it — alice to `established_recv_only`, bob to `awaiting_peer_confirm`, the role-dual pair NA-0735 and NA-0737 each observed at C3. ⇒ **any repair that asserts `established` AFTER a re-handshake fails.** In the relocated arrangement the assertion must sit **between the round trip and `hs2`**.
+
+## ⚠⚠ TWO CANDIDATE REPAIRS THE EARLIER SET COULD NOT CONTAIN — RECORDED AS LIVE, NONE RULED
+
+- **(d) MOVE `hs2` past the round trip AND move the assertion to just after it.** The option the three-way set **structurally could not contain**, because that set offered only delete / add / delete and **no MOVE**, while the defect is an ORDERING defect. Zero product bytes, zero wire-signature change, no extra relay exchange, and it **keeps** the re-handshake coverage (c) would delete. **This lane measured (d)'s arrangement and it reaches `established` on both peers.** ⚠ It is NOT ruled here, and see the blocker below.
+- **(e) RETARGET the assertion to the role-dual pair by EQUALITY** — initiator `awaiting_peer_confirm`/`send_ready=yes`, responder `established_recv_only`/`send_ready=no`/`chainkey_unset`. ⚠⚠ **THIS IS THIS ENTRY'S OWN ORIGINAL OPTION (a), AND IT WAS LOST, NOT REFUSED.** As FILED, (a) read *"assert a status that is true at that point … checking the `peer_confirmed` / `send_ready` fields instead"* — a **RETARGET**. The NA-0737 amendment's (a) reads *"**Drop** the `established` assertion"* — a **DELETE**. **These are different repairs and no note recorded the substitution.** The correction is made here in the open, beside both texts, neither rewritten: **the filing's retarget survives as a live candidate.**
+
+⚠ **A CONSEQUENCE FOR (b), MEASURED RATHER THAN DERIVED.** (b)'s mechanism is exactly X3→X4: the sender's first USER send seeds its own chain (`qsp_dh_ratchet dir=send reason=first_send` observed in `bob.log`), and the peer's receive then advances `recv.nr`. **That mechanism is now observed, not derived.** ⚠ But (b) is **direction-critical and its text does not say which direction**: after `hs2`, an extra **alice→bob** exchange establishes both peers; an extra **bob→alice** exchange changes nothing at all. A reader implementing "one more exchange" the wrong way gets an identical red suite and no signal.
+
+⚠ **A CONSEQUENCE FOR (a).** (a) deletes the only line in the file that can distinguish *a live bidirectional session* from *two one-way sessions in sequence* — which is precisely what the suite does today, and precisely what its own comments and published `summary.txt` claim it establishes. ⚠ And `:351`/`:352` are the **sole gate** on `:353-355`, where the fixture **fabricates** `event=qsp_status status=ACTIVE reason=handshake` into `$markers` and hashes it into the published `normalized_subset_sha256`, and on the hard-coded literals at `:448`/`:449`/`:468`. **(a) as written is not a one-line deletion**: without also removing those, it converts a failing assertion into a silent false claim.
+
+## ⚠⚠ A BLOCKER (d) MUST CLEAR, MEASURED IN THIS LANE'S FIRST RUN — AND IT IS NOT A FIXTURE PROBLEM
+
+The first run of the relocated arrangement **FAILED**: alice's `receive` returned **rc 1** with `event=qsp_unpack code=qsp_env_decode_failed`, and bob's message was never reached. The cause was measured to a source line and a store row:
+
+1. **`handshake poll` NEVER ACKS** — `event=relay_ack` measures **0** in `alice.log` and **0** in `bob.log` against **1** in `bob_recv.log`. Across four runs, **every** handshake frame (A1 4279 B, B1 6436 B, A2 3364 B) is still resident in the relay store at run end; only `receive` acks. Complete accounting: 8 routes, 31 residual rows, **0 unexplained**.
+2. Those frames therefore survive on a **visibility timeout** alone — `PULL_LEASE_SECS_DEFAULT = 60` (`qsl-server/src/store.rs:7`).
+3. hs1's B1 was enqueued on alice's route at 21:00:36; her `receive` ran at **21:01:55 — 79 s later**, past the timeout ⇒ **the stale handshake frame was redelivered at the HEAD of her queue**.
+4. `receive` pulled it, could not decode it as a QSP envelope, and **`qsc/src/transport/mod.rs:1249` `return Err(CliError::code(code))` aborted the ENTIRE receive.** Only `qsp_replay_reject` has a quarantine-and-continue arm; **every other code aborts**, the item is never acked, and it is redelivered — permanently at the head. ⇒ **one undecodable frame at the head of a mailbox blocks every message behind it.**
+
+⇒ **This is a HEAD-OF-LINE BLOCK, it is product behaviour and not fixture behaviour, and it is latent on the committed arrangement too** — it fires whenever a peer's `receive` runs more than the visibility timeout after a handshake frame was last pulled. The committed arrangement runs `hs2`'s polls immediately before alice's receive, which re-leases and masks it. ⚠ **It is recorded here and deliberately NOT filed as its own ledger entry** — that is a backlog-prioritisation act belonging to the operator; drafted text and a swept id are carried in NA-0738 STOP 001. Re-running with `PULL_LEASE_SECS=3600` (the server's own ceiling, `store.rs:8`), the identical harness reached X4 on both peers, twice.
+
+⚠ **What this amendment does NOT do.** It does **not** choose an option — five are now live, (a)–(e), and **the choice is the operator's**. It does not repair ENG-0191; `:351`/`:352` are **untouched** in the committed script, re-verified byte-identical (`c885dcf0…0eef`, 482 lines) after all four runs. **ENG-0191 stays OPEN and #1745 stays OPEN.** ⚠ **CLAIM BOUNDARY, carried verbatim and not smoothed:** loopback plain HTTP, **not CI**, no TLS; `qsl-server` rev `37ec8207`; **n=2** for the relocated arrangement and **n=1** for the control; scenario `happy-path` seed 1, **`drop-reorder` NOT run**; the instrument is a HARNESS COPY, **never the committed script**; and the relocated arrangement was reached only with the visibility timeout raised. Amending lane: NA-0738 (D-1373). Last-updated: 2026-08-16.
+
 ### ENG-0192 — `receive --mailbox` takes a RAW ROUTE TOKEN and the remote smoke fixture hands it an IDENTITY LABEL, so the client politely polls a mailbox nobody ever writes to and reports an empty inbox at rc 0 — **the FIFTH cause behind the 187-day outage** — **NEW; filed 2026-08-15 by NA-0736 (D-1371; measured from NA-0735's sealed evidence and from source at `5201c275`; classification ruled at R335 §1 after ENG-0134 and ENG-0142 were both REFUTED)**
 
 - Severity: **P2** — a FIXTURE defect, not a shipped defect, on the same reading ENG-0191 records for itself. The product behaved correctly at every step; one consumer is wrong about what an argument means. ⚠ It is nevertheless the thing standing between this suite and a *proven* round trip, and it sits **behind** ENG-0191 in the failure order, so clearing ENG-0191 alone will not produce a delivered message.
@@ -4686,3 +4742,59 @@ the same blindness — a gate and an instrument are different things and this pr
 - Cross-references: **ENG-0192** (the defect it could not see), **ENG-0193** (the instrumentation half
   of the same blindness), **ENG-0191** (why (ii) never runs), **ENG-0190** (artifact legibility).
 - Status: open — **FILING ONLY**. Originating/last lane: NA-0736 (D-1371). Last-updated: 2026-08-15.
+
+### ENG-0194 — the substring defect ENG-0191 found in a shell fixture also exists in a UNIT TEST and in the soak harness, where it makes an assertion INERT: **every consumer of `status=established` in this repository matches it as a SUBSTRING, so `hs_status_truth`'s third branch has ZERO distinguishing coverage tree-wide** — **NEW; filed 2026-08-16 by NA-0738 (D-1373; found by the SR-15 adversarial cold read of ENG-0191, §8.2, sha256 `a5b7324e…b1b4`; consumer census re-measured tree-wide at `62752adf` by the filing seat, which found the read's enumeration SHORT BY ONE)**
+
+- Severity: **P2** — a coverage defect, not a shipped defect. Nothing is mis-computed; a state simply has no test that can tell it from its own prefix. It is nevertheless why the unreachability at the heart of **ENG-0191** survived 187 days *inside* the unit suite as well as outside it.
+- Status: open — **FILING ONLY. The repair is deliberately NOT made here.** A test edit is outside NA-0738's authorised edit set and would have been a STOP; and the right repair is coupled to whichever ENG-0191 option the operator rules, since option **(e)** changes what these assertions should say.
+
+**THE DEFECT.** `qsl/qsl-client/qsc/tests/send_ready_markers_na0168.rs:334` asserts
+
+    bob_status_after_out.contains("status=established"),
+
+`contains` is a substring match and **`established` is a PREFIX of `established_recv_only`**. The test's own comment, ten lines below at `:343-346`, states that at this exact point the responder *"is still recv-only (send_ready=no)"* — and `:348` then asserts `send_ready=no`. ⇒ **the assertion at `:334` passes on `established_recv_only`, which is the state the test itself says obtains. It is INERT: it cannot fail, and it cannot distinguish the state it names from the one actually present.**
+
+**THE CENSUS — and ⚠ the cold read's own enumeration measured SHORT BY ONE.** The read's §8.2 names **three** consumers of the literal (`:351`, `:352`, `na0168:334`). Measured tree-wide at `62752adf` over every tracked file, there are **FOUR**:
+
+| # | site | match style | effect |
+|---|---|---|---|
+| 1 | `scripts/demo/qsc_remote_handshake_smoke.sh:351` | `mark_grep` (regex, unanchored) | ENG-0191; fails for alice |
+| 2 | `scripts/demo/qsc_remote_handshake_smoke.sh:352` | `mark_grep` (regex, unanchored) | **passes spuriously** on `established_recv_only` |
+| 3 | `qsl/qsl-client/qsc/tests/send_ready_markers_na0168.rs:334` | Rust `.contains` | **INERT** (this filing) |
+| 4 | `qsl/qsl-client/qsc/scripts/remote_soak.py:573` | Python `not in` | **INERT**, and applied in **both** directions by the `((a, b), (b, a))` loop at `:561`; a soak whose `hs_pair_handshake_ok` stage is satisfied by `established_recv_only` |
+
+⚠ **The read's CONCLUSION survives and is STRENGTHENED by the correction, not weakened:** with four of four matching by substring, **bare `established` has never been asserted anywhere in this repository in a way that could tell it from `established_recv_only`.** ⇒ **`hs_status_truth`'s third branch had ZERO distinguishing coverage tree-wide** — which is exactly why NA-0738 was the first observation of it (see ENG-0191's 2026-08-16 amendment: X3 and X4, `established` on both peers).
+
+⚠ **A PRECISION, so the finding is not read wider than it is.** Site 4 is an **operator-run** soak harness, not a workflow-run one — `remote_soak` appears **0 times** under `.github/workflows/`. Sites 1 and 2 are CI-run. Saying "four inert CI assertions" would be false; the true statement is *four substring consumers, three of them capable of passing on the wrong state, in two CI-run files and one operator-run file*.
+
+⚠ **The three sites that match `status=established_recv_only`** — `desktop_gui_contract_na0215b.rs:539`, `handshake_contract_na0217i.rs:283`, `handshake_mvp.rs:1165` — are **NOT** part of this defect. They pin the recv-only state deliberately and their needle carries the discriminating suffix. They are cited because they are the evidence that the responder's post-handshake state is **intended**, which is what closes ENG-0191's "product gap" reading.
+
+⚠ **A forward consequence any repair lane must carry:** under ENG-0191 option **(e)**, or under any change from substring to equality matching, **`:352` will begin failing for the first time.** A lane that repairs `:351` and leaves `:352` matching by substring has repaired half a defect and will believe it repaired all of it.
+
+- Cross-references: **ENG-0191** (the same defect class, in the fixture that made it visible), **ENG-0143** (the re-handshake predicate row), **WF-0086** (no CI job asserts a message received over a real relay), **SR-21** (an instrument's scope must equal its claim's scope — the property that caught the read's own enumeration here). Originating/last lane: NA-0738 (D-1373). Last-updated: 2026-08-16.
+
+### ENG-0195 — the `qsl-desktop` Tauri gateway exposes **no protocol surface at all**: 26 commands covering vault, unlock, settings, destroy/erase, markers and relay config, and **zero** invite, contact, handshake or messaging commands ⇒ **Slice 4 is the first slice in which the GUI speaks to the protocol**, so the whole gateway beneath those screens is in its scope — **NEW; filed 2026-08-16 by NA-0738 (D-1373). ⚠ ORIGINALLY MEASURED BY THE DIRECTOR** in `qsl-desktop` at `c52fd51b`, carried verbatim in NA-0737 STOP 001 §10 after that lane correctly REFUSED to file it (its brief's §1 enumerated one file — SR-16 row 20)
+
+- Severity: **P3** — a scoping measurement, not a defect. It is filed because it changes how a future slice is bounded, and because it has so far existed only in an operator-side stop file that no successor Director can read (D-1 / R331.1).
+- Status: open — **FILING ONLY.** No GUI work is designed or proposed here.
+
+⚠⚠ **PROVENANCE, STATED PRECISELY BECAUSE IT IS THE POINT OF THIS FILING.** The measurement is the **Director's**. The NA-0737 seat declined to file it and was **ruled correct**: that brief enumerated a single file, and the seat could not have measured the figures anyway, having no desktop checkout. **NA-0738's brief widened the enumeration to include this ledger, which is what makes filing it authorised now.** ⚠ **AND THIS SEAT RE-MEASURED IT INDEPENDENTLY** rather than transcribing it — a departure from the brief's expectation that the filing seat would not, made because writing *"not re-measured"* over figures this seat had in fact measured would put a false provenance sentence into repo truth.
+
+**THE MEASUREMENT, re-derived at `c52fd51bbaff5882741620a7774f2253814ddaa7`** over all eight `src-tauri/src/*.rs` files (`commands.rs`, `gateway.rs`, `lib.rs`, `main.rs`, `markers.rs`, `paths.rs`, `settings.rs`, `state.rs`; byte counts checked, since the contents API returns empty content silently above 1 MB):
+
+- `handshake` — **0** occurrences. `messaging` — **0** occurrences.
+- `contact` — **1**, inside a help string (`commands.rs:89`, `VERIFY_PURPOSE_LINE`).
+- `invite` — ⚠ **4 occurrences on 2 lines**, `commands.rs:472` and `:473`, **both `///` doc comments** describing server limits the DTO does not carry.
+
+⚠ **A UNIT MISMATCH IN THE ORIGINAL FIGURES, CORRECTED IN THE OPEN.** The carried set reads *"`handshake` 0, `invite` 2, `contact` 1"*. Measured as **occurrences** those are 0 / **4** / 1; measured as **lines** they are 0 / **2** / 1. **Two of the three figures are occurrence counts and one is a line count, and the set does not say so.** Each figure is true of what it measured; the mixture is what misleads. **The substantive claim — "both in COMMENTS" — is CONFIRMED**, and so is every other element.
+
+⛳ **THE STRONGER EVIDENCE, which token counts only approximate: the enumerated command surface itself.** `commands.rs` carries **26** `#[tauri::command]` functions — `vault_version_state`, `launch_state`, `cli_vault_present`, `vault_create`, `identity_ensure`, `identity_show`, `unlock_attempt`, `lock_now`, `protection_status`, `wipe_arm`, `wipe_disarm`, `settings_get`, `settings_set`, `destroy_vault`, `erase_all`, `marker_stats`, `core_busy`, `app_info`, `relay_config_get`, `relay_config_set`, `relay_test`, `relay_token_set`, `relay_token_clear`, `relay_token_show`, `relay_ca_file_set`, `relay_ca_file_clear`, `relay_ca_file_show`. **Not one of them invites, adds a contact, handshakes, sends or receives.** An enumeration of the surface settles the claim in a way a token census cannot.
+
+⇒ **CONSEQUENCE: Slice 4 is the first slice in which the GUI speaks to the protocol at all**, so the entire gateway surface beneath those four screens falls inside its scope rather than being assumed to exist already.
+
+⚠ **TWO CARRIED CONSTRAINTS RIDE WITH IT, unchanged in substance:**
+
+1. **Compose-disabled must NOT key off `send_ready`** (R334.3). `send_ready=no` reports the **chain's** state, not the user's capability: the refusal is `chain_unseeded && !boundary_permitted`, and a **USER** send always may originate — only a CONTROL send is refused. ⛳ **NA-0738 supplies the first direct run-derived evidence for this**: at X2 bob reads `send_ready=no chainkey_unset`, and his very next act — a user send — **succeeds** and seeds his chain (`qsp_dh_ratchet dir=send reason=first_send`), taking him to `established`. **A GUI keying compose off `send_ready` would have disabled the control at the exact moment the send was going to work.** This was a READING when carried; it is now a measurement.
+2. **The GUI must never accept a caller-supplied mailbox** — binding the MESSAGING slice, not Slice 4. **ENG-0192** is the demonstration of the cost: `--mailbox` is used verbatim as a route token, `route_token_is_valid` accepts any 22–128-char token, and HTTP 204 renders "not your mailbox" and "your mailbox is empty" indistinguishable at rc 0.
+
+- Cross-references: **ENG-0192**; **ENG-0191**; R334.3; NA-0737 STOP 001 §10 (where the text was preserved); SR-16 row 20 (the brief/enumeration contradiction that delayed it). Originating/last lane: NA-0738 (D-1373). Last-updated: 2026-08-16.

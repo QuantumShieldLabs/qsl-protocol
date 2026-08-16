@@ -42984,3 +42984,61 @@ merges; the seat does not.
 **7. WHAT IS NOT ESTABLISHED, STATED SO IT CANNOT BE READ WIDER.** ⚠ What `receive` does on an **invite ENVELOPE** is **UNMEASURED** — that class lives in the invite-slot mailbox, which `receive` does not poll on any default path. ⚠ The **head-of-line consequence** — a real message queued *behind* an undecodable frame being blocked — was **NOT re-demonstrated in this lane**; it follows from the measured abort by construction (`transport/mod.rs:1249`) and was measured by NA-0738. **This lane measured the abort, not the blocked message behind it.** (i) receive-on-an-invite-envelope and (ii) a fresh head-of-line demonstration were offered by the seat and **DECLINED at R338 §5**; either is revivable by the operator in one line.
 
 **8. BOUNDS.** Loopback, plain HTTP, `qsl-server` rev `37ec8207`, `qsc` at `9d11e2bd`, `MAX_BODY_BYTES=65536`, `PULL_LEASE_SECS=60`, **n=1 per arm**, zero secrets read, no relay contacted, **not a CI claim**. **Zero product source bytes. Nothing repaired. ENG-0191's (a)–(e) stay unruled. #1745 stays open.**
+
+## D-1376 — NA-0741: RECEIVE-SIDE FRAME-CLASS DISPATCH, LANE 1 OF THE ENG-0142/ENG-0196 REPAIR PROGRAM — the directive is promoted, the repair is NOT implemented
+
+- **Date:** 2026-08-16 · **Lane:** NA-0741 · **Base:** main `4c59ffdadef38d9a7f058b1b39387bd9a7298e44`, verified UNMOVED bare and unpiped against the NAMED GitHub remote at the moment of assertion, open-PR set MEASURED EMPTY with a positive control returning merged rows.
+- **Class at close:** `FRAME_CLASS_DISPATCH_DIRECTIVE_PROMOTED_PASS` — ⚠ it names what this PR did (promoted a ruled directive) and asserts **nothing** about the repair, which is not in it.
+- **Rulings consumed:** **R340** (interim, option) and **R341** (final, SR-15 read absorbed), plus the Director's verification of the final directive. Ceremony: formalization → interim ruling → adversarial cold read → final ruling → Director verification → this promotion.
+
+### 1. WHAT IS DECIDED
+
+**OPTION N-PRIME.** `receive` classifies each pulled frame BEFORE unpack and skips **exactly the three known-foreign classes** — Handshake, InviteInit, InviteResp — leaving them **leased, unacked and undestroyed**. **Unknown-class frames route to unpack exactly as today.** `transport/mod.rs:1186-1250`, all four of its side effects and every one of its exits stay **byte-unchanged**. The skip is gated to **`AckMode::Lease` only**, so **Legacy is byte-unchanged in lane 1**.
+
+### 2. THE RULED AMENDMENT TO THE OPERATOR-BLESSED DESIGN BLOCK — landed BESIDE it, never rewriting it
+
+The design block (banked 2026-08-16, sha256 `316b09acedee3221a7c429898ef84d4833b3ad7edaf40bd06898d7ec5b306e6b`, 56 lines, sealed 444) is **NOT rewritten**. Its narrowing is recorded here:
+
+- **PART 2's third arm is VOID in lane 1.** It read *"Message class that fails unpack → marker, skip, leave leased, continue"*. ⚠ **That was the Director's own defect, and it was caught by the enumeration the brief ordered**: it treated *"fails unpack"* as a frame-content signal when the channel measurably carries **three populations** — ten frame-content codes, plus **`qsp_session_store_failed` (a STORE WRITE), `qsp_no_session` and `qsp_channel_invalid`**, with a detected `session_rollback_detected` riding the same failure. As blessed it would have **silenced four fail-closed security assertions and swallowed store I/O**, contradicting the design's own *"terminal failures keep their non-zero exits"* sentence two bullets later.
+- **The PRINCIPLE's *"never aborts on frame content"* is CORRECTED to *"never aborts on a frame that fails to classify as a message"*.**
+- **The wider principle is an open OPERATOR design question, not a lane-1 deliverable.**
+- ⚠ **The amendment also carries what post-dates the interim ruling:** the option is **N-PRIME**, not N (Unknown-class frames are NOT skipped), and **Legacy is bounded out of lane 1 entirely** (the drafted Legacy quarantine branch is **deleted, not amended**).
+
+### 3. THE FOUR NAMED BEHAVIORAL DELTAS — stated because the record said there was one
+
+The drafted directive called the inserted match arm *"the WHOLE behavioural delta"*. **It is not.** For a known-foreign frame under Lease, four side effects at `transport/mod.rs:1186-1199` no longer run, and all four are named here rather than discovered later:
+
+| site | forgone for known-foreign frames only | judgement |
+|---|---|---|
+| `:1188-1194` | `contacts_entry_read` → `contact_request_upsert` → `emit_cli_contact_request("created")` **and** `emit_tui_contact_request("created")` | ⛳ **INTENDED.** A contact request raised by a peer's own handshake or invite frame is a **false onboarding signal**. The NA-0187 surface still fires for every Unknown- and message-class inbound. |
+| `:1195-1197` | `emit_file_integrity_fail(code, "rotate_mailbox_hint")` on `qsp_verify_failed` | unreachable for a known-foreign frame in practice; named for completeness |
+| `:1198` | `record_qsp_status(…, false, code, …)` — a **PERSISTED** status write | the on-disk qsp status no longer records a foreign frame as a protocol failure, which is the honest record |
+| `:1199` | `emit_marker("qsp_unpack", Some(code), &[("ok","false")])` | replaced, for this population only, by `recv_frame_skipped` |
+
+### 4. THE CENSUS OF RECORD
+
+The formalization's own §2(d) enumeration is **VOID**. It asserted *"exactly one retarget"* and *"ZERO UNCLASSIFIED"*; **both were false**, because **its instrument counted rc idioms while its claim covered marker consumers**. The census of record is the **SR-15 cold read's v3+v4 union**, carried into the final directive **from the read's own bytes** with a diff-back and a negative control per block. Its corrections: two rows the drafted census listed as receives are **sends** (`handshake_mvp.rs:2056`, `NA_0640_full_stack_e2e.rs:530`); one KEEP row was missing (`attachment_streaming_na0197c.rs:1703`); and **both** censuses shared an idiom blind spot (a `-> (bool, String)` helper, and `assert_cmd`'s `cmd.assert().failure()`), recorded as an instrument property rather than a count. ⇒ **Under N-PRIME: ZERO assertion retargets; ONE committed file touched, and only its fixture line** (`timeline_store.rs:154`, re-aimed from `01 02`-prefixed junk — which matched InviteResp exactly — to `01 00`-prefixed junk, so the frame still reaches unpack, still rejects, and **all three assertions stay byte-unchanged**).
+
+### 5. SR-19 HALF (a), AND THE WINDOW IT LEAVES OPEN
+
+SR-19 has formalization verify at drafting that *(a) the instrument compiles and runs at base* and *(b) the delta symbol is reachable*. **(b) is discharged.** **(a) is structurally impossible for a seat forbidden to write tests**, so it is discharged by the implementing seat's mandated **red-first run** — a test that runs red at base has compiled and run at base. ⚠ **THE WINDOW IS NAMED RATHER THAN LEFT IMPLICIT: between the ruling and the impl PR the lane stands on an undischarged half of a standing rule.** That is a consequence of SR-15's ceremony, not a defect in it. **No rule is minted (D-2/R305).**
+
+### 6. RESIDUALS, ALL NAMED
+
+- **Unknown-class frames still wedge a batch.** The ruled trade: it is what preserves six committed assertions and the NA-0187 onboarding surface.
+- **The Legacy wedge persists** — non-default, explicit-flag lab mode; an operator may promote a Legacy disposition lane later.
+- **Three post-unpack frame-content aborts** (`:642`, `:682`, `:720`) survive; a **session-authenticated** peer can still abort a batch. They ride the ENG-0142 closure amendment and are **not filed separately**.
+- ⚠ **A MARKER TAX:** a leased skip re-emits the **same** `recv_frame_skipped id=` once per lease period for up to `retention.ttl_secs=604800`, with no dedup and no rate limit, on the path the directive calls the operator's only window. **Lane 2's producer acks end it.**
+- **Collateral pulls still cost one lease period**; nothing is destroyed.
+
+### 7. A TRIPWIRE CARRIED SO A LATER LANE DOES NOT "FIX" IT
+
+`qsl/qsl-client/qsc/tests/na0689_p3_a2_stranding.rs:358`'s `assert_eq!(t_quarantined, 0, …)` is **the tripwire for any future extension of a quarantine arm to Lease mode**. Its own failure message already reads *"This is a FINDING, not a flaky test."* ⚠ Under N-PRIME the Legacy quarantine branch is deleted, so nothing in lane 1 approaches it — this row exists so the next lane that considers quarantining on the Lease path meets the tripwire as a **record**, not as a surprise.
+
+### 8. PROVENANCE
+
+Formalization brief banked verbatim under SR-14 before anything consumed it (sha256 `f643939273339ec6…a8b4`, 153 lines, 444), design block extracted from the brief's own bytes and diffed back identical against a working negative control (sha256 `316b09ac…6e6b`, 56 lines, 444). Interim ruling `4ade0ca7…` (65 l) and final ruling `b5284c1d…` (113 l), both banked 444. **The SR-15 adversarial cold read is cited by sha and is not this seat's work:** `SR15_COLD_READ_NA0741_20260816T145857Z.md`, **842 lines, sha256 `98e266562d2797c06e1bfb1337a3501a0072f77fccdcbbf1ce31914ac42f95b0`**, mode 444 — **21 findings (3 BLOCKER, 7 MAJOR, 11 MINOR) and 19 CLEAR checks**. Final directive `a8f25983…` (597 l, 444), assembled with every ruled text EXTRACTED FROM ITS SOURCE'S OWN BYTES and diffed back, 6/6 positive and 6/6 negative controls. Evidence: `docs/governance/evidence/NA-0741_as_built.md`.
+
+### 9. WHAT THIS DECISION DOES NOT DO
+
+It does **not** repair ENG-0142 and does **not** close it. It does **not** touch ENG-0196 (lane 2). It rules **nothing** on ENG-0191's (a)–(e). It does not repair ENG-0194, does not build ENG-0193's instrumentation, and does not build WF-0086's or WF-0087's gates. **Zero product source bytes; no test, no script, no workflow, no `.github/**`, no dependency, no lock; no standing rule minted; no fenced ruling and no sealed artifact edited. #1745 — an ISSUE, not a PR — stays OPEN.**

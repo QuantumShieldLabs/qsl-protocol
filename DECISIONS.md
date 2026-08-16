@@ -42961,3 +42961,26 @@ edited, `## D-1373` not rewritten, ENG-0142's pre-existing text not rewritten. *
 repaired. ENG-0191 NOT ruled. ENG-0194's assertion NOT repaired. ENG-0193 NOT built. WF-0086's gate
 NOT built. `invite finish` NOT measured. Issue #1745 NOT closed.** No secret read. The operator
 merges; the seat does not.
+
+## D-1375 — NA-0740: THE ENG-0142 PRE-REPAIR MEASUREMENT LANE — the invite flow wedges BOTH peers' ordinary mailboxes, and the block runs in both directions
+
+- **Date:** 2026-08-16 · **Lane:** NA-0740 · **Base:** main `9d11e2bd97af37d221854555a2e79848873692a7`
+- **Class:** `INVITE_RESIDUE_UNDECODABLE_PASS` — **declared by the Director at R338 §4.** It names exactly the successor measurement this lane was promoted to answer and asserts nothing about environment; the boundary lives in the record (NA-0738 precedent).
+
+**WHAT THIS DECIDES.** ENG-0142's repair design rested on cells nobody had measured. They are measured. This decision records what the runs returned and files nothing beyond them: **no repair, no option ruled, no gate built.**
+
+**1. THE NAMED SUCCESSOR MEASUREMENT IS ANSWERED — YES.** `invite finish`'s residue is **specifically undecodable**. The invite flow ran end to end on loopback with every command at exit 0, and left one undecodable frame in **each** peer's ordinary inbox: the invite reply in the **REDEEMER's** (⚠ correcting the brief's E1 *"inviter's"*; the landed amendment was correct) and the **A2** handshake frame in the **INVITER's**. `receive` against either aborts — `qsp_env_decode_failed`, rc 1, empty out dir — destroys nothing, and **re-leases for a further 60 s**, re-arming every lease period until the relay's 7-day retention expires.
+
+**2. AND THE BLOCK RUNS THE OTHER WAY.** `invite_finish` pulls `--max 1` and processes only `.next()` (`invite/mod.rs:1165`); an ordinary message arriving first is taken as the head and refused by `decode_envelope_resp`, so **`invite finish` exits rc 1 with `handshake_envelope_malformed` without ever seeing the invite reply behind it.** ⇒ **the two commands poison each other's mailbox.** **This half is filed as its own entry, `ENG-0196`, ruled distinct from ENG-0142 at R338 §2** — different mechanism (a VALID frame refused by a single-item pull, not an undecodable one aborting a loop) and different repair surface. ⚠ The user's escape — run `receive` first — is real but **unsignposted**: the error names the envelope, not the ordering.
+
+**3. THE DISCRIMINATOR TABLE CONSTRAINS EVERY REPAIR.** All three envelope classes open `0x01` and differ only in byte 1 (`01 00` message · `01 01` invite INIT · `01 02` invite RESP); handshake frames are cleanly separable at `51 48 53 4D`. ⇒ **one leading byte is not enough.** ⚠ Byte 7 of a handshake frame is not stable across contexts and must not be keyed on.
+
+**4. THE REPAIR SURFACE IS NAMED.** `handshake poll` inspects the frame magic (`handshake/mod.rs:455-456`, measured live as `reason=handshake_magic`); `receive` measures **ZERO** `QHSM`/`HS_MAGIC` occurrences in `transport/mod.rs`, against a positive control of **3** in `handshake/mod.rs`.
+
+**5. SKIP-AND-LEAVE-LEASED IS NOT DEAD ON ARRIVAL.** With the head leased and unacked, an immediate second pull returns the items behind it; a third pull with everything leased returns **HTTP 204 / zero**, which is what makes the second a measurement rather than an artefact of a relay ignoring leases.
+
+**6. NOTHING WAS DESTROYED, AND IT IS PROVEN AS A DELIVERY.** Complete store accounting at every checkpoint (final **10 routes / 15 rows / 0 unexplained**); a collaterally-pulled message arrives **intact one lease period late** (measured **59 s** against the 60 s knob).
+
+**7. WHAT IS NOT ESTABLISHED, STATED SO IT CANNOT BE READ WIDER.** ⚠ What `receive` does on an **invite ENVELOPE** is **UNMEASURED** — that class lives in the invite-slot mailbox, which `receive` does not poll on any default path. ⚠ The **head-of-line consequence** — a real message queued *behind* an undecodable frame being blocked — was **NOT re-demonstrated in this lane**; it follows from the measured abort by construction (`transport/mod.rs:1249`) and was measured by NA-0738. **This lane measured the abort, not the blocked message behind it.** (i) receive-on-an-invite-envelope and (ii) a fresh head-of-line demonstration were offered by the seat and **DECLINED at R338 §5**; either is revivable by the operator in one line.
+
+**8. BOUNDS.** Loopback, plain HTTP, `qsl-server` rev `37ec8207`, `qsc` at `9d11e2bd`, `MAX_BODY_BYTES=65536`, `PULL_LEASE_SECS=60`, **n=1 per arm**, zero secrets read, no relay contacted, **not a CI claim**. **Zero product source bytes. Nothing repaired. ENG-0191's (a)–(e) stay unruled. #1745 stays open.**

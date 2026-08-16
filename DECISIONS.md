@@ -43042,3 +43042,128 @@ Formalization brief banked verbatim under SR-14 before anything consumed it (sha
 ### 9. WHAT THIS DECISION DOES NOT DO
 
 It does **not** repair ENG-0142 and does **not** close it. It does **not** touch ENG-0196 (lane 2). It rules **nothing** on ENG-0191's (a)–(e). It does not repair ENG-0194, does not build ENG-0193's instrumentation, and does not build WF-0086's or WF-0087's gates. **Zero product source bytes; no test, no script, no workflow, no `.github/**`, no dependency, no lock; no standing rule minted; no fenced ruling and no sealed artifact edited. #1745 — an ISSUE, not a PR — stays OPEN.**
+
+## D-1377 — NA-0741: RECEIVE-SIDE FRAME-CLASS DISPATCH IS **IMPLEMENTED** — ENG-0142's measured cause is closed at the classifier, and three findings the ruled directive did not carry are recorded rather than smoothed
+
+- **Date:** 2026-08-16 · **Lane:** NA-0741 · **Base:** main `788c8de5fa29fabc0540df4d53bea48307b2ffde`, derived **bare and unpiped** against the GitHub remote **by URL** (this seat's remotes were ENUMERATED, not assumed — `origin` IS GitHub here and `mirror` is the local mirror, the reverse of the hazard a predecessor recorded), local HEAD identical, worktree clean, and exactly **two first-parent merges** past the directive's base `4c59ffda` (#1756 then #1757) whose combined diff touches **six records files and zero product source**. Open-PR set **MEASURED EMPTY** with a positive control returning three merged rows. `D-1377` re-derived at the edit across **all four** `DECISIONS.md` record forms (`- **ID:** D-` max 1312 · `## D-` max 1376 · `### D-` max 116 · `**D-` max 1340) and measured **0 declaring and 0 mentions** tree-wide with both controls discriminating.
+- **Class at close:** ⚠ **NONE IS DECLARED, AND NONE IS INVENTED HERE.** No result class for the implementation lane exists in the FINAL directive or in R341 — measured, against a positive control that finds NA-0740's `INVITE_RESIDUE_UNDECODABLE_PASS` and NA-0739's `ENG0142_AMENDMENT_LANDED_PASS` in the same documents. Following **R338 §4**, the Director declares one at PR review or **the absence stands recorded**.
+- **Executable document:** `DIRECTIVE_NA0741_FINAL_NPRIME.md`, 597 lines, 47342 bytes, mode 444, sha256 `a8f25983a80d1bae8df78244772e5e50ff95abe9939beab087bb182c5c062d28`, verified against `LATEST.md` **before** it was consumed. Rulings consumed: **R340** (interim), **R341** (final, SR-15 read absorbed), **R343** (the queue-gate fix). This decision consumes no new ruling.
+
+### 1. WHAT IS BUILT
+
+`receive` now classifies every pulled frame from its **leading bytes, BEFORE unpack**, and under
+`AckMode::Lease` **only** skips exactly the three known-foreign classes — Handshake (`51 48 53 4D`),
+InviteInit (`01 01`), InviteResp (`01 02`) — with `continue` and **without** `record_seen_and_queue_ack`,
+so each frame is left **leased, unacked and undestroyed** for its rightful consumer one lease period
+later. **THE LANE ADDS ZERO NEW FRAME CONSUMPTION ANYWHERE.**
+
+Six files, **+92 / −3**: the new `frameclass.rs`; one `mod` line; **one visibility change**
+(`HS_MAGIC` → `pub(crate)`, adding no public surface since `handshake` is already `pub mod`);
+the transport insert plus its round condition and end-of-batch summary; **one fixture line** in one
+committed test; and one line in **each** shard manifest.
+
+⛳ **`transport/mod.rs:1186-1250`'s `Err(code)` arm is BYTE-UNCHANGED, proven mechanically:** the arm
+was carved from both trees by an anchor asserted unique and hashed — **4281 bytes, sha256
+`6be034fe77f03006` on both** — with a last-character-mutated copy comparing DIFFERENT so the
+comparison discriminates. All four side effects survive: the NA-0187 contact-request surface on
+**both** CLI and TUI, `emit_file_integrity_fail`, the **persisted** `record_qsp_status` write, and
+the `qsp_unpack ok=false` marker. ⚠ The obvious anchor `Err(code) => {` occurs **four times**
+(`:1186`/`:1605`/`:1674`/`:3217`); rather than refine the needle it was **enumerated and classified**
+and the arm's own first statement used instead — SR-21 applied to this seat's own instrument.
+
+⇒ **ZERO assertion retargets across the suite. ONE committed test touched, and only its fixture line.**
+
+### 2. THE PROOFS — E1…E6, AND E5 IS EVALUATED AGAINST ITS RE-SEALED TEXT
+
+⚠ **THE BRIEF'S ORIGINAL E5 IS VOID.** It read *"REPAIRED, Legacy: foreign frame quarantined locally
+with witness marker, run continues, message delivered, rc 0."* The FINAL directive §2 **re-sealed E5
+verbatim from the ruling** as *"Legacy: the same foreign-frame arrangement still aborts exactly as
+today, proven beside the Lease skip in one discrimination test"*, because §2 **deleted** the Legacy
+quarantine branch rather than amending it. **Byte-verbatim binds to the CURRENT governing text**, so
+the re-sealed E5 governs and the original is recorded as superseded.
+
+**E1 HIT · E2 HIT · E3 PARTIAL · E4 HIT · E5 (re-sealed) HIT · E6 HIT.**
+
+⚠ **E3 IS A PARTIAL AND IT IS REPORTED AS A RESULT, NOT TUNED.** Its first half — *the foreign frame
+survives server-side: leased, unacked, undestroyed* — is **HIT by execution**: after lease expiry a
+raw `GET /v1/pull?ack=lease` returns the **exact planted bytes** for every skipped class. Its second
+half — *accounting before/after, unexplained = 0* — is **NOT DISCHARGED**: no store-level row census
+was run in this lane. NA-0740's harness did that accounting; this lane asserts frame RESIDENCY, not
+a complete row census, and the expectation's second half therefore stands unproven here.
+
+**RED-FIRST IS A PROOF, NOT A CLAIM.** On the unrepaired tree the six wedge arms run **RED**
+(rc 101, **13 ×** `code=qsp_env_decode_failed`, **0 ×** `recv_frame_skipped`), preserved and never
+re-run to green (R332.1). ⚠ The run of record is against the **exact bytes that land**: an earlier
+red run preceded a **wording-only** fix to one assertion's failure message — no assertion, fixture or
+arm changed — and the red was re-established so evidence and landed file agree byte-for-byte.
+**T3 passes on BOTH trees**, which is the stronger obligation the directive assigns it and the arm
+that proves the classifier does not over-skip. **E6:** removing exactly the delta symbol (1229 bytes,
+23 lines; everything else retained and the tree still compiling) turns **6 of 7 arms RED**.
+
+### 3. ⚠⚠ FINDING A — THE REPAIR'S DELIVERY GUARANTEE IS CONDITIONAL ON A KNOB, AND NOTHING SAID SO
+
+Measured on the **repaired** tree with `pull_lease_secs=1`: four InviteResp frames at the head, two
+real messages behind, `--max 4` ⇒ **16 `recv_frame_skipped` emissions for four frames**
+(4 × `RECV_CONTROL_ROUNDS_MAX`), `recv_skip_summary count=16`, `recv_none`, **zero delivered, rc 0**.
+The lease expires **between rounds**, the same head is redelivered, `want` is refilled by it every
+round, and the tail is never reached.
+
+⇒ **§5.1's round condition converts an unbounded silent under-delivery into a BOUNDED re-skip spin
+that is still a silent zero-delivery.** The guarantee holds only while `PULL_LEASE_SECS` exceeds a
+pull round's duration — a condition stated in **no** design block, directive or ruling.
+**The shipped configuration is unaffected:** production runs `PULL_LEASE_SECS=60` ([O] provenance,
+NA-0740); re-measured at 60 s with everything else identical, **exactly 4 skips, tail delivered,
+rc 0**. ⛳ The diagnosis was written **with its refutation condition, before the act** — *"if it still
+emits 16 the diagnosis is wrong and I re-diagnose rather than tune"* — and the prediction was
+validated exactly (SR-16 row 51). The arm now pins `count=4` **exactly**, so a regression into the
+spin fails it rather than passing.
+
+### 4. ⚠ FINDING B — A DIRECTIVE PREMISE IS FALSE AS MEASURED, AND A RECORDED DIAGNOSTIC DIES WITH IT
+
+§6 justified the marker's `id=` field as *"already emitted unredacted by `recv_dup_skipped` (:527),
+`recv_item` (:1059) and `ack_replay_unrecoverable` (:1225-1229)"*. **Measured on every emission:
+`id=<redacted>`.** The marker layer redacts by **VALUE SHAPE, not by key** — `should_redact_value` →
+`looks_high_cardinality` (`len() >= 24` and contains a digit) — and a relay item id is a UUID.
+The **safety** conclusion is unaffected and is strictly stronger than claimed. ⚠ **But a consequence
+is lost:** F-20's marker tax was recorded as *"every redelivery emits a fresh `recv_frame_skipped`
+carrying the SAME `id=`"*, and **an operator cannot observe that** — every id renders identically —
+so **the tax is real and its diagnostic is blind**. `recv_skip_summary`'s count is the only surviving
+discriminator, which is why the arm asserts it exactly. ⚠ **No source census could have caught this:
+the claim was about RENDERED output and every instrument aimed at it was reading SOURCE.** It
+surfaced on the first EXECUTION of the marker — SR-20 in its own right.
+
+### 5. ⚠ FINDING C — WF-0087's PLANT HAZARD REACHES MARKER NAMES, NOT ONLY ID SPACES
+
+§6 stated both marker names *"MEASURED FREE (0 files tree-wide), confirmed twice"*. Re-measured at
+the edit: `recv_skip_summary` **0 files**, but **`recv_frame_skipped` 3** — `DECISIONS.md`,
+`NEXT_ACTIONS.md`, `docs/ops/IMPROVEMENT_LEDGER.md`, **all three this lane's own promotion records
+(#1756), which merged AFTER the directive's measurement at base `4c59ffda`**. Classified rather than
+escalated: **zero occurrences under any source, test or script path**, which is what the claim is
+for. ⇒ **A record of a measurement is an occurrence of everything the measurement names, and that
+demonstrably reaches MARKER NAMES and not just ruling ids.** The cure stays in the instrument: split
+the census by PATH CLASS before reporting a total.
+
+### 6. §7.7 — THE PLACEMENT METHOD IS STATED HONESTLY BECAUSE THE FIGURES IT ASKS FOR DO NOT EXIST
+
+§7.7 directs the implementer to the **lightest shard by each manifest's own seed figures**.
+⚠ **Neither manifest carries per-target figures.** The Linux manifest states none; the macOS header
+states its four working shards are balanced **to within 0.153 s** — equal by construction. Target
+COUNT is an *inverted* proxy: Linux shards 0/1/2 hold exactly **one** target each precisely because
+those are the heaviest. ⇒ **No shard is identifiable as "lightest" from either manifest's own bytes**,
+and the placement — Linux **shard 3**, macOS **shard 1**, never the doc shard — is **arbitrary within
+the stated constraints and recorded as such rather than dressed as compliance.** The perturbation is
+given a number rather than hidden: the new binary measured **434.80 s**. The consumer was
+**EXECUTED** both ways: `qsc_shard_check.py` returns **1** before the manifest edit (naming the
+missing target) and **0** after, on **both** manifests, census 133 = manifest 133.
+
+### 7. WHAT THIS DECISION DOES NOT DO
+
+It does **not** re-grade ENG-0142's severity — **severity re-grade of the remainder is the operator's
+act at lane close**, with the measured result in hand. It does **not** widen the closure boundary
+already amended into the ledger by #1756: message-class frames from any route-token holder, the three
+post-unpack frame-content aborts (`:642`/`:682`/`:720`), `relay_inbox_parse_failed`, and Legacy's
+untouched wedge **REMAIN OPEN**. It does **not** touch ENG-0196 (lane 2), rule on ENG-0191's (a)–(e),
+repair ENG-0194, or build WF-0086's or ENG-0193's gates. It edits **no fenced ruling and no sealed
+artifact**, mints **no ENG, WF or standing rule**, weakens/skips/deletes **no test**, and adds **no
+dependency and no lock change**. **#1745 — an ISSUE, not a PR — stays OPEN.** Nothing is merged: the
+operator merges, the seat does not.

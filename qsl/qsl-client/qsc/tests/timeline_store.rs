@@ -151,7 +151,25 @@ fn timeline_not_written_on_receive_reject_no_mutation() {
     common::init_mock_vault(&cfg);
     contacts_add_with_route_token(&cfg, "bob", ROUTE_TOKEN_BOB);
 
-    server.enqueue_raw(ROUTE_TOKEN_BOB, vec![1, 2, 3, 4, 5, 6, 7]);
+    // ⚠ NA-0741 (D-1376): THE FIXTURE IS RE-AIMED, NOT THE ASSERTIONS. The old bytes
+    // `vec![1, 2, 3, 4, 5, 6, 7]` open `01 02`, which is exactly the InviteResp discriminator
+    // (`invite/mod.rs:81` + `:721`). Under lane 1's receive-side frame-class dispatch that frame
+    // is now recognised as another consumer's invite reply, SKIPPED before unpack, and the receive
+    // exits 0 — the ruled behaviour, not a regression, and it would have made the
+    // `!recv.status.success()` assertion below simply untrue.
+    //
+    // The new bytes are MESSAGE class (`01 00` = `QSE_ENV_VERSION_V1`), so the frame still reaches
+    // `qsp_unpack_for_peer`, `Envelope::decode` still rejects it, and the reject still fires.
+    // ⚠ VERIFIED BY EXECUTION rather than assumed: the emitted code is still
+    // `qsp_env_decode_failed`. ⚠ ALL THREE ASSERTIONS BELOW ARE BYTE-UNCHANGED and the test's own
+    // NAME stays true — an assertion retarget would have deleted the test's antecedent.
+    //
+    // ⚠ The property the old fixture also happened to exercise — a receive rejecting a frame from
+    // a party holding a VALID SESSION — keeps its home in
+    // `file_transfer_mvp.rs::tampered_chunk_reject_no_mutation` (`:413`/`:434`/`:443`), which pins
+    // timeline-not-written across an authenticated post-unpack reject. It is deliberately NOT
+    // re-pinned here: a contract with two homes drifts.
+    server.enqueue_raw(ROUTE_TOKEN_BOB, vec![0x01, 0x00, 0xFF, 0xFF, 0x04, 0x05, 0x06]);
 
     let before = qsc_base(&cfg)
         .args(["timeline", "list", "--peer", "bob", "--limit", "10"])

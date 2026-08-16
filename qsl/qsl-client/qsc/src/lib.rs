@@ -118,6 +118,11 @@ pub mod contacts;
 pub mod dedup;
 pub mod envelope;
 pub mod fs_store;
+// NA-0741 (D-1376) lane 1: the receive-side frame classifier. Crate-private — it is an
+// internal dispatch aid, not a surface, and LANE 2 will call it from `invite/` and
+// `handshake/` as well, which is why it is a top-level module rather than a child of
+// `transport/`.
+mod frameclass;
 pub mod handshake;
 pub mod identity;
 // NA-0681 (D616) messaging-epic Slice 2: the invite system's client half --

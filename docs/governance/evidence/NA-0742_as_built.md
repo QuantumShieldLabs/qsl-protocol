@@ -236,6 +236,11 @@ only because that arm never runs `handshake poll`, which is the caller that woul
 and **none asked which tests assert that the RESIDUE EXISTS**. **The directive's retarget target is
 ZERO and a retarget is a STOP, so nothing was retargeted, weakened, skipped or deleted.**
 
+⚠⚠ **SUPERSEDED IN ITS DISPOSITION BY §18, AND MARKED RATHER THAN REWRITTEN.** The paragraph above
+records what was true at STOP 006: the retarget was reported and **not** applied. **R347 §1 then
+AUTHORIZED it**, and §18 below carries the applied pair, the §1(b) witness measurement, and the branch
+taken. The text above is left as issued.
+
 **(B) THE F-C SWEEP — PREDICTED RECORDS-CLASS HITS, MEASURED ZERO.** §4 stated both marker names are
 planted by the directive and the impl seat should expect records-class hits. **Measured: `0` files
 tree-wide for `invite_scan_summary` and `0` for `producer_ack`**, split by path class. The banking
@@ -385,3 +390,106 @@ WF-0087's gates are not built; **#1745 — an ISSUE, not a PR — stays OPEN**. 
 skipped or deleted, and **no assertion was retargeted**. No fenced ruling and no sealed artifact was
 edited. No dependency, no lockfile, no `.github/**`, no `qsl-server` change.
 **Nothing is merged: the operator merges, the seat does not.**
+
+## 18. THE RETARGET, APPLIED — AUTHORIZED AT R347 §1
+
+**R347** (banked verbatim 444, `d0211bc55b885daa…`, 63 lines, 4762 bytes; ⚠ it arrived as chat text,
+so no byte source exists to diff the banking against — only the Director can confirm byte-identity)
+**AUTHORIZED the retarget under the quoted-pair discipline**, on the ground that the expectation at
+`na0741_frame_class_dispatch.rs:889` **encodes the residue this lane exists to remove**. §12(A) above
+is left as issued and superseded only in its disposition.
+
+### 18.1 THE PAIR
+
+**OLD** — the expectation as it stood, verbatim:
+
+```rust
+    assert!(
+        has_marker_line(&r_text, "recv_frame_skipped", &["class=invite_resp"]),
+        "the invite reply must be SKIPPED by class, not decoded:\n{r_text}"
+    );
+```
+
+**NEW** — the post-repair truth, which is also lane 2's E4 property observed from lane 1's own
+arrangement:
+
+```rust
+    assert!(
+        r_text.contains("event=recv_none"),
+        "NA-0742: `invite finish` now ACKS the reply it consumed, so the redeemer's inbox must be \
+         EMPTY by the time this receive runs:\n{r_text}"
+    );
+    assert!(
+        !r_text.contains("recv_frame_skipped"),
+        "NA-0742: there is nothing left to skip — the residue is removed at its source, not \
+         stepped over once per lease period:\n{r_text}"
+    );
+```
+
+Both are quoted **side by side in the test's own comment** as well, citing **D-1379** and **R347**,
+so the delta is readable at the assertion without a diff. **Nothing else in that file changed:** the
+diff is **one hunk, +34 / −2**, and the two deleted lines are exactly the old assertion's body.
+
+### 18.2 ⚠ §1(b) — THE LANE-1 PROPERTY KEEPS ITS WITNESS. **BRANCH TAKEN: NO COMPANION ADDED.**
+
+The ruling required this to be **measured**, not assumed: does any OTHER committed arm assert a
+`class=invite_resp` skip **on a pulled frame**? Measured across every tracked Rust test file with a
+multi-line-tolerant needle (the single-line form is blind to the wrapped assertion shape this corpus
+prefers — the 67%/75% blindness this lane has now measured twice):
+
+| witness | arm | frame planted by | pulled by |
+|---|---|---|---|
+| `na0741…:666` | `lease_skips_where_legacy_still_aborts` | `push_raw` | `receive` |
+| `na0741…:753` | `the_skip_marker_leaks_nothing` | `push_raw` | `receive` |
+| `na0741…:944` | `foreign_litter_at_the_head_still_delivers_up_to_max` | `push_raw` | `receive` |
+| `na0741…:373` | `foreign_frame_arm` — ⚠ **parameterized**, asserts `class={expect_class}` and is called with `"invite_resp"` once (by T1) | `push_raw` | `receive` |
+| ~~`na0741…:889`~~ | the arm retargeted here | — | — |
+
+⇒ **FOUR other witnesses survive** (three literal, one parameterized whose literal never appears at
+its own assertion site and which a naive census would have missed). **"Receive skips invite replies
+rather than decoding them" does not lose its only witness, so the synthetic-plant companion was NOT
+added.** Controls on the instrument: negative `class=zzz_absent` → **0**; positive `class=handshake`
+→ **1**, i.e. the same shape finds the sibling class.
+
+⚠ **AN INSTRUMENT CORRECTION MADE ON MYSELF, IN THE OPEN.** The first run of that census reported
+**8** assertions because two regexes matched the *same* site at different offsets and the dedup was
+keyed on the start line. Re-keyed on **merged spans**, the truth is **4**. A census whose dedup key
+is not the thing being counted inflates by exactly the number of ways it can look at one object.
+
+### 18.3 AFTER THE RETARGET
+
+`cargo test -p qsc --test na0741_frame_class_dispatch` → **rc 0, 7 passed, 0 failed**: the retargeted
+arm is green and all three surviving literal witnesses still pass.
+
+### 18.4 ⚠ A FIGURE OF MINE, CORRECTED — AND THE ORDERING RULING INHERITED IT
+
+STOP 006 §3(D) said the seam break leaves **"six test files"** unexecutable, and R347 §2(a) repeated
+that number. **Measured at this base: NINE test files carry a `#[cfg(qsc_rng_failure_test_seam)]`
+arm — EIGHT pre-existing plus this lane's own** — together with **5 product-source files** gated by
+the same cfg, and **0 workflows** that build it. The "six" came from a **truncated grep listing read
+as if it were a census** — a figure quoted without re-deriving it, which is the shape SR-21 exists
+for. **ENG-0197 is filed with the measured number; the ruling stands as issued and this correction
+sits beside it.**
+
+### 18.5 THE RECORDS R347 §2 ORDERED
+
+- **(a) ENG-0197 FILED**, born countable, bracketed between `### ENG-0196` and `### WF-0087` with
+  both neighbours measured untouched: Severity **P3**, Status **open** (declared at filing by R347
+  §2(a) / D-1379), the four `vault/mod.rs` error sites, the pristine-worktree control, the measured
+  blast radius, the fact that **no workflow builds the cfg**, and the successor with a **cfg-building
+  CI job** as the named candidate gate.
+- **(b) F-C gains its SIXTH instance** beside WF-0087, bracketed to that block: **a marker name as a
+  SUBSTRING of a test filename inflates a file census** — 2 of `producer_ack`'s 10 files are the
+  shard-manifest lines naming `..._producer_acks.rs` and carry no marker at all. ⇒ **count
+  occurrences of the CONSTRUCT, not files containing the string.**
+- **(c) SR-16 rows 68–70**, numbers re-derived at the edit (the table measured contiguous to 67, no
+  gaps, no duplicates): the placeholder fill that stamped another lane's row; the remove-a-state
+  enumeration property; and the **HIT** — the baseline-as-control A/B.
+- **(d) ALREADY CARRIED, so nothing was duplicated.** §12(C) above and D-1379 both already state
+  T5p's non-uniform crash cost — the poll's orphan **permanent until retention, harmless, skipped by
+  class on every receive**, finish's **transient**. Measured rather than re-landed.
+
+⚠ **R347 §4's result class `INVITE_FLOW_RESIDUE_ZERO_PASS`, the DONE flip, ENG-0196's
+repaired-amendment and its disposition question, and lane 1's E3(b)-discharged note ALL ride the
+NEXT records act, not this PR** — enumerated in the ruling so none can be lost, and repeated here so
+this document cannot be read as having landed them.

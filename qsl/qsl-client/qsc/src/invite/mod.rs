@@ -1048,6 +1048,145 @@ pub fn invite_redeem_at(
     Ok(fp)
 }
 
+// ===========================================================================================
+// NA-0742 (D-1378) LANE 2 — THE INVITE-FINISH SCAN + THE PRODUCER ACKS. ENG-0196's repair.
+// ===========================================================================================
+
+/// Frames requested per pull while scanning for the invite reply.
+const FINISH_SCAN_BATCH: usize = 16;
+/// ⚠ **THE ABSOLUTE BOUND ON PULLS PER RUN.** The scan cannot spin — leased rows are excluded
+/// server-side, so each batch strictly shrinks the unleased set — but the shape is bounded by a
+/// COUNTER rather than by that argument, because NA-0741 Finding 1 is exactly a case where a
+/// re-poll's termination rested on a timing property nobody had named. This bound holds even
+/// under pathological lease expiry mid-loop.
+const FINISH_SCAN_PULLS_MAX: usize = 8;
+/// `--max` becomes the TOTAL-SCAN clamp, not a per-pull size: `clamp(--max, 16, 128)`.
+const FINISH_SCAN_TOTAL_MIN: usize = 16;
+const FINISH_SCAN_TOTAL_MAX: usize = 128;
+
+/// NA-0742: emit the producer-ack outcome, and NEVER fail the caller on a lost ack.
+///
+/// ⚠ `receive`'s posture, adopted deliberately: the state the frame caused is already durable, the
+/// lease expires server-side, and the redelivery is handled. A repair that turned a lost ack into a
+/// failed `invite finish` would be a worse defect than the one being fixed.
+///
+/// ⚠ `LegacyComplete` is marked with the existing `ack_legacy_complete` precedent rather than
+/// reported as `acked=0` — a pre-durability relay has already delivered delete-on-pull, so nothing
+/// was lost and nothing will redeliver. Collapsing it to a zero would report a healthy old server
+/// as a failed ack.
+fn emit_producer_ack(caller: &str, relay_ep: &str, route_token: &str, id: &str) {
+    let ids = [id.to_string()];
+    match crate::transport::producer_ack(relay_ep, route_token, &ids) {
+        Ok(crate::transport::AckFlushOutcome::Acked(n)) => {
+            let acked = n.to_string();
+            crate::output::emit_marker(
+                "producer_ack",
+                None,
+                &[("caller", caller), ("sent", "1"), ("acked", acked.as_str())],
+            );
+        }
+        Ok(crate::transport::AckFlushOutcome::LegacyComplete) => {
+            crate::output::emit_marker(
+                "ack_legacy_complete",
+                None,
+                &[("caller", caller), ("count", "1")],
+            );
+        }
+        Err(code) => {
+            crate::output::emit_marker(
+                "producer_ack",
+                Some(code),
+                &[("caller", caller), ("sent", "1"), ("acked", "0")],
+            );
+        }
+    }
+}
+
+/// NA-0742: **THE DRAIN-FORWARD, CAPPED SCAN.** Pull batches of at most [`FINISH_SCAN_BATCH`],
+/// classify every frame from its LEADING BYTES in wire order, and select the FIRST `InviteResp`.
+///
+/// ⚠⚠ **EVERYTHING NOT SELECTED IS LEFT COMPLETELY UNTOUCHED** — not acked, not consumed, not
+/// decoded. It stays leased and its rightful consumer collects it one lease period later. This is
+/// load-bearing rather than tidy: the relay's ack has **no lease-ownership check**, so acking a
+/// frame this command did not consume would destroy another consumer's in-flight copy.
+///
+/// ⚠ `classify` is CONSUMED, never widened. Its own rule is *"THIS IS A MATCH, NOT AN
+/// IDENTIFICATION"*: a frame that matches `01 02` and then fails to decode is a genuinely malformed
+/// invite reply as far as any client can tell, and that is exactly the case where the existing
+/// error is the CORRECT diagnosis. The false diagnosis this lane removes is the one produced by
+/// frames that never matched at all.
+///
+/// STOPS on: the first `InviteResp`, a short batch (the unleased head is exhausted), or
+/// [`FINISH_SCAN_PULLS_MAX`] pulls.
+fn finish_scan_select_invite_resp(
+    relay_ep: &str,
+    self_inbox: &str,
+    max: usize,
+) -> Result<Option<crate::InboxPullItem>, &'static str> {
+    let total = max.clamp(FINISH_SCAN_TOTAL_MIN, FINISH_SCAN_TOTAL_MAX);
+    let mut scanned = 0usize;
+    let mut pulls = 0usize;
+    let mut classes: Vec<&'static str> = Vec::new();
+    let mut selected: Option<crate::InboxPullItem> = None;
+    let mut head_exhausted = false;
+
+    'scan: while pulls < FINISH_SCAN_PULLS_MAX && scanned < total {
+        let want = FINISH_SCAN_BATCH.min(total - scanned);
+        let items = crate::transport::relay_inbox_pull(relay_ep, self_inbox, want)?;
+        pulls += 1;
+        let returned = items.len();
+        for item in items {
+            scanned += 1;
+            let class = crate::frameclass::classify(&item.data);
+            let name = class.name();
+            if !classes.iter().any(|c| *c == name) {
+                classes.push(name);
+            }
+            if class == crate::frameclass::FrameClass::InviteResp {
+                selected = Some(item);
+                break 'scan;
+            }
+        }
+        if returned < want {
+            // A short batch means the relay had nothing more to give: the unleased head is
+            // exhausted, and pulling again would only re-ask an empty mailbox.
+            head_exhausted = true;
+            break;
+        }
+    }
+
+    // ⚠ `truncated` answers the operator's actual question: did I scan everything, or did I hit
+    // the cap? It is true only when the scan ran out of BUDGET with the head still unexhausted.
+    let truncated = selected.is_none() && !head_exhausted;
+    let scanned_s = scanned.to_string();
+    let pulls_s = pulls.to_string();
+    // ⚠⚠ BARE CLASS NAMES ONLY, DEDUPED, FROM THE CLASSIFIER'S OWN FIXED FIVE-TOKEN VOCABULARY.
+    // No digits, no counts, no ids inside this field. The redactor fires on `len() >= 24` PLUS a
+    // digit, so a digit-free token list is redaction-safe AT ANY LENGTH by construction rather
+    // than by staying short — lane 1 lost a whole marker diagnostic to exactly that rule. The
+    // counts ride as their own short fields.
+    let classes_s = classes.join(",");
+    crate::output::emit_marker(
+        "invite_scan_summary",
+        None,
+        &[
+            ("scanned", scanned_s.as_str()),
+            ("pulls", pulls_s.as_str()),
+            ("truncated", if truncated { "true" } else { "false" }),
+            (
+                "selected",
+                if selected.is_some() {
+                    "invite_resp"
+                } else {
+                    "none"
+                },
+            ),
+            ("classes", classes_s.as_str()),
+        ],
+    );
+    Ok(selected)
+}
+
 /// Alice: collect the handshake from her own invite slot and answer it.
 ///
 /// The slot is deliberately ungated for pull -- its creator must be able to collect what
@@ -1099,6 +1238,13 @@ pub fn invite_accept_at(
     let Some(item) = items.into_iter().next() else {
         return Ok(None);
     };
+    // NA-0742: needed after `item` is consumed below, to retire exactly this frame.
+    // ⚠ **ACCEPT GETS AN ACK, NOT A SCAN**, and the asymmetry is deliberate rather than an
+    // oversight. A foreign frame at the head of the invite SLOT still blocks `invite accept` with
+    // the same shape ENG-0196 describes for finish — but the slot's route token IS the invite id,
+    // so putting a frame there is capability-gated, which places it inside ENG-0142's remaining
+    // ADVERSARIAL clause rather than ENG-0196's non-adversarial one. Named, not fixed.
+    let consumed_id = item.id.clone();
     let env = decode_envelope(&item.data)?;
     let (peer_kem_pk, peer_sig_pk) = canonical_bundle_parse(&env.bundle)?;
 
@@ -1141,6 +1287,21 @@ pub fn invite_accept_at(
         r.state = InviteState::Redeemed;
     }
     invite_store_save(&store)?;
+    // NA-0742: the A1 envelope this command consumed is retired from the INVITE SLOT — the mailbox
+    // it was pulled from, never the ordinary inbox. The last effect of this frame is the slot
+    // becoming `Redeemed` above; no push follows on this path.
+    if crate::resolve_ack_mode(None) == crate::cmd::AckMode::Lease {
+        // GUARD 1: re-read the durable state this frame caused. Same stated limits as finish's.
+        debug_assert!(
+            invite_store_load()
+                .ok()
+                .and_then(|s| s.invites.get(invite_id_wire).map(|r| r.state.clone()))
+                == Some(InviteState::Redeemed),
+            "NA-0742 guard 1 (accept): the slot must read Redeemed before the A1 envelope that \
+             redeemed it may be acked"
+        );
+        emit_producer_ack("accept", &relay_ep, invite_id_wire, &consumed_id);
+    }
     Ok(Some(fp))
 }
 
@@ -1161,10 +1322,36 @@ pub fn invite_finish(
     let self_label = self_label.as_str();
     let relay_ep = crate::adversarial::route::normalize_relay_endpoint(relay)?;
     let self_inbox = crate::contacts::relay_self_inbox_route_token()?;
-    let items = crate::transport::relay_inbox_pull(&relay_ep, &self_inbox, max)?;
-    let Some(item) = items.into_iter().next() else {
-        return Ok(false);
+    // NA-0742 (D-1378): ⚠⚠ **LEASE-ONLY, END TO END.** Under `AckMode::Legacy` the relay DELETES
+    // ON PULL, so a scan there would enlarge this pull from ONE frame to as many as 128 on a
+    // delete-on-pull server — converting a one-frame loss into a 16x–128x amplification. The gate
+    // is mechanical, not decorative: `relay_inbox_pull` resolves its mode from
+    // `crate::resolve_ack_mode(None)` and the Legacy URL carries no `ack=lease`. Under Legacy this
+    // path is BYTE-IDENTICAL to what it was before this lane: the head-only pull of `--max`, the
+    // `.next()`, the same exits, and the same destruction-of-one.
+    let ack_mode = crate::resolve_ack_mode(None);
+    let item = match ack_mode {
+        crate::cmd::AckMode::Legacy => {
+            let items = crate::transport::relay_inbox_pull(&relay_ep, &self_inbox, max)?;
+            let Some(item) = items.into_iter().next() else {
+                return Ok(false);
+            };
+            item
+        }
+        crate::cmd::AckMode::Lease => {
+            match finish_scan_select_invite_resp(&relay_ep, &self_inbox, max)? {
+                Some(item) => item,
+                // ⚠ TODAY'S PATH, UNCHANGED: `Ok(false)` -> `invite_finish=none` -> rc 0. Not an
+                // error, because it is not one — the reply has not arrived yet. What is new is
+                // that the scan marker now names the classes actually seen, so "none" stops being
+                // indistinguishable from "sixteen frames I could not use".
+                None => return Ok(false),
+            }
+        }
     };
+    // The id is needed AFTER `item` is consumed below, to retire exactly the frame this command
+    // consumed and nothing else.
+    let consumed_id = item.id.clone();
     let (peer_route_token, b1) = decode_envelope_resp(&item.data)?;
     // The peer's real address, announced in-session and authenticated by the handshake that
     // follows -- never by re-invite (P3).
@@ -1186,5 +1373,22 @@ pub fn invite_finish(
         // A2 goes bare to the peer's now-known token: ordinary routing from here on.
         None,
     )?;
+    // NA-0742: ⚠⚠ **THE ACK GOES AFTER THE CONSUMED FRAME'S LAST EFFECT — WHICH IS NOT THE
+    // DURABLE COMMIT.** For finish the last effect is the poll returning `Ok`, because the poll
+    // performs the outbound A2 push internally: a frame whose reply never left is not consumed.
+    if ack_mode == crate::cmd::AckMode::Lease {
+        // GUARD 1: re-read the durable state THIS FRAME caused. ⚠ Its limits, stated in the same
+        // breath: it cannot witness the outbound push, and `debug_assert!` is absent from release
+        // builds. It is a development tripwire, not the guarantee. The guarantee is the ordering
+        // above, which is a call-site property because `producer_ack` bypasses the receive loop's
+        // mechanical ack-eligibility check.
+        debug_assert!(
+            crate::contacts::relay_peer_route_token(alias).as_deref()
+                == Ok(peer_route_token.as_str()),
+            "NA-0742 guard 1 (finish): the contact's stored route token must be the one the \
+             consumed RESP carried before that frame may be acked"
+        );
+        emit_producer_ack("finish", &relay_ep, &self_inbox, &consumed_id);
+    }
     Ok(true)
 }

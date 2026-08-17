@@ -993,6 +993,7 @@ pub enum InviteCmd {
         /// fails closed. Was `--self-label`, which had no help text and no pin anywhere.
         #[arg(long = "as", value_name = "LABEL")]
         self_label: Option<String>,
+        /// Scan bound for locating the invite reply; clamped to [16,128]
         #[arg(long, default_value_t = 1)]
         max: usize,
     },

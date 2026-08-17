@@ -508,6 +508,9 @@ fn receive_pull_rounds(
     seen_ids: &mut Option<dedup::RelaySeenIds>,
 ) -> CliResult<()> {
     let mut rounds = 0usize;
+    // NA-0741 (D-1376): counts every frame skipped by class across ALL rounds, for the
+    // end-of-batch summary. OUTSIDE the loop, unlike `skipped` below.
+    let mut skipped_total = 0usize;
     'pull: loop {
         let want = max.saturating_sub(stats.count).max(1);
         let items = match relay_inbox_pull_mode(ctx.relay, ctx.mailbox, want, ctx.ack_mode) {
@@ -518,6 +521,9 @@ fn receive_pull_rounds(
             break 'pull;
         }
         let mut controls = 0usize;
+        // NA-0741 (D-1376): per-ROUND, resetting exactly as `controls` does, because the
+        // round condition below asks "did this round do anything but skip?".
+        let mut skipped = 0usize;
         for item in items {
             // NA-0644 (D580): dedup BEFORE unpack. Lease delivery is at-least-once, so a
             // redelivered id whose item is already durably persisted must be acked and
@@ -528,6 +534,45 @@ fn receive_pull_rounds(
                     pending_acks.push(item.id.clone());
                     continue;
                 }
+            }
+            // NA-0741 (D-1376) LANE 1 — CLASSIFY BEFORE UNPACK. ⚠ THE PLACEMENT IS
+            // LOAD-BEARING: this sits AFTER the dedup block above, because that block
+            // acks-and-skips redelivered ids and jumping it would strand the NA-0644
+            // loop.
+            //
+            // A handshake or invite frame in this mailbox is ANOTHER CONSUMER'S FRAME —
+            // the invite flow itself puts it here — and decoding it as a QSP envelope
+            // aborted the whole batch (ENG-0142). `continue` WITHOUT
+            // `record_seen_and_queue_ack` is the point: the frame is left LEASED and
+            // UNACKED, so its rightful consumer collects it one lease period later.
+            // THIS LANE ADDS ZERO NEW FRAME CONSUMPTION ANYWHERE.
+            //
+            // ⚠ Lease-gated: under Legacy this loop behaves exactly as it did before.
+            // ⚠ `Unknown` is deliberately NOT known-foreign — an Unknown frame still
+            // reaches unpack, which is what preserves the committed Unknown-class
+            // assertions and the NA-0187 contact-request onboarding surface.
+            let frame_class = crate::frameclass::classify(&item.data);
+            if ctx.ack_mode == AckMode::Lease && frame_class.is_known_foreign() {
+                // ⚠ `item.data.len()`, NOT `envelope_len` — that binding is created by
+                // the very line this insert precedes.
+                let bytes_s = item.data.len().to_string();
+                // ⚠ NO FIELD DERIVED FROM THE CONTENT OF `item.data`. A length is
+                // permitted (precedent: `meta_bucket`'s `orig=` below), but an invite
+                // reply carries the RESPONDER'S ROUTE TOKEN IN THE CLEAR AT BYTE 5, so
+                // any content-derived field would publish a third party's token.
+                emit_marker(
+                    "recv_frame_skipped",
+                    None,
+                    &[
+                        ("class", frame_class.name()),
+                        ("id", item.id.as_str()),
+                        ("bytes", bytes_s.as_str()),
+                        ("disposition", "left_leased"),
+                    ],
+                );
+                skipped = skipped.saturating_add(1);
+                skipped_total = skipped_total.saturating_add(1);
+                continue;
             }
             let envelope_len = item.data.len();
             match qsp_unpack_for_peer(ctx.from, &item.data) {
@@ -1251,9 +1296,25 @@ fn receive_pull_rounds(
             }
         }
         rounds = rounds.saturating_add(1);
-        if controls == 0 || stats.count >= max || rounds >= RECV_CONTROL_ROUNDS_MAX {
+        // NA-0741 (D-1376): a skipped frame occupied a slot in `want` and contributed
+        // nothing to `stats.count`, which is the IDENTICAL property this bounded
+        // re-pull already exists for (`controls`). Without the `skipped` term,
+        // `receive --max 4` against a head of four foreign frames delivers ZERO and
+        // exits 0 — trading a loud `rc 1` for a SILENT under-delivery. Still capped by
+        // `RECV_CONTROL_ROUNDS_MAX`, so no new unbounded loop exists.
+        if (controls == 0 && skipped == 0)
+            || stats.count >= max
+            || rounds >= RECV_CONTROL_ROUNDS_MAX
+        {
             break 'pull;
         }
+    }
+    // NA-0741 (D-1376): the operator's only window onto skipped frames. ⚠ On a terminal
+    // early exit this does not fire, and that is correct — the run failed, and its error
+    // marker is the report.
+    if skipped_total > 0 {
+        let n = skipped_total.to_string();
+        emit_marker("recv_skip_summary", None, &[("count", n.as_str())]);
     }
     Ok(())
 }

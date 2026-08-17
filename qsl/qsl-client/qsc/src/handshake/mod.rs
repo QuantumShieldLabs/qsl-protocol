@@ -15,7 +15,10 @@ use super::{
     X25519Priv, X25519Pub, IDENTITY_FP_PREFIX, SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID,
 };
 
-const HS_MAGIC: &[u8; 4] = b"QHSM";
+// NA-0741 (D-1376): `pub(crate)` so `frameclass::classify` can reference the magic
+// BY NAME instead of copying its bytes. Visibility only — no behaviour here changes,
+// and `handshake` being `pub mod` means this adds no PUBLIC surface.
+pub(crate) const HS_MAGIC: &[u8; 4] = b"QHSM";
 const HS_VERSION_LEGACY: u16 = 1;
 const HS_VERSION_V2: u16 = 2;
 const HS_TYPE_INIT: u8 = 1;

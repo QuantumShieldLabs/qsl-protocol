@@ -1627,6 +1627,37 @@ pub(crate) struct HsReplyWrap<'a> {
     pub(crate) self_route_token: &'a str,
 }
 
+/// NA-0742 (D-1378): retire a frame THIS POLL pulled and consumed, and never fail the poll on a
+/// lost ack — `receive`'s posture, for `receive`'s reason: the state is already durable, the lease
+/// expires, and the redelivery is handled.
+fn hs_emit_producer_ack(relay: &str, route_token: &str, id: &str) {
+    let ids = [id.to_string()];
+    match transport::producer_ack(relay, route_token, &ids) {
+        Ok(crate::transport::AckFlushOutcome::Acked(n)) => {
+            let acked = n.to_string();
+            emit_marker(
+                "producer_ack",
+                None,
+                &[("caller", "poll"), ("sent", "1"), ("acked", acked.as_str())],
+            );
+        }
+        Ok(crate::transport::AckFlushOutcome::LegacyComplete) => {
+            emit_marker(
+                "ack_legacy_complete",
+                None,
+                &[("caller", "poll"), ("count", "1")],
+            );
+        }
+        Err(code) => {
+            emit_marker(
+                "producer_ack",
+                Some(code),
+                &[("caller", "poll"), ("sent", "1"), ("acked", "0")],
+            );
+        }
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn perform_handshake_poll_with_tokens(
     self_label: Option<&str>,
@@ -1675,6 +1706,19 @@ pub(crate) fn perform_handshake_poll_with_tokens(
         }
     };
     let self_label = self_label.as_str();
+    // NA-0742 (D-1378): ⚠⚠ **THE POLL ACKS ONLY WHAT IT PULLED ITSELF.** Under
+    // `HsPollSource::Provided` the frames belong to the CALLER, which acks them.
+    //
+    // ⚠ THE GUARD'S HONEST SCOPE, because the two callers differ and implying otherwise would
+    // overstate it: for `invite accept` the rule is MECHANICAL — it passes `""` as
+    // `inbox_route_token`, so an ack there would have no route token to send to. For
+    // `invite finish` it is LAYERING ONLY — a real token IS passed, and nothing mechanical would
+    // stop a wrong implementation from acking the caller's frame here.
+    //
+    // Lease-only for the same reason the rest of this lane is: under Legacy the relay already
+    // deleted the frame at pull time, so there is nothing to ack and nothing left leased.
+    let acks_own_frames = matches!(source, HsPollSource::Relay)
+        && crate::resolve_ack_mode(None) == crate::cmd::AckMode::Lease;
     let items = match source {
         HsPollSource::Provided(v) => v.to_vec(),
         HsPollSource::Relay => match transport::relay_inbox_pull(relay, inbox_route_token, max) {
@@ -1945,6 +1989,18 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                             &[("msg", "A2"), ("size", size_s.as_str())],
                         );
                         transport::relay_inbox_push(relay, peer_route_token, &cbytes)?;
+                        // NA-0742: ⚠⚠ **AFTER THE PUSH, NOT AFTER THE COMMIT.** The session was
+                        // stored above, but this frame's LAST effect is the A2 that just left. A
+                        // frame whose reply never reached the peer is not consumed — which is
+                        // exactly why the a2_sig-failure exit further up MUST NOT ack.
+                        if acks_own_frames {
+                            debug_assert!(
+                                matches!(qsp_session_load(peer), Ok(Some(_))),
+                                "NA-0742 guard 1 (poll/initiator): the session this frame created \
+                                 must be durably loadable before the frame may be acked"
+                            );
+                            hs_emit_producer_ack(relay, inbox_route_token, &item.id);
+                        }
                         emit_marker(
                             "handshake_complete",
                             None,
@@ -2105,6 +2161,18 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                             hs_emit_suite_accept(&active_suite_context, false);
                         } else {
                             hs_emit_suite_accept(&active_suite_context, true);
+                        }
+                        // NA-0742: the responder branch's last effect IS the durable commit —
+                        // `qsp_session_store` then `hs_pending_clear` above, with NO push
+                        // following. Verified from the bytes rather than assumed symmetric with
+                        // the initiator, because in that branch a push DOES follow.
+                        if acks_own_frames {
+                            debug_assert!(
+                                matches!(qsp_session_load(peer), Ok(Some(_))),
+                                "NA-0742 guard 1 (poll/responder): the session this frame \
+                                 completed must be durably loadable before the frame may be acked"
+                            );
+                            hs_emit_producer_ack(relay, inbox_route_token, &item.id);
                         }
                         emit_marker(
                             "handshake_complete",
@@ -2373,6 +2441,16 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                         )?;
                         transport::relay_inbox_push(relay, peer_route_token, &wrapped)?
                     }
+                }
+                // NA-0742: ⚠ **AFTER THE B1 PUSH.** The durable commit on this branch is the
+                // `hs_pending_store` above; the frame's last effect is the B1 that just left.
+                if acks_own_frames {
+                    debug_assert!(
+                        matches!(hs_pending_load_state(self_label, peer), Ok((Some(_), _))),
+                        "NA-0742 guard 1 (poll/no-pending): the pending record this frame created \
+                         must be durably loadable before the frame may be acked"
+                    );
+                    hs_emit_producer_ack(relay, inbox_route_token, &item.id);
                 }
                 return Ok(());
             }

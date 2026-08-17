@@ -1465,7 +1465,12 @@ fn record_seen_and_queue_ack(
 // qsl-server MAX_ACK_IDS: the ack route rejects larger id lists.
 const RELAY_ACK_MAX_IDS: usize = 4096;
 
-enum AckFlushOutcome {
+// NA-0742 (D-1378): `pub(crate)` so the producer-ack callers in `invite/` and `handshake/` can
+// name the wrapper's RULED return type. ⚠ VISIBILITY ONLY — no variant, no behaviour and no
+// receive-path byte changes here. It is widened because §3.5 requires `producer_ack` to return
+// this type UNCOLLAPSED: `LegacyComplete` is a distinct answer, not a zero, and a caller that
+// cannot name the type cannot tell the two apart.
+pub(crate) enum AckFlushOutcome {
     Acked(usize),
     LegacyComplete,
 }
@@ -3168,6 +3173,41 @@ fn relay_inbox_ack(
         HttpStatus::UNAUTHORIZED | HttpStatus::FORBIDDEN => Err("relay_unauthorized"),
         _ => Err("relay_ack_failed"),
     }
+}
+
+/// NA-0742 (D-1378): **THE PRODUCER-ACK PRIMITIVE**, for the callers that pull their own frames.
+///
+/// `invite finish`, `invite accept` and `handshake poll` each pull a mailbox directly and consume
+/// what they pulled. Before this lane none of them could retire a frame at all: all three ack
+/// layers are private to this module and the other two demand receive-loop state these callers do
+/// not have (`flush_pending_acks` a `ReceivePullCtx`, `record_seen_and_queue_ack` a
+/// `dedup::RelaySeenIds`). `relay_inbox_ack` is the only one whose signature is free of it, so this
+/// is a thin pass-through over it and adds no policy.
+///
+/// ⚠⚠ **IT BYPASSES THE ACK-ELIGIBILITY INVARIANT, AND THAT IS SAID HERE RATHER THAN DISCOVERED.**
+/// `flush_pending_acks` enforces "ack-eligible ONLY after the durable commit AND after the
+/// seen-store entry is on disk" mechanically, by `pending_acks.retain(|id| seen.contains(id))`.
+/// A caller reaching this function does not pass through that check, so **commit-then-ack is a
+/// CALL-SITE property for these three callers** — which is why each call site names the branch's
+/// last frame-caused effect and carries a `debug_assert!` re-reading the state that effect wrote.
+///
+/// ⚠ **THE EMPTY-LIST EARLY RETURN IS NOT AN OPTIMISATION.** The server answers
+/// `400 ERR_BAD_ACK_IDS` on an empty id list (measured against the pinned rev). A success path
+/// must never reach a 400, so an empty list is answered here as the zero it is.
+///
+/// ⚠ **THE 4096-ID CHUNKING `flush_pending_acks` PERFORMS IS DELIBERATELY NOT INCLUDED.** Every
+/// caller here acks **at most one id**, and the scan that feeds them is bounded at 128 frames per
+/// run, so the chunk boundary is unreachable. Stated rather than silently omitted: a successor that
+/// gives a producer-ack caller a larger id set must add it.
+pub(crate) fn producer_ack(
+    relay_base: &str,
+    route_token: &str,
+    ids: &[String],
+) -> Result<AckFlushOutcome, &'static str> {
+    if ids.is_empty() {
+        return Ok(AckFlushOutcome::Acked(0));
+    }
+    relay_inbox_ack(relay_base, route_token, ids)
 }
 
 fn fault_action_for(fi: &FaultInjector, idx: u64) -> Option<FaultAction> {

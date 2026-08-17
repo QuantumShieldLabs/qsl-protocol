@@ -101,6 +101,7 @@ tests/na0696_vault_honesty.rs	2
 tests/na0708_ack_flush.rs	3
 tests/na0711_invite_label_resolution.rs	2
 tests/na0741_frame_class_dispatch.rs	1
+tests/na0742_invite_finish_scan_producer_acks.rs	1
 tests/na_0302_suite2_negotiation_cross_surface.rs	3
 tests/na_0303_handshake_activation_negotiation.rs	2
 tests/na_0304_handshake_suite_id_negotiation.rs	2

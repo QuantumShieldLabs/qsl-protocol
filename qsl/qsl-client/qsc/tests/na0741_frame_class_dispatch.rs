@@ -886,9 +886,41 @@ fn both_mailboxes_of_a_completed_invite_receive_cleanly() {
         "ENG-0142, REDEEMER SIDE: an ordinary receive on the redeemer's own inbox is wedged by the \
          invite reply the invite flow itself put there.\n{r_text}"
     );
+    // ⚠⚠ RETARGETED BY NA-0742 / D-1379, AUTHORIZED AT R347 §1 — the ONLY change this lane makes
+    // to this file, and it is quoted as a PAIR so the delta is readable without a diff.
+    //
+    // OLD (this arm's expectation before NA-0742):
+    //     assert!(
+    //         has_marker_line(&r_text, "recv_frame_skipped", &["class=invite_resp"]),
+    //         "the invite reply must be SKIPPED by class, not decoded:\n{r_text}"
+    //     );
+    //
+    // NEW (below): `recv_none`, and ZERO skips.
+    //
+    // WHY. The old expectation ENCODED THE RESIDUE NA-0742 EXISTS TO REMOVE. Lane 1 stopped the
+    // wedge by SKIPPING the invite reply, which left it in the mailbox to be skipped again every
+    // lease period; lane 2 removes it at its source — `invite finish` now ACKS the reply it
+    // consumes — so by the time this receive runs, the redeemer's inbox is EMPTY. The old
+    // assertion could only pass on a tree that still leaks. This is lane 2's E4 property (the skip
+    // tax ends) observed from lane 1's own arrangement.
+    //
+    // ⚠ THE LANE-1 PROPERTY KEEPS ITS WITNESS — measured, not assumed (R347 §1(b)). Four other
+    // committed arms still assert a `class=invite_resp` skip on a PLANTED-then-PULLED frame:
+    // `lease_skips_where_legacy_still_aborts`, `the_skip_marker_leaks_nothing`,
+    // `foreign_litter_at_the_head_still_delivers_up_to_max`, and `foreign_frame_arm` (which
+    // asserts `class={expect_class}` and is called with "invite_resp" by T1 — a witness whose
+    // literal never appears at its own assertion site). So "receive skips invite replies rather
+    // than decoding them" does NOT lose its only witness here, and no synthetic-plant companion
+    // was added.
     assert!(
-        has_marker_line(&r_text, "recv_frame_skipped", &["class=invite_resp"]),
-        "the invite reply must be SKIPPED by class, not decoded:\n{r_text}"
+        r_text.contains("event=recv_none"),
+        "NA-0742: `invite finish` now ACKS the reply it consumed, so the redeemer's inbox must be \
+         EMPTY by the time this receive runs:\n{r_text}"
+    );
+    assert!(
+        !r_text.contains("recv_frame_skipped"),
+        "NA-0742: there is nothing left to skip — the residue is removed at its source, not \
+         stepped over once per lease period:\n{r_text}"
     );
 }
 

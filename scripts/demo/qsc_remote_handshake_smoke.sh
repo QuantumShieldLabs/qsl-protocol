@@ -301,6 +301,50 @@ extract_identity_fp() {
   extract_identity_field "$1" "$2" identity_fp "identity fingerprint"
 }
 
+# ENG-0191/ENG-0194: `established` is a PREFIX of `established_recv_only`, so the
+# unanchored regex this replaces PASSED on the wrong state for 187 days -- and it
+# passed for bob while failing for alice, which is why every artifact named alice
+# alone. The value is EXTRACTED and compared with `=`; never matched as a substring.
+extract_handshake_status() {
+  local log_file="$1"
+  local actor="$2"
+  local value=""
+  value="$(sed -n -E 's/.*event=handshake_status status=([^[:space:]]+).*/\1/p' "$log_file" | tail -n1)"
+  if [ -z "$value" ]; then
+    echo "no handshake_status marker for $actor at the checkpoint" >&2
+    exit 1
+  fi
+  printf '%s\n' "$value"
+}
+
+assert_status_equals() {
+  local log_file="$1"
+  local actor="$2"
+  local expected="$3"
+  local actual=""
+  actual="$(extract_handshake_status "$log_file" "$actor")"
+  if [ "$actual" != "$expected" ]; then
+    echo "$actor handshake status is '$actual', expected exactly '$expected'" >&2
+    exit 1
+  fi
+  printf '%s\n' "$actual"
+}
+
+# NA-0743 (D-1380) stale-tail guard: extract_handshake_status takes the LAST marker in
+# the log, so a silently-failed X5 status step would hand back the CHECKPOINT's value and
+# compare equal on a stale read. Counting the markers per log makes a missing reading a
+# NAMED failure instead of a stale success. This generalises the existing `mark_count`
+# idiom, which is bound to "$markers"; here the log file is the parameter.
+count_handshake_status_markers() {
+  local log_file="$1"
+  local n=""
+  n="$( (mark_grep -c 'event=handshake_status' "$log_file" 2>/dev/null || true) | tail -n1 )"
+  if [ -z "$n" ]; then
+    n=0
+  fi
+  printf '%s\n' "$n"
+}
+
 # initialize secure stores and clear stale outboxes
 run_vault_init alice "$alice_log"
 run_vault_init bob "$bob_log"
@@ -345,15 +389,6 @@ run_qsc_step bob hs_poll_1 "$bob_log" handshake poll --as "$proto_bob" --peer "$
 run_qsc_step alice hs_poll_2 "$alice_log" handshake poll --as "$proto_alice" --peer "$proto_bob" --relay "$relay_addr" --max 4
 run_qsc_step bob hs_poll_3 "$bob_log" handshake poll --as "$proto_bob" --peer "$proto_alice" --relay "$relay_addr" --max 4
 
-# confirm both sides are established
-run_qsc_step alice hs_status "$alice_log" handshake status --peer "$proto_bob"
-run_qsc_step bob hs_status "$bob_log" handshake status --peer "$proto_alice"
-assert_marker_present 'event=handshake_status status=established' "$alice_log" "alice handshake status is not established"
-assert_marker_present 'event=handshake_status status=established' "$bob_log" "bob handshake status is not established"
-# Derived lane marker: ACTIVE is asserted from established handshake status above.
-echo "QSC_MARK/1 event=qsp_status status=ACTIVE reason=handshake actor=alice" >> "$markers"
-echo "QSC_MARK/1 event=qsp_status status=ACTIVE reason=handshake actor=bob" >> "$markers"
-
 alice_payload="$out/alice_to_bob.txt"
 bob_payload="$out/bob_to_alice.txt"
 printf 'hello-from-alice\n' > "$alice_payload"
@@ -374,18 +409,71 @@ while [ "$i" -le "$send_attempts" ]; do
 done
 run_qsc_step bob recv_from_alice "$bob_recv_log" receive --transport relay --relay "$relay_addr" --mailbox "$bob_route_token" --from "$proto_alice" --max "$recv_max" --out "$out_bob"
 
-# Re-handshake with bob as initiator to validate reverse-direction live session before bob->alice send.
-run_qsc_step bob hs2_init "$bob_log" handshake init --as "$proto_bob" --peer "$proto_alice" --relay "$relay_addr"
-run_qsc_step alice hs2_poll_1 "$alice_log" handshake poll --as "$proto_alice" --peer "$proto_bob" --relay "$relay_addr" --max 4
-run_qsc_step bob hs2_poll_2 "$bob_log" handshake poll --as "$proto_bob" --peer "$proto_alice" --relay "$relay_addr" --max 4
-run_qsc_step alice hs2_poll_3 "$alice_log" handshake poll --as "$proto_alice" --peer "$proto_bob" --relay "$relay_addr" --max 4
-
 i=1
 while [ "$i" -le "$send_attempts" ]; do
   run_qsc_step bob "send_ba_${i}" "$bob_log" send --transport relay --relay "$relay_addr" --to "$proto_alice" --file "$bob_payload"
   i=$((i + 1))
 done
 run_qsc_step alice recv_from_bob "$alice_recv_log" receive --transport relay --relay "$relay_addr" --mailbox "$alice_route_token" --from "$proto_bob" --max "$recv_max" --out "$out_alice"
+
+# --- NA-0743 / D-1380: THE ASSERTION CHECKPOINT (ENG-0191 option (d) with (e)'s
+# equality discipline) ----------------------------------------------------------------
+# This is NA-0738's X4: both peers have completed a full round trip inside ONE session.
+# It sits BEFORE the relocated re-handshake below, and that order is a HARD CONSTRAINT --
+# a re-handshake REPLACES the session, so any repair that asserts `established` AFTER one
+# fails by construction -- see ENG-0191's X5 row in docs/ops/IMPROVEMENT_LEDGER.md, which
+# says in terms: any repair that asserts established AFTER a re-handshake fails.
+# OLD, replaced. The two quoted assert_marker_present lines in this comment block are
+# COMMENT, not code -- a census over this file must classify code vs comment or it
+# reports failure on a correct tree (NA-0741's finding, which fired inside NA-0742):
+#   assert_marker_present 'event=handshake_status status=established' "$alice_log" "alice handshake status is not established"
+#   assert_marker_present 'event=handshake_status status=established' "$bob_log" "bob handshake status is not established"
+# NEW: both status steps run as REQUIRED steps, so a failed reading can no longer be read
+# as a stale success, and the value is EXTRACTED and compared with `=`. The fabricated
+# lane marker that used to be written here by hand -- with no qsc process having emitted
+# it -- is RETIRED (D-1380 §3.3); it is deliberately not quoted, because quoting it would
+# put the forged bytes back in the tree that §3.3's own census counts.
+run_required_qsc_step alice hs_status "$alice_log" 'event=handshake_status' \
+  "handshake status failed for alice at the checkpoint" handshake status --peer "$proto_bob"
+run_required_qsc_step bob hs_status "$bob_log" 'event=handshake_status' \
+  "handshake status failed for bob at the checkpoint" handshake status --peer "$proto_alice"
+alice_status_at_checkpoint="$(assert_status_equals "$alice_log" alice established)"
+bob_status_at_checkpoint="$(assert_status_equals "$bob_log" bob established)"
+alice_hs_status_markers_at_checkpoint="$(count_handshake_status_markers "$alice_log")"
+bob_hs_status_markers_at_checkpoint="$(count_handshake_status_markers "$bob_log")"
+
+# NA-0743 / D-1380 §3.1: the hs2 block that follows -- its own comment plus its four
+# run_qsc_step hs2_* commands -- is the committed re-handshake block, moved here VERBATIM
+# from between the two halves of the round trip. Its own comment describes the position it
+# was written for; the RELOCATION is the delta and the bytes are unchanged.
+# Re-handshake with bob as initiator to validate reverse-direction live session before bob->alice send.
+run_qsc_step bob hs2_init "$bob_log" handshake init --as "$proto_bob" --peer "$proto_alice" --relay "$relay_addr"
+run_qsc_step alice hs2_poll_1 "$alice_log" handshake poll --as "$proto_alice" --peer "$proto_bob" --relay "$relay_addr" --max 4
+run_qsc_step bob hs2_poll_2 "$bob_log" handshake poll --as "$proto_bob" --peer "$proto_alice" --relay "$relay_addr" --max 4
+run_qsc_step alice hs2_poll_3 "$alice_log" handshake poll --as "$proto_alice" --peer "$proto_bob" --relay "$relay_addr" --max 4
+
+# NA-0743 / D-1380 §3.1 step 9: THE X5 OBSERVATION. The re-handshake drives BOTH peers OUT
+# of `established` (ENG-0143's owed row), so this pair is RECORDED, never asserted equal --
+# asserting `established` here would fail by construction.
+run_required_qsc_step alice hs2_status "$alice_log" 'event=handshake_status' \
+  "handshake status failed for alice after the re-handshake" handshake status --peer "$proto_bob"
+run_required_qsc_step bob hs2_status "$bob_log" 'event=handshake_status' \
+  "handshake status failed for bob after the re-handshake" handshake status --peer "$proto_alice"
+# The marker-count guard, REQUIRED before any extraction: assert_marker_present would pass
+# on the CHECKPOINT's marker, so only an incremented per-log count proves this reading is
+# new. A missing reading must be a named failure, never a stale success.
+alice_hs_status_markers_after_rehandshake="$(count_handshake_status_markers "$alice_log")"
+bob_hs_status_markers_after_rehandshake="$(count_handshake_status_markers "$bob_log")"
+if [ "$alice_hs_status_markers_after_rehandshake" -le "$alice_hs_status_markers_at_checkpoint" ]; then
+  echo "alice handshake_status marker count did not increment after the re-handshake (checkpoint=$alice_hs_status_markers_at_checkpoint after=$alice_hs_status_markers_after_rehandshake)" >&2
+  exit 1
+fi
+if [ "$bob_hs_status_markers_after_rehandshake" -le "$bob_hs_status_markers_at_checkpoint" ]; then
+  echo "bob handshake_status marker count did not increment after the re-handshake (checkpoint=$bob_hs_status_markers_at_checkpoint after=$bob_hs_status_markers_after_rehandshake)" >&2
+  exit 1
+fi
+alice_status_after_rehandshake="$(extract_handshake_status "$alice_log" alice)"
+bob_status_after_rehandshake="$(extract_handshake_status "$bob_log" bob)"
 
 # fail-closed assertions
 assert_not_present 'event=error code=protocol_inactive' "$markers" "protocol_inactive encountered"
@@ -445,8 +533,16 @@ relay_push_status_classes="$(marker_values status_class)"
 {
   echo "scenario=$scenario"
   echo "seed=$seed"
-  echo "handshake_active_alice=true"
-  echo "handshake_active_bob=true"
+  # NA-0743 / D-1380 §3.5. OLD, replaced (COMMENT, not code):
+  #   echo "handshake_active_alice=true"
+  #   echo "handshake_active_bob=true"
+  # Both were unconditionally `true`, so they published no measurement at all. The values
+  # below are BOUND TO WHAT WAS CAPTURED AT THE CHECKPOINT and are never re-read here:
+  # this block runs AFTER the relocated re-handshake, where the peers are at X5.
+  echo "handshake_status_alice_at_checkpoint=$alice_status_at_checkpoint"
+  echo "handshake_status_bob_at_checkpoint=$bob_status_at_checkpoint"
+  echo "handshake_status_alice_after_rehandshake=$alice_status_after_rehandshake"
+  echo "handshake_status_bob_after_rehandshake=$bob_status_after_rehandshake"
   echo "qsp_pack_ok_count=$qsp_pack_ok_count"
   echo "qsp_unpack_ok_count=$qsp_unpack_ok_count"
   echo "recv_commit_count=$recv_commit_count"
@@ -465,7 +561,9 @@ relay_push_status_classes="$(marker_values status_class)"
   echo "status=pass"
   echo "scenario=$scenario"
   echo "seed=$seed"
-  echo "handshake=ACTIVE(reason=handshake) both_peers"
+  # NA-0743 / D-1380 §3.5. OLD, replaced (COMMENT, not code):
+  #   echo "handshake=ACTIVE(reason=handshake) both_peers"
+  echo "handshake_checkpoint=${alice_status_at_checkpoint}/${bob_status_at_checkpoint} before_rehandshake"
   echo "qsp_pack_ok=true both_directions"
   echo "qsp_unpack_ok=true both_directions"
   echo "recv_commit_bob=$bob_recv_commit_count"

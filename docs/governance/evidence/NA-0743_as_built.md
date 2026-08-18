@@ -282,3 +282,138 @@ open.
 ⚠ **#1745 — an ISSUE, not a PR — stays OPEN and is NOT closed by this lane, by the repair's merge, or
 at any point before a real remote green run**, which the operator closes it against, citing the run
 URL. **The operator merges; the seat does not.**
+
+---
+
+# NA-0743 — AS BUILT (PART 2 — THE IMPLEMENTATION)
+
+**This PR IMPLEMENTS the directive PART 1 promoted.** PART 1 above is **not edited**; this part is
+appended beside it, and PART 1's input-provenance table remains the only copy of those shas in repo
+truth. **Decision:** D-1381 · **Rulings:** R348, R349, R350, R351 · **Base:** main
+`b087f859c115a3124494482e48043948b193d8de`, re-derived **bare and unpiped by URL** — exactly ONE
+merge past `ae2047e6`, second parent `9bc785f7` = the recorded #1761 head · **Implementation
+commit:** `e5da616dc5786542e283285acf7ed2a18817bcb6`.
+
+**ZERO PRODUCT SOURCE BYTES.** Three files changed.
+
+## P2-1. THE RESULT
+
+**The suite red for 187+ days exits 0 on loopback in BOTH of the workflow's scenarios**, at the
+**DEFAULT `PULL_LEASE_SECS=60`**, with both peers' EXTRACTED status `== established` at the
+assertion checkpoint, compared by equality and never by substring.
+
+## P2-2. THE SEALED EXPECTATIONS, EVERY ONE WITH ITS MEASURED VALUE
+
+| # | verdict | measured |
+|---|---|---|
+| **E1** RED CONTROL | **HIT** | committed script, loopback: rc **1**, stderr *"alice handshake status is not established"*. Extracted **by equality**: alice `awaiting_peer_confirm`, bob `established_recv_only`. ⛳ **The 187-day hazard, demonstrated rather than argued:** the committed unanchored needle **MATCHES bob and not alice**, while by equality **neither peer is `established`** — which is why every artifact for 187 days named alice alone |
+| **E2(a)** REPAIRED | **HIT** | rc **0** end to end; `handshake_status_alice_at_checkpoint=established`, `handshake_status_bob_at_checkpoint=established`, `handshake_checkpoint=established/established before_rehandshake` |
+| **E2(b)** DEFAULT KNOB | **HIT** | relay started with `PULL_LEASE_SECS` **unset** ⇒ server default **60**; run green ⇒ **NA-0738's (d) blocker is CLEARED EMPIRICALLY**, not merely as the source claim §2.8 made. `recv_commit` **1** each direction ⇒ antecedent HELD. **Nothing was knob-cured** |
+| **E3** X5 | **HIT** | `handshake_status_alice_after_rehandshake=established_recv_only`, `..._bob_...=awaiting_peer_confirm` — ⛳ **a pair SEALED FROM NA-0738's OWN BYTES three lanes earlier, confirmed by an independent run**. Guard: per-log `handshake_status` markers **1 → 2** in both logs ⇒ the X5 read is NEW, not a stale tail |
+| **E4(i)(a)** | **HIT** | probe asserting equality to `established_recv_only` **PASSED** ⇒ that is bob's true value at the site |
+| **E4(i)(b)** | **HIT** | committed `contains("status=established")` **PASSED TWICE** — unmodified, and again inside the (a) probe where it was deliberately left in place ⇒ **it passes on a value that is not what it names** |
+| **E4(i)(c)** NEG CONTROL | **HIT** | needle swapped to `status=awaiting_peer_confirm` ⇒ **rc 101, FAILED** ⇒ the arm executes and CAN fail ⇒ (a)/(b)'s greens are non-vacuous |
+| **E4(ii)** | **HIT** | red: **rc 101**, `left: "established_recv_only"` / `right: "established"`. green: **rc 0**. ⛳ **Same value, same point in the flow, opposite verdicts from the old and new assertion** |
+| **E5** FABRICATION | **HIT** | `event=qsp_status status=ACTIVE` **0 occurrences** across `markers`, `normalized_subset.txt`, `summary.txt`, `normalized_counts.txt`, in **both** E2 and E7. **forged 0, genuine 0**, classified by two independent discriminators with a control firing in both polarities |
+| **E6** NEG CONTROL | **HIT** | `cmp` rc **1** first (differs; sole delta = the `hs2` block's position), then the control run rc **1**: *"alice handshake status is 'established_recv_only', expected exactly 'established'"*. **Both receives DELIVERED** ⇒ antecedent HELD ⇒ the failure is genuinely the checkpoint ⇒ **the RELOCATION is the cause, not a correlate** |
+| **E7** drop-reorder | ⚠ **CHECKPOINT HIT · X5-CLAUSE MISS** | rc **0** ✅, checkpoint `established`/`established` ✅, X5 `established`/`established` ✗. **Ruled MISDRAWN AT THE SEAL (R351 §1)** and filed as **ENG-0198** |
+
+## P2-3. ⛳ THE FORGERY WAS LATENT — measured, and it sharpens why removal belongs in THIS lane
+
+`qsc` emits `qsp_status status=ACTIVE` **nowhere in this flow** (0 occurrences in every peer log),
+so the fabricated lines were the **only** possible source of that marker. And in the committed
+script they sit **below** the assertion that always failed — E1 died at it — so **no real run ever
+wrote them**. The forgery would have begun publishing **the moment the ordering defect was fixed**.
+This lane removes it in the same act that would have made it reachable.
+
+## P2-4. THE E7 MISS AND ITS MECHANISM — filed as ENG-0198
+
+`handshake_complete` measures **4 in E2 but only 2 in E7**; E7's `hs2_poll_2` emits
+`handshake_pending` ×1 and **`handshake_reject` ×4** and nothing else, **exhausting its `--max 4`
+budget entirely on rejects**. Every `hs2_*` step still returns **rc 0**, so `set -e` never fires and
+the prior session survives — `handshake status` then truthfully reports it. **The stale-tail guard
+cannot catch this and is not supposed to:** it proves the status READING is fresh (markers 1 → 2),
+not that the re-handshake happened. ⇒ **a re-handshake can silently no-op, and no gate in the tree
+can see it.** ⚠ **EXPOSED, NOT CAUSED — labelled as inference:** the committed script never reaches
+`hs2` at all, so the reorder is what makes this observable for the first time; not source-proven,
+and deliberately not chased.
+
+## P2-5. THE FULL SUITE, BOTH SIDES
+
+| run | tree | rc | binaries | passed | failed | ignored |
+|---|---|---|---|---|---|---|
+| **BASELINE** | pristine main `b087f859`, `git status` **verified empty at run start**, run to completion **BEFORE any edit existed** | **0** | 134 | 634 | **0** | 2 |
+| **AFTER** | the **exact committed tree** `e5da616d` | **0** | 134 | 634 | **0** | 2 |
+
+**Reconciliation:** **IDENTICAL ON EVERY AXIS** — same binaries, same passed, same failed, same ignored. The one test whose assertion changed (`send_ready_markers_na0168`) is green on its **strengthened** assertion, and nothing else moved. Both `rc` captured **bare** — redirection only, so `$?` is the process's
+own and not a pipeline's.
+
+## P2-6. THE RULED TEXT WAS AMENDED TWICE, AND THE SWEEP THAT FOLLOWED
+
+⚠ **The ruled §3.4 comment carried TWO base-scoped locators**, each amended before landing on this
+seat's measurement, with OLD/NEW read from **the ruling's own bytes** and never retyped:
+
+| ruling | OLD | NEW | controls |
+|---|---|---|---|
+| **R349 §2** | `…(see :343-346 and the` | `…(see the NA-0622 bootstrap` + `comment below and the` | **2** negative controls HARD-FAILED |
+| **R350 §1** | `…the comment ten` + `lines below says obtains…` | `…the NA-0622` + `bootstrap comment below says obtains…` | **3** HARD-FAILED (drifted payload, own output, wrong ruling sha) |
+
+**R350 §1's sweep, needle and counts.** **N1** = number word or digit + `line(s)` + a direction, run
+over a **prose view joining consecutive comment lines** — a locator split across a line break is
+exactly how the second one hid. **N2** = a deliberately **broad** `:`+digits, then every hit
+**classified**, because a needle narrow enough to avoid false positives is narrow enough to miss the
+thing sought. **Repaired test 0/0 · repaired script 0/0 · repaired doc 0/0 · E6 control 0/0**, with a
+positive control firing on both needles. ⚠ The sweep found **three more locators in the seat's own
+prose** — two counted offsets and a cross-file citation that **measured CORRECT** — and all three
+were rewritten to content anchors anyway, because the rule is stated for landed text generally.
+
+## P2-7. ⚖ R349 §1 — THE QUOTED-PAIR DEPARTURE, RATIFIED
+
+For a **REMOVAL** (not a retarget), the plant-hazard discipline **overrides** the in-file quoting
+habit: quoting the forged token back into the script would tax every future source census of the
+very token E5 exists to zero. The pair is preserved where it already lives — the FINAL directive's
+§2.2 table, the stops, git history — and the removal is **DESCRIBED** in the comment. **Ruled, not
+improvised.** Measured: repaired script `status=ACTIVE` **0 code / 0 comment**; the old ASSERTIONS
+*are* quoted, at **0 code / 2 comment**, because there quoting costs nothing.
+
+## P2-8. IDS, RE-DERIVED AT THE EDIT
+
+`D-1381` and `ENG-0198` each measured **0 declarations and 0 mentions** immediately before use;
+SR-16 rows **73–76** against a table measured **72 rows, min 1, max 72, no gaps, no
+duplicates**. Open-PR set **MEASURED EMPTY** with a positive control returning merged rows, so no
+parallel branch could hold them. ⚠⚠ **The R-id naive maximum is 999 and is WRONG** — predecessors'
+**published synthetic controls** (`R613`/`R724`/`R809`/`R888`/`R952`/`R999`) are in the tree and
+**`R460` is not a ruling id at all** (*"GlobalSign Root R460"*, a CA name). Classified instead:
+**R348 highest genuine**, nothing between it and R460 ⇒ **R349, R350, R351**, each verified 0/0
+before use. ⚠ `R777` and `R901` are **also SPENT** (3 operator files each). ⚠⚠ **Route B is blind on
+this lane's own rulings: the banked R349 file contains ZERO occurrences of `R349` in its own
+content** — only its FILENAME carries it.
+
+## P2-9. THE LOOPBACK DOOR, AND THE CLAIM BOUNDARY
+
+`qsl-server` rev `37ec82072cbbd68e4eaba83e192282fbcb96e5b4` (NA-0738's), built in-lane. Bearer
+generated locally from `/dev/urandom`, mode 0600, **never printed**; **zero secrets read**,
+`relay.env` never opened. Plain **HTTP** on `127.0.0.1`, no TLS ⇒ **this says nothing about the CI
+transport path**. `MAX_BODY_BYTES=65536` (AWS parity per NA-0738); **`PULL_LEASE_SECS` never set** ⇒
+server default 60. **Auth gate proven live on every start: 401 unauthenticated → 200 with bearer.**
+
+⚠ **NOT CLAIMED:** anything about the remote run's outcome. **Loopback proves the SCRIPT** — now for
+both scenarios. ⚠ **#1745 — an ISSUE, not a PR — stays OPEN and is NOT closed by this lane, by this
+PR's merge, or at any point before a real remote green run cited by URL. The operator closes it.**
+
+## P2-10. BOUNDS OBSERVED
+
+No `.github/**`, no workflow, no dependency, no lock, no `qsl-server` change to the repo.
+`remote_soak.py` **UNTOUCHED**. **No test weakened, skipped or deleted** — the one changed assertion
+is strictly STRONGER, proven at E4. E4's probes were added as **untracked NEW test targets and
+deleted afterwards**, with the committed test file's sha256 **verified unchanged before and after
+every probe run**, so E4(i) is literally *"on the UNEDITED tree"*. No secrets, no relay ssh, no
+sudo, no `qwork`/`qstart`/`qresume`/`qnext`, no re-run-to-green. `PULL_LEASE_SECS` never raised.
+**ENG-0198 filed, NOT repaired.** ENG-0191's own closure is **not** taken here — it rides a
+successor's records act. **The operator merges; the seat does not.**
+
+⚠ **ONE DEVIATION OF THIS SEAT'S OWN, DECLARED AND ACCEPTED (R351 §4):** the directive's order lists
+**E6 before E7**; this seat ran **E7 first**. Both are independent single-run measurements against
+fixed inputs, each against a freshly restarted relay with a clean store, so neither consumes the
+other's state — but the order differs from the order written, and it is recorded rather than
+smoothed.

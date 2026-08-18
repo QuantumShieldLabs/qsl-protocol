@@ -128,6 +128,23 @@ fn relay_inbox_set(cfg: &Path, token: &str) {
     assert!(out.status.success(), "{}", combined_output(&out));
 }
 
+// ENG-0194 (NA-0743 / D-1380): the file-local mirror of the shell extractor in
+// scripts/demo/qsc_remote_handshake_smoke.sh -- same needle, same tail-of-log semantics,
+// token taken up to the first whitespace -- so the status is compared BY EQUALITY and
+// `established` can no longer match inside `established_recv_only`.
+fn handshake_status_value(text: &str) -> String {
+    let mut found: Option<String> = None;
+    for line in text.lines() {
+        if let Some((_, rest)) = line.split_once("event=handshake_status status=") {
+            found = Some(rest.split_whitespace().next().unwrap_or("").to_string());
+        }
+    }
+    match found {
+        Some(v) if !v.is_empty() => v,
+        _ => panic!("missing event=handshake_status status= marker: {}", text),
+    }
+}
+
 #[test]
 fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
     let base = safe_test_root().join(format!("na0168_send_ready_markers_{}", std::process::id()));
@@ -330,9 +347,16 @@ fn responder_first_reply_succeeds_after_bootstrap_and_send_ready_transitions() {
         .output()
         .expect("bob handshake status after bootstrap");
     let bob_status_after_out = combined_output(&bob_status_after);
-    assert!(
-        bob_status_after_out.contains("status=established"),
-        "expected established after bootstrap receive: {}",
+    // ENG-0194: `contains` is a substring match and `established` is a PREFIX of
+    // `established_recv_only`, so this assertion PASSED on the state the NA-0622
+    // bootstrap comment below says obtains -- it was INERT. The status token is extracted and
+    // compared for EQUALITY. Retargeted to the TRUE state (see the NA-0622 bootstrap
+    // comment below and the
+    // `send_ready=no` assertion below), which makes it discriminating for the first time.
+    let bob_status_value = handshake_status_value(&bob_status_after_out);
+    assert_eq!(
+        bob_status_value, "established_recv_only",
+        "expected established_recv_only after bootstrap receive: {}",
         bob_status_after_out
     );
     assert!(

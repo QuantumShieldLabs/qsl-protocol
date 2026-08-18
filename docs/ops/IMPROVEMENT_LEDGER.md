@@ -4614,6 +4614,24 @@ The first run of the relocated arrangement **FAILED**: alice's `receive` returne
 
 ⚠ **WHAT THIS AMENDMENT DOES NOT DO.** It does **not** repair ENG-0191 — `:351`/`:352` are **untouched** in the committed script, which this lane re-verified byte-identical at `c885dcf0…0eef`, **482 lines**. **ENG-0191 stays OPEN until the repair lands.** ⚠ **#1745 stays OPEN and is NOT closed by the repair's merge either** — the remote claim lands only when the workflow's own run goes green against the relay, and ⚠ **that run executes `drop-reorder` as an unguarded second step**, so the green requires **both** scenarios. Ruling lane: NA-0743 (D-1380), R348. Last-updated: 2026-08-17.
 
+⚠⚠ **CLOSED 2026-08-18 by NA-0743 / D-1381 (PR #1762, merged `d484c065`).** The repair landed as
+option **(d) with (e)'s equality discipline**: the assertion checkpoint was relocated to sit BETWEEN
+the round trip and the RELOCATED `hs2` block, both status assertions were converted to
+extract-and-compare **BY EQUALITY**, the fabricated `qsp_status status=ACTIVE` marker was retired, and
+ENG-0194's inert assertion was made discriminating. **PROVEN REMOTELY, not merely locally:**
+`remote-handshake-tests` run `32090875139` (`workflow_dispatch`) SUCCEEDED in 14m32s at `head_sha`
+`d484c065` — **the first green in 189 days, ending 201 consecutive failures** (measured over all 215
+recorded runs: 211 failure / 4 success; the *"first green in recorded history"* phrasing measured
+FALSE and the true figure is the stronger one). Issue **#1745 CLOSED** 2026-08-18T02:49:49Z, reason
+`COMPLETED`, by the operator. ⚠ **What this closure does NOT claim:** that the handshake state machine
+reaches bare `established` for both peers simultaneously — it does not, and the X5 observation is
+RECORDED, not asserted; and it does **not** close **ENG-0194** (`remote_soak.py:573`), which stays
+open, re-scoped. ⚖ **ENG-0198 was filed from that lane's own MISS** and stays open: a re-handshake can
+SILENTLY NO-OP — `handshake poll` returns rc 0 while rejecting every frame it pulls, and no observable
+distinguishes a completed rotation from a no-op.
+- Status: **CLOSED 2026-08-18** — repaired and remotely proven. Originating lane: NA-0736 (D-1371).
+  Closing lane: NA-0743 (D-1381). Recorded by: NA-0744 (D-1382). Last-updated: 2026-08-18.
+
 ### ENG-0192 — `receive --mailbox` takes a RAW ROUTE TOKEN and the remote smoke fixture hands it an IDENTITY LABEL, so the client politely polls a mailbox nobody ever writes to and reports an empty inbox at rc 0 — **the FIFTH cause behind the 187-day outage** — **NEW; filed 2026-08-15 by NA-0736 (D-1371; measured from NA-0735's sealed evidence and from source at `5201c275`; classification ruled at R335 §1 after ENG-0134 and ENG-0142 were both REFUTED)**
 
 - Severity: **P2** — a FIXTURE defect, not a shipped defect, on the same reading ENG-0191 records for itself. The product behaved correctly at every step; one consumer is wrong about what an argument means. ⚠ It is nevertheless the thing standing between this suite and a *proven* round trip, and it sits **behind** ENG-0191 in the failure order, so clearing ENG-0191 alone will not produce a delivered message.
@@ -4943,6 +4961,62 @@ the same blindness — a gate and an instrument are different things and this pr
 - ⚠ **A FALSE POSITIVE WORTH CARRYING BECAUSE IT COSTS 121 IDS: `R460` IS NOT A RULING ID.** It is **`"GlobalSign Root R460"`**, a certificate-authority name inside a bundled binary at NA-0603. A content sweep returns it as the maximum; counting it would have taken **`R461`** and skipped 121 ids. It was classified OUT by **NA-0726 STOP 001** and again by **NA-0740 STOP 003 §1**, and NA-0741 carried that classification forward **with its reason** rather than silently narrowing the needle to hide the hit. ⇒ **when a sweep returns a surprising maximum, ENUMERATE AND CLASSIFY the outliers; a needle refined until the surprise disappears has destroyed the evidence.**
 - Cross-references: **NA-0738 STOP 003 §3** (where the finding was measured and recorded, not filed); **WF-0068** (the id-derivation procedure this amends in practice); **WF-0078** (SR-24's refusal, which is why SR-24 accumulated six files and no declaration); **SR-21** (an instrument's scope must equal its claim's scope — this is that property applied to the records procedure itself); the `**Class:**` census that counted the file's own prose about itself, and `DECISIONS.md`'s four record forms (NA-0724 / NA-0725 / NA-0732) — **the same shape, now three chairs deep**.
 - ⚠⚠ **F-C — THE PLANT HAZARD IS NOT CONFINED TO ID SPACES. IT REACHES MARKER NAMES, PRODUCT SOURCE, CONTROL SENTINELS, AND RESERVATION NOTICES.** Six instances now recorded, each found by a census that reported failure on a correct tree: **(1)** `recv_frame_skipped` measured **0 files** at NA-0741's directive base `4c59ffda` and **3** at the edit — all three that lane's own promotion records; **(2)** at lane close a check written as *"the old fixture is GONE"* returned **1**, and the single occurrence was the seat's **own code comment** quoting the removed bytes to explain their removal ⇒ **the hazard reaches PRODUCT SOURCE**; **(3)** NA-0740 measured `R339` at 0/0 and then 4 operator files ~30 min later, every hit a mention that lane had itself planted ⇒ **the hazard reaches R-ids, which this entry's own text does not name**; **(4)** NA-0742's R-id sweep found its NEGATIVE CONTROL `R888` returning **2 files** — both being NA-0741 STOP 009's own table row printing `R888` *as its negative control* ⇒ **A CONTROL SENTINEL IS CONSUMED BY THE RECORD THAT PRINTS IT**, silently degrading it to a vacuous control (the WF-0074 family); **(5)** ⚠ **THE HAZARD REACHES A RESERVATION NOTICE.** NA-0742's records declared `R345` "next free, NOT taken" in three documents; **one hour later `R345` measured 6 operator files** — every hit that notice or its relay mirror, **zero declarations**, the id still free. The same lane then repeated it twice more, on `R952` (a "fresh" sentinel already spent by its own previous stop) and on `R346`. ⇒ **announcing an id as free is itself an occurrence of that id**, so a total-occurrence sweep cannot distinguish *reserved* from *taken*. **(6)** ⚠ **THE HAZARD REACHES A CENSUS THROUGH A FILE NAME.** NA-0742's F-C re-sweep at its own commit measured `producer_ack` in **10 files** — but **2 of the 10 carry no marker at all**: they are the two shard-manifest lines naming the new test target `tests/na0742_invite_finish_scan_producer_acks.rs`, and the marker name is a **SUBSTRING of that filename**. A file census keyed on the marker string therefore counts the file that is merely NAMED AFTER the construct. ⇒ **count occurrences of the CONSTRUCT, not files containing the string** — the same discipline as declaration-vs-mention, one level down, and it bites hardest exactly when a lane names its test file after the thing it is testing. **The cure is structural and unchanged: a census must distinguish a LIVE construct from a MENTION of it, and must split by PATH CLASS before reporting a total.** **Additional cure for (4) and (5): draw the control sentinel fresh per act, and never settle an id space on totals alone.**
+
+⚠⚠ **AMENDED 2026-08-18 by NA-0744 (D-1382; ruled at R353 §9, which REFUSED a new countable id for
+this content by this lane's own duplication test).** *Nothing above is edited; this amendment is
+additive, and its figures are stated as measured BEFORE it landed — filing it plants `R352`, `R353`
+and `WF-0088` in the tree, which is this entry's own hazard.*
+
+**THE R-ID SPACE HAS NO DECLARING FORM AT ALL, AND THE TWO AVAILABLE ROUTES ARE BLIND IN OPPOSITE
+DIRECTIONS.** This entry established that a sweep counts **mentions** where the claim is about
+**declarations**. The R-id space is the harder case: neither route is sound alone.
+
+- **ROUTE A — the banked ruling FILENAME** (`RULING_*_R###_*.md`), the form the program treats as
+  declaring. **Measured at `d484c065`: only 10 of 26 banked `RULING_*` files carry an R-id in the
+  name. Across `R337..R351` route A finds 5 and MISSES 10** — `R338`–`R347`, every one banked as
+  `RULING_NA07xx_<TOPIC>_<date>.md`. **A filename-only sweep would have re-allocated any of them.**
+- **ROUTE B — file CONTENT.** Recorded at NA-0743: a banked ruling can contain **zero** occurrences
+  of its own id (`R349`). Re-measured across the five rulings banked *with* an id in the name,
+  **three of five carry zero self-occurrences** (`R337`, `R348`, `R349`). ⛳ **And again at R353**,
+  whose id appears in its filename and **nowhere in its own content** — the first instance in which
+  route A is the one that saves you.
+- ⇒ **The R-space's safety has never come from a declaring form. It comes from the STOP FILES
+  mentioning their rulings** — an incidental property, not a designed one.
+
+⚠⚠ **AND THE HAZARD DOES NOT MERELY INFLATE A COUNT — IT CAN INVERT A VERDICT, CONFIDENTLY.** `R352`
+swept **0 / 0 → FREE** before NA-0744's documents were banked. **Minutes later** the *same sealed
+instrument*, re-executed from its sealed location under SR-20 precisely to prove it runs where it
+sits, printed **`R352 … TAKEN <- ROUTE A BLIND`**. All 29 occurrences were the lane's **own**
+directive, stop and template. **Not a missing result and not an inflated count: an affirmative wrong
+verdict with a plausible-sounding reason attached, which is the shape that gets believed.** Fastest
+instance on record — this entry's cited gap was ~30 minutes; this was inside one turn.
+
+⚠⚠ **THE CURE HAS A THIRD PATH CLASS, AND IT CARRIES NO LANE NAME.** The path-class split fails on its
+first execution if it is written as a name-based filter: excluding the lane directory and relay
+mirrors whose basename names the lane **still reported `R352 = 2`**, because
+`/srv/qbuild/operator/relay/LATEST.md` — **the shared mutable pointer every lane is REQUIRED to
+rewrite** — matches neither test. **A lane's own bytes live in THREE places, not two.**
+⇒ **Do not refine the filter: ENUMERATE AND CLASSIFY (SR-21), listing every hit with its class so the
+classification can be CHECKED rather than trusted.** Final measurement, all 49 occurrences enumerated:
+`OWN(lane dir)` **27** · `OWN(relay mirror, named)` **20** · `OWN(shared mutable pointer)` **2** ·
+**`FOREIGN` 0 on both routes**; positive control `R351` **28** foreign content occurrences and **2**
+foreign banked filenames; negative control **49** unexcluded. ⛳ **And the corrected instrument then
+held under a 2.5× larger plant** — banking the next stop grew `R352` from 49 to **124** occurrences
+and `FOREIGN` **stayed 0**.
+
+**THE RECORDED CURE: THE UNION OF BOTH ROUTES IS THE INSTRUMENT** — swept with a **path-class split
+over all three classes**, **classify-before-maximum**, and a **positive control per id** proving the
+sweep can return a positive. A verdict of FREE requires **zero on BOTH routes outside the sweeping
+lane's own path class**, with the un-excluded count shown beside it as the negative control.
+⚠ **Noted as a candidate for standing-rule promotion when SR-17's successor exists** (R353 §9);
+**not minted here.**
+**Recommended change — NAMED, NOT BUILT HERE.** Either **(i)** require every banked ruling filename to
+carry its R-id — which repairs route A prospectively and does nothing for the 16 already banked
+without one — or **(ii)** adopt the union sweep as the procedure. **(ii) is the one that works on the
+tree as it exists**; (i) is worth doing anyway, and neither is this lane's to build.
+- Cross-references: **NA-0743** (route B's blindness, first recorded), **NA-0744 STOP 002** (the
+  verdict inversion, with its timings), **NA-0744 STOP 003 §3** (the third path class), **WF-0068**.
+- Amending lane: NA-0744 (D-1382). Last-updated: 2026-08-18.
 
 ### ENG-0198 — ⚠ P3 — A RE-HANDSHAKE CAN SILENTLY NO-OP: `handshake poll` RETURNS rc 0 WHILE REJECTING EVERY FRAME IT PULLS AND COMPLETING NOTHING — **NEW; filed 2026-08-17 by NA-0743 (D-1381; measured as the E7 result at STOP 003 §3; ordered at R351 §2)**
 

@@ -43244,3 +43244,75 @@ operator merges, the seat does not.
 - ⚠⚠ **THE R-ID DERIVATION'S NAIVE MAXIMUM IS 999 AND IS WRONG.** A raw max over `\bR[0-9]{3}\b` returns **R999**: predecessors' **published synthetic controls** (`R613`, `R724`, `R809`, `R888`, `R952`, `R999`) live in the tree, and **`R460` is not a ruling id at all** — it is *"GlobalSign Root R460"*, a CA name. Enumerated and classified instead: **R348 was the highest GENUINE ruling**, nothing exists between R348 and R460 ⇒ **R349, R350, R351** taken in turn, each verified **0/0 before use**. ⚠ `R777` and `R901` measure **3 operator files each — also SPENT**. ⚠⚠ **Route B is blind on this lane's own rulings: the banked R349 file contains ZERO occurrences of `R349` in its own content** — only its FILENAME carries the id — so a successor sweeping content alone would read it as free and double-allocate it.
 - **RECORDS LANDED BY THIS DECISION.** `NEXT_ACTIONS.md` (STATE `HIGHEST_D` → **1381**; the queue flip to `MERGING` rides the post-PR commit), `docs/ops/IMPROVEMENT_LEDGER.md` (**ENG-0198** filed, born countable), `docs/ops/PREDICTION_LEDGER.md` (**SR-16 rows 73–76**, two from the Director's chair), `TRACEABILITY.md`, `DECISIONS.md`, and `docs/governance/evidence/NA-0743_as_built.md` (**PART 2 appended; PART 1 not edited**).
 - **WHAT THIS DOES NOT DO.** **ENG-0198 is NOT repaired** and is not started. **ENG-0194 stays OPEN**, re-scoped to `remote_soak.py:573`. **ENG-0142 is not closed**; ENG-0193 not built; WF-0086's and WF-0087's gates not built; ENG-0197 open. **ENG-0191's own closure is NOT taken here** — it rides a successor's records act once this merges, per the house pattern. ⚠ **#1745 — an ISSUE, not a PR — stays OPEN and is NOT closed by this lane, by this PR's merge, or at any point before a real remote green run cited by URL. The operator closes it.** **The operator merges; the seat does not.**
+
+## D-1382 — NA-0744: PULL-PATH INSTRUMENTATION (ENG-0193) + THE REMOTE INVITE ROUND-TRIP GATE (WF-0086) — PROMOTION
+
+- **Date:** 2026-08-18 · **Lane:** NA-0744 · **Rulings:** R352, R353 · **Operator:** ASK-2 [O] 2026-08-18
+- **Base:** main `d484c065ea0520b696aa9ac5555effae363870ba`, verified UNMOVED by URL, bare and
+  unpiped, against the NAMED GitHub remote; open-PR set **MEASURED EMPTY** with a positive control.
+- **Class:** *(none declared — the Director declares one at PR review, or the absence stands
+  recorded. This lane does not mint it.)*
+
+**WHAT THIS PROMOTION IS.** A directive only: **zero product source bytes**, no script, no workflow,
+no `.github/**` file written, no dependency, no test weakened, skipped or deleted, **no standing rule
+minted**, no fenced ruling edited. It authorizes a later implementation lane to instrument the pull
+half of the relay boundary and to add an invite round-trip gate; **nothing is implemented here.**
+
+**WHAT THE DIRECTIVE FORMALIZES.** `relay_pull_diagnostic` at the pull/ack HTTP transport boundary via
+a **wrapper** over renamed `*_inner` functions — one line per call, every outcome, pre-flight
+included — plus `scripts/demo/qsc_remote_invite_roundtrip_smoke.sh`, and **two `.github` artifacts
+DRAFTED AS BYTES for the operator to land** (the workflow and the one-line `main-red-sentinel` roster
+addition, **without which the new workflow has no sentinel**). Ten sealed expectations, E1–E10.
+
+⚠⚠ **FIVE PREMISES OF THE BRIEF MEASURED FALSE AT BASE AND ARE CORRECTED IN THE OPEN, NOT COPIED.**
+*"38 sites"* — no interpretation returns 38; the ledger's own figure is **28**. *"the receive half is
+mute"* — it carries **43 emission sites / 39 marker names**; what is mute is the **transport
+boundary**, 26 exits and zero markers, which is sharper and narrower. *"`mailbox_hash8`"* — occurs
+**zero** times tree-wide; the field is `mailbox_hash`, and **the spelling is load-bearing** because
+`should_redact_value` (`output/mod.rs:325`) blanks any key containing `token`. *"loopback only for all
+runs"* — **out of bounds by policy**: `qsc relay serve` answers two routes and the invite-capable
+`qsl_server` is a test-only dev-dependency, so no shell-runnable invite relay exists. *"the first green
+in recorded history"* — **four greens exist**; the true figure is the stronger one, **189 days and 201
+consecutive failures**.
+
+⚠⚠ **AN SR-15 ADVERSARIAL COLD READ FOUND FOUR BLOCKERS, AND EVERY ONE WAS THIS SEAT'S.** Six of eight
+emission-site anchors named the wrong construct with `A3`/`A4` **transposed**; `items_count=0` is
+**unreachable** because the server 204s an empty pull at both revs; `auth_present` fits no admissible
+hunk class; and **both `.github` artifacts existed only as prose after being called "drafted verbatim"
+three times.** The counts were all right and the anchors nearly all wrong. Every correction was
+**re-derived from bytes by the seat before being folded** (R337: verify, don't adopt) and by the
+Director independently — **zero discrepancies from either pass**.
+
+⛳ **THE FIRST LIVE MAIN-RED EVENT SINCE THE SENTINEL SYSTEM LANDED — 2026-08-18, and every layer fired
+correctly on first contact.** On the merge commit `d484c065` itself, `macos-qsc-sharded-suite`
+**shard-1 failed**: **T5p's ANTECEDENT GUARD fired** on a degraded runner, naming its own broken
+precondition (`relay_inbox_pull_failed`) rather than reporting a false defect — **step 5 ran 3759 s
+inside a 3775 s job**. Classified **TRANSIENT before any re-run** (R332.1: the classification is the
+act, the re-run is not), on identical bytes measured green on Linux CI, twice on the box, and on macOS
+at PR #1760 [D-supplied]. The re-run was green (attempt 2, `macos-qsc-shard-1` 3924 s).
+`main-red-sentinel` opened **two** issues —
+https://github.com/QuantumShieldLabs/qsl-protocol/issues/1763 (`CI RED: macos-qsc-sharded-suite on
+main`) and https://github.com/QuantumShieldLabs/qsl-protocol/issues/1764 (`CI RED: public-ci on main`,
+red **by design propagation**) — both labelled `ci-red`, and **both CLOSED by the operator**
+(04:51:03 Z and 04:51:53 Z) **with the classification cited**, exactly as R318.1 requires: the sentinel
+never closes an issue itself. The fan-in reconciled **28 of 28** [D-supplied; not re-derived].
+⚠ **One figure is corrected in the open and the true one is stronger:** the episode was described as
+the sentinel opening both issues *"in 23 minutes."* Measured from the API — shard-1 failed 03:02:47 Z,
+the fan-in 03:02:54 Z, **#1763 opened 03:03:01 Z**, `public-safety` propagated 03:03:17 Z, **#1764
+opened 03:03:25 Z** — **the two issues are 24 SECONDS apart and the entire red episode is 38 SECONDS.
+The sentinel reacted in seconds, not minutes.**
+⛳ **The event is also a live datum for `ENG-0193`:** the failure surfaced as the bare code
+`relay_inbox_pull_failed`, precisely the value that entry argues cannot say *why* — **a human had to
+classify what the pull-side diagnostic this lane authorizes would have named on its first occurrence.**
+
+**RECORDS LANDED.** This decision · `NEXT_ACTIONS.md` (NA-0743 `MERGING (PR #1762)` → `DONE` with the
+corrected remote-green citation; NA-0744 born `Status: READY`; the STATE move) ·
+`docs/ops/IMPROVEMENT_LEDGER.md` (**ENG-0191 CLOSED** beside its text; **WF-0087 AMENDED**, additive,
+**no new countable id**) · `docs/ops/PREDICTION_LEDGER.md` **SR-16 rows 77–83** · `TRACEABILITY.md` ·
+`docs/governance/evidence/NA-0744_as_built.md` (`git add -f`, confirmed in
+`git diff --cached --name-only`).
+
+**NOT CLAIMED.** That ENG-0193 is repaired · that WF-0086's gate exists · that any `.github` file was
+written by a seat · that the invite flow was exercised on loopback · that ENG-0142's remainder,
+ENG-0194, ENG-0196's disposition, ENG-0197 or ENG-0198 are addressed. **The operator merges; the seat
+does not.**

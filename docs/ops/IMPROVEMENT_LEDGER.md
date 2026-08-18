@@ -4798,6 +4798,34 @@ sibling class: a failure whose cause never reaches the artifact), **WF-0086** (t
 the same blindness — a gate and an instrument are different things and this program needs both).
 - Status: open — **FILING ONLY**. Originating/last lane: NA-0736 (D-1371). Last-updated: 2026-08-15.
 
+⚠⚠ **CLOSED 2026-08-18 by NA-0744 / D-1383.** The pull/ack HTTP
+transport boundary now emits **exactly one `relay_pull_diagnostic` per call, on every outcome,
+pre-flight included**, through a WRAPPER over renamed `*_inner` functions — so all five pull call
+sites and both ack call sites are covered by one edit and **no caller file is touched**.
+
+⛳ **THIS ENTRY'S OWN STATUS LINE CARRIED A PREMISE THAT MEASURED FALSE, AND THE MEASUREMENT IS WHY
+THE REPAIR WAS SAFE.** It reads *"instrumenting the pull path is an edit to the receive region and
+remains a STOP."* **The edit region is DISJOINT from the receive loop.** `receive_pull_rounds` is
+**byte-unchanged ENTIRELY** across this lane — `eda9d836f59b6895`, 47376 B, identical before and
+after, by a bracket-to-construct instrument with a firing negative control — as are
+`producer_ack` (`40bd87c9a2796765`) and `relay_inbox_push_inner` (`34c4435ac3ae56dc`). The two
+`*_inner` bodies carry **three named deltas each and nothing else**, every changed line classified
+rather than counted. **Mark-don't-rewrite: the original Status line above stands as filed.**
+
+⚠ **WHAT THIS DOES NOT CLOSE.** The 28-site figure this entry cites for the push half is a count of
+**status** instrumentation. Building the pull half measured that the push half's **transport**
+explanation is a fixed string: its substring classifiers are handed `err.to_string()`, which does not
+contain the operating system's reason, so its `connection_refused` arm has never fired. That is
+**ENG-0199**, filed by this lane and deliberately NOT repaired here (it is a behaviour change on a
+path outside this lane's bounds). For one and the same connection failure the two halves now
+disagree — the pull says `connection_refused`, the push still says `not_timeout` — and that
+asymmetry is recorded rather than hidden.
+
+- Status: **CLOSED 2026-08-18** — instrumented and proven by E1 (red-first), E3 (ON/OFF stream
+  identity), E3b (base build vs lane build, byte-identical normalized streams), E4 (dead-relay
+  diagnosis), E5 (`mailbox_hash` + `status_code=204` on a non-receive caller), E6 (redaction) and
+  E8 (region pins). Originating lane: NA-0736 (D-1371). Repaired by: NA-0744 (D-1383).
+
 ### WF-0086 — `--mailbox` is well covered against an in-process test relay with the correct value type; what nothing covers is a REAL remote relay round trip, and the one consumer that gets the value wrong has never reached its own receive — **NEW; filed 2026-08-15 by NA-0736 (D-1371; STOP 002 §4's replaced text, confirmed at R335 §3(a))**
 
 - Type: workflow; Status: open — filed 2026-08-15 by NA-0736
@@ -5049,3 +5077,59 @@ tree as it exists**; (i) is worth doing anyway, and neither is this lane's to bu
 - Cross-references: ⛳ **the budget-exhaustion mechanism is the POLL-SIDE SIBLING of the receive-side head-of-line family** — `ENG-0142` and `ENG-0196` are the receive-side cases, where a frame at the head of the inbox consumed the caller's progress; here the same shape appears on the **poll** side, with `--max` as the budget the rejects exhaust. ⚠ **The difference that matters: the receive-side cases FAILED LOUDLY (rc ≠ 0); this one returns rc 0.**
 
 - ⚠ **NOT REPAIRED, AND NOT STARTED.** Repairing it is **out of NA-0743's bounds** (R351 §2). NA-0743 files it and stops.
+
+### ENG-0199 — ⚠ P2 — THE PUSH DIAGNOSTIC'S NETWORK-FAILURE ARM HAS NEVER FIRED: EVERY SUBSTRING CLASSIFIER IS HANDED `err.to_string()`, WHICH DOES NOT CONTAIN THE OPERATING SYSTEM'S REASON — **NEW; filed 2026-08-18 by NA-0744 (D-1383; measured while building the PULL half against §3.4's dead-endpoint arm)**
+
+⚠⚠ **THE DEFECT.** `relay_push_diagnostic_class_from_error_parts` (`transport/mod.rs`) classifies a
+send failure by testing its text for `connection refused` / `connection reset`, and
+`relay_push_timeout_phase_class_from_parts` by testing for `dns` / `tls` / `certificate` /
+`connect` / `request`. Both are reached through `*_for_send_error(err)`, which hands them
+**`err.to_string()`**. For a `reqwest` connect failure that string is the WRAPPER's own message —
+the operating system's reason lives in the **`source()` CHAIN** beneath it. So the text those
+classifiers test for **is never present in what they are given**, and the `connection_refused` arm
+is unreachable in practice.
+
+**MEASURED, on the PRE-LANE build, on the PUSH half, against a dead endpoint** (`http://127.0.0.1:1`,
+`QSC_RELAY_PUSH_DIAGNOSTIC=redacted`):
+
+```
+event=relay_push_diagnostic diagnostic=QSC_RELAY_PUSH_DIAGNOSTIC mode=redacted api=relay_push_v1
+  status_class=unknown status_code=unknown error_class=network_error
+  diagnostic_class=not_timeout timeout_phase_class=not_timeout
+  response_body_present=unknown response_body_len=unknown route_header_present=true
+  auth_present=false qsc_error=relay_inbox_push_failed attempt=1
+```
+
+⇒ **`diagnostic_class=not_timeout` for a REFUSED CONNECTION** — an answer to a question nobody asked.
+`error_class=network_error` is correct, and it is correct because it derives from
+`err.is_connect()`, a **structured predicate**, not from a substring. That contrast is the whole
+finding: the structured predicates work and every substring test does not.
+
+**WHY NOTHING CAUGHT IT.** `relay_push_diagnostics.rs` drives a **live fixture relay** that answers
+fixed STATUS CODES (401 / 413 / 400). It never points the client at a dead port, so the send-error
+branch's classification has **no test at all**. The arm has been in the tree since NA-0554 and has
+never been exercised.
+
+⚠ **THE REACH IS WIDER THAN THE ONE ARM, AND THIS PART IS AN INFERENCE, LABELLED AS ONE.** The same
+`err.to_string()` feeds `relay_push_timeout_phase_class_from_parts`, whose `dns_timeout` /
+`tls_handshake_timeout` / `tcp_connect_timeout` / `http_request_timeout` split is entirely
+substring-driven. A real timeout is therefore likely to be mis-phased rather than merely
+unclassified. **This seat did not produce a timeout and does not claim to have measured it** — the
+repairer should measure each phase rather than assume this one generalises.
+
+⛳ **THE REPAIR HAS A WORKING PRECEDENT IN-TREE, ADDED BY THE LANE THAT FILED THIS.** NA-0744's
+`reqwest_error_chain_text` walks `Error::source()` and concatenates the chain, then hands the result
+to the SAME pure `_from_parts` classifier. With that input the pull half emits
+`diagnostic_class=connection_refused` for the identical failure — proving both that the chain
+carries the reason and that the classifier was correct all along. The repair is to feed the push
+half the same text.
+
+⚠ **NA-0744 DELIBERATELY DID NOT REPAIR THE PUSH HALF.** Changing what `relay_push_diagnostic`
+publishes is a behaviour change on a path outside that lane's edit set, and its bounds forbid it.
+**The consequence is recorded rather than hidden: for one and the same connection failure the two
+halves of the boundary now disagree** — the pull says `connection_refused`, the push still says
+`not_timeout`. Closing that asymmetry is exactly what this entry asks for.
+
+⚠ **A PREMISE OF ENG-0193 IS NARROWED BY THIS.** ENG-0193 was filed on the ground that the push half
+"explains itself in 28 sites" while the pull half was mute. It does — for **status** outcomes. For
+**transport** outcomes its explanation has been a fixed string this whole time.

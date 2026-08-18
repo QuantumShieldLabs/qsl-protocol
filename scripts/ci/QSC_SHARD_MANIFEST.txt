@@ -103,6 +103,7 @@ tests/receive_no_mutation.rs	9
 tests/relay_auth_header.rs	8
 tests/relay_drop_no_mutation.rs	9
 tests/relay_dup_no_mutation.rs	6
+tests/relay_pull_diagnostics.rs	5
 tests/relay_push_diagnostics.rs	5
 tests/relay_reorder_no_mutation.rs	9
 tests/remote_fault_injection.rs	3

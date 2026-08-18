@@ -5227,7 +5227,7 @@ profile — `failure_check` parameterized, `required_paths` equal to the fix its
 queue-flip interaction below handled — **versus** treating R356's admin-merge as the recorded
 procedure for this class. Both are defensible; the choice is the Director's.
 
-- Status: open — **FILING ONLY.** No repair is designed here. Originating lane: NA-0744 (D-1383).
+- Status: open — **FILING ONLY.** No repair is designed here. Originating lane: NA-0744 (D-1383). ⚖ **CLOSED 2026-08-18 by NA-0746 (D-1386) under the R356 ratification (ruling `R358`); the successor question is ANSWERED and the amendment below carries the disposition, the refusal record and the corrected landscape. Nothing above this clause is rewritten.**
 - **Landed in repo truth** 2026-08-18 by **NA-0745 (D-1384)**, the NA-0744 close-out records act.
   The entry above is the text drafted at NA-0744's sealed **STOP 015 §2** (sha256
   `a8ece897ec41bac8b9faa772f4ed277c58ac68f719516dfe92a51635d727f9ad`, 173 lines), extracted from that
@@ -5251,3 +5251,148 @@ procedure for this class. Both are defensible; the choice is the Director's.
   a branch-protection change and therefore the operator's**, and it belongs with the
   **CI-migration lane**, where the whole required set can be weighed at once — deliberately not
   recommended mid-incident.
+
+⚠⚠ **AMENDED 2026-08-18 by NA-0746 (D-1386; the Director's v2 ruling of 2026-08-18, banked verbatim under SR-14 at `DIRECTIVE_NA0746_V2_RULING_REFUSAL_AND_R356_RATIFICATION.md`, sha256 `56406dbe73cb326436edc08b0bcca2feb043df750b96d4ec13429d4995f44d4e`, 168 lines; ruling id `R358`, derived at this edit by the union of routes with every content hit classified as a MENTION).** *Nothing above is edited. The text below is carried **VERBATIM from that banked document's §3(c)**, extracted from its own bytes and diffed back after landing against a last-character tamper control that returned non-zero; the **only** transformations are the removal of the directive's uniform five-space indent and the resolution of its `<R-id>` placeholder to `R358`.*
+
+RESOLVED 2026-08-18 — SUCCESSOR QUESTION ANSWERED: R356 RATIFIED (operator-ruled). The
+recorded procedure for a red main with no bounded admission path is OPERATOR LIFT-AND-
+RESTORE of the blocking required context, under ALL of: (1) every substantive check on the
+fix PR's head settled-accepted, including the check(s) red on main where they run on PRs;
+(2) the sole failing check on the PR head is public-safety itself, refusing because of the
+defect the PR fixes; (3) every bounded admission attempt's refusal grounds captured verbatim
+pre-merge; (4) before/after listings of the required-context set recorded by the operator;
+(5) the context restored immediately post-merge and the next push run verified green;
+(6) sentinel issues operator-closed citing the incident; (7) the incident's records ride
+the next records act. Provenance: executed live on PR #1770 (R355/R356); ratified over the
+REFUSED generic-profile arm (SR-15 findings sha b1cc32e5…, 7 BLOCKER / 13 MAJOR; refusal
+ruled at R358). LANDSCAPE CORRECTION (read finding M1): a THIRD bounded admission path
+exists and was wired the whole time — validate_self_repair_bootstrap_pr, root path set
+including .github/workflows/public-ci.yml and scripts/ci/public_safety_gate.py — eligible
+only when main's advisories is red AND the PR classifies workflow_security; on this entry's
+incident advisories was GREEN, so the incident-scoped claims above stand unchanged. UNPRICED
+STATE, now priced: main red ONLY on public-safety with advisories green has NO bounded path
+in the whole gate; the ratified procedure is its exit. REOPENING CONDITION: a design that
+mechanically binds the admitted PR to the repair. This entry is CLOSED by this ratification.
+
+### ENG-0201 — ⚠ P2 — THE GOVERNANCE QUEUE NEEDLE COUNTED **MENTIONS**, AT **BOTH** OF ITS SITES, AND WAS WRONG IN BOTH DIRECTIONS FOR THREE WEEKS — **FILED AND FIXED 2026-08-18 by NA-0746 (D-1386)**
+
+⚠⚠ **THE DEFECT.** `scripts/ci/preflight_governance.sh:39` and `scripts/ci/post_merge_verify.sh:106`
+each computed the program's one-READY queue invariant with the **byte-identical, UNANCHORED** needle
+`rg -n 'Status:\s*READY'`. Unanchored, it also matches a **MENTION** inside the historical
+`<!-- prior: STATE… -->` comment landed by `b76016b5` at NA-0690's promotion, whose prose quotes the
+token while describing a past flip. ⇒ **it had not reported the true number since 2026-08-02, and it
+was wrong in BOTH directions**: on every settled main it read **1** where the truth is **0**
+(permissive); on any promotion tree it read **2** where the truth is **1** (blocking), and it failed
+correct trees. Recorded as SR-16 **row 97** by NA-0745, which measured it but could not repair it —
+`scripts/ci/**` was outside that lane's bounds.
+
+⛳ **THE SECOND SITE IS WHY THIS IS ONE ENTRY AND NOT TWO.** The cold read measured that
+`post_merge_verify.sh` carries the **same needle**, and `NEXT_ACTIONS.md` already names the two
+scripts together on **five** lines. **Repairing one and not the other would leave two governance
+instruments disagreeing about the same file** — a worse state than the shared defect.
+
+**THE REPAIR, BYTE-MINIMAL.** `'Status:\s*READY'` → `'^Status: READY\b'` at both sites: anchored at
+line start so a mid-line quotation cannot be counted, `\b` so the modern annotated form
+(`… READY (D-####)`) still counts as one. **Exactly one line changed per file and nothing else in
+either file.** ⚠ `preflight_governance.sh:91` carries a **different** needle
+(`Status:\s*(READY|DONE|BACKLOG)`, a display helper ending `|| true`) and is **deliberately
+untouched** — it is not a counting gate.
+
+**PROVEN ACROSS FIVE COMMITTED TREE STATES, BOTH INSTRUMENTS, COUNTS AGREEING ON EVERY ARM:**
+settled main **0/rc 0** · promotion annotated **1/rc 0** · promotion bare **1/rc 0** · two-READY
+**2/rc 1** · READY-removed **0/rc 0**. Perturbations were **COMMITTED, never left dirty** — a dirty
+tree exits **rc 1** at `hygiene_sentinel.sh --require-clean`, the *same* rc as the count failure, so
+an uncommitted perturbation is confounded and proves nothing. The historical comment is matched by
+the pre-repair needle in **all five** states and by the repaired needle in **none**.
+
+⚠ **A CONTRACT DIFFERENCE BETWEEN THE TWO INSTRUMENTS, RECORDED BECAUSE IT BOUNDS THE CLAIM.**
+`preflight` fails when the count **exceeds 1**; `post_merge_verify` fails when the count **differs
+from `--expect-ready`**, and its argument validator **rejects any expectation above 1**
+(`error: --expect-ready must be 0 or 1`, rc 2). ⇒ the two-READY state **cannot be stated** to the
+second instrument, so on that arm its count is read from its own printed `ready_count=` output —
+the measurement — while its rc 1 is its own contract firing correctly against an expectation the
+validator forced. **`V1 == V2` is therefore an equality of COUNTS, not of exit codes.**
+
+⚠⚠ **AND THE REPAIR'S OWN DOCUMENTATION IS AN INSTANCE OF THE DEFECT.** Any record describing this
+bug must quote the token, and the pre-repair needle counts the quotation: this lane's own promotion
+tree measured **`FAIL: READY_COUNT=3 (>1)`** where the truth was **1**, two of the three matches
+being its own sentences about the bug. The repaired needle reads **1** there, but only because the
+quotations sit **mid-line**. ⇒ **the standing constraint, ruled into this act: a record may QUOTE the
+needle, but no record line may BEGIN with it** — asserted mechanically across every record file
+before each commit of this lane.
+
+- Severity: **P2** — *the seat's grade, offered not ruled*: a governance invariant that silently
+  reported the wrong number in both directions for three weeks, at two sites, in the register whose
+  whole purpose is that exactly one lane is READY.
+- Status: **CLOSED 2026-08-18 by this same act** — filed-and-fixed in one entry, the repair being
+  the PR that carries this text. Originating measurement: SR-16 row 97 (NA-0745); second site and
+  its five NEXT_ACTIONS citations: the SR-15 cold read (finding M9).
+- ⚠ **Blast radius, measured not assumed:** `git grep preflight_governance -- .github/` = **0** and
+  `git grep post_merge_verify -- .github/` = **0** ⇒ **no workflow runs either script**, so nothing
+  in CI was ever gated on the wrong number and no CI behaviour changes with this repair. The
+  instruments are operator- and seat-run, and that is exactly who was misled.
+
+### ENG-0202 — ⚠ P2 — THE PUBLIC-SAFETY GATE'S QUEUE PROOF IS BLIND TO 60 OF 794 BLOCKS, AND A STALE `MERGING` BLOCK SATISFIES ITS COUNT CLAUSE — **NEW; FILED NOT FIXED 2026-08-18 by NA-0746 (D-1386)**
+
+⚠⚠ **THE DEFECT.** `scripts/ci/public_safety_gate.py`'s red-main admission path proves the queue
+state with `re.search(r"^Status:\s+([A-Z]+)\s*$", body, re.M)` per `### NA-` block — **doubly
+anchored**, so it requires the status word to end the line. The house writes the status in **two**
+forms and only the bare one is visible: the modern annotated form (a status word followed by a
+parenthesised decision or PR id) parses as **status-empty**. Measured with the gate's own parser and
+reproduced independently by the Director: **794 blocks, 730 `DONE`, 3 `BLOCKED`, 1 `BACKLOG`, and
+60 status-invisible.** Measured live on a real promotion tree, the gate returned `ready_items=[]`
+where the truth was one READY lane.
+
+⚠ **Two further clauses in the same region.** (i) The identity flag `--expected-active-ready-na`,
+which would bind the admitted PR to a named lane, is **passed by no workflow** — `git grep` over
+`.github/` returns 0 — so the clause is dormant in production. (ii) A **stale `MERGING` block
+satisfies the count clause**, because the proof counts blocks in a state rather than binding them
+to the PR under consideration.
+
+⚠⚠ **DO NOT REPAIR THIS BY WIDENING THE REGEX.** The obvious cure — accepting `READY` or `MERGING`
+with a word boundary — was part of the **generic repair profile REFUSED** at this lane's ruling, and
+the SR-15 cold read **refuted it specifically**: a widened alternation **admits annotated negations**,
+i.e. block text whose status word is followed by qualifying prose that reverses its meaning. The
+refutation is recorded here so the eventual repairer does not rebuild the rejected design.
+
+- Severity: **P2** — *the seat's grade, offered not ruled.*
+- Status: **open — FILING ONLY.** No repair is designed here; the repair belongs with whoever next
+  holds `public_safety_gate.py`, and the reopening condition recorded at this lane's ruling governs
+  any generic admission design: **it must mechanically bind the admitted PR to the repair.**
+- Sources: the SR-15 cold read (B-context, M3, M4, surface 11), Director-reproduced 730/3/1/60.
+
+### ENG-0203 — ⚠ P3 — THE GATE'S CHECK-RUN READ IS A SINGLE UNPAGINATED `per_page=100` REQUEST, AND MAIN IS MEASURED AT 92 RUNS — **NEW; FILED NOT FIXED 2026-08-18 by NA-0746 (D-1386)**
+
+**THE DEFECT.** `scripts/ci/public_safety_gate.py` reads a commit's check-runs with **one**
+`per_page=100` GET and **does not paginate**. Main was measured at **92 check-runs** — **8 of
+headroom**. Past 100 the read silently truncates: `latest_run_map` would simply not see the missing
+contexts, and every downstream clause — the required-context sweep, the main-red determination, the
+per-context conclusion tests — would evaluate against a **partial board with no error anywhere**.
+⇒ the failure mode is a **vacuous pass with no red**, this program's most-recorded shape.
+
+⚠ **The headroom is the finding.** The check-run count grows with every workflow and matrix leg
+added; the CI-migration lane is expected to add contexts. **8 is roughly one workflow's worth.**
+
+- Severity: **P3** — *the seat's grade, offered not ruled*: not currently wrong, but one ordinary
+  CI change away from being silently wrong.
+- Status: **open — FILING ONLY.** No repair is designed here.
+- Source: the SR-15 cold read (finding M2); the unpaginated request site was Director-verified.
+
+### ENG-0204 — ⚠ P3 — THE GATE'S FIXTURE PROTECTION SET HAS DRIFTED FROM THE LIVE REQUIRED SET (14 vs 15, MISSING `infra-literal-scan`) — **NEW; FILED NOT FIXED 2026-08-18 by NA-0746 (D-1386)**
+
+**THE DEFECT.** `fixture_required_contexts()` in `scripts/ci/public_safety_gate.py` enumerates the
+branch-protection required set that every red-main admission fixture is scored against. It lists
+**14** contexts; the live required set has **15**. The missing member is **`infra-literal-scan`**.
+⇒ every fixture proving that a PR's required checks are all accepted proves it **over a set one
+context smaller than reality**, so a defect confined to the missing context is invisible to the
+whole fixture suite.
+
+⚠ **This is a drift, not a typo, and drifts recur:** the fixture list is a hand-maintained copy of a
+set that changes by branch-protection edits nobody in-tree observes. A repair that only adds the
+missing string leaves the *mechanism* intact.
+
+- Severity: **P3** — *the seat's grade, offered not ruled*: the fixtures still discriminate, but
+  their claim is narrower than it reads.
+- Status: **open — FILING ONLY.** No repair is designed here. ⚠ **This lane edits no fixture**
+  (directive §6), and the profile those fixtures were extended for is **refused**.
+- Source: the SR-15 cold read (finding M13).

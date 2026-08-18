@@ -5080,6 +5080,17 @@ tree as it exists**; (i) is worth doing anyway, and neither is this lane's to bu
 
 ### ENG-0199 — ⚠ P2 — THE PUSH DIAGNOSTIC'S NETWORK-FAILURE ARM HAS NEVER FIRED: EVERY SUBSTRING CLASSIFIER IS HANDED `err.to_string()`, WHICH DOES NOT CONTAIN THE OPERATING SYSTEM'S REASON — **NEW; filed 2026-08-18 by NA-0744 (D-1383; measured while building the PULL half against §3.4's dead-endpoint arm)**
 
+- ⚠ **Severity, RE-GRADED 2026-08-18 to `P3` by the OPERATOR (provenance [O], chat,
+  Director-relayed; ruled at this lane's blessing) — landed BESIDE the heading's `⚠ P2`,
+  which is NOT rewritten.** Grounds (outgoing Director's recommendation, concurred by the
+  seated Director, ruled by the operator per the ENG-0142 re-grade precedent): a
+  diagnostics-fidelity defect — wrong marker text, no behavior change, no security
+  consequence, one-function fix — graded P2 would sit above ENG-0198's silent security
+  no-op (P3), inverting the severity ladder. ⚠ The filing seat's P2 instinct is recorded,
+  not erased: the false class fires at the exact moment diagnostics matter, and the
+  boundary's two halves now disagree for the same failure. Consistency across the ledger
+  was ruled worth more than either argument. Landed by NA-0745 (D-1384).
+
 ⚠⚠ **THE DEFECT.** `relay_push_diagnostic_class_from_error_parts` (`transport/mod.rs`) classifies a
 send failure by testing its text for `connection refused` / `connection reset`, and
 `relay_push_timeout_phase_class_from_parts` by testing for `dns` / `tls` / `certificate` /
@@ -5133,3 +5144,61 @@ halves of the boundary now disagree** — the pull says `connection_refused`, th
 ⚠ **A PREMISE OF ENG-0193 IS NARROWED BY THIS.** ENG-0193 was filed on the ground that the push half
 "explains itself in 28 sites" while the pull half was mute. It does — for **status** outcomes. For
 **transport** outcomes its explanation has been a fixed string this whole time.
+
+### ENG-0200 — ⚠ P2 — A RED MAIN HAS NO ADMISSION PATH FOR ITS OWN FIX UNLESS THE FAILURE MATCHES ONE HARDCODED HISTORICAL PROFILE — **NEW; filed 2026-08-18 by NA-0744 (D-1383; measured live on PR #1770, ruled at R356)**
+
+⚠⚠ **THE DEFECT.** `public-safety` refuses to admit any PR while main's own public-safety is red,
+unless one of two **bounded admission attempts** accepts it. `advisory-remediation` requires main
+to be red *because `advisories` is failing*. `red-main-repair` is governed by
+`RED_MAIN_REPAIR_PROFILES` in `scripts/ci/public_safety_gate.py`, which contains **exactly ONE
+profile**, `send_commit_vault_mock_provider_retired`, bound to one historical defect by
+`required_markers` and `required_paths`. ⇒ **a main-red caused by anything else has no bounded
+path that can admit its own fix.**
+
+**MEASURED LIVE.** Main `726c3c8d` was red on `macos-qsc-shard-manifest-gate`. PR #1770 — the
+one-line fix, with that very gate settled-PASSING on the PR — was refused, both attempts printing
+their grounds: `latest main is red for a reason other than advisories; advisory-remediation PRs
+stay blocked` (main's `advisories` = success) and, for red-main-repair, `latest main failure log is
+missing markers: send_commit,vault_mock_provider_retired` · `target PR is missing profile-required
+repair paths: qsl/qsl-client/qsc/tests/send_commit.rs` · `target PR changes paths outside active
+READY scope` · `queue proof does not show exactly one READY item` · plus the NA-0716 403 refusal.
+Then: `latest main public safety is not green and no bounded admission path accepted this PR`.
+⛳ **The profile's `failure_check` is `macos-qsc-sharded-suite` — the very workflow that was red —
+and every other clause of it describes a different defect.** The one field that matched was the
+only one that could not help.
+
+**THE CIRCULARITY, ENUMERATED.** Option "add a matching profile" is itself a `scripts/ci/` change
+and would face the same blocked gate ⇒ **self-blocking**. Option "restore main by another route"
+did not exist ⇒ **nonexistent**. Resolved by **operator admin-merge under R356**, with every
+substantive check green and the sole red being the blocker refusing because of the defect the PR
+fixed.
+
+**SUCCESSOR QUESTION, recorded rather than pre-answered:** a **generic, strictly-bounded** repair
+profile — `failure_check` parameterized, `required_paths` equal to the fix itself, and the
+queue-flip interaction below handled — **versus** treating R356's admin-merge as the recorded
+procedure for this class. Both are defensible; the choice is the Director's.
+
+- Status: open — **FILING ONLY.** No repair is designed here. Originating lane: NA-0744 (D-1383).
+- **Landed in repo truth** 2026-08-18 by **NA-0745 (D-1384)**, the NA-0744 close-out records act.
+  The entry above is the text drafted at NA-0744's sealed **STOP 015 §2** (sha256
+  `a8ece897ec41bac8b9faa772f4ed277c58ac68f719516dfe92a51635d727f9ad`, 173 lines), extracted from that
+  file's own bytes and diffed back against the extraction after landing; the only transformation
+  applied is the removal of the stop's `> ` block-quote prefix. Filed by NA-0744 (D-1383) at
+  **R356**; landed here because R356's standing enumeration puts this incident's records on the
+  next records act.
+- ⚠ **THE QUEUE-FLIP INTERACTION — recorded because any generic profile has to handle it.**
+  Transcribed from the same sealed STOP 015, §3. One of `red-main-repair`'s refusals above was
+  `queue proof does not show exactly one READY item`. It fired because NA-0744's queue block had
+  been flipped **READY → MERGING** — the directive's own required post-PR act. ⇒ **a lane that
+  follows its instructions cannot satisfy that clause afterwards.** ⚠ **This is NOT a defect in
+  the flip and must not be "fixed" by weakening it**; it is a property any generic repair profile
+  has to handle, and it is recorded for whoever answers the successor question above.
+- ⚠ **GATE-SCOPE FACTS — recorded, NOT requested.** Same source, STOP 015 §3.
+  `macos-qsc-shard-manifest-gate` is **VISIBLE ON PRs AND NOT REQUIRED**: its `on:` includes
+  `pull_request` unrestricted and `manifest_gate` carries no `if:`, so it **ran on #1767 and FAILED
+  there** (run `32145489027`, job `95738284200`), while main's required set has **15 contexts**
+  whose only macOS member is `macos-qsc-qshield-build`. ⇒ **visible and NON-BLOCKING**, not
+  invisible — the correction to the premise offered at STOP 013. ⚠ **Making that gate REQUIRED is
+  a branch-protection change and therefore the operator's**, and it belongs with the
+  **CI-migration lane**, where the whole required set can be weighed at once — deliberately not
+  recommended mid-incident.

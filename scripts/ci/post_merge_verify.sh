@@ -103,7 +103,7 @@ else
   : >"$TRACEABILITY_TMP"
 fi
 
-READY_LINES="$(rg -n 'Status:\s*READY' "$NEXT_ACTIONS_TMP" || true)"
+READY_LINES="$(rg -n '^Status: READY\b' "$NEXT_ACTIONS_TMP" || true)"
 if [[ -n "$READY_LINES" ]]; then
   READY_COUNT="$(printf '%s\n' "$READY_LINES" | wc -l | tr -d ' ')"
 else

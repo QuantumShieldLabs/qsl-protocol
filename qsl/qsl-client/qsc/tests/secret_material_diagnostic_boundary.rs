@@ -287,3 +287,90 @@ fn na0500_common_no_overclaim_markers() {
     println!("NA0500_NO_SIDE_CHANNEL_FREE_CLAIM_OK");
     println!("NA0500_ONE_READY_INVARIANT_OK");
 }
+
+/// NA-0744 / D-1382 (ENG-0193) — THE PULL SIBLING OF THE NA-0554 BOUNDARY TEST.
+///
+/// ⚠ CLASSIFIED FOR E1: like its NA-0554 original this test scans a SYNTHETIC
+/// line, so it passes on the pre-lane tree by construction and is NOT part of the
+/// red-first set. What it pins is the FIELD-NAME CONTRACT, which no emission test
+/// can pin — a successor renaming a key is caught here, at the boundary, rather
+/// than by noticing a field quietly missing from a log.
+#[test]
+fn na0744_relay_pull_diagnostic_boundary_is_value_free() {
+    // The pull line, in its published field order.
+    let safe_pull = CapturedDiagnostic {
+        name: "na0744_relay_pull_diagnostic_safe_pull",
+        text: concat!(
+            "QSC_MARK/1 event=relay_pull_diagnostic ",
+            "diagnostic=QSC_RELAY_PULL_DIAGNOSTIC mode=redacted ",
+            "api=relay_pull_v1 op=pull ack_mode=legacy max=4 ",
+            "status_class=4xx status_code=401 ",
+            "error_class=auth_rejected diagnostic_class=bearer_auth_failed ",
+            "timeout_phase_class=not_timeout mailbox_hash=0a1b2c3d ",
+            "qsc_error=relay_unauthorized attempt=1\n"
+        )
+        .to_string(),
+    };
+    // The ack line's success arm: `error_class` ABSENT, because a pre-durability
+    // relay answering 404 is `LegacyComplete` and naming an error class for a
+    // success is the false statement the vocabulary split exists to prevent.
+    let safe_ack = CapturedDiagnostic {
+        name: "na0744_relay_pull_diagnostic_safe_ack",
+        text: concat!(
+            "QSC_MARK/1 event=relay_pull_diagnostic ",
+            "diagnostic=QSC_RELAY_PULL_DIAGNOSTIC mode=redacted ",
+            "api=relay_pull_ack_v1 op=ack ack_mode=lease max=1 ",
+            "status_class=4xx status_code=404 ",
+            "diagnostic_class=legacy_relay_no_ack_route ",
+            "timeout_phase_class=not_timeout mailbox_hash=0a1b2c3d ",
+            "qsc_error=legacy_complete attempt=1\n"
+        )
+        .to_string(),
+    };
+    assert_no_secret_diagnostic_material(&safe_pull);
+    assert_no_secret_diagnostic_material(&safe_ack);
+
+    // ⚠⚠ NO KEY MAY CONTAIN `token`. `should_redact_value` (output/mod.rs:325)
+    // blanks any key that does, so a field named `route_token_hash8` would render
+    // `<redacted>` and the diagnostic would silently lose it — no error, no red,
+    // just an absent field. `mailbox_hash` dodges the rule BY CONSTRUCTION, and
+    // so does the push side's `route_header_present`. This assertion is what
+    // stops a successor "improving" either name.
+    for captured in [&safe_pull, &safe_ack] {
+        for token in captured.text.trim_end().split(' ').skip(1) {
+            let Some((key, value)) = token.split_once('=') else {
+                continue;
+            };
+            assert!(
+                !key.to_ascii_lowercase().contains("token"),
+                "{}: field key {key} contains `token` and would be redacted away",
+                captured.name
+            );
+            // Every value is a fixed token, a small integer, or 8 lowercase hex.
+            assert!(
+                value.len() < 24 || !value.chars().any(|c| c.is_ascii_digit()),
+                "{}: value {value} for {key} trips looks_high_cardinality",
+                captured.name
+            );
+        }
+    }
+
+    // THE NEGATIVE CONTROL: a synthetic leak must be REJECTED, or the scanner
+    // above proves nothing.
+    for forbidden in [
+        "x_qsl_route_token_marker",
+        "bearer_marker",
+        "private_endpoint_marker",
+        "operator_data_marker",
+    ] {
+        let leaked = format!("QSC_MARK/1 event=relay_pull_diagnostic carried {forbidden}");
+        let findings = diagnostic_secret_findings(leaked.as_str());
+        assert!(
+            !findings.is_empty(),
+            "scanner failed to reject synthetic NA-0744 pull diagnostic leak {forbidden}"
+        );
+    }
+
+    println!("NA0744_SECRET_MATERIAL_REDACTION_TESTS_OK");
+    println!("NA0744_RELAY_PULL_DIAGNOSTIC_VALUE_FREE_OK");
+}

@@ -3081,11 +3081,456 @@ pub(super) fn relay_inbox_pull(
     relay_inbox_pull_mode(relay_base, route_token, max, crate::resolve_ack_mode(None))
 }
 
+// ============================================================================
+// NA-0744 / D-1382 (ENG-0193) — THE PULL/ACK TRANSPORT-BOUNDARY DIAGNOSTIC.
+//
+// The PUSH half of this boundary has explained itself since NA-0554: on both of
+// its exits `relay_inbox_push_inner` emits one `relay_push_diagnostic`. The PULL
+// half was mute. `relay_inbox_pull_mode` has 13 exits and `relay_inbox_ack` 11
+// — 26 in all — and not one of them said anything: every failure surfaced as a
+// bare `&'static str`, `relay_inbox_pull_failed` most of all, which names the
+// OPERATION that failed and never the REASON. That is ENG-0193, and it is not a
+// hypothetical: on 2026-08-18 a live main-red event surfaced as exactly that
+// bare code and a human had to classify what a pull diagnostic would have named.
+//
+// ⚠⚠ THE SHAPE IS A WRAPPER, NOT IN-ARM EMISSION, AND THAT IS THE WHOLE DESIGN
+// (R353 §1 as corrected by R354 §1). The two functions are renamed `*_inner` and
+// two new wrappers take their original names. Each wrapper emits EXACTLY ONE
+// `relay_pull_diagnostic` per call, on EVERY outcome, PRE-FLIGHT INCLUDED — so a
+// malformed route token now says so, where before it returned a bare code from
+// the first line of the function and no marker at all. One line per call keeps
+// the push dialect's arity; `resp` never escapes the inner, so nothing out here
+// performs I/O; and because the callers are untouched, ALL FIVE pull call sites
+// (`receive_pull_rounds`, `finish_scan_select_invite_resp`, `invite_accept_at`,
+// `invite_finish`, `perform_handshake_poll_with_tokens`) are covered by this one
+// edit and no caller file is touched.
+//
+// ⚠⚠ EACH INNER CARRIES EXACTLY THREE DELTAS, AND E8 PINS THAT. The signature
+// line (rename + the out-parameter), one write in the send-error arm BEFORE its
+// unchanged return, and one inserted line before `match resp.status()`. Nothing
+// in either body is rewritten. The out-parameter exists because `Err(x)` applies
+// no `From` conversion: threading a classified value through the inner's RETURN
+// would have forced roughly eighteen edits inside the two pinned bodies and
+// destroyed the byte-unchanged evidence E8 exists to give (R354 §1).
+//
+// ⚠ WHEN THE GATE IS OFF THE WRAPPER DOES NOTHING AT ALL — it calls the inner
+// and returns it. No hash is computed, no string is built, no marker is queued.
+// That is what makes E3 (ON/OFF stream identity) and E3b (base build vs lane
+// build) checkable rather than merely plausible.
+// ============================================================================
+
+const RELAY_PULL_DIAGNOSTIC_ENV: &str = "QSC_RELAY_PULL_DIAGNOSTIC";
+const RELAY_PULL_DIAGNOSTIC_MODE_REDACTED: &str = "redacted";
+
+/// What the inner observed and its `&'static str` return cannot carry.
+///
+/// This is the OUT-PARAMETER of §3.1(b). It is written in exactly two places per
+/// inner and read only by the wrapper.
+#[derive(Clone, Copy, Default)]
+struct PullInnerDiag {
+    /// Δ3 sets this the moment a response exists and BEFORE the status match, so
+    /// every status arm publishes it — including the parse failure that lives
+    /// inside the 200 arm, which would otherwise look statusless.
+    status: Option<u16>,
+    /// Δ2 sets this on the send-error arm, the only place the `reqwest::Error`
+    /// exists. It dies at the end of that arm; without this it is unreachable.
+    classes: Option<PullSendErrorClasses>,
+}
+
+#[derive(Clone, Copy)]
+struct PullSendErrorClasses {
+    error_class: &'static str,
+    diagnostic_class: &'static str,
+    timeout_phase_class: &'static str,
+}
+
+/// ⚠⚠ THE WHOLE ERROR, NOT JUST ITS HEAD — AND THIS IS A MEASUREMENT, NOT A STYLE
+/// CHOICE. `reqwest::Error`'s own `Display` for a connect failure is
+/// `error sending request for url (...)`: the operating system's reason lives in
+/// the `source()` CHAIN, not in that string. Every substring classifier in this
+/// file is written against text like `connection refused` / `connection reset` /
+/// `dns` — text that is therefore NEVER PRESENT in what they are handed.
+///
+/// ⚠ MEASURED ON THE PRE-LANE BUILD, on the PUSH half, against a dead endpoint:
+///     event=relay_push_diagnostic ... error_class=network_error
+///     diagnostic_class=not_timeout ... qsc_error=relay_inbox_push_failed
+/// `not_timeout` — for a refused connection, which is not a timeout question at
+/// all. So `relay_push_diagnostic_class_from_error_parts`'s `connection_refused`
+/// arm has been unreachable in practice since NA-0554, and nothing caught it
+/// because `relay_push_diagnostics.rs` only ever drives a LIVE fixture returning
+/// status codes — it never points the client at a dead port.
+///
+/// ⚠ THE PUSH HALF IS **NOT** REPAIRED HERE: that is a behaviour change on a path
+/// this lane's bounds exclude, and it is FILED rather than fixed. What happens
+/// here is narrower — the classifier is REUSED exactly as R353 §4 requires, and it
+/// is handed the text it was written to read.
+fn reqwest_error_chain_text(err: &reqwest::Error) -> String {
+    use std::error::Error as _;
+    let mut text = err.to_string();
+    let mut source: Option<&(dyn std::error::Error + 'static)> = err.source();
+    while let Some(cause) = source {
+        text.push_str(": ");
+        text.push_str(&cause.to_string());
+        source = cause.source();
+    }
+    text
+}
+
+impl PullSendErrorClasses {
+    /// ⚠ THE `reqwest::Error`-BASED CLASSIFIERS ARE REUSED (R353 §4) because they
+    /// read the ERROR and not the layer: a connection refusal is a connection
+    /// refusal on either half of the boundary. The STATUS-derived vocabulary is
+    /// deliberately NOT reused — see `relay_pull_error_class_for_status`.
+    ///
+    /// ⚠ `error_class` takes the `_for_send_error` form UNCHANGED, so it reports
+    /// exactly what the push half reports for the same error. The two SUBSTRING
+    /// classifiers take the `_from_parts` form — the same pure function the
+    /// `_for_send_error` wrappers call — with the FULL error chain, because that
+    /// is the only way the text they test for can ever be present.
+    fn from_send_error(err: &reqwest::Error) -> Self {
+        let chain = reqwest_error_chain_text(err);
+        Self {
+            error_class: relay_push_error_class_for_send_error(err),
+            diagnostic_class: relay_push_diagnostic_class_from_error_parts(
+                err.is_timeout(),
+                err.is_connect(),
+                chain.as_str(),
+            ),
+            timeout_phase_class: relay_push_timeout_phase_class_from_parts(
+                err.is_timeout(),
+                err.is_connect(),
+                chain.as_str(),
+            ),
+        }
+    }
+}
+
+fn relay_pull_diagnostic_enabled() -> bool {
+    env::var(RELAY_PULL_DIAGNOSTIC_ENV)
+        .ok()
+        .map(|v| v == RELAY_PULL_DIAGNOSTIC_MODE_REDACTED)
+        .unwrap_or(false)
+}
+
+/// Mechanical bucketing, on the `u16` Δ3 records rather than on `HttpStatus`.
+fn relay_pull_status_class(status: Option<u16>) -> &'static str {
+    match status.map(|s| s / 100) {
+        Some(2) => "2xx",
+        Some(3) => "3xx",
+        Some(4) => "4xx",
+        Some(5) => "5xx",
+        _ => "unknown",
+    }
+}
+
+/// ⚠⚠ THE PUSH'S STATUS MAPS ARE DELIBERATELY **NOT** REUSED, BECAUSE REUSING
+/// THEM WOULD PUBLISH FALSE VALUES HERE (R353 §4, D-1324). The pull's arms mean
+/// different things from the push's at four statuses, and every one of them
+/// would have been wrong:
+///
+///   204 — the push has no 204 arm, so its `_` default calls it
+///         `unexpected_status` / `relay_inbox_push_failed`. On the pull a 204 is
+///         the server's answer to an EMPTY MAILBOX and is the ordinary success.
+///   400 — the push reads a 400 as `route_token_auth_failed`. The pull's own arm
+///         is `relay_inbox_bad_request`: a malformed REQUEST, not a rejected
+///         route token, and sending an operator to check a token would waste the
+///         exact time this diagnostic exists to save.
+///   403 — the push's `access_refused` carries a specific INVITE meaning (a
+///         ticketless push to a consumed slot). There is no ticket on a pull.
+///   404 — on the ACK a 404 is `LegacyComplete`, a SUCCESS: the pre-durability
+///         relay has no ack route. The push's `endpoint_not_found` would file a
+///         success as a failure.
+///
+/// D-1324's standing rule is that a lane ADOPTS the vocabulary the tree already
+/// uses and derives its MAPPING from its own layer. That is exactly what these
+/// do: the shape is the push's `<subject>_<disposition>`, the mapping is the
+/// pull's own.
+fn relay_pull_error_class_for_status(status: u16) -> &'static str {
+    match status {
+        200 | 204 => "unknown",
+        400 => "request_rejected",
+        401 | 403 => "auth_rejected",
+        413 => "payload_rejected",
+        429 => "quota_rejected",
+        _ => "unexpected_status",
+    }
+}
+
+fn relay_pull_diagnostic_class_for_status(status: u16) -> &'static str {
+    match status {
+        // ⚠ THE FIELD THAT MAKES E5 LEGIBLE. A 204 is neither a failure nor a
+        // silence: it is the server saying the mailbox it was asked about is
+        // EMPTY. Paired with `mailbox_hash` it answers, in one line, the
+        // question the four non-receive pull callers could never answer —
+        // WHICH mailbox was empty.
+        204 => "empty_mailbox",
+        400 => "bad_request_received",
+        401 => "bearer_auth_failed",
+        // NOT the push's `access_refused`: that word carries the invite-slot
+        // meaning, which cannot arise on a pull.
+        403 => "mailbox_access_refused",
+        _ => "http_status_received",
+    }
+}
+
+/// ⚠ `LegacyComplete` (HTTP 404) IS A SUCCESS AND PUBLISHES AS ONE. A
+/// pre-durability relay has no `/v1/pull/ack` route; it already delivered
+/// legacy-style, so the caller treats it as complete. `error_class` is therefore
+/// ABSENT on that arm — naming an error class for a success is precisely the
+/// false statement this vocabulary split exists to prevent.
+fn relay_ack_error_class_for_status(status: u16) -> Option<&'static str> {
+    match status {
+        200 => Some("unknown"),
+        404 => None,
+        401 | 403 => Some("auth_rejected"),
+        _ => Some("unexpected_status"),
+    }
+}
+
+fn relay_ack_diagnostic_class_for_status(status: u16) -> &'static str {
+    match status {
+        401 => "bearer_auth_failed",
+        403 => "mailbox_access_refused",
+        404 => "legacy_relay_no_ack_route",
+        _ => "http_status_received",
+    }
+}
+
+/// The outcomes that never reach a socket. v1 EXCLUDED these; the wrapper shape
+/// includes them, and that is the difference between "the pull failed" and "the
+/// route token you handed me is malformed".
+fn relay_preflight_diagnostic_class(code: &str) -> &'static str {
+    if code == crate::adversarial::route::QSC_ERR_ROUTE_TOKEN_INVALID {
+        return "route_token_malformed";
+    }
+    if code == RELAY_CA_FILE_INVALID {
+        return "ca_file_unreadable";
+    }
+    if code == crate::adversarial::route::QSC_ERR_RELAY_TLS_REQUIRED {
+        return "relay_tls_required";
+    }
+    if code.starts_with("relay_endpoint_") {
+        return "relay_endpoint_rejected";
+    }
+    // The residue: the HTTP client failed to BUILD, or the ack body failed to
+    // serialize. Both return the operation's own generic code — the very
+    // collapse this lane exists to end — but both are LOCAL failures that never
+    // reached a socket, and saying that much is strictly more than before.
+    "preflight_local_failure"
+}
+
+/// One line, one call, every outcome.
+///
+/// ⚠ FIELD KEYS ARE LOAD-BEARING. `should_redact_value` (`output/mod.rs:325`)
+/// blanks any key CONTAINING `token`, so the key is `mailbox_hash` and never
+/// `route_token_hash8`; a successor "improving" that name would silently delete
+/// the field rather than fail. The tree's existing `mailbox_hash` (`recv_start`)
+/// dodges the same rule the same way, by construction.
+#[derive(Clone, Copy)]
+struct RelayPullDiagnostic {
+    api: &'static str,
+    op: &'static str,
+    ack_mode: &'static str,
+    /// The request's own bound: the pull's requested `max`, and for the ack the
+    /// number of ids submitted. Both answer "how much did the client ask for",
+    /// which is what makes the neighbouring `items_count` / `acked_count`
+    /// readable without a second line.
+    max: usize,
+    status: Option<u16>,
+    /// `None` means ABSENT, not empty — the `LegacyComplete` success arm.
+    error_class: Option<&'static str>,
+    diagnostic_class: &'static str,
+    timeout_phase_class: &'static str,
+    qsc_error: &'static str,
+    /// ⚠ Emitted ONLY on the HTTP 200 arm, where it is `>= 1` BY CONSTRUCTION:
+    /// the server answers 204 to an empty pull, so a 200 body always carries at
+    /// least one item. `items_count=0` is UNREACHABLE and no successor may seal
+    /// an expectation on it.
+    items_count: Option<usize>,
+    acked_count: Option<usize>,
+}
+
+fn emit_relay_pull_diagnostic(diag: RelayPullDiagnostic, mailbox_hash: &str) {
+    if !relay_pull_diagnostic_enabled() {
+        return;
+    }
+
+    let status_code = diag
+        .status
+        .map(|status| status.to_string())
+        .unwrap_or_else(|| "unknown".to_string());
+    let max = diag.max.to_string();
+    let items_count = diag.items_count.map(|n| n.to_string());
+    let acked_count = diag.acked_count.map(|n| n.to_string());
+
+    let mut kv: Vec<(&str, &str)> = Vec::with_capacity(16);
+    kv.push(("diagnostic", RELAY_PULL_DIAGNOSTIC_ENV));
+    kv.push(("mode", RELAY_PULL_DIAGNOSTIC_MODE_REDACTED));
+    kv.push(("api", diag.api));
+    kv.push(("op", diag.op));
+    kv.push(("ack_mode", diag.ack_mode));
+    kv.push(("max", max.as_str()));
+    kv.push(("status_class", relay_pull_status_class(diag.status)));
+    kv.push(("status_code", status_code.as_str()));
+    if let Some(error_class) = diag.error_class {
+        kv.push(("error_class", error_class));
+    }
+    kv.push(("diagnostic_class", diag.diagnostic_class));
+    kv.push(("timeout_phase_class", diag.timeout_phase_class));
+    kv.push(("mailbox_hash", mailbox_hash));
+    if let Some(items_count) = items_count.as_deref() {
+        kv.push(("items_count", items_count));
+    }
+    if let Some(acked_count) = acked_count.as_deref() {
+        kv.push(("acked_count", acked_count));
+    }
+    kv.push(("qsc_error", diag.qsc_error));
+    kv.push(("attempt", "1"));
+
+    emit_marker("relay_pull_diagnostic", None, &kv);
+}
+
+/// THE PULL WRAPPER. One `relay_pull_diagnostic` per call, every outcome.
 fn relay_inbox_pull_mode(
     relay_base: &str,
     route_token: &str,
     max: usize,
     ack_mode: AckMode,
+) -> Result<Vec<InboxPullItem>, &'static str> {
+    let mut diag = PullInnerDiag::default();
+    let result = relay_inbox_pull_mode_inner(relay_base, route_token, max, ack_mode, &mut diag);
+    if relay_pull_diagnostic_enabled() {
+        // Hashed from the RAW argument rather than the normalized form: the
+        // pre-flight arm must still say WHICH mailbox was asked for when
+        // normalization is exactly what failed. Normalization only trims, so for
+        // every well-formed token the two agree — and this is the same value
+        // `recv_start` publishes, so the two lines join up in one log.
+        let mailbox_hash = route_token_hash8(route_token);
+        let qsc_error = match &result {
+            Ok(_) => "none",
+            Err(code) => *code,
+        };
+        let (error_class, diagnostic_class, timeout_phase_class) = match (diag.status, diag.classes)
+        {
+            // (A) A response arrived. The vocabulary is the pull's own, keyed on
+            // the status the server actually sent.
+            (Some(code), _) => (
+                Some(relay_pull_error_class_for_status(code)),
+                relay_pull_diagnostic_class_for_status(code),
+                "not_timeout",
+            ),
+            // (B) The send failed before any response existed.
+            (None, Some(classes)) => (
+                Some(classes.error_class),
+                classes.diagnostic_class,
+                classes.timeout_phase_class,
+            ),
+            // (C) Pre-flight: it never reached a socket.
+            (None, None) => (
+                Some("preflight_rejected"),
+                relay_preflight_diagnostic_class(qsc_error),
+                "not_timeout",
+            ),
+        };
+        emit_relay_pull_diagnostic(
+            RelayPullDiagnostic {
+                api: "relay_pull_v1",
+                op: "pull",
+                ack_mode: match ack_mode {
+                    AckMode::Lease => "lease",
+                    AckMode::Legacy => "legacy",
+                },
+                max,
+                status: diag.status,
+                error_class,
+                diagnostic_class,
+                timeout_phase_class,
+                qsc_error,
+                // ⚠ ONLY the 200 arm. A 204 ALSO returns `Ok`, with an empty
+                // vector, and publishing `items_count=0` there would state a
+                // count the server never sent — `empty_mailbox` says it instead.
+                items_count: match (diag.status, &result) {
+                    (Some(200), Ok(items)) => Some(items.len()),
+                    _ => None,
+                },
+                acked_count: None,
+            },
+            mailbox_hash.as_str(),
+        );
+    }
+    result
+}
+
+/// THE ACK WRAPPER. Same shape, the ack's own vocabulary.
+fn relay_inbox_ack(
+    relay_base: &str,
+    route_token: &str,
+    ids: &[String],
+) -> Result<AckFlushOutcome, &'static str> {
+    let mut diag = PullInnerDiag::default();
+    let result = relay_inbox_ack_inner(relay_base, route_token, ids, &mut diag);
+    if relay_pull_diagnostic_enabled() {
+        let mailbox_hash = route_token_hash8(route_token);
+        let qsc_error = match &result {
+            // ⚠ A 404 here is the PRE-DURABILITY RELAY, and it is a SUCCESS, so
+            // it publishes its own name rather than an error code or a bare
+            // "none". `error_class` is absent on that arm for the same reason.
+            Ok(AckFlushOutcome::LegacyComplete) => "legacy_complete",
+            Ok(AckFlushOutcome::Acked(_)) => "none",
+            Err(code) => *code,
+        };
+        let (error_class, diagnostic_class, timeout_phase_class) = match (diag.status, diag.classes)
+        {
+            (Some(code), _) => (
+                relay_ack_error_class_for_status(code),
+                relay_ack_diagnostic_class_for_status(code),
+                "not_timeout",
+            ),
+            (None, Some(classes)) => (
+                Some(classes.error_class),
+                classes.diagnostic_class,
+                classes.timeout_phase_class,
+            ),
+            (None, None) => (
+                Some("preflight_rejected"),
+                relay_preflight_diagnostic_class(qsc_error),
+                "not_timeout",
+            ),
+        };
+        emit_relay_pull_diagnostic(
+            RelayPullDiagnostic {
+                api: "relay_pull_ack_v1",
+                op: "ack",
+                // Reaching `/v1/pull/ack` AT ALL is the lease ack contract: the
+                // route exists only in it, and a relay that lacks it answers the
+                // 404 handled above. So this states the shape of the REQUEST —
+                // which is what `ack_mode` means on the pull too — and makes no
+                // claim about the server.
+                ack_mode: "lease",
+                max: ids.len(),
+                status: diag.status,
+                error_class,
+                diagnostic_class,
+                timeout_phase_class,
+                qsc_error,
+                items_count: None,
+                acked_count: match (diag.status, &result) {
+                    (Some(200), Ok(AckFlushOutcome::Acked(n))) => Some(*n),
+                    _ => None,
+                },
+            },
+            mailbox_hash.as_str(),
+        );
+    }
+    result
+}
+
+fn relay_inbox_pull_mode_inner(
+    relay_base: &str,
+    route_token: &str,
+    max: usize,
+    ack_mode: AckMode,
+    diag: &mut PullInnerDiag,
 ) -> Result<Vec<InboxPullItem>, &'static str> {
     let route_token = normalize_route_token(route_token)?;
     let base = normalize_relay_endpoint(relay_base)?;
@@ -3109,8 +3554,15 @@ fn relay_inbox_pull_mode(
     }
     let resp = match req.send() {
         Ok(v) => v,
-        Err(err) => return Err(relay_send_outcome_for_error(&err, "relay_inbox_pull_failed")),
+        Err(err) => {
+            diag.classes = Some(PullSendErrorClasses::from_send_error(&err));
+            return Err(relay_send_outcome_for_error(
+                &err,
+                "relay_inbox_pull_failed",
+            ));
+        }
     };
+    diag.status = Some(resp.status().as_u16());
     match resp.status() {
         HttpStatus::OK => {
             let body: InboxPullResp = match resp.json() {
@@ -3131,10 +3583,11 @@ fn relay_inbox_pull_mode(
 // NA-0644 (D580): POST /v1/pull/ack — acknowledge durably persisted ids so the relay
 // deletes its leased copies. A 404 is the pre-durability relay (no ack route): it
 // already delivered legacy-style, so the caller must treat it as legacy-complete.
-fn relay_inbox_ack(
+fn relay_inbox_ack_inner(
     relay_base: &str,
     route_token: &str,
     ids: &[String],
+    diag: &mut PullInnerDiag,
 ) -> Result<AckFlushOutcome, &'static str> {
     let route_token = normalize_route_token(route_token)?;
     let base = normalize_relay_endpoint(relay_base)?;
@@ -3159,8 +3612,12 @@ fn relay_inbox_ack(
     }
     let resp = match req.send() {
         Ok(v) => v,
-        Err(err) => return Err(relay_send_outcome_for_error(&err, "relay_ack_failed")),
+        Err(err) => {
+            diag.classes = Some(PullSendErrorClasses::from_send_error(&err));
+            return Err(relay_send_outcome_for_error(&err, "relay_ack_failed"));
+        }
     };
+    diag.status = Some(resp.status().as_u16());
     match resp.status() {
         HttpStatus::OK => {
             let body: AckResp = match resp.json() {

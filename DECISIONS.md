@@ -43316,3 +43316,88 @@ corrected remote-green citation; NA-0744 born `Status: READY`; the STATE move) �
 written by a seat · that the invite flow was exercised on loopback · that ENG-0142's remainder,
 ENG-0194, ENG-0196's disposition, ENG-0197 or ENG-0198 are addressed. **The operator merges; the seat
 does not.**
+
+## D-1383 — NA-0744: PULL-PATH INSTRUMENTATION (ENG-0193) + THE REMOTE INVITE ROUND-TRIP GATE (WF-0086) — IMPLEMENTATION
+
+- **Date:** 2026-08-18 · **Lane:** NA-0744 · **Rulings:** R352, R353, R354 · **Operator:** ASK-2 [O] 2026-08-18
+- **Base:** main `0d75a6a25a227154e61f167a306c50a0cbb89150`, re-derived by URL, bare and unpiped,
+  against the NAMED GitHub remote; open-PR set **MEASURED EMPTY** with a positive control (the
+  merged set returned rows, so the query discriminates).
+- **Directive:** `DIRECTIVE_NA0744_FINAL_v2_1.md`, sha256
+  `3126fbe80631195e99cacd9fee2cf9ba8a0e46b36541536e551cf6b850510953`, **595 lines / 38054 bytes**,
+  verified through the pointer chain LATEST.md → STOP 008 (`248c47d76a83b748…`) → v2.1.
+- **Class:** *(none declared — no ruling declares one for this implementation, and this lane does
+  not mint it; the Director declares one at PR review, or the absence stands recorded. Same posture
+  as D-1382 in this lane.)*
+- **CI scope class:** `runtime_and_workflow`, **EXECUTED** with two discriminating controls.
+
+**WHAT LANDED.** `relay_inbox_pull_mode` and `relay_inbox_ack` become `*_inner`; two new wrappers take
+their original names and emit **exactly one `relay_pull_diagnostic` per call, on every outcome,
+pre-flight included**. One edit covers **all five pull call sites** (`receive_pull_rounds`,
+`finish_scan_select_invite_resp`, `invite_accept_at`, `invite_finish`,
+`perform_handshake_poll_with_tokens`) and **both ack call sites** (`flush_pending_acks`,
+`producer_ack`); **no caller file is touched.** Plus `scripts/demo/qsc_remote_invite_roundtrip_smoke.sh`
+(NEW), the one-line `unset QSC_RELAY_PULL_DIAGNOSTIC` widening of the parent smoke, a new test
+binary, the E6 sibling, and the shard-manifest row that new binary requires.
+
+**THE CARVE-OUT, AS RULED (R354 §1).** An **OUT-PARAMETER**, three named deltas per inner: the
+signature line, one write in the send-error arm before its unchanged return, and one inserted line
+before `match resp.status()`. **E8 is discharged by CLASSIFICATION, not by counting** — every changed
+line in each inner is matched to a named delta and any unmatched line is a STOP. PULL 12 changed
+lines (3+8+1), ACK 9 (3+5+1), **zero unclassified**; `receive_pull_rounds` **byte-unchanged
+ENTIRELY** (`eda9d836f59b6895`, 47376 B), as are `producer_ack` and `relay_inbox_push_inner`. A
+planted fourth change is reported UNCLASSIFIED by the same instrument, so it discriminates.
+
+**THE SEALED SET.** E1 red-first **8 FAIL / 2 PASS against a prediction sealed 444 BEFORE the run —
+10 of 10 correct**, every failure by name and both passes classified in advance (one asserts an
+ABSENCE, one a synthetic FIELD-NAME CONTRACT). E2 suite identical, reconciled **per binary**.
+E3 ON/OFF stream identity, with a determinism control. **E3b base build vs lane build with the flag
+ON — byte-identical normalized streams** (`c0a4f0510ebeff6e…` both sides), the only arm that can
+discharge "no behaviour change under the flag". E4, E5, E6, E8 as recorded. **E7 is
+operator-dispatched after merge and was run by no seat.** E9 was executed at assembly. E10 passes on
+all four arms against the shipped extractor bytes.
+
+⚠⚠ **E4 MISSED ON ITS FIRST EXECUTION, AND THE MISS IS THE LANE'S MOST USEFUL RESULT.** Reusing the
+`reqwest::Error` classifiers exactly as §3.1(d) instructs, the dead-endpoint arm published
+`diagnostic_class=not_timeout` for a **refused connection**. Cause, measured: `*_for_send_error`
+hands the substring classifiers `err.to_string()`, and a `reqwest` connect failure keeps the
+operating system's reason in its **`source()` chain**. ⛳ **Measured on the PRE-LANE build that the
+PUSH half emits the identical wrong value** ⇒ the defect is **INHERITED, not introduced**, and has
+been unreachable since NA-0554 because `relay_push_diagnostics.rs` only ever drives a live fixture
+returning status codes. The pull half is cured by handing the **same pure `_from_parts` classifier**
+the full chain — the classifier is reused, its INPUT is corrected — and now emits
+`diagnostic_class=connection_refused`. **The push half is NOT repaired here** (a behaviour change
+outside this lane's bounds); it is filed as **ENG-0199**, and the resulting asymmetry between the two
+halves is recorded rather than hidden.
+
+⚠ **TWO "REQUIRED GATES" ARE RED AT BASE AND NOTHING RUNS THEM.** `scripts/ci/preflight_qsc_impl.sh`
+advertises `cargo fmt -p qsc -- --check` and `cargo clippy -p qsc --all-targets -- -D warnings`;
+measured at `0d75a6a2` they return **rc 1 (246 hunks)** and **rc 101 (29 errors)**, and `git grep`
+finds both **only in that script**, never in `.github/`. A seat adopting them would report failure on
+a correct tree, so this lane used a DELTA instead: `transport/mod.rs` **13 → 12** fmt hunks (**0
+introduced, 1 removed** — the pristine tree already violated fmt on the very line Δ2 rewrites) and
+**0 of 29** clippy errors inside the lane's changed line ranges (earliest changed line 3083; every
+error at 93–261).
+
+⚠ **AN ENUMERATED COVERAGE GAP, STATED RATHER THAN LEFT TO BE FOUND.** No in-tree Rust test exercises
+the ACK wrapper's HTTP 200 / 404 arms. Reaching them needs a frame that durably commits; measured
+against a 200-with-items fixture the receive loop reports
+`recv_frame_skipped … disposition=left_leased` and never acks. Driving it would require the real
+in-process `qsl_server` — NA-0644's harness — which is outside this lane's edit set. The ack
+wrapper's pre-flight and send-error arms share the proven pull code path, its field contract is
+pinned by the E6 sibling's `safe_ack` line, and E7 publishes its `op=ack` counts remotely.
+
+**SUITE.** BEFORE rc **0**, 134 binaries, **634 passed / 0 failed** (3h 05m 22s).
+AFTER rc **0**, 135 binaries, **644 passed /
+0 failed**. Reconciled **per binary**, never on totals.
+
+**RECORDS RIDER (Director, 2026-08-18) — the operator-landing incident, three frictions with their
+cures.** (a) `goal-lint` required a `Goals:` body line on the operator's `.github` PR #1766, fixed by
+edit. (b) The sentinel roster addition tripped `sentinel_body_selftest.py`'s count pin at `:210`
+(12→13, lockstep edit, quoted pair) — **the pin fired exactly as designed on the first roster change
+in its history.** (c) The operator PR was built inside the lane workspace on Director instruction,
+tripping `qwork`'s non-main-branch gate, cured by checkout+pull — **the gate's named reason made the
+diagnosis instant.** Plus: the monitor's **+4/−2** figure for `scripts/ci/sentinel_body_selftest.py`
+corrects to **+2/−2** (Director-measured; the 4 was git's total-changed-lines stat). ⛳ **Re-derived
+independently by this seat and CONFIRMED**: `git diff --numstat` over `d484c065..0d75a6a2` reports
+`2 2` for that file, and `--stat` renders `4 ++--`. *`--stat`'s number is insertions PLUS deletions.*

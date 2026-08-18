@@ -184,6 +184,14 @@ run_qsc_step() {
     unset QSC_ALLOW_SEED_FALLBACK
     unset QSC_UNSAFE_TEST_SEED_FALLBACK
     unset QSC_QSP_SEED
+    # NA-0744 / D-1382 (R353 §5, M2b). OLD, replaced (COMMENT, not code):
+    #   (this line did not exist; the list ended at QSC_QSP_SEED)
+    # ⚠ THE EXISTING SMOKE IS SAFE BY *EXPORT*, NOT BY UNSET: it exports
+    # QSC_RELAY_PUSH_DIAGNOSTIC and so cannot inherit a stale one, but an
+    # INHERITED QSC_RELAY_PULL_DIAGNOSTIC would reach it untouched and change
+    # this suite's marker stream. The lane that INTRODUCES a variable closes the
+    # hazard its own parent's author already enumerated for the push half.
+    unset QSC_RELAY_PULL_DIAGNOSTIC
     mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME" "$QSC_CONFIG_DIR"
     chmod 700 "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME" "$QSC_CONFIG_DIR"
     if [ "$step" = "vault_init" ]; then

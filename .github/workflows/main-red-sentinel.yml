@@ -68,6 +68,7 @@ on:
       - infra-literal-scan
       - remote-handshake-tests
       - remote-relay-tests
+      - remote-invite-roundtrip-tests
     types: [completed]
 
 permissions:

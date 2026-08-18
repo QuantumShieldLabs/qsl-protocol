@@ -157,7 +157,7 @@ def ddns() -> str:
     return "probe-host." + "ddns" + "free" + ".com"
 
 
-# The 12 workflows the sentinel watches, read from the file rather than retyped:
+# The 13 workflows the sentinel watches, read from the file rather than retyped:
 # a name added there must be exercised here without anyone remembering to.
 def watched(text: str) -> list[str]:
     block = text.split("workflows:", 1)[1].split("types:", 1)[0]
@@ -207,7 +207,7 @@ def main() -> int:
     print("\n[2] every watched workflow renders CLEAN")
     # -------------------------------------------------------------------
     names = watched(text)
-    check("the watch list was parsed from the workflow file", len(names) == 12, f"{names}")
+    check("the watch list was parsed from the workflow file", len(names) == 13, f"{names}")
     for name in names:
         got = hits(render(marker_line, body_block, fields(name=name)))
         check(f"{name}: no infra literal in the rendered body", got == [], f"classes={got}")

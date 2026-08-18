@@ -1,0 +1,121 @@
+name: remote-invite-roundtrip-tests
+
+# NA-0744 / D-1382 (R353 §8). THE INVITE FIRST-CONTACT GATE — WF-0086's remaining half.
+#
+# ⚠ THIS FILE IS A LANE ARTIFACT DRAFTED AS BYTES FOR THE OPERATOR TO LAND. No seat may write
+# .github/**; the lane drafts, the operator lands. It is landed together with the one-line
+# addition to main-red-sentinel.yml's watch roster, WITHOUT WHICH THIS WORKFLOW HAS NO SENTINEL
+# and a red run announces itself to nobody — WF-0074's exact condition.
+#
+# WHY IT EXISTS. `invite` occurs ZERO times in all of scripts/demo/ (measured at d484c065): no
+# script in the tree, loopback or remote, exercises the invite first-contact path. WF-0086's
+# clause (ii) — "the assertions have not executed in 187 days" — is now false; they ran and passed
+# on 2026-08-18 (run 32090875139). What remains uncovered is exactly this flow.
+#
+# ⚠ NO `schedule:` IN v1, DELIBERATELY (R353 §8, read §5C). A cron would have to be guessed: the
+# only measured runtime on this relay is a single workflow_dispatch run of a DIFFERENT suite whose
+# composition had just changed (n=1, and the atypical member of its own sample). The operator
+# dispatches this once, measures THIS job, and adds the cron from that number.
+#
+# ⚠ `concurrency.group: relay-remote` IS A SHARED LITERAL, and it is doing nothing yet. Three
+# workflows now target one relay. Adding the same group to remote-handshake-tests.yml and
+# remote-relay-tests.yml SERIALIZES all three, which is the instrument for relay contention;
+# a cron offset only hopes. That extension is the operator's and is NOT DONE HERE.
+#
+# ⚠ `cancel-in-progress: false` — a cancelled run is not a health signal (D-1360 D2) and
+# main-red-sentinel treats only `failure` and `timed_out` as red. Queue, never cancel.
+#
+# RECOMMENDED POSTURE: SCHEDULED (once measured) + SENTINEL, NOT a required PR check. A required
+# check depending on a live external relay converts a relay outage into a blocked merge queue.
+# The sentinel already converts a red into exactly one tracked issue. The operator may override.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: relay-remote
+  cancel-in-progress: false
+
+jobs:
+  remote-invite-roundtrip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build qsc (locked)
+        run: cargo build -p qsc --locked
+
+      - name: Stage relay CA (fail closed)
+        env:
+          RELAY_CA_PEM: ${{ secrets.RELAY_CA_PEM }}
+        run: |
+          ca="${RUNNER_TEMP}/relay-ca.pem"
+          printf '%s' "${RELAY_CA_PEM}" > "$ca"
+          if [ ! -s "$ca" ]; then
+            echo "RELAY_CA_PEM secret is empty or unset: refusing to run against an untrusted relay" >&2
+            exit 1
+          fi
+          if ! grep -q "BEGIN CERTIFICATE" "$ca"; then
+            echo "RELAY_CA_PEM does not contain a PEM certificate" >&2
+            exit 1
+          fi
+          echo "relay CA staged: bytes=$(wc -c < "$ca") certs=$(grep -c 'BEGIN CERTIFICATE' "$ca")"
+
+      - name: Verify relay trust (preflight)
+        env:
+          RELAY_URL: ${{ secrets.RELAY_URL }}
+          QSC_RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
+          QSC_RELAY_CA_FILE: ${{ runner.temp }}/relay-ca.pem
+        run: |
+          # Asserts on the probe's OUTCOME, never on its exit code: `relay server-info` returns
+          # rc 0 for `unreachable` (measured at base), so a step that trusted $? would pass green
+          # against a dead relay.
+          home="${RUNNER_TEMP}/preflight"
+          mkdir -p "$home/.config" "$home/.local/share" "$home/.local/state" "$home/.cache" "$home/.qsc"
+          # 0700 is REQUIRED: qsc refuses a group/world-writable leaf with
+          # `unsafe_parent_perms`, and a default umask yields 0775.
+          chmod 700 "$home" "$home/.config" "$home/.local/share" "$home/.local/state" "$home/.cache" "$home/.qsc"
+          export XDG_CONFIG_HOME="$home/.config" XDG_DATA_HOME="$home/.local/share"
+          export XDG_STATE_HOME="$home/.local/state" XDG_CACHE_HOME="$home/.cache"
+          export QSC_CONFIG_DIR="$home/.qsc"
+          pp="${RUNNER_TEMP}/preflight.passphrase"
+          printf '%s\n' "preflight-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" > "$pp"
+          chmod 600 "$pp"
+          ./target/debug/qsc vault init --non-interactive --key-source passphrase --passphrase-file "$pp" > /dev/null
+          url="$(printf '%s' "${RELAY_URL}" | sed -E 's/^[[:space:]]*RELAY_URL[[:space:]]*=[[:space:]]*//')"
+          case "$url" in http://*|https://*) : ;; *) url="https://$url" ;; esac
+          ./target/debug/qsc --unlock-passphrase-file "$pp" relay server-info --relay "$url" > "${RUNNER_TEMP}/preflight.out" 2>&1 || true
+          outcome="$(sed -n -E 's/^relay_server_info=([a-z_]+).*/\1/p' "${RUNNER_TEMP}/preflight.out" | tail -n1)"
+          echo "relay preflight outcome=${outcome:-none}"
+          grep -o 'max_body_bytes=[0-9]*' "${RUNNER_TEMP}/preflight.out" || true
+          case "$outcome" in
+            reachable) echo "relay trust OK" ;;
+            cert_not_trusted) echo "relay certificate is NOT trusted: RELAY_CA_PEM does not match the endpoint" >&2; exit 1 ;;
+            auth_required) echo "relay rejected the bearer token (RELAY_TOKEN)" >&2; exit 1 ;;
+            not_a_qsl_relay) echo "endpoint answered but is not a QSL relay contract (routing/proxy)" >&2; exit 1 ;;
+            unreachable) echo "relay unreachable (network/DNS)" >&2; exit 1 ;;
+            *) echo "preflight produced no outcome line; probe did not run" >&2; exit 1 ;;
+          esac
+
+      - name: Run remote invite round-trip smoke
+        env:
+          RELAY_URL: ${{ secrets.RELAY_URL }}
+          RELAY_TOKEN: ${{ secrets.RELAY_TOKEN }}
+          QSC_RELAY_CA_FILE: ${{ runner.temp }}/relay-ca.pem
+        run: |
+          ./scripts/demo/qsc_remote_invite_roundtrip_smoke.sh \
+            --out ./_remote_invite_roundtrip_out
+
+      - name: Upload remote invite round-trip artifacts
+        uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: remote-invite-roundtrip-artifacts
+          path: ./_remote_invite_roundtrip_out

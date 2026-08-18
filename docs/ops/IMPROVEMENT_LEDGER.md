@@ -3717,9 +3717,10 @@ At desktop `c52fd51b`, `src-tauri/src/markers.rs:12` holds an opaque buffer with
 ⚠ **MERGE NOTE (R205 §1.3).** Two things folded into this one entry rather than becoming separate filings. (i) **The strand half of the original F-2 — "already-processed items' acks strand behind the `return`" — is NOT filed here: it is what NA-0708 FIXES**, and it is D-1345's subject. (ii) This lane's own measurement that **the wedge survives the withdrawn taxonomy** folds in: the cheapest wedge is any structurally valid envelope with garbage inside, which surfaces as `qsp_verify_failed` — an UNCLASSIFIED code — so even the classifier as ruled would not have closed the wedge it was justified by. ⚠ **This is the successor lane's headline.**
 
 - Severity: **P1** — ⚠ **TRANSCRIBED FROM THIS ENTRY'S OWN HEADING**, which has read `⚠ P1` since the
-- ⚠ **Severity, RE-GRADED 2026-08-16 to `P2` by the OPERATOR (provenance [O], chat, Director-relayed) — landed BESIDE the `P1` bullet above, which is NOT rewritten, and the heading's `⚠ P1` is NOT rewritten either.** The re-grade is scoped, and the scope is the point: **the NON-ADVERSARIAL TRIGGER IS REPAIRED** — NA-0741 / **D-1377**, result class `KNOWN_FOREIGN_WEDGE_CLOSED_PASS` (R344 §3): `receive` classifies each frame from its leading bytes before unpack and, under `AckMode::Lease` only, steps over the three known-foreign classes leaving them **leased, unacked, undestroyed**, so an ordinary completed invite no longer wedges either peer's mailbox. **THE REMAINDER IS THIS ENTRY'S ORIGINAL ADVERSARIAL CLAUSE**, which is **capability-gated** — an attacker needs both the relay bearer credential and the victim's route token — and **bounded per the amendment**. ⚠ **Sustained-attacker message loss is noted, not repaired:** an attacker holding both capabilities can keep planting frames, and while `receive` no longer aborts, the victim pays a bounded skip tax per lease period. ⚠ **The named successor shape is the sticky-fail repair skeleton recorded at R341 §1(c)**; it is neither built nor promoted here. **This entry does NOT close.**
   entry was filed 2026-08-09. This bullet is a transcription of an existing declaration into the
   field a triage needle can read. **It is not a new judgment and must not be read as one.**
+- ⚠ **Severity, RE-GRADED 2026-08-16 to `P2` by the OPERATOR (provenance [O], chat, Director-relayed) — landed BESIDE the `P1` bullet above, which is NOT rewritten, and the heading's `⚠ P1` is NOT rewritten either.** The re-grade is scoped, and the scope is the point: **the NON-ADVERSARIAL TRIGGER IS REPAIRED** — NA-0741 / **D-1377**, result class `KNOWN_FOREIGN_WEDGE_CLOSED_PASS` (R344 §3): `receive` classifies each frame from its leading bytes before unpack and, under `AckMode::Lease` only, steps over the three known-foreign classes leaving them **leased, unacked, undestroyed**, so an ordinary completed invite no longer wedges either peer's mailbox. **THE REMAINDER IS THIS ENTRY'S ORIGINAL ADVERSARIAL CLAUSE**, which is **capability-gated** — an attacker needs both the relay bearer credential and the victim's route token — and **bounded per the amendment**. ⚠ **Sustained-attacker message loss is noted, not repaired:** an attacker holding both capabilities can keep planting frames, and while `receive` no longer aborts, the victim pays a bounded skip tax per lease period. ⚠ **The named successor shape is the sticky-fail repair skeleton recorded at R341 §1(c)**; it is neither built nor promoted here. **This entry does NOT close.**
+- ⚠ **RECORDS RELOCATION, 2026-08-18 (NA-0746).** The re-grade bullet immediately above was landed by `a1c6c969` (NA-0742 / D-1378) **between the first and second physical lines of the `- Severity:` transcription bullet it annotates**, splitting that bullet's sentence; `ENG-0134` carries the identical transcription bullet **unsplit**, which is the only reason the break was visible. Recorded as SR-16 row 96 and disposed at **R357 §5**. This act moves the bullet **WHOLE and BYTE-UNCHANGED** to after the bullet it split — proven by extracting the line before and after the move and diffing, against a last-character tamper control that returned non-zero. **It is a records relocation, not a rewrite: no character of the re-grade, of the transcription bullet, or of this entry's heading is altered, and the re-grade's `P2` still stands exactly as the operator ruled it.**
 - Status: ⚠ **no status was declared when this entry was filed on 2026-08-09, and none has been
   declared since.** It has been neither closed nor ruled open. **This bullet records that absence; it
   does not resolve it** (R335 §2). The entry's disposition needs its own act.
@@ -5045,6 +5046,54 @@ tree as it exists**; (i) is worth doing anyway, and neither is this lane's to bu
 - Cross-references: **NA-0743** (route B's blindness, first recorded), **NA-0744 STOP 002** (the
   verdict inversion, with its timings), **NA-0744 STOP 003 §3** (the third path class), **WF-0068**.
 - Amending lane: NA-0744 (D-1382). Last-updated: 2026-08-18.
+
+⚠⚠ **AMENDED 2026-08-18 by NA-0746 (D-1385).** *Nothing above is edited; this amendment is additive.
+Its figures are stated as measured BEFORE it landed — filing it plants `R358` and every id it names,
+which is this entry's own hazard, now for the third consecutive lane.*
+
+**TWO FURTHER PATH CLASSES, RECORDED AT R357 AND CONFIRMED HERE BY RECURRENCE.** R357
+(banked `06cb43754ead6c3b02a643612c08ef0eb75b646e511bfeb34527324a0edffe9f`, 110 lines) measured the
+hazard firing in two classes the three above do not name: **(4) the sweeping lane's own
+SELF-CONTAINED STOP**, because a stop that obeys the containment convention carries its brief WHOLE
+and the brief names candidate ids — ⇒ *the more faithfully a stop is self-contained, the more it
+contaminates the next sweep*; and **(5) THE REPO TREE ITSELF**, because a lane that records
+`R357 = 0` as its own **negative control** writes the swept id into `DECISIONS.md` and its evidence
+doc. See also NA-0745 STOP 002
+(`d80891dfde54017abb35e32ac04968a85dc350087df1a6d9ef5bf3261ec7911b`, 354 lines).
+
+⛳ **AND THE RECURRENCE IS THE POINT: THE RECORDS THAT DOCUMENT THE HAZARD ARE THEMSELVES THE NEXT
+PLANT.** Deriving `R358` at this lane's formalization, the negative control returned **4 files**;
+re-derived at this lane's ruling, the same control returned **13 files / 7+ occurrences** — every one
+a MENTION, **0 declarations**, route A (the declaring filename form) returning **0** both times. The
+growth came entirely from *this program's own hygiene*: NA-0745's recorded controls, R357's banked
+ruling, and **NA-0746's own STOP 001, which recorded `R358 FREE` as its negative control.**
+
+⚠⚠ **A NEW PROPAGATION MECHANISM, NOT PREVIOUSLY RECORDED: A PLANT MULTIPLIES WITH EVERY COPY OF THE
+DOCUMENT THAT CARRIES IT.** STOP 001 was banked once and then **copied into the SR-15 cold-read
+workspace** so the read could work from it; the single banked stop therefore became **two** plant
+sites, and the findings file the read produced became a **third**. ⇒ **the excluded-path list cannot
+be a fixed set — it must be ENUMERATED AT THE EDIT from the artifacts this act has actually created,
+including copies made by other chairs.** NA-0746 enumerated five classes at its edit; the fifth
+(`work/SR15-*/`) did not exist when the fourth was written.
+
+⚠⚠ **A SIXTH CLASS, AND IT IS THE SHARPEST: THE PLANT REACHES THE REPAIRED INSTRUMENT'S OWN
+DOCUMENTATION.** NA-0746 repairs a needle that counts **mentions** of a queue-status token. Its own
+promotion block, describing that defect, necessarily **quotes the token twice** — and the unbroken
+instrument counts them: measured on this lane's correct promotion tree, the pre-repair needle
+returns **`FAIL: READY_COUNT=3 (>1)`** where the truth is **1**, and **two of the three matches are
+this lane's own sentences about the bug**. ⇒ ***writing the record of a repair to a mention-counting
+instrument is itself a mention; the act of documenting the defect enlarges it.*** The anchored
+repair survives this only because the quotations sit **mid-line** while the real declaration sits at
+**column 0**, which yields the operative constraint for every future act touching this file:
+**a record may quote the needle, but no record line may BEGIN with it.** Asserted mechanically by
+this lane before commit — exactly one line in the record files begins with the queue token, and it
+is the live queue block.
+
+- Cross-references: **R357 §1** (the two classes and their measurement), **NA-0745 STOP 002**,
+  **NA-0746 STOP 001 §1** (the 4-file measurement and its classification), **NA-0746's ruling**
+  (the 13-file re-measurement), **WF-0068**, **ENG-0201** (the mention-counting needle this lane
+  repairs, whose documentation is class six's instance).
+- Amending lane: NA-0746 (D-1385). Last-updated: 2026-08-18.
 
 ### ENG-0198 — ⚠ P3 — A RE-HANDSHAKE CAN SILENTLY NO-OP: `handshake poll` RETURNS rc 0 WHILE REJECTING EVERY FRAME IT PULLS AND COMPLETING NOTHING — **NEW; filed 2026-08-17 by NA-0743 (D-1381; measured as the E7 result at STOP 003 §3; ordered at R351 §2)**
 

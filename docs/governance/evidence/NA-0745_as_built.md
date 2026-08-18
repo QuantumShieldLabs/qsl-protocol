@@ -55,7 +55,7 @@ where it sits. **Declaring forms only**, `git grep` over tracked files throughou
 | D | **all four forms** (below) | **1383** | `## D-1383` = 1 file | D-1384 in any form = **0** | **D-1384** |
 | ENG | `^### ENG-[0-9]{4}` | **0199** | `### ENG-0199` = 1 | `### ENG-0200` = **0** | **ENG-0200** |
 | WF | `^### WF-[0-9]{4}` | **0087** | `### WF-0087` = 1 | `### WF-0088` = **0** | *none minted* |
-| SR-16 rows | `^\| *[0-9]+ *\|` | **93** | row 93 present | row 94 absent | **94–96** |
+| SR-16 rows | `^\| *[0-9]+ *\|` | **93** | row 93 present | row 94 absent | **94–97** |
 | R | union of routes (below) | **R356** | R356 = TAKEN | R357 = **0** on all routes | *none minted* |
 
 **The four D-record forms, swept together** — a form-specific needle gets the right answer only by
@@ -107,7 +107,7 @@ matches the whole subpath — so no STOP was owed.
 | 2 | `DECISIONS.md` | `D-1384`, carrying the ratification transcription in a column-0 fence |
 | 3 | `NEXT_ACTIONS.md` | NA-0744 `MERGING` → **DONE** + class · prior-STATE record · NA-0745 born · STATE advance |
 | 4 | `TRACEABILITY.md` | one row, artifact chain ending at `D-1384` |
-| 5 | `docs/ops/PREDICTION_LEDGER.md` | SR-16 rows **94**, **95**, **96** |
+| 5 | `docs/ops/PREDICTION_LEDGER.md` | SR-16 rows **94**, **95**, **96**, **97** |
 | 6 | `docs/governance/evidence/NA-0745_as_built.md` | this document (**gitignored — force-added**) |
 | 7 | `docs/legal/EXPORT_NOTIFICATION.md` | **NEW file and directory** — the 15 CFR 742.15(b) fact |
 
@@ -159,6 +159,19 @@ Post-condition asserted: the heading still occurs **exactly once** and is **not 
 heading, which is precisely why row 94 exists.
 
 ---
+
+### 2.4 Gates executed, each with a discriminating control, all bare
+
+| gate | subject | control | verdict |
+|---|---|---|---|
+| **scope class** (`classify_ci_scope.sh`) | the 7 staged paths → `docs_only` | +1 product-source path → `runtime_critical`; the NEW `docs/legal/` path ALONE → `docs_only` | ✅ subject green, both controls discriminate |
+| **goal-lint** (`tools/goal_lint.py`, the linter CI's `goal-lint` job runs) | `Goals: G4` in the PR body → rc **0**, *"OK: goal compliance checks passed."* | Goals line removed → rc **1** | ✅ discriminates |
+| **queue / one-READY** (`preflight_governance.sh`) | rc **1**, `FAIL: READY_COUNT=2 (>1)` | anchored re-measure: `^Status: READY` = **exactly 1** | ⚠ **THE GATE IS WRONG, THE TREE IS RIGHT — see §6.2** |
+| **hygiene sentinel** (`--require-clean --fail-on-tmp --fail-on-main-pin`) | clean committed tree → **OK** | (ran dirty before the commit → failed closed on `--require-clean`) | ✅ fails closed as designed |
+
+⚠ The queue row is reported as it measured. **It was not made green**, by any route: the script is
+outside the edit set and the historical comment its needle falsely matches must not be reworded to
+satisfy an instrument. The property the gate exists to protect **does** hold, measured directly.
 
 ## 3. THE HANDOFF-CLOSURE RATIFICATION — TRANSCRIBED, NOT RATIFIED
 
@@ -292,6 +305,8 @@ CI-migration lane: **recorded, not requested.**
 
 ## 6. WHAT THIS ACT FOUND ON ITS OWN, AND DID NOT TOUCH
 
+### 6.1 A records defect in the precedent this lane was told to follow
+
 ⚠⚠ **A RECORDS DEFECT IN THE PRECEDENT THIS LANE WAS TOLD TO FOLLOW.** The brief's §7(b) bullet
 cites *"the ENG-0142 re-grade precedent"*. Measured at this base, commit **`a1c6c969`** (NA-0742,
 D-1378) inserted that re-grade bullet at `docs/ops/IMPROVEMENT_LEDGER.md:3720` — **between the first
@@ -308,6 +323,50 @@ FRAGMENT of one of them** — the exact hazard the brief's §2(d) warns about, d
 precedent it names. ⚠⚠ **NOT REPAIRED HERE.** `ENG-0142`'s remainder is outside this lane's bounds
 (brief §10), and a records act that quietly reaches into an entry it was told not to touch is worse
 than the defect. **Filed as SR-16 row 96 and left for the act that owns that entry.**
+
+### 6.2 A GATE THAT COUNTS MENTIONS — FOUND BY RUNNING IT ON THIS LANE'S OWN TREE
+
+⚠⚠ **`scripts/ci/preflight_governance.sh` FAILED this correct tree**, on the committed, clean
+commit, with:
+
+    FAIL: READY_COUNT=2 (>1)
+
+**Measured rather than worked around.** The gate's needle is `rg 'Status:\s*READY' NEXT_ACTIONS.md`
+— **unanchored** — so besides this lane's genuine `Status: READY (D-1384)` it matches a **MENTION
+inside a historical `<!-- prior: STATE… -->` comment** at `NEXT_ACTIONS.md:92`, whose prose reads
+`` `Status: READY` becomes `DONE 2026-08-02` ``. That comment was landed by **`b76016b5`**, NA-0690's
+promotion, on 2026-08-02.
+
+**The gate has therefore not reported the true number since that day, and it is wrong in BOTH
+directions:**
+
+| base | gate needle | anchored truth | direction |
+|---|---|---|---|
+| `9d11e2bd` · `4c59ffda` · `21597277` · `ae2047e6` · `d484c065` · `04340072` (settled mains) | **1** | **0** | **permissive** — it reports one READY where there is none |
+| `ea0ee23e` (NA-0744's promotion tree) | **2** | **1** | **blocking** — it reports a violation that does not exist |
+| this lane's commit | **2** | **1** | **blocking** (the failure above) |
+
+⛳ **At `4025eb44`, NA-0744's implementation PR head, the ONLY line the needle matches is that
+comment** — so a `READY_COUNT 1` read at that head counted the comment and not a lane. *A count that
+is right can still be right for the wrong reason; read WHICH lines matched, never how many.*
+
+⚠⚠ **NOT REPAIRED — AND THE WORKAROUND WAS REFUSED TOO.** `scripts/ci/**` is outside this lane's
+edit set. `NEXT_ACTIONS.md` **is** in the edit set, so rewording line 92 would have made the gate
+pass — and that is exactly the antipattern this program exists to prevent: **editing a historical
+record to satisfy an instrument**. Neither was done. **Recorded as SR-16 row 97**; whether it earns
+a countable `ENG-` id is the Director's call, since a new id is outside the brief's enumeration.
+
+⚠ **Blast radius MEASURED, not assumed.** `git grep preflight_governance -- .github/` returns **0
+hits** ⇒ **no workflow runs this script**; nothing in CI has ever been gated on it. This is the same
+shape NA-0744 recorded for `preflight_qsc_impl.sh` — *a script the house treats as a required gate
+that no workflow executes*. The **admission** gate is a different instrument:
+`scripts/ci/public_safety_gate.py` derives its queue proof from a structured `status` field
+(`entry.get("status") == "READY"`), not by grepping prose, and its red-main path is not active
+because main is green.
+
+⛳ **The invariant itself HOLDS on this tree**, measured with an anchored needle: `^Status: READY`
+matches **exactly one** line, `Status: READY (D-1384)`, asserted before the file was written and
+re-measured after.
 
 ---
 

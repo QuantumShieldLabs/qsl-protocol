@@ -36,7 +36,7 @@ fi
 BRANCH="$(git branch --show-current)"
 HEAD_SHA="$(git rev-parse HEAD)"
 
-READY_LINES="$(rg -n 'Status:\s*READY' NEXT_ACTIONS.md || true)"
+READY_LINES="$(rg -n '^Status: READY\b' NEXT_ACTIONS.md || true)"
 if [[ -n "$READY_LINES" ]]; then
   READY_COUNT="$(printf '%s\n' "$READY_LINES" | wc -l | tr -d ' ')"
 else

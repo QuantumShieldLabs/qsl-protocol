@@ -217,3 +217,163 @@ one place built to warn about it.
 state, wrong about the line number, and wrong about the count — and the only thing that caught it was
 re-running the instrument instead of citing the note. The anchored truth on this tree is **1**, the
 correct value: NA-0749's, and NA-0748's flipped to `DONE` in the same act.
+
+---
+
+# NA-0749 — AS BUILT, PART 2: THE IMPLEMENTATION (`D-1391`)
+
+**Authorization:** `R363` §3, banked verbatim under SR-14 before acting
+(`a22ae514ade83ff3290eb86b657391d2a1f4a2cc98eba15684306071063f4e40`, 64 lines / 4933 bytes, 444).
+**Base:** main `f181c367151ac6dc3f85c277a2d8d77056fc0205`. **Built in the order `R363` §3 sets, and no
+other.**
+
+⚠ **Part 1 above is the ACT-0 record and is NOT edited.** Its §3 named a design (`F-A`/`F-B`) that
+`R361` subsequently refused and `R362` replaced; those sentences stand as written, superseded here
+rather than rewritten. The construction that landed is the one locked at `R362` §1.
+
+## §I1. W1 — RED-FIRST, CAPTURED BEFORE THE IMPLEMENTATION LANDED
+
+The prediction was written **before** the run: the old constructor must return
+`QSCFP-` + `hex(sha512(kem‖sig)[..16])` = **`QSCFP-9069d8689203a5a1576fbc88a44a525e`**.
+
+```
+thread 'na0749_identity_fingerprint_matches_the_sealed_independent_vector' panicked at
+qsl/qsl-client/qsc/tests/na0749_redfirst_armA.rs:8:5:
+assertion `left == right` failed: the combined identity fingerprint does not match the sealed
+independent vector
+  left: "QSCFP-9069d8689203a5a1576fbc88a44a525e"
+ right: "d67b4a10510394ca268c9e8cfde8980fd6280dc8c379d4ea8c8642ac9a750349"
+test result: FAILED. 0 passed; 1 failed
+```
+
+⛳ **The left-hand value is byte-identical to the sealed prediction.** ⚠ **Stated precisely: this is an
+ASSERTION red on the real old code, not a compile red.** The voice-form arm could not be run against
+the old tree at all — `identity_voice_form` did not exist there — which is a *compile* red and a weaker
+one; the distinction is recorded rather than blurred.
+
+## §I2. THE SEALED VECTOR, ASSERTED BY THE IMPLEMENTATION
+
+| | sealed value | asserted by |
+|---|---|---|
+| identity FULL | `d67b4a10510394ca268c9e8cfde8980fd6280dc8c379d4ea8c8642ac9a750349` | `tests/na0749_fingerprint_conformance.rs` |
+| identity VOICE | `187363336018275058094178831816` | same |
+| sig FULL | `c7251cb68ab0db6416e4ef3b3e9c372a6b63222587f22027ef12efbd75d58bab` | `identity/mod.rs` unit tests |
+| kem FULL | `f5f23dadc0acee52fb4da4528d7bbe49aa5e7ecd77b9ea6962b2981040246d98` | same |
+
+**All four HIT.** The Rust and the independent Python tool agree exactly — which is the whole point of
+computing the vector outside the codebase first.
+
+## §I3. W7 — THE BLOCKER-1 REGRESSION
+
+`na0749_no_resplit_of_the_key_material_collides_with_the_true_pair` walks **every** split position
+`k = 0..=3136`, excluding the true split, and asserts no re-split reproduces the true fingerprint.
+**GREEN: 0 collisions of 3136 re-splits.** The identical property against the rejected construction
+returns **3136/3136**, so the test can go red.
+
+## §I4. W6 — THE COMPARATOR ARMS AND THEIR MUTATION CONTROLS
+
+| arm | property | result |
+|---|---|---|
+| A | old-format `QSCFP-` pin refused | **HIT** |
+| B/C | correct full and voice forms accepted | **HIT** |
+| D | a wrong but well-formed 30-digit voice form refused | **HIT** |
+| E | an identity voice form refused against a **sig** fingerprint | **HIT** |
+| F | empty / short / non-hex / 64-char-non-hex `seen_fp` never authenticates | **HIT** |
+| G | whitespace-padded **full AND voice** forms both accepted | **HIT** |
+| H | the plain comparator refuses its own derivable voice form | **HIT** |
+
+⛳ **EVERY MUTATION CONTROL FIRED — this, not the passes, is the seal:**
+
+| mutant | change | arm expected red | measured |
+|---|---|---|---|
+| m1 | tier 2 → `pinned.len() == 30` | D | **RED** |
+| m2 | shape-check removed; short `seen_fp` zero-pads | F | **RED** |
+| m3 | `trim()` moved back off tier 2 (design v2 as first written) | G | **RED** |
+| m4 | the plain comparator delegates to `_identity` | H | **RED** |
+
+⚠⚠ **m3 reproduced MAJOR-B's asymmetry exactly**: the failing assertion is the **padded VOICE** case at
+`identity/mod.rs:885`, while the padded FULL case on the line above **passed** — the precise divergence
+the SR-15 re-read found on paper, now reproduced as an executable control. **Arms B, C and G are
+accepting arms and prove nothing alone;** a comparator that accepts everything passes all three.
+
+## §I5. W2 — THE RETIREMENT, PROVEN BY A **BODY** SWEEP
+
+| needle | BASE `f181c367` | NOW |
+|---|---|---|
+| Crockford alphabet literal `0123456789ABCDEFGHJKMNPQRSTVWXYZ` | **3** | **0** |
+| byte-sum-mod-32 idiom (`fold(0u32 … saturating_add`) | **3** | **0** |
+| `IDENTITY_FP_PREFIX` | 9 | **0** |
+| `format_verification_code_from_fingerprint` | 10 | **0** |
+| `verification_code_from_fingerprint` (the shadow short name) | 12 | **0** |
+| `identity_marker_display` | 8 | **0** |
+| **positive control** `identity_fingerprint_from_identity` | 15 | **14** (non-zero) |
+
+**THE THREE RESIDUALS, CLASSIFIED — none is a live mechanism:**
+1. **`QSCFP` × 1**, `identity/mod.rs`, inside W6 arm A: the old-format pin used as the **refused input**.
+   Removing it would delete the test proving old pins fail closed.
+2. **`identity_fingerprint_from_pk` × 2 and `hs_sig_fingerprint` × 2**, all four in
+   `formal/model_qsc_handshake_authentication_bounded.py` **docstrings** (`:21`, `:22`, `:91`, `:96`) —
+   the file `R362` §3 keeps **outside the enumeration**. Comments naming renamed symbols; **no edit**,
+   and the model needed none: it abstracts a fingerprint as a tuple, for which injectivity is free — a
+   *false* abstraction of the old code and a *faithful* one of the new.
+⚠ **Instrument note:** `identity_pin_matches_seen` reads 12 → 24 as a **substring** count, because the
+new `_identity` name contains it. Exact: `identity_pin_matches_seen(` = **7**,
+`identity_pin_matches_seen_identity(` = **14**.
+
+## §I6. W3 — THE INVENTORY, KEYED `(file, name)`
+
+Instrument (the corrected one, per `R362` §3 / MINOR-F): for each own-line `^\s*#\[test\]\s*$`, scan
+**forward, unbounded**, to the next `fn`; key `(file, name)`.
+
+| | BASE `f181c367` | NOW |
+|---|---|---|
+| entries | **679** | **695** |
+| files | 148 | 150 |
+| distinct names | 676 | 692 |
+
+**REMOVED: 0. ADDED: 16** — ten unit tests in `identity/mod.rs` and six in
+`tests/na0749_fingerprint_conformance.rs`, each enumerated in the stop. ⛳ **No test was retired**, as
+the census predicted: the two "deliberate private reimplementation" tests protect *"a user can pin
+using the second rendering they were shown"*, a property the ratified design **keeps** — only the
+comparand changed, 16-character code → 30-digit voice form, updated in lockstep.
+⚠ **An instrument trap caught in flight:** the first inventory run used `git ls-files` for the NOW side
+and was blind to the **untracked** new test file, reporting +10 instead of +16. Staged first, then
+recounted. *A census of tracked files cannot see the file you just wrote.*
+
+## §I7. W3 — THE FULL SUITE ON THE EXACT COMMITTED TREE
+
+`cargo test -p qsc`, run **bare** (the gating command's own exit status, never a pipe's), on the tree
+carrying every compiled change.
+
+**rc = 0 · 136 targets · 660 passed · 0 failed · 2 ignored · 0 `error` lines.**
+All **16** of this lane's tests ran and passed.
+
+⚠ **660 EXECUTED AGAINST 695 INVENTORIED — RECONCILED BY ENUMERATION, NOT ATTRIBUTED.** The 33
+inventoried names that never executed are, by file: `rng_failure_residual_surfaces` (6),
+`rng_failure_behavior` (4), `cli_identity_rotation_provider_rng_failure` (3), `kem_provider_rng_failure`
+(3), `lazy_identity_provider_rng_failure` (3), `legacy_identity_public_record_provider_rng_failure` (3),
+`na0695_vault_keychain_addressing` (3), `a2_signature_provider_rng_failure` (2),
+`b1_signature_provider_rng_failure` (2), `na0696_vault_honesty` (2),
+`na0742_invite_finish_scan_producer_acks` (1), `src/vault/mod.rs` (1).
+**Two controls prove this is a base property and not this lane's doing:**
+1. **ZERO of the 33 are in this lane's changed-file set.**
+2. They sit behind `#[cfg(qsc_rng_failure_test_seam)]` and siblings, which the default build does not
+   set — the fault-injection seam NA-0742 recorded as unbuilt by any workflow.
+⇒ *a suite that runs 660 of 695 is reporting a cfg boundary, not a gap this act opened; the count is
+stated with its cause rather than rounded to "green".*
+
+## §I8. THE CLAIM BOUNDARY
+
+- **The vector proves** the implementation agrees with an artefact computed **outside** this codebase,
+  by a tool whose SHA-512 was validated against the published NIST value **before** any lane value
+  existed, corroborated across four engines. It proves nothing about whether the *design* is the right
+  design — two SR-15 reads and three rulings did that.
+- **The suite proves** the crate's own behaviour on this tree, in the default cfg. It does **not**
+  exercise the 33 `cfg`-gated fault-seam tests, nor the `cfg`-gated `binding_fuzz` shadow whose split
+  landed here — that shadow's fidelity is checked by inspection plus CI's adversarial job, and that
+  limit is stated rather than glossed.
+- **Neither proves anything about qsl-desktop**, which links `qsc` and **meets this format only at
+  pin-bump-2**. `format_verification_code_from_fingerprint` was published API; its retirement is a
+  **published-API break**, marked as such and met at that pin bump.
+- **What is NOT fixed:** the entry paths still accept keys of any length — the **class** behind
+  BLOCKER-1's instance. Filed as `ENG-0209` with its trade.

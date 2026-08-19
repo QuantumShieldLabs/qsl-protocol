@@ -4912,7 +4912,7 @@ asymmetry is recorded rather than hidden.
 ### ENG-0195 — the `qsl-desktop` Tauri gateway exposes **no protocol surface at all**: 26 commands covering vault, unlock, settings, destroy/erase, markers and relay config, and **zero** invite, contact, handshake or messaging commands ⇒ **Slice 4 is the first slice in which the GUI speaks to the protocol**, so the whole gateway beneath those screens is in its scope — **NEW; filed 2026-08-16 by NA-0738 (D-1373). ⚠ ORIGINALLY MEASURED BY THE DIRECTOR** in `qsl-desktop` at `c52fd51b`, carried verbatim in NA-0737 STOP 001 §10 after that lane correctly REFUSED to file it (its brief's §1 enumerated one file — SR-16 row 20)
 
 - Severity: **P3** — a scoping measurement, not a defect. It is filed because it changes how a future slice is bounded, and because it has so far existed only in an operator-side stop file that no successor Director can read (D-1 / R331.1).
-- Status: open — **FILING ONLY.** No GUI work is designed or proposed here.
+- Status: open — **FILING ONLY.** No GUI work is designed or proposed here. ⚠⚠ **AMENDED 2026-08-19 by NA-0747 (D-1388) — THIS ENTRY'S FIGURE IS WRONG AND ITS ENUMERATION IS INTERNALLY INCONSISTENT; the amendment below carries the measured correction, and the substantive claim stands. Nothing above this clause is rewritten.**
 
 ⚠⚠ **PROVENANCE, STATED PRECISELY BECAUSE IT IS THE POINT OF THIS FILING.** The measurement is the **Director's**. The NA-0737 seat declined to file it and was **ruled correct**: that brief enumerated a single file, and the seat could not have measured the figures anyway, having no desktop checkout. **NA-0738's brief widened the enumeration to include this ledger, which is what makes filing it authorised now.** ⚠ **AND THIS SEAT RE-MEASURED IT INDEPENDENTLY** rather than transcribing it — a departure from the brief's expectation that the filing seat would not, made because writing *"not re-measured"* over figures this seat had in fact measured would put a false provenance sentence into repo truth.
 
@@ -4934,6 +4934,35 @@ asymmetry is recorded rather than hidden.
 2. **The GUI must never accept a caller-supplied mailbox** — binding the MESSAGING slice, not Slice 4. **ENG-0192** is the demonstration of the cost: `--mailbox` is used verbatim as a route token, `route_token_is_valid` accepts any 22–128-char token, and HTTP 204 renders "not your mailbox" and "your mailbox is empty" indistinguishable at rc 0.
 
 - Cross-references: **ENG-0192**; **ENG-0191**; R334.3; NA-0737 STOP 001 §10 (where the text was preserved); SR-16 row 20 (the brief/enumeration contradiction that delayed it). Originating/last lane: NA-0738 (D-1373). Last-updated: 2026-08-16.
+
+⚠⚠ **AMENDED 2026-08-19 by NA-0747 (D-1388; the Director's ruling of 2026-08-19 disposing NA-0747 STOPs 003+004, banked verbatim under SR-14 at `RULING_NA0747_STOPS003_004_OPTION_A_CONFIRMED_20260819.md`, sha256 `c8c3f9237e0bfddf4d16fafc352bc5a66955f9c12cf5a114a8b4124ca4ca742f`, 39 lines / 2983 bytes, mode 444; the correction's home under **Option A**, the merge of #1774 having already landed the false attribution).** *Nothing above is edited. This amendment is landed BESIDE the entry, mark-don't-rewrite.*
+
+**THE FIGURE IS WRONG, AND THE ENUMERATION DISAGREES WITH IT.** Re-measured at qsl-desktop `c52fd51bbaff5882741620a7774f2253814ddaa7` by two independent routes (the declaring attribute `#[tauri::command]`, and the `generate_handler!` registration list at `lib.rs:333`), symmetric difference **EMPTY** both ways: **the gateway registers 27 commands, not 26.** This entry states **26** twice — in its heading and in its body's "stronger evidence" sentence — while **its own enumeration lists 27 distinct names**. Three defects, and two of them cancel:
+
+1. **THE SCOPE.** `commands.rs` carries **26** `#[tauri::command]` functions and `lib.rs` carries **1** (`ui_surface_changed`, `lib.rs:252`). **"`commands.rs` carries 26" is TRUE of that FILE**; the heading's "26 commands" describes the **GATEWAY**, and there the true figure is **27**. A file-scoped count was reported under a gateway-scoped description.
+2. **A PHANTOM.** The enumeration lists `vault_version_state`, which is **not a command at all** — a plain `pub fn` at `commands.rs:49` carrying no attribute, with **0** hits in the `generate_handler!` registration list, so it is not exposed to the GUI by any route.
+3. **AN OMISSION.** The enumeration omits `ui_surface_changed`, the real 27th, because the census did not reach outside `commands.rs`.
+
+⚠ **THE TWO ERRORS CANCEL IN THE COUNT, WHICH IS WHY THE ENTRY SURVIVED THREE DAYS OF SCRUTINY UNCHALLENGED:** 27 listed = 26 real + 1 phantom, and the true gateway is 26 + 1 elsewhere. **Every half reconciles when checked alone.** The defect is visible only by comparing the enumeration's LENGTH against the prose's FIGURE, or the enumeration's MEMBERS against the tree's.
+
+⛳ **THE SUBSTANTIVE CLAIM IS UNTOUCHED AND RE-MEASURES TRUE.** Not one of the 27 is an invite, contact, handshake or messaging command — the 27 are vault lifecycle (7), identity (2), protection (3), settings (2), diagnostics (3), relay configuration (9) and UI (1). **The omitted command weakens the claim by ZERO cases**: `ui_surface_changed` is a front-end→back-end surface-change notification. The entry's conclusion — *Slice 4 is the first slice in which the GUI speaks to the protocol at all* — stands exactly as filed.
+
+⚠⚠ **THE MEASURED SPLIT, RECORDED AS SUCH (R359 §4 SUPERSEDED IN PART, ITS PREMISE HAVING MEASURED FALSE).** R359 §4 ordered this amendment to record *"figure and claim both re-measured TRUE at this base."* Measured: **the CLAIM re-measures TRUE; the FIGURE does NOT**, and neither does the attribution built on it. The ordered wording is not used, and the reason is recorded here rather than resolved silently.
+
+**SUPERSESSION — `D-1387`'s FOUR ATTRIBUTIONS, EACH SITE NAMED.** D-1387 (NA-0747's promotion, merged in PR #1774 as `e069db87807b7e6ffc3398754dff06b8171d15f3`) asserts at four sites that the census *"re-measures ENG-0195's figure exactly"* / *"ENG-0195's 27"*. **All four are SUPERSEDED by this amendment**: `DECISIONS.md`, in D-1387's ACT 2 · `TRACEABILITY.md`, in the D-1387 row · `NEXT_ACTIONS.md`, in the `### NA-0747` block · `NEXT_ACTIONS.md`, in this lane's `<!-- prior: STATE… -->` comment. **None is rewritten.** In each, the two other halves — *27 by two agreeing routes*, and *none of them invite / contact / handshake / messaging* — were TRUE when written and remain TRUE; **only the attribution to this entry's figure is superseded.**
+
+⚠⚠ **THE PROVENANCE CHAIN, MEASURED SO THE FOLKLORE DIES AT ITS ROOT — and the root is EARLIER and DIFFERENT from the one the ruling names.** R359's disposition §3 places the chain's origin at *"the succession packet's §6.1"*, giving 27 with a units warning. **This seat could not locate such a document**: no operator-side file carrying `§6.1` also carries a 27-command figure, against a positive control proving the search live. What the record DOES contain, measured:
+
+1. **2026-08-07, NA-0700 STOP 001 §5.1 — CORRECT, AND EXPLICITLY DECOMPOSED.** *"`invoke_handler` registers **27** commands (`lib.rs:420-450`): 26 `pub` in `commands.rs` + `ui_surface_changed` (**private**, in `lib.rs`)."* The exact decomposition re-derived above. Repo truth agrees: desktop PR #25's title reads *"the replay harness drives all 27 commands through tauri's real ingestion."*
+2. **2026-08-08, NA-0701 STOP 003 m9 — CONFIRMED AGAIN, with an instrument-width note.** *"**27 commands exactly** = 26 `commands::*` + `ui_surface_changed`"*, reached after enumerating 28 raw matches and excluding one that was the bare word `builder` — *instrument wider than claim*, caught and stated.
+3. **2026-08-16, NA-0738 STOP 001 §8.3 — THE REGRESSION, and this is the root.** *"the enumerated command surface (**26** `#[tauri::command]` functions, not one invite/contact/handshake/messaging command)"* — a `commands.rs`-scoped count offered as the gateway surface, which is the sentence this entry was filed from. ⚠⚠ **AND IT SITS IN THE SAME SECTION AS ITS OWN UNITS WARNING**: four sentences earlier that section reads *"Two of the three carried figures are occurrence counts and one is a line count, **and the set does not say so**."* The section that named the mixed-instrument hazard committed it in its own next breath, about a different figure. **The warning was about the token counts; nobody turned it on the command count.**
+4. **2026-08-18, the NA-0747 formalization brief v2 §0 — THE FLATTENING.** *"ENG-0195: 27 gateway commands"* — the true tree figure restored, and attributed to an entry that states 26.
+5. **2026-08-18/19, the seat's A1 seal — INHERITED.** *"sealed: 27 functions (ENG-0195's figure)"*, taken from the brief's paraphrase; the tree was measured correctly and **the entry's own sentence was never opened.**
+6. **2026-08-19, the clearance — VERIFIED THE TREE, NOT THE SENTENCE.** The Director's independent §0 confirmed *"command census 27"*, which is true of the tree; the paraphrase's subject was checked and the record's sentence was not.
+
+⇒ **THE LESSON, AND IT IS OLDER THAN THIS LANE:** *a directive's enumeration is a description — measure against the RECORD's own sentence.* NA-0747 ran that rule on three of the brief's premises and refuted all three; **the one premise it did not re-measure is the one that was wrong.** ⛳ It was caught by the ordered next act — drafting this very amendment — which is the argument for ordering the amendment at all.
+
+- Amendment cross-references: `ENG-0205`; `ENG-0206`; `ENG-0207`; `D-1387`; `D-1388`; NA-0700 STOP 001 §5.1; NA-0701 STOP 003 m9; NA-0738 STOP 001 §8.3; R359 §§0/4 and its 2026-08-19 disposition.
 
 ### ENG-0196 — ⚠ P2 — `invite finish` IS BLOCKED BY ANY ORDINARY MESSAGE AT THE HEAD OF THE INBOX, WITH A FALSE DIAGNOSIS — **NEW; filed 2026-08-16 by NA-0740 (D-1375; measured at STOP 001 §5.3; ruled distinct from ENG-0142 at R338 §2)**
 
@@ -5396,3 +5425,123 @@ missing string leaves the *mechanism* intact.
 - Status: **open — FILING ONLY.** No repair is designed here. ⚠ **This lane edits no fixture**
   (directive §6), and the profile those fixtures were extended for is **refused**.
 - Source: the SR-15 cold read (finding M13).
+
+### ENG-0205 — ⚠ P2 — THE RATIFIED FINGERPRINT DESIGN AND THE SHIPPED `qsc` FORMAT CONTRADICT EACH OTHER ON ALPHABET, CHECK CHARACTER AND HASH WIDTH — **NEW; FILED NOT FIXED 2026-08-19 by NA-0747 (D-1388)**
+
+- Severity: **P2** — *the seat's grade, offered not ruled*: nothing is broken today, because no
+  shipped screen claims to implement the ratified design. It is graded above P3 because **Slice 4's
+  fingerprint screen cannot be built until it is resolved** — the screen's whole content is the
+  disputed object — and because the disagreement has stood since 2026-08-01 with nothing able to
+  detect it.
+- Status: open — **FILING ONLY.** No repair is designed or proposed here. ⚠ **THE RESOLUTION IS AN
+  OPERATOR DESIGN DECISION, consumed by Phase 1** (ruled at R359 §4). Nothing in this entry
+  pre-judges which format wins.
+
+**THE CONTRADICTION, measured at qsl-desktop `c52fd51b` and qsl-protocol `bb7e6b9a`.** The ratified
+two-tier reference (`docs/mockups/MOCKUP_fingerprint_two_tier_RATIFIED.html`, sha256
+`bd311826bb5b52466727bfa69700bf1c08419c625a44fb7208de7018f2c1a2e9`, ratified 2026-08-01) and the
+shipped `qsc` surface disagree on three properties, each read from the artifacts' own bytes:
+
+| property | RATIFIED mockup | shipped `qsc` | agree? |
+|---|---|---|---|
+| tier-1 form | **30 decimal digits**, six groups of five, two rows | **16 Crockford-base32 characters**, `4-4-4-4-K` | **NO** |
+| check character | *"No check character — users compare, they don't transcribe"* | one Crockford check character computed and appended, `identity/mod.rs:632-638` | **NO** |
+| tier-2 full form | *"64 hex = full **256-bit** form"* | `QSCFP-` + hex of `sha512(kem_pk‖sig_pk)[..16]` = 32 hex = **128 bits** | **NO** |
+| the `QSCFP-` prefix | recorded by `mockup-07`'s own header as *"superseded … removed"* | `IDENTITY_FP_PREFIX = "QSCFP-"`, `identity/mod.rs:35`, **live in production** | **NO** |
+
+⛳ **THE PLUMBING ALREADY EXISTS; ONLY THE AGREEMENT IS MISSING.** `commands.rs:144-145` calls
+`qsc::identity::identity_fingerprint_from_identity` and
+`qsc::identity::format_verification_code_from_fingerprint`, and `IdentityDto` surfaces **both**
+values (`fingerprint`, `verify_code`); `ui/main.js:652-653` renders them into `#settings-fp` and
+`#settings-code`. A two-tier identity display ships today — in the `qsc` formats, not the ratified
+ones.
+
+⚠⚠ **WHY NOTHING CAUGHT IT, AND THIS IS THE TRANSFERABLE PART.** Six desktop test files cite mockups
+07 / 07B / 09 as the authority for app properties (`design_polish.rs:226,247,764,775` ·
+`design_round2.rs:65,76,162` · `design_round3.rs:306` · `design_system.rs:196`) — and **every one of
+them asserts on the app, never on the mockup file.** No test, pin or workflow in either repo reads a
+mockup at runtime (measured: `docs/mockups` inside pin-capable paths = **0**, against positive
+controls returning 258 desktop / 7698 protocol hits). ⇒ **a design authority and the code it governs
+can disagree indefinitely, because the tests all sit on one side of the disagreement.**
+
+- Cross-references: `ENG-0195` (and its amendment below); `ENG-0206`; desktop `D-0028` (NA-0703, the
+  mockup refresh that landed the ratified reference); NA-0669 C-1a (the prefix-stripping change that
+  set the 16-character Crockford form).
+- Source: NA-0747 Phase 0, measurement M-A/A2. Recorded in `docs/governance/evidence/NA-0747_as_built.md`.
+
+### ENG-0206 — ⚠ P3 — THERE IS NO TYPED PROTOCOL-STATE SURFACE FOR A GUI CONSUMER: THE SLICE-4 SCREENS MUST PARSE `CliResult` STRING ROWS, AND `qsp_send_ready_tuple` IS `pub(crate)` — **NEW; FILED NOT FIXED 2026-08-19 by NA-0747 (D-1388)**
+
+- Severity: **P3** — *the seat's grade, offered not ruled*: a shape finding, not a defect. Nothing
+  misbehaves. It is filed because it constrains how Slice 4's four screens can be built, and because
+  the constraint is invisible until someone tries.
+- Status: open — **FILING ONLY.** No repair is designed here, and **no architecture is ruled**.
+
+**THE MEASUREMENT, at qsl-protocol `bb7e6b9a`.** Almost every `qsc` function the four Slice-4 screens
+need returns **`CliResult<T> = Result<T, CliError>`** (`output/mod.rs:188`) — a CLI-shaped result
+whose payload is emitted as string key/value rows. The connect banner's source,
+`protocol_state::qsp_status_tuple` (`protocol_state/mod.rs:79`), returns `(String, String)`:
+`ACTIVE`/`INACTIVE` plus one of `handshake`, `no_session`, `missing_seed`, `session_invalid`,
+`channel_invalid`, `unsafe_parent`, `missing_home`.
+
+⚠⚠ **AND THE COMPOSE-DISABLED DRIVER IS NOT EXPOSED AT ALL.** `qsp_send_ready_tuple`
+(`protocol_state/mod.rs:108`) is **`pub(crate)`** — not public API. A desktop consumer can reach it
+only as the **string pair** `("send_ready", "yes"/"no")` + `("send_ready_reason", …)` that
+`handshake::handshake_status` (`handshake/mod.rs:1315`) emits. ⇒ the value is not merely unreliable,
+it is **not typed API**.
+
+⚠ **THE BANKED CONSTRAINT STANDS AND IS NOT WEAKENED BY THIS ENTRY (R334.3):** *the composer must
+never key off `send_ready` — it reports the CHAIN's state, not the user's capability.* NA-0705
+measured it directly: at main a responder stays `send_ready=no` through the fetch and **its next send
+SUCCEEDS anyway**, so gating the composer on it would disable the composer for a user who can send.
+**Phase 0 does not answer what the composer should key off; this entry only records that the
+candidate everyone reaches for is both wrong and unexposed.**
+
+⇒ **CONSEQUENCE:** whatever Phase 1 chooses, it either parses stringly-typed CLI output from the GUI
+or grows a typed surface. That is a design decision with a cost either way, and it should be made
+knowingly rather than discovered.
+
+- Cross-references: `ENG-0195`; `ENG-0205`; `ENG-0207`; R334.3 (the compose-disabled constraint);
+  NA-0705 F6 (the `send_ready` under-reporting measurement).
+- Source: NA-0747 Phase 0, measurement M-A/A2.
+
+### ENG-0207 — ⚠ P2 — THE DESKTOP'S `qsc` PIN IS 147 COMMITS BEHIND MAIN, ACROSS THE WHOLE INVITE-ROUND-TRIP REPAIR ARC — **NEW; FILED NOT FIXED 2026-08-19 by NA-0747 (D-1388)**
+
+- Severity: **P2** — *the seat's grade, offered not ruled*: graded above P3 because **Slice 4 cannot
+  proceed without resolving it** and because the last pin bump of this crate (NA-0705) crossed a
+  vault hard break that **no named gate could fail on**. The risk is not the distance; it is that the
+  distance is invisible to every gate.
+- Status: open — **FILING ONLY.** **No architecture and no bump is ruled here** (R359 §3). The
+  operator chooses at Phase 1.
+
+**THE MEASUREMENT.** `src-tauri/Cargo.toml:23` pins `qsc` by git rev
+`32e572c763a7437a73c3ca865397cef37ae38fd4`. Measured against qsl-protocol main
+`bb7e6b9aaa688320a661ca353eff37187977914c`: **147 commits**, **10 days**, and the pin **is an
+ancestor of main**, so a fast-forward bump is available in principle.
+
+⛳ **THE MODULE SET IS IDENTICAL AT BOTH REVS — the delta is entirely INSIDE the modules.** Both carry
+**21** `pub mod`, and `invite`, `handshake`, `contacts`, `msgqueue`, `timeline` and `protocol_state`
+are **already present at the pin**. What changed, over **19** changed files in the crate:
+`transport/mod.rs` **+679/−59** · `invite/mod.rs` **+248/−12** · `handshake/mod.rs` **+195/−16** ·
+`frameclass.rs` **+82/−0** · `identity/mod.rs` **+79/−0** · `model/mod.rs` **+32/−6** ·
+`cmd/mod.rs` **+26/−11**. That is the `ENG-0142` / `ENG-0191` / `ENG-0192` / `ENG-0193` repair arc
+from NA-0736…NA-0744. ⇒ **Slice 4's dependency question is a PIN BUMP with a 147-commit BEHAVIOUR
+delta, not an architecture choice.**
+
+⚠⚠ **AND THE ARCHITECTURE QUESTION IT REPLACES WAS ALREADY CLOSED BY THE TREE.** `qsc` is not a
+candidate for linking — it **has been linked as a library since NA-0705**: a git dependency resolved
+in `Cargo.lock` (`source = "git+…?rev=32e572c7…"`), with **42 lines carrying `qsc::` / 44
+occurrences** across four desktop source files, and three `use qsc::…` imports naming
+`adversarial::vault_format`, `vault::protection` and `transport`. `qsc` declares no `[lib]` and no
+`[[bin]]`; `src/lib.rs` and `src/main.rs` both exist, so cargo infers **both** targets; its only
+feature is `keychain`, default off, and the desktop enables none.
+
+**THE RECORDED OPTION SET, marked NON-EXHAUSTIVE (SR-21, R359 §3).** The three originally offered —
+**link-the-crate** (already the shipped architecture), **extract-a-core-lib**, **shell-out-to-the-
+binary** — plus four shapes they excluded: **bump the existing git pin** (the shipped architecture
+moved forward) · **path / vendored dependency** in a combined checkout · **a long-lived local `qsc`
+service over IPC** (distinct from per-call shell-out) · **publish `qsc` to a registry** and depend on
+a version. **No option is ruled.**
+
+- Cross-references: `ENG-0195`; `ENG-0205`; `ENG-0206`; NA-0705 (the last bump of this pin, and the
+  `QSCV01`→`QSCV02` hard break that reached unlock AND destroy with no gate able to fail on it).
+- Source: NA-0747 Phase 0, measurement M-A/A3.

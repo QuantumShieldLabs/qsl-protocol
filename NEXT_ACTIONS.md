@@ -6,7 +6,7 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0747 | HIGHEST_NA=0747 | HIGHEST_D=1387 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0747 | HIGHEST_NA=0747 | HIGHEST_D=1388 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 
 **FORWARD ORDER — Director decision 2026-08-02, operator-approved.**
 **as of: 2026-08-03** · **superseded by: _none — this is current_**
@@ -37372,5 +37372,5 @@ Goals: G4 (verification and record as a release gate — **the property this lan
 
 ### NA-0747 — SLICE 4 PHASE 0: THE SEAM MEASUREMENT, THE MOCKUP RECONCILIATION AND THE HARNESS VERIFICATION (Director's Formalization Brief v2 of 2026-08-18, banked verbatim under SR-14 as this lane's FIRST ACT at `/srv/qbuild/operator/NA-0747/BRIEF_NA0747_SLICE4_PHASE0_SEAM_MOCKUP_HARNESS_V2.md`, sha256 `b708d9267466f338456a605a10ee50e19e4cdefe11de2d0c7dbfe0518bb16132`, 166 lines / 12595 bytes, mode 444, placed by COMPARISON against the staged source with a tamper control that returned non-zero): ⚠⚠ **THIS PROMOTION IS RECORDS ONLY. ZERO PRODUCT SOURCE BYTES IN EITHER REPO.** Slice 4 is the first slice in which the GUI speaks to the protocol at all, and this lane MEASURES the seam before any Phase 1 design touches it. ⛳ **THE HARNESS HOLDS:** all six `na0701_gui_a..f` PASS at desktop `c52fd51b`, 242 steps, per-scenario terminal `PASS` rows and `MANIFEST.json` each, after one measured precondition drift (`tauri-driver` absent) was repaired to the documented `2.0.6 --locked` pin — a **new measurement after an environment repair, not a re-run to green**. ⛳ **THE COMMAND CENSUS RE-MEASURES ENG-0195 EXACTLY:** 27, by two agreeing routes, none of them invite, contact, handshake or messaging. ⚠⚠ **THREE OF THE BRIEF'S OWN PREMISES MEASURED FALSE and the single authorized edit was NOT MADE** — mockup-07 already carries both tiers (measured no-op), mockup-07b's tier-2 absence is a **standing operator ruling** guarded in both directions by a live test, and mockup-09 carries **no fingerprint presentation at all**. ⚠⚠ **THE LINKABILITY OPTION SET IS REFUTED AT ITS PREMISE:** `qsc` has been linked as a library since NA-0705, 42 call sites, and the real question is a **147-commit pin bump** across the invite-round-trip repair arc. ⚠⚠ **AND A CONTRADICTION THE BRIEF DOES NOT CONTAIN:** the ratified fingerprint design and the shipped `qsc` format disagree on the alphabet, the check character and the hash width, with the `QSCFP-` prefix the mockup records as removed still live in production. **Claim boundary:** no architecture is ruled, no compose-disabled driver is chosen, no colour or token is derived from any mockup, and nothing is merged by the seat. The operator merges.
 
-Status: READY (D-1387)
+Status: MERGING (PR #1775)
 Goals: G4 (verification and record as a release gate — **the property this lane adds: a design authority and the code it governs can disagree silently for weeks, because every test asserts on the app and none asserts on the design**), supporting G1 (protocol correctness, via the seam the GUI must cross to reach invite, handshake and messaging)

@@ -849,7 +849,7 @@ pub(crate) fn contacts_provision_from_invite(
     }
     let route_token = normalize_route_token(route_token)?;
     let fp = identity_fingerprint_from_identity(kem_pk, sig_pk);
-    let sig_fp = identity_fingerprint_from_pk(sig_pk);
+    let sig_fp = identity_fingerprint_single(FpRole::Sig, sig_pk);
     let rec = ContactRecord {
         fp: fp.clone(),
         status: "pinned".to_string(),
@@ -920,12 +920,13 @@ pub fn contacts_add(
                 Err(_) => return Err(CliError::code("contacts_sig_pk_bad_hex")),
             };
             let computed = identity_fingerprint_from_identity(&kem_bytes, &sig_bytes);
-            if !identity_pin_matches_seen(fp, &computed) {
+            // IDENTITY role: the combined fingerprint is the only value with a voice tier.
+            if !identity_pin_matches_seen_identity(fp, &computed) {
                 return Err(CliError::code("contacts_identity_fp_mismatch"));
             }
             (
                 Some(hex_encode(&kem_bytes)),
-                Some(identity_fingerprint_from_pk(&sig_bytes)),
+                Some(identity_fingerprint_single(FpRole::Sig, &sig_bytes)),
             )
         }
         (Some(kem_raw), None) => {
@@ -933,7 +934,9 @@ pub fn contacts_add(
                 Ok(b) => b,
                 Err(_) => return Err(CliError::code("contacts_kem_pk_bad_hex")),
             };
-            let computed = identity_fingerprint_from_pk(&bytes);
+            let computed = identity_fingerprint_single(FpRole::Kem, &bytes);
+            // KEM role: the PLAIN comparator. A single-key fingerprint has no sealed voice form,
+            // and one is nonetheless derivable from any 64-hex string -- the defence is ROUTING.
             if !identity_pin_matches_seen(fp, &computed) {
                 return Err(CliError::code("contacts_kem_pk_fp_mismatch"));
             }

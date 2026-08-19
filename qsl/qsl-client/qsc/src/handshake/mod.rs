@@ -3,16 +3,17 @@
 use crate::output::{CliError, CliResult};
 use super::{
     cmd::HandshakeSuiteMode, config_dir, emit_marker, enforce_peer_not_blocked,
-    enforce_safe_parents, fs, hex_encode, identity_fingerprint_from_identity, identity_marker_display,
-    identity_peer_status, identity_pin_matches_seen, identity_read_peer_kem_pk, identity_read_pin,
+    enforce_safe_parents, fs, identity_fingerprint_from_identity,
+    identity_fingerprint_single, identity_peer_status, identity_pin_matches_seen,
+    identity_pin_matches_seen_identity, identity_read_peer_kem_pk, identity_read_pin,
     identity_read_sig_pin, identity_self_kem_keypair, init_from_base_handshake, kmac_out,
         qsp_send_ready_tuple, qsp_session_load, qsp_session_store, relay_peer_route_token,
     relay_self_inbox_route_token, require_unlocked, resolve_peer_device_target,
     runtime_pq_kem_ciphertext_bytes, runtime_pq_kem_keypair, runtime_pq_kem_public_key_bytes,
     runtime_pq_sig_keypair, runtime_pq_sig_public_key_bytes, runtime_pq_sig_signature_bytes,
-    transport, vault, vault_unlocked, Deserialize, ErrorCode, Hash, IdentityKeypair, OsRng, Path,
+    transport, vault, vault_unlocked, Deserialize, ErrorCode, IdentityKeypair, OsRng, Path,
     PathBuf, PqKem768, PqSigMldsa65, RngCore, Serialize, StdCrypto, Suite2SessionState, X25519Dh,
-    X25519Priv, X25519Pub, IDENTITY_FP_PREFIX, SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID,
+    FpRole, X25519Priv, X25519Pub, SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID,
 };
 
 // NA-0741 (D-1376): `pub(crate)` so `frameclass::classify` can reference the magic
@@ -705,8 +706,11 @@ fn hs_decode_confirm_pending(
 }
 
 fn emit_peer_mismatch(peer: &str, pinned_fp: &str, seen_fp: &str) {
-    let pinned_display = identity_marker_display(pinned_fp);
-    let seen_display = identity_marker_display(seen_fp);
+    // NA-0749: the marker fields `pinned_fp` / `seen_fp` now carry the CANONICAL FULL FORM.
+    // The display helper that rendered the retired verification code is gone with it; a field
+    // named `fp` carrying something that was not a fingerprint was the shape being repaired.
+    let pinned_display = pinned_fp.to_string();
+    let seen_display = seen_fp.to_string();
     emit_marker(
         "identity_mismatch",
         None,
@@ -930,12 +934,6 @@ fn hs_confirm_mac(
     kmac_out::<32>(&c, k_confirm, "QSC.HS.A2", &data)
 }
 
-fn hs_sig_fingerprint(sig_pk: &[u8]) -> String {
-    let c = StdCrypto;
-    let hash = c.sha512(sig_pk);
-    format!("{}{}", IDENTITY_FP_PREFIX, hex_encode(&hash[..16]))
-}
-
 fn hs_sig_msg_b1(session_id: &[u8; 16], th: &[u8; 32]) -> Vec<u8> {
     let mut data = Vec::with_capacity(4 + 2 + 1 + 16 + 32);
     data.extend_from_slice(b"QSC.HS.SIG.B1");
@@ -995,17 +993,17 @@ where
         Ok(Some(pinned)) => {
             #[cfg(qsc_binding_fuzz_helper)]
             let pin_matches = {
-                let _canonical_pin_matches = identity_pin_matches_seen(pinned.as_str(), seen_fp);
-                crate::adversarial::binding_fuzz::trusted_pin_matches_seen(pinned.as_str(), seen_fp)
+                let _canonical_pin_matches = identity_pin_matches_seen_identity(pinned.as_str(), seen_fp);
+                crate::adversarial::binding_fuzz::trusted_pin_matches_seen_identity(pinned.as_str(), seen_fp)
             };
             #[cfg(not(qsc_binding_fuzz_helper))]
-            let pin_matches = identity_pin_matches_seen(pinned.as_str(), seen_fp);
+            let pin_matches = identity_pin_matches_seen_identity(pinned.as_str(), seen_fp);
             if !pin_matches {
                 emit_peer_mismatch(peer, pinned.as_str(), seen_fp);
                 emit_marker("handshake_reject", None, &[("reason", "peer_mismatch")]);
                 return Err("peer_mismatch");
             }
-            let fp_display = identity_marker_display(seen_fp);
+            let fp_display = seen_fp.to_string();
             emit_marker(
                 "identity_ok",
                 None,
@@ -1014,7 +1012,7 @@ where
             Ok(())
         }
         Ok(None) => {
-            let fp_display = identity_marker_display(seen_fp);
+            let fp_display = seen_fp.to_string();
             emit_marker(
                 "identity_unknown",
                 None,
@@ -1108,7 +1106,7 @@ where
                 emit_marker("handshake_reject", None, &[("reason", "peer_mismatch")]);
                 return Err("peer_mismatch");
             }
-            let fp_display = identity_marker_display(seen_fp);
+            let fp_display = seen_fp.to_string();
             emit_marker(
                 "identity_ok",
                 None,
@@ -1867,7 +1865,7 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                             emit_marker("handshake_reject", None, &[("reason", "sig_invalid")]);
                             return Ok(());
                         }
-                        let sig_fp = hs_sig_fingerprint(&resp.sig_pk);
+                        let sig_fp = identity_fingerprint_single(FpRole::Sig, &resp.sig_pk);
                         let Some(peer_fp) = pending.peer_fp.as_deref() else {
                             emit_marker(
                                 "identity_unknown",
@@ -2259,7 +2257,7 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                 // NA-0634 (D571 Decision 2a): the responder pins the initiator's FULL identity (KEM +
                 // signing) against the single combined verification code — binding init.sig_pk too.
                 let peer_fp = identity_fingerprint_from_identity(&init.kem_pk, &init.sig_pk);
-                let peer_sig_fp = hs_sig_fingerprint(&init.sig_pk);
+                let peer_sig_fp = identity_fingerprint_single(FpRole::Sig, &init.sig_pk);
                 if hs_require_primary_identity_pin(peer, peer_fp.as_str(), identity_read_pin)
                     .is_err()
                 {

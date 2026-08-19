@@ -401,6 +401,24 @@ pub fn trusted_pin_matches_seen(pinned: &str, seen_fp: &str) -> bool {
     pinned.eq_ignore_ascii_case(seen_fp)
 }
 
+/// NA-0749 (`R362` §3, MINOR-K): the IDENTITY-role shadow.
+///
+/// ⚠ Without this the harness stops modelling production. Under `--cfg qsc_binding_fuzz_helper`
+/// (which `scripts/ci/qsc_adversarial.sh` sets) the handshake's DECISION comes from this module, so
+/// a shadow that knows only the full form would REFUSE a voice-form pin that production ACCEPTS —
+/// the adversarial job would be exercising a comparator production no longer has.
+pub fn trusted_pin_matches_seen_identity(pinned: &str, seen_identity_fp: &str) -> bool {
+    let pinned = pinned.trim();
+    if pinned.is_empty() {
+        return false;
+    }
+    if pinned.eq_ignore_ascii_case(seen_identity_fp) {
+        return true;
+    }
+    let voice = crate::identity::identity_voice_form(seen_identity_fp);
+    !voice.is_empty() && pinned == voice
+}
+
 pub fn trusted_pin_reject_reason(pinned: &str, seen_fp: &str) -> Option<&'static str> {
     if trusted_pin_matches_seen(pinned, seen_fp) {
         None
@@ -516,9 +534,9 @@ fn classify_replay(category: BindingFuzzCategory, data: &[u8]) -> BindingFuzzOut
 }
 
 fn classify_stale_public_record(category: BindingFuzzCategory, data: &[u8]) -> BindingFuzzOutcome {
-    let seen = "QSCFP-00000000000000000000000000000000";
+    let seen = "0000000000000000000000000000000000000000000000000000000000000000";
     let pinned = if data.first().copied().unwrap_or(0) & 1 == 0 {
-        "QSCFP-ffffffffffffffffffffffffffffffff"
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
     } else {
         seen
     };

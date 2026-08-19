@@ -438,7 +438,7 @@ mod inapp_routing_tests {
     fn payload_lines_dropped_under_inapp() {
         let _g = routing_lock();
         set_marker_routing(MarkerRouting::InApp);
-        emit_raw_payload_line("identity_fp=QSCFP-na0700-payload-probe-0123456789");
+        emit_raw_payload_line("identity_fp=na0700payloadprobe0123456789abcdef0123456789abcdef0123456789ab");
         set_marker_routing(MarkerRouting::Stdout);
         assert!(
             drain_matching("na0700-payload-probe").is_empty(),

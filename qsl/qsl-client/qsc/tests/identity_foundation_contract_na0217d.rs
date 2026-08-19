@@ -130,40 +130,22 @@ fn relay_inbox_set(cfg: &Path, token: &str) {
     );
 }
 
-/// Second deliberate private reimplementation of
-/// `qsc::identity::format_verification_code_from_fingerprint` (the first is in
-/// `tests/identity_binding.rs`). Kept as a duplicate — NOT an import — for the same reason: the
-/// test computes its own expected code and feeds it to the CLI, so the separateness is what makes
-/// this a real check that the CLI and the formula agree rather than a tautology. It must be updated
-/// in LOCKSTEP with the production function — NA-0669 (C-1a) added the prefix strip below.
-fn verification_code_from_fingerprint(fingerprint: &str) -> String {
-    const CROCKFORD: &[u8; 32] = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-    const FP_PREFIX: &str = "QSCFP-";
-    let body = fingerprint.strip_prefix(FP_PREFIX).unwrap_or(fingerprint);
-    let mut chars = body
-        .chars()
-        .filter(|ch| ch.is_ascii_alphanumeric())
-        .map(|ch| ch.to_ascii_uppercase())
-        .collect::<Vec<char>>();
-    while chars.len() < 16 {
-        chars.push('0');
+/// Second deliberate private reimplementation of the production VOICE-form derivation (the first
+/// is in `tests/identity_binding.rs`). Kept as a duplicate — NOT an import — for the same reason:
+/// the test computes its own expected value and feeds it to the CLI, so the separateness is what
+/// makes this a real check that the CLI and the formula agree rather than a tautology. It must be
+/// updated in LOCKSTEP with the production function — NA-0749 replaced the retired 16-character
+/// code with the 30-digit voice form.
+fn voice_form_from_fingerprint(fingerprint: &str) -> String {
+    assert_eq!(fingerprint.len(), 64, "expected a 64-hex full form, got {fingerprint}");
+    const MODULUS: u128 = 1_000_000_000_000_000_000_000_000_000_000; // 10^30
+    let mut acc: u128 = 0;
+    for i in 0..20 {
+        let b = u8::from_str_radix(&fingerprint[i * 2..i * 2 + 2], 16).expect("hex");
+        acc = (acc * 256 + b as u128) % MODULUS;
     }
-    let code = chars.into_iter().take(16).collect::<String>();
-    let checksum_idx = code
-        .bytes()
-        .fold(0u32, |acc, byte| acc.saturating_add(byte as u32))
-        % 32;
-    let checksum = CROCKFORD[checksum_idx as usize] as char;
-    format!(
-        "{}-{}-{}-{}-{}",
-        &code[0..4],
-        &code[4..8],
-        &code[8..12],
-        &code[12..16],
-        checksum
-    )
+    format!("{acc:030}")
 }
-
 #[test]
 fn verification_code_pin_preserves_handshake_contract() {
     let base = absolute_test_root(&format!("na0217d_pin_code_{}", std::process::id()));
@@ -203,7 +185,7 @@ fn verification_code_pin_preserves_handshake_contract() {
         .lines()
         .find_map(|line| line.strip_prefix("identity_fp="))
         .expect("identity fp");
-    let alice_code = verification_code_from_fingerprint(alice_fp);
+    let alice_code = voice_form_from_fingerprint(alice_fp);
 
     let out_add = run_qsc(
         &bob_cfg,

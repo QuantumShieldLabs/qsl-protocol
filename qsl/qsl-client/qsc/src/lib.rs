@@ -155,12 +155,12 @@ use handshake::{
     hs_kem_keypair, hs_sig_keypair,
 };
 use identity::{
-    identities_dir, identity_fingerprint_from_identity, identity_fingerprint_from_pk,
-    identity_marker_display, identity_pin_matches_seen, identity_read_peer_kem_pk,
+    identities_dir, identity_fingerprint_from_identity, identity_fingerprint_single,
+    identity_pin_matches_seen, identity_pin_matches_seen_identity, identity_read_peer_kem_pk,
     identity_read_pin, identity_read_self_public, identity_read_sig_pin,
     identity_rotate_kem_keypair, identity_rotate_sig_keypair, identity_secret_store,
     identity_self_kem_keypair, identity_sig_secret_store, identity_write_public_record,
-    IdentityKeypair, IDENTITY_FP_PREFIX,
+    FpRole, IdentityKeypair,
 };
 use model::*;
 use output::{

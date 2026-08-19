@@ -294,7 +294,7 @@ fn desktop_gui_contact_device_surface_is_deterministic() {
             "--label",
             "bob",
             "--fp",
-            "QSCFP-test-bob",
+            "00000000000000000000000000000000000000000000000000000000000000b0",
             "--route-token",
             ROUTE_TOKEN_BOB,
         ])

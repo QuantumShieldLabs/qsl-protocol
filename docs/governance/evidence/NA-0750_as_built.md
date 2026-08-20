@@ -119,6 +119,25 @@ touched**, and the standing note that a predecessor *"had to update it"* describ
 re-pin, not a gate requirement**. ⇒ *a premise re-measured from the instrument's own bytes is what
 kept the enumeration intact.*
 
+## ⚠⚠ A SEVENTH DEFECT, AND IT IS THIS SEAT'S: "THE FULL SUITE" IS NOT "WHAT THE JOB RUNS"
+
+**The first push to qsl-desktop #31 went RED on `cargo fmt --all -- --check`.** CI's `rust` job runs
+**FOUR** gating steps — `fmt`, `test`, the test-inventory gate, `clippy --all-targets -- -D warnings`
+— enumerated from `.github/workflows/ci.yml`'s own bytes **after** the failure. **Two of the four had
+never been run locally.** SR-05's *"one full suite on the exact committed tree"* was honoured for
+step 2 and the gate was run for step 3; steps 1 and 4 were simply not considered.
+
+The defect was real and entirely cosmetic — **two line-length wraps rustfmt wanted in this lane's own
+new `#[cfg(test)] mod tests`**. It was diagnosed by reading the **job log's step banner**, not the
+check name: a `rust` FAILURE reads like *"the suite failed"*, and the suite was green. Fixed with
+`cargo fmt --all`, **confined to the file rustfmt named** (+7/−2 in `src-tauri/src/commands.rs`, no
+other file moved), after which all four steps ran green in CI's own order and the suite was
+**unchanged at 114 passed / 0 failed / 8 ignored**.
+
+⇒ **Enumerate a job's steps from the workflow's own bytes and run all of them.** The check that would
+have caught this costs one second and was skipped because *"the suite is green"* felt like
+completion. Recorded as SR-16 row **130**. Same family as *a step's NAME is not its failure reason*.
+
 ## CLAIM BOUNDARY
 
 One machine, the **build box**. The GUI harness proves the on-screen value's **shape**, never its

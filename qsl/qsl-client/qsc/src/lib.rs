@@ -117,6 +117,8 @@ pub mod cmd;
 pub mod contacts;
 pub mod dedup;
 pub mod envelope;
+// NA-0751 (D-1393): the GUI-facing typed facade. Calls; never edits.
+pub mod facade;
 pub mod fs_store;
 // NA-0741 (D-1376) lane 1: the receive-side frame classifier. Crate-private — it is an
 // internal dispatch aid, not a surface, and LANE 2 will call it from `invite/` and

@@ -160,3 +160,7 @@ tests/trust_remediation_ux_na0178.rs	1
 tests/two_client_local_runbook_na0182.rs	0
 tests/unlock_gate.rs	2
 tests/vault.rs	3
+tests/na0751_facade_connect_reason_totality.rs	1
+tests/na0751_facade_invite_surface.rs	1
+tests/na0751_facade_fact_fidelity.rs	1
+tests/na0751_facade_locked_control.rs	1

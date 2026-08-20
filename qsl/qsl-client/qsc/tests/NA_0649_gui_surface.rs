@@ -11,7 +11,7 @@
 // ENV_LOCK and resets that state up front.
 
 use qsc::identity::{
-    format_verification_code_from_fingerprint, identity_ensure, identity_fingerprint_from_identity,
+    identity_ensure, identity_fingerprint_from_identity, identity_voice_form,
     identity_read_self_public,
 };
 use qsc::model::ErrorCode;
@@ -350,15 +350,15 @@ fn widened_accessors_expose_identity_as_data() {
     assert_eq!(rec.kem_pk, created.kem_pk);
     assert_eq!(rec.sig_pk, created.sig_pk);
     let fp = identity_fingerprint_from_identity(&rec.kem_pk, &rec.sig_pk);
-    assert!(fp.starts_with("QSCFP-"));
+    // NA-0749: the full form carries NO prefix and is 64 lowercase hex.
+    assert_eq!(fp.len(), 64, "full form is 64 hex characters, got {fp}");
+    assert!(!fp.contains('-'), "full form carries no prefix or grouping, got {fp}");
 
-    // The verification code derives deterministically and keeps its shape.
-    let code = format_verification_code_from_fingerprint(&fp);
-    assert_eq!(code, format_verification_code_from_fingerprint(&fp));
-    let groups: Vec<&str> = code.split('-').collect();
-    assert_eq!(groups.len(), 5, "4 groups + checksum, got {}", code);
-    assert!(groups[..4].iter().all(|g| g.len() == 4));
-    assert_eq!(groups[4].len(), 1);
+    // The voice form derives deterministically and keeps its shape.
+    let code = identity_voice_form(&fp);
+    assert_eq!(code, identity_voice_form(&fp));
+    assert_eq!(code.len(), 30, "voice form is exactly 30 digits, got {code}");
+    assert!(code.chars().all(|c| c.is_ascii_digit()));
     assert!(code.chars().all(|c| c == '-' || c.is_ascii_alphanumeric()));
 
     // Cross-check the fp against the `identity_show` marker output.

@@ -125,7 +125,12 @@ fn identity_show_and_rotate_confirm() {
     assert!(out_show.status.success());
     let s_show = output_str(&out_show);
     assert!(s_show.contains("identity_show"));
-    assert!(s_show.contains("identity_fp=QSCFP-"));
+    let shown = s_show
+        .lines()
+        .find_map(|l| l.strip_prefix("identity_fp="))
+        .expect("identity_fp marker");
+    assert_eq!(shown.len(), 64, "NA-0749: the full form is 64 hex, got {shown}");
+    assert!(shown.chars().all(|c| c.is_ascii_hexdigit()));
     assert_no_secrets(&s_show);
 }
 
@@ -138,8 +143,8 @@ fn peers_list_deterministic_order() {
     ensure_dir_700(&cfg);
     init_mock_vault(&cfg);
 
-    add_contact(&cfg, "bob", "QSCFP-bbbbbbbbbbbbbbbb");
-    add_contact(&cfg, "alice", "QSCFP-aaaaaaaaaaaaaaaa");
+    add_contact(&cfg, "bob", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    add_contact(&cfg, "alice", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 
     let out = common::qsc_assert_command()
         .env("QSC_CONFIG_DIR", &cfg)

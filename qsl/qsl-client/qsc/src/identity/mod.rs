@@ -32,7 +32,6 @@ struct IdentityLegacyRecord {
 }
 
 const IDENTITY_DIR: &str = "identities";
-pub(super) const IDENTITY_FP_PREFIX: &str = "QSCFP-";
 
 #[cfg(qsc_rng_failure_test_seam)]
 const IDENTITY_LAZY_KEM_KEYPAIR_FAILURE_LABELS: &[&str] = &["QSC.IDENTITY.LAZY.KEM_KEYPAIR"];
@@ -122,25 +121,85 @@ pub(super) fn identity_self_path(dir: &Path, self_label: &str) -> PathBuf {
     identities_dir(dir).join(format!("self_{}.json", self_label))
 }
 
-pub(super) fn identity_fingerprint_from_pk(pk: &[u8]) -> String {
-    let c = StdCrypto;
-    let hash = c.sha512(pk);
-    let fp = &hash[..16];
-    format!("{}{}", IDENTITY_FP_PREFIX, hex_encode(fp))
+/// NA-0749 (`D-1391`, ruled at `R362` §1) — the role of a fingerprint, carried in its domain string.
+///
+/// ⚠ The role is NEVER recoverable from a rendered fingerprint: all three roles render as 64
+/// lowercase hex. It is fixed at the CALL SITE and must be passed, never sniffed.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub(crate) enum FpRole {
+    /// The combined identity fingerprint — the only role with a voice tier.
+    Identity,
+    /// The signing-key fingerprint stored as a contact's `sig_fp`.
+    Sig,
+    /// The KEM-only legacy fingerprint (`contacts add --kem-pk` without `--sig-pk`).
+    Kem,
 }
 
-/// NA-0634 (D571 Decision 2a): the FULL-IDENTITY verification code binds BOTH identity public keys —
-/// the ML-KEM identity key and the ML-DSA signing key — so the single out-of-band code a user compares
-/// authenticates the whole identity, not just its KEM half (closing the ENG-0038 signing-key asymmetry
-/// that C1 left open). Both keys are fixed-length, so the ordered concatenation `kem_pk || sig_pk` is an
-/// unambiguous pre-image; both parties compute it identically.
-pub fn identity_fingerprint_from_identity(kem_pk: &[u8], sig_pk: &[u8]) -> String {
+/// The version-and-role-bearing domain. It is ASCII and contains NO NUL byte, so in
+/// `DOMAIN || 0x00 || fields` the FIRST NUL is unambiguously the terminator whatever the fields
+/// contain — role and version separation hold BY CONSTRUCTION, not because the field lengths
+/// happen to differ.
+fn fp_domain(role: FpRole) -> &'static [u8] {
+    match role {
+        FpRole::Identity => b"qsl-fp-v1:identity",
+        FpRole::Sig => b"qsl-fp-v1:sig",
+        FpRole::Kem => b"qsl-fp-v1:kem",
+    }
+}
+
+/// `SHA-512( DOMAIN[role] || 0x00 || u64_be(len(f_1)) || f_1 || ... )`.
+///
+/// ⚠⚠ THE LENGTH PREFIX IS WHY THIS FUNCTION EXISTS. The construction this replaced hashed the bare
+/// concatenation `kem_pk || sig_pk`, which is injective over the CONCATENATION and not over the
+/// PAIR: every re-split of the same 3136 bytes is a different `(kem, sig)` producing an IDENTICAL
+/// fingerprint — 3136 of them, one carrying an attacker-chosen signing key behind a byte-identical
+/// read-aloud value. Nothing off the wire enforced the key lengths (`hex_decode` has no length bound
+/// and `contacts_add` checks none), so the ambiguity was reachable. `tests/na0749_fingerprint_
+/// conformance.rs` walks every split position and is the regression that keeps it closed.
+///
+/// u64 rather than the u16 that `invite::canonical_bundle_bytes` uses: a u16 prefix TRUNCATES above
+/// 65535 bytes and truncation would reintroduce the ambiguity. `usize -> u64` is lossless on every
+/// supported platform, so this cannot truncate and the function stays infallible.
+fn fp_digest(role: FpRole, fields: &[&[u8]]) -> [u8; 64] {
     let c = StdCrypto;
-    let mut buf = Vec::with_capacity(kem_pk.len() + sig_pk.len());
-    buf.extend_from_slice(kem_pk);
-    buf.extend_from_slice(sig_pk);
-    let hash = c.sha512(&buf);
-    format!("{}{}", IDENTITY_FP_PREFIX, hex_encode(&hash[..16]))
+    let domain = fp_domain(role);
+    let mut buf = Vec::with_capacity(
+        domain.len() + 1 + fields.iter().map(|f| 8 + f.len()).sum::<usize>(),
+    );
+    buf.extend_from_slice(domain);
+    buf.push(0x00);
+    for f in fields {
+        buf.extend_from_slice(&(f.len() as u64).to_be_bytes());
+        buf.extend_from_slice(f);
+    }
+    c.sha512(&buf)
+}
+
+/// The FULL form (C3): lowercase hex of the digest's first 32 bytes — 64 characters, 256-bit,
+/// NO prefix. Grouping and case are presentation and belong to consumers.
+fn fp_full(digest: &[u8; 64]) -> String {
+    hex_encode(&digest[..32])
+}
+
+/// A single-key fingerprint under its own role domain.
+///
+/// Replaces the two retired single-key constructors — one in this module, one in `handshake` —
+/// which were byte-identical constructions living in two modules with no domain separating them,
+/// so the formal model's "distinct domain" assumption was true only by the accident that
+/// `1184 != 1952`. It is now true by construction.
+pub(super) fn identity_fingerprint_single(role: FpRole, pk: &[u8]) -> String {
+    fp_full(&fp_digest(role, &[pk]))
+}
+
+/// NA-0634 (D571 Decision 2a): the FULL-IDENTITY fingerprint binds BOTH identity public keys — the
+/// ML-KEM identity key and the ML-DSA signing key — so the single out-of-band value a user compares
+/// authenticates the whole identity, not just its KEM half (closing the ENG-0038 signing-key
+/// asymmetry that C1 left open).
+///
+/// NA-0749: the ordered pair is now LENGTH-PREFIXED, so the pre-image is unambiguous for ANY pair of
+/// field lengths rather than only for the fixed ones the parameter set happens to give.
+pub fn identity_fingerprint_from_identity(kem_pk: &[u8], sig_pk: &[u8]) -> String {
+    fp_full(&fp_digest(FpRole::Identity, &[kem_pk, sig_pk]))
 }
 
 pub(super) fn identity_secret_name(self_label: &str) -> String {
@@ -603,65 +662,81 @@ pub fn identity_ensure(self_label: &str) -> Result<IdentityPublicRecord, ErrorCo
     Ok(IdentityPublicRecord { kem_pk, sig_pk })
 }
 
-pub fn format_verification_code_from_fingerprint(fingerprint: &str) -> String {
-    const CROCKFORD: &[u8; 32] = b"0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-    // NA-0669 (C-1a): strip the constant `QSCFP-` prefix BEFORE the alphanumeric filter. The
-    // filter drops the prefix's hyphen but KEEPS its five letters, so five of the sixteen
-    // displayed characters were constant and every code ever shown began `QSCF-P`. Stripping
-    // first takes the code from 11 varying hex characters (44 bits) to 16 (64 bits) at unchanged
-    // target width and unchanged `4-4-4-4-checksum` grouping. This function is `pub` and
-    // reachable from qsl-desktop, so a fingerprint that does NOT carry the prefix is left alone
-    // rather than assumed; the match is case-sensitive, exact parity with the `starts_with`
-    // guards at the two in-crate call sites.
-    let body = fingerprint
-        .strip_prefix(IDENTITY_FP_PREFIX)
-        .unwrap_or(fingerprint);
-    let mut chars = body
-        .chars()
-        .filter(|ch| ch.is_ascii_alphanumeric())
-        .map(|ch| ch.to_ascii_uppercase())
-        .collect::<Vec<char>>();
-    while chars.len() < 16 {
-        chars.push('0');
+/// NA-0749 (`D-1391`) — the VOICE form (C4): EXACTLY 30 decimal digits, leading zeros legal.
+///
+/// `int(digest[0..20], big-endian) mod 10^30`, derived from the FULL form's own bytes so that any
+/// holder of the rendered 64-hex string can compute it. That is load-bearing: `identity_pin_matches
+/// _seen_identity` and every out-of-crate consumer receive the fingerprint ONLY as a string, and the
+/// retired verification code had exactly this property.
+///
+/// ⚠⚠ PUBLISHED API. `identity` is a `pub mod`, so an out-of-crate caller can reach this. The `""`
+/// sentinel below is only safe if the CALLER refuses it: an out-of-crate caller MUST NOT compare the
+/// returned value against a user-supplied pin without first checking it is non-empty. In-crate the
+/// guard is applied at the call site as well, belt-and-braces.
+///
+/// Returns `""` — a sentinel no legitimate pin equals — for any input that is not a well-formed FULL
+/// form. Shape is checked FIRST, before any arithmetic.
+pub fn identity_voice_form(fp: &str) -> String {
+    // ⚠ Shape check FIRST. Two implementations are FORBIDDEN here and both are natural:
+    //   - zero-padding a short input and continuing, which makes a fixed voice value that an
+    //     attacker-pinned string equals for EVERY peer — a universal matcher;
+    //   - panicking / unwrapping on non-hex, which turns an attacker-supplied contact record into
+    //     a crash.
+    if fp.len() != 64 || !fp.bytes().all(|b| b.is_ascii_hexdigit()) {
+        return String::new();
     }
-    let code = chars.into_iter().take(16).collect::<String>();
-    let checksum_idx = code
-        .bytes()
-        .fold(0u32, |acc, byte| acc.saturating_add(byte as u32))
-        % 32;
-    let checksum = CROCKFORD[checksum_idx as usize] as char;
-    format!(
-        "{}-{}-{}-{}-{}",
-        &code[0..4],
-        &code[4..8],
-        &code[8..12],
-        &code[12..16],
-        checksum
-    )
+    let bytes = match hex_decode(fp) {
+        Ok(b) => b,
+        Err(_) => return String::new(),
+    };
+    if bytes.len() < 20 {
+        return String::new();
+    }
+    // The 160-bit reduction, done without a 160-bit type: a u128 Horner loop over the first 20
+    // bytes. The invariant is `acc < 10^30` after every step, and `10^30 < 2^100`, so the
+    // intermediate `acc * 256 + 255 < 2^108 < 2^128` and cannot overflow.
+    // ⚠ FORBIDDEN BY NAME: `u128::from_be_bytes(digest[0..16])` — it reads SIXTEEN bytes where this
+    // derivation takes TWENTY, and would silently produce a different value that still looks like a
+    // 30-digit number.
+    const MODULUS: u128 = 1_000_000_000_000_000_000_000_000_000_000; // 10^30
+    let mut acc: u128 = 0;
+    for &b in &bytes[..20] {
+        acc = (acc * 256 + b as u128) % MODULUS;
+    }
+    format!("{acc:030}")
 }
 
-pub(super) fn identity_marker_display(fp: &str) -> String {
-    if fp.starts_with(IDENTITY_FP_PREFIX) {
-        format_verification_code_from_fingerprint(fp)
-    } else {
-        fp.to_string()
-    }
-}
-
-#[allow(dead_code)]
+/// The pin comparator for EVERY role. Tier 1 only: the FULL form.
+///
+/// ⚠ The voice tier is deliberately NOT here. `sig` and `kem` fingerprints have no voice form
+/// sealed anywhere, and one is nonetheless derivable from any 64-hex string — so the defence is
+/// ROUTING, not the shape of `identity_voice_form`. A single-key site that called the identity
+/// comparator would silently accept a ~100-bit comparand for a role the design never sealed.
 pub(super) fn identity_pin_matches_seen(pinned: &str, seen_fp: &str) -> bool {
     let pinned = pinned.trim();
     if pinned.is_empty() {
         return false;
     }
-    if pinned.eq_ignore_ascii_case(seen_fp) {
+    pinned.eq_ignore_ascii_case(seen_fp)
+}
+
+/// The pin comparator for the COMBINED IDENTITY fingerprint, and only for it. Tier 1 (the full
+/// form) then tier 2 (the voice form) — the two renderings a user may have compared out of band.
+///
+/// ⚠ `trim()` binds ONCE, before BOTH tiers. Splitting the original single body is exactly how that
+/// invariant was lost once already: a trim applied inside the tier-1 helper is a local binding that
+/// never reaches tier 2, so a hand-typed voice form with a trailing space was refused while a padded
+/// full form was accepted.
+pub(super) fn identity_pin_matches_seen_identity(pinned: &str, seen_identity_fp: &str) -> bool {
+    let pinned = pinned.trim();
+    if pinned.is_empty() {
+        return false;
+    }
+    if pinned.eq_ignore_ascii_case(seen_identity_fp) {
         return true;
     }
-    if seen_fp.starts_with(IDENTITY_FP_PREFIX) {
-        let seen_code = format_verification_code_from_fingerprint(seen_fp);
-        return pinned.eq_ignore_ascii_case(seen_code.as_str());
-    }
-    false
+    let voice = identity_voice_form(seen_identity_fp);
+    !voice.is_empty() && pinned == voice
 }
 
 pub(super) fn identity_read_pin(peer: &str) -> Result<Option<String>, ErrorCode> {
@@ -701,4 +776,134 @@ pub(super) fn identity_read_peer_kem_pk(peer: &str) -> Result<Option<Vec<u8>>, E
         Some(h) => hex_decode(&h).ok(),
         None => None,
     })
+}
+
+#[cfg(test)]
+mod na0749_fingerprint_tests {
+    use super::*;
+
+    fn kem_pk() -> Vec<u8> {
+        (0..1184u32).map(|i| (i % 256) as u8).collect()
+    }
+    fn sig_pk() -> Vec<u8> {
+        (0..1952u32).map(|i| (255 - (i % 256)) as u8).collect()
+    }
+
+    // The sealed independent vector (`/srv/qbuild/operator/NA-0749/vector_v2/`), computed outside
+    // this codebase by a tool whose SHA-512 was validated against the published NIST vector before
+    // any lane value was produced, and corroborated by four engines in total.
+    const SEALED_IDENTITY_FULL: &str =
+        "d67b4a10510394ca268c9e8cfde8980fd6280dc8c379d4ea8c8642ac9a750349";
+    const SEALED_IDENTITY_VOICE: &str = "187363336018275058094178831816";
+    const SEALED_SIG_FULL: &str =
+        "c7251cb68ab0db6416e4ef3b3e9c372a6b63222587f22027ef12efbd75d58bab";
+    const SEALED_KEM_FULL: &str =
+        "f5f23dadc0acee52fb4da4528d7bbe49aa5e7ecd77b9ea6962b2981040246d98";
+
+    #[test]
+    fn na0749_single_key_roles_match_the_sealed_vector() {
+        assert_eq!(
+            identity_fingerprint_single(FpRole::Sig, &sig_pk()),
+            SEALED_SIG_FULL
+        );
+        assert_eq!(
+            identity_fingerprint_single(FpRole::Kem, &kem_pk()),
+            SEALED_KEM_FULL
+        );
+    }
+
+    /// The repair of the formal model's false premise: role separation must hold on IDENTICAL
+    /// material, not merely because the parameter set gives the two keys different lengths.
+    #[test]
+    fn na0749_roles_are_separated_on_identical_material() {
+        let m = sig_pk();
+        assert_ne!(
+            identity_fingerprint_single(FpRole::Sig, &m),
+            identity_fingerprint_single(FpRole::Kem, &m),
+            "role separation must not depend on the material differing"
+        );
+    }
+
+    // ---- W6: the comparator arms. B, C and G ACCEPT and prove nothing alone; A, D, E, F and H
+    // ---- are the seal, because a comparator that accepts everything passes every accepting arm.
+
+    #[test]
+    fn na0749_w6_a_old_format_pin_is_refused() {
+        // The retired format. Fails closed against a new-format fingerprint.
+        assert!(!identity_pin_matches_seen_identity(
+            "QSCFP-9069d8689203a5a1576fbc88a44a525e",
+            SEALED_IDENTITY_FULL
+        ));
+    }
+
+    #[test]
+    fn na0749_w6_b_c_correct_full_and_voice_forms_are_accepted() {
+        assert!(identity_pin_matches_seen_identity(
+            SEALED_IDENTITY_FULL,
+            SEALED_IDENTITY_FULL
+        ));
+        assert!(identity_pin_matches_seen_identity(
+            SEALED_IDENTITY_VOICE,
+            SEALED_IDENTITY_FULL
+        ));
+    }
+
+    #[test]
+    fn na0749_w6_d_a_wrong_but_well_formed_voice_form_is_refused() {
+        // Same shape, one digit different. This is the arm a comparator that accepts ANY 30-digit
+        // string would fail, and the arm the first draft of these seals did not have.
+        let wrong = "187363336018275058094178831817";
+        assert_eq!(wrong.len(), 30);
+        assert!(wrong.chars().all(|c| c.is_ascii_digit()));
+        assert!(!identity_pin_matches_seen_identity(wrong, SEALED_IDENTITY_FULL));
+    }
+
+    #[test]
+    fn na0749_w6_e_an_identity_voice_form_does_not_match_a_single_key_fingerprint() {
+        // The voice tier belongs to the combined identity fingerprint and to nothing else.
+        assert!(!identity_pin_matches_seen_identity(
+            SEALED_IDENTITY_VOICE,
+            SEALED_SIG_FULL
+        ));
+    }
+
+    #[test]
+    fn na0749_w6_f_malformed_seen_fingerprints_never_authenticate() {
+        // Totality: the sentinel must be unreachable as a match, on every malformed shape.
+        for bad in ["", "abc", "zz", &"z".repeat(64), &"a".repeat(63), &"a".repeat(65)] {
+            assert!(identity_voice_form(bad).is_empty(), "voice form of {bad:?} must be the sentinel");
+            assert!(!identity_pin_matches_seen_identity("", bad));
+            assert!(!identity_pin_matches_seen_identity("   ", bad));
+        }
+        // And the sentinel itself must never be offered successfully as a pin.
+        assert!(!identity_pin_matches_seen_identity("", SEALED_IDENTITY_FULL));
+    }
+
+    #[test]
+    fn na0749_w6_g_whitespace_padding_is_accepted_on_BOTH_tiers() {
+        // The trim binds ONCE, before both tiers. Splitting the original body once lost this: a
+        // padded FULL form was accepted while a padded VOICE form was refused.
+        let padded_full = format!("  {SEALED_IDENTITY_FULL}  ");
+        let padded_voice = format!("  {SEALED_IDENTITY_VOICE}  ");
+        assert!(identity_pin_matches_seen_identity(&padded_full, SEALED_IDENTITY_FULL));
+        assert!(identity_pin_matches_seen_identity(&padded_voice, SEALED_IDENTITY_FULL));
+    }
+
+    #[test]
+    fn na0749_w6_h_the_plain_comparator_refuses_its_own_derivable_voice_form() {
+        // ROUTING is the defence, not the shape of `identity_voice_form`: a voice form IS derivable
+        // for a single-key fingerprint, and the plain comparator must never accept it.
+        let sig_voice = identity_voice_form(SEALED_SIG_FULL);
+        assert_eq!(sig_voice.len(), 30, "a voice form IS derivable for the sig role");
+        assert!(
+            !identity_pin_matches_seen(&sig_voice, SEALED_SIG_FULL),
+            "the plain comparator must have no voice tier"
+        );
+    }
+
+    #[test]
+    fn na0749_voice_form_is_case_insensitive_over_the_full_form() {
+        let upper = SEALED_IDENTITY_FULL.to_ascii_uppercase();
+        assert_eq!(identity_voice_form(&upper), SEALED_IDENTITY_VOICE);
+    }
 }

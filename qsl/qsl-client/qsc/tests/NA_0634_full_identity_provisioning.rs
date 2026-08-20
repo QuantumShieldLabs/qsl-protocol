@@ -86,13 +86,23 @@ fn hex_encode(bytes: &[u8]) -> String {
     bytes.iter().map(|b| format!("{b:02x}")).collect()
 }
 
-/// Mirror of `identity_fingerprint_from_identity`: QSCFP- + hex(sha512(kem_pk || sig_pk)[..16]).
-/// `contacts add` accepts the raw QSCFP- form (identity_pin_matches_seen), so no Crockford formatting.
+/// Mirror of the production combined-identity fingerprint (NA-0749, `qsl-fp-v1`):
+/// `hex( sha512( "qsl-fp-v1:identity" || 0x00 || u64be(len kem) || kem || u64be(len sig) || sig )[..32] )`.
+/// `contacts add` accepts this full form directly, so no second rendering is needed here.
+/// ⚠ The u64-BE length prefixes are the whole point: without them the pre-image is ambiguous over
+/// where `kem` ends and `sig` begins.
 fn combined_fp(kem_hex: &str, sig_hex: &str) -> String {
-    let mut buf = hex_decode(kem_hex);
-    buf.extend_from_slice(&hex_decode(sig_hex));
+    let kem = hex_decode(kem_hex);
+    let sig = hex_decode(sig_hex);
+    let mut buf = Vec::new();
+    buf.extend_from_slice(b"qsl-fp-v1:identity");
+    buf.push(0x00);
+    buf.extend_from_slice(&(kem.len() as u64).to_be_bytes());
+    buf.extend_from_slice(&kem);
+    buf.extend_from_slice(&(sig.len() as u64).to_be_bytes());
+    buf.extend_from_slice(&sig);
     let hash = Sha512::digest(&buf);
-    format!("QSCFP-{}", hex_encode(&hash[..16]))
+    hex_encode(&hash[..32])
 }
 
 #[allow(clippy::too_many_arguments)]

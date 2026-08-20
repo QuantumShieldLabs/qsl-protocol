@@ -13,7 +13,8 @@ use std::process::Output;
 const ROUTE_TOKEN_ALICE: &str = "route_token_alice_na0476_binding";
 const ROUTE_TOKEN_BOB: &str = "route_token_bob_na0476_binding__";
 const CONTACTS_SECRET_KEY: &str = "contacts.json";
-const WRONG_SIG_FP: &str = "QSCFP-00000000000000000000000000000000";
+const WRONG_SIG_FP: &str =
+    "0000000000000000000000000000000000000000000000000000000000000000";
 const SUITE_PARAM_ID: u16 = 0x0001;
 
 fn ensure_dir_700(path: &Path) {

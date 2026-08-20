@@ -17,9 +17,30 @@
 //! The prohibition is per-file, the way the tree's own lanes scope it.)
 
 use std::path::{Path, PathBuf};
+use std::sync::{Mutex, MutexGuard, OnceLock};
 use std::{env, fs};
 
 use qsc::facade::{connect_status, contact_list, contact_requests, ConnectReason, FacadeError};
+
+/// ⚠ THE FILE GUARD, AND WHY IT IS HERE — this file's OWN BINARY is not enough.
+///
+/// Giving the locked control its own binary isolates it from other FILES. It does NOT isolate
+/// it from its own SIBLING TESTS, which cargo runs in PARALLEL THREADS of one process — and
+/// every one of them writes `QSC_CONFIG_DIR`, a process-global, and reads
+/// `VAULT_UNLOCKED_THIS_RUN` (`lib.rs:190`), a process atomic.
+///
+/// Measured, not hypothesised: under full-suite load
+/// `na0751_locked_pass_through_truth_the_override_is_scoped` read the FABRICATED session blob
+/// that `na0751_locked_override_arm_on_a_fabricated_blob` had pointed the process at, saw
+/// `session_invalid`, and the override correctly turned it into `VaultLocked` — so the
+/// assertion failed on a premise a sibling had destroyed, not on the facade. The three tests
+/// pass in isolation, which is exactly what makes the race dangerous rather than harmless.
+fn guard() -> MutexGuard<'static, ()> {
+    static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+    LOCK.get_or_init(|| Mutex::new(()))
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+}
 
 fn dir700(p: &Path) {
     fs::create_dir_all(p).unwrap();
@@ -44,6 +65,7 @@ fn fresh_cfg(tag: &str) -> PathBuf {
 
 #[test]
 fn na0751_locked_control_fires_on_a_genuinely_default_flag() {
+    let _g = guard();
     // (0) THE CONTROL'S OWN PRECONDITION, asserted FIRST and before anything could have set
     // it: the process unlock flag is default-false HERE. Without this line the whole file
     // could be passing against a forced flag.
@@ -88,6 +110,7 @@ fn na0751_locked_control_fires_on_a_genuinely_default_flag() {
 
 #[test]
 fn na0751_locked_pass_through_truth_the_override_is_scoped() {
+    let _g = guard();
     // ⚠ THE SECOND WINDOW TRUTH-CHECK. A fresh never-unlocked vault has NO session blob, so
     // `qsp_session_load` returns `Ok(None)` (`protocol_state:964`) and the tuple yields
     // `no_session` / `missing_seed` — NEVER `session_invalid`. The facade must therefore pass
@@ -116,6 +139,7 @@ fn na0751_locked_pass_through_truth_the_override_is_scoped() {
 
 #[test]
 fn na0751_locked_override_arm_on_a_fabricated_blob() {
+    let _g = guard();
     // ⚠ FABRICATED-STATE CONTROL, and it is stated as one. The `locked AND session_invalid`
     // arm cannot be reached from a fresh never-unlocked vault (see the test above), because
     // writing a real session blob needs the store key, which needs the vault unlocked or the

@@ -89,7 +89,7 @@ says the caller MUST perform.
   12 shards / missing 0 / unknown 0 / doc shard 11 with 0 co-tenant(s)`, `OK: manifest covers the census
   exactly`, rc 0. Linux shard 7 14→18, macOS shard 1 29→33; `doc:qsc` still ALONE in Linux 11 / macOS 4.
 
-## 6. TWO BUILD-TIME MISSES, RECORDED BEFORE THEY WERE TOUCHED
+## 6. THREE BUILD-TIME MISSES, RECORDED BEFORE THEY WERE TOUCHED
 
 1. The totality file's `session_invalid` arm returned `VaultLocked`. **The facade was right and the test was
    wrong:** that binary never unlocks, so the process flag is default-false and the override fired exactly as
@@ -101,4 +101,21 @@ says the caller MUST perform.
    WITHOUT loading a passphrase took the fallback branch. Same directory, two different keys.
    ⇒ **setting the unlock flag is not the same as unlocking.**
 
-Both are SR-16 rows 150 and 151. Neither was cured by adjusting an instrument to make a seal hit.
+3. ⚠⚠ **THE FULL SUITE ON THE COMMITTED TREE WENT RED, AND IT CAUGHT SOMETHING SUBSET-GREEN COULD
+   NOT.** `COMMITTED_RC=101`: `na0751_facade_locked_control.rs` failed its pass-through arm —
+   expected `NoSession` for a locked vault with no session blob, got `VaultLocked`, with a
+   `session_unsupported_version` marker proving it had READ a blob. It read the **fabricated** blob
+   its SIBLING test had just pointed the process at: cargo runs a binary's tests in PARALLEL
+   THREADS of one process, and each of the three writes `QSC_CONFIG_DIR`, a process-global.
+   ⇒ **Giving that file its own BINARY isolates it from other FILES, not from its own SIBLING
+   TESTS.** That is `E5`'s finding — the control's subject is a process atomic — applied one level
+   in and missed; files 1, 2 and 3 carry guards and this one did not.
+   DIAGNOSIS TESTED RATHER THAN ASSERTED: `--test-threads=1` passes, and three consecutive parallel
+   runs in isolation ALSO pass. **That does not refute the race — it shows the interleaving is rare
+   on an idle machine, which is what made it dangerous.** Cured by a file guard taken by all three
+   tests, which removes the possibility instead of relying on scheduling. The red run is preserved
+   at 444 as `RED_COMMITTED_qsc_suite_95c9b72a.log`.
+
+All three are SR-16 rows 150, 151 and 152. None was cured by adjusting an instrument to make a
+seal hit; the third was cured by repairing a real defect in this lane's own test file, and the
+full suite is what found it.

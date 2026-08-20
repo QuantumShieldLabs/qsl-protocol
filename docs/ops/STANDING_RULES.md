@@ -166,6 +166,40 @@ merge activated SR-14/15/16 together.)
   applied to the act of **WRITING** rather than **READING**; the reading half has been ratified for
   weeks and the writing half is the one that failed.
 
+- **SR-25 — THE BETTER-PATH RETROSPECTIVE (ADOPTED by OPERATOR ORDER of 2026-08-19; landed
+  NA-0750 / D-1392, ruled at `R365` §1).** Source banked at
+  `/srv/qbuild/operator/method/RBANK_better_path_retrospective_20260819.md`, sha256
+  `691fa3fdfbbdd10766175285bc1fa46e193257190aa5f04f26918008b2d0794f`. The rule body below is
+  **transcribed byte-verbatim from that file's own bytes**, with its single placeholder `SR-XX`
+  resolved to `SR-25` and a two-space list-continuation indent applied; both transforms were
+  inverted and diffed back against the source extraction (**EMPTY**), against a negative control
+  that returned non-empty.
+  ⚠ **CORRECTING APPEND, per §D's conflict rule.** `R310` (in `D-1363`) recorded *"the
+  constitution ends at SR-22 and that is now a decision, not a gap."* That sentence **disposed of
+  the SR-23 reservation** and is **NOT edited** — it stands as issued, and this append supersedes
+  it **in the open**. The superseding authority is the **OPERATOR'S ORDER of 2026-08-19**, which
+  outranks a Director ruling. **`SR-23` stays permanently reserved-and-unminted** (R310) and
+  **`SR-24` stays refused** (`R305` / `WF-0078`); **neither number is reused.**
+  ⚠ **AND A NUMBERING COLLISION IS DISPOSED HERE RATHER THAN LEFT TO OUTLIVE THE LANE.** The
+  operator-area proposal `PROPOSAL_CHAIR_BOUNDARIES_20260813.md` declares `SR-25` (*"Same sha is
+  not the same world"*) and `SR-26` (*"No pairing without a pre-flight"*) in this file's exact
+  declaring form, and its own `SR-24` names a **different** rule from directive 654's `SR-24`.
+  Its **substance** was adopted at `R288`; its **numbers** were never ruled, and it collides with
+  itself, so **it is not a numbering authority**. Those `SR-25`/`SR-26` number claims are
+  **RETIRED AS NUMBERS**. If any rule in it is ever adopted it takes a **fresh id derived at that
+  edit**.
+  SR-25 — THE BETTER-PATH RETROSPECTIVE (id derived at the edit; operator-ordered 2026-08-19).
+  At every lane close, the Director's clearance records one explicit answer to: "Knowing what
+  we know now, was there a BETTER path — judged on all three axes: a better OUTCOME (stronger
+  design, stronger evidence, more durable result), a better SEQUENCE (ordering, scope, or a
+  different thing worth doing instead), or a materially CHEAPER route to the same outcome —
+  and what would it have traded?" Each axis is answered, not skipped. Exactly one disposition
+  per axis, stated never implied: NONE FOUND · CANDIDATE (named and filed to the backlog
+  surface with its trade) · ADOPTED-FORWARD (the next brief changes, cited). A close without
+  the line is a defective close. The retrospective PROPOSES; it never enacts — method and
+  design changes ride the loop like everything else. INVARIANT no retrospective may trade
+  away: at least two independent instruments touch every load-bearing claim.
+
 ## C. ADOPTION LADDER (machinery items; one per checkpoint; each ships with its own red-capable proof)
 1. **Post-NA-0696 governance errand** (docs-only PR, with the ENG-0048 pairing window):
    lands THIS FILE at docs/ops/STANDING_RULES.md + PREDICTION_LEDGER.md + a ledger WF

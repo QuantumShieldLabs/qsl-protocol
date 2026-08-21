@@ -5653,3 +5653,17 @@ No variant split at const granularity can separate them; honouring the rule need
 
 - Cross-references: `ENG-0213` (the dual-provenance codes that make the wrapper impossible); `D-1393`; the ratified `MOCKUP_channel_establish_FAILURE_STATES.html`.
 - Source: the SR-15 re-read's `E10` and the third read's `B1`; ruled filed at `R370` §5 with its scope extended at `R371` §1.
+
+### ENG-0216 — ⚠ P3 — `cargo clippy -p qsc --all-targets -- -D warnings` IS **RED AT BASE** ON THIS REPOSITORY, AND NO REQUIRED CONTEXT GATES IT — **NEW; FILED NOT FIXED 2026-08-21 by NA-0751 (`D-1393`)**
+
+- Severity: **P3** — *the seat's grade, offered not ruled*: nothing misbehaves and no shipped behaviour is affected. It is filed because a lint gate that is red at base cannot tell a lane whether it made things worse, which is the property a lint gate exists to provide.
+- Status: open — **FILING ONLY.** The cleanup is a successor lane; whether clippy should become a required context at all is an OPERATOR call, not this lane's.
+
+**THE MEASUREMENT, taken by stashing this lane's entire change and re-running at the base.** At `3293c39a`, `cargo clippy -p qsc --all-targets -- -D warnings` exits **rc 101** with **27 lib errors** (28 for the lib-test target). Enumerated by class: **18** `redundant closure` · **6** `unneeded return statement` · **2** `this returns a Result<_, ()>` (`lib.rs:2688`, `bounded_retry`) · **1** `using contains() instead of iter().any()` · **1** `function ... should have a snake case name` (`identity/mod.rs:883`, `na0749_w6_g_whitespace_padding_is_accepted_on_BOTH_tiers`). **None of them is this lane's.**
+
+⛳ **THIS LANE'S OWN DELTA WAS MEASURED AND HELD AT ZERO, WHICH IS THE ONLY REASON THE FIGURE IS TRUSTWORTHY.** The first run with the facade in place returned **29**, i.e. a delta of exactly **two** `doc_lazy_continuation` errors in one doc block; those were repaired and the count re-measured at **27 = 27**. Without the stash-and-compare, "clippy is red" would have been indistinguishable from "this lane made clippy red".
+
+⚠ **WHY IT CAN SIT RED.** Measured live against branch protection, `qsl-protocol`'s required contexts are `ci-4a` `ci-4b` `ci-4c` `ci-4d` `ci-4d-dur` `CodeQL` `demo-cli-build` `demo-cli-smoke` `formal-scka-model` `goal-lint` `infra-literal-scan` `macos-qsc-qshield-build` `metadata-conformance-smoke` `public-safety` `suite2-vectors` — **there is no clippy context among them**, so nothing on the merge path ever observes the failure. (Contrast `qsl-desktop`, whose REQUIRED `rust` job runs `cargo clippy --all-targets -q -- -D warnings` as its fourth gating step — the same command is enforced there and unenforced here.)
+
+- Cross-references: `D-1393`; `ENG-0208` (the other required-context-set finding); the desktop `rust` job's step 4.
+- Source: measured by NA-0751 during its W10 pre-push, ruled filed at the Director's disposition of STOP 009 ask (C).

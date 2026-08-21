@@ -196,3 +196,47 @@ fn na0751_w11_the_expiry_overlay_and_its_boundary_second() {
     assert_eq!(after[0].state, InviteStateKind::Expired, "dead after expiry");
     qsc::set_vault_unlocked(false);
 }
+
+#[test]
+fn na0751_invite_revoke_commits_locally_and_the_list_is_how_a_screen_reads_it() {
+    let _g = guard();
+    let cfg = fresh("revoke");
+    set_env_once(&cfg);
+    qsc::vault::vault_init_with_passphrase(PASS).expect("vault init");
+    qsc::vault::unlock_with_passphrase(PASS).expect("unlock");
+    qsc::set_vault_unlocked(true);
+    qsc::identity::identity_ensure("self").expect("identity");
+
+    let relay = common::start_qsl_server(2 * 1024 * 1024, 512, None);
+    qsc::facade::invite_create(Some("self"), relay.base_url(), 3600).expect("mint");
+
+    let before = qsc::facade::invite_list().expect("list");
+    assert_eq!(before.len(), 1);
+    let id = before[0].invite_id.clone();
+    // `revocable` comes off the residual list here: the relay returns the one-shot revoke token
+    // at create, and the surface exposes only its PRESENCE.
+    assert!(before[0].revocable, "a freshly minted invite carries a revoke token");
+    assert_eq!(before[0].state, InviteStateKind::Active);
+
+    // ⛳ THE VERB. `Result<(), FacadeError>` — no structured outcome, because `invite_revoke`
+    // returns ONE FLAT VALUE and two of its codes are minted byte-identically on both sides of
+    // its internal commit boundary (`invite/mod.rs:919-921`). See `ENG-0215`.
+    qsc::facade::invite_revoke(&id).expect("revoke against the fixture");
+
+    // ⛳ AND THIS IS THE COMPOSITION PATTERN `E10` IS SATISFIED BY, EXECUTED ONCE: a screen that
+    // needs to tell "revoked here, relay pending" from "nothing happened" calls the list and
+    // reads the state. Here the relay call succeeded too, so the state is simply Revoked.
+    let after = qsc::facade::invite_list().expect("list after revoke");
+    assert_eq!(after.len(), 1, "revoke does not delete the record");
+    assert_eq!(
+        after[0].state,
+        InviteStateKind::Revoked,
+        "the local commit is visible through the list — the entry point of the composition pattern"
+    );
+    assert_eq!(after[0].invite_id, id, "same invite, new state");
+
+    // MUTATION-ADJACENT CONTROL: the arms differ. Before the call the state was Active; a test
+    // that asserted Revoked without having read Active first would not discriminate.
+    assert_ne!(before[0].state, after[0].state, "the revoke changed the observed state");
+    qsc::set_vault_unlocked(false);
+}

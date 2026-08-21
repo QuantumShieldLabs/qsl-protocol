@@ -89,7 +89,7 @@ says the caller MUST perform.
   12 shards / missing 0 / unknown 0 / doc shard 11 with 0 co-tenant(s)`, `OK: manifest covers the census
   exactly`, rc 0. Linux shard 7 14→18, macOS shard 1 29→33; `doc:qsc` still ALONE in Linux 11 / macOS 4.
 
-## 6. THREE BUILD-TIME MISSES, RECORDED BEFORE THEY WERE TOUCHED
+## 6. THE BUILD-TIME MISSES, RECORDED BEFORE THEY WERE TOUCHED
 
 1. The totality file's `session_invalid` arm returned `VaultLocked`. **The facade was right and the test was
    wrong:** that binary never unlocks, so the process flag is default-false and the override fired exactly as
@@ -119,3 +119,46 @@ says the caller MUST perform.
 All three are SR-16 rows 150, 151 and 152. None was cured by adjusting an instrument to make a
 seal hit; the third was cured by repairing a real defect in this lane's own test file, and the
 full suite is what found it.
+
+## 7. W8 AND W9 — SEALED, THEN FOUND UNINSTRUMENTED, THEN INSTRUMENTED
+
+The full suite went green with **`W8` and `W9` having no test at all**. It was found by a
+double-check of the seal list, not by the build — a green suite that never touches a seal is not
+evidence about that seal. Both now have instruments, in
+`tests/na0751_facade_contact_surface.rs`:
+
+- **`W8`** — a contact whose `fp` is the `UNSET` sentinel lists as typed absence
+  (`fingerprint == None`), with a mutation control showing that without the 64-hex guard the
+  published voice tier would be `identity_voice_form`'s empty sentinel.
+- **`W9`** — the displayed `fingerprint.full` EQUALS `identity_peer_status(..).0`, the exact
+  string the pin comparison consumes, with a mutation control on an EARLY byte.
+
+⚠ **The deviation, stated:** `R373` §2(a) asks for a freshly-accepted request. That path is
+measured unreachable single-party (see `D-1393`), so the IDENTICAL state was driven and the verb
+exercised on its reachable `NotFound` arm.
+
+**FOUR FINDINGS CAME OUT OF THE FAILURES, none a defect in shipped code:**
+1. `contacts_add` requires a route token — the auto-mint path was retired (D616 §2m). The rule is
+   22..=128 chars of `[A-Za-z0-9_-]` (`adversarial/route.rs:24`).
+2. `contact_request_block` does NOT behave like `accept`/`ignore`: on an unknown alias it
+   CONSTRUCTS a `REVOKED`/`blocked` record and returns `Ok(())`. The test pins the asymmetry, and
+   in doing so makes `M5`'s divergence visible — raw `status` REVOKED vs `contact_state()`'s
+   CHANGED, and the facade ships the latter.
+3. `contacts_add(.., verify = false)` pins by default, so a contact can be `PINNED` with no
+   displayable fingerprint at all — trust state and fingerprint are independent.
+4. The voice tier reduces the FIRST 20 BYTES only (≈100 bits), so a trailing-byte change leaves it
+   IDENTICAL. That is the ratified design; the test pins BOTH directions.
+
+## 8. W10's THREE EXCEPTIONS, WITH THE NINE CI-ONLY STEPS NAMED
+
+`CodeQL` — zero producer bytes across the repository's sixteen workflows (case-insensitive,
+measured twice); post-push GitHub-side analysis; nothing local stands in.
+`macos-qsc-qshield-build` — `runs-on: macos-latest` (`macos-build.yml:59`); the same cargo targets
+ran on Linux inside `ci-4a` as a LABELED PROXY, platform gap stated.
+`public-safety` — PARTIAL: 5 of 14 steps run locally (denylist filename scan · high-confidence
+credential content scan · vector JSON parse sanity · markdown relative-link check · vector JSON
+structure sanity). The NINE structurally CI-only steps are: two `actions/checkout` steps; `Require
+classify success` and `Require advisories success`, which read `needs.*.result`; the two
+`public_safety_gate.py` steps (`list-pr-files`, `scan-pr-changes`), which need
+`$GITHUB_REPOSITORY` and a live PR number; the main-red blocking step; the push-only full-suite
+waiter; and the docs/governance-only echo.

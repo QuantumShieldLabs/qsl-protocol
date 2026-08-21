@@ -141,3 +141,4 @@ tests/na0751_facade_connect_reason_totality.rs	7
 tests/na0751_facade_invite_surface.rs	7
 tests/na0751_facade_fact_fidelity.rs	7
 tests/na0751_facade_locked_control.rs	7
+tests/na0751_facade_contact_surface.rs	7

@@ -162,3 +162,59 @@ classify success` and `Require advisories success`, which read `needs.*.result`;
 `public_safety_gate.py` steps (`list-pr-files`, `scan-pr-changes`), which need
 `$GITHUB_REPOSITORY` and a live PR number; the main-red blocking step; the push-only full-suite
 waiter; and the docs/governance-only echo.
+
+---
+
+## 9. CORRECTION, APPENDED BY NA-0752 (D-1394; ordered at R374 §6) — TWO SECTIONS ABOVE WENT STALE
+
+**MARK, DON'T REWRITE. Every byte of §§1-8 above is UNMODIFIED**; this section corrects them in
+the open, beside them, exactly as a fenced ruling is never edited to match a later figure. A
+successor reading §2 or §5 cold gets a wrong number for the tree that shipped, and this section
+is how they find out.
+
+**THE CAUSE, and it is the transferable part.** Commits `aa2af706` and `cfb58c90` *added* §6(3),
+§7 and §8 to this document. **Adding a new section is NOT the same as revisiting the sections the
+new work INVALIDATED.** §2 and §5 were left describing the 140-row tree while the shipped tree is
+141. The document internally tells the story — §7 records the fifth test binary — but the two
+sections whose entire job is to be exhaustive are the ones that went stale. Same family as
+"an enumeration is a description of the record, not the record".
+
+**§2, "THE EDIT SET, AND NOTHING OUTSIDE IT" — TWO CORRECTIONS.**
+
+1. The list at lines 31-34 names **four** `na0751_facade_*` test files. **FIVE shipped.** The
+   absent one is:
+
+       qsl/qsl-client/qsc/tests/na0751_facade_contact_surface.rs           NEW
+
+   (§7 of this document already records that fifth binary; §2 was never revisited.)
+
+2. Lines 35-36 read `+4 rows` for both shard manifests. **The tree holds `+5` in each:**
+
+       scripts/ci/QSC_SHARD_MANIFEST.txt           +5 rows (shard 7)
+       scripts/ci/QSC_SHARD_MANIFEST_MACOS.txt     +5 rows (shard 1)
+
+**§5's SHARD-GATE BULLET (lines 88-90) — THREE CORRECTIONS.**
+
+| §5 says | the tree holds |
+|---|---|
+| `census 140 targets / manifest 140 rows` | **141 / 141** |
+| `Linux shard 7 14→18` | `14→`**`19`** |
+| `macOS shard 1 29→33` | `29→`**`34`** |
+
+⚠ **A UNIT TRAP THAT MAKES 141 LOOK LIKE 140.** The 141st manifest row is `doc:qsc`, which prints
+as `Doc-tests qsc` and **never** as a `Running` line. Checking `Running` lines against 141 reads a
+false miss at 140. The reconciliation is `Running` + 1 doctest: base 135 + 1 = 136 rows; the
+shipped tree 140 + 1 = **141**.
+
+**BLAST RADIUS — MEASURED, NOT ASSUMED, at the time the defect was found:** **CI: NONE** —
+`qsc_shard_check.py` reads the two manifests and the live census and never this document; it
+measured **141 / 141, rc 0**, and both shard-manifest gates were PASS on #1780. **Code: NONE.**
+**Records: REAL** — which is why this correction exists.
+
+⚠ **RECORDED AND DELIBERATELY NOT FIXED (R374 §6, item 4's fifth finding):** three STALE
+SELF-DESCRIPTIONS remain in the tree, all of them NAMES rather than assertions, nothing red:
+the IPC test named `all_27_registered_commands_…` against 26 registered before NA-0751 and 38
+after; `gui_driver.rs`'s `M = 6` module doc against 7 flows (8 after NA-0752); and the CI step
+named *"the six flows"*, which runs `--ignored` unfiltered and therefore executes all of them.
+They are cosmetic, they are owed, and they are **out of NA-0752's enumeration** — recorded here
+so the debt is visible rather than forgotten.

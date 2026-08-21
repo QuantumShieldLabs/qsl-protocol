@@ -4243,6 +4243,59 @@ The wrapper derives its watchdog coverage from the suite ceilings (`COVERAGE = M
 
 ### ENG-0187 — P2 — `relay_auth_uses_account_token_file_when_env_missing` fails non-deterministically on macOS, and D-1360 makes that flake able to red MAIN — **NEW; filed 2026-08-14 by NA-0724 (D-1360; ordered at R300.4)**
 
+⚠⚠ **INSTANCE 2 OBSERVED 2026-08-21 — AND IT MATERIALLY WIDENS THIS ENTRY'S SCOPE.** Recorded by
+NA-0752 (`D-1394`, ordered at `R374` §5); measured by NA-0751 at protocol main `9dcded4d`.
+**THE TITLE ABOVE NAMES ONE TEST. THE NON-DETERMINISM IS NOT CONFINED TO IT.**
+
+- **Instance 1** (this entry as filed): `relay_auth_uses_account_token_file_when_env_missing` at
+  `tests/relay_auth_header.rs:815` — the **recv** sub-process,
+  `assert!(recv_output.status.success(), …)`.
+- **Instance 2**: `relay_auth_with_token_send_receive_ok_and_no_secret_leak` at
+  **`tests/relay_auth_header.rs:644`** — the **send** sub-process,
+  `assert!(send_output.status.success(), "send should succeed with token")`.
+
+⇒ It spans **at least two tests in the same file and BOTH the send and recv sub-process
+assertions**. That STRENGTHENS this entry's own hypothesis — a relay-fixture readiness / port /
+`/tmp` density race under sharding — and WEAKENS any reading that pins it to one test's fixture.
+⇒ **THE REMEDY MUST SCOPE TO THE FILE / MECHANISM, NOT TO THE TEST THIS TITLE NAMES.**
+
+The match is exact on every structural axis:
+
+| axis | instance 1 | instance 2 |
+|---|---|---|
+| file | `tests/relay_auth_header.rs` | same file |
+| shard | macOS shard 2 (Linux shard 8) | same shard pairing |
+| assertion shape | `assert!(recv_output.status.success(), …)` | `assert!(send_output.status.success(), …)` |
+| platform | macOS only; Linux green same commit | macOS only; Linux green same sha |
+| runtime | 52.35 s — faster than serial, not a timeout | 49.31 s — same, not a timeout |
+
+**THE FORESEEN COST FIRED EXACTLY AS THIS ENTRY PREDICTED.** NA-0751's merge was the first
+non-docs push to land after the flake recurred, and the cascade ran
+`macos-qsc-shard-2` → `macos-qsc-sharded-suite` → **`public-safety`, a REQUIRED context** — i.e.
+main went red. The merge is the *occasion*, not the *cause*. Attribution rests on three
+independent controls, not on history: macOS shard 2's 36 targets were byte-unchanged by that
+merge (all five new binaries went to shard 1); the exact test passed locally on `cfb58c90`, main's
+own second parent (4 passed / 0 failed / 27.67 s); and the exact test passed on **Linux CI at the
+same sha**, all 12/12 Linux shards green including `qsc-shard-8` where the file lives.
+⚠ **NOT CLAIMED: that instance 2 is flake.** No re-run was performed by the observing seat, and
+`R332.1`'s three-condition test governs whether one would even be legitimate.
+⛳ **The red DID clear**: re-measured at the same sha `9dcded4d` by NA-0752, check-runs read
+**69 completed, all success** — the three settled green at 16:18Z on 2026-08-21, about an hour
+after the observation was written. *A recorded blocker is base-scoped; re-measure it.*
+
+> Context, operator-measured 2026-08-21 [O]: the #1767 MERGE PUSH to main also failed both
+> push workflows — macos-qsc-sharded-suite run 32149318386 at 1m10s elapsed (vs ~70m for a
+> full run of the same suite, run 32489690454) and public-ci run 32149318361 at 3m41s — a
+> setup-class death before any shard test could run; a distinct, earlier failure on main, NOT
+> an instance of this entry's mechanism.
+
+⚠ **PROVENANCE OF THAT CONTEXT, because a figure without its instrument is how this program gets
+into trouble:** it is a **workflow-RUN** duration from `gh run list`, not a PR check-run. NA-0752
+swept #1767's check-runs and found 4 s / 24 s / 4 s / 7 s and nothing near 1m10s — the sweep was
+CORRECT and could not have found it, because it was looking at the wrong object class. The seat
+refused to land the figure unsourced and raised it; the Director supplied the instrument. **State
+the instrument beside the figure, always.**
+
 - Severity: **P2** (test non-determinism; **no runtime, protocol or security impact** — but after D-1360 it can red main, and a gate that fails at random teaches reviewers to disbelieve reds, which is the expensive part)
 - Status: open — **nothing was fixed, and the test was NOT touched** (outside D-1360's enumerated edit set; SR-02). Filed at Director instruction (R300.4).
 - Exact surface: `qsl/qsl-client/qsc/tests/relay_auth_header.rs:815` — `assert!(recv_output.status.success(), "{recv_out}")`. The `recv` sub-process exits non-zero and its own marker names the cause: `QSC_MARK/1 event=error code=relay_inbox_bad_request`, after `event=recv_start` and `event=recv_ack_mode mode=lease`. macOS shard 2 (Linux shard 8).
@@ -5667,3 +5720,70 @@ No variant split at const granularity can separate them; honouring the rule need
 
 - Cross-references: `D-1393`; `ENG-0208` (the other required-context-set finding); the desktop `rust` job's step 4.
 - Source: measured by NA-0751 during its W10 pre-push, ruled filed at the Director's disposition of STOP 009 ask (C).
+
+### WF-0088 — ⚠⚠ A STALE LOCAL MIRROR FAILS **SILENTLY**: THE TARGET SHA IS SIMPLY ABSENT, NOTHING ERRORS, AND EVERY LATER MEASUREMENT LOOKS CORRECT — **NEW; filed 2026-08-21 by NA-0752 (`D-1394`; ordered at `R374` §1; the finding is NA-0751 STOP 013 §7(1)'s, widened here by measurement)**
+
+⚠ **HISTORY LINE, so no future sweep trips on the old mentions:** the numeral `WF-0088` was once
+discussed for DIFFERENT content and the MINTING was **refused at `R353` §9** (that content became
+an amendment to `WF-0087` instead). It was never declared. **This entry is its first actual
+declaration.** Ruled at `R374` §1: refusing to mint an id is not the same act as burning the
+numeral, and skipped numbers breed exactly the ambiguity the SR-23/24/25 history cost us.
+
+- Severity: **P2** (no runtime, protocol or security impact — but it silently mis-bases an entire lane, and the failure mode is *everything looks right*).
+- Status: open — **FILING ONLY.** The cure is a discipline, already applied by this lane; no tooling change is proposed here.
+
+**THE DEFECT.** A seat that branches from `/srv/qbuild/mirrors/<repo>.git` gets whatever `main`
+the mirror last fetched. When the mirror is behind, the target sha is **not present at all** — and
+nothing says so. `git clone` exits 0, the checkout succeeds, `git log` shows a plausible history,
+and every subsequent measurement is internally consistent **and wrong**. There is no error
+anywhere; the only tell is a sha that nobody compared.
+
+**MEASURED 2026-08-21 at protocol main `9dcded4d` / desktop main `e97c8f55`:**
+
+| mirror | its `main` | age | contains its repo's CURRENT base? |
+|---|---|---|---|
+| `mirrors/qsl-desktop.git` | `11e8e17c` (2026-08-08) | 13 days, **four** merges behind | **NO** |
+| `mirrors/qsl-protocol.git` | `241eec97` (2026-08-18) | 3 days, **five** merges behind | **NO** |
+
+⚠⚠ **THE WIDENING, AND IT IS THE POINT.** NA-0751 STOP 013 §7(1) recorded this for the **desktop**
+mirror only. Measured here, **BOTH mirrors fail the same way** — the protocol one had never been
+noticed. And the sharpest part is the **positive controls**: `ee03edad` and `3293c39a`, the
+*previous* lane's bases and long since merged, are **also absent** from their mirrors. So the
+condition is not "the mirror is one lane behind"; it is "the mirror is unrelated to current truth
+and cannot be reasoned about by recency."
+
+**THE CURE, and it has two halves — the second is the one that gets skipped.**
+1. Clone or fetch from the **NAMED** GitHub remote, never from the mirror, for any lane that bases
+   on current `main`. (⚠ A seat checkout's `origin` may itself BE the local mirror — check the
+   remote's URL, not its name.)
+2. **VERIFY THE LANDED HEAD BY SHA COMPARISON against a bare `ls-remote`, unpiped — not by the
+   clone's exit code.** Half one without half two still passes silently if the fetch is partial.
+
+- Cross-references: `WF-0087` (the same family: an instrument narrower than the claim it is offered for); NA-0751 STOP 013 §7(1); `D-1394`.
+- Source: measured by NA-0752 at STOP 002 §1 FINDING 1, with both positive controls run.
+
+### WF-0089 — ⚠⚠ THE DESKTOP `Cargo.lock` DOES NOT ROUND-TRIP UNDER `cargo update`, AND A LANE THAT SKIPS THE ZERO-CHANGE CONTROL WILL BLAME ITS OWN PIN BUMP — **NEW; filed 2026-08-21 by NA-0752 (`D-1394`; ordered at `R374` §1; the finding is NA-0751 STOP 013 §7(2)'s)**
+
+- Severity: **P2** (no runtime impact; it corrupts *attribution*, which is how a lane ships an unexplained lock diff or spends a day chasing its own tooling).
+- Status: open — **FILING ONLY.** `qsl-desktop`-scoped. The workaround is stated below and was used by NA-0751.
+
+**THE DEFECT.** Running `cargo update -p qsc` in `qsl-desktop` moves **six `windows-sys`
+`0.61.2 → 0.59.0` edges** in unrelated crates, in addition to the two pin lines the lane intends.
+A lane reading that diff concludes its bump pulled a dependency backwards.
+
+⛳ **IT DID NOT, AND THE CONTROL IS WHAT PROVES IT.** With the **OLD pin unchanged** — cargo
+reporting *"Locking 0 packages"* — **the same six edges move.** The drift is a property of
+regenerating the lock on this machine's resolver state, not of any pin. ⇒ **the bump is exonerated
+by a control, not by argument.**
+
+**HOW TO APPLY.**
+- Regenerate the lock with `cargo metadata` (minimal) so only the intended lines move, and land
+  **only** the pin lines.
+- ⚠ **Before attributing ANY lock movement to your change, run the zero-change control**: leave the
+  pin as-is, regenerate, and see what moves anyway. **A lane that skips it will blame itself.**
+- Same shape as the rule that a negative result is evidence only if the instrument could have
+  returned positive: a lock diff is evidence of *your* change only if an unchanged pin produces a
+  clean one.
+
+- Cross-references: NA-0751 STOP 013 §7(2); desktop `D-0032`; `D-1394`.
+- Source: measured by NA-0751 during the #32 pin bump; filed here because NA-0751's enumeration did not authorize a filing.

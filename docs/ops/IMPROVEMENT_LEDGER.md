@@ -5126,6 +5126,8 @@ is the live queue block.
   repairs, whose documentation is class six's instance).
 - Amending lane: NA-0746 (D-1385). Last-updated: 2026-08-18.
 
+- ⚠⚠ **A DIRECTION THIS ENTRY DOES NOT COVER, AND IT IS THE OPPOSITE SHAPE: A *TRUE DECLARATION IN THE WRONG NAMESPACE*** (measured 2026-08-20 by NA-0751, `D-1393`, deriving the desktop's `D-0032`). Every instance above is a MENTION that a counting sweep misreads as a declaration, and the cure is to classify. This one inverts: **`- **ID:** D-0032` sits at column 0 in THIS repository's `DECISIONS.md:849`** — a real protocol decision dated 2026-01-01 about the NA-0015 demo CLI. The protocol D space runs from `D-0001` upward (**99 declarations ≤ `D-0100`**) and uses the **identical declaring form** as `qsl-desktop`'s. ⇒ a tree-wide or cross-repo grep for `D-0032` returns a **DECLARING form**, and would refuse the desktop's next id **with a plausible reason attached** — and no amount of mention-vs-declaration classification saves you, because it really is a declaration. **The discriminator is the NAMESPACE, not the form.** ⇒ **CURE: a per-repo id space is measurable ONLY inside that repo's own declaring file, and a maximum is stated together with the FILE it was taken over.** Confirmed at the same base: the desktop declaring form appears in exactly ONE file (30 declarations, all in `DECISIONS.md`), declared set `D-0001..D-0031`, with `D-0013` absent — the known gap that is not to be filled. **Recorded beside this entry rather than inside it: nothing above is rewritten.**
+
 ### ENG-0198 — ⚠ P3 — A RE-HANDSHAKE CAN SILENTLY NO-OP: `handshake poll` RETURNS rc 0 WHILE REJECTING EVERY FRAME IT PULLS AND COMPLETING NOTHING — **NEW; filed 2026-08-17 by NA-0743 (D-1381; measured as the E7 result at STOP 003 §3; ordered at R351 §2)**
 
 ⚠⚠ **THE DEFECT.** A re-handshake can **silently no-op**: `handshake poll` returns **rc 0** while rejecting every frame it pulls and completing nothing. The prior session **survives**, and `handshake status` then **truthfully reports it** — so **no observable distinguishes a completed rotation from a no-op**. The caller sees success; the rotation did not happen.
@@ -5480,7 +5482,7 @@ can disagree indefinitely, because the tests all sit on one side of the disagree
 - Severity: **P3** — *the seat's grade, offered not ruled*: a shape finding, not a defect. Nothing
   misbehaves. It is filed because it constrains how Slice 4's four screens can be built, and because
   the constraint is invisible until someone tries.
-- Status: open — **FILING ONLY.** No repair is designed here, and **no architecture is ruled**.
+- Status: open — **FILING ONLY.** No repair is designed here, and **no architecture is ruled**. ⚖ **CLOSED 2026-08-20 by NA-0751 (`D-1393`): the typed surface SHIPS.** `qsl/qsl-client/qsc/src/facade/mod.rs` answers the four Slice-4 screens' questions as types, so no screen parses a `CliResult` string row. **Nothing above this clause is rewritten.** ⚠ TWO THINGS THIS ENTRY MUST RECORD, because each is a DECISION and would otherwise read as a gap. (i) **`qsp_send_ready_tuple` is NOT exposed, and neither is any renaming of it** — `R334.3` and NA-0705 F6 stand. (ii) **NO conversation-readiness struct ships at all.** The obvious field, `peer_confirmed` derived as `recv.nr != 0`, CONTRADICTS the shipped `peer_confirmed`, whose real rule is `(!send_ready) || (recv.nr != 0)` (`handshake/mod.rs:1303-1311`) — an existing green test pins the divergent state at `tests/handshake_contract_na0217i.rs:283/288/293`, so every responder who accepts an invite would have been shown `false` for a peer the engine considers confirmed. Withheld deliberately at `R368` §1 on the SR-15 read's `B1`+`B2`. **The shipped semantics are written here so no future seat re-derives the naive form.** The messaging slice designs its readiness facts WITH its gate, through the loop. ⛳ The role-as-type candidate this entry carried is RE-FILED as `ENG-0211` so it is not buried in a closed entry.
 
 **THE MEASUREMENT, at qsl-protocol `bb7e6b9a`.** Almost every `qsc` function the four Slice-4 screens
 need returns **`CliResult<T> = Result<T, CliError>`** (`output/mod.rs:188`) — a CLI-shaped result
@@ -5582,3 +5584,86 @@ a version. **No option is ruled.**
 
 - Cross-references: `ENG-0205` (the format repair that closed the instance); `R361` §2; `R362` §5; NA-0749 STOP 004 §5.3.
 - Source: NA-0749, SR-15 cold read `BLOCKER-1`'s reachability analysis, re-measured by the seat at `f181c367`.
+
+### ENG-0210 — ⚠ P3 — THE GUI HARNESS PROVES A VALUE'S **SHAPE** ON SCREEN AND CANNOT SEE THAT IT IS **LEGIBLE**: NO ARM ASSERTS THE TWO IDENTITY SLOTS ARE UNCLIPPED — **NEW; FILED NOT FIXED 2026-08-20 by NA-0751 (`D-1393`)**
+
+- Severity: **P3** — *the seat's grade, offered not ruled*: nothing misbehaves. It bounds what a passing GUI harness is evidence FOR.
+- Status: open — **FILING ONLY.** No repair is designed here.
+
+**THE FINDING, in the Director's own words at `R366` §5.** NA-0750's harness proved the ratified two tiers appear on screen by anchored regex. Its boundary "ends at shape-on-screen": a 30-decimal-digit voice form and a 64-hex full form are long, and a slot that renders them CLIPPED still matches every shape assertion. **CANDIDATE:** an exec arm asserting no clipped overflow on the two slots — the `scrollWidth` vs `clientWidth` class of check. **TRADE, stated so it is not discovered later:** it couples GUI evidence to renderer and font metrics on the runner, which is exactly the kind of coupling a harness usually tries to avoid; a future lane should weigh that before adopting it.
+
+- Cross-references: `R366` §5 (OUTCOME axis, the retrospective that raised it); NA-0750's class `PIN_BUMP_TWO_TIER_ONSCREEN_PASS`, whose own claim boundary is "shape, never legibility".
+- Source: the Director's SR-25 better-path retrospective at NA-0750's close, landed here by the successor lane per `R372` §1(b).
+
+### ENG-0211 — ⚠ P3 — THE FINGERPRINT COMPARATOR TAKES A ROLE AS A STRING WHERE A TYPE WOULD MAKE A WRONG ROLE UNSPELLABLE — **RE-FILED 2026-08-20 by NA-0751 (`D-1393`), from `ENG-0206`**
+
+- Severity: **P3** — *the seat's grade, offered not ruled*: no measured defect stands behind it. It is a hardening candidate, not a bug.
+- Status: open — **FILING ONLY. RE-FILED, not new.** It rode inside `ENG-0206`, which this lane CLOSED; a candidate buried in a closed entry is a candidate nobody finds.
+
+**WHY IT DID NOT RIDE NA-0751.** Ruled out at the design stage and recorded so the reasoning survives: it is **crypto-region work** with a real blast radius, there is **no measured defect** behind it, and NA-0749's `W6` arm H and mutation control `m4` already stand guard over the property. A hardening change with no failing instrument behind it is exactly the kind that should wait for a lane whose subject it actually is.
+
+- Cross-references: `ENG-0206` (its former home, CLOSED by this lane); NA-0749 `W6` arm H, mutation control `m4`; the banked design's DECISION D.
+- Source: carried out of `ENG-0206` at its closure, per `R368` §1 and the banked design's DECISION D.
+
+### ENG-0212 — ⚠ P3 — `na0700_ipc_replay.rs` CLAIMS TO INVOKE **EVERY REGISTERED COMMAND** AND HAS NO INSTRUMENT FOR THAT CLAIM: ADDING A COMMAND FALSIFIES IT SILENTLY — **NEW; FILED NOT FIXED 2026-08-20 by NA-0751 (`D-1393`)**
+
+- Severity: **P3** — *the seat's grade, offered not ruled*: a decaying claim in a test file's doc, not a live defect.
+- Status: open — **FILING ONLY. `qsl-desktop`-scoped**, and aimed at whatever lane next owns that harness.
+
+**THE MEASUREMENT.** `src-tauri/tests/na0700_ipc_replay.rs:3-9` states that "Every registered command is invoked through tauri's REAL IPC ingestion on the mock runtime … with the arg-key sets HARVESTED from the 31 `main.js` call sites". Measured, the file holds **ONE** `#[test]`, contains **no count, no completeness assertion and no enumeration of the handler list** — it is a scripted sequence. So the claim is true only for the command set that existed when it was written, and **any lane adding a command makes the opening sentence false with nothing going red**.
+⚠ **NA-0751 IS SUCH A LANE**, which is why this is filed by it rather than about it. The lane's own desktop test asserts its OWN enumerated list of the NEW commands, so the additions this lane makes cannot decay — but the file's global claim is not repaired here, and repairing it is out of this lane's enumeration.
+
+- Cross-references: the third SR-15 read's `m7`; `ENG-0195` (the command census this claim is downstream of).
+- Source: the SR-15 re-read of NA-0751's v2 surface, finding `m7`, ruled filed at `R370` §9.
+
+### ENG-0213 — ⚠ P3 — FOUR INVITE ERROR CODES ARE **DUAL-PROVENANCE**: THE SAME `&'static str` IS MINTED BOTH LOCALLY AND BY THE RELAY MAPPER, SO NO CONSUMER CAN TELL WHICH SIDE SPOKE — **NEW; FILED NOT FIXED 2026-08-20 by NA-0751 (`D-1393`)**
+
+- Severity: **P3** — *the seat's grade, offered not ruled*: the four mean the same thing on both sides today, so nothing misreads. It is filed because the PROPERTY a consumer needs — which side spoke — is unavailable, and the relay is the untrusted party.
+- Status: open — **FILING ONLY.** The repair is UPSTREAM and outside NA-0751's enumeration, which forbids any byte in `invite/` and `transport/` module bodies.
+
+**THE MEASUREMENT.** `invite/mod.rs:99` partitions the taxonomy into "Local, decided before any socket is opened" and `:110` "Relay-reported", and NA-0751's `FacadeError` binds a never-collapse rule to exactly that partition. **FOUR consts defeat it structurally, because provenance is not a property of the const:**
+`INVITE_MALFORMED` local (25 sites in `invite/mod.rs`) · relay `transport/mod.rs:4195` — `INVITE_NOT_FOUND` local `:915` `:1225` · relay `transport:4184` `:4199` — `INVITE_CREATE_FAILED` local `:868` · relay `transport:4194` `:4205` — `INVITE_REVOKE_INVALID` local `:917` · relay `transport:4190` `:4329`.
+No variant split at const granularity can separate them; honouring the rule needs the PRODUCER carried, not the code — a field, or two consts per case. **A fifth, `"vault_locked"`, is worse and is NOT on this list because it is a different problem** (see the `VaultUnavailable` reasoning in `D-1393`): the four mean one thing on both sides, whereas `"vault_locked"` means a reversible user action on one side and data damage on the other.
+
+- Cross-references: `D-1393`; the SR-15 re-read's `E1`; `R370` §1.
+- Source: the SR-15 re-read of NA-0751's v2 surface, finding `E1`, ruled filed at `R370` §1.
+
+### ENG-0214 — ⚠ P3 — TWENTY OF THE DESKTOP'S TWENTY-SIX COMMANDS RETURN `Result<_, String>`, SO THE FRONT END STRING-MATCHES ON ERRORS THE ENGINE ALREADY TYPES — **NEW; FILED NOT FIXED 2026-08-20 by NA-0751 (`D-1393`)**
+
+- Severity: **P3** — *the seat's grade, offered not ruled*: it works today. It is the same defect class `ENG-0206` names, one layer out.
+- Status: open — **FILING ONLY. `qsl-desktop`-scoped.** NA-0751 does NOT migrate them; it adds a typed error face for its OWN new commands only, and the mixed state is recorded in the desktop's `D-0032`.
+
+**THE MEASUREMENT, re-taken rather than inherited.** Measured on `src-tauri/src/commands.rs`'s own bytes over all 26 `#[tauri::command]` signatures: **20 return `Result<_, String>`**; SIX return no `Result` at all (`cli_vault_present`, `core_busy`, `settings_get`, `marker_stats`, `app_info`, `relay_config_get`); and a **27th** `#[tauri::command]` lives in `lib.rs` (`ui_surface_changed`), which is what makes the brief's "27 commands" the true population. ⚠ **The migration scope is therefore 20, not 26** — an earlier NA-0751 stop asserted 26/26 twice, carried from a read's census without re-measuring, and that figure is corrected here.
+**WHY IT MATTERS:** house style is the pressure. A builder following the 20/26 precedent writes `.map_err(|e| format!("{e:?}"))` and undoes a typed error surface one layer out, invisibly, with every seal still reporting HIT.
+
+- Cross-references: `ENG-0206` (the same defect one layer in, CLOSED by this lane); `D-1393`; desktop `D-0032`.
+- Source: the SR-15 re-read's `E2`, with the figure corrected by the third read's `m1`; ruled filed at `R370` §2.
+
+### ENG-0215 — ⚠ P2 — `invite_revoke` COMMITS LOCALLY THEN CALLS THE RELAY, AND CAN REPORT NEITHER FACT: NO STRUCTURED OUTCOME, AND NO QUEUED RETRY THE RATIFIED SCREEN PROMISES — **NEW; FILED NOT FIXED 2026-08-20 by NA-0751 (`D-1393`)**
+
+- Severity: **P2** — *the seat's grade, offered not ruled*: graded above the others because a ratified screen's copy promises behaviour the engine does not perform, and because the user-visible claim concerns a SECURITY action they just took.
+- Status: open — **FILING ONLY.** Aimed at the cancel-screen lane. NA-0751 works around it by COMPOSITION and does not touch `invite/`.
+
+**THE MEASUREMENT.** `invite/mod.rs:907-922`: the local revoke is COMMITTED at `:919-920` — its own comment says "Local first: even if the relay call fails, this client will refuse the invite" — and the function then RETURNS THE TRANSPORT'S RESULT from `:921`. So a relay failure yields `Err(...)` from a call that already succeeded locally.
+**TWO HALVES, and they are separable:**
+1. **THE RETURN TYPE.** `Result<(), &'static str>` cannot express "revoked here, relay not told". Worse, it is not FIXABLE by a wrapper: `INVITE_REVOKE_INVALID` and `INVITE_NOT_FOUND` are minted byte-identically on BOTH sides of the commit boundary (see `ENG-0213`), so no code-class discriminator recovers position, and determining position needs either an `invite/` edit or a racy second read.
+2. **THE QUEUE.** `MOCKUP_channel_establish_FAILURE_STATES.html`'s ruled cancel copy says "it will be revoked here now, and the relay will be told when it's reachable". **`invite_revoke` queues nothing.** That is a pre-existing gap, not a regression, and it is recorded here rather than papered over by a type.
+
+⛳ **HOW NA-0751 LIVES WITHOUT IT, so the workaround is on the record and not folklore:** on a revoke error the SCREEN calls `invite_list()`; `state == Revoked` distinguishes "revoked here, relay pending" from "nothing happened". Three states from two calls the surface already carries, serialized by the desktop gateway's single flight.
+
+- Cross-references: `ENG-0213` (the dual-provenance codes that make the wrapper impossible); `D-1393`; the ratified `MOCKUP_channel_establish_FAILURE_STATES.html`.
+- Source: the SR-15 re-read's `E10` and the third read's `B1`; ruled filed at `R370` §5 with its scope extended at `R371` §1.
+
+### ENG-0216 — ⚠ P3 — `cargo clippy -p qsc --all-targets -- -D warnings` IS **RED AT BASE** ON THIS REPOSITORY, AND NO REQUIRED CONTEXT GATES IT — **NEW; FILED NOT FIXED 2026-08-21 by NA-0751 (`D-1393`)**
+
+- Severity: **P3** — *the seat's grade, offered not ruled*: nothing misbehaves and no shipped behaviour is affected. It is filed because a lint gate that is red at base cannot tell a lane whether it made things worse, which is the property a lint gate exists to provide.
+- Status: open — **FILING ONLY.** The cleanup is a successor lane; whether clippy should become a required context at all is an OPERATOR call, not this lane's.
+
+**THE MEASUREMENT, taken by stashing this lane's entire change and re-running at the base.** At `3293c39a`, `cargo clippy -p qsc --all-targets -- -D warnings` exits **rc 101** with **27 lib errors** (28 for the lib-test target). Enumerated by class: **18** `redundant closure` · **6** `unneeded return statement` · **2** `this returns a Result<_, ()>` (`lib.rs:2688`, `bounded_retry`) · **1** `using contains() instead of iter().any()` · **1** `function ... should have a snake case name` (`identity/mod.rs:883`, `na0749_w6_g_whitespace_padding_is_accepted_on_BOTH_tiers`). **None of them is this lane's.**
+
+⛳ **THIS LANE'S OWN DELTA WAS MEASURED AND HELD AT ZERO, WHICH IS THE ONLY REASON THE FIGURE IS TRUSTWORTHY.** The first run with the facade in place returned **29**, i.e. a delta of exactly **two** `doc_lazy_continuation` errors in one doc block; those were repaired and the count re-measured at **27 = 27**. Without the stash-and-compare, "clippy is red" would have been indistinguishable from "this lane made clippy red".
+
+⚠ **WHY IT CAN SIT RED.** Measured live against branch protection, `qsl-protocol`'s required contexts are `ci-4a` `ci-4b` `ci-4c` `ci-4d` `ci-4d-dur` `CodeQL` `demo-cli-build` `demo-cli-smoke` `formal-scka-model` `goal-lint` `infra-literal-scan` `macos-qsc-qshield-build` `metadata-conformance-smoke` `public-safety` `suite2-vectors` — **there is no clippy context among them**, so nothing on the merge path ever observes the failure. (Contrast `qsl-desktop`, whose REQUIRED `rust` job runs `cargo clippy --all-targets -q -- -D warnings` as its fourth gating step — the same command is enforced there and unenforced here.)
+
+- Cross-references: `D-1393`; `ENG-0208` (the other required-context-set finding); the desktop `rust` job's step 4.
+- Source: measured by NA-0751 during its W10 pre-push, ruled filed at the Director's disposition of STOP 009 ask (C).

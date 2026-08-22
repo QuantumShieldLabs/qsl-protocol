@@ -5531,6 +5531,13 @@ can disagree indefinitely, because the tests all sit on one side of the disagree
 
 ⚖ **CLOSED 2026-08-19 by NA-0749 (`D-1391`) — THE REPAIR HAS LANDED; NOTHING ABOVE IS EDITED.** The shipped `qsc` format now matches the ratified design: `qsl-fp-v1`, a **role-separated and length-bound** SHA-512 over the identity bundle, rendered as a **64-hex full form** and a **30-digit voice form**, with the `QSCFP-` prefix, the Crockford alphabet and the byte-sum check character **removed, not bypassed** (proven by a BODY sweep: the Crockford literal **3 → 0**, the byte-sum idiom **3 → 0**, against a positive control that stays non-zero). ⚠ **Every fingerprint value changes completely** — a deliberate, versioned break taken pre-release with zero real users; **pre-release vaults holding stored verification pins will see those pins fail CLOSED and users re-verify**, which is the correct failure mode and is sealed by a red-capable test. ⛳ **The repair went through TWO designs:** `R361` refused the first on an SR-15 BLOCKER — the two-key concatenation was **3,136-to-1 ambiguous** and the REQUIRED `formal-scka-model` was proving authentication under a false injectivity premise — and `R362` accepted and **locked** the length-bound second, whose injectivity the read settled with a constructive inverse. The formal model needed **no edit**: it models a fingerprint as a tuple, for which injectivity is free — a *false* abstraction of the old code and a *faithful* one of the new. **The model was right and the code was wrong.** ⚠ **This entry's own `- Status: open` bullet and its filing text remain unedited and true of the act that wrote them.** ⚠ The class is not closed here: the entry paths still accept keys of any length — filed as `ENG-0209`.
 
+⛳ **THE LAYOUT HALF IS RE-AIMED, NOT CLOSED — recorded 2026-08-22 by NA-0754 (`D-1396`), discharging NA-0753's close-out debt; NOTHING ABOVE IS EDITED.** The FORMAT question closed at `D-1391`. The **layout** question did not, and the operator's identity-display bank of 2026-08-21 (`RBANK_identity_display_decisions_20260821.md`, sha256 `2dc9b285526d17505d48c920953303b2fcf223427049765a2ac6cc3019c3a373`, transcribed no-drift) re-aims it: **mockup-07's 3+3 layout STANDS as the target** — three 5-digit groups on the top line and three below, larger type for read-aloud legibility, built ONCE as a shared renderer born in the verify-screen lane and applied to Settings > Identity in the same stroke. `mockup-07b` follows Decision 1 (onboarding collapses to one step, so the code's onboarding surface disappears, leaving exactly two display sites).
+
+- ⚠ **THE 5+1 NARROW-WRAP POLISH NOTE, recorded beside it because it is the reason the target is not yet shipped.** NA-0753 shipped the code as **six 5-digit groups in ONE text node**, deliberately NOT the mockup's fixed 3+3 `<br>` split, and `D-0034` enumerated the delta. The mechanism: `.verify-code` is `white-space: nowrap` + `overflow: hidden`, and `fitCode()` releases the clip only when `scrollWidth > clientWidth`. A `<br>` halves each line's width, so **the escape could never fire and a second line would clip SILENTLY, with every seal still green.** ⛳ The observed consequence in a narrow window is a **5+1 wrap** — five groups on the first line and one orphaned below — which is cosmetically wrong but **visibly** wrong, and that is the trade that was taken: a legible failure over a silent one.
+- **SAFETY CONDITION, carried from `R376` and binding on the successor:** the fixed two-line form ships ONLY with per-line overflow defence and the `ENG-0210` legibility arm — the `scrollWidth`-vs-`clientWidth` class of proof — applied **per line**. The shipped six-group form is INTERIM by the operator's own decision, not by omission.
+- Owed to: the VERIFY-SCREEN lane, which builds the shared renderer (exact sizes from the verify mockups' own bytes; design tokens govern colour). Sequence as blessed: (1) invite screens, (2) verify screen, (3) onboarding collapse.
+- Cross-references: desktop `D-0034` (the enumerated delta and its mechanism), `D-0035`, `D-1395`, `D-1396`, `ENG-0210`.
+
 ### ENG-0206 — ⚠ P3 — THERE IS NO TYPED PROTOCOL-STATE SURFACE FOR A GUI CONSUMER: THE SLICE-4 SCREENS MUST PARSE `CliResult` STRING ROWS, AND `qsp_send_ready_tuple` IS `pub(crate)` — **NEW; FILED NOT FIXED 2026-08-19 by NA-0747 (D-1388)**
 
 - Severity: **P3** — *the seat's grade, offered not ruled*: a shape finding, not a defect. Nothing
@@ -5832,3 +5839,80 @@ by a control, not by argument.**
 - Status: open — filed 2026-08-21 by NA-0753 (`D-1395`), discharging NA-0752's close-out debt.
 - Cross-references: desktop `D-0033` (the two residual arms and their presence seals), `D-0034`, `D-1394`, `D-1395`.
 - Source: the Director's SR-25 three-axis retrospective at the NA-0752 close-out.
+
+### ENG-0221 — R-B2's "validating IS writing" made a FAILED test able to clobber a proven-good relay configuration — **FILED AND RESOLVED by NA-0754, born with its resolution**
+
+- Severity: **P2** — *the seat's grade, offered not ruled*: no secret is exposed and nothing is destroyed, but a user's working relay address could be replaced by a broken one they merely TYPED, with the app then reporting that the broken one does not work. Recoverable by retyping the old address — if the user still knows it.
+- Exact surfaces: qsl-desktop `ui/main.js` `commitServerSettings()` and the `#btn-relay-test` handler (the write-then-probe order); `src-tauri/src/commands.rs` `relay_config_set` / `relay_token_set` / `relay_ca_file_set`.
+- Description: transcribed no-drift from the NA-0753 close-out's own bytes (`CLOSEOUT_NA0753_DIRECTOR_20260822T014950Z.md`, sha256 `b7a4844300d11cab2d2726071edbded3b89f4dd6ccdf6437370fbd3e163c1bb0`): *"the operator's post-merge flight found a FAILED Test persisting a broken address over a known-good one ('validating IS writing', R-B2's designed edge) — filed at the next records opening as a re-examination of R-B2 (validate-without-persist or last-known-good), trade: R-B2's one-write simplicity versus config safety."* The premise was true when ruled: the desktop exposed nine relay commands and **none was validate-only**, so an address could not be checked without being committed.
+- ⛳ **The re-examination's answer is the third option neither branch of the trade named: VALIDATE-WITHOUT-PERSIST turned out to be REACHABLE with zero `qsc` bytes.** `qsc` consults the ENVIRONMENT before the vault in both secret-resolution chains, so a desktop-confined command can probe an explicit triple without storing any of it.
+- Remedy: TEST-AND-SAVE-ON-PROOF (design bank v2 item 1). `relay_probe(address, token, ca_path)` probes what the user typed and persists nothing; a write happens only on a `Connected` result.
+- Status: open — filed 2026-08-22 by NA-0754 (`D-1396`; desktop `D-0035`), discharging NA-0753's close-out debt. ⚠ *This line is preserved under mark-don't-rewrite and is NOT the current state — read the Resolution line below.*
+- **Resolution: RESOLVED at NA-0754 (`D-1396`; desktop `D-0035`).** The probe now precedes every write and the write is gated on `Connected`. Sealed by `na0754_persist_boundary.rs` (engine, relay-free, with a differ-control proving each observable can move) and by source pins on the order in `design_polish.rs` and `server_pane.rs`; both proven RED under counterfactual, logs preserved 444.
+- Cross-references: `ENG-0225` (the same commit path's always-deletable violation), `D-0035`, `D-1396`, `D-0011`.
+- Source: the Director's SR-25 three-axis retrospective at the NA-0753 close-out; the operator's flight, 2026-08-21 [O].
+
+### ENG-0222 — ⚠ the CA-status line congratulated a GARBAGE PATH, and its root was a FALSE DOC COMMENT that no test asserted — **FILED AND RESOLVED by NA-0754**
+
+- Severity: **P2** — *the seat's grade, offered not ruled*: the app told the user a certificate authority file was configured when the path pointed at nothing. A claim-discipline failure on a security-adjacent surface; no secret is exposed and the connection still fails closed at probe time, which is why it survived unnoticed.
+- Exact surfaces: qsl-desktop `src-tauri/src/commands.rs:628-629` (the false doc comment) and `ui/main.js:1270-1272` (the same claim, repeated); `qsc` `transport/mod.rs:2250-2257` (`relay_ca_file_set`, the function being described) and `:2174-2192` (`relay_http_client`, where the real check lives).
+- Description: `commands.rs` asserted *"qsc validates the file exists (`relay_ca_file_missing`)"* and `main.js` that *"`relay_ca_file_set` VALIDATES BY WRITING, and its error codes ARE the validation."* **Both false.** Measured against the PINNED `qsc`, `relay_ca_file_set` trims, rejects **only the empty string**, and writes to the vault — it never touches the filesystem. So any non-empty string was stored and `relay_ca_file_show` then answered `configured: true`.
+- ⚠ **Why it survived: NO TEST ASSERTED EITHER CLAIM.** The three `relay_ca_file_*` codes appeared in the desktop only as copy and comment — never in an assertion — so nothing could go red. ⇒ *a comment describing another crate is an unchecked claim about a moving target; measure it against the pin, not against memory.*
+- Remedy: correct both comments at the root, and validate at PROBE time instead — where a real check already exists at zero cost.
+- Status: open — filed 2026-08-22 by NA-0754 (`D-1396`; desktop `D-0035`). ⚠ *Preserved under mark-don't-rewrite; read the Resolution line below.*
+- **Resolution: RESOLVED at NA-0754 (`D-1396`; desktop `D-0035`).** Both comments corrected. `relay_http_client()` performs exists (`relay_ca_file_missing` / `relay_ca_file_unreadable`) plus a **genuine PEM parse** (`relay_ca_file_invalid`), and `relay_server_info` calls it **before opening a socket**, so the CA rung is verified with no relay reachable and **no new dependency**. All four arms — missing / unreadable / invalid / valid-passes — are driven offline in `na0754_persist_boundary.rs`, proven RED under counterfactual.
+- Cross-references: `D-0035`, `D-1396`, `ENG-0224`.
+- Source: NA-0754 STOP 1 §4, measured against the pinned `qsc` bytes.
+
+### ENG-0223 — a `~/` CA path failed SILENTLY, because nothing expands shell notation and `fs::metadata` does not either — **FILED AND RESOLVED by NA-0754**
+
+- Severity: **P3** — *the seat's grade, offered not ruled*: a usability failure with a misleading error. A user typing the natural `~/ca.pem` got "no file at that path", which is true of the literal string and useless as guidance.
+- Exact surfaces: qsl-desktop `ui/main.js` (the CA path field had no gate at all); `qsc` `transport/mod.rs` `read_relay_ca_file`, which opens the path with `fs::metadata` and expands nothing.
+- Description: `~` is shell notation for `$HOME`, not a filesystem entry. Nothing between the field and the syscall expanded it. ⚠ **And the webview cannot expand it either** — `$HOME` is a process fact, read only Rust-side (`paths.rs:30,60`), and no command exposed it to the front end.
+- Remedy: a CA-path gate mirroring the address gate's `https://` prepend precedent — expand a leading `~/` **VISIBLY in the field before the path is used**, and refuse any other shell token (`~user`, `$VAR`, globs, command substitution) with one message. A new `home_dir()` command supplies the value; when `$HOME` is unresolvable the gate **REFUSES rather than guessing**, because guessing means probing a path the user never typed and then persisting it on success.
+- Status: open — filed 2026-08-22 by NA-0754 (`D-1396`; desktop `D-0035`). ⚠ *Preserved under mark-don't-rewrite; read the Resolution line below.*
+- **Resolution: RESOLVED at NA-0754 (`D-1396`; desktop `D-0035`).** Sealed in `design_polish.rs` (the write-back and the refuse-don't-guess branch) and driven in scenario `f_j`; proven RED under counterfactual.
+- Cross-references: `ENG-0224` (a native picker would remove the class entirely), `D-0035`, `D-1396`.
+- Source: design bank v2 item 4; NA-0754 STOP 1 §7.
+
+### ENG-0224 — a native Browse… picker for the CA file — **NEW; FILED OPEN by NA-0754 (new-dependency decision)**
+
+- Severity: **candidate** — no defect is claimed. It would remove the whole typed-path failure class (`ENG-0223`, and the wrong-path half of `ENG-0222`) rather than gating it.
+- Exact surfaces: qsl-desktop `ui/index.html` / `ui/main.js` (the CA field), and a Tauri dialog capability plus its `Cargo.toml` / `Cargo.lock` motion.
+- Description: transcribed from design bank v2 item 4: *"A native Browse... picker is FILED as a candidate (new dependency, its own ruled decision)."* A picker cannot produce a nonexistent path, an unexpanded `~`, or a typo.
+- Remedy: not actionable as filed — it requires a dependency decision the lane's scope explicitly forbade, and dependency motion on this project is a deliberate ruled act.
+- Status: open — filed 2026-08-22 by NA-0754 (`D-1396`; desktop `D-0035`).
+- Cross-references: `ENG-0222`, `ENG-0223`, `D-0035`, `D-1396`.
+- Source: design bank v2 item 4, operator-blessed 2026-08-21.
+
+### ENG-0225 — ⚠ a MISTYPED ADDRESS made a stored token UNDELETABLE, breaking the house's own always-deletable principle — **FILED AND RESOLVED by NA-0754; found by the seat and reported, not slipped in**
+
+- Severity: **P2** — *the seat's grade, offered not ruled*: a user could not remove a stored secret through the interface while any address-shaped mistake sat in the field. The secret was not exposed, but "a stored secret must ALWAYS be deletable" is a stated house principle and it did not hold.
+- Exact surfaces: qsl-desktop `ui/main.js` — the two "remove it" links set a PENDING flag, and the deletion ran only inside `commitServerSettings()`, whose **step (1) is the address**. A gate refusal returned before steps (2) and (3), so the token clear never executed.
+- Description: the affordance's whole value is that it works when nothing else does — offline, and with the rest of the pane in an invalid state. Routing it through the commit path made it depend on the one field most likely to be wrong. ⚠ **No test caught it because every test drove the removal with a valid address**, so the dependency was never exercised in its failing configuration.
+- Remedy: delete on the click. The two clears are pure vault writes through the gateway and touch no socket, so nothing about them ever needed the address.
+- Status: open — filed 2026-08-22 by NA-0754 (`D-1396`; desktop `D-0035`). ⚠ *Preserved under mark-don't-rewrite; read the Resolution line below.*
+- **Resolution: RESOLVED at NA-0754 (`D-1396`; desktop `D-0035`).** The pending-removal flags are gone and the icon controls delete immediately. Sealed in `design_polish.rs` — which asserts no pending flag returns AND that the clear path never reaches the network — and driven offline in scenario `f_j`; proven RED under counterfactual.
+- Cross-references: `ENG-0073` (the adjacent-Clear-buttons confusion this affordance replaced), `ENG-0221`, `D-0035`, `D-1396`.
+- Source: NA-0754 STOP 1 §5 — measured while tracing the remove routes, reported to the Director as a fifth filing outside the brief's enumeration and ADMITTED at `R379` §6.
+
+### ENG-0226 — the harness has NO FIXTURE RELAY, so no scenario can reach a `Connected` outcome — **NEW; FILED OPEN by NA-0754 as the NAMED successor harness-maintenance lane**
+
+- Severity: **candidate** — no product defect is claimed. This is a COVERAGE boundary, and naming it is what keeps the coverage claim honest.
+- Exact surfaces: `src-tauri/tests/harness/runner.py` and `wd_client.py` (the harness ENGINE, frozen to lanes by standing scope); the scenario corpus.
+- Description: swept at NA-0754's base — **no relay fixture, mock server or local HTTPS endpoint exists anywhere in the desktop tests.** Every scenario address is the reserved non-resolving `https://relay.example.test:8443`, and the Rust IPC tests use the discard port `http://127.0.0.1:9`. The runner binds ports only to find free webdriver ports; it starts no server. ⇒ **no scenario has ever produced a `Connected` outcome, because none can.**
+- ⚠ **What that costs, stated precisely:** the GREEN half of the relay model — a Connected test persisting the tested triple, and a working configuration surviving a later failed test — has **no automated tripwire**. NA-0754 covered its engine half relay-free and its live half by operator acceptance; neither is a CI gate.
+- Remedy: the harness's own next maintenance lane, **converging with `ENG-0220`'s profile-write op** so engine-surface growth is done once and properly. `R379` §Q4 refused by name the alternative of shipping presence seals with an unproven control.
+- Status: open — filed 2026-08-22 by NA-0754 (`D-1396`; desktop `D-0035`).
+- Cross-references: `ENG-0220` (the convergence), `D-0033`, `D-0035`, `D-1396`.
+- Source: NA-0754 STOP 1 §8, measured from the runner's own bytes; ruled at `R379` §Q4(iv).
+
+### ENG-0227 — the Relay pane's blessed copy is a TESTABLE CLAIM SET, and the threat-model documentation owes alignment with it — **NEW; FILED OPEN by NA-0754 (copy rider)**
+
+- Severity: **candidate** — no defect is claimed today. It is a documentation-alignment debt on a surface that now makes four explicit security claims to users.
+- Exact surfaces: qsl-desktop `ui/index.html` (the Relay pane header copy, pinned verbatim by `server_pane.rs`); this repo's threat-model documentation.
+- Description: recorded with the copy at the operator's blessing and the Director's flag, from bank F3's own bytes (`RBANK_relay_pane_copy_F3_20260822.md`, sha256 `bdd3f083074b1f5e1642b4474cacbcfaaa1ee37a224da63f5ea1a951800f77c1`): the shipped paragraph asserts **messages sealed client-side before transmission; names never present on the relay; delivery by anonymous codes; the relay observes traffic-flow only.** ⚠ **The pane's test pins the WORDS character-for-character and CANNOT verify the claims** — a seal on copy is not a seal on behaviour, and the distinction is the entire filing.
+- Remedy: align the threat-model documentation with the four claims, or amend the copy. **Any future change to what the relay can see re-opens this copy before it ships** — the reopening condition is recorded rather than left implicit.
+- Status: open — filed 2026-08-22 by NA-0754 (`D-1396`; desktop `D-0035`).
+- Cross-references: `D-0035`, `D-1396`.
+- Source: bank F3's recorded-claim-set paragraph, operator-blessed 2026-08-22.

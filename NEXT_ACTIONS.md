@@ -6,7 +6,8 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0753 | HIGHEST_NA=0753 | HIGHEST_D=1395 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0754 | HIGHEST_NA=0754 | HIGHEST_D=1396 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- prior: STATE: READY=NA-0753 | HIGHEST_NA=0753 | HIGHEST_D=1395 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0754 PROMOTED for **D-1396** — **THE RELAY-PANE TRUTH LANE**, test-and-save-on-proof: the relay pane can no longer persist a configuration that has never connected, and R-B2's "validating IS writing" is superseded in the open — which un-inverts R-B1 and restores `settings.json`-last; NA-0753 flipped to DONE with class `ARMED_WIPE_BOUNDARY_AND_INPUT_GATE_PASS`.) -->
 <!-- prior: STATE: READY=NA-0752 | HIGHEST_NA=0752 | HIGHEST_D=1394 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0753 PROMOTED for **D-1395** — **THE FLIGHT-FIXES LANE**, the four defects the operator met in his first real flight, carrying the discovery of a THIRD vault-destroying path: the armed erase-after-N wipe left the app's own settings.json behind with the prior profile's relay address and alias. NA-0752 flips to DONE with class `STATUS_FOOTER_TWO_SOURCE_TRUTH_PASS`.) -->
 
 **FORWARD ORDER — Director decision 2026-08-02, operator-approved.**

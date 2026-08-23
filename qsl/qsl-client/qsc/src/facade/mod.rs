@@ -76,7 +76,21 @@ pub enum FacadeError {
     /// `timeline` `:443`, `attachments` `:34`, `msgqueue` `:317`, `quarantine` `:219`,
     /// `owed_receipts` `:86`). Screen copy must be true in all three cases — "the vault could
     /// not be read" — and must NOT say "unlock it".
-    VaultUnavailable,
+    /// ⚠ NA-0755 v2 (`R381` §1): this arm is now SELF-DIAGNOSING. The payload is the
+    /// UNDERLYING source code — the specific `VAULT_FAMILY` member or
+    /// `identity_secret_unavailable` — so a screenshot of this error names its own provenance
+    /// instead of collapsing six of them into one word. `as_wire` is UNCHANGED
+    /// (`"vault_unavailable"`); only `ErrorDto.detail` widens, for this arm alone.
+    ///
+    /// ⚠ The payload is CLOSED at seven static tokens (SR-15 **E-1**): the two producers are
+    /// the explicit `identity_secret_unavailable` arm and `VAULT_FAMILY`'s six members, every
+    /// one a `&'static str` const. **No user bytes can ride it**, which is what makes rendering
+    /// it in the UI safe.
+    ///
+    /// ⚠ It is a TUPLE variant, not a unit one — the ruling called it "the residual's payload",
+    /// but the residual is `Other`. Widening this arm is a structural change, and it is why the
+    /// value-position uses below had to move.
+    VaultUnavailable(Option<&'static str>),
 
     // ── LOCAL: decided before any socket (`invite/mod.rs:99`) ────────────────────────────
     /// `invite_expired` `:104` — expired by the LOCAL clock, before any network attempt.
@@ -158,6 +172,14 @@ pub enum FacadeError {
     /// ⚠ `ErrorCode` derives only `Debug, Clone, Copy` — NO `PartialEq` — so every assertion
     /// against this arm is written with `matches!`, never `assert_eq!`.
     Store(ErrorCode),
+    /// NA-0755 v2 — `invite_clear` refused: the record is not `Creating`.
+    ///
+    /// ⚠ The const is `INVITE_CLEAR_REFUSED = "invite_clear_refused"` but the wire
+    /// discriminant is **`"clear_refused"`** (SR-15 **M-8**). Zero of the existing wire codes
+    /// carry an `invite_` prefix — the upstream const keeps the prefix and this layer re-mints
+    /// a short name, exactly as `INVITE_MALFORMED` → `"malformed"` and `INVITE_REVOKE_INVALID`
+    /// → `"revoke_invalid"` already do.
+    InviteClearRefused,
     /// The documented open-world residual, for codes no arm names. OWNED (`String`), because
     /// `CliError::Code` carries a `String` and turning one into a `&'static str` requires a
     /// leak. Its payload is shape-sealed to `^[a-z][a-z0-9_]*$` in test.
@@ -169,13 +191,13 @@ impl FacadeError {
     /// a variant makes this match non-exhaustive and the build goes RED here.
     ///
     /// ⚠ [`FacadeError::Store`] FANS OUT at the DTO boundary: its discriminant is the inner
-    /// `ErrorCode::as_str()`, so the pinned set is 25 + 13 = 38, not 26. Collapsing `Store`
+    /// `ErrorCode::as_str()`, so the pinned set is 26 + 13 = 39, not 27. Collapsing `Store`
     /// to one code would put `lock_upgrade_refused` beyond a GUI's reach and undo the reason
     /// the variant exists.
     pub fn as_wire(&self) -> &'static str {
         match self {
             FacadeError::Locked => "locked",
-            FacadeError::VaultUnavailable => "vault_unavailable",
+            FacadeError::VaultUnavailable(_) => "vault_unavailable",
             FacadeError::Expired => "expired",
             FacadeError::AlreadyRedeemed => "already_redeemed",
             FacadeError::RevokedLocally => "revoked_locally",
@@ -197,6 +219,7 @@ impl FacadeError {
             FacadeError::RelayTlsUntrusted => "relay_tls_untrusted",
             FacadeError::RelayCaFile => "relay_ca_file",
             FacadeError::RelayEndpointInvalid => "relay_endpoint_invalid",
+            FacadeError::InviteClearRefused => "clear_refused",
             FacadeError::StoreUnavailable => "store_unavailable",
             FacadeError::Store(code) => code.as_str(),
             FacadeError::Other(_) => "other",
@@ -266,11 +289,16 @@ fn map_code(code: &str) -> FacadeError {
         // `invite/mod.rs:847`/`:1027`, where it is a vault-read failure. The SAME string as an
         // `ErrorCode::as_str()` wire name from a typed verb is `Store(IdentitySecretUnavailable)`
         // — see `store_code_from_wire`. Same word, two provenances, told apart by the VERB.
-        "identity_secret_unavailable" => FacadeError::VaultUnavailable,
+        "identity_secret_unavailable" => {
+            FacadeError::VaultUnavailable(Some("identity_secret_unavailable"))
+        }
+        invite::INVITE_CLEAR_REFUSED => FacadeError::InviteClearRefused,
 
         other => {
-            if VAULT_FAMILY.contains(&other) {
-                FacadeError::VaultUnavailable
+            if let Some(src) = VAULT_FAMILY.iter().find(|f| **f == other) {
+                // The payload is the FAMILY MEMBER's own `&'static str`, not the caller's
+                // borrowed slice — which is what keeps the payload `'static` and closed at seven.
+                FacadeError::VaultUnavailable(Some(src))
             } else if let Some(code) = store_code_from_wire(other) {
                 FacadeError::Store(code)
             } else {
@@ -654,9 +682,21 @@ impl InviteStateKind {
 ///
 /// ⚠ NO `cap` AND NO `relay_ep`. `cap` is a live BEARER CREDENTIAL — holding `invite_id` +
 /// `cap` is what redeeming a slot requires — and the desktop already refuses to hand its front
-/// end even a HASH of the relay token (`src-tauri/src/commands.rs:500`, `:600`, FLAG-3). The
+/// end even a HASH of the relay token (`src-tauri/src/commands.rs:517`, `:617`, FLAG-3). The
 /// CLI's own `invite list` renders neither field. `invite_create` still returns the full code
 /// ONCE at mint: that is the shareable artefact and it is meant to leave.
+///
+/// ⚠⚠ **`label` IS PERMITTED, AND THIS DOC IS THE RULE THAT PERMITS IT** (SR-15 **A-3**). It is
+/// SEMANTICALLY SENSITIVE — it names who you associate with — but it is not a credential and it
+/// is not an endpoint, which is what the two bans above are about. It is **vault-backed** at
+/// rest, **never sent** (the invite payload has no room for it by construction), and
+/// **egress-sealed**: a driven create/list/clear cycle under full marker and log capture asserts
+/// the label's bytes appear ZERO times. The precedent is measured, not asserted:
+/// `ContactSummary.alias` already carries a user-chosen human name across this exact boundary.
+///
+/// ⚠ The enforcing test is an ALLOWLIST of the field set, not a denylist of two known-bad
+/// values. A denylist admits every new sensitive field by construction — which is exactly how
+/// this one would have entered unnoticed.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InviteSummary {
     pub invite_id: String,
@@ -664,6 +704,18 @@ pub struct InviteSummary {
     pub expiry: u64,
     /// `revoke_token.is_some()` — presence, never the one-shot secret itself.
     pub revocable: bool,
+    /// The local note: who this invite is for. `None`, never `Some("")` — the mint normalises.
+    pub label: Option<String>,
+    /// Unix seconds at mint. `None` when the record carries the `#[serde(default)]` zero.
+    ///
+    /// ⚠ **`Option`, not a bare `u64`** (SR-15 **F-3**). The record's `created_unix` is `u64`
+    /// with `#[serde(default)]`, so an absent field deserialises to **0 = 1 Jan 1970** and a
+    /// one-line pass-through would ship that to a date renderer under a design promising
+    /// "dated" rows. The sentinel is unreachable from any blob any shipped `qsc` has written —
+    /// the field was introduced in the same commit as the struct — but `#[serde(default)]`
+    /// guarantees any future path that omits it fails SILENTLY, so the zero is mapped to `None`
+    /// here and the screen renders "—".
+    pub created: Option<u64>,
 }
 
 /// Wraps `invite_list` (`invite/mod.rs:924`) at the module's own clock, `invite::now_unix_s`
@@ -698,6 +750,11 @@ pub fn invite_list_at(now: u64) -> Result<Vec<InviteSummary>, FacadeError> {
                 state: kind,
                 expiry: r.expiry,
                 revocable: r.revoke_token.is_some(),
+                label: r.label,
+                // F-3: the `#[serde(default)]` zero is 1 Jan 1970, not a date. Map it to None
+                // HERE so no renderer has to know that, and so a future record constructed
+                // without the field degrades to "—" rather than to a confident wrong answer.
+                created: (r.created_unix != 0).then_some(r.created_unix),
             }
         })
         .collect())
@@ -705,13 +762,27 @@ pub fn invite_list_at(now: u64) -> Result<Vec<InviteSummary>, FacadeError> {
 
 /// Wraps `invite_create` (`invite/mod.rs:800`). Returns the full invite code, ONCE, at mint —
 /// the existing deliberate emission the CLI already prints (`main.rs:339-343`).
+/// ⚠ `recipient_label` is LAST and is NOT `self_label` (SR-15 **B-2**): `self_label` selects
+/// WHICH IDENTITY mints, `recipient_label` names WHO IT IS FOR. Both are `Option<&str>`, so a
+/// transposition compiles silently — and on a profile with zero identities the transposed
+/// contact name is adopted as the identity's own label. The transposition seal is what makes
+/// that fail loudly instead.
 pub fn invite_create(
     self_label: Option<&str>,
     relay: &str,
     ttl_secs: u64,
+    recipient_label: Option<&str>,
 ) -> Result<String, FacadeError> {
     require_unlocked_here()?;
-    invite::invite_create(self_label, relay, ttl_secs).map_err(map_code)
+    invite::invite_create(self_label, relay, ttl_secs, recipient_label).map_err(map_code)
+}
+
+/// Wraps `invite_clear`. Removes a local `Creating` row that can never become actionable;
+/// refuses on every live state. See the engine verb's doc for what `Creating` does and does not
+/// mean — it is NOT "the relay never confirmed".
+pub fn invite_clear(invite_id: &str) -> Result<(), FacadeError> {
+    require_unlocked_here()?;
+    invite::invite_clear(invite_id).map_err(map_code)
 }
 
 /// Wraps `invite_redeem` (`invite/mod.rs:932`).
@@ -816,6 +887,7 @@ mod na0751_facade_mapping_tests {
     /// test's compile as well as the mapping's.
     fn declared_codes() -> Vec<String> {
         let mut v: Vec<String> = [
+            invite::INVITE_CLEAR_REFUSED,
             invite::INVITE_MALFORMED,
             invite::INVITE_VERSION_NEWER,
             invite::INVITE_TYPE_UNKNOWN,
@@ -852,8 +924,8 @@ mod na0751_facade_mapping_tests {
         let found = scrape_error_code_values(INVITE_SRC);
         let declared = declared_codes();
         // NON-VACUOUS: an empty or truncated scrape cannot reach the equality below.
-        assert_eq!(found.len(), 22, "taxonomy declares 22 error consts; found {found:?}");
-        assert_eq!(declared.len(), 22, "the mapping declares 22");
+        assert_eq!(found.len(), 23, "taxonomy declares 23 error consts; found {found:?}");
+        assert_eq!(declared.len(), 23, "the mapping declares 23");
         let uncovered: Vec<&String> = found.iter().filter(|f| !declared.contains(f)).collect();
         assert!(uncovered.is_empty(), "declared upstream but not mapped: {uncovered:?}");
         assert_eq!(found, declared, "found side and declared side agree exactly");
@@ -865,7 +937,7 @@ mod na0751_facade_mapping_tests {
         // rather than passing silently. This is the control v3's name-needle lacked.
         let plus = format!("{INVITE_SRC}\npub const SYNTHETIC_CONTROL: &str = \"synthetic_code\";\n");
         let found_plus = scrape_error_code_values(&plus);
-        assert_eq!(found_plus.len(), 23, "a new lowercase const is FOUND");
+        assert_eq!(found_plus.len(), 24, "a new lowercase const is FOUND");
         assert!(found_plus.iter().any(|v| v == "synthetic_code"));
 
         // NEGATIVE CONTROL: the three non-code consts are excluded BY THEIR OWN VALUES.
@@ -882,7 +954,7 @@ mod na0751_facade_mapping_tests {
             .lines()
             .filter(|l| l.starts_with("pub const ") && l.contains(": &str = "))
             .count();
-        assert_eq!(by_name, 25, "the name needle over-captures by exactly three");
+        assert_eq!(by_name, 26, "the name needle over-captures by exactly three");
     }
 
     #[test]
@@ -998,7 +1070,7 @@ mod na0751_facade_mapping_tests {
             "identity_secret_unavailable",
         ] {
             assert!(
-                matches!(map_code(v), FacadeError::VaultUnavailable),
+                matches!(map_code(v), FacadeError::VaultUnavailable(_)),
                 "{v} must be VaultUnavailable, never Locked"
             );
         }
@@ -1026,9 +1098,9 @@ mod na0751_facade_mapping_tests {
 
     #[test]
     fn na0751_as_wire_discriminants_are_distinct_and_store_fans_out() {
-        // W4's pinned set is 25 + 13 = 38, not 26: `Store` fans out over `ErrorCode::as_str`.
+        // W4's pinned set is 26 + 13 = 39, not 27: `Store` fans out over `ErrorCode::as_str`.
         let singles = [
-            FacadeError::Locked, FacadeError::VaultUnavailable, FacadeError::Expired,
+            FacadeError::Locked, FacadeError::VaultUnavailable(None), FacadeError::Expired,
             FacadeError::AlreadyRedeemed, FacadeError::RevokedLocally, FacadeError::SoftCapReached,
             FacadeError::Malformed, FacadeError::NotFound, FacadeError::Revoked,
             FacadeError::ExpiredAtRelay, FacadeError::AlreadyUsed, FacadeError::RateLimited,
@@ -1037,9 +1109,10 @@ mod na0751_facade_mapping_tests {
             FacadeError::SignatureInvalid, FacadeError::EnvelopeMalformed,
             FacadeError::EnvelopeVersionSkew, FacadeError::RelayTlsUntrusted,
             FacadeError::RelayCaFile, FacadeError::RelayEndpointInvalid,
-            FacadeError::StoreUnavailable, FacadeError::Other(String::new()),
+            FacadeError::StoreUnavailable, FacadeError::InviteClearRefused,
+            FacadeError::Other(String::new()),
         ];
-        assert_eq!(singles.len(), 25, "25 non-Store variants");
+        assert_eq!(singles.len(), 26, "26 non-Store variants");
         let mut wires: Vec<&str> = singles.iter().map(|e| e.as_wire()).collect();
         let store_codes = [
             ErrorCode::MissingHome, ErrorCode::InvalidPolicyProfile, ErrorCode::UnsafePathSymlink,
@@ -1052,11 +1125,11 @@ mod na0751_facade_mapping_tests {
         for c in store_codes {
             wires.push(FacadeError::Store(c).as_wire());
         }
-        assert_eq!(wires.len(), 38, "the pinned discriminant set is 38");
+        assert_eq!(wires.len(), 39, "the pinned discriminant set is 39");
         let mut sorted = wires.clone();
         sorted.sort_unstable();
         sorted.dedup();
-        assert_eq!(sorted.len(), 38, "all 38 discriminants are DISTINCT");
+        assert_eq!(sorted.len(), 39, "all 39 discriminants are DISTINCT");
         // The reason `Store` exists: `lock_upgrade_refused` survives to the boundary.
         assert!(wires.contains(&"lock_upgrade_refused"));
     }

@@ -175,3 +175,60 @@ No `qsc`/protocol source byte, no harness engine byte, no mockup byte, no `.gith
 `ENG-0228` and `ENG-0229` — per the `ENG-0218` precedent. No test weakened, skipped or deleted.
 The clipboard measurement is **one platform**; macOS and Windows are unmeasured. Nothing was
 merged by the seat.
+
+---
+
+# v2 — THE RESHAPE, AND THE ENGINE DELTA THIS REPO NOW CARRIES
+
+⚠⚠ **§1's "three files of product code, and none of them Rust" IS STRUCK.** It was true when written. The operator's acceptance card came back **RED**, the design was reshaped
+(`RBANK_invite_v2_single_view_20260822.md`, sha256 `381c928081be614f99cd373bc86f8f00f1c71ec02531d9ead45c5bc9b2de0597`, 44 l / 3447 B), and the reshape folds an **engine delta into this repo**.
+
+## v2.1 THE CARD, AND WHAT IT ACTUALLY SHOWED
+
+| the report | what measurement found |
+|---|---|
+| ~10 "New code" presses ended in the `vault_unavailable` copy | ⚠⚠ **DID NOT REPRODUCE at three layers.** Engine: the 11th of twelve sequential facade creates returns **`soft_cap_reached`**. Desktop IPC: `{"code":"soft_cap_reached","detail":null}`, intact. The operator's own ten-click gesture through the real buttons: **"Too many live invites."** |
+| the codes looked identical | ⛳ **All ten were DISTINCT** — `AQE8AK1WeW4Wf`, `AQEY-3BhS`, `AQGNnlakX`, … The sameness is the shared `QSLI-1-` prefix plus shared payload bands. A rendering problem, not a minting one. |
+| Revoke fired silently | the ruled silence-is-success shape is **withdrawn as operator-refuted**. |
+
+⇒ **`vault_unavailable` was genuinely delivered and its provenance is UNKNOWN.** The mapper has exactly one arm that can produce that copy, so a vault read/write failed mid-create. The store-size hypothesis was **ruled out by measurement** (`secret_set` has no size limit). **No cause is claimed.** The arm is made self-diagnosing instead, so a second sighting names itself.
+
+## v2.2 THE CLIPBOARD — THE BANK'S FIGURE REFUTED, THE DESIGN SAVED
+
+| route | delay | result |
+|---|---|---|
+| plain `await` → `writeText` | 0 / 100 / 250 / 500 / **750 ms** | **RESOLVED** |
+| plain `await` → `writeText` | **1000 ms**, 3 s, 5 s, 8 s | ❌ **REJECTED** `NotAllowedError` |
+| `ClipboardItem` + pending promise, built **synchronously** | 0 / 1000 / **4000 ms** | ⛳ **RESOLVED** |
+| `ClipboardItem` whose promise **rejects** at 4 s | — | ❌ rejected — **nothing copied**, which is correct |
+| a **fresh gesture** (the glyph) after a failed write | — | ⛳ **RESOLVED** |
+
+⇒ The window is **between 750 ms and 1000 ms**, not "~4 s" — and a create needs two round-trips, so the bank's route would have failed **every** activation. `ClipboardItem` saves the single-gesture design; the fallback fires on `typeof ClipboardItem === "undefined"`, a capability test rather than a timeout guess.
+
+## v2.3 THE ENGINE DELTA — BUILT TO THE READ'S 45-ROW CENSUS
+
+The SR-15 read returned **25 findings** (2 blockers, 14 major, 3 clean, minors); artifact sha256 `7483bb1883f08485adb7d4d3934f68defde47ef6661f6b6e5287b36ef68dae47` (809 l / 82629 B — the amended seal; `fd05ce38…` is superseded and is not the evidence).
+
+⛳⛳ **The sheet named 2 prose sites; `R381` added ~4; the read measured 45.** Building to the sheet alone would have left eleven sentences false, six assertions red, two seals **false while green**, and four out-of-scope files that **do not compile**.
+
+**What shipped here:** the recipient label (record → facade summary → create parameter, normalised to `None` at the mint boundary), `invite_clear` (Creating-only, the siblings' lock gate, one `invite_cleared` marker that the label never rides), `VaultUnavailable(Option<&'static str>)` closed at seven static tokens, `InviteClearRefused` with **two layers** (`invite_clear_refused` const / `clear_refused` wire), `created` exposed as an `Option` so the 1970 sentinel cannot reach a date renderer, the count moved **38 → 39** with all eleven prose sites, the summary's governing doc **amended in the same edit that widens it**, and its enforcing test turned from a **denylist of two** into an **allowlist of the ruled field set**.
+
+**What did NOT ship, and why:** the desktop half. It cannot compile against the pinned `qsc` — `facade::invite_clear` is **0 occurrences** at `rev 9dcded4d` and `invite_create` takes **3** params there. The pin bump is authorised scoped at `R383` §2 and follows this merge.
+
+## v2.4 MEASUREMENTS
+
+| | |
+|---|---|
+| full `cargo test -p qsc`, final engine tree | **142 suites ok / 694 passed / 0 suites failed / 0 tests failed** |
+| new seals | **8 passed / 0 failed** |
+| counterfactual controls | **6, every one firing** |
+| shard gate | `OK` — census 142 / manifest 142 / missing 0 / unknown 0 |
+
+⚠⚠ **TWO CONTROLS PASSED ON THE FIRST ATTEMPT.** The lock-gate seal was **behaviourally vacuous** — with the gate deleted the store read fails with the same `vault_locked` string, which the read had predicted in advance and I built a behavioural assertion against anyway; it is now a **source seal** with a sibling-needle check. And `#[serde(default)]` measured **DECORATIVE on an `Option` field** (probed: `{"x":1}` into `struct A { x: u8, y: Option<String> }` gives `y: None` without it), so that control could never fire; re-aimed at the property that IS load-bearing, where it fires by compile break. **The dead control is kept at 444** with its lesson — *a control that passes looks exactly like a working control.*
+
+## v2.5 INSTRUMENT LESSONS ADDED THIS TURN
+
+8. ⚠ **A cause named from a symptom survives three layers of measurement only if it is true.** The order's "the misroute is the one true defect" was an accusation against a mapping that measured clean end to end.
+9. ⚠ **An unmeasured platform figure carried as known sizes the wrong contingency.** "~4 s" was out by 4× in the direction that would have failed every activation.
+10. ⚠ **The R-sweep's own record plants the ids it sweeps** — fired again at `R381`, `R382` and `R383`, three lanes running, each time as the single operator-tree hit inside my own sweep table.
+

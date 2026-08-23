@@ -5936,6 +5936,10 @@ by a control, not by argument.**
 - Status: open — filed 2026-08-22 by NA-0755 (`D-1397`; desktop `D-0036`). **NOT patched: `qsc` source is forbidden this lane.** ⚠ **Lane C inherits the visible half** — the open-invites list is where these orphans first become user-facing, so Lane C's design must say what it shows for `creating`.
 - Cross-references: `D-0036`, `D-1397`, `ENG-0226` (a fixture relay would let a scenario drive the reconciliation once it exists).
 - Source: NA-0755 STOP 001 §6.3, traced in the pinned `qsc` and reproduced through the desktop's IPC.
+- ⚠⚠ **ROOT SHARPENED 2026-08-23 by NA-0755 v2 (SR-15 **B-1**), appended rather than rewritten.** The original entry said the create "commits before the network". The SR-15 read measured the sharper thing: **`Creating` does not mean the relay never confirmed.** It means the local transition to `Active` did not complete, and there are **two** reachable paths that leave it set with the relay half LANDED — (i) `invite_create_call` erroring after the relay committed, and (ii) ⛳ **the token-drop window**: the relay returns **200 with a `revoke_token`**, and then `invite_store_load()`/`invite_store_save()` fails (an autolock landing mid-flight, `vault_missing`, `encrypt_failed`, any `VAULT_FAMILY` member). `?` returns early and **the `revoke_token` is a stack local dropped unpersisted.** The record's own doc states the consequence by construction: *"a crash between the relay's 200 and this field being persisted loses the token permanently, and the invite can then only expire, never be revoked … recovering the token is not possible by construction, because the relay stores only its digest."*
+- ⚠ **Path (ii) is the operator's own `vault_unavailable`-mid-create scenario.** Bounded honestly: the orphan is a **relay-side resource leak, never a credential leak** — the code is encoded *after* every fallible step, so on every error path it is never returned and nobody holds the capability; and it does not consume a local soft-cap slot, because the cap counts `Active && expiry > now` only. It **does** consume one of the relay's 256 slots until expiry, un-revocably.
+- ⚠ **The USER-FACING half is resolved by NA-0755 v2's `invite_clear`; the ROOT stays OPEN.** The verb lets a user tidy a row that can never become actionable. It does not stop the orphan being made, and a relay-side cleanup is **impossible by construction** — revoke needs the token and the token is gone. Any future repair must address the token-drop window itself.
+
 
 ### ENG-0230 — the LIVE QUEUE's `STATE:` header must be gated on NAMING the newest declared block, not merely on the count of `READY` lines — **NEW; FILED OPEN by NA-0755, discharging the candidate the NA-0754 close-out owed**
 
@@ -5956,3 +5960,36 @@ by a control, not by argument.**
 - Status: open — filed 2026-08-22 by NA-0755 (`D-1397`; desktop `D-0036`).
 - Cross-references: `D-0036`, `D-1397`; the design bank `RBANK_invite_lanes_split_and_laneA_20260822.md` (sha256 `0a4f8d5aaa17078675c70450022e504e115fcd674af9dda3cfca18eec19db0c2`), connective decision 1.
 - Source: the design bank's blessed decision 1, recorded at the promotion that first consumed it.
+
+
+### ENG-0232 — an older `qsc` binary SILENTLY STRIPS every invite label it touches — **NEW; FILED OPEN by NA-0755 v2 as an ACCEPTED, RECORDED COST**
+
+- Severity: **accepted cost, recorded loud** — not a defect in the new code; a consequence of adding a field to a vault-stored record that older binaries also write.
+- Exact surfaces: `qsl/qsl-client/qsc/src/invite/mod.rs` (`InviteRecord.label`, `invite_store_load`/`_save`); any older `qsc` build run against the same config dir.
+- Description: **reads are compatible, writes are lossy.** A new binary loads an old blob and gets `label: None` — fine, and pinned by `na0755_m9_the_record_round_trips_both_shapes`. The other direction is not: an older binary deserialises a labeled record into a struct that has no `label` field, **drops it**, and its next mutation writes the whole store back without it. One `invite create`, `invite revoke` or `invite clear` from an old build **silently strips every label in the vault**. ⚠ It is silent by construction — nothing errors, nothing warns, and the labels are simply gone.
+- ⚠ **Untestable from inside this build**, which is why it is a ledger entry and not a seal: proving it needs the old binary. The census's row 45 found that **no test in either repo pinned `InviteRecord`'s serialized shape at all**; that instrument now exists for both reachable directions, and this one direction is the documented boundary it cannot reach.
+- Remedy / operator line: **do not run older CLI builds against a labeled vault.** A durable fix would need a schema version on the store, or preservation of unknown fields on deserialise — both larger than this lane.
+- Status: open — filed 2026-08-23 by NA-0755 v2 (`D-1397`).
+- Cross-references: `D-1397`, `ENG-0229`.
+- Source: SR-15 finding **M-10** and its `[A] m-9` companion.
+
+### ENG-0233 — a LIVE, MEASURED label-shaped egress on the create path, with the redactor PROVEN BLIND — **NEW; FILED OPEN by NA-0755 v2 (identity region, NOT touched this lane)**
+
+- Severity: **candidate, with a measured live instance** — no user-facing defect is claimed today; the value that prints there today is the user's own identity label, not a contact's name.
+- Exact surfaces: `qsl/qsl-client/qsc/src/identity/mod.rs:542-546` (the `identity_self_ambiguous` marker's `requested` field); `qsl/qsl-client/qsc/src/output/mod.rs:316-351` (`should_redact_value`); `qsl/qsl-client/qsc/src/lib.rs:2568-2573` (`channel_label_ok`).
+- Description: `invite_create_at` resolves the self label on **every** create, and on an ambiguity the resolver emits a marker carrying the caller's requested label **verbatim**. The full redaction trace was measured end to end: `"requested"` is not in the key list; the value is not URL-shaped; it cannot be timestamp-shaped (needs len ≥ 19 with `T`, `:`, `-`); it cannot be high-cardinality-shaped (needs len ≥ 24 with a digit). ⛳⛳ **The bitter mechanism: `channel_label_ok` admits only `[A-Za-z0-9_#-]+`, so the validator that gates the field guarantees the value can never contain the characters that would make the redactor fire. The gate and the redactor are ANTI-CORRELATED BY CONSTRUCTION.** Routing is `println!` for the CLI and the in-app buffer for the desktop, plus JSONL when `QSC_LOG=1`.
+- ⚠ **Why it is filed and not fixed here:** the identity region is outside this lane's edit set, and the value printed today is the user's own label. The reason it is filed *now* is that NA-0755 adds a same-shaped field whose meaning is *who you associate with* — so a future transposition, or the next lane adding `label=` to a diagnostic, prints a contact's name in the clear and **no existing test would notice**.
+- Remedy: give the marker layer a rule that is keyed on MEANING rather than on value shape, or add `requested` to the key list. This is `OBS-FA`'s root condition, which the tree already states against itself.
+- Status: open — filed 2026-08-23 by NA-0755 v2 (`D-1397`).
+- Cross-references: `ENG-0083`, `ENG-0096`, `ENG-0098`, `ENG-0122`, `ENG-0171` (the 14 sites redacted "by accident of value shape"), `D-1397`.
+- Source: SR-15 finding **A-2**.
+
+### ENG-0234 — the CLI cannot set an invite's recipient label — **NEW; FILED OPEN by NA-0755 v2 (deliberate, ruled)**
+
+- Severity: **candidate** — a capability gap, deliberately taken.
+- Exact surfaces: `qsl/qsl-client/qsc/src/main.rs` (the `invite create` arm), `qsl/qsl-client/qsc/src/cmd/mod.rs` (`InviteCmd::Create`).
+- Description: `invite_create` now takes `recipient_label`, and the CLI passes **`None`**. `R382` §4 ruled no `--label` flag this lane, so the two front ends diverge: the GUI can set a label and the CLI cannot. ⚠ Recorded because the divergence is invisible from either side — a CLI user sees no flag and would not know the field exists, and a GUI user's labels are simply absent from CLI output.
+- Remedy: add a `--label` (or `--for`) argument to `InviteCmd::Create` and render it in `invite list`. ⚠ Whatever name is chosen must NOT be adjacent to `--as` in the help text: `--as` is the SELF label, and the SR-15 read measured that exact adjacency as a transposition hazard that fails open on a fresh profile.
+- Status: open — filed 2026-08-23 by NA-0755 v2 (`D-1397`).
+- Cross-references: `D-1397`, `ENG-0232`, SR-15 **B-2**.
+- Source: `R382` §4's "a CLI flag candidate is FILED (id derived)".

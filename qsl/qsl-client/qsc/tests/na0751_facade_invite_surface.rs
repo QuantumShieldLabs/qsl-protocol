@@ -140,7 +140,7 @@ fn na0751_invite_surface_is_driven_in_process_against_the_relay_fixture() {
 
     // ⛳ THE FIRST IN-PROCESS DRIVER OF THE INVITE SURFACE. No test in the tree called these
     // as Rust functions before this lane.
-    let code = qsc::facade::invite_create(Some("self"), relay.base_url(), 3600)
+    let code = qsc::facade::invite_create(Some("self"), relay.base_url(), 3600, None)
         .expect("invite_create through the facade");
     assert!(
         code.starts_with("QSLI-1-"),
@@ -154,12 +154,38 @@ fn na0751_invite_surface_is_driven_in_process_against_the_relay_fixture() {
     assert!(!row.invite_id.is_empty());
     assert_eq!(row.state, InviteStateKind::Active);
     assert!(row.expiry > 0);
-    // W7-adjacent: the summary's own fields are the only ones there are.
+    // W7-adjacent — and NA-0755 v2 turns it from a DENYLIST into an ALLOWLIST (SR-15 A-3).
+    //
+    // ⚠ The old form banned two known-bad values by name (`cap:`, the relay URL). That admits
+    // EVERY new sensitive field by construction, and the comment claiming the field set was
+    // closed went false the moment the set grew. The allowlist below fails on ANY field the
+    // boundary has not been ruled to carry, which is the property the doc at `InviteSummary`
+    // actually states.
     let rendered = format!("{row:?}");
     assert!(!rendered.contains("cap:"), "no capability on the list DTO");
     assert!(
         !rendered.contains(relay.base_url()),
         "no relay endpoint on the list DTO"
+    );
+    let expected_fields = [
+        "invite_id", "state", "expiry", "revocable", "label", "created",
+    ];
+    let seen: Vec<&str> = expected_fields
+        .iter()
+        .copied()
+        .filter(|f| rendered.contains(&format!("{f}:")))
+        .collect();
+    assert_eq!(
+        seen.len(),
+        expected_fields.len(),
+        "every ruled field must be present in the Debug rendering: {rendered}"
+    );
+    let field_count = rendered.matches(": ").count();
+    assert_eq!(
+        field_count,
+        expected_fields.len(),
+        "the Debug rendering carries EXACTLY the ruled field set and nothing else — a new \
+         field must be ruled onto this boundary before it can ship: {rendered}"
     );
     qsc::set_vault_unlocked(false);
 }
@@ -175,7 +201,7 @@ fn na0751_w11_the_expiry_overlay_and_its_boundary_second() {
     qsc::identity::identity_ensure("self").expect("identity");
 
     let relay = common::start_qsl_server(2 * 1024 * 1024, 512, None);
-    qsc::facade::invite_create(Some("self"), relay.base_url(), 3600).expect("mint");
+    qsc::facade::invite_create(Some("self"), relay.base_url(), 3600, None).expect("mint");
     let expiry = qsc::facade::invite_list().expect("list")[0].expiry;
 
     // BEFORE expiry: Active.
@@ -208,7 +234,7 @@ fn na0751_invite_revoke_commits_locally_and_the_list_is_how_a_screen_reads_it() 
     qsc::identity::identity_ensure("self").expect("identity");
 
     let relay = common::start_qsl_server(2 * 1024 * 1024, 512, None);
-    qsc::facade::invite_create(Some("self"), relay.base_url(), 3600).expect("mint");
+    qsc::facade::invite_create(Some("self"), relay.base_url(), 3600, None).expect("mint");
 
     let before = qsc::facade::invite_list().expect("list");
     assert_eq!(before.len(), 1);

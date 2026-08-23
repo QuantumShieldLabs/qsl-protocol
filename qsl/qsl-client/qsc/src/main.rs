@@ -336,7 +336,7 @@ fn run(cli: Cli) -> CliResult {
                 relay,
                 ttl_secs,
             } => {
-                let code = qsc::invite::invite_create(self_label.as_deref(), &relay, ttl_secs)
+                let code = qsc::invite::invite_create(self_label.as_deref(), &relay, ttl_secs, None)
                     .map_err(CliError::code)?;
                 println!("{code}");
             }

@@ -123,6 +123,14 @@ pub const INVITE_SLOT_CAP_FULL: &str = "invite_slot_cap_full";
 pub const INVITE_TOO_LARGE: &str = "invite_too_large";
 pub const INVITE_CREATE_FAILED: &str = "invite_create_failed";
 pub const INVITE_REVOKE_INVALID: &str = "invite_revoke_invalid";
+/// NA-0755 v2 (`D-1397`) — `invite_clear` refused because the record is not `Creating`.
+///
+/// ⚠ TWO LAYERS, and they are deliberately different strings (SR-15 **M-8**). This const keeps
+/// the module's prefixed VALUE form, which is what the facade's value-shape census scrapes; the
+/// facade re-mints the short wire discriminant `"clear_refused"`, because **zero of the existing
+/// 38 wire codes carry an `invite_` prefix** and the desktop documents that set as "the
+/// protocol's to change, not the desktop's".
+pub const INVITE_CLEAR_REFUSED: &str = "invite_clear_refused";
 
 /// The two security-relevant failures. DISTINCT from each other and from everything else,
 /// because their causes are different -- substituted KEYS versus tampered invite FIELDS --
@@ -612,6 +620,21 @@ pub struct InviteRecord {
     pub revoke_token: Option<String>,
     #[serde(default)]
     pub created_unix: u64,
+    /// NA-0755 v2 — the OPTIONAL local note: *who this invite is for*. Vault-stored beside the
+    /// record and never sent anywhere; the relay sees the payload, and the payload has no room
+    /// for it by construction (`encode_payload`).
+    ///
+    /// ⚠ **`None`, never `Some("")`.** The mint normalises at the boundary (`invite_create_at`)
+    /// so no consumer has to special-case an empty string — one of them would forget.
+    ///
+    /// ⚠ **NOT `self_label`.** `self_label` selects WHICH IDENTITY mints; this names WHO IT IS
+    /// FOR. They were `Option`s of the same type at four signatures, which is why the parameter
+    /// is called `recipient_label` and sits LAST (SR-15 **B-2**).
+    ///
+    /// `#[serde(default)]` for the same reason `revoke_token` and `created_unix` carry it: a
+    /// blob written before this lane loads with the field absent ⇒ `None`.
+    #[serde(default)]
+    pub label: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -797,12 +820,19 @@ fn csprng_16() -> [u8; ID_LEN] {
 ///
 /// Gates on CONFIGURATION, never on probe results (L3-1): an unlocked vault and a relay
 /// endpoint. A failed reachability probe does not block creation.
+/// ⚠ `recipient_label` is LAST and is NOT `self_label` (SR-15 **B-2**). Both are
+/// `Option<&str>`, so the compiler cannot tell a transposition from the truth at any call
+/// site; a transposed bare token (`"Mom"`, `"alice"`) passes `channel_label_ok` and, on a
+/// profile with ZERO identities, is **silently adopted as the identity's own label**
+/// (`identity/mod.rs:536-537`) — the ENG-0001 class. Position and name are the cheap half of
+/// the cure; the transposition seal is the half that can fail.
 pub fn invite_create(
     self_label: Option<&str>,
     relay: &str,
     ttl_secs: u64,
+    recipient_label: Option<&str>,
 ) -> Result<String, &'static str> {
-    invite_create_at(self_label, relay, ttl_secs, now_unix_s())
+    invite_create_at(self_label, relay, ttl_secs, now_unix_s(), recipient_label)
 }
 
 pub fn invite_create_at(
@@ -810,10 +840,18 @@ pub fn invite_create_at(
     relay: &str,
     ttl_secs: u64,
     now: u64,
+    recipient_label: Option<&str>,
 ) -> Result<String, &'static str> {
     if !vault_unlocked() {
         return Err("vault_locked");
     }
+    // NA-0755 v2: `absent = None, never ""` is enforced HERE, at the boundary, not at the
+    // render. If the empty string reached the record every consumer would have to special-case
+    // it and one of them would forget.
+    let recipient_label = recipient_label
+        .map(str::trim)
+        .filter(|l| !l.is_empty())
+        .map(|l| l.to_string());
     // NA-0711: resolved BEFORE the network, and propagated (D647 A4 Δ36/Δ37).
     let self_label =
         crate::identity::identity_resolved_self_label(self_label).map_err(|e| e.as_str())?;
@@ -879,6 +917,7 @@ pub fn invite_create_at(
             state: InviteState::Creating,
             revoke_token: None,
             created_unix: now,
+            label: recipient_label,
         },
     );
     invite_store_save(&store)?;
@@ -919,6 +958,58 @@ pub fn invite_revoke(invite_id_wire: &str) -> Result<(), &'static str> {
     rec.state = InviteState::Revoked;
     invite_store_save(&store)?;
     crate::transport::invite_revoke_call(&relay_ep, invite_id_wire, &token)
+}
+
+/// Alice: remove a local row that can never become actionable.
+///
+/// ⚠⚠ **WHAT `Creating` MEANS, AND WHAT IT DOES NOT** (SR-15 **B-1**, sustained). It does NOT
+/// mean "the relay never confirmed". It means *the local transition to `Active` did not
+/// complete*, and two measured paths leave it set with the relay half LANDED: the create call
+/// erroring after the relay committed, and — the operator's own scenario — a vault failure in
+/// the post-network window, where the `revoke_token` the relay just returned is a stack local
+/// dropped unpersisted.
+///
+/// So the rationale for clearing is NOT "it is safe": **there is no token, so revoke is
+/// impossible from this client at any time; Clear removes a local row that can never become
+/// actionable.** If the relay did register the slot it stays open until it expires and cannot
+/// be revoked from here — the record's own doc says recovering the token is not possible by
+/// construction. The user-facing copy says exactly that, and never says "safe".
+///
+/// ⚠ The gate is the one EVERY sibling carries. The facade's pre-check is documented as no
+/// substitute: it is point-in-time, and a caller outside that gate reopens the window.
+///
+/// ⚠ **A local tidy, not a repair — and the marker is the trace that survives it.** Deleting
+/// the row removes the only local evidence the orphan existed, so the verb emits one marker
+/// carrying the id, the prior state and the record's age. **The label NEVER rides it**: the
+/// marker layer redacts by value SHAPE, and that redactor is measurably blind to a human name.
+pub fn invite_clear(invite_id_wire: &str) -> Result<(), &'static str> {
+    if !vault_unlocked() {
+        return Err("vault_locked");
+    }
+    let mut store = invite_store_load()?;
+    let rec = store.invites.get(invite_id_wire).ok_or(INVITE_NOT_FOUND)?;
+    // Creating ONLY. Active has a token and Revoke is its control; Redeemed is a real contact's
+    // provenance; Revoked and Expired are list hygiene, a separate decision this verb
+    // deliberately does not take.
+    //
+    // ⚠ `InviteState::Expired` is NEVER STORED — zero constructors, and expiry is a read-time
+    // overlay in the facade — so that arm is unreachable from a loaded record today.
+    if rec.state != InviteState::Creating {
+        return Err(INVITE_CLEAR_REFUSED);
+    }
+    let age_s = now_unix_s().saturating_sub(rec.created_unix).to_string();
+    store.invites.remove(invite_id_wire);
+    invite_store_save(&store)?;
+    crate::output::emit_marker(
+        "invite_cleared",
+        None,
+        &[
+            ("invite_id", invite_id_wire),
+            ("prior_state", "creating"),
+            ("age_secs", age_s.as_str()),
+        ],
+    );
+    Ok(())
 }
 
 pub fn invite_list() -> Result<Vec<InviteRecord>, &'static str> {

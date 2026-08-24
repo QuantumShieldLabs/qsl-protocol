@@ -978,8 +978,7 @@ fn qsp_session_store_inner(peer: &str, plaintext: &[u8]) -> Result<(), ErrorCode
     }
     let (dir, source) = config_dir()?;
     let sessions = qsp_sessions_dir(&dir);
-    enforce_safe_parents(&sessions, source)?;
-    fs::create_dir_all(&sessions).map_err(|_| ErrorCode::IoWriteFailed)?;
+    crate::fs_store::ensure_dir_secure(&sessions, source)?;
     let blob = qsp_session_encrypt_blob(peer, plaintext)?;
     let blob_path = qsp_session_blob_path(&dir, peer);
     write_atomic(&blob_path, &blob, source)?;

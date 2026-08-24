@@ -41,6 +41,7 @@ use qsc::facade::{self, FacadeError};
 
 const ALICE_INBOX: &str = "na0756_alice_inbox_token_abcdefgh";
 const BOB_INBOX: &str = "na0756_bob_inbox_token_ijklmnopq";
+const CAROL_INBOX: &str = "na0757_carol_inbox_token_rstuvwxy";
 
 fn guard() -> MutexGuard<'static, ()> {
     static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
@@ -219,31 +220,23 @@ fn na0756_x1_x4_the_redeemer_drives_the_facade_through_a_real_handshake() {
         "Alice must end with a PENDING contact for Bob: {accept}"
     );
 
-    // ⚠⚠ X4 — THE FINISH RUNS AS A SUBPROCESS, AND THAT IS A MEASURED CONSTRAINT RATHER THAN A
-    // PREFERENCE. `ENG-0239`. Driven both ways against the SAME config dir, the SAME relay and
-    // the SAME vault, with the process shape as the only variable:
-    //     facade::invite_finish(..)  -> Err(Other("handshake_session_store_failed"))
-    //     `qsc invite finish ..`     -> exit status 0
-    // The handshake's session store discards the typed `ErrorCode` through `map_err(|_| ..)`
-    // (`handshake/mod.rs:1929`, `:2156`), so the specific cause does not survive to this
-    // surface — which is half of what the filing is about.
+    // ⚠⚠ X4 — THE FINISH RUNS BOTH WAYS, AND EACH ARM DRIVES ITS OWN COMPLETE FLOW. `ENG-0239`.
     //
-    // ⚠ WHY THE IN-PROCESS ARM IS THE UNUSUAL ONE HERE: unlocking the vault in-process to
-    // satisfy `require_unlocked_here` is exactly what takes `qsp_session_store_key_load`
-    // (`protocol_state:168-181`) OFF the seed-fallback branch — that fallback fires only on
-    // `Err("vault_missing" | "vault_locked")`, and an unlocked mock vault returns `Ok(None)`.
-    // A subprocess runs with the vault LOCKED and therefore takes the fallback.
+    // ⚠ THE CAUSE RECORDED HERE BEFORE NA-0757 WAS WRONG, AND THE CORRECTION IS THE POINT.
+    // This block used to say the discriminator was the PROCESS SHAPE, and that unlocking
+    // in-process took the store-key load off its seed-fallback branch. Measured at
+    // `f98af5cc`, both halves are false: the store path never calls the load function at
+    // all (it calls `qsp_session_store_key_get_or_create`, whose `Ok(None)` arm PROVISIONS
+    // and was observed doing so), and the in-process arm completes a real handshake
+    // perfectly. The real discriminator was the CALLING PROCESS'S UMASK: `qsp_sessions` was
+    // created by a bare `create_dir_all` with no explicit mode, and this build box's umask
+    // is 0002. See the `ENG-0239` amendment (`D-1399`, `R388`) for the measurement and the
+    // field proof; the directory is now born `0700` regardless of umask.
     //
-    // ⚠⚠ WHAT THIS TEST DOES **NOT** SHOW, stated so its silence is not read as safety: whether
-    // the DESKTOP hits the same wall. The desktop unlocks in-process too, but against a REAL
-    // vault whose store key can genuinely be written, so its arm is UNMEASURED here — and it
-    // cannot be measured in either harness, because neither can reach a relay (`ENG-0226`).
-    // That is precisely what the operator's acceptance flight resolves.
-    //
-    // The shape below is the tree's own ruled idiom (`na0751_facade_invite_surface.rs`): the
-    // SUBPROCESS writes the session into the config dir, and the FACADE then reads it
-    // IN-PROCESS — which is what makes the assertion that follows a facade assertion rather
-    // than a CLI one.
+    // ⚠ WHY TWO FLOWS RATHER THAN TWO CALLS: a finish CONSUMES the reply it acts on. Running
+    // both shapes against one flow would leave the second arm asserting "none" — the first
+    // arm would silently demote the second's claim rather than stand beside it. Each arm
+    // therefore drives its own inviter end to end, and both prove a COMPLETED handshake.
     let finish = run_ok(&bob, &["invite", "finish", "--alias", "alice", "--relay", &base]);
     assert!(
         finish.contains("invite_finish=ok"),
@@ -261,6 +254,50 @@ fn na0756_x1_x4_the_redeemer_drives_the_facade_through_a_real_handshake() {
         st.reason,
         facade::ConnectReason::Handshake,
         "and its reason is the handshake arm — the only Active producer"
+    );
+
+    // ── X4b (NA-0757, `R388` A3) — THE SAME FINISH, IN-PROCESS THROUGH THE FACADE ──────────
+    // A second inviter, so this arm consumes its OWN reply and the subprocess arm above
+    // keeps its original assertion byte-for-byte. Before NA-0757 this arm returned
+    // `Err(Other("handshake_session_store_failed"))` on this box; it is the arm the GUI
+    // actually takes, and it is now driven rather than described.
+    let carol = party(&root, "carol", CAROL_INBOX);
+    let (code_c, invite_c) = mint(&carol, &base);
+    let fp_c = facade::invite_redeem(&code_c, "carol", None).expect("facade redeem succeeds");
+    assert_eq!(fp_c.len(), 64, "the redeem returns a 64-hex fingerprint");
+    let accept_c = run_ok(
+        &carol,
+        &[
+            "invite",
+            "accept",
+            "--invite-id",
+            &invite_c,
+            "--alias",
+            "bob",
+        ],
+    );
+    assert!(
+        accept_c.contains("status=pinned"),
+        "carol must end with a PENDING contact for Bob: {accept_c}"
+    );
+
+    let done = facade::invite_finish(None, "carol", &base, 1)
+        .expect("the IN-PROCESS finish must complete, not die in the session store");
+    assert!(
+        done,
+        "the reply was waiting, so the facade finish reports FOUND"
+    );
+
+    let st_c = facade::connect_status("carol");
+    assert_eq!(
+        st_c.state,
+        facade::ConnectState::Active,
+        "the in-process arm reaches the SAME terminal state as the subprocess arm"
+    );
+    assert_eq!(
+        st_c.reason,
+        facade::ConnectReason::Handshake,
+        "and by the same producer"
     );
 }
 

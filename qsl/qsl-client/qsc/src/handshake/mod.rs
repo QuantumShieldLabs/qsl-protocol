@@ -1925,8 +1925,20 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                                 return Ok(());
                             }
                         };
-                        qsp_session_store(peer, &st)
-                            .map_err(|_| "handshake_session_store_failed")?;
+                        qsp_session_store(peer, &st).map_err(|e| {
+                            // NA-0757 (ENG-0239, R388 A1(b)): the typed code SURVIVES as a
+                            // field. Seven distinct `ErrorCode`s reach this point and the
+                            // flattening named none of them, which is why a field capture of
+                            // the marker could not localize it. The outer string is unchanged ON
+                            // PURPOSE: no new discriminant enters the facade's wire
+                            // vocabulary, so an opaque error never becomes a WRONG one.
+                            emit_marker(
+                                "error",
+                                Some("handshake_session_store_failed"),
+                                &[("store_code", e.as_str())],
+                            );
+                            "handshake_session_store_failed"
+                        })?;
                         let _ = hs_pending_clear(self_label, peer);
                         if active_suite_context.is_explicit() {
                             hs_emit_suite_accept(&active_suite_context, false);
@@ -2152,8 +2164,20 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                         {
                             continue;
                         }
-                        qsp_session_store(peer, &st)
-                            .map_err(|_| "handshake_session_store_failed")?;
+                        qsp_session_store(peer, &st).map_err(|e| {
+                            // NA-0757 (ENG-0239, R388 A1(b)): the typed code SURVIVES as a
+                            // field. Seven distinct `ErrorCode`s reach this point and the
+                            // flattening named none of them, which is why a field capture of
+                            // the marker could not localize it. The outer string is unchanged ON
+                            // PURPOSE: no new discriminant enters the facade's wire
+                            // vocabulary, so an opaque error never becomes a WRONG one.
+                            emit_marker(
+                                "error",
+                                Some("handshake_session_store_failed"),
+                                &[("store_code", e.as_str())],
+                            );
+                            "handshake_session_store_failed"
+                        })?;
                         let _ = hs_pending_clear(self_label, peer);
                         if active_suite_context.is_explicit() {
                             hs_emit_suite_accept(&active_suite_context, false);

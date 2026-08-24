@@ -144,3 +144,4 @@ tests/na0751_facade_locked_control.rs	7
 tests/na0751_facade_contact_surface.rs	7
 tests/na0755_invite_label_and_clear.rs	7
 tests/na0756_two_party_invite_roundtrip.rs	3
+tests/na0757_eng0239_session_dir_perms.rs	4

@@ -114,8 +114,29 @@ pub(crate) fn read_ack_mode(path: &Path) -> Result<Option<String>, ErrorCode> {
 pub(crate) fn ensure_dir_secure(dir: &Path, source: ConfigSource) -> Result<(), ErrorCode> {
     enforce_safe_parents(dir, source)?;
     if !dir.exists() {
+        // NA-0757 (ENG-0239, R388 A1(a)): create the directory MODE-EXPLICITLY. A bare
+        // `create_dir_all` takes its mode from the CALLING process's umask -- the `qsc`
+        // BINARY sets one (`main.rs:59`), and every in-process library consumer does not.
+        // A directory born group- or world-writable is then refused for good by
+        // `enforce_safe_parents` (`perms_group_or_world_writable` = `mode & 0o022 != 0`),
+        // which is the ENG-0239 field failure. `0o700` carries no group or world bits, so
+        // NO umask can widen it and there is no window in which a wrong mode exists on
+        // disk -- the chmod below could only narrow one after the fact.
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::DirBuilderExt;
+            fs::DirBuilder::new()
+                .recursive(true)
+                .mode(0o700)
+                .create(dir)
+                .map_err(|_| ErrorCode::IoWriteFailed)?;
+        }
+        #[cfg(not(unix))]
         fs::create_dir_all(dir).map_err(|_| ErrorCode::IoWriteFailed)?;
     }
+    // ⚠ UNCHANGED, and deliberately: this still REPAIRS the mode of a directory that
+    // already existed. R388 A1(d) keeps an INHERITED exposed directory refused; what the
+    // block above changes is only the mode of a directory this process CREATES.
     #[cfg(unix)]
     {
         enforce_dir_perms(dir)?;

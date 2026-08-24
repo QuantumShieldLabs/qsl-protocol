@@ -166,3 +166,4 @@ tests/na0751_facade_fact_fidelity.rs	1
 tests/na0751_facade_locked_control.rs	1
 tests/na0751_facade_contact_surface.rs	1
 tests/na0755_invite_label_and_clear.rs	1
+tests/na0756_two_party_invite_roundtrip.rs	0

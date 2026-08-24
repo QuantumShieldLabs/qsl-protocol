@@ -6055,3 +6055,168 @@ by a control, not by argument.**
 - Status: open — filed 2026-08-23 by NA-0756 (`D-1398`; desktop `D-0037`). NOT patched: `qsc` product bytes are outside this lane's scope and a measured need is a STOP.
 - Cross-references: `D-1398`, `D-0037`, `ENG-0226`, `ENG-0238`.
 - Source: NA-0756's facade drive, driven both ways with the process shape isolated as the only variable.
+- ⚠⚠ **AMENDED 2026-08-24 by NA-0757 (`D-1399`; `R388`) — EXTENDED, NOT REWRITTEN, because the
+  entry above was TRUE AS WRITTEN and its central caveat was correct.** The bullets above record
+  the process-shape asymmetry as *"the leading hypothesis"*, explicitly *"NOT isolated"*. It is
+  now isolated, and the hypothesis is **RETIRED — a hypothesis correctly retired, not a finding
+  overturned.** What follows is what the isolation measured.
+- **THE CAUSE, MEASURED.** `qsp_sessions` was created by a bare `fs::create_dir_all`
+  (`protocol_state/mod.rs:982`) with **no explicit mode**, so its permissions were the CALLING
+  process's umask. The `qsc` binary sets one (`main.rs:59` `set_umask_077`); **no in-process
+  library consumer does, `qsl-desktop` included** (zero `set_umask` occurrences in `src-tauri/`,
+  measured on desktop main and on PR #37). A directory born with any write bit beyond the owner
+  is then refused by `enforce_safe_parents` — `perms_group_or_world_writable` is
+  `(mode & 0o022) != 0` (`fs_store:402-406`) — and the refusal was flattened into one opaque
+  string. ⚠ The refusal is **correct**; the birth mode was the defect.
+- **THE DISCRIMINATOR IS THE UMASK, NOT THE PROCESS SHAPE.** Three arms, only the umask varying,
+  everything else identical: **umask 077 → `Ok(true)`, peer ACTIVE**; **umask 022 → dir born
+  0755, self-healed to 0700 by `enforce_dir_perms`, `Ok(true)`, peer ACTIVE**; **umask 002 → dir
+  born 0775 → `Err(Other("handshake_session_store_failed"))`**. The in-process facade finish
+  completes a real handshake perfectly; NA-0756's in-process arm failed because **the build box's
+  own umask is 0002**. ⚠ And a directory pre-poisoned at 0775 fails the **SUBPROCESS** arm too,
+  reproducing the field's marker sequence exactly — which is why a *desktop-born* vault breaks
+  the CLI. The two entry points differ (`:981` when the dir already exists, `:985` when it is
+  fresh) and are indistinguishable at the marker.
+- **THE FIELD PROOF CHAIN — operator-flown 2026-08-24 on two notebooks against the live relay,
+  quoted VERBATIM from `FIELD_EVIDENCE_ENG0239_20260824.md` (sha256
+  `4bd53116fb18d038e3577656e0f0f25a5c77b819234e96230edff1b145dddef7`, 78 lines / 5717 bytes, 444;
+  compiled by the Director from the operator's own pastes, transcription fidelity attested).**
+  `R389` B3 supersedes attribution-only citation for this evidence: **field evidence that lives
+  only in a chat does not survive** (`R331.1`).
+
+  **(a) THE FAILURE — the redeeming machine, CLI subprocess, vault unlocked via file flag:**
+
+  ```
+  QSC_MARK/1 event=invite_scan_summary scanned=1 pulls=1 truncated=false selected=invite_resp classes=invite_resp
+  QSC_MARK/1 event=handshake_pending peer=Matthew present=true role=initiator key=handshake.pending.self.Matthew state=present
+  QSC_MARK/1 event=sig_status ok=true alg=ML-DSA-65 reason=b1_verify
+  QSC_MARK/1 event=identity_ok peer=Matthew fp=b1f9f457f11f8adb955ef2bc93b7cd9aab78754c01b7757d8a413a49b6567e3a
+  QSC_MARK/1 event=error code=handshake_session_store_failed
+  ```
+
+  **(b) THE CAUSE, MEASURED ON BOTH MACHINES.** On the redeemer:
+  `stat -c '%a %n' <app-data>/qsc/qsp_sessions` → **`775`**. On the accepting machine the same
+  path returned **No such file or directory** — because **`invite_accept` stores a pending in the
+  VAULT and never runs the session store at all**, which is the asymmetry this lane predicted
+  before the flight. And the desktop's own umask was read **off its own creations**: its
+  browser-layer directories (`CacheStorage`, `WebKitCache`, `mediakeys`, `storage`) all read
+  `drwxrwxr-x` — **process umask 002, observed not inferred** — while the qsc-managed entries read
+  `drwx------` because qsc's own code enforces itself.
+
+  **(c) THE INTERVENTION — `chmod 700` on that directory as the SINGLE variable, then the
+  IDENTICAL previously-failing command:**
+
+  ```
+  QSC_MARK/1 event=invite_scan_summary scanned=1 pulls=1 truncated=false selected=invite_resp classes=invite_resp
+  QSC_MARK/1 event=handshake_pending peer=Matthew present=true role=initiator key=handshake.pending.self.Matthew state=present
+  QSC_MARK/1 event=sig_status ok=true alg=ML-DSA-65 reason=b1_verify
+  QSC_MARK/1 event=identity_ok peer=Matthew fp=b1f9f457f11f8adb955ef2bc93b7cd9aab78754c01b7757d8a413a49b6567e3a
+  QSC_MARK/1 event=session_store ok=true format=v3 enc=aead
+  QSC_MARK/1 event=handshake_suite_admission result=compatibility_accept mode=legacy_compat reason=ACCEPT_QSC_HS_LEGACY_COMPATIBILITY
+  QSC_MARK/1 event=sig_status ok=true alg=ML-DSA-65 reason=a2_sign
+  QSC_MARK/1 event=handshake_send msg=A2 size=3364
+  QSC_MARK/1 event=handshake_complete peer=Matthew role=initiator peer_confirmed=no
+  QSC_MARK/1 event=producer_ack caller=finish sent=1 acked=1
+  invite_finish=ok
+  ```
+
+  **(d) THE ACCEPTING PARTY COMPLETES — its `qsp_sessions` pre-created `mkdir -m 700`, then the
+  handshake poll:**
+
+  ```
+  QSC_MARK/1 event=handshake_pending peer=ALIZA present=true role=responder key=handshake.pending.self.ALIZA state=present
+  QSC_MARK/1 event=sig_status ok=true alg=ML-DSA-65 reason=a2_verify
+  QSC_MARK/1 event=handshake_recv msg=A2 ok=true
+  QSC_MARK/1 event=session_store ok=true format=v3 enc=aead
+  QSC_MARK/1 event=producer_ack caller=poll sent=1 acked=1
+  QSC_MARK/1 event=handshake_complete peer=ALIZA role=responder peer_confirmed=yes
+  QSC_MARK/1 event=session_load ok=true format=v3
+  QSC_MARK/1 event=handshake_status status=established_recv_only peer=ALIZA pinned=true peer_confirmed=yes send_ready=no send_ready_reason=chainkey_unset
+  ```
+
+  ⛳⛳ **`session_store ok=true` IN BOTH DIRECTIONS AND `handshake_complete peer_confirmed=yes` —
+  THE FIRST FULLY ESTABLISHED TWO-PARTY PAIR IN THE PRODUCT'S HISTORY.** `established_recv_only`
+  with `send_ready_reason=chainkey_unset` is the documented correct state for a peer that has
+  received but never originated a user send; user messaging does not exist yet.
+
+  **(e) PROVENANCE.** Every field command carried `QSC_CONFIG_DIR`, so each run took the
+  **`EnvOverride`** arm of `enforce_safe_parents` — the same arm as this lane's probes, which
+  closes the cold read's `F-20` and removes the last gap between lab and field.
+  ⚠ **A FORENSIC MISS IS RECORDED, NOT SMOOTHED:** the `chmod` destroyed the owner/group/content
+  detail the read's `F-11` asked to capture first. The mode and the directory listing are what
+  survive. Recorded as a Director row, not repeated.
+
+- ⚠⚠ **THE PROPERTY THIS PROGRAM KEEPS, minted by the SR-15 cold read: A FLATTENED ERROR IS
+  COMPATIBLE WITH EVERY CODE IT FLATTENS.** The field capture was the *flattened* string, and
+  seven distinct `ErrorCode`s reach that flattening — so the field evidence discriminated
+  **none** of them. A lab reproduction proves a cause **sufficient**; only the INTERVENTION
+  EXPERIMENT (change one variable, observe the outcome flip) proved the **instance**. Until the
+  `chmod` completed the handshake, `unsafe_path_symlink` and `identity_secret_unavailable` were
+  live alternatives producing a byte-identical capture. **Neither is cured by a chmod on the
+  leaf, so the completion excludes both.**
+- **RETRY SAFETY held throughout.** `invite_finish` pulls via the never-acking
+  `relay_inbox_pull`, so the reply redelivered on every scan and nothing was lost pre-repair; the
+  relay's RETENTION window was the only clock. `ENG-0142` is the adjacent-but-separate wedge
+  filing — cross-referenced, **not edited and not closed**.
+- **THE DESKTOP CONSEQUENCE, now settled.** As shipped, the app's completion triggers could not
+  succeed on any machine whose umask left a write bit — and the desktop's own umask is measured
+  002. PR #37 was held on exactly this.
+- ⚠ **WHAT THIS AMENDMENT DOES NOT CLAIM.** The heal-policy axis — whether an INHERITED exposed
+  directory should be repaired, refused, or repaired-with-disclosure — is **deferred whole** to
+  the storage-integrity-check design (`R388` A1(c)). This lane changes **no repair/refuse policy
+  anywhere**: a poisoned directory stays REFUSED, now with the refusal NAMED. `ENG-0241` and
+  `ENG-0242` carry the two consequences the cold read surfaced.
+- **BOUNDARY BETWEEN THE TWO HALVES OF THE RECORD.** The Lane B FLIGHT RECORD — all seven steps,
+  the two card defects, the three error states exercised live — belongs to the **NA-0756
+  CLOSE-OUT**, which the Director drafts when #37 merges. It is deliberately NOT here. This
+  amendment carries only the ENG-0239 cause, its proof chain and its repair.
+- ⚠⚠ **`A1(a)` SHIPPED AS TWO EDITS OF UNEQUAL EFFECT, and the record says so rather than
+  implying both carry the behaviour (`R389` B2).** The **`protocol_state` collapse onto
+  `ensure_dir_secure` carries the OBSERVABLE repair** — the primitive's `enforce_dir_perms` heals
+  a just-created directory one line after creation, which the old inline sequence never did. The
+  **`DirBuilder` mode-explicit creation closes the creation WINDOW** (the cold read's `F-8`): a
+  property proven **BY CONSTRUCTION** — `0o700` carries no group or world bits, so `mode & ~umask`
+  cannot widen it and no wrong mode ever exists on disk — and **UNPROVABLE BY TEST, because a
+  window is not an observable.** Both edits stand; the seal is aimed at the line that carries the
+  behaviour; the window edit's evidence is its bytes.
+  ⛳ This was found because the seat's FIRST control for that seal **passed against a reverted
+  product** — `D-1398`'s vacuous-seal property firing one lane later and being answered correctly:
+  caught, diagnosed to a real property rather than a harness error, and re-aimed.
+- Resolution: **REPAIRED IN PART by NA-0757 (`R388`)** — the birth defect is cured
+  (`ensure_dir_secure` creates mode-explicitly; `protocol_state:981-982` collapses onto it) and
+  the diagnosability defect is cured (both handshake sites now emit `store_code=<wire name>` on
+  the error marker while the outer string is deliberately unchanged). ⚠ The entry is **NOT
+  CLOSED** by the seat: the heal-policy axis is deferred and the close is the Director's act.
+
+### ENG-0240 — every directory in `qsc` is born at the AMBIENT UMASK, and the safety of the store depends on a call only the BINARY makes — **NEW; FILED OPEN by NA-0757 (`R388` A5)**
+
+- Severity: **defect (systemic, latent)** — one instance of it was ENG-0239, and the instrument that would catch the next one does not exist.
+- Description: there is **no `DirBuilder` anywhere in `src/`** (measured, zero occurrences). Every directory is created by a bare `fs::create_dir_all` at whatever umask the calling process happens to carry, and a correct `0700` is achieved only *afterwards* — by `enforce_dir_perms` (`fs_store:417`) or by an explicit `set_permissions` (`vault/mod.rs:659`, the only production instance). The safety of the whole config dir therefore rests on **`main.rs:59` `set_umask_077`**, which is a property of the **binary**, not of the library — and **no in-process consumer makes that call**, `qsl-desktop` included.
+- ⚠ **PRECISION, per the SR-15 cold read (F-18).** `protocol_state:982` was the **only bare creation INSIDE the config dir**, and this lane cures it at the primitive. **Two more exist OUTSIDE it and are NOT fixed here**: `lib.rs:2805` (`write_doctor_export` — creates the export directory and writes the report with neither `enforce_dir_perms` nor `enforce_file_perms`) and `output/mod.rs:363` (`log_marker` — creates the `QSC_LOG_PATH` parent, ignores the error, appends the marker log with no perms enforcement). Both write to **user-supplied** paths, which is why they are lower-stakes rather than harmless.
+- ⚠⚠ **THE DEEPER SYSTEMIC PROPERTY IS REPAIR-WITHOUT-DISCLOSURE, AND IT IS ALREADY SHIPPED.** `enforce_dir_perms` unconditionally chmods a security-relevant directory back to `0700` and continues, inside `write_atomic` (`:183`), `ensure_dir_secure` (`:121`) and `lock_store_exclusive` (`:333`); `vault/mod.rs:648-661` does the same to the directory **holding the vault file**; and the desktop's `create_private_dir` (`src-tauri/src/lib.rs:313-317`) does it to `<data>/qsc` **on every app start**. Nothing anywhere records that a directory was found exposed. That is a coherent product-wide policy question, not a bug — and it is a named input to the operator-blessed **storage-integrity-check** design.
+- Remedy: (a) mode-explicit creation everywhere a private directory is born — this lane delivers it inside `ensure_dir_secure`, so its **17 pre-existing call sites (15 of them production) across 8 files** inherit it; (b) route the two outside-config-dir sites through the same primitive or state why they should not be; (c) decide the disclosure policy in the storage-integrity design rather than per-site.
+- Status: open — filed 2026-08-24 by NA-0757 (`D-1399`; `R388` A5). Partially mitigated: the config-dir class is cured at birth by this lane's primitive fix.
+- Cross-references: `ENG-0239`, `ENG-0241`, `ENG-0242`, `D-1399`, `R388`.
+- Source: NA-0757's cause isolation, with the precision correction and the reframing supplied by the SR-15 cold read (F-7, F-18).
+
+### ENG-0241 — the G2 anti-rollback record is UNAUTHENTICATED JSON inside the session directory, and one unlink disables the guard — **NEW; FILED OPEN by NA-0757 (`R388` A5, from SR-15 F-6)**
+
+- Severity: **defect (security, bounded)** — needs a local writer in the directory's group or in `other`; it is not remotely reachable.
+- Description: `qsp_scka_mono_path` (`protocol_state:558-560`) resolves to **the same directory** as `qsp_session_blob_path` (`:135-137`), and `qsp_scka_mono_load` (`:562-573`) parses it with `serde_json::from_slice` — **plain JSON, no MAC, no AEAD**. The NA-0624 G2 rollback guard (`:927-941`) reads `Ok(Some(rec)) => rollback_check(..)` fail-closed at `:929-930`, but **`Ok(None) => {}` at `:935` — the guard is SKIPPED when the record is absent.**
+- ⚠ Consequences for an attacker who can write that directory: **`rm <peer>.scka.json` silently bypasses the guard with one unlink**, after which an older *genuine* session blob — copyable from the same readable directory — replays without objection (AEAD stops forgery; it does not stop replay, and replay is exactly what G2 exists to stop); lowering the recorded counters passes `qsp_scka_rollback_check` (`:575-610`) vacuously for the same effect; raising them or injecting tombstones yields `session_rollback_detected` or suppressed advertisement ids — a targeted denial of service against one contact.
+- ⚠⚠ **WHY THIS IS FILED NOW AND NOT BEFORE.** `UnsafeParentPerms` is currently the **only** thing that stops the client resuming out of a directory in that state. Any future change that repairs an inherited exposed directory and continues would resume trusting an unauthenticated guard read from a directory that was, by construction, writable by whoever exposed it. **That makes this a hard input to the heal-policy decision**, which `R388` A1(c) defers whole.
+- Remedy: authenticate the G2 record (MAC it with a vault-held key, or move it inside the AEAD-protected blob), and decide whether `Ok(None)` may legitimately mean "no history" once the record is authenticated.
+- Status: open — filed 2026-08-24 by NA-0757 (`D-1399`; `R388` A5). NOT patched: it is a crypto design act, outside this lane's pre-commitment.
+- Cross-references: `ENG-0239`, `ENG-0240`, `D-1399`, `R388`; NA-0624 G2.
+- Source: SR-15 cold read F-6.
+
+### ENG-0242 — a facade doc-comment points at a `store_code_from_wire` arm that does not exist, and the arm above it would shadow one anyway — **NEW; FILED OPEN by NA-0757 (`R388` A5, from SR-15 F-14)**
+
+- Severity: **defect (documentation-vs-bytes, latent trap)** — harmless today, and it is a trap laid directly in the path of the obvious next change.
+- Description: `facade/mod.rs:286-291`'s doc comment asserts that *"the SAME string as an `ErrorCode::as_str()` wire name from a typed verb is `Store(IdentitySecretUnavailable)` — see `store_code_from_wire`"*. **`store_code_from_wire` (`:319-336`) has no `identity_secret_unavailable` arm** — its thirteen arms are the other codes plus the `vault_write_failed` alias — and `map_code`'s **explicit** arm at `:292-294` maps that string to `FacadeError::VaultUnavailable` **before** the fall-through could ever reach `store_code_from_wire`.
+- ⚠⚠ **WHY IT MATTERS, AND WHY THIS LANE DID NOT TRIP IT.** The obvious reading of ENG-0239's remedy is *"replace the flattened string with the store code's wire name"*. Had that shipped, `identity_secret_unavailable` — which is what **every** lock failure, every `config_dir()` failure and every `secret_set` failure on the store path collapses into (`protocol_state:189-197`) — would have started arriving at the GUI as **"vault unavailable"**: a specific, confident, WRONG diagnosis pointing the user at a vault that is fine. **Opaque → wrong is a regression, not a diagnostic improvement.** `R388` A1(b) therefore ruled *structured augmentation* instead: the code travels as a `store_code` FIELD on the marker and **no new string enters the facade's wire vocabulary**, so this trap stays disarmed. It is filed so that it is on the record before anyone reaches for the obvious change again.
+- Remedy: either give `store_code_from_wire` the arm its caller's documentation claims and teach `map_code` the provenance split it asserts, or correct the comment to describe what the bytes do. The first is a design act (it would create a new error surface, which `D630` §5c decided against); the second is a documentation fix.
+- Status: open — filed 2026-08-24 by NA-0757 (`D-1399`; `R388` A5). NOT patched: **zero facade bytes** in this lane.
+- Cross-references: `ENG-0239`, `D630` §5c / `D-1336`, `D-1399`, `R388`.
+- Source: SR-15 cold read F-14 — caught before a byte moved.
+

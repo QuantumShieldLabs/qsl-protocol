@@ -54,7 +54,7 @@ use std::process::Command;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, OnceLock};
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 /// ⚠ **PARITY.** The production relay runs `PULL_LEASE_SECS=60`, and that is the default for every
 /// arm here. An arm that needs a lease to EXPIRE inside the test may set the short value below and
@@ -113,7 +113,16 @@ fn qsc(cfg: &Path) -> Command {
         .env("QSC_QSP_SEED", "1")
         .env("QSC_ALLOW_SEED_FALLBACK", "1")
         .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
-        .env("QSC_MARK_FORMAT", "plain");
+        .env("QSC_MARK_FORMAT", "plain")
+        // NA-0759 (`ENG-0243`, F4, FILE-SCOPED BY RULING): turn on the pull diagnostic that
+        // `ENG-0193` built and nobody switched on. Without it a failed pull says only
+        // `relay_inbox_pull_failed` — the OPERATION, never the REASON — which is exactly why the
+        // `0b9d6967` red could not be localized from its own log. ⚠ Deliberately NOT suite-wide:
+        // it adds one `event=relay_pull_diagnostic` line per pull, and this house has twice paid
+        // for extra marker lines under consumers that count or equality-match. Safe HERE because
+        // every consumer in this file (`has_marker_line`, `marker_lines`, `count_marker`) filters
+        // on `event=<name>` first, and no assertion in this file reads that event.
+        .env("QSC_RELAY_PULL_DIAGNOSTIC", "redacted");
     c
 }
 
@@ -717,13 +726,33 @@ impl Drop for AckFaultProxy {
     }
 }
 
+/// NA-0759 (`ENG-0243`, F2): **THE HOUSE PATTERN, NOT A NEW ONE.** This is
+/// `common/mod.rs`'s `read_until_header_end` shape — tolerate the three "nothing has arrived
+/// yet" kinds and bound the wait with a deadline — applied to the one fixture in this tree that
+/// lacked it. The old body answered EVERY `Err` with `None`, so a `WouldBlock` (and a
+/// `SO_RCVTIMEO` expiry, which surfaces as `WouldBlock` too) meant "give up"; the caller answers
+/// `None` by dropping the connection with **no response written at all**, which reaches the
+/// client as a bare transport error and is collapsed by `transport::relay_send_outcome_for_error`
+/// into `relay_inbox_pull_failed` — the marker that reddened macOS main at `0b9d6967`, with
+/// `faulted()` still 0 because the request was never classified.
 fn read_head(stream: &mut TcpStream) -> Option<(Vec<u8>, usize)> {
     let mut buf = Vec::new();
     let mut byte = [0u8; 1];
-    loop {
+    let deadline = Instant::now() + Duration::from_secs(20);
+    while Instant::now() < deadline {
         match stream.read(&mut byte) {
             Ok(0) => return None,
             Ok(_) => buf.push(byte[0]),
+            Err(e)
+                if matches!(
+                    e.kind(),
+                    std::io::ErrorKind::Interrupted
+                        | std::io::ErrorKind::WouldBlock
+                        | std::io::ErrorKind::TimedOut
+                ) =>
+            {
+                continue
+            }
             Err(_) => return None,
         }
         if buf.len() >= 4 && &buf[buf.len() - 4..] == b"\r\n\r\n" {
@@ -733,6 +762,7 @@ fn read_head(stream: &mut TcpStream) -> Option<(Vec<u8>, usize)> {
             return None;
         }
     }
+    None
 }
 
 fn start_ack_fault_proxy(upstream: &str) -> AckFaultProxy {
@@ -757,6 +787,14 @@ fn start_ack_fault_proxy(upstream: &str) -> AckFaultProxy {
                     continue;
                 }
             };
+            // NA-0759 (`ENG-0243`, F1): CLEAR the flag the accepted socket may have INHERITED.
+            // `set_nonblocking(true)` above is for the LISTENER. Linux does not pass that flag to
+            // the accepted socket (measured: listener true / accepted false); BSD-derived kernels
+            // are documented to. On a non-blocking socket the `set_read_timeout` below is INERT
+            // and `read_head`'s first read returns `WouldBlock` before the request has landed —
+            // which is one line of platform difference standing between a green shard and a red
+            // one. Clearing it explicitly makes the arrangement the same on every runner.
+            let _ = stream.set_nonblocking(false);
             let _ = stream.set_read_timeout(Some(Duration::from_secs(20)));
             let _ = stream.set_write_timeout(Some(Duration::from_secs(20)));
             let Some((head, _)) = read_head(&mut stream) else {

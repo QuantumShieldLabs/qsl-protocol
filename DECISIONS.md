@@ -43978,3 +43978,103 @@ The read (`FINDINGS_SR15_NA0755_20260822T223513Z.md`, sha256 `7483bb1883f08485ad
 **SR-15 DISCHARGED UNDER A PRE-COMMITMENT, NOT WAIVED.** The widening onto `protocol_state` and `fs_store` was granted narrowly: the `protocol_state` edit is EXACTLY the `:981-982` collapse (written fully qualified so **no other byte in the file moves**, the `quarantine:486` precedent), the `fs_store` edit is EXACTLY the creation step inside `ensure_dir_secure`, and **zero bytes touch any key, RNG, AEAD, lock, seed-fallback, rollback-guard or match-arm line**. `A2(ii)` — un-flattening the INNER catch-all — was **refused as framed**: it is a reversal of a recorded decision, not a gap-fill, and belongs to a design act that cites `D630` for reversal.
 
 **CLAIM BOUNDARY.** The repair is proven in the lab across three umask arms and in the field by the intervention experiment. **NOT claimed:** any change to what an inherited exposed directory does; any facade or desktop behaviour beyond the pin (**zero facade bytes**, zero `src-tauri` bytes beyond the pin mechanics); that the two outside-config-dir bare creations (`lib.rs:2805`, `output/mod.rs:363`) are fixed — they are FILED (`ENG-0240`); or that `ENG-0239` is closed — the seat amends and does not close. Nothing is merged by the seat; the operator merges.
+
+## D-1400 — NA-0759 / THE macOS FIXTURE RACE: A RED MAIN BLAMED ON THE REPAIR THAT HAD JUST MERGED, AND THE BLAME REFUTED BY CONTROL FLOW
+
+**Status:** Accepted
+**Date:** 2026-08-25
+**Lane:** NA-0759 · **Class:** `MACOS_FIXTURE_RACE_NOT_A_PRODUCT_REGRESSION`, declared by the Director at the MACOSREG STOP-001 ruling.
+**Base:** qsl-protocol `0b9d6967948c2fcf799cb817aeee55d5095835aa`, re-derived bare and unpiped at the NAMED github remote (`origin` in these seats is the local mirror and was never used).
+**Authority:** the diagnosis order `ORDER_macos_na0742_regression_20260824.md` (sha256 `ae2544bf866014a22f62671ba45f891a15f0f28c151775e69b1db177661ec9e2`, 3967 B, 444) and the Director's ruling `RULING_MACOSREG_STOP001_20260825.md` (sha256 `c125a6a5011e1886ad5ab38c4eee7d4eacfaa4f1b1c6dc08bb993597c84aaa52`, 5917 B, 444), ruled from the artifact `STOP_MACOSREG_001_20260825T011937Z.md` (sha256 `895a928bdb19db241e9d72a177ba203a1d5358ce5528a37ef8dce7878ca29f3e`, 942 l / 66372 B, 444). Each sha-VERIFIED against its own bytes before being read.
+
+**Decision.** ⛳⛳ **AN ADJACENT MERGE IS NOT A CAUSE.** The macOS push suite went red at `0b9d6967` on the pre-existing target `na0742_invite_finish_scan_producer_acks` — `t5p`, failing its antecedent `proxy.faulted() > 0` (`:1044`) with `event=handshake_recv code=relay_inbox_pull_failed ok=false` — one merge after `D-1399`'s ENG-0239 repair, and the diagnosis order named that repair as the cause. **It is not.** `relay_inbox_pull` returns `Err` and `perform_handshake_poll_with_tokens` returns at `handshake/mod.rs:1727`, **201 and 440 lines above** the two edited `qsp_session_store` sites (`:1928`, `:2167`); the failing execution never reached either. The test file is **byte-identical at both mains** (sha256 `5b136eee05f455dc0065814eeb3642b47a24481b49fde8bd881c625e3708c2f2`), its shard membership is unchanged (macOS shard **1** at both shas, **35** targets in both runs, NA-0757's new target having gone to shard **0**), and the same target is **green on Linux at the same sha** (513.96 s). The refutation is **structural, not probabilistic**, and `D-1399` is exonerated in the open.
+
+**THE DEFECT, AND THE CURE THAT ALREADY SHIPPED THREE FILES AWAY.** `start_ack_fault_proxy` set the **listener** non-blocking (`:741`) and never cleared the flag on the accepted socket (`:753`); `read_head` mapped **every** read error — `WouldBlock` included — to `None` (`:727`); and the caller answered `None` with `continue`, writing **no response at all** (`:762-764`). A dropped connection reaches the client as a bare transport error, which `transport/mod.rs:2229-2240` collapses to `relay_inbox_pull_failed` for every non-TLS send failure — and `faulted()` is never incremented, which is precisely the pair of symptoms observed. `set_read_timeout` (`:759`) is **inert on a non-blocking socket**, so the 20 s grace the fixture believed it had did not exist in that state. `tests/common/mod.rs:898-925` (`read_until_header_end`) has tolerated `Interrupted | WouldBlock | TimedOut` on a deadline since it was written; of the five `set_nonblocking(true)` listener fixtures in the tree, na0742's was the **only** one that is serial (no thread per connection) **and** answers a failed read with silence. **The repair is conformance to the house pattern, not a new invention.**
+
+**THE FIX SET, RULED AND CLOSED:** F1 clears the inherited flag immediately after `accept()`; F2 gives `read_head` the house pattern, deadline-bounded; F4 sets `QSC_RELAY_PULL_DIAGNOSTIC=redacted` **FILE-SCOPED** in this file's own `qsc()` builder so the next opaque pull failure names its own reason. **F3 is SUBSUMED** by F2's deadline behaviour and is not separately taken. **F4 is deliberately NOT suite-wide** — a suite-wide diagnostic emission adds a marker line to every pull in every test, and this house has paid twice for extra lines under consumers that count or equality-match marker streams; the suite-wide flip is filed as a candidate rider gated on a marker-consumer sweep proving no counter breaks. **F5 (do nothing) is refused as a terminal state**: a measured 1-in-12 race on a check `public-safety` gates is not a do-nothing situation. **F6 (manifest exclusion / scope reclassification) was refused by the seat before it reached the chair, and the refusal is ratified** — no test is weakened, skipped, deleted or reclassified.
+
+⚠⚠ **A RUN LIST COUNTS RUNS, NOT EXECUTIONS.** 24 green macOS push runs since `t5p` landed at `403432ce` (2026-08-17) — but only **11** actually ran `macos-qsc-shard-1`; the other 13 skipped the shards on a docs-only classification. The target's true history is **12 executions: 11 green, 1 red**. Both control arms of that census were run and they differ: a skipped matrix job reports the **unexpanded** name `macos-qsc-shard-${{ matrix.shard }}`, while an executed one reports `macos-qsc-shard-0…4` individually.
+
+⛳ **THE FOURTH FINDING — `ENG-0244`, found while measuring the validation path rather than while looking for it.** On an ordinary pull request this workflow skips its shards **and its named rollup check**, and the run still concludes **`success`** in ~30 seconds against ~61 minutes for a real execution. **NA-0757 merged under a macOS check that executed zero tests.** The skip is deliberate and documented (the 5-slot macOS pool); what is not deliberate is that it is indistinguishable from a pass to every by-name reader. The cure touches `.github/**` and is therefore the **operator's own lane**; this record only makes the finding a record.
+
+⚠ **CLAIM BOUNDARY.** That macOS's `accept()` inherits the listener's `O_NONBLOCK` is **NOT measured** — no macOS host was reachable from the seat; only the Linux leg was measured (listener `true` / accepted `false`), and the mechanism was demonstrated by varying that mode directly (blocking ⇒ a 56-byte HTTP response; non-blocking ⇒ **0 bytes**). Two other routes to the identical marker remain live and are indistinguishable in the banked log: any non-TLS send error, and any unmapped HTTP status including the **502 this proxy itself emits** on upstream failure. The repair narrows all three; it is **not** claimed to have discriminated among them. And because 11 of the last 12 executions were green **without** the repair, **a green validation dispatch does not by itself prove the repair caused the green** — what it proves is that the repair does not regress the shard.
+
+**THE NA-0756 / NA-0757 CLOSE-OUT, TRANSCRIBED NO-DRIFT.** The Director's close-out of 2026-08-25 (`CLOSEOUT_NA0756_NA0757_20260825.md`, sha256 `15417b3cc065ff08c69ff4fd2ef03a85019d72f4b09cd734d839f6d2a4578c5d`, 84 lines, 6098 B, 444, sha-VERIFIED against its own bytes before being read) rides this promotion. Its result classes, field record, rows and SR-25 retrospective are carried **verbatim from its own bytes** below — extracted back out of this file and diffed against the source after insertion, with a tamper control proven to differ first:
+
+```
+RESULT CLASSES, DECLARED:
+  NA-0756 -> INVITE_REDEEM_SINGLE_VIEW_AND_AUTOCOMPLETE_FIELD_PASS
+  NA-0757 -> SESSION_DIR_BORN_PRIVATE_FIELD_PROVEN
+Boundaries live in the stops, D-0037/D-0038/D-1399, and the ENG-0239 amendment, not the
+labels. Chooser v2 verdict: PASS by the operator's merge act after flying it.
+
+THE FIELD RECORD (all operator-flown, streams banked in FIELD_EVIDENCE_ENG0239_20260824.md
+sha 4bd53116... and in the stops):
+  Card v1 (PR-37 head 8b03ec39): steps 1-5 and 7 PASS . step 3's space-refusal PASS .
+  three ruled error states exercised live (malformed / not_found / already_redeemed) .
+  step 6 MISS -> ENG-0239 field-found. Two card defects recorded (an expectation aimed at
+  an invisible surface; a corruption-position prediction miscalibrated for an
+  already-redeemed device).
+  The heal: 775 measured at the exact write-bits boundary -> chmod 700 -> the identical
+  command completed -> FIRST ESTABLISHED PAIR in product history; the accepting side
+  completed the same night. Proof by intervention.
+  Z7 (repaired build, virgin profile, umask 002): qsp_sessions ABSENT -> finish ->
+  session_store ok=true -> the folder SELF-BORN 700. SECOND PAIR. Proof by construction.
+  Card v2 (#37 merged head 5ace32c2): SEVEN FOR SEVEN -- the v2 chooser on real pixels,
+  GUI redeem, and THE APP'S OWN UNLOCK TRIGGER completing the handshake with no CLI
+  ("completes automatically" witnessed true). THIRD PAIR, first fully-automatic one.
+
+DIRECTOR ROWS (this arc, this chair): the brief's item-13 enumeration narrower than the
+tree (id collision averted by the seat's controls) . S6 pin forms invented at the keyboard
+(numeric entities, zero tree occurrences) . S6's phantom .invite-surface class (a v4-class
+re-run averted by the seat) . "first exercise ever" adopted from the roadmap unmeasured .
+reference markup that pinned structure and copy but NOT GEOMETRY, re-firing the v4 class
+on this chair (the v1 chooser divergence) . the relayed heal instruction that destroyed
+F-11's forensic detail (chmod before capture) . the /dev/shm shared-path collision in a
+field block . the "origin/main" token in the branch-update order against this house's own
+mirror rule (WF-0088), caught by the seat . a chain-mangled verification batch whose exit
+codes scrambled attribution (caught at this chair, re-measured single-labeled) . and,
+recorded in R389's S0: relaying a recorded hypothesis to the operator as the mechanism.
+CHAIR HITs: the stale refs/pull/37/merge preview caught before it flew the unrepaired
+engine . the field-evidence file cut before the record could rot in chat.
+
+SEAT ROWS: the 444-trap tamper reported-not-redone . the ENG-0232 collision caught by a
+control refusing a prediction . the .invite-surface catch . STOP 005 and STOP 007 each
+superseded-by-reassembly with the defect named (007's reasoned-not-run expected value that
+would have manufactured a false alarm at the Director's chair) . the cure recorded then
+not executed at its moment (F2 -- the fourth operator-surfaced gap of the lane) . the two
+card defects above.
+SEAT HITs: the live geometry probe (a browser-measured control performing the operator's
+exact defect class) . the pure-append arithmetic that turned a conflict resolution into
+addition . the origin-mirror substitution with the discrepancy recorded . the retired-
+hypothesis filename refusal . the merge-sha verified against the Director's own
+placeholder text . the vacuous-seal catch and re-aim (D-1398's property answered
+correctly one lane later).
+
+SR-25 RETROSPECTIVE, the three axes:
+  OUTCOME -> CANDIDATE: a harness path that can DRIVE the finish triggers (fresh-profile
+  unlock under instrument control). The automatic-completion observation -- the lane's
+  crown -- cost two field attempts and operator patience because no instrument can fire
+  an unlock today. Pairs with ENG-0226's fixture-relay debt; together they automate what
+  the operator currently carries by hand.
+  SEQUENCE -> ADOPTED-FORWARD, two: (1) GEOMETRY SHIPS PINNED in every reference markup
+  -- the lesson has now fired on both chairs and is done being a lesson; (2) the
+  STOP-AUDIT-BEFORE-BANKING step (diff the new stop's section map against the stop of
+  record; check the reader's next acts execute from the stop alone) is a fixed pre-chmod
+  act, not a post-question repair.
+  CHEAPER -> CANDIDATE: STOP 2's in-process/subprocess asymmetry was sixty seconds of
+  stat away from the cause THAT DAY -- an environment-differences sweep (umask, dir
+  modes, HOME shape) belongs in the first hour of any works-here-fails-there defect.
+  Trade honestly recorded: the longer road also bought the un-flattening, the primitive
+  fix, four filings, and the read's F-14 catch -- the detour produced durable value, so
+  this is a candidate, not a rule.
+
+```
+
+⇒ **`NA-0756` flips to DONE with class `INVITE_REDEEM_SINGLE_VIEW_AND_AUTOCOMPLETE_FIELD_PASS`** and **`NA-0757` flips to DONE with class `SESSION_DIR_BORN_PRIVATE_FIELD_PROVEN`**, both from the bytes above rather than from any paraphrase of them. Desktop main at close: `f21bcd5e` (true merge, parents `1ca40bc0` + `5ace32c2`). Protocol main at close: `0b9d6967`.
+
+⚠⚠ **WHAT THE CLOSE-OUT OWES THAT THIS PROMOTION DOES *NOT* CARRY, STATED RATHER THAN ABSORBED.** The ruling's edit set is CLOSED and names, for `docs/ops/PREDICTION_LEDGER.md`, only this lane's rows **217-231**. The close-out separately owes *"prediction rows 207-233 appended from the stops of record"*, the seal-heading sweep filing, three WF candidates and the operator's stale-branch sweep. **Those are NOT in this landing.** ⚠ And their drafted numbers are now **twice stale**: `207-216` were consumed by `D-1399`'s own merge, and `217-231` are consumed here — so `STOP_NA0756_006`'s rows `207-226` and `STOP_NA0756_008`'s rows `227-233` must be **re-derived to `232-258`** when they land. `STOP_NA0756_008:118` already carries the instruction that governs this — *"Ids assume STOP 006's rows 207-226 are appended first; if they are not, re-derive."* The condition it anticipated failed in a way it did not: not that 006's rows were skipped, but that **another lane's rows were appended in between**. Same cure.
+
+**IDS, RE-DERIVED AT THE EDIT PER WF-0068, EVERY SPACE WITH BOTH CONTROLS.** `NA-0759`: **0** declarations on protocol main; `D-1400`: **0** (positive control `D-1399` = **14**); `ENG-0243`: **0**; `ENG-0244`: **0** (positive control `ENG-0242` = **5**). ⚠ `ENG-0299` returns **1** hit and it is a **MENTION** — NA-0743's own negative control, in prose at `docs/governance/evidence/NA-0743_as_built.md:174` — the WF-0087 plant hazard again; declarations were counted, never mentions. protocol has **0 open PRs**, so main is complete for this repo; the desktop's PR #37 is merged and its main's maximum ENG reference is `ENG-0239`. ⚠⚠ **`NA-0758` IS DELIBERATELY SKIPPED AND IS NOT AVAILABLE:** it is a live lane (the public-docs audit) that has landed **zero bytes**, so a repo-derived counter cannot see it and would have re-issued it. `HIGHEST_NA` advances `0757 → 0759`, and it NAMES the newest declared block per `ENG-0230`'s property rather than being counted.
+
+**Consequences.** `ENG-0243` is filed and repaired in the same landing; `ENG-0244` is filed OPEN and handed to the operator's `.github` lane. No product byte, no workflow byte, no desktop byte, no facade/vault/relay byte. `goal_lint.py`'s `REQUIRED_DOCS_FOR_CORE_CHANGES` requirement does not bind — there is no `src` change — and both `TRACEABILITY.md` and `DECISIONS.md` are in the edit set regardless.

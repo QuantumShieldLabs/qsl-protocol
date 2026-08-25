@@ -5,7 +5,9 @@ Licensed under AGPL-3.0-only; see LICENSE.
 
 Canonical repositories (reference):
 - qsl-protocol: https://github.com/QuantumShieldLabs/qsl-protocol
+- qsl-desktop: https://github.com/QuantumShieldLabs/qsl-desktop
 - qsl-server: https://github.com/QuantumShieldLabs/qsl-server
+- qsl-attachments: https://github.com/QuantumShieldLabs/qsl-attachments
 
 Official proof runs are linked from TRACEABILITY.md.
 Do not trust unaudited binaries.

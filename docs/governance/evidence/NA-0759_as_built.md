@@ -141,6 +141,24 @@ conclusion **`success`**, elapsed **30 seconds** against ~61 minutes for a real 
 `.github/**` and is the operator's own lane. A companion measurement is owed and takes ten seconds:
 whether `macos-qsc-sharded-suite` is branch-protection-REQUIRED today.
 
+**ADDENDUM (2026-08-25, the branch-update touch) — A SECOND INSTANCE, MEASURED ON THE PR THAT FILES
+IT.** PR #1791's own macOS `pull_request` run **32813603284** skipped both `macos-qsc-shard-${{ matrix.shard }}`
+and the named rollup `macos-qsc-sharded-suite` and concluded **`success` in 54 seconds**, against
+**64 minutes** for the `workflow_dispatch` arm on the identical commit.
+
+**AND THE COMPANION MEASUREMENT IS NO LONGER OWED — it is taken, and its answer is sharper than the
+question.** `gh api repos/QuantumShieldLabs/qsl-protocol/branches/main/protection` returns
+**`strict: true`** (branches must be up to date — this is the `NA-0759` STOP 001 §15(7) unknown, and
+it is what refused the first merge attempt) and a **15-context** required list:
+`ci-4a`, `ci-4b`, `ci-4c`, `ci-4d`, `ci-4d-dur`, `demo-cli-build`, `demo-cli-smoke`,
+`formal-scka-model`, `goal-lint`, `metadata-conformance-smoke`, `suite2-vectors`, `CodeQL`,
+`macos-qsc-qshield-build`, `infra-literal-scan`, `public-safety`.
+⇒ **`macos-qsc-sharded-suite` is NOT a required context by name — and it gates `main` anyway**,
+because **`public-safety` IS required** and `public-safety` polls the push suites and fails on their
+failure (measured at STOP 001 §10: `CHECK macos-qsc-sharded-suite: status=completed conclusion=failure`).
+**A check can gate the branch without appearing in the list that says what gates the branch** — which
+is the same shape as `ENG-0244` itself: the thing that decides is not the thing the reader is shown.
+
 ## 8. Gates measured in this seat
 
 | gate | result |

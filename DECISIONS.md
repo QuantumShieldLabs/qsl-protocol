@@ -44106,3 +44106,165 @@ SR-25 RETROSPECTIVE, the three axes:
 ⚠ **CLAIM BOUNDARY.** The licence **text** is verified against the FSF pin; whether replacing a previously-published deviant text has any consequence for already-distributed copies is a question for counsel, not a measurement this seat can take — the order routes that to the Director's FYI, whose wording he amended to *"four operative passages plus the appendix's closing 132 words"* on this lane's measurement. `LI-06`/`PN-01` (this repo's `NOTICE` listing only two of four public repositories) was **still open at this base** and is **not** this lane's — protocol's `NOTICE` has one commit in its entire history (`5d5679c5`, na-0110) and NA-0758's p2 did not touch it; the seat flagged it and the Director opened **#1792** against it separately, with zero file overlap here. `ENG-0244`'s `.github` cure remains the operator's own lane; **zero `.github/**` bytes** moved in this landing.
 
 **Consequences.** `ENG-0245` is filed and closed in the same landing. `ENG-0244`'s owed companion measurement is **ANSWERED** as a by-product of this lane's S1 work — `macos-qsc-sharded-suite` is **NOT** branch-protection-required, measured 2026-08-25 against the fifteen required contexts — and its ledger line is amended by append. Four satellite pull requests carry the same canonical bytes to `qsl-desktop` (#40), `qsl-server` (#71), `qsl-attachments` (#46) and `.github` (#6), the last also adding the organisation's first `NOTICE`, in the form `qsl-protocol/NOTICE` establishes rather than an invented one. No product `src` byte, no workflow byte, no version bump, and no test weakened — one test **added**.
+
+## D-1402 — NA-0761 / THE RECORDS CONSOLIDATION: THREE CLOSED LANES GET THEIR DECLARED CLASSES INTO REPO TRUTH NO-DRIFT FROM THEIR BANKED CLOSE-OUTS, THE ONE LANE THAT NEVER HAD A GOVERNANCE BLOCK GETS AN HONEST ONE, THE STEP-15 GATE DEFECT GETS ITS FILING, AND EVERY RESERVED PREDICTION ROW LANDS
+
+**Status:** Accepted
+**Date:** 2026-08-25
+**Lane:** NA-0761 · **Class:** not declared at landing — this lane's result class awaits the Director's close-out, and this line is to be amended when it is declared. ⚠ The identical line on `D-1401` is now OWED that amendment and does not receive it here; see **MEASURED AND REPORTED** below.
+**Base:** qsl-protocol `35c80c006e9ee9a273cd5b3b03e2fc3cd10e9ee5`, re-derived **bare and unpiped** at the NAMED github remote before anything was cut, and again immediately before the push. ⚠ `origin` in these seats is the local mirror at `/srv/qbuild/mirrors/`, measured **STALE at `241eec97`** — it does not even contain this base — and was never used as a source of truth.
+**Authority:** the Director's order `ORDER_records_na0761_20260825.md` (sha256 `75e6376565c0559b9d5faf4c0a67246dcff078b42c25889f105e277ca8d8afcf`, 69 l / 4494 B, 444), **sha-VERIFIED against its own bytes BEFORE being read**, as were all four of its inputs: `CLOSEOUT_NA0759_20260825.md` (`e318aeaada5aa2eef33381db96f2e9e2012d54750b052865d9e272ba72d4df42`), `CLOSEOUT_NA0758_NA0760_20260825.md` (`d00d0e326007cf7ae0fd84ab94699914cfd925512b37dea2cda80f1b5bece280`), `CLOSEOUT_NA0756_NA0757_20260825.md` (`15417b3cc065ff08c69ff4fd2ef03a85019d72f4b09cd734d839f6d2a4578c5d`) and `STOP_NA0760_002_20260825T194500Z.md` (`d066df2f61ccfaf0f2bbc2b3d392e4512feab4da70d725c35dcab51d32160818`, whose banked sha was confirmed against the pointer that carries it rather than merely recomputed).
+
+**Decision.** This lane writes no product byte and proves no product property. It pays a debt: **a lane's result class is declared by the Director in a banked close-out, and until it is transcribed into repo truth the tree cannot answer what a lane concluded.** Three classes land — `NA-0759` by amendment to a status line that named its own debt in its own text, `NA-0760` by the ordinary READY→DONE flip, and `NA-0758` into a block **BORN AT CLOSE**. `ENG-0246` files the `public-safety` step-15 gate defect. The prediction ledger takes **35 rows** and its numbered tail moves **244 → 279**, contiguous and duplicate-free, proven with a check shown to go RED three independent ways.
+
+**THE NA-0759 CLOSE-OUT, CARRIED WHOLE AND BYTE-VERBATIM.** The fence below is the banked file's **entire contents**, its ASCII armor (" -- " for the em dash) included and deliberately not de-armored — which is precisely what makes the cited sha256 `e318aeaada5aa2eef33381db96f2e9e2012d54750b052865d9e272ba72d4df42` checkable against the fence itself. ⚠ **This is a correction of form, stated rather than slipped in:** `D-1400`'s corresponding fence carries a **67-line de-armored excerpt** beginning at RESULT CLASSES while its provenance sentence cites the whole-file sha of an 84-line document, so that sha cannot be verified against that fence. The predecessor is **left exactly as it stands** — a landed record is not rewritten to match a successor's better habit — and the defect is named here instead.
+
+```
+DIRECTOR'S CLOSE-OUT -- NA-0759 (THE MACOS FIXTURE RACE) -- 2026-08-25
+Banked per SR-14 by the operator's scp + chmod 444. Transcription rides NA-0761,
+no-drift from this file's bytes. ASCII ARMOR: " -- " = em dash.
+Merged: qsl-protocol main 962fec09 (parents b06a1d04 + 909f7355), PR #1791.
+
+RESULT CLASS, DECLARED:
+  NA-0759 -> MACOS_FIXTURE_RACE_CURED_AND_VACUOUS_GREEN_FILED
+Boundaries live in D-1400, ENG-0243/0244, and the MACOSREG stops; the class is the
+label, not the record.
+
+THE ARC. A 1-in-12 fixture race (na0742's hand-rolled ack-fault proxy inheriting
+O_NONBLOCK through accept on macOS and silently dropping a WouldBlock read) landed
+its first red on the NA-0757 merge's push and was misread by this chair as that
+merge's regression. The seat refuted the premise STRUCTURALLY -- the edited sites
+sit below an unconditional return on the failing path; the test file byte-identical
+across the merge; the shard identical -- then demonstrated the mechanism on both
+arms with banked probes, corrected the run denominator (24 recorded runs, 12 true
+executions), and found the larger thing underneath: a required-looking macOS rollup
+reporting SUCCESS in ~30 seconds having executed zero tests (ENG-0244, since
+observed on three PRs). The discriminating re-run went green on full execution; the
+fix (clear the inherited flag; adopt the house deadline-bounded read; the pull
+diagnostic file-scoped) was validated by ONE workflow_dispatch on a real Darwin
+runner before merge; branch-protection strictness -- unmeasured until it refused the
+button -- was measured by the refusal, and the update was performed as a proven-pure
+merge whose committed tree was byte-identical to its dry run. Main's push arm has
+since run the full macOS suite green twice on the de-raced fixture.
+
+DIRECTOR ROWS: the order's S0 premise stated correlation as causation from one green
+sample against what measurement showed to be a 1-in-12 race . the order's "lane dir"
+ambiguity and unallocated id, forcing the seat to build both readings . a premise
+question aimed at a filesystem walk the tree never takes . "in the same touch"
+admitting one-commit and one-push readings, resolved correctly by the seat against
+the evil-merge hazard.
+SEAT HITs of record: the structural refutation itself . the both-arms mechanism
+probes . the denominator correction . the vacuous-rollup finding, sharper than the
+premise that prompted it . the false-trail correction (date AND code matched and it
+still was not it) . the NA-0758 id-collision catch (a repo-derived counter is blind
+to live lanes) . refusing the na0724- hatch while reporting it exists . the
+vacuous merge-tree control caught and rebuilt around a manufactured conflict before
+its rc 0 meant anything . the stale-mirror catch that prevented merging the wrong
+tree . the W/R/I-typed prediction table, adopted-forward as the house form.
+
+SR-25 RETROSPECTIVE:
+  OUTCOME -> ADOPTED-FORWARD: the dispatch-validation pattern -- runtime-class
+  macOS-affecting changes prove themselves via workflow_dispatch on the branch
+  (fail-at-90 ratchet arm) BEFORE merge, since the PR arm is vacuous until ENG-0244
+  is cured.
+  SEQUENCE -> ADOPTED-FORWARD: the outcome map written BEFORE the discriminating
+  run (green / red-elsewhere / red-same-assertion, each with its consequence) --
+  the re-run was evidence instead of ritual because its meanings pre-existed it.
+  CHEAPER -> A LOOP CLOSED, recorded with satisfaction: NA-0757's cheaper-axis
+  lesson (environment differences in the first hour) was APPLIED here -- full log
+  pulled first, structure read before theories -- and the diagnosis that took
+  NA-0757 a field flight and a repair lane took NA-0759 one stop. The retrospective
+  discipline demonstrably compounds.
+
+OWED AT NA-0761: this class transcribed into NA-0759's status line no-drift from
+these bytes; ENG-0246 (the step-15 gate's false statements, drafted at NA-0760 STOP
+002 S4.3) filed; nothing else -- the lane's rows 217-231 landed with #1791.
+END OF CLOSE-OUT
+```
+
+**THE NA-0758 + NA-0760 CLOSE-OUT, CARRIED WHOLE AND BYTE-VERBATIM**, on the same terms; sha256 `d00d0e326007cf7ae0fd84ab94699914cfd925512b37dea2cda80f1b5bece280`.
+
+```
+DIRECTOR'S CLOSE-OUT -- NA-0758 (THE PUBLIC-DOCS AUDIT) + NA-0760 (THE LICENSING
+TRUTH-UP) -- 2026-08-25
+Banked per SR-14 by the operator's scp + chmod 444. Transcription rides NA-0761,
+no-drift from these bytes. ASCII ARMOR: " -- " = em dash. One arc, one close-out:
+the audit found, the ladder landed, the licensing cured, the front door launched.
+
+RESULT CLASSES, DECLARED:
+  NA-0758 -> PUBLIC_CLAIMS_MEASURED_TRUE_AND_FRONT_DOOR_LAUNCHED
+  NA-0760 -> LICENSE_CANONICAL_AND_SELF_ENFORCING_EVERYWHERE
+
+THE ARC IN FIGURES, all instrument-pinned in the stops of record: 89 public claims
+censused across 48 files in 5 repositories; 33 not-TRUE at audit, cured through six
+docs PRs (s1, a1, p1, p2, d1 + the d1 word-amend), five license PRs, and g1. Every
+repository's LICENSE now hashes to the canonical FSF pin 0d96a4ff...abcb0 --
+including the .github repo, which had none -- verified from each main's own bytes
+with the fifth repo serving as the live negative control until its merge. Package
+metadata reads AGPL-3.0-only on every workspace crate, and a conformance test
+(na0760_workspace_license_agpl_only, red-arm proven naming the flipped crate) keeps
+the front page's sentence true by machine. The blessed org README landed byte-exact
+to its pin (23df0b6d...dd8b) as the operator's launch; its four audit-pinned figures
+drift only in the understating direction, ruled acceptable at launch with the
+slice-close re-audit as the designed refresh.
+
+DIRECTOR ROWS: the order's Tier-1 enumeration one file narrower than its surface
+(SUPPORT.md, forcing an ask) . the p2-merge timing window this chair created by
+sequencing a runtime-critical merge while another's push suite still ran, producing
+the step-15 block . the first two uploads of the licensing stop consumed without
+pinning their sha (pinned only on the third) . the g1 figure-drift accepted by
+ruling rather than prevented by design -- the counters age the moment they are
+pinned, a property now named.
+SEAT HITs of record: the S0.5 six-count self-audit that failed its own predecessor
+before the Director could . the G6 census-instrument bug self-caught inside the very
+census built to avoid it . the S0.7 mid-assembly catch of the seat's OWN drafts
+going false as the operator's merges landed . the three-instrument goal-lint blocker
+measurement with options priced and the no-tests clause correctly identified as the
+Director's to lift . merged_at-never-merge_commit_sha . the byte-offset payload
+extraction with its negative control . the per-document containment tables . the
+step-15 eleven-line log read on the second pass after the first extraction's empty
+result was caught reading exactly like "nothing to report" . asking rather than
+acting on the re-run, with the laundering distinction named as the Director's
+judgement.
+
+SR-25 RETROSPECTIVE:
+  OUTCOME -> ADOPTED-FORWARD: the EXECUTION-PACK pattern (an audit stop carrying
+  branch names, drafted bytes, gate synthesis, and per-repo mechanics so any fresh
+  seat can execute without its author) is the standing shape for audit-to-execution
+  handoffs.
+  SEQUENCE -> ADOPTED-FORWARD: runtime-critical merges are SPACED -- never merge one
+  while another's post-merge push suite is still running on the same repo, because
+  gates that poll main's latest state will read the in-flight run as red-or-unknown
+  and block truthfully on a condition that is merely young.
+  CHEAPER -> CANDIDATE, honestly traded: the licensing cure was knowable at the
+  audit's STOP 003 and could have ridden one lane; the split cost one extra
+  seat-cycle and bought the operator's counsel-and-intent answers landing BEFORE any
+  legal byte moved. The split was the right call for legal surface; the candidate
+  records that for non-legal surfaces the one-lane shape is cheaper.
+
+OWED AT NA-0761: both classes transcribed no-drift from these bytes -- NA-0760's
+into its existing block's flip, NA-0758's into a block BORN AT CLOSE, the honest
+retro-birth of a lane whose PRs were docs-only and never touched the governance
+file; the birth note names that plainly. Rows 245-252 appended from NA-0760 STOP
+002 S15 verbatim; NA-0756's 27 reserved rows renumbered 253-279 at last. The
+WF-candidate observation rides with it: lane mechanics silently assumed every lane
+births a block; a docs-only lane broke the assumption without breaking anything
+else, and the mechanics doc should say which lanes owe blocks.
+END OF CLOSE-OUT
+```
+
+**THE THREE CLASSES, TRANSCRIBED NO-DRIFT.** `NA-0759` → `MACOS_FIXTURE_RACE_CURED_AND_VACUOUS_GREEN_FILED` · `NA-0758` → `PUBLIC_CLAIMS_MEASURED_TRUE_AND_FRONT_DOOR_LAUNCHED` · `NA-0760` → `LICENSE_CANONICAL_AND_SELF_ENFORCING_EVERYWHERE`. Each landed string was proven **grep-equal to its close-out's own bytes**, both sides shown, with a tampered needle confirming the comparison discriminates.
+
+**THE RETRO-BIRTH, NAMED PLAINLY.** `NA-0758` ran to completion without ever owning a block in `NEXT_ACTIONS.md`. Nothing failed: every one of its PRs was docs-only and none touched the governance queue, so no promotion ever wrote it one. The block is created **at the close**, dated by the acts it records, and is **not** back-dated to a READY it never held. The close-out asked for exactly one plain sentence naming this; the block carries it in its Status line.
+
+**THE RENUMBERING, DONE AS ARITHMETIC.** `NA-0756`'s 27 reserved prediction rows were numbered `207-233` in the Lane B stops of record. While they waited, `207-233` were consumed by `NA-0757`, `NA-0759` and `NA-0760` — the collision `NA-0760`'s ruling anticipated when it held this transcription for its own later landing. They land as **`253-279`, a uniform +46**. **Only the number cell changed**, proven by stripping that cell from both the source rows and the landed rows and comparing the remainders for byte-identity. Their source is `STOP_NA0756_006_20260824T202939Z.md` §11.1 (`207-226`) and `STOP_NA0756_008_20260825T004748Z.md` (`227-233`, byte-identical to STOP 007's seven rows, so the choice of stop is immaterial and was proven so by `cmp`). Rows `245-252` land **verbatim** from `STOP_NA0760_002` §15. ⚠ The reserved rows keep the Lane B stops' own four-column shape rather than being reworded into the three-column form the recent rows use: **renumbering was ordered; rewording was not.**
+
+**`ENG-0246`, FILED AND NOT CURED.** The `public-safety` step-15 gate asserts definite negatives about inputs it could not read — it answers *"branch protection required checks do not include public-safety"* on the line after a **403** made that list empty — and converts *"not completed/failure"* into *"is red"*, blocking PRs on a main with nothing wrong with it. Both mechanisms are anchored in `scripts/ci/public_safety_gate.py` (`:796-801`, `:814-815`, `:1339-1343`). ⚠ **Two corrections ride the filing.** (i) The order places the cure in `.github/**`; measured, only the step's *name* lives there (`public-ci.yml:476`) — the **logic is the tracked in-tree python file**, not operator-owned. (ii) **Neither statement is a first sighting:** `ENG-0189` already carries both, added 2026-08-15 by NA-0734 (`D-1370`) at R332.3 and R332.2, the latter having deliberately minted **no id** on the WF-0029 precedent. The id is minted here because two governing documents order it by name; the tension is recorded in the entry so the Director can fold it into `ENG-0200` with one line if he prefers the older shape. What is genuinely new is the **edge**: on #1793 main was not red, not ambiguous, and carried 0 failures — the gate manufactured the blocking condition out of its own unreadiness.
+
+**TWO WF-CANDIDATE OBSERVATIONS, CARRIED AS CANDIDATES FOR THE NEXT `STANDING_RULES.md` TOUCH AND DELIBERATELY NOT ENACTED HERE.** (1) **BLOCK-OWING LANES.** Lane mechanics silently assume every lane births a governance block; a docs-only lane broke that assumption without breaking anything else, and the mechanics doc should say **which lanes owe blocks** and when a block is born at close instead of at promotion. (2) **ANNOUNCED-ID DERIVATION.** A repo-derived counter is **blind to live lanes**: an id can be announced in an order, a brief or a parallel seat and exist in no tree at all, so a derivation that reads only declarations in main can hand out an id already spoken for. The `NA-0758` collision catch is the earned instance. ⚠ `STANDING_RULES.md` is **byte-untouched by this lane** — these ride as candidates only.
+
+**IDS, RE-DERIVED AT THE EDIT, EVERY SPACE, WITH BOTH CONTROLS.** `NA-0761`: **0** occurrences anywhere in the tree before this landing. `D-1402`: **0**, derived across **all four `DECISIONS.md` record forms** (`- **ID:** D-####` 1300 records, max D-1312 · `## D-####` 97, max **D-1401** · `### D-####` 7, max D-0116 · `**D-####` 2, max D-1340) — a form-specific needle would have been right only by luck. `ENG-0246`: **0** declarations, against a positive control of `ENG-0245` present. Prediction rows `245-279`: free, the tail measured at **244** and contiguous from 1. ⚠ **Open-PR control:** `gh pr list --state open` returned **zero** on **all five** repositories — protocol, desktop, server, attachments and `.github` — so no live lane could collide; the query's ability to return rows was confirmed separately. ⚠ Two out-of-range mentions (`NA-0791`/`NA-0799`, `ENG-0266`/`ENG-0299`) were **classified, not adopted**: each is a prior lane's own negative control quoted in prose — the WF-0087 plant hazard, counted as mentions and not declarations.
+
+**⚠ MEASURED AND REPORTED, NOT ACTED ON — this lane's enumeration does not carry these, and a seat does not widen its own order.** (1) **`D-1401`'s `**Class:**` field still reads *"not declared at landing … this line is to be amended when it is declared"*.** The class **is** now declared, so by the record's own sentence that line is owed an amendment; it is the only such line in `DECISIONS.md`, measured by sweep. After this landing `NA-0760`'s status line carries the class while `D-1401` still says it has none. (2) **`NA-0759` now carries two class strings in repo truth**, each correctly attributed to its own act: `MACOS_FIXTURE_RACE_NOT_A_PRODUCT_REGRESSION` — the interim diagnostic class ruled at the MACOSREG STOP-001 ruling — at `D-1400`, `docs/governance/evidence/NA-0759_as_built.md:3`, `docs/ops/IMPROVEMENT_LEDGER.md:6235` and one frozen historical `<!-- prior: STATE … -->` comment; and the close-out's RESULT class on the status line amended here. Both are true of the act each names, and a reader censusing *"NA-0759's class"* gets two answers. (3) `D-1400`'s fence-versus-whole-file provenance defect, described above. **None of the three was edited.**
+
+**Consequences.** After this landing the program's record debt is **zero on every axis this lane's order enumerates**, and **non-zero on exactly the three axes named above**, which is stated so no reader mistakes silence for completeness. `NA-0756` and `NA-0757` needed nothing here — measured, their blocks already carry `Status: DONE 2026-08-25` with the classes their close-out declared, transcribed at `D-1400`. The next promotion flips `NA-0761` and, if the Director rules it in, discharges the `D-1401` amendment in the same touch.

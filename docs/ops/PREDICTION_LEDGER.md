@@ -564,3 +564,43 @@ expired, which read mechanically would have reported a non-result as a measureme
 | 242 | **[Director/I, NA-0760 order S2(5)]** "the post-p2 protocol NOTICE" establishes the form | ⚠ **PARTIAL.** The form is there and was copied, but **p2 never touched `NOTICE`** — it is the na-0110 file, one commit in its whole history, and its repo list still omitted two repos (LI-06 open). The qualifier implied a change that had not happened; the Director opened #1792 against it once flagged |
 | 243 | **[Seat/R, NA-0760]** `gui-driver` settles in the 5-7 min norm | ⚠ **MISS.** ~20 min. Passed. Not a required check; it reached step 8 ("the six flows") promptly, so slow rather than hung |
 | 244 | **[Seat/R, NA-0760]** the local mirrors are usable as a base | ⚠⚠ **MISS, all four stale** — protocol **65 commits** behind. Caught in the seat's own output when two diff bases disagreed **4-vs-1** on file count in the attachments seat. Every branch was cut from `github/main`, so nothing shipped wrong |
+| 245 | **[Seat/W, NA-0760]** the Option B shape passes `goal-lint` on the real PR, not just locally | ⛳ **HIT.** `goal-lint` **pass** on #1793, with the three core manifests correctly listed as core changes — so the fix works through CI's own entry point, not only through a synthesised payload |
+| 246 | **[Seat/W, NA-0760]** the red arm fails and names the flipped crate | ⛳ **HIT, exact wording predicted.** *"1 of 4 workspace crate(s) disagree: qshield-cli: declares \\"MIT\\""*, panic at `:107`, exit 101 |
+| 247 | **[Seat/W, NA-0760]** removing the shard row reddens the gate on BOTH platforms | ⛳ **HIT.** rc=1 both, *"MISSING from manifest (present in tree)"*; restore → rc=0 both |
+| 248 | **[Seat/R, NA-0760]** main is unmoved at push time | ⚠ **MISS.** Moved `962fec09` → `74ec043b` (your #1792) between the gate runs and the push. Caught by re-deriving at the NAMED remote immediately before pushing rather than trusting the fetch from ten minutes earlier |
+| 249 | **[Seat/W, NA-0760]** the conflict set with #1792 is EMPTY | ⛳ **HIT**, predicted by intersecting the changed-file sets BEFORE merging; git agreed — clean merge, one file, +2 lines |
+| 250 | **[Seat/R, NA-0760]** a `public-safety` failure on this diff would be content-related | ⚠⚠ **MISS, and the safe direction.** Step 9 PASSED; the failure is step 15 blocking on an unfinished main. The same LICENSE bytes had already passed `public-safety` on three satellite PRs, which was the tell I should have weighted first |
+| 251 | **[Seat/R, NA-0760]** this PR gets zero macOS test coverage (`ENG-0244`) | ⛳ **HIT.** Both macOS checks report `skipping`, and neither is required — a third confirming instance, obtained for free |
+| 252 | **[Seat/R, NA-0760]** my two-line reading of step 15 was the whole diagnosis | ⚠⚠ **MISS — SELF-CAUGHT WHILE ASSEMBLING THIS STOP.** Eleven ERROR/NOTE lines exist, including a **403** that makes the gate assert a falsehood about branch protection. My first extraction anchored on the step's display name and returned **empty**, and I quoted a narrow grep instead of reading the block. **An empty extraction reads exactly like "nothing to report."** Corrected at §5 |
+
+**⚠ NA-0756's 27 RESERVED ROWS, LANDED AT LAST — RENUMBERED `207-233` → `253-279`, a uniform **+46**, transcribed from the Lane B stops of record (`STOP_NA0756_006_20260824T202939Z.md` §11.1 carries `207-226`; `STOP_NA0756_008_20260825T004748Z.md` carries `227-233`, whose seven rows are **byte-identical** to STOP 007's, so the choice of stop is immaterial and was proven so by `cmp`). The original numbers collided: while these rows waited to land, `207-233` were consumed by NA-0757, NA-0759 and NA-0760 — the collision NA-0760's ruling anticipated when it held this transcription for its own later landing. **ONLY THE NUMBER CELL CHANGED**, proven by stripping the number cell from both the source rows and the landed rows and comparing the remainders for byte-identity. ⚠ These rows keep the Lane B stops' own four-column shape (`prediction | measured | score`) rather than being reworded into the three-column form the recent rows use: renumbering was ordered, rewording was not.**
+
+| # | the assertion | the measurement | the instrument that caught it |
+|---|---|---|---|
+| 253 | the two existing Lane B commits carry the house noreply identity | they do — AND the check exposed that the seat's local config has NO `[user]`, so the NEXT commit would have used the private address | HIT (+ unforecast finding) |
+| 254 | baseline `cargo fmt --check` rc 0 | rc 0 | HIT |
+| 255 | baseline `cargo test` = 166 pass / 0 fail / 12 ignored / 178 total | **165 / 0 / 13 / 178** | **PARTIAL** |
+| 256 | baseline inventory enumerates 178, pin 178, PASS | exact | HIT |
+| 257 | baseline `clippy -D warnings` rc 0 | rc 0 | HIT |
+| 258 | baseline `gui_driver` 12 pass / 0 fail | exact | HIT |
+| 259 | the exact v1 button tag form occurs exactly 1× per row in `index.html` | 1 and 1 | HIT |
+| 260 | the chooser slice holds 1 `btnrow` today ⇒ the negative pin WOULD fire at the v1 head | 1 | HIT |
+| 261 | the new CSS satisfies all four design-system disciplines (predicted by re-implementing them in python first) | `design_system` 6/6; the replicas matched the real tests exactly | HIT |
+| 262 | `json.dumps(indent=1, ensure_ascii=True)+"\n"` round-trips the scenario BYTE-identically | True | HIT |
+| 263 | post-change `cargo test` = 166 / 0 / 13, 179 total | exact | HIT |
+| 264 | post-change inventory 179, pin 179, PASS | exact | HIT |
+| 265 | post-change `clippy` rc 0 | rc 0 | HIT |
+| 266 | post-change GUI = 12 pass / **547 steps**, `f_l` 64 → 74 verdicts (derived: +18 json steps of which 8 are `note` ops) | **547 / 74, exact** | HIT |
+| 267 | trailers 0 on the new commit; positive control returns 1 | exact | HIT |
+| 268 | the push is a fast-forward on an EXISTING branch, with no "Create a pull request" hint | exact | HIT |
+| 269 | C1-C5 each go red on the assertion each NAMES | all five red, five DISTINCT source lines, each the named assertion | HIT |
+| 270 | G1 (rows re-wrapped side-by-side) → geometry probe RED while the copy pins stay GREEN | exact: `rows:4`, all four copy pins PASS | HIT |
+| 271 | G2 (rows inline at 48%, child count UNCHANGED) → `full:false, stacked:false`, `rows` still 5 | exact | HIT |
+| 272 | all five CI checks settle green | 5 pass / 0 fail | HIT |
+| 273 | github main = `1ca40bc0` (the Director's figure) AND this seat's `origin/main` is STALE and unequal to it | both true — mirror at `11e8e17c` | HIT |
+| 274 | the two sides' changed-file sets intersect in exactly `DECISIONS.md`, so it is the ONLY file that can conflict | exact — 1 conflicted file | HIT |
+| 275 | merged-head `cargo test` = 166 / 0 / 13 at 179, UNCHANGED by the pin move | exact | HIT |
+| 276 | inventory 179 / pin 179 | exact | HIT |
+| 277 | fmt rc 0 and clippy rc 0 on the merged head | both rc 0 | HIT |
+| 278 | GUI 12 pass / **547 steps** at the NEW pin (unmeasured by #38) | exact | HIT |
+| 279 | all five CI checks settle green | 5 / 0 | HIT |

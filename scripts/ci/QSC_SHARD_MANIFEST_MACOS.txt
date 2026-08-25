@@ -168,3 +168,4 @@ tests/na0751_facade_contact_surface.rs	1
 tests/na0755_invite_label_and_clear.rs	1
 tests/na0756_two_party_invite_roundtrip.rs	0
 tests/na0757_eng0239_session_dir_perms.rs	0
+tests/na0760_workspace_license_agpl_only.rs	0

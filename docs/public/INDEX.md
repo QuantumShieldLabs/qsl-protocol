@@ -4,9 +4,14 @@ Goals: G1, G2, G3, G4, G5
 
 Status: Authoritative
 Owner: QSL maintainers
-Last-Updated: 2026-07-10
+Last-Updated: 2026-08-24
 Replaces: n/a
 Superseded-By: n/a
+
+> **Currency.** This page is refreshed at slice close, not continuously. Engineering
+> lands faster than this page is republished, so treat it as the evidence *map*, not as a
+> live status feed. For what the trees contain right now, read `DECISIONS.md`,
+> `NEXT_ACTIONS.md`, and the repositories' own commit history.
 
 ## What QSL Is
 

@@ -1,12 +1,16 @@
 # Contributing
 
 ## Scope
-This repository is in freeze mode for public-release preparation. Contributions are limited to:
-- Documentation and governance updates
+This repository is under active development and is governed by a directive workflow: work lands
+through authorized lanes, not through unsolicited implementation PRs. The contributions that are
+most useful from outside, and that need no prior authorization to propose, are:
+- Negative tests and reproduction notes
 - Vector/test artifacts
-- Public-release scrub controls
+- Claim-boundary review — anywhere the documentation says more than the code earns
+- Documentation and governance corrections
 
-Protocol or implementation changes are out of scope unless explicitly authorized.
+Protocol or implementation changes are directed through the lane workflow; open an issue first
+rather than a PR, and expect the change to be scheduled as a lane.
 
 ## Workflow
 1) Open an issue or discussion describing the change.

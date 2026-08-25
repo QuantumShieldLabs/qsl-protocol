@@ -21,13 +21,19 @@ service readiness claim.
 
 ## Latest Progress
 
-**Workday: June 25, 2026.** The first public Progress entry summarizes the
-remote qsc repeated-run cleanup/freshness closeout, the repository public
-evidence sync, the daily Progress/accuracy-sweep authorization, and the
-operator-local SSD maintenance context. Read the canonical Progress index at
-[docs/public/PROGRESS.md](docs/public/PROGRESS.md), or open the dated entry at
-[docs/public/progress/2026-06-25.md](docs/public/progress/2026-06-25.md) for
-the publication-time handoff and correction ledger.
+**Latest published entry: July 15, 2026.** It records two arcs — the first
+public account of ENG-0038, a handshake authentication flaw found by internal
+adversarial review, fixed, its class retired and bounded-model-checked; and the
+NA-0640..NA-0646 product-path arc (bounded full-stack e2e, durable relay queue,
+opt-in acknowledged-pull client, TUI retirement, and the core extraction to a
+linkable library). Read the canonical Progress index at
+[docs/public/PROGRESS.md](docs/public/PROGRESS.md), or open the dated entries at
+[2026-07-15](docs/public/progress/2026-07-15.md),
+[2026-07-10](docs/public/progress/2026-07-10.md), and
+[2026-06-25](docs/public/progress/2026-06-25.md).
+
+Engineering has continued past that entry; the published Progress log is the
+slower of the two. The repository's own history is the current record.
 
 This is engineering evidence and public-document accuracy work only: no public
 readiness, no production readiness, no public internet readiness, no external

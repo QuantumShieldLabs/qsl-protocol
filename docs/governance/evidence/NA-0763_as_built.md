@@ -32,9 +32,9 @@ here, because there is none.
 **(b) The trigger census, from bytes.** Trigger (a) at `ui/main.js:708` inside `enterMain`;
 trigger (b) at `:2439` inside `openRedeemChooser`; both funnel into ONE function. The scan reads
 `relay_config_get`, `contact_list`, then per contact `connect_status` (EQUALITY on a closed set of
-two) and, for pending contacts only, `invite_finish`. ⚠ **The brief's "bounded 8 pulls × 16
-frames" does not match the GUI's own argument, which is `max: 1`** — reported, not reconciled into
-qsc. ⚠⚠ **No handshake poll runs from the GUI today and none can:** 44 registered commands, none a
+two) and, for pending contacts only, `invite_finish`. ⚠⚠ **The brief's "bounded 8 pulls × 16 frames" is EXACT, and STOP 001's contrary finding is
+RETRACTED**: `finish_scan_select_invite_resp` clamps `max` UP to a floor of **16** and stops at
+**8** pulls, so the GUI's `max: 1` reaches exactly that bound. ⚠⚠ **No handshake poll runs from the GUI today and none can:** 44 registered commands, none a
 handshake verb; `handshake` occurs in desktop product source exactly **twice, both in comments**.
 
 **(c) The consolidation map and the concurrency guard.** The only relay-facing call in a scan is
@@ -114,6 +114,13 @@ deliberately un-jittered so the instrument is deterministic. **Harness green is 
 - **Two seal breaks were the seat's own prose**, not real timers: a doc comment containing the
   literal `setInterval(`, and another naming the primitive inside the invite-module slice where it
   is banned outright. The seals were right; the wording changed.
+
+- **The invite chain's middle step has no GUI trigger, and the flight card had to say so.**
+  `invite_accept` — *"Alice: collect the handshake from her own invite slot and answer it"* — is
+  registered as a desktop command and invoked from `ui/` **zero** times, reachable only from the
+  `qsc` CLI. The tick automates **Bob's `invite_finish` only**. Pre-existing and not repaired
+  here, but it **bounds `E1`**: on two desktops the accept must be driven from the CLI or the
+  chain stalls and the tick spins finding nothing.
 
 ## 5. BOUNDS
 

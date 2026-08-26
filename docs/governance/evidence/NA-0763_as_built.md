@@ -72,7 +72,8 @@ seam on `AppInfoDto` — a `Serialize`-only type with no save path). **Four sour
 SR-15's line of five**, no lock or crypto adjacency, nothing retired.
 
 Tests and rig: `gui_driver.rs` (+`run_scenario_with_env`, +the `m` flow), the new bounded
-`poll_exec` runner op, `f_m_liveness_tick.json` (51 steps), and the `EXPECTED_TEST_INVENTORY` pin.
+`poll_exec` runner op, `f_m_liveness_tick.json` (51 entries, 15 of them notes), and the `EXPECTED_TEST_INVENTORY`
+pin.
 Records: desktop `DECISIONS.md` (`D-0040`, and `D-0039` as a deliberate recorded gap).
 
 ## 3. INSTRUMENTS AND THEIR RED ARMS, RUN
@@ -85,6 +86,11 @@ Records: desktop `DECISIONS.md` (`D-0040`, and `D-0039` as a deliberate recorded
 | I4 marker separation | shared slot still reads `unlock` after many ticks | separation removed ⇒ slot read `tick` |
 | I5 threshold/recovery | status raises at 3 with the exact copy; recovery hides it | — (see the bound below) |
 | `R4` seam seal | seam absent from the file under every field combination | `#[serde(skip)]` dropped ⇒ **two** arms red, file read `{"autolock_minutes":60,"tick_override_ms":137}` |
+
+The flow's own verdict file records **39 step rows, ALL PASS**, terminal `result=PASS` with a
+reconciling count of 39 (the 51 scenario entries include 15 `note`s, which produce no row, plus
+rows the runner adds for launch and teardown). Both green runs and all six red runs are preserved
+444 under `/srv/qbuild/operator/NA-0763/evidence/`.
 
 **Suite at the head: 182 passed / 0 failed**, all **13** gui-driver flows green (162.04 s);
 `fmt`, `clippy -D warnings`, `test_inventory` all rc=0. The pre-edit baseline at the base was

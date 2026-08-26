@@ -128,6 +128,21 @@ deliberately un-jittered so the instrument is deterministic. **Harness green is 
   here, but it **bounds `E1`**: on two desktops the accept must be driven from the CLI or the
   chain stalls and the tick spins finding nothing.
 
+- ⚠⚠⚠ **THE LANE'S OWN WORST DEFECT, AND CI FOUND IT AFTER TWO CLEAN LOCAL RUNS.** `relayScan`
+  first re-read the pending slot **in a loop** — which looks like "a rerun bit, never stacks" and
+  is not. Whenever a **beat is shorter than a scan takes**, the timer refills the slot faster than
+  the loop drains it and the loop **never terminates**; `enterMain` awaits that scan, so the app's
+  unlock landing **hung**. Green twice locally, RED on CI's slower runner at the same 250 ms seam.
+  Splitting the setup into two steps each with its own `.catch()` reproduced it locally as
+  `enterMain` **neither resolving nor rejecting** — a hang, not a rejection. Cured **structurally**:
+  at most ONE rerun, then the slot is cleared. ⛳ Proven at an **adversarial 30 ms seam** where the
+  old code hung deterministically, and at the committed 250 ms. ⚠ Production tempi (B ≥ 20 s) would
+  never have surfaced it — which is precisely what a test tempo seam is for.
+- ⚠ **THAT SAME ADVERSARIAL RUN CORRECTED `I2`.** At 30 ms it read a locked-window delta of **2**,
+  correctly: ~2 beats fit between *asking* to lock and the screen changing, and the vault is not
+  locked in that gap. The arm sampled its baseline before the lock LANDED; it now samples after
+  `scr-unlock` is visible, so it measures the window its name claims at any tempo.
+
 ## 5. BOUNDS
 
 **ZERO qsl-protocol product source bytes.** Zero relay or server changes, zero `.github/**`, no pin

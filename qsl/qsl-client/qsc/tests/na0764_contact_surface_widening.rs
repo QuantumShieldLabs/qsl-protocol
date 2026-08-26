@@ -277,8 +277,22 @@ fn renaming_an_absent_contact_is_a_typed_refusal() {
 /// is what makes the arm real, and the assertion that the key was there to strip is what keeps
 /// the strip from silently becoming a no-op.
 ///
-/// ⚠ MUST GO RED IF: `#[serde(default)]` is dropped from `ContactRecord.display_name`. That is
-/// the upgrade path for every existing user, and nothing else in the suite covers it.
+/// ⚠⚠ **A RED ARM THIS FILE CLAIMED AND DID NOT HAVE, CORRECTED BY MEASUREMENT.** The first
+/// version of this doc said *"MUST GO RED IF `#[serde(default)]` is dropped"*. It was RUN:
+/// the attribute was removed from `display_name` and **all five tests still passed**.
+/// ⇒ **serde already defaults a MISSING `Option<T>` field to `None`**; the attribute is
+/// belt-and-braces on the `Option` fields of this struct and is load-bearing only on its
+/// non-`Option` ones (`devices: Vec<_>`, `created_unix: u64`, …). Measured in-tree, not
+/// recalled. The claim was wrong; the test is not.
+///
+/// ⚠ THE ARM IT ACTUALLY HAS, and it was run and observed RED: adding
+/// `skip_serializing_if = "Option::is_none"` stops the key being written, the vacuity guard
+/// below fires, and **exactly this test** goes red. That guard is the point — it is what stops
+/// the strip from silently becoming a no-op and the arm from passing on an empty edit.
+///
+/// ⚠ MUST GO RED IF: the key stops being serialised, or a record lacking it stops loading.
+/// The load half is the upgrade path for every existing user; nothing else in the suite
+/// covers it.
 #[test]
 fn a_legacy_record_without_the_display_name_key_still_loads() {
     let _g = guard();

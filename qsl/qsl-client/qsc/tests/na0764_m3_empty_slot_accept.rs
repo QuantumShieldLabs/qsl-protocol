@@ -185,7 +185,10 @@ fn mint(base: &str) -> (String, String) {
 /// The ONLY way a frame legitimately reaches an invite slot: its holder redeems it. See the
 /// module header for the 403 that established this.
 fn bob_redeems(bob: &Path, code: &str) {
-    run_ok(bob, &["invite", "redeem", "--code", code, "--alias", "alice"]);
+    run_ok(
+        bob,
+        &["invite", "redeem", "--code", code, "--alias", "alice"],
+    );
 }
 
 fn only_row() -> facade::InviteSummary {

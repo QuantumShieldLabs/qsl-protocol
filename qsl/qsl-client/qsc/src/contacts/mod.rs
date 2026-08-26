@@ -490,6 +490,43 @@ pub(super) fn contacts_set_blocked(label: &str, blocked: bool) -> Result<bool, E
     Ok(true)
 }
 
+/// NA-0764 (`D-1405`) — set (or clear) the LOCAL display name for one contact.
+///
+/// ⚠⚠ **THE KEY IS NOT TOUCHED.** This writes a field beside `alias`; it does not re-key
+/// `ContactsStore.peers`, so `identity_read_pin` and `qsp_session_for_channel` — both of which
+/// take the alias — are unaffected by construction. That is why a rename is a one-field write
+/// and not a migration.
+///
+/// ⚠ NORMALISES AT THE BOUNDARY: an all-whitespace or empty name stores `None`, never
+/// `Some("")`. One consumer would otherwise forget to special-case it.
+///
+/// ⚠ The name is NOT `channel_label_ok`-constrained, and deliberately: it is never a route
+/// token, never a key, and never sent. The ALIAS is still validated here, because it is the
+/// key being looked up.
+/// ⚠ RETURNS `Ok(false)` FOR AN ABSENT CONTACT, never an error. That is this module's own
+/// idiom, copied rather than invented: `contact_request_remove` (`:450`) returns
+/// `Result<bool, ErrorCode>` with `false` for "it was not there". There is no
+/// `ErrorCode::NotFound` in this crate — the typed absence lives one layer up, where the
+/// facade maps `false` onto `FacadeError::NotFound`.
+pub(super) fn contacts_set_display_name(
+    alias: &str,
+    display_name: Option<&str>,
+) -> Result<bool, ErrorCode> {
+    if !channel_label_ok(alias) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    let mut store = contacts_store_load()?;
+    let Some(rec) = store.peers.get_mut(alias) else {
+        return Ok(false);
+    };
+    rec.display_name = display_name
+        .map(str::trim)
+        .filter(|v| !v.is_empty())
+        .map(|v| v.to_string());
+    contacts_store_save(&store)?;
+    Ok(true)
+}
+
 pub(super) fn contacts_list_entries() -> Result<Vec<(String, ContactRecord)>, ErrorCode> {
     let store = contacts_store_load()?;
     Ok(store.peers.into_iter().collect())
@@ -873,6 +910,10 @@ pub(crate) fn contacts_provision_from_invite(
         // Dormant until the relay-pinning feature exists.
         pinned_cert_fp: None,
         invite_id: Some(invite_id.to_string()),
+        // NA-0764: a contact provisioned from an invite has NO local rename yet — the alias
+        // the user typed (or, on the auto-connect path, the invite's own label) is the name.
+        // Stated explicitly rather than defaulted, so the choice is visible at the site.
+        display_name: None,
     };
     contacts_entry_upsert(alias, rec).map_err(|_| "contacts_store_unavailable")?;
     Ok(fp)

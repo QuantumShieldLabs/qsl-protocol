@@ -147,3 +147,4 @@ tests/na0756_two_party_invite_roundtrip.rs	3
 tests/na0757_eng0239_session_dir_perms.rs	4
 tests/na0760_workspace_license_agpl_only.rs	5
 tests/na0764_m3_empty_slot_accept.rs	6
+tests/na0764_contact_surface_widening.rs	6

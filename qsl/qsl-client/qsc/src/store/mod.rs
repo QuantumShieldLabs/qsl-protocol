@@ -243,6 +243,25 @@ pub(crate) struct ContactRecord {
     /// single-use check reads.
     #[serde(default)]
     pub(crate) invite_id: Option<String>,
+    // ---- NA-0764 (`D-1405`) — the LOCAL display name, additive, `serde(default)` so every
+    // existing record loads unchanged.
+    /// What YOU call this contact. **Never sent anywhere**, and never supplied by the network.
+    ///
+    /// ⚠⚠ **NOT THE KEY, AND THAT IS THE WHOLE POINT.** The alias is this record's key in
+    /// `ContactsStore.peers`, and the SAME string keys `identity_read_pin(peer)` and
+    /// `qsp_session_for_channel(channel)`. A rename that re-keyed the map would therefore
+    /// reach identity pins and live sessions. This field sits BESIDE the key so a rename
+    /// touches neither: the UI renders `display_name` and passes `alias`, always.
+    ///
+    /// ⚠ **`None`, never `Some("")`.** The setter normalises at the boundary so no consumer
+    /// has to special-case an empty string — one of them would forget. `None` means "no local
+    /// name; show the alias".
+    ///
+    /// ⚠ Duplicates are PERMITTED and that is deliberate (`R6`): identity is the 30-digit
+    /// code, never the name. Two contacts may carry the same display name; neither becomes
+    /// the other, because nothing keyed on this field.
+    #[serde(default)]
+    pub(crate) display_name: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

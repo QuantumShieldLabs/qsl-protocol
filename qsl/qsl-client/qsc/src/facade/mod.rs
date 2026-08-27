@@ -540,6 +540,21 @@ pub struct ContactSummary {
     pub pinned: bool,
     pub blocked: bool,
     pub state: ContactState,
+    // ── NA-0764 (`D-1405`, ruling `R6`) — the TWO added fields, and the guard that bounds them.
+    /// What YOU call this contact, or `None` to show the alias. **Local only, never sent.**
+    ///
+    /// ⚠ RENDER-ONLY. `alias` remains the identity the caller passes to every verb; this
+    /// string is never a key, never a route token and never an argument. The desktop seals
+    /// that structurally — `display_name` appears in ZERO invoke-argument positions.
+    pub display_name: Option<String>,
+    /// How many devices this contact has. **A PROJECTION, not a moved field**: the record
+    /// holds `devices: Vec<ContactDeviceRecord>` and this is its length.
+    ///
+    /// ⚠ THE COUNT AND NEVER THE ARRAY, deliberately (`R6`). The array carries `device_id`,
+    /// `fp`, `sig_fp`, `kem_pk` and `route_token` — identifiers and key material — and a
+    /// screen needs a number. Widening this to the array would put every one of those on a
+    /// surface a future messaging lane renders by default.
+    pub device_count: usize,
 }
 
 fn hex64(fp: &str) -> bool {
@@ -562,6 +577,8 @@ fn summarize_contact(alias: String, rec: &ContactRecord) -> ContactSummary {
         pinned,
         blocked: rec.blocked,
         state: ContactState::from_wire(contact_state(Some(rec))),
+        display_name: rec.display_name.clone(),
+        device_count: rec.devices.len(),
     }
 }
 
@@ -626,6 +643,31 @@ pub fn contact_requests() -> Result<Vec<ContactRequestSummary>, FacadeError> {
 pub fn contact_request_accept(alias: &str) -> Result<(), FacadeError> {
     require_unlocked_here()?;
     Ok(crate::contacts::contacts_request_accept(alias)?)
+}
+
+/// NA-0764 (`D-1405`, ruling `R6` / `D-D`) — set or clear the LOCAL display name.
+///
+/// ⚠⚠ **THIS IS NOT A RE-KEY, AND THE DISTINCTION IS THE WHOLE DESIGN.** `alias` keys
+/// `ContactsStore.peers`, `identity_read_pin(peer)` and `qsp_session_for_channel(channel)`.
+/// A rename that moved the key would reach identity pins and live sessions; this writes a
+/// field beside it, so none of those move. Callers keep passing `alias` everywhere.
+///
+/// ⚠ `None` (or an all-whitespace name) CLEARS it — the engine normalises, so no consumer has
+/// to special-case `Some("")`.
+///
+/// ⚠ **DUPLICATES ARE PERMITTED** (`R6`): identity is the 30-digit code, never the name. No
+/// uniqueness check is made here, and that is a decision rather than an omission.
+///
+/// Absent contact => [`FacadeError::NotFound`], mapped from the engine's `Ok(false)`.
+pub fn contact_set_display_name(
+    alias: &str,
+    display_name: Option<&str>,
+) -> Result<(), FacadeError> {
+    require_unlocked_here()?;
+    match crate::contacts::contacts_set_display_name(alias, display_name)? {
+        true => Ok(()),
+        false => Err(FacadeError::NotFound),
+    }
 }
 
 /// Wraps `contacts_request_ignore` (`contacts/mod.rs:1613`).

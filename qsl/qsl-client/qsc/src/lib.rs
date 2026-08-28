@@ -150,7 +150,7 @@ use contacts::*;
 use fs_store::{
     check_parent_safe, check_symlink_safe, config_dir, enforce_file_perms, enforce_safe_parents,
     ensure_dir_secure, ensure_store_layout, fsync_dir_best_effort, lock_store_exclusive,
-    lock_store_shared, normalize_ack_mode, normalize_profile, probe_dir_writable, read_ack_mode,
+    lock_store_shared, normalize_profile, probe_dir_writable, read_ack_mode_state,
     read_policy_profile, write_atomic, write_config_key,
 };
 use handshake::{
@@ -410,10 +410,41 @@ pub fn config_set(key: &str, value: &str) -> CliResult {
             Ok(v) => (POLICY_KEY, v),
             Err(e) => return Err(cli_err(e)),
         },
-        "ack-mode" => match normalize_ack_mode(value) {
-            Ok(v) => (ACK_MODE_KEY, v),
-            Err(e) => return Err(cli_err(e)),
-        },
+        // NA-0770 (D-1411) S-2: THE TOMBSTONE WRITER. The key is RETAINED here and REFUSES.
+        //
+        // ⚠ **IT REFUSES EVERY VALUE, `lease` INCLUDED.** With one behaviour there is nothing to
+        // select, and accepting `lease` would leave a knob whose only position is the default —
+        // an invitation to a future contributor to add a second.
+        //
+        // ⚠ **THE ERROR IS DISTINGUISHABLE FROM A TYPO, DELIBERATELY.** Falling through to the
+        // generic `ParseFailed` arm below would emit the identical error `config set ack-mdoe`
+        // produces, and "you mistyped a key" and "this key is retired" are different facts that
+        // need different remedies.
+        //
+        // ⚠ **AND IT TELLS THE USER HOW TO CLEAR THE KEY, because measured, they cannot ask us
+        // to.** `ConfigCmd` is exactly `Set` and `Get` — there is NO `config unset`, and
+        // `write_config_key` only sets or replaces. Deleting `config.txt` wholesale would also
+        // destroy `policy_profile`, which the multi-key read-modify-write exists to protect. So
+        // the refusal names the file and the key and leaves the user able to act. A refusal that
+        // strands the user is its own defect, and this lane will not create one while removing
+        // others.
+        "ack-mode" => {
+            let (dir, _source) = match config_dir() {
+                Ok(v) => v,
+                Err(e) => return Err(cli_err(e)),
+            };
+            let path = dir.join(CONFIG_FILE_NAME);
+            print_marker(
+                "config_set_refused",
+                &[
+                    ("key", ACK_MODE_KEY),
+                    ("reason", "retired_at_NA-0770"),
+                    ("file", path.to_str().unwrap_or(CONFIG_FILE_NAME)),
+                    ("remedy", "remove the ack_mode line from that file"),
+                ],
+            );
+            return Err(CliError::code(fs_store::ACK_MODE_RETIRED_KEY_STATE));
+        }
         _ => return Err(cli_err(ErrorCode::ParseFailed)),
     };
 
@@ -468,12 +499,33 @@ pub fn config_get(key: &str) -> CliResult {
         }
     }
 
-    let read = if store_key == ACK_MODE_KEY {
-        read_ack_mode(&file)
-    } else {
-        read_policy_profile(&file)
-    };
-    let value = match read {
+    // NA-0770 (D-1411) S-3: THE TOMBSTONE READER reports a THIRD STATE.
+    //
+    // ⚠ **"unset" AND "retired-key-present" ARE DIFFERENT ANSWERS AND MUST NOT SHARE A WORD.**
+    // Reporting a file that carries `ack_mode=legacy` as `unset` would be false, and reporting
+    // it as `legacy` would imply a mode that no longer exists. Both readings mislead; the third
+    // state is the only honest one, and it is why the key was tombstoned rather than deleted.
+    if store_key == ACK_MODE_KEY {
+        let (value, state) = match read_ack_mode_state(&file) {
+            Ok(fs_store::AckModeConfigState::RetiredKeyPresent(raw)) => (raw, "retired_present"),
+            Ok(fs_store::AckModeConfigState::Nothing) => ("unset".to_string(), "absent"),
+            Err(e) => return Err(cli_err(e)),
+        };
+        print_marker(
+            "config_get",
+            &[
+                ("key", store_key),
+                ("value", &value),
+                ("state", state),
+                ("retired", "true"),
+                ("effect", "ignored"),
+                ("ok", "true"),
+            ],
+        );
+        return Ok(());
+    }
+
+    let value = match read_policy_profile(&file) {
         Ok(Some(v)) => v,
         Ok(None) => "unset".to_string(),
         Err(e) => return Err(cli_err(e)),
@@ -908,49 +960,66 @@ fn account_secret_trimmed(key: &str) -> Option<String> {
         .filter(|v| !v.is_empty())
 }
 
-/// THE ACK-MODE RULE, IN ONE PLACE — NA-0688 C4 (D622). **Every production pull resolves its
-/// `AckMode` here**, whether it came from `--ack-mode` or from no flag at all.
+/// NA-0770 (D-1411): THE ACK-MODE TOMBSTONE, IN ONE PLACE.
 ///
-/// ⚠ **THE DEFAULT IS NOW `Lease`, AND THAT IS THE POINT OF C4.** Under the previous `Legacy`
-/// default the relay DELETES ON PULL, so anything a pull collected but could not process was
-/// destroyed with no witness and no way back — while the command reported success. Under
-/// `Lease` the relay holds the item until it is acked after a durable persist, so an item that
-/// was pulled collaterally is redelivered rather than lost.
+/// There is no longer a mode to resolve. `AckMode::Legacy` — delete-on-pull — is retired, so
+/// every pull carries the lease shape by construction and no caller chooses anything. What
+/// remains here is the one job the retirement created: **detecting a config file that still
+/// carries the retired `ack_mode` key, and saying so.**
 ///
-/// ⚠ **This mitigates the TRIGGER, it does not fix the underlying defect.** The defect is that
-/// a pull path can collect an item it will not process; the general remedy is
-/// quarantine-instead-of-drop, which is a separate owed lane. C4 only removes the destruction
-/// that made the defect unrecoverable.
+/// ⚠⚠ **WHY THIS IS A FUNCTION AND NOT A DELETION — the defect a deletion would have created.**
+/// The pre-lane resolution read `stored_ack_mode().unwrap_or(AckMode::Lease)`, and
+/// `stored_ack_mode` turned BOTH an `Err` (through `.ok()?`) AND an unrecognised value
+/// (through `_ => None`) into `None`. So there were three distinct ways for a machine
+/// configured `ack_mode=legacy` to end up silently on Lease, and **deleting the key's handling
+/// would simply have been a fourth.** A two-state return cannot express "the key is present
+/// but retired"; only a third state can. That is [`fs_store::AckModeConfigState`].
 ///
-/// | input | result | why |
-/// |---|---|---|
-/// | `Some(mode)` | that mode, verbatim | an explicit `--ack-mode legacy` is the escape hatch and beats everything |
-/// | `None` + `ack_mode` set in `config.txt` | the stored mode | the per-install choice, for paths that take no flag |
-/// | `None` + nothing stored | `Lease` | the new default |
+/// ⚠ **THE CLAIM THIS PROTECTS IS PRIVACY-RELEVANT, NOT MERELY TIDY.** Whoever wrote
+/// `ack_mode=legacy` asked for "the relay keeps nothing, even briefly". Lease holds an unacked
+/// frame for the lease window — measured at `PULL_LEASE_SECS=60` on the deployed relay. Moving
+/// a user from the first to the second without telling them is a silent change to a setting
+/// they chose. The lane removes the mode; it does not get to remove the notice.
 ///
-/// ⚠ **THE PREFERENCE LIVES IN THE CONFIG FILE, NOT THE VAULT (D622 R7).** An ack mode is not a
-/// secret, so the vault buys nothing — and it would cost something real: a vault-backed preference
-/// is unreadable while the vault is locked, so the user's persistent choice would silently fail to
-/// apply on some invocations and not others, with no witness. That is the exact silent-divergence
-/// class this lane exists to remove, so the store that cannot exhibit it was chosen. Vault keys
-/// remain the pattern for actual secrets (relay tokens, CA paths).
+/// ⚠ **ABLE-TO-CONFIGURE AND CURRENTLY-CONFIGURED ARE DIFFERENT CLAIMS.** Before this lane
+/// **every** user could write that key — `qsc config set ack-mode legacy` succeeded. What was
+/// measured is narrower: **no field machine currently carries such a config**, on two machines,
+/// on the operator's word (2026-08-28). The population able to configure it was everyone; the
+/// population configured for it was zero.
 ///
-/// An unreadable or malformed config falls back to the default rather than failing the command:
-/// resolving a transport preference must not be able to break an unrelated `receive`.
-fn resolve_ack_mode(explicit: Option<AckMode>) -> AckMode {
-    if let Some(mode) = explicit {
-        return mode;
-    }
-    stored_ack_mode().unwrap_or(AckMode::Lease)
+/// Returns the notice-worthy state, or `Nothing` when the config is absent or unreadable. ⚠ An
+/// unreadable config yields `Nothing` rather than an error, unchanged from before: resolving a
+/// transport preference must never break an unrelated `receive`. That is a deliberate
+/// asymmetry — a missing notice is a lesser harm than a broken command — and it is stated
+/// rather than left to be discovered.
+fn ack_mode_config_state() -> fs_store::AckModeConfigState {
+    let Ok((dir, _source)) = config_dir() else {
+        return fs_store::AckModeConfigState::Nothing;
+    };
+    read_ack_mode_state(&dir.join(CONFIG_FILE_NAME))
+        .unwrap_or(fs_store::AckModeConfigState::Nothing)
 }
 
-fn stored_ack_mode() -> Option<AckMode> {
-    let (dir, _source) = config_dir().ok()?;
-    let raw = read_ack_mode(&dir.join(CONFIG_FILE_NAME)).ok()??;
-    match raw.as_str() {
-        "legacy" => Some(AckMode::Legacy),
-        "lease" => Some(AckMode::Lease),
-        _ => None,
+/// S-8: the retired-key state ANNOUNCES ITSELF on `qsc`'s own output.
+///
+/// ⚠ **THIS IS THE WHOLE POINT OF THE TOMBSTONE AND IT MUST NOT BECOME SILENT.** A tombstone
+/// that behaves like a deletion is not a tombstone. Called at the head of every command that
+/// previously resolved an ack mode.
+///
+/// ⚠ SCOPE, stated so it is not overread: the desktop's notice line is a FUTURE consumer and is
+/// out of this lane (zero desktop bytes). This surfaces on `qsc`'s own output only.
+pub(crate) fn announce_retired_ack_mode_key() {
+    if let fs_store::AckModeConfigState::RetiredKeyPresent(raw) = ack_mode_config_state() {
+        emit_marker(
+            fs_store::ACK_MODE_RETIRED_KEY_STATE,
+            None,
+            &[
+                ("key", ACK_MODE_KEY),
+                ("value", raw.as_str()),
+                ("file", CONFIG_FILE_NAME),
+                ("effect", "ignored"),
+            ],
+        );
     }
 }
 
@@ -2414,7 +2483,6 @@ pub struct ReceiveArgs {
     pub transport: Option<SendTransport>,
     pub relay: Option<String>,
     pub legacy_receive_mode: Option<LegacyReceiveMode>,
-    pub ack_mode: Option<AckMode>,
     pub attachment_service: Option<String>,
     pub from: Option<String>,
     pub mailbox: Option<String>,
@@ -2440,7 +2508,6 @@ pub struct ReceiveArgs {
 struct ReceivePullCtx<'a> {
     relay: &'a str,
     legacy_receive_mode: LegacyReceiveMode,
-    ack_mode: AckMode,
     attachment_service: Option<&'a str>,
     mailbox: &'a str,
     from: &'a str,

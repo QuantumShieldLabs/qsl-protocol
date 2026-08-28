@@ -180,7 +180,6 @@ pub fn receive_execute(args: ReceiveArgs) -> CliResult {
         transport,
         relay,
         legacy_receive_mode,
-        ack_mode,
         attachment_service,
         from,
         mailbox,
@@ -240,13 +239,12 @@ pub fn receive_execute(args: ReceiveArgs) -> CliResult {
             let legacy_receive_mode =
                 resolve_legacy_receive_mode(legacy_receive_mode, attachment_service.as_deref())
                     .map_err(|code| CliError::code(code))?;
-            // NA-0688 C4 (D622) SITE 1 of 2. ⚠ THIS LINE'S DEFAULT WAS INVERTED, not tidied.
-            // It read `ack_mode.unwrap_or(AckMode::Legacy)` under NA-0644 (D580), where legacy
-            // delete-on-pull was the default and lease the explicit opt-in. Both default-carrying
-            // sites flipped together; a half-flip was refused, because the two of them are reached
-            // by different commands and leaving one behind means the same relay behaves one way
-            // under `receive` and the other under `invite`/`handshake`.
-            let ack_mode = crate::resolve_ack_mode(ack_mode);
+            // NA-0770 (D-1411): the ack-mode resolution is gone with the mode. This was
+            // NA-0688 C4's SITE 1 of 2, whose default was INVERTED (not tidied) from
+            // `unwrap_or(AckMode::Legacy)`; both default-carrying sites moved together then, and
+            // both are removed together now. S-8: a config still carrying the retired key is
+            // ANNOUNCED here rather than silently ignored.
+            crate::announce_retired_ack_mode_key();
             if let Err(code) = normalize_relay_endpoint(relay.as_str()) {
                 return Err(CliError::code(code));
             }
@@ -344,10 +342,14 @@ pub fn receive_execute(args: ReceiveArgs) -> CliResult {
                     ("max", max_s.as_str()),
                 ],
             );
-            // Lease-only marker so the legacy stdout stays byte-identical.
-            if ack_mode == AckMode::Lease {
-                emit_marker("recv_ack_mode", None, &[("mode", "lease")]);
-            }
+            // NA-0770 (D-1411) S-13: THE MARKER SURVIVES; ONLY ITS GATE IS REMOVED.
+            // It was Lease-only "so the legacy stdout stays byte-identical" — a reason that
+            // dies with the mode. ⚠ KEPT, and emitted unconditionally, because it is a
+            // PUBLISHED LOG-SHAPE CONTRACT: the `recv_start -> recv_ack_mode -> recv_none |
+            // recv_commit` sequence is the evidence NA-0736/0737 used to prove a pull returned
+            // zero items, and it is carried in six records and pinned by three tests. A
+            // subtraction lane does not churn a contract other lanes read.
+            emit_marker("recv_ack_mode", None, &[("mode", "lease")]);
             let mut total = 0usize;
             if let Some(cfg) = poll_cfg {
                 let interval_s = cfg.interval_ms.to_string();
@@ -379,7 +381,6 @@ pub fn receive_execute(args: ReceiveArgs) -> CliResult {
                     let pull = ReceivePullCtx {
                         relay: &relay,
                         legacy_receive_mode,
-                        ack_mode,
                         attachment_service: attachment_service.as_deref(),
                         mailbox: mailbox.as_str(),
                         from: &from,
@@ -409,7 +410,6 @@ pub fn receive_execute(args: ReceiveArgs) -> CliResult {
                 let pull = ReceivePullCtx {
                     relay: &relay,
                     legacy_receive_mode,
-                    ack_mode,
                     attachment_service: attachment_service.as_deref(),
                     mailbox: mailbox.as_str(),
                     from: &from,
@@ -442,17 +442,18 @@ const RECV_CONTROL_ROUNDS_MAX: usize = 4;
 fn receive_pull_and_write(ctx: &ReceivePullCtx<'_>, max: usize) -> CliResult<ReceivePullStats> {
     let mut stats = ReceivePullStats { count: 0, bytes: 0 };
     let mut pending_receipts: Vec<PendingReceipt> = Vec::new();
-    // NA-0644 (D580): lease-mode state. Legacy mode never constructs the seen store and
-    // never accumulates acks, so its behavior stays byte-identical.
+    // NA-0770 (D-1411): unconditional. This was gated on Lease because the retired Legacy mode
+    // never constructed the seen store. ⛳ CONSEQUENCE WORTH RECORDING AS A LANE RESULT: the
+    // dedup store is now built on EVERY receive, which closes the knowingly-accepted gap filed
+    // at `tests/NA-0682_qsc_outbox_delivery_testplan.md` sec C.2 — "relay-level at-least-once
+    // protection still does not run at default settings". Closed by construction, not repaired.
     let mut pending_acks: Vec<String> = Vec::new();
-    let mut seen_ids: Option<dedup::RelaySeenIds> = if ctx.ack_mode == AckMode::Lease {
+    let mut seen_ids: Option<dedup::RelaySeenIds> = {
         let loaded = dedup::RelaySeenIds::load(ctx.cfg_dir, ctx.mailbox, ctx.cfg_source);
         if loaded.reset {
             emit_marker("dedup_store_reset", Some("dedup_store_parse_failed"), &[]);
         }
         Some(loaded.store)
-    } else {
-        None
     };
     // NA-0708 (D-1345): **THE STRUCTURAL ACK FLUSH — ADD, DO NOT MOVE.**
     //
@@ -513,7 +514,7 @@ fn receive_pull_rounds(
     let mut skipped_total = 0usize;
     'pull: loop {
         let want = max.saturating_sub(stats.count).max(1);
-        let items = match relay_inbox_pull_mode(ctx.relay, ctx.mailbox, want, ctx.ack_mode) {
+        let items = match relay_inbox_pull_mode(ctx.relay, ctx.mailbox, want) {
             Ok(v) => v,
             Err(code) => return Err(CliError::code(code)),
         };
@@ -552,7 +553,7 @@ fn receive_pull_rounds(
             // reaches unpack, which is what preserves the committed Unknown-class
             // assertions and the NA-0187 contact-request onboarding surface.
             let frame_class = crate::frameclass::classify(&item.data);
-            if ctx.ack_mode == AckMode::Lease && frame_class.is_known_foreign() {
+            if frame_class.is_known_foreign() {
                 // ⚠ `item.data.len()`, NOT `envelope_len` — that binding is created by
                 // the very line this insert precedes.
                 let bytes_s = item.data.len().to_string();
@@ -1264,9 +1265,17 @@ fn receive_pull_rounds(
                         // command. It is acked, reported by the ack_replay_unrecoverable
                         // marker, and the run continues to a normal exit. The rejection and
                         // the no-state-mutation guarantee are unchanged; only the EXIT CODE
-                        // moved, and only on the default path. `--ack-mode legacy` still
-                        // hard-exits, and that contract is pinned explicitly.
-                        if ctx.ack_mode == AckMode::Lease {
+                        // moved.
+                        //
+                        // ⚠ NA-0770 (D-1411): THIS ARM IS NOW THE ONLY ARM. The sentence that
+                        // stood here — "`--ack-mode legacy` still hard-exits, and that contract
+                        // is pinned explicitly" — was falsified twice over by this lane: the
+                        // flag is gone, and BOTH tests that pinned that contract lose the
+                        // assertion. The losses are named as L1 (`ratchet_step:266`) and L1b
+                        // (`aws_file_confirmation_replay_na0192b:507`); the legacy contract's
+                        // NON-ZERO EXIT has no Lease-side expression and is not re-homed,
+                        // because a contract with two homes drifts.
+                        {
                             emit_marker(
                                 "ack_replay_unrecoverable",
                                 Some(code),
@@ -3053,9 +3062,10 @@ fn relay_inbox_push_inner(
 
 /// NA-0688 C4 (D622) SITE 2 of 2 — the flag-less pull.
 ///
-/// ⚠ **THIS ONE HARDCODED `AckMode::Legacy` AND NOW RESOLVES LIKE EVERY OTHER PULL.** It takes no
-/// `AckMode` parameter because none of its callers has a flag to pass, which is exactly why the
-/// hardcode was dangerous: it was unreachable by `--ack-mode` and so could not be escaped.
+/// ⚠ **HISTORY, KEPT BECAUSE IT EXPLAINS THE SHAPE.** This site once HARDCODED
+/// `AckMode::Legacy`, unreachable by any flag and so impossible to escape; NA-0688 C4 made it
+/// resolve like every other pull. NA-0770 (D-1411) removed the mode entirely, so there is
+/// nothing left to resolve and every pull here carries the lease shape.
 ///
 /// ⚠ **THREE PRODUCTION COMMANDS MOVE TOGETHER HERE, and that is intended.** Ratified membership:
 ///   1. `invite accept`  — `invite_accept_at`, pulls the invite's OWN mailbox (`invite_id_wire`), `--max 1`
@@ -3064,7 +3074,7 @@ fn relay_inbox_push_inner(
 ///
 /// ⚠ **`invite redeem` IS NOT AMONG THEM.** `invite_redeem_at` reaches the relay only through
 /// `invite_redeem_call` (`POST /v1/invite/redeem`) — a different route, no inbox pull, no
-/// `AckMode` — so it is untouched by this default. It is named here **because C4's own census
+/// an ack mode — so it was untouched by that default. It is named here **because C4's own census
 /// wrongly listed it**, having identified the two `invite/mod.rs` call sites by line number
 /// instead of bracketing them to their enclosing functions. **A line number identifies a
 /// location, never a function.**
@@ -3078,7 +3088,7 @@ pub(super) fn relay_inbox_pull(
     route_token: &str,
     max: usize,
 ) -> Result<Vec<InboxPullItem>, &'static str> {
-    relay_inbox_pull_mode(relay_base, route_token, max, crate::resolve_ack_mode(None))
+    relay_inbox_pull_mode(relay_base, route_token, max)
 }
 
 // ============================================================================
@@ -3395,10 +3405,9 @@ fn relay_inbox_pull_mode(
     relay_base: &str,
     route_token: &str,
     max: usize,
-    ack_mode: AckMode,
 ) -> Result<Vec<InboxPullItem>, &'static str> {
     let mut diag = PullInnerDiag::default();
-    let result = relay_inbox_pull_mode_inner(relay_base, route_token, max, ack_mode, &mut diag);
+    let result = relay_inbox_pull_mode_inner(relay_base, route_token, max, &mut diag);
     if relay_pull_diagnostic_enabled() {
         // Hashed from the RAW argument rather than the normalized form: the
         // pre-flight arm must still say WHICH mailbox was asked for when
@@ -3436,10 +3445,12 @@ fn relay_inbox_pull_mode(
             RelayPullDiagnostic {
                 api: "relay_pull_v1",
                 op: "pull",
-                ack_mode: match ack_mode {
-                    AckMode::Lease => "lease",
-                    AckMode::Legacy => "legacy",
-                },
+                // NA-0770 (D-1411) Q1: THE FIELD IS KEPT, emitting the one surviving value.
+                // ⚠ Not because nothing could catch its removal — that ground was measured
+                // FALSE. `relay_pull_diagnostics.rs:548` pins this field on `lease` from a real
+                // client run, in a test that takes no flag and survives this lane. It is kept
+                // because it is a stable published contract with no benefit to churning.
+                ack_mode: "lease",
                 max,
                 status: diag.status,
                 error_class,
@@ -3529,18 +3540,25 @@ fn relay_inbox_pull_mode_inner(
     relay_base: &str,
     route_token: &str,
     max: usize,
-    ack_mode: AckMode,
     diag: &mut PullInnerDiag,
 ) -> Result<Vec<InboxPullItem>, &'static str> {
     let route_token = normalize_route_token(route_token)?;
     let base = normalize_relay_endpoint(relay_base)?;
     let base = base.trim_end_matches('/');
-    // Legacy keeps the exact pre-NA-0644 URL. Lease adds the opt-in ack param, which a
-    // pre-durability relay silently ignores (it then behaves legacy end-to-end).
-    let url = match ack_mode {
-        AckMode::Legacy => format!("{}/v1/pull?max={}", base, max),
-        AckMode::Lease => format!("{}/v1/pull?max={}&ack=lease", base, max),
-    };
+    // NA-0770 (D-1411) S-6: THE ONLY PULL-URL CONSTRUCTION SITE IN THE CLIENT, and it now
+    // carries the lease shape unconditionally. It was a two-arm `match` whose Legacy arm built
+    // the pre-NA-0644 URL with no `ack=` parameter at all.
+    //
+    // ⚠⚠ **E2, IN ITS HONEST FORM: THIS ASSERTS WHAT THE CLIENT REQUESTS, NEVER WHAT THE RELAY
+    // DOES.** A pre-durability relay IGNORES `ack=lease` and delivers delete-on-deliver
+    // regardless; the relay's own default arm for a request without the parameter is still
+    // `PullMode::Legacy`. Delete-on-pull is therefore GONE FROM THIS CLIENT'S INTENT, NOT FROM
+    // THE SYSTEM, and no record of this lane may say otherwise.
+    //
+    // ⚠ Guarded by a source-shape test (G-A) asserting BOTH that this is the sole `format!`
+    // building a `/v1/pull?` URL and that its literal contains `&ack=lease`. Singleness is the
+    // assertion, not a premise — that is what stops a second construction site appearing.
+    let url = format!("{}/v1/pull?max={}&ack=lease", base, max);
     let client = match relay_http_client() {
         Ok(v) => v,
         Err(RelayHttpClientError::CaFile(code)) => return Err(code),

@@ -42,10 +42,12 @@ pub(crate) const TUI_RECEIPT_BATCH_WINDOW_MS_SECRET_KEY: &str = "tui.receipt.bat
 pub(crate) const TUI_RECEIPT_JITTER_MS_SECRET_KEY: &str = "tui.receipt.jitter_ms";
 pub(crate) const TUI_FILE_CONFIRM_MODE_SECRET_KEY: &str = "tui.file_confirm.mode";
 pub(crate) const TUI_TRUST_MODE_SECRET_KEY: &str = "tui.trust.mode";
-// NA-0688 C4 (D622 R7): the per-install acknowledged-pull preference does NOT live here. It was
-// first added as `tui.ack.mode` beside these keys, and that was wrong twice over: the value is not
-// a secret, and a vault-backed preference silently stops applying whenever the vault is locked.
-// It lives in the config file as `ack_mode` (see `ACK_MODE_KEY`). ⚠ Note for whoever adds the next
+// NA-0688 C4 (D622 R7) / NA-0770 (D-1411): the per-install acknowledged-pull preference never
+// lived here, and as of NA-0770 it no longer exists anywhere — the mode is retired. It was first
+// added as `tui.ack.mode` beside these keys, and that was wrong twice over: the value is not a
+// secret, and a vault-backed preference silently stops applying whenever the vault is locked. Its
+// config key (`ACK_MODE_KEY`) survives only as a TOMBSTONE that refuses writes and announces
+// reads. ⚠ Note for whoever adds the next
 // preference: four keys in this namespace -- tui.receipt.mode, tui.receipt.batch_window_ms,
 // tui.receipt.jitter_ms, tui.file_confirm.mode -- are READ but written by NOTHING, and the `tui.`
 // prefix names a subsystem retired and stripped in NA-0645. Do not extend that pattern.

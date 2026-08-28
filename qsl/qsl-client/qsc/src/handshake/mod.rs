@@ -1713,10 +1713,15 @@ pub(crate) fn perform_handshake_poll_with_tokens(
     // `invite finish` it is LAYERING ONLY — a real token IS passed, and nothing mechanical would
     // stop a wrong implementation from acking the caller's frame here.
     //
-    // Lease-only for the same reason the rest of this lane is: under Legacy the relay already
-    // deleted the frame at pull time, so there is nothing to ack and nothing left leased.
-    let acks_own_frames = matches!(source, HsPollSource::Relay)
-        && crate::resolve_ack_mode(None) == crate::cmd::AckMode::Lease;
+    // NA-0770 (D-1411): UNCONDITIONAL ON ACK MODE. This read
+    // `&& crate::resolve_ack_mode(None) == AckMode::Lease` because under the retired Legacy mode
+    // the relay had already deleted the frame at pull time, so there was nothing to ack and
+    // nothing left leased. With delete-on-pull gone from the client's intent every relay pull
+    // leases, and the ack is always owed.
+    // ⚠ THE `HsPollSource::Relay` HALF IS UNCHANGED AND IS THE LOAD-BEARING ONE: under
+    // `Provided` the frames belong to the CALLER, which acks them. The honest scope above is
+    // likewise unchanged — for `invite finish` this confinement is LAYERING ONLY.
+    let acks_own_frames = matches!(source, HsPollSource::Relay);
     let items = match source {
         HsPollSource::Provided(v) => v.to_vec(),
         HsPollSource::Relay => match transport::relay_inbox_pull(relay, inbox_route_token, max) {

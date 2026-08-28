@@ -1,14 +1,18 @@
 use super::*;
 
-// NA-0644 (D580, ENG-0040): durable relay msg_id dedup for the opt-in acknowledged-pull
-// (lease) receive mode. Lease delivery is at-least-once — a lost ack redelivers ids in
+// NA-0644 (D580, ENG-0040): durable relay msg_id dedup for the acknowledged-pull (lease)
+// receive path. ⚠ NA-0770 (D-1411): it is no longer "opt-in" — lease became the default at
+// NA-0688 C4 (2026-08-01) and is now the ONLY mode, so this store is built on EVERY receive. Lease delivery is at-least-once — a lost ack redelivers ids in
 // normal operation — so the receive path must recognize "already durably persisted"
 // BEFORE unpack and ack-and-skip instead of reprocessing (reprocessing hits the ratchet
 // replay-reject, which is a process-exit). The transport caller keeps the invariant:
 // an id becomes ack-eligible ONLY after both the item's own durable commit and this
 // store's entry for it are on disk (`record` returning Ok IS that second half).
 //
-// Legacy mode never constructs this store: the legacy pull path stays byte-identical.
+// ⚠ NA-0770 (D-1411): the sentence here read "Legacy mode never constructs this store: the
+// legacy pull path stays byte-identical." There is no Legacy mode. ⛳ THE CONSEQUENCE IS A LANE
+// RESULT, not a tidy-up: this store now runs unconditionally, which CLOSES BY CONSTRUCTION the
+// knowingly-accepted gap filed at `tests/NA-0682_qsc_outbox_delivery_testplan.md` sec C.2.
 
 const SEEN_IDS_VERSION: u32 = 1;
 // Strictly beyond the relay's 30-day retention ceiling: a message older than retention

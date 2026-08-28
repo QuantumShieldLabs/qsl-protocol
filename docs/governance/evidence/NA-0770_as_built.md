@@ -32,8 +32,12 @@ it believes it is in force. So:
 - the **writer refuses by name** — `config set ack-mode` emits `config_set_refused` carrying
   key/reason/file/remedy, then returns an error;
 - the **reader reports a third state** — `AckModeConfigState::{Nothing, RetiredKeyPresent(String)}`,
-  announced through `announce_retired_ack_mode_key()`, which **carries the raw value the operator
-  wrote** in the marker's `value=` field;
+  announced by `announce_retired_ack_mode_key()` **on the receive path, at `transport/mod.rs:247`**
+  — the exact point where the mode used to be resolved (NA-0688 C4's SITE 1), so the notice fires
+  where the key would have mattered. It **carries the raw value the operator wrote** in the
+  marker's `value=` field. ⚠ **NOT "at startup", and measured rather than assumed:** a `receive`
+  invocation dies at the vault gate (`vault_locked`) *upstream* of this site, so an operator with a
+  locked vault never reaches the notice, and no other command emits it at all;
 - `config_get` reports `state=retired_present|absent`, `retired=true`, `effect=ignored`.
 
 ⚠ **`Option<T>` WAS REFUSED DELIBERATELY.** It cannot distinguish "no key" from "key present,
@@ -57,10 +61,24 @@ bytes before designing against a remembered shape.** Ledger row 364.
 
 `dedup/mod.rs` and `msgqueue/mod.rs` are in the edit set for **stale claims**, not for code.
 
+**AT THE BASE** (`3b685e79`) — the measurement the Director's checklist sec 0(g) reports:
+
 | needle (the token set, stated because a figure carries its instrument) | dedup | msgqueue | positive control `lib.rs` |
 |---|---|---|---|
 | **IDENTIFIER needle** — `(AckMode\|ack_mode\|ack-mode)` | **0** | **0** | **19** |
 | **UNION needle** — the above **plus `[Ll]egacy`** | **1** (`:11`, *"Legacy mode never constructs this store"*) | 0 | — |
+
+**ON THE COMMITTED TREE** — re-measured, because a figure that does not say *when* is half a figure:
+
+| needle | dedup | msgqueue | `lib.rs` |
+|---|---|---|---|
+| IDENTIFIER | **0** | **0** | **26** (the tombstone reader, writer and announcer are new `ack_mode` mentions) |
+| UNION (+`[Ll]egacy`) | **2** (`:12-13`) | **0** | **30** |
+
+⚠ **dedup's UNION COUNT WENT 1 → 2 AND THAT IS THE CORRECTION WORKING, NOT DRIFT.** Both hits are
+inside the NA-0770 comment that **quotes the old sentence in order to correct it** — mark-don't-
+rewrite. A needle counting occurrences cannot tell a live claim from a quoted-and-retracted one, so
+the count is reported with its cause rather than left to look like a regression.
 
 ⚠⚠ **THE "0 TOKENS" FIGURE IS TRUE OF THE IDENTIFIER NEEDLE AND NOT OF THE UNION NEEDLE, AND
 SAYING WHICH IS THE WHOLE POINT.** The specification's row read *"ANY token needle — measures 0"*.

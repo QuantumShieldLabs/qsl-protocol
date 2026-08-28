@@ -31,8 +31,19 @@ use std::time::Duration;
 
 /// A 1-second server-side pull lease, so an unacked item becomes visible again quickly.
 /// The same values NA-0644 uses to prove lease redelivery.
-const TEST_PULL_LEASE_SECS: usize = 1;
-const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(2500);
+// ⚠⚠ NA-0770 (D-1411) WIDENED THESE 1s/2500ms -> 8s/20000ms. THE RECORDED REASON IS MARGIN
+// AGAINST CONTENTION, and it is stated so a later reader does not "tidy" them back.
+//
+// Before this lane, arms that wanted a NEGATIVE result reached for delete-on-pull, which is
+// instantaneous and needs no waiting. With the mode retired, every such arm must instead wait out a
+// lease — so the suite's dependence on these two numbers went UP at the moment the mode went away.
+// They are now load-bearing in shards that run twelve-wide on six cores, where a 2500ms wait
+// against a 1s lease left almost no margin: an overrun does not merely slow the arm, it reports a
+// perfectly intact message as lost. The pair is kept in step across every file that defines it
+// (`NA_0644`, `na0688`, `na0689_capture`, `na0689_p3_a2`, `na0690`, `na0708`, `na0741`, and
+// `na0742` under its own names) — if you change one, change all of them.
+const TEST_PULL_LEASE_SECS: usize = 8;
+const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(20_000);
 
 const ALICE_INBOX: &str = "na0689cb_alice_inbox_token_abcdefg";
 const BOB_INBOX: &str = "na0689cb_bob_inbox_token_hijklmno";
@@ -196,8 +207,6 @@ fn receive_args<'a>(relay: &'a str, out: &'a str) -> Vec<&'a str> {
         "8",
         "--out",
         out,
-        "--ack-mode",
-        "lease",
     ]
 }
 

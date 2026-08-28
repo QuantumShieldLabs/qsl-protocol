@@ -31,12 +31,23 @@
 //! untouched, unacked and undestroyed. The three callers that pull their own frames then **ack what
 //! they consumed**, after that frame's LAST EFFECT.
 //!
-//! ## ⚠ WHY EVERY ARM IS LEASE-GATED, AND WHY LEGACY MUST BE BYTE-UNCHANGED
+//! ## ⚠ WHY EVERY ARM WAS LEASE-GATED — AND WHY THAT GATE IS NOW GONE
 //!
-//! Under `AckMode::Legacy` the relay DELETES ON PULL. A mode-blind scan would enlarge finish's pull
-//! from 1 frame to as many as 128 **on a delete-on-pull server** — turning a one-frame loss into a
-//! 16x-128x amplification. So the scan and every ack execute only under Lease, and T7 is the arm
-//! that discriminates the two modes rather than asserting the bound.
+//! Under `AckMode::Legacy` the relay DELETED ON PULL. A mode-blind scan would have enlarged
+//! finish's pull from 1 frame to as many as 128 **on a delete-on-pull server** — turning a
+//! one-frame loss into a 16x-128x amplification. So the scan and every ack executed only under
+//! Lease, and T7 was the arm that DISCRIMINATED the two modes rather than asserting the bound.
+//!
+//! ⚠⚠ NA-0770 (D-1411): with delete-on-pull retired there is no server the amplification can
+//! happen on, so the gate was deleted from the product and the scan now runs unconditionally. T7's
+//! LEGACY half is retired with it. What that half proved — that the gate was REAL, measured by
+//! running the same arrangement on a deleting server and watching exactly one frame die — cannot
+//! be re-derived from a tree with one mode, and nothing here replaces it.
+//!
+//! ⚠ T7's LEASE HALF SURVIVES AND IS NOT MERELY LEFTOVER: it still pins that all three collateral
+//! frames survive and that the reply is the ONLY frame acked. That second assertion is an IDENTITY
+//! claim, not a count, and it is the strongest ack-confinement evidence in the tree — the red arm
+//! guard G-B is credited against.
 //!
 //! ## ⚠ THE RELAY IS THE REAL ONE
 //!
@@ -59,13 +70,28 @@ use std::time::{Duration, Instant};
 /// ⚠ **PARITY.** The production relay runs `PULL_LEASE_SECS=60`, and that is the default for every
 /// arm here. An arm that needs a lease to EXPIRE inside the test may set the short value below and
 /// **must state it beside every figure it produces** — the committed precedent is
-/// `na0688_c4_collateral_arms.rs:40`.
+/// `na0688_c4_collateral_arms.rs`'s `TEST_PULL_LEASE_SECS`.
+///
+/// ⚠ NA-0770 (D-1411) re-pointed this citation from a LINE NUMBER to the SYMBOL. The line had
+/// already moved once (:40 -> :68) when that file's constants were widened, so the cite named the
+/// wrong bytes; a symbol survives edits above it.
 const PRODUCTION_PULL_LEASE_SECS: usize = 60;
 
-/// A 1-second server-side pull lease, so an unacked frame becomes visible again quickly.
+/// An 8-second server-side pull lease, so an unacked frame becomes visible again inside a test.
 /// ⚠ **STATED BESIDE EVERY FIGURE THE ARMS USING IT PRODUCE.**
-const SHORT_PULL_LEASE_SECS: usize = 1;
-const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(2500);
+// ⚠⚠ NA-0770 (D-1411) WIDENED THESE 1s/2500ms -> 8s/20000ms. THE RECORDED REASON IS MARGIN
+// AGAINST CONTENTION, and it is stated so a later reader does not "tidy" them back.
+//
+// Before this lane, arms that wanted a NEGATIVE result reached for delete-on-pull, which is
+// instantaneous and needs no waiting. With the mode retired, every such arm must instead wait out a
+// lease — so the suite's dependence on these two numbers went UP at the moment the mode went away.
+// They are now load-bearing in shards that run twelve-wide on six cores, where a 2500ms wait
+// against a 1s lease left almost no margin: an overrun does not merely slow the arm, it reports a
+// perfectly intact message as lost. The pair is kept in step across every file that defines it
+// (`NA_0644`, `na0688`, `na0689_capture`, `na0689_p3_a2`, `na0690`, `na0708`, `na0741`, and
+// `na0742` under its own names) — if you change one, change all of them.
+const SHORT_PULL_LEASE_SECS: usize = 8;
+const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(20_000);
 
 fn guard() -> MutexGuard<'static, ()> {
     static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
@@ -212,13 +238,11 @@ fn add_contact(cfg: &Path, label: &str, fp: &str, route_token: &str) {
     );
 }
 
-/// ⚠ **THE MODE IS ALWAYS SET EXPLICITLY.** `invite finish`, `invite accept` and `handshake poll`
-/// take no `--ack-mode` flag, so the per-install preference is the ONLY way to aim them — which
-/// makes this config key part of the instrument rather than a convenience. An arm that inherited
-/// the C4 default would stop measuring the moment that default moved.
-fn set_ack_mode(cfg: &Path, mode: &str) {
-    run_ok(cfg, &["config", "set", "ack-mode", mode]);
-}
+// NA-0770 (D-1411): `set_ack_mode` removed. It existed because `invite finish`, `invite accept`
+// and `handshake poll` take no `--ack-mode` flag, so the per-install config key was the ONLY way to
+// aim them — which made the key part of the instrument rather than a convenience. There is nothing
+// left to aim: one mode ships, and `config set ack-mode` now REFUSES the key by name, so this
+// helper could only have failed at runtime.
 
 /// Put an arbitrary frame into a mailbox through the relay's OWN public push route — the same route
 /// the client uses, and the same route a peer's handshake or invite frame arrives by.
@@ -324,13 +348,10 @@ struct Flow {
 
 /// `invite create` + `invite redeem`, stopping BEFORE `invite accept` so a caller can plant a frame
 /// that will sit AHEAD of the invite reply in the redeemer's inbox.
-fn setup_to_redeem(root: &Path, base: &str, mode: &str) -> Flow {
+fn setup_to_redeem(root: &Path, base: &str) -> Flow {
     let inviter = party(root, "inviter", INVITER_INBOX);
     let redeemer = party(root, "redeemer", REDEEMER_INBOX);
     let carol = party(root, "carol", CAROL_INBOX);
-    for cfg in [&inviter, &redeemer, &carol] {
-        set_ack_mode(cfg, mode);
-    }
     // carol <-> redeemer, so carol can send a REAL ordinary message and the redeemer can receive it.
     //
     // ⚠⚠ **BOTH SIDES USE THE SAME LABEL, AND IT IS LOAD-BEARING RATHER THAN COSMETIC.** The label
@@ -437,7 +458,7 @@ fn t1_ordinary_message_at_the_head_does_not_break_invite_finish() {
         common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, PRODUCTION_PULL_LEASE_SECS);
     let base = relay.base_url().to_string();
     let root = test_root("na0742_t1");
-    let flow = setup_to_redeem(&root, &base, "lease");
+    let flow = setup_to_redeem(&root, &base);
 
     // The head: a REAL ordinary message from a DIFFERENT contact.
     plant_ordinary_message(
@@ -488,7 +509,7 @@ fn t2_handshake_frame_at_the_head_does_not_break_invite_finish() {
         common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, PRODUCTION_PULL_LEASE_SECS);
     let base = relay.base_url().to_string();
     let root = test_root("na0742_t2");
-    let flow = setup_to_redeem(&root, &base, "lease");
+    let flow = setup_to_redeem(&root, &base);
 
     // The head: a bare handshake frame, as a bare A1 from any other contact would be.
     push_raw(&base, REDEEMER_INBOX, &handshake_frame());
@@ -527,7 +548,7 @@ fn t2_handshake_frame_at_the_head_does_not_break_invite_finish() {
 /// caller in this lane that reaches the poll through `HsPollSource::Relay`, and therefore the only
 /// one whose ack the poll performs.
 fn drive_full_flow(root: &Path, base: &str) -> Flow {
-    let flow = setup_to_redeem(root, base, "lease");
+    let flow = setup_to_redeem(root, base);
     accept(&flow);
     let (ok, text) = finish(&flow, base);
     assert!(
@@ -645,8 +666,6 @@ fn t4_a_receive_after_a_completed_flow_skips_nothing() {
             "8",
             "--out",
             i_out.to_str().expect("out"),
-            "--ack-mode",
-            "lease",
         ],
     );
     let r_out = root.join("redeemer_out");
@@ -667,8 +686,6 @@ fn t4_a_receive_after_a_completed_flow_skips_nothing() {
             "8",
             "--out",
             r_out.to_str().expect("out"),
-            "--ack-mode",
-            "lease",
         ],
     );
     let skipped =
@@ -935,7 +952,7 @@ fn t5f_finish_survives_a_lost_ack_and_the_frame_redelivers() {
     let base = relay.base_url().to_string();
     let proxy = start_ack_fault_proxy(&base);
     let root = test_root("na0742_t5f");
-    let flow = setup_to_redeem(&root, &base, "lease");
+    let flow = setup_to_redeem(&root, &base);
     accept(&flow);
 
     // ---- finish THROUGH THE PROXY: the commit lands, the ack is 500'd. ----
@@ -1004,7 +1021,7 @@ fn t5a_accept_survives_a_lost_ack_on_the_slot_mailbox() {
     let root = test_root("na0742_t5a");
     // ⚠ The invite is created THROUGH THE PROXY so that `invite accept` — which takes its endpoint
     // from the stored invite record rather than from a flag — reaches the faulted ack route.
-    let flow = setup_to_redeem(&root, proxy.base_url(), "lease");
+    let flow = setup_to_redeem(&root, proxy.base_url());
 
     let out = qsc(&flow.inviter)
         .args([
@@ -1060,7 +1077,7 @@ fn t5p_the_poll_tolerates_a_redelivered_already_processed_frame() {
     let base = relay.base_url().to_string();
     let proxy = start_ack_fault_proxy(&base);
     let root = test_root("na0742_t5p");
-    let flow = setup_to_redeem(&root, &base, "lease");
+    let flow = setup_to_redeem(&root, &base);
     accept(&flow);
     let (fin_ok, fin_text) = finish(&flow, &base);
     assert!(fin_ok, "setup: finish must succeed:\n{fin_text}");
@@ -1177,7 +1194,7 @@ fn t6_the_scanned_past_message_is_delivered_intact() {
         common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, SHORT_PULL_LEASE_SECS);
     let base = relay.base_url().to_string();
     let root = test_root("na0742_t6");
-    let flow = setup_to_redeem(&root, &base, "lease");
+    let flow = setup_to_redeem(&root, &base);
 
     const BODY: &[u8] = b"na0742 t6 the message that must survive the scan";
     plant_ordinary_message(&flow, &base, &root, "t6_msg.txt", BODY);
@@ -1218,8 +1235,6 @@ fn t6_the_scanned_past_message_is_delivered_intact() {
             "8",
             "--out",
             out.to_str().expect("out"),
-            "--ack-mode",
-            "lease",
         ],
     );
     let delivered: Vec<PathBuf> = fs::read_dir(&out)
@@ -1270,50 +1285,27 @@ fn plant_three_collateral(base: &str) {
 }
 
 #[test]
-fn t7_legacy_destroys_exactly_one_and_lease_scans_past_all_three() {
+fn t7_lease_scans_past_all_three_collateral_and_acks_only_the_reply() {
     let _g = guard();
 
-    // ---------- LEGACY: the control. It MUST destroy, or the lease arm proves nothing. ----------
-    let legacy_relay =
-        common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, SHORT_PULL_LEASE_SECS);
-    let legacy_base = legacy_relay.base_url().to_string();
-    let legacy_root = test_root("na0742_t7_legacy");
-    let legacy_flow = setup_to_redeem(&legacy_root, &legacy_base, "legacy");
-    plant_three_collateral(&legacy_base);
-    accept(&legacy_flow);
-    let (legacy_ok, legacy_text) = finish(&legacy_flow, &legacy_base);
-    assert!(
-        !legacy_ok,
-        "CONTROL FAILED: under Legacy `invite finish` must still fail on the foreign head exactly \
-         as it does today. If it now succeeds, the Legacy path was CHANGED and the byte-unchanged \
-         bound is broken:\n{legacy_text}"
-    );
-    assert!(
-        !legacy_text.contains("invite_scan_summary"),
-        "CONTROL FAILED: the scan must not run at all under Legacy — a mode-blind scan on a \
-         delete-on-pull server is a 16x-128x loss amplification:\n{legacy_text}"
-    );
-    thread::sleep(LEASE_EXPIRY_WAIT);
-    let legacy_left = raw_pull_lease(&legacy_base, REDEEMER_INBOX, 32);
-    assert_eq!(
-        legacy_left.len(),
-        3,
-        "under Legacy exactly ONE of the four frames must be destroyed (delete-on-pull, --max 1), \
-         leaving three. Measured survivors: {}",
-        legacy_left.len()
-    );
-    assert_eq!(
-        legacy_left.iter().filter(|f| is_invite_resp(f)).count(),
-        1,
-        "under Legacy the reply must still be sitting unconsumed behind the collateral"
-    );
+    // ---------- THE LEGACY CONTROL, RETIRED BY NA-0770 (D-1411). ----------
+    //
+    // It stood up a SECOND relay in legacy mode, ran the identical arrangement, and required:
+    // `invite finish` to FAIL on the foreign head; NO `invite_scan_summary` to be emitted at all;
+    // and EXACTLY ONE of the four frames to be destroyed, with the reply still sitting unconsumed
+    // behind the collateral. That is what made the lease half below evidence rather than assertion.
+    //
+    // ⚠ IT IS NOT REPLACED. The amplification it demonstrated needs a delete-on-pull server, and no
+    // such server is reachable from this tree any more. The in-lease probe that recovers the
+    // negative capability in `na0688_c4_collateral_arms.rs` does not transfer: this arm's control
+    // was about DESTRUCTION COUNTS on the relay, not about a single item's visibility.
 
     // ---------- LEASE: the treatment. ----------
     let lease_relay =
         common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, SHORT_PULL_LEASE_SECS);
     let lease_base = lease_relay.base_url().to_string();
     let lease_root = test_root("na0742_t7_lease");
-    let lease_flow = setup_to_redeem(&lease_root, &lease_base, "lease");
+    let lease_flow = setup_to_redeem(&lease_root, &lease_base);
     plant_three_collateral(&lease_base);
     accept(&lease_flow);
     let (lease_ok, lease_text) = finish(&lease_flow, &lease_base);
@@ -1361,7 +1353,7 @@ fn t7b_the_scan_marker_renders_without_redaction() {
         common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, PRODUCTION_PULL_LEASE_SECS);
     let base = relay.base_url().to_string();
     let root = test_root("na0742_t7b");
-    let flow = setup_to_redeem(&root, &base, "lease");
+    let flow = setup_to_redeem(&root, &base);
     plant_three_collateral(&base);
     accept(&flow);
     let (ok, text) = finish(&flow, &base);
@@ -1433,7 +1425,7 @@ fn t8_the_a2_sig_failure_exit_emits_no_producer_ack() {
         common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, SHORT_PULL_LEASE_SECS);
     let base = relay.base_url().to_string();
     let root = test_root("na0742_t8");
-    let flow = setup_to_redeem(&root, &base, "lease");
+    let flow = setup_to_redeem(&root, &base);
     accept(&flow);
 
     // Force A2 signing to fail, so the initiator branch takes its early `Ok(())` AFTER the session
@@ -1476,7 +1468,7 @@ fn t8_the_rng_seam_is_absent_from_the_default_build() {
         common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, SHORT_PULL_LEASE_SECS);
     let base = relay.base_url().to_string();
     let root = test_root("na0742_t8_noseam");
-    let flow = setup_to_redeem(&root, &base, "lease");
+    let flow = setup_to_redeem(&root, &base);
     accept(&flow);
 
     let out = qsc(&flow.redeemer)

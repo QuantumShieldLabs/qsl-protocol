@@ -40,8 +40,19 @@ const ALICE_MAILBOX: &str = "na0644_alice_mailbox_token_abcd12";
 const BOB_MAILBOX: &str = "na0644_bob_mailbox_token_wxyz567";
 
 // Short real lease so expiry/redelivery are real server behavior, not simulation.
-const TEST_PULL_LEASE_SECS: usize = 1;
-const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(2500);
+// ⚠⚠ NA-0770 (D-1411) WIDENED THESE 1s/2500ms -> 8s/20000ms. THE RECORDED REASON IS MARGIN
+// AGAINST CONTENTION, and it is stated so a later reader does not "tidy" them back.
+//
+// Before this lane, arms that wanted a NEGATIVE result reached for delete-on-pull, which is
+// instantaneous and needs no waiting. With the mode retired, every such arm must instead wait out a
+// lease — so the suite's dependence on these two numbers went UP at the moment the mode went away.
+// They are now load-bearing in shards that run twelve-wide on six cores, where a 2500ms wait
+// against a 1s lease left almost no margin: an overrun does not merely slow the arm, it reports a
+// perfectly intact message as lost. The pair is kept in step across every file that defines it
+// (`NA_0644`, `na0688`, `na0689_capture`, `na0689_p3_a2`, `na0690`, `na0708`, `na0741`, and
+// `na0742` under its own names) — if you change one, change all of them.
+const TEST_PULL_LEASE_SECS: usize = 8;
+const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(20_000);
 
 fn test_guard() -> MutexGuard<'static, ()> {
     static TEST_GUARD: OnceLock<Mutex<()>> = OnceLock::new();
@@ -206,8 +217,10 @@ fn send_message(alice_cfg: &Path, relay_url: &str, base: &Path, name: &str, byte
     );
 }
 
-fn receive_args<'a>(relay_url: &'a str, out: &'a str, lease: bool) -> Vec<&'a str> {
-    let mut args = vec![
+// NA-0770 (D-1411): the `lease: bool` switch is gone — lease is the only mode, so every
+// invocation is the same invocation.
+fn receive_args<'a>(relay_url: &'a str, out: &'a str) -> Vec<&'a str> {
+    vec![
         "receive",
         "--transport",
         "relay",
@@ -221,26 +234,12 @@ fn receive_args<'a>(relay_url: &'a str, out: &'a str, lease: bool) -> Vec<&'a st
         "8",
         "--out",
         out,
-    ];
-    if lease {
-        args.push("--ack-mode");
-        args.push("lease");
-    }
-    args
+    ]
 }
 
-/// NA-0688 C4 (D622): the same receive, with legacy delete-on-pull requested EXPLICITLY.
-///
-/// ⚠ Before C4 the legacy path was reached by passing no flag at all. C4 flipped the default to
-/// lease, so "absent" now means lease and the legacy path has exactly one spelling left:
-/// `--ack-mode legacy`. This helper is that spelling, and it exists so the legacy contract keeps a
-/// guard instead of being retired by a default change.
-fn receive_args_explicit_legacy<'a>(relay_url: &'a str, out: &'a str) -> Vec<&'a str> {
-    let mut args = receive_args(relay_url, out, false);
-    args.push("--ack-mode");
-    args.push("legacy");
-    args
-}
+// NA-0770 (D-1411): `receive_args_explicit_legacy` is RETIRED with the mode. It existed solely
+// to spell `--ack-mode legacy`, the one spelling C4 left for the legacy path, and its sole caller
+// `explicit_legacy_sends_no_ack_param_and_never_acks` retires with it (D-RETIRE).
 
 fn recv_file_count(out: &Path) -> usize {
     fs::read_dir(out)
@@ -432,55 +431,20 @@ fn start_relay_proxy(upstream: &str, mode: ProxyMode) -> RelayProxy {
         handle: Some(handle),
     }
 }
-
 // ---------------------------------------------------------------------------
-// (a) EXPLICIT legacy: `--ack-mode legacy` gives the exact pre-lane pull URL
-//     (no ack param) and never touches the ack route.
+// NA-0770 (D-1411): `explicit_legacy_sends_no_ack_param_and_never_acks` RETIRED (D-RETIRE).
 //
-// ⚠ NA-0688 C4 (D622) INVERTED THIS TEST'S TRIGGER, AND DELIBERATELY DID NOT DELETE IT.
-// It was `legacy_default_sends_no_ack_param_and_never_acks` and reached the legacy path by
-// passing NO flag, because under NA-0644 (D580) legacy was the default. C4 flipped the default
-// to lease, which made this test red — and a red guard is guilty until proven cosmetic. It was
-// not cosmetic: it is the only guard on the legacy wire contract, and that contract still
-// exists and is still reachable. So the ASSERTIONS are untouched and only the TRIGGER moved,
-// from "no flag" to `--ack-mode legacy`. Deleting it would have retired a live guarantee under
-// cover of a default change. Its counterpart below pins what "no flag" means now.
+// Its whole subject was the retired mode: it asserted the pre-lane pull URL carried NO `ack=`
+// parameter and that the ack route was never touched. After this lane no product path can
+// construct that URL, so the test cannot be re-aimed — its precondition is unreachable.
+//
+// ⚠⚠ LOSS L6, NAMED HERE BECAUSE THIS IS WHERE IT HAPPENS. Its assertion at the old :472 —
+// `uri.starts_with("/v1/pull?max=") && !uri.contains("ack=")` — was THE TREE'S LAST NEGATIVE
+// PULL-URL OBSERVATION, i.e. the only runtime proof that a no-`ack=` pull was distinguishable
+// at all. G-A's red arm can therefore no longer be a runtime one; it is a SOURCE-SHAPE
+// assertion with its red arm proven in a scratch worktree instead. The surviving POSITIVE is
+// `absent_ack_mode_now_defaults_to_lease_and_acks:515-520`.
 // ---------------------------------------------------------------------------
-#[test]
-fn explicit_legacy_sends_no_ack_param_and_never_acks() {
-    let _guard = test_guard();
-    let server = common::start_qsl_server(2 * 1024 * 1024, 512, None);
-    let proxy = start_relay_proxy(server.base_url(), ProxyMode::Record);
-    let base = safe_test_root("na0644_legacy_explicit");
-    let (alice_cfg, bob_cfg, bob_out) = setup_pair(&base);
-
-    let msg: &[u8] = b"na0644 explicit legacy message";
-    send_message(&alice_cfg, proxy.base_url(), &base, "msg.txt", msg);
-
-    let out_s = bob_out.to_str().expect("out").to_string();
-    let text = run_ok(
-        &bob_cfg,
-        &receive_args_explicit_legacy(proxy.base_url(), out_s.as_str()),
-    );
-
-    let received = fs::read(bob_out.join("recv_1.bin")).expect("read received");
-    assert_eq!(received, msg, "legacy plaintext differs");
-    let pulls = proxy.pull_uris();
-    assert!(!pulls.is_empty(), "no pull observed");
-    for uri in &pulls {
-        assert!(
-            uri.starts_with("/v1/pull?max=") && !uri.contains("ack="),
-            "legacy pull URL changed: {uri}"
-        );
-    }
-    assert_eq!(proxy.ack_posts(), 0, "legacy receive must never ack");
-    assert!(
-        !text.contains("event=recv_ack_mode")
-            && !text.contains("event=relay_ack")
-            && !text.contains("event=recv_dup_skipped"),
-        "lease-mode markers leaked into legacy output: {text}"
-    );
-}
 
 // ---------------------------------------------------------------------------
 // (a2) NA-0688 C4 (D622) — THE DEFAULT IS NOW LEASE. The counterpart to (a):
@@ -505,7 +469,7 @@ fn absent_ack_mode_now_defaults_to_lease_and_acks() {
 
     let out_s = bob_out.to_str().expect("out").to_string();
     // No --ack-mode: this is the whole point of the test.
-    let text = run_ok(&bob_cfg, &receive_args(proxy.base_url(), out_s.as_str(), false));
+    let text = run_ok(&bob_cfg, &receive_args(proxy.base_url(), out_s.as_str()));
 
     let received = fs::read(bob_out.join("recv_1.bin")).expect("read received");
     assert_eq!(received, msg, "default-path plaintext differs");
@@ -527,63 +491,20 @@ fn absent_ack_mode_now_defaults_to_lease_and_acks() {
         "default receive must report its ack mode: {text}"
     );
 }
-
 // ---------------------------------------------------------------------------
-// (a3) NA-0688 C4 (D622 R7/R11) — PRECEDENCE, measured on the wire:
-//      explicit --ack-mode  >  stored `ack_mode` in config.txt  >  the Lease default.
+// NA-0770 (D-1411): `ack_mode_precedence_flag_then_config_then_default` RETIRED (D-RETIRE).
 //
-// ⚠ ALL THREE RUNGS ARE EXERCISED IN ONE TEST ON PURPOSE. Precedence is a claim about ORDER, and
-// an order cannot be pinned by three separate tests that each observe one rung — each would pass
-// against an implementation that ignored the other two. Red-capable at every rung: drop the config
-// lookup and rung 2 fails; let the stored value win over the flag and rung 3 fails; drop the
-// default and rung 1 fails.
+// It pinned a three-rung precedence — explicit `--ack-mode` > stored `ack_mode` > the Lease
+// default — measured on the wire. With one mode there is no precedence to express: the flag is
+// gone and the stored key is a tombstone that refuses writes and announces reads.
 //
-// ⚠ The preference is read from the CONFIG FILE, not the vault, and it is written here through the
-// real `qsc config set` rather than by planting a file — so this also pins that the key a user can
-// actually type is the key the resolver actually reads. That link was the entire defect behind
-// STOP #037: a key that resolved correctly and that nothing on earth could set.
+// ⚠ RUNG 1 WAS NOT EXTRACTED, AND THAT IS A MEASURED DECISION, NOT AN OVERSIGHT. Rung 1
+// asserted that a pull with nothing stored and no flag carries `ack=lease`. That contract is
+// ALREADY pinned, through the same recording proxy, by
+// `absent_ack_mode_now_defaults_to_lease_and_acks` at :515-520, WHICH SURVIVES. Extracting rung
+// 1 would give one contract two homes; `ratchet_step.rs:254` is the standing precedent that a
+// contract with two homes drifts. G-A's SOURCE-SHAPE guard is separate and is still built.
 // ---------------------------------------------------------------------------
-#[test]
-fn ack_mode_precedence_flag_then_config_then_default() {
-    let _guard = test_guard();
-    let server = common::start_qsl_server(2 * 1024 * 1024, 512, None);
-    let proxy = start_relay_proxy(server.base_url(), ProxyMode::Record);
-    let base = safe_test_root("na0688_c4_precedence");
-    let (alice_cfg, bob_cfg, bob_out) = setup_pair(&base);
-    let out_s = bob_out.to_str().expect("out").to_string();
-
-    // --- RUNG 1: nothing stored, no flag -> the Lease DEFAULT ------------------
-    send_message(&alice_cfg, proxy.base_url(), &base, "m1.txt", b"c4 rung1");
-    run_ok(&bob_cfg, &receive_args(proxy.base_url(), out_s.as_str(), false));
-    let after_default = proxy.pull_uris();
-    assert!(
-        after_default.iter().all(|u| u.contains("ack=lease")),
-        "rung 1: with nothing stored and no flag the default must be lease: {after_default:?}"
-    );
-
-    // --- RUNG 2: store legacy, still no flag -> the STORED value wins over the default
-    run_ok(&bob_cfg, &["config", "set", "ack-mode", "legacy"]);
-    let before = proxy.pull_uris().len();
-    send_message(&alice_cfg, proxy.base_url(), &base, "m2.txt", b"c4 rung2");
-    run_ok(&bob_cfg, &receive_args(proxy.base_url(), out_s.as_str(), false));
-    let rung2: Vec<String> = proxy.pull_uris().into_iter().skip(before).collect();
-    assert!(!rung2.is_empty(), "rung 2 produced no pull");
-    assert!(
-        rung2.iter().all(|u| !u.contains("ack=")),
-        "rung 2: a stored ack_mode=legacy must beat the lease default: {rung2:?}"
-    );
-
-    // --- RUNG 3: stored legacy, but --ack-mode lease -> the FLAG wins ----------
-    let before = proxy.pull_uris().len();
-    send_message(&alice_cfg, proxy.base_url(), &base, "m3.txt", b"c4 rung3");
-    run_ok(&bob_cfg, &receive_args(proxy.base_url(), out_s.as_str(), true));
-    let rung3: Vec<String> = proxy.pull_uris().into_iter().skip(before).collect();
-    assert!(!rung3.is_empty(), "rung 3 produced no pull");
-    assert!(
-        rung3.iter().all(|u| u.contains("ack=lease")),
-        "rung 3: an explicit --ack-mode must beat the stored value: {rung3:?}"
-    );
-}
 
 // ---------------------------------------------------------------------------
 // (b) Lease happy path: persist -> ack -> the server DELETES. Deletion (not just
@@ -602,7 +523,7 @@ fn lease_happy_path_acks_and_deletes_server_side() {
     send_message(&alice_cfg, server.base_url(), &base, "msg.txt", msg);
 
     let out_s = bob_out.to_str().expect("out").to_string();
-    let text = run_ok(&bob_cfg, &receive_args(server.base_url(), out_s.as_str(), true));
+    let text = run_ok(&bob_cfg, &receive_args(server.base_url(), out_s.as_str()));
     assert!(text.contains("event=recv_ack_mode"), "{text}");
     assert!(text.contains("event=relay_ack"), "missing relay_ack: {text}");
     let received = fs::read(bob_out.join("recv_1.bin")).expect("read received");
@@ -610,7 +531,7 @@ fn lease_happy_path_acks_and_deletes_server_side() {
 
     // Past the lease: an unacked copy would be redelivered here. It must not be.
     thread::sleep(LEASE_EXPIRY_WAIT);
-    let text2 = run_ok(&bob_cfg, &receive_args(server.base_url(), out_s.as_str(), true));
+    let text2 = run_ok(&bob_cfg, &receive_args(server.base_url(), out_s.as_str()));
     assert!(
         text2.contains("event=recv_none"),
         "acked message reappeared (server did not delete): {text2}"
@@ -640,7 +561,7 @@ fn lost_ack_redelivery_is_deduped_not_reprocessed() {
 
     // Run 1: pull-lease through the ack-dropping network. Persist succeeds; ack lost.
     let out_s = bob_out.to_str().expect("out").to_string();
-    let text1 = run_ok(&bob_cfg, &receive_args(proxy.base_url(), out_s.as_str(), true));
+    let text1 = run_ok(&bob_cfg, &receive_args(proxy.base_url(), out_s.as_str()));
     assert!(text1.contains("event=ack_failed"), "missing ack_failed: {text1}");
     assert_eq!(
         fs::read(bob_out.join("recv_1.bin")).expect("recv_1"),
@@ -658,7 +579,7 @@ fn lost_ack_redelivery_is_deduped_not_reprocessed() {
     thread::sleep(LEASE_EXPIRY_WAIT);
 
     // Run 2: direct to the relay (network healed). Everything must dedup.
-    let text2 = run_ok(&bob_cfg, &receive_args(server.base_url(), out_s.as_str(), true));
+    let text2 = run_ok(&bob_cfg, &receive_args(server.base_url(), out_s.as_str()));
     let dups = text2.matches("event=recv_dup_skipped").count();
     assert!(
         dups >= 2,
@@ -677,7 +598,7 @@ fn lost_ack_redelivery_is_deduped_not_reprocessed() {
 
     // Run 3: past another lease window — the re-ack deleted the copies for good.
     thread::sleep(LEASE_EXPIRY_WAIT);
-    let text3 = run_ok(&bob_cfg, &receive_args(server.base_url(), out_s.as_str(), true));
+    let text3 = run_ok(&bob_cfg, &receive_args(server.base_url(), out_s.as_str()));
     assert!(
         text3.contains("event=recv_none") && !text3.contains("event=recv_dup_skipped"),
         "queue not drained after re-ack: {text3}"
@@ -703,7 +624,7 @@ fn crash_between_persist_and_ack_redelivery_deduped() {
 
     let out_s = bob_out.to_str().expect("out").to_string();
     let mut child = qsc_cmd(&bob_cfg)
-        .args(&receive_args(proxy.base_url(), out_s.as_str(), true))
+        .args(&receive_args(proxy.base_url(), out_s.as_str()))
         .stdout(Stdio::null())
         .stderr(Stdio::null())
         .spawn()
@@ -730,7 +651,7 @@ fn crash_between_persist_and_ack_redelivery_deduped() {
 
     // The lease expires; the relay redelivers; the healed client dedups and re-acks.
     thread::sleep(LEASE_EXPIRY_WAIT);
-    let text2 = run_ok(&bob_cfg, &receive_args(server.base_url(), out_s.as_str(), true));
+    let text2 = run_ok(&bob_cfg, &receive_args(server.base_url(), out_s.as_str()));
     assert!(
         text2.matches("event=recv_dup_skipped").count() >= 1,
         "redelivery not deduped: {text2}"
@@ -739,7 +660,7 @@ fn crash_between_persist_and_ack_redelivery_deduped() {
     assert_eq!(recv_file_count(&bob_out), 1, "redelivery reprocessed");
 
     thread::sleep(LEASE_EXPIRY_WAIT);
-    let text3 = run_ok(&bob_cfg, &receive_args(server.base_url(), out_s.as_str(), true));
+    let text3 = run_ok(&bob_cfg, &receive_args(server.base_url(), out_s.as_str()));
     assert!(
         text3.contains("event=recv_none"),
         "queue not drained after crash recovery: {text3}"
@@ -764,7 +685,7 @@ fn old_server_ack_404_is_legacy_complete() {
     send_message(&alice_cfg, proxy.base_url(), &base, "msg.txt", msg);
 
     let out_s = bob_out.to_str().expect("out").to_string();
-    let text = run_ok(&bob_cfg, &receive_args(proxy.base_url(), out_s.as_str(), true));
+    let text = run_ok(&bob_cfg, &receive_args(proxy.base_url(), out_s.as_str()));
     assert!(
         text.contains("event=ack_legacy_complete"),
         "missing legacy-complete: {text}"
@@ -778,7 +699,7 @@ fn old_server_ack_404_is_legacy_complete() {
 
     // The old server already deleted on deliver: nothing redelivers, nothing is lost.
     thread::sleep(LEASE_EXPIRY_WAIT);
-    let text2 = run_ok(&bob_cfg, &receive_args(proxy.base_url(), out_s.as_str(), true));
+    let text2 = run_ok(&bob_cfg, &receive_args(proxy.base_url(), out_s.as_str()));
     assert!(
         text2.contains("event=recv_none"),
         "old-server delivery redelivered or lost: {text2}"
@@ -808,7 +729,7 @@ fn commit_before_write_seam_acked_loudly_no_poison_loop() {
     // process-exit after commit, before ack (exactly the seam).
     fs::create_dir(bob_out.join("recv_1.bin")).expect("occupy rename target");
     let out_s = bob_out.to_str().expect("out").to_string();
-    let text1 = run_fail(&bob_cfg, &receive_args(server.base_url(), out_s.as_str(), true));
+    let text1 = run_fail(&bob_cfg, &receive_args(server.base_url(), out_s.as_str()));
     assert!(
         text1.contains("recv_write_failed"),
         "expected the write to fail inside the gap: {text1}"
@@ -817,7 +738,7 @@ fn commit_before_write_seam_acked_loudly_no_poison_loop() {
 
     // The lease expires and the relay redelivers an envelope whose key is consumed.
     thread::sleep(LEASE_EXPIRY_WAIT);
-    let text2 = run_ok(&bob_cfg, &receive_args(server.base_url(), out_s.as_str(), true));
+    let text2 = run_ok(&bob_cfg, &receive_args(server.base_url(), out_s.as_str()));
     assert!(
         text2.contains("event=ack_replay_unrecoverable"),
         "seam redelivery not acked loudly: {text2}"
@@ -829,7 +750,7 @@ fn commit_before_write_seam_acked_loudly_no_poison_loop() {
 
     // No poison loop: the loud ack deleted the copy; the queue drains for good.
     thread::sleep(LEASE_EXPIRY_WAIT);
-    let text3 = run_ok(&bob_cfg, &receive_args(server.base_url(), out_s.as_str(), true));
+    let text3 = run_ok(&bob_cfg, &receive_args(server.base_url(), out_s.as_str()));
     assert!(
         text3.contains("event=recv_none")
             && !text3.contains("event=ack_replay_unrecoverable"),

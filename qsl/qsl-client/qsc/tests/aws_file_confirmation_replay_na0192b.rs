@@ -221,22 +221,19 @@ fn receive_confirmation(
     from: &str,
     out_dir: &Path,
 ) -> std::process::Output {
-    receive_confirmation_mode(cfg, relay, mailbox, from, out_dir, None)
+    receive_confirmation_mode(cfg, relay, mailbox, from, out_dir)
 }
 
-/// NA-0688 C4 (D622): the same receive with an EXPLICIT `--ack-mode`.
-///
-/// ⚠ `None` means "pass no flag", which after C4 is the LEASE default — not legacy. A test that
-/// needs the legacy delete-on-pull contract must now ask for it by name.
+/// NA-0770 (D-1411): the `ack_mode` parameter is gone with the mode. Every receive pulls with
+/// the lease shape, so there is nothing left to select.
 fn receive_confirmation_mode(
     cfg: &Path,
     relay: &str,
     mailbox: &str,
     from: &str,
     out_dir: &Path,
-    ack_mode: Option<&str>,
 ) -> std::process::Output {
-    let mut args = vec![
+    let args = vec![
         "receive",
         "--transport",
         "relay",
@@ -255,10 +252,6 @@ fn receive_confirmation_mode(
         "--out",
         out_dir.to_str().unwrap(),
     ];
-    if let Some(mode) = ack_mode {
-        args.push("--ack-mode");
-        args.push(mode);
-    }
     qsc_base(cfg)
         .args(&args)
         .output()
@@ -463,21 +456,29 @@ fn duplicate_confirmation_still_rejects_without_state_mutation() {
     server.enqueue_raw(ROUTE_TOKEN_BOB, ack_frames[0].clone());
     server.enqueue_raw(ROUTE_TOKEN_BOB, ack_frames[0].clone());
 
-    // ⚠ NA-0688 C4 (D622): both receives ask for LEGACY EXPLICITLY. Every assertion below is
-    // unchanged; only the trigger moved. This test pins the legacy delete-on-pull contract, in
-    // which a replay reject HARD-EXITS non-zero. Under C4's lease default the NA-0644 backstop
-    // acks the unrecoverable envelope loudly and exits 0, so the assertion on `second` is no
-    // longer true on the default path — a real behaviour change, not a broken test. The legacy
-    // contract still exists and is still reachable, so the guard is re-aimed, not deleted.
-    // ⚠ The LEASE side of this mechanism is pinned once, in NA_0644's
-    // `commit_before_write_seam_acked_loudly_no_poison_loop`, and deliberately not duplicated here.
+    // ⚠⚠ NA-0770 (D-1411) — LOSS L1b. Both receives used to ask for LEGACY EXPLICITLY and the
+    // header said so; the mode is retired, so they no longer do and this comment is rewritten
+    // rather than left contradicting the code beneath it.
+    //
+    // WHAT IS LOST: this test pinned the legacy delete-on-pull contract, in which a replay reject
+    // HARD-EXITS non-zero. Under lease the NA-0644 backstop acks the unrecoverable envelope
+    // loudly and exits 0, so `assert!(!second.status.success())` is NOT TRUE on the surviving
+    // path and is DELETED below. The rejection itself (`qsp_replay_reject`) and the leak check
+    // SURVIVE and are still asserted. Only the EXIT CODE is lost.
+    //
+    // ⚠ IT IS NOT RE-HOMED. The lease side is pinned once, in NA_0644's
+    // `commit_before_write_seam_acked_loudly_no_poison_loop` (:796); a contract with two homes
+    // drifts. Sibling losses of the same assertion: L1 `ratchet_step:265`,
+    // L1c `file_transfer_mvp:901`.
+    //
+    // ⚠ THIS TEST WAS THE ONE READ #3 CAUGHT AT F-1: the census had it in the mechanical class,
+    // whose rule is "every assertion unchanged". It could never satisfy that rule.
     let first = receive_confirmation_mode(
         &bob_cfg,
         server.base_url(),
         ROUTE_TOKEN_BOB,
         "bob",
         &bob_out,
-        Some("legacy"),
     );
     let first_text = output_text(&first);
     assert!(first.status.success(), "{}", first_text);
@@ -501,10 +502,9 @@ fn duplicate_confirmation_still_rejects_without_state_mutation() {
         ROUTE_TOKEN_BOB,
         "bob",
         &bob_out,
-        Some("legacy"),
     );
     let second_text = output_text(&second);
-    assert!(!second.status.success(), "{}", second_text);
+    // NA-0770 (D-1411) L1b: `assert!(!second.status.success(), ...)` DELETED — see above.
     assert!(second_text.contains("qsp_replay_reject"), "{}", second_text);
     assert_no_leaks(&second_text);
 

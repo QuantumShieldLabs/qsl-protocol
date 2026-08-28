@@ -208,7 +208,6 @@ fn message_round_trip(
     bob_cfg: &Path,
     alice_out: &Path,
     bob_out: &Path,
-    ack_mode: Option<&str>,
 ) {
     let msg_bytes: &[u8] = b"na0640 full-stack message through the real qsl-server";
     let msg = base.join("msg.txt");
@@ -237,7 +236,7 @@ fn message_round_trip(
         send_msg
     );
 
-    let mut bob_args = vec![
+    let bob_args = vec![
         "receive",
         "--transport",
         "relay",
@@ -256,10 +255,6 @@ fn message_round_trip(
         "--receipt-mode",
         "immediate",
     ];
-    if let Some(mode) = ack_mode {
-        bob_args.push("--ack-mode");
-        bob_args.push(mode);
-    }
     let bob_recv = run_ok(bob_cfg, bearer, &bob_args);
     assert!(
         bob_recv.contains("QSC_RECEIPT mode=immediate status=sent kind=message peer=bob"),
@@ -270,7 +265,7 @@ fn message_round_trip(
     let received = fs::read(bob_out.join("recv_1.bin")).expect("read received message");
     assert_eq!(received, msg_bytes, "received plaintext differs from sent");
 
-    let mut alice_args = vec![
+    let alice_args = vec![
         "receive",
         "--transport",
         "relay",
@@ -285,10 +280,6 @@ fn message_round_trip(
         "--out",
         alice_out.to_str().expect("alice out"),
     ];
-    if let Some(mode) = ack_mode {
-        alice_args.push("--ack-mode");
-        alice_args.push(mode);
-    }
     let alice_recv = run_ok(alice_cfg, bearer, &alice_args);
     assert!(
         alice_recv.contains("QSC_DELIVERY state=peer_confirmed"),
@@ -317,10 +308,10 @@ fn full_stack_message_and_attachment_round_trip_open_relay() {
         &bob_cfg,
         &alice_out,
         &bob_out,
-        // ⚠ NA-0688 C4: no --ack-mode, and that is the POINT — this arm proves the full stack on
-        // the NEW LEASE DEFAULT, where the relay holds each item until it is acked after a durable
-        // persist rather than deleting it on pull.
-        None,
+        // ⚠ NA-0688 C4 / NA-0770 (D-1411): this arm proves the full stack on lease, where the
+        // relay holds each item until it is acked after a durable persist rather than deleting it
+        // on pull. C4 made lease the default; NA-0770 made it the only mode, so there is no
+        // longer a flag to omit and the point is carried by the code itself.
     );
 
     // Attachment round-trip on the REAL attachment path: >4 MiB payload, real upload
@@ -434,40 +425,21 @@ fn full_stack_message_and_attachment_round_trip_open_relay() {
     assert_no_leaks(&bob_recv_file);
     assert_no_leaks(&alice_confirm);
 }
-
 // ---------------------------------------------------------------------------
-// NA-0688 C4 (D622) — THE EXPLICIT LEGACY-PATH GUARD, at full-stack strength.
+// NA-0770 (D-1411): `full_stack_message_round_trip_explicit_legacy_ack_mode` RETIRED (D-RETIRE).
 //
-// ⚠ WHY THIS TEST EXISTS. C4 flipped the ack-mode default from legacy delete-on-pull to lease.
-// This file went green under the new default WITHOUT A SINGLE EDIT — which proves the flip does
-// not break the full stack, and proves NOTHING AT ALL about the legacy path, because after the
-// flip no test in this file exercised it any more. The legacy path is still shipped, still
-// reachable by `--ack-mode legacy`, and was until C4 the only path this file ever covered. Losing
-// its coverage as a silent side effect of a default change is exactly the kind of erosion the
-// invert-don't-delete rule exists to prevent.
+// It existed because NA-0688 C4 flipped the default to lease and this file went green under the
+// new default WITHOUT AN EDIT — which proved the flip did not break the full stack and proved
+// nothing about the legacy path. So C4 added this arm to keep the legacy contract guarded at
+// full-stack strength rather than let it lapse by a default change.
 //
-// So both modes are now pinned across the real relay: the two tests above on the lease default,
-// and this one on legacy by name. D576's boundary still applies — if this only passes by editing
-// product code, that is a real integration bug: file an ENG and STOP.
+// ⚠ ITS RETIREMENT IS A DIFFERENT ACT FROM THE EROSION IT WAS BUILT TO PREVENT, AND THE RECORD
+// SAYS WHICH. `ENG-0043` requires that this compat proof is "never silently repurposed"; it is
+// not repurposed here, it is deliberately retired with the mode it guarded, because its
+// precondition — a client able to request delete-on-pull — is unreachable after this lane.
+// Its Lease sibling `full_stack_message_and_attachment_round_trip_open_relay` survives and
+// carries the full-stack round trip.
 // ---------------------------------------------------------------------------
-#[test]
-fn full_stack_message_round_trip_explicit_legacy_ack_mode() {
-    let _guard = e2e_guard();
-    let relay = common::start_qsl_server(2 * 1024 * 1024, 512, None);
-    let base = safe_test_root("na0640_legacy_ack");
-    let (alice_cfg, bob_cfg, alice_out, bob_out) = setup_pair(&base, None);
-
-    message_round_trip(
-        relay.base_url(),
-        None,
-        &base,
-        &alice_cfg,
-        &bob_cfg,
-        &alice_out,
-        &bob_out,
-        Some("legacy"),
-    );
-}
 
 #[test]
 fn full_stack_message_round_trip_token_auth_relay() {
@@ -484,9 +456,9 @@ fn full_stack_message_round_trip_token_auth_relay() {
         &bob_cfg,
         &alice_out,
         &bob_out,
-        // ⚠ NA-0688 C4: the lease default again, here combined with bearer auth — the ack is a
-        // separate authenticated request, so this arm also proves the ack leg carries credentials.
-        None,
+        // ⚠ NA-0688 C4 / NA-0770 (D-1411): lease again, here combined with bearer auth — the ack
+        // is a separate authenticated request, so this arm also proves the ack leg carries
+        // credentials.
     );
 
     // Negative: a client with the WRONG bearer is rejected by the real server —

@@ -848,17 +848,24 @@ fn file_confirm_replay_rejected_no_mutation() {
             "1",
             "--out",
             alice_out.to_str().unwrap(),
-            // ⚠ NA-0688 C4 (D622): LEGACY REQUESTED EXPLICITLY, on both of Alice's receives.
-            // Every assertion in this test is unchanged; only the trigger moved. The test pins
-            // the legacy delete-on-pull contract, in which a replay reject HARD-EXITS non-zero.
-            // Under C4's lease default the NA-0644 backstop acks the unrecoverable envelope
-            // loudly and exits 0, so the assertion on `second` below is no longer true on the
-            // default path — a real behaviour change, not a broken test. The legacy contract
-            // still exists and is still reachable, so this guard is re-aimed, not deleted.
-            // ⚠ The LEASE side is pinned once, in NA_0644's
-            // `commit_before_write_seam_acked_loudly_no_poison_loop`, not duplicated here.
-            "--ack-mode",
-            "legacy",
+            // ⚠⚠ NA-0770 (D-1411) — LOSS L1c. This block requested `--ack-mode legacy` on
+            // BOTH of Alice's receives and its header said so; the mode is retired, so the
+            // request is gone and this comment is rewritten rather than left contradicting the
+            // code beneath it.
+            //
+            // WHAT IT PINNED, AND WHAT IT PINS NOW: it pinned the legacy delete-on-pull
+            // contract, in which a replay reject HARD-EXITS non-zero. Under lease the NA-0644
+            // backstop acks the unrecoverable envelope loudly and exits 0, so
+            // `assert!(!second.status.success())` is NOT TRUE on the surviving path and is
+            // DELETED below — the ONE assertion removed here, and a real loss, not a tidy-up.
+            // The rejection itself (`code=qsp_replay_reject`) and the no-state-mutation
+            // guarantee (the timeline is unchanged) SURVIVE and are still asserted.
+            //
+            // ⚠ THE NON-ZERO EXIT IS NOT RE-HOMED. Its lease-side counterpart is pinned once,
+            // in NA_0644's `commit_before_write_seam_acked_loudly_no_poison_loop` (:796), and
+            // duplicating it here would give one contract two homes, which drifts. Two sibling
+            // tests lose the same assertion for the same reason: L1 `ratchet_step:265` and
+            // L1b `aws_file_confirmation_replay_na0192b:507`.
         ])
         .output()
         .expect("alice receive first");
@@ -892,13 +899,12 @@ fn file_confirm_replay_rejected_no_mutation() {
             "1",
             "--out",
             alice_out.to_str().unwrap(),
-            // Legacy, for the same reason as the first receive above.
-            "--ack-mode",
-            "legacy",
+            // NA-0770 (D-1411): the second receive likewise no longer requests a mode.
         ])
         .output()
         .expect("alice receive replay");
-    assert!(!second.status.success(), "{}", output_text(&second));
+    // NA-0770 (D-1411) L1c: `assert!(!second.status.success(), ...)` DELETED here — see the
+    // block comment above. The rejection and the no-mutation guarantee are asserted below.
     let second_text = output_text(&second);
     assert!(
         second_text.contains("code=qsp_replay_reject"),

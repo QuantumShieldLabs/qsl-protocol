@@ -32,8 +32,8 @@ it believes it is in force. So:
 - the **writer refuses by name** — `config set ack-mode` emits `config_set_refused` carrying
   key/reason/file/remedy, then returns an error;
 - the **reader reports a third state** — `AckModeConfigState::{Nothing, RetiredKeyPresent(String)}`,
-  announced through `announce_retired_ack_mode_key()` with the **raw value the operator wrote**, so
-  a stale config is visible rather than inert;
+  announced through `announce_retired_ack_mode_key()`, which **carries the raw value the operator
+  wrote** in the marker's `value=` field;
 - `config_get` reports `state=retired_present|absent`, `retired=true`, `effect=ignored`.
 
 ⚠ **`Option<T>` WAS REFUSED DELIBERATELY.** It cannot distinguish "no key" from "key present,
@@ -182,3 +182,33 @@ skipped. Recorded because it is the **fail-closed** direction.
   now-ignored literal** — `na0741` was passing `"legacy"` into a dead parameter, so that arm would
   have run under **lease** and failed at runtime having compiled cleanly. The flag sweep and the
   value sweep are two separate passes.
+
+## 11. THE TOMBSTONE, VERIFIED AT RUNTIME — AND THE VERIFICATION CORRECTED THIS FILE
+
+Four predictions were written **before** the shipped binary was run. All four held.
+
+| prediction | measured, verbatim |
+|---|---|
+| `config get ack-mode` on a file carrying `ack_mode = legacy` reports the third state | `QSC_MARK/1 event=config_get key=ack_mode value=<redacted> state=retired_present retired=true effect=ignored ok=true` |
+| `config set ack-mode` refuses **BY KEY, not by value** — so `lease` is refused exactly as `legacy` is | `QSC_MARK/1 event=config_set_refused key=ack_mode reason=retired_at_NA-0770 file=<redacted> remedy=remove the ack_mode line from that file` + `event=error code=ack_mode_retired_key_present`, **rc=1**, identical for both values |
+| the `--ack-mode` flag no longer parses | `error: unexpected argument '--ack-mode' found` |
+| the refusals leave the config file byte-unchanged | file still reads `ack_mode = legacy` |
+
+⚠⚠ **AND THE RENDERED LINE CORRECTED THIS DOCUMENT.** The marker showed `value=<redacted>` and
+`file=<redacted>`. Under the **default output policy** the program redacts the `value=` and `file=`
+fields — correctly, since a config value can be a secret — and renders them only under `--reveal`
+(measured both ways: `value=legacy` and the absolute path appear with the flag). The raw value **is
+carried in the marker**; whether an operator SEES it is a policy question. This file's earlier
+phrase *"so a stale config is visible rather than inert"* was **imprecise in the direction that
+matters to an operator**, and was corrected rather than left to imply more than the program does.
+
+**The actionable signal is not redacted**: `state=retired_present`, `retired=true` and
+`effect=ignored` render under both policies, so a stale key is always detectable. What the default
+policy withholds is the value's spelling and the file's path — so the remedy reads *"that file"*
+without naming it unless `--reveal` is passed.
+
+⚠ **THIS IS THE `na0742` TRAP, CAUGHT THE WAY THAT FILE'S OWN HEADER PRESCRIBES** — *"A CLAIM ABOUT
+RENDERED OUTPUT CANNOT BE CHECKED BY ANY SOURCE CENSUS."* It was found only by reading the actual
+emitted line. **No product byte was changed in response:** the redaction is a standing safety
+property, and loosening it under momentum inside a lane about ack modes is exactly the unscoped
+change this lane's armed trigger exists to prevent. Named for the Director, not actioned.

@@ -156,6 +156,36 @@ than amending it. Byte-verbatim binds to the CURRENT governing text.
 | **E5** (re-sealed) | Legacy: the same arrangement still aborts exactly as today, proven beside the Lease skip in one discrimination test | **HIT** | T4, one test, both modes on the SAME fixture and SEPARATE mailboxes (a legacy pull DELETES what it returns): `--ack-mode lease` → rc 0 + `recv_frame_skipped class=invite_resp disposition=left_leased`; `--ack-mode legacy` → rc non-zero, **0 ×** `recv_frame_skipped`. |
 | **E6** | NEGATIVE CONTROL: with the delta symbol reverted, the new tests go RED | **HIT** | Removing exactly the `is_known_foreign` continue block (**1229 bytes, 23 lines**; declarations, round condition, summary and classifier all retained, tree still compiles) → **6 of 7 RED**, T3 still passes. |
 
+⏹⏹ **AMENDMENT BESIDE `E5`, 2026-08-28 — NA-0770 (`D-1411`). MARK-DON'T-REWRITE: THE ROW ABOVE AND
+EVERY WORD OF THIS FILE ABOVE THIS LINE STANDS AS ISSUED AND IS NOT EDITED.**
+
+**`E5` IS DISCHARGED BY THE MODE'S REMOVAL, NOT BY EVIDENCE.** NA-0770 retired `AckMode::Legacy`
+from the client. `E5` was this file's sealed discrimination result — the proof that the skip's
+Legacy bound was **REAL rather than asserted**, earned by running the identical arrangement under
+legacy in `T4`'s second leg and requiring it to abort and to emit no skip marker. That leg is now
+deleted, because the mode it discriminated against no longer exists to be driven.
+
+⚠⚠ **THE DISTINCTION THIS AMENDMENT EXISTS TO PRESERVE.** A seal discharged because the property it
+guarded was **proven durable** and a seal discharged because the property became **unobservable**
+are not the same event, and only the first is a strengthening. This is the second. Nothing
+re-measured `E5`; nothing showed its concern to be unfounded; the arm that could have falsified it
+was removed along with its subject. Recorded as loss **`L2`** in `D-1411`.
+
+⚠ **WHAT REPLACES IT: NOTHING, DELIBERATELY.** With one mode shipped, "gated on Lease" and
+"ungated" are no longer distinguishable by observation anywhere in the product, so any substitute
+would need a second mode to contrast against — and manufacturing one as a test-only seam back to a
+retired mode was forbidden by NA-0770's brief and would in any case have measured the seam. The
+gate itself was deleted from the product (the skip arm is now unconditional), so there is no longer
+a bound to seal. What is lost is the **evidence that the old bound was honest**, which cannot be
+re-earned after the fact.
+
+⚠ **`T4`'s SURVIVING LEG IS NOT A WEAKER `E5`.** Under lease the foreign frame is still skipped,
+still exits 0, and still emits `disposition=left_leased`; the test is renamed
+`lease_skips_the_foreign_frame_and_leaves_it_leased` so its name no longer promises a
+discrimination it cannot perform. It is a real property and worth running. It is simply **no longer
+contrastive**, and no reader may cite this file's `E5` row for a bound the tree can no longer hold.
+
+
 ---
 
 ## §3. RED-FIRST — A PROOF, NOT A CLAIM (§7.1, SR-19 half (a))

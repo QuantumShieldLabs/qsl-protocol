@@ -200,6 +200,57 @@ merge activated SR-14/15/16 together.)
   design changes ride the loop like everything else. INVARIANT no retrospective may trade
   away: at least two independent instruments touch every load-bearing claim.
 
+- **SR-26 — STOP-FILE SELF-CONTAINMENT, AUDITED AS AN INSTRUMENT (ADOPTED by OPERATOR ORDER of
+  2026-08-27, relayed verbatim as *"not just a kickoff... lets make it durable asap"*; landed
+  NA-0770 / `D-1411`).** Source banked at
+  `/srv/qbuild/operator/method/PROPOSAL_SR26_20260827.md`, sha256
+  `15436299e5bb6b188dd184f5268a461bf0833510b45c4186574ea1a86a5c8f38`, 444.
+  ⚠ **NUMBERING, RE-DERIVED AT THIS EDIT AND RECONCILED SO IT DOES NOT READ DOUBLE-SPENT:** the
+  SR-25 note above records that `PROPOSAL_CHAIR_BOUNDARIES_20260813.md` declares an `SR-26`
+  (*"No pairing without a pre-flight"*) in this file's exact declaring form, and that the proposal
+  **is not a numbering authority** — its `SR-25`/`SR-26` claims are **RETIRED AS NUMBERS**. `SR-25`
+  was re-measured as the highest live numbered rule in this file at this edit, so `SR-26` was FREE.
+  The refused rule is not adopted, not renumbered and not revived; if it is ever adopted it takes a
+  fresh id. **RESTRAINT honoured: this is the ONE new numbered rule in this act.**
+
+  SR-26 — STOP-FILE SELF-CONTAINMENT, AUDITED AS AN INSTRUMENT (id derived at the edit;
+  operator-ordered 2026-08-27).
+  A stop file is not complete until its author has run a self-containment audit MECHANICALLY over
+  the FINISHED file's own bytes and printed the result inside that same file. The audit is not a
+  resolve, a checklist read, or a recollection; it is a run, and a stop file without its printed
+  result is incomplete on its face.
+
+  THE AUDIT, MINIMALLY:
+  (a) PRINT THE ABSOLUTE PATH, filename and sha256 of the stop file itself, at the head of the
+      file and again at its end.
+  (b) ENUMERATE every question the governing brief/ruling asks and every record it orders, and for
+      EACH one quote the line in this file that answers it. An item with no quote is a GAP: cure
+      it, or state plainly that it is unanswered and why.
+  (c) CONFIRM, each as a measured property and not an assertion: every document the file's PROSE
+      cites is CARRIED IN FULL, not pointed at (strip embeds before counting citations, so a
+      filename appearing only inside a carried document is not miscounted) · every record PROPOSED
+      is drafted as TEXT, not named as a destination · every control prints BOTH ARMS and the
+      values they produced · every measured output is quoted VERBATIM, not summarised · what was
+      NOT measured is stated plainly, with its reason, together with n= and the claim boundary.
+  (d) PRINT the verdict line: "SELF-AUDIT COMPLETE — N items checked, M gaps found and cured, K
+      stated unanswered." A run finding nothing says zero.
+
+  THE FAILURE MODE THE RULE EXISTS AGAINST, named because naming it is what makes the audit
+  non-vacuous: **AN AUTHOR CARRIES WHAT HE REASONED ABOUT AND MERELY CITES WHAT HE USED.** The
+  document that gets cited rather than carried is precisely the one whose unquoted parts BOUND the
+  claim being made — so the gap is not random, it is systematically located at the load-bearing
+  sentence. Vigilance does not cure it; running the audit over the bytes does.
+
+  SCOPE: every stop file, every lane, every seat, including the Director's own rulings and briefs
+  where they are handed to a chair that cannot read `/srv`. The rule binds the AUTHOR, not the
+  reader: a Director or operator who has to ask for the audit has already paid the cost the rule
+  exists to remove.
+
+  WHAT IT DOES NOT DO: it does not prescribe a tool, a script, or a file format — only that the
+  audit be MECHANICAL over the finished bytes and its result printed. It does not weaken SR-01
+  (the Director still rules from the artifact). **It does not license a seat to shorten a stop
+  file: the audit's cure is always to CARRY more, never to claim less.**
+
 ## C. ADOPTION LADDER (machinery items; one per checkpoint; each ships with its own red-capable proof)
 1. **Post-NA-0696 governance errand** (docs-only PR, with the ENG-0048 pairing window):
    lands THIS FILE at docs/ops/STANDING_RULES.md + PREDICTION_LEDGER.md + a ledger WF

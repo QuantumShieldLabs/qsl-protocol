@@ -223,6 +223,24 @@ merge activated SR-14/15/16 together.)
   THE AUDIT, MINIMALLY:
   (a) PRINT THE ABSOLUTE PATH, filename and sha256 of the stop file itself, at the head of the
       file and again at its end.
+  (a') ⚠⚠ **THE STAMP IS THE LAST ACT, AND IT IS VERIFIED FROM THE BANKED BYTES.** [DIRECTOR'S
+      AMENDMENT, NA-0770 STOP-009 ruling, 2026-08-29 — marked as such so the operator may refuse
+      it at merge.] The sha256 printed under (a) is the file's SELF-DIGEST under a construction
+      that must be STATED IN THE FILE. The LAST act before banking is to recompute that digest
+      FROM THE BANKED BYTES AT THE BANKED PATH and compare it to what is printed. Any of the
+      following is a STOP, not a note:
+        · the recomputed digest does not equal the stamped one;
+        · ANY identity field still holds an unresolved placeholder (a filename, a commit, a path);
+        · the audit was run over ANY path other than the banked one.
+      ⚠ THE INSTANCES THIS PARAGRAPH IS MINTED ON, both in the lane that minted SR-26 itself:
+      **STOP 008** carried an unresolved `@@FILENAME@@` in its head path line, and **STOP 009**
+      carried BOTH that placeholder AND, in its head digest slot, **STOP 008's self-digest** —
+      because 009's head was copied from 008 rather than regenerated, so the substitution found
+      no placeholder to replace. Both files passed SR-26's own audit and NA-0756's section-map
+      diff at zero gaps. ⇒ **NEITHER INSTRUMENT LOOKS AT THE IDENTITY FIELDS THEY PRINT**, and
+      the audit in 009 ran over a scratchpad path, so it audited bytes that were never banked.
+      A stop whose own identity line is wrong is unverifiable by the reader it exists for.
+
   (b) ENUMERATE every question the governing brief/ruling asks and every record it orders, and for
       EACH one quote the line in this file that answers it. An item with no quote is a GAP: cure
       it, or state plainly that it is unanswered and why.

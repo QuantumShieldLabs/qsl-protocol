@@ -259,3 +259,77 @@ kept in step across all eight files, "if you change one, change all of them". Th
 `na0688`. It was corrected in **all seven** remaining files, each stating why `na0688` diverges and
 warning against "harmonising" it back — because a parity claim that is false is worse than no
 claim, and the next reader's most likely instinct is exactly the wrong one.
+
+## 13. THE DIRECTOR'S TWO SWEEPS, CARRIED — NOT CITED (F-B RESOLVED)
+
+STOP 008 recorded as finding **F-B** that two governing rulings existed only as chat pastes, so
+the Director's own sweep needles could not be quoted from any artifact. They are now banked:
+`RULINGS_NA0770_pastes_006_007_20260828.md`, **sha256
+`8c9e2dea7d55957ecbc5213c41ab6c0d358f411c06e0527e24a756c82f770a3b`**, 444, under
+`/srv/qbuild/operator/NA-0770/` — measured against its own bytes, all 64 digits. **F-B is
+resolved.** Both needles are carried here verbatim rather than pointed at (`WF-0087`: a figure
+carries its instrument).
+
+Run independently by the Director at `3b685e79` over the 14 test files, by function. Function
+splitter: a test fn runs from `^fn (\w+)\s*\(` to the next line that is exactly `}` at column 0;
+comment lines are excluded from the selector.
+
+**LEGACY SELECTOR (both sweeps):**
+```
+"legacy"|AckMode::Legacy|ack_mode\s*=\s*"legacy"|set_ack_mode\([^)]*[Ll]egacy
+```
+
+**SWEEP (a) — HARD-EXIT NEEDLE** (selects legacy AND asserts non-zero exit):
+```
+assert!\s*\(\s*!\s*\w+\.status\.success\(\)|status\.code\(\)\s*!=\s*Some\(0\)|
+assert_ne!\s*\([^;]*\.code\(\)|assert!\s*\(\s*!\s*\w+\.success\(\)|
+assert!\s*\(\s*\w+\.status\.code\(\)\s*==\s*Some\([1-9]
+```
+**4 hits:** `ratchet_step:265` (**L1**) · `aws…:507` (**L1b**) · `file_transfer_mvp:901` (**L1c**)
+· `relay_pull_diagnostics:364` — **classified OUT**: the fixed relay returns 401, so the exit is
+mode-independent; the control `pull_dead_endpoint_names_connection_refused` asserts non-zero at
+`:488` while pinning `("ack_mode","lease")` at `:548`. D-REAIM-VALUE stands. CONTROL SET: 14
+functions that assert non-zero and never select legacy, all mode-independent by construction.
+
+**SWEEP (b) — NO-ACK NEEDLE** (selects legacy AND asserts no ack):
+```
+ack_posts\(\)\s*,\s*0|ack_posts\(\)\s*==\s*0|!\s*\w+\.contains\("ack="\)|
+ack_posts\(\)\s*<\s*1|never_ack|no_ack
+```
+**1 hit:** `NA_0644_ack_client::ack_mode_precedence_flag_then_config_then_default` (legacy@565,
+noack@572) — D-RETIRE, already disposed.
+
+**Zero unclassified. The Director's sweep and this seat's agree on the L1 set.** ⚠ THE STATED
+LIMIT, carried because it is the honest half: *"both needles are mechanical and see only stateable
+shapes; the class of assertions that depend on legacy in a non-stateable way is the class the armed
+trigger exists for."* The trigger is what found **L1c**, which no needle would have classified.
+
+## 14. WHAT COVERS WHICH TREE — THE FULL-SUITE EVIDENCE, SPLIT HONESTLY
+
+- **Local full suite at `8a04ea84`** — 148/148 targets, 703 tests, 4-way sharded over the committed
+  manifest. Three contended targets exonerated by serial isolation.
+- **`c6cfb541` and `f59a30f5` are DOCS-ONLY** — proven, not asserted: zero non-`.md` files in
+  `git diff --name-only 8a04ea84 f59a30f5`.
+- **`ebbb8aad` EDITS EIGHT TEST FILES**, so the local result does **not** cover the head.
+- **CI's full sharded suite at `ebbb8aad`** — 52 pass, 0 fail, 2 skipped. **RULED SUFFICIENT as the
+  end-of-lane full run** (whole manifest, exact tree, the gate's own environment — SR-20). No local
+  re-run was performed and none is claimed.
+- ⚠ **The macOS arm was SKIPPED on this event** (`classify-macos-scope` classified it out and
+  itself passed). ⇒ **the macOS shard-manifest row this PR adds is verified LOCALLY ONLY**, by
+  `qsc_shard_check.py --manifest …MACOS.txt` reporting exact cover at 148. No CI run has exercised
+  it.
+
+## 15. A PROCESS MISS THIS SEAT OWNS: THE FIX WAS PUSHED BEFORE A RULING
+
+When CI went red on `qsc-shard-10`, this seat diagnosed the failure, wrote the fix, verified it
+locally, committed it and **pushed it** — all without a ruling. The operator's messages between the
+failure and the push concerned the build box, not the fix; **he did not bless it, and this record
+does not pretend he did.**
+
+The standing shape, which this seat broke: **a CI failure at an open PR is a STOP with the log,
+then a PROPOSED fix, then a push AFTER the ruling.** The stop that followed was the right half; the
+push that preceded it was not. Recorded as `PREDICTION_LEDGER` row **371**.
+
+⚠ The fix itself is accepted on measurement (Director, STOP-009 ruling sec 1) — this entry is about
+the ORDER OF OPERATIONS, not the change. A correct fix pushed out of order is still out of order,
+and the reason the rule exists is that the ruling is where a wrong fix gets caught.

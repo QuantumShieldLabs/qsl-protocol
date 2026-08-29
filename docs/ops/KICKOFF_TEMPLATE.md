@@ -122,6 +122,43 @@ and `L2`/`L3`/`L5` each contribute one — which is the close-out's three. Five 
 
 ---
 
+## 3b. THE QUEUE BLOCK'S BIRTH, AND ITS STATUS LINE — ADDED BY `WF-0090`
+
+⚠⚠ **THE ORDERING RULING SAID "UNDER THE BLOCK-BIRTH STEP", AND THERE WAS NO SUCH STEP.**
+Measured at this edit: section 2's seven items name the lane id, the governing documents,
+the bases, the standing constraints, the stop condition, the first stop's content and the
+prohibitions — **and never mention the queue block at all** (`block-birth` / `queue block`
+occurrences in this file before this edit: **0**). The premise *"there is a block-birth
+step to add a line under"* therefore **measures FALSE**, so the step is **CREATED here
+rather than amended**, and that is recorded rather than smoothed over. ⚠ This is the same
+disposition, on the same file, that `NA-0770` took when `PROPOSAL_SR26` sec 4 ordered *"the
+kickoff template updated"* and no template existed — see the PROVENANCE note at the head.
+⚠ It is also why the line is NOT inserted into section 1 or 2: those two blocks are carried
+**byte-verbatim** from the 444 source and are proven so by a round-trip diff; editing inside
+them would destroy the proof that they are verbatim.
+
+**8. BIRTH THE LANE'S `### NA-####` QUEUE BLOCK.** The block is created at **PROMOTION**,
+not at enqueue — it is what promotion AUTHORIZES, so it exists at the moment of
+authorization (Director ruling 2026-07-27, OBS-DY). Its status line is:
+
+```
+   Status: READY (D-####)          at promotion
+   Status: MERGING (PR #N)         at the PR
+   Status: DONE (<result class>)   at close
+```
+
+⚠⚠ **BARE AND UNBOLDED, EXACTLY AS WRITTEN.** `scripts/ci/qsl_evidence_helper.py queue`
+matches `^\s*-?\s*Status:\s*([A-Z_]+)\b` and requires **EXACTLY ONE** lane whose token is
+`READY`. `[A-Z_]+` cannot pass a `*`, so **`Status: **DONE**` is invisible to it**, and
+`Status: PROMOTED for **D-####**` yields `PROMOTED` — which is what made `READY_COUNT`
+measure **0** on merged main and `qwork` fail closed at `queue-helper-failed`, live, on
+2026-08-29. ⚠ Note the asymmetry the seat must hold in mind: `scripts/ci/preflight_governance.sh`
+fails only when that count is **> 1**, so **zero is valid to the preflight and fatal to
+`qwork`** — the two gates disagree about zero, and that disagreement is FILED as `WF-0090`
+and NOT settled by this template.
+
+---
+
 ## 4. NOTES FOR THE OPERATOR
 
 - The `SR-26` block in section 1 is the only part that is not lane-specific. Everything else

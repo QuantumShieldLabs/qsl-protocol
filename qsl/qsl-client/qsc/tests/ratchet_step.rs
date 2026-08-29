@@ -95,22 +95,19 @@ fn send_cmd(cfg: &Path, relay: &str, to: &str, msg: &Path) -> std::process::Outp
 }
 
 fn receive_cmd(cfg: &Path, relay: &str, from: &str, out: &Path, max: &str) -> std::process::Output {
-    receive_cmd_mode(cfg, relay, from, out, max, None)
+    receive_cmd_mode(cfg, relay, from, out, max)
 }
 
-/// NA-0688 C4 (D622): the same receive with an EXPLICIT `--ack-mode`.
-///
-/// ⚠ `None` means "pass no flag", which after C4 is the LEASE default — not legacy. A test that
-/// needs the legacy delete-on-pull contract must now ask for it by name.
+/// NA-0770 (D-1411): the `ack_mode` parameter is gone with the mode. Every receive pulls with
+/// the lease shape, so this is now simply "the same receive with an explicit `--max`".
 fn receive_cmd_mode(
     cfg: &Path,
     relay: &str,
     from: &str,
     out: &Path,
     max: &str,
-    ack_mode: Option<&str>,
 ) -> std::process::Output {
-    let mut args = vec![
+    let args = vec![
         "receive",
         "--transport",
         "relay",
@@ -125,10 +122,6 @@ fn receive_cmd_mode(
         "--out",
         out.to_str().unwrap(),
     ];
-    if let Some(mode) = ack_mode {
-        args.push("--ack-mode");
-        args.push(mode);
-    }
     common::qsc_std_command()
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_QSP_SEED", "1")
@@ -240,19 +233,23 @@ fn ratchet_replay_reject_no_mutation() {
     let ct = items.pop().unwrap();
     server.enqueue_raw(ROUTE_TOKEN_BOB, ct.clone());
 
-    // ⚠ NA-0688 C4 (D622): both receives ask for LEGACY EXPLICITLY, and the trigger moved while
-    // every assertion below stayed exactly as written. This test pins the legacy delete-on-pull
-    // contract, in which a replay reject HARD-EXITS the batch non-zero. C4 flipped the default to
-    // lease, where the NA-0644 backstop instead acks the unrecoverable envelope loudly and exits
-    // 0 — so on the default path `!recv2.status.success()` is simply no longer true.
+    // ⚠⚠ NA-0770 (D-1411) — LOSS L1. Both receives used to ask for LEGACY EXPLICITLY and the
+    // header said so; the mode is retired, so they no longer do and this comment is rewritten
+    // rather than left contradicting the code beneath it.
     //
-    // That is a real behaviour change, not a broken test, and the legacy contract it guards still
-    // exists and is still reachable — so the guard is re-aimed rather than deleted. ⚠ The LEASE
-    // side of this same mechanism is already pinned, once, by NA_0644's
-    // `commit_before_write_seam_acked_loudly_no_poison_loop` (ack_replay_unrecoverable +
-    // relay_ack + exit 0 + no poison loop). It is deliberately NOT re-pinned here: a contract
-    // with two homes drifts.
-    let recv1 = receive_cmd_mode(&cfg, server.base_url(), "bob", &out_dir, "1", Some("legacy"));
+    // WHAT IS LOST: this test pinned the legacy delete-on-pull contract, in which a replay reject
+    // HARD-EXITS the batch non-zero. Under lease the NA-0644 backstop acks the unrecoverable
+    // envelope loudly and exits 0, so `assert!(!recv2.status.success())` is NOT TRUE on the
+    // surviving path and is DELETED below. THREE OF THIS TEST'S FOUR ASSERTIONS SURVIVE
+    // UNCHANGED — the reject marker, `msg_idx=1`, and the absence of `recv_item` — and they
+    // carry the rejection and the no-mutation guarantee. Only the EXIT CODE is lost.
+    //
+    // ⚠ IT IS NOT RE-HOMED, BY THIS FILE'S OWN STANDING RULE. The lease side of the same
+    // mechanism is pinned once, in NA_0644's
+    // `commit_before_write_seam_acked_loudly_no_poison_loop` (:796) — ack_replay_unrecoverable +
+    // relay_ack + exit 0 + no poison loop. A contract with two homes drifts. Two sibling tests
+    // lose the same assertion for the same reason: L1b `aws...:507`, L1c `file_transfer_mvp:901`.
+    let recv1 = receive_cmd_mode(&cfg, server.base_url(), "bob", &out_dir, "1");
     assert!(recv1.status.success(), "receive 1 failed");
 
     server.enqueue_raw(ROUTE_TOKEN_BOB, ct);
@@ -261,8 +258,8 @@ fn ratchet_replay_reject_no_mutation() {
     // ciphertext is never examined at all — the rejection below was not weakened, it was never
     // reached. Probe: green at `--max 4`, red at `--max 1`. The replay rejection itself is
     // untouched and still asserted at full strength.
-    let recv2 = receive_cmd_mode(&cfg, server.base_url(), "bob", &out_dir, "4", Some("legacy"));
-    assert!(!recv2.status.success(), "replay should fail");
+    let recv2 = receive_cmd_mode(&cfg, server.base_url(), "bob", &out_dir, "4");
+    // NA-0770 (D-1411) L1: `assert!(!recv2.status.success(), "replay should fail")` DELETED.
     let out2 = combined_output(&recv2);
     assert!(out2.contains("event=ratchet_replay_reject"));
     assert!(

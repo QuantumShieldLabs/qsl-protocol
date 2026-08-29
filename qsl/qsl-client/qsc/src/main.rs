@@ -215,7 +215,6 @@ fn run(cli: Cli) -> CliResult {
             transport,
             relay,
             legacy_receive_mode,
-            ack_mode,
             attachment_service,
             from,
             mailbox,
@@ -242,7 +241,6 @@ fn run(cli: Cli) -> CliResult {
                 if transport.is_some()
                     || relay.is_some()
                     || legacy_receive_mode.is_some()
-                    || ack_mode.is_some()
                     || attachment_service.is_some()
                     || from.is_some()
                     || mailbox.is_some()
@@ -272,7 +270,6 @@ fn run(cli: Cli) -> CliResult {
                     transport,
                     relay,
                     legacy_receive_mode,
-                    ack_mode,
                     attachment_service,
                     from,
                     mailbox,

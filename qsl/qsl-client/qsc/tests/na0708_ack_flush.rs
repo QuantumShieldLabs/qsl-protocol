@@ -59,8 +59,27 @@ const BOB_INBOX: &str = "na0708-bob-inbox-token-bbbbbbbb";
 /// A 1-second server-side pull lease, so an unacked item becomes visible again quickly.
 /// The same value `NA_0644_ack_client.rs`, `na0688_c4_collateral_arms.rs` and
 /// `na0689_p3_a2_stranding.rs` use to prove lease redelivery.
-const TEST_PULL_LEASE_SECS: usize = 1;
-const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(2500);
+// ⚠⚠ NA-0770 (D-1411) WIDENED THESE 1s/2500ms -> 8s/20000ms. THE RECORDED REASON IS MARGIN
+// AGAINST CONTENTION, and it is stated so a later reader does not "tidy" them back.
+//
+// Before this lane, arms that wanted a NEGATIVE result reached for delete-on-pull, which is
+// instantaneous and needs no waiting. With the mode retired, every such arm must instead wait out a
+// lease — so the suite's dependence on these two numbers went UP at the moment the mode went away.
+// They are now load-bearing in shards that run twelve-wide on six cores, where a 2500ms wait
+// against a 1s lease left almost no margin: an overrun does not merely slow the arm, it reports a
+// perfectly intact message as lost. The pair is kept in step across the files that only ever WAIT
+// OUT a lease: `NA_0644`, `na0689_capture`, `na0689_p3_a2`, `na0690`, `na0708`, `na0741`, and
+// `na0742` under its own names — if you change one of THOSE, change all of them.
+//
+// ⚠⚠ `na0688_c4_collateral_arms` IS DELIBERATELY EXCLUDED AND CARRIES 45s/60000ms. It is the only
+// file that does work INSIDE the lease window (its in-lease probe runs two full CLI invocations,
+// each paying an Argon2id vault unlock, before the lease may expire) rather than merely waiting a
+// lease out. Those are DIFFERENT REQUIREMENTS, and CI proved it: at 8s that file's self-asserting
+// precondition measured the probe at 8.915s on a 2-core runner and REFUSED (PR #1802,
+// `qsc-shard-10`). ⚠ DO NOT "HARMONISE" na0688 BACK TO THESE VALUES — it will start refusing
+// again, correctly. A local 6-core run cannot reproduce the overrun.
+const TEST_PULL_LEASE_SECS: usize = 8;
+const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(20_000);
 
 fn guard() -> MutexGuard<'static, ()> {
     static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
@@ -231,8 +250,6 @@ fn receive_args<'a>(relay: &'a str, out: &'a str) -> Vec<&'a str> {
         "8",
         "--out",
         out,
-        "--ack-mode",
-        "lease",
     ]
 }
 
@@ -306,11 +323,7 @@ impl RelayProxy {
     fn pulls(&self) -> usize {
         self.state.pulls.load(Ordering::SeqCst)
     }
-    /// Let `further` more pulls through, then fail every one after that.
-    fn arm_fail_after(&self, further: usize) {
-        let now = self.state.pulls.load(Ordering::SeqCst);
-        self.state.fail_from.store(now + further, Ordering::SeqCst);
-    }
+    // NA-0770 (D-1411): `arm_fail_after` removed — its only caller was `r3b`, retired (L3).
 }
 
 impl Drop for RelayProxy {
@@ -499,206 +512,31 @@ fn r3a_acks_earned_before_a_reject_reach_the_relay() {
 // (`lib.rs:1732-1740`), and the advertisement is pushed as its **own relay item** before the
 // message (`lib.rs:1570-1573` pushes each `pre_envelope` separately) — the two-item shape.
 // ---------------------------------------------------------------------------
-
-/// Drive a REAL invite handshake to completion, so both parties hold a real session with
-/// `dhr != dhs_pub` and SCKA is enabled. Sequence adopted from `na0689_p3_a2_stranding.rs`
-/// (create → redeem → accept → finish) plus the poll that consumes A2.
-fn drive_handshake(inviter: &Path, redeemer: &Path, base: &str) {
-    let code_text = run_ok(
-        inviter,
-        &["invite", "create", "--relay", base, "--ttl-secs", "3600"],
-    );
-    let code = code_text
-        .lines()
-        .find(|l| l.starts_with("QSLI-1-"))
-        .expect("invite code on stdout")
-        .trim()
-        .to_string();
-    let listing = run_ok(inviter, &["invite", "list"]);
-    let invite_id = listing
-        .lines()
-        .find_map(|l| l.strip_prefix("invite="))
-        .and_then(|l| l.split_whitespace().next())
-        .expect("invite id")
-        .to_string();
-    run_ok(
-        redeemer,
-        &["invite", "redeem", "--code", &code, "--alias", "inviter"],
-    );
-    run_ok(
-        inviter,
-        &[
-            "invite",
-            "accept",
-            "--invite-id",
-            &invite_id,
-            "--alias",
-            "redeemer",
-        ],
-    );
-    let finish = run_ok(
-        redeemer,
-        &["invite", "finish", "--alias", "inviter", "--relay", base],
-    );
-    assert!(finish.contains("invite_finish=ok"), "{finish}");
-    let poll = run_ok(
-        inviter,
-        &[
-            "handshake",
-            "poll",
-            "--peer",
-            "redeemer",
-            "--relay",
-            base,
-            "--max",
-            "4",
-        ],
-    );
-    assert!(
-        poll.contains("peer_confirmed=yes"),
-        "the handshake never completed, so SCKA stays off and this arm measures nothing:\n{poll}"
-    );
-}
-
-fn receive_args_from<'a>(relay: &'a str, out: &'a str, from: &'a str) -> Vec<&'a str> {
-    vec![
-        "receive",
-        "--transport",
-        "relay",
-        "--relay",
-        relay,
-        "--mailbox",
-        BOB_INBOX,
-        "--from",
-        from,
-        "--max",
-        "8",
-        "--out",
-        out,
-        "--ack-mode",
-        "lease",
-    ]
-}
-
-#[test]
-fn r3b_acks_earned_before_a_failed_repull_reach_the_relay() {
-    let _g = guard();
-    let relay =
-        common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, TEST_PULL_LEASE_SECS);
-    let proxy = start_relay_proxy(relay.base_url());
-    let base = proxy.base_url().to_string();
-    let root = test_root("na0708_r3b");
-
-    // ⚠ **BOB IS THE INVITER, ALICE THE REDEEMER — AND THE ROLES ARE LOAD-BEARING, MEASURED.**
-    // At establishment only **role A** is given seeded send chains
-    // (`refimpl/.../suite2/establish.rs:75-98`: role A gets `ck_ec: ck0_a2b, ck_pq: pq0_a2b`;
-    // role B gets `ZERO32` for both). The ADV guard requires BOTH to be non-zero
-    // (`lib.rs:1822-1826`), so **only the handshake INITIATOR can advertise** — a responder is
-    // `chainkey_unset` until it has sent. `invite_accept` makes the INVITER the handshake
-    // RESPONDER and the REDEEMER the INITIATOR, so the sender here must be the redeemer.
-    // Measured the other way round first and the send produced no advertisement at all.
-    let bob = party(&root, "bob", BOB_INBOX);
-    let alice = party(&root, "alice", ALICE_INBOX);
-    drive_handshake(&bob, &alice, &base);
-
-    // ⚠ **DRAIN THE HANDSHAKE RESIDUE FIRST, AND THIS IS NOT COSMETIC.** The invite dance leaves
-    // a BARE handshake frame in each party's ordinary inbox — `invite accept` pushes B1 to the
-    // redeemer, `invite finish` pushes A2 to the inviter — and both are consumed through the
-    // flag-less `relay_inbox_pull` whose callers ack NOTHING (D-1327 C4 site 2), so under lease
-    // each frame redelivers and sits at the head of its mailbox. Measured, in both role
-    // assignments: bob's receive died at `qsp_env_decode_failed` on that frame before any control
-    // envelope could be reached. **That is this lane's own UNFIXED wedge (SR-15 F-2/F-10) standing
-    // between the instrument and the thing it measures**, so the arm clears it deliberately rather
-    // than pretending it is absent.
-    //
-    // The drain uses `--ack-mode legacy` precisely BECAUSE legacy delete-on-delivers: the relay
-    // drops what it hands over, so one pass empties the mailbox even though the client still
-    // errors on the frame. Its exit status is deliberately ignored — the drain is setup, not a
-    // measurement, and the very next assertion re-establishes the precondition it exists to create.
-    let drain_out = root.join("drain");
-    ensure_dir_700(&drain_out);
-    let _ = run_any(
-        &bob,
-        &[
-            "receive",
-            "--transport",
-            "relay",
-            "--relay",
-            &base,
-            "--mailbox",
-            BOB_INBOX,
-            "--from",
-            "redeemer",
-            "--max",
-            "8",
-            "--out",
-            drain_out.to_str().expect("drain out"),
-            "--ack-mode",
-            "legacy",
-        ],
-    );
-
-    // Alice's first send now emits an SCKA advertisement as its own item, ahead of the message.
-    let msg = root.join("m1.bin");
-    fs::write(&msg, b"na0708 r3b payload").expect("write msg");
-    let sent = run_ok(
-        &alice,
-        &[
-            "send",
-            "--transport",
-            "relay",
-            "--relay",
-            &base,
-            "--to",
-            "inviter",
-            "--file",
-            msg.to_str().expect("msg path"),
-        ],
-    );
-    assert!(
-        sent.contains("QSC_DELIVERY state=accepted_by_relay"),
-        "{sent}"
-    );
-
-    // ARM THE BLIP: let round 1 through, fail the control round's re-pull.
-    proxy.arm_fail_after(1);
-
-    let out1 = root.join("out1");
-    ensure_dir_700(&out1);
-    let (ok1, text1) = run_any(
-        &bob,
-        &receive_args_from(&base, out1.to_str().expect("out1"), "redeemer"),
-    );
-
-    // These two say the arm actually reached `:462`. A failure HERE is a broken instrument,
-    // not the defect.
-    assert!(
-        text1.contains("event=qsp_scka_adv"),
-        "no control envelope was processed, so `controls` stayed 0 and the loop never \
-         re-pulled — this arm would measure nothing:\n{text1}"
-    );
-    assert!(
-        proxy.pulls() >= 2,
-        "the control round never re-pulled, so `:462` was never reached: pulls={}\n{text1}",
-        proxy.pulls()
-    );
-    assert!(
-        !ok1,
-        "the failed re-pull must still fail the receive; this lane does not fix that:\n{text1}"
-    );
-
-    // THE ASSERTION: everything acked in round 1 must have reached the relay before the
-    // round-2 failure returned out of the function at `:462`.
-    assert!(
-        proxy.ack_posts() >= 1,
-        "STRANDED AT `:462`: round 1 processed and queued acks, then the round-2 pull failed \
-         and returned past `flush_pending_acks`. This is the exit a wrapper around only the \
-         `for` body would miss. ack_posts={} pulls={}\n{text1}",
-        proxy.ack_posts(),
-        proxy.pulls()
-    );
-    assert!(
-        text1.contains("relay_ack"),
-        "the relay_ack marker must witness the flush:\n{text1}"
-    );
-}
+// NA-0770 (D-1411): `drive_handshake` removed — its only caller was `r3b`, retired above (L3).
+// NA-0770 (D-1411): `receive_args_from` removed — its only caller was `r3b`, retired above (L3).
+// ---------------------------------------------------------------------------
+// NA-0770 (D-1411): `r3b_acks_earned_before_a_failed_repull_reach_the_relay` RETIRED.
+//
+// ⚠⚠ IT IS RETIRED FOR A CAPABILITY, NOT FOR A CONTROL — and that distinction is the whole
+// entry. Its SUBJECT (acks earned before a failed re-pull still reach the relay) survives the
+// retirement untouched. What does not survive is its SETUP.
+//
+// The arm had to clear a poison frame from the relay mailbox first: bob's receive died at
+// `qsp_env_decode_failed` on that frame before any control envelope could be reached — this
+// program's own UNFIXED wedge standing between the instrument and the thing it measures. It
+// cleared it with `--ack-mode legacy`, "precisely BECAUSE legacy delete-on-delivers: the relay
+// drops what it hands over, so one pass empties the mailbox even though the client still errors
+// on the frame."
+//
+// ⚠⚠ LOSS L3, AND IT OUTLIVES THIS TEST. Measured across the whole CLI: `QuarantineCmd` is a
+// LOCAL store, `Outbox Discard` is the OUTBOUND queue, and `relay_inbox_ack` is unreachable for
+// a frame the client cannot persist. ⇒ AFTER THIS LANE NO `qsc` COMMAND CAN CLEAR A RELAY
+// MAILBOX HEAD CARRYING AN UNDECODABLE FRAME, and such a frame redelivers forever. Under lease
+// the drain simply leases the frame and it comes back, so the setup cannot be reconstructed —
+// which is why the test retires rather than being re-aimed.
+//
+// ⚠ THIS IS A CONSEQUENCE OF THE RETIREMENT, NOT A DEFECT INTRODUCED BY IT: the eviction verb
+// never existed; delete-on-pull was standing in for one. It STRENGTHENS the case for scheduling
+// the `ENG-0142`/`ENG-0198` wedge repair, which is where the replacement belongs. An eviction
+// verb, if built, must also add itself to G-A's and G-B's asserted sets or turn them red.
+// ---------------------------------------------------------------------------

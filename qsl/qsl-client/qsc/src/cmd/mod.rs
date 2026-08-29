@@ -98,9 +98,6 @@ pub enum Cmd {
         /// Legacy receive mode for `file_chunk` / `file_manifest` (`retired` becomes the validated post-`w0` default once attachment-service config is present; `coexistence` no longer restores coexistence there).
         #[arg(long, value_enum)]
         legacy_receive_mode: Option<LegacyReceiveMode>,
-        /// Relay pull acknowledgment mode (default `legacy` delete-on-pull; `lease` acks only after durable local persistence).
-        #[arg(long, value_enum)]
-        ack_mode: Option<AckMode>,
         /// Attachment service base URL override/diagnostic for the streaming attachment path (supplying it activates the validated post-`w0` receive lane).
         #[arg(long)]
         attachment_service: Option<String>,
@@ -315,17 +312,22 @@ pub enum LegacyReceiveMode {
     Retired,
 }
 
-// NA-0644 (D580, ENG-0040): relay pull acknowledgment mode. Legacy (the default) is the
-// delete-on-pull contract, byte-identical to the pre-lane behavior. Lease is the opt-in
-// acknowledged-pull contract (GET /v1/pull?ack=lease + POST /v1/pull/ack): the relay
-// deletes only after the client acks, and the client acks only after durable local
-// persistence. This lane does NOT flip the default.
-#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
-pub enum AckMode {
-    Legacy,
-    Lease,
-}
-
+// NA-0770 (D-1411): `AckMode` IS RETIRED. It was introduced at NA-0644 (D580, ENG-0040) as a
+// two-variant selector whose `Legacy` arm was the delete-on-pull contract; NA-0688 C4 (D622)
+// flipped the default to `Lease`, and this lane removes the mode outright.
+//
+// ⚠ THE RECORD'S OWN REASON, because the enum's birth comment claimed the opposite: Legacy was
+// never designed. It was the NAME GIVEN TO PRE-EXISTING BEHAVIOUR at the moment acknowledged-pull
+// was added opt-in — "byte-identical to the pre-lane behavior", in that comment's own words —
+// kept as the default so the lane could ship without a behaviour change.
+//
+// ⚠ E2's HONEST WORDING: delete-on-pull is gone FROM THE CLIENT'S INTENT, NOT FROM THE SYSTEM.
+// The relay's default arm is still `None => PullMode::Legacy` for any request omitting
+// `ack=lease`, and a pre-durability relay ignores the parameter entirely. This client can no
+// longer REQUEST it; that is a different and smaller claim than the hazard being gone.
+//
+// The `--ack-mode` flag is removed with it, so the parser itself rejects it. The config KEY is
+// TOMBSTONED rather than deleted — see `fs_store::AckModeConfigState`.
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReceiptMode {
     Off,

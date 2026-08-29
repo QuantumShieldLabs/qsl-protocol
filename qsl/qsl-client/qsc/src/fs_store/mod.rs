@@ -37,12 +37,35 @@ pub(crate) fn normalize_profile(value: &str) -> Result<String, ErrorCode> {
     }
 }
 
-pub(crate) fn normalize_ack_mode(value: &str) -> Result<String, ErrorCode> {
-    match value {
-        "legacy" => Ok("legacy".to_string()),
-        "lease" => Ok("lease".to_string()),
-        _ => Err(ErrorCode::ParseFailed),
-    }
+/// NA-0770 (D-1411): THE ACK-MODE CONFIG KEY IS TOMBSTONED, NOT DELETED.
+///
+/// `AckMode` no longer exists — delete-on-pull was retired — so there is no value to
+/// normalise and no choice to express. The KEY is nevertheless retained here and at
+/// [`read_ack_mode`] for one reason: a config file carrying `ack_mode` must be **detected
+/// and announced**, never silently resolved to the surviving behaviour.
+///
+/// ⚠ **WHY A DELETION WOULD HAVE BEEN A DEFECT.** Before this lane the resolution path ended
+/// `stored_ack_mode().unwrap_or(AckMode::Lease)`, and `stored_ack_mode` mapped both an `Err`
+/// (via `.ok()?`) and an unknown value (via `_ => None`) to `None`. Removing this function,
+/// or making it reject, would therefore have produced the *same* silent downgrade by a third
+/// route. The cure is a THIRD STATE, not a rejection — see [`AckModeConfigState`].
+///
+/// ⚠ **THE USER-FACING CLAIM THIS PROTECTS.** A user who set `ack_mode=legacy` asked for
+/// "the relay keeps nothing, even briefly". Lease holds an unacked frame for the lease
+/// window. That is a privacy-relevant change to a setting the user chose, and it is not
+/// made silently.
+pub(crate) const ACK_MODE_RETIRED_KEY_STATE: &str = "ack_mode_retired_key_present";
+
+/// The three states a config file can be in with respect to the retired `ack_mode` key.
+///
+/// ⚠ TWO states cannot express this. `Option<T>` collapses "absent" and "present but
+/// retired" into one, and that collapse IS the defect this lane exists to remove.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum AckModeConfigState {
+    /// No `ack_mode` key in the config file — the ordinary case.
+    Nothing,
+    /// The retired key IS present, carrying this raw value. Announced, never obeyed.
+    RetiredKeyPresent(String),
 }
 
 /// NA-0688 C4 (D622 R7): parse `config.txt` as an ordered `key=value` list.
@@ -96,19 +119,24 @@ pub(crate) fn read_policy_profile(path: &Path) -> Result<Option<String>, ErrorCo
     Ok(None)
 }
 
-pub(crate) fn read_ack_mode(path: &Path) -> Result<Option<String>, ErrorCode> {
+/// NA-0770 (D-1411): DETECT PRESENCE, do not interpret.
+///
+/// ⚠ **THE VALUE IS RETURNED RAW AND UN-NORMALISED, AND THAT IS DELIBERATE.** Whatever the
+/// file says — `legacy`, `lease`, or a typo — the key is retired, so every value is reported
+/// identically as [`AckModeConfigState::RetiredKeyPresent`]. Normalising first would have
+/// meant deciding which retired values are "valid", a distinction with no meaning once the
+/// mode is gone, and it would have re-introduced a path where a malformed value and an
+/// absent key look the same to the caller.
+pub(crate) fn read_ack_mode_state(path: &Path) -> Result<AckModeConfigState, ErrorCode> {
     if !path.exists() {
-        return Ok(None);
+        return Ok(AckModeConfigState::Nothing);
     }
     for (k, v) in read_config_kv(path)? {
         if k == ACK_MODE_KEY {
-            return match normalize_ack_mode(v.as_str()) {
-                Ok(v) => Ok(Some(v)),
-                Err(_) => Err(ErrorCode::ParseFailed),
-            };
+            return Ok(AckModeConfigState::RetiredKeyPresent(v));
         }
     }
-    Ok(None)
+    Ok(AckModeConfigState::Nothing)
 }
 
 pub(crate) fn ensure_dir_secure(dir: &Path, source: ConfigSource) -> Result<(), ErrorCode> {

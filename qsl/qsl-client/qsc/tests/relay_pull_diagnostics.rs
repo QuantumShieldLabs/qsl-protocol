@@ -249,7 +249,6 @@ fn run_receive(
     relay: &str,
     mailbox: &str,
     diagnostic: Option<&str>,
-    ack_mode: Option<&str>,
 ) -> Output {
     let out_dir = cfg.join("recv-out");
     let mut cmd = qsc_base(iso, cfg);
@@ -268,9 +267,6 @@ fn run_receive(
         "--out",
         out_dir.to_str().expect("out dir"),
     ]);
-    if let Some(mode) = ack_mode {
-        cmd.args(["--ack-mode", mode]);
-    }
     if let Some(mode) = diagnostic {
         cmd.env("QSC_RELAY_PULL_DIAGNOSTIC", mode);
     }
@@ -328,7 +324,7 @@ fn pull_default_mode_emits_no_relay_pull_diagnostic() {
     let server = start_fixed_relay(401, RESPONSE_BODY_FIXTURE);
     let cfg = prepare_cfg(&iso, "default");
 
-    let out = run_receive(&iso, &cfg, server.base_url(), MAILBOX_FIXTURE, None, None);
+    let out = run_receive(&iso, &cfg, server.base_url(), MAILBOX_FIXTURE, None);
     let text = output_text(&out);
 
     assert!(!out.status.success(), "{text}");
@@ -358,7 +354,6 @@ fn pull_redacted_mode_publishes_unauthorized_with_full_field_set() {
         server.base_url(),
         MAILBOX_FIXTURE,
         Some("redacted"),
-        Some("legacy"),
     );
     let text = output_text(&out);
     assert!(!out.status.success(), "{text}");
@@ -369,7 +364,13 @@ fn pull_redacted_mode_publishes_unauthorized_with_full_field_set() {
         ("mode", "redacted"),
         ("api", "relay_pull_v1"),
         ("op", "pull"),
-        ("ack_mode", "legacy"),
+        // NA-0770 (D-1411) D-REAIM-VALUE: re-aimed BY VALUE, never deleted. The emitted field
+        // survives the retirement (it is a published contract); only the value it can carry
+        // changes, because `lease` is now the only mode. ⚠ DELETING this row would have HALVED
+        // the field's pin — its companion at :548 pins the same field from the flag-less
+        // default — and the deletion is the cheap repair a seat meeting a red row would reach
+        // for. It is ordered by value for exactly that reason.
+        ("ack_mode", "lease"),
         ("max", "4"),
         ("status_class", "4xx"),
         ("status_code", "401"),
@@ -429,7 +430,6 @@ fn pull_bad_request_uses_pull_vocabulary_and_not_the_push_map() {
         server.base_url(),
         MAILBOX_FIXTURE,
         Some("redacted"),
-        None,
     );
     let text = output_text(&out);
     let line = sole_pull_diagnostic(&text);
@@ -482,7 +482,6 @@ fn pull_dead_endpoint_names_connection_refused() {
         DEAD_ENDPOINT,
         MAILBOX_FIXTURE,
         Some("redacted"),
-        None,
     );
     let text = output_text(&out);
     assert!(!out.status.success(), "{text}");
@@ -645,7 +644,6 @@ fn pull_diagnostic_publishes_no_key_containing_token() {
         server.base_url(),
         MAILBOX_FIXTURE,
         Some("redacted"),
-        None,
     );
     let text = output_text(&out);
     let line = sole_pull_diagnostic(&text);
@@ -752,7 +750,6 @@ fn pull_ok_arm_publishes_items_count_of_at_least_one() {
         server.base_url(),
         MAILBOX_FIXTURE,
         Some("redacted"),
-        None,
     );
     let text = output_text(&out);
     let pulls = pull_diagnostics_for_op(&text, "pull");

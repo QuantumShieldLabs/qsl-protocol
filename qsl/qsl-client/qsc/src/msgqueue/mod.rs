@@ -651,12 +651,17 @@ pub(crate) fn arm_immediate(rec: &mut QueuedMessage, now: u64) {
 /// ⚠ WHY THIS EXISTS RATHER THAN REUSING `src/dedup/mod.rs` (census C8): that module keys
 /// the **relay envelope id**, per mailbox, and DESIGN §4 requires the relay-visible id to be
 /// INDEPENDENT of the inner `msg_id` -- so it dedups the other identifier by construction.
-/// It is also built **only in lease mode**, and lease is not the default (ENG-0043), so at
-/// default settings it does not run at all. `(session, msg_id)` needs its own home.
+/// ⚠ NA-0770 (D-1411): this read "it is also built **only in lease mode**, and lease is not the
+/// default (ENG-0043), so at default settings it does not run at all." BOTH HALVES WERE FALSE —
+/// lease became the default at NA-0688 C4 (2026-08-01) and is now the only mode. The module's
+/// REAL ground stands untouched and is the one above: it keys the relay envelope id, which
+/// DESIGN sec 4 requires to be independent of the inner `msg_id`. `(session, msg_id)` needs its
+/// own home for that reason alone.
 ///
-/// ⚠ The existing module is deliberately UNTOUCHED (F5), and the consequence is accepted
-/// knowingly: relay-level at-least-once protection still does not run at default settings.
-/// That gap belongs in the testplan's "what this plan cannot see", not in a silent fix here.
+/// ⚠ NA-0770 (D-1411): the accepted consequence recorded here — "relay-level at-least-once
+/// protection still does not run at default settings" — IS NO LONGER TRUE. `src/dedup/mod.rs`
+/// is built on every receive now that lease is the only mode. ⛳ The gap the testplan's "what
+/// this plan cannot see" sec C.2 filed as knowingly-accepted CLOSES BY CONSTRUCTION.
 /// ⚠ NOT `.rec`. Message records are `<seq>_<msg_id>.rec` and the loader globs `*.rec` in
 /// this same directory, so giving the dedup file that extension made the loader try to
 /// decrypt it as a message and fail the AAD check -- surfacing as

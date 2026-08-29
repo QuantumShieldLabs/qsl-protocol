@@ -1381,7 +1381,8 @@ pub fn invite_accept_at(
     // NA-0742: the A1 envelope this command consumed is retired from the INVITE SLOT — the mailbox
     // it was pulled from, never the ordinary inbox. The last effect of this frame is the slot
     // becoming `Redeemed` above; no push follows on this path.
-    if crate::resolve_ack_mode(None) == crate::cmd::AckMode::Lease {
+    // NA-0770 (D-1411): unconditional — the ack mode this gated on no longer exists.
+    {
         // GUARD 1: re-read the durable state this frame caused. Same stated limits as finish's.
         debug_assert!(
             invite_store_load()
@@ -1413,32 +1414,34 @@ pub fn invite_finish(
     let self_label = self_label.as_str();
     let relay_ep = crate::adversarial::route::normalize_relay_endpoint(relay)?;
     let self_inbox = crate::contacts::relay_self_inbox_route_token()?;
-    // NA-0742 (D-1378): ⚠⚠ **LEASE-ONLY, END TO END.** Under `AckMode::Legacy` the relay DELETES
-    // ON PULL, so a scan there would enlarge this pull from ONE frame to as many as 128 on a
-    // delete-on-pull server — converting a one-frame loss into a 16x–128x amplification. The gate
-    // is mechanical, not decorative: `relay_inbox_pull` resolves its mode from
-    // `crate::resolve_ack_mode(None)` and the Legacy URL carries no `ack=lease`. Under Legacy this
-    // path is BYTE-IDENTICAL to what it was before this lane: the head-only pull of `--max`, the
-    // `.next()`, the same exits, and the same destruction-of-one.
-    let ack_mode = crate::resolve_ack_mode(None);
-    let item = match ack_mode {
-        crate::cmd::AckMode::Legacy => {
-            let items = crate::transport::relay_inbox_pull(&relay_ep, &self_inbox, max)?;
-            let Some(item) = items.into_iter().next() else {
-                return Ok(false);
-            };
-            item
-        }
-        crate::cmd::AckMode::Lease => {
-            match finish_scan_select_invite_resp(&relay_ep, &self_inbox, max)? {
-                Some(item) => item,
-                // ⚠ TODAY'S PATH, UNCHANGED: `Ok(false)` -> `invite_finish=none` -> rc 0. Not an
-                // error, because it is not one — the reply has not arrived yet. What is new is
-                // that the scan marker now names the classes actually seen, so "none" stops being
-                // indistinguishable from "sixteen frames I could not use".
-                None => return Ok(false),
-            }
-        }
+    // NA-0770 (D-1411): THE HEAD-ONLY LEGACY ARM IS RETIRED WITH THE MODE, and what it guarded
+    // is worth recording rather than deleting silently.
+    //
+    // NA-0742 (D-1378) put a head-only pull here for `AckMode::Legacy` because a delete-on-pull
+    // relay destroys everything a scan returns: scanning under Legacy would have converted a
+    // one-frame loss into a 16x–128x amplification (`clamp(--max, 16, 128)`). That arm's own
+    // comment called the gate "mechanical, not decorative", and it was right.
+    //
+    // ⚠ **WHAT IS LOST, NAMED (L5).** The retired arm's counterpart test held the ONLY EMPIRICAL
+    // PIN on the `1` in the 1-to-16 floor — the measured claim that Legacy destroyed exactly one
+    // frame here. After this lane that lower bound is ASSERTED FROM SOURCE, not measured.
+    //
+    // ⚠ **AND WHAT IS NOT FIXED.** The amplification hazard belonged to *the relay deleting on
+    // pull*, not to this client's enum. A PRE-DURABILITY RELAY IGNORES `ack=lease` AND DELETES
+    // ANYWAY (`transport::relay_inbox_pull_mode_inner`), and this scan then pulls up to 128
+    // frames against it. That exposure is PRE-EXISTING — the Lease arm already ran at this
+    // base's default — and is UNCHANGED by this lane. It is named here because retiring the
+    // other arm removes the only configuration in which a user could ask for the head-only
+    // pull instead: the best achievable floor for an informed user on such a relay rises from
+    // 1 to 16, permanently. `ENG-0043`'s open "restate the old-server fallback story" is the
+    // home for that story and this lane makes it MORE owed, not less.
+    let item = match finish_scan_select_invite_resp(&relay_ep, &self_inbox, max)? {
+        Some(item) => item,
+        // ⚠ TODAY'S PATH, UNCHANGED: `Ok(false)` -> `invite_finish=none` -> rc 0. Not an
+        // error, because it is not one — the reply has not arrived yet. What is new is
+        // that the scan marker now names the classes actually seen, so "none" stops being
+        // indistinguishable from "sixteen frames I could not use".
+        None => return Ok(false),
     };
     // The id is needed AFTER `item` is consumed below, to retire exactly the frame this command
     // consumed and nothing else.
@@ -1467,7 +1470,8 @@ pub fn invite_finish(
     // NA-0742: ⚠⚠ **THE ACK GOES AFTER THE CONSUMED FRAME'S LAST EFFECT — WHICH IS NOT THE
     // DURABLE COMMIT.** For finish the last effect is the poll returning `Ok`, because the poll
     // performs the outbound A2 push internally: a frame whose reply never left is not consumed.
-    if ack_mode == crate::cmd::AckMode::Lease {
+    // NA-0770 (D-1411): unconditional — the ack mode this gated on no longer exists.
+    {
         // GUARD 1: re-read the durable state THIS FRAME caused. ⚠ Its limits, stated in the same
         // breath: it cannot witness the outbound push, and `debug_assert!` is absent from release
         // builds. It is a development tripwire, not the guarantee. The guarantee is the ordering

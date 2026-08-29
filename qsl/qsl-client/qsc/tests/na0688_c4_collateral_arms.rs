@@ -16,12 +16,27 @@
 //! census wrongly listed it, having identified call sites by line number instead of bracketing them
 //! to their enclosing functions.
 //!
-//! ⚠ EVERY ARM RUNS UNDER LEGACY FIRST, AND THAT IS THE WHOLE METHOD. An arm run only under lease
-//! could pass vacuously: "the peer's message survived" proves nothing unless the same topology is
-//! shown to DESTROY it under legacy. A negative result is only evidence if the instrument could
-//! have returned positive. The legacy control is selected through `qsc config set ack-mode legacy`
-//! — these three commands take no `--ack-mode` flag, so the per-install preference is the only way
-//! to aim them, which makes the config key part of the instrument rather than a convenience.
+//! ⚠⚠ THE METHOD, AND HOW NA-0770 (D-1411) CHANGED IT. Every arm here ONCE ran under legacy first,
+//! selected through `qsc config set ack-mode legacy` — these three commands take no `--ack-mode`
+//! flag, so the per-install preference was the only way to aim them. That control existed because
+//! an arm run only under lease can pass VACUOUSLY: "the peer's message survived" proves nothing
+//! unless the same topology is shown to DESTROY it. **A negative result is only evidence if the
+//! instrument could have returned positive.**
+//!
+//! With delete-on-pull retired there is no destroying mode to run, and `config set ack-mode` now
+//! REFUSES BY NAME. The requirement did not go away with the mode, so it is met a different way:
+//!
+//! **THE IN-LEASE PROBE.** Under lease a pulled-but-unacked item is held INVISIBLE until expiry.
+//! So the arm probes TWICE against one plant — once INSIDE the lease window, where the message is
+//! genuinely unrecoverable, and once AFTER expiry, where it must come back. The first probe is the
+//! negative-capability control the legacy leg used to be, and it is MODE-FREE: it exercises only
+//! shipped behaviour, needs no retired mode, and adds no test-only seam.
+//!
+//! ⚠ WHAT THE SUBSTITUTION DOES NOT PRESERVE, said plainly: the old control demonstrated
+//! DESTRUCTION (the item was gone forever); the new one demonstrates INVISIBILITY (the item is
+//! withheld, then returns). Both make the probe return `false`, which is what the arm needs — but
+//! they are not the same fact about the world, and a reader must not cite this file as evidence
+//! that a collateral pull can still destroy anything. It cannot; that is the point of the lane.
 //!
 //! ⚠ THE RELAY MUST BE THE REAL ONE. The test-local mock in `common` parses only `max=` and always
 //! pops on pull, so it cannot express lease semantics and would make every arm here vacuous.
@@ -33,12 +48,43 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::{Mutex, MutexGuard, OnceLock};
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
-/// A 1-second server-side pull lease, so an unacked item becomes visible again quickly.
-/// Same values NA-0644 uses to prove lease redelivery.
-const TEST_PULL_LEASE_SECS: usize = 1;
-const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(2500);
+/// A 45-second server-side pull lease.
+///
+/// ⚠⚠ THIS FILE DELIBERATELY NO LONGER MATCHES `NA_0644`'s 8s/20000ms, AND THE DIVERGENCE IS THE
+/// POINT RATHER THAN DRIFT. The old comment here claimed parity with `NA_0644` and said "if you
+/// change one, change both". That parity was true while both files only ever WAITED OUT a lease.
+/// It stopped being true when NA-0770 gave this file the IN-LEASE PROBE: every other file needs
+/// `LEASE_EXPIRY_WAIT > lease` and nothing more, but THIS file must fit TWO FULL CLI INVOCATIONS
+/// — a command plus a `receive`, each paying an Argon2id vault unlock — INSIDE the lease window.
+/// Those are different requirements and forcing one pair of numbers to serve both is how a
+/// constant ends up wrong for everybody.
+///
+/// ⚠ THE NUMBERS ARE NOT GUESSED. CI measured the in-lease probe at **8.915s** on a 2-core runner
+/// against the then-8s lease, and the self-asserting precondition below REFUSED rather than
+/// reporting a false negative-capability result (PR #1802, `qsc-shard-10`). 45s is ~5x that
+/// measured worst case; `LEASE_EXPIRY_WAIT` must exceed the lease for the redelivery half, so it
+/// is 60s. ⚠ A local 6-core run CANNOT reproduce the overrun — the only instrument that found it
+/// was a slower machine, which is why the precondition exists and must not be deleted.
+///
+/// ⚠⚠ NA-0770 (D-1411) WIDENED THESE 1s/2500ms -> 8s/20000ms, AND THE REASON IS LOAD-BEARING, NOT
+/// FLAKE-CHASING. The retirement of `AckMode::Legacy` cost these arms their legacy control, and the
+/// replacement (§ each arm below) probes INSIDE the lease window to show the instrument can still
+/// return a negative. That probe is a full `qsc receive` — an Argon2id vault unlock among other
+/// work — so the window must be wide enough to contain it on a CONTENDED box, where the suite runs
+/// twelve shards on six cores. A 1-second window could not, and the arm would then report the
+/// planted message as destroyed when it was merely still leased.
+///
+/// ⚠ THE WIDTH IS NOT ASSUMED — IT IS ASSERTED. Each arm times its in-lease probe against
+/// [`LEASE_DURATION`] and FAILS LOUDLY if the probe overran, rather than silently converting a slow
+/// box into a false negative-capability result. If that assertion ever fires, widen the lease; do
+/// not delete the probe.
+const TEST_PULL_LEASE_SECS: usize = 45;
+const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(60_000);
+/// The lease as a `Duration`, for the in-lease probe's self-check. Derived from the SAME constant
+/// handed to the relay, so the two cannot drift apart.
+const LEASE_DURATION: Duration = Duration::from_secs(TEST_PULL_LEASE_SECS as u64);
 
 fn guard() -> MutexGuard<'static, ()> {
     static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
@@ -198,8 +244,6 @@ fn planted_message_still_recoverable(victim_cfg: &Path, relay: &str, inbox: &str
             "8",
             "--out",
             out.to_str().expect("out"),
-            "--ack-mode",
-            "legacy",
         ],
     );
     // A recovered message writes a recv file; an empty mailbox reports recv_none.
@@ -212,9 +256,8 @@ fn planted_message_still_recoverable(victim_cfg: &Path, relay: &str, inbox: &str
     recovered && !text.contains("event=recv_none")
 }
 
-fn set_ack_mode(cfg: &Path, mode: &str) {
-    run_ok(cfg, &["config", "set", "ack-mode", mode]);
-}
+// NA-0770 (D-1411): `set_ack_mode` removed. `config set ack-mode` no longer sets anything — the
+// key is a tombstone and the writer refuses it by name, so this helper could only ever have failed.
 
 const VICTIM_INBOX: &str = "na0688c4_victim_inbox_tok_abcdefgh";
 const PEER_INBOX: &str = "na0688c4_peer_inbox_token_ijklmnop";
@@ -239,7 +282,7 @@ fn setup(root: &Path) -> (PathBuf, PathBuf) {
 // decision was reached.
 // ---------------------------------------------------------------------------
 #[test]
-fn q4a_handshake_poll_destroys_under_legacy_and_preserves_under_lease() {
+fn q4a_handshake_poll_preserves_the_collateral_it_pulls_under_lease() {
     let _g = guard();
     let relay =
         common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, TEST_PULL_LEASE_SECS);
@@ -249,38 +292,44 @@ fn q4a_handshake_poll_destroys_under_legacy_and_preserves_under_lease() {
     let out = root.join("out");
     ensure_dir_700(&out);
 
-    // ---- CONTROL: legacy. The instrument MUST be able to return positive. ----
-    set_ack_mode(&victim, "legacy");
-    plant_ordinary_message(&peer, &base, &root, b"q4a legacy control message");
+    // ---- ONE PLANT, ONE COLLATERAL POLL, THEN TWO PROBES OF THE SAME ITEM. ----
+    //
+    // ⚠ THE CLOCK STARTS BEFORE THE COMMAND, DELIBERATELY. The relay's lease begins when it SERVES
+    // the pull, somewhere inside that command's runtime. Timing from before it therefore OVERSTATES
+    // how much of the lease has elapsed, so the in-lease assertion below is conservative in the
+    // safe direction: it can fail early, never pass late.
+    plant_ordinary_message(&peer, &base, &root, b"q4a collateral message");
+    let lease_clock = Instant::now();
     let (_ok, poll_text) = run_any(
         &victim,
         &["handshake", "poll", "--peer", "peer", "--relay", &base, "--max", "4"],
     );
-    let destroyed = !planted_message_still_recoverable(&victim, &base, VICTIM_INBOX, &out);
+
+    // ---- PROBE 1 — INSIDE THE LEASE. The negative-capability control (see the header). ----
+    let recoverable_inside = planted_message_still_recoverable(&victim, &base, VICTIM_INBOX, &out);
+    let probe1_finished_at = lease_clock.elapsed();
     assert!(
-        destroyed,
-        "CONTROL FAILED: under legacy the poll did not destroy the planted message, so this arm \
-         cannot demonstrate anything about lease. poll output:\n{poll_text}"
+        probe1_finished_at < LEASE_DURATION,
+        "PRECONDITION UNMET, NOT A RESULT: the in-lease probe finished at {probe1_finished_at:?}, \
+         past the {LEASE_DURATION:?} lease, so it cannot tell 'withheld' from 'redelivered' and the \
+         control below would be meaningless. Widen TEST_PULL_LEASE_SECS; do not delete this probe."
+    );
+    assert!(
+        !recoverable_inside,
+        "NEGATIVE-CAPABILITY CONTROL FAILED: `handshake poll` collaterally pulled the planted message, so \
+         inside the lease it must be INVISIBLE. It was recoverable at {probe1_finished_at:?} — so \
+         either the command never pulled it, and this arm measures nothing about collateral pulls, \
+         or the relay is not honouring the lease. output:\n{poll_text}"
     );
 
-    // ---- TREATMENT: lease (the C4 default). ----
+    // ---- PROBE 2 — AFTER EXPIRY. The claim itself. ----
     let out2 = root.join("out2");
     ensure_dir_700(&out2);
-    set_ack_mode(&victim, "lease");
-    plant_ordinary_message(&peer, &base, &root, b"q4a lease treatment message");
-    let (_ok2, poll_text2) = run_any(
-        &victim,
-        &["handshake", "poll", "--peer", "peer", "--relay", &base, "--max", "4"],
-    );
-    // ⚠ WAIT PAST THE LEASE. The poll pulled the item and never acked it, so the relay is holding
-    // it INVISIBLE, not deleting it. Probing now would measure immediate visibility and report a
-    // perfectly intact message as lost. After expiry the relay redelivers it -- which is the
-    // property that actually makes the collateral recoverable.
     thread::sleep(LEASE_EXPIRY_WAIT);
     assert!(
         planted_message_still_recoverable(&victim, &base, VICTIM_INBOX, &out2),
-        "under lease the collaterally-pulled message must survive and be recoverable. \
-         poll output:\n{poll_text2}"
+        "under lease the collaterally-pulled message must survive and be recoverable \
+         once the lease expires. output:\n{poll_text}"
     );
 }
 
@@ -293,7 +342,7 @@ fn q4a_handshake_poll_destroys_under_legacy_and_preserves_under_lease() {
 // an invite.
 // ---------------------------------------------------------------------------
 #[test]
-fn q4b_invite_finish_destroys_under_legacy_and_preserves_under_lease() {
+fn q4b_invite_finish_preserves_the_ordinary_message_it_pulls_under_lease() {
     let _g = guard();
     let relay =
         common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, TEST_PULL_LEASE_SECS);
@@ -303,35 +352,44 @@ fn q4b_invite_finish_destroys_under_legacy_and_preserves_under_lease() {
     let out = root.join("out");
     ensure_dir_700(&out);
 
-    // ---- CONTROL: legacy ----
-    set_ack_mode(&victim, "legacy");
-    plant_ordinary_message(&peer, &base, &root, b"q4b legacy control message");
+    // ---- ONE PLANT, ONE COLLATERAL `invite finish`, THEN TWO PROBES OF THE SAME ITEM. ----
+    //
+    // ⚠ THE CLOCK STARTS BEFORE THE COMMAND, DELIBERATELY. The relay's lease begins when it SERVES
+    // the pull, somewhere inside that command's runtime. Timing from before it therefore OVERSTATES
+    // how much of the lease has elapsed, so the in-lease assertion below is conservative in the
+    // safe direction: it can fail early, never pass late.
+    plant_ordinary_message(&peer, &base, &root, b"q4b collateral message");
+    let lease_clock = Instant::now();
     let (_ok, finish_text) = run_any(
         &victim,
         &["invite", "finish", "--alias", "peer", "--relay", &base],
     );
-    let destroyed = !planted_message_still_recoverable(&victim, &base, VICTIM_INBOX, &out);
+
+    // ---- PROBE 1 — INSIDE THE LEASE. The negative-capability control (see the header). ----
+    let recoverable_inside = planted_message_still_recoverable(&victim, &base, VICTIM_INBOX, &out);
+    let probe1_finished_at = lease_clock.elapsed();
     assert!(
-        destroyed,
-        "CONTROL FAILED: under legacy `invite finish` did not destroy the planted ordinary \
-         message, so this arm proves nothing about lease. finish output:\n{finish_text}"
+        probe1_finished_at < LEASE_DURATION,
+        "PRECONDITION UNMET, NOT A RESULT: the in-lease probe finished at {probe1_finished_at:?}, \
+         past the {LEASE_DURATION:?} lease, so it cannot tell 'withheld' from 'redelivered' and the \
+         control below would be meaningless. Widen TEST_PULL_LEASE_SECS; do not delete this probe."
+    );
+    assert!(
+        !recoverable_inside,
+        "NEGATIVE-CAPABILITY CONTROL FAILED: `invite finish` collaterally pulled the planted message, so \
+         inside the lease it must be INVISIBLE. It was recoverable at {probe1_finished_at:?} — so \
+         either the command never pulled it, and this arm measures nothing about collateral pulls, \
+         or the relay is not honouring the lease. output:\n{finish_text}"
     );
 
-    // ---- TREATMENT: lease ----
+    // ---- PROBE 2 — AFTER EXPIRY. The claim itself. ----
     let out2 = root.join("out2");
     ensure_dir_700(&out2);
-    set_ack_mode(&victim, "lease");
-    plant_ordinary_message(&peer, &base, &root, b"q4b lease treatment message");
-    let (_ok2, finish_text2) = run_any(
-        &victim,
-        &["invite", "finish", "--alias", "peer", "--relay", &base],
-    );
-    // ⚠ WAIT PAST THE LEASE -- see the note on `planted_message_still_recoverable`.
     thread::sleep(LEASE_EXPIRY_WAIT);
     assert!(
         planted_message_still_recoverable(&victim, &base, VICTIM_INBOX, &out2),
-        "under lease `invite finish` must leave the peer's ordinary message recoverable. \
-         finish output:\n{finish_text2}"
+        "under lease `invite finish` must leave the peer's ordinary message \
+         recoverable once the lease expires. output:\n{finish_text}"
     );
 }
 
@@ -370,12 +428,23 @@ fn q4c_invite_accept_pulls_a_dedicated_mailbox_not_the_ordinary_inbox() {
         .to_string();
 
     // A peer's ordinary message goes to the ORDINARY inbox, which is a different mailbox.
-    set_ack_mode(&victim, "legacy");
     plant_ordinary_message(&peer, &base, &root, b"q4c ordinary message");
 
     // `invite accept` pulls the invite's own mailbox. If the topology claim holds, this cannot
-    // touch the ordinary inbox at all — so the planted message survives even under LEGACY, which
-    // is the strongest form of the claim and the one worth pinning.
+    // touch the ordinary inbox at all — so the planted message survives.
+    //
+    // ⚠ NA-0770 (D-1411) DELETED THIS ARM'S `set_ack_mode(&victim, "legacy")` AND NOTHING ELSE.
+    // Unlike q4a/q4b, legacy was never this arm's CONTROL — it was a STRESS SETTING. The claim is
+    // TOPOLOGICAL (accept reads a different mailbox), and it was pinned under the most destructive
+    // mode available so that a pass could not be explained by lease's forgiveness. The vacuity
+    // ground that justifies q4a/q4b's in-lease probe therefore does not apply here, and no probe
+    // is added: there is no second outcome for this arm to distinguish.
+    //
+    // ⚠ WHAT IS LOST: TIME-INDEPENDENCE. Under legacy a wrong mailbox meant the message was gone
+    // permanently, so a pass held no matter when the probe ran. Under lease a wrong mailbox leaves
+    // it merely leased, so a probe run late enough would find it redelivered and pass anyway. The
+    // probe here is immediate and therefore still inside the lease — the assertion holds — but it
+    // is now ORDER-DEPENDENT where it used to be unconditional. Do not move it after a sleep.
     let (_ok, accept_text) = run_any(
         &victim,
         &["invite", "accept", "--invite-id", &invite_id, "--alias", "peer"],

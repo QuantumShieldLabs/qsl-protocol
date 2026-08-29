@@ -18,8 +18,11 @@
 //! over Unknown-class junk fixtures and the NA-0187 contact-request onboarding surface. An arm that
 //! asserted "no frame ever aborts" would be asserting a DIFFERENT option than the one ruled.
 //!
-//! **Legacy is byte-unchanged in lane 1.** T4 drives both modes and pins the difference. ⚠ ENG-0149
-//! is satisfied by STATING and DRIVING both modes — driving a mode is not changing it.
+//! **Legacy WAS byte-unchanged in lane 1, and T4 drove both modes to pin the difference.** ⚠⚠
+//! NA-0770 (D-1411) RETIRED THE MODE, SO T4 NOW DRIVES ONE. ENG-0149 was satisfied by STATING and
+//! DRIVING both modes; with only one mode shipped there is no discrimination left to drive, and
+//! T4's LEGACY leg — this file's SEALED E5 — is retired with it. See the tombstone at T4 for what
+//! that costs. The Legacy portion of ENG-0142 closes with the mode; the rest of ENG-0142 does not.
 //!
 //! ## ⚠ ENG-0149: THE RELAY MUST BE THE REAL ONE, AND THE MOCK IS REFUSED BY NAME
 //!
@@ -41,8 +44,27 @@ use std::time::Duration;
 
 /// A 1-second server-side pull lease, so an unacked item becomes visible again quickly. The same
 /// value `NA_0644_ack_client.rs`, `na0708_ack_flush.rs` and `na0689_p3_a2_stranding.rs` use.
-const TEST_PULL_LEASE_SECS: usize = 1;
-const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(2500);
+// ⚠⚠ NA-0770 (D-1411) WIDENED THESE 1s/2500ms -> 8s/20000ms. THE RECORDED REASON IS MARGIN
+// AGAINST CONTENTION, and it is stated so a later reader does not "tidy" them back.
+//
+// Before this lane, arms that wanted a NEGATIVE result reached for delete-on-pull, which is
+// instantaneous and needs no waiting. With the mode retired, every such arm must instead wait out a
+// lease — so the suite's dependence on these two numbers went UP at the moment the mode went away.
+// They are now load-bearing in shards that run twelve-wide on six cores, where a 2500ms wait
+// against a 1s lease left almost no margin: an overrun does not merely slow the arm, it reports a
+// perfectly intact message as lost. The pair is kept in step across the files that only ever WAIT
+// OUT a lease: `NA_0644`, `na0689_capture`, `na0689_p3_a2`, `na0690`, `na0708`, `na0741`, and
+// `na0742` under its own names — if you change one of THOSE, change all of them.
+//
+// ⚠⚠ `na0688_c4_collateral_arms` IS DELIBERATELY EXCLUDED AND CARRIES 45s/60000ms. It is the only
+// file that does work INSIDE the lease window (its in-lease probe runs two full CLI invocations,
+// each paying an Argon2id vault unlock, before the lease may expire) rather than merely waiting a
+// lease out. Those are DIFFERENT REQUIREMENTS, and CI proved it: at 8s that file's self-asserting
+// precondition measured the probe at 8.915s on a 2-core runner and REFUSED (PR #1802,
+// `qsc-shard-10`). ⚠ DO NOT "HARMONISE" na0688 BACK TO THESE VALUES — it will start refusing
+// again, correctly. A local 6-core run cannot reproduce the overrun.
+const TEST_PULL_LEASE_SECS: usize = 8;
+const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(20_000);
 
 /// ⚠⚠ **T7 USES A PRODUCTION-LENGTH LEASE, AND THE REASON IS MEASURED RATHER THAN STYLISTIC.**
 ///
@@ -224,8 +246,10 @@ fn receive_args<'a>(
     from: &'a str,
     out: &'a str,
     max: &'a str,
-    ack_mode: &'a str,
 ) -> Vec<&'a str> {
+    // NA-0770 (D-1411): the `ack_mode` parameter is gone. `receive` takes no such flag now, and
+    // the parameter had already stopped reaching the command line — a caller could pass "legacy"
+    // and silently get lease. A dead selector that still LOOKS live is worse than none.
     vec![
         "receive",
         "--transport",
@@ -240,8 +264,6 @@ fn receive_args<'a>(
         max,
         "--out",
         out,
-        "--ack-mode",
-        ack_mode,
     ]
 }
 
@@ -398,7 +420,6 @@ fn foreign_frame_arm(
             "bob",
             out.to_str().expect("out"),
             "8",
-            "lease",
         ),
     );
 
@@ -490,7 +511,6 @@ fn invite_class_frames_at_head_do_not_abort_the_batch() {
             "bob",
             c_out.to_str().expect("out"),
             "8",
-            "lease",
         ),
     );
     assert!(c_ok, "the control receive must succeed:\n{c_text}");
@@ -560,7 +580,6 @@ fn handshake_class_frame_at_head_does_not_abort_the_batch() {
             "bob",
             c_out.to_str().expect("out"),
             "8",
-            "lease",
         ),
     );
     assert!(
@@ -603,7 +622,7 @@ fn unknown_class_junk_still_reaches_unpack_and_still_rejects() {
     ensure_dir_700(&out);
     let (ok, text) = run_any(
         &bob,
-        &receive_args(&base, BOB, "bob", out.to_str().expect("out"), "8", "lease"),
+        &receive_args(&base, BOB, "bob", out.to_str().expect("out"), "8"),
     );
 
     assert!(
@@ -625,21 +644,41 @@ fn unknown_class_junk_still_reaches_unpack_and_still_rejects() {
 }
 
 // ===========================================================================
-// T4 — the MODE DISCRIMINATION test (E5). One arrangement, both modes.
-// ⚠ This is the proof that the Legacy bound is REAL rather than asserted.
+// T4 — ONCE the MODE DISCRIMINATION test (E5). One arrangement, both modes.
+//
+// ⚠⚠ NA-0770 (D-1411) — LOSS L2: THIS FILE'S SEALED E5 IS RETIRED, AND IT IS A SEAL, NOT A
+// CONVENIENCE. E5 was the proof that the skip's Legacy bound was REAL RATHER THAN ASSERTED: LEG 2
+// ran the identical arrangement under legacy and required it to ABORT and to emit NO skip marker,
+// so a green here could not be explained by the skip arm firing unconditionally. That is exactly
+// the shape a seal exists to hold, and it is gone — not weakened, GONE — because the mode it
+// discriminated against no longer exists to be driven.
+//
+// ⚠ WHY NOTHING REPLACES IT. `AckMode::Lease` is now the only mode, so "gated on Lease" and
+// "ungated" are no longer distinguishable BY OBSERVATION ANYWHERE IN THE PRODUCT. Any substitute
+// would need a second mode to contrast against, and manufacturing one — a test-only seam back to
+// a retired mode — is forbidden by this lane's brief and would in any case be measuring the seam.
+// The gate itself was deleted from the product (the skip arm is now unconditional), so there is no
+// longer a bound to seal; what is lost is the EVIDENCE THAT THE OLD BOUND WAS HONEST, which cannot
+// be re-earned after the fact.
+//
+// ⚠ WHAT SURVIVES: LEG 1, unchanged — under lease the foreign frame is skipped, exit 0, and the
+// `disposition=left_leased` marker fires. That is a real property and still worth pinning. It is
+// simply no longer CONTRASTIVE, and no reader should cite this test for the bound it used to hold.
 // ===========================================================================
 
 #[test]
-fn lease_skips_where_legacy_still_aborts() {
+fn lease_skips_the_foreign_frame_and_leaves_it_leased() {
     let _g = guard();
     let relay =
         common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, TEST_PULL_LEASE_SECS);
     let base = relay.base_url().to_string();
     let root = test_root("na0741_t4");
 
-    // ⚠ SEPARATE MAILBOXES PER LEG, AND THAT IS LOAD-BEARING: a legacy pull DELETES what it
-    // returns, so a shared mailbox would let the legacy leg destroy the lease leg's fixture and
-    // the second measurement would be of an empty inbox.
+    // ⚠ ONE LEG REMAINS, so the separate-mailbox precaution below is now vestigial — kept because
+    // it costs nothing and because a second leg, if one is ever earned back, would need it again.
+    // Its original reason: a legacy pull DELETED what it returned, so a shared mailbox would let
+    // the legacy leg destroy the lease leg's fixture and the second measurement would be of an
+    // empty inbox.
     let frame = invite_resp_frame("na0741-t4-third-party-route-tok-a");
 
     // ---- LEG 1: LEASE — skips, exits 0. ----
@@ -659,7 +698,6 @@ fn lease_skips_where_legacy_still_aborts() {
             "bob",
             l_out.to_str().expect("out"),
             "8",
-            "lease",
         ),
     );
     assert!(l_ok, "under LEASE the foreign frame must be skipped:\n{l_text}");
@@ -672,43 +710,6 @@ fn lease_skips_where_legacy_still_aborts() {
         "under LEASE the skip marker must fire:\n{l_text}"
     );
 
-    // ---- LEG 2: LEGACY — aborts exactly as today. ----
-    let legacy_dir = root.join("legacy");
-    ensure_dir_700(&legacy_dir);
-    const LEGACY_BOB: &str = "na0741-t4-legacy-bob-tok-ccccccccc";
-    let (g_alice, g_bob) = setup(&legacy_dir, "na0741-t4-legacy-alice-tok-ddddddd", LEGACY_BOB);
-    push_raw(&base, LEGACY_BOB, &frame);
-    send_message(
-        &g_alice,
-        &base,
-        &legacy_dir,
-        "m1.bin",
-        b"na0741 t4 legacy payload",
-    );
-    let g_out = legacy_dir.join("out");
-    ensure_dir_700(&g_out);
-    let (g_ok, g_text) = run_any(
-        &g_bob,
-        &receive_args(
-            &base,
-            LEGACY_BOB,
-            "bob",
-            g_out.to_str().expect("out"),
-            "8",
-            "legacy",
-        ),
-    );
-    assert!(
-        !g_ok,
-        "E5: under LEGACY the same arrangement must abort EXACTLY as today. Legacy is \
-         byte-unchanged in lane 1; if this leg passes, the skip is not gated on the ack mode:\n\
-         {g_text}"
-    );
-    assert!(
-        !g_text.contains("recv_frame_skipped"),
-        "E5: the skip arm fired under LEGACY. It is gated on `AckMode::Lease` and must be \
-         unreachable here:\n{g_text}"
-    );
 }
 
 // ===========================================================================
@@ -747,7 +748,7 @@ fn the_skip_marker_leaks_nothing() {
     ensure_dir_700(&out);
     let (ok, text) = run_any(
         &bob,
-        &receive_args(&base, BOB, "bob", out.to_str().expect("out"), "8", "lease"),
+        &receive_args(&base, BOB, "bob", out.to_str().expect("out"), "8"),
     );
     assert!(ok, "the foreign frame must be skipped:\n{text}");
     assert!(
@@ -854,7 +855,6 @@ fn both_mailboxes_of_a_completed_invite_receive_cleanly() {
             "redeemer",
             i_out.to_str().expect("out"),
             "8",
-            "lease",
         ),
     );
     assert!(
@@ -878,7 +878,6 @@ fn both_mailboxes_of_a_completed_invite_receive_cleanly() {
             "inviter",
             r_out.to_str().expect("out"),
             "8",
-            "lease",
         ),
     );
     assert!(
@@ -962,7 +961,7 @@ fn foreign_litter_at_the_head_still_delivers_up_to_max() {
     ensure_dir_700(&out);
     let (ok, text) = run_any(
         &bob,
-        &receive_args(&base, BOB, "bob", out.to_str().expect("out"), "4", "lease"),
+        &receive_args(&base, BOB, "bob", out.to_str().expect("out"), "4"),
     );
 
     assert!(ok, "the litter must not abort the batch:\n{text}");

@@ -38,7 +38,7 @@
 
 mod common;
 
-use qsc::cmd::{AckMode, SendTransport};
+use qsc::cmd::SendTransport;
 use qsc::output::{marker_queue, set_marker_routing, MarkerRouting};
 use qsc::relay::SendExecuteArgs;
 use qsc::transport::{receive_execute, send_execute};
@@ -342,12 +342,13 @@ fn send_once(relay: &str, base: &Path, tag: &str) {
     }
 }
 
-fn receive_once(relay: &str, mailbox: &str, out: &Path, ack: AckMode) {
+// NA-0770 (D-1411): the `ack: AckMode` parameter is gone with the mode. Every receive now
+// pulls with the lease shape, so there is nothing to pass.
+fn receive_once(relay: &str, mailbox: &str, out: &Path) {
     let args = ReceiveArgs {
         transport: Some(SendTransport::Relay),
         relay: Some(relay.to_string()),
         legacy_receive_mode: None,
-        ack_mode: Some(ack),
         attachment_service: None,
         from: Some("bob".to_string()),
         mailbox: Some(mailbox.to_string()),
@@ -474,21 +475,27 @@ fn measure_mode(mode: AuthMode) {
         secret_set(RELAY_TOKEN_KEY, RELAY_BEARER).expect("store relay token in bob vault");
     }
 
-    eprintln!("-- PULL (in-process receive_execute, ack_mode=Legacy) --");
-    let pull_cold = bracket(|| receive_once(&relay_url, BOB_MAILBOX, &bob_out, AckMode::Legacy));
-    let pull_warm = bracket(|| receive_once(&relay_url, BOB_MAILBOX, &bob_out, AckMode::Legacy));
-    print_row(&format!("PULL cold [{}]", mode.label()), &pull_cold);
-    print_row(&format!("PULL warm [{}]", mode.label()), &pull_warm);
-
-    eprintln!("-- ACK (in-process receive_execute, ack_mode=Lease = pull + ack) --");
-    let ack_cold = bracket(|| receive_once(&relay_url, BOB_MAILBOX, &bob_out, AckMode::Lease));
-    let ack_warm = bracket(|| receive_once(&relay_url, BOB_MAILBOX, &bob_out, AckMode::Lease));
-    print_row(&format!("ACK(lease) cold [{}]", mode.label()), &ack_cold);
-    print_row(&format!("ACK(lease) warm [{}]", mode.label()), &ack_warm);
-    eprintln!(
-        "   marginal ACK vs PULL (lease - legacy): {} derivations",
-        ack_cold.kdf as i64 - pull_cold.kdf as i64
-    );
+    // ⚠⚠ NA-0770 (D-1411) — LOSS L4, RECORDED HERE BECAUSE THIS IS WHERE IT HAPPENS.
+    //
+    // This harness used to run TWO arms and print their DIFFERENCE: a PULL arm under
+    // `AckMode::Legacy` (pull, no ack) and an ACK arm under `AckMode::Lease` (pull + ack). The
+    // retirement removes the Legacy arm, so both calls become THE SAME CALL and the marginal is
+    // structurally ZERO. The `marginal ACK vs PULL (lease - legacy)` line is therefore DELETED
+    // rather than left to print a meaningless 0.
+    //
+    // ⚠ **THE PUBLISHED FIGURE NO LONGER MEANS WHAT IT MEANT, AND IS NOT RE-BASELINED HERE.**
+    // The triple SEND=20 / PULL=15 / ACK=18 is carried as a SIZING INPUT for a SCHEDULED,
+    // NOT-YET-RUN vault lane at four record homes:
+    //     TRACEABILITY.md:1640
+    //     DECISIONS.md:33761, :33771, :33780
+    //     docs/ops/ROLLING_OPERATIONS_JOURNAL.md:44676   <- OUTSIDE Lane A's authorised set
+    // A future chair sizing that work must not read PULL=15 as a measurement that still exists.
+    // The FACT is recorded in Lane A's records; the fourth home's EDIT rides Lane B.
+    eprintln!("-- RECEIVE (in-process receive_execute; lease is the only mode after NA-0770) --");
+    let pull_cold = bracket(|| receive_once(&relay_url, BOB_MAILBOX, &bob_out));
+    let pull_warm = bracket(|| receive_once(&relay_url, BOB_MAILBOX, &bob_out));
+    print_row(&format!("RECEIVE cold [{}]", mode.label()), &pull_cold);
+    print_row(&format!("RECEIVE warm [{}]", mode.label()), &pull_warm);
 
     // keep the relay alive until here
     drop(relay);

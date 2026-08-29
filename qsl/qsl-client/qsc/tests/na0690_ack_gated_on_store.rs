@@ -58,8 +58,27 @@ use std::time::Duration;
 
 /// A 1-second server-side pull lease so an unacked item becomes visible again quickly — the values
 /// NA-0644 and NA-0689 use to prove lease redelivery against the real relay.
-const TEST_PULL_LEASE_SECS: usize = 1;
-const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(2500);
+// ⚠⚠ NA-0770 (D-1411) WIDENED THESE 1s/2500ms -> 8s/20000ms. THE RECORDED REASON IS MARGIN
+// AGAINST CONTENTION, and it is stated so a later reader does not "tidy" them back.
+//
+// Before this lane, arms that wanted a NEGATIVE result reached for delete-on-pull, which is
+// instantaneous and needs no waiting. With the mode retired, every such arm must instead wait out a
+// lease — so the suite's dependence on these two numbers went UP at the moment the mode went away.
+// They are now load-bearing in shards that run twelve-wide on six cores, where a 2500ms wait
+// against a 1s lease left almost no margin: an overrun does not merely slow the arm, it reports a
+// perfectly intact message as lost. The pair is kept in step across the files that only ever WAIT
+// OUT a lease: `NA_0644`, `na0689_capture`, `na0689_p3_a2`, `na0690`, `na0708`, `na0741`, and
+// `na0742` under its own names — if you change one of THOSE, change all of them.
+//
+// ⚠⚠ `na0688_c4_collateral_arms` IS DELIBERATELY EXCLUDED AND CARRIES 45s/60000ms. It is the only
+// file that does work INSIDE the lease window (its in-lease probe runs two full CLI invocations,
+// each paying an Argon2id vault unlock, before the lease may expire) rather than merely waiting a
+// lease out. Those are DIFFERENT REQUIREMENTS, and CI proved it: at 8s that file's self-asserting
+// precondition measured the probe at 8.915s on a 2-core runner and REFUSED (PR #1802,
+// `qsc-shard-10`). ⚠ DO NOT "HARMONISE" na0688 BACK TO THESE VALUES — it will start refusing
+// again, correctly. A local 6-core run cannot reproduce the overrun.
+const TEST_PULL_LEASE_SECS: usize = 8;
+const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(20_000);
 
 const ALICE_INBOX: &str = "na0690_alice_inbox_token_abcdefgh";
 const BOB_INBOX: &str = "na0690_bob_inbox_token_ijklmnopq";
@@ -236,8 +255,6 @@ fn receive_args<'a>(relay: &'a str, out: &'a str) -> Vec<&'a str> {
         "8",
         "--out",
         out,
-        "--ack-mode",
-        "lease",
     ]
 }
 

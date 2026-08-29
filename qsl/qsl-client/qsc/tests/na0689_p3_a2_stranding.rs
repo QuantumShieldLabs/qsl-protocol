@@ -29,10 +29,25 @@
 //! If the inviter runs `receive` before `handshake poll`, `receive` pulls A2 collaterally. **What
 //! the acking path does with a bare handshake frame is what decides whether A2 strands.**
 //!
-//! ⚠ EVERY ARM RUNS ITS LEGACY CONTROL FIRST, AND THAT IS THE WHOLE METHOD — adopted wholesale from
-//! `na0688_c4_collateral_arms.rs`. A lease-only arm could pass vacuously: "the handshake completed"
-//! proves nothing about collateral pulls unless the same topology is shown to STRAND under legacy.
-//! **A negative result is evidence only if the instrument could have returned positive.**
+//! ⚠⚠ NA-0770 (D-1411): THE LEGACY CONTROL LEG IS RETIRED WITH THE MODE, AND THIS FILE'S METHOD IS
+//! WEAKER FOR IT — said plainly rather than quietly. The original method, adopted wholesale from
+//! `na0688_c4_collateral_arms.rs`, ran a legacy control FIRST so that a lease-only arm could not pass
+//! vacuously: "the handshake completed" proves nothing about collateral pulls unless the same
+//! topology is shown to STRAND. **A negative result is evidence only if the instrument could have
+//! returned positive** — and the legacy leg was how this arm earned that.
+//!
+//! WHAT SURVIVES, AND WHY IT IS STILL WORTH RUNNING: LEG 0 is MODE-FREE and untouched. It shows the
+//! scaffolding REACHES `peer_confirmed=yes` with no collateral pull, so a negative in the treatment
+//! is still attributable to the collateral pull rather than to broken scaffolding — the specific
+//! failure (`P1`'s green-for-the-wrong-reason) this file was built to exclude.
+//!
+//! ⚠ WHAT IS LOST, EXACTLY: the in-suite demonstration that NON-CONFIRMATION IS OBSERVABLE AT ALL.
+//! Both remaining assertions on the handshake are POSITIVE. If a future change made
+//! `inviter_polls_for_a2` incapable of ever returning `false`, LEG 0 would not notice and the
+//! treatment would pass vacuously. That hole is REAL and is not filled by this lane: the only
+//! honest filler is a mode-free way to strand A2, which does not exist in the tree (see loss L3 —
+//! no `qsc` verb evicts a relay-mailbox head). It is recorded here so the next reader does not
+//! mistake this file's green for the strength it had on 2026-08-01.
 //!
 //! ⚠ THE RELAY MUST BE THE REAL ONE. The test-local mock in `common` parses only `max=` and always
 //! pops on pull, so it cannot express lease semantics and would make both arms vacuous.
@@ -53,7 +68,7 @@
 //! | leg | `qsc receive` on the bare A2 | outcome |
 //! |---|---|---|
 //! | **positive control** (no collateral pull) | not run | `peer_confirmed=yes` — the scaffolding CAN confirm |
-//! | **control** (legacy) | `qsp_unpack code=qsp_env_decode_failed`, then `error` | relay had already deleted A2 at pull; poll sees `handshake_recv msg=none` — **STRANDED** |
+//! | **control** (legacy) — ⚠ NO LONGER EXECUTABLE, retired NA-0770 | `qsp_unpack code=qsp_env_decode_failed`, then `error` | relay had already deleted A2 at pull; poll sees `handshake_recv msg=none` — **STRANDED** |
 //! | **treatment** (lease, shipped default) | same code, `recv_ack_mode mode=lease` | **no ack queued** → lease expires → redelivery → `handshake_recv msg=A2 ok=true` → `peer_confirmed=yes` |
 //!
 //! ⚠ **THE REASON IS STRUCTURAL, NOT LUCKY.** All five censused discard sites sit **downstream of a
@@ -79,8 +94,27 @@ use std::time::{Duration, Instant};
 
 /// A 1-second server-side pull lease, so an unacked item becomes visible again quickly.
 /// The same values NA-0644 uses to prove lease redelivery and NA-0688 C4 uses to prove survival.
-const TEST_PULL_LEASE_SECS: usize = 1;
-const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(2500);
+// ⚠⚠ NA-0770 (D-1411) WIDENED THESE 1s/2500ms -> 8s/20000ms. THE RECORDED REASON IS MARGIN
+// AGAINST CONTENTION, and it is stated so a later reader does not "tidy" them back.
+//
+// Before this lane, arms that wanted a NEGATIVE result reached for delete-on-pull, which is
+// instantaneous and needs no waiting. With the mode retired, every such arm must instead wait out a
+// lease — so the suite's dependence on these two numbers went UP at the moment the mode went away.
+// They are now load-bearing in shards that run twelve-wide on six cores, where a 2500ms wait
+// against a 1s lease left almost no margin: an overrun does not merely slow the arm, it reports a
+// perfectly intact message as lost. The pair is kept in step across the files that only ever WAIT
+// OUT a lease: `NA_0644`, `na0689_capture`, `na0689_p3_a2`, `na0690`, `na0708`, `na0741`, and
+// `na0742` under its own names — if you change one of THOSE, change all of them.
+//
+// ⚠⚠ `na0688_c4_collateral_arms` IS DELIBERATELY EXCLUDED AND CARRIES 45s/60000ms. It is the only
+// file that does work INSIDE the lease window (its in-lease probe runs two full CLI invocations,
+// each paying an Argon2id vault unlock, before the lease may expire) rather than merely waiting a
+// lease out. Those are DIFFERENT REQUIREMENTS, and CI proved it: at 8s that file's self-asserting
+// precondition measured the probe at 8.915s on a 2-core runner and REFUSED (PR #1802,
+// `qsc-shard-10`). ⚠ DO NOT "HARMONISE" na0688 BACK TO THESE VALUES — it will start refusing
+// again, correctly. A local 6-core run cannot reproduce the overrun.
+const TEST_PULL_LEASE_SECS: usize = 8;
+const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(20_000);
 
 fn guard() -> MutexGuard<'static, ()> {
     static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
@@ -202,9 +236,12 @@ fn drive_until_a2_in_flight(inviter: &Path, redeemer: &Path, base: &str) {
 }
 
 /// The INVITER's ORDINARY puller — `qsc receive`, the acking path — reading the same mailbox A2
-/// landed in. Aimed explicitly by `--ack-mode`, which `receive` accepts (unlike the three flag-less
-/// C4 callers, which must be aimed through the config key).
-fn inviter_receives_ordinary(cfg: &Path, base: &str, inbox: &str, out: &Path, ack_mode: &str) -> (bool, String) {
+/// landed in.
+///
+/// NA-0770 (D-1411): the `ack_mode` parameter is gone with the mode. `receive` no longer takes an
+/// `--ack-mode` selector, so this helper now exercises the ONE shipped behaviour (lease) and its
+/// single remaining caller is the treatment.
+fn inviter_receives_ordinary(cfg: &Path, base: &str, inbox: &str, out: &Path) -> (bool, String) {
     ensure_dir_700(out);
     run_any(
         cfg,
@@ -222,8 +259,6 @@ fn inviter_receives_ordinary(cfg: &Path, base: &str, inbox: &str, out: &Path, ac
             "8",
             "--out",
             out.to_str().expect("out"),
-            "--ack-mode",
-            ack_mode,
         ],
     )
 }
@@ -271,7 +306,7 @@ fn quarantine_count(cfg: &Path) -> (usize, String) {
 // decide the treatment's.
 // ---------------------------------------------------------------------------
 #[test]
-fn a2_collateral_pull_by_the_acking_path_strands_under_legacy_and_survives_under_lease() {
+fn a2_collateral_pull_by_the_acking_path_survives_under_lease() {
     let _g = guard();
     let started = Instant::now();
     let relay = common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, TEST_PULL_LEASE_SECS);
@@ -301,29 +336,21 @@ fn a2_collateral_pull_by_the_acking_path_strands_under_legacy_and_survives_under
          worthless — it would be measuring my own harness.\npoll:\n{b_poll}"
     );
 
-    // ---- CONTROL: legacy. The instrument MUST be able to observe stranding. ----
-    const CTRL_INVITER_INBOX: &str = "na0689p3_ctrl_inviter_tok_abcdefgh";
-    const CTRL_REDEEMER_INBOX: &str = "na0689p3_ctrl_redeemer_tok_ijklmn";
-    let ctrl = root.join("control");
-    ensure_dir_700(&ctrl);
-    let c_inviter = party(&ctrl, "inviter", CTRL_INVITER_INBOX);
-    let c_redeemer = party(&ctrl, "redeemer", CTRL_REDEEMER_INBOX);
-    drive_until_a2_in_flight(&c_inviter, &c_redeemer, &base);
-
-    let (_c_recv_ok, c_recv) =
-        inviter_receives_ordinary(&c_inviter, &base, CTRL_INVITER_INBOX, &ctrl.join("out"), "legacy");
-    // Wait past the lease before polling, for the same reason NA-0688 C4 records: under lease a
-    // pulled-but-unacked item is held INVISIBLE, not deleted, and polling inside the lease would
-    // measure IMMEDIATE VISIBILITY where the claim is SURVIVAL. The control is legacy, but the
-    // poll that follows is flag-less and therefore runs under the default — so the wait applies.
-    thread::sleep(LEASE_EXPIRY_WAIT);
-    let (c_confirmed, c_poll) = inviter_polls_for_a2(&c_inviter, &base);
-    assert!(
-        !c_confirmed,
-        "CONTROL FAILED: under legacy the collateral `receive` did not consume A2, so this arm \
-         cannot demonstrate anything about lease. The instrument is not positive-capable and its \
-         negative result below would be worthless.\nreceive:\n{c_recv}\npoll:\n{c_poll}"
-    );
+    // ---- CONTROL (legacy) — RETIRED BY NA-0770 (D-1411). ----
+    //
+    // The leg ran `receive --ack-mode legacy` on the same topology and asserted `!c_confirmed`: the
+    // relay deleted A2 at pull, the poll saw `handshake_recv msg=none`, and the handshake STRANDED.
+    // That assertion was this file's NEGATIVE CAPABILITY — the proof that a non-confirmation is
+    // observable here at all, and therefore that the treatment's `t_confirmed` is not vacuous.
+    //
+    // ⚠ IT IS NOT REPLACED, AND NO SUBSTITUTE IS SMUGGLED IN. Stranding A2 required deleting it at
+    // pull; with delete-on-pull retired, nothing in the shipped CLI can strand it (loss L3). A
+    // test-only seam to a retired mode is forbidden by this lane's brief, and faking the strand by
+    // reaching into the relay's store would measure the fake, not the client. The hole is named in
+    // the module header instead of being papered over.
+    //
+    // ⚠ LEG 0 IS A DIFFERENT CONTROL AND STILL RUNS: it is POSITIVE (the scaffolding CAN confirm),
+    // mode-free, and untouched. It does not restore what this leg did.
 
     // ---- TREATMENT: lease (the C4 default, and the shipped behaviour). ----
     const TREAT_INVITER_INBOX: &str = "na0689p3_treat_inviter_tok_opqrstu";
@@ -339,7 +366,6 @@ fn a2_collateral_pull_by_the_acking_path_strands_under_legacy_and_survives_under
         &base,
         TREAT_INVITER_INBOX,
         &treat.join("out"),
-        "lease",
     );
     thread::sleep(LEASE_EXPIRY_WAIT);
     let (t_confirmed, t_poll) = inviter_polls_for_a2(&t_inviter, &base);
@@ -364,12 +390,18 @@ fn a2_collateral_pull_by_the_acking_path_strands_under_legacy_and_survives_under
     );
 
     // ⚠ THE RUNTIME IS THE HONEST TELL. An all-clear on an impossible runtime is not reassurance:
-    // NA-0688 saw `0 CONTROL FAILED` printed by runs that died before any control executed. Two
-    // full invite handshakes plus two lease waits cannot complete instantly.
+    // NA-0688 saw `0 CONTROL FAILED` printed by runs that died before any control executed.
+    //
+    // NA-0770 (D-1411): RETUNED 2x -> 1x BECAUSE ONE WAIT REMAINS, not to make the arm easier. The
+    // legacy control carried the other `LEASE_EXPIRY_WAIT`; with that leg retired, a 2x floor would
+    // be an assertion this file can no longer satisfy on its own terms, and lowering it is
+    // arithmetic on the waits actually executed — NOT a weakened tripwire. Two full invite
+    // handshakes (LEG 0 and the treatment) plus the treatment's lease wait still cannot elapse
+    // instantly, so the tell survives.
     let elapsed = started.elapsed();
     assert!(
-        elapsed >= 2 * LEASE_EXPIRY_WAIT,
-        "impossible runtime {elapsed:?}: both lease waits cannot have elapsed, so the arms did \
-         not run as written"
+        elapsed >= LEASE_EXPIRY_WAIT,
+        "impossible runtime {elapsed:?}: the treatment's lease wait cannot have elapsed, so the \
+         arms did not run as written"
     );
 }

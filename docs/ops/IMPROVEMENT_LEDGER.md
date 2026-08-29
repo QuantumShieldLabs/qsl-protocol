@@ -6542,3 +6542,37 @@ let items = match source {
 
 - Scope of record: `LANEB_NA0770_records_and_prose_sweep.md`, banked 444 in the operator tree, sha256 `398bb2a7...0e29`.
 - Cross-references: `D-1411` (Lane A, the product retirement), `ENG-0142` / `ENG-0253` / `ENG-0254` (entries whose own prose Lane A already corrected in place, and which Lane B therefore does NOT need to revisit).
+
+### ENG-0256 — ⚠ A DOCUMENTED TEST SEAM CANNOT BE COMPILED: `--cfg qsc_rng_failure_test_seam` FAILS AT THE LIB LEVEL WITH FOUR TYPE ERRORS IN `vault/mod.rs`, SO ALL 28 TESTS GATED BEHIND IT ARE DEAD WEIGHT THAT NO RUN CAN EXERCISE AND NO GATE CAN NOTICE — **NEW; filed 2026-08-29 by NA-0771 (`D-1412`) on `NA-0770` `STOP_NA0770_010` finding F-H, RE-MEASURED FROM A RUN BY THIS SEAT. FILING ONLY — not repaired, and no repair is authorised by this lane.**
+
+⚠⚠ **NOT INTRODUCED BY THIS PROGRAM'S RECENT WORK.** `NA-0770` measured the identical failure at qsl-protocol main `3b685e7933d7a6dcabf0feeb7817833b25de6914` and at its own branch head, in a detached worktree holding zero of its bytes. This seat re-measured it at `39cd39e6`. The defect is **pre-existing**; the lanes that met it did not create it.
+
+- Severity: **NOT ASSIGNED BY THIS SEAT — OWED.** The Director proposes and the operator rules. ⚠ The field is present rather than omitted **on purpose**: `ENG-0142` records that an entry carrying no `- Severity:` bullet was *"uncountable by the triage instrument for six days"*, so the needle must find a field here even while its value is owed.
+- Status: open — filed 2026-08-29 by NA-0771 (`D-1412`). ⚠ **DELIBERATELY NOT REPAIRED.** `vault/mod.rs` is a vault surface and is outside this lane's authorised edit set, which the kickoff bounds to `handshake/mod.rs` and possibly one decoder site, naming a third product file as a **STOP**. `NA-0770` reached the same conclusion for the same reason and named it for the Director rather than fixing it.
+- Bases measured at: qsl-protocol main `39cd39e68e4853502b19393a11acf4d37f746767`, re-derived bare and unpiped at the NAMED `github` remote, 40/40 digits compared with a negative-controlled comparator.
+
+⚠⚠ **THE MEASUREMENT, WITH BOTH ARMS AND THE VALUES THEY PRODUCED.** Instrument: `cargo check -p qsc --lib --message-format=short`, run in a target directory of its own so neither arm reused the other's artifacts.
+
+  **ARM A — WITH the cfg** (`RUSTFLAGS="--cfg qsc_rng_failure_test_seam"`): **exit 101**, `error: could not compile 'qsc' (lib) due to 4 previous errors`. The four, quoted verbatim from the run:
+
+```
+qsl/qsl-client/qsc/src/vault/mod.rs:570:51: error[E0308]: mismatched types: expected `&str`, found `CliError`
+qsl/qsl-client/qsc/src/vault/mod.rs:578:9: error[E0308]: mismatched types: expected `String`, found `Result<String, &str>`
+qsl/qsl-client/qsc/src/vault/mod.rs:728:69: error[E0277]: `?` couldn't convert the error to `output::CliError`: the trait `From<&str>` is not implemented for `output::CliError`
+qsl/qsl-client/qsc/src/vault/mod.rs:733:8: error[E0308]: mismatched types: expected `Result<String, &str>`, found `String`
+```
+
+  **ARM B — POSITIVE CONTROL, the same command with the cfg removed:** **exit 0**, `Finished 'dev' profile [unoptimized + debuginfo] target(s) in 14.40s`.
+
+  ⇒ **THE ARMS DIFFER (101 vs 0) AND THE ONLY VARIABLE IS THE CFG.** The default build is healthy; the seam build is not. Stated this way because an arm that fails without a passing counterpart proves nothing about the cause.
+
+⚠⚠ **THE SIZE OF THE DEAD WEIGHT, COUNTED FROM THE BYTES RATHER THAN ESTIMATED.** `#[cfg(qsc_rng_failure_test_seam)]` appears **28 times across 9 test files**, and all 28 sit directly above a test: `rng_failure_residual_surfaces.rs` **7** · `rng_failure_behavior.rs` **4** · `cli_identity_rotation_provider_rng_failure.rs` / `kem_provider_rng_failure.rs` / `lazy_identity_provider_rng_failure.rs` / `legacy_identity_public_record_provider_rng_failure.rs` **3** each · `a2_signature_provider_rng_failure.rs` / `b1_signature_provider_rng_failure.rs` **2** each · `na0742_invite_finish_scan_producer_acks.rs` **1**. The seam's product side spans **five files** — `identity/mod.rs` (23 occurrences), `vault/mod.rs` (17), `handshake/mod.rs` (13), `attachments/mod.rs` (10), `protocol_state/mod.rs` (6). ⚠ **`STOP_NA0770_010` F-H names ONE test** (`na0742`'s `t8`) because that was the one its own edit touched; the seam's real reach is **28 tests**, and the figure is stated here so the entry is scheduled against its true size.
+
+⚠⚠ **WHAT THE `not(...)` COMPANION DOES AND DOES NOT PROVE.** The tree's own idiom pairs each gated test with a `#[cfg(not(qsc_rng_failure_test_seam))]` companion asserting the seam is **ABSENT** from default builds; those companions compile and pass. **That is true, and it is not the same claim as the seam WORKING.** A green suite is therefore fully consistent with a seam that has never compiled — which is precisely why nothing noticed.
+
+⚠ **THE PROVENANCE OF THE SEAM, AND A SECOND DECLARING FORM FOUND WHILE VERIFYING IT.** The seam is the `D-0883` RNG-failure test-only seam (`NA-0449`; `TRACEABILITY.md:312`). ⚠ `D-0883` has **no `## D-0883` heading**: it is declared as `- **ID:** D-0883` at `DECISIONS.md:22932`. ⇒ **`DECISIONS.md` carries TWO declaring forms**, and an id sweep using only the modern `## D-####` form is narrower than its claim. Measured at this edit: the legacy form tops out at **`D-1312`** against the modern form's **`D-1411`**, so the live range is unaffected — but that is luck, not design, and it is recorded so the next sweep checks both.
+
+- Estimated repair cost: **NOT ESTIMATED.** The four errors are a self-consistent cluster around one `Result<String, &str>` / `CliError` boundary in `vault/mod.rs`, which suggests a single small change — but that is a reading, not a measurement, and this seat did not attempt the repair. An entry that guesses its own cost is a schedule built on a guess.
+- Recommended change: **NONE PROPOSED.** Two dispositions are visible and neither is chosen here: **repair the seam** so the 28 tests become runnable, or **retire it** and delete what depends on it. A third — leave it — is named so the option set is not narrower than its claim (`D-1371`), and it is the status quo, which has held undetected for the life of the seam.
+- Cross-references: `D-0883` (the seam's authorising record), `ENG-0230` (another gate that cannot see what it is supposed to gate), `D-1411` / `STOP_NA0770_010` F-G and F-H (where the seam's uncompilability was first measured), `ENG-0255` (the sibling filing from the same lane, likewise not repaired).
+- Source: `STOP_NA0770_010_20260829T022633Z.md` finding **F-H**, whole-file sha256 `d6db3a79de2018afa685eab013d35916d7adb82864b0eed5162e182c04792bbf`, banked 444 under `/srv/qbuild/operator/NA-0770/`. **Every figure above was produced by a run in this seat and not adopted from that finding** — including the 28-test count, which F-H does not state. ⚠ **Claim boundary:** this seat measured at `39cd39e6` only; the claim *"and at `3b685e79`"* is `NA-0770`'s measurement, carried and attributed, not re-run here. Nothing here claims the 28 tests would PASS if the seam compiled — only that no run can currently reach them.

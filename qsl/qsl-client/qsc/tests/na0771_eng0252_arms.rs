@@ -1,4 +1,67 @@
+//! NA-0771 (`D-1412`) — THE ENG-0252 ARMS.
+//!
+//! `ENG-0252`: a frame carrying nothing but the public 16-byte `session_id` and arbitrary
+//! bytes could destroy the addressed handshake pending record before any cryptographic
+//! operation ran. The repair deletes every `hs_pending_clear` that is not class (i) (a
+//! session was stored) or class (iv) (the local record will not parse), and makes the
+//! initiator's context-mismatch exit a `continue` as the responder's already was.
+//!
+//! ## THE FOUR ARMS AND WHAT EACH PINS
+//!
+//!   * **A1** the INITIATOR site (`:1783`). A 6438-byte forged RESP carrying the victim's
+//!     cleartext session id. Asserts the record is UNTOUCHED with `assert_eq!(before,
+//!     after)` — the strong form. `assert!(!after.is_empty())` cannot tell "survived"
+//!     from "replaced" and is not used here.
+//!   * **A2** the RESPONDER decode-Err site (`:2247`), reached by NINE bytes that do not
+//!     even carry a session id. Ships with BOTH controls: the positive (a `suite-required`
+//!     initiator makes a `legacy-compat` responder's pending WIRE-EXPLICIT) and the
+//!     negative (a `legacy-compat` initiator must leave it null). Without the negative the
+//!     positive proves nothing.
+//!   * **A3** the RESPONDER confirm-MAC site (`:2101`), reached by a confirm whose mac and
+//!     sig are ZERO. It is class (ii) — "a MAC was checked" — and a zero mac reaches it,
+//!     which is why class (ii) is not automatically safe.
+//!   * **A4** the LEASE-SERVER completion arm, on a REAL in-process `qsl-server` with real
+//!     lease expiry, at **N = 1 and N = 4** poison frames against `--max 4`.
+//!
+//! ## ⚠⚠ WHY A4 ASSERTS A FAILURE AT N = 4, AND WHY THAT IS NOT A BUG
+//!
+//! The relay delivers in strict insertion order (`store.rs:723`, `ORDER BY seq LIMIT ?3`),
+//! a lease moves no message (`:752`), and rejects are never acked. So for **N < `--max`**
+//! the poison and the honest B1 arrive together and the `continue` walks past the poison
+//! to complete the handshake; for **N >= `--max`** the pull returns only poison and there
+//! is nothing behind it to continue to.
+//!
+//! **This lane does not repair that.** It is `ENG-0198`'s recorded shape — *"the
+//! budget-exhaustion mechanism ... on the poll side, with `--max` as the budget the
+//! rejects exhaust"* — which is OPEN and pre-existing. `ENG-0252` is filed as a third
+//! cause of the same outward shape.
+//!
+//! ⚠ A4's N = 4 case therefore asserts a state this lane calls a DEFECT. It is pinned as
+//! the **`ENG-0198` BOUNDARY**, not as desired behaviour: it exists so that a later lane
+//! which changes `--max`, the fetch shape, or the ack discipline sees this arm move
+//! instead of finding a silent pass. **When `ENG-0198` is repaired, THIS ARM SHOULD GO
+//! RED, and that is the arm working.**
+//!
+//! ## THE COUNT GUARD, AND WHAT IT DOES NOT CATCH
+//! `g_clear_sites` pins that `hs_pending_clear` has exactly four call sites and names
+//! them. Its limits are stated at the guard itself.
+
+#![allow(dead_code, unused_imports, unused_variables)]
 mod common;
+
+use quantumshield_refimpl::crypto::stdcrypto::{
+    runtime_pq_kem_ciphertext_bytes, runtime_pq_sig_public_key_bytes,
+    runtime_pq_sig_signature_bytes,
+};
+use std::thread;
+use std::time::Duration;
+
+// ⚠ The harness helpers below are TRANSCRIBED from
+// `na_0313_handshake_suite_id_parameter_block.rs` rather than shared: they are not in
+// `tests/common/`, and `common/mod.rs` is consumed by ~108 targets, so widening it for one
+// lane would put every one of them in this change's blast radius. `na_0313` itself
+// transcribes from `handshake_mvp.rs` for the same reason. Transcribed, not re-derived.
+
 
 use argon2::{Algorithm, Argon2, Params, Version};
 use chacha20poly1305::aead::{Aead, Payload};
@@ -230,25 +293,6 @@ fn read_mock_vault_secret(cfg: &Path, name: &str) -> Option<String> {
         .and_then(|v| v.get(name))
         .and_then(|v| v.as_str())
         .map(ToOwned::to_owned)
-}
-
-fn pending_raw(cfg: &Path, self_label: &str, peer: &str) -> String {
-    read_mock_vault_secret(cfg, &format!("handshake.pending.{self_label}.{peer}"))
-        .unwrap_or_default()
-}
-
-/// NA-0771 (`D-1412`): a reject decided BEFORE the peer authenticated must leave the
-/// pending record untouched. The STRONG form -- `assert!(!after.is_empty())` cannot tell
-/// "survived" from "replaced", so equality is the assertion wherever a "before" exists.
-fn assert_pending_unchanged(cfg: &Path, self_label: &str, peer: &str, before: &str) {
-    let key = format!("handshake.pending.{self_label}.{peer}");
-    assert!(!before.is_empty(), "precondition: a pending record must exist for {key}");
-    let after = pending_raw(cfg, self_label, peer);
-    assert_eq!(
-        before, after,
-        "NA-0771: the pending record must SURVIVE UNCHANGED a reject decided before any \
-         authentication, for {key}"
-    );
 }
 
 fn assert_no_pending(cfg: &Path, self_label: &str, peer: &str) {
@@ -572,317 +616,235 @@ fn init_alice(alice_cfg: &Path, relay: &str, suite_mode: &str) -> std::process::
     )
 }
 
+const LEASE_SECS: usize = 3;
+const LEASE_WAIT: Duration = Duration::from_millis(4500);
+
+fn pending_raw(cfg: &Path, self_label: &str, peer: &str) -> String {
+    read_mock_vault_secret(cfg, &format!("handshake.pending.{self_label}.{peer}"))
+        .unwrap_or_default()
+}
+
+fn pending_suite_context(cfg: &Path, self_label: &str, peer: &str) -> Value {
+    let raw = pending_raw(cfg, self_label, peer);
+    assert!(!raw.is_empty(), "no pending record for {self_label}.{peer}");
+    let v: Value = serde_json::from_str(&raw).expect("pending is JSON");
+    v.get("suite_context").cloned().unwrap_or(Value::Null)
+}
+
+fn session_id_of(cfg: &Path, self_label: &str, peer: &str) -> [u8; 16] {
+    let v: Value = serde_json::from_str(&pending_raw(cfg, self_label, peer)).unwrap();
+    let arr = v.get("session_id").and_then(|x| x.as_array()).expect("session_id");
+    let mut s = [0u8; 16];
+    for (k, b) in arr.iter().enumerate() { s[k] = b.as_u64().unwrap() as u8; }
+    s
+}
+
+fn push_raw(base: &str, token: &str, bytes: &[u8]) {
+    let client = reqwest::blocking::Client::builder()
+        .timeout(Duration::from_secs(5)).build().expect("client");
+    let r = client.post(&format!("{base}/v1/push"))
+        .header("X-QSL-Route-Token", token)
+        .body(bytes.to_vec()).send().expect("push");
+    assert_eq!(r.status().as_u16(), 200, "raw push rejected");
+}
+
+/// A wire-version-2 RESP carrying `session_id` and otherwise zeros. The whole of the
+/// attacker's bill of materials is the published inbox route token and the cleartext
+/// session id; no key, no MAC, no signature.
+fn forged_v2_resp(session_id: &[u8; 16]) -> Vec<u8> {
+    let payload_len = 16 + runtime_pq_kem_ciphertext_bytes() + 32
+        + runtime_pq_sig_public_key_bytes() + runtime_pq_sig_signature_bytes() + 32;
+    let mut f = Vec::with_capacity(9 + payload_len);
+    f.extend_from_slice(b"QHSM");
+    f.extend_from_slice(&2u16.to_be_bytes());
+    f.push(2u8);                                 // HS_TYPE_RESP
+    f.extend_from_slice(&0u16.to_be_bytes());    // parameter block length 0
+    f.extend_from_slice(session_id);
+    f.resize(9 + payload_len, 0u8);
+    f
+}
+
+// ── A1 ─────────────────────────────────────────────────────────────────────
 #[test]
-fn qsc_handshake_suite_id_parameter_block_harness() {
-    assert_na0310_categories_present();
+fn na0771_a1_initiator_pending_survives_unauthenticated_frame() {
     let server = common::start_inbox_server(1024 * 1024, 64);
-    let base = safe_test_root().join(format!("na0313_qsc_suite_id_{}", std::process::id()));
+    let base = safe_test_root().join(format!("na0771_a1_{}", std::process::id()));
+    create_dir_700(&base);
+    let relay = server.base_url().to_string();
+    let (alice, _bob) = new_pair(&base, "a1");
+
+    let init = init_alice(&alice, &relay, "legacy-compat");
+    assert!(init.status.success(), "{}", output_text(&init));
+    let a1 = server.drain_channel(ROUTE_TOKEN_BOB).pop().expect("A1 queued");
+    assert_eq!(u16::from_be_bytes([a1[4], a1[5]]), 1, "legacy-compat emits a v1 A1");
+
+    let before = pending_raw(&alice, "alice", "bob");
+    assert!(!before.is_empty(), "precondition: alice holds a pending record");
+
+    // the session id, read off the wire exactly as a relay operator would
+    let sid: [u8; 16] = a1[7..23].try_into().expect("session_id at the v1 payload offset");
+    let evil = forged_v2_resp(&sid);
+    server.replace_channel(ROUTE_TOKEN_ALICE, vec![evil]);
+
+    let poll = poll_alice(&alice, &relay, "legacy-compat");
+    let text = output_text(&poll);
+    assert!(text.contains("REJECT_QSC_HS_CONTEXT_MISMATCH"), "the frame must still be REJECTED by name: {text}");
+
+    let after = pending_raw(&alice, "alice", "bob");
+    // ⚠ THE STRONG FORM. `!after.is_empty()` would pass on a record that survived but was
+    // REPLACED; equality is the property.
+    assert_eq!(before, after, "ENG-0252: an unauthenticated frame must leave the pending record UNTOUCHED");
+}
+
+// ── A2 ─────────────────────────────────────────────────────────────────────
+#[test]
+fn na0771_a2_responder_pending_survives_nine_byte_frame() {
+    let server = common::start_inbox_server(1024 * 1024, 64);
+    let base = safe_test_root().join(format!("na0771_a2_{}", std::process::id()));
     create_dir_700(&base);
     let relay = server.base_url().to_string();
 
-    let (alice_valid, bob_valid) = new_pair(&base, "valid-v2");
-    let alice_init = init_alice(&alice_valid, &relay, "suite-required");
-    assert!(alice_init.status.success(), "{}", output_text(&alice_init));
-    let a1 = server
-        .drain_channel(ROUTE_TOKEN_BOB)
-        .pop()
-        .expect("A1 queued");
-    assert_v2_suite2_frame(&a1, 1);
+    // POSITIVE CONTROL: a suite-required initiator makes a legacy-compat responder's
+    // pending WIRE-EXPLICIT. `hs_decode_init` admits the parameter block where the two
+    // poll decoders do not.
+    let (a_pos, b_pos) = new_pair(&base, "a2-pos");
+    let i = init_alice(&a_pos, &relay, "suite-required");
+    assert!(i.status.success(), "{}", output_text(&i));
+    let a1 = server.drain_channel(ROUTE_TOKEN_BOB).pop().expect("A1");
+    assert_eq!(u16::from_be_bytes([a1[4], a1[5]]), 2, "suite-required emits a v2 A1");
+    server.replace_channel(ROUTE_TOKEN_BOB, vec![a1]);
+    assert!(poll_bob(&b_pos, &relay, "legacy-compat").status.success());
+    let ctx_pos = pending_suite_context(&b_pos, "bob", "alice");
+    assert!(!ctx_pos.is_null(), "positive control: the responder's pending must be wire-explicit");
+
+    // NEGATIVE CONTROL: a legacy-compat initiator must leave it null. Without this arm the
+    // positive proves nothing.
+    let (a_neg, b_neg) = new_pair(&base, "a2-neg");
+    assert!(init_alice(&a_neg, &relay, "legacy-compat").status.success());
+    let a1n = server.drain_channel(ROUTE_TOKEN_BOB).pop().expect("A1 v1");
+    server.replace_channel(ROUTE_TOKEN_BOB, vec![a1n]);
+    assert!(poll_bob(&b_neg, &relay, "legacy-compat").status.success());
+    assert!(pending_suite_context(&b_neg, "bob", "alice").is_null(),
+        "negative control: a v1 A1 must leave suite_context null");
+
+    // THE NINE BYTES. No session id at all.
+    let before = pending_raw(&b_pos, "bob", "alice");
+    assert!(!before.is_empty());
+    let nine = vec![0x51u8, 0x48, 0x53, 0x4d, 0x00, 0x02, 0x03, 0x00, 0x00];
+    assert_eq!(nine.len(), 9);
+    server.replace_channel(ROUTE_TOKEN_BOB, vec![nine]);
+    assert!(poll_bob(&b_pos, &relay, "legacy-compat").status.success());
+    let after = pending_raw(&b_pos, "bob", "alice");
+    assert_eq!(before, after, "ENG-0252: nine bytes must not destroy a wire-explicit responder pending");
+}
+
+// ── A3 ─────────────────────────────────────────────────────────────────────
+#[test]
+fn na0771_a3_responder_pending_survives_zero_mac_confirm() {
+    let server = common::start_inbox_server(1024 * 1024, 64);
+    let base = safe_test_root().join(format!("na0771_a3_{}", std::process::id()));
+    create_dir_700(&base);
+    let relay = server.base_url().to_string();
+    let (alice, bob) = new_pair(&base, "a3");
+
+    assert!(init_alice(&alice, &relay, "suite-required").status.success());
+    let a1 = server.drain_channel(ROUTE_TOKEN_BOB).pop().expect("A1");
     server.replace_channel(ROUTE_TOKEN_BOB, vec![a1.clone()]);
-    let bob_poll = poll_bob(&bob_valid, &relay, "suite-required");
-    assert!(bob_poll.status.success(), "{}", output_text(&bob_poll));
-    let b1 = server
-        .drain_channel(ROUTE_TOKEN_ALICE)
-        .pop()
-        .expect("B1 queued");
-    assert_v2_suite2_frame(&b1, 2);
-    server.replace_channel(ROUTE_TOKEN_ALICE, vec![b1.clone()]);
-    let alice_poll = poll_alice(&alice_valid, &relay, "suite-required");
-    assert!(alice_poll.status.success(), "{}", output_text(&alice_poll));
-    let a2 = server
-        .drain_channel(ROUTE_TOKEN_BOB)
-        .pop()
-        .expect("A2 queued");
-    assert_v2_suite2_frame(&a2, 3);
-    server.replace_channel(ROUTE_TOKEN_BOB, vec![a2.clone()]);
-    let bob_confirm = poll_bob(&bob_valid, &relay, "suite-required");
-    assert!(
-        bob_confirm.status.success(),
-        "{}",
-        output_text(&bob_confirm)
-    );
-    assert!(session_path(&alice_valid, "bob").exists());
-    assert!(session_path(&bob_valid, "alice").exists());
-    assert_session_suite2(&alice_valid, "bob");
-    assert_session_suite2(&bob_valid, "alice");
-    let valid_text = [
-        output_text(&alice_init),
-        output_text(&bob_poll),
-        output_text(&alice_poll),
-        output_text(&bob_confirm),
-    ]
-    .join("\n");
-    assert!(valid_text.contains("reason=ACCEPT_QSC_HS_SUITE2"));
-    assert_no_leak_or_panic(&valid_text);
-    println!("NA0313_QHSM_V2_PARAMETER_BLOCK_PARSE_OK");
-    println!("NA0313_VALID_SUITE2_ACCEPT_OK");
-    println!("NA0313_TRANSCRIPT_BINDING_OK");
-    println!("NA0313_KEY_CONTEXT_BINDING_OK");
+    assert!(poll_bob(&bob, &relay, "legacy-compat").status.success());
+    assert!(!pending_suite_context(&bob, "bob", "alice").is_null());
+    let before = pending_raw(&bob, "bob", "alice");
 
-    let (alice_legacy, bob_legacy) = new_pair(&base, "legacy-compat");
-    let legacy_init = init_alice(&alice_legacy, &relay, "legacy-compat");
-    let legacy_a1 = server
-        .drain_channel(ROUTE_TOKEN_BOB)
-        .pop()
-        .expect("legacy A1 queued");
-    assert_v1_frame(&legacy_a1, 1);
-    server.replace_channel(ROUTE_TOKEN_BOB, vec![legacy_a1.clone()]);
-    let legacy_bob = poll_bob(&bob_legacy, &relay, "legacy-compat");
-    let legacy_b1 = server
-        .drain_channel(ROUTE_TOKEN_ALICE)
-        .pop()
-        .expect("legacy B1 queued");
-    assert_v1_frame(&legacy_b1, 2);
-    server.replace_channel(ROUTE_TOKEN_ALICE, vec![legacy_b1]);
-    let legacy_alice = poll_alice(&alice_legacy, &relay, "legacy-compat");
-    let legacy_a2 = server
-        .drain_channel(ROUTE_TOKEN_BOB)
-        .pop()
-        .expect("legacy A2 queued");
-    assert_v1_frame(&legacy_a2, 3);
-    server.replace_channel(ROUTE_TOKEN_BOB, vec![legacy_a2]);
-    let legacy_confirm = poll_bob(&bob_legacy, &relay, "legacy-compat");
-    let legacy_text = [
-        output_text(&legacy_init),
-        output_text(&legacy_bob),
-        output_text(&legacy_alice),
-        output_text(&legacy_confirm),
-    ]
-    .join("\n");
-    assert!(legacy_text.contains("reason=ACCEPT_QSC_HS_LEGACY_COMPATIBILITY"));
-    assert!(session_path(&alice_legacy, "bob").exists());
-    assert!(session_path(&bob_legacy, "alice").exists());
-    assert_no_leak_or_panic(&legacy_text);
-    println!("NA0313_LEGACY_COMPAT_ACCEPT_OK");
+    // A well-formed CONFIRM: the pending's own session id, the CANONICAL public block, and
+    // ZERO for mac and sig. It passes the context test and fails the confirm MAC.
+    let sid = session_id(&a1);
+    let block = canonical_suite_block();
+    let payload_len = 16 + 32 + runtime_pq_sig_signature_bytes();
+    let mut f = Vec::with_capacity(9 + block.len() + payload_len);
+    f.extend_from_slice(b"QHSM");
+    f.extend_from_slice(&2u16.to_be_bytes());
+    f.push(3u8);                                        // HS_TYPE_CONFIRM
+    f.extend_from_slice(&(block.len() as u16).to_be_bytes());
+    f.extend_from_slice(&block);
+    f.extend_from_slice(&sid);
+    f.resize(9 + block.len() + payload_len, 0u8);
+    server.replace_channel(ROUTE_TOKEN_BOB, vec![f]);
 
-    let (alice_required_reject, bob_required_reject) = new_pair(&base, "legacy-required-reject");
-    let _legacy_init = init_alice(&alice_required_reject, &relay, "legacy-compat");
-    let legacy_a1 = server
-        .drain_channel(ROUTE_TOKEN_BOB)
-        .pop()
-        .expect("legacy required-reject A1");
-    server.replace_channel(ROUTE_TOKEN_BOB, vec![legacy_a1]);
-    let reject = poll_bob(&bob_required_reject, &relay, "suite-required");
-    let reject_text = output_text(&reject);
-    assert_reject_output(&reject_text, "REJECT_QSC_HS_LEGACY_REQUIRED");
-    assert!(!session_path(&bob_required_reject, "alice").exists());
-    assert_no_pending(&bob_required_reject, "bob", "alice");
-    assert!(server.drain_channel(ROUTE_TOKEN_ALICE).is_empty());
-    println!("NA0313_REQUIRED_MODE_LEGACY_REJECT_OK");
+    let text = output_text(&poll_bob(&bob, &relay, "legacy-compat"));
+    assert!(text.contains("REJECT_QSC_HS_TRANSCRIPT_CONTEXT"),
+        "the confirm must still be rejected by name at :2101's branch: {text}");
+    let after = pending_raw(&bob, "bob", "alice");
+    assert_eq!(before, after,
+        "a MAC that FAILED proves the sender knew nothing; the record must survive");
+}
 
-    let (alice_fixture, bob_fixture) = new_pair(&base, "parser-fixture");
-    let fixture_init = init_alice(&alice_fixture, &relay, "suite-required");
-    assert!(
-        fixture_init.status.success(),
-        "{}",
-        output_text(&fixture_init)
-    );
-    let fixture_a1 = server
-        .drain_channel(ROUTE_TOKEN_BOB)
-        .pop()
-        .expect("fixture A1");
-    let invalid_cases = [
-        (
-            "unsupported",
-            replace_param_block(&fixture_a1, &suite_block(0x0500, 0x9999)),
-            "REJECT_QSC_HS_SUITE_UNSUPPORTED",
-        ),
-        (
-            "downgrade",
-            replace_param_block(&fixture_a1, &suite_block(0x0403, 0x0001)),
-            "REJECT_QSC_HS_DOWNGRADE",
-        ),
-        (
-            "stripped",
-            replace_param_block(&fixture_a1, &param(UNKNOWN_PARAM_ID, false, &[0x00])),
-            "REJECT_QSC_HS_SUITE_MISSING",
-        ),
-        (
-            "duplicate",
-            replace_param_block(
-                &fixture_a1,
-                &concat_params(&[canonical_suite_block(), canonical_suite_block()]),
-            ),
-            "REJECT_QSC_HS_DUPLICATE_PARAMETER",
-        ),
-        (
-            "unknown-critical",
-            replace_param_block(
-                &fixture_a1,
-                &concat_params(&[
-                    canonical_suite_block(),
-                    param(UNKNOWN_PARAM_ID, true, SECRET_SENTINEL),
-                ]),
-            ),
-            "REJECT_QSC_HS_UNKNOWN_CRITICAL",
-        ),
-        (
-            "unknown-noncritical",
-            replace_param_block(
-                &fixture_a1,
-                &concat_params(&[
-                    canonical_suite_block(),
-                    param(UNKNOWN_PARAM_ID, false, &[0x00]),
-                ]),
-            ),
-            "REJECT_QSC_HS_UNKNOWN_PARAMETER",
-        ),
-        (
-            "noncanonical",
-            replace_param_block(
-                &fixture_a1,
-                &concat_params(&[
-                    param(UNKNOWN_PARAM_ID, false, &[0x00]),
-                    canonical_suite_block(),
-                ]),
-            ),
-            "REJECT_QSC_HS_NONCANONICAL_ORDER",
-        ),
-        (
-            "malformed",
-            replace_param_block(
-                &fixture_a1,
-                &[0x00, 0x01, 0x01, 0x00, 0x03, 0x05, 0x00, 0x00, 0x02],
-            ),
-            "REJECT_QSC_HS_MALFORMED_LENGTH",
-        ),
-        (
-            "inconsistent",
-            replace_param_block(&fixture_a1, &suite_block(0x0403, 0x0002)),
-            "REJECT_QSC_HS_INCONSISTENT_TUPLE",
-        ),
-    ];
-    for (label, frame, reason) in invalid_cases {
-        server.replace_channel(ROUTE_TOKEN_BOB, vec![frame]);
-        let out = poll_bob(&bob_fixture, &relay, "suite-required");
-        let text = output_text(&out);
-        assert_reject_output(&text, reason);
-        assert!(!session_path(&bob_fixture, "alice").exists(), "{label}");
-        assert_no_pending(&bob_fixture, "bob", "alice");
-        assert!(
-            server.drain_channel(ROUTE_TOKEN_ALICE).is_empty(),
-            "{label} emitted B1"
-        );
-    }
-    println!("NA0313_UNSUPPORTED_SUITE_REJECT_OK");
-    println!("NA0313_DOWNGRADE_SUITE_REJECT_OK");
-    println!("NA0313_STRIPPED_SUITE_REJECT_OK");
-    println!("NA0313_DUPLICATE_SUITE_REJECT_OK");
-    println!("NA0313_UNKNOWN_CRITICAL_REJECT_OK");
-    println!("NA0313_NONCANONICAL_REJECT_OK");
-    println!("NA0313_MALFORMED_REJECT_OK");
+// ── A4 ─────────────────────────────────────────────────────────────────────
+fn a4_at(n: usize) -> (bool, String) {
+    let server = common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, LEASE_SECS);
+    let base = safe_test_root().join(format!("na0771_a4_{}_{}", n, std::process::id()));
+    create_dir_700(&base);
+    let relay = server.base_url().to_string();
+    let (alice, bob) = new_pair(&base, &format!("a4n{n}"));
 
-    let (alice_mismatch, bob_mismatch) = new_pair(&base, "a1-b1-mismatch");
-    let init = init_alice(&alice_mismatch, &relay, "suite-required");
-    assert!(init.status.success(), "{}", output_text(&init));
-    let a1 = server.drain_channel(ROUTE_TOKEN_BOB).pop().unwrap();
-    server.replace_channel(ROUTE_TOKEN_BOB, vec![a1]);
-    let bob = poll_bob(&bob_mismatch, &relay, "suite-required");
-    let b1 = server.drain_channel(ROUTE_TOKEN_ALICE).pop().unwrap();
-    let bad_b1 = replace_param_block(&b1, &suite_block(0x0500, 0x9999));
-    server.replace_channel(ROUTE_TOKEN_ALICE, vec![bad_b1]);
-    let before_mismatch = pending_raw(&alice_mismatch, "alice", "bob");
-    let alice = poll_alice(&alice_mismatch, &relay, "suite-required");
-    let text = [output_text(&bob), output_text(&alice)].join("\n");
-    assert_reject_output(&text, "REJECT_QSC_HS_CONTEXT_MISMATCH");
-    assert!(!session_path(&alice_mismatch, "bob").exists());
-    assert_pending_unchanged(&alice_mismatch, "alice", "bob", &before_mismatch);
-    assert!(server.drain_channel(ROUTE_TOKEN_BOB).is_empty());
-    println!("NA0313_MISMATCH_SUITE_REJECT_OK");
+    assert!(init_alice(&alice, &relay, "legacy-compat").status.success());
+    let sid = session_id_of(&alice, "alice", "bob");
+    let evil = forged_v2_resp(&sid);
+    for _ in 0..n { push_raw(&relay, ROUTE_TOKEN_ALICE, &evil); }
 
-    let (alice_transcript, bob_transcript) = new_pair(&base, "transcript-mismatch");
-    let init = init_alice(&alice_transcript, &relay, "suite-required");
-    assert!(init.status.success(), "{}", output_text(&init));
-    let a1 = server.drain_channel(ROUTE_TOKEN_BOB).pop().unwrap();
-    server.replace_channel(ROUTE_TOKEN_BOB, vec![a1]);
-    let bob = poll_bob(&bob_transcript, &relay, "suite-required");
-    let bob_text = output_text(&bob);
-    let b1 = server.drain_channel(ROUTE_TOKEN_ALICE).pop().unwrap();
-    let bad_b1 = mutate_b1_transcript_field(&b1, &bob_text);
-    server.replace_channel(ROUTE_TOKEN_ALICE, vec![bad_b1]);
-    let before_transcript = pending_raw(&alice_transcript, "alice", "bob");
-    let alice = poll_alice(&alice_transcript, &relay, "suite-required");
-    let text = output_text(&alice);
-    assert_reject_output(&text, "REJECT_QSC_HS_TRANSCRIPT_CONTEXT");
-    assert!(!session_path(&alice_transcript, "bob").exists());
-    assert_pending_unchanged(&alice_transcript, "alice", "bob", &before_transcript);
-    assert!(server.drain_channel(ROUTE_TOKEN_BOB).is_empty());
+    // bob answers honestly; his B1 queues BEHIND the poison, in insertion order
+    assert!(poll_bob(&bob, &relay, "legacy-compat").status.success());
 
-    let (alice_key_context, _bob_key_context) = new_pair(&base, "key-context-missing");
-    let legacy_init = init_alice(&alice_key_context, &relay, "legacy-compat");
-    assert!(
-        legacy_init.status.success(),
-        "{}",
-        output_text(&legacy_init)
-    );
-    let legacy_a1 = server.drain_channel(ROUTE_TOKEN_BOB).pop().unwrap();
-    let mut fake_b1 = b1.clone();
-    set_session_id(&mut fake_b1, &session_id(&legacy_a1));
-    server.replace_channel(ROUTE_TOKEN_ALICE, vec![fake_b1]);
-    let before_key_context = pending_raw(&alice_key_context, "alice", "bob");
-    let alice = poll_alice(&alice_key_context, &relay, "suite-required");
-    let text = output_text(&alice);
-    assert_reject_output(&text, "REJECT_QSC_HS_KEY_CONTEXT");
-    assert!(!session_path(&alice_key_context, "bob").exists());
-    assert_pending_unchanged(&alice_key_context, "alice", "bob", &before_key_context);
+    let p1 = output_text(&poll_alice(&alice, &relay, "legacy-compat"));
+    thread::sleep(LEASE_WAIT);
+    let p2 = output_text(&poll_alice(&alice, &relay, "legacy-compat"));
+    (session_path(&alice, "bob").exists(), format!("{p1}\n{p2}"))
+}
 
-    let (alice_a2_mismatch, bob_a2_mismatch) = new_pair(&base, "b1-a2-mismatch");
-    let init = init_alice(&alice_a2_mismatch, &relay, "suite-required");
-    assert!(init.status.success(), "{}", output_text(&init));
-    let a1 = server.drain_channel(ROUTE_TOKEN_BOB).pop().unwrap();
-    server.replace_channel(ROUTE_TOKEN_BOB, vec![a1]);
-    let bob = poll_bob(&bob_a2_mismatch, &relay, "suite-required");
-    assert!(bob.status.success(), "{}", output_text(&bob));
-    let b1 = server.drain_channel(ROUTE_TOKEN_ALICE).pop().unwrap();
-    server.replace_channel(ROUTE_TOKEN_ALICE, vec![b1]);
-    let alice = poll_alice(&alice_a2_mismatch, &relay, "suite-required");
-    assert!(alice.status.success(), "{}", output_text(&alice));
-    let a2 = server.drain_channel(ROUTE_TOKEN_BOB).pop().unwrap();
-    let bad_a2 = replace_param_block(&a2, &suite_block(0x0500, 0x9999));
-    server.replace_channel(ROUTE_TOKEN_BOB, vec![bad_a2]);
-    let before_a2_mismatch = pending_raw(&bob_a2_mismatch, "bob", "alice");
-    let bob = poll_bob(&bob_a2_mismatch, &relay, "suite-required");
-    let text = output_text(&bob);
-    assert_reject_output(&text, "REJECT_QSC_HS_CONTEXT_MISMATCH");
-    assert!(!session_path(&bob_a2_mismatch, "alice").exists());
-    assert_pending_unchanged(&bob_a2_mismatch, "bob", "alice", &before_a2_mismatch);
+#[test]
+fn na0771_a4_lease_relay_completes_below_max_and_not_at_it() {
+    // N = 1 < --max 4 : the `continue` walks past the poison and the handshake COMPLETES.
+    let (session_n1, text_n1) = a4_at(1);
+    assert!(text_n1.contains("REJECT_QSC_HS_CONTEXT_MISMATCH"), "the poison must be rejected by name");
+    assert!(session_n1, "N=1: the honest B1 behind the poison must complete the handshake");
 
-    let (alice_replay_a1, bob_replay_a1) = new_pair(&base, "replay-a1");
-    let init = init_alice(&alice_replay_a1, &relay, "suite-required");
-    assert!(init.status.success(), "{}", output_text(&init));
-    let a1 = server.drain_channel(ROUTE_TOKEN_BOB).pop().unwrap();
-    server.replace_channel(ROUTE_TOKEN_BOB, vec![a1.clone()]);
-    let bob = poll_bob(&bob_replay_a1, &relay, "suite-required");
-    assert!(bob.status.success(), "{}", output_text(&bob));
-    let _ = server.drain_channel(ROUTE_TOKEN_ALICE);
-    server.replace_channel(ROUTE_TOKEN_BOB, vec![a1]);
-    let before_replay_a1 = pending_raw(&bob_replay_a1, "bob", "alice");
-    let replay = poll_bob(&bob_replay_a1, &relay, "suite-required");
-    let text = output_text(&replay);
-    assert_reject_output(&text, "REJECT_QSC_HS_REPLAY");
-    assert!(!session_path(&bob_replay_a1, "alice").exists());
-    assert_pending_unchanged(&bob_replay_a1, "bob", "alice", &before_replay_a1);
+    // N = 4 >= --max 4 : the pull returns ONLY poison and there is nothing to continue to.
+    // ⚠⚠ THIS ASSERTS A DEFECT, DELIBERATELY. It is `ENG-0198`'s budget-exhaustion shape,
+    // OPEN and pre-existing, which NA-0771 does NOT repair. Pinned as the BOUNDARY so a
+    // later lane that changes `--max`, the fetch shape or the ack discipline sees this arm
+    // move rather than finding a silent pass.
+    // ⇒ WHEN `ENG-0198` IS REPAIRED THIS ASSERTION SHOULD GO RED. That is the arm working.
+    let (session_n4, _text_n4) = a4_at(4);
+    assert!(!session_n4,
+        "N=4: ENG-0198 BOUNDARY — at or above `--max` the poll returns only poison and \
+         cannot reach the honest B1. If this failed, ENG-0198's shape has changed and this \
+         arm must be re-derived, not deleted.");
+}
 
-    let before_replay_a2 = fs::read(session_path(&bob_valid, "alice")).expect("bob session");
-    server.replace_channel(ROUTE_TOKEN_BOB, vec![a2]);
-    let replay = poll_bob(&bob_valid, &relay, "suite-required");
-    let text = output_text(&replay);
-    assert_reject_output(&text, "REJECT_QSC_HS_REPLAY");
-    let after_replay_a2 = fs::read(session_path(&bob_valid, "alice")).expect("bob session after");
-    assert_eq!(before_replay_a2, after_replay_a2);
+// ── THE COUNT GUARD ────────────────────────────────────────────────────────
+#[test]
+fn na0771_g_clear_sites_are_four_and_named() {
+    let src = fs::read_to_string(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/handshake/mod.rs"))
+        .expect("read handshake/mod.rs");
+    let calls: Vec<usize> = src
+        .lines()
+        .enumerate()
+        .filter(|(_, l)| l.trim() == "let _ = hs_pending_clear(self_label, peer);")
+        .map(|(i, _)| i + 1)
+        .collect();
+    assert_eq!(calls.len(), 4,
+        "NA-0771 INVARIANT: a pending record is destroyed only when a session was stored \
+         (class i) or the local record will not parse (class iv). Found {} call sites at \
+         {:?}; expected 4.", calls.len(), calls);
 
-    println!("NA0313_NO_MUTATION_ON_REJECT_OK");
-    println!("NA0313_NO_OUTPUT_ON_REJECT_OK");
-    println!("NA0313_NO_SECRET_LEAK_OK");
-    println!("NA0313_QSC_SUITE_ID_PARAMETER_BLOCK_OK");
+    // ⚠⚠ WHAT THIS GUARD DOES NOT CATCH (M-5). A count pins WHERE; the invariant is about
+    // WHEN. Three mechanisms defeat it and are present in the file today:
+    //   (i)   a clear INLINED through `vault::secret_set(&key, "")` + `fs::remove_file`,
+    //         which is all `hs_pending_clear` is — the count stays at four;
+    //   (ii)  a `hs_pending_store` of a record with emptied fields — `secret_set` on the
+    //         pending key has THREE writers (`:1231` the loader's legacy migration,
+    //         `:1244` store, `:1253` clear), and store is unconditional;
+    //   (iii) a surviving site MOVED — wrapping the class-(i) clear in a condition, or
+    //         hoisting it above `qsp_session_store`, keeps four and breaks class (i).
+    // ⇒ THE PROPERTY'S REAL PIN IS A1–A4, which assert what survives what. This guard is a
+    //   cheap tripwire for the likeliest regression: a clear put back at a deleted site.
 }

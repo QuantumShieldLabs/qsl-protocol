@@ -269,6 +269,33 @@ merge activated SR-14/15/16 together.)
   (the Director still rules from the artifact). **It does not license a seat to shorten a stop
   file: the audit's cure is always to CARRY more, never to claim less.**
 
+  (a'') ⚠⚠ **A CARRIED DOCUMENT IS VERIFIED BY ITS OWN WHOLE-FILE DIGEST, AFTER STAMPING.**
+      [DIRECTOR'S AMENDMENT, NA-0771 / `RULING_NA0771_004` sec 3 B-3, 2026-08-29 — marked
+      as such so the operator may refuse it at merge. Landed by NA-0771 (`D-1412`).]
+      A stop's SELF-DIGEST may MASK a class of bytes — the construction in use masks every
+      64-hex run — and a digest that masks a class **cannot see an edit in that class**.
+      Therefore the carry check must not use it. For every document a stop carries:
+        · the stamping pass MUST NOT WRITE INSIDE a carried document at all; and
+        · after stamping and BEFORE banking, each carried document is EXTRACTED from the
+          finished bytes, hashed with a WHOLE-FILE sha256, and compared to the value
+          printed beside it. **The comparison is printed in the same file.** A mismatch
+          is a STOP, not a note.
+      ⚠ THE INSTANCE THIS PARAGRAPH IS MINTED ON: **STOP_NA0771_004**. Its stamping pass
+      filled every `@@SELFDIGEST@@` placeholder in the file with its own digest — INCLUDING
+      the two literals inside the two carried SR-15 cold-read documents, corrupting each by
+      +50 bytes (64 − 14) at the line stating that file's own construction. Both carries'
+      printed `sha256` and `size` were wrong for the bytes actually carried. **The stop's
+      seal verified anyway**, because the corruption is invisible to a construction that
+      normalises hex; and its self-containment audit could not see it either, because that
+      audit STRIPS embeds — so the one pass that writes into carries and the one pass that
+      could have caught it were blind in exactly opposite directions.
+      ⚠ AND THE FIRST CURE HAD THE SAME BLINDNESS: a fence-label pattern of `[^-]+` silently
+      skipped the two documents whose labels contain a hyphen — the very two the defect was
+      about. It was caught only because the instrument printed its own CARDINALITY (six
+      carries found where eight were specified) rather than only its verdict.
+      ⇒ **AN INSTRUMENT THAT REPORTS A VERDICT WITHOUT ITS COUNT CANNOT REPORT THAT IT
+      LOOKED AT THE WRONG NUMBER OF THINGS.**
+
 ## C. ADOPTION LADDER (machinery items; one per checkpoint; each ships with its own red-capable proof)
 1. **Post-NA-0696 governance errand** (docs-only PR, with the ENG-0048 pairing window):
    lands THIS FILE at docs/ops/STANDING_RULES.md + PREDICTION_LEDGER.md + a ledger WF

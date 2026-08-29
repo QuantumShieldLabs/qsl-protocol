@@ -230,3 +230,32 @@ RENDERED OUTPUT CANNOT BE CHECKED BY ANY SOURCE CENSUS."* It was found only by r
 emitted line. **No product byte was changed in response:** the redaction is a standing safety
 property, and loosening it under momentum inside a lane about ack modes is exactly the unscoped
 change this lane's armed trigger exists to prevent. Named for the Director, not actioned.
+
+## 12. CI FOUND WHAT NO LOCAL RUN COULD, AND THE ARM DIAGNOSED ITSELF
+
+The local full suite went green on the committed tree — `na0688_c4_collateral_arms` 3/3, twice.
+**CI's 2-core runner failed it**, and the failure is the reconstruction's own precondition firing:
+
+```
+PRECONDITION UNMET, NOT A RESULT: the in-lease probe finished at 8.915026925s, past the
+8s lease, so it cannot tell 'withheld' from 'redelivered' and the control below would be
+meaningless. Widen TEST_PULL_LEASE_SECS; do not delete this probe.
+```
+
+⚠⚠ **THIS IS THE ARM WORKING, NOT FAILING.** The probe is two full CLI invocations — a command
+plus a `receive`, each paying an Argon2id vault unlock — and on a slower box they overran the
+window. Had the arm assumed its window instead of asserting it, the item would have been
+redelivered, probe 1 would have recovered it, and the run would have reported **a false
+negative-capability result** with no indication why. It refused instead, and named the remedy.
+
+**THE FIX IS SCOPED BY MEASUREMENT, NOT BY REFLEX.** `na0688` alone goes to 45s/60000ms (~5× the
+measured 8.915s worst case). The other seven files keep 8s/20000ms: they only ever **wait a lease
+out**, they need no work to fit inside one, and **all seven sit on CI shards that passed
+unchanged** — verified per file against its shard's result. Raising them would have added ~20
+minutes of pure sleep to the suite for no benefit.
+
+⚠ **IT ALSO FALSIFIES A COMMENT I WROTE EARLIER IN THIS LANE.** The widening note said the pair is
+kept in step across all eight files, "if you change one, change all of them". That is now false for
+`na0688`. It was corrected in **all seven** remaining files, each stating why `na0688` diverges and
+warning against "harmonising" it back — because a parity claim that is false is worse than no
+claim, and the next reader's most likely instinct is exactly the wrong one.

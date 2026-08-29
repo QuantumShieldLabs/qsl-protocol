@@ -48,9 +48,17 @@ const BOB_MAILBOX: &str = "na0644_bob_mailbox_token_wxyz567";
 // lease — so the suite's dependence on these two numbers went UP at the moment the mode went away.
 // They are now load-bearing in shards that run twelve-wide on six cores, where a 2500ms wait
 // against a 1s lease left almost no margin: an overrun does not merely slow the arm, it reports a
-// perfectly intact message as lost. The pair is kept in step across every file that defines it
-// (`NA_0644`, `na0688`, `na0689_capture`, `na0689_p3_a2`, `na0690`, `na0708`, `na0741`, and
-// `na0742` under its own names) — if you change one, change all of them.
+// perfectly intact message as lost. The pair is kept in step across the files that only ever WAIT
+// OUT a lease: `NA_0644`, `na0689_capture`, `na0689_p3_a2`, `na0690`, `na0708`, `na0741`, and
+// `na0742` under its own names — if you change one of THOSE, change all of them.
+//
+// ⚠⚠ `na0688_c4_collateral_arms` IS DELIBERATELY EXCLUDED AND CARRIES 45s/60000ms. It is the only
+// file that does work INSIDE the lease window (its in-lease probe runs two full CLI invocations,
+// each paying an Argon2id vault unlock, before the lease may expire) rather than merely waiting a
+// lease out. Those are DIFFERENT REQUIREMENTS, and CI proved it: at 8s that file's self-asserting
+// precondition measured the probe at 8.915s on a 2-core runner and REFUSED (PR #1802,
+// `qsc-shard-10`). ⚠ DO NOT "HARMONISE" na0688 BACK TO THESE VALUES — it will start refusing
+// again, correctly. A local 6-core run cannot reproduce the overrun.
 const TEST_PULL_LEASE_SECS: usize = 8;
 const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(20_000);
 

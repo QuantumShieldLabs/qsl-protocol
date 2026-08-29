@@ -50,8 +50,23 @@ use std::sync::{Mutex, MutexGuard, OnceLock};
 use std::thread;
 use std::time::{Duration, Instant};
 
-/// An 8-second server-side pull lease. Same values NA-0644 uses to prove lease redelivery, and the
-/// parity is deliberate — if you change one, change both.
+/// A 45-second server-side pull lease.
+///
+/// ⚠⚠ THIS FILE DELIBERATELY NO LONGER MATCHES `NA_0644`'s 8s/20000ms, AND THE DIVERGENCE IS THE
+/// POINT RATHER THAN DRIFT. The old comment here claimed parity with `NA_0644` and said "if you
+/// change one, change both". That parity was true while both files only ever WAITED OUT a lease.
+/// It stopped being true when NA-0770 gave this file the IN-LEASE PROBE: every other file needs
+/// `LEASE_EXPIRY_WAIT > lease` and nothing more, but THIS file must fit TWO FULL CLI INVOCATIONS
+/// — a command plus a `receive`, each paying an Argon2id vault unlock — INSIDE the lease window.
+/// Those are different requirements and forcing one pair of numbers to serve both is how a
+/// constant ends up wrong for everybody.
+///
+/// ⚠ THE NUMBERS ARE NOT GUESSED. CI measured the in-lease probe at **8.915s** on a 2-core runner
+/// against the then-8s lease, and the self-asserting precondition below REFUSED rather than
+/// reporting a false negative-capability result (PR #1802, `qsc-shard-10`). 45s is ~5x that
+/// measured worst case; `LEASE_EXPIRY_WAIT` must exceed the lease for the redelivery half, so it
+/// is 60s. ⚠ A local 6-core run CANNOT reproduce the overrun — the only instrument that found it
+/// was a slower machine, which is why the precondition exists and must not be deleted.
 ///
 /// ⚠⚠ NA-0770 (D-1411) WIDENED THESE 1s/2500ms -> 8s/20000ms, AND THE REASON IS LOAD-BEARING, NOT
 /// FLAKE-CHASING. The retirement of `AckMode::Legacy` cost these arms their legacy control, and the
@@ -65,8 +80,8 @@ use std::time::{Duration, Instant};
 /// [`LEASE_DURATION`] and FAILS LOUDLY if the probe overran, rather than silently converting a slow
 /// box into a false negative-capability result. If that assertion ever fires, widen the lease; do
 /// not delete the probe.
-const TEST_PULL_LEASE_SECS: usize = 8;
-const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(20_000);
+const TEST_PULL_LEASE_SECS: usize = 45;
+const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(60_000);
 /// The lease as a `Duration`, for the in-lease probe's self-check. Derived from the SAME constant
 /// handed to the relay, so the two cannot drift apart.
 const LEASE_DURATION: Duration = Duration::from_secs(TEST_PULL_LEASE_SECS as u64);

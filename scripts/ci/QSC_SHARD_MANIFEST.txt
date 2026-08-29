@@ -149,3 +149,4 @@ tests/na0760_workspace_license_agpl_only.rs	5
 tests/na0764_m3_empty_slot_accept.rs	6
 tests/na0764_contact_surface_widening.rs	6
 tests/na0770_legacy_retirement_guards.rs	3
+tests/na0771_eng0252_arms.rs	10

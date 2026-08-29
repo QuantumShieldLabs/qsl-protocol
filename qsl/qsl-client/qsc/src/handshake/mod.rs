@@ -1775,14 +1775,12 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                         if suite_mode == HandshakeSuiteMode::SuiteRequired
                             && !pending_suite_context.is_explicit()
                         {
-                            let _ = hs_pending_clear(self_label, peer);
                             hs_reject_key_context();
-                            return Ok(());
+                            continue;
                         }
                         if !hs_contexts_match(&pending_suite_context, &resp.suite_context) {
-                            let _ = hs_pending_clear(self_label, peer);
                             hs_reject_context_mismatch();
-                            return Ok(());
+                            continue;
                         }
                         let active_suite_context = pending_suite_context.clone();
                         let c = StdCrypto;
@@ -1853,7 +1851,6 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                         let mac = hs_transcript_mac(&pq_init_ss, &a1, &b1_no_auth);
                         if !hs_ct_eq_32(&mac, &resp.mac) {
                             if resp.suite_context.is_explicit() {
-                                let _ = hs_pending_clear(self_label, peer);
                                 hs_emit_suite_reject("REJECT_QSC_HS_TRANSCRIPT_CONTEXT");
                             } else {
                                 emit_marker(
@@ -2028,11 +2025,6 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                         return Ok(());
                     }
                     Err(reason) => {
-                        if reason.starts_with("REJECT_QSC_HS_")
-                            && pending_suite_context.is_explicit()
-                        {
-                            let _ = hs_pending_clear(self_label, peer);
-                        }
                         hs_emit_decode_reject(reason);
                         continue;
                     }
@@ -2063,12 +2055,10 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                         if suite_mode == HandshakeSuiteMode::SuiteRequired
                             && !pending_suite_context.is_explicit()
                         {
-                            let _ = hs_pending_clear(self_label, peer);
                             hs_reject_key_context();
                             continue;
                         }
                         if !hs_contexts_match(&pending_suite_context, &confirm.suite_context) {
-                            let _ = hs_pending_clear(self_label, peer);
                             hs_reject_context_mismatch();
                             continue;
                         }
@@ -2098,7 +2088,6 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                         if !hs_ct_eq_32(&expect, &confirm.mac) {
                             emit_marker("handshake_recv", None, &[("msg", "A2"), ("ok", "false")]);
                             if active_suite_context.is_explicit() {
-                                let _ = hs_pending_clear(self_label, peer);
                                 hs_emit_suite_reject("REJECT_QSC_HS_TRANSCRIPT_CONTEXT");
                             } else {
                                 emit_marker("handshake_reject", None, &[("reason", "bad_confirm")]);
@@ -2222,7 +2211,6 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                                     pending_suite_context.explicit_block(),
                                     hs_fuzz_suite_mode(suite_mode),
                                 ) {
-                                    let _ = hs_pending_clear(self_label, peer);
                                     hs_reject_replay();
                                     continue;
                                 }
@@ -2235,16 +2223,10 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                                         &init.suite_context,
                                     )
                                 {
-                                    let _ = hs_pending_clear(self_label, peer);
                                     hs_reject_replay();
                                     continue;
                                 }
                             }
-                        }
-                        if reason.starts_with("REJECT_QSC_HS_")
-                            && pending_suite_context.is_explicit()
-                        {
-                            let _ = hs_pending_clear(self_label, peer);
                         }
                         hs_emit_decode_reject(reason);
                         continue;

@@ -6,7 +6,8 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0770 | HIGHEST_NA=0770 | HIGHEST_D=1411 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0771 | HIGHEST_NA=0771 | HIGHEST_D=1414 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- prior: STATE: READY=NA-0770 | HIGHEST_NA=0770 | HIGHEST_D=1411 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0771 PROMOTED for **D-1412** — **THE ENG-0252 REPAIR LANE: THE UNGATED DESTRUCTIVE CLEAR**: a frame carrying nothing but the public 16-byte `session_id` and arbitrary bytes reaches a context-mismatch branch that destroys the addressed handshake pending record BEFORE any MAC, signature or decapsulation runs, on BOTH roles; this lane measures why each such clear exists, then specifies the minimal change that leaves every one of them either gated on authentication or removed. ⚠ THE SPECIFICATION IS NOT IN THIS PROMOTION: the kickoff's sec 2 orders measurement first, and the spec lands in a later act. ⚠⚠ `HIGHEST_D` advances by THREE, not one, and the reason is stated so it does not read as double-spending: `D-1412` is this lane's own record, and `D-1413`/`D-1414` are the TWO PROPERTY D-RECORDS the kickoff sec 5(2) and `CLOSEOUT_NA0770_laneA_20260829.md` sec 8 both order by that count — P-FACADE and L1–L5. All three derived at this edit with a positive and a negative control. ⚠ NA-0770 Lane A is DONE: PR #1802 merged, and main's tip `39cd39e68e4853502b19393a11acf4d37f746767` IS that merge commit — measured bare and unpiped at the named `github` remote, not assumed. Its result class `CLIENT_LEGACY_ACK_MODE_RETIRED_PASS` is carried here from the Director's close-out rather than invented by this seat.) -->
 <!-- prior: STATE: READY=NA-0769 | HIGHEST_NA=0769 | HIGHEST_D=1410 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0770 PROMOTED for **D-1411** — **THE LEGACY RETIREMENT, LANE A**: `AckMode::Legacy` — delete-on-pull — is deleted from the client on two grounds that stand independent of why it was built (it is the wrong delivery guarantee, and it is structurally incompatible with the delivery ladder's rung 3); the config key is TOMBSTONED rather than silently ignored, the writer refusing it by name and the reader reporting a third state; every capability the retirement costs is named at its site as one of seven losses rather than covered over, and the one negative capability that could be rebuilt mode-free was — by probing inside the lease window instead of reaching for a retired mode. ⚠ NA-0769 is DONE: PR #1801 merged, and main's tip `3b685e7933d7a6dcabf0feeb7817833b25de6914` IS that merge commit — measured at the named `github` remote, not assumed. ⚠⚠ NA-0769's RESULT CLASS IS STILL OWED and is deliberately NOT invented here: `D-1410` records *"(none declared — the Director declares the result class at close)"*, and no class for NA-0769 exists anywhere in repo truth or the operator tree at this edit. The Director declares it.) -->
 
 <!-- prior: STATE: READY=NA-0767 | HIGHEST_NA=0767 | HIGHEST_D=1408 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0769 PROMOTED for **D-1410** — **THE SECURITY FILING LANE**: two pre-existing hazards found by the SR-15 reads of NA-0768 are filed as defects in their own right (`ENG-0252` the ungated destructive clear, `ENG-0253` the delete-on-pull amplification), a third is found while measuring them (`ENG-0254`), and the reads' four clear-reachable reasons measure six — filing only, nothing repaired) -->
@@ -37566,9 +37567,56 @@ Status: DONE 2026-08-26 (D-1404; class `LIVENESS_TICK_FIELD_PROVEN_PASS`, declar
 ⚠⚠ **A GAP THAT BOUNDS `E1`, FOUND WHILE DERIVING THE FLIGHT CARD RATHER THAN ON THE RIG.** The verbs' own doc comments name their sides: `invite_redeem` is *"Bob: redeem an invite and hand shake into the slot"*, **`invite_accept` is *"Alice: collect the handshake from her own invite slot and answer it"***, and `invite_finish` is *"Bob: collect the wrapped B1 from his own inbox"*. This lane's tick automates **`invite_finish` — Bob's side ONLY**. `invite_accept` is **registered** as a desktop command and invoked from `ui/` **exactly zero times** (its one occurrence there is a comment); it is reachable only from the `qsc` CLI (`main.rs:370`). ⇒ **on a two-desktop flight, Alice's accept must be driven from the CLI, or the chain stalls there and Bob's tick spins finding nothing.** Pre-existing — the shipped redeem flow always had this shape — not introduced here and not repaired here, and now carried in the flight card.
 
 ⚠ **Claim boundary.** **Harness green is NOT a field claim.** Acceptance is the operator's two-machine flight against the AWS relay at the blessed tempo, whose flight card is carried at STOP 2; before it, the two queued operator one-commands from the NA-0762 close-out's section 6 are answered. Nothing merged by the seat; the operator merges.
+### NA-0771 — THE ENG-0252 REPAIR LANE: THE UNGATED DESTRUCTIVE CLEAR — a frame carrying nothing but the public 16-byte correlator and arbitrary bytes can no longer destroy the addressed handshake pending record before any cryptographic operation of any kind (Director's kickoff `KICKOFF_ENG0252_repair_20260829.md` sha256 `22e5bcb994b268f74c43b6cb7d60ab20addc82607d52b5668b2eb25a91b89881`, banked 444 under `/srv/qbuild/operator/NA-0771/` and sha-VERIFIED against its own bytes BEFORE being read — all 64 digits compared mechanically with a negative control proving the comparator discriminates, and the immutability control run on BOTH arms with the arms shown to DIFFER; ground `ORDER_ladder_climb_sequencing_20260828.md` sha256 `0c9e9c46b990dc04e49749cff9e9be963ed9aaf77354c6aa6b411740e625cb58` R3 step 2; authorship arrangement `ORDER_NA0770_seat_authors_20260828.md`, R4 of that same order)
+
+Status: PROMOTED for **D-1412** (2026-08-29)
+Owner: Executor seat (Claude Code) · Goals: G4
+
+⛳⛳ **WHAT THIS BUYS (SR-03).** A pending handshake can no longer be destroyed by a frame nobody authenticated. Today a frame carrying only the public 16-byte `session_id` and arbitrary bytes reaches a context-mismatch branch that clears the pending record BEFORE any MAC is checked, on both roles. Fixing this first is what lets the inviter repair stop having to CLAIM the path is safe.
+
+⚠⚠ **THIS PROMOTION CARRIES NO SPECIFICATION, AND THAT IS THE SHAPE THE ORDER ASKS FOR.** The kickoff's sec 2 requires the seat to MEASURE before proposing anything: enumerate and classify every `hs_pending_clear` call site; measure WHY the clear exists at each unauthenticated site and what stuck state it prevents; confirm or refute the admission path from the bytes; and only THEN specify. A clear that protects a real property is KEPT as a property and the spec says which — *"do not remove a guard because it is also a hole."* ⇒ this PR moves records and nothing else; the specification is a later act, and the Director verifies it rather than originating it (`ORDER_ladder_climb` R4).
+
+Objective:
+- Make every `hs_pending_clear` site that is reachable BEFORE authentication either gated on authentication or removed, with the reasoning recorded per site — and leave the honest path's observable marker sequence unchanged except where the specification names a change by name.
+- Complete `ORDER_ladder_climb` R3 step 2: an open **P1** with no lane, sitting on the exact path the inviter repair (NA-0768) must run.
+
+Scope (this promotion PR — records only, per the kickoff sec 1's two-PR shape and `SR-04`/`D-1330`):
+- `NEXT_ACTIONS.md` — the `STATE` move, this block's birth, and NA-0770 Lane A finalized DONE with its class.
+- `DECISIONS.md` — `D-1412` (this lane), `D-1413` (**P-FACADE**) and `D-1414` (**L1–L5**), plus properties `PR-1`–`PR-3` appended BESIDE `D-1411` rather than into it.
+- `docs/ops/IMPROVEMENT_LEDGER.md` — `ENG-0256` filed, NOT repaired.
+- `docs/ops/PREDICTION_LEDGER.md` — the two `SR-16` rows the close-out owes.
+- `docs/ops/KICKOFF_TEMPLATE.md` — the kickoff template's repo home, new file.
+- ZERO product bytes, zero test bytes, zero desktop bytes, no relay change, no `.github/**`.
+
+Scope (the impl PR that follows the ruled specification — stated here so the boundary is legible, NOT authorized by this PR):
+- Expected product edit set: `qsl/qsl-client/qsc/src/handshake/mod.rs` and possibly ONE decoder site. **A third product file is a STOP with the measurement, not a judgment.**
+
+Must protect:
+- **CRYPTO REGION.** `handshake/mod.rs` is a crypto region: `SR-15` FIRES by the mechanical list, one cold read runs on the specification before the Director rules, and a STOP-class finding commissions a second (`ORDER_ladder_climb` R5).
+- **NO TEST WEAKENED, SKIPPED OR DELETED.** Every test that pins today's behaviour is DISPOSED by name in the specification (RETIRE / RE-AIM / NAMED-LOSS), never silently edited.
+- **PRIVACY AND SAFETY.** Distinct errors for distinct causes (`SR-13`): a rejected unauthenticated frame produces a marker that says so and does not disturb the pending record. No new persisted state. No marker carries key material, a route token, or content.
+- **P-FACADE (`D-1413`).** No new CLI flag or config key. Product behaviour enters through the library facade the GUI calls.
+
+Invariants:
+- Zero unclassified `hs_pending_clear` call sites is the gate on the sec 2(a) enumeration — every site lands in exactly one of: after AUTHENTICATED success · after AUTHENTICATED failure · BEFORE any authentication · other, said explicitly.
+- The RED ARM is a test that sends the attacker's frame and proves the pending record SURVIVES, shown to FAIL on the unrepaired tree in a scratch worktree, **both arms printed** (`SR-06`).
+- The option set carries a "do nothing at this site" entry wherever a site is authenticated-success or authenticated-failure: an option set that omits "neither" is narrower than its claim (`D-1371`).
+
+Deliverables:
+- This promotion PR's records (above), merged FIRST.
+- Then: the measured specification as a stop file, sealed under `SR-26` (a'); one `SR-15` cold read on it; the Director's ruling; then the impl PR with the repair, its tests and its as-built.
+
+Acceptance:
+- This PR: docs-only, `0` non-`.md` paths, named gates green once at the base, the operator merges.
+- The lane: the red arm proven red before the repair and green after; the full suite ONCE, at the end, on the exact committed tree, unpiped, with its own exit reconciled BY NAME (`SR-05`).
+
+⚠ **NOTHING IS MERGED BY THE SEAT.** The operator merges. The specification comes after this PR merges — it is not drafted here and no product byte is authorized by it.
+
 ### NA-0770 — THE LEGACY RETIREMENT (LANE A): `AckMode::Legacy` — delete-on-pull — is deleted from the client, its config key is TOMBSTONED rather than silently ignored, and every capability the retirement costs is named at its site (brief `BRIEF_legacy_retirement_20260828.md` sha256 `7a82a3e1...0996` with `AMENDMENT_legacy_retirement_sec3a_20260828.md` sha256 `3afc7134...8fa1`, scoped to Lane A by `ORDER_NA0770_split` sha256 `def0008f...8111`, authorship transferred by `ORDER_NA0770_seat_authors` sha256 `6de83203...a014`, deletion authorised by `RULING_NA0770_005` sha256 `c78d5975...9d13`; all banked 444 and sha-VERIFIED against their own bytes BEFORE being read)
 
-Status: PROMOTED for **D-1411** (2026-08-29)
+Status: **DONE** — PR #1802 merged; qsl-protocol main's tip `39cd39e68e4853502b19393a11acf4d37f746767` IS that merge commit (re-derived bare and unpiped at the NAMED `github` remote by this seat, not assumed or inherited: a TRUE merge commit with two parents, `3b685e7933d7a6dcabf0feeb7817833b25de6914` the prior main and `13edd25e0a55f5ccfcd07e3153400043783a6e10` the PR head).
+Result class: **`CLIENT_LEGACY_ACK_MODE_RETIRED_PASS`** — declared by the Director at `CLOSEOUT_NA0770_laneA_20260829.md` sec 2 (sha256 `2153d5b10242224673e80f4abab34f2b810e13325d8242b151ed609d21b2b21c`, banked 444 and sha-VERIFIED against its own bytes before being read). It names what was proven: the `qsc` client no longer carries `AckMode::Legacy`, constructs no delete-on-pull URL, and tombstones the config key. It claims NOTHING about the relay — whose `None => PullMode::Legacy` default arm is untouched — and nothing about CI's macOS arm, which was classified out on that event.
+<!-- prior: Status: PROMOTED for **D-1411** (2026-08-29) -->
 Owner: Executor seat (Claude Code) · Goals: G4
 
 Objective:

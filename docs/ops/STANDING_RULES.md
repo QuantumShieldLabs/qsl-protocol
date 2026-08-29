@@ -33,6 +33,28 @@ citing this file; entries are never silently rewritten (mark-don't-rewrite).
   EARNED (endpoints named, compiled-diff empty — identity or docs-only); ONE full suite
   on the exact committed tree, unpiped, own exit, reconciled BY NAME. (Operator-agreed
   2026-08-03.)
+  ⚠ **CORRECTING APPEND, per §D's conflict rule — SR-05's text above is NOT edited (mark-don't-rewrite).**
+  [Recorded by NA-0768 (`D-1409`), 2026-08-29, from `CLOSEOUT_NA0771_20260829.md` sec 7, sha256
+  `a3d2392af9a8b912ae14e15ff9a4517ad1fd2ba3664e97d3f21f249604a0c401`, verified digit-by-digit with a
+  negative control. **RESTRAINT honoured: this mints NO new numbered rule** — it clarifies the wording of
+  an existing binding one.]
+  **THE OCCASION.** NA-0771 ran its end-of-lane full suite **CONCURRENTLY** at the operator's direction and
+  DECLARED the deviation rather than absorbing it. The Director **RULED IT COMPLIANT** and amended the
+  wording, because the property SR-05 protects was never serialism.
+  **"FULL" MEANS, IN TERMS:** EVERY target of the census, **ONCE**, on the **EXACT committed tree**, with
+  **each target's own exit recorded and never piped**, and **any nonzero target re-run ALONE** under a rule
+  written BEFORE the re-run — *passes alone = contention; fails alone = real*.
+  ⇒ **CONCURRENCY UNDER A LOAD GOVERNOR IS PERMITTED. SERIAL WAS NEVER THE PROPERTY.**
+  ⚠⚠ **AND THE CLARIFICATION ARRIVES WITH THE DEFECT THAT MAKES IT LOAD-BEARING.** Concurrency moves the
+  risk from wall-clock to **COMPLETENESS**: on that same run a runner keyed its results by target NAME while
+  two targets share the name `qsc`, one silently OVERWROTE the other, and **the run reported GREEN while
+  incomplete** — caught ONLY by reconciling the executed count (148) against the manifest's census (149).
+  ⇒ **THE "EVERY TARGET, ONCE" CLAUSE IS A COUNT TO RECONCILE, NOT A SENTENCE TO BELIEVE**, and a
+  concurrent runner that cannot state its own cardinality cannot satisfy this rule. Filed as `WF-0091`;
+  the property is `PR-7` (`D-1412`), *a green run is not a complete run*; the general form is already
+  `SR-26` (a''): an instrument that reports a verdict without its count cannot report that it looked at the
+  wrong number of things.
+
 - **SR-06 — E-C control discipline.** Every negative control's EXACT red set committed in
   writing at Phase 0; one edit per control; cmp-identical restores; a one-test deviation
   is a STOP. (D-1335 elevation E-C.)

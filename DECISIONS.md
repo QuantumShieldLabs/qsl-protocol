@@ -44810,3 +44810,184 @@ Both stops and both cold reads were verified by this seat digit-by-digit before 
 8. `CLOSEOUT_NA0771_20260829.md` cited by sha, above.
 
 **CLAIM BOUNDARY.** Records only. **n=0** product source bytes in either repository, n=0 tests run, n=0 builds, n=0 relay contacts, the GUI not driven, nothing merged. Every `DISCHARGED`/`REMAINS` verdict above is a **source measurement at `25cdb923`**, not a field observation: this seat did not run the suite, did not drive a handshake, and did not observe a relay. The `na0771_a1`–`a4` arms are reported GREEN **on the authority of the merged PR's required checks and the Director's close-out**, not from a run by this seat. The relay TTL figure `604800` is carried from the ledger's own measured entry, not re-measured here.
+
+## D-1415 — NA-0772 / THE THREAT-MODEL LANE: PER-CONTACT ROUTE TOKENS ARE OUT FOR THE PRIMARY DEPLOYMENT, ON FOUR MEASURED GROUNDS WITH A FIFTH STRUCK
+
+**Lane:** NA-0772. **Ground:** `KICKOFF_threat_model_20260829.md` sha256
+`90543d2b58bb4877b4f4be2728444754d28a015b18eea349129061ca5e657d29`, banked 444 under
+`/srv/qbuild/operator/NA-0772/` as the lane's FIRST ACT (SR-14), sha-verified against its own
+bytes before being read; `ORDER_contact_graph_linkability_20260829.md` sha256
+`c7107db4b3f5888fd37c8be814102e3f5d786c885a929c5575f343cf320bf15d` R3; the SR-15 cold read
+`FINDINGS_SR15_NA0772_20260830T011010Z.md` self-digest
+`631b1f950960580264e6052a7903fe62b7db0b3316bc8476546986ca56eddf90`; and
+`RULING_NA0772_002_20260830.md` sha256
+`6c831cd8a6947c6f422ebc47b7030b58e4e6bc82cbbaa2b4c69fd32bb289aa33`.
+**DOCS ONLY — zero product bytes in any repository. Nothing merged; the operator merges.**
+**CLASS, declared by the Director: `THREAT_MODEL_MEASURED_ORG_RELAY_PASS`** — it names what
+was proven (an adversary-by-asset model measured at the deployed relay's bracket, for the
+org-relay deployment) and claims nothing about rung 2 or about the protocol half of A8.
+
+**IDS DERIVED AT THE EDIT, BOTH CONTROLS, NOT ADOPTED FROM THE KICKOFF.** `HIGHEST_NA=0771`
+by `^### NA-####`, `HIGHEST_D=1414` by `^## D-####`, re-measured with the WIDE needle
+(`D-1412` `DV-3`) taking the maximum over the id token; both maxima survived the widening.
+Open-PR set measured **EMPTY on all three repositories**, with a positive control showing the
+same instrument returns rows for merged PRs. Positive controls `NA-0771`/`D-1414` found at
+named lines; negative controls `NA-9998`/`D-9998` zero, grep exiting 1. ⇒ **`NA-0772` /
+`D-1415`.** ⚠ `D-1415`'s six operator-area occurrences were **classified from context, not
+counted**: every one is a prior lane's negative-control sentinel (`WF-0087`'s plant hazard;
+`D-1412` `DV-4` names `D-1415` explicitly as spent).
+
+---
+
+### THE RULING
+
+**PER-CONTACT ROUTE TOKENS: OUT FOR THE PRIMARY DEPLOYMENT** (one organization running the
+relay for its members). Declined **with the measurement**. The Director's original *"per-contact
+route tokens would close it"* was an overclaim, withdrawn before this lane began; the measured
+form is **"the mechanism is not the remedy."**
+
+**THE FOUR GROUNDS, each verified independently by the cold read as well as by this seat:**
+
+- **G1 — C5 IS UNTOUCHED.** `invites.bundle` stores `canonical_bundle_bytes(kem_pk, sig_pk)`
+  (`invite/mod.rs:235-249`), the account's long-term identity public keys, stable per account
+  (`identity/mod.rs:566-580` returns the persisted self-identity). Every invite one account
+  creates links to every other by byte equality. Route tokens do not touch it.
+- **G2 — THE CLEARTEXT HANDSHAKE CORRELATOR.** The 16-byte `session_id` sits at a fixed offset
+  in all three frame types (`handshake/mod.rs:22`, `:459`, `:541`, `:626`, `:685`); A1/A2 land
+  in the responder's mailbox and B1 in the initiator's, so **the same correlator sits in frames
+  stored in BOTH peers' mailboxes** and the relay pairs them by byte equality with no
+  cryptography. Per-contact addresses do not close it. **This is the lane's best finding and it
+  is filed separately as `F2`.**
+- **G3 — THE GLOBAL ROUTE CAP.** `store.rs:382` and `:674` both `SELECT COUNT(*) FROM routes`;
+  default 256, confirmed from the binary's own `--help` at 37ec8207. Per-contact tokens consume
+  it N-fold.
+- **G4 — THE PULL SIDE DOES NOT IMPROVE.** The session/IP join is structural and no relay-side
+  cure exists at this base (NA-0768's menu `X1`: *"there is no multi-mailbox pull at this
+  base"*). **Solid as reasoning; never run.**
+
+**⚠ THE FIFTH GROUND IS STRUCK, EVERYWHERE IT APPEARED.** Earlier drafts rested part of the
+verdict on an at-rest `routes.last_touched` timestamp-correlation signature. **The write does
+not happen:** at 37ec8207 the post-pull `UPDATE` is guarded by `else if !seqs.is_empty()`
+(`store.rs:783-787`), so an empty pull writes nothing and a pull on a never-pushed route
+creates no row. It is **struck, not downgraded**, from all three places it was argued — the
+stop's delta headline, this record's ground, and the document's T2 — and the verdict does not
+need it.
+
+**⚠ AND ONE CELL IS CORRECTED IN THE RULING'S DISFAVOUR, WITH A CREDIT IT NEVER TOOK.**
+"Contact count becomes directly readable" moves from **(−) to 0**: T1 **already** leaks the
+count by the same session/IP join on the send side — N distinct destinations in one session
+*is* the contact count, today. And a **(+) no draft credited** appears: at T1 those
+destinations are the recipients' **account-stable** addresses, so the relay can join them to
+those recipients' own sessions and recover the graph *with identities*; per-contact addresses
+break that join. ⇒ **the honest delta is smaller in both directions.** That is a better
+argument for the ruling than the one it replaces, because it no longer rests on a cost that
+measurement removed.
+
+**⚠ THE RESERVATION IS A CONDITION, NOT A DESTINATION.** For the shared-relay and
+sender's-relay deployments the send-side gain is real, but **the order's R1 is NOT
+discharged for them either**: R1 forbids minting per-contact tokens until a ruling says what
+they buy, against which relay, **and whether the pull side needs its own answer** — and no
+pull-side answer is designed or scheduled. ⇒ **If the operator adopts a shared or public
+relay, R1 remains in force. Re-open `D-1415` only after a pull-side answer exists to be
+priced — separate sessions, routed pulls, or the relay-side multi-mailbox pull NA-0768's menu
+calls `E5c` — and re-measure the send-side gain against that deployment's own table.** `E5c`
+is the named prerequisite and it is out of NA-0768's bounds.
+
+**THE SCOPE, IF IT IS EVER BUILT — named, not designed:** `vault/mod.rs` `:568`/`:573` and
+`generate_default_route_token` `:726`/`:737` (one secret becomes a per-peer map);
+`contacts/mod.rs::relay_self_inbox_route_token` `:60-69`; the three hand-out sites
+`invite/mod.rs` `:1120→:1129` (**`invite_redeem_at`** — the order's *"invite create"* label is
+corrected here), `:1354→:1372` (`invite_accept_at`), `:1416` (`invite_finish`); the poll over N
+addresses; and **the relay's global route cap**, which no client-side design can satisfy alone.
+
+---
+
+### FOUR FINDINGS FILED (ledger entries; filed, not fixed)
+
+**`F1` — qsl-server: DELETED MESSAGES PERSIST ON DISK. Severity P2.**
+`store.rs:208-212` sets exactly `journal_mode=WAL`, `synchronous=FULL`, `foreign_keys=ON`;
+needle count across `src/` for `secure_delete`, `wal_checkpoint`, `VACUUM`, `auto_vacuum`,
+`journal_size_limit` is **zero**. Measured at 37ec8207 on a fully-drained mailbox: SQL reports
+`routes` 0 rows and `messages` 0 rows while the raw files hold the message body ×3, its msg_id
+×3, the `route_key` pseudonym ×9 and the `log_id` pseudonym ×2. `sqlite_sequence` additionally
+retains a lifetime message count. **Privacy at rest; the org's disk encryption is the outer
+control.** Remedy CANDIDATES named, none chosen: `PRAGMA secure_delete=ON`; periodic
+`wal_checkpoint(TRUNCATE)`; and the honest limit that filesystem-level residue remains. A
+qsl-server lane; the relay-redeploy decision (ladder order R3.7) rides with it.
+
+**`F2` — THE CLEARTEXT SESSION-ID CORRELATOR. A DESIGN finding.**
+G2 above. The relay can pair handshake counterparts without any cryptography, and per-contact
+tokens do not close it. The cure is a **protocol** change — a per-mailbox or encrypted
+correlator — and belongs to the messaging epic's design pass and the ladder, **not to this
+lane**. Filed so the obligation is inherited rather than rediscovered.
+
+**`F3` — qsl-server DEFAULT LOGGING IS AN ACCIDENT, NOT A CONTRACT.**
+The empty request log follows from `EnvFilter::from_default_env()`'s default level
+(`main.rs:231-233`), not from a stated property, and can regress silently. A small hardening
+item: **state the contract, test it** (a test asserting the log is empty after a scripted
+exchange), and **consider what the nine `tracing::error!` sites should carry** — **one of
+them (`lib.rs:1019`, inside `run_store`) sits on a live request path**; a second
+(`lib.rs:480`) is the background retention sweeper, and the remaining seven are startup and
+configuration.
+⚠⚠ **AND REQUEST LOGGING IS ONE LINE AWAY, WHICH IS A STRONGER STATEMENT OF THIS FINDING'S
+OWN THESIS:** at 37ec8207 `Cargo.toml` already declares
+`tower-http = { version = "0.5", features = ["trace"] }` — the crate is linked and the
+`trace` feature is ON — with **zero uses in `src/`**. The absence of request logging is a
+line that was never written, not a dependency that was never taken.
+⚠ Also: if any deployment ever raises the level, `channel_log_id`'s unkeyed FNV-1a must be
+keyed or dropped, since a token-holder inverts it.
+
+**`F4` — ONE SELF-DIGEST CONSTRUCTION HOUSE-WIDE. RULED: the 64-'x' mask.**
+Measured: NA-0768, NA-0771 and NA-0770 all use `64-hex → @@SELFDIGEST@@`; this seat used
+`64-hex → 64 'x'`. On this lane's own STOP 002 the two give different digests, so the house
+one-liner reads MISMATCH on a sound file. **RULED in favour of the 64-'x' mask**, because the
+`@@SELFDIGEST@@` token is *also* the stamp placeholder, and that collision is the root of the
+carry-corruption class — it corrupted this lane's own first assembly by exactly 64−14=50 bytes
+inside the carried `STANDING_RULES.md`, at the very line where SR-26 (a'') describes the same
+defect. The kickoff template states the exact one-liner. Lands in the next records act that
+touches the template.
+⚠⚠ **AND F4 NOW OWNS THE PLACEHOLDER RULE — THE SAME DEFECT CLASS ONE LEVEL UP: THE STAMP
+PASS MUST NOT RESOLVE THE TOKEN INSIDE QUOTED TEXT.** A stamper that substitutes the house
+placeholder everywhere outside a carry corrupts a legitimate QUOTATION of carried text
+printed in the file's own prose. Measured on this lane's STOP 003: its audit quoted a record
+line containing the token, the stamper replaced it with that stop's own digest, and the
+quoted sentence then asserted that three other lanes use this stop's digest as their
+construction — false where it stood, and the item scored [OK] on the corrupted line. The
+invariant "no unresolved identity field OUTSIDE any carry" is over-broad by exactly this
+case. **THE RULE: the stamp pass skips quoted regions as well as carried ones, or the
+excerpt printer escapes the token before emitting it.** Nobody owned this defect; F4 does now.
+
+---
+
+### PREMISES MEASURED, NOT ADOPTED
+
+1. **"the project does not have a threat model"** — the repo holds **two**
+   (`docs/audit/THREAT_MODEL_PROTOCOL_METADATA.md` `7da54936…`;
+   `docs/privacy/DOC-G5-001…` `c04f3ff0…`). The kickoff's **qualified** claim — one *measured
+   from the tree* — survives; the bare claim does not. **SR-16 row against the Director.**
+2. **"the NA-0768 menu already prices every fetch option at N"** — measured FALSE at
+   2026-08-29T23:47Z and **TRUE at 23:51Z**; the menu was banked at 23:49:28Z, between the two
+   readings. Both readings reported with timestamps; the premise is TRUE and sec 6(b) cites it.
+3. **"governor powersave"** — measured **`performance`** on all 6 CPUs; the **second
+   consecutive lane** at which this kickoff field measured false. rustc 1.95.0, mold 2.30.0,
+   gcc 13.3.0, webkit2gtk 2.52.3 all measured TRUE.
+4. **The order's sec 1(b) "invite create" label** names a function whose real identity is
+   **`invite_redeem_at`**: `invite_create_at` (`:838-945`) contains **zero** references to
+   `self_inbox`/`relay_self_inbox_route_token`/`self_route_token` against a positive control of
+   4 in `invite_redeem_at`. The three hand-out sites are **redeem, accept and finish**; the
+   invite *code* carries no route token. The order's **conclusion** stands; its **enumeration**
+   is corrected. ⚠ `ENG-0257` recorded that these six cites had never been re-derived; this is
+   the first re-derivation. **SR-16 row against the Director.**
+
+### CLAIM BOUNDARY
+
+Runs at **37ec8207**, built locally, on loopback: the four-arm default-level log control; the
+file-level at-rest measurement (SQL arm and raw-bytes arm); hash reimplementations with
+negative controls. **NOT MEASURED:** whether the production machine runs 37ec8207 (bracketed,
+never identified — a rebuild cannot reproduce the deployed digest); anything at or below the
+TLS terminator; how long file residue survives before page reuse (n=0 field); the eleven-commit
+sweep to main beyond the source-identity of `store.rs`/`main.rs`; rung 2 (does not exist — T3
+is read + inference); the desktop GUI; the protocol's own security properties (A8's protocol
+half); the delivery-receipt figures (cited from the existing threat model, not re-measured).
+**The T2−T1 delta is REASONED FROM MEASURED PREMISES in every cell — no relay was ever run
+with per-contact mailboxes.** `n=0` contacts with any deployed relay. No secrets read.

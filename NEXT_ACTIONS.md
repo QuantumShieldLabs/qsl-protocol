@@ -6,7 +6,8 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0768 | HIGHEST_NA=0771 | HIGHEST_D=1414 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0768 | HIGHEST_NA=0772 | HIGHEST_D=1415 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- prior: STATE: READY=NA-0768 | HIGHEST_NA=0771 | HIGHEST_D=1414 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0772 OPENED and MERGING for **D-1415** — **THE THREAT-MODEL LANE**: the document a funder, auditor or regulated buyer asks for first, MEASURED from the tree, and the ruling the contact-graph order deferred. ⚠⚠ **`READY` DOES NOT MOVE AND THAT IS NOT AN OMISSION.** NA-0772 runs IN PARALLEL with NA-0768 by the operator's ruling of 2026-08-29 (*"lets get to work"*), carried in its kickoff and in `ENG-0257`'s sequence bullet; NA-0768 is mid-lane with its menu ruled and its specification owed, so `READY=NA-0768` stands. ⚠⚠ **BOTH MAXIMA DO ADVANCE, AND UNLIKE NA-0768's PROMOTION THIS IS NOT A BACKFILL:** `0772 > 0771` and `1415 > 1414` are fresh ids at the top of their spaces, derived at this edit on DECLARING forms with a positive control on a taken id and a negative control on a never-issued one, re-measured with the WIDE needle per `D-1412` `DV-3`, and with the open-PR set measured EMPTY on all three repositories. ⚠ `D-1415` has six operator-area occurrences and one in `DECISIONS.md`, every one CLASSIFIED FROM CONTEXT as a prior lane's negative-control sentinel — `WF-0087`'s plant hazard, which `D-1412` `DV-4` names `D-1415` in by name.) -->
 <!-- prior: STATE: READY=NA-0771 | HIGHEST_NA=0771 | HIGHEST_D=1414 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0768 PROMOTED for **D-1409** — **THE INVITER REPAIR: COMPLETING RUNG 1, MENU FIRST**: the inviter reads "Connecting…" forever because the shipped tick pulls the shared inbox, leases her handshake frame and hands it to nothing that can finish the handshake; the design of record specified TWO tick classes and only one shipped. This lane finishes rung 1. ⚠ THE SPECIFICATION IS NOT IN THIS PROMOTION AND NEITHER IS A DESIGN: the kickoff's sec 2 orders a priced MENU of every viable way to get the inviter's A2 consumed, on ten identical axes, with a "do not be clever" entry and a "neither / something else" row (`D-1371`); the operator chooses, and the specification is a later act. ⚠⚠ **`HIGHEST_NA` AND `HIGHEST_D` DO NOT ADVANCE, AND THAT IS NOT AN OMISSION.** This is a **BACKFILL** promotion of a RESERVED pair: `NA-0768` (0768 < 0771) and `D-1409` (1409 < 1414) were claimed in terms by this lane while it was PAUSED WITH NOTHING LANDED, and `NA-0769` measured that claim and REFUSED `D-1409` on it — `D-1410` `DV-9`/`DV-4`, which is why `D-1410` and not `D-1409` was taken there. Both maxima are re-derived at this edit and both are UNCHANGED: `HIGHEST_NA=0771` (NA-0771 is still the highest declared `### NA-` block) and `HIGHEST_D=1414` (`D-1414` is still the highest declared `## D-` heading). Derived with a positive control on a taken id and a negative control on a never-issued one.) -->
 <!-- prior: STATE: READY=NA-0770 | HIGHEST_NA=0770 | HIGHEST_D=1411 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0771 PROMOTED for **D-1412** — **THE ENG-0252 REPAIR LANE: THE UNGATED DESTRUCTIVE CLEAR**: a frame carrying nothing but the public 16-byte `session_id` and arbitrary bytes reaches a context-mismatch branch that destroys the addressed handshake pending record BEFORE any MAC, signature or decapsulation runs, on BOTH roles; this lane measures why each such clear exists, then specifies the minimal change that leaves every one of them either gated on authentication or removed. ⚠ THE SPECIFICATION IS NOT IN THIS PROMOTION: the kickoff's sec 2 orders measurement first, and the spec lands in a later act. ⚠⚠ `HIGHEST_D` advances by THREE, not one, and the reason is stated so it does not read as double-spending: `D-1412` is this lane's own record, and `D-1413`/`D-1414` are the TWO PROPERTY D-RECORDS the kickoff sec 5(2) and `CLOSEOUT_NA0770_laneA_20260829.md` sec 8 both order by that count — P-FACADE and L1–L5. All three derived at this edit with a positive and a negative control. ⚠ NA-0770 Lane A is DONE: PR #1802 merged, and main's tip `39cd39e68e4853502b19393a11acf4d37f746767` IS that merge commit — measured bare and unpiped at the named `github` remote, not assumed. Its result class `CLIENT_LEGACY_ACK_MODE_RETIRED_PASS` is carried here from the Director's close-out rather than invented by this seat.) -->
 <!-- prior: STATE: READY=NA-0769 | HIGHEST_NA=0769 | HIGHEST_D=1410 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0770 PROMOTED for **D-1411** — **THE LEGACY RETIREMENT, LANE A**: `AckMode::Legacy` — delete-on-pull — is deleted from the client on two grounds that stand independent of why it was built (it is the wrong delivery guarantee, and it is structurally incompatible with the delivery ladder's rung 3); the config key is TOMBSTONED rather than silently ignored, the writer refusing it by name and the reader reporting a third state; every capability the retirement costs is named at its site as one of seven losses rather than covered over, and the one negative capability that could be rebuilt mode-free was — by probing inside the lease window instead of reaching for a retired mode. ⚠ NA-0769 is DONE: PR #1801 merged, and main's tip `3b685e7933d7a6dcabf0feeb7817833b25de6914` IS that merge commit — measured at the named `github` remote, not assumed. ⚠⚠ NA-0769's RESULT CLASS IS STILL OWED and is deliberately NOT invented here: `D-1410` records *"(none declared — the Director declares the result class at close)"*, and no class for NA-0769 exists anywhere in repo truth or the operator tree at this edit. The Director declares it.) -->
@@ -37677,6 +37678,65 @@ Acceptance:
 - The lane: the red arm proven red before the repair and green after; the full suite ONCE, at the end, on the exact committed tree, unpiped, with its own exit reconciled BY NAME (`SR-05`).
 
 ⚠ **NOTHING IS MERGED BY THE SEAT.** The operator merges. The specification comes after this PR merges — it is not drafted here and no product byte is authorized by it.
+
+
+### NA-0772 — THE THREAT-MODEL LANE: what each adversary learns, measured from the tree
+rather than asserted, and the per-contact-route-token question RULED on a delta instead of
+on a mechanism (Director's kickoff `KICKOFF_threat_model_20260829.md` sha256
+`90543d2b58bb4877b4f4be2728444754d28a015b18eea349129061ca5e657d29`, banked 444 under
+`/srv/qbuild/operator/NA-0772/` as the lane's FIRST ACT and sha-VERIFIED against its own
+bytes BEFORE being read — all 64 digits compared mechanically with a negative control
+proving the comparator discriminates, the banked copy proven byte-identical to its source
+by `cmp` rather than by a digest of the destination alone, and the 444 immutability control
+run on BOTH arms with the arms shown to DIFFER; ground
+`ORDER_contact_graph_linkability_20260829.md` sha256
+`c7107db4b3f5888fd37c8be814102e3f5d786c885a929c5575f343cf320bf15d` R3; authorship
+arrangement: the seat measures and writes, the Director verifies and rules)
+
+Status: MERGING (D-1415)
+
+**DOCS ONLY. ZERO PRODUCT BYTES.** One PR in qsl-protocol carrying this block, `D-1415`,
+the document, and the ledger filings. `SR-15` does not fire by the mechanical list (no
+code); **ONE cold read is ORDERED ANYWAY** by the kickoff's sec 1, because a threat model
+no adversary has read is a wish list, and because this document governs a design ruling
+the Director has already got wrong once.
+
+**WHAT IT BUYS.** (1) The document a funder, auditor or regulated buyer asks for first, in
+the repo, **measured from the tree rather than asserted** — three adversary×asset tables
+and a delta, every cell cited to a line, a log field, or a run. (2) The ruling the
+contact-graph order deferred: whether per-contact route tokens buy a real benefit under
+the deployment the operator actually intends, and whether the pull side needs its own
+answer for that benefit to exist at all.
+
+**THE DEPLOYMENT IS FIXED BY THE OPERATOR** (verbatim, 2026-08-29): *"one organization for
+its members"*. The relay operator is the organization's own administrator — semi-trusted.
+Self-hosted-per-user and shared/public relays are documented, not designed for, and the
+document says which rows change under each.
+
+⚠⚠ **TWO OF THE KICKOFF'S PREMISES AND ONE OF THE ORDER'S ENUMERATIONS MEASURE FALSE,
+AND ALL THREE ARE REPORTED RATHER THAN ABSORBED** — the repo already holds two threat-model
+documents (the kickoff's *qualified* claim survives, its bare claim does not); the governor
+is `performance`, not `powersave`, for the **second consecutive lane**; and the order's
+*"invite create"* label on `invite/mod.rs:1120` names a function whose real identity is
+**`invite_redeem_at`** — the first re-derivation anyone has run of six cites `ENG-0257`
+explicitly recorded as un-re-derived.
+⚠ **A FOURTH PREMISE WAS RE-MEASURED AND MEASURES TRUE, AND IS STATED SO THIS BLOCK DOES NOT
+PUBLISH A FALSE CLAIM ABOUT A PARALLEL LANE:** the kickoff's sec 6(b) relies on NA-0768's
+priced menu. That measured FALSE at 23:47Z and **TRUE at 23:51Z** — the menu was banked at
+23:49:28Z, between the two readings — so **the menu EXISTS and sec 6(b) cites it**. The
+arithmetic follows: three false premises became two.
+
+**CLASS, declared by the Director: `THREAT_MODEL_MEASURED_ORG_RELAY_PASS`** — an
+adversary-by-asset model MEASURED at the deployed relay's bracket for the org-relay
+deployment, claiming nothing about rung 2 or about the protocol half of `A8`.
+**RULED: per-contact route tokens are OUT for the primary deployment** on four grounds
+(the per-account identity bundle · the cleartext `session_id` correlator · the global
+route cap · the pull side), with a fifth STRUCK by measurement and the contact-count
+cell corrected to 0. The document lands at
+`docs/audit/THREAT_MODEL_DEPLOYMENT_AND_CONTACT_GRAPH.md`, the path CHOSEN by the
+Director. Two SR-15 cold reads ran; both are carried in the lane's stop files.
+The operator merges; this seat does not.
+
 
 ### NA-0770 — THE LEGACY RETIREMENT (LANE A): `AckMode::Legacy` — delete-on-pull — is deleted from the client, its config key is TOMBSTONED rather than silently ignored, and every capability the retirement costs is named at its site (brief `BRIEF_legacy_retirement_20260828.md` sha256 `7a82a3e1...0996` with `AMENDMENT_legacy_retirement_sec3a_20260828.md` sha256 `3afc7134...8fa1`, scoped to Lane A by `ORDER_NA0770_split` sha256 `def0008f...8111`, authorship transferred by `ORDER_NA0770_seat_authors` sha256 `6de83203...a014`, deletion authorised by `RULING_NA0770_005` sha256 `c78d5975...9d13`; all banked 444 and sha-VERIFIED against their own bytes BEFORE being read)
 

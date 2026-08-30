@@ -723,7 +723,7 @@ fn vault_init_core(key_source: KeySource, mut pass: Option<String>) -> Result<()
 }
 
 #[cfg(qsc_rng_failure_test_seam)]
-fn generate_default_route_token() -> CliResult<Result<String, &'static str>> {
+fn generate_default_route_token() -> Result<String, &'static str> {
     let mut bytes = [0u8; 16];
     vault_rng_fill("QSC.VAULT.INIT.DEFAULT_ROUTE_TOKEN", &mut bytes)?;
     let mut out = String::with_capacity(bytes.len() * 2);

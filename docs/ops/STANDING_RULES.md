@@ -318,6 +318,24 @@ merge activated SR-14/15/16 together.)
       ⇒ **AN INSTRUMENT THAT REPORTS A VERDICT WITHOUT ITS COUNT CANNOT REPORT THAT IT
       LOOKED AT THE WRONG NUMBER OF THINGS.**
 
+  (a''') ⚠⚠ **THE `ESCALATIONS` SECTION IS PART OF THE AUDIT.** [OPERATOR'S AMENDMENT,
+      `ORDER_proactive_escalation_AMENDMENT_1_20260830.md` sec 1, 2026-08-30, sha256
+      `0d0c1fd1568c8f0fc4ad74105f98ab3d803c3b2eeb0f716e82772cff6b73f51a`, banked 444 — marked as
+      such so the operator may refuse it at merge. Landed by `NA-0773` (`D-1416`).]
+      The audit's list gains one item: **"the ESCALATIONS section is present, first after identity,
+      and either lists or says none"**. The section is headed exactly `== ESCALATIONS (PR-17) ==`,
+      sits **immediately after the identity block and BEFORE section 0**, appears in **every** STOP
+      file, REPORT, HOLD note and findings file, and reads **"none"** when there is none; for each
+      escalation it carries what it is in one plain paragraph, best-known severity, **"unknown"
+      stated as unknown**, what it would take to know, and **where it is filed or that it is not
+      yet filed.** **A file without it FAILS this audit on its face.**
+      ⚠ THE OCCASION IT IS MINTED ON: the `PR-17` escalation of `ENG-0197`'s dark fail-safe surface
+      was delivered correctly in a terminal message and **scrolled out of the operator's view**.
+      The operator's words: *"having these findings reported on the terminal is ok, but its best to
+      include them in stop reports or they may scroll by and I don't see them."*
+      ⇒ **A FINDING THE READER CANNOT FIND AGAIN WAS NOT REPORTED TO THEM.** The same-turn terminal
+      paragraph is kept — it is the signal; the section is what survives the scroll.
+
 ## C. ADOPTION LADDER (machinery items; one per checkpoint; each ships with its own red-capable proof)
 1. **Post-NA-0696 governance errand** (docs-only PR, with the ENG-0048 pairing window):
    lands THIS FILE at docs/ops/STANDING_RULES.md + PREDICTION_LEDGER.md + a ledger WF

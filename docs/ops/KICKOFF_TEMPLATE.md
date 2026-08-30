@@ -167,3 +167,40 @@ and NOT settled by this template.
   stop files too, and their stops are the ones most often thinned.
 - The property checklist in section 3 is answered **in the kickoff**. A lane that answers
   *"none of these apply"* says so explicitly rather than omitting the section.
+
+---
+
+## 5. `PR-17` — ESCALATE ON SIGHT, AND THE `ESCALATIONS` SECTION — ADDED BY `D-1416`
+
+⚠ Landed by `NA-0773` as the consumer named in `ORDER_proactive_escalation_20260830.md` sec 3(a)
+(sha256 `bb4b6c6d69aa1eb604da7a3a56aff3337d3d46012de42aba62a6b89eb68d613d`) and
+`ORDER_proactive_escalation_AMENDMENT_1_20260830.md` sec 3(a) (sha256
+`0d0c1fd1568c8f0fc4ad74105f98ab3d803c3b2eeb0f716e82772cff6b73f51a`), both banked 444.
+
+**5.1 THE BLOCK EVERY KICKOFF CARRIES, quoted byte-verbatim from the order's own sec 3(a):**
+
+```
+ESCALATE ON SIGHT (PR-17): if you see or suspect a crypto, randomness, fail-safe, identity,
+privacy or design flaw -- or a test guarding one that is dark -- say so to the operator in one
+plain paragraph in your NEXT message, before status, with severity best-known and 'unknown'
+stated. Do not file it and move on.
+```
+
+**5.2 THE `ESCALATIONS` SECTION IS A REQUIRED PART OF THE STOP-FILE SHAPE.** In **every** STOP file,
+REPORT, HOLD note and findings file: **immediately after the identity block and BEFORE section 0**,
+a section headed exactly
+
+```
+== ESCALATIONS (PR-17) ==
+```
+
+present in every such file and **reading "none" when there is none**. For each escalation: what it
+is, in one plain paragraph · best-known severity · **"unknown" stated as unknown** where that is the
+truth · what it would take to know · **where it is filed, or that it is not yet filed.**
+
+⚠ **The same-turn terminal message is KEPT — it is the signal; this section is what survives the
+scroll.** The operator's ruling that produced the amendment, verbatim: *"having these findings
+reported on the terminal is ok, but its best to include them in stop reports or they may scroll by
+and I don't see them."* ⇒ **a finding the reader cannot find again was not reported to them.**
+
+⚠ **A file without the section FAILS `SR-26`'s self-containment audit** — item **(a''')**.

@@ -985,6 +985,7 @@ fn hs_require_primary_identity_pin<F>(
     peer: &str,
     seen_fp: &str,
     read_pin: F,
+    speculative: bool,
 ) -> Result<(), &'static str>
 where
     F: Fn(&str) -> Result<Option<String>, ErrorCode>,
@@ -999,6 +1000,15 @@ where
             #[cfg(not(qsc_binding_fuzz_helper))]
             let pin_matches = identity_pin_matches_seen_identity(pinned.as_str(), seen_fp);
             if !pin_matches {
+                // NA-0768 (`RULING_006` sec 2): a SPECULATIVE offer that is not this
+                // candidate's is not a peer mismatch -- it is the fan-out's question
+                // answered "no". ONE non-security marker, NO fingerprint, once per
+                // (frame, candidate). The gate's DECISION is unchanged: still Err, still
+                // before the first KEM.
+                if speculative {
+                    emit_marker("hs_offer_not_addressee", None, &[("peer", peer)]);
+                    return Err("not_addressee");
+                }
                 emit_peer_mismatch(peer, pinned.as_str(), seen_fp);
                 emit_marker("handshake_reject", None, &[("reason", "peer_mismatch")]);
                 return Err("peer_mismatch");
@@ -1012,6 +1022,13 @@ where
             Ok(())
         }
         Ok(None) => {
+            // ⚠ THIS ARM PRINTS THE **SENDER'S** FINGERPRINT (`seen_fp`). Under a
+            // speculative offer that is a FOREIGN fingerprint inside a command run for a
+            // different contact, which `RULING_006` sec 2(b) forbids.
+            if speculative {
+                emit_marker("hs_offer_not_addressee", None, &[("peer", peer)]);
+                return Err("not_addressee");
+            }
             let fp_display = seen_fp.to_string();
             emit_marker(
                 "identity_unknown",
@@ -1186,6 +1203,24 @@ impl HsPendingState {
             HsPendingState::Present => "present",
         }
     }
+}
+
+/// NA-0768 (`D-1409`) FORM (ii') -- THE SECOND COMMIT SHAPE'S WITNESS, MADE READABLE.
+///
+/// ⚠⚠ WHY THIS EXISTS. `perform_handshake_poll_with_tokens` has **TWO** durable-commit
+/// shapes, not one: the responder branch commits a SESSION (`qsp_session_store`, then
+/// clears the pending), and the no-pending branch commits a **PENDING** and pushes a B1.
+/// A caller that witnesses consumption by "a session appeared" is UNSOUND for the second:
+/// it records `consumed=false` for a frame that stored durable state and sent a frame.
+/// This function is that branch's witness, and the poll ALREADY USES IT AS SUCH -- see the
+/// guard at the end of the no-pending arm: *"the pending record this frame created must be
+/// durably loadable before the frame may be acked"*.
+///
+/// ⚠ IT RETURNS `Result`, DELIBERATELY. An unreadable record is NOT "absent"; collapsing
+/// the two is the defect `B3` names. The caller must distinguish them.
+pub(crate) fn hs_pending_present(self_label: &str, peer: &str) -> Result<bool, ErrorCode> {
+    let (rec, _state) = hs_pending_load_state(self_label, peer)?;
+    Ok(rec.is_some())
 }
 
 fn hs_pending_load_state(
@@ -1609,6 +1644,13 @@ pub fn handshake_init(self_label: &str, peer: &str, relay: &str) -> CliResult {
 pub(crate) enum HsPollSource<'a> {
     Relay,
     Provided(&'a [crate::InboxPullItem]),
+    /// NA-0768 (`D-1409`, `RULING_006` sec 2): a SPECULATIVE offer -- the fan-out asking
+    /// "is this frame yours?" of a candidate it has no reason to believe owns it.
+    /// ⚠ IT CHANGES NO GATE AND NO CONTROL FLOW. The identity pin still fails closed
+    /// BEFORE the first KEM. What it changes is what a rejection SAYS: a speculative
+    /// rejection is not a peer mismatch and must not fire the security marker or print a
+    /// fingerprint (`PR-11`: a security marker fires only on a security event).
+    ProvidedSpeculative(&'a [crate::InboxPullItem]),
 }
 
 /// NA-0681 (D616 F1): how the reply leaves.
@@ -1722,8 +1764,11 @@ pub(crate) fn perform_handshake_poll_with_tokens(
     // `Provided` the frames belong to the CALLER, which acks them. The honest scope above is
     // likewise unchanged — for `invite finish` this confinement is LAYERING ONLY.
     let acks_own_frames = matches!(source, HsPollSource::Relay);
+    // NA-0768: a speculative offer carries its own items exactly as `Provided` does; the
+    // flag governs EMISSION at the identity gate only.
+    let speculative = matches!(source, HsPollSource::ProvidedSpeculative(_));
     let items = match source {
-        HsPollSource::Provided(v) => v.to_vec(),
+        HsPollSource::Provided(v) | HsPollSource::ProvidedSpeculative(v) => v.to_vec(),
         HsPollSource::Relay => match transport::relay_inbox_pull(relay, inbox_route_token, max) {
             Ok(v) => v,
             Err(code) => {
@@ -1881,7 +1926,7 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                             );
                             return Ok(());
                         };
-                        if hs_require_primary_identity_pin(peer, peer_fp, identity_read_pin)
+                        if hs_require_primary_identity_pin(peer, peer_fp, identity_read_pin, false)
                             .is_err()
                         {
                             return Ok(());
@@ -2144,6 +2189,9 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                             peer,
                             peer_fp.as_str(),
                             identity_read_pin,
+                            // NOT speculative: this frame DECODED against this peer's own
+                            // pending record, so a mismatch here is a real security event.
+                            false,
                         )
                         .is_err()
                         {
@@ -2269,7 +2317,12 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                 // signing) against the single combined verification code — binding init.sig_pk too.
                 let peer_fp = identity_fingerprint_from_identity(&init.kem_pk, &init.sig_pk);
                 let peer_sig_fp = identity_fingerprint_single(FpRole::Sig, &init.sig_pk);
-                if hs_require_primary_identity_pin(peer, peer_fp.as_str(), identity_read_pin)
+                if hs_require_primary_identity_pin(
+                    peer,
+                    peer_fp.as_str(),
+                    identity_read_pin,
+                    speculative,
+                )
                     .is_err()
                 {
                     continue;

@@ -24,9 +24,9 @@
 # The shard ids here MUST equal the workflow's matrix; qsc_shard_check.py --assert-workflow
 # proves it in both directions, asserts every runs-on value is in the caller-declared set,
 # and asserts shard's own runner is macos-latest.
-lib	0
 bin:qsc	3
 doc:qsc	4
+lib	0
 tests/NA_0633_eng0038_reproduction.rs	2
 tests/NA_0634_full_identity_provisioning.rs	3
 tests/NA_0639_wf0022_atomic_write_crash_window.rs	2
@@ -103,6 +103,22 @@ tests/na0711_invite_label_resolution.rs	2
 tests/na0741_frame_class_dispatch.rs	1
 tests/na0742_invite_finish_scan_producer_acks.rs	1
 tests/na0749_fingerprint_conformance.rs	1
+tests/na0751_facade_connect_reason_totality.rs	1
+tests/na0751_facade_contact_surface.rs	1
+tests/na0751_facade_fact_fidelity.rs	1
+tests/na0751_facade_invite_surface.rs	1
+tests/na0751_facade_locked_control.rs	1
+tests/na0755_invite_label_and_clear.rs	1
+tests/na0756_two_party_invite_roundtrip.rs	0
+tests/na0757_eng0239_session_dir_perms.rs	0
+tests/na0760_workspace_license_agpl_only.rs	0
+tests/na0764_contact_surface_widening.rs	1
+tests/na0764_m3_empty_slot_accept.rs	0
+tests/na0768_facade_inviter_completes.rs	1
+tests/na0768_handshake_a1_offer.rs	2
+tests/na0768_invite_finish_mixed_role.rs	0
+tests/na0770_legacy_retirement_guards.rs	0
+tests/na0771_eng0252_arms.rs	2
 tests/na_0302_suite2_negotiation_cross_surface.rs	3
 tests/na_0303_handshake_activation_negotiation.rs	2
 tests/na_0304_handshake_suite_id_negotiation.rs	2
@@ -160,16 +176,3 @@ tests/trust_remediation_ux_na0178.rs	1
 tests/two_client_local_runbook_na0182.rs	0
 tests/unlock_gate.rs	2
 tests/vault.rs	3
-tests/na0751_facade_connect_reason_totality.rs	1
-tests/na0751_facade_invite_surface.rs	1
-tests/na0751_facade_fact_fidelity.rs	1
-tests/na0751_facade_locked_control.rs	1
-tests/na0751_facade_contact_surface.rs	1
-tests/na0755_invite_label_and_clear.rs	1
-tests/na0756_two_party_invite_roundtrip.rs	0
-tests/na0757_eng0239_session_dir_perms.rs	0
-tests/na0760_workspace_license_agpl_only.rs	0
-tests/na0764_m3_empty_slot_accept.rs	0
-tests/na0764_contact_surface_widening.rs	1
-tests/na0770_legacy_retirement_guards.rs	0
-tests/na0771_eng0252_arms.rs	2

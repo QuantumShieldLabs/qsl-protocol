@@ -522,6 +522,12 @@ fn t2_handshake_frame_at_the_head_does_not_break_invite_finish() {
     let flow = setup_to_redeem(&root, &base);
 
     // The head: a bare handshake frame, as a bare A1 from any other contact would be.
+    // ⚠ NA-0768 (D-1409) RE-AIM, PROSE ONLY -- THE ASSERTIONS BELOW ARE UNCHANGED AND STILL
+    //   HOLD. After E4 that frame is no longer merely STEPPED OVER: `invite_finish` now OFFERS
+    //   every handshake-class frame its scan pulled to a bounded candidate set. This fixture's
+    //   frame is `QHSM` + junk, so it fails both decoders, is offered, is NOT consumed and is
+    //   NOT acked -- which is why `invite_finish=ok` still holds here. The sentence above
+    //   describes the frame's SHAPE, not its fate; `t7` is the arm that now states the fate.
     push_raw(&base, REDEEMER_INBOX, &handshake_frame());
     accept(&flow);
 
@@ -588,6 +594,12 @@ fn drive_full_flow(root: &Path, base: &str) -> Flow {
     flow
 }
 
+// ⚠⚠ NA-0768 (D-1409) RE-AIM: **THE FIGURE MOVES, THE ASSERTION DOES NOT.** Before E4 a
+// handshake-class frame that `invite finish` stepped over was left LEASED and reappeared as
+// residue once the lease expired. After E4 a frame the fan-out CONSUMES is acked and DELETED,
+// and one it declines is still left leased. "Zero residue" is therefore made of different
+// parts and is RE-DERIVED by the run below rather than inherited. The assertion stays
+// `residue.is_empty()` because that is the property; what changed is why it is true.
 #[test]
 fn t3_a_completed_flow_leaves_zero_residue() {
     let _g = guard();
@@ -1294,8 +1306,14 @@ fn plant_three_collateral(base: &str) {
     push_raw(base, REDEEMER_INBOX, &handshake_frame());
 }
 
+// ⚠⚠ NA-0768 (D-1409): **RENAMED. THE OLD TITLE NAMED A PROPERTY E4 REPEALS.** After E4 the
+// finish scan can ack up to TWO frames -- the selected reply AND a handshake frame the fan-out
+// consumes. This arm did not go red, and cold read 3 measured why: `handshake_frame()` is
+// `QHSM` + junk that fails BOTH decoders, so it is OFFERED, never consumed, and
+// `lease_left.len()` stays 3. ⇒ **IT SURVIVED BY ACCIDENT OF ITS FIXTURE, AND AN ARM THAT
+// PASSES BY LUCK IS NOT EVIDENCE.** The offered-not-consumed property is ASSERTED below.
 #[test]
-fn t7_lease_scans_past_all_three_collateral_and_acks_only_the_reply() {
+fn t7_lease_scans_past_all_three_collateral_and_acks_only_what_it_consumed() {
     let _g = guard();
 
     // ---------- THE LEGACY CONTROL, RETIRED BY NA-0770 (D-1411). ----------
@@ -1345,6 +1363,22 @@ fn t7_lease_scans_past_all_three_collateral_and_acks_only_the_reply() {
         0,
         "under Lease the reply must have been CONSUMED AND ACKED — and it must be the ONLY frame \
          that was"
+    );
+
+    // ⚠ NA-0768: THE PROPERTY THIS ARM USED TO GET BY LUCK, NOW STATED.
+    // Both collateral handshake frames are OFFERED by the fan-out and NEITHER is consumed,
+    // because neither decodes. That is what keeps the survivor count at 3 -- not the absence
+    // of a fan-out.
+    let offers = marker_lines(&lease_text, "invite_finish_hs_offer");
+    assert!(
+        !offers.is_empty(),
+        "after E4 the scan MUST offer the handshake-class collateral it pulled; if this is \
+         empty the fan-out did not run and the survivor count proves nothing:\n{lease_text}"
+    );
+    assert!(
+        offers.iter().all(|l| l.contains("consumed=false")),
+        "a NON-DECODABLE handshake frame must be OFFERED and NOT CONSUMED, and therefore never \
+         acked -- that is why all three collateral frames survive:\n{lease_text}"
     );
 }
 
@@ -1459,8 +1493,18 @@ fn t8_the_a2_sig_failure_exit_emits_no_producer_ack() {
     );
 
     // THE ASSERTION.
+    // ⚠⚠ NA-0768 (D-1409) RE-AIM: **SCOPED TO `caller=finish`.** This arm is inert in the
+    //   default suite (`#[cfg(qsc_rng_failure_test_seam)]`), but UNDER THAT CFG a GLOBAL
+    //   `producer_ack` count is no longer a statement about this exit: after E4 the same run
+    //   can carry a fan-out ack tagged `caller=finish_hs`, which would break this arm for a
+    //   reason that has nothing to do with the A2 signature exit. The two ack callers are
+    //   deliberately distinct tokens precisely so a consumer can tell them apart, and this is
+    //   the consumer that must.
     assert_eq!(
-        count_marker(&text, "producer_ack"),
+        marker_lines(&text, "producer_ack")
+            .iter()
+            .filter(|l| l.contains("caller=finish") && !l.contains("caller=finish_hs"))
+            .count(),
         0,
         "A FRAME WHOSE A2 NEVER LEFT MUST NOT BE ACKED. The session was committed, but the peer \
          received nothing; acking here would retire a frame whose effect never happened.\n{text}"

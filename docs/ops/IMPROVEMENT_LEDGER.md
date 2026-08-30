@@ -5055,7 +5055,6 @@ asymmetry is recorded rather than hidden.
 - Severity: **P3** — declared at filing by R347 §2(a). It breaks no shipped behaviour and no default gate: production builds do not compile the seam and are unaffected. What it costs is **assurance** — a documented fault-injection capability is unavailable, and any future lane ordered to drive a forced-failure path through it (as NA-0742's T8 was) discovers that only by attempting it.
 
 - Status: **open** — declared at filing by R347 §2(a) / D-1379.
-
 - Evidence: `RUSTFLAGS='--cfg qsc_rng_failure_test_seam' cargo check -p qsc --locked --lib` on a zero-modification worktree of `b69600e5`; log sealed at `evidence_NA0742/T8_seam_build.log`. NA-0742's T8 is committed **exactly as ruled** so it becomes executable the moment this is repaired, and its `#[cfg(not(...))]` companion runs and passes in the default suite, proving the seam is genuinely ABSENT from a default build rather than merely unused.
 
 - Successor: **repair the seam build**, at which point NA-0742's T8 and the eight pre-existing files' arms all become executable. ⚠ **The named candidate gate is a cfg-building CI job** — a job that at minimum `cargo check`s the crate under `--cfg qsc_rng_failure_test_seam`, so the configuration cannot rot unobserved again. Neither is built here; the fix is not this lane's.
@@ -6687,6 +6686,37 @@ and its `queue` subcommand then does `ready = [... if item.status == "READY"]` f
 - Recommended change: **NONE CHOSEN.** Candidates named: **state the contract** ("no request logging by default") and **test it** with an assertion that the log is empty after a scripted exchange, so the guarantee cannot regress silently; consider what the two `store_error` sites should carry, since both interpolate the store's own error string (`store.rs:185` `format!("ERR_STORE {e}")`) and **neither was observed firing — n=0**; and, if any deployment ever raises the level, key or drop `channel_log_id`, whose unkeyed FNV-1a a token-holder inverts at will.
 - Status: open — filed 2026-08-30 by NA-0772 (`D-1415`).
 - Source: NA-0772 STOP 003 sec 4.2 and its carried run `RUN_B2_logarms_at_37ec8207.txt`, with the instrument carried beside it.
+
+
+### ENG-0262 — ⚠ P3 — `invite_scan_summary`'s `scanned=` UNDERSTATES THE LEASE FOOTPRINT ACROSS BATCHES AND AT BUDGET EXHAUSTION — **NEW; FILED by NA-0768 (`D-1409`). FILING ONLY.**
+
+- Severity: **P3** — a diagnostic-fidelity item. Nothing is lost or mis-delivered; a reader of the marker stream is told less than the client knows.
+- Bases measured at: qsl-protocol **`c6687bbd`**.
+- ⛳ **NARROWED BY THIS LANE AND NOT CLOSED.** Within ONE batch `scanned=` now equals what was leased, because E4 offers the handshake-class frames the scan pulled instead of stepping over them. **Across batches, and when the scan's budget is exhausted, it still does not report what the pull RETURNED.**
+- ⚠ THE GAP IS A LEASE GAP, NOT A COUNTING GAP. Every frame a pull returns is LEASED by the relay whether or not the client counts it, so a reader who sizes the lease footprint from `scanned=` sizes it low. That is the number an operator would use to reason about redelivery pressure.
+- Recommended change: **NONE CHOSEN.** The obvious candidate is to report `returned` beside `scanned`; the value is already in scope at `invite/mod.rs:1228`, so the change is small — but this lane declines to add a marker field it has not measured a consumer for.
+- Status: open — filed 2026-08-30 by NA-0768 (`D-1409`).
+- Source: STOP 008 sec 15.1, carried forward from cold read 3's N10 and confirmed by its 4.4.
+
+### ENG-0263 — ⚠ P3 — `G8(c)`'s CLAIM IS OVERSTATED: THE EARLY EXIT SAVES CLIENT-SIDE CLASSIFICATION, NOT A PULL AND NOT A LEASE — **NEW; FILED by NA-0768 (`D-1409`). FILING ONLY.**
+
+- Severity: **P3** — a claim-accuracy item in a design note, not a defect in shipped behaviour.
+- Bases measured at: qsl-protocol **`c6687bbd`**.
+- ⛳ **WHAT WAS MEASURED.** The early exit is reached AFTER the pull has already been issued and the relay has already leased what it returned. It therefore saves the client the work of classifying frames it has already caused to be leased — real, but not the saving `G8(c)` names.
+- ⚠ Independently confirmed case-by-case by SR-15 cold read 3's 4.4, which states its own boundary at N1 (the multi-batch case is not run).
+- Recommended change: **NONE CHOSEN** — restate `G8(c)` to the saving that exists. No code change is implied.
+- Status: open — filed 2026-08-30 by NA-0768 (`D-1409`).
+- Source: STOP 008 sec 15.2.
+
+### ENG-0264 — ⚠ P3 — AN INPUT TO THE E3 / MESSAGING DISPATCH DESIGN: ADDRESSING RESTORES THE ALARM THAT THE FAN-OUT CANNOT SOUND — **NEW; FILED by NA-0768 (`D-1409`). FILING ONLY.**
+
+- Severity: **P3** — an input to a design that has not been made, not a defect in a shipped one.
+- ⛳ **THE STATE THIS LANE LEAVES, STATED PLAINLY.** `invite_finish` fans a handshake frame out to a bounded candidate set and offers each candidate SPECULATIVELY, so the identity gate is silent on rejection: at `handshake/mod.rs:2272` there is no second fact separating *"not the addressee"* from *"the addressee whose identity changed"*. `RULING_008` sec 3 ACCEPTS that cost for this lane, on the grounds that the security DECISION is unchanged (the gate still fails closed before the first KEM), and that the GUI never had this alarm — before E4 the beat processed no handshake frame at all.
+- ⚠⚠ **THE ALARM IS RESTORED BY ADDRESSING, AND THAT IS THIS FILING.** When frames are matched to a mailbox or a session BEFORE they are offered — which is the dispatch table's job — a mismatch is once again a statement about a NAMED peer, and the security marker becomes sound again. **Whoever designs E3 / messaging dispatch should take this as an input rather than rediscover it.**
+- ⚠ The mitigation this lane DID build is `invite_finish_hs_unconsumed{candidates=N}` (`invite/mod.rs`), which makes the CONDITION visible — a frame nobody took, redelivered every lease until the 7-day TTL — without claiming to know why. It carries no fingerprint, no identity, no alias and **no session id**: the ruling permitted at most a hash8 of the session id, and this lane declined it, because obtaining one means reading the frame's session id outside the crypto module, which `RULING_005` sec 2 refuses. **A permission is not an instruction.**
+- Cross-references: `ENG-0260` (the cleartext correlator, the same design surface); `ENG-0198` (the redelivery-until-TTL of an unconsumed frame, whose family this marker makes visible and does NOT repair); `D-1415` (per-contact route tokens are OUT for the primary deployment, which makes the fan-out permanent and this cost permanent with it).
+- Status: open — filed 2026-08-30 by NA-0768 (`D-1409`).
+- Source: `RULING_NA0768_008_20260830.md` sec 3(c); STOP 008 secs 26.4-26.7.
 
 
 ### WF-0091 — ⚠⚠ A SUITE RUNNER KEYED ITS RESULTS BY TARGET **NAME** WHILE TWO TARGETS SHARE ONE NAME, SO ONE SILENTLY OVERWROTE THE OTHER AND **THE RUN REPORTED GREEN WHILE INCOMPLETE** — **NEW; FILED by NA-0768 (`D-1409`) from `STOP_NA0771_006` sec 8.3, carrying property `PR-7`. FILING ONLY — the runner is seat tooling, not a repository artifact, and nothing is repaired here.**

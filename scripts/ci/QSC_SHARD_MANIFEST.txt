@@ -1,9 +1,9 @@
 # QSC_SHARD_MANIFEST v2 — target<TAB>shard (K=12; greedy-LPT seeded from the NA-0696 local run — the seed figures are ESTIMATES of CI times, the partition itself is exact and deterministic)
 # INVARIANT, gate-enforced: doc:qsc is ALONE in shard 11. cargo refuses --doc mixed with any other target selector ("error: can't mix --doc with other target selecting options", exit 101), so a doc target sharing a shard emits an argument set cargo rejects outright. qsc_shard_check.py fails closed on it.
 # The shard ids here MUST equal the workflow's matrix; qsc_shard_check.py --assert-workflow proves it in both directions, and asserts every runs-on value is ubuntu-latest (the ruled STANDARD-runner constraint).
-lib	8
 bin:qsc	9
 doc:qsc	11
+lib	8
 tests/NA_0633_eng0038_reproduction.rs	10
 tests/NA_0634_full_identity_provisioning.rs	9
 tests/NA_0639_wf0022_atomic_write_crash_window.rs	7
@@ -80,6 +80,22 @@ tests/na0711_invite_label_resolution.rs	4
 tests/na0741_frame_class_dispatch.rs	3
 tests/na0742_invite_finish_scan_producer_acks.rs	4
 tests/na0749_fingerprint_conformance.rs	6
+tests/na0751_facade_connect_reason_totality.rs	7
+tests/na0751_facade_contact_surface.rs	7
+tests/na0751_facade_fact_fidelity.rs	7
+tests/na0751_facade_invite_surface.rs	7
+tests/na0751_facade_locked_control.rs	7
+tests/na0755_invite_label_and_clear.rs	7
+tests/na0756_two_party_invite_roundtrip.rs	3
+tests/na0757_eng0239_session_dir_perms.rs	4
+tests/na0760_workspace_license_agpl_only.rs	5
+tests/na0764_contact_surface_widening.rs	6
+tests/na0764_m3_empty_slot_accept.rs	6
+tests/na0768_facade_inviter_completes.rs	4
+tests/na0768_handshake_a1_offer.rs	3
+tests/na0768_invite_finish_mixed_role.rs	5
+tests/na0770_legacy_retirement_guards.rs	3
+tests/na0771_eng0252_arms.rs	10
 tests/na_0302_suite2_negotiation_cross_surface.rs	4
 tests/na_0303_handshake_activation_negotiation.rs	8
 tests/na_0304_handshake_suite_id_negotiation.rs	6
@@ -137,16 +153,3 @@ tests/trust_remediation_ux_na0178.rs	10
 tests/two_client_local_runbook_na0182.rs	9
 tests/unlock_gate.rs	5
 tests/vault.rs	10
-tests/na0751_facade_connect_reason_totality.rs	7
-tests/na0751_facade_invite_surface.rs	7
-tests/na0751_facade_fact_fidelity.rs	7
-tests/na0751_facade_locked_control.rs	7
-tests/na0751_facade_contact_surface.rs	7
-tests/na0755_invite_label_and_clear.rs	7
-tests/na0756_two_party_invite_roundtrip.rs	3
-tests/na0757_eng0239_session_dir_perms.rs	4
-tests/na0760_workspace_license_agpl_only.rs	5
-tests/na0764_m3_empty_slot_accept.rs	6
-tests/na0764_contact_surface_widening.rs	6
-tests/na0770_legacy_retirement_guards.rs	3
-tests/na0771_eng0252_arms.rs	10

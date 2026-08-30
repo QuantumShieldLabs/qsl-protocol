@@ -1213,12 +1213,14 @@ fn finish_scan_select_invite_resp(
     relay_ep: &str,
     self_inbox: &str,
     max: usize,
-) -> Result<Option<crate::InboxPullItem>, &'static str> {
+) -> Result<(Option<crate::InboxPullItem>, Vec<crate::InboxPullItem>), &'static str> {
     let total = max.clamp(FINISH_SCAN_TOTAL_MIN, FINISH_SCAN_TOTAL_MAX);
     let mut scanned = 0usize;
     let mut pulls = 0usize;
     let mut classes: Vec<&'static str> = Vec::new();
     let mut selected: Option<crate::InboxPullItem> = None;
+    // NA-0768 E4: the Handshake-class frames THIS pull already leased, kept rather than dropped.
+    let mut handshakes: Vec<crate::InboxPullItem> = Vec::new();
     let mut head_exhausted = false;
 
     'scan: while pulls < FINISH_SCAN_PULLS_MAX && scanned < total {
@@ -1233,10 +1235,21 @@ fn finish_scan_select_invite_resp(
             if !classes.iter().any(|c| *c == name) {
                 classes.push(name);
             }
-            if class == crate::frameclass::FrameClass::InviteResp {
-                selected = Some(item);
-                break 'scan;
+            if class == crate::frameclass::FrameClass::Handshake {
+                // ALREADY LEASED by the pull above (STOP 004 M4): keeping it costs no pull and
+                // no lease. Dropping it is what strands the inviter (ENG-0250/ENG-0251).
+                handshakes.push(item);
+                continue;
             }
+            if class == crate::frameclass::FrameClass::InviteResp && selected.is_none() {
+                selected = Some(item);
+                // NO `break 'scan` inside the batch -- see sec 2.1. The relay leases the whole
+                // batch at pull time, so finishing the inspection costs nothing at the relay.
+                continue;
+            }
+        }
+        if selected.is_some() {
+            break 'scan;
         }
         if returned < want {
             // A short batch means the relay had nothing more to give: the unleased head is
@@ -1275,7 +1288,7 @@ fn finish_scan_select_invite_resp(
             ("classes", classes_s.as_str()),
         ],
     );
-    Ok(selected)
+    Ok((selected, handshakes))
 }
 
 /// Alice: collect the handshake from her own invite slot and answer it.
@@ -1399,6 +1412,22 @@ pub fn invite_accept_at(
 
 /// Bob: collect the wrapped B1 from his own inbox, learn the peer's real route token, and
 /// let the existing initiator logic finish the handshake.
+/// NA-0768 (`D-1409`): the poll's TWO durable-commit shapes, read together.
+/// `.0` = a session exists for `peer`; `.1` = a pending record exists for `peer`.
+/// ⚠ Errors PROPAGATE (B3): "unreadable" is not "absent", and the caller must not ack on a
+/// witness it could not read.
+fn witness_shapes(self_label: &str, peer: &str) -> Result<(bool, bool), &'static str> {
+    let sess = match crate::protocol_state::qsp_session_load(peer) {
+        Ok(v) => v.is_some(),
+        Err(e) => return Err(e.as_str()),
+    };
+    let pend = match crate::handshake::hs_pending_present(self_label, peer) {
+        Ok(v) => v,
+        Err(e) => return Err(e.as_str()),
+    };
+    Ok((sess, pend))
+}
+
 pub fn invite_finish(
     self_label: Option<&str>,
     alias: &str,
@@ -1435,7 +1464,183 @@ pub fn invite_finish(
     // pull instead: the best achievable floor for an informed user on such a relay rises from
     // 1 to 16, permanently. `ENG-0043`'s open "restate the old-server fallback story" is the
     // home for that story and this lane makes it MORE owed, not less.
-    let item = match finish_scan_select_invite_resp(&relay_ep, &self_inbox, max)? {
+    let (resp_item, hs_items) = finish_scan_select_invite_resp(&relay_ep, &self_inbox, max)?;
+    for hs in hs_items {
+        let hs_id = hs.id.clone();
+        // ── THE CANDIDATE SET ──────────────────────────────────────────────────────────
+        // ⚠ `Ok(None)` ONLY (RULING_NA0768_005 sec 3, from cold read 3's B3). An `Err` from
+        // `qsp_session_load` is NEITHER "no session" NOR a candidate -- a corrupt or legacy
+        // session blob would otherwise make that contact a PERMANENT fan-out candidate. It is
+        // MARKED and skipped.
+        let mut cands: Vec<String> = Vec::new();
+        if matches!(crate::protocol_state::qsp_session_load(alias), Ok(None)) {
+            cands.push(alias.to_string());
+        }
+        if let Ok(entries) = crate::contacts::contacts_list_entries() {
+            for (label, _rec) in entries {
+                if label == alias {
+                    continue;
+                }
+                match crate::protocol_state::qsp_session_load(&label) {
+                    Ok(None) => cands.push(label),
+                    Ok(Some(_)) => {}
+                    Err(_) => crate::output::emit_marker(
+                        "invite_finish_hs_skip",
+                        Some("session_unreadable"),
+                        &[("peer", label.as_str())],
+                    ),
+                }
+            }
+        }
+        let mut consumed_by: Option<String> = None;
+        let mut offered_n: usize = 0;
+        for cand in &cands {
+            // ⚠ M8: a candidate whose route token will not resolve is SKIPPED, never offered
+            // under an empty token -- `relay_inbox_push` would fail AFTER `hs_pending_store`
+            // has already committed, wedging that contact with a B1 that never left.
+            let peer_tok = match crate::contacts::relay_peer_route_token(cand) {
+                Ok(t) => t,
+                Err(code) => {
+                    crate::output::emit_marker(
+                        "invite_finish_hs_skip",
+                        Some(code),
+                        &[("peer", cand.as_str())],
+                    );
+                    continue;
+                }
+            };
+            // ── THE WITNESS, BOTH COMMIT SHAPES (B1) ──────────────────────────────────
+            // ⚠ An unreadable witness is NEVER "not present": it is marked and the frame is
+            // NOT acked (the fail-safe direction -- an unacked frame is redelivered; a
+            // wrongly-acked frame is destroyed).
+            let before = match witness_shapes(self_label, cand) {
+                Ok(v) => v,
+                Err(code) => {
+                    crate::output::emit_marker(
+                        "invite_finish_hs_skip",
+                        Some(code),
+                        &[("peer", cand.as_str())],
+                    );
+                    continue;
+                }
+            };
+            offered_n += 1;
+            // ⚠ N6: `LegacyCompat` matches all three shipped invite-path call sites
+            // (invite/mod.rs:1126, :1367, :1465). It is the caller's mode, not a downgrade.
+            let offer = crate::handshake::perform_handshake_poll_with_tokens(
+                Some(self_label),
+                cand.as_str(),
+                &relay_ep,
+                &self_inbox,
+                peer_tok.as_str(),
+                max,
+                HandshakeSuiteMode::LegacyCompat,
+                // ⚠⚠ EVERY FAN-OUT OFFER IS SPECULATIVE, INCLUDING THE CALLER'S OWN ALIAS.
+                // A first version carved the caller's alias out as "not speculative", on the
+                // reading that the desktop invoked the verb FOR that contact. **MEASURED, THAT
+                // RE-CREATES THE EXACT NOISE `RULING_006` sec 2(a) FORBIDS** (arm S5): the
+                // desktop LOOPS `contact_list`, so every contact takes its turn as the caller,
+                // and an ordinary foreign A1 then fires `identity_mismatch` with two
+                // fingerprints on every beat. The alias came from an ITERATION, not from a
+                // user asserting whose frame this is.
+                // ⇒ THE LINE THAT HOLDS: a peer ASSERTED by a caller (`handshake poll --peer`,
+                //   `invite_accept`, this verb's own RESP path) keeps the security marker,
+                //   unchanged. A peer reached by ITERATION does not.
+                crate::handshake::HsPollSource::ProvidedSpeculative(std::slice::from_ref(&hs)),
+                None,
+            );
+            // ⚠ B2: the offer's error is MARKED and swallowed. An offer must never fail this
+            // verb -- the redeemer's shipped path rides it -- but a swallow without a mark is
+            // the ENG-0198 shape (rc 0, nothing said).
+            if let Err(code) = offer {
+                crate::output::emit_marker(
+                    "invite_finish_hs_offer_error",
+                    Some(code),
+                    &[("peer", cand.as_str())],
+                );
+            }
+            let after = match witness_shapes(self_label, cand) {
+                Ok(v) => v,
+                Err(code) => {
+                    crate::output::emit_marker(
+                        "invite_finish_hs_skip",
+                        Some(code),
+                        &[("peer", cand.as_str())],
+                    );
+                    continue;
+                }
+            };
+            // SESSION appeared (responder branch) OR PENDING appeared (no-pending branch,
+            // which also pushed a B1). Either is a durable commit caused by THIS frame.
+            if (!before.0 && after.0) || (!before.1 && after.1) {
+                consumed_by = Some(cand.clone());
+                break;
+            }
+        }
+        let offered_s = offered_n.to_string();
+        // ⚠ NA-0768 (`RULING_006` sec 3): `caller=` is an ALIAS and is redacted by SHAPE when
+        // it is >= 24 chars and contains a digit -- and it gets NO exemption, because an alias
+        // is user-typed and semantically sensitive however it is shaped.
+        // ⚠⚠ **D2 (`RULING_007` sec 2): THE COMPANION DERIVES FROM THE CONTACT'S PINNED
+        // FINGERPRINT, NEVER FROM THE ALIAS.** An 8-hex digest of the alias
+        // (`contacts::route_token_hash8`) was built first and REFUSED: it is unsalted, unkeyed
+        // and takes no install input, so cold read 4 inverted this lane's own two published
+        // values (`56c5f992` -> `bravo`, `b6b1266e` -> `charlie`) from a 50-word dictionary,
+        // with no access to any install and in milliseconds. `route_token_hash8` earns its name
+        // on a HIGH-ENTROPY input -- **the property belongs to the INPUT, not to the helper** --
+        // and an alias is short, user-typed and guessable. It re-admitted the alias in exactly
+        // the shape `should_redact_value` cannot see.
+        // The pin is the value the tree ALREADY prints IN FULL under the `fp` key, which
+        // `should_redact_value` exempts BY NAME, so a PREFIX of it discloses strictly less than
+        // the marker stream already carries on every honest handshake.
+        // ⚠ **ABSENT, NOT SUBSTITUTED**, when the caller has no pin: an unpinned contact has no
+        // stable non-alias identity, and inventing one is the thing D2 refused. A pin READ ERROR
+        // is treated as "no pin" for this FIELD ONLY -- it is diagnostic bookkeeping and never a
+        // gate; the gate's own `Err(_)` arm is untouched (D4).
+        let caller_id: Option<String> = crate::identity::identity_read_pin(alias)
+            .ok()
+            .flatten()
+            .map(|pin| pin.chars().take(8).collect());
+        let mut fields: Vec<(&str, &str)> = vec![("caller", alias)];
+        if let Some(cid) = caller_id.as_deref() {
+            fields.push(("caller_id", cid));
+        }
+        // ⚠ M7: the ACTUAL fan-out width, not a constant.
+        fields.push(("offered", offered_s.as_str()));
+        fields.push((
+            "consumed",
+            if consumed_by.is_some() { "true" } else { "false" },
+        ));
+        crate::output::emit_marker("invite_finish_hs_offer", None, &fields);
+        if consumed_by.is_some() {
+            emit_producer_ack("finish_hs", &relay_ep, &self_inbox, &hs_id);
+        } else {
+            // ⚠⚠ **`RULING_008` sec 3 -- THE MITIGATION FOR THE COST THAT RULING ACCEPTS.**
+            // The fan-out cannot say WHY a frame went unclaimed: at the identity gate
+            // (`handshake/mod.rs:2272`) there is no second fact separating "not the addressee"
+            // from "the addressee whose identity changed" -- which is exactly why a speculative
+            // offer is silent at all. So this marker does not claim to know. It makes the
+            // CONDITION visible: a frame nobody took, which the relay redelivers every lease
+            // until the 7-day TTL.
+            // ⚠ **NO FINGERPRINT, NO IDENTITY, NO ALIAS, AND NO SESSION ID.** The ruling permits
+            //   "at most a hash8 of the session id"; it is DELIBERATELY OMITTED, because getting
+            //   one means reading the frame's session id in `invite/mod.rs`, and a session-id
+            //   correlator outside the crypto module is REFUSED by `RULING_005` sec 2 (design 2's
+            //   G4). **A PERMISSION IS NOT AN INSTRUCTION**, and taking it would re-open a closed
+            //   decision to buy a field nothing yet consumes.
+            // ⚠ ONE PER FRAME PER BEAT: it sits inside `for hs in hs_items`, on the arm where no
+            //   candidate consumed, so its cardinality is frames-unclaimed, never candidates.
+            //   `candidates=` reports the fan-out WIDTH that failed to place the frame.
+            // ⚠ The redelivery-until-TTL it surfaces is `ENG-0198`'s family: cross-referenced,
+            //   NOT repaired here.
+            crate::output::emit_marker(
+                "invite_finish_hs_unconsumed",
+                None,
+                &[("candidates", offered_s.as_str())],
+            );
+        }
+    }
+    let item = match resp_item {
         Some(item) => item,
         // ⚠ TODAY'S PATH, UNCHANGED: `Ok(false)` -> `invite_finish=none` -> rc 0. Not an
         // error, because it is not one — the reply has not arrived yet. What is new is

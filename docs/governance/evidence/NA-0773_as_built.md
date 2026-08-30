@@ -99,8 +99,28 @@ worktree at this branch's final commit**, every target's own exit read unpiped, 
 **Expectation, written before the run:** the suite is unaffected by this change, because the edit is
 unreachable from a default build (sec 1) — any nonzero target is re-run **alone** under the rule
 *passes alone = contention; fails alone = real*.
-⚠ **The figure is deliberately NOT written in this pass** (`SR-22`: never write a figure about an
-artifact in the same pass that creates it). It is recorded in the lane's stop and in the PR.
+**THE RESULT, MEASURED AND RECONCILED (second pass, `SR-22`):**
+
+| figure | value |
+|---|---|
+| census, unique test binaries (cargo's own JSON) | **181** |
+| binaries actually executed (`Running` lines) | **181** — **EXACT MATCH** |
+| `test result:` lines | **183** = 181 binaries **+ 2 doc-test runs** |
+| targets FAILED | **0** |
+| tests passed / failed / ignored | **910 / 0 / 2** |
+| suite exit code | **0** |
+| `error`/`panicked` lines in stderr | **0** |
+| worktree at the end | `6be183a0`, `git status --porcelain` = 0 |
+
+⚠ **THE 183-vs-181 EXCESS IS EXPLAINED, NOT WAVED THROUGH.** `Running`(181) + `Doc-tests`(2) = 183 =
+the number of `test result:` lines, so **every reported result maps to an executed binary or a
+doc-test run, and every enumerated binary produced a result.** This is the reconciliation `PR-7`
+requires: a green run is not a complete run, and a runner that cannot state its own cardinality
+cannot satisfy `SR-05`. ⇒ **`SR-05` IS SATISFIED.**
+
+⚠ **THE CENSUS IS 181, NOT THE 178 THIS LANE FIRST CARRIED.** `#1808` added three test targets
+(`na0768_facade_inviter_completes`, `na0768_handshake_a1_offer`, `na0768_invite_finish_mixed_role`);
+178 + 3 = 181. The denominator was re-derived from the run's own census rather than carried.
 ⚠⚠ **AN EARLIER LAUNCH OF THIS SUITE WAS DISCARDED BY THIS SEAT** — it was started and then had its
 tree moved under it by two branch switches, so its results were not attributable to any commit. The
 delta was records-only and no compiled artifact differed, **but it is discarded on principle, not on

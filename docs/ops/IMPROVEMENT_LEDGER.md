@@ -6887,6 +6887,11 @@ QSC_MARK/1 event=producer_ack caller=finish sent=1 acked=1
 - Cross-references: `ENG-0267` (the same commit-before-push window, reachable in ordinary operation, filed as a design finding); `ENG-0197` / `ENG-0256` (the seam that could not run this arm for 46 days); `ENG-0250` / `ENG-0251` (the inviter-completion defects in the surrounding code, NA-0768); `D-0883` / `NA-0449`; `ENG-0265` (the deeper limit: even this arm simulates an `Err`, not the panic a real RNG failure produces).
 - Source: NA-0773's own run on `1fe8ac2e`, all 27 results recorded by name in `docs/governance/evidence/NA-0773_as_built.md`.
 
+
+⚠⚠ **SEVERITY RULED `P2` BY THE DIRECTOR, 2026-08-30, at `RULING_NA0773_003` (banked 444 under `/srv/qbuild/operator/NA-0773/`, whole-file sha256 `d6af0159fd947f70f1f8fc147a3440ab347c2be17a824efe9c5a2e5e76848f26`). Nothing above is edited; the entry's own "argued, not declared" wording stands as issued and this append supersedes it in the open.**
+
+**`P2` IS NOW DECLARED BY THE DIRECTOR, NOT ARGUED BY THE SEAT.** His grounds, verbatim: *"a frame retired while its effect did not occur, peers left permanently disagreeing, no frame to retry from; not P1 (narrow window, no confidentiality lost); not P3 (reachable without fault injection via `ENG-0267`'s window)."* ⇒ **the seat's argument was adopted in full and the grade is a ruling.** ⚠ Read the `- Severity:` bullet above together with this line: the bullet's value (`P2`) was correct before the ruling and is unchanged by it; **what changed is its STANDING** — from a proposal offered for ruling to a Director-declared grade.
+
 ### WF-0093 — ⚠⚠ A cfg-GATED TEST SURFACE IS COMPILED BY NO CI JOB, AND A TEST WITH ZERO ASSERTIONS IS NOT A LINT FAILURE — THE TWO GAPS THAT LET 27 TESTS ROT FOR 46 DAYS AND 13 ASSERTION-FREE TESTS PASS INDEFINITELY — **NEW; FILED by NA-0773 (`D-1416`) as the CI-migration input the Director's ruling sec 4 orders. FILED, NOT BUILT — `.github/**` is outside this seat's authority and the committed `.claude/settings.json` denies writes there.**
 
 - Type: workflow; Status: open — filed 2026-08-30 by NA-0773 (`D-1416`).

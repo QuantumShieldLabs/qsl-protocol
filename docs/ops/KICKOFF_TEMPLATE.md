@@ -186,6 +186,26 @@ plain paragraph in your NEXT message, before status, with severity best-known an
 stated. Do not file it and move on.
 ```
 
+**5.1b THE QUEUE'S ONE-READY RULE, AMENDING SECTION 3b's LETTER -- ADDED BY `RULING_NA0773_003`.**
+⚠ Section 3b gives `Status: READY (D-####)` at promotion. The Director's ruling of 2026-08-30
+amends that letter with the sentence below; **`WF-0090`'s rule stands unchanged** and this is what
+makes the two consistent:
+
+```
+exactly one READY block at a time; a lane promoted while another is READY is born
+PROMOTED and flips to READY when the queue clears
+```
+
+**WHY IT IS A SENTENCE IN THE TEMPLATE AND NOT A JUDGEMENT CALL PER LANE.** `scripts/ci/qsl_evidence_helper.py queue`
+requires **EXACTLY ONE** lane whose bare token is `READY`, and `tools/qwork.sh` calls it without
+`--allow-nonready-count`, so a count of 2 fails closed at `queue-helper-failed`. **Following 3b's
+letter while another lane is READY therefore violates the invariant 3b itself states.** The occasion:
+`NA-0773` was promoted while `NA-0768` still read `READY (D-1409)` on main **and on its own open PR**
+-- that PR did not flip its own block -- so `NA-0773`'s block was born `Status: PROMOTED for D-1416`
+and **flips to `READY` in its own next act once the queue clears.** The seat declared the deviation
+rather than taking it silently; the Director confirmed it and amended the template so the next seat
+does not have to re-derive the same conclusion.
+
 **5.2 THE `ESCALATIONS` SECTION IS A REQUIRED PART OF THE STOP-FILE SHAPE.** In **every** STOP file,
 REPORT, HOLD note and findings file: **immediately after the identity block and BEFORE section 0**,
 a section headed exactly

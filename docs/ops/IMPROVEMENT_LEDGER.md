@@ -6900,3 +6900,108 @@ QSC_MARK/1 event=producer_ack caller=finish sent=1 acked=1
 - ⚠ **AND A THIRD, SMALLER ONE, NAMED SO THE SET IS NOT NARROWER THAN THE PROBLEM:** running the seam suite in CI would ALSO have caught `ENG-0269` — the live defect this lane found — **on the day it was introduced**, instead of never.
 - Cross-references: `ENG-0197` / `ENG-0256` (the rot); `ENG-0268` (the assertion-free species); `ENG-0269` (what the gate would have caught); `ENG-0230` (another gate that cannot see what it is supposed to gate); `D-0883` (the seam's authorising record, which requires the cfg be non-default — the gate must therefore be additive, never a default-build change).
 - Source: NA-0773 `D-1416`; measurements at `c6687bbd` and `1fe8ac2e`.
+
+### ENG-0270 — the contacts list could not scroll: `#contacts-rows` carried no CSS rule at all and `.list-pane` no `min-height`, so 30 contacts made the pane 1496px tall inside a 673px window and every row below the fold was unreachable with no scrollbar to reach it — **NEW; FILED AND CLOSED by NA-0774 (`D-1417`, desktop `D-0045`).**
+
+- Severity: **`P3`** — no data is lost or exposed and nothing fails unsafely; the defect is that a shipped surface becomes unusable past the fold. Argued, not declared.
+- ⚠ **IT EXISTED ONLY IN AN OPERATOR PACKET UNTIL THIS LANE** (the `D-1` / `R331.1` shape): a defect the operator had reported and no ledger row carried. Filing it is half the point of the lane.
+- **MEASURED IN THE RUNNING APP BEFORE ANY CHANGE**, 30 injected rows at desktop main `0a908099`: `#contacts-rows` `scrollHeight` 1410 == `clientHeight` 1410 (no clipping — it simply grew), `.list-pane` `clientHeight` 1496 against `window.innerHeight` 673, computed `overflow-y: visible`, computed `min-height: auto`.
+- ⚠⚠ **THE CURE IS TWO RULES AND THE SECOND IS NOT OPTIONAL — MEASURED, NOT ASSUMED.** The brief asked for one rule. `overflow-y` on the rows container ALONE was driven and measured: the declaration **applied** (computed `overflow-y` went `visible` → `auto`) and the defect was **unchanged** (rows 1410, pane 1496, `scrollHeight == clientHeight` still). `.list-pane` is a GRID ITEM of `.main-layout`, and a grid item's default `min-height: auto` refuses to shrink below its content, so the pane grew and handed the rows container a 1410px box to "scroll" in. With `min-height: 0` on the pane as well: rows client 556, pane 642 ≤ 673, `scrollHeight > clientHeight`.
+- Red arm printed: reverting both rules fails `na0774_gui_o_contacts_scroll` at `expected "scrolls" / measured "NO-SCROLL scroll=1410 client=1410"`, rc=101.
+- ⚠ **CLAIM BOUNDARY.** Two of the brief's three assertions do **not** discriminate at the harness window size and are kept as no-regression guards, not as proof: the heading was already in view in the red state (the pane grows downward, the header sits above it), and the window is not resized on `scr-main`. The arm that carries the red is `scrollHeight > clientHeight`, joined by this lane's added assertion that the pane fits the window.
+- Cross-references: `ENG-0271` (the other packet-only defect this lane filed); desktop `D-0045`.
+- Source: NA-0774 `D-1417`; measured at desktop main `0a908099`.
+
+### ENG-0271 — the "Working…" busy indicator flashed on every liveness beat forever: the tick's scan makes **four** IPC calls per beat with nothing to do, and `invoke()` showed the indicator on every one — **NEW; FILED AND CLOSED by NA-0774 (`D-1417`, desktop `D-0045`).**
+
+- Severity: **`P3`** — cosmetic in effect, but continuous and unavoidable on an idle unlocked screen, and it trains a user to ignore the one signal the app has for "a human is waiting".
+- ⚠ **ALSO PACKET-ONLY UNTIL THIS LANE**, the same `D-1` / `R331.1` shape as `ENG-0270`.
+- **THE ENUMERATION, WHICH THE CURE HAD TO COVER ALL OF.** Reachable from `relayScan` when `ev.source === "tick"`, traced from bytes: `setInterval` (`ui/main.js:1995`) → `relayScan` → `relayScanOnce` (`:3406`) → `SCAN_CLASSES` (`:3385`) = `[finishScanClass, autoConnectClass]`. Six commands: `relay_config_get` (both classes, once each per beat), `contact_list` (once), `invite_list` (once), `connect_status` (per contact row), `invite_finish` (per eligible row), `invite_accept` (per due invite).
+- ⚠⚠ **THE PER-BEAT FLOOR IS FOUR CALLS AND IT IS UNCONDITIONAL**: each class opens with an unguarded `relay_config_get`, then — the relay being configured, which the tick gate already requires — an unguarded `contact_list` / `invite_list`. Four IPC calls every beat with zero contacts, zero invites and nothing whatever to do.
+- **THE CURE AND WHY IT SITS WHERE IT DOES.** A depth-counted flag raised around `relayScanOnce` when `ev.source === "tick"`. **Scoped to the PASS, not to `relayScan`**: a scan's rerun can carry a **different source** than the pass that started it (`relayScan` stores the pending event and replays it through a second `relayScanOnce(next)`), so a flag scoped to `relayScan` would silence a **user-sourced rerun**. Scoped to the pass, quietness follows `ev.source`, which is the thing that actually decides it.
+- **OPERATOR-RULED AND UNCHANGED:** suppression is for tick-sourced calls ONLY. "Suppress always" was refused — the indicator earns its keep where a human is waiting.
+- Red arm printed: reverting the guard fails `na0774_gui_p_tick_quiet_busy` at `expected "quiet" / measured "UNHID 2 time(s) under a tick"`, rc=101, **with the positive control still PASSING in that same red run** — so the observer is known to work and the green arm's silence means something.
+- ⚠ **STATED BOUND, NOT DESIGNED AROUND.** `await` yields, so a **user-sourced call made during one of the pass's awaits is also suppressed**. The window is one scan pass. Eliminating it needs per-call context the platform does not provide without threading the source through both scan-class signatures and all six call sites, where **missing one is silent**. Recorded as a known bound.
+- ⚠ **COUPLED CONSEQUENCE, ALREADY RULED:** once the tick is silent, the footer's declined-frame notice is the only visible evidence of background activity — see `ENG-0274`, which is not built in this lane.
+- Cross-references: `ENG-0270`; `ENG-0274` (the footer notice); desktop `D-0045`.
+- Source: NA-0774 `D-1417`; measured at desktop main `0a908099`.
+
+### ENG-0272 — the Settings ▸ Identity pane told a user who HAS an identity that they have none, and invited them to "finish setup", whenever `identity_show` merely threw — **NEW; FILED AND CLOSED by NA-0774 (`D-1417`, desktop `D-0045`). Raised as escalation `E5` at NA-0768 and accepted by ruling.**
+
+- Severity: **`P2`, argued.** It is a **false statement about identity state on the identity surface**, and it invites an action that is wrong for the user's actual state. Against `P1`: nothing is destroyed and no secret is exposed. Against `P3`: it is not cosmetic — a user acting on it would attempt to create an identity they already have.
+- **THE MEASUREMENT**, `ui/main.js:930-941` at desktop main `0a908099` before the fix: `refreshIdentityPane` wrapped `await invoke("identity_show")` in `try { … } catch (_) { /* treated as absent below */ }` and then branched on `if (!rec)`. **A thrown error and a genuinely absent identity reached that branch identically.** The branch reveals `#identity-empty`, whose text is, verbatim from `ui/index.html:232`: *"No identity exists yet — finish setup to create one."* `#identity-empty` had **exactly one** reference in `ui/main.js`, so that branch was its only writer.
+- **THE CURE:** two distinct states. `readFailed` separates the causes; a new `#identity-read-error` element carries *"Couldn't read your identity. Try again."*, naming **retry** and never setup; both states are driven from the same condition so they can neither both show nor both hide, and the success path clears both.
+- ⚠⚠ **THE ERROR PATH IS NOT DRIVEN END-TO-END ANYWHERE, AND THAT IS A REAL LIMIT, NOT A FORMALITY.** Making `identity_show` throw needs the IPC layer, and NA-0768 measured that `window.__TAURI__.core` is **FROZEN** — `invoke` is non-writable and non-configurable, so a scenario cannot patch it **at any delay** (driven at 1500 ms and at 10 s; both left the flow green). The three unit seals in `src-tauri/tests/na0774_identity_error_state.rs` prove **both branches exist and are distinct in the shipped bytes**. What no test in this repository proves is the rendered result of a real `identity_show` rejection.
+- Red arm printed: reverting the branch and the element fails all three seals, rc=101.
+- Cross-references: `ENG-0273` (the same display-honesty class, one surface over); desktop `D-0045`.
+- Source: NA-0774 `D-1417`; escalated at NA-0768 STOP 016.
+
+### ENG-0273 — a missed repaint suppressed the "compare verification codes" prompt, so a connected-unverified contact showed no path to verification — **FILED by NA-0774 (`D-1417`); the REPAIR shipped earlier as desktop `#47` (`D-0044`).**
+
+- Severity: **`P2`, argued.** The prompt is the app's only affordance for the verification step; a user who never sees it never verifies, and verification is the defence against a substituted identity. Filed after the fact because the repair landed before any ledger row carried the defect.
+- Raised as escalation `E4` during NA-0768 and accepted by ruling; the repair is desktop `#47`, merged as `ac03da05`, recorded in desktop `D-0044` ("the screen follows the state").
+- ⚠ **THIS ROW EXISTS BECAUSE THE REPAIR OUTRAN THE RECORD.** The fix is in main and was proven by its own pin; what was missing until now is a ledger entry naming the defect. Recorded so the arc is legible from repo truth alone.
+- Cross-references: `ENG-0272` (the same display-honesty class); desktop `D-0044`.
+- Source: NA-0774 `D-1417`; escalated at NA-0768.
+
+### ENG-0274 — the desktop footer shows no notice when a frame is declined as `invite_finish_hs_unconsumed`, so a declined handshake is invisible to the user — **NEW; FILED NOT BUILT by NA-0774 (`D-1417`).**
+
+- Severity: **`P3`, argued** — nothing fails unsafely, but a user has no way to learn that a connection attempt was declined.
+- ⚠ **NOT BUILT IN THIS LANE, AND THE REASON IS A BOUND, NOT A CHOICE:** the notice needs `src-tauri/src/**`, which the brief's edit set excludes (the `L2` bound — zero Tauri commands, zero backend bytes). Filed here and routed to the next desktop lane.
+- ⚠ **IT BECOMES MORE VISIBLE, NOT LESS, AFTER `ENG-0271`.** Once the tick no longer flashes the busy indicator, this footer notice is the **only** visible evidence of background activity. The two are coupled and the coupling was ruled before either landed.
+- Cross-references: `ENG-0271`; `ENG-0275`; `ENG-0276`.
+- Source: NA-0774 `D-1417`, kickoff `A3`.
+
+### ENG-0275 — `app_info` reports no build identity, so a flight cannot state which build it flew — **NEW; FILED NOT BUILT by NA-0774 (`D-1417`).**
+
+- Severity: **`P3`, argued** — it costs evidence quality rather than correctness. An operator flight that cannot name its build cannot be re-derived later, and this arc has already spent a partial flight on a build-instrument question.
+- ⚠ **NOT BUILT IN THIS LANE:** it needs `src-tauri/src/**` (the `L2` bound). Routed to the next desktop lane.
+- Cross-references: `ENG-0274`; `ENG-0276`.
+- Source: NA-0774 `D-1417`, kickoff `A3`.
+
+### ENG-0276 — erase/destroy can run under a live process, so an in-memory state can be carried into a freshly created vault — **NEW; FILED NOT BUILT by NA-0774 (`D-1417`).**
+
+- Severity: **`P2`, argued.** The operator reproduced the shape at NA-0768's close: with the app **closed** before `rm -rf` of the data root a fresh vault shows no prior contacts, and the earlier alarming observation was a **running process carrying in-memory contacts into a vault created inside it**. Nothing was destroyed and nothing leaked, but a wipe that runs under a live process does not mean what a user believes it means.
+- ⚠ **THE ESCALATION IT CAME FROM WAS CLOSED BY MEASUREMENT; THIS ROW IS THE RESIDUE THE MEASUREMENT LEFT.** The remedy — making the in-process clear or a restart explicit, so a wipe never runs under a live process — is the part still owed.
+- ⚠ **NOT BUILT IN THIS LANE:** it needs `src-tauri/src/**` (the `L2` bound). Routed to the next desktop lane.
+- Cross-references: `ENG-0274`; `ENG-0275`.
+- Source: NA-0774 `D-1417`, kickoff `A3`, from NA-0768's close-out.
+
+### ENG-0277 — a `debug_assert` in the handshake is dark in every shipped build, so the invariant it names is unchecked where it matters — **NEW; FILED NOT REPAIRED by NA-0774 (`D-1417`).**
+
+- Severity: **`P2`, argued and offered for ruling.** A `debug_assert` states an invariant the author believed load-bearing; compiled out of release, it checks nothing in the build users run, and its presence reads as coverage that does not exist. Whether the invariant should become a hard check or the assertion should go is a design question this filing does not settle.
+- Location as escalated: `handshake/mod.rs:2457-2461`.
+- Raised as escalation `E1` during NA-0768, routed and unfiled until now.
+- ⚠ **FILING ONLY.** No repair is authorised by this lane and none was attempted; this lane wrote **zero protocol product bytes**.
+- Cross-references: `ENG-0278` (the other signal defect on the same path).
+- Source: NA-0774 `D-1417`; escalated at NA-0768.
+
+### ENG-0278 — `invite_finish` returns `Ok(false)` after a completion that did happen, so the caller cannot distinguish "nothing to do" from "done" — **NEW; FILED NOT REPAIRED by NA-0774 (`D-1417`).**
+
+- Severity: **`P2`, argued.** A success signalled as a no-op is a signal defect on the completion path: a caller that trusts the bool cannot tell a finished handshake from an idle scan, and the desktop's own finishing scan is such a caller.
+- ⚠ **FILING ONLY**, for the same `L2` reason as `ENG-0277`: the cure is protocol product bytes and this lane wrote none.
+- Cross-references: `ENG-0277`; `ENG-0269` (the neighbouring ack defect on the same path).
+- Source: NA-0774 `D-1417`; carried from NA-0768's close-out.
+
+### ENG-0279 — the gui-driver harness reddened **three** times in one arc on non-attributable, wall-clock-shaped failures, all of one class — a scenario asserting on an element written behind an `await` with no precondition — and only the `#settings-code` instance of that class has been swept — **NEW; FILED by NA-0774 (`D-1417`); the two known instances are CLOSED, the CLASS is not.**
+
+- Severity: **`P2`, argued.** A gate that reddens for reasons unrelated to the change under test teaches its readers to re-run rather than investigate, and this arc paid roughly three review cycles to it. It also **hid a real question for a full act**: whether main's red was a race or a genuine empty is still not settled.
+- **THE THREE REDS:** desktop `#46` (flow `k`), `#47` (flow `g`), and main's push run `33364026983` at `ac03da05` (flow `i`) — different flows, different PRs, none attributable to the change it reddened.
+- **THE CURE THAT SHIPPED, AND ITS EVIDENCE:** a `poll_exec` precondition that waits on the **element's state**, never on wall-clock, added to flow `g` and `k` by `#48` and to flow `i` by `#49`. It cannot mask a product defect: on budget exhaustion `op_poll_exec` calls `self.step(…, False)` (`src-tauri/tests/harness/runner.py:311-313`), so a never-populating element still goes RED, at a **labelled** step carrying the last value seen. Proven by injected A/B on each flow: uncured `rc=101` → cured `rc=0`.
+- ⛳ **AND THE RACE THEN FIRED ON ITS OWN, UNSIMULATED, ON `#49`'s OWN CI RUN**: `STEP poll_exec settings_code_populated PASS measured='true after 2 poll(s)'` — the first read returned not-30-digits, the loop waited, the second returned 30. That is the production mechanism absorbed by the cure, and it is the evidence the PR greens alone could not supply.
+- ⚠⚠ **THE CLASS IS NOT SWEPT AND THAT IS THIS ENTRY'S POINT.** Only `#settings-code` has been enumerated and guarded (a census over all 14 scenarios found exactly two readers, both now cured). **Every other element written behind an `await` and asserted without a precondition is the same defect unfound.** A class-shaped sweep is owed and is not this lane's.
+- ⚠ **AND THE DESKTOP REPOSITORY HAS NO RED-MAIN ISSUE AUTOMATION.** Measured by the operator: zero open issues after a red push run on `main`. The protocol repository has it. So a red main on the desktop side is noticed only if a human happens to look — which is how `ENG-0270`'s and `ENG-0271`'s originating packet sat unfiled, and how this arc's third red was found by a Director census rather than by a gate.
+- ⚠ **THE HARNESS CANNOT SIMULATE THIS FAULT AT ITS OWN MECHANISM.** `window.__TAURI__.core` is FROZEN (`invoke` non-writable, non-configurable), so an IPC-timing fault cannot be injected from a scenario at any delay; the delayed-repopulate injection is the only instrument available for the class, and it is a **different mechanism** than the real fault. Stated as a standing limit under `PR-18`.
+- Cross-references: `ENG-0272` (the frozen-IPC limit again, from the other side); `ENG-0280`.
+- Source: NA-0774 `D-1417`; measured across NA-0768 and this lane.
+
+### ENG-0280 — `.github/workflows/ci.yml` documents the required-context set **inverted**: it calls the required leak-scanning gate "advisory" and lists a non-required job among the required three — **NEW; FILED by NA-0774 (`D-1417`); the repair is drafted and is the OPERATOR's to apply.**
+
+- Severity: **`P2`, argued, and the argument is the whole entry.** `infra-literal-scan` is the gate that scans the tracked tree and a PR's added lines for **leaked private keys, cloud tokens and operator infrastructure literals** — the gate that exists because earlier PRs published a private LAN address. **It IS required.** The file tells every reader the opposite, in bold: *"⚠ WHAT IS ACTUALLY ADVISORY IS THE NEW `infra-literal-scan` CONTEXT ABOVE: it runs and reports on every PR, but it is NOT in the required set yet"*. Someone who sees that context red, opens the workflow to learn what it is, and reads "advisory", may **merge past a red leak scan**. That reaches privacy and secrets.
+- **MEASURED AT THE LIVE GATE** (desktop `main`, `0a908099`): `required_status_checks.contexts = ["rust", "advisories", "infra-literal-scan"]`, `strict = true`. Required: `rust`, `advisories`, `infra-literal-scan`. **NOT** required, though both run and report: `public-safety`, `gui-driver`.
+- ⚠ **IT IS THE COMMENT'S OWN STATED FAILURE MODE, INVERTED.** Twenty lines above, the same block says: *"A comment that understates a gate is worse than none, because it invites someone to merge past a red they were told was advisory."* That sentence now describes itself. And the block misdescribes the **other** gate in the opposite direction, listing `public-safety` among the required three when it is not required — so a reader is told a non-blocking gate blocks, and a blocking gate does not.
+- ⚠ **THE CAUSE IS NOT BAD AUTHORSHIP, AND NAMING IT MATTERS.** The block documents a three-step sequence: *"1. this PR merges; 2. the OPERATOR adds `infra-literal-scan` to the required set and removes `public-safety` from it; 3. a later lane deletes this now-redundant job."* **Step 2 has since happened.** The comment was true when written and was invalidated by the operator act it itself prescribed. **Step 3 is ripe and unclaimed.**
+- ⚠⚠ **A FILE CANNOT STATE ITS OWN BRANCH PROTECTION.** This lane's own seat took the required set from that comment and published it wrongly in NA-0768 STOP 016 §3f before catching it by re-measurement. The standing correction: read the gate, never the description of the gate — `gh api repos/<owner>/<repo>/branches/main/protection --jq .required_status_checks` — and note the set is **base-scoped**.
+- ⚠ **NOT REPAIRED HERE.** `.github/**` is operator-only. Two comment replacements are drafted in this lane's stop, both proven **comment-only** by comparing the **parsed** YAML documents with a positive control; the deletion of the redundant `public-safety` job is batched with them by amendment. ⚠ **Before that deletion, re-measure the required set at that commit's base**: deleting a job whose name IS in the required set leaves a required context that never reports and blocks every pull request indefinitely (the NA-0653 failure).
+- Cross-references: `ENG-0279` (the other CI-truth defect this lane filed); `D-1417`.
+- Source: NA-0774 `D-1417`; escalated as `E6` at NA-0768 STOP 017 and accepted by ruling.

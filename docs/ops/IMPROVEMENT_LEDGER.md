@@ -6976,6 +6976,12 @@ QSC_MARK/1 event=producer_ack caller=finish sent=1 acked=1
 - Cross-references: `ENG-0278` (the other signal defect on the same path).
 - Source: NA-0774 `D-1417`; escalated at NA-0768.
 
+⚠⚠ **CITE CORRECTED BY NA-0775 (`D-1418`), 2026-09-01. NOTHING ABOVE IS EDITED** — the entry stands as issued and this append supersedes its location line in the open.
+**`handshake/mod.rs:2457-2461` DOES NOT RESOLVE** at qsl-protocol main `6a5003713914bd6748b7b2a28d014d0b8fe41f53`: those lines sit inside a `HandshakePending { ... }` struct literal in the responder branch. The cite was measured at NA-0768's base and has drifted since.
+**THE CLASS HAS FOUR MEMBERS AT THAT BASE, and every one is the last statement before an ack:** `handshake/mod.rs:2054-2058` (guards the in-poll ack on the initiator A2 branch), `:2234-2238` (the responder finalize), `:2510-2514` (the B1 send — the nearest `debug_assert` to the drifted cite), and `invite/mod.rs:1685-1690` (site 6, `invite_finish`).
+⚠ The entry's DESCRIPTION is unaffected: all four are compiled out of release, so the invariants they name are unchecked in the builds users run. **`NA-0775` repaired none of them**, and its own guarantees are ORDERING and TYPE properties that hold in release builds precisely so that none of these is relied upon.
+
+
 ### ENG-0278 — `invite_finish` returns `Ok(false)` after a completion that did happen, so the caller cannot distinguish "nothing to do" from "done" — **NEW; FILED NOT REPAIRED by NA-0774 (`D-1417`).**
 
 - Severity: **`P2`, argued.** A success signalled as a no-op is a signal defect on the completion path: a caller that trusts the bool cannot tell a finished handshake from an idle scan, and the desktop's own finishing scan is such a caller.
@@ -7005,3 +7011,98 @@ QSC_MARK/1 event=producer_ack caller=finish sent=1 acked=1
 - ⚠ **NOT REPAIRED HERE.** `.github/**` is operator-only. Two comment replacements are drafted in this lane's stop, both proven **comment-only** by comparing the **parsed** YAML documents with a positive control; the deletion of the redundant `public-safety` job is batched with them by amendment. ⚠ **Before that deletion, re-measure the required set at that commit's base**: deleting a job whose name IS in the required set leaves a required context that never reports and blocks every pull request indefinitely (the NA-0653 failure).
 - Cross-references: `ENG-0279` (the other CI-truth defect this lane filed); `D-1417`.
 - Source: NA-0774 `D-1417`; escalated as `E6` at NA-0768 STOP 017 and accepted by ruling.
+
+### ENG-0281 — the two unparseable-suite-context exits DESTROYED the handshake pending record on a path that pushes nothing, and after `NA-0775`'s contract they would also have stopped acking — leaving the frame permanently un-consumable — **NEW; FILED AND CLOSED by NA-0775 (`D-1418`).**
+
+- Severity: **`P2`, argued.** Availability, not confidentiality or integrity. No key is reused and no message is destroyed by the clear itself; what is destroyed is the state a later pass needs. Against `P1`: it needs a corrupt stored suite-context block. Against `P3`: it is reachable with no fault injection at all, and the combination with the new contract made a state **strictly worse than before the lane**.
+- Bases: qsl-protocol main `6a5003713914bd6748b7b2a28d014d0b8fe41f53`.
+- **THE MEASUREMENT.** `handshake/mod.rs:1804` (initiator role) and `:2084` (responder role): `hs_pending_suite_context(&pending)` fails, the code calls `hs_pending_clear(self_label, peer)`, emits `REJECT_QSC_HS_KEY_CONTEXT`, and returns. Both exits sit **BEFORE** their branch's `for item in items` (`:1809`, `:2089`) with **no `item` binding in scope** — so they are decided entirely by the STORED record and nothing about any frame influences whether they fire.
+- **WHY THE COMBINATION WAS NEW.** Before the lane the frame was acked once (unconditionally, after the poll's `?`) and was gone. Under `NA-0775`'s contract these exits return `NotConsumed`, so the frame is never acked and the relay re-admits it every lease — and on each redelivery the pending is now `Cleared`, so control falls to the no-pending branch, a RESP or CONFIRM fails `hs_decode_init`, and the function exits at its tail as `NotConsumed` again. **The frame could never be consumed by any future pass, because the state it needed was destroyed by the same exit that refused to ack it.** A fresh invite did not cure it either: the new pending carries a new `session_id`, so the stale frame fails at `:1812`/`:2092`.
+- **THE CURE, AND WHY IT IS AT THE CAUSE.** Both `hs_pending_clear` calls are DELETED. The exits return `NotConsumed` with the pending INTACT. Nothing is destroyed and nothing is acked.
+- ⚠ **MEASURED BEFORE CHOOSING, because the ruling made it conditional:** a surviving corrupt record does **NOT** loop. In-process the exit returns before the item loop; across passes `hs_pending_suite_context` fails identically each time — one deterministic reject per pass, bounded by the relay's retention TTL exactly like any persistent failure.
+- Cross-references: `ENG-0282` (the recovery asymmetry the surviving record exposes); `ENG-0269` (the ack defect this lane repairs); cold read #1 `F-3`, which found the combination.
+- Status: **closed** — filed and repaired 2026-09-01 by NA-0775 (`D-1418`).
+
+### ENG-0282 — a corrupt RESPONDER pending cannot be overwritten by `invite accept`, because the responder's own `hs_pending_store` sits BEHIND the no-pending branch — so the natural remedy cannot clear the state — **NEW; FILED NOT REPAIRED by NA-0775 (`D-1418`).**
+
+- Severity: **`P2`, argued.** Availability. It leaves a per-peer state that only an action in the OPPOSITE direction can clear, and nothing tells the user that. Against `P1`: per-peer, never global, and a remedy does exist. Against `P3`: the remedy is not the one the user would reach for, and nobody had recorded it.
+- Bases: qsl-protocol main `6a5003713914bd6748b7b2a28d014d0b8fe41f53`. **True of the tree TODAY; NA-0775 neither creates nor repairs it.**
+- **THE MEASUREMENT.** There are exactly TWO `hs_pending_store` sites:
+  · `handshake/mod.rs:1537`, inside `perform_handshake_init_with_route` — a SEPARATE function that never reads an existing pending. **Unconditional overwrite, always reachable.**
+  · `handshake/mod.rs:2469`, inside `perform_handshake_poll_with_tokens` and **behind the no-pending branch** (after the `present=false` marker at `:2295` and the loop at `:2302`). With ANY pending present, `:1788`'s `if let Some(pending)` diverts to `:1800` or `:2080` and returns before `:2302`.
+  ⇒ **`:2469` is unreachable while a pending exists.**
+- ⇒ **THE ASYMMETRY.** A corrupt INITIATOR pending is cured by the ordinary remedy — the user redeems or initiates and `:1537` overwrites it. A corrupt RESPONDER pending is **not** cured by `invite accept`, which is the verb a responder would reach for; the only overwrite is `:1537`, which requires the user to become the INITIATOR to that peer.
+- ⚠ **WHY IT SURFACED HERE.** `ENG-0281` stops destroying the record, so a corrupt responder pending now SURVIVES where it used to be destroyed. That makes the asymmetry reachable in a state it was not reachable in before — which is why it is filed in the same lane, even though the property is older than the lane.
+- ⚠ **NOT REPAIRED, and the reason is scope**: the cure is either making `:2469` reachable with a pending present, or adding a recovery verb. Both are protocol-surface decisions with their own read, and this lane's edit set does not extend to them.
+- ⚠ **NEITHER COLD READ FOUND THIS.** It was measured while discharging `RULING_005`'s "measure before choosing" on `ENG-0281`. Recorded so the method, not the result, is what gets reused.
+- Cross-references: `ENG-0281`; `ENG-0251` / `ENG-0250` (the inviter-completion family).
+- Status: open — filed 2026-09-01 by NA-0775 (`D-1418`).
+
+### ENG-0283 — `qsc send` holds the exclusive store lock ACROSS a network call, so any slow or hanging relay push blocks every other `qsc` process on the machine — **NEW; FILED NOT REPAIRED by NA-0775 (`D-1418`).**
+
+- Severity: **`P2`, argued.** Availability, in production, today. A single hung push holds a real cross-process `flock` for the life of the request; `relay_http_client()` sets no timeout, so the effective bound is reqwest's blocking default. Against `P1`: no data is lost and no key is exposed. Against `P3`: it is on the ordinary send path, not a corner.
+- Bases: qsl-protocol main `6a5003713914bd6748b7b2a28d014d0b8fe41f53`.
+- **THE MEASUREMENT.** `transport/mod.rs:3748` acquires `lock_store_exclusive(&dir, source)`; `transport/mod.rs:4005` calls `relay_inbox_push(...)`. **Zero explicit drops of the guard between them** — it lives to end of scope, so the lock spans the request.
+- ⚠ **HOW IT WAS FOUND, AND WHY THAT MATTERS.** `NA-0775`'s specification refused a proposed poll-scoped lock on the ground that *"all fourteen existing `lock_store_exclusive` acquisitions are short and local and not one spans a network call."* Cold read #2's `G-1` measured **both halves false**: there are **TWELVE** acquisitions, and one of them spans a network call. The refusal survived on better ground — it would ADD a second network-spanning holder to a lock that already has one — but **the hazard it revealed was previously unrecorded.**
+- ⚠ **AND IT HAS AN OPERATIONAL CONSEQUENCE INSIDE THIS LANE**: because that holder exists, a `LOCK_NB` denial at `NA-0775`'s new guard is an ORDINARY event rather than a rare one, which is why the guard's failure arms carry typed markers rather than a flattened string.
+- ⚠ **NOT REPAIRED**: the cure is a timeout discipline or a narrower critical section on the send path, neither of which is in this lane's edit set.
+- Cross-references: `ENG-0269`; cold read #2 `G-1`; `NA-0771` (the process-global-`Mutex` no-op class this lock is NOT).
+- Status: open — filed 2026-09-01 by NA-0775 (`D-1418`).
+
+### ENG-0284 — ⚠⚠ THE REPAIR'S OWN CONTRACT MADE A FRAME UNRETIRABLE AFTER A LOST ACK: the handshake had already completed, so the retry had nothing to do, returned `NotConsumed`, and no later pass could ever ack it — **NEW; FILED AND CLOSED by NA-0775 (`D-1418`), and it was introduced by this same lane.**
+
+- Severity: **`P2`, argued.** Availability. The frame redelivers every lease until the relay's retention ceiling and no pass can retire it. No confidentiality or integrity loss; nothing is destroyed — the opposite, it is never disposed of. Against `P1`: no data is lost and the handshake itself is fine. Against `P3`: a lost ack is ORDINARY (both ack wrappers swallow the `Err`, there is no retry and no durable queue, and `ENG-0283` shows `qsc send` can hold the store lock across a network call), and the consequence is unbounded until the TTL.
+- Bases: introduced on this lane's own branch above `6a5003713914bd6748b7b2a28d014d0b8fe41f53`; **never present in main.**
+- **HOW IT WAS FOUND.** Act (4) of Phase 3 ran seven existing test targets as a risk check on six named `invite_finish=ok` assertions. **All six passed.** `t5f_finish_survives_a_lost_ack_and_the_frame_redelivers` — which nobody had named — went RED at a DIFFERENT assertion in the same file: *"the retry's ack must LAND, retiring the frame the crashed run could not"*.
+- **THE MEASUREMENT.** Pass 1 runs through an ack-fault proxy that 500s the ack route. The handshake COMPLETES; the ack fails (`producer_ack caller=finish acked=0`); the unacked RESP redelivers, which is correct. THE RETRY: pass 1 already cleared the pending, so `hs_pending_load_state` returns `Cleared`, control falls to the no-pending branch, and a B1 (`HS_TYPE_RESP = 2`) decodes as neither CONFIRM (`3`) nor INIT (`1`). Decode reject → `continue` → the function tail → `NotConsumed` → **the caller does not ack.** Before this lane the ack was unconditional after the poll's `?`, so the retry acked and the frame was retired. The failing run's own markers are the whole case:
+  `handshake_pending peer=inviter present=false role=none state=cleared` · `handshake_reject reason=handshake_type` · `invite_finish=none`, and **no `producer_ack` line at all**.
+- **THE CONTROL THAT PROVED IT WAS OURS.** `t5f` on a `git worktree` at base `6a500371`, unmodified, run alone: **ok, 1 passed, 98.08s**. On the repaired tree: **FAILED**. The two trees differ only by this lane's commits.
+- **THE CURE.** `PollOutcome` gains a third value, `AlreadyComplete` — the work this frame would do is already durably done, so the frame should be retired. Callers ack on `Consumed` OR `AlreadyComplete`.
+  ⚠ **AND THE ARM THAT CURES IT IS NOT THE ARM THE RULING NAMED.** `RULING_007` cited the replay arm (`hs_decode_confirm` + an existing session). Measured: that arm needs `hs_decode_confirm` to SUCCEED and this frame is a RESP, which that decoder refuses — the marker `reason=handshake_type` rather than `reason=REJECT_QSC_HS_REPLAY` settles it. The replay arm is `AlreadyComplete` on its own merits, but a second, POSITIVE arm was needed: decode the frame's own `session_id` and compare it against the STORED session's. That is stronger than the replay arm, which tests mere session presence and would call a foreign frame already-done.
+- **THE RED ARM, DEMONSTRATED.** With `AlreadyComplete` mapped back to the two-valued behaviour at the caller, `t5f` fails again — while the marker `handshake_already_complete peer=inviter reason=session_already_stored` still fires, isolating the caller's ack rule as the sole cause.
+- ⚠ **`t5f` WAS NOT EDITED**, at any point. It pins correct behaviour and goes green untouched, the same standard `t8` was held to.
+- Cross-references: `ENG-0281` and `E-4` — the other two instances of the same missing idea, filed as a class at `WF-0095`; `ENG-0283` (why a lost ack is ordinary); `ENG-0269` (the lane's origin).
+- Status: **closed** — introduced, found, and repaired within NA-0775 (`D-1418`), 2026-09-01.
+
+### WF-0094 — ⚠⚠⚠ **SEVEN** TIMES IN ONE LANE, A NEEDLE THAT WAS UNIQUE IN THE AUTHOR'S HEAD AND NOT IN THE FILE: THE SEAT WRITES A MATCHER, THEN DISCOVERS WHAT IT HITS — AND **TWO OF THE SEVEN HAPPENED WHILE WRITING THIS ENTRY** — **NEW; FILED by NA-0775 (`D-1418`).**
+
+- Type: workflow (method). Status: open — filed 2026-09-01 by NA-0775 (`D-1418`).
+- ⚠ **THE RULING SAID FOUR; THE MEASURE WAS FIVE WHEN THIS ENTRY WAS DRAFTED AND IS SEVEN BY THE TIME IT WAS FILED.** Re-derived from this lane's own record rather than adopted, per `RULING_005`'s standing "re-derive nothing from this ruling without measuring". **The count rose twice DURING the act of writing the entry that records it**, which is the strongest evidence in the entry.
+
+- **THE FIVE, EACH WITH ITS NEEDLE AND WHAT IT ACTUALLY HIT:**
+
+  | # | where | the needle | hits |
+  |---|---|---|---|
+  | 1 | `STOP_NA0775_001` sec 8.2 | SEAL 001: `qsp_session_store(peer, &st)` | **2** — `handshake/mod.rs:1975` (initiator A2) and `:2209` (responder confirm) |
+  | 2 | `STOP_NA0775_002` sec 13.1 | SEAL 002: `let _ = hs_pending_clear(self_label, peer);` | **2** — `:1804` (the E-3 exit) and `:1989` (the A2 branch) |
+  | 3 | `STOP_NA0775_002_AMENDED_2` sec 13.1 | SEAL 002 v3 P4: `fn acquire(` | **2** — `model/mod.rs:111` (the impl) and `:263` (a `#[cfg(test)]` helper) |
+  | 4 | Phase 3, act (2) | the 15-line session-commit block, as a literal string | **2** — and **BYTE-IDENTICAL FOR 19 CONSECUTIVE LINES** in both branches, so no content anchor exists at all |
+  | 5 | Phase 3, act (2) | `#[allow(clippy::too_many_arguments)]` | **2** — `:1145` and `:1719` |
+
+- **WHAT SAVED IT EVERY TIME, AND WHAT DID NOT.** Every instance was caught by an `assert len(hits) == 1` that refused rather than taking the first match, and in three of the five the refusing instrument was a SEAL the seat had written for a different purpose. **No instance was caught by the seat reading the file first.** The discipline that worked was *fail on ambiguity*; the discipline that never engaged was *enumerate before matching*.
+- ⚠⚠⚠ **THE PART THAT MAKES THIS A WORKFLOW ENTRY RATHER THAN SEVEN NOTES: INSTANCES 4 AND 5 HAPPENED AFTER INSTANCES 1-3 WERE WRITTEN INTO A BANKED STOP, AND INSTANCES 6 AND 7 HAPPENED WHILE WRITING THIS VERY ENTRY.** The lane recorded the lesson at `STOP_NA0775_002` sec 13.1 ("a needle that is unique in my head and not in the file"), restated it at `AMENDED-2` sec 13.1 as "the reflex should be to enumerate FIRST and anchor SECOND", and then committed it twice more within the hour. **Writing a lesson down did not change the behaviour.** That is the finding.
+- **THE ADJACENT FAMILY, NAMED BECAUSE IT SHARES THE CAUSE:** two RECOUNT errors in the same lane — "32 exits" (the true figure is 33; `:2498` ends `?,` and the needle required `?;` or `?` at end of line) and "fourteen `lock_store_exclusive` acquisitions" (the true figure is **twelve**; the count included `use` import lines and `lock_store_shared` rows from the same grep output). Both are the same act — a figure produced by eye from a grep whose rows were never classified — and both were found by a cold reader rather than by the seat.
+- **THE PROPOSAL, NOT BUILT HERE.** A mechanical form: before any anchored edit or seal needle, run the needle and PRINT its hits with line numbers and surrounding context; only then write the anchor. Cheap, and it converts a refusal-at-runtime into a decision-at-authoring. ⚠ It is offered as a habit rather than a gate because the lane has no instrument that could enforce it, and a habit re-derived each time is exactly what `NA-0754` measured as NOT a control — so the honest form of this entry is that it names a problem it does not solve.
+- Cross-references: `NA-0754` (a habit re-derived each time is not a control); the seat's own `needle-built-from-bytes` discipline, which existed before this lane and did not prevent any of the five.
+- Source: NA-0775 `D-1418`; instances 1-3 from the banked stops, 4-5 from the Phase 3 execution log.
+
+### WF-0095 — ⚠⚠⚠ THE MISSING IDEA: A TWO-VALUED "DID THIS FRAME'S WORK HAPPEN?" CANNOT EXPRESS **"IT ALREADY DID, ON AN EARLIER PASS"** — AND THAT ONE GAP PRODUCED THREE DISTINCT DEFECTS IN A SINGLE LANE, EACH IN A DIFFERENT COSTUME — **NEW; FILED by NA-0775 (`D-1418`) on the Director's `RULING_007`.**
+
+- Type: workflow (design). Status: open — filed 2026-09-01 by NA-0775 (`D-1418`).
+- ⚠ **THE INSTANCE IS FIXED; THE CLASS IS FILED.** `NA-0775` added `PollOutcome::AlreadyComplete` and cured all three instances below. This entry exists because the instances were found ONE AT A TIME, over four rulings and two cold reads, and nothing in the method would have found the third before it shipped.
+
+- **THE THREE INSTANCES, EACH MEASURED, EACH FOUND BY A DIFFERENT INSTRUMENT:**
+
+  | # | costume | what a redelivered frame could not do | found by |
+  |---|---|---|---|
+  | `ENG-0281` / cold-read `F-3` | *a frame no pass can CONSUME* | the exit that refused to ack had also destroyed the state a later pass needed, so the frame redelivered to the TTL with no cure | **cold read #1**, reading the spec |
+  | `E-4` | *state a redelivery RE-DERIVES wrongly* | re-entering the branch re-derived an identical epoch-0 session and overwrote an advanced one — key/nonce reuse | **the seat**, at authoring, before any code |
+  | `E-5` / `t5f` | *a frame no pass can RETIRE* | after a LOST ACK the handshake had completed, so the retry found nothing to do and returned `NotConsumed` — the frame could never be acked by anyone | **an existing test**, in act (4) |
+
+- **THE COMMON SHAPE.** Each asks a different question of the same frame — *may I write this state?*, *did this frame's work happen?*, *is this work already done?* — and the contract had a vocabulary for only the second. Wherever the honest answer was "already done", a two-valued type forced it into `NotConsumed`, and `NotConsumed` means *do not retire the frame*. **The defect is not in any of the three sites; it is in the type.**
+- ⚠⚠ **THE PART THAT MAKES THIS A WORKFLOW ENTRY. NEITHER COLD READ FOUND `E-5`, AND THE DIRECTOR NAMED WHY IN HIS OWN RULING: both reads were aimed at the exits already under suspicion.** Read #1's charter was the safety claim and the exit census; read #2's was the delta. `t5f` was in neither, and it had been sitting in the repository the whole time, green, pinning exactly the behaviour the contract was about to break. **A cold read inherits the seat's map of where the risk is.**
+- ⛳ **WHAT ACTUALLY FOUND IT: RUNNING THE TESTS THAT ALREADY EXISTED.** Act (4) was ordered as a risk check on six named `invite_finish=ok` assertions. All six passed. The finding came from the SEVENTH thing in the same file that nobody had named. ⇒ **the transferable rule is to run the whole neighbourhood, not the enumerated risk** — an enumeration of risks is a description of what you already suspect.
+- ⚠ **AND A NEAR-MISS WORTH RECORDING**: the first act-(4) run omitted `--no-fail-fast`, so cargo halted after the failing target and two of seven targets never executed. The red was found anyway, but a different ordering would have hidden two targets behind it.
+- **THE PROPOSAL, NOT BUILT HERE.** When a lane changes a RETURN CONTRACT rather than a code path, the blast radius is every caller AND every test that pins caller behaviour — not only the sites the change touches. A mechanical form: before landing a contract change, run every test target that names any caller of the changed function, whether or not it appears in the risk enumeration. ⚠ Offered as a habit, not a gate; `NA-0754` measured that a habit re-derived each time is not a control, and this entry does not solve that.
+- Cross-references: `ENG-0269` (the lane's origin); `ENG-0281`; `WF-0094` (the other method finding of this lane); `NA-0754`.
+- Source: NA-0775 `D-1418`; `RULING_007` sec ESCALATIONS, which ordered the class filed rather than only the instance.

@@ -1635,6 +1635,55 @@ pub fn handshake_init(self_label: &str, peer: &str, relay: &str) -> CliResult {
     Ok(())
 }
 
+/// NA-0775 (`D-1418`): what the poll did with the frames it was handed.
+///
+/// ⚠⚠ A CALLER MAY ACK ONLY ON [`PollOutcome::Consumed`]. Every other value means the frame's
+/// LAST EFFECT did not happen, so the frame must stay leased and redeliver. An `Err` means the
+/// same and already reaches every caller through `?`.
+///
+/// ⚠ THE ENUM IS NOT A CONVENIENCE, IT IS THE FAIL-CLOSED PROPERTY. A twenty-second exit written
+/// as `Ok(())` DOES NOT COMPILE, so a future exit cannot silently inherit "success" -- which is
+/// exactly how `ENG-0269` came to exist beside a correctly-placed ack.
+///
+/// EXACTLY THREE exits are `Consumed`: the A2 push, the responder's durable commit (which pushes
+/// nothing, and is the reason this is an enum and not "did we push"), and the B1 push.
+/// NA-0775 (`D-1418`) `RULING_007`: THE THIRD VALUE. `AlreadyComplete` means THE WORK THIS
+/// FRAME WOULD DO IS ALREADY DURABLY DONE -- re-processing it is a no-op and the frame should
+/// be RETIRED. Callers ack on `Consumed` OR `AlreadyComplete`; never on `NotConsumed`.
+///
+/// ⚠⚠ IT IS NOT A WEAKER `Consumed` AND MUST NEVER BE RETURNED WHERE THE WORK IS MERELY
+/// *BELIEVED* DONE. Every site that returns it compares the frame's own `session_id` against
+/// the STORED session's, so "already done" is a measured fact about this frame, not an
+/// inference from the peer having some session.
+///
+/// ⚠⚠ WHY IT EXISTS. A two-valued contract cannot express "already done", and that one gap
+/// produced THREE defects in this lane in three different costumes: `ENG-0281` (a frame no
+/// pass can CONSUME), `E-4` (state a redelivery RE-DERIVES wrongly), and `E-5` (a frame no
+/// pass can RETIRE -- `t5f`, where a lost ack made the retirement unreachable forever).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[must_use]
+pub(crate) enum PollOutcome {
+    Consumed,
+    AlreadyComplete,
+    NotConsumed,
+}
+
+/// NA-0775 (`D-1418`): the `session_id` a frame carries, if it is a RESP or a CONFIRM.
+///
+/// Both decoders work from bytes and the suite mode alone -- neither needs a pending record --
+/// which is what makes a POSITIVE "already complete" test possible in the no-pending branch.
+/// Returns `None` for anything else, including an INIT: an A1 is not evidence that a handshake
+/// finished.
+fn hs_frame_session_id(bytes: &[u8], mode: HandshakeSuiteMode) -> Option<[u8; 16]> {
+    if let Ok(resp) = hs_decode_resp_pending(bytes, mode) {
+        return Some(resp.session_id);
+    }
+    if let Ok(confirm) = hs_decode_confirm(bytes, mode) {
+        return Some(confirm.session_id);
+    }
+    None
+}
+
 /// NA-0681 (D616 F1): where the poll's frames come from.
 ///
 /// The invite flow needs the responder logic to run over frames it has ALREADY pulled and
@@ -1698,6 +1747,130 @@ fn hs_emit_producer_ack(relay: &str, route_token: &str, id: &str) {
     }
 }
 
+
+/// NA-0775 (`D-1418`) A1 -- COMMIT THE SESSION THIS FRAME PRODUCED, GUARDED AGAINST A LATE
+/// LANDING. Called from the initiator A2 branch AFTER the push, never before it.
+///
+/// NA-0775 (`D-1418`) A1 -- THE COMMIT AND THE CLEAR, MOVED BELOW THE PUSH,
+/// AND THE LATE-LANDING GUARD AROUND THEM. `STOP_NA0775_002_AMENDED` sec 1.
+///
+/// ⚠⚠ WHY THE COMMIT MOVED (E-4): with it above the signing, a failed A2
+/// signature left a STORED session the peer never learned of, and the send
+/// gate opens on blob existence alone (`qsp_status_tuple`,
+/// protocol_state/mod.rs:90-91) -- so a redelivery would re-derive the
+/// identical epoch-0 chain and overwrite an advanced one. Same key, same
+/// counter, new plaintext.
+///
+/// ⚠⚠ WHY THE GUARD (cold read F-2 Variant A): moving the commit puts a
+/// durable, unserialised write AFTER the longest-latency call in this
+/// branch. A poll stalled between the push returning and this store can
+/// wake a lease later -- after a SECOND poll completed the same handshake
+/// and the user advanced the ratchet -- and write ck0/ns=0 over it.
+///
+/// ⚠ THE PREDICATE IS SESSION-ID-SCOPED ON PURPOSE. A bare "never move ns
+/// backward" would refuse a LEGITIMATE re-handshake, whose session_id is
+/// 128 fresh CSPRNG bits (`hs_session_id`; the only draw site is the A1
+/// path). The SAME session_id means "another pass of THIS handshake
+/// already committed", and its state is what we would have written.
+///
+/// ⚠⚠ G-8 -- A SPECIFIED CONSTRAINT, NOT A FORMATTING DETAIL. The nested
+/// acquisitions below are safe ONLY because every one resolves the SAME
+/// directory: this lock, `qsp_session_store_inner` (protocol_state:979)
+/// and `qsp_session_store_key_get_or_create` (protocol_state:190) call
+/// `config_dir()` directly, and `vault::secret_set` (vault:247) reaches
+/// it INDIRECTLY via `vault_path_resolved()` (vault:1542), which returns
+/// `config_dir()`'s dir unchanged. The constraint is that `config_dir()`
+/// is STABLE for the duration of this guard: it re-reads the environment
+/// on every call and nothing in production mutates those variables
+/// mid-call. The registry carries the nesting by DEPTH rather than
+/// issuing a second flock (model/mod.rs:95-105).
+///
+/// ⚠ LOCK_NB: a contended acquisition FAILS rather than waits, and that is
+/// ORDINARY here rather than rare -- `qsc send` holds this same lock across
+/// a network call today (transport/mod.rs:3748 -> :4005). The Err arms are
+/// a path users will take, which is why they are marked (G-6).
+fn hs_commit_session_guarded(
+    self_label: &str,
+    peer: &str,
+    st: &Suite2SessionState,
+) -> Result<(), &'static str> {
+    // ⚠ `config_dir()` yields an `ErrorCode`, not a `&str`, so it is
+    // matched rather than `?`-ed -- and its failure is MARKED like the
+    // other two arms (G-6). A resolver failure here is the same class of
+    // event as a denied lock: the caller must be able to tell them apart.
+    let (lock_dir, lock_source) = match config_dir() {
+        Ok(v) => v,
+        Err(code) => {
+            emit_marker(
+                "error",
+                Some("handshake_session_lock_failed"),
+                &[
+                    ("peer", peer),
+                    ("store_code", code.as_str()),
+                    ("stage", "config_dir"),
+                ],
+            );
+            return Err("handshake_session_lock_failed");
+        }
+    };
+    let _lock =
+        match crate::fs_store::lock_store_exclusive(&lock_dir, lock_source)
+        {
+            Ok(v) => v,
+            Err(code) => {
+                emit_marker(
+                    "error",
+                    Some("handshake_session_lock_failed"),
+                    &[("peer", peer), ("store_code", code.as_str())],
+                );
+                return Err("handshake_session_lock_failed");
+            }
+        };
+    // ⚠ EXPLICIT ARMS, NO `_ =>` (cold read G-3). A catch-all swallowed a
+    // load `Err` into a STORE, so the exclusion was stated
+    // unconditionally and delivered conditionally.
+    match qsp_session_load(peer) {
+        Ok(Some(prior))
+            if prior.send.session_id == st.send.session_id =>
+        {
+            emit_marker(
+                "handshake_session_store_skipped",
+                None,
+                &[("peer", peer), ("reason", "already_committed")],
+            );
+            let _ = hs_pending_clear(self_label, peer);
+        }
+        Ok(Some(_)) | Ok(None) => {
+        qsp_session_store(peer, st).map_err(|e| {
+            // NA-0757 (ENG-0239, R388 A1(b)): the typed code SURVIVES as a
+            // field. Seven distinct `ErrorCode`s reach this point and the
+            // flattening named none of them, which is why a field capture of
+            // the marker could not localize it. The outer string is unchanged ON
+            // PURPOSE: no new discriminant enters the facade's wire
+            // vocabulary, so an opaque error never becomes a WRONG one.
+            emit_marker(
+                "error",
+                Some("handshake_session_store_failed"),
+                &[("store_code", e.as_str())],
+            );
+            "handshake_session_store_failed"
+        })?;
+        let _ = hs_pending_clear(self_label, peer);
+        }
+        Err(code) => {
+            // ⚠ FAIL-CLOSED (G-3): a session we cannot READ is not a
+            // session we may OVERWRITE.
+            emit_marker(
+                "error",
+                Some("handshake_session_load_failed"),
+                &[("peer", peer), ("store_code", code.as_str())],
+            );
+            return Err("handshake_session_load_failed");
+        }
+    }
+    Ok(())
+}
+
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn perform_handshake_poll_with_tokens(
     self_label: Option<&str>,
@@ -1709,7 +1882,7 @@ pub(crate) fn perform_handshake_poll_with_tokens(
     suite_mode: HandshakeSuiteMode,
     source: HsPollSource<'_>,
     reply_wrap: Option<HsReplyWrap<'_>>,
-) -> Result<(), &'static str> {
+) -> Result<PollOutcome, &'static str> {
     enforce_peer_not_blocked(peer)?;
     // NA-0711 (D647 A4 Δ36/Δ37, R238 §5.1): PRE-PULL, and it RETURNS Err.
     //
@@ -1779,7 +1952,7 @@ pub(crate) fn perform_handshake_poll_with_tokens(
     };
     if items.is_empty() {
         emit_marker("handshake_recv", None, &[("msg", "none"), ("ok", "true")]);
-        return Ok(());
+        return Ok(PollOutcome::NotConsumed);
     }
 
     let (pending, pending_state) =
@@ -1801,9 +1974,19 @@ pub(crate) fn perform_handshake_poll_with_tokens(
             let pending_suite_context = match hs_pending_suite_context(&pending) {
                 Ok(v) => v,
                 Err(_) => {
-                    let _ = hs_pending_clear(self_label, peer);
+                    // NA-0775 (`D-1418`) item 1.2, on cold-read F-3 and `RULING_006` sec 1:
+                    // ⚠⚠ THE PENDING IS NO LONGER CLEARED HERE. Clearing it destroyed durable
+                    // state on a path that pushes nothing and now acks nothing, which left the
+                    // frame permanently un-consumable: cleared pending -> no-pending branch ->
+                    // decode reject -> tail -> NotConsumed, forever. Measured: a surviving
+                    // corrupt record does NOT loop -- it re-rejects once per pass, bounded by
+                    // the relay TTL like any persistent failure.
+                    // ⚠ THE RECOVERY IS ASYMMETRIC AND IS FILED, NOT REPAIRED: `:1537`
+                    // overwrites a stale pending unconditionally, but the responder's own
+                    // store sits behind the no-pending branch, so `invite accept` cannot
+                    // overwrite a corrupt RESPONDER pending -- the user must initiate.
                     hs_reject_key_context();
-                    return Ok(());
+                    return Ok(PollOutcome::NotConsumed);
                 }
             };
             for item in items {
@@ -1837,7 +2020,7 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                                     None,
                                     &[("reason", "pq_decap_failed")],
                                 );
-                                return Ok(());
+                                return Ok(PollOutcome::NotConsumed);
                             }
                         };
                         // NA-0633 (ENG-0038, C1): mix the responder-identity KEM secret the initiator
@@ -1851,13 +2034,13 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                         );
                         if hs_dh_pub_is_all_zero(&resp.dh_pub) {
                             emit_marker("handshake_reject", None, &[("reason", "dh_pub_invalid")]);
-                            return Ok(());
+                            return Ok(PollOutcome::NotConsumed);
                         }
                         let dh_self_pub = match hs_dh_pub_from_bytes(&pending.dh_pub) {
                             Ok(v) => v,
                             Err(_) => {
                                 emit_marker("handshake_reject", None, &[("reason", "dh_missing")]);
-                                return Ok(());
+                                return Ok(PollOutcome::NotConsumed);
                             }
                         };
                         let dh_shared = match hs_dh_shared(&pending.dh_sk, &resp.dh_pub) {
@@ -1869,7 +2052,7 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                                     "dh_failed"
                                 };
                                 emit_marker("handshake_reject", None, &[("reason", reason)]);
-                                return Ok(());
+                                return Ok(PollOutcome::NotConsumed);
                             }
                         };
                         let dh_init_arr = hs_dh_init_from_shared(
@@ -1904,13 +2087,13 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                                     &[("reason", "bad_transcript")],
                                 );
                             }
-                            return Ok(());
+                            return Ok(PollOutcome::NotConsumed);
                         }
                         let th = hs_transcript_hash(&pq_init_ss, &a1, &b1_no_auth);
                         let sig_msg = hs_sig_msg_b1(&resp.session_id, &th);
                         if hs_sig_verify(&resp.sig_pk, &sig_msg, &resp.sig, "b1_verify").is_err() {
                             emit_marker("handshake_reject", None, &[("reason", "sig_invalid")]);
-                            return Ok(());
+                            return Ok(PollOutcome::NotConsumed);
                         }
                         let sig_fp = identity_fingerprint_single(FpRole::Sig, &resp.sig_pk);
                         let Some(peer_fp) = pending.peer_fp.as_deref() else {
@@ -1924,12 +2107,12 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                                 None,
                                 &[("reason", "identity_unknown")],
                             );
-                            return Ok(());
+                            return Ok(PollOutcome::NotConsumed);
                         };
                         if hs_require_primary_identity_pin(peer, peer_fp, identity_read_pin, false)
                             .is_err()
                         {
-                            return Ok(());
+                            return Ok(PollOutcome::NotConsumed);
                         }
                         // NA-0634 (D571 Decision 2a): the responder's signing identity is now REQUIRED-
                         // pinned against the populated sig_fp (was an inert OPTIONAL check — ENG-0038):
@@ -1941,7 +2124,7 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                         )
                         .is_err()
                         {
-                            return Ok(());
+                            return Ok(PollOutcome::NotConsumed);
                         }
                         // NA-0620 (Stage 1a): the initiator's local X25519 ephemeral private key
                         // (retained in the pending handshake) feeds the session DH-ratchet state.
@@ -1949,7 +2132,7 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                             Ok(v) => v,
                             Err(_) => {
                                 emit_marker("handshake_reject", None, &[("reason", "dh_sk_len")]);
-                                return Ok(());
+                                return Ok(PollOutcome::NotConsumed);
                             }
                         };
                         let st = match hs_build_session(
@@ -1969,24 +2152,9 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                                     None,
                                     &[("reason", "session_init_failed")],
                                 );
-                                return Ok(());
+                                return Ok(PollOutcome::NotConsumed);
                             }
                         };
-                        qsp_session_store(peer, &st).map_err(|e| {
-                            // NA-0757 (ENG-0239, R388 A1(b)): the typed code SURVIVES as a
-                            // field. Seven distinct `ErrorCode`s reach this point and the
-                            // flattening named none of them, which is why a field capture of
-                            // the marker could not localize it. The outer string is unchanged ON
-                            // PURPOSE: no new discriminant enters the facade's wire
-                            // vocabulary, so an opaque error never becomes a WRONG one.
-                            emit_marker(
-                                "error",
-                                Some("handshake_session_store_failed"),
-                                &[("store_code", e.as_str())],
-                            );
-                            "handshake_session_store_failed"
-                        })?;
-                        let _ = hs_pending_clear(self_label, peer);
                         if active_suite_context.is_explicit() {
                             hs_emit_suite_accept(&active_suite_context, false);
                         } else {
@@ -2024,7 +2192,7 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                                     None,
                                     &[("reason", "sig_sign_failed")],
                                 );
-                                return Ok(());
+                                return Ok(PollOutcome::NotConsumed);
                             }
                         };
                         emit_marker(
@@ -2046,6 +2214,13 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                             &[("msg", "A2"), ("size", size_s.as_str())],
                         );
                         transport::relay_inbox_push(relay, peer_route_token, &cbytes)?;
+                        // NA-0775 (`D-1418`) A1 -- the late-landing guard. EXTRACTED to a named
+                        // function so its property can be exercised DIRECTLY: the CLI cannot reach
+                        // this state (after a successful pass the pending is cleared, so the branch
+                        // cannot be re-entered with a stale epoch-0 `st`), and a guard whose absence
+                        // was never shown to break the property is not evidence. Unit tests at
+                        // `na0775_late_store_guard_tests`, foot of this file.
+                        hs_commit_session_guarded(self_label, peer, &st)?;
                         // NA-0742: ⚠⚠ **AFTER THE PUSH, NOT AFTER THE COMMIT.** The session was
                         // stored above, but this frame's LAST effect is the A2 that just left. A
                         // frame whose reply never reached the peer is not consumed — which is
@@ -2067,7 +2242,7 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                                 ("peer_confirmed", "no"),
                             ],
                         );
-                        return Ok(());
+                        return Ok(PollOutcome::Consumed);
                     }
                     Err(reason) => {
                         hs_emit_decode_reject(reason);
@@ -2075,15 +2250,25 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                     }
                 }
             }
-            return Ok(());
+            return Ok(PollOutcome::NotConsumed);
         }
         if pending.role == "responder" {
             let pending_suite_context = match hs_pending_suite_context(&pending) {
                 Ok(v) => v,
                 Err(_) => {
-                    let _ = hs_pending_clear(self_label, peer);
+                    // NA-0775 (`D-1418`) item 1.2, on cold-read F-3 and `RULING_006` sec 1:
+                    // ⚠⚠ THE PENDING IS NO LONGER CLEARED HERE. Clearing it destroyed durable
+                    // state on a path that pushes nothing and now acks nothing, which left the
+                    // frame permanently un-consumable: cleared pending -> no-pending branch ->
+                    // decode reject -> tail -> NotConsumed, forever. Measured: a surviving
+                    // corrupt record does NOT loop -- it re-rejects once per pass, bounded by
+                    // the relay TTL like any persistent failure.
+                    // ⚠ THE RECOVERY IS ASYMMETRIC AND IS FILED, NOT REPAIRED: `:1537`
+                    // overwrites a stale pending unconditionally, but the responder's own
+                    // store sits behind the no-pending branch, so `invite accept` cannot
+                    // overwrite a corrupt RESPONDER pending -- the user must initiate.
                     hs_reject_key_context();
-                    return Ok(());
+                    return Ok(PollOutcome::NotConsumed);
                 }
             };
             for item in items {
@@ -2247,7 +2432,7 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                                 ("peer_confirmed", "yes"),
                             ],
                         );
-                        return Ok(());
+                        return Ok(PollOutcome::Consumed);
                     }
                     Err(reason) => {
                         if pending_suite_context.is_explicit() {
@@ -2281,7 +2466,7 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                     }
                 }
             }
-            return Ok(());
+            return Ok(PollOutcome::NotConsumed);
         }
     }
 
@@ -2299,11 +2484,21 @@ pub(crate) fn perform_handshake_poll_with_tokens(
         ],
     );
 
+    // NA-0775 (`D-1418`) `RULING_007` R2/`E-5`: did any frame in this batch turn out to be work
+    // that is ALREADY DURABLY DONE? Tracked as a flag rather than an early `return` so a batch
+    // keeps being processed -- under `HsPollSource::Relay` there can be many items, and returning
+    // on the first would silently stop handling the rest.
+    let mut already_complete = false;
     for item in items {
         if let Ok(confirm) = hs_decode_confirm(&item.data, suite_mode) {
             if confirm.suite_context.is_explicit() && matches!(qsp_session_load(peer), Ok(Some(_)))
             {
+                // ⚠ `RULING_007` R2: this is `AlreadyComplete` on its own merits -- a redelivered
+                // CONFIRM for a peer whose session is stored is work that already finished. It is
+                // reached only when the frame's `session_id` did NOT match above, i.e. an
+                // explicit-suite CONFIRM for some OTHER session of the same peer.
                 hs_reject_replay();
+                already_complete = true;
                 continue;
             }
         }
@@ -2514,15 +2709,68 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                     );
                     hs_emit_producer_ack(relay, inbox_route_token, &item.id);
                 }
-                return Ok(());
+                return Ok(PollOutcome::Consumed);
             }
             Err(reason) => {
+                // ⚠⚠ THE DECODE REJECT FIRES FIRST, AND THAT ORDER IS THE WHOLE OF CANDIDATE B
+                // (`RULING_009` sec 1). A frame reaching here has, by construction, failed the
+                // confirm/replay arm above AND `hs_decode_init` -- so "I could not read this" is
+                // TRUE, and it is said first. Only then do we ask the SEPARATE question below:
+                // is this frame's work already durably done? Both statements are true, in the
+                // order they became true, and the marker stream now carries both.
                 hs_emit_decode_reject(reason);
+
+                // NA-0775 (`D-1418`): A REDELIVERED FRAME WHOSE HANDSHAKE ALREADY COMPLETED.
+                //
+                // ⚠⚠ WHY IT LIVES HERE AND NOT HIGHER UP -- `E-6`, and it cost a ruling to learn.
+                // Placed above the decode, this test SWALLOWED the reject: it `continue`d before
+                // `hs_emit_decode_reject` ever ran, and `handshake_mvp.rs:1145` caught the
+                // vanished marker. ⚠ THE ARM IT SHADOWED WAS NOT THE REPLAY ARM: that one's
+                // second conjunct is `confirm.suite_context.is_explicit()`, which is FALSE for
+                // `LegacyV1`, and `hs_suite_context_for_mode(LegacyCompat)` returns `LegacyV1`
+                // while the CLI defaults to `LegacyCompat` -- so the replay guard cannot fire on
+                // this path AT ALL. `handshake/mod.rs:206-215` recorded that before this lane
+                // existed; the reject a replayed A2 actually produces is this `handshake_type`
+                // one. That unreachability is PRE-EXISTING and belongs to `NA-0708`'s
+                // reject-vocabulary lane, not to this one.
+                //
+                // ⚠ IT COMPARES `session_id`, NOT MERE SESSION PRESENCE. Testing only that SOME
+                // session exists for the peer would call a foreign frame "already done". This
+                // asks whether THIS frame's handshake is the one that completed -- the same
+                // predicate the late-landing guard uses, for the same reason.
+                //
+                // ⚠ THE ACK CONSEQUENCE IS ASYMMETRIC BY CALLER, AND THAT IS NOT AN OVERSIGHT.
+                // Under `HsPollSource::Relay` the in-poll acks sit at the CONSUMED exits only and
+                // `handshake_poll_with_tokens` discards the outcome, so a poll emits this marker
+                // and acks NOTHING -- `t5p` pins that orphan and stays green. Under `Provided`
+                // the caller acks on `Consumed | AlreadyComplete`, which is what retires `t5f`'s
+                // frame after a lost ack.
+                if let Some(sid) = hs_frame_session_id(&item.data, suite_mode) {
+                    if matches!(
+                        qsp_session_load(peer),
+                        Ok(Some(prior)) if prior.send.session_id == sid
+                    ) {
+                        emit_marker(
+                            "handshake_already_complete",
+                            None,
+                            &[("peer", peer), ("reason", "session_already_stored")],
+                        );
+                        already_complete = true;
+                    }
+                }
                 continue;
             }
         }
     }
-    Ok(())
+    // NA-0775 (`D-1418`) `RULING_007`: the tail stays `NotConsumed` UNLESS a frame in this batch
+    // was measured already-done. A batch that decoded as nothing is NOT "already done" -- moving
+    // the tail unconditionally would ack foreign litter, which is the defect this lane exists to
+    // stop.
+    if already_complete {
+        Ok(PollOutcome::AlreadyComplete)
+    } else {
+        Ok(PollOutcome::NotConsumed)
+    }
 }
 
 fn handshake_poll_with_tokens(
@@ -2535,6 +2783,9 @@ fn handshake_poll_with_tokens(
     suite_mode: HandshakeSuiteMode,
 ) -> CliResult {
     require_unlocked("handshake_poll")?;
+    // NA-0775 (`D-1418`): the poll now returns a `PollOutcome`. This caller pulls from the
+    // relay itself (`HsPollSource::Relay`), so the poll acks its own frames internally and this
+    // wrapper has nothing to decide -- the value is deliberately discarded here and NOWHERE else.
     if let Err(code) = perform_handshake_poll_with_tokens(
         self_label,
         peer,
@@ -2741,5 +2992,187 @@ mod na0628_contributory_dh_tests {
             hs_dh_shared(&[1u8; 32], &[0u8; 31]),
             Err("handshake_dh_len")
         );
+    }
+}
+
+// ===========================================================================================
+// NA-0775 (`D-1418`) -- T10: THE LATE-LANDING GUARD, DRIVEN.
+//
+// ⚠⚠ WHY THIS IS A UNIT TEST AND NOT AN INTEGRATION ARM. The state the guard exists for is not
+// reachable through the CLI: after a successful pass the pending is cleared, so the branch
+// cannot be re-entered with a stale epoch-0 `st`. Reproducing cold-read F-2's Variant A for
+// real would require suspending a process between the push returning and the store. These
+// tests therefore prove the PREDICATE, not the SCHEDULING -- said here rather than discovered
+// later.
+//
+// ⛳ AND ONE THING THEY BUY THAT `t8`/`t9` CANNOT: they are NOT behind
+// `--cfg qsc_rng_failure_test_seam`, so unlike every arm that proves the rest of this repair,
+// **these run in the ordinary suite and on every required check.** The guard's proof lives on
+// the board; the seam's does not (`WF-0093`).
+//
+// `t10b` is the NEGATIVE CONTROL and it is permanent rather than a one-off tamper: it performs
+// the SAME late store with the guard bypassed and asserts the rollback DOES happen. A guard
+// whose absence was never shown to break the property is not evidence.
+// ===========================================================================================
+#[cfg(test)]
+mod na0775_late_store_guard_tests {
+    use super::*;
+    use std::sync::{Mutex, MutexGuard, OnceLock};
+
+    const TOUCHED_VARS: [&str; 4] = [
+        "QSC_CONFIG_DIR",
+        "QSC_ALLOW_SEED_FALLBACK",
+        "QSC_UNSAFE_TEST_SEED_FALLBACK",
+        // ⚠ The session-store key's test fallback derives from a SEED, not from the two
+        // permission flags alone: `qsp_session_test_fallback_key` -> `qsp_seed_from_env`.
+        // Measured, after the first run failed with `store_code=identity_secret_unavailable`.
+        "QSC_QSP_SEED",
+    ];
+
+    static ENV_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+
+    fn env_lock() -> MutexGuard<'static, ()> {
+        ENV_LOCK
+            .get_or_init(|| Mutex::new(()))
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+    }
+
+    /// Restores on `Drop`, including the unset case, so a panicking assertion cannot leak a
+    /// mutated environment into the rest of this binary. Same shape as
+    /// `na0692_config_resolver_tests`, which is this crate's precedent for env-mutating units.
+    struct EnvSnapshot {
+        vars: Vec<(&'static str, Option<String>)>,
+    }
+
+    impl EnvSnapshot {
+        fn take() -> Self {
+            Self {
+                vars: TOUCHED_VARS
+                    .iter()
+                    .map(|k| (*k, std::env::var(k).ok()))
+                    .collect(),
+            }
+        }
+    }
+
+    impl Drop for EnvSnapshot {
+        fn drop(&mut self) {
+            for (key, value) in &self.vars {
+                match value {
+                    Some(v) => std::env::set_var(key, v),
+                    None => std::env::remove_var(key),
+                }
+            }
+        }
+    }
+
+    /// A private 0700 directory. `QSC_CONFIG_DIR` makes the resolver report
+    /// `ConfigSource::EnvOverride`, whose parent check inspects only the directory ITSELF
+    /// (`fs_store::check_parent_safe`), so a world-writable `/tmp` above it is not walked.
+    fn arena(tag: &str) -> std::path::PathBuf {
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0);
+        let dir = std::env::temp_dir().join(format!("qsc-na0775-{tag}-{}-{nanos}", std::process::id()));
+        fs::create_dir_all(&dir).expect("arena");
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(&dir, fs::Permissions::from_mode(0o700)).expect("perms");
+        }
+        dir
+    }
+
+    fn enter(tag: &str) -> (MutexGuard<'static, ()>, EnvSnapshot, std::path::PathBuf) {
+        let g = env_lock();
+        let snap = EnvSnapshot::take();
+        let dir = arena(tag);
+        std::env::set_var("QSC_CONFIG_DIR", &dir);
+        std::env::set_var("QSC_ALLOW_SEED_FALLBACK", "1");
+        std::env::set_var("QSC_UNSAFE_TEST_SEED_FALLBACK", "1");
+        std::env::set_var("QSC_QSP_SEED", "775");
+        (g, snap, dir)
+    }
+
+    /// A session derived exactly as the A2 branch derives one: deterministic in its inputs, so
+    /// the "late" copy below is byte-identical to the first, which is the whole premise of the
+    /// guard's session-id predicate.
+    fn session(sid: [u8; 16]) -> Suite2SessionState {
+        hs_build_session(true, true, sid, [1u8; 32], [2u8; 32], [3u8; 32], [4u8; 32], [5u8; 32])
+            .expect("build session")
+    }
+
+    const SID_A: [u8; 16] = [0xA1; 16];
+    const SID_B: [u8; 16] = [0xB2; 16];
+
+    #[test]
+    fn t10a_the_guard_refuses_an_epoch_zero_store_over_an_advanced_session() {
+        let (_g, _snap, _dir) = enter("t10a");
+
+        hs_commit_session_guarded("self", "peer", &session(SID_A)).expect("first commit");
+
+        // The user sends: the ratchet advances and the send path commits it before pushing.
+        let mut advanced = qsp_session_load("peer").expect("load").expect("present");
+        advanced.send.ns = 7;
+        qsp_session_store("peer", &advanced).expect("store advanced");
+
+        // A poll stalled between its push and its store wakes a lease later and lands HERE,
+        // holding the epoch-0 state it derived before the stall.
+        hs_commit_session_guarded("self", "peer", &session(SID_A)).expect("late commit");
+
+        let after = qsp_session_load("peer").expect("load").expect("present");
+        assert_eq!(
+            after.send.ns, 7,
+            "THE LATE STORE MUST NOT ROLL THE SEND CHAIN BACK. A fresh derivation of the SAME \
+             session_id is byte-identical at epoch 0 (ck0/ns=0), so writing it over an advanced \
+             session reuses the same chain key at the same counter on different plaintext -- \
+             the class the tree names at msgqueue/mod.rs. Measured ns={}",
+            after.send.ns
+        );
+    }
+
+    #[test]
+    fn t10b_without_the_guard_the_same_store_rolls_the_session_back() {
+        let (_g, _snap, _dir) = enter("t10b");
+
+        hs_commit_session_guarded("self", "peer", &session(SID_A)).expect("first commit");
+        let mut advanced = qsp_session_load("peer").expect("load").expect("present");
+        advanced.send.ns = 7;
+        qsp_session_store("peer", &advanced).expect("store advanced");
+
+        // ⚠ THE NEGATIVE CONTROL: the identical late store WITHOUT the guard.
+        qsp_session_store("peer", &session(SID_A)).expect("unguarded late store");
+
+        let after = qsp_session_load("peer").expect("load").expect("present");
+        assert_eq!(
+            after.send.ns, 0,
+            "THE PROPERTY MUST BE BREAKABLE OR t10a PROVES NOTHING. Unguarded, the late store \
+             rolls ns 7 -> 0. Measured ns={}",
+            after.send.ns
+        );
+    }
+
+    #[test]
+    fn t10c_a_different_session_id_still_stores_so_a_re_handshake_is_not_refused() {
+        let (_g, _snap, _dir) = enter("t10c");
+
+        hs_commit_session_guarded("self", "peer", &session(SID_A)).expect("first commit");
+        let mut advanced = qsp_session_load("peer").expect("load").expect("present");
+        advanced.send.ns = 7;
+        qsp_session_store("peer", &advanced).expect("store advanced");
+
+        // A genuine re-handshake: `hs_session_id` draws 128 fresh CSPRNG bits every time, so a
+        // new handshake NEVER carries the old id. The guard must not refuse this.
+        hs_commit_session_guarded("self", "peer", &session(SID_B)).expect("re-handshake commit");
+
+        let after = qsp_session_load("peer").expect("load").expect("present");
+        assert_eq!(
+            after.send.session_id, SID_B,
+            "A NEW session_id MUST REPLACE AN ADVANCED SESSION. A predicate that refused this \
+             would break every re-invite, which is why the guard compares the id and not `ns`."
+        );
+        assert_eq!(after.send.ns, 0, "the replacement is a fresh session at epoch 0");
     }
 }

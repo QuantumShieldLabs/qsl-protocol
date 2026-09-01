@@ -821,7 +821,7 @@ fn na0771_a4_lease_relay_completes_below_max_and_not_at_it() {
 
 // ── THE COUNT GUARD ────────────────────────────────────────────────────────
 #[test]
-fn na0771_g_clear_sites_are_four_and_named() {
+fn na0771_g_clear_sites_are_three_and_named() {
     let src = fs::read_to_string(
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/handshake/mod.rs"))
         .expect("read handshake/mod.rs");
@@ -831,10 +831,29 @@ fn na0771_g_clear_sites_are_four_and_named() {
         .filter(|(_, l)| l.trim() == "let _ = hs_pending_clear(self_label, peer);")
         .map(|(i, _)| i + 1)
         .collect();
-    assert_eq!(calls.len(), 4,
-        "NA-0771 INVARIANT: a pending record is destroyed only when a session was stored \
-         (class i) or the local record will not parse (class iv). Found {} call sites at \
-         {:?}; expected 4.", calls.len(), calls);
+    // ⚠⚠ FOUR -> THREE, UPDATED BY NA-0775 (`D-1418`) ON `RULING_NA0775_008` sec 2, WHICH
+    // ORDERS THIS EDIT BY NAME. THE INVARIANT IS UNTOUCHED AND IS NOW STRICTLY STRONGER.
+    //
+    // NA-0775 deleted the TWO class-(iv) clears — the unparseable-suite-context exits in both
+    // the initiator and responder pending branches — because a clear there destroyed the state
+    // a later pass needed while the new ack contract refused to retire the frame, leaving it
+    // permanently un-consumable (`ENG-0281`). **ZERO CLASS-(iv) SITES REMAIN.** All three
+    // survivors are class (i): each sits immediately after a successful `qsp_session_store`,
+    // one of them in NA-0775's late-landing guard's SKIP arm, where the session was stored by
+    // ANOTHER pass of the same handshake.
+    //
+    // ⚠ THIS GUARD WENT RED BECAUSE IT DID ITS JOB. Its author wrote that a later lane should
+    //   "see this arm move rather than find a silent pass" — that is quoted here rather than
+    //   paraphrased, because it is the reason this test was worth keeping. It moved. It was not
+    //   relaxed, not converted to a range, and not deleted; only the literal count and the site
+    //   list changed, and the WHEN it guards is unchanged.
+    assert_eq!(calls.len(), 3,
+        "NA-0771 INVARIANT, AS TIGHTENED BY NA-0775 (D-1418): a pending record is destroyed \
+         only when a session was stored (class i). The class-(iv) arm of this invariant — the \
+         local record will not parse — HAS NO SITES: NA-0775 deleted both (ENG-0281). Found {} \
+         call sites at {:?}; expected 3, all class (i). If this is FOUR again, a clear has been \
+         put back at a deleted site or a new one added — re-derive the class of every site \
+         before changing this number.", calls.len(), calls);
 
     // ⚠⚠ WHAT THIS GUARD DOES NOT CATCH (M-5). A count pins WHERE; the invariant is about
     // WHEN. Three mechanisms defeat it and are present in the file today:

@@ -1511,6 +1511,99 @@ fn t8_the_a2_sig_failure_exit_emits_no_producer_ack() {
     );
 }
 
+// ===========================================================================
+// T9 — NA-0775 (`D-1418`): THE a2_sig FAILURE RECOVERS ON REDELIVERY.
+//
+// ⚠⚠ THIS IS THE ARM THAT PROVES THE REPAIR IS A NET THAT WORKS, NOT MERELY A NET THAT STOPS
+// DESTROYING MAIL. `t8` proves the frame is not acked. It cannot prove the frame is still
+// USEFUL afterwards — that requires letting the lease expire and running the verb again.
+//
+// ⚠ PASS 1 ASSERTS AN ABSENCE NO OTHER TEST ASSERTS: `session_store` MUST NOT appear. That is
+// the whole of `E-4`. Before this lane the session was committed at the top of the branch and
+// the marker fired on exactly this run (the `ENG-0269` capture at `STOP_NA0775_001` sec 2 shows
+// `event=session_store ok=true` immediately above `handshake_reject reason=sig_sign_failed`).
+// If a future change moves the commit back above the signing, pass 1 goes RED here and nowhere
+// else in the suite.
+//
+// ⚠ THE LEASE NUMBERS ARE THE FILE'S OWN (`SHORT_PULL_LEASE_SECS` = 8, `LEASE_EXPIRY_WAIT` =
+// 20 s) and are kept in step with `NA_0644`, `na0689_capture`, `na0689_p3_a2`, `na0690`,
+// `na0708` and `na0741` — if you change one of those, change all of them.
+// ===========================================================================
+
+#[cfg(qsc_rng_failure_test_seam)]
+#[test]
+fn t9_the_a2_sig_failure_recovers_on_redelivery() {
+    let _g = guard();
+    let relay =
+        common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, SHORT_PULL_LEASE_SECS);
+    let base = relay.base_url().to_string();
+    let root = test_root("na0742_t9");
+    let flow = setup_to_redeem(&root, &base);
+    accept(&flow);
+
+    // ── PASS 1: force the A2 signature to fail. ────────────────────────────────────────────
+    let out = qsc(&flow.redeemer)
+        .env("QSC_RNG_FAILURE_TEST_SEAM", "QSC.SIG.A2")
+        .args(["invite", "finish", "--alias", "inviter", "--relay", &base])
+        .output()
+        .expect("run qsc");
+    let p1 = output_text(&out);
+
+    assert!(
+        has_marker_line(&p1, "handshake_reject", &["reason=sig_sign_failed"]),
+        "ANTECEDENT FAILED: the a2_sig exit was not reached, so pass 1 proves nothing:\n{p1}"
+    );
+    assert!(
+        !has_marker_line(&p1, "handshake_complete", &[]),
+        "ANTECEDENT FAILED: the handshake completed, so the early exit was not taken:\n{p1}"
+    );
+    assert_eq!(
+        marker_lines(&p1, "producer_ack")
+            .iter()
+            .filter(|l| l.contains("caller=finish") && !l.contains("caller=finish_hs"))
+            .count(),
+        0,
+        "PASS 1: a frame whose A2 never left must not be acked (this is `t8`'s property, \
+         re-asserted here so `t9` cannot pass on a tree where `t8` fails):\n{p1}"
+    );
+    assert_eq!(
+        count_marker(&p1, "session_store"),
+        0,
+        "PASS 1: **NO SESSION MAY BE COMMITTED ON THE FAILING PASS.** This is `E-4`: with the \
+         commit above the signing, a stored session the peer never learned of opens the send \
+         gate (`qsp_status_tuple` returns ACTIVE on blob existence alone), and a later \
+         redelivery re-derives the identical epoch-0 chain over an advanced one — key reuse. \
+         No other test in this suite asserts this absence.\n{p1}"
+    );
+
+    // ── The lease expires and the relay re-admits the frame. ───────────────────────────────
+    thread::sleep(LEASE_EXPIRY_WAIT);
+
+    // ── PASS 2: no seam selector. The pending survived, so the branch retries deterministically.
+    let (ok2, p2) = finish(&flow, &base);
+    assert!(ok2, "PASS 2 must exit 0:\n{p2}");
+    assert!(
+        has_marker_line(&p2, "handshake_complete", &["role=initiator"]),
+        "PASS 2: THE RECOVERY IS THE POINT. The frame was not acked, the lease expired, the \
+         pending was still present because the clear now sits BELOW the push, and the branch \
+         re-derived the same session from the same stored material. A transient signing \
+         failure must recover with no user action:\n{p2}"
+    );
+    assert!(
+        has_marker_line(&p2, "producer_ack", &["caller=finish", "sent=1", "acked=1"]),
+        "PASS 2: having actually completed, the frame is NOW acked — the ack tells the truth in \
+         both directions, not only by staying silent:\n{p2}"
+    );
+    assert!(
+        has_marker_line(&p2, "session_store", &["ok=true"]),
+        "PASS 2: the session is committed on the pass that pushed the A2:\n{p2}"
+    );
+    assert!(
+        p2.contains("invite_finish=ok"),
+        "PASS 2: the CLI reports success for a run that completed:\n{p2}"
+    );
+}
+
 /// ⚠ The default gate build must NOT read the seam selector (D-0883). This arm proves the seam is
 /// genuinely absent rather than merely unused — so the `cfg` above cannot silently become a way to
 /// change production behaviour.

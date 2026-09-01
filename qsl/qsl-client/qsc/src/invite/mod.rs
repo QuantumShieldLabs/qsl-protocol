@@ -1369,7 +1369,7 @@ pub fn invite_accept_at(
         id: item.id,
         data: env.a1,
     };
-    crate::handshake::perform_handshake_poll_with_tokens(
+    let outcome = crate::handshake::perform_handshake_poll_with_tokens(
         // Already resolved above, pre-pull; the poll re-checks it idempotently.
         Some(self_label),
         alias,
@@ -1385,6 +1385,30 @@ pub fn invite_accept_at(
             self_route_token: &self_inbox,
         }),
     )?;
+
+    // NA-0775 (`D-1418`): THE SLOT FLIP AND THE ACK ARE ONE DECISION, AND BOTH WAIT ON
+    // `Consumed`. Gating the ack alone would WEDGE this path: `invite_accept_at` refuses a
+    // redeemed slot BEFORE it pulls (`InviteState::Redeemed => Err(INVITE_ALREADY_REDEEMED)`),
+    // so an unacked A1 that redelivered could never be re-accepted -- it would redeliver until
+    // the relay's retention TTL with every accept refusing.
+    // ⚠ THIS CHANGES A DOCUMENTED PROPERTY, and the comment above is amended with it: the
+    // pre-pull refusal used to be the ONLY thing that kept a mislabelled accept retryable, and
+    // "every other failure mode still burns the slot" is no longer true -- a failure INSIDE the
+    // poll no longer burns it either. That is `ENG-0175`'s direction.
+    // NA-0775 (`D-1418`) `RULING_007` R1: ack on `Consumed` OR `AlreadyComplete`. A redelivered
+    // A1 whose handshake already finished should retire the slot and the frame, not re-offer it
+    // forever -- that is `E-5`'s defect wearing the accept path's clothes.
+    if !matches!(
+        outcome,
+        crate::handshake::PollOutcome::Consumed | crate::handshake::PollOutcome::AlreadyComplete
+    ) {
+        crate::output::emit_marker(
+            "invite_accept_not_consumed",
+            None,
+            &[("reason", "poll_did_not_consume")],
+        );
+        return Ok(None);
+    }
 
     let mut store = invite_store_load()?;
     if let Some(r) = store.invites.get_mut(invite_id_wire) {
@@ -1659,7 +1683,7 @@ pub fn invite_finish(
         id: item.id,
         data: b1,
     };
-    crate::handshake::perform_handshake_poll_with_tokens(
+    let outcome = crate::handshake::perform_handshake_poll_with_tokens(
         // Already resolved above, pre-pull; the poll re-checks it idempotently.
         Some(self_label),
         alias,
@@ -1688,7 +1712,39 @@ pub fn invite_finish(
             "NA-0742 guard 1 (finish): the contact's stored route token must be the one the \
              consumed RESP carried before that frame may be acked"
         );
-        emit_producer_ack("finish", &relay_ep, &self_inbox, &consumed_id);
+        // NA-0775 (`D-1418`): ⚠⚠ THE ACK NOW WAITS ON THE POLL'S OUTCOME, NOT ON ITS `Ok`.
+        // `ENG-0269`: the poll's a2_sig-failure exit returned a bare `Ok(())` byte-identical to
+        // its success exit, so the comment above -- "the last effect is the poll returning
+        // `Ok`" -- rested on a premise that was false for that one exit. The premise is now a
+        // TYPE.
+        // NA-0775 (`D-1418`) `RULING_007` R1: `AlreadyComplete` ACKS. `t5f` is the arm that
+        // makes this non-negotiable: after a LOST ACK the RESP redelivers, the retry finds the
+        // handshake already finished, and under the two-valued contract it returned
+        // `NotConsumed` and never acked -- so the frame could never be retired by ANY later
+        // pass, redelivering to the retention ceiling. Retiring work that is already durably
+        // done is not a weakening of the ack rule; it is the rule applied to a frame whose
+        // effect happened on an earlier pass.
+        if matches!(
+            outcome,
+            crate::handshake::PollOutcome::Consumed
+                | crate::handshake::PollOutcome::AlreadyComplete
+        ) {
+            emit_producer_ack("finish", &relay_ep, &self_inbox, &consumed_id);
+        }
     }
-    Ok(true)
+    // NA-0775 (`D-1418`): report success only for a handshake that actually completed. This
+    // cures the converse of `ENG-0278` measured at `STOP_NA0775_001`: `invite_finish=ok` on a
+    // run whose handshake was REJECTED. ⚠ `none` now covers two situations the comment above
+    // distinguishes -- "the reply has not arrived yet" AND "a reply arrived and did not
+    // complete". The marker stream separates them (`handshake_reject` present or absent); the
+    // one-word CLI output does not, and a third token was considered and NOT taken.
+    // ⚠ AND THE BOOL FOLLOWS THE SAME RULE, FOR THE SAME REASON. `invite_finish`'s bool answers
+    // "is this peer's handshake finished?", and for `AlreadyComplete` the honest answer is YES --
+    // it finished on an earlier pass. Reporting `none` there would mean "the reply has not
+    // arrived yet", which is false. A REJECTED handshake still yields `NotConsumed` and still
+    // reports `none`, so the `ENG-0278`-converse cure at `RULING_004` is untouched.
+    Ok(matches!(
+        outcome,
+        crate::handshake::PollOutcome::Consumed | crate::handshake::PollOutcome::AlreadyComplete
+    ))
 }

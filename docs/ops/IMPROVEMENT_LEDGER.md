@@ -3583,6 +3583,7 @@ NA-0696 STOPs 004 (R-BANK), 006/007 (SR-18); operator adoption 2026-08-05.
 - Status: open — filed 2026-08-07 by NA-0700. FILING ONLY; nothing resolved in that lane (the replay harness exercises both registration-level, which is coverage, not a decision).
 - Originating/last lane: NA-0700 (D-1340; D634 A2-FINAL).
 - Last-updated: 2026-08-07.
+- ⚠ **AMENDMENT (NA-0776, `D-1419`) — THE DISPOSITION IS STATED PER COMMAND, AND BOTH LIMBS STAY OPEN.** This entry covers **two** dormant commands, and NA-0776's declined-frame notice touches neither. `notice_list`/`notice_dismiss` are **NEW** commands, ruled so deliberately: *a stats command must not also be a classification feed* (distinct causes, distinct names). `marker_stats` therefore remains registered and dormant and its meaning is untouched — the dismiss gesture is a Rust-side watermark that consumes nothing, so the buffer's `(buffered, dropped)` cannot drift. `core_busy` is unaffected in any case. **Neither limb closes.** Recorded because a reader who sees a notice surface land might otherwise assume `marker_stats` was finally wired up. (`RULING_NA0776_001` sec 3; `RULING_NA0776_002` `R5`.)
 
 ### WF-0049 — operator build-root paths appear throughout public governance records — a pre-existing, immutable-by-house-law exposure class awaiting a deliberate assessment errand — **NEW; filed 2026-08-07 by NA-0700 (D-1340; D634 A2-FINAL §3 item 6 / R124, R128) — FILING-ONLY**
 - Severity: P3 (information hygiene, not access: the strings carry no IP, hostname, username, or secret — they expose build-root LAYOUT of operator infrastructure in a public AGPL repo, against the standing prohibition on publishing operator infrastructure details)
@@ -6944,6 +6945,8 @@ QSC_MARK/1 event=producer_ack caller=finish sent=1 acked=1
 - Cross-references: `ENG-0272` (the same display-honesty class); desktop `D-0044`.
 - Source: NA-0774 `D-1417`; escalated at NA-0768.
 
+- ⚠ **NA-0774 ALSO CLAIMED desktop `D-0045` AND NEVER WROTE THE RECORD** — the id appears in PR #50's title and in three shipped comments, with no `## D-0045` in `DECISIONS.md`. NA-0776 closed the gap **at its source, by reservation rather than invention**: desktop `DECISIONS.md` now carries a `## D-0045 — RESERVED BY CLAIM` stub in declaring form, so no declaration-based id route sees a false gap. **The substantive record is still OWED** — see the micro-items filed at the end of this ledger. Filed by NA-0776 (`D-1419`) per `RULING_NA0776_013` sec 2.
+
 ### ENG-0274 — the desktop footer shows no notice when a frame is declined as `invite_finish_hs_unconsumed`, so a declined handshake is invisible to the user — **NEW; FILED NOT BUILT by NA-0774 (`D-1417`).**
 
 - Severity: **`P3`, argued** — nothing fails unsafely, but a user has no way to learn that a connection attempt was declined.
@@ -6951,6 +6954,7 @@ QSC_MARK/1 event=producer_ack caller=finish sent=1 acked=1
 - ⚠ **IT BECOMES MORE VISIBLE, NOT LESS, AFTER `ENG-0271`.** Once the tick no longer flashes the busy indicator, this footer notice is the **only** visible evidence of background activity. The two are coupled and the coupling was ruled before either landed.
 - Cross-references: `ENG-0271`; `ENG-0275`; `ENG-0276`.
 - Source: NA-0774 `D-1417`, kickoff `A3`.
+- Resolution: RESOLVED by NA-0776 (`D-1419`), desktop PR #52, merge commit `2411bf9f` — a NEW quiet line on the `#tick-status` pattern, never `#status-line`, so NA-0752's two-source footer ruling is untouched. The classifier is pure and whitelisted (`NOTICE_KINDS`), returns the whitelist's own `&'static str`, and **no raw marker text reaches the UI**; the count is monotonic and eviction-immune, and dismiss is a Rust-side watermark that a later arrival re-surfaces.
 
 ### ENG-0275 — `app_info` reports no build identity, so a flight cannot state which build it flew — **NEW; FILED NOT BUILT by NA-0774 (`D-1417`).**
 
@@ -6958,6 +6962,7 @@ QSC_MARK/1 event=producer_ack caller=finish sent=1 acked=1
 - ⚠ **NOT BUILT IN THIS LANE:** it needs `src-tauri/src/**` (the `L2` bound). Routed to the next desktop lane.
 - Cross-references: `ENG-0274`; `ENG-0276`.
 - Source: NA-0774 `D-1417`, kickoff `A3`.
+- Resolution: RESOLVED by NA-0776 (`D-1419`), desktop PR #52, merge commit `2411bf9f` — `app_info` reports `build_commit`, **and only what can stay true**: a 40-hex commit or the literal `unknown`, never an empty or fabricated value. A dirty flag and a build timestamp were **ruled out as believed-and-wrong** and are pinned ABSENT by an arm. The operator's flight read it back on the shipped build, which is what makes a flight report provenance-bearing.
 
 ### ENG-0276 — erase/destroy can run under a live process, so an in-memory state can be carried into a freshly created vault — **NEW; FILED NOT BUILT by NA-0774 (`D-1417`).**
 
@@ -6966,6 +6971,10 @@ QSC_MARK/1 event=producer_ack caller=finish sent=1 acked=1
 - ⚠ **NOT BUILT IN THIS LANE:** it needs `src-tauri/src/**` (the `L2` bound). Routed to the next desktop lane.
 - Cross-references: `ENG-0274`; `ENG-0275`.
 - Source: NA-0774 `D-1417`, kickoff `A3`, from NA-0768's close-out.
+- ⚠⚠ **AMENDMENT (NA-0776, `D-1419`) — REPAIRED, AND THE BOUND OF THE REPAIR STATED SO IT IS NOT OVER-READ.** Detection landed at **both doors**, failing closed with `STORE_VANISHED` rather than proceeding on a lock that guards nothing. **IT COVERS A *VANISHED* STORE, NEVER A *REPLACED* ONE**: the word "replaced" was **WITHDRAWN** from the spec by ruling after measurement showed a replaced store presents new bytes the belief check cannot distinguish. The repair **narrows** the TOCTOU window; it does not close it.
+- ⛳ **AND THE LANE FOUND A UI-REACHABLE REPRODUCTION OF THE ARMED PATH**, which the original filing did not have: the armed wipe is reachable from the running app, so this is not only an out-of-band `rm -rf` story.
+- ⚠ **THE DEEPER FINDING IS FILED SEPARATELY AND IS NOT REPAIRED:** `ENG-0285` — the same external wipe voids `flock` mutual exclusion **and** resets the brute-force attempt limit. **Detection is not repair.**
+- Resolution: RESOLVED by NA-0776 (`D-1419`), desktop PR #52, merge commit `2411bf9f` — within the bound stated above.
 
 ### ENG-0277 — a `debug_assert` in the handshake is dark in every shipped build, so the invariant it names is unchecked where it matters — **NEW; FILED NOT REPAIRED by NA-0774 (`D-1417`).**
 
@@ -7106,3 +7115,88 @@ QSC_MARK/1 event=producer_ack caller=finish sent=1 acked=1
 - **THE PROPOSAL, NOT BUILT HERE.** When a lane changes a RETURN CONTRACT rather than a code path, the blast radius is every caller AND every test that pins caller behaviour — not only the sites the change touches. A mechanical form: before landing a contract change, run every test target that names any caller of the changed function, whether or not it appears in the risk enumeration. ⚠ Offered as a habit, not a gate; `NA-0754` measured that a habit re-derived each time is not a control, and this entry does not solve that.
 - Cross-references: `ENG-0269` (the lane's origin); `ENG-0281`; `WF-0094` (the other method finding of this lane); `NA-0754`.
 - Source: NA-0775 `D-1418`; `RULING_007` sec ESCALATIONS, which ordered the class filed rather than only the instance.
+
+### ENG-0285 — ⚠⚠ AN EXTERNAL WIPE OF THE STORE VOIDS `flock` MUTUAL EXCLUSION *AND* RESETS THE BRUTE-FORCE ATTEMPT LIMIT — ONE TRIGGER, TWO CONSEQUENCES (`M-12` + `R9`)
+
+- Type: defect (qsc-side, PRE-EXISTING). Status: open — filed 2026-09-02 by NA-0776 (`D-1419`). Filing only; not repaired here.
+- **THE TRIGGER, ONE SENTENCE.** `flock` binds to an **inode**, not to a path. When the store directory is removed out from under a running process — `rm -rf` by a user, a sync tool, a restore — the lock file's inode goes with it. The running holder keeps a lock on an inode that no longer has a name; the next process creates a **new** file at the same path with a **different** inode and takes a lock that conflicts with nothing.
+- **CONSEQUENCE (i) — MUTUAL EXCLUSION IS VOID.** Two processes then believe they hold the store's exclusive lock at the same time. Every invariant the lock protects — the handshake pending record, the session store, the counter files — is unguarded for as long as both live.
+- **CONSEQUENCE (ii) — THE ATTEMPT LIMIT RESETS (`R9`).** The brute-force counter lives *inside* the store the wipe removed, so an external wipe returns the attempt budget to full. An attacker who can delete a directory can retry a passphrase indefinitely, a few deletions at a time.
+- ⚠ **THEY ARE FILED AS ONE ENTRY BY RULING.** `RULING_NA0776_005` sec 4: *"one entry, two consequences … One entry a reader finds whole beats two entries a reader must join."* Both share the trigger, and a repair that addresses only one leaves the other live.
+- **WHAT MITIGATES, AND WHAT DOES NOT.** NA-0776's cure (B) — the restart at every wipe continuation — closes the app's **own** paths: after `erase`, `destroy` or the armed wipe, the process that would hold a stale lock is gone. On the **external** path nothing the app did precedes the wipe, so **detection-plus-exit is the only mitigation available**, and that is exactly what `ENG-0276`'s guard does: both doors fail closed with `STORE_VANISHED` rather than proceeding on a lock that guards nothing. **Detection is not repair, and this entry exists so that is not forgotten.**
+- ⚠ **BOUNDS OF THE `ENG-0276` GUARD, restated so no reader over-reads it:** it covers a store that **VANISHED**, never one that was **REPLACED** — the word "replaced" was withdrawn from 3.5(C) by ruling after measurement, and a replaced store presents new bytes the belief check cannot distinguish. It narrows the TOCTOU window; it does not close it.
+- Cross-references: `ENG-0276` (external-wipe detection, the mitigation on the external path); `ENG-0239` (the session directory born at the caller's umask — the other "the store is not what the process believes" finding); `WF-0099`.
+- Evidence: cold read `FINDINGS_SR15_NA0776_20260902T023258Z.md` sha256 `3ff8b265a9f8e163e37335068c88a513e8071c4b850876155b5f2cb602d67937`; sweep read `FINDINGS_SR15_NA0776_SWEEP_20260902T045311Z.md` sha256 `9086f2854857f87e70a19d70ec97416623607b1b14c0b5b083bba28eba24cfa3`.
+- Source: NA-0776 `D-1419`; `RULING_NA0776_003` sec 2 (`M-12` accepted and filed forward), `RULING_NA0776_005` sec 4 (`R9` folded in).
+
+### WF-0096 — THE PRE-PUSH SUBTREE-EQUALITY GATE, GIVEN ITS ID: WHEN A SUITE RUN IS A PR'S EVIDENCE, PROVE THE SHIPPED TREE **IS** THE TESTED TREE
+
+- Type: workflow (process). Status: open — filed 2026-09-02 by NA-0776 (`D-1419`), discharging the id NA-0775's `RULING_010` deferred to "the NEXT records act".
+- **THE ORIGIN.** At NA-0775 a cherry-pick onto a different base **auto-merged, exited 0, and silently dropped 81 lines**. Nothing was red. The PR would have shipped a tree no suite had ever run, with a green suite result attached to it.
+- **THE GATE, AS RATIFIED.** For any PR whose evidence is a suite run: build the PR by `git checkout <tested> -- <path>/` and **assert subtree-hash equality in the stop, every time**.
+- ⛳ **NA-0776 EXTENDS IT AT THE FAR END, AND THE EXTENSION IS THE POINT.** Equality asserted *locally* proves what you committed; it does not prove what the remote received. This lane asserted it **at the named remote after every push**: read the branch head bare (`ls-remote`), fetch the object, compare `rev-parse FETCH_HEAD^{tree}` to the tested tree, **and run `git diff <tested> FETCH_HEAD` and require it EMPTY**.
+- ⚠⚠ **COMPARE; DO NOT SHA-MATCH.** A digest of the destination proves a file exists there, never that *your* bytes are in it. The empty diff is the assertion that carries; the equal hashes are its corroboration.
+- ⛳ **AND APPLY IT TO THE LANDING ITSELF.** After the operator merged, this lane re-ran the same test against **main**: `main^{tree} == 7be2df53^{tree} == d1e0e6ae`, `git diff 7be2df53..main` EMPTY. *What shipped is the tree the operator flew and the suite ran on* — a sentence worth being able to write, and only writable if it was measured.
+- Cross-references: `WF-0091` (the run whose census hid a target); `NA-0775` `E-7`; `ENG-0244`.
+- Source: NA-0776 `D-1419`; NA-0775 `RULING_010`, which ratified the gate and deferred only its id.
+
+### WF-0097 — ⚠⚠⚠ A LOCAL GREEN IS NOT THE BOARD, AND ONE LANE PROVED IT TWICE BY TWO DIFFERENT MECHANISMS
+
+- Type: workflow (process). Status: open — filed 2026-09-02 by NA-0776 (`D-1419`).
+- ⚠⚠⚠ **THE FACT THAT FORCED THE FILING.** The desktop PR's required `rust` check was **RED ON EVERY PUSH FROM THE FIRST**, and the seat did not read the board until the last step of an ordered sequence — reporting "full suite green, `CARGO_EXIT=0`" at each push. Every one of those greens was true, and none of them was the board.
+- **MECHANISM (i) — A GATE THAT REDS EARLY HIDES EVERY GATE BEHIND IT.** The job runs `deps → fmt → test → inventory → clippy`. It died at **`fmt`**, so `cargo test`, the test-inventory gate and `clippy` **had never executed in CI on that branch at all**. A single red check was concealing three unrun ones.
+- ⛳ **THE DURATION OF A FAILING JOB TELLS YOU HOW FAR IT GOT** — the cheapest diagnostic in this entry. The arc, in one line: **33s red** (died at `fmt`) → **7m33s red** (`fmt` and the whole suite ran and *passed*; died at `clippy`) → **6m5s green**. A 33s failure on a job that compiles cannot have reached the tests, and saying so out loud is what located the second defect.
+- **MECHANISM (ii) — THE SEAT'S TOOLCHAIN IS NOT CI'S.** With `fmt` fixed, `clippy` failed on `clippy::question_mark` — a lint that **does not exist** in the box's clippy (`0.1.95`) but does in CI's `dtolnay/rust-toolchain@stable` (`1.98.0`). The local `CLIPPY_EXIT=0` was a **toolchain-version artifact**, not evidence. This recurs at every stable bump, in every repo whose CI floats on `@stable`.
+- **THE CURE FOR (ii), WITH ITS OWN CONTROL.** Install the matching toolchain **by version and NON-DEFAULT**, run it only as `cargo +<version> clippy --all-targets -- -D warnings` with a **separate `CARGO_TARGET_DIR`** so the build toolchain's artifacts are untouched — and ⚠⚠ **VALIDATE THE PREDICTOR AGAINST THE KNOWN ANSWER BEFORE TRUSTING IT**: on the *unfixed* tree it must reproduce CI's exact finding at the exact site. A predictor that has not reproduced a known failure predicts nothing.
+- ⚠ **AND CHECK THE PREMISE OF THE INSTALL COMMAND IN *THIS* SEAT.** The ruling ordered `rustup toolchain install stable` on the belief that `stable` would be a new toolchain beside a `1.95.0` pin. Measured, the seat's **default IS `stable`**, merely un-updated, with no `rust-toolchain.toml` — so the literal command would have moved the toolchain the suite builds on, breaking the same order's printed assertion that `rustc --version` still read `1.95.0`. Installing `1.98.0` **by version** satisfied every property the order named.
+- **THE STANDING PRACTICE.** Every push report states the **required set's status AS READ FROM THE BOARD** — each check with run id and conclusion, or "not yet reported" — and **"local green" and "board green" are always stated as two different facts**.
+- Cross-references: `ENG-0244` (a PR fully green with zero macOS coverage — the same "what did *not* run" question); `ENG-0280`; `WF-0093`.
+- Source: NA-0776 `D-1419`; `RULING_NA0776_017` sec 1 (`E-8`), `RULING_NA0776_018` sec 1 (`E-9`).
+- ⚠ **OPERATOR QUESTION, OPEN, FOR THE NEXT `.github` ACT** (operator-only surface; not this lane's to change): pin CI's clippy job to the repo's toolchain, or keep tracking `@stable` and accept periodic lint churn. Both are defensible; the present state — floating CI against a frozen box — is the one that is not.
+
+### WF-0098 — ⚠⚠ AN INSTRUMENT MUST BE PROVEN TO REACH THE BOUNDARY ITS CLAIM NAMES: `git diff -w` CANNOT SEE A LINE-**WRAP**
+
+- Type: workflow (method). Status: open — filed 2026-09-02 by NA-0776 (`D-1419`).
+- **THE SETTING.** A flight's rows may be carried across a code change only if the change cannot alter behaviour. A ruling made that mechanical: *a product `.rs` change voids the carry only if it survives `git diff -w`*, with an empty `-w` diff as the printed proof.
+- ⚠⚠ **THE INSTRUMENT CANNOT REACH THAT BOUNDARY.** `git diff -w` ignores whitespace **within** a line. It cannot collapse a line **wrap**, which turns one line into several — those remain different lines. So a pure reformat, which is *exactly* the case the clause was written to excuse, reports NON-EMPTY.
+- ⛳ **THE TELL, AND THE FIXTURE.** The tell was that the `-w` output was **byte-identical to the plain diff**. Demonstrated rather than argued, on two files differing only by a wrap: `-w` reported *"3 insertions, 1 deletion"*.
+- **THE CORRECTED CLAUSE, AS RULED.** A product `.rs` change voids the carry **unless formatter idempotence holds** — `rustfmt` applied to the *prior* head's file reproduces the *new* head's file **byte-exactly** — with **whitespace-stripped equality** as the secondary instrument.
+- ⛳ **AND THE SECONDARY INSTRUMENT EARNED ITS PLACE.** It reported the product delta was not quite token-identical: exactly **one** opcode, a **deleted trailing comma** in a parameter list the formatter had collapsed onto one line. Computed from the output, not asserted — and inert, but *known* to be inert rather than assumed.
+- ⚠ **THE SEAT EXECUTED THE CLAUSE AS WRITTEN WHILE DEMONSTRATING THE DEFECT** — the letter obeyed, the defect surfaced, no private re-reading of a rule to reach a preferred answer. That is the behaviour this entry means to make ordinary.
+- Cross-references: `WF-0087`; NA-0758 (*validate a census instrument against a known answer*); NA-0766 (*an ordered instrument could not reach its boundary — bring a different one and say so*).
+- Source: NA-0776 `D-1419`; `RULING_NA0776_017` sec 3 (the clause), `RULING_NA0776_018` sec 3 (the correction and the Director's own row).
+
+### WF-0099 — ⚠⚠ FOUR WAYS A SHELL INSTRUMENT LIED IN ONE LANE, AND THE PERTURBATION PROTOCOL THAT ANSWERS THEM
+
+- Type: workflow (method). Status: open — filed 2026-09-02 by NA-0776 (`D-1419`).
+- **(a) `git checkout -- <file>` DESTROYED UNCOMMITTED WORK. TWICE.** Used to revert a deliberate perturbation, it also reverted everything else uncommitted in those files. **THE STANDING PROTOCOL: commit before tampering, and revert the perturbation from a `cp` copy taken first — never `git checkout --`.**
+- **(b) `cp` INHERITS THE SOURCE'S MODE.** Copying from a `444` sealed artifact produced a `444` working file, and the next write failed. Use `install -m 644`, and **assert the destination differs from the source** before believing an edit landed.
+- **(c) `env VAR=val -u OTHER …` EXITS 127 AND THE ARM NEVER RUNS.** The option order is wrong and the shell says so in a status code nobody reads when the surrounding block is `&&`-chained. A control that did not execute is not a control that passed.
+- **(d) ⚠⚠ A `python3 - <<'PY'` HEREDOC DOES NOT INHERIT AN UN-EXPORTED SHELL VARIABLE.** In this lane it raised `KeyError`, the rewrite silently became a no-op, and an **UNCHANGED** PR body was pushed as if edited. It was caught **only by reading the artifact back and comparing**. **THE THREE GUARDS: `export` the variable; `assert s != orig` inside the rewrite; compare the read-back against what was sent.**
+- **THE COMMON SHAPE.** Every one of these produced a *plausible, quiet* result rather than an error — the failure mode a checklist cannot catch and a comparison can. The answer is the same each time: **do not believe an instrument's silence; compare its output to something independent.**
+- Cross-references: `WF-0094` (the needle unique in the author's head); the `pgrep -f` self-match trap; `ENG-0239`.
+- Source: NA-0776 `D-1419`; `RULING_NA0776_007` sec 3 (the `env -u` trap filed), `RULING_NA0776_009` (the perturbation protocol adopted as standing), `RULING_NA0776_018` sec 4 (the heredoc trap filed).
+
+### WF-0100 — A SEALED DOCUMENT'S HEADER MUST SAY THAT ITS WHOLE-FILE SHA256 **IS** THE INTEGRITY CONTROL, AND WHERE IT IS BANKED
+
+- Type: workflow (records). Status: open — filed 2026-09-02 by NA-0776 (`D-1419`).
+- **THE PRACTICE (`MINOR-13`, promoted from a cold-read minor).** A sealed findings or stop file states, in its header: that the **whole-file sha256 is the integrity control**, and **where that digest is banked** — so a reader can tell whether the digest travels with the document or independently of it.
+- **WHY IT IS NOT COSMETIC.** A digest printed *inside* the document it describes cannot cover itself; a reader who does not know where the authoritative copy is banked cannot distinguish a sealed document from one that merely displays a hash. The header sentence is what makes the control checkable by someone who was not there.
+- Cross-references: `WF-0092` (one self-digest construction house-wide; the stamp pass must not resolve a placeholder inside quoted text); `SR-26`.
+- Source: NA-0776 `D-1419`; `RULING_NA0776_003` sec 5, which ordered `MINOR-13`'s practice filed as a WF candidate.
+
+### ⚠ DESKTOP MICRO-ITEMS FILED BY NA-0776 (`D-1419`) — MEASURED, NOT BUILT, EACH OUT OF ITS LANE'S BOUND
+
+Three small items a successor should pick up. Each was **measured** in NA-0776 and each was
+left unbuilt for a stated reason, not overlooked. None is a blocker.
+
+- **`D-0045`'s substantive record.** Author it from PR #50's own content, marked as a
+  retroactive record. NA-0776 reserved the id and said so; it did **not** invent the
+  decision that was never written. (`RULING_NA0776_013` sec 2.)
+- **`erase`'s `.tmp` gap** (cold-read `MINOR-1`). The one-line fix at `commands.rs:438`,
+  plus the missing *erase-residue* pin — `destroy` has one, `erase` does not, so the two
+  wipe paths are not held to the same standard. Out of NA-0776's 3.8 bound.
+  (`RULING_NA0776_006` sec 4.)
+- **The replay guard's vault-state fixtures.** The guard cannot fire under the CLI's
+  default mode, and proving it needs fixtures that carry real vault state — genuine work,
+  outside NA-0776's 3.6 scope, and filed rather than half-done. (`RULING_NA0776_010`.)

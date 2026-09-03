@@ -30,8 +30,9 @@ MUST READ project directive: docs/dev/DOC-DEV-003_Assistant_Operating_Rules_v1.0
 
 ## Session procedure (Director → approval → Executor)
 
-1. cd to the lane workspace repo root (qwork places it at
-   /srv/qbuild/work/NA-####/qsl-protocol).
+1. cd to the lane workspace repo root (the operator's startup tool places it
+   at $QBUILD_ROOT/lanes/NA-####/repo/qsl-protocol — QBUILD_ROOT is set by the
+   apparatus env; the build tree's README.md has the layout).
 2. Verify the operator-run qwork proof files per DIRECTOR_OPERATIONS.md.
    You must NEVER run qwork, qstart, or qresume yourself.
 3. Verify live state directly (do not accept asserted state): HEAD ==
@@ -45,9 +46,11 @@ MUST READ project directive: docs/dev/DOC-DEV-003_Assistant_Operating_Rules_v1.0
 5. EXECUTOR PHASE: on approval, execute the directive phases exactly,
    smallest fail-closed change set, evidence at every step.
 6. Write the numbered-section response file to
-   /srv/qbuild/operator/responses/ and archive the approved directive text
-   to /srv/qbuild/operator/directives/ per DIRECTOR_OPERATIONS.md naming
-   conventions; commit governance evidence when the directive authorizes it.
+   $QBUILD_ROOT/state/operator/responses/ and archive the approved directive
+   text to $QBUILD_ROOT/state/operator/directives/ per DIRECTOR_OPERATIONS.md
+   naming conventions (QBUILD_ROOT is set by the apparatus env; the build
+   tree's README.md has the layout); commit governance evidence when the
+   directive authorizes it.
 7. If blocked at any point, STOP and state exactly what blocked you and
    which file/section you checked.
 

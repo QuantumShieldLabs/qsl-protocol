@@ -2002,10 +2002,11 @@ fn qsp_pack(
         } else {
             "fallback"
         };
+        let ns_s = st_cur.send.ns.to_string();
         emit_marker(
             "qsp_dh_ratchet",
             None,
-            &[("dir", "send"), ("reason", reason)],
+            &[("dir", "send"), ("reason", reason), ("ns", ns_s.as_str())],
         );
         // ⚠ NA-0688 C3 — THE ESTABLISHMENT MUST NOT EAT THE HUMAN'S OWED REPLY.
         //
@@ -2071,12 +2072,13 @@ fn qsp_pack(
                 scka.boundaries_since_reseed = 0;
                 scka.last_reseed_unix_secs = now;
                 scka_dirty = true;
+                let n = st_cur.send.ns;
+                let ns_s = n.to_string();
                 emit_marker(
                     "qsp_pq_reseed",
                     None,
-                    &[("dir", "send"), ("target_id", target_s.as_str())],
+                    &[("dir", "send"), ("target_id", target_s.as_str()), ("ns", ns_s.as_str())],
                 );
-                let n = st_cur.send.ns;
                 if origination.counts_toward_rotation() {
                     trig.msgs_since_ratchet = trig.msgs_since_ratchet.saturating_add(1);
                 }
@@ -2379,6 +2381,8 @@ fn qsp_unpack(channel: &str, envelope_bytes: &[u8]) -> Result<QspUnpackOutcome, 
         scka.consume_advkey(target_id);
         qsp_scka_store(channel, &scka).map_err(|_| "qsp_session_store_failed")?;
         let target_s = target_id.to_string();
+        let nr_s = next_state.recv.nr.to_string();
+        let pn_s = outcome.pn.map(|v| v.to_string()).unwrap_or_default();
         emit_marker(
             "qsp_pq_reseed",
             None,
@@ -2386,6 +2390,8 @@ fn qsp_unpack(channel: &str, envelope_bytes: &[u8]) -> Result<QspUnpackOutcome, 
                 ("dir", "recv"),
                 ("target_id", target_s.as_str()),
                 ("combined", if combined { "true" } else { "false" }),
+                ("nr", nr_s.as_str()),
+                ("pn", pn_s.as_str()),
             ],
         );
         (outcome.plaintext, next_state, msg_n, skip_delta, evicted)
@@ -2394,7 +2400,13 @@ fn qsp_unpack(channel: &str, envelope_bytes: &[u8]) -> Result<QspUnpackOutcome, 
         if !out.ok {
             return Err(out.reason.unwrap_or("qsp_recv_failed"));
         }
-        emit_marker("qsp_dh_ratchet", None, &[("dir", "recv")]);
+        let nr_s = out.state.recv.nr.to_string();
+        let pn_s = out.state.send.pn.to_string();
+        emit_marker(
+            "qsp_dh_ratchet",
+            None,
+            &[("dir", "recv"), ("nr", nr_s.as_str()), ("pn", pn_s.as_str())],
+        );
         (out.plaintext, out.state, 0u32, 0usize, 0usize)
     } else {
         let outcome = recv_wire_canon(

@@ -119,6 +119,7 @@ tests/na0768_handshake_a1_offer.rs	2
 tests/na0768_invite_finish_mixed_role.rs	0
 tests/na0770_legacy_retirement_guards.rs	0
 tests/na0771_eng0252_arms.rs	2
+tests/na0779_debug_log_sink_arms.rs	2
 tests/na_0302_suite2_negotiation_cross_surface.rs	3
 tests/na_0303_handshake_activation_negotiation.rs	2
 tests/na_0304_handshake_suite_id_negotiation.rs	2

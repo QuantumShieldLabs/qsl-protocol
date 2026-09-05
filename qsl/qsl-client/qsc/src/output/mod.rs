@@ -33,6 +33,9 @@ struct OutputPolicy {
 
 static OUTPUT_POLICY: OnceLock<OutputPolicy> = OnceLock::new();
 
+// NA-0779 (D-1422): the typed event sink, a second consumer of the ONE choke point below.
+pub mod event;
+
 pub fn install_panic_redaction_hook() {
     std::panic::set_hook(Box::new(|_| {
         let _ = std::io::stderr().write_all(PANIC_REDACTED_MARKER.as_bytes());
@@ -208,6 +211,9 @@ pub fn init_output_policy(reveal: bool) {
 
 pub fn emit_marker(event: &str, code: Option<&str>, kv: &[(&str, &str)]) {
     let line = format_marker_line(event, code, kv);
+    // NA-0779: the sink is offered the parts AFTER the line is formatted and BEFORE it is routed, so the
+    // line the CLI prints is untouched byte for byte; with no sink installed this is one atomic load.
+    event::feed(event, code, kv);
     match marker_routing() {
         MarkerRouting::Stdout => println!("{}", line),
         MarkerRouting::InApp => {

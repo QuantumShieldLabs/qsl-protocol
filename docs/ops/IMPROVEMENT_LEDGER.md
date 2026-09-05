@@ -4933,6 +4933,8 @@ asymmetry is recorded rather than hidden.
 - Cross-references: **ENG-0192** (the defect it could not see), **ENG-0193** (the instrumentation half
   of the same blindness), **ENG-0191** (why (ii) never runs), **ENG-0190** (artifact legibility).
 - Status: open — **FILING ONLY**. Originating/last lane: NA-0736 (D-1371). Last-updated: 2026-08-15.
+- Status: CLOSED 2026-09-05 -- disposition measured by NA-0779 (`D-1422`) on `RULING_NA0778_017` R118 and PROPOSED for the Director's ruling (the bullet's final text is his; a returned text is a second commit on the same PR). THE GATE THIS FILING ASKED FOR EXISTS: `remote-invite-roundtrip-tests` (E7; NA-0744, `D-1383`, class `PULL_DIAGNOSTIC_LIVE_GATE_GREEN_PASS`), whose script `scripts/demo/qsc_remote_invite_roundtrip_smoke.sh` runs the invite first-contact round trip and then A MESSAGE EACH WAY against the REMOTE relay, received with `--mailbox <route token>` (the operator's confirmed choice of 2026-08-18, the script's own comment at :517-:518) and asserted BY EQUALITY on the delivered bytes plus `qsp_unpack ok=true` and `recv_commit` per side (:515-:564); it sits on `main-red-sentinel.yml`'s roster (:71). MEASURED at this edit: `on: workflow_dispatch` ONLY (no schedule; not a required check) and ONE run in its history -- 32149418050, success, 2026-08-18T14:36:56Z, head `726c3c8dedc8ceee2f68851b0c3a1e27e55c5ec1`. Against the two operator questions above: (2) the addressing -- ANSWERED by the script (`--mailbox`); (1) REQUIRED or ADVISORY -- NOT decided: dispatch-only at n=1 is neither. RULED (`RULING_NA0779_001` R2, sha256 `0b65e2030d82a76d4f6e33fc658556cda4899eae70f22e9a5c9397e20ce64ab7`): CLOSED -- built at NA-0744 (`D-1383`, class `PULL_DIAGNOSTIC_LIVE_GATE_GREEN_PASS`); the posture (scheduled + sentinel, or required) is the operator's decision, tracked at the RELAY SPLIT lane, against which the gate is rebuilt.
+
 
 ### ENG-0194 — the substring defect ENG-0191 found in a shell fixture also exists in a UNIT TEST and in the soak harness, where it makes an assertion INERT: **every consumer of `status=established` in this repository matches it as a SUBSTRING, so `hs_status_truth`'s third branch has ZERO distinguishing coverage tree-wide** — **NEW; filed 2026-08-16 by NA-0738 (D-1373; found by the SR-15 adversarial cold read of ENG-0191, §8.2, sha256 `a5b7324e…b1b4`; consumer census re-measured tree-wide at `62752adf` by the filing seat, which found the read's enumeration SHORT BY ONE)**
 
@@ -6897,6 +6899,8 @@ QSC_MARK/1 event=producer_ack caller=finish sent=1 acked=1
 ⚠⚠ **SEVERITY RULED `P2` BY THE DIRECTOR, 2026-08-30, at `RULING_NA0773_003` (banked 444 under `/srv/qbuild/operator/NA-0773/`, whole-file sha256 `d6af0159fd947f70f1f8fc147a3440ab347c2be17a824efe9c5a2e5e76848f26`). Nothing above is edited; the entry's own "argued, not declared" wording stands as issued and this append supersedes it in the open.**
 
 **`P2` IS NOW DECLARED BY THE DIRECTOR, NOT ARGUED BY THE SEAT.** His grounds, verbatim: *"a frame retired while its effect did not occur, peers left permanently disagreeing, no frame to retry from; not P1 (narrow window, no confidentiality lost); not P3 (reachable without fault injection via `ENG-0267`'s window)."* ⇒ **the seat's argument was adopted in full and the grade is a ruling.** ⚠ Read the `- Severity:` bullet above together with this line: the bullet's value (`P2`) was correct before the ruling and is unchanged by it; **what changed is its STANDING** — from a proposal offered for ruling to a Director-declared grade.
+- Status: CLOSED 2026-09-01 -- REPAIRED by NA-0775 (`D-1418`); transcribed 2026-09-05 by NA-0779 (`D-1422`) from NA-0775's record on `RULING_NA0778_017` R118 (nothing above is rewritten; this later bullet is the entry's current state, the convention `TRIAGE` R-6.2 names). Protocol PR #1812 (the promotion, merged `2026-09-01T22:33:36Z` as `0ed9596f0eaa187a9719808f7a87011722d287b6`) and PR #1813 (the repair, merged `2026-09-01T23:35:02Z` as `8b0a3efc943b6a9c89566dfc1e1fef2484b0a9ad`, protocol main's tip at that close) -- both read at this edit by `gh pr view`; class `HANDSHAKE_ACK_TRUTH_GUARDED_PASS` from `CLOSEOUT_NA0775_20260901.md` (sha256 `85821a72c715d0f9a0ff43280bb09f36fee06405be4eebd1801aaacab2264f27`, banked 444 under `state/operator/NA-0775/`): `PollOutcome::{Consumed | AlreadyComplete | NotConsumed}` across all 21 Ok-shaped exits, callers ack only on Consumed-or-AlreadyComplete; the session commit and the pending clear moved BELOW the A2 push; the late-landing compare-and-set guard under the tree's own cross-process `flock`; `t8` -- the arm THIS entry rests on -- flipped green UNTOUCHED. RESIDUALS the close-out names, carried and NOT closed here: `ENG-0282`, `ENG-0283`, `ENG-0277`, `ENG-0278`; `ENG-0267` narrowed, not closed; no required CI check compiles the seam (`WF-0093`); the replay guard's `LegacyCompat` unreachability is pre-existing, NA-0708's.
+
 
 ### WF-0093 — ⚠⚠ A cfg-GATED TEST SURFACE IS COMPILED BY NO CI JOB, AND A TEST WITH ZERO ASSERTIONS IS NOT A LINT FAILURE — THE TWO GAPS THAT LET 27 TESTS ROT FOR 46 DAYS AND 13 ASSERTION-FREE TESTS PASS INDEFINITELY — **NEW; FILED by NA-0773 (`D-1416`) as the CI-migration input the Director's ruling sec 4 orders. FILED, NOT BUILT — `.github/**` is outside this seat's authority and the committed `.claude/settings.json` denies writes there.**
 
@@ -7258,6 +7262,8 @@ left unbuilt for a stated reason, not overlooked. None is a blocker.
 - Cross-references: `WF-0098`/`WF-0099` (the same family from NA-0776: an instrument must be proven to reach the boundary its claim names).
 - Source: NA-0777 `D-1420`; `RULING_NA0777_013` `R106`, `RULING_NA0777_014` `R110`.
 - ⛳ **THE FIFTH DATAPOINT (NA-0778, 2026-09-05, `D-1421`).** A driver arm that forced PART of a gate's inputs and left the rest to the app's own async refresh: desktop CI run 33940568140 on `c5ef502e` went red (20/21) on a row that read the Activate button after the mint window's `inviteRefresh` had rewritten `inviteNoRelay` on the relay-less runner, between two synchronous rows; the box could not reproduce it (its IPC returns before the next row) and the runner's log was the arm. Cured data-only at `10764117` (every gate input forced in the same synchronous script; every term returned so a red names its term). THE RULE, written into the harness's own header as duty 11 — desktop PR #55, landed as `b4ec469339fb02d80adde277a909e25dd50cfcae` (merged 2026-09-05T04:10:17Z): an arm that asserts a predicate controls EVERY input of that predicate in the same synchronous step and returns every term; the box's timing is not the runner's. `RULING_NA0778_015` R96, `RULING_NA0778_016` R107; `STOP_NA0778_004i` (sha256 `f6b17932d864e2dd26e0b3f1aa3ad16d2887655100d4aec7e4fc12a651bb0312`).
+- ⛳ **THE SIXTH DATAPOINT (NA-0778's E-40, row S-31, `RULING_NA0778_017` R115; landed 2026-09-05 by NA-0779, `D-1422`).** The NA-0778 seat's scratch pre-bank needle tool printed `NEW (not in baseline)=1` on the FINAL stop and EXITED 0, so the `&&`-chain banked, committed and attempted the push past its own finding; the installed pre-push hook, whose refusal IS an exit code, refused it (`NEW HITS 2`). The row's two instruments: the tool's printed line and the hook's refusal. `docs/ops/PREDICTION_LEDGER.md` row 485. (R115 calls it "this lane's fifth datapoint"; by this entry's own count it is the SIXTH, the fifth being the CI race above -- the count is named here, not reconciled silently.) `STOP_NA0778_FINAL2_20260905T045208Z.md` E-40 (sha256 `c5b4c30bb349aa62417cd88b535815487e9ec904dea077c43a7eb7e4a637e26d`).
+
 
 ### WF-0104 — THE qsl-record PRE-PUSH HOOK REFUSES EVERY PUSH OF A NEW REF: ITS "FULL TREE" MODE IS EVERY REACHABLE OBJECT, AND THE RECORD'S FIRST COMMIT HOLDS THE NINE ARCHIVE BLOBS A RULING KEEPS
 
@@ -7269,6 +7275,8 @@ left unbuilt for a stated reason, not overlooked. None is a blocker.
 - **HOME.** The successor cutover lane (the one that retires the old root), or sooner on the operator's word. Until then the boundary above is the operating rule: no new-ref push of qsl-record is attempted, and a refusal there is a result to bring to the operator, not a fix.
 - Cross-references: `WF-0101` / `WF-0102` / `WF-0103` (apparatus and method defects filed as WF entries, the convention this follows); `RULING_D1-2_record_pushed_20260903.md` R9 (the archive bar) and R11 (the needle baseline, whose shape this cure mirrors); `RULING_D1-3_freeze_20260903.md` R18 (the nine blobs stay); `WF-0087` (a record about a measurement hazard must survive being read by the instrument it describes -- this entry names no value and no archive is planted by it).
 - Source: NA-0778 `STOP_NA0778_001_20260903T200355Z.md` sec 9.3 and `E-1` (sha256 `5a9b7ebc6b6ae4fce588bcc960269d3e0a662567dfd02b570a052bf1ed40e908`); `RULING_NA0778_001_20260903.md` R5.
+- ⛳ **DATAPOINT (NA-0778's E-38, `RULING_NA0778_017` R116; recorded 2026-09-05 by NA-0779, `D-1422`; nothing cured).** In the hook proof's throwaway clone, arm D (a zip-signature blob under a `.txt` name, pushed to a LOCAL target whose `main` was by then proof B's commit) was refused as expected -- and the refusal ALSO listed `operator/NA-0604/na0604_laptop_readiness_packet_...tar.gz [gzip, 4988 B]`, an archive in the record's HISTORY (the first commit; this entry's nine) and in no tree the proof touched: `rev-list --objects <new> --not <old>` surfaced a historical blob for that pair of refs. The delta computation can surface historical blobs when the target ref has moved sideways. The real cadence push's delta (tip A against the remote's `d6f3b5ac`) ran clean by hand and through the hook, so the cadence push is unaffected, as this entry says. A datapoint for the fix's design: the archive baseline by blob sha would have named that blob as KEPT rather than refused the push. `HOOK_PROOF_planted_token_20260905.txt` (sha256 `9df19f99b0323027a8cb016082b1d31a492c7001d3cd0dc2c77e575d7faebdd5`); `STOP_NA0778_FINAL_20260905T044819Z.md` E-38 (sha256 `196b725b83ecc996716afa3c53098eaf158a406f069691cdf1f7d0719b8b16d5`).
+
 
 ### ENG-0287 — THE "RECEIVED" GROUP HAS NO REACHABLE DATA SOURCE, AND THE RECORD THAT WOULD FEED IT CARRIES NEITHER A NAME NOR A TIME — TWO GAPS, NOT ONE
 
@@ -7440,4 +7448,365 @@ left unbuilt for a stated reason, not overlooked. None is a blocker.
 - Cross-references: `WF-0103` (the instrument row; its fifth datapoint is this lane's CI race); `WF-0087`; `SR-15`.
 - Evidence: `STOP_NA0778_005_20260905T040142Z.md` sha256 `19afb0aaa9bd0c7a19980464f917cc44452eabd590c2763f1495e67ea71499dc` (56305 B); `RULING_NA0778_016_20260905.md` sha256 `2763afe2f781fd214e914a53ddd510a8a374b644ef552bc0136a60ebec510ef8` (6182 B).
 - Source: NA-0778 `STOP_NA0778_005` sec 4 (R97), `RULING_NA0778_016` R108.
+
+
+### ENG-0300 — CROSSING DH BOUNDARIES WEDGE THE SESSION (THE AUDITS' F-01) -- P1 LATENT: THE ORDINARY SHAPE OF A CONVERSATION, REPRODUCED IN THE HARNESS, READS AS TAMPERING
+
+- Type: defect (engine; the suite2 ratchet state machine). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 A, finding `F-01`); nothing repaired, re-audited or re-run here.
+- Severity: **P1 LATENT -- no shipped surface drives the path with two humans today; live at the messaging slice** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** When both peers cross a DH ratchet boundary before pulling -- both reply before pulling, or both silent past the fallback timer then both send -- the session wedges and the failure presents as `HDR_AUTH_FAIL`. The mock-primitive harness reproduced it and its control (sequential boundaries) delivered. Why P1: this program's P1 vocabulary is "two real users ... and nothing arrives"; the word LATENT keeps the open-P1 board honest today.
+- **HOME.** RATCHET lane A (`TRIAGE` phase 3): linearise the trigger -- mint a key only in answer to a new peer key; keep one previous receive epoch; consume pn -- with DOC-CAN-003 s8.5.2/s8.5.3 amended; gated by R-1's two-party interleaving simulator, RED on main first, green after (`D-1422` DV-6).
+- **THE LINES.** `qsl/qsl-client/qsc/src/lib.rs` `qsp_should_ratchet` :1776, the fallback-by-count test at :1791 against `QSP_DH_FALLBACK_N` (imported at :176-:177 from the refimpl beside `QSP_DH_FALLBACK_T_SECS`); `pending_send_ratchet = true` on any received message at :2307 and :2426 -- re-measured at `07612065`, equal to TRIAGE's cites. The values TRIAGE gives (N = 4, T = 900 s) are its measurement; this seat did not re-read the constants' definitions.
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED TO THE LINE [M] by the Director at `f32a4c20` / `0b87209b` / `f201bb3a`; re-measured at `07612065` / `b4ec4693` / `f201bb3a` by this seat as THE LINES states; [X] reproduced by the harness (experiment A) -- the [X] result is the harness's under MOCK primitives; the confirming rerun with StdCrypto on the pinned toolchain is OWED and is the RATCHET lane's FIRST premise measurement -- NOT this lane's (kickoff act E(1))
+- Cross-references: `ENG-0301` (F-02, the same lane), `ENG-0302` (F-03, lane B); R-1 and R-4 recorded in `D-1422` DV-6; the ladder's session-upkeep rung; `WF-0085`.
+- Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B); `AUDIT_harness_exp.rs` sha256 `67313de62dbd826333fbb810007a4701b3d717791bd41880321ef9c02bc4cb3c` (14246 B); `AUDIT_harness_results.txt` sha256 `d17ac9198e2467faadcf6e75dab7b2e5f966f0d6c4b771f178aaba874cc34b60` (2500 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`); the state machine the harness ran: `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs` sha256 `d4c12526e754272e432a983e44e29708d1617e78c9199c7865dd3a2939dde524`, re-measured EQUAL at `07612065` by this seat.
+- Source: `TRIAGE_AND_PLAN_audits_2026-09-04.md` (sha256 `e05f9401d1272782bed6bd7c1c3b1e06dadc7c8d6c7026bb2c943818b429db25`) sec 0 and sec 1 A.
+
+### ENG-0301 — THE PQ RESEED LOSES IN-FLIGHT TRAFFIC (F-02) -- P1 LATENT: THE SENDER COMMITS ITS RECEIVE SCHEDULE AT ONCE, AND THE PREVIOUS-CHAIN LENGTH IS DECODED AND DISCARDED
+
+- Type: defect (engine; the suite2 ratchet state machine). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 A, finding `F-02`); nothing repaired, re-audited or re-run here.
+- Severity: **P1 LATENT** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** `send_pq_reseed` commits the SENDER's receive schedule at once, so frames already in flight under the previous schedule cannot be received; and the previous-chain length `pn` is decoded and thrown away, so the receiver cannot skip to them.
+- **HOME.** RATCHET lane A, with `ENG-0300`: keep one previous receive epoch; consume pn.
+- **THE LINES.** `tools/refimpl/quantumshield_refimpl/src/suite2/ratchet.rs` `send_pq_reseed` :1712 (TRIAGE: the sender's receive schedule committed at :1830 `ck_pq_recv` and :1831 `hk_r`); `let _ = pn;` at :757 -- the function line and the discard re-measured at `07612065` (the file's sha256 `d4c12526e754272e432a983e44e29708d1617e78c9199c7865dd3a2939dde524`, equal to the harness's claim); the :1830/:1831 coordinates are TRIAGE's.
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED TO THE LINE [M] by the Director at `f32a4c20` / `0b87209b` / `f201bb3a`; re-measured at `07612065` / `b4ec4693` / `f201bb3a` by this seat as THE LINES states; [X] -- the [X] result is the harness's under MOCK primitives; the confirming rerun with StdCrypto on the pinned toolchain is OWED and is the RATCHET lane's FIRST premise measurement -- NOT this lane's (kickoff act E(1))
+- Cross-references: `ENG-0300`; `ENG-0302`; R-1.
+- Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B); `AUDIT_harness_exp.rs` sha256 `67313de62dbd826333fbb810007a4701b3d717791bd41880321ef9c02bc4cb3c` (14246 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 0 and sec 1 A.
+
+### ENG-0302 — OUT-OF-ORDER REACH COLLAPSES AT nr >= 95 (F-03) -- P1 LATENT: THE PROBE ORDER SPENDS ITS HEADER BUDGET BACKWARD BEFORE IT LOOKS FORWARD
+
+- Type: defect (engine; the suite2 ratchet state machine). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 A, finding `F-03`); nothing repaired, re-audited or re-run here.
+- Severity: **P1 LATENT** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** `MAX_HEADER_ATTEMPTS` is 100 and `MAX_SKIP` 1000; `recv_nonboundary_ooo` probes seeds, then skipped keys, then a BACKWARD window, then the forward window, so past nr about 95 the budget is spent before the forward probe and legitimate out-of-order frames are refused.
+- **HOME.** RATCHET lane B: probe forward before backward; cap the backward probe; the gate: experiment A's table >= 90 for every nr.
+- **THE LINES.** `ratchet.rs` `MAX_HEADER_ATTEMPTS: usize = 100` :10, `MAX_SKIP: u32 = 1000` :11, the attempts cap consumed at :384 and :415; `recv_nonboundary_ooo` :317 -- re-measured at `07612065`; the probe-order comments TRIAGE cites ("its :142 and :154") are coordinates inside the function as TRIAGE gives them.
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED TO THE LINE [M] by the Director at `f32a4c20` / `0b87209b` / `f201bb3a`; re-measured at `07612065` / `b4ec4693` / `f201bb3a` by this seat as THE LINES states; [X] -- the [X] result is the harness's under MOCK primitives; the confirming rerun with StdCrypto on the pinned toolchain is OWED and is the RATCHET lane's FIRST premise measurement -- NOT this lane's (kickoff act E(1))
+- Cross-references: `ENG-0300`; `ENG-0301`; R-1.
+- Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B); `AUDIT_harness_exp.rs` sha256 `67313de62dbd826333fbb810007a4701b3d717791bd41880321ef9c02bc4cb3c` (14246 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 0 and sec 1 A.
+
+### ENG-0303 — THE ROUTE TOKEN IS THE ADDRESS AND THE READ/ACK CAPABILITY (S-01) -- P1: ANY CONTACT YOU EVER ACCEPTED CAN SILENTLY DELETE OR DELAY EVERYTHING ANYONE ELSE SENDS YOU
+
+- Type: defect (the relay's capability model; qsl-server, with qsc's transport/contacts/invite and the desktop pin at the split). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 B, finding `S-01`); nothing repaired, re-audited or re-run here.
+- Severity: **P1 -- exploitable with no cryptographic break and no relay access; product-defining for the target users** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** The relay resolves ONE header for push, pull and ack, all through `route_key_for`, and the store leases and deletes by `route_key` alone -- so whoever holds a mailbox's route token (every contact who ever received it inside an invitation) can pull and ack, i.e. delete or delay, everything addressed to that mailbox.
+- **HOME.** RELAY SPLIT lane (`TRIAGE` phase 4), door (a) as R-3 recommends and `D-1422` DV-6 records: a read secret in the vault, the address derived by one hash, pull/ack present the preimage. It changes the invite CODE's contents, so it lands before real invitations exist in the wild, before public release, and before `WF-0086`'s remote gate is rebuilt against it; S-03, S-04, S-05, S-06 ride as XS items.
+- **THE LINES.** qsl-server `src/lib.rs` `route_key_for` :950 (the definition), resolved once for push :1051, pull :1193 and ack :1246; the store's pull selects by `route_key` with `leased_until IS NULL OR leased_until <= ?2` (`src/store.rs` :722) -- re-measured at qsl-server main `f201bb3a`, equal to TRIAGE.
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED TO THE LINE [M] by the Director at `f32a4c20` / `0b87209b` / `f201bb3a`; re-measured at `07612065` / `b4ec4693` / `f201bb3a` by this seat as THE LINES states
+- Cross-references: `ENG-0304` (S-03), `ENG-0305` (S-04), `ENG-0306` (S-02), `ENG-0307` (S-06), `ENG-0308` (S-05); `WF-0086`; `ENG-0142`'s family.
+- Evidence: `AUDIT_qsl-server_desktop_interaction_2026-09-03.md` sha256 `ea256c9990f29b18db10dd2111c86d41ec388f0cb0373a53426a47370352ae03` (18705 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 0 and sec 1 B.
+
+### ENG-0304 — AN ABSENT OR EMPTY RELAY BEARER MEANS AN OPEN RELAY (S-03) -- P2 (XS): THE TOKEN IS READ AS AN OPTION AND STARTUP NEVER FAILS
+
+- Type: defect (relay hygiene; qsl-server). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 B, finding `S-03`); nothing repaired, re-audited or re-run here.
+- Severity: **P2 (XS)** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** The relay reads its bearer token from the environment as an `Option`, filters an empty value to `None`, and a comment records the choice to "never fail startup" -- so a relay deployed without the variable, or with it empty, serves everyone.
+- **HOME.** RELAY SPLIT lane, an XS rider on `ENG-0303`.
+- **THE LINES.** qsl-server `src/lib.rs` :363, :375, :401 and `src/main.rs` :280 -- each `std::env::var("RELAY_TOKEN").ok().filter(|v| !v.is_empty())`; the comment at `src/lib.rs` :313 ("never fail startup, matching the RELAY_TOKEN env-only precedent") -- re-measured at `f201bb3a`, equal to TRIAGE.
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED TO THE LINE [M] by the Director at `f32a4c20` / `0b87209b` / `f201bb3a`; re-measured at `07612065` / `b4ec4693` / `f201bb3a` by this seat as THE LINES states
+- Cross-references: `ENG-0303`; `ENG-0321` (the environment as a control channel on the client side).
+- Evidence: `AUDIT_qsl-server_desktop_interaction_2026-09-03.md` sha256 `ea256c9990f29b18db10dd2111c86d41ec388f0cb0373a53426a47370352ae03` (18705 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 0 and sec 1 B.
+
+### ENG-0305 — UNBOUNDED HEAD-OF-QUEUE REDELIVERY (S-04) -- P2: NO DELIVERY COUNTER, NO POISON QUEUE; A FRAME NOBODY ACKS IS RE-LEASED FOREVER
+
+- Type: defect (relay semantics; qsl-server). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 B, finding `S-04`); nothing repaired, re-audited or re-run here.
+- Severity: **P2** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** The store keeps no delivery count and has no poison path: pull orders by seq among rows whose lease is null or expired, so an unconsumable frame at the head is re-leased every lease period until retention retires it, and everything behind it waits (`AMENDMENT_2`'s saturation note is this finding seen from the client).
+- **HOME.** RELAY SPLIT lane (XS rider); the deployed retention TTL and `PULL_LEASE_SECS` remain OWED operator measurements (I-03; the ladder design sec 8(b)).
+- **THE LINES.** qsl-server `src/store.rs`: 0 matches for `deliveries`, `delivery_count` or `redeliver`; the only "poison" is `ERR_LOCK_POISON` (:353, :364); the pull's `WHERE route_key = ?1 AND (leased_until IS NULL OR leased_until <= ?2)` :722; `PULL_LEASE_SECS_DEFAULT: usize = 60` :7 (applied at :48) -- re-measured at `f201bb3a`, equal to TRIAGE.
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED TO THE LINE [M] by the Director at `f32a4c20` / `0b87209b` / `f201bb3a`; re-measured at `07612065` / `b4ec4693` / `f201bb3a` by this seat as THE LINES states
+- Cross-references: `ENG-0303`; `AMENDMENT_2_delivery_ladder_20260827.md` (saturation); `ENG-0142`; `WF-0086`.
+- Evidence: `AUDIT_qsl-server_desktop_interaction_2026-09-03.md` sha256 `ea256c9990f29b18db10dd2111c86d41ec388f0cb0373a53426a47370352ae03` (18705 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 0 and sec 1 B.
+
+### ENG-0306 — ONE BEARER, GLOBAL CAPS, ROUTES MINTED BY PUSH (S-02) -- P2: A DESIGN DECISION (PER-USER BEARERS) OWED BEFORE ANY MULTI-USER RELAY
+
+- Type: design finding (relay; qsl-server). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 B, finding `S-02`); nothing repaired, re-audited or re-run here.
+- Severity: **P2** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** One bearer token admits every client; the caps are global rather than per user; a route comes into existence on the first push to it. A multi-user relay needs per-user bearers and per-user caps before it exists.
+- **HOME.** RELAY SPLIT lane, as a design decision (per-user bearers), before any multi-user relay.
+- **THE LINES.** owed from the report (not on this box, E-1); `TRIAGE_AND_PLAN` sec 1 gives the id, the severity and the home only
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED BY READ, not re-executed, by the Director; nothing read contradicted it
+- Cross-references: `ENG-0303`; `ENG-0304`.
+- Evidence: `AUDIT_qsl-server_desktop_interaction_2026-09-03.md` sha256 `ea256c9990f29b18db10dd2111c86d41ec388f0cb0373a53426a47370352ae03` (18705 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 1 B.
+
+### ENG-0307 — NO SERVER-SIDE SHAPE VALIDATION (S-06) -- P3 (XS)
+
+- Type: hygiene (relay; qsl-server). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 B, finding `S-06`); nothing repaired, re-audited or re-run here.
+- Severity: **P3 (XS)** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** The relay accepts bodies without validating their shape; the client is the only validator.
+- **HOME.** RELAY SPLIT lane (XS rider).
+- **THE LINES.** owed from the report (not on this box, E-1); `TRIAGE_AND_PLAN` sec 1 gives the id, the severity and the home only
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED BY READ, not re-executed, by the Director; nothing read contradicted it
+- Cross-references: `ENG-0303`.
+- Evidence: `AUDIT_qsl-server_desktop_interaction_2026-09-03.md` sha256 `ea256c9990f29b18db10dd2111c86d41ec388f0cb0373a53426a47370352ae03` (18705 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 1 B.
+
+### ENG-0308 — A CLIENT-CONTROLLED `x-msg-id` IS TRUSTED AND LOGGED (S-05) -- P3 (XS)
+
+- Type: hygiene (relay; qsl-server). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 B, finding `S-05`); nothing repaired, re-audited or re-run here.
+- Severity: **P3 (XS)** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** The relay reads the client-supplied `x-msg-id` header and logs accepted ids as non-secret metadata; a client chooses what the relay's logs say.
+- **HOME.** RELAY SPLIT lane (XS rider).
+- **THE LINES.** qsl-server `src/lib.rs` :1046 (`.get("x-msg-id")`); `docs/server/DOC-SRV-003_Relay_Inbox_Contract_v1.0.0_DRAFT.md` :54 records the logging -- measured at `f201bb3a`; the report's own coordinates owed.
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED BY READ, not re-executed, by the Director; nothing read contradicted it
+- Cross-references: `ENG-0303`; `ENG-0310` (S-08).
+- Evidence: `AUDIT_qsl-server_desktop_interaction_2026-09-03.md` sha256 `ea256c9990f29b18db10dd2111c86d41ec388f0cb0373a53426a47370352ae03` (18705 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 1 B.
+
+### ENG-0309 — PACKAGING: `encode gzip` IN THE CADDY EXAMPLE AND THE UNIT'S `ReadWritePaths` (S-07) -- P3 (XS), HYGIENE (OPS)
+
+- Type: hygiene (deployment; qsl-server packaging). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 B, finding `S-07`); nothing repaired, re-audited or re-run here.
+- Severity: **P3 (XS)** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** The Caddy example compresses responses (`encode gzip`) and the systemd unit's `ReadWritePaths` names paths the hardening plan says should match the runtime state path.
+- **HOME.** HYGIENE bundle (ops); the running Caddy's configuration is NOT verifiable from the chair (`TRIAGE` sec 0).
+- **THE LINES.** qsl-server `packaging/caddy/Caddyfile.example` :5 `encode gzip`; `packaging/systemd/qsl-server.service` :18 `ReadWritePaths=/opt/qsl-server /etc/qsl-server`; `docs/server/DOC-SRV-002_Systemd_Hardening_Plan_v1.0.0_DRAFT.md` :20 and :31 -- measured at `f201bb3a`.
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED BY READ, not re-executed, by the Director; nothing read contradicted it
+- Cross-references: `ENG-0310`.
+- Evidence: `AUDIT_qsl-server_desktop_interaction_2026-09-03.md` sha256 `ea256c9990f29b18db10dd2111c86d41ec388f0cb0373a53426a47370352ae03` (18705 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 1 B.
+
+### ENG-0310 — THE METADATA RETENTION BOUND IS UNSTATED (S-08) -- P4, HYGIENE (DOCS)
+
+- Type: hygiene (docs; qsl-server). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 B, finding `S-08`); nothing repaired, re-audited or re-run here.
+- Severity: **P4** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** No document states how long the relay keeps message metadata (ids, timestamps, sizes) after delivery or retirement.
+- **HOME.** HYGIENE bundle (docs); beside `ENG-0323` (I-01) under METADATA.
+- **THE LINES.** owed from the report (not on this box, E-1); `TRIAGE_AND_PLAN` sec 1 gives the id, the severity and the home only
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED BY READ, not re-executed, by the Director; nothing read contradicted it
+- Cross-references: `ENG-0308`; `ENG-0323`; `WF-0085`.
+- Evidence: `AUDIT_qsl-server_desktop_interaction_2026-09-03.md` sha256 `ea256c9990f29b18db10dd2111c86d41ec388f0cb0373a53426a47370352ae03` (18705 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 1 B and F.
+
+### ENG-0311 — HANDSHAKE FORWARD SECRECY AGAINST A QUANTUM ADVERSARY RESTS ON X25519 ALONE (F-04) -- P2: AN EPHEMERAL ML-KEM IN A1 IS THE CURE, A WIRE CHANGE
+
+- Type: defect (engine; the handshake). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 C, finding `F-04`); nothing repaired, re-audited or re-run here.
+- Severity: **P2** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** The handshake's forward secrecy is carried by the X25519 ephemeral alone; a quantum adversary recording today's handshakes breaks it later. The cure is an ephemeral ML-KEM in A1 -- a wire change to A1/B1.
+- **HOME.** HANDSHAKE lane (`TRIAGE` phase 6), BEFORE any installed base exists; DOC-CAN-003 amended.
+- **THE LINES.** owed from the report (not on this box, E-1); `TRIAGE_AND_PLAN` sec 1 gives the id, the severity and the home only
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED BY READ, not re-executed, by the Director; nothing read contradicted it
+- Cross-references: `ENG-0312` (F-07), `ENG-0313` (F-05).
+- Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 1 C.
+
+### ENG-0312 — THE INVITE FLOW HARDCODES `LegacyCompat` (F-07) -- P3 (XS): `SuiteRequired` IS THE CURE
+
+- Type: defect (engine; the invite path). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 C, finding `F-07`); nothing repaired, re-audited or re-run here.
+- Severity: **P3 (XS)** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** The three shipped invite-path call sites pass `HandshakeSuiteMode::LegacyCompat`; the tree's own note names the same fact. NA-0775's DV-10 measured the consequence on another axis: the replay guard cannot fire under `LegacyCompat`.
+- **HOME.** HANDSHAKE lane, with `ENG-0311`.
+- **THE LINES.** `qsl/qsl-client/qsc/src/invite/mod.rs` `HandshakeSuiteMode::LegacyCompat` at :1126 and :1380 and the N6 note at :1552 ("`LegacyCompat` matches all three shipped invite-path call sites") -- re-measured at `07612065`.
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED BY READ, not re-executed, by the Director; nothing read contradicted it
+- Cross-references: `ENG-0311`; `D-1418` DV-10 (the replay guard under `LegacyCompat`; NA-0708's lane).
+- Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 1 C.
+
+### ENG-0313 — AUTHENTICATION IS PQ-ONLY (F-05) -- A DESIGN POSITION, RECORDED, NOT FIXED
+
+- Type: design position (engine; the handshake). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 C, finding `F-05`); nothing repaired, re-audited or re-run here.
+- Severity: **POSITION -- no severity; recorded so the claims document (R-5.1) can state it** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** The audit notes that authentication rests on the post-quantum signature alone; TRIAGE records this as a position, not a defect.
+- **HOME.** Recorded here; the HANDSHAKE lane carries it as a position; the claims document (R-5.1, `D-1422` DV-6) states it.
+- **THE LINES.** owed from the report (not on this box, E-1); `TRIAGE_AND_PLAN` sec 1 gives the id, the severity and the home only
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED BY READ, not re-executed, by the Director; nothing read contradicted it
+- Cross-references: `ENG-0311`; R-5.1.
+- Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 1 C.
+
+### ENG-0314 — THE INVITE-CODE DECODER HAS NO LENGTH CAP (D-15) -- P3 (XS): THE ENGINE HALF, AND A DESKTOP `maxlength` FOR THE CODE FIELD
+
+- Type: hygiene (engine + desktop; the invite path). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 C, finding `D-15`); nothing repaired, re-audited or re-run here.
+- Severity: **P3 (XS)** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** `decode_invite_code` decodes whatever it is handed without a length rule; the desktop's redeem-code field carries no `maxlength` while its other text inputs do.
+- **HOME.** HANDSHAKE lane (the engine cap) + DESKTOP HYGIENE (the `maxlength`).
+- **THE LINES.** `qsl/qsl-client/qsc/src/invite/mod.rs` `decode_invite_code` :430 (the function line re-measured at `07612065`; the absence of a length rule is TRIAGE's reading); desktop `ui/index.html` :746 the `redeem-code` textarea has no `maxlength` (the alias, settings and invite-label inputs do: :55, :292, :577) -- measured at `b4ec4693`.
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED BY READ, not re-executed, by the Director; nothing read contradicted it
+- Cross-references: `ENG-0295` (D-7, the label grammar's engine half); `ENG-0312`.
+- Evidence: `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1673f441b6a66d11c97c1ab840dd1cffe677908065d177dd96e50` (20677 B); `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 1 C.
+
+### ENG-0315 — THE PASSPHRASE STAYS RESIDENT, ARGON2 RUNS ON EVERY VAULT READ, NOTHING IS ZEROIZED (D-3) -- P2: A TICK THAT RUNS KDFs CANNOT RUN OFTEN
+
+- Type: defect (desktop + engine; the vault). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 D, finding `D-3`); nothing repaired, re-audited or re-run here.
+- Severity: **P2** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** The desktop keeps the passphrase resident and the vault re-derives the key on every read, so every tick pays a KDF; nothing is zeroized. Key-in-memory is a prerequisite for a responsive ladder, not only a hardening item.
+- **HOME.** VAULT lane (`TRIAGE` phase 5): key-not-passphrase in memory, `Zeroizing`, no `Debug` on secrets, dumpable off; THEN the KDF raise (`ENG-0317`).
+- **THE LINES.** owed from the report (not on this box, E-1); `TRIAGE_AND_PLAN` sec 1 gives the id, the severity and the home only. Informational, measured at `07612065`: the token `zeroize` occurs 38 times under `qsc/src` -- the finding is about the passphrase and the structs the reports name, not about the crate's absence.
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED BY READ, not re-executed, by the Director; nothing read contradicted it
+- Cross-references: `ENG-0316` (F-14), `ENG-0317` (F-09/D-4), `ENG-0318` (F-15).
+- Evidence: `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1673f441b6a66d11c97c1ab840dd1cffe677908065d177dd96e50` (20677 B); `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 1 D.
+
+### ENG-0316 — `Debug` DERIVED ON SECRET STRUCTS; NO ZEROIZE (F-14) -- P3
+
+- Type: hygiene (engine; the vault and protocol state). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 D, finding `F-14`); nothing repaired, re-audited or re-run here.
+- Severity: **P3** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** Secret-bearing structs derive `Debug`, so a log line or a panic can print them; they are not zeroized on drop.
+- **HOME.** VAULT lane, with `ENG-0315`.
+- **THE LINES.** a count, not the report's list: `derive(...Debug...)` occurs 6 times in `qsl/qsl-client/qsc/src/vault/mod.rs` and 6 in `protocol_state/mod.rs` at `07612065`; WHICH of them hold secrets is the report's claim, owed.
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED BY READ, not re-executed, by the Director; nothing read contradicted it
+- Cross-references: `ENG-0315`.
+- Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 1 D.
+
+### ENG-0317 — ARGON2 AT THE FLOOR, AND THE HEADER'S PARAMETERS IGNORED (F-09 / D-4) -- P2-P3: THE CONSTANTS THE DERIVE USES ARE THE ONLY ONES IT USES
+
+- Type: defect (engine; the vault's KDF). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 D, finding `F-09 / D-4`); nothing repaired, re-audited or re-run here.
+- Severity: **P2-P3** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** The KDF runs at the floor (m = 19456 KiB, t = 2, p = 1) and the derive uses those constants rather than the parameters recorded in the vault header, so a raise cannot be applied per vault.
+- **HOME.** VAULT lane, as a format-version bump AFTER key-not-passphrase, with a measured unlock time.
+- **THE LINES.** `qsl/qsl-client/qsc/src/vault/mod.rs` `KDF_M_KIB: u32 = 19456` :45, `KDF_T: u32 = 2` :46, `KDF_P: u32 = 1` :47; used at :521 (`Params::new`), :596-:598 and :667 -- re-measured at `07612065`, equal to TRIAGE.
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED TO THE LINE [M] by the Director at `f32a4c20` / `0b87209b` / `f201bb3a`; re-measured at `07612065` / `b4ec4693` / `f201bb3a` by this seat as THE LINES states
+- Cross-references: `ENG-0315`; `ENG-0318`.
+- Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B); `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1673f441b6a66d11c97c1ab840dd1cffe677908065d177dd96e50` (20677 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 0 and sec 1 D.
+
+### ENG-0318 — ONE STORE KEY, RANDOM 96-BIT NONCES (F-15) -- P4
+
+- Type: hygiene (engine; the vault). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 D, finding `F-15`); nothing repaired, re-audited or re-run here.
+- Severity: **P4** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** A single store key with random 96-bit nonces: the birthday bound on nonce reuse is the finding's subject.
+- **HOME.** VAULT lane.
+- **THE LINES.** owed from the report (not on this box, E-1); `TRIAGE_AND_PLAN` sec 1 gives the id, the severity and the home only
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED BY READ, not re-executed, by the Director; nothing read contradicted it
+- Cross-references: `ENG-0315`.
+- Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 1 D.
+
+### ENG-0319 — PROTECTION-STATE FILES ARE UNAUTHENTICATED (D-16) -- INFO, RECORDED
+
+- Type: observation (desktop; the vault's protection state). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 D, finding `D-16`); nothing repaired, re-audited or re-run here.
+- Severity: **INFO** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** The protection-state files carry no authenticator; recorded as information.
+- **HOME.** Recorded; the VAULT lane reads it.
+- **THE LINES.** owed from the report (not on this box, E-1); `TRIAGE_AND_PLAN` sec 1 gives the id, the severity and the home only
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED BY READ, not re-executed, by the Director; nothing read contradicted it
+- Cross-references: `ENG-0315`.
+- Evidence: `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1673f441b6a66d11c97c1ab840dd1cffe677908065d177dd96e50` (20677 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 1 D.
+
+### ENG-0320 — `env::set_var` ON A LIVE MULTITHREADED PROCESS (D-1) -- P2: SEVEN SITES, THREE OF THEM AFTER THREADS EXIST
+
+- Type: defect (desktop; the process environment). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 E, finding `D-1`); nothing repaired, re-audited or re-run here.
+- Severity: **P2** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** The desktop mutates its own process environment at seven sites, three after threads exist -- `std::env::set_var` is process-global and not thread-safe.
+- **HOME.** ENV lane (desktop): `EnvGuard` deleted; the wipe marker a file; the env scrubbed at bootstrap before threads. THE DEBUG LOG'S SWITCH MUST NOT JOIN THESE SITES (NA-0779's kickoff sec 1: no environment variable as the switch).
+- **THE LINES.** desktop `src-tauri/src/commands.rs` :887, :903, :904 (`EnvGuard`, the struct at :876, set at :849-:850), `src-tauri/src/lib.rs` :322 and :339 (the wipe marker), :448 (`QSC_CONFIG_DIR`), :457 (`QSC_MARK_FORMAT`) -- re-measured at `b4ec4693`, equal to TRIAGE.
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED TO THE LINE [M] by the Director at `f32a4c20` / `0b87209b` / `f201bb3a`; re-measured at `07612065` / `b4ec4693` / `f201bb3a` by this seat as THE LINES states
+- Cross-references: `ENG-0321` (D-2/F-06/F-18/G-01); NA-0779 (`D-1422`).
+- Evidence: `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1673f441b6a66d11c97c1ab840dd1cffe677908065d177dd96e50` (20677 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 0 and sec 1 E.
+
+### ENG-0321 — UNSAFE SEAMS REACHABLE IN RELEASE BINARIES, AND THE ENVIRONMENT OVERRIDES THE VAULT'S TOKEN AND CA INVISIBLY (D-2 / F-06 / F-18 / G-01) -- P2: THE ENVIRONMENT IS A CONTROL CHANNEL
+
+- Type: defect class (engine + desktop; the environment as a control channel). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 E, finding `D-2 / F-06 / F-18 / G-01`); nothing repaired, re-audited or re-run here.
+- Severity: **P2** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** The seed fallback is gated by environment variables with no `cfg` gate, so a release binary honours them; the relay token and CA are read from the environment BEFORE the vault, so an operator's shell overrides the vault invisibly; only the RNG seam is `cfg`-gated. ONE entry for the four audit ids TRIAGE consolidates.
+- **HOME.** ENV lane (both repos; `TRIAGE` phase 8): an explicit-parameter probe API in qsc; the seed/clock/passphrase seams `cfg`-gated as the RNG seam already is; `relay_token_show` reports the EFFECTIVE source; a short read on the retired `EnvGuard`.
+- **THE LINES.** `qsl/qsl-client/qsc/src/protocol_state/mod.rs` `allow_unsafe_seed_fallback_for_tests` :1017 (`env_bool("QSC_ALLOW_SEED_FALLBACK") && env_bool("QSC_UNSAFE_TEST_SEED_FALLBACK")`, no `cfg` gate; consumed at :173, :210, :220, :1000, :1047 and `main.rs` :52); the RNG seam's `cfg` token `qsc_rng_failure_test_seam` on 70 lines in 5 files under `qsc/src` (TRIAGE counted 45 SITES -- a different needle, both stated); `transport/mod.rs` `relay_auth_token` :2059 -> `relay_auth_token_from_env` :2069 reads `QSC_RELAY_TOKEN` at :2070 (then the legacy name) BEFORE the account secret (:2074) and the token file (:2082) -- re-measured at `07612065`.
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED TO THE LINE [M] by the Director at `f32a4c20` / `0b87209b` / `f201bb3a`; re-measured at `07612065` / `b4ec4693` / `f201bb3a` by this seat as THE LINES states (F-06 and D-2a); F-18 and G-01 by read
+- Cross-references: `ENG-0320` (D-1); `ENG-0304` (S-03, the relay's own env token); `ENG-0197`/`ENG-0256` (the seam that could not run); NA-0779's no-env-switch constraint.
+- Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B); `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1673f441b6a66d11c97c1ab840dd1cffe677908065d177dd96e50` (20677 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 0 and sec 1 E.
+
+### ENG-0322 — SCKA CONTROL FRAMES ARE SIZE-DISTINGUISHABLE (F-08) -- P3, CONFIRMED BY THE HARNESS'S SIZE TABLE
+
+- Type: metadata defect (engine; frame sizes). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 F, finding `F-08`); nothing repaired, re-audited or re-run here.
+- Severity: **P3** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** The SCKA control frames have sizes distinct from message frames, so a network observer classifies them -- the fingerprint class the ladder's M2 bucket set exists to close.
+- **HOME.** METADATA lane: pad to the envelope ladder's next rung; `WF-0085`'s subject; the ladder design's M2 bucket set from the captured wire baseline.
+- **THE LINES.** owed from the report (not on this box, E-1); `TRIAGE_AND_PLAN` sec 1 gives the id, the severity and the home only; the [X] half is the harness's size table
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED BY READ, not re-executed, by the Director; nothing read contradicted it for the reading; [X] for the size table under mock primitives
+- Cross-references: `ENG-0323` (I-01); `WF-0085`; `DESIGN_delivery_ladder_metronome_v2_20260825.md` M2.
+- Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B); `AUDIT_harness_results.txt` sha256 `d17ac9198e2467faadcf6e75dab7b2e5f966f0d6c4b771f178aaba874cc34b60` (2500 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 1 F.
+
+### ENG-0323 — THE PULL BODY SIZE LEAKS (I-01 / F-12) -- P3
+
+- Type: metadata finding (relay + client; the pull's body). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 F, finding `I-01 / F-12`); nothing repaired, re-audited or re-run here.
+- Severity: **P3** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** The size of a pull's body tells a network observer how much was waiting; ONE entry for the interaction report's I-01 and the protocol report's F-12.
+- **HOME.** RELAY SPLIT lane.
+- **THE LINES.** owed from the report (not on this box, E-1); `TRIAGE_AND_PLAN` sec 1 gives the id, the severity and the home only
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED BY READ, not re-executed, by the Director; nothing read contradicted it
+- Cross-references: `ENG-0322` (F-08); `ENG-0310` (S-08).
+- Evidence: `AUDIT_qsl-server_desktop_interaction_2026-09-03.md` sha256 `ea256c9990f29b18db10dd2111c86d41ec388f0cb0373a53426a47370352ae03` (18705 B); `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 1 F.
+
+### ENG-0324 — THE AUTO-LOCK IS JS-ONLY (D-5) -- P3: THE TIMER LIVES IN THE WEBVIEW'S `setInterval` AND NOTHING RUST-SIDE LOCKS ON ITS OWN
+
+- Type: defect (desktop; the auto-lock). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 G, finding `D-5`); nothing repaired, re-audited or re-run here.
+- Severity: **P3** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** The idle timer and the decision to lock live entirely in `ui/main.js`: a stalled or hostile webview never locks; the Rust side stores the minutes and provides `lock_now` but runs no timer of its own. With `ENG-0293` (the lock order) this is the DIAGNOSTICS lane's pair; the debug log's "detailed" level records every auto-lock decision (kickoff sec 1).
+- **HOME.** The DIAGNOSTICS lane (with `ENG-0293`) and the DESKTOP HYGIENE bundle.
+- **THE LINES.** desktop `ui/main.js` :1941-:1951 (`setInterval`, the idle test, `invoke("lock_now")` at :1950, then `showUnlockScreen`); `src-tauri/src/settings.rs` :11 `AUTOLOCK_DEFAULT_MINUTES = 60`; `src-tauri/src/commands.rs` :376-:382 store the minutes only; no Rust-side timer -- measured at `b4ec4693`.
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED BY READ, not re-executed, by the Director; nothing read contradicted it
+- Cross-references: `ENG-0293`; `ENG-0298` family (desktop); NA-0779 (`D-1422`).
+- Evidence: `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1673f441b6a66d11c97c1ab840dd1cffe677908065d177dd96e50` (20677 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 1 G.
+
+### ENG-0325 — THE qsc PIN BUMP IS A PRE-MERGE CHECKLIST LINE FOR EVERY qsl-protocol PR THAT TOUCHES qsc (G-02) -- P4: THE DESKTOP RIDES `63ece4fe`, 26 COMMITS BEHIND PROTOCOL MAIN
+
+- Type: workflow hygiene (desktop; the engine pin). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 G, finding `G-02`); nothing repaired, re-audited or re-run here.
+- Severity: **P4** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** The desktop pins qsc by commit and nothing reminds a protocol PR to bump it; at this edit the pin is 26 commits behind protocol main. NA-0779's L3 bumps it (its kickoff sec 3).
+- **HOME.** The checklist line (this entry), consumed by every qsl-protocol PR touching qsc; NA-0779's desktop half performs the next bump.
+- **THE LINES.** desktop `src-tauri/Cargo.toml` :23 `rev = "63ece4fe25eeaa39b03c3eb1f234d50bca31d0f8"` (2026-08-30); `git rev-list --count 63ece4fe..07612065` = 26 at this edit -- measured at `b4ec4693` / `07612065`.
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED BY READ, not re-executed, by the Director; nothing read contradicted it
+- Cross-references: `D-1414` L3 (the pin moves with the facade); NA-0779 (`D-1422`) L3.
+- Evidence: `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1673f441b6a66d11c97c1ab840dd1cffe677908065d177dd96e50` (20677 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 1 G.
+
+### ENG-0326 — FIVE DESKTOP SMALL ITEMS OF THE 2026-09-03 DESKTOP AUDIT (D-6, D-8, D-9, D-13, D-14) -- P3/P4, THEIR TEXT OWED FROM A REPORT NOT ON THIS BOX
+
+- Type: filing whose substance is owed (desktop). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 G, finding `D-6 / D-8 / D-9 / D-13 / D-14`); nothing repaired, re-audited or re-run here.
+- Severity: **P3/P4 (the band `TRIAGE` sec 1 gives)** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** `TRIAGE` sec 1 G lists these five with a severity band, a verification state (READ) and a home, and nothing else; the desktop report that states them is NOT on this box (E-1 of `STOP_NA0779_001`). ONE entry for the five rather than five hollow ids: when the report is banked under `state/operator/audits/`, each item is filed under its own id in the next records act and this entry cross-references them.
+- **HOME.** DESKTOP HYGIENE bundle and the DIAGNOSTICS lane, as `TRIAGE` sec 1 G places them.
+- **THE LINES.** owed from the report (not on this box, E-1); `TRIAGE_AND_PLAN` sec 1 gives the id, the severity and the home only
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED BY READ, not re-executed, by the Director; nothing read contradicted it
+- Cross-references: `ENG-0324` (D-5), `ENG-0325` (G-02).
+- Evidence: `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1673f441b6a66d11c97c1ab840dd1cffe677908065d177dd96e50` (20677 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 1 G.
+
+### ENG-0327 — ACTIONS PINNED TO MUTABLE TAGS AND NO `permissions` BLOCK IN THE DESKTOP'S `ci.yml` (D-10) -- P3: THE OPERATOR'S `.github` ACT
+
+- Type: supply-chain hygiene (desktop CI; `.github/**`, the operator's). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 H, finding `D-10`); nothing repaired, re-audited or re-run here.
+- Severity: **P3** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** Every action in the desktop's `ci.yml` is pinned to a mutable tag or branch (`@master` six times, `@v5`, `@v4`, `@stable`) and the workflow declares no `permissions` block. It corrects a choice the Director made this week (`@master` for the toolchain action, `D-1421` DV-4(a)). No seat writes `.github/**`.
+- **HOME.** The OPERATOR's `.github` act (drafted as bytes by a desktop seat if he orders it); the HYGIENE bundle.
+- **THE LINES.** desktop `.github/workflows/ci.yml` at `b4ec4693`: `dtolnay/rust-toolchain@master` x6 (:30, :121, :182 among them), `actions/checkout@v5`, `actions/upload-artifact@v4` :216, `@stable` :242; `permissions:` blocks 0. Control: the protocol's `ci.yml` has 1 `permissions:` block and its workflows use `@master` in 0 files -- measured at `07612065`.
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED BY READ, not re-executed, by the Director; nothing read contradicted it
+- Cross-references: `ENG-0328` (F-10/F-11/F-17/D-11, R-7).
+- Evidence: `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1673f441b6a66d11c97c1ab840dd1cffe677908065d177dd96e50` (20677 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 1 H.
+
+### ENG-0328 — SUPPLY-CHAIN AND CI ITEMS OF THE AUDITS (F-10, F-11, F-17, D-11) AND THE `cargo audit` JOB (R-7) -- P3/P4, HYGIENE; THE ITEMS' TEXT OWED FROM REPORTS NOT ON THIS BOX; `cargo audit` ON THE FOUR LOCKFILES OWED
+
+- Type: filing whose substance is owed (supply chain and CI; protocol + desktop). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 H, finding `F-10 / F-11 / F-17 / D-11`); nothing repaired, re-audited or re-run here.
+- Severity: **P3/P4 (the band `TRIAGE` sec 1 gives)** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** `TRIAGE` sec 1 H lists the four with a severity band and a home and states R-7's `cargo audit` job as the cure shape; the reports are NOT on this box (E-1); `cargo audit` on the four real lockfiles is OWED (`TRIAGE` sec 0's boundary) and is NOT run by this lane. ONE entry for the four; each is filed under its own id when the reports are banked. Informational, measured at `07612065`: the protocol `Cargo.lock` holds 2 git-sourced dependencies.
+- **HOME.** HYGIENE bundle; R-7's `cargo audit` job is the operator's `.github` act.
+- **THE LINES.** owed from the report (not on this box, E-1); `TRIAGE_AND_PLAN` sec 1 gives the id, the severity and the home only
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED BY READ, not re-executed, by the Director; nothing read contradicted it
+- Cross-references: `ENG-0327` (D-10).
+- Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B); `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1673f441b6a66d11c97c1ab840dd1cffe677908065d177dd96e50` (20677 B); `RECOMMENDATIONS_qsl_program_2026-09-04.md` sha256 `fbee4e3cb49ba04e1cb13af3e7ce869059d039dc5a5137404b1aa77715f0b85c` (13159 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 1 H.
+
+### ENG-0329 — THE RELAY HTTP CLIENT SETS NO REDIRECT POLICY (F-16) -- CONFIRMED TO THE LINE, NOT GRADED BY `TRIAGE` SEC 1; PROPOSED P3, HYGIENE BESIDE `ENG-0297`
+
+- Type: hygiene (engine; the relay client). Status: open -- filed 2026-09-05 by NA-0779 (`D-1422`) as the AUDIT LANDING, FILINGS ONLY (its kickoff sec 2 act E(1); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sec 1 (sec 0 only), finding `F-16`); nothing repaired, re-audited or re-run here.
+- Severity: **P3, PROPOSED BY THE SEAT -- `TRIAGE` sec 1 does not grade F-16 (it appears only in sec 0's confirmations and as the neighbour of `ENG-0297`'s home); the operator ratifies or re-grades by merging** -- PROPOSED by the Director in `TRIAGE_AND_PLAN` sec 1 and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence; `TRIAGE` sec 4 item 2).
+- **THE FINDING.** `relay_http_client()` builds the blocking client without a redirect policy, so the crate's default governs what happens on a redirect. What the default DOES on a cross-host redirect is NOT measured here and not claimed.
+- **HOME.** The engine's hygiene bundle, beside `ENG-0297` (the timeout the crate default supplies and no line names).
+- **THE LINES.** `qsl/qsl-client/qsc/src/transport/mod.rs` `relay_http_client()` :2183; `redirect(` 0 matches in the file -- re-measured at `07612065`, equal to TRIAGE.
+- **VERIFICATION STATE (`TRIAGE` sec 0).** CONFIRMED TO THE LINE [M] by the Director at `f32a4c20` / `0b87209b` / `f201bb3a`; re-measured at `07612065` / `b4ec4693` / `f201bb3a` by this seat as THE LINES states
+- Cross-references: `ENG-0297`.
+- Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
+- Source: `TRIAGE_AND_PLAN` sec 0 (F-16) and sec 1 (the home of `ENG-0297`).
 

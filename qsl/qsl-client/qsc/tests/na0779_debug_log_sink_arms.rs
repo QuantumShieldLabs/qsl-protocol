@@ -166,10 +166,14 @@ fn t2_level_membership_and_the_never_names() {
     );
     assert_eq!(
         LEVEL_EVENTS.len(),
-        105,
-        "104 census names + the one constant name (C2)"
+        117,
+        "104 census names + the one constant name (C2) + 12 admitted wrapper names (RBANK A1)"
     );
-    assert_eq!(LEVEL_DETAILED_ONLY.len(), 60);
+    assert_eq!(
+        LEVEL_DETAILED_ONLY.len(),
+        66,
+        "60 + 6 admitted wrapper names (RBANK A1)"
+    );
     let both: Vec<&&str> = LEVEL_EVENTS
         .iter()
         .filter(|n| LEVEL_DETAILED_ONLY.contains(n))
@@ -285,78 +289,129 @@ fn t5_the_line_every_consumer_shares() {
     assert_eq!(utc_rfc3339_ms(951_868_800_000), "2000-03-01T00:00:00.000Z");
 }
 
-/// THE CENSUS'S BLIND SPOT, PINNED (STOP 003 E-1). STOP 002's census parsed `emit_marker(...)` call sites and
-/// excluded the two thin wrappers `print_marker` / `qsc_mark` (output/mod.rs :170 / :127) as "helper re-entries"
-/// without following them to their callers. Those callers emit 19 literal names at 31 sites; 18 of them are in
-/// NO level list (banked: CENSUS_NA0779_wrapper_sites.txt). Under the blessed tables an unlisted NAME never
-/// enters, so the gap is FAIL-CLOSED: this arm proves it through the real wrappers with a sink installed, and
-/// the one wrapper-emitted name that IS listed (`vault_unlock`, vault/mod.rs :821) is the positive control. When
-/// the operator rules the 18 in, the regenerated tables change this arm's count with them.
-const WRAPPER_ONLY_NAMES: [&str; 18] = [
-    "ack_plan",
+/// THE CENSUS'S BLIND SPOT, ADMITTED (STOP 003 E-1 -> RULING 003 R2; the operator's word in
+/// RBANK_wrapper_names_admitted_20260905.md A1). STOP 002's census parsed `emit_marker(...)` call sites and
+/// excluded the two thin wrappers `print_marker` / `qsc_mark` (output/mod.rs) without following them to their 31
+/// callers, so 18 engine names were in no level list and fell closed (the first form of this arm: 0 events).
+/// The census was then EXTENDED with the 31 wrapper sites and the tables regenerated: the 18 names now enter at
+/// the levels the operator admitted, and their VALUE keys (`remedy`, `checked_dir`, `bucket_size`, `bundle_len`,
+/// `payload_count` -- the last three kept VALUE by A1) still never do. This arm proves both through the REAL
+/// wrappers with a sink installed; `vault_unlock` through `print_marker` is the control that also shows the
+/// vocabulary member `unlocked`, written only at the wrapper site, now rendering as itself.
+const WRAPPER_NAMES_EVENTS: [&str; 12] = [
     "config_get",
     "config_set",
     "config_set_refused",
     "doctor",
-    "envelope_plan",
     "history_limit",
     "queue_limit",
     "retry_bound",
-    "send_attempt",
-    "send_commit",
-    "send_prepare",
-    "send_retry",
     "status",
     "timeout_ok",
     "util_sanitize",
     "vault_init",
     "vault_status",
 ];
+const WRAPPER_NAMES_DETAILED: [&str; 6] = [
+    "send_attempt",
+    "send_prepare",
+    "send_commit",
+    "send_retry",
+    "envelope_plan",
+    "ack_plan",
+];
 
 #[test]
-fn t6_wrapper_emitted_names_are_fail_closed_until_ruled() {
+fn t6_wrapper_emitted_names_enter_at_their_levels_and_their_values_still_do_not() {
     let _g = arm_lock();
-    for n in WRAPPER_ONLY_NAMES.iter() {
+    for n in WRAPPER_NAMES_EVENTS.iter() {
         assert!(
-            !LEVEL_EVENTS.contains(n) && !LEVEL_DETAILED_ONLY.contains(n),
-            "{n} is in a level list: regenerate this arm with the ruled tables"
+            LEVEL_EVENTS.contains(n),
+            "{n} is admitted at the events level (RBANK A1)"
+        );
+    }
+    for n in WRAPPER_NAMES_DETAILED.iter() {
+        assert!(
+            LEVEL_DETAILED_ONLY.contains(n),
+            "{n} is admitted detailed-only (RBANK A1)"
         );
     }
     set_marker_routing(MarkerRouting::InApp);
     let got = capture();
-    for n in WRAPPER_ONLY_NAMES.iter() {
+    let planted: [(&str, &str); 6] = [
+        ("ok", "true"),
+        ("path", "PLANT-path-vault-dir"),
+        ("remedy", "PLANT free text"),
+        ("checked_dir", "PLANT-checked-dir"),
+        ("bundle_len", "4096"),
+        ("payload_count", "7"),
+    ];
+    for n in WRAPPER_NAMES_EVENTS
+        .iter()
+        .chain(WRAPPER_NAMES_DETAILED.iter())
+    {
         if *n == "util_sanitize" {
             qsc_mark(n, "ok");
         } else {
-            print_marker(
-                n,
-                &[
-                    ("ok", "true"),
-                    ("path", "PLANT-path-vault-dir"),
-                    ("remedy", "PLANT free text"),
-                ],
-            );
+            print_marker(n, &planted);
         }
     }
-    let unlisted_seen = got.lock().unwrap().len();
-    // the positive control: the wrapper path DOES reach the sink for a listed name
+    let admitted_seen = got.lock().unwrap().len();
+    // the control: the wrapper path with a listed name and the once-missing vocabulary member
     print_marker("vault_unlock", &[("ok", "true"), ("state", "unlocked")]);
     set_event_sink(None);
     set_marker_routing(MarkerRouting::Stdout);
     let events = got.lock().unwrap().clone();
     assert_eq!(
-        unlisted_seen, 0,
-        "an unlisted name reached the sink: {events:?}"
+        admitted_seen, 18,
+        "every admitted name yields exactly one event: {events:?}"
     );
+    assert_eq!(events.len(), 19, "the 18 plus the control");
+    for (ev, n) in events.iter().zip(
+        WRAPPER_NAMES_EVENTS
+            .iter()
+            .chain(WRAPPER_NAMES_DETAILED.iter()),
+    ) {
+        assert_eq!(ev.name, *n);
+        let expected = if WRAPPER_NAMES_EVENTS.contains(n) {
+            Level::Events
+        } else {
+            Level::Detailed
+        };
+        assert_eq!(ev.level, expected, "{n} at its admitted level");
+        // the VALUE keys never enter, even as numbers: bundle_len and payload_count stay out (A1)
+        assert!(
+            ev.ints
+                .iter()
+                .all(|(k, _)| *k != "bundle_len" && *k != "payload_count"),
+            "{n}: {ev:?}"
+        );
+        assert!(ev
+            .enums
+            .iter()
+            .all(|(k, _)| *k != "remedy" && *k != "checked_dir" && *k != "path"));
+        if *n != "util_sanitize" {
+            assert_eq!(ev.outcome, Some(Outcome::Ok), "{n} carries ok=true");
+        }
+    }
+    let sanitize = events
+        .iter()
+        .find(|e| e.name == "util_sanitize")
+        .expect("qsc_mark reaches the sink");
     assert_eq!(
-        events.len(),
-        1,
-        "the positive control arrives through print_marker"
+        sanitize.code,
+        Some("ok"),
+        "qsc_mark's code is a listed member of the shared vocabulary"
     );
-    assert_eq!(events[0].name, "vault_unlock");
-    assert!(events[0].bools.contains(&("ok", true)));
-    // MEASURED, NOT DESIGNED: `unlocked` is only ever written at the wrapper site, so the census never saw
-    // it and the blessed `state` vocabulary lacks it -- the value renders as `?` until ruled in (E-1).
-    assert!(events[0].enums.contains(&("state", UNLISTED)));
-    assert!(!format!("{events:?}").contains("PLANT"));
+    let control = events.last().unwrap();
+    assert_eq!(control.name, "vault_unlock");
+    assert!(control.bools.contains(&("ok", true)));
+    assert!(
+        control.enums.contains(&("state", "unlocked")),
+        "`unlocked` joined the `state` vocabulary (A1): {control:?}"
+    );
+    assert!(
+        !format!("{events:?}").contains("PLANT"),
+        "no planted value reached any typed event"
+    );
 }

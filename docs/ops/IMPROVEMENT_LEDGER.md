@@ -6645,6 +6645,7 @@ and its `queue` subcommand then does `ready = [... if item.status == "READY"]` f
 - ⚠ **WHAT THIS PR DOES AND DOES NOT DO.** It applies **(a)** to the **three blocks it already touches for other reasons** — `NA-0771` to `READY (D-1412)`, `NA-0766` and `NA-0767` to `DONE (<class>)` — **and nothing else.** The other 752 blocks are untouched, the helper is untouched, `preflight_governance.sh` is untouched, and the 0-vs-1 disagreement is **filed, not settled**. `NA-0706`/`NA-0707`'s missing `Status:` lines and `NA-0769`/`NA-0770`'s bolded ones are named here and left alone.
 - Cross-references: `ENG-0201` (the same needle counting **mentions** at both sites, wrong in both directions for three weeks — the previous defect in this exact instrument), `ENG-0230` (the `STATE:` header must be gated on NAMING the newest block, not counting `READY` lines — open, and the sibling of this entry), `WF-0087` (recording a sweep plants the swept ids), `D-1412` (the lane that filed this), `D-1407` / `D-1408` (the two classes declared in the same act, which is why those two blocks were in reach).
 - Source: measured by this seat from `scripts/ci/qsl_evidence_helper.py`, `scripts/ci/preflight_governance.sh` and `tools/qwork.sh` at the base, plus the operator's own live failure output. **The helper was run read-only on both arms** — the branch (`READY_COUNT 1`, exit **0**) and unmodified main (`READY_COUNT 0`, exit **2**), the second reproducing the operator's failure exactly. ⚠ **Claim boundary:** `qwork` itself was NOT run by this seat — it is on the seat's forbidden list — so the claim is about the **queue gate** the failure named, not about the gates that follow it (`queue-lane-mismatch`, `dirty-worktree`, `lane-lock-held` and eighteen others remain unexercised by this filing).
+- ⛳ **DATAPOINT (NA-0778, 2026-09-05, `D-1421`; `RULING_NA0778_003` R13, `RULING_NA0778_015` R95).** The same tool's `decisions` subcommand reads `^###\s+(D-\d{4})\b` and `^- **ID:** D-` only: at NA-0778's promotion head it reported `DECISION_ENTRY_COUNT 1307` / `LATEST_DECISION_ENTRY D-1312` while `DECISIONS.md` held 117 `## D-nnnn` headings (D-1313 on) — an index under-reporting the record by 109 decisions to the chair that reads it (E-3 of `STOP_NA0778_002`, sha256 `8af91f451d31743b7abe7be5931fcd7e39cbf8f035d8df7a94382375f790b8ae`); its one caller is the Director-side state index; no required gate. Best-known severity P3; the fix is the same shape as (b): the tool learns the form the records write.
 
 
 ### ENG-0257 — ⚠ P3 (DESIGN FINDING) — RELAY-SIDE CONTACT-GRAPH LINKABILITY: ONE self-inbox route token per account is handed to EVERY contact, so a relay that sees pushes can link an account's contacts BY ADDRESS — **NEW; FILED by NA-0768 (`D-1409`) as the records disposition ordered at `ORDER_contact_graph_linkability_20260829.md` R4. FILING ONLY — nothing is built, and R1 of that order forbids building on it until a threat-model ruling lands.**
@@ -7256,6 +7257,7 @@ left unbuilt for a stated reason, not overlooked. None is a blocker.
 - **WHAT TO DO INSTEAD, IN ORDER.** Fire the control first and require it to fire. Validate a new instrument against the old one on a common input **before** trusting either. Treat any unexpected exit code as an ERROR and never as a verdict. Assert that an edit **differs from its input** before measuring anything against it. And read the raw result: an impossible pattern — five rows failing at once, seven probes all missing, four values identical to the baseline — is the instrument, not the subject.
 - Cross-references: `WF-0098`/`WF-0099` (the same family from NA-0776: an instrument must be proven to reach the boundary its claim names).
 - Source: NA-0777 `D-1420`; `RULING_NA0777_013` `R106`, `RULING_NA0777_014` `R110`.
+- ⛳ **THE FIFTH DATAPOINT (NA-0778, 2026-09-05, `D-1421`).** A driver arm that forced PART of a gate's inputs and left the rest to the app's own async refresh: desktop CI run 33940568140 on `c5ef502e` went red (20/21) on a row that read the Activate button after the mint window's `inviteRefresh` had rewritten `inviteNoRelay` on the relay-less runner, between two synchronous rows; the box could not reproduce it (its IPC returns before the next row) and the runner's log was the arm. Cured data-only at `10764117` (every gate input forced in the same synchronous script; every term returned so a red names its term). THE RULE, written into the harness's own header as duty 11 — desktop PR #55, landed as `b4ec469339fb02d80adde277a909e25dd50cfcae` (merged 2026-09-05T04:10:17Z): an arm that asserts a predicate controls EVERY input of that predicate in the same synchronous step and returns every term; the box's timing is not the runner's. `RULING_NA0778_015` R96, `RULING_NA0778_016` R107; `STOP_NA0778_004i` (sha256 `f6b17932d864e2dd26e0b3f1aa3ad16d2887655100d4aec7e4fc12a651bb0312`).
 
 ### WF-0104 — THE qsl-record PRE-PUSH HOOK REFUSES EVERY PUSH OF A NEW REF: ITS "FULL TREE" MODE IS EVERY REACHABLE OBJECT, AND THE RECORD'S FIRST COMMIT HOLDS THE NINE ARCHIVE BLOBS A RULING KEEPS
 
@@ -7267,3 +7269,175 @@ left unbuilt for a stated reason, not overlooked. None is a blocker.
 - **HOME.** The successor cutover lane (the one that retires the old root), or sooner on the operator's word. Until then the boundary above is the operating rule: no new-ref push of qsl-record is attempted, and a refusal there is a result to bring to the operator, not a fix.
 - Cross-references: `WF-0101` / `WF-0102` / `WF-0103` (apparatus and method defects filed as WF entries, the convention this follows); `RULING_D1-2_record_pushed_20260903.md` R9 (the archive bar) and R11 (the needle baseline, whose shape this cure mirrors); `RULING_D1-3_freeze_20260903.md` R18 (the nine blobs stay); `WF-0087` (a record about a measurement hazard must survive being read by the instrument it describes -- this entry names no value and no archive is planted by it).
 - Source: NA-0778 `STOP_NA0778_001_20260903T200355Z.md` sec 9.3 and `E-1` (sha256 `5a9b7ebc6b6ae4fce588bcc960269d3e0a662567dfd02b570a052bf1ed40e908`); `RULING_NA0778_001_20260903.md` R5.
+
+### ENG-0287 — THE "RECEIVED" GROUP HAS NO REACHABLE DATA SOURCE, AND THE RECORD THAT WOULD FEED IT CARRIES NEITHER A NAME NOR A TIME — TWO GAPS, NOT ONE
+
+- Type: gap (protocol-side; the invite verbs). Status: open — filed 2026-09-05 by NA-0778 (`D-1421`), at the close (`RULING_NA0778_015` R95, `RULING_NA0778_016` R106); filing only.
+- Severity: **P3, argued — a design's group cannot be fed; nothing is lost or exposed** — PROPOSED by the seat and the Director; the OPERATOR ratifies by merging the records PR that lands this entry (R106).
+- **THE MEASUREMENT (NA-0778 STOP 003 sec 3.1, at `f32a4c20`).** `RedemptionRecord` holds invite_id, consumed, bundle, invite_sig, ticket, handshake_done; it is written only by `invite_redeem_at` into the vault secret `invite.redeemed`; no facade verb reads it (8 verbs; "redemption" 0), no gateway command reads it (46; 0); the desktop has no Received surface. The page ships the Received group WITH ITS EXPLANATION (the 08-31 bank's rule) and its "redeem invitation" link.
+- **WHAT WOULD FEED IT.** A facade verb (e.g. `invite_redemptions() -> Vec<RedemptionSummary>`) over the existing map, with its own facade test (`D-1414` L1) and the pin moving with it (L3) — and what it STILL could not show: WHO (no name; the redeemer's contact is the handshake's peer, unlinked) and WHEN (no timestamp): two further fields the record would have to gain at redeem time.
+- **HOME.** the protocol lane that owns the invite verbs (the label-split / handshake phases of `TRIAGE_AND_PLAN`).
+- **THE LINES.** `qsl/qsl-client/qsc/src/invite/mod.rs` `RedemptionRecord` :652, written at :1068 / :1088 (`invite_redeem_at`), at `f32a4c20`
+- Cross-references: `ENG-0288` (the invitation -> contact link, the other half of the same display); `D-1421`; desktop `D-0047`.
+- Evidence: `STOP_NA0778_003_20260903T221155Z.md` sha256 `178fa7b021f947c0c512599b2a317f55e95005be6c6ae4fb42188b1168a75476` (104254 B); `STOP_NA0778_005_20260905T040142Z.md` sha256 `19afb0aaa9bd0c7a19980464f917cc44452eabd590c2763f1495e67ea71499dc` (56305 B).
+- Source: NA-0778 `STOP_NA0778_003` sec 6 (drafted as text, E-a's outcome), `RULING_NA0778_004` R23.
+
+### ENG-0288 — AN INVITATION CANNOT SAY WHICH CONTACT IT PRODUCED, WHETHER THAT CONTACT IS VERIFIED, OR WHEN IT CONNECTED — THE INVITATIONS PAGE'S TWO "CONNECTED" STATES AND ITS DATE HAVE NO SOURCE
+
+- Type: gap (protocol-side). Status: open — filed 2026-09-05 by NA-0778 (`D-1421`), at the close (`RULING_NA0778_015` R95, `RULING_NA0778_016` R106); filing only.
+- Severity: **P3, argued — a display cannot be drawn; nothing is lost or exposed** — PROPOSED by the seat and the Director; the OPERATOR ratifies by merging the records PR that lands this entry (R106).
+- **THE MEASUREMENT (STOP 003 sec 3.4).** `InviteRecord` and `InviteSummary` carry invite_id, state (creating/active/redeemed/expired/revoked), expiry, revocable, label, created (the MINT time); the redeemed state carries no peer; no connected-at exists. The page renders Waiting and Expired from the record, "Accepted" for redeemed rows without inventing a contact or a date, and the mint time labelled "Sent".
+- **WHAT WOULD FEED IT.** At `invite_accept` the engine records on the invite the contact it provisioned (by the opaque contact id once the label split lands; by the alias until then) and the accept time; `InviteSummary` gains `contact` and `connected` as Options; the verified state is then a join on the contacts record the desktop already reads.
+- ⛳ **THE RECEIVED GROUP'S LINK TOGGLE IS NOT BUILT; IT LANDS WITH THE LIST** (the second reader's F2-15; `RULING_NA0778_011` R75): `index.html` ships the heading's "redeem invitation" link static, with a comment describing the toggle the list will bring.
+- **HOME.** the same protocol lane as `ENG-0287`.
+- **THE LINES.** `invite/mod.rs` `InviteRecord` :604-:640, `InviteSummary` :742-:760 at `f32a4c20`; desktop `ui/main.js` `invitationsRender` (the Sent link toggles on `rows.length`), `index.html` the Received heading
+- Cross-references: `ENG-0287`; `D-1421`; desktop `D-0047` (deviation (i): no Connected states drawn).
+- Evidence: `STOP_NA0778_003_20260903T221155Z.md` sha256 `178fa7b021f947c0c512599b2a317f55e95005be6c6ae4fb42188b1168a75476` (104254 B); `STOP_NA0778_004f_20260904T235001Z.md` sha256 `5d698a850e40e7eeb679d940fd5452760316fad324f8bb1f43e8a5db41502ef9` (73005 B); `STOP_NA0778_005_20260905T040142Z.md` sha256 `19afb0aaa9bd0c7a19980464f917cc44452eabd590c2763f1495e67ea71499dc` (56305 B).
+- Source: NA-0778 `STOP_NA0778_003` sec 6; `RULING_NA0778_011` R75.
+
+### ENG-0289 — THE f_d SETTINGS-PERSISTENCE DRIVER ARM COULD SAVE THE VALUE THE PANE WROTE BACK INSTEAD OF THE VALUE THE HARNESS TYPED — A HARNESS RACE WITH A PRODUCT-ADJACENT MECHANISM (CURED, DATA ONLY)
+
+- Type: harness race (desktop GUI driver) with a product-adjacent mechanism. Status: open — filed 2026-09-05 by NA-0778 (`D-1421`), at the close (`RULING_NA0778_015` R95, `RULING_NA0778_016` R106); filing only.
+- Severity: **P3, argued — a non-required context's arm; no user data affected; the pane hazard itself is `ENG-0299`** — PROPOSED by the seat and the Director; the OPERATOR ratifies by merging the records PR that lands this entry (R106).
+- **THE FIGURES.** CI n=2 at the same tree `866de1c1`: PR run 33802476905 green (polls=1), push run 33805382399 RED (`60 (polls=11)`); local n=5 on the pinned toolchain, 0 red. `R332.1`: no re-run to green; the red stands in the record.
+- **THE MECHANISM.** `openSettings` awaits the identity and vault refreshes AFTER the pane is visible; `refreshVaultPane` assigns the loaded value into `#autolock-min`; the scenario typed and clicked in that window; the handler saved what it read.
+- **THE CURE, SCENARIO DATA (NA-0778 desktop PR #54, the R21 cure at `b67b95db`).** Wait for the write-back (`prop_eq` value "60"), the ruling's discriminator before the click, a post-click read of `#autolock-status`; zero code. CURED and filed for the CLASS.
+- **HOME.** the harness's lane (the desktop driver); cross-referenced with `ENG-0299` both ways (`RULING_NA0778_004` R22).
+- **THE LINES.** desktop `ui/main.js` `openSettings` :921-:926, `refreshVaultPane`'s write-back :1093 and the handler :1134 at `0b87209b`; `src-tauri/tests/harness/scenarios/f_d_settings_persistence.json` (the cure)
+- Cross-references: `ENG-0299` (the write-back class, cross-referenced both ways); `ENG-0194` (the filing precedent); `WF-0105` (the gate rule).
+- Evidence: `STOP_NA0778_003_20260903T221155Z.md` sha256 `178fa7b021f947c0c512599b2a317f55e95005be6c6ae4fb42188b1168a75476` (104254 B); `STOP_NA0778_004_20260904T014054Z.md` sha256 `1e9f5ea1600ddb02d77615eecb328a81b7481d3fd68d7d55df2db53b90fd5987` (149155 B).
+- Source: NA-0778 `STOP_NA0778_003` sec 2.5 / sec 6, `RULING_NA0778_003` R18(6), `RULING_NA0778_004` R21/R22.
+
+### ENG-0290 — NO ENGINE VERB CLEARS AN EXPIRED OR REVOKED INVITATION RECORD — `invite_clear` ACCEPTS `Creating` ONLY
+
+- Type: gap (protocol-side; list hygiene). Status: open — filed 2026-09-05 by NA-0778 (`D-1421`), at the close (`RULING_NA0778_015` R95, `RULING_NA0778_016` R106); filing only.
+- Severity: **P4 — a list-hygiene gap; nothing is lost or exposed** — PROPOSED by the seat and the Director; the OPERATOR ratifies by merging the records PR that lands this entry (R106).
+- **THE MEASUREMENT.** `invite_clear` accepts a `creating` record only and refuses every live state; the Invitations page shows expired rows with no action (the operator's word at the first flight: SHOWN, `RULING_NA0778_008` R31) and the mint's list hides them.
+- **WHAT WOULD CURE IT.** A list-hygiene verb (or the deletion the engine-hygiene lane already carries), with its own facade test and the pin moving with it (`D-1414` L1/L3).
+- **HOME.** the engine-hygiene lane (protocol-side).
+- **THE LINES.** `qsl/qsl-client/qsc/src/facade/mod.rs` `invite_clear` (the `Creating`-only acceptance) at `f32a4c20`; desktop `ui/main.js` `invitationsRowEl` (expired rows carry no action)
+- Cross-references: `ENG-0288`; desktop `D-0047` (R31 SHOWN).
+- Evidence: `STOP_NA0778_004_20260904T014054Z.md` sha256 `1e9f5ea1600ddb02d77615eecb328a81b7481d3fd68d7d55df2db53b90fd5987` (149155 B); `STOP_NA0778_004c_20260904T205744Z.md` sha256 `fa6e8b22b2476b87fc61dfcf5f802aedc10a87437349f8f3b3655ba63ae18560` (168962 B).
+- Source: NA-0778 `STOP_NA0778_004` sec 7.3 (E-7a), `RULING_NA0778_008` R31.
+
+### ENG-0291 — NEITHER DESKTOP OVERLAY TRAPS FOCUS — THE OVERLAY / FOCUS FAMILY, WITH ITS THREE BY-DESIGN DISCARD ROUTES AND THE MIRROR ROUTE NAMED
+
+- Type: defect class (desktop, product-wide, PRE-EXISTING at the base). Status: open — filed 2026-09-05 by NA-0778 (`D-1421`), at the close (`RULING_NA0778_015` R95, `RULING_NA0778_016` R106); filing only.
+- Severity: **P3 — no data lost or exposed; a live one-time code can be discarded by a route the user did not aim at the window** — PROPOSED by the seat and the Director; the OPERATOR ratifies by merging the records PR that lands this entry (R106).
+- **THE MEASUREMENT.** 0 matches in `ui/` for `inert`, for focus management, for `aria-hidden` on the screen beneath: Tab leaves a modal and reaches the main screen's controls behind the scrim (the first read's F-04). NA-0778 closed the routes that could discard a live code from the mint (the no-op guard, R40/R54; the openers' refusal and the in-flight guard, `RULING_NA0778_011` R74 / `RULING_NA0778_012` R79), not the class.
+- **THE THREE BY-DESIGN DISCARD ROUTES, NAMED ONCE (`RULING_NA0778_011` R75).** Every screen transition discards a live code through `show()`'s structural closer: the lock path (STOP 004c shape (ii)), the keyboard's route to the rail behind the scrim (F-04), and the one mouse route — the native menu's File > Settings (the second reader's F2-06). The recovery is the same for all three: Revoke on the Invitations page, then mint again.
+- **THE MIRROR ROUTE (`RULING_NA0778_013` R87).** A mint opened blind behind the REDEEM overlay by keyboard, then one Escape (the last read's F3-02): the converse of the stacked-overlay route the sixth commit refused; no product byte — the designed path (the chooser) hides the redeem overlay first.
+- **HOME.** the overlay / focus lane (a focus trap, or `inert` on the screen while an overlay is open, with its own arm).
+- **THE LINES.** desktop `ui/main.js` `show()` :93-:115 (the structural closers :108, :113), the native menu route :2127-:2131 -> `openSettings` -> `show()`, `inviteLive()` :2875 and the openers' guard at `d3a02986`
+- Cross-references: `ENG-0292` (the redeem window hides an outcome); `ENG-0293` (the seal-to-transition window); desktop `D-0047` (004f/004g notes).
+- Evidence: `STOP_NA0778_004a_20260904T153648Z.md` sha256 `7b7c947a0ad0c35892cc7910917963a5ee162410687634831112417e1d52d780` (206080 B); `STOP_NA0778_004f_20260904T235001Z.md` sha256 `5d698a850e40e7eeb679d940fd5452760316fad324f8bb1f43e8a5db41502ef9` (73005 B); `STOP_NA0778_005_20260905T040142Z.md` sha256 `19afb0aaa9bd0c7a19980464f917cc44452eabd590c2763f1495e67ea71499dc` (56305 B).
+- Source: NA-0778 `STOP_NA0778_004a` sec 6, `RULING_NA0778_011` R75/R78, `RULING_NA0778_013` R87.
+
+### ENG-0292 — THE REDEEM WINDOW HIDES AN OUTCOME AFTER CLOSE — CLOSE DOES NOT CANCEL THE GATEWAY CALL, IT HIDES ITS RESULT
+
+- Type: defect (desktop, pre-existing). Status: open — filed 2026-09-05 by NA-0778 (`D-1421`), at the close (`RULING_NA0778_015` R95, `RULING_NA0778_016` R106); filing only.
+- Severity: **P3 — the send completes; only its outcome is hidden from the user** — PROPOSED by the seat and the Director; the OPERATOR ratifies by merging the records PR that lands this entry (R106).
+- **THE MEASUREMENT.** `closeRedeemModal` hides the overlay while the Connect handler's `invoke` runs to completion in the gateway. Measured against the real relay (STOP 004e shape (i)): Close 0.10 s after Connect changed nothing — the ladder completed in 43 s, the hidden window's state read "Request sent" 15 s later. The operator's note (a) at the first flight is eliminated as a cause of the stall and stands as this filing: an outcome the window hid.
+- **HOME.** the contact-management lane (the redeem window's owner).
+- **THE LINES.** desktop `ui/main.js` `closeRedeemModal` :3214, the Connect handler's `invite_redeem` invoke, at `826f3519`
+- Cross-references: `ENG-0291`; `ENG-0296` (the redeemer's "connecting" copy).
+- Evidence: `STOP_NA0778_004c_20260904T205744Z.md` sha256 `fa6e8b22b2476b87fc61dfcf5f802aedc10a87437349f8f3b3655ba63ae18560` (168962 B); `STOP_NA0778_004e_20260904T221402Z.md` sha256 `886d5d64aa60f406acd9b623eda1f3876eb285c21b87a75d67b42386a66fcdf4` (65386 B).
+- Source: NA-0778 `STOP_NA0778_004c` P-1, `STOP_NA0778_004e` sec 3 (3), `RULING_NA0778_010` R66 (3).
+
+### ENG-0293 — THE LOCK ORDER: THE AUTO-LOCK SEALS THE VAULT TWO ROUND TRIPS BEFORE THE SCREEN MOVES, AND A GESTURE INSIDE THAT WINDOW REACHES A SEALED VAULT FAIL-QUIET
+
+- Type: defect (desktop, pre-existing). Status: open — filed 2026-09-05 by NA-0778 (`D-1421`), at the close (`RULING_NA0778_015` R95, `RULING_NA0778_016` R106); filing only.
+- Severity: **P3 — the vault is sealed (the protection works); what is missing is the order and the word** — PROPOSED by the seat and the Director; the OPERATOR ratifies by merging the records PR that lands this entry (R106).
+- **THE MEASUREMENT.** The auto-lock checker awaits `lock_now` (the seal), then `showUnlockScreen` (which awaits `protection_status`), and only then `show("scr-unlock")`: two IPC round trips with the vault sealed while the previous screen is still on view. The vault arm's sentence does not name "locked". The last read's F3-05: a gesture inside the seal-to-transition window reaches a sealed vault, fail-quiet — this class (`RULING_NA0778_013` R87).
+- **WHAT WOULD CURE IT.** Transition first, then seal (or a guard on every gesture while a seal is pending), and the vault arm's sentence naming the state.
+- **HOME.** the diagnostics lane (with the debug log, whose "detailed" level records every seal/unseal and its cause — the amendment bank A1).
+- **THE LINES.** desktop `ui/main.js` :1941-:1951 (the checker) at `826f3519`; `showUnlockScreen`
+- Cross-references: `ENG-0291`; `ENG-0296`; the two debug-log banks.
+- Evidence: `STOP_NA0778_004c_20260904T205744Z.md` sha256 `fa6e8b22b2476b87fc61dfcf5f802aedc10a87437349f8f3b3655ba63ae18560` (168962 B); `STOP_NA0778_005_20260905T040142Z.md` sha256 `19afb0aaa9bd0c7a19980464f917cc44452eabd590c2763f1495e67ea71499dc` (56305 B).
+- Source: NA-0778 `STOP_NA0778_004c` P-2 and shape (ii), `RULING_NA0778_013` R87.
+
+### ENG-0294 — AN INVITER-SIDE ACCEPT THAT PULLS A FRAME AND DOES NOT REACH CONSUMED IS SILENT — AN ACCEPT THAT FAILS ON EVERY TICK WITH NO VISIBLE REASON
+
+- Type: defect (engine + desktop; the liveness tick's surface). Status: open — filed 2026-09-05 by NA-0778 (`D-1421`), at the close (`RULING_NA0778_015` R95, `RULING_NA0778_016` R106); filing only.
+- Severity: **P2, PROPOSED by the Director (`RULING_NA0778_015` R95) — it turned a design fact into an hour of misdiagnosis on the flight** — PROPOSED by the seat and the Director; the OPERATOR ratifies by merging the records PR that lands this entry (R106).
+- **THE MEASUREMENT (STOP 004e shape (iii), the real relay).** With a label the engine refuses, A's tick pulls B's reply every beat and the provisioning fails at `channel_label_ok`; A's row stays "Waiting for reply" for the full 180 s, A's marker count stays flat, A's `connect_status` for the label reads `inactive / channel_invalid` — the engine KNOWS and says so on A's side, and nothing in the UI renders it (P-5 of STOP 004c).
+- **WHAT WOULD CURE IT.** The inviter's row renders the engine's reason ("couldn't complete: that name isn't valid") — local knowledge, shown locally (D1 of the no-presence bank: never sent to the peer); and the tick's accept failure becomes an event the debug log carries.
+- **HOME.** the liveness tick's lane (the ladder program), with `ENG-0296`.
+- **THE LINES.** `qsl/qsl-client/qsc/src/invite/mod.rs` `invite_accept_at` :1308-:1400 (the provisioning :1358 fails on the label; the tick continues) at `f32a4c20`; desktop `ui/main.js` `invitationsRender` (no reason rendered)
+- Cross-references: `ENG-0295` (the engine half of the grammar); `ENG-0296`; `ENG-0142`'s family (a wedged mailbox).
+- Evidence: `STOP_NA0778_004c_20260904T205744Z.md` sha256 `fa6e8b22b2476b87fc61dfcf5f802aedc10a87437349f8f3b3655ba63ae18560` (168962 B); `STOP_NA0778_004e_20260904T221402Z.md` sha256 `886d5d64aa60f406acd9b623eda1f3876eb285c21b87a75d67b42386a66fcdf4` (65386 B).
+- Source: NA-0778 `STOP_NA0778_004c` P-5 / sec 12, `STOP_NA0778_004e` sec 2-4, `RULING_NA0778_010` R66 (2), `RULING_NA0778_015` R95.
+
+### ENG-0295 — CREATE/ACCEPT LABEL GRAMMAR ASYMMETRY STRANDS AN INVITATION — THE ENGINE HALF (THE AUDIT'S D-7, ONE ENTRY CROSS-REFERENCED BOTH WAYS)
+
+- Type: defect (engine; the invite verbs). Status: open — filed 2026-09-05 by NA-0778 (`D-1421`), at the close (`RULING_NA0778_015` R95, `RULING_NA0778_016` R106); filing only.
+- Severity: **P2, argued — a one-character difference in a typed name mints an invitation whose every accept fails at the inviter's provisioning, silently, forever** — PROPOSED by the seat and the Director; the OPERATOR ratifies by merging the records PR that lands this entry (R106).
+- **THE MEASUREMENT.** `channel_label_ok` (non-empty, every char in `[A-Za-z0-9_#-]`, no length rule) is enforced at `contacts_provision_from_invite` — the inviter's accept — and NOT at `invite_create`: a client that mints with a spaced label mints a stranded invitation. Reproduced against the real relay at STOP 004e shape (iii). The DESKTOP half shipped at NA-0778's fifth commit `14079140` (`REDEEM_NAME_RE` on the create field, the same constant the redeem gate uses; `RULING_NA0778_009` R61).
+- **THE ENGINE HALF, THIS ENTRY.** `invite_create` (and the facade) validate `recipient_label` with `channel_label_ok`, so NO client can mint a stranded invitation. RETIRED by the label-split lane, which removes the typed label from the protocol altogether (the L5 spec: opaque ids; the display name is vault data).
+- **THE AUDIT'S D-7** (`TRIAGE_AND_PLAN_audits_2026-09-04.md`) names the same asymmetry independently; this is the ONE entry for both, cross-referenced both ways.
+- **HOME.** the handshake lane (phase 6 of `TRIAGE_AND_PLAN`); retired by the label-split lane.
+- **THE LINES.** `qsl/qsl-client/qsc/src/lib.rs` `channel_label_ok` :2635-:2640; `contacts_provision_from_invite`; `invite_create_at` (no label check) at `f32a4c20`; desktop `ui/main.js` :3200 (`REDEEM_NAME_RE`), the create gate :2843 at `14079140`
+- Cross-references: the audit's D-7 (`TRIAGE_AND_PLAN`); `ENG-0294`; `ENG-0296`; desktop `D-0047` (004d note).
+- Evidence: `STOP_NA0778_004d_20260904T214403Z.md` sha256 `14c3fe7419e2ed7f9fe018c85c6fff7155cd16a004016c898a129a6948218fbd` (82991 B); `STOP_NA0778_004e_20260904T221402Z.md` sha256 `886d5d64aa60f406acd9b623eda1f3876eb285c21b87a75d67b42386a66fcdf4` (65386 B); `TRIAGE_AND_PLAN_audits_2026-09-04.md` sha256 `e05f9401d1272782bed6bd7c1c3b1e06dadc7c8d6c7026bb2c943818b429db25` (18838 B).
+- Source: NA-0778 `STOP_NA0778_004d` sec 5, `STOP_NA0778_004e` sec 3 (2), `RULING_NA0778_009` R61, `RULING_NA0778_010` R66 (2).
+
+### ENG-0296 — THE REDEEMER CANNOT DISTINGUISH A PAUSED INVITER FROM A STRANDED INVITATION OR A WEDGED RELAY — "CONNECTING" COVERS ALL FOUR; AND THERE IS NO PRESENCE SIGNAL, EVER
+
+- Type: defect (desktop copy + the ladder's visibility). Status: open — filed 2026-09-05 by NA-0778 (`D-1421`), at the close (`RULING_NA0778_015` R95, `RULING_NA0778_016` R106); filing only.
+- Severity: **P2, PROPOSED (`RULING_NA0778_011` R67) — it turned a design fact into an hour of misdiagnosis** — PROPOSED by the seat and the Director; the OPERATOR ratifies by merging the records PR that lands this entry (R106).
+- **THE MECHANISM (E-16, `RULING_NA0778_010` R66 (4)).** The liveness tick beats only while the app shows the main or settings screen with a relay configured (`tickGateOpen`); a locked or sleeping inviter pulls nothing, and the redeemer reads "connecting" for exactly that long — the same word it reads for a stranded label and for a wedged relay. `RULING_NA0778_013` R69: a locked vault cannot tick BY DESIGN; what is owed is VISIBILITY on both sides, not a tick that runs while locked.
+- ⛳ **THE CONSTRAINT (D1 of `RBANK_debug_log_first_and_no_presence_20260904.md`): NO PRESENCE SIGNAL, EVER.** The product never acquires or emits a peer's online, locked or active state — no ping, no relay-side status, no automatic acknowledgement (`WF-0085`'s class). The redeemer-side copy describes the MECHANISM ("your request was sent; it completes the next time their app checks in"), never the peer. Local knowledge may be shown locally.
+- **THE CURE.** The ladder's visible state (the operator's direction of STOP 004c) plus the mechanism copy above; the inviter's side renders the engine's local reason (`ENG-0294`).
+- **HOME.** the liveness tick's lane (the ladder program), after the debug-log lane.
+- **THE LINES.** desktop `ui/main.js` `tickGateOpen` :2020-:2021 at `826f3519`; the redeem window's "connecting" copy
+- Cross-references: `ENG-0294`; `ENG-0292`; `WF-0085`; the two debug-log banks.
+- Evidence: `STOP_NA0778_004e_20260904T221402Z.md` sha256 `886d5d64aa60f406acd9b623eda1f3876eb285c21b87a75d67b42386a66fcdf4` (65386 B); `RBANK_debug_log_first_and_no_presence_20260904.md` sha256 `785e9e2fc5e5c80bcdb639cc72c75ae4cb9ff4881e33ecef4ab57643dd9828d7` (3871 B); `RULING_NA0778_011_20260904.md` sha256 `006e1a9e11ba4bb510cd236a16fce69b71f66f274a8873eb7b3f4f4126404d8c` (6512 B).
+- Source: NA-0778 `STOP_NA0778_004e` E-16 / P-C, `RULING_NA0778_010` R66 (4), `RULING_NA0778_011` R67, `RULING_NA0778_013` R69.
+
+### ENG-0297 — AN EXPLICIT TIMEOUT ON THE SHARED RELAY CLIENT — THE BOUND THAT EXISTS IS A LIBRARY DEFAULT NO LINE OF THE CRATE NAMES
+
+- Type: hygiene (engine; the relay client). Status: open — filed 2026-09-05 by NA-0778 (`D-1421`), at the close (`RULING_NA0778_015` R95, `RULING_NA0778_016` R106); filing only.
+- Severity: **P3 — the bound is real (reqwest's documented default); it is unnamed** — PROPOSED by the seat and the Director; the OPERATOR ratifies by merging the records PR that lands this entry (R106).
+- **THE MEASUREMENT (the last read's F3-01 / E-23).** `relay_http_client()` builds `reqwest::blocking::Client` with no `.timeout(`; `invite_post` sends with no per-request timeout; the bound that exists is reqwest 0.12.28's documented 30-second default per blocking request (the `blocking` feature); the create path is at most two relay requests — server-info's explicit 10 s, then the POST — about 40 s. The desktop's in-flight guard rests on it (`RULING_NA0778_012` R79; `RULING_NA0778_013` R85 (c): no desktop watchdog, because one that clears the flag while the promise is pending re-opens a second mint).
+- **THE CURE.** An explicit `.timeout()` on the shared client (and per request where a call wants less), so the figure is the crate's own.
+- **HOME.** the engine's hygiene bundle (beside F-16 of the audits).
+- **THE LINES.** `qsl/qsl-client/qsc/src/transport/mod.rs` `relay_http_client()` :2184-:2199, `invite_post` :4228-:4249, `relay_server_info` :2563 (the explicit 10 s); `Cargo.lock` reqwest 0.12.28, at `f32a4c20`
+- Cross-references: desktop `D-0047` (004g note); `ENG-0296`.
+- Evidence: `STOP_NA0778_004g_20260905T003251Z.md` sha256 `feef88b6883391378021d0f9c9e57c429261f39fd6c1077699edc8c0bf5e6827` (47523 B); `FINDINGS_SR15_NA0778_read2_last_20260905T000820Z.md` sha256 `417357f8ca8a4aa2acd339bbe1862f0490d688a0f5b591df889c80f03d0fbfa1` (34662 B).
+- Source: NA-0778 `STOP_NA0778_004g` sec 4, `RULING_NA0778_013` R85 (c).
+
+### ENG-0298 — `InviteRecord.cap` IS RETAINED AFTER EMISSION — NO INVITER-SIDE PATH AFTER CREATE READS IT; A STORE-LEVEL PURGE IS A LIVE CANDIDATE
+
+- Type: hygiene (engine; the invite store). Status: open — filed 2026-09-05 by NA-0778 (`D-1421`), at the close (`RULING_NA0778_015` R95, `RULING_NA0778_016` R106); filing only.
+- Severity: **P4 — a capability kept longer than any reader needs it; no path exposes it** — PROPOSED by the seat and the Director; the OPERATOR ratifies by merging the records PR that lands this entry (R106).
+- **THE MEASUREMENT (STOP 003 sec 3.2, Y2 HIT).** Every non-comment `.cap` read in `invite/mod.rs`: the payload field and its codec, and inside `invite_create_at` (mint, wire form, payload, record); the only other read is the REDEEMER's, of the code's payload (`wire_id(&payload.cap)` inside `invite_redeem_at`), never of the stored record. No inviter-side path after create reads the record's cap.
+- **THE CANDIDATE.** Purge the capability from the store after emission (or at the first accept), keeping the wire id the list needs.
+- **HOME.** the engine-hygiene lane.
+- **THE LINES.** `qsl/qsl-client/qsc/src/invite/mod.rs` :329, :354, :383/:403, :608, :890/:892/:900/:914, :1048 at `f32a4c20`
+- Cross-references: `ENG-0290`.
+- Evidence: `STOP_NA0778_003_20260903T221155Z.md` sha256 `178fa7b021f947c0c512599b2a317f55e95005be6c6ae4fb42188b1168a75476` (104254 B).
+- Source: NA-0778 `STOP_NA0778_003` sec 3.2 and 'candidates named, not filed' (1); `RULING_NA0778_015` R95.
+
+### ENG-0299 — THE WRITE-BACK CLASS: A PANE REFRESH WRITES A LOADED VALUE INTO AN EDITABLE FIELD AFTER THE PANE IS VISIBLE AND ACCEPTING INPUT — FOUR SITES BY CENSUS
+
+- Type: defect class (desktop, product-wide, pre-existing). Status: open — filed 2026-09-05 by NA-0778 (`D-1421`), at the close (`RULING_NA0778_015` R95, `RULING_NA0778_016` R106); filing only.
+- Severity: **P3 — a typed value can be overwritten by the app's own refresh in a window a fast typist or a slow runner meets** — PROPOSED by the seat and the Director; the OPERATOR ratifies by merging the records PR that lands this entry (R106).
+- **THE CENSUS (STOP 004 sec 4, `RULING_NA0778_004` R22, at `b67b95db`, zero unclassified).** 26 sites; class A (a loaded-value write-back into an editable field from an async refresh) = FOUR: the vault pane's autolock field (E-4 of STOP 003), the relay pane's URL and token/CA fields, and E-6, the fourth the census itself found (the seal had said three). The seat's own instrument met the relay pane's instance at STOP 004e (S-23: the typed URL wiped by `refreshServerState`'s echo).
+- **THE CURE.** Load before showing (or refuse to echo over a field the user has touched); cross-referenced with `ENG-0289` (the harness race the class produced) both ways.
+- **HOME.** the settings lane (desktop).
+- **THE LINES.** desktop `ui/main.js` `refreshVaultPane` :1093, `refreshServerState` :1816-:1823 (at `826f3519`); the census table in `STOP_NA0778_004` sec 4
+- Cross-references: `ENG-0289` (cross-referenced both ways).
+- Evidence: `STOP_NA0778_003_20260903T221155Z.md` sha256 `178fa7b021f947c0c512599b2a317f55e95005be6c6ae4fb42188b1168a75476` (104254 B); `STOP_NA0778_004_20260904T014054Z.md` sha256 `1e9f5ea1600ddb02d77615eecb328a81b7481d3fd68d7d55df2db53b90fd5987` (149155 B); `STOP_NA0778_004e_20260904T221402Z.md` sha256 `886d5d64aa60f406acd9b623eda1f3876eb285c21b87a75d67b42386a66fcdf4` (65386 B).
+- Source: NA-0778 `STOP_NA0778_003` E-4, `STOP_NA0778_004` sec 4 / E-6, `RULING_NA0778_004` R22, `STOP_NA0778_004e` S-23.
+
+### WF-0105 — FLY THE FIRST HEAD FIRST WHEN A REAL RIG EXISTS; THE COUNT-DRAWN READ THEN READS A HEAD ALREADY SHAPED BY THE OPERATOR'S HANDS (NA-0778's RETROSPECTIVE, ADOPTED-FORWARD)
+
+- Type: workflow (sequence). Status: open — filed 2026-09-05 by NA-0778 (`D-1421`) at the close; ADOPTED-FORWARD by `RULING_NA0778_016` R108 with its boundary.
+- **THE PRACTICE.** When a real rig exists, the operator flies the FIRST head before the cold read is drawn. NA-0778's sequence was build -> cold read (four cures) -> the first flight (a stall, three design rulings) -> a grammar candidate the audits handed the lane mid-way -> the reproduction -> two more reads on the delta the operator's design revision produced -> the second flight -> a CI race: nine commits and four reads for one page. The reads found what no flight could (a code landing in a hidden window, a stacked-overlay Escape, a failure arm calling a sealed vault); the flight found what no read could (the stall, the grammar's real cost, an unwanted line, the real relay's timing). Flown first, the stall and the unwanted line surface a day earlier and the read reads a head the operator has already shaped.
+- ⚠ **THE BOUNDARY (R108).** `SR-15`'s count trigger is MECHANICAL and still draws the read; only its POSITION moves. A design revised after a flight (`RULING_NA0778_008` R54 retired a coupled change of the 08-31 bank after the operator flew it) is what flights are for; the two commits and two reads it cost were owed, not waste.
+- **FILED WITH IT (axis 1's candidate, R108).** A mockup line whose predicate needs a live state (NA-0778's nudge: "N connected contacts aren't verified yet") is flown WITH that state before it is built, or built behind the flight — the line was built to the blessed mockup, flown once without a connected contact, and removed by the operator the first time he saw it with one (`RULING_NA0778_014` R91).
+- **THE INSTRUMENTS (two, independent).** The stops' timeline (sixteen files, their written-at stamps) and the rulings' R-numbers (R29 the read drawn before the flight; R52-R54 at the first flight; R74/R79 the retirement's consequences); `git log --first-parent` of desktop PR #54 (nine commits) against the four findings files' CURED tallies (`RULING_NA0778_013` sec 0).
+- Cross-references: `WF-0103` (the instrument row; its fifth datapoint is this lane's CI race); `WF-0087`; `SR-15`.
+- Evidence: `STOP_NA0778_005_20260905T040142Z.md` sha256 `19afb0aaa9bd0c7a19980464f917cc44452eabd590c2763f1495e67ea71499dc` (56305 B); `RULING_NA0778_016_20260905.md` sha256 `2763afe2f781fd214e914a53ddd510a8a374b644ef552bc0136a60ebec510ef8` (6182 B).
+- Source: NA-0778 `STOP_NA0778_005` sec 4 (R97), `RULING_NA0778_016` R108.
+

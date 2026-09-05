@@ -94,3 +94,23 @@ Branch `na0779-drop-checkout-lanes` from `0680716aac6797a1a982afa3490f5224ace745
 ## 7. WHAT IS NOT CLAIMED
 
 Nothing in the audit landing is repaired, re-audited or re-run; the [X] results stay mock-primitive until the ratchet lane's rerun; the reports' own coordinates are owed where marked. The census figures in `D-1422` are `git grep` counts, the SCOPE of the event model and not the model. The apparatus fix is proven on a plain directory and synthetic paths, not on a live lane checkout. Records only; nothing merged by the seat.
+
+## 8. THE SINK PR (STOP 003; `RULING_NA0779_002` R6) -- THE ENGINE HALF, AS BUILT
+
+Branch `na0779-debug-log-sink` from `267657deaba92aa2c62b8a9dac7cacd2202fec66` (main after `#1818` merged). Governed by `RULING_NA0779_002_20260905.md` (sha256 `8fc89fd58cd2c8da76a515048cf67e5aa7feac4210ba4bbc38dbcd6f9e45ab4c`) and the operator's bless (`RBANK_debug_log_event_model_blessed_20260905.md`, sha256 `78f10bd501d34db9ab86937eb754f8df6b3e2e68c5a838515aa6d7382e67ac14`, the word "blessed"); mockup 18 amended to 18b under that bless (banked, sha256 `9fb1940ad6db19fe65e6ec54cc558197471221e050bb889f235c7195f569f51c`; the reference markup of STOP 004). Expectations sealed before the post-seal checks: `EXPECTATIONS_NA0779_003.md` sha256 `8f300d100f170693a742c816f88570a4e8c2247355fd001bdcf8433ed2ac82ba` -- its premise states the deviation that the first arms ran before it existed.
+
+| file | what |
+|---|---|
+| `qsl/qsl-client/qsc/src/output/mod.rs` | `pub mod event;` and ONE call in `emit_marker`, `event::feed(event, code, kv)`, after `format_marker_line` and before the routing match. The line is untouched. |
+| `qsl/qsl-client/qsc/src/output/event.rs` (born) | the typed `Event`; `event_from_marker` / `event_from_marker_with(&Allowlist, ..)`; `set_event_sink` / `event_sink_installed` / `feed`; `utc_rfc3339_ms`; `Event::to_line`. sha256 `c6e6e151aacd671ae1b62063e47bfda800c3614124aeb28d9652b30a7e467945`. |
+| `qsl/qsl-client/qsc/src/output/event_tables.rs` (born, GENERATED + rustfmt) | `INT_KEYS` 48, `BOOL_KEYS` 23, `ENUM_KEYS` 60 with 329 members, `LEVEL_EVENTS` 105, `LEVEL_DETAILED_ONLY` 60. sha256 `872e514fdfa18d77737041b2a8d1714e4804148867eddd78b4dc71af2c61bd15`. |
+| `qsl/qsl-client/qsc/src/lib.rs` | `nr` / `ns` / `pn` at the four ratchet sites (`qsp_dh_ratchet`, `qsp_pq_reseed`; send and recv). |
+| `qsl/qsl-client/qsc/tests/na0779_debug_log_sink_arms.rs` (born) | t1-t6, red first. sha256 `e542cd7ce6bf07d3aee160e2e85ebf97620debe6961270e2642554b96335170e`. |
+| `scripts/ci/QSC_SHARD_MANIFEST.txt`, `_MACOS.txt` | the new test file listed (exact cover kept). |
+| `DECISIONS.md`, `TRACEABILITY.md`, this file | DV-9 (the impl), DV-10 (E-1), the amended claim boundary; the dated line; this section. |
+
+THE ARMS (all after the seal): t1 RED 7 of 7 plants under copy-every-key, GREEN 0 of 7 under the real allowlist through the real `emit_marker` with a sink installed, no fragment in the debug form; t2 105 / 60 disjoint, probes and unlisted names yield nothing; t3 `?` outside a vocabulary, typed drops, `nr`/`ns`/`pn` ints, ASCII members; t4 opt-in, the slot clears; t5 the exact line and two civil-date controls; t6 the 18 wrapper-only names -> 0 events through the real wrappers, the positive control `vault_unlock` -> 1 event with `state=?`. `cargo test -p qsc --test na0779_debug_log_sink_arms`: 6 passed. `cargo test -p qsc --lib output::`: 4 passed (no regression). THE CLI-UNCHANGED ARM: base binary sha256 `6fcc9f6a193fa641999a9ee8f09be291ff42b69b7a58bf3e790f8f24a00c9c84`, head binary sha256 `58d114c3bead8298dcc771f92db61a1d6abd52a5a3ad0c367bdc2ed70ed2c399`; the five `*.markers` byte-identical (`alice` = `bob` `52ce18365d22cf6034864e30acb0b87011c92c13089c91b4dcc411f1aa47cc43`; `alice_recv` = `bob_recv` `60459e9ffd7db6de4af382d28d11eeaf588117c59b6139e95a663d5c6479165a`; `relay` empty). The richer loopback driver (14 markers per actor, ten events) identical with `fp=` masked. Clippy 1.98: rc 0, no warning in the new files.
+
+E-1 (DV-10): the 18 names / 31 sites / 20 keys emitted only through the two thin wrappers were outside STOP 002's census; they never enter (t6) and are NOT admitted by this PR -- the bless is on bytes; a proposed classification is offered for the operator's word in DV-10 and the stop-file.
+
+`SR-15`: product source files 4 (2 modified, 2 born), test files 1, manifests 2, records 3. ONE read, after the flight, over both PRs at the pinned head rev (R6).

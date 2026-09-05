@@ -2,7 +2,7 @@
 
 Goals: G4 (primary), drives G1-G3 delivery
 
-Lane `NA-0778` (the operator's "Lane C") . `D-1421` . class: **`%s`** (declared at the close by `RULING_NA0778_016` R104; sec 8).
+Lane `NA-0778` (the operator's "Lane C") . `D-1421` . class: **`INVITATIONS_PAGE_FLOWN_SHOW_ONCE_HELD_PASS`** (declared at the close by `RULING_NA0778_016` R104; sec 8).
 
 **EVERY DIGEST IN THIS FILE WAS COMPUTED FROM THE FILE AT GENERATION TIME, NOT TRANSCRIBED.** Where a figure is carried from another record it says so and names the record.
 

@@ -45295,3 +45295,33 @@ Local custody is complete and remains separate from the Director's acceptance ve
 At the preceding fcb08ccae1d7 continuation, goal-lint required a changed tests/vectors/harness path when ratchet.rs changes. That exact authorization names only the two table entries and accompanying records; no token test or linter change is added. A substantive reusable fixture runner is prepared in lane evidence, with proposed destination tests/na0779_dh_census_classification.py pending explicit scope authorization. It exercises the actual census in a disposable tracked-tree copy and verifies both requested mutations and restoration. Push of this correction is held at the existing required gate; the remote PR may therefore remain at its preceding head. No merge, durable-record push, freeze or successor implementation is authorized by this correction.
 
 **DV-18 -- Substantive census runner admitted, Director-authorized 2026-09-09.** The Director explicitly authorized tests/na0779_dh_census_classification.py, and automatic review added only that path to the selected scope. This supersedes DV-17's runner-path authority blocker. The installed Python-standard-library runner invokes the actual Rust census in a disposable tracked-tree copy. Correct classification/count and restored fixture PASS; removing classification FAILS for exactly the two archive establish sites; adding a third mock call FAILS for isolated count drift 3 versus 2. Cargo execution errors, a different failing test, a different panic and unexpected count drift are rejected, not credited as expected failures. All 2428 original tracked-file hashes stayed unchanged during mutation checks. Nine synthetic unrelated/malformed failure outputs were also rejected. The as-built documents invocation. The previously passing 125-test reference suite is retained as evidence without unnecessary repetition: this follow-up changes only the runner and records. Committed-tree goal-lint and actual remote-head CI remain separately observed gates. No linter, scanner logic, workflow, production crypto or archived-original change is included; this PR is closeout records, archive publication and test-only census classification/regression coverage. Merge, final durable-record push, freeze and successor advancement remain gated.
+
+## NA-0780 engine milestone — bounded local invitation ownership rejection (2026-09-09)
+
+Goals: G4
+
+Director-authorized engine change: use one local predicate for facade Connect
+preflight and redemption enforcement. Retained mint IDs identify ownership across
+restart and identity rotation; the selected existing public identity commitment
+also identifies codes after mint rows are cleared. Reject identified self codes
+before redemption writes, relay attempts or pending-contact creation. Public
+identity reads do not create or migrate keys; unavailable/incomplete ownership
+data refuses the check. Normal expiry, single-use, commitment and signature
+validation remain in redemption. Wire, crypto and authentication are unchanged.
+N-14 adds only the sink callback-under-mutex warning.
+
+This does not fully satisfy rejection of every historical self-minted invitation:
+deleted mint history combined with rotated/deleted identity leaves old codes
+unrecognizable. Complete historical recognition would require retained ownership
+information, such as historical public identity commitments or minted invitation
+IDs that survive clear/rotation/deletion. Retention, privacy and deletion semantics
+need a separate design disposition; no storage or identity redesign is selected.
+Preflight success is not authentication. Desktop integration and two-device
+acceptance remain outstanding; the engine PR is a reviewable draft, not a lint
+waiver, merge authorization or acceptance declaration.
+
+Tests: failing self-acceptance reproduction, then 32 targeted tests covering
+retries, restart, older records, clearing, rotation, unavailable storage, zero
+rejection side effects, valid foreign acceptance and authentication refusals;
+144 library tests and 4A passed. Strict clippy comparison and PR CI are reported
+on the draft; interrupted full-suite execution is not claimed as a pass.

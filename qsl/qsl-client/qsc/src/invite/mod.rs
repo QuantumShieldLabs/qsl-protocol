@@ -132,6 +132,11 @@ pub const INVITE_REVOKE_INVALID: &str = "invite_revoke_invalid";
 /// protocol's to change, not the desktop's".
 pub const INVITE_CLEAR_REFUSED: &str = "invite_clear_refused";
 
+/// Local ownership refusal, before redemption side effects.
+pub const INVITE_SELF: &str = "invite_self";
+/// Available public identity data cannot support an ownership decision.
+pub const INVITE_OWNERSHIP_UNAVAILABLE: &str = "invite_ownership_unavailable";
+
 /// The two security-relevant failures. DISTINCT from each other and from everything else,
 /// because their causes are different -- substituted KEYS versus tampered invite FIELDS --
 /// and the user needs to be told that someone may be interfering either way (DESIGN §6).
@@ -1019,6 +1024,50 @@ pub fn invite_list() -> Result<Vec<InviteRecord>, &'static str> {
     Ok(invite_store_load()?.invites.values().cloned().collect())
 }
 
+/// Local ownership only: success does not authenticate an invitation or its sender.
+/// Reads every retained mint, then the selected existing public identity. Never creates
+/// or migrates keys. Deleted mint history plus a rotated/deleted public identity cannot
+/// establish ownership of an old code; callers must not interpret that absence as trust.
+pub fn invite_preflight(code: &str, self_label: Option<&str>) -> Result<(), &'static str> {
+    if !vault_unlocked() {
+        return Err("vault_locked");
+    }
+    let label =
+        crate::identity::identity_resolved_self_label(self_label).map_err(|e| e.as_str())?;
+    let payload = decode_invite_code(code)?;
+    reject_self_invitation(&payload, &label)
+}
+
+fn reject_self_invitation(payload: &InvitePayload, self_label: &str) -> Result<(), &'static str> {
+    if invitation_is_local(payload, self_label)? {
+        return Err(INVITE_SELF);
+    }
+    Ok(())
+}
+
+/// The shared predicate for preflight and enforcement; mint history is independent of
+/// UI state, expiry and the identity currently selected after rotation.
+fn invitation_is_local(payload: &InvitePayload, self_label: &str) -> Result<bool, &'static str> {
+    let store = invite_store_load()?;
+    if store.invites.contains_key(&wire_id(&payload.invite_id)) {
+        return Ok(true);
+    }
+    let Some(public) = crate::identity::identity_read_self_public(self_label)
+        .map_err(|_| INVITE_OWNERSHIP_UNAVAILABLE)?
+    else {
+        return Ok(false);
+    };
+    // Public reads accept older records without a signing key. Do not upgrade them,
+    // or hash an incomplete/invalid bundle and mistake a mismatch for non-ownership.
+    if public.kem_pk.len() != runtime_pq_kem_public_key_bytes()
+        || public.sig_pk.len() != runtime_pq_sig_public_key_bytes()
+    {
+        return Err(INVITE_OWNERSHIP_UNAVAILABLE);
+    }
+    let bundle = canonical_bundle_bytes(&public.kem_pk, &public.sig_pk)?;
+    Ok(commitment(&bundle) == payload.commit)
+}
+
 /// Bob: redeem an invite and hand shake into the slot. DESIGN §5.2, in order.
 pub fn invite_redeem(
     code: &str,
@@ -1051,6 +1100,8 @@ pub fn invite_redeem_at(
     if payload.expiry <= now {
         return Err(INVITE_EXPIRED);
     }
+
+    reject_self_invitation(&payload, self_label)?;
 
     // (3) CLIENT-SIDE SINGLE USE, checked before the network. This is the arm that survives
     // a hostile relay (I2): a relay that serves the same invite twice still cannot make

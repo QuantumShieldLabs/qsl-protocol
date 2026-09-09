@@ -1778,3 +1778,17 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - 2026-09-09: NA-0779 / D-1422 DV-17, Goals G4: Director-authorized test-only DH census classification of the historical archive's establish function, with exactly two pinned ToyDh call sites. Real census FAIL before / PASS after; disposable-fixture removal and extra-call mutations both fail for the intended reasons, restored fixture PASS. Archive and production bytes preserved; no scanner exclusion or logic change. This PR revision is records plus test-only classification. At fcb08ccae1d7, required goal-lint path coverage held the push pending scope disposition for the substantive fixture runner. Acceptance and post-merge claim boundaries remain unchanged.
 
 - 2026-09-09: NA-0779 / D-1422 DV-18, Goals G4: Director-authorized tests/na0779_dh_census_classification.py added through narrow automatic scope review. Installed runner executes the actual Rust census in a disposable tracked-tree fixture: correct classification PASS, removed classification expected unguarded-call FAIL, third mock call expected count-mismatch FAIL, restored fixture PASS; all 2428 original tracked files unchanged. Nine unrelated/malformed failure probes are rejected. This supplies substantive regression coverage for the test-only classification and resolves the path-authority blocker. Invocation and claim boundaries are in the as-built; remote CI and post-merge gates are not inferred from local proof.
+
+- 2026-09-09: NA-0780 engine milestone, Goals G4 — shared ownership predicate in
+  `qsl/qsl-client/qsc/src/invite/mod.rs`, repeated before redemption side effects;
+  `facade::invite_preflight` exposes `SelfInvitation` / `self_invitation` for
+  subsequent Connect integration. Regression coverage in
+  `na0751_facade_invite_surface.rs` proves self rejection, persistence/retry
+  boundaries and no file/network effects; `na0756_two_party_invite_roundtrip.rs`
+  proves foreign preflight plus valid acceptance and retained authentication
+  refusals; existing `NA_0681_invite_encodings.rs` checks remain green. N-14 is
+  documentation only. See the NA-0780 decision above for the explicit historical
+  ownership gap: deleted mint history plus rotated/deleted identity cannot
+  recognize old codes without additional retained ownership information.
+  Desktop/two-device acceptance and strict lint disposition remain open; no
+  universal ownership coverage, full-suite pass, lint waiver or merge claimed.

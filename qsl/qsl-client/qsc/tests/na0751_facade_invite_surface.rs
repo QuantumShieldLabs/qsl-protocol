@@ -266,3 +266,243 @@ fn na0751_invite_revoke_commits_locally_and_the_list_is_how_a_screen_reads_it() 
     assert_ne!(before[0].state, after[0].state, "the revoke changed the observed state");
     qsc::set_vault_unlocked(false);
 }
+
+#[test]
+fn na0780_self_invitation_is_rejected_at_both_redemption_boundaries() {
+    let _g = guard();
+    let cfg = fresh("self_reject");
+    set_env_once(&cfg);
+    common::init_mock_vault(&cfg);
+    qsc::vault::unlock_with_passphrase(common::TEST_MOCK_VAULT_PASSPHRASE).unwrap();
+    qsc::set_vault_unlocked(true);
+    qsc::identity::identity_ensure("self").unwrap();
+    let relay = common::start_qsl_server(2 * 1024 * 1024, 512, None);
+    let direct = qsc::facade::invite_create(None, relay.base_url(), 3600, None).unwrap();
+    let facade = qsc::facade::invite_create(None, relay.base_url(), 3600, None).unwrap();
+    let direct_result = qsc::invite::invite_redeem(&direct, "myself-direct", None);
+    let facade_result = qsc::facade::invite_redeem(&facade, "myself-facade", None);
+    assert_eq!(
+        direct_result.err(),
+        Some("invite_self"),
+        "direct handler must reject ownership"
+    );
+    assert_eq!(
+        facade_result.err().map(|e| e.as_wire()),
+        Some("self_invitation"),
+        "facade must reject ownership"
+    );
+    qsc::set_vault_unlocked(false);
+}
+
+// Compare without Debug-printing vault or identity bytes on failure.
+fn snapshot(dir: &Path) -> Vec<(PathBuf, Vec<u8>)> {
+    fn visit(root: &Path, dir: &Path, out: &mut Vec<(PathBuf, Vec<u8>)>) {
+        for entry in fs::read_dir(dir).unwrap() {
+            let path = entry.unwrap().path();
+            if path.is_dir() {
+                visit(root, &path, out);
+            } else {
+                out.push((
+                    path.strip_prefix(root).unwrap().to_owned(),
+                    fs::read(path).unwrap(),
+                ));
+            }
+        }
+    }
+    let mut out = Vec::new();
+    visit(dir, dir, &mut out);
+    out.sort_by(|a, b| a.0.cmp(&b.0));
+    out
+}
+
+fn assert_self_without_effects(cfg: &Path, code: &str) {
+    let before = snapshot(cfg);
+    for _ in 0..3 {
+        assert_eq!(
+            qsc::facade::invite_preflight(code, None)
+                .err()
+                .map(|e| e.as_wire()),
+            Some("self_invitation")
+        );
+        assert_eq!(
+            qsc::invite::invite_redeem(code, "self-direct", None).err(),
+            Some("invite_self")
+        );
+        assert_eq!(
+            qsc::facade::invite_redeem(code, "self-facade", None)
+                .err()
+                .map(|e| e.as_wire()),
+            Some("self_invitation")
+        );
+    }
+    assert!(
+        snapshot(cfg) == before,
+        "rejection must preserve every file, including contacts and redemption state"
+    );
+}
+
+#[test]
+fn na0780_history_restart_clear_rotation_and_unavailable_storage() {
+    let _g = guard();
+    let cfg = fresh("ownership_history");
+    set_env_once(&cfg);
+    common::init_mock_vault(&cfg);
+    qsc::vault::unlock_with_passphrase(common::TEST_MOCK_VAULT_PASSPHRASE).unwrap();
+    qsc::set_vault_unlocked(true);
+    qsc::identity::identity_ensure("self").unwrap();
+    let relay = common::start_qsl_server(2 * 1024 * 1024, 512, None);
+    let codes: Vec<_> = (0..3)
+        .map(|_| qsc::facade::invite_create(None, relay.base_url(), 3600, None).unwrap())
+        .collect();
+    for code in &codes {
+        assert_self_without_effects(&cfg, code);
+    }
+
+    // A fresh process must consult persisted ownership, not an in-memory latest code.
+    let before = snapshot(&cfg);
+    let out = common::qsc_std_command()
+        .env("QSC_CONFIG_DIR", &cfg)
+        .args([
+            "invite",
+            "redeem",
+            "--code",
+            &codes[0],
+            "--alias",
+            "restart-self",
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        !out.status.success(),
+        "fresh process must reject self invitation"
+    );
+    let output = format!(
+        "{}{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(
+        output.contains("invite_self"),
+        "restart must fail for ownership"
+    );
+    assert!(snapshot(&cfg) == before, "restart rejection must not write");
+
+    // A live listener records any TCP attempt, independently of relay response/errors.
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    listener.set_nonblocking(true).unwrap();
+    let mut payload = qsc::invite::decode_invite_code(&codes[0]).unwrap();
+    payload.relay_ep = format!("http://{}", listener.local_addr().unwrap());
+    let probe = qsc::invite::encode_invite_code(&payload).unwrap();
+    assert_self_without_effects(&cfg, &probe);
+    assert!(
+        matches!(listener.accept(), Err(e) if e.kind() == std::io::ErrorKind::WouldBlock),
+        "self rejection opened a connection"
+    );
+
+    let original = qsc::vault::secret_get("invite.created").unwrap().unwrap();
+    let mut old: serde_json::Value = serde_json::from_str(&original).unwrap();
+    for row in old["invites"].as_object_mut().unwrap().values_mut() {
+        let row = row.as_object_mut().unwrap();
+        for key in ["revoke_token", "created_unix", "label"] {
+            row.remove(key);
+        }
+        row.insert("state".into(), "Creating".into());
+    }
+    qsc::vault::secret_set("invite.created", &old.to_string()).unwrap();
+    for code in &codes {
+        assert_self_without_effects(&cfg, code);
+    }
+
+    // Exercise the actual clear verb, not just a fabricated empty UI list.
+    for row in qsc::invite::invite_list().unwrap() {
+        qsc::invite::invite_clear(&row.invite_id).unwrap();
+    }
+    for code in &codes {
+        assert_self_without_effects(&cfg, code);
+    }
+    assert_self_without_effects(&cfg, &probe);
+    assert!(matches!(listener.accept(), Err(e) if e.kind() == std::io::ErrorKind::WouldBlock));
+
+    // Lock between preflight and redeem: handler must recheck lock and preserve storage.
+    qsc::set_vault_unlocked(false);
+    let before = snapshot(&cfg);
+    assert_eq!(
+        qsc::facade::invite_preflight(&probe, None)
+            .err()
+            .map(|e| e.as_wire()),
+        Some("locked")
+    );
+    assert_eq!(
+        qsc::invite::invite_redeem(&probe, "locked", None).err(),
+        Some("vault_locked")
+    );
+    assert!(snapshot(&cfg) == before);
+    qsc::set_vault_unlocked(true);
+
+    // Corrupt history refuses even when the current public commitment would match.
+    qsc::vault::secret_set("invite.created", "not-json").unwrap();
+    let before = snapshot(&cfg);
+    assert!(qsc::facade::invite_preflight(&probe, None).is_err());
+    assert_eq!(
+        qsc::invite::invite_redeem(&probe, "corrupt", None).err(),
+        Some("invite_malformed")
+    );
+    assert!(snapshot(&cfg) == before);
+    qsc::vault::secret_set("invite.created", "{\"invites\":{}}").unwrap();
+
+    let public_path = cfg.join("identities/self_self.json");
+    let public = fs::read(&public_path).unwrap();
+    let mut legacy: serde_json::Value = serde_json::from_slice(&public).unwrap();
+    legacy.as_object_mut().unwrap().remove("sig_pk");
+    for bytes in [
+        legacy.to_string().into_bytes(),
+        b"not-json".to_vec(),
+        b"{\"kem_pk\":[],\"sig_pk\":[]}".to_vec(),
+    ] {
+        fs::write(&public_path, bytes).unwrap();
+        let before = snapshot(&cfg);
+        assert_eq!(
+            qsc::facade::invite_preflight(&probe, None)
+                .err()
+                .map(|e| e.as_wire()),
+            Some("store_unavailable")
+        );
+        assert_eq!(
+            qsc::invite::invite_redeem(&probe, "legacy", None).err(),
+            Some("invite_ownership_unavailable")
+        );
+        assert!(
+            snapshot(&cfg) == before,
+            "no key upgrade or migration during ownership reads"
+        );
+    }
+    // Retained mint IDs remain sufficient even if old public records lack signing keys.
+    qsc::vault::secret_set("invite.created", &original).unwrap();
+    assert_self_without_effects(&cfg, &probe);
+    fs::write(&public_path, &public).unwrap();
+
+    let rotate = common::qsc_std_command()
+        .env("QSC_CONFIG_DIR", &cfg)
+        .args(["identity", "rotate", "--confirm"])
+        .output()
+        .unwrap();
+    assert!(rotate.status.success(), "fixture identity rotation");
+    assert_self_without_effects(&cfg, &probe);
+    qsc::vault::secret_set("invite.created", "{\"invites\":{}}").unwrap();
+    let before = snapshot(&cfg);
+    assert!(
+        qsc::facade::invite_preflight(&probe, None).is_ok(),
+        "documented limit: rotated identity and erased history cannot recognize the old code"
+    );
+    assert!(snapshot(&cfg) == before);
+    fs::remove_file(&public_path).unwrap();
+    let before = snapshot(&cfg);
+    assert!(qsc::facade::invite_preflight(&probe, None).is_ok());
+    assert!(
+        snapshot(&cfg) == before,
+        "missing identity must not be generated"
+    );
+    assert!(qsc::facade::invite_preflight("bad-code", None).is_err());
+    assert!(matches!(listener.accept(), Err(e) if e.kind() == std::io::ErrorKind::WouldBlock));
+    qsc::set_vault_unlocked(false);
+}

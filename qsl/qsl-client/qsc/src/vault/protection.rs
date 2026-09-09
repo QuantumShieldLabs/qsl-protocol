@@ -22,7 +22,9 @@
 // device-in-hand path THROUGH the app; an offline copy of the vault file is defended
 // only by passphrase strength + Argon2id.
 
-use super::{set_process_passphrase, unlock_with_passphrase, VaultSession};
+use super::{
+    authenticate_with_passphrase, finish_ownership_unlock, set_process_passphrase, VaultSession,
+};
 use crate::fs_store::{
     config_dir, enforce_safe_parents, ensure_store_layout, fsync_dir_best_effort,
     lock_store_exclusive, lock_store_shared, write_atomic,
@@ -153,7 +155,8 @@ pub fn unlock_guarded_at(
             retry_after_s: wait,
         });
     }
-    if unlock_with_passphrase(passphrase).is_ok() {
+    if let Ok(session) = authenticate_with_passphrase(passphrase) {
+        finish_ownership_unlock(session)?;
         // Best-effort reset, the historical semantics: written only when there is
         // something to reset, and a persist failure must not undo the unlock.
         if state.failed_unlocks != 0 || state.last_failure_unix_s.is_some() {

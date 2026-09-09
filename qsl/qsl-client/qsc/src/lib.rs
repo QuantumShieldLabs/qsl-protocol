@@ -288,6 +288,11 @@ pub fn identity_rotate(self_label: &str, confirm: bool, reset_peers: bool) -> Cl
         );
         return Err(CliError::code("identity_rotate_confirm_required"));
     }
+    let (dir, source) =
+        fs_store::config_dir().map_err(|_| CliError::code(invite::INVITE_OWNERSHIP_UNAVAILABLE))?;
+    let _ownership_lock = fs_store::lock_store_exclusive(&dir, source)
+        .map_err(|_| CliError::code(invite::INVITE_OWNERSHIP_UNAVAILABLE))?;
+    invite::retain_ownership().map_err(CliError::code)?;
     let (kem_pk, kem_sk) = match identity_rotate_kem_keypair() {
         Ok(v) => v,
         Err(e) => {

@@ -41,26 +41,33 @@ The redemption handler repeats the same ownership check before saving redemption
 state, contacting the relay, or creating a pending contact. Direct engine callers
 receive `invite_self`. Do not cache preflight success across edits or lock changes.
 
-Ownership uses all retained mint IDs regardless of display state, then compares
-the invitation's commitment with the selected existing public identity. Clearing
-creating rows does not hide invitations minted with the current keys. These reads
-do not create, migrate, or rotate keys. A locked vault, unreadable mint store, or
-invalid/incomplete public identity refuses the check; a legacy public record with
-no signing key cannot establish commitment ownership without retained mint history.
-The facade reports unavailable public ownership data as `store_unavailable`.
+Ownership is retained separately from the visible invitation list in the encrypted
+vault: a versioned set of minted IDs and public identity commitments, with no
+invite blobs, capabilities, private keys, labels, endpoints or timestamps. Minting
+persists ownership before its first network attempt and before exporting a code.
+Unlock, clear/revoke and rotation seed recoverable existing records and public
+identities before discard. Clear/revoke, restart and identity rotation/deletion
+within the same vault preserve recognition. Full vault erase removes the history.
+Independent public identity files surviving a vault-only erase can still identify
+invitations belonging to those keys; they are not erased by this change.
 
-If both an old mint record and its original public identity have been removed
-(for example, cleared history followed by identity rotation), available storage
-cannot establish ownership of that old invitation. Missing identity plus absent
-mint history has the same limitation. Preflight success means only that available
-local data did not identify a self invitation. It does not authenticate the code,
-check relay availability, or replace redemption's expiry, commitment, signature,
-and single-use checks. The existing single-identity label resolution still applies.
-Local fixture tests do not establish two-device acceptance.
+Both preflight and redemption use the same read-only ownership predicate. They
+create or migrate no keys and do not bootstrap history. Locked or corrupt ownership
+storage fails closed; `invite_ownership_unavailable` maps to `store_unavailable`.
+Failed retention aborts mint/clear/rotation; post-authentication retention failures
+leave the app locked without counting a correct password as a failed attempt.
+Stale vault sessions preserve the latest ownership record. No history is emitted
+outside the vault; it grows with minted IDs and identities until vault erase.
 
-Complete historical recognition would require additional retained ownership
-information, for example historical public identity commitments or minted IDs
-that survive clear, rotation and deletion. Choosing retention, privacy and
-explicit deletion behavior requires separate design approval; this milestone
-adds no such storage and does not fully satisfy rejection of every historically
-self-minted invitation.
+Information already deleted before this change cannot be recovered. An old code
+whose mint record and original public identity were both previously removed may
+remain unrecognized. KEM-only legacy public records cannot reconstruct a missing
+signing-key commitment; recoverable mint IDs are still retained. Restoring an old
+vault backup also restores its older history; no rollback-detection redesign is
+included.
+
+Preflight success means only that available local data did not identify a self
+invitation. It does not authenticate the code, check relay availability, or replace
+redemption's expiry, commitment, signature and single-use checks. The existing
+single-identity label resolution still applies. Desktop integration and observed
+two-device acceptance remain separate work.

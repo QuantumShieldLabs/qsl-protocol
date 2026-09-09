@@ -470,7 +470,8 @@ pub fn identity_read_self_public(
     }
     let (dir, source) = config_dir()?;
     let identities = identities_dir(&dir);
-    ensure_dir_secure(&identities, source)?;
+    // Public lookup is read-only, including a missing identities directory.
+    enforce_safe_parents(&identities, source)?;
     let path = identity_self_path(&dir, self_label);
     if !path.exists() {
         return Ok(None);
@@ -518,7 +519,8 @@ pub(crate) fn identity_resolved_self_label(requested: Option<&str>) -> Result<St
     }
     let (dir, source) = config_dir()?;
     let identities = identities_dir(&dir);
-    ensure_dir_secure(&identities, source)?;
+    // Public lookup is read-only, including a missing identities directory.
+    enforce_safe_parents(&identities, source)?;
     let mut existing: Vec<String> = Vec::new();
     if let Ok(entries) = std::fs::read_dir(&identities) {
         for entry in entries.flatten() {

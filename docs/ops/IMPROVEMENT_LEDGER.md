@@ -8190,3 +8190,16 @@ DEBUG_LOG_TYPED_ALLOWLIST_FLOWN_PASS
 The Director's final-build disposition satisfies NA-0779 acceptance on desktop ebd92e3ee230, merged in #56 as 48b031574ac8. Operator observations: two Copies produced different nonzero labels; lock/wrong-passphrase/successful-unlock was performed; invalid-directory treatment passed; the real A-to-B exchange left both connections green. The Director verified the lock export's contiguous gw.lock then successful gw.unlock boundary without retained failed-attempt events; A's 115 contiguous events with handshake_complete and nothing/offered, both out=ok; B's 77 contiguous events, sequences 53–129, with handshake_complete and nothing/finished, both out=ok. All three had valid footer digests and the correct build. Event-line scans reported no URLs, IPv4 addresses, sensitive-value keys or long hexadecimal values. This is bounded export evidence, not a general security certification. Legacy compatibility admission and B's peer_confirmed=false remain inherited findings, not fixes.
 
 N-14 remains an explicit source-documentation deferral: the sink callback holds the sink mutex and must not emit a marker. No source, test or linter change is included. ENG-0349 legacy suite admission and ENG-0350 peer-confirmation wording remain open; accepted debug-log evidence does not close those findings. G1–G3 instrumentation debt and H1/H7/H2/H3 invitation findings retain their recorded dispositions and approved successor boundaries.
+
+
+### ENG-0355 — self-invitation ownership must survive visible-history and identity removal
+
+- Type: defect. Status: implemented in draft PR #1824; engine verification recorded on the PR, desktop acceptance pending.
+- Originating lane: NA-0780. Last lane: NA-0780. Last-updated: 2026-09-09.
+- Finding: visible mint records plus the current identity lose recognition after
+  clear and rotation/deletion. The regression reproduces that acceptance gap.
+- Approved fix: retain minted IDs/public commitments separately inside the encrypted
+  vault before export/discard; shared read-only rejection, fail-closed storage errors,
+  history removed by full vault erase. No wire/crypto change.
+- Limit: already-deleted ownership and older-backup rollback are not recovered;
+  desktop integration and observed two-device acceptance remain outstanding.

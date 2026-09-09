@@ -189,8 +189,7 @@ pub fn unlock_with_passphrase_env(passphrase_env: Option<&str>) -> Result<(), &'
         return out;
     }
 
-    let (_vault_path, runtime) = load_vault_runtime_with_passphrase(None)?;
-    decrypt_payload(&runtime).map(|_| ())
+    finish_ownership_unlock(open_session(None)?)
 }
 
 pub fn unlock_with_passphrase_file(path: &Path) -> Result<(), &'static str> {
@@ -201,15 +200,62 @@ pub fn unlock_with_passphrase_file(path: &Path) -> Result<(), &'static str> {
 }
 
 pub fn unlock_with_passphrase(passphrase: &str) -> Result<(), &'static str> {
+    finish_ownership_unlock(authenticate_with_passphrase(passphrase)?)
+}
+
+// Keep post-authentication storage failures out of the failed-password counter.
+fn finish_ownership_unlock(mut session: VaultSession) -> Result<(), &'static str> {
+    if retain_ownership_in_session(&mut session, None).is_err() {
+        protection::lock(None);
+        return Err(crate::invite::INVITE_OWNERSHIP_UNAVAILABLE);
+    }
+    Ok(())
+}
+
+fn authenticate_with_passphrase(passphrase: &str) -> Result<VaultSession, &'static str> {
     if passphrase.is_empty() {
         return Err("vault_locked");
     }
-    let (_vault_path, runtime) = load_vault_runtime_with_passphrase(Some(passphrase))?;
-    let out = decrypt_payload(&runtime).map(|_| ());
-    if out.is_ok() {
-        set_process_passphrase(Some(passphrase));
+    let session = open_session(Some(passphrase))?;
+    set_process_passphrase(Some(passphrase));
+    Ok(session)
+}
+
+pub(crate) fn retain_invitation_ownership(
+    mint: Option<([u8; 16], [u8; 32])>,
+) -> Result<(), &'static str> {
+    retain_ownership_in_session(&mut open_session(None)?, mint)
+}
+
+fn retain_ownership_in_session(
+    session: &mut VaultSession,
+    mint: Option<([u8; 16], [u8; 32])>,
+) -> Result<(), &'static str> {
+    let (dir, source) = crate::fs_store::config_dir().map_err(store_err_marker)?;
+    let _lock = lock_store_exclusive(&dir, source).map_err(store_err_marker)?;
+    // Re-read under the lock using the already authenticated key, not another KDF.
+    let bytes = fs::read(&session.vault_path).map_err(|_| "vault_missing")?;
+    session.payload = decrypt_payload(&VaultRuntime {
+        envelope: parse_envelope(&bytes)?,
+        key: session.key,
+    })?;
+    let update = crate::invite::updated_ownership(
+        session
+            .payload
+            .secrets
+            .get(crate::invite::OWNERSHIP_SECRET_KEY)
+            .map(String::as_str),
+        session
+            .payload
+            .secrets
+            .get(crate::store::INVITES_SECRET_KEY)
+            .map(String::as_str),
+        mint,
+    )?;
+    if let Some(history) = update {
+        persist_session_with_ownership(session, Some(history))?;
     }
-    out
+    Ok(())
 }
 
 /// NA-0649 (D585 B1): in-process vault creation for the GUI — the passphrase arrives
@@ -406,24 +452,44 @@ pub fn perf_snapshot() -> (u64, u64, u64, u64) {
 // phase; dormant until the GUI consumes it (dead_code allowance retained meanwhile).
 #[allow(dead_code)]
 pub fn persist_session(session: &mut VaultSession) -> Result<(), &'static str> {
+    persist_session_with_ownership(session, None)
+}
+
+// Only the locked ownership transaction may supply an updated ownership record.
+fn persist_session_with_ownership(
+    session: &mut VaultSession,
+    ownership_update: Option<String>,
+) -> Result<(), &'static str> {
+    let (dir, source) = crate::fs_store::config_dir().map_err(store_err_marker)?;
+    let _lock = lock_store_exclusive(&dir, source).map_err(store_err_marker)?;
+    // Even another process may have appended history since this session opened.
+    // Preserve the authoritative encrypted record, never the session's stale copy.
+    let bytes = fs::read(&session.vault_path).map_err(|_| "vault_missing")?;
+    let latest = decrypt_payload(&VaultRuntime {
+        envelope: parse_envelope(&bytes)?,
+        key: session.key,
+    })?;
+    let ownership = latest
+        .secrets
+        .get(crate::invite::OWNERSHIP_SECRET_KEY)
+        .cloned();
     let write_epoch = VAULT_WRITE_EPOCH.load(Ordering::Relaxed);
     if write_epoch != session.write_epoch_seen {
-        let latest_payload = fs::read(&session.vault_path)
-            .ok()
-            .and_then(|bytes| parse_envelope(&bytes).ok())
-            .and_then(|envelope| {
-                decrypt_payload(&VaultRuntime {
-                    envelope,
-                    key: session.key,
-                })
-                .ok()
-            });
-        if let Some(mut latest) = latest_payload {
-            for (key, value) in session.payload.secrets.iter() {
-                latest.secrets.insert(key.clone(), value.clone());
-            }
-            session.payload = latest;
+        let mut latest = latest;
+        for (key, value) in session.payload.secrets.iter() {
+            latest.secrets.insert(key.clone(), value.clone());
         }
+        session.payload = latest;
+    }
+    session
+        .payload
+        .secrets
+        .remove(crate::invite::OWNERSHIP_SECRET_KEY);
+    if let Some(history) = ownership_update.or(ownership) {
+        session
+            .payload
+            .secrets
+            .insert(crate::invite::OWNERSHIP_SECRET_KEY.to_string(), history);
     }
     let plaintext =
         serde_json::to_vec(&session.payload).map_err(|_| "vault_payload_serialize_failed")?;
@@ -460,7 +526,8 @@ pub fn persist_session(session: &mut VaultSession) -> Result<(), &'static str> {
         &ciphertext,
     );
     // NA-0693 (D627 §3.2): MECHANICAL redirect only, forced by the duplicate-writer
-    // deletion — no lock and no semantic change on this dead path. The refuse-not-merge
+    // deletion. NA-0780 now locks and preserves authoritative ownership history;
+    // unrelated secrets retain the existing merge. The refuse-not-merge
     // semantic for the epoch mismatch above is DECIDED and its code rides the Slice-4
     // GUI-wiring lane, which consumes `VAULT_WRITE_EPOCH` (the reason the epoch is kept).
     let (_, _, source) = vault_path_resolved()?;

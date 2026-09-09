@@ -875,6 +875,19 @@ pub fn invite_create_at(
         return Err(INVITE_SOFT_CAP_REACHED);
     }
 
+    retain_ownership()?;
+    let kp = crate::identity::identity_self_kem_keypair(self_label)
+        .map_err(|_| "identity_secret_unavailable")?;
+    let bundle = canonical_bundle_bytes(&kp.kem_pk, &kp.sig_pk)?;
+    let commit = commitment(&bundle);
+
+    let invite_id = csprng_16();
+    let cap = csprng_16();
+    let invite_id_wire = wire_id(&invite_id);
+    let cap_wire = wire_id(&cap);
+
+    retain_ownership_with_mint(Some((invite_id, commit)))?;
+
     // F3: pre-clamp against the relay's advertised ceiling so the SIGNED expiry equals the
     // STORED expiry. The probe is an OPTIMISATION -- if it fails we proceed, because the
     // CONTRACT is that a clamp is normal and never an error.
@@ -885,16 +898,6 @@ pub fn invite_create_at(
         _ => 0,
     };
     let expiry = resolve_expiry(now, ttl_secs, advertised);
-
-    let kp = crate::identity::identity_self_kem_keypair(self_label)
-        .map_err(|_| "identity_secret_unavailable")?;
-    let bundle = canonical_bundle_bytes(&kp.kem_pk, &kp.sig_pk)?;
-    let commit = commitment(&bundle);
-
-    let invite_id = csprng_16();
-    let cap = csprng_16();
-    let invite_id_wire = wire_id(&invite_id);
-    let cap_wire = wire_id(&cap);
 
     let payload = InvitePayload {
         ver: INVITE_VER,
@@ -952,6 +955,10 @@ pub fn invite_revoke(invite_id_wire: &str) -> Result<(), &'static str> {
     if !vault_unlocked() {
         return Err("vault_locked");
     }
+    let (dir, source) = crate::fs_store::config_dir().map_err(|_| INVITE_OWNERSHIP_UNAVAILABLE)?;
+    let ownership_lock = crate::fs_store::lock_store_exclusive(&dir, source)
+        .map_err(|_| INVITE_OWNERSHIP_UNAVAILABLE)?;
+    retain_ownership()?;
     let mut store = invite_store_load()?;
     let rec = store
         .invites
@@ -962,6 +969,7 @@ pub fn invite_revoke(invite_id_wire: &str) -> Result<(), &'static str> {
     // Local first: even if the relay call fails, this client will refuse the invite.
     rec.state = InviteState::Revoked;
     invite_store_save(&store)?;
+    drop(ownership_lock);
     crate::transport::invite_revoke_call(&relay_ep, invite_id_wire, &token)
 }
 
@@ -984,13 +992,17 @@ pub fn invite_revoke(invite_id_wire: &str) -> Result<(), &'static str> {
 /// substitute: it is point-in-time, and a caller outside that gate reopens the window.
 ///
 /// ⚠ **A local tidy, not a repair — and the marker is the trace that survives it.** Deleting
-/// the row removes the only local evidence the orphan existed, so the verb emits one marker
+/// the row retains its ID in encrypted ownership history. The verb still emits one marker
 /// carrying the id, the prior state and the record's age. **The label NEVER rides it**: the
 /// marker layer redacts by value SHAPE, and that redactor is measurably blind to a human name.
 pub fn invite_clear(invite_id_wire: &str) -> Result<(), &'static str> {
     if !vault_unlocked() {
         return Err("vault_locked");
     }
+    let (dir, source) = crate::fs_store::config_dir().map_err(|_| INVITE_OWNERSHIP_UNAVAILABLE)?;
+    let ownership_lock = crate::fs_store::lock_store_exclusive(&dir, source)
+        .map_err(|_| INVITE_OWNERSHIP_UNAVAILABLE)?;
+    retain_ownership()?;
     let mut store = invite_store_load()?;
     let rec = store.invites.get(invite_id_wire).ok_or(INVITE_NOT_FOUND)?;
     // Creating ONLY. Active has a token and Revoke is its control; Redeemed is a real contact's
@@ -1005,6 +1017,7 @@ pub fn invite_clear(invite_id_wire: &str) -> Result<(), &'static str> {
     let age_s = now_unix_s().saturating_sub(rec.created_unix).to_string();
     store.invites.remove(invite_id_wire);
     invite_store_save(&store)?;
+    drop(ownership_lock);
     crate::output::emit_marker(
         "invite_cleared",
         None,
@@ -1024,10 +1037,115 @@ pub fn invite_list() -> Result<Vec<InviteRecord>, &'static str> {
     Ok(invite_store_load()?.invites.values().cloned().collect())
 }
 
+// Only existing public commitments and minted IDs live in this encrypted record.
+// No code, capability, relay address, label, timestamp or private key is retained.
+pub(crate) const OWNERSHIP_SECRET_KEY: &str = "invite.ownership";
+
+#[derive(Serialize, Deserialize, Default, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+struct OwnershipHistory {
+    version: u8,
+    minted_ids: std::collections::BTreeSet<[u8; 16]>,
+    commitments: std::collections::BTreeSet<[u8; 32]>,
+}
+
+fn ownership_parse(raw: Option<&str>) -> Result<OwnershipHistory, &'static str> {
+    match raw {
+        None => Ok(OwnershipHistory {
+            version: 1,
+            ..Default::default()
+        }),
+        Some(raw) => {
+            let history: OwnershipHistory =
+                serde_json::from_str(raw).map_err(|_| INVITE_OWNERSHIP_UNAVAILABLE)?;
+            if history.version != 1 {
+                return Err(INVITE_OWNERSHIP_UNAVAILABLE);
+            }
+            Ok(history)
+        }
+    }
+}
+
+/// Called after successful authentication and before operations discard recoverable
+/// records. It reads public identities only; it never generates or migrates keys.
+pub(crate) fn retain_ownership() -> Result<(), &'static str> {
+    retain_ownership_with_mint(None)
+}
+
+fn retain_ownership_with_mint(mint: Option<([u8; 16], [u8; 32])>) -> Result<(), &'static str> {
+    crate::vault::retain_invitation_ownership(mint).map_err(|_| INVITE_OWNERSHIP_UNAVAILABLE)
+}
+
+// Computes an update from authenticated records and read-only public identities.
+// The vault owns the transaction lock and persistence.
+pub(crate) fn updated_ownership(
+    raw: Option<&str>,
+    mints: Option<&str>,
+    mint: Option<([u8; 16], [u8; 32])>,
+) -> Result<Option<String>, &'static str> {
+    let mut history = ownership_parse(raw)?;
+    let before = serde_json::to_string(&history).map_err(|_| INVITE_OWNERSHIP_UNAVAILABLE)?;
+    let store: InviteStore = match mints {
+        None => InviteStore::default(),
+        Some(raw) => serde_json::from_str(raw).map_err(|_| INVITE_MALFORMED)?,
+    };
+    for id in store.invites.keys() {
+        history
+            .minted_ids
+            .insert(wire_id_parse(id).map_err(|_| INVITE_OWNERSHIP_UNAVAILABLE)?);
+    }
+    let (dir, _) = crate::fs_store::config_dir().map_err(|_| INVITE_OWNERSHIP_UNAVAILABLE)?;
+    let identities = crate::identity::identities_dir(&dir);
+    let entries = match std::fs::read_dir(&identities) {
+        Ok(entries) => Some(entries),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => None,
+        Err(_) => return Err(INVITE_OWNERSHIP_UNAVAILABLE),
+    };
+    if let Some(entries) = entries {
+        for entry in entries {
+            let entry = entry.map_err(|_| INVITE_OWNERSHIP_UNAVAILABLE)?;
+            let name = entry.file_name();
+            let Some(label) = name
+                .to_str()
+                .and_then(|n| n.strip_prefix("self_"))
+                .and_then(|n| n.strip_suffix(".json"))
+            else {
+                continue;
+            };
+            let public = crate::identity::identity_read_self_public(label)
+                .map_err(|_| INVITE_OWNERSHIP_UNAVAILABLE)?
+                .ok_or(INVITE_OWNERSHIP_UNAVAILABLE)?;
+            if public.kem_pk.len() != runtime_pq_kem_public_key_bytes() {
+                return Err(INVITE_OWNERSHIP_UNAVAILABLE);
+            }
+            // A valid legacy KEM-only record cannot reconstruct a signed-invite
+            // commitment. Preserve available mint IDs, without upgrading the keys.
+            if public.sig_pk.is_empty() {
+                continue;
+            }
+            if public.sig_pk.len() != runtime_pq_sig_public_key_bytes() {
+                return Err(INVITE_OWNERSHIP_UNAVAILABLE);
+            }
+            history
+                .commitments
+                .insert(commitment(&canonical_bundle_bytes(
+                    &public.kem_pk,
+                    &public.sig_pk,
+                )?));
+        }
+    }
+    if let Some((id, commit)) = mint {
+        history.minted_ids.insert(id);
+        history.commitments.insert(commit);
+    }
+    let after = serde_json::to_string(&history).map_err(|_| INVITE_OWNERSHIP_UNAVAILABLE)?;
+    Ok((after != before).then_some(after))
+}
+
 /// Local ownership only: success does not authenticate an invitation or its sender.
-/// Reads every retained mint, then the selected existing public identity. Never creates
-/// or migrates keys. Deleted mint history plus a rotated/deleted public identity cannot
-/// establish ownership of an old code; callers must not interpret that absence as trust.
+/// Reads encrypted ownership history, visible mints and existing public identity.
+/// Never writes, creates or migrates keys. Information deleted before retention was
+/// installed cannot be recovered; absence of ownership is not authentication.
 pub fn invite_preflight(code: &str, self_label: Option<&str>) -> Result<(), &'static str> {
     if !vault_unlocked() {
         return Err("vault_locked");
@@ -1048,8 +1166,17 @@ fn reject_self_invitation(payload: &InvitePayload, self_label: &str) -> Result<(
 /// The shared predicate for preflight and enforcement; mint history is independent of
 /// UI state, expiry and the identity currently selected after rotation.
 fn invitation_is_local(payload: &InvitePayload, self_label: &str) -> Result<bool, &'static str> {
-    let store = invite_store_load()?;
-    if store.invites.contains_key(&wire_id(&payload.invite_id)) {
+    let session = crate::vault::open_session(None).map_err(|_| INVITE_OWNERSHIP_UNAVAILABLE)?;
+    let raw = crate::vault::session_get(&session, OWNERSHIP_SECRET_KEY)?;
+    let history = ownership_parse(raw.as_deref())?;
+    let store: InviteStore = match crate::vault::session_get(&session, INVITES_SECRET_KEY)? {
+        None => InviteStore::default(),
+        Some(raw) => serde_json::from_str(&raw).map_err(|_| INVITE_MALFORMED)?,
+    };
+    if history.minted_ids.contains(&payload.invite_id)
+        || history.commitments.contains(&payload.commit)
+        || store.invites.contains_key(&wire_id(&payload.invite_id))
+    {
         return Ok(true);
     }
     let Some(public) = crate::identity::identity_read_self_public(self_label)

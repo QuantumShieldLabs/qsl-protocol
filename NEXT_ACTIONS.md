@@ -6,7 +6,7 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0779 | HIGHEST_NA=0780 | HIGHEST_D=1422 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0780 | HIGHEST_NA=0780 | HIGHEST_D=1422 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 <!-- prior: STATE: READY=none (NA-0778 DONE 2026-09-05; the successor -- the ladder program's first lane, the debug log -- is promoted by its own kickoff, RULING_NA0778_016 R103) | HIGHEST_NA=0778 | HIGHEST_D=1421 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0779 READY for **D-1422** -- **THE DEBUG LOG LANE**, the ladder program's first: an extensive, opt-in, redacted-by-construction diagnostic log for the operator, the Director and outside experts, formalized and promoted in one stop; the apparatus fix (qsl-ops PR #1, RULING_NA0778_017 R116) done first; the three audits landed as filings ENG-0300..ENG-0329 with the Director's proposed severities the operator ratifies by merging; ENG-0269 CLOSED by transcription; WF-0086's disposition measured and proposed; row 485 and two datapoints; the cadence's C2' recorded as an operator decision. Ids re-derived at the edit on declaring forms across all three input sets, WF-0068, both controls; the NA-9999 sentinel classified, not counted; the open-PR arm vacuous and said so.) -->
 <!-- prior: STATE: READY=NA-0778 | HIGHEST_NA=0778 | HIGHEST_D=1421 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0778 DONE, class INVITATIONS_PAGE_FLOWN_SHOW_ONCE_HELD_PASS, RULING_NA0778_016 R104) -->
 <!-- prior: STATE: READY=NA-0777 | HIGHEST_NA=0777 | HIGHEST_D=1420 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0778 READY for **D-1421** — **THE INVITATIONS LANE**: the Settings > Invitations page and the Contacts-rail block, two measurements sealed before the screens, and the records act four lanes left owed: NA-0777 -> DONE, NA-0772 / NA-0774 -> DONE, ENG-0280 CLOSED, ENG-0250 / ENG-0251 / ENG-0252 CLOSED by ruling, NA-0776's class declared, WF-0104 filed, NA-0771's as-built recovered, the record-push cadence recorded as an operator decision. Ids re-derived at the edit on declaring forms across all three input sets, WF-0068; the NA-9999 sentinel classified, not counted.) -->
@@ -37715,8 +37715,8 @@ Owner: Executor seat (Claude Code) · Goals: G4
 
 ### NA-0779 — THE DEBUG LOG LANE (the ladder program's first lane): AN EXTENSIVE, OPT-IN, REDACTED-BY-CONSTRUCTION DIAGNOSTIC LOG FOR THE OPERATOR, THE DIRECTOR AND OUTSIDE CODE/CRYPTO EXPERTS -- THE LADDER'S OBSERVABILITY, BUILT BEFORE ANY RUNG; WITH THE APPARATUS FIX THAT LETS THIS LANE CLOSE AND THE RECORDS RIDERS THAT WOULD OTHERWISE BE THEIR OWN LANE (Director's kickoff `KICKOFF_debug_log_lane_20260905.md` sha256 `0676fd5d29f2d8448fea11950270e490f30d6878b69da627fd9dfe60f2d33264`, 13437 B, sha-VERIFIED against the Director's value BEFORE being read and banked 444 under `state/operator/NA-0779/`; governed by `RULING_NA0778_017_20260905.md` sha256 `5ffdc9d2b52d1e779adaa85984feff09744b912614d28d0e194d5b667672aeff` and the four RBANKs named in `D-1422`; formalized and promoted in ONE stop, `STOP_NA0779_001`, banked after this PR is opened and named by sha in `state/operator/relay/LATEST.md`)
 
-Status: READY (D-1422)
-THE STATUS TOKEN IS BARE AND UNBOLDED ON PURPOSE. `scripts/ci/qsl_evidence_helper.py queue` reads `^\s*-?\s*Status:\s*([A-Z_]+)\b` under a `^### (NA-\d+) — ` heading and requires EXACTLY ONE lane whose bare token is `READY` (`WF-0090`). Measured at this edit: `READY_COUNT 0` on main at `07612065` (NA-0778 reads `DONE`) and `READY_COUNT 1` with this block. The `STATE` line reads `READY=NA-0779`. Promotion-first shape (`SR-04`/`D-1330`): this promotion lands FIRST, the block born `READY`; the lane's own work follows it.
+Status: DONE (D-1422; closeout verified 2026-09-09)
+Historical kickoff and implementation record follows; the current closeout disposition is below.
 Owner: Executor seat (Claude Code) . Goals: G4
 
 WHAT THIS BUYS (SR-03). The ladder's observability, first, because every later rung is diagnosed with it. NA-0778 could capture marker COUNTS only (the app exposes no marker text); a flight stall took a day to explain; a CI-only race could not be named by its evidence. The operator's order, blessed twice: "an extensive debugging log for you, me and other code/crypto experts." Not a detour from the ladder: `ORDER_ladder_climb` R3 step 4 already placed the diagnostics lane BEFORE messaging with its privacy constraint in the brief; the operator's 09-04 bless moves it to the front. And `AMENDMENT_1` A3 -- a fetched frame the pass declines "MUST emit that fact on a surface a human can reach" -- has had NO SURFACE until this lane builds one.
@@ -37774,20 +37774,80 @@ NA-0779 final-build result, Director disposition 2026-09-09:
 
 DEBUG_LOG_TYPED_ALLOWLIST_FLOWN_PASS
 
-Acceptance is satisfied under RBANK_NA0779_final_build_acceptance_20260909.md. Evidence boundaries and local-export custody are recorded separately in the as-built. This branch completes the authorized records edits; the records PR merge, final durable record-push proof and freeze remain pending. NA-0779 retains the sole READY token until that handoff. No successor implementation is authorized.
+Acceptance is satisfied under RBANK_NA0779_final_build_acceptance_20260909.md; the bounded result and custody are recorded in the [as-built](docs/governance/evidence/NA-0779_as_built.md). Closeout is complete: [protocol records PR #1822](https://github.com/QuantumShieldLabs/qsl-protocol/pull/1822) merged as `dddb28ce6dbd`, following [desktop PR #56](https://github.com/QuantumShieldLabs/qsl-desktop/pull/56) at `48b031574ac8`. The approved C2 disposition was followed by the unchanged installed-hook durable-record push; bare remote verification confirmed qsl-record main `66eba7455045` on 2026-09-09. The seat is frozen. This promotion consumes that verified closeout; it does not reopen the checkout, evidence, or historical records.
 
 ### NA-0780 — Invitation reliability
 
-Status: APPROVED
+Status: READY
 
-Approved for placement immediately after NA-0779 closeout; held from READY and implementation until post-merge closeout gates complete. Approval: RBANK_NA0780_invitation_reliability_approved_20260909.md. Only the operative status wording updates the exact banked proposal; its scope, design, tests and entry gates are unchanged.
+Operator-approved successor immediately after NA-0779, promoted by this governance PR after verified closeout. The approved scope and safeguards below are retained. This PR changes the queue and publishes the implementation boundary; it contains no implementation. The first milestone is bounded below; other invitation repairs remain subject to the design gate.
 - Goals: G4
 - Impact: make invitation completion and recovery reliable and diagnosable.
 - Scope: reject self-minted invitations at the connect window and underlying handler before redemption side effects; address simultaneous-invitation deadlock, refused-frame disposal, necessary invitation-path instrumentation and stuck-contact recovery.
 - Design gate: analyze handlers, pending roles, mailbox ownership, leases and recovery transitions before selecting repairs. Distinct invitation IDs select distinct slots; two accept calls alone do not prove duplicate pulls from one mailbox. No protocol repair or correlator design is selected.
 - Tests/Vectors: failing reproductions first for both rejection boundaries, simultaneous invitations, refused-frame recurrence and recovery; then required CI and observed two-device completion/recovery with both logs on an identified build. Exercise retries, duplicate/delayed frames and lock/restart boundaries where applicable.
 - No-regression: preserve fail-closed authentication, validated state transitions, one fetch per mailbox per beat, closed log vocabularies, lock privacy, CLI behavior and existing gates. Wire/crypto/security semantic changes require separate approval. Carry deferred N-14 documentation with the next relevant source change.
-- Entry gate: operator-approved block and placement, NA-0779 closeout gates satisfied, and an implementation directive naming exact repositories and paths. This proposal authorizes no implementation, READY advance, merge or acceptance declaration.
+- Entry gate: operator-approved block and placement, verified NA-0779 closeout, and the exact-path implementation directive below. Implementation begins only after the operator merges this promotion, launches the lane, and the existing startup and scoped-executor checks pass. This PR authorizes no executor merge, lane launch, or acceptance declaration.
+
+#### First implementation milestone and repository scope
+
+Reject any invitation minted by this app identity at both the Connect input and
+the underlying redemption handler before redemption-state writes, network attempts,
+or pending-contact creation. Explain: “This invitation was created by this app.
+Ask the other person for their invitation.” Use a shared local ownership check
+with enforcement repeated in the handler. Check ownership across restart, older
+locally minted invitations and cleared history; comparison with only the latest
+invitation is insufficient. Retain normal validation of another identity's code.
+No wire/crypto repair or correlator design is selected by this directive.
+
+Authorized implementation files (paths relative to each named repository):
+
+**QuantumShieldLabs/qsl-protocol**
+
+- `qsl/qsl-client/qsc/src/invite/mod.rs`
+- `qsl/qsl-client/qsc/src/facade/mod.rs`
+- `qsl/qsl-client/qsc/src/output/event.rs`
+- `qsl/qsl-client/qsc/tests/na0756_two_party_invite_roundtrip.rs`
+- `qsl/qsl-client/qsc/tests/na0751_facade_invite_surface.rs`
+- `qsl/qsl-client/qsc/tests/NA_0681_invite_encodings.rs`
+- `qsl/qsl-client/qsc/README.md`
+
+**QuantumShieldLabs/qsl-desktop**
+
+- `ui/main.js`
+- `src-tauri/src/commands.rs`
+- `src-tauri/src/lib.rs`
+- `src-tauri/src/debug_log.rs`
+- `src-tauri/tests/na0766_invite_flow.rs`
+- `src-tauri/tests/na0700_ipc_replay.rs`
+- `src-tauri/tests/harness/scenarios/f_l_invite_redeem.json`
+- `src-tauri/Cargo.toml`
+- `Cargo.lock`
+- `README.md`
+
+Source, meaningful regression tests and supporting documentation listed above
+are authorized together. Protocol `output/event.rs` is limited to deferred N-14
+sink-mutex documentation. Desktop `src-tauri/Cargo.toml` and `Cargo.lock` may
+only integrate the reviewed engine fix through a deliberate qsc revision update;
+no other dependency changes. `debug_log.rs` may register a local preflight command
+if needed while preserving its closed vocabulary.
+
+Reproduce both rejection boundaries with failing execution tests first. Assert
+no redemption mutation, network attempt or pending contact for self codes;
+exercise multiple mints, restart, older records, cleared history, locked/corrupt
+storage and retries. Include successful acceptance of another identity's valid
+invitation with the existing two-party fixture. Preserve malformed-code and
+authentication refusals. Run targeted verification and existing required gates;
+local fixtures do not replace the approved two-device acceptance requirement.
+
+Use one concise current task record with referenced lane evidence; no recursive
+reports or duplication of unchanged proof. Scoped lane evidence/logs, build tmp
+and existing shared Cargo/npm/sccache/per-repository target caches support only
+this task. Separate scoped sessions grant one selected repository at a time;
+directory permission does not authorize edits beyond the files above. Preserve
+settings, hooks, registry, mirrors, toolchains, unrelated work and frozen NA-0779
+records. Durable-record access remains narrow and approval-reviewed; no whole-state
+writes. Merges and lane launches remain operator-only.
 
 ### NA-0778 — THE INVITATIONS LANE (the operator's "Lane C"): THE USER GETS A PLACE TO SEE AND MANAGE INVITATIONS, TWO QUESTIONS THE DESIGN DEPENDS ON ARE MEASURED BEFORE EITHER IS BUILT INTO A SCREEN, AND THE RECORDS ACT FOUR LANES LEFT OWED LANDS TOGETHER WITH THE FIRST PUSH OF THE RECORD UNDER A CADENCE (Director's kickoff `KICKOFF_invitations_lane_20260903.md` sha256 `8b0f1eb52899fa88167032a8e24acba642766ddf85609f0130355d7d52f65fdd`, 25965 B, sha-VERIFIED against the Director's value BEFORE being read and banked 444 under `state/operator/NA-0778/` as the kickoff's first act D; formalized at `STOP_NA0778_001_20260903T200355Z.md` sha256 `5a9b7ebc6b6ae4fce588bcc960269d3e0a662567dfd02b570a052bf1ed40e908`; ruled at `RULING_NA0778_001_20260903.md` sha256 `0e04e22135c682f105dbe18203b93d5bbe3bda2560f682a555e3d3ac862459d1`, R1-R10)
 

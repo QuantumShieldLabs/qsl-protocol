@@ -1,0 +1,32 @@
+=== A. Forward out-of-order reach of recv_nonboundary_ooo (MAX_HEADER_ATTEMPTS=100, MAX_SKIP=1000) ===
+For each starting nr: advance in order to nr, then send k more messages and deliver ONLY the last one (gap = k-1).
+Reported: largest gap that is still received (max gap tried = 12), and the reject code at the first failing gap.
+  nr=0     max received gap = 12  first failing gap = None
+  nr=10    max received gap = 12  first failing gap = None
+  nr=50    max received gap = 12  first failing gap = None
+  nr=90    max received gap = 6   first failing gap = Some((7, "REJECT_S2_HDR_AUTH_FAIL"))
+  nr=93    max received gap = 3   first failing gap = Some((4, "REJECT_S2_HDR_AUTH_FAIL"))
+  nr=94    max received gap = 2   first failing gap = Some((3, "REJECT_S2_HDR_AUTH_FAIL"))
+  nr=95    max received gap = 1   first failing gap = Some((2, "REJECT_S2_HDR_AUTH_FAIL"))
+  nr=100   max received gap = 1   first failing gap = Some((2, "REJECT_S2_HDR_AUTH_FAIL"))
+  nr=500   max received gap = 1   first failing gap = Some((2, "REJECT_S2_HDR_AUTH_FAIL"))
+  nr=2000  max received gap = 1   first failing gap = Some((2, "REJECT_S2_HDR_AUTH_FAIL"))
+=== B. Crossing DH boundaries: both peers originate a boundary from the same root before pulling ===
+  pre-crossing: both directions deliver (control)
+  roots after crossing differ: true
+  A receives B's boundary: ok=false reason=Some("REJECT_S2_HDR_AUTH_FAIL")
+  B receives A's boundary: ok=false reason=Some("REJECT_S2_HDR_AUTH_FAIL")
+  subsequent normal A->B: Err("REJECT_S2_HDR_AUTH_FAIL")
+  subsequent normal B->A: Err("REJECT_S2_HDR_AUTH_FAIL")
+  control (sequential boundaries b1,a1,b2): last accepted ok=true reason=None
+=== C. PQ reseed while a reverse-direction message is in flight ===
+  B receives A's in-flight message after originating the reseed: Err("REJECT_S2_HDR_AUTH_FAIL")
+  A accepts B's reseed: ok=true reason=None
+  A->B after reseed (1): Err("REJECT_S2_BODY_AUTH_FAIL")
+  A->B after reseed (2): Err("REJECT_S2_BODY_AUTH_FAIL")
+  control (no in-flight message): A->B after reseed: Ok("post-reseed control")
+=== D. Suite-2 wire sizes per frame class (payload = 40-byte plaintext), QSE overhead = 16, pad floor = 1024 ===
+  normal message     suite2 wire =   124 B   on the relay (QSE+pad) =  1024 B
+  DH boundary        suite2 wire =   124 B   on the relay (QSE+pad) =  1024 B
+  SCKA ADV           suite2 wire =  1344 B   on the relay (QSE+pad) =  1360 B
+  PQ reseed (CTXT)   suite2 wire =  1216 B   on the relay (QSE+pad) =  1232 B

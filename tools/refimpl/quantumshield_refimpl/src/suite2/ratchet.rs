@@ -3634,6 +3634,11 @@ mod tests {
 
     const ALLOWED_UNGUARDED_DH: &[AllowedUnguardedDh] = &[
         AllowedUnguardedDh {
+            file: "docs/audits/2026-09-03/AUDIT_harness_exp.rs",
+            function: "establish",
+            reason: "archived historical state-machine harness using ToyDh to construct a matched pair; not production X25519 execution and not evidence of cryptographic strength.",
+        },
+        AllowedUnguardedDh {
             file: "tools/refimpl/quantumshield_refimpl/src/qsp/handshake.rs",
             function: "initiator_build",
             reason: QSP_LEGACY_REASON,
@@ -3698,6 +3703,7 @@ mod tests {
     /// Total `.dh(` call sites per file. Drift in EITHER direction fails the scan: a new site cannot
     /// hide inside an allowlisted file, and a removed site must be de-pinned deliberately.
     const PINNED_DH_SITE_COUNTS: &[(&str, usize)] = &[
+        ("docs/audits/2026-09-03/AUDIT_harness_exp.rs", 2),
         ("qsl/qsl-client/qsc/src/handshake/mod.rs", 1),
         ("tools/actors/refimpl_actor_rs/src/main.rs", 1),
         (

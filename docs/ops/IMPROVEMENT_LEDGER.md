@@ -1239,6 +1239,10 @@ Title; Problem; Recommended change; Status; Originating/last lane; Last-updated.
   last-updated 2026-07-09
 
 ### ENG-0034 — X25519 DH accepts non-contributory (low-order) peer keys: the DH output is never checked — **CLOSED at NA-0628 (impl D-1251 / PR #1536 / merge `e9439df7`; closeout D-1252). Every LIVE DH output now fails closed on the all-zero value (RFC 7748 §6.1); `REJECT_S2_DH_NONCONTRIBUTORY` registered in DOC-CAN-003; additive negative vectors + WF-0014 byte-scan; anti-regression scan. ENG-0019 was UNFOLDED (D565-A1) — see its entry.**
+- NA-0779 publication-census finding, 2026-09-09. Originating/last lane: NA-0779. Status: OPEN publication gate; the closed product-DH fix above is not reopened. Required GitHub ci-4a runs the reference crate tests. Its na0628_every_dh_call_site_is_guarded_or_allowlisted test recursively scans every Rust file and rejects AUDIT_harness_exp.rs lines 113–114, function establish: two historical ToyDh calls. Failure observed on PR #1822 head 981e1eebafc8 and independently reproduced on 136081efc711 (one targeted test, one failure). The exact archive bytes are preserved as authorized. The guard requires a reasoned file/function classification and a pinned site count; the relevant reference-source file is outside this closeout scope. Resolving that classification, or changing the approved publication form, requires separate direction. No blanket docs exclusion, test weakening, archive rewrite or protocol repair was attempted. The local run_4a.sh bundle/OpenAPI/schema/bounds check is a different check and its PASS never discharges this Rust test.
+- NA-0779 classification follow-up, 2026-09-09. Originating/last lane: NA-0779. Status: classification correction VERIFIED LOCALLY; publication remains pending PR landing. Director authorized the exact test-only archive/function allowlist entry and pinned count 2; automatic review extended the selected scope. The real census fails before and passes after. In a disposable fixture, removing the new entry fails for the two unguarded sites; a third call within the classified function fails the pinned-count check; restoration passes. Production DH and scanner logic are unchanged. The preceding out-of-scope disposition is superseded for these two table additions only. A separate required goal-lint path gate still holds the correction push: a substantive reusable mutation runner is prepared in evidence, but its proposed tests/na0779_dh_census_classification.py destination needs authorization. No token test, linter change, archive edit or blanket exclusion is used.
+- NA-0779 runner admission, 2026-09-09. Originating/last lane: NA-0779. Status: classification and substantive mutation coverage VERIFIED LOCALLY; publication still pending PR landing. Director authorized tests/na0779_dh_census_classification.py and automatic review extended the scope. This supersedes the preceding runner-path blocker. The installed runner invokes the actual Rust test in a disposable tracked-tree fixture, verifies the exact two unguarded-call failures and isolated pinned-count drift, restores the fixture, and checks all 2428 original tracked-file hashes. All four cases passed their expected verdicts; nine unrelated/malformed execution outputs were correctly rejected. No gate weakening, token test or archive change. The prior full reference suite passed 125 tests; this runner/records follow-up does not rerun it without a new reason.
+
 - Severity: P2 (security-relevant correctness gap; NOT remotely exploitable against an honest
   pair — see the exposure bound below — but it silently voids the CLASSICAL half of
   post-compromise security and therefore blocks the Triple-Ratchet/PCS claim language) — filed
@@ -3808,6 +3812,8 @@ At desktop `c52fd51b`, `src-tauri/src/markers.rs:12` holds an opaque buffer with
 - ⏹⏹ **THE LEGACY PORTION OF THIS ENTRY'S OPERATOR-ACCEPTED REMAINDER IS CLOSED 2026-08-28 BY NA-0770 (`D-1411`) — AND THE REST OF THE ENTRY STAYS OPEN.** Mark-don't-rewrite: nothing above is edited. `AckMode::Legacy` is deleted from the client, so every clause of this entry that is scoped to *what delete-on-pull does to a wedged mailbox* is unreachable. **THE WEDGE ITSELF IS UNTOUCHED AND REMAINS `P2`.** One unprocessable frame at the head of a mailbox still stops `receive`; that was never a Legacy property and it does not close here. ⚠ Read the two halves separately or this entry will be misread as closed.
 - ⚠⚠ **THE RETIREMENT MADE THIS ENTRY HARDER TO LIVE WITH, AND THE RECORD SAYS SO RATHER THAN CLAIMING A NET WIN.** `na0708_ack_flush.rs`'s `r3b` arm used `receive --ack-mode legacy` as a **drain**: legacy delete-on-delivers, so one pass emptied a mailbox even though the client still errored on the poison frame. That was the tree's only way to evict such a frame, and NA-0770 measured across the whole CLI that nothing replaces it — `QuarantineCmd` is a LOCAL store, `Outbox Discard` is the OUTBOUND queue, and `relay_inbox_ack` is unreachable for a frame the client cannot persist. ⇒ **an undecodable frame at a relay-mailbox head now redelivers forever with no operator remedy.** Filed as loss **L3** in `D-1411`. This is a CONSEQUENCE of removing a mode that was standing in for an eviction verb, not a defect NA-0770 introduced — the verb never existed — and it strengthens the case for scheduling this entry's repair. Any eviction verb built for it must add itself to guard `G-B`'s asserted caller set in `tests/na0770_legacy_retirement_guards.rs` or turn it red.
 - ⚠ **AND TWO LEGACY SITES OUTSIDE THIS ENTRY'S SCOPE ARE NOW FILED, SO THE FAMILY IS NOT MISREAD AS CLOSED BY THIS ENTRY'S REMAINDER.** This entry's remainder is scoped to the **wedge** in `receive` (`transport/mod.rs:1147-1211`) — one bad frame aborting a batch. NA-0769 filed two Legacy hazards with a **different shape and different sites**, neither of them a wedge: **`ENG-0254`**, where the shipped `handshake poll` pulls up to `--max` (default 4) self-inbox frames under Legacy and the relay deletes every one — including frames addressed to a *different* peer, which it never processes; and **`ENG-0253`**, the forward-looking constraint that any future design scanning the self inbox must carry an `AckMode` arm, because `invite_finish:1423` is the only site in the invite flow that branches the **pull shape** on ack mode. The `WF-0029` duplicate check was run against this entry before either was filed and both were held distinct; the reasoning is recorded in `D-1410`.
+- ⛳ **THE PRODUCTION RELAY's LEASE, MEASURED FROM ITS UNIT FILE -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`; `RULING_NA0779_003` R6, sha256 `f507346eb8fb`), BESIDE this entry and `AMENDMENT_1_delivery_ladder` A4. NOTHING ABOVE IS EDITED; THIS ENTRY DOES NOT CLOSE.** `MEASUREMENT_relay_pull_lease_20260905.md` (sha256 `2e6c97ca8638`, banked 444 under `state/operator/relay/`; provenance [O], the operator on the AWS relay box, 2026-09-05, his paste quoted): `PULL_LEASE_SECS=60` SET EXPLICITLY in the operator-read service environment file (not merely the code default), `RETENTION_TTL_SECS=604800`, the latter equal to the value the server-info response reported earlier (the positive control that the file read is the one in force). WHAT IT SETTLES: A4's premise ("deployed 60 s, exceeds every beat interval the ladder contemplates") now rests on a measurement; this entry's redelivery window is 60 s per cycle on the production relay -- and `FINDINGS_handshake_tests_20260906.md` (sha256 `e2cd7715869f`) H7 measured that rhythm live: a refused A1 returned and was refused at 17:00:31, 17:01:38, 17:02:53, 17:04:12, the ENG-0142 shape on the accept path, filed as `ENG-0346`. Boundary: read from the unit file by the operator, not from the process's environment; n=1, the AWS relay only.
+
 ### ENG-0143 — P-1 (`scka.peer_adv_max_seen > 0`) is UNSAFE across a re-handshake — it PERMITS the defect it was meant to refuse — **NEW; filed 2026-08-09 by NA-0708 (D-1345; SR-15/D642 F-1) — ⚠ SETTLES NA-0707's PREDICATE**
 
 `qsp_session_store_with_trigger` (`protocol_state/mod.rs:802-809`) preserves the SCKA section verbatim across a fresh session, so a **fossil** `peer_adv_max_seen` survives a re-handshake while the new send chain is unseeded ⇒ P-1 permits the unsafe seed exactly where it must refuse. **P-2 (`st.recv.nr > 0`) refuses correctly** (fresh `nr == 0`). ⚠ **P-1 is REJECTED outright, not deprioritised.** And the instrument is amended with it: first-handshake rows cannot distinguish the two candidates, so **any lane shipping a predicate here owes a RE-HANDSHAKE row** — an instrument that cannot separate the candidates is not a tiebreaker.
@@ -7302,6 +7308,7 @@ left unbuilt for a stated reason, not overlooked. None is a blocker.
 - Cross-references: `ENG-0287`; `D-1421`; desktop `D-0047` (deviation (i): no Connected states drawn).
 - Evidence: `STOP_NA0778_003_20260903T221155Z.md` sha256 `178fa7b021f947c0c512599b2a317f55e95005be6c6ae4fb42188b1168a75476` (104254 B); `STOP_NA0778_004f_20260904T235001Z.md` sha256 `5d698a850e40e7eeb679d940fd5452760316fad324f8bb1f43e8a5db41502ef9` (73005 B); `STOP_NA0778_005_20260905T040142Z.md` sha256 `19afb0aaa9bd0c7a19980464f917cc44452eabd590c2763f1495e67ea71499dc` (56305 B).
 - Source: NA-0778 `STOP_NA0778_003` sec 6; `RULING_NA0778_011` R75.
+- ⛳ **DATAPOINT AND A DESIGN POSITION, 2026-09-06 (NA-0779, `D-1422`; desktop `D-0048` 004c I12).** THE OPERATOR's finding on his second flight of the debug-log build: renaming a contact did not change that person's name in Invitations > Sent for an accepted invitation. THE DIRECTOR's POSITION, banked at the close: ONE NAME PER PERSON -- once an invitation has become a contact, the Sent list displays the contact's CURRENT name; the mint-time label stays in the record unrewritten; pending invitations keep their label. MEASURED FIRST, as ordered: neither record references the other by an id, a route token or a hash (the invite record: `invite_id` its own slot's token, `cap`, `expiry`, `relay_ep`, `state` as unit variants, `revoke_token`, `created_unix`, `label`; the contact: `alias`, `fingerprint`, `pinned`, `blocked`, `state`, `display_name`, `device_count`). The reference IS the label: the desktop's only accept path provisions the contact under `alias := the invite's own label` (NA-0764 R1) and the alias is immutable (a rename writes `display_name` beside it, NA-0765 A3). Landed as a DISPLAY-SIDE lookup by exact alias equality on qsl-desktop `bb46ed84` (merged in #56, `48b03157`), confirmed live by the operator (`OPERATOR_WORD_I12_confirmed_20260906.txt`). This entry's own subject -- a STORED link from an invitation to the contact it produced -- is NOT closed by that: the label rule holds only for the desktop's accept path (a CLI-accepted contact under another alias is unmatched; same-label mints collide), which is exactly the engine-side link this entry asks for.
 
 ### ENG-0289 — THE f_d SETTINGS-PERSISTENCE DRIVER ARM COULD SAVE THE VALUE THE PANE WROTE BACK INSTEAD OF THE VALUE THE HARNESS TYPED — A HARNESS RACE WITH A PRODUCT-ADJACENT MECHANISM (CURED, DATA ONLY)
 
@@ -7533,6 +7540,7 @@ left unbuilt for a stated reason, not overlooked. None is a blocker.
 - Cross-references: `ENG-0303`; `ENG-0304`.
 - Evidence: `AUDIT_qsl-server_desktop_interaction_2026-09-03.md` sha256 `ea256c9990f29b18db10dd2111c86d41ec388f0cb0373a53426a47370352ae03` (18705 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
 - Source: `TRIAGE_AND_PLAN` sec 1 B.
+- ⛳ **THE LINES, FILLED 2026-09-06 (NA-0779's close, `D-1422`): the report is now ON THE BOX (`state/operator/audits/`, sha256 `ea256c9990f2`) reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing; nothing above is edited.** `AUDIT_qsl-server_desktop_interaction_2026-09-03.md` :125-:142 (S-02): `lib.rs` `auth_ok` :961-:982 (one `RELAY_TOKEN`); `push_message` :1065-:1078 and `store.rs` `enqueue` :654-:690 (a push CREATES a route when none exists, capped by `max_route_count`); constants :115-:117 `MAX_QUEUE_DEPTH_CEILING` 257, `MAX_ROUTE_COUNT_CEILING` 256; `MAX_INVITE_SLOTS_DEFAULT` 256 (:92); push rate buckets PER ROUTE (:1080-:1095), not per sender. Consequence as the report states it: any holder of the shared bearer can block every NEW route for the retention window (`ERR_ROUTE_CAP`), fill a victim's queue to `ERR_OVERLOADED`, spend its rate bucket, or create invite slots to the global cap -- none attributable, the relay has no notion of WHO; 256 is also a hard ceiling on concurrent conversations per relay.
 
 ### ENG-0307 — NO SERVER-SIDE SHAPE VALIDATION (S-06) -- P3 (XS)
 
@@ -7545,6 +7553,7 @@ left unbuilt for a stated reason, not overlooked. None is a blocker.
 - Cross-references: `ENG-0303`.
 - Evidence: `AUDIT_qsl-server_desktop_interaction_2026-09-03.md` sha256 `ea256c9990f29b18db10dd2111c86d41ec388f0cb0373a53426a47370352ae03` (18705 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
 - Source: `TRIAGE_AND_PLAN` sec 1 B.
+- ⛳ **THE LINES, FILLED 2026-09-06 (NA-0779's close, `D-1422`): the report is now ON THE BOX (`state/operator/audits/`, sha256 `ea256c9990f2`) reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing; nothing above is edited.** `AUDIT_qsl-server_desktop_interaction_2026-09-03.md` :206-:215 (S-06): `resolve_route_token` :997-:1009 accepts any non-empty string up to the HTTP header limit; `invite_create` :702-:704 checks only non-empty for `invite_id` and `cap_hash` (the client's own comment, `invite/mod.rs` :25-:28, records that the relay stores whatever the client uploaded). The report's cure: mirror the client's band (22..=128, `[A-Za-z0-9_-]`) for route tokens and invite ids, 64 lowercase hex for `cap_hash`, reject with `ERR_BAD_ROUTE_TOKEN`.
 
 ### ENG-0308 — A CLIENT-CONTROLLED `x-msg-id` IS TRUSTED AND LOGGED (S-05) -- P3 (XS)
 
@@ -7581,6 +7590,7 @@ left unbuilt for a stated reason, not overlooked. None is a blocker.
 - Cross-references: `ENG-0308`; `ENG-0323`; `WF-0085`.
 - Evidence: `AUDIT_qsl-server_desktop_interaction_2026-09-03.md` sha256 `ea256c9990f29b18db10dd2111c86d41ec388f0cb0373a53426a47370352ae03` (18705 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
 - Source: `TRIAGE_AND_PLAN` sec 1 B and F.
+- ⛳ **THE LINES, FILLED 2026-09-06 (NA-0779's close, `D-1422`): the report is now ON THE BOX (`state/operator/audits/`, sha256 `ea256c9990f2`) reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing; nothing above is edited.** `AUDIT_qsl-server_desktop_interaction_2026-09-03.md` :225-:236 (S-08): `lib.rs` :1161-:1166, :1214-:1219, :1263 log one info line per push, pull item and ack with a stable pseudonym (FNV-1a of the route token, :940-:948), the id and the byte length; journald keeps them by its own policy; undelivered ciphertext retained 7 days (`store.rs` :5); invite bundles and expiry stored in clear (:235-:247). The gap the report names: a stated retention bound for the logs (DOC-SRV-001, e.g. 24 h) and a note that FNV-1a is a linkable pseudonym, not a redaction.
 
 ### ENG-0311 — HANDSHAKE FORWARD SECRECY AGAINST A QUANTUM ADVERSARY RESTS ON X25519 ALONE (F-04) -- P2: AN EPHEMERAL ML-KEM IN A1 IS THE CURE, A WIRE CHANGE
 
@@ -7593,6 +7603,7 @@ left unbuilt for a stated reason, not overlooked. None is a blocker.
 - Cross-references: `ENG-0312` (F-07), `ENG-0313` (F-05).
 - Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
 - Source: `TRIAGE_AND_PLAN` sec 1 C.
+- ⛳ **THE LINES, FILLED 2026-09-06 (NA-0779's close, `D-1422`): the report is now ON THE BOX (`state/operator/audits/`, sha256 `e4d91c0863e6`) reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing; nothing above is edited.** `AUDIT_qsl-protocol_security_2026-09-03.md` :262-:290 (F-04): `handshake/mod.rs` :1493-:1512 A1 carries `kem_pk` = the initiator's IDENTITY KEM key (the pending record stores `kem_sk`); :2536 the responder encapsulates to `init.kem_pk` (an identity key); :1482 the initiator encapsulates `resp_kem_ct` to the responder's PINNED identity KEM key; :839-:851 `pq_init_ss = combine(ss_pq, resp_kem_ss)` -- both secrets decapsulable with a long-term identity key.
 
 ### ENG-0312 — THE INVITE FLOW HARDCODES `LegacyCompat` (F-07) -- P3 (XS): `SuiteRequired` IS THE CURE
 
@@ -7617,6 +7628,7 @@ left unbuilt for a stated reason, not overlooked. None is a blocker.
 - Cross-references: `ENG-0311`; R-5.1.
 - Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
 - Source: `TRIAGE_AND_PLAN` sec 1 C.
+- ⛳ **THE LINES, FILLED 2026-09-06 (NA-0779's close, `D-1422`): the report is now ON THE BOX (`state/operator/audits/`, sha256 `e4d91c0863e6`) reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing; nothing above is edited.** `AUDIT_qsl-protocol_security_2026-09-03.md` :291-:305 (F-05): `handshake/mod.rs` :954-:982 (ML-DSA-65 only); no Ed25519 use in qsc (`git grep StdEd25519|SigEd25519` in `qsc/src`: 0 hits). Peer authentication = possession of the pinned ML-KEM identity key plus an ML-DSA-65 signature on the transcript hash; confidentiality is hybrid, authentication has no classical member. The report's ask: record it as a design position in DOC-CAN-003 / the security objectives (s3.2 says "hybrid design goals").
 
 ### ENG-0314 — THE INVITE-CODE DECODER HAS NO LENGTH CAP (D-15) -- P3 (XS): THE ENGINE HALF, AND A DESKTOP `maxlength` FOR THE CODE FIELD
 
@@ -7641,6 +7653,7 @@ left unbuilt for a stated reason, not overlooked. None is a blocker.
 - Cross-references: `ENG-0316` (F-14), `ENG-0317` (F-09/D-4), `ENG-0318` (F-15).
 - Evidence: `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1673f441b6a66d11c97c1ab840dd1cffe677908065d177dd96e50` (20677 B); `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
 - Source: `TRIAGE_AND_PLAN` sec 1 D.
+- ⛳ **THE LINES, FILLED 2026-09-06 (NA-0779's close, `D-1422`): the report is now ON THE BOX (`state/operator/audits/`, sha256 `40b8bceca2f1`) reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing; nothing above is edited.** `AUDIT_qsl-desktop_2026-09-03.md` :128-:140 (finding 3, TRIAGE's D-3): qsc `vault/mod.rs` :869 (`PROCESS_PASSPHRASE`), :1386-:1394 (`set_process_passphrase`), :203-:212 (`unlock_with_passphrase`), :876-:929 (`load_vault_runtime_with_passphrase` -> `derive_runtime_key`), :226-:233 (`secret_get`), :838-:841 (`VaultRuntime`), :86-:90 (`VaultPayload`); zeroize census `grep -rc '\.zeroize()'` = 27 sites in 4 files, `impl Drop|ZeroizeOnDrop` in `vault/` = `VaultSession`, `EnvSnapshot`, `DestroyConfirmToken` only; desktop `commands.rs` :186-:189, :244-:247, :388-:391, :727 take passphrase/confirm as plain `String` IPC args.
 
 ### ENG-0316 — `Debug` DERIVED ON SECRET STRUCTS; NO ZEROIZE (F-14) -- P3
 
@@ -7677,6 +7690,7 @@ left unbuilt for a stated reason, not overlooked. None is a blocker.
 - Cross-references: `ENG-0315`.
 - Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
 - Source: `TRIAGE_AND_PLAN` sec 1 D.
+- ⛳ **THE LINES, FILLED 2026-09-06 (NA-0779's close, `D-1422`): the report is now ON THE BOX (`state/operator/audits/`, sha256 `e4d91c0863e6`) reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing; nothing above is edited.** `AUDIT_qsl-protocol_security_2026-09-03.md` :455-:461 (F-15): `protocol_state/mod.rs` :824-:846: ChaCha20-Poly1305, one key from the vault for all peers, a fresh random 12-byte nonce per write; qsc writes a blob on every send and receive; the 2^32-write birthday bound is unreachable for a desktop user, so hardening: XChaCha20-Poly1305 (24-byte nonce) or a per-peer subkey (`KMAC(store_key, peer)`).
 
 ### ENG-0319 — PROTECTION-STATE FILES ARE UNAUTHENTICATED (D-16) -- INFO, RECORDED
 
@@ -7689,6 +7703,7 @@ left unbuilt for a stated reason, not overlooked. None is a blocker.
 - Cross-references: `ENG-0315`.
 - Evidence: `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1673f441b6a66d11c97c1ab840dd1cffe677908065d177dd96e50` (20677 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
 - Source: `TRIAGE_AND_PLAN` sec 1 D.
+- ⛳ **THE LINES, FILLED 2026-09-06 (NA-0779's close, `D-1422`): the report is now ON THE BOX (`state/operator/audits/`, sha256 `40b8bceca2f1`) reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing; nothing above is edited.** `AUDIT_qsl-desktop_2026-09-03.md` :240-:247 (finding 16, TRIAGE's D-16): qsc `vault/protection.rs` `protection_state_load` :464-:500 reads the attempt-limit config and the `failed_unlocks` counter from two plaintext files (`parse_vault_failed_unlocks` :425-:433), perms-enforced 0600 with no MAC; a same-user local attacker can reset the counter, and that attacker already holds `vault.qsv` for offline attack -- the online guard is a UX brake, not a security bound. Record; no act proposed (the report's own disposition).
 
 ### ENG-0320 — `env::set_var` ON A LIVE MULTITHREADED PROCESS (D-1) -- P2: SEVEN SITES, THREE OF THEM AFTER THREADS EXIST
 
@@ -7725,6 +7740,7 @@ left unbuilt for a stated reason, not overlooked. None is a blocker.
 - Cross-references: `ENG-0323` (I-01); `WF-0085`; `DESIGN_delivery_ladder_metronome_v2_20260825.md` M2.
 - Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B); `AUDIT_harness_results.txt` sha256 `d17ac9198e2467faadcf6e75dab7b2e5f966f0d6c4b771f178aaba874cc34b60` (2500 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
 - Source: `TRIAGE_AND_PLAN` sec 1 F.
+- ⛳ **THE LINES, FILLED 2026-09-06 (NA-0779's close, `D-1422`): the report is now ON THE BOX (`state/operator/audits/`, sha256 `e4d91c0863e6`) reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing; nothing above is edited.** `AUDIT_qsl-protocol_security_2026-09-03.md` :355-:380 (F-08): `qsc/src/lib.rs` :1833-:1863 `qsp_wrap_standard_envelope` (the ADV carrier) pads only UP TO `EnvelopeProfile::Standard.min_size_bytes()` = 1024; :2137-:2153 the main-message path, same floor; the meta-pad ladder (:2154-:2192) applies only when a `MetaPadConfig` is supplied; refimpl `qse/envelope.rs` :14-:20 (profile floors), `BUCKET_SIZES` (a ladder exists and is not applied here). Measured [X] by the harness (experiment D, 40-byte plaintext): normal message and DH boundary 124 B on the wire, 1024 B on the relay.
 
 ### ENG-0323 — THE PULL BODY SIZE LEAKS (I-01 / F-12) -- P3
 
@@ -7737,6 +7753,7 @@ left unbuilt for a stated reason, not overlooked. None is a blocker.
 - Cross-references: `ENG-0322` (F-08); `ENG-0310` (S-08).
 - Evidence: `AUDIT_qsl-server_desktop_interaction_2026-09-03.md` sha256 `ea256c9990f29b18db10dd2111c86d41ec388f0cb0373a53426a47370352ae03` (18705 B); `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
 - Source: `TRIAGE_AND_PLAN` sec 1 F.
+- ⛳ **THE LINES, FILLED 2026-09-06 (NA-0779's close, `D-1422`): the report is now ON THE BOX (`state/operator/audits/`, sha256 `e4d91c0863e6`) reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing; nothing above is edited.** `AUDIT_qsl-protocol_security_2026-09-03.md` :430-:437 (F-12): `transport/mod.rs` :3586 `resp.json::<InboxPullResp>()` reads the whole body into memory with no client-side cap; the blocking client's 30 s timeout bounds time, not size; cure: `Read::take(max * max_frame + slack)`, oversize rejected as `relay_inbox_parse_failed`. QUANTIFIED by `AUDIT_qsl-server_desktop_interaction_2026-09-03.md` (I-01): a pull may return `max_queue_depth` items (ceiling 257) of `max_body_bytes` each (ceiling 1 MiB) -- up to ~257 MiB per response at ceiling config, ~16 MiB at the AWS relay's 64 KiB; the relay serialises `data: Vec<u8>` as a JSON array of numbers (`lib.rs` :517-:520), 2.5-4x the byte size.
 
 ### ENG-0324 — THE AUTO-LOCK IS JS-ONLY (D-5) -- P3: THE TIMER LIVES IN THE WEBVIEW'S `setInterval` AND NOTHING RUST-SIDE LOCKS ON ITS OWN
 
@@ -7773,6 +7790,7 @@ left unbuilt for a stated reason, not overlooked. None is a blocker.
 - Cross-references: `ENG-0324` (D-5), `ENG-0325` (G-02).
 - Evidence: `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1673f441b6a66d11c97c1ab840dd1cffe677908065d177dd96e50` (20677 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
 - Source: `TRIAGE_AND_PLAN` sec 1 G.
+- ⛳ **THE LINES, FILLED 2026-09-06 (NA-0779's close, `D-1422`): the report is now ON THE BOX (`state/operator/audits/`, sha256 `40b8bceca2f1`) reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing; nothing above is edited.** SPLIT 2026-09-06 at NA-0779's close (`D-1422`; STOP 001 sec 8's promise): the five now have their own entries with the report's lines -- `ENG-0330` (6, the passphrase floor UI-only), `ENG-0331` (8, the rejected passphrase persists), `ENG-0332` (9, corrupt `settings.json` becomes defaults), `ENG-0333` (13, `withGlobalTauri` + `home_dir`), `ENG-0334` (14, "Certificate: Trusted" on loopback http). THIS ENTRY STANDS AS THE CONSOLIDATION'S RECORD and carries no finding of its own from here; the report is on the box (`state/operator/audits/`, sha256 `40b8bceca2f1`) reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing.
 
 ### ENG-0327 — ACTIONS PINNED TO MUTABLE TAGS AND NO `permissions` BLOCK IN THE DESKTOP'S `ci.yml` (D-10) -- P3: THE OPERATOR'S `.github` ACT
 
@@ -7797,6 +7815,7 @@ left unbuilt for a stated reason, not overlooked. None is a blocker.
 - Cross-references: `ENG-0327` (D-10).
 - Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B); `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1673f441b6a66d11c97c1ab840dd1cffe677908065d177dd96e50` (20677 B); `RECOMMENDATIONS_qsl_program_2026-09-04.md` sha256 `fbee4e3cb49ba04e1cb13af3e7ce869059d039dc5a5137404b1aa77715f0b85c` (13159 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
 - Source: `TRIAGE_AND_PLAN` sec 1 H.
+- ⛳ **THE LINES, FILLED 2026-09-06 (NA-0779's close, `D-1422`): the report is now ON THE BOX (`state/operator/audits/`, sha256 `fbee4e3cb49b`) reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing; nothing above is edited.** SPLIT 2026-09-06 at NA-0779's close (`D-1422`; STOP 001 sec 8's promise): the items now have their own entries with the report's lines -- `ENG-0335` (F-10, no FIPS 203 s7.2 ek check), `ENG-0336` (F-11, deterministic ML-DSA signing), `ENG-0337` (F-17, `refimpl_actor` pins ml-dsa 0.0.4), `ENG-0338` (D-11, the crypto dependency status). R-7's `cargo audit` job stays HERE as this entry's own cure shape (`RECOMMENDATIONS_qsl_program_2026-09-04.md` :163-:186, sha256 `fbee4e3cb49b`: a scheduled Actions job on all four repos, cargo deny optional; the operator's `.github` act) -- and one datapoint from this lane: `cargo audit --deny warnings` in the desktop's advisories job DID catch the `der` 0.8.0 yank on 2026-09-05 (`D-0048` E-1; the spine's #1820), so the job's shape is proven where it already runs. The reports are on the box reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing.
 
 ### ENG-0329 — THE RELAY HTTP CLIENT SETS NO REDIRECT POLICY (F-16) -- CONFIRMED TO THE LINE, NOT GRADED BY `TRIAGE` SEC 1; PROPOSED P3, HYGIENE BESIDE `ENG-0297`
 
@@ -7810,3 +7829,364 @@ left unbuilt for a stated reason, not overlooked. None is a blocker.
 - Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e639afef6e7c5416a8c1941121b4fe0a29cdaf498864d4e7e38da3` (34433 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
 - Source: `TRIAGE_AND_PLAN` sec 0 (F-16) and sec 1 (the home of `ENG-0297`).
 
+### ENG-0330 — THE PASSPHRASE FLOOR IS ENFORCED UI-ONLY (desktop audit 6, TRIAGE's D-6) -- P3, DESKTOP HYGIENE (split from `ENG-0326`)
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: defect (desktop; the vault-create boundary). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`), split from `ENG-0326` now that the report is on the box.
+- Severity: **P3** -- PROPOSED by the seat from the report's own grade and TRIAGE's band; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence).
+- **THE FINDING.** `AUDIT_qsl-desktop_2026-09-03.md` :180-:183: `main.js` :290 requires length >= 12; `commands.rs` :191 accepts any non-empty passphrase. The report's cure: enforce the same floor (better, a byte floor) in `vault_create`.
+- **HOME.** DESKTOP HYGIENE bundle (`TRIAGE` sec 1 G).
+- **VERIFICATION STATE.** CONFIRMED BY READ by the Director (`TRIAGE` sec 0); not re-executed by this seat (the line numbers are the report's, at its base `aef9f742`).
+- Cross-references: `ENG-0326` (the consolidation this splits), `ENG-0324` (D-5), `ENG-0325` (G-02).
+- Evidence: `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1` (20677 B), banked 444 under `state/operator/audits/` reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing.
+- Source: `TRIAGE_AND_PLAN` sec 1 G; the report's finding 6.
+
+### ENG-0331 — THE UNLOCK FIELD RETAINS A REJECTED PASSPHRASE (desktop audit 8, TRIAGE's D-8) -- P4 (split from `ENG-0326`)
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: defect (desktop UI). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`), split from `ENG-0326`.
+- Severity: **P4** -- PROPOSED by the seat from the report's own grade and TRIAGE's band; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence).
+- **THE FINDING.** `AUDIT_qsl-desktop_2026-09-03.md` :193-:194: `main.js` :515-:531 clears `unlock-pass` only on `unlocked`; the cure: clear on rejected and delayed too.
+- **HOME.** DESKTOP HYGIENE bundle.
+- **VERIFICATION STATE.** CONFIRMED BY READ by the Director; not re-executed here.
+- Cross-references: `ENG-0326`.
+- Evidence: `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1`; reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing.
+- Source: `TRIAGE_AND_PLAN` sec 1 G; the report's finding 8.
+
+### ENG-0332 — `settings::load` SWALLOWS CORRUPTION INTO DEFAULTS SILENTLY (desktop audit 9, TRIAGE's D-9) -- P3 (split from `ENG-0326`)
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: defect (desktop; "silence is not success"). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`), split from `ENG-0326`.
+- Severity: **P3** -- PROPOSED by the seat from the report's own grade and TRIAGE's band; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence).
+- **THE FINDING.** `AUDIT_qsl-desktop_2026-09-03.md` :196-:198: `settings.rs` :100-:103 turns an unparseable file into defaults silently; the cure: surface it, a notice kind being the existing channel. A DATAPOINT from this lane beside it: the debug-log switch is a field of that same file (`D-0048`), so a swallowed corruption would also silently turn the log OFF (its default) -- the same silence, one more consumer.
+- **HOME.** DESKTOP HYGIENE bundle.
+- **VERIFICATION STATE.** CONFIRMED BY READ by the Director; the file's writer set re-read by this lane's cold read (`ENG-0340`).
+- Cross-references: `ENG-0326`; `ENG-0340` (the third writer of the same file).
+- Evidence: `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1`; reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing.
+- Source: `TRIAGE_AND_PLAN` sec 1 G; the report's finding 9.
+
+### ENG-0333 — `withGlobalTauri: true` AND `home_dir` EXPOSE THE WHOLE COMMAND SURFACE TO ANY PAGE SCRIPT (desktop audit 13, TRIAGE's D-13) -- P4, REVISIT AT THE MESSAGING SLICE (split from `ENG-0326`)
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: hardening note (desktop). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`), split from `ENG-0326`.
+- Severity: **P4** -- PROPOSED by the seat from the report's own grade and TRIAGE's band; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence).
+- **THE FINDING.** `AUDIT_qsl-desktop_2026-09-03.md` :220-:223: `tauri.conf.json` :9 exposes every registered command to any page script; `commands.rs` :868-:870 hands `$HOME` to the page; matters only given XSS -- revisit at the messaging slice, when remote-authored text first reaches the DOM. THIS LANE's OWN DATAPOINT: the registered set is now 50 commands (`D-0048`), and the cold read (`FINDINGS_SR15_NA0779`, N-09) named `debug_log_control` as a third writer of `settings.json` reachable by any page script -- the same surface, one more command (`ENG-0340`).
+- **HOME.** The messaging slice (ROADMAP of record step 4); until then recorded.
+- **VERIFICATION STATE.** CONFIRMED BY READ by the Director; the command count re-measured by this lane at `ebd92e3e`.
+- Cross-references: `ENG-0326`; `ENG-0340`.
+- Evidence: `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1`; reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing.
+- Source: `TRIAGE_AND_PLAN` sec 1 G; the report's finding 13.
+
+### ENG-0334 — "CERTIFICATE: TRUSTED" IS RENDERED ON A PLAINTEXT LOOPBACK RELAY (desktop audit 14, TRIAGE's D-14) -- P3 (split from `ENG-0326`)
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: defect (desktop UI truth). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`), split from `ENG-0326`.
+- Severity: **P3** -- PROPOSED by the seat from the report's own grade and TRIAGE's band; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence).
+- **THE FINDING.** `AUDIT_qsl-desktop_2026-09-03.md` :225-:230 (RESOLVED from OWED by the report itself): `validate_relay_endpoint_url` (qsc `adversarial/route.rs` :57-:68) accepts `http://` ONLY for a loopback host, so `main.js` :1683 renders "Certificate: Trusted" falsely on exactly one configuration, the operator's own loopback http rig; the cure: render "Plaintext (loopback only)" when the stored URL's scheme is http. RELATED, LANDED BY THIS LANE: the status bar's relay word (`ENG-0353`) is "not trusted" only from a measured `cert_not_trusted` outcome and never says "connected" before a call has succeeded -- the bar does not repeat this defect; the Relay pane's line still does.
+- **HOME.** DESKTOP HYGIENE bundle / the DIAGNOSTICS polish.
+- **VERIFICATION STATE.** CONFIRMED BY READ by the Director; not re-executed here.
+- Cross-references: `ENG-0326`; `ENG-0353`.
+- Evidence: `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1`; reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing.
+- Source: `TRIAGE_AND_PLAN` sec 1 G; the report's finding 14.
+
+### ENG-0335 — ml-kem 0.2.1 PERFORMS NO FIPS 203 s7.2 ENCAPSULATION-KEY CHECK (F-10) -- P3, CONFORMANCE (split from `ENG-0328`)
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: defect (crypto/conformance; a dependency's behaviour). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`), split from `ENG-0328`.
+- Severity: **P3** -- PROPOSED by the seat from the report's own grade and TRIAGE's band; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence).
+- **THE FINDING.** `AUDIT_qsl-protocol_security_2026-09-03.md` :407-:418 [D]: `EncapsulationKey::from_bytes` (kem.rs :177-:179) -> `EncryptionKey::from_bytes` (pke.rs :138-:145) -> `decode_u12`, which REDUCES coefficients mod q (encode.rs :60) instead of rejecting a non-canonical encoding; `from_bytes` is infallible; the KEM hashes the RE-ENCODED canonical bytes (kem.rs :160), so a non-canonical ek yields the same shared secret as its canonical form. In QSL every ek is authenticated (a pinned fingerprint over the bytes, or the ADVAUTH MAC), which is why the report grades it LOW. R-7's item: the two-line canonical-encoding check on ML-KEM public keys.
+- **HOME.** HYGIENE bundle (R-7).
+- **VERIFICATION STATE.** CONFIRMED BY READ of the dependency's source by the Director ([D]); not re-executed here.
+- Cross-references: `ENG-0328`; `ENG-0336`.
+- Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e6` (34433 B); reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing.
+- Source: `TRIAGE_AND_PLAN` sec 1 H; the report's F-10.
+
+### ENG-0336 — ML-DSA-65 SIGNING USES THE DETERMINISTIC VARIANT WITH NO CONTEXT STRING (F-11) -- P3, HARDENING (split from `ENG-0328`)
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: hardening (crypto). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`), split from `ENG-0328`.
+- Severity: **P3** -- PROPOSED by the seat from the report's own grade and TRIAGE's band; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence).
+- **THE FINDING.** `AUDIT_qsl-protocol_security_2026-09-03.md` :420-:428 [D]+[R]: ml-dsa 0.1.0-rc.7 implements FIPS 204 final; its `Signer::sign` is the optional deterministic variant (lib.rs :240-:252, :560); `stdcrypto.rs` :219 calls it with an empty context. FIPS 204 s3.4 makes the hedged variant the default; deterministic signing raises fault-injection exposure of the identity key. The cure: the `RandomizedSigner` path (`sign_with_rng` with `OsRng`) and a context string (e.g. `b"QSC.HS"`) so the identity key's signatures are domain-separated at the algorithm level.
+- **HOME.** HYGIENE bundle (R-7).
+- **VERIFICATION STATE.** CONFIRMED BY READ by the Director; not re-executed here.
+- Cross-references: `ENG-0328`; `ENG-0335`; `ENG-0338`.
+- Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e6`; reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing.
+- Source: `TRIAGE_AND_PLAN` sec 1 H; the report's F-11.
+
+### ENG-0337 — `refimpl_actor` PINS ml-dsa 0.0.4, PRE-FINAL AND IN RUSTSEC-2025-0144's RANGE (F-17) -- P3, SUPPLY CHAIN (split from `ENG-0328`)
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: supply chain (a test actor's pin). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`), split from `ENG-0328`.
+- Severity: **P3** -- PROPOSED by the seat from the report's own grade and TRIAGE's band; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence).
+- **THE FINDING.** `AUDIT_qsl-protocol_security_2026-09-03.md` :468-:472 [R]+[D]: `tools/actors/refimpl_actor_rs/Cargo.toml` :12 pins ml-dsa 0.0.4 -- pre-FIPS-204-final AND in the affected range of RUSTSEC-2025-0144 (a timing side channel in Decompose; patched >= 0.1.0-rc.3); a test actor only, whose signatures cannot interoperate with the product's rc.7 either. The cure: pin it to the product's version.
+- **HOME.** HYGIENE bundle (R-7); `ENG-0019`'s neighbourhood (the reference implementation's retirement).
+- **VERIFICATION STATE.** CONFIRMED BY READ by the Director; not re-executed here.
+- Cross-references: `ENG-0328`; `ENG-0338`; `ENG-0019`.
+- Evidence: `AUDIT_qsl-protocol_security_2026-09-03.md` sha256 `e4d91c0863e6`; reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing.
+- Source: `TRIAGE_AND_PLAN` sec 1 H; the report's F-17.
+
+### ENG-0338 — THE CRYPTO DEPENDENCY STATUS: ml-dsa 0.1.0-rc.7 SIGNS IDENTITIES, DUPLICATE MAJORS, 17 DATED AUDIT WAIVERS, AN UNREVIEWED KMAC KDF (desktop audit 11, TRIAGE's D-11) -- P4, INFO (split from `ENG-0328`)
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: supply chain / status (spine). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`), split from `ENG-0328`.
+- Severity: **P4** -- PROPOSED by the seat from the report's own grade and TRIAGE's band; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence).
+- **THE FINDING.** `AUDIT_qsl-desktop_2026-09-03.md` :207-:214: `Cargo.lock`: ml-dsa 0.1.0-rc.7 (pre-release) signs identities; ml-kem 0.2.1; sha3 0.10.9 AND 0.11.0-rc.8; getrandom 0.2.17/0.3.4/0.4.3; rand_core 0.6.4/0.10.1; argon2 0.5.3; chacha20poly1305 0.10.1; rustls 0.23.42; ring 0.17.14; rustls-native-certs 0.8.4; webpki-roots 1.0.9; x25519-dalek 2.0.1; ed25519-dalek 2.2.0; no hkdf/hmac crate -- the KDF is a custom KMAC over sha3 (`kmac_out`, `protocol_state/mod.rs` :1030), NOT reviewed by the audit; `.cargo/audit.toml` carries 17 dated waivers, RUSTSEC-2024-0429 (glib unsoundness) a real, stated acceptance. The report's ask: track the ml-dsa 1.0 release and re-run test vectors at the bump. A DATAPOINT from this lane: `der` 0.8.0 was YANKED on 2026-09-05 and both lockfiles moved to 0.8.2 by one-stanza riders (#1820; desktop `346103da`) -- the status is live, not static.
+- **HOME.** HYGIENE bundle (R-7's `cargo audit` job, `ENG-0328`).
+- **VERIFICATION STATE.** CONFIRMED BY READ by the Director; the `der` datapoint measured by this lane.
+- Cross-references: `ENG-0328`; `ENG-0336`; `ENG-0337`.
+- Evidence: `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1`; reviewed public drafts are placed under docs/audits/2026-09-03; publication awaits PR landing.
+- Source: `TRIAGE_AND_PLAN` sec 1 H; the report's finding 11.
+
+### ENG-0339 — THE DEBUG LOG's `read()` DETECTS A RESET MORE WEAKLY THAN ITS DOC SAYS: TWO SESSIONS CAN INTERLEAVE BY `seq` (the read's N-08) -- P4
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: defect (desktop; an API's edge). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`; `RULING_NA0779_005` R3).
+- Severity: **P4** -- PROPOSED by the seat (the reader graded it NOTE; `RULING_NA0779_005` R3 sends it to the ledger); the OPERATOR ratifies by merging.
+- **THE FINDING.** `FINDINGS_SR15_NA0779_20260906T074720Z.md` sha256 `80247aed9de7` (the SR-15 cold read of the debug log, accepted at `RULING_NA0779_005` R1, sha256 `8e1e9d804498`) N-08: `debug_log.rs` `read()` computes `reset = since_seq >= next_seq && since_seq != 0`; if the new ring has already advanced past the caller's `since_seq` (a lock, then at least `since_seq` events before the next poll) `reset` is false and the caller receives new-ring lines with `seq > since_seq` while holding old-ring lines below it. UNREACHABLE from the shipped viewer (every lock leaves the pane; its poll restarts from 0 when reopened). The cure the reader names: a ring GENERATION counter in `ReadDto`.
+- **HOME.** The log's next increment (`ENG-0352`).
+- **VERIFICATION STATE.** CONFIRMED TO THE LINE by the reader (static, at `bb46ed84`); the seat did not re-execute.
+- Cross-references: `ENG-0352`; desktop `D-0048`.
+- Evidence: the findings file above.
+- Source: `RULING_NA0779_005` R3.
+
+### ENG-0340 — `debug_log_control` IS A THIRD WRITER OF `settings.json`, AND THE FILE's EXISTENCE IS THE S1/S2 LAUNCH-STATE DISCRIMINATOR (the read's N-09; `ENG-0076`'s family) -- P3
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: defect class (desktop; a launch-state signal forgeable by a scripted caller). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`; `RULING_NA0779_005` R3).
+- Severity: **P3** -- PROPOSED by the seat (the reader graded it NOTE; `RULING_NA0779_005` R3 sends it to the ledger); the OPERATOR ratifies by merging.
+- **THE FINDING.** `FINDINGS_SR15_NA0779_20260906T074720Z.md` sha256 `80247aed9de7` (the SR-15 cold read of the debug log, accepted at `RULING_NA0779_005` R1, sha256 `8e1e9d804498`) N-09: `commands.rs` `debug_log_control` loads, edits and saves `settings.json`, and `settings::save` creates it when absent; the file's EXISTENCE is the S1/S2 launch-state discriminator (`state.rs`; the harness names this as the reason it never pre-writes the file). A call in S1 (vault present, identity step unfinished) would forge the "identity step finished" signal -- the `ENG-0076` class. Reachable only by a scripted caller (the pane is behind S2; the harness arms on scr-main). The same class as `settings_set` and `relay_config_set`, pre-existing; this lane added a third writer and says so.
+- **HOME.** DESKTOP HYGIENE (with `ENG-0332`, the same file's other silence) -- a discriminator that is not a settings file's presence.
+- **VERIFICATION STATE.** CONFIRMED TO THE LINE by the reader; not re-executed.
+- Cross-references: `ENG-0076`; `ENG-0332`; `ENG-0333`.
+- Evidence: the findings file above.
+- Source: `RULING_NA0779_005` R3.
+
+### ENG-0341 — THE DEBUG-LOG VIEWER CAN SHOW LINES THE RING NO LONGER HOLDS (the read's N-10) -- P4
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: defect (desktop; a display/ring divergence, harmless direction). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`; `RULING_NA0779_005` R3).
+- Severity: **P4** -- PROPOSED by the seat (the reader graded it NOTE; `RULING_NA0779_005` R3 sends it to the ledger); the OPERATOR ratifies by merging.
+- **THE FINDING.** `FINDINGS_SR15_NA0779_20260906T074720Z.md` sha256 `80247aed9de7` (the SR-15 cold read of the debug log, accepted at `RULING_NA0779_005` R1, sha256 `8e1e9d804498`) N-10: the pane's poll appends every read to a client buffer capped at 8192 and only that cap evicts; the ring evicts independently, so after an overflow the ring (Copy / Export) carries fewer lines than the pane shows. Every such line passed the allowlist when read; Clear resets the client buffer.
+- **HOME.** The log's next increment (`ENG-0352`).
+- **VERIFICATION STATE.** CONFIRMED TO THE LINE by the reader; not re-executed.
+- Cross-references: `ENG-0339`; `ENG-0352`.
+- Evidence: the findings file above.
+- Source: `RULING_NA0779_005` R3.
+
+### ENG-0342 — SWITCHING THE DEBUG LOG OFF DOES NOT CLEAR THE RING, AND AN EXPORT MADE WHILE OFF HAS NO HEADER FIELD SAYING SO (the read's N-11) -- P4, THE OPERATOR DECIDES
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: design question (desktop). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`; `RULING_NA0779_005` R3): the operator decides later whether Off clears.
+- Severity: **P4** -- PROPOSED by the seat (the reader graded it NOTE; `RULING_NA0779_005` R3 sends it to the ledger); the OPERATOR ratifies by merging.
+- **THE FINDING.** `FINDINGS_SR15_NA0779_20260906T074720Z.md` sha256 `80247aed9de7` (the SR-15 cold read of the debug log, accepted at `RULING_NA0779_005` R1, sha256 `8e1e9d804498`) N-11: `apply_action("off")` sets `on=false` and removes the sink; the ring keeps its events, and read, export and Copy serve them regardless of `on` -- consistent with the blessed model (cleared on lock, wiped on erase), but the pane then shows a full list under a switch that reads off, and the export's header carries `level=` and not the switch.
+- **HOME.** The log's next increment (`ENG-0352`) once the operator's word is given.
+- **VERIFICATION STATE.** CONFIRMED TO THE LINE by the reader; not re-executed.
+- Cross-references: `ENG-0352`.
+- Evidence: the findings file above.
+- Source: `RULING_NA0779_005` R3.
+
+### ENG-0343 — A SECOND, RICHER, UNEXPOSED STORE OF MARKER TEXT LIVES IN THE DESKTOP PROCESS: THE IN-MEMORY `MarkerBuffer` (the read's N-15) -- P4, PRE-EXISTING
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: hardening note (desktop; a store nobody reads). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`; `RULING_NA0779_005` R3).
+- Severity: **P4** -- PROPOSED by the seat (the reader graded it NOTE; `RULING_NA0779_005` R3 sends it to the ledger); the OPERATOR ratifies by merging.
+- **THE FINDING.** `FINDINGS_SR15_NA0779_20260906T074720Z.md` sha256 `80247aed9de7` (the SR-15 cold read of the debug log, accepted at `RULING_NA0779_005` R1, sha256 `8e1e9d804498`) N-15: `CoreGateway::call` drains qsc's InApp marker queue into `MarkerBuffer` after every core call -- 1024 formatted lines whose values passed the engine's VALUE-BASED `redact_value_for_output`, not the log's allowlist; no command returns those lines (`notice_list` returns whitelist counts, `marker_stats` two counters, `snapshot` is `cfg(test)`); the typed ring never reads it. Pre-existing and outside NA-0779's range; named because the read's Q8 asked for any richer path. A DATAPOINT from the close: the typed `invite_finish` result (`D-0048` 004e) now PEEKS that queue's event NAMES (never a value) during its own call, the peek reads the qsc queue before draining; it is not a consumer of MarkerBuffer.
+- **HOME.** The vault/ENV lane or the log's next increment, on the operator's word: either the buffer earns a consumer (a typed one) or it is retired.
+- **VERIFICATION STATE.** CONFIRMED TO THE LINE by the reader; the peek measured by this lane's a17 arm.
+- Cross-references: `ENG-0352`; desktop `D-0046` (the notice allowlist).
+- Evidence: the findings file above.
+- Source: `RULING_NA0779_005` R3.
+
+### ENG-0344 — `gw.command`'s REASON IS `?` FOR NEARLY EVERY DESKTOP-SIDE FAILURE (the read's N-12) -- P4, DIAGNOSIS QUALITY; A RIDER ON THE UX POLISH
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: improvement (desktop; the closed reason lookup's coverage). Status: open, PARTLY LANDED -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`; `RULING_NA0779_005` R3).
+- Severity: **P4** -- PROPOSED by the seat (the reader graded it NOTE; `RULING_NA0779_005` R3 sends it to the ledger); the OPERATOR ratifies by merging.
+- **THE FINDING.** `FINDINGS_SR15_NA0779_20260906T074720Z.md` sha256 `80247aed9de7` (the SR-15 cold read of the debug log, accepted at `RULING_NA0779_005` R1, sha256 `8e1e9d804498`) N-12: `ErrorCode for String` hands the whole error message to the reason lookup, whose vocabulary was the ENGINE's; desktop codes (`export_dir_not_a_directory`, `relay_endpoint_*`, `confirm_phrase_mismatch`, most facade wire codes) rendered `?` -- correct as redaction (nothing but `?` or a member ever enters; the message is compared, never stored), weak as diagnosis. LANDED IN PART by `RULING_NA0779_005` R2 F-04 (desktop `962f01ab`): `DESKTOP_REASONS` (eight closed members for the unlock's, the probe's and the finish's outcomes) joined to the lookup after the engine's vocabulary. THE REMAINDER: the desktop's own error codes as members, one census over `commands.rs`; a rider on the operator's UX polish PR after the merge, as R3 places it.
+- **HOME.** The UX polish rider (R3).
+- **VERIFICATION STATE.** CONFIRMED TO THE LINE by the reader; the eight members measured by a12.
+- Cross-references: desktop `D-0048` 004d.
+- Evidence: the findings file above.
+- Source: `RULING_NA0779_005` R3.
+
+### ENG-0345 — ⚠ P1 — SIMULTANEOUS INVITATIONS DEADLOCK, SILENTLY AND PERMANENTLY: ONE PENDING HANDSHAKE PER PEER, NO TIE-BREAK (the 2026-09-06 handshake tests, H1)
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: defect (engine; the handshake state machine). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`) from `FINDINGS_handshake_tests_20260906.md` (sha256 `e2cd7715869f`; the Director, from the operator's eight debug-log exports of 2026-09-06 -- the instrument this lane built -- every digest recomputed EQUAL, 0 dropped, 0 non-ASCII; build `bb46ed84`, two machines, the production relay).
+- Severity: **P1** -- PROPOSED by the Director in `FINDINGS_handshake_tests_20260906.md` (sha256 `e2cd7715869f`) and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence). Silent, permanent, between ordinary users, reachable by accident.
+- **THE FINDING (T3, both machines).** Bob minted 16:34:39; Alice minted 16:35:13; Alice redeemed Bob's code 16:36:48 (A1); Bob redeemed Alice's code 16:36:53 (A1). From then, on every beat on BOTH machines for 5m26s: `invite_finish` pulls and consumes nothing (`invite_scan_summary n.pulls=1 n.scanned=0`, 27 times each); `invite_accept` does nothing except ONCE PER ~60 s, when it takes ~2x longer and logs `handshake_pending c.role=initiator b.present=t` -> `handshake_reject out=refused reason=?` -> `invite_accept_not_consumed out=skipped reason=?` (Alice seq 3118-3120, Bob seq 3079-3081), then sends no B1. No B1, no A2, no `handshake_complete` on either side; both screens "connecting". THE MECHANISM in the engine's own words: the accept path sees its own pending initiator role, REFUSES the incoming A1 and leaves it UNCONSUMED; the declined A1 is not acknowledged, returns after the lease (the 60 s rhythm = `PULL_LEASE_SECS`, measured live, `ENG-0142`'s datapoint) and is declined again, forever. The rule nobody wrote down: ONE PENDING HANDSHAKE PER PEER, NO TIE-BREAK. The Director proposed this as an explanation of the earlier report; that causal link was not separately established. RULES BROKEN: `AMENDMENT_1` A3 (a frame fetched and silently declined, every minute, with no surface); `ORDER_ladder_climb` P3 (the mixed-role prediction) CONFIRMED in the field. RECOVERY TODAY: NONE short of erasing a vault (`ENG-0348`); T3c measured the erase path -- keyed on the peer IDENTITY, not the label; Bob's stale "connecting" contact never cleared.
+- **FIX DIRECTION (a menu for the seat, the operator chooses; NOT designed here).** A tie-break for simultaneous handshakes with one peer, priced on identical axes: (a) deterministic yield -- the side whose identity compares lower abandons its own A1 and answers the other's; (b) answer anyway -- two sessions, the first to complete wins (WARNING: session REPLACEMENT is the mechanism that made blocked traffic undecryptable in August, `ENG-0142`'s compounding consequence); (c) a responder role always answers an A1 regardless of a pending initiator role, the initiator role cancelled when the peer's answer arrives. Whichever: the declined-A1 case must EMIT on a surface a human can reach (A3), and a declined frame must be acked or deliberately left with its reason logged (`ENG-0346`).
+- **HOME.** The handshake/messaging state-machine design (ROADMAP of record step 3/4), pulled forward as the FIRST measurement of the background-design write-up; then a lane of its own (SR-15 by construction). T2 (rapid retry) as a HARNESS scenario, not a hand test.
+- **VERIFICATION STATE.** MEASURED LIVE by the operator on two machines against the production relay, read by the Director from the exports; the seat has not reproduced it (no relay in the harness).
+- Cross-references: `ENG-0142` (the poison-frame family; the lease datapoint); `ENG-0346` (H7); `ENG-0347` (H2); `ENG-0348` (H3); `ENG-0296` (a paused inviter vs a stranded invitation); `ENG-0352` (the log's gaps that limit this diagnosis).
+- Evidence: the findings file above; the eight exports banked beside it under `state/operator/NA-0779/` (they carry no identity by construction).
+- Source: the Director's findings sec 2 H1; sec 4 D1.
+
+### ENG-0346 — ⚠ P1 — A REFUSED A1 IS A POISON FRAME THAT RETURNS EVERY LEASE UNTIL RETENTION: `ENG-0142`'s SHAPE ON THE ACCEPT PATH, LIVE (the 2026-09-06 handshake tests, H7)
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: defect (engine; the accept path's disposal). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`) from `FINDINGS_handshake_tests_20260906.md` (sha256 `e2cd7715869f`; the Director, from the operator's eight debug-log exports of 2026-09-06 -- the instrument this lane built -- every digest recomputed EQUAL, 0 dropped, 0 non-ASCII; build `bb46ed84`, two machines, the production relay).
+- Severity: **P1** -- PROPOSED by the Director in `FINDINGS_handshake_tests_20260906.md` (sha256 `e2cd7715869f`) and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence).
+- **THE FINDING (T3c, Bob).** The OLD Alice's A1 -- her vault erased at ~17:02:58 -- kept returning and being refused at 17:00:31, 17:01:38, 17:02:53 and 17:04:12 (`handshake_pending` / `handshake_reject` / `invite_accept_not_consumed`, dur ~400-840 ms), and will until the relay's 7-day retention drops it. Never acknowledged, never quarantined, no surface. It did not block the NEW handshake only because the beat ran two accepts (`ENG-0347`): the first swallowed the poison into a lease, the second pulled the new A1. Under ONE fetch per beat (`AMENDMENT_1` A1) a refused frame at the head must be acked-and-dropped with its reason, or quarantined (the receive path's precedent at `transport/mod.rs` :1224-:1247), or the mailbox starves.
+- **FIX DIRECTION.** Disposal is part of the design (`AMENDMENT_2` A5): the accept path's refusal must dispose deliberately and emit. Home: the same lane as `ENG-0345`.
+- **HOME.** With `ENG-0345`.
+- **VERIFICATION STATE.** MEASURED LIVE (four returns at the lease rhythm); not reproduced by the seat.
+- Cross-references: `ENG-0142` (the wedge; its `D-1376` closure boundary keeps message-class and unknown-class frames open -- this is the handshake-class case on the ACCEPT path); `ENG-0345`; `ENG-0347`.
+- Evidence: the findings file above.
+- Source: the Director's findings sec 2 H7.
+
+### ENG-0347 — TWO ACCEPT CALLS PER BEAT; SAME-MAILBOX INTERFERENCE UNPROVEN AFTER SOURCE REVIEW (the 2026-09-06 handshake tests, H2) -- P2, A MEASUREMENT OWED FIRST
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: defect candidate (engine/desktop; the inviter's accept). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`) from `FINDINGS_handshake_tests_20260906.md` (sha256 `e2cd7715869f`; the Director, from the operator's eight debug-log exports of 2026-09-06 -- the instrument this lane built -- every digest recomputed EQUAL, 0 dropped, 0 non-ASCII; build `bb46ed84`, two machines, the production relay); a MEASUREMENT is owed before any fix.
+- Severity: **P2** -- PROPOSED by the Director in `FINDINGS_handshake_tests_20260906.md` (sha256 `e2cd7715869f`) and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence).
+- **THE FINDING (T1, Bob).** While two invitations were pending, every beat ran `invite_accept` TWICE (pairs at 16:21:09, 16:21:25, 16:21:48, 16:22:06; ~220 ms each) -- one per pending invitation. If each is its own relay pull of the same mailbox, independent fetchers lease each other's frames; the Director proposed lease interference as a possible explanation; the export alone does not prove the pull or dispatch shape. MEASUREMENT OWED (the seat, before any fix): does `invite_accept` pull per invitation, or does one fetch get routed to both? The proposed one-fetch remedy is conditional on actual mailbox identity, not call count. Follow-up source review finds that each call pulls its invitation's slot. Distinct invite IDs are distinct slots; no global fetch repair is selected.
+- **HOME.** With `ENG-0345`; the measurement first.
+- **VERIFICATION STATE.** MEASURED LIVE (the pairs); the per-invitation slot parameter is source-verified in this continuation; runtime mailbox ownership and any same-mailbox interference remain unmeasured.
+- Cross-references: `ENG-0345`; `ENG-0346`; `D-1409` (the finish scan's dispatch).
+- Evidence: the findings file above.
+- Source: the Director's findings sec 2 H2; sec 4 D4.
+
+### ENG-0348 — NO RECOVERY PATH IN THE UI FOR A STUCK CONTACT: A "CONNECTING" CONTACT CANNOT BE REMOVED, CANCELLED OR RETRIED (the 2026-09-06 handshake tests, H3) -- P2, A LIVENESS REQUIREMENT
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: defect (desktop; contact management). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`) from `FINDINGS_handshake_tests_20260906.md` (sha256 `e2cd7715869f`; the Director, from the operator's eight debug-log exports of 2026-09-06 -- the instrument this lane built -- every digest recomputed EQUAL, 0 dropped, 0 non-ASCII; build `bb46ed84`, two machines, the production relay).
+- Severity: **P2** -- PROPOSED by the Director in `FINDINGS_handshake_tests_20260906.md` (sha256 `e2cd7715869f`) and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence).
+- **THE FINDING.** The operator: "I can't remove a contact. there is no option." A "connecting" contact that will never connect (`ENG-0345`) cannot be removed, cancelled or retried; the six deferred UI fixes already named Block/Unblock as the natural home for self-invite refusal and stuck-contact clearing -- it is now a LIVENESS requirement, not polish: without it `ENG-0345`'s only exit is erase (T3c).
+- **HOME.** The contacts lane (ROADMAP of record step 6), pulled forward.
+- **VERIFICATION STATE.** MEASURED LIVE (T3c: the stale contact never cleared).
+- Cross-references: `ENG-0345`; `ENG-0288` (the invitation -> contact link); NA-0778's deferred UI fixes.
+- Evidence: the findings file above.
+- Source: the Director's findings sec 2 H3; sec 4 D3.
+
+### ENG-0349 — EVERY HANDSHAKE IS ADMITTED UNDER THE LEGACY COMPATIBILITY RULE: THE SUITE-REQUIRED CHECK IS OFF IN PRODUCTION (the 2026-09-06 handshake tests, H4) -- P3, A DOWNGRADE SURFACE ALREADY ON THE HANDSHAKE LANE
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: defect (engine; suite admission). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`) from `FINDINGS_handshake_tests_20260906.md` (sha256 `e2cd7715869f`; the Director, from the operator's eight debug-log exports of 2026-09-06 -- the instrument this lane built -- every digest recomputed EQUAL, 0 dropped, 0 non-ASCII; build `bb46ed84`, two machines, the production relay).
+- Severity: **P3** -- PROPOSED by the Director in `FINDINGS_handshake_tests_20260906.md` (sha256 `e2cd7715869f`) and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence).
+- **THE FINDING (all 8 handshakes in T0/T1, both files).** `handshake_suite_admission reason=ACCEPT_QSC_HS_LEGACY_COMPATIBILITY c.mode=legacy_compat c.suite_context=legacy_v1` on every A1/B1. The PQ primitives ARE in use (A1 carries `kem_pk_len=1184`, `sig_pk_len=1952`, ct 1088), but the suite-required check the audit asked for is off in production. Consequence to plan for: contacts made now must be RE-INVITED when `SuiteRequired` lands (no installed base yet -- cheap now).
+- **HOME.** The handshake lane (ROADMAP of record step 5), as planned; re-invite after.
+- **VERIFICATION STATE.** MEASURED LIVE on eight handshakes.
+- Cross-references: `ENG-0311` (F-04), `ENG-0313` (F-05) -- the handshake lane's other subjects.
+- Evidence: the findings file above.
+- Source: the Director's findings sec 2 H4; sec 4 D5.
+
+### ENG-0350 — "CONNECTED" vs "CONFIRMED": THE REDEEMER COMPLETES WITH `peer_confirmed=f` ON EVERY HANDSHAKE AND BOTH SCREENS SAY "CONNECTED" (the 2026-09-06 handshake tests, H5) -- NOTE, A WORDING DECISION
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: note (desktop wording; the contacts lane). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`) from `FINDINGS_handshake_tests_20260906.md` (sha256 `e2cd7715869f`; the Director, from the operator's eight debug-log exports of 2026-09-06 -- the instrument this lane built -- every digest recomputed EQUAL, 0 dropped, 0 non-ASCII; build `bb46ed84`, two machines, the production relay).
+- Severity: **NOTE** -- PROPOSED by the Director in `FINDINGS_handshake_tests_20260906.md` (sha256 `e2cd7715869f`) and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence).
+- **THE FINDING.** The redeemer completes with `peer_confirmed=f`; the inviter completes with `peer_confirmed=t` one beat later; both screens say "connected". Honest at the protocol level; a wording decision for the contacts lane (two states, two words). Related: this lane's status bar already keeps "connected" for a measured success only (`ENG-0353`).
+- **HOME.** The contacts lane.
+- **VERIFICATION STATE.** MEASURED LIVE on eight handshakes.
+- Cross-references: `ENG-0288`; `ENG-0353`.
+- Evidence: the findings file above.
+- Source: the Director's findings sec 2 H5; sec 4 D6.
+
+### ENG-0351 — `session_load` RUNS ~168 TIMES PER MACHINE IN 13 MINUTES: EVERY SESSION, EVERY BEAT (the 2026-09-06 handshake tests, H6) -- NOTE, THE VAULT LANE's SUBJECT AT FIFTY CONTACTS
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: note (engine/desktop; the beat's cost). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`) from `FINDINGS_handshake_tests_20260906.md` (sha256 `e2cd7715869f`; the Director, from the operator's eight debug-log exports of 2026-09-06 -- the instrument this lane built -- every digest recomputed EQUAL, 0 dropped, 0 non-ASCII; build `bb46ed84`, two machines, the production relay).
+- Severity: **NOTE** -- PROPOSED by the Director in `FINDINGS_handshake_tests_20260906.md` (sha256 `e2cd7715869f`) and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence).
+- **THE FINDING.** ~168 `session_load` events per machine in 13 minutes (every session, every beat). Fine at three contacts; the vault lane's subject at fifty. For the background-design write-up.
+- **HOME.** The background-design write-up (ROADMAP of record step 3); the vault lane.
+- **VERIFICATION STATE.** MEASURED LIVE (counted in the exports).
+- Cross-references: `ENG-0315` (the vault's per-read Argon2, the same lane).
+- Evidence: the findings file above.
+- Source: the Director's findings sec 2 H6; sec 4 D6.
+
+### ENG-0352 — DEBUG LOG INSTRUMENTATION DEBT: INVITATION RELAY EVENTS, VOCABULARY GAPS AND A PROPOSED CORRELATOR (G1-G3) -- P3, QUEUE AND DESIGN PENDING
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: improvement (the instrument; engine + desktop). Status: open -- filed 2026-09-06 in the unfinished NA-0779 closeout draft (`D-1422`) from `FINDINGS_handshake_tests_20260906.md` (sha256 `e2cd7715869f`; the Director, from the operator's eight debug-log exports of 2026-09-06 -- the instrument this lane built -- every digest recomputed EQUAL, 0 dropped, 0 non-ASCII; build `bb46ed84`, two machines, the production relay); a proposed design subject; approved successor NA-0780 includes necessary instrumentation, with no implementation authority.
+- Severity: **P3** -- PROPOSED by the Director in `FINDINGS_handshake_tests_20260906.md` (sha256 `e2cd7715869f`) and carried by the seat; the OPERATOR ratifies by merging the records PR that lands this entry (`RULING_NA0778_016` R106's sentence). G2 is LOAD-BEARING: the reason code of `ENG-0345`'s refusal is outside the closed vocabulary, so the log names the refusal but not its cause.
+- **G1 -- NO RELAY-CALL LINES ON THE INVITATION PATH.** `relay_pull_diagnostic` / `relay_push_diagnostic` / `recv_item` / `recv_frame_skipped` are emitted only on the message receive/send paths; the three `relay_inbox_pull` callers (invite accept, invite finish, handshake poll) emit none, so the log shows THAT an A1 was declined every 60 s and not the mailbox side (items returned, consumed, left leased, the HTTP status, timing). XS engine change: the same markers at the three callers, plus a DISPOSAL event (class, disposition) for a frame fetched and not consumed (`AMENDMENT_2` A5).
+- **G2 -- VOCABULARY GAPS.** `reason=?` on `handshake_reject` and `invite_accept_not_consumed` (the deadlock's cause is redacted as unlisted); `c.caller=?` on the finish path's offer arm; `c.selected=?` on every `invite_scan_summary`; `c.state=?` on `handshake_pending`; `reason=?` on `sig_status`. Members to add after the seat reads the emission sites -- and where a value IS an identity or a label, `?` is the correct redaction and the census must say so (the regenerated census is the guard against drift, the read's Q2).
+- **G3 -- NO WAY TO FOLLOW ONE HANDSHAKE THROUGH INTERLEAVED LINES.** A per-session RANDOM tag (fresh at each unlock, never derived from identity, so the tag itself is not a stable identifier across unlocks) on the invite/handshake lines; desktop or engine; small. WITH IT, from the cold read: `ENG-0339` (the ring generation counter), `ENG-0341`, `ENG-0342` (on the operator's word), and G4 is DONE (`out=fail` is an actual error only, desktop `ebd92e3e`).
+- **HOME.** Proposed: an XS engine + desktop lane after NA-0779 and before the ratchet kickoff; not queue authority (the Director's findings sec 4 D2); it bumps the desktop's qsc pin under `ENG-0325`'s checklist line and re-runs the census.
+- **VERIFICATION STATE.** The gaps measured in the exports by the Director; the emission sites are the seat's to read.
+- Cross-references: `ENG-0345`; `ENG-0346`; `ENG-0339`; `ENG-0341`; `ENG-0342`; `ENG-0343`; `ENG-0344`; spine `D-1422` DV-9..DV-11; desktop `D-0048`.
+- Evidence: the findings file above.
+- Source: the Director's findings sec 3; sec 4 D2.
+
+### ENG-0353 — THE STATUS BAR IN STATE WORDS (the 2026-09-05 bank `RBANK_status_footer_todo` F1-F5) -- FILED AND LANDED IN NA-0779: CLOSED AT FILING
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: design bank, filed as the bank's own F5 orders. Status: **CLOSED at filing 2026-09-06** -- landed by NA-0779's desktop PR #56 (`5fbeed2b` 18c L5/L6, `c58916a5` 18d I1/I7; merged in `48b03157`).
+- Severity: n/a (a filing with its landing).
+- **THE BANK.** `RBANK_status_footer_todo_20260905.md` (sha256 `7ba7edcca5a4`, banked 444 under `state/operator/method/`): F1 a status footer on every screen with the STATE of the major components as coarse words; F2 the privacy rule -- STATE WORDS ONLY, never a relay host or URL, never a contact, never a count that identifies anyone, never a timestamp that reveals activity; F3 the house rules -- TLS is fail-closed so "not trusted" is a state, not a prompt; red is reserved for the vault-loss ceremonies; "connected" only after a measured success; F4 home the DIAGNOSTICS lane; F5 filed at NA-0779's close with the bank cited by sha.
+- **WHAT LANDED.** The bar on every screen INSIDE the main window (chats, contacts, Settings; the unlock window carries none -- 18d I1, after its two texts overlapped at that width): at the left `Relay: not configured | configured | connected | unreachable | not trusted | unknown`, `Vault: unlocked | locked | storage error`, `Auto-lock: N min | off`, from measured signals ("connected" only after a scan, test or probe succeeded, reset at every path to the unlock window per the cold read's N-07; "not trusted" from a `cert_not_trusted` outcome; unreachable in the accent tier); at the right `Debug Log: events | detailed` while the log is on and nothing while off. The relay's host and address are OFF the bar. Design tests pin the three undrivable words and the footer scenarios read the drivable ones (desktop `D-0048` 004b L6, 004c I1/I7).
+- **WHAT DID NOT LAND, NAMED.** Nothing of F1-F3; the bar's words for the vault are surface-derived and not re-measured after unlock (the read's N-07 (a), cosmetic).
+- Cross-references: desktop `D-0048`; `ENG-0334` (the Relay pane's own line still says "Certificate: Trusted" on loopback http); `ENG-0350`.
+- Evidence: the bank above; `STOP_NA0779_004a`, `RBANK_mockup_18c_blessed_20260905.md` (sha256 `27f5684bd439`), `RBANK_second_flight_18d_blessed_20260905.md` (sha256 `0cc78bee20eb`).
+- Source: the bank's F5.
+
+### ENG-0354 — THE RAIL TAB ICONS AS ONE FAMILY (the 2026-09-05 bank `RBANK_rail_icons_todo` T1-T3) -- FILED AND LANDED IN NA-0779 ON THE OPERATOR's "NOW": CLOSED AT FILING
+
+- Originating lane: NA-0779. Last lane: NA-0779. Last-updated: 2026-09-08. Filing: review draft, not merged.
+
+- Type: design bank, filed as the bank's own T3 orders. Status: **CLOSED at filing 2026-09-06** -- promoted into NA-0779 by the operator's "now" (`RBANK_second_flight_18d_blessed_20260905.md` I6) and landed by desktop PR #56 (`c58916a5` I6, `6a308ca1` the rail-square correction; merged in `48b03157`).
+- Severity: n/a (a filing with its landing).
+- **THE BANK.** `RBANK_rail_icons_todo_20260905.md` (sha256 `6013a32c7a3f`, banked 444 under `state/operator/NA-0779/`): T1 the three tabs as one family of outline icons -- Chats a speech bubble, Contacts two people, Settings three sliders (candidate A, the gear retired), stroke-only, one stroke width, one size, ONE selection treatment (a soft filled square, no border); T2 the exact shapes (inline SVG, viewBox 0 0 24 24, stroke-width 1.6; original work drawn by the Director); T3 home: a to-do, the first desktop lane the operator promotes that touches the rail. The reference: `mockup-rail-icons-preview.html` (sha256 `5ed12fe26f83`).
+- **WHAT LANDED.** T2's shapes verbatim in both rails (the main window's and Settings'); the selection treatment in the raised-surface token, the icon in the text colour, no border. DEVIATION NAMED at the landing: the square is the tree's 34px `.rail-btn` (the reference draws 36px) because the pane headings are pinned to the rail button's centre (the f_q alignment check; CI red at `c58916a5`, corrected at `6a308ca1`); the 28px icon is the reference's.
+- Cross-references: desktop `D-0048` 004c; `ENG-0353`.
+- Evidence: the bank and the preview above; `mockup-18d-diagnostics-proposal.html` (sha256 `8a816162c1bb`).
+- Source: the bank's T3; the operator's "now".
+
+## NA-0779 closeout review qualifications (2026-09-08; pending filing)
+
+Goals: G4
+
+- ENG-0326 remains a historical consolidation; ENG-0330 through ENG-0334 are proposed split entries, not repairs. ENG-0328 retains the audit-job remainder after its proposed split.
+- ENG-0343: the final invite_finish implementation peeks event names from qsc's upstream queue before CoreGateway drains it into MarkerBuffer. This does not establish a consumer of the richer MarkerBuffer store.
+- ENG-0344: eight desktop reason members describes the intermediate 962f01ab build. The final ebd92e3e build retired not_finished; invite_finish uses finished/offered/nothing as result words. Other desktop reason coverage remains open.
+- ENG-0345/ENG-0346: live behavior and timing are attributed to the Director's findings from operator exports. No handshake reproduction, fix, recovery proof, or scope expansion occurred in this continuation.
+- ENG-0352 proposes follow-up work only. Findings do not supply an approved successor NA block or authorize a change to queue order, a new correlator, or an allowlist expansion.
+- ENG-0353: the main-window footer landed, with the unlock-window exclusion recorded; surface-derived vault words remain a known limitation. The filing must not imply every displayed state was measured at runtime.
+
+## Director follow-up reconciliation — 2026-09-09, prepared record
+
+Goals: G4
+
+- N-14: the engine source documentation addition is deferred to the next relevant source change; the verified continuation-only line was removed, and its exact patch is retained in lane evidence. As-built warning now: the sink is called under the sink mutex and must not emit a marker. No token test or linter change.
+- ENG-0347 / H2 source correction: autoConnectClass passes each inv.invite_id into invite_accept; invite_accept_at loads that record and passes invite_id_wire to relay_inbox_pull. Distinct invitation IDs select distinct invitation slots. The observed pair of calls does not establish duplicate pulls of the same mailbox. The earlier conditional one-fetch design is a hypothesis, not an approved repair. Reproduction must enumerate actual mailbox ownership before selecting dispatch changes.
+- ENG-0352 / G1–G3 remains instrumentation debt. The current successor proposal is Invitation reliability, including necessary instrumentation, not authority to start a separate logging lane or add a correlator without design/privacy review.
+- ENG-0349 / H4 suite admission remains in separately approved handshake hardening. ENG-0350/0351 remain separate contacts/background notes.
+- Existing row 485 already files S-31; E-38 already sits under WF-0104; D-1422 DV-4 and the tools instruction record carry C2'. No duplicate filing or tools change is proposed.
+- Archive fingerprints in the original audit reports identify source archives, not Git commits. All report coordinates below remain historical evidence; draft publication does not turn them into current measurements. The original consolidation filings are preserved and their proposed splits remain open findings.
+
+Approval follow-up, 2026-09-09: the exact NA-0780 Invitation reliability block and placement immediately after NA-0779 closeout are approved in RBANK_NA0780_invitation_reliability_approved_20260909.md (sha256 53852629b28b). The seven reviewed audit publication files are now placed locally under the approved scope; original audit bytes and README limitations are preserved. Final-build operator acceptance is satisfied by the Director disposition; records merge and post-merge gates remain pending. No successor implementation, READY advancement, record push, merge or completed post-merge closeout is claimed.
+
+### NA-0779 final-build acceptance and retained findings
+
+Goals: G4
+
+DEBUG_LOG_TYPED_ALLOWLIST_FLOWN_PASS
+
+The Director's final-build disposition satisfies NA-0779 acceptance on desktop ebd92e3ee230, merged in #56 as 48b031574ac8. Operator observations: two Copies produced different nonzero labels; lock/wrong-passphrase/successful-unlock was performed; invalid-directory treatment passed; the real A-to-B exchange left both connections green. The Director verified the lock export's contiguous gw.lock then successful gw.unlock boundary without retained failed-attempt events; A's 115 contiguous events with handshake_complete and nothing/offered, both out=ok; B's 77 contiguous events, sequences 53–129, with handshake_complete and nothing/finished, both out=ok. All three had valid footer digests and the correct build. Event-line scans reported no URLs, IPv4 addresses, sensitive-value keys or long hexadecimal values. This is bounded export evidence, not a general security certification. Legacy compatibility admission and B's peer_confirmed=false remain inherited findings, not fixes.
+
+N-14 remains an explicit source-documentation deferral: the sink callback holds the sink mutex and must not emit a marker. No source, test or linter change is included. ENG-0349 legacy suite admission and ENG-0350 peer-confirmation wording remain open; accepted debug-log evidence does not close those findings. G1–G3 instrumentation debt and H1/H7/H2/H3 invitation findings retain their recorded dispositions and approved successor boundaries.

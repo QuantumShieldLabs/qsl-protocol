@@ -1,49 +1,31 @@
 Goals: G1, G2, G3, G4, G5
-
 Status: Authoritative
 Owner: QSL governance
-Last-Updated: 2026-07-10
+Last-Updated: 2026-09-09
 
 # QuantumShield Roadmap
 
-## Current posture
+QuantumShield remains a research-stage protocol and demo system. Production readiness is not established. The September audits contain unresolved findings, including state-machine results obtained with mock primitives; the confirming StdCrypto rerun remains owed. This update follows the operator-blessed ROADMAP_of_record_20260905.md. NEXT_ACTIONS.md governs executable queue authority; this document promotes no lane.
 
-QuantumShield remains a research-stage protocol and demo system. It is not production-ready, and project artifacts must not claim production readiness until the release-readiness gates in `GOALS.md`, the canonical specs, conformance vectors, formal checks, demo acceptance criteria, and public-safety gates all support that claim.
+## Order of work
 
-The cryptographic core is now correctness-complete: the Suite-2 DH+PQ composition is unified on a single root (NA-0626), independently analyzed in a CI-gated ProVerif symbolic model (NA-0627, `docs/design/DOC-G4-002`), and the last known correctness gap — the RFC 7748 §6.1 non-contributory-DH check — is closed (NA-0628). No open P1 remains and there is no known correctness gap in the crypto core. The remaining gate on any post-compromise / production claim is now review, not engineering: independent human review plus the bounded ENG-0035 formal follow-up. Forward work is hardening, metadata (ENG-0022/ENG-0037), and the TUI/GUI + private-server product direction (ENG-0036).
+1. Finish the debug-log lane's records. Its implementation is merged and final-build acceptance is satisfied; the records PR and post-merge closeout gates remain pending. Audit publication and the source documentation deferral are explicitly tracked.
+2. Ratchet work and the relay capability split are the next parallel subjects in the roadmap of record, with a ceiling of two implementation seats. Ratchet work begins with experiments A–D under StdCrypto, then a two-party interleaving simulator demonstrated red on the baseline and green after approved repairs. The relay split separates the vault-held read secret from the derived deposit address; pull/ack present the preimage. The split precedes invitations involving outside users.
+3. Write the lean background design from actual code: rungs, transitions, persistence, retries, idempotency, close/lock/crash survival, reset/recovery and the relay lease law. The operator approves that design; it must establish the handshake-poll class and one fetch per mailbox per beat.
+4. Deliver messaging on the fixed ratchet and split relay. The receive loop joins the shared dispatcher, the interleaving simulator and remote round-trip gate pass, and the approved claims document is linked.
+5. Once messaging works between the operator's two machines, undertake vault hardening (key rather than retained passphrase, zeroization, no Debug on secrets, then versioned KDF changes), handshake hardening (ephemeral ML-KEM, required suite, engine-side label check and decoder cap), environment seams and the label split before onboarding. Wire changes precede outside users.
+6. Then onboarding, contact management, diagnostics polish and metadata work; shaped-push rungs follow an operator-captured real wire baseline.
 
-## Roadmap principle
+The operator has approved the exact **NA-0780 — Invitation reliability** successor block covering own-invitation rejection, simultaneous invitations, refused-frame disposal, necessary instrumentation and stuck-contact recovery. Its placement immediately after NA-0779 closeout is approved in RBANK_NA0780_invitation_reliability_approved_20260909.md. The original roadmap bank is preserved; this approval changes the successor placement prospectively. READY is not advanced and no implementation or protocol repair design is authorized.
 
-Governance supports engineering. Future work should normally produce at least one of:
+## Evidence and review
 
-- executable behavior
-- invariant tests
-- conformance vectors
-- demo acceptance behavior
-- release-hardening automation
+The six audit files and reproduction instructions are placed as reviewed publication drafts under docs/audits/2026-09-03. Publication is pending this records PR landing. Reports are historical; full-source findings and mock outcomes must not be presented as current acceptance. The claims document is conditional on the Director supplying an approved draft; no new claims are inferred here.
 
-Pure governance-only PRs are exceptional and should be limited to queue integrity, CI deadlock recovery, traceability required by implementation, or release-control decisions that unblock executable work without weakening fail-closed gates.
+The operator's review plan is public source and reproducible evidence for critique, replacing the earlier funded outside-review plan. This is a review invitation, not evidence of completed independent cryptographic review. Simulator negative controls and fresh cold reads for changes to keys, sessions or redaction remain required. SECURITY.md retains the private reporting path.
 
-## 30-day priorities
+Operator work outside this queue retains its own authority and gates. The recorded relay lease measurement is from a service environment file, not a new live-process observation. Retirement of old infrastructure remains gated by the recorded trial and date conditions.
 
-- Strategic-docs truth-up (this lane, WF-0018 / D566): keep the strategic, program, and public/review-facing docs current with live truth, and assemble the external-review bundle on accurate inputs (the package now records the ProVerif analysis, the single-root composition, and the contributory-DH guard).
-- ENG-0019 remediation: retire or neutralize the auth-unsafe `qsp` reference implementation so CI and the release provenance chain stop blessing it; the cheapest sub-item (stop shipping `refimpl_actor` in `release_artifacts/`) is a one-line change.
-- Cheap hardening sweep: ENG-0032 / ENG-0033 (apps hygiene + public-safety gate hardening) and the NA-0627 CI-cost path-filter.
+## Invariants
 
-## 60-day priorities
-
-- Constant-time hardening: ENG-0014 (qsl-server token compare) and the related constant-time family (ENG-0003/0005/0008/0015).
-- ENG-0035 / Tamarin: the multi-epoch unrolling — pursued only if the post-compromise claim is being sought (a review of a model with a known non-terminating query reviews the wrong artifact).
-- Commission independent human review — the standing prerequisite that no internal proof discharges — of the composition, the DOC-G4-002 abstraction table, and the contributory guard.
-
-## 90-day priorities
-
-- Metadata: cover-traffic / boundary-cadence (ENG-0022/ENG-0027) and sealed-sender (ENG-0037, analysis-first via a relay/sender-metadata audit) — the flagship "beat Signal on metadata" work, now un-parked as the crypto core reaches its completion point.
-- Product direction: the TUI/GUI, and the token-gated private-server deployment with a setup-time public/private mode toggle (ENG-0036) — access control, not E2EE or metadata protection.
-- Clear non-production limits: preserve explicit research/demo labels until release evidence and independent review prove otherwise.
-
-## Non-goals
-
-- Do not use roadmap paperwork as a substitute for implementation, tests, vectors, or release-hardening automation.
-- Do not normalize branch-protection exceptions or public-safety bypasses.
-- Do not start unapproved implementation lanes outside the sole READY item in `NEXT_ACTIONS.md`.
+Keep fail-closed behavior, claim boundaries, required checks and the sole READY item. Governance supports executable behavior, discriminating tests, vectors and measured acceptance; publication or a merge alone does not establish those outcomes.

@@ -6,7 +6,7 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0779 | HIGHEST_NA=0779 | HIGHEST_D=1422 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0779 | HIGHEST_NA=0780 | HIGHEST_D=1422 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
 <!-- prior: STATE: READY=none (NA-0778 DONE 2026-09-05; the successor -- the ladder program's first lane, the debug log -- is promoted by its own kickoff, RULING_NA0778_016 R103) | HIGHEST_NA=0778 | HIGHEST_D=1421 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0779 READY for **D-1422** -- **THE DEBUG LOG LANE**, the ladder program's first: an extensive, opt-in, redacted-by-construction diagnostic log for the operator, the Director and outside experts, formalized and promoted in one stop; the apparatus fix (qsl-ops PR #1, RULING_NA0778_017 R116) done first; the three audits landed as filings ENG-0300..ENG-0329 with the Director's proposed severities the operator ratifies by merging; ENG-0269 CLOSED by transcription; WF-0086's disposition measured and proposed; row 485 and two datapoints; the cadence's C2' recorded as an operator decision. Ids re-derived at the edit on declaring forms across all three input sets, WF-0068, both controls; the NA-9999 sentinel classified, not counted; the open-PR arm vacuous and said so.) -->
 <!-- prior: STATE: READY=NA-0778 | HIGHEST_NA=0778 | HIGHEST_D=1421 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0778 DONE, class INVITATIONS_PAGE_FLOWN_SHOW_ONCE_HELD_PASS, RULING_NA0778_016 R104) -->
 <!-- prior: STATE: READY=NA-0777 | HIGHEST_NA=0777 | HIGHEST_D=1420 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0778 READY for **D-1421** — **THE INVITATIONS LANE**: the Settings > Invitations page and the Contacts-rail block, two measurements sealed before the screens, and the records act four lanes left owed: NA-0777 -> DONE, NA-0772 / NA-0774 -> DONE, ENG-0280 CLOSED, ENG-0250 / ENG-0251 / ENG-0252 CLOSED by ruling, NA-0776's class declared, WF-0104 filed, NA-0771's as-built recovered, the record-push cadence recorded as an operator decision. Ids re-derived at the edit on declaring forms across all three input sets, WF-0068; the NA-9999 sentinel classified, not counted.) -->
@@ -37768,6 +37768,26 @@ Acceptance:
 - NOTHING IS MERGED BY THE SEAT.
 
 Claim boundary of this promotion: records only; n=0 product bytes, n=0 tests run, n=0 builds, n=0 relay contacts, the GUI not driven, nothing merged. The census figures are `git grep` counts at the named bases and are the SCOPE of the event model, not the model. The audit findings are FILED with the Director's proposed severities and this seat's re-measured lines; their reports are cited by the shas the triage prints and are NOT on this box at this edit; nothing filed here is repaired, re-audited or re-run. `WF-0086`'s disposition is a measurement offered for the Director's ruling, not a closure.
+
+
+NA-0779 final-build result, Director disposition 2026-09-09:
+
+DEBUG_LOG_TYPED_ALLOWLIST_FLOWN_PASS
+
+Acceptance is satisfied under RBANK_NA0779_final_build_acceptance_20260909.md. Evidence boundaries and local-export custody are recorded separately in the as-built. This branch completes the authorized records edits; the records PR merge, final durable record-push proof and freeze remain pending. NA-0779 retains the sole READY token until that handoff. No successor implementation is authorized.
+
+### NA-0780 — Invitation reliability
+
+Status: APPROVED
+
+Approved for placement immediately after NA-0779 closeout; held from READY and implementation until post-merge closeout gates complete. Approval: RBANK_NA0780_invitation_reliability_approved_20260909.md. Only the operative status wording updates the exact banked proposal; its scope, design, tests and entry gates are unchanged.
+- Goals: G4
+- Impact: make invitation completion and recovery reliable and diagnosable.
+- Scope: reject self-minted invitations at the connect window and underlying handler before redemption side effects; address simultaneous-invitation deadlock, refused-frame disposal, necessary invitation-path instrumentation and stuck-contact recovery.
+- Design gate: analyze handlers, pending roles, mailbox ownership, leases and recovery transitions before selecting repairs. Distinct invitation IDs select distinct slots; two accept calls alone do not prove duplicate pulls from one mailbox. No protocol repair or correlator design is selected.
+- Tests/Vectors: failing reproductions first for both rejection boundaries, simultaneous invitations, refused-frame recurrence and recovery; then required CI and observed two-device completion/recovery with both logs on an identified build. Exercise retries, duplicate/delayed frames and lock/restart boundaries where applicable.
+- No-regression: preserve fail-closed authentication, validated state transitions, one fetch per mailbox per beat, closed log vocabularies, lock privacy, CLI behavior and existing gates. Wire/crypto/security semantic changes require separate approval. Carry deferred N-14 documentation with the next relevant source change.
+- Entry gate: operator-approved block and placement, NA-0779 closeout gates satisfied, and an implementation directive naming exact repositories and paths. This proposal authorizes no implementation, READY advance, merge or acceptance declaration.
 
 ### NA-0778 — THE INVITATIONS LANE (the operator's "Lane C"): THE USER GETS A PLACE TO SEE AND MANAGE INVITATIONS, TWO QUESTIONS THE DESIGN DEPENDS ON ARE MEASURED BEFORE EITHER IS BUILT INTO A SCREEN, AND THE RECORDS ACT FOUR LANES LEFT OWED LANDS TOGETHER WITH THE FIRST PUSH OF THE RECORD UNDER A CADENCE (Director's kickoff `KICKOFF_invitations_lane_20260903.md` sha256 `8b0f1eb52899fa88167032a8e24acba642766ddf85609f0130355d7d52f65fdd`, 25965 B, sha-VERIFIED against the Director's value BEFORE being read and banked 444 under `state/operator/NA-0778/` as the kickoff's first act D; formalized at `STOP_NA0778_001_20260903T200355Z.md` sha256 `5a9b7ebc6b6ae4fce588bcc960269d3e0a662567dfd02b570a052bf1ed40e908`; ruled at `RULING_NA0778_001_20260903.md` sha256 `0e04e22135c682f105dbe18203b93d5bbe3bda2560f682a555e3d3ac862459d1`, R1-R10)
 

@@ -153,7 +153,7 @@ N-19 corrections: the original sequence assertion covered the unit path; F-02 la
 ### Post-fix hardening review
 
 - Stress correctness: this is a verified source-comment rollback; no concurrency fix or new stress result is claimed. The held-mutex warning matches feed's callback path.
-- Minimality: event.rs remains byte-identical to the merged implementation. The original 292 ledger additions are preserved in the pre-edit evidence snapshot; this records PR incorporates their reviewed corrections and additional filings. The proposed revision changes the 14 authorized records/audit paths plus the Director-authorized test-only census tables in ratchet.rs. Production bytes and scanner logic remain unchanged.
+- Minimality: event.rs remains byte-identical to the merged implementation. The original 292 ledger additions are preserved in the pre-edit evidence snapshot; this records PR incorporates their reviewed corrections and additional filings. The revision changes the 14 authorized records/audit paths plus the Director-authorized test-only census tables in ratchet.rs and substantive fixture runner (16 paths total). Production bytes and scanner logic remain unchanged.
 - Maintainability: the exact N-14 patch is preserved, the as-built carries the warning, and source placement is explicitly owed with the next relevant source change.
 - Coverage: the prior continuation ran six existing sink tests. Required 4A was rerun successfully for this closeout; committed-tree goal-lint, infrastructure/secret scans and link checks passed. No artificial test was added to satisfy metadata. Historical runtime tests remain distinct from these current documentation checks and PR-head CI.
 - Cross-platform: no runtime/platform change remains. Both cached flight profiles match their banked hashes; this is binary identity, not Linux or macOS acceptance. No new macOS run occurred.
@@ -262,4 +262,25 @@ Observed local proof in closeout-dh-census-20260909: real census FAIL before (th
 
 Post-fix hardening review: count drift within the already classified function fails closed, and removal still fails; the exact inverse of the two table additions reproduces the original source bytes, proving minimality. The existing reasoned-table mechanism remains maintainable without new scanner branches. The mutation checks execute the actual Rust census and distinguish its two failure reasons, rather than asserting text presence alone. Linux execution is observed; no new macOS execution or remote corrected-head CI is inferred.
 
-Required goal-lint independently requires a changed tests/vectors/harness path for this source location. The authorized two table additions and records do not supply such a path. A substantive reusable fixture test is prepared in lane evidence at check_archive_census.py; proposed publication destination tests/na0779_dh_census_classification.py requires explicit scope authority. It runs the real census and the requested disposable mutations, preserving originals. No token test or gate modification is made. The correction push remains held at this gate; committed-tree validation and the precise local/remote tips belong in the continuation's evidence and PR update. Operator merge, final durable-record push, freeze and NA-0780 remain gated.
+At local head fcb08ccae1d7, required goal-lint held the push because the authorized source/record paths lacked a tests/vectors/harness path. The Director subsequently authorized the exact substantive runner destination; automatic review added only tests/na0779_dh_census_classification.py to scope. The preceding path-authority blocker is resolved.
+
+### Installed regression runner and invocation
+
+The installed runner uses only Python's standard library plus existing Git/Cargo requirements. It copies tracked worktree bytes to a new disposable fixture outside the checkout, invokes the actual Rust census by its complete module-qualified name, and preserves the selected shared Cargo target. It refuses tracked symlinks and optimized Python, so mutations cannot write through to originals and assertions cannot be silently disabled.
+
+Observed installed-runner results: classification/count correct PASS; classification removed FAIL for exactly the two archive establish sites; third mock call FAIL for count 3 versus pin 2 with no additional count drift; restored fixture PASS. Every original tracked file (2428) retained its whole-file hash during the checks. Each negative case requires the named Rust test to execute and fail, Cargo's test-failure exit, and the precise expected diagnostic. Nine synthetic unrelated/malformed failures (compilation failure, wrong exit, different test, different panic and wrong count) were rejected. A generic nonzero execution never counts as expected test failure.
+
+Set exported QSL_BUILD_ROOT to the existing build root and QSL_CENSUS_EVIDENCE to a new evidence directory outside the checkout. From the selected protocol checkout, run in a non-login child Bash:
+
+```bash
+bash -c '
+  source "$QSL_BUILD_ROOT/state/tools/env_qbuild.sh"
+  qbuild_export_repo_env qsl-protocol
+  python3 tests/na0779_dh_census_classification.py \
+    --repo "$PWD" --output "$QSL_CENSUS_EVIDENCE"
+'
+```
+
+Keep the four case logs and results.json. The result records verified case verdicts, original-file count and source/archive digests; an unsuccessful execution exits nonzero and must not be reported PASS. The fixture is retained for inspection, restored to its starting source/archive bytes.
+
+The full reference-crate suite already passed 125 tests on fcb08ccae1d7. Only the runner and records change in this follow-up; that full suite is not unnecessarily repeated locally. The installed runner and committed-tree goal-lint are run for this revision, and actual remote-head CI is reported separately in the PR/evidence. Linux execution is observed; macOS results are claimed only when supplied by the corresponding CI check. The original before-correction census failure remains in the preceding evidence packet. No production crypto, scanner logic, workflow, linter, audit-original or event.rs change is made. Acceptance/custody remain as separately recorded; publication awaits PR landing. No merge, final durable-record push, freeze or NA-0780 advancement is inferred.

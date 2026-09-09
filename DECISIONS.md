@@ -45295,3 +45295,31 @@ Local custody is complete and remains separate from the Director's acceptance ve
 At the preceding fcb08ccae1d7 continuation, goal-lint required a changed tests/vectors/harness path when ratchet.rs changes. That exact authorization names only the two table entries and accompanying records; no token test or linter change is added. A substantive reusable fixture runner is prepared in lane evidence, with proposed destination tests/na0779_dh_census_classification.py pending explicit scope authorization. It exercises the actual census in a disposable tracked-tree copy and verifies both requested mutations and restoration. Push of this correction is held at the existing required gate; the remote PR may therefore remain at its preceding head. No merge, durable-record push, freeze or successor implementation is authorized by this correction.
 
 **DV-18 -- Substantive census runner admitted, Director-authorized 2026-09-09.** The Director explicitly authorized tests/na0779_dh_census_classification.py, and automatic review added only that path to the selected scope. This supersedes DV-17's runner-path authority blocker. The installed Python-standard-library runner invokes the actual Rust census in a disposable tracked-tree copy. Correct classification/count and restored fixture PASS; removing classification FAILS for exactly the two archive establish sites; adding a third mock call FAILS for isolated count drift 3 versus 2. Cargo execution errors, a different failing test, a different panic and unexpected count drift are rejected, not credited as expected failures. All 2428 original tracked-file hashes stayed unchanged during mutation checks. Nine synthetic unrelated/malformed failure outputs were also rejected. The as-built documents invocation. The previously passing 125-test reference suite is retained as evidence without unnecessary repetition: this follow-up changes only the runner and records. Committed-tree goal-lint and actual remote-head CI remain separately observed gates. No linter, scanner logic, workflow, production crypto or archived-original change is included; this PR is closeout records, archive publication and test-only census classification/regression coverage. Merge, final durable-record push, freeze and successor advancement remain gated.
+
+## NA-0780 engine milestone — retained local invitation ownership (2026-09-09)
+
+Goals: G4
+
+The operator-approved retention design adds a strict versioned ownership record
+inside the existing encrypted vault, separate from visible invitation rows. It
+contains only minted IDs and existing public identity commitments. Minting retains
+ownership before network/export; unlock, clear/revoke and rotation seed recoverable
+records before discard. Full vault erase removes history. No invite format,
+cryptography, authentication checks or identifier outside the vault changes.
+
+Preflight and redemption share a read-only predicate, enforced before redemption
+writes, networking or pending-contact creation. Corruption or failed retention
+refuses the affected operation. Post-authentication storage failure leaves the app
+locked without incrementing failed-password counters. Stale vault-session writes
+preserve the authoritative ownership record; unrelated secret merge behavior
+remains unchanged. Public identity reads neither create nor migrate keys.
+N-14 adds only the sink callback-under-mutex warning.
+
+Limitations: ownership information deleted before this upgrade cannot be recovered;
+KEM-only public records cannot reconstruct absent signing-key commitments. Older
+vault backups contain older history; no rollback-detection redesign is selected.
+The encrypted sets grow until full erase. Vault-only erase leaves independent
+public identity files unchanged, so those keys can still identify their invitations.
+Preflight success is not authentication. Desktop/two-device acceptance remains
+outstanding. The draft and unchanged strict-clippy baseline are not a lint waiver
+or merge authorization. Regression and required CI results are recorded on PR #1824.

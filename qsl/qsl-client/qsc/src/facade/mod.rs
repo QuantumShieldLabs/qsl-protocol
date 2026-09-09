@@ -95,6 +95,8 @@ pub enum FacadeError {
     // ── LOCAL: decided before any socket (`invite/mod.rs:99`) ────────────────────────────
     /// `invite_expired` `:104` — expired by the LOCAL clock, before any network attempt.
     Expired,
+    /// This invitation was created by this app. Ask the other person for their invitation.
+    SelfInvitation,
     /// `invite_already_redeemed` `:106` — client-side single-use; the arm that survives a
     /// hostile relay (I2). Deliberately distinct from [`Self::AlreadyUsed`].
     AlreadyRedeemed,
@@ -199,6 +201,7 @@ impl FacadeError {
             FacadeError::Locked => "locked",
             FacadeError::VaultUnavailable(_) => "vault_unavailable",
             FacadeError::Expired => "expired",
+            FacadeError::SelfInvitation => "self_invitation",
             FacadeError::AlreadyRedeemed => "already_redeemed",
             FacadeError::RevokedLocally => "revoked_locally",
             FacadeError::SoftCapReached => "soft_cap_reached",
@@ -250,6 +253,8 @@ fn map_code(code: &str) -> FacadeError {
             FacadeError::Malformed
         }
         invite::INVITE_EXPIRED => FacadeError::Expired,
+        invite::INVITE_SELF => FacadeError::SelfInvitation,
+        invite::INVITE_OWNERSHIP_UNAVAILABLE => FacadeError::StoreUnavailable,
         invite::INVITE_ALREADY_REDEEMED => FacadeError::AlreadyRedeemed,
         invite::INVITE_REVOKED_LOCALLY => FacadeError::RevokedLocally,
         invite::INVITE_SOFT_CAP_REACHED => FacadeError::SoftCapReached,
@@ -827,6 +832,14 @@ pub fn invite_clear(invite_id: &str) -> Result<(), FacadeError> {
     invite::invite_clear(invite_id).map_err(map_code)
 }
 
+/// Local Connect preflight. `SelfInvitation` means: “This invitation was created by
+/// this app. Ask the other person for their invitation.” Success is not authentication
+/// or redemption readiness; redemption repeats ownership enforcement and normal checks.
+pub fn invite_preflight(code: &str, self_label: Option<&str>) -> Result<(), FacadeError> {
+    require_unlocked_here()?;
+    invite::invite_preflight(code, self_label).map_err(map_code)
+}
+
 /// Wraps `invite_redeem` (`invite/mod.rs:932`).
 pub fn invite_redeem(
     code: &str,
@@ -929,6 +942,8 @@ mod na0751_facade_mapping_tests {
     /// test's compile as well as the mapping's.
     fn declared_codes() -> Vec<String> {
         let mut v: Vec<String> = [
+            invite::INVITE_SELF,
+            invite::INVITE_OWNERSHIP_UNAVAILABLE,
             invite::INVITE_CLEAR_REFUSED,
             invite::INVITE_MALFORMED,
             invite::INVITE_VERSION_NEWER,
@@ -966,8 +981,8 @@ mod na0751_facade_mapping_tests {
         let found = scrape_error_code_values(INVITE_SRC);
         let declared = declared_codes();
         // NON-VACUOUS: an empty or truncated scrape cannot reach the equality below.
-        assert_eq!(found.len(), 23, "taxonomy declares 23 error consts; found {found:?}");
-        assert_eq!(declared.len(), 23, "the mapping declares 23");
+        assert_eq!(found.len(), 25, "taxonomy declares 25 error consts; found {found:?}");
+        assert_eq!(declared.len(), 25, "the mapping declares 25");
         let uncovered: Vec<&String> = found.iter().filter(|f| !declared.contains(f)).collect();
         assert!(uncovered.is_empty(), "declared upstream but not mapped: {uncovered:?}");
         assert_eq!(found, declared, "found side and declared side agree exactly");
@@ -979,7 +994,7 @@ mod na0751_facade_mapping_tests {
         // rather than passing silently. This is the control v3's name-needle lacked.
         let plus = format!("{INVITE_SRC}\npub const SYNTHETIC_CONTROL: &str = \"synthetic_code\";\n");
         let found_plus = scrape_error_code_values(&plus);
-        assert_eq!(found_plus.len(), 24, "a new lowercase const is FOUND");
+        assert_eq!(found_plus.len(), 26, "a new lowercase const is FOUND");
         assert!(found_plus.iter().any(|v| v == "synthetic_code"));
 
         // NEGATIVE CONTROL: the three non-code consts are excluded BY THEIR OWN VALUES.
@@ -996,7 +1011,7 @@ mod na0751_facade_mapping_tests {
             .lines()
             .filter(|l| l.starts_with("pub const ") && l.contains(": &str = "))
             .count();
-        assert_eq!(by_name, 26, "the name needle over-captures by exactly three");
+        assert_eq!(by_name, 28, "the name needle over-captures by exactly three");
     }
 
     #[test]
@@ -1140,7 +1155,7 @@ mod na0751_facade_mapping_tests {
 
     #[test]
     fn na0751_as_wire_discriminants_are_distinct_and_store_fans_out() {
-        // W4's pinned set is 26 + 13 = 39, not 27: `Store` fans out over `ErrorCode::as_str`.
+        // The pinned set is 27 + 13 = 40: `Store` fans out over `ErrorCode::as_str`.
         let singles = [
             FacadeError::Locked, FacadeError::VaultUnavailable(None), FacadeError::Expired,
             FacadeError::AlreadyRedeemed, FacadeError::RevokedLocally, FacadeError::SoftCapReached,
@@ -1152,9 +1167,10 @@ mod na0751_facade_mapping_tests {
             FacadeError::EnvelopeVersionSkew, FacadeError::RelayTlsUntrusted,
             FacadeError::RelayCaFile, FacadeError::RelayEndpointInvalid,
             FacadeError::StoreUnavailable, FacadeError::InviteClearRefused,
+            FacadeError::SelfInvitation,
             FacadeError::Other(String::new()),
         ];
-        assert_eq!(singles.len(), 26, "26 non-Store variants");
+        assert_eq!(singles.len(), 27, "27 non-Store variants");
         let mut wires: Vec<&str> = singles.iter().map(|e| e.as_wire()).collect();
         let store_codes = [
             ErrorCode::MissingHome, ErrorCode::InvalidPolicyProfile, ErrorCode::UnsafePathSymlink,
@@ -1167,11 +1183,11 @@ mod na0751_facade_mapping_tests {
         for c in store_codes {
             wires.push(FacadeError::Store(c).as_wire());
         }
-        assert_eq!(wires.len(), 39, "the pinned discriminant set is 39");
+        assert_eq!(wires.len(), 40, "the pinned discriminant set is 40");
         let mut sorted = wires.clone();
         sorted.sort_unstable();
         sorted.dedup();
-        assert_eq!(sorted.len(), 39, "all 39 discriminants are DISTINCT");
+        assert_eq!(sorted.len(), 40, "all 40 discriminants are DISTINCT");
         // The reason `Store` exists: `lock_upgrade_refused` survives to the boundary.
         assert!(wires.contains(&"lock_upgrade_refused"));
     }

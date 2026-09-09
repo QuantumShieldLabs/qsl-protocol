@@ -98,6 +98,7 @@ fn sink_cell() -> &'static Mutex<Option<Sink>> {
 
 /// Install (Some) or remove (None) the session's sink. The host calls it at unlock with the log on and
 /// again with `None` at lock. With no sink installed `feed` costs one relaxed atomic load and returns.
+/// The callback runs under the sink mutex and must not emit a marker or change the sink.
 pub fn set_event_sink(sink: Option<Sink>) {
     let installed = sink.is_some();
     *sink_cell().lock().unwrap_or_else(|p| p.into_inner()) = sink;

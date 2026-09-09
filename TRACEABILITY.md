@@ -1778,3 +1778,18 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
 - 2026-09-09: NA-0779 / D-1422 DV-17, Goals G4: Director-authorized test-only DH census classification of the historical archive's establish function, with exactly two pinned ToyDh call sites. Real census FAIL before / PASS after; disposable-fixture removal and extra-call mutations both fail for the intended reasons, restored fixture PASS. Archive and production bytes preserved; no scanner exclusion or logic change. This PR revision is records plus test-only classification. At fcb08ccae1d7, required goal-lint path coverage held the push pending scope disposition for the substantive fixture runner. Acceptance and post-merge claim boundaries remain unchanged.
 
 - 2026-09-09: NA-0779 / D-1422 DV-18, Goals G4: Director-authorized tests/na0779_dh_census_classification.py added through narrow automatic scope review. Installed runner executes the actual Rust census in a disposable tracked-tree fixture: correct classification PASS, removed classification expected unguarded-call FAIL, third mock call expected count-mismatch FAIL, restored fixture PASS; all 2428 original tracked files unchanged. Nine unrelated/malformed failure probes are rejected. This supplies substantive regression coverage for the test-only classification and resolves the path-authority blocker. Invocation and claim boundaries are in the as-built; remote CI and post-merge gates are not inferred from local proof.
+
+- 2026-09-09: NA-0780 engine milestone, Goals G4: shared read-only ownership
+  predicate and facade preflight in `invite/mod.rs` and `facade/mod.rs`; encrypted
+  minted IDs/public commitments persist before export and survive clear/revoke,
+  restart and identity rotation/deletion. `vault/mod.rs`, `vault/protection.rs`,
+  `lib.rs` and `identity/mod.rs` seed before discard, preserve authentication
+  counters on retention failure, protect history from stale sessions and keep
+  public reads read-only. `na0751_facade_invite_surface.rs` covers both rejection
+  boundaries, legacy seeding, lifecycle retention, storage failures/corruption,
+  full erase and zero rejection effects. `na0756_two_party_invite_roundtrip.rs`
+  preserves valid foreign acceptance and authentication refusals;
+  `NA_0681_invite_encodings.rs` retains encoding coverage. N-14 is documentation
+  only. Already-deleted ownership and older-backup rollback remain limitations;
+  see the NA-0780 decision. Desktop/two-device acceptance and strict lint
+  disposition remain open. No universal historical recovery, lint waiver or merge.

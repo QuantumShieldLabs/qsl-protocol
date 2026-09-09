@@ -188,6 +188,7 @@ fn na0756_x1_x4_the_redeemer_drives_the_facade_through_a_real_handshake() {
     // X2 — BOB REDEEMS, AT THE FACADE. First facade call to this verb in the tree's history.
     // The return IS the fingerprint, and the contact is provisioned INSIDE the call — which
     // is the engine fact that forced Lane B's single-view design.
+    facade::invite_preflight(&code, None).expect("foreign invitation passes local ownership check");
     let fp = facade::invite_redeem(&code, "alice", None).expect("facade redeem succeeds");
     assert_eq!(fp.len(), 64, "the redeem returns a 64-hex fingerprint");
     assert!(

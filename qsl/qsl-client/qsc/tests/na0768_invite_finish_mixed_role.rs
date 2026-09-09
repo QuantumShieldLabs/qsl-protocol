@@ -1013,6 +1013,13 @@ fn repro_finish(cfg: &Path, alias: &str, base: &str) -> String {
     text
 }
 
+fn repro_has_session(status: &str) -> bool {
+    matches!(
+        status,
+        "established" | "established_recv_only" | "awaiting_peer_confirm"
+    )
+}
+
 fn repro_crossed(renamed: bool, redelivery: bool, demand_progress: bool) {
     let _g = guard();
     let lease = if redelivery {
@@ -1048,6 +1055,18 @@ fn repro_crossed(renamed: bool, redelivery: bool, demand_progress: bool) {
         repro_status(&a, aa).1 == a_pin && repro_status(&b, ba).1 == b_pin,
         "accept identity binding changed"
     );
+    if demand_progress {
+        // Desired property must NOT depend on the characterization's refusal
+        // assertions: a real repair must be able to turn this arm green.
+        repro_finish(&a, "bravo", base);
+        repro_finish(&b, "alpha", base);
+        repro_finish(&a, "bravo", base);
+        let a_status = repro_status(&a, "bravo").0;
+        let b_status = repro_status(&b, "alpha").0;
+        assert!(repro_has_session(&a_status) && repro_has_session(&b_status),
+            "KNOWN REGRESSION ENG-0345: crossed invitations make no local session progress; alpha={a_status} bravo={b_status}");
+        return;
+    }
     if renamed {
         // Same identity, NEW storage alias: no existing pending record at that key.
         assert!(has_marker_line(
@@ -1156,10 +1175,6 @@ fn repro_crossed(renamed: bool, redelivery: bool, demand_progress: bool) {
 barrier=both_initiators slots=distinct inboxes=ordinary bindings=same_identity \
 restart=fresh_process_per_command measured_progress={renamed}"
     );
-    if demand_progress {
-        assert_ne!(repro_status(&a, "bravo").0, "no_session",
-            "KNOWN REGRESSION ENG-0345: crossed A1s rejected as handshake_type by initiator pending");
-    }
 }
 
 #[test]
@@ -1197,10 +1212,7 @@ fn na0780_serialized_invitation_completes() {
     for (cfg, alias) in [(&a, "bravo"), (&b, "alpha")] {
         let status = repro_status(cfg, alias).0;
         println!("NA0780 serial_control alias={alias} status={status}");
-        assert!(matches!(
-            status.as_str(),
-            "established" | "established_recv_only" | "awaiting_peer_confirm"
-        ));
+        assert!(repro_has_session(&status));
     }
     assert_eq!(observer.deliveries(&slot).len(), 1);
     assert_eq!(observer.deliveries(ALPHA_INBOX).len(), 1);

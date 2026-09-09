@@ -153,9 +153,9 @@ N-19 corrections: the original sequence assertion covered the unit path; F-02 la
 ### Post-fix hardening review
 
 - Stress correctness: this is a verified source-comment rollback; no concurrency fix or new stress result is claimed. The held-mutex warning matches feed's callback path.
-- Minimality: event.rs equals HEAD, and all 292 inherited ledger additions retain their original worktree bytes. Actual governance files are unchanged.
+- Minimality: event.rs remains byte-identical to the merged implementation. The original 292 ledger additions are preserved in the pre-edit evidence snapshot; this records PR incorporates their reviewed corrections and additional filings. Only the 14 authorized records/audit paths are changed.
 - Maintainability: the exact N-14 patch is preserved, the as-built carries the warning, and source placement is explicitly owed with the next relevant source change.
-- Coverage: the prior continuation ran six existing sink tests and required 4A successfully. No artificial test was added to satisfy metadata. This follow-up validates the documentation proposal and unchanged source; historical test runs are not presented as new runs.
+- Coverage: the prior continuation ran six existing sink tests. Required 4A was rerun successfully for this closeout; committed-tree goal-lint, infrastructure/secret scans and link checks passed. No artificial test was added to satisfy metadata. Historical runtime tests remain distinct from these current documentation checks and PR-head CI.
 - Cross-platform: no runtime/platform change remains. Both cached flight profiles match their banked hashes; this is binary identity, not Linux or macOS acceptance. No new macOS run occurred.
 
 ### Complete rider disposition and audit provenance

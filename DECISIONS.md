@@ -45393,12 +45393,30 @@ until finish resumes it, even if a session write already succeeded. Invitation-s
 and ordinary-inbox callers retain their own ACK ownership and acknowledge only a
 durable disposition with recoverable reply data.
 
-Limits are 64 retained groups per vault, one outgoing and one provisional responder
-per unambiguous binding, 32 KiB per saved wire reply, 256 KiB serialized per group,
-and 16 MiB serialized across the store. Relay/route/ticket strings have explicit
-bounds too. Duplicate frames do not allocate another group. Records, including
-terminal records, are retained until full vault erase; reaching a cap refuses new
-work. No unauthenticated arrival or timer evicts a responder after B1 may have left.
+The Director's focused correction separates the 64 active-attempt ceiling from
+retained replay history. An attempt remains active until authenticated selection
+is applied AND required reply delivery is durably recorded; this is local
+quiescence, not proof of remote completion. One outgoing and one provisional
+responder per unambiguous binding remain the limit. Every replay record and exact
+reply is retained until full vault erase. No expiry, compaction or eviction is added.
+
+Existing limits remain: 32 KiB per saved wire reply, 256 KiB serialized per record,
+16 MiB serialized per store, plus existing relay/route/ticket bounds. New admission
+charges retained records at actual size and active records at their full 256 KiB
+allowance, including JSON framing. Updates cannot spend another active attempt's
+reservation. This conservative byte budget can refuse before 64 active slots
+(including the all-active framing boundary); 64 is a ceiling, not a guarantee.
+Known exhaustion is refused before creating a redemption record or consuming the
+invitation where possible, with authoritative recheck at local admission. There is
+no transaction across remote redemption and local storage, so races remain possible.
+
+The v1 storage format is unchanged. Structural validation counts active records
+and preserves existing actual-byte limits; it does not impose the new reservation
+budget on load. Older stores lacking growth reservations remain readable and may
+continue existing work under actual-byte limits while their reservation shortfall
+cannot increase. New work is refused until sufficient capacity is available. No
+claim of compatibility with older binaries reading more than 64 retained records
+or of recovery beyond existing storage guarantees is made.
 
 This retention has a concrete liveness limit: **one counterfeit admitted A1 arriving
 before the legitimate selected A1 can occupy the responder slot and keep the honest
@@ -45407,6 +45425,15 @@ other honest endpoint may be deferring that exchange. This is a finite single-fr
 case, not an unlimited-flooding caveat. The dedicated regression must expose this
 outcome. Removing it without contradictory authenticated selections needs separate
 review; no timeout recycling or new wire mechanism is silently introduced here.
+The demonstrated attacker substitutes an admitted relay response and suppresses
+an ACK: a malicious relay or trusted TLS interceptor has sufficient access without
+peer private keys. Correct TLS prevents an ordinary network attacker from making
+this substitution. Stolen invitation capability can consume an unredeemed slot
+with required relay access, but does not append after its one-shot tickets are
+consumed. A raw-inbox injection would require the route and required relay access;
+that acquisition and an independent runtime exploit were not demonstrated. The
+additional cost over delivery denial is persistent local occupation after the
+manipulation ends, not authenticated impersonation or message decryption.
 
 Acceptance is the active desired-progress regression with identical authenticated
 SIDs and real production-crypto messages both ways, plus reversed/late ordering,

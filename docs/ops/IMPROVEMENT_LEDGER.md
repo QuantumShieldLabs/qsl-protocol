@@ -8236,3 +8236,17 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
   excess work without eviction; this is not an unlimited-flooding qualification.
   Independent review must assess the explicit limitation. Cancellation remains
   fallback-only. Established-session replacement, draining and enrollment stay open.
+
+- Focused correction authorized, 2026-09-10 (same NA-0780 finding; status: draft
+  repair under validation): the original cap counted completed records forever.
+  Separate active occupancy from retained replay bytes, reserve admitted growth,
+  and preflight known exhaustion before remote redemption where possible. Existing
+  stores/replies and all byte limits remain; no eviction or remote atomicity claim.
+  CI also exposed global environment/vault fixture interference and lost pending/
+  store diagnostics. Isolate the new fixtures by process, keep parallel CI, and
+  restore diagnostic detail. Preserve the exact-replay ACK and authenticated-route
+  contracts when reconciling tests; the two necessary integration-test paths were
+  approved through the narrow supplement. Both diagnostic tests remain unchanged.
+  The counterfeit regression requires relay-response control or equivalent access;
+  ordinary network substitution through valid TLS is not demonstrated. Persistent
+  occupation after manipulation stops remains open for security review.

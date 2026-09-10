@@ -1278,6 +1278,7 @@ pub fn invite_redeem_at(
     } else {
         None
     };
+    crate::handshake::hs_invite_admission_preflight(self_label, alias, &invite_id_wire)?;
     let (bundle, invite_sig, ticket) = if let Some(cached) = cached {
         cached
     } else {

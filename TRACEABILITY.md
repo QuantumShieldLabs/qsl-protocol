@@ -1817,3 +1817,16 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
   failure evidence remains in PR #1825. Existing facade and roundtrip tests retain
   self/identity/session refusal coverage. See the automatic-crossing decision for
   the explicit spoof-first blockage and unchanged wire/storage guarantee boundaries.
+
+- 2026-09-10: NA-0780 / draft PR #1828 focused corrections (Goals: G4): active
+  capacity is released only after applied authenticated selection and recorded
+  reply delivery; replay history/exact replies remain bounded by existing bytes.
+  `handshake::na0780_lifecycle_tests` covers 64 completed records plus admission,
+  old active-store readability, pre-redemption refusal and reserved finishing
+  growth. New vault fixtures run in separate test processes while the lib harness
+  remains parallel. Cleared-pending and underlying session-store diagnostics are
+  preserved. The approved na0742 replay test checks owner ACK, changed/unrelated
+  frame retention and advanced-session preservation; the NA_0681 route test checks
+  the placeholder before A2 and the offered route after authentication. Runtime
+  outcomes remain in TASK/lane evidence; independent security review and macOS
+  runtime acceptance remain open.

@@ -315,7 +315,7 @@ fn hs_lifecycle_validate(store: &FirstConnections) -> Result<(), &'static str> {
     if store.version != 1 {
         return Err("handshake_lifecycle_store");
     }
-    if store.entries.len() > FIRST_CONNECTION_GROUPS {
+    if store.entries.iter().filter(|c| c.is_active()).count() > FIRST_CONNECTION_GROUPS {
         return Err("handshake_lifecycle_capacity");
     }
     let mut bindings = std::collections::BTreeSet::new();
@@ -365,6 +365,35 @@ fn hs_lifecycle_validate(store: &FirstConnections) -> Result<(), &'static str> {
     Ok(())
 }
 
+// Charge every active record at its full serialized-record limit, including the
+// store's JSON framing. Retained replay records consume only their actual bytes.
+// This is admission accounting, not a new on-disk format or a load-time gate:
+// older stores may lack this reservation and must remain readable/recoverable.
+fn hs_lifecycle_reserved_bytes(store: &FirstConnections) -> Result<usize, &'static str> {
+    let mut bytes = serde_json::to_vec(store)
+        .map_err(|_| "handshake_lifecycle_store")?
+        .len();
+    for c in store.entries.iter().filter(|c| c.is_active()) {
+        let actual = serde_json::to_vec(c)
+            .map_err(|_| "handshake_lifecycle_store")?
+            .len();
+        bytes += FIRST_CONNECTION_BYTES.saturating_sub(actual);
+    }
+    Ok(bytes)
+}
+
+fn hs_lifecycle_admission_available(store: &FirstConnections) -> Result<(), &'static str> {
+    if store.entries.iter().filter(|c| c.is_active()).count() >= FIRST_CONNECTION_GROUPS
+        || hs_lifecycle_reserved_bytes(store)?
+            + FIRST_CONNECTION_BYTES
+            + usize::from(!store.entries.is_empty())
+            > FIRST_CONNECTION_TOTAL_BYTES
+    {
+        return Err("handshake_lifecycle_capacity");
+    }
+    Ok(())
+}
+
 fn hs_delivery_validate(reply: &HsDelivery) -> Result<(), &'static str> {
     if reply.bytes.is_empty()
         || reply.bytes.len() > FIRST_FRAME_BYTES
@@ -387,6 +416,15 @@ fn hs_lifecycle_save(store: &FirstConnections) -> Result<(), &'static str> {
 }
 
 impl FirstConnection {
+    fn is_active(&self) -> bool {
+        // Local quiescence, not a claim that the peer has finished. An applied
+        // initiator with an outstanding A2 delivery still occupies an active slot.
+        !self
+            .selected
+            .as_ref()
+            .is_some_and(|s| s.applied && s.reply_delivered)
+    }
+
     fn owns_sid(&self, sid: &[u8; 16]) -> bool {
         [&self.outgoing, &self.responder]
             .into_iter()
@@ -540,13 +578,21 @@ fn hs_lifecycle_find(
 // Caller holds the store lock. A capsule never replaces another generation.
 fn hs_lifecycle_put(c: &FirstConnection) -> Result<(), &'static str> {
     let mut store = hs_lifecycle_load()?;
+    let prior_charge = hs_lifecycle_reserved_bytes(&store)?;
     if let Some(old) = store.entries.iter_mut().find(|v| v.peer == c.peer) {
         if old.generation != c.generation {
             return Err("handshake_lifecycle_conflict");
         }
         *old = c.clone();
     } else {
+        hs_lifecycle_admission_available(&store)?;
         store.entries.push(c.clone());
+    }
+    // Legacy stores that exceed the reservation budget can finish their admitted
+    // work under the unchanged actual-byte limit, but cannot increase the deficit.
+    // In particular, growth of retained records cannot steal active reservations.
+    if hs_lifecycle_reserved_bytes(&store)? > FIRST_CONNECTION_TOTAL_BYTES.max(prior_charge) {
+        return Err("handshake_lifecycle_capacity");
     }
     hs_lifecycle_save(&store)
 }
@@ -587,7 +633,7 @@ fn hs_lifecycle_recover(c: &mut FirstConnection) -> Result<(), &'static str> {
         .map_err(|_| "handshake_lifecycle_store")?
         .is_none()
     {
-        qsp_session_store(&c.peer, &st).map_err(|_| "handshake_lifecycle_store")?;
+        hs_session_store_reported(&c.peer, &st)?;
         #[cfg(test)]
         hs_lifecycle_test_cut("session")?;
     }
@@ -784,6 +830,25 @@ pub(crate) fn hs_invite_existing_binding(
     Ok(Some(fp))
 }
 
+// Best-effort preflight before consuming a remote invitation. Admission is
+// checked again under the same store lock when the outgoing capsule is saved;
+// this local check does not make remote redemption and local storage atomic.
+pub(crate) fn hs_invite_admission_preflight(
+    self_label: &str,
+    peer: &str,
+    slot: &str,
+) -> Result<(), &'static str> {
+    let _lock = hs_lifecycle_lock()?;
+    if let Some(c) = hs_lifecycle_find(self_label, peer)? {
+        if c.selected.is_some() && c.outgoing.as_ref().is_none_or(|o| o.reply.route != slot) {
+            return Err("contacts_session_exists");
+        }
+        // Exact retry or late-redeem coalescing uses the existing reservation.
+        return Ok(());
+    }
+    hs_lifecycle_admission_available(&hs_lifecycle_load()?)
+}
+
 pub(crate) fn hs_invite_reserved_outgoing(
     self_label: &str,
     peer: &str,
@@ -820,6 +885,7 @@ fn hs_lifecycle_retry(
 struct HsFramePlan {
     lifecycle: Option<FirstConnection>,
     pending: Option<HandshakePending>,
+    pending_state: HsPendingState,
     receipt: HsReceipt,
     immediate: Option<PollOutcome>,
     retry: Option<HsDelivery>,
@@ -838,14 +904,14 @@ fn hs_lifecycle_plan(
     let mut plan = HsFramePlan {
         lifecycle: hs_lifecycle_find(self_label, peer)?,
         pending: None,
+        pending_state: HsPendingState::Absent,
         receipt,
         immediate: None,
         retry: None,
     };
     if plan.lifecycle.is_none() && !invitation {
-        plan.pending = hs_pending_load_state(self_label, peer)
-            .map_err(|e| e.as_str())?
-            .0;
+        (plan.pending, plan.pending_state) =
+            hs_pending_load_state(self_label, peer).map_err(|e| e.as_str())?;
         return Ok(plan);
     }
     if let Some(c) = plan.lifecycle.as_mut() {
@@ -918,6 +984,9 @@ fn hs_lifecycle_plan(
         }
     } else if plan.pending.is_none() {
         plan.immediate = Some(PollOutcome::NotConsumed);
+    }
+    if plan.pending.is_some() {
+        plan.pending_state = HsPendingState::Present;
     }
     Ok(plan)
 }
@@ -2646,20 +2715,7 @@ fn hs_commit_session_guarded(
             let _ = hs_pending_clear(self_label, peer);
         }
         Ok(Some(_)) | Ok(None) => {
-        qsp_session_store(peer, st).map_err(|e| {
-            // NA-0757 (ENG-0239, R388 A1(b)): the typed code SURVIVES as a
-            // field. Seven distinct `ErrorCode`s reach this point and the
-            // flattening named none of them, which is why a field capture of
-            // the marker could not localize it. The outer string is unchanged ON
-            // PURPOSE: no new discriminant enters the facade's wire
-            // vocabulary, so an opaque error never becomes a WRONG one.
-            emit_marker(
-                "error",
-                Some("handshake_session_store_failed"),
-                &[("store_code", e.as_str())],
-            );
-            "handshake_session_store_failed"
-        })?;
+        hs_session_store_reported(peer, st)?;
         let _ = hs_pending_clear(self_label, peer);
         }
         Err(code) => {
@@ -2674,6 +2730,19 @@ fn hs_commit_session_guarded(
         }
     }
     Ok(())
+}
+
+// Both the legacy and lifecycle paths preserve the public outer code and the
+// underlying store failure. An unsafe inherited directory remains a refusal.
+fn hs_session_store_reported(peer: &str, st: &Suite2SessionState) -> Result<(), &'static str> {
+    qsp_session_store(peer, st).map_err(|e| {
+        emit_marker(
+            "error",
+            Some("handshake_session_store_failed"),
+            &[("store_code", e.as_str())],
+        );
+        "handshake_session_store_failed"
+    })
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -2841,11 +2910,7 @@ fn hs_poll_item(
     let receipt = &plan.receipt;
     let lifecycle = plan.lifecycle.as_ref();
     let pending = plan.pending;
-    let pending_state = if pending.is_some() {
-        HsPendingState::Present
-    } else {
-        HsPendingState::Absent
-    };
+    let pending_state = plan.pending_state;
     let pending_key = hs_pending_secret_key(self_label, peer);
     if let Some(pending) = pending {
         emit_marker(
@@ -4135,6 +4200,30 @@ mod na0775_late_store_guard_tests {
 mod na0780_lifecycle_tests {
     use super::*;
 
+    fn isolated_process(test: &str) -> bool {
+        let name = format!("handshake::na0780_lifecycle_tests::{test}");
+        if std::env::var("QSC_NA0780_UNIT_CHILD").as_deref() == Ok(name.as_str()) {
+            return false;
+        }
+        let output = std::process::Command::new(std::env::current_exe().unwrap())
+            .args(["--exact", &name, "--nocapture"])
+            .env("QSC_NA0780_UNIT_CHILD", &name)
+            .env_remove("QSC_CONFIG_DIR")
+            .env_remove("QSC_ALLOW_SEED_FALLBACK")
+            .env_remove("QSC_UNSAFE_TEST_SEED_FALLBACK")
+            .env_remove("QSC_QSP_SEED")
+            .output()
+            .expect("start isolated lifecycle fixture");
+        assert!(
+            output.status.success(),
+            "isolated fixture {test} failed:\n{}\n{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr),
+        );
+        assert!(String::from_utf8_lossy(&output.stdout).contains("1 passed; 0 failed"));
+        true
+    }
+
     struct Arena {
         _temp: tempfile::TempDir,
         prior: Option<std::ffi::OsString>,
@@ -4242,6 +4331,11 @@ mod na0780_lifecycle_tests {
 
     #[test]
     fn separate_write_interruptions_recover_and_preserve_advanced_same_session() {
+        if isolated_process(
+            "separate_write_interruptions_recover_and_preserve_advanced_same_session",
+        ) {
+            return;
+        }
         // Real encrypted storage, reloaded after each injected process-interruption cut.
         // Authentication itself is covered by the two-party production-crypto regression.
         for cut in ["selection", "session", "route", "pending_clear", "applied"] {
@@ -4330,6 +4424,11 @@ mod na0780_lifecycle_tests {
 
     #[test]
     fn intent_and_pending_mirror_interruption_keeps_exact_generation_and_reply() {
+        if isolated_process(
+            "intent_and_pending_mirror_interruption_keeps_exact_generation_and_reply",
+        ) {
+            return;
+        }
         let (_arena, c, _) = setup(); // Capsule persisted; mirror not yet written.
         assert!(hs_pending_load_state("self", "peer").unwrap().0.is_none());
         let mut reloaded = hs_lifecycle_find("self", "peer").unwrap().unwrap();
@@ -4349,6 +4448,10 @@ mod na0780_lifecycle_tests {
 
     #[test]
     fn newer_pending_generation_and_unrelated_sessions_refuse_without_writes() {
+        if isolated_process("newer_pending_generation_and_unrelated_sessions_refuse_without_writes")
+        {
+            return;
+        }
         let (_arena, mut c, st) = setup();
         hs_lifecycle_recover(&mut c).unwrap();
         let mut newer = c.outgoing.as_ref().unwrap().pending.clone();
@@ -4389,6 +4492,11 @@ mod na0780_lifecycle_tests {
 
     #[test]
     fn stale_capsule_and_changed_identity_binding_cannot_replace_current_generation() {
+        if isolated_process(
+            "stale_capsule_and_changed_identity_binding_cannot_replace_current_generation",
+        ) {
+            return;
+        }
         let (_arena, c, _) = setup();
         let mut stale = c.clone();
         stale.generation[0] ^= 1;
@@ -4424,6 +4532,9 @@ mod na0780_lifecycle_tests {
 
     #[test]
     fn count_serialized_bytes_and_saved_reply_caps_are_fail_closed() {
+        if isolated_process("count_serialized_bytes_and_saved_reply_caps_are_fail_closed") {
+            return;
+        }
         let (_arena, c, _) = setup();
         let mut entries = Vec::new();
         for i in 0..FIRST_CONNECTION_GROUPS {
@@ -4441,6 +4552,7 @@ mod na0780_lifecycle_tests {
         let mut excess = c.clone();
         excess.peer = "extra".into();
         excess.peer_fp = "extra".into();
+        excess.outgoing.as_mut().unwrap().pending.peer = excess.peer.clone();
         store.entries.push(excess);
         assert_eq!(
             hs_lifecycle_validate(&store),
@@ -4467,6 +4579,11 @@ mod na0780_lifecycle_tests {
     }
     #[test]
     fn concurrent_selection_returns_the_already_saved_reply_not_a_new_signature() {
+        if isolated_process(
+            "concurrent_selection_returns_the_already_saved_reply_not_a_new_signature",
+        ) {
+            return;
+        }
         let (_arena, mut c, st) = setup();
         hs_lifecycle_recover(&mut c).unwrap();
         selection(&c, &st).unwrap();
@@ -4495,6 +4612,11 @@ mod na0780_lifecycle_tests {
 
     #[test]
     fn occupied_responder_does_not_hide_original_b1_or_accept_unauthenticated_completion() {
+        if isolated_process(
+            "occupied_responder_does_not_hide_original_b1_or_accept_unauthenticated_completion",
+        ) {
+            return;
+        }
         let (_arena, mut c, _) = setup();
         let mut provisional = c.outgoing.as_ref().unwrap().clone();
         provisional.pending.role = "responder".into();
@@ -4556,6 +4678,284 @@ mod na0780_lifecycle_tests {
         assert!(
             before == vault::secret_get(FIRST_CONNECTIONS_KEY).unwrap(),
             "capsule changed on refusal"
+        );
+    }
+    fn renamed(mut c: FirstConnection, name: &str) -> FirstConnection {
+        c.peer = name.into();
+        c.peer_fp = name.into();
+        for candidate in [&mut c.outgoing, &mut c.responder].into_iter().flatten() {
+            candidate.pending.peer = c.peer.clone();
+        }
+        c
+    }
+
+    #[test]
+    fn completed_history_releases_only_delivered_applied_occupancy_and_preserves_replay() {
+        if isolated_process(
+            "completed_history_releases_only_delivered_applied_occupancy_and_preserves_replay",
+        ) {
+            return;
+        }
+        let (_arena, c, st) = setup();
+        assert!(c.is_active());
+        HS_LIFECYCLE_CUT.with(|v| v.set("selection"));
+        assert_eq!(selection(&c, &st), Err("test_process_interruption"));
+        let mut selected = hs_lifecycle_find("self", "peer").unwrap().unwrap();
+        assert!(
+            selected.is_active(),
+            "unapplied intent still needs recovery"
+        );
+        hs_lifecycle_recover(&mut selected).unwrap();
+        assert!(
+            selected.is_active(),
+            "applied with unsent A2 still occupies capacity"
+        );
+        let reply = selected.selected.as_ref().unwrap().reply.clone().unwrap();
+        HS_LIFECYCLE_CUT.with(|v| v.set("reply_delivered"));
+        assert_eq!(
+            hs_lifecycle_after_send(&selected, Some(&reply)),
+            Err("test_process_interruption")
+        );
+        assert!(hs_lifecycle_load().unwrap().entries[0].is_active());
+        // Synthetic quota completion: real delivery is covered by the production-crypto arms.
+        hs_lifecycle_after_send(&selected, Some(&reply)).unwrap();
+        let completed = hs_lifecycle_find("self", "peer").unwrap().unwrap();
+        assert!(!completed.is_active());
+        let mut entries = vec![completed.clone()];
+        for i in 1..FIRST_CONNECTION_GROUPS {
+            entries.push(renamed(completed.clone(), &format!("history-{i}")));
+        }
+        let store = FirstConnections {
+            version: 1,
+            entries,
+        };
+        let history = serde_json::to_vec(&store.entries).unwrap();
+        hs_lifecycle_save(&store).unwrap();
+        hs_invite_admission_preflight("self", "new-peer", "new-slot").unwrap();
+        let next = renamed(c, "new-peer");
+        hs_lifecycle_put(&next).unwrap();
+        let mut reloaded = hs_lifecycle_load().unwrap();
+        assert_eq!(reloaded.entries.len(), 65);
+        assert_eq!(reloaded.entries.iter().filter(|c| c.is_active()).count(), 1);
+        reloaded.entries.pop();
+        assert!(
+            history == serde_json::to_vec(&reloaded.entries).unwrap(),
+            "history changed on admission"
+        );
+        let mut advanced = st;
+        advanced.send.ns = 7;
+        advanced.recv.nr = 5;
+        qsp_session_store("peer", &advanced).unwrap();
+        let s = completed.selected.as_ref().unwrap();
+        let plan = hs_lifecycle_plan(
+            "self",
+            "peer",
+            b"b1",
+            s.receipt.clone(),
+            true,
+            HandshakeSuiteMode::LegacyCompat,
+            false,
+        )
+        .unwrap();
+        assert!(plan.immediate == Some(PollOutcome::AlreadyComplete));
+        assert!(
+            plan.retry.unwrap().bytes == reply.bytes,
+            "exact reply must survive capacity release"
+        );
+        assert!(
+            qsp_session_load("peer").unwrap().unwrap().snapshot_bytes()
+                == advanced.snapshot_bytes()
+        );
+    }
+
+    #[test]
+    fn legacy_active_store_remains_readable_and_refuses_new_redemption_before_writes() {
+        if isolated_process(
+            "legacy_active_store_remains_readable_and_refuses_new_redemption_before_writes",
+        ) {
+            return;
+        }
+        let (_arena, c, st) = setup();
+        let mut entries = vec![c.clone()];
+        for i in 1..FIRST_CONNECTION_GROUPS {
+            entries.push(renamed(c.clone(), &format!("active-{i}")));
+        }
+        // Old v1 stores had no growth reservations. They remain structurally readable,
+        // including 64 small active entries whose reserved JSON framing exceeds 16 MiB.
+        hs_lifecycle_save(&FirstConnections {
+            version: 1,
+            entries,
+        })
+        .unwrap();
+        let old = hs_lifecycle_load().unwrap();
+        assert_eq!(old.entries.len(), 64);
+        assert!(hs_lifecycle_reserved_bytes(&old).unwrap() > FIRST_CONNECTION_TOTAL_BYTES);
+        let before = vault::secret_get(FIRST_CONNECTIONS_KEY).unwrap();
+        assert_eq!(
+            hs_lifecycle_put(&renamed(c.clone(), "excess")),
+            Err("handshake_lifecycle_capacity")
+        );
+        assert!(before == vault::secret_get(FIRST_CONNECTIONS_KEY).unwrap());
+        assert_capacity_precedes_redemption();
+        // A retry needs no new slot; existing authentication and identity gates still run.
+        hs_invite_admission_preflight("self", "peer", &c.outgoing.as_ref().unwrap().reply.route)
+            .unwrap();
+        selection(&c, &st).unwrap();
+        let selected = hs_lifecycle_find("self", "peer").unwrap().unwrap();
+        assert!(selected.is_active());
+        hs_lifecycle_after_send(
+            &selected,
+            selected.selected.as_ref().unwrap().reply.as_ref(),
+        )
+        .unwrap();
+        assert!(!hs_lifecycle_find("self", "peer")
+            .unwrap()
+            .unwrap()
+            .is_active());
+    }
+
+    fn assert_capacity_precedes_redemption() {
+        let payload = crate::invite::InvitePayload {
+            ver: 1,
+            typ: 1,
+            invite_id: [0x45; 16],
+            expiry: u64::MAX,
+            relay_ep: "http://127.0.0.1:1".into(),
+            cap: [0x46; 16],
+            commit: [0x47; 32],
+        };
+        let code = crate::invite::encode_invite_code(&payload).unwrap();
+        let before = vault::secret_get(crate::store::REDEMPTIONS_SECRET_KEY).unwrap();
+        assert_eq!(
+            crate::invite::invite_redeem_at(&code, "excess", Some("self"), 1),
+            Err("handshake_lifecycle_capacity"),
+        );
+        assert!(
+            before == vault::secret_get(crate::store::REDEMPTIONS_SECRET_KEY).unwrap(),
+            "known capacity refusal must precede the redemption record and network call"
+        );
+    }
+
+    #[test]
+    fn retained_bytes_cannot_spend_active_growth_reservations() {
+        if isolated_process("retained_bytes_cannot_spend_active_growth_reservations") {
+            return;
+        }
+        let (_arena, c, st) = setup();
+        selection(&c, &st).unwrap();
+        let selected = hs_lifecycle_find("self", "peer").unwrap().unwrap();
+        hs_lifecycle_after_send(
+            &selected,
+            selected.selected.as_ref().unwrap().reply.as_ref(),
+        )
+        .unwrap();
+        let mut completed = hs_lifecycle_find("self", "peer").unwrap().unwrap();
+        // Dense JSON byte encoding for both retained exact replies. Size the
+        // fixture from its actual encoding, including identity/device metadata.
+        completed.outgoing.as_mut().unwrap().reply.bytes = vec![255; FIRST_FRAME_BYTES / 2];
+        completed
+            .selected
+            .as_mut()
+            .unwrap()
+            .reply
+            .as_mut()
+            .unwrap()
+            .bytes = vec![255; FIRST_FRAME_BYTES / 2];
+        let actual = serde_json::to_vec(&completed).unwrap().len();
+        completed
+            .device
+            .push_str(&"x".repeat(FIRST_CONNECTION_BYTES - 1024 - actual));
+        let mut entries = Vec::new();
+        for i in 0..64 {
+            let mut entry = renamed(completed.clone(), &format!("history-{i}"));
+            let actual = serde_json::to_vec(&entry).unwrap().len();
+            if actual < FIRST_CONNECTION_BYTES - 1024 {
+                entry
+                    .device
+                    .push_str(&"x".repeat(FIRST_CONNECTION_BYTES - 1024 - actual));
+            } else {
+                entry
+                    .device
+                    .truncate(entry.device.len() - (actual - (FIRST_CONNECTION_BYTES - 1024)));
+            }
+            assert_eq!(
+                serde_json::to_vec(&entry).unwrap().len(),
+                FIRST_CONNECTION_BYTES - 1024
+            );
+            entries.push(entry);
+        }
+        let mut store = FirstConnections {
+            version: 1,
+            entries,
+        };
+        assert!(serde_json::to_vec(&store).unwrap().len() < FIRST_CONNECTION_TOTAL_BYTES);
+        assert_eq!(store.entries.iter().filter(|c| c.is_active()).count(), 0);
+        hs_lifecycle_save(&store).unwrap();
+        assert_capacity_precedes_redemption();
+        // One fewer retained record makes room to reserve a whole active record.
+        store.entries.pop();
+        hs_lifecycle_save(&store).unwrap();
+        let active = renamed(c, "active");
+        hs_lifecycle_put(&active).unwrap();
+        let mut admitted = hs_lifecycle_load().unwrap();
+        assert!(hs_lifecycle_reserved_bytes(&admitted).unwrap() <= FIRST_CONNECTION_TOTAL_BYTES);
+        assert_eq!(admitted.entries.iter().filter(|c| c.is_active()).count(), 1);
+        // Fill retained history to 128 bytes below the reservation budget. This is
+        // a synthetic byte-boundary fixture, not cryptographic session evidence.
+        let mut growth =
+            FIRST_CONNECTION_TOTAL_BYTES - 128 - hs_lifecycle_reserved_bytes(&admitted).unwrap();
+        for entry in admitted.entries.iter_mut().filter(|c| !c.is_active()) {
+            let room = FIRST_CONNECTION_BYTES - serde_json::to_vec(entry).unwrap().len();
+            let add = room.min(growth);
+            entry.device.push_str(&"x".repeat(add));
+            growth -= add;
+        }
+        assert_eq!(growth, 0);
+        hs_lifecycle_save(&admitted).unwrap();
+        let reserve = hs_lifecycle_reserved_bytes(&admitted).unwrap();
+        assert_eq!(reserve, FIRST_CONNECTION_TOTAL_BYTES - 128);
+        let mut growing = admitted
+            .entries
+            .iter()
+            .find(|c| {
+                !c.is_active()
+                    && serde_json::to_vec(c).unwrap().len() + 129 <= FIRST_CONNECTION_BYTES
+            })
+            .unwrap()
+            .clone();
+        growing.device.push_str(&"x".repeat(129));
+        let mut trial: FirstConnections =
+            serde_json::from_slice(&serde_json::to_vec(&admitted).unwrap()).unwrap();
+        *trial
+            .entries
+            .iter_mut()
+            .find(|c| c.peer == growing.peer)
+            .unwrap() = growing.clone();
+        assert!(
+            serde_json::to_vec(&trial).unwrap().len() < FIRST_CONNECTION_TOTAL_BYTES,
+            "this must exercise reserved bytes, not the actual-byte cap"
+        );
+        let before = vault::secret_get(FIRST_CONNECTIONS_KEY).unwrap();
+        assert_eq!(
+            hs_lifecycle_put(&growing),
+            Err("handshake_lifecycle_capacity")
+        );
+        assert!(before == vault::secret_get(FIRST_CONNECTIONS_KEY).unwrap());
+        // An admitted active record can use its whole allowance without increasing
+        // aggregate charge, even with almost no unreserved space left.
+        let mut expanded = active;
+        let actual = serde_json::to_vec(&expanded).unwrap().len();
+        expanded
+            .device
+            .push_str(&"x".repeat(FIRST_CONNECTION_BYTES - actual));
+        assert_eq!(
+            serde_json::to_vec(&expanded).unwrap().len(),
+            FIRST_CONNECTION_BYTES
+        );
+        hs_lifecycle_put(&expanded).unwrap();
+        assert_eq!(
+            hs_lifecycle_reserved_bytes(&hs_lifecycle_load().unwrap()).unwrap(),
+            reserve
         );
     }
 }

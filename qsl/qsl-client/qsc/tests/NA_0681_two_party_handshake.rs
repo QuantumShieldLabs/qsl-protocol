@@ -215,8 +215,12 @@ fn two_strangers_become_a_session_through_one_invite() {
         "the originating invite must be recorded as provenance: {bob_contacts}"
     );
     assert!(
-        alice_contacts.contains(BOB_INBOX),
-        "Alice must have learned Bob's route token from the request envelope: {alice_contacts}"
+        alice_contacts.contains(&format!("\"route_token\":\"{invite_id}\"")),
+        "Alice must retain the owned-slot placeholder until A2 authentication"
+    );
+    assert!(
+        !alice_contacts.contains(BOB_INBOX),
+        "A1 public identity fields must not authorize installation of the offered route"
     );
 
     // P3, laid from contact #1: the plural endpoint list is populated and the pinning hook
@@ -241,6 +245,15 @@ fn two_strangers_become_a_session_through_one_invite() {
     assert!(
         poll.contains("handshake_complete") && poll.contains("role=responder"),
         "the accepter must COMPLETE the handshake, not merely hold a contact:\n{poll}"
+    );
+    let authenticated_contacts = read_mock_vault_secret(&alice, "contacts.json").expect("alice contacts after A2");
+    assert!(
+        authenticated_contacts.contains(&format!("\"route_token\":\"{BOB_INBOX}\"")),
+        "Alice must install the offered ordinary route after A2 authentication"
+    );
+    assert!(
+        authenticated_contacts.contains(&format!("\"invite_id\":\"{invite_id}\"")),
+        "deferred route installation must preserve invitation provenance"
     );
     let alice_status = run_ok(&alice, &["handshake", "status", "--peer", "bob"]);
     assert!(

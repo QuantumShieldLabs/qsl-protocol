@@ -1104,6 +1104,14 @@ fn t5p_the_poll_tolerates_a_redelivered_already_processed_frame() {
     let (fin_ok, fin_text) = finish(&flow, &base);
     assert!(fin_ok, "setup: finish must succeed:\n{fin_text}");
 
+    // Capture the exact A2 under a lease; this probe does not ACK or delete it.
+    let original = raw_pull_lease(&base, INVITER_INBOX, 4);
+    assert_eq!(original.len(), 1, "the fixture must contain exactly the expected A2");
+    let mut changed = original[0].clone();
+    *changed.last_mut().expect("A2 bytes") ^= 1;
+    let unrelated = handshake_frame();
+    thread::sleep(LEASE_EXPIRY_WAIT);
+
     // ---- The poll's Relay arm, THROUGH THE PROXY. ----
     let (poll_ok, poll_text) = run_any(
         &flow.inviter,
@@ -1137,7 +1145,24 @@ fn t5p_the_poll_tolerates_a_redelivered_already_processed_frame() {
          measure:\n{poll_text}"
     );
 
-    // ---- The A2 redelivers, and the poll TOLERATES the already-processed frame. ----
+    // Advance the real stored session before replay. Comparing its encrypted blob
+    // below detects any reset/rewrite, including a replacement with the same SID.
+    let message = root.join("t5p_advance.bin");
+    fs::write(&message, b"na0780 replay must preserve advanced state").expect("message");
+    let send = run_ok(&flow.inviter, &[
+        "send", "--transport", "relay", "--relay", &base, "--to", "redeemer",
+        "--file", message.to_str().expect("message path"),
+    ]);
+    assert!(send.contains("QSC_DELIVERY state=accepted_by_relay"));
+    let session_path = flow.inviter.join("qsp_sessions").join("redeemer.qsv");
+    let session_before = fs::read(&session_path).expect("advanced session");
+    let contacts_before = run_ok(&flow.inviter, &["contacts", "show", "--label", "redeemer"]);
+    // Neither a changed A2 with the same SID nor an unrelated frame is authorized
+    // by the retained receipt for the original A2.
+    push_raw(&base, INVITER_INBOX, &changed);
+    push_raw(&base, INVITER_INBOX, &unrelated);
+
+    // ---- Only the exact durable A2 replay is retired by its mailbox owner. ----
     thread::sleep(LEASE_EXPIRY_WAIT);
     let (retry_ok, retry_text) = run_any(
         &flow.inviter,
@@ -1154,9 +1179,7 @@ fn t5p_the_poll_tolerates_a_redelivered_already_processed_frame() {
     );
     assert!(
         retry_ok,
-        "a redelivered ALREADY-PROCESSED frame must be tolerated — the poll falls through to a \
-         decode-reject and returns Ok(()). If this ever fails it is a FINDING, not a test to \
-         retune:\n{retry_text}"
+        "the exact durably selected A2 must recover its lost owner ACK:\n{retry_text}"
     );
     // The session the first poll built must still be intact: redelivery must not corrupt it.
     let status = run_ok(
@@ -1167,35 +1190,19 @@ fn t5p_the_poll_tolerates_a_redelivered_already_processed_frame() {
         !status.contains("none"),
         "the redelivered frame must not have disturbed the completed session:\n{status}"
     );
-    // ⚠⚠ **THE MEASURED RESIDUAL, PINNED RATHER THAN NARRATED — AND IT IS A DIRECTIVE EXPECTATION
-    // THAT MISSED.** §5's T5p predicted *"the retry's consume+ack lands `acked=1`"*. It does not,
-    // and the reason is structural: a redelivered ALREADY-PROCESSED A2 no longer decodes into a
-    // consuming branch, so it reaches `hs_emit_decode_reject; continue` — a path that by design
-    // never acks, because acking there would retire a frame this run did not consume.
-    //
-    // ⇒ **THE CRASH COST IS NOT THE SAME FOR ALL THREE CALLERS, and only executing it shows that:**
-    //   * `invite finish` — the retry RE-CONSUMES and its ack lands (T5f measures `acked=1`), so a
-    //     lost ack costs exactly one lease period and leaves nothing behind;
-    //   * the **poll** — the retry cannot re-consume, so the frame is **never retired by any retry**
-    //     and ages out only on the relay's retention TTL. Bounded and harmless (it is skipped by
-    //     class on every `receive`, per lane 1), but it is a PERMANENT orphan, not a transient one.
-    //
-    // This arm pins both numbers so a successor that changes either has to say so.
+    // NA-0742 originally measured an orphan after lost ACK. That historical
+    // failure remains in lane evidence. NA-0780's exact durable selection receipt
+    // now authorizes retirement; unrelated bytes still have no safe disposition.
+    assert!(has_marker_line(&retry_text, "producer_ack", &["caller=poll", "acked=1"]));
+    assert_eq!(count_marker(&retry_text, "producer_ack"), 1);
+    assert_eq!(count_marker(&retry_text, "session_store"), 0);
+    assert!(session_before == fs::read(&session_path).expect("session after replay"));
+    assert!(contacts_before == run_ok(&flow.inviter, &["contacts", "show", "--label", "redeemer"]));
     thread::sleep(LEASE_EXPIRY_WAIT);
     let left = raw_pull_lease(&base, INVITER_INBOX, 16);
-    assert_eq!(
-        count_marker(&retry_text, "producer_ack"),
-        0,
-        "the retry over an already-processed frame must NOT ack — it did not consume \
-         anything:\n{retry_text}"
-    );
-    assert_eq!(
-        left.len(),
-        1,
-        "the orphaned A2 must still be resident: no retry can retire it, so it ages out on the \
-         relay's retention TTL. Measured frames in the inviter's inbox: {}",
-        left.len()
-    );
+    assert_eq!(left.len(), 2, "only the changed and unrelated frames must remain");
+    assert!(left.contains(&changed) && left.contains(&unrelated));
+    assert!(!left.contains(&original[0]), "the exact A2 must be retired");
 }
 
 // ===========================================================================

@@ -45323,3 +45323,29 @@ public identity files unchanged, so those keys can still identify their invitati
 Preflight success is not authentication. Desktop/two-device acceptance remains
 outstanding. The draft and unchanged strict-clippy baseline are not a lint waiver
 or merge authorization. Regression and required CI results are recorded on PR #1824.
+
+## NA-0780 independent invitation identity guard (2026-09-10)
+
+Goals: G4
+
+An alias is not authority to replace a contact identity. Invitation provisioning
+compares the stored combined identity, signing fingerprint, KEM public key and
+primary-device binding under the existing exclusive store lock. A conflict or
+incomplete binding refuses; a matching record remains unchanged. The comparison
+reads the vault contact value without the normal loader's migration side effects.
+New contacts retain the existing provisioning and human-verification policy.
+
+Any existing stored session prevents invitation provisioning for that alias;
+this includes receive-only or awaiting-confirmation states. Session unreadability
+refuses rather than implying absence. This is a preservation guard, not a new
+reconnection or handshake state machine. The facade exposes identity_changed and
+session_exists; no wire, crypto, storage format or authentication proof changes.
+
+Redeem must first fetch and verify the committed public bundle, so a refusal may
+follow network activity and capability consumption. Existing single-use markers
+are retained. Accept similarly must fetch its slot before comparing the offered
+identity. Neither refusal permits later contact/pending/session replacement.
+Attempt-scoped cancellation plus one coordinated fresh invitation is the preferred
+next repair for the reproduced no-session collision, but is not implemented or
+authorized here. Established-session replacement and simultaneous bidirectional
+ratchet acceptance remain separate work.

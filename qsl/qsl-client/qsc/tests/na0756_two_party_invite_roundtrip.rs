@@ -446,3 +446,317 @@ fn na0756_z7ii_finish_before_accept_is_not_yet_and_provisions_nothing() {
     let again = facade::invite_finish(None, "alice", &base, 1).expect("finish must NOT error");
     assert_eq!(again, false, "still not yet, and still not an error");
 }
+
+// NA-0780: identity replacement is refused independently of collision recovery.
+fn identity_guard_command(cfg: &Path) -> Command {
+    let mut cmd = qsc(cfg);
+    for name in [
+        "QSC_QSP_SEED",
+        "QSC_ALLOW_SEED_FALLBACK",
+        "QSC_UNSAFE_TEST_SEED_FALLBACK",
+    ] {
+        cmd.env_remove(name);
+    }
+    cmd
+}
+
+fn identity_guard_run(cfg: &Path, args: &[&str]) -> String {
+    let out = identity_guard_command(cfg).args(args).output().unwrap();
+    assert!(
+        out.status.success(),
+        "identity guard fixture command failed"
+    );
+    output_text(&out)
+}
+
+fn identity_guard_mint(cfg: &Path, base: &str) -> (String, String) {
+    let text = identity_guard_run(
+        cfg,
+        &["invite", "create", "--relay", base, "--ttl-secs", "3600"],
+    );
+    let code = text.lines().find(|l| l.starts_with("QSLI-1-")).unwrap();
+    let payload = qsc::invite::decode_invite_code(code).unwrap();
+    (code.to_string(), qsc::invite::wire_id(&payload.invite_id))
+}
+
+fn identity_guard_contacts() -> String {
+    qsc::vault::secret_get("contacts.json").unwrap().unwrap()
+}
+
+fn identity_guard_pending(cfg: &Path) -> Option<String> {
+    let name = fs::read_dir(cfg.join("identities"))
+        .unwrap()
+        .filter_map(Result::ok)
+        .map(|e| e.file_name().to_string_lossy().into_owned())
+        .find(|n| n.starts_with("self_") && n.ends_with(".json"))
+        .unwrap();
+    let label = name
+        .strip_prefix("self_")
+        .unwrap()
+        .strip_suffix(".json")
+        .unwrap();
+    qsc::vault::secret_get(&format!("handshake.pending.{label}.peer")).unwrap()
+}
+
+fn identity_guard_files(dir: &Path) -> Vec<(PathBuf, Vec<u8>)> {
+    let mut result = Vec::new();
+    if dir.exists() {
+        for entry in fs::read_dir(dir).unwrap() {
+            let path = entry.unwrap().path();
+            if path.is_dir() {
+                result.extend(identity_guard_files(&path));
+            } else {
+                result.push((path.clone(), fs::read(path).unwrap()));
+            }
+        }
+    }
+    result.sort_by(|a, b| a.0.cmp(&b.0));
+    result
+}
+
+fn identity_guard_message(sender: &Path, receiver: &Path, base: &str, tag: &str) {
+    let body = format!("identity guard retained conversation {tag}");
+    let input = sender.join(format!("{tag}.txt"));
+    fs::write(&input, body.as_bytes()).unwrap();
+    identity_guard_run(
+        sender,
+        &[
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            base,
+            "--to",
+            "peer",
+            "--file",
+            input.to_str().unwrap(),
+        ],
+    );
+    let out = receiver.join(format!("received-{tag}"));
+    identity_guard_run(
+        receiver,
+        &[
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            base,
+            "--from",
+            "peer",
+            "--max",
+            "16",
+            "--out",
+            out.to_str().unwrap(),
+            "--receipt-mode",
+            "off",
+        ],
+    );
+    assert!(
+        identity_guard_files(&out)
+            .iter()
+            .any(|(_, bytes)| bytes == body.as_bytes()),
+        "original conversation must still authenticate and deliver the message"
+    );
+}
+
+#[test]
+fn na0780_identity_guard_preserves_pending_and_working_conversation() {
+    let _g = guard();
+    let root = test_root("na0780_identity_guard");
+    let bob = bob_in_process(&root);
+    // Set the in-process environment before the relay starts threads. All new traffic
+    // commands also remove fallback settings; sessions use the real vault and StdCrypto.
+    for name in [
+        "QSC_QSP_SEED",
+        "QSC_ALLOW_SEED_FALLBACK",
+        "QSC_UNSAFE_TEST_SEED_FALLBACK",
+    ] {
+        env::remove_var(name);
+    }
+    let relay = common::start_qsl_server(2 * 1024 * 1024, 512, None);
+    let base = relay.base_url();
+    let alice = party(&root, "alice", ALICE_INBOX);
+    let charlie = party(&root, "charlie", CAROL_INBOX);
+    let (alice_code, alice_slot) = identity_guard_mint(&alice, base);
+    facade::invite_redeem(&alice_code, "peer", None).unwrap();
+    let contacts = identity_guard_contacts();
+    let pending = identity_guard_pending(&bob);
+    assert!(pending.as_ref().is_some_and(|p| !p.is_empty()));
+
+    let (foreign_code, _) = identity_guard_mint(&charlie, base);
+    let rejected = facade::invite_redeem(&foreign_code, "peer", None);
+    assert!(
+        matches!(rejected, Err(ref e) if e.as_wire() == "identity_changed"),
+        "redeem must refuse identity replacement under an existing alias"
+    );
+    assert!(
+        identity_guard_contacts() == contacts,
+        "refusal must preserve the entire contact record"
+    );
+    assert!(
+        identity_guard_pending(&bob) == pending,
+        "refusal must preserve the original pending attempt"
+    );
+    assert!(
+        matches!(
+            facade::invite_redeem(&foreign_code, "peer", None),
+            Err(FacadeError::AlreadyRedeemed)
+        ),
+        "identity refusal must not make a consumed invitation reusable"
+    );
+
+    // A different identity also cannot replace the binding through the accept path.
+    let bob_code = facade::invite_create(None, base, 3600, None).unwrap();
+    let bob_slot = qsc::invite::wire_id(
+        &qsc::invite::decode_invite_code(&bob_code)
+            .unwrap()
+            .invite_id,
+    );
+    identity_guard_run(
+        &charlie,
+        &["invite", "redeem", "--code", &bob_code, "--alias", "bob"],
+    );
+    assert!(
+        matches!(facade::invite_accept(None, &bob_slot, "peer", 8), Err(ref e) if e.as_wire() == "identity_changed")
+    );
+    assert!(identity_guard_contacts() == contacts);
+    assert!(identity_guard_pending(&bob) == pending);
+
+    identity_guard_run(
+        &alice,
+        &[
+            "invite",
+            "accept",
+            "--invite-id",
+            &alice_slot,
+            "--alias",
+            "peer",
+        ],
+    );
+    assert!(facade::invite_finish(None, "peer", base, 16).unwrap());
+    identity_guard_run(
+        &alice,
+        &["invite", "finish", "--alias", "peer", "--relay", base],
+    );
+    identity_guard_message(&bob, &alice, base, "before");
+    identity_guard_message(&alice, &bob, base, "reply-before");
+
+    let contacts = identity_guard_contacts();
+    let sessions = identity_guard_files(&bob.join("qsp_sessions"));
+    assert!(
+        !sessions.is_empty(),
+        "must protect an actual persisted session"
+    );
+    let (fresh_foreign, _) = identity_guard_mint(&charlie, base);
+    assert!(
+        matches!(facade::invite_redeem(&fresh_foreign, "peer", None), Err(ref e) if e.as_wire() == "identity_changed")
+    );
+    assert!(identity_guard_contacts() == contacts);
+    assert!(
+        identity_guard_files(&bob.join("qsp_sessions")) == sessions,
+        "identity refusal must not replace or reset a working session"
+    );
+    let (same_identity_code, _) = identity_guard_mint(&alice, base);
+    assert!(
+        matches!(facade::invite_redeem(&same_identity_code, "peer", None), Err(ref e) if e.as_wire() == "session_exists"),
+        "a fresh invitation is not permission to replace the working session"
+    );
+    assert!(identity_guard_contacts() == contacts);
+    assert!(identity_guard_files(&bob.join("qsp_sessions")) == sessions);
+    // Losing a contact row must not authorize replacement of its surviving session.
+    let missing_contact = "{\"peers\":{}}";
+    qsc::vault::secret_set("contacts.json", missing_contact).unwrap();
+    let (orphan_attempt, _) = identity_guard_mint(&charlie, base);
+    assert!(
+        matches!(facade::invite_redeem(&orphan_attempt, "peer", None), Err(ref e) if e.as_wire() == "session_exists")
+    );
+    assert!(identity_guard_contacts() == missing_contact);
+    assert!(identity_guard_files(&bob.join("qsp_sessions")) == sessions);
+    qsc::vault::secret_set("contacts.json", &contacts).unwrap();
+    identity_guard_message(&bob, &alice, base, "after");
+    identity_guard_message(&alice, &bob, base, "reply-after");
+    qsc::set_vault_unlocked(false);
+}
+
+#[test]
+fn na0780_identity_guard_preserves_metadata_and_refuses_incomplete_bindings() {
+    let _g = guard();
+    let root = test_root("na0780_identity_guard_metadata");
+    let bob = bob_in_process(&root);
+    let relay = common::start_qsl_server(2 * 1024 * 1024, 512, None);
+    let base = relay.base_url();
+    let alice = party(&root, "alice", ALICE_INBOX);
+    let (code, _) = identity_guard_mint(&alice, base);
+    facade::invite_redeem(&code, "peer", None).unwrap();
+    let original: serde_json::Value = serde_json::from_str(&identity_guard_contacts()).unwrap();
+    let mut preserved = original.clone();
+    let rec = &mut preserved["peers"]["peer"];
+    rec["blocked"] = true.into();
+    rec["status"] = "verified".into();
+    rec["display_name"] = "Existing display name".into();
+    rec["seen_at"] = 123.into();
+    rec["devices"][0]["seen_at"] = 123.into();
+    rec["devices"][0]["state"] = "VERIFIED".into();
+    rec["devices"][0]["label"] = "Existing device label".into();
+    let preserved = serde_json::to_string(&preserved).unwrap();
+    qsc::vault::secret_set("contacts.json", &preserved).unwrap();
+    let pending = identity_guard_pending(&bob);
+    let (same_code, _) = identity_guard_mint(&alice, base);
+    assert!(
+        matches!(
+            facade::invite_redeem(&same_code, "peer", None),
+            Err(FacadeError::Other(ref code)) if code == "peer_blocked"
+        ),
+        "matching identity must reach the existing block gate without clearing it"
+    );
+    assert!(
+        identity_guard_contacts() == preserved,
+        "all same-identity metadata must survive"
+    );
+    assert!(identity_guard_pending(&bob) == pending);
+
+    // Include a legacy-shaped record with no devices: comparison must not persist
+    // the normal loader's migration before deciding whether to refuse it.
+    for defect in [
+        "missing_kem",
+        "missing_signing",
+        "primary_conflict",
+        "legacy_conflict",
+        "missing_primary",
+    ] {
+        let mut record = original.clone();
+        let rec = &mut record["peers"]["peer"];
+        match defect {
+            "missing_kem" => rec["kem_pk"] = serde_json::Value::Null,
+            "missing_signing" => rec["sig_fp"] = serde_json::Value::Null,
+            "primary_conflict" => rec["devices"][0]["fp"] = "different_identity".into(),
+            "legacy_conflict" => {
+                rec["devices"] = serde_json::json!([]);
+                rec["fp"] = "different_identity".into();
+            }
+            "missing_primary" => rec["primary_device_id"] = "missing_device".into(),
+            _ => unreachable!(),
+        }
+        let before = serde_json::to_string(&record).unwrap();
+        qsc::vault::secret_set("contacts.json", &before).unwrap();
+        let (code, _) = identity_guard_mint(&alice, base);
+        assert!(
+            matches!(facade::invite_redeem(&code, "peer", None), Err(ref e) if e.as_wire() == "identity_changed"),
+            "{defect}"
+        );
+        assert!(
+            identity_guard_contacts() == before,
+            "refused {defect} was rewritten"
+        );
+        assert!(identity_guard_pending(&bob) == pending);
+    }
+    qsc::vault::secret_set("contacts.json", "{invalid").unwrap();
+    let (code, _) = identity_guard_mint(&alice, base);
+    assert!(matches!(
+        facade::invite_redeem(&code, "peer", None),
+        Err(FacadeError::StoreUnavailable)
+    ));
+    assert!(identity_guard_contacts() == "{invalid");
+    assert!(identity_guard_pending(&bob) == pending);
+    qsc::set_vault_unlocked(false);
+}

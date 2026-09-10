@@ -1793,3 +1793,13 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
   only. Already-deleted ownership and older-backup rollback remain limitations;
   see the NA-0780 decision. Desktop/two-device acceptance and strict lint
   disposition remain open. No universal historical recovery, lint waiver or merge.
+
+- 2026-09-10: NA-0780 independent identity guard, Goals G4: invitation provisioning
+  in `qsl/qsl-client/qsc/src/contacts/mod.rs` compares existing identity and primary
+  bindings under lock without migration writes; matching contacts retain metadata,
+  and any stored session prevents replacement. `src/facade/mod.rs` under the same
+  qsc root exposes typed identity/session refusals. Existing invite callers already
+  propagate the errors. `qsl/qsl-client/qsc/tests/na0756_two_party_invite_roundtrip.rs`
+  adds real-relay refusal, pending/session preservation, metadata/legacy/corruption
+  and original-conversation message regressions. No collision recovery, new wire,
+  cryptography or storage format is introduced; see the independent guard decision.

@@ -8203,3 +8203,18 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
   history removed by full vault erase. No wire/crypto change.
 - Limit: already-deleted ownership and older-backup rollback are not recovered;
   desktop integration and observed two-device acceptance remain outstanding.
+
+### NA-0780 identity-overwrite follow-up to ENG-0345–0348
+
+- Originating lane: NA-0780. Last lane: NA-0780. Last-updated: 2026-09-10.
+- Type: identity-binding preservation defect, reproduced independently of collision recovery.
+- Status: fix prepared for review; not merged. Existing collision/recovery findings remain open.
+- Finding: invitation contact upsert could replace an existing alias's identity and
+  reset trust/block metadata before handshake rejection. The separate guard compares
+  full bindings under lock without migration writes, preserves matching metadata,
+  and refuses invitation replacement of any stored session.
+- Verification: new real-relay regression fails on unchanged main at the identity
+  replacement assertion; current-head outcomes belong to the separate draft PR.
+  No completed reproduction CI was rerun. No multi-device or reconnect claim.
+- Next collision disposition: explicit attempt-scoped cancellation and one fresh
+  invitation for the no-session case is preferred but not authorized for implementation.

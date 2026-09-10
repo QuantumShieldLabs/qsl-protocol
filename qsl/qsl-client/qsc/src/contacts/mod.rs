@@ -887,6 +887,58 @@ pub(crate) fn contacts_provision_from_invite(
     let route_token = normalize_route_token(route_token)?;
     let fp = identity_fingerprint_from_identity(kem_pk, sig_pk);
     let sig_fp = identity_fingerprint_single(FpRole::Sig, sig_pk);
+    // Alias selection never authorizes identity replacement. Hold the existing store
+    // lock across read/compare/insert, including nested vault persistence. Read without
+    // contacts_store_load's migration writes: a refused invitation must not rewrite
+    // even a legacy contact. A matching record is also left byte-for-byte unchanged.
+    let (dir, source) = config_dir().map_err(|_| "contacts_store_unavailable")?;
+    let _lock = lock_store_exclusive(&dir, source).map_err(|_| "contacts_store_unavailable")?;
+    let mut store: ContactsStore =
+        match vault::secret_get(CONTACTS_SECRET_KEY).map_err(|_| "contacts_store_unavailable")? {
+            Some(raw) => serde_json::from_str(&raw).map_err(|_| "contacts_store_unavailable")?,
+            None => ContactsStore::default(),
+        };
+    let existing = store.peers.get(alias);
+    if let Some(existing) = existing {
+        let matches = |pin: &str, signing: Option<&str>, kem: Option<&str>| {
+            identity_pin_matches_seen_identity(pin, &fp)
+                && signing.is_some_and(|pin| pin.trim().eq_ignore_ascii_case(&sig_fp))
+                && kem.and_then(|key| hex_decode(key).ok()).as_deref() == Some(kem_pk)
+        };
+        if !matches(
+            &existing.fp,
+            existing.sig_fp.as_deref(),
+            existing.kem_pk.as_deref(),
+        ) {
+            return Err("contacts_identity_changed");
+        }
+        // The handshake reads the primary device binding. It must agree with the
+        // contact binding; an invitation cannot select or enroll another device.
+        if existing.primary_device_id.as_ref().is_some_and(|id| {
+            !existing
+                .devices
+                .iter()
+                .any(|device| &device.device_id == id)
+        }) || primary_device(existing).is_some_and(|device| {
+            !matches(
+                &device.fp,
+                device.sig_fp.as_deref(),
+                device.kem_pk.as_deref(),
+            )
+        }) {
+            return Err("contacts_identity_changed");
+        }
+    }
+    // A missing contact row is not proof that its old session is gone. Protect
+    // that session too; restoration/reconnection is a separate operation.
+    match crate::protocol_state::qsp_session_load(alias) {
+        Ok(Some(_)) => return Err("contacts_session_exists"),
+        Ok(None) => {}
+        Err(_) => return Err("contacts_store_unavailable"),
+    }
+    if existing.is_some() {
+        return Ok(fp);
+    }
     let rec = ContactRecord {
         fp: fp.clone(),
         status: "pinned".to_string(),
@@ -915,7 +967,8 @@ pub(crate) fn contacts_provision_from_invite(
         // Stated explicitly rather than defaulted, so the choice is visible at the site.
         display_name: None,
     };
-    contacts_entry_upsert(alias, rec).map_err(|_| "contacts_store_unavailable")?;
+    store.peers.insert(alias.to_string(), rec);
+    contacts_store_save(&store).map_err(|_| "contacts_store_unavailable")?;
     Ok(fp)
 }
 

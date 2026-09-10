@@ -71,3 +71,20 @@ invitation. It does not authenticate the code, check relay availability, or repl
 redemption's expiry, commitment, signature and single-use checks. The existing
 single-identity label resolution still applies. Desktop integration and observed
 two-device acceptance remain separate work.
+
+### Existing identity bindings (NA-0780)
+
+An invitation cannot replace the identity bound to an existing contact alias.
+Redeem and accept return `FacadeError::IdentityChanged` (`identity_changed`) when
+full identity, signing or primary-device bindings disagree or are incomplete.
+Contact comparison does not migrate or rewrite the existing record. Matching
+contacts retain their verification, block, device, route and display metadata.
+A matching alias with any stored session returns `FacadeError::SessionExists`
+(`session_exists`); replacing or reconnecting an established session is separate
+work. Unreadable storage returns `store_unavailable`, never an empty contact.
+
+These checks run before provisioning and the subsequent handshake operation.
+Redemption/pull may already have happened to obtain the public identity bundle;
+a rejected redemption does not make the consumed invitation reusable. Existing
+expiry, signature, commitment, self-invitation and possession checks remain in
+force. No collision election, cancellation or device enrollment is implemented.

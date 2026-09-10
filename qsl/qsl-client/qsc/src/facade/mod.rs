@@ -97,6 +97,11 @@ pub enum FacadeError {
     Expired,
     /// This invitation was created by this app. Ask the other person for their invitation.
     SelfInvitation,
+    /// An invitation conflicts with the identity already bound to this alias.
+    /// Redeem/pull may already have occurred; no identity replacement is authorized.
+    IdentityChanged,
+    /// The alias already has a stored session; an invitation cannot replace it.
+    SessionExists,
     /// `invite_already_redeemed` `:106` — client-side single-use; the arm that survives a
     /// hostile relay (I2). Deliberately distinct from [`Self::AlreadyUsed`].
     AlreadyRedeemed,
@@ -193,7 +198,7 @@ impl FacadeError {
     /// a variant makes this match non-exhaustive and the build goes RED here.
     ///
     /// ⚠ [`FacadeError::Store`] FANS OUT at the DTO boundary: its discriminant is the inner
-    /// `ErrorCode::as_str()`, so the pinned set is 26 + 13 = 39, not 27. Collapsing `Store`
+    /// `ErrorCode::as_str()`, so the pinned set is 29 + 13 = 42, not 30. Collapsing `Store`
     /// to one code would put `lock_upgrade_refused` beyond a GUI's reach and undo the reason
     /// the variant exists.
     pub fn as_wire(&self) -> &'static str {
@@ -202,6 +207,8 @@ impl FacadeError {
             FacadeError::VaultUnavailable(_) => "vault_unavailable",
             FacadeError::Expired => "expired",
             FacadeError::SelfInvitation => "self_invitation",
+            FacadeError::IdentityChanged => "identity_changed",
+            FacadeError::SessionExists => "session_exists",
             FacadeError::AlreadyRedeemed => "already_redeemed",
             FacadeError::RevokedLocally => "revoked_locally",
             FacadeError::SoftCapReached => "soft_cap_reached",
@@ -287,6 +294,8 @@ fn map_code(code: &str) -> FacadeError {
         // ── the contact verbs' own vocabulary ───────────────────────────────────────────
         "request_unknown" => FacadeError::NotFound,
         "contacts_store_unavailable" => FacadeError::StoreUnavailable,
+        "contacts_identity_changed" => FacadeError::IdentityChanged,
+        "contacts_session_exists" => FacadeError::SessionExists,
 
         // ── the vault read, and the second half of the lock window ──────────────────────
         //
@@ -1155,7 +1164,7 @@ mod na0751_facade_mapping_tests {
 
     #[test]
     fn na0751_as_wire_discriminants_are_distinct_and_store_fans_out() {
-        // The pinned set is 27 + 13 = 40: `Store` fans out over `ErrorCode::as_str`.
+        // The pinned set is 29 + 13 = 42: `Store` fans out over `ErrorCode::as_str`.
         let singles = [
             FacadeError::Locked, FacadeError::VaultUnavailable(None), FacadeError::Expired,
             FacadeError::AlreadyRedeemed, FacadeError::RevokedLocally, FacadeError::SoftCapReached,
@@ -1167,10 +1176,10 @@ mod na0751_facade_mapping_tests {
             FacadeError::EnvelopeVersionSkew, FacadeError::RelayTlsUntrusted,
             FacadeError::RelayCaFile, FacadeError::RelayEndpointInvalid,
             FacadeError::StoreUnavailable, FacadeError::InviteClearRefused,
-            FacadeError::SelfInvitation,
+            FacadeError::SelfInvitation, FacadeError::IdentityChanged, FacadeError::SessionExists,
             FacadeError::Other(String::new()),
         ];
-        assert_eq!(singles.len(), 27, "27 non-Store variants");
+        assert_eq!(singles.len(), 29, "29 non-Store variants");
         let mut wires: Vec<&str> = singles.iter().map(|e| e.as_wire()).collect();
         let store_codes = [
             ErrorCode::MissingHome, ErrorCode::InvalidPolicyProfile, ErrorCode::UnsafePathSymlink,
@@ -1183,11 +1192,11 @@ mod na0751_facade_mapping_tests {
         for c in store_codes {
             wires.push(FacadeError::Store(c).as_wire());
         }
-        assert_eq!(wires.len(), 40, "the pinned discriminant set is 40");
+        assert_eq!(wires.len(), 42, "the pinned discriminant set is 42");
         let mut sorted = wires.clone();
         sorted.sort_unstable();
         sorted.dedup();
-        assert_eq!(sorted.len(), 40, "all 40 discriminants are DISTINCT");
+        assert_eq!(sorted.len(), 42, "all 42 discriminants are DISTINCT");
         // The reason `Store` exists: `lock_upgrade_refused` survives to the boundary.
         assert!(wires.contains(&"lock_upgrade_refused"));
     }

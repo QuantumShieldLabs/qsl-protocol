@@ -833,20 +833,18 @@ pub(crate) fn hs_invite_existing_binding(
 // Best-effort preflight before consuming a remote invitation. Admission is
 // checked again under the same store lock when the outgoing capsule is saved;
 // this local check does not make remote redemption and local storage atomic.
-pub(crate) fn hs_invite_admission_preflight(
-    self_label: &str,
-    peer: &str,
-    slot: &str,
-) -> Result<(), &'static str> {
+pub(crate) fn hs_invite_admission_preflight(peer: &str) -> Result<(), &'static str> {
     let _lock = hs_lifecycle_lock()?;
-    if let Some(c) = hs_lifecycle_find(self_label, peer)? {
-        if c.selected.is_some() && c.outgoing.as_ref().is_none_or(|o| o.reply.route != slot) {
-            return Err("contacts_session_exists");
-        }
-        // Exact retry or late-redeem coalescing uses the existing reservation.
+    let store = hs_lifecycle_load()?;
+    // Existing occupancy needs no new capacity. Do not inspect its identity or
+    // session here: the invitation bundle is not verified yet, and the merged
+    // provisioning guard must keep its security-error precedence. That guard and
+    // the authoritative lifecycle binding/session/generation checks still run
+    // before any candidate can be admitted or resumed.
+    if store.entries.iter().any(|c| c.peer == peer) {
         return Ok(());
     }
-    hs_lifecycle_admission_available(&hs_lifecycle_load()?)
+    hs_lifecycle_admission_available(&store)
 }
 
 pub(crate) fn hs_invite_reserved_outgoing(
@@ -4731,7 +4729,7 @@ mod na0780_lifecycle_tests {
         };
         let history = serde_json::to_vec(&store.entries).unwrap();
         hs_lifecycle_save(&store).unwrap();
-        hs_invite_admission_preflight("self", "new-peer", "new-slot").unwrap();
+        hs_invite_admission_preflight("new-peer").unwrap();
         let next = renamed(c, "new-peer");
         hs_lifecycle_put(&next).unwrap();
         let mut reloaded = hs_lifecycle_load().unwrap();
@@ -4798,8 +4796,7 @@ mod na0780_lifecycle_tests {
         assert!(before == vault::secret_get(FIRST_CONNECTIONS_KEY).unwrap());
         assert_capacity_precedes_redemption();
         // A retry needs no new slot; existing authentication and identity gates still run.
-        hs_invite_admission_preflight("self", "peer", &c.outgoing.as_ref().unwrap().reply.route)
-            .unwrap();
+        hs_invite_admission_preflight("peer").unwrap();
         selection(&c, &st).unwrap();
         let selected = hs_lifecycle_find("self", "peer").unwrap().unwrap();
         assert!(selected.is_active());

@@ -45409,6 +45409,12 @@ reservation. This conservative byte budget can refuse before 64 active slots
 Known exhaustion is refused before creating a redemption record or consuming the
 invitation where possible, with authoritative recheck at local admission. There is
 no transaction across remote redemption and local storage, so races remain possible.
+Preflight checks capacity only: an alias with retained occupancy needs no new
+reservation. It must not inspect that lifecycle's identity/session before the
+invitation bundle has been verified, since that would preempt the merged contact
+guard's identity-error precedence. The existing verified-bundle, provisioning,
+binding, session and generation checks remain authoritative before admission or
+resume. The unchanged identity-guard regressions enforce this ordering.
 
 The v1 storage format is unchanged. Structural validation counts active records
 and preserves existing actual-byte limits; it does not impose the new reservation

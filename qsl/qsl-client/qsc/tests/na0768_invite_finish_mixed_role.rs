@@ -1081,6 +1081,18 @@ fn auto_hex(bytes: &[u8]) -> String {
     bytes.iter().map(|b| format!("{b:02x}")).collect()
 }
 
+// The observer compares decrypted fixture records across fresh processes. Keep
+// those local fingerprints behind the existing memory-hard hash, rather than
+// writing fast hashes of records that can contain secret material. The fixed
+// domain salt is test-only: this is an equality witness, never authentication.
+fn auto_fixture_record_digest(bytes: &[u8]) -> String {
+    let mut digest = [0u8; 32];
+    argon2::Argon2::default()
+        .hash_password_into(bytes, b"NA0780 fixture record", &mut digest)
+        .unwrap();
+    auto_hex(&digest)
+}
+
 #[test]
 #[ignore = "fixture-only child probe, invoked by investigation arms"]
 fn auto_fixture_probe() {
@@ -1179,10 +1191,10 @@ fn auto_fixture_probe() {
                         .is_some_and(|v| v.is_empty())
                 })
         });
-    let result = serde_json::json!({"peer_fp":peer["fp"], "primary_fp":peer["devices"][0]["fp"], "retired_secrets":retired, "lifecycle_bytes":lifecycle.len(), "lifecycle_hash":auto_hex(&Sha256::digest(lifecycle.as_bytes())), "pending":!pending.is_empty(), "role":value["role"], "sid":value["session_id"],
-        "pending_hash":auto_hex(&Sha256::digest(pending.as_bytes())),
+    let result = serde_json::json!({"peer_fp":peer["fp"], "primary_fp":peer["devices"][0]["fp"], "retired_secrets":retired, "lifecycle_bytes":lifecycle.len(), "lifecycle_hash":auto_fixture_record_digest(lifecycle.as_bytes()), "pending":!pending.is_empty(), "role":value["role"], "sid":value["session_id"],
+        "pending_hash":auto_fixture_record_digest(pending.as_bytes()),
         "session_sid":sid,"session_hash":session_hash,
-        "contacts_hash":auto_hex(&Sha256::digest(qsc::vault::secret_get("contacts.json").unwrap().unwrap_or_default().as_bytes()))});
+        "contacts_hash":auto_fixture_record_digest(qsc::vault::secret_get("contacts.json").unwrap().unwrap_or_default().as_bytes())});
     fs::write(
         cfg.join("experiment-summary.json"),
         serde_json::to_vec(&result).unwrap(),

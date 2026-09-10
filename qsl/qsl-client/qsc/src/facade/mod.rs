@@ -102,6 +102,12 @@ pub enum FacadeError {
     IdentityChanged,
     /// The alias already has a stored session; an invitation cannot replace it.
     SessionExists,
+    /// An older or incompatible first-connection generation must not be overwritten.
+    HandshakeConflict,
+    /// The bounded provisional slot is already committed to another exact A1.
+    HandshakeOccupied,
+    /// First-connection records or saved replies reached the local byte/count cap.
+    HandshakeCapacity,
     /// `invite_already_redeemed` `:106` — client-side single-use; the arm that survives a
     /// hostile relay (I2). Deliberately distinct from [`Self::AlreadyUsed`].
     AlreadyRedeemed,
@@ -198,7 +204,7 @@ impl FacadeError {
     /// a variant makes this match non-exhaustive and the build goes RED here.
     ///
     /// ⚠ [`FacadeError::Store`] FANS OUT at the DTO boundary: its discriminant is the inner
-    /// `ErrorCode::as_str()`, so the pinned set is 29 + 13 = 42, not 30. Collapsing `Store`
+    /// `ErrorCode::as_str()`, so the pinned set is 32 + 13 = 45, not 30. Collapsing `Store`
     /// to one code would put `lock_upgrade_refused` beyond a GUI's reach and undo the reason
     /// the variant exists.
     pub fn as_wire(&self) -> &'static str {
@@ -209,6 +215,9 @@ impl FacadeError {
             FacadeError::SelfInvitation => "self_invitation",
             FacadeError::IdentityChanged => "identity_changed",
             FacadeError::SessionExists => "session_exists",
+            FacadeError::HandshakeConflict => "handshake_conflict",
+            FacadeError::HandshakeOccupied => "handshake_occupied",
+            FacadeError::HandshakeCapacity => "handshake_capacity",
             FacadeError::AlreadyRedeemed => "already_redeemed",
             FacadeError::RevokedLocally => "revoked_locally",
             FacadeError::SoftCapReached => "soft_cap_reached",
@@ -296,6 +305,10 @@ fn map_code(code: &str) -> FacadeError {
         "contacts_store_unavailable" => FacadeError::StoreUnavailable,
         "contacts_identity_changed" => FacadeError::IdentityChanged,
         "contacts_session_exists" => FacadeError::SessionExists,
+        "handshake_lifecycle_conflict" => FacadeError::HandshakeConflict,
+        "handshake_lifecycle_occupied" => FacadeError::HandshakeOccupied,
+        "handshake_lifecycle_capacity" => FacadeError::HandshakeCapacity,
+        "handshake_lifecycle_store" => FacadeError::StoreUnavailable,
 
         // ── the vault read, and the second half of the lock window ──────────────────────
         //
@@ -485,6 +498,23 @@ pub fn connect_status(peer: &str) -> ConnectStatus {
     } else {
         reason
     };
+    if state == "ACTIVE" && crate::vault_unlocked() {
+        match crate::handshake::hs_invite_recovery_pending(peer) {
+            Ok(true) => {
+                return ConnectStatus {
+                    state: ConnectState::Inactive,
+                    reason: ConnectReason::Handshake,
+                }
+            }
+            Err(_) => {
+                return ConnectStatus {
+                    state: ConnectState::Inactive,
+                    reason: ConnectReason::SessionInvalid,
+                }
+            }
+            Ok(false) => {}
+        }
+    }
     let state = if state == "ACTIVE" {
         ConnectState::Active
     } else {
@@ -1164,7 +1194,7 @@ mod na0751_facade_mapping_tests {
 
     #[test]
     fn na0751_as_wire_discriminants_are_distinct_and_store_fans_out() {
-        // The pinned set is 29 + 13 = 42: `Store` fans out over `ErrorCode::as_str`.
+        // The pinned set is 32 + 13 = 45: `Store` fans out over `ErrorCode::as_str`.
         let singles = [
             FacadeError::Locked, FacadeError::VaultUnavailable(None), FacadeError::Expired,
             FacadeError::AlreadyRedeemed, FacadeError::RevokedLocally, FacadeError::SoftCapReached,
@@ -1177,9 +1207,10 @@ mod na0751_facade_mapping_tests {
             FacadeError::RelayCaFile, FacadeError::RelayEndpointInvalid,
             FacadeError::StoreUnavailable, FacadeError::InviteClearRefused,
             FacadeError::SelfInvitation, FacadeError::IdentityChanged, FacadeError::SessionExists,
+            FacadeError::HandshakeConflict, FacadeError::HandshakeOccupied, FacadeError::HandshakeCapacity,
             FacadeError::Other(String::new()),
         ];
-        assert_eq!(singles.len(), 29, "29 non-Store variants");
+        assert_eq!(singles.len(), 32, "32 non-Store variants");
         let mut wires: Vec<&str> = singles.iter().map(|e| e.as_wire()).collect();
         let store_codes = [
             ErrorCode::MissingHome, ErrorCode::InvalidPolicyProfile, ErrorCode::UnsafePathSymlink,
@@ -1192,11 +1223,11 @@ mod na0751_facade_mapping_tests {
         for c in store_codes {
             wires.push(FacadeError::Store(c).as_wire());
         }
-        assert_eq!(wires.len(), 42, "the pinned discriminant set is 42");
+        assert_eq!(wires.len(), 45, "the pinned discriminant set is 45");
         let mut sorted = wires.clone();
         sorted.sort_unstable();
         sorted.dedup();
-        assert_eq!(sorted.len(), 42, "all 42 discriminants are DISTINCT");
+        assert_eq!(sorted.len(), 45, "all 45 discriminants are DISTINCT");
         // The reason `Store` exists: `lock_upgrade_refused` survives to the boundary.
         assert!(wires.contains(&"lock_upgrade_refused"));
     }

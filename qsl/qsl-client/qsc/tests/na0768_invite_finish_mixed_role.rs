@@ -41,11 +41,9 @@
 mod common;
 
 use std::fs;
-use std::io::{Read, Write};
-use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, OnceLock};
 use std::thread;
 use std::time::{Duration, Instant};
@@ -53,7 +51,7 @@ use std::time::{Duration, Instant};
 /// ⚠ **PARITY.** The production relay runs `PULL_LEASE_SECS=60`, and that is the default for every
 /// arm here. An arm that needs a lease to EXPIRE inside the test may set the short value below and
 /// **must state it beside every figure it produces** — the committed precedent is
-/// `na0688_c4_collateral_arms.rs`'s `TEST_PULL_LEASE_SECS`. ⚠ That file's value is DELIBERATELY
+/// `na0688_c4_collateral_arms.rs`'s `SHORT_PULL_LEASE_SECS`. ⚠ That file's value is DELIBERATELY
 /// LARGER than this one's (45s vs 8s): it is the only file that does work INSIDE the lease window
 /// rather than merely waiting one out. Do not "harmonise" them.
 ///
@@ -129,9 +127,9 @@ fn qsc(cfg: &Path) -> Command {
     // reject the repeated flag and the setup dies before any measurement runs.
     let mut c = common::qsc_std_command();
     c.env("QSC_CONFIG_DIR", cfg)
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
+        .env_remove("QSC_QSP_SEED")
+        .env_remove("QSC_ALLOW_SEED_FALLBACK")
+        .env_remove("QSC_UNSAFE_TEST_SEED_FALLBACK")
         .env("QSC_MARK_FORMAT", "plain")
         // NA-0759 (`ENG-0243`, F4, FILE-SCOPED BY RULING): turn on the pull diagnostic that
         // `ENG-0193` built and nobody switched on. Without it a failed pull says only
@@ -148,7 +146,13 @@ fn qsc(cfg: &Path) -> Command {
 fn run_ok(cfg: &Path, args: &[&str]) -> String {
     let out = qsc(cfg).args(args).output().expect("run qsc");
     let text = output_text(&out);
-    assert!(out.status.success(), "expected success: {args:?}\n{text}");
+    if !out.status.success() {
+        fs::write(cfg.join("failed-command.output"), &text).unwrap();
+        let codes:Vec<_>=text.lines().filter(|l|l.contains("event=error"))
+            .map(|l|marker_field(l,"code")).collect();
+        eprintln!("AUTO fixture_failure command_class={} error_codes={codes:?}",args[0]);
+    }
+    assert!(out.status.success(), "fixture command failed");
     text
 }
 
@@ -812,4 +816,781 @@ fn s5_owning_candidate_mismatch_still_emits() {
     assert!(_i2, "S5b/precondition: the second init must push a REAL A1 for the asserted poll to judge:\n{_t2}");
     assert!(asserted_sec,
         "S5b: an ASSERTED peer's real mismatch MUST still emit the security marker (RULING_006 sec 2, the preserved clause):\n{pt}");
+}
+
+// NA-0780 automatic repair. Historical failing reproduction remains at PR #1825.
+#[derive(Clone)]
+struct ReproRequest {
+    at: Instant,
+    path: String,
+    route: String,
+    frames: Vec<(String, Vec<u8>)>,
+    payloads: Vec<Vec<u8>>,
+}
+
+struct ReproRelay {
+    base: String,
+    trace: Arc<Mutex<Vec<ReproRequest>>>,
+    stop: Option<tokio::sync::oneshot::Sender<()>>,
+    join: Option<thread::JoinHandle<()>>,
+}
+
+impl Drop for ReproRelay {
+    fn drop(&mut self) {
+        let _ = self.stop.take().unwrap().send(());
+        self.join.take().unwrap().join().expect("observer shutdown");
+    }
+}
+
+impl ReproRelay {
+    fn new(upstream: &str) -> Self {
+        let trace = Arc::new(Mutex::new(Vec::new()));
+        let state = (upstream.to_owned(), trace.clone());
+        let (ready_tx, ready_rx) = std::sync::mpsc::channel();
+        let (stop, stopped) = tokio::sync::oneshot::channel();
+        let join = thread::spawn(move || {
+            tokio::runtime::Runtime::new()
+                .unwrap()
+                .block_on(async move {
+                    let socket = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+                    ready_tx.send(socket.local_addr().unwrap()).unwrap();
+                    let app = axum::Router::new()
+                        .fallback(repro_forward)
+                        .with_state(state);
+                    axum::serve(socket, app)
+                        .with_graceful_shutdown(async {
+                            let _ = stopped.await;
+                        })
+                        .await
+                        .unwrap();
+                });
+        });
+        Self {
+            base: format!("http://{}", ready_rx.recv().unwrap()),
+            trace,
+            stop: Some(stop),
+            join: Some(join),
+        }
+    }
+
+    fn requests(&self) -> Vec<ReproRequest> {
+        self.trace.lock().unwrap().clone()
+    }
+
+    fn deliveries(&self, route: &str) -> Vec<(String, Vec<u8>)> {
+        self.requests()
+            .into_iter()
+            .filter(|r| r.path == "/v1/pull" && r.route == route)
+            .flat_map(|r| r.frames)
+            .collect()
+    }
+}
+
+static AUTO_TAMPER_A1: AtomicBool = AtomicBool::new(false);
+static AUTO_FAIL_B1: AtomicBool = AtomicBool::new(false);
+static AUTO_FAIL_A2: AtomicBool = AtomicBool::new(false);
+static AUTO_FAIL_ACK: AtomicBool = AtomicBool::new(false);
+
+async fn repro_forward(
+    axum::extract::State((upstream, trace)): axum::extract::State<(
+        String,
+        Arc<Mutex<Vec<ReproRequest>>>,
+    )>,
+    req: axum::extract::Request,
+) -> axum::response::Response {
+    use sha2::{Digest, Sha256};
+    let (parts, body) = req.into_parts();
+    let route = parts
+        .headers
+        .get("X-QSL-Route-Token")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .to_owned();
+    let path = parts.uri.path().to_owned();
+    let bytes = axum::body::to_bytes(body, 2 * 1024 * 1024).await.unwrap();
+    let fail = path == "/v1/push"
+        && qsc::invite::decode_envelope_resp(&bytes).is_ok()
+        && AUTO_FAIL_B1.swap(false, Ordering::SeqCst)
+        || path == "/v1/push"
+            && bytes.starts_with(b"QHSM")
+            && bytes.get(6) == Some(&3)
+            && AUTO_FAIL_A2.swap(false, Ordering::SeqCst)
+        || path == "/v1/pull/ack" && AUTO_FAIL_ACK.swap(false, Ordering::SeqCst);
+    if fail {
+        trace.lock().unwrap().push(ReproRequest {
+            at: Instant::now(),
+            path,
+            route,
+            frames: Vec::new(),
+            payloads: vec![bytes.to_vec()],
+        });
+        let mut result = axum::response::Response::new(axum::body::Body::empty());
+        *result.status_mut() = axum::http::StatusCode::SERVICE_UNAVAILABLE;
+        return result;
+    }
+    if path == "/v1/push" {
+        trace.lock().unwrap().push(ReproRequest {
+            at: Instant::now(),
+            path: path.clone(),
+            route: route.clone(),
+            frames: Vec::new(),
+            payloads: vec![bytes.to_vec()],
+        });
+    }
+    let mut headers = parts.headers;
+    headers.remove("host");
+    headers.remove("content-length");
+    let response = reqwest::Client::builder()
+        .timeout(Duration::from_secs(10))
+        .build()
+        .unwrap()
+        .request(parts.method, format!("{upstream}{}", parts.uri))
+        .headers(headers)
+        .body(bytes)
+        .send()
+        .await
+        .expect("observer upstream");
+    let status = response.status();
+    let mut headers = response.headers().clone();
+    let mut bytes = response.bytes().await.unwrap().to_vec();
+    if path == "/v1/pull"
+        && status.is_success()
+        && status.as_u16() != 204
+        && AUTO_TAMPER_A1.load(Ordering::SeqCst)
+    {
+        let mut json: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        for item in json["items"].as_array_mut().unwrap() {
+            let data: Vec<u8> = serde_json::from_value(item["data"].clone()).unwrap();
+            if let Ok(mut env) = qsc::invite::decode_envelope(&data) {
+                assert!(&env.a1[..4] == b"QHSM" && env.a1[4..6] == [0, 1]);
+                env.a1[7] ^= 1; // Existing legacy SID only, no cryptographic secret used.
+                item["data"] = serde_json::json!(qsc::invite::encode_envelope(&env).unwrap());
+                AUTO_TAMPER_A1.store(false, Ordering::SeqCst);
+                bytes = serde_json::to_vec(&json).unwrap();
+                headers.remove("content-length");
+                break;
+            }
+        }
+    }
+    let mut frames = Vec::new();
+    let mut payloads = Vec::new();
+    if path == "/v1/pull" && status.is_success() && status.as_u16() != 204 {
+        let json: serde_json::Value = serde_json::from_slice(&bytes).expect("relay pull JSON");
+        for item in json["items"].as_array().expect("relay items") {
+            let id = item["id"].as_str().expect("relay frame ID").to_owned();
+            let data: Vec<u8> = serde_json::from_value(item["data"].clone()).expect("relay bytes");
+            frames.push((id, Sha256::digest(&data).to_vec()));
+            payloads.push(data);
+        }
+    }
+    trace.lock().unwrap().push(ReproRequest {
+        at: Instant::now(),
+        path,
+        route,
+        frames,
+        payloads,
+    });
+    let mut result = axum::response::Response::new(axum::body::Body::from(bytes));
+    *result.status_mut() = status;
+    *result.headers_mut() = headers;
+    result
+}
+
+fn repro_mint(cfg: &Path, base: &str) -> (String, String) {
+    let code = invite_code(&run_ok(
+        cfg,
+        &["invite", "create", "--relay", base, "--ttl-secs", "3600"],
+    ));
+    (code, newest_invite_id(cfg))
+}
+
+fn repro_redeem(cfg: &Path, code: &str, alias: &str) {
+    let (ok, text) = run_any(cfg, &["invite", "redeem", "--code", code, "--alias", alias]);
+    // No invitation, keys or command arguments in assertion diagnostics.
+    assert!(ok, "redeem command failed");
+    assert!(has_marker_line(
+        &text,
+        "handshake_start",
+        &["role=initiator"]
+    ));
+    assert!(has_marker_line(&text, "handshake_send", &["msg=A1"]));
+}
+
+fn repro_accept(cfg: &Path, slot: &str, alias: &str) -> String {
+    let (ok, text) = run_any(
+        cfg,
+        &["invite", "accept", "--invite-id", slot, "--alias", alias],
+    );
+    assert!(ok, "accept command failed");
+    text
+}
+
+fn repro_status(cfg: &Path, alias: &str) -> (String, String) {
+    let text = run_ok(cfg, &["handshake", "status", "--peer", alias]);
+    let lines = marker_lines(&text, "handshake_status");
+    assert_eq!(lines.len(), 1);
+    (
+        marker_field(lines[0], "status"),
+        marker_field(lines[0], "peer_fp"),
+    )
+}
+
+fn repro_invite_state(cfg: &Path, slot: &str, state: &str) {
+    let text = run_ok(cfg, &["invite", "list"]);
+    let line = text
+        .lines()
+        .find(|line| marker_field(line, "invite") == slot)
+        .expect("local invitation row");
+    assert_eq!(marker_field(line, "state"), state);
+}
+
+fn repro_refused(text: &str) {
+    assert!(has_marker_line(
+        text,
+        "handshake_pending",
+        &["present=true", "role=initiator"]
+    ));
+    assert!(has_marker_line(
+        text,
+        "handshake_reject",
+        &["reason=handshake_type"]
+    ));
+    assert_eq!(count_marker(text, "invite_accept_not_consumed"), 1);
+    assert_eq!(count_marker(text, "producer_ack"), 0);
+    assert_eq!(count_marker(text, "handshake_send"), 0);
+    assert_eq!(count_marker(text, "handshake_complete"), 0);
+}
+
+fn repro_finish(cfg: &Path, alias: &str, base: &str) -> String {
+    let (ok, text) = run_any(
+        cfg,
+        &["invite", "finish", "--alias", alias, "--relay", base],
+    );
+    assert!(ok, "finish command failed");
+    text
+}
+
+fn repro_has_session(status: &str) -> bool {
+    matches!(
+        status,
+        "established" | "established_recv_only" | "awaiting_peer_confirm"
+    )
+}
+
+fn auto_hex(bytes: &[u8]) -> String {
+    bytes.iter().map(|b| format!("{b:02x}")).collect()
+}
+
+#[test]
+#[ignore = "fixture-only child probe, invoked by investigation arms"]
+fn auto_fixture_probe() {
+    use chacha20poly1305::aead::{Aead, KeyInit, Payload};
+    use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
+    use sha2::{Digest, Sha256};
+    let cfg = PathBuf::from(std::env::var("NA0780_FIXTURE").unwrap());
+    std::env::set_var("QSC_CONFIG_DIR", &cfg);
+    for k in [
+        "QSC_QSP_SEED",
+        "QSC_ALLOW_SEED_FALLBACK",
+        "QSC_UNSAFE_TEST_SEED_FALLBACK",
+    ] {
+        std::env::remove_var(k);
+    }
+    qsc::vault::unlock_with_passphrase(common::TEST_MOCK_VAULT_PASSPHRASE).unwrap();
+    qsc::set_vault_unlocked(true);
+    let label = fs::read_dir(cfg.join("identities"))
+        .unwrap()
+        .filter_map(Result::ok)
+        .map(|x| x.file_name().to_string_lossy().into_owned())
+        .find(|s| s.starts_with("self_") && s.ends_with(".json"))
+        .unwrap();
+    let label = label
+        .strip_prefix("self_")
+        .unwrap()
+        .strip_suffix(".json")
+        .unwrap();
+    let key = format!("handshake.pending.{label}.peer");
+    let pending = qsc::vault::secret_get(&key).unwrap().unwrap_or_default();
+    let value: serde_json::Value = if pending.is_empty() {
+        serde_json::Value::Null
+    } else {
+        serde_json::from_str(&pending).unwrap()
+    };
+    let session_path = cfg.join("qsp_sessions/peer.qsv");
+    let mut sid = serde_json::Value::Null;
+    let mut session_hash = String::new();
+    if session_path.exists() {
+        let blob = fs::read(&session_path).unwrap();
+        assert!(&blob[..6] == b"QSSV01" && blob[6] == 1 && blob[7] == 12);
+        let raw = qsc::vault::secret_get("qsp_session_store_key_v1")
+            .unwrap()
+            .unwrap();
+        let key: Vec<u8> = (0..raw.len())
+            .step_by(2)
+            .map(|i| u8::from_str_radix(&raw[i..i + 2], 16).unwrap())
+            .collect();
+        let pt = ChaCha20Poly1305::new(Key::from_slice(&key))
+            .decrypt(
+                Nonce::from_slice(&blob[12..24]),
+                Payload {
+                    msg: &blob[24..],
+                    aad: b"QSC.QSP.SESSION.V1:peer",
+                },
+            )
+            .unwrap();
+        assert!(&pt[..4] == b"QTRG");
+        let n = u32::from_le_bytes(pt[17..21].try_into().unwrap()) as usize;
+        let st =
+            quantumshield_refimpl::suite2::state::Suite2SessionState::restore_bytes(&pt[21 + n..])
+                .unwrap();
+        assert!(st.send.session_id == st.recv.session_id);
+        sid = serde_json::json!(st.send.session_id);
+        session_hash = auto_hex(&Sha256::digest(&blob));
+    }
+    let contacts: serde_json::Value =
+        serde_json::from_str(&qsc::vault::secret_get("contacts.json").unwrap().unwrap()).unwrap();
+    let peer = &contacts["peers"]["peer"];
+    let route = peer["route_token"].as_str().unwrap_or("");
+    let inboxes = [ALPHA_INBOX, BRAVO_INBOX];
+    let device_routes = peer["devices"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|d| d["route_token"].as_str().unwrap_or(""))
+        .collect::<Vec<_>>();
+    let route_report = serde_json::json!({"contact_is_inbox":inboxes.contains(&route),"contact_is_alpha":route==ALPHA_INBOX,"contact_is_bravo":route==BRAVO_INBOX,"device_routes_match_contact":device_routes.iter().all(|r|*r==route),"all_device_routes_inboxes":device_routes.iter().all(|r|inboxes.contains(r))});
+    fs::write(
+        cfg.join("experiment-routes.json"),
+        serde_json::to_vec(&route_report).unwrap(),
+    )
+    .unwrap();
+    let lifecycle = qsc::vault::secret_get("handshake.first_connections.v1")
+        .unwrap()
+        .unwrap_or_default();
+    let capsule: serde_json::Value = serde_json::from_str(&lifecycle).unwrap();
+    let entry = &capsule["entries"][0];
+    let retired = entry["selected"]["applied"] == true
+        && entry["selected"]["session"].is_null()
+        && ["outgoing", "responder"].iter().all(|name| {
+            entry[*name].is_null()
+                || ["kem_sk", "dh_sk", "resp_kem_ss"].iter().all(|field| {
+                    entry[*name]["pending"][*field]
+                        .as_array()
+                        .is_some_and(|v| v.is_empty())
+                })
+        });
+    let result = serde_json::json!({"peer_fp":peer["fp"], "primary_fp":peer["devices"][0]["fp"], "retired_secrets":retired, "lifecycle_bytes":lifecycle.len(), "lifecycle_hash":auto_hex(&Sha256::digest(lifecycle.as_bytes())), "pending":!pending.is_empty(), "role":value["role"], "sid":value["session_id"],
+        "pending_hash":auto_hex(&Sha256::digest(pending.as_bytes())),
+        "session_sid":sid,"session_hash":session_hash,
+        "contacts_hash":auto_hex(&Sha256::digest(qsc::vault::secret_get("contacts.json").unwrap().unwrap_or_default().as_bytes()))});
+    fs::write(
+        cfg.join("experiment-summary.json"),
+        serde_json::to_vec(&result).unwrap(),
+    )
+    .unwrap();
+}
+
+fn auto_probe(cfg: &Path, action: &str) -> serde_json::Value {
+    let out = Command::new(std::env::current_exe().unwrap())
+        .args(["auto_fixture_probe", "--exact", "--ignored"])
+        .env("NA0780_FIXTURE", cfg)
+        .env("NA0780_ACTION", action)
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "fixture probe failed");
+    serde_json::from_slice(&fs::read(cfg.join("experiment-summary.json")).unwrap()).unwrap()
+}
+fn auto_payload(observer: &ReproRelay, route: &str, index: usize) -> Vec<u8> {
+    observer
+        .requests()
+        .into_iter()
+        .filter(|r| r.path == "/v1/pull" && r.route == route)
+        .flat_map(|r| r.payloads)
+        .nth(index)
+        .expect("captured generated frame")
+}
+fn auto_message(sender: &Path, receiver: &Path, base: &str, tag: &str) {
+    let body = format!("automatic candidate experiment {tag}");
+    let input = sender.join(format!("input-{tag}"));
+    fs::write(&input, body.as_bytes()).unwrap();
+    let sent = run_ok(
+        sender,
+        &[
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            base,
+            "--to",
+            "peer",
+            "--file",
+            input.to_str().unwrap(),
+        ],
+    );
+    assert!(
+        has_marker_line(&sent, "qsp_pack", &["ok=true"]),
+        "production send failed"
+    );
+    let output = receiver.join(format!("output-{tag}"));
+    let received = run_ok(
+        receiver,
+        &[
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            base,
+            "--from",
+            "peer",
+            "--max",
+            "16",
+            "--out",
+            output.to_str().unwrap(),
+            "--receipt-mode",
+            "off",
+        ],
+    );
+    assert!(
+        has_marker_line(&received, "qsp_unpack", &["ok=true"]),
+        "authenticated receive missing"
+    );
+    let contents: Vec<_> = fs::read_dir(output)
+        .unwrap()
+        .filter_map(Result::ok)
+        .map(|e| fs::read(e.path()).unwrap())
+        .collect();
+    assert!(
+        contents.iter().any(|v| v == body.as_bytes()),
+        "actual message bytes missing"
+    );
+}
+
+#[test]
+fn na0780_desired_crossed_invitation_progress() {
+    let _g = guard();
+    for reverse in [false, true] {
+        let server = common::start_qsl_server_with_store(
+            2 * 1024 * 1024,
+            512,
+            None,
+            PRODUCTION_PULL_LEASE_SECS,
+        );
+        let observer = ReproRelay::new(server.base_url());
+        let base = &observer.base;
+        let root = test_root("automatic_crossed");
+        let a = party(&root, "alpha", ALPHA_INBOX);
+        let b = party(&root, "bravo", BRAVO_INBOX);
+        let a_fp = fingerprint(&a);
+        let b_fp = fingerprint(&b);
+        let (ac, ai) = repro_mint(&a, base);
+        let (bc, bi) = repro_mint(&b, base);
+        // Force both full-identity orderings, independently of random fixture keys.
+        if (a_fp < b_fp) != reverse {
+            repro_redeem(&a, &bc, "peer");
+            repro_redeem(&b, &ac, "peer");
+        } else {
+            repro_redeem(&b, &ac, "peer");
+            repro_redeem(&a, &bc, "peer");
+        }
+        let (lo, hi, li, hi_slot, lo_in, hi_in) = if a_fp < b_fp {
+            (&a, &b, &ai, &bi, ALPHA_INBOX, BRAVO_INBOX)
+        } else {
+            (&b, &a, &bi, &ai, BRAVO_INBOX, ALPHA_INBOX)
+        };
+        let lp = auto_probe(lo, "summary");
+        let hp = auto_probe(hi, "summary");
+        assert!(lp["role"] == "initiator" && hp["role"] == "initiator" && lp["sid"] != hp["sid"]);
+        if !reverse {
+            let deferred = repro_accept(lo, li, "peer");
+            assert!(has_marker_line(
+                &deferred,
+                "invite_accept_not_consumed",
+                &[]
+            ));
+        }
+        let accepted = repro_accept(hi, hi_slot, "peer");
+        assert!(has_marker_line(&accepted, "handshake_send", &["msg=B1"]));
+        assert!(
+            auto_probe(hi, "summary")["session_sid"].is_null(),
+            "A1 is not possession proof"
+        );
+        let finished = repro_finish(lo, "peer", base);
+        assert!(has_marker_line(
+            &finished,
+            "sig_status",
+            &["ok=true", "reason=b1_verify"]
+        ));
+        let finished = repro_finish(hi, "peer", base);
+        assert!(has_marker_line(
+            &finished,
+            "sig_status",
+            &["ok=true", "reason=a2_verify"]
+        ));
+        let ls = auto_probe(lo, "summary");
+        let hs = auto_probe(hi, "summary");
+        assert!(
+            ls["session_sid"] == lp["sid"] && hs["session_sid"] == lp["sid"],
+            "authenticated SID disagreement"
+        );
+        let (lo_fp, hi_fp) = if a_fp < b_fp {
+            (&a_fp, &b_fp)
+        } else {
+            (&b_fp, &a_fp)
+        };
+        assert!(
+            ls["peer_fp"] == *hi_fp && hs["peer_fp"] == *lo_fp,
+            "peer identity disagreement"
+        );
+        assert!(
+            ls["primary_fp"] == ls["peer_fp"] && hs["primary_fp"] == hs["peer_fp"],
+            "primary binding disagreement"
+        );
+        assert!(
+            ls["retired_secrets"] == true && hs["retired_secrets"] == true,
+            "obsolete ratchet secrets retained"
+        );
+        assert!(
+            ls["lifecycle_bytes"].as_u64().unwrap() <= 256 * 1024
+                && hs["lifecycle_bytes"].as_u64().unwrap() <= 256 * 1024
+        );
+        println!(
+            "NA0780 measured_capsule_bytes initiator={} responder={}",
+            ls["lifecycle_bytes"], hs["lifecycle_bytes"]
+        );
+        auto_message(lo, hi, base, "forward");
+        auto_message(hi, lo, base, "backward");
+        auto_message(lo, hi, base, "continued-forward");
+        auto_message(hi, lo, base, "continued-backward");
+        let before_l = auto_probe(lo, "summary");
+        let before_h = auto_probe(hi, "summary");
+        let b1 = auto_payload(&observer, lo_in, 0);
+        let a2 = auto_payload(&observer, hi_in, 0);
+        push_raw(base, lo_in, &b1);
+        repro_finish(lo, "peer", base);
+        push_raw(base, hi_in, &a2);
+        repro_finish(hi, "peer", base);
+        assert_eq!(
+            auto_probe(lo, "summary")["session_hash"],
+            before_l["session_hash"]
+        );
+        assert_eq!(
+            auto_probe(hi, "summary")["session_hash"],
+            before_h["session_hash"]
+        );
+        // Same authenticated B1 and same SID with a different outer route must not
+        // substitute a route or become a recorded disposition.
+        let (_, inner) = qsc::invite::decode_envelope_resp(&b1).unwrap();
+        let changed = qsc::invite::encode_envelope_resp(li, &inner).unwrap();
+        push_raw(base, lo_in, &changed);
+        repro_finish(lo, "peer", base);
+        let after = auto_probe(lo, "summary");
+        assert_eq!(before_l["session_hash"], after["session_hash"]);
+        assert_eq!(before_l["contacts_hash"], after["contacts_hash"]);
+        println!("NA0780 automatic reverse={reverse} same_authenticated_sid=true messages=4 production_crypto=true duplicates_preserve_advanced_state=true changed_envelope_cannot_replace_route=true");
+    }
+}
+
+#[test]
+fn na0780_late_redeem_coalesces_without_new_a1() {
+    let _g = guard();
+    for reverse in [false, true] {
+        let server = common::start_qsl_server_with_store(
+            2 * 1024 * 1024,
+            512,
+            None,
+            PRODUCTION_PULL_LEASE_SECS,
+        );
+        let observer = ReproRelay::new(server.base_url());
+        let base = &observer.base;
+        let root = test_root("automatic_late");
+        let a = party(&root, "alpha", ALPHA_INBOX);
+        let b = party(&root, "bravo", BRAVO_INBOX);
+        let (ac, ai) = repro_mint(&a, base);
+        let (bc, bi) = repro_mint(&b, base);
+        let responder_is_a = (fingerprint(&a) < fingerprint(&b)) != reverse;
+        let (first, later, first_code, later_code, later_slot) = if responder_is_a {
+            (&b, &a, &ac, &bc, &ai)
+        } else {
+            (&a, &b, &bc, &ac, &bi)
+        };
+        repro_redeem(first, first_code, "peer");
+        repro_accept(later, later_slot, "peer");
+        let before = auto_probe(later, "summary");
+        assert_eq!(before["role"], "responder");
+        let result = run_ok(
+            later,
+            &["invite", "redeem", "--code", later_code, "--alias", "peer"],
+        );
+        assert!(has_marker_line(&result, "handshake_coalesced", &[]));
+        assert!(!has_marker_line(&result, "handshake_send", &["msg=A1"]));
+        let after = auto_probe(later, "summary");
+        assert_eq!(before["pending_hash"], after["pending_hash"]);
+        assert_eq!(before["lifecycle_hash"], after["lifecycle_hash"]);
+        repro_finish(first, "peer", base);
+        repro_finish(later, "peer", base);
+        assert_eq!(
+            auto_probe(first, "summary")["session_sid"],
+            auto_probe(later, "summary")["session_sid"]
+        );
+        auto_message(first, later, base, "late-forward");
+        auto_message(later, first, base, "late-backward");
+        println!("NA0780 late reverse={reverse} coalesced_same_attempt=true messages=2 production_crypto=true");
+    }
+}
+
+#[test]
+fn na0780_failed_b1_a2_and_ack_replay_exact_replies_after_restart() {
+    let _g = guard();
+    for failure in ["b1", "a2", "ack"] {
+        let server =
+            common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, SHORT_PULL_LEASE_SECS);
+        let observer = ReproRelay::new(server.base_url());
+        let base = &observer.base;
+        let root = test_root("automatic_retry");
+        let a = party(&root, "alpha", ALPHA_INBOX);
+        let b = party(&root, "bravo", BRAVO_INBOX);
+        let (ac, ai) = repro_mint(&a, base);
+        let (bc, bi) = repro_mint(&b, base);
+        repro_redeem(&a, &bc, "peer");
+        repro_redeem(&b, &ac, "peer");
+        let (lo, hi, hi_slot, lo_in, hi_in) = if fingerprint(&a) < fingerprint(&b) {
+            (&a, &b, &bi, ALPHA_INBOX, BRAVO_INBOX)
+        } else {
+            (&b, &a, &ai, BRAVO_INBOX, ALPHA_INBOX)
+        };
+        AUTO_FAIL_B1.store(failure == "b1", Ordering::SeqCst);
+        AUTO_FAIL_ACK.store(failure == "ack", Ordering::SeqCst);
+        let (accepted, text) = run_any(
+            hi,
+            &[
+                "invite",
+                "accept",
+                "--invite-id",
+                hi_slot,
+                "--alias",
+                "peer",
+            ],
+        );
+        assert_eq!(accepted, failure != "b1");
+        if failure == "b1" {
+            assert_eq!(count_marker(&text, "producer_ack"), 0);
+            assert!(!observer
+                .requests()
+                .iter()
+                .any(|r| r.path == "/v1/pull/ack" && r.route == *hi_slot));
+        }
+        if failure == "ack" {
+            assert!(
+                !AUTO_FAIL_ACK.load(Ordering::SeqCst),
+                "ACK fault must actually fire"
+            );
+        }
+        if failure != "a2" {
+            thread::sleep(LEASE_EXPIRY_WAIT);
+            repro_accept(hi, hi_slot, "peer");
+        }
+        AUTO_FAIL_A2.store(failure == "a2", Ordering::SeqCst);
+        let (finished, _) = run_any(
+            lo,
+            &["invite", "finish", "--alias", "peer", "--relay", base],
+        );
+        assert_eq!(finished, failure != "a2");
+        if failure == "a2" {
+            assert!(!observer
+                .requests()
+                .iter()
+                .any(|r| r.path == "/v1/pull/ack" && r.route == lo_in));
+            assert!(
+                !auto_probe(lo, "summary")["session_sid"].is_null(),
+                "durable authenticated selection before failed A2"
+            );
+            thread::sleep(LEASE_EXPIRY_WAIT);
+            repro_finish(lo, "peer", base);
+        }
+        repro_finish(hi, "peer", base);
+        let destination = if failure == "a2" { hi_in } else { lo_in };
+        let replies: Vec<_> = observer
+            .requests()
+            .into_iter()
+            .filter(|r| r.path == "/v1/push" && r.route == destination)
+            .flat_map(|r| r.payloads)
+            .collect();
+        assert!(
+            replies.len() >= 2,
+            "failed/retried delivery must be observed"
+        );
+        assert!(
+            replies.iter().all(|v| v == &replies[0]),
+            "retries must use exact saved bytes"
+        );
+        assert_eq!(
+            auto_probe(lo, "summary")["session_sid"],
+            auto_probe(hi, "summary")["session_sid"]
+        );
+        auto_message(lo, hi, base, "retry-forward");
+        auto_message(hi, lo, base, "retry-backward");
+        println!("NA0780 failure={failure} fresh_process_retry=true same_reply_bytes=true messages=2 production_crypto=true lease_secs={SHORT_PULL_LEASE_SECS}");
+    }
+}
+
+#[test]
+fn na0780_single_counterfeit_a1_before_legitimate_a1_remains_explicitly_blocked() {
+    let _g = guard();
+    let server =
+        common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, SHORT_PULL_LEASE_SECS);
+    let observer = ReproRelay::new(server.base_url());
+    let base = &observer.base;
+    let root = test_root("automatic_spoof_first");
+    let a = party(&root, "alpha", ALPHA_INBOX);
+    let b = party(&root, "bravo", BRAVO_INBOX);
+    let (ac, ai) = repro_mint(&a, base);
+    let (bc, bi) = repro_mint(&b, base);
+    repro_redeem(&a, &bc, "peer");
+    repro_redeem(&b, &ac, "peer");
+    let (lo, hi, lo_slot, hi_slot) = if fingerprint(&a) < fingerprint(&b) {
+        (&a, &b, &ai, &bi)
+    } else {
+        (&b, &a, &bi, &ai)
+    };
+    let original = auto_probe(hi, "summary");
+    // Counterfeit public A1 changes only the unauthenticated SID. Drop this ACK
+    // once so the relay retains the actual legitimate envelope for the next lease.
+    AUTO_TAMPER_A1.store(true, Ordering::SeqCst);
+    AUTO_FAIL_ACK.store(true, Ordering::SeqCst);
+    repro_accept(hi, hi_slot, "peer");
+    assert!(
+        !AUTO_TAMPER_A1.load(Ordering::SeqCst) && !AUTO_FAIL_ACK.load(Ordering::SeqCst),
+        "both adversarial interventions must fire"
+    );
+    let occupied = auto_probe(hi, "summary");
+    assert_eq!(
+        occupied["pending_hash"], original["pending_hash"],
+        "original outgoing must survive spoof admission"
+    );
+    assert!(occupied["session_sid"].is_null());
+    repro_finish(lo, "peer", base);
+    repro_accept(lo, lo_slot, "peer");
+    for _ in 0..2 {
+        thread::sleep(LEASE_EXPIRY_WAIT);
+        let (ok, text) = run_any(
+            hi,
+            &[
+                "invite",
+                "accept",
+                "--invite-id",
+                hi_slot,
+                "--alias",
+                "peer",
+            ],
+        );
+        assert!(
+            !ok && text.contains("handshake_lifecycle_occupied"),
+            "legitimate A1 must not silently evict counterfeit"
+        );
+        let after = auto_probe(hi, "summary");
+        assert_eq!(occupied["lifecycle_hash"], after["lifecycle_hash"]);
+        assert!(after["session_sid"].is_null());
+    }
+    assert!(auto_probe(lo, "summary")["session_sid"].is_null());
+    println!("NA0780 one_counterfeit_before_legitimate=true automatic_progress=blocked no_timer_eviction=true original_outgoing_preserved=true no_possession_claim=true lease_secs={SHORT_PULL_LEASE_SECS}");
 }

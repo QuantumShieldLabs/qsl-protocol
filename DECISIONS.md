@@ -45349,3 +45349,69 @@ Attempt-scoped cancellation plus one coordinated fresh invitation is the preferr
 next repair for the reproduced no-session collision, but is not implemented or
 authorized here. Established-session replacement and simultaneous bidirectional
 ratchet acceptance remain separate work.
+
+## NA-0780 automatic first-time crossing — draft implementation (2026-09-10)
+
+Goals: G4
+
+The Director authorized a separate draft implementation based on the merged identity
+guard (`a0c429f5c6cc`). It supersedes cancellation as the priority for first-time
+crossings; cancellation remains an unimplemented fallback. This is not merge or
+final security acceptance. Existing sessions, wire formats, cryptography,
+self-invitation rejection and the contact identity guard remain protected.
+
+An outgoing invitation reserves its existing random SID before publishing A1. An
+incoming exchange may retain one provisional responder beside that original. If
+both outgoing reservations exist, the lower full pinned identity keeps its outgoing
+exchange and the higher responds to it. The lower defers the observed opposite A1.
+If the responder reservation came first, a later redeem coalesces without creating
+another A1. Public A1 identity fields are never possession proof: the existing B1
+MAC/signature/pins select the initiator session and existing A2 confirmation and
+signature select the responder session. The original outgoing B1 remains reachable
+while a provisional candidate exists. Conflicting installation fails closed.
+
+A versioned encrypted vault capsule records the generation, exact identity/device
+binding, candidates, envelope/owned-mailbox digests, exact replies and selected
+session intent. It is authoritative over the legacy pending mirror. Each selected
+transition writes its intent before session, route and pending effects, then records
+completion. Once applied, the capsule discards the initial session snapshot and
+candidate secret material; retries retain the SID and exact public reply bytes,
+not obsolete ratchet keys. Recovery recognizes its own selected SID, refuses an
+unrelated or unreadable session, and never rewrites an advanced same-SID snapshot. Pending cleanup
+requires the exact retained candidate; a newer generation is not erased. Cleared
+pending records cannot fall through to legacy-file resurrection. Locks serialize
+local decisions but do not make the separate writes crash-atomic. This adds no
+power-loss, restored-backup or rollback-detection guarantee.
+
+Candidate routes belong to the exact admitted envelope and attempt. Routes are
+installed only after selection authentication, with the previous route checked
+before recovery writes. A changed envelope carrying the same SID cannot substitute
+a route. The existing wire does not cryptographically bind the outer route string;
+its transport assumptions remain. Exact B1/A2 replies survive failed delivery and
+restart. A durable A2 delivery obligation keeps the existing facade scan eligible
+until finish resumes it, even if a session write already succeeded. Invitation-slot
+and ordinary-inbox callers retain their own ACK ownership and acknowledge only a
+durable disposition with recoverable reply data.
+
+Limits are 64 retained groups per vault, one outgoing and one provisional responder
+per unambiguous binding, 32 KiB per saved wire reply, 256 KiB serialized per group,
+and 16 MiB serialized across the store. Relay/route/ticket strings have explicit
+bounds too. Duplicate frames do not allocate another group. Records, including
+terminal records, are retained until full vault erase; reaching a cap refuses new
+work. No unauthenticated arrival or timer evicts a responder after B1 may have left.
+
+This retention has a concrete liveness limit: **one counterfeit admitted A1 arriving
+before the legitimate selected A1 can occupy the responder slot and keep the honest
+crossing blocked**. Preserving the original outgoing prevents its erasure, but the
+other honest endpoint may be deferring that exchange. This is a finite single-frame
+case, not an unlimited-flooding caveat. The dedicated regression must expose this
+outcome. Removing it without contradictory authenticated selections needs separate
+review; no timeout recycling or new wire mechanism is silently introduced here.
+
+Acceptance is the active desired-progress regression with identical authenticated
+SIDs and real production-crypto messages both ways, plus reversed/late ordering,
+failed delivery, duplicate/changed envelopes, persistence interruptions, stale
+state, capacity and established-session controls. Linux results and macOS runtime
+must be reported separately. Independent security review remains required. No
+established-session replacement, old-message drain, multi-device enrollment,
+desktop change, dependency upgrade or large replacement controller is included.

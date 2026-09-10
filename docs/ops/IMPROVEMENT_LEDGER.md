@@ -8218,3 +8218,21 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
   No completed reproduction CI was rerun. No multi-device or reconnect claim.
 - Next collision disposition: explicit attempt-scoped cancellation and one fresh
   invitation for the no-session case is preferred but not authorized for implementation.
+
+### NA-0780 automatic first-time crossing follow-up to ENG-0345–0348
+
+- Originating lane: NA-0780. Last lane: NA-0780. Last-updated: 2026-09-10.
+- Status: implementation authorized as a separate draft; validation and independent
+  review pending. Identity guard PR #1826 is merged; its post-merge checks are
+  verified complete. Reproduction PR #1825 and its measured failure remain intact.
+- Change: preserve the original outgoing attempt beside a bounded responder; select
+  only through existing B1/A2 authentication, coalesce late redeem, retain exact
+  replies, and recover separate persistence effects without ratchet replacement.
+  Candidate routes stay with the admitted envelope until authentication. The
+  facade must keep an unsent A2 eligible for the existing finish scan after session
+  persistence; no desktop change is needed for that obligation.
+- Open limit: a single counterfeit admitted A1 can occupy the responder before the
+  legitimate selected A1 and block automatic convergence. Count/byte limits refuse
+  excess work without eviction; this is not an unlimited-flooding qualification.
+  Independent review must assess the explicit limitation. Cancellation remains
+  fallback-only. Established-session replacement, draining and enrollment stay open.

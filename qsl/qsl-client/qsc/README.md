@@ -88,3 +88,33 @@ Redemption/pull may already have happened to obtain the public identity bundle;
 a rejected redemption does not make the consumed invitation reusable. Existing
 expiry, signature, commitment, self-invitation and possession checks remain in
 force. No collision election, cancellation or device enrollment is implemented.
+
+### First-time crossed invitations (draft)
+
+When both peers redeem before connecting, the client preserves the outgoing attempt
+and permits one provisional responder. Full pinned identity ordering chooses which
+exchange to try; only existing B1/A2 authentication selects the session. Redeeming
+after a responder has reserved its exchange coalesces into that exchange. The
+identity guard, self-invitation rejection and unrelated stored sessions remain
+protected. This draft changes local persistence, not handshake or envelope bytes.
+
+Exact replies and selection intent live in the encrypted vault. Finish can resume
+an unsent A2 after restart even when the local session already exists. Recovery
+preserves advanced same-session ratchets and checks the generation, identity and
+previous route before completing separate writes. After application, the recovery
+capsule discards initial ratchet and candidate secrets; exact replies remain. Stored candidate routes match
+the exact admitted envelope; the current wire does not cryptographically bind its
+outer route. Existing storage guarantees apply, without a new power-loss or older
+backup rollback claim.
+
+The client retains at most 64 groups, one outgoing plus one responder per binding,
+32 KiB per reply, 256 KiB serialized per group and 16 MiB total. Groups remain until
+full vault erase; capacity refuses new work. A reserved responder is not evicted by
+unauthenticated traffic or a timer. Consequently, one counterfeit admitted A1 that
+arrives before the legitimate selected A1 can keep that crossing blocked. The
+spoof-first regression explicitly tests this limitation. Cancellation UI, session
+replacement, old-message draining and multi-device enrollment are not included.
+
+Independent review and Linux/macOS runtime acceptance remain separate gates. The
+active desired-progress test requires the same authenticated SID at both peers and
+actual production-crypto messages in both directions, with seed fallback disabled.

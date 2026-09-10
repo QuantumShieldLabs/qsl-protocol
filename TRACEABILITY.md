@@ -1803,3 +1803,17 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
   adds real-relay refusal, pending/session preservation, metadata/legacy/corruption
   and original-conversation message regressions. No collision recovery, new wire,
   cryptography or storage format is introduced; see the independent guard decision.
+
+- 2026-09-10: NA-0780 automatic first-time crossing draft, Goals G4:
+  `qsl/qsl-client/qsc/src/handshake/mod.rs` holds the bounded encrypted lifecycle,
+  existing-ID dispatch, authentication-selected intent, exact replies and guarded
+  recovery; `src/invite/mod.rs` under the same root handles coalescing, exact outer
+  envelopes and caller-owned disposition; `src/facade/mod.rs` exposes capacity,
+  occupation/conflict and recoverable finish status. The merged identity guard is
+  unchanged. Inline lifecycle tests exercise separate persistence cuts and storage
+  limits; `tests/na0768_invite_finish_mixed_role.rs` makes desired progress active,
+  requires real bidirectional crypto traffic and tests late redeem, failed replies,
+  duplicates and a single counterfeit A1 before the legitimate candidate. Historical
+  failure evidence remains in PR #1825. Existing facade and roundtrip tests retain
+  self/identity/session refusal coverage. See the automatic-crossing decision for
+  the explicit spoof-first blockage and unchanged wire/storage guarantee boundaries.

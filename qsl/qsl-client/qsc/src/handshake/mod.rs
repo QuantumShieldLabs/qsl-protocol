@@ -2503,36 +2503,19 @@ pub fn handshake_init(self_label: &str, peer: &str, relay: &str) -> CliResult {
     Ok(())
 }
 
-/// NA-0775 (`D-1418`): what the poll did with the frames it was handed.
-///
-/// ⚠⚠ A CALLER MAY ACK ONLY ON [`PollOutcome::Consumed`]. Every other value means the frame's
-/// LAST EFFECT did not happen, so the frame must stay leased and redeliver. An `Err` means the
-/// same and already reaches every caller through `?`.
-///
-/// ⚠ THE ENUM IS NOT A CONVENIENCE, IT IS THE FAIL-CLOSED PROPERTY. A twenty-second exit written
-/// as `Ok(())` DOES NOT COMPILE, so a future exit cannot silently inherit "success" -- which is
-/// exactly how `ENG-0269` came to exist beside a correctly-placed ack.
-///
-/// EXACTLY THREE exits are `Consumed`: the A2 push, the responder's durable commit (which pushes
-/// nothing, and is the reason this is an enum and not "did we push"), and the B1 push.
-/// NA-0775 (`D-1418`) `RULING_007`: THE THIRD VALUE. `AlreadyComplete` means THE WORK THIS
-/// FRAME WOULD DO IS ALREADY DURABLY DONE -- re-processing it is a no-op and the frame should
-/// be RETIRED. Callers ack on `Consumed` OR `AlreadyComplete`; never on `NotConsumed`.
-///
-/// ⚠⚠ IT IS NOT A WEAKER `Consumed` AND MUST NEVER BE RETURNED WHERE THE WORK IS MERELY
-/// *BELIEVED* DONE. Every site that returns it compares the frame's own `session_id` against
-/// the STORED session's, so "already done" is a measured fact about this frame, not an
-/// inference from the peer having some session.
-///
-/// ⚠⚠ WHY IT EXISTS. A two-valued contract cannot express "already done", and that one gap
-/// produced THREE defects in this lane in three different costumes: `ENG-0281` (a frame no
-/// pass can CONSUME), `E-4` (state a redelivery RE-DERIVES wrongly), and `E-5` (a frame no
-/// pass can RETIRE -- `t5f`, where a lost ack made the retirement unreachable forever).
+/// Completion reporting and permission to retire a frame are separate facts.
+/// `Consumed` means this frame's required durable effects/reply delivery succeeded.
+/// `AlreadyComplete` requires an exact retained lifecycle receipt and successful
+/// recovery/retry. Only these two outcomes authorize the mailbox owner to ACK.
+/// `CompletionObserved` preserves pre-lifecycle completion diagnostics/reporting:
+/// session presence or a matching SID does not authenticate these exact bytes.
+/// It never authorizes ACK. `NotConsumed` and errors likewise leave the frame.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[must_use]
 pub(crate) enum PollOutcome {
     Consumed,
     AlreadyComplete,
+    CompletionObserved,
     NotConsumed,
 }
 
@@ -2855,14 +2838,17 @@ pub(crate) fn perform_handshake_poll_with_tokens(
             receipt,
             reply_wrap.as_ref(),
         )?;
-        if matches!(
-            outcome,
-            PollOutcome::Consumed | PollOutcome::AlreadyComplete
-        ) {
-            if acks_own_frames {
-                hs_emit_producer_ack(relay, inbox_route_token, &item.id);
+        match outcome {
+            PollOutcome::Consumed | PollOutcome::AlreadyComplete => {
+                if acks_own_frames {
+                    hs_emit_producer_ack(relay, inbox_route_token, &item.id);
+                }
+                result = outcome;
             }
-            result = outcome;
+            PollOutcome::CompletionObserved if result == PollOutcome::NotConsumed => {
+                result = outcome;
+            }
+            _ => {}
         }
     }
     Ok(result)
@@ -3468,19 +3454,15 @@ fn hs_poll_item(
         ],
     );
 
-    // NA-0775 (`D-1418`) `RULING_007` R2/`E-5`: did any frame in this batch turn out to be work
-    // that is ALREADY DURABLY DONE? Tracked as a flag rather than an early `return` so a batch
-    // keeps being processed -- under `HsPollSource::Relay` there can be many items, and returning
-    // on the first would silently stop handling the rest.
+    // These legacy observations preserve completion reporting, but do not prove
+    // disposition of the exact frame. Only the lifecycle path can recover an ACK.
     let mut already_complete = false;
     for item in items {
         if let Ok(confirm) = hs_decode_confirm(&item.data, suite_mode) {
             if confirm.suite_context.is_explicit() && matches!(qsp_session_load(peer), Ok(Some(_)))
             {
-                // ⚠ `RULING_007` R2: this is `AlreadyComplete` on its own merits -- a redelivered
-                // CONFIRM for a peer whose session is stored is work that already finished. It is
-                // reached only when the frame's `session_id` did NOT match above, i.e. an
-                // explicit-suite CONFIRM for some OTHER session of the same peer.
+                // Session presence is only a diagnostic observation; this may be
+                // another contact's confirmation in the same local inbox.
                 hs_reject_replay();
                 already_complete = true;
                 continue;
@@ -3751,17 +3733,8 @@ fn hs_poll_item(
                 // one. That unreachability is PRE-EXISTING and belongs to `NA-0708`'s
                 // reject-vocabulary lane, not to this one.
                 //
-                // ⚠ IT COMPARES `session_id`, NOT MERE SESSION PRESENCE. Testing only that SOME
-                // session exists for the peer would call a foreign frame "already done". This
-                // asks whether THIS frame's handshake is the one that completed -- the same
-                // predicate the late-landing guard uses, for the same reason.
-                //
-                // ⚠ THE ACK CONSEQUENCE IS ASYMMETRIC BY CALLER, AND THAT IS NOT AN OVERSIGHT.
-                // Under `HsPollSource::Relay` the in-poll acks sit at the CONSUMED exits only and
-                // `handshake_poll_with_tokens` discards the outcome, so a poll emits this marker
-                // and acks NOTHING -- `t5p` pins that orphan and stays green. Under `Provided`
-                // the caller acks on `Consumed | AlreadyComplete`, which is what retires `t5f`'s
-                // frame after a lost ack.
+                // A matching SID preserves the completion marker, but a changed
+                // signature can carry the same SID. It grants no ACK permission.
                 if let Some(sid) = hs_frame_session_id(&item.data, suite_mode) {
                     if matches!(
                         qsp_session_load(peer),
@@ -3779,12 +3752,8 @@ fn hs_poll_item(
             }
         }
     }
-    // NA-0775 (`D-1418`) `RULING_007`: the tail stays `NotConsumed` UNLESS a frame in this batch
-    // was measured already-done. A batch that decoded as nothing is NOT "already done" -- moving
-    // the tail unconditionally would ack foreign litter, which is the defect this lane exists to
-    // stop.
     if already_complete {
-        Ok(PollOutcome::AlreadyComplete)
+        Ok(PollOutcome::CompletionObserved)
     } else {
         Ok(PollOutcome::NotConsumed)
     }

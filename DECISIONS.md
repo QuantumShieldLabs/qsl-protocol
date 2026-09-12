@@ -45448,3 +45448,16 @@ state, capacity and established-session controls. Linux results and macOS runtim
 must be reported separately. Independent security review remains required. No
 established-session replacement, old-message drain, multi-device enrollment,
 desktop change, dependency upgrade or large replacement controller is included.
+
+NA-0780 Director ACK-eligibility correction: completion reporting is separate from
+permission to retire an inbox frame. The non-lifecycle session-presence and SID
+fallbacks retain their existing diagnostics and report CompletionObserved, which
+never authorizes ACK. Consumed still requires the current frame's durable effects
+and reply delivery; AlreadyComplete is reserved for an exact retained lifecycle
+receipt with successful recovery/retry. Relay polls and invitation callers retain
+mailbox ownership. Exact lifecycle lost-ACK recovery remains enabled; unverified
+pre-lifecycle replays remain leased. No wire, authentication, identity, route,
+retention or advanced-session change is made. Regression tests cover direct
+completed/pending contacts sharing an inbox in both suite modes, changed same-SID
+confirmations, intended-owner completion, and exact retained replay retirement.
+Persistent counterfeit-A1 blockage, macOS runtime and independent review stay open.

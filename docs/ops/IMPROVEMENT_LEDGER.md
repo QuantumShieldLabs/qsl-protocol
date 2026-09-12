@@ -8250,3 +8250,12 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
   The counterfeit regression requires relay-response control or equivalent access;
   ordinary network substitution through valid TLS is not demonstrated. Persistent
   occupation after manipulation stops remains open for security review.
+
+- Director source review follow-up, same NA-0780 draft (ACK eligibility): lifting
+  AlreadyComplete into the outer relay ACK gate exposed non-lifecycle completion
+  shortcuts that authenticate neither the exact frame nor its durable disposition.
+  Separate completion-only observations from ACK permission while retaining exact
+  lifecycle replay recovery and diagnostic markers. Direct completed/pending peers
+  sharing an inbox and changed same-SID confirmations are regression-gated in both
+  suite modes. Validation status belongs to TASK; counterfeit-A1 persistent
+  blockage, macOS runtime and independent review remain open.

@@ -1830,3 +1830,12 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
   the placeholder before A2 and the offered route after authentication. Runtime
   outcomes remain in TASK/lane evidence; independent security review and macOS
   runtime acceptance remain open.
+
+- NA-0780 / PR #1828 ACK-eligibility correction (Goals: G4): handshake PollOutcome
+  separates CompletionObserved from ACK-authorizing durable disposition. Invite
+  finish preserves completion reporting without granting ACK to an observation.
+  The existing na0742 integration target adds direct explicit/legacy-suite shared
+  inbox confinement tests with changed same-SID signatures, owner completion,
+  contact and advanced-session preservation. Its retained-lifecycle t5p control
+  still requires exact replay ACK recovery and changed/unrelated frame retention.
+  Base/head reproduction and runtime outcomes are in TASK and lane evidence.

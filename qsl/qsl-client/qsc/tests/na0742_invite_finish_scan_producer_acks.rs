@@ -1645,3 +1645,206 @@ fn t8_the_rng_seam_is_absent_from_the_default_build() {
         "a default build must not be able to force the signature failure:\n{text}"
     );
 }
+
+// Direct handshakes deliberately do not create the invitation lifecycle. Exercise
+// both pre-lifecycle completion fallbacks against real leased mailbox contents.
+fn direct_confirmation_confinement(suite: &str) {
+    let _g = guard();
+    let relay =
+        common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, SHORT_PULL_LEASE_SECS);
+    let base = relay.base_url().to_string();
+    let root = test_root(&format!("na0780_direct_ack_{suite}"));
+    let local_route = "na0780_local_direct_inbox_abcdefghijkl";
+    let done_route = "na0780_done_direct_inbox_abcdefghijkl";
+    let pending_route = "na0780_pending_direct_inbox_abcdefghi";
+    let local = party(&root, "local", local_route);
+    let done = party(&root, "done", done_route);
+    let pending = party(&root, "pending", pending_route);
+    let bind = |cfg: &Path, peer: &Path, label: &str, route: &str| {
+        let identity = run_ok(peer, &["identity", "show"]);
+        let value = |key: &str| -> String {
+            identity
+                .lines()
+                .find_map(|line| line.strip_prefix(key))
+                .expect("public identity field")
+                .to_string()
+        };
+        run_ok(
+            cfg,
+            &[
+                "contacts",
+                "add",
+                "--label",
+                label,
+                "--fp",
+                &value("identity_fp="),
+                "--kem-pk",
+                &value("identity_kem_pk="),
+                "--sig-pk",
+                &value("identity_sig_pk="),
+                "--route-token",
+                route,
+            ],
+        );
+        let list = run_ok(cfg, &["contacts", "device", "list", "--label", label]);
+        let device = list
+            .split_whitespace()
+            .find_map(|s| s.strip_prefix("device="))
+            .expect("device");
+        run_ok(
+            cfg,
+            &[
+                "contacts",
+                "device",
+                "trust",
+                "--label",
+                label,
+                "--device",
+                device,
+                "--confirm",
+            ],
+        );
+    };
+    bind(&local, &done, "done", done_route);
+    bind(&done, &local, "local", local_route);
+    bind(&local, &pending, "pending", pending_route);
+    bind(&pending, &local, "local", local_route);
+    let poll = |cfg: &Path, peer: &str| -> String {
+        run_ok(
+            cfg,
+            &[
+                "handshake",
+                "poll",
+                "--peer",
+                peer,
+                "--relay",
+                &base,
+                "--suite-mode",
+                suite,
+                "--max",
+                "4",
+            ],
+        )
+    };
+    let initiate = |cfg: &Path| {
+        run_ok(
+            cfg,
+            &[
+                "handshake",
+                "init",
+                "--peer",
+                "local",
+                "--relay",
+                &base,
+                "--suite-mode",
+                suite,
+            ],
+        );
+    };
+    initiate(&done);
+    poll(&local, "done");
+    poll(&done, "local");
+    let original = raw_pull_lease(&base, local_route, 4);
+    assert_eq!(original.len(), 1, "exact completed-contact A2 antecedent");
+    thread::sleep(LEASE_EXPIRY_WAIT);
+    let completed = poll(&local, "done");
+    assert!(has_marker_line(
+        &completed,
+        "handshake_complete",
+        &["role=responder"]
+    ));
+    assert!(has_marker_line(&completed, "producer_ack", &["acked=1"]));
+    let session_path = local.join("qsp_sessions").join("done.qsv");
+    assert!(session_path.exists());
+    // Advance the session through the shipped send path, not a rewritten fixture.
+    let message = root.join("advance.bin");
+    fs::write(&message, b"direct ACK confinement advanced state").expect("message");
+    let sent = run_ok(
+        &local,
+        &[
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            &base,
+            "--to",
+            "done",
+            "--file",
+            message.to_str().expect("path"),
+        ],
+    );
+    assert!(sent.contains("QSC_DELIVERY state=accepted_by_relay"));
+    let session_before = fs::read(&session_path).expect("advanced session");
+    let contacts_before = run_ok(&local, &["contacts", "show", "--label", "done"]);
+    initiate(&pending);
+    poll(&local, "pending");
+    poll(&pending, "local");
+    let foreign = raw_pull_lease(&base, local_route, 4);
+    assert_eq!(foreign.len(), 1, "pending-contact A2 antecedent");
+    assert!(foreign[0] != original[0]);
+    assert!(!local.join("qsp_sessions").join("pending.qsv").exists());
+    let mut changed = original[0].clone();
+    // Change signature bytes only: framing, suite and the completed SID remain.
+    *changed.last_mut().expect("confirmation signature") ^= 1;
+    push_raw(&base, local_route, &changed);
+    thread::sleep(LEASE_EXPIRY_WAIT);
+    let observed = poll(&local, "done");
+    if suite == "suite-required" {
+        assert!(has_marker_line(
+            &observed,
+            "handshake_suite_admission",
+            &["REJECT_QSC_HS_REPLAY"]
+        ));
+    } else {
+        assert!(has_marker_line(
+            &observed,
+            "handshake_already_complete",
+            &["reason=session_already_stored"]
+        ));
+        assert!(has_marker_line(
+            &observed,
+            "handshake_reject",
+            &["reason=handshake_type"]
+        ));
+    }
+    assert!(session_before == fs::read(&session_path).expect("session unchanged"));
+    assert!(contacts_before == run_ok(&local, &["contacts", "show", "--label", "done"]));
+    assert!(!local.join("qsp_sessions").join("pending.qsv").exists());
+    thread::sleep(LEASE_EXPIRY_WAIT);
+    let remaining = raw_pull_lease(&base, local_route, 4);
+    let foreign_retained = remaining.contains(&foreign[0]);
+    let changed_retained = remaining.contains(&changed);
+    let ack_count = count_marker(&observed, "producer_ack");
+    // Report both independent observations even when the first one is red.
+    assert!(
+        foreign_retained && changed_retained && ack_count == 0,
+        "ACK eligibility regression: foreign_retained={foreign_retained} \
+         changed_same_sid_retained={changed_retained} producer_acks={ack_count}"
+    );
+    // The intended pending peer must still authenticate and consume its own A2.
+    thread::sleep(LEASE_EXPIRY_WAIT);
+    let owner = poll(&local, "pending");
+    assert!(has_marker_line(
+        &owner,
+        "handshake_complete",
+        &["role=responder"]
+    ));
+    assert_eq!(count_marker(&owner, "producer_ack"), 1);
+    assert!(session_before == fs::read(&session_path).expect("other session unchanged"));
+    thread::sleep(LEASE_EXPIRY_WAIT);
+    let left = raw_pull_lease(&base, local_route, 4);
+    assert!(
+        left == vec![changed],
+        "only the changed confirmation must remain"
+    );
+}
+
+#[test]
+fn na0780_direct_explicit_confirmation_ack_confinement() {
+    direct_confirmation_confinement("suite-required");
+}
+
+#[test]
+fn na0780_direct_legacy_confirmation_ack_confinement() {
+    direct_confirmation_confinement("legacy-compat");
+}

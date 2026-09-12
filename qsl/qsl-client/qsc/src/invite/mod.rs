@@ -1965,8 +1965,11 @@ pub fn invite_finish(
         // above, which is a call-site property because `producer_ack` bypasses the receive loop's
         // mechanical ack-eligibility check.
         debug_assert!(
-            outcome == crate::handshake::PollOutcome::NotConsumed
-                || crate::contacts::relay_peer_route_token(alias).as_deref()
+            matches!(
+                outcome,
+                crate::handshake::PollOutcome::NotConsumed
+                    | crate::handshake::PollOutcome::CompletionObserved
+            ) || crate::contacts::relay_peer_route_token(alias).as_deref()
                     == Ok(peer_route_token.as_str()),
             "NA-0742 guard 1 (finish): the contact's stored route token must be the one the \
              consumed RESP carried before that frame may be acked"
@@ -2002,8 +2005,11 @@ pub fn invite_finish(
     // it finished on an earlier pass. Reporting `none` there would mean "the reply has not
     // arrived yet", which is false. A REJECTED handshake still yields `NotConsumed` and still
     // reports `none`, so the `ENG-0278`-converse cure at `RULING_004` is untouched.
+    // Completion reporting alone never grants the ACK permission checked above.
     Ok(matches!(
         outcome,
-        crate::handshake::PollOutcome::Consumed | crate::handshake::PollOutcome::AlreadyComplete
+        crate::handshake::PollOutcome::Consumed
+            | crate::handshake::PollOutcome::AlreadyComplete
+            | crate::handshake::PollOutcome::CompletionObserved
     ))
 }

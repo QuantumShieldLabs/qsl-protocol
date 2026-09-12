@@ -1179,7 +1179,11 @@ fn auto_fixture_probe() {
     let lifecycle = qsc::vault::secret_get("handshake.first_connections.v1")
         .unwrap()
         .unwrap_or_default();
-    let capsule: serde_json::Value = serde_json::from_str(&lifecycle).unwrap();
+    let capsule: serde_json::Value = if lifecycle.is_empty() {
+        serde_json::json!({"entries": []})
+    } else {
+        serde_json::from_str(&lifecycle).unwrap()
+    };
     let entry = &capsule["entries"][0];
     let retired = entry["selected"]["applied"] == true
         && entry["selected"]["session"].is_null()
@@ -1191,7 +1195,9 @@ fn auto_fixture_probe() {
                         .is_some_and(|v| v.is_empty())
                 })
         });
-    let result = serde_json::json!({"peer_fp":peer["fp"], "primary_fp":peer["devices"][0]["fp"], "retired_secrets":retired, "lifecycle_bytes":lifecycle.len(), "lifecycle_hash":auto_fixture_record_digest(lifecycle.as_bytes()), "pending":!pending.is_empty(), "role":value["role"], "sid":value["session_id"],
+    let result = serde_json::json!({"entry_count":capsule["entries"].as_array().unwrap().len(),
+        "generation":entry["generation"], "outgoing_sid":entry["outgoing"]["pending"]["session_id"],
+        "responder_sid":entry["responder"]["pending"]["session_id"], "peer_fp":peer["fp"], "primary_fp":peer["devices"][0]["fp"], "retired_secrets":retired, "lifecycle_bytes":lifecycle.len(), "lifecycle_hash":auto_fixture_record_digest(lifecycle.as_bytes()), "pending":!pending.is_empty(), "role":value["role"], "sid":value["session_id"],
         "pending_hash":auto_fixture_record_digest(pending.as_bytes()),
         "session_sid":sid,"session_hash":session_hash,
         "contacts_hash":auto_fixture_record_digest(qsc::vault::secret_get("contacts.json").unwrap().unwrap_or_default().as_bytes())});
@@ -1605,4 +1611,246 @@ fn na0780_single_counterfeit_a1_before_legitimate_a1_remains_explicitly_blocked(
     }
     assert!(auto_probe(lo, "summary")["session_sid"].is_null());
     println!("NA0780 one_counterfeit_before_legitimate=true automatic_progress=blocked no_timer_eviction=true original_outgoing_preserved=true no_possession_claim=true lease_secs={SHORT_PULL_LEASE_SECS}");
+}
+
+// This non-default build enables only rendezvous calls, never alternate decisions.
+// Normal CI retains the existing sequential controls; run these with the documented
+// qsc_na0780_concurrency_test cfg to exercise the exact reservation boundaries.
+#[cfg(qsc_na0780_concurrency_test)]
+struct ReservationWorker {
+    child: Option<std::process::Child>,
+    log: PathBuf,
+}
+
+#[cfg(qsc_na0780_concurrency_test)]
+impl ReservationWorker {
+    fn start(cfg: &Path, args: &[&str], stage: &str, address: &str) -> Self {
+        let log = cfg.join(format!("race-{stage}.log"));
+        let output = fs::File::create(&log).unwrap();
+        let child = qsc(cfg)
+            .args(args)
+            .env("QSC_NA0780_RACE_STAGE", stage)
+            .env("QSC_NA0780_RACE_ADDR", address)
+            .stdout(output.try_clone().unwrap())
+            .stderr(output)
+            .spawn()
+            .unwrap();
+        Self {
+            child: Some(child),
+            log,
+        }
+    }
+    fn running(&mut self) -> bool {
+        self.child.as_mut().unwrap().try_wait().unwrap().is_none()
+    }
+    fn finish(&mut self) -> (bool, String) {
+        let status = self.child.as_mut().unwrap().wait().unwrap();
+        self.child.take();
+        (status.success(), fs::read_to_string(&self.log).unwrap())
+    }
+}
+
+#[cfg(qsc_na0780_concurrency_test)]
+impl Drop for ReservationWorker {
+    fn drop(&mut self) {
+        if let Some(mut child) = self.child.take() {
+            let _ = child.kill();
+            let _ = child.wait();
+        }
+    }
+}
+
+#[cfg(qsc_na0780_concurrency_test)]
+fn reservation_arrival(
+    runtime: &tokio::runtime::Runtime,
+    listener: &tokio::net::TcpListener,
+    expected: &str,
+) -> std::net::TcpStream {
+    use std::io::{BufRead, BufReader};
+    let (socket, _) = runtime
+        .block_on(async { tokio::time::timeout(Duration::from_secs(180), listener.accept()).await })
+        .expect("worker must reach reservation boundary")
+        .unwrap();
+    let socket = socket.into_std().unwrap();
+    socket.set_nonblocking(false).unwrap();
+    socket
+        .set_read_timeout(Some(Duration::from_secs(180)))
+        .unwrap();
+    let mut reader = BufReader::new(socket);
+    let mut stage = String::new();
+    reader.read_line(&mut stage).unwrap();
+    assert_eq!(stage.trim(), expected);
+    reader.into_inner()
+}
+
+#[cfg(qsc_na0780_concurrency_test)]
+fn reservation_race(responder_first: bool) {
+    use std::io::Write;
+    let _g = guard();
+    let server =
+        common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, PRODUCTION_PULL_LEASE_SECS);
+    let observer = ReproRelay::new(server.base_url());
+    let base = &observer.base;
+    let root = test_root("na0780_reservation_race");
+    let a = party(&root, "alpha", ALPHA_INBOX);
+    let b = party(&root, "bravo", BRAVO_INBOX);
+    let a_fp = fingerprint(&a);
+    let b_fp = fingerprint(&b);
+    let (ac, ai) = repro_mint(&a, base);
+    let (bc, bi) = repro_mint(&b, base);
+    // The racing local endpoint is lower identity. Existing late-redeem controls
+    // retain the other identity ordering; these cases vary reservation order only.
+    let (local, remote, local_code, remote_code, local_slot, remote_slot, local_fp, remote_fp) =
+        if a_fp < b_fp {
+            (&a, &b, &ac, &bc, &ai, &bi, &a_fp, &b_fp)
+        } else {
+            (&b, &a, &bc, &ac, &bi, &ai, &b_fp, &a_fp)
+        };
+    repro_redeem(remote, local_code, "peer");
+    let remote_pending = auto_probe(remote, "summary");
+    let runtime = tokio::runtime::Runtime::new().unwrap();
+    let listener = runtime
+        .block_on(tokio::net::TcpListener::bind("127.0.0.1:0"))
+        .unwrap();
+    let address = listener.local_addr().unwrap().to_string();
+    let mut accept = ReservationWorker::start(
+        local,
+        &[
+            "invite",
+            "accept",
+            "--invite-id",
+            local_slot,
+            "--alias",
+            "peer",
+        ],
+        "responder_reservation",
+        &address,
+    );
+    let mut responder_gate = reservation_arrival(&runtime, &listener, "responder_reservation");
+    let mut redeem = ReservationWorker::start(
+        local,
+        &["invite", "redeem", "--code", remote_code, "--alias", "peer"],
+        "outgoing_reservation",
+        &address,
+    );
+    let mut outgoing_gate = reservation_arrival(&runtime, &listener, "outgoing_reservation");
+    assert!(
+        accept.running() && redeem.running(),
+        "both actual callers must overlap"
+    );
+    let earlier = auto_probe(local, "summary");
+    assert_eq!(
+        earlier["entry_count"], 0,
+        "both prepared before any lifecycle reservation"
+    );
+    assert_eq!(earlier["pending"], false);
+    let (winner_ok, winner_text) = if responder_first {
+        responder_gate.write_all(&[1]).unwrap();
+        accept.finish()
+    } else {
+        outgoing_gate.write_all(&[1]).unwrap();
+        redeem.finish()
+    };
+    assert!(
+        winner_ok,
+        "reservation winner must complete its entry point"
+    );
+    assert!(has_marker_line(
+        &winner_text,
+        "handshake_send",
+        &[if responder_first { "msg=B1" } else { "msg=A1" }]
+    ));
+    let saved = auto_probe(local, "summary");
+    assert_eq!(saved["entry_count"], 1);
+    assert_eq!(
+        saved["role"],
+        if responder_first {
+            "responder"
+        } else {
+            "initiator"
+        }
+    );
+    assert!(saved["session_sid"].is_null());
+    let (loser_ok, loser_text) = if responder_first {
+        assert!(redeem.running());
+        outgoing_gate.write_all(&[1]).unwrap();
+        redeem.finish()
+    } else {
+        assert!(accept.running());
+        responder_gate.write_all(&[1]).unwrap();
+        accept.finish()
+    };
+    if responder_first {
+        assert!(loser_ok && has_marker_line(&loser_text, "handshake_coalesced", &[]));
+        assert!(!has_marker_line(&loser_text, "handshake_send", &["msg=A1"]));
+    } else {
+        assert!(
+            !loser_ok,
+            "stale responder generation must not replace outgoing reservation"
+        );
+        assert!(loser_text.contains("handshake_lifecycle_conflict"));
+    }
+    assert!(
+        accept.child.is_none() && redeem.child.is_none(),
+        "both workers reaped"
+    );
+    let after = auto_probe(local, "summary");
+    for field in [
+        "generation",
+        "pending_hash",
+        "lifecycle_hash",
+        "contacts_hash",
+    ] {
+        assert_eq!(
+            saved[field], after[field],
+            "losing reservation changed {field}"
+        );
+    }
+    assert!(after["pending"] == true && after["session_sid"].is_null());
+    let remote_after = auto_probe(remote, "summary");
+    assert_eq!(remote_pending["pending_hash"], remote_after["pending_hash"]);
+    println!("NA0780 reservation responder_first={responder_first} overlap=2 workers_reaped=2 winner_preserved=true pending_preserved=true");
+    // Continue only normal entry points. In outgoing-first order, the higher peer
+    // accepts the lower peer's fresh A1; the leased losing A1 need not be replayed.
+    let (initiator, responder, selected_sid) = if responder_first {
+        (remote, local, &saved["responder_sid"])
+    } else {
+        repro_accept(remote, remote_slot, "peer");
+        (local, remote, &saved["outgoing_sid"])
+    };
+    let b1 = repro_finish(initiator, "peer", base);
+    assert!(has_marker_line(
+        &b1,
+        "sig_status",
+        &["ok=true", "reason=b1_verify"]
+    ));
+    let a2 = repro_finish(responder, "peer", base);
+    assert!(has_marker_line(
+        &a2,
+        "sig_status",
+        &["ok=true", "reason=a2_verify"]
+    ));
+    let local_session = auto_probe(local, "summary");
+    let remote_session = auto_probe(remote, "summary");
+    assert!(!selected_sid.is_null());
+    assert_eq!(&local_session["session_sid"], selected_sid);
+    assert_eq!(&remote_session["session_sid"], selected_sid);
+    assert!(local_session["peer_fp"] == *remote_fp && remote_session["peer_fp"] == *local_fp);
+    assert_eq!(local_session["primary_fp"], local_session["peer_fp"]);
+    assert_eq!(remote_session["primary_fp"], remote_session["peer_fp"]);
+    auto_message(local, remote, base, "race-forward");
+    auto_message(remote, local, base, "race-backward");
+    println!("NA0780 reservation responder_first={responder_first} authenticated_sid_equal=true messages=2 production_crypto=true seed_fallback=false");
+}
+
+#[test]
+#[cfg(qsc_na0780_concurrency_test)]
+fn na0780_overlapping_reservation_responder_wins_then_late_redeem_coalesces() {
+    reservation_race(true);
+}
+
+#[test]
+#[cfg(qsc_na0780_concurrency_test)]
+fn na0780_overlapping_reservation_outgoing_wins_then_stale_responder_refuses() {
+    reservation_race(false);
 }

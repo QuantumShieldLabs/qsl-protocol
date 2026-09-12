@@ -769,6 +769,42 @@ pub(crate) fn hs_invite_resume(self_label: &str, peer: &str) -> Result<(), &'sta
     Ok(())
 }
 
+// Test-only rendezvous outside store locks. No normal build reads these variables.
+#[cfg(any(test, qsc_na0780_concurrency_test))]
+fn hs_concurrency_test_pause(stage: &str) -> Result<(), &'static str> {
+    use std::io::{Read, Write};
+    use std::net::{SocketAddr, TcpStream};
+    use std::time::Duration;
+    if std::env::var("QSC_NA0780_RACE_STAGE").as_deref() != Ok(stage) {
+        return Ok(());
+    }
+    let address: SocketAddr = std::env::var("QSC_NA0780_RACE_ADDR")
+        .map_err(|_| "test_rendezvous")?
+        .parse()
+        .map_err(|_| "test_rendezvous")?;
+    if !address.ip().is_loopback() {
+        return Err("test_rendezvous");
+    }
+    let timeout = Duration::from_secs(180);
+    let mut stream =
+        TcpStream::connect_timeout(&address, timeout).map_err(|_| "test_rendezvous")?;
+    stream
+        .set_read_timeout(Some(timeout))
+        .map_err(|_| "test_rendezvous")?;
+    stream
+        .set_write_timeout(Some(timeout))
+        .map_err(|_| "test_rendezvous")?;
+    writeln!(stream, "{stage}").map_err(|_| "test_rendezvous")?;
+    let mut release = [0];
+    stream
+        .read_exact(&mut release)
+        .map_err(|_| "test_rendezvous")?;
+    if release != [1] {
+        return Err("test_rendezvous");
+    }
+    Ok(())
+}
+
 fn hs_lifecycle_select(
     expected: &FirstConnection,
     pending: &HandshakePending,
@@ -776,6 +812,8 @@ fn hs_lifecycle_select(
     receipt: &HsReceipt,
     reply: Option<HsDelivery>,
 ) -> Result<Option<HsDelivery>, &'static str> {
+    #[cfg(any(test, qsc_na0780_concurrency_test))]
+    hs_concurrency_test_pause("selection")?;
     let _lock = hs_lifecycle_lock()?;
     let mut c = hs_lifecycle_find(&expected.self_label, &expected.peer)?
         .ok_or("handshake_lifecycle_conflict")?;
@@ -2389,6 +2427,8 @@ pub(crate) fn perform_handshake_init_with_route(
             bytes: wrapped.clone(),
             ticket: Some(ticket.to_string()),
         };
+        #[cfg(qsc_na0780_concurrency_test)]
+        hs_concurrency_test_pause("outgoing_reservation")?;
         let _lock = hs_lifecycle_lock()?;
         // Recheck after key generation: a responder might have reserved first.
         if let Some(mut c) = hs_lifecycle_find(self_label, peer)? {
@@ -3664,6 +3704,8 @@ fn hs_poll_item(
                         bytes: wire,
                         ticket: None,
                     };
+                    #[cfg(qsc_na0780_concurrency_test)]
+                    hs_concurrency_test_pause("responder_reservation")?;
                     let _lock = hs_lifecycle_lock()?;
                     let mut c =
                         hs_lifecycle_find(self_label, peer)?.unwrap_or_else(|| expected.clone());
@@ -4544,6 +4586,132 @@ mod na0780_lifecycle_tests {
             "capacity tests must not evict stored attempt"
         );
     }
+    #[test]
+    fn overlapping_selection_callers_share_one_saved_reply_and_preserve_advanced_session() {
+        use std::io::{BufRead, BufReader, Write};
+        use std::sync::mpsc;
+        use std::time::Duration;
+        let test = "overlapping_selection_callers_share_one_saved_reply_and_preserve_advanced_session";
+        if isolated_process(test) {
+            println!("NA0780 selection overlap=2 workers_joined=2 durable_selections=1 saved_reply_equal=true advanced_session_preserved=true");
+            return;
+        }
+        let (_arena, mut c, st) = setup();
+        hs_lifecycle_recover(&mut c).unwrap();
+        assert!(c.selected.is_none());
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        let listener = runtime
+            .block_on(tokio::net::TcpListener::bind("127.0.0.1:0"))
+            .unwrap();
+        std::env::set_var(
+            "QSC_NA0780_RACE_ADDR",
+            listener.local_addr().unwrap().to_string(),
+        );
+        std::env::set_var("QSC_NA0780_RACE_STAGE", "selection");
+        let (finished, results) = mpsc::channel();
+        let mut workers = Vec::new();
+        for id in 0..2u8 {
+            let earlier = c.clone();
+            let session = st.snapshot_bytes();
+            let finished = finished.clone();
+            workers.push(std::thread::spawn(move || {
+                let st = Suite2SessionState::restore_bytes(&session).unwrap();
+                let receipt = hs_receipt(
+                    "na0780-unit-self-route-000000000003",
+                    b"b1-envelope",
+                    b"b1",
+                    "na0780-unit-selected-route-00000002",
+                )
+                .unwrap();
+                let reply = HsDelivery {
+                    relay: "http://127.0.0.1:1".into(),
+                    route: receipt.route.clone(),
+                    bytes: vec![id; 64],
+                    ticket: None,
+                };
+                let result = hs_lifecycle_select(
+                    &earlier,
+                    &earlier.outgoing.as_ref().unwrap().pending,
+                    &st,
+                    &receipt,
+                    Some(reply),
+                );
+                finished
+                    .send((id, result.map(|r| r.unwrap().bytes)))
+                    .unwrap();
+            }));
+        }
+        drop(finished);
+        let mut arrivals = Vec::new();
+        for _ in 0..2 {
+            let (socket, _) = runtime
+                .block_on(async {
+                    tokio::time::timeout(Duration::from_secs(180), listener.accept()).await
+                })
+                .expect("both callers must reach selection")
+                .unwrap();
+            let socket = socket.into_std().unwrap();
+            socket.set_nonblocking(false).unwrap();
+            socket
+                .set_read_timeout(Some(Duration::from_secs(180)))
+                .unwrap();
+            let mut reader = BufReader::new(socket);
+            let mut stage = String::new();
+            reader.read_line(&mut stage).unwrap();
+            assert_eq!(stage.trim(), "selection");
+            arrivals.push(reader.into_inner());
+        }
+        assert!(
+            results.try_recv().is_err(),
+            "neither caller may finish before release"
+        );
+        assert!(hs_lifecycle_find("self", "peer")
+            .unwrap()
+            .unwrap()
+            .selected
+            .is_none());
+        // Both calls are inside hs_lifecycle_select with the same earlier state.
+        // Order their critical sections; this does not claim simultaneous lock ownership.
+        arrivals[0].write_all(&[1]).unwrap();
+        let (winner, first) = results.recv_timeout(Duration::from_secs(180)).unwrap();
+        let first = first.expect("first selection");
+        assert_eq!(first, vec![winner; 64]);
+        let selected = hs_lifecycle_find("self", "peer").unwrap().unwrap();
+        assert_eq!(
+            selected
+                .selected
+                .as_ref()
+                .unwrap()
+                .reply
+                .as_ref()
+                .unwrap()
+                .bytes,
+            first
+        );
+        assert_eq!(hs_lifecycle_load().unwrap().entries.len(), 1);
+        let mut advanced = qsp_session_load("peer").unwrap().unwrap();
+        advanced.send.ns = 7;
+        qsp_session_store("peer", &advanced).unwrap();
+        let snapshot = qsp_session_load("peer").unwrap().unwrap().snapshot_bytes();
+        let durable = vault::secret_get(FIRST_CONNECTIONS_KEY).unwrap();
+        arrivals[1].write_all(&[1]).unwrap();
+        let (loser, second) = results.recv_timeout(Duration::from_secs(180)).unwrap();
+        assert_ne!(winner, loser);
+        assert_eq!(second.expect("overlapping stale selection"), first);
+        for worker in workers {
+            worker.join().expect("selection worker terminated");
+        }
+        assert!(durable == vault::secret_get(FIRST_CONNECTIONS_KEY).unwrap());
+        assert_eq!(
+            snapshot,
+            qsp_session_load("peer").unwrap().unwrap().snapshot_bytes()
+        );
+        assert_eq!(qsp_session_load("peer").unwrap().unwrap().send.ns, 7);
+        std::env::remove_var("QSC_NA0780_RACE_ADDR");
+        std::env::remove_var("QSC_NA0780_RACE_STAGE");
+    }
+
+    // Sequential stale-call coverage; the overlapping-call test above is separate.
     #[test]
     fn concurrent_selection_returns_the_already_saved_reply_not_a_new_signature() {
         if isolated_process(

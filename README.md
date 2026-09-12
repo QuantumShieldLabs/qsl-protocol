@@ -16,8 +16,8 @@ implemented against vectors, with the gaps recorded alongside the proofs.
 
 > [!WARNING]
 > **Research-stage. Not independently audited. Not production-ready.**
-> Do not use QSL to protect anyone whose safety depends on it. If you need a secure messenger
-> today, use [Signal](https://signal.org). See [Status](#status-what-is-and-is-not-established).
+> Do not use QSL to protect anyone whose safety depends on it.
+> See [Status](#status-what-is-and-is-not-established).
 
 ---
 

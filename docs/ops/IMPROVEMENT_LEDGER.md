@@ -8218,3 +8218,44 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
   No completed reproduction CI was rerun. No multi-device or reconnect claim.
 - Next collision disposition: explicit attempt-scoped cancellation and one fresh
   invitation for the no-session case is preferred but not authorized for implementation.
+
+### NA-0780 automatic first-time crossing follow-up to ENG-0345–0348
+
+- Originating lane: NA-0780. Last lane: NA-0780. Last-updated: 2026-09-10.
+- Status: implementation authorized as a separate draft; validation and independent
+  review pending. Identity guard PR #1826 is merged; its post-merge checks are
+  verified complete. Reproduction PR #1825 and its measured failure remain intact.
+- Change: preserve the original outgoing attempt beside a bounded responder; select
+  only through existing B1/A2 authentication, coalesce late redeem, retain exact
+  replies, and recover separate persistence effects without ratchet replacement.
+  Candidate routes stay with the admitted envelope until authentication. The
+  facade must keep an unsent A2 eligible for the existing finish scan after session
+  persistence; no desktop change is needed for that obligation.
+- Open limit: a single counterfeit admitted A1 can occupy the responder before the
+  legitimate selected A1 and block automatic convergence. Count/byte limits refuse
+  excess work without eviction; this is not an unlimited-flooding qualification.
+  Independent review must assess the explicit limitation. Cancellation remains
+  fallback-only. Established-session replacement, draining and enrollment stay open.
+
+- Focused correction authorized, 2026-09-10 (same NA-0780 finding; status: draft
+  repair under validation): the original cap counted completed records forever.
+  Separate active occupancy from retained replay bytes, reserve admitted growth,
+  and preflight known exhaustion before remote redemption where possible. Existing
+  stores/replies and all byte limits remain; no eviction or remote atomicity claim.
+  CI also exposed global environment/vault fixture interference and lost pending/
+  store diagnostics. Isolate the new fixtures by process, keep parallel CI, and
+  restore diagnostic detail. Preserve the exact-replay ACK and authenticated-route
+  contracts when reconciling tests; the two necessary integration-test paths were
+  approved through the narrow supplement. Both diagnostic tests remain unchanged.
+  The counterfeit regression requires relay-response control or equivalent access;
+  ordinary network substitution through valid TLS is not demonstrated. Persistent
+  occupation after manipulation stops remains open for security review.
+
+- Director source review follow-up, same NA-0780 draft (ACK eligibility): lifting
+  AlreadyComplete into the outer relay ACK gate exposed non-lifecycle completion
+  shortcuts that authenticate neither the exact frame nor its durable disposition.
+  Separate completion-only observations from ACK permission while retaining exact
+  lifecycle replay recovery and diagnostic markers. Direct completed/pending peers
+  sharing an inbox and changed same-SID confirmations are regression-gated in both
+  suite modes. Validation status belongs to TASK; counterfeit-A1 persistent
+  blockage, macOS runtime and independent review remain open.

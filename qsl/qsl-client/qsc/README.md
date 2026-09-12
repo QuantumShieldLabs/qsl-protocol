@@ -88,3 +88,47 @@ Redemption/pull may already have happened to obtain the public identity bundle;
 a rejected redemption does not make the consumed invitation reusable. Existing
 expiry, signature, commitment, self-invitation and possession checks remain in
 force. No collision election, cancellation or device enrollment is implemented.
+
+### First-time crossed invitations (draft)
+
+When both peers redeem before connecting, the client preserves the outgoing attempt
+and permits one provisional responder. Full pinned identity ordering chooses which
+exchange to try; only existing B1/A2 authentication selects the session. Redeeming
+after a responder has reserved its exchange coalesces into that exchange. The
+identity guard, self-invitation rejection and unrelated stored sessions remain
+protected. This draft changes local persistence, not handshake or envelope bytes.
+
+Exact replies and selection intent live in the encrypted vault. Finish can resume
+an unsent A2 after restart even when the local session already exists. Recovery
+preserves advanced same-session ratchets and checks the generation, identity and
+previous route before completing separate writes. After application, the recovery
+capsule discards initial ratchet and candidate secrets; exact replies remain. Stored candidate routes match
+the exact admitted envelope; the current wire does not cryptographically bind its
+outer route. Existing storage guarantees apply, without a new power-loss or older
+backup rollback claim.
+
+The client permits at most 64 active attempts, one outgoing plus one responder per
+binding, with 32 KiB per reply, 256 KiB serialized per record and 16 MiB total.
+An attempt releases its active slot only after authenticated selection is applied
+and required reply delivery is recorded. Replay records and exact replies remain
+until full vault erase. Admission reserves each active record's full byte allowance;
+retained history and JSON framing can make the byte limit refuse work before 64
+active slots. Known exhaustion is checked before redeeming, then checked again at
+local admission; remote redemption and local storage are not atomic. Older stores
+remain readable and can recover under existing byte limits without increasing a
+reservation shortfall. This does not promise unlimited connection history.
+
+A reserved responder is not evicted by unauthenticated traffic or a timer. One
+counterfeit admitted A1 arriving before the legitimate selected A1 can keep that
+crossing blocked. The regression demonstrates a relay-response substitution with
+a suppressed ACK, an ability available to a malicious relay or trusted transport
+interceptor, not an ordinary network attacker through correctly validated TLS.
+The added cost is persistent local blockage after that manipulation stops; no
+identity possession or authenticated session is obtained. Other injection paths
+require the relevant relay capability/access and are not proved by this regression.
+This limitation remains open for independent security review. Cancellation UI,
+session replacement, old-message draining and multi-device enrollment are excluded.
+
+Independent review and Linux/macOS runtime acceptance remain separate gates. The
+active desired-progress test requires the same authenticated SID at both peers and
+actual production-crypto messages in both directions, with seed fallback disabled.

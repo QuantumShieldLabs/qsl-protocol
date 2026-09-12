@@ -1104,6 +1104,14 @@ fn t5p_the_poll_tolerates_a_redelivered_already_processed_frame() {
     let (fin_ok, fin_text) = finish(&flow, &base);
     assert!(fin_ok, "setup: finish must succeed:\n{fin_text}");
 
+    // Capture the exact A2 under a lease; this probe does not ACK or delete it.
+    let original = raw_pull_lease(&base, INVITER_INBOX, 4);
+    assert_eq!(original.len(), 1, "the fixture must contain exactly the expected A2");
+    let mut changed = original[0].clone();
+    *changed.last_mut().expect("A2 bytes") ^= 1;
+    let unrelated = handshake_frame();
+    thread::sleep(LEASE_EXPIRY_WAIT);
+
     // ---- The poll's Relay arm, THROUGH THE PROXY. ----
     let (poll_ok, poll_text) = run_any(
         &flow.inviter,
@@ -1137,7 +1145,24 @@ fn t5p_the_poll_tolerates_a_redelivered_already_processed_frame() {
          measure:\n{poll_text}"
     );
 
-    // ---- The A2 redelivers, and the poll TOLERATES the already-processed frame. ----
+    // Advance the real stored session before replay. Comparing its encrypted blob
+    // below detects any reset/rewrite, including a replacement with the same SID.
+    let message = root.join("t5p_advance.bin");
+    fs::write(&message, b"na0780 replay must preserve advanced state").expect("message");
+    let send = run_ok(&flow.inviter, &[
+        "send", "--transport", "relay", "--relay", &base, "--to", "redeemer",
+        "--file", message.to_str().expect("message path"),
+    ]);
+    assert!(send.contains("QSC_DELIVERY state=accepted_by_relay"));
+    let session_path = flow.inviter.join("qsp_sessions").join("redeemer.qsv");
+    let session_before = fs::read(&session_path).expect("advanced session");
+    let contacts_before = run_ok(&flow.inviter, &["contacts", "show", "--label", "redeemer"]);
+    // Neither a changed A2 with the same SID nor an unrelated frame is authorized
+    // by the retained receipt for the original A2.
+    push_raw(&base, INVITER_INBOX, &changed);
+    push_raw(&base, INVITER_INBOX, &unrelated);
+
+    // ---- Only the exact durable A2 replay is retired by its mailbox owner. ----
     thread::sleep(LEASE_EXPIRY_WAIT);
     let (retry_ok, retry_text) = run_any(
         &flow.inviter,
@@ -1154,9 +1179,7 @@ fn t5p_the_poll_tolerates_a_redelivered_already_processed_frame() {
     );
     assert!(
         retry_ok,
-        "a redelivered ALREADY-PROCESSED frame must be tolerated — the poll falls through to a \
-         decode-reject and returns Ok(()). If this ever fails it is a FINDING, not a test to \
-         retune:\n{retry_text}"
+        "the exact durably selected A2 must recover its lost owner ACK:\n{retry_text}"
     );
     // The session the first poll built must still be intact: redelivery must not corrupt it.
     let status = run_ok(
@@ -1167,35 +1190,19 @@ fn t5p_the_poll_tolerates_a_redelivered_already_processed_frame() {
         !status.contains("none"),
         "the redelivered frame must not have disturbed the completed session:\n{status}"
     );
-    // ⚠⚠ **THE MEASURED RESIDUAL, PINNED RATHER THAN NARRATED — AND IT IS A DIRECTIVE EXPECTATION
-    // THAT MISSED.** §5's T5p predicted *"the retry's consume+ack lands `acked=1`"*. It does not,
-    // and the reason is structural: a redelivered ALREADY-PROCESSED A2 no longer decodes into a
-    // consuming branch, so it reaches `hs_emit_decode_reject; continue` — a path that by design
-    // never acks, because acking there would retire a frame this run did not consume.
-    //
-    // ⇒ **THE CRASH COST IS NOT THE SAME FOR ALL THREE CALLERS, and only executing it shows that:**
-    //   * `invite finish` — the retry RE-CONSUMES and its ack lands (T5f measures `acked=1`), so a
-    //     lost ack costs exactly one lease period and leaves nothing behind;
-    //   * the **poll** — the retry cannot re-consume, so the frame is **never retired by any retry**
-    //     and ages out only on the relay's retention TTL. Bounded and harmless (it is skipped by
-    //     class on every `receive`, per lane 1), but it is a PERMANENT orphan, not a transient one.
-    //
-    // This arm pins both numbers so a successor that changes either has to say so.
+    // NA-0742 originally measured an orphan after lost ACK. That historical
+    // failure remains in lane evidence. NA-0780's exact durable selection receipt
+    // now authorizes retirement; unrelated bytes still have no safe disposition.
+    assert!(has_marker_line(&retry_text, "producer_ack", &["caller=poll", "acked=1"]));
+    assert_eq!(count_marker(&retry_text, "producer_ack"), 1);
+    assert_eq!(count_marker(&retry_text, "session_store"), 0);
+    assert!(session_before == fs::read(&session_path).expect("session after replay"));
+    assert!(contacts_before == run_ok(&flow.inviter, &["contacts", "show", "--label", "redeemer"]));
     thread::sleep(LEASE_EXPIRY_WAIT);
     let left = raw_pull_lease(&base, INVITER_INBOX, 16);
-    assert_eq!(
-        count_marker(&retry_text, "producer_ack"),
-        0,
-        "the retry over an already-processed frame must NOT ack — it did not consume \
-         anything:\n{retry_text}"
-    );
-    assert_eq!(
-        left.len(),
-        1,
-        "the orphaned A2 must still be resident: no retry can retire it, so it ages out on the \
-         relay's retention TTL. Measured frames in the inviter's inbox: {}",
-        left.len()
-    );
+    assert_eq!(left.len(), 2, "only the changed and unrelated frames must remain");
+    assert!(left.contains(&changed) && left.contains(&unrelated));
+    assert!(!left.contains(&original[0]), "the exact A2 must be retired");
 }
 
 // ===========================================================================
@@ -1637,4 +1644,207 @@ fn t8_the_rng_seam_is_absent_from_the_default_build() {
         !text.contains("sig_sign_failed"),
         "a default build must not be able to force the signature failure:\n{text}"
     );
+}
+
+// Direct handshakes deliberately do not create the invitation lifecycle. Exercise
+// both pre-lifecycle completion fallbacks against real leased mailbox contents.
+fn direct_confirmation_confinement(suite: &str) {
+    let _g = guard();
+    let relay =
+        common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, SHORT_PULL_LEASE_SECS);
+    let base = relay.base_url().to_string();
+    let root = test_root(&format!("na0780_direct_ack_{suite}"));
+    let local_route = "na0780_local_direct_inbox_abcdefghijkl";
+    let done_route = "na0780_done_direct_inbox_abcdefghijkl";
+    let pending_route = "na0780_pending_direct_inbox_abcdefghi";
+    let local = party(&root, "local", local_route);
+    let done = party(&root, "done", done_route);
+    let pending = party(&root, "pending", pending_route);
+    let bind = |cfg: &Path, peer: &Path, label: &str, route: &str| {
+        let identity = run_ok(peer, &["identity", "show"]);
+        let value = |key: &str| -> String {
+            identity
+                .lines()
+                .find_map(|line| line.strip_prefix(key))
+                .expect("public identity field")
+                .to_string()
+        };
+        run_ok(
+            cfg,
+            &[
+                "contacts",
+                "add",
+                "--label",
+                label,
+                "--fp",
+                &value("identity_fp="),
+                "--kem-pk",
+                &value("identity_kem_pk="),
+                "--sig-pk",
+                &value("identity_sig_pk="),
+                "--route-token",
+                route,
+            ],
+        );
+        let list = run_ok(cfg, &["contacts", "device", "list", "--label", label]);
+        let device = list
+            .split_whitespace()
+            .find_map(|s| s.strip_prefix("device="))
+            .expect("device");
+        run_ok(
+            cfg,
+            &[
+                "contacts",
+                "device",
+                "trust",
+                "--label",
+                label,
+                "--device",
+                device,
+                "--confirm",
+            ],
+        );
+    };
+    bind(&local, &done, "done", done_route);
+    bind(&done, &local, "local", local_route);
+    bind(&local, &pending, "pending", pending_route);
+    bind(&pending, &local, "local", local_route);
+    let poll = |cfg: &Path, peer: &str| -> String {
+        run_ok(
+            cfg,
+            &[
+                "handshake",
+                "poll",
+                "--peer",
+                peer,
+                "--relay",
+                &base,
+                "--suite-mode",
+                suite,
+                "--max",
+                "4",
+            ],
+        )
+    };
+    let initiate = |cfg: &Path| {
+        run_ok(
+            cfg,
+            &[
+                "handshake",
+                "init",
+                "--peer",
+                "local",
+                "--relay",
+                &base,
+                "--suite-mode",
+                suite,
+            ],
+        );
+    };
+    initiate(&done);
+    poll(&local, "done");
+    poll(&done, "local");
+    let original = raw_pull_lease(&base, local_route, 4);
+    assert_eq!(original.len(), 1, "exact completed-contact A2 antecedent");
+    thread::sleep(LEASE_EXPIRY_WAIT);
+    let completed = poll(&local, "done");
+    assert!(has_marker_line(
+        &completed,
+        "handshake_complete",
+        &["role=responder"]
+    ));
+    assert!(has_marker_line(&completed, "producer_ack", &["acked=1"]));
+    let session_path = local.join("qsp_sessions").join("done.qsv");
+    assert!(session_path.exists());
+    // Advance the session through the shipped send path, not a rewritten fixture.
+    let message = root.join("advance.bin");
+    fs::write(&message, b"direct ACK confinement advanced state").expect("message");
+    let sent = run_ok(
+        &local,
+        &[
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            &base,
+            "--to",
+            "done",
+            "--file",
+            message.to_str().expect("path"),
+        ],
+    );
+    assert!(sent.contains("QSC_DELIVERY state=accepted_by_relay"));
+    let session_before = fs::read(&session_path).expect("advanced session");
+    let contacts_before = run_ok(&local, &["contacts", "show", "--label", "done"]);
+    initiate(&pending);
+    poll(&local, "pending");
+    poll(&pending, "local");
+    let foreign = raw_pull_lease(&base, local_route, 4);
+    assert_eq!(foreign.len(), 1, "pending-contact A2 antecedent");
+    assert!(foreign[0] != original[0]);
+    assert!(!local.join("qsp_sessions").join("pending.qsv").exists());
+    let mut changed = original[0].clone();
+    // Change signature bytes only: framing, suite and the completed SID remain.
+    *changed.last_mut().expect("confirmation signature") ^= 1;
+    push_raw(&base, local_route, &changed);
+    thread::sleep(LEASE_EXPIRY_WAIT);
+    let observed = poll(&local, "done");
+    if suite == "suite-required" {
+        assert!(has_marker_line(
+            &observed,
+            "handshake_suite_admission",
+            &["REJECT_QSC_HS_REPLAY"]
+        ));
+    } else {
+        assert!(has_marker_line(
+            &observed,
+            "handshake_already_complete",
+            &["reason=session_already_stored"]
+        ));
+        assert!(has_marker_line(
+            &observed,
+            "handshake_reject",
+            &["reason=handshake_type"]
+        ));
+    }
+    assert!(session_before == fs::read(&session_path).expect("session unchanged"));
+    assert!(contacts_before == run_ok(&local, &["contacts", "show", "--label", "done"]));
+    assert!(!local.join("qsp_sessions").join("pending.qsv").exists());
+    thread::sleep(LEASE_EXPIRY_WAIT);
+    let remaining = raw_pull_lease(&base, local_route, 4);
+    let foreign_retained = remaining.contains(&foreign[0]);
+    let changed_retained = remaining.contains(&changed);
+    let ack_count = count_marker(&observed, "producer_ack");
+    // Report both independent observations even when the first one is red.
+    assert!(
+        foreign_retained && changed_retained && ack_count == 0,
+        "ACK eligibility regression: foreign_retained={foreign_retained} \
+         changed_same_sid_retained={changed_retained} producer_acks={ack_count}"
+    );
+    // The intended pending peer must still authenticate and consume its own A2.
+    thread::sleep(LEASE_EXPIRY_WAIT);
+    let owner = poll(&local, "pending");
+    assert!(has_marker_line(
+        &owner,
+        "handshake_complete",
+        &["role=responder"]
+    ));
+    assert_eq!(count_marker(&owner, "producer_ack"), 1);
+    assert!(session_before == fs::read(&session_path).expect("other session unchanged"));
+    thread::sleep(LEASE_EXPIRY_WAIT);
+    let left = raw_pull_lease(&base, local_route, 4);
+    assert!(
+        left == vec![changed],
+        "only the changed confirmation must remain"
+    );
+}
+
+#[test]
+fn na0780_direct_explicit_confirmation_ack_confinement() {
+    direct_confirmation_confinement("suite-required");
+}
+
+#[test]
+fn na0780_direct_legacy_confirmation_ack_confinement() {
+    direct_confirmation_confinement("legacy-compat");
 }

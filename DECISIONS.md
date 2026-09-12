@@ -45349,3 +45349,115 @@ Attempt-scoped cancellation plus one coordinated fresh invitation is the preferr
 next repair for the reproduced no-session collision, but is not implemented or
 authorized here. Established-session replacement and simultaneous bidirectional
 ratchet acceptance remain separate work.
+
+## NA-0780 automatic first-time crossing — draft implementation (2026-09-10)
+
+Goals: G4
+
+The Director authorized a separate draft implementation based on the merged identity
+guard (`a0c429f5c6cc`). It supersedes cancellation as the priority for first-time
+crossings; cancellation remains an unimplemented fallback. This is not merge or
+final security acceptance. Existing sessions, wire formats, cryptography,
+self-invitation rejection and the contact identity guard remain protected.
+
+An outgoing invitation reserves its existing random SID before publishing A1. An
+incoming exchange may retain one provisional responder beside that original. If
+both outgoing reservations exist, the lower full pinned identity keeps its outgoing
+exchange and the higher responds to it. The lower defers the observed opposite A1.
+If the responder reservation came first, a later redeem coalesces without creating
+another A1. Public A1 identity fields are never possession proof: the existing B1
+MAC/signature/pins select the initiator session and existing A2 confirmation and
+signature select the responder session. The original outgoing B1 remains reachable
+while a provisional candidate exists. Conflicting installation fails closed.
+
+A versioned encrypted vault capsule records the generation, exact identity/device
+binding, candidates, envelope/owned-mailbox digests, exact replies and selected
+session intent. It is authoritative over the legacy pending mirror. Each selected
+transition writes its intent before session, route and pending effects, then records
+completion. Once applied, the capsule discards the initial session snapshot and
+candidate secret material; retries retain the SID and exact public reply bytes,
+not obsolete ratchet keys. Recovery recognizes its own selected SID, refuses an
+unrelated or unreadable session, and never rewrites an advanced same-SID snapshot. Pending cleanup
+requires the exact retained candidate; a newer generation is not erased. Cleared
+pending records cannot fall through to legacy-file resurrection. Locks serialize
+local decisions but do not make the separate writes crash-atomic. This adds no
+power-loss, restored-backup or rollback-detection guarantee.
+
+Candidate routes belong to the exact admitted envelope and attempt. Routes are
+installed only after selection authentication, with the previous route checked
+before recovery writes. A changed envelope carrying the same SID cannot substitute
+a route. The existing wire does not cryptographically bind the outer route string;
+its transport assumptions remain. Exact B1/A2 replies survive failed delivery and
+restart. A durable A2 delivery obligation keeps the existing facade scan eligible
+until finish resumes it, even if a session write already succeeded. Invitation-slot
+and ordinary-inbox callers retain their own ACK ownership and acknowledge only a
+durable disposition with recoverable reply data.
+
+The Director's focused correction separates the 64 active-attempt ceiling from
+retained replay history. An attempt remains active until authenticated selection
+is applied AND required reply delivery is durably recorded; this is local
+quiescence, not proof of remote completion. One outgoing and one provisional
+responder per unambiguous binding remain the limit. Every replay record and exact
+reply is retained until full vault erase. No expiry, compaction or eviction is added.
+
+Existing limits remain: 32 KiB per saved wire reply, 256 KiB serialized per record,
+16 MiB serialized per store, plus existing relay/route/ticket bounds. New admission
+charges retained records at actual size and active records at their full 256 KiB
+allowance, including JSON framing. Updates cannot spend another active attempt's
+reservation. This conservative byte budget can refuse before 64 active slots
+(including the all-active framing boundary); 64 is a ceiling, not a guarantee.
+Known exhaustion is refused before creating a redemption record or consuming the
+invitation where possible, with authoritative recheck at local admission. There is
+no transaction across remote redemption and local storage, so races remain possible.
+Preflight checks capacity only: an alias with retained occupancy needs no new
+reservation. It must not inspect that lifecycle's identity/session before the
+invitation bundle has been verified, since that would preempt the merged contact
+guard's identity-error precedence. The existing verified-bundle, provisioning,
+binding, session and generation checks remain authoritative before admission or
+resume. The unchanged identity-guard regressions enforce this ordering.
+
+The v1 storage format is unchanged. Structural validation counts active records
+and preserves existing actual-byte limits; it does not impose the new reservation
+budget on load. Older stores lacking growth reservations remain readable and may
+continue existing work under actual-byte limits while their reservation shortfall
+cannot increase. New work is refused until sufficient capacity is available. No
+claim of compatibility with older binaries reading more than 64 retained records
+or of recovery beyond existing storage guarantees is made.
+
+This retention has a concrete liveness limit: **one counterfeit admitted A1 arriving
+before the legitimate selected A1 can occupy the responder slot and keep the honest
+crossing blocked**. Preserving the original outgoing prevents its erasure, but the
+other honest endpoint may be deferring that exchange. This is a finite single-frame
+case, not an unlimited-flooding caveat. The dedicated regression must expose this
+outcome. Removing it without contradictory authenticated selections needs separate
+review; no timeout recycling or new wire mechanism is silently introduced here.
+The demonstrated attacker substitutes an admitted relay response and suppresses
+an ACK: a malicious relay or trusted TLS interceptor has sufficient access without
+peer private keys. Correct TLS prevents an ordinary network attacker from making
+this substitution. Stolen invitation capability can consume an unredeemed slot
+with required relay access, but does not append after its one-shot tickets are
+consumed. A raw-inbox injection would require the route and required relay access;
+that acquisition and an independent runtime exploit were not demonstrated. The
+additional cost over delivery denial is persistent local occupation after the
+manipulation ends, not authenticated impersonation or message decryption.
+
+Acceptance is the active desired-progress regression with identical authenticated
+SIDs and real production-crypto messages both ways, plus reversed/late ordering,
+failed delivery, duplicate/changed envelopes, persistence interruptions, stale
+state, capacity and established-session controls. Linux results and macOS runtime
+must be reported separately. Independent security review remains required. No
+established-session replacement, old-message drain, multi-device enrollment,
+desktop change, dependency upgrade or large replacement controller is included.
+
+NA-0780 Director ACK-eligibility correction: completion reporting is separate from
+permission to retire an inbox frame. The non-lifecycle session-presence and SID
+fallbacks retain their existing diagnostics and report CompletionObserved, which
+never authorizes ACK. Consumed still requires the current frame's durable effects
+and reply delivery; AlreadyComplete is reserved for an exact retained lifecycle
+receipt with successful recovery/retry. Relay polls and invitation callers retain
+mailbox ownership. Exact lifecycle lost-ACK recovery remains enabled; unverified
+pre-lifecycle replays remain leased. No wire, authentication, identity, route,
+retention or advanced-session change is made. Regression tests cover direct
+completed/pending contacts sharing an inbox in both suite modes, changed same-SID
+confirmations, intended-owner completion, and exact retained replay retirement.
+Persistent counterfeit-A1 blockage, macOS runtime and independent review stay open.

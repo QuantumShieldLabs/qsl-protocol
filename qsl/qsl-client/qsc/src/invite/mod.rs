@@ -1195,6 +1195,28 @@ fn invitation_is_local(payload: &InvitePayload, self_label: &str) -> Result<bool
     Ok(commitment(&bundle) == payload.commit)
 }
 
+// Always run the merged identity/session preservation guard first. The only
+// exception is recovery of a session selected by this exact local lifecycle.
+fn provision_or_resume(
+    self_label: &str,
+    alias: &str,
+    kem: &[u8],
+    sig: &[u8],
+    route: &str,
+    relay: &str,
+    invite_id: &str,
+) -> Result<String, &'static str> {
+    match crate::contacts::contacts_provision_from_invite(alias, kem, sig, route, relay, invite_id)
+    {
+        Ok(fp) => Ok(fp),
+        Err("contacts_session_exists") => {
+            crate::handshake::hs_invite_existing_binding(self_label, alias, kem, sig)?
+                .ok_or("contacts_session_exists")
+        }
+        Err(code) => Err(code),
+    }
+}
+
 /// Bob: redeem an invite and hand shake into the slot. DESIGN §5.2, in order.
 pub fn invite_redeem(
     code: &str,
@@ -1234,45 +1256,68 @@ pub fn invite_redeem_at(
     // a hostile relay (I2): a relay that serves the same invite twice still cannot make
     // this client hand shake twice.
     let mut rstore = redemption_store_load()?;
-    if let Some(prev) = rstore.redemptions.get(&invite_id_wire) {
-        if prev.handshake_done || prev.consumed {
+    let cached = if let Some(prev) = rstore.redemptions.get(&invite_id_wire) {
+        if prev.handshake_done {
             return Err(INVITE_ALREADY_REDEEMED);
         }
-    }
+        if prev.consumed {
+            if !crate::handshake::hs_invite_reserved_outgoing(self_label, alias, &invite_id_wire)? {
+                return Err(INVITE_ALREADY_REDEEMED);
+            }
+            let bundle = URL_SAFE_NO_PAD
+                .decode(prev.bundle.as_deref().ok_or(INVITE_ALREADY_REDEEMED)?)
+                .map_err(|_| INVITE_MALFORMED)?;
+            let sig = URL_SAFE_NO_PAD
+                .decode(prev.invite_sig.as_deref().ok_or(INVITE_ALREADY_REDEEMED)?)
+                .map_err(|_| INVITE_MALFORMED)?;
+            let ticket = prev.ticket.clone().ok_or(INVITE_ALREADY_REDEEMED)?;
+            Some((bundle, sig, ticket))
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+    crate::handshake::hs_invite_admission_preflight(alias)?;
+    let (bundle, invite_sig, ticket) = if let Some(cached) = cached {
+        cached
+    } else {
+        // (4) COMMIT BEFORE THE NETWORK.
+        rstore.redemptions.insert(
+            invite_id_wire.clone(),
+            RedemptionRecord {
+                invite_id: invite_id_wire.clone(),
+                consumed: false,
+                bundle: None,
+                invite_sig: None,
+                ticket: None,
+                handshake_done: false,
+            },
+        );
+        redemption_store_save(&rstore)?;
 
-    // (4) COMMIT BEFORE THE NETWORK.
-    rstore.redemptions.insert(
-        invite_id_wire.clone(),
-        RedemptionRecord {
-            invite_id: invite_id_wire.clone(),
-            consumed: false,
-            bundle: None,
-            invite_sig: None,
-            ticket: None,
-            handshake_done: false,
-        },
-    );
-    redemption_store_save(&rstore)?;
+        // (5) REDEEM. The capability is burned the instant this returns.
+        let (bundle, invite_sig, ticket) =
+            crate::transport::invite_redeem_call(&payload.relay_ep, &invite_id_wire, &cap_wire)?;
 
-    // (5) REDEEM. The capability is burned the instant this returns.
-    let (bundle, invite_sig, ticket) =
-        crate::transport::invite_redeem_call(&payload.relay_ep, &invite_id_wire, &cap_wire)?;
+        // (6) CACHE THE RESPONSE IMMEDIATELY. The relay cleared its copy in the same
+        // transaction, so without this a drop here strands us on a consumed invite forever.
+        let mut rstore = redemption_store_load()?;
+        rstore.redemptions.insert(
+            invite_id_wire.clone(),
+            RedemptionRecord {
+                invite_id: invite_id_wire.clone(),
+                consumed: true,
+                bundle: Some(URL_SAFE_NO_PAD.encode(&bundle)),
+                invite_sig: Some(URL_SAFE_NO_PAD.encode(&invite_sig)),
+                ticket: Some(ticket.clone()),
+                handshake_done: false,
+            },
+        );
+        redemption_store_save(&rstore)?;
 
-    // (6) CACHE THE RESPONSE IMMEDIATELY. The relay cleared its copy in the same
-    // transaction, so without this a drop here strands us on a consumed invite forever.
-    let mut rstore = redemption_store_load()?;
-    rstore.redemptions.insert(
-        invite_id_wire.clone(),
-        RedemptionRecord {
-            invite_id: invite_id_wire.clone(),
-            consumed: true,
-            bundle: Some(URL_SAFE_NO_PAD.encode(&bundle)),
-            invite_sig: Some(URL_SAFE_NO_PAD.encode(&invite_sig)),
-            ticket: Some(ticket.clone()),
-            handshake_done: false,
-        },
-    );
-    redemption_store_save(&rstore)?;
+        (bundle, invite_sig, ticket)
+    };
 
     // (7) VERIFY: commitment THEN signature, each gating the next.
     let (peer_kem_pk, peer_sig_pk) =
@@ -1281,7 +1326,8 @@ pub fn invite_redeem_at(
     // (8) PENDING contact (I5). The route token is the invite SLOT -- the only address we
     // have -- and it is replaced by the peer's real token when the response envelope
     // arrives. Storing the slot is honest: it IS where A1 goes.
-    let fp = crate::contacts::contacts_provision_from_invite(
+    let fp = provision_or_resume(
+        self_label,
         alias,
         &peer_kem_pk,
         &peer_sig_pk,
@@ -1507,7 +1553,11 @@ pub fn invite_accept_at(
     let rec = store.invites.get(invite_id_wire).ok_or(INVITE_NOT_FOUND)?;
     match rec.state {
         // Client-side single use, and it survives a relay that replays the slot.
-        InviteState::Redeemed => return Err(INVITE_ALREADY_REDEEMED),
+        InviteState::Redeemed
+            if !crate::handshake::hs_invite_lifecycle_present(self_label, alias)? =>
+        {
+            return Err(INVITE_ALREADY_REDEEMED);
+        }
         InviteState::Revoked => return Err(INVITE_REVOKED_LOCALLY),
         _ => {}
     }
@@ -1528,16 +1578,20 @@ pub fn invite_accept_at(
     // ADVERSARIAL clause rather than ENG-0196's non-adversarial one. Named, not fixed.
     let consumed_id = item.id.clone();
     let env = decode_envelope(&item.data)?;
+    crate::adversarial::route::normalize_route_token(&env.route_token)?;
     let (peer_kem_pk, peer_sig_pk) = canonical_bundle_parse(&env.bundle)?;
 
     // Provision BEFORE processing A1. The responder pins the initiator's full identity
     // against this record, so if the envelope's bundle and A1's keys disagree the handshake
     // fails closed -- which is the integrity link between the envelope and the frame.
-    let fp = crate::contacts::contacts_provision_from_invite(
+    // Pending contacts hold the owned slot as a temporary route; the offered
+    // route stays only in the capsule until authentication. Existing rows survive.
+    let fp = provision_or_resume(
+        self_label,
         alias,
         &peer_kem_pk,
         &peer_sig_pk,
-        &env.route_token,
+        invite_id_wire,
         &relay_ep,
         invite_id_wire,
     )?;
@@ -1556,7 +1610,11 @@ pub fn invite_accept_at(
         &env.route_token,
         max,
         HandshakeSuiteMode::LegacyCompat,
-        crate::handshake::HsPollSource::Provided(std::slice::from_ref(&a1_item)),
+        crate::handshake::HsPollSource::Invitation {
+            items: std::slice::from_ref(&a1_item),
+            envelope: &item.data,
+            mailbox: invite_id_wire,
+        },
         // B1 rides back wrapped, carrying OUR route token, because the slot's ticket is
         // burned and the initiator otherwise has no address for us.
         Some(crate::handshake::HsReplyWrap {
@@ -1666,6 +1724,8 @@ pub fn invite_finish(
     // pull instead: the best achievable floor for an informed user on such a relay rises from
     // 1 to 16, permanently. `ENG-0043`'s open "restate the old-server fallback story" is the
     // home for that story and this lane makes it MORE owed, not less.
+    // Resume this lifecycle's durable A2 obligation even while its input is leased.
+    crate::handshake::hs_invite_resume(self_label, alias)?;
     let (resp_item, hs_items) = finish_scan_select_invite_resp(&relay_ep, &self_inbox, max)?;
     for hs in hs_items {
         let hs_id = hs.id.clone();
@@ -1675,7 +1735,9 @@ pub fn invite_finish(
         // session blob would otherwise make that contact a PERMANENT fan-out candidate. It is
         // MARKED and skipped.
         let mut cands: Vec<String> = Vec::new();
-        if matches!(crate::protocol_state::qsp_session_load(alias), Ok(None)) {
+        if matches!(crate::protocol_state::qsp_session_load(alias), Ok(None))
+            || crate::handshake::hs_invite_lifecycle_present(self_label, alias).unwrap_or(false)
+        {
             cands.push(alias.to_string());
         }
         if let Ok(entries) = crate::contacts::contacts_list_entries() {
@@ -1685,6 +1747,12 @@ pub fn invite_finish(
                 }
                 match crate::protocol_state::qsp_session_load(&label) {
                     Ok(None) => cands.push(label),
+                    Ok(Some(_))
+                        if crate::handshake::hs_invite_lifecycle_present(self_label, &label)
+                            .unwrap_or(false) =>
+                    {
+                        cands.push(label)
+                    }
                     Ok(Some(_)) => {}
                     Err(_) => crate::output::emit_marker(
                         "invite_finish_hs_skip",
@@ -1715,7 +1783,7 @@ pub fn invite_finish(
             // ⚠ An unreadable witness is NEVER "not present": it is marked and the frame is
             // NOT acked (the fail-safe direction -- an unacked frame is redelivered; a
             // wrongly-acked frame is destroyed).
-            let before = match witness_shapes(self_label, cand) {
+            let _before = match witness_shapes(self_label, cand) {
                 Ok(v) => v,
                 Err(code) => {
                     crate::output::emit_marker(
@@ -1774,7 +1842,12 @@ pub fn invite_finish(
             };
             // SESSION appeared (responder branch) OR PENDING appeared (no-pending branch,
             // which also pushed a B1). Either is a durable commit caused by THIS frame.
-            if (!before.0 && after.0) || (!before.1 && after.1) {
+            if matches!(
+                offer,
+                Ok(crate::handshake::PollOutcome::Consumed
+                    | crate::handshake::PollOutcome::AlreadyComplete)
+            ) && (after.0 || after.1)
+            {
                 consumed_by = Some(cand.clone());
                 break;
             }
@@ -1811,7 +1884,11 @@ pub fn invite_finish(
         fields.push(("offered", offered_s.as_str()));
         fields.push((
             "consumed",
-            if consumed_by.is_some() { "true" } else { "false" },
+            if consumed_by.is_some() {
+                "true"
+            } else {
+                "false"
+            },
         ));
         crate::output::emit_marker("invite_finish_hs_offer", None, &fields);
         if consumed_by.is_some() {
@@ -1854,9 +1931,8 @@ pub fn invite_finish(
     // consumed and nothing else.
     let consumed_id = item.id.clone();
     let (peer_route_token, b1) = decode_envelope_resp(&item.data)?;
-    // The peer's real address, announced in-session and authenticated by the handshake that
-    // follows -- never by re-invite (P3).
-    crate::contacts::contacts_set_route_token(alias, &peer_route_token)?;
+    // Keep this route with the exact envelope until the matching B1 authenticates.
+    // The current wire does not cryptographically bind the outer route string.
     let b1_item = crate::InboxPullItem {
         id: item.id,
         data: b1,
@@ -1870,7 +1946,11 @@ pub fn invite_finish(
         &peer_route_token,
         max,
         HandshakeSuiteMode::LegacyCompat,
-        crate::handshake::HsPollSource::Provided(std::slice::from_ref(&b1_item)),
+        crate::handshake::HsPollSource::Invitation {
+            items: std::slice::from_ref(&b1_item),
+            envelope: &item.data,
+            mailbox: &self_inbox,
+        },
         // A2 goes bare to the peer's now-known token: ordinary routing from here on.
         None,
     )?;
@@ -1885,8 +1965,12 @@ pub fn invite_finish(
         // above, which is a call-site property because `producer_ack` bypasses the receive loop's
         // mechanical ack-eligibility check.
         debug_assert!(
-            crate::contacts::relay_peer_route_token(alias).as_deref()
-                == Ok(peer_route_token.as_str()),
+            matches!(
+                outcome,
+                crate::handshake::PollOutcome::NotConsumed
+                    | crate::handshake::PollOutcome::CompletionObserved
+            ) || crate::contacts::relay_peer_route_token(alias).as_deref()
+                    == Ok(peer_route_token.as_str()),
             "NA-0742 guard 1 (finish): the contact's stored route token must be the one the \
              consumed RESP carried before that frame may be acked"
         );
@@ -1921,8 +2005,11 @@ pub fn invite_finish(
     // it finished on an earlier pass. Reporting `none` there would mean "the reply has not
     // arrived yet", which is false. A REJECTED handshake still yields `NotConsumed` and still
     // reports `none`, so the `ENG-0278`-converse cure at `RULING_004` is untouched.
+    // Completion reporting alone never grants the ACK permission checked above.
     Ok(matches!(
         outcome,
-        crate::handshake::PollOutcome::Consumed | crate::handshake::PollOutcome::AlreadyComplete
+        crate::handshake::PollOutcome::Consumed
+            | crate::handshake::PollOutcome::AlreadyComplete
+            | crate::handshake::PollOutcome::CompletionObserved
     ))
 }

@@ -70,20 +70,20 @@ pub enum Cmd {
         /// Path to payload file.
         #[arg(long, value_name = "PATH")]
         file: Option<PathBuf>,
-        /// Pad to a specific envelope size (bounded; explicit-only).
+        /// Unsupported directional padding option; explicit requests refuse before effects.
         #[arg(long, value_name = "BYTES")]
         pad_to: Option<usize>,
-        /// Pad to a standard size class (bounded; explicit-only).
+        /// Unsupported directional padding option; explicit requests refuse before effects.
         #[arg(long, value_enum)]
         pad_bucket: Option<MetaPadBucket>,
-        /// Deterministic metadata seed (explicit-only).
+        /// Unsupported directional seed option; explicit requests refuse.
         #[arg(long)]
         meta_seed: Option<u64>,
         /// Metadata bucket ceiling in bytes (marker-only).
         #[arg(long)]
         bucket_max: Option<usize>,
-        /// Delivered-receipt request: omit to follow the configured receipt policy,
-        /// `off` to request none for this message, `delivered` to request one.
+        /// Directional delivery receipts are mandatory: omit or select delivered.
+        /// Explicit off refuses before queue or network effects.
         #[arg(long, value_enum)]
         receipt: Option<ReceiptRequest>,
     },
@@ -95,10 +95,10 @@ pub enum Cmd {
         /// Relay base URL (http/https) for inbox transport.
         #[arg(long)]
         relay: Option<String>,
-        /// Legacy receive mode for `file_chunk` / `file_manifest` (`retired` becomes the validated post-`w0` default once attachment-service config is present; `coexistence` no longer restores coexistence there).
+        /// Only retired is supported; explicit coexistence refuses in the directional profile.
         #[arg(long, value_enum)]
         legacy_receive_mode: Option<LegacyReceiveMode>,
-        /// Attachment service base URL override/diagnostic for the streaming attachment path (supplying it activates the validated post-`w0` receive lane).
+        /// Unsupported in this directional slice; explicit attachment-service requests refuse.
         #[arg(long)]
         attachment_service: Option<String>,
         /// Protocol peer label/session key used for decrypt context.
@@ -110,10 +110,10 @@ pub enum Cmd {
         /// Max items to pull (bounded).
         #[arg(long)]
         max: Option<usize>,
-        /// Maximum inbound file size in bytes (bounded).
+        /// Unsupported file-transfer option in the directional profile; explicit requests refuse.
         #[arg(long)]
         max_file_size: Option<usize>,
-        /// Maximum inbound file chunks per transfer (bounded).
+        /// Unsupported file-transfer option in the directional profile; explicit requests refuse.
         #[arg(long)]
         max_file_chunks: Option<usize>,
         /// Output directory for received items.
@@ -140,26 +140,25 @@ pub enum Cmd {
         /// Max items per poll tick (bounded).
         #[arg(long, hide = true)]
         poll_max_per_tick: Option<u32>,
-        /// Metadata bucket ceiling in bytes.
+        /// Unsupported directional bucketing option; explicit requests refuse.
         #[arg(long)]
         bucket_max: Option<usize>,
-        /// Deterministic metadata seed (explicit-only).
+        /// Unsupported directional seed option; explicit requests refuse.
         #[arg(long)]
         meta_seed: Option<u64>,
-        /// Force IMMEDIATE delivered-receipt emission after unpack. Receipts are emitted by
-        /// default (batched); use --receipt-mode off to suppress them.
+        /// Select the directional profile's mandatory immediate delivery receipt.
         #[arg(long, value_enum)]
         emit_receipts: Option<ReceiptKind>,
-        /// Receipt emission mode (default from account policy).
+        /// Directional receipts are mandatory and immediate; off/batched explicitly refuse.
         #[arg(long, value_enum)]
         receipt_mode: Option<ReceiptMode>,
-        /// Batch window in ms for receipt_mode=batched.
+        /// Unsupported directional receipt batching option; explicit requests refuse.
         #[arg(long, value_name = "MS")]
         receipt_batch_window_ms: Option<u64>,
-        /// Deterministic jitter range in ms for receipt_mode=batched.
+        /// Unsupported directional receipt ordering option; explicit requests refuse.
         #[arg(long, value_name = "MS")]
         receipt_jitter_ms: Option<u64>,
-        /// File confirmation emission mode (default from account policy).
+        /// Unsupported directional file-confirmation option; explicit requests refuse.
         #[arg(long, value_enum)]
         file_confirm_mode: Option<FileConfirmMode>,
     },
@@ -273,26 +272,9 @@ pub enum ReceiptKind {
     Delivered,
 }
 
-/// What the CALLER of `qsc send` asked for, as a THREE-state value — NA-0688 C3 (D622 R1b,
-/// operator ruling on STOP #016 option (a)).
-///
-/// ⚠ THE THIRD STATE IS THE POINT, AND IT DID NOT EXIST BEFORE THIS COMMIT. `--receipt` used to
-/// be `Option<ReceiptKind>` over a one-variant enum, so "absent" was the only way to say "no
-/// receipt". Once absent means **the policy default**, that spelling is taken — and without an
-/// explicit `off` the per-message opt-out would simply disappear. The ruling requires that
-/// *"explicit `--receipt off` must still mean off, verbatim, end to end"*, so the spelling has to
-/// exist for the sentence to be true.
-///
-/// | value | meaning |
-/// |---|---|
-/// | absent | resolve against `ReceiptPolicy` — ON unless the user turned receipts off |
-/// | `off` | request NO receipt, verbatim, whatever the policy says |
-/// | `delivered` | request one, verbatim, whatever the policy says |
-///
-/// ⚠ This is the CLI's vocabulary, not the wire's. It resolves to `Option<ReceiptKind>` at one
-/// place (`resolve_sender_receipt_request`) and `ReceiptKind` keeps meaning exactly what it
-/// meant: a kind of receipt that exists on the wire. `None` downstream still means "raw body, no
-/// data control envelope, nothing an ack can be provoked by".
+/// Directional delivery receipts are mandatory. Omission and Delivered select
+/// the fixed profile; Off remains parseable so the caller receives an explicit
+/// unsupported-policy refusal before any queue/network effects.
 #[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReceiptRequest {
     Off,
@@ -804,7 +786,7 @@ pub enum MetaCmd {
         /// Interval between ticks in ms.
         #[arg(long, default_value_t = crate::META_INTERVAL_MS_DEFAULT)]
         interval_ms: u64,
-        /// Metadata bucket ceiling in bytes.
+        /// Unsupported directional bucketing option; explicit requests refuse.
         #[arg(long, default_value_t = crate::META_BUCKET_MAX_DEFAULT)]
         bucket_max: usize,
         /// Max batch count per tick.

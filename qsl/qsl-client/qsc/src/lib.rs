@@ -10,21 +10,13 @@ use quantumshield_refimpl::crypto::stdcrypto::{
     StdCrypto,
 };
 use quantumshield_refimpl::crypto::traits::{
-    Hash, Kmac, PqKem768, PqSigMldsa65, X25519Dh, X25519Priv, X25519Pub,
+    Hash, PqKem768, PqSigMldsa65, X25519Dh, X25519Priv, X25519Pub,
 };
-use quantumshield_refimpl::qse::{Envelope, EnvelopeProfile};
 use quantumshield_refimpl::suite2::establish::init_from_base_handshake;
-use quantumshield_refimpl::suite2::ratchet::Suite2RecvWireState;
-use quantumshield_refimpl::suite2::ratchet::{
-    recv_dh_boundary, recv_pq_adv_session, recv_pq_reseed, send_boundary, send_pq_advertise,
-    send_pq_reseed,
-};
 use quantumshield_refimpl::suite2::state::Suite2SessionState;
 use quantumshield_refimpl::suite2::types::{
-    FLAG_BOUNDARY, FLAG_PQ_ADV, FLAG_PQ_CTXT, SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID,
+    SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID,
 };
-use quantumshield_refimpl::suite2::{decode_suite2_wire_canon, recv_wire_canon, send_wire_canon};
-use quantumshield_refimpl::RefimplError;
 use rand_core::{OsRng, RngCore};
 use reqwest::blocking::Client as HttpClient;
 use reqwest::StatusCode as HttpStatus;
@@ -94,6 +86,7 @@ const RECEIPT_JITTER_MS_MAX: u64 = 5_000;
 const ATTACHMENT_DESCRIPTOR_VERSION: u8 = 1;
 const ATTACHMENT_DESCRIPTOR_TYPE: &str = "attachment_descriptor";
 const ATTACHMENT_CONFIRM_KIND: &str = "attachment_confirmed";
+#[cfg(test)]
 const ATTACHMENT_LOCATOR_KIND_V1: &str = "service_ref_v1";
 const ATTACHMENT_INTEGRITY_ALG_V1: &str = "sha512_merkle_v1";
 const ATTACHMENT_ENC_CTX_ALG_V1: &str = "chacha20poly1305_part_v1";
@@ -139,6 +132,8 @@ pub mod quarantine;
 pub mod relay;
 pub mod store;
 pub mod timeline;
+mod directional_core;
+mod directional_delivery;
 pub mod transport;
 pub mod vault;
 
@@ -170,23 +165,22 @@ use output::{
     emit_cli_named_marker, emit_marker, emit_tui_named_marker, print_marker, };
 use protocol_state::{
     kmac_out, protocol_active_or_reason_for_peer,
-    protocol_inactive_error, qsp_scka_load, qsp_scka_store, qsp_send_ready_tuple,
-    qsp_session_for_channel, qsp_session_load, qsp_session_store,
-    qsp_session_store_with_trigger, qsp_trigger_load, record_qsp_status,
-    zero32, QspTriggerState, SckaLocalState, SckaPeerAdv, SendOrigination, QSP_DH_FALLBACK_N,
-    QSP_DH_FALLBACK_T_SECS, QSP_PQ_RESEED_N, QSP_PQ_RESEED_T_SECS,
+    protocol_inactive_error, qsp_send_ready_tuple,
+    qsp_session_load, qsp_session_store,
+    qsp_session_store_with_trigger, record_qsp_status,
+    QspTriggerState, SendOrigination,
 };
 use relay::*;
 use store::*;
 use timeline::{
-    apply_attachment_peer_confirmation, apply_file_peer_confirmation,
+    apply_file_peer_confirmation,
     apply_message_peer_confirmation, emit_cli_confirm_policy, emit_cli_delivery_state_with_device,
     emit_cli_file_delivery_with_device, emit_cli_receipt_ignored_wrong_device,
-    emit_message_state_reject, emit_tui_delivery_state_with_device,
-    emit_tui_file_delivery_with_device, emit_tui_receipt_ignored_wrong_device,
+    emit_message_state_reject,
+
     file_delivery_short_id, file_transfer_confirm_id,
     file_transfer_upsert_outbound_record, latest_outbound_file_id,
-    timeline_append_entry, timeline_append_entry_for_target, timeline_store_load, timeline_store_save, ConfirmApplyOutcome, MessageState,
+    timeline_append_entry, timeline_append_entry_for_target, ConfirmApplyOutcome, MessageState,
 };
 
 static VAULT_UNLOCKED_THIS_RUN: AtomicBool = AtomicBool::new(false);
@@ -656,23 +650,10 @@ struct QspPackError {
     reason: Option<&'static str>,
 }
 
-struct QspUnpackOutcome {
-    plaintext: Vec<u8>,
-    next_state: Suite2SessionState,
-    trigger: QspTriggerState,
-    msg_idx: u32,
-    skip_delta: usize,
-    evicted: usize,
-    /// NA-0624: an SCKA control message (peer advertisement) — commit state, but there is no
-    /// application payload (the frozen receiver has no ADV body decrypt path).
-    is_control: bool,
-}
 
-const MKSKIPPED_CAP_DEFAULT: usize = 32;
 const POLL_INTERVAL_MS_MAX: u64 = 60_000;
 const POLL_TICKS_MAX: u32 = 64;
 const POLL_MAX_PER_TICK_MAX: u32 = 32;
-const PAD_TO_MAX: usize = 65_536;
 const META_TICK_COUNT_DEFAULT: u32 = 1;
 const META_INTERVAL_MS_DEFAULT: u64 = 1_000;
 const META_BATCH_MAX_COUNT_DEFAULT: u32 = 1;
@@ -687,33 +668,7 @@ pub struct MetaPollConfig {
     pub deterministic: bool,
 }
 
-#[derive(Clone, Copy)]
-pub struct MetaPadConfig {
-    target_len: Option<usize>,
-    profile: Option<EnvelopeProfile>,
-    label: Option<&'static str>,
-}
 
-fn mkskipped_cap() -> usize {
-    let cap = env::var("QSC_MKSKIPPED_CAP")
-        .ok()
-        .and_then(|v| v.parse::<usize>().ok())
-        .unwrap_or(MKSKIPPED_CAP_DEFAULT);
-    cap.clamp(1, 1000)
-}
-
-fn bound_mkskipped(st: &mut Suite2RecvWireState) -> usize {
-    let cap = mkskipped_cap();
-    if st.mkskipped.len() <= cap {
-        return 0;
-    }
-    st.mkskipped.sort_by_key(|e| e.n);
-    let excess = st.mkskipped.len().saturating_sub(cap);
-    if excess > 0 {
-        st.mkskipped.drain(0..excess);
-    }
-    excess
-}
 
 pub fn meta_poll_config_from_args(args: MetaPollArgs) -> Result<Option<MetaPollConfig>, &'static str> {
     let MetaPollArgs {
@@ -819,13 +774,7 @@ impl ReceiptEmitMode {
         }
     }
 
-    fn from_arg(value: ReceiptMode) -> Self {
-        match value {
-            ReceiptMode::Off => Self::Off,
-            ReceiptMode::Batched => Self::Batched,
-            ReceiptMode::Immediate => Self::Immediate,
-        }
-    }
+
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -850,12 +799,7 @@ impl FileConfirmEmitMode {
         }
     }
 
-    fn from_arg(value: FileConfirmMode) -> Self {
-        match value {
-            FileConfirmMode::Off => Self::Off,
-            FileConfirmMode::CompleteOnly => Self::CompleteOnly,
-        }
-    }
+
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -930,14 +874,6 @@ impl Default for ReceiptPolicy {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default)]
-struct ReceiptPolicyOverrides {
-    emit_receipts: Option<ReceiptKind>,
-    receipt_mode: Option<ReceiptMode>,
-    receipt_batch_window_ms: Option<u64>,
-    receipt_jitter_ms: Option<u64>,
-    file_confirm_mode: Option<FileConfirmMode>,
-}
 
 fn parse_receipt_batch_window_ms(value: &str) -> Option<u64> {
     let parsed = value.trim().parse::<u64>().ok()?;
@@ -1056,111 +992,12 @@ pub fn load_receipt_policy_from_account() -> ReceiptPolicy {
     policy
 }
 
-/// THE SENDER-SIDE RULE, IN ONE PLACE — NA-0688 C3 (D622 R1b; operator ruling on STOP #016,
-/// option (a)). **Every production `RelayMessageSender` gets its receipt request from here.**
-///
-/// ⚠ WHY IT HAS TO BE ONE FUNCTION, AND WHY IT LIVES HERE RATHER THAN IN `with_meta`.
-/// The C3 flip was first written as a new default on `RelayMessageSender::new`, and MEASUREMENT
-/// showed it never reached the wire: `qsc send` builds its sender with `.with_meta(…, receipt)`,
-/// and `with_meta` assigns the caller's choice UNCONDITIONALLY, so an absent `--receipt`
-/// overwrote the new default microseconds after it was set. Meanwhile `qsc outbox retry` and
-/// `qsc outbox discard`, which do NOT call `with_meta`, DID inherit it — so the very same queued
-/// row could go out with or without a receipt request depending on which command drained it.
-///
-/// The fix is NOT to make `with_meta` conditional. `with_meta` takes the caller's choice
-/// **verbatim in both directions**, that contract is pinned, and it is what lets a caller
-/// deliberately disable a receipt. The fix is to resolve the caller's choice BEFORE handing it
-/// over, at every construction site, through this one function — so "absent" cannot mean
-/// different things on different paths.
-///
-/// | input | result | why |
-/// |---|---|---|
-/// | `None` (no flag) | the POLICY default | R1b: the sender half is only ON if a default send actually asks |
-/// | `Some(Off)` | `None` | explicit off is verbatim and beats the policy |
-/// | `Some(Delivered)` | `Some(Delivered)` | explicit on is verbatim and beats the policy |
-///
-/// ⚠ **The policy consulted is the SAME `ReceiptPolicy` the recipient half honours**, so a user
-/// who turns receipts off persistently turns off both asking and answering with one setting —
-/// rather than discovering that a switch labelled "delivery receipts" only moved one half.
-/// `load_receipt_policy_from_account` returns the compiled-in default when the vault is locked,
-/// so this is safe to call before unlock and in unit tests.
-///
-/// ⚠ **RESIDUAL, recorded not solved — and NARROWER than it first looked.** This resolves per
-/// INVOCATION and a queued row carries no field for the caller's choice, so the obvious worry is
-/// that an explicit `--receipt off` is forgotten by a later retry. **Measurement says otherwise
-/// for the normal case:** `msgqueue::attempt_one` packs a record **at most once in its life** and
-/// every later attempt REPLAYS the same bytes verbatim (a crypto-safety invariant — re-packing
-/// would burn a second message key), and `receipt_kind` is consumed at PACK time. So the caller's
-/// choice is already persisted, as packed ciphertext rather than as a field, and a retry cannot
-/// change it.
-///
-/// The gap is only this: a record whose FIRST PACK FAILED is still unpacked when a retry runs, so
-/// that retry resolves against the policy and an explicit `off` would be lost. Filed under
-/// ENG-0096, where the row schema gains fields anyway.
-pub(crate) fn resolve_sender_receipt_request(explicit: Option<ReceiptRequest>) -> Option<ReceiptKind> {
-    match explicit {
-        Some(ReceiptRequest::Off) => None,
-        Some(ReceiptRequest::Delivered) => Some(ReceiptKind::Delivered),
-        None => match load_receipt_policy_from_account().mode {
-            ReceiptEmitMode::Off => None,
-            ReceiptEmitMode::Batched | ReceiptEmitMode::Immediate => Some(ReceiptKind::Delivered),
-        },
-    }
-}
-
-fn resolve_receipt_policy(overrides: ReceiptPolicyOverrides) -> ReceiptPolicy {
-    let mut policy = load_receipt_policy_from_account();
-    if overrides.emit_receipts.is_some() {
-        policy.mode = ReceiptEmitMode::Immediate;
-        policy.file_confirm_mode = FileConfirmEmitMode::CompleteOnly;
-    }
-    if let Some(mode) = overrides.receipt_mode {
-        policy.mode = ReceiptEmitMode::from_arg(mode);
-    }
-    if let Some(ms) = overrides.receipt_batch_window_ms {
-        policy.batch_window_ms = ms.clamp(1, RECEIPT_BATCH_WINDOW_MS_MAX);
-    }
-    if let Some(ms) = overrides.receipt_jitter_ms {
-        policy.jitter_ms = ms.min(RECEIPT_JITTER_MS_MAX);
-    }
-    if let Some(mode) = overrides.file_confirm_mode {
-        policy.file_confirm_mode = FileConfirmEmitMode::from_arg(mode);
-    }
-    if policy.mode != ReceiptEmitMode::Batched {
-        policy.batch_window_ms = RECEIPT_BATCH_WINDOW_MS_DEFAULT;
-        policy.jitter_ms = RECEIPT_JITTER_MS_DEFAULT;
-    }
-    policy
-}
-
 fn receipt_kind_str(kind: ReceiptKind) -> &'static str {
     match kind {
         ReceiptKind::Delivered => "delivered",
     }
 }
 
-
-/// NA-0682: wrap a body in the data control envelope using a CALLER-SUPPLIED `msg_id`.
-///
-/// ⚠ The id must be the MESSAGE QUEUE RECORD's `msg_id`, not a fresh mint. That is what
-/// makes the delivery-ack correlate to the queued row: the peer echoes this id back, and
-/// the sender flips exactly that record SENT -> DELIVERED. Minting a second id here would
-/// leave the ack pointing at nothing.
-pub(crate) fn encode_data_payload_with_id(
-    payload: Vec<u8>,
-    kind: ReceiptKind,
-    msg_id: &str,
-) -> CliResult<Vec<u8>> {
-    let ctrl = ReceiptControlPayload {
-        v: CTRL_VERSION,
-        t: "data".to_string(),
-        kind: receipt_kind_str(kind).to_string(),
-        msg_id: msg_id.to_string(),
-        body: Some(payload),
-        ns: Some(adversarial::payload::CTRL_NS.to_string()),
-    };
-    serde_json::to_vec(&ctrl).map_err(|_| CliError::code("receipt_encode_failed"))
-}
 
 fn encode_receipt_data_payload(
     payload: Vec<u8>,
@@ -1226,9 +1063,6 @@ fn emit_tui_receipt_policy_event(
     );
 }
 
-fn parse_receipt_payload(plaintext: &[u8]) -> Option<ReceiptControlPayload> {
-    adversarial::payload::parse_receipt_payload(plaintext)
-}
 
 fn build_delivered_ack(msg_id: &str) -> CliResult<Vec<u8>> {
     let ack = ReceiptControlPayload {
@@ -1244,125 +1078,13 @@ fn build_delivered_ack(msg_id: &str) -> CliResult<Vec<u8>> {
 
 #[derive(Clone, Debug)]
 enum PendingReceipt {
-    Message {
-        msg_id: String,
-    },
-    FileComplete {
-        file_id: String,
-        confirm_id: String,
-    },
     AttachmentComplete {
         attachment_id: String,
         confirm_handle: String,
     },
 }
 
-/// The DATA-ENVELOPE receipt obligation, honoured independently of what the inner body turned
-/// out to be — NA-0688 C3 (D622; operator ruling on STOP #018, Gate 2 item 1).
-///
-/// ⚠ WHY THIS EXISTS AS ITS OWN CALL. Under transparent framing the envelope is unwrapped before
-/// the typed-payload dispatch runs, and the typed branches (`attachment_descriptor`,
-/// `file_chunk`/`file_manifest`, the two confirms) all `continue` **before** the generic
-/// user-message path — which is where the delivery receipt used to be queued. Re-dispatching
-/// without this call would have silently dropped the receipt for every wrapped typed payload:
-/// the sender would sit on SENT forever for exactly the messages that carry a file.
-///
-/// **The rule, ruled rather than improvised: acking is INDEPENDENT of inner dispatch.** If the
-/// envelope asked for a receipt, the receipt is owed, whatever the body turned out to be — a
-/// manifest, a confirm, an ack, or an ordinary message. `request_msg_id` is the ENVELOPE's id,
-/// never anything read out of the body.
-fn queue_envelope_receipt(
-    ctx: &ReceivePullCtx<'_>,
-    queue: &mut Vec<PendingReceipt>,
-    request_receipt: bool,
-    request_msg_id: &str,
-) -> CliResult {
-    if request_receipt && !request_msg_id.is_empty() {
-        queue_or_send_receipt(
-            ctx,
-            queue,
-            PendingReceipt::Message {
-                msg_id: request_msg_id.to_string(),
-            },
-        )?;
-    }
-    Ok(())
-}
 
-fn queue_or_send_receipt(
-    ctx: &ReceivePullCtx<'_>,
-    queue: &mut Vec<PendingReceipt>,
-    item: PendingReceipt,
-) -> CliResult {
-    let kind = match item {
-        PendingReceipt::Message { .. } => "message",
-        PendingReceipt::FileComplete { .. } => "file_complete",
-        PendingReceipt::AttachmentComplete { .. } => "attachment_complete",
-    };
-    // NA-0682 (D617 F6): with acks ON by default, we now attempt them for every received
-    // message -- including from peers we have no route BACK to.
-    //
-    // ⚠ Do not attempt an ack that cannot be sent. A one-way contact (added without a route
-    // token, or still pending) has no reverse route, so the attempt can only ever fail. It
-    // failed SOFTLY and non-fatally, but it emitted `receipt_send_failed
-    // code=QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED` into the receive stream on every message --
-    // noise that says nothing a caller can act on, and that a substring-based secret scan
-    // reasonably flags because the CODE NAME contains "TOKEN".
-    //
-    // Skipping quietly is both quieter and more correct: an ack we structurally cannot
-    // deliver is not a failure to report, it is a thing not to attempt. The sender simply
-    // stays at SENT, which is the honest state -- we have no way to tell them otherwise.
-    if matches!(item, PendingReceipt::Message { .. }) && relay_peer_route_token(ctx.from).is_err() {
-        emit_marker(
-            "receipt_skipped",
-            None,
-            &[("reason", "no_reverse_route"), ("kind", kind)],
-        );
-        return Ok(());
-    }
-    match ctx.receipt_policy.mode {
-        ReceiptEmitMode::Off => {
-            emit_cli_receipt_policy_event(ctx.receipt_policy.mode, "skipped", kind, ctx.from);
-            emit_tui_receipt_policy_event(ctx.receipt_policy.mode, "skipped", kind, ctx.from);
-            emit_marker(
-                "receipt_disabled",
-                None,
-                &[("mode", ctx.receipt_policy.mode.as_str()), ("kind", kind)],
-            );
-        }
-        ReceiptEmitMode::Immediate => {
-            send_pending_receipt(ctx, item)?;
-        }
-        ReceiptEmitMode::Batched => {
-            queue.push(item);
-            emit_cli_receipt_policy_event(ctx.receipt_policy.mode, "queued", kind, ctx.from);
-            emit_tui_receipt_policy_event(ctx.receipt_policy.mode, "queued", kind, ctx.from);
-        }
-    }
-    Ok(())
-}
-
-/// Is our SENDING chain to this peer still unseeded (i.e. we have never sent to them)?
-///
-/// ⚠ Read-only, and it must stay that way — this is consulted on the receive path purely to
-/// decide whether an ack can ride at all. A missing session reads as "unseeded", which is the
-/// conservative answer: it defers the receipt rather than attempting a send that cannot work.
-fn qsp_send_chain_unseeded(peer: &str) -> bool {
-    match qsp_session_for_channel(peer) {
-        Ok(st) => zero32(&st.send.ck_ec) || zero32(&st.send.ck_pq),
-        Err(_) => true,
-    }
-}
-
-/// Flush every receipt owed to a peer, now that our sending chain exists.
-///
-/// ⚠ CALLED FROM THE SEND PATH, AND THAT COUPLING IS INTRINSIC RATHER THAN INCIDENTAL: the first
-/// real send is the exact moment an owed receipt becomes sendable, because it is the thing that
-/// establishes the chain. The consult is read-only from the send path's point of view apart from
-/// the removal, and the common case (nothing owed) costs one read and no write.
-///
-/// A receipt that still cannot be sent is RE-RECORDED rather than dropped — a failed flush must
-/// not be a silent loss, which is the whole reason the hold exists.
 pub(crate) fn flush_owed_receipts(peer: &str, relay: &str) {
     if !owed_receipts::any_owed(peer) {
         return;
@@ -1407,105 +1129,6 @@ pub(crate) fn flush_owed_receipts(peer: &str, relay: &str) {
 
 fn send_pending_receipt(ctx: &ReceivePullCtx<'_>, item: PendingReceipt) -> CliResult {
     match item {
-        PendingReceipt::Message { msg_id } => {
-            // ⚠ NA-0688 — THE DEFERRAL, AND IT IS THE REASON THE A6 REVERSAL IS SAFE.
-            //
-            // With A6 reversed an ack can no longer establish a chain, so a message from a peer
-            // we have never sent to has nowhere to ride. Dropping it here was MEASURED to lose
-            // the first receipt of every conversation — the sender sits on SENT forever. Instead
-            // the obligation is written down durably and flushed on our first real send.
-            //
-            // The check is cheap and read-only in the common case: an established chain skips it
-            // entirely.
-            if qsp_send_chain_unseeded(ctx.from) {
-                match owed_receipts::record(ctx.from, &msg_id) {
-                    Ok(()) => {
-                        emit_marker(
-                            "receipt_owed",
-                            None,
-                            &[("reason", "chain_unseeded"), ("msg_id", "<redacted>")],
-                        );
-                        return Ok(());
-                    }
-                    // ⚠ A locked vault is a PAUSE, not a failure — the same degrade msgqueue
-                    // uses. The receipt stays owed in spirit but unrecorded; say so rather than
-                    // failing the receive, which would strand the MESSAGE as well as the ack.
-                    Err(code) => {
-                        emit_marker("receipt_owed_failed", Some(code), &[("code", code)]);
-                        return Ok(());
-                    }
-                }
-            }
-            match send_delivered_receipt_ack(ctx.relay, ctx.from, &msg_id) {
-                Ok(()) => {
-                    emit_marker(
-                        "receipt_send",
-                        None,
-                        &[
-                            ("kind", "delivered"),
-                            ("bucket", "small"),
-                            ("msg_id", "<redacted>"),
-                        ],
-                    );
-                    emit_cli_receipt_policy_event(
-                        ctx.receipt_policy.mode,
-                        "sent",
-                        "message",
-                        ctx.from,
-                    );
-                    emit_tui_receipt_policy_event(
-                        ctx.receipt_policy.mode,
-                        "sent",
-                        "message",
-                        ctx.from,
-                    );
-                }
-                Err(ReceiptSendError::Soft(code)) => {
-                    emit_marker("receipt_send_failed", Some(code), &[("code", code)])
-                }
-                Err(ReceiptSendError::Fatal(e)) => return Err(e),
-            }
-        }
-        PendingReceipt::FileComplete {
-            file_id,
-            confirm_id,
-        } => {
-            match send_file_completion_ack(
-                ctx.relay,
-                ctx.from,
-                file_id.as_str(),
-                confirm_id.as_str(),
-            ) {
-                Ok(()) => {
-                    let safe_file_id = file_delivery_short_id(file_id.as_str());
-                    emit_marker(
-                        "file_confirm_send",
-                        None,
-                        &[
-                            ("kind", "coarse_complete"),
-                            ("file_id", safe_file_id.as_str()),
-                            ("ok", "true"),
-                        ],
-                    );
-                    emit_cli_receipt_policy_event(
-                        ctx.receipt_policy.mode,
-                        "sent",
-                        "file_complete",
-                        ctx.from,
-                    );
-                    emit_tui_receipt_policy_event(
-                        ctx.receipt_policy.mode,
-                        "sent",
-                        "file_complete",
-                        ctx.from,
-                    );
-                }
-                Err(ReceiptSendError::Soft(code)) => {
-                    emit_marker("file_confirm_send_failed", Some(code), &[("code", code)])
-                }
-                Err(ReceiptSendError::Fatal(e)) => return Err(e),
-            }
-        }
         PendingReceipt::AttachmentComplete {
             attachment_id,
             confirm_handle,
@@ -1516,7 +1139,6 @@ fn send_pending_receipt(ctx: &ReceivePullCtx<'_>, item: PendingReceipt) -> CliRe
                 payload,
                 relay: ctx.relay,
                 injector: transport::fault_injector_from_env()?,
-                pad_cfg: None,
                 bucket_max: None,
                 meta_seed: None,
                 receipt: None,
@@ -1553,30 +1175,6 @@ fn flush_batched_receipts(ctx: &ReceivePullCtx<'_>, queue: &mut Vec<PendingRecei
     }
     // Deterministic ordering; jitter only affects stable sort priority.
     queue.sort_by_key(|item| match item {
-        PendingReceipt::Message { msg_id } => {
-            let bias = if ctx.receipt_policy.jitter_ms == 0 {
-                0
-            } else {
-                let mut acc: u64 = 0;
-                for b in msg_id.as_bytes() {
-                    acc = acc.wrapping_add(*b as u64);
-                }
-                acc % (ctx.receipt_policy.jitter_ms + 1)
-            };
-            (0u8, bias, msg_id.clone())
-        }
-        PendingReceipt::FileComplete { file_id, .. } => {
-            let bias = if ctx.receipt_policy.jitter_ms == 0 {
-                0
-            } else {
-                let mut acc: u64 = 0;
-                for b in file_id.as_bytes() {
-                    acc = acc.wrapping_add(*b as u64);
-                }
-                acc % (ctx.receipt_policy.jitter_ms + 1)
-            };
-            (1u8, bias, file_id.clone())
-        }
         PendingReceipt::AttachmentComplete { attachment_id, .. } => {
             let bias = if ctx.receipt_policy.jitter_ms == 0 {
                 0
@@ -1600,30 +1198,8 @@ fn flush_batched_receipts(ctx: &ReceivePullCtx<'_>, queue: &mut Vec<PendingRecei
 // NA-0646 (D582) PR-B: receipt sends fail SOFT (the caller emits *_send_failed and
 // continues) except the encode step, which was a fatal funnel exit. From impls route
 // both through the existing `?` sites unchanged.
-enum ReceiptSendError {
-    Soft(&'static str),
-    Fatal(CliError),
-}
-
-impl From<&'static str> for ReceiptSendError {
-    fn from(code: &'static str) -> Self {
-        ReceiptSendError::Soft(code)
-    }
-}
-
-impl From<CliError> for ReceiptSendError {
-    fn from(err: CliError) -> Self {
-        ReceiptSendError::Fatal(err)
-    }
-}
-
-fn send_delivered_receipt_ack(relay: &str, to: &str, msg_id: &str) -> Result<(), ReceiptSendError> {
+fn send_delivered_receipt_ack(relay: &str, to: &str, msg_id: &str) -> CliResult {
     let payload = build_delivered_ack(msg_id)?;
-    let pad_cfg = Some(MetaPadConfig {
-        target_len: None,
-        profile: Some(EnvelopeProfile::Standard),
-        label: Some("small"),
-    });
     // ⚠ ENG-0095 — THE ORDER OF THE NEXT FOUR STATEMENTS IS A CRYPTO INVARIANT.
     //
     // This used to pack, push, and only THEN commit. A push failure therefore abandoned a
@@ -1643,127 +1219,29 @@ fn send_delivered_receipt_ack(relay: &str, to: &str, msg_id: &str) -> Result<(),
     //   4. only then push.
     // A push failure now BURNS the index: same semantics as the user send path, absorbed by
     // the recipient's skipped-key machinery, and self-healing once lease is the default (C4).
-    let route_token = relay_peer_route_token(to)?;
-    let pack = qsp_pack(to, &payload, pad_cfg, None, SendOrigination::Control)
-        .map_err(|e| e.code)?;
+    let route_token = relay_peer_route_token(to).map_err(CliError::code)?;
+    let pack = qsp_pack(to, &payload, None, SendOrigination::Control)
+        .map_err(|e| CliError::code(e.code))?;
     qsp_session_store_with_trigger(to, &pack.next_state, &pack.trigger)
-        .map_err(|_| "qsp_session_store_failed")?;
+        .map_err(|_| CliError::code("qsp_session_store_failed"))?;
     for pre in pack.pre_envelopes.iter() {
-        transport::relay_inbox_push(relay, route_token.as_str(), pre)?;
+        transport::relay_inbox_push(relay, route_token.as_str(), pre).map_err(CliError::code)?;
     }
-    transport::relay_inbox_push(relay, route_token.as_str(), &pack.envelope)?;
+    transport::relay_inbox_push(relay, route_token.as_str(), &pack.envelope).map_err(CliError::code)?;
     Ok(())
 }
 
-fn send_file_completion_ack(
-    relay: &str,
-    to: &str,
-    file_id: &str,
-    confirm_id: &str,
-) -> Result<(), ReceiptSendError> {
-    let payload = build_file_completion_ack(file_id, confirm_id)?;
-    let pad_cfg = Some(MetaPadConfig {
-        target_len: None,
-        profile: Some(EnvelopeProfile::Standard),
-        label: Some("small"),
-    });
-    // ⚠ ENG-0095: the same barrier and the same reasoning as `send_delivered_receipt_ack`.
-    // Route token first, pack, COMMIT fail-closed, only then push. Both receipt kinds move
-    // together, because a barrier covering one of two sibling paths is not a barrier.
-    let route_token = relay_peer_route_token(to)?;
-    let pack = qsp_pack(to, &payload, pad_cfg, None, SendOrigination::Control)
-        .map_err(|e| e.code)?;
-    qsp_session_store_with_trigger(to, &pack.next_state, &pack.trigger)
-        .map_err(|_| "qsp_session_store_failed")?;
-    for pre in pack.pre_envelopes.iter() {
-        transport::relay_inbox_push(relay, route_token.as_str(), pre)?;
-    }
-    transport::relay_inbox_push(relay, route_token.as_str(), &pack.envelope)?;
-    Ok(())
-}
 
-fn meta_pad_config_from_args(
-    pad_to: Option<usize>,
-    pad_bucket: Option<MetaPadBucket>,
-    meta_seed: Option<u64>,
-) -> Result<Option<MetaPadConfig>, &'static str> {
-    if pad_to.is_none() && pad_bucket.is_none() {
-        return Ok(None);
-    }
-    if pad_to.is_some() && pad_bucket.is_some() {
-        return Err("meta_pad_conflict");
-    }
-    if let Some(len) = pad_to {
-        if len == 0 || len > PAD_TO_MAX {
-            return Err("meta_pad_invalid");
-        }
-        return Ok(Some(MetaPadConfig {
-            target_len: Some(len),
-            profile: None,
-            label: Some("pad_to"),
-        }));
-    }
-    let bucket = pad_bucket.unwrap_or(MetaPadBucket::Standard);
-    let profile = match bucket {
-        MetaPadBucket::Standard => EnvelopeProfile::Standard,
-        MetaPadBucket::Enhanced => EnvelopeProfile::Enhanced,
-        MetaPadBucket::Private => EnvelopeProfile::Private,
-        MetaPadBucket::Auto => {
-            let seed = meta_seed.ok_or("meta_seed_required")?;
-            let mut rng = RelayRng::new(seed ^ 0x51d2a9f1);
-            match rng.next_u32() % 3 {
-                0 => EnvelopeProfile::Standard,
-                1 => EnvelopeProfile::Enhanced,
-                _ => EnvelopeProfile::Private,
-            }
-        }
-    };
-    let label = match bucket {
-        MetaPadBucket::Standard => "standard",
-        MetaPadBucket::Enhanced => "enhanced",
-        MetaPadBucket::Private => "private",
-        MetaPadBucket::Auto => "auto",
-    };
-    Ok(Some(MetaPadConfig {
-        target_len: None,
-        profile: Some(profile),
-        label: Some(label),
-    }))
-}
 
-fn map_qsp_recv_reason(s: &str) -> &'static str {
-    if s.contains("REJECT_S2_REPLAY") {
-        "qsp_replay_reject"
-    } else if s.contains("REJECT_S2_OOO_BOUNDS") {
-        "qsp_ooo_reject"
-    } else if s.contains("REJECT_S2_BODY_AUTH_FAIL") {
-        "qsp_auth_failed"
-    } else if s.contains("REJECT_S2_HDR_AUTH_FAIL") {
-        "qsp_hdr_auth_failed"
-    } else {
-        "qsp_verify_failed"
-    }
-}
 
-fn map_qsp_recv_err(err: &RefimplError) -> &'static str {
-    map_qsp_recv_reason(&err.to_string())
-}
 
-fn map_qsp_pack_reason(err: &RefimplError) -> &'static str {
-    let s = err.to_string();
-    if s.contains("REJECT_S2_CHAINKEY_UNSET") {
-        "chainkey_unset"
-    } else if s.contains("REJECT_S2_LOCAL_UNSUPPORTED") {
-        "local_unsupported"
-    } else if s.contains("REJECT_S2_LOCAL_AEAD_FAIL") {
-        "local_aead_fail"
-    } else {
-        "pack_internal"
-    }
-}
 
 /// NA-0622 (ENG-0012 Stage 1b-ii): wall-clock seconds for the bounded DH-ratchet time fallback.
 fn qsp_now_unix_secs() -> u64 {
+    #[cfg(not(feature = "na0780-test-hooks"))]
+    return std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs();
+    #[cfg(feature = "na0780-test-hooks")]
+    {
     // NA-0688 C1 (R4a): delegates to the ONE clock. See `crate::clock`.
     //
     // ⚠ This is the sixth and last of the private clocks C1 consolidated, and the only one
@@ -1772,685 +1250,20 @@ fn qsp_now_unix_secs() -> u64 {
     // the ratchet's time-fallback deterministic in a test, which is what C2's
     // deferred-rotation guards will need.
     crate::clock::now_unix_s()
-}
-
-/// NA-0622 (ENG-0012 Stage 1b-ii): decide whether this send performs a classical DH ratchet.
-/// Ratchet-on-reply (a reply is pending) OR the bounded fallback fired (N messages / T seconds)
-/// OR the send chain is unset — the responder's first send, which the ratchet CREATES now that
-/// the static-`rk` bootstrap is gone.
-fn qsp_should_ratchet(st: &Suite2SessionState, trig: &QspTriggerState, now: u64) -> bool {
-    // A degenerate self-DH session (peer DH key == our own) is the UNSAFE seed-fallback test model
-    // (symmetric, both role-A); it cannot round-trip the DIRECTION-sensitive DH ratchet (a sender
-    // signs a boundary header under NHK_A->B while a role-A receiver would try NHK_B->A) and its
-    // send chain is already seeded, so it retains the pre-ratchet behavior. We key off the SESSION
-    // STATE (not the seed-permitted flag, which real-handshake tests also set): real handshake
-    // sessions have dhr != dhs. The ratchet is proven end-to-end over a real A/B handshake in
-    // tests/handshake_mvp.rs::dh_ratchet_e2e_*.
-    if st.dh.dhr == st.dh.dhs_pub {
-        return false;
-    }
-    if zero32(&st.send.ck_ec) || zero32(&st.send.ck_pq) {
-        return true;
-    }
-    trig.pending_send_ratchet
-        || trig.msgs_since_ratchet >= QSP_DH_FALLBACK_N
-        || (trig.last_ratchet_unix_secs != 0
-            && now.saturating_sub(trig.last_ratchet_unix_secs) >= QSP_DH_FALLBACK_T_SECS)
-}
-
-// NA-0624 (ENG-0012 Stage 2b): SCKA cadence policy (Operator Decision 3). The SCKA path is
-// gated OFF for the degenerate self-DH seed session (`dhr == dhs`, the UNSAFE seed-fallback
-// test model), exactly like the DH ratchet — real handshake sessions have dhr != dhs. With no
-// advertisements the SCKA path is inert and the persisted SCKA section stays empty, keeping the
-// seed-model runtime-equivalence byte-for-byte.
-fn qsp_scka_enabled(st: &Suite2SessionState) -> bool {
-    st.dh.dhr != st.dh.dhs_pub
-}
-
-/// Advertise on establishment (no live advertised key yet — also re-arms after the peer consumes
-/// our key) and on rotation (a live key advertised more than the rotation period ago is refreshed
-/// so a lost advertisement or lost reseed self-heals).
-fn qsp_scka_advertise_due(scka: &SckaLocalState, now: u64) -> bool {
-    match scka.live_advkey() {
-        None => true,
-        Some(_) => {
-            scka.last_adv_unix_secs != 0
-                && now.saturating_sub(scka.last_adv_unix_secs) >= QSP_PQ_RESEED_T_SECS
-        }
     }
 }
 
-/// Reseed when a fresh (unconsumed) peer advertisement is available AND sparsely: immediately
-/// for the first reseed, then every `QSP_PQ_RESEED_N` sent DH boundaries or
-/// `QSP_PQ_RESEED_T_SECS` seconds. Evaluated only on a non-DH-boundary send, so a reseed is
-/// co-scheduled after DH boundaries rather than replacing one.
-fn qsp_scka_reseed_due(scka: &SckaLocalState, now: u64) -> bool {
-    if scka.peer_adv.is_none() {
-        return false;
-    }
-    scka.last_reseed_unix_secs == 0
-        || scka.boundaries_since_reseed >= QSP_PQ_RESEED_N
-        || now.saturating_sub(scka.last_reseed_unix_secs) >= QSP_PQ_RESEED_T_SECS
-}
 
-/// Wrap a Suite-2 wire message in a standard-profile QSE envelope (the SCKA control-envelope
-/// path; mirrors the main-message envelope padding in `qsp_pack`).
-fn qsp_wrap_standard_envelope(
-    c: &StdCrypto,
-    wire: Vec<u8>,
-    meta_seed: Option<u64>,
-) -> Result<Vec<u8>, QspPackError> {
-    let mut env = Envelope {
-        env_version: QSE_ENV_VERSION_V1,
-        flags: 0,
-        route_token: Vec::new(),
-        timestamp_bucket: 0,
-        payload: wire,
-        padding: Vec::new(),
-    };
-    let encoded_len = env.encode().len();
-    let min_len = EnvelopeProfile::Standard.min_size_bytes();
-    if encoded_len < min_len {
-        let need = min_len - encoded_len;
-        let mut seed_bytes = Vec::new();
-        if let Some(seed) = meta_seed {
-            seed_bytes.extend_from_slice(&seed.to_le_bytes());
-        }
-        let pad = c.kmac256(&env.payload, "QSC.QSP.PAD", &seed_bytes, need);
-        env = env
-            .pad_to_profile(EnvelopeProfile::Standard, &pad)
-            .map_err(|_| QspPackError {
-                code: "qsp_pack_failed",
-                reason: Some("QSP_PACK_INTERNAL"),
-            })?;
-    }
-    Ok(env.encode())
-}
-
+// Obsolete stateless entry points cannot operate the directional vault transaction.
 fn qsp_pack(
-    channel: &str,
-    plaintext: &[u8],
-    pad_cfg: Option<MetaPadConfig>,
-    meta_seed: Option<u64>,
-    origination: SendOrigination,
+    _channel: &str,
+    _plaintext: &[u8],
+    _meta_seed: Option<u64>,
+    _origination: SendOrigination,
 ) -> Result<QspPackOutcome, QspPackError> {
-    let st =
-        qsp_session_for_channel(channel).map_err(|code| QspPackError { code, reason: None })?;
-    let mut trig = qsp_trigger_load(channel);
-    let c = StdCrypto;
-    // NA-0622 (ENG-0012 Stage 1b-ii): originate a classical DH boundary when the trigger fires
-    // (ratchet-on-reply + N=4/T=15min fallback + the responder's first send), else a normal
-    // message on the current sending chain. The DH ratchet reuses the refimpl `send_boundary`.
-    let now = qsp_now_unix_secs();
-    // NA-0624 (ENG-0012 Stage 2b): SCKA advertisement — a CONTROL message pushed BEFORE the main
-    // message. It rides the current send chain (one chain step; the peer's OOO machinery skips
-    // it), so it needs live send chain keys; the advertised ML-KEM secret key is persisted
-    // fail-closed BEFORE the advertisement envelope can exist.
-    let scka_on = qsp_scka_enabled(&st);
-    let mut scka = if scka_on {
-        qsp_scka_load(channel)
-    } else {
-        SckaLocalState::default()
-    };
-    let mut pre_envelopes: Vec<Vec<u8>> = Vec::new();
-    let mut scka_dirty = false;
-    let mut st_cur = st.clone();
-    // NA-0625 (ENG-0023, Operator Decision 2): the authenticated ADV receiver consumes its
-    // chain slot in-order, so an advertisement may share a pack with a reseed — the NA-0624
-    // ADV/reseed pack-exclusion rule (and the mkskipped control-slot growth it worked around)
-    // is RETIRED. The receiver processes the pack in order: ADV first (nr passes through the
-    // control slot), then the reseed's strict n == nr check holds.
-    if scka_on
-        && !zero32(&st_cur.send.ck_ec)
-        && !zero32(&st_cur.send.ck_pq)
-        && origination.may_originate()
-        && qsp_scka_advertise_due(&scka, now)
-    {
-        let max_known = st_cur
-            .recv
-            .known_targets
-            .iter()
-            .next_back()
-            .copied()
-            .unwrap_or(0);
-        let adv_id = scka
-            .local_next_adv_id
-            .max(max_known.saturating_add(1))
-            .max(1);
-        let (pk, sk) = runtime_pq_kem_keypair();
-        match send_pq_advertise(&c, &c, &c, st_cur.clone(), adv_id, &pk, &[]) {
-            Ok(out) => {
-                scka.insert_advkey(adv_id, sk);
-                scka.local_next_adv_id = adv_id.saturating_add(1);
-                scka.last_adv_unix_secs = now;
-                scka_dirty = true;
-                pre_envelopes.push(qsp_wrap_standard_envelope(&c, out.wire, meta_seed)?);
-                st_cur = out.state;
-                if origination.counts_toward_rotation() {
-                    trig.msgs_since_ratchet = trig.msgs_since_ratchet.saturating_add(1);
-                }
-                let id_s = adv_id.to_string();
-                emit_marker(
-                    "qsp_scka_adv",
-                    None,
-                    &[("dir", "send"), ("adv_id", id_s.as_str())],
-                );
-            }
-            Err(e) => {
-                // Fail-safe skip: no advertisement means no reseed (the classical status quo);
-                // the user message itself is unaffected.
-                emit_marker("qsp_scka_adv", Some(e), &[("dir", "send"), ("ok", "false")]);
-            }
-        }
-    }
-    // ⚠ NA-0688 C2 (R1a as amended, ruling A6) — THE ESTABLISHMENT EXCEPTION.
-    //
-    // A control send never originates a ROTATION. But `qsp_should_ratchet` returns true
-    // unconditionally when the sending chain is unseeded, and that is not the cadence — it is
-    // chain ESTABLISHMENT, the thing `send_boundary` exists to do. A send that skips it has no
-    // chain to send on at all, and ENG-0086 finding 1 makes this the COMMON case for a
-    // receipt: "the recipient's automatic ack becomes their first send."
-    //
-    // Establishment is a NECESSITY, permitted to every send; rotation is an OPPORTUNITY,
-    // reserved to user sends. The two are distinguishable in the emitted marker —
-    // establishment reports `reason=first_send`, rotation reports `reply` or `fallback` — and
-    // the guards assert on exactly that distinction.
-    //
-    // ⚠ When rotation is DUE but forbidden, falling through leaves `trig` UNTOUCHED. That is
-    // the deferred-rotation semantics: the due-state survives byte-identical and the next
-    // USER send honours it. An ack that cleared the due-state without rotating would be worse
-    // than an ack that rotated, and it is guarded in both directions.
-    let chain_unseeded = zero32(&st_cur.send.ck_ec) || zero32(&st_cur.send.ck_pq);
-    // ⚠ NA-0688 — A6 IS REVERSED. A CONTROL SEND ORIGINATES NOTHING, INCLUDING ESTABLISHMENT.
-    //
-    // A6 originally carved out chain ESTABLISHMENT as a necessity every send could perform,
-    // including an ack. That exception was measured to break sessions: `send_boundary` MINTS A
-    // FRESH DH KEYPAIR AND ADVANCES THE SHARED ROOT (it is the only way the refimpl can seed a
-    // send chain), so an ack moved the recipient's key — and a sender who had not pulled that
-    // ack then computed a boundary against a stale key. Measured result: a PERMANENT,
-    // BIDIRECTIONAL wedge — the sender could not decrypt, the recipient could not decrypt the
-    // sender's acks either, and subsequent messages failed too.
-    //
-    // So R1a is restored to its literal meaning: an ack requires an ALREADY-ESTABLISHED sending
-    // chain. When there is none the receipt is not dropped — it is written to the durable
-    // owed-receipt hold and flushed on the peer's first real send, which establishes normally.
-    // That distinction between REFUSING and DEFERRING is the whole design; refusing alone was
-    // measured to lose the first receipt of every conversation.
-    let boundary_permitted = origination.may_originate();
-    if chain_unseeded && !boundary_permitted {
-        return Err(QspPackError {
-            code: "qsp_chain_unseeded",
-            reason: Some("CONTROL_SEND_CANNOT_ESTABLISH"),
-        });
-    }
-    let (wire, next_state, msg_n) = if qsp_should_ratchet(&st_cur, &trig, now) && boundary_permitted
-    {
-        let out =
-            send_boundary(&c, &c, &c, &c, st_cur.clone(), plaintext).map_err(|e| QspPackError {
-                code: "qsp_pack_failed",
-                reason: Some(e),
-            })?;
-        // ⚠ NA-0688 C2: ESTABLISHMENT IS REPORTED FIRST, and the order matters.
-        //
-        // `pending_send_ratchet` used to win this label, so a boundary that ESTABLISHED an
-        // unseeded chain was reported as `reason=reply` whenever a reply also happened to be
-        // pending — which is the normal state of a recipient about to ack. The marker named
-        // the opportunity rather than the cause, and under passivation that is exactly the
-        // distinction the guards turn on: a control send may ESTABLISH but may never ROTATE.
-        // Measured: before this fix a first ack reported `reason=reply` while doing
-        // establishment, which would have made the ruled first-send guard unsatisfiable and
-        // left the marker saying something untrue.
-        let reason = if chain_unseeded {
-            "first_send"
-        } else if trig.pending_send_ratchet {
-            "reply"
-        } else {
-            "fallback"
-        };
-        let ns_s = st_cur.send.ns.to_string();
-        emit_marker(
-            "qsp_dh_ratchet",
-            None,
-            &[("dir", "send"), ("reason", reason), ("ns", ns_s.as_str())],
-        );
-        // ⚠ NA-0688 C3 — THE ESTABLISHMENT MUST NOT EAT THE HUMAN'S OWED REPLY.
-        //
-        // This reset used to be unconditional, and C2's establishment exception therefore had
-        // a hole: a CONTROL send that established an unseeded chain cleared
-        // `pending_send_ratchet`, silently consuming the rotation the human's reply was owed —
-        // the exact outcome RULING A's deferred-rotation semantics exist to prevent, arriving
-        // through the one branch a control send is still allowed to take.
-        //
-        // Found by C3's flip: with receipts on by default, `a_user_reply_still_rotates_the_
-        // ratchet` went red, because bob's ack established his chain and his real reply then
-        // had nothing left to rotate on. C2's own guard caught C2's own defect, one commit later.
-        //
-        // ⚠ THE PREDICATE IS `may_originate()`, NOT THE BOUNDARY PERMISSION. The first attempt
-        // at this fix keyed on `boundary_permitted` (then misnamed `rotation_permitted`), which
-        // is TRUE for an establishing control send — so it read as correct and changed nothing
-        // on the only path it was written for. Instrumenting the trigger state at each pack
-        // measured `orig=control ... rot_perm=1` and `pending 1 -> 0` across the establishing
-        // ack; the fix is keyed on the question actually being asked. Only a send permitted to
-        // ROTATE consumes the due-state.
-        //
-        // The WHOLE reset is skipped, not just the flag: `msgs_since_ratchet` and
-        // `last_ratchet_unix_secs` are the N and T fallbacks' due-state by the same argument,
-        // and an establishing boundary must not consume any of it. A USER send is unaffected —
-        // `may_originate()` is true for `User`, so it resets exactly as it always has.
-        if origination.may_originate() {
-            trig = QspTriggerState {
-                pending_send_ratchet: false,
-                msgs_since_ratchet: 0,
-                last_ratchet_unix_secs: now,
-            };
-        }
-        if scka_on && !scka.is_default() {
-            scka.boundaries_since_reseed = scka.boundaries_since_reseed.saturating_add(1);
-            scka_dirty = true;
-        }
-        (out.wire, out.state, 0u32)
-    } else if scka_on && origination.may_originate() && qsp_scka_reseed_due(&scka, now) {
-        // NA-0624: PQ reseed (DOC-CAN-003 §8.5.3) — encapsulate to the peer's advertised key and
-        // originate the FLAG_PQ_CTXT boundary via the FROZEN Stage-2a sender. The consumed peer
-        // advertisement is persisted fail-closed BEFORE the reseed wire exists (re-targeting a
-        // consumed advertisement after a crash would desynchronise the root).
-        let peer_adv = scka.peer_adv.clone().expect("reseed_due implies peer_adv");
-        match c.encap(&peer_adv.pubkey) {
-            Ok((ct, ss)) => {
-                let target_s = peer_adv.adv_id.to_string();
-                let out = send_pq_reseed(
-                    &c,
-                    &c,
-                    &c,
-                    st_cur.clone(),
-                    peer_adv.adv_id,
-                    &ct,
-                    &ss,
-                    plaintext,
-                )
-                .map_err(|e| QspPackError {
-                    code: "qsp_pack_failed",
-                    reason: Some(e),
-                })?;
-                scka.peer_adv = None;
-                scka.peer_adv_consumed_max = scka.peer_adv_consumed_max.max(peer_adv.adv_id);
-                scka.boundaries_since_reseed = 0;
-                scka.last_reseed_unix_secs = now;
-                scka_dirty = true;
-                let n = st_cur.send.ns;
-                let ns_s = n.to_string();
-                emit_marker(
-                    "qsp_pq_reseed",
-                    None,
-                    &[("dir", "send"), ("target_id", target_s.as_str()), ("ns", ns_s.as_str())],
-                );
-                if origination.counts_toward_rotation() {
-                    trig.msgs_since_ratchet = trig.msgs_since_ratchet.saturating_add(1);
-                }
-                (out.wire, out.state, n)
-            }
-            Err(_) => {
-                // Fail-safe skip: an un-encapsulatable advertisement is dropped (never
-                // re-targeted) and the message goes out on the current chain.
-                scka.peer_adv = None;
-                scka.peer_adv_consumed_max = scka.peer_adv_consumed_max.max(peer_adv.adv_id);
-                scka_dirty = true;
-                emit_marker(
-                    "qsp_pq_reseed",
-                    Some("scka_encap_failed"),
-                    &[("dir", "send"), ("ok", "false")],
-                );
-                let out = send_wire_canon(&c, &c, &c, st_cur.send.clone(), 0, plaintext).map_err(
-                    |e| QspPackError {
-                        code: "qsp_pack_failed",
-                        reason: Some(map_qsp_pack_reason(&e)),
-                    },
-                )?;
-                let mut ns = st_cur.clone();
-                ns.send = out.state;
-                if origination.counts_toward_rotation() {
-                    trig.msgs_since_ratchet = trig.msgs_since_ratchet.saturating_add(1);
-                }
-                (out.wire, ns, out.n)
-            }
-        }
-    } else {
-        let out = send_wire_canon(&c, &c, &c, st_cur.send.clone(), 0, plaintext).map_err(|e| {
-            QspPackError {
-                code: "qsp_pack_failed",
-                reason: Some(map_qsp_pack_reason(&e)),
-            }
-        })?;
-        let mut ns = st_cur.clone();
-        ns.send = out.state;
-        // ⚠ RULING A. Without this gate four received messages produce four acks,
-        // `msgs_since_ratchet` reaches QSP_DH_FALLBACK_N, and the ratchet rotates on machine
-        // traffic in a conversation where the human replied to nothing. Suppressing
-        // origination alone does NOT close that: the counter is a second, quieter channel.
-        if origination.counts_toward_rotation() {
-            trig.msgs_since_ratchet = trig.msgs_since_ratchet.saturating_add(1);
-        }
-        (out.wire, ns, out.n)
-    };
-    let mut env = Envelope {
-        env_version: QSE_ENV_VERSION_V1,
-        flags: 0,
-        route_token: Vec::new(),
-        timestamp_bucket: 0,
-        payload: wire,
-        padding: Vec::new(),
-    };
-    let mut pad_label = None;
-    let mut encoded_len = env.encode().len();
-    let min_len = EnvelopeProfile::Standard.min_size_bytes();
-    if encoded_len < min_len {
-        let need = min_len - encoded_len;
-        let mut seed_bytes = Vec::new();
-        if let Some(seed) = meta_seed {
-            seed_bytes.extend_from_slice(&seed.to_le_bytes());
-        }
-        let pad = c.kmac256(&env.payload, "QSC.QSP.PAD", &seed_bytes, need);
-        env = env
-            .pad_to_profile(EnvelopeProfile::Standard, &pad)
-            .map_err(|_| QspPackError {
-                code: "qsp_pack_failed",
-                reason: Some("QSP_PACK_INTERNAL"),
-            })?;
-        encoded_len = env.encode().len();
-    }
-    if let Some(cfg) = pad_cfg {
-        if let Some(target) = cfg.target_len {
-            if target < encoded_len {
-                return Err(QspPackError {
-                    code: "meta_pad_too_small",
-                    reason: None,
-                });
-            }
-            let need = target - encoded_len;
-            if need > 0 {
-                let mut seed_bytes = Vec::new();
-                if let Some(seed) = meta_seed {
-                    seed_bytes.extend_from_slice(&seed.to_le_bytes());
-                }
-                let pad = c.kmac256(&env.payload, "QSC.META.PAD", &seed_bytes, need);
-                env.padding.extend_from_slice(&pad);
-                encoded_len = env.encode().len();
-            }
-            pad_label = cfg.label;
-        } else if let Some(profile) = cfg.profile {
-            let min_len = profile.min_size_bytes();
-            if encoded_len < min_len {
-                let need = min_len - encoded_len;
-                let mut seed_bytes = Vec::new();
-                if let Some(seed) = meta_seed {
-                    seed_bytes.extend_from_slice(&seed.to_le_bytes());
-                }
-                let pad = c.kmac256(&env.payload, "QSC.META.PAD", &seed_bytes, need);
-                env = env
-                    .pad_to_profile(profile, &pad)
-                    .map_err(|_| QspPackError {
-                        code: "qsp_pack_failed",
-                        reason: Some("QSP_PACK_INTERNAL"),
-                    })?;
-                encoded_len = env.encode().len();
-            }
-            pad_label = cfg.label;
-        }
-    }
-    // NA-0624: persist the SCKA store exactly once, at the success boundary — an advertised
-    // ML-KEM secret key and a consumed peer advertisement MUST be durable before any wire that
-    // depends on them leaves this function, and nothing may persist if the pack fails (no
-    // orphaned live advertised key can suppress future advertisements).
-    if scka_dirty {
-        qsp_scka_store(channel, &scka).map_err(|_| QspPackError {
-            code: "qsp_pack_failed",
-            reason: Some("scka_store_failed"),
-        })?;
-    }
-    Ok(QspPackOutcome {
-        envelope: env.encode(),
-        pre_envelopes,
-        next_state,
-        trigger: trig,
-        msg_idx: msg_n,
-        ck_idx: msg_n,
-        padded_len: encoded_len,
-        pad_label,
-    })
+    Err(QspPackError { code: "directional_entry_required", reason: None })
 }
 
-fn qsp_unpack_channels_for_peer(peer: &str) -> Vec<String> {
-    let mut channels = Vec::new();
-    channels.push(peer.to_string());
-    let peer_alias = peer_alias_from_channel(peer);
-    if peer_alias != peer {
-        channels.push(peer_alias.to_string());
-    }
-    if let Ok(Some(mut rec)) = contacts_entry_read(peer_alias) {
-        normalize_contact_record(peer_alias, &mut rec);
-        for dev in rec.devices.iter() {
-            if let Some(channel) = channel_label_for_device(peer_alias, dev.device_id.as_str()) {
-                if !channels.iter().any(|v| v == &channel) {
-                    channels.push(channel);
-                }
-            }
-        }
-    }
-    channels
-}
-
-fn qsp_unpack_for_peer(
-    peer: &str,
-    envelope_bytes: &[u8],
-) -> Result<(QspUnpackOutcome, String), &'static str> {
-    let mut first_err: Option<&'static str> = None;
-    for channel in qsp_unpack_channels_for_peer(peer).into_iter() {
-        match qsp_unpack(channel.as_str(), envelope_bytes) {
-            Ok(outcome) => return Ok((outcome, channel)),
-            Err(code) => {
-                if first_err.is_none() {
-                    first_err = Some(code);
-                }
-            }
-        }
-    }
-    Err(first_err.unwrap_or("qsp_channel_invalid"))
-}
-
-fn qsp_unpack(channel: &str, envelope_bytes: &[u8]) -> Result<QspUnpackOutcome, &'static str> {
-    let env = Envelope::decode(envelope_bytes).map_err(|_| "qsp_env_decode_failed")?;
-    let st = qsp_session_for_channel(channel)?;
-    let mut trig = qsp_trigger_load(channel);
-    let c = StdCrypto;
-    // NA-0622 (ENG-0012 Stage 1b-ii) + NA-0624 (Stage 2b) + NA-0625 (ENG-0023) routing: an SCKA
-    // advertisement (FLAG_PQ_ADV) drives the AUTHENTICATED `recv_pq_adv` receiver via
-    // `recv_wire` (a control message, cryptographically bound to the session before tracking);
-    // a PQ-reseed boundary (FLAG_PQ_CTXT) decapsulates against the local advertised key and
-    // drives `apply_pq_reseed` via `recv_wire`; a classical DH boundary goes to
-    // `recv_dh_boundary`; else a normal message.
-    let flags = match decode_suite2_wire_canon(&env.payload) {
-        Ok((_, _, _, parsed)) => parsed.flags,
-        Err(_) => 0,
-    };
-    let is_pq_adv = (flags & FLAG_PQ_ADV) != 0;
-    let is_pq_ctxt = !is_pq_adv && (flags & FLAG_BOUNDARY) != 0 && (flags & FLAG_PQ_CTXT) != 0;
-    let is_dh_boundary = !is_pq_adv && (flags & FLAG_BOUNDARY) != 0 && (flags & FLAG_PQ_CTXT) == 0;
-    if is_pq_adv {
-        // NA-0625 (ENG-0023): AUTHENTICATED SCKA TRACK (DOC-CAN-004 §3.2) — the ADV drives the
-        // refimpl SESSION-LEVEL `recv_pq_adv_session` (NA-0626 ENG-0024: the root injection is
-        // internal; the INJECT/ADOPT dances are gone with the duplicated root slots). A
-        // planted/unauthenticated advertisement is REJECTED, never tracked: it fails the header
-        // AEAD under session keys and/or the ADVAUTH MAC under the canonical root. The ADV
-        // consumes its chain slot in-order (Operator Decision 2), so it leaves no receive-chain
-        // gap (mkskipped stays empty) and may share a pack with a reseed (the NA-0624 exclusion
-        // rule is retired).
-        if !qsp_scka_enabled(&st) {
-            return Err("qsp_recv_failed");
-        }
-        let parsed = match decode_suite2_wire_canon(&env.payload) {
-            Ok((_, _, _, p)) => p,
-            Err(_) => return Err("qsp_recv_failed"),
-        };
-        let adv_id = parsed.pq_adv_id.ok_or("qsp_recv_failed")?;
-        let adv_pub = parsed.pq_adv_pub.ok_or("qsp_recv_failed")?;
-        let mut scka = qsp_scka_load(channel);
-        // The `peer_adv_watermark` is CALLER-OWNED (the SCKA store's peer_adv_max_seen); the
-        // session-state watermark field belongs to the frozen CTXT receiver's consumed-target
-        // monotonicity and is not touched.
-        let outcome =
-            recv_pq_adv_session(&c, &c, &c, st.clone(), &env.payload, scka.peer_adv_max_seen);
-        if !outcome.ok {
-            let code = map_qsp_recv_reason(outcome.reason.unwrap_or("qsp_recv_failed"));
-            emit_marker(
-                "qsp_scka_adv",
-                Some(code),
-                &[("dir", "recv"), ("ok", "false")],
-            );
-            return Err("qsp_scka_adv_reject");
-        }
-        let msg_n = outcome.n.unwrap_or(0);
-        let next_state = outcome.state;
-        // Any received message arms the reply-driven trigger.
-        trig.pending_send_ratchet = true;
-        // G2 ordering pin: persist the SESSION FIRST (the consumed chain slot must be durable
-        // before anything depends on it — a replayed ADV can never re-derive the slot key),
-        // the SCKA store SECOND. A crash between the two loses only an UNTRACKED peer
-        // advertisement — bounded by the peer's T_pq re-advertise — and can never break the
-        // chain, accept a replay, or roll back consumed-monotonicity. (Contrast the CTXT arm
-        // below, which keeps its erase-consumed-key-BEFORE-plaintext order for the
-        // one-time-key hazard.)
-        qsp_session_store_with_trigger(channel, &next_state, &trig)
-            .map_err(|_| "qsp_session_store_failed")?;
-        scka.peer_adv = Some(SckaPeerAdv {
-            adv_id,
-            pubkey: adv_pub,
-        });
-        scka.peer_adv_max_seen = adv_id;
-        qsp_scka_store(channel, &scka).map_err(|_| "qsp_session_store_failed")?;
-        let id_s = adv_id.to_string();
-        emit_marker(
-            "qsp_scka_adv",
-            None,
-            &[("dir", "recv"), ("adv_id", id_s.as_str()), ("auth", "ok")],
-        );
-        return Ok(QspUnpackOutcome {
-            plaintext: Vec::new(),
-            next_state,
-            trigger: trig,
-            msg_idx: msg_n,
-            skip_delta: 0,
-            evicted: 0,
-            is_control: true,
-        });
-    }
-    let (plaintext, next_state, msg_n, skip_delta, evicted) = if is_pq_ctxt {
-        // SCKA RESEED RECEIVE (DOC-CAN-003 §8.5.3 receiver side): look up the targeted local
-        // advertised key, decapsulate, and drive the SESSION-LEVEL `recv_pq_reseed` (NA-0626
-        // ENG-0030 structural): the entry point returns a FULLY updated session state — root,
-        // receive schedule, AND the receiver's send half — so the NA-0624 INJECT/ADOPT root
-        // dances and the NA-0625 caller-side send-half refresh no longer exist (the duplicated
-        // fields are gone; the compiler enforces it). The same entry point accepts the combined
-        // DH+PQ boundary (ENG-0026: a fresh DH_pub on the 0x0006 frame). The consumed local key
-        // is erased fail-closed before the plaintext is released.
-        if !qsp_scka_enabled(&st) {
-            return Err("qsp_recv_failed");
-        }
-        let parsed = match decode_suite2_wire_canon(&env.payload) {
-            Ok((_, _, _, p)) => p,
-            Err(_) => return Err("qsp_recv_failed"),
-        };
-        let target_id = parsed.pq_target_id.ok_or("qsp_recv_failed")?;
-        let ct = parsed.pq_ct.ok_or("qsp_recv_failed")?;
-        let mut scka = qsp_scka_load(channel);
-        let secret = match scka
-            .advkeys
-            .iter()
-            .find(|k| k.adv_id == target_id && !k.consumed && !k.secret.is_empty())
-        {
-            Some(k) => k.secret.clone(),
-            None => return Err("qsp_scka_target_unknown"),
-        };
-        let ss = c.decap(&secret, &ct).map_err(|_| "qsp_scka_decap_failed")?;
-        let outcome = recv_pq_reseed(&c, &c, &c, &c, st.clone(), &env.payload, &ss, target_id);
-        if !outcome.ok {
-            return Err(map_qsp_recv_reason(
-                outcome.reason.unwrap_or("qsp_recv_failed"),
-            ));
-        }
-        let msg_n = outcome.n.unwrap_or(0);
-        let combined = parsed.dh_pub != st.dh.dhr;
-        let prev_len = st.recv.mkskipped.len();
-        let mut next_state = outcome.state;
-        let skip_delta = next_state.recv.mkskipped.len().saturating_sub(prev_len);
-        let evicted = bound_mkskipped(&mut next_state.recv);
-        scka.consume_advkey(target_id);
-        qsp_scka_store(channel, &scka).map_err(|_| "qsp_session_store_failed")?;
-        let target_s = target_id.to_string();
-        let nr_s = next_state.recv.nr.to_string();
-        let pn_s = outcome.pn.map(|v| v.to_string()).unwrap_or_default();
-        emit_marker(
-            "qsp_pq_reseed",
-            None,
-            &[
-                ("dir", "recv"),
-                ("target_id", target_s.as_str()),
-                ("combined", if combined { "true" } else { "false" }),
-                ("nr", nr_s.as_str()),
-                ("pn", pn_s.as_str()),
-            ],
-        );
-        (outcome.plaintext, next_state, msg_n, skip_delta, evicted)
-    } else if is_dh_boundary {
-        let out = recv_dh_boundary(&c, &c, &c, &c, st.clone(), &env.payload);
-        if !out.ok {
-            return Err(out.reason.unwrap_or("qsp_recv_failed"));
-        }
-        let nr_s = out.state.recv.nr.to_string();
-        let pn_s = out.state.send.pn.to_string();
-        emit_marker(
-            "qsp_dh_ratchet",
-            None,
-            &[("dir", "recv"), ("nr", nr_s.as_str()), ("pn", pn_s.as_str())],
-        );
-        (out.plaintext, out.state, 0u32, 0usize, 0usize)
-    } else {
-        let outcome = recv_wire_canon(
-            &c,
-            &c,
-            &c,
-            st.recv.clone(),
-            &st.rk,
-            &env.payload,
-            None,
-            None,
-        )
-        .map_err(|e| map_qsp_recv_err(&e))?;
-        let mut next_state = st.clone();
-        let prev_len = next_state.recv.mkskipped.len();
-        next_state.recv = outcome.state;
-        next_state.rk = outcome.rk;
-        let skip_delta = next_state.recv.mkskipped.len().saturating_sub(prev_len);
-        let evicted = bound_mkskipped(&mut next_state.recv);
-        (
-            outcome.plaintext,
-            next_state,
-            outcome.n,
-            skip_delta,
-            evicted,
-        )
-    };
-    // Any received message arms the reply-driven trigger: the next send performs a DH ratchet.
-    trig.pending_send_ratchet = true;
-    Ok(QspUnpackOutcome {
-        plaintext,
-        next_state,
-        trigger: trig,
-        msg_idx: msg_n,
-        skip_delta,
-        evicted,
-        is_control: false,
-    })
-}
 
 fn hex_encode(bytes: &[u8]) -> String {
     const HEX: &[u8; 16] = b"0123456789abcdef";
@@ -2524,7 +1337,6 @@ pub struct ReceiveArgs {
 
 struct ReceivePullCtx<'a> {
     relay: &'a str,
-    legacy_receive_mode: LegacyReceiveMode,
     attachment_service: Option<&'a str>,
     mailbox: &'a str,
     from: &'a str,
@@ -2532,9 +1344,6 @@ struct ReceivePullCtx<'a> {
     source: ConfigSource,
     cfg_dir: &'a Path,
     cfg_source: ConfigSource,
-    bucket_max: usize,
-    file_max_size: usize,
-    file_max_chunks: usize,
     receipt_policy: ReceiptPolicy,
 }
 
@@ -2571,7 +1380,7 @@ pub fn receive_file(path: &Path) -> CliResult {
     }
 
     emit_marker("recv_reject", None, &[("reason", "malformed")]);
-    return Err(CliError::code("recv_reject_parse"));
+    Err(CliError::code("recv_reject_parse"))
 }
 
 struct RelayInboxStore {
@@ -2673,7 +1482,6 @@ struct RelaySendPayloadArgs<'a> {
     payload: Vec<u8>,
     relay: &'a str,
     injector: Option<FaultInjector>,
-    pad_cfg: Option<MetaPadConfig>,
     bucket_max: Option<usize>,
     meta_seed: Option<u64>,
     receipt: Option<ReceiptKind>,
@@ -2709,17 +1517,17 @@ pub fn util_receipt_apply(
                 emit_cli_delivery_state_with_device(peer, "peer_confirmed", device);
                 Ok(())
             }
-            Err(code) => return Err(CliError::code(code)),
+            Err(code) => Err(CliError::code(code)),
         },
         (None, Some(file), Some(confirm)) => {
             let file_id = if file == "latest" {
-                latest_outbound_file_id(peer).map_err(|code| CliError::code(code))?
+                latest_outbound_file_id(peer).map_err(CliError::code)?
             } else {
                 file.to_string()
             };
             let confirm_id = if confirm == "auto" {
                 file_transfer_confirm_id(peer, file_id.as_str())
-                    .map_err(|code| CliError::code(code))?
+                    .map_err(CliError::code)?
             } else {
                 confirm.to_string()
             };
@@ -2740,12 +1548,18 @@ pub fn util_receipt_apply(
                     );
                     Ok(())
                 }
-                Err(code) => return Err(CliError::code(code)),
+                Err(code) => Err(CliError::code(code)),
             }
         }
-        _ => return Err(CliError::code("receipt_apply_invalid_args")),
+        _ => Err(CliError::code("receipt_apply_invalid_args")),
     }
 }
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct QueueFull;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct RetryExhausted;
 
 pub struct BoundedQueue<T> {
     max: usize,
@@ -2760,16 +1574,16 @@ impl<T> BoundedQueue<T> {
         }
     }
 
-    pub fn push(&mut self, item: T) -> Result<(), ()> {
+    pub fn push(&mut self, item: T) -> Result<(), QueueFull> {
         if self.items.len() >= self.max {
-            return Err(());
+            return Err(QueueFull);
         }
         self.items.push_back(item);
         Ok(())
     }
 }
 
-pub fn bounded_retry<F>(mut attempts: u32, mut op: F) -> Result<u32, ()>
+pub fn bounded_retry<F>(mut attempts: u32, mut op: F) -> Result<u32, RetryExhausted>
 where
     F: FnMut() -> Result<(), ()>,
 {
@@ -2782,7 +1596,7 @@ where
             Err(()) => {
                 attempts -= 1;
                 if attempts == 0 {
-                    return Err(());
+                    return Err(RetryExhausted);
                 }
                 let jitter = (tried as u64 % (RETRY_JITTER_MS + 1)).min(RETRY_JITTER_MS);
                 let sleep_ms = (backoff + jitter).min(RETRY_MAX_MS);
@@ -2791,7 +1605,7 @@ where
             }
         }
     }
-    Err(())
+    Err(RetryExhausted)
 }
 
 pub fn util_envelope(
@@ -3159,5 +1973,317 @@ mod message_state_tests {
             message_state_transition_allowed(MessageState::Received, MessageState::Delivered, "in")
                 .expect_err("RECEIVED -> DELIVERED must reject for inbound timeline");
         assert_eq!(err, "state_invalid_transition");
+    }
+}
+
+// Isolated experiment process-cut seams: debug test builds only, no auth/crypto
+// override. A cut exits before the next external side effect.
+pub(crate) fn directional_cut(_point:&str) {
+    #[cfg(feature = "na0780-test-hooks")]
+    if std::env::var("QSC_NA0780_CUT").ok().as_deref()==Some(_point) { std::process::exit(86); }
+}
+#[cfg(feature = "na0780-test-hooks")]
+#[doc(hidden)]
+pub fn na0780_test_stale_generation(peer:&str,generation:u64)->Result<(),&'static str>{
+    protocol_state::directional_update(peer,Some(generation),|_|Ok(()))
+}
+
+// Deterministic test rendezvous after the actual queue push, before commit's lock.
+fn directional_commit_pause()->Result<(),&'static str>{
+    #[cfg(feature = "na0780-test-hooks")]
+    if let Ok(base)=std::env::var("QSC_NA0780_COMMIT_GATE") {
+        let base=std::path::PathBuf::from(base);
+        std::fs::write(base.with_extension("ready"),b"ready").map_err(|_|"test_gate_io")?;
+        let deadline=std::time::Instant::now()+std::time::Duration::from_secs(240);
+        while !base.with_extension("release").exists() {
+            if std::time::Instant::now()>=deadline{return Err("test_gate_timeout");}
+            std::thread::sleep(std::time::Duration::from_millis(20));
+        }
+    }
+    Ok(())
+}
+
+#[cfg(feature = "na0780-test-hooks")]
+#[doc(hidden)]
+pub fn na0780_test_commit_probe(peer:&str,body:&[u8],raw:Vec<u8>)->Result<(),&'static str>{
+    use msgqueue::MessageSender;
+    let(dir,_)=config_dir().map_err(|_|"directional_store")?;
+    let mut rec=msgqueue::load_contact(&dir,peer)?.into_iter().find(|r|r.body==body).ok_or("directional_queue_missing")?;
+    rec.ciphertext=Some(raw);rec.channel=Some(resolve_send_routing_target(peer)?.channel);
+    transport::RelayMessageSender::new("http://127.0.0.1").commit(&rec)
+}
+#[cfg(feature = "na0780-test-hooks")]
+#[doc(hidden)]
+pub fn na0780_test_receive_probe(peer:&str,raw:&[u8])->Result<(),&'static str>{
+    protocol_state::directional_update(peer,None,|state|state.receive(peer,raw).map(|_|()))
+}
+#[cfg(feature = "na0780-test-hooks")]
+#[doc(hidden)]
+pub fn na0780_test_receive_response(peer:&str,raw:&[u8])->Result<Option<Vec<u8>>,&'static str>{
+    protocol_state::directional_receive_update(peer,peer,raw).map_err(protocol_state::DirectionalUpdateError::code)
+}
+#[cfg(feature = "na0780-test-hooks")]
+#[doc(hidden)]
+pub fn na0780_test_queue_contains(peer:&str,body:&[u8])->Result<bool,&'static str>{
+    let(dir,source)=config_dir().map_err(|_|"directional_store")?;
+    let _lock=lock_store_shared(&dir,source).map_err(vault::store_err_marker)?;
+    let count=msgqueue::load_contact(&dir,peer)?.into_iter().filter(|r|r.body==body).count();
+    if count>1{return Err("test_duplicate_queue_payload");}
+    Ok(count==1)
+}
+
+// Isolated acceptance seams: normal locked transaction preparation, and hostile
+// authenticated frames from a disposable sender snapshot. The latter never saves
+// a state or bypasses the receiver's authentication/selection checks.
+#[cfg(feature = "na0780-test-hooks")]
+#[doc(hidden)]
+pub fn na0780_test_prepare(peer:&str,id:&str,body:&[u8],now:u64,advertise:bool,maintenance:bool)->Result<Vec<u8>,&'static str>{
+    protocol_state::directional_update(peer,None,|state|state.prepare(id,body,now,advertise,maintenance))
+}
+#[cfg(feature = "na0780-test-hooks")]
+#[doc(hidden)]
+pub fn na0780_test_hostile_wire(snapshot:&str,mode:&str,id:u32)->Result<Vec<u8>,&'static str>{
+    use directional_core::{Core,ectx,k,lp,MAX_SKIP};
+    let mut core:Core=serde_json::from_str(snapshot).map_err(|_|"test_snapshot")?;
+    match mode {
+        "spent" => {
+            let(pk,_)=quantumshield_refimpl::crypto::stdcrypto::runtime_pq_kem_keypair();
+            core.craft_boundary(Some((id,pk)),b"negative spent target").map(|(_,raw)|raw)
+        }
+        "adv" => {
+            let(pk,_)=quantumshield_refimpl::crypto::stdcrypto::runtime_pq_kem_keypair();
+            let epoch=core.send.as_ref().ok_or("SEND_UNSET")?;
+            let mut data=ectx(epoch.id,epoch.dir,&epoch.dh);data.extend(id.to_be_bytes());data.extend(lp(&pk));
+            let mut body=id.to_be_bytes().to_vec();body.extend(lp(&pk));body.extend(k(&core.sid,&epoch.adv,"ADV_AUTH",&data));
+            core.ordinary(2,&body)
+        }
+        "gap" | "terminal" => {
+            if mode=="gap" {
+                for _ in 0..=MAX_SKIP {core.send.as_mut().ok_or("SEND_UNSET")?.step(&core.sid)?;}
+            }
+            // Existing NDI1 closure-only body, with no promises.
+            let mut body=b"NDI1".to_vec();body.push(1);body.extend(lp(b""));body.push(0);body.extend(lp(&[2]));
+            core.ordinary(0,&body)
+        }
+        _=>Err("test_mode"),
+    }
+}
+
+#[cfg(feature = "na0780-test-hooks")]
+#[doc(hidden)]
+pub fn na0780_test_seal_observer(reset:bool)->[usize;5] {
+    if reset {directional_core::seal_observer::reset();}
+    directional_core::seal_observer::stats()
+}
+#[cfg(feature = "na0780-test-hooks")]
+#[doc(hidden)]
+pub fn na0780_test_seal_observer_controls() {
+    use directional_core::{seal,seal_observer as o};
+    // Synthetic key only; this never enters a client store or transport.
+    o::reset();
+    {let _attempt=o::begin();seal(&[37;32],&[0;12],b"ad",b"one").unwrap();}
+    {let attempt=o::begin();seal(&[37;32],&[0;12],b"ad",b"two").unwrap();attempt.committed();}
+    assert_eq!(o::stats(),[2,1,1,0,0],"aborted computation is not exposure");
+    {let attempt=o::begin();seal(&[37;32],&[0;12],b"ad",b"one").unwrap();attempt.committed();}
+    assert_eq!(o::stats(),[3,2,2,1,0],"conflicting committed use must be detected");
+    o::disable();
+}
+
+
+pub(crate) fn directional_single_channel(peer: &str, channel: &str) -> Result<(), &'static str> {
+    if peer.is_empty() || peer.contains('#') || channel != peer {
+        return Err("directional_single_channel_required");
+    }
+    Ok(())
+}
+fn directional_routing_target(peer: &str) -> Result<contacts::SendRoutingTarget, &'static str> {
+    directional_single_channel(peer, peer)?;
+    let route = contacts::resolve_send_routing_target(peer)?;
+    directional_single_channel(peer, &route.channel)?;
+    Ok(route)
+}
+
+#[cfg(test)]
+mod directional_channel_tests {
+    use super::*;
+
+    #[test]
+    fn directional_rejects_alias_channel_divergence_before_transaction_access() {
+        assert_eq!(directional_single_channel("alice", "alice"), Ok(()));
+        for (alias, channel) in [("alice", "bob"), ("alice", "alice#device"), ("alice#device", "alice#device"), ("", "")] {
+            assert_eq!(directional_single_channel(alias, channel), Err("directional_single_channel_required"));
+            let error = protocol_state::directional_receive_update(channel, alias, b"untrusted frame").unwrap_err();
+            assert!(!error.expected_non_admission());
+            assert_eq!(error.code(), "directional_single_channel_required");
+        }
+    }
+}
+
+// The first-release directional profile has fixed framing and mandatory receipts.
+// Validate explicit requests before reading payloads, creating directories or
+// mutating queues. Absence selects the profile, never the old padding defaults.
+fn directional_send_options(
+    pad_to: Option<usize>,
+    pad_bucket: Option<MetaPadBucket>,
+    bucket_max: Option<usize>,
+    meta_seed: Option<u64>,
+    receipt: Option<ReceiptRequest>,
+) -> Result<(), &'static str> {
+    if pad_to.is_some() || pad_bucket.is_some() {
+        return Err("directional_padding_unsupported");
+    }
+    if bucket_max.is_some() || meta_seed.is_some() {
+        return Err("directional_send_metadata_unsupported");
+    }
+    if matches!(receipt, Some(ReceiptRequest::Off)) {
+        return Err("directional_receipts_required");
+    }
+    Ok(())
+}
+
+fn directional_receive_options(args: &ReceiveArgs) -> Result<(), &'static str> {
+    if matches!(args.legacy_receive_mode, Some(LegacyReceiveMode::Coexistence)) {
+        return Err("directional_legacy_receive_unsupported");
+    }
+    if args.attachment_service.is_some() || args.max_file_size.is_some()
+        || args.max_file_chunks.is_some() || args.file_confirm_mode.is_some()
+    {
+        return Err("directional_attachments_unsupported");
+    }
+    if args.bucket_max.is_some() {
+        return Err("directional_receive_bucketing_unsupported");
+    }
+    if args.meta_seed.is_some() {
+        return Err("directional_receive_seed_unsupported");
+    }
+    if matches!(args.receipt_mode, Some(ReceiptMode::Off | ReceiptMode::Batched))
+        || args.receipt_batch_window_ms.is_some() || args.receipt_jitter_ms.is_some()
+    {
+        return Err("directional_receipt_policy_unsupported");
+    }
+    // Explicit Delivered/Immediate select the already mandatory exact receipt path.
+    // Poll intervals/ticks/counts and deterministic pacing are consumed by the
+    // existing bounded scheduler. No file/resource policy is silently discarded.
+    Ok(())
+}
+
+// The current directional payload path projects opaque messages and has no
+// attachment descriptor/file assembly consumer. Refuse the attachment operation
+// at entry, before reading files, staging or creating an upload session.
+fn directional_attachment_preflight() -> CliResult {
+    Err(CliError::code("directional_attachments_unsupported"))
+}
+
+fn directional_receipt_account_preflight() -> CliResult {
+    for (key, supported) in [
+        (TUI_RECEIPT_MODE_SECRET_KEY, Some("immediate")),
+        (TUI_RECEIPT_BATCH_WINDOW_MS_SECRET_KEY, None),
+        (TUI_RECEIPT_JITTER_MS_SECRET_KEY, None),
+        (TUI_FILE_CONFIRM_MODE_SECRET_KEY, None),
+    ] {
+        let raw = vault::secret_get(key).map_err(CliError::code)?;
+        if let Some(raw) = raw {
+            if supported != Some(raw.trim()) {
+                return Err(CliError::code("directional_receipt_policy_unsupported"));
+            }
+        }
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod na0780_semantic_option_tests {
+    use super::*;
+
+    fn receive_args() -> ReceiveArgs {
+        ReceiveArgs {
+            transport: None, relay: None, legacy_receive_mode: None,
+            attachment_service: None, from: None, mailbox: None, max: None,
+            max_file_size: None, max_file_chunks: None, out: None,
+            deterministic_meta: false, interval_ms: None, poll_interval_ms: None,
+            poll_ticks: None, batch_max_count: None, poll_max_per_tick: None,
+            bucket_max: None, meta_seed: None, emit_receipts: None,
+            receipt_mode: None, receipt_batch_window_ms: None,
+            receipt_jitter_ms: None, file_confirm_mode: None,
+        }
+    }
+
+    #[test]
+    fn default_send_and_delivered_request_use_fixed_directional_profile() {
+        assert_eq!(directional_send_options(None, None, None, None, None), Ok(()));
+        assert_eq!(directional_send_options(None, None, None, None, Some(ReceiptRequest::Delivered)), Ok(()));
+        assert_eq!(directional_send_options(None, None, None, None, Some(ReceiptRequest::Off)), Err("directional_receipts_required"));
+    }
+
+    #[test]
+    fn every_explicit_padding_request_refuses_including_old_standard_default() {
+        for len in [0, 1, 65536, usize::MAX] {
+            assert_eq!(directional_send_options(Some(len), None, None, None, None), Err("directional_padding_unsupported"));
+        }
+        for profile in [MetaPadBucket::Standard, MetaPadBucket::Enhanced, MetaPadBucket::Private, MetaPadBucket::Auto] {
+            assert_eq!(directional_send_options(None, Some(profile), None, None, None), Err("directional_padding_unsupported"));
+        }
+        assert_eq!(directional_send_options(None, None, Some(4096), None, None), Err("directional_send_metadata_unsupported"));
+        assert_eq!(directional_send_options(None, None, None, Some(0), None), Err("directional_send_metadata_unsupported"));
+    }
+
+    #[test]
+    fn receive_default_and_supported_poll_options_remain_accepted() {
+        let mut args = receive_args();
+        assert_eq!(directional_receive_options(&args), Ok(()));
+        args.legacy_receive_mode = Some(LegacyReceiveMode::Retired);
+        args.receipt_mode = Some(ReceiptMode::Immediate);
+        args.emit_receipts = Some(ReceiptKind::Delivered);
+        args.interval_ms = Some(10); args.poll_ticks = Some(2);
+        args.batch_max_count = Some(1); args.deterministic_meta = true;
+        assert_eq!(directional_receive_options(&args), Ok(()));
+    }
+
+    #[test]
+    fn receive_unsupported_options_refuse_at_entry_before_vault_and_output_effects() {
+        let cases: Vec<Box<dyn Fn(&mut ReceiveArgs)>> = vec![
+            Box::new(|a| a.legacy_receive_mode = Some(LegacyReceiveMode::Coexistence)),
+            Box::new(|a| a.attachment_service = Some("invalid".into())),
+            Box::new(|a| a.max_file_size = Some(1)),
+            Box::new(|a| a.max_file_chunks = Some(1)),
+            Box::new(|a| a.bucket_max = Some(1)),
+            Box::new(|a| a.meta_seed = Some(0)),
+            Box::new(|a| a.receipt_mode = Some(ReceiptMode::Off)),
+            Box::new(|a| a.receipt_mode = Some(ReceiptMode::Batched)),
+            Box::new(|a| a.receipt_batch_window_ms = Some(0)),
+            Box::new(|a| a.receipt_jitter_ms = Some(0)),
+            Box::new(|a| a.file_confirm_mode = Some(FileConfirmMode::Off)),
+        ];
+        for set in cases {
+            let mut args = receive_args(); set(&mut args);
+            let expected = directional_receive_options(&args).unwrap_err();
+            let err = transport::receive_execute(args).err().expect("must refuse before missing transport/vault");
+            assert!(matches!(err, CliError::Code(ref code) if code == expected));
+        }
+    }
+
+    #[test]
+    fn queue_capacity_error_preserves_exact_items_including_zero_capacity() {
+        let mut empty = BoundedQueue::new(0);
+        assert_eq!(empty.push(9), Err(QueueFull)); assert!(empty.items.is_empty());
+        let mut queue = BoundedQueue::new(2);
+        assert_eq!(queue.push(1), Ok(())); assert_eq!(queue.push(2), Ok(()));
+        assert_eq!(queue.push(3), Err(QueueFull));
+        assert_eq!(queue.items.into_iter().collect::<Vec<_>>(), vec![1,2]);
+    }
+
+    #[test]
+    fn retry_preserves_zero_limit_counts_and_last_attempt_success() {
+        let mut calls = 0;
+        assert_eq!(bounded_retry(0, || { calls += 1; Ok(()) }), Err(RetryExhausted));
+        assert_eq!(calls, 0);
+        assert_eq!(bounded_retry(1, || { calls += 1; Err(()) }), Err(RetryExhausted));
+        assert_eq!(calls, 1);
+        calls = 0;
+        assert_eq!(bounded_retry(3, || { calls += 1; if calls == 3 { Ok(()) } else { Err(()) } }), Ok(3));
+        assert_eq!(calls, 3);
+        calls = 0;
+        assert_eq!(bounded_retry(3, || { calls += 1; Err(()) }), Err(RetryExhausted));
+        assert_eq!(calls, 3);
     }
 }

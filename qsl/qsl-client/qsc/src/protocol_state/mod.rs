@@ -5,9 +5,10 @@ use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
 use quantumshield_refimpl::crypto::traits::{Hash, Kmac};
 use quantumshield_refimpl::suite2::ratchet::{
-    Suite2DhRatchetState, Suite2RecvWireState, Suite2SendState,
+    Suite2RecvWireState,
 };
 use quantumshield_refimpl::suite2::state::Suite2SessionState;
+#[cfg(test)]
 use quantumshield_refimpl::suite2::types::{SUITE2_PROTOCOL_VERSION, SUITE2_SUITE_ID};
 use rand_core::{OsRng, RngCore};
 use serde::{Deserialize, Serialize};
@@ -84,6 +85,9 @@ pub fn qsp_status_tuple(peer: &str) -> (String, String) {
     if !check_parent_safe(&dir, source) {
         return ("INACTIVE".to_string(), "unsafe_parent".to_string());
     }
+    if let Err(code) = crate::directional_single_channel(peer, peer) {
+        return ("INACTIVE".to_string(), code.to_string());
+    }
     if !channel_label_ok(peer) {
         return ("INACTIVE".to_string(), "channel_invalid".to_string());
     }
@@ -106,6 +110,7 @@ pub(crate) fn zero32(v: &[u8; 32]) -> bool {
 }
 
 pub(crate) fn qsp_send_ready_tuple(peer: &str) -> (bool, &'static str) {
+    if crate::directional_single_channel(peer, peer).is_err() { return (false, "other"); }
     if !channel_label_ok(peer) {
         return (false, "other");
     }
@@ -253,30 +258,11 @@ pub(crate) enum SendOrigination {
 }
 
 impl SendOrigination {
-    /// May this send ORIGINATE a boundary (advertisement, DH rotation, PQ reseed)?
-    ///
-    /// ⚠ This does NOT govern chain ESTABLISHMENT. A send whose chain is unseeded must
-    /// still seed it, control or not — that is a necessity, not a rotation opportunity, and
-    /// suppressing it would leave the sender with no chain to send on at all. See `qsp_pack`.
-    pub(crate) fn may_originate(self) -> bool {
-        matches!(self, SendOrigination::User)
-    }
 
-    /// Does this send count toward the N/T rotation cadence (`msgs_since_ratchet`)?
-    ///
-    /// ⚠ RULING A: control sends do NOT. Without this, four received messages produce four
-    /// acks, `msgs_since_ratchet` reaches QSP_DH_FALLBACK_N, and the ratchet rotates on
-    /// machine traffic in a conversation where the human replied to nothing — R1a's own
-    /// sentence ("only a human reply rotates the ratchet") would be false even with
-    /// origination suppressed, because the COUNTER is a second, quieter channel.
-    pub(crate) fn counts_toward_rotation(self) -> bool {
-        matches!(self, SendOrigination::User)
-    }
+
 }
 
-pub(crate) const QSP_DH_FALLBACK_N: u32 = 4;
-/// Bounded fallback: force a DH ratchet after this many seconds without a reply.
-pub(crate) const QSP_DH_FALLBACK_T_SECS: u64 = 900;
+
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub(crate) struct QspTriggerState {
@@ -297,11 +283,7 @@ pub(crate) struct QspTriggerState {
 // with an empty SCKA section. The ML-KEM secret keys live ONLY inside the AEAD-encrypted blob.
 /// Bound on live advertised receive keys (deterministic lowest-id eviction; each sk is ~2.4 KB).
 pub(crate) const QSP_SCKA_ADVKEY_CAP: usize = 4;
-/// Reseed cadence: originate a PQ reseed after this many sent DH boundaries (Decision 3).
-pub(crate) const QSP_PQ_RESEED_N: u32 = 8;
-/// Reseed cadence: or after this many seconds since the last reseed; also the advertised-key
-/// rotation period (a stale unconsumed advertisement is re-advertised after this long).
-pub(crate) const QSP_PQ_RESEED_T_SECS: u64 = 3600;
+
 const QSP_SCKA_SECTION_MAX: usize = 64 * 1024;
 const QSP_SCKA_SK_MAX: usize = 4096;
 const QSP_SCKA_PUB_MAX: usize = 2048;
@@ -354,6 +336,7 @@ impl SckaLocalState {
     }
 
     /// The live (unconsumed, secret-bearing) advertised key with the highest id, if any.
+    #[cfg(test)]
     pub(crate) fn live_advkey(&self) -> Option<&SckaAdvKey> {
         self.advkeys
             .iter()
@@ -364,6 +347,7 @@ impl SckaLocalState {
     /// Insert a freshly advertised keypair, evicting deterministically (lowest id first,
     /// consumed entries before live ones) to stay within `QSP_SCKA_ADVKEY_CAP`. Evicted and
     /// pruned ids are tombstoned so they are never re-accepted.
+    #[cfg(test)]
     pub(crate) fn insert_advkey(&mut self, adv_id: u32, secret: Vec<u8>) {
         while self.advkeys.len() >= QSP_SCKA_ADVKEY_CAP {
             let evict_idx = self
@@ -386,6 +370,7 @@ impl SckaLocalState {
     }
 
     /// Mark a local advertised key consumed (one-time use): zero-overwrite and drop the secret.
+    #[cfg(test)]
     pub(crate) fn consume_advkey(&mut self, adv_id: u32) {
         if let Some(k) = self.advkeys.iter_mut().find(|k| k.adv_id == adv_id) {
             for b in k.secret.iter_mut() {
@@ -726,6 +711,7 @@ fn qsp_join_plaintext(trig: &QspTriggerState, scka: &SckaLocalState, snapshot: &
 
 /// Read the persisted DH-ratchet trigger for a channel (default if no session or legacy blob).
 pub(crate) fn qsp_trigger_load(peer: &str) -> QspTriggerState {
+    if crate::directional_single_channel(peer, peer).is_err() { return QspTriggerState::default(); }
     if !channel_label_ok(peer) {
         return QspTriggerState::default();
     }
@@ -752,6 +738,7 @@ pub(crate) fn qsp_trigger_load(peer: &str) -> QspTriggerState {
 
 /// Read the persisted SCKA state for a channel (default if no session or a pre-v3 blob).
 pub(crate) fn qsp_scka_load(peer: &str) -> SckaLocalState {
+    if crate::directional_single_channel(peer, peer).is_err() { return SckaLocalState::default(); }
     if !channel_label_ok(peer) {
         return SckaLocalState::default();
     }
@@ -776,26 +763,6 @@ pub(crate) fn qsp_scka_load(peer: &str) -> SckaLocalState {
     }
 }
 
-/// Persist an updated SCKA state against the CURRENTLY STORED session snapshot and trigger
-/// (read-modify-write). Used by the message path at SCKA mutation points (an advertised secret
-/// key MUST be durable before its advertisement can leave the client; a consumed peer
-/// advertisement MUST be durable before the reseed wire exists — fail closed).
-pub(crate) fn qsp_scka_store(peer: &str, scka: &SckaLocalState) -> Result<(), ErrorCode> {
-    if !channel_label_ok(peer) {
-        return Err(ErrorCode::ParseFailed);
-    }
-    let (dir, source) = config_dir()?;
-    let blob_path = qsp_session_blob_path(&dir, peer);
-    let blob = fs::read(&blob_path).map_err(|_| ErrorCode::IoReadFailed)?;
-    let pt = qsp_session_decrypt_blob(peer, &blob).map_err(|_| ErrorCode::ParseFailed)?;
-    let (trig, _old_scka, snapshot) =
-        qsp_split_plaintext(&pt).map_err(|_| ErrorCode::ParseFailed)?;
-    let recv = Suite2SessionState::restore_bytes(snapshot)
-        .map_err(|_| ErrorCode::ParseFailed)?
-        .recv;
-    qsp_session_store_inner(peer, &qsp_join_plaintext(&trig, scka, snapshot))?;
-    qsp_scka_mono_update(&dir, source, peer, &recv, scka)
-}
 
 /// Store the session state together with an explicit DH-ratchet trigger (message path). The
 /// persisted SCKA state is preserved.
@@ -944,6 +911,7 @@ fn qsp_session_load_encrypted(
 }
 
 pub(crate) fn qsp_session_load(peer: &str) -> Result<Option<Suite2SessionState>, ErrorCode> {
+    crate::directional_single_channel(peer, peer).map_err(|_| ErrorCode::ParseFailed)?;
     if !channel_label_ok(peer) {
         return Err(ErrorCode::ParseFailed);
     }
@@ -973,6 +941,7 @@ pub(crate) fn qsp_session_store(peer: &str, st: &Suite2SessionState) -> Result<(
 }
 
 fn qsp_session_store_inner(peer: &str, plaintext: &[u8]) -> Result<(), ErrorCode> {
+    crate::directional_single_channel(peer, peer).map_err(|_| ErrorCode::ParseFailed)?;
     if !channel_label_ok(peer) {
         return Err(ErrorCode::ParseFailed);
     }
@@ -1037,69 +1006,7 @@ pub(crate) fn kmac_out<const N: usize>(
     out[..N].try_into().expect("kmac output")
 }
 
-pub(crate) fn qsp_session_for_channel(channel: &str) -> Result<Suite2SessionState, &'static str> {
-    if !channel_label_ok(channel) {
-        return Err("qsp_channel_invalid");
-    }
-    if let Ok(Some(st)) = qsp_session_load(channel) {
-        return Ok(st);
-    }
-    if !allow_unsafe_seed_fallback_for_tests() {
-        return Err("qsp_no_session");
-    }
-    let seed = qsp_seed_from_env()?;
-    let c = StdCrypto;
-    let seed_bytes = seed.to_le_bytes();
-    let seed_hash = c.sha512(&seed_bytes);
-    let mut seed_key = [0u8; 32];
-    seed_key.copy_from_slice(&seed_hash[..32]);
 
-    let base = kmac_out::<32>(&c, &seed_key, "QSC.QSP.BASE", channel.as_bytes());
-    let session_id = kmac_out::<16>(&c, &base, "QSC.QSP.SID", channel.as_bytes());
-    let hk = kmac_out::<32>(&c, &base, "QSC.QSP.HK", b"");
-    let ck_ec = kmac_out::<32>(&c, &base, "QSC.QSP.CK.EC", b"");
-    let ck_pq = kmac_out::<32>(&c, &base, "QSC.QSP.CK.PQ", b"");
-    let rk = kmac_out::<32>(&c, &base, "QSC.QSP.RK", b"");
-    let dh_pub = kmac_out::<32>(&c, &base, "QSC.QSP.DH", b"");
-    // NA-0620 (Stage 1a): seed-derived DH-ratchet material for the seed-fallback session
-    // (deterministic; plumbing only — not read by the message path in Stage 1a).
-    let dh_priv = kmac_out::<32>(&c, &base, "QSC.QSP.DH.PRIV", b"");
-
-    let send = Suite2SendState {
-        session_id,
-        protocol_version: SUITE2_PROTOCOL_VERSION,
-        suite_id: SUITE2_SUITE_ID,
-        dh_pub,
-        hk_s: hk,
-        ck_ec,
-        ck_pq,
-        ns: 0,
-        pn: 0,
-    };
-    let recv = Suite2RecvWireState {
-        session_id,
-        protocol_version: SUITE2_PROTOCOL_VERSION,
-        suite_id: SUITE2_SUITE_ID,
-        dh_pub,
-        hk_r: hk,
-        ck_ec,
-        ck_pq_send: ck_pq,
-        ck_pq_recv: ck_pq,
-        nr: 0,
-        role_is_a: true,
-        peer_max_adv_id_seen: 0,
-        known_targets: BTreeSet::new(),
-        consumed_targets: BTreeSet::new(),
-        tombstoned_targets: BTreeSet::new(),
-        mkskipped: Vec::new(),
-    };
-    let dh = Suite2DhRatchetState {
-        dhs_priv: dh_priv,
-        dhs_pub: dh_pub,
-        dhr: dh_pub,
-    };
-    Ok(Suite2SessionState { rk, send, recv, dh })
-}
 
 // NA-0624 (ENG-0012 Stage 2b): co-located tests for the v3 SCKA persistence layer — the
 // section codec (fail-closed), the v3/v2/v1 plaintext split, and the G2 rollback guard.
@@ -1338,5 +1245,121 @@ mod scka_tests {
             .iter()
             .any(|k| k.adv_id == 100 && k.consumed && k.secret.is_empty()));
         assert_eq!(s.live_advkey().map(|k| k.adv_id), Some(99));
+    }
+}
+
+// Provisional isolated integration. The existing encrypted vault write is the
+// single authoritative transaction commit; queue/timeline files are projections.
+fn directional_key(peer:&str)->Result<String,&'static str>{
+    crate::directional_single_channel(peer,peer)?;
+    if !channel_label_ok(peer){return Err("directional_peer_invalid");}
+    Ok(format!("na0780_directional_transaction/{peer}"))
+}
+pub(crate) fn directional_load(peer:&str)->Result<Option<crate::directional_delivery::Transaction>,&'static str>{
+    vault::secret_get(&directional_key(peer)?)?.map(|raw|crate::directional_delivery::Transaction::decode(&raw)).transpose()
+}
+#[derive(Debug)]
+pub(crate) enum DirectionalUpdateError {
+    Local(&'static str),
+    NoCandidate,
+    Apply(&'static str),
+}
+impl DirectionalUpdateError {
+    // Only known frame-level non-admission may be skipped/tried on another
+    // candidate. Local transaction failures are never classified by string alone.
+    // Unknown apply errors default to operational failure, including timeline I/O.
+    pub(crate) fn expected_non_admission(&self)->bool {
+        match self {
+            Self::NoCandidate => true,
+            Self::Local(_) => false,
+            Self::Apply(code) => matches!(*code,
+                "PARSE" | "MAGIC" | "TYPE" | "WIRE_BOUND" | "CT_LENGTH" |
+                "BODY_LENGTH" | "TRAILING" | "HEADER_AUTH" | "HEADER_BINDING" |
+                "BODY_AUTH" | "SESSION_DIRECTION" | "ORDINARY_SHAPE" |
+                "EPOCH_UNKNOWN" | "EPOCH_BINDING" | "TERMINAL_BOUND" | "REPLAY" |
+                "SKIP_BOUND" | "BOUNDARY_REPLAY" | "ROOT_PARENT_OWNER" |
+                "PREVIOUS_EPOCH" | "PQ_SHAPE" | "TARGET_SPENT" |
+                "TARGET_NONMONOTONIC" | "TARGET_UNKNOWN" | "TERMINAL_REGRESSION" |
+                "BOOTSTRAP_TERMINAL" | "DH_NONCONTRIBUTORY" | "TYPED" |
+                "TYPED_LENGTH" | "ADV_LENGTH" | "ADV_AUTH" | "TARGET_EQUIVOCATION" |
+                "RECEIPT_BINDING" | "RECEIPT_AUTH" | "RECEIPT_CONTENT" |
+                "RECEIPT_NOT_OUTSTANDING" | "DISPOSITION_CONFLICT" | "CLOSED_REPLAY" |
+                "INTEGRATION_LENGTH" | "INTEGRATION_PROFILE" | "INTEGRATION_KIND" |
+                "INTEGRATION_ID" | "INTEGRATION_TRAILING" | "CLOSURE_CAPACITY" |
+                "CLOSURE_ORDER" | "CLOSURE_FINAL" | "CLOSURE_EPOCH" |
+                "CLOSURE_PREFIX" | "CLOSURE_TERMINAL" | "APPLICATION_ID_CONFLICT" |
+                "timeline_id_conflict" |
+                // Admission backpressure leaves this incoming frame uncommitted.
+                // A same-named encode/load error is Local and still propagates.
+                "RECEIPT_CONTEXT_CAPACITY" | "EVENT_CAPACITY" | "COMPLETION_CAPACITY" |
+                "EPOCH_CAPACITY" | "PEER_TARGET_CAPACITY" | "TRANSACTION_CAPACITY"),
+        }
+    }
+    pub(crate) fn code(self)->&'static str {match self {Self::Local(e)|Self::Apply(e)=>e,Self::NoCandidate=>"directional_profile_required"}}
+}
+pub(crate) fn directional_update<T>(peer:&str, expected:Option<u64>, apply:impl FnOnce(&mut crate::directional_delivery::Transaction)->Result<T,&'static str>)->Result<T,&'static str>{
+    directional_update_inner(peer,expected,apply,false).map_err(DirectionalUpdateError::code)
+}
+pub(crate) fn directional_receive_update(channel:&str, peer:&str, raw:&[u8])->Result<Option<Vec<u8>>,DirectionalUpdateError>{
+    crate::directional_single_channel(peer,channel).map_err(DirectionalUpdateError::Local)?;
+    directional_update_inner(channel,None,|state|state.receive(peer,raw),true)
+}
+fn directional_update_inner<T>(peer:&str, expected:Option<u64>, apply:impl FnOnce(&mut crate::directional_delivery::Transaction)->Result<T,&'static str>, receive:bool)->Result<T,DirectionalUpdateError>{
+    use DirectionalUpdateError::{Local,Apply};
+    let(dir,source)=config_dir().map_err(|_|Local("directional_store"))?;
+    let _lock=lock_store_exclusive(&dir,source).map_err(|e|Local(vault::store_err_marker(e)))?;
+    let mut state=directional_load(peer).map_err(Local)?.ok_or(DirectionalUpdateError::NoCandidate)?;
+    if expected.is_some_and(|g|g!=state.generation){return Err(Local("directional_stale_generation"));}
+    #[cfg(feature = "na0780-test-hooks")]
+    let seal_attempt=crate::directional_core::seal_observer::begin();
+    let result=apply(&mut state).map_err(Apply)?;
+    let raw=state.encode().map_err(Local)?;
+    let key=directional_key(peer).map_err(Local)?;
+    // Debug-only deterministic disk-write failure AFTER valid receive preparation.
+    // Blocks the real writer's create_new temporary file; no vault/store code edit.
+    #[cfg(feature = "na0780-test-hooks")]
+    if receive && std::env::var("QSC_NA0780_RECEIVE_SAVE_FAULT").ok().as_deref()==Some("1") {
+        let prior=vault::secret_get(&key).map_err(Local)?;
+        let blocker=dir.join(format!("vault.qsv.tmp.{}",std::process::id()));
+        std::fs::create_dir(&blocker).map_err(|_|Local("test_save_fault_setup"))?;
+        let saved=vault::secret_set(&key,&raw);
+        let cleanup=std::fs::remove_dir(&blocker).map_err(|_|Local("test_save_fault_cleanup"));
+        cleanup?;
+        let unchanged=vault::secret_get(&key).map_err(Local)?==prior;
+        if !unchanged{return Err(Local("test_save_fault_mutated_store"));}
+        crate::emit_marker("directional_receive_save_fault",None,&[("write_error",saved.as_ref().err().copied().unwrap_or("none")),("stored_state_unchanged","true")]);
+        saved.map_err(Local)?;
+        return Err(Local("test_save_fault_not_reached"));
+    }
+    let _=receive;
+    vault::secret_set(&key,&raw).map_err(Local)?;
+    #[cfg(feature = "na0780-test-hooks")]
+    seal_attempt.committed();
+    Ok(result)
+}
+pub(crate) fn directional_establish(peer:&str,session:&Suite2SessionState)->Result<(),&'static str>{
+    let(dir,source)=config_dir().map_err(|_|"directional_store")?;
+    let _lock=lock_store_exclusive(&dir,source).map_err(vault::store_err_marker)?;
+    if let Some(existing)=directional_load(peer)? {
+        return if existing.core.sid==session.send.session_id {Ok(())}else{Err("directional_session_replacement_refused")};
+    }
+    if qsp_session_load(peer).map_err(|_|"directional_prior_session")?.is_some(){return Err("directional_migration_refused");}
+    let state=crate::directional_delivery::Transaction::established(session,crate::qsp_now_unix_secs())?;
+    vault::secret_set(&directional_key(peer)?,&state.encode()?)
+}
+
+#[cfg(test)]
+mod directional_receive_error_tests {
+    use super::DirectionalUpdateError::{Apply,Local,NoCandidate};
+    #[test]
+    fn local_origin_and_unknown_errors_propagate() {
+        assert!(NoCandidate.expected_non_admission());
+        for code in ["MAGIC","PARSE","BODY_AUTH","RECEIPT_AUTH","CLOSED_REPLAY","timeline_id_conflict","RECEIPT_CONTEXT_CAPACITY","TRANSACTION_CAPACITY"] {
+            assert!(Apply(code).expected_non_admission());
+            assert!(!Local(code).expected_non_admission(),"origin must override rejection-like text");
+        }
+        for code in ["vault_write_failed","lock_contended","TRANSACTION_ENCODE","TRANSACTION_TAMPERED","timeline_read_failed","RECEIPT_EPOCH","DECAP","COUNTER_OVERFLOW","future_unknown_error"] {
+            assert!(!Apply(code).expected_non_admission());assert!(!Local(code).expected_non_admission());
+        }
     }
 }

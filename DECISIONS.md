@@ -45349,3 +45349,63 @@ Attempt-scoped cancellation plus one coordinated fresh invitation is the preferr
 next repair for the reproduced no-session collision, but is not implemented or
 authorized here. Established-session replacement and simultaneous bidirectional
 ratchet acceptance remain separate work.
+
+
+## NA-0780 first-release directional integration — identifier reservation
+
+Goals: G4
+The approved first-release slice uses one directional protocol in explicitly
+opted-in fresh development vaults. The exact project-local allocations are in
+DOC-CAN-003's NA-0780 reservation table. The completed namespace investigation
+found no conflict or separate allocation authority; existing wire/KDF bytes are
+reserved unchanged. Incompatible state refuses without reset or migration.
+The completed normal-caller F9 trace requires alias-equals-channel enforcement;
+queue projection must persist Delivered before removing authoritative completion.
+Implementation and changed-interface acceptance are pending. Earlier candidate
+results remain revision-specific evidence; relay/macOS, rollback/power-loss and
+conditional-PQ limitations are not waived. Only the operator may merge or release.
+
+
+### NA-0780 directional option and receipt contract (draft implementation)
+
+Goals: G4. The fixed first-release directional profile has no optional padding or
+metadata seed/bucketing support. Explicit send padding, bucket and seed requests
+refuse before payload reads, queue writes or network effects. Absence selects
+fixed framing, not the old implicit Standard padding profile. Directional exact
+receipts are mandatory: default/Delivered and explicit Immediate are supported;
+Off/Batched, batch-window and jitter overrides refuse. Explicit saved receipt
+policy values must be supported or operations refuse without clearing them.
+Absent saved policy does not inherit the old Batched default.
+
+Receive pacing options retain their existing bounded scheduler behavior. Explicit
+legacy coexistence, attachment service/file limits/file-confirm options, receive
+bucketing and metadata seed refuse before output/store/pull effects. Retired
+selects the only supported non-legacy receive path. Fixed wire, byte, record,
+context, skip and event limits are unchanged. No file option replaces those
+limits. File-send explicitly refuses before reading/staging/uploading because
+this slice has no directional attachment descriptor/assembly consumer; attachment
+storage/cryptography are not rewritten or reset.
+
+Message delivery is handled by durable directional receipts and Delivered
+projection; obsolete Message/FileComplete internal receipt producers/variants and
+unused metadata plumbing are removed. The attachment completion arm is retained
+with its consumer, but attachment operations remain explicitly unsupported in
+this slice. No legacy crypto is restored. QueueFull and RetryExhausted name the
+existing failure results; callback unit errors, capacities, attempts (including
+zero), backoff/jitter and CLI failure codes are preserved. No release readiness,
+macOS/relay acceptance or external independent review is claimed.
+
+
+NA-0780 local integration acceptance (2026-09-14, Goals: G4): both receive
+orderings and 56 application rounds completed with 2,112 independently verified
+phase records, exit zero, in 2h43m26s. The backpressure-aware fixture retains the
+same queued operation through bounded normal receive/retry and requires durable
+Delivered plus the original exact delivery counts. Profile/authentication,
+retirement and process-cut/stale-generation assertions also completed. This is
+Linux local mock-relay evidence; required new-head CI, focused independent review
+and actual relay/macOS acceptance remain separate gates.
+
+Attachment and padding support remain unfinished first-release work. Their
+explicit refusals are interim limitations, not removal from the roadmap.
+Conditional PQ recovery, older-complete-backup rollback exposure and unproven
+power-loss guarantees remain as stated above; no default activation or release.

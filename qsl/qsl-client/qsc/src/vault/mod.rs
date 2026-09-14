@@ -84,15 +84,18 @@ const VAULT_KEYCHAIN_SERVICE: &str = "qsc";
 const VAULT_KEYCHAIN_PROBE_ACCOUNT: &str = "qsc-availability-probe";
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct VaultPayload {
     version: u8,
+    protocol: String,
     secrets: BTreeMap<String, String>,
 }
 
 impl VaultPayload {
     fn empty() -> Self {
         Self {
-            version: 1,
+            version: 3,
+            protocol: "NA0780-DIR-INTEGRATION-01".to_string(),
             secrets: BTreeMap::new(),
         }
     }
@@ -110,6 +113,9 @@ pub enum VaultCmd {
 
 #[derive(Debug, Args)]
 pub struct VaultInitArgs {
+    /// Explicit first-release development protocol selection.
+    #[arg(long, value_name = "PROTOCOL")]
+    protocol: Option<String>,
     /// Noninteractive mode never prompts; fails closed if passphrase not provided.
     #[arg(long)]
     non_interactive: bool,
@@ -265,7 +271,12 @@ fn retain_ownership_in_session(
 /// seeding, same `vault_init` success marker, same error codes returned as values
 /// (`vault_exists`, …). No process unlock-state side effect — init and unlock stay
 /// orthogonal; the caller decides whether to unlock after init.
-pub fn vault_init_with_passphrase(passphrase: &str) -> Result<(), &'static str> {
+pub fn vault_init_with_passphrase(_passphrase: &str) -> Result<(), &'static str> {
+    Err("directional_profile_required")
+}
+
+/// Explicit opt-in for a fresh first-release development vault.
+pub fn vault_init_directional_with_passphrase(passphrase: &str) -> Result<(), &'static str> {
     if passphrase.is_empty() {
         return Err("vault_passphrase_required");
     }
@@ -538,6 +549,9 @@ fn persist_session_with_ownership(
 }
 
 fn vault_init(args: VaultInitArgs) -> CliResult {
+    if args.protocol.as_deref() != Some("directional-v1") {
+        return Err(CliError::code("directional_profile_required"));
+    }
     let noninteractive = args.non_interactive
         || std::env::var("QSC_NONINTERACTIVE").ok().as_deref() == Some("1")
         || !std::io::stdin().is_terminal();
@@ -704,6 +718,15 @@ fn vault_init_core(key_source: KeySource, mut pass: Option<String>) -> Result<()
 
     if vault_path.exists() {
         return Err(fail_core_buffers("vault_exists", &mut pass_bytes, &mut key_bytes));
+    }
+
+    // The acquired store lock is the sole permitted entry in a fresh config.
+    let entries = fs::read_dir(&cfg_dir).map_err(|_| "vault_read_failed")?;
+    for entry in entries {
+        let entry = entry.map_err(|_| "vault_read_failed")?;
+        if entry.file_name() != ".qsc.lock" {
+            return Err(fail_core_buffers("directional_fresh_vault_required", &mut pass_bytes, &mut key_bytes));
+        }
     }
 
     let parent = match vault_path.parent() {
@@ -1038,7 +1061,11 @@ fn decrypt_payload(env: &VaultRuntime) -> Result<VaultPayload, &'static str> {
             },
         )
         .map_err(|_| "vault_locked")?;
-    serde_json::from_slice(&plaintext).map_err(|_| "vault_parse_failed")
+    let payload: VaultPayload = serde_json::from_slice(&plaintext).map_err(|_| "vault_parse_failed")?;
+    if payload.version != 3 || payload.protocol.as_bytes() != crate::directional_delivery::INTEGRATION_PROFILE {
+        return Err("vault_version_unsupported");
+    }
+    Ok(payload)
 }
 
 // NA-0694 (D628 §5.2, D-1334): the ONE header serializer — every envelope byte layout in

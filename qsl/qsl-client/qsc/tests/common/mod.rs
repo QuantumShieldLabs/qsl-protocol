@@ -156,13 +156,17 @@ pub fn add_vault_passphrase_file_arg(
 
 #[allow(dead_code)]
 pub fn init_passphrase_vault(cfg: &Path, passphrase: &str) {
-    let passphrase_file = write_passphrase_file(cfg, "vault-init", passphrase);
+    ensure_dir_700(cfg);
+    let input_dir = tempfile::tempdir().expect("private vault initialization input");
+    let passphrase_file = write_passphrase_file(input_dir.path(), "vault-init", passphrase);
     let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_DISABLE_KEYCHAIN", "1")
         .args([
             "vault",
             "init",
+            "--protocol",
+            "directional-v1",
             "--non-interactive",
             "--key-source",
             "passphrase",

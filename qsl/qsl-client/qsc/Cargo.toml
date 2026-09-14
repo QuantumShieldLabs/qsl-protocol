@@ -31,6 +31,8 @@ quantumshield_refimpl = { path = "../../../tools/refimpl/quantumshield_refimpl",
 
 [features]
 default = []
+# Non-shipping acceptance instrumentation; never enable in distributed builds.
+na0780-test-hooks = []
 keychain = ["dep:keyring"]
 
 [dev-dependencies]
@@ -51,3 +53,7 @@ rcgen = "0.13"
 tempfile = "3"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "sync", "time"] }
 tokio-rustls = { version = "0.26", default-features = false, features = ["ring"] }
+
+[[test]]
+name = "na0780_directional_integration"
+required-features = ["na0780-test-hooks"]

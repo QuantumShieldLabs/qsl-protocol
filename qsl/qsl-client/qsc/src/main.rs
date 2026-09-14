@@ -532,7 +532,7 @@ fn relay_cmd(cmd: RelayCmd) -> CliResult {
             bucket_max,
         } => {
             require_unlocked("relay_send")?;
-            transport::relay_send(&to, &file, &relay, None, bucket_max, None, None)?;
+            transport::relay_send(&to, &file, &relay, bucket_max)?;
         }
         RelayCmd::InboxSet { token } => {
             require_unlocked("relay_inbox_set")?;
@@ -924,7 +924,7 @@ fn util_retry(fail: u32) -> CliResult {
             let attempts_s = attempts.to_string();
             print_marker("retry_bound", &[("attempts", attempts_s.as_str())]);
         }
-        Err(()) => return Err(CliError::code("retry_limit_exceeded")),
+        Err(RetryExhausted) => return Err(CliError::code("retry_limit_exceeded")),
     }
     Ok(())
 }

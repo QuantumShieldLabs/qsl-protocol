@@ -78,6 +78,7 @@ fn hs_default_role() -> String {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 enum HsSuiteContext {
+    #[cfg(any(test, qsc_binding_fuzz_helper))]
     LegacyV1,
     ExplicitV2 {
         block: Vec<u8>,
@@ -89,7 +90,7 @@ enum HsSuiteContext {
 impl HsSuiteContext {
     fn suite2() -> Self {
         Self::ExplicitV2 {
-            block: HS_SUITE_CONTEXT_BLOCK.to_vec(),
+            block: { let mut block = HS_SUITE_CONTEXT_BLOCK.to_vec(); block.extend([0x7f, 0x80, 1, 0, 25]); block.extend(crate::directional_delivery::INTEGRATION_PROFILE); block },
             protocol_version: HS_SUITE2_PROTOCOL_VERSION_WIRE,
             suite_id: HS_SUITE2_SUITE_ID_WIRE,
         }
@@ -97,6 +98,7 @@ impl HsSuiteContext {
 
     fn explicit_block(&self) -> Option<&[u8]> {
         match self {
+            #[cfg(any(test, qsc_binding_fuzz_helper))]
             Self::LegacyV1 => None,
             Self::ExplicitV2 { block, .. } => Some(block.as_slice()),
         }
@@ -112,6 +114,7 @@ impl HsSuiteContext {
 
     fn wire_version(&self) -> u16 {
         match self {
+            #[cfg(any(test, qsc_binding_fuzz_helper))]
             Self::LegacyV1 => HS_VERSION_LEGACY,
             Self::ExplicitV2 { .. } => HS_VERSION_V2,
         }
@@ -119,6 +122,7 @@ impl HsSuiteContext {
 
     fn mode_label(&self) -> &'static str {
         match self {
+            #[cfg(any(test, qsc_binding_fuzz_helper))]
             Self::LegacyV1 => "legacy_v1",
             Self::ExplicitV2 { .. } => "v2_suite_context",
         }
@@ -196,11 +200,8 @@ struct HandshakePending {
     suite_context: Option<Vec<u8>>,
 }
 
-fn hs_suite_context_for_mode(mode: HandshakeSuiteMode) -> HsSuiteContext {
-    match mode {
-        HandshakeSuiteMode::LegacyCompat => HsSuiteContext::LegacyV1,
-        HandshakeSuiteMode::SuiteRequired => HsSuiteContext::suite2(),
-    }
+fn hs_suite_context_for_mode(_mode: HandshakeSuiteMode) -> HsSuiteContext {
+    HsSuiteContext::suite2()
 }
 
 // NA-0711 (D647 A4 Δ38): the collapse is GONE. Every reason now prints under its own name.
@@ -250,12 +251,11 @@ fn hs_emit_suite_accept(ctx: &HsSuiteContext, compatibility: bool) {
         );
         return;
     }
-    if let HsSuiteContext::ExplicitV2 {
+    match ctx { HsSuiteContext::ExplicitV2 {
         protocol_version,
         suite_id,
         ..
-    } = ctx
-    {
+    } => {
         let protocol_s = format!("0x{protocol_version:04x}");
         let suite_s = format!("0x{suite_id:04x}");
         emit_marker(
@@ -269,6 +269,9 @@ fn hs_emit_suite_accept(ctx: &HsSuiteContext, compatibility: bool) {
                 ("reason", "ACCEPT_QSC_HS_SUITE2"),
             ],
         );
+    }
+        #[cfg(any(test, qsc_binding_fuzz_helper))]
+        HsSuiteContext::LegacyV1 => {}
     }
 }
 
@@ -287,6 +290,7 @@ fn hs_parse_parameter_block(block: &[u8]) -> Result<HsSuiteContext, &'static str
         let mut off = 0usize;
         let mut prior_id: Option<u16> = None;
         let mut suite_value: Option<[u8; 4]> = None;
+        let mut integration = false;
         let mut unknown_critical = false;
         let mut unknown_parameter = false;
 
@@ -329,6 +333,10 @@ fn hs_parse_parameter_block(block: &[u8]) -> Result<HsSuiteContext, &'static str
                 continue;
             }
 
+            if param_id == 0x7f80 {
+                if flags != HS_PARAM_FLAG_CRITICAL || value != crate::directional_delivery::INTEGRATION_PROFILE { return Err("REJECT_QSC_HS_INTEGRATION_PROFILE"); }
+                integration = true; continue;
+            }
             if flags & HS_PARAM_FLAG_CRITICAL != 0 {
                 unknown_critical = true;
             } else {
@@ -336,6 +344,7 @@ fn hs_parse_parameter_block(block: &[u8]) -> Result<HsSuiteContext, &'static str
             }
         }
 
+        if !integration { return Err("REJECT_QSC_HS_INTEGRATION_REQUIRED"); }
         let Some(tuple) = suite_value else {
             return Err("REJECT_QSC_HS_SUITE_MISSING");
         };
@@ -431,7 +440,7 @@ fn hs_decode_header(
     bytes: &[u8],
     frame_type: u8,
     payload_len: usize,
-    mode: HandshakeSuiteMode,
+    _mode: HandshakeSuiteMode,
     admit_context: bool,
 ) -> Result<(HsSuiteContext, usize), &'static str> {
     #[cfg(qsc_binding_fuzz_helper)]
@@ -443,7 +452,7 @@ fn hs_decode_header(
             bytes,
             frame_kind,
             payload_len,
-            hs_fuzz_suite_mode(mode),
+            hs_fuzz_suite_mode(_mode),
             admit_context,
         )?;
         return Ok((
@@ -464,15 +473,7 @@ fn hs_decode_header(
             return Err("handshake_type");
         }
         match ver {
-            HS_VERSION_LEGACY => {
-                if mode == HandshakeSuiteMode::SuiteRequired {
-                    return Err("REJECT_QSC_HS_LEGACY_REQUIRED");
-                }
-                if bytes.len() != 7 + payload_len {
-                    return Err("handshake_len");
-                }
-                Ok((HsSuiteContext::LegacyV1, 7))
-            }
+            HS_VERSION_LEGACY => Err("REJECT_QSC_HS_INTEGRATION_REQUIRED"),
             HS_VERSION_V2 => {
                 if bytes.len() < 9 {
                     return Err("REJECT_QSC_HS_MALFORMED_LENGTH");
@@ -1300,17 +1301,19 @@ fn hs_pending_clear(self_label: &str, peer: &str) -> Result<(), ErrorCode> {
 fn hs_pending_suite_context(pending: &HandshakePending) -> Result<HsSuiteContext, &'static str> {
     match pending.suite_context.as_deref() {
         Some(block) => hs_parse_parameter_block(block),
-        None => Ok(HsSuiteContext::LegacyV1),
+        None => Err("REJECT_QSC_HS_INTEGRATION_REQUIRED"),
     }
 }
 
 fn hs_contexts_match(a: &HsSuiteContext, b: &HsSuiteContext) -> bool {
     match (a, b) {
+        #[cfg(any(test, qsc_binding_fuzz_helper))]
         (HsSuiteContext::LegacyV1, HsSuiteContext::LegacyV1) => true,
         (
             HsSuiteContext::ExplicitV2 { block: a_block, .. },
             HsSuiteContext::ExplicitV2 { block: b_block, .. },
         ) => a_block == b_block,
+        #[cfg(any(test, qsc_binding_fuzz_helper))]
         _ => false,
     }
 }
@@ -1616,7 +1619,7 @@ pub fn handshake_init_with_suite_mode(
     let peer_channel = resolve_peer_device_target(peer, false)
         .map(|v| v.channel)
         .unwrap_or_else(|_| peer.to_string());
-    let route_token = relay_peer_route_token(peer).map_err(|code| CliError::code(code))?;
+    let route_token = relay_peer_route_token(peer).map_err(CliError::code)?;
     handshake_init_with_route(
         self_label,
         peer_channel.as_str(),
@@ -2220,6 +2223,7 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                         // cannot be re-entered with a stale epoch-0 `st`), and a guard whose absence
                         // was never shown to break the property is not evidence. Unit tests at
                         // `na0775_late_store_guard_tests`, foot of this file.
+                        crate::protocol_state::directional_establish(peer, &st)?;
                         hs_commit_session_guarded(self_label, peer, &st)?;
                         // NA-0742: ⚠⚠ **AFTER THE PUSH, NOT AFTER THE COMMIT.** The session was
                         // stored above, but this frame's LAST effect is the A2 that just left. A
@@ -2391,6 +2395,7 @@ pub(crate) fn perform_handshake_poll_with_tokens(
                         {
                             continue;
                         }
+                        crate::protocol_state::directional_establish(peer, &st)?;
                         qsp_session_store(peer, &st).map_err(|e| {
                             // NA-0757 (ENG-0239, R388 A1(b)): the typed code SURVIVES as a
                             // field. Seven distinct `ErrorCode`s reach this point and the
@@ -2814,9 +2819,9 @@ pub fn handshake_poll_with_suite_mode(
         .map(|v| v.channel)
         .unwrap_or_else(|_| peer.to_string());
     let inbox_route_token =
-        relay_self_inbox_route_token().map_err(|code| CliError::code(code))?;
+        relay_self_inbox_route_token().map_err(CliError::code)?;
     let peer_route_token =
-        relay_peer_route_token(peer).map_err(|code| CliError::code(code))?;
+        relay_peer_route_token(peer).map_err(CliError::code)?;
     handshake_poll_with_tokens(
         self_label,
         peer_channel.as_str(),
@@ -3174,5 +3179,54 @@ mod na0775_late_store_guard_tests {
              would break every re-invite, which is why the guard compares the id and not `ns`."
         );
         assert_eq!(after.send.ns, 0, "the replacement is a fresh session at epoch 0");
+    }
+}
+
+#[cfg(test)]
+mod directional_profile_tests {
+    use super::*;
+
+    #[test]
+    fn directional_exact_profile_and_suite_are_mandatory() {
+        let context = HsSuiteContext::suite2();
+        let block = context.explicit_block().unwrap();
+        assert_eq!(hs_parse_parameter_block(block).unwrap(), context);
+        assert_eq!(hs_parse_parameter_block(&HS_SUITE_CONTEXT_BLOCK), Err("REJECT_QSC_HS_INTEGRATION_REQUIRED"));
+        let profile_offset = HS_SUITE_CONTEXT_BLOCK.len();
+        let mut changed = block.to_vec();
+        *changed.last_mut().unwrap() ^= 1;
+        assert_eq!(hs_parse_parameter_block(&changed), Err("REJECT_QSC_HS_INTEGRATION_PROFILE"));
+        let mut optional = block.to_vec();
+        optional[profile_offset + 2] = 0;
+        assert_eq!(hs_parse_parameter_block(&optional), Err("REJECT_QSC_HS_INTEGRATION_PROFILE"));
+        let mut duplicate = block.to_vec();
+        // Keep the duplicate probe below the existing total-block capacity so
+        // duplicate-ID validation, rather than length validation, is exercised.
+        duplicate.extend_from_slice(&[0x7f, 0x80, 1, 0, 0]);
+        assert_eq!(hs_parse_parameter_block(&duplicate), Err("REJECT_QSC_HS_DUPLICATE_PARAMETER"));
+        let mut unsupported = block.to_vec();
+        unsupported[8] ^= 1;
+        assert_eq!(hs_parse_parameter_block(&unsupported), Err("REJECT_QSC_HS_SUITE_UNSUPPORTED"));
+        let mut reordered = block[profile_offset..].to_vec();
+        reordered.extend_from_slice(&block[..profile_offset]);
+        assert_eq!(hs_parse_parameter_block(&reordered), Err("REJECT_QSC_HS_NONCANONICAL_ORDER"));
+        assert!(hs_parse_parameter_block(&block[..block.len() - 1]).is_err());
+    }
+
+    #[test]
+    fn directional_profile_is_bound_into_handshake_transcript() {
+        let context = HsSuiteContext::suite2();
+        let mut frame = Vec::new();
+        assert!(hs_encode_header(&mut frame, HS_TYPE_INIT, &context));
+        let mut changed = frame.clone();
+        *changed.last_mut().unwrap() ^= 1;
+        assert_ne!(hs_transcript_mac(&[42; 32], &frame, b"response"), hs_transcript_mac(&[42; 32], &changed, b"response"));
+        assert_ne!(hs_transcript_hash(&[42; 32], &frame, b"response"), hs_transcript_hash(&[42; 32], &changed, b"response"));
+        assert!(hs_decode_header(&changed, HS_TYPE_INIT, 0, HandshakeSuiteMode::SuiteRequired, true).is_err());
+        let mut old = Vec::new();
+        assert!(hs_encode_header(&mut old, HS_TYPE_INIT, &HsSuiteContext::LegacyV1));
+        for mode in [HandshakeSuiteMode::SuiteRequired, HandshakeSuiteMode::LegacyCompat] {
+            assert_eq!(hs_decode_header(&old, HS_TYPE_INIT, 0, mode, true), Err("REJECT_QSC_HS_INTEGRATION_REQUIRED"));
+        }
     }
 }

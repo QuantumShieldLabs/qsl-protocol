@@ -8218,3 +8218,92 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
   No completed reproduction CI was rerun. No multi-device or reconnect claim.
 - Next collision disposition: explicit attempt-scoped cancellation and one fresh
   invitation for the no-session case is preferred but not authorized for implementation.
+
+
+### NA-0780 first-release integration acceptance scope
+
+- Status: in-lane; strict lint blocked on remaining scope/semantic disposition. No acceptance claim.
+- Originating lane: NA-0780. Last lane: NA-0780. Last-updated: 2026-09-13.
+- Finding: required ci-4a runs vault, handshake_contract_na0217i and
+  qsp_protocol_gate integration tests. Existing vault assertions require QSCV02
+  and implicit initialization; the shared fixture initializes without explicit
+  protocol selection. These conflict with the approved first-release QSCV03,
+  fresh-directory, explicit-opt-in contract. The three tests and shared helper
+  are outside the selected 18-file edit boundary.
+- Disposition: preserve partial in-scope implementation; request narrow test-path
+  authorization. Do not restore implicit activation, support a second protocol,
+  skip required tests or change workflows to make the checks pass. No test was
+  executed and no CI failure is claimed; the conflict is established from source.
+- Evidence: current TASK and lane progress reference the restored write probe,
+  pinned boundary result and exact source locations. Implementation, hardening
+  review and runtime/CI acceptance remain incomplete.
+- Update (NA-0780, 2026-09-13): the four test paths are now authorized and the
+  focused vault/handshake/protocol-gate fixtures pass on their recorded revisions.
+  Cleanup of unreachable legacy receive helpers exposed unused declarations in
+  attachment, contact and quarantine modules. Exactly those three paths are
+  approved for helper/import cleanup; protected alignment is prepared for review,
+  not installed. Remaining callers and test-only uses must be preserved.
+  Matching pinned-base strict lint reproduces the invitation membership diagnostic
+  and contact style diagnostics; these are separate from new unused helpers.
+  No lint suppression, artificial references, workflow changes or broad cleanup.
+  Some remaining field diagnostics belong to retained attachment consumers and
+  metadata option interfaces; they are not authority to remove behavior. Strict
+  lint and complete integration acceptance remain open; no closure is claimed.
+- Update (NA-0780, 2026-09-13, installed26): exact approved six-site baseline
+  lint patch applied; 16 unused helpers removed after caller/config census.
+  Existing descriptor and quarantine test callers remain under cfg(test).
+  All-feature test compilation, 31 affected units and release build pass on Linux.
+  Strict lint falls from 41 to six diagnostics: the unused payload re-export in
+  store/mod.rs is outside scope; retained fields/receipt variants and public
+  unit-error APIs require disposition. No suppression or artificial references.
+  Local run_4a bundle verification passes; OpenAPI validation stops on missing
+  PyYAML in the existing temporary environment; later stages are unrun.
+  Evidence: TASK references build tmp/na0780-scope26-cleanup. Prior implementation
+  and evidence preserved; independent review, required CI and relay/macOS gates
+  remain outstanding. No closure or release claim.
+- Update (NA-0780, 2026-09-13, lint disposition): local 4A recovered by reusing
+  an existing compatible isolated CI environment without installs/upgrades. A1
+  evidence reused; A2/A3/A4 PASS with required secondary validator. Rust source
+  and prior affected-check evidence unchanged. One exact unused store re-export
+  patch is prepared, uninstalled, pending its path supplement. The five remaining
+  diagnostics have explicit retain/blocked dispositions; public API bodies equal
+  the pinned base, and retry callers bind the unit error. No lint waiver or
+  manufactured consumers. TASK references build tmp/na0780-lint-disposition/REVIEW.md.
+- Update (NA-0780, 2026-09-13, combined semantic proposal): interim retain/blocked
+  findings are not final dispositions. A concrete eleven-file semantic/API patch
+  and exact29 scope alignment are prepared together in build tmp/na0780-semantic-
+  proposal/REVIEW.md. They refuse unsupported options before effects, distinguish
+  old implicit defaults, remove obsolete receipt/padding consumers and introduce
+  QueueFull/RetryExhausted with unchanged algorithms/caller reporting. The approved
+  store re-export patch is included exactly; main/cmd are the other proposed paths.
+  Nothing is installed/applied. Disposable-copy strict library lint, all-feature
+  test compilation and seven focused tests PASS. Full integration is incomplete:
+  initial loopback-readiness block, one approved local retry timed out at600s.
+  Four output files per actor in first-order fixture are metadata only, not an
+  acceptance pass. Preserve fixtures/results; no extension or additional run.
+  Independent review, full runtime/CI and relay/macOS gates remain outstanding.
+
+- Update (NA-0780, 2026-09-14, round5 admission diagnosis): first instrumented
+  integration attempt stopped on Alice send capacity, with both peers at three
+  receipt contexts. Copied-state inspection found no outstanding flights and
+  Bob's fully receipted epoch1 awaiting final closure. One bounded experiment
+  passed in83.73s: normal receive sealed exact ordinary closure3:1, authenticated
+  intake retired Alice recv1, and normal retry/receive delivered the SAME queued
+  sequence5 operation exactly once. This differs from the earlier pre-receive
+  scheduling blocker; its deferral remains installed. Corrected only the test
+  fixture to accept demonstrated durable-queued admission pressure and require
+  same-ID/sequence/body delivery through bounded receive/retry. All original
+  assertions,28 rounds,both orderings and fault cases remain. Full acceptance
+  was not rerun and remains incomplete; original failed fixture/results preserved.
+  Evidence: TASK/progress and build tmp/na0780-r5-diagnosis. No limit,crypto,
+  protocol,forced-flag or production change. Status: in-lane; last lane NA-0780;
+  last-updated 2026-09-14.
+
+- Update (NA-0780, 2026-09-14, focused draft publication): corrected helper
+  completed both orderings and 56 rounds,2,112 phase records,exit0,in2h43m26s.
+  Local integration acceptance is complete for its pinned source; production
+  bytes unchanged since that run. Default release build and feature-isolation
+  checks pass; no test-hook markers present in the default release executable.
+  Required new-head CI,independent integration review and actual relay/macOS
+  remain gates. Attachment/padding remain unfinished first-release work.
+  Status: in-lane. Last lane NA-0780; last-updated 2026-09-14.

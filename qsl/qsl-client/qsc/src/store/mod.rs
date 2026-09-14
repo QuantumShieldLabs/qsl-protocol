@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 
 pub(crate) use crate::adversarial::payload::{
     AttachmentConfirmPayload, AttachmentDescriptorPayload, FileTransferChunkPayload,
-    FileTransferManifestPayload, FileTransferPayload,
+    FileTransferManifestPayload,
 };
 
 #[derive(Serialize, Deserialize)]

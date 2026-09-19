@@ -3634,6 +3634,16 @@ mod tests {
 
     const ALLOWED_UNGUARDED_DH: &[AllowedUnguardedDh] = &[
         AllowedUnguardedDh {
+            file: "qsl/qsl-client/qsc/src/directional_core.rs",
+            function: "craft_boundary",
+            reason: "delegated guard: schedule rejects all-zero dhss as DH_NONCONTRIBUTORY before KDF/root derivation; caller propagates error before returning staged state or wire",
+        },
+        AllowedUnguardedDh {
+            file: "qsl/qsl-client/qsc/src/directional_core.rs",
+            function: "receive",
+            reason: "delegated guard: schedule rejects all-zero dhss as DH_NONCONTRIBUTORY before KDF/root derivation; cloned receive state is committed only on success",
+        },
+        AllowedUnguardedDh {
             file: "docs/audits/2026-09-03/AUDIT_harness_exp.rs",
             function: "establish",
             reason: "archived historical state-machine harness using ToyDh to construct a matched pair; not production X25519 execution and not evidence of cryptographic strength.",
@@ -3703,6 +3713,7 @@ mod tests {
     /// Total `.dh(` call sites per file. Drift in EITHER direction fails the scan: a new site cannot
     /// hide inside an allowlisted file, and a removed site must be de-pinned deliberately.
     const PINNED_DH_SITE_COUNTS: &[(&str, usize)] = &[
+        ("qsl/qsl-client/qsc/src/directional_core.rs", 2),
         ("docs/audits/2026-09-03/AUDIT_harness_exp.rs", 2),
         ("qsl/qsl-client/qsc/src/handshake/mod.rs", 1),
         ("tools/actors/refimpl_actor_rs/src/main.rs", 1),

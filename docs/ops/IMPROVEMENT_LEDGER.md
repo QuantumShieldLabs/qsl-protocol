@@ -8307,3 +8307,19 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
   Required new-head CI,independent integration review and actual relay/macOS
   remain gates. Attachment/padding remain unfinished first-release work.
   Status: in-lane. Last lane NA-0780; last-updated 2026-09-14.
+
+- Update (NA-0780, 2026-09-14, PR1831 CI remediation): first-head evidence
+  preserved. Timeline projection fixtures called the now-refused legacy vault
+  initializer; changed only the fixture to explicit fresh directional init.
+  Six affected test entries passed with every projection assertion retained;
+  this was not a macOS platform defect. Prepared manifest/runner alignment must
+  execute the feature-required target with a nonzero exact test inventory and
+  bounded fresh fixtures; full 56-round acceptance remains separate local evidence.
+  The adversarial installer failed in an old rustix nightly-attribute probe;
+  a pinned host-driver stable build, retaining nightly fuzz execution, is prepared.
+  DH guard inventory missed the existing delegated all-zero rejection; exact
+  test-only inventory alignment is prepared, not a runtime/KDF change. CodeQL
+  176 requires receipt-context/counter and durable retry review; 177–182 are
+  deliberate non-shipping observer controls. No alert dismissed or suppressed.
+  Protected CI/test-inventory edits await exact scope review. Status: in-lane;
+  last lane NA-0780; last-updated 2026-09-14.

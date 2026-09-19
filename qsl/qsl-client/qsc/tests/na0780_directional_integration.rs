@@ -1791,3 +1791,46 @@ fn directional_suppression_saved_receipt_inspect() {
     println!("NA0780_ACCEPT group=saved_failure_authenticated_completion_body_match_receiver_floor_covers_selected_epoch_single_payload result=pass");
     println!("NA0780_SAVED_RECEIPT {}",serde_json::json!({"sender_completion_matches":true,"selected_flight_absent":true,"sender_floor":sender["send_floor"],"receiver_floor":receiver["recv_floor"],"selected_epoch_context_absent":true,"single_payload":true}));
 }
+
+// Bounded hosted-CI coverage. This is not the 56-round acceptance or a resume.
+#[test]
+fn directional_ci_fresh_crossed_delivery() {
+    for key in ["QSC_QSP_SEED", "QSC_ALLOW_SEED_FALLBACK", "QSC_UNSAFE_TEST_SEED_FALLBACK"] {
+        env::remove_var(key);
+    }
+    for order in 0..2 {
+        let base = safe_test_root().join(format!("directional_ci_{}_{}", std::process::id(), order));
+        assert!(!base.exists());
+        ensure_dir_700(&base);
+        let a = base.join("alice"); let b = base.join("bob");
+        let ao = base.join("a-out"); let bo = base.join("b-out");
+        for dir in [&a, &b, &ao, &bo] { ensure_dir_700(dir); }
+        common::init_mock_vault(&a); common::init_mock_vault(&b);
+        let server = common::start_inbox_server(1024 * 1024, 128);
+        let relay = server.base_url();
+        hs_dance(&a, &b, &relay, &server);
+        let sa = integration_state(&a, "bob"); let sb = integration_state(&b, "alice");
+        assert_eq!(sa["version"], "NA0780-DIR-INTEGRATION-01");
+        assert_eq!(sa["core"]["sid"], sb["core"]["sid"]);
+        assert_eq!(sa["core"]["root"], sb["core"]["root"]);
+        let af = base.join("a.body"); let bf = base.join("b.body");
+        fs::write(&af, format!("fresh CI A {order}")).unwrap();
+        fs::write(&bf, format!("fresh CI B {order}")).unwrap();
+        let accepted_a = acceptance_enqueue_once(&a, &relay, "bob", &af);
+        let accepted_b = acceptance_enqueue_once(&b, &relay, "alice", &bf);
+        for _ in 0..4 {
+            if order == 0 {
+                poll_candidate(&b, &relay, ROUTE_TOKEN_BOB, "alice", &bo);
+                poll_candidate(&a, &relay, ROUTE_TOKEN_ALICE, "bob", &ao);
+            } else {
+                poll_candidate(&a, &relay, ROUTE_TOKEN_ALICE, "bob", &ao);
+                poll_candidate(&b, &relay, ROUTE_TOKEN_BOB, "alice", &bo);
+            }
+        }
+        assert!(acceptance_same_operation_done(&a, "bob", &accepted_a));
+        assert!(acceptance_same_operation_done(&b, "alice", &accepted_b));
+        payload_once(&bo, &fs::read(&af).unwrap());
+        payload_once(&ao, &fs::read(&bf).unwrap());
+        println!("NA0780_CI order={order} same_operation_delivered=2 result=pass");
+    }
+}

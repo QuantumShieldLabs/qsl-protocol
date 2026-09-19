@@ -55,10 +55,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # cargo-fuzz 0.13.1's locked dependency set pulls rustix 0.36.5,
-          # which no longer compiles on current runners. Keep cargo-fuzz
-          # pinned while allowing compatible dependency resolution on nightly.
-          cargo +nightly install cargo-fuzz --version 0.13.1
+          # Build the pinned host-side driver on stable. rustix's nightly feature
+          # probe enables removed compiler-internal layout attributes on current nightly.
+          # The fuzz build/run below still uses nightly and all existing sanitizers.
+          cargo +stable install cargo-fuzz --version 0.13.1 --locked
+          cargo +stable fuzz --version
       - name: Run qsc adversarial smoke
         shell: bash
         run: |

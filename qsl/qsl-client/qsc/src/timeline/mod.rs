@@ -765,7 +765,7 @@ mod na0780_tests {
         std::env::set_var("QSC_CONFIG_DIR", dir.path());
         std::env::remove_var("QSC_QSP_SEED");
         std::env::remove_var("QSC_ALLOW_SEED_FALLBACK");
-        vault::vault_init_with_passphrase("local timeline fixture only").unwrap();
+        vault::vault_init_directional_with_passphrase("local timeline fixture only").unwrap();
         vault::protection::unlock_guarded("local timeline fixture only").unwrap();
         Some(dir)
     }

@@ -55,10 +55,28 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # cargo-fuzz 0.13.1's locked dependency set pulls rustix 0.36.5,
-          # which no longer compiles on current runners. Keep cargo-fuzz
-          # pinned while allowing compatible dependency resolution on nightly.
-          cargo +nightly install cargo-fuzz --version 0.13.1
+          # cargo-fuzz 0.13.1's BUNDLED Cargo.lock pins rustix 0.36.5, whose
+          # rustc_layout_scalar_valid_range_* attributes current nightly rejects:
+          # 4 errors in rustix-0.36.5/src/backend/linux_raw/io/errno.rs, exit 101.
+          #
+          # THE COMMENT THIS REPLACES WAS TRUE WHEN WRITTEN AND SILENTLY STOPPED
+          # BEING TRUE. It read "Keep cargo-fuzz pinned while allowing compatible
+          # dependency resolution on nightly" -- i.e. it relied on `cargo install`
+          # WITHOUT `--locked` re-resolving past that pin. Current nightly cargo
+          # honours a published Cargo.lock BY DEFAULT, so this step became a
+          # --locked install with no edit on our side and went red on a push that
+          # changed nothing about it. Measured 2026-09-22: the failing run's own
+          # log resolves 0.13.1's bundled set exactly -- rustix 0.36.5, anyhow
+          # 1.0.66, heck 0.4.0, clap_lex 0.3.0, ryu 1.0.15 -- with no --locked
+          # passed. A default we do not control is not a pin.
+          #
+          # THE CURE IS THE VERSION, AND --locked IS NOW EXPLICIT so the step no
+          # longer depends on which way that default happens to be set.
+          # cargo-fuzz 0.13.2's bundled lock carries rustix 1.1.4.
+          # Measured on the pinned nightly, scratch CARGO_HOME, both arms:
+          #   0.13.1 --locked -> rustix 0.36.5, EXIT=101  (reproduces the runner)
+          #   0.13.2 --locked -> rustix 1.1.4,  EXIT=0
+          cargo +nightly install cargo-fuzz --version 0.13.2 --locked
       - name: Run qsc adversarial smoke
         shell: bash
         run: |
